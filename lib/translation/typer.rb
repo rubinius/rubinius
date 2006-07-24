@@ -275,4 +275,28 @@ class RsTyper < SexpProcessor
   
   alias :process_until :process_while
   
+  def process_case(x)
+    process! x, 1
+    
+    types = []
+    whens = x[2]
+    0.upto(whens.size - 1) do |i|
+      process! whens, i
+      types << whens[i].type
+    end
+    
+    types.uniq!
+    if types.size == 1
+      x.set_type types.first
+    else
+      x.set_type types
+    end
+  end
+  
+  def process_when(x)
+    process! x, 1
+    process! x, 2
+    x.unify_with 2
+  end
+  
 end

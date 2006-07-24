@@ -1,3 +1,5 @@
+require 'baker_gc'
+
 class ObjectMemory
   DefaultSize = 128_000 # 128k
   
@@ -5,11 +7,11 @@ class ObjectMemory
     @baker = BakerGC.new(DefaultSize)
   end
   
-  def new_object(klass, fields)
-    RObject.setup @baker, klass, fields
+  def delete
+    @baker.destroy!
   end
   
-  def bootstrap
-    cls = new_object nil, 
+  def new_object(klass, fields)
+    RObject.setup @baker, klass, fields
   end
 end

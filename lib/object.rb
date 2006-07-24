@@ -1,4 +1,5 @@
 require 'memory'
+require 'types'
 
 class RObject
   def initialize(address)
@@ -11,6 +12,12 @@ class RObject
   HeaderSize = 12
   
   def self.setup(heap, klass, fields)
+    obj = create(heap, klass, fields)
+    obj.initialize_fields
+    return obj
+  end
+  
+  def self.create(heap, klass, fields)
     if klass.kind_of? RObject
       klass = klass.address
     elsif !klass
@@ -24,16 +31,32 @@ class RObject
 
     Memory.store_long address + 2, 0, klass
     Memory.store_long address + 6, 0, fields
+    obj = RObject.new(address)
+    obj.flags = 0
+    obj.flags2 = 0
+    return obj
+  end
+  
+  def initialize_fields
     start = address + HeaderSize
     
     0.upto(fields) do |i|
       Memory.store_long start, i, 4
     end
     
-    obj = RObject.new(address)
-    obj.flags = 0
-    obj.flags2 = 0
+    return self
+  end
+  
+  def self.setup_bytes(heap, klass, words)
+    obj = create(heap, klass, words)
+    
+    obj.make_byte_storage
+    obj.initialize_bytes
     return obj
+  end
+  
+  def initialize_bytes
+    Memory.clear_memory byte_start, (fields * 4)
   end
     
   def memory_size
@@ -46,6 +69,14 @@ class RObject
   
   def flags=(fl)
     Memory.store_byte @address, fl.to_i
+  end
+  
+  def flag_set?(fl)
+    flags & fl == fl
+  end
+  
+  def flag_set(fl)
+    self.flags = flags | fl
   end
   
   def flags2
@@ -73,9 +104,23 @@ class RObject
   
   attr_reader :address
   
+  def hash_int
+    @address
+  end
+  
   def rclass
     m = Memory.fetch_long @address + 2, 0
-    return RObject.new(m)
+    obj = RObject.new(m)
+    while obj.reference? and Rubinius::MetaClass.metaclass?(obj)
+      obj.as :class
+      obj = obj.superclass
+    end
+    obj.as :class
+    return obj
+  end
+  
+  def rclass=(obj)
+    Memory.store_long @address + 2, 0, obj.address
   end
   
   def ==(obj)
@@ -120,7 +165,9 @@ class RObject
     when NilClass
       4
     when Fixnum
-      (val << 1) | 1
+      fx = (val.abs << 3) | 1
+      fx |= 4 if val < 0
+      fx
     else
       raise ArgumentError, "Unable to wrap #{val}"
     end
@@ -140,15 +187,117 @@ class RObject
     @address == 4
   end
   
+  def self.nil
+    RObject.new(4)
+  end
+  
   def fixnum?
-    @address & 1 == 1
+    @address & 1 == 1 and @address & 2 == 0
+  end
+  
+  def fixnum_neg?
+    @address & 4 == 4
+  end
+  
+  def self.symbol(idx)
+    fx = idx << 2
+    fx |= 3
+    RObject.new(fx)
+  end
+  
+  def symbol?
+    @address & 3 == 3
+  end
+  
+  def symbol_index
+    @address >> 2
+  end
+  
+  def to_int
+    fx = @address >> 3
+    fx = -fx if fixnum_neg?
+    fx
   end
   
   def true?
     @address == 2
   end
   
+  def self.true
+    RObject.new(2)
+  end
+  
   def false?
     @address == 0
+  end
+  
+  def self.false
+    RObject.new(0)
+  end
+  
+  def self.undef
+    RObject.new(6)
+  end
+  
+  def undef?
+    @address == 6
+  end
+  
+  StoresBytesFlag = 0x04
+  
+  def stores_bytes?
+    return false unless reference?
+    return true if flag_set?(StoresBytesFlag)
+    return false
+  end
+  
+  def make_byte_storage
+    flag_set StoresBytesFlag
+  end
+  
+  def byte_start
+    address + HeaderSize
+  end
+  
+  def store_byte(idx, byte)
+    addr = byte_start + idx
+    Memory.store_byte addr, byte
+  end
+  
+  def fetch_byte(idx)
+    addr = byte_start + idx
+    Memory.fetch_byte addr
+  end
+  
+  def as(type)
+    extend Rubinius::Types[type]
+  end
+  
+  def create_metaclass(sup=nil)
+    unless sup
+      cls = self.direct_class
+      sup = cls.metaclass
+      # puts "Using metaclass of #{cls.address} (#{sup.address}) for #{address}"
+    end
+    meta = Rubinius::MetaClass.attach(self)
+    meta.superclass = sup
+  end
+  
+  def metaclass
+    m = Memory.fetch_long @address + 2, 0
+    obj = RObject.new(m)
+    if obj.reference? and !Rubinius::MetaClass.metaclass?(obj)
+      # puts "#{obj.inspect} is in the class slot, but not a metaclass!"
+      obj = RObject.nil
+    end
+    obj.as :metaclass
+    return obj
+  end
+  
+  def direct_class
+    m = Memory.fetch_long @address + 2, 0
+    obj = RObject.new(m)
+    obj.as :class
+    return obj
   end
 end

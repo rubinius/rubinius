@@ -152,4 +152,22 @@ class TestTyper < Test::Unit::TestCase
     assert_equal Type.Fixnum, out.type
   end
   
+  def test_case
+    cs = [:case, [:true], [
+      [:when, [:array, [:lit, 1]], [:lit, 9]],
+      [:when, [:array, [:lit, 2]], [:true]]
+    ]]
+    
+    out = trans cs
+    assert_equal [Type.Fixnum, Type.bool], out.type
+    
+    cs = [:case, [:true], [
+      [:when, [:array, [:lit, 1]], [:lit, 9]],
+      [:when, [:array, [:lit, 2]], [:lit, 10]]
+    ]]
+    
+    out = trans cs
+    assert_equal Type.Fixnum, out.type
+  end
+  
 end

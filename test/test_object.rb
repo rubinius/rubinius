@@ -1,10 +1,13 @@
-
+require 'rubygems'
 require 'test/unit' unless defined? $ZENTEST and $ZENTEST
+require 'test/unit/show_code'
 require 'object'
+require 'cpu/runtime'
 require 'heap'
 
 class TestRObject < Test::Unit::TestCase
   def setup
+    Rubinius.cpu = CPU.new
     @heap = Heap.new(256)
     @obj = RObject.setup(@heap, nil, 4)
     @one = RObject.wrap(1)
@@ -44,6 +47,11 @@ class TestRObject < Test::Unit::TestCase
       RObject.wrap Object.new
     end
   end
+  
+  def test_undef
+    u = RObject.undef
+    assert u.undef?
+  end
 
   def test_address
     assert_equal @heap.address, @obj.address
@@ -81,6 +89,11 @@ class TestRObject < Test::Unit::TestCase
     f = RObject.wrap(false)
     
     assert !f.fixnum?
+  end
+  
+  def test_to_int
+    f = RObject.wrap(100)
+    assert_equal 100, f.to_int
   end
 
   def test_flags
@@ -224,4 +237,43 @@ class TestRObject < Test::Unit::TestCase
     calc = RObject::HeaderSize + (@obj.fields * 4)
     assert_equal calc, sz
   end
+  
+  def test_negative_fixnum
+    obj = RObject.wrap(-1)
+    assert obj.fixnum_neg?
+    assert_equal -1, obj.to_int
+  end
+  
+  def test_symbol
+    obj = RObject.symbol(1)
+    assert obj.symbol?
+    assert_equal 1, obj.symbol_index
+  end
+  
+  def test_stores_bytes_eh
+    t = RObject.wrap(true)
+    assert !t.stores_bytes?
+    
+    t = RObject.wrap(1)
+    assert !t.stores_bytes?
+    
+    assert !@obj.stores_bytes?
+    
+    @obj.make_byte_storage
+    
+    assert @obj.stores_bytes?
+  end
+  
+  def test_s_setup_bytes
+    obj = RObject.setup_bytes @heap, nil, 4
+    assert obj.stores_bytes?
+  end
+  
+  def test_store_and_fetch_byte
+    obj = RObject.setup_bytes @heap, nil, 4
+    obj.store_byte 0, 99
+    out = obj.fetch_byte 0
+    assert_equal 99, out
+  end
+    
 end

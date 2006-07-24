@@ -126,4 +126,15 @@ class RsNormalizer < SexpProcessor
     process_while x, :until
   end
   
+  def process_when(x)
+    cond = x.shift
+    body = x.shift
+    
+    if body[0] != :block
+      body = [:block, body]
+    end
+    
+    [:when, cond, body]
+  end
+  
 end

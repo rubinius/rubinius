@@ -157,4 +157,13 @@ class TestRsNormalize < Test::Unit::TestCase
     assert_equal output, got
   end
   
+  def test_process_when
+    input =  [:when, [:array, [:lit, 1]], [:true]]
+    output = [:when, [:array, [:lit, 1]], [:block, [:true]]]
+    
+    got = norm input
+    assert_equal output, got
+  end
+    
+  
 end

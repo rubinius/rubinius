@@ -122,10 +122,11 @@ class Memory
     # from +intptr+
     builder.c_singleton <<-CODE
     void store_long(unsigned long intptr, unsigned long idx, long data) {
-        long *ptr = (long*)(intptr + (idx * sizeof(long)));
+        long *ptr;
         on_segfault {
           rb_raise(rb_path2class("Memory::Fault"), "Unable to store long at 0x%X, index %d", intptr, idx);
         }
+        ptr = (long*)(intptr + (idx * sizeof(long)));
         *ptr = data;
     }
     CODE
