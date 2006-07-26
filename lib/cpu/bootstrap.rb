@@ -23,6 +23,8 @@ class CPU
     
     Global.string = Rubinius::String.class_obj Global.object
     Global.symtbl = Rubinius::SymbolTable.class_obj Global.object
+    Global.methtbl = Rubinius::MethodTable.class_obj Global.hash
+    Global.cmethod = Rubinius::CompiledMethod.class_obj Global.object
     
     Global.symbols = Rubinius::SymbolTable.new
     
@@ -37,6 +39,7 @@ class CPU
     Global.hash.setup "Hash"
     Global.string.setup "String"
     Global.symtbl.setup "SymbolTable"
+    Global.methtbl.setup "MethodTable"
     
     sym = Rubinius::String.new("Symbols").to_sym
     Global.object.const_set sym, Global.symbols
@@ -53,5 +56,9 @@ class CPU
   
   def bootstrap_contexts
     Global.methctx = Rubinius::MethodContext.class_obj Global.object
+    Global.blokctx = Rubinius::BlockContext.class_obj Global.object
+    
+    Global.methctx.setup 'MethodContext'
+    Global.blokctx.setup 'BlockContext'
   end
 end

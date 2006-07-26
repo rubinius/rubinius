@@ -6,6 +6,10 @@ module Rubinius
     
     def self.new
       obj = allocate
+      setup(obj)
+    end
+    
+    def self.setup(obj)
       obj.keys = Rubinius::Tuple.allocate(Increments)
       obj.values = Rubinius::Tuple.allocate(Increments)
       obj.bins = RObject.wrap(Increments)

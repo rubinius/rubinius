@@ -202,7 +202,9 @@ class RObject
   def self.symbol(idx)
     fx = idx << 2
     fx |= 3
-    RObject.new(fx)
+    out = RObject.new(fx)
+    out.as :symbol
+    return out
   end
   
   def symbol?
@@ -271,6 +273,11 @@ class RObject
   
   def as(type)
     extend Rubinius::Types[type]
+    return self
+  end
+  
+  def as_string
+    "#<RObject:0x#{@address.to_s(16)}>"
   end
   
   def create_metaclass(sup=nil)
@@ -281,17 +288,29 @@ class RObject
     end
     meta = Rubinius::MetaClass.attach(self)
     meta.superclass = sup
+    return meta
   end
   
-  def metaclass
+  def access_metaclass
     m = Memory.fetch_long @address + 2, 0
     obj = RObject.new(m)
     if obj.reference? and !Rubinius::MetaClass.metaclass?(obj)
       # puts "#{obj.inspect} is in the class slot, but not a metaclass!"
+      # obj = RObject.nil
       obj = RObject.nil
     end
-    obj.as :metaclass
+
     return obj
+  end
+  
+  def metaclass
+    meta = access_metaclass
+    if meta.nil?
+      meta = create_metaclass
+      meta.setup_fields
+    end
+    meta.as :metaclass
+    return meta
   end
   
   def direct_class

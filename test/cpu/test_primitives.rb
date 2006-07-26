@@ -200,4 +200,14 @@ class TestCPUPrimitives < Test::Unit::TestCase
     assert !do_prim(:allocate)
   end
   
+  def test_create_block
+    @cpu.bootstrap
+    @cpu.push_object RObject.wrap(0)
+    @cpu.push_object @cpu.active_context
+    assert do_prim(:create_block)
+    obj = obj_top()
+    assert_stack_size 1
+    assert_equal CPU::Global.blokctx, obj.rclass
+  end
+  
 end

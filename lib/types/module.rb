@@ -2,8 +2,9 @@ module Rubinius
   module Module
     Fields = [:methods, :name, :constants]
     
-    def setup_constants
+    def setup_fields
       self.constants = Rubinius::Hash.new
+      self.methods = Rubinius::MethodTable.new
     end
     
     def setup_name(str)
@@ -14,8 +15,9 @@ module Rubinius
     end
     
     def setup(str)
-      setup_constants
+      setup_fields
       setup_name(str)
+      self.metaclass.setup_fields
     end
     
     def const_set(sym, obj)

@@ -13,7 +13,8 @@ class CPU::Primitives
     :at,
     :put,
     :fields,
-    :allocate
+    :allocate,
+    :create_block
   ]
   
   def perform(prim)
@@ -139,6 +140,22 @@ class CPU::Primitives
     obj = @cpu.new_object cls, count.to_int
     
     @cpu.push_object obj
+    return true
+  end
+  
+  def create_block
+    ctx = @cpu.pop_object
+    lst = @cpu.pop_object
+    
+    return false unless ctx.reference?
+    return false unless lst.fixnum?
+    
+    ctx.as :methctx
+    
+    blk = Rubinius::BlockContext.under_context ctx
+    blk.last_op = lst
+    
+    @cpu.push_object blk
     return true
   end
 end

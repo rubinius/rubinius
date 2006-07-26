@@ -29,7 +29,20 @@ class CPU::InstructionEncoder
     :make_array,
     :set_ivar,
     :push_ivar,
-    :goto_if_defined
+    :goto_if_defined,
+    :push_const,
+    :set_const,
+    :find_const,
+    :attach_method,
+    :add_method,
+    :open_class,
+    :open_module,
+    :dup_top,
+    :pop,
+    :ret,
+    :send_stack,
+    :push_block,
+    :clear_exception
   ]
   
   IntArg = [
@@ -40,7 +53,15 @@ class CPU::InstructionEncoder
     :push_local,
     :make_array,
     :set_ivar,
-    :push_ivar
+    :push_ivar,
+    :push_const,
+    :set_const,
+    :find_const,
+    :attach_method,
+    :add_method,
+    :open_class,
+    :open_module,
+    :send_stack
   ]
   
   def encode(kind, *args)
