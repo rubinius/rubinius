@@ -233,4 +233,8 @@ class TestInstructionEncoder < Test::Unit::TestCase
   def test_clear_exception
     assert_op :clear_exception
   end
+  
+  def test_soft_return
+    assert_op :soft_return
+  end
 end

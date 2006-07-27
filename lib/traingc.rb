@@ -5,7 +5,7 @@ require 'gc'
 class TrainGC < ForwardingGC
   
   BlockBits = 16
-  CarSize = 2 ** BlockBits
+  CarSize = (2 ** BlockBits) - 1
   
   # The number of bits to reshift an address to find the index of the car
   # information from the address.
@@ -184,13 +184,25 @@ class TrainGC < ForwardingGC
     end
     
     car.deallocate
+    remove_car(train, train_idx, car_idx)
+  end
+  
+  def remove_car(train, train_idx, car_idx)
     train.cars[car_idx] = nil
+    @address_map.each do |idx, ary|
+      ary.delete_if { |i| i.train == train_idx and i.car == car_idx }
+    end
+    
+    # puts "TG: Removed #{car_idx} from #{train_idx}."
   end
   
   def write_barrier(obj, ref)
     # puts "updating write barrier!"
     info =  find_address_info(obj)
     info2 = find_address_info(ref)
+    
+    raise "unable to find segment for #{obj}" unless info
+    raise "unable to find segment for #{ref}" unless info2
     
     # If it's the exact same address info, then it's the exact same
     # car. In which case, we're done.
@@ -207,7 +219,9 @@ class TrainGC < ForwardingGC
     # If we've created a reference of a newer object
     # object in an older one, we need to remember it.
     elsif info.train > info2.train
-      # puts "WB: updating inter-train set for #{info2.inspect} (added #{obj.address})"
+      # puts "WB: updating inter-train set for #{info2.inspect} (train #{info.train}, added #{obj.address})"
+      # puts "WB: obj idx: #{calculate_index(obj.address)} (#{obj.tag}), ref idx: #{calculate_index(ref.address)} (#{ref.tag})"
+      # puts "WB: #{info2}"
       car = @trains[info2.train].cars[info2.car]      
       car.remember_set << obj
       car.intertrain_set << obj
@@ -225,8 +239,29 @@ class TrainGC < ForwardingGC
   end
   
   def added_car(train, car, car_obj)
-    idx = calculate_index(car_obj.address)
-    @address_map[idx] = AddressInfo.new(train, car)
+    idx1 = calculate_index(car_obj.address)
+    idx2 = calculate_index(car_obj.address + car_obj.size)
+    
+    # puts "WB: (train=#{train}, car=#{car}, #{car_obj.address}) added at #{idx1}, #{idx2}"
+    info = AddressInfo.new(train, car, car_obj)
+    ary = @address_map[idx1]
+    if ary.nil?
+      @address_map[idx1] = [info]
+    else
+      ary << info
+    end
+    
+    if idx1 != idx2
+      ary = @address_map[idx2]
+      info = AddressInfo.new(train, car, car_obj)
+      if ary.nil?
+        # puts "WB: new secondary at #{idx2} for #{info}"
+        @address_map[idx2] = [info]
+      else
+        # puts "WB: overflowed at #{idx2} for #{info}"
+        ary << info
+      end
+    end
     @newest_car = car_obj
   end
   
@@ -235,17 +270,36 @@ class TrainGC < ForwardingGC
   end
   
   def find_address_info(obj)
-    @address_map[calculate_index(obj.address)]
+    addr = obj.address
+    ary = @address_map[calculate_index(addr)]
+    return ary.first if ary.size == 1
+    ary.each do |info|
+      if info.contains?(addr)
+        return info
+      end
+    end
+    
+    raise "Unable to find info for #{obj}"
   end
   
   class AddressInfo
-    def initialize(train, car)
+    def initialize(train, car, car_obj)
       @train = train
       @car = car
+      @start = car_obj.address
+      @end = car_obj.address + car_obj.size
     end
+    
+    def contains?(addr)
+      addr >= @start and addr < @end
+    end
+    
     def inspect
       "(train=#{@train}, car=#{@car})"
     end
+    
+    alias :to_s :inspect
+    
     attr_accessor :train, :car
   end
   

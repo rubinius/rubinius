@@ -14,7 +14,9 @@ class CPU::Primitives
     :put,
     :fields,
     :allocate,
-    :create_block
+    :create_block,
+    :block_given,
+    :block_call
   ]
   
   def perform(prim)
@@ -156,6 +158,27 @@ class CPU::Primitives
     blk.last_op = lst
     
     @cpu.push_object blk
+    return true
+  end
+  
+  def block_given
+    if @cpu.block.nil?
+      @cpu.stack_push CPU::FALSE
+    else
+      @cpu.stack_push CPU::TRUE
+    end
+    return true
+  end
+  
+  def block_call
+    blk = @cpu.pop_object
+    return false unless blk.reference?
+    
+    blk.as :blokctx
+    
+    blk.sender = @cpu.active_context
+    blk.ip = blk.start_op
+    @cpu.activate_context blk, blk.home
     return true
   end
 end

@@ -550,6 +550,29 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert obj_top.nil?    
   end
   
+  def test_soft_return
+    @inst.run enc(:soft_return)
+    assert @cpu.active_context.nil?
+  end
   
-  
+  def test_soft_return_into_block
+    ctx = @cpu.active_context
+    b1 = Rubinius::BlockContext.under_context ctx
+    b1.ip = RObject.wrap(3)
+    b2 = Rubinius::BlockContext.under_context ctx
+    b2.ip = RObject.wrap(3)
+    ctx.ip = RObject.wrap(3)
+    b2.sender = b1
+    b1.sender = ctx
+    @cpu.active_context = b2
+    @inst.run enc(:soft_return)
+    assert @cpu.active_context
+    assert_equal b1, @cpu.active_context
+    assert_equal ctx, @cpu.home_context
+    
+    @inst.run enc(:soft_return)
+    assert @cpu.active_context
+    assert_equal ctx, @cpu.active_context
+    assert_equal ctx, @cpu.home_context
+  end
 end

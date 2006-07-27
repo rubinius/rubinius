@@ -328,7 +328,11 @@ class CPU::Instructions
               @cpu.active_context)
     ctx.receiver = recv
     
-    @cpu.activate_context ctx
+    @cpu.activate_context ctx, ctx
+  end
+  
+  def soft_return
+    @cpu.return_to_sender
   end
   
   private

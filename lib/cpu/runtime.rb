@@ -38,6 +38,7 @@ class CPU
     @locals = RObject.nil
     @literals = RObject.nil
     @block = RObject.nil
+    @method = RObject.nil
   end
   
   # This creates the top level MethodContext and also
@@ -60,7 +61,7 @@ class CPU
   attr_accessor :active_context, :locals, :literals
   attr_accessor :self, :exception, :enclosing_class
   attr_accessor :new_class_of, :block, :data
-  attr_reader :instructions
+  attr_reader :instructions, :home_context
   
   def save_registers
     @active_context.sp = RObject.wrap(@sp)
@@ -68,25 +69,69 @@ class CPU
     @active_context.ms = RObject.wrap(@ms)
   end
   
-  def restore_context(ctx)
+  def restore_context(x)
+    restore_context_with_home x, x
+  end
+  
+  def restore_context_with_home(ctx, home)
     ctx.as :methctx
     @sp = ctx.sp.to_int
     @ip = ctx.ip.to_int
     @ms = ctx.ms.to_int
-    
-    ba = ctx.bytecodes
+
+    home.as :methctx
+    ba = home.bytecodes
     if !ba.nil?
       ba.as :bytearray
       @instructions.data = ba.as_string
     end
     
     @active_context = ctx
-    # @home_context = ctx.home
+    @home_context = home
+    @locals = home.locals
+    @block = ctx.block
+    @method = home.method
+    @method.as :cmethod
+    if @method.nil?
+      @literals = RObject.nil
+    else
+      @literals = @method.literals
+    end
   end
   
-  def activate_context(ctx)
+  def activate_context(ctx, home)
     save_registers
-    restore_context(ctx)
+    restore_context_with_home(ctx, home)
+  end
+  
+  def return_to_sender
+    # puts "#{@active_context.address} is done."
+    # We take the current top of the stack off and save
+    # it. It's the return value.
+    sender = @active_context.sender
+    # puts "switching to #{sender.address}"
+    if sender.nil?
+      @active_context = nil
+    else
+      # Support the ability for a method to have not done ANYTHING,
+      # in which case we use nil as the return value.
+      if stack_empty?
+        top = CPU::NIL
+      else
+        top = stack_top
+      end
+      if Rubinius::BlockContext.block_context?(sender)
+        sender.as :blokctx
+        home = sender.home
+        # puts "leaving a block context (#{home.address}, #{sender.address})!"
+      else
+        home = sender
+      end
+      restore_context_with_home(sender, home)
+      # and now that @sp has been adjusted back to the destination
+      # context's value, we push the return value in.
+      stack_push top
+    end
   end
   
   def run
@@ -95,20 +140,7 @@ class CPU
       # in the current method. In this case, we go back to the
       # sender.
       if !@instructions.dispatch
-        # puts "#{@active_context.address} is done."
-        # We take the current top of the stack off and save
-        # it. It's the return value.
-        top = stack_top
-        @active_context = @active_context.sender
-        # puts "switching to #{@active_context.address}"
-        if @active_context.nil?
-          @active_context = nil
-        else
-          restore_context(@active_context)
-          # and now that @sp has been adjusted back to the destination
-          # context's value, we push the return value in.
-          stack_push top
-        end
+        return_to_sender
       end
     end
   end

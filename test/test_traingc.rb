@@ -16,6 +16,7 @@ class TestTrainGC < Test::Unit::TestCase
   end
   
   def teardown
+    RObject.remove_write_barrier
     @train.destroy!
   end
   
@@ -78,7 +79,17 @@ class TestTrainGC < Test::Unit::TestCase
     r = thobj train1.cars[0], :r
     a = thobj train1.cars[0], :a
     c = thobj train1.cars[0], :c
-    assert_contains train1.cars[0], r, a, c
+    co = train1.cars[0]
+    cidx = @train.find_address_info co
+
+    # puts "r info: #{r.address}, idx: #{@train.find_address_info(r)}"
+    # puts "a info: #{a.address}, idx: #{@train.find_address_info(a)}"
+    # puts "c info: #{c.address}, idx: #{@train.find_address_info(c)}"
+
+    assert_equal cidx, @train.find_address_info(r)
+    assert_equal cidx, @train.find_address_info(a)
+    assert_equal cidx, @train.find_address_info(c)
+    assert_contains train1.cars[0], r, a, c    
     
     s = thobj train1.cars[1], :s
     d = thobj train1.cars[1], :d
@@ -95,6 +106,7 @@ class TestTrainGC < Test::Unit::TestCase
     # r is only root object.
     roots = [r]
     
+    # puts "c info: #{c.address}, idx: #{@train.calculate_index(c.address)}"
     # Setup RST
     r.put 0, s
     s.put 0, t

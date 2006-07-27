@@ -7,6 +7,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
     @cpu = CPU.new
     @prim = CPU::Primitives.new(@cpu)
     @memory = @cpu.memory
+    @encoder = CPU::InstructionEncoder.new
   end
   
   def push(*args)
@@ -208,6 +209,37 @@ class TestCPUPrimitives < Test::Unit::TestCase
     obj = obj_top()
     assert_stack_size 1
     assert_equal CPU::Global.blokctx, obj.rclass
+  end
+  
+  def test_block_given
+    @cpu.bootstrap
+    assert do_prim(:block_given)
+    assert obj_top.false?
+    
+    @cpu.block = Rubinius::Object.new
+    assert do_prim(:block_given)
+    assert obj_top.true?
+  end
+  
+  def test_block_call
+    @cpu.bootstrap
+    bytes =  @encoder.encode :goto, 7
+    bytes << @encoder.encode(:push_true)
+    bytes << @encoder.encode(:soft_return)
+    bytes << @encoder.encode(:push_false)
+    
+    bc = Rubinius::ByteArray.from_string bytes
+    @cpu.active_context.bytecodes = bc
+    @cpu.restore_context(@cpu.active_context)
+    
+    @cpu.push_object RObject.wrap(0)
+    @cpu.push_object @cpu.active_context
+    assert do_prim(:create_block)
+    assert do_prim(:block_call)
+    @cpu.run
+    
+    assert @cpu.pop_object.false?
+    assert @cpu.pop_object.true?
   end
   
 end

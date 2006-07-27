@@ -156,6 +156,12 @@ class RObject
     alias :put :wb_put
   end
   
+  # Removes any installed write barrier.
+  def self.remove_write_barrier
+    alias :put :raw_put
+  end
+  
+  
   def self.wrap(val)
     i = case val
     when FalseClass
