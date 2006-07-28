@@ -421,6 +421,47 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert out.true?
   end
   
+  def test_send_stack_no_method_missing
+    key =  sym("Name")
+    mkey = sym("test_method")
+    obj = Rubinius::Object.new
+    bc =  enc(:push_true)
+    bc << enc(:set_const, key.symbol_index)
+    mth = Rubinius::CompiledMethod.from_string bc, 0
+    mtbl = CPU::Global.object.methods
+    mtbl.as :methtbl
+    
+    # mtbl.set mkey, mth
+    @cpu.push_object obj
+    assert_raises(RuntimeError) do
+      @cpu.execute_bytecodes enc(:send_stack, mkey.symbol_index)
+    end
+  end
+  
+  def test_send_stack_method_missing
+    key =  sym("Name")
+    kkey = sym("method_missing")
+    mkey = sym("test_method")
+    obj = Rubinius::Object.new
+    bc =  enc(:push_true)
+    bc << enc(:set_const, key.symbol_index)
+    mth = Rubinius::CompiledMethod.from_string bc, 0
+    mtbl = CPU::Global.object.methods
+    mtbl.as :methtbl
+    
+    mtbl.set kkey, mth
+    ctbl = CPU::Global.object.constants
+    ctbl.as :hash
+    
+    assert ctbl.find(key).nil?
+    @cpu.push_object obj
+    @cpu.execute_bytecodes enc(:send_stack, mkey.symbol_index)
+    assert obj_top.true?
+
+    out = ctbl.find(key)
+    assert out.true?
+  end
+  
   def test_clear_exception
     obj = s_tup()
     @cpu.exception = obj
@@ -574,5 +615,17 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert @cpu.active_context
     assert_equal ctx, @cpu.active_context
     assert_equal ctx, @cpu.home_context
+  end
+  
+  def test_caller_return
+    ctx = @cpu.active_context
+    c2 = Rubinius::MethodContext.new(0)
+    b1 = Rubinius::BlockContext.under_context ctx
+    c2.sender = ctx
+    b1.sender = c2
+    @cpu.active_context = b1
+    @inst.caller_return
+    assert @cpu.active_context
+    assert_equal ctx, @cpu.active_context
   end
 end

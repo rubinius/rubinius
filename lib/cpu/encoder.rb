@@ -43,7 +43,8 @@ class CPU::InstructionEncoder
     :send_stack,
     :push_block,
     :clear_exception,
-    :soft_return
+    :soft_return,
+    :caller_return
   ]
   
   IntArg = [

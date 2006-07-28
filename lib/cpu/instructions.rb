@@ -321,6 +321,9 @@ class CPU::Instructions
     mo = find_method(recv, sym)
     if mo.nil?
       mo = find_method(recv, @method_missing)
+      if mo.nil?
+        raise "No method_missing found!"
+      end
     end
     
     mo.as :cmethod
@@ -331,7 +334,22 @@ class CPU::Instructions
     @cpu.activate_context ctx, ctx
   end
   
+  # Returns directly back to the sender, regardless of the type.
+  # This is NOT a normal return which causes the home context
+  # to return. This is used for things like break and next inside
+  # a block. A block will always have one of these as it's last
+  # bytecode.
   def soft_return
+    @cpu.return_to_sender
+  end
+  
+  # caller return is this strange instruction that actually returns
+  # back to the current context sender's sender (ie, 2 levels up.)
+  # It's used for a retry inside a block.
+  def caller_return
+    cur = @cpu.active_context
+    cur.as :methctx
+    @cpu.active_context = cur.sender
     @cpu.return_to_sender
   end
   

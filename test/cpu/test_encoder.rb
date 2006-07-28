@@ -237,4 +237,8 @@ class TestInstructionEncoder < Test::Unit::TestCase
   def test_soft_return
     assert_op :soft_return
   end
+  
+  def test_caller_return
+    assert_op :caller_return
+  end
 end

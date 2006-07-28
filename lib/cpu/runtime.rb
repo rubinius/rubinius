@@ -108,6 +108,11 @@ class CPU
     # puts "#{@active_context.address} is done."
     # We take the current top of the stack off and save
     # it. It's the return value.
+    if @active_context.nil?
+      raise "active_context is nil!"
+    end
+    
+    @active_context.as :methctx
     sender = @active_context.sender
     # puts "switching to #{sender.address}"
     if sender.nil?
@@ -205,12 +210,16 @@ class CPU
   end
   
   def local_get(num)
-    idx = @ms - 1 + num
-    Memory.fetch_long(@stack.field_address(idx), 0)
+    obj = @locals.at num
+    obj.address
+    # idx = @ms - 1 + num
+    # Memory.fetch_long(@stack.field_address(idx), 0)
   end
   
   def local_set(num, obj)
-    idx = @ms - 1 + num
-    Memory.store_long @stack.field_address(idx), 0, obj    
+    obj = @locals.put num, RObject.new(obj)
+    obj.address
+    # idx = @ms - 1 + num
+    # Memory.store_long @stack.field_address(idx), 0, obj    
   end
 end

@@ -37,7 +37,7 @@ module Rubinius
   end
   
   add_type :methctx, MethodContext
-  
+    
   module BlockContext
     # The first N arguments need to be the same as the fields of 
     # MethodContext so that a BlockContext can be 'cast' as a 

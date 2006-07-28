@@ -54,8 +54,9 @@ class TestCPURuntime < Test::Unit::TestCase
   end
   
   def test_local_get
-    @cpu.push_object RObject.wrap(99)
-    @cpu.push_object RObject.wrap(4323)
+    @cpu.locals = Rubinius::Tuple.new(3)
+    @cpu.locals.put 1, RObject.wrap(99)
+    @cpu.locals.put 2, RObject.wrap(4323)
     
     one = RObject.new @cpu.local_get(1)
     two = RObject.new @cpu.local_get(2)
@@ -65,9 +66,9 @@ class TestCPURuntime < Test::Unit::TestCase
   end
   
   def test_local_set
+    @cpu.locals = Rubinius::Tuple.new(3)
     @cpu.local_set 2, RObject.wrap(832).address
-    oop = Memory.fetch_long @cpu.stack.field_address(@cpu.ms + 1), 0
-    obj = RObject.new oop
+    obj = @cpu.locals.at 2
     assert_equal 832, obj.to_int
   end
   
