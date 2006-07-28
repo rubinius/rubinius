@@ -1,4 +1,4 @@
-require 'baker_gc'
+require 'gc/baker_gc'
 
 class ObjectMemory
   DefaultSize = 128_000 # 128k

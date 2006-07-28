@@ -1,6 +1,6 @@
-require 'heap'
+require 'gc/heap'
 require 'object'
-require 'gc'
+require 'gc/gc'
 
 class BakerGC < ForwardingGC
   def initialize(size)
