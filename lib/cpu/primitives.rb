@@ -1,4 +1,5 @@
 require 'cpu/runtime'
+require 'sydparse'
 
 class CPU::Primitives
   def initialize(cpu)
@@ -16,7 +17,8 @@ class CPU::Primitives
     :allocate,
     :create_block,
     :block_given,
-    :block_call
+    :block_call,
+    :string_to_sexp
   ]
   
   def perform(prim)
@@ -180,5 +182,38 @@ class CPU::Primitives
     blk.ip = blk.start_op
     @cpu.activate_context blk, blk.home
     return true
+  end
+  
+  def string_to_sexp
+    str = @cpu.pop_object
+    return false unless str.reference?
+    return false unless str.rclass == CPU::Global.string
+    
+    str.as :string
+    syd = SydneyParser.load_string(str.as_string) rescue nil
+    
+    return false unless syd
+    
+    out = convert_sym_array(syd.sexp)
+    @cpu.push_object out
+    return true
+  end
+  
+  private
+  
+  def convert_sym_array(ary)
+    out = Rubinius::Array.new(ary.size)
+    idx = 0
+    ary.each do |i|
+      case i
+      when Array
+        convert_sym_array(i)
+      when Symbol
+        str = Rubinius::String.new(i.to_s)
+        out.set idx, str.to_sym
+      end
+      idx += 1
+    end
+    return out
   end
 end

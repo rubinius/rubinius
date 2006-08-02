@@ -2,13 +2,13 @@ require 'rubygems'
 require 'test/unit'
 require 'cpu/instructions'
 require 'cpu/runtime'
-require 'cpu/encoder'
+require 'bytecode/encoder'
 require 'test/unit/show_code'
 
 class TestInstructionEncoder < Test::Unit::TestCase
   
   def setup
-    @encoder = CPU::InstructionEncoder.new  
+    @encoder = Bytecode::InstructionEncoder.new  
   end
   
   def decI(str, count=1)
@@ -20,7 +20,7 @@ class TestInstructionEncoder < Test::Unit::TestCase
   end
   
   def assert_is_op(op, code)
-    assert_equal CPU::InstructionEncoder::OpCodes[code], op, "#{code} is not #{op}"
+    assert_equal Bytecode::InstructionEncoder::OpCodes[code], op, "#{code} is not #{op}"
   end
   
   def assert_is_op_only(op, bytes)

@@ -52,6 +52,8 @@ class CPU
     
     bootstrap_contexts
     initialize_context
+    bootstrap_exceptions
+    return nil
   end
   
   def bootstrap_contexts
@@ -60,5 +62,22 @@ class CPU
     
     Global.methctx.setup 'MethodContext'
     Global.blokctx.setup 'BlockContext'
+  end
+  
+  def define_class(name, sup=Global.object, fields=0)
+    Rubinius::Class.create_normal name, sup, fields
+  end
+  
+  def bootstrap_exceptions
+    exc = define_class "Exception"
+    fat = define_class "fatal", exc
+    std = define_class "StandardError", exc
+    arg = define_class "ArgumentError", std
+    ner = define_class "NameError", std
+    nme = define_class "NoMethodError", ner
+    syn = define_class "SyntaxError", exc
+    loe = define_class "LoadError", exc
+    run = define_class "RuntimeError", std
+    sys = define_class "SystemCallError", std
   end
 end

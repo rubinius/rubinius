@@ -1,4 +1,5 @@
-class CPU::InstructionEncoder
+module Bytecode
+class InstructionEncoder
   
   class InvalidOpCode < RuntimeError
   end
@@ -91,9 +92,18 @@ class CPU::InstructionEncoder
     str = opcode.chr
     
     if IntArg.include?(kind)
-      str << [args[0]].pack("I")
+      int = args.shift
+      unless Numeric === int
+        raise "#{kind} expects an integer only."
+      end
+      str << [int].pack("I")
+    end
+    
+    unless args.empty?
+      raise "Unused arguments to #{kind}, #{args.inspect}"
     end
     
     return str
   end
+end
 end

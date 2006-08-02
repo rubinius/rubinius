@@ -1,5 +1,5 @@
 require 'cpu/runtime'
-require 'cpu/encoder'
+require 'bytecode/encoder'
 require 'cpu/primitives'
 
 class CPU::Instructions
@@ -26,7 +26,7 @@ class CPU::Instructions
     return false if @cpu.ip >= @data.size
     
     op = @data[@cpu.ip]
-    meth = CPU::InstructionEncoder::OpCodes[op]
+    meth = Bytecode::InstructionEncoder::OpCodes[op]
     raise "Unknown opcode '#{op}'" unless meth
   
     # puts "on #{op} / #{meth} (#{@cpu.ip})"
@@ -315,7 +315,10 @@ class CPU::Instructions
   def send_stack
     @method_missing = Rubinius::String.new("method_missing").to_sym
     
-    sym = RObject.symbol next_int
+    if @cpu.literals.nil?
+      raise "Literals are nil!"
+    end
+    sym = @cpu.literals.at next_int
     
     recv = @cpu.pop_object
     mo = find_method(recv, sym)

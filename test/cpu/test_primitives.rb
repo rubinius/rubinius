@@ -7,7 +7,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
     @cpu = CPU.new
     @prim = CPU::Primitives.new(@cpu)
     @memory = @cpu.memory
-    @encoder = CPU::InstructionEncoder.new
+    @encoder = Bytecode::InstructionEncoder.new
   end
   
   def push(*args)
@@ -240,6 +240,20 @@ class TestCPUPrimitives < Test::Unit::TestCase
     
     assert @cpu.pop_object.false?
     assert @cpu.pop_object.true?
+  end
+  
+  def test_string_to_sexp
+    @cpu.bootstrap
+    str = Rubinius::String.new("true")
+    @cpu.push_object str
+    assert do_prim(:string_to_sexp)
+    out = @cpu.pop_object
+    assert CPU::Global.array, out.rclass
+    out.as :array
+    sym = out.get(0)
+    assert sym.symbol?
+    sym.as :symbol
+    assert_equal ":true", sym.as_string
   end
   
 end

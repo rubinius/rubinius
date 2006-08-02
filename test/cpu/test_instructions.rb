@@ -2,13 +2,13 @@ require 'rubygems'
 require 'test/unit'
 require 'cpu/instructions'
 require 'cpu/runtime'
-require 'cpu/encoder'
+require 'bytecode/encoder'
 require 'test/unit/show_code'
 
 class TestCPUInstructions < Test::Unit::TestCase
   
   def setup
-    @encoder = CPU::InstructionEncoder.new
+    @encoder = Bytecode::InstructionEncoder.new
     @cpu = CPU.new
     @inst = CPU::Instructions.new(@cpu)
     @cpu.bootstrap
@@ -410,9 +410,16 @@ class TestCPUInstructions < Test::Unit::TestCase
     mtbl = CPU::Global.object.methods
     mtbl.as :methtbl
     
+    lits = Rubinius::Tuple.new(1)
+    lits.put 0, mkey
+    
     mtbl.set mkey, mth
     @cpu.push_object obj
-    @cpu.execute_bytecodes enc(:send_stack, mkey.symbol_index)
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    ctx.literals = lits
+    
+    @cpu.execute_bytecodes enc(:send_stack, 0)
     assert obj_top.true?
     
     ctbl = CPU::Global.object.constants
@@ -431,10 +438,17 @@ class TestCPUInstructions < Test::Unit::TestCase
     mtbl = CPU::Global.object.methods
     mtbl.as :methtbl
     
+    lits = Rubinius::Tuple.new(1)
+    lits.put 0, mkey
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    
+    ctx.literals = lits
+    
     # mtbl.set mkey, mth
     @cpu.push_object obj
     assert_raises(RuntimeError) do
-      @cpu.execute_bytecodes enc(:send_stack, mkey.symbol_index)
+      @cpu.execute_bytecodes enc(:send_stack, 0)
     end
   end
   
@@ -453,9 +467,16 @@ class TestCPUInstructions < Test::Unit::TestCase
     ctbl = CPU::Global.object.constants
     ctbl.as :hash
     
+    lits = Rubinius::Tuple.new(1)
+    lits.put 0, mkey
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    
+    ctx.literals = lits
+    
     assert ctbl.find(key).nil?
     @cpu.push_object obj
-    @cpu.execute_bytecodes enc(:send_stack, mkey.symbol_index)
+    @cpu.execute_bytecodes enc(:send_stack, 0)
     assert obj_top.true?
 
     out = ctbl.find(key)

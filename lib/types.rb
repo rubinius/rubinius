@@ -41,6 +41,10 @@ module Rubinius
     
     mod.module_eval <<-CODE, __FILE__, __LINE__ + 1
     
+      def field_names
+        #{tot.inspect}
+      end
+    
       def self.basic_class_obj(sup)
         obj = Rubinius::Class.create
         obj.instance_fields = RObject.wrap(#{tot.size})

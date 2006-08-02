@@ -92,11 +92,8 @@ class CPU
     @block = ctx.block
     @method = home.method
     @method.as :cmethod
-    if @method.nil?
-      @literals = RObject.nil
-    else
-      @literals = @method.literals
-    end
+    @literals = home.literals
+    
   end
   
   def activate_context(ctx, home)
