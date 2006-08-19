@@ -58,6 +58,7 @@ class InstructionEncoder
     :make_hash,
     :raise_exc,
     :set_encloser,
+    :push_encloser,
     :activate_method,
     :push_cpath_top,
     :check_argcount,

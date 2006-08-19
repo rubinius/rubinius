@@ -51,8 +51,11 @@ class CPU
     @home_context = @active_context
     @enclosing_class = Global.object
     @new_class_of = Global.class
-    @instructions = Instructions.new(self)
     @exceptions = RObject.nil
+    
+    @primitives = CPU::Primitives.new(self)
+    @data = nil
+    @current_address = 0
   end
   
   def delete
@@ -85,7 +88,7 @@ class CPU
     ba = home.bytecodes
     if !ba.nil?
       ba.as :bytearray
-      @instructions.data = ba.as_string
+      @data = ba.as_string
     end
     
     @active_context = ctx
@@ -149,7 +152,7 @@ class CPU
       # Dispatch returns false if there are no more bytecodes
       # in the current method. In this case, we go back to the
       # sender.
-      if !@instructions.dispatch
+      if !dispatch
         return_to_sender
       end
     end

@@ -263,8 +263,10 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_class
     sx = [:class, [:colon2, :Blah], nil, [:scope, [:true]]]
-    exc =  "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n"
-    exc << "attach __class_init__\nsend __class_init__\nret\n"
+    exc =  "push_encloser\n"
+    exc << "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n"
+    exc << "attach __class_init__\nsend __class_init__\n"
+    exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -274,9 +276,11 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_class_with_super
     sx = [:class, [:colon2, :Blah], [:colon2, [:const, :A], :B], [:scope, [:true]]]
-    exc =  "push A\nfind B\n"
+    exc =  "push_encloser\n"
+    exc << "push A\nfind B\n"
     exc << "open_class Blah\ndup\npush_literal 0\nswap\n"
-    exc << "attach __class_init__\nsend __class_init__\nret\n"
+    exc << "attach __class_init__\nsend __class_init__\n"
+    exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -286,8 +290,10 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_class_at_cpath
     sx = [:class, [:colon2, [:const, :A], :Blah], nil, [:scope, [:true]]]
-    exc =  "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n"
-    exc << "attach __class_init__\nsend __class_init__\nret\n"
+    exc =  "push_encloser\n"
+    exc << "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n"
+    exc << "attach __class_init__\nsend __class_init__\n"
+    exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first

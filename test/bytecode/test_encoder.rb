@@ -303,6 +303,10 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_op :set_encloser
   end
   
+  def test_push_encloser
+    assert_op :push_encloser
+  end
+  
   def test_push_cpath_top
     assert_op :push_cpath_top
   end
