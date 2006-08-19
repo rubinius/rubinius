@@ -23,16 +23,16 @@ module Bytecode
       attr_accessor :location
     end
     
-    def initialize
-      reset
+    def initialize(literals=[])
+      reset(literals)
     end
     
-    def reset
+    def reset(literals=[])
       @labels = Hash.new { |h,k| h[k] = Label.new(k) }
       @current_op = 0
       @output = []
       @locals = Hash.new
-      @literals = []
+      @literals = literals
       @source_lines = []
       @exceptions = Hash.new
       @exception_depth = []
@@ -387,6 +387,30 @@ module Bytecode
         @output << [:push_int, idx]
         @output << :store_field
         @current_op += 6
+      elsif cnt = parse_const(what)
+        @output << [:set_const, cnt]
+        @current_op += 5
+      elsif what.index("::")
+        parent, chld = what.split("::", 2)
+        if cnt = parse_const(parent)
+          @output << [:push_const, cnt]
+        else
+          raise "Invalid lhs to double colon (#{parent})"
+        end
+        
+        if cnt = parse_const(chld)
+          @output << [:set_const_at, cnt]
+        else
+          raise "Invalid rhs to double colon (#{chld})"
+        end
+        
+        @current_op += 10
+      elsif what.index("+") == 0
+        if cnt = parse_const(what[1..-1])
+          @output << [:set_const_at, cnt]
+        else
+          raise "Unknown + argument (#{what})"
+        end
       else
         raise "Unknown set argument '#{what}'"
       end

@@ -81,5 +81,6 @@ class CPU
     sys = define_class "SystemCallError", std, 1
     
     Global.exc_arg = arg
+    Global.exc_loe = loe
   end
 end

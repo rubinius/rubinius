@@ -9,7 +9,12 @@ module Rubinius
     
     def as_string
       str = string()
-      ":#{str.as_string}"
+      if str.nil?
+        puts "WARNING: Symbol #{self.inspect} could not be looked up!"
+        ":(NULL)"
+      else
+        ":#{str.as_string}"
+      end
     end
   end
   

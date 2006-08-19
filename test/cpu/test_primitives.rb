@@ -1,11 +1,14 @@
 require 'cpu/primitives'
 require 'test/unit'
 require 'test/unit/show_code'
+require 'tempfile'
+require 'bytecode/constructor'
 
 class TestCPUPrimitives < Test::Unit::TestCase
   def setup
     @cpu = CPU.new
-    @prim = CPU::Primitives.new(@cpu)
+    @con = Bytecode::Constructor.new(@cpu)
+    @prim = CPU::Primitives.new(@cpu, @con)
     @memory = @cpu.memory
     @encoder = Bytecode::InstructionEncoder.new
   end
@@ -92,7 +95,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
     push_int 9
     push_int 10
     assert do_prim(:compare)
-    assert_equal -1, obj_top.to_int
+    assert_equal(-1, obj_top.to_int)
     
     push_int 10
     push_int 9
@@ -254,6 +257,25 @@ class TestCPUPrimitives < Test::Unit::TestCase
     assert sym.symbol?
     sym.as :symbol
     assert_equal ":true", sym.as_string
+  end
+  
+  def test_load_file
+    @cpu.bootstrap
+    tmp = Tempfile.new("rb")
+    tmp << "Blah = 9\n"
+    tmp.close
+    
+    blah = Rubinius::String.new("Blah").to_sym    
+    str = Rubinius::String.new(tmp.path)
+    @cpu.push_object str
+    assert do_prim(:load_file)
+    @cpu.run
+    out = @cpu.pop_object
+    assert out.true?
+    cnt = CPU::Global.object.constants
+    cnt.as :hash
+    out = cnt.find(blah)
+    assert_equal 9, out.to_int
   end
   
 end

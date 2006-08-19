@@ -6,7 +6,7 @@ require 'test/unit/show_code'
 class TestBytecodeAssembler < Test::Unit::TestCase
   
   def setup
-    @asm = Bytecode::Assembler.new
+    @asm = Bytecode::Assembler.new([])
     @enc = Bytecode::InstructionEncoder.new
     @cpu = CPU.new
   end
@@ -104,6 +104,27 @@ class TestBytecodeAssembler < Test::Unit::TestCase
     out = assemble "find EEK\n"
     expected = [[:find_const, 0]]
     assert_equal [:EEK], @asm.literals
+    assert_equal expected, out
+  end
+  
+  def test_set_const
+    out = assemble "set A\n"
+    expected = [[:set_const, 0]]
+    assert_equal [:A], @asm.literals
+    assert_equal expected, out
+  end
+  
+  def test_set_const_at
+    out = assemble "set B::A\n"
+    expected = [[:push_const, 0], [:set_const_at, 1]]
+    assert_equal [:B, :A], @asm.literals
+    assert_equal expected, out
+  end
+  
+  def test_set_const_at2
+    out = assemble "set +A\n"
+    expected = [[:set_const_at, 0]]
+    assert_equal [:A], @asm.literals
     assert_equal expected, out
   end
   

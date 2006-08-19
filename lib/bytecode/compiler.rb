@@ -12,6 +12,7 @@ module Bytecode
       @name = name
       @assembly = ""
       @literals = []
+      @primitive = nil
     end
     
     def add_literal(obj)
@@ -20,27 +21,38 @@ module Bytecode
       return idx
     end
     
-    attr_accessor :name, :assembly, :literals
+    attr_accessor :name, :assembly, :literals, :primitive
     
     def to_cmethod
-      asm = Bytecode::Assembler.new
+      asm = Bytecode::Assembler.new(@literals)
       stream = asm.assemble @assembly
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = asm.number_of_locals
       cmeth = Rubinius::CompiledMethod.from_string bc, lcls
-      cmeth.literals = encode_literals()
+      
+      if @primitive.kind_of? Symbol
+        idx = CPU::Primitives.name_to_index(@primitive)
+        cmeth.primitive = RObject.wrap(idx)
+      elsif @primitive
+        cmeth.primitive = RObject.wrap(@primitive)
+      end
+
+      cmeth.literals = encode_literals
       return cmeth
     end
     
     def encode_literals
       tup = Rubinius::Tuple.new(@literals.size)
       i = 0
-      @literals.each do |lit|
+      lits = @literals
+      # puts " => literals: #{lits.inspect}"
+      lits.each do |lit|
         case lit
         when Symbol
           str = Rubinius::String.new(lit.to_s)
           out = str.to_sym
+          # puts "Encoded #{lit.inspect} as #{out.inspect}"
         when Bytecode::MethodDescription
           out = lit.to_cmethod
         else
@@ -54,8 +66,9 @@ module Bytecode
     end
   end
   
-  class Compiler    
-    def compile_as_method(sx, name)
+  class Compiler
+    
+    def compile(sx, name)
       meth = MethodDescription.new(name)
       comp = CompositeSexpProcessor.new
       # Convert the block args to the new rules...
@@ -66,8 +79,19 @@ module Bytecode
       pro = Processor.new(self, meth)
       comp << pro
       comp.process sx
-      pro.finalize
-      return meth
+      return pro
+    end
+    
+    def compile_as_method(sx, name)
+      pro = compile(sx, name)
+      pro.finalize("ret")
+      return pro.method
+    end
+    
+    def compile_as_script(sx, name)
+      pro = compile(sx, name)
+      pro.finalize("push true\nret")
+      return pro.method
     end
     
     class Processor < SexpProcessor
@@ -81,6 +105,8 @@ module Bytecode
         @output = ""
         @unique_id = 0
       end
+      
+      attr_reader :method
       
       def unique_id
         @unique_id += 1
@@ -98,9 +124,9 @@ module Bytecode
         @output << (str.strip + "\n")
       end
       
-      def finalize
+      def finalize(last)
         @method.assembly = @output
-        add "ret"
+        add last
       end
       
       def process_true(x)
@@ -301,6 +327,23 @@ module Bytecode
       def process_colon3(x)
         add "push_cpath_top"
         add "find #{x.shift}"
+      end
+      
+      def process_cdecl(x)
+        simp = x.shift
+        val = x.shift
+        complex = x.shift
+        
+        if simp
+          process val
+          add "set #{simp}"
+        else
+          # This should always be a colon2
+          name = complex.last
+          process complex[1]
+          process val
+          add "set +#{name}"
+        end
       end
       
       def process_to_ary(x)
@@ -523,12 +566,35 @@ module Bytecode
         end
       end
       
+      def detect_primitive(body)
+        cl = body[1][1]
+        if cl.kind_of?(Array) and cl[0,3] == [:call, [:const, :Ruby], :primitive]
+          args = cl.last
+          args.shift
+          if args.size == 1
+            ary = args.last
+            if ary.kind_of? Array and ary[0] == :lit
+              b = body[1]
+              b.shift
+              b.shift
+              b.unshift :block
+              body[1] = b
+              return ary.last
+            end
+          end
+        end
+        
+        return nil
+      end
+      
       def process_defn(x)
         name = x.shift
         args = x.shift
         body = x.shift
-                
+        
+        prim = detect_primitive(body)
         meth = @compiler.compile_as_method body, name
+        meth.primitive = prim if prim
         idx = @method.add_literal meth
         add "push_self"
         add "push_literal #{idx}"

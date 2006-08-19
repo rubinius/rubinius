@@ -261,6 +261,18 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal "push A\nret\n", @meth.assembly
   end
   
+  def test_cdecl
+    sx = [:cdecl, :Blah, [:lit, 8], nil]
+    compile sx
+    assert_equal "push 8\nset Blah\nret\n", @meth.assembly
+  end
+  
+  def test_cdecl_with_path
+    sx = [:cdecl, nil, [:lit, 8], [:colon2, [:const, :A], :Blah]]
+    compile sx
+    assert_equal "push A\npush 8\nset +Blah\nret\n", @meth.assembly
+  end
+  
   def test_process_class
     sx = [:class, [:colon2, :Blah], nil, [:scope, [:true]]]
     exc =  "push_encloser\n"
@@ -417,6 +429,25 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_kind_of Bytecode::MethodDescription, dfn
     assert_equal exc2, dfn.assembly
   end
+  
+  def test_process_defn_with_primitive
+    sx = [:defn, :blah, [:scope, [:block,
+        [:args, [:a, :b], [], nil, nil],
+        [:call, [:const, :Ruby], :primitive, [:array, [:lit, :at]]],
+        [:true]],
+      [:a, :b]
+    ]]
+    
+    compile sx
+    exc = "push_self\npush_literal 0\nadd_method blah\nret\n"
+    assert_equal exc, @meth.assembly
+    dfn = @meth.literals.first
+    assert_kind_of Bytecode::MethodDescription, dfn
+    exc2 = "check_argcount 2 2\nset a\nset b\npush true\nret\n"
+    assert_equal exc2, dfn.assembly
+    assert_equal :at, dfn.primitive
+  end
+  
   
   def test_process_masgn_no_splat
     sx = [:masgn,

@@ -203,6 +203,10 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_op_and_int :set_const, 103
   end
   
+  def test_set_const_at
+    assert_op_and_int :set_const_at, 103
+  end
+  
   def test_find_const
     assert_op_and_int :find_const, 103
   end

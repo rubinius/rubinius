@@ -1,6 +1,7 @@
 require 'cpu/runtime'
 require 'bytecode/encoder'
 require 'cpu/primitives'
+require 'log'
 
 class CPU
   attr_accessor :data, :current_address
@@ -16,13 +17,14 @@ class CPU
   end
   
   def dispatch
+    return unless @data
     return false if @ip >= @data.size
     
     op = @data[@ip]
     meth = Bytecode::InstructionEncoder::OpCodes[op]
     raise "Unknown opcode '#{op}'" unless meth
   
-    # puts "on #{op} / #{meth} (#{@ip})"
+    Log.debug "on #{op} / #{meth} (#{@ip})"
     @ip += 1
     send(meth)
     return true
@@ -260,9 +262,22 @@ class CPU
   end
   
   def set_const
-    sym = @literals.at next_int    
+    sym = @literals.at next_int
     val = RObject.new stack_pop
     hsh = @enclosing_class.constants
+    hsh.as :hash
+    sym.as :symbol
+    hsh.set sym, val
+    # puts "Set #{sym.as_string} to #{val} (#{val.to_int})"
+    push_object val
+  end
+  
+  def set_const_at
+    sym = @literals.at next_int    
+    val = RObject.new stack_pop
+    under = pop_object()
+    under.as :module
+    hsh = under.constants
     hsh.as :hash
     hsh.set sym, val
     push_object val
@@ -438,8 +453,13 @@ class CPU
   def activate_method
     recv = pop_object
     meth = pop_object
+    cnt = next_int
+    goto_method recv, meth, cnt
+  end
+  
+  def goto_method(recv, meth, count)
     ctx = create_context(recv, meth)
-    ctx.argcount = RObject.wrap next_int()
+    ctx.argcount = RObject.wrap count
     activate_context ctx, ctx
   end
     
@@ -512,6 +532,10 @@ class CPU
   def raise_exc
     exc = pop_object
     raise_exception exc
+  end
+  
+  def ret
+    return_to_sender
   end
   
   def raise_exception(exc)

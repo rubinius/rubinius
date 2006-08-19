@@ -27,7 +27,7 @@ class RObject
     size = HeaderSize + (fields * 4)
     address = heap.allocate(size)
     
-    raise "Unable to allocate object" unless address
+    raise "Unable to allocate object (#{size} words)" unless address
 
     Memory.store_long address + 2, 0, klass
     Memory.store_long address + 6, 0, fields

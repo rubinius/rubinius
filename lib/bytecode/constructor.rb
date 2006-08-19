@@ -23,7 +23,7 @@ module Bytecode
     def compile(code)
       sexp = convert_to_sexp(code)
       comp = Bytecode::Compiler.new
-      desc = comp.compile_as_method sexp, :__script__
+      desc = comp.compile_as_script sexp, :__script__
       return desc.to_cmethod
     end
     

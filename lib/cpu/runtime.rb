@@ -3,6 +3,7 @@ require 'types'
 require 'ostruct'
 require 'cpu/bootstrap'
 require 'cpu/instructions'
+require 'bytecode/constructor'
 
 class CPU
   
@@ -43,7 +44,7 @@ class CPU
   end
   
   # This creates the top level MethodContext and also
-  # fixes up any anonymous objects the cpu created 
+  # fixes up any anonymous objects the cpu created
   # pre-bootstrapping.
   def initialize_context
     @stack.rclass = Global.tuple
@@ -52,8 +53,10 @@ class CPU
     @enclosing_class = Global.object
     @new_class_of = Global.class
     @exceptions = RObject.nil
+    @main = Rubinius::Object.new
     
-    @primitives = CPU::Primitives.new(self)
+    @constructor = Bytecode::Constructor.new(self)
+    @primitives = CPU::Primitives.new(self, @constructor)
     @data = nil
     @current_address = 0
   end
@@ -62,7 +65,7 @@ class CPU
     @memory.delete
   end
   
-  attr_accessor :sp, :ip, :memory, :stack, :ms
+  attr_accessor :sp, :ip, :memory, :stack, :ms, :main
   attr_accessor :active_context, :locals, :literals
   attr_accessor :self, :exception, :enclosing_class, :argcount
   attr_accessor :new_class_of, :block, :data, :exceptions
@@ -86,7 +89,9 @@ class CPU
 
     home.as :methctx
     ba = home.bytecodes
-    if !ba.nil?
+    if ba.nil?
+      @data = nil
+    else
       ba.as :bytearray
       @data = ba.as_string
     end

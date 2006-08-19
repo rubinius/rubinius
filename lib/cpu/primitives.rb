@@ -2,8 +2,9 @@ require 'cpu/runtime'
 require 'sydparse'
 
 class CPU::Primitives
-  def initialize(cpu)
+  def initialize(cpu, con)
     @cpu = cpu
+    @constructor = con
   end
   
   Primitives = [
@@ -18,7 +19,8 @@ class CPU::Primitives
     :create_block,
     :block_given,
     :block_call,
-    :string_to_sexp
+    :string_to_sexp,
+    :load_file
   ]
   
   def self.name_to_index(name)
@@ -200,6 +202,29 @@ class CPU::Primitives
     
     out = convert_sym_array(syd.sexp)
     @cpu.push_object out
+    return true
+  end
+  
+  def load_file
+    str = @cpu.pop_object
+    return false unless str.reference?
+    return false unless str.rclass == CPU::Global.string
+    
+    str.as :string
+    
+    # TODO SydneyParser needs to have a way to return
+    # and error without raising a CRuby exception so that
+    # we can easily see that error here and then raise a
+    # Rubinius exception.
+    begin
+      meth = @constructor.load_file str.as_string
+    rescue LoadError => e
+      exc = new_exception(CPU::Global.exc_loe, e.message)
+      @cpu.exception = exc
+      return false
+    end
+        
+    @cpu.goto_method @cpu.main, meth, 0
     return true
   end
   

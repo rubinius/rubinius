@@ -464,6 +464,20 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert_equal obj, val
   end
   
+  def test_set_const_at
+    obj = Rubinius::Tuple.new(3)
+    key = Rubinius::String.new("Test").to_sym
+    @cpu.push_object CPU::Global.class
+    @cpu.push_object obj
+    add_sym_lit "Test"
+    run_bytes enc(:set_const_at, 0)
+    assert_equal obj, obj_top
+    hsh = CPU::Global.class.constants
+    hsh.as :hash
+    val = hsh.find(key)
+    assert_equal obj, val
+  end
+  
   def test_find_const
     obj = Rubinius::Tuple.new(3)
     key = Rubinius::String.new("Test").to_sym
