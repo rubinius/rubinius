@@ -303,8 +303,10 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_module
     sx = [:module, [:colon2, :A], [:scope, [:true]]]
-    exc =  "open_module A\ndup\npush_literal 0\nswap\n"
-    exc << "attach __module_init__\nsend __module_init__\nret\n"
+    exc =  "push_encloser\n"
+    exc << "open_module A\ndup\npush_literal 0\nswap\n"
+    exc << "attach __module_init__\nsend __module_init__\n"
+    exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -314,8 +316,10 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_module_at_cpath
     sx = [:module, [:colon2, [:const, :B], :A], [:scope, [:true]]]
-    exc =  "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n"
-    exc << "attach __module_init__\nsend __module_init__\nret\n"
+    exc =  "push_encloser\n"
+    exc << "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n"
+    exc << "attach __module_init__\nsend __module_init__\n"
+    exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first

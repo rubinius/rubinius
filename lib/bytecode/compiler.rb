@@ -352,6 +352,8 @@ module Bytecode
         name = x.shift
         body = x.shift
         
+        add "push_encloser"
+        
         if name.size == 2
           under = nil
         else
@@ -375,6 +377,8 @@ module Bytecode
         add "swap"
         add "attach __module_init__"
         add "send __module_init__"
+        add "pop"
+        add "set_encloser"
       end
       
       def process_rescue(x)
