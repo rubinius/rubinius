@@ -1,6 +1,6 @@
-require 'heap'
+require 'gc/heap'
 require 'object'
-require 'gc'
+require 'gc/gc'
 
 class MarkSweepGC < GarbageCollector
   def initialize(size)

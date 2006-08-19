@@ -39,6 +39,7 @@ class CPU
     @literals = RObject.nil
     @block = RObject.nil
     @method = RObject.nil
+    @argcount = 0
   end
   
   # This creates the top level MethodContext and also
@@ -51,6 +52,7 @@ class CPU
     @enclosing_class = Global.object
     @new_class_of = Global.class
     @instructions = Instructions.new(self)
+    @exceptions = RObject.nil
   end
   
   def delete
@@ -59,8 +61,8 @@ class CPU
   
   attr_accessor :sp, :ip, :memory, :stack, :ms
   attr_accessor :active_context, :locals, :literals
-  attr_accessor :self, :exception, :enclosing_class
-  attr_accessor :new_class_of, :block, :data
+  attr_accessor :self, :exception, :enclosing_class, :argcount
+  attr_accessor :new_class_of, :block, :data, :exceptions
   attr_reader :instructions, :home_context
   
   def save_registers
@@ -93,7 +95,13 @@ class CPU
     @method = home.method
     @method.as :cmethod
     @literals = home.literals
+    @argcount = home.argcount.to_int
     
+    if !@method.nil?
+      @exceptions = @method.exceptions
+    else
+      @exceptions = RObject.nil
+    end
   end
   
   def activate_context(ctx, home)
@@ -153,6 +161,7 @@ class CPU
   def execute_bytecodes(str)
     bc = Rubinius::ByteArray.from_string str
     @active_context.bytecodes = bc
+    save_registers
     restore_context(@active_context)
     run
   end

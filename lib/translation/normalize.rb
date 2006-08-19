@@ -91,7 +91,17 @@ class RsNormalizer < SexpProcessor
       raise "Unknown defn layout."
     end
     
-    block.replace block[2..-1].unshift(:block)
+    if args.size == 1
+      args += [[], [], nil, nil]
+    end
+
+    start = 2
+    if block[2].first == :block_arg
+      start = 3
+      args << block[2]
+    end
+    
+    block.replace block[start..-1].unshift(:block)
     [:defn, name, args, body]
   end
   

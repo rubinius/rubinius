@@ -3,7 +3,7 @@
 #               MemoryBlock:    0 /    7 =   0.00%
 
 require 'test/unit' unless defined? $ZENTEST and $ZENTEST
-require 'memory_block'
+require 'gc/memory_block'
 
 class TestMemoryBlock < Test::Unit::TestCase
   def setup

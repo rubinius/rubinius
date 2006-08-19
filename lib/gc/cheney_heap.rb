@@ -1,4 +1,4 @@
-require 'heap'
+require 'gc/heap'
 
 class CheneyHeap < Heap
   def initialize(size)

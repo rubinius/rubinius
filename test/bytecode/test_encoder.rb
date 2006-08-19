@@ -126,6 +126,15 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_equal int, codes[1]
   end
   
+  def assert_op_and_2ints(op, int, int2)
+    bytes = @encoder.encode op, int, int2
+    assert_equal 9, bytes.size
+    codes = decI bytes, 2
+    assert_is_op op, bytes[0]
+    assert_equal int, codes[1]
+    assert_equal int2, codes[2]
+  end
+  
   def test_push_literal
     bytes = @encoder.encode :push_literal, 2
     assert_equal 5, bytes.size
@@ -174,6 +183,10 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_op_and_int :make_array, 20
   end
   
+  def test_make_hash
+    assert_op_and_int :make_hash, 20
+  end
+  
   def test_set_ivar
     assert_op_and_int :set_ivar, 12
   end
@@ -202,8 +215,16 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_op_and_int :open_class, 32423
   end
   
+  def test_open_class_under
+    assert_op_and_int :open_class_under, 32423
+  end
+  
   def test_open_module
-    assert_op_and_int :open_class, 97843
+    assert_op_and_int :open_module, 97843
+  end
+  
+  def test_open_module
+    assert_op_and_int :open_module_under, 97843
   end
   
   def test_add_method
@@ -218,8 +239,20 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_op :pop
   end
   
+  def test_send_method
+    assert_op_and_int :send_method, 12
+  end
+  
   def test_send_stack
-    assert_op_and_int :send_stack, 12
+    assert_op_and_2ints :send_stack, 12, 9
+  end
+  
+  def test_send_stack_with_block
+    assert_op_and_2ints :send_stack_with_block, 12, 9
+  end
+  
+  def test_activate_method
+    assert_op_and_int :activate_method, 3
   end
   
   def test_return
@@ -240,5 +273,45 @@ class TestInstructionEncoder < Test::Unit::TestCase
   
   def test_caller_return
     assert_op :caller_return
+  end
+  
+  def test_push_array
+    assert_op :push_array
+  end
+  
+  def test_cast_array
+    assert_op :cast_array
+  end
+  
+  def test_raise_exc
+    assert_op :raise_exc
+  end
+  
+  def test_unshift_tuple
+    assert_op :unshift_tuple
+  end
+  
+  def test_cast_tuple
+    assert_op :cast_tuple
+  end
+  
+  def test_make_rest
+    assert_op_and_int :make_rest, 3
+  end
+  
+  def test_set_encloser
+    assert_op :set_encloser
+  end
+  
+  def test_push_cpath_top
+    assert_op :push_cpath_top
+  end
+  
+  def test_check_argcount
+    assert_op_and_2ints :check_argcount, 99, 12
+  end
+  
+  def test_passed_arg
+    assert_op_and_int :passed_arg, 33
   end
 end

@@ -69,15 +69,17 @@ class CPU
   end
   
   def bootstrap_exceptions
-    exc = define_class "Exception"
-    fat = define_class "fatal", exc
-    std = define_class "StandardError", exc
-    arg = define_class "ArgumentError", std
-    ner = define_class "NameError", std
-    nme = define_class "NoMethodError", ner
-    syn = define_class "SyntaxError", exc
-    loe = define_class "LoadError", exc
-    run = define_class "RuntimeError", std
-    sys = define_class "SystemCallError", std
+    exc = define_class "Exception", Global.object, 1
+    fat = define_class "fatal", exc, 1
+    std = define_class "StandardError", exc, 1
+    arg = define_class "ArgumentError", std, 1
+    ner = define_class "NameError", std, 1
+    nme = define_class "NoMethodError", ner, 1
+    syn = define_class "SyntaxError", exc, 1
+    loe = define_class "LoadError", exc, 1
+    run = define_class "RuntimeError", std, 1
+    sys = define_class "SystemCallError", std, 1
+    
+    Global.exc_arg = arg
   end
 end

@@ -282,14 +282,27 @@ class RObject
     return self
   end
   
+  def copy_fields(dest, count)
+    da = dest.byte_start
+    sz = count * 4 # 4 should be the size of a long!
+    Memory.transfer_memory byte_start, sz, da
+  end
+  
+  def copy_fields_from(dest, first, count)
+    da = dest.byte_start
+    sz = count * 4 # 4 should be the size of a long!
+    start = (first * 4) + byte_start
+    Memory.transfer_memory start, sz, da
+  end
+  
   def as_string
     "#<RObject:0x#{@address.to_s(16)}>"
   end
   
   def create_metaclass(sup=nil)
     unless sup
-      cls = self.direct_class
-      sup = cls.metaclass
+      sup = self.direct_class
+      # sup = cls.metaclass
       # puts "Using metaclass of #{cls.address} (#{sup.address}) for #{address}"
     end
     meta = Rubinius::MetaClass.attach(self)

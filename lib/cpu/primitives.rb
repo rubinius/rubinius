@@ -21,6 +21,10 @@ class CPU::Primitives
     :string_to_sexp
   ]
   
+  def self.name_to_index(name)
+    Primitives.index(name)
+  end
+  
   def perform(prim)
     # 0 is sort of a noop primitive.
     

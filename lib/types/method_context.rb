@@ -1,7 +1,8 @@
 module Rubinius
   module MethodContext
     Fields = [:sender, :ip, :sp, :block, :ms, :method, :bytecodes,
-              :literals, :receiver, :locals]
+              :literals, :receiver, :locals, :argcount,
+              :raiseable]
     
     def self.new_anonymous
       obj = create_anonymous
@@ -25,6 +26,7 @@ module Rubinius
     
     def self.from_method(meth, from)
       mc = new(meth.locals.to_int)
+      mc.raiseable = RObject.true
       mc.bytecodes = meth.bytecodes
       mc.sender = from
       mc.method = meth

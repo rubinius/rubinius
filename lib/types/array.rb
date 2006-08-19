@@ -11,6 +11,15 @@ module Rubinius
       return obj
     end
     
+    def self.from_tuple(tup)
+      obj = allocate
+      tp = Rubinius::Tuple.new(tup.fields)
+      tup.copy_fields tp, tup.fields
+      obj.total = RObject.wrap(tup.fields)
+      obj.tuple = tup
+      return obj
+    end
+    
     def set(idx, val)
       self.tuple.put idx, val
     end

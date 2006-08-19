@@ -37,15 +37,31 @@ class InstructionEncoder
     :attach_method,
     :add_method,
     :open_class,
+    :open_class_under,
     :open_module,
+    :open_module_under,
+    :unshift_tuple,
+    :cast_tuple,
+    :make_rest,
     :dup_top,
     :pop,
     :ret,
+    :send_method,
     :send_stack,
+    :send_stack_with_block,
     :push_block,
     :clear_exception,
     :soft_return,
-    :caller_return
+    :caller_return,
+    :push_array,
+    :cast_array,
+    :make_hash,
+    :raise_exc,
+    :set_encloser,
+    :activate_method,
+    :push_cpath_top,
+    :check_argcount,
+    :passed_arg
   ]
   
   IntArg = [
@@ -63,9 +79,31 @@ class InstructionEncoder
     :attach_method,
     :add_method,
     :open_class,
+    :open_class_under,
     :open_module,
-    :send_stack
+    :open_module_under,
+    :send_method,
+    :send_stack,
+    :make_hash,
+    :make_rest,
+    :activate_method,
+    :send_stack_with_block,
+    :check_argcount,
+    :passed_arg
   ]
+  
+  TwoInt = [
+    :send_stack, :send_stack_with_block,
+    :check_argcount
+  ]
+  
+  def encode_stream(stream)
+    out = ""
+    stream.each do |ent|
+      out << encode(*ent)
+    end
+    return out
+  end
   
   def encode(kind, *args)
     
@@ -92,6 +130,14 @@ class InstructionEncoder
     str = opcode.chr
     
     if IntArg.include?(kind)
+      int = args.shift
+      unless Numeric === int
+        raise "#{kind} expects an integer only."
+      end
+      str << [int].pack("I")
+    end
+    
+    if TwoInt.include?(kind)
       int = args.shift
       unless Numeric === int
         raise "#{kind} expects an integer only."

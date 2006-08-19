@@ -87,6 +87,65 @@ class TestBytecodeAssembler < Test::Unit::TestCase
     assert_equal expected, out
   end
   
+  def test_push_symbol
+    out = assemble "push :blah\n"
+    expected = [[:push_literal, 0]]
+    assert_equal expected, out
+  end
+  
+  def test_push_const
+    out = assemble "push Blah\n"
+    expected = [[:push_const, 0]]
+    assert_equal [:Blah], @asm.literals
+    assert_equal expected, out
+  end
+  
+  def test_find_const
+    out = assemble "find EEK\n"
+    expected = [[:find_const, 0]]
+    assert_equal [:EEK], @asm.literals
+    assert_equal expected, out
+  end
+  
+  def test_attach_method
+    assert_assembled "attach_method __blah__\n", [[:attach_method, 0]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
+  def test_add_method
+    assert_assembled "add_method __blah__\n", [[:add_method, 0]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
+  def test_send_method
+    assert_assembled "send_method __blah__\n", [[:send_method, 0]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
+  def test_send_stack
+    assert_assembled "send_stack __blah__ 1\n", [[:send_stack, 0, 1]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
+  def test_send
+    assert_assembled "send __blah__\n", [[:send_method, 0]]
+    assert_equal [:__blah__], @asm.literals    
+  end
+  
+  def test_send_with_args
+    assert_assembled "send __blah__ 1\n", [[:send_stack, 0, 1]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
+  def test_send_with_block
+    assert_assembled "&send __blah__ 1\n", [[:send_stack_with_block, 0, 1]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
+  def test_send_prim
+    assert_assembled "send_primitive create_block\n", [[:send_primitive, 8]]
+  end
+  
   def assert_assembled(str, output)
     out = assemble str
     assert_equal output, out
@@ -111,8 +170,16 @@ class TestBytecodeAssembler < Test::Unit::TestCase
     assert_assembled "set a", [[:set_local, 2]]
   end
   
+  def test_set_lvar_with_index
+    assert_assembled "set a:10", [[:set_local, 10]]
+  end
+  
   def test_push_local
     assert_assembled "push a\n", [[:push_local, 2]]
+  end
+  
+  def test_push_local_with_index
+    assert_assembled "push a:10\n", [[:push_local, 10]]
   end
   
   def test_set_ivar_of_object
@@ -417,6 +484,40 @@ push @blah
   
   def assert_rkind_of(cls, obj)
     assert_equal cls.address, obj.rclass.address
+  end
+  
+  def test_open_class
+    code = "open_class EEK"
+    out = assemble code
+    assert_equal [:EEK], @asm.literals
+    assert_equal [[:open_class, 0]], out
+  end
+  
+  def test_open_class_under
+    code = "open_class_under EEK"
+    out = assemble code
+    assert_equal [:EEK], @asm.literals
+    assert_equal [[:open_class_under, 0]], out
+  end
+  
+  def test_open_module
+    code = "open_module EEK"
+    out = assemble code
+    assert_equal [:EEK], @asm.literals
+    assert_equal [[:open_module, 0]], out
+  end
+  
+  def test_open_module_under
+    code = "open_module_under EEK"
+    out = assemble code
+    assert_equal [:EEK], @asm.literals
+    assert_equal [[:open_module_under, 0]], out
+  end
+  
+  def test_check_argcount
+    code = "check_argcount 2 2"
+    out = assemble code
+    assert_equal [[:check_argcount, 2, 2]], out
   end
   
 end

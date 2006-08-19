@@ -127,6 +127,28 @@ class TestRsNormalize < Test::Unit::TestCase
     
   end
   
+  def test_process_defn_with_block_arg
+    input = [:defn, :go, [:scope, 
+      [:block,
+        [:args, [:a, :b, :c], [], nil, nil],
+        [:block_arg, :d, 5],
+        [:true]
+      ]
+    ]]
+    
+    output = [:defn, :go, [:args, [:a, :b, :c], [], nil, nil, [:block_arg, :d, 5]],
+      [:scope, 
+        [:block,
+          [:true]
+        ]
+    ]]
+    
+    got = norm input
+    assert_equal output, got  
+    
+  end
+  
+  
   def test_process_if
     input = [:if, [:true], [:lit, 8], [:lit, 9]]
     output = [:if, [:true], [:block, [:lit, 8]], [:block, [:lit, 9]]]

@@ -275,5 +275,32 @@ class TestRObject < Test::Unit::TestCase
     out = obj.fetch_byte 0
     assert_equal 99, out
   end
+  
+  def test_copy_fields
+    obj = RObject.setup(@heap, nil, 3)
+    obj2 = RObject.setup(@heap, nil, 2)
     
+    obj.put 0, RObject.wrap(99)
+    obj.put 1, RObject.wrap(3333)
+    obj.put 2, RObject.wrap(9812)
+    
+    obj.copy_fields obj2, 2
+    
+    assert_equal 99, obj2.at(0).to_int
+    assert_equal 3333, obj2.at(1).to_int
+  end
+  
+  def test_copy_fields_from
+    obj = RObject.setup(@heap, nil, 3)
+    obj2 = RObject.setup(@heap, nil, 2)
+    
+    obj.put 0, RObject.wrap(99)
+    obj.put 1, RObject.wrap(3333)
+    obj.put 2, RObject.wrap(9812)
+    
+    obj.copy_fields_from obj2, 1, 1
+    
+    assert_equal 3333, obj2.at(0).to_int
+  end
+  
 end

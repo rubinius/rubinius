@@ -90,7 +90,7 @@ class CPU::Instructions
   end
   
   def push_ivar
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int    
     obj = RObject.new @cpu.stack_pop
     obj.as :object
     val = obj.get_ivar sym
@@ -200,8 +200,57 @@ class CPU::Instructions
     @cpu.push_object ary
   end
   
+  def push_array
+    ary = @cpu.pop_object
+    ary.as :array
+    nd = ary.total.to_int - 1
+    nd.downto(0) do |idx|
+      @cpu.push_object ary.get(idx)
+    end
+  end
+  
+  def cast_array
+    obj = @cpu.pop_object
+    if obj.reference? and CPU::Global.tuple.address == obj.rclass.address
+      obj = Rubinius::Array.from_tuple(obj)
+    elsif !obj.reference? or CPU::Global.array.address != obj.rclass.address
+      ary = Rubinius::Array.new(1)
+      ary.set 0, obj
+      obj = ary  
+    end
+    @cpu.push_object obj
+  end
+  
+  def cast_tuple
+    obj = @cpu.pop_object
+    if obj.reference? and CPU::Global.array.address == obj.rclass.address
+      obj.as :array
+      tup = obj.tuple
+    elsif !obj.reference? or CPU::Global.tuple.address != obj.rclass.address
+      tup = Rubinius::Tuple.new(1)
+      tup.put 0, obj
+    else
+      tup = obj
+    end
+    @cpu.push_object tup
+  end
+  
+  def make_hash
+    cnt = next_int
+    ary = Rubinius::Hash.new
+    cur = cnt - 1
+    while cur >= 0
+      key = @cpu.pop_object
+      val = @cpu.pop_object
+      ary.set key, val
+      cur -= 2
+    end
+    
+    @cpu.push_object ary
+  end
+  
   def set_ivar
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int    
     val = RObject.new @cpu.stack_pop
     obj = RObject.new @cpu.stack_pop
     obj.as :object
@@ -210,7 +259,7 @@ class CPU::Instructions
   end
   
   def push_const
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int    
     hsh = @cpu.enclosing_class.constants
     hsh.as :hash
     val = hsh.find(sym)
@@ -218,7 +267,7 @@ class CPU::Instructions
   end
   
   def set_const
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int    
     val = RObject.new @cpu.stack_pop
     hsh = @cpu.enclosing_class.constants
     hsh.as :hash
@@ -228,7 +277,8 @@ class CPU::Instructions
   
   def find_const
     mod = RObject.new @cpu.stack_pop
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int
+    
     mod.as :module
     hsh = mod.constants
     hsh.as :hash
@@ -236,12 +286,30 @@ class CPU::Instructions
     @cpu.push_object val
   end
   
-  def open_class
-    sym = RObject.symbol next_int
+  def push_cpath_top
+    @cpu.push_object CPU::Global.object
+  end
+  
+  def set_encloser
+    @cpu.enclosing_class = @cpu.pop_object
+  end
+  
+  def open_class_under
     sup = @cpu.pop_object
+    cont = @cpu.pop_object
+    return open_class_at(cont, sup)
+  end
+  
+  def open_class
+    open_class_at @cpu.enclosing_class, @cpu.pop_object
+  end
+  
+  def open_class_at(klass, sup)
+    sym = @cpu.literals.at next_int    
     sup.as :class
     
-    hsh = @cpu.enclosing_class.constants
+    klass.as :module
+    hsh = klass.constants
     hsh.as :hash
     
     exist = hsh.find sym
@@ -274,8 +342,44 @@ class CPU::Instructions
     end
   end
   
+  def open_module_under
+    cont = @cpu.pop_object
+    return open_module_at(cont)
+  end
+  
+  def open_module
+    open_module_at @cpu.enclosing_class
+  end
+  
+  def open_module_at(klass)
+    sym = @cpu.literals.at next_int    
+    
+    klass.as :module
+    hsh = klass.constants
+    hsh.as :hash
+    exist = hsh.find sym
+    
+    if exist.nil?
+      mod = CPU::Global.module
+      mod.as :class
+      
+      total = mod.instance_fields.to_int
+      
+      obj = @cpu.new_object mod, total
+      obj.as :module
+      obj.name = sym
+      obj.metaclass
+      hsh.set sym, obj
+      
+      @cpu.push_object obj
+      
+    else
+      @cpu.push_object exist
+    end
+  end
+  
   def attach_method
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int
     target = @cpu.pop_object
     method = @cpu.pop_object
     meths = target.metaclass.methods
@@ -285,7 +389,7 @@ class CPU::Instructions
   end
   
   def add_method
-    sym = RObject.symbol next_int
+    sym = @cpu.literals.at next_int    
     target = @cpu.pop_object
     method = @cpu.pop_object
     target.as :class
@@ -312,15 +416,9 @@ class CPU::Instructions
     return meth
   end
   
-  def send_stack
+  def locate_method(recv, sym)
     @method_missing = Rubinius::String.new("method_missing").to_sym
     
-    if @cpu.literals.nil?
-      raise "Literals are nil!"
-    end
-    sym = @cpu.literals.at next_int
-    
-    recv = @cpu.pop_object
     mo = find_method(recv, sym)
     if mo.nil?
       mo = find_method(recv, @method_missing)
@@ -329,10 +427,68 @@ class CPU::Instructions
       end
     end
     
+    return mo
+  end
+  
+  def create_context(recv, mo)
     mo.as :cmethod
     ctx = Rubinius::MethodContext.from_method(mo, 
               @cpu.active_context)
     ctx.receiver = recv
+    return ctx
+  end
+  
+  def activate_method
+    recv = @cpu.pop_object
+    meth = @cpu.pop_object
+    ctx = create_context(recv, meth)
+    ctx.argcount = RObject.wrap next_int()
+    @cpu.activate_context ctx, ctx
+  end
+    
+  def send_method
+    if @cpu.literals.nil?
+      raise "Literals are nil!"
+    end
+    sym = @cpu.literals.at next_int
+    
+    recv = @cpu.pop_object
+    mo = locate_method recv, sym
+    ctx = create_context recv, mo
+    ctx.argcount = RObject.wrap(0)
+    
+    @cpu.activate_context ctx, ctx
+  end
+  
+  def send_stack
+    if @cpu.literals.nil?
+      raise "Literals are nil!"
+    end
+    sym = @cpu.literals.at next_int
+    args = next_int()
+    
+    recv = @cpu.pop_object
+    
+    mo = locate_method recv, sym
+    ctx = create_context recv, mo
+    ctx.argcount = RObject.wrap(args)
+    
+    @cpu.activate_context ctx, ctx
+  end
+  
+  def send_stack_with_block
+    if @cpu.literals.nil?
+      raise "Literals are nil!"
+    end
+    sym = @cpu.literals.at next_int
+    args = next_int()
+    
+    recv = @cpu.pop_object
+    
+    mo = locate_method recv, sym
+    ctx = create_context recv, mo
+    ctx.argcount = RObject.wrap(args)
+    ctx.block = @cpu.pop_object
     
     @cpu.activate_context ctx, ctx
   end
@@ -356,7 +512,105 @@ class CPU::Instructions
     @cpu.return_to_sender
   end
   
+  def raise_exc
+    exc = @cpu.pop_object
+    raise_exception exc
+  end
+  
+  def raise_exception(exc)
+    @cpu.exception = exc
+    ctx = @cpu.active_context
+    
+    until ctx.nil?
+    
+      # If the context isn't raisable, we just set the register
+      # and return. The idea is this allows external code to examine
+      # the exception and decide what it wants to do.
+      if ctx.raiseable.false?
+        return
+      end
+    
+      table = @cpu.exceptions
+      table.as :tuple
+    
+      raise "Invaild table" if table.nil?
+    
+      cur = @cpu.ip
+      total = table.fields
+      target = 0
+      0.upto(total - 1) do |idx|
+        ent = table.at(idx)
+        if cur >= ent.at(0).to_int and cur <= ent.at(1).to_int
+          target = ent.at(2).to_int
+          @cpu.ip = target
+          return
+        end
+      end
+      
+      ctx = ctx.sender
+    end
+    
+    # TODO implement looking up the context chain for a handler.
+    raise "Unable to find exception handler" if target == 0
+    
+  end
+  
+  def unshift_tuple
+    tup = @cpu.pop_object
+    if tup.fields == 0
+      @cpu.push_object tup
+      @cpu.stack_push CPU::NIL
+      return
+    end
+    sz = tup.fields - 1
+    obj = tup.at(0)
+    t2 = Rubinius::Tuple.new(sz)
+    tup.copy_fields_from t2, 1, sz
+    @cpu.push_object t2
+    @cpu.push_object obj
+  end
+  
+  def make_rest
+    req = next_int()
+    total = @cpu.active_context.argcount.to_int - req
+    ary = Rubinius::Array.new(total)
+    0.upto(total - 1) do |idx|
+      ary.set idx, @cpu.pop_object
+    end
+    @cpu.push_object ary
+  end
+  
+  def check_argcount
+    min = next_int()
+    max = next_int()
+    
+    if @cpu.argcount < min
+      msg = "wrong number of arguments (%d for %d)" % [@cpu.argcount, min]
+      raise_exception new_exception(CPU::Global.exc_arg, msg)
+    elsif max > 0 and @cpu.argcount > max
+      msg = "wrong number of arguments (%d for %d)" % [@cpu.argcount, max]
+      raise_exception new_exception(CPU::Global.exc_arg, msg)
+    end
+  end
+  
+  def passed_arg
+    idx = next_int()
+    if idx < @cpu.argcount
+      @cpu.stack_push CPU::TRUE
+    else
+      @cpu.stack_push CPU::FALSE
+    end
+  end
+  
   private
+  
+  def new_exception(klass, msg)
+    klass.as :class
+    obj = klass.new_instance
+    str = Rubinius::String.new(msg)
+    obj.put 0, str
+    return obj
+  end
   
   def obj_top
     RObject.new(@cpu.stack_pop)

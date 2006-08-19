@@ -1,6 +1,6 @@
 require 'memory'
-require 'heap'
-require 'gc'
+require 'gc/heap'
+require 'gc/gc'
 
 class TrainGC < ForwardingGC
   
@@ -253,7 +253,7 @@ class TrainGC < ForwardingGC
     
     if idx1 != idx2
       ary = @address_map[idx2]
-      info = AddressInfo.new(train, car, car_obj)
+      # info = AddressInfo.new(train, car, car_obj)
       if ary.nil?
         # puts "WB: new secondary at #{idx2} for #{info}"
         @address_map[idx2] = [info]
@@ -295,7 +295,7 @@ class TrainGC < ForwardingGC
     end
     
     def inspect
-      "(train=#{@train}, car=#{@car})"
+      "(train=#{@train}, car=#{@car} #{@start}-#{@end}, #{object_id})"
     end
     
     alias :to_s :inspect

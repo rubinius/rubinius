@@ -252,10 +252,17 @@ module Bytecode
       :gif => :goto_if_false,
       :gid => :goto_if_defined,
       :swap => :swap_stack,
-      :dup => :dup_top
+      :dup => :dup_top,
+      :find => :find_const,
+      :attach => :attach_method,
+      :add => :add_method
     }
     
     Simple = [:noop, :pop, :swap_stack, :dup_top]
+    
+    def number_of_locals
+      @locals.size + 2
+    end
     
     def find_local(name)
       cnt = @locals[name]
@@ -278,6 +285,18 @@ module Bytecode
       if /^[a-z_][A-Za-z0-9_]*$/.match(what)
         cnt = find_local(what.to_sym)
         return cnt
+      elsif /(^[a-z_][A-Za-z0-9_]*):(\d+)$/.match(what)
+        name = $1
+        cnt = $2.to_i
+        @locals[name] = cnt
+        return cnt
+      end
+      return nil
+    end
+    
+    def parse_const(what)
+      if /^[A-Z][A-Za-z0-9_]*$/.match(what)
+        return find_literal(what.to_sym)
       end
       return nil
     end
@@ -312,6 +331,9 @@ module Bytecode
         @output << [:push_int, idx]
         @output << :fetch_field
         @current_op += 1
+      elsif what[0] == ?:
+        lit = find_literal(what[1..-1].to_sym)
+        @output << [:push_literal, lit]
       else
         case what
         when "true", true
@@ -337,6 +359,9 @@ module Bytecode
             @output << [:push_local, info.first]
             @output << [:push_ivar, info.last]
             @current_op += 10
+          elsif cnt = parse_const(what)
+            @output << [:push_const, cnt]
+            @current_op += 5
           else
             raise "Unknown push argument '#{what}'"
           end
@@ -391,14 +416,53 @@ module Bytecode
       when :set
         parse_set parts.shift
         return
+      when :open_class, :find_const, :add_method, :attach_method,
+           :send_method, :open_class_under, :open_module,
+           :open_module_under
+        sym = parts.shift.to_sym
+        idx = find_literal(sym)
+        @output << [op, idx]
+        @current_op += 5
+        return
+      when :send_stack
+        sym = parts.shift.to_sym
+        idx = find_literal(sym)
+        @output << [op, idx, parts.shift.to_i]
+        @current_op += 9
+        return
+      when :"&send", :send
+        sym = parts.shift.to_sym
+        idx = find_literal(sym)
+        @current_op += 5
+        if args = parts.shift
+          meth = (op == :send ? :send_stack : :send_stack_with_block)
+          @output << [meth, idx, args.to_i]
+          @current_op += 4
+        else
+          @output << [:send_method, idx]
+        end
+        return
+      when :send_primitive
+        sym = parts.shift.to_sym
+        idx = CPU::Primitives.name_to_index(sym)
+        @current_op += 5
+        @output << [:send_primitive, idx]
+        return
+      when :check_argcount
+        @output << [op, parts.shift.to_i, parts.shift.to_i]
+        @current_op += 9
+        return
       end
       
       if Bytecode::InstructionEncoder::OpCodes.include?(op)
+        @current_op += 1
         if Bytecode::InstructionEncoder::IntArg.include?(op)
-          @output << [op, part.to_i]
+          @current_op += 4
+          @output << [op, parts.first.to_i]
         else
           @output << op
         end
+        return
       end
       
       raise "Unknown op '#{op}'"

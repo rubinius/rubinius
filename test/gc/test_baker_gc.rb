@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'baker_gc'
+require 'gc/baker_gc'
 
 class TestBakerGC < Test::Unit::TestCase
   

@@ -1,4 +1,4 @@
-require 'mark_sweepgc'
+require 'gc/mark_sweepgc'
 require 'test/unit'
 
 class TestMarkSweepGC < Test::Unit::TestCase

@@ -1,4 +1,4 @@
-require 'traingc'
+require 'gc/traingc'
 require 'test/unit'
 
 class TestTrainGC < Test::Unit::TestCase

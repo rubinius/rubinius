@@ -322,6 +322,79 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert_equal o2, a.get(1)
   end
   
+  def test_push_array
+    ary = Rubinius::Array.new(2)
+    ary.set 0, RObject.wrap(99)
+    ary.set 1, RObject.wrap(88)
+    
+    @cpu.push_object ary
+    @inst.run enc(:push_array)
+    assert_equal 1, @cpu.sp
+    assert_equal 99, @cpu.pop_object.to_int
+    assert_equal 88, @cpu.pop_object.to_int
+  end
+  
+  def test_cast_array_into_array
+    ary = Rubinius::Array.new(2)
+    ary.set 0, RObject.wrap(99)
+    ary.set 1, RObject.wrap(88)
+    
+    @cpu.push_object ary
+    @inst.run enc(:cast_array)
+    assert_equal ary.address, @cpu.stack_pop
+  end
+  
+  def test_cast_array
+    @cpu.push_object RObject.wrap(99)
+    @inst.run enc(:cast_array)
+    ary = @cpu.pop_object
+    ary.as :array
+    assert_equal CPU::Global.array, ary.rclass
+    assert_equal 1, ary.total.to_int
+    assert_equal 99, ary.get(0).to_int
+  end
+  
+  def test_cast_tuple_from_tuple
+    tup = Rubinius::Tuple.new(1)
+    @cpu.push_object tup
+    @inst.run enc(:cast_tuple)
+    assert_equal tup.address, @cpu.stack_pop
+  end
+  
+  def test_cast_tuple
+    obj = RObject.wrap(99)
+    @cpu.push_object obj
+    @inst.run enc(:cast_tuple)
+    tup = @cpu.pop_object
+    assert_equal 99, tup.at(0).to_int
+  end
+    
+  def test_cast_tuple_into_array
+    tup = Rubinius::Tuple.new(1)
+    tup.put 0, RObject.wrap(101)
+    @cpu.push_object tup
+    @inst.run enc(:cast_array)
+    ary = @cpu.pop_object
+    ary.as :array
+    assert_equal CPU::Global.array.address, ary.rclass.address
+    assert_equal 1, ary.total.to_int
+    assert_equal 101, ary.get(0).to_int
+  end
+  
+  def test_make_hash
+    o1 = RObject.wrap(99)
+    o2 = Rubinius::Tuple.new(3)
+    @cpu.push_object o2
+    @cpu.push_object o1
+    
+    @inst.run enc(:make_hash, 2)
+    assert_equal 0, @cpu.sp
+    a = obj_top
+    a.as :hash
+    assert_equal CPU::Global.hash, a.rclass
+    assert_equal o2, a.find(o1)
+  end
+  
   def test_get_ivar
     ivar = Rubinius::String.new("@name")
     sym = ivar.to_sym
@@ -329,7 +402,9 @@ class TestCPUInstructions < Test::Unit::TestCase
     obj = Rubinius::Object.new
     obj.set_ivar sym, tup
     @cpu.push_object obj
-    @inst.run enc(:push_ivar, sym.symbol_index)
+    add_sym_lit "@name"
+    
+    @inst.run enc(:push_ivar, 0)
     assert_equal tup, obj_top
   end
   
@@ -340,7 +415,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     obj = Rubinius::Object.new
     @cpu.push_object obj
     @cpu.push_object tup
-    @inst.run enc(:set_ivar, sym.symbol_index)
+    add_sym_lit "@name"
+    @inst.run enc(:set_ivar, 0)
     out = obj.get_ivar sym
     assert_equal tup, out
     assert_equal 0, @cpu.sp
@@ -353,7 +429,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     hsh = CPU::Global.object.constants
     hsh.as :hash
     hsh.set key, obj
-    @inst.run enc(:push_const, key.symbol_index)
+    add_sym_lit "Test"
+    @inst.run enc(:push_const, 0)
     assert_equal obj, obj_top
   end
   
@@ -364,7 +441,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     hsh = @cpu.enclosing_class.constants
     hsh.as :hash
     hsh.set key, obj
-    @inst.run enc(:push_const, key.symbol_index)
+    add_sym_lit "Test"
+    @inst.run enc(:push_const, 0)
     assert_equal obj, obj_top
   end
   
@@ -372,7 +450,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     obj = Rubinius::Tuple.new(3)
     key = Rubinius::String.new("Test").to_sym
     @cpu.push_object obj
-    @inst.run enc(:set_const, key.symbol_index)
+    add_sym_lit "Test"
+    @inst.run enc(:set_const, 0)
     assert_equal obj, obj_top
     hsh = @cpu.enclosing_class.constants
     hsh.as :hash
@@ -388,8 +467,14 @@ class TestCPUInstructions < Test::Unit::TestCase
     hsh.as :hash
     hsh.set key, obj
     @cpu.push_object cls
-    @inst.run enc(:find_const, key.symbol_index)
+    add_sym_lit "Test"
+    @inst.run enc(:find_const, 0)
     assert_equal obj, obj_top
+  end
+  
+  def test_push_cpath_top
+    @inst.run enc(:push_cpath_top)
+    assert_equal CPU::Global.object, obj_top
   end
   
   def test_push_block
@@ -400,26 +485,32 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert_equal obj, obj_top
   end
   
-  def test_send_stack
+  def add_sym_lit(name)
+    s = sym(name)
+    lits = Rubinius::Tuple.new(4)
+    lits.put 0, s
+    @cpu.literals = lits
+  end
+  
+  def test_activate_method
     key =  sym("Name")
     mkey = sym("test_method")
     obj = Rubinius::Object.new
     bc =  enc(:push_true)
-    bc << enc(:set_const, key.symbol_index)
+    bc << enc(:set_const, 1)
     mth = Rubinius::CompiledMethod.from_string bc, 0
-    mtbl = CPU::Global.object.methods
-    mtbl.as :methtbl
     
-    lits = Rubinius::Tuple.new(1)
+    lits = Rubinius::Tuple.new(2)
     lits.put 0, mkey
+    lits.put 1, key
     
-    mtbl.set mkey, mth
+    mth.literals = lits
+
+    @cpu.push_object mth
     @cpu.push_object obj
     ctx = @cpu.active_context
-    ctx.as :methctx
-    ctx.literals = lits
     
-    @cpu.execute_bytecodes enc(:send_stack, 0)
+    @cpu.execute_bytecodes enc(:activate_method, 0)
     assert obj_top.true?
     
     ctbl = CPU::Global.object.constants
@@ -428,37 +519,73 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert out.true?
   end
   
-  def test_send_stack_no_method_missing
+  def test_send_method
     key =  sym("Name")
     mkey = sym("test_method")
     obj = Rubinius::Object.new
     bc =  enc(:push_true)
-    bc << enc(:set_const, key.symbol_index)
+    bc << enc(:set_const, 1)
     mth = Rubinius::CompiledMethod.from_string bc, 0
     mtbl = CPU::Global.object.methods
     mtbl.as :methtbl
     
-    lits = Rubinius::Tuple.new(1)
+    lits = Rubinius::Tuple.new(2)
     lits.put 0, mkey
+    lits.put 1, key
+    
+    mth.literals = lits
+    
+    mtbl.set mkey, mth
+    @cpu.push_object obj
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    ctx.literals = lits
+    
+    @cpu.execute_bytecodes enc(:send_method, 0)
+    assert obj_top.true?
+    
+    ctbl = CPU::Global.object.constants
+    ctbl.as :hash
+    out = ctbl.find(key)
+    assert out.true?
+  end
+  
+  def test_send_method_no_method_missing
+    key =  sym("Name")
+    mkey = sym("test_method")
+    obj = Rubinius::Object.new
+    bc =  enc(:push_true)
+    add_sym_lit "Name"
+    bc << enc(:set_const, 0)
+    mth = Rubinius::CompiledMethod.from_string bc, 0
+    mtbl = CPU::Global.object.methods
+    mtbl.as :methtbl
+    
+    lits = Rubinius::Tuple.new(2)
+    lits.put 0, mkey
+    lits.put 1, key
+    
     ctx = @cpu.active_context
     ctx.as :methctx
     
+    mth.literals = lits
     ctx.literals = lits
     
     # mtbl.set mkey, mth
     @cpu.push_object obj
     assert_raises(RuntimeError) do
-      @cpu.execute_bytecodes enc(:send_stack, 0)
+      @cpu.execute_bytecodes enc(:send_method, 0)
     end
   end
   
-  def test_send_stack_method_missing
+  def test_send_method_method_missing
     key =  sym("Name")
     kkey = sym("method_missing")
     mkey = sym("test_method")
     obj = Rubinius::Object.new
     bc =  enc(:push_true)
-    bc << enc(:set_const, key.symbol_index)
+    add_sym_lit "Name"
+    bc << enc(:set_const, 1)
     mth = Rubinius::CompiledMethod.from_string bc, 0
     mtbl = CPU::Global.object.methods
     mtbl.as :methtbl
@@ -467,18 +594,79 @@ class TestCPUInstructions < Test::Unit::TestCase
     ctbl = CPU::Global.object.constants
     ctbl.as :hash
     
-    lits = Rubinius::Tuple.new(1)
+    lits = Rubinius::Tuple.new(2)
     lits.put 0, mkey
+    lits.put 1, key
     ctx = @cpu.active_context
     ctx.as :methctx
     
+    mth.literals = lits
     ctx.literals = lits
     
     assert ctbl.find(key).nil?
     @cpu.push_object obj
-    @cpu.execute_bytecodes enc(:send_stack, 0)
+    @cpu.execute_bytecodes enc(:send_method, 0)
     assert obj_top.true?
 
+    out = ctbl.find(key)
+    assert out.true?
+  end
+  
+  def test_send_stack_with_block
+    key =  sym("Name")
+    mkey = sym("test_method")
+    obj = Rubinius::Object.new
+    add_sym_lit "Name"
+    bc = enc(:push_block)
+    mth = Rubinius::CompiledMethod.from_string bc, 0
+    mtbl = CPU::Global.object.methods
+    mtbl.as :methtbl
+    
+    lits = Rubinius::Tuple.new(2)
+    lits.put 0, mkey
+    lits.put 1, key
+    
+    mtbl.set mkey, mth
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    ctx.literals = lits
+    mth.literals = lits
+    
+    @cpu.push_object RObject.true
+    @cpu.push_object obj
+    
+    @cpu.execute_bytecodes enc(:send_stack_with_block, 0, 0)
+    assert obj_top.true?    
+  end
+  
+  def test_send_stack
+    key =  sym("Name")
+    mkey = sym("test_method")
+    obj = Rubinius::Object.new
+    add_sym_lit "Name"
+    bc = enc(:set_const, 1)
+    mth = Rubinius::CompiledMethod.from_string bc, 0
+    mtbl = CPU::Global.object.methods
+    mtbl.as :methtbl
+    
+    lits = Rubinius::Tuple.new(2)
+    lits.put 0, mkey
+    lits.put 1, key
+    
+    mtbl.set mkey, mth
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    ctx.literals = lits
+    mth.literals = lits
+    
+    @cpu.push_object RObject.true
+    @cpu.push_object obj
+    
+    @cpu.execute_bytecodes enc(:send_stack, 0, 1)
+    assert obj_top.true?
+    
+    ctbl = CPU::Global.object.constants
+    ctbl.as :hash
     out = ctbl.find(key)
     assert out.true?
   end
@@ -505,7 +693,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     
     @cpu.push_object meth
     @cpu.push_object obj
-    @inst.run enc(:attach_method, key.symbol_index)
+    add_sym_lit "name"
+    @inst.run enc(:attach_method, 0)
     assert_equal meth, obj_top
     
     meths = obj.metaclass.methods
@@ -522,7 +711,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     
     @cpu.push_object meth
     @cpu.push_object CPU::Global.object
-    @inst.run enc(:add_method, key.symbol_index)
+    add_sym_lit "name"
+    @inst.run enc(:add_method, 0)
     assert_equal meth, obj_top
     
     meths = CPU::Global.object.methods
@@ -532,12 +722,57 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert_equal out, meth
   end
   
+  def test_open_module
+    add_sym_lit "EEEK"
+    @inst.run enc(:open_module, 0)
+    cls = obj_top
+    cls.as :module
+    
+    assert_equal CPU::Global.module, cls.rclass
+  end
+  
+  def test_open_module_existing
+    add_sym_lit "EEEK"
+    @inst.run enc(:open_module, 0)
+    cur = obj_top
+    @inst.run enc(:open_module, 0)
+    mod = obj_top
+    
+    assert_equal cur, mod
+  end
+  
+  def test_open_module_under
+    add_sym_lit "EEEK"
+    @cpu.push_object CPU::Global.class
+    @inst.run enc(:open_module_under, 0)
+    mod = obj_top()
+    hsh = CPU::Global.class.constants
+    hsh.as :hash
+    key = Rubinius::String.new("EEEK").to_sym
+    out = hsh.find(key)
+    assert_equal mod, out
+  end
+  
+  def test_open_class_under
+    add_sym_lit "EEEK"
+    @cpu.push_object CPU::Global.class
+    @cpu.push_object RObject.nil
+    @inst.run enc(:open_class_under, 0)
+    mod = obj_top()
+    hsh = CPU::Global.class.constants
+    hsh.as :hash
+    key = Rubinius::String.new("EEEK").to_sym
+    out = hsh.find(key)
+    assert_equal mod, out
+  end
+  
   def test_open_class_no_super
     key = sym("EEEK")
     sup = RObject.nil
     
+    add_sym_lit "EEEK"
     @cpu.push_object sup
-    @inst.run enc(:open_class, key.symbol_index)
+    @inst.run enc(:open_class, 0)
     cls = obj_top
     cls.as :class
     
@@ -550,7 +785,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     sup = CPU::Global.class
     
     @cpu.push_object sup
-    @inst.run enc(:open_class, key.symbol_index)
+    add_sym_lit "EEEK"
+    @inst.run enc(:open_class, 0)
     cls = obj_top
     cls.as :class
     
@@ -565,14 +801,16 @@ class TestCPUInstructions < Test::Unit::TestCase
     sup = CPU::Global.class
     
     @cpu.push_object sup
-    @inst.run enc(:open_class, key.symbol_index)
+    add_sym_lit "EEEK"
+    @inst.run enc(:open_class, 0)
     cls = obj_top
     cls.as :class
     
     @cpu.new_class_of = cls
     
     @cpu.push_object sup
-    @inst.run enc(:open_class, key2.symbol_index)
+    @cpu.literals.put 1, key2
+    @inst.run enc(:open_class, 1)
     cls2 = obj_top
     cls2.as :class
     
@@ -589,11 +827,12 @@ class TestCPUInstructions < Test::Unit::TestCase
     sup = RObject.nil
     
     @cpu.push_object sup
-    @inst.run enc(:open_class, key.symbol_index)
+    add_sym_lit "EEEK"
+    @inst.run enc(:open_class, 0)
     cls = obj_top
     
     @cpu.push_object sup
-    @inst.run enc(:open_class, key.symbol_index)
+    @inst.run enc(:open_class, 0)
     cls2 = obj_top
     
     assert_equal cls, cls2
@@ -604,11 +843,12 @@ class TestCPUInstructions < Test::Unit::TestCase
     sup = RObject.nil
     
     @cpu.push_object sup
-    @inst.run enc(:open_class, key.symbol_index)
+    add_sym_lit "EEEK"
+    @inst.run enc(:open_class, 0)
     cls = obj_top
     
     @cpu.push_object CPU::Global.class
-    @inst.run enc(:open_class, key.symbol_index)
+    @inst.run enc(:open_class, 0)
     assert obj_top.nil?    
   end
   
@@ -648,5 +888,127 @@ class TestCPUInstructions < Test::Unit::TestCase
     @inst.caller_return
     assert @cpu.active_context
     assert_equal ctx, @cpu.active_context
+  end
+  
+  def test_raise_exc
+    exc = Rubinius::Tuple.new(1)
+    ent = Rubinius::Tuple.new(3)
+    ent.put 0, RObject.wrap(1)
+    ent.put 1, RObject.wrap(1)
+    ent.put 2, RObject.wrap(6)
+    exc.put 0, ent
+    
+    tup = Rubinius::Tuple.new(1)
+    
+    @cpu.push_object tup
+    bc = enc(:raise_exc) + enc(:goto, 7) + enc(:push_exception) + enc(:push_true)
+    @cpu.exceptions = exc
+    @inst.run bc
+    assert_equal 1, @cpu.sp
+    assert @cpu.pop_object.true?
+    assert_equal tup, @cpu.pop_object
+  end
+  
+  def test_raise_exc_not_raiseable
+    tup = Rubinius::Tuple.new(1)
+    
+    @cpu.push_object tup
+    bc = enc(:raise_exc)
+    @cpu.active_context.raiseable = RObject.false
+    @inst.run bc
+    assert_equal tup, @cpu.exception
+  end
+  
+  def test_unshift_tuple
+    tup = Rubinius::Tuple.new(2)
+    tup.put 0, RObject.wrap(99)
+    tup.put 1, RObject.wrap(101)
+    
+    @cpu.push_object tup
+    bc = enc(:unshift_tuple)
+    @inst.run bc
+    assert_equal 1, @cpu.sp
+    assert_equal 99, @cpu.pop_object.to_int
+    t2 = @cpu.pop_object
+    t2.as :tuple
+    assert_equal 1, t2.fields
+    assert_equal 101, t2.at(0).to_int
+  end
+  
+  def test_unshift_tuple_get_nil
+    tup = Rubinius::Tuple.new(0)
+    @cpu.push_object tup
+    bc = enc(:unshift_tuple)
+    @inst.run bc
+    assert @cpu.pop_object.nil?
+    assert_equal tup, @cpu.pop_object
+  end
+  
+  def test_make_rest
+    @cpu.active_context.argcount = RObject.wrap(3)
+    @cpu.push_object RObject.wrap(333)
+    @cpu.push_object RObject.wrap(99)
+    
+    @inst.run enc(:make_rest, 1)
+    
+    assert_equal 0, @cpu.sp
+    ary = @cpu.pop_object
+    
+    assert_equal CPU::Global.array.address, ary.rclass.address
+    ary.as :array
+    
+    assert_equal 2, ary.total.to_int
+    assert_equal 99, ary.get(0).to_int
+    assert_equal 333, ary.get(1).to_int
+  end
+  
+  def test_set_encloser
+    @cpu.push_object CPU::Global.class
+    @inst.run enc(:set_encloser)
+    assert_equal CPU::Global.class, @cpu.enclosing_class
+  end
+  
+  def test_check_argcount_fixed_only
+    @cpu.argcount = 2
+    @cpu.active_context.raiseable = RObject.false
+    @inst.run enc(:check_argcount, 2, 2)
+    assert @cpu.exception.nil?
+  end
+  
+  def test_check_argcount_too_few
+    @cpu.argcount = 1
+    @cpu.active_context.raiseable = RObject.false
+    @inst.run enc(:check_argcount, 2, 2)
+    assert_equal CPU::Global.exc_arg, @cpu.exception.rclass
+    msg = @cpu.exception.at(0).as(:string).as_string
+    assert_equal "wrong number of arguments (1 for 2)", msg
+  end
+  
+  def test_check_argcount_too_many
+    @cpu.argcount = 3
+    @cpu.active_context.raiseable = RObject.false
+    @inst.run enc(:check_argcount, 2, 2)
+    assert_equal CPU::Global.exc_arg, @cpu.exception.rclass
+    msg = @cpu.exception.at(0).as(:string).as_string
+    assert_equal "wrong number of arguments (3 for 2)", msg
+  end
+  
+  def test_check_argcount_with_splat
+    @cpu.argcount = 10
+    @cpu.active_context.raiseable = RObject.false
+    @inst.run enc(:check_argcount, 2, 0)
+    assert @cpu.exception.nil?
+  end
+  
+  def test_passed_arg
+    @cpu.argcount = 2
+    @inst.run enc(:passed_arg, 0)
+    assert @cpu.pop_object.true?
+    @inst.run enc(:passed_arg, 1)
+    assert @cpu.pop_object.true?
+    @inst.run enc(:passed_arg, 2)
+    assert @cpu.pop_object.false?
+    @inst.run enc(:passed_arg, 10000)
+    assert @cpu.pop_object.false?
   end
 end

@@ -1,5 +1,5 @@
 require 'test/unit' unless defined? $ZENTEST and $ZENTEST
-require 'heap'
+require 'gc/heap'
 
 class TestHeap < Test::Unit::TestCase
   def setup

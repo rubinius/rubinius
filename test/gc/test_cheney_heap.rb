@@ -1,4 +1,4 @@
-require 'cheney_heap'
+require 'gc/cheney_heap'
 require 'test/unit'
 
 class TestCheneyHeap < Test::Unit::TestCase

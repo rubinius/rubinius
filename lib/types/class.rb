@@ -16,6 +16,12 @@ module Rubinius
       obj.setup str
       return obj
     end
+    
+    def new_instance
+      count = self.instance_fields.to_int
+      obj = Rubinius.cpu.new_object self, count
+      return obj
+    end
         
     def fields_as_hash
       i = 0
