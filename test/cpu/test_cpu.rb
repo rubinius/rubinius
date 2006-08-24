@@ -161,6 +161,10 @@ class TestCPURuntime < Test::Unit::TestCase
     assert_equal mod_meta, cls_meta.superclass
     assert_equal obj_meta, mod_meta.superclass
     assert_equal cls, obj_meta.superclass
+    
+    assert cls.name.symbol?
+    assert obj.name.symbol?
+    assert mod.name.symbol?
   end
   
   def test_bootstrap_secondary

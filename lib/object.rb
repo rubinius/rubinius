@@ -128,7 +128,13 @@ class RObject
   end
   
   def at(idx)
+    if idx >= self.fields
+      raise "Unable to fetch data beyond end of object (#{idx} > #{self.fields})."
+    end
+    
     add = Memory.fetch_long field_address(idx), 0
+    # Log.debug "Accessing field #{idx} of #{address} => #{add}"
+    
     return RObject.new(add)
   end
   
@@ -137,6 +143,11 @@ class RObject
   end
   
   def raw_put(idx, obj)
+    if idx >= self.fields
+      raise "Unable to write data beyond end of object (#{idx} > #{self.fields})."
+    end
+    
+    # Log.debug "Writing field #{idx} of #{address} => #{obj.address}"
     Memory.store_long field_address(idx), 0, obj.address
     return obj
   end
@@ -295,6 +306,11 @@ class RObject
     Memory.transfer_memory start, sz, da
   end
   
+  def copy_bytes_into(dest, count, offset)
+    da = dest.byte_start + offset
+    Memory.transfer_memory byte_start, count, da
+  end
+  
   def as_string
     "#<RObject:0x#{@address.to_s(16)}>"
   end
@@ -337,5 +353,40 @@ class RObject
     obj = RObject.new(m)
     obj.as :class
     return obj
+  end
+  
+  def logical_class
+    if reference?
+      return direct_class
+    else
+      return immediate_class
+    end
+  end
+  
+  def real_class
+    if reference?
+      return rclass
+    else
+      return immediate_class
+    end
+  end
+  
+  def immediate_class
+    Log.debug "Looking logical class of immediate #{self.address}"
+    if fixnum?
+      return CPU::Global.fixnum
+    elsif symbol?
+      return CPU::Global.symbol
+    elsif true?
+      return CPU::Global.true_class
+    elsif false?
+      return CPU::Global.false_class
+    elsif nil?
+      return CPU::Global.nil_class
+    elsif undef?
+      return CPU::Global.undef_class
+    else
+      raise "Fuck. can't figure the class of #{self.address} out."
+    end
   end
 end

@@ -1,34 +1,63 @@
 require 'sexp/processor'
 
 class RsNormalizer < SexpProcessor
-  def initialize
-    super
+  def initialize(state=nil, full=false)
+    super()
     self.auto_shift_type = true
     self.expected = Array
-    @lvars = Hash.new
-    @lvar_count = 1
+    @state = state || RsLocalState.new
+    @full = full
   end
   
   def process_iter(x)
     meth = process x.shift
     args = x.shift
     args = process args if args
-    body = process x.shift
-    if body[0] != :block
+    body = x.shift
+    if body.nil?
+      body = [:block]
+    elsif body[0] != :block
       body = [:block, body]
     end
-    [:iter, meth, args, body]
+    # Detect the dasgn_curr declaration list as the first element
+    # of the block.
+    dasgn = body[1]
+    if dasgn and dasgn.first == :dasgn_curr and 
+            (dasgn[2].nil? or dasgn[2].first == :dasgn_curr)
+        body[1] = nil
+        body.compact!
+    end
+    [:iter, meth, args, process(body)]
   end
   
   def process_call(x)
     if x.size == 2
-      return [:call, x.shift, x.shift, [:array]]
+      recv = x.shift
+      meth = x.shift
+      if meth == :static and recv.kind_of?(Array) and recv.first == :str
+        return [:static_str, recv.last]
+      end
+      return [:call, process(recv), meth, [:array]]
     else
-      
-      return [:call, x.shift, x.shift, x.shift]
+      recv = x.shift
+      meth = x.shift
+      args = x.shift
+      if args.first == :argscat
+        out = process(args)
+      elsif args.first == :splat
+        nw = [:argscat, [:array], args.last]
+        out = process(nw)
+      else
+        args.shift
+        out = [:array]
+        args.each do |a|
+          out << process(a)
+        end
+      end
+      return [:call, process(recv), meth, out]
     end
   end
-  
+    
   def process_fcall(x)
     out = process([:call, [:self], *x])
     x.clear
@@ -40,9 +69,9 @@ class RsNormalizer < SexpProcessor
   end
   
   def lvar_idx(name)
-    unless idx = @lvars[name]
-      idx = @lvar_count += 1
-      @lvars[name] = idx
+    unless idx = @state.locals.index(name)
+      idx = @state.local(name)
+      # puts "Added #{name.inspect} at #{idx}"
     end
     return idx
   end
@@ -57,42 +86,47 @@ class RsNormalizer < SexpProcessor
     name = x.shift
     idx = x.shift
     val = x.shift
-    [:lasgn, name, lvar_idx(name), val]
+    [:lasgn, name, lvar_idx(name), process(val)]
   end
-  
-  # Turn all dvars into lvars. We're going to scope everything the same
-  # as ruby 2.0, ie, no special dvar scoping.
-  def process_dvar(x)
-    name = x.shift
-    return [:lvar, name, lvar_idx(name)]
-  end
-  
-  alias :process_dvar_curr :process_dvar
-  
-  def process_dasgn(x)
-    name = x.shift
-    val = x.shift
-    return [:lasgn, name, lvar_idx(name), val]
-  end
-    
+      
   def process_zarray(x)
     x.clear
     return [:array]
+  end
+  
+  def process_defs(x)
+    recv = x.shift
+    out = process_defn(x)
+    out.shift
+    out.unshift recv
+    out.unshift :defs
+    return out
   end
   
   def process_defn(x)
     name = x.shift
     body = x.shift
     
+    # Detect that we're trying to normalize an already
+    # normalized method...
+    if real_body = x.shift
+      return [:defn, name, body, real_body]
+    end
+    
     block = body[1]
     args = block[1]
-    
+
     if args.first != :args
       raise "Unknown defn layout."
     end
     
     if args.size == 1
       args += [[], [], nil, nil]
+    end
+    
+    args[1].each do |a|
+      i = lvar_idx(a)
+      # puts "marking #{a} as a local: #{i}"
     end
 
     start = 2
@@ -102,7 +136,39 @@ class RsNormalizer < SexpProcessor
     end
     
     block.replace block[start..-1].unshift(:block)
+    if @full
+      cur = @state.locals
+      @state.reset
+      args[1].each { |i| @state.local(i) }
+      body = process(body)
+      @state.locals = cur
+    end
     [:defn, name, args, body]
+  end
+  
+  def process_class(x)
+    name = x.shift    
+    sup = x.shift
+    body = x.shift
+    if @full
+      cur = @state.locals
+      @state.reset
+      body = process(body)
+      @state.locals = cur
+    end
+    [:class, name, sup, body]    
+  end
+  
+  def process_module(x)
+    name = x.shift
+    body = x.shift
+    if @full
+      cur = @state.locals
+      @state.reset
+      body = process(body)
+      @state.locals = cur
+    end
+    [:module, name, body]    
   end
   
   def process_if(x)
@@ -118,7 +184,7 @@ class RsNormalizer < SexpProcessor
       els = [:block, els]
     end
     
-    [:if, cond, thn, els]
+    [:if, process(cond), process(thn), process(els)]
   end
   
   def process_while(x, kind=:while)
@@ -129,11 +195,21 @@ class RsNormalizer < SexpProcessor
       body = [:block, body]
     end
     
-    [kind, cond, body]
+    # Whats the last field?
+    x.clear
+    
+    [kind, process(cond), process(body)]
   end
   
   def process_until(x)
     process_while x, :until
+  end
+  
+  def process_newline(x)
+    line = x.shift
+    file = x.shift
+    body = process(x.shift)
+    [:newline, line, file, body]
   end
   
   def process_when(x)
@@ -144,7 +220,7 @@ class RsNormalizer < SexpProcessor
       body = [:block, body]
     end
     
-    [:when, cond, body]
+    [:when, process(cond), process(body)]
   end
   
 end

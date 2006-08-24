@@ -24,7 +24,8 @@ class CPU
     meth = Bytecode::InstructionEncoder::OpCodes[op]
     raise "Unknown opcode '#{op}'" unless meth
   
-    Log.debug "on #{op} / #{meth} (#{@ip})"
+    # Log.debug "on #{op} / #{meth} (#{@ip})"
+    # Log.debug "  =(stack)=> #{print_stack}"
     @ip += 1
     send(meth)
     return true
@@ -33,12 +34,24 @@ class CPU
   IntSize = 4
   
   def next_int
-    int = @data[@ip, IntSize].unpack("I").first
+    int = @data[@ip, IntSize].unpack("i").first
     @ip += IntSize
     return int
   end
   
   def noop
+  end
+  
+  def push_int
+    int  = next_int()
+    begin
+      obj = RObject.wrap(int)
+    rescue ArgumentError
+      p int
+      p @data[@ip-IntSize,IntSize]
+      raise
+    end
+    stack_push obj.address
   end
   
   def push_nil
@@ -63,6 +76,7 @@ class CPU
   end
   
   def push_self
+    # Log.debug "Pushed self, which is #{@self.address}"
     push_object @self
   end
   
@@ -70,6 +84,7 @@ class CPU
     idx = next_int
     val = @locals.at(idx)
     push_object val
+    # Log.debug "Pushed local at #{idx} (is #{val.address})"
   end
   
   def push_exception
@@ -86,7 +101,7 @@ class CPU
   
   def push_ivar
     sym = @literals.at next_int    
-    obj = RObject.new stack_pop
+    obj = @self
     obj.as :object
     val = obj.get_ivar sym
     push_object val
@@ -118,8 +133,8 @@ class CPU
   end
   
   def fetch_field
-    idx = obj_top()
-    obj = obj_top()
+    idx = pop_object()
+    obj = pop_object()
     
     out = obj.at(idx.to_int)
     
@@ -179,8 +194,9 @@ class CPU
   
   def set_local
     idx = next_int
-    val = stack_top
+    val = stack_pop
     @locals.put idx, RObject.new(val)
+    # Log.debug "Set local #{idx} to #{val}."
   end
   
   def make_array
@@ -214,6 +230,13 @@ class CPU
       obj = ary  
     end
     push_object obj
+    return obj
+  end
+  
+  def cast_array_for_args
+    @args = next_int()
+    ary = cast_array()
+    @args += ary.as(:array).total.to_int
   end
   
   def cast_tuple
@@ -247,7 +270,7 @@ class CPU
   def set_ivar
     sym = @literals.at next_int    
     val = RObject.new stack_pop
-    obj = RObject.new stack_pop
+    obj = @self
     obj.as :object
     obj.set_ivar sym, val
     push_object val
@@ -255,10 +278,29 @@ class CPU
   
   def push_const
     sym = @literals.at next_int    
+    @enclosing_class.as :module
     hsh = @enclosing_class.constants
     hsh.as :hash
+    sym.as :symbol    
     val = hsh.find(sym)
-    push_object val
+    if val.nil?
+      @paths.each do |cls|
+        cls.as :module
+        hsh = cls.constants
+        hsh.as :hash
+        val = hsh.find(sym)
+        unless val.nil?
+          push_object val
+          return
+        end
+      end
+    else
+      # Log.debug "Pushed #{val.address} as const #{sym.as_string}"      
+      push_object val
+      return
+    end
+    
+    raise "Unable to find const #{sym.as_string}"
   end
   
   def set_const
@@ -299,7 +341,13 @@ class CPU
   end
   
   def set_encloser
-    @enclosing_class = pop_object
+    cls = pop_object
+    if @paths.first == cls
+      @paths.shift
+    else
+      @paths.unshift @enclosing_class
+    end
+    @enclosing_class = cls
   end
   
   def push_encloser
@@ -324,8 +372,10 @@ class CPU
     hsh = klass.constants
     hsh.as :hash
     
+    sym.as :symbol
     exist = hsh.find sym
     if exist.nil?
+      # Log.debug "Creating class #{sym.as_string}"
       if sup.nil?
         sup = CPU::Global.object
       end
@@ -340,6 +390,7 @@ class CPU
       obj.superclass = sup
       obj.instance_fields = sup.instance_fields
       obj.metaclass.setup_fields
+      obj.setup_fields
       
       hsh.set sym, obj
 
@@ -351,6 +402,8 @@ class CPU
       else
         push_object exist
       end
+      
+      # Log.debug "Re-openning class #{sym.as_string}, #{exist.address}"
     end
   end
   
@@ -381,6 +434,7 @@ class CPU
       obj.as :module
       obj.name = sym
       obj.metaclass
+      obj.setup_fields
       hsh.set sym, obj
       
       push_object obj
@@ -401,52 +455,72 @@ class CPU
   end
   
   def add_method
-    sym = @literals.at next_int    
+    sym = @literals.at next_int
     target = pop_object
     method = pop_object
     target.as :class
     meths = target.methods
     meths.as :hash
     meths.set sym, method
+    sym.as :symbol
+    # puts "Added method #{sym.as_string} (#{sym.hash_int}) to #{target.address}."
     push_object method
   end
   
   def find_method(obj, name)
-    klass = obj.rclass
+    klass = obj.logical_class
     hsh = klass.methods
     hsh.as :hash
+    name.as :symbol
+    klass.as :class
     
+    # puts "Looking for #{name.as_string} in #{klass.as_string}, #{obj.as_string}"
     meth = hsh.find(name)
     while meth.nil?
       klass = klass.superclass
+      klass.as :class
       break if klass.nil?
+      # puts "Looking for #{name.as_string} (#{name.hash_int}) in #{klass.as_string}, #{obj.as_string}"
       hsh = klass.methods
       hsh.as :hash
       meth = hsh.find(name)
     end
     
+    if klass.reference? and klass.name.symbol?
+      # puts "Found #{name.as_string} in #{klass.name.as(:symbol).as_string}."
+    end
     return meth
   end
   
   def locate_method(recv, sym)
-    @method_missing = Rubinius::String.new("method_missing").to_sym
+    sym.as :symbol
+    
+    missing = false
     
     mo = find_method(recv, sym)
     if mo.nil?
       mo = find_method(recv, @method_missing)
+      missing = true
       if mo.nil?
-        raise "No method_missing found!"
+        raise "No method_missing found! #{sym.as_string} was lost!"
       end
     end
     
-    return mo
+    mo.as :cmethod
+    return [mo, missing]
   end
   
-  def create_context(recv, mo)
+  def create_context(recv, mo, name)
     mo.as :cmethod
-    ctx = Rubinius::MethodContext.from_method(mo, 
-              @active_context)
+    if @active_context.nil?
+      sender = RObject.nil
+    else
+      sender = @active_context
+    end
+    ctx = Rubinius::MethodContext.from_method(mo, sender)
     ctx.receiver = recv
+    ctx.name = name
+    ctx.sp = RObject.wrap(@sp)
     return ctx
   end
   
@@ -454,69 +528,85 @@ class CPU
     recv = pop_object
     meth = pop_object
     cnt = next_int
-    goto_method recv, meth, cnt
+    goto_method recv, meth, cnt, RObject.nil
   end
   
-  def goto_method(recv, meth, count)
-    ctx = create_context(recv, meth)
+  def goto_method(recv, meth, count, name)
+    ctx = create_context(recv, meth, name)
     ctx.argcount = RObject.wrap count
     activate_context ctx, ctx
   end
+  
+  def unified_send(recv, idx, args, block)
+    if @literals.nil?
+      raise "Literals are nil!"
+    end
+    sym = @literals.at idx
     
+    sym.as :symbol
+    
+    # puts "Sending #{sym.as_string} (#{idx}) to #{recv.address}."
+    
+    # Log.debug "stack is #{print_stack} for #{sym.as_string} (#{args} args)"
+    
+    mo, missing = locate_method recv, sym
+    prim = mo.primitive.to_int
+    req = mo.required.to_int
+    if prim > -1 and (req < 0 or args == req)
+      push_object recv
+      if @primitives.perform(mo.primitive.to_int)
+        # Log.debug "Primitive response for #{sym.as_string} successful."
+        return
+      else
+        # Log.debug "Pritive response for #{sym.as_string} FAILED."
+      end
+    end
+    
+    if missing
+      args += 1
+      push_object sym
+    end
+    
+    ctx = create_context recv, mo, sym
+    # Log.debug "=> Created context #{ctx.address}"
+    ctx.argcount = RObject.wrap(args)
+    ctx.block = block
+    
+    activate_context ctx, ctx
+  end
+  
   def send_method
-    if @literals.nil?
-      raise "Literals are nil!"
-    end
-    sym = @literals.at next_int
-    
-    recv = pop_object
-    mo = locate_method recv, sym
-    ctx = create_context recv, mo
-    ctx.argcount = RObject.wrap(0)
-    
-    activate_context ctx, ctx
+    unified_send pop_object, next_int, 0, RObject.nil
   end
-  
+      
   def send_stack
-    if @literals.nil?
-      raise "Literals are nil!"
-    end
-    sym = @literals.at next_int
+    sym = next_int()
     args = next_int()
-    
-    recv = pop_object
-    
-    mo = locate_method recv, sym
-    ctx = create_context recv, mo
-    ctx.argcount = RObject.wrap(args)
-    
-    activate_context ctx, ctx
+    unified_send pop_object, sym, args, RObject.nil
   end
-  
+    
   def send_stack_with_block
-    if @literals.nil?
-      raise "Literals are nil!"
-    end
-    sym = @literals.at next_int
-    args = next_int()
-    
     recv = pop_object
-    
-    mo = locate_method recv, sym
-    ctx = create_context recv, mo
-    ctx.argcount = RObject.wrap(args)
-    ctx.block = pop_object
-    
-    activate_context ctx, ctx
+    blk = pop_object
+    sym = next_int()
+    args = next_int()
+    unified_send recv, sym, args, blk
   end
   
+  def send_with_arg_register
+    recv = pop_object
+    blk = pop_object
+    sym = next_int()
+    unified_send recv, sym, @args, blk
+  end
+    
   # Returns directly back to the sender, regardless of the type.
   # This is NOT a normal return which causes the home context
   # to return. This is used for things like break and next inside
   # a block. A block will always have one of these as it's last
   # bytecode.
   def soft_return
-    return_to_sender
+    return_to_sender(false)
   end
   
   # caller return is this strange instruction that actually returns
@@ -540,21 +630,31 @@ class CPU
   
   def raise_exception(exc)
     @exception = exc
+    # STDERR.puts "Exception raised: #{exc.at(0).as(:string).as_string}"
     ctx = @active_context
     
+    # puts "Exception occurred, searching for handler..."
     until ctx.nil?
-    
+      
+      # puts "Looking in #{ctx.address}, #{@exceptions.address}..."
       # If the context isn't raisable, we just set the register
       # and return. The idea is this allows external code to examine
       # the exception and decide what it wants to do.
       if ctx.raiseable.false?
+        puts "Hit non-raiseable ctx. stopping."
         return
       end
     
       table = @exceptions
+      
+      # If there is no table, then this method has no handlers.
+      if table.nil?
+        return_to_sender
+        ctx = @active_context        
+        next
+      end
+      
       table.as :tuple
-    
-      raise "Invaild table" if table.nil?
     
       cur = @ip
       total = table.fields
@@ -568,7 +668,8 @@ class CPU
         end
       end
       
-      ctx = ctx.sender
+      return_to_sender(false)
+      ctx = @active_context
     end
     
     # TODO implement looking up the context chain for a handler.
@@ -595,6 +696,7 @@ class CPU
     req = next_int()
     total = @active_context.argcount.to_int - req
     ary = Rubinius::Array.new(total)
+    # Log.debug "Making rest of #{total} items (req=#{req})"
     0.upto(total - 1) do |idx|
       ary.set idx, pop_object
     end
@@ -623,6 +725,30 @@ class CPU
     end
   end
   
+  def string_append
+    recv = pop_object
+    str =  pop_object
+    recv.as :string
+    recv.append str
+    push_object recv
+  end
+  
+  def string_dup
+    recv = pop_object
+    recv.as :string
+    out = Rubinius::String.new(recv.as_string)
+    push_object out
+  end
+  
+  def set_args
+    int = pop_object.to_int
+    @args = int
+  end
+  
+  def get_args
+    push_object RObject.wrap(@args)
+  end
+  
   private
   
   def new_exception(klass, msg)
@@ -636,10 +762,5 @@ class CPU
   def obj_top
     RObject.new(stack_pop)
   end
-  
-  def push_int
-    obj = RObject.wrap(next_int)
-    stack_push obj.address
-  end
-  
+    
 end

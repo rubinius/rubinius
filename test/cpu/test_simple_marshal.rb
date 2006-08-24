@@ -53,7 +53,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     obj = Rubinius::String.new("blahbleh").to_sym
     mar = marshal obj
     assert_equal 13, mar.size
-    assert_equal ?t, mar[0]
+    assert_equal ?x, mar[0]
     sz = mar[1,4].unpack("I").first
     assert_equal 8, sz
     assert_equal "blahbleh", mar[5..-1]

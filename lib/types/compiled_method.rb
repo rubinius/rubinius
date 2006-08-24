@@ -1,7 +1,7 @@
 module Rubinius
   module CompiledMethod
     Fields = [:bytecodes, :primitive, :locals, :literals,
-      :required, :arguments, :exceptions, :lines]
+      :required, :arguments, :scope, :exceptions, :lines, :file]
     
     def self.from_string(bc, lcls)
       obj = allocate()
@@ -13,6 +13,7 @@ module Rubinius
       obj.arguments = Rubinius::Tuple.new(0)
       obj.exceptions = RObject.nil
       obj.lines = RObject.nil
+      obj.file = RObject.nil
       return obj
     end
   end

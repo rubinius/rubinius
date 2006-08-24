@@ -163,6 +163,11 @@ class TestBytecodeAssembler < Test::Unit::TestCase
     assert_equal [:__blah__], @asm.literals
   end
   
+  def test_send_with_arg_register
+    assert_assembled "send __blah__ +\n", [[:send_with_arg_register, 0]]
+    assert_equal [:__blah__], @asm.literals
+  end
+  
   def test_send_prim
     assert_assembled "send_primitive create_block\n", [[:send_primitive, 8]]
   end

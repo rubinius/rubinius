@@ -4,6 +4,7 @@ require 'translation/normalize'
 require 'translation/local_scoping'
 require 'sexp/composite_processor'
 require 'bytecode/assembler'
+require 'translation/states'
 
 module Bytecode
   
@@ -13,6 +14,8 @@ module Bytecode
       @assembly = ""
       @literals = []
       @primitive = nil
+      @file = nil
+      @required = 0
     end
     
     def add_literal(obj)
@@ -21,7 +24,8 @@ module Bytecode
       return idx
     end
     
-    attr_accessor :name, :assembly, :literals, :primitive
+    attr_accessor :name, :assembly, :literals, :primitive, :file
+    attr_accessor :required
     
     def to_cmethod
       asm = Bytecode::Assembler.new(@literals)
@@ -30,6 +34,8 @@ module Bytecode
       bc = enc.encode_stream stream
       lcls = asm.number_of_locals
       cmeth = Rubinius::CompiledMethod.from_string bc, lcls
+      cmeth.required = RObject.wrap(@required)
+      cmeth.exceptions = asm.exceptions_as_tuple
       
       if @primitive.kind_of? Symbol
         idx = CPU::Primitives.name_to_index(@primitive)
@@ -39,6 +45,16 @@ module Bytecode
       end
 
       cmeth.literals = encode_literals
+      if @file
+        # Log.info "Method #{@name} is contained in #{@file}."
+        sym = Rubinius::String.new(@file).to_sym
+        cmeth.file = sym
+      else
+        # Log.info "Method #{@name} is contained in an unknown place."
+        cmeth.file = RObject.nil
+      end
+      
+      cmeth.lines = asm.lines_as_tuple
       return cmeth
     end
     
@@ -55,6 +71,8 @@ module Bytecode
           # puts "Encoded #{lit.inspect} as #{out.inspect}"
         when Bytecode::MethodDescription
           out = lit.to_cmethod
+        when String
+          out = Rubinius::String.new(lit)
         else
           raise "Unable to encode literal: #{lit.inspect}"
         end
@@ -67,23 +85,33 @@ module Bytecode
   end
   
   class Compiler
-    
-    def compile(sx, name)
+    def compile(sx, name, extra=[])
+      state = RsLocalState.new
+      nx = fully_normalize(sx, extra, state)
       meth = MethodDescription.new(name)
-      comp = CompositeSexpProcessor.new
-      # Convert the block args to the new rules...
-      comp << RsLocalScoper.new
-      # normalize the rest of the sexp...
-      comp << RsNormalizer.new
-      # and compile it!
-      pro = Processor.new(self, meth)
-      comp << pro
-      comp.process sx
+      
+      pro = Processor.new(self, meth, state)
+      pro.process nx
       return pro
     end
     
-    def compile_as_method(sx, name)
-      pro = compile(sx, name)
+    def fully_normalize(x, extra=[], state=RsLocalState.new)
+      extra.each { |a| state.local(a) }
+      comp = CompositeSexpProcessor.new
+      comp << RsNormalizer.new(state, true)
+      comp << RsLocalScoper.new(state)
+      
+      return comp.process(x)      
+    end
+    
+    def compile_as_method(sx, name, extra=[])
+      begin
+        pro = compile(sx, name, extra)
+      rescue UnknownNodeError => e
+        exc = RuntimeError.new "Unable to compile '#{name}', compiled error detected. '#{e.message}'"
+        exc.set_backtrace e.backtrace
+        raise exc
+      end
       pro.finalize("ret")
       return pro.method
     end
@@ -95,7 +123,7 @@ module Bytecode
     end
     
     class Processor < SexpProcessor
-      def initialize(cont, meth)
+      def initialize(cont, meth, state)
         super()
         self.require_expected = false
         self.strict = true
@@ -104,6 +132,7 @@ module Bytecode
         @method = meth
         @output = ""
         @unique_id = 0
+        @state = state
       end
       
       attr_reader :method
@@ -148,7 +177,9 @@ module Bytecode
       def process_and(x)
         process x.shift
         lbl = unique_lbl()
+        add "dup"
         add "gif #{lbl}"
+        add "pop"
         process x.shift
         add "#{lbl}:"
       end
@@ -156,7 +187,9 @@ module Bytecode
       def process_or(x)
         process x.shift
         lbl = unique_lbl()
+        add "dup"
         add "git #{lbl}"
+        add "pop"
         process x.shift
         add "#{lbl}:"
       end
@@ -235,6 +268,10 @@ module Bytecode
       end
       
       def process_scope(x)
+        if x.first.empty?
+          x.clear
+          return []
+        end
         out = process x.shift
         x.clear
         out
@@ -277,6 +314,10 @@ module Bytecode
         add "make_array #{sz}"
       end
       
+      def process_zarray(x)
+        add "make_array 0"
+      end
+      
       def process_hash(x)
         sz = x.size
         y = x.reverse
@@ -296,9 +337,10 @@ module Bytecode
         ary = x.shift        
         itm = x.shift
         process itm
-        add "cast_array"
-        add "push_array"
         ary.shift
+        
+        add "cast_array_for_args #{ary.size}"
+        add "push_array"
         ary.reverse.each do |i|
           process i
         end
@@ -307,6 +349,15 @@ module Bytecode
       def process_ivar(x)
         name = x.shift
         add "push #{name}"
+      end
+      
+      def process_gvar(x)
+        kind = x.shift
+        if kind == :$!
+          add "push_exception"
+        else
+          raise "Unknown gvar #{kind}"
+        end
       end
       
       def process_iasgn(x)
@@ -380,12 +431,14 @@ module Bytecode
         end
         add "dup"
         
+        Log.debug "Compiling class '#{name}'"
         meth = @compiler.compile_as_method body, :__class_init__
         idx = @method.add_literal meth
         meth.assembly = "push self\nset_encloser\n" + meth.assembly
         add "push_literal #{idx}"
         add "swap"
         add "attach __class_init__"
+        add "pop"
         add "send __class_init__"
         add "pop"
         add "set_encloser"
@@ -419,6 +472,7 @@ module Bytecode
         add "push_literal #{idx}"
         add "swap"
         add "attach __module_init__"
+        add "pop"
         add "send __module_init__"
         add "pop"
         add "set_encloser"
@@ -440,7 +494,7 @@ module Bytecode
         do_resbody res, rr, fin
         add "#{rr}:"
         add "push_exception"
-        add "raise"
+        add "raise_exc"
         add "#{fin}:"
         # Since this is always the end if the exception has either
         # not occured or has been correctly handled, we clear the current
@@ -524,16 +578,18 @@ module Bytecode
         rhs = x.shift
         splat = x.shift
         source = x.shift
-        
-        # The sexp has 2 nodes that do the same thing. It's annoying.
-        if source[0] == :to_ary or source[0] == :splat
-          process source.last
-          add "cast_tuple"
-        elsif source[0] == :array
-          handle_array_masgn rhs, splat, source
-          return
-        else
-          process source
+
+        if source
+          # The sexp has 2 nodes that do the same thing. It's annoying.
+          if source[0] == :to_ary or source[0] == :splat
+            process source.last
+            add "cast_tuple"
+          elsif source[0] == :array
+            handle_array_masgn rhs, splat, source
+            return
+          else
+            process source
+          end
         end
         
         rhs.shift # get rid of :array
@@ -568,17 +624,37 @@ module Bytecode
       
       def detect_primitive(body)
         cl = body[1][1]
-        if cl.kind_of?(Array) and cl[0,3] == [:call, [:const, :Ruby], :primitive]
+        if cl.first == :newline
+          cl = cl.last
+        end
+        found = detect_special(:primitive, cl)
+        if found
+          b = body[1]
+          b.shift
+          b.shift
+          # Detect that a primitive is used with no
+          # handling for if the primitive fails.
+          if b.empty?
+            # puts "Using default primitive fallback for #{found}"
+            msg = [:str, "Primitive #{found} failed."]
+            exc = [:call, [:const, :ArgumentError], :new, [:array, msg]]
+            b.unshift [:call, [:self], :raise, [:array, exc]]
+          end
+          b.unshift :block
+          body[1] = b
+          return found
+        end
+        
+        return nil
+      end
+      
+      def detect_special(kind, cl)
+        if cl.kind_of?(Array) and cl[0,3] == [:call, [:const, :Ruby], kind]
           args = cl.last
           args.shift
           if args.size == 1
             ary = args.last
-            if ary.kind_of? Array and ary[0] == :lit
-              b = body[1]
-              b.shift
-              b.shift
-              b.unshift :block
-              body[1] = b
+            if ary.kind_of? Array and [:lit, :str].include?(ary[0])
               return ary.last
             end
           end
@@ -587,23 +663,39 @@ module Bytecode
         return nil
       end
       
-      def process_defn(x)
+      def process_defs(x)
+        s = @output
+        str = ""
+        @output = str
+        process(x.shift)
+        @output = s
+        process_defn x, "attach_method", str
+      end
+      
+      def process_defn(x, kind="add_method", recv="push_self")
         name = x.shift
         args = x.shift
         body = x.shift
         
+        Log.debug " ==> Compiling '#{name}'"
+        
         prim = detect_primitive(body)
-        meth = @compiler.compile_as_method body, name
+        extra = args[1].dup
+        if args[3]
+          extra << args[3].first
+        end
+        meth = @compiler.compile_as_method body, name, extra
         meth.primitive = prim if prim
         idx = @method.add_literal meth
-        add "push_self"
         add "push_literal #{idx}"
-        add "add_method #{name}"
+        add recv
+        add "#{kind} #{name}"
         str = ""
         required = args[1].size
         args[1].each do |var|
           str << "set #{var}\n"
         end
+        
         
         max = min = args[1].size
         
@@ -630,6 +722,9 @@ module Bytecode
         if splat
           str << "make_rest #{required}\nset #{splat.first}\n"
           max = 0
+          req = -1
+        else
+          req = min
         end
         
         if args.last and args.last.first == :block_arg
@@ -639,19 +734,39 @@ module Bytecode
           str << "push_block\nset #{name}:#{idx}\n"
         end
         
+        meth.required = req
+        
         str = "check_argcount #{min} #{max}\n" + str
         
         meth.assembly = str + meth.assembly
       end
       
       def process_call(x, block=false)
+        
+        x.unshift :call
+        if asm = detect_special(:asm, x)
+          add asm
+          x.clear
+          return
+        end
+        x.shift
+        
         recv = x.shift
         meth = x.shift
         args = x.shift
         
         if args
-          args.shift
-          args.reverse.each { |a| process(a) }
+          if args.first == :argscat
+            process(args)
+            sz = "+"
+            add "push nil"
+          else
+            args.shift
+            args.reverse.each { |a| process(a) }
+            sz = args.size
+          end
+        else
+          sz = nil
         end
         
         if block
@@ -663,13 +778,11 @@ module Bytecode
         
         process recv
         
-        if args
-          sz = args.size
-        else
-          sz = nil
-        end
-        
         add "#{op} #{meth} #{sz}"        
+      end
+      
+      def process_attrasgn(x)
+        process_call x
       end
       
       def process_block_pass(x)
@@ -699,6 +812,88 @@ module Bytecode
         process x.shift
         add "#{one}: soft_return"
         set_label two
+      end
+      
+      def process_str(x)
+        str = x.shift
+        cnt = @method.add_literal str
+        add "push_literal #{cnt}"
+        # The string dup is strings work the same as the do in CRuby, 
+        # ie that every declaration of them is a new one.
+        add "string_dup"
+      end
+      
+      def process_static_str(x)
+        str = x.shift
+        cnt = @method.add_literal str
+        add "push_literal #{cnt}"
+        # We don't dup it, meaning that every call will get the same one.
+        # This gives ruby a decent static string buffer object.
+      end
+      
+      def process_evstr(x)
+        process x.shift
+        add "send to_s"
+      end
+      
+      def process_dstr(x)
+        str = x.shift
+        cnt = 0
+        while y = x.pop
+          process y
+          cnt += 1
+        end
+        lit = @method.add_literal str
+        add "push_literal #{lit}"
+        add "string_dup"
+        cnt.times { add "string_append" }
+      end
+      
+      def process_yield(x)
+        args = x.shift
+        
+        if args
+          kind = args.first
+          if kind == :array
+            args.shift
+            args.reverse.each { |a| process(a) }
+            sz = args.size
+          else
+            process(args)
+            sz = 1
+          end
+        else
+          sz = 0
+        end
+        
+        x.shift
+        
+        add "push_block"
+        add "send call #{sz}"
+      end
+      
+      def process_next(x)
+        val = x.shift
+        if val
+          process(val)
+        end
+        add "soft_return"
+      end
+      
+      def process_newline(x)
+        line = x.shift
+        @method.file = x.shift
+        add "\#line #{line}"
+        process(x.shift)
+      end
+      
+      def process_alias(x)
+        cur = x.shift
+        nw = x.shift
+        add "push :#{cur}"
+        add "push :#{nw}"
+        add "push self"
+        add "send alias_method 2"
       end
     end
   end

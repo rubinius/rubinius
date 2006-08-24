@@ -10,12 +10,18 @@ module Rubinius
     
     def get_ivar(sym)
       tbl = self.instance_variables
+      unless tbl
+        raise "No instance variables for #{self.address}"
+      end
       tbl.as :hash
       tbl.get sym.hash_int
     end
     
     def set_ivar(sym, val)
       tbl = self.instance_variables
+      unless tbl
+        raise "No instance variables for #{self.address}"
+      end
       tbl.as :hash
       tbl.add sym.hash_int, sym, val
       return val

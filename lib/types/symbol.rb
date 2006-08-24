@@ -44,6 +44,12 @@ module Rubinius
       idx = strs.get(hash)
       if idx.nil?
         idx = strs.entries
+        if idx.to_int == syms.fields
+          ns = Rubinius::Tuple.new(syms.fields + Increment)
+          syms.copy_fields ns, syms.fields
+          self.symbols = ns
+          syms = ns
+        end
         syms.put idx.to_int, string
         strs.add hash, RObject.wrap(hash), idx
       end

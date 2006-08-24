@@ -96,6 +96,7 @@ module Bytecode
     end
 
     def exceptions_as_tuple
+      return RObject.nil if @exceptions.empty?
       excs = sorted_exceptions()
       tuple_of_int_tuples(excs)
     end
@@ -165,6 +166,8 @@ module Bytecode
       case kind
       when :line
         if ent = @source_lines.last
+          # If we're already tracking this line, don't add anything.
+          return if ent.last == args.to_i
           ent[1] = @current_op - 1
         else
           @source_lines << [0, @current_op, 0]
@@ -286,7 +289,7 @@ module Bytecode
         cnt = find_local(what.to_sym)
         return cnt
       elsif /(^[a-z_][A-Za-z0-9_]*):(\d+)$/.match(what)
-        name = $1
+        name = $1.to_sym
         cnt = $2.to_i
         @locals[name] = cnt
         return cnt
@@ -459,7 +462,15 @@ module Bytecode
         idx = find_literal(sym)
         @current_op += 5
         if args = parts.shift
-          meth = (op == :send ? :send_stack : :send_stack_with_block)
+          if args.to_i.to_s == args
+            meth = (op == :send ? :send_stack : :send_stack_with_block)
+          elsif args == "+"
+            meth = :send_with_arg_register
+            @output << [meth, idx]
+            return            
+          else
+            raise "Unknown send argument type '#{args}'"
+          end
           @output << [meth, idx, args.to_i]
           @current_op += 4
         else

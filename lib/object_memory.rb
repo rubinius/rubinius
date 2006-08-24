@@ -1,7 +1,7 @@
 require 'gc/baker_gc'
 
 class ObjectMemory
-  DefaultSize = 128_000 # 128k
+  DefaultSize = 256_000 # 128k
   
   def initialize
     @baker = BakerGC.new(DefaultSize)

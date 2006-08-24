@@ -1,6 +1,6 @@
 module Rubinius
   module Hash
-    Fields = [:keys, :values, :bins, :entries]
+    Fields = [:keys, :values, :bins, :entries, :default]
     
     Increments = 16
     
@@ -14,6 +14,7 @@ module Rubinius
       obj.values = Rubinius::Tuple.allocate(Increments)
       obj.bins = RObject.wrap(Increments)
       obj.entries = RObject.wrap(0)
+      obj.default = RObject.nil
       return obj
     end
     
@@ -90,6 +91,15 @@ module Rubinius
       end
       
       return RObject.nil
+    end
+    
+    def get_unamigious(hash)
+      entry = find_entry(hash)
+      if !entry.nil?
+        return entry.at(2)
+      end
+      
+      return RObject.undef
     end
     
     def find(key)

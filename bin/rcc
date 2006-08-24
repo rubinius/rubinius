@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+$:.unshift "lib"
+require 'rubygems'
+require 'bytecode/compiler'
+require 'bytecode/constructor'
+
+if ARGV.first.index("-") == 0
+  option = ARGV.shift
+end
+
+
+con = Bytecode::Constructor.new(nil)
+com = Bytecode::Compiler.new
+
+file = ARGV.shift
+fd = File.open(file)
+sx = con.convert_to_sexp(fd)
+fd.close
+
+if option == "-x"
+  require 'pp'
+  begin
+    pp com.fully_normalize(sx)
+  rescue Object => e
+    puts e.backtrace
+  end
+  exit 0
+end
+
+begin
+  meth = com.compile_as_script sx, :__script__
+rescue Object => e
+  puts e.backtrace
+  raise
+end
+
+def iputs(str, indent)
+  print " " * indent
+  puts str
+end
+
+def show_method(m, indent=0)
+  iputs "=== Method Description: #{m.name}, primitive: #{m.primitive.inspect}", indent
+  iputs "   From: #{m.file}", indent
+  iputs "Assembly:", indent
+  m.assembly.split("\n").each do |line|
+    iputs line, indent + 2
+  end
+  iputs "Literals:", indent
+  meths = m.literals.select { |mo| 
+    Bytecode::MethodDescription === mo
+  }
+  others = m.literals - meths
+  others.each do |lit|
+    iputs lit.inspect, indent + 2
+  end
+  
+  meths.each do |lit|
+    show_method(lit, indent + 1)
+  end
+  
+  
+  iputs "=== done with #{m.name}", indent
+end
+
+show_method(meth)

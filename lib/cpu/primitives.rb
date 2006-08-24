@@ -1,5 +1,6 @@
 require 'cpu/runtime'
 require 'sydparse'
+require 'platform'
 
 class CPU::Primitives
   def initialize(cpu, con)
@@ -10,17 +11,29 @@ class CPU::Primitives
   Primitives = [
     :noop,
     :add,
+    :sub,
     :equal,
     :compare,
     :at,
     :put,
     :fields,
     :allocate,
+    :allocate_count,
     :create_block,
     :block_given,
     :block_call,
     :string_to_sexp,
-    :load_file
+    :load_file,
+    :io_write,
+    :io_read,
+    :fixnum_to_s,
+    :logical_class,
+    :object_id,
+    :hash_set,
+    :hash_get,
+    :hash_object,
+    :symbol_index,
+    :dup_into,
   ]
   
   def self.name_to_index(name)
@@ -48,8 +61,8 @@ class CPU::Primitives
   end
   
   def add
-    arg = @cpu.pop_object
     rec = @cpu.pop_object
+    arg = @cpu.pop_object
     
     if !arg.fixnum? or !rec.fixnum?
       return false
@@ -60,9 +73,22 @@ class CPU::Primitives
     return true
   end
   
-  def equal
-    arg = @cpu.pop_object
+  def sub
     rec = @cpu.pop_object
+    arg = @cpu.pop_object
+    
+    if !arg.fixnum? or !rec.fixnum?
+      return false
+    end
+    
+    obj = RObject.wrap(rec.to_int - arg.to_int)
+    @cpu.push_object obj
+    return true
+  end
+  
+  def equal
+    rec = @cpu.pop_object
+    arg = @cpu.pop_object
     
     if !arg.fixnum? or !rec.fixnum?
       return false
@@ -79,8 +105,8 @@ class CPU::Primitives
   end
   
   def compare
-    arg = @cpu.pop_object
     rec = @cpu.pop_object
+    arg = @cpu.pop_object
     
     if !arg.fixnum? or !rec.fixnum?
       return false
@@ -93,8 +119,8 @@ class CPU::Primitives
   end
   
   def at
-    arg = @cpu.pop_object
     rec = @cpu.pop_object
+    arg = @cpu.pop_object
     
     return false unless arg.fixnum?
     return false unless rec.reference?
@@ -105,14 +131,16 @@ class CPU::Primitives
     
     obj = rec.at(arg.to_int)
     
+    # puts "Retrieved a #{obj.rclass.name.as(:symbol).as_string} from #{rec.rclass.name.as(:symbol).as_string} at #{arg.to_int}"
+    
     @cpu.push_object obj
     return true
   end
   
   def put
-    idx = @cpu.pop_object
-    arg = @cpu.pop_object
     rec = @cpu.pop_object
+    idx = @cpu.pop_object
+    arg = @cpu.pop_object    
     
     return false unless idx.fixnum?
     return false unless rec.reference?
@@ -153,6 +181,22 @@ class CPU::Primitives
     return true
   end
   
+  def allocate_count
+    cls = @cpu.pop_object
+    count = @cpu.pop_object
+    
+    return false unless cls.reference?
+    
+    cls.as :class
+    
+    return false unless count.fixnum?
+    
+    obj = @cpu.new_object cls, count.to_int
+    
+    @cpu.push_object obj
+    return true
+  end
+  
   def create_block
     ctx = @cpu.pop_object
     lst = @cpu.pop_object
@@ -162,9 +206,12 @@ class CPU::Primitives
     
     ctx.as :methctx
     
+    ctx.ip = RObject.wrap(@cpu.ip)
+    
     blk = Rubinius::BlockContext.under_context ctx
     blk.last_op = lst
-    
+
+    # puts "Block #{blk.address} created under #{ctx.address}"
     @cpu.push_object blk
     return true
   end
@@ -186,6 +233,11 @@ class CPU::Primitives
     
     blk.sender = @cpu.active_context
     blk.ip = blk.start_op
+    blk.sp = RObject.wrap(@cpu.sp)
+    
+    meth = RObject.new(blk.address)
+    meth.as :methctx
+    # puts "Calling block #{blk.address}, home of #{blk.home.address} / #{meth.sender.address}"
     @cpu.activate_context blk, blk.home
     return true
   end
@@ -224,7 +276,144 @@ class CPU::Primitives
       return false
     end
         
-    @cpu.goto_method @cpu.main, meth, 0
+    @cpu.goto_method @cpu.main, meth, 0, RObject.nil
+    return true
+  end
+  
+  def io_write
+    Log.debug "Writing data.."
+    io = @cpu.pop_object
+    str = @cpu.pop_object
+    
+    return false unless io.reference?
+    return false unless io.rclass == CPU::Global.io
+    
+    io.as :io
+        
+    return false unless str.reference?
+    return false unless str.rclass == CPU::Global.string
+    
+    str.as :string
+    
+    fd = io.descriptor
+    rstr = str.as_string
+    
+    Log.debug "Writing #{rstr.inspect} to #{fd}."
+    
+    Platform.io_write fd.to_int, rstr.size, rstr
+    return true
+  end
+  
+  def io_read
+    io = @cpu.pop_object
+    cnt = @cpu.pop_object
+    
+    return false unless io.reference?
+    return false unless io.rclass == CPU::Global.io
+    
+    io.as :io
+    
+    return false unless cnt.fixnum?
+    
+    fd = io.descriptor
+    num = cnt.to_int
+    rstr = Rubinius::String.new_empty(num)
+    address = rstr.bytes_address
+    total = Platform.io_read fd.to_int, num, address
+    
+    if total != num
+      obj = Rubinius::String.new_empty(total)
+      Memory.transfer_memory address, total, obj.bytes_address
+      rstr = obj
+    end
+    @cpu.push_object rstr
+    return true
+  end
+  
+  def fixnum_to_s
+    obj = @cpu.pop_object
+    return false unless obj.fixnum?
+    base = @cpu.pop_object
+    return false unless base.fixnum?
+    
+    int = obj.to_int
+    str = Rubinius::String.new(int.to_s(base.to_int))
+    @cpu.push_object str
+    return true
+  end
+  
+  def logical_class
+    obj = @cpu.pop_object
+    cls = obj.real_class
+    @cpu.push_object cls
+    return true
+  end
+  
+  def object_id
+    obj = @cpu.pop_object
+    @cpu.push_object RObject.wrap(obj.address)
+    return true
+  end
+  
+  def hash_set
+    obj = @cpu.pop_object
+    hsh = @cpu.pop_object
+    
+    return false unless obj.reference?
+    # return false unless obj.rclass == CPU::Global.hash
+    return false unless hsh.fixnum?
+    
+    key = @cpu.pop_object
+    val = @cpu.pop_object
+    obj.as :hash
+    obj.add hsh.to_int, key, val
+    @cpu.push_object val
+    return true
+  end
+  
+  def hash_get
+    obj = @cpu.pop_object
+    hsh = @cpu.pop_object
+    
+    return false unless obj.reference?
+    # I've commented this out so that hash_get works
+    # on hash subclasses. I'll need to use the same
+    # thing that Class#< uses.
+    # return false unless obj.rclass == CPU::Global.hash
+    return false unless hsh.fixnum?
+    
+    key = @cpu.pop_object
+    obj.as :hash
+    val = obj.get_unamigious(hsh.to_int)
+    
+    @cpu.push_object val
+    return true
+  end
+  
+  def hash_object
+    obj = @cpu.pop_object
+    out = obj.hash_int
+    @cpu.push_object RObject.wrap(out)
+    return true
+  end
+  
+  def symbol_index
+    sym = @cpu.pop_object
+    return false unless sym.symbol?
+    idx = RObject.wrap(sym.symbol_index)
+    # puts "Symbol index is #{sym.symbol_index}, #{idx.address}"
+    @cpu.push_object idx
+    return true
+  end
+  
+  def dup_into
+    obj = @cpu.pop_object
+    into = @cpu.pop_object
+    return false unless obj.reference?
+    return false unless into.reference?
+    
+    into.copy_fields obj, into.fields
+    @cpu.push_object obj
     return true
   end
   

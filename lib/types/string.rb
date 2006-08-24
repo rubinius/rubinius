@@ -18,6 +18,42 @@ module Rubinius
       return obj
     end
     
+    def self.new_empty(size)
+      obj = allocate()
+      obj.bytes = RObject.wrap(size)
+      obj.characters = RObject.wrap(size)
+      obj.encoding = RObject.nil
+      obj.data = Rubinius::ByteArray.new(size)
+      
+      return obj
+    end
+    
+    def bytes_address
+      bytes = self.data
+      return bytes.byte_start
+    end
+    
+    def append(other)
+      # puts other.rclass.name.as(:symbol).as_string + " #{other.address}"
+      # puts self.rclass.name.as(:symbol).as_string + " #{self.address}"
+      
+      cur = self.data.as(:bytearray)
+      other.as :string
+      obs = other.data.as(:bytearray)
+      cur_sz = self.bytes.to_int
+      oth_sz = other.bytes.to_int
+      ns = cur_sz + oth_sz
+      if ns > cur.bytes
+        nd = Rubinius::ByteArray.new(ns)
+        cur.copy_bytes_into nd, cur_sz, 0
+        obs.copy_bytes_into nd, oth_sz, cur_sz
+        self.data = nd
+      else
+        obs.copy_bytes_into cur, oth_sz, cur_sz
+      end
+      self.bytes = RObject.wrap(ns)
+    end
+    
     def as_string
       i = self.bytes.to_int
       data = self.data

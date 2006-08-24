@@ -1,8 +1,8 @@
 module Rubinius
   module MethodContext
-    Fields = [:sender, :ip, :sp, :block, :ms, :method, :bytecodes,
+    Fields = [:sender, :ip, :sp, :block, :raiseable, :method, :bytecodes,
               :literals, :receiver, :locals, :argcount,
-              :raiseable]
+              :name]
     
     def self.new_anonymous
       obj = create_anonymous
@@ -13,7 +13,6 @@ module Rubinius
     def init_registers
       self.ip = RObject.wrap(0)
       self.sp = RObject.wrap(0)
-      self.ms = RObject.wrap(0)
     end
     
     def self.new(cnt)
@@ -45,13 +44,14 @@ module Rubinius
     # The first N arguments need to be the same as the fields of 
     # MethodContext so that a BlockContext can be 'cast' as a 
     # MethodContext.
-    Fields = [:sender, :ip, :sp, :block, :home, :last_op, :start_op]
+    Fields = [:sender, :ip, :sp, :block, :raiseable, :home, :last_op, :start_op]
     
     IsBlockContextFlag = 0x40
     
     def self.under_context(ctx)
       obj = allocate
       obj.flag_set IsBlockContextFlag
+      obj.raiseable = RObject.true
       obj.ip = RObject.wrap(0)
       obj.sp = RObject.wrap(0)
       obj.home = ctx

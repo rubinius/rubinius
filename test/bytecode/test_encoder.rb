@@ -287,6 +287,10 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_op :cast_array
   end
   
+  def test_cast_array
+    assert_op_and_int :cast_array_for_args, 99
+  end
+  
   def test_raise_exc
     assert_op :raise_exc
   end
@@ -321,5 +325,21 @@ class TestInstructionEncoder < Test::Unit::TestCase
   
   def test_passed_arg
     assert_op_and_int :passed_arg, 33
+  end
+  
+  def test_string_append
+    assert_op :string_append
+  end
+  
+  def test_string_dup
+    assert_op :string_dup
+  end
+  
+  def test_set_args
+    assert_op :set_args
+  end
+  
+  def test_get_args
+    assert_op :get_args
   end
 end

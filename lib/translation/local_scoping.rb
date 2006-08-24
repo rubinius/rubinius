@@ -35,11 +35,11 @@ require 'sexp/processor'
 # on the local like normal code.
 
 class RsLocalScoper < SexpProcessor
-  def initialize
-    super
+  def initialize(state=RsLocalState.new)
+    super()
     self.auto_shift_type = true
     self.expected = Array
-    @lvars = [:_, :~]
+    @state = state
     @bargs = []
     @masgn = []
   end
@@ -58,14 +58,14 @@ class RsLocalScoper < SexpProcessor
     # Don't delete them, just set them to nil so that their space
     # is still calculated but they can't be seen.
     cur.each do |a|
-      i = @lvars.index(a)
-      @lvars[i] = nil
+      i = @state.locals.index(a)
+      @state.locals[i] = nil
     end
     @bargs.pop
   end
   
   def find_lvar(name)
-    if idx = @lvars.index(name)
+    if idx = @state.locals.index(name)
       return idx
     end
     
@@ -73,8 +73,7 @@ class RsLocalScoper < SexpProcessor
       @bargs.last << name
     end
     
-    cnt = @lvars.size
-    @lvars << name
+    cnt = @state.local(name)
     return cnt
   end
   
@@ -106,7 +105,7 @@ class RsLocalScoper < SexpProcessor
       [:lasgn, name, find_lvar(name)]
     else
       if not val
-        raise "Incorrect usage of dasgn_curr, needs a value."
+        raise "Incorrect usage of dasgn_curr #{name}, needs a value. (#{val.inspect})"
       end
       
       [:lasgn, name, find_lvar(name), process(val)]
@@ -130,6 +129,7 @@ class RsLocalScoper < SexpProcessor
     name = x.shift
     old = x.shift
     if inside_masgn
+      x.clear
       [:lasgn, name, find_lvar(name)]
     else
       [:lasgn, name, find_lvar(name), process(x.shift)]
@@ -138,11 +138,18 @@ class RsLocalScoper < SexpProcessor
   
   def process_vcall(x)
     name = x.shift
-    idx = @lvars.index(name)
+    idx = @state.locals.index(name)
     if idx
       [:lvar, name, idx]
     else
       [:vcall, name]
     end
+  end
+  
+  def noprocess_defn(x)
+    y = x.dup
+    x.clear
+    y.unshift :defn
+    return y
   end
 end

@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+$:.unshift "lib"
+require 'machine'
+
+mach = Machine.new
+
+file = ARGV.shift
+mach.import_args ARGV
+mach.setup_standard_io
+mach.run_file "lib/kernel.rb"
+Log.debug "Kernel loaded properly."
+mach.run_file file
+exit 0

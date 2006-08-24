@@ -91,19 +91,19 @@ class TestCPUPrimitives < Test::Unit::TestCase
     push_int 9
     assert do_prim(:compare)
     assert_equal 0, obj_top.to_int
-    
+
+    push_int 10    
     push_int 9
-    push_int 10
     assert do_prim(:compare)
     assert_equal(-1, obj_top.to_int)
-    
+
+    push_int 9    
     push_int 10
-    push_int 9
     assert do_prim(:compare)
     assert_equal 1, obj_top.to_int
-    
+
+    push_obj RObject.true    
     push_int 9
-    push_obj RObject.true
     assert !do_prim(:compare)
   end
   
@@ -113,13 +113,13 @@ class TestCPUPrimitives < Test::Unit::TestCase
     
     obj.put 1, obj2
     
-    push_obj obj
     push_int 1
+    push_obj obj
     assert do_prim(:at)
     assert_equal 99, obj_top.to_int
     
-    push_obj obj
     push_int 5
+    push_obj obj
     assert !do_prim(:at)
     
     push_int 5
@@ -131,8 +131,8 @@ class TestCPUPrimitives < Test::Unit::TestCase
   def test_at_on_bytes
     obj = @memory.new_object CPU::NIL, 4
     obj.make_byte_storage
-    push_obj obj
     push_int 1
+    push_obj obj
     assert !do_prim(:at)
   end
   
@@ -143,19 +143,18 @@ class TestCPUPrimitives < Test::Unit::TestCase
   def test_put
     obj = @memory.new_object CPU::NIL, 4
     obj2 = RObject.wrap(99)
-    
-    push_obj obj
-    push_obj obj2
+
+    push_obj obj2    
     push_int 1
-    
+    push_obj obj    
     assert do_prim(:put)
     ret = obj.at(1)
     
     assert_equal obj2, ret
     
-    push_obj obj
     push_obj obj2
     push_int 5
+    push_obj obj
     assert !do_prim(:put)
     
     push_int 5
@@ -164,9 +163,9 @@ class TestCPUPrimitives < Test::Unit::TestCase
     assert !do_prim(:put)
     
     obj.make_byte_storage
-    push_obj obj
     push_obj obj2
     push_int 1
+    push_obj obj
     assert !do_prim(:put)
   end
   
@@ -184,7 +183,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
   end
   
   def test_allocate
-    cls = new_obj 4
+    cls = new_obj 8
     cls.as :class
     cls.instance_fields = RObject.wrap(12)
     push_obj cls
@@ -196,13 +195,35 @@ class TestCPUPrimitives < Test::Unit::TestCase
     
     assert_equal 12, obj.fields
     
-    cls = new_obj 4
+    cls = new_obj 8
     push_obj cls
     assert !do_prim(:allocate)
     
     push_int 4
     assert !do_prim(:allocate)
   end
+  
+  def test_allocate_count
+    cls = new_obj 8
+    cls.as :class
+    push_obj RObject.wrap(12)
+    push_obj cls
+    assert do_prim(:allocate_count)
+    obj = obj_top()
+    
+    assert_stack_size 1
+    assert_not_equal cls, obj
+    
+    assert_equal 12, obj.fields
+    
+    cls = new_obj 8
+    push_obj cls
+    assert !do_prim(:allocate)
+    
+    push_int 4
+    assert !do_prim(:allocate)
+  end
+  
   
   def test_create_block
     @cpu.bootstrap
@@ -278,4 +299,149 @@ class TestCPUPrimitives < Test::Unit::TestCase
     assert_equal 9, out.to_int
   end
   
+  def test_io_write
+    @cpu.bootstrap
+    
+    read, write = IO.pipe
+    
+    r_write = Rubinius::IO.new(write.fileno)
+    
+    str = Rubinius::String.new("hello")
+    @cpu.push_object str
+    @cpu.push_object r_write
+    assert do_prim(:io_write)
+    
+    out = read.read(5)
+    assert_equal "hello", out
+  end
+  
+  def test_io_read
+    @cpu.bootstrap
+    
+    read, write = IO.pipe
+    
+    r_read = Rubinius::IO.new(read.fileno)
+    
+    write << "hello"
+    
+    @cpu.push_object RObject.wrap(5)
+    @cpu.push_object r_read
+    assert do_prim(:io_read)
+    str = @cpu.pop_object
+    str.as :string
+    
+    assert_equal "hello", str.as_string
+  end
+  
+  def test_io_read_short_read
+    @cpu.bootstrap
+    
+    read, write = IO.pipe
+    
+    r_read = Rubinius::IO.new(read.fileno)
+    
+    write << "hel"
+    
+    @cpu.push_object RObject.wrap(5)
+    @cpu.push_object r_read
+    assert do_prim(:io_read)
+    str = @cpu.pop_object
+    str.as :string
+    
+    assert_equal "hel", str.as_string
+  end
+  
+  def test_fixnum_to_s
+    @cpu.bootstrap
+    
+    @cpu.push_object RObject.wrap(16)
+    obj = RObject.wrap(99)
+    @cpu.push_object obj
+    assert do_prim(:fixnum_to_s)
+    out = @cpu.pop_object
+    out.as :string
+    assert_equal "63", out.as_string
+  end
+  
+  def test_logical_class
+    @cpu.bootstrap
+    
+    obj = RObject.wrap(99)
+    @cpu.push_object obj
+    assert do_prim(:logical_class)
+    out = @cpu.pop_object
+    assert_equal CPU::Global.fixnum, out
+  end
+  
+  def test_object_id
+    @cpu.bootstrap
+    obj = Rubinius::Tuple.new(1)
+    @cpu.push_object obj
+    assert do_prim(:object_id)
+    out = @cpu.pop_object
+    assert_equal obj.address, out.to_int
+  end
+  
+  def test_hash_set
+    @cpu.bootstrap
+    obj = Rubinius::Hash.new
+    key = RObject.wrap(32)
+    @cpu.push_object RObject.wrap(88)
+    @cpu.push_object key
+    @cpu.push_object RObject.wrap(key.hash_int)
+    @cpu.push_object obj
+    assert do_prim(:hash_set)
+    out = obj.find(key)
+    assert_equal 88, out.to_int
+  end
+  
+  def test_hash_get
+    @cpu.bootstrap
+    obj = Rubinius::Hash.new
+    key = RObject.wrap(32)
+    val = RObject.wrap(88)
+    
+    obj.set key, val
+    
+    @cpu.push_object key
+    @cpu.push_object RObject.wrap(key.hash_int)
+    @cpu.push_object obj
+    assert do_prim(:hash_get)
+    out = @cpu.pop_object
+    assert_equal 88, out.to_int
+  end
+  
+  def test_hash_object
+    @cpu.bootstrap
+    obj = Rubinius::Tuple.new(0)
+    
+    @cpu.push_object obj
+    assert do_prim(:hash_object)
+    hsh = @cpu.pop_object
+    assert_equal obj.hash_int, hsh.to_int
+  end
+  
+  def test_symbol_index
+    @cpu.bootstrap
+    sym = Rubinius::String.new("blah").to_sym
+    
+    @cpu.push_object sym
+    assert do_prim(:symbol_index)
+    idx = @cpu.pop_object
+    assert_equal sym.symbol_index, idx.to_int
+  end
+  
+  def test_dup_into
+    @cpu.bootstrap
+    obj = Rubinius::Hash.new
+    h2 = Rubinius::Hash.new
+    
+    assert obj.values.address != h2.values.address
+    @cpu.push_object obj
+    @cpu.push_object h2
+    assert do_prim(:dup_into)
+    out = @cpu.pop_object
+    assert_equal h2, out
+    assert_equal obj.values, h2.values
+  end
 end

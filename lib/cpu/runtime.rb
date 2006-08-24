@@ -28,7 +28,6 @@ class CPU
     @stack = Rubinius::Tuple.new_anonymous InitialStackSize
     @sp = -1
     @ip = 0
-    @ms = 0
     @self = RObject.nil
     @exception = RObject.nil
     @enclosing_class = RObject.nil
@@ -41,6 +40,8 @@ class CPU
     @block = RObject.nil
     @method = RObject.nil
     @argcount = 0
+    @args = 0
+    @paths = []
   end
   
   # This creates the top level MethodContext and also
@@ -49,6 +50,7 @@ class CPU
   def initialize_context
     @stack.rclass = Global.tuple
     @active_context = Rubinius::MethodContext.new(0)
+    @active_context.raiseable = RObject.false
     @home_context = @active_context
     @enclosing_class = Global.object
     @new_class_of = Global.class
@@ -59,6 +61,7 @@ class CPU
     @primitives = CPU::Primitives.new(self, @constructor)
     @data = nil
     @current_address = 0
+    @method_missing = Rubinius::String.new("method_missing").to_sym
   end
   
   def delete
@@ -69,34 +72,45 @@ class CPU
   attr_accessor :active_context, :locals, :literals
   attr_accessor :self, :exception, :enclosing_class, :argcount
   attr_accessor :new_class_of, :block, :data, :exceptions
-  attr_reader :instructions, :home_context
+  attr_reader :instructions, :home_context, :constructor
+  attr_accessor :args
   
   def save_registers
+    return unless @active_context
     @active_context.sp = RObject.wrap(@sp)
     @active_context.ip = RObject.wrap(@ip)
-    @active_context.ms = RObject.wrap(@ms)
   end
   
   def restore_context(x)
     restore_context_with_home x, x
   end
   
-  def restore_context_with_home(ctx, home)
+  def restore_context_with_home(ctx, home, ret=false)
+    Log.debug "Restoring context to #{ctx.address}."
     ctx.as :methctx
     @sp = ctx.sp.to_int
     @ip = ctx.ip.to_int
-    @ms = ctx.ms.to_int
+    
+    # Adjust @sp to remove any arguments we pushed
+    # on the stack for the current call.
+    if ret and @argcount and @argcount > 0
+      Log.debug "Removed #{@argcount} args from thes stack as they were arguments."
+      @sp -= @argcount
+    end
 
     home.as :methctx
     ba = home.bytecodes
+    # puts "Home is a #{home.rclass.name.as(:symbol).as_string}"
     if ba.nil?
       @data = nil
     else
+      # puts "Restoring data to be #{ba.address}"
       ba.as :bytearray
       @data = ba.as_string
     end
     
     @active_context = ctx
+    @self = home.receiver
     @home_context = home
     @locals = home.locals
     @block = ctx.block
@@ -117,7 +131,7 @@ class CPU
     restore_context_with_home(ctx, home)
   end
   
-  def return_to_sender
+  def return_to_sender(consider_block=true)
     # puts "#{@active_context.address} is done."
     # We take the current top of the stack off and save
     # it. It's the return value.
@@ -138,14 +152,24 @@ class CPU
       else
         top = stack_top
       end
+      if consider_block and Rubinius::BlockContext.block_context?(@active_context)
+        me = RObject.new(@active_context.address)
+        me.as :blokctx
+        home = me.home
+        home.as :methctx
+        home_sender = home.sender
+        sender = home_sender
+        # puts "Home's (#{home.address}) sender is #{home_sender.address}"
+      end
+      
       if Rubinius::BlockContext.block_context?(sender)
         sender.as :blokctx
         home = sender.home
-        # puts "leaving a block context (#{home.address}, #{sender.address})!"
+        # puts "leaving a block context (#{home.address}, #{sender.address}, #{t.address})!"
       else
         home = sender
       end
-      restore_context_with_home(sender, home)
+      restore_context_with_home(sender, home, true)
       # and now that @sp has been adjusted back to the destination
       # context's value, we push the return value in.
       stack_push top

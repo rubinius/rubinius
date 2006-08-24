@@ -25,6 +25,10 @@ module Rubinius
       return obj
     end
     
+    def bytes
+      self.fields * 4
+    end
+    
     def clear
       
     end

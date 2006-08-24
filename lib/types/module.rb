@@ -14,6 +14,12 @@ module Rubinius
       CPU::Global.object.const_set sym, self
     end
     
+    def as_string
+      sym = self.name
+      sym.as :symbol
+      sym.as_string
+    end
+    
     def setup(str)
       setup_fields
       setup_name(str)

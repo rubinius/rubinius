@@ -63,7 +63,13 @@ class InstructionEncoder
     :activate_method,
     :push_cpath_top,
     :check_argcount,
-    :passed_arg
+    :passed_arg,
+    :string_append,
+    :string_dup,
+    :set_args,
+    :get_args,
+    :send_with_arg_register,
+    :cast_array_for_args
   ]
   
   IntArg = [
@@ -92,7 +98,9 @@ class InstructionEncoder
     :activate_method,
     :send_stack_with_block,
     :check_argcount,
-    :passed_arg
+    :passed_arg,
+    :send_with_arg_register,
+    :cast_array_for_args
   ]
   
   TwoInt = [
@@ -126,7 +134,10 @@ class InstructionEncoder
       raise InvalidOpCode, "Unknown opcode '#{kind}'"
     end
     
-    process_args(kind, opcode, args)
+    orig = args.dup
+    out = process_args(kind, opcode, args)
+    # puts "#{kind} (#{orig.inspect}) encoded as: #{out.inspect}"
+    out
   end
   
   def process_args(kind, opcode, args)
@@ -137,7 +148,7 @@ class InstructionEncoder
       unless Numeric === int
         raise "#{kind} expects an integer only."
       end
-      str << [int].pack("I")
+      str << [int].pack("i")
     end
     
     if TwoInt.include?(kind)
@@ -145,7 +156,7 @@ class InstructionEncoder
       unless Numeric === int
         raise "#{kind} expects an integer only."
       end
-      str << [int].pack("I")
+      str << [int].pack("i")
     end
     
     unless args.empty?

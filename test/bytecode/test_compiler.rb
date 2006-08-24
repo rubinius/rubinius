@@ -140,7 +140,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_str
     sx = [:str, "blah"]
-    exc = "push_literal 0\n"
+    exc = "push_literal 0\nstring_dup\n"
   end
   
   def test_process_lasgn
@@ -217,8 +217,26 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_argscat
     sx = [:argscat, [:array, [:lit, 1], [:lit, 2]], [:lit, 99]]
-    exc = "push 99\ncast_array\npush_array\npush 2\npush 1\nret\n"
+    exc = "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nret\n"
     compile sx
+    assert_equal exc, @meth.assembly
+  end
+  
+  def test_process_call_with_argscat
+    sx = [:call, [:self], :b, [:argscat, [:array, [:lit, 1], [:lit, 2]], [:lit, 99]]]
+    
+    exc =  "push 99\ncast_array_for_args 2\npush_array\n"
+    exc << "push 2\npush 1\npush self\nsend b +\nret\n"
+        
+    compile sx
+    assert_equal exc, @meth.assembly
+  end
+  
+  def test_yield
+    sx = [:yield, [:array, [:lit, 1], [:lit, 2]]]
+    compile sx
+    
+    exc = "push 2\npush 1\npush_block\nsend call 2\nret\n"
     assert_equal exc, @meth.assembly
   end
   
@@ -277,7 +295,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     sx = [:class, [:colon2, :Blah], nil, [:scope, [:true]]]
     exc =  "push_encloser\n"
     exc << "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n"
-    exc << "attach __class_init__\nsend __class_init__\n"
+    exc << "attach __class_init__\npop\nsend __class_init__\n"
     exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
@@ -291,7 +309,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     exc =  "push_encloser\n"
     exc << "push A\nfind B\n"
     exc << "open_class Blah\ndup\npush_literal 0\nswap\n"
-    exc << "attach __class_init__\nsend __class_init__\n"
+    exc << "attach __class_init__\npop\nsend __class_init__\n"
     exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
@@ -304,7 +322,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     sx = [:class, [:colon2, [:const, :A], :Blah], nil, [:scope, [:true]]]
     exc =  "push_encloser\n"
     exc << "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n"
-    exc << "attach __class_init__\nsend __class_init__\n"
+    exc << "attach __class_init__\npop\nsend __class_init__\n"
     exc << "pop\nset_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
@@ -364,7 +382,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     ]]
     
     compile sx
-    exc = "push_self\npush_literal 0\nadd_method blah\nret\n"
+    exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
@@ -380,7 +398,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     ]]
     
     compile sx
-    exc = "push_self\npush_literal 0\nadd_method blah\nret\n"
+    exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
@@ -398,7 +416,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
        [:true]],
       [:a, :b]]]
       
-    exc = "push_self\npush_literal 0\nadd_method blah\nret\n"
+    exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     exc2 =  "check_argcount 1 2\n"
     exc2 << "set a\npassed_arg 1\ngit lbl1\npush 9\n"
     exc2 << "lbl1:\nset b\npush false\npush true\nret\n"
@@ -419,7 +437,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
        [:true]],
       [:b]]]
       
-    exc = "push_self\npush_literal 0\nadd_method blah\nret\n"
+    exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     exc2 =  "check_argcount 0 0\n"
     exc2 << "push_block\nset b:2\npush true\nret\n"
     
@@ -439,7 +457,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     ]]
     
     compile sx
-    exc = "push_self\npush_literal 0\nadd_method blah\nret\n"
+    exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
@@ -448,7 +466,39 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal :at, dfn.primitive
   end
   
+  def test_process_defn_with_inline_bytecode
+    sx = [:defn, :blah, [:scope, [:block,
+      [:args, [:a, :b], [], nil, nil],
+      [:true],
+      [:call, [:const, :Ruby], :asm, [:array, [:str, "push self"]]]],
+        [:a, :b]
+    ]]
+    
+    compile sx
+    exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
+    assert_equal exc, @meth.assembly
+    dfn = @meth.literals.first
+    assert_kind_of Bytecode::MethodDescription, dfn
+    exc2 = "check_argcount 2 2\nset a\nset b\npush true\npush self\nret\n"
+    assert_equal exc2, dfn.assembly
+  end
   
+  def test_process_defs
+    sx = [:defs, [:const, :Object], :blah, [:scope, [:block,
+        [:args, [:a, :b], [], nil, nil],
+        [:true]],
+      [:a, :b]
+    ]]
+    
+    compile sx
+    exc = "push_literal 0\npush Object\nattach_method blah\nret\n"
+    assert_equal exc, @meth.assembly
+    dfn = @meth.literals.first
+    assert_kind_of Bytecode::MethodDescription, dfn
+    exc2 = "check_argcount 2 2\nset a\nset b\npush true\nret\n"
+    assert_equal exc2, dfn.assembly
+  end
+    
   def test_process_masgn_no_splat
     sx = [:masgn,
       [:array, [:lasgn, :a, 2], [:lasgn, :b, 3], [:lasgn, :c, 4]],
@@ -551,7 +601,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     
     exc =  "push &lbl1\n"
     exc << "push_context\nsend_primitive create_block\n"
-    exc << "goto lbl2\nset a:2\npush true\npush 2\n"
+    exc << "goto lbl2\nset a:3\npush true\npush 2\n"
     exc << "push self\nsend p 1\n"
     exc << "lbl1: soft_return\nlbl2:\n"
     exc << "push self\n&send m 0\nret\n"
@@ -559,5 +609,59 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     compile sx
     assert_equal exc, @meth.assembly
   end
+  
+  def test_process_str
+    sx = [:str, "blah"]
+    compile sx
+    assert_equal "push_literal 0\nret\n", @meth.assembly
+  end
+  
+  def test_process_dstr
+    sx = [:dstr, "blah ", [:evstr, [:lit, 1]], [:str, " more "], [:evstr, [:lit, 2]]]
+    compile sx
+    
+    exc =  "push 2\nsend to_s\npush_literal 0\npush 1\n"
+    exc << "send to_s\npush_literal 1\n"
+    exc << "string_dup\nstring_append\nstring_append\n"
+    exc << "string_append\nret\n"
+    
+    assert_equal exc, @meth.assembly
+  end
+  
+  def test_process_newline
+    sx = [:newline, 7, "blah.rb", [:true]]
+    compile sx
+    exc = "\#line 7\npush true\nret\n"
+    assert_equal exc, @meth.assembly
+    assert_equal "blah.rb", @meth.file
+  end
+  
+  def test_correct_lvars1
+    
+    m1 = [:defn, :blah, [:scope, [:block, 
+      [:args, [], [:fuck], nil, nil], [:true]], []]]
+    m2 = [:defn, :to_s,
+     [:scope,
+      [:block,
+       [:args, [], [:base], nil, [:block, [:lasgn, :base, 2, [:lit, 10]]]],
+       [:fcall, :based_to_s, [:array, [:lvar, :base, 2]]]], [:base]]]
+    
+    sx = [:class, [:colon2, :Fixnum], nil,
+     [:scope, [:block,
+      m1,
+      m2,
+      ], []]]
+      
+    @meth = @comp.compile_as_script(sx, :test)
+    
+    cls = @meth.literals.first
+    assert_kind_of Bytecode::MethodDescription, cls
+    dfn = cls.literals.last
+    exc =  "check_argcount 0 1\npassed_arg 0\ngit lbl1\npush 10\nlbl1:\nset base:2\n"
+    exc << "push base:2\npush self\nsend based_to_s 1\nret\n"
+    
+    assert_equal exc, dfn.assembly
+  end
+  
   
 end

@@ -39,15 +39,19 @@ class SimpleMarshal
     attr_accessor :consumed
   end
   
+  STDOUT.sync = true
+  
   def unmarshal(str, state=nil)
     state ||= MarshalState.new
     tag = str[0]
-    case tag
+    start = state.consumed
+    # print tag.chr + "#{start}("
+    out = case tag
     when ?i
       unmarshal_int(str, state)
     when ?s
       unmarshal_str(str, state)
-    when ?t
+    when ?x
       unmarshal_sym(str, state)
     when ?p
       unmarshal_tup(str, state)
@@ -65,8 +69,10 @@ class SimpleMarshal
       state.consumed += 1
       RObject.false      
     else
-      raise "Unable to unmarshal #{str.inspect}"
+      raise "Unable to unmarshal #{str.inspect}, unknown type #{tag} (#{tag.chr})"
     end
+    # print " [#{state.consumed - start}]) "
+    out
   end
   
   def marshal_int(int)
@@ -95,7 +101,7 @@ class SimpleMarshal
   def marshal_sym(obj)
     obj.as :symbol
     out = marshal_str obj.string
-    out[0] = ?t
+    out[0] = ?x
     return out
   end
   
@@ -129,16 +135,16 @@ class SimpleMarshal
   def unmarshal_into_fields(str, state, sz, tup)
     str = str.dup
     str.slice! 0, 5
-    cur = 0
+    state.consumed += 5
+    cur = state.consumed
     0.upto(sz - 1) do |idx|
+      # puts "#{idx}: #{str.dump}"
       o = unmarshal(str, state)
-      # puts "#{idx}: #{o.inspect}, #{str.dump}"
+      # puts " (slicing #{state.consumed - cur} bytes) "
       str.slice!(0, state.consumed - cur)
       cur = state.consumed
       tup.put idx, o
     end
-    
-    state.consumed += 5
     
     return tup
   end

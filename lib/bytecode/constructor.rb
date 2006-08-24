@@ -13,13 +13,20 @@ module Bytecode
       @cpu = cpu
       @enc = Bytecode::InstructionEncoder.new
       @sm = SimpleMarshal.new
+      @newlines = true
     end
+    
+    attr_accessor :newlines
     
     def convert_to_sexp(code)
-      syd = SydneyParser.load_string(code)
-      return syd.sexp
+      if IO === code
+        syd = SydneyParser.load_file code
+      else
+        syd = SydneyParser.load_string(code.to_s)
+      end
+      return syd.sexp(false, @newlines)
     end
-    
+        
     def compile(code)
       sexp = convert_to_sexp(code)
       comp = Bytecode::Compiler.new
@@ -29,8 +36,7 @@ module Bytecode
     
     def compile_file(path)
       fd = File.open(path)
-      code = fd.read
-      meth = compile(code)
+      meth = compile(fd)
       fd.close
       return meth
     end
@@ -59,6 +65,28 @@ module Bytecode
       return false
     end
     
+    def refresh_file(path)
+      cp = compiled_path(path)
+      return if file_newer?(cp, path)
+      compile_and_save(path)
+    end
+    
+    def clear_precompiled(dir)
+      Dir["#{dir}/*.rbc"].each do |path|
+        File.unlink path
+      end
+    end
+    
+    def compile_and_save(path)
+      cp = compiled_path(path)
+      Log.info "(Compiling #{path}..)"
+      cm = compile_file(path)
+      fd = File.open(cp, "w")
+      fd << @sm.marshal(cm)
+      fd.close
+      return cm
+    end
+    
     def load_file(path)
       cp = compiled_path(path)
       if file_newer?(cp, path)
@@ -68,11 +96,7 @@ module Bytecode
         return @sm.unmarshal(str)
       end
       
-      cm = compile_file(path)
-      fd = File.open(cp, "w")
-      fd << @sm.marshal(cm)
-      fd.close
-      return cm
+      return compile_and_save(path)
     end
   end
 end

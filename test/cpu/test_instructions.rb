@@ -359,6 +359,18 @@ class TestCPUInstructions < Test::Unit::TestCase
     assert_equal 99, ary.get(0).to_int
   end
   
+  def test_cast_array_for_args
+    @cpu.push_object RObject.wrap(99)
+    run_bytes enc(:cast_array_for_args, 3)
+    ary = @cpu.pop_object
+    ary.as :array
+    assert_equal CPU::Global.array, ary.rclass
+    assert_equal 1, ary.total.to_int
+    assert_equal 99, ary.get(0).to_int
+    assert_equal 4, @cpu.args
+  end
+  
+  
   def test_cast_tuple_from_tuple
     tup = Rubinius::Tuple.new(1)
     @cpu.push_object tup
@@ -682,6 +694,40 @@ class TestCPUInstructions < Test::Unit::TestCase
     @cpu.push_object obj
     
     @cpu.execute_bytecodes enc(:send_stack, 0, 1)
+    assert obj_top.true?
+    
+    ctbl = CPU::Global.object.constants
+    ctbl.as :hash
+    out = ctbl.find(key)
+    assert out.true?
+  end
+  
+  def test_send_with_arg_register
+    key =  sym("Name")
+    mkey = sym("test_method")
+    obj = Rubinius::Object.new
+    add_sym_lit "Name"
+    bc = enc(:set_const, 1)
+    mth = Rubinius::CompiledMethod.from_string bc, 0
+    mtbl = CPU::Global.object.methods
+    mtbl.as :methtbl
+    
+    lits = Rubinius::Tuple.new(2)
+    lits.put 0, mkey
+    lits.put 1, key
+    
+    mtbl.set mkey, mth
+    ctx = @cpu.active_context
+    ctx.as :methctx
+    ctx.literals = lits
+    mth.literals = lits
+    
+    @cpu.push_object RObject.true
+    @cpu.push_object RObject.nil
+    @cpu.push_object obj
+    @cpu.push_object RObject.wrap(1)
+    
+    @cpu.execute_bytecodes enc(:set_args) + enc(:send_with_arg_register, 0)
     assert obj_top.true?
     
     ctbl = CPU::Global.object.constants
@@ -1035,4 +1081,41 @@ class TestCPUInstructions < Test::Unit::TestCase
     run_bytes enc(:passed_arg, 10000)
     assert @cpu.pop_object.false?
   end
+  
+  def test_string_append
+    str = Rubinius::String.new("hello")
+    str2 = Rubinius::String.new(" world")
+    str3 = Rubinius::String.new(", everyone.")
+    @cpu.push_object str3
+    @cpu.push_object str2
+    @cpu.push_object str
+    run_bytes enc(:string_append) + enc(:string_append)
+    out = @cpu.pop_object
+    out.as :string
+    assert_equal "hello world, everyone.", out.as_string
+    assert_equal str.address, out.address
+  end
+  
+  def test_string_dup
+    str = Rubinius::String.new("hello")
+    @cpu.push_object str
+    run_bytes enc(:string_dup)
+    out = @cpu.pop_object
+    out.as :string
+    assert_equal "hello", out.as_string
+    assert str.address != out.address
+  end
+  
+  def test_set_args
+    @cpu.push_object RObject.wrap(99)
+    run_bytes enc(:set_args)
+    assert_equal 99, @cpu.args
+  end
+  
+  def test_get_args
+    @cpu.args = 33
+    run_bytes enc(:get_args)
+    assert_equal 33, @cpu.pop_object.to_int
+  end
+  
 end
