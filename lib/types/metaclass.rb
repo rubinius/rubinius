@@ -5,7 +5,6 @@ module Rubinius
   
     IsMetaFlag = 0x80
   
-  
     def self.attach(obj)
       meta = allocate
       meta.flag_set IsMetaFlag

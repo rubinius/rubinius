@@ -29,4 +29,11 @@ module Rubinius
   end
   
   add_type :object, Object
+  
+  module BlankObject
+    Fields = []
+    Super = nil
+  end
+  
+  add_type :blank, BlankObject
 end

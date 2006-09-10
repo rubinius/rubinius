@@ -1,7 +1,7 @@
 require 'gc/baker_gc'
 
 class ObjectMemory
-  DefaultSize = 256_000 # 128k
+  DefaultSize = 384_000 # 128k
   
   def initialize
     @baker = BakerGC.new(DefaultSize)
@@ -11,7 +11,19 @@ class ObjectMemory
     @baker.destroy!
   end
   
+  def used
+    @baker.used
+  end
+  
+  def collect(roots)
+    @baker.collect(roots)
+  end
+  
   def new_object(klass, fields)
     RObject.setup @baker, klass, fields
+  end
+  
+  def find_instance(klass, start=0)
+    
   end
 end

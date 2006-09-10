@@ -42,7 +42,10 @@ class CPU
     @argcount = 0
     @args = 0
     @paths = []
+    @depth = 0
   end
+  
+  attr_reader :memory
   
   # This creates the top level MethodContext and also
   # fixes up any anonymous objects the cpu created
@@ -62,10 +65,27 @@ class CPU
     @data = nil
     @current_address = 0
     @method_missing = Rubinius::String.new("method_missing").to_sym
+    @inherited = Rubinius::String.new("inherited").to_sym
+    @method_added = Rubinius::String.new("method_added").to_sym
+    @free_contexts = []
   end
   
   def delete
     @memory.delete
+  end
+  
+  def memory_roots
+    roots = (Global.marshal_dump.values + [@active_context, @home_context,
+      @enclosing_class, @new_class_of, @exceptions, @main,
+      @self, @stack, @exception, @locals, @literals, @block, @method
+    ] + @paths + @free_contexts).compact
+    
+    roots.select { |obj| obj.reference? and !obj.stores_bytes? }
+    
+  end
+  
+  def garbage_collect
+    @memory.collect memory_roots()
   end
   
   attr_accessor :sp, :ip, :memory, :stack, :ms, :main
@@ -86,7 +106,7 @@ class CPU
   end
   
   def restore_context_with_home(ctx, home, ret=false)
-    Log.debug "Restoring context to #{ctx.address}."
+    # Log.debug "Restoring context to #{ctx.address}."
     ctx.as :methctx
     @sp = ctx.sp.to_int
     @ip = ctx.ip.to_int
@@ -152,7 +172,9 @@ class CPU
       else
         top = stack_top
       end
-      if consider_block and Rubinius::BlockContext.block_context?(@active_context)
+      
+      is_block = Rubinius::BlockContext.block_context?(@active_context)
+      if consider_block and is_block
         me = RObject.new(@active_context.address)
         me.as :blokctx
         home = me.home
@@ -162,6 +184,10 @@ class CPU
         # puts "Home's (#{home.address}) sender is #{home_sender.address}"
       end
       
+      if !is_block and !Rubinius::MethodContext.was_referenced?(@active_context)
+        @free_contexts << @active_context
+      end
+      
       if Rubinius::BlockContext.block_context?(sender)
         sender.as :blokctx
         home = sender.home
@@ -169,6 +195,7 @@ class CPU
       else
         home = sender
       end
+      @depth -= 1
       restore_context_with_home(sender, home, true)
       # and now that @sp has been adjusted back to the destination
       # context's value, we push the return value in.

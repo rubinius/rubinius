@@ -4,13 +4,14 @@ class CPU
     cls.rclass = cls
     cls.instance_fields = RObject.wrap(Rubinius::Class::NumberOfFields)
     Global.class = cls
+    # Global.blank = Rubinius::BlankObject.basic_class_obj RObject.nil
     Global.object = Rubinius::Object.basic_class_obj RObject.nil
     Global.module = Rubinius::Module.basic_class_obj Global.object
 
     cls.superclass = Global.module
     Global.metaclass = Rubinius::MetaClass.basic_class_obj Global.class
     
-    Global.object.create_metaclass cls
+    Global.object.create_metaclass cls, nil
     Global.module.create_metaclass Global.object.metaclass
     Global.class.create_metaclass Global.module.metaclass
     
@@ -31,6 +32,7 @@ class CPU
     Global.symbols = Rubinius::SymbolTable.new
     
     Global.object.setup "Object"
+    # Global.blank.setup "BlankObject"
     Global.class.setup "Class"
     Global.module.setup "Module"
     Global.metaclass.setup "MetaClass"

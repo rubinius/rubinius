@@ -18,9 +18,12 @@ module Rubinius
     def self.new(cnt)
       obj = allocate
       obj.init_registers
-      cnt += 2
-      obj.locals = Rubinius::Tuple.new(cnt)
+      obj.set_locals(cnt)
       return obj
+    end
+    
+    def set_locals(cnt)
+      self.locals = Rubinius::Tuple.new(cnt + 2)
     end
     
     def self.from_method(meth, from)
@@ -33,9 +36,37 @@ module Rubinius
       return mc
     end
     
+    def self.reuse(cur, meth, from)
+      lcls = meth.locals.to_int
+      if cur.locals.fields < lcls
+        # puts "Enlarging locals to #{lcls}..."
+        cur.set_locals(lcls)
+      end
+      
+      cur.init_registers
+      cur.raiseable = RObject.true
+      cur.bytecodes = meth.bytecodes
+      cur.sender = from
+      cur.method = meth
+      cur.literals = meth.literals
+      
+      return cur
+    end
+    
     def home
       self
     end
+    
+    WasReferenced = 0x20
+    
+    def self.was_referenced?(obj)
+      obj.flag_set? WasReferenced
+    end
+    
+    def referenced!
+      self.flag_set WasReferenced
+    end
+    
   end
   
   add_type :methctx, MethodContext

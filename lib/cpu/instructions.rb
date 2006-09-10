@@ -24,8 +24,8 @@ class CPU
     meth = Bytecode::InstructionEncoder::OpCodes[op]
     raise "Unknown opcode '#{op}'" unless meth
   
-    # Log.debug "on #{op} / #{meth} (#{@ip})"
-    # Log.debug "  =(stack)=> #{print_stack}"
+    Log.debug "on #{op} / #{meth} (#{@ip})"
+    Log.debug "  =(stack)=> #{print_stack}"
     @ip += 1
     send(meth)
     return true
@@ -67,6 +67,7 @@ class CPU
   end
   
   def push_context
+    @active_context.referenced!
     push_object @active_context
   end
   
@@ -84,7 +85,7 @@ class CPU
     idx = next_int
     val = @locals.at(idx)
     push_object val
-    # Log.debug "Pushed local at #{idx} (is #{val.address})"
+    Log.debug "Pushed local at #{idx} (is #{val.address})"
   end
   
   def push_exception
@@ -143,7 +144,7 @@ class CPU
   
   def send_primitive
     prim = next_int
-    @primitives.perform(prim)
+    @primitives.perform(prim, nil)
   end
   
   def goto
@@ -196,7 +197,7 @@ class CPU
     idx = next_int
     val = stack_pop
     @locals.put idx, RObject.new(val)
-    # Log.debug "Set local #{idx} to #{val}."
+    Log.debug "Set local #{idx} to #{val}."
   end
   
   def make_array
@@ -281,7 +282,7 @@ class CPU
     @enclosing_class.as :module
     hsh = @enclosing_class.constants
     hsh.as :hash
-    sym.as :symbol    
+    sym.as :symbol
     val = hsh.find(sym)
     if val.nil?
       @paths.each do |cls|
@@ -306,6 +307,7 @@ class CPU
   def set_const
     sym = @literals.at next_int
     val = RObject.new stack_pop
+    @enclosing_class.as :module
     hsh = @enclosing_class.constants
     hsh.as :hash
     sym.as :symbol
@@ -365,7 +367,7 @@ class CPU
   end
   
   def open_class_at(klass, sup)
-    sym = @literals.at next_int    
+    sym = @literals.at next_int
     sup.as :class
     
     klass.as :module
@@ -395,6 +397,8 @@ class CPU
       hsh.set sym, obj
 
       push_object obj
+      
+      perform_hook sup, @inherited, obj
     else
       exist.as :class
       if !sup.nil? and exist.superclass != sup
@@ -465,6 +469,7 @@ class CPU
     sym.as :symbol
     # puts "Added method #{sym.as_string} (#{sym.hash_int}) to #{target.address}."
     push_object method
+    # perform_hook target, @method_added, sym 
   end
   
   def find_method(obj, name)
@@ -474,20 +479,20 @@ class CPU
     name.as :symbol
     klass.as :class
     
-    # puts "Looking for #{name.as_string} in #{klass.as_string}, #{obj.as_string}"
+    Log.debug "Looking for #{name.as_string} in #{klass.as_string}, #{obj.as_string}"
     meth = hsh.find(name)
     while meth.nil?
       klass = klass.superclass
       klass.as :class
       break if klass.nil?
-      # puts "Looking for #{name.as_string} (#{name.hash_int}) in #{klass.as_string}, #{obj.as_string}"
+      Log.debug "Looking for #{name.as_string} (#{name.hash_int}) in #{klass.as_string}, #{obj.as_string}"
       hsh = klass.methods
       hsh.as :hash
       meth = hsh.find(name)
     end
     
     if klass.reference? and klass.name.symbol?
-      # puts "Found #{name.as_string} in #{klass.name.as(:symbol).as_string}."
+      Log.debug "Found #{name.as_string} in #{klass.name.as(:symbol).as_string}."
     end
     return meth
   end
@@ -517,7 +522,14 @@ class CPU
     else
       sender = @active_context
     end
-    ctx = Rubinius::MethodContext.from_method(mo, sender)
+    if @free_contexts.empty?
+      ctx = Rubinius::MethodContext.from_method(mo, sender)
+      # puts "Created new context #{ctx}..."
+    else
+      ctx = @free_contexts.pop
+      # puts "Re-using context #{ctx} / #{@free_contexts.size}..."
+      Rubinius::MethodContext.reuse(ctx, mo, sender)
+    end
     ctx.receiver = recv
     ctx.name = name
     ctx.sp = RObject.wrap(@sp)
@@ -527,13 +539,50 @@ class CPU
   def activate_method
     recv = pop_object
     meth = pop_object
-    cnt = next_int
-    goto_method recv, meth, cnt, RObject.nil
+    meth.as :cmethod
+    cnt = pop_object.to_int
+    goto_method recv, meth, cnt, meth.name
   end
   
   def goto_method(recv, meth, count, name)
+    return if try_primitive(meth, recv, count)
     ctx = create_context(recv, meth, name)
     ctx.argcount = RObject.wrap count
+    activate_context ctx, ctx
+  end
+  
+  def try_primitive(mo, recv, args)
+    prim = mo.primitive.to_int
+    req = mo.required.to_int
+    ret = false
+    if prim > -1
+      if req < 0 or args == req
+        push_object recv
+        if @primitives.perform(mo.primitive.to_int, mo)
+          Log.debug "Primitive response for #{prim} successful."
+          return true
+        else
+          Log.debug "Pritive response for #{prim} FAILED."
+        end
+      elsif req >= 0 and CPU::Global.cmethod.address != mo.rclass.address
+        msg = "wrong number of arguments (%d for %d) for primitive %d" % [args, req, prim]
+        raise_exception new_exception(CPU::Global.exc_arg, msg)
+        ret = true
+      end
+    end
+    
+    return ret
+  end
+  
+  def perform_hook(recv, meth, arg)
+    mo = find_method(recv, meth)
+    return false if mo.nil?
+    
+    push_object arg
+    ctx = create_context recv, mo, meth
+    ctx.argcount = RObject.wrap(1)
+    ctx.block = RObject.nil
+    
     activate_context ctx, ctx
   end
   
@@ -545,23 +594,13 @@ class CPU
     
     sym.as :symbol
     
-    # puts "Sending #{sym.as_string} (#{idx}) to #{recv.address}."
+    # Log.debug "#{@depth}: Sending #{sym.as_string} (#{idx}) to #{recv.address}."
+    @depth += 1
     
-    # Log.debug "stack is #{print_stack} for #{sym.as_string} (#{args} args)"
+    Log.debug "stack is #{print_stack} for #{sym.as_string} (#{recv.address}, #{args} args)"
     
     mo, missing = locate_method recv, sym
-    prim = mo.primitive.to_int
-    req = mo.required.to_int
-    if prim > -1 and (req < 0 or args == req)
-      push_object recv
-      if @primitives.perform(mo.primitive.to_int)
-        # Log.debug "Primitive response for #{sym.as_string} successful."
-        return
-      else
-        # Log.debug "Pritive response for #{sym.as_string} FAILED."
-      end
-    end
-    
+    return if try_primitive(mo, recv, args)
     if missing
       args += 1
       push_object sym

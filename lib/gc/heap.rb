@@ -10,17 +10,20 @@ class Heap
   def deallocate
     return unless allocated?
     Memory.release_memory @address
+    @size = 0
     @address = 0
+    @current = 0
   end
   
   def allocate_memory
     @address = Memory.allocate_memory @size
     Memory.clear_memory @address, @size
-    @current = 0
+    @last = @address + @size
+    reset!
   end
   
   def reset!
-    @current = 0
+    @current = @address
   end
   
   attr_accessor :current
@@ -39,20 +42,18 @@ class Heap
   
   def allocate(size)
     return nil unless enough_space?(size)
-    addr = @address + @current
+    addr = @current
     @current += size
     return addr
   end
   
   def enough_space?(size)
-    if @size - current < size
+    if @current + size > @last
       return false
     end
     
     return true
   end
-  
-  true
   
   def copy_object(obj)
     return obj if contains?(obj.address)
@@ -65,7 +66,7 @@ class Heap
   
   def each_object
     addr = @address
-    last = @address + @current
+    last = @current
     while addr < last
       obj = RObject.new(addr)
       yield obj

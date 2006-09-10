@@ -29,10 +29,10 @@ class TestCPUPrimitives < Test::Unit::TestCase
     push o.address
   end
   
-  def do_prim(prim)
+  def do_prim(prim, mo=nil)
     idx = CPU::Primitives::Primitives.index(prim)
     assert idx
-    @prim.perform(idx)
+    @prim.perform(idx, mo)
   end
   
   def test_noop

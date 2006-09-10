@@ -184,7 +184,7 @@ class Memory
             rb_raise(rb_path2class("Memory::Fault"),
               "Unable to copy %d bytes from 0x%X to 0x%X", src_size, src, dest);
           }
-            memcpy( (void*)dest, (void*)src, (size_t)src_size );
+          memcpy( (void*)dest, (void*)src, (size_t)src_size );              
         }
     CODE
     
@@ -196,6 +196,17 @@ class Memory
                     "Unable to clear memory at 0x%X, size %d", ptr, size);
       }
       memset((void*)ptr, 0, (size_t)size);
+    }
+    CODE
+    
+    builder.c_singleton <<-CODE
+    int compare_memory(unsigned long b1, unsigned long b2, long size) {
+      on_segfault {
+        rb_raise(rb_path2class("Memory::Fault"),
+          "Unable to compare memory at 0x%X with 0x%X, size %d", b1, b2, size);
+      }
+      
+      return memcmp((void*)b1, (void*)b2, (size_t)size);
     }
     CODE
   end

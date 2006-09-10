@@ -27,10 +27,10 @@ class RObject
     size = HeaderSize + (fields * 4)
     address = heap.allocate(size)
     
-    raise "Unable to allocate object (#{size} words)" unless address
+    # raise "Unable to allocate object (#{size} words)" unless address
 
-    Memory.store_long address + 2, 0, klass
-    Memory.store_long address + 6, 0, fields
+    Memory.store_long address + 4, 0, klass
+    Memory.store_long address + 8, 0, fields
     obj = RObject.new(address)
     obj.flags = 0
     obj.flags2 = 0
@@ -38,7 +38,7 @@ class RObject
   end
   
   def initialize_fields
-    start = address + HeaderSize
+    start = @address + HeaderSize
     
     0.upto(fields) do |i|
       Memory.store_long start, i, 4
@@ -88,12 +88,15 @@ class RObject
   end
   
   def fields
-    Memory.fetch_long address + 6, 0
+    Memory.fetch_long @address + 8, 0
   end
   
   def references
     out = []
-    0.upto(fields) do |i|
+    
+    return out if stores_bytes?
+    
+    0.upto(fields-1) do |i|
       obj = at(i)
       if obj.reference?
         out << [obj,i] unless out.find { |ent| ent.first == obj }
@@ -108,10 +111,12 @@ class RObject
     @address
   end
   
+  IsMetaFlag = 0x80
+  
   def rclass
-    m = Memory.fetch_long @address + 2, 0
+    m = Memory.fetch_long @address + 4, 0
     obj = RObject.new(m)
-    while obj.reference? and Rubinius::MetaClass.metaclass?(obj)
+    while obj.reference? and obj.flag_set?(IsMetaFlag)
       obj.as :class
       obj = obj.superclass
     end
@@ -120,7 +125,7 @@ class RObject
   end
   
   def rclass=(obj)
-    Memory.store_long @address + 2, 0, obj.address
+    Memory.store_long @address + 4, 0, obj.address
   end
   
   def ==(obj)
@@ -129,7 +134,8 @@ class RObject
   
   def at(idx)
     if idx >= self.fields
-      raise "Unable to fetch data beyond end of object (#{idx} > #{self.fields})."
+      return nil
+      # raise "Unable to fetch data beyond end of object (#{idx} > #{self.fields})."
     end
     
     add = Memory.fetch_long field_address(idx), 0
@@ -144,14 +150,15 @@ class RObject
   
   def raw_put(idx, obj)
     if idx >= self.fields
-      raise "Unable to write data beyond end of object (#{idx} > #{self.fields})."
+      return nil
+      # raise "Unable to write data beyond end of object (#{idx} > #{self.fields})."
     end
     
     # Log.debug "Writing field #{idx} of #{address} => #{obj.address}"
     Memory.store_long field_address(idx), 0, obj.address
     return obj
   end
-  
+
   def wb_put(idx, obj)
     raw_put idx, obj
     @@memory_handler.write_barrier self, obj
@@ -172,21 +179,21 @@ class RObject
     alias :put :raw_put
   end
   
-  
   def self.wrap(val)
-    i = case val
+    case val
     when FalseClass
-      0
+      i = 0
     when TrueClass
-      2
+      i = 2
     when NilClass
-      4
+      i = 4
     when Fixnum
       fx = (val.abs << 3) | 1
       fx |= 4 if val < 0
-      fx
+      i = fx
     else
-      raise ArgumentError, "Unable to wrap #{val}"
+      return nil
+      # raise ArgumentError, "Unable to wrap #{val}"
     end
     
     return RObject.new(i)
@@ -312,10 +319,10 @@ class RObject
   end
   
   def as_string
-    "#<RObject:0x#{@address.to_s(16)}>"
+    "#<RObject:0x" + @address.to_s(16) + ">"
   end
   
-  def create_metaclass(sup=nil)
+  def create_metaclass(sup)
     unless sup
       sup = self.direct_class
       # sup = cls.metaclass
@@ -327,7 +334,7 @@ class RObject
   end
   
   def access_metaclass
-    m = Memory.fetch_long @address + 2, 0
+    m = Memory.fetch_long @address + 4, 0
     obj = RObject.new(m)
     if obj.reference? and !Rubinius::MetaClass.metaclass?(obj)
       # puts "#{obj.inspect} is in the class slot, but not a metaclass!"
@@ -341,7 +348,7 @@ class RObject
   def metaclass
     meta = access_metaclass
     if meta.nil?
-      meta = create_metaclass
+      meta = create_metaclass(nil)
       meta.setup_fields
     end
     meta.as :metaclass
@@ -349,7 +356,7 @@ class RObject
   end
   
   def direct_class
-    m = Memory.fetch_long @address + 2, 0
+    m = Memory.fetch_long @address + 4, 0
     obj = RObject.new(m)
     obj.as :class
     return obj
@@ -372,7 +379,7 @@ class RObject
   end
   
   def immediate_class
-    Log.debug "Looking logical class of immediate #{self.address}"
+    # Log.debug "Looking logical class of immediate #{self.address}"
     if fixnum?
       return CPU::Global.fixnum
     elsif symbol?
@@ -386,7 +393,8 @@ class RObject
     elsif undef?
       return CPU::Global.undef_class
     else
-      raise "Fuck. can't figure the class of #{self.address} out."
+      return nil
+      # raise "Fuck. can't figure the class of #{" + self.address  out."
     end
   end
 end

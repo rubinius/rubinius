@@ -1,5 +1,6 @@
 require 'translation/normalize'
 require 'translation/typer'
+require 'translation/states'
 require 'sexp/processor'
 require 'sexp/composite_processor'
 
@@ -9,21 +10,18 @@ class RsToC
     alias :translator :new
   end
   
-  def initialize(ft=nil, iv=nil)
-    ft ||= FunctionTable.new
-    iv ||= Hash.new
-    
-    @functions = ft
-    @ivars = iv
+  def initialize(info, cg)
+    @info = info
+    @cg = cg
     
     @translator = CompositeSexpProcessor.new
     @translator << RsNormalizer.new
-    @translator << RsTyper.new(ft)
-    @proc = RsToCProcessor.new(ft, iv)
+    @translator << (@typer = RsTyper.new(info))
+    @proc = RsToCProcessor.new(info, cg)
     @translator << @proc
   end
   
-  attr_accessor :functions, :ivars
+  attr_accessor :info, :ivars, :typer
   
   def process(x)
     out = @translator.process x
@@ -54,6 +52,21 @@ class RsToC
   end
 end
 
+class TypeToC
+  def initialize(ti)
+    @ti = ti
+  end
+  
+  def generate
+    @ti.classes.each do |name, klass|
+      klass.defined_methods.each do |name, func|
+        pro = RsToCProcessor.new(@ti, @ti.cg)
+        puts pro.process(func.body.shift)
+      end
+    end
+  end
+end
+
 class RsToCProcessor < SexpProcessor
   def self.translator(ft=nil, iv=nil)
     # return @translator if defined? @translator
@@ -73,20 +86,20 @@ class RsToCProcessor < SexpProcessor
     return translator 
   end
   
-  def initialize(ft, iv=Hash.new)
+  def initialize(ft, cg)
     super()
-    @functions = ft
+    @info = ft
+    @cg = cg
     self.auto_shift_type = true
     self.expected = String
     self.strict = true
     @unique_idx = 0
-    @ivars = iv
     @ret_types = []
     @scope_type = nil
     @last_type = nil
   end
   
-  attr_reader :functions, :ivars
+  attr_reader :info, :ivars
   attr_accessor :scope_type, :ret_types, :last_type
   
   def process(x)
@@ -98,17 +111,8 @@ class RsToCProcessor < SexpProcessor
     "_rstoc_#{@unique_idx += 1}"
   end
   
-  StaticTypes = {
-    Type.bool => "BOOL",
-    Type.int => "int",
-  }
-  
   def to_ctype(type)
-    if ct = StaticTypes[type]
-      return ct
-    end
-    
-    raise "Unknown type '#{type}'"
+    return @info.to_c_instance(type)
   end
   
   def process_self(x)
@@ -134,15 +138,49 @@ class RsToCProcessor < SexpProcessor
     args = x.shift
     
     cargs = b_name.dup
-        
-    ft = @functions.find(s_recv.type, meth)
+
+    cast = false
+
+    begin
+      ft = @info.find(s_recv.type, meth)
+    rescue RuntimeError => e
+      raise "Unable to translate call of #{meth} on #{s_recv}. #{e.message}"
+    end
+    recv_type = s_recv.type
+    
+    if !ft or ft.type.unknown?
+      klass = @info.classes[s_recv.type.name]
+      while klass and (!ft or ft.type.unknown?)
+        recv_type = klass.super_type
+        ft = @info.find(recv_type, meth)
+        if ft and !ft.type.unknown?
+          cast = true
+        else
+          klass = Type::Klass.find(klass.superklass)
+        end
+      end
+    end
+    
+    if ft.kind_of? TypeInfo::ExternalInfo
+      args.shift
+      in_args = args.map { |a| process a }
+      return ft.generate(@cg, recv, in_args)
+    end
+    
+    # raise "Unknown function #{meth} for #{s_recv.type}."
     
     if args.size > 1
       args.shift
       cargs << ", " + args.map { |a| process a }.join(", ")
     end
-        
-    "#{ft.c_func}(#{recv}, #{cargs})"
+    
+    cf = @info.to_c_func(ft, recv_type)
+    if !cast    
+      "#{cf}(#{recv}, #{cargs})"
+    else
+      c_name = @info.to_c_instance(recv_type)
+      "#{cf}((#{c_name})#{recv}, #{cargs})"
+    end
   end
   
   def process_scope(x)
@@ -168,12 +206,10 @@ class RsToCProcessor < SexpProcessor
 
     ret_type = to_ctype body_n.type
     b_name = unique
-    output = "#{ret_type} #{b_name}() { return #{body} }"
+    @cg.add_block "#{ret_type} #{b_name}(struct _locals#{@cg.local_idx} *locals) { return #{body} }"
     
     call.shift
-    call_p = process_call call, b_name
-    output << "\n" + call_p
-    return output
+    return process_call(call, "BLOCK(#{b_name})")
   end
   
   def process_lit(x)
@@ -190,16 +226,18 @@ class RsToCProcessor < SexpProcessor
     name = x.shift
     idx = x.shift
     
-    val = process x.shift
+    vn = x.shift
+    @cg.add_local name, vn.type
+    val = process vn
     
-    "#{name} = #{val}"
+    "locals->#{name} = #{val}"
   end
   
   def process_lvar(x)
     name = x.shift
     idx = x.shift
     
-    name.to_s
+    "locals->#{name}"
   end
   
   def process_ivar(x)
@@ -211,7 +249,6 @@ class RsToCProcessor < SexpProcessor
     name = x.shift
     val = x.shift
     type = val.type
-    @ivars[name] ||= val.type
     
     s_val = process val
     

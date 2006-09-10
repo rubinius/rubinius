@@ -17,6 +17,7 @@ class GarbageCollector
   attr_reader :remember_set
   
   def mutate_from(obj, mutator=self)
+    puts "Mutating from #{obj}..."
     if contains?(obj)
       mutator.mutate_object obj
     end
@@ -25,18 +26,23 @@ class GarbageCollector
     until stack.empty?
       iobj = stack.pop
       iobj.references.each do |ref, idx|
+        puts "Processing ref #{idx} (#{ref.address}) of #{iobj.address} #{stack.size}..."
         if mutator.already_mutated?(ref)
           new_obj = mutator.fetch_new_mutation(ref)
         elsif contains?(ref)
           new_obj = mutator.mutate_object ref
           # puts "#{ref.address}(#{idx}) => #{new_obj.address}"
           # puts "    #{new_obj.at(0).inspect}"
-          stack.unshift new_obj
+          unless new_obj.stores_bytes?
+            stack.unshift new_obj
+          end
         else
           # The reference isn't for an object contained in this
           # space.
           new_obj = ref
-          stack.unshift new_obj 
+          unless new_obj.stores_bytes?
+            stack.unshift new_obj 
+          end
         end
         iobj.put idx, new_obj
       end
@@ -45,7 +51,8 @@ class GarbageCollector
   
   def mutate(roots)
     (@remember_set + roots).each do |root_obj|
-      mutate_from root_obj
+      moved = mutate_from root_obj
+      root_obj.address = moved.address
     end
     
     after_mutation
@@ -85,6 +92,7 @@ class ForwardingGC < GarbageCollector
   ForwardingMagic = 0xff
   
   def forwarded?(obj)
+    # puts "Checking that #{obj.address} is forwarded..."
     byte = Memory.fetch_byte obj.address
     byte == ForwardingMagic
   end

@@ -18,12 +18,14 @@ module Bytecode
       def initialize(name)
         @name = name
         @location = nil
+        @set = false
       end
       
-      attr_accessor :location
+      attr_accessor :location, :set
     end
     
-    def initialize(literals=[])
+    def initialize(literals=[], name=nil)
+      @name = name
       reset(literals)
     end
     
@@ -234,7 +236,14 @@ module Bytecode
     def parse_line(line)
       if m = /^\s*([^\s]*):(.*)/.match(line)
         name = m[1].to_sym
-        @labels[name].location = @current_op
+        if @labels.key?(name)
+          if @labels[name].set
+            raise "Re-defined label #{name}"
+          end
+        end
+        lbl = @labels[name]
+        lbl.location = @current_op
+        lbl.set = true
         line = m[2]
       elsif m = /^s*#([^\s]+) (.*)/.match(line)
         kind = m[1].to_sym

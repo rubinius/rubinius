@@ -9,6 +9,7 @@ task :fields do
     fd.puts "class #{sname}"
     idx = 0
     mod::TotalFields.each do |fel|
+      # fd.puts "index_accessor :#{fel}, #{idx}"
       fd.puts "def #{fel}; Ruby.asm \"push self\\npush #{idx}\\nfetch_field\"; end"
       idx += 1
     end

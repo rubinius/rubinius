@@ -12,6 +12,57 @@ end
 con = Bytecode::Constructor.new(nil)
 com = Bytecode::Compiler.new
 
+if option == "-t"
+  require 'translation/to_c'
+  require 'pp'
+  
+  file = ARGV.shift
+  input = ARGV.shift
+
+  info = TypeInfo.new("rbs_")
+  
+  if File.exists?(file)
+    data =  Marshal.load(File.read(file))
+    info.types = data.shift
+    info.classes = data.shift
+    info.consts = data.shift
+  end
+  
+  puts "Loaded type information from #{file}..."
+  
+  ty = RsTyper.new(info)
+  Dir["lib/translation/types/*.rb"].each do |path|
+    info.load_file path
+  end
+  
+  puts "Learning type info of #{input}."
+  
+  io = File.open(input)
+  syd = SydneyParser.load_file io
+  sx = syd.sexp
+  io.close
+
+  norm = com.fully_normalize(sx)
+  pass1 = ty.process(norm)
+  pass2 = ty.process(pass1)
+  
+  pp pass2
+    
+  File.open(file, "w") do |f|
+    f << Marshal.dump([info.types, info.classes, info.consts])
+  end
+  
+  puts "Saved type info to #{file}."
+  
+  # toc = TypeToC.new(info)
+  # toc.generate
+  
+  # pp pass2
+  exit 0
+end
+
+
+
 file = ARGV.shift
 fd = File.open(file)
 sx = con.convert_to_sexp(fd)
@@ -40,7 +91,8 @@ def iputs(str, indent)
 end
 
 def show_method(m, indent=0)
-  iputs "=== Method Description: #{m.name}, primitive: #{m.primitive.inspect}", indent
+  prim = CPU::Primitives.name_to_index(m.primitive)
+  iputs "=== Method Description: #{m.name}, primitive: #{m.primitive.inspect} (#{prim})", indent
   iputs "   From: #{m.file}", indent
   iputs "Assembly:", indent
   m.assembly.split("\n").each do |line|

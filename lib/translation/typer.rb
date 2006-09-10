@@ -1,124 +1,5 @@
 require 'sexp/processor'
-
-class Type
-  def initialize(str)
-    @name = str.to_sym
-  end
-  
-  def to_s
-    @name.to_s
-  end
-  
-  attr_accessor :name
-  
-  def eql?(b)
-    @name == b.name
-  end
-  
-  alias :== :eql?
-  
-  def hash
-    @name.hash
-  end
-  
-  def unknown?
-    @name == :unknown
-  end
-  
-  TYPES = Hash.new
-  
-  class << self
-    def method_missing(sym)
-      TYPES[sym] ||= Type.new(sym)
-    end
-        
-    def unknown
-      Type.new(:unknown)
-    end
-  end  
-end
-
-# It's been deprecated long enough. I'm getting rid of it.
-class Object
-  undef :type
-end
-
-class TypedSexp < Sexp
-  attr_accessor :type
-  
-  def set_type(t)
-    @type = t
-    return self
-  end
-  
-  def unify_with(idx)
-    set_type self[idx].type
-    return self
-  end
-  
-  def inspect
-    str = map { |e| e.inspect }.join(", ")
-    "t(#{str})"
-  end
-end
-
-def t(*a)
-  TypedSexp.new(*a)
-end
-
-class FunctionType
-  def initialize(c_func, ret_type)
-    @c_func = c_func
-    @ret_type = ret_type
-    @arg_types = nil
-  end
-  
-  attr_accessor :c_func, :ret_type, :arg_types
-  
-  def check_args(args)
-    unless @arg_types
-      @arg_types = args
-      return
-    end
-    
-    if args != @arg_types
-      raise "Mismatch argument types."
-    end
-  end
-  
-  def reset_args!
-    @arg_types = nil
-  end
-  
-  def copy_from(other)
-    if @ret_type.name == :unknown
-      @ret_type.name = other.ret_type.name
-    end
-    
-    @c_func = other.c_func
-  end
-end
-
-class FunctionTable
-  def initialize
-    @functions = Hash.new { |h,k| h[k] = {} }
-  end
-  
-  def find(type, function)
-    if ft = @functions[type][function]
-      return ft
-    end
-    raise "Unable to find function '#{function}' for '#{type}'"
-  end
-  
-  def add_function(type, function, ft)
-    if cur = @functions[type][function]
-      cur.copy_from ft
-    else
-      @functions[type][function] = ft
-    end
-  end
-end
+require 'translation/type'
 
 class LocalVar
   attr_accessor :name, :index, :type
@@ -128,16 +9,23 @@ class RsTyper < SexpProcessor
   
   def initialize(functions)
     super()
-    @functions = functions
+    @info = functions
     self.require_empty = false
     self.default_rewriter = :to_ts
-    self.require_expected = false
+    # self.require_expected = false
+    self.expected = TypedSexp
     self.strict = true
     @local_vars = Hash.new
     @ivars = Hash.new
+    @consts = @info.consts
+    @self_type = []
+    @current_klass = []
+    @defns = []
+    @current_iter = []
+    @current_func = []
   end
   
-  attr_accessor :local_vars, :ivars
+  attr_accessor :local_vars, :ivars, :consts, :self_type
   
   def add_local_var(name, idx, type)
     lv = LocalVar.new
@@ -148,6 +36,7 @@ class RsTyper < SexpProcessor
   end
       
   def to_ts(x)
+    return x if TypedSexp === x
     TypedSexp.new(*x)
   end
   
@@ -174,23 +63,65 @@ class RsTyper < SexpProcessor
   end
   
   def process_nil(x)
-    x.set_type Type.nil
+    x.set_type Type.unknown
   end
   
   def process_self(x)
-    x.set_type Type.unknown
+    x.set_type(@self_type.last || Type.unknown)
   end
   
   def process_call(x)
     process! x, 1
     process! x, 3
-    func = @functions.find(x[1].type, x[2]) rescue nil
-    unless func
-      func = FunctionType.new(nil, Type.unknown)
-      @functions.add_function x[1].type, x[2], func
+    
+    if x[1].kind_of? Array and x[1].first == :const and x[2] == :new
+      name = x[1].last
+      if true # @consts[name] == Type.Class
+        if x[1].type.unknown?
+          klass = add_meta(name)
+          x[1].set_type klass.type
+        end
+        return x.set_type(Type.method_missing(name))
+      end
     end
-    func.check_args x[3][1..-1]
-    x.set_type func.ret_type
+
+    func = @info.find(x[1].type, x[2]) rescue nil
+    unless func
+      # puts "Adding #{x[2].inspect} to #{x[1].type.inspect}"
+      func = Function.new(x[2], nil, nil, Type.unknown)
+      @info.add_function x[1].type, func
+    end
+    
+    @called_func = func
+        
+    func.check_args x[3][1..-1].map { |i| i.type }
+    x.set_type func.type
+  end
+  
+  def process_attrasgn(x)
+    process_call(x)
+  end
+  
+  def process_super(x)
+    name = @defns.last
+    this_type = @self_type.last
+    kls = @info.types[this_type]
+    type = kls.super_type
+    func = @info.find(type, name) rescue nil
+    unless func
+      @info.verify_type(type)
+      # puts "Adding #{name} to #{type.inspect}"
+      # puts "Adding #{x[2].inspect} to #{x[1].type.inspect}"
+      func = Function.new(name, nil, nil, Type.unknown)
+      @info.add_function type, func
+    end
+    if x.size == 1
+      func.check_args []
+    else
+      process! x, 1
+      func.check_args x[1][1..-1].map { |i| i.type }
+    end
+    x.set_type func.type
   end
   
   def process_scope(x)
@@ -199,6 +130,10 @@ class RsTyper < SexpProcessor
   end
   
   def process_block(x)
+    if x.size == 1
+      return x.set_type(Type.void)
+    end
+    
     1.upto(x.size - 1) do |i|
       process! x, i
     end
@@ -206,10 +141,53 @@ class RsTyper < SexpProcessor
     x.set_type x.last.type
   end
   
-  def process_iter(x)
-    process! x, 1
-    process! x, 3
+  def process_iter(x)    
     
+    @current_iter << x
+    process! x, 1
+    
+    args = x[2]
+    if args.first == :masgn
+      args.shift
+    else
+      args = [args]
+    end
+    
+    called = @called_func
+    
+    test = called.yield_args
+    if test
+      if test.size != args.size
+        raise "Mis-match arg count on yield."
+      end
+      
+      test = test.dup
+    end
+    
+    args.each do |y|
+      unless y.first == :lasgn
+        raise "Unsupported iter argument. #{y.inspect}"
+      end
+      
+      
+      if test
+        type = test.shift
+      else
+        type = Type.unknown
+      end
+      
+      add_local_var y[1], y[2], type
+    end
+    
+    out = process! x, 3
+    
+    if t = called.yield_type
+      t.become(out.type)
+    else
+      called.yield_type = out.type
+    end
+    
+    @current_iter.pop
     x.set_type x[1].type
   end
   
@@ -217,7 +195,11 @@ class RsTyper < SexpProcessor
     process! x, 3
     x.unify_with 3
     if lt = @local_vars[x[1]]
-      if lt.type != x.type
+      if x.type.unknown?
+        x.type.become(lt.type)
+      elsif lt.type.unknown?
+        lt.type.become(x.type)
+      elsif lt.type != x.type
         raise "Local variable type mismatch. '#{lt.type}' != '#{x.type}'"
       end
     else
@@ -236,20 +218,73 @@ class RsTyper < SexpProcessor
     x.set_type Type.new(x.last.class.name.to_sym)
   end
   
+  def process_cdecl(x)
+    process! x, 2
+    x.unify_with 2
+    @consts[x[1]] = x.type
+    return x
+  end
+  
+  def process_const(x)
+    name = x[1]
+    unless t = @consts[name]
+      t = Type.unknown
+      @consts[name] = t
+    end
+    x.set_type t
+  end
+  
+  def process_colon2(x)
+    if x.size == 2
+      x.set_type @consts[x.last]
+    else
+      lhs = []
+      path = x
+      while path.size == 3
+        lhs << path.last
+        path = path[1]
+      end
+      lhs << path.last
+      lhs << x.last
+      const = lhs.join("::").to_sym
+      x.set_type @consts[const]
+    end
+  end
+  
   def process_iasgn(x)
     process! x, 2
     x.unify_with 2
-    @ivars[x[1]] = x.type
+    in_t = x.type
+    if t = @ivars[x[1]]
+      if t.unknown?
+        t.become x.type
+      elsif in_t.unknown?
+        in_t.become(t)
+      end
+    else
+      @ivars[x[1]] = x.type
+    end
     return x
   end
   
   def process_ivar(x)
-    x.set_type @ivars[x[1]]
+    unless t = @ivars[x[1]]
+      unless t = @info.find_ivar(@self_type.last, x[1])      
+        t = Type.unknown
+        @ivars[x[1]] = t
+      end
+    end
+    
+    x.set_type t
   end
   
   def process_return(x)
-    process! x, 1
-    x.unify_with 1
+    if x.size == 1
+      x.set_type Type.nil
+    else
+      process! x, 1
+      x.unify_with 1
+    end
   end
   
   def process_if(x)
@@ -257,7 +292,18 @@ class RsTyper < SexpProcessor
     process! x, 2 if x[2]
     process! x, 3 if x[3]
     if x[2] and x[3] and x[2].type != x[3].type
-      x.set_type [x[2].type, x[3].type]
+      if x[2].type.unknown?
+        unless x[3].type.unknown?
+          x[2].type.become(x[3].type)
+          type = x[3].type
+        end
+      elsif x[3].type.unknown?
+        x[3].type.become(x[2].type)
+        type = x[2].type
+      else
+        type = [x[2].type, x[3].type]
+      end
+      x.set_type type
     elsif x[2]
       x.set_type x[2].type
     elsif x[3]
@@ -299,4 +345,180 @@ class RsTyper < SexpProcessor
     x.unify_with 2
   end
   
+  def process_class(x)
+    process! x, 1
+    if x[2]
+      sup = x[2].last
+      process! x, 2
+    else
+      sup = :Object
+    end
+    
+    cur = @ivars
+    klass = @info.add_klass x[1].last, sup
+    @ivars = klass.ivars
+    @self_type << klass.type
+    process! x, 3
+    @ivars = cur
+    @self_type.pop
+    x.set_type Type.void
+  end
+  
+  def process_module(x)
+    process! x, 1
+    process! x, 2
+    x.set_type Type.void
+  end
+  
+  def process_args(x)
+    x.set_type Type.void
+  end
+  
+  def add_meta(name)
+    meta_name = "#{name}Meta".to_sym
+    klass = @info.add_klass meta_name, :Class
+  end
+  
+  def process_defs(x)
+    recv = x[1]
+    name = x[2]
+    args = x[3]
+    
+    if recv != [:self]
+      raise "Unsupported defs reciever. #{recv.inspect}"
+    end
+    
+    cls = @self_type.last
+    
+    raise "Not in a class!" unless cls
+    
+    klass = add_meta(cls.name)
+    
+    cur = @ivars
+    
+    @ivars = klass.ivars
+    @self_type << klass.type
+    
+    mcls = klass.type
+    
+    @consts[cls.name] = mcls
+    
+    func = @info.find(mcls, name) rescue nil
+    unless func
+      func = Function.new name, nil, nil, Type.unknown
+      @info.add_function mcls, func
+    end
+    
+    out = do_def_body func, x, name, 3, 4
+    
+    @self_type.pop
+    @ivars = cur
+    return out
+  end
+  
+  def process_defn(x)
+    name = x[1]
+    func = nil
+    if cls = @self_type.last
+      
+      func = @info.find(cls, name) rescue nil
+      unless func
+        puts "Adding #{name} to #{cls.inspect}"
+        func = Function.new name, nil, nil, Type.unknown
+        @info.add_function cls, func
+      else
+        puts "Rusing #{name} on #{cls.inspect}"
+      end
+    end
+    
+    do_def_body func, x, name
+  end
+  
+  def do_def_body(func, x, name, args=2, bidx=3)
+    
+    cur = @local_vars
+    @local_vars = Hash.new
+    
+    @defns << name
+    @current_func << func
+    
+    if x[args].size > 1
+      # puts "#{name} => #{x[2][1].inspect}"
+      idx = 2
+      x[args][1].each do |y|
+        add_local_var y, idx, Type.unknown
+        idx += 1
+      end
+    end
+    body = process! x, bidx
+    if func
+      func.body = body[1][1..-1].set_type(body.type)
+      if func.type
+        if func.type.unknown?
+          if body.type.unknown?
+            func.type = body.type
+          else
+            func.type.become(body.type)
+          end
+        elsif body.type.unknown?
+          body.type.become(func.type)
+        elsif func.type != body.type
+          raise "Type Mis-match #{func.type.inspect} != #{body.type.inspect}!"
+        end
+      else
+        func.type = body.type
+      end
+    end
+        
+    @current_func.pop
+    @defns.pop
+    @local_vars = cur
+    x.set_type Type.void
+  end
+  
+  def process_yield(x)
+    if x.size > 1
+      process! x, 1
+      if x[1].first == :array
+        lst = x[1].dup.shift
+      else
+        lst = [x[1]]
+      end
+      types = lst[1..-1].map { |t| t.type }
+    else
+      types = []
+    end
+    
+    if func = @current_func.last
+      func.yield_args = types
+      type = func.yield_type = Type.unknown
+    else
+      type = Type.unknown
+    end
+
+    x.set_type type
+  end
+  
+  def process_not(x)
+    process! x, 1
+    x.set_type Type.bool
+  end
+  
+  def process_and(x)
+    process! x, 1
+    process! x, 2
+    x.set_type Type.bool
+  end
+  
+  def process_cvar(x)
+    x.set_type Type.unknown
+  end
+  
+  def process_cvasgn(x)
+    x.set_type Type.unknown
+  end
+  
+  def process_alias(x)
+    x.set_type Type.void
+  end
 end

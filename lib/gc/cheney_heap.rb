@@ -2,29 +2,33 @@ require 'gc/heap'
 
 class CheneyHeap < Heap
   def initialize(size)
-    super
+    super(size)
     @scan = @address
-    @next = @address
   end
   
-  attr_accessor :scan, :next
+  attr_accessor :scan
   
-  def allocate(size)
-    addr = @next
-    @next += size
-    return addr
+  def next
+    @current
   end
   
   def fully_scanned?
-    @scan == @next
+    @scan == @current
   end
   
   def unscanned_objects
     return if fully_scanned?
-    until @scan >= @next
+    until @scan >= @current
       obj = RObject.new(@scan)
       yield obj
       @scan += obj.memory_size
     end
+  end
+  
+  def next_unscanned
+    return nil if fully_scanned?
+    obj = RObject.new(@scan)
+    @scan += obj.memory_size
+    return obj
   end
 end

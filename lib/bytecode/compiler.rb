@@ -28,8 +28,12 @@ module Bytecode
     attr_accessor :required
     
     def to_cmethod
-      asm = Bytecode::Assembler.new(@literals)
-      stream = asm.assemble @assembly
+      asm = Bytecode::Assembler.new(@literals, @name)
+      begin
+        stream = asm.assemble @assembly
+      rescue Object => e
+        raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
+      end
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = asm.number_of_locals
@@ -52,6 +56,11 @@ module Bytecode
       else
         # Log.info "Method #{@name} is contained in an unknown place."
         cmeth.file = RObject.nil
+      end
+      
+      if @name
+        sym = Rubinius::String.new(@name.to_s).to_sym
+        cmeth.name = sym
       end
       
       cmeth.lines = asm.lines_as_tuple
@@ -85,9 +94,8 @@ module Bytecode
   end
   
   class Compiler
-    def compile(sx, name, extra=[])
-      state = RsLocalState.new
-      nx = fully_normalize(sx, extra, state)
+    def compile(sx, name, state=RsLocalState.new)
+      nx = fully_normalize(sx, state)
       meth = MethodDescription.new(name)
       
       pro = Processor.new(self, meth, state)
@@ -95,8 +103,7 @@ module Bytecode
       return pro
     end
     
-    def fully_normalize(x, extra=[], state=RsLocalState.new)
-      extra.each { |a| state.local(a) }
+    def fully_normalize(x, state=RsLocalState.new)
       comp = CompositeSexpProcessor.new
       comp << RsNormalizer.new(state, true)
       comp << RsLocalScoper.new(state)
@@ -104,9 +111,9 @@ module Bytecode
       return comp.process(x)      
     end
     
-    def compile_as_method(sx, name, extra=[])
+    def compile_as_method(sx, name, state=RsLocalState.new)
       begin
-        pro = compile(sx, name, extra)
+        pro = compile(sx, name, state)
       rescue UnknownNodeError => e
         exc = RuntimeError.new "Unable to compile '#{name}', compiled error detected. '#{e.message}'"
         exc.set_backtrace e.backtrace
@@ -138,7 +145,7 @@ module Bytecode
       attr_reader :method
       
       def unique_id
-        @unique_id += 1
+        @state.unique_id
       end
       
       def unique_lbl
@@ -680,11 +687,22 @@ module Bytecode
         Log.debug " ==> Compiling '#{name}'"
         
         prim = detect_primitive(body)
-        extra = args[1].dup
+        state = RsLocalState.new
+        
+        defaults = args[4]
+
+        args[1].each { |e| state.local(e) }          
         if args[3]
-          extra << args[3].first
+          state.local args[3].first
         end
-        meth = @compiler.compile_as_method body, name, extra
+        if defaults
+          defaults.shift
+          defaults.each do |var|
+            state.local var[1]
+          end
+        end
+        
+        meth = @compiler.compile_as_method body, name, state
         meth.primitive = prim if prim
         idx = @method.add_literal meth
         add "push_literal #{idx}"
@@ -693,19 +711,15 @@ module Bytecode
         str = ""
         required = args[1].size
         args[1].each do |var|
-          str << "set #{var}\n"
+          str << "set #{var}:#{state.local(var)}\n"
         end
-        
         
         max = min = args[1].size
         
-        defaults = args[4]
-        
         if defaults
-          defaults.shift
           idx = min
           defaults.each do |var|
-            lbl = unique_lbl()
+            lbl = "set#{state.unique_id}"
             str << "passed_arg #{idx}\ngit #{lbl}\n"
             save = @output
             @output = ""
@@ -713,7 +727,7 @@ module Bytecode
             str << @output
             @output = save
             idx += 1
-            str << "#{lbl}:\nset #{var[1]}\n"
+            str << "#{lbl}:\nset #{var[1]}:#{state.local(var[1])}\n"
           end
           
           max = idx
@@ -731,7 +745,7 @@ module Bytecode
           ba = args.last
           name = ba[1]
           idx = ba[2]
-          str << "push_block\nset #{name}:#{idx}\n"
+          str << "push_block\npush Proc\nsend new 1\nset #{name}:#{idx}\n"
         end
         
         meth.required = req

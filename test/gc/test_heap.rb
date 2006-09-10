@@ -17,7 +17,7 @@ class TestHeap < Test::Unit::TestCase
   def test_allocate
     mem = @heap.allocate(10)
     assert_kind_of Fixnum, mem
-    assert_equal 10, @heap.current
+    assert_equal 10, @heap.current - @heap.address
   end
   
   def test_allocate_not_enough
@@ -32,13 +32,13 @@ class TestHeap < Test::Unit::TestCase
   end
 
   def test_current
-    assert_equal 0, @heap.current
+    assert_equal 0, @heap.current - @heap.address
     mem = @heap.allocate 10
     assert_equal @heap.address, mem
-    assert_equal 10, @heap.current
+    assert_equal 10, @heap.current - @heap.address
     
     mem = @heap.allocate 20
-    assert_equal 30, @heap.current
+    assert_equal 30, @heap.current - @heap.address
     assert_equal mem, @heap.address + 10
   end
 

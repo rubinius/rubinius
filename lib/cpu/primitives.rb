@@ -19,6 +19,7 @@ class CPU::Primitives
     :fields,
     :allocate,
     :allocate_count,
+    :allocate_bytes,
     :create_block,
     :block_given,
     :block_call,
@@ -33,21 +34,41 @@ class CPU::Primitives
     :hash_get,
     :hash_object,
     :symbol_index,
+    :symbol_lookup,
     :dup_into,
+    :fetch_bytes,
+    :compare_bytes,
+    :create_pipe,
+    :gettimeofday,
+    :strftime,
+    :get_time_info
+  ]
+  
+  FirstRuntimePrimitive = 1024
+  
+  RuntimePrimitives = [
+    :set_ivar,
+    :get_ivar,
+    :set_index,
+    :get_index
   ]
   
   def self.name_to_index(name)
     Primitives.index(name)
   end
   
-  def perform(prim)
+  def perform(prim, mo)
     # 0 is sort of a noop primitive.
+    if prim >= FirstRuntimePrimitive
+      meth = RuntimePrimitives[prim - FirstRuntimePrimitive]
+    else
+      meth = Primitives[prim]
+    end
     
-    meth = Primitives[prim]
     raise "Unknown primitive #{prim}" unless meth
     
     orig = @cpu.sp
-    ret = send(meth)
+    ret = send(meth, mo)
     if !ret
       @cpu.sp = orig
     end
@@ -55,12 +76,12 @@ class CPU::Primitives
     return ret
   end
   
-  def noop
+  def noop(o)
     @cpu.stack_pop
     return true    
   end
   
-  def add
+  def add(o)
     rec = @cpu.pop_object
     arg = @cpu.pop_object
     
@@ -73,7 +94,7 @@ class CPU::Primitives
     return true
   end
   
-  def sub
+  def sub(o)
     rec = @cpu.pop_object
     arg = @cpu.pop_object
     
@@ -86,7 +107,7 @@ class CPU::Primitives
     return true
   end
   
-  def equal
+  def equal(o)
     rec = @cpu.pop_object
     arg = @cpu.pop_object
     
@@ -104,7 +125,7 @@ class CPU::Primitives
     return true
   end
   
-  def compare
+  def compare(o)
     rec = @cpu.pop_object
     arg = @cpu.pop_object
     
@@ -118,7 +139,7 @@ class CPU::Primitives
     return true
   end
   
-  def at
+  def at(o)
     rec = @cpu.pop_object
     arg = @cpu.pop_object
     
@@ -137,7 +158,7 @@ class CPU::Primitives
     return true
   end
   
-  def put
+  def put(o)
     rec = @cpu.pop_object
     idx = @cpu.pop_object
     arg = @cpu.pop_object    
@@ -155,7 +176,7 @@ class CPU::Primitives
     return true
   end
   
-  def fields
+  def fields(o)
     obj = @cpu.pop_object
     
     return false unless obj.reference?
@@ -164,7 +185,7 @@ class CPU::Primitives
     return true
   end
   
-  def allocate
+  def allocate(o)
     cls = @cpu.pop_object
     
     return false unless cls.reference?
@@ -181,7 +202,7 @@ class CPU::Primitives
     return true
   end
   
-  def allocate_count
+  def allocate_count(o)
     cls = @cpu.pop_object
     count = @cpu.pop_object
     
@@ -197,7 +218,24 @@ class CPU::Primitives
     return true
   end
   
-  def create_block
+  def allocate_bytes(o)
+    cls = @cpu.pop_object
+    bytes = @cpu.pop_object
+    
+    return false unless cls.reference?
+    
+    cls.as :class
+    
+    return false unless bytes.fixnum?
+    
+    obj = @cpu.new_object cls, bytes.to_int / 4
+    obj.make_byte_storage
+    
+    @cpu.push_object obj
+    return true
+  end
+  
+  def create_block(o)
     ctx = @cpu.pop_object
     lst = @cpu.pop_object
     
@@ -216,7 +254,7 @@ class CPU::Primitives
     return true
   end
   
-  def block_given
+  def block_given(o)
     if @cpu.block.nil?
       @cpu.stack_push CPU::FALSE
     else
@@ -225,7 +263,7 @@ class CPU::Primitives
     return true
   end
   
-  def block_call
+  def block_call(o)
     blk = @cpu.pop_object
     return false unless blk.reference?
     
@@ -242,7 +280,7 @@ class CPU::Primitives
     return true
   end
   
-  def string_to_sexp
+  def string_to_sexp(o)
     str = @cpu.pop_object
     return false unless str.reference?
     return false unless str.rclass == CPU::Global.string
@@ -257,7 +295,7 @@ class CPU::Primitives
     return true
   end
   
-  def load_file
+  def load_file(o)
     str = @cpu.pop_object
     return false unless str.reference?
     return false unless str.rclass == CPU::Global.string
@@ -280,7 +318,7 @@ class CPU::Primitives
     return true
   end
   
-  def io_write
+  def io_write(o)
     Log.debug "Writing data.."
     io = @cpu.pop_object
     str = @cpu.pop_object
@@ -300,11 +338,12 @@ class CPU::Primitives
     
     Log.debug "Writing #{rstr.inspect} to #{fd}."
     
-    Platform.io_write fd.to_int, rstr.size, rstr
+    Platform.io_write fd.address, str.bytes.address, str.data.address
+    # Platform.io_write fd.to_int, rstr.size, rstr
     return true
   end
   
-  def io_read
+  def io_read(o)
     io = @cpu.pop_object
     cnt = @cpu.pop_object
     
@@ -318,9 +357,8 @@ class CPU::Primitives
     fd = io.descriptor
     num = cnt.to_int
     rstr = Rubinius::String.new_empty(num)
-    address = rstr.bytes_address
-    total = Platform.io_read fd.to_int, num, address
-    
+    total = Platform.io_read fd.address, cnt.address, rstr.data.address
+        
     if total != num
       obj = Rubinius::String.new_empty(total)
       Memory.transfer_memory address, total, obj.bytes_address
@@ -330,7 +368,61 @@ class CPU::Primitives
     return true
   end
   
-  def fixnum_to_s
+  def create_pipe(o)
+    cls = @cpu.pop_object
+    lhs = @cpu.pop_object
+    rhs = @cpu.pop_object
+    
+    return false unless lhs.reference?
+    return false unless lhs.rclass == CPU::Global.io
+    
+    return false unless rhs.reference?
+    return false unless rhs.rclass == CPU::Global.io
+    
+    out = Platform.create_pipe lhs.address, rhs.address
+    @cpu.push_object RObject.wrap(out)
+    return true
+  end
+  
+  def gettimeofday(o)
+    obj = @cpu.pop_object
+    
+    return false unless obj.reference?
+    return false unless obj.fields > 1
+    
+    out = Platform.fill_time obj.address
+    @cpu.push_object RObject.wrap(out)
+    return true
+  end
+  
+  def strftime(o)
+    obj = @cpu.pop_object
+    format = @cpu.pop_object
+    
+    format.as :string
+    
+    rstr = Rubinius::String.new_empty(100)
+    
+    return false unless obj.reference?
+    return false unless obj.fields > 1
+    return false unless format.reference?
+    
+    out = Platform.print_time obj.address, format.data.address, rstr.data.address, rstr.bytes.address
+    @cpu.push_object rstr
+    return true
+  end
+  
+  def get_time_info(o)
+    @cpu.pop_object
+    
+    tup = Rubinius::Tuple.new(4)
+    sz = Platform.time_data_size
+    tup.put 0, RObject.wrap(sz)
+    
+    @cpu.push_object tup
+  end
+  
+  def fixnum_to_s(o)
     obj = @cpu.pop_object
     return false unless obj.fixnum?
     base = @cpu.pop_object
@@ -342,20 +434,20 @@ class CPU::Primitives
     return true
   end
   
-  def logical_class
+  def logical_class(o)
     obj = @cpu.pop_object
     cls = obj.real_class
     @cpu.push_object cls
     return true
   end
   
-  def object_id
+  def object_id(o)
     obj = @cpu.pop_object
     @cpu.push_object RObject.wrap(obj.address)
     return true
   end
   
-  def hash_set
+  def hash_set(o)
     obj = @cpu.pop_object
     hsh = @cpu.pop_object
     
@@ -371,7 +463,7 @@ class CPU::Primitives
     return true
   end
   
-  def hash_get
+  def hash_get(o)
     obj = @cpu.pop_object
     hsh = @cpu.pop_object
     
@@ -390,14 +482,14 @@ class CPU::Primitives
     return true
   end
   
-  def hash_object
+  def hash_object(o)
     obj = @cpu.pop_object
     out = obj.hash_int
     @cpu.push_object RObject.wrap(out)
     return true
   end
   
-  def symbol_index
+  def symbol_index(o)
     sym = @cpu.pop_object
     return false unless sym.symbol?
     idx = RObject.wrap(sym.symbol_index)
@@ -406,7 +498,14 @@ class CPU::Primitives
     return true
   end
   
-  def dup_into
+  def symbol_lookup(o)
+    str = @cpu.pop_object
+    str.as :string
+    @cpu.push_object str.to_sym
+    return true
+  end
+  
+  def dup_into(o)
     obj = @cpu.pop_object
     into = @cpu.pop_object
     return false unless obj.reference?
@@ -414,6 +513,108 @@ class CPU::Primitives
     
     into.copy_fields obj, into.fields
     @cpu.push_object obj
+    return true
+  end
+
+  def fetch_bytes(o)
+    ba = @cpu.pop_object
+    start = @cpu.pop_object
+    count = @cpu.pop_object
+    
+    return false unless start.fixnum?
+    return false unless count.fixnum?
+    return false unless ba.reference?
+    
+    count_i = count.to_int
+    start_i = start.to_int
+    
+    return false if count_i < 0
+    return false if start_i < 0
+    
+    ba.as :bytearray
+    
+    return false if ba.bytes <= (count_i - start_i)
+        
+    nw = Rubinius::ByteArray.new(count_i)
+    
+    ba.copy_bytes_into nw, count_i, start_i
+    
+    @cpu.push_object nw
+    
+    return true
+  end
+  
+  def compare_bytes(o)
+    me = @cpu.pop_object
+    oth = @cpu.pop_object
+    
+    return false unless me.reference?
+    return false unless oth.reference?
+        
+    me.as :bytearray
+    oth.as :bytearray
+    
+    if me.bytes != oth.bytes
+      @cpu.stack_push CPU::FALSE
+    elsif me.bytes == 0
+      @cpu.stack_push CPU::TRUE
+    else
+      out = Memory.compare_memory me.byte_start, oth.byte_start, me.bytes
+      @cpu.push_object RObject.wrap(out)
+    end
+    
+    return true
+  end
+  
+  def get_ivar(mo)
+    obj = @cpu.pop_object
+    obj.as :object
+    
+    sym = mo.at(3)
+    sym.as :symbol
+    
+    val = obj.get_ivar sym
+    
+    @cpu.push_object val
+    return true
+  end
+  
+  def set_ivar(mo)
+    obj = @cpu.pop_object
+    obj.as :object
+    
+    val = @cpu.pop_object
+    
+    sym = mo.at(3)
+    sym.as :symbol
+    
+    obj.set_ivar sym, val
+    @cpu.push_object val
+    return true
+  end
+  
+  def get_index(mo)
+    obj = @cpu.pop_object
+    obj.as :object
+    
+    idx = mo.at(3).to_int
+    
+    val = obj.at(idx)
+    
+    @cpu.push_object val
+    return true
+  end
+  
+  def set_index(mo)
+    obj = @cpu.pop_object
+    obj.as :object
+    
+    idx = mo.at(3).to_int
+    
+    val = @cpu.pop_object
+    obj.put(idx, val)
+    
+    @cpu.push_object val
     return true
   end
   

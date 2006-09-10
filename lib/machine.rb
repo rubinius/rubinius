@@ -6,7 +6,10 @@ class Machine
     @cpu = CPU.new
     @cpu.bootstrap
     @constructor = @cpu.constructor
+    @error = false
   end
+  
+  attr_reader :cpu, :error
   
   def delete
     @cpu.delete
@@ -65,6 +68,7 @@ class Machine
     msg.as :string
     kind = exc.rclass.name.as(:symbol).string.as_string
     puts "Exception detected: #{msg.as_string} (#{kind})"
+    @error = true
   end
   
   def set_const(str, val)

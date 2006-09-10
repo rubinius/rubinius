@@ -16,7 +16,7 @@ class TestCheneyHeap < Test::Unit::TestCase
   
   def test_fully_scanned_eh
     assert @ch.fully_scanned?
-    @ch.next = @ch.scan + 1
+    @ch.current = @ch.scan + 1
     assert !@ch.fully_scanned?
   end
   
@@ -38,6 +38,23 @@ class TestCheneyHeap < Test::Unit::TestCase
     ary = []
     @ch.unscanned_objects { |o| ary << o }
     assert_equal [], ary
+  end
+  
+  def test_next_unscanned
+    o1 = RObject.setup @ch, nil, 3
+    o2 = RObject.setup @ch, nil, 4
+    ary = []
+    while o = @ch.next_unscanned
+      ary << o
+    end
+    assert_equal [o1, o2], ary
+    o3 = RObject.setup @ch, nil, 3
+    while o = @ch.next_unscanned
+      assert_equal o3, o
+    end
+    ary = []
+    o = @ch.next_unscanned
+    assert o.nil?
   end
   
   def test_alloc_during_unscanned

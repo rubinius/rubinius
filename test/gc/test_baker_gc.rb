@@ -145,6 +145,6 @@ class TestBakerGC < Test::Unit::TestCase
     assert_equal cur, @bk.next
     assert_equal nxt, @bk.current
     
-    assert_equal 0, @bk.next.current
+    assert_equal 0, @bk.next.current - @bk.next.address
   end
 end
