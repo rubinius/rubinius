@@ -28,20 +28,19 @@ class Class
     # thing.
     inst.class < self
   end
-  
-  def alias_method(nw,cur)
-    meth = methods[cur]
-    unless meth
-      exc = NoMethodError.new("No method by the name of '#{cur}' for #{self}")
-      raise exc
+    
+  def instance_methods(all=true)
+    mine = methods.keys
+    return mine unless all
+    sup = direct_superclass()
+    while sup
+      sup.methods.keys.each do |e|
+        mine << e
+      end
+      sup = sup.direct_superclass()
     end
     
-    methods[nw] = meth
-    return meth
-  end
-  
-  def instance_methods
-    methods.keys
+    return mine
   end
   
   def superclass
@@ -53,11 +52,47 @@ class Class
     return cls
   end
   
+  def attr_reader(name)
+    sym = "@#{name}".to_sym
+    meth = AccessVarMethod.get_ivar(sym)
+    self.methods[name.to_sym] = meth
+    return name
+  end
+  
+  def attr_writer(name)
+    sym = "@#{name}".to_sym
+    meth = AccessVarMethod.set_ivar(sym)
+    mname = "#{name}=".to_sym
+    self.methods[mname] = meth
+    return name
+  end
+  
+  def attr_accessor(name)
+    attr_reader(name)
+    attr_writer(name)
+    return name
+  end
+  
+  def index_reader(name, idx)
+    meth = AccessVarMethod.get_index(idx)
+    self.methods[name.to_sym] = meth
+    return name
+  end
+  
+  def index_writer(name, idx)
+    meth = AccessVarMethod.set_index(idx)
+    mname = "#{name}="
+    self.methods[mname.to_sym] = meth
+    return name
+  end
+  
+  def index_accessor(name, idx)
+    index_reader(name, idx)
+    index_writer(name, idx)
+  end
+  
   def direct_superclass
     Ruby.asm "push self\npush 4\nfetch_field"
   end
   
-  def instance_fields=(num)
-    put 5, num
-  end
 end

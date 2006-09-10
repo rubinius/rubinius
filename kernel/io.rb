@@ -17,4 +17,15 @@ class IO
   def read(size)
     Ruby.primitive :io_read
   end
+  
+  def self.create_pipe(lhs, rhs)
+    Ruby.primitive :create_pipe
+  end
+  
+  def self.pipe
+    lhs = IO.allocate
+    rhs = IO.allocate
+    out = create_pipe(lhs, rhs)
+    return [lhs, rhs]
+  end
 end

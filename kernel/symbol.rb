@@ -9,7 +9,7 @@ class SymbolTable
   
   def symbol_to_string(sym)
     symbols.at(sym.index)
-  end
+  end  
 end
 
 class Symbol
@@ -23,5 +23,9 @@ class Symbol
   
   def inspect
     ":#{to_s}"
+  end
+  
+  def to_sym
+    self
   end
 end

@@ -53,6 +53,27 @@ class Proc
     put 1, blk
   end
   
+  def self.block_passed(blk)
+    if blk === Proc
+      blk = blk.block
+    elsif !blk.kind_of?(BlockContext)
+      if blk.respond_to?(:to_proc)
+        prc = blk.to_proc
+        if Proc === prc
+          blk = prc.block
+        else
+          raise ArgumentError.new("to_proc did not return a Proc")
+        end
+      else
+        raise ArgumentError.new("Unable to turn a #{blk.class} into a Proc")
+      end
+    end
+      
+    obj = allocate()
+    obj.put 1, blk
+    return obj
+  end
+  
   def block
     Ruby.asm "push 1\npush self\nfetch_field"
   end

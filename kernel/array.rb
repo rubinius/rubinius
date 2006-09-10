@@ -67,6 +67,18 @@ class Array
     return ent
   end
   
+  def +(other)
+    out = dup()
+    other.each { |e| out << e }
+    return out
+  end
+  
+  def dup
+    ary = []
+    each { |e| ary << e }
+    return ary
+  end
+  
   def include?(obj)
     nd = self.total
     i = 0

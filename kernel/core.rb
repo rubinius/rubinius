@@ -26,32 +26,14 @@ class InvalidIndex < Exception
 end
 
 class Object
+  include Kernel
+  
   def initialize
     put 0, {}
   end
-  
-  def at(idx)
-    Ruby.primitive :at
-    exc = InvalidIndex.new("Could not access index #{idx} of #{self}")
-    raise exc
-  end
-  
-  def put(idx, val)
-    Ruby.primitive :put
-    exc = InvalidIndex.new("Could not write to index #{idx} of #{self}")
-    raise exc
-  end
-  
-  def fields
-    Ruby.primitive :fields
-  end
-    
+      
   def class
     Ruby.primitive :logical_class
-  end
-  
-  def kind_of?(cls)
-    self.class < cls
   end
   
   def object_id
@@ -61,6 +43,20 @@ class Object
   def hash
     Ruby.primitive :hash_object
   end
+  
+  def nil?
+    false
+  end
+  
+  def undef?
+    false
+  end
+  
+  def kind_of?(cls)
+    self.class < cls
+  end
+  
+  alias :is_a? :kind_of?
   
   def copy_from(other)
     Ruby.primitive :dup_into
@@ -72,9 +68,12 @@ class Object
     return nw
   end
   
-  def ==(other)
+  def equal?(other)
     object_id == other.object_id
   end
+  
+  alias :==   :equal?
+  alias :eql? :equal?
   
   def to_s
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
@@ -84,12 +83,39 @@ class Object
     to_s
   end
   
-  def nil?
-    false
+  def find_method(meth)
+    cur = self.class
+    while cur
+      cm = cur.methods[meth]
+      return [cm, cur] if cm
+      cur = cur.direct_superclass
+    end
+    return nil
   end
   
-  def undef?
-    false
+  def respond_to?(meth)
+    not find_method(meth).nil?
+  end
+  
+  def __send__(meth, *args)
+    cm, mod = find_method(meth)
+    if cm.nil?
+      raise NameError.new("Unable to locate method '#{meth}' on #{self}")
+    end
+    
+    cm.activate(self, args)
+  end
+  
+  alias :send :__send__
+  
+  def method(name)
+    cm, mod = find_method(name)
+    if cm.nil?
+      raise NameError.new("Unable to locate method '#{name}' on #{self}")      
+    end
+    
+    mo = Method.new(self, mod, cm)
+    return mo
   end
 end
 
