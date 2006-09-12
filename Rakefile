@@ -1,4 +1,8 @@
 
+task :test do
+    system("ruby -Ilib test/tc_all.rb")
+end
+
 task :fields do
   $:.unshift "lib"
   require 'types'
