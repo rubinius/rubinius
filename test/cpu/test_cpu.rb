@@ -54,6 +54,7 @@ class TestCPURuntime < Test::Unit::TestCase
   end
   
   def test_local_get
+    @cpu.bootstrap
     @cpu.locals = Rubinius::Tuple.new(3)
     @cpu.locals.put 1, RObject.wrap(99)
     @cpu.locals.put 2, RObject.wrap(4323)
@@ -66,6 +67,8 @@ class TestCPURuntime < Test::Unit::TestCase
   end
   
   def test_local_set
+    @cpu.bootstrap
+    
     @cpu.locals = Rubinius::Tuple.new(3)
     @cpu.local_set 2, RObject.wrap(832).address
     obj = @cpu.locals.at 2
@@ -77,31 +80,26 @@ class TestCPURuntime < Test::Unit::TestCase
     
     @cpu.sp = 99
     @cpu.ip = 123
-    @cpu.ms = 88
     
     ac = @cpu.active_context
     assert_equal 0, ac.sp.to_int
     assert_equal 0, ac.ip.to_int
-    assert_equal 0, ac.ms.to_int    
     
     @cpu.save_registers
 
     assert_equal 99, ac.sp.to_int
     assert_equal 123, ac.ip.to_int
-    assert_equal 88, ac.ms.to_int
   end
   
   def test_restore_registers
     ctx = Rubinius::MethodContext.new_anonymous
     ctx.ip = RObject.wrap(88)
     ctx.sp = RObject.wrap(33)
-    ctx.ms = RObject.wrap(22)
     
     @cpu.restore_context ctx
     
     assert_equal 88, @cpu.ip
     assert_equal 33, @cpu.sp
-    assert_equal 22, @cpu.ms
   end
   
   def test_metaclass

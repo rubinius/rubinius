@@ -1,4 +1,5 @@
 require 'sexp/processor'
+require 'translation/states'
 
 class RsNormalizer < SexpProcessor
   

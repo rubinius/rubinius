@@ -292,8 +292,7 @@ class TestCPUInstructions < Test::Unit::TestCase
     @cpu.stack_push CPU::TRUE
     run_bytes enc(:set_local, 2)
     assert lcls.at(2).true?
-    assert obj_top.true?
-    assert_equal 0, @cpu.sp
+    assert @cpu.stack_empty?
   end
   
   def test_push_local
@@ -418,7 +417,7 @@ class TestCPUInstructions < Test::Unit::TestCase
     tup = Rubinius::Tuple.new(3)
     obj = Rubinius::Object.new
     obj.set_ivar sym, tup
-    @cpu.push_object obj
+    @cpu.self = obj
     add_sym_lit "@name"
     
     run_bytes enc(:push_ivar, 0)
@@ -430,7 +429,8 @@ class TestCPUInstructions < Test::Unit::TestCase
     sym = ivar.to_sym
     tup = Rubinius::Tuple.new(3)
     obj = Rubinius::Object.new
-    @cpu.push_object obj
+    @cpu.self = obj
+    # @cpu.push_object obj
     @cpu.push_object tup
     add_sym_lit "@name"
     run_bytes enc(:set_ivar, 0)
@@ -537,10 +537,10 @@ class TestCPUInstructions < Test::Unit::TestCase
     
     mth.literals = lits
 
+    @cpu.push_object RObject.wrap(0)
     @cpu.push_object mth
     @cpu.push_object obj
     ctx = @cpu.active_context
-    
     @cpu.execute_bytecodes enc(:activate_method, 0)
     assert obj_top.true?
     
@@ -966,6 +966,7 @@ class TestCPUInstructions < Test::Unit::TestCase
     tup = Rubinius::Tuple.new(1)
     
     @cpu.push_object tup
+    @cpu.active_context.raiseable = RObject.true
     bc = enc(:raise_exc) + enc(:goto, 7) + enc(:push_exception) + enc(:push_true)
     @cpu.exceptions = exc
     run_bytes bc

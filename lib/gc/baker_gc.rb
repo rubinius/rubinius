@@ -79,7 +79,7 @@ class BakerGC < ForwardingGC
       
         iobj.rclass = new_cls
       else
-        puts "#{iobj.address} has a non-ref class!"
+        # puts "#{iobj.address} has a non-ref class!"
       end
       
       iobj.references.each do |ref, idx|

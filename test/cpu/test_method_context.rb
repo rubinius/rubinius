@@ -15,7 +15,6 @@ class TestMethodContext < Test::Unit::TestCase
     meth = Rubinius::MethodContext.new_anonymous
     assert_equal 0, meth.ip.to_int
     assert_equal 0, meth.sp.to_int
-    assert_equal 0, meth.ms.to_int
   end
   
   def test_new

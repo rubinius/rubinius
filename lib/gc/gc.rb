@@ -17,7 +17,7 @@ class GarbageCollector
   attr_reader :remember_set
   
   def mutate_from(obj, mutator=self)
-    puts "Mutating from #{obj}..."
+    # puts "Mutating from #{obj}..."
     if contains?(obj)
       mutator.mutate_object obj
     end
@@ -26,7 +26,7 @@ class GarbageCollector
     until stack.empty?
       iobj = stack.pop
       iobj.references.each do |ref, idx|
-        puts "Processing ref #{idx} (#{ref.address}) of #{iobj.address} #{stack.size}..."
+        # puts "Processing ref #{idx} (#{ref.address}) of #{iobj.address} #{stack.size}..."
         if mutator.already_mutated?(ref)
           new_obj = mutator.fetch_new_mutation(ref)
         elsif contains?(ref)
@@ -47,6 +47,8 @@ class GarbageCollector
         iobj.put idx, new_obj
       end
     end
+    
+    return obj
   end
   
   def mutate(roots)

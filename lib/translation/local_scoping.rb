@@ -1,4 +1,5 @@
 require 'sexp/processor'
+require 'translation/states'
 
 # This converts a ruby 1.8.x sexp's idea of the scoping of 
 # local variables into rubinius 1.0's idea.

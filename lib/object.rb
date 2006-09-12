@@ -27,7 +27,7 @@ class RObject
     size = HeaderSize + (fields * 4)
     address = heap.allocate(size)
     
-    # raise "Unable to allocate object (#{size} words)" unless address
+    raise "Unable to allocate object (#{size} words)" unless address
 
     Memory.store_long address + 4, 0, klass
     Memory.store_long address + 8, 0, fields
@@ -134,8 +134,7 @@ class RObject
   
   def at(idx)
     if idx >= self.fields
-      return nil
-      # raise "Unable to fetch data beyond end of object (#{idx} > #{self.fields})."
+      raise "Unable to fetch data beyond end of object (#{idx} > #{self.fields})."
     end
     
     add = Memory.fetch_long field_address(idx), 0
@@ -150,8 +149,7 @@ class RObject
   
   def raw_put(idx, obj)
     if idx >= self.fields
-      return nil
-      # raise "Unable to write data beyond end of object (#{idx} > #{self.fields})."
+      raise "Unable to write data beyond end of object (#{idx} > #{self.fields})."
     end
     
     # Log.debug "Writing field #{idx} of #{address} => #{obj.address}"
@@ -192,8 +190,7 @@ class RObject
       fx |= 4 if val < 0
       i = fx
     else
-      return nil
-      # raise ArgumentError, "Unable to wrap #{val}"
+      raise ArgumentError, "Unable to wrap #{val}"
     end
     
     return RObject.new(i)
@@ -393,8 +390,7 @@ class RObject
     elsif undef?
       return CPU::Global.undef_class
     else
-      return nil
-      # raise "Fuck. can't figure the class of #{" + self.address  out."
+      raise "Fuck. can't figure the class of #{self.address} out."
     end
   end
 end

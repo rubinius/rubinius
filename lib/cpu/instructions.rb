@@ -680,7 +680,7 @@ class CPU
       # and return. The idea is this allows external code to examine
       # the exception and decide what it wants to do.
       if ctx.raiseable.false?
-        puts "Hit non-raiseable ctx. stopping."
+        # puts "Hit non-raiseable ctx. stopping."
         return
       end
     

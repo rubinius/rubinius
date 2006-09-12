@@ -551,4 +551,12 @@ class TestTyper < Test::Unit::TestCase
     
     pp out
   end
+  
+  def test_dstr
+    sx = [:dstr, "hello mr. ", [:lit, 10]]
+    
+    out = trans sx
+    
+    assert_equal Type.String, out.type
+  end
 end

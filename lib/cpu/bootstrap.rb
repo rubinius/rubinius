@@ -11,7 +11,7 @@ class CPU
     cls.superclass = Global.module
     Global.metaclass = Rubinius::MetaClass.basic_class_obj Global.class
     
-    Global.object.create_metaclass cls, nil
+    Global.object.create_metaclass cls
     Global.module.create_metaclass Global.object.metaclass
     Global.class.create_metaclass Global.module.metaclass
     

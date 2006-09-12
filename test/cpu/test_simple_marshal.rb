@@ -110,12 +110,15 @@ class TestSimpleMarshal < Test::Unit::TestCase
     cm.as :cmethod
     #Fields = [:bytecodes, :primitive, :locals, :literals,
     #  :arguments, :exceptions]
-    ba1 = cm.at(1)
+    cm.as :cmethod
+    ba1 = cm.bytecodes
     ba1.as :bytearray
     # 0.upto(fel-1) { |x| p cm2.at(x) }
-    ba2 = cm2.at(1)
+    cm2.as :cmethod
+    ba2 = cm2.bytecodes
     ba2.as :bytearray
     assert !ba2.nil?
+    assert !ba1.nil?
     assert_equal ba1.as_string, ba2.as_string
     assert_equal cm.primitive, cm2.primitive
     assert_equal cm.locals, cm2.locals

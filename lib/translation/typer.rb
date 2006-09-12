@@ -142,12 +142,13 @@ class RsTyper < SexpProcessor
   end
   
   def process_iter(x)    
-    
     @current_iter << x
     process! x, 1
     
     args = x[2]
-    if args.first == :masgn
+    if args.nil?
+      args = []
+    elsif args.first == :masgn
       args.shift
     else
       args = [args]
@@ -158,7 +159,7 @@ class RsTyper < SexpProcessor
     test = called.yield_args
     if test
       if test.size != args.size
-        raise "Mis-match arg count on yield."
+        raise "Mis-match arg count on yield. #{args.size} for #{test.size}."
       end
       
       test = test.dup
@@ -423,11 +424,11 @@ class RsTyper < SexpProcessor
       
       func = @info.find(cls, name) rescue nil
       unless func
-        puts "Adding #{name} to #{cls.inspect}"
+        # puts "Adding #{name} to #{cls.inspect}"
         func = Function.new name, nil, nil, Type.unknown
         @info.add_function cls, func
       else
-        puts "Rusing #{name} on #{cls.inspect}"
+        # puts "Rusing #{name} on #{cls.inspect}"
       end
     end
     
@@ -480,11 +481,12 @@ class RsTyper < SexpProcessor
     if x.size > 1
       process! x, 1
       if x[1].first == :array
-        lst = x[1].dup.shift
+        lst = x[1].dup
+        lst.shift
       else
         lst = [x[1]]
       end
-      types = lst[1..-1].map { |t| t.type }
+      types = lst.map { |t| t.type }
     else
       types = []
     end
@@ -520,5 +522,13 @@ class RsTyper < SexpProcessor
   
   def process_alias(x)
     x.set_type Type.void
+  end
+  
+  def process_dstr(x)
+    2.upto(x.size - 1) do |idx|
+      process! x, idx
+    end
+    
+    x.set_type Type.String
   end
 end

@@ -114,7 +114,6 @@ class CPU
     # Adjust @sp to remove any arguments we pushed
     # on the stack for the current call.
     if ret and @argcount and @argcount > 0
-      Log.debug "Removed #{@argcount} args from thes stack as they were arguments."
       @sp -= @argcount
     end
 

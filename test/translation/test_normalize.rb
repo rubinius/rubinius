@@ -64,41 +64,7 @@ class TestRsNormalize < Test::Unit::TestCase
     assert_equal output, got
     
   end
-  
-  def test_process_dvar
-    input = [:dvar, :blah]
-    output = [:lvar, :blah, 2]
-    
-    got = norm input
-    assert_equal output, got
-    
-    input = [:dvar, :blah]
-    output = [:lvar, :blah, 2]
-    
-    got = norm input
-    assert_equal output, got
-  end
-  
-  def test_process_dvar_curr
-    input = [:dvar_curr, :blah]
-    output = [:lvar, :blah, 2]
-    
-    got = norm input
-    assert_equal output, got
-  end
-  
-  def test_dvar_convertion_uniqueness
-    norm [:lasgn, :blah, 2, [:lit, 8]]
-    
-    out = norm [:dvar, :ack]
-    assert_equal [:lvar, :ack, 3], out
-  end
-  
-  def test_process_dasgn
-    out = norm [:dasgn, :blah, [:lit, 8]]
-    assert_equal [:lasgn, :blah, 2, [:lit, 8]], out
-  end
-  
+      
   def test_process_zarray
     input = [:zarray]
     output = [:array]

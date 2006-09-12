@@ -361,7 +361,7 @@ class CPU::Primitives
         
     if total != num
       obj = Rubinius::String.new_empty(total)
-      Memory.transfer_memory address, total, obj.bytes_address
+      Memory.transfer_memory rstr.bytes_address, total, obj.bytes_address
       rstr = obj
     end
     @cpu.push_object rstr

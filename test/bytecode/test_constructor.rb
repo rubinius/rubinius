@@ -17,7 +17,7 @@ class TestConverter < Test::Unit::TestCase
   
   def test_convert_to_sexp
     code = "true and false"
-    expected = [:and, [:true], [:false]]
+    expected = [:newline, 1, "(eval)", [:and, [:true], [:false]]]
     assert_equal expected, @con.convert_to_sexp(code)  
   end
   

@@ -11,6 +11,7 @@ module Rubinius
     end
     
     def init_registers
+      self.argcount = RObject.wrap(0)
       self.ip = RObject.wrap(0)
       self.sp = RObject.wrap(0)
     end
@@ -28,6 +29,7 @@ module Rubinius
     
     def self.from_method(meth, from)
       mc = new(meth.locals.to_int)
+      mc.argcount = RObject.wrap(0)
       mc.raiseable = RObject.true
       mc.bytecodes = meth.bytecodes
       mc.sender = from

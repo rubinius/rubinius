@@ -169,7 +169,7 @@ class TestBytecodeAssembler < Test::Unit::TestCase
   end
   
   def test_send_prim
-    assert_assembled "send_primitive create_block\n", [[:send_primitive, 8]]
+    assert_assembled "send_primitive create_block\n", [[:send_primitive, 11]]
   end
   
   def assert_assembled(str, output)
@@ -499,7 +499,9 @@ push @blah
     assert_equal 10, cm.primitive.to_int
     assert_rkind_of CPU::Global.tuple, cm.literals
     assert_rkind_of CPU::Global.tuple, cm.arguments
-    assert_rkind_of CPU::Global.tuple, cm.exceptions
+    unless cm.exceptions.nil?
+      assert_rkind_of CPU::Global.tuple, cm.exceptions
+    end
     assert_rkind_of CPU::Global.tuple, cm.lines
     assert_rkind_of CPU::Global.bytearray, cm.bytecodes
     bc = cm.bytecodes
