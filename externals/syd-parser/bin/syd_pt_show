@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'sydparse'
+require 'pp'
+
+if ARGV.first == "-l"
+    newlines = true
+    ARGV.shift
+end
+
+name = ARGV.shift
+File.open(name, "r") do |fd|
+    syd = SydneyParser.load_file fd
+    pp syd.sexp(false, newlines)
+end

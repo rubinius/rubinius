@@ -3,6 +3,13 @@ task :test do
     system("ruby -Ilib test/tc_all.rb")
 end
 
+task :syd do
+    system("cd externals/syd-parser; rake gem")
+    puts
+    puts
+    puts "Now do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser."
+end
+
 task :fields do
   $:.unshift "lib"
   require 'types'
