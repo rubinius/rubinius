@@ -1,0 +1,2 @@
+class Box < Container
+end
