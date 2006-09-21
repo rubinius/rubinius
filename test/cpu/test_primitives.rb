@@ -57,14 +57,14 @@ class TestCPUPrimitives < Test::Unit::TestCase
     assert_stack_size 1
     
     push_int 9
-    t = RObject.wrap(true)
+    t = RObject.true
     push_obj t
     assert !do_prim(:add)
   end
   
   def test_sp_preserved_on_error
     push_int 9
-    push_obj RObject.wrap(true)
+    push_obj RObject.true
     cur = @cpu.sp
     assert !do_prim(:add)
     assert_equal cur, @cpu.sp

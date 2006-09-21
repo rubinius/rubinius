@@ -28,6 +28,7 @@ class Heap
   
   attr_accessor :current
   
+  # T: Fixnum => bool
   def contains?(addr)
     return false if addr < @address
     return false if addr >= @address + @size
@@ -55,6 +56,7 @@ class Heap
     return true
   end
   
+  # T: RObject => RObject
   def copy_object(obj)
     return obj if contains?(obj.address)
     sz = obj.memory_size

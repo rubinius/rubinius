@@ -80,3 +80,80 @@ class ExtractRequires < SexpProcessor
     end
   end
 end
+
+class ExtractHints < SexpProcessor
+  def initialize
+    super
+    self.expected = Array
+    @hints = Hash.new
+    @current_class = nil
+  end
+  
+  attr_reader :hints
+  
+  def process_class(x)
+    x.shift
+    name = x.shift
+    sup = x.shift
+    body = x.shift
+    
+    @current_class = name.last
+    begin
+      nb = process(body)
+    ensure
+      @current_class = nil
+    end
+    
+    return [:class, name, sup, nb]
+  end
+  
+  def process_comment(x)
+    x.shift
+    str = x.shift.strip
+    hint = []
+    if m = /T:\s*([\w\s]*) => (\w*)/.match(str)
+      ret = $2
+      args = $1.split(/\s*,\s*/).map { |a| Type.method_missing(a.strip) }
+      hint = [:hint, :type, ::Type.method_missing(ret), args]
+    elsif m = /hints:\s*([\w\s]*)/.match(str)
+      tags = $1.split(/\s*,\s*/)
+      hint = [:hint, :tag, tags]
+    end
+        
+    return hint    
+  end
+  
+  def process_block(x)
+    x.shift
+    @hint = nil
+    while node = x.shift
+      cur = process(node)
+      if cur.first == :hint
+        @hint = cur
+      else
+        @hint = nil
+      end
+    end
+    return []
+  end
+  
+  def process_defn(x)
+    x.shift
+    name = x.shift
+    if @hint
+      @hints[[@current_class, name]] = @hint
+    end
+    x.clear
+    []
+  end
+  
+  def process_defs(x)
+    x.shift
+    recv = x.shift
+    return unless recv == [:self]
+    name = x.shift
+    @hints[[[@current_class, :self], name]] = @hint
+    x.clear
+    []
+  end
+end

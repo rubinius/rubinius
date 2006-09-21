@@ -7,7 +7,8 @@ add(:allocate_memory) do |i|
   i.inline = true
   i.type = Type.Fixnum
   i.args = [Type.Fixnum]
-  i.gen do |g, sz|
+  i.gen do |g, cur, sz|
+    sz = args.shift
     t = g.temp(Type.Fixnum)
     t.cast_to "malloc(#{sz})"
   end
@@ -44,7 +45,7 @@ add(:fetch_long) do |i|
     t2 = g.temp(Type.Fixnum)
     g << "#{t} = (long*)(#{addr} + (#{args.shift} * sizeof(long)))"
     g << t2.cast_to("*#{t}")
-    g << "return #{t2}"
+    g << "#{t2}"
   end
 end
 
@@ -58,7 +59,7 @@ add(:store_long) do |i|
     val = args.shift
     g << "#{t} = (long*)(#{addr} + (#{idx} * sizeof(long)))"
     g << "*#{t} = #{val}"
-    g << "return #{val}"
+    g << "#{val}"
   end  
 end
 
@@ -69,7 +70,7 @@ add(:fetch_byte) do |i|
      addr = args.shift
      t = g.temp("char*")
      g << t.cast_as(addr);
-     g << "return (long)(*#{t})"
+     g << "(long)(*#{t})"
   end
 end
 
@@ -84,21 +85,21 @@ add(:store_byte) do |i|
     g << t2.cast_as(val)
     g << t.cast_as(addr);
     g << "*#{t} = (char)(#{t2})"
-    g << "return #{t2}"
+    g << "#{t2}"
   end
 end
 
 add(:pointer_size) do |i|
   i.type = Type.Fixnum
   i.gen do |g, s, args|
-    "return sizeof(void*)"
+    "sizeof(void*)"
   end
 end
 
 add(:long_size) do |i|
   i.type = Type.Fixnum
   i.gen do |g, s, args|
-    "return sizeof(long)"
+    "sizeof(long)"
   end
 end
 
@@ -130,6 +131,6 @@ add(:compare_memory) do |i|
     b1 = args.shift
     b2 = args.shift
     size = args.shift
-    "return memcmp((void*)#{b1}, (void*)#{b2}, (size_t)#{size})"
+    "memcmp((void*)#{b1}, (void*)#{b2}, (size_t)#{size})"
   end
 end

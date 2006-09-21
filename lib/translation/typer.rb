@@ -23,9 +23,31 @@ class RsTyper < SexpProcessor
     @defns = []
     @current_iter = []
     @current_func = []
+    @hints = Hash.new
   end
   
-  attr_accessor :local_vars, :ivars, :consts, :self_type
+  attr_accessor :local_vars, :ivars, :consts, :self_type, :hints
+  
+  def normalize(sexp)
+    state=RsLocalState.new
+    comp = CompositeSexpProcessor.new
+    comp << RsNormalizer.new(state, true)
+    comp << RsLocalScoper.new(state)
+    return comp.process(sexp)
+  end
+  
+  def process_normalized(sexp)
+    process normalize(sexp)
+  end
+  
+  def process_function(klass, func)
+    @local_vars = func.locals
+    @ivars = klass.ivars
+    @self_type = [klass]
+    
+    out = process func.body.first
+    func.body = out
+  end
   
   def add_local_var(name, idx, type)
     lv = LocalVar.new
@@ -38,6 +60,20 @@ class RsTyper < SexpProcessor
   def to_ts(x)
     return x if TypedSexp === x
     TypedSexp.new(*x)
+  end
+  
+  def process_comment(x)
+    str = x[1].strip
+    if m = /T:\s*([\w\s]*) => (\w*)/.match(str)
+      ret = $2
+      args = $1.split(/\s*,\s*/).map { |a| Type.method_missing(a.strip) }
+      hint = [::Type.method_missing(ret), args]
+      return t(:hint, :type, hint)
+    elsif m = /hint:\s*([\w\s]*)/.match(str)
+      tags = $1.split(/\s*,\s*/)
+      return t(:hint, :tag, tags)
+    end
+    return t()
   end
   
   def process_true(x)
@@ -67,7 +103,13 @@ class RsTyper < SexpProcessor
   end
   
   def process_self(x)
-    x.set_type(@self_type.last || Type.unknown)
+    cls = @self_type.last
+    if cls.kind_of? Type
+      type = cls
+    else
+      type = cls ? cls.type : Type.unknown
+    end
+    x.set_type(type)
   end
   
   def process_call(x)
@@ -93,8 +135,14 @@ class RsTyper < SexpProcessor
     end
     
     @called_func = func
-        
-    func.check_args x[3][1..-1].map { |i| i.type }
+    
+    args = x[3][1..-1]
+    typed = args.map { |i| i.type }
+    begin
+      func.check_args typed
+    rescue Object => e
+      raise "Unable to setup args for calling #{x[1].type}.#{x[2]}. #{e.message}"
+    end
     x.set_type func.type
   end
   
@@ -104,7 +152,7 @@ class RsTyper < SexpProcessor
   
   def process_super(x)
     name = @defns.last
-    this_type = @self_type.last
+    this_type = @self_type.last.type
     kls = @info.types[this_type]
     type = kls.super_type
     func = @info.find(type, name) rescue nil
@@ -129,13 +177,31 @@ class RsTyper < SexpProcessor
     x.unify_with 1
   end
   
+  def process_hint(x)
+    puts "UNUSED HINT: #{x.inspect}"
+    t()
+  end
+  
   def process_block(x)
     if x.size == 1
       return x.set_type(Type.void)
     end
     
+    remove = []
+    
     1.upto(x.size - 1) do |i|
       process! x, i
+      if x[i].first == :hint
+        @hint = x[i]
+        # remove << i
+        # puts "found hint #{x[i].inspect}."
+      else
+        @hint = nil
+      end
+    end
+
+    unless remove.empty?
+      remove.each { |idx| x.delete_at(idx) }
     end
     
     x.set_type x.last.type
@@ -169,7 +235,6 @@ class RsTyper < SexpProcessor
       unless y.first == :lasgn
         raise "Unsupported iter argument. #{y.inspect}"
       end
-      
       
       if test
         type = test.shift
@@ -256,23 +321,30 @@ class RsTyper < SexpProcessor
     process! x, 2
     x.unify_with 2
     in_t = x.type
-    if t = @ivars[x[1]]
+    
+    name = x[1].to_s[1..-1]
+    
+    if t = @ivars[name]
       if t.unknown?
         t.become x.type
       elsif in_t.unknown?
         in_t.become(t)
       end
     else
-      @ivars[x[1]] = x.type
+      @ivars[name] = x.type
     end
     return x
   end
   
   def process_ivar(x)
-    unless t = @ivars[x[1]]
-      unless t = @info.find_ivar(@self_type.last, x[1])      
+    name = x[1].to_s[1..-1]
+
+    unless t = @ivars[name]
+      type = @self_type.last
+      type = type.type if type
+      unless t = @info.find_ivar(type, name)      
         t = Type.unknown
-        @ivars[x[1]] = t
+        @ivars[name] = t
       end
     end
     
@@ -358,7 +430,7 @@ class RsTyper < SexpProcessor
     cur = @ivars
     klass = @info.add_klass x[1].last, sup
     @ivars = klass.ivars
-    @self_type << klass.type
+    @self_type << klass
     process! x, 3
     @ivars = cur
     @self_type.pop
@@ -389,7 +461,7 @@ class RsTyper < SexpProcessor
       raise "Unsupported defs reciever. #{recv.inspect}"
     end
     
-    cls = @self_type.last
+    cls = @self_type.last.type
     
     raise "Not in a class!" unless cls
     
@@ -398,7 +470,7 @@ class RsTyper < SexpProcessor
     cur = @ivars
     
     @ivars = klass.ivars
-    @self_type << klass.type
+    @self_type << klass
     
     mcls = klass.type
     
@@ -420,25 +492,47 @@ class RsTyper < SexpProcessor
   def process_defn(x)
     name = x[1]
     func = nil
+    tags = nil
     if cls = @self_type.last
+      if @hint and @hint[1] == :type
+        ret = @hint.last.shift
+        args = @hint.last.shift
+        # puts "Applying hints to #{name} in #{cls.inspect}. Args: #{args.inspect} => #{ret.inspect}"
+      elsif @hint and @hint[1] == :tag
+        tags = @hint.last
+        # puts "Hint tags for #{name} of #{cls.inspect}: #{tags.inspect}"
+      else
+        ret = nil
+        args = nil
+      end
       
-      func = @info.find(cls, name) rescue nil
+      func = @info.find(cls.type, name) rescue nil
+      
       unless func
-        # puts "Adding #{name} to #{cls.inspect}"
-        func = Function.new name, nil, nil, Type.unknown
-        @info.add_function cls, func
+        # puts "Adding #{name} to #{cls.inspect}, #{ret.inspect}, #{args.inspect}"
+        func = Function.new name, nil, nil, ret || Type.unknown
+        func.tags = tags
+        @info.add_function cls.type, func
       else
         # puts "Rusing #{name} on #{cls.inspect}"
       end
+      
+      if args
+        func.check_args args
+      end
     end
     
-    do_def_body func, x, name
+    do_def_body func, x, name, 2, 3, args
   end
   
-  def do_def_body(func, x, name, args=2, bidx=3)
+  def do_def_body(func, x, name, args=2, bidx=3, arg_types=nil)
     
     cur = @local_vars
-    @local_vars = Hash.new
+    if func
+      @local_vars = func.locals # Hash.new
+    else
+      @local_vars = Hash.new
+    end
     
     @defns << name
     @current_func << func
@@ -446,8 +540,17 @@ class RsTyper < SexpProcessor
     if x[args].size > 1
       # puts "#{name} => #{x[2][1].inspect}"
       idx = 2
+      if arg_types and arg_types.size != x[args][1].size
+        raise "Mis-match argument type count."
+      end
+      
       x[args][1].each do |y|
-        add_local_var y, idx, Type.unknown
+        if arg_types
+          type = arg_types.shift
+        else
+          type = Type.unknown
+        end
+        add_local_var y, idx, type
         idx += 1
       end
     end
@@ -529,6 +632,11 @@ class RsTyper < SexpProcessor
       process! x, idx
     end
     
+    x.set_type Type.String
+  end
+  
+  def process_evstr(x)
+    process! x, 1
     x.set_type Type.String
   end
 end

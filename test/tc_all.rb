@@ -1,4 +1,6 @@
 
+ENV['TESTING'] = '1'
+
 if dir = ARGV.shift
     Dir["#{dir}/test_*"].each do |f|
         require f

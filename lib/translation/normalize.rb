@@ -50,7 +50,14 @@ class RsNormalizer < SexpProcessor
         cur = @state.locals
         @state.reset
         args[1].each { |i| @state.local(i) }
-        body = process(body)
+        # pp body
+        begin
+          body = process(body)
+        rescue Object => e
+          exc = RuntimeError.new("Unable to process body of '#{name}'. #{e.message}")
+          exc.set_backtrace e.backtrace
+          raise exc
+        end
         @state.locals = cur
       end
       [:defn, name, args, body]

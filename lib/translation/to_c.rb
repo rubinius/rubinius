@@ -131,14 +131,20 @@ class RsToCProcessor < SexpProcessor
     "NIL"
   end
   
-  def process_call(x, b_name="NO_BLOCK")
+  Call = Struct.new(:func, :args, :cast, :recv, :recv_type)
+  
+  class Call
+    def external?
+      self.func.kind_of? TypeInfo::ExternalInfo
+    end
+  end
+  
+  def calculate_call(x)
     s_recv = x.shift
     recv = process s_recv
     meth = x.shift
     args = x.shift
     
-    cargs = b_name.dup
-
     cast = false
 
     begin
@@ -161,26 +167,38 @@ class RsToCProcessor < SexpProcessor
       end
     end
     
-    if ft.kind_of? TypeInfo::ExternalInfo
-      args.shift
-      in_args = args.map { |a| process a }
-      return ft.generate(@cg, recv, in_args)
-    end
-    
-    # raise "Unknown function #{meth} for #{s_recv.type}."
-    
-    if args.size > 1
-      args.shift
-      cargs << ", " + args.map { |a| process a }.join(", ")
-    end
-    
-    cf = @info.to_c_func(ft, recv_type)
-    if !cast    
-      "#{cf}(#{recv}, #{cargs})"
+    Call.new(ft, args, cast, recv, recv_type)
+  end
+  
+  def process_call(x, block=nil)
+    output_call calculate_call(x), block
+  end
+  
+  def output_call(x, block=nil)
+    if x.external?
+      x.args.shift
+      in_args = x.args.map { |a| process a }
+      code = x.func.generate(@cg, x.recv, in_args, block)
     else
-      c_name = @info.to_c_instance(recv_type)
-      "#{cf}((#{c_name})#{recv}, #{cargs})"
+      # raise "Unknown function #{meth} for #{s_recv.type}."
+    
+      cargs = (block || "NO_BLOCK").dup
+    
+      if x.args.size > 1
+        x.args.shift
+        cargs << ", " + x.args.map { |a| process a }.join(", ")
+      end
+    
+      cf = @info.to_c_func(x.func, x.recv_type)
+      if !x.cast    
+        code = "#{cf}(#{x.recv}, #{cargs})"
+      else
+        c_name = @info.to_c_instance(x.recv_type)
+        code = "#{cf}((#{c_name})#{x.recv}, #{cargs})"
+      end
     end
+    
+    return code
   end
   
   def process_scope(x)
@@ -199,17 +217,26 @@ class RsToCProcessor < SexpProcessor
   end
     
   def process_iter(x)
-    call = x.shift
+    csexp = x.shift
+    csexp.shift
+    
+    call = calculate_call(csexp)
+    
     args = x.shift
     body_n = x.shift
     body = process body_n
-
-    ret_type = to_ctype body_n.type
-    b_name = unique
-    @cg.add_block "#{ret_type} #{b_name}(struct _locals#{@cg.local_idx} *locals) { return #{body} }"
     
-    call.shift
-    return process_call(call, "BLOCK(#{b_name})")
+    if call.external?
+      block = body
+    else
+      ret_type = to_ctype body_n.type
+      b_name = unique
+      @cg.add_block "#{ret_type} #{b_name}(struct _locals#{@cg.local_idx} *locals) { return #{body} }"
+    
+      block = "BLOCK(#{b_name})"
+    end
+    
+    output_call(call, block)
   end
   
   def process_lit(x)
@@ -241,12 +268,12 @@ class RsToCProcessor < SexpProcessor
   end
   
   def process_ivar(x)
-    name = x.shift
+    name = x.shift.to_s[1..-1]
     "self->#{name}"
   end
   
   def process_iasgn(x)
-    name = x.shift
+    name = x.shift.to_s[1..-1]
     val = x.shift
     type = val.type
     
@@ -272,13 +299,21 @@ class RsToCProcessor < SexpProcessor
   end
   
   def process_while(x, kind="while")
-    cond = process x.shift
+    node = x.shift
+    type = node.type
+    cond = process node
     body = process x.shift
-    
+
     "#{kind}(#{cond}) {\n  #{body}\n}"
   end
   
   def process_until(x)
     process_while x, "until"
+  end
+  
+  def process_and(x)
+    left = process x.shift
+    right = process x.shift
+    "((#{left}) && (#{right}))"
   end
 end

@@ -1,8 +1,10 @@
 
+desc "Run all rubinius's tests"
 task :test do
     system("ruby -Ilib test/tc_all.rb")
 end
 
+desc "Build syd-parser."
 task :syd do
     system("cd externals/syd-parser; rake gem")
     puts

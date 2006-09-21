@@ -4,22 +4,22 @@ class SydneyParser
     
     # Generate a sexp which includes comments from +var+. +var+ is either a String
     # or something that can become an IO object.
-    def self.unified_sexp(var)
+    def self.unified_sexp(var, merge=false)
         if String === var
             syd = load_string var, true
         else
             syd = load_file var.to_io, false, true
         end
         
-        return syd.unified_sexp
+        return syd.unified_sexp(merge)
         
     end
     
     # Generate a sexp which includes comments from +var+.
-    def unified_sexp
+    def unified_sexp(merge=false)
         comms = collapse_per_line comments()
         x = sexp(true)
-        insert_comments(x, comms)
+        insert_comments(x, comms, merge)
     end
     
     private
@@ -81,7 +81,7 @@ class SydneyParser
                 sexp.pop
                 init_comments = find_comments(lines, comments, line)
                 if init_comments.size > 0
-                    init_comments.unshift :comment
+                    init_comments
                 else
                     init_comments = nil
                 end
@@ -100,6 +100,9 @@ class SydneyParser
                  out << x
              end
         end
+        
+        if init_comments
+          init_comments
         
         [init_comments, out]
     end

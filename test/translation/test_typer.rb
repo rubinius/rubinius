@@ -146,7 +146,7 @@ class TestTyper < Test::Unit::TestCase
   end
   
   def test_ivar
-    @ty.ivars[:@blah] = Type.Fixnum
+    @ty.ivars["blah"] = Type.Fixnum
     
     out = trans [:ivar, :@blah]
     assert_equal Type.Fixnum, out.type
@@ -447,13 +447,13 @@ class TestTyper < Test::Unit::TestCase
     
     cl1 = [:class, [:colon2, :Container], nil, [:scope, [:block,
       [:defn, :go, [:args], [:scope, [:block, 
-        [:iasgn, :name, [:lit, 100]]
+        [:iasgn, :@name, [:lit, 100]]
       ]]]
     ]]]
 
     cl2 = [:class, [:colon2, :Box], [:const, :Container], [:scope, [:block,
       [:defn, :go, [:args], [:scope, [:block, 
-        [:ivar, :name]
+        [:ivar, :@name]
       ]]]
     ]]]
     
@@ -543,13 +543,19 @@ class TestTyper < Test::Unit::TestCase
   end
   
   def test_multi_type_defn
-    sx = [:defn, :go, [:args], [:scope, [:block,
+    
+    me = [:defn, :go, [:args], [:scope, [:block,
       [:if, [:true], [:lit, 9], [:ivar, :running]]
+    ]]]
+    
+    sx = [:class, [:colon2, :Box], nil, [:scope, [:block, 
+      me
     ]]]
     
     out = trans sx
     
-    pp out
+    con = @ti.classes[:Box]
+    assert_equal Type.Fixnum, con.defined_methods[:go].type    
   end
   
   def test_dstr
@@ -559,4 +565,50 @@ class TestTyper < Test::Unit::TestCase
     
     assert_equal Type.String, out.type
   end
+  
+  def test_evstr
+    sx = [:evstr, [:lit, 1]]
+    
+    out = trans sx
+    
+    assert_equal Type.String, out.type
+  end
+  
+  def test_using_type_hints
+    sx = [:scope, [:block,
+      [:class, [:colon2, :Box], nil, [:scope, [:block,
+      [:comment, " T:String => String"],
+      [:defn, :go, [:args, [:a], [], [], nil], [:scope, [:block,
+        [:ivar, :@name]
+      ]]]
+      ]]]
+    ]]
+    
+    out = trans sx
+    
+    con = @ti.classes[:Box]
+    assert_equal Type.String, con.defined_methods[:go].type    
+    
+    # pp out
+  end
+  
+  def test_using_tag_hints
+    sx = [:scope, [:block,
+      [:class, [:colon2, :Box], nil, [:scope, [:block,
+      [:comment, "hint:rocks"],
+      [:defn, :go, [:args, [:a], [], [], nil], [:scope, [:block,
+        [:ivar, :@name]
+      ]]]
+      ]]]
+    ]]
+    
+    out = trans sx
+    
+    con = @ti.classes[:Box]
+    assert_equal ['rocks'], con.defined_methods[:go].tags
+    
+    # pp out
+  end
+  
 end
+

@@ -68,6 +68,8 @@ class Type
     def add(func)
       @defined_methods[func.name] = func
     end
+    
+    alias :functions :defined_methods
   end
   
   class MapperClass
@@ -171,18 +173,20 @@ class Function
     @type = type
     @yield_args = nil
     @yield_type = nil
+    @tags = nil
+    @locals = Hash.new
   end
   
-  attr_accessor :name, :args, :body, :type, :yield_args, :yield_type
+  attr_accessor :name, :args, :body, :type, :yield_args, :yield_type, :tags, :locals
   
   def check_args(args)
     unless @args
-      @args = args
+      @args = args.dup
       return
     end
     
     if args.size != @args.size
-      raise "Mis-match argument count."
+      raise "Mis-match argument count. #{args.inspect} <=> #{@args.inspect}"
     end
     
     args = args.dup
@@ -373,10 +377,14 @@ class TypeInfo
     end
     
     def temp(type)
-      t = Temp.new(self, type, @temps.size)
+      t = new_temp(type)
       @temps << t
       return t
     end
+    
+    def new_temp(type)
+      Temp.new(self, type, @temps.size)
+    end      
     
     def preamble
       out = []
@@ -413,13 +421,9 @@ class TypeInfo
     
     def fragment(output="")
       if @lines.empty?
-        str = ""
+        str = "#{output};"
       else
         str = @lines.join(";\n") + ";"
-      end
-      
-      if output and !output.empty? and @lines.last != output
-        str << "#{output};"
       end
       
       str
@@ -438,8 +442,16 @@ class TypeInfo
         @name
       end
       
+      def type_string
+        @cg.info.to_c_instance(@type)
+      end
+      
       def cast_as(str)
-        "#{@name} = (#{@cg.info.to_c_instance(@type)})(#{str})"
+        "#{@name} = (#{type_string})(#{str})"
+      end
+      
+      def declare_as(str)
+        type_string + " " + cast_as(str)
       end
     end
   end
@@ -451,17 +463,34 @@ class TypeInfo
       @inline = true
       @args = []
       @gen = nil
+      @block = false
+      @yield_args = []
+      @yield_type = Type.void
     end
     
-    attr_accessor :type, :name, :inline, :args
+    attr_accessor :type, :name, :inline, :args, :block, :yield_args, :yield_type
     
     def gen(&block)
       @gen = block
     end
     
-    def generate(cg, recv, args)
+    def generate(cg, recv, args, block=nil)
+      if block
+        unless @block
+          raise "External function #{name} on #{type.inspect} does not accept a block."
+        end
+        
+        args = args.dup
+        args << block
+      end
+      
       out = @gen.call(cg, recv, args)
-      cg.fragment(out)
+      str = cg.fragment(out)
+      if @inline
+        "({ #{str} })"
+      else
+        str
+      end
     end
     
     def check_args(args)

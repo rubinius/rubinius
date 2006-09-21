@@ -18,12 +18,12 @@ class RObject
   end
   
   def self.create(heap, klass, fields)
-    if klass.kind_of? RObject
-      klass = klass.address
-    elsif !klass
+    if klass.nil?
       klass = 4 # nil
+    elsif klass.kind_of? RObject
+      klass = klass.address
     end
-    
+        
     size = HeaderSize + (fields * 4)
     address = heap.allocate(size)
     
@@ -40,7 +40,7 @@ class RObject
   def initialize_fields
     start = @address + HeaderSize
     
-    0.upto(fields) do |i|
+    0.upto(fields-1) do |i|
       Memory.store_long start, i, 4
     end
     
@@ -99,7 +99,7 @@ class RObject
     0.upto(fields-1) do |i|
       obj = at(i)
       if obj.reference?
-        out << [obj,i] unless out.find { |ent| ent.first == obj }
+        out << [obj,i]
       end
     end
     out
@@ -110,24 +110,7 @@ class RObject
   def hash_int
     @address
   end
-  
-  IsMetaFlag = 0x80
-  
-  def rclass
-    m = Memory.fetch_long @address + 4, 0
-    obj = RObject.new(m)
-    while obj.reference? and obj.flag_set?(IsMetaFlag)
-      obj.as :class
-      obj = obj.superclass
-    end
-    obj.as :class
-    return obj
-  end
-  
-  def rclass=(obj)
-    Memory.store_long @address + 4, 0, obj.address
-  end
-  
+    
   def ==(obj)
     @address == obj.address
   end
@@ -178,22 +161,17 @@ class RObject
   end
   
   def self.wrap(val)
-    case val
-    when FalseClass
-      i = 0
-    when TrueClass
-      i = 2
-    when NilClass
-      i = 4
-    when Fixnum
-      fx = (val.abs << 3) | 1
-      fx |= 4 if val < 0
-      i = fx
-    else
-      raise ArgumentError, "Unable to wrap #{val}"
-    end
+    fx = (val.abs << 3) | 1
+    fx |= 4 if val < 0
+    i = fx
     
     return RObject.new(i)
+  end
+  
+  def to_int
+    fx = @address >> 3
+    fx = -fx if fixnum_neg?
+    fx
   end
   
   def reference?
@@ -234,12 +212,6 @@ class RObject
   
   def symbol_index
     @address >> 2
-  end
-  
-  def to_int
-    fx = @address >> 3
-    fx = -fx if fixnum_neg?
-    fx
   end
   
   def true?
@@ -292,6 +264,7 @@ class RObject
     Memory.fetch_byte addr
   end
   
+  # hint:skip_translation
   def as(type)
     extend Rubinius::Types[type]
     return self
@@ -319,6 +292,23 @@ class RObject
     "#<RObject:0x" + @address.to_s(16) + ">"
   end
   
+  IsMetaFlag = 0x80
+  
+  def rclass
+    m = Memory.fetch_long @address + 4, 0
+    obj = RObject.new(m)
+    while obj.reference? and obj.flag_set?(IsMetaFlag)
+      obj.as :class
+      obj = obj.superclass
+    end
+    obj.as :class
+    return obj
+  end
+  
+  def rclass=(obj)
+    Memory.store_long @address + 4, 0, obj.address
+  end
+  
   def create_metaclass(sup)
     unless sup
       sup = self.direct_class
@@ -333,7 +323,7 @@ class RObject
   def access_metaclass
     m = Memory.fetch_long @address + 4, 0
     obj = RObject.new(m)
-    if obj.reference? and !Rubinius::MetaClass.metaclass?(obj)
+    if obj.reference? and !obj.flag_set?(IsMetaFlag)
       # puts "#{obj.inspect} is in the class slot, but not a metaclass!"
       # obj = RObject.nil
       obj = RObject.nil

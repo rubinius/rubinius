@@ -1,5 +1,6 @@
 require 'translation/to_c'
 require 'test/unit'
+require 'pp'
 
 class TestRsToC < Test::Unit::TestCase
   def setup
@@ -7,6 +8,12 @@ class TestRsToC < Test::Unit::TestCase
     @cg = @info.cg
     @rc = RsToC.new(@info, @info.cg)
     TypeInfo::CodeGenerator.reset
+  end
+  
+  def load_types(kind="c")
+    Dir["lib/translation/types/#{kind}/*.rb"].each do |path|
+      @info.load_file path
+    end
   end
   
   def trans(x)
@@ -77,7 +84,7 @@ class TestRsToC < Test::Unit::TestCase
     end
     
     input = [:call, [:lit, 9], :blah, [:array]]
-    output = "9 + 9;"
+    output = "({ 9 + 9; })"
     
     got = trans input
     assert_equal output, got
@@ -94,7 +101,7 @@ class TestRsToC < Test::Unit::TestCase
     end
     
     input = [:call, [:lit, 9], :blah, [:array]]
-    output = "_cg0 = 9 + 9;"
+    output = "({ _cg0 = 9 + 9; })"
     
     got = trans input
     assert_equal output, got
@@ -112,7 +119,7 @@ class TestRsToC < Test::Unit::TestCase
     end
     
     input = [:call, [:lit, 9], :blah, [:array]]
-    output = "_cg0 = (int)(9 + 9);"
+    output = "({ _cg0 = (int)(9 + 9); })"
     
     got = trans input
     assert_equal output, got
@@ -131,11 +138,56 @@ class TestRsToC < Test::Unit::TestCase
     end
     
     input = [:call, [:lit, 9], :blah, [:array, [:lit, 10]]]
-    output = "_cg0 = (int)(9 + 10);"
+    output = "({ _cg0 = (int)(9 + 10); })"
     
     got = trans input
     assert_equal output, got
     assert_equal "int _cg0;", @cg.preamble
+  end
+  
+  def test_process_call_with_local_temp
+    @info.add_c_type Type.Fixnum, "int"
+    @info.add(:blah, Type.Fixnum) do |i|
+      i.type = Type.Fixnum
+      i.args = []
+      i.gen do |g, s, a|
+        t = g.new_temp(Type.Fixnum)
+        g << t.declare_as(1)
+        g << "#{s} + #{t}"
+      end
+    end
+    
+    input = [:call, [:lit, 9], :blah, [:array]]
+    output = "({ int _cg0 = (int)(1);\n9 + _cg0; })"
+    
+    got = trans input
+    assert_equal output, got
+    assert_equal "", @cg.preamble
+  end
+  
+  def test_process_call_with_block
+    @info.add_c_type Type.Fixnum, "int"
+    @info.add(:blah, Type.Fixnum) do |i|
+      i.type = Type.void
+      i.args = []
+      i.block = true
+      i.gen do |g, s, a|
+        block = a.pop
+        g << "if(FALSE) {\n#{block}\n}"
+      end
+    end
+    
+    input = [:iter, 
+      [:call, [:lit, 9], :blah, [:array]],
+      nil,
+      [:block, [:and, [:true], [:false]]]
+    ]
+    
+    output = "({ if(FALSE) {\n((TRUE) && (FALSE));\n}; })"
+    
+    got = trans input
+    assert_equal output, got
+    assert_equal "", @cg.preamble
   end
   
   def test_process_iter
@@ -182,12 +234,12 @@ class TestRsToC < Test::Unit::TestCase
   end
   
   def test_process_ivar
-    out = trans [:ivar, :blah]
+    out = trans [:ivar, :@blah]
     assert_equal "self->blah", out
   end
   
   def test_process_iasgn
-    out = trans [:iasgn, :blah, [:lit, 8]]
+    out = trans [:iasgn, :@blah, [:lit, 8]]
     assert_equal "self->blah = 8", out
   end
   
@@ -249,4 +301,60 @@ class TestRsToC < Test::Unit::TestCase
     out = trans input
     assert_equal output, out
   end
+  
+  def test_process_inlined_shows_up_in_compound
+    load_types()
+    input = [:while, [:call, [:lit, 1], :>, [:array, [:lit, 10]]],
+        [:lasgn, :i, 2, [:lit, 11]]
+      ]
+    
+    output = "while(({ 1 > 10; })) {\n  locals->i = 11;\n}"
+    out = trans input
+    
+    assert_equal output, out
+  end
+  
+  def test_fixnum_upto
+    @info.add_c_type Type.Fixnum, "int"
+    load_types()
+    input = [:iter, 
+      [:call, [:lit, 5], :upto, [:array, [:lit, 10]]],
+      nil,
+      [:call, [:lit, 1], :+, [:array, [:lit, 1]]]
+    ]
+    
+    out = trans input
+    output = "({ int _cg0 = (int)(5);\nwhile(_cg0 <= 10) {\n({ 1 + 1; });\n_cg0++;\n}; })"
+    assert_equal output, out
+  end
+  
+  def test_fixnum_downto
+    @info.add_c_type Type.Fixnum, "int"
+    load_types()
+    input = [:iter, 
+      [:call, [:lit, 10], :downto, [:array, [:lit, 5]]],
+      nil,
+      [:call, [:lit, 1], :+, [:array, [:lit, 1]]]
+    ]
+    
+    out = trans input
+    output = "({ int _cg0 = (int)(10);\nwhile(_cg0 >= 5) {\n({ 1 + 1; });\n_cg0--;\n}; })"
+    assert_equal output, out
+  end
+  
+  def test_fixnum_times
+    @info.add_c_type Type.Fixnum, "int"
+    load_types()
+    input = [:iter, 
+      [:call, [:lit, 10], :times, [:array]],
+      nil,
+      [:call, [:lit, 1], :+, [:array, [:lit, 1]]]
+    ]
+    
+    out = trans input
+    output = "({ int _cg0 = (int)(0);\nwhile(_cg0 < 10) {\n({ 1 + 1; });\n_cg0++;\n}; })"
+    assert_equal output, out
+  end
+  
+  
 end

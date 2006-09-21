@@ -11,7 +11,7 @@ class TestRObject < Test::Unit::TestCase
     @heap = Heap.new(256)
     @obj = RObject.setup(@heap, nil, 4)
     @one = RObject.wrap(1)
-    @nil = RObject.wrap(nil)
+    @nil = RObject.nil
   end
   
   def teardown
@@ -31,21 +31,8 @@ class TestRObject < Test::Unit::TestCase
   end
 
   def test_class_wrap
-    obj = RObject.wrap(nil)
-    assert obj.nil?
-    
-    obj = RObject.wrap(true)
-    assert obj.true?
-    
-    obj = RObject.wrap(false)
-    assert obj.false?
-    
     obj = RObject.wrap(100)
     assert obj.fixnum?
-    
-    assert_raises(ArgumentError) do
-      RObject.wrap Object.new
-    end
   end
   
   def test_undef
@@ -75,7 +62,7 @@ class TestRObject < Test::Unit::TestCase
   end
 
   def test_false_eh
-    f = RObject.wrap(false)
+    f = RObject.false
     assert f.false?
     assert !@one.false?
   end
@@ -86,7 +73,7 @@ class TestRObject < Test::Unit::TestCase
 
   def test_fixnum_eh
     assert @one.fixnum?
-    f = RObject.wrap(false)
+    f = RObject.false
     
     assert !f.fixnum?
   end
@@ -145,10 +132,9 @@ class TestRObject < Test::Unit::TestCase
   def test_immediate_eh
     assert @one.immediate?
     
-    [true, false, nil].each do |v|
-      o = RObject.wrap(v)
-      assert o.immediate?
-    end
+    assert RObject.true.immediate?
+    assert RObject.false.immediate?
+    assert RObject.nil.immediate?
   end
 
   def test_put
@@ -208,7 +194,8 @@ class TestRObject < Test::Unit::TestCase
     refs = @obj.references
     
     assert_equal o2.address, refs[0].first.address
-    assert_equal o3.address, refs[1].first.address
+    assert_equal o2.address, refs[1].first.address
+    assert_equal o3.address, refs[2].first.address
   end
   
   def test_references_none
@@ -218,7 +205,7 @@ class TestRObject < Test::Unit::TestCase
   end
 
   def test_true_eh
-    t = RObject.wrap(true)
+    t = RObject.true
     assert t.true?
   end
   
@@ -251,7 +238,7 @@ class TestRObject < Test::Unit::TestCase
   end
   
   def test_stores_bytes_eh
-    t = RObject.wrap(true)
+    t = RObject.true
     assert !t.stores_bytes?
     
     t = RObject.wrap(1)

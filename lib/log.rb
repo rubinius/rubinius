@@ -8,8 +8,12 @@ end
 
 Log = Rubinius::Logger.new(STDOUT)
 
+
+
 if $DEBUG or ENV['RDEBUG']
   Log.level = Logger::DEBUG
+elsif ENV['TESTING']
+  Log.level = Logger::FATAL
 else
   Log.level = Logger::INFO
 end
