@@ -67,7 +67,7 @@ module Rubinius
       end
     
       def self.new_blank(fields)
-        Rubinius.cpu.new_object CPU::NIL, fields
+        Rubinius.cpu.new_object RObject.nil, fields
       end
       
       def self.create_anonymous

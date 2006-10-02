@@ -36,7 +36,8 @@ class RubiniusTranslator
   def translate_to_c
     total = []
     @header = ""
-    classes.each do |name, klass|
+    cs = classes.sort { |a,b| a[0].to_s <=> b[0].to_s }
+    cs.each do |name, klass|
       # p [name, klass]
       gh = GenerateHeader.new(klass, @info)
       gh.prefix = @prefix

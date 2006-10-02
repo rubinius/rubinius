@@ -5,11 +5,12 @@ class TestBakerGC < Test::Unit::TestCase
   
   def setup
     @bk = BakerGC.new(200)
+    @nil = RObject.nil
     
-    @o1 = RObject.setup @bk, nil, 4
-    @o2 = RObject.setup @bk, nil, 2
-    @o3 = RObject.setup @bk, nil, 1
-    @o4 = RObject.setup @bk, nil, 1
+    @o1 = RObject.setup @bk, @nil, 4
+    @o2 = RObject.setup @bk, @nil, 2
+    @o3 = RObject.setup @bk, @nil, 1
+    @o4 = RObject.setup @bk, @nil, 1
     
     @local1 = @o1.dup
     @local2 = @o2.dup
@@ -74,7 +75,7 @@ class TestBakerGC < Test::Unit::TestCase
   
   def test_collect_only_mine
     heap = Heap.new(200)
-    ext = RObject.setup heap, nil, 1
+    ext = RObject.setup heap, @nil, 1
     @bk.on_stack ext
     
     local_ext = ext.dup
@@ -90,7 +91,7 @@ class TestBakerGC < Test::Unit::TestCase
   
   def test_collect_from_external_root
     heap = Heap.new(200)
-    ext = RObject.setup heap, nil, 1
+    ext = RObject.setup heap, @nil, 1
     @bk.on_stack ext
     
     local_ext = ext.dup
@@ -118,7 +119,7 @@ class TestBakerGC < Test::Unit::TestCase
   
   def test_collect_remember_set
     h = Heap.new(200)
-    ext = RObject.setup h, nil, 3
+    ext = RObject.setup h, @nil, 3
     ext.put 0, @o1
     @bk.remember_set << ext
     @bk.collect []

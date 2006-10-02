@@ -11,6 +11,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
     @prim = CPU::Primitives.new(@cpu, @con)
     @memory = @cpu.memory
     @encoder = Bytecode::InstructionEncoder.new
+    @nil = RObject.nil
   end
   
   def push(*args)
@@ -108,7 +109,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
   end
   
   def test_at
-    obj = @memory.new_object CPU::NIL, 4
+    obj = @memory.new_object @nil, 4
     obj2 = RObject.wrap(99)
     
     obj.put 1, obj2
@@ -129,7 +130,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
   end
   
   def test_at_on_bytes
-    obj = @memory.new_object CPU::NIL, 4
+    obj = @memory.new_object @nil, 4
     obj.make_byte_storage
     push_int 1
     push_obj obj
@@ -137,11 +138,11 @@ class TestCPUPrimitives < Test::Unit::TestCase
   end
   
   def new_obj(fel=4)
-    obj = @memory.new_object CPU::NIL, fel
+    obj = @memory.new_object @nil, fel
   end
   
   def test_put
-    obj = @memory.new_object CPU::NIL, 4
+    obj = @memory.new_object @nil, 4
     obj2 = RObject.wrap(99)
 
     push_obj obj2    

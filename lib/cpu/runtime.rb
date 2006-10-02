@@ -257,7 +257,7 @@ class CPU
   end
   
   def new_blank(fields)
-    obj = @memory.new_object NIL, fields
+    obj = @memory.new_object RObject.nil, fields
     return obj.address
   end
   

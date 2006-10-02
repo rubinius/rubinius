@@ -7,6 +7,7 @@ class TestTrainGC < Test::Unit::TestCase
     @train = TrainGC.new(@num_trains,1)
     RObject.use_write_barrier @train
     @tracked = []
+    @nil = RObject.nil
   end
   
   def show_tracked
@@ -42,7 +43,7 @@ class TestTrainGC < Test::Unit::TestCase
     # Setup the default object size so that only 3 objects
     # can fit in each car. (each car is 64k bytes big.)
     obj_fields = 5000
-    r = RObject.setup where, nil, 5000
+    r = RObject.setup where, @nil, 5000
     r.tag = tag
     @tracked << r
     @train.on_stack r

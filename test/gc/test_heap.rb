@@ -4,6 +4,7 @@ require 'gc/heap'
 class TestHeap < Test::Unit::TestCase
   def setup
     @heap = Heap.new(200)
+    @nil = RObject.nil
   end
   
   def teardown
@@ -65,8 +66,8 @@ class TestHeap < Test::Unit::TestCase
   end
   
   def test_copy_object
-    o1 = RObject.setup @heap, nil, 2
-    o2 = RObject.setup @heap, nil, 1
+    o1 = RObject.setup @heap, @nil, 2
+    o2 = RObject.setup @heap, @nil, 1
     
     h = Heap.new(200)
     
@@ -82,9 +83,9 @@ class TestHeap < Test::Unit::TestCase
   
   def test_each_object
     lo = []
-    lo << RObject.setup(@heap, nil, 2)
-    lo << RObject.setup(@heap, nil, 3)
-    lo << RObject.setup(@heap, nil, 10)
+    lo << RObject.setup(@heap, @nil, 2)
+    lo << RObject.setup(@heap, @nil, 3)
+    lo << RObject.setup(@heap, @nil, 10)
     
     fo = []
     @heap.each_object do |obj|

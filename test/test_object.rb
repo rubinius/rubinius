@@ -9,7 +9,7 @@ class TestRObject < Test::Unit::TestCase
   def setup
     Rubinius.cpu = CPU.new
     @heap = Heap.new(256)
-    @obj = RObject.setup(@heap, nil, 4)
+    @obj = RObject.setup(@heap, RObject.nil, 4)
     @one = RObject.wrap(1)
     @nil = RObject.nil
   end
@@ -26,7 +26,7 @@ class TestRObject < Test::Unit::TestCase
   end
   
   def test_class_setup
-    obj = RObject.setup(@heap, nil, 4)
+    obj = RObject.setup(@heap, @nil, 4)
     assert_kind_of RObject, obj
   end
 
@@ -148,8 +148,8 @@ class TestRObject < Test::Unit::TestCase
   end
   
   def test_bounds
-    o = RObject.setup(@heap, nil, 1)
-    j = RObject.setup(@heap, nil, 1)
+    o = RObject.setup(@heap, @nil, 1)
+    j = RObject.setup(@heap, @nil, 1)
     
     last = o.address + o.memory_size
     assert o.field_address(0) + 4 == j.address
@@ -185,8 +185,8 @@ class TestRObject < Test::Unit::TestCase
   end
 
   def test_references
-    o2 = RObject.setup(@heap, nil, 3)
-    o3 = RObject.setup(@heap, nil, 3)
+    o2 = RObject.setup(@heap, RObject.nil, 3)
+    o3 = RObject.setup(@heap, RObject.nil, 3)
     @obj.put 0, o2
     @obj.put 1, o2
     @obj.put 2, o3
@@ -210,7 +210,7 @@ class TestRObject < Test::Unit::TestCase
   end
   
   def test_fields_default_to_false
-    t = RObject.setup @heap, nil, 4
+    t = RObject.setup @heap, RObject.nil, 4
     
     assert_equal @nil, t.at(0)
     assert_equal @nil, t.at(1)
@@ -252,20 +252,20 @@ class TestRObject < Test::Unit::TestCase
   end
   
   def test_s_setup_bytes
-    obj = RObject.setup_bytes @heap, nil, 4
+    obj = RObject.setup_bytes @heap, RObject.nil, 4
     assert obj.stores_bytes?
   end
   
   def test_store_and_fetch_byte
-    obj = RObject.setup_bytes @heap, nil, 4
+    obj = RObject.setup_bytes @heap, RObject.nil, 4
     obj.store_byte 0, 99
     out = obj.fetch_byte 0
     assert_equal 99, out
   end
   
   def test_copy_fields
-    obj = RObject.setup(@heap, nil, 3)
-    obj2 = RObject.setup(@heap, nil, 2)
+    obj = RObject.setup(@heap, RObject.nil, 3)
+    obj2 = RObject.setup(@heap, RObject.nil, 2)
     
     obj.put 0, RObject.wrap(99)
     obj.put 1, RObject.wrap(3333)
@@ -278,8 +278,8 @@ class TestRObject < Test::Unit::TestCase
   end
   
   def test_copy_fields_from
-    obj = RObject.setup(@heap, nil, 3)
-    obj2 = RObject.setup(@heap, nil, 2)
+    obj = RObject.setup(@heap, RObject.nil, 3)
+    obj2 = RObject.setup(@heap, RObject.nil, 2)
     
     obj.put 0, RObject.wrap(99)
     obj.put 1, RObject.wrap(3333)

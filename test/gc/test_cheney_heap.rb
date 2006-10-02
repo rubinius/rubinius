@@ -4,6 +4,7 @@ require 'test/unit'
 class TestCheneyHeap < Test::Unit::TestCase
   def setup
     @ch = CheneyHeap.new(1000)
+    @nil = RObject.nil
   end
   
   def test_scan
@@ -26,12 +27,12 @@ class TestCheneyHeap < Test::Unit::TestCase
   end
   
   def test_unscanned_objects
-    o1 = RObject.setup @ch, nil, 3
-    o2 = RObject.setup @ch, nil, 4
+    o1 = RObject.setup @ch, @nil, 3
+    o2 = RObject.setup @ch, @nil, 4
     ary = []
     @ch.unscanned_objects { |o| ary << o }
     assert_equal [o1, o2], ary
-    o3 = RObject.setup @ch, nil, 3
+    o3 = RObject.setup @ch, @nil, 3
     @ch.unscanned_objects do |o|
       assert_equal o3, o
     end
@@ -41,14 +42,14 @@ class TestCheneyHeap < Test::Unit::TestCase
   end
   
   def test_next_unscanned
-    o1 = RObject.setup @ch, nil, 3
-    o2 = RObject.setup @ch, nil, 4
+    o1 = RObject.setup @ch, @nil, 3
+    o2 = RObject.setup @ch, @nil, 4
     ary = []
     while o = @ch.next_unscanned
       ary << o
     end
     assert_equal [o1, o2], ary
-    o3 = RObject.setup @ch, nil, 3
+    o3 = RObject.setup @ch, @nil, 3
     while o = @ch.next_unscanned
       assert_equal o3, o
     end
@@ -58,12 +59,12 @@ class TestCheneyHeap < Test::Unit::TestCase
   end
   
   def test_alloc_during_unscanned
-    o1 = RObject.setup @ch, nil, 3
+    o1 = RObject.setup @ch, @nil, 3
     o2 = nil
     ary = []
     @ch.unscanned_objects do |o|
       ary << o
-      o2 = RObject.setup @ch, nil, 2 unless o2
+      o2 = RObject.setup @ch, @nil, 2 unless o2
     end
     assert o2
     assert_equal [o1, o2], ary

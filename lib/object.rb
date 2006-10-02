@@ -17,12 +17,8 @@ class RObject
     return obj
   end
   
-  def self.create(heap, klass, fields)
-    if klass.nil?
-      klass = 4 # nil
-    elsif klass.kind_of? RObject
-      klass = klass.address
-    end
+  def self.create(heap, klass_obj, fields)
+    klass = klass_obj.address
         
     size = HeaderSize + (fields * 4)
     address = heap.allocate(size)

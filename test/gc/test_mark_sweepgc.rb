@@ -8,11 +8,12 @@ class TestMarkSweepGC < Test::Unit::TestCase
       attr_accessor :allocations, :start
     end
     
+    @nil = RObject.nil
     
-    @o1 = RObject.setup @ms, nil, 4
-    @o2 = RObject.setup @ms, nil, 2
-    @o3 = RObject.setup @ms, nil, 1
-    @o4 = RObject.setup @ms, nil, 1
+    @o1 = RObject.setup @ms, @nil, 4
+    @o2 = RObject.setup @ms, @nil, 2
+    @o3 = RObject.setup @ms, @nil, 1
+    @o4 = RObject.setup @ms, @nil, 1
     
     @local1 = @o1.dup
     @local2 = @o2.dup
@@ -106,7 +107,7 @@ class TestMarkSweepGC < Test::Unit::TestCase
     
     @ms.sweep
     @ms.reorder!
-    n = RObject.setup @ms, nil, 1
+    n = RObject.setup @ms, @nil, 1
     curr =  @ms.allocations
     assert_equal 1, curr.size
     assert_equal @o4.address, curr.first.first
