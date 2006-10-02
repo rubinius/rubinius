@@ -116,6 +116,9 @@ class RsTyper < SexpProcessor
     process! x, 1
     process! x, 3
     
+    args = x[3][1..-1]
+    typed = args.map { |i| i.type }
+    
     if x[1].kind_of? Array and x[1].first == :const and x[2] == :new
       name = x[1].last
       if true # @consts[name] == Type.Class
@@ -123,6 +126,7 @@ class RsTyper < SexpProcessor
           klass = add_meta(name)
           x[1].set_type klass.type
         end
+        @info.initialize_args(Type.method_missing(name), typed)
         return x.set_type(Type.method_missing(name))
       end
     end
@@ -136,8 +140,6 @@ class RsTyper < SexpProcessor
     
     @called_func = func
     
-    args = x[3][1..-1]
-    typed = args.map { |i| i.type }
     begin
       func.check_args typed
     rescue Object => e
@@ -450,6 +452,8 @@ class RsTyper < SexpProcessor
   def add_meta(name)
     meta_name = "#{name}Meta".to_sym
     klass = @info.add_klass meta_name, :Class
+    klass.meta = true
+    return klass
   end
   
   def process_defs(x)
@@ -537,6 +541,9 @@ class RsTyper < SexpProcessor
     @defns << name
     @current_func << func
     
+    new_args = []
+    names = []
+    
     if x[args].size > 1
       # puts "#{name} => #{x[2][1].inspect}"
       idx = 2
@@ -544,16 +551,25 @@ class RsTyper < SexpProcessor
         raise "Mis-match argument type count."
       end
       
+      names = []
       x[args][1].each do |y|
         if arg_types
           type = arg_types.shift
         else
           type = Type.unknown
         end
+        new_args << type
         add_local_var y, idx, type
         idx += 1
+        names << y
       end
     end
+
+    if func
+      func.arg_names = names
+      func.check_args new_args
+    end
+    
     body = process! x, bidx
     if func
       func.body = body[1][1..-1].set_type(body.type)

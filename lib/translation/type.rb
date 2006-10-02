@@ -49,6 +49,7 @@ class Type
       @superklass = sup
       @ivars = Hash.new
       @defined_methods = Hash.new
+      @meta = false
     end
     
     def super_type
@@ -59,7 +60,7 @@ class Type
       Type.method_missing(@name)
     end
     
-    attr_accessor :name, :superklass, :ivars, :defined_methods
+    attr_accessor :name, :superklass, :ivars, :defined_methods, :meta
     
     def find(meth)
       @defined_methods[meth]
@@ -175,9 +176,15 @@ class Function
     @yield_type = nil
     @tags = nil
     @locals = Hash.new
+    @arg_names = []
   end
   
   attr_accessor :name, :args, :body, :type, :yield_args, :yield_type, :tags, :locals
+  attr_accessor :arg_names
+  
+  def arguments
+    @arg_names.zip(@args)
+  end
   
   def check_args(args)
     unless @args
@@ -234,6 +241,7 @@ class TypeInfo
     @prefix = prefix
     @external_types = Hash.new
     @external_functions = Hash.new { |h,k| h[k] = Hash.new }
+    @init_args = Hash.new
     @consts = Hash.new
   end
   
@@ -258,6 +266,13 @@ class TypeInfo
       @types[obj.type] = obj
     end
     return obj
+  end
+  
+  def initialize_args(type, typed)
+    @init_args[type] = typed
+    if @types[type] and func = find(type, :initialize)
+      func.check_args typed
+    end
   end
   
   def verify_type(type)
@@ -313,10 +328,23 @@ class TypeInfo
     else
       @types[type].add(function)
     end
+    
+    if function.name == :initialize
+      if a = @init_args[type]
+        function.check_args a
+      end
+    end
   end
   
   def to_c_func(func, type)
-    "#{@prefix}#{type.name}_#{func.name}"
+    if func.respond_to? :name
+      func = func.name
+    end
+    if m = type.name.to_s.match(/(.*)Meta/)
+      "#{@prefix}#{m[1]}_s_#{func}"
+    else
+      "#{@prefix}#{type.name}_#{func}"
+    end
   end
   
   def to_c_type(type)
@@ -386,11 +414,15 @@ class TypeInfo
       Temp.new(self, type, @temps.size)
     end      
     
-    def preamble
+    def preamble(prefix="")
       out = []
       
       if @local_idx
-        out << "struct _locals#{@local_idx} _locals, *locals = &_locals;"
+        out << "#{prefix}struct _locals#{@local_idx} _locals, *locals = &_locals;"
+      end
+      
+      @locals.each do |name, type|
+        out << "#{prefix}locals->#{name} = #{name};"
       end
       
       @temps.each do |t|

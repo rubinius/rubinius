@@ -222,7 +222,7 @@ class TestRsToC < Test::Unit::TestCase
     assert_equal "locals->blah = 8", out
     
     assert_equal "struct _locals1 {\n  int blah;\n};", @cg.local_struct
-    assert_equal "struct _locals1 _locals, *locals = &_locals;", @cg.preamble
+    assert_equal "struct _locals1 _locals, *locals = &_locals;\nlocals->blah = blah;", @cg.preamble
   end
   
   def test_process_lvar

@@ -91,4 +91,111 @@ CODE
     assert_equal Type.Box, dm.functions[:package].type
     
   end
+  
+  Code3 = <<-CODE
+   class Box
+     def self.ups
+       1
+     end
+     
+     def initialize
+       @kind = 1
+     end
+   end
+  CODE
+  
+  def test_translate_of_defs
+    trans = RubiniusTranslator.new("rbc_")
+    trans.load_types
+    trans.load Code3
+    trans.translate_to_c
+    
+    exc_header = <<-CODE
+struct rbc_Box {
+  int kind;
+};
+
+int rbc_Box_initialize(struct rbc_Box *self);
+struct rbc_Box *rbc_Box_new();
+int rbc_Box_s_ups();
+CODE
+    
+    assert_equal exc_header, trans.header
+    
+    exc_body = <<-CODE
+struct rbc_Box *rbc_Box_new() {
+  struct rbc_Box *self;
+  self = (struct rbc_Box*)malloc(sizeof(struct rbc_Box));
+  rbc_Box_initialize(self);
+  return self;
+}
+
+int rbc_Box_initialize(struct rbc_Box *self) {
+  return self->kind = 1;
+}
+
+int rbc_Box_s_ups() {
+  return 1;
+}
+CODE
+    
+    assert_equal exc_body, trans.body
+  end
+    
+  Code4 = <<-CODE
+    class Box
+      def initialize(index)
+        @index = index
+        return 0
+      end
+      
+      def self.train_initialize
+        Box.new(1)
+      end
+    end
+  CODE
+  
+  def test_translation_of_new
+    trans = RubiniusTranslator.new("rbc_")
+    trans.load_types
+    trans.load Code4
+    trans.translate_to_c
+    
+    exc_header = <<-CODE
+struct rbc_Box {
+  int index;
+};
+
+int rbc_Box_initialize(struct rbc_Box *self, int index);
+struct rbc_Box *rbc_Box_new(int index);
+struct rbc_Box* rbc_Box_s_train_initialize();
+    CODE
+    
+    assert_equal exc_header, trans.header
+    
+    exc_body = <<-CODE
+struct rbc_Box *rbc_Box_new(int index) {
+  struct rbc_Box *self;
+  self = (struct rbc_Box*)malloc(sizeof(struct rbc_Box));
+  rbc_Box_initialize(self, index);
+  return self;
+}
+
+struct _locals1 {
+  int index;
+};
+
+int rbc_Box_initialize(struct rbc_Box *self, int index) {
+  struct _locals1 _locals, *locals = &_locals;
+  locals->index = index;
+  self->index = locals->index;
+  return 0;
+}
+
+struct rbc_Box* rbc_Box_s_train_initialize() {
+  return rbc_Box_s_new(1);
+}
+    CODE
+    assert_equal exc_body, trans.body
+  end
 end

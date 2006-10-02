@@ -9,7 +9,12 @@ class GenerateHeader
   end
   
   def klass_name
-    @prefix + @klass.name.to_s
+    if m = @klass.name.to_s.match(/(.*)Meta/)
+      kn = "#{m[1]}_s"
+    else
+      kn = @klass.name.to_s
+    end
+    @prefix + kn
   end
   
   def generate_fields(klass)
@@ -36,7 +41,11 @@ class GenerateHeader
     str << "  #{type} *self;\n"
     str << "  self = (#{type}*)malloc(sizeof(#{type}));\n"
     if @init_args
-      str << "  #{klass_name}_initialize(self);\n"
+      if !@init_names or @init_names.empty?
+        str << "  #{klass_name}_initialize(self);\n"
+      else
+        str << "  #{klass_name}_initialize(self, #{@init_names.join(', ')});\n"
+      end        
     end
     str << "  return self;\n}\n"
     str
@@ -49,8 +58,12 @@ class GenerateHeader
     sup = @klass.superklass
     while sup and sup != :Object
       obj = @info.classes[sup]
-      super_fields << generate_fields(obj)
-      sup = obj.superklass
+      if obj
+        super_fields << generate_fields(obj)
+        sup = obj.superklass
+      else
+        sup = obj
+      end
     end
     
     fields = []
@@ -64,14 +77,17 @@ class GenerateHeader
   end
   
   def wrap_function(name, meth, body)
-    "#{function_name(name, meth)} {\n  #{body}\n}\n"
+    "#{function_name(name, meth)} {\n#{body}\n}\n"
   end
   
   def function_name(name, meth)
     c_type = @info.to_c_instance(meth.type)
     c_name = klass_name + "_" + name.to_s
     if meth.args
-      args = meth.args.map do |a_name, a_type|
+      i = 0
+      args = meth.args.map do |a_type|
+        a_name = meth.arg_names[i]
+        i += 1
         "#{@info.to_c_instance(a_type)} #{a_name}"
       end
     else
@@ -81,14 +97,22 @@ class GenerateHeader
     if args.size == 0
       str_args = ""
     else
-      str_args = ", " + args.join(", ")
+      str_args = args.join(", ")
     end
     
     if name == :initialize
-      @init_args = str_args  
+      @init_args = str_args
+      @init_names = meth.arg_names
     end
     
-    "#{c_type} #{c_name}(struct #{klass_name} *self#{str_args})"
+    if @klass.meta
+      "#{c_type} #{c_name}(#{str_args})"
+    elsif str_args.empty?
+      "#{c_type} #{c_name}(struct #{klass_name} *self)"
+    else
+      "#{c_type} #{c_name}(struct #{klass_name} *self, #{str_args})"
+      
+    end
   end
   
   def generate_functions
@@ -101,9 +125,18 @@ class GenerateHeader
   end
   
   def generate
-    str = generate_struct
-    str << "\n"
+    if @klass.meta
+      str = ""
+    else
+      str = generate_struct
+      str << "\n"
+    end
+    
     str << generate_functions
-    str << generate_new
+    
+    unless @klass.meta
+      str << generate_new
+    end
+    str
   end
 end

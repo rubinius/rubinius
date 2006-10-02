@@ -8,7 +8,6 @@ class TestGenerateHeader < Test::Unit::TestCase
     @ti.add_c_type Type.Fixnum, "int"
     
     @klass = @ti.add_klass(:Box, :Object)
-    # @klass = Type::Klass.new(:Box, :Object)
     @fun = Function.new(:go, [], [])
     @fun.type = Type.Fixnum
     @klass.defined_methods[:go] = @fun
@@ -33,7 +32,8 @@ CODE
   
   def test_generate_method_with_args
     @ti.add_c_type Type.Array, "ARRAY"
-    @fun.args = [[:persons, Type.Array], [:groups, Type.Array]]
+    @fun.args = [Type.Array, Type.Array]
+    @fun.arg_names = [:persons, :groups]
     str = @gh.generate
     exc = <<-CODE
 struct rbs_test_Box {

@@ -9,7 +9,7 @@ require 'translation/to_c'
 
 class RubiniusTranslator
   def initialize(prefix="rbs_")
-    @info = TypeInfo.new
+    @info = TypeInfo.new(prefix)
     @typer = RsTyper.new(@info)
     @prefix = prefix
   end
@@ -34,31 +34,58 @@ class RubiniusTranslator
   require 'pp'
     
   def translate_to_c
+    total = []
+    @header = ""
     classes.each do |name, klass|
+      # p [name, klass]
       gh = GenerateHeader.new(klass, @info)
       gh.prefix = @prefix
-      @header = gh.generate
+      @header << gh.generate
       
-      codes = [gh.generate_new_body]
+      if klass.meta
+        codes = []
+      else
+        codes = [gh.generate_new_body]
+      end
       
       sorted = klass.functions.sort { |a,b| a[0].to_s <=> b[0].to_s }
       
       sorted.each do |fname, func|
         next unless func.body
-        cg = TypeInfo::CodeGenerator.new(self)
-        rc = RsToCProcessor.new(@info, cg)
+        raise "#{fname} is incompleted." if func.type.unknown?
+        
+        cg = TypeInfo::CodeGenerator.new(@info)
+        func.arguments.each do |f_name, f_type|
+          cg.add_local f_name, f_type
+        end
+        
+        rc = RsToCProcessor.new(@info, cg, "  ")
         sbody = func.body
         sbody.unshift :block
-        ending = t(:return, sbody[-1])
-        ending.set_type sbody[-1].type
-        sbody[-1] = ending
+        unless sbody.last.first == :return
+          ending = t(:return, sbody[-1])
+          ending.set_type sbody[-1].type
+          sbody[-1] = ending
+        end
         body = rc.process(sbody)
+        pre = cg.preamble "  "
+        unless pre.empty?
+          body = pre + "\n" + body
+        end
+        
+        struct = cg.local_struct
+        unless struct.empty?
+          codes << struct
+          codes << ""
+        end
         
         codes << gh.wrap_function(fname, func, body)
       end
       
-      @body = codes.join("\n")
+      total << codes.join("\n")
     end
+    
+    @body = total.join("\n")
   end
   
   def rehash_functions

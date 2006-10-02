@@ -86,7 +86,7 @@ class RsToCProcessor < SexpProcessor
     return translator 
   end
   
-  def initialize(ft, cg)
+  def initialize(ft, cg, prefix="")
     super()
     @info = ft
     @cg = cg
@@ -97,6 +97,7 @@ class RsToCProcessor < SexpProcessor
     @ret_types = []
     @scope_type = nil
     @last_type = nil
+    @prefix = prefix
   end
   
   attr_reader :info, :ivars
@@ -141,9 +142,16 @@ class RsToCProcessor < SexpProcessor
   
   def calculate_call(x)
     s_recv = x.shift
-    recv = process s_recv
     meth = x.shift
     args = x.shift
+
+    if meth == :new and s_recv.first == :const
+      cf = @info.to_c_func(meth, s_recv.type)
+      args.shift
+      cargs = args.map { |i| process(i) }.join(", ")
+      return "#{cf}(#{cargs})"
+    end
+    recv = process s_recv
     
     cast = false
 
@@ -175,6 +183,8 @@ class RsToCProcessor < SexpProcessor
   end
   
   def output_call(x, block=nil)
+    return x if String === x
+    
     if x.external?
       x.args.shift
       in_args = x.args.map { |a| process a }
@@ -211,7 +221,7 @@ class RsToCProcessor < SexpProcessor
   def process_block(x)
     output = []
     until x.empty?
-      output << "#{process x.shift};"
+      output << "#{@prefix}#{process x.shift};"
     end
     return output.join("\n")
   end

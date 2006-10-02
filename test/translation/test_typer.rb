@@ -268,19 +268,19 @@ class TestTyper < Test::Unit::TestCase
     
     m1 = box.defined_methods[:get]
     assert_equal Type.Fixnum, m1.type
-    assert_equal nil, m1.args
+    assert_equal [], m1.args
     
     m2 = box.defined_methods[:go]
     assert_equal Type.Fixnum, m2.type
-    assert_equal nil, m2.args
+    assert_equal [], m2.args
     
     m3 = box2.defined_methods[:get2]
     assert_equal Type.String, m3.type
-    assert_equal nil, m3.args
+    assert_equal [], m3.args
     
     m4 = box2.defined_methods[:go2]
     assert_equal Type.String, m4.type
-    assert_equal nil, m4.args
+    assert_equal [], m4.args
     
     b1 = box.defined_methods[:get].body
     b2 = box2.defined_methods[:get2].body
@@ -523,7 +523,7 @@ class TestTyper < Test::Unit::TestCase
     ]
     
     sx = [:class, [:colon2, :Container], nil, [:scope, [:block,
-      [:defn, :go, [:args], [:scope, [:block, 
+      [:defn, :go, [:args, [:n], [], [], nil], [:scope, [:block, 
         [:yield, [:array, [:lit, 100]]]
       ]]],
       
