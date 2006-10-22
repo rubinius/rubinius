@@ -1,0 +1,100 @@
+#include "rubinius.h"
+#include "heap.h"
+#include <stdlib.h>
+#include <string.h>
+
+rheap heap_new(int size) {
+  rheap h = (rheap)malloc(sizeof(struct heap));
+  memset((void*)h, 0, sizeof(struct heap));
+  h->size = size;
+  heap_allocate_memory(h);
+  return h;
+}
+
+int heap_deallocate(rheap h) {
+  if(!heap_allocated_p(h)) {
+    return FALSE;
+  }
+  if(h->address) {
+    free((void*)(h->address));
+  }
+  h->size = 0;
+  h->address = 0;
+  h->current = 0;
+  /* Maybe free() here? */
+  return TRUE;
+}
+
+int heap_allocate_memory(rheap h) {
+  h->address = (int)malloc(h->size);
+  if(!h->address) {
+    return FALSE;
+  }
+  h->scan = h->address;
+  memset((void*)(h->address), 0, h->size);
+  h->last = h->address + h->size;
+  return heap_reset(h);
+}
+
+int heap_reset(rheap h) {
+  h->current = h->address;
+  return TRUE;
+}
+
+int heap_contains_p(rheap h, int addr) {
+  if(addr < h->address) return FALSE;
+  if(addr >= h->address + h->size) return FALSE;
+  return TRUE;
+}
+
+int heap_allocated_p(rheap h) {
+  return h->address > 0;
+}
+
+int heap_allocate(rheap h, int size) {
+  int addr;
+  /* maybe raise exception here? */
+  if(!heap_enough_space_p(h, size)) {
+    printf("HEAP ERROR: Not enough space to allocate %d bytes. total:%d, used:%d, left:%d.\n", size, h->size, h->current - h->address, h->last - h->current);
+    abort();
+    return 0;
+  }
+  addr = h->current;
+  h->current += size;
+  return addr;
+}
+
+int heap_enough_space_p(rheap h, int size) {
+  if(h->current + size > h->last) return FALSE;
+  return TRUE;
+}
+
+OBJECT heap_copy_object(rheap h, OBJECT obj) {
+  int out;
+  int size;
+  if(heap_contains_p(h, obj)) return obj;
+  size = SIZE_IN_BYTES(obj);
+  
+  out = heap_allocate(h, size);
+  if(!out) return 0;
+  memcpy((void*)out, (void*)obj, size);
+  return (OBJECT)out;
+}
+
+/* Functions to support the cheney scan algorithm. */
+
+OBJECT heap_next_object(rheap h) {
+  return (OBJECT)(h->current);
+}
+
+OBJECT heap_fully_scanned_p(rheap h) {
+  return h->scan == h->current;
+}
+
+OBJECT heap_next_unscanned(rheap h) {
+  OBJECT obj;
+  if(heap_fully_scanned_p(h)) return 0;
+  obj = (OBJECT)(h->scan);
+  h->scan += SIZE_IN_BYTES(obj);
+  return obj;  
+}

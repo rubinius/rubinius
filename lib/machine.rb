@@ -35,6 +35,14 @@ class Machine
     return true
   end
   
+  def compile_file(path)
+    begin
+      meth = @constructor.load_file path
+    rescue LoadError => e
+      puts "Unable to compile '#{path}'. #{e.message} (#{e.class})"
+    end
+  end
+  
   def run_code(code)
     begin
       meth = @constructor.compile(code)

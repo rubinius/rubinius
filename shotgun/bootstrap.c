@@ -1,0 +1,88 @@
+#include "rubinius.h"
+#include "object.h"
+#include "symbol.h"
+#include "module.h"
+#include <assert.h>
+#define BC(o) BASIC_CLASS(o)
+
+void cpu_bootstrap_exceptions(STATE) {
+  int sz;
+  sz = 2;
+  
+  OBJECT exc, std, arg, loe;
+  
+  #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
+  
+  exc = dexc(Exception, BC(object));
+  dexc(fatal, exc);
+  std = dexc(StandardError, exc);
+  arg = dexc(ArgumentError, exc);
+  dexc(NameError, std);
+  dexc(NoMethodError, exc);
+  dexc(SyntaxError, exc);
+  loe = dexc(LoadError, exc);
+  dexc(RuntimeError, std);
+  dexc(SystemCallError, std);
+  
+  state->global->exc_arg = arg;
+  state->global->exc_loe = loe;
+}
+
+void cpu_bootstrap(STATE) {
+  OBJECT cls, obj;
+  
+  cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
+  HEADER(cls)->klass = cls;
+  class_set_instance_fields(cls, CLASS_FIELDS);
+  BC(class) = cls;
+  assert(cls == CLASS_OBJECT(cls));
+  obj = _object_basic_class(state, Qnil);
+  BC(object) = obj;
+  BC(module) = _module_basic_class(state, obj);
+  class_set_superclass(cls, BC(module));
+  BC(metaclass) = _metaclass_basic_class(state, cls);
+  object_create_metaclass(state, obj, cls);
+  object_create_metaclass(state, BC(module), object_metaclass(state, obj));
+  object_create_metaclass(state, BC(class), object_metaclass(state, BC(module)));
+  
+  BC(symbol) = _symbol_class(state, obj);
+  BC(tuple) = _tuple_class(state, obj);
+  BC(array) = _array_class(state, obj);
+  BC(bytearray) = _bytearray_class(state, obj);
+  BC(hash) = _hash_class(state, obj);
+  BC(string) = _string_class(state, obj);
+  BC(symtbl) = _symtbl_class(state, obj);
+  BC(methtbl) = _methtbl_class(state, BC(hash));
+  BC(cmethod) = _cmethod_class(state, obj);
+  BC(io) = _io_class(state, obj);
+  BC(methctx) = _methctx_class(state, obj);
+  BC(blokctx) = _blokctx_class(state, obj);
+  
+  state->global->symbols = symtbl_new(state);
+  
+  module_setup(state, obj, "Object");
+  module_setup(state, cls, "Class");
+  module_setup(state, BC(module), "Module");
+  module_setup(state, BC(metaclass), "MetaClass");
+  module_setup(state, BC(symbol), "Symbol");
+  module_setup(state, BC(tuple), "Tuple");
+  module_setup(state, BC(array), "Array");
+  module_setup(state, BC(bytearray), "ByteArray");
+  module_setup(state, BC(hash), "Hash");
+  module_setup(state, BC(string), "String");
+  module_setup(state, BC(symtbl), "SymbolTable");
+  module_setup(state, BC(methtbl), "MethodTable");
+  module_setup(state, BC(cmethod), "CompiledMethod");
+  module_setup(state, BC(io), "IO");
+  module_setup(state, BC(methctx), "MethodContext");
+  module_setup(state, BC(blokctx), "BlockContext");
+  
+  rbs_const_set(state, obj, "Symbols", state->global->symbols);
+  BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
+  BC(true_class) = rbs_class_new(state, "TrueClass", 0, obj);
+  BC(false_class) = rbs_class_new(state, "FalseClass", 0, obj);
+  BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, obj);
+  BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
+  
+  cpu_bootstrap_exceptions(state);
+}

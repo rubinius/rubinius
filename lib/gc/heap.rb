@@ -8,7 +8,7 @@ class Heap
   end
   
   def deallocate
-    return unless allocated?
+    return 0 unless allocated?
     Memory.release_memory @address
     @size = 0
     @address = 0
@@ -65,7 +65,7 @@ class Heap
     Memory.transfer_memory obj.address, sz, d2
     return RObject.new(d2)
   end
-  
+=begin
   def each_object
     addr = @address
     last = @current
@@ -75,4 +75,5 @@ class Heap
       addr += obj.memory_size
     end
   end
+=end
 end

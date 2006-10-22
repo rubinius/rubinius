@@ -298,6 +298,10 @@ class TypeInfo
     end
     
     ty = @types[type]
+    unless ty
+      raise "Unable to figure out info on type '#{ty}'"
+    end
+    
     if func = @types[type].find(function)
       return func
     end

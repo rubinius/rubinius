@@ -64,12 +64,24 @@ class RsNormalizer < SexpProcessor
     end
   end
   
-  def initialize(state=nil, full=false)
+  def initialize(state=nil, full=false, lines=false)
     super()
     self.auto_shift_type = true
     self.expected = Array
     @state = state || RsLocalState.new
     @full = full
+    @lines = lines
+  end
+  
+  def process(x)
+    if @lines
+      line = x.pop
+      out = super
+      out.unshift line
+      return out
+    else
+      super
+    end
   end
   
   def process_iter(x)
@@ -198,6 +210,29 @@ class RsNormalizer < SexpProcessor
     end
     
     [:if, process(cond), process(thn), process(els)]
+  end
+  
+  def process_scope(y)
+    x = y.dup
+    y.clear
+    
+    if x.size == 1
+      vars = []
+    else
+      vars = x.pop
+    end
+    
+    body = x.shift
+
+    if x.size > 0
+      body = [:block, body, x]
+    elsif body and body.first != :block
+      body = [:block, body]
+    end
+
+    body = process body
+    
+    [:scope, body, vars]
   end
   
   def process_while(x, kind=:while)

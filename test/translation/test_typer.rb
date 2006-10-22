@@ -298,11 +298,11 @@ class TestTyper < Test::Unit::TestCase
     # assert_equal Type.Fixnum, d1.type
     # assert_equal Type.String, d2.type
     
-    assert_equal [[:ivar, :@age]], b1.to_a
-    assert_equal [[:ivar, :@age]], b2.to_a
+    assert_equal [:block, [:ivar, :@age]], b1.to_a
+    assert_equal [:block, [:ivar, :@age]], b2.to_a
     
-    s1 = [[:iasgn, :@age, [:lit, 1]]]
-    s2 = [[:iasgn, :@age, [:str, "blah"]]]
+    s1 = [:block, [:iasgn, :@age, [:lit, 1]]]
+    s2 = [:block, [:iasgn, :@age, [:str, "blah"]]]
     
     assert_equal Type.Fixnum, b3.type
     assert_equal Type.String, b4.type
@@ -579,12 +579,14 @@ class TestTyper < Test::Unit::TestCase
       [:class, [:colon2, :Box], nil, [:scope, [:block,
       [:comment, " T:String => String"],
       [:defn, :go, [:args, [:a], [], [], nil], [:scope, [:block,
-        [:ivar, :@name]
+        [:lvar, :a, 2]
       ]]]
       ]]]
     ]]
     
     out = trans sx
+    
+    pp out
     
     con = @ti.classes[:Box]
     assert_equal Type.String, con.defined_methods[:go].type    
@@ -608,6 +610,17 @@ class TestTyper < Test::Unit::TestCase
     assert_equal ['rocks'], con.defined_methods[:go].tags
     
     # pp out
+  end
+  
+  def test_arg_types
+    sx = [:defn, :go, [:args, [:a], [], [], nil],
+      [:scope, [:block,
+        [:lasgn, :a, 2, [:lit, 10]]
+      ]]
+    ]
+    
+    out = trans sx
+    pp out
   end
   
 end

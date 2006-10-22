@@ -82,14 +82,36 @@ class ExtractRequires < SexpProcessor
 end
 
 class ExtractHints < SexpProcessor
-  def initialize
-    super
+  def initialize(coms=[], check_lines=false)
+    super()
     self.expected = Array
+    @check_lines = check_lines
     @hints = Hash.new
     @current_class = nil
+    @comments = Hash.new
+    coms.each do |c|
+      @comments[c.first] = c.last
+    end
   end
   
   attr_reader :hints
+  
+  def process(x)
+    unless @check_lines
+      return super
+    end
+    
+    unless x.first == :block
+      if Fixnum === x.last
+        @line_no = x.pop
+      end
+    end
+    p :___________
+    p x
+    out = super(x)
+    p out
+    return out
+  end
   
   def process_class(x)
     x.shift
@@ -107,9 +129,8 @@ class ExtractHints < SexpProcessor
     return [:class, name, sup, nb]
   end
   
-  def process_comment(x)
-    x.shift
-    str = x.shift.strip
+  def parse_comment(str)
+    str.strip!
     hint = []
     if m = /T:\s*([\w\s]*) => (\w*)/.match(str)
       ret = $2
@@ -121,6 +142,11 @@ class ExtractHints < SexpProcessor
     end
         
     return hint    
+  end
+  
+  def process_comment(x)
+    x.shift
+    parse_comment x.shift
   end
   
   def process_block(x)
@@ -143,6 +169,11 @@ class ExtractHints < SexpProcessor
     if @hint
       @hints[[@current_class, name]] = @hint
     end
+    
+    if hint = @comments[@line_no - 1]
+      @hints[[@current_class, name]] = parse_comment(hint)
+    end
+    
     x.clear
     []
   end

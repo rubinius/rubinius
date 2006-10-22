@@ -132,6 +132,11 @@ class RsToCProcessor < SexpProcessor
     "NIL"
   end
   
+  def process_const(x)
+    x.shift
+    "NULL"
+  end
+  
   Call = Struct.new(:func, :args, :cast, :recv, :recv_type)
   
   class Call
@@ -213,6 +218,7 @@ class RsToCProcessor < SexpProcessor
   
   def process_scope(x)
     body = x.shift
+    x.clear
     out = process body
     @scope_type ||= body.type
     return out

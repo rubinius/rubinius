@@ -4,6 +4,10 @@ require 'translation/rbs_translate'
 
 class TestRubiniusTranslator < Test::Unit::TestCase
   
+  def setup
+    TypeInfo::CodeGenerator.reset
+  end
+  
   Code1 = <<-CODE
   class Box
     attr_accessor :age
@@ -197,5 +201,52 @@ struct rbc_Box* rbc_Box_s_train_initialize() {
 }
     CODE
     assert_equal exc_body, trans.body
+  end
+  
+  Code6 = <<-CODE
+  class Box
+    # T:Fixnum => Fixnum
+    def start(idx)
+      idx
+    end
+  end
+  CODE
+  
+  def test_translation_with_comments
+    trans = RubiniusTranslator.new("rbc_")
+    trans.load_types
+    trans.load Code6
+    
+    trans.translate_to_c
+
+    exc_header = <<-CODE
+struct rbc_Box {
+
+};
+
+int rbc_Box_start(struct rbc_Box *self, int idx);
+struct rbc_Box *rbc_Box_new();
+    CODE
+    
+    exc_code = <<-CODE
+struct rbc_Box *rbc_Box_new() {
+  struct rbc_Box *self;
+  self = (struct rbc_Box*)malloc(sizeof(struct rbc_Box));
+  return self;
+}
+
+struct _locals1 {
+  int idx;
+};
+
+int rbc_Box_start(struct rbc_Box *self, int idx) {
+  struct _locals1 _locals, *locals = &_locals;
+  locals->idx = idx;
+  return locals->idx;
+}
+    CODE
+    
+    assert_equal exc_header, trans.header
+    assert_equal exc_code, trans.body
   end
 end

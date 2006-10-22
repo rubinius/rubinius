@@ -29,6 +29,32 @@ add(:address) do |i|
   end
 end
 
+add(:field_address) do |i|
+  i.type = Type.Fixnum
+  i.args = [Type.Fixnum]
+  i.gen do |g, me, args|
+    fel = arg.shift
+    "NTH_FIELD(#{me}, #{fel})"
+  end
+end
+
+add(:fields) do |i|
+  i.type = Type.Fixnum
+  i.args = []
+  i.gen do |g, me, args|
+    "NUM_FIELDS(#{me})"
+  end
+end
+
+add(:==) do |i|
+  i.type = Type.bool
+  i.args = [Type.RObject]
+  i.gen do |g, me, args|
+    lhs = args.shift
+    "#{me} == #{lhs}"
+  end
+end
+
 def immediate(name, val)
   add(name, Type.RObjectMeta) do |i|
     i.type = Type.RObject

@@ -14,17 +14,27 @@ class RubiniusTranslator
     @prefix = prefix
   end
   
-  attr_reader :header, :body
+  attr_reader :header, :body, :hints
   
-  def load(code)    
-    hinted = SydneyParser.unified_sexp code
-    hints = ExtractHints.new
-    hints.process hinted
+  def load(code)
+    s1 = SydneyParser.load_string code, true
     
+    # norm = RsNormalizer.new(RsLocalState.new, true)
+    
+    # hinted = norm.process hinted
+    hinted = s1.sexp(true)
+    
+    @hints = ExtractHints.new(s1.comments, true)
+    @hints.process hinted
+    
+    # pp @hints.hints
+    
+    @typer.hints = @hints.hints
     syd = SydneyParser.load_string code
     norm = @typer.normalize syd.sexp
     @typer.process norm
-    @typer.process norm
+    out = @typer.process norm
+    # pp out
   end
   
   def classes
@@ -54,6 +64,9 @@ class RubiniusTranslator
       sorted.each do |fname, func|
         next unless func.body
         raise "#{fname} is incompleted." if func.type.unknown?
+        puts "#{name}##{fname}.."
+        # puts "========== #{fname}"
+        # pp func.body
         
         cg = TypeInfo::CodeGenerator.new(@info)
         func.arguments.each do |f_name, f_type|
@@ -62,7 +75,7 @@ class RubiniusTranslator
         
         rc = RsToCProcessor.new(@info, cg, "  ")
         sbody = func.body
-        sbody.unshift :block
+        # sbody.unshift :block
         unless sbody.last.first == :return
           ending = t(:return, sbody[-1])
           ending.set_type sbody[-1].type

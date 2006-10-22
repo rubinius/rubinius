@@ -11,7 +11,7 @@ class Class
   end
   
   def instance_fields=(num)
-    put 5, num
+    put 6, num
   end
   
 end

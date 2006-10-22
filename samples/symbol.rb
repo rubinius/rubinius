@@ -1,3 +1,3 @@
 x = :blah
-puts x
+p x
 # puts "hey #{x}, you suck #{5}"

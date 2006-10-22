@@ -270,6 +270,7 @@ module Bytecode
       
       def process_block(x)
         while i = x.shift
+          next if i.empty?
           process i
         end
       end
@@ -414,7 +415,7 @@ module Bytecode
         sup = x.shift
         body = x.shift
         
-        add "push_encloser"
+        # add "push_encloser"
         
         if name.size == 2
           under = nil
@@ -448,14 +449,15 @@ module Bytecode
         add "pop"
         add "send __class_init__"
         add "pop"
-        add "set_encloser"
+        add "push_encloser"
+        # add "set_encloser"
       end
       
       def process_module(x)
         name = x.shift
         body = x.shift
         
-        add "push_encloser"
+        # add "push_encloser"
         
         if name.size == 2
           under = nil
@@ -482,7 +484,8 @@ module Bytecode
         add "pop"
         add "send __module_init__"
         add "pop"
-        add "set_encloser"
+        add "push_encloser"
+        # add "set_encloser"
       end
       
       def process_rescue(x)

@@ -45,7 +45,7 @@ class RsTyper < SexpProcessor
     @ivars = klass.ivars
     @self_type = [klass]
     
-    out = process func.body.first
+    out = process func.body
     func.body = out
   end
   
@@ -227,7 +227,7 @@ class RsTyper < SexpProcessor
     test = called.yield_args
     if test
       if test.size != args.size
-        raise "Mis-match arg count on yield. #{args.size} for #{test.size}."
+        raise "Mis-match arg count on yield. #{args.size} for #{test.size}: #{called.inspect}"
       end
       
       test = test.dup
@@ -486,6 +486,10 @@ class RsTyper < SexpProcessor
       @info.add_function mcls, func
     end
     
+    if func and func.kind_of? TypeInfo::ExternalInfo
+      return t()
+    end
+    
     out = do_def_body func, x, name, 3, 4
     
     @self_type.pop
@@ -497,6 +501,8 @@ class RsTyper < SexpProcessor
     name = x[1]
     func = nil
     tags = nil
+    # p [@self_type.last.name, name]
+    # p @hints
     if cls = @self_type.last
       if @hint and @hint[1] == :type
         ret = @hint.last.shift
@@ -510,7 +516,21 @@ class RsTyper < SexpProcessor
         args = nil
       end
       
+      if hint = @hints[[cls.name, name]]
+        hint.shift
+        kind = hint.shift
+        if kind == :type
+          ret = hint.shift
+          args = hint.shift
+        end
+      end
+      
       func = @info.find(cls.type, name) rescue nil
+      
+      # If there is an external definition for this defn, skip it.
+      if func and func.kind_of? TypeInfo::ExternalInfo
+        return t()
+      end
       
       unless func
         # puts "Adding #{name} to #{cls.inspect}, #{ret.inspect}, #{args.inspect}"
@@ -569,10 +589,15 @@ class RsTyper < SexpProcessor
       func.arg_names = names
       func.check_args new_args
     end
-    
+
     body = process! x, bidx
+    
+    # pp body
+    # pp [x, bidx]
     if func
-      func.body = body[1][1..-1].set_type(body.type)
+      
+      func.body = body[1].set_type(body.type)
+
       if func.type
         if func.type.unknown?
           if body.type.unknown?

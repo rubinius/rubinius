@@ -113,4 +113,21 @@ class TestExtractHints < Test::Unit::TestCase
     hint = ex.hints[[:Box, :go]]
     assert_equal [:hint, :tag, ["rocks"]], hint
   end
+  
+  def test_process_using_external_comments
+    sx = [:block, 
+      [:class, [:colon2, :Box], nil, [:scope, [:block, 
+        [:defn, :go, [:args], [:scope, [:block,
+          [:true]
+        ]], 3]
+      ]]]
+    ]
+    
+    coms = [[2, 1, " hints:rocks"]]
+    
+    ex = ExtractHints.new(coms, true)
+    ex.process sx
+    hint = ex.hints[[:Box, :go]]
+    assert_equal [:hint, :tag, ["rocks"]], hint    
+  end
 end

@@ -35,9 +35,10 @@ class RObject
   
   def initialize_fields
     start = @address + HeaderSize
-    
-    0.upto(fields-1) do |i|
+    i = 0
+    0.upto(fields-1) do
       Memory.store_long start, i, 4
+      i += 1
     end
     
     return self
@@ -72,7 +73,9 @@ class RObject
   end
   
   def flag_set(fl)
-    self.flags = flags | fl
+    cur = Memory.fetch_byte @address
+    cur = cur | fl
+    Memory.store_byte @address, cur.to_i
   end
   
   def flags2
@@ -91,12 +94,13 @@ class RObject
     out = []
     
     return out if stores_bytes?
-    
-    0.upto(fields-1) do |i|
+    i = 0
+    0.upto(fields-1) do
       obj = at(i)
       if obj.reference?
         out << [obj,i]
       end
+      i += 1
     end
     out
   end
@@ -107,6 +111,7 @@ class RObject
     @address
   end
     
+  # T:RObject => bool
   def ==(obj)
     @address == obj.address
   end

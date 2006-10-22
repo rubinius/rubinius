@@ -244,9 +244,9 @@ class TestRsToC < Test::Unit::TestCase
   end
   
   def test_process_scope
-    input = [:scope, [:block, 
+    input = [:scope, [:block,
       [:lit, 8]
-    ]]
+    ], []]
     
     out = trans input
     assert_equal "8;", out

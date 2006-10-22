@@ -7,10 +7,10 @@ add(:allocate_memory) do |i|
   i.inline = true
   i.type = Type.Fixnum
   i.args = [Type.Fixnum]
-  i.gen do |g, cur, sz|
+  i.gen do |g, cur, args|
     sz = args.shift
     t = g.temp(Type.Fixnum)
-    t.cast_to "malloc(#{sz})"
+    t.cast_as "malloc(#{sz})"
   end
 end
 
@@ -22,7 +22,7 @@ add(:resize_memory) do |i|
     addr = args.shift
     sz = args.shift
     t = g.temp(Type.Fixnum)
-    t.cast_to "realloc((void*)#{addr}, #{sz})"
+    t.cast_as "realloc((void*)#{addr}, #{sz})"
   end
 end
 
@@ -44,7 +44,7 @@ add(:fetch_long) do |i|
     t = g.temp("long*")
     t2 = g.temp(Type.Fixnum)
     g << "#{t} = (long*)(#{addr} + (#{args.shift} * sizeof(long)))"
-    g << t2.cast_to("*#{t}")
+    g << t2.cast_as("*#{t}")
     g << "#{t2}"
   end
 end

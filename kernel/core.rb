@@ -19,7 +19,6 @@ module Kernel
     end
     Ruby.asm "push exc\nraise_exc"
   end
-  
 end
 
 class InvalidIndex < Exception
