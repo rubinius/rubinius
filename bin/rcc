@@ -99,18 +99,16 @@ def show_method(m, indent=0)
     iputs line, indent + 2
   end
   iputs "Literals:", indent
-  meths = m.literals.select { |mo| 
-    Bytecode::MethodDescription === mo
-  }
-  others = m.literals - meths
-  others.each do |lit|
-    iputs lit.inspect, indent + 2
+  i = 0
+  m.literals.each do |lit|
+    if Bytecode::MethodDescription === lit
+        iputs "#{i}: MethodDescription", indent + 2
+        show_method(lit, indent + 2)
+    else
+        iputs "#{i}: #{lit.inspect}", indent + 2
+    end
+    i += 1
   end
-  
-  meths.each do |lit|
-    show_method(lit, indent + 1)
-  end
-  
   
   iputs "=== done with #{m.name}", indent
 end

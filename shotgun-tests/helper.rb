@@ -1,5 +1,7 @@
 class RubiniusError < RuntimeError; end
 
+Signal.trap("CHLD") {}
+
 module RubiniusHelper
   def caller_name(which=1)
     line = caller[which]
@@ -33,12 +35,16 @@ module RubiniusHelper
     end
     w2.close
     Process.wait(pid)
-    if $?.exitstatus != 0
-      error = r.read
-      error << "\n    ========================================="
-      raise RubiniusError, error
-    end
     out = r.read
+    if !$?.exitstatus and $?.exitstatus != 0
+      error = out
+      error << "\n    ========================================="
+      if $?.exitstatus == 1
+        raise RubiniusError, error
+      elsif !$?.exitstatus or $?.exitstatus > 100
+        raise RubiniusError, "Shotgun has crashed"
+      end
+    end
     r.close
     return out
     # io = IO.popen()

@@ -12,8 +12,10 @@ module Kernel
     STDOUT.puts obj.inspect
   end
   
-  def print(obj)
-    STDOUT.write obj.to_s
+  def print(*args)
+    args.each do |obj|
+      STDOUT.write obj.to_s
+    end
   end
   
   def raise(exc, msg=nil)

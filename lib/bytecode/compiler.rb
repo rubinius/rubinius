@@ -744,9 +744,12 @@ module Bytecode
             str << "passed_arg #{idx}\ngit #{lbl}\n"
             save = @output
             @output = ""
+            cur = @method
+            @method = meth
             process var.last
             str << @output
             @output = save
+            @method = cur
             idx += 1
             str << "#{lbl}:\nset #{var[1]}:#{state.local(var[1])}\n"
           end
