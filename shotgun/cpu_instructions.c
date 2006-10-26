@@ -24,7 +24,11 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
     val = class_allocate(state);
+    
+    /* Push superclass instance information down. */
     class_set_instance_fields(val, class_get_instance_fields(state->global->object));
+    class_set_instance_flags(val, class_get_instance_flags(state->global->object));
+    
     if(NIL_P(sup)) {
       sup = state->global->object;
     }
@@ -177,7 +181,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
         /* Worked! */
         return TRUE;
       }
-      printf("Primitive failed!\n");
+      printf("Primitive failed! -- %d\n", prim);
     } else if(req >= 0 && object_kind_of_p(state, mo, state->global->cmethod)) {
       /* raise an exception about them not doing it right. */
       cpu_raise_arg_error(state, c, args, req);

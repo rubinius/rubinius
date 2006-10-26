@@ -28,6 +28,10 @@ struct time_data {
 
 #define MAX_SYSTEM_PRIM 2048
 
+#define INDEXED(obj) (REFERENCE_P(self) || !object_stores_bytes_p(state, obj))
+
+#define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
+
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;

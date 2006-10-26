@@ -115,7 +115,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!FIXNUM_P(t1) || !REFERENCE_P(self) || object_stores_bytes_p(state, self)) {
+    if(!FIXNUM_P(t1) || !INDEXED(self)) {
       _ret = FALSE;
     } else {
       j = FIXNUM_TO_INT(t1);
@@ -134,7 +134,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
     t2 =   stack_pop();
-    if(!FIXNUM_P(t1) || !REFERENCE_P(self) || object_stores_bytes_p(state, self)) {
+    if(!INDEXED(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       j = FIXNUM_TO_INT(t1);
@@ -164,7 +164,7 @@ class ShotgunPrimitives
   def allocate
     <<-CODE
     self = stack_pop();
-    if(!REFERENCE_P(self)) {
+    if(!RISA(self, class)) {
       _ret = FALSE;
     } else {
       t1 = class_get_instance_fields(self);
@@ -183,7 +183,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!REFERENCE_P(self)) {
+    if(!RISA(self, class)) {
       _ret = FALSE;
     } else {
       if(!FIXNUM_P(t1)) {
@@ -201,7 +201,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!REFERENCE_P(self)) {
+    if(!RISA(self, class)) {
       _ret = FALSE;
     } else {
       if(!FIXNUM_P(t1)) {
@@ -221,7 +221,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
     
-    if(!REFERENCE_P(self) || !FIXNUM_P(t1)) {
+    if(!RISA(self, methctx) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       methctx_set_ip(self, I2N(c->ip));
@@ -246,7 +246,7 @@ class ShotgunPrimitives
   def block_call
     <<-CODE
     self = stack_pop();
-    if(!REFERENCE_P(self)) {
+    if(!RISA(self, blokctx)) {
       _ret = FALSE;
     } else {
       blokctx_set_sender(self, c->active_context);
@@ -261,19 +261,15 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!REFERENCE_P(self) || !object_kind_of_p(state, self, state->global->io)) {
+    if(!RISA(self, io) || !RISA(t1, string)) {
       _ret = FALSE;
     } else {
-      if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->string)) {
-        _ret = FALSE;
-      } else {
-        j = FIXNUM_TO_INT(io_get_descriptor(self));
-        buf = string_byte_address(state, t1);
-        k = FIXNUM_TO_INT(string_get_bytes(t1));
-        k = write(j, buf, k);
-        /* TODO: need to return k here. */
-        _ret = TRUE;
-      }
+      j = FIXNUM_TO_INT(io_get_descriptor(self));
+      buf = string_byte_address(state, t1);
+      k = FIXNUM_TO_INT(string_get_bytes(t1));
+      k = write(j, buf, k);
+      /* TODO: need to return k here. */
+      _ret = TRUE;
     }
     CODE
   end
@@ -282,7 +278,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!REFERENCE_P(self) || !FIXNUM_P(t1)) {
+    if(!RISA(self, io) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
@@ -305,8 +301,7 @@ class ShotgunPrimitives
     t1 =   stack_pop();
     t2 =   stack_pop();
     
-    if(!object_kind_of_p(state, t1, state->global->io) || 
-               !object_kind_of_p(state, t2, state->global->io)) {
+    if(!RISA(t1, io) || !RISA(t2, io)) {
       _ret = FALSE;
     } else {
       j = pipe(fds);
@@ -326,22 +321,28 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
     t2 =   stack_pop();
-    _fobj = fopen(string_as_string(state, t1), string_as_string(state, t2));
-    t3 = NEW_OBJECT(self, 2);
-    SET_FIELD(t3, 0, I2N(fileno(_fobj)));
-    SET_FIELD(t3, 1, t1);
-    stack_push(t3);
+    if(!RISA(t1, string) || !RISA(t2, string)) {
+      _ret = FALSE;
+    } else {
+      _fobj = fopen(string_as_string(state, t1), string_as_string(state, t2));
+      t3 = NEW_OBJECT(self, 2);
+      SET_FIELD(t3, 0, I2N(fileno(_fobj)));
+      SET_FIELD(t3, 1, t1);
+      stack_push(t3);
+    }
     CODE
   end
   
   def io_close
     <<-CODE
     self = stack_pop();
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
-    if(!close(j)) {
-      stack_push(Qtrue);
-    } else {
-      stack_push(Qfalse);
+    if(!RISA(self, io)) {
+      j = FIXNUM_TO_INT(io_get_descriptor(self));
+      if(!close(j)) {
+        stack_push(Qtrue);
+      } else {
+        stack_push(Qfalse);
+      }
     }
     CODE
   end
@@ -370,19 +371,23 @@ class ShotgunPrimitives
   def gettimeofday
     <<-CODE
     t1 = stack_pop(); /* class */
-    do {
-      struct time_data td;
-      struct time_data *tdp;
+    if(!RISA(t1, class)) {
+      _ret = FALSE;
+    } else {
+      do {
+        struct time_data td;
+        struct time_data *tdp;
       
-      j = sizeof(struct time_data) / 4;
-      self = NEW_OBJECT(t1, j+1);
-      object_make_byte_storage(state, self);
-      k = gettimeofday(&td.tv, &td.tz);
-      tdp = (struct time_data*)BYTES_OF(self);
+        j = sizeof(struct time_data) / 4;
+        self = NEW_OBJECT(t1, j+1);
+        object_make_byte_storage(state, self);
+        k = gettimeofday(&td.tv, &td.tz);
+        tdp = (struct time_data*)BYTES_OF(self);
       
-      *tdp = td;
-    } while(0);
-    stack_push(self);
+        *tdp = td;
+      } while(0);
+      stack_push(self);
+    }
     CODE
   end
   
@@ -391,8 +396,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
     
-    if(!object_stores_bytes_p(state, self) || 
-        !object_kind_of_p(state, t1, state->global->string)) {
+    if(!RISA(t1, string) || !REFERENCE_P(self)) {
        _ret = FALSE;
     } else {
       struct tm *time;
@@ -492,7 +496,7 @@ class ShotgunPrimitives
     t2 =   stack_pop();
     t3 =   stack_pop();
     
-    if(!REFERENCE_P(self) || !FIXNUM_P(t1)) {
+    if(!RISA(self, hash) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       hash_add(state, self, FIXNUM_TO_INT(t1), t2, t3);
@@ -508,7 +512,7 @@ class ShotgunPrimitives
     t1 =   stack_pop();
     t2 =   stack_pop();
     
-    if(!REFERENCE_P(self) || !FIXNUM_P(t1)) {
+    if(!RISA(self, hash) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       t3 = hash_get(state, self, FIXNUM_TO_INT(t1));
@@ -541,7 +545,11 @@ class ShotgunPrimitives
   def symbol_lookup
     <<-CODE
     self = stack_pop();
-    stack_push(string_to_sym(state, self));
+    if(!RISA(self, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(string_to_sym(state, self));
+    }
     CODE
   end
   
@@ -608,16 +616,24 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
-    t2 = cpu_unmarshal_file(state, string_as_string(state, t1));
-    stack_push(t2);
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      t2 = cpu_unmarshal_file(state, string_as_string(state, t1));
+      stack_push(t2);
+    }
     CODE
   end
   
   def activate_as_script
     <<-CODE
     self = stack_pop();
-    cpu_run_script(state, c, self);
-    stack_push(Qtrue);
+    if(!RISA(self, cmethod)) {
+      _ret = FALSE;
+    } else {
+      cpu_run_script(state, c, self);
+      stack_push(Qtrue);
+    }
     CODE
   end
   
@@ -626,43 +642,47 @@ class ShotgunPrimitives
     struct stat sb = {0};
     self = stack_pop();
     t1 = stack_pop();
-    j = stat(string_as_string(state, t1), &sb);
-    if(j != 0) {
-      if(errno == ENOENT) {
-        stack_push(I2N(1));
-      } else if(errno == EACCES) {
-        stack_push(I2N(2));
-      } else {
-        stack_push(Qfalse);
-      }
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
     } else {
-      t2 = tuple_new(state, 7);
-      tuple_put(state, t2, 0, I2N((int)sb.st_ino));
-      tuple_put(state, t2, 1, I2N((int)sb.st_mode));
-      if(sb.st_mode & S_IFIFO == S_IFIFO) {
-        t3 = string_to_sym(state, string_new(state, "fifo"));
-      } else if(sb.st_mode & S_IFCHR == S_IFCHR) {
-        t3 = string_to_sym(state, string_new(state, "char"));
-      } else if(sb.st_mode & S_IFDIR == S_IFDIR) {
-        t3 = string_to_sym(state, string_new(state, "dir"));
-      } else if(sb.st_mode & S_IFBLK == S_IFBLK) {
-        t3 = string_to_sym(state, string_new(state, "block"));
-      } else if(sb.st_mode & S_IFREG == S_IFREG) {
-        t3 = string_to_sym(state, string_new(state, "regular"));
-      } else if(sb.st_mode & S_IFLNK == S_IFLNK) {
-        t3 = string_to_sym(state, string_new(state, "link"));
-      } else if(sb.st_mode & S_IFSOCK == S_IFSOCK) {
-        t3 = string_to_sym(state, string_new(state, "link"));
+      j = stat(string_as_string(state, t1), &sb);
+      if(j != 0) {
+        if(errno == ENOENT) {
+          stack_push(I2N(1));
+        } else if(errno == EACCES) {
+          stack_push(I2N(2));
+        } else {
+          stack_push(Qfalse);
+        }
       } else {
-        t3 = string_to_sym(state, string_new(state, "file"));
-      }
-      tuple_put(state, t2, 2, t3);
-      tuple_put(state, t2, 3, I2N((int)sb.st_uid));
-      tuple_put(state, t2, 4, I2N((int)sb.st_gid));
-      tuple_put(state, t2, 5, I2N((int)sb.st_size));
-      tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
+        t2 = tuple_new(state, 7);
+        tuple_put(state, t2, 0, I2N((int)sb.st_ino));
+        tuple_put(state, t2, 1, I2N((int)sb.st_mode));
+        if(sb.st_mode & S_IFIFO == S_IFIFO) {
+          t3 = string_to_sym(state, string_new(state, "fifo"));
+        } else if(sb.st_mode & S_IFCHR == S_IFCHR) {
+          t3 = string_to_sym(state, string_new(state, "char"));
+        } else if(sb.st_mode & S_IFDIR == S_IFDIR) {
+          t3 = string_to_sym(state, string_new(state, "dir"));
+        } else if(sb.st_mode & S_IFBLK == S_IFBLK) {
+          t3 = string_to_sym(state, string_new(state, "block"));
+        } else if(sb.st_mode & S_IFREG == S_IFREG) {
+          t3 = string_to_sym(state, string_new(state, "regular"));
+        } else if(sb.st_mode & S_IFLNK == S_IFLNK) {
+          t3 = string_to_sym(state, string_new(state, "link"));
+        } else if(sb.st_mode & S_IFSOCK == S_IFSOCK) {
+          t3 = string_to_sym(state, string_new(state, "link"));
+        } else {
+          t3 = string_to_sym(state, string_new(state, "file"));
+        }
+        tuple_put(state, t2, 2, t3);
+        tuple_put(state, t2, 3, I2N((int)sb.st_uid));
+        tuple_put(state, t2, 4, I2N((int)sb.st_gid));
+        tuple_put(state, t2, 5, I2N((int)sb.st_size));
+        tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
       
-      stack_push(t2);
+        stack_push(t2);
+      }
     }
     CODE
   end
@@ -688,17 +708,25 @@ class ShotgunPrimitives
   def set_index
     <<-CODE
     self = stack_pop();
-    j = FIXNUM_TO_INT(NTH_FIELD(mo, 3));
-    SET_FIELD(self, j, stack_pop());
-    stack_push(NTH_FIELD(self, j));    
+    if(!INDEXED(self)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(NTH_FIELD(mo, 3));
+      SET_FIELD(self, j, stack_pop());
+      stack_push(NTH_FIELD(self, j));  
+      }  
     CODE
   end
   
   def get_index
     <<-CODE
     self = stack_pop();
-    j = FIXNUM_TO_INT(NTH_FIELD(mo, 3));
-    stack_push(NTH_FIELD(self, j));    
+    if(!INDEXED(self)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(NTH_FIELD(mo, 3));
+      stack_push(NTH_FIELD(self, j));
+    }
     CODE
   end
 end

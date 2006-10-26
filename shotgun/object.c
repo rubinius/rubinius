@@ -78,6 +78,13 @@ int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
     return TRUE;
   }
   
+  /* Normal class inheritence checking. */
+  
+  while(RTEST(found)) {
+    found = class_get_superclass(found);
+    if(found == cls) { return TRUE; }
+  }
+  
   return FALSE;
 }
 
