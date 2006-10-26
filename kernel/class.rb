@@ -30,7 +30,7 @@ class Class
   end
     
   def instance_methods(all=true)
-    mine = methods.keys
+    mine = methods.names
     return mine unless all
     sup = direct_superclass()
     while sup

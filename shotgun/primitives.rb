@@ -604,8 +604,8 @@ class ShotgunPrimitives
       if(j < 0 || k < 0 || m <= (j - k)) {
         _ret = FALSE;
       } else {
-        t3 = bytearray_new(state, j);
-        object_copy_bytes_into(state, self, t3, j, k);
+        t3 = bytearray_new(state, k - j);
+        object_copy_bytes_into(state, self, t3, k, j);
         stack_push(t3);
       }
     }

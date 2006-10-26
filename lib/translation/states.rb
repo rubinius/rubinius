@@ -20,7 +20,6 @@ class RsLocalState
       cnt = @locals.size
       @locals << name
     end
-    puts "Local '#{name}' has index #{cnt}."
     
     return cnt
   end
