@@ -16,9 +16,12 @@ class RsLocalState
   
   def local(name)
     cnt = @locals.index(name)
-    return cnt if cnt
-    cnt = @locals.size
-    @locals << name
+    unless cnt
+      cnt = @locals.size
+      @locals << name
+    end
+    puts "Local '#{name}' has index #{cnt}."
+    
     return cnt
   end
 end

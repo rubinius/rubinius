@@ -1,4 +1,8 @@
 
+module Ruby
+  AtExit = []
+end
+
 module Kernel
   def puts(obj="")
     STDOUT.puts obj.to_s
@@ -27,6 +31,10 @@ module Kernel
   
   def exit(code=0)
     Process.exit(code)
+  end
+  
+  def at_exit(&block)
+    Ruby::AtExit << block
   end
 end
 

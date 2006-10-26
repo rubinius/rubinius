@@ -147,10 +147,24 @@ class RsLocalScoper < SexpProcessor
     end
   end
   
-  def noprocess_defn(x)
+  def process_defn(x)
     y = x.dup
     x.clear
     y.unshift :defn
+    return y
+  end
+  
+  def process_class(x)
+    y = x.dup
+    x.clear
+    y.unshift :class
+    return y
+  end
+  
+  def process_module(x)
+    y = x.dup
+    x.clear
+    y.unshift :module
     return y
   end
 end

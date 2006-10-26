@@ -55,7 +55,8 @@ void cpu_initialize_context(STATE, cpu c) {
         string_new(state, "method_missing"));
   state->global->sym_inherited = string_to_sym(state, 
         string_new(state, "inherited"));
-  
+        
+  HEADER(c->stack)->klass = state->global->tuple;
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {

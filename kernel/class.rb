@@ -91,6 +91,15 @@ class Class
     index_writer(name, idx)
   end
   
+  def define_fields(*fields)
+    i = 0
+    fields.each do |fel|
+      index_reader(fel, i)
+      i += 1
+    end
+    self.instance_fields = i
+  end
+  
   def direct_superclass
     Ruby.asm "push self\npush 5\nfetch_field"
   end

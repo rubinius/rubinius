@@ -692,7 +692,7 @@ class ShotgunPrimitives
         } else if(sb.st_mode & S_IFLNK == S_IFLNK) {
           t3 = string_to_sym(state, string_new(state, "link"));
         } else if(sb.st_mode & S_IFSOCK == S_IFSOCK) {
-          t3 = string_to_sym(state, string_new(state, "link"));
+          t3 = string_to_sym(state, string_new(state, "socket"));
         } else {
           t3 = string_to_sym(state, string_new(state, "file"));
         }

@@ -14,6 +14,8 @@ rescue Object => e
   return
 end
 
+code = 0
+
 begin
   meth.activate_as_script
 rescue Object => e
@@ -21,5 +23,11 @@ rescue Object => e
   puts "    #{e.message} (#{e.class})"
   puts "\nBacktrace:"
   puts e.backtrace.show
-  exit(1)
+  code = 1
 end
+
+Ruby::AtExit.each do |handler|
+  handler.call
+end
+
+exit(code)

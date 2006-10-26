@@ -48,6 +48,18 @@ void machine_collect(machine m) {
   g_ptr_array_free(roots, 0);  
 }
 
+void machine_emit_memory(machine m) {
+  char *fd;
+  FILE *fobj;
+  
+  fd = getenv("MEMORYFD");
+  if(!fd) return;
+  
+  fobj = fdopen(atoi(fd), "w");
+  
+  object_memory_emit_details(m->s, m->s->om, fobj);
+}
+
 OBJECT machine_load_file(machine m, char *path) {
   return cpu_unmarshal_file(m->s, path);
 }

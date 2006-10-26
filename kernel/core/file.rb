@@ -25,8 +25,22 @@ class File < IO
     end
   end
   
+  def self.file?(path)
+    stat(path).kind == :file
+  end
+  
+  def self.directory?(path)
+    stat(path).kind == :dir
+  end
+  
+  def self.link?(path)
+    stat(path).kind == :link
+  end
+  
   class Stat
-    self.instance_fields = 8
+    
+    define_fields :inode, :mode, :kind, :owner, :group, :size, :block, :path
+        
     def self.from_tuple(tup, path)
       obj = allocate
       obj.copy_from tup, 0
@@ -34,14 +48,6 @@ class File < IO
       return obj
     end
     
-    index_reader :inode, 0
-    index_reader :mode, 1
-    index_reader :kind, 2
-    index_reader :owner, 3
-    index_reader :group, 4
-    index_reader :size, 5
-    index_reader :blocks, 6
-    index_reader :path, 7
     
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{self.path} kind=#{self.kind}>"

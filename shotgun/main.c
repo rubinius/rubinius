@@ -25,6 +25,9 @@ int main(int argc, char **argv) {
     return 1;
   }
   
+  machine_collect(m);
+  machine_emit_memory(m);
+  
   // object_memory_print_stats(m->s->om);
     
   return 0;
