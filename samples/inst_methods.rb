@@ -4,5 +4,12 @@ class Blah
     end
 end
 
-p Blah.instance_methods(true)
-p Blah.instance_methods(false)
+meth = Blah.methods
+p meth
+p meth.keys
+p meth.entries
+p meth.keys.to_a
+p meth.to_a
+p meth.to_a(false)
+puts "names"
+p meth.names(false)

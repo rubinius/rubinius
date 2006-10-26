@@ -9,6 +9,7 @@ struct rubinius_cpu {
   OBJECT block, method;
   OBJECT active_context, home_context, main;
   OBJECT exceptions;
+  OBJECT top_context;
   int sp;
   int ip;
   int argcount, args, depth;

@@ -43,4 +43,9 @@ task :kernel do
   fd.close
 end
 
+task :bk => [:kernel] do
+    puts "Compiling kernel.rb..."
+    `bin/rcompile lib/kernel.rb`
+end
+
 # vim: syntax=ruby

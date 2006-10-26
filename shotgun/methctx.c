@@ -25,6 +25,7 @@ void methctx_setup_from_method(STATE, OBJECT mc, OBJECT meth, OBJECT from) {
   methctx_set_bytecodes(mc, cmethod_get_bytecodes(meth));
   methctx_set_sender(mc, from);
   methctx_set_literals(mc, cmethod_get_literals(meth));
+  methctx_set_method(mc, meth);
 }
 
 OBJECT methctx_s_from_method(STATE, OBJECT meth, OBJECT from) {

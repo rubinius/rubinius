@@ -82,6 +82,7 @@ module Bytecode
       Log.info "(Compiling #{path}..)"
       cm = compile_file(path)
       fd = File.open(cp, "w")
+      fd << "RBIS"
       fd << @sm.marshal(cm)
       fd.close
       return cm
@@ -91,6 +92,10 @@ module Bytecode
       cp = compiled_path(path)
       if file_newer?(cp, path)
         fd = File.open(cp)
+        magic = fd.read(4)
+        if magic != "RBIS"
+          raise "Invalid compiled file"
+        end
         str = fd.read
         fd.close
         return @sm.unmarshal(str)

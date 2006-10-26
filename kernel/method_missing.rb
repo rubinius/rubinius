@@ -4,7 +4,7 @@ end
 
 class Object
   def method_missing(meth, *args)
-    exc = NoMethodError.new "No method '#{meth}' on a #{self.class}."
+    exc = NoMethodError.new "No method '#{meth}' on an instance of #{self.class}."
     raise exc
   end
 end

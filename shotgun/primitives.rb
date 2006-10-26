@@ -510,7 +510,7 @@ class ShotgunPrimitives
     if(!REFERENCE_P(self) || !REFERENCE_P(t1)) {
       _ret = FALSE;
     } else {
-      object_copy_fields_from(state, self, t1, NUM_FIELDS(self), 0);
+      object_copy_fields_from(state, t1, self, 0, NUM_FIELDS(t1));
       stack_push(t1);
     }
     CODE

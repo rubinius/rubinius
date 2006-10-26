@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "hash.h"
+#include "string.h"
 
 OBJECT object_new(STATE) {
   return NEW_OBJECT(BASIC_CLASS(object), 0);
@@ -112,6 +113,8 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   
   if(SYMBOL_P(self)) {
     hsh = hsh >> 2;
+  } else if(REFERENCE_P(self) && HEADER(self)->klass == state->global->string) {
+    hsh = string_hash_int(state, self);
   }
   
   return hsh;

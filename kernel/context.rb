@@ -1,4 +1,6 @@
 
+# Hey! Be careful with this! This is used by backtrace and if it doesn't work,
+# you can get recursive exceptions being raise (THATS BAD, BTW).
 class MethodContext
   def self.current
     cur = nil
@@ -102,6 +104,7 @@ class Backtrace
   def fill_from(ctx)
     while ctx
       str = "#{ctx.receiver.to_s}##{ctx.name} at #{ctx.file}:#{ctx.line}"
+      # str = "#{ctx.receiver.to_s}##{ctx.name}"
       @frames << str
       ctx = ctx.sender
     end

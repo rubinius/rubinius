@@ -185,12 +185,16 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
   c->depth++;
+
+  // printf("Calling %s on %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(recv));
   
   mo = cpu_locate_method(state, c, recv, sym, &missing);
   if(cpu_try_primitive(state, c, mo, recv, args)) { return; }
   if(missing) {
     args += 1;
     stack_push(sym);
+    // printf("EEK! method_missing!\n");
+    // abort();
   }
   
   ctx = cpu_create_context(state, c, recv, mo, sym);

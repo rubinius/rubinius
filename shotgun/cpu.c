@@ -43,6 +43,7 @@ void cpu_setup_top_scope(STATE, cpu c) {
 
 void cpu_initialize_context(STATE, cpu c) {
   c->active_context = methctx_new(state, 0);
+  c->top_context = c->active_context;
   methctx_set_raiseable(c->active_context, Qfalse);
   c->home_context = c->active_context;
   c->enclosing_class = state->global->object;
@@ -67,10 +68,13 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->home_context);
   ar(c->main);
   ar(c->literals);
+  ar(c->exceptions);
+  ar(c->top_context);
   // printf("Paths: %d\n", c->paths->len);
   for(i = 0; i < c->paths->len; i++) {
     ar(g_ptr_array_remove_index(c->paths, i));
   }
+  
   #undef ar
 }
 
@@ -89,12 +93,15 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->home_context);
   ar(c->main);
   ar(c->literals);
+  ar(c->exceptions);
+  ar(c->top_context);
   // printf("Update roots: %d, %d\n", start, roots->len);
   for(; start < roots->len; start++) {
     tmp = g_ptr_array_index(roots, start);
     // printf("Adding path %p back in...\n", tmp);
     g_ptr_array_add(c->paths, tmp);
   }
+  
   #undef ar
 }
 
@@ -136,9 +143,9 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
   c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
   
   if(RTEST(c->method)) {
-    c->exception = cmethod_get_exceptions(c->method);
+    c->exceptions = cmethod_get_exceptions(c->method);
   } else {
-    c->exception = Qnil;
+    c->exceptions = Qnil;
   }
 }
 
@@ -166,7 +173,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
     is_block = blokctx_s_block_context_p(state, c->active_context);
     if(consider_block && is_block) {
       home = blokctx_get_home(c->active_context);
-      home_sender = methctx_get_sender(c->active_context);
+      home_sender = methctx_get_sender(home);
       sender = home_sender;
     }
     
@@ -193,14 +200,20 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   OBJECT ctx, table, ent;
   int cur, total, target, idx, l, r;
+  // printf("Setting exception to %p\n", (void*)exc);
   c->exception = exc;
   ctx = c->active_context;
   
   while(RTEST(ctx)) {
+    // printf("Searching for exception handler in %p / %p / %p..\n", ctx, c->exceptions, c->top_context);
     if(!RTEST(methctx_get_raiseable(ctx))) { return; }
+    if(ctx == c->top_context) {
+      printf("Top of activation stack reached!\n");
+      return;
+    }
     
     table = c->exceptions;
-    if(NIL_P(table)) {
+    if(!table || NIL_P(table)) {
       cpu_return_to_sender(state, c, TRUE);
       ctx = c->active_context;
       continue;
@@ -224,8 +237,11 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
     ctx = c->active_context;
   }
   
-  printf("Unable to find exception handler, i'm confused.\n");
-  abort();
+  /* Reset it because it can get overriden in the return_to_senders. */
+  c->exception = exc;
+  
+  // printf("Unable to find exception handler, i'm confused.\n");
+  return;
 }
 
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {

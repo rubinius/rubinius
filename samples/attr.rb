@@ -5,6 +5,10 @@ class Blah
     attr_accessor :bleh
 
     index_accessor :special, 8
+
+    def go(a, *b)
+        1
+    end
 end
 
 puts "creating a blah."

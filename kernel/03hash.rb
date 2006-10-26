@@ -73,4 +73,20 @@ class Hash
     end
     return self
   end
+  
+  def inspect
+    ary = []
+    values_data.each do |tup|
+      while tup
+        str =  tup.at(1).inspect
+        str << "=>"
+        str << tup.at(2).inspect
+        
+        ary << str
+        tup = tup.at(3)
+      end
+    end
+    str = "{#{ary.join(", ")}}"
+    return str
+  end
 end

@@ -56,7 +56,7 @@ class Array
   def []=(idx, ent)
     use = tuple
     if idx >= use.fields
-      nt = Tuple.new(total + 10)
+      nt = Tuple.new(idx + 10)
       nt.copy_from use
       put 1, nt
       use = nt

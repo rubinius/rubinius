@@ -82,7 +82,8 @@ static OBJECT find_entry(STATE, OBJECT h, unsigned int hsh) {
 }
 
 OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
-  OBJECT entry;
+  OBJECT entry, keys;
+  int i;
   
   // printf("hash_add: adding %od\n",hsh);
   entry = find_entry(state, h, hsh);
@@ -94,6 +95,13 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   
   entry = entry_new(state, hsh, key, data);
   add_entry(state, h, hsh, entry);
+  i = FIXNUM_TO_INT(hash_get_entries(h));
+  keys = hash_get_keys(h);
+  if(i == NUM_FIELDS(keys)) {
+    keys = tuple_enlarge(state, keys, 10);
+    hash_set_keys(h, keys);
+  }
+  tuple_put(state, keys, i-1, key);
   return data;
 }
 

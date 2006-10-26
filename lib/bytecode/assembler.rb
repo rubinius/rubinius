@@ -83,6 +83,10 @@ module Bytecode
         end
       end
       
+      if output.first == [0,0,0]
+        output.shift
+      end
+      
       return output
     end
     
@@ -171,7 +175,7 @@ module Bytecode
           # If we're already tracking this line, don't add anything.
           return if ent.last == args.to_i
           ent[1] = @current_op - 1
-        else
+        elsif @current_op > 0
           @source_lines << [0, @current_op, 0]
         end
         @source_lines << [@current_op, nil, args.to_i]
