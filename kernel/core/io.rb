@@ -18,6 +18,22 @@ class IO
     Ruby.primitive :io_read
   end
   
+  def close
+    Ruby.primitive :io_close
+    
+    if self.descriptor == -1
+      raise IOError.new("IO instance already closed")
+    else
+      raise IOError.new("Unable to close instance of IO")
+    end
+  end
+  
+  index_reader :descriptor, 0
+  
+  def closed?
+    self.descriptor == -1
+  end
+  
   def self.create_pipe(lhs, rhs)
     Ruby.primitive :create_pipe
   end

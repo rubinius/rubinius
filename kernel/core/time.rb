@@ -10,6 +10,12 @@ class Time
   def inspect
     strftime("%+")
   end
+  
+  def seconds
+    Ruby.primitive :time_seconds
+  end
+  
+  alias :to_i :seconds
 
   alias :to_s :inspect
 end

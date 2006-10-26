@@ -57,4 +57,9 @@ task :bk => [:kernel] do
     `bin/rcompile lib/kernel.rb`
 end
 
+task :clean do
+    `rm -rf code-cache/*`
+    `cd shotgun; make clean`
+end
+
 # vim: syntax=ruby

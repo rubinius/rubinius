@@ -24,6 +24,16 @@ module Kernel
     cm = CompiledMethod.load_from_file(path)
     cm.activate_as_script
   end
+  
+  def exit(code=0)
+    Process.exit(code)
+  end
+end
+
+class Process
+  def self.exit(code)
+    Ruby.primitive :process_exit
+  end
 end
 
 class InvalidIndex < Exception

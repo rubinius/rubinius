@@ -790,6 +790,11 @@ module Bytecode
         meth = x.shift
         args = x.shift
         
+        if meth == :block_given?
+          add "send_primitive block_given"
+          return
+        end
+        
         if args
           if args.first == :argscat
             process(args)

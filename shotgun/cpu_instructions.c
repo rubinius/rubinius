@@ -25,13 +25,14 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   if(!RTEST(val)) {
     val = class_allocate(state);
     
-    /* Push superclass instance information down. */
-    class_set_instance_fields(val, class_get_instance_fields(state->global->object));
-    class_set_instance_flags(val, class_get_instance_flags(state->global->object));
-    
     if(NIL_P(sup)) {
       sup = state->global->object;
     }
+    
+    /* Push superclass instance information down. */
+    class_set_instance_fields(val, class_get_instance_fields(sup));
+    class_set_instance_flags(val, class_get_instance_flags(sup));
+    
     // printf("Setting superclass of %p to: %p\n", val, sup);
     class_set_superclass(val, sup);
     module_setup_fields(state, val);
@@ -46,9 +47,10 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
       string_append(state, s3, s2);
       s4 = string_to_sym(state, s3);
       module_set_name(val, s4);
-      // printf("Module %s name set to %s\n", _inspect(val), rbs_symbol_to_cstring(state, s4));
+      // printf("Module %s name set to %s (%d)\n", _inspect(val), rbs_symbol_to_cstring(state, s4), FIXNUM_TO_INT(class_get_instance_fields(val)));
     } else {
       module_set_name(val, sym);
+      // printf("Module %s name set to %s (%d)\n", _inspect(val), rbs_symbol_to_cstring(state, sym), FIXNUM_TO_INT(class_get_instance_fields(val)));
     }
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
@@ -181,7 +183,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
         /* Worked! */
         return TRUE;
       }
-      printf("Primitive failed! -- %d\n", prim);
+      // printf("Primitive failed! -- %d\n", prim);
     } else if(req >= 0 && object_kind_of_p(state, mo, state->global->cmethod)) {
       /* raise an exception about them not doing it right. */
       cpu_raise_arg_error(state, c, args, req);
@@ -230,7 +232,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   mo = cpu_locate_method(state, c, recv, sym, &missing);
   
   if(missing) {
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+    // printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
   }
   
   if(missing) {

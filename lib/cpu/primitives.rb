@@ -44,7 +44,10 @@ class CPU::Primitives
     :load_file,
     :activate_as_script,
     :stat_file,
-    :io_open
+    :io_open,
+    :process_exit,
+    :io_close,
+    :time_seconds
   ]
   
   FirstRuntimePrimitive = 1024

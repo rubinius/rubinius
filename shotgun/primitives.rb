@@ -337,11 +337,18 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     if(!RISA(self, io)) {
+      _ret = FALSE;
+    } else {
       j = FIXNUM_TO_INT(io_get_descriptor(self));
-      if(!close(j)) {
-        stack_push(Qtrue);
+      if(j < 0) {
+        _ret = FALSE;
       } else {
-        stack_push(Qfalse);
+        if(!close(j)) {
+          io_set_descriptor(self, I2N(-1));
+          stack_push(Qtrue);
+        } else {
+          stack_push(Qfalse);
+        }
       }
     }
     CODE
@@ -387,6 +394,20 @@ class ShotgunPrimitives
         *tdp = td;
       } while(0);
       stack_push(self);
+    }
+    CODE
+  end
+  
+  # BROKEN!!!! Fix when Bignum is implemented.
+  def time_seconds
+    <<-CODE
+    self = stack_pop();
+    if(!REFERENCE_P(self)) {
+      _ret = FALSE;
+    } else {
+      struct time_data *tdp;
+      tdp = (struct time_data*)BYTES_OF(self);
+      stack_push(I2N(tdp->tv.tv_sec));
     }
     CODE
   end
@@ -683,6 +704,18 @@ class ShotgunPrimitives
       
         stack_push(t2);
       }
+    }
+    CODE
+  end
+  
+  def process_exit
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    if(!FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      exit(FIXNUM_TO_INT(t1));
     }
     CODE
   end
