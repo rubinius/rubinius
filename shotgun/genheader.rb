@@ -29,17 +29,24 @@ Rubinius::Types.each do |name, obj|
   
   fd.puts "OBJECT #{prefix}allocate_with_extra(STATE, int extra);"
   
-  klasses << [name, sz]
+  klasses << [name, sz, obj::TotalFields.first == :instance_variables]
 end
 
 puts "\n/* Code to create the types into classes */\n\n"
 
-klasses.each do |name, sz|
+klasses.each do |name, sz, has_ivars|
   fd.puts "OBJECT _#{name}_basic_class(STATE, OBJECT sup);"
   puts "OBJECT _#{name}_basic_class(STATE, OBJECT sup) {"
   puts "   OBJECT cls;"
   puts "   cls = class_allocate_with_extra(state, 0);"
   puts "   class_set_instance_fields(cls, I2N(#{sz}));"
+  if has_ivars
+    # HACK i hate that this is hardcoded here.
+    flags = "0x02"
+  else
+    flags = "0"
+  end
+  puts "   class_set_instance_flags(cls, I2N(#{flags}));"
   puts "   class_set_superclass(cls, sup);"
   puts "   return cls;"
   puts "}"

@@ -4,7 +4,7 @@ class Array
   end
   
   def inspect
-    "[#{join(", ")}]"
+    "[#{join(", ", :inspect)}]"
   end
   
   def each
@@ -34,11 +34,11 @@ class Array
     return self
   end
   
-  def join(sep)
+  def join(sep, meth=:to_s)
     str = ""
     t = self.total
     return str if t == 0
-    tuple.join_upto(sep, t)
+    tuple.join_upto(sep, t, meth)
   end
   
   def <<(ent)
@@ -57,7 +57,7 @@ class Array
     use = tuple
     if idx >= use.fields
       nt = Tuple.new(idx + 10)
-      nt.copy_from use
+      nt.copy_from use, 0
       put 1, nt
       use = nt
     end
@@ -90,5 +90,26 @@ class Array
     end
     
     return false
+  end
+  
+  def shift
+    ele = self[0]
+    return ele unless ele
+    
+    out = tuple.shift
+    
+    put 1, out
+    put(0, total - 1)
+    return ele
+  end
+  
+  def reverse
+    ary = []
+    i = self.total - 1
+    while i >= 0
+      ary << self[i]
+      i -= 1
+    end
+    return ary
   end
 end

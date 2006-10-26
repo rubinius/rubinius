@@ -1,9 +1,9 @@
 class Exception
   def initialize(message)
-    ctx = MethodContext.current.sender.sender.sender
+    ctx = MethodContext.current.sender.sender
     # puts "EXCEPTION: #{ctx}"
     put 0, message
-    put 1, Backtrace.backtrace
+    put 1, Backtrace.backtrace(ctx)
   end
   
   def backtrace

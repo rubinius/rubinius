@@ -81,7 +81,9 @@ class ShotgunInstructions
   end
   
   def clear_exception
-    "c->exception = Qnil;"
+    <<-CODE
+    c->exception = Qnil;
+    CODE
   end
   
   def push_block

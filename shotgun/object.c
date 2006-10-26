@@ -120,13 +120,42 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   return hsh;
 }
 
+#define CanStoreIvars 0x02
+
+int object_has_ivars(STATE, OBJECT self) {
+  if(FLAG_SET_P(self, CanStoreIvars)) {
+    /* TODO: here we could check that the 1st field
+       is currently storing a Hash for the ivars and also
+       use that to determine if this object has ivars. */
+    return TRUE;
+  }
+  
+  return FALSE;
+}
+
+void object_set_has_ivars(STATE, OBJECT self) {
+  FLAG_SET(self, CanStoreIvars);
+}
+
 OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
   OBJECT tbl, val;
+
+  /* Implements the external ivars table for objects that don't
+     have their own space for ivars. */
+  if(!object_has_ivars(state, self)) {
+    tbl = hash_find(state, state->global->external_ivars, self);
+    if(RTEST(tbl)) {
+      return hash_find(state, tbl, sym);
+    }
+    return Qnil;
+  }
   
   tbl = object_get_instance_variables(self);
+  
+  /* Lazy creation of hash to store instance variables. */
   if(!RTEST(tbl)) {
-    printf("no instance vars!\n");
-    abort();
+    tbl = hash_new(state);
+    object_set_instance_variables(self, tbl);
   }
   
   /*
@@ -139,12 +168,33 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
 }
 
 OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
-  OBJECT tbl;
+  OBJECT tbl, t2;
+  
+  /* Implements the external ivars table for objects that don't
+     have their own space for ivars. */
+  if(!object_has_ivars(state, self)) {
+    tbl = hash_find(state, state->global->external_ivars, self);
+    
+    /* Lazy creation of the hash table for the object. */
+    /* HACK: This breaks any garbage collection of these objects
+         because the GC will see the objects has keys here even
+         if they are not referenced elsewhere... */
+    
+    if(!RTEST(tbl)) {
+      t2 = hash_new(state);
+      hash_set(state, state->global->external_ivars, self, t2);
+      tbl = t2;
+    }
+    hash_set(state, tbl, sym, val);
+    return val;
+  }
   
   tbl = object_get_instance_variables(self);
+  
+  /* Lazy creation of hash to store instance variables. */
   if(!RTEST(tbl)) {
-    printf("no instance vars!\n");
-    abort();
+    tbl = hash_new(state);
+    object_set_instance_variables(self, tbl);
   }
   
   /*

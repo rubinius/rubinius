@@ -2,6 +2,7 @@
 #include "object.h"
 #include "symbol.h"
 #include "module.h"
+#include "hash.h"
 #include <assert.h>
 #define BC(o) BASIC_CLASS(o)
 
@@ -85,4 +86,6 @@ void cpu_bootstrap(STATE) {
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
   
   cpu_bootstrap_exceptions(state);
+  
+  state->global->external_ivars = hash_new(state);
 }

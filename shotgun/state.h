@@ -10,10 +10,14 @@ struct rubinius_globals {
   
   /* the primary symbol table */
   OBJECT symbols;
-  OBJECT method_missing;  
+  OBJECT method_missing;
+  OBJECT sym_inherited;
   
   OBJECT exc_arg;
   OBJECT exc_loe;
+  
+  /* The external ivars table. */
+  OBJECT external_ivars;
 };
 
 #define GLOBAL_cmethod

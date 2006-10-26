@@ -10,6 +10,26 @@ class CompiledMethod
     activate_method
     ASM
   end
+  
+  def self.load_from_file(path)
+    Ruby.primitive :load_file
+  end
+  
+  def activate_as_script
+    Ruby.primitive :activate_as_script
+  end
+  
+  def line_from_ip(i)
+    self.lines.each do |t|
+      start = t.at(0)
+      nd = t.at(1)
+      op = t.at(2)
+      if i >= start and i < nd
+        return op
+      end
+    end
+    return 0
+  end
 end
 
 class Method

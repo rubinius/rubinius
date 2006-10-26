@@ -6,6 +6,7 @@
 #include "tuple.h"
 #include <string.h>
 #include <stdlib.h>
+#include <glib.h>
 
 struct marshal_state {
   int consumed;
@@ -231,4 +232,29 @@ OBJECT cpu_unmarshal(STATE, char *str) {
   struct marshal_state ms;
   ms.consumed = 0;
   return unmarshal(state, str, &ms);
+}
+
+OBJECT cpu_unmarshal_file(STATE, char *path) {
+  gchar *data;
+  GIOChannel *io;
+  GError *err;
+  gsize sz, count = 4;
+  gchar buf[4];
+  OBJECT obj;
+  
+  err = NULL;
+  
+  io = g_io_channel_new_file(path, "r", &err);
+  g_io_channel_set_encoding(io, NULL, &err);
+  g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
+  if(strncmp(buf, "RBIS", 4)) {
+    printf("Invalid compiled file.\n");
+    return FALSE;
+  }
+  g_io_channel_read_to_end(io, &data, &sz, &err);
+  
+  obj = cpu_unmarshal(state, data);
+  g_io_channel_shutdown(io, TRUE, &err);
+  g_io_channel_unref(io);
+  return obj;
 }

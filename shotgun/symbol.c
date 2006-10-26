@@ -2,6 +2,7 @@
 #include "tuple.h"
 #include "hash.h"
 #include "string.h"
+#include "symbol.h"
 
 #define StartSize 256
 #define Increments 32
@@ -58,6 +59,10 @@ OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
   
   obj = symbol_from_index(state, FIXNUM_TO_INT(idx));
   return obj;
+}
+
+OBJECT symbol_to_string(STATE, OBJECT self) {
+  return symtbl_find_string(state, state->global->symbols, self);
 }
 
 OBJECT symtbl_find_string(STATE, OBJECT self, OBJECT sym) {

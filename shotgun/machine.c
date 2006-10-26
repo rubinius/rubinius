@@ -21,6 +21,7 @@ machine machine_new() {
   cpu_setup_top_scope(m->s, m->c);
   cpu_initialize_context(m->s, m->c);
   
+  machine_set_const(m, "MAIN", m->c->main);
   current_machine = m;
   
   return m;
@@ -35,6 +36,11 @@ void machine_collect(machine m) {
   /* truncate the free_context list since we don't care about them
      after we've collected anyway */
   m->s->free_contexts->len = 0;
+  
+  /* HACK: external_ivars needs to be moved out of being a generic
+      global and being a special case one so that it's references
+      can't keep objects alive. */
+      
   object_memory_collect(m->s->om, roots);
   memcpy(m->s->global, roots->pdata, sizeof(struct rubinius_globals));
   cpu_update_roots(m->s, m->c, roots, NUM_OF_GLOBALS);
@@ -43,24 +49,7 @@ void machine_collect(machine m) {
 }
 
 OBJECT machine_load_file(machine m, char *path) {
-  gchar *data;
-  GIOChannel *io;
-  GError *err;
-  gsize sz, count = 4;
-  gchar buf[4];
-  
-  err = NULL;
-  
-  io = g_io_channel_new_file(path, "r", &err);
-  g_io_channel_set_encoding(io, NULL, &err);
-  g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
-  if(strncmp(buf, "RBIS", 4)) {
-    printf("Invalid compiled file.\n");
-    return FALSE;
-  }
-  g_io_channel_read_to_end(io, &data, &sz, &err);
-  
-  return cpu_unmarshal(m->s, data);
+  return cpu_unmarshal_file(m->s, path);
 }
 
 void machine_show_exception(machine m, OBJECT exc) {
@@ -77,8 +66,7 @@ int machine_run_file(machine m, char *path) {
     return FALSE;
   }
   
-  name = string_to_sym(m->s, string_new(m->s, "__script__"));
-  cpu_goto_method(m->s, m->c, m->c->main, meth, 0, name);
+  cpu_run_script(m->s, m->c, meth);
   cpu_run(m->s, m->c);
   if(RTEST(m->c->exception)) {
     machine_show_exception(m, m->c->exception);

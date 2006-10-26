@@ -34,12 +34,21 @@ end
 task :kernel do
   fd = File.open("lib/kernel.rb", "w")
   Dir["kernel/*.rb"].each do |path|
+    next if File.basename(path) == "__loader.rb"
     puts path
     cur = File.open(path)
     fd << cur.read
     cur.close
     fd << "\n"
   end
+  
+  Dir["kernel/core/*.rb"].each do |path|
+    puts path
+    fd << File.read(path)
+    fd << "\n"
+  end
+  
+  fd << File.read("kernel/__loader.rb")
   fd.close
 end
 

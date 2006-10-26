@@ -41,7 +41,10 @@ class CPU::Primitives
     :create_pipe,
     :gettimeofday,
     :strftime,
-    :get_time_info
+    :load_file,
+    :activate_as_script,
+    :stat_file,
+    :io_open
   ]
   
   FirstRuntimePrimitive = 1024

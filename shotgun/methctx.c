@@ -57,6 +57,15 @@ void methctx_reference(STATE, OBJECT self) {
   FLAG_SET(self, WasReferenced);
 }
 
+char *methctx_describe(STATE, OBJECT ctx) {
+  printf("MethodContext: %p, called %s on %p. Method used: %p\n",
+    ctx,
+    rbs_symbol_to_string(state, methctx_get_name(ctx)),
+    methctx_get_receiver(ctx),
+    methctx_get_method(ctx)
+  );
+}
+
 #define IsBlockContextFlag 0x40
 
 OBJECT blokctx_s_under_context(STATE, OBJECT ctx) {

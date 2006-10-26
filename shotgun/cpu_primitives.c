@@ -8,12 +8,16 @@
 #include "symbol.h"
 #include "object.h"
 #include "bytearray.h"
+#include "tuple.h"
 
 #include <string.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #define STATIC_SIZE 100
 

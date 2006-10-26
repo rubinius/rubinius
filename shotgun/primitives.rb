@@ -142,7 +142,6 @@ class ShotgunPrimitives
         _ret = FALSE;
       } else {
         SET_FIELD(self, j, t2);
-        // printf("Set field %d of %p to: %p\\n", j, self, t2);
         stack_push(t2);
         _ret = TRUE;
       }
@@ -283,12 +282,11 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!REFERENCE_P(self) || !object_kind_of_p(state, self, state->global->io)
-                          || !FIXNUM_P(t1)) {
+    if(!REFERENCE_P(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
-      j = io_get_descriptor(self);
+      j = FIXNUM_TO_INT(io_get_descriptor(self));
       k = read(j, string_byte_address(state, t2), FIXNUM_TO_INT(t1));
       if(k != FIXNUM_TO_INT(t1)) {
         t3 = string_new2(state, NULL, k);
@@ -322,6 +320,50 @@ class ShotgunPrimitives
     CODE
   end
   
+  def io_open
+    <<-CODE
+    FILE *_fobj;
+    self = stack_pop();
+    t1 =   stack_pop();
+    t2 =   stack_pop();
+    _fobj = fopen(string_as_string(state, t1), string_as_string(state, t2));
+    t3 = NEW_OBJECT(self, 2);
+    SET_FIELD(t3, 0, I2N(fileno(_fobj)));
+    SET_FIELD(t3, 1, t1);
+    stack_push(t3);
+    CODE
+  end
+  
+  def io_close
+    <<-CODE
+    self = stack_pop();
+    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    if(!close(j)) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
+    CODE
+  end
+  
+=begin
+  def socket_open
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    t3 = stack_pop();
+    j = socket(FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2), FIXNUM_TO_INT(t3));
+    if(j == -1) {
+      stack_push(Qfalse);
+    } else {
+      t4 = NEW_OBJECT(self, 2);
+      SET_FIELD(t3, 0, I2N(j));
+    }
+    CODE
+  end  
+=end
+
   Header << <<-CODE
   CODE
   
@@ -507,10 +549,12 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
+    j =    FIXNUM_TO_INT(stack_pop());
     if(!REFERENCE_P(self) || !REFERENCE_P(t1)) {
       _ret = FALSE;
     } else {
-      object_copy_fields_from(state, t1, self, 0, NUM_FIELDS(t1));
+      object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
+      HEADER(t1)->flags = HEADER(self)->flags;
       stack_push(t1);
     }
     CODE
@@ -560,6 +604,69 @@ class ShotgunPrimitives
     CODE
   end
   
+  def load_file
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    t2 = cpu_unmarshal_file(state, string_as_string(state, t1));
+    stack_push(t2);
+    CODE
+  end
+  
+  def activate_as_script
+    <<-CODE
+    self = stack_pop();
+    cpu_run_script(state, c, self);
+    stack_push(Qtrue);
+    CODE
+  end
+  
+  def stat_file
+    <<-CODE
+    struct stat sb = {0};
+    self = stack_pop();
+    t1 = stack_pop();
+    j = stat(string_as_string(state, t1), &sb);
+    if(j != 0) {
+      if(errno == ENOENT) {
+        stack_push(I2N(1));
+      } else if(errno == EACCES) {
+        stack_push(I2N(2));
+      } else {
+        stack_push(Qfalse);
+      }
+    } else {
+      t2 = tuple_new(state, 7);
+      tuple_put(state, t2, 0, I2N((int)sb.st_ino));
+      tuple_put(state, t2, 1, I2N((int)sb.st_mode));
+      if(sb.st_mode & S_IFIFO == S_IFIFO) {
+        t3 = string_to_sym(state, string_new(state, "fifo"));
+      } else if(sb.st_mode & S_IFCHR == S_IFCHR) {
+        t3 = string_to_sym(state, string_new(state, "char"));
+      } else if(sb.st_mode & S_IFDIR == S_IFDIR) {
+        t3 = string_to_sym(state, string_new(state, "dir"));
+      } else if(sb.st_mode & S_IFBLK == S_IFBLK) {
+        t3 = string_to_sym(state, string_new(state, "block"));
+      } else if(sb.st_mode & S_IFREG == S_IFREG) {
+        t3 = string_to_sym(state, string_new(state, "regular"));
+      } else if(sb.st_mode & S_IFLNK == S_IFLNK) {
+        t3 = string_to_sym(state, string_new(state, "link"));
+      } else if(sb.st_mode & S_IFSOCK == S_IFSOCK) {
+        t3 = string_to_sym(state, string_new(state, "link"));
+      } else {
+        t3 = string_to_sym(state, string_new(state, "file"));
+      }
+      tuple_put(state, t2, 2, t3);
+      tuple_put(state, t2, 3, I2N((int)sb.st_uid));
+      tuple_put(state, t2, 4, I2N((int)sb.st_gid));
+      tuple_put(state, t2, 5, I2N((int)sb.st_size));
+      tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
+      
+      stack_push(t2);
+    }
+    CODE
+  end
+    
   def get_ivar
     <<-CODE
     self = stack_pop();

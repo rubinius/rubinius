@@ -1,6 +1,6 @@
 
 module Kernel
-  def puts(obj)
+  def puts(obj="")
     STDOUT.puts obj.to_s
   end
   
@@ -18,6 +18,11 @@ module Kernel
       exc = cls.new(msg)
     end
     Ruby.asm "push exc\nraise_exc"
+  end
+  
+  def load(path)
+    cm = CompiledMethod.load_from_file(path)
+    cm.activate_as_script
   end
 end
 
@@ -57,13 +62,13 @@ class Object
   
   alias :is_a? :kind_of?
   
-  def copy_from(other)
+  def copy_from(other, start)
     Ruby.primitive :dup_into
   end
   
   def dup
     nw = self.class.allocate
-    nw.copy_from(self)
+    nw.copy_from(self, 0)
     return nw
   end
   

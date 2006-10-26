@@ -364,8 +364,22 @@ module Bytecode
         if kind == :$!
           add "push_exception"
         else
-          raise "Unknown gvar #{kind}"
+          idx = @method.add_literal kind
+          add "push_literal #{idx}"
+          add "push_cpath_top"
+          add "find Globals"
+          add "send [] 1"
         end
+      end
+      
+      def process_gasgn(x)
+        kind = x.shift
+        idx = @method.add_literal kind
+        process x.shift
+        add "push_literal #{idx}"
+        add "push_cpath_top"
+        add "find Globals"
+        add "send []= 2"
       end
       
       def process_iasgn(x)
@@ -486,6 +500,10 @@ module Bytecode
         add "pop"
         add "push_encloser"
         # add "set_encloser"
+      end
+      
+      def process_begin(x)
+        process x.shift
       end
       
       def process_rescue(x)

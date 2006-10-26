@@ -1,3 +1,1 @@
-puts Class
-puts Class.object_id
-Class.blah
+raise NoMethodError, "you suck."

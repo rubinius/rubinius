@@ -29,8 +29,8 @@ void object_memory_print_stats(object_memory om) {
 }
 
 OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields) {
-  int size, i;
-  OBJECT obj;
+  int size, i, f;
+  OBJECT obj, flags;
   struct rubinius_object *header;
   
   size = (HEADER_SIZE + fields) * 4;
@@ -40,7 +40,13 @@ OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields) {
   header->klass = cls;
   assert(cls == header->klass);
   header->fields = fields;
-  header->flags = 0;
+  if(cls && REFERENCE_P(cls)) {
+    flags = class_get_instance_flags(cls);
+    f = FIXNUM_TO_INT(flags);
+    header->flags = f;
+  } else {
+    header->flags = 0;
+  }
   header->flags2 = 0;
   for(i = 0; i < fields; i++) {
     SET_FIELD(obj, i, Qnil);

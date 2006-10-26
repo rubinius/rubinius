@@ -13,24 +13,18 @@ class MethodContext
   end
   
   def file
+    return "(unknown)" unless self.method
     method.file
   end
   
   def lines
+    return [] unless self.method
     method.lines
   end
   
   def line
-    i = self.ip
-    self.lines.each do |t|
-      start = t.at(0)
-      nd = t.at(1)
-      op = t.at(2)
-      if i >= start and i < nd
-        return op
-      end
-    end
-    return 0
+    return 0 unless self.method
+    return self.method.line_from_ip(self.ip)
   end
 end
 
@@ -42,17 +36,38 @@ class BlockContext
       block_call args.tuple
     end
   end
+  
   def block_call(args)
     Ruby.primitive :block_call
+  end
+  
+  # These should be safe since I'm unsure how you'd have a BlockContext
+  # and have a nil CompiledMethod (something that can (and has) happened
+  # with MethodContexts)
+  
+  def file
+    self.home.method.file
+  end
+  
+  def line
+    self.home.method.line_from_ip(self.ip)
   end
 end
 
 class Proc
   
-  Ruby.asm "push self\npush 2\npush 5\nstore_field"
+  self.instance_fields = 2
+  
+  def block
+    at(1)
+  end
   
   def initialize(blk)
     put 1, blk
+  end
+  
+  def inspect
+    "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
   end
   
   def self.block_passed(blk)
@@ -75,13 +90,9 @@ class Proc
     obj.put 1, blk
     return obj
   end
-  
-  def block
-    Ruby.asm "push 1\npush self\nfetch_field"
-  end
-  
+    
   def call(*args)
-    obj = block.dup
+    obj = self.block
     obj.call(*args)
   end
 end
@@ -93,26 +104,38 @@ class Backtrace
   end
   
   def show
-    #strs = @frames.map do |ary|
-    #  "#{ary[0]}##{ary[1]} at #{ary[2]}:#{ary[3]}"
-    #end
-    strs = @frames.join("\n")
+    strs = @frames.reverse.join("\n")
     return strs
-    strs.join("\n")
   end
   
   def fill_from(ctx)
     while ctx
-      str = "#{ctx.receiver.to_s}##{ctx.name} at #{ctx.file}:#{ctx.line}"
-      # str = "#{ctx.receiver.to_s}##{ctx.name}"
-      @frames << str
+      if ctx.method
+        str = "    "
+        if ctx.receiver == MAIN
+          str << "#{ctx.receiver.to_s}."
+        elsif Module === ctx.receiver
+          str << "#{ctx.receiver}."
+        else
+          str << "#{ctx.receiver.class}#"
+        end
+        if ctx.name == ctx.method.name
+          str << "#{ctx.name}"
+        else
+          str << "#{ctx.name} (#{ctx.method.name})"
+        end
+        str << " at #{ctx.file}:#{ctx.line}"
+        @frames << str
+      end
       ctx = ctx.sender
     end
   end
   
-  def self.backtrace
+  def self.backtrace(ctx=nil)
     obj = new()
-    ctx = MethodContext.current.sender
+    unless ctx
+      ctx = MethodContext.current.sender
+    end
     obj.fill_from ctx
     return obj
   end

@@ -59,6 +59,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
 OBJECT cpu_unmarshal(STATE, char *str);
 GString *cpu_marshal(STATE, OBJECT obj);
+OBJECT cpu_unmarshal_file(STATE, char *path);
 
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots);

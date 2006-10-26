@@ -42,6 +42,7 @@ void cpu_setup_top_scope(STATE, cpu c) {
 }
 
 void cpu_initialize_context(STATE, cpu c) {
+  object_set_has_ivars(state, c->stack);
   c->active_context = methctx_new(state, 0);
   c->top_context = c->active_context;
   methctx_set_raiseable(c->active_context, Qfalse);
@@ -50,7 +51,11 @@ void cpu_initialize_context(STATE, cpu c) {
   c->new_class_of = state->global->class;
   c->exception = Qnil;
   c->main = object_new(state);
-  state->global->method_missing = string_to_sym(state, string_new(state, "method_missing"));
+  state->global->method_missing = string_to_sym(state, 
+        string_new(state, "method_missing"));
+  state->global->sym_inherited = string_to_sym(state, 
+        string_new(state, "inherited"));
+  
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
@@ -116,6 +121,7 @@ void cpu_restore_context(STATE, cpu c, OBJECT x) {
 }
 
 void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret) {
+  c->depth--;
   c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
   c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
   if(ret && c->argcount > 0) {
@@ -150,6 +156,7 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
 }
 
 void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home) {
+  c->depth += 2;
   cpu_save_registers(state, c);
   cpu_restore_context_with_home(state, c, ctx, home, FALSE);
 }
@@ -191,7 +198,6 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
       home = sender;
     }
     
-    c->depth -= 1;
     cpu_restore_context_with_home(state, c, sender, home, TRUE);
     cpu_stack_push(state, c, top);
   }
@@ -254,27 +260,59 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
 }
 
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT hsh, val;
+  OBJECT hsh, val, kls;
   int i;
   
   val = Qnil;
   
   hsh = module_get_constants(under);
   val = hash_find(state, hsh, sym);
+  
+  /*
+  printf("Looking for %s starting from %s (%d) (self=%s)\n", rbs_symbol_to_cstring(state, sym),
+    _inspect(under), c->paths->len, _inspect(c->self));
+  */
+  
+  if(RTEST(val)) {
+    return val;
+  }
+  
+  /* Case 1: self is a contains constants, so check there. */
+  
+  /* Ick. I'd love to be able to not have to only check in
+     classes and modules. */
+  kls = object_logical_class(state, c->self);
+  if(REFERENCE_P(c->self) && (
+     kls == state->global->module ||
+     kls == state->global->class)) {
+       hsh = module_get_constants(c->self);
+       val = hash_find(state, hsh, sym);
+       if(RTEST(val)) {
+         // printf("Found under %s.\n", _inspect(c->self));
+         return val;
+       }
+  }
+  
+  /* Case 2: Look up the lexical stack. */
   if(NIL_P(val) || val == Qundef) {
     for(i = 0; i < c->paths->len; i++) {
       under = (OBJECT)g_ptr_array_index(c->paths, i);
       hsh = module_get_constants(under);
       val = hash_find(state, hsh, sym);
+      /*
+      printf("Looking for %s starting from %s in path\n", rbs_symbol_to_cstring(state, sym),
+        _inspect(under));
+      */
       // printf(" => %d\n", val);
       if(RTEST(val) && val != Qundef) { break; }
     }
-    /*
+    
     if(NIL_P(val)) {  
       printf("Couldn't find constant %s.\n", 
         string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)));
       val = Qnil;
-    } else {
+    } 
+    /* else {
       printf("Found constant %s under %p => %p (%d).\n", 
         string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)),
         under, val, val);
@@ -321,6 +359,10 @@ void cpu_push_encloser(STATE, cpu c) {
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meths;
   
+  // Handle a special case where we try and add a method to main
+  if(target == c->main) {
+    target = c->enclosing_class;
+  }
   // printf("Attaching %s to %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(target));
   meths = module_get_methods(target);
   assert(RTEST(meths));

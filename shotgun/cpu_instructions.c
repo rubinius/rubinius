@@ -7,12 +7,15 @@
 #include "methctx.h"
 #include "array.h"
 #include "string.h"
+#include "symbol.h"
 
 #define next_int _int = *(int*)(c->data + c->ip); c->ip += 4
 #define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
 
+inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
+
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
-  OBJECT sym, _lit, val;
+  OBJECT sym, _lit, val, s1, s2, s3, s4;
   int _int;
     
   next_literal;
@@ -28,9 +31,24 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     // printf("Setting superclass of %p to: %p\n", val, sup);
     class_set_superclass(val, sup);
     module_setup_fields(state, val);
-    module_set_name(val, sym);
+    /*
+    printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(c->enclosing_class));
+    */
+    if(c->enclosing_class != state->global->object) {
+      s1 = symbol_to_string(state, module_get_name(c->enclosing_class));
+      s2 = symbol_to_string(state, sym);
+      s3 = string_dup(state, s1);
+      string_append(state, s3, string_new(state, "::"));
+      string_append(state, s3, s2);
+      s4 = string_to_sym(state, s3);
+      module_set_name(val, s4);
+      // printf("Module %s name set to %s\n", _inspect(val), rbs_symbol_to_cstring(state, s4));
+    } else {
+      module_set_name(val, sym);
+    }
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
+    cpu_perform_hook(state, c, sup, state->global->sym_inherited, val);
     /* perform_hook(sup, @inherited, val) */
   }
   return val;
@@ -132,6 +150,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, OB
   methctx_set_receiver(ctx, recv);
   methctx_set_name(ctx, name);
   methctx_set_sp(ctx, I2N(c->sp));
+  methctx_set_method(ctx, mo);
   return ctx;
 }
 
@@ -179,22 +198,44 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
   cpu_activate_context(state, c, ctx, ctx);
 }
 
+inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
+  OBJECT ctx, mo;
+  mo = cpu_find_method(state, c, recv, meth);
+  if(NIL_P(mo)) return;
+  cpu_stack_push(state, c, arg);
+  
+  ctx = cpu_create_context(state, c, recv, mo, meth);
+  methctx_set_argcount(ctx, I2N(1));
+  methctx_set_block(ctx, Qnil);
+  cpu_activate_context(state, c, ctx, ctx);
+}
+
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
   OBJECT sym, mo, ctx;
   int missing;
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
-  c->depth++;
-
-  // printf("Calling %s on %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(recv));
+  
+  if(c->depth == 1000) {
+    printf("Runaway depth...\n");
+    abort();
+  }
+  
+  missing = 0;
   
   mo = cpu_locate_method(state, c, recv, sym, &missing);
-  if(cpu_try_primitive(state, c, mo, recv, args)) { return; }
+  
+  if(missing) {
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+  }
+  
   if(missing) {
     args += 1;
     stack_push(sym);
     // printf("EEK! method_missing!\n");
     // abort();
+  } else {
+    if(cpu_try_primitive(state, c, mo, recv, args)) { return; }
   }
   
   ctx = cpu_create_context(state, c, recv, mo, sym);
@@ -245,4 +286,10 @@ void cpu_run(STATE, cpu c) {
     // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
     #include "instructions.gen"
   }   
+}
+
+void cpu_run_script(STATE, cpu c, OBJECT meth) {
+  OBJECT name;
+  name = string_to_sym(state, string_new(state, "__script__"));
+  cpu_goto_method(state, c, c->main, meth, 0, name);
 }

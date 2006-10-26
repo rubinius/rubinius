@@ -1,7 +1,7 @@
 module Rubinius
   module Class
     Super = :Module
-    Fields = [:superclass, :instance_fields]
+    Fields = [:superclass, :instance_fields, :instance_flags]
     
     def self.create
       obj = Rubinius.cpu.new_object CPU::Global.class, NumberOfFields

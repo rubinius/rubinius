@@ -3,6 +3,8 @@ OBJECT object_metaclass(STATE, OBJECT obj);
 OBJECT object_class(STATE, OBJECT self);
 OBJECT object_logical_class(STATE, OBJECT self);
 int object_kind_of_p(STATE, OBJECT self, OBJECT cls);
+int object_has_ivars(STATE, OBJECT self);
+void object_set_has_ivars(STATE, OBJECT self);
 OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym);
 OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val);
 OBJECT object_new(STATE);

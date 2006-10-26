@@ -46,4 +46,10 @@ class Tuple
     end
     return ary
   end
+  
+  def shift
+    t = Tuple.new(fields-1)
+    t.copy_from self, 1
+    return t
+  end
 end
