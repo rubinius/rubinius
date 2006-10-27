@@ -1,24 +1,18 @@
 CC=gcc
-CFLAGS=-Wall -g -ggdb3 -I../include -iquote . `pkg-config glib-2.0 --cflags`
-DEPS=auto.h ../include/rubinius.h
+CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
+DEPS=../include/rubinius.h
 LIBS=`pkg-config glib-2.0 --libs`
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
+librubinius.a:
+	cd lib; $(MAKE) librubinius.a
 
-rubinius: librubinius.a
-	$(CC) $(LIBS) -o rubinius *.o
+.PHONY: librubinius.a
 
-cpu_instructions.o: instructions.gen instruction_names.gen
-cpu_primitives.o: system_primitives.gen
-
-instruction_names.gen instructions.gen: instructions.rb
-	ruby -I../lib instructions.rb > instructions.gen
-
-system_primitives.gen: primitives.rb
-	ruby -I../lib primitives.rb > system_primitives.gen
+rubinius: librubinius.a main.o
+	$(CC) $(LIBS) -o rubinius main.o lib/librubinius.a
 
 test/test_state: test/test_state.c $(DEPS) $(OBJS)
 	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)
@@ -32,10 +26,8 @@ test: test/test_state test/test_instructions
 	./test/test_state
 	./test/test_instructions
 
-auto.h auto.c: genheader.rb
-	ruby -I../lib genheader.rb > auto.c
-
 clean:
-	rm *.o *.gen rubinius
+	rm -f *.o *.gen rubinius
+	cd lib; $(MAKE) clean
 
 .PHONY: test
