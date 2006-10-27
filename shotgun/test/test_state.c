@@ -62,7 +62,7 @@ void test_bootstrap(STATE) {
 }
 
 void test_bootstrap_secondary(STATE) {
-  OBJECT obj, sym, tup;
+  OBJECT obj, sym, tup, tmp;
   
   obj = state->global->object;
   sym = state->global->symbol;
@@ -81,7 +81,8 @@ void test_bootstrap_secondary(STATE) {
   
   // printf("obj_meta: %x (%x) => %x\n", obj_meta, obj, SP(tup_meta));
   rassert(REFERENCE_P(obj_meta));
-  assert_equal(obj_meta, SP(tup_meta));
+  tmp = SP(tup_meta);
+  assert_equal(obj_meta, tmp);
   
   sym_meta = object_metaclass(state, sym);
   rassert(REFERENCE_P(sym_meta));
@@ -116,7 +117,7 @@ int main(int argc, char **argv) {
   object_memory_collect(state->om, roots);
   rassert(state->om->gc->space_b == state->om->gc->current);
   rassert(object_memory_used(state->om) == 0);
-  obj = object_memory_new_object(state->om, Qnil, 4);
+  obj = object_memory_new_object(state->om, Qnil, 8);
   rassert(object_memory_used(state->om) > 0);
   rassert(object_memory_used(state->om) == SIZE_IN_BYTES(obj));
   

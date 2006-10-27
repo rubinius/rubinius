@@ -3,6 +3,8 @@ CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 -
 DEPS=../include/rubinius.h
 LIBS=`pkg-config glib-2.0 --libs`
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
+RBLIB=lib/librubinius.a
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
@@ -14,13 +16,13 @@ librubinius.a:
 rubinius: librubinius.a main.o
 	$(CC) $(LIBS) -o rubinius main.o lib/librubinius.a
 
-test/test_state: test/test_state.c $(DEPS) $(OBJS)
+test/test_state: test/test_state.c librubinius.a
 	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)
-	$(CC) $(LIBS) -o test/test_state test/test_state.o *.o
+	$(CC) $(LIBS) -o test/test_state test/test_state.o $(RBLIB)
 
-test/test_instructions: test/test_instructions.c $(DEPS) $(OBJS)
+test/test_instructions: test/test_instructions.c librubinius.a 
 	$(CC) -c -o test/test_instructions.o test/test_instructions.c $(CFLAGS)
-	$(CC) $(LIBS) -o test/test_instructions test/test_instructions.o *.o
+	$(CC) $(LIBS) -o test/test_instructions test/test_instructions.o $(RBLIB)
 
 test: test/test_state test/test_instructions
 	./test/test_state
