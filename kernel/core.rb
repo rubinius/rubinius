@@ -31,6 +31,17 @@ module Kernel
     cm.activate_as_script
   end
   
+  def require(thing)
+    $:.each do |dir|
+      path = "#{dir}/#{thing}.rbc"
+      if File.exists?(path)
+        $" << path
+        return load(path)
+      end
+    end
+    raise LoadError, "Unable to find '#{thing}' to load"
+  end
+  
   def exit(code=0)
     Process.exit(code)
   end
@@ -53,7 +64,6 @@ class Object
   include Kernel
   
   def initialize
-    put 0, {}
   end
       
   def class
@@ -78,6 +88,10 @@ class Object
   
   def kind_of?(cls)
     self.class < cls
+  end
+  
+  def instance_of?(cls)
+    self.class == cls
   end
   
   alias :is_a? :kind_of?

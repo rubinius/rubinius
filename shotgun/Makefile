@@ -6,7 +6,9 @@ OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-rubinius: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
+librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
+
+rubinius: librubinius.a
 	$(CC) $(LIBS) -o rubinius *.o
 
 cpu_instructions.o: instructions.gen instruction_names.gen

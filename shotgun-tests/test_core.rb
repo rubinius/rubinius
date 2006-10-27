@@ -198,4 +198,113 @@ class TestCore < Test::Unit::TestCase
     
     assert_equal ["hello evan", "hello ryan"], out
   end
+  
+  def test_post_unless
+    out = rp <<-CODE
+    a = "blah"
+    a = "hello" unless false
+    puts a
+    a = "blah" unless true
+    puts a
+    CODE
+    
+    assert_equal ["hello", "hello"], out
+  end
+  
+  def test_pipe_or
+    out = rp <<-CODE
+    a = "true" || true
+    puts a
+    a = nil || "true"
+    puts a
+    CODE
+    
+    assert_equal ["true", "true"], out
+  end
+  
+  def test_double_equal
+    out = rp <<-CODE
+    p true == true
+    p false == true
+    p 1 == 1
+    p 2 == 1
+    p "blah" == "blah"
+    p "bleh" == "blah"
+    CODE
+    
+    assert_equal ["true", "false", "true", "false", "true", "false"], out
+  end
+  
+  def test_triple_equal_on_class
+    out = rp <<-CODE
+    p Class === Symbol
+    p Symbol === 1
+    CODE
+    
+    assert_equal ["true", "false"], out
+  end
+  
+  def test_instance_of_eh
+    out = rp <<-CODE
+    p :blah.instance_of?(Object)
+    p :blah.instance_of?(Symbol)
+    CODE
+    
+    assert_equal ["false", "true"], out
+  end
+  
+  def test_nil_eh
+    out = rp <<-CODE
+    p 1.nil?
+    p nil.nil?
+    CODE
+    
+    assert_equal ["false", "true"], out
+  end
+  
+  def test_bang_equal
+    out = rp <<-CODE
+    p(1 != 1)
+    p(1 != 2)
+    p(:blah != :blah)
+    p(:bleh != :blah)
+    p("blah" != "blah")
+    CODE
+    
+    assert_equal ["false", "true", "false", "true", "false"], out
+  end
+  
+  def test_equal_eh
+    out = rp <<-CODE
+    a = "blah"
+    p(a.equal?("blah"))
+    p(a.equal?(a))
+    CODE
+    
+    assert_equal ["false", "true"], out
+  end
+  
+  def test_require
+    File.open("code-cache/test_require.rb", "w") do |fd|
+      fd.puts "puts 'hello world'"
+    end
+    
+    `./bin/rcompile code-cache/test_require.rb`
+    
+    out = rp <<-CODE
+    require 'code-cache/test_require'
+    CODE
+    
+    assert_equal "hello world", out.first
+    
+    out = rp <<-CODE
+    begin
+      require 'not_there'
+    rescue LoadError
+      puts "works"
+    end
+    CODE
+    
+    assert_equal "works", out.first
+  end
 end

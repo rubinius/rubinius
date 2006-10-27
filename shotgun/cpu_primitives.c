@@ -19,6 +19,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#include "oniguruma.h"
+
 #define STATIC_SIZE 100
 
 struct time_data {

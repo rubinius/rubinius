@@ -36,19 +36,18 @@ module RubiniusHelper
     w2.close
     Process.wait(pid)
     out = r.read
-    if !$?.exitstatus and $?.exitstatus != 0
+    status = $?.exitstatus
+    if !status or status != 0
       error = out
       error << "\n    ========================================="
-      if $?.exitstatus == 1
+      if status == 1
         raise RubiniusError, error
-      elsif !$?.exitstatus or $?.exitstatus > 100
+      elsif !status or status > 100
         raise RubiniusError, "Shotgun has crashed"
       end
     end
     r.close
     return out
-    # io = IO.popen()
-    # io.read
   end
   
   def rp(code)
