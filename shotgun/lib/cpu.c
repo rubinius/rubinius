@@ -51,11 +51,22 @@ void cpu_initialize_context(STATE, cpu c) {
   c->new_class_of = state->global->class;
   c->exception = Qnil;
   c->main = object_new(state);
+  
   state->global->method_missing = string_to_sym(state, 
         string_new(state, "method_missing"));
+  
   state->global->sym_inherited = string_to_sym(state, 
         string_new(state, "inherited"));
+
+  state->global->sym_from_literal = string_to_sym(state, 
+        string_new(state, "from_literal"));
         
+  state->global->sym_method_added = string_to_sym(state, 
+        string_new(state, "method_added"));
+        
+  state->global->sym_s_method_added = string_to_sym(state,
+        string_new(state, "singleton_method_added"));
+          
   HEADER(c->stack)->klass = state->global->tuple;
 }
 
@@ -368,12 +379,14 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   meths = module_get_methods(target);
   assert(RTEST(meths));
   hash_set(state, meths, sym, method);
+  cpu_perform_hook(state, c, target, state->global->sym_method_added, sym);
 }
 
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meta;
   meta = object_metaclass(state, target);
   cpu_add_method(state, c, meta, sym, method);
+  cpu_perform_hook(state, c, target, state->global->sym_s_method_added, sym);
 }
 
 void cpu_stack_push(STATE, cpu c, OBJECT oop) {

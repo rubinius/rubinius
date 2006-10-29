@@ -1,3 +1,4 @@
+
 require 'cpu/primitives'
 
 class ShotgunPrimitives
@@ -225,8 +226,7 @@ class ShotgunPrimitives
       _ret = FALSE;
     } else {
       methctx_set_ip(self, I2N(c->ip));
-      t2 = blokctx_s_under_context(state, self);
-      blokctx_set_last_op(t2, t1);
+      t2 = blokenv_s_under_context(state, self, t1);
       stack_push(t2);
     }
     CODE
@@ -246,13 +246,13 @@ class ShotgunPrimitives
   def block_call
     <<-CODE
     self = stack_pop();
-    if(!RISA(self, blokctx)) {
+    if(!RISA(self, blokenv)) {
       _ret = FALSE;
     } else {
-      blokctx_set_sender(self, c->active_context);
-      blokctx_set_ip(self, blokctx_get_start_op(self));
-      blokctx_set_sp(self, I2N(c->sp));
-      cpu_activate_context(state, c, self, blokctx_get_home(self));
+      t2 = blokenv_create_context(state, self);
+      blokctx_set_sender(t2, c->active_context);
+      blokctx_set_sp(t2, I2N(c->sp));
+      cpu_activate_context(state, c, t2, blokenv_get_home(self));
     }
     CODE
   end

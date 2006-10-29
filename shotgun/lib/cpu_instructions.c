@@ -246,6 +246,11 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   
   ctx = cpu_create_context(state, c, recv, mo, sym);
   methctx_set_argcount(ctx, I2N(args));
+  /*
+  if(RTEST(block)) {
+    printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
+  }
+  */
   methctx_set_block(ctx, block);
   cpu_activate_context(state, c, ctx, ctx);
 }

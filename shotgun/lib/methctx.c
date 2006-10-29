@@ -68,20 +68,36 @@ char *methctx_describe(STATE, OBJECT ctx) {
 
 #define IsBlockContextFlag 0x40
 
-OBJECT blokctx_s_under_context(STATE, OBJECT ctx) {
+OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT lst) {
+  OBJECT obj;
+  
+  obj = blokenv_allocate(state);
+  blokenv_set_home(obj, ctx);
+  blokenv_set_initial_ip(obj, I2N(FIXNUM_TO_INT(methctx_get_ip(ctx)) + 5 ));
+  blokenv_set_last_ip(obj, lst);
+  
+  return obj;
+}
+
+OBJECT blokenv_create_context(STATE, OBJECT self) {
   OBJECT obj;
   
   obj = blokctx_allocate(state);
   FLAG_SET(obj, IsBlockContextFlag);
   blokctx_set_raiseable(obj, Qtrue);
-  blokctx_set_ip(obj, I2N(0));
+  blokctx_set_ip(obj, blokenv_get_initial_ip(self));
   blokctx_set_sp(obj, I2N(0));
-  blokctx_set_home(obj, ctx);
-  blokctx_set_last_op(obj, I2N(0));
-  blokctx_set_start_op(obj, I2N(FIXNUM_TO_INT(methctx_get_ip(ctx)) + 5 ));
+  blokctx_set_env(obj, self);
   return obj;
 }
 
 int blokctx_s_block_context_p(STATE, OBJECT ctx) {
   return FLAG_SET_P(ctx, IsBlockContextFlag);
+}
+
+OBJECT blokctx_get_home(OBJECT self) {
+  OBJECT env, home;
+  env = blokctx_get_env(self);
+  home = blokenv_get_home(env);
+  return home;
 }

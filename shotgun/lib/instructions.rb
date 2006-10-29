@@ -202,6 +202,9 @@ class ShotgunInstructions
       t2 = stack_pop();
       array_set(state, t1, j, t2);
     }
+    
+    cpu_perform_hook(state, c, BASIC_CLASS(array), 
+                     state->global->sym_from_literal, t1);
     stack_push(t1);
     CODE
   end
@@ -272,6 +275,9 @@ class ShotgunInstructions
       hash_set(state, t1, t2, t3);
       j -= 2;
     }
+    
+    cpu_perform_hook(state, c, BASIC_CLASS(hash), 
+                     state->global->sym_from_literal, t1);
     
     stack_push(t1);
     CODE

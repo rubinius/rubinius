@@ -57,6 +57,7 @@ void cpu_bootstrap(STATE) {
   BC(cmethod) = _cmethod_class(state, obj);
   BC(io) = _io_class(state, obj);
   BC(methctx) = _methctx_class(state, obj);
+  BC(blokenv) = _blokenv_class(state, obj);
   BC(blokctx) = _blokctx_class(state, obj);
   
   state->global->symbols = symtbl_new(state);
@@ -76,6 +77,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(cmethod), "CompiledMethod");
   module_setup(state, BC(io), "IO");
   module_setup(state, BC(methctx), "MethodContext");
+  module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(blokctx), "BlockContext");
   
   rbs_const_set(state, obj, "Symbols", state->global->symbols);

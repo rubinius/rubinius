@@ -5,6 +5,7 @@ struct rubinius_globals {
   /* classes for the core 'types' */
   OBJECT symtbl, blokctx, cmethod, tuple, module, object, array;
   OBJECT class, hash, methtbl, bytearray, methctx, blank;
+  OBJECT blokenv;
   OBJECT string, symbol, io, metaclass;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   
@@ -12,6 +13,7 @@ struct rubinius_globals {
   OBJECT symbols;
   OBJECT method_missing;
   OBJECT sym_inherited;
+  OBJECT sym_from_literal, sym_method_added, sym_s_method_added;
   
   OBJECT exc_arg;
   OBJECT exc_loe;

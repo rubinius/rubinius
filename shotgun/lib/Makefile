@@ -22,8 +22,9 @@ system_primitives.gen: primitives.rb
 
 auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
+	$(CC) -c -o auto.o auto.c $(CFLAGS)
 
 clean:
-	rm -f *.o *.gen *.a
+	rm -f *.o *.gen *.a auto.c auto.h
 
 .PHONY: test

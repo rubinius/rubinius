@@ -1,3 +1,15 @@
+#define SYMTBL_f_INSTANCE_VARIABLES 0
+#define symtbl_get_instance_variables(obj) NTH_FIELD(obj, SYMTBL_f_INSTANCE_VARIABLES)
+#define symtbl_set_instance_variables(obj, val) SET_FIELD(obj, SYMTBL_f_INSTANCE_VARIABLES, val)
+#define SYMTBL_f_SYMBOLS 1
+#define symtbl_get_symbols(obj) NTH_FIELD(obj, SYMTBL_f_SYMBOLS)
+#define symtbl_set_symbols(obj, val) SET_FIELD(obj, SYMTBL_f_SYMBOLS, val)
+#define SYMTBL_f_STRINGS 2
+#define symtbl_get_strings(obj) NTH_FIELD(obj, SYMTBL_f_STRINGS)
+#define symtbl_set_strings(obj, val) SET_FIELD(obj, SYMTBL_f_STRINGS, val)
+#define symtbl_allocate(st) symtbl_allocate_with_extra(st, 0)
+#define SYMTBL_FIELDS 3
+OBJECT symtbl_allocate_with_extra(STATE, int extra);
 #define CMETHOD_f_INSTANCE_VARIABLES 0
 #define cmethod_get_instance_variables(obj) NTH_FIELD(obj, CMETHOD_f_INSTANCE_VARIABLES)
 #define cmethod_set_instance_variables(obj, val) SET_FIELD(obj, CMETHOD_f_INSTANCE_VARIABLES, val)
@@ -40,6 +52,9 @@ OBJECT cmethod_allocate_with_extra(STATE, int extra);
 #define tuple_allocate(st) tuple_allocate_with_extra(st, 0)
 #define TUPLE_FIELDS 0
 OBJECT tuple_allocate_with_extra(STATE, int extra);
+#define blank_allocate(st) blank_allocate_with_extra(st, 0)
+#define BLANK_FIELDS 0
+OBJECT blank_allocate_with_extra(STATE, int extra);
 #define ARRAY_f_TOTAL 0
 #define array_get_total(obj) NTH_FIELD(obj, ARRAY_f_TOTAL)
 #define array_set_total(obj, val) SET_FIELD(obj, ARRAY_f_TOTAL, val)
@@ -49,36 +64,24 @@ OBJECT tuple_allocate_with_extra(STATE, int extra);
 #define array_allocate(st) array_allocate_with_extra(st, 0)
 #define ARRAY_FIELDS 2
 OBJECT array_allocate_with_extra(STATE, int extra);
-#define blank_allocate(st) blank_allocate_with_extra(st, 0)
-#define BLANK_FIELDS 0
-OBJECT blank_allocate_with_extra(STATE, int extra);
 #define symbol_allocate(st) symbol_allocate_with_extra(st, 0)
 #define SYMBOL_FIELDS 0
 OBJECT symbol_allocate_with_extra(STATE, int extra);
-#define METHTBL_f_INSTANCE_VARIABLES 0
-#define methtbl_get_instance_variables(obj) NTH_FIELD(obj, METHTBL_f_INSTANCE_VARIABLES)
-#define methtbl_set_instance_variables(obj, val) SET_FIELD(obj, METHTBL_f_INSTANCE_VARIABLES, val)
-#define METHTBL_f_KEYS 1
-#define methtbl_get_keys(obj) NTH_FIELD(obj, METHTBL_f_KEYS)
-#define methtbl_set_keys(obj, val) SET_FIELD(obj, METHTBL_f_KEYS, val)
-#define METHTBL_f_VALUES 2
-#define methtbl_get_values(obj) NTH_FIELD(obj, METHTBL_f_VALUES)
-#define methtbl_set_values(obj, val) SET_FIELD(obj, METHTBL_f_VALUES, val)
-#define METHTBL_f_BINS 3
-#define methtbl_get_bins(obj) NTH_FIELD(obj, METHTBL_f_BINS)
-#define methtbl_set_bins(obj, val) SET_FIELD(obj, METHTBL_f_BINS, val)
-#define METHTBL_f_ENTRIES 4
-#define methtbl_get_entries(obj) NTH_FIELD(obj, METHTBL_f_ENTRIES)
-#define methtbl_set_entries(obj, val) SET_FIELD(obj, METHTBL_f_ENTRIES, val)
-#define METHTBL_f_DEFAULT 5
-#define methtbl_get_default(obj) NTH_FIELD(obj, METHTBL_f_DEFAULT)
-#define methtbl_set_default(obj, val) SET_FIELD(obj, METHTBL_f_DEFAULT, val)
-#define methtbl_allocate(st) methtbl_allocate_with_extra(st, 0)
-#define METHTBL_FIELDS 6
-OBJECT methtbl_allocate_with_extra(STATE, int extra);
-#define bytearray_allocate(st) bytearray_allocate_with_extra(st, 0)
-#define BYTEARRAY_FIELDS 0
-OBJECT bytearray_allocate_with_extra(STATE, int extra);
+#define BLOKENV_f_INSTANCE_VARIABLES 0
+#define blokenv_get_instance_variables(obj) NTH_FIELD(obj, BLOKENV_f_INSTANCE_VARIABLES)
+#define blokenv_set_instance_variables(obj, val) SET_FIELD(obj, BLOKENV_f_INSTANCE_VARIABLES, val)
+#define BLOKENV_f_HOME 1
+#define blokenv_get_home(obj) NTH_FIELD(obj, BLOKENV_f_HOME)
+#define blokenv_set_home(obj, val) SET_FIELD(obj, BLOKENV_f_HOME, val)
+#define BLOKENV_f_INITIAL_IP 2
+#define blokenv_get_initial_ip(obj) NTH_FIELD(obj, BLOKENV_f_INITIAL_IP)
+#define blokenv_set_initial_ip(obj, val) SET_FIELD(obj, BLOKENV_f_INITIAL_IP, val)
+#define BLOKENV_f_LAST_IP 3
+#define blokenv_get_last_ip(obj) NTH_FIELD(obj, BLOKENV_f_LAST_IP)
+#define blokenv_set_last_ip(obj, val) SET_FIELD(obj, BLOKENV_f_LAST_IP, val)
+#define blokenv_allocate(st) blokenv_allocate_with_extra(st, 0)
+#define BLOKENV_FIELDS 4
+OBJECT blokenv_allocate_with_extra(STATE, int extra);
 #define METACLASS_f_INSTANCE_VARIABLES 0
 #define metaclass_get_instance_variables(obj) NTH_FIELD(obj, METACLASS_f_INSTANCE_VARIABLES)
 #define metaclass_set_instance_variables(obj, val) SET_FIELD(obj, METACLASS_f_INSTANCE_VARIABLES, val)
@@ -151,6 +154,30 @@ OBJECT metaclass_allocate_with_extra(STATE, int extra);
 #define methctx_allocate(st) methctx_allocate_with_extra(st, 0)
 #define METHCTX_FIELDS 13
 OBJECT methctx_allocate_with_extra(STATE, int extra);
+#define METHTBL_f_INSTANCE_VARIABLES 0
+#define methtbl_get_instance_variables(obj) NTH_FIELD(obj, METHTBL_f_INSTANCE_VARIABLES)
+#define methtbl_set_instance_variables(obj, val) SET_FIELD(obj, METHTBL_f_INSTANCE_VARIABLES, val)
+#define METHTBL_f_KEYS 1
+#define methtbl_get_keys(obj) NTH_FIELD(obj, METHTBL_f_KEYS)
+#define methtbl_set_keys(obj, val) SET_FIELD(obj, METHTBL_f_KEYS, val)
+#define METHTBL_f_VALUES 2
+#define methtbl_get_values(obj) NTH_FIELD(obj, METHTBL_f_VALUES)
+#define methtbl_set_values(obj, val) SET_FIELD(obj, METHTBL_f_VALUES, val)
+#define METHTBL_f_BINS 3
+#define methtbl_get_bins(obj) NTH_FIELD(obj, METHTBL_f_BINS)
+#define methtbl_set_bins(obj, val) SET_FIELD(obj, METHTBL_f_BINS, val)
+#define METHTBL_f_ENTRIES 4
+#define methtbl_get_entries(obj) NTH_FIELD(obj, METHTBL_f_ENTRIES)
+#define methtbl_set_entries(obj, val) SET_FIELD(obj, METHTBL_f_ENTRIES, val)
+#define METHTBL_f_DEFAULT 5
+#define methtbl_get_default(obj) NTH_FIELD(obj, METHTBL_f_DEFAULT)
+#define methtbl_set_default(obj, val) SET_FIELD(obj, METHTBL_f_DEFAULT, val)
+#define methtbl_allocate(st) methtbl_allocate_with_extra(st, 0)
+#define METHTBL_FIELDS 6
+OBJECT methtbl_allocate_with_extra(STATE, int extra);
+#define bytearray_allocate(st) bytearray_allocate_with_extra(st, 0)
+#define BYTEARRAY_FIELDS 0
+OBJECT bytearray_allocate_with_extra(STATE, int extra);
 #define CLASS_f_INSTANCE_VARIABLES 0
 #define class_get_instance_variables(obj) NTH_FIELD(obj, CLASS_f_INSTANCE_VARIABLES)
 #define class_set_instance_variables(obj, val) SET_FIELD(obj, CLASS_f_INSTANCE_VARIABLES, val)
@@ -178,12 +205,6 @@ OBJECT methctx_allocate_with_extra(STATE, int extra);
 #define class_allocate(st) class_allocate_with_extra(st, 0)
 #define CLASS_FIELDS 8
 OBJECT class_allocate_with_extra(STATE, int extra);
-#define IO_f_DESCRIPTOR 0
-#define io_get_descriptor(obj) NTH_FIELD(obj, IO_f_DESCRIPTOR)
-#define io_set_descriptor(obj, val) SET_FIELD(obj, IO_f_DESCRIPTOR, val)
-#define io_allocate(st) io_allocate_with_extra(st, 0)
-#define IO_FIELDS 1
-OBJECT io_allocate_with_extra(STATE, int extra);
 #define HASH_f_INSTANCE_VARIABLES 0
 #define hash_get_instance_variables(obj) NTH_FIELD(obj, HASH_f_INSTANCE_VARIABLES)
 #define hash_set_instance_variables(obj, val) SET_FIELD(obj, HASH_f_INSTANCE_VARIABLES, val)
@@ -205,6 +226,12 @@ OBJECT io_allocate_with_extra(STATE, int extra);
 #define hash_allocate(st) hash_allocate_with_extra(st, 0)
 #define HASH_FIELDS 6
 OBJECT hash_allocate_with_extra(STATE, int extra);
+#define IO_f_DESCRIPTOR 0
+#define io_get_descriptor(obj) NTH_FIELD(obj, IO_f_DESCRIPTOR)
+#define io_set_descriptor(obj, val) SET_FIELD(obj, IO_f_DESCRIPTOR, val)
+#define io_allocate(st) io_allocate_with_extra(st, 0)
+#define IO_FIELDS 1
+OBJECT io_allocate_with_extra(STATE, int extra);
 #define STRING_f_BYTES 0
 #define string_get_bytes(obj) NTH_FIELD(obj, STRING_f_BYTES)
 #define string_set_bytes(obj, val) SET_FIELD(obj, STRING_f_BYTES, val)
@@ -220,18 +247,6 @@ OBJECT hash_allocate_with_extra(STATE, int extra);
 #define string_allocate(st) string_allocate_with_extra(st, 0)
 #define STRING_FIELDS 4
 OBJECT string_allocate_with_extra(STATE, int extra);
-#define SYMTBL_f_INSTANCE_VARIABLES 0
-#define symtbl_get_instance_variables(obj) NTH_FIELD(obj, SYMTBL_f_INSTANCE_VARIABLES)
-#define symtbl_set_instance_variables(obj, val) SET_FIELD(obj, SYMTBL_f_INSTANCE_VARIABLES, val)
-#define SYMTBL_f_SYMBOLS 1
-#define symtbl_get_symbols(obj) NTH_FIELD(obj, SYMTBL_f_SYMBOLS)
-#define symtbl_set_symbols(obj, val) SET_FIELD(obj, SYMTBL_f_SYMBOLS, val)
-#define SYMTBL_f_STRINGS 2
-#define symtbl_get_strings(obj) NTH_FIELD(obj, SYMTBL_f_STRINGS)
-#define symtbl_set_strings(obj, val) SET_FIELD(obj, SYMTBL_f_STRINGS, val)
-#define symtbl_allocate(st) symtbl_allocate_with_extra(st, 0)
-#define SYMTBL_FIELDS 3
-OBJECT symtbl_allocate_with_extra(STATE, int extra);
 #define BLOKCTX_f_INSTANCE_VARIABLES 0
 #define blokctx_get_instance_variables(obj) NTH_FIELD(obj, BLOKCTX_f_INSTANCE_VARIABLES)
 #define blokctx_set_instance_variables(obj, val) SET_FIELD(obj, BLOKCTX_f_INSTANCE_VARIABLES, val)
@@ -250,17 +265,11 @@ OBJECT symtbl_allocate_with_extra(STATE, int extra);
 #define BLOKCTX_f_RAISEABLE 5
 #define blokctx_get_raiseable(obj) NTH_FIELD(obj, BLOKCTX_f_RAISEABLE)
 #define blokctx_set_raiseable(obj, val) SET_FIELD(obj, BLOKCTX_f_RAISEABLE, val)
-#define BLOKCTX_f_HOME 6
-#define blokctx_get_home(obj) NTH_FIELD(obj, BLOKCTX_f_HOME)
-#define blokctx_set_home(obj, val) SET_FIELD(obj, BLOKCTX_f_HOME, val)
-#define BLOKCTX_f_LAST_OP 7
-#define blokctx_get_last_op(obj) NTH_FIELD(obj, BLOKCTX_f_LAST_OP)
-#define blokctx_set_last_op(obj, val) SET_FIELD(obj, BLOKCTX_f_LAST_OP, val)
-#define BLOKCTX_f_START_OP 8
-#define blokctx_get_start_op(obj) NTH_FIELD(obj, BLOKCTX_f_START_OP)
-#define blokctx_set_start_op(obj, val) SET_FIELD(obj, BLOKCTX_f_START_OP, val)
+#define BLOKCTX_f_ENV 6
+#define blokctx_get_env(obj) NTH_FIELD(obj, BLOKCTX_f_ENV)
+#define blokctx_set_env(obj, val) SET_FIELD(obj, BLOKCTX_f_ENV, val)
 #define blokctx_allocate(st) blokctx_allocate_with_extra(st, 0)
-#define BLOKCTX_FIELDS 9
+#define BLOKCTX_FIELDS 7
 OBJECT blokctx_allocate_with_extra(STATE, int extra);
 #define MODULE_f_INSTANCE_VARIABLES 0
 #define module_get_instance_variables(obj) NTH_FIELD(obj, MODULE_f_INSTANCE_VARIABLES)
@@ -286,34 +295,36 @@ OBJECT module_allocate_with_extra(STATE, int extra);
 #define object_allocate(st) object_allocate_with_extra(st, 0)
 #define OBJECT_FIELDS 1
 OBJECT object_allocate_with_extra(STATE, int extra);
+OBJECT _symtbl_basic_class(STATE, OBJECT sup);
+OBJECT _symtbl_class(STATE, OBJECT sup);
 OBJECT _cmethod_basic_class(STATE, OBJECT sup);
 OBJECT _cmethod_class(STATE, OBJECT sup);
 OBJECT _tuple_basic_class(STATE, OBJECT sup);
 OBJECT _tuple_class(STATE, OBJECT sup);
-OBJECT _array_basic_class(STATE, OBJECT sup);
-OBJECT _array_class(STATE, OBJECT sup);
 OBJECT _blank_basic_class(STATE, OBJECT sup);
 OBJECT _blank_class(STATE, OBJECT sup);
+OBJECT _array_basic_class(STATE, OBJECT sup);
+OBJECT _array_class(STATE, OBJECT sup);
 OBJECT _symbol_basic_class(STATE, OBJECT sup);
 OBJECT _symbol_class(STATE, OBJECT sup);
-OBJECT _methtbl_basic_class(STATE, OBJECT sup);
-OBJECT _methtbl_class(STATE, OBJECT sup);
-OBJECT _bytearray_basic_class(STATE, OBJECT sup);
-OBJECT _bytearray_class(STATE, OBJECT sup);
+OBJECT _blokenv_basic_class(STATE, OBJECT sup);
+OBJECT _blokenv_class(STATE, OBJECT sup);
 OBJECT _metaclass_basic_class(STATE, OBJECT sup);
 OBJECT _metaclass_class(STATE, OBJECT sup);
 OBJECT _methctx_basic_class(STATE, OBJECT sup);
 OBJECT _methctx_class(STATE, OBJECT sup);
+OBJECT _methtbl_basic_class(STATE, OBJECT sup);
+OBJECT _methtbl_class(STATE, OBJECT sup);
+OBJECT _bytearray_basic_class(STATE, OBJECT sup);
+OBJECT _bytearray_class(STATE, OBJECT sup);
 OBJECT _class_basic_class(STATE, OBJECT sup);
 OBJECT _class_class(STATE, OBJECT sup);
-OBJECT _io_basic_class(STATE, OBJECT sup);
-OBJECT _io_class(STATE, OBJECT sup);
 OBJECT _hash_basic_class(STATE, OBJECT sup);
 OBJECT _hash_class(STATE, OBJECT sup);
+OBJECT _io_basic_class(STATE, OBJECT sup);
+OBJECT _io_class(STATE, OBJECT sup);
 OBJECT _string_basic_class(STATE, OBJECT sup);
 OBJECT _string_class(STATE, OBJECT sup);
-OBJECT _symtbl_basic_class(STATE, OBJECT sup);
-OBJECT _symtbl_class(STATE, OBJECT sup);
 OBJECT _blokctx_basic_class(STATE, OBJECT sup);
 OBJECT _blokctx_class(STATE, OBJECT sup);
 OBJECT _module_basic_class(STATE, OBJECT sup);
