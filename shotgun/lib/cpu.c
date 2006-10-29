@@ -191,7 +191,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
     
     is_block = blokctx_s_block_context_p(state, c->active_context);
     if(consider_block && is_block) {
-      home = blokctx_get_home(c->active_context);
+      home = blokctx_home(state, c->active_context);
       home_sender = methctx_get_sender(home);
       sender = home_sender;
     }
@@ -205,7 +205,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
     }
     
     if(blokctx_s_block_context_p(state, sender)) {
-      home = blokctx_get_home(sender);
+      home = blokctx_home(state, sender);
     } else {
       home = sender;
     }

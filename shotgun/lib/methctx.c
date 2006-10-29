@@ -59,10 +59,10 @@ void methctx_reference(STATE, OBJECT self) {
 
 char *methctx_describe(STATE, OBJECT ctx) {
   printf("MethodContext: %p, called %s on %p. Method used: %p\n",
-    ctx,
-    rbs_symbol_to_string(state, methctx_get_name(ctx)),
-    methctx_get_receiver(ctx),
-    methctx_get_method(ctx)
+    (void*)ctx,
+    (char*)rbs_symbol_to_cstring(state, methctx_get_name(ctx)),
+    (void*)methctx_get_receiver(ctx),
+    (void*)methctx_get_method(ctx)
   );
 }
 
@@ -95,7 +95,7 @@ int blokctx_s_block_context_p(STATE, OBJECT ctx) {
   return FLAG_SET_P(ctx, IsBlockContextFlag);
 }
 
-OBJECT blokctx_get_home(OBJECT self) {
+OBJECT blokctx_home(STATE, OBJECT self) {
   OBJECT env, home;
   env = blokctx_get_env(self);
   home = blokenv_get_home(env);

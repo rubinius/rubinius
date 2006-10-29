@@ -70,7 +70,7 @@ void machine_show_exception(machine m, OBJECT exc) {
 }
 
 int machine_run_file(machine m, char *path) {
-  OBJECT meth, name;
+  OBJECT meth;
   
   meth = machine_load_file(m, path);
   if(!RTEST(meth)) {

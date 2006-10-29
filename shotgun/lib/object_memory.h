@@ -1,6 +1,7 @@
 #include "rubinius.h"
 #include "baker.h"
 #include <glib.h>
+#include <stdlib.h>
 
 #ifndef __RUBINIUS_OM__ 1
 #define __RUBINIUS_OM__ 1

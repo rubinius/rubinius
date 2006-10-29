@@ -679,19 +679,19 @@ class ShotgunPrimitives
         t2 = tuple_new(state, 7);
         tuple_put(state, t2, 0, I2N((int)sb.st_ino));
         tuple_put(state, t2, 1, I2N((int)sb.st_mode));
-        if(sb.st_mode & S_IFIFO == S_IFIFO) {
+        if((sb.st_mode & S_IFIFO) == S_IFIFO) {
           t3 = string_to_sym(state, string_new(state, "fifo"));
-        } else if(sb.st_mode & S_IFCHR == S_IFCHR) {
+        } else if((sb.st_mode & S_IFCHR) == S_IFCHR) {
           t3 = string_to_sym(state, string_new(state, "char"));
-        } else if(sb.st_mode & S_IFDIR == S_IFDIR) {
+        } else if((sb.st_mode & S_IFDIR) == S_IFDIR) {
           t3 = string_to_sym(state, string_new(state, "dir"));
-        } else if(sb.st_mode & S_IFBLK == S_IFBLK) {
+        } else if((sb.st_mode & S_IFBLK) == S_IFBLK) {
           t3 = string_to_sym(state, string_new(state, "block"));
-        } else if(sb.st_mode & S_IFREG == S_IFREG) {
+        } else if((sb.st_mode & S_IFREG) == S_IFREG) {
           t3 = string_to_sym(state, string_new(state, "regular"));
-        } else if(sb.st_mode & S_IFLNK == S_IFLNK) {
+        } else if((sb.st_mode & S_IFLNK) == S_IFLNK) {
           t3 = string_to_sym(state, string_new(state, "link"));
-        } else if(sb.st_mode & S_IFSOCK == S_IFSOCK) {
+        } else if((sb.st_mode & S_IFSOCK) == S_IFSOCK) {
           t3 = string_to_sym(state, string_new(state, "socket"));
         } else {
           t3 = string_to_sym(state, string_new(state, "file"));

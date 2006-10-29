@@ -1,6 +1,5 @@
 #include "object_memory.h"
 #include <string.h>
-#include <stdlib.h>
 #include <assert.h>
 
 object_memory object_memory_new() {

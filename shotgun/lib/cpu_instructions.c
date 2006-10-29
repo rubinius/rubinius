@@ -12,8 +12,6 @@
 #define next_int _int = *(int*)(c->data + c->ip); c->ip += 4
 #define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
 
-inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
-
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   OBJECT sym, _lit, val, s1, s2, s3, s4;
   int _int;
