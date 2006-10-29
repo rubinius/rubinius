@@ -737,6 +737,13 @@ module Bytecode
         
         max = min = args[1].size
         
+        ba_name = nil
+        if args.last and args.last.first == :block_arg
+          ba = args.last
+          ba_name = ba[1]
+          ba_idx = state.local(ba_name)
+        end
+        
         if defaults
           idx = min
           defaults.each do |var|
@@ -765,11 +772,8 @@ module Bytecode
           req = min
         end
         
-        if args.last and args.last.first == :block_arg
-          ba = args.last
-          name = ba[1]
-          idx = ba[2]
-          str << "push_block\npush Proc\nsend new 1\nset #{name}:#{idx}\n"
+        if ba_name
+          str << "push_block\npush Proc\nsend from_environment 1\nset #{ba_name}:#{ba_idx}\n"
         end
         
         meth.required = req
@@ -812,6 +816,8 @@ module Bytecode
           sz = nil
         end
         
+        @post_send = ps = unique_lbl()
+        
         if block
           op = "&send"
           process block
@@ -821,7 +827,8 @@ module Bytecode
         
         process recv
         
-        add "#{op} #{meth} #{sz}"        
+        add "#{op} #{meth} #{sz}"
+        add "#{ps}:"
       end
       
       def process_attrasgn(x)
@@ -847,6 +854,7 @@ module Bytecode
       def process_block_iter(x)
         one = unique_lbl()
         two = unique_lbl()
+        add "push &#{@post_send}"
         add "push &#{one}"
         add "push_context"
         add "send_primitive create_block"

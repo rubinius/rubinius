@@ -77,24 +77,20 @@ module Rubinius
     # The first N arguments need to be the same as the fields of 
     # MethodContext so that a BlockContext can be 'cast' as a 
     # MethodContext.
-    Fields = [:sender, :ip, :sp, :block, :raiseable, :home, :last_op, :start_op]
+    Fields = [:sender, :ip, :sp, :block, :raiseable, :env]
     
     IsBlockContextFlag = 0x40
-    
-    def self.under_context(ctx)
+        
+    def self.under_environment(env)
       obj = allocate
       obj.flag_set IsBlockContextFlag
       obj.raiseable = RObject.true
-      obj.ip = RObject.wrap(0)
-      obj.sp = RObject.wrap(0)
-      obj.home = ctx
-      obj.last_op = RObject.wrap(0)
       
-      # The 5 is here because we always to a basic jump right after
-      # a block is created. By setting the block context's ip to
-      # + 5, we bypass the jump and go to the bytecode for the block
-      # itself.
-      obj.start_op = RObject.wrap(ctx.ip.to_int + 5)
+      env.as :blokenv
+      obj.ip = env.initial_ip
+      obj.sp = RObject.wrap(0)
+      obj.env = env
+      
       return obj
     end
     
@@ -102,7 +98,37 @@ module Rubinius
       obj.flag_set? IsBlockContextFlag
     end
     
+    def home
+      env = self.env
+      env.as :blokenv
+      return env.home
+    end
   end
   
   add_type :blokctx, BlockContext
+  
+  module BlockEnvironment
+    Fields = [:home, :initial_ip, :last_ip, :post_send]
+    
+    def self.under_context(ctx, lst, vlst)
+      obj = allocate
+      obj.home = ctx
+      
+      # The 5 is here because we always to a basic jump right after
+      # a block is created. By setting the block context's ip to
+      # + 5, we bypass the jump and go to the bytecode for the block
+      # itself.
+      obj.initial_ip = RObject.wrap(ctx.ip.to_int + 5)
+      obj.last_ip = lst
+      obj.post_send = vlst
+      
+      return obj
+    end
+    
+    def create_context
+      BlockContext.under_environment(self)
+    end  
+  end
+  
+  add_type :blokenv, BlockEnvironment
 end

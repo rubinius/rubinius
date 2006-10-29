@@ -1,7 +1,16 @@
 
 desc "Run all rubinius's tests"
-task :test do
+task :test => [:shotgun] do
     system("ruby -Ilib test/tc_all.rb")
+    system("ruby test/tc_all.rb shotgun-tests")
+end
+
+task :shotgun do
+    system("make -C shotgun rubinius")
+end
+
+task :test_shotgun do
+    system("ruby test/tc_all.rb shotgun-tests")
 end
 
 desc "Build syd-parser."

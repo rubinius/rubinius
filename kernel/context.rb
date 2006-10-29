@@ -7,7 +7,14 @@ class MethodContext
     Ruby.asm "push_context\nset cur\n"
     return cur.sender
   end
-    
+  
+  def sender
+    Ruby.primitive :context_sender
+    # We use a primitive here so that the underside is aware that
+    # we're pulling a methodcontext into the normal fraw. Currently
+    # this means that it can't be reused automatically.
+  end
+  
   def to_s
     "#<#{self.class}:0x#{self.object_id.to_s(16)} #{receiver}##{name} #{file}:#{line}>"
   end
@@ -26,18 +33,46 @@ class MethodContext
     return 0 unless self.method
     return self.method.line_from_ip(self.ip)
   end
+  
+  def activate(val)
+    Ruby.primitive :activate_context    
+  end
+  
+  def copy(locals=false)
+    d = self.dup
+    return d unless locals
+    
+    i = 0
+    lc = self.locals
+    tot = lc.fields
+    nl = Tuple.new(tot)
+    while i < tot
+      nl.put i, lc.at(i)
+      i += 1
+    end
+    
+    # d.put 10, nl
+    
+    return d
+  end
 end
 
 class BlockContext
+  def activate(val)
+    Ruby.primitive :activate_context    
+  end  
+end
+
+class BlockEnvironment
   def call(*args)
     if args.total == 1
-      block_call args[0]
+      execute args[0]
     else
-      block_call args.tuple
+      execute args.tuple
     end
   end
   
-  def block_call(args)
+  def execute(args)
     Ruby.primitive :block_call
   end
   
@@ -50,20 +85,27 @@ class BlockContext
   end
   
   def line
-    self.home.method.line_from_ip(self.ip)
+    self.home.method.line_from_ip(self.initial_ip)
   end
 end
 
 class Proc
   
-  self.instance_fields = 2
+  self.instance_fields = 3
   
   def block
     at(1)
   end
   
-  def initialize(blk)
-    put 1, blk
+  def self.from_environment(env, check_args=false)
+    obj = allocate()
+    obj.put 1, env
+    obj.put 2, check_args
+    return obj
+  end
+  
+  def self.new(&block)
+    return block
   end
   
   def inspect
@@ -73,7 +115,7 @@ class Proc
   def self.block_passed(blk)
     if blk === Proc
       blk = blk.block
-    elsif !blk.kind_of?(BlockContext)
+    elsif !blk.kind_of?(BlockEnvironment)
       if blk.respond_to?(:to_proc)
         prc = blk.to_proc
         if Proc === prc

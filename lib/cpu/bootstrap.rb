@@ -64,9 +64,11 @@ class CPU
   
   def bootstrap_contexts
     Global.methctx = Rubinius::MethodContext.class_obj Global.object
+    Global.blokenv = Rubinius::BlockEnvironment.class_obj Global.object
     Global.blokctx = Rubinius::BlockContext.class_obj Global.object
     
     Global.methctx.setup 'MethodContext'
+    Global.blokenv.setup 'BlockEnvironment'
     Global.blokctx.setup 'BlockContext'
   end
   

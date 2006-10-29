@@ -230,7 +230,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   mo = cpu_locate_method(state, c, recv, sym, &missing);
   
   if(missing) {
-    // printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
   }
   
   if(missing) {

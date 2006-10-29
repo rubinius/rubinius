@@ -197,7 +197,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
     }
     
     /* for context caching... */
-    if(!is_block && !methctx_s_was_referenced_p(state, c->active_context)) {
+    if(0 && !is_block && !methctx_s_was_referenced_p(state, c->active_context)) {
       if(state->free_contexts->len < 10) {
         // printf("Caching context %p...\n", c->active_context);
         g_ptr_array_add(state->free_contexts, (gpointer)c->active_context);

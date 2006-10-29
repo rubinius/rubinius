@@ -47,7 +47,9 @@ class CPU::Primitives
     :io_open,
     :process_exit,
     :io_close,
-    :time_seconds
+    :time_seconds,
+    :activate_context,
+    :context_sender
   ]
   
   FirstRuntimePrimitive = 1024
@@ -244,16 +246,16 @@ class CPU::Primitives
   def create_block(o)
     ctx = @cpu.pop_object
     lst = @cpu.pop_object
-    
+    vlst = @cpu.pop_object
     return false unless ctx.reference?
     return false unless lst.fixnum?
+    return false unless vlst.fixnum?
     
     ctx.as :methctx
     
     ctx.ip = RObject.wrap(@cpu.ip)
     
-    blk = Rubinius::BlockContext.under_context ctx
-    blk.last_op = lst
+    blk = Rubinius::BlockEnvironment.under_context ctx, lst, vlst
 
     # puts "Block #{blk.address} created under #{ctx.address}"
     @cpu.push_object blk
@@ -270,13 +272,15 @@ class CPU::Primitives
   end
   
   def block_call(o)
-    blk = @cpu.pop_object
-    return false unless blk.reference?
+    env = @cpu.pop_object
+    return false unless env.reference?
     
+    env.as :blokenv
+    
+    blk = env.create_context
     blk.as :blokctx
     
     blk.sender = @cpu.active_context
-    blk.ip = blk.start_op
     blk.sp = RObject.wrap(@cpu.sp)
     
     meth = RObject.new(blk.address)

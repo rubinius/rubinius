@@ -233,7 +233,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
     assert do_prim(:create_block)
     obj = obj_top()
     assert_stack_size 1
-    assert_equal CPU::Global.blokctx, obj.rclass
+    assert_equal CPU::Global.blokenv, obj.rclass
   end
   
   def test_block_given

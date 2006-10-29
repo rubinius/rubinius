@@ -221,12 +221,13 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
+    t2 =   stack_pop();
     
     if(!RISA(self, methctx) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
       methctx_set_ip(self, I2N(c->ip));
-      t2 = blokenv_s_under_context(state, self, t1);
+      t2 = blokenv_s_under_context(state, self, t1, t2);
       stack_push(t2);
     }
     CODE
@@ -588,7 +589,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+    
   def fetch_bytes
     <<-CODE
     self = stack_pop();
@@ -717,6 +718,32 @@ class ShotgunPrimitives
     } else {
       exit(FIXNUM_TO_INT(t1));
     }
+    CODE
+  end
+  
+  def activate_context
+    <<-CODE
+    self = stack_pop();
+    if(blokctx_s_block_context_p(state, self)) {
+      t1 = blokctx_home(state, self);
+    } else {
+      t1 = self;
+    }
+    
+    cpu_activate_context(state, c, self, t1);
+    CODE
+  end
+  
+  def context_sender
+    <<-CODE
+    self = stack_pop();
+    t1 = methctx_get_sender(self);
+    
+    if(t1 != Qnil) {
+      methctx_reference(state, t1);
+    }
+    
+    stack_push(t1);
     CODE
   end
     

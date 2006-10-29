@@ -924,9 +924,12 @@ class TestCPUInstructions < Test::Unit::TestCase
   
   def test_soft_return_into_block
     ctx = @cpu.active_context
-    b1 = Rubinius::BlockContext.under_context ctx
+    env = Rubinius::BlockEnvironment.under_context ctx, RObject.wrap(0)
+    b1 = env.create_context
     b1.ip = RObject.wrap(3)
-    b2 = Rubinius::BlockContext.under_context ctx
+    
+    env = Rubinius::BlockEnvironment.under_context ctx, RObject.wrap(0)
+    b2 = env.create_context
     b2.ip = RObject.wrap(3)
     ctx.ip = RObject.wrap(3)
     b2.sender = b1
@@ -946,7 +949,8 @@ class TestCPUInstructions < Test::Unit::TestCase
   def test_caller_return
     ctx = @cpu.active_context
     c2 = Rubinius::MethodContext.new(0)
-    b1 = Rubinius::BlockContext.under_context ctx
+    env = Rubinius::BlockEnvironment.under_context ctx, RObject.wrap(0)
+    b1 = env.create_context
     c2.sender = ctx
     b1.sender = c2
     @cpu.active_context = b1

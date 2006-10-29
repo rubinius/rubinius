@@ -17,7 +17,7 @@ module RubiniusHelper
       File.open(path, "w") do |fd|
         fd << code
       end
-      system("./bin/rcompile code-cache/#{name}.rb")
+      `./bin/rcompile code-cache/#{name}.rb`
     end
     r, w = IO.pipe
     r2, w2 = IO.pipe

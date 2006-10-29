@@ -307,4 +307,47 @@ class TestCore < Test::Unit::TestCase
     
     assert_equal "works", out.first
   end
+  
+  def test_block_semantics
+    out = rp <<-CODE
+    def blah(&bl)
+      return bl
+    end
+    
+    pr = blah() { |a, b| a + b }
+    p pr.call(8, 19)
+    
+    l = lambda() { 8 + 8 }
+    p l.call
+    CODE
+    
+    assert_equal ["27", "16"], out
+  end
+  
+  def test_callcc
+    out = rp <<-CODE
+    def blah
+      puts "making"
+      save = nil
+      callcc do |cc|
+        save = cc
+        return cc
+      end
+      8 + 8
+      puts "back in method"
+      return save
+    end
+    i = 0
+    puts "before"
+    cc = blah()
+    i += 1
+    puts "before call"
+    cc.call if i < 5
+    puts "after"
+    CODE
+    exc = ["before", "making", "before call", "back in method", "before call",
+           "back in method", "before call", "back in method", "before call",
+           "back in method", "before call", "after"]
+    assert_equal exc, out
+  end
 end

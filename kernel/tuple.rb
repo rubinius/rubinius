@@ -3,6 +3,12 @@ class Tuple
     Ruby.primitive :allocate_count
   end
   
+  def dup
+    tup = Tuple.new(self.fields)
+    tup.copy_from(self, 0)
+    return tup
+  end
+  
   def to_s
     "#<Tuple:0x#{object_id.to_s(16)} #{fields} elements>"
   end

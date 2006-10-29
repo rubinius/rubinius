@@ -155,6 +155,16 @@ class Object
     mo = Method.new(self, mod, cm)
     return mo
   end
+  
+  def lambda
+    env = nil
+    Ruby.asm "push_block\nset env\n"
+    unless env
+      raise ArgumentError, "Unable to create a Proc if a block is not passed in"
+    end
+    
+    return Proc.from_environment(env)
+  end
 end
 
 class TrueClass
