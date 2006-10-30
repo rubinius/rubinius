@@ -1,3 +1,4 @@
+#include "shotgun.h"
 #include "cpu.h"
 
 struct rubinius_machine {

@@ -73,6 +73,18 @@ static inline OBJECT rbs_int_to_fixnum(int num) {
 #define FIXNUM_TO_INT(obj) rbs_to_int(obj)
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(int)
 #define I2N(i) INT_TO_FIXNUM(i)
+
+#ifdef Qfalse
+#undef Qfalse
+#undef Qtrue
+#undef Qnil
+#undef Qundef
+#undef RTEST
+#undef NIL_P
+#undef SYMBOL_P
+#undef FIXNUM_P
+#endif
+
 #define Qfalse ((OBJECT)0)
 #define Qtrue  ((OBJECT)2)
 #define Qnil   ((OBJECT)4)
@@ -95,8 +107,11 @@ static inline OBJECT rbs_int_to_fixnum(int num) {
 #define FALSE 0
 #endif
 
-#include "state.h"
-#include "object.h"
+#ifndef STATE
+#define STATE void*
+#endif
+
+#ifndef __SHOTGUN__
 
 OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, char *name);
@@ -104,6 +119,6 @@ OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT obj);
 char *rbs_symbol_to_cstring(STATE, OBJECT sym);
 char *rbs_inspect(STATE, OBJECT obj);
 
-#include "auto.h"
+#endif
 
 #endif

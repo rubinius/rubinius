@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "module.h"
 
 #define IsMetaFlag 0x80

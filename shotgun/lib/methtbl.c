@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "hash.h"
 
 OBJECT methtbl_new(STATE) {

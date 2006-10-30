@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "object.h"
 #include <stdlib.h>
 #include <string.h>

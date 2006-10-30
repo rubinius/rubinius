@@ -37,6 +37,10 @@ typedef struct rubinius_state* rstate;
 
 rstate rubinius_state_new();
 
+#ifdef STATE
+#undef STATE
+#endif
+
 #define STATE rstate state
 #define BASIC_CLASS(kind) state->global->kind
 #define NEW_OBJECT(kls, size) object_memory_new_object(state->om, kls, size)

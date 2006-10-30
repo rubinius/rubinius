@@ -4,7 +4,7 @@ klasses = []
 
 fd = File.open("auto.h", "w")
 
-puts "#include \"rubinius.h\""
+puts "#include \"shotgun.h\""
 
 Rubinius::Types.each do |name, obj|
   prefix = "#{name}_"

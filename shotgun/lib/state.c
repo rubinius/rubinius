@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include <stdlib.h>
 
 rstate rubinius_state_new() {

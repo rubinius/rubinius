@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "module.h"
 
 OBJECT class_new(STATE, char *name, int fields, OBJECT sup) {

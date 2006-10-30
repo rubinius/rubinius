@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "cpu.h"
 #include "module.h"
 #include "methctx.h"

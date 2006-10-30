@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 
 OBJECT io_new(STATE, int fd) {
   OBJECT io;

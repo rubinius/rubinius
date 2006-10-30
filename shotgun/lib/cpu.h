@@ -1,3 +1,4 @@
+#include <glib.h>
 
 struct rubinius_cpu {
   OBJECT stack;

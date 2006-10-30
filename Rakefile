@@ -1,17 +1,28 @@
 
-desc "Run all rubinius's tests"
-task :test => [:shotgun] do
+desc "Run rubinius's 1.8.* tests"
+task :test do
     system("ruby -Ilib test/tc_all.rb")
+end
+
+desc "Run shotgun's core tests"
+task :test_shotgun => [:bk] do
+    Dir.mkdir "code-cache" unless File.exists?("code-cache")
     system("ruby test/tc_all.rb shotgun-tests")
 end
 
-task :shotgun do
+desc "Run all the tests"
+task :test_all => [:test, :test_shotgun]
+
+# This forces ruby inline to build everything in the 
+# right place.
+task :setup do
+    `ruby bin/rcc`
+end
+
+task :shotgun => [:setup] do
     system("make -C shotgun rubinius")
 end
 
-task :test_shotgun do
-    system("ruby test/tc_all.rb shotgun-tests")
-end
 
 desc "Build syd-parser."
 task :syd do

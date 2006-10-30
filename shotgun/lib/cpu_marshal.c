@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "cpu.h"
 #include "string.h"
 #include "bytearray.h"

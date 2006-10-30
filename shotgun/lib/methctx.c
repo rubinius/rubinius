@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "methctx.h"
 #include "tuple.h"
 
