@@ -206,7 +206,7 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
   OBJECT ctx, mo;
   mo = cpu_find_method(state, c, recv, meth);
   if(NIL_P(mo)) return;
-  cpu_stack_push(state, c, arg);
+  stack_push(arg);
   
   ctx = cpu_create_context(state, c, recv, mo, meth);
   methctx_set_argcount(ctx, I2N(1));
@@ -220,7 +220,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
   
-  if(c->depth == 1000) {
+  if(0 && c->depth == 1000) {
     printf("Runaway depth...\n");
     abort();
   }
@@ -292,8 +292,20 @@ void cpu_run(STATE, cpu c) {
     op = (unsigned char)(c->data[c->ip]);
     c->ip += 1;
     
+    #undef stack_push
+    // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
+    #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
+    
     // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
     #include "instructions.gen"
+    continue;
+    stack_error:
+    /* enlarge the stack to handle the exception */
+    c->stack = tuple_enlarge(state, c->stack, NUM_FIELDS(c->stack) + 128);
+    // printf("HEAP INFO: %d used, %d total.\n", state->om->gc->current->current - state->om->gc->current->address, state->om->gc->current->size);
+    cpu_raise_exception(state, c, 
+          cpu_new_exception(state, c, state->global->exc_stack_explosion,
+          "Stack has exploded"));
   }   
 }
 

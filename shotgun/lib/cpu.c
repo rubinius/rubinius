@@ -211,7 +211,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
     }
     
     cpu_restore_context_with_home(state, c, sender, home, TRUE);
-    cpu_stack_push(state, c, top);
+    cpu_stack_push(state, c, top, FALSE);
   }
 }
 
@@ -268,6 +268,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
   obj = class_new_instance(state, klass);
   str = string_new(state, msg);
   SET_FIELD(obj, 0, str);
+  SET_FIELD(obj, 1, c->active_context);
   return obj;
 }
 
@@ -389,9 +390,15 @@ void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   cpu_perform_hook(state, c, target, state->global->sym_s_method_added, sym);
 }
 
-void cpu_stack_push(STATE, cpu c, OBJECT oop) {
+int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {
   c->sp += 1;
+  if(check) {
+    if(NUM_FIELDS(c->stack) <= c->sp) {
+      return FALSE;
+    }
+  }
   SET_FIELD(c->stack, c->sp, oop);
+  return TRUE;
 }
 
 OBJECT cpu_stack_pop(STATE, cpu c) {

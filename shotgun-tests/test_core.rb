@@ -350,4 +350,28 @@ class TestCore < Test::Unit::TestCase
            "back in method", "before call", "after"]
     assert_equal exc, out
   end
+  
+  def test_stack_explosion
+    e = nil
+    begin
+      out = rp <<-CODE
+      def go
+        true
+      end
+    
+      def blah
+        i = 0
+        while i < 5
+          go()
+        end
+      end
+    
+      blah()
+      CODE
+    rescue RubiniusError => e
+      assert_match(/StackExploded/, e.message)
+    end
+    
+    assert(e)
+  end
 end

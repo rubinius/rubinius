@@ -139,7 +139,7 @@ class ShotgunPrimitives
       _ret = FALSE;
     } else {
       j = FIXNUM_TO_INT(t1);
-      if(j > NUM_FIELDS(self)) {
+      if(j >= NUM_FIELDS(self)) {
         _ret = FALSE;
       } else {
         SET_FIELD(self, j, t2);

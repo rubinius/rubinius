@@ -7,7 +7,13 @@ class Exception
   end
   
   def backtrace
-    at(1)
+    bk = at(1)
+    if MethodContext === bk
+      bk = Backtrace.backtrace(bk)
+      self.put 1, bk
+    end
+    
+    return bk
   end
   
   def message

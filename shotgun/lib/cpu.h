@@ -26,7 +26,7 @@ typedef struct rubinius_cpu *cpu;
 #define cpu_local_get(state, cpu, idx) (NTH_FIELD(cpu->locals, idx))
 #define cpu_local_set(state, cpu, idx, obj) (SET_FIELD(cpu->locals, idx, obj))
 
-#define stack_push(obj) cpu_stack_push(state, c, obj)
+#define stack_push(obj) cpu_stack_push(state, c, obj, FALSE)
 #define stack_pop() cpu_stack_pop(state, c)
 #define stack_top() cpu_stack_top(state, c)
 
@@ -43,7 +43,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c);
-void cpu_stack_push(STATE, cpu c, OBJECT oop);
+int  cpu_stack_push(STATE, cpu c, OBJECT oop, int check);
 OBJECT cpu_stack_pop(STATE, cpu c);
 OBJECT cpu_stack_top(STATE, cpu c);
 int cpu_dispatch(STATE, cpu c);

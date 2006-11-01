@@ -10,7 +10,7 @@ void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 2;
   
-  OBJECT exc, std, arg, loe;
+  OBJECT exc, std, arg, loe, stk, sxp;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
@@ -24,9 +24,13 @@ void cpu_bootstrap_exceptions(STATE) {
   loe = dexc(LoadError, exc);
   dexc(RuntimeError, std);
   dexc(SystemCallError, std);
+  stk = dexc(StackError, exc);
+  sxp = dexc(StackExploded, stk);
   
   state->global->exc_arg = arg;
   state->global->exc_loe = loe;
+  
+  state->global->exc_stack_explosion = sxp;
 }
 
 void cpu_bootstrap(STATE) {
