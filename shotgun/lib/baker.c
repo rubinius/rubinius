@@ -13,8 +13,22 @@ baker_gc baker_gc_new(int size) {
   g->space_b = heap_new(size);
   g->current = g->space_a;
   g->next =    g->space_b;
-  
+  g->used =    0;
   return g;
+}
+
+int baker_gc_enlarge_next(baker_gc g, int sz) {
+  rheap h;
+  h = heap_new(sz);
+  heap_deallocate(g->next);
+  if(g->next == g->space_a) {
+    g->space_a = h;
+  } else {
+    g->space_b = h;
+  }
+  free(g->next);
+  g->next = h;
+  return TRUE;
 }
 
 int baker_gc_start_address(baker_gc g) {
@@ -22,9 +36,7 @@ int baker_gc_start_address(baker_gc g) {
 }
 
 int baker_gc_used(baker_gc g) {
-  int used;
-  used = g->current->current - g->current->address;
-  return used;
+  return g->used;
 }
 
 int baker_gc_swap(baker_gc g) {
@@ -34,6 +46,8 @@ int baker_gc_swap(baker_gc g) {
   g->next = tmp;
   
   heap_reset(tmp);
+  /* Reset used to the what the current has used. */
+  g->used = g->current->current - g->current->address;
   return TRUE;
 }
 
@@ -43,8 +57,15 @@ int baker_gc_destroy(baker_gc g) {
   return TRUE;
 }
 
-int baker_gc_allocate(baker_gc g, int size) {
-  return heap_allocate(g->current, size);
+address baker_gc_allocate(baker_gc g, int size) {
+  address out;
+  out = (address)heap_allocate(g->current, size);
+  g->used += size;
+  return out;
+}
+
+int baker_gc_allocate_spilled(baker_gc g, int size) {
+  return heap_allocate(g->next, size);
 }
 
 #define FORWARDING_MAGIC 0xff

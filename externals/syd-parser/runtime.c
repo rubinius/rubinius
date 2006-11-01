@@ -915,6 +915,8 @@ again_no_block:
   }
 }
 
+void rb_add_to_parse_tree(VALUE, NODE*, int, void*);
+
 VALUE rb_pt_sexp(int argc, VALUE *argv, VALUE self) {
     rb_parse_state *st;
     VALUE result;

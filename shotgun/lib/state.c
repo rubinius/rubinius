@@ -1,5 +1,6 @@
 #include "shotgun.h"
 #include <stdlib.h>
+#include <string.h>
 
 rstate rubinius_state_new() {
   rstate st;

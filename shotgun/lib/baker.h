@@ -9,6 +9,7 @@ struct baker_gc_struct {
   rheap space_b;
   rheap current;
   rheap next;
+  int used;
   GPtrArray *remember_set;
 };
 
@@ -19,7 +20,8 @@ int baker_gc_start_address(baker_gc g);
 int baker_gc_used(baker_gc g);
 int baker_gc_swap(baker_gc g);
 int baker_gc_destroy(baker_gc g);
-int baker_gc_allocate(baker_gc g, int size);
+address baker_gc_allocate(baker_gc g, int size);
+int baker_gc_allocate_spilled(baker_gc g, int size);
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest);
 int baker_gc_forwarded_p(OBJECT obj);
 int baker_gc_forwarded_object(OBJECT obj);

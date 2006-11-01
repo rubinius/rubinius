@@ -7,6 +7,8 @@ object_memory object_memory_new() {
   om = (object_memory)malloc(sizeof(struct object_memory_struct));
   memset((void*)om, 0, sizeof(struct object_memory_struct));
   om->gc = baker_gc_new(OMDefaultSize);
+  // om->enlarge_new = 0;
+  // om->new_size = 0;
   return om;
 }
 
@@ -73,7 +75,14 @@ OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields) {
   struct rubinius_object *header;
   
   size = (HEADER_SIZE + fields) * 4;
-  obj = (OBJECT)baker_gc_allocate(om->gc, size);
+  if(!heap_enough_space_p(om->gc->current, size)) {
+    printf("Ran out of space! spilling!\n");
+    obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
+    om->collect_now = 1;
+    // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
+  } else {
+    obj = (OBJECT)baker_gc_allocate(om->gc, size);
+  }
   header = (struct rubinius_object*)obj;
   assert(obj);
   header->klass = cls;

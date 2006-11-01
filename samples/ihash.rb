@@ -3,3 +3,5 @@ def blah(h)
 end
 
 blah a: 8, b: 99
+
+[blah, a: 8, b: 99]

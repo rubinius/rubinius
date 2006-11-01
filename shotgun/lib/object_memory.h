@@ -10,6 +10,9 @@
 #define OMDefaultSize 6000000
 
 struct object_memory_struct {
+  int collect_now;
+  int enlarge_now;
+  int new_size;
   baker_gc gc;  
 };
 

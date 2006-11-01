@@ -51,15 +51,15 @@ int heap_allocated_p(rheap h) {
   return h->address > 0;
 }
 
-int heap_allocate(rheap h, int size) {
-  int addr;
+address heap_allocate(rheap h, int size) {
+  address addr;
   /* maybe raise exception here? */
   if(!heap_enough_space_p(h, size)) {
     printf("HEAP ERROR: Not enough space to allocate %d bytes. total:%d, used:%d, left:%d.\n", size, h->size, h->current - h->address, h->last - h->current);
     abort();
     return 0;
   }
-  addr = h->current;
+  addr = (address)h->current;
   h->current += size;
   return addr;
 }
