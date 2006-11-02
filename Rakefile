@@ -5,7 +5,7 @@ task :test do
 end
 
 desc "Run shotgun's core tests"
-task :test_shotgun => [:bk] do
+task :test_shotgun do
     Dir.mkdir "code-cache" unless File.exists?("code-cache")
     system("ruby test/tc_all.rb shotgun-tests")
 end

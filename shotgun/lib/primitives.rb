@@ -74,6 +74,19 @@ class ShotgunPrimitives
     CODE
   end
   
+  def fixnum_mul
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      t2 = I2N(FIXNUM_TO_INT(self) * FIXNUM_TO_INT(t1));
+      stack_push(t2);
+    }
+    CODE
+  end
+  
   def equal
     <<-CODE
     self = stack_pop();
@@ -718,6 +731,28 @@ class ShotgunPrimitives
       _ret = FALSE;
     } else {
       exit(FIXNUM_TO_INT(t1));
+    }
+    CODE
+  end
+  
+  def micro_sleep
+    <<-CODE
+    struct timespec ts;
+    stack_pop();
+    t1 = stack_pop();
+    if(!FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(t1);
+      ts.tv_sec = j / 1000000;
+      ts.tv_nsec = (j % 1000000) * 1000;
+      
+      if(!nanosleep(&ts, NULL)) {
+        t2 = Qfalse;
+      } else {
+        t2 = Qtrue;
+      }
+      stack_push(t2);
     }
     CODE
   end

@@ -49,7 +49,9 @@ class CPU::Primitives
     :io_close,
     :time_seconds,
     :activate_context,
-    :context_sender
+    :context_sender,
+    :micro_sleep,
+    :fixnum_mul
   ]
   
   FirstRuntimePrimitive = 1024

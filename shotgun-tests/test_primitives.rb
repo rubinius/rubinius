@@ -19,6 +19,10 @@ class TestPrimitives < Test::Unit::TestCase
     assert_equal "5", ol("10 - 5")
   end
   
+  def test_mul
+    assert_equal "25", ol("5 * 5")
+  end
+  
   def test_equal
     assert_equal "true", ol("5 == 5")
     assert_equal "false", ol("5 == 6")
@@ -185,11 +189,12 @@ class TestPrimitives < Test::Unit::TestCase
   end
   
   def test_strftime
+    t = Time.now
     out = rp <<-CODE
     t = Time.now
     puts t
     CODE
-    assert_equal Time.now.to_s, out.first.to_s
+    assert_equal t.to_s, out.first.to_s
   end
   
   def test_fixnum_to_s
@@ -234,5 +239,15 @@ class TestPrimitives < Test::Unit::TestCase
     
     assert_equal "[992, :blah, 77]", out.first
     
-  end  
+  end
+  
+  def test_sleep
+    t = Time.now
+    out = rp <<-CODE
+    Process.sleep(5)
+    CODE
+    
+    t2 = Time.now
+    assert(t2 - t >= 5)
+  end
 end

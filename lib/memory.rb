@@ -11,9 +11,10 @@ class Memory
     builder.include "<signal.h>"
     builder.include "<setjmp.h>"
 
-    builder.add_type_converter "unsigned long", "NUM2ULONG", "ULONG2NUM"
+    builder.add_type_converter "ulong", "NUM2ULONG", "ULONG2NUM"
 
     builder.prefix <<-CODE
+    typedef unsigned long ulong;
     static int __segfault_occurred = 0;
     static sigjmp_buf __last_stack;
     
@@ -62,7 +63,7 @@ class Memory
     
     # Allocate +size+ bytes and return a pointer to the beginning
     builder.c_singleton <<-CODE
-    unsigned long allocate_memory(unsigned long size) {
+    ulong allocate_memory(ulong size) {
         void *ptr;
         if(!(ptr = malloc(size))) {
             return Qnil;
@@ -74,7 +75,7 @@ class Memory
     # Attempt to reallocate the memory located at +ptr+ to
     # +size+ bytes
     builder.c_singleton <<-CODE
-    unsigned long resize_memory(unsigned long size, unsigned long ptr) {
+    ulong resize_memory(unsigned long size, ulong ptr) {
         void *new, *old;
         old = (void*)ptr;
         on_segfault {
@@ -90,7 +91,7 @@ class Memory
 
     # Release the memory allocated at +ptr+
     builder.c_singleton <<-CODE
-    void release_memory(unsigned long ptr) {
+    void release_memory(ulong ptr) {
       char *cptr;
       char test;
       char str[1];
@@ -110,13 +111,13 @@ class Memory
 
     # Fetch a long +index+ longs from +intptr+
     builder.c_singleton <<-CODE
-    unsigned long fetch_long(unsigned long intptr, unsigned long idx) {
-        unsigned long *ptr = (unsigned long*)(intptr + (idx * sizeof(long)));
-        unsigned long ret;
+    ulong fetch_long(ulong intptr, unsigned long idx) {
+        ulong *ptr = (ulong*)(intptr + (idx * sizeof(long)));
+        ulong ret;
         on_segfault {
           rb_raise(rb_path2class("Memory::Fault"), "Unable to fetch long at 0x%X", intptr);
         }
-        ret = (unsigned long)*ptr;
+        ret = (ulong)*ptr;
         return ret;
     }
     CODE
@@ -124,19 +125,19 @@ class Memory
     # Store long +data+ at the memory address +index+ longs
     # from +intptr+
     builder.c_singleton <<-CODE
-    void store_long(unsigned long intptr, unsigned long idx, unsigned long data) {
-        unsigned long *ptr;
+    void store_long(ulong intptr, unsigned long idx, ulong data) {
+        ulong *ptr;
         on_segfault {
           rb_raise(rb_path2class("Memory::Fault"), "Unable to store long at 0x%X, index %d", intptr, idx);
         }
-        ptr = (unsigned long*)(intptr + (idx * sizeof(unsigned long)));
+        ptr = (ulong*)(intptr + (idx * sizeof(ulong)));
         *ptr = data;
     }
     CODE
     
     # Fetch a byte +index+ bytes from +intptr+
     builder.c_singleton <<-CODE
-    char fetch_byte(unsigned long intptr) {
+    char fetch_byte(ulong intptr) {
         char *ptr = (char*)intptr;
         char ret;
         
@@ -152,7 +153,7 @@ class Memory
     # Store byte +data+ at the memory address +index+ bytes
     # from +intptr+
     builder.c_singleton <<-CODE
-    void store_byte(unsigned long intptr, char data) {
+    void store_byte(ulong intptr, char data) {
         char *ptr = (char*)intptr;
         // *(ptr + (sizeof(char) * index)) = data;
         on_segfault {
@@ -181,8 +182,8 @@ class Memory
     
     # Copy +src_size+ bytes from address +src+ to address +dest+.
     builder.c_singleton <<-CODE
-    void transfer_memory(unsigned long src, unsigned long src_size, 
-        unsigned long dest) {
+    void transfer_memory(ulong src, unsigned long src_size, 
+        ulong dest) {
           on_segfault {
             rb_raise(rb_path2class("Memory::Fault"),
               "Unable to copy %d bytes from 0x%X to 0x%X", src_size, src, dest);
@@ -193,7 +194,7 @@ class Memory
     
     # Clear +size+ bytes starting at address +ptr+.
     builder.c_singleton <<-CODE
-    void clear_memory(unsigned long ptr, long size) {
+    void clear_memory(ulong ptr, long size) {
       on_segfault {
         rb_raise(rb_path2class("Memory::Fault"), 
                     "Unable to clear memory at 0x%X, size %d", ptr, size);
@@ -203,7 +204,7 @@ class Memory
     CODE
     
     builder.c_singleton <<-CODE
-    int compare_memory(unsigned long b1, unsigned long b2, long size) {
+    int compare_memory(ulong b1, ulong b2, long size) {
       on_segfault {
         rb_raise(rb_path2class("Memory::Fault"),
           "Unable to compare memory at 0x%X with 0x%X, size %d", b1, b2, size);
