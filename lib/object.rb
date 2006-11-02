@@ -307,7 +307,11 @@ class RObject
   end
   
   def rclass=(obj)
-    Memory.store_long @address + 4, 0, obj.address
+    begin
+      Memory.store_long @address + 4, 0, obj.address
+    rescue RangeError => e
+      raise RangeError, "Unable to convert #{@address + 4} or #{obj.address} into a long. (#{e.message})"
+    end
   end
   
   def create_metaclass(sup)

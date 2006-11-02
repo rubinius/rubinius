@@ -53,7 +53,7 @@ end
 
 task :kernel do
   fd = File.open("lib/kernel.rb", "w")
-  Dir["kernel/*.rb"].each do |path|
+  Dir["kernel/*.rb"].sort.each do |path|
     next if File.basename(path) == "__loader.rb"
     puts path
     cur = File.open(path)

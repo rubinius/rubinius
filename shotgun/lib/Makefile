@@ -9,7 +9,8 @@ RUBY=ruby -I../../lib
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
-	libtool -static -o librubinius.a *.o
+	ar rc librubinius.a *.o
+	ranlib librubinius.a
 
 cpu_instructions.o: instructions.gen instruction_names.gen
 cpu_primitives.o: system_primitives.gen

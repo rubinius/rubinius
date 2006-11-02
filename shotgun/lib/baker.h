@@ -1,7 +1,7 @@
 #include "heap.h"
 #include <glib.h>
 
-#ifndef __RUBINIUS_BAKER__ 1
+#ifndef __RUBINIUS_BAKER__
 #define __RUBINIUS_BAKER__ 1
 
 struct baker_gc_struct {
@@ -31,3 +31,4 @@ OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj);
 int baker_gc_collect(baker_gc g, GPtrArray *roots);
 
 #endif
+

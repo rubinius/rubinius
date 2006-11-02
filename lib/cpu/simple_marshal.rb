@@ -18,7 +18,7 @@ class SimpleMarshal
         kls.as :class
         name = kls.name
         name.as :symbol
-        raise "Unable to marshal a reference for a '#{name.string.as_string}'"
+        raise "Unable to marshal a reference for a '#{name.string.as_string}' (#{kls.address}, #{CPU::Global.tuple.address})"
       end
     elsif obj.nil?
       ?n.chr

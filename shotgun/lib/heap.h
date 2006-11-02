@@ -26,3 +26,4 @@ OBJECT heap_fully_scanned_p(rheap h);
 OBJECT heap_next_unscanned(rheap h);
 
 #endif
+

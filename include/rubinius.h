@@ -92,7 +92,7 @@ static inline OBJECT rbs_int_to_fixnum(int num) {
 
 #define RTEST(v) (((OBJECT)(v) & ~Qnil) != 0)
 #define NIL_P(v) ((OBJECT)(v) == Qnil)
-#define REFERENCE_P(v) ({ int _i = (int)v; _i > 10 && ((_i & 1) == 0); })
+#define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 10 && ((_i & 1) == 0); })
 #define SYMBOL_P(v) (((OBJECT)(v) & 3) == 3)
 #define FIXNUM_P(v) (((OBJECT)(v) & 3) == 1)
 

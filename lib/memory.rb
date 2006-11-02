@@ -7,9 +7,12 @@ class Memory
   end
   
   inline do |builder|
-    
+
+    builder.include "<signal.h>"
     builder.include "<setjmp.h>"
-    
+
+    builder.add_type_converter "unsigned long", "NUM2ULONG", "ULONG2NUM"
+
     builder.prefix <<-CODE
     static int __segfault_occurred = 0;
     static sigjmp_buf __last_stack;
@@ -107,13 +110,13 @@ class Memory
 
     # Fetch a long +index+ longs from +intptr+
     builder.c_singleton <<-CODE
-    long fetch_long(unsigned long intptr, unsigned long idx) {
-        long *ptr = (long*)(intptr + (idx * sizeof(long)));
-        long ret;
+    unsigned long fetch_long(unsigned long intptr, unsigned long idx) {
+        unsigned long *ptr = (unsigned long*)(intptr + (idx * sizeof(long)));
+        unsigned long ret;
         on_segfault {
           rb_raise(rb_path2class("Memory::Fault"), "Unable to fetch long at 0x%X", intptr);
         }
-        ret = (long)*ptr;
+        ret = (unsigned long)*ptr;
         return ret;
     }
     CODE
@@ -121,12 +124,12 @@ class Memory
     # Store long +data+ at the memory address +index+ longs
     # from +intptr+
     builder.c_singleton <<-CODE
-    void store_long(unsigned long intptr, unsigned long idx, long data) {
-        long *ptr;
+    void store_long(unsigned long intptr, unsigned long idx, unsigned long data) {
+        unsigned long *ptr;
         on_segfault {
           rb_raise(rb_path2class("Memory::Fault"), "Unable to store long at 0x%X, index %d", intptr, idx);
         }
-        ptr = (long*)(intptr + (idx * sizeof(long)));
+        ptr = (unsigned long*)(intptr + (idx * sizeof(unsigned long)));
         *ptr = data;
     }
     CODE

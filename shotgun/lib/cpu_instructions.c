@@ -99,6 +99,13 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT obj, OBJECT name) {
     ok = klass;
     klass = class_get_superclass(klass);
     if(NIL_P(klass)) { break; }
+    /*
+    printf("Looking for method (sup): %s in %ul (%s)\n", 
+      string_as_string(state, symtbl_find_string(state, state->global->symbols, name)), klass,
+      string_as_string(state, symtbl_find_string(state, state->global->symbols, 
+        class_get_name(klass)))
+    );
+    */
     meth = hash_find(state, module_get_methods(klass), name);
   }
   

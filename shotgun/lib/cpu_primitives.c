@@ -18,6 +18,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/time.h>
 
 #define STATIC_SIZE 100
 

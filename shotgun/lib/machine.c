@@ -108,7 +108,7 @@ void machine_setup_ruby(machine m, char *name) {
       C sucks - Ryan Davis
   */
   if(name[0] != '/') {
-    getwd(wd);
+    getcwd(wd, MAXPATHLEN);
     snprintf(buf, MAXPATHLEN, "%s/%s", wd, name);
     name = buf;
   }

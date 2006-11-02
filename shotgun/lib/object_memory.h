@@ -3,7 +3,7 @@
 #include <glib.h>
 #include <stdlib.h>
 
-#ifndef __RUBINIUS_OM__ 1
+#ifndef __RUBINIUS_OM__
 #define __RUBINIUS_OM__ 1
 
 // #define OMDefaultSize 384000
@@ -26,3 +26,4 @@ OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields);
 void object_memory_print_stats(object_memory om);
 
 #endif
+

@@ -6,3 +6,4 @@ char *string_as_string(STATE, OBJECT self);
 char *string_byte_address(STATE, OBJECT self);
 int string_hash_int(STATE, OBJECT self);
 OBJECT string_to_sym(STATE, OBJECT self);
+

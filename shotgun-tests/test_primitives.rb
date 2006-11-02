@@ -1,5 +1,4 @@
 require 'rubygems'
-require_gem 'ZenTest', ">= 3.4.0"
 require 'test/unit'
 require 'test/unit/show_code'
 require 'shotgun-tests/helper'

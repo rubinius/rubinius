@@ -10,3 +10,4 @@ int blokctx_s_block_context_p(STATE, OBJECT ctx);
 int methctx_s_was_referenced_p(STATE, OBJECT obj);
 void methctx_reference(STATE, OBJECT self);
 void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from);
+

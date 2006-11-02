@@ -18,6 +18,7 @@ class ShotgunInstructions
       i += 1
     end
     fd.puts "}"
+    fd.puts
   end
   
   def generate_declarations(fd)
