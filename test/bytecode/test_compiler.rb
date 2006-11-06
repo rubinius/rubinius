@@ -293,10 +293,9 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_class
     sx = [:class, [:colon2, :Blah], nil, [:scope, [:true]]]
-    exc =  "push_encloser\n"
-    exc << "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n"
+    exc =  "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n"
     exc << "attach __class_init__\npop\nsend __class_init__\n"
-    exc << "pop\nset_encloser\nret\n"
+    exc << "pop\npush_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -306,11 +305,10 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_class_with_super
     sx = [:class, [:colon2, :Blah], [:colon2, [:const, :A], :B], [:scope, [:true]]]
-    exc =  "push_encloser\n"
-    exc << "push A\nfind B\n"
+    exc =  "push A\nfind B\n"
     exc << "open_class Blah\ndup\npush_literal 0\nswap\n"
     exc << "attach __class_init__\npop\nsend __class_init__\n"
-    exc << "pop\nset_encloser\nret\n"
+    exc << "pop\npush_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -320,10 +318,9 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_class_at_cpath
     sx = [:class, [:colon2, [:const, :A], :Blah], nil, [:scope, [:true]]]
-    exc =  "push_encloser\n"
-    exc << "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n"
+    exc =  "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n"
     exc << "attach __class_init__\npop\nsend __class_init__\n"
-    exc << "pop\nset_encloser\nret\n"
+    exc << "pop\npush_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -333,10 +330,9 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_module
     sx = [:module, [:colon2, :A], [:scope, [:true]]]
-    exc =  "push_encloser\n"
-    exc << "open_module A\ndup\npush_literal 0\nswap\n"
+    exc =  "open_module A\ndup\npush_literal 0\nswap\n"
     exc << "attach __module_init__\npop\nsend __module_init__\n"
-    exc << "pop\nset_encloser\nret\n"
+    exc << "pop\npush_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -346,10 +342,9 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_module_at_cpath
     sx = [:module, [:colon2, [:const, :B], :A], [:scope, [:true]]]
-    exc =  "push_encloser\n"
-    exc << "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n"
+    exc =  "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n"
     exc << "attach __module_init__\npop\nsend __module_init__\n"
-    exc << "pop\nset_encloser\nret\n"
+    exc << "pop\npush_encloser\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
     m = @meth.literals.first
@@ -439,7 +434,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
       
     exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     exc2 =  "check_argcount 0 0\n"
-    exc2 << "push_block\npush Proc\nsend new 1\nset b:2\npush true\nret\n"
+    exc2 << "push_block\npush Proc\nsend from_environment 1\nset b:2\npush true\nret\n"
     
     compile sx
     assert_equal exc, @meth.assembly
@@ -587,7 +582,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_block_pass
     sx = [:block_pass, [:lit, 10], [:fcall, :d, [:array, [:lit, 9]]]]
-    exc = "push 9\npush 10\npush self\n&send d 1\nret\n"
+    exc = "push 9\npush 10\npush self\n&send d 1\nlbl1:\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
   end
@@ -599,12 +594,12 @@ class TestBytecodeCompiler < Test::Unit::TestCase
       [:block, [:true], [:fcall, :p, [:array, [:lit, 2]]]]
     ]
     
-    exc =  "push &lbl1\n"
+    exc =  "push &lbl1\npush &lbl2\n"
     exc << "push_context\nsend_primitive create_block\n"
-    exc << "goto lbl2\nset a:2\npush true\npush 2\n"
+    exc << "goto lbl3\nset a:2\npush true\npush 2\n"
     exc << "push self\nsend p 1\n"
-    exc << "lbl1: soft_return\nlbl2:\n"
-    exc << "push self\n&send m 0\nret\n"
+    exc << "lbl2: soft_return\nlbl3:\n"
+    exc << "push self\n&send m 0\nlbl1:\nret\n"
     
     compile sx
     assert_equal exc, @meth.assembly

@@ -816,7 +816,9 @@ module Bytecode
           sz = nil
         end
         
-        @post_send = ps = unique_lbl()
+        if block
+          @post_send = ps = unique_lbl()
+        end
         
         if block
           op = "&send"
@@ -828,7 +830,7 @@ module Bytecode
         process recv
         
         add "#{op} #{meth} #{sz}"
-        add "#{ps}:"
+        add "#{ps}:" if block
       end
       
       def process_attrasgn(x)

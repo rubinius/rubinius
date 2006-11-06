@@ -439,7 +439,7 @@ dup
     
     assemble code
     tup = @asm.lines_as_tuple
-    assert_equal 3, tup.fields
+    assert_equal 2, tup.fields
     0.upto(tup.fields - 1) do |idx|
       ent = tup.at(idx)
       assert_equal 3, ent.fields
