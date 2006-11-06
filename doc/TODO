@@ -1,0 +1,25 @@
+---
+This is a list of tasks that need to be completed. I've tried to
+group them by when they need to be done.
+
+Before Alpha:
+ - Ruby tasks:
+   - Convert compiler infrastructe to SimpleSexpProcessor so..
+   - Compiler can run natively within rubinius VM.
+   - Get miniunit running in the VM, so...
+   - BFTS tests can be integrated into main testing
+  
+ - C tasks:
+   - Add baker GC resizing (fixed at 6M now)
+      - On OOM, spill to next space and activate GC back in
+        instruction loop.
+      - After GC, detect how much free space is available.
+        If there is A LOT, rescale next back a bit (using a
+        reverse scaling factor so it gets smaller slowly)
+
+Future:
+  - Ruby tasks:
+    - Get translation work so that prototype B ruby
+      code can translated into C
+  - C tasks:
+    - Make use of train GC
