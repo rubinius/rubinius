@@ -16,6 +16,22 @@ Before Alpha:
       - After GC, detect how much free space is available.
         If there is A LOT, rescale next back a bit (using a
         reverse scaling factor so it gets smaller slowly)
+   - Add primitives for onig to do regexp
+      - Create, match, replace?, caputers
+   - Add primitives for libtommath to do bignums
+      - all the numeric operators
+   - Come up with simple foreign function interface (FFI)
+     - maybe use a segment of primitive indexes
+       - this would limit the total number of foreign functions
+     - could use a specialized method like the attr_* methods and use
+       a primitive that would pull the function pointer and call
+       information out of the method to be called.
+
+Soon rather than later:
+  - Ruby tasks:
+    - Write a convert for a ruby dialect => c, ala pyrex.
+      - Convert all the primitives to use it.
+      - Make it THE way to create extensions for rubinius.
 
 Future:
   - Ruby tasks:
@@ -23,3 +39,8 @@ Future:
       code can translated into C
   - C tasks:
     - Make use of train GC
+  - Extensions:
+    - sqlite3. I really want it to be one of the core extensions
+      rubinius includes because it's so darn useful. I'd love for
+      it to be in the rubinius core library so that stdlib stuff
+      could easily build off it.
