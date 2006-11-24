@@ -18,9 +18,13 @@ int heap_deallocate(rheap h) {
   if(h->address) {
     free((void*)(h->address));
   }
+  if(h->extended) {
+    free((void*)(h->extended));
+  }
   h->size = 0;
   h->address = 0;
   h->current = 0;
+  h->extended = 0;
   /* Maybe free() here? */
   return TRUE;
 }
@@ -36,12 +40,33 @@ int heap_allocate_memory(rheap h) {
   return heap_reset(h);
 }
 
+/* Allocates an extra segment of memory to store data.
+   After this is called, the heap will begin storing
+   data in the extended segment. */
+int heap_allocate_extended(rheap h) {
+  h->extended = (int)malloc(h->size);
+  if(!h->extended) {
+    return FALSE;
+  }
+  h->scan = h->extended;
+  memset((void*)(h->extended), 0, h->size);
+  h->last = h->extended + h->size;
+  h->current = h->extended;
+  return TRUE;
+}
+
 int heap_reset(rheap h) {
   h->current = h->address;
+  h->scan = h->current;
   return TRUE;
 }
 
 int heap_contains_p(rheap h, int addr) {
+  if(h->extended) {
+    if(addr >= h->extended && addr < h->extended + h->size) {
+      return TRUE;
+    }
+  }
   if(addr < h->address) return FALSE;
   if(addr >= h->address + h->size) return FALSE;
   return TRUE;
@@ -51,13 +76,22 @@ int heap_allocated_p(rheap h) {
   return h->address > 0;
 }
 
+int heap_using_extended_p(rheap h) {
+  return h->extended ? TRUE : FALSE;
+}
+
 address heap_allocate(rheap h, int size) {
   address addr;
   /* maybe raise exception here? */
   if(!heap_enough_space_p(h, size)) {
-    printf("HEAP ERROR: Not enough space to allocate %d bytes. total:%d, used:%d, left:%d.\n", size, h->size, h->current - h->address, h->last - h->current);
-    abort();
-    return 0;
+    /* If we're out of space and extended is being used, we're screwed.
+       TODO: figure out what to do here. */
+    if(h->extended) {
+      printf("HEAP ERROR: Not enough space to allocate %d bytes. total:%d, used:%d, left:%d.\n", size, h->size, h->current - h->address, h->last - h->current);
+      abort();
+      return 0;
+    }
+    heap_allocate_extended(h);
   }
   addr = (address)h->current;
   h->current += size;

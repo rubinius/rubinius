@@ -21,6 +21,7 @@ int baker_gc_used(baker_gc g);
 int baker_gc_swap(baker_gc g);
 int baker_gc_destroy(baker_gc g);
 address baker_gc_allocate(baker_gc g, int size);
+int baker_gc_set_next(baker_gc g, rheap h);
 int baker_gc_allocate_spilled(baker_gc g, int size);
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest);
 int baker_gc_forwarded_p(OBJECT obj);

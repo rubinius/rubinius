@@ -4,6 +4,7 @@
 #include "bytearray.h"
 #include "symbol.h"
 #include "tuple.h"
+#include "bignum.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -112,6 +113,31 @@ static OBJECT unmarshal_tup(STATE, char *str, struct marshal_state *ms) {
   return tup;
 }
 
+static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
+  int i, j;
+  char buffer[1024];
+  char *s;
+  i = NUM_FIELDS(obj);
+  bignum_into_string(state, obj, 10, buffer, 1024);
+  append_c('B');
+  i = strlen(buffer);
+  append_sz(i);
+  s = buffer;
+  while(*s) {
+    append_c(*s++);
+  }
+  append_c(0);
+}
+
+static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
+  OBJECT obj;
+  int i, sz;
+  memcpy(&sz, str + 1, 4);
+  ms->consumed += 5;
+  ms->consumed += sz;
+  return bignum_from_string(state, str + 5, 10);
+}
+
 static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
   int i;
   i = NUM_FIELDS(obj);
@@ -172,6 +198,9 @@ static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
     case 'm':
       o = unmarshal_cmethod(state, str, ms);
       break;
+    case 'B':
+      o = unmarshal_bignum(state, str, ms);
+      break;
     case 'n':
       ms->consumed += 1;
       o = Qnil;
@@ -213,6 +242,8 @@ static void marshal(STATE, OBJECT obj, GString *buf) {
       marshal_cmethod(state, obj, buf);
     } else if(kls == state->global->bytearray) {
       marshal_bytes(state, obj, buf);
+    } else if(kls == BASIC_CLASS(bignum)) {
+      marshal_bignum(state, obj, buf);
     } else {
       printf("Unable to marshal!\n");
       abort();

@@ -1,14 +1,17 @@
 CC=gcc
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs`
+LIBS=`pkg-config glib-2.0 --libs` libs/libtommath/libtommath.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-librubinius.a:
+libs/libtommath/libtommath.a:
+	cd libs/libtommath; $(MAKE)
+
+librubinius.a: libs/libtommath/libtommath.a
 	cd lib; $(MAKE) librubinius.a
 
 .PHONY: librubinius.a
@@ -31,5 +34,6 @@ test: test/test_state test/test_instructions
 clean:
 	rm -f *.o *.gen rubinius
 	cd lib; $(MAKE) clean
+	cd libs/libtommath; $(MAKE) clean
 
 .PHONY: test

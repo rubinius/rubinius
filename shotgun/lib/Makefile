@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . `pkg-config glib-2.0 --cflags`
+CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . -I../libs/libtommath `pkg-config glib-2.0 --cflags`
 DEPS=auto.h ../../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs`
+LIBS=`pkg-config glib-2.0 --libs` ../libs/libtommath/libtommath.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RUBY=ruby -I../../lib
 
@@ -14,6 +14,7 @@ librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
 
 cpu_instructions.o: instructions.gen instruction_names.gen
 cpu_primitives.o: system_primitives.gen
+object_memory.o: object_memory.h
 
 instruction_names.gen instructions.gen: instructions.rb
 	$(RUBY) instructions.rb > instructions.gen

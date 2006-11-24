@@ -20,13 +20,15 @@ baker_gc baker_gc_new(int size) {
 int baker_gc_enlarge_next(baker_gc g, int sz) {
   rheap h;
   h = heap_new(sz);
-  heap_deallocate(g->next);
+  return baker_gc_set_next(g, h);
+}
+
+int baker_gc_set_next(baker_gc g, rheap h) {
   if(g->next == g->space_a) {
     g->space_a = h;
   } else {
     g->space_b = h;
   }
-  free(g->next);
   g->next = h;
   return TRUE;
 }
@@ -139,11 +141,33 @@ OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj) {
   return ret;
 }
 
+
 #define g_ptr_array_set_index(ary, idx, val) (ary->pdata[idx] = (void*)val)
 
 int baker_gc_collect(baker_gc g, GPtrArray *roots) {
-  int i, sz;
-  OBJECT tmp, root;
+  int i, sz, enlarged_size, c;
+  OBJECT tmp, dest, root;
+  rheap new_heap, old_next;
+  
+  enlarged_size = 0;
+  old_next = NULL;
+  if(heap_using_extended_p(g->current)) {
+    enlarged_size = g->current->size * 2;
+    new_heap = heap_new(enlarged_size);
+    DEBUG("Detected heap is using extended space, enlarging to %d.\n", enlarged_size);
+    if(!heap_fully_scanned_p(g->next)) {
+      DEBUG("Heap to enlarged was spilled to, transfering spill first.\n");
+      c = 0;
+      while((tmp = heap_next_unscanned(g->next))) {
+        dest = heap_copy_object(new_heap, tmp);
+        baker_gc_set_forwarding_address(tmp, dest);
+        c++;
+      }
+      DEBUG("Transfered %d objects from spill.\n", c);
+    }
+    old_next = g->next;
+    baker_gc_set_next(g, new_heap);
+  }
   
   sz = g->remember_set->len;
   for(i = 0; i < sz; i++) {
@@ -165,5 +189,16 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
   }
   
   baker_gc_swap(g);
+  /* If we enlarged next before we did the compaction, then also
+     enlarge next after we swap so both areas are the same size. */
+  if(enlarged_size) {
+    DEBUG("Finished enlarging.\n");
+    baker_gc_enlarge_next(g, enlarged_size);
+  }
+  if(old_next) {
+    DEBUG("Cleaning up old next..\n");
+    heap_deallocate(old_next);
+    free(old_next);
+  }
   return TRUE;
 }

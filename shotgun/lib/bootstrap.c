@@ -4,6 +4,9 @@
 #include "module.h"
 #include "hash.h"
 #include <assert.h>
+
+#include "rubinius.h"
+
 #define BC(o) BASIC_CLASS(o)
 
 void cpu_bootstrap_exceptions(STATE) {
@@ -34,7 +37,7 @@ void cpu_bootstrap_exceptions(STATE) {
 }
 
 void cpu_bootstrap(STATE) {
-  OBJECT cls, obj;
+  OBJECT cls, obj, tmp, tmp2;
   
   cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
   HEADER(cls)->klass = cls;
@@ -88,7 +91,10 @@ void cpu_bootstrap(STATE) {
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
   BC(true_class) = rbs_class_new(state, "TrueClass", 0, obj);
   BC(false_class) = rbs_class_new(state, "FalseClass", 0, obj);
-  BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, obj);
+  tmp = rbs_class_new(state, "Numeric", 0, obj);
+  tmp2 = rbs_class_new(state, "Integer", 0, tmp);
+  BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, tmp2);
+  BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
   
   cpu_bootstrap_exceptions(state);

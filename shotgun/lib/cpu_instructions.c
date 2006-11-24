@@ -237,7 +237,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   mo = cpu_locate_method(state, c, recv, sym, &missing);
   
   if(missing) {
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+    DEBUG("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
   }
   
   if(missing) {
@@ -305,14 +305,23 @@ void cpu_run(STATE, cpu c) {
     
     // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
     #include "instructions.gen"
-    continue;
-    stack_error:
+    goto check_interupts;
+stack_error:
     /* enlarge the stack to handle the exception */
     c->stack = tuple_enlarge(state, c->stack, NUM_FIELDS(c->stack) + 128);
     // printf("HEAP INFO: %d used, %d total.\n", state->om->gc->current->current - state->om->gc->current->address, state->om->gc->current->size);
     cpu_raise_exception(state, c, 
           cpu_new_exception(state, c, state->global->exc_stack_explosion,
           "Stack has exploded"));
+check_interupts:
+    if(state->om->collect_now) {
+      int b;
+      DEBUG("Memory condition detected!\n");
+      b = object_memory_used(state->om);
+      state_collect(state, c);
+      DEBUG("Recovered %d bytes.\n", b - object_memory_used(state->om));
+      state->om->collect_now = 0;
+    }
   }   
 }
 

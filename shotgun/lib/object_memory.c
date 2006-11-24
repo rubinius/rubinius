@@ -76,7 +76,7 @@ OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields) {
   
   size = (HEADER_SIZE + fields) * 4;
   if(!heap_enough_space_p(om->gc->current, size)) {
-    printf("Ran out of space! spilling!\n");
+    DEBUG("Ran out of space! spilling!\n");
     obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
     om->collect_now = 1;
     // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
@@ -99,6 +99,16 @@ OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields) {
   for(i = 0; i < fields; i++) {
     SET_FIELD(obj, i, Qnil);
   }
+  return obj;
+}
+
+OBJECT object_memory_new_opaque(STATE, OBJECT cls, int sz) {
+  int fel;
+  OBJECT obj;
+  fel = sz / 4;
+  if(sz % 4) fel++;
+  obj = object_memory_new_object(state->om, cls, fel);
+  object_make_byte_storage(state, obj);
   return obj;
 }
 

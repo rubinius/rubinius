@@ -4,4 +4,5 @@
 #include "state.h"
 #include "object.h"
 #include "auto.h"
+#include "log.h"
 #endif

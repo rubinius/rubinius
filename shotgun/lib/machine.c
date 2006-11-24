@@ -28,24 +28,7 @@ machine machine_new() {
 }
 
 void machine_collect(machine m) {
-  GPtrArray *roots;
-  roots = g_ptr_array_sized_new(NUM_OF_GLOBALS + 10);
-  memcpy(roots->pdata, m->s->global, sizeof(struct rubinius_globals));
-  roots->len = NUM_OF_GLOBALS;
-  cpu_add_roots(m->s, m->c, roots);
-  /* truncate the free_context list since we don't care about them
-     after we've collected anyway */
-  m->s->free_contexts->len = 0;
-  
-  /* HACK: external_ivars needs to be moved out of being a generic
-      global and being a special case one so that it's references
-      can't keep objects alive. */
-      
-  object_memory_collect(m->s->om, roots);
-  memcpy(m->s->global, roots->pdata, sizeof(struct rubinius_globals));
-  cpu_update_roots(m->s, m->c, roots, NUM_OF_GLOBALS);
-
-  g_ptr_array_free(roots, 0);  
+  state_collect(m->s, m->c);
 }
 
 void machine_emit_memory(machine m) {
@@ -130,6 +113,12 @@ void machine_setup_argv(machine m, int argc, char **argv) {
 }
 
 extern char **environ;
+
+void machine_config_env(machine m) {
+  if(getenv("RDEBUG")) {
+    debug_enable();
+  }
+}
 
 void machine_setup_env(machine m) {
   char *cur, *name, **total;

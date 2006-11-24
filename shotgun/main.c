@@ -17,6 +17,7 @@ int main(int argc, char **argv) {
   machine_setup_ruby(m, argv[0]);
   /* move argc and argv around so that the kernel and rubinius
      don't show up. */
+  machine_config_env(m);
   machine_setup_argv(m, argc-1, argv+1);
   machine_setup_env(m);
   
