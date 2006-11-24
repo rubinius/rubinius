@@ -374,4 +374,14 @@ class TestCore < Test::Unit::TestCase
     
     assert(e)
   end
+  
+  def test_super
+    out = rp <<-CODE
+    class Blah
+      def initialize
+        super
+      end
+    end
+    CODE
+  end
 end

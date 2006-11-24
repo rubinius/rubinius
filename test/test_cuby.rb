@@ -443,6 +443,21 @@ class TestCuby < Test::Unit::TestCase
     assert_equal "self", @c.code
   end
   
+  def test_declare_inline
+    
+    @c.declare_method = :declare
+    
+    code = [:block,
+      [:call, [:vcall, :c], :declare, [:array, [:const, :Fixnum]]],
+      [:lvar, :c, 2]
+    ]
+    
+    @c.set_literal_type Fixnum, "int"
+    @c.generate_from code
+    
+    assert_equal "int", @c.last_type
+  end
+  
   def test_random_concrete_examples
     @c.declare_var "object", "self"
     @c.declare_var "object", "methctx"

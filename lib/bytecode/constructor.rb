@@ -6,6 +6,8 @@ require 'bytecode/compiler'
 require 'bytecode/encoder'
 require 'cpu/simple_marshal'
 
+STDOUT.sync = true
+
 module Bytecode
   class Constructor
     
@@ -24,13 +26,17 @@ module Bytecode
       else
         syd = SydneyParser.load_string(code.to_s)
       end
+      #return [:newline, 1, "lib/kernel.rb", [:hash, [:lit, 1], [:str, ""], [:lit, 2], [:str, ""]]]
       return syd.sexp(false, @newlines)
     end
         
     def compile(code)
+      STDOUT.puts "converting.."
       sexp = convert_to_sexp(code)
+      puts "compiling..."
       comp = Bytecode::Compiler.new
       desc = comp.compile_as_script sexp, :__script__
+      puts "compiled."
       return desc.to_cmethod
     end
     
@@ -83,6 +89,8 @@ module Bytecode
       cm = compile_file(path)
       fd = File.open(cp, "w")
       fd << "RBIS"
+      puts "marshalling..."
+      GC.start
       fd << @sm.marshal(cm)
       fd.close
       return cm

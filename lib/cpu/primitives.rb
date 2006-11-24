@@ -51,7 +51,11 @@ class CPU::Primitives
     :activate_context,
     :context_sender,
     :micro_sleep,
-    :fixnum_mul
+    :fixnum_mul,
+    :bignum_to_s,
+    :bignum_add,
+    :bignum_sub,
+    :bignum_mul
   ]
   
   FirstRuntimePrimitive = 1024

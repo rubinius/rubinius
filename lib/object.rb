@@ -117,7 +117,7 @@ class RObject
   end
   
   def at(idx)
-    if idx >= self.fields
+    if idx < 0 or idx >= self.fields
       raise "Unable to fetch data beyond end of object (#{idx} > #{self.fields})."
     end
     
@@ -132,11 +132,14 @@ class RObject
   end
   
   def raw_put(idx, obj)
-    if idx >= self.fields
+    if idx < 0 or idx >= self.fields
       raise "Unable to write data beyond end of object (#{idx} > #{self.fields})."
     end
-    
-    # Log.debug "Writing field #{idx} of #{address} => #{obj.address}"
+    addr = field_address(idx)
+    if addr > 7485300 and addr < 7485600
+      puts "Writing to #{addr}"
+    end
+    # puts "Writing field #{idx} of #{address} (#{addr}) => #{obj.address}"
     Memory.store_long field_address(idx), 0, obj.address
     return obj
   end

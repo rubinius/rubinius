@@ -1,10 +1,20 @@
 require 'sexp/processor'
+require 'sexp/simple_processor'
 require 'sydparse'
 require 'translation/normalize'
 require 'translation/local_scoping'
 require 'sexp/composite_processor'
 require 'bytecode/assembler'
 require 'translation/states'
+
+=begin
+Thread.new do
+  while true
+    GC.start
+    sleep 1
+  end
+end
+=end
 
 module Bytecode
   
@@ -21,6 +31,7 @@ module Bytecode
     def add_literal(obj)
       idx = @literals.size
       @literals << obj
+      p @literals
       return idx
     end
     
@@ -64,6 +75,7 @@ module Bytecode
       end
       
       cmeth.lines = asm.lines_as_tuple
+      GC.start
       return cmeth
     end
     
@@ -82,6 +94,8 @@ module Bytecode
           out = lit.to_cmethod
         when String
           out = Rubinius::String.new(lit)
+        when Bignum
+          out = Rubinius::Bignum.new(lit.to_s)
         else
           raise "Unable to encode literal: #{lit.inspect}"
         end
@@ -220,6 +234,9 @@ module Bytecode
           add "push #{obj}"
         when Symbol
           add "push :#{obj}"
+        when Bignum
+          idx = @method.add_literal obj
+          add "push_literal #{idx}"
         else
           raise "Unable to handle literal '#{obj.inspect}'"
         end
@@ -303,7 +320,9 @@ module Bytecode
       def process_lasgn(x)
         name = x.shift
         idx = x.shift
-        process x.shift
+        if val = x.shift
+          process val
+        end
         add "set #{name}:#{idx}"
       end
       

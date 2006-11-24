@@ -6,7 +6,7 @@ $VERBOSE = nil
 
 spec = Gem::Specification.new do |s|
   s.name = 'sydparse'
-  s.version = '1.0.0'
+  s.version = '1.2.0'
   s.summary = 'A standalone ruby parser with sexp support.'
   s.author = 'Evan Webb'
   s.email = 'evan@fallingsnow.net'

@@ -1,4 +1,5 @@
 require 'sexp/processor'
+require 'sexp/simple_processor'
 require 'translation/states'
 
 class RsNormalizer < SexpProcessor
@@ -67,6 +68,7 @@ class RsNormalizer < SexpProcessor
   def initialize(state=nil, full=false, lines=false)
     super()
     self.auto_shift_type = true
+    # self.default_object = []
     self.expected = Array
     @state = state || RsLocalState.new
     @full = full

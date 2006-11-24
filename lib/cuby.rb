@@ -119,6 +119,7 @@ class Cuby
     @type_map = Hash.new
     @last_type = nil
     @literal_types = Hash.new
+    @declare_method = nil
   end
   
   def reset
@@ -133,7 +134,7 @@ class Cuby
   attr_reader :code, :functions, :variables, :operators, :methods
   attr_reader :structs, :method_maps, :literal_types
   attr_accessor :true_value, :false_value, :map_operator
-  attr_accessor :last_type
+  attr_accessor :last_type, :declare_method
   
   def declare_function(ret, name, args)
     name = name.to_sym
@@ -329,6 +330,8 @@ class Cuby
     
     def process_call(x)
       rex = x.shift
+      name = x.shift
+      
       if rex.first == :lvar
         lvar_accessed = rex[1]
         vi = @cuby.variables[lvar_accessed]
@@ -342,10 +345,20 @@ class Cuby
         lit_accessed = nil
       end
       
+      if @cuby.declare_method == name and rex.first == :vcall
+        kind = x.shift.last.last
+        if Symbol === kind
+          kind = @cuby.literal_types[Object.const_get(kind)]
+        end
+        
+        @cuby.declare_var kind, rex.last
+        return ""
+      end
+      
+      
       recv = process(rex)
       recv_map = @cuby.last_type_map
       
-      name = x.shift
       if @cuby.operator?(name)
         rhs = process(x.shift[1])
         return "#{recv} #{name} #{rhs}"
@@ -387,7 +400,7 @@ class Cuby
         end
         
         vi.add_map @cuby.method_maps[map_name.to_sym]
-        return ""
+        return ""        
       elsif vi and map = vi.find_mapping(name)
         func = map[name]        
         args = x.shift[1..-1].map { |a| process(a) }

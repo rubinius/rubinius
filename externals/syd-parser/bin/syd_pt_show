@@ -10,6 +10,9 @@ if ARGV.first == "-l"
 elsif ARGV.first == "-u"
     unified = true
     ARGV.shift
+elsif ARGV.first == "-s"
+    simple = true
+    ARGV.shift
 end
 
 name = ARGV.shift
@@ -18,6 +21,11 @@ File.open(name, "r") do |fd|
         pp SydneyParser.unified_sexp(fd)
     else
         syd = SydneyParser.load_file fd
-        pp syd.sexp(false, newlines)
+        out = syd.sexp(false, newlines)
+        if simple
+          p out
+        else
+          pp out
+        end
     end
 end

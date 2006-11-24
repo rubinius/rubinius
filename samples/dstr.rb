@@ -1,1 +1,1 @@
-"blah #{1} more #{2}"
+InvalidIndex.new("Could not access index #{idx} of #{self}")

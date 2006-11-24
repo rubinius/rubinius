@@ -10,14 +10,12 @@ Before Alpha:
    - BFTS tests can be integrated into main testing
   
  - C tasks:
-   - Add baker GC resizing (fixed at 6M now)
-      - On OOM, spill to next space and activate GC back in
-        instruction loop.
+   - Add baker GC down scaling
       - After GC, detect how much free space is available.
         If there is A LOT, rescale next back a bit (using a
         reverse scaling factor so it gets smaller slowly)
    - Add primitives for onig to do regexp
-      - Create, match, replace?, caputers
+      - Create, match, replace?, captures
    - Add primitives for libtommath to do bignums
       - all the numeric operators
    - Come up with simple foreign function interface (FFI)
@@ -44,3 +42,8 @@ Future:
       rubinius includes because it's so darn useful. I'd love for
       it to be in the rubinius core library so that stdlib stuff
       could easily build off it.
+  - Optimizations:
+    - When working with bignum's, the normal code paths check that the
+      output needs to be a bignum, and downconverts it to a fixnum
+      if it doesn't need to be. The thing to do would be to not bother
+      down converting, and when the GC runs, then downconvert any bignums.

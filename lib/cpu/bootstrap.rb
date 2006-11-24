@@ -53,9 +53,11 @@ class CPU
     Global.nil_class = Rubinius::Class.create_normal "NilClass", Global.object, 0
     Global.true_class = Rubinius::Class.create_normal "TrueClass", Global.object, 0
     Global.false_class = Rubinius::Class.create_normal "FalseClass", Global.object, 0
-    Global.fixnum = Rubinius::Class.create_normal "Fixnum", Global.object, 0
+    num = Rubinius::Class.create_normal "Numeric", Global.object, 0
+    int = Rubinius::Class.create_normal "Integer", num, 0
+    Global.fixnum = Rubinius::Class.create_normal "Fixnum", int, 0
     Global.undef_class = Rubinius::Class.create_normal "UndefClass", Global.object, 0
-    
+    Global.bignum = Rubinius::Class.create_normal "Bignum", int, 0
     bootstrap_contexts
     initialize_context
     bootstrap_exceptions

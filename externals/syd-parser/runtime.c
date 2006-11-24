@@ -17,6 +17,12 @@ rb_parse_state *alloc_parse_state() {
     st->tokidx = 0;
     st->toksiz = 0;
     st->comments = 0;
+    st->memory_cur = NULL;
+    st->memory_last_addr = NULL;
+    st->current_pool = 0;
+    st->pool_size = 0;
+    st->memory_size = 204800;
+    st->memory_pools = NULL;
 
     return st;
 }
@@ -24,13 +30,13 @@ rb_parse_state *alloc_parse_state() {
 void *rb_pt_mark(void *vps) {
     rb_parse_state *parse_state = (rb_parse_state*)vps;
 
-    // rb_gc_mark_maybe((VALUE)(parse_state->lval->node));
     rb_gc_mark(parse_state->lex_lastline);
     rb_gc_mark(parse_state->lex_input);
     rb_gc_mark(parse_state->self);
-    rb_gc_mark((VALUE)parse_state->top);
     return NULL;
 }
+
+void pt_free();
 
 VALUE rb_cSydParser;
 
@@ -38,7 +44,7 @@ VALUE rb_pt_create() {
     VALUE obj;
     rb_parse_state *st;
     st = alloc_parse_state();
-    obj = Data_Wrap_Struct(rb_cSydParser, rb_pt_mark, NULL, st);
+    obj = Data_Wrap_Struct(rb_cSydParser, rb_pt_mark, pt_free, st);
     st->self = obj;
     return obj;
 }
@@ -205,7 +211,43 @@ NODE *rb_pt_top(VALUE self) {
     Data_Get_Struct(self, rb_parse_state, st);
     return st->top;
 }
-       
+
+void *pt_allocate(rb_parse_state *st, int size) {
+  void *ptr;
+  void *cur;
+  
+  if(!st->memory_cur || ((st->memory_cur + size) >= st->memory_last_addr)) {
+    if(st->memory_cur) st->current_pool++;
+
+    if(st->current_pool == st->pool_size) {
+      st->pool_size += 10;
+      if(st->memory_pools) {
+        st->memory_pools = (void**)realloc(st->memory_pools, sizeof(void*) * st->pool_size);
+      } else {
+        st->memory_pools = (void**)malloc(sizeof(void*) * st->pool_size);
+      }
+    }
+    st->memory_pools[st->current_pool] = malloc(st->memory_size);
+    st->memory_cur = st->memory_pools[st->current_pool];
+    memset(st->memory_cur, 0, st->memory_size);
+    st->memory_last_addr = st->memory_cur + st->memory_size - 1;
+  }
+  
+  cur = (void*)st->memory_cur;
+  st->memory_cur = st->memory_cur + size;
+  
+  return cur;
+}
+
+void pt_free(rb_parse_state *st) {
+  int i;
+  if(!st->memory_pools) return;
+  
+  for(i = 0; i <= st->current_pool; i++) {
+    free(st->memory_pools[i]);
+  }
+  free(st->memory_pools);
+}
 
 /* 
  *
@@ -803,11 +845,12 @@ again_no_block:
 
   case NODE_XSTR:             /* u1    (%x{ls}) */
   case NODE_STR:              /* u1 */
-  case NODE_LIT:
   case NODE_MATCH:
+    rb_ary_push(current, rb_obj_dup(node->nd_lit));
+    break;
+  case NODE_LIT:
     rb_ary_push(current, node->nd_lit);
     break;
-
   case NODE_NEWLINE:
     ADD_LINE;
   
@@ -858,7 +901,8 @@ again_no_block:
   case NODE_ATTRASGN:           /* literal.meth = y u1 u2 u3 */
     /* node id node */
     if (node->nd_1st == RNODE(1)) {
-      add_to_parse_tree(current, NEW_SELF(), newlines, locals, line_numbers);
+      rb_ary_push(current, rb_ary_new3(1, ID2SYM(rb_intern("self"))));
+      // add_to_parse_tree(current, Qnil, newlines, locals, line_numbers);
     } else {
       add_to_parse_tree(current, node->nd_1st, newlines, locals, line_numbers);
     }
@@ -950,7 +994,6 @@ VALUE rb_pt_comments(VALUE self) {
         return Qnil;
     }
 }
-
 
 void Init_sydney_parser() {
     VALUE cParser;

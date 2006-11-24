@@ -137,7 +137,7 @@ class TestRsNormalize < Test::Unit::TestCase
     assert_equal output, got
   end
   
-  def test_process_while
+  def test_process_until
     input =  [:until, [:true], [:lit, 8]]
     output = [:until, [:true], [:block, [:lit, 8]]]
     

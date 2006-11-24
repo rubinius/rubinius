@@ -14,6 +14,8 @@ class SimpleMarshal
         marshal_cmethod(obj)
       elsif kls == CPU::Global.bytearray
         marshal_bytes(obj)
+      elsif kls == CPU::Global.bignum
+        marshal_bignum(obj)
       else
         kls.as :class
         name = kls.name
@@ -59,6 +61,8 @@ class SimpleMarshal
       unmarshal_bytes(str, state)
     when ?m
       unmarshal_cmethod(str, state)
+    when ?B
+      unmarshal_bignum(str, state)
     when ?n
       state.consumed += 1
       RObject.nil
@@ -96,6 +100,19 @@ class SimpleMarshal
     sz = str[1,4].unpack("I").first
     state.consumed += (5 + sz)
     return Rubinius::String.new(str[5,sz])
+  end
+  
+  def marshal_bignum(obj)
+    obj.as :bignum
+    str = obj.as_string
+    sz = str.size + 1
+    ?B.chr + [sz].pack("I") + str + "\0"
+  end
+  
+  def unmarshal_bignum(str, state)
+    sz = str[1,4].unpack("I").first
+    state.consumed += (5 + sz)
+    return Rubinius::Bignum.new(str[5,sz])
   end
   
   def marshal_sym(obj)

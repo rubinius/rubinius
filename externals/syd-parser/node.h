@@ -153,6 +153,8 @@ typedef struct RNode {
     } u3;
 } NODE;
 
+#include "pstate.h"
+
 #define RNODE(obj)  (R_CAST(RNode)(obj))
 
 #define nd_type(n) ((int)(((RNODE(n))->flags>>FL_USHIFT)&0xff))
@@ -233,7 +235,7 @@ typedef struct RNode {
 #define nd_tag   u1.id
 #define nd_tval  u2.value
 
-#define NEW_NODE(t,a0,a1,a2) syd_node_newnode((t),(VALUE)(a0),(VALUE)(a1),(VALUE)(a2))
+#define NEW_NODE(t,a0,a1,a2) syd_node_newnode(parse_state, (t),(VALUE)(a0),(VALUE)(a1),(VALUE)(a2))
 
 #define NEW_METHOD(n,x) NEW_NODE(NODE_METHOD,x,n,0)
 #define NEW_FBODY(n,i,o) NEW_NODE(NODE_FBODY,n,i,o)
@@ -241,7 +243,7 @@ typedef struct RNode {
 #define NEW_DEFS(r,i,a,d) NEW_NODE(NODE_DEFS,r,i,NEW_RFUNC(a,d))
 #define NEW_CFUNC(f,c) NEW_NODE(NODE_CFUNC,f,c,0)
 #define NEW_IFUNC(f,c) NEW_NODE(NODE_IFUNC,f,c,0)
-#define NEW_RFUNC(b1,b2) NEW_SCOPE(block_append(b1,b2))
+#define NEW_RFUNC(b1,b2) NEW_SCOPE(block_append(vps, b1,b2))
 #define NEW_SCOPE(b) NEW_NODE(NODE_SCOPE,syd_local_tbl(vps),0,(b))
 #define NEW_BLOCK(a) NEW_NODE(NODE_BLOCK,a,0,0)
 #define NEW_IF(c,t,e) NEW_NODE(NODE_IF,c,t,e)
@@ -349,7 +351,7 @@ typedef struct RNode {
 NODE *rb_compile_cstr _((const char*, const char*, int, int));
 
 void rb_add_method _((VALUE, ID, NODE *, int));
-NODE *syd_node_newnode _((enum node_type,VALUE,VALUE,VALUE));
+NODE *syd_node_newnode _((rb_parse_state*, enum node_type,VALUE,VALUE,VALUE));
 
 NODE* rb_method_node _((VALUE klass, ID id));
 

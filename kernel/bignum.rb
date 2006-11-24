@@ -1,0 +1,21 @@
+class Bignum
+  def radix_to_s(radix)
+    Ruby.primitive :bignum_to_s
+  end
+
+  def to_s(radix=10)
+    radix_to_s(radix)
+  end
+
+  def +(o)
+    Ruby.primitive :bignum_add
+  end
+
+  def -(o)
+    Ruby.primitive :bignum_sub
+  end
+
+  def *(o)
+    Ruby.primitive :bignum_mul
+  end
+end

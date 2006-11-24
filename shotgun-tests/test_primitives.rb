@@ -11,16 +11,47 @@ class TestPrimitives < Test::Unit::TestCase
 
   include RubiniusHelper
   
+  MAX = (2 ** 29) - 1
+  
   def test_add
     assert_equal "3", ol("1 + 2")
+  end
+  
+  def test_add_conversion
+    assert_equal "Bignum", ol("(#{MAX} + 1).class")
+  end
+  
+  def test_bignum_add
+    assert_equal "#{MAX + 2}", ol("#{MAX + 1} + 1")
   end
   
   def test_sub
     assert_equal "5", ol("10 - 5")
   end
   
+  def test_sub_conversion
+    assert_equal "Bignum", ol("(#{MAX} - -1).class")
+  end
+  
+  def test_bignum_sub
+    assert_equal "#{MAX + 3}", ol("#{MAX + 4} - 1")
+  end
+  
   def test_mul
     assert_equal "25", ol("5 * 5")
+  end
+  
+  def test_mul_conversion
+    assert_equal "Bignum", ol("(#{MAX} * 2).class")
+  end
+  
+  def test_bignum_mul
+    assert_equal "#{(MAX + 1) * 2}", ol("(#{MAX} + 1) * 2")
+  end
+
+  def test_bignum_literal
+    assert_equal "Bignum", ol("42341235523424.class")
+    assert_equal "Bignum", ol("#{MAX + 1}.class")
   end
   
   def test_equal

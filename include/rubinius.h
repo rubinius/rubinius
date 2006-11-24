@@ -53,26 +53,6 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
   return val;
 }
 
-static inline long rbs_to_int(OBJECT obj) {
-  long val = ((unsigned long)obj) >> 3;
-  if(FIXNUM_NEG(obj)) {
-    val = -val;
-  }
-  return val;
-}
-
-static inline OBJECT rbs_int_to_fixnum(int num) {
-  OBJECT ret;
-  ret = (abs(num) << 3) | 1;
-  if(num < 0) {
-    ret = ret | 4;
-  }
-  return ret;
-}
-
-#define FIXNUM_TO_INT(obj) rbs_to_int(obj)
-#define INT_TO_FIXNUM(int) rbs_int_to_fixnum(int)
-#define I2N(i) INT_TO_FIXNUM(i)
 
 #ifdef Qfalse
 #undef Qfalse

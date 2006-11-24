@@ -13,6 +13,7 @@ Rakefile
 runtime.c
 runtime.h
 state.h
+pstate.h
 sydparse.c
 sydparse.y
 test

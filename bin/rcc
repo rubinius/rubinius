@@ -65,8 +65,15 @@ end
 
 file = ARGV.shift
 fd = File.open(file)
+#syd = SydneyParser.load_file fd
+#sx = syd.sexp
 sx = con.convert_to_sexp(fd)
+# sx = [:newline, 1, "lib/kernel.rb", [:hash, [:lit, 1], [:str, ""], [:lit, 2], [:str, ""]]]
 fd.close
+
+p sx.flatten.map { |o| [o.object_id, o.inspect] }
+
+p sx
 
 if option == "-x"
   require 'pp'
@@ -84,6 +91,9 @@ rescue Object => e
   puts e.backtrace
   raise
 end
+
+GC.start
+p meth.literals
 
 def iputs(str, indent)
   print " " * indent
@@ -113,4 +123,21 @@ def show_method(m, indent=0)
   iputs "=== done with #{m.name}", indent
 end
 
+p sx
+
+#require 'machine'
+#require 'bytecode/compiler'
+#require 'bytecode/encoder'
+#require 'cpu/simple_marshal'
+#require 'cpu/runtime'
+#sm = SimpleMarshal.new
+
+#@cpu = CPU.new
+#@cpu.bootstrap
+
+# sm.marshal(meth)
+
+# meth.to_cmethod
 show_method(meth)
+
+GC.start

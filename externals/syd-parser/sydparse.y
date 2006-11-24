@@ -377,7 +377,7 @@ program         :  {
                                 void_expr(node->nd_head);
                             }
                         }
-                        vps->top = block_append(vps->top, $2); 
+                        vps->top = block_append(parse_state, vps->top, $2); 
                         //vps->top = NEW_SCOPE(block_append(vps->top, $2)); 
                         rb_funcall(vps->self, rb_intern("local_finish"), 0);
                         
@@ -397,7 +397,7 @@ bodystmt        : compstmt
                         }
                         else if ($3) {
                             rb_warn("else without rescue is useless");
-                            $$ = block_append($$, $3);
+                            $$ = block_append(parse_state, $$, $3);
                         }
                         if ($4) {
                             $$ = NEW_ENSURE($$, $4);
@@ -416,11 +416,11 @@ compstmt        : stmts opt_terms
 stmts           : none
                 | stmt
                     {
-                        $$ = newline_node($1);
+                        $$ = newline_node(parse_state, $1);
                     }
                 | stmts terms stmt
                     {
-                        $$ = block_append($1, newline_node($3));
+                        $$ = block_append(parse_state, $1, newline_node(parse_state, $3));
                     }
                 | error stmt
                     {
@@ -565,7 +565,7 @@ stmt            : kALIAS fitem {vps->lex_state = EXPR_FNAME;} fitem
                         args = NEW_LIST($6);
                         if ($3 && nd_type($3) != NODE_ARRAY)
                             $3 = NEW_LIST($3);
-                        $3 = list_append($3, NEW_NIL());
+                        $3 = list_append(parse_state, $3, NEW_NIL());
                         list_concat(args, $3);
                         if ($5 == tOROP) {
                             $5 = 0;
@@ -680,11 +680,11 @@ command_call    : command
 block_command   : block_call
                 | block_call '.' operation2 command_args
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                     }
                 | block_call tCOLON2 operation2 command_args
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                     }
                 ;
 
@@ -705,12 +705,12 @@ cmd_brace_block : tLBRACE_ARG
 
 command         : operation command_args       %prec tLOWEST
                     {
-                        $$ = new_fcall($1, $2);
+                        $$ = new_fcall(parse_state, $1, $2);
                         fixpos($$, $2);
                    }
                 | operation command_args cmd_brace_block
                     {
-                        $$ = new_fcall($1, $2);
+                        $$ = new_fcall(parse_state, $1, $2);
                         if ($3) {
                             if (nd_type($$) == NODE_BLOCK_PASS) {
                                 rb_compile_error("both block arg and actual block given");
@@ -722,12 +722,12 @@ command         : operation command_args       %prec tLOWEST
                    }
                 | primary_value '.' operation2 command_args     %prec tLOWEST
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                         fixpos($$, $1);
                     }
                 | primary_value '.' operation2 command_args cmd_brace_block
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                         if ($5) {
                             if (nd_type($$) == NODE_BLOCK_PASS) {
                                 rb_compile_error("both block arg and actual block given");
@@ -739,12 +739,12 @@ command         : operation command_args       %prec tLOWEST
                    }
                 | primary_value tCOLON2 operation2 command_args %prec tLOWEST
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                         fixpos($$, $1);
                     }
                 | primary_value tCOLON2 operation2 command_args cmd_brace_block
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                         if ($5) {
                             if (nd_type($$) == NODE_BLOCK_PASS) {
                                 rb_compile_error("both block arg and actual block given");
@@ -756,12 +756,12 @@ command         : operation command_args       %prec tLOWEST
                    }
                 | kSUPER command_args
                     {
-                        $$ = new_super($2);
+                        $$ = new_super(parse_state, $2);
                         fixpos($$, $2);
                     }
                 | kYIELD command_args
                     {
-                        $$ = new_yield($2);
+                        $$ = new_yield(parse_state, $2);
                         fixpos($$, $2);
                     }
                 ;
@@ -786,7 +786,7 @@ mlhs_basic      : mlhs_head
                     }
                 | mlhs_head mlhs_item
                     {
-                        $$ = NEW_MASGN(list_append($1,$2), 0);
+                        $$ = NEW_MASGN(list_append(parse_state, $1,$2), 0);
                     }
                 | mlhs_head tSTAR mlhs_node
                     {
@@ -819,7 +819,7 @@ mlhs_head       : mlhs_item ','
                     }
                 | mlhs_head mlhs_item ','
                     {
-                        $$ = list_append($1, $2);
+                        $$ = list_append(parse_state, $1, $2);
                     }
                 ;
 
@@ -947,7 +947,7 @@ undef_list      : fitem
                     }
                 | undef_list ',' {vps->lex_state = EXPR_FNAME;} fitem
                     {
-                        $$ = block_append($1, NEW_UNDEF($4));
+                        $$ = block_append(parse_state, $1, NEW_UNDEF($4));
                     }
                 ;
 
@@ -1029,7 +1029,7 @@ arg             : lhs '=' arg
                         args = NEW_LIST($6);
                         if ($3 && nd_type($3) != NODE_ARRAY)
                             $3 = NEW_LIST($3);
-                        $3 = list_append($3, NEW_NIL());
+                        $3 = list_append(parse_state, $3, NEW_NIL());
                         list_concat(args, $3);
                         if ($5 == tOROP) {
                             $5 = 0;
@@ -1261,7 +1261,7 @@ aref_args       : none
                 | args ',' tSTAR arg opt_nl
                     {
                         value_expr($4);
-                        $$ = arg_concat($1, $4);
+                        $$ = arg_concat(parse_state, $1, $4);
                     }
                 | assocs trailer
                     {
@@ -1290,7 +1290,7 @@ paren_args      : '(' none ')'
                 | '(' args ',' block_call opt_nl ')'
                     {
                         rb_warn("parenthesize argument for future version");
-                        $$ = list_append($2, $4);
+                        $$ = list_append(parse_state, $2, $4);
                     }
                 ;
 
@@ -1309,7 +1309,7 @@ call_args       : command
                     }
                 | args ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat($1, $4);
+                        $$ = arg_concat(parse_state, $1, $4);
                         $$ = arg_blk_pass($$, $5);
                     }
                 | assocs opt_block_arg
@@ -1319,18 +1319,18 @@ call_args       : command
                     }
                 | assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(NEW_LIST(NEW_POSITIONAL($1)), $4);
+                        $$ = arg_concat(parse_state, NEW_LIST(NEW_POSITIONAL($1)), $4);
                         $$ = arg_blk_pass($$, $5);
                     }
                 | args ',' assocs opt_block_arg
                     {
-                        $$ = list_append($1, NEW_POSITIONAL($3));
+                        $$ = list_append(parse_state, $1, NEW_POSITIONAL($3));
                         $$ = arg_blk_pass($$, $4);
                     }
                 | args ',' assocs ',' tSTAR arg opt_block_arg
                     {
                         value_expr($6);
-                        $$ = arg_concat(list_append($1, NEW_POSITIONAL($3)), $6);
+                        $$ = arg_concat(parse_state, list_append(parse_state, $1, NEW_POSITIONAL($3)), $6);
                         $$ = arg_blk_pass($$, $7);
                     }
                 | tSTAR arg_value opt_block_arg
@@ -1350,12 +1350,12 @@ call_args2      : arg_value ',' args opt_block_arg
                     }
                 | arg_value ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(NEW_LIST($1), $4);
+                        $$ = arg_concat(parse_state, NEW_LIST($1), $4);
                         $$ = arg_blk_pass($$, $5);
                     }
                 | arg_value ',' args ',' tSTAR arg_value opt_block_arg
                     {
-            $$ = arg_concat(list_concat(NEW_LIST($1),$3), $6);
+            $$ = arg_concat(parse_state, list_concat(NEW_LIST($1),$3), $6);
                         $$ = arg_blk_pass($$, $7);
                     }
                 | assocs opt_block_arg
@@ -1365,27 +1365,27 @@ call_args2      : arg_value ',' args opt_block_arg
                     }
                 | assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(NEW_LIST(NEW_POSITIONAL($1)), $4);
+                        $$ = arg_concat(parse_state, NEW_LIST(NEW_POSITIONAL($1)), $4);
                         $$ = arg_blk_pass($$, $5);
                     }
                 | arg_value ',' assocs opt_block_arg
                     {
-                        $$ = list_append(NEW_LIST($1), NEW_POSITIONAL($3));
+                        $$ = list_append(parse_state, NEW_LIST($1), NEW_POSITIONAL($3));
                         $$ = arg_blk_pass($$, $4);
                     }
                 | arg_value ',' args ',' assocs opt_block_arg
                     {
-                        $$ = list_append(list_concat(NEW_LIST($1),$3), NEW_POSITIONAL($5));
+                        $$ = list_append(parse_state, list_concat(NEW_LIST($1),$3), NEW_POSITIONAL($5));
                         $$ = arg_blk_pass($$, $6);
                     }
                 | arg_value ',' assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(list_append(NEW_LIST($1), NEW_POSITIONAL($3)), $6);
+                        $$ = arg_concat(parse_state, list_append(parse_state, NEW_LIST($1), NEW_POSITIONAL($3)), $6);
                         $$ = arg_blk_pass($$, $7);
                     }
                 | arg_value ',' args ',' assocs ',' tSTAR arg_value opt_block_arg
                     {
-                        $$ = arg_concat(list_append(list_concat(NEW_LIST($1), $3), NEW_POSITIONAL($5)), $8);
+                        $$ = arg_concat(parse_state, list_append(parse_state, list_concat(NEW_LIST($1), $3), NEW_POSITIONAL($5)), $8);
                         $$ = arg_blk_pass($$, $9);
                     }
                 | tSTAR arg_value opt_block_arg
@@ -1439,17 +1439,17 @@ args            : arg_value
                     }
                 | args ',' arg_value
                     {
-                        $$ = list_append($1, $3);
+                        $$ = list_append(parse_state, $1, $3);
                     }
                 ;
 
 mrhs            : args ',' arg_value
                     {
-                        $$ = list_append($1, $3);
+                        $$ = list_append(parse_state, $1, $3);
                     }
                 | args ',' tSTAR arg_value
                     {
-                        $$ = arg_concat($1, $4);
+                        $$ = arg_concat(parse_state, $1, $4);
                     }
                 | tSTAR arg_value
                     {
@@ -1527,7 +1527,7 @@ primary         : literal
                     }
                 | kYIELD '(' call_args ')'
                     {
-                        $$ = new_yield($3);
+                        $$ = new_yield(parse_state, $3);
                     }
                 | kYIELD '(' ')'
                     {
@@ -1811,32 +1811,32 @@ block_call      : command do_block
                     }
                 | block_call '.' operation2 opt_paren_args
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                     }
                 | block_call tCOLON2 operation2 opt_paren_args
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                     }
                 ;
 
 method_call     : operation paren_args
                     {
-                        $$ = new_fcall($1, $2);
+                        $$ = new_fcall(parse_state, $1, $2);
                         fixpos($$, $2);
                     }
                 | primary_value '.' operation2 opt_paren_args
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                         fixpos($$, $1);
                     }
                 | primary_value tCOLON2 operation2 paren_args
                     {
-                        $$ = new_call($1, $3, $4);
+                        $$ = new_call(parse_state, $1, $3, $4);
                         fixpos($$, $1);
                     }
                 | primary_value tCOLON2 operation3
                     {
-                        $$ = new_call($1, $3, 0);
+                        $$ = new_call(parse_state, $1, $3, 0);
                     }
                 | primary_value '\\' operation2
                     {
@@ -1848,7 +1848,7 @@ method_call     : operation paren_args
                     }
                 | kSUPER paren_args
                     {
-                        $$ = new_super($2);
+                        $$ = new_super(parse_state, $2);
                     }
                 | kSUPER
                     {
@@ -1892,7 +1892,7 @@ case_body       : kWHEN when_args then
 when_args       : args
                 | args ',' tSTAR arg_value
                     {
-                        $$ = list_append($1, NEW_WHEN($4, 0, 0));
+                        $$ = list_append(parse_state, $1, NEW_WHEN($4, 0, 0));
                     }
                 | tSTAR arg_value
                     {
@@ -1910,7 +1910,7 @@ opt_rescue      : kRESCUE exc_list exc_var then
                     {
                         if ($3) {
                             $3 = node_assign($3, NEW_GVAR(rb_intern("$!")), parse_state);
-                            $5 = block_append($3, $5);
+                            $5 = block_append(parse_state, $3, $5);
                         }
                         $$ = NEW_RESBODY($2, $5, $6);
                         fixpos($$, $2?$2:$5);
@@ -1959,7 +1959,7 @@ strings         : string
                             node = NEW_STR(rb_str_new(0, 0));
                         }
                         else {
-                            node = evstr2dstr(node);
+                            node = evstr2dstr(parse_state, node);
                         }
                         $$ = node;
                     }
@@ -1968,7 +1968,7 @@ strings         : string
 string          : string1
                 | string string1
                     {
-                        $$ = literal_concat($1, $2);
+                        $$ = literal_concat(parse_state, $1, $2);
                     }
                 ;
 
@@ -2056,14 +2056,14 @@ word_list       : /* none */
                     }
                 | word_list word ' '
                     {
-                        $$ = list_append($1, evstr2dstr($2));
+                        $$ = list_append(parse_state, $1, evstr2dstr(parse_state, $2));
                     }
                 ;
 
 word            : string_content
                 | word string_content
                     {
-                        $$ = literal_concat($1, $2);
+                        $$ = literal_concat(parse_state, $1, $2);
                     }
                 ;
 
@@ -2083,7 +2083,7 @@ qword_list      : /* none */
                     }
                 | qword_list tSTRING_CONTENT ' '
                     {
-                        $$ = list_append($1, $2);
+                        $$ = list_append(parse_state, $1, $2);
                     }
                 ;
 
@@ -2093,7 +2093,7 @@ string_contents : /* none */
                     }
                 | string_contents string_content
                     {
-                        $$ = literal_concat($1, $2);
+                        $$ = literal_concat(parse_state, $1, $2);
                     }
                 ;
 
@@ -2103,7 +2103,7 @@ xstring_contents: /* none */
                     }
                 | xstring_contents string_content
                     {
-                        $$ = literal_concat($1, $2);
+                        $$ = literal_concat(parse_state, $1, $2);
                     }
                 ;
 
@@ -2134,9 +2134,9 @@ string_content  : tSTRING_CONTENT
                         CMDARG_LEXPOP();
                         if (($$ = $3) && nd_type($$) == NODE_NEWLINE) {
                             $$ = $$->nd_next;
-                            rb_gc_force_recycle((VALUE)$3);
+                            // rb_gc_force_recycle((VALUE)$3);
                         }
-                        $$ = new_evstr($$);
+                        $$ = new_evstr(parse_state, $$);
                     }
                 ;
 
@@ -2255,38 +2255,38 @@ f_arglist       : '(' f_args opt_nl ')'
 f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
                     {
                         // printf("rest + all = %d\n", $5);
-                        $$ = block_append(NEW_ARGS($1, $3, $5), $6);
+                        $$ = block_append(parse_state, NEW_ARGS($1, $3, $5), $6);
                     }
                 | f_arg ',' f_optarg opt_f_block_arg
                     {
-                        $$ = block_append(NEW_ARGS($1, $3, -1), $4);
+                        $$ = block_append(parse_state, NEW_ARGS($1, $3, -1), $4);
                     }
                 | f_arg ',' f_rest_arg opt_f_block_arg
                     {
                         // printf("arg + rest = %d\n", $3);
-                        $$ = block_append(NEW_ARGS($1, 0, $3), $4);
+                        $$ = block_append(parse_state, NEW_ARGS($1, 0, $3), $4);
                     }
                 | f_arg opt_f_block_arg
                     {
-                        $$ = block_append(NEW_ARGS($1, 0, -1), $2);
+                        $$ = block_append(parse_state, NEW_ARGS($1, 0, -1), $2);
                     }
                 | f_optarg ',' f_rest_arg opt_f_block_arg
                     {
                         // printf("rest + opt = %d\n", $3);
-                        $$ = block_append(NEW_ARGS(0, $1, $3), $4);
+                        $$ = block_append(parse_state, NEW_ARGS(0, $1, $3), $4);
                     }
                 | f_optarg opt_f_block_arg
                     {
-                        $$ = block_append(NEW_ARGS(0, $1, -1), $2);
+                        $$ = block_append(parse_state, NEW_ARGS(0, $1, -1), $2);
                     }
                 | f_rest_arg opt_f_block_arg
                     {
                         // printf("rest only = %d\n", $1);
-                        $$ = block_append(NEW_ARGS(0, 0, $1), $2);
+                        $$ = block_append(parse_state, NEW_ARGS(0, 0, $1), $2);
                     }
                 | f_block_arg
                     {
-                        $$ = block_append(NEW_ARGS(0, 0, -1), $1);
+                        $$ = block_append(parse_state, NEW_ARGS(0, 0, -1), $1);
                     }
                 | /* none */
                     {
@@ -2345,7 +2345,7 @@ f_optarg        : f_opt
                     }
                 | f_optarg ',' f_opt
                     {
-                        $$ = block_append($1, $3);
+                        $$ = block_append(parse_state, $1, $3);
                     }
                 ;
 
@@ -2451,12 +2451,12 @@ assoc           : assoc1
 
 assoc1          : arg_value tASSOC arg_value
                     {
-                        $$ = list_append(NEW_LIST($1), $3);
+                        $$ = list_append(parse_state, NEW_LIST($1), $3);
                     }
                 ;
 assoc2          : tKEYSYM arg_value
                     {
-                        $$ = list_append(NEW_LIST(NEW_LIT(ID2SYM($1))), $2);
+                        $$ = list_append(parse_state, NEW_LIST(NEW_LIT(ID2SYM($1))), $2);
                     }
 
 operation       : tIDENTIFIER
@@ -3214,7 +3214,7 @@ tokadd_string(func, term, paren, nest, parse_state)
 }
 
 #define NEW_STRTERM(func, term, paren) \
-        syd_node_newnode(NODE_STRTERM, (func), (term) | ((paren) << (CHAR_BIT * 2)), 0)
+        syd_node_newnode(parse_state, NODE_STRTERM, (func), (term) | ((paren) << (CHAR_BIT * 2)), 0)
 #define pslval ((YYSTYPE *)parse_state->lval)
 static int
 parse_string(quote, parse_state)
@@ -3322,7 +3322,7 @@ heredoc_identifier(rb_parse_state *parse_state)
     len = parse_state->lex_p - parse_state->lex_pbeg;
     parse_state->lex_p = parse_state->lex_pend;
     pslval->id = 0;
-    lex_strterm = syd_node_newnode(NODE_HEREDOC,
+    lex_strterm = syd_node_newnode(parse_state, NODE_HEREDOC,
                                   rb_str_new(tok(), toklen()),  /* nd_lit */
                                   len,                          /* nd_nth */
                                   parse_state->lex_lastline);           /* nd_orig */
@@ -4667,14 +4667,19 @@ yylex(YYSTYPE *yylval, void *vstate)
     }
 }
 
+void *pt_allocate(rb_parse_state *st, int size);
+
 NODE*
-syd_node_newnode(type, a0, a1, a2)
+syd_node_newnode(st, type, a0, a1, a2)
+    rb_parse_state *st;
     enum node_type type;
     VALUE a0, a1, a2;
 {
-    NODE *n = (NODE*)rb_newobj();
+    NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
+    // NODE *n = (NODE*)rb_newobj();
 
-    n->flags |= T_NODE;
+    // n->flags |= T_NODE;
+    n->flags = 0;
     nd_set_type(n, type);
     nd_set_line(n, ruby_sourceline);
     n->nd_file = ruby_sourcefile;
@@ -4704,7 +4709,8 @@ nodeline(node)
 #endif
 
 static NODE*
-newline_node(node)
+newline_node(parse_state, node)
+    rb_parse_state *parse_state;
     NODE *node;
 {
     NODE *nl = 0;
@@ -4751,7 +4757,8 @@ parser_warn(node, mesg)
 }
 
 static NODE*
-block_append(head, tail)
+block_append(parse_state, head, tail)
+    rb_parse_state *parse_state;
     NODE *head, *tail;
 {
     NODE *end, *h = head;
@@ -4811,7 +4818,8 @@ block_append(head, tail)
 
 /* append item to the list */
 static NODE*
-list_append(list, item)
+list_append(parse_state, list, item)
+    rb_parse_state *parse_state;
     NODE *list, *item;
 {
     NODE *last;
@@ -4858,7 +4866,8 @@ list_concat(head, tail)
 
 /* concat two string literals */
 static NODE *
-literal_concat(head, tail)
+literal_concat(parse_state, head, tail)
+    rb_parse_state *parse_state;
     NODE *head, *tail;
 {
     enum node_type htype;
@@ -4869,16 +4878,16 @@ literal_concat(head, tail)
     htype = nd_type(head);
     if (htype == NODE_EVSTR) {
         NODE *node = NEW_DSTR(rb_str_new(0, 0));
-        head = list_append(node, head);
+        head = list_append(parse_state, node, head);
     }
     switch (nd_type(tail)) {
       case NODE_STR:
         if (htype == NODE_STR) {
             rb_str_concat(head->nd_lit, tail->nd_lit);
-            rb_gc_force_recycle((VALUE)tail);
+            // rb_gc_force_recycle((VALUE)tail);
         }
         else {
-            list_append(head, tail);
+            list_append(parse_state, head, tail);
         }
         break;
 
@@ -4886,7 +4895,7 @@ literal_concat(head, tail)
         if (htype == NODE_STR) {
             rb_str_concat(head->nd_lit, tail->nd_lit);
             tail->nd_lit = head->nd_lit;
-            rb_gc_force_recycle((VALUE)head);
+            // rb_gc_force_recycle((VALUE)head);
             head = tail;
         }
         else {
@@ -4901,24 +4910,26 @@ literal_concat(head, tail)
             nd_set_type(head, NODE_DSTR);
             head->nd_alen = 1;
         }
-        list_append(head, tail);
+        list_append(parse_state, head, tail);
         break;
     }
     return head;
 }
 
 static NODE *
-evstr2dstr(node)
+evstr2dstr(parse_state, node)
+    rb_parse_state *parse_state;
     NODE *node;
 {
     if (nd_type(node) == NODE_EVSTR) {
-        node = list_append(NEW_DSTR(rb_str_new(0, 0)), node);
+        node = list_append(parse_state, NEW_DSTR(rb_str_new(0, 0)), node);
     }
     return node;
 }
 
 static NODE *
-new_evstr(node)
+new_evstr(parse_state, node)
+    rb_parse_state *parse_state;
     NODE *node;
 {
     NODE *head = node;
@@ -5217,7 +5228,8 @@ rb_backref_error(node)
 }
 
 static NODE *
-arg_concat(node1, node2)
+arg_concat(parse_state, node1, node2)
+    rb_parse_state *parse_state;
     NODE *node1;
     NODE *node2;
 {
@@ -5226,13 +5238,14 @@ arg_concat(node1, node2)
 }
 
 static NODE *
-arg_add(node1, node2)
+arg_add(parse_state, node1, node2)
+    rb_parse_state *parse_state;
     NODE *node1;
     NODE *node2;
 {
     if (!node1) return NEW_LIST(node2);
     if (nd_type(node1) == NODE_ARRAY) {
-        return list_append(node1, node2);
+        return list_append(parse_state, node1, node2);
     }
     else {
         return NEW_ARGSPUSH(node1, node2);
@@ -5262,7 +5275,7 @@ node_assign(lhs, rhs, parse_state)
 
       case NODE_ATTRASGN:
       case NODE_CALL:
-        lhs->nd_args = arg_add(lhs->nd_args, rhs);
+        lhs->nd_args = arg_add(parse_state, lhs->nd_args, rhs);
         break;
 
       default:
@@ -5698,7 +5711,8 @@ no_blockarg(node)
 }
 
 static NODE *
-ret_args(node)
+ret_args(parse_state, node)
+    rb_parse_state *parse_state;
     NODE *node;
 {
     if (node) {
@@ -5714,7 +5728,8 @@ ret_args(node)
 }
 
 static NODE *
-new_yield(node)
+new_yield(parse_state, node)
+    rb_parse_state *parse_state;
     NODE *node;
 {
     long state = Qtrue;
@@ -5768,7 +5783,8 @@ arg_blk_pass(node1, node2)
 }
 
 static NODE*
-arg_prepend(node1, node2)
+arg_prepend(parse_state, node1, node2)
+    rb_parse_state *parse_state;
     NODE *node1, *node2;
 {
     switch (nd_type(node2)) {
@@ -5776,10 +5792,10 @@ arg_prepend(node1, node2)
         return list_concat(NEW_LIST(node1), node2);
 
       case NODE_SPLAT:
-        return arg_concat(node1, node2->nd_head);
+        return arg_concat(parse_state, node1, node2->nd_head);
 
       case NODE_BLOCK_PASS:
-        node2->nd_body = arg_prepend(node1, node2->nd_body);
+        node2->nd_body = arg_prepend(parse_state, node1, node2->nd_body);
         return node2;
 
       default:
@@ -5789,7 +5805,8 @@ arg_prepend(node1, node2)
 }
 
 static NODE*
-new_call(r,m,a)
+new_call(parse_state, r,m,a)
+    rb_parse_state *parse_state;
     NODE *r;
     ID m;
     NODE *a;
@@ -5802,7 +5819,8 @@ new_call(r,m,a)
 }
 
 static NODE*
-new_fcall(m,a)
+new_fcall(parse_state, m,a)
+    rb_parse_state *parse_state;
     ID m;
     NODE *a;
 {
@@ -5814,7 +5832,8 @@ new_fcall(m,a)
 }
 
 static NODE*
-new_super(a)
+new_super(parse_state,a)
+    rb_parse_state *parse_state;
     NODE *a;
 {
     if (a && nd_type(a) == NODE_BLOCK_PASS) {
@@ -6072,9 +6091,12 @@ syd_dyna_init(st, node, pre)
     VALUE pre;
 {
     VALUE vars;
+    rb_parse_state *parse_state;
     int i;
     // struct RVarmap *post = ruby_dyna_vars;
     NODE *var, *out;
+    
+    parse_state = st;
     
     if (!node) return node;
     
@@ -6091,7 +6113,7 @@ syd_dyna_init(st, node, pre)
         var = NEW_DASGN_CURR(post->id, var);
     }
     */
-    out = block_append(var, node);
+    out = block_append(st, var, node);
     return out;
 }
 
