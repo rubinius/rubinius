@@ -1,9 +1,9 @@
 # The Constructor is the highest level piece of taking strings
 # of code and creating structures capable of being executed.
-
 require 'sydparse'
 require 'bytecode/compiler'
 require 'bytecode/encoder'
+require 'bytecode/r18'
 require 'cpu/simple_marshal'
 
 STDOUT.sync = true
@@ -31,12 +31,9 @@ module Bytecode
     end
         
     def compile(code)
-      STDOUT.puts "converting.."
       sexp = convert_to_sexp(code)
-      puts "compiling..."
       comp = Bytecode::Compiler.new
       desc = comp.compile_as_script sexp, :__script__
-      puts "compiled."
       return desc.to_cmethod
     end
     
@@ -89,16 +86,15 @@ module Bytecode
       cm = compile_file(path)
       fd = File.open(cp, "w")
       fd << "RBIS"
-      puts "marshalling..."
-      GC.start
+      Log.info "(Saving #{cp} to disk..)"
       fd << @sm.marshal(cm)
       fd.close
       return cm
     end
     
-    def load_file(path)
+    def load_file(path, cached=true)
       cp = compiled_path(path)
-      if file_newer?(cp, path)
+      if cached and file_newer?(cp, path)
         fd = File.open(cp)
         magic = fd.read(4)
         if magic != "RBIS"

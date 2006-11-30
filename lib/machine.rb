@@ -35,9 +35,9 @@ class Machine
     return true
   end
   
-  def compile_file(path)
+  def compile_file(path, cached=true)
     begin
-      meth = @constructor.load_file path
+      meth = @constructor.load_file path, cached
     rescue LoadError => e
       puts "Unable to compile '#{path}'. #{e.message} (#{e.class})"
     end

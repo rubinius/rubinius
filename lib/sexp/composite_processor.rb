@@ -1,5 +1,3 @@
-require 'sexp/processor'
-
 ##
 # Implements the Composite pattern on SexpProcessor. Need we say more?
 #
@@ -9,7 +7,7 @@ require 'sexp/processor'
 # something when +generate+ is called, allowing for deferred final
 # processing.
 
-class CompositeSexpProcessor < SexpProcessor
+class CompositeSexpProcessor
 
   ##
   # The list o' processors to run.
@@ -17,7 +15,6 @@ class CompositeSexpProcessor < SexpProcessor
   attr_reader :processors
 
   def initialize # :nodoc:
-    super
     @processors = []
   end
 
@@ -25,8 +22,6 @@ class CompositeSexpProcessor < SexpProcessor
   # Add a +processor+ to the list of processors to run.
 
   def <<(processor)
-    raise ArgumentError, "Can only add sexp processors" unless
-      SexpProcessor === processor
     @processors << processor
   end
 

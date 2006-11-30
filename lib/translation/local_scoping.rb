@@ -1,4 +1,4 @@
-require 'sexp/processor'
+require 'sexp/simple_processor'
 require 'translation/states'
 
 # This converts a ruby 1.8.x sexp's idea of the scoping of 
@@ -35,9 +35,10 @@ require 'translation/states'
 # into a local, then pull them back out and do the operation
 # on the local like normal code.
 
-class RsLocalScoper < SexpProcessor
+class RsLocalScoper < SimpleSexpProcessor
   def initialize(state=RsLocalState.new)
     super()
+    self.strict = false
     self.auto_shift_type = true
     self.expected = Array
     @state = state
@@ -145,6 +146,13 @@ class RsLocalScoper < SexpProcessor
     else
       [:vcall, name]
     end
+  end
+  
+  def process_defs(x)
+    y = x.dup
+    x.clear
+    y.unshift :defs
+    return y
   end
   
   def process_defn(x)

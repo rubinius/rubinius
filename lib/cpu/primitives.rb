@@ -55,7 +55,8 @@ class CPU::Primitives
     :bignum_to_s,
     :bignum_add,
     :bignum_sub,
-    :bignum_mul
+    :bignum_mul,
+    :readline
   ]
   
   FirstRuntimePrimitive = 1024

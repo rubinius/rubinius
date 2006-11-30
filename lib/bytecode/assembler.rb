@@ -108,6 +108,8 @@ module Bytecode
     end
     
     def lines_as_tuple
+      #require 'pp'
+      #pp @source_lines
       tuple_of_int_tuples @source_lines
     end
     
@@ -175,6 +177,7 @@ module Bytecode
           # If we're already tracking this line, don't add anything.
           return if ent.last == args.to_i
           ent[1] = @current_op - 1
+          # puts "#{ent[0]}-#{ent[1]}: line #{ent.last}"
         elsif @current_op > 0
           @source_lines << [0, @current_op, 0]
         end
@@ -260,6 +263,7 @@ module Bytecode
       
       parts = line.split(/\s+/)
       parts[0] = parts[0].to_sym
+      # puts "#{@current_op}: #{parts.inspect}"
       parse_operation *parts
     end
     
@@ -489,6 +493,13 @@ module Bytecode
         else
           @output << [:send_method, idx]
         end
+        return
+      when :super
+        sym = parts.shift.to_sym
+        idx = find_literal(sym)
+        @current_op += 5
+        args = parts.shift
+        @output << [:send_super_stack_with_block, idx, args.to_i]
         return
       when :send_primitive
         sym = parts.shift.to_sym

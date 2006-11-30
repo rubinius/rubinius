@@ -1,8 +1,7 @@
-require 'sexp/processor'
 require 'sexp/simple_processor'
 require 'translation/states'
 
-class RsNormalizer < SexpProcessor
+class RsNormalizer < SimpleSexpProcessor
   
   module DefnNormalize
     def process_defs(x)
@@ -61,15 +60,16 @@ class RsNormalizer < SexpProcessor
         end
         @state.locals = cur
       end
-      [:defn, name, args, body]
+      out = [:defn, name, args, body]
+      out
     end
   end
   
   def initialize(state=nil, full=false, lines=false)
     super()
     self.auto_shift_type = true
-    # self.default_object = []
     self.expected = Array
+    self.strict = false
     @state = state || RsLocalState.new
     @full = full
     @lines = lines
@@ -78,11 +78,11 @@ class RsNormalizer < SexpProcessor
   def process(x)
     if @lines
       line = x.pop
-      out = super
+      out = super(x)
       out.unshift line
       return out
     else
-      super
+      super(x)
     end
   end
   
@@ -260,6 +260,12 @@ class RsNormalizer < SexpProcessor
     file = x.shift
     body = process(x.shift)
     [:newline, line, file, body]
+  end
+  
+  def process_case(x)
+    cond = x.shift
+    whns = x.shift.map { |w| process(w) }
+    [:case, cond, whns]
   end
   
   def process_when(x)

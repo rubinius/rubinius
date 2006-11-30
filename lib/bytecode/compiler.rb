@@ -1,20 +1,8 @@
-require 'sexp/processor'
 require 'sexp/simple_processor'
-require 'sydparse'
 require 'translation/normalize'
 require 'translation/local_scoping'
 require 'sexp/composite_processor'
-require 'bytecode/assembler'
 require 'translation/states'
-
-=begin
-Thread.new do
-  while true
-    GC.start
-    sleep 1
-  end
-end
-=end
 
 module Bytecode
   
@@ -31,85 +19,18 @@ module Bytecode
     def add_literal(obj)
       idx = @literals.size
       @literals << obj
-      p @literals
       return idx
     end
     
     attr_accessor :name, :assembly, :literals, :primitive, :file
     attr_accessor :required
-    
-    def to_cmethod
-      asm = Bytecode::Assembler.new(@literals, @name)
-      begin
-        stream = asm.assemble @assembly
-      rescue Object => e
-        raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
-      end
-      enc = Bytecode::InstructionEncoder.new
-      bc = enc.encode_stream stream
-      lcls = asm.number_of_locals
-      cmeth = Rubinius::CompiledMethod.from_string bc, lcls
-      cmeth.required = RObject.wrap(@required)
-      cmeth.exceptions = asm.exceptions_as_tuple
-      
-      if @primitive.kind_of? Symbol
-        idx = CPU::Primitives.name_to_index(@primitive)
-        cmeth.primitive = RObject.wrap(idx)
-      elsif @primitive
-        cmeth.primitive = RObject.wrap(@primitive)
-      end
-
-      cmeth.literals = encode_literals
-      if @file
-        # Log.info "Method #{@name} is contained in #{@file}."
-        sym = Rubinius::String.new(@file).to_sym
-        cmeth.file = sym
-      else
-        # Log.info "Method #{@name} is contained in an unknown place."
-        cmeth.file = RObject.nil
-      end
-      
-      if @name
-        sym = Rubinius::String.new(@name.to_s).to_sym
-        cmeth.name = sym
-      end
-      
-      cmeth.lines = asm.lines_as_tuple
-      GC.start
-      return cmeth
-    end
-    
-    def encode_literals
-      tup = Rubinius::Tuple.new(@literals.size)
-      i = 0
-      lits = @literals
-      # puts " => literals: #{lits.inspect}"
-      lits.each do |lit|
-        case lit
-        when Symbol
-          str = Rubinius::String.new(lit.to_s)
-          out = str.to_sym
-          # puts "Encoded #{lit.inspect} as #{out.inspect}"
-        when Bytecode::MethodDescription
-          out = lit.to_cmethod
-        when String
-          out = Rubinius::String.new(lit)
-        when Bignum
-          out = Rubinius::Bignum.new(lit.to_s)
-        else
-          raise "Unable to encode literal: #{lit.inspect}"
-        end
-        tup.put i, out
-        i += 1
-      end
-      
-      return tup
-    end
   end
-  
+
   class Compiler
     def compile(sx, name, state=RsLocalState.new)
       nx = fully_normalize(sx, state)
+      #require 'pp'
+      #pp nx
       meth = MethodDescription.new(name)
       
       pro = Processor.new(self, meth, state)
@@ -143,7 +64,7 @@ module Bytecode
       return pro.method
     end
     
-    class Processor < SexpProcessor
+    class Processor < SimpleSexpProcessor
       def initialize(cont, meth, state)
         super()
         self.require_expected = false
@@ -286,6 +207,7 @@ module Bytecode
       end
       
       def process_block(x)
+        return [] if x == [[nil]]
         while i = x.shift
           next if i.empty?
           process i
@@ -315,6 +237,81 @@ module Bytecode
       
       def process_until(x)
         process_while(x, "git")
+      end
+      
+      def generate_when(w, nxt, post)
+        w[1].shift # Remove the :array
+        lst = w[1].pop
+        body = nil
+        unless w[1].empty?
+          body = unique_lbl()
+          w[1].each do |cond|
+            add "dup"
+            process cond
+            add "send === 1"
+            git body
+          end
+        end
+        add "dup"
+        process lst
+        add "send === 1"
+        gif nxt
+        add "#{body}:" if body
+        process w[2]
+        add "goto #{post}" if post
+      end
+      
+      def process_case(x)
+        recv = x.shift
+        whns = x.shift
+        els = x.shift
+        
+        lbls = []
+        (whns.size - 1).times { lbls << unique_lbl() }
+        if els
+          els_lbl = unique_lbl()
+          lbls << els_lbl
+        else
+          els_lbl = nil
+        end
+        post = unique_lbl()
+        lbls << post
+        
+        single = (whns.size == 1 and !els)
+        
+        # nxt = post
+
+        process recv
+                
+        cur = nil
+        w = whns.shift
+        generate_when w, lbls[0], single ? nil : post
+        
+        lst = whns.pop
+        
+        whns.each do |w|
+          cur = lbls.shift
+          add "#{cur}:"
+          generate_when w, lbls[1], post
+        end
+        
+        if lst
+          add "#{lbls.shift}:"
+          if els_lbl
+            generate_when lst, els_lbl, post
+          else
+            generate_when lst, post, nil
+          end
+        end
+        
+        if els
+          add "#{lbls.shift}:"
+          process(els)
+        end
+        
+        add "#{post}:"
+        add "swap"
+        add "pop"
       end
       
       def process_lasgn(x)
@@ -852,6 +849,24 @@ module Bytecode
         add "#{ps}:" if block
       end
       
+      def process_super(x, block=false)
+        args = x.shift
+        if args
+          args.shift
+          args.reverse.each { |a| process(a) }
+          sz = args.size
+        else
+          sz = 0
+        end
+        
+        if block
+          @post_send = ps = unique_lbl()
+        end
+                
+        add "super #{@method.name} #{sz}"
+        add "#{ps}:" if block
+      end
+      
       def process_attrasgn(x)
         process_call x
       end
@@ -867,9 +882,13 @@ module Bytecode
         cl = x.shift
         args = x.shift
         body = x.shift
-        cl.shift
+        kind = cl.shift
         iter = [:block_iter, args, body]
-        process_call cl, iter
+        if kind == :call
+          process_call cl, iter
+        else
+          process_super cl, iter
+        end
       end
       
       def process_block_iter(x)
@@ -967,6 +986,26 @@ module Bytecode
         add "push self"
         add "send alias_method 2"
       end
+      
+      def process_dot2(x)
+        start = x.shift
+        fin = x.shift
+        process fin
+        process start
+        add "push Range"
+        add "send new 2"
+      end
+      
+      def process_dot3(x)
+        start = x.shift
+        fin = x.shift
+        add "push false"
+        process fin
+        process start
+        add "push Range"
+        add "send new 3"
+      end
+      
     end
   end
 end

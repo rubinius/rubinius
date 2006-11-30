@@ -69,7 +69,8 @@ class InstructionEncoder
     :set_args,
     :get_args,
     :send_with_arg_register,
-    :cast_array_for_args
+    :cast_array_for_args,
+    :send_super_stack_with_block
   ]
   
   IntArg = [
@@ -100,12 +101,14 @@ class InstructionEncoder
     :check_argcount,
     :passed_arg,
     :send_with_arg_register,
-    :cast_array_for_args
+    :cast_array_for_args,
+    :send_super_stack_with_block
   ]
   
   TwoInt = [
     :send_stack, :send_stack_with_block,
-    :check_argcount
+    :check_argcount,
+    :send_super_stack_with_block
   ]
   
   def encode_stream(stream)
