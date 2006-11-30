@@ -9,6 +9,7 @@
 #include "object.h"
 #include "bytearray.h"
 #include "tuple.h"
+#include "readline/readline.h"
 
 #include <string.h>
 #include <sys/types.h>
@@ -34,7 +35,7 @@ struct time_data {
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo) {
+int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;
   int j, k, m, _orig_sp;
@@ -50,9 +51,9 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo) {
   return _ret;
 }
 
-int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo) {
+int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args) {
   if(prim < MAX_SYSTEM_PRIM) {
-    return cpu_perform_system_primitive(state, c, prim, mo);
+    return cpu_perform_system_primitive(state, c, prim, mo, args);
   } else {
     printf("TODO: implement custom primitives.\n");
     abort();

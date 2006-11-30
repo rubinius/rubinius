@@ -62,10 +62,11 @@ static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
 }
 
 static OBJECT find_entry(STATE, OBJECT h, unsigned int hsh) {
-  unsigned int bin;
+  unsigned int bin, bins;
   OBJECT entry, th;
   
-  bin = hsh % FIXNUM_TO_INT(hash_get_bins(h));
+  bins = (unsigned int)FIXNUM_TO_INT(hash_get_bins(h));
+  bin = hsh % bins;
   entry = tuple_at(state, hash_get_values(h), bin);
   
   // printf("start: %x, %ud, %d, %d\n", entry, hsh, bin, FIXNUM_TO_INT(hash_get_bins(h)));

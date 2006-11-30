@@ -30,14 +30,31 @@ OBJECT symtbl_new(STATE) {
   return tbl;
 }
 
+OBJECT symtbl_lookup_cstr(STATE, OBJECT self, char *str) {
+  unsigned int hash;
+  OBJECT strs, idx, syms;
+  
+  hash = string_hash_cstr(state, str);
+  strs = symtbl_get_strings(self);
+  syms = symtbl_get_symbols(self);
+  
+  idx = hash_get(state, strs, hash);
+  
+  /* If it wasn't present, use the longer, more correct version. */
+  if(NIL_P(idx) || idx == Qundef) {
+    return symtbl_lookup(state, self, string_new(state, str));
+  }
+  
+  return symbol_from_index(state, FIXNUM_TO_INT(idx));
+}
+
 OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
-  int hash, sz;
+  unsigned int hash, sz;
   OBJECT idx, strs, syms, ns, obj;
   
   hash = string_hash_int(state, string);
   strs = symtbl_get_strings(self);
   syms = symtbl_get_symbols(self);
-  
   
   idx = hash_get(state, strs, hash);
   // printf("Looking up symbol: %od, %x\n", hash, idx);

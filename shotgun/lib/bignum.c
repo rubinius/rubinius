@@ -1,6 +1,7 @@
 #include "shotgun.h"
 #include "tommath.h"
 #include "string.h"
+#include <ctype.h>
 
 #define NMP mp_int *n; OBJECT n_obj; \
   NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \
@@ -95,6 +96,48 @@ OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   } else {
     return string_new(state, buffer);
   }
+}
+
+OBJECT bignum_from_string_detect(STATE, char *str) {
+  char *s;
+  int radix;
+  int sign;
+  NMP;
+  s = str;
+  sign = 1;
+  while(isspace(*s)) { s++; }
+  if(*s == '+') {
+    s++;
+  } else if(*s == '-') {
+    sign = 0;
+    s++;
+  }
+  radix = 10;
+  if(*s == '0') {
+    switch(s[1]) {
+      case 'x': case 'X':
+        radix = 16; s += 2;
+        break;
+      case 'b': case 'B':
+        radix = 2; s += 2;
+        break;
+      case 'o': case 'O':
+        radix = 8; s += 2;
+        break;
+      case 'd': case 'D':
+        radix = 10; s += 2;
+        break;
+      default:
+        radix = 8; s += 1;
+    }
+  }
+  mp_read_radix(n, s, radix);
+  
+  if(!sign) { 
+    n->sign = MP_NEG;
+  }
+  
+  return bignum_normalize(state, n_obj);
 }
 
 OBJECT bignum_from_string(STATE, char *str, int radix) {

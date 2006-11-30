@@ -33,6 +33,7 @@ void cpu_initialize(STATE, cpu c) {
   c->literals = Qnil;
   c->block = Qnil;
   c->method = Qnil;
+  c->method_module = Qnil;
   c->argcount = 0;
   c->args = 0;
   c->depth = 0;
@@ -40,6 +41,7 @@ void cpu_initialize(STATE, cpu c) {
 
 void cpu_setup_top_scope(STATE, cpu c) {
   c->enclosing_class = state->global->object;
+  c->method_module = state->global->object;
   c->new_class_of = state->global->class;
 }
 
@@ -73,7 +75,8 @@ void cpu_initialize_context(STATE, cpu c) {
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
-  int i;
+  int i, len;
+  gpointer t;
   #define ar(obj) if(REFERENCE_P(obj)) g_ptr_array_add(roots, (gpointer)obj)
   ar(c->stack);
   ar(c->self);
@@ -89,10 +92,15 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->literals);
   ar(c->exceptions);
   ar(c->top_context);
-  // printf("Paths: %d\n", c->paths->len);
-  for(i = 0; i < c->paths->len; i++) {
-    ar(g_ptr_array_remove_index(c->paths, i));
+  ar(c->method_module);
+  len = c->paths->len;
+  // printf("Paths: %d\n", len);
+  for(i = 0; i < len; i++) {
+    t = g_ptr_array_remove_index(c->paths, 0);
+    //printf("Pulled %s out of paths.\n", _inspect(t));
+    ar(t);
   }
+  //printf("Paths should be empty: %d\n", c->paths->len);
   
   #undef ar
 }
@@ -114,13 +122,14 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->literals);
   ar(c->exceptions);
   ar(c->top_context);
-  // printf("Update roots: %d, %d\n", start, roots->len);
+  ar(c->method_module);
+  //printf("Update roots: %d, %d\n", start, roots->len);
   for(; start < roots->len; start++) {
     tmp = g_ptr_array_index(roots, start);
-    // printf("Adding path %p back in...\n", tmp);
+    //printf("Adding path %s back in...\n", _inspect(tmp));
     g_ptr_array_add(c->paths, tmp);
   }
-  
+  //printf("Paths is %d\n", c->paths->len);
   #undef ar
 }
 
@@ -157,10 +166,11 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
   c->self = methctx_get_receiver(home);
   c->home_context = home;
   c->locals = methctx_get_locals(home);
-  c->block = methctx_get_block(ctx);
+  c->block = methctx_get_block(home);
   c->method = methctx_get_method(home);
   c->literals = methctx_get_literals(home);
   c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
+  c->method_module = methctx_get_module(home);
   
   if(RTEST(c->method)) {
     c->exceptions = cmethod_get_exceptions(c->method);
@@ -292,7 +302,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     return val;
   }
   
-  /* Case 1: self is a contains constants, so check there. */
+  /* Case 1: self itself contains constants, so check there. */
   
   /* Ick. I'd love to be able to not have to only check in
      classes and modules. */
@@ -326,13 +336,13 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
       printf("Couldn't find constant %s.\n", 
         string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)));
       val = Qnil;
-    } 
-    /* else {
+    } /*
+    else {
       printf("Found constant %s under %p => %p (%d).\n", 
         string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)),
         under, val, val);
-    }
-    */
+    } */
+    
   }
   
   return val;
@@ -360,6 +370,10 @@ void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   */
   /* add stuff for @paths here */
   g_ptr_array_add(c->paths, (gpointer)c->enclosing_class);
+  /*
+  printf("Push %s (%d) to paths (%d)\n", _inspect(c->enclosing_class), 
+    c->enclosing_class, c->paths->len);
+  */
   c->enclosing_class = cls;
 }
 
@@ -368,6 +382,7 @@ void cpu_push_encloser(STATE, cpu c) {
   len = c->paths->len;
   if(len > 0) {
     c->enclosing_class = (OBJECT)g_ptr_array_remove_index(c->paths, len - 1);
+    //printf("Setting encloser to %s\n", _inspect(c->enclosing_class));
   }
 }
 

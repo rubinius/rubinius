@@ -77,13 +77,19 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
   return val;
 }
 
-static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT obj, OBJECT name) {
-  OBJECT ok, klass, meth, hsh;
+static inline OBJECT _real_class(STATE, OBJECT obj) {
   if(REFERENCE_P(obj)) {
-    klass = HEADER(obj)->klass;
+    return HEADER(obj)->klass;
   } else {
-    klass = object_logical_class(state, obj);
+    return object_logical_class(state, obj);
   }
+}
+
+static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
+  OBJECT ok, meth, hsh;
+  *mod = Qnil;
+  if(NIL_P(klass)) { return Qnil; }
+
   hsh = module_get_methods(klass);
   
   meth = hash_find(state, hsh, name);
@@ -113,18 +119,21 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT obj, OBJECT name) {
     // printf("Found method.\n");
   }
   
+  *mod = klass;
+  
   return meth;
 }
 
-static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym, int *missing) {
+static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym, 
+          OBJECT *mod, int *missing) {
   OBJECT mo;
   
   *missing = FALSE;
   
-  mo = cpu_find_method(state, c, obj, sym);
+  mo = cpu_find_method(state, c, obj, sym, mod);
   if(NIL_P(mo)) {
     // printf("method missing: %p\n", state->global->method_missing);
-    mo = cpu_find_method(state, c, obj, state->global->method_missing);
+    mo = cpu_find_method(state, c, obj, state->global->method_missing, mod);
     *missing = TRUE;
     if(NIL_P(mo)) {
       printf("Fuck. no method_missing, was trying %s.\n", rbs_symbol_to_cstring(state, sym));
@@ -137,7 +146,8 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym, int
   return mo;
 }
 
-static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, OBJECT name) {
+static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
+      OBJECT name, OBJECT mod) {
   OBJECT sender, ctx;
   int len;
   
@@ -149,12 +159,12 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, OB
   /* Check in context cache here. */
   len = state->free_contexts->len;
   if(len == 0) {
-    ctx = methctx_s_from_method(state, mo, sender);
+    ctx = methctx_s_from_method(state, mo, sender, mod);
     // printf("Created context %p...\n", ctx);
   } else {
     /* Use the last one so that it's a lifo */
     ctx = (OBJECT)g_ptr_array_remove_index(state->free_contexts, len - 1);
-    methctx_s_reuse(state, ctx, mo, sender);
+    methctx_s_reuse(state, ctx, mo, sender, mod);
     // printf("Reusing context %d %p '%s'...\n", len, ctx, _inspect(ctx));
   }
   
@@ -168,7 +178,9 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, OB
 void cpu_raise_arg_error(STATE, cpu c, int args, int req) {
   char msg[1024];
   
-  snprintf(msg, 1024, "wrong number of arguments (%d for %d)", args, req);
+  snprintf(msg, 1024, "wrong number of arguments (got %d, required %d)", args, req);
+  
+  printf("EXCEPTION: %s\n", msg);
   
   cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_arg, msg));
 }
@@ -184,7 +196,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
     if(req < 0 || args == req) {
       stack_push(recv);
       // printf("Running primitive: %d\n", prim);
-      if(cpu_perform_primitive(state, c, prim, mo)) {
+      if(cpu_perform_primitive(state, c, prim, mo, args)) {
         /* Worked! */
         return TRUE;
       }
@@ -204,25 +216,55 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
   OBJECT ctx;
   
   if(cpu_try_primitive(state, c, meth, recv, count)) { return; }
-  ctx = cpu_create_context(state, c, recv, meth, name);
+  ctx = cpu_create_context(state, c, recv, meth, name, _real_class(state, recv));
   methctx_set_argcount(ctx, I2N(count));
   cpu_activate_context(state, c, ctx, ctx);
 }
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
-  OBJECT ctx, mo;
-  mo = cpu_find_method(state, c, recv, meth);
+  OBJECT ctx, mo, mod;
+  mo = cpu_find_method(state, c, _real_class(state, recv), meth, &mod);
   if(NIL_P(mo)) return;
   stack_push(arg);
   
-  ctx = cpu_create_context(state, c, recv, mo, meth);
+  ctx = cpu_create_context(state, c, recv, mo, meth, _real_class(state, recv));
   methctx_set_argcount(ctx, I2N(1));
   methctx_set_block(ctx, Qnil);
   cpu_activate_context(state, c, ctx, ctx);
 }
 
+static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
+        OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
+  OBJECT ctx;
+  if(missing) {
+    DEBUG("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+  }
+
+  if(missing) {
+    args += 1;
+    stack_push(sym);
+    // printf("EEK! method_missing!\n");
+    // abort();
+  } else {
+    if(cpu_try_primitive(state, c, mo, recv, args)) { return; }
+  }
+
+  #if 0
+  printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+  #endif
+  ctx = cpu_create_context(state, c, recv, mo, sym, mod);
+  methctx_set_argcount(ctx, I2N(args));
+  /*
+  if(RTEST(block)) {
+    printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
+  }
+  */
+  methctx_set_block(ctx, block);
+  cpu_activate_context(state, c, ctx, ctx);
+}
+
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
-  OBJECT sym, mo, ctx;
+  OBJECT sym, mo, ctx, mod;
   int missing;
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
@@ -234,30 +276,30 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   
   missing = 0;
   
-  mo = cpu_locate_method(state, c, recv, sym, &missing);
+  mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
+  _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
+  // printf("Setting method module to: %s\n", _inspect(mod));
+  c->method_module = mod;
+}
+
+/* This is duplicated from above rather than adding another parameter
+   because unified_send is used SO often that I didn't want to slow it down
+   any with checking a flag. */
+static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
+  OBJECT sym, mo, ctx, klass, mod;
+  int missing;
+  assert(RTEST(c->literals));
+  sym = tuple_at(state, c->literals, idx);
   
-  if(missing) {
-    DEBUG("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
-  }
+  missing = 0;
   
-  if(missing) {
-    args += 1;
-    stack_push(sym);
-    // printf("EEK! method_missing!\n");
-    // abort();
-  } else {
-    if(cpu_try_primitive(state, c, mo, recv, args)) { return; }
-  }
+  // printf("Looking up from: %s\n", _inspect(c->method_module));
   
-  ctx = cpu_create_context(state, c, recv, mo, sym);
-  methctx_set_argcount(ctx, I2N(args));
-  /*
-  if(RTEST(block)) {
-    printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
-  }
-  */
-  methctx_set_block(ctx, block);
-  cpu_activate_context(state, c, ctx, ctx);
+  klass = class_get_superclass(c->method_module);
+    
+  mo = cpu_locate_method(state, c, klass, sym, &mod, &missing);
+  _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
+  c->method_module = mod;
 }
 
 char *cpu_op_to_name(STATE, char op) {
@@ -303,7 +345,7 @@ void cpu_run(STATE, cpu c) {
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
+    //printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
     #include "instructions.gen"
     goto check_interupts;
 stack_error:

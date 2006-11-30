@@ -135,7 +135,7 @@ class ShotgunInstructions
   def send_primitive
     <<-CODE
     next_int;
-    cpu_perform_primitive(state, c, _int, Qnil);
+    cpu_perform_primitive(state, c, _int, Qnil, 0);
     CODE
   end
   
@@ -436,6 +436,24 @@ class ShotgunInstructions
     t2 = stack_pop();
     next_int;
     cpu_unified_send(state, c, t1, _int, c->args, t2);
+    CODE
+  end
+  
+  def send_super_stack_with_block
+    <<-CODE
+    t1 = stack_pop();
+    next_int;
+    j = _int;
+    next_int;
+    cpu_unified_send_super(state, c, c->self, j, _int, t1);
+    CODE
+  end
+  
+  def send_super_with_arg_register
+    <<-CODE
+    t1 = stack_pop();
+    next_int;
+    cpu_unified_send_super(state, c, c->self, _int, c->args, t1);
     CODE
   end
   

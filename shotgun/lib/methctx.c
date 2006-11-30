@@ -20,22 +20,23 @@ void methctx_init_locals(STATE, OBJECT self, int cnt) {
   methctx_set_locals(self, tuple_new(state, cnt+2));
 }
 
-void methctx_setup_from_method(STATE, OBJECT mc, OBJECT meth, OBJECT from) {
+void methctx_setup_from_method(STATE, OBJECT mc, OBJECT meth, OBJECT from, OBJECT mod) {
   methctx_set_raiseable(mc, Qtrue);
   methctx_set_bytecodes(mc, cmethod_get_bytecodes(meth));
   methctx_set_sender(mc, from);
   methctx_set_literals(mc, cmethod_get_literals(meth));
   methctx_set_method(mc, meth);
+  methctx_set_module(mc, mod);
 }
 
-OBJECT methctx_s_from_method(STATE, OBJECT meth, OBJECT from) {
+OBJECT methctx_s_from_method(STATE, OBJECT meth, OBJECT from, OBJECT mod) {
   OBJECT mc;
   mc = methctx_new(state, FIXNUM_TO_INT(cmethod_get_locals(meth)));
-  methctx_setup_from_method(state, mc, meth, from);
+  methctx_setup_from_method(state, mc, meth, from, mod);
   return mc;
 }
 
-void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from) {
+void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from, OBJECT mod) {
   int lcls, fels;
   
   lcls = FIXNUM_TO_INT(cmethod_get_locals(meth));
@@ -44,7 +45,7 @@ void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from) {
     methctx_init_locals(state, self, lcls);
   }
   methctx_init_registers(state, self);
-  methctx_setup_from_method(state, self, meth, from);
+  methctx_setup_from_method(state, self, meth, from, mod);
 }
 
 #define WasReferenced 0x20

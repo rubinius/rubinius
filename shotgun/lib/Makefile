@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . -I../libs/libtommath `pkg-config glib-2.0 --cflags`
+CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . -I../libs/libtommath -I../libs/libedit `pkg-config glib-2.0 --cflags`
 DEPS=auto.h ../../include/rubinius.h
 LIBS=`pkg-config glib-2.0 --libs` ../libs/libtommath/libtommath.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
@@ -25,6 +25,9 @@ system_primitives.gen: primitives.rb
 auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
 	$(CC) -c -o auto.o auto.c $(CFLAGS)
+
+grammer.c: grammer.y
+	bison -o grammer.c grammer.y
 
 clean:
 	rm -f *.o *.gen *.a auto.c auto.h

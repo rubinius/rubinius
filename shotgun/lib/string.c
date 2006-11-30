@@ -90,14 +90,9 @@ char *string_byte_address(STATE, OBJECT self) {
 #define HashPrime 16777619
 #define MASK_28 (((u_int32_t)1<<28)-1)
 
-unsigned int string_hash_int(STATE, OBJECT self) {
-  unsigned char *bp, *str;
+static inline _hash_str(unsigned char *bp, unsigned int sz) {
   unsigned char *be;
-  unsigned int hv, sz;
-  
-  bp = (unsigned char*)bytearray_byte_address(state, string_get_data(self));
-  str = bp;
-  sz = FIXNUM_TO_INT(string_get_bytes(self));
+  unsigned int hv;
   
   be = bp + sz;
   
@@ -108,10 +103,23 @@ unsigned int string_hash_int(STATE, OBJECT self) {
     hv ^= *bp++;
   }
   hv = (hv>>28) ^ (hv & MASK_28);
-  
-  // printf("string hash: '%s' => %ud\n", str, hv);
-  
+    
   return hv;
+}
+
+unsigned int string_hash_int(STATE, OBJECT self) {
+  unsigned char *bp;
+  unsigned int sz;
+  
+  bp = (unsigned char*)bytearray_byte_address(state, string_get_data(self));
+  sz = FIXNUM_TO_INT(string_get_bytes(self));
+  
+  return _hash_str(bp, sz);
+}
+
+unsigned int string_hash_cstr(STATE, char *bp) {
+  unsigned int sz = strlen(bp);
+  return _hash_str((unsigned char*)bp, sz);
 }
 
 OBJECT string_to_sym(STATE, OBJECT self) {

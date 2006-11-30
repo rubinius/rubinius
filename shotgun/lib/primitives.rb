@@ -864,6 +864,47 @@ class ShotgunPrimitives
     stack_push(t1);
     CODE
   end
+  
+  def string_to_sexp
+    <<-CODE
+    {
+      GString *str;
+      self = stack_pop();
+      t1 = stack_pop();
+      t2 = stack_pop();
+      t3 = stack_pop();
+      if(!RISA(t1, string) || !FIXNUM_P(t2)) {
+        _ret = FALSE;
+      } else {
+        str = g_string_new(string_as_string(state, self));
+        t1 = syd_compile_string(state, string_as_string(state, t1), str,
+            FIXNUM_TO_INT(t2), RTEST(t3));
+        stack_push(t1);
+      }
+    }
+    CODE
+  end
+  
+  def readline
+    <<-CODE
+    {
+      char *str;
+      self = stack_pop();
+      t1 = stack_pop();
+      if(!RISA(t1, string)) {
+        _ret = FALSE;
+      } else {
+        str = readline(string_as_string(state, t1));
+        if(str == NULL) {
+          stack_push(Qnil);
+        } else {
+          stack_push(string_new(state, str));
+          free(str);
+        }
+      }
+    }
+    CODE
+  end
     
   def get_ivar
     <<-CODE

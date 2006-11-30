@@ -11,6 +11,7 @@ struct rubinius_cpu {
   OBJECT active_context, home_context, main;
   OBJECT exceptions;
   OBJECT top_context;
+  OBJECT method_module;
   int sp;
   int ip;
   int argcount, args, depth;
@@ -51,7 +52,7 @@ void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
-int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo);
+int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args);
 void cpu_raise_exception(STATE, cpu c, OBJECT exc);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
