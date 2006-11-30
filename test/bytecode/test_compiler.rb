@@ -658,5 +658,77 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, dfn.assembly
   end
   
+  def test_case_simple
+    sx = [:case, [:lit, 1], [[:when, [:array, [:const, :String]], [:lit, 9]]]]
+    
+    compile sx
+    
+    exc =  "push 1\ndup\npush String\nsend === 1\ngif lbl1\n"
+    exc << "push 9\nlbl1:\nswap\npop\nret\n"
+    
+    assert_equal exc, @meth.assembly
+  end
   
+  def test_case_many_when
+    sx = [:case, [:lit, 1], [
+            [:when, [:array, [:const, :String], [:const, :Fixnum]], [:lit, 9]],
+            [:when, [:array, [:const, :Blah]], [:lit, 3423]]
+            ]]
+    
+    compile sx
+    
+    exc =  "push 1\ndup\npush String\nsend === 1\ngit lbl3\n"
+    exc << "dup\npush Fixnum\nsend === 1\ngif lbl1\n"
+    exc << "lbl3:\npush 9\ngoto lbl2\nlbl1:\n"
+    exc << "dup\npush Blah\nsend === 1\ngif lbl2\n"
+    exc << "push 3423\nlbl2:\nswap\npop\nret\n"
+    
+    assert_equal exc, @meth.assembly
+  end
+  
+  def test_case_else
+    sx = [:case, [:lit, 1], [[:when, [:array, [:const, :String]], 
+      [:lit, 9]]], [:lit, 10]]
+      
+    compile sx
+    
+    exc =  "push 1\ndup\npush String\nsend === 1\ngif lbl1\n"
+    exc << "push 9\ngoto lbl2\nlbl1:\npush 10\nlbl2:\nswap\npop\nret\n"
+    
+    assert_equal exc, @meth.assembly
+  end
+  
+  def test_case_many_with_else
+    sx = [:case, [:lit, 1], [
+            [:when, [:array, [:const, :String], [:const, :Fixnum]], [:lit, 9]],
+            [:when, [:array, [:const, :Blah], [:const, :Go]], [:lit, 3423]]
+            ], [:lit, 632]]
+    
+    compile sx
+    
+    exc =  "push 1\ndup\npush String\nsend === 1\ngit lbl4\n"
+    exc << "dup\npush Fixnum\nsend === 1\ngif lbl1\n"
+    exc << "lbl4:\npush 9\ngoto lbl3\nlbl1:\n"
+    exc << "dup\npush Blah\nsend === 1\ngit lbl5\n"
+    exc << "dup\npush Go\nsend === 1\ngif lbl2\n"
+    exc << "lbl5:\npush 3423\ngoto lbl3\nlbl2:\npush 632\n"
+    exc << "lbl3:\nswap\npop\nret\n"
+    
+    assert_equal exc, @meth.assembly
+  end
+  
+  def test_dot2
+    sx = [:dot2, [:lit, 100], [:lit, 1]]
+    compile sx
+    
+    exc = "push 1\npush 100\npush Range\nsend new 2"
+  end
+  
+  def test_dot3
+    sx = [:dot3, [:lit, 100], [:lit, 1]]
+    compile sx
+    
+    exc = "push false\npush 1\npush 100\npush Range\nsend new 3"
+    
+  end
 end

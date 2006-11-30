@@ -46,6 +46,38 @@ class String
   def to_sym
     Ruby.primitive :symbol_lookup
   end
+
+  def to_sexp_full(name, line, newlines)
+    Ruby.primitive :string_to_sexp
+  end
+
+  def to_sexp(name="(eval)",line=1,newlines=true)
+    out = to_sexp_full(name, line, newlines)
+    if out.kind_of? Tuple
+      exc = SyntaxError.new out.at(0)
+      exc.put 2, out.at(1)
+      exc.put 3, out.at(2)
+      raise exc
+    end
+    return out
+  end
+  
+  def *(num)
+    str = []
+    num.times { str << self }
+    return str.join("")
+  end
+end
+
+class SyntaxError
+  self.instance_fields = 4
+  def column
+    at(2)
+  end
+
+  def line
+    at(3)
+  end
 end
 
 class ByteArray

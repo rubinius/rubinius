@@ -377,11 +377,30 @@ class TestCore < Test::Unit::TestCase
   
   def test_super
     out = rp <<-CODE
-    class Blah
+    
+    class Top
       def initialize
-        super
+        puts "top"
       end
     end
+    
+    class Go < Top
+      def initialize
+        puts "here"
+        super()
+      end
+    end
+    
+    class Blah < Go
+      def initialize
+        puts "new blah"
+        super()
+      end
+    end
+    
+    Blah.new
     CODE
+    
+    assert_equal ["new blah", "here", "top"], out
   end
 end

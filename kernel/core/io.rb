@@ -34,6 +34,15 @@ class IO
     self.descriptor == -1
   end
   
+  # The current implementation does no buffering, so we're always
+  # in sync mode.
+  def sync=(v)
+  end
+  
+  def sync
+    true
+  end
+  
   def self.create_pipe(lhs, rhs)
     Ruby.primitive :create_pipe
   end

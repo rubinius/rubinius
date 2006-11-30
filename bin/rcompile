@@ -10,4 +10,4 @@ mach = Machine.new
 file = ARGV.shift
 # mach.import_args ARGV
 # mach.setup_standard_io
-mach.compile_file file
+mach.compile_file file, false

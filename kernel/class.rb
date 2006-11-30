@@ -67,10 +67,12 @@ class Class
     return name
   end
   
-  def attr_accessor(name)
-    attr_reader(name)
-    attr_writer(name)
-    return name
+  def attr_accessor(*names)
+    names.each do |name|
+      attr_reader(name)
+      attr_writer(name)
+    end
+    return true
   end
   
   def index_reader(name, idx)

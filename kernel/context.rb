@@ -31,7 +31,9 @@ class MethodContext
   
   def line
     return 0 unless self.method
-    return self.method.line_from_ip(self.ip)
+    # We subtract 1 because the ip is actually set to what it should do
+    # next, not what it's currently doing.
+    return self.method.line_from_ip(self.ip - 1)
   end
   
   def activate(val)
@@ -60,7 +62,30 @@ end
 class BlockContext
   def activate(val)
     Ruby.primitive :activate_context    
-  end  
+  end
+  
+  def name
+    env.home.name
+  end
+  
+  def receiver
+    env.home.receiver
+  end
+  
+  def file
+    env.home.file
+  end
+  
+  def line
+    return 0 unless self.method
+    # We subtract 1 because the ip is actually set to what it should do
+    # next, not what it's currently doing.
+    return self.method.line_from_ip(self.ip - 1)
+  end
+
+  def method
+    env.home.method
+  end
 end
 
 class BlockEnvironment
@@ -141,36 +166,44 @@ end
 
 class Backtrace
   def initialize
-    put 0, {}
     @frames = []
   end
   
   def show
-    strs = @frames.reverse.join("\n")
-    return strs
+    fr2 = @frames.map do |ent|
+      recv = ent[0]
+      loc = ent[1]
+      "    #{' ' * (@max - recv.size)}#{recv} at #{loc}"
+    end
+    return fr2.join("\n")
   end
   
   def fill_from(ctx)
+    @max = 0
     while ctx
       if ctx.method        
-        str = "    "
         if MAIN == ctx.receiver
-          str << "#{ctx.receiver.to_s}."
+          str = "#{ctx.receiver.to_s}."
         elsif Module === ctx.receiver
-          str << "#{ctx.receiver}."
+          str = "#{ctx.receiver}."
         else
-          str << "#{ctx.receiver.class}#"
+          str = "#{ctx.receiver.class}#"
         end
         if ctx.name == ctx.method.name
           str << "#{ctx.name}"
         else
           str << "#{ctx.name} (#{ctx.method.name})"
         end
-        str << " at #{ctx.file}:#{ctx.line}"
-        @frames << str
+        
+        if str.size > @max
+          @max = str.size
+        end
+        
+        @frames << [str, "#{ctx.file}:#{ctx.line}"]
       end
       ctx = ctx.sender
     end
+    @max = 25 if @max > 25
   end
   
   def self.backtrace(ctx=nil)

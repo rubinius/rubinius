@@ -11,7 +11,7 @@ module RubiniusHelper
   end
   
   def run_code(code, name=1, say=nil)
-    name = caller_name(name) + "-#{code.hash}"
+    name = caller_name(name) + "-#{code.hash.abs}"
     path = "code-cache/#{name}.rb"
     if !File.exists?(path) or (code != File.read(path))    
       File.open(path, "w") do |fd|

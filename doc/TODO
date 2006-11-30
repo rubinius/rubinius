@@ -4,7 +4,8 @@ group them by when they need to be done.
 
 Before Alpha:
  - Ruby tasks:
-   - Convert compiler infrastructe to SimpleSexpProcessor so..
+   - Convert syd-parser to standalone library to be linked in
+   - Convert compiler infrastructure to SimpleSexpProcessor so..
    - Compiler can run natively within rubinius VM.
    - Get miniunit running in the VM, so...
    - BFTS tests can be integrated into main testing

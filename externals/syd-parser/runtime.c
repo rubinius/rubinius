@@ -718,7 +718,7 @@ again_no_block:
           rb_ary_push(current, ID2SYM(rb_intern("xstr_custom")));
           rb_ary_push(current, ID2SYM(node->u2.id));
       }
-      rb_ary_push(current, rb_str_new3(node->nd_lit));
+      rb_ary_push(current, rb_str_new4(node->nd_lit));
       while (list) {
 	      if (list->nd_head) {
           switch (nd_type(list->nd_head)) {
@@ -845,6 +845,8 @@ again_no_block:
 
   case NODE_XSTR:             /* u1    (%x{ls}) */
   case NODE_STR:              /* u1 */
+    rb_ary_push(current, rb_str_dup(node->nd_lit));
+    break;
   case NODE_MATCH:
     rb_ary_push(current, rb_obj_dup(node->nd_lit));
     break;

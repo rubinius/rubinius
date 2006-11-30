@@ -280,5 +280,5 @@ class TestPrimitives < Test::Unit::TestCase
     
     t2 = Time.now
     assert(t2 - t >= 5)
-  end
+  end  
 end

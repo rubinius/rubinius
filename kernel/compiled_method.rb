@@ -24,7 +24,7 @@ class CompiledMethod
       start = t.at(0)
       nd = t.at(1)
       op = t.at(2)
-      if i >= start and i < nd
+      if i >= start and i <= nd
         return op
       end
     end
