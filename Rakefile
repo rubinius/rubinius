@@ -16,7 +16,7 @@ task :test_all => [:test, :test_shotgun]
 # This forces ruby inline to build everything in the 
 # right place.
 task :setup do
-    `ruby bin/rcc`
+    sh "ruby bin/rcc"
 end
 
 task :shotgun => [:setup] do

@@ -1,8 +1,13 @@
-require 'sexp/simple_processor'
-require 'translation/normalize'
-require 'translation/local_scoping'
-require 'sexp/composite_processor'
-require 'translation/states'
+begin
+  require 'sexp/simple_processor'
+  require 'translation/normalize'
+  require 'translation/local_scoping'
+  require 'sexp/composite_processor'
+  require 'translation/states'
+rescue LoadError
+  STDERR.puts "Unable to load one or more required libraries. Make sure you have the 'sydparse', 'emp', and 'RubyInline' gems."
+  raise
+end
 
 module Bytecode
   

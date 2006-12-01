@@ -101,4 +101,31 @@ char *rbs_inspect(STATE, OBJECT obj);
 
 #endif
 
+#ifndef INTERNAL_MACROS
+static inline long rbs_to_int(OBJECT obj) {
+  long val = ((unsigned long)obj) >> 3;
+  if(FIXNUM_NEG(obj)) {
+    val = -val;
+  }
+  return val;
+}
+
+static inline OBJECT rbs_int_to_fixnum(int num) {
+  OBJECT ret;
+  int ab;
+  ab = abs(num);
+  ret = (ab << 3) | 1;
+    
+  if(num < 0) {
+    ret = ret | 4;
+  }
+  return ret;
+}
+
+#define FIXNUM_TO_INT(obj) rbs_to_int(obj)
+#define INT_TO_FIXNUM(int) rbs_int_to_fixnum(int)
+#define I2N(i) INT_TO_FIXNUM(i)
+
+#endif
+
 #endif

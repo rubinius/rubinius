@@ -1,4 +1,3 @@
-require 'parse_tree'
 require 'sydney_parser'
 
 class SydneyParser

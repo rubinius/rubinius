@@ -4,6 +4,8 @@ require 'rubygems'
 require 'bytecode/compiler'
 require 'bytecode/constructor'
 
+exit unless ARGV.first
+
 if ARGV.first.index("-") == 0
   option = ARGV.shift
 end

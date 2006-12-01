@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "machine.h"
 
 int main(int argc, char **argv) {
