@@ -28,6 +28,10 @@
 #define ALLOC_N(what, many) ((what*)malloc(sizeof(what) * many))
 #define REALLOC_N(ptr, what, many) realloc(ptr, sizeof(what) * many)
 
+#ifndef isnumber
+#define isnumber isdigit
+#endif
+
 #define ISALPHA isalpha
 #define ISSPACE isspace
 #define ISALNUM(x) (isalpha(x) || isnumber(x))
@@ -2548,8 +2552,6 @@ terms           : term
 none            : /* none */ {$$ = 0;}
                 ;
 %%
-#include "regex.h"
-#include "util.h"
 
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
    since ours (we hope) works properly with all combinations of

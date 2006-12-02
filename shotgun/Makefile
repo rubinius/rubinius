@@ -20,7 +20,7 @@ librubinius.a: libs/libtommath/libtommath.a libs/libedit/libedit.a
 .PHONY: librubinius.a
 
 rubinius: librubinius.a main.o
-	$(CC) $(LIBS) -o rubinius main.o lib/librubinius.a
+	$(CC) -o rubinius main.o lib/librubinius.a $(LIBS)
 
 test/test_state: test/test_state.c librubinius.a
 	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)

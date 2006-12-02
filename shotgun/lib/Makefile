@@ -9,6 +9,7 @@ RUBY=ruby -I../../lib
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
+	rm -f librubinius.a
 	ar rc librubinius.a *.o
 	ranlib librubinius.a
 

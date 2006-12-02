@@ -167,6 +167,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
+
     if(FIXNUM_P(t1) || RISA(t1, bignum)) {
       stack_push(bignum_equal(state, self, t1));
     } else {
