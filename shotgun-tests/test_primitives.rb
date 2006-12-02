@@ -58,7 +58,12 @@ class TestPrimitives < Test::Unit::TestCase
     assert_equal "true", ol("5 == 5")
     assert_equal "false", ol("5 == 6")
   end
-    
+
+  def test_bignum_equal
+    assert_equal "true", ol("32342355234 == 32342355234")
+    assert_equal "false", ol("32342355234 == 32342355233")
+  end
+
   def test_compare
     assert_equal "-1", ol("3 <=> 4")
     assert_equal "0", ol("3 <=> 3")

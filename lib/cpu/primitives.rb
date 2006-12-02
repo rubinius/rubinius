@@ -56,6 +56,7 @@ class CPU::Primitives
     :bignum_add,
     :bignum_sub,
     :bignum_mul,
+    :bignum_equal,
     :readline
   ]
   

@@ -18,4 +18,8 @@ class Bignum
   def *(o)
     Ruby.primitive :bignum_mul
   end
+
+  def ==(o)
+    Ruby.primitive :bignum_equal
+  end
 end
