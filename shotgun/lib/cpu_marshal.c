@@ -27,10 +27,19 @@ static void marshal_int(STATE, OBJECT obj, GString *buf) {
   append_sz(i);
 }
 
+static int read_int(char *str) {
+  int i;
+  memcpy(&i, str, 4);
+#ifndef __BIG_ENDIAN__
+  i = swap32(i);
+#endif
+  return i;
+}
+
 static OBJECT unmarshal_int(STATE, char *str, struct marshal_state *ms) {
   int i;
   ms->consumed += 5;
-  memcpy(&i, str + 1, 4);
+  i = read_int(str + 1);
   return I2N(i);
 }
 
@@ -44,7 +53,7 @@ static void marshal_str(STATE, OBJECT obj, GString *buf) {
 
 static OBJECT unmarshal_str(STATE, char *str, struct marshal_state *ms) {
   int sz;
-  memcpy(&sz, str + 1, 4);
+  sz = read_int(str + 1);
   ms->consumed += 5;
   ms->consumed += sz;
   return string_new2(state, str + 5, sz);
@@ -96,7 +105,7 @@ static OBJECT unmarshal_into_fields(STATE, char *str, int sz, OBJECT tup, struct
 
 static int unmarshal_num_fields(char *str) {
   int i;
-  memcpy(&i, str + 1, 4);
+  i = read_int(str + 1);
   return i;
 }
 
@@ -132,7 +141,7 @@ static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
 static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
   OBJECT obj;
   int i, sz;
-  memcpy(&sz, str + 1, 4);
+  sz = read_int(str + 1);
   ms->consumed += 5;
   ms->consumed += sz;
   return bignum_from_string(state, str + 5, 10);
@@ -149,7 +158,7 @@ static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
 static OBJECT unmarshal_bytes(STATE, char *str, struct marshal_state *ms) {
   int sz;
   OBJECT obj;
-  memcpy(&sz, str + 1, 4);
+  sz = read_int(str + 1);
   ms->consumed += 5;
   ms->consumed += sz;
   obj = bytearray_new(state, sz);

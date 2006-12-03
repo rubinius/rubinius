@@ -80,12 +80,12 @@ class SimpleMarshal
   end
   
   def marshal_int(int)
-    ?i.chr + [int.to_int].pack("i")
+    ?i.chr + [int.to_int].pack("N")
   end
     
   def unmarshal_int(str, state)
     state.consumed += 5
-    int = str[1..-1].unpack("i").first
+    int = str[1..-1].unpack("N").first
     return RObject.wrap(int)
   end
   
@@ -93,11 +93,11 @@ class SimpleMarshal
     obj.as :string
     str = obj.as_string
     sz = str.size
-    ?s.chr + [sz].pack("I") + str
+    ?s.chr + [sz].pack("N") + str
   end
   
   def unmarshal_str(str, state)
-    sz = str[1,4].unpack("I").first
+    sz = str[1,4].unpack("N").first
     state.consumed += (5 + sz)
     return Rubinius::String.new(str[5,sz])
   end
@@ -106,11 +106,11 @@ class SimpleMarshal
     obj.as :bignum
     str = obj.as_string
     sz = str.size + 1
-    ?B.chr + [sz].pack("I") + str + "\0"
+    ?B.chr + [sz].pack("N") + str + "\0"
   end
   
   def unmarshal_bignum(str, state)
-    sz = str[1,4].unpack("I").first
+    sz = str[1,4].unpack("N").first
     state.consumed += (5 + sz)
     return Rubinius::Bignum.new(str[5,sz])
   end
@@ -132,7 +132,7 @@ class SimpleMarshal
   
   def marshal_fields_as(tup, type)
     sz = tup.fields
-    str = type.chr + [sz].pack("I")
+    str = type.chr + [sz].pack("N")
     0.upto(sz-1) do |idx|
       str << marshal(tup.at(idx))
     end
@@ -146,7 +146,7 @@ class SimpleMarshal
   end
   
   def unmarshal_num_fields(str)
-    sz = str.slice(1,4).unpack("I").first
+    sz = str.slice(1,4).unpack("N").first
   end
   
   def unmarshal_into_fields(str, state, sz, tup)
@@ -170,11 +170,11 @@ class SimpleMarshal
     obj.as :bytearray
     str = obj.as_string
     sz = str.size
-    ?b.chr + [sz].pack("I") + str
+    ?b.chr + [sz].pack("N") + str
   end
   
   def unmarshal_bytes(str, state)
-    sz = str[1,4].unpack("I").first
+    sz = str[1,4].unpack("N").first
     state.consumed += (5 + sz)
     return Rubinius::ByteArray.from_string(str[5,sz])
   end

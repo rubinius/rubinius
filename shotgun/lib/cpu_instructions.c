@@ -9,7 +9,12 @@
 #include "string.h"
 #include "symbol.h"
 
+#ifndef __BIG_ENDIAN__
+#define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4
+#else
 #define next_int _int = *(int*)(c->data + c->ip); c->ip += 4
+#endif
+
 #define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {

@@ -151,7 +151,7 @@ class InstructionEncoder
       unless Numeric === int
         raise "#{kind} expects an integer only."
       end
-      str << [int].pack("i")
+      str << [int].pack("N")
     end
     
     if TwoInt.include?(kind)
@@ -159,7 +159,7 @@ class InstructionEncoder
       unless Numeric === int
         raise "#{kind} expects an integer only."
       end
-      str << [int].pack("i")
+      str << [int].pack("N")
     end
     
     unless args.empty?

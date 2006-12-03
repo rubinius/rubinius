@@ -2,7 +2,7 @@
 # Generated automatically by configure.
 # Run this file to recreate the current configuration.
 # This directory was configured as follows,
-# on host hoshi.fallingsnow.net:
+# on host vatu:
 #
 # ./configure 
 #
@@ -59,7 +59,7 @@ s%@oldincludedir@%/usr/include%g
 s%@infodir@%${prefix}/info%g
 s%@mandir@%${prefix}/man%g
 s%@CC@%gcc%g
-s%@AWK@%mawk%g
+s%@AWK@%awk%g
 s%@INSTALL_PROGRAM@%${INSTALL}%g
 s%@INSTALL_SCRIPT@%${INSTALL_PROGRAM}%g
 s%@INSTALL_DATA@%${INSTALL} -m 644%g
@@ -212,9 +212,6 @@ CEOF
   mv conftest.out conftest.in
 
   cat > conftest.frag <<CEOF
-${ac_dA}HAVE_MALLOC_H${ac_dB}HAVE_MALLOC_H${ac_dC}1${ac_dD}
-${ac_uA}HAVE_MALLOC_H${ac_uB}HAVE_MALLOC_H${ac_uC}1${ac_uD}
-${ac_eA}HAVE_MALLOC_H${ac_eB}HAVE_MALLOC_H${ac_eC}1${ac_eD}
 ${ac_dA}HAVE_SYS_IOCTL_H${ac_dB}HAVE_SYS_IOCTL_H${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_SYS_IOCTL_H${ac_uB}HAVE_SYS_IOCTL_H${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_SYS_IOCTL_H${ac_eB}HAVE_SYS_IOCTL_H${ac_eC}1${ac_eD}
@@ -224,15 +221,15 @@ ${ac_eA}HAVE_UNISTD_H${ac_eB}HAVE_UNISTD_H${ac_eC}1${ac_eD}
 ${ac_dA}HAVE_SYS_CDEFS_H${ac_dB}HAVE_SYS_CDEFS_H${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_SYS_CDEFS_H${ac_uB}HAVE_SYS_CDEFS_H${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_SYS_CDEFS_H${ac_eB}HAVE_SYS_CDEFS_H${ac_eC}1${ac_eD}
+${ac_dA}HAVE_SYS_TYPES_H${ac_dB}HAVE_SYS_TYPES_H${ac_dC}1${ac_dD}
+${ac_uA}HAVE_SYS_TYPES_H${ac_uB}HAVE_SYS_TYPES_H${ac_uC}1${ac_uD}
+${ac_eA}HAVE_SYS_TYPES_H${ac_eB}HAVE_SYS_TYPES_H${ac_eC}1${ac_eD}
 CEOF
   sed -f conftest.frag conftest.in > conftest.out
   rm -f conftest.in
   mv conftest.out conftest.in
 
   cat > conftest.frag <<CEOF
-${ac_dA}HAVE_SYS_TYPES_H${ac_dB}HAVE_SYS_TYPES_H${ac_dC}1${ac_dD}
-${ac_uA}HAVE_SYS_TYPES_H${ac_uB}HAVE_SYS_TYPES_H${ac_uC}1${ac_uD}
-${ac_eA}HAVE_SYS_TYPES_H${ac_eB}HAVE_SYS_TYPES_H${ac_eC}1${ac_eD}
 ${ac_dA}HAVE_ALLOCA_H${ac_dB}HAVE_ALLOCA_H${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_ALLOCA_H${ac_uB}HAVE_ALLOCA_H${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_ALLOCA_H${ac_eB}HAVE_ALLOCA_H${ac_eC}1${ac_eD}
@@ -242,48 +239,57 @@ ${ac_eA}HAVE_ALLOCA${ac_eB}HAVE_ALLOCA${ac_eC}1${ac_eD}
 ${ac_dA}RETSIGTYPE${ac_dB}RETSIGTYPE${ac_dC}void${ac_dD}
 ${ac_uA}RETSIGTYPE${ac_uB}RETSIGTYPE${ac_uC}void${ac_uD}
 ${ac_eA}RETSIGTYPE${ac_eB}RETSIGTYPE${ac_eC}void${ac_eD}
+${ac_dA}HAVE_REGCOMP${ac_dB}HAVE_REGCOMP${ac_dC}1${ac_dD}
+${ac_uA}HAVE_REGCOMP${ac_uB}HAVE_REGCOMP${ac_uC}1${ac_uD}
+${ac_eA}HAVE_REGCOMP${ac_eB}HAVE_REGCOMP${ac_eC}1${ac_eD}
 CEOF
   sed -f conftest.frag conftest.in > conftest.out
   rm -f conftest.in
   mv conftest.out conftest.in
 
   cat > conftest.frag <<CEOF
-${ac_dA}HAVE_RE_COMP${ac_dB}HAVE_RE_COMP${ac_dC}1${ac_dD}
-${ac_uA}HAVE_RE_COMP${ac_uB}HAVE_RE_COMP${ac_uC}1${ac_uD}
-${ac_eA}HAVE_RE_COMP${ac_eB}HAVE_RE_COMP${ac_eC}1${ac_eD}
-${ac_dA}HAVE_REGCOMP${ac_dB}HAVE_REGCOMP${ac_dC}1${ac_dD}
-${ac_uA}HAVE_REGCOMP${ac_uB}HAVE_REGCOMP${ac_uC}1${ac_uD}
-${ac_eA}HAVE_REGCOMP${ac_eB}HAVE_REGCOMP${ac_eC}1${ac_eD}
 ${ac_dA}HAVE_STRDUP${ac_dB}HAVE_STRDUP${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_STRDUP${ac_uB}HAVE_STRDUP${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_STRDUP${ac_eB}HAVE_STRDUP${ac_eC}1${ac_eD}
 ${ac_dA}HAVE_STRERROR${ac_dB}HAVE_STRERROR${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_STRERROR${ac_uB}HAVE_STRERROR${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_STRERROR${ac_eB}HAVE_STRERROR${ac_eC}1${ac_eD}
-CEOF
-  sed -f conftest.frag conftest.in > conftest.out
-  rm -f conftest.in
-  mv conftest.out conftest.in
-
-  cat > conftest.frag <<CEOF
 ${ac_dA}HAVE_STRSTR${ac_dB}HAVE_STRSTR${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_STRSTR${ac_uB}HAVE_STRSTR${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_STRSTR${ac_eB}HAVE_STRSTR${ac_eC}1${ac_eD}
 ${ac_dA}HAVE_STRTOL${ac_dB}HAVE_STRTOL${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_STRTOL${ac_uB}HAVE_STRTOL${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_STRTOL${ac_eB}HAVE_STRTOL${ac_eC}1${ac_eD}
-${ac_dA}HAVE_GETLINE${ac_dB}HAVE_GETLINE${ac_dC}1${ac_dD}
-${ac_uA}HAVE_GETLINE${ac_uB}HAVE_GETLINE${ac_uC}1${ac_uD}
-${ac_eA}HAVE_GETLINE${ac_eB}HAVE_GETLINE${ac_eC}1${ac_eD}
-${ac_dA}HAVE_FLOCKFILE${ac_dB}HAVE_FLOCKFILE${ac_dC}1${ac_dD}
-${ac_uA}HAVE_FLOCKFILE${ac_uB}HAVE_FLOCKFILE${ac_uC}1${ac_uD}
-${ac_eA}HAVE_FLOCKFILE${ac_eB}HAVE_FLOCKFILE${ac_eC}1${ac_eD}
 CEOF
   sed -f conftest.frag conftest.in > conftest.out
   rm -f conftest.in
   mv conftest.out conftest.in
 
   cat > conftest.frag <<CEOF
+${ac_dA}HAVE_VIS_H${ac_dB}HAVE_VIS_H${ac_dC}1${ac_dD}
+${ac_uA}HAVE_VIS_H${ac_uB}HAVE_VIS_H${ac_uC}1${ac_uD}
+${ac_eA}HAVE_VIS_H${ac_eB}HAVE_VIS_H${ac_eC}1${ac_eD}
+${ac_dA}HAVE_STRLCAT${ac_dB}HAVE_STRLCAT${ac_dC}1${ac_dD}
+${ac_uA}HAVE_STRLCAT${ac_uB}HAVE_STRLCAT${ac_uC}1${ac_uD}
+${ac_eA}HAVE_STRLCAT${ac_eB}HAVE_STRLCAT${ac_eC}1${ac_eD}
+${ac_dA}HAVE_STRLCPY${ac_dB}HAVE_STRLCPY${ac_dC}1${ac_dD}
+${ac_uA}HAVE_STRLCPY${ac_uB}HAVE_STRLCPY${ac_uC}1${ac_uD}
+${ac_eA}HAVE_STRLCPY${ac_eB}HAVE_STRLCPY${ac_eC}1${ac_eD}
+${ac_dA}HAVE_ISSETUGID${ac_dB}HAVE_ISSETUGID${ac_dC}1${ac_dD}
+${ac_uA}HAVE_ISSETUGID${ac_uB}HAVE_ISSETUGID${ac_uC}1${ac_uD}
+${ac_eA}HAVE_ISSETUGID${ac_eB}HAVE_ISSETUGID${ac_eC}1${ac_eD}
+CEOF
+  sed -f conftest.frag conftest.in > conftest.out
+  rm -f conftest.in
+  mv conftest.out conftest.in
+
+  cat > conftest.frag <<CEOF
+${ac_dA}HAVE_FGETLN${ac_dB}HAVE_FGETLN${ac_dC}1${ac_dD}
+${ac_uA}HAVE_FGETLN${ac_uB}HAVE_FGETLN${ac_uC}1${ac_uD}
+${ac_eA}HAVE_FGETLN${ac_eB}HAVE_FGETLN${ac_eC}1${ac_eD}
+${ac_dA}HAVE_FLOCKFILE${ac_dB}HAVE_FLOCKFILE${ac_dC}1${ac_dD}
+${ac_uA}HAVE_FLOCKFILE${ac_uB}HAVE_FLOCKFILE${ac_uC}1${ac_uD}
+${ac_eA}HAVE_FLOCKFILE${ac_eB}HAVE_FLOCKFILE${ac_eC}1${ac_eD}
 s%^[ 	]*#[ 	]*undef[ 	][ 	]*[a-zA-Z_][a-zA-Z_0-9]*%/* & */%
 CEOF
   sed -f conftest.frag conftest.in > conftest.out
