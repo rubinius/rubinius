@@ -140,10 +140,6 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
     // printf("method missing: %p\n", state->global->method_missing);
     mo = cpu_find_method(state, c, obj, state->global->method_missing, mod);
     *missing = TRUE;
-    if(NIL_P(mo)) {
-      printf("Fuck. no method_missing, was trying %s.\n", rbs_symbol_to_cstring(state, sym));
-      assert(0);
-    }
   }
   
   // printf("Found method: %p\n", mo);
@@ -282,6 +278,11 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   missing = 0;
   
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
+  if(NIL_P(mo)) {
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
+    assert(RTEST(mo));
+  }
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
   // printf("Setting method module to: %s\n", _inspect(mod));
   c->method_module = mod;
@@ -303,6 +304,10 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, in
   klass = class_get_superclass(c->method_module);
     
   mo = cpu_locate_method(state, c, klass, sym, &mod, &missing);
+  if(NIL_P(mo)) {
+    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
+    assert(RTEST(mo));
+  }
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
   c->method_module = mod;
 }

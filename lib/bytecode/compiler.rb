@@ -619,7 +619,12 @@ module Bytecode
       end
       
       def process_return(x)
-        process x.shift
+        val = x.shift
+        if val
+          process val
+        else
+          add "push nil"
+        end
         add "ret"
       end
       
