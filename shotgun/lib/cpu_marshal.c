@@ -296,5 +296,6 @@ OBJECT cpu_unmarshal_file(STATE, char *path) {
   obj = cpu_unmarshal(state, data);
   g_io_channel_shutdown(io, TRUE, &err);
   g_io_channel_unref(io);
+  g_free(data);
   return obj;
 }

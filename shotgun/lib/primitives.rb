@@ -738,7 +738,9 @@ class ShotgunPrimitives
     if(!RISA(t1, string)) {
       _ret = FALSE;
     } else {
-      t2 = cpu_unmarshal_file(state, string_as_string(state, t1));
+      char *path = string_as_string(state, t1);
+      t2 = cpu_unmarshal_file(state, path);
+      free(path); 
       stack_push(t2);
     }
     CODE
