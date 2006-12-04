@@ -79,8 +79,8 @@ end
 
 task :clean do
     `rm -rf code-cache/*`
-    `rm lib/kernel.rb`
-    `rm lib/kernel.rbc`
+    `rm -f lib/kernel.rb`
+    `rm -f lib/kernel.rbc`
     `cd shotgun; make clean`
 end
 
