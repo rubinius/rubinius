@@ -508,39 +508,21 @@ class ShotgunPrimitives
     } else {
       struct tm *time;
       time_t secs;
-      char *format;
-      char *str, *tstr;
-      int s_sz;
+      char *format = NULL;
+      char str[MAX_STRFTIME_OUTPUT];
       size_t out;
       struct time_data *tdp;
-      
-      format = (char*)string_byte_address(state, t1);
-      // A totally made up metric for calculating a target size.
-      s_sz = 100 + (FIXNUM_TO_INT(string_get_bytes(t1)) * 4);
-      str = (char*)malloc(s_sz);
+
+      format = string_as_string(state, t1);
       tdp = (struct time_data*)BYTES_OF(self);
       secs = tdp->tv.tv_sec;
       
       time = localtime(&secs);
-      out = strftime(str, s_sz, format, time);
-      // Keep enlarging my buffer until the buffer is larger than
-      // strftime says it actually generated fewer characters.
-      while(out == s_sz) {
-        s_sz += 100;
-        tstr = (char*)realloc(str, s_sz);
-        if(!tstr) {
-          _ret = FALSE;
-          free(str);
-          break;
-        }
-        out = strftime(str, s_sz, format, time);
-      }
-      if(_ret) {
-        t2 = string_new2(state, str, out);
-        free(str);
-        stack_push(t2);
-      }
-      _ret = TRUE;
+      out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, time);
+      str[MAX_STRFTIME_OUTPUT] = '\\0';
+      t2 = string_new2(state, str, out);
+      stack_push(t2);
+      if(format) {free(format);}
     }
     CODE
   end

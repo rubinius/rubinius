@@ -218,17 +218,33 @@ class TestPrimitives < Test::Unit::TestCase
   def test_gettimeofday
     i = Time.now.to_i
     out = rp <<-CODE
-    p Time.now.to_i
+    puts Time.now.to_i
     CODE
-    assert_equal i.to_s, out.first
+    interval = (out.first.to_i - i).abs
+    assert interval <= 10, "Time.now returned #{out.first}, should have been close to #{i}"
   end
   
   def test_strftime
-    t = Time.now.strftime("%a %b %d %H:%M:%S %z %Y")
+    t = Time.now.strftime("%a %b %d %H:%M %z %Y")
     out = rp <<-CODE
-    puts Time.now.strftime("%a %b %d %H:%M:%S %z %Y")
+    puts Time.now.strftime("%a %b %d %H:%M %z %Y")
     CODE
     assert_equal t, out.first
+  end
+
+  def test_strftime_max
+    format = "1234567890 " * 1000
+    out = rp <<-CODE
+      puts Time.now.strftime("#{format}")
+    CODE
+    assert_equal nil, out.first
+  end
+
+  def test_strftime_min
+    out = rp <<-CODE
+      puts Time.now.strftime("")
+    CODE
+    assert_equal nil, out.first
   end
   
   def test_fixnum_to_s
