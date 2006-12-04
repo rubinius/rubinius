@@ -665,15 +665,15 @@ command_call    : command
                 | block_command
                 | kRETURN call_args
                     {
-                        $$ = NEW_RETURN(ret_args($2));
+                        $$ = NEW_RETURN(ret_args(vps, $2));
                     }
                 | kBREAK call_args
                     {
-                        $$ = NEW_BREAK(ret_args($2));
+                        $$ = NEW_BREAK(ret_args(vps, $2));
                     }
                 | kNEXT call_args
                     {
-                        $$ = NEW_NEXT(ret_args($2));
+                        $$ = NEW_NEXT(ret_args(vps, $2));
                     }
                 ;
 
