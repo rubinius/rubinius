@@ -447,10 +447,13 @@ again_no_block:
     {
       VALUE tbl;
       int i;
-      tbl = array_new(state, 4);
+      int sz;
       // printf("=> scope %x, %d\n", node->nd_tbl, node->nd_tbl[0]);
       add_to_parse_tree(current, node->nd_next, newlines, node->nd_tbl, line_numbers);
-      for(i = 0; i < node->nd_tbl[0]; i++) {
+      sz = node->nd_tbl[0];
+      tbl = array_new(state, sz + 3);
+      for(i = 0; i < sz; i++) {
+        //printf("Would have called quark_to_symbol(state, %d)", node->nd_tbl[i+3]);
         array_push(tbl, ID2SYM(node->nd_tbl[i + 3]));
       }
       array_push(current, tbl);
