@@ -22,6 +22,9 @@ cpu cpu_new(STATE) {
 #define InitialStackSize 4096
 
 void cpu_initialize(STATE, cpu c) {
+  state->global->tuple = Qnil;
+  state->global->hash = Qnil;
+  state->global->methtbl = Qnil;
   c->stack = tuple_new(state, InitialStackSize);
   c->sp = -1;
   c->ip = 0;
