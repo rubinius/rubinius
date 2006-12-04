@@ -3941,19 +3941,19 @@ case 41:
 case 44:
 #line 667 "sydparse.y"
 {
-                        yyval.node = NEW_RETURN(ret_args(yyvsp[0].node));
+                        yyval.node = NEW_RETURN(ret_args(vps, yyvsp[0].node));
                     ;
     break;}
 case 45:
 #line 671 "sydparse.y"
 {
-                        yyval.node = NEW_BREAK(ret_args(yyvsp[0].node));
+                        yyval.node = NEW_BREAK(ret_args(vps, yyvsp[0].node));
                     ;
     break;}
 case 46:
 #line 675 "sydparse.y"
 {
-                        yyval.node = NEW_NEXT(ret_args(yyvsp[0].node));
+                        yyval.node = NEW_NEXT(ret_args(vps, yyvsp[0].node));
                     ;
     break;}
 case 48:
@@ -5796,7 +5796,7 @@ case 406:
                         CMDARG_LEXPOP();
                         if ((yyval.node = yyvsp[-1].node) && nd_type(yyval.node) == NODE_NEWLINE) {
                             yyval.node = yyval.node->nd_next;
-                            rb_gc_force_recycle((VALUE)yyvsp[-1].node);
+                            // rb_gc_force_recycle((VALUE)$3);
                         }
                         yyval.node = new_evstr(parse_state, yyval.node);
                     ;
@@ -8576,7 +8576,8 @@ syd_node_newnode(st, type, a0, a1, a2)
     NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
     // NODE *n = (NODE*)rb_newobj();
 
-    n->flags |= T_NODE;
+    // n->flags |= T_NODE;
+    n->flags = 0;
     nd_set_type(n, type);
     nd_set_line(n, ruby_sourceline);
     n->nd_file = ruby_sourcefile;
@@ -8781,7 +8782,7 @@ literal_concat(parse_state, head, tail)
       case NODE_STR:
         if (htype == NODE_STR) {
             rb_str_concat(head->nd_lit, tail->nd_lit);
-            rb_gc_force_recycle((VALUE)tail);
+            // rb_gc_force_recycle((VALUE)tail);
         }
         else {
             list_append(parse_state, head, tail);
@@ -8792,7 +8793,7 @@ literal_concat(parse_state, head, tail)
         if (htype == NODE_STR) {
             rb_str_concat(head->nd_lit, tail->nd_lit);
             tail->nd_lit = head->nd_lit;
-            rb_gc_force_recycle((VALUE)head);
+            // rb_gc_force_recycle((VALUE)head);
             head = tail;
         }
         else {

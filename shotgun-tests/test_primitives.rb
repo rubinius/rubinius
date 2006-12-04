@@ -218,19 +218,17 @@ class TestPrimitives < Test::Unit::TestCase
   def test_gettimeofday
     i = Time.now.to_i
     out = rp <<-CODE
-    t = Time.now
-    p(t.to_i > 1000000)
+    p Time.now.to_i
     CODE
-    assert_equal ["true"], out
+    assert_equal i.to_s, out.first
   end
   
   def test_strftime
-    t = Time.now
+    t = Time.now.strftime("%a %b %d %H:%M:%S %z %Y")
     out = rp <<-CODE
-    t = Time.now
-    puts t
+    puts Time.now.strftime("%a %b %d %H:%M:%S %z %Y")
     CODE
-    assert_equal t.to_s, out.first.to_s
+    assert_equal t, out.first
   end
   
   def test_fixnum_to_s

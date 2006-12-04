@@ -19,7 +19,7 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_number
-    assert_equal '[:number, "834234"]', to_sexp("834234")
+    assert_equal '[:lit, 834234]', to_sexp("834234")
   end
   
   def test_regex
@@ -31,7 +31,7 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_lvar
-    exc = '[:block, [:lasgn, :a, [:number, "1"]], [:lvar, :a]]'
+    exc = '[:block, [:lasgn, :a, [:lit, 1]], [:lvar, :a]]'
     assert_equal exc, to_sexp("a = 1; a")
   end
   
@@ -40,7 +40,7 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_iasgn
-    assert_equal '[:iasgn, :@blah, [:number, "1"]]', to_sexp("@blah = 1")
+    assert_equal '[:iasgn, :@blah, [:lit, 1]]', to_sexp("@blah = 1")
   end
   
   def test_gvar
@@ -48,7 +48,7 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_gasgn
-    assert_equal '[:gasgn, :$blah, [:number, "1"]]', to_sexp("$blah = 1")
+    assert_equal '[:gasgn, :$blah, [:lit, 1]]', to_sexp("$blah = 1")
   end
   
   def test_symbol
@@ -56,19 +56,19 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_expand
-    exc = '[:block, [:lasgn, :a, [:number, "1"]], [:dstr, "hello ", [:evstr, [:lvar, :a]], [:str, ", you rock."]]]'
+    exc = '[:block, [:lasgn, :a, [:lit, 1]], [:dstr, "hello ", [:evstr, [:lvar, :a]], [:str, ", you rock."]]]'
     assert_equal exc, to_sexp('a = 1; "hello #{a}, you rock."')
   end
   
   def test_def
     input = "def name; 1; end"
-    exc = '[:defn, :name, [:scope, [:block, [:args], [:number, "1"]], []]]'
+    exc = '[:defn, :name, [:scope, [:block, [:args], [:lit, 1]], []]]'
     assert_equal exc, to_sexp(input)
   end
   
   def test_def_args
     input = "def name(a, b); 1; end"
-    exc = '[:defn, :name, [:scope, [:block, [:args, [:a, :b], [], nil, nil], [:number, "1"]], [:a, :b]]]'
+    exc = '[:defn, :name, [:scope, [:block, [:args, [:a, :b], [], nil, nil], [:lit, 1]], [:a, :b]]]'
     assert_equal exc, to_sexp(input)
   end
   
