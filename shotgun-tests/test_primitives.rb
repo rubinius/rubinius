@@ -313,4 +313,13 @@ class TestPrimitives < Test::Unit::TestCase
     
     assert_equal ["nil",'"he"', '"lo"'], out
   end
+  
+  def test_regex_syntax
+    out = rp <<-CODE
+    m = /(h)ello/.match("hello")
+    p m.captures[0]
+    CODE
+    
+    assert_equal '"h"', out.first
+  end
 end

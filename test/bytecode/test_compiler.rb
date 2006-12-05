@@ -89,6 +89,12 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
   end
   
+  def test_process_lit_for_regexp
+    compile [:lit, /hello/]
+    exc = "push_literal 0\npush Regexp\nsend new 1\nret\n"
+    assert_equal exc, @meth.assembly
+  end
+  
   def test_process_if
     sx = [:if, [:true], [:lit, 9], [:lit, 10]]
     exc = "push true\ngif lbl1\npush 9\ngoto lbl2\nlbl1:\npush 10\nlbl2:\nret\n"

@@ -163,6 +163,12 @@ module Bytecode
         when Bignum
           idx = @method.add_literal obj
           add "push_literal #{idx}"
+        when Regexp
+          str = obj.source
+          cnt = @method.add_literal str
+          add "push_literal #{cnt}"
+          add "push Regexp"
+          add "send new 1"
         else
           raise "Unable to handle literal '#{obj.inspect}'"
         end
