@@ -104,7 +104,7 @@ char *rbs_inspect(STATE, OBJECT obj);
 #ifndef INTERNAL_MACROS
 static inline long rbs_to_int(OBJECT obj) {
   long val = ((unsigned long)obj) >> 3;
-  if(FIXNUM_NEG(obj)) {
+  if(FIXNUM_NEG(obj)) { 
     val = -val;
   }
   return val;
@@ -115,7 +115,7 @@ static inline OBJECT rbs_int_to_fixnum(int num) {
   int ab;
   ab = abs(num);
   ret = (ab << 3) | 1;
-    
+
   if(num < 0) {
     ret = ret | 4;
   }
@@ -129,3 +129,4 @@ static inline OBJECT rbs_int_to_fixnum(int num) {
 #endif
 
 #endif
+

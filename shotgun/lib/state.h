@@ -53,6 +53,17 @@ rstate rubinius_state_new();
 
 #include "bignum.h"
 
+// rubinius.h defines STATE as void*, which means these prototypes fail to match.
+// This is pretty confusing, since they look identical before the pre-processor runs.
+// HACK
+#ifdef __SHOTGUN__
+OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj);
+OBJECT rbs_const_get(STATE, OBJECT module, char *name);
+OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT obj);
+char *rbs_symbol_to_cstring(STATE, OBJECT sym);
+char *rbs_inspect(STATE, OBJECT obj);
+#endif
+
 static inline long rbs_to_int(OBJECT obj) {
   long val = ((unsigned long)obj) >> 3;
   if(FIXNUM_NEG(obj)) {
@@ -84,3 +95,4 @@ static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
 #define FIXNUM_TO_INT(obj) rbs_to_int(obj)
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(state, int)
 #define I2N(i) INT_TO_FIXNUM(i)
+

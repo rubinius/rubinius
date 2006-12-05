@@ -68,3 +68,4 @@ char *rbs_inspect(STATE, OBJECT obj) {
   }
   return buf;
 }
+
