@@ -14,7 +14,6 @@ class TestSexp < Test::Unit::TestCase
   def to_sexp(what)
     code = "'#{what}'.to_sexp('test',1,false)"
     out = run_code("p #{code}\n", 2).strip
-    p out
     return out
   end
   
