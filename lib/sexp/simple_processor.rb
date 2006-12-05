@@ -1,3 +1,5 @@
+require 'sexp/exceptions'
+
 class SimpleSexpProcessor
   def initialize
     @default_object = nil

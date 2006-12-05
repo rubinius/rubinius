@@ -2,6 +2,7 @@
 $TESTING = false unless defined? $TESTING
 
 require 'sexp/sexp'
+require 'sexp/exceptions'
 
 class Object
 
@@ -15,33 +16,6 @@ class Object
   end
 end
 
-##
-# SexpProcessor base exception class.
-
-class SexpProcessorError < StandardError; end
-
-##
-# Raised by SexpProcessor if it sees a node type listed in its
-# unsupported list.
-
-class UnsupportedNodeError < SexpProcessorError; end
-
-##
-# Raised by SexpProcessor if it is in strict mode and sees a node for
-# which there is no processor available.
-
-class UnknownNodeError < SexpProcessorError; end
-
-##
-# Raised by SexpProcessor if a processor did not process every node in
-# a sexp and @require_empty is true.
-
-class NotEmptyError < SexpProcessorError; end
-
-##
-# Raised if assert_type encounters an unexpected sexp type.
-
-class SexpTypeError < SexpProcessorError; end
 
 ##
 # SexpProcessor provides a uniform interface to process Sexps.
