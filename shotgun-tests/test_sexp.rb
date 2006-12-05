@@ -58,6 +58,11 @@ class TestSexp < Test::Unit::TestCase
     exc = '[:block, [:lasgn, :a, [:lit, 1]], [:dstr, "hello ", [:evstr, [:lvar, :a]], [:str, ", you rock."]]]'
     assert_equal exc, to_sexp('a = 1; "hello #{a}, you rock."')
   end
+
+  def test_pathological_expand
+    exc = '[:block, [:iasgn, :@thing, [:lit, 5]], [:dstr, "hello ", [:evstr, [:ivar, :@thing]], [:str, ", you are crazy."]]]'
+    assert_equal exc, to_sexp('@thing = 5; "hello #@thing, you are crazy."')
+  end
   
   def test_def
     input = "def name; 1; end"
