@@ -14,7 +14,7 @@
 #include "rubinius.h"
 
 cpu cpu_new(STATE) {
-  cpu c = (cpu)malloc(sizeof(struct rubinius_cpu));
+  cpu c = (cpu)calloc(1, sizeof(struct rubinius_cpu));
   c->paths = g_ptr_array_new();
   return c;
 }

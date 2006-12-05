@@ -8,15 +8,17 @@ rstate rubinius_state_new() {
   st = (rstate)malloc(sizeof(struct rubinius_state));
   st->om = object_memory_new();
   st->free_contexts = g_ptr_array_new();
-  st->global = (struct rubinius_globals*)malloc(sizeof(struct rubinius_globals));
+  st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
   return st;
 }
 
 void state_collect(STATE, cpu c) {
+  int i;
   GPtrArray *roots;
   roots = g_ptr_array_sized_new(NUM_OF_GLOBALS + 30);
   memcpy(roots->pdata, state->global, sizeof(struct rubinius_globals));
   roots->len = NUM_OF_GLOBALS;
+  
   cpu_add_roots(state, c, roots);
   /* truncate the free_context list since we don't care about them
      after we've collected anyway */
