@@ -5,7 +5,7 @@ struct rubinius_globals {
   /* classes for the core 'types' */
   OBJECT symtbl, blokctx, cmethod, tuple, module, object, array;
   OBJECT class, hash, methtbl, bytearray, methctx, blank;
-  OBJECT blokenv, bignum;
+  OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
   OBJECT string, symbol, io, metaclass;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   

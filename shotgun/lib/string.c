@@ -9,6 +9,7 @@ OBJECT string_new2(STATE, char *str, int sz) {
   OBJECT obj, data;
   char *ba;
   
+  assert(sz >= 0);
   obj = string_allocate(state);
   string_set_bytes(obj, I2N(sz));
   string_set_characters(obj, I2N(sz));

@@ -25,10 +25,9 @@ class String
   
   def substring(start, count)
     nd = self.data.fetch_bytes(start, count)
-    sz = count - start
     str = String.allocate
-    str.put 0, sz
-    str.put 1, sz
+    str.put 0, count
+    str.put 1, count
     str.put 3, nd
     return str
   end

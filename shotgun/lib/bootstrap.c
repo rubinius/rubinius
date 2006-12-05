@@ -102,6 +102,13 @@ void cpu_bootstrap(STATE) {
   BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
   
+  #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \ 
+    module_setup(state, BC(name), string);
+  
+  bcs(regexp, obj, "Regexp");
+  bcs(regexpdata, obj, "RegexpData");
+  bcs(matchdata, obj, "MatchData");
+  
   cpu_bootstrap_exceptions(state);
   
   state->global->external_ivars = hash_new(state);

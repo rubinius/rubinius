@@ -7,10 +7,14 @@ OBJECT bytearray_new(STATE, int size) {
   int words;
   OBJECT obj;
   
+  assert(size >= 0);
+  
   words = size / 4;
   if(size % 4 != 0) {
     words += 1;
   }
+  
+  assert(words >= 0);
   
   obj = bytearray_allocate_with_extra(state, words);
   object_make_byte_storage(state, obj);

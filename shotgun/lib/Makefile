@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . -I../libs/libtommath -I../libs/libedit `pkg-config glib-2.0 --cflags`
+CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . -I../libs/onig -I../libs/libtommath -I../libs/libedit `pkg-config glib-2.0 --cflags`
 DEPS=auto.h ../../include/rubinius.h
 LIBS=`pkg-config glib-2.0 --libs` ../libs/libtommath/libtommath.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))

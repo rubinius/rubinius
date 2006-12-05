@@ -106,11 +106,13 @@ int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int coun
 }
 
 int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offset) {
-  void *da;
+  char *str, *start;
   
-  da = (void*)(object_byte_start(state, dest) + offset);
+  str = (char*)object_byte_start(state, dest);
+  start = str + offset;
   
-  memcpy(da, object_byte_start(state, self), count);
+  assert(count >= 0);
+  memcpy((void*)start, object_byte_start(state, self), count);
   return TRUE;
 }
 

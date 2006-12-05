@@ -19,7 +19,11 @@ module Bytecode
       
       if @primitive.kind_of? Symbol
         idx = CPU::Primitives.name_to_index(@primitive)
-        cmeth.primitive = RObject.wrap(idx)
+        begin
+          cmeth.primitive = RObject.wrap(idx)
+        rescue Object
+          raise ArgumentError, "Unknown primitive '#{@primitive}'"
+        end
       elsif @primitive
         cmeth.primitive = RObject.wrap(@primitive)
       end

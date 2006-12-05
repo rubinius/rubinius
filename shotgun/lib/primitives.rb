@@ -677,15 +677,23 @@ class ShotgunPrimitives
     if(!FIXNUM_P(t1) || !FIXNUM_P(t2) || !object_stores_bytes_p(state, self)) {
       _ret = FALSE;
     } else {
+      char *source, *dest;
+      int num;
       j = FIXNUM_TO_INT(t1);
       k = FIXNUM_TO_INT(t2);
       m = bytearray_bytes(state, self);
       
-      if(j < 0 || k < 0 || m <= (j - k)) {
+      num = abs(j - k);
+      
+      if(j < 0 || k < 0 || j > m || m <= num) {
         _ret = FALSE;
       } else {
-        t3 = bytearray_new(state, k - j);
-        object_copy_bytes_into(state, self, t3, k, j);
+        t3 = bytearray_new(state, k+1);
+        source = (char*)bytearray_byte_address(state, self);
+        dest = (char*)bytearray_byte_address(state, t3);
+        source += j;
+        memcpy(dest, source, k);
+        dest[k] = 0;
         stack_push(t3);
       }
     }
@@ -887,6 +895,30 @@ class ShotgunPrimitives
           free(str);
         }
       }
+    }
+    CODE
+  end
+  
+  def regexp_new
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(regexp_new(state, t1));
+    }
+    CODE
+  end
+  
+  def regexp_match
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(regexp_match(state, self, t1));
     }
     CODE
   end

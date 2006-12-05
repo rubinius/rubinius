@@ -9,6 +9,8 @@
 #include "string.h"
 #include "symbol.h"
 
+#define EXCESSIVE_TRACING 0
+
 #ifndef __BIG_ENDIAN__
 #define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4
 #else
@@ -237,8 +239,11 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
   OBJECT ctx;
+  int prim = 0;
   if(missing) {
-    DEBUG("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+    DEBUG("%05d: Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
+     rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
+     rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
   }
 
   if(missing) {
@@ -247,11 +252,23 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     // printf("EEK! method_missing!\n");
     // abort();
   } else {
-    if(cpu_try_primitive(state, c, mo, recv, args)) { return; }
+    if(cpu_try_primitive(state, c, mo, recv, args)) {
+      #if EXCESSIVE_TRACING
+      printf("%05d: Called prim %s => %s on %s.\n", c->depth,
+       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+       rbs_symbol_to_cstring(state, sym), _inspect(recv));
+      #endif
+      return;
+    }
+    prim = 1;
   }
 
-  #if 0
-  printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+  #if EXCESSIVE_TRACING
+  printf("%05d: Calling %s => %s on %s (%p/%d) (%d) %s.\n", c->depth,
+   rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+   rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing,
+    prim ? "" : "PRIM FAILED"
+   );
   #endif
   ctx = cpu_create_context(state, c, recv, mo, sym, mod);
   methctx_set_argcount(ctx, I2N(args));
@@ -355,7 +372,11 @@ void cpu_run(STATE, cpu c) {
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    //printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
+    #if EXCESSIVE_TRACING
+    printf("%-15s: OP: %s (%d/%d)\n", 
+      rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
+      cpu_op_to_name(state, op), op, c->ip);
+    #endif
     #include "instructions.gen"
     goto check_interupts;
 stack_error:

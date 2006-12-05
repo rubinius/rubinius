@@ -1,0 +1,13 @@
+oniguruma.h
+regcomp.c
+regenc.c
+regenc.h
+regerror.c
+regexec.c
+regint.h
+regparse.c
+regparse.h
+enc/ascii.c
+enc/euc_jp.c
+enc/sjis.c
+enc/utf8.c

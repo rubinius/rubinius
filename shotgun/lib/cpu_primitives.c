@@ -9,6 +9,7 @@
 #include "object.h"
 #include "bytearray.h"
 #include "tuple.h"
+#include "regexp.h"
 #include "readline/readline.h"
 
 #include <string.h>
@@ -31,7 +32,7 @@ struct time_data {
 
 #define MAX_SYSTEM_PRIM 2048
 
-#define INDEXED(obj) (REFERENCE_P(self) || !object_stores_bytes_p(state, obj))
+#define INDEXED(obj) (RTEST(obj) && (REFERENCE_P(self) || !object_stores_bytes_p(state, obj)))
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 

@@ -57,7 +57,9 @@ class CPU::Primitives
     :bignum_sub,
     :bignum_mul,
     :bignum_equal,
-    :readline
+    :readline,
+    :regexp_new,
+    :regexp_match
   ]
   
   FirstRuntimePrimitive = 1024

@@ -299,5 +299,18 @@ class TestPrimitives < Test::Unit::TestCase
     
     t2 = Time.now
     assert(t2 - t >= 5)
-  end  
+  end
+  
+  def test_regex
+    out = rp <<-CODE
+    r = Regexp.new("(he)l(lo)")
+    m = r.match("blah")
+    p m
+    m = r.match("hello")
+    p m.captures[0]
+    p m.captures[1]
+    CODE
+    
+    assert_equal ["nil",'"he"', '"lo"'], out
+  end
 end
