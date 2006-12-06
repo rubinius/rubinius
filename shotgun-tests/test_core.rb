@@ -476,4 +476,17 @@ class TestCore < Test::Unit::TestCase
     assert_match /uncaught/, out.join
   end
 
+  def test_match3
+    out = rp <<-CODE
+      p "abc" =~ /c/
+    CODE
+    assert_equal ['2'], out
+  end
+
+  def test_match3_no_match
+    out = rp <<-CODE
+      p "abc" =~ /z/
+    CODE
+    assert_equal ['nil'], out
+  end
 end

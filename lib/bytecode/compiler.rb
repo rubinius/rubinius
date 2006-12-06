@@ -188,11 +188,21 @@ module Bytecode
         opt = x.shift
         if opt
           add "push true"
+        else
+          add "push false"
         end
         cnt = @method.add_literal str
         add "push_literal #{cnt}"
         add "push Regexp"
         add "send new 2"
+      end
+
+      def process_match3(x)
+        pattern = x.shift
+        target = x.shift
+        process pattern
+        process target
+        add "send =~ 1"
       end
       
       def set_label(name)

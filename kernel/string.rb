@@ -79,6 +79,10 @@ class String
     return m.captures[0]
   end
   
+  def =~(pattern)
+    m = pattern.match(self)
+    m ? m.full.at(0) : nil 
+  end
 end
 
 class SyntaxError
