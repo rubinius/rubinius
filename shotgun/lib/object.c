@@ -6,7 +6,7 @@
 #include "string.h"
 
 OBJECT object_new(STATE) {
-  return NEW_OBJECT(BASIC_CLASS(object), 0);
+  return NEW_OBJECT(BASIC_CLASS(object), 1);
 }
 
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup) {

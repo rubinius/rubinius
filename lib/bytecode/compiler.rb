@@ -570,11 +570,14 @@ module Bytecode
       def process_begin(x)
         process x.shift
       end
-      
+
       def process_rescue(x)
         ex = unique_exc()
         fin = unique_lbl()
         rr = unique_lbl()
+        old_retry = @retry_label
+        @retry_label = unique_lbl()
+        set_label @retry_label
         body = x.shift
         res = x.shift
         
@@ -597,6 +600,12 @@ module Bytecode
         # hurt to always do it for now.
         add "clear_exception"
         add "#exc_end #{ex}"
+        @retry_label = old_retry 
+      end
+
+      def process_retry(x)
+        raise "'retry' called outside of a begin/end block" unless @retry_label
+        goto @retry_label
       end
       
       def do_resbody(x, rr, fin)
