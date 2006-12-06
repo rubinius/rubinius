@@ -285,11 +285,12 @@ OBJECT cpu_unmarshal_file(STATE, char *path) {
   err = NULL;
   
   io = g_io_channel_new_file(path, "r", &err);
+  if(io == NULL) {return Qnil;}
   g_io_channel_set_encoding(io, NULL, &err);
   g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
   if(strncmp(buf, "RBIS", 4)) {
     printf("Invalid compiled file.\n");
-    return FALSE;
+    return Qnil;
   }
   g_io_channel_read_to_end(io, &data, &sz, &err);
   
