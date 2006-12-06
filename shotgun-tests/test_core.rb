@@ -92,16 +92,18 @@ class TestCore < Test::Unit::TestCase
     @count = 1
     begin
       p @count
-      raise ArgumentError, 'just kidding'
+      raise ArgumentError, 'just kidding' unless @count > 3
     rescue Exception => e
       @count += 1
-      retry if @count == 2
+      retry
+    else
+      p 7
     ensure
       p @count
     end
     CODE
 
-    assert_equal %w(1 2 3), out
+    assert_equal %w(1 2 3 4 7 4), out
   end
   
   def test_send
