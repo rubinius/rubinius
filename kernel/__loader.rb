@@ -26,8 +26,15 @@ rescue Object => e
   code = 1
 end
 
-Ruby::AtExit.each do |handler|
-  handler.call
+begin
+  Ruby::AtExit.each {|handler| handler.call}
+rescue Object => e
+  puts "An exception occured inside an at_exit handler:"
+  puts "    #{e.message} (#{e.class})"
+  puts "\nBacktrace:"
+  puts e.backtrace.show
+  code = 1
 end
 
 exit(code)
+
