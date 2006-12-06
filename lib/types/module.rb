@@ -1,6 +1,6 @@
 module Rubinius
   module Module
-    Fields = [:methods, :method_cache, :name, :constants]
+    Fields = [:methods, :method_cache, :name, :constants, :parent]
     
     def setup_fields
       self.constants = Rubinius::Hash.new

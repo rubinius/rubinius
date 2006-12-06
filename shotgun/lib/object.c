@@ -105,6 +105,22 @@ int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int coun
   return TRUE;
 }
 
+int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, int dist) {
+  int count;
+  char *da;
+  void *start;
+  int sz, i;
+
+  count = NUM_FIELDS(self);
+  
+  for(i = 0; i < count; i++) {
+    SET_FIELD(dest, dist + i, NTH_FIELD(self, i));
+  }
+  
+  return TRUE;
+}
+
+
 int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offset) {
   char *str, *start;
   

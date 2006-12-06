@@ -44,7 +44,21 @@ module Bytecode
       end
       
       cmeth.lines = asm.lines_as_tuple
+      cmeth.path = encode_path()
       return cmeth
+    end
+    
+    def encode_path
+      tup = Rubinius::Tuple.new(@path.size)
+      i = 0
+      @path.each do |pth|
+        lit = Rubinius::String.new(pth.to_s)
+        out = lit.to_sym
+        tup.put i, out
+        i += 1
+      end
+      
+      return tup
     end
     
     def encode_literals

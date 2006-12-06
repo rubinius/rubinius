@@ -45,7 +45,17 @@ class Array
     self[total] = ent
   end
   
-  def [](idx)
+  def [](idx, cnt=nil)
+    if cnt
+      out = []
+      max = idx + cnt - 1
+      max = total - 1 if max >= total
+      idx.upto(max) do |i|
+        out << tuple.at(i)
+      end
+      return out
+    end
+    
     if idx >= total
       return nil
     end
@@ -53,6 +63,18 @@ class Array
     tuple.at(idx)
   end
   
+  def first
+    tuple.at(0)
+  end
+  
+  def last
+    tuple.at(self.total-1)
+  end
+  
+  def size
+    self.total
+  end
+    
   def []=(idx, ent)
     use = tuple
     if idx >= use.fields
@@ -65,6 +87,15 @@ class Array
     use.put idx, ent
     put(0, idx + 1)
     return ent
+  end
+  
+  def unshift(val)
+    tup = self.tuple.shifted(1)
+    put 1, tup
+    
+    tup.put 0, val
+    put(0, self.total + 1)
+    return val
   end
   
   def +(other)
@@ -102,7 +133,7 @@ class Array
     put(0, total - 1)
     return ele
   end
-  
+    
   def reverse
     ary = []
     i = self.total - 1

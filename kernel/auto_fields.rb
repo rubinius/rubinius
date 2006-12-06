@@ -12,9 +12,10 @@ def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
 def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
 def name; Ruby.asm "push self\npush 3\nfetch_field"; end
 def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
-def superclass; Ruby.asm "push self\npush 5\nfetch_field"; end
-def instance_fields; Ruby.asm "push self\npush 6\nfetch_field"; end
-def instance_flags; Ruby.asm "push self\npush 7\nfetch_field"; end
+def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
+def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
+def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
+def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
 end
 class MatchData
 def instance_variables; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -29,10 +30,11 @@ def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
 def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
 def name; Ruby.asm "push self\npush 3\nfetch_field"; end
 def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
-def superclass; Ruby.asm "push self\npush 5\nfetch_field"; end
-def instance_fields; Ruby.asm "push self\npush 6\nfetch_field"; end
-def instance_flags; Ruby.asm "push self\npush 7\nfetch_field"; end
-def attached_instance; Ruby.asm "push self\npush 8\nfetch_field"; end
+def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
+def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
+def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
+def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
+def attached_instance; Ruby.asm "push self\npush 9\nfetch_field"; end
 end
 class Regexp
 def instance_variables; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -53,6 +55,7 @@ def exceptions; Ruby.asm "push self\npush 8\nfetch_field"; end
 def lines; Ruby.asm "push self\npush 9\nfetch_field"; end
 def file; Ruby.asm "push self\npush 10\nfetch_field"; end
 def name; Ruby.asm "push self\npush 11\nfetch_field"; end
+def path; Ruby.asm "push self\npush 12\nfetch_field"; end
 end
 class SymbolTable
 def instance_variables; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -109,6 +112,7 @@ def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
 def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
 def name; Ruby.asm "push self\npush 3\nfetch_field"; end
 def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
+def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
 end
 class BlockContext
 def instance_variables; Ruby.asm "push self\npush 0\nfetch_field"; end

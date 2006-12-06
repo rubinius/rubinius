@@ -10,13 +10,13 @@ class Module
 end
 
 class IncludedModule < Module
-  self.instance_fields = 7
+  self.instance_fields = 8
 
   def initialize(mod)
     put 0, mod.instance_variables
     put 1, mod.methods
     put 2, mod.name
-    put 6, mod
+    put 7, mod
   end
 
   def old_to_s
@@ -24,20 +24,20 @@ class IncludedModule < Module
   end
 
   def module
-    at(6)
+    at(7)
   end
 
   def attach_to(cls)
-    put 5, cls.superclass
-    cls.put 5, self    
+    put 6, cls.superclass
+    cls.put 6, self    
   end
 
   def superclass
-    at(5)
+    at(6)
   end
 
   def direct_superclass
-    Ruby.asm "push self\npush 5\nfetch_field"
+    Ruby.asm "push self\npush 6\nfetch_field"
   end
 
 end

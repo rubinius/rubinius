@@ -41,6 +41,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     // printf("Setting superclass of %p to: %p\n", val, sup);
     class_set_superclass(val, sup);
     module_setup_fields(state, val);
+    module_set_parent(val, under);
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(c->enclosing_class));
     */
@@ -79,6 +80,7 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
     module_set_name(val, sym);
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
+    module_set_parent(val, under);
   }
   
   return val;
@@ -279,6 +281,8 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   */
   methctx_set_block(ctx, block);
   cpu_activate_context(state, c, ctx, ctx);
+  //printf("Setting method module to: %s\n", _inspect(mod));
+  c->method_module = mod;
 }
 
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
@@ -301,8 +305,6 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
     assert(RTEST(mo));
   }
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
-  // printf("Setting method module to: %s\n", _inspect(mod));
-  c->method_module = mod;
 }
 
 /* This is duplicated from above rather than adding another parameter
@@ -326,7 +328,6 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, in
     assert(RTEST(mo));
   }
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
-  c->method_module = mod;
 }
 
 char *cpu_op_to_name(STATE, char op) {

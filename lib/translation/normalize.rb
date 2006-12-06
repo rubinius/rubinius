@@ -2,69 +2,7 @@ require 'sexp/simple_processor'
 require 'translation/states'
 
 class RsNormalizer < SimpleSexpProcessor
-  
-  module DefnNormalize
-    def process_defs(x)
-      recv = x.shift
-      out = process_defn(x)
-      out.shift
-      out.unshift recv
-      out.unshift :defs
-      return out
-    end
-
-    def process_defn(x)
-      name = x.shift
-      body = x.shift
-
-      # Detect that we're trying to normalize an already
-      # normalized method...
-      if real_body = x.shift
-        return [:defn, name, body, real_body]
-      end
-
-      block = body[1]
-      args = block[1]
-
-      if args.first != :args
-        raise "Unknown defn layout."
-      end
-
-      if args.size == 1
-        args += [[], [], nil, nil]
-      end
-
-      args[1].each do |a|
-        i = lvar_idx(a)
-        # puts "marking #{a} as a local: #{i}"
-      end
-
-      start = 2
-      if block[2].first == :block_arg
-        start = 3
-        args << block[2]
-      end
-
-      block.replace block[start..-1].unshift(:block)
-      if @full
-        cur = @state.locals
-        @state.reset
-        args[1].each { |i| @state.local(i) }
-        # pp body
-        begin
-          body = process(body)
-        rescue Object => e
-          exc = RuntimeError.new("Unable to process body of '#{name}'. #{e.message}")
-          exc.set_backtrace e.backtrace
-          raise exc
-        end
-        @state.locals = cur
-      end
-      out = [:defn, name, args, body]
-      out
-    end
-  end
-  
+    
   def initialize(state=nil, full=false, lines=false)
     super()
     self.auto_shift_type = true
@@ -84,6 +22,66 @@ class RsNormalizer < SimpleSexpProcessor
     else
       super(x)
     end
+  end
+  
+  def process_defs(x)
+    recv = x.shift
+    out = process_defn(x)
+    out.shift
+    out.unshift recv
+    out.unshift :defs
+    return out
+  end
+
+  def process_defn(x)
+    name = x.shift
+    body = x.shift
+
+    # Detect that we're trying to normalize an already
+    # normalized method...
+    if real_body = x.shift
+      return [:defn, name, body, real_body]
+    end
+
+    block = body[1]
+    args = block[1]
+
+    if args.first != :args
+      raise "Unknown defn layout."
+    end
+
+    if args.size == 1
+      args += [[], [], nil, nil]
+    end
+
+    args[1].each do |a|
+      i = lvar_idx(a)
+      # puts "marking #{a} as a local: #{i}"
+    end
+
+    start = 2
+    if block[2].first == :block_arg
+      start = 3
+      args << block[2]
+    end
+
+    block.replace block[start..-1].unshift(:block)
+    if @full
+      cur = @state.locals
+      @state.reset
+      args[1].each { |i| @state.local(i) }
+      # pp body
+      begin
+        body = process(body)
+      rescue Object => e
+        exc = RuntimeError.new("Unable to process body of '#{name}'. #{e.message}")
+        exc.set_backtrace e.backtrace
+        raise exc
+      end
+      @state.locals = cur
+    end
+    out = [:defn, name, args, body]
+    out
   end
   
   def process_iter(x)
@@ -170,8 +168,6 @@ class RsNormalizer < SimpleSexpProcessor
     x.clear
     return [:array]
   end
-  
-  include DefnNormalize
   
   def process_class(x)
     name = x.shift    

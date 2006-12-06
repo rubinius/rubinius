@@ -181,7 +181,7 @@ class Backtrace
   def fill_from(ctx)
     @max = 0
     while ctx
-      if ctx.method        
+      if ctx.method
         if MAIN == ctx.receiver
           str = "#{ctx.receiver.to_s}."
         elsif Module === ctx.receiver

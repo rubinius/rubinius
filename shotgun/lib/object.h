@@ -10,6 +10,7 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val);
 OBJECT object_new(STATE);
 char *object_byte_start(STATE, OBJECT self);
 int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int count);
+int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, int dist);
 int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offset);
 unsigned int object_hash_int(STATE, OBJECT self);
 int object_stores_bytes_p(STATE, OBJECT self);

@@ -17,6 +17,12 @@ class String
     return out
   end
   
+  def +(other)
+    o = self.dup
+    o << other
+    return o
+  end
+  
   def dup
     out = nil
     Ruby.asm "push self\nstring_dup\nset out"
@@ -66,6 +72,13 @@ class String
     num.times { str << self }
     return str.join("")
   end
+  
+  def strip
+    r = /\s*([^\s].*[^\s])\s*/m
+    m = r.match(self)
+    return m.captures[0]
+  end
+  
 end
 
 class SyntaxError

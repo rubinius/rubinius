@@ -668,6 +668,21 @@ class ShotgunPrimitives
     }
     CODE
   end
+  
+  def tuple_shifted
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop(); /* distance to shift. */
+    if(!FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(t1);
+      t2 = tuple_new(state, NUM_FIELDS(self) + j);
+      object_copy_fields_shifted(state, self, t2, j);
+      stack_push(t2); 
+    }
+    CODE
+  end
     
   def fetch_bytes
     <<-CODE
@@ -685,7 +700,7 @@ class ShotgunPrimitives
       
       num = abs(j - k);
       
-      if(j < 0 || k < 0 || j > m || m <= num) {
+      if(j < 0 || k < 0 || j > m || m < num) {
         _ret = FALSE;
       } else {
         t3 = bytearray_new(state, k+1);
@@ -903,10 +918,11 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
+    t2 = stack_pop();
     if(!RISA(t1, string)) {
       _ret = FALSE;
     } else {
-      stack_push(regexp_new(state, t1));
+      stack_push(regexp_new(state, t1, t2));
     }
     CODE
   end

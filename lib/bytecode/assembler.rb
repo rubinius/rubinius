@@ -497,7 +497,7 @@ module Bytecode
       when :super
         sym = parts.shift.to_sym
         idx = find_literal(sym)
-        @current_op += 5
+        @current_op += 9
         args = parts.shift
         @output << [:send_super_stack_with_block, idx, args.to_i]
         return

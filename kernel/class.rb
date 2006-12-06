@@ -103,7 +103,7 @@ class Class
   end
   
   def direct_superclass
-    Ruby.asm "push self\npush 5\nfetch_field"
+    Ruby.asm "push self\npush 6\nfetch_field"
   end
   
 end

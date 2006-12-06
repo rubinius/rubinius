@@ -8,6 +8,10 @@ class Tuple
     tup.copy_from(self, 0)
     return tup
   end
+
+  def shifted(distance)
+    Ruby.primitive :tuple_shifted
+  end
   
   def to_s
     "#<Tuple:0x#{object_id.to_s(16)} #{fields} elements>"

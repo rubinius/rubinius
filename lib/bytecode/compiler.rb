@@ -19,6 +19,7 @@ module Bytecode
       @primitive = nil
       @file = nil
       @required = 0
+      @path = []
     end
     
     def add_literal(obj)
@@ -28,15 +29,22 @@ module Bytecode
     end
     
     attr_accessor :name, :assembly, :literals, :primitive, :file
-    attr_accessor :required
+    attr_accessor :required, :path
   end
 
   class Compiler
+    def initialize
+      @path = []
+    end
+    
+    attr_accessor :path
+    
     def compile(sx, name, state=RsLocalState.new)
       nx = fully_normalize(sx, state)
       #require 'pp'
       #pp nx
       meth = MethodDescription.new(name)
+      meth.path = @path.dup
       
       pro = Processor.new(self, meth, state)
       pro.process nx
@@ -97,7 +105,8 @@ module Bytecode
       end
       
       def add(str)
-        @output << (str.strip + "\n")
+        @output << str.strip
+        @output << "\n"
       end
       
       def finalize(last)
@@ -164,14 +173,26 @@ module Bytecode
           idx = @method.add_literal obj
           add "push_literal #{idx}"
         when Regexp
-          str = obj.source
-          cnt = @method.add_literal str
-          add "push_literal #{cnt}"
-          add "push Regexp"
-          add "send new 1"
+          data = [obj.source]
+          if obj.options & 4 == 4
+            data << true
+          end
+          process_regex(data)
         else
           raise "Unable to handle literal '#{obj.inspect}'"
         end
+      end
+      
+      def process_regex(x)
+        str = x.shift
+        opt = x.shift
+        if opt
+          add "push true"
+        end
+        cnt = @method.add_literal str
+        add "push_literal #{cnt}"
+        add "push Regexp"
+        add "send new 2"
       end
       
       def set_label(name)
@@ -481,7 +502,11 @@ module Bytecode
         add "dup"
         
         Log.debug "Compiling class '#{name}'"
+        
+        @compiler.path << name
         meth = @compiler.compile_as_method body, :__class_init__
+        @compiler.path.pop
+        
         idx = @method.add_literal meth
         meth.assembly = "push self\nset_encloser\n" + meth.assembly
         add "push_literal #{idx}"
@@ -516,7 +541,10 @@ module Bytecode
         end
         add "dup"
         
+        @compiler.path << name
         meth = @compiler.compile_as_method body, :__module_init__
+        @compiler.path.pop
+        
         idx = @method.add_literal meth
         meth.assembly = "push self\nset_encloser\n" + meth.assembly
         add "push_literal #{idx}"
@@ -818,12 +846,16 @@ module Bytecode
       def process_call(x, block=false)
         
         x.unshift :call
-        if asm = detect_special(:asm, x)
+        asm = detect_special(:asm, x)
+        if asm
           add asm
           x.clear
           return
         end
+        
+        #p x
         x.shift
+        #p x
         
         recv = x.shift
         meth = x.shift
@@ -860,7 +892,7 @@ module Bytecode
         end
         
         process recv
-        
+                
         add "#{op} #{meth} #{sz}"
         add "#{ps}:" if block
       end
@@ -878,7 +910,13 @@ module Bytecode
         if block
           @post_send = ps = unique_lbl()
         end
-                
+        
+        if block
+          process block
+        else
+          add "push nil"
+        end
+        
         add "super #{@method.name} #{sz}"
         add "#{ps}:" if block
       end

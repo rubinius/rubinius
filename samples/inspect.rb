@@ -1,1 +1,1 @@
-puts Symbols
+p 9

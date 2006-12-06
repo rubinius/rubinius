@@ -1,5 +1,9 @@
 class Regexp
-  def self.new(str)
+  def self.new(str, opts=false)
+    create(str, opts)
+  end
+  
+  def self.create(str, opts)
     Ruby.primitive :regexp_new
   end
   
@@ -19,7 +23,7 @@ class MatchData
     self.region.each do |tup|
       x = tup.at(0)
       y = tup.at(1)
-      count = y - x
+      count = y - x + 1
       out << str.substring(x, count)
     end
     

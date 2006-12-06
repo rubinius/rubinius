@@ -19,7 +19,9 @@ module Kernel
   end
   
   def raise(exc, msg=nil)
-    if msg
+    if exc.kind_of?(String)
+      exc = RuntimeError.new(exc)
+    elsif msg
       cls = exc
       exc = cls.new(msg)
     end

@@ -174,6 +174,7 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
   c->literals = methctx_get_literals(home);
   c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
   c->method_module = methctx_get_module(home);
+  //printf("Restored method_module to %s\n", _inspect(c->method_module));
   
   if(RTEST(c->method)) {
     c->exceptions = cmethod_get_exceptions(c->method);
@@ -288,7 +289,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
 }
 
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT hsh, val, kls;
+  OBJECT hsh, val, kls, tup, name;
   int i;
   
   val = Qnil;
@@ -300,7 +301,6 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   printf("Looking for %s starting from %s (%d) (self=%s)\n", rbs_symbol_to_cstring(state, sym),
     _inspect(under), c->paths->len, _inspect(c->self));
   */
-  
   if(RTEST(val)) {
     return val;
   }
@@ -321,12 +321,31 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
        }
   }
   
-  /* Case 2: Look up the lexical stack. */
+  /* Case 2: Check in the module that defined the method. */
+  hsh = module_get_constants(c->method_module);
+  val = hash_find(state, hsh, sym);
+  if(RTEST(val)) { return val; }
+  
+  /* Case 3: Look up the compile time lexical stack. */
+  
+  //printf("Path from %s\n", _inspect(c->method_module));
+  under = module_get_parent(c->method_module);
+  while(RTEST(under)) {
+    hsh = module_get_constants(under);
+    val = hash_find(state, hsh, sym);
+    if(RTEST(val)) { return val; }
+    under = module_get_parent(under);
+  }
+  
+  // printf("Paths: %d\n", c->paths->len);
+  
+  /* Case 3: Look up the runtime lexical stack. */
   if(NIL_P(val) || val == Qundef) {
     for(i = 0; i < c->paths->len; i++) {
       under = (OBJECT)g_ptr_array_index(c->paths, i);
       hsh = module_get_constants(under);
       val = hash_find(state, hsh, sym);
+      
       /*
       printf("Looking for %s starting from %s in path\n", rbs_symbol_to_cstring(state, sym),
         _inspect(under));
@@ -347,6 +366,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     } */
     
   }
+  
   
   return val;
 }
