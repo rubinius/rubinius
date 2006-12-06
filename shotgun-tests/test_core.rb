@@ -434,4 +434,16 @@ class TestCore < Test::Unit::TestCase
     
     assert_equal ["new blah", "here", "top"], out
   end
+
+  def test_splat
+    out = rp <<-CODE
+    p *5
+    p *[6]
+    p *%w(1 2 3)
+    x, *y = [8,9,10,11]
+    p x
+    p y
+    CODE
+    assert_equal ['5', '6', '"1"', '"2"', '"3"', '8', '[9, 10, 11]'], out
+  end
 end
