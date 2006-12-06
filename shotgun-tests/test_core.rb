@@ -489,4 +489,12 @@ class TestCore < Test::Unit::TestCase
     CODE
     assert_equal ['nil'], out
   end
+
+  def test_match3_inverted
+    out = rp <<-CODE
+      p "xyz" !~ /r/
+      p "xyz" !~ /y/
+    CODE
+    assert_equal ['true', 'false'], out
+  end
 end
