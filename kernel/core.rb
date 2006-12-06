@@ -28,6 +28,7 @@ module Kernel
   
   def load(path)
     cm = CompiledMethod.load_from_file(path)
+    raise LoadError, "Unable to load file at path: #{path}" unless cm
     cm.activate_as_script
   end
   

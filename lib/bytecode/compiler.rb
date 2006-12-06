@@ -619,7 +619,7 @@ module Bytecode
         lbl = unique_lbl()
         gif lbl
         add "push_exception"
-        add "raise"
+        add "raise_exc"
         set_label lbl
         add "#exc_end #{ex}"
       end

@@ -7,17 +7,10 @@
 
 script = ARGV.shift
 
-begin
-  meth = CompiledMethod.load_from_file(script)
-rescue Object => e
-  puts "Unable to load '#{script}'."
-  return
-end
-
 code = 0
 
 begin
-  meth.activate_as_script
+  load(script) 
 rescue Object => e
   puts "An exception has occured:"
   puts "    #{e.message} (#{e.class})"
