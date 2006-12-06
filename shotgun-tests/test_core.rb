@@ -13,7 +13,7 @@ class TestCore < Test::Unit::TestCase
     
     assert_equal ["exited"], out
   end
-  
+
   def test_class_new
     out = rp <<-CODE
     class Blah
@@ -71,6 +71,20 @@ class TestCore < Test::Unit::TestCase
     CODE
     
     assert_equal ["you want more!"], out
+  end
+
+  def test_ensure
+    out = rp <<-CODE
+    begin
+      raise ArgumentError, "you want more!"
+    rescue Exception => e
+      puts e.message
+    ensure
+      puts 'ensure'
+    end
+    CODE
+    
+    assert_equal ["you want more!", "ensure"], out
   end
   
   def test_send
