@@ -86,6 +86,23 @@ class TestCore < Test::Unit::TestCase
     
     assert_equal ["you want more!", "ensure"], out
   end
+
+  def test_retry
+    out = rp <<-CODE
+    @count = 1
+    begin
+      p @count
+      raise ArgumentError, 'just kidding'
+    rescue Exception => e
+      @count += 1
+      retry if @count == 2
+    ensure
+      p @count
+    end
+    CODE
+
+    assert_equal %w(1 2 3), out
+  end
   
   def test_send
     out = rp <<-CODE
