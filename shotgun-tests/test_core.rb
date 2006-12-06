@@ -446,4 +446,32 @@ class TestCore < Test::Unit::TestCase
     CODE
     assert_equal ['5', '6', '"1"', '"2"', '"3"', '8', '[9, 10, 11]'], out
   end
+
+  def test_throw_catch
+    out = rp <<-CODE
+      def one_two
+        [1,2,3].each do |i|
+          p i
+          throw(:crazy) if i == 2
+        end
+      end
+
+      catch(:crazy) do
+        one_two
+        p 7
+      end
+    CODE
+    assert_equal %w(1 2), out
+  end
+
+  def test_uncaught_throw
+    out = rp <<-CODE
+      [1,2,3].each do |i|
+        p i
+        throw(:crazy) if i == 2
+      end
+    CODE
+    assert_match /uncaught/, out.join
+  end
+
 end
