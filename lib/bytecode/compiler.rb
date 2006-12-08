@@ -43,10 +43,12 @@ module Bytecode
     end
     
     def add_indexed_ivar(name, idx)
+      puts @indexed_ivars.inspect
       @indexed_ivars[@current_class.first][name] = idx
     end
     
     def find_ivar_index(name)
+      return unless @current_class
       idx = @indexed_ivars[@current_class.first][name]
       return idx if idx
       if sup = @current_class.last
