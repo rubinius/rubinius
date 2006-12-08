@@ -1,7 +1,7 @@
 WHAT IS RUBINIUS
 
 Rubinius is a next-generation virtual machine and compiler for Ruby.
-Based loosely on the Smalltalk-80 'Blue Book' design, Rubinius aims to provide
+Based loosely on the Smalltalk-80 'Blue Book' design, Rubinius will provide
 a rich, high-performance environment for running Ruby code.
 
 COMPILING RUBINIUS
@@ -11,9 +11,9 @@ It requires gcc4.x and glib2, though these dependencies are temporary.
 Additionally, you will need an installation of ruby 1.8.x, and the following
 as gems or libraries:
   * ParseTree
-  * sydparse
   * rake
-sydparse can either be installed from rubyforge, or build locally using 
+  * sydparse
+sydparse can either be installed from rubyforge, or built locally using 
 the 'rake syd' command.
 
 Once these are installed, type: 'rake build' to compile Rubinius.  
