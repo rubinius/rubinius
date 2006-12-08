@@ -1,0 +1,74 @@
+WHAT IS RUBINIUS
+
+Rubinius is a next-generation virtual machine and compiler for Ruby.
+Based loosely on the Smalltalk-80 'Blue Book' design, Rubinius aims to provide
+a rich, high-performance environment for running Ruby code.
+
+COMPILING RUBINIUS
+
+Currently Rubinius can be built on UNIX-like systems, such as Linux and MacOS.
+It requires gcc4.x and glib2, though these dependencies are temporary.
+Additionally, you will need an installation of ruby 1.8.x, and the following
+as gems or libraries:
+  * ParseTree
+  * sydparse
+  * rake
+sydparse can either be installed from rubyforge, or build locally using 
+the 'rake syd' command.
+
+Once these are installed, type: 'rake build' to compile Rubinius.  
+This builds the current version of Rubinius, known as 'shotgun'.
+Use 'rake test_shotgun' to run the tests.
+
+RUNNING RUBINIUS
+
+After running 'rake build', there will be a 'rubinius' binary in
+the 'shotgun' directory. This binary currently does not mimic the usual 'ruby'
+command-line args. To run a sample Ruby script, type:
+./bin/rcompile samples/puts.rb
+./shotgun/rubinius lib/kernel.rbc samples/puts.rbc
+The first command compiles the script to an 'rbc' file.
+The second uses Rubinius to execute it.
+Future versions will make this process transparent.
+
+STATUS
+
+Rubinius is under heavy development, and currently supports the basic Ruby 
+classes and kernel methods. The codebase is written in a mixture of 
+ANSI C and Ruby; with more Ruby and less C as the project proceeds.
+You should not run your mission-critical Rails apps under Rubinius yet.
+
+GOALS
+
+* Thread safety. Rubinius intends to be thread-safe and embeddable.
+  It does not currently meet this goal due to some components borrowed from
+  the mainline Ruby interpreter.
+
+* Clean, readable code that is easy for users to understand and extend.
+
+* Reliable, rock-solid code.  Valgrind is used to help verify correctness.
+
+* Bring modern techiques to the Ruby runtime. Pluggable garbage collectors and
+  code optimizers are possible examples.
+
+VOLUNTEERING TO HELP
+
+The Rubinius team welcomes contributions, bug reports, test cases, and monetary support.
+Eventually someone needs to port the Ruby Bison-based grammar to Lemon and Ragel. 
+If you are familiar with these tools, we would welcome your assistance.
+
+STRUCTURE
+
+Rubinius currently uses C to bootstrap the system.
+In the future, a limited dialect of Ruby called 'cuby' will be used to generate C.
+This is a time-honored technique, used by systems such as Squeak, Smalltalk, and 
+Algol on the Burroughs systems (as seen in the movie 'Tron').
+
+For now, this code is hand-written, and can be found in the ./shotgun/lib directory.
+This code was ported from a Ruby implementation found in the ./lib directory.
+For example, shotgun/lib/object_memory.c is the C translation of lib/object_memory.rb.
+
+The compiler, assembler, and bytecode generators are all written in Ruby, and can
+be found under the ./lib directory.  Other systems use the word 'translator' for what
+is here referred to as 'compiler'.  The ./bin/rcc script can be used to display the
+symbolic output of the compiler, for debugging or learning purposes.

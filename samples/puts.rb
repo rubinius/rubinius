@@ -1,1 +1,1 @@
-puts "hello evan."
+puts "Hello from Rubinius."
