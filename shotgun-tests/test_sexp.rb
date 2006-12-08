@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'test/unit'
-require 'test/unit/show_code'
 require 'shotgun-tests/helper'
 
 unless File.exists?("code-cache")
@@ -30,7 +27,8 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_lvar
-    exc = '[:block, [:lasgn, :a, [:lit, 1]], [:lvar, :a]]'
+    exc = '[:block, [:lasgn, :a, 0, [:lit, 1]], [:lvar, :a, 0]]'
+
     assert_equal exc, to_sexp("a = 1; a")
   end
   
@@ -55,7 +53,8 @@ class TestSexp < Test::Unit::TestCase
   end
   
   def test_expand
-    exc = '[:block, [:lasgn, :a, [:lit, 1]], [:dstr, "hello ", [:evstr, [:lvar, :a]], [:str, ", you rock."]]]'
+    exc = '[:block, [:lasgn, :a, 0, [:lit, 1]], [:dstr, "hello ", [:evstr, [:lvar, :a, 0]], [:str, ", you rock."]]]'
+
     assert_equal exc, to_sexp('a = 1; "hello #{a}, you rock."')
   end
 
@@ -87,7 +86,7 @@ class TestSexp < Test::Unit::TestCase
 hello
 BLAH
 '
-    exc = "[:lasgn, :a, [:str, \"hello\n\"]]"
+    exc = %Q{[:lasgn, :a, 0, [:str, "hello\n"]]}
     assert_equal exc, to_sexp(input)
   end
 end

@@ -1,3 +1,5 @@
+require 'native/test/unit'
+
 class RubiniusError < RuntimeError; end
 
 Signal.trap("CHLD") {}

@@ -4,8 +4,7 @@ end
 
 class IO
   def puts(str)
-    write str
-    write "\n"
+    write "#{str}\n"
   end
   
   def write(str)

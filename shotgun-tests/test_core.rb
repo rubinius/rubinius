@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'test/unit'
-require 'test/unit/show_code'
 require 'shotgun-tests/helper'
 
 class TestCore < Test::Unit::TestCase

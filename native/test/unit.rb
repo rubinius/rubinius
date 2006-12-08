@@ -7,40 +7,74 @@
 at_exit { Test::Unit.autotest }
 
 module Test
-  class Assertion < Exception; end
+  class Assertion < Exception; attr_accessor :line; end
 
   class Unit
     def self.autotest
       Test::Unit::TestCase::Tests.each do |klass|
         inst = klass.new
         klass.instance_methods(false).each do |meth|
-          next unless meth.to_s.prefix?("test")
+          next unless meth.to_s =~ /^test/
           begin
             inst.setup
             inst.send meth.intern
             inst.teardown
           rescue Exception => e
-            print "\n", (Test::Assertion === e ? "Failure: " : "Error: ")
-            puts "#{klass}.#{meth}: #{e}"
-            puts e.backtrace
+            break if ENV["SILENCE_TESTS"]
+            file, line = file_and_line_number(e)
+            code = file ? load_line(file, line) : nil
+            display_result(klass, meth, e, code)
           end
         end
       end
     end
 
+    def self.file_and_line_number(exc)
+      # './shotgun-tests/test_core.rb:438:in `test_splat'''
+      msg = exc.backtrace.detect {|m| m =~ /in `test/}
+      msg.split(':', 2) rescue [nil,nil]
+    end
+
+    def self.display_result(klass, meth, e, code)
+      print "\n", (Test::Assertion === e ? "Failure: " : "Error: ")
+      if code
+      puts "\n#{klass}.#{meth}: #{e}\n      => #{code}\n"
+      else
+      puts "\n#{klass}.#{meth}: #{e}\n   " 
+      end
+      puts e.backtrace
+    end
+
+    def self.load_line(file, line)
+      line_no = line.to_i
+
+      return nil unless File.exists?(file)
+      return nil if line_no <= 0
+      code = nil
+      File.open(file) do |f|
+        line = f.gets while f.lineno < line_no
+        code = line.strip
+      end
+      code
+    end
+
     class TestCase
-      
+
       Tests = []
-      
+
       def self.inherited(sub)
         Tests << sub
       end
-      
+
       def setup; end
       def teardown; end
 
       def assert(test, msg="failed assertion (no message given)")
-        raise Test::Assertion, msg unless test
+        unless test
+          exc = Test::Assertion.new
+          exc.line = caller[0].split(':')[1]
+          raise exc
+        end
       end
 
       def assert_equal(exp, act, msg=nil)
@@ -69,7 +103,7 @@ module Test
 
       def assert_not_equal(exp, act, msg=nil)
         assert exp != act, msg || "Expected #{act.inspect} to not be equal to #{exp.inspect}"
-       end
+      end
 
       def assert_not_nil(obj, msg=nil)
         assert ! obj.nil?, msg || "Expected #{obj.inspect} to not be nil"

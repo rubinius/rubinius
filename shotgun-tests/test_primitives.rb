@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'test/unit'
-require 'test/unit/show_code'
 require 'shotgun-tests/helper'
 
 unless File.exists?("code-cache")
@@ -174,7 +171,9 @@ class TestPrimitives < Test::Unit::TestCase
     out = rp <<-CODE
     r, w = IO.pipe
     w.puts "test_create_pipe\\n"
+    w.close
     puts r.read(16)
+    r.close
     CODE
     
     assert_equal ["test_create_pipe"], out
