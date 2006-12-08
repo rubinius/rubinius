@@ -11,7 +11,7 @@ while str
       ful = comp.fully_normalize(sx)
       puts "=== NORMALIZED SEXP"
       p ful
-      meth = comp.compile_as_script(ful, :__test__)
+      meth = comp.compile_as_method(ful, :__test__)
       puts "=== ASSEMBLY"
       puts meth.assembly
     rescue SyntaxError => e

@@ -1,14 +1,14 @@
 class SymbolTable
   def symbols
-    at(1)
+    @symbols
   end
   
   def strings
-    at(2)
+    @strings
   end
   
   def symbol_to_string(sym)
-    symbols.at(sym.index)
+    @symbols.at(sym.index)
   end  
 end
 

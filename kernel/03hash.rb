@@ -1,4 +1,5 @@
 class Hash
+  
   def self.new(default=nil,&block)
     hsh = {}
     hsh.put 5, (default or block)
@@ -16,18 +17,17 @@ class Hash
   end
   
   def default
-    at(5)
+    @default
   end
   
   def [](key)
     out = get_by_hash key.hash, key
     if out.undef?
-      dfl = self.default
-      return nil unless dfl
-      if BlockContext === dfl
-        out = dfl.call(self, key)
+      return nil unless @default
+      if BlockContext === @default
+        out = @default.call(self, key)
       else
-        out = dfl
+        out = @default
         self[key] = out
       end
     end
@@ -39,12 +39,12 @@ class Hash
   end
   
   def values_data
-    at(2)
+    @values
   end
   
   def keys
     out = []
-    values_data.each do |tup|
+    @values.each do |tup|
       while tup
         out << tup.at(1)
         tup = tup.at(3)
@@ -55,7 +55,7 @@ class Hash
   
   def values
     out = []
-    values_data.each do |tup|
+    @values.each do |tup|
       while tup
         out << tup.at(2)
         tup = tup.at(3)
@@ -65,7 +65,7 @@ class Hash
   end
   
   def each
-    values_data.each do |tup|
+    @values.each do |tup|
       while tup
         yield tup.at(0), tup.at(1)
         tup = tup.at(3)
@@ -76,7 +76,7 @@ class Hash
   
   def inspect
     ary = []
-    values_data.each do |tup|
+    @values.each do |tup|
       while tup
         str =  tup.at(1).inspect
         str << "=>"

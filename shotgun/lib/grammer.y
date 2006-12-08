@@ -711,15 +711,15 @@ command_call    : command
                 | block_command
                 | kRETURN call_args
                     {
-                        $$ = NEW_RETURN(ret_args($2));
+                        $$ = NEW_RETURN(ret_args(vps, $2));
                     }
                 | kBREAK call_args
                     {
-                        $$ = NEW_BREAK(ret_args($2));
+                        $$ = NEW_BREAK(ret_args(vps, $2));
                     }
                 | kNEXT call_args
                     {
-                        $$ = NEW_NEXT(ret_args($2));
+                        $$ = NEW_NEXT(ret_args(vps, $2));
                     }
                 ;
 
@@ -2800,6 +2800,7 @@ static GString* parse_io_gets(rb_parse_state *parse_state) {
   GString *output;
   GError *err;
   output = g_string_new(NULL);
+  err = NULL;
   g_io_channel_read_line_string(parse_state->lex_io, output, NULL, &err);
   return output;
 }

@@ -35,6 +35,72 @@ module Bytecode
   class Compiler
     def initialize
       @path = []
+      @current_class = nil
+      @current_method = nil
+      @in_class_body = false
+      @in_method_body = false
+      @indexed_ivars = Hash.new { |h,k| h[k] = {} }
+    end
+    
+    def add_indexed_ivar(name, idx)
+      @indexed_ivars[@current_class.first][name] = idx
+    end
+    
+    def find_ivar_index(name)
+      idx = @indexed_ivars[@current_class.first][name]
+      return idx if idx
+      if sup = @current_class.last
+        return @indexed_ivars[sup.to_s][name]
+      end
+      return nil
+    end
+    
+    attr_accessor :current_class, :in_class_body, :in_method_body
+            
+    def as_class_body(sup)
+      sup = sup.last if sup
+      cur = @current_class
+      @current_class = [@path.map { |i| i.to_s }.join("::"), sup]
+      cm = @in_method_body
+      cc = @in_class_body
+      @in_method_body = false
+      @in_class_body = true
+      
+      begin
+        yield
+      ensure
+        @current_class = cur
+        @in_class_body = cc
+        @in_method_body = cm
+      end
+    end
+    
+    def as_module_body
+      cur = @in_class_body
+      @in_class_body = false
+      cm = @in_method_body
+      @in_method_body = false
+      begin
+        yield
+      ensure
+        @in_class_body = cur
+        @in_method_body = cm
+      end
+    end
+    
+    def as_method_body(name)
+      @current_method = name
+      cls = @in_class_body
+      @in_class_body = false
+      cur = @in_method_body
+      @in_method_body = true
+      begin
+        yield
+      ensure
+        @in_class_body = cls
+        @in_method_body = cur
+        @current_method = nil
+      end
     end
     
     attr_accessor :path
@@ -88,6 +154,8 @@ module Bytecode
         @output = ""
         @unique_id = 0
         @state = state
+        @next = nil
+        @break = nil
       end
       
       attr_reader :method
@@ -197,6 +265,10 @@ module Bytecode
         add "send new 2"
       end
 
+      # TODO match3 is an optimization node where we know
+      # that the left hand side was a literal regex. Right now
+      # we just send the method, but if there was a regex instruction
+      # or something, we could optimize this too.
       def process_match3(x)
         pattern = x.shift
         target = x.shift
@@ -266,19 +338,61 @@ module Bytecode
         out
       end
       
+      def save_condmod
+        [@next, @break, @redo]
+      end
+      
+      def restore_condmod(n,b,r)
+        @next = n
+        @break = b
+        @redo = r
+      end
+      
       def process_while(x, cond="gif")
-        top = unique_lbl()
-        bot = unique_lbl()
+        cm = save_condmod()
+        @next = top = unique_lbl()
+        @break = bot = unique_lbl()
+        @redo = unique_lbl()
         set_label top
         process x.shift
         add "#{cond} #{bot}"
+        set_label @redo
         process x.shift
         goto top
         set_label bot
+        
+        restore_condmod(*cm)
       end
       
       def process_until(x)
         process_while(x, "git")
+      end
+      
+      def process_loop(x)
+        b = @break
+        @break = unique_lbl()
+        top = unique_lbl()
+        set_label top
+        process(x.shift)
+        goto top
+        set_label @break
+        @break = b
+      end
+      
+      def process_break(x)
+        if @break
+          goto @break
+        else
+          raise "Unable to handle this break."
+        end
+      end
+            
+      def process_redo(x)
+        if @redo
+          goto @redo
+        else
+          raise "unable to handle this redo."
+        end
       end
       
       def generate_when(w, nxt, post)
@@ -414,7 +528,11 @@ module Bytecode
       
       def process_ivar(x)
         name = x.shift
-        add "push #{name}"
+        if idx = @compiler.find_ivar_index(name)
+          add "push_my_field #{idx}"
+        else
+          add "push #{name}"
+        end
       end
       
       def process_gvar(x)
@@ -443,7 +561,11 @@ module Bytecode
       def process_iasgn(x)
         name = x.shift
         process x.shift
-        add "set #{name}"
+        if idx = @compiler.find_ivar_index(name)
+          add "store_my_field #{idx}"
+        else
+          add "set #{name}"
+        end
       end
       
       def process_const(x)
@@ -499,8 +621,10 @@ module Bytecode
         name = name.last
         
         if sup.nil?
+          supr = nil
           add "push nil"
         else
+          supr = sup.dup
           process sup
         end
         
@@ -511,10 +635,13 @@ module Bytecode
         end
         add "dup"
         
-        Log.debug "Compiling class '#{name}'"
+        # Log.debug "Compiling class '#{name}'"
         
         @compiler.path << name
-        meth = @compiler.compile_as_method body, :__class_init__
+        meth = nil
+        @compiler.as_class_body(supr) do
+          meth = @compiler.compile_as_method body, :__class_init__
+        end
         @compiler.path.pop
         
         idx = @method.add_literal meth
@@ -552,7 +679,10 @@ module Bytecode
         add "dup"
         
         @compiler.path << name
-        meth = @compiler.compile_as_method body, :__module_init__
+        meth = nil
+        @compiler.as_module_body do
+          meth = @compiler.compile_as_method body, :__module_init__
+        end
         @compiler.path.pop
         
         idx = @method.add_literal meth
@@ -568,7 +698,11 @@ module Bytecode
       end
       
       def process_begin(x)
+        b = @break
+        @break = unique_lbl()
         process x.shift
+        set_label @break
+        @break = b
       end
 
       def process_rescue(x)
@@ -784,7 +918,7 @@ module Bytecode
         args = x.shift
         body = x.shift
         
-        Log.debug " ==> Compiling '#{name}'"
+        # Log.debug " ==> Compiling '#{name}'"
         
         prim = detect_primitive(body)
         state = RsLocalState.new
@@ -802,7 +936,11 @@ module Bytecode
           end
         end
         
-        meth = @compiler.compile_as_method body, name, state
+        meth = nil
+        @compiler.as_method_body(name) do
+          meth = @compiler.compile_as_method body, name, state
+        end
+        
         meth.primitive = prim if prim
         idx = @method.add_literal meth
         add "push_literal #{idx}"
@@ -811,7 +949,7 @@ module Bytecode
         str = ""
         required = args[1].size
         args[1].each do |var|
-          str << "set #{var}:#{state.local(var)}\n"
+          str << "set #{var}:#{state.local(var)}\npop\n"
         end
         
         max = min = args[1].size
@@ -837,14 +975,14 @@ module Bytecode
             @output = save
             @method = cur
             idx += 1
-            str << "#{lbl}:\nset #{var[1]}:#{state.local(var[1])}\n"
+            str << "#{lbl}:\nset #{var[1]}:#{state.local(var[1])}\npop\n"
           end
           
           max = idx
         end
         splat = args[3]
         if splat
-          str << "make_rest #{required}\nset #{splat.first}\n"
+          str << "make_rest #{required}\nset #{splat.first}\npop\n"
           max = 0
           req = -1
         else
@@ -852,7 +990,7 @@ module Bytecode
         end
         
         if ba_name
-          str << "push_block\npush Proc\nsend from_environment 1\nset #{ba_name}:#{ba_idx}\n"
+          str << "push_block\npush Proc\nsend from_environment 1\nset #{ba_name}:#{ba_idx}\npop\n"
         end
         
         meth.required = req
@@ -860,6 +998,28 @@ module Bytecode
         str = "check_argcount #{min} #{max}\n" + str
         
         meth.assembly = str + meth.assembly
+      end
+      
+      def detect_class_special(x)
+        recv = x.shift
+        meth = x.shift
+        args = x.shift
+        if recv == [:self] and meth == :ivar_as_index
+          args.shift
+          hsh = args.shift
+          hsh.shift
+          until hsh.empty?
+            key = hsh.shift.pop
+            val = hsh.shift.pop
+            if key.to_s[0] != ?@
+              key = "@#{key}".to_sym
+            end
+            @compiler.add_indexed_ivar(key, val)
+          end
+          
+          return true
+        end
+        return false
       end
       
       def process_call(x, block=false)
@@ -875,6 +1035,14 @@ module Bytecode
         #p x
         x.shift
         #p x
+        
+        if @compiler.in_class_body
+          out = detect_class_special(x.dup)
+          if out
+            x.clear
+            return
+          end
+        end
         
         recv = x.shift
         meth = x.shift
@@ -1035,13 +1203,20 @@ module Bytecode
         add "push_block"
         add "send call #{sz}"
       end
-      
+            
       def process_next(x)
         val = x.shift
         if val
           process(val)
+        else
+          add "push nil"
         end
-        add "soft_return"
+        
+        if @next
+          goto @next
+        else
+          add "soft_return"
+        end
       end
       
       def process_newline(x)
@@ -1072,7 +1247,7 @@ module Bytecode
       def process_dot3(x)
         start = x.shift
         fin = x.shift
-        add "push false"
+        add "push true"
         process fin
         process start
         add "push Range"

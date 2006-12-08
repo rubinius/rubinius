@@ -193,3 +193,9 @@ class FalseClass
     "false"
   end
 end
+
+class GC
+  def self.start
+    Ruby.primitive :gc_start
+  end
+end

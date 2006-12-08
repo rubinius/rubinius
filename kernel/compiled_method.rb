@@ -20,7 +20,7 @@ class CompiledMethod
   end
   
   def line_from_ip(i)
-    self.lines.each do |t|
+    @lines.each do |t|
       start = t.at(0)
       nd = t.at(1)
       op = t.at(2)
@@ -34,7 +34,6 @@ end
 
 class Method
   def initialize(recv, mod, cm)
-    put 0, {}
     @receiver = recv
     @method = cm
     @module = mod

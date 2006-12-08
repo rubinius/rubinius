@@ -309,6 +309,7 @@ class TestPrimitives < Test::Unit::TestCase
     m = r.match("hello")
     p m.captures[0]
     p m.captures[1]
+    GC.start
     CODE
     
     assert_equal ["nil",'"he"', '"lo"'], out

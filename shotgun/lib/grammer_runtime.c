@@ -520,6 +520,7 @@ again_no_block:
 
   case NODE_LASGN:
     array_push(current, ID2SYM(node->nd_vid));
+    array_push(current, I2N(0));
 	  // array_push(current, I2N(node->nd_cnt));
     add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
     break;
@@ -721,6 +722,7 @@ again_no_block:
 	
   case NODE_LVAR:
     array_push(current, ID2SYM(node->nd_vid));
+    array_push(current, I2N(0));
 	  // array_push(current, I2N(node->nd_cnt));
 	break;
 	

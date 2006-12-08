@@ -66,4 +66,8 @@ class File < IO
       return Stat.from_tuple(out, path)
     end
   end
+  
+  def self.to_sexp(path, newlines)
+    Ruby.primitive :file_to_sexp
+  end
 end

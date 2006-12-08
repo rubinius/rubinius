@@ -13,7 +13,7 @@ OBJECT bignum_new(STATE, int num) {
   mp_int *a;
   OBJECT o;
   o = object_memory_new_opaque(state, BASIC_CLASS(bignum), sizeof(mp_int));
-  a = (mp_int*)BYTES_OF(o);  
+  a = (mp_int*)BYTES_OF(o);
   mp_init(a);
   mp_set_int(a, (unsigned int)num);
   if(num < 0) {

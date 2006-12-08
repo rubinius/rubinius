@@ -18,13 +18,12 @@ end
 
 class MatchData
   def captures
-    str = self.source
     out = []
-    self.region.each do |tup|
+    @region.each do |tup|
       x = tup.at(0)
       y = tup.at(1)
       count = y - x + 1
-      out << str.substring(x, count)
+      out << @source.substring(x, count)
     end
     
     return out

@@ -178,6 +178,8 @@ class Backtrace
     return fr2.join("\n")
   end
   
+  MAX_WIDTH = 40
+  
   def fill_from(ctx)
     @max = 0
     while ctx
@@ -203,7 +205,7 @@ class Backtrace
       end
       ctx = ctx.sender
     end
-    @max = 25 if @max > 25
+    @max = MAX_WIDTH if @max > MAX_WIDTH
   end
   
   def self.backtrace(ctx=nil)

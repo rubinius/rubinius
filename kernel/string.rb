@@ -8,7 +8,7 @@ class String
   end
   
   def size
-    bytes
+    @bytes
   end
   
   def <<(other)
@@ -30,7 +30,7 @@ class String
   end
   
   def substring(start, count)
-    nd = self.data.fetch_bytes(start, count)
+    nd = @data.fetch_bytes(start, count)
     str = String.allocate
     str.put 0, count
     str.put 1, count
@@ -39,11 +39,11 @@ class String
   end
   
   def ==(other)
-    (self.data <=> other.data) == 0
+    (@data <=> other.data) == 0
   end
   
   def prefix?(pre)
-    return false if pre.size >= self.size
+    return false if pre.size >= @size
     sub = substring(0, pre.size)
     pre == sub
   end
@@ -60,8 +60,7 @@ class String
     out = to_sexp_full(name, line, newlines)
     if out.kind_of? Tuple
       exc = SyntaxError.new out.at(0)
-      exc.put 2, out.at(1)
-      exc.put 3, out.at(2)
+      exc.import_position out.at(1), out.at(2)
       raise exc
     end
     return out
@@ -87,12 +86,20 @@ end
 
 class SyntaxError
   self.instance_fields = 4
+  
+  ivar_as_index :column => 2, :line => 3
+  
   def column
-    at(2)
+    @column
   end
 
   def line
-    at(3)
+    @line
+  end
+  
+  def import_position(c,l)
+    @column = c
+    @line = l
   end
 end
 

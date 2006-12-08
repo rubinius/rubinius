@@ -205,6 +205,8 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
         /* Worked! */
         return TRUE;
       }
+      /* Didn't work, need to remove the recv we put on before. */
+      stack_pop();
       // printf("Primitive failed! -- %d\n", prim);
     } else if(req >= 0 && object_kind_of_p(state, mo, state->global->cmethod)) {
       /* raise an exception about them not doing it right. */
@@ -266,9 +268,11 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   }
 
   #if EXCESSIVE_TRACING
-  printf("%05d: Calling %s => %s on %s (%p/%d) (%d) %s.\n", c->depth,
-   rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
-   rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing,
+  printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
+    rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+    rbs_symbol_to_cstring(state, module_get_name(mod)),
+    rbs_symbol_to_cstring(state, sym), 
+    _inspect(recv), c->method, c->ip,
     prim ? "" : "PRIM FAILED"
    );
   #endif

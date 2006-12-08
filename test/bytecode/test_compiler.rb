@@ -260,6 +260,36 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
   end
   
+  def test_ivar_as_index
+    sx = [:class, [:colon2, :B], nil, 
+      [:scope, [:block,
+        [:fcall, :ivar_as_index, [:array, 
+          [:ihash, [:lit, :name], [:lit, 1]]
+        ]],
+        
+        [:defn, :blah, [:args, [], [], nil, nil], [:scope, [:block,
+          [:ivar, :@name],
+          [:iasgn, :@name, [:lit, 11]]
+        ]]]
+      ]]
+    ]
+    
+    compile sx
+
+    # Check the __class_init__
+    m = @meth.literals.first
+    assert_kind_of Bytecode::MethodDescription, m
+    exc =  "push self\nset_encloser\npush_literal 0\n"
+    exc << "push_self\nadd_method blah\nret\n"
+    
+    assert_equal exc, m.assembly
+    
+    m2 = m.literals.first
+    exc2 =  "check_argcount 0 0\npush_my_field 1\npush 11\nstore_my_field 1\nret\n"
+    assert_equal exc2, m2.assembly
+    
+  end
+  
   def test_process_hash
     sx = [:hash, [:lit, 1], [:lit, 2], [:lit, 3], [:lit, 4]]
     exc = "push 4\npush 3\npush 2\npush 1\nmake_hash 4\nret\n"

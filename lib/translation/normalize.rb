@@ -71,13 +71,13 @@ class RsNormalizer < SimpleSexpProcessor
       @state.reset
       args[1].each { |i| @state.local(i) }
       # pp body
-      begin
+      #begin
         body = process(body)
-      rescue Object => e
-        exc = RuntimeError.new("Unable to process body of '#{name}'. #{e.message}")
-        exc.set_backtrace e.backtrace
-        raise exc
-      end
+      #rescue Object => e
+      #  exc = RuntimeError.new("Unable to process body of '#{name}'. #{e.message} (#{e.class})")
+        # exc.set_backtrace e.backtrace
+      #  raise exc
+      #end
       @state.locals = cur
     end
     out = [:defn, name, args, body]
@@ -85,22 +85,30 @@ class RsNormalizer < SimpleSexpProcessor
   end
   
   def process_iter(x)
-    meth = process x.shift
+    m = x.shift
     args = x.shift
-    args = process args if args
     body = x.shift
     if body.nil?
       body = [:block]
     elsif body[0] != :block
       body = [:block, body]
     end
+    
+    if m == [:fcall, :loop]
+      x.shift
+      return [:loop, process(body)]
+    end
+    
+    meth = process m
+    args = process args if args
+    
     # Detect the dasgn_curr declaration list as the first element
     # of the block.
     dasgn = body[1]
     if dasgn and dasgn.first == :dasgn_curr and 
             (dasgn[2].nil? or dasgn[2].first == :dasgn_curr)
         body[1] = nil
-        body.compact!
+        body = body.compact
     end
     [:iter, meth, args, process(body)]
   end
@@ -134,7 +142,10 @@ class RsNormalizer < SimpleSexpProcessor
   end
     
   def process_fcall(x)
-    out = process([:call, [:self], *x])
+    sx = [:call, [:self], x.shift]
+    args = x.shift
+    sx << args if args
+    out = process(sx)
     x.clear
     return out
   end
@@ -171,7 +182,7 @@ class RsNormalizer < SimpleSexpProcessor
   
   def process_class(x)
     name = x.shift    
-    sup = x.shift
+    sup = process(x.shift)
     body = x.shift
     if @full
       cur = @state.locals

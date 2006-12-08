@@ -484,7 +484,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  # BROKEN!!!! Fix when Bignum is implemented.
   def time_seconds
     <<-CODE
     self = stack_pop();
@@ -877,6 +876,7 @@ class ShotgunPrimitives
     <<-CODE
     {
       GString *str;
+      char *str1, *str2;
       self = stack_pop();
       t1 = stack_pop();
       t2 = stack_pop();
@@ -884,11 +884,45 @@ class ShotgunPrimitives
       if(!RISA(t1, string) || !FIXNUM_P(t2)) {
         _ret = FALSE;
       } else {
-        str = g_string_new(string_as_string(state, self));
-        t1 = syd_compile_string(state, string_as_string(state, t1), str,
-            FIXNUM_TO_INT(t2), RTEST(t3));
+        str1 = string_as_string(state, self);
+        str = g_string_new(str1);
+        free(str1);
+        str2 = string_as_string(state, t1);
+        t1 = syd_compile_string(state, str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
+        free(str2);
         stack_push(t1);
       }
+    }
+    CODE
+  end
+  
+  def file_to_sexp
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop(); /* The filename */
+    t2 = stack_pop();
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      GIOChannel *io;
+      GError *err;
+      char *name;
+      
+      err = NULL;
+
+      name = string_as_string(state, t1);
+      printf("Trying to open %s\\n", name);
+      io = g_io_channel_new_file(name, "r", &err);
+      if(io == NULL) {
+        _ret = FALSE;
+      } else {
+        g_io_channel_set_encoding(io, NULL, &err);
+        t1 = syd_compile_file(state, name, io, 1, RTEST(t2));
+        g_io_channel_shutdown(io, TRUE, &err);
+        g_io_channel_unref(io);
+        stack_push(t1);
+      }
+      free(name);
     }
     CODE
   end
@@ -936,6 +970,14 @@ class ShotgunPrimitives
     } else {
       stack_push(regexp_match(state, self, t1));
     }
+    CODE
+  end
+  
+  def gc_start
+    <<-CODE
+    stack_pop();
+    state->om->collect_now = 1;
+    stack_push(Qtrue);
     CODE
   end
     

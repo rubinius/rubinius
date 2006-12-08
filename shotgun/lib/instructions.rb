@@ -132,6 +132,20 @@ class ShotgunInstructions
     CODE
   end
   
+  def push_my_field
+    <<-CODE
+    next_int;
+    stack_push(NTH_FIELD(c->self, _int));
+    CODE
+  end
+  
+  def store_my_field
+    <<-CODE
+    next_int;
+    SET_FIELD(c->self, _int, stack_top());
+    CODE
+  end
+  
   def send_primitive
     <<-CODE
     next_int;
@@ -191,7 +205,13 @@ class ShotgunInstructions
   end
   
   def set_local
-    "next_int; tuple_put(state, c->locals, _int, stack_pop());"
+    <<-CODE
+    next_int;
+    t1 = stack_pop();
+    // printf("Set local %d to %s\\n", _int, _inspect(t1));
+    tuple_put(state, c->locals, _int, t1);
+    stack_push(t1);
+    CODE
   end
   
   def make_array

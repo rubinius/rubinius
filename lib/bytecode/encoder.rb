@@ -70,7 +70,9 @@ class InstructionEncoder
     :get_args,
     :send_with_arg_register,
     :cast_array_for_args,
-    :send_super_stack_with_block
+    :send_super_stack_with_block,
+    :push_my_field,
+    :store_my_field
   ]
   
   IntArg = [
@@ -102,7 +104,9 @@ class InstructionEncoder
     :passed_arg,
     :send_with_arg_register,
     :cast_array_for_args,
-    :send_super_stack_with_block
+    :send_super_stack_with_block,
+    :push_my_field,
+    :store_my_field
   ]
   
   TwoInt = [

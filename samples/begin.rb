@@ -1,3 +1,4 @@
+a = 1
 begin
     true
     1
@@ -9,3 +10,4 @@ rescue A
 ensure
     8
 end
+a = 3

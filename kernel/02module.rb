@@ -1,6 +1,6 @@
 class Module
   def name
-    at(2)
+    @name
   end
   
   def include(mod)
@@ -12,11 +12,16 @@ end
 class IncludedModule < Module
   self.instance_fields = 8
 
+  ivar_as_index :superclass => 6, :module => 7
+
   def initialize(mod)
-    put 0, mod.instance_variables
-    put 1, mod.methods
-    put 2, mod.name
-    put 7, mod
+    @__ivars__ = mod.__ivars__
+    @methods = mod.methods
+    @method_cache = nil
+    @name = mod.name
+    @constants = {}
+    @parent = nil
+    @module = mod
   end
 
   def old_to_s
@@ -24,21 +29,21 @@ class IncludedModule < Module
   end
 
   def module
-    at(7)
+    @module
   end
 
   def attach_to(cls)
-    put 6, cls.superclass
+    @superclass = cls.superclass
     cls.put 6, self    
   end
 
   def superclass
-    at(6)
+    @superclass
   end
-
+  
   def direct_superclass
-    Ruby.asm "push self\npush 6\nfetch_field"
+    @superclass
   end
-
+  
 end
   

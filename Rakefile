@@ -35,17 +35,23 @@ end
 task :fields do
   $:.unshift "lib"
   require 'types'
-  fd = File.open("kernel/auto_fields.rb", "w")
+  fd = File.open("kernel/00auto_fields.rb", "w")
   Rubinius::Types.each do |name, mod|
     next if mod::TotalFields.size == 0
     sname = mod.name.split("::").last
     fd.puts "class #{sname}"
     idx = 0
+    str = []
     mod::TotalFields.each do |fel|
+      if fel == :instance_variables
+        fel = :__ivars__
+      end
+      str << [":#{fel} => #{idx}"]
       # fd.puts "index_accessor :#{fel}, #{idx}"
-      fd.puts "def #{fel}; Ruby.asm \"push self\\npush #{idx}\\nfetch_field\"; end"
+      fd.puts "  def #{fel}; Ruby.asm \"push self\\npush #{idx}\\nfetch_field\"; end"
       idx += 1
     end
+    fd.puts "  ivar_as_index #{str.join(", ")}"
     fd.puts "end"
   end
   fd.close

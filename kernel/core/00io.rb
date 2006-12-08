@@ -21,7 +21,7 @@ class IO
   def close
     Ruby.primitive :io_close
     
-    if self.descriptor == -1
+    if @descriptor == -1
       raise IOError.new("IO instance already closed")
     else
       raise IOError.new("Unable to close instance of IO")
@@ -31,7 +31,7 @@ class IO
   index_reader :descriptor, 0
   
   def closed?
-    self.descriptor == -1
+    @descriptor == -1
   end
   
   # The current implementation does no buffering, so we're always
