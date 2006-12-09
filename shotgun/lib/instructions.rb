@@ -591,5 +591,5 @@ si.generate_declarations(STDOUT)
 si.generate_switch(STDOUT)
 
 File.open("instruction_names.gen","w") do |f|
-  f << si.generate_names
+  f.puts si.generate_names
 end

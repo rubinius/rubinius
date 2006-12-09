@@ -6,7 +6,7 @@ begin
   require 'translation/states'
 rescue LoadError
   STDERR.puts "Unable to load one or more required libraries. Make sure you have the 'sydparse', 'emp', and 'RubyInline' gems."
-  raise
+  raise $!
 end
 
 module Bytecode

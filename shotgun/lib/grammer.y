@@ -26,7 +26,7 @@
 #undef VALUE
 
 #define ALLOC_N(what, many) ((what*)malloc(sizeof(what) * (many)))
-#define REALLOC_N(ptr, what, many) realloc(ptr, sizeof(what) * (many))
+#define REALLOC_N(ptr, what, many) ptr = realloc(ptr, sizeof(what) * (many))
 
 #ifndef isnumber
 #define isnumber isdigit
@@ -2904,6 +2904,7 @@ tokadd(c, parse_state)
     char c;
     rb_parse_state *parse_state;
 {
+    assert(tokidx < toksiz && tokidx >= 0);
     tokenbuf[tokidx++] = c;
     if (tokidx >= toksiz) {
         toksiz *= 2;
@@ -5235,7 +5236,6 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars)
         var = NEW_DASGN_CURR(post->id, var);
     }
     */
-    free(vars);
     parse_state->find_block_args--;
     out = block_append(parse_state, var, node);
     return out;
@@ -5268,8 +5268,7 @@ assignable(id, val, parse_state)
     }
     else if (is_local_id(id)) {
         if(parse_state->find_block_args) {
-          parse_state->block_vars->data[parse_state->block_vars->size] = id;
-          parse_state->block_vars->size++;
+          var_table_add(parse_state->block_vars, id);
         }
         return NEW_LASGN(id, val);      
     }
