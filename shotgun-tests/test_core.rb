@@ -494,4 +494,26 @@ class TestCore < Test::Unit::TestCase
     CODE
     assert_equal ['true', 'false'], out
   end
+
+  def test_singleton_method
+    out = rp <<-CODE
+      x = [1,2,3,4]
+      p x.length
+      def x.length;999;end
+      p x.length
+    CODE
+    assert_equal ['4', '999'], out
+  end
+
+  def test_singleton_class
+    out = rp <<-CODE
+    class Blah
+      class << self
+        def foo;5;end
+      end
+    end
+    p Blah.foo
+    CODE
+    assert_equal ['5'], out
+  end
 end
