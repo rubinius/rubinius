@@ -835,6 +835,7 @@ module Bytecode
         rhs.each do |part|
           add "unshift_tuple"
           process part
+          add "pop"
         end
         
         if splat
