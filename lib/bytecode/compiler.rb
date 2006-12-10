@@ -602,6 +602,20 @@ module Bytecode
         add 'cast_array'
       end
       
+      def process_sclass(x)
+        process x.shift
+        body = x.shift
+        add "open_metaclass"
+        add "dup"
+        meth = @compiler.compile_as_method body, :__metaclass_init__
+        idx = @method.add_literal meth
+        add "push_literal #{idx}"
+        add "swap"
+        add "attach __metaclass_init__"
+        add "pop"
+        add "send __metaclass_init__"
+      end
+
       def process_class(x)
         name = x.shift
         sup = x.shift

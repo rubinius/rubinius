@@ -72,7 +72,8 @@ class InstructionEncoder
     :cast_array_for_args,
     :send_super_stack_with_block,
     :push_my_field,
-    :store_my_field
+    :store_my_field,
+    :open_metaclass
   ]
   
   IntArg = [

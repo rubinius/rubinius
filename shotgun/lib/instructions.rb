@@ -392,6 +392,12 @@ class ShotgunInstructions
     stack_push(cpu_open_module(state, c, c->enclosing_class));
     CODE
   end
+
+  def open_metaclass
+    <<-CODE
+    stack_push(object_metaclass(state, stack_pop()));
+    CODE
+  end
   
   def attach_method
     <<-CODE

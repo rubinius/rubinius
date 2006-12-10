@@ -501,7 +501,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    
+
     if(!RISA(t1, string) || !REFERENCE_P(self)) {
        _ret = FALSE;
     } else {
@@ -515,7 +515,7 @@ class ShotgunPrimitives
       format = string_as_string(state, t1);
       tdp = (struct time_data*)BYTES_OF(self);
       secs = tdp->tv.tv_sec;
-      
+
       time = localtime(&secs);
       out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, time);
       str[MAX_STRFTIME_OUTPUT] = '\\0';
@@ -525,7 +525,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def fixnum_to_s
     <<-CODE
     self = stack_pop();
@@ -536,7 +536,7 @@ class ShotgunPrimitives
       static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
       char buf[100];
       char *b = buf + sizeof(buf);
-      
+
       j = FIXNUM_TO_INT(t1);
       k = FIXNUM_TO_INT(self);
       /* Algorithm taken from 1.8.4 rb_fix2str */
@@ -562,7 +562,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def bignum_to_s
     <<-CODE
     self = stack_pop();
@@ -574,28 +574,28 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def logical_class
     <<-CODE
     self = stack_pop();
     stack_push(object_logical_class(state, self));
     CODE
   end
-  
+
   def object_id
     <<-CODE
     self = stack_pop();
     stack_push(I2N((int)self));
     CODE
   end
-  
+
   def hash_set
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
     t2 =   stack_pop();
     t3 =   stack_pop();
-    
+
     if(!RISA(self, hash) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
@@ -605,13 +605,13 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def hash_get
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
     t2 =   stack_pop();
-    
+
     if(!RISA(self, hash) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
@@ -621,7 +621,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def hash_object
     <<-CODE
     self = stack_pop();
@@ -630,7 +630,7 @@ class ShotgunPrimitives
     _ret = TRUE;
     CODE
   end
-  
+
   def symbol_index
     <<-CODE
     self = stack_pop();
@@ -641,7 +641,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def symbol_lookup
     <<-CODE
     self = stack_pop();
@@ -652,7 +652,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def dup_into
     <<-CODE
     self = stack_pop();
@@ -667,7 +667,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def tuple_shifted
     <<-CODE
     self = stack_pop();
@@ -682,7 +682,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-    
+
   def fetch_bytes
     <<-CODE
     self = stack_pop();
@@ -696,9 +696,9 @@ class ShotgunPrimitives
       j = FIXNUM_TO_INT(t1);
       k = FIXNUM_TO_INT(t2);
       m = bytearray_bytes(state, self);
-      
+
       num = abs(j - k);
-      
+
       if(j < 0 || k < 0 || j > m || m < num) {
         _ret = FALSE;
       } else {
@@ -713,12 +713,12 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def compare_bytes
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    
+
     if(!object_stores_bytes_p(state, self) || !object_stores_bytes_p(state, t1)) {
       _ret = FALSE;
     } else {
