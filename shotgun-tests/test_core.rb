@@ -465,12 +465,15 @@ class TestCore < Test::Unit::TestCase
 
   def test_uncaught_throw
     out = rp <<-CODE
-      [1,2,3].each do |i|
-        p i
-        throw(:crazy) if i == 2
+      begin
+        [1,2,3].each do |i|
+          throw(:crazy) if i == 2
+        end
+      rescue NameError => ex
+        puts 'uncaught_throw'
       end
     CODE
-    assert_match /uncaught/, out.join
+    assert_equal ['uncaught_throw'], out
   end
 
   def test_match3
@@ -527,5 +530,15 @@ class TestCore < Test::Unit::TestCase
     p y.length
     CODE
     assert_equal ['1', '1'], out
+  end
+
+  def test_or_assignment
+    out = rp <<-CODE
+    x = nil
+    x ||= 5
+    x ||= 6
+    p x
+    CODE
+    assert_equal ['5'], out
   end
 end

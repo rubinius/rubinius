@@ -1,4 +1,5 @@
-require 'native/test/unit'
+require 'rubygems'
+require 'test/unit'
 
 class RubiniusError < RuntimeError; end
 

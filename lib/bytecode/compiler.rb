@@ -480,7 +480,15 @@ module Bytecode
         end
         add "set #{name}:#{idx}"
       end
-      
+
+      def process_op_asgn_or(x)
+        process x.shift #lvar
+        lbl = unique_lbl()
+        git lbl
+        process x.shift #rhs
+        set_label lbl
+      end
+
       def process_lvar(x)
         name = x.shift
         idx = x.shift
