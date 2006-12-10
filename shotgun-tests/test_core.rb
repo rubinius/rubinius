@@ -541,4 +541,17 @@ class TestCore < Test::Unit::TestCase
     CODE
     assert_equal ['5'], out
   end
+
+  def test_or_assignment2
+    out = rp <<-CODE
+    class X
+      attr_accessor :val
+    end
+    x = X.new
+    p x.val
+    x.val ||= 7
+    p x.val
+    CODE
+    assert_equal ['nil', '7'], out
+  end
 end
