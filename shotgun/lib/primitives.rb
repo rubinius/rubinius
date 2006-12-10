@@ -683,6 +683,27 @@ class ShotgunPrimitives
     CODE
   end
 
+  def get_byte
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop(); /* index */
+    if(!FIXNUM_P(t1) || !object_stores_bytes_p(state, self)) {
+      _ret = FALSE;
+    } else {
+      char *indexed;
+      j = FIXNUM_TO_INT(t1);
+      k = bytearray_bytes(state, self);
+      if (j < 0 || j >= k) {
+        _ret = FALSE;
+      } else {
+        indexed = (char*)bytearray_byte_address(state, self);
+        indexed += j;
+        stack_push(I2N(*indexed));
+      }
+    }
+    CODE
+  end
+    
   def fetch_bytes
     <<-CODE
     self = stack_pop();

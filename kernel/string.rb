@@ -86,6 +86,10 @@ class String
     m = pattern.match(self)
     m ? m.full.at(0) : nil 
   end
+
+  def [](index)
+     return @data.get_byte(index)
+  end
 end
 
 class SyntaxError
@@ -114,6 +118,10 @@ class ByteArray
   
   def fetch_bytes(start, count)
     Ruby.primitive :fetch_bytes
+  end
+
+  def get_byte(index)
+    Ruby.primitive :get_byte
   end
   
   def <=>(other)

@@ -47,6 +47,16 @@ class TestCore < Test::Unit::TestCase
     
     assert_equal ['1','2','3'], out
   end
+
+  def test_string_indexed
+    out = rp <<-CODE
+    p "blah"[0]
+    p "blah"[1]
+    p "blah"[2]
+    CODE
+    
+    assert_equal ["98", "108", "97"], out
+  end
   
   def test_string_prefix_eh
     out = rp <<-CODE

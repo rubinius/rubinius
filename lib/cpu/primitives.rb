@@ -62,7 +62,8 @@ class CPU::Primitives
     :regexp_match,
     :tuple_shifted,
     :gc_start,
-    :file_to_sexp
+    :file_to_sexp,
+    :get_byte
   ]
   
   FirstRuntimePrimitive = 1024
