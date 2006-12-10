@@ -488,23 +488,36 @@ module Bytecode
         process x.shift #rhs
         set_label lbl
       end
+
+      def process_op_asgn_and(x)
+        # x &&= 7
+        # yields:
+        # [:op_asgn_and, [:lvar, :x, 2], [:lasgn, :x, 2, [:lit, 7]]]]
+        process x.shift #lvar
+        lbl = unique_lbl()
+        gif lbl
+        process x.shift #rhs
+        set_label lbl
+      end
       
       def process_op_asgn2(x)
         # sample sexp from executing:
         # x.val ||= 6
         # [:op_asgn2, [:lvar, :x, 2], :val, :or, :val=, [:lit, 6]]]
+        # x.val &&= 7
+        # [:op_asgn2, [:lvar, :x, 2], :val, :and, :val=, [:lit, 7]]]
         # x.val = 6
         # [:attrasgn, [:lvar, :x, 2], :val=, [:array, [:lit, 6]]],
         #
         lvar = x.shift #lvar
         lbl = unique_lbl()
         msg = x.shift
-        x.shift # or
+        operator = x.shift # :and or :or
         msg2 = x.shift #assignment
         arg = x.shift
         process(lvar.dup)
         add "send #{msg}"
-        git lbl
+        (operator == :or) ? git(lbl) : gif(lbl)
         x.unshift [:array, arg]
         x.unshift msg2
         x.unshift lvar
