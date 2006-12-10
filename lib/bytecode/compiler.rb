@@ -511,10 +511,6 @@ module Bytecode
         add "make_hash #{sz}"
       end
       
-      def process_zarray(x)
-        add "make_array 0"
-      end
-      
       def process_argscat(x)
         ary = x.shift        
         itm = x.shift

@@ -516,4 +516,16 @@ class TestCore < Test::Unit::TestCase
     CODE
     assert_equal ['5'], out
   end
+
+  def test_masgn_return
+    out = rp <<-CODE
+    def return_pair
+      return ['a', 'b']
+    end
+    x, y = return_pair
+    p x.length
+    p y.length
+    CODE
+    assert_equal ['1', '1'], out
+  end
 end

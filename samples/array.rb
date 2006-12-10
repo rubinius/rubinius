@@ -7,3 +7,4 @@ c = a + b
 p c
 
 p c[3]
+p c.length

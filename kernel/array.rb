@@ -99,6 +99,10 @@ class Array
   def size
     @total
   end
+
+  def length
+    @total
+  end
   
   def empty?
     @total == 0

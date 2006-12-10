@@ -10,6 +10,10 @@ class String
   def size
     @bytes
   end
+
+  def length
+    @bytes
+  end
   
   def <<(other)
     out = nil
