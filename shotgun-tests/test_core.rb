@@ -591,4 +591,17 @@ class TestCore < Test::Unit::TestCase
     CODE
     assert_equal ['nil', '6'], out
   end
+
+  def test_string_slice
+    out = rp <<-CODE
+    str = 'hello'
+    p str['zargle']
+    puts str['ell']
+    puts str[/ll./]
+    puts str[0]
+    puts str[0,1]
+    CODE
+    puts out
+    assert_equal ['nil', 'ell', 'llo', '104', 'h'], out 
+  end
 end

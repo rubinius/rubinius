@@ -103,7 +103,7 @@ class String
       m = arg.match(self)
       return nil unless m
       match_start, match_end = m.full.at(0), m.full.at(1)
-      count = match_end - match_start + 1
+      count = match_end - match_start
       substring match_start, count
     when Numeric
       if len
@@ -117,6 +117,8 @@ class String
       raise ArgumentError.new("String#[] cannot accept #{arg.class} objects")
     end
   end
+
+  alias_method :slice, :[]
 end
 
 class SyntaxError
