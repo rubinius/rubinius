@@ -42,6 +42,6 @@ clean:
 	cd lib; $(MAKE) clean
 	cd libs/libtommath; $(MAKE) clean
 	cd libs/libedit; $(MAKE) clean || exit 0
-	cd libs/onig; $(MAKE) clean
+#	cd libs/onig; $(MAKE) clean
 
 .PHONY: test
