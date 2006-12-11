@@ -57,7 +57,9 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
   assert(fel < HEADER(obj)->fields);
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
   assert(val != 12);
+#ifdef INTERNAL_MACROS
   object_memory_check_ptr(main_om, val);
+#endif
   *slot = val;
   return val;
 }
