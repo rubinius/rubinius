@@ -47,6 +47,7 @@ module Bytecode
     end
     
     def find_ivar_index(name)
+      return nil unless @current_class
       idx = @indexed_ivars[@current_class.first][name]
       return idx if idx
       if sup = @current_class.last
