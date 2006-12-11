@@ -37,9 +37,11 @@ struct rubinius_object {
 #define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
 #define FIXNUM_NEG(obj) ((((unsigned long)obj) & 4) == 4)
 
+#ifdef INTERNAL_MACROS
 extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 #define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
+#endif
 
 #define SET_FIELD(obj, fel, val) rbs_set_field(obj, fel, val)
 
@@ -47,7 +49,9 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
   assert(fel < HEADER(in)->fields);
   obj = NTH_FIELD_DIRECT(in, fel);
+#ifdef INTERNAL_MACROS
   CHECK_PTR(obj);
+#endif
   return obj;
 }
 
