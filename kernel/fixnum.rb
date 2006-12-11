@@ -46,4 +46,12 @@ class Fixnum
   def based_to_s(base)
     Ruby.primitive :fixnum_to_s
   end
+
+  def zero?
+    self == 0
+  end
+
+  def nonzero?
+    self != 0
+  end
 end
