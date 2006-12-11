@@ -604,4 +604,41 @@ class TestCore < Test::Unit::TestCase
     puts out
     assert_equal ['nil', 'ell', 'llo', '104', 'h'], out 
   end
+
+  def test_case
+    out = rp <<-CODE
+      x = 1 
+      case x
+      when 0; puts 'was 0'
+      when 1; puts 'was 1'
+      else puts 'else'
+      end
+    CODE
+    assert_equal ['was 1'], out
+  end
+
+  def test_case_in_block
+    out = rp <<-CODE
+      x = 0
+      2.times do
+        case x
+        when 0; puts 'was 0'
+        when 1; puts 'was 1'
+        else puts 'else'
+        end
+        x += 1
+      end
+    CODE
+    assert_equal ['was 0', 'was 1'], out
+  end
+
+  def test_array_partition
+    out = rp <<-CODE
+      a = [0,1,2,3,4,5]
+      l, r = a.partition {|e| [0,2,4].include?(e)}
+      puts "even: #{l.inspect}"
+      puts "odd: #{r.inspect}"
+    CODE
+    assert_equal ['even: [0, 2, 4]', 'odd: [1, 3, 5]'], out
+  end
 end

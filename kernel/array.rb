@@ -196,4 +196,16 @@ class Array
     end
     return ary
   end
+
+  def partition
+    left = []
+    right = []
+    i = 0
+    while i < @total 
+      e = @tuple.at(i)
+      yield(e) ? left.push(e) : right.push(e)
+      i += 1
+    end
+    return [left, right]
+  end
 end
