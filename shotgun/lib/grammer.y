@@ -2873,6 +2873,7 @@ pushback(c, parse_state)
     parse_state->lex_p--;
 }
 
+/* Indicates if we're currently at the beginning of a line. */
 #define was_bol() (parse_state->lex_p == parse_state->lex_pbeg + 1)
 #define peek(c) (parse_state->lex_p != parse_state->lex_pend && (c) == *(parse_state->lex_p))
 

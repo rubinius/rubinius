@@ -6,7 +6,8 @@
 #include "string.h"
 
 OBJECT object_new(STATE) {
-  return NEW_OBJECT(BASIC_CLASS(object), 1);
+  return object_allocate(state);
+  // return NEW_OBJECT(BASIC_CLASS(object), 1);
 }
 
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup) {
@@ -248,5 +249,7 @@ void object_make_byte_storage(STATE, OBJECT self) {
 }
 
 void object_initialize_bytes(STATE, OBJECT self) {
-  memset(object_byte_start(state, self), 0, SIZE_IN_BYTES(self));
+  int sz;
+  sz = SIZE_OF_BODY(self);
+  memset(object_byte_start(state, self), 0, sz);
 }

@@ -22,6 +22,7 @@ object_memory object_memory_new();
 int object_memory_delete(object_memory om);
 int object_memory_used(object_memory om);
 int object_memory_collect(object_memory om, GPtrArray *roots);
+void object_memory_check_memory(object_memory om);
 OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields);
 void object_memory_print_stats(object_memory om);
 OBJECT object_memory_new_opaque();

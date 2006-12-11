@@ -54,10 +54,9 @@ OBJECT rbs_raw_class(OBJECT obj) {
 
 char *rbs_inspect(STATE, OBJECT obj) {
   OBJECT kls;
-  char *buf;
+  static char buf[1024];
   
   kls = object_logical_class(state, obj);
-  buf = malloc(1024);
   
   if(NIL_P(kls)) {
     sprintf(buf, "<(NilClass!!):%p>", (void*)obj);

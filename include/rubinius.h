@@ -30,17 +30,25 @@ struct rubinius_object {
 #define CLASS_OBJECT(obj) (HEADER(obj)->klass)
 #define NUM_FIELDS(obj) (HEADER(obj)->fields)
 #define SIZE_IN_BYTES(obj) ((NUM_FIELDS(obj) + HEADER_SIZE) * 4)
+#define SIZE_OF_BODY(obj) (NUM_FIELDS(obj) * 4)
 #define ADDRESS_OF_FIELD(obj, fel) ((OBJECT)(OBJECTS(obj) + HEADER_SIZE + fel))
 #define NTH_FIELD_DIRECT(obj, fel) (*(OBJECT*)(OBJECTS(obj) + HEADER_SIZE + fel))
 
 #define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
 #define FIXNUM_NEG(obj) ((((unsigned long)obj) & 4) == 4)
 
+extern void* main_om;
+void object_memory_check_ptr(void *ptr, OBJECT obj);
+#define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
+
 #define SET_FIELD(obj, fel, val) rbs_set_field(obj, fel, val)
 
-static inline OBJECT rbs_get_field(OBJECT obj, int fel) {
-  assert(fel < HEADER(obj)->fields);
-  return NTH_FIELD_DIRECT(obj, fel);
+static inline OBJECT rbs_get_field(OBJECT in, int fel) {
+  OBJECT obj;
+  assert(fel < HEADER(in)->fields);
+  obj = NTH_FIELD_DIRECT(in, fel);
+  CHECK_PTR(obj);
+  return obj;
 }
 
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
@@ -49,6 +57,7 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
   assert(fel < HEADER(obj)->fields);
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
   assert(val != 12);
+  object_memory_check_ptr(main_om, val);
   *slot = val;
   return val;
 }

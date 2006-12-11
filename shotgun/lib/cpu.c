@@ -80,7 +80,9 @@ void cpu_initialize_context(STATE, cpu c) {
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   int i, len;
   gpointer t;
-  #define ar(obj) if(REFERENCE_P(obj)) g_ptr_array_add(roots, (gpointer)obj)
+  #define ar(obj) if(REFERENCE_P(obj)) { \
+    g_ptr_array_add(roots, (gpointer)obj); \
+  }
   ar(c->stack);
   ar(c->self);
   ar(c->exception);
@@ -431,6 +433,7 @@ void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
 }
 
 int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {
+  CHECK_PTR(oop);
   c->sp += 1;
   if(check) {
     if(NUM_FIELDS(c->stack) <= c->sp) {

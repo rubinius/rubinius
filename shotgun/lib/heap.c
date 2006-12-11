@@ -94,6 +94,8 @@ address heap_allocate(rheap h, int size) {
     heap_allocate_extended(h);
   }
   addr = (address)h->current;
+  assert(addr < h->last);
+  memset((void*)addr, 0, size);
   h->current += size;
   return addr;
 }

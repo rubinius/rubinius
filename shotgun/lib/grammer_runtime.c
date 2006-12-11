@@ -836,6 +836,9 @@ again_no_block:
   case NODE_EVSTR:
     add_to_parse_tree(current, node->nd_2nd, newlines, locals, line_numbers);
     break;
+  case NODE_NEGATE:
+    add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+    break;
 
   case NODE_POSTEXE:            /* END { ... } */
     /* Nothing to do here... we are in an iter block */

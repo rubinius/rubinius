@@ -377,7 +377,7 @@ void cpu_run(STATE, cpu c) {
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    #if EXCESSIVE_TRACING
+    #if 0
     printf("%-15s: OP: %s (%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip);
@@ -394,7 +394,7 @@ stack_error:
 check_interupts:
     if(state->om->collect_now) {
       int b;
-      DEBUG("Memory condition detected!\n");
+      DEBUG("Memory condition detected at depth %d!\n", c->depth);
       b = object_memory_used(state->om);
       state_collect(state, c);
       DEBUG("Recovered %d bytes.\n", b - object_memory_used(state->om));

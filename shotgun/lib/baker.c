@@ -82,13 +82,16 @@ int baker_gc_forwarded_p(OBJECT obj) {
 }
 
 int baker_gc_forwarded_object(OBJECT obj) {
-  return HEADER(obj)->klass;
+  OBJECT out = HEADER(obj)->klass;
+  CHECK_PTR(out);
+  return out;
 }
 
 int baker_gc_mutate_object(baker_gc g, OBJECT obj) {
   OBJECT dest;
   dest = heap_copy_object(g->next, obj);
   baker_gc_set_forwarding_address(obj, dest);
+  CHECK_PTR(dest);
   return dest;
 }
 
@@ -96,42 +99,70 @@ int baker_gc_contains_p(baker_gc g, OBJECT obj) {
   return heap_contains_p(g->current, obj);
 }
 
+int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
+  return heap_contains_p(g->next, obj) || heap_contains_p(g->current, obj);
+}
+
 static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
+  OBJECT ret;
+  ret = iobj;
   if(baker_gc_forwarded_p(iobj)) {
-    iobj = baker_gc_forwarded_object(iobj);
+    ret = baker_gc_forwarded_object(iobj);
   } else if(baker_gc_contains_p(g, iobj)) {
-    iobj = baker_gc_mutate_object(g, iobj);
+    ret = baker_gc_mutate_object(g, iobj);
   }
   
-  return iobj;
+  CHECK_PTR(ret);
+  
+  return ret;
 }
 
 int _object_stores_bytes(OBJECT self);
 
 OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj) {
-  OBJECT ret, cls, tmp;
-  int i;
+  OBJECT ret, cls, tmp, mut;
+  int i, count;
   
-  iobj = baker_gc_maybe_mutate(g, iobj);
-  
+  // printf("Starting mutation from %p (%d fields)\n", iobj, NUM_FIELDS(iobj));
+  if(baker_gc_forwarded_p(iobj)) {
+    iobj = baker_gc_forwarded_object(iobj);
+  } else if(baker_gc_contains_p(g, iobj)) {
+    iobj = baker_gc_mutate_object(g, iobj);
+    /* consume iobj so we don't process it twice. */
+    // heap_next_unscanned(g->next);
+  }
+    
   ret = iobj;
   
+  count = 0;
+  
   while(iobj) {
+    count++;
     cls = CLASS_OBJECT(iobj);
     if(REFERENCE_P(cls)) {
       cls = baker_gc_maybe_mutate(g, cls);
     }
     
+    // printf("%s: %p\n", _inspect(module_get_name(cls)), iobj);
+    
     HEADER(iobj)->klass = cls;
     
     if(!_object_stores_bytes(iobj)) {
+      if(NUM_FIELDS(iobj) > 100) {
+        // printf("  big object: %p (%d)\n", iobj, NUM_FIELDS(iobj));
+      }
       for(i = 0; i < NUM_FIELDS(iobj); i++) {
         tmp = NTH_FIELD(iobj, i);
+        /*
+        if(i > 0 && i % 10 == 0) {
+          printf("  %d: %p\n", i, tmp);
+        }
+        */
         // printf("   %d: %p (%d)\n", i, tmp, REFERENCE_P(tmp));
         if(!REFERENCE_P(tmp)) continue;
       
-        tmp = baker_gc_maybe_mutate(g, tmp);
-        SET_FIELD(iobj, i, tmp);
+        mut = baker_gc_maybe_mutate(g, tmp);
+        SET_FIELD(iobj, i, mut);
       }
     }
     
@@ -172,6 +203,7 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
   sz = g->remember_set->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(g->remember_set, i));
+    // printf("Collecting from root %d\n", i);
     // printf("Start at RS: %p\n", root);
     if(!REFERENCE_P(root)) { continue; }
     tmp = baker_gc_mutate_from(g, root);
@@ -181,6 +213,7 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
   sz = roots->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(roots, i));
+    // printf("Collecting from root %d\n", i);
     // printf("%p => %p\n", g->current->address, g->next->address);
     // printf("Start at RS (%d): %p\n", i, root);
     if(!REFERENCE_P(root)) { continue; }

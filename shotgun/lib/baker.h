@@ -28,6 +28,7 @@ int baker_gc_forwarded_p(OBJECT obj);
 int baker_gc_forwarded_object(OBJECT obj);
 int baker_gc_mutate_object(baker_gc g, OBJECT obj);
 int baker_gc_contains_p(baker_gc g, OBJECT obj);
+int baker_gc_contains_spill_p(baker_gc g, OBJECT obj);
 OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj);
 int baker_gc_collect(baker_gc g, GPtrArray *roots);
 

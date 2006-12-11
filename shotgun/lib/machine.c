@@ -144,5 +144,8 @@ void machine_setup_env(machine m) {
 }
 
 char *_inspect(OBJECT obj) {
+  if(SYMBOL_P(obj)) {
+    return rbs_symbol_to_cstring(current_machine->s, obj);
+  }
   return rbs_inspect(current_machine->s, obj);
 }

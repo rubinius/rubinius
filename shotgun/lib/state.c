@@ -15,6 +15,7 @@ rstate rubinius_state_new() {
 void state_collect(STATE, cpu c) {
   GPtrArray *roots;
   roots = g_ptr_array_sized_new(NUM_OF_GLOBALS + 30);
+  
   memcpy(roots->pdata, state->global, sizeof(struct rubinius_globals));
   roots->len = NUM_OF_GLOBALS;
   
