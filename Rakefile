@@ -98,4 +98,8 @@ task :clean do
   `cd shotgun;make clean;cd ..`
 end
 
+task :push do
+  sh 'svk push --verbatim'
+end
+
 # vim: syntax=ruby

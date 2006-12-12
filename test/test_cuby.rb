@@ -1,6 +1,12 @@
 require 'test/unit'
 require 'cuby'
 
+class Object
+  def deep_clone
+    Marshal.load(Marshal.dump(self))
+  end
+end
+
 class TestCuby < Test::Unit::TestCase
   def setup
     @c = Cuby.new
@@ -470,4 +476,105 @@ class TestCuby < Test::Unit::TestCase
     assert_equal output, @c.code
   end
   
+  def test_return_abstraction
+    @c.on_return = proc { |val| "stack_push(#{val})" }
+    code = [:return, [:lit, 1]]
+    @c.generate_from code
+    output = "stack_push(1)"
+    assert_equal output, @c.code
+  end
+  
+  def test_proc_in_map
+    @c.declare_var "object", "self"
+    
+    map = {
+      :neg => ["neg", proc { |s, a, b|
+        "[#{s}, #{a}, #{b}]"
+      }]
+    }
+    @c.add_map :object, map
+    @c.add_type_map "object", :object
+    code = [:call, [:lvar, :self, 2], :neg, [:array, [:lit, 10], [:lit, 11]]]
+    @c.generate_from code
+    assert_equal "[self, 10, 11]", @c.code
+  end
+  
+end
+
+class TestCubyHeaderParser < Test::Unit::TestCase
+  def setup
+    @ch = Cuby::HeaderParser.new
+  end
+  
+  def test_seperate_parts
+    parts = @ch.seperate_parts "char do_this(int i, int j);"
+    assert_kind_of Hash, parts
+    assert_equal "char", parts[:return_type]
+    assert_equal "do_this", parts[:name]
+    assert_equal ["int i", "int j"], parts[:arguments]
+    
+    parts = @ch.seperate_parts "char *do_this(int i);"
+    assert_kind_of Hash, parts
+    assert_equal "char*", parts[:return_type]
+    assert_equal "do_this", parts[:name]
+    assert_equal ["int i"], parts[:arguments]
+    
+  end
+  
+  def test_parse_argument
+    arg = @ch.parse_argument "int i"
+    assert_equal "int", arg[:type]
+    assert_equal "i", arg[:name]
+    assert !arg[:pointer]
+    
+    arg = @ch.parse_argument "int"
+    assert_equal "int", arg[:type]
+    assert !arg[:name]
+    assert !arg[:pointer]
+    
+    arg = @ch.parse_argument "struct blah b"
+    assert_equal "struct blah", arg[:type]
+    assert_equal "b", arg[:name]
+    assert !arg[:pointer]
+    
+    arg = @ch.parse_argument "int *j"
+    assert_equal "int*", arg[:type]
+    assert_equal "j", arg[:name]
+    assert arg[:pointer]
+    assert_equal "int", arg[:pointed_type]
+    
+    arg = @ch.parse_argument "int* j"
+    assert_equal "int*", arg[:type]
+    assert_equal "j", arg[:name]
+    assert arg[:pointer]
+    assert_equal "int", arg[:pointed_type]
+    
+    arg = @ch.parse_argument "const char *buf"
+    assert_equal "char*", arg[:type]
+    assert_equal "buf", arg[:name]
+    assert arg[:pointer]
+  end
+  
+  def test_parse_declaration
+    dec = @ch.parse_declaration "char do_this(int i, int *j);"
+    assert_kind_of Cuby::FunctionDeclaration, dec
+    assert_equal "do_this", dec.name
+    assert_equal "char", dec.return_type
+    assert_kind_of Array, dec.arguments
+    assert_equal 2, dec.arguments.size
+    
+    arg = dec.arguments[0]
+    assert_equal "int", arg[:type]
+    assert_equal "i", arg[:name]
+    
+    arg = dec.arguments[1]
+    assert_equal "int*", arg[:type]
+    assert_equal "j", arg[:name]
+  end
+  
+  def test_parse_dec_invalid
+    assert !@ch.parse_declaration("a b;")
+    assert !@ch.parse_declaration("a b")
+    assert !@ch.parse_declaration("char do_this(int i, int j),")
+  end
 end

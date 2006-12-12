@@ -1,4 +1,4 @@
-require 'sexp/processor'
+require 'sexp/simple_processor'
 
 class Cuby
   
@@ -79,8 +79,8 @@ class Cuby
       @code = code
     end
     
-    def apply(recv)
-      @code.call(recv)
+    def apply(*a)
+      @code.call(*a)
     end
   end
   
@@ -120,6 +120,7 @@ class Cuby
     @last_type = nil
     @literal_types = Hash.new
     @declare_method = nil
+    @on_return = nil
   end
   
   def reset
@@ -134,7 +135,7 @@ class Cuby
   attr_reader :code, :functions, :variables, :operators, :methods
   attr_reader :structs, :method_maps, :literal_types
   attr_accessor :true_value, :false_value, :map_operator
-  attr_accessor :last_type, :declare_method
+  attr_accessor :last_type, :declare_method, :on_return
   
   def declare_function(ret, name, args)
     name = name.to_sym
@@ -205,7 +206,7 @@ class Cuby
     @literal_types[klass] = type
   end
   
-  class Processor < SexpProcessor
+  class Processor < SimpleSexpProcessor
     def initialize(cuby)
       super()
       @cuby = cuby
@@ -239,8 +240,20 @@ class Cuby
     
     def process_vcall(x)
       name = x.shift
+      if macro = @cuby.methods[name]
+        x.clear
+        return macro.apply()
+      end
+      
       func = @cuby.functions[name]
-      raise Error, "Unknown function #{name}" unless func
+      unless func
+        var = @cuby.variables[name]
+        if var
+          @cuby.last_type = var.type
+          return "#{name}"
+        end
+        raise Error, "Unknown function #{name}" unless func
+      end
       @cuby.last_type = func.type
       "#{name}()"
     end
@@ -277,6 +290,10 @@ class Cuby
       end
             
       return lines.join(";\n") + ";\n"
+    end
+    
+    def process_scope(x)
+      process x.shift
     end
     
     def process_lit(x)
@@ -335,6 +352,9 @@ class Cuby
       if rex.first == :lvar
         lvar_accessed = rex[1]
         vi = @cuby.variables[lvar_accessed]
+      elsif rex.first == :self
+        lvar_accessed = :self
+        vi = @cuby.variables[:self]
       else
         lvar_accessed = nil
       end
@@ -346,22 +366,37 @@ class Cuby
       end
       
       if @cuby.declare_method == name and rex.first == :vcall
-        kind = x.shift.last.last
+        data = x.shift
+        if data.size == 3
+          kind = data[1].last
+          dec = data.last.last
+        else
+          kind = data.last.last
+        end
+        
         if Symbol === kind
           kind = @cuby.literal_types[Object.const_get(kind)]
         end
-        
         @cuby.declare_var kind, rex.last
-        return ""
+        
+        if dec
+          return dec
+        else
+          return ""
+        end
       end
-      
       
       recv = process(rex)
       recv_map = @cuby.last_type_map
       
       if @cuby.operator?(name)
-        rhs = process(x.shift[1])
-        return "#{recv} #{name} #{rhs}"
+        arg = x.shift
+        if arg
+          rhs = process(arg[1])
+          return "#{recv} #{name} #{rhs}"
+        else
+          return "#{name}#{recv}"
+        end
       elsif macro = @cuby.methods[name]
         x.clear
         return macro.apply(recv)
@@ -402,24 +437,8 @@ class Cuby
         vi.add_map @cuby.method_maps[map_name.to_sym]
         return ""        
       elsif vi and map = vi.find_mapping(name)
-        func = map[name]        
-        args = x.shift[1..-1].map { |a| process(a) }
-              
-        if ft = @cuby.functions[func.to_sym]
-          @cuby.last_type = ft.type
-        else
-          @cuby.last_type = nil
-        end
-        
-        if func.index("%s")
-          args.unshift recv
-          expanded = func % [args.join(", ")]
-          return expanded
-        elsif args.empty?
-          return "#{func}(#{recv})"
-        else
-          return "#{func}(#{recv}, #{args.join(", ")})"
-        end
+        func = map[name]
+        return call_function(recv, func, x)
       elsif lit_accessed or recv_map
         if lit_accessed
           map_name = @cuby.calculate_literal_map(lit_accessed)
@@ -429,23 +448,45 @@ class Cuby
         end
         
         if map and op = map[name]
-          args = x.shift[1..-1].map { |a| process(a) }
-          
-          if ft = @cuby.functions[op.to_sym]
-            @cuby.last_type = ft.type
-          else
-            @cuby.last_type = nil
-          end
-          
-          if args.empty?
-            return "#{op}(#{recv})"
-          else
-            return "#{op}(#{recv}, #{args.join(", ")})"
-          end
+          return call_function(recv, op, x)
         end
       end
       
       raise UnknownMethod, "Unsupported call '#{name}' applied to '#{recv}'"
+    end
+    
+    def call_function(recv,op,x)
+      na = x.shift
+      if na
+        args = na[1..-1].map { |a| process(a) }
+      else
+        args = []
+      end
+      
+      if Array === op
+        @cuby.last_type = op[0]
+        call = op[1]
+      else
+        name = op
+        if ft = @cuby.functions[name.to_sym]
+          @cuby.last_type = ft.type
+        else
+          @cuby.last_type = nil
+        end
+      end
+      
+      
+      if call
+        return call.call(recv, *args)
+      elsif op.index("%s")
+        args.unshift recv
+        expanded = op % [args.join(", ")]
+        return expanded
+      elsif args.empty?
+        return "#{op}(#{recv})"
+      else
+        return "#{op}(#{recv}, #{args.join(", ")})"
+      end
     end
     
     def process_if(x)
@@ -493,7 +534,7 @@ class Cuby
       cond_str = process(cond)
       cond_str = "!(#{cond_str})" if untl
       
-      if post_eh
+      if !post_eh
         str = "do {\n"
         str << process(body)
         str << ";\n" if no_block
@@ -511,6 +552,20 @@ class Cuby
     def process_until(x)
       process_while(x, true)
     end
+    
+    def process_return(x)
+      val = x.shift
+      val = process(val) if val
+      if @cuby.on_return
+        return @cuby.on_return.call(val)
+      end
+      
+      if val
+        "return #{val}"
+      else
+        "return"
+      end
+    end
   end
   
   def generate_from(code)
@@ -518,4 +573,109 @@ class Cuby
     str = pro.process code
     @code << str
   end
+  
+  class FunctionDeclaration
+    def initialize
+      @name = nil
+      @return_type = nil
+      @arguments = []
+    end
+    
+    attr_accessor :name, :return_type, :arguments
+  end
+  
+  class HeaderParser
+    
+    def self.find_in_file(path)
+      parse = new()
+      out = []
+      File.readlines(path).each do |line|
+        func = parse.parse_declaration(line)
+        out << func if func
+      end
+      
+      return out
+    end
+    
+    def self.find_in_directory(dir, re=/.h$/)
+      require 'find'
+      out = {}
+      Find.find(dir) do |path|
+        if File.file?(path) and re.match(path)
+          funcs = find_in_file(path)
+          out[path] = funcs unless funcs.empty?
+        end
+      end
+      
+      return out
+    end
+    
+    def initialize
+    end
+    
+    PartsRegex = /(.*)\s+([^\s]+)\(([^\)]*)\)\s*;/
+    
+    def seperate_parts(dec)
+      m = PartsRegex.match(dec)
+      return nil unless m
+      ret = {}
+      ret[:return_type] = m[1]
+      ret[:name] = m[2]
+      ret[:arguments] = m[3].split(/\s*,\s*/)
+      if ret[:name][0] == ?*
+        ret[:name] = ret[:name][1..-1]
+        ret[:return_type] << "*"
+      end
+      return ret
+    end
+    
+    def parse_argument(arg)
+      parts = arg.split(/\s+/)
+      ret = {}
+      pointer = false
+      # get rid of the const
+      parts.shift if parts.first == "const"
+      
+      if parts.first == "struct"
+        parts.shift
+        type = "struct #{parts.first}"
+      else
+        type = parts.first
+      end
+      ret[:type] = type
+      if type[-1] == ?*
+        pointer = true
+        ret[:pointed_type] = type[0..-2]
+      end
+      
+      if parts.size == 1
+        ret[:name] = nil
+      else
+        name = parts.last
+        if name[0] == ?*
+          ret[:pointed_type] = ret[:type].dup
+          ret[:type] << "*"
+          name = name[1..-1]
+          pointer = true
+        end
+        ret[:name] = name
+      end
+      ret[:pointer] = pointer
+      return ret
+    end
+    
+    def parse_declaration(dec)
+      parts = seperate_parts(dec)
+      return nil unless parts
+      
+      out = FunctionDeclaration.new
+      out.name = parts[:name]
+      out.return_type = parts[:return_type]
+      out.arguments = parts[:arguments].map do |a|
+        parse_argument(a)
+      end
+      return out
+    end
+  end
+  
 end
