@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'fileutils'
 require 'test/unit'
 
 class RubiniusError < RuntimeError; end
@@ -15,22 +16,27 @@ module RubiniusHelper
   
   def run_code(code, name=1, say=nil)
     name = caller_name(name) + "-#{code.hash.abs}"
-    path = "code-cache/#{name}.rb"
-    if !File.exists?(path) or (code != File.read(path))    
+    path = "#{cache_root}/#{name}.rb"
+    if !File.exists?(path) or !File.exists?(path + 'c') or (code != File.read(path))    
       File.open(path, "w") do |fd|
         fd << code
       end
-      `./bin/rcompile code-cache/#{name}.rb`
+      `#{rubinius_root}/bin/rcompile #{cache_root}/#{name}.rb`
     end
     r, w = IO.pipe
     r2, w2 = IO.pipe
+    
+    cached_rbs_root, cached_cache_root = rubinius_root, cache_root
     pid = fork {
       r.close
       w2.close
       STDOUT.reopen(w)
       STDIN.reopen(r2)
-      exec "./shotgun/rubinius lib/kernel.rbc code-cache/#{name}.rbc"
+      Dir.chdir "#{cached_cache_root}"
+      
+      exec "#{cached_rbs_root}/shotgun/rubinius #{cached_rbs_root}/lib/kernel.rbc #{cached_cache_root}/#{name}.rbc"
     }
+    
     r2.close
     w.close
     if say
@@ -62,4 +68,21 @@ module RubiniusHelper
     run_code("p #{code}\n", 2).strip
   end
   
+  private
+  def rubinius_root
+    File.expand_path(File.dirname(__FILE__) + '/..')
+  end
+  
+  def cache_root
+    "#{rubinius_root}/code-cache"
+  end
+end
+
+class RubiniusTestCase < Test::Unit::TestCase
+  include RubiniusHelper
+  undef_method :default_test
+  
+  def setup
+    FileUtils.mkdir_p "#{cache_root}"
+  end
 end

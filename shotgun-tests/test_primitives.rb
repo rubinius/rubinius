@@ -1,13 +1,7 @@
-require 'shotgun-tests/helper'
+require File.dirname(__FILE__) + '/helper'
 
-unless File.exists?("code-cache")
-  Dir.mkdir "code-cache"
-end
+class TestPrimitives < RubiniusTestCase
 
-class TestPrimitives < Test::Unit::TestCase
-
-  include RubiniusHelper
-  
   MAX = (2 ** 29) - 1
   
   def test_add
@@ -180,12 +174,12 @@ class TestPrimitives < Test::Unit::TestCase
   end
   
   def test_io_open
-    File.open("code-cache/tmp_io_open", "w") do |fd|
+    File.open("#{cache_root}/tmp_io_open", "w") do |fd|
       fd << "test 1234\n"
     end
     
     out = rp <<-CODE
-    fd = File.new("code-cache/tmp_io_open","r")
+    fd = File.new("#{cache_root}/tmp_io_open","r")
     puts fd.read(9)
     fd.close
     CODE
@@ -194,12 +188,12 @@ class TestPrimitives < Test::Unit::TestCase
   end
   
   def test_io_close
-    File.open("code-cache/tmp_io_open", "w") do |fd|
+    File.open("#{cache_root}/tmp_io_open", "w") do |fd|
       fd << "test 1234\n"
     end
     
     out = rp <<-CODE
-    fd = File.new("code-cache/tmp_io_open","r")
+    fd = File.new("#{cache_root}/tmp_io_open","r")
     p fd.closed?
     fd.close
     p fd.closed?

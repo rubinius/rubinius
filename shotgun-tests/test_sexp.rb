@@ -1,12 +1,6 @@
-require 'shotgun-tests/helper'
+require File.dirname(__FILE__) + '/helper'
 
-unless File.exists?("code-cache")
-  Dir.mkdir "code-cache"
-end
-
-class TestSexp < Test::Unit::TestCase
-
-  include RubiniusHelper
+class TestSexp < RubiniusTestCase
   
   def to_sexp(what)
     code = "'#{what}'.to_sexp('test',1,false)"

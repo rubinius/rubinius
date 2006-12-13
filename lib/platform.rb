@@ -7,7 +7,7 @@ class Platform
     b.include "<sys/uio.h>"
     b.include "<unistd.h>"
     b.include "<sys/time.h>"
-    b.add_compile_flags "-I include"
+    b.add_compile_flags "-I #{File.dirname(__FILE__)}/../include"
     b.include '"rubinius.h"'
     b.add_type_converter('OBJECT','NUM2UINT','UINT2NUM')
     

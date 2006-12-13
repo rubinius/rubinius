@@ -1,7 +1,6 @@
-require 'shotgun-tests/helper'
+require File.dirname(__FILE__) + '/helper'
 
-class TestCore < Test::Unit::TestCase
-  include RubiniusHelper
+class TestCore < RubiniusTestCase
   
   def test_at_exit
     out = rp <<-CODE
@@ -325,17 +324,24 @@ class TestCore < Test::Unit::TestCase
   end
   
   def test_require
-    File.open("code-cache/test_require.rb", "w") do |fd|
+    File.open("#{cache_root}/test_require.rb", "w") do |fd|
       fd.puts "puts 'hello world'"
     end
     
-    `./bin/rcompile code-cache/test_require.rb`
-    
+    `#{rubinius_root}/bin/rcompile #{cache_root}/test_require.rb`
+  
     out = rp <<-CODE
-    require 'code-cache/test_require'
+    require 'test_require'
     CODE
     
     assert_equal "hello world", out.first
+    
+    out = rp <<-CODE
+    require '#{cache_root}/test_require'
+    CODE
+    
+    assert_equal "hello world", out.first
+    
     
     out = rp <<-CODE
     begin

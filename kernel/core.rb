@@ -35,14 +35,20 @@ module Kernel
   end
   
   def require(thing)
-    $:.each do |dir|
-      path = "#{dir}/#{thing}.rbc"
-      if File.exists?(path)
-        $" << path
-        return load(path)
+    filename = thing + ".rbc"
+    if File.exists?(filename)
+      $" << filename
+      return load(filename)
+    else
+      $:.each do |dir|
+        path = "#{dir}/#{filename}"
+        if File.exists?(path)
+          $" << path
+          return load(path)
+        end
       end
+      raise LoadError, "Unable to find '#{thing}' to load"
     end
-    raise LoadError, "Unable to find '#{thing}' to load"
   end
   
   def exit(code=0)
