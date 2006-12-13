@@ -29,7 +29,7 @@ command-line args. To run a sample Ruby script, type:
 ./shotgun/rubinius lib/kernel.rbc samples/puts.rbc
 The first command compiles the script to an 'rbc' file.
 The second uses Rubinius to execute it.
-Future versions will make this process transparent.
+./bin/shotgun will perform both of these steps at once, for convenience.
 
 STATUS
 

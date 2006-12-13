@@ -8,6 +8,10 @@ mach = Machine.new
 # mach.cpu.garbage_collect
 
 file = ARGV.shift
+unless file
+  STDERR.puts "Please provide a filename to compile." 
+  exit 1
+end
 # mach.import_args ARGV
 # mach.setup_standard_io
 mach.compile_file file, false
