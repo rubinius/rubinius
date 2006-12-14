@@ -1,5 +1,5 @@
 desc "Rebuild shotgun from scratch"
-task :build => [:clean, :shotgun, :bk]
+task :build => [:clean, :ensure_syd, :shotgun, :bk]
 
 desc "Run shotgun's core tests"
 task :test_shotgun => [:code_cache] do
@@ -31,12 +31,23 @@ task :code_cache do
   FileUtils.rm Dir.glob("code-cache/*")
 end
 
+desc "Ensure that the correct version of the sydparse gem is installed."
+task :ensure_syd do
+  require 'rubygems'
+  begin
+    require_gem 'sydparse', '>= 1.2.1'
+  rescue Gem::LoadError
+    puts "\nYour system does not have the required sysparse gem installed...\n"
+    Rake::Task['syd'].invoke
+    raise "Gem 'sydparse' must be installed from externals/syd-parser/pkg directory. Then re-run 'rake build'."
+  end
+end  
+
 desc "Build syd-parser."
 task :syd do
+  puts "Building externals/syd-parser gem...\n"
   system("cd externals/syd-parser; rake gem")
-  puts
-  puts
-  puts "Now do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser."
+  puts "\nNow do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser.\n\n"
 end
 
 task :fields do
