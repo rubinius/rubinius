@@ -1,1 +1,0 @@
-raise NoMethodError, "you suck."

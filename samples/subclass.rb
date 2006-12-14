@@ -1,2 +1,0 @@
-class Box < Container
-end
