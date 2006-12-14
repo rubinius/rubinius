@@ -113,4 +113,16 @@ task :push do
   sh 'svk push --verbatim'
 end
 
+task :find_low_hanging_fruit do
+  puts <<-EOM
+  The Rubinius team welcomes contributions, bug reports, test cases, and monetary support.
+  One possible way to help is:
+  1. Add a test for a Ruby core method.
+  2. Go to the appropriately-named file in the 'kernel' directory.
+  3. Implement that method in Ruby.
+  4. Run the tests until they pass. :)
+  The 'ri' command is a rich source of examples and test cases.
+  EOM
+end
+
 # vim: syntax=ruby
