@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'test/unit'
-require 'test/unit/show_code'
+
 require 'cpu/runtime'
 require 'types'
 

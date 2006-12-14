@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'test/unit' unless defined? $ZENTEST and $ZENTEST
-require 'test/unit/show_code'
 require 'object'
 require 'cpu/runtime'
 require 'gc/heap'

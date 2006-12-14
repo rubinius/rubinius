@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'cpu/simple_marshal'
 require 'test/unit'
-require 'test/unit/show_code'
+
 require 'cpu/runtime'
 
 class TestSimpleMarshal < Test::Unit::TestCase

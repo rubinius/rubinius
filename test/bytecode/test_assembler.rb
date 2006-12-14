@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'bytecode/assembler'
 require 'test/unit'
-require 'test/unit/show_code'
+
 
 class TestBytecodeAssembler < Test::Unit::TestCase
   

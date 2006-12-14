@@ -1,6 +1,6 @@
 require 'cpu/primitives'
 require 'test/unit'
-require 'test/unit/show_code'
+
 require 'tempfile'
 require 'bytecode/constructor'
 

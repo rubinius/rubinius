@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'bytecode/assembler'
 require 'test/unit'
-require 'test/unit/show_code'
+
 require 'bytecode/compiler'
 require 'pp'
 
