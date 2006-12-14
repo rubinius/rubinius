@@ -1,3 +1,14 @@
+# &, *, +, -, <<, <=>, ==, [], []=, abbrev, assoc, at, average,
+# clear, collect, collect!, compact, compact!, concat, dclone,
+# delete, delete_at, delete_if, each, each_index, empty?, eql?,
+# fetch, fill, first, flatten, flatten!, frozen?, hash, include?,
+# index, indexes, indices, initialize_copy, insert, inspect, join,
+# last, length, map, map!, nitems, pack, pop, pretty_print,
+# pretty_print_cycle, push, quote, rassoc, reject, reject!, replace,
+# reverse, reverse!, reverse_each, rindex, select, shift, size,
+# slice, slice!, sort, sort!, to_a, to_ary, to_s, to_yaml, transpose,
+# uniq, uniq!, unshift, values_at, yaml_initialize, zip, |
+
 class Array
   def to_s
     "#<Array:0x#{object_id.to_s(16)} #{@total} elements>"
@@ -207,5 +218,23 @@ class Array
       i += 1
     end
     return [left, right]
+  end
+
+  def uniq
+    seen = {}
+    ary = []
+    i = 0
+    while i < @total
+      e = @tuple.at(i)
+      ary << e unless seen[e]
+      seen[e] = true
+      i += 1
+    end
+    ary
+  end
+
+  def uniq!
+    ary = self.uniq
+    ary.size == self.size ? nil : replace(ary)
   end
 end

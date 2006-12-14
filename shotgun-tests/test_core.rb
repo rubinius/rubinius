@@ -647,4 +647,22 @@ class TestCore < RubiniusTestCase
     CODE
     assert_equal ['even: [0, 2, 4]', 'odd: [1, 3, 5]'], out
   end
+
+  def test_array_uniq
+    out = rp <<-CODE
+      a = [1,1,2,2,2,3,4,5,5]
+      puts a.uniq.inspect
+    CODE
+    assert_equal ['[1, 2, 3, 4, 5]'], out
+  end
+
+  def test_array_uniq!
+    out = rp <<-CODE
+      a = [ "a", "a", "b", "b", "c" ]
+      puts a.uniq!.inspect   #=> ["a", "b", "c"]
+      b = [ "a", "b", "c" ]
+      puts b.uniq!.inspect   #=> nil
+    CODE
+    assert_equal ['["a", "b", "c"]', 'nil'], out
+  end
 end
