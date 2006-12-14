@@ -36,37 +36,6 @@ class TestCore < RubiniusTestCase
     assert_equal '["go"]', out.first
   end
   
-  def test_array_each
-    out = rp <<-CODE
-    ary = [1,2,3]
-    ary.each do |i|
-      p i
-    end
-    CODE
-    
-    assert_equal ['1','2','3'], out
-  end
-
-  def test_string_indexed
-    out = rp <<-CODE
-    p "blah"[0]
-    p "blah"[1]
-    p "blah"[2]
-    CODE
-    
-    assert_equal ["98", "108", "97"], out
-  end
-  
-  def test_string_prefix_eh
-    out = rp <<-CODE
-    p "blah".prefix?("bl")
-    p "blah".prefix?("fo")
-    p "go".prefix?("gogo")
-    CODE
-    
-    assert_equal ["true", "false", "false"], out
-  end
-  
   def test_exceptions
     out = rp <<-CODE
     begin
@@ -166,16 +135,6 @@ class TestCore < RubiniusTestCase
     CODE
 
     assert_equal "hello evan", out.first
-  end
-  
-  def test_string_append
-    out = rp <<-CODE
-    b = :evan
-    a = 8
-    puts "\#{b} is \#{a}"
-    CODE
-    
-    assert_equal "evan is 8", out.first
   end
   
   def test_inherited
@@ -598,19 +557,6 @@ class TestCore < RubiniusTestCase
     assert_equal ['nil', '6'], out
   end
 
-  def test_string_slice
-    out = rp <<-CODE
-    str = 'hello'
-    p str['zargle']
-    puts str['ell']
-    puts str[/ll./]
-    puts str[0]
-    puts str[0,1]
-    CODE
-    puts out
-    assert_equal ['nil', 'ell', 'llo', '104', 'h'], out 
-  end
-
   def test_case
     out = rp <<-CODE
       x = 1 
@@ -636,33 +582,5 @@ class TestCore < RubiniusTestCase
       end
     CODE
     assert_equal ['was 0', 'was 1'], out
-  end
-
-  def test_array_partition
-    out = rp <<-CODE
-      a = [0,1,2,3,4,5]
-      l, r = a.partition {|e| [0,2,4].include?(e)}
-      puts "even: #{l.inspect}"
-      puts "odd: #{r.inspect}"
-    CODE
-    assert_equal ['even: [0, 2, 4]', 'odd: [1, 3, 5]'], out
-  end
-
-  def test_array_uniq
-    out = rp <<-CODE
-      a = [1,1,2,2,2,3,4,5,5]
-      puts a.uniq.inspect
-    CODE
-    assert_equal ['[1, 2, 3, 4, 5]'], out
-  end
-
-  def test_array_uniq!
-    out = rp <<-CODE
-      a = [ "a", "a", "b", "b", "c" ]
-      puts a.uniq!.inspect   #=> ["a", "b", "c"]
-      b = [ "a", "b", "c" ]
-      puts b.uniq!.inspect   #=> nil
-    CODE
-    assert_equal ['["a", "b", "c"]', 'nil'], out
   end
 end
