@@ -12,9 +12,9 @@ Additionally, you will need an installation of ruby 1.8.x, and the following
 as gems or libraries:
   * ParseTree
   * rake
-  * sydparse
-sydparse can either be installed from rubyforge, or built locally using 
-the 'rake syd' command.
+  * sydparse 
+
+Use the local sydparse by building locally using the 'rake syd' command.
 
 Once these are installed, type: 'rake build' to compile Rubinius.  
 This builds the current version of Rubinius, known as 'shotgun'.
