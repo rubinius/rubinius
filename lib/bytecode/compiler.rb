@@ -460,7 +460,7 @@ module Bytecode
             generate_when lst, post, nil
           end
         end
-        
+                
         if els
           add "#{lbls.shift}:"
           process(els)
@@ -899,6 +899,7 @@ module Bytecode
         if splat
           add "cast_array"
           process splat
+          add "pop"
         end
       end
       
@@ -917,6 +918,7 @@ module Bytecode
         source.zip(rhs).each do |k, v|
           process k
           process v
+          add "pop"
         end
       end
       

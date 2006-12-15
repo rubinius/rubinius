@@ -91,7 +91,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_lit_for_regexp
     compile [:lit, /hello/]
-    exc = "push_literal 0\npush Regexp\nsend new 1\nret\n"
+    exc = "push false\npush_literal 0\npush Regexp\nsend new 2\nret\n"
     assert_equal exc, @meth.assembly
   end
   
@@ -132,14 +132,14 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_while
     sx = [:while, [:true], [:lit, 10]]
-    exc = "lbl1:\npush true\ngif lbl2\npush 10\ngoto lbl1\nlbl2:\nret\n"
+    exc = "lbl1:\npush true\ngif lbl2\nlbl3:\npush 10\ngoto lbl1\nlbl2:\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
   end
   
   def test_process_until
     sx = [:until, [:true], [:lit, 10]]
-    exc = "lbl1:\npush true\ngit lbl2\npush 10\ngoto lbl1\nlbl2:\nret\n"
+    exc = "lbl1:\npush true\ngit lbl2\nlbl3:\npush 10\ngoto lbl1\nlbl2:\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
   end
@@ -186,7 +186,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_rescue_simple
     sx = [:rescue, [:true], [:resbody, nil, [:lit, 2], nil]]
-    exc =  "#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n"
+    exc =  "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n"
     exc << "push_exception\npush RuntimeError\nsend === 1\n"
     exc << "gif lbl3\npush 2\ngoto lbl2\nlbl3:\npush_exception\nraise_exc\n"
     exc << "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
@@ -196,10 +196,10 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_rescue_two_resbodies
     sx = [:rescue, [:true], [:resbody, nil, [:lit, 2], [:resbody, nil, [:lit, 3]]]]
-    exc =  "#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n"
+    exc =  "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n"
     exc << "push_exception\npush RuntimeError\nsend === 1\n"
-    exc << "gif lbl4\npush 2\ngoto lbl2\n"
-    exc << "lbl4:\npush_exception\npush RuntimeError\nsend === 1\n"
+    exc << "gif lbl5\npush 2\ngoto lbl2\n"
+    exc << "lbl5:\npush_exception\npush RuntimeError\nsend === 1\n"
     exc << "gif lbl3\npush 3\ngoto lbl2\n"
     exc << "lbl3:\npush_exception\nraise_exc\n"
     exc << "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
@@ -211,11 +211,11 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     sx = [:rescue, [:true], [:resbody, 
       [:array, [:const, :Blah], [:const, :Bleh]], [:lit, 4]]]
     compile sx
-    exc =  "#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n"
+    exc =  "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n"
     exc << "push_exception\npush Blah\nsend === 1\n"
-    exc << "git lbl4\npush_exception\npush Bleh\nsend === 1\n"
+    exc << "git lbl5\npush_exception\npush Bleh\nsend === 1\n"
     exc << "gif lbl3\n"
-    exc << "lbl4:\npush 4\ngoto lbl2\n"
+    exc << "lbl5:\npush 4\ngoto lbl2\n"
     exc << "lbl3:\npush_exception\nraise_exc\n"
     exc << "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
     assert_equal exc, @meth.assembly
@@ -399,7 +399,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     sx = [:ensure, [:lit, 10], [:lit, 11]]
     exc =  "#exc_start exc1\npush 10\n"
     exc << "#exceptions exc1\npush 11\n"
-    exc << "push_exception\ngif lbl2\npush_exception\nraise\n"
+    exc << "push_exception\ngif lbl2\npush_exception\nraise_exc\n"
     exc << "lbl2:\n#exc_end exc1\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
@@ -417,7 +417,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
-    exc2 = "check_argcount 2 2\nset a:2\nset b:3\npush true\nret\n"
+    exc2 = "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
     assert_equal exc2, dfn.assembly
   end
   
@@ -433,7 +433,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
-    exc2 =  "check_argcount 2 0\nset a:2\nset b:3\nmake_rest 2\nset c\n"
+    exc2 =  "check_argcount 2 0\nset a:2\npop\nset b:3\npop\nmake_rest 2\nset c\npop\n"
     exc2 << "push true\nret\n"
     assert_equal exc2, dfn.assembly
   end
@@ -449,8 +449,8 @@ class TestBytecodeCompiler < Test::Unit::TestCase
       
     exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     exc2 =  "check_argcount 1 2\n"
-    exc2 << "set a:2\npassed_arg 1\ngit set1\npush 9\n"
-    exc2 << "set1:\nset b:3\npush false\npush true\nret\n"
+    exc2 << "set a:2\npop\npassed_arg 1\ngit set1\npush 9\n"
+    exc2 << "set1:\nset b:3\npop\npush false\npush true\nret\n"
     
     compile sx
     assert_equal exc, @meth.assembly
@@ -470,7 +470,8 @@ class TestBytecodeCompiler < Test::Unit::TestCase
       
     exc = "push_literal 0\npush_self\nadd_method blah\nret\n"
     exc2 =  "check_argcount 0 0\n"
-    exc2 << "push_block\npush Proc\nsend from_environment 1\nset b:2\npush true\nret\n"
+    exc2 << "push_block\npush Proc\nsend from_environment 1\nset b:2"
+    exc2 << "\npop\npush true\nret\n"
     
     compile sx
     assert_equal exc, @meth.assembly
@@ -492,7 +493,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
-    exc2 = "check_argcount 2 2\nset a:2\nset b:3\npush true\nret\n"
+    exc2 = "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
     assert_equal exc2, dfn.assembly
     assert_equal :at, dfn.primitive
   end
@@ -510,7 +511,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
-    exc2 = "check_argcount 2 2\nset a:2\nset b:3\npush true\npush self\nret\n"
+    exc2 = "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\npush self\nret\n"
     assert_equal exc2, dfn.assembly
   end
   
@@ -526,7 +527,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_equal exc, @meth.assembly
     dfn = @meth.literals.first
     assert_kind_of Bytecode::MethodDescription, dfn
-    exc2 = "check_argcount 2 2\nset a:2\nset b:3\npush true\nret\n"
+    exc2 = "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
     assert_equal exc2, dfn.assembly
   end
     
@@ -537,9 +538,9 @@ class TestBytecodeCompiler < Test::Unit::TestCase
       [:to_ary, [:lit, 8]]]
     
     exc =  "push 8\ncast_tuple\n"
-    exc << "unshift_tuple\nset a:2\n"
-    exc << "unshift_tuple\nset b:3\n"
-    exc << "unshift_tuple\nset c:4\n"
+    exc << "unshift_tuple\nset a:2\npop\n"
+    exc << "unshift_tuple\nset b:3\npop\n"
+    exc << "unshift_tuple\nset c:4\npop\n"
     exc << "ret\n"
     
     compile sx
@@ -553,9 +554,9 @@ class TestBytecodeCompiler < Test::Unit::TestCase
       [:to_ary, [:lit, 8]]]
     
     exc =  "push 8\ncast_tuple\n"
-    exc << "unshift_tuple\nset a:2\n"
-    exc << "unshift_tuple\nset b:3\n"
-    exc << "cast_array\nset c:4\n"
+    exc << "unshift_tuple\nset a:2\npop\n"
+    exc << "unshift_tuple\nset b:3\npop\n"
+    exc << "cast_array\nset c:4\npop\n"
     exc << "ret\n"
     
     compile sx
@@ -568,7 +569,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
      nil,
      [:array, [:lit, 99], [:lit, 8]]]
      
-    exc =  "push 99\nset a:2\npush 8\nset b:3\nret\n"
+    exc =  "push 99\nset a:2\npop\npush 8\nset b:3\npop\nret\n"
 
     compile sx
     assert_equal exc, @meth.assembly
@@ -689,7 +690,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     assert_kind_of Bytecode::MethodDescription, cls
     dfn = cls.literals.last
     exc =  "check_argcount 0 1\npassed_arg 0\ngit set1\npush 10\nset1:\nset base:2\n"
-    exc << "push base:2\npush self\nsend based_to_s 1\nret\n"
+    exc << "pop\npush base:2\npush self\nsend based_to_s 1\nret\n"
     
     assert_equal exc, dfn.assembly
   end
