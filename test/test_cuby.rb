@@ -248,25 +248,25 @@ class TestCuby < Test::Unit::TestCase
   end
   
   def test_while
-    code = [:while, [:lit, 1], [:lit, 50], false]
+    code = [:while, [:lit, 1], [:lit, 50], true]
     @c.generate_from code
     assert_equal "while(1) {\n50;\n}", @c.code
     
     @c.reset
     
-    code = [:while, [:lit, 1], [:lit, 50], true]
+    code = [:while, [:lit, 1], [:lit, 50], false]
     @c.generate_from code
     assert_equal "do {\n50;\n} while(1);", @c.code
   end
   
   def test_until
-    code = [:until, [:lit, 1], [:lit, 1], false]
+    code = [:until, [:lit, 1], [:lit, 1], true]
     @c.generate_from code
     assert_equal "while(!(1)) {\n1;\n}", @c.code
     
     @c.reset
     
-    code = [:until, [:lit, 1], [:lit, 1], true]
+    code = [:until, [:lit, 1], [:lit, 1], false]
     @c.generate_from code
     assert_equal "do {\n1;\n} while(!(1));", @c.code
   end

@@ -529,21 +529,21 @@ class Cuby
     def process_while(x, untl=false)
       cond = x.shift
       body, no_block = detect_block x.shift
-      post_eh = x.shift
+      prefixed = x.shift
       
       cond_str = process(cond)
       cond_str = "!(#{cond_str})" if untl
       
-      if !post_eh
-        str = "do {\n"
-        str << process(body)
-        str << ";\n" if no_block
-        str << "} while(#{cond_str});"
-      else
+      if prefixed
         str = "while(#{cond_str}) {\n"
         str << process(body)
         str << ";\n" if no_block
         str << "}"
+      else
+        str = "do {\n"
+        str << process(body)
+        str << ";\n" if no_block
+        str << "} while(#{cond_str});"
       end
       
       return str
