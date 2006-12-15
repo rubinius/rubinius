@@ -26,6 +26,9 @@ namespace :spec do
   
 end
 
+desc "Alias for test:all"
+task :test => 'test:all'
+
 namespace :test do
   desc "Run all tests."
   task :all do
@@ -195,12 +198,6 @@ desc "DEPRECATED: Run shotgun's core tests"
 task :test_shotgun do
   deprecate 'test:shotgun'
   Rake::Task['test:shotgun'].invoke
-end
-
-desc "DEPRECATED: Run rubinius's 1.8.* tests"
-task :test do
-  deprecate 'test:core'
-  Rake::Task['test:core'].invoke
 end
 
 desc "DEPRECATED: Run all the tests"
