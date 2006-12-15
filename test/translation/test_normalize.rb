@@ -179,17 +179,16 @@ class TestRsNormalize < Test::Unit::TestCase
       [
         [:when, [:array, [:lit, 1]], [:vcall, :blah]],
         [:when, [:array, [:lit, 99]], [:vcall, :bleh]],
-        [:else, [:vcall, :bluh]]
-      ]
+      ],
+      [:else, [:vcall, :bluh]]
     ]
     
     output = [:case, [:lit, 1], 
       [
         [:when, [:array, [:lit, 1]], [:block, [:call, [:self], :blah, [:array]]]],
         [:when, [:array, [:lit, 99]], [:block, [:call, [:self], :bleh, [:array]]]],
-        [:else, [:call, [:self], :bluh, [:array]]]
       ],
-      nil
+      [:else, [:call, [:self], :bluh, [:array]]]
     ]
     
     
