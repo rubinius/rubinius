@@ -34,7 +34,7 @@ class CPU
   IntSize = 4
   
   def next_int
-    int = @data[@ip, IntSize].unpack("i").first
+    int = @data[@ip, IntSize].unpack("N").first
     @ip += IntSize
     return int
   end
