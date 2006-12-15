@@ -29,7 +29,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     out = marshal int
     assert_equal 5, out.size
     assert_equal ?i, out[0]
-    intv = out[1..-1].unpack("I").first
+    intv = out[1..-1].unpack("N").first
     assert_equal intv, 932
     
     obj = unmarshal out
@@ -41,7 +41,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     mar = marshal obj
     assert_equal 13, mar.size
     assert_equal ?s, mar[0]
-    sz = mar[1,4].unpack("I").first
+    sz = mar[1,4].unpack("N").first
     assert_equal 8, sz
     assert_equal "blahbleh", mar[5..-1]
     
@@ -54,7 +54,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     mar = marshal obj
     assert_equal 13, mar.size
     assert_equal ?x, mar[0]
-    sz = mar[1,4].unpack("I").first
+    sz = mar[1,4].unpack("N").first
     assert_equal 8, sz
     assert_equal "blahbleh", mar[5..-1]
     
@@ -72,7 +72,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     
     mar = marshal tup
     assert_equal ?p, mar[0]
-    sz = mar[1,4].unpack("I").first
+    sz = mar[1,4].unpack("N").first
     assert_equal 3, sz
     
     tup2 = unmarshal mar
@@ -86,7 +86,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     mar = marshal obj
     assert_equal 13, mar.size
     assert_equal ?b, mar[0]
-    sz = mar[1,4].unpack("I").first
+    sz = mar[1,4].unpack("N").first
     assert_equal 8, sz
     assert_equal "blahbleh", mar[5..-1]
     
@@ -100,7 +100,7 @@ class TestSimpleMarshal < Test::Unit::TestCase
     cm = Rubinius::CompiledMethod.from_string(codes, lcls)
     mar = marshal cm
     assert_equal ?m, mar[0]
-    sz = mar[1,4].unpack("I").first
+    sz = mar[1,4].unpack("N").first
     assert_equal cm.fields, sz
     
     cm2 = unmarshal mar

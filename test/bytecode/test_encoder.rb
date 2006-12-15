@@ -12,7 +12,7 @@ class TestInstructionEncoder < Test::Unit::TestCase
   end
   
   def decI(str, count=1)
-    str.unpack("C" + ("I" * count))
+    str.unpack("C" + ("N" * count))
   end
   
   def enc(*args)
