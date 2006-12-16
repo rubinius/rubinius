@@ -40,4 +40,19 @@ class TestArray < RubiniusTestCase
     CODE
     assert_equal ['["a", "b", "c"]', 'nil'], out
   end
+
+  def test_array_subtract
+    out = rp <<-CODE
+    a1 = [1,2,3]
+    a2 = [2]
+    a3 = a1 - a2
+    p a3.length
+    a3.each {|i| p i }
+    a4 = a2 - a1
+    p a4.length
+    CODE
+
+    assert_equal ['2','1','3','0',], out
+  end
+
 end

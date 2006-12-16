@@ -146,6 +146,16 @@ class Array
     other.each { |e| out << e }
     return out
   end
+
+  def -(other)
+    out = []
+    each { |e| 
+      unless other.index(e)
+        out << e 
+      end
+    }
+    return out
+  end
   
   def replace(other)
     @tuple = other.tuple.dup
