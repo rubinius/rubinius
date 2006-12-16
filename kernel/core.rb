@@ -8,8 +8,10 @@ module Kernel
     STDOUT.puts obj.to_s
   end
   
-  def p(obj)
-    STDOUT.puts obj.inspect
+  def p(*args)
+    args.each do |obj|
+      STDOUT.puts obj.inspect
+    end
   end
   
   def print(*args)
