@@ -17,8 +17,10 @@ class TestArray < RubiniusTestCase
     out = rp <<-CODE
       a = [0,1,2,3,4,5]
       l, r = a.partition {|e| [0,2,4].include?(e)}
-      puts "even: #{l.inspect}"
-      puts "odd: #{r.inspect}"
+      print "even: " 
+      puts  l.inspect
+      print "odd: "
+      puts  r.inspect
     CODE
     assert_equal ['even: [0, 2, 4]', 'odd: [1, 3, 5]'], out
   end
