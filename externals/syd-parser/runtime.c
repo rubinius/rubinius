@@ -23,6 +23,7 @@ rb_parse_state *alloc_parse_state() {
     st->pool_size = 0;
     st->memory_size = 204800;
     st->memory_pools = NULL;
+    st->embedded = rb_ary_new();
 
     return st;
 }
@@ -33,6 +34,7 @@ void *rb_pt_mark(void *vps) {
     rb_gc_mark(parse_state->lex_lastline);
     rb_gc_mark(parse_state->lex_input);
     rb_gc_mark(parse_state->self);
+    rb_gc_mark(parse_state->embedded);
     return NULL;
 }
 

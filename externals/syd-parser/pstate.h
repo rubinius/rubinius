@@ -71,6 +71,8 @@ typedef struct rb_parse_state {
     char *memory_last_addr;
     int memory_size;
     
+    VALUE embedded;
+    
 } rb_parse_state;
 
 #endif

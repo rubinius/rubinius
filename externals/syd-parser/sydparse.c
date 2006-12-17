@@ -8585,6 +8585,12 @@ syd_node_newnode(st, type, a0, a1, a2)
     n->u1.value = a0;
     n->u2.value = a1;
     n->u3.value = a2;
+    
+    switch(type) {
+    case NODE_STR:
+    case NODE_LIT:
+      rb_ary_push(st->embedded, a0);
+    }
 
     return n;
 }
@@ -10036,6 +10042,7 @@ syd_gc_mark_parser(rb_parse_state *parse_state)
     // if (!ruby_in_compile) return;
 
     rb_gc_mark_maybe((VALUE)pslval->node);
+    
     /* rb_gc_mark(ruby_debug_lines); */
     rb_gc_mark(parse_state->lex_lastline);
     rb_gc_mark(parse_state->lex_input);
