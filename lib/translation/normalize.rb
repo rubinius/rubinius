@@ -272,7 +272,7 @@ class RsNormalizer < SimpleSexpProcessor
   def process_case(x)
     cond = x.shift
     whns = x.shift.map { |w| process(w) }
-    els = process(x.shift)
+    els = x.shift
     
     [:case, cond, whns, els]
   end
