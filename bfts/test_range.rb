@@ -1,8 +1,6 @@
 require 'test/unit'
 require 'rubicon_testcase'
 
-p RubiconTestCase.foo
-
 class TestRange < RubiconTestCase
 
   ############################################################
