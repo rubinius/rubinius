@@ -2,9 +2,9 @@
 # Totally minimal (hopefully) drop-in replacement for test/unit
 #
 
-# TODO: document minimal core methods needed for this to work
+# AK: historically from miniunit afaiu, some minor changes made by myself
 
-at_exit { Test::Unit.autotest }
+# TODO: document minimal core methods needed for this to work
 
 module Test
   class Assertion < Exception; attr_accessor :line; end
@@ -19,7 +19,9 @@ module Test
             inst.setup
             inst.send meth.intern
             inst.teardown
+            puts "Test Passed"
           rescue Exception => e
+            puts "Test failed"
             break if ENV["SILENCE_TESTS"]
             file, line = file_and_line_number(e)
             code = file ? load_line(file, line) : nil
@@ -27,6 +29,7 @@ module Test
           end
         end
       end
+      puts "Autotest finished"
     end
 
     def self.file_and_line_number(exc)
@@ -137,3 +140,5 @@ module Test
     end # class TestCase
   end # class Unit
 end # module Test
+
+at_exit { Test::Unit.autotest }
