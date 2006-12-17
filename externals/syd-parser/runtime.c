@@ -1,5 +1,5 @@
 #include "ruby.h"
-#include "node.h"
+#include "sydnode.h"
 #include "runtime.h"
 #include "internal.h"
 
@@ -844,6 +844,8 @@ again_no_block:
     break;
 
   case NODE_XSTR:             /* u1    (%x{ls}) */
+    rb_ary_push(current, node->nd_lit);
+    break;
   case NODE_STR:              /* u1 */
     rb_ary_push(current, rb_str_dup(node->nd_lit));
     break;

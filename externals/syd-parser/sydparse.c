@@ -117,7 +117,7 @@
 #include "ruby.h"
 #include "env.h"
 #include "intern.h"
-#include "node.h"
+#include "sydnode.h"
 #include "st.h"
 #include <stdio.h>
 #include <errno.h>

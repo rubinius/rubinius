@@ -3,7 +3,7 @@
 
 #include "st.h"
 #include "re.h"
-#include "node.h"
+#include "sydnode.h"
 #include "env.h"
 
 struct gc_list {

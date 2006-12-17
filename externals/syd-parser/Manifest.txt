@@ -7,7 +7,7 @@ bin/syd_pt_show
 lib/sydparse
 lib/sydparse.rb
 Manifest.txt
-node.h
+sydnode.h
 parse_override.h
 Rakefile
 runtime.c
