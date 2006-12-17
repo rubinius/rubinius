@@ -137,6 +137,25 @@ class TestCore < RubiniusTestCase
     assert_equal "hello evan", out.first
   end
   
+  def test_three_level_inherited
+    out = rp <<-CODE
+
+    class Foo
+      def self.inherited b
+        puts "\#{self} was inherited by \#{b}"
+      end
+    end
+
+    class Bar < Foo
+    end
+
+    class Baz < Bar
+    end
+    CODE
+    
+    assert_equal "Foo was inherited by Bar\nFoo was inherited by Baz", out.first
+  end
+  
   def test_inherited
     out = rp <<-CODE
     class Blah
