@@ -4690,8 +4690,20 @@ syd_node_newnode(st, type, a0, a1, a2)
     
     switch(type) {
     case NODE_STR:
+    case NODE_DSTR:
+    case NODE_DXSTR:
+    case NODE_DREGX:
+    case NODE_DREGX_ONCE:
     case NODE_LIT:
+    case NODE_ARRAY:
+    case NODE_MATCH:
+    case NODE_XSTR:
       rb_ary_push(st->embedded, a0);
+    }
+    
+    switch(type) {
+    case NODE_YIELD:
+      rb_ary_push(st->embedded, a2);
     }
 
     return n;
