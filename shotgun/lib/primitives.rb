@@ -1061,8 +1061,23 @@ class ShotgunPrimitives
     CODE
   end
   
-  def fixnum_modulo # STUB
+  def fixnum_modulo
     <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      m = j % k;
+      t2 = I2N(m);
+      if(m != FIXNUM_TO_INT(t2)) {
+        t2 = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
+      }
+      stack_push(t2);
+      _ret = TRUE;
+    }
     CODE
   end
 end

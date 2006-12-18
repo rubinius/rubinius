@@ -338,6 +338,6 @@ class TestPrimitives < RubiniusTestCase
     puts [451 % 2, 93 % 3].inspect
     CODE
     
-    assert_equal '[1, 0]', out
+    assert_equal '[1, 0]', out.first
   end
 end

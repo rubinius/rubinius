@@ -17,7 +17,7 @@ context "Array" do
   
   specify "'partition' should return in the left array values for which the block evaluates to true" do
     rubinius(<<-CODE
-        puts [ 0,1,2,3,4,5 ].partition { |i| [0,2,4].include? i }.inspect
+        puts [ 0,1,2,3,4,5 ].partition { |i| i % 2 == 0 }.inspect
       CODE
     ).should == "[[0, 2, 4], [1, 3, 5]]"
   end
