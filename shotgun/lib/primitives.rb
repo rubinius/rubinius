@@ -1060,6 +1060,11 @@ class ShotgunPrimitives
     _ret = FALSE;
     CODE
   end
+  
+  def fixnum_modulo # STUB
+    <<-CODE
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

@@ -65,7 +65,8 @@ class CPU::Primitives
     :file_to_sexp,
     :get_byte,
     :libz_inflate,
-    :libz_deflate
+    :libz_deflate,
+    :fixnum_modulo
   ]
   
   FirstRuntimePrimitive = 1024

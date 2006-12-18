@@ -15,6 +15,10 @@ class Fixnum
     Ruby.primitive :fixnum_mul
   end
   
+  def %(o)
+    Ruby.primitive :fixnum_modulo
+  end
+  
   def <=>(o)
     Ruby.primitive :compare
   end

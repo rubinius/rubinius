@@ -332,4 +332,12 @@ class TestPrimitives < RubiniusTestCase
 
     assert_equal "blah", out.first
   end
+  
+  def test_fixnum_modulo
+    out = rp <<-CODE
+    puts [451 % 2, 93 % 3].inspect
+    CODE
+    
+    assert_equal '[1, 0]', out
+  end
 end
