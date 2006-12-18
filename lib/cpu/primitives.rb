@@ -63,7 +63,9 @@ class CPU::Primitives
     :tuple_shifted,
     :gc_start,
     :file_to_sexp,
-    :get_byte
+    :get_byte,
+    :libz_inflate,
+    :libz_deflate
   ]
   
   FirstRuntimePrimitive = 1024

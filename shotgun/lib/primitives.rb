@@ -1044,6 +1044,22 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def libz_inflate # STUB
+    <<-CODE
+    stack_pop(); //class method, ignore self
+    t1 = stack_pop(); //string to inflate
+    _ret = FALSE;
+    CODE
+  end
+
+  def libz_deflate # STUB
+    <<-CODE
+    stack_pop(); //class method, ignore self
+    t1 = stack_pop(); //string to deflate
+    _ret = FALSE;
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
