@@ -153,7 +153,7 @@ class TestCore < RubiniusTestCase
     end
     CODE
     
-    assert_equal "Foo was inherited by Bar\nFoo was inherited by Baz", out.first
+    assert_equal ["Foo was inherited by Bar", "Foo was inherited by Baz"], out
   end
   
   def test_inherited
