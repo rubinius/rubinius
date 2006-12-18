@@ -1,11 +1,11 @@
 module Compression
-  class LibZ
+  class ZLib
     def self.inflate(input)
-      Ruby.primitive :libz_inflate
+      Ruby.primitive :zlib_inflate
     end
 
     def self.deflate(input)
-      Ruby.primitive :libz_deflate
+      Ruby.primitive :zlib_deflate
     end
   end
 end

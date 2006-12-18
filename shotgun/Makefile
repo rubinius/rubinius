@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs` -lncurses libs/libtommath/libtommath.a libs/libedit/libedit.a libs/onig/.libs/libonig.a
+LIBS=`pkg-config glib-2.0 --libs` -lncurses -lz libs/libtommath/libtommath.a libs/libedit/libedit.a libs/onig/.libs/libonig.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 

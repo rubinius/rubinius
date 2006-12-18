@@ -1045,19 +1045,82 @@ class ShotgunPrimitives
     CODE
   end
 
-  def libz_inflate # STUB
+  def zlib_inflate
     <<-CODE
+    #define ZLIB_CHUNK 512
+
     stack_pop(); //class method, ignore self
     t1 = stack_pop(); //string to inflate
-    _ret = FALSE;
+    if(!RISA(t1, string)) { //parameter must be a string
+      _ret = FALSE;
+      return 0;
+    }
+    else {
+      unsigned char out_buffer[ZLIB_CHUNK];
+      int zerr = 0; // Zlib error code
+      unsigned char *input = string_as_string(state, t1);
+      GString *output = g_string_new(NULL);
+
+  
+      z_stream zs;
+      zs.zfree = Z_NULL;
+      zs.zalloc = Z_NULL;
+      zs.opaque = Z_NULL;
+      zs.avail_in = strlen(input) + 1; // Is this safe?
+      zs.next_in = input;
+      zerr = inflateInit(&zs);
+      if (zerr != Z_OK) {
+        inflateEnd(&zs);
+        _ret = FALSE;
+        free(input);
+        g_string_free(output, TRUE);
+        return 0;
+      }
+
+      do {
+        zs.avail_out = ZLIB_CHUNK;
+        zs.next_out = out_buffer;
+        zerr = inflate(&zs, Z_SYNC_FLUSH);
+        k = ZLIB_CHUNK - zs.avail_out; // How much we got.
+        switch (zerr) {
+          case Z_OK:
+            g_string_append_len(output, out_buffer, k);
+            break;
+          case Z_STREAM_END:
+            g_string_append_len(output, out_buffer, k);
+            break;
+          default:
+            inflateEnd(&zs);
+            _ret = FALSE;
+            free(input);
+            g_string_free(output, TRUE);
+            return 0;
+          }
+      } while (zs.avail_out == 0);
+
+      inflateEnd(&zs);
+      free(input);
+ 
+      if (zerr != Z_STREAM_END && zerr != Z_OK) {
+        _ret = FALSE; 
+        return 0;
+      }
+      stack_push(string_new2(state, output->str, output->len));
+      g_string_free(output, TRUE);
+    }
     CODE
   end
 
-  def libz_deflate # STUB
+  def zlib_deflate # STUB
     <<-CODE
     stack_pop(); //class method, ignore self
     t1 = stack_pop(); //string to deflate
-    _ret = FALSE;
+    if(!RISA(t1, string)) { //parameter must be a string
+      _ret = FALSE;
+    }
+    else {
+      stack_push(string_new2(state, NULL, 0));
+    }
     CODE
   end
   

@@ -64,8 +64,8 @@ class CPU::Primitives
     :gc_start,
     :file_to_sexp,
     :get_byte,
-    :libz_inflate,
-    :libz_deflate,
+    :zlib_inflate,
+    :zlib_deflate,
     :fixnum_modulo
   ]
   

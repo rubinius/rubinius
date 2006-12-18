@@ -319,17 +319,15 @@ class TestPrimitives < RubiniusTestCase
 
   def test_deflate
     out = rp <<-CODE
-    p Compression::LibZ.deflate("blah")
+    puts Compression::ZLib.deflate("blah")
     CODE
-
     assert_equal "x\234K\312I\314\000\000\003\372\001\230", out.first
   end
 
   def test_inflate
     out = rp <<-CODE
-    p Compression::LibZ.inflate("x\234K\312I\314\000\000\003\372\001\230")
+    puts Compression::ZLib.inflate("x\\234K\\312I\\314\\000\\000\\003\\372\\001\\230")
     CODE
-
     assert_equal "blah", out.first
   end
   
