@@ -20,7 +20,7 @@
 #define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
-  OBJECT sym, _lit, val, s1, s2, s3, s4;
+  OBJECT sym, _lit, val, s1, s2, s3, s4, sup_itr;
   int _int;
     
   next_literal;
@@ -60,8 +60,12 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     }
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
-    cpu_perform_hook(state, c, sup, state->global->sym_inherited, val);
-    /* perform_hook(sup, @inherited, val) */
+    sup_itr = sup;
+    while(1) {
+      cpu_perform_hook(state, c, sup_itr, state->global->sym_inherited, val);
+      sup_itr = class_get_superclass(sup_itr);
+      if(NIL_P(sup_itr) || sup_itr == state->global->object) { break; }
+    }
   }
   return val;
 }
