@@ -32,9 +32,7 @@ context "Array" do
   specify "'uniq!' should return the same array" do
     rubinius(<<-CODE
         a = [ "a", "a", "b", "b", "c" ]
-        a_id = a.object_id
-        b = a.uniq!
-        a_id.equal? b.object_id
+        puts a.equal?(a.uniq!)
       CODE
     ).should == 'true'
   end
