@@ -26,13 +26,15 @@ context "Array" do
     rubinius(<<-CODE
         puts [ "a", "a", "b", "b", "c" ].uniq.inspect
       CODE
-    ).should == "['a', 'b', 'c']"
+    ).should == '["a", "b", "c"]'
   end
   
   specify "'uniq!' should return the same array" do
     rubinius(<<-CODE
         a = [ "a", "a", "b", "b", "c" ]
-        a.equal? a.uniq!
+        a_id = a.object_id
+        b = a.uniq!
+        a_id.equal? b.object_id
       CODE
     ).should == 'true'
   end
@@ -41,14 +43,14 @@ context "Array" do
     rubinius(<<-CODE
         puts [ "a", "a", "b", "b", "c" ].uniq!.inspect
       CODE
-    ).should == "['a', 'b', 'c']"
+    ).should == '["a", "b", "c"]'
   end
   
   specify "'uniq!' should return nil if no changes are made to the array" do
     rubinius(<<-CODE
         puts [ "a", "b", "c" ].uniq!.inspect
       CODE
-    ).should = 'nil'
+    ).should == 'nil'
   end
 
   specify "'-' (difference) should return a copy of array minus any items from other array" do

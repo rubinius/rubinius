@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'test/unit'
 require 'spec'
+require 'fileutils'
 require File.dirname(__FILE__) + '/../shotgun-tests/helper'
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
@@ -9,6 +10,8 @@ class RubiniusTest < Test::Unit::TestCase
   
   def setup
     #setup_machine
+    
+    FileUtils.mkdir_p(cache_root) unless File.exists? cache_root
   end
 
   def teardown
