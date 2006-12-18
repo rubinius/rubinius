@@ -95,9 +95,7 @@ OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
   OBJECT tup, sub;
   tup = tuple_new(state, region->num_regs - 1);
   for(i = 1; i < region->num_regs; i++) {
-    /* This works around where it reports the end as the null. */
     j = region->end[i];
-    if(j == max) j--;
     sub = tuple_new2(state, 2, I2N(region->beg[i]), I2N(j));
     tuple_put(state, tup, i - 1, sub);
   }

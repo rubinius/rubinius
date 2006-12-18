@@ -43,7 +43,7 @@ class MatchData
     @region.each do |tup|
       x = tup.at(0)
       y = tup.at(1)
-      count = y - x + 1
+      count = y - x
       out << @source.substring(x, count)
     end
     
