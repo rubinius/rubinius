@@ -4,6 +4,9 @@ file = ARGV.shift
 if file == "-g"
   gdb = true
   file = ARGV.shift
+elsif file == "-v"
+  valgrind = true
+  file = ARGV.shift
 end
 
 comp = "#{file}c"
@@ -26,6 +29,8 @@ end
 
 if gdb
   cmd = "gdb --args ./shotgun/rubinius lib/kernel.rbc #{comp}"
+elsif valgrind
+  cmd = "valgrind --leak-check=full ./shotgun/rubinius lib/kernel.rbc #{comp}"
 else
   cmd = "./shotgun/rubinius lib/kernel.rbc #{comp}"
 end
