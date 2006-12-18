@@ -47,7 +47,7 @@ class SimpleMarshal
     state ||= MarshalState.new
     tag = str[0]
     start = state.consumed
-    # print tag.chr + "#{start}("
+    # puts tag.chr 
     out = case tag
     when ?i
       unmarshal_int(str, state)
@@ -80,12 +80,22 @@ class SimpleMarshal
   end
   
   def marshal_int(int)
-    ?i.chr + [int.to_int].pack("N")
+    val = int.to_int
+    if val < 0
+      sb = "n"
+      val = -val
+    else
+      sb = "p"
+    end
+    ?i.chr + sb + [val].pack("N")
   end
     
   def unmarshal_int(str, state)
-    state.consumed += 5
-    int = str[1..-1].unpack("N").first
+    state.consumed += 6
+    int = str[2..-1].unpack("N").first
+    if str[1] == ?n
+      int = -int
+    end
     return RObject.wrap(int)
   end
   

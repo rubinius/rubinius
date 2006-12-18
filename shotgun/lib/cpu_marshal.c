@@ -24,6 +24,12 @@ static void marshal_int(STATE, OBJECT obj, GString *buf) {
   int i;
   i = FIXNUM_TO_INT(obj);
   append_c('i');
+  if(i < 0) {
+    i = abs(i);
+    append_c('n');
+  } else {
+    append_c('p');
+  }
   append_sz(i);
 }
 
@@ -38,8 +44,11 @@ static int read_int(char *str) {
 
 static OBJECT unmarshal_int(STATE, char *str, struct marshal_state *ms) {
   int i;
-  ms->consumed += 5;
-  i = read_int(str + 1);
+  ms->consumed += 6;
+  i = read_int(str + 2);
+  if(str[1] == 'n') {
+    i = -i;
+  }
   return I2N(i);
 }
 
