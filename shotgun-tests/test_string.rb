@@ -2,6 +2,16 @@ require File.dirname(__FILE__) + '/helper'
 
 class TestString < RubiniusTestCase
   
+  def test_string_substring
+    out = rp <<-CODE
+    puts "blah".substring(0, 2)
+    puts "blah".substring(0, 4)
+    puts "blah".substring(2, 2)
+    CODE
+    
+    assert_equal ["bl", "blah", "ah"], out
+  end
+
   def test_string_indexed
     out = rp <<-CODE
     p "blah"[0]
