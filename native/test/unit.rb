@@ -89,7 +89,7 @@ module Test
       end
 
       def assert_instance_of(cls, obj, msg=nil)
-        assert cls.instance_of?(obj), msg || "Expected #{obj} to be a #{cls}"
+        assert obj.instance_of?(cls), msg || "Expected #{obj} to be a #{cls}"
       end
 
       def assert_kind_of(cls, obj, msg=nil)
