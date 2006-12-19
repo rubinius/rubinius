@@ -1,4 +1,9 @@
-require 'spec/rake/spectask'
+begin
+  require 'spec/rake/spectask'
+rescue LoadError
+  puts "Unable to load spec/rake/spectask, spec tasks are not available"
+  no_spec = true
+end
 
 # By default, run all the specs and tests
 task :default => :spec
@@ -8,7 +13,7 @@ task :spec do
   Rake::Task['spec:all'].invoke rescue got_error = true
   
   raise "Spec or test failures." if got_error
-end
+end unless no_spec
 
 namespace :spec do
   desc "Run all specs and tests."
@@ -39,7 +44,7 @@ namespace :spec do
     `echo "Executing specs under spec/library"`
     t.spec_files = FileList['spec/library/*_spec.rb']
   end
-end
+end unless no_spec
 
 desc "Alias for test:all"
 task :test => 'test:all'
