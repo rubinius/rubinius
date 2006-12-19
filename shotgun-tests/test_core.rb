@@ -602,4 +602,18 @@ class TestCore < RubiniusTestCase
     CODE
     assert_equal ['was 0', 'was 1'], out
   end
+  
+  def test_each_in_each
+    out = rp <<-CODE
+      [0].each { 
+        |klass|
+        p klass
+        [1].each {
+          |meth|
+          p meth
+        }
+      }
+    CODE
+    assert_equal ['0', '1'], out
+  end
 end
