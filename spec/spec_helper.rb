@@ -2,12 +2,9 @@ require 'rubygems'
 require 'test/unit'
 require 'spec'
 require 'fileutils'
-require File.dirname(__FILE__) + '/../shotgun-tests/helper'
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
 class RubiniusTest < Test::Unit::TestCase
-  include RubiniusHelper
-  
   def setup
     #setup_machine
     

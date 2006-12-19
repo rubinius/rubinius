@@ -1,3 +1,6 @@
+require 'spec/rake/spectask'
+
+# By default, run all the specs and tests
 task :default => :spec
 
 desc "Run all specs and tests."
@@ -10,20 +13,32 @@ end
 namespace :spec do
   desc "Run all specs and tests."
   task :all do
-    Rake::Task['spec:lang'].invoke   rescue got_error = true
-    Rake::Task['test:all'].invoke    rescue got_error = true
+    Rake::Task['spec:only'].invoke  rescue got_error = true
+    Rake::Task['test:all'].invoke   rescue got_error = true
     
     raise "Spec or test failures." if got_error
   end
   
+  desc "Run only specs but not any tests."
+  task :only => ['spec:language', 'spec:shotgun', 'spec:library']
+  
   desc "Run the language specs."
-  task :lang do
+  Spec::Rake::SpecTask.new(:language) do |t|
+    `echo "Executing specs under spec/language"`
+    t.spec_files = FileList['spec/language/*_spec.rb']
   end
 
   desc "Run the shotgun specs."
-  task :shotgun do
+  Spec::Rake::SpecTask.new(:shotgun) do |t|
+    `echo "Executing specs under spec/shotgun"`
+    t.spec_files = FileList['spec/shotgun/*_spec.rb']
   end
   
+  desc "Run the library (ruby implementation of standard library) specs."
+  Spec::Rake::SpecTask.new(:library) do |t|
+    `echo "Executing specs under spec/library"`
+    t.spec_files = FileList['spec/library/*_spec.rb']
+  end
 end
 
 desc "Alias for test:all"
