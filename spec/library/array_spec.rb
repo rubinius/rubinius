@@ -24,13 +24,42 @@ context "Array" do
       CODE
     ).should == "nil"
   end
+  
+  specify "* with a string should be equivalent to self.join(str)" do
+    rubinius(<<-CODE
+        puts [ 1, 2, 3 ] * ","
+      CODE
+    ).should == "1,2,3"
+  end
+  
+  specify "* with an int should concatenate n copies of the array" do
+    rubinius(<<-CODE
+        p [ 1, 2, 3 ] * 3
+      CODE
+    ).should == "[1, 2, 3, 1, 2, 3, 1, 2, 3]"
+  end
+  
+  specify "+ should concatenate two arrays" do
+    rubinius(<<-CODE
+        p [ 1, 2, 3 ] + [ 4, 5 ]
+      CODE
+    ).should == "[1, 2, 3, 4, 5]"
+  end
 
   specify "- should create an array minus any items from other array" do
     rubinius(<<-CODE
-      puts ([ 1, 1, 2, 2, 3, 3, 4, 5 ] - [ 1, 2, 4 ]).inspect
+      p [ 1, 1, 2, 2, 3, 3, 4, 5 ] - [ 1, 2, 4 ]
       CODE
     ).should == "[3, 3, 5]"
   end
+  
+  specify "<< should push the object onto the end of the array" do
+    rubinius(<<-CODE
+        p [ 1, 2 ] << "c" << "d" << [ 3, 4 ]
+      CODE
+    ).should == '[1, 2, "c", "d", [3, 4]]'
+  end
+  
   specify "each should yield each element to the block" do
     rubinius(<<-CODE
         [ 1,2,3 ].each { |item| puts item }
@@ -47,14 +76,14 @@ context "Array" do
   
   specify "partition should return in the left array values for which the block evaluates to true" do
     rubinius(<<-CODE
-        puts [ 0,1,2,3,4,5 ].partition { |i| i % 2 == 0 }.inspect
+        p [ 0,1,2,3,4,5 ].partition { |i| i % 2 == 0 }
       CODE
     ).should == "[[0, 2, 4], [1, 3, 5]]"
   end
   
   specify "uniq should return an array with no duplicates" do
     rubinius(<<-CODE
-        puts [ "a", "a", "b", "b", "c" ].uniq.inspect
+        p [ "a", "a", "b", "b", "c" ].uniq
       CODE
     ).should == '["a", "b", "c"]'
   end
@@ -69,14 +98,14 @@ context "Array" do
   
   specify "uniq! should return the array with no duplicates" do
     rubinius(<<-CODE
-        puts [ "a", "a", "b", "b", "c" ].uniq!.inspect
+        p [ "a", "a", "b", "b", "c" ].uniq!
       CODE
     ).should == '["a", "b", "c"]'
   end
   
   specify "uniq! should return nil if no changes are made to the array" do
     rubinius(<<-CODE
-        puts [ "a", "b", "c" ].uniq!.inspect
+        p [ "a", "b", "c" ].uniq!
       CODE
     ).should == 'nil'
   end
