@@ -64,6 +64,7 @@ class String
   def to_sym
     Ruby.primitive :symbol_lookup
   end
+  alias :intern :to_sym
 
   def to_sexp_full(name, line, newlines)
     Ruby.primitive :string_to_sexp
