@@ -1,5 +1,5 @@
 ENV['TESTING'] = '1'
-DONT_TEST = %w(test_extractors.rb test_rbs_translate.rb test_typer.rb test_instructions.rb test_memory.rb)
+DONT_TEST = %w(test_memory.rb)
 
 if dir = ARGV.shift
     Dir["#{dir}/test_*"].each do |f|

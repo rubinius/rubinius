@@ -28,8 +28,6 @@ class ExtractClasses < SexpProcessor
     out
   end
   
-  include RsNormalizer::DefnNormalize
-  
   def process_defn(x)
     x = super
     x.shift
