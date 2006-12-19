@@ -20,7 +20,7 @@ context "Array" do
   
   specify "& should create an array with no duplicates" do
     rubinius(<<-CODE
-        puts d
+        puts ([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).uniq!
       CODE
     ).should == "nil"
   end
