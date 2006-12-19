@@ -4,6 +4,8 @@ require 'spec'
 require 'fileutils'
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
+class RubiniusError < RuntimeError; end
+
 class RubiniusTest < Test::Unit::TestCase
   def setup
     #setup_machine
