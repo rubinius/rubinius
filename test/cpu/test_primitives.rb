@@ -229,6 +229,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
   def test_create_block
     @cpu.bootstrap
     @cpu.push_object RObject.wrap(0)
+    @cpu.push_object RObject.wrap(0)
     @cpu.push_object @cpu.active_context
     assert do_prim(:create_block)
     obj = obj_top()
@@ -257,6 +258,7 @@ class TestCPUPrimitives < Test::Unit::TestCase
     @cpu.active_context.bytecodes = bc
     @cpu.restore_context(@cpu.active_context)
     
+    @cpu.push_object RObject.wrap(0)
     @cpu.push_object RObject.wrap(0)
     @cpu.push_object @cpu.active_context
     assert do_prim(:create_block)

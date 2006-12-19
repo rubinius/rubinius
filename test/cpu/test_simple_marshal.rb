@@ -27,9 +27,10 @@ class TestSimpleMarshal < Test::Unit::TestCase
   def test_int
     int = RObject.wrap(932)
     out = marshal int
-    assert_equal 5, out.size
+    assert_equal 6, out.size
     assert_equal ?i, out[0]
-    intv = out[1..-1].unpack("N").first
+    assert_equal ?p, out[1]
+    intv = out[2,4].unpack("N").first
     assert_equal intv, 932
     
     obj = unmarshal out
