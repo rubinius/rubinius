@@ -18,17 +18,17 @@ as gems or libraries:
 Use the local sydparse by building locally using the 'rake syd' command. The 
 'rake build' task will fail until you install the correct version of sydparse.
 
-Once these are installed, type: 'rake build' to compile Rubinius. 
+Once these are installed, type: 'rake build:all' to compile Rubinius. 
 This builds the current version of Rubinius, known as 'shotgun'.
-Use 'rake test_shotgun' to run the tests.
+Use 'rake test' to run the tests.
 
 RUNNING RUBINIUS
 
-After running 'rake build', there will be a 'rubinius' binary in
+After running 'rake build:all', there will be a 'rubinius' binary in
 the 'shotgun' directory. This binary currently does not mimic the usual 'ruby'
-command-line args. To run a sample Ruby script, type:
-./bin/rcompile samples/puts.rb
-./shotgun/rubinius lib/kernel.rbc samples/puts.rbc
+command-line args. To run a Ruby script, type:
+./bin/rcompile some_ruby_file.rb
+./shotgun/rubinius lib/kernel.rbc some_ruby_file.rbc
 The first command compiles the script to an 'rbc' file.
 The second uses Rubinius to execute it.
 ./bin/shotgun will perform both of these steps at once, for convenience.
@@ -60,7 +60,9 @@ One possible way to help is:
 1. Add a test for a Ruby core method.
 2. Go to the appropriately-named file in the 'kernel' directory.
 3. Implement that method in Ruby.
-4. Run the tests until they pass. :)
+4. Type 'rake build:kernel' to make your change take effect.
+5. Run the tests until they pass. :)
+6. Create a patch with 'svn diff' and send it to the mailing list.
 The 'ri' command is a rich source of examples and test cases.
 
 STRUCTURE
