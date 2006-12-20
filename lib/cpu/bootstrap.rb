@@ -83,6 +83,7 @@ class CPU
     exc = define_class "Exception", Global.object, exc_fields
     fat = define_class "fatal", exc, exc_fields
     std = define_class "StandardError", exc, exc_fields
+    typ = define_class "TypeError", std, exc_fields
     arg = define_class "ArgumentError", std, exc_fields
     ner = define_class "NameError", std, exc_fields
     nme = define_class "NoMethodError", ner, exc_fields

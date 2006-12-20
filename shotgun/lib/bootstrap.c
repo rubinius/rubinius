@@ -20,6 +20,7 @@ void cpu_bootstrap_exceptions(STATE) {
   exc = dexc(Exception, BC(object));
   dexc(fatal, exc);
   std = dexc(StandardError, exc);
+  dexc(TypeError, std);
   arg = dexc(ArgumentError, exc);
   dexc(NameError, std);
   dexc(NoMethodError, exc);

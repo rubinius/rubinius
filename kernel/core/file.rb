@@ -36,6 +36,26 @@ class File < IO
   def self.link?(path)
     stat(path).kind == :link
   end
+
+  # TODO - needs work for Win32
+  def self.dirname(path)
+    raise TypeError.new("can't convert nil into a pathname") if path.nil?
+
+    slash = -1
+    nonslash = 0
+    before_slash = 0
+    0.upto(path.length-1) do |i|
+      if path[i].chr == "/" 
+        slash = i
+        before_slash = nonslash + 1
+      else
+        nonslash = i
+      end
+    end
+    return "/" if slash > 0  and nonslash == 0
+    return "." if slash == -1
+    return path.slice(0, before_slash)
+  end
   
   class Stat
     
