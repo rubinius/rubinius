@@ -15,4 +15,9 @@ class Integer
     end
     return self
   end
+
+  def to_i
+    self
+  end
+
 end

@@ -6,7 +6,22 @@ class RubiniusError < RuntimeError; end
 
 Signal.trap("CHLD") {}
 
+class String
+  def remove_head_indentation
+    m = /^\s*/.match(self)
+    return self unless m
+    len = m[0].length
+    gsub(/^\s{#{len}}/, '').strip
+  end
+end
+
 module RubiniusHelper
+  def assert_output(code, output)
+    out = rp(code.remove_head_indentation)
+    expected = output.remove_head_indentation.split(/\n/)
+    assert_equal(out, expected)
+  end
+
   def caller_name(which=1)
     line = caller[which]
     parts = line.split(/\s+/)

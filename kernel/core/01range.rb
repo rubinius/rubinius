@@ -2,7 +2,7 @@
 #
 class Range
 
-  # include Enumerable
+  include Enumerable
 
   ##
   # call-seq:

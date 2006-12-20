@@ -755,6 +755,18 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def bytearray_size
+    <<-CODE
+    self = stack_pop();
+    if (!object_stores_bytes_p(state, self)) {
+      _ret = FALSE;
+    } else {
+      j = bytearray_bytes(state, self);
+      stack_push(I2N(j));
+    }
+    CODE
+  end
   
   def load_file
     <<-CODE

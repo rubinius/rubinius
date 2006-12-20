@@ -10,6 +10,7 @@
 # uniq, uniq!, unshift, values_at, yaml_initialize, zip, |
 
 class Array
+
   def to_s
     "#<Array:0x#{object_id.to_s(16)} #{@total} elements>"
   end
@@ -28,31 +29,16 @@ class Array
   end
   
   def index(val)
-    i = 0
-    while i < @total
-      return i if val == @tuple.at(i)
-      i += 1
-    end
-    return nil
+    find_index { |o| o == val }
   end
   
   def ==(other)
     return false unless other.kind_of?(Array)
     return false if @total != other.size
-    i = 0
-    while i < @total
-      return false unless self[i] == other[i]
-      i += 1
+    each_with_index do |o, i|
+      return false unless o == other[i]
     end
     return true
-  end
-  
-  def map
-    out = []
-    each do |a|
-      out << yield(a)
-    end
-    return out
   end
   
   def map!
@@ -175,18 +161,6 @@ class Array
     return ary
   end
   
-  def include?(obj)
-    i = 0
-    while i < @total
-      test = self[i]
-      is = (test == obj)
-      return true if is
-      i += 1
-    end
-    
-    return false
-  end
-  
   def shift
     return nil if empty?
     
@@ -218,18 +192,6 @@ class Array
     return ary
   end
 
-  def partition
-    left = []
-    right = []
-    i = 0
-    while i < @total 
-      e = @tuple.at(i)
-      yield(e) ? left.push(e) : right.push(e)
-      i += 1
-    end
-    return [left, right]
-  end
-
   def uniq
     seen = {}
     ary = []
@@ -247,4 +209,5 @@ class Array
     ary = self.uniq
     ary.size == self.size ? nil : replace(ary)
   end
+
 end

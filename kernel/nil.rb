@@ -6,6 +6,10 @@ class NilClass
   def nil?
     true
   end
+
+  def to_i
+    0
+  end
 end
 
 class UndefClass

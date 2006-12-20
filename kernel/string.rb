@@ -98,28 +98,49 @@ class String
   end
 
   def [](arg, len = nil)
-    arg = Regexp.escape(arg) if arg.is_a?(String)
-    case arg
-    when Regexp
+    if len
+      len = len.to_i
+      return nil if len < 0
+    end
+    arg = Regexp.new(Regexp.escape(arg)) if arg.is_a?(String)
+    size = self.size
+    
+    if arg.respond_to? :match
       m = arg.match(self)
-      return nil unless m
-      match_start, match_end = m.full.at(0), m.full.at(1)
-      count = match_end - match_start
-      substring match_start, count
-    when Numeric
-      if len
-        substring arg, len
-      else
-        @data.get_byte(arg)
+      m[len.to_i] if m
+    elsif arg.respond_to?(:first) && arg.respond_to?(:last)
+      from = arg.first
+      to = arg.last
+      to = to - 1 if arg.respond_to?(:exclude_end?) && arg.exclude_end?
+      from = from + size if from < 0
+      to = to + size if to < 0
+      len = to - from + 1
+      self[from, len]
+      
+    elsif arg && arg.respond_to?(:to_i)
+      arg = arg.to_i
+      arg = arg + size if arg < 0
+      if 0 <= arg && arg < size
+        if len
+          len = size - arg if arg + len >= size
+          substring(arg, len)
+        else
+          @data.get_byte(arg)
+        end
+      else # invalid start index
+        len ? "" : nil
       end
-    when Range
-      raise NotImplementedError.new("String#[] does not yet accept Range arguments")
     else
       raise ArgumentError.new("String#[] cannot accept #{arg.class} objects")
     end
   end
 
   alias_method :slice, :[]
+
+  def each_byte(&prc)
+    @data.each(&prc)
+  end
+
 end
 
 class SyntaxError
@@ -157,4 +178,18 @@ class ByteArray
   def <=>(other)
     Ruby.primitive :compare_bytes
   end  
+
+  def size
+    Ruby.primitive :bytearray_size
+  end
+
+  def each
+    size = self.size
+    i = 0
+    while i <= size
+      yield get_byte(i)
+      i += 1
+    end
+  end
+  
 end

@@ -7,6 +7,17 @@ class Module
     im = IncludedModule.new(mod)
     im.attach_to self
   end
+
+  def alias_method(nw,cur)
+    meth = @methods[cur]
+    unless meth
+      raise NoMethodError, "No method by the name of '#{cur}' for #{self}"
+    end
+    
+    @methods[nw] = meth
+    return meth
+  end
+
 end
 
 class IncludedModule < Module

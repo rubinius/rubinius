@@ -1,5 +1,5 @@
 class CompiledMethod
-  def activate(recv, args)
+  def activate(recv, args, &prc)
     sz = args.total
     Ruby.asm <<-ASM
     push args
@@ -43,9 +43,31 @@ class Method
     "#<#{self.class} #{@receiver.class}(#{@module})##{@method.name}>"
   end
   
-  def call(*args)
-    @method.activate(@receiver, args)
+  def call(*args, &prc)
+    @method.activate(@receiver, args, &prc)
   end
+
+  def unbind
+    UnboundMethod.new(@module, @method)
+  end
+
+end
+
+class UnboundMethod
+
+  def initialize(mod, cm)
+    @method = cm
+    @module = mod
+  end
+  
+  def inspect
+    "#<#{self.class} #{@module}##{@method.name}>"
+  end
+
+  def bind(receiver)
+    Method.new(receiver, @module, @method)
+  end
+
 end
 
 class RuntimePrimitive

@@ -20,3 +20,10 @@ class Exception
     at(0)
   end
 end
+
+class ScriptError < Exception
+end
+
+class NotImplementedError < Exception
+end
+

@@ -1,4 +1,6 @@
 class Array
+  include Enumerable
+
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will desend and spiral out to infinity!

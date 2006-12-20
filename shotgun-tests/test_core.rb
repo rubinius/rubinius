@@ -4,10 +4,12 @@ class TestCore < RubiniusTestCase
   
   def test_at_exit
     out = rp <<-CODE
+    puts "at"
     at_exit { puts "exited" }
+    puts "end"
     CODE
     
-    assert_equal ["exited"], out
+    assert_equal ["at", "end", "exited"], out
   end
 
   def test_class_new

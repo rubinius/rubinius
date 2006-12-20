@@ -4,16 +4,16 @@ module Ruby
 end
 
 module Kernel
-  def puts(obj="")
-    STDOUT.puts obj.to_s
+  def puts(*a)
+    a = [""] if a.empty?
+    a.each { |obj| STDOUT.puts obj.to_s }
   end
   
-  def p(*args)
-    args.each do |obj|
-      STDOUT.puts obj.inspect
-    end
+  def p(*a)
+    a = [nil] if a.empty?
+    a.each { |obj| STDOUT.puts obj.inspect }
   end
-  
+
   def print(*args)
     args.each do |obj|
       STDOUT.write obj.to_s
@@ -145,39 +145,24 @@ class Object
     to_s
   end
   
-  def find_method(meth)
-    cur = self.class
-    while cur
-      cm = cur.methods[meth]
-      return [cm, cur] if cm
-      cur = cur.direct_superclass
-    end
-    return nil
-  end
-  
   def respond_to?(meth)
-    not find_method(meth).nil?
+    begin
+      !self.class.instance_method(meth).nil?
+    rescue NameError
+      false
+    end
   end
   
-  def __send__(meth, *args)
-    cm, mod = find_method(meth)
-    if cm.nil?
-      raise NameError.new("Unable to locate method '#{meth}' on #{self}")
-    end
-    
-    cm.activate(self, args)
+  def __send__(meth, *args, &prc)
+    meth = self.class.instance_method(meth)
+    meth = meth.bind(self)
+    meth.call(*args, &prc)
   end
   
   alias :send :__send__
   
   def method(name)
-    cm, mod = find_method(name)
-    if cm.nil?
-      raise NameError.new("Unable to locate method '#{name}' on #{self}")      
-    end
-    
-    mo = Method.new(self, mod, cm)
-    return mo
+    self.class.instance_method(name).bind(self)
   end
   
   def lambda
@@ -189,6 +174,15 @@ class Object
     
     return Proc.from_environment(env)
   end
+
+  def instance_eval(string = nil, filename = nil, lineno = 0, &prc)
+    env = prc.block.block.dup
+    env.put(1, env.home.dup) # home => MethodContext
+    env.home.put(9, self) # receiver => Object
+    proc = Proc.from_environment(env)
+    proc.call(self)
+  end
+  
 end
 
 class TrueClass

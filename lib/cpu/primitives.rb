@@ -66,7 +66,8 @@ class CPU::Primitives
     :get_byte,
     :zlib_inflate,
     :zlib_deflate,
-    :fixnum_modulo
+    :fixnum_modulo,
+    :bytearray_size
   ]
   
   FirstRuntimePrimitive = 1024
