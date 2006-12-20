@@ -618,4 +618,12 @@ class TestCore < RubiniusTestCase
     CODE
     assert_equal ['0', '1'], out
   end
+
+  def test_numeric_chr
+    out = rp <<-CODE
+      puts 36.chr
+      puts 49.chr
+    CODE
+    assert_equal ['$', '1'], out
+  end
 end
