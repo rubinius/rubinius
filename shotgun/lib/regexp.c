@@ -128,7 +128,7 @@ OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string) {
   md = matchdata_allocate(state);
   matchdata_set_source(md, string);
   matchdata_set_regexp(md, regexp);
-  matchdata_set_full(md, tuple_new2(state, 2, I2N(region->beg[0]), I2N(region->end[0] - 1)));
+  matchdata_set_full(md, tuple_new2(state, 2, I2N(region->beg[0]), I2N(region->end[0])));
   matchdata_set_region(md, _md_region_to_tuple(state, region, max));
   onig_region_free(region, 1);
   return md;
