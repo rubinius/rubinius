@@ -217,11 +217,11 @@ class TestPrimitives < RubiniusTestCase
     assert interval <= 10, "Time.now returned #{out.first}, should have been close to #{i}"
   end
   
-  def test_strftime
-    t = Time.now.strftime("%a %b %d %H:%M %z %Y")
+  def test_strftime # TODO - Implement Time.at so that this test can't fail due to timing issues.
     out = rp <<-CODE
     puts Time.now.strftime("%a %b %d %H:%M %z %Y")
     CODE
+    t = Time.now.strftime("%a %b %d %H:%M %z %Y")
     assert_equal t, out.first
   end
 

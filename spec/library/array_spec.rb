@@ -11,16 +11,17 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # uniq!, unshift, values_at, zip, |
 
 context "Array" do
+  
   specify "& should create an array with elements common to both arrays" do
     rubinius(<<-CODE
-      puts [ 1, 1, 3, 5 ] & [ 1, 2, 3 ]
+      p [ 1, 1, 3, 5 ] & [ 1, 2, 3 ]
     CODE
     ).should == "[1, 3]"
   end
   
   specify "& should create an array with no duplicates" do
     rubinius(<<-CODE
-      puts ([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).uniq!
+      p ([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).uniq!
     CODE
     ).should == "nil"
   end
@@ -98,7 +99,7 @@ context "Array" do
   specify "[] should provide the element at the specified index" do
     rubinius(<<-CODE
       a = [ "a", "b", "c", "d", "e" ]
-      p a[1]
+      puts a[1]
     CODE
     ).should == "b"
   end
@@ -106,7 +107,7 @@ context "Array" do
   specify "[] should provide the element from the end of the array for a negative index" do
     rubinius(<<-CODE
       a = [ "a", "b", "c", "d", "e" ]
-      p a[-2]
+      puts a[-2]
     CODE
     ).should == "d"
   end
@@ -202,4 +203,5 @@ context "Array" do
     CODE
     ).should == 'nil'
   end
+  
 end

@@ -26,7 +26,11 @@ class Array
       return out
     end
     
-    if idx >= @total
+    if idx < 0
+      idx = @total + idx
+    end
+    
+    if idx < 0 || idx >= @total
       return nil
     end
     

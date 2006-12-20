@@ -75,14 +75,6 @@ class Array
   def compact!
     replace(compact)
   end
-    
-  def [](idx)    
-    if idx >= @total
-      return nil
-    end
-    
-    @tuple.at(idx)
-  end
   
   def first
     @tuple.at(0)
@@ -136,11 +128,44 @@ class Array
   def -(other)
     out = []
     each { |e| 
-      unless other.index(e)
+      unless other.include?(e)
         out << e 
       end
     }
     return out
+  end
+  
+  def &(other)    
+    out=[]
+    self.uniq!
+    each { |e| 
+      if other.include?(e)
+        out << e 
+      end
+    }
+    return out
+  end
+  
+  # TODO: test val for negative values and floats 
+  def *(val)
+    if val.class == String
+      return self.join(val)
+    else
+      out=[]
+      i=1
+      while i <= val
+        each { |e| out << e }
+        i += 1
+      end
+      return out
+    end
+  end
+  
+  def <=>(other)
+    if self == other
+      return 0
+    end
+      
   end
   
   def replace(other)
