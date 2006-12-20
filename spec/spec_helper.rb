@@ -19,7 +19,7 @@ class RubiniusTest < Test::Unit::TestCase
   def run(result)
   end
   
-  def rubinius(code)
+  def example(code)
     execute(compile(code))
   end
   
