@@ -1,5 +1,5 @@
 class Exception
-  def initialize(message)
+  def initialize(message = nil)
     ctx = MethodContext.current.sender.sender
     # puts "EXCEPTION: #{ctx}"
     put 0, message
