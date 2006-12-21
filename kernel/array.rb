@@ -75,6 +75,17 @@ class Array
   def compact!
     replace(compact)
   end
+
+  # THIS MUST NOT BE REMOVED. the kernel requires a simple
+  # Array#[] to work while parts of the kernel boot.
+  def [](idx)    
+    if idx >= @total
+      return nil
+    end
+
+    @tuple.at(idx)
+  end
+
   
   def first
     @tuple.at(0)
