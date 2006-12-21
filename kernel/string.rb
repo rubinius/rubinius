@@ -55,6 +55,10 @@ class String
     (@data <=> other.data) == 0
   end
 
+  def <=>(other)
+    @data <=> other.data
+  end
+
   def prefix?(pre)
     return false if pre.size >= @size
     sub = substring(0, pre.size)

@@ -10,7 +10,6 @@
 # uniq, uniq!, unshift, values_at, yaml_initialize, zip, |
 
 class Array
-
   def to_s
     "#<Array:0x#{object_id.to_s(16)} #{@total} elements>"
   end
@@ -61,8 +60,10 @@ class Array
     return self
   end
   
-  def push(ent)
-    self[@total] = ent
+  def push(*args)
+    args.each do |ent|
+      self[@total] = ent
+    end
     return self
   end
   
@@ -165,20 +166,21 @@ class Array
       return self.join(val)
     else
       out=[]
-      i=1
-      while i <= val
-        each { |e| out << e }
-        i += 1
+      val.times do
+        out.push *self
       end
       return out
     end
   end
   
   def <=>(other)
-    if self == other
-      return 0
+    each_with_index do |a, i| #Should use zip, but it wasn't liking it.
+      return -1 if a.nil?
+      return 1 if other[i].nil?
+      dif = a <=> other[i]
+      return dif unless dif == 0
     end
-      
+    return 0 #If no elements were different, then the arrays are identical.
   end
   
   def replace(other)

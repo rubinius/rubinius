@@ -1,6 +1,5 @@
 class Array
   include Enumerable
-
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will desend and spiral out to infinity!
@@ -9,6 +8,7 @@ class Array
         raise ArgumentError, "Second argument invalid with a range"
       end
       lst = idx.last
+      lst += 1 unless idx.exclude_end?
       if lst < 0
         lst = @total - (lst + 1)
       end
@@ -23,6 +23,8 @@ class Array
       idx.upto(max) do |i|
         out << @tuple.at(i)
       end
+      
+      return nil if idx > @total || max < 0
       return out
     end
     
