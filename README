@@ -7,7 +7,7 @@ a rich, high-performance environment for running Ruby code.
 COMPILING RUBINIUS
 
 Currently Rubinius can be built on UNIX-like systems, such as Linux and MacOS.
-It requires gcc4.x and glib2, though these dependencies are temporary.
+It requires gcc 4.x and glib2, though these dependencies are temporary.
 Additionally, you will need an installation of ruby 1.8.x, and the following
 as gems or libraries:
   * ParseTree
