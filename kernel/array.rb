@@ -58,10 +58,12 @@ class Array
   
   def <<(ent)
     self[@total] = ent
+    return self
   end
   
   def push(ent)
     self[@total] = ent
+    return self
   end
   
   def compact
