@@ -1,4 +1,3 @@
-require 'test/unit'
 require 'rubicon_testcase'
 
 class TestNilClass < RubiconTestCase

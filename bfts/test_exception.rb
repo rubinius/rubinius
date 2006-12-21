@@ -1,4 +1,3 @@
-require 'test/unit' if $0 == __FILE__
 require 'rubicon_testcase'
 
 class TestException < Test::Unit::TestCase

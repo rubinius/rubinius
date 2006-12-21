@@ -1,4 +1,3 @@
-require 'test/unit'
 require 'tempfile'
 require 'socket'
 require 'rubicon_testcase'

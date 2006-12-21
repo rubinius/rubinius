@@ -1,4 +1,3 @@
-require 'test/unit'
 require 'rubicon_testcase'
 
 class TestStringSubclass < String; end # for test_to_s/test_to_str
