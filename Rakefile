@@ -63,12 +63,17 @@ namespace :test do
     raise "Test failures." if got_error
   end
 
-  desc "Runs BFTS - for the moment atop of ruby itself rather the rubinius. Uses miniunit."
+  desc "Runs BFTS on Ruby 1.8.*."
   task :bfts do
     system("ruby -Inative -Ibfts/overlay bfts/overlay/tc_all.rb")
   end
   
-  desc "Run rubinius's 1.8.* tests"
+  desc "Runs part of BFTS under Rubinius natively."
+  task :nativebfts do
+    system("ruby -Ibfts/overlay bfts/overlay/test/test_stuff.rb")
+  end
+  
+  desc "Run rubinius's 1.8.* tests."
   task :core do
     system("ruby -Ilib test/tc_all.rb")
   end
