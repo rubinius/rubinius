@@ -185,6 +185,9 @@ class Object
   
 end
 
+TRUE = true
+FALSE = false
+
 class TrueClass
   def to_s
     "true"
