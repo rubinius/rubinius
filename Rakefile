@@ -44,6 +44,11 @@ namespace :spec do
     `echo "Executing specs under spec/library"`
     t.spec_files = FileList['spec/library/*_spec.rb']
   end
+  
+  desc "Run the specs for the target configurations."
+  Spec::Rake::SpecTask.new(:targets) do |t|
+    t.spec_files = FileList['spec/targets/*_spec.rb']
+  end
 end unless no_spec
 
 desc "Alias for test:all"
