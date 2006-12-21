@@ -57,6 +57,33 @@ class File < IO
     return path.slice(0, before_slash)
   end
   
+  # TODO - needs work for Win32
+  def self.basename(path, ext=nil)
+    raise TypeError.new("can't convert nil into a pathname") if path.nil?
+
+    slash = -1
+    0.upto(path.length-1) do |i|
+      if path[i].chr == "/"
+        slash = i
+      end
+    end
+    if slash == -1
+      slash = 0 
+    else 
+      slash += 1 unless path.length == 1
+    end
+    bn = path.slice(slash, path.length-slash)
+    if (ext)
+      x = bn.length
+      y = ext.length
+      # TODO the to_sym works around a mysterious bug
+      if (x > y && bn.slice(x-y, y).to_sym == ext.to_sym) 
+        bn = bn.slice(0, x-y) 
+      end
+    end
+    return bn 
+  end
+
   class Stat
     
     define_fields :inode, :mode, :kind, :owner, :group, :size, :block, :path

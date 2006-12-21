@@ -54,4 +54,17 @@ class TestString < RubiniusTestCase
     puts out
     assert_equal ['nil', 'ell', 'llo', '104', 'h'], out 
   end
+
+  # should the to_sym call be necessary?
+  def test_string_slice_dot_bug
+    out = rp <<-CODE
+    a = "baz.rb"
+    b =   "z.rb"
+    x = a.length
+    y = b.length
+    puts a.slice(x-y, y) == b
+    puts a.slice(x-y, y).to_sym == b.to_sym
+    CODE
+    assert_equal ['true', 'true'], out
+  end
 end

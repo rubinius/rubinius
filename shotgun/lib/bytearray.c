@@ -31,7 +31,7 @@ void *bytearray_byte_address(STATE, OBJECT self) {
 }
 
 int bytearray_bytes(STATE, OBJECT self) {
-  return NUM_FIELDS(self) * 4;
+  return SIZE_OF_BODY(self);
 }
 
 char *bytearray_as_string(STATE, OBJECT self) {

@@ -750,6 +750,8 @@ class ShotgunPrimitives
         stack_push(Qtrue);
       } else {
         k = memcmp(bytearray_byte_address(state, self), bytearray_byte_address(state, t1), j);
+        if(k > 1) {k = 1;} // Normalize return
+        if(k < -1) {k = -1;} // values for <=> method.
         stack_push(I2N(k));
       }
     }

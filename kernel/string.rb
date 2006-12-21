@@ -184,12 +184,8 @@ class ByteArray
   end
 
   def each
-    size = self.size
-    i = 0
-    while i <= size
+    0.upto(self.size - 1) do
       yield get_byte(i)
-      i += 1
     end
   end
-  
 end
