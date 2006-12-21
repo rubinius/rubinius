@@ -1,12 +1,21 @@
 CC=gcc
-CFLAGS=-Wall -g -ggdb3 -I../../include -iquote . -I../libs/onig -I../libs/libtommath -I../libs/libedit `pkg-config glib-2.0 --cflags`
-DEPS=auto.h ../../include/rubinius.h
+CPPFLAGS=-I../../include -iquote . -I../libs/onig -I../libs/libtommath -I../libs/libedit `pkg-config glib-2.0 --cflags`
+CFLAGS=-Wall -g -ggdb3 $(CPPFLAGS)
+DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../libs/libtommath/libtommath.a
-OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
+SOURCES=$(wildcard *.c)
+OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib
 
-%.o: %.c $(DEPS)
+
+%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
+
+.%.d:  %.c  $(DEPS)
+	@set -e; rm -f $@; \
+	$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
 
 librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
 	rm -f librubinius.a
@@ -31,6 +40,8 @@ grammer.c: grammer.y
 	bison -o grammer.c grammer.y
 
 clean:
-	rm -f *.o *.gen *.a auto.c auto.h
+	rm -f *.o *.gen *.a auto.c auto.h .*.d
 
 .PHONY: test
+
+include $(SOURCES:%.c=.%.d)
