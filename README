@@ -13,7 +13,8 @@ as gems or libraries:
   * ParseTree
   * rake
   * sydparse
-	* rspec (if you want to run specs, currently using 0.7.4)
+	* rspec (if you want to run specs, currently works with 0.7.5)
+	* ruby2ruby (also used in specs)
 
 Use the local sydparse by building locally using the 'rake syd' command. The 
 'rake build' task will fail until you install the correct version of sydparse.
