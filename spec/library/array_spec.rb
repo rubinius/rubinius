@@ -152,8 +152,8 @@ context "Array" do
   
   specify "uniq! should return the same array" do
     example do
-      a = [ "a", "a", "b", "b", "c" ]
-      puts a.equal?(a.uniq!)
+      @a = [ "a", "a", "b", "b", "c" ]
+      puts @a.equal?(@a.uniq!)
     end.should == 'true'
   end
   
