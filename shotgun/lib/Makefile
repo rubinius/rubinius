@@ -1,8 +1,8 @@
 CC=gcc
-CPPFLAGS=-I../../include -iquote . -I../libs/onig -I../libs/libtommath -I../libs/libedit `pkg-config glib-2.0 --cflags`
+CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libedit `pkg-config glib-2.0 --cflags`
 CFLAGS=-Wall -g -ggdb3 $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
-LIBS=`pkg-config glib-2.0 --libs` ../libs/libtommath/libtommath.a
+LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 SOURCES=$(wildcard *.c)
 OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib
