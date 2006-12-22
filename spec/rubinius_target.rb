@@ -1,18 +1,111 @@
+require 'rubygems' 
+require 'ruby2ruby'
+require 'fileutils'
 require 'test/unit'
+require 'sydparse'
+
+$:.unshift(File.dirname(__FILE__) + '/../lib')
+require 'machine'
 
 class RubiniusTargetError < RuntimeError; end
 
-class RubiniusTarget < Test::Unit::TestCase
+class RubiniusTarget
+  attr_reader :block, :source
+
+  def setup
+    make_cache_directory
+  end
+
   def example(&block)
-    klass = Class.new
-    klass.send(:define_method, :__example__, block)
-    find_block_sexp(ParseTree.new.parse_tree(klass))
+    raise ArgumentError, "you must pass a block" unless block_given?
+    @block = block
+    to_source
+    execute(compile(save_source))
   end
   
-  private
-  def find_block_sexp(sexp)
-    sexp
+  def compile(source)
+    name = cache_compiled_name
+    Machine.new.compile_file(source, false)
+    name
   end
+  
+  def execute(compiled_file)
+    r, w = IO.pipe
+    r2, w2 = IO.pipe
+    
+    pid = fork {
+      r.close
+      w2.close
+      STDOUT.reopen(w)
+      STDIN.reopen(r2)
+      Dir.chdir "#{rubinius_path}"
+      
+      exec "./shotgun/rubinius ./lib/kernel.rbc #{compiled_file}"
+    }
+    
+    r2.close
+    w.close
+    w2.close
+    Process.wait(pid)
+    out = r.read
+    status = $?.exitstatus
+    if !status or status != 0
+      if status == 1
+        raise RubiniusError, out << "    ========================================="
+      elsif !status or status > 100
+        raise RubiniusError, "Shotgun has crashed"
+      end
+    end
+    r.close
+    out.chomp!
+  end
+  
+  def template
+    @template ||= <<-CODE
+%s
+RubiniusTarget::SpecExample.new.__example__
+CODE
+  end
+  
+  def to_source
+    SpecExample.send(:define_method, :__example__, block)
+    @source = template % RubyToRuby.translate(SpecExample)
+  end
+  
+  def save_source
+    name = cache_source_name
+    File.open(name, "w") do |f|
+      f << source
+    end
+    name
+  end
+  
+  def cache_source_name
+    "#{cache_path}/#{caller_name}-#{source.hash.abs}.rb"
+  end
+  
+  def cache_compiled_name
+    cache_source_name + 'c'
+  end
+  
+  def caller_name(which=3)
+    caller[which].match(/\/+(\w*).rb:(\d*)$/)[1..-1].join('-')
+  end
+  
+  def rubinius_path
+    File.expand_path(File.dirname(__FILE__) + '/..')
+  end
+
+  def cache_path
+    rubinius_path + '/code-cache'
+  end
+  
+  def make_cache_directory
+    FileUtils.mkdir_p(cache_path) unless File.exists? cache_path
+  end
+
+  private
+  class SpecExample; end
 end
 
 # The big idea:

@@ -1,12 +1,142 @@
-require File.dirname(__FILE__) + '/../spec_bhelper'
+require 'rubygems'
+require 'spec'
+require File.dirname(__FILE__) + '/../rubinius_target'
 
 context "RubiniusTarget" do
   setup do
-    RubiniusTarget.send(:define_method, :test_fake_name) { nil }
-    @target = RubiniusTarget.new("test_fake_name")
+    # RubiniusTarget.send(:define_method, :test_fake_name) { nil }
+    # @target = RubiniusTarget.new("test_fake_name")
+    # @target.stub!(:setup).and_return(nil)
+    @target = RubiniusTarget.new
+  end
+  
+  specify "should provide make_cache_directory method" do
+    @target.should_respond_to :make_cache_directory
+  end
+  
+  specify "should provide rubinius_path method" do
+    @target.should_respond_to :rubinius_path
+  end
+  
+  specify "rubinius_path should be the root directory" do
+    @target.rubinius_path.should == File.expand_path(File.dirname(__FILE__) + '/../..')
+  end
+  
+  specify "should provide cache_path method" do
+    @target.should_respond_to :cache_path
+  end
+  
+  specify "cache_path should be under rubinius_path" do
+    @target.cache_path.should == @target.rubinius_path + '/code-cache'
   end
   
   specify "should provide example method" do
     @target.should_respond_to :example
+  end
+  
+  specify "example should receive a block" do
+    lambda { @target.example }.should_raise ArgumentError
+  end
+  
+  specify "should provide template method" do
+    @target.should_respond_to :template
+  end
+  
+  specify "template should provide Ruby source wrapper for calling example method in Rubinius" do
+    @target.template.should == <<-CODE
+%s
+RubiniusTarget::SpecExample.new.__example__
+CODE
+  end
+  
+  specify "should provide to_source method" do
+    @target.should_respond_to :to_source
+  end
+  
+  specify "should provide save_source method" do
+    @target.should_respond_to :save_source
+  end
+  
+  specify "save_source should return cache_source_name" do
+    File.stub!(:open)
+    @target.stub!(:cache_source_name).and_return("/rubinius/code-cache/rubinius_spec-74-16090475.rb")
+    @target.save_source.should == "/rubinius/code-cache/rubinius_spec-74-16090475.rb"
+  end
+  
+  specify "should provide cache_source_name method" do
+    @target.should_respond_to :cache_source_name
+  end
+  
+  specify "cache_source_name should build name of source file in code-cache directory" do
+    @target.stub!(:source).and_return(source_stub)
+    @target.stub!(:caller).and_return(caller_stub)
+    @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
+    @target.cache_source_name.should == "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rb"
+  end
+  
+  specify "should provide cache_compiled_name method" do
+    @target.should_respond_to :cache_compiled_name
+  end
+  
+  specify "cache_compiled_name should build name of compiled file in code-cache directory" do
+    @target.stub!(:source).and_return(source_stub)
+    @target.stub!(:caller).and_return(caller_stub)
+    @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
+    @target.cache_compiled_name.should == "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rbc"
+  end
+  
+  specify "should provide caller_name method" do
+    @target.should_respond_to :caller_name
+  end
+  
+  specify "caller_name should set the name of the calling spec file and line number" do
+    @target.stub!(:source).and_return(source_stub)
+    @target.stub!(:caller).and_return(caller_stub)
+    @target.caller_name.should == "rubinius_spec-68"
+  end
+  
+  specify "to_source should convert a Proc to Ruby source" do
+    @target.stub!(:block).and_return(lambda { ['a', 'b', 'c'] })
+    @target.to_source.should == 
+      "class RubiniusTarget::SpecExample < Object\n  def __example__\n    [\"a\", \"b\", \"c\"]\n  end\nend\nRubiniusTarget::SpecExample.new.__example__\n"
+  end
+  
+  specify "should provide compile method" do
+    @target.should_respond_to :compile
+  end
+  
+  specify "compile should return compiled file path" do
+    @target.stub!(:source).and_return(source_stub)
+    @target.stub!(:caller).and_return(caller_stub)
+    @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
+    Object.send(:remove_const, :Machine)
+    Machine = mock("Machine", :null_object => true)
+    Machine.stub!(:compile_file)
+    @target.compile(@target.cache_source_name).should == 
+      "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rbc"
+  end
+  
+  specify "should provide execute method" do
+    @target.should_respond_to :execute
+  end
+  
+  private
+  def source_stub
+    <<-CODE
+    class SomeClass
+      def boo!
+        puts 'aiiya'
+      end
+    end
+    CODE
+  end
+  
+  def caller_stub
+     [ "./spec/targets/../rubinius_target.rb:46:in `cache_source_name'",
+       "./spec/targets/../rubinius_target.rb:42:in `save_source'",
+       "./spec/targets/../rubinius_target.rb:23:in `example'",
+       "./spec/targets/rubinius_spec.rb:68",
+       "/opt/local/lib/ruby/gems/1.8/gems/rspec-0.7.5/lib/spec/runner/specification.rb:55:in `execute_spec'"
+     ]
   end
 end

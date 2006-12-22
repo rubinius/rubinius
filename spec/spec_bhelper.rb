@@ -14,6 +14,7 @@ require 'rubinius_target'
 
 class SpecConfiguration
   Target = MRITarget
+  #Target = RubiniusTarget
 end
 
 module Kernel
