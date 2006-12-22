@@ -381,7 +381,7 @@ void cpu_run(STATE, cpu c) {
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    #if 0
+    #if EXCESSIVE_TRACING
     printf("%-15s: OP: %s (%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip);

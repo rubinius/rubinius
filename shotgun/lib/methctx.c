@@ -74,12 +74,13 @@ void methctx_describe(STATE, OBJECT ctx, int count) {
 
 #define IsBlockContextFlag 0x40
 
-OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT lst, OBJECT vlst) {
+OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT vlst) {
   OBJECT obj;
   
   obj = blokenv_allocate(state);
   blokenv_set_home(obj, ctx);
-  blokenv_set_initial_ip(obj, I2N(FIXNUM_TO_INT(methctx_get_ip(ctx)) + 5 ));
+  blokenv_set_initial_ip(obj, I2N(start));
+  // blokenv_set_initial_ip(obj, I2N(FIXNUM_TO_INT(methctx_get_ip(ctx)) + 5 ));
   blokenv_set_last_ip(obj, lst);
   blokenv_set_post_send(obj, vlst);
   

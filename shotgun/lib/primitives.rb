@@ -307,13 +307,28 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
     t2 =   stack_pop();
+    t3 =   Qnil;
     
-    if(!RISA(self, methctx) || !FIXNUM_P(t1)) {
+    if(!FIXNUM_P(t1) || !FIXNUM_P(t2)) {
       _ret = FALSE;
     } else {
-      methctx_set_ip(self, I2N(c->ip));
-      t2 = blokenv_s_under_context(state, self, t1, t2);
-      stack_push(t2);
+      if(!RISA(self, methctx)) {
+        if(RISA(self, blokctx)) {
+          t3 = blokenv_get_home(blokctx_get_env(self));
+        }
+      } else {
+        t3 = self;
+      }
+      
+      if(t3 == Qnil) {
+        printf("Create block failed, %s!!\\n", _inspect(self));
+        _ret = FALSE;
+      } else {
+        methctx_set_ip(self, I2N(c->ip));
+        j = FIXNUM_TO_INT(methctx_get_ip(self)) + 5;
+        t2 = blokenv_s_under_context(state, t3, j, t1, t2);
+        stack_push(t2);
+      }
     }
     CODE
   end

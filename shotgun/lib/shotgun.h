@@ -1,6 +1,7 @@
 #ifndef __SHOTGUN__
 #define __SHOTGUN__ 1
 #define INTERNAL_MACROS 1
+#define INTERNAL_DEBUG 1
 
 #ifndef swap32
 #define swap32(x)       ((((x)&0xFF)<<24)       \

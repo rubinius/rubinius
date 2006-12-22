@@ -34,7 +34,7 @@ end
 
 module Kernel
   def callcc(&block)
-    current_context = MethodContext.current_contextrent
+    current_context = MethodContext.current
     method_context = current_context.sender
     cont = Continuation.new(method_context)
     cont.extract_start(block)

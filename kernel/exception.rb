@@ -3,7 +3,7 @@ class Exception
     ctx = MethodContext.current.sender.sender
     # puts "EXCEPTION: #{ctx}"
     put 0, message
-    put 1, Backtrace.backtrace(ctx)
+    put 1, ctx
   end
   
   def backtrace

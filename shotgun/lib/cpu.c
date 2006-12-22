@@ -172,6 +172,9 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
   c->home_context = home;
   c->locals = methctx_get_locals(home);
   c->block = methctx_get_block(home);
+  if(RTEST(c->block)) {
+    // printf("Restored block as: %s\n", _inspect(c->block));
+  }
   c->method = methctx_get_method(home);
   c->literals = methctx_get_literals(home);
   c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
@@ -239,6 +242,11 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   // printf("Setting exception to %p\n", (void*)exc);
   c->exception = exc;
   ctx = c->active_context;
+  
+  if(INTERNAL_DEBUG && getenv("EXCHALT")) {
+    printf("An exception has occured: %s\n", _inspect(exc));
+    assert(0);
+  }
   
   while(RTEST(ctx)) {
     // printf("Searching for exception handler in %p / %p / %p..\n", ctx, c->exceptions, c->top_context);
