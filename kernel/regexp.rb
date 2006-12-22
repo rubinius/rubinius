@@ -46,7 +46,7 @@ class MatchData
     @region.each do |tup|
       x = tup.at(0)
       y = tup.at(1)
-      out << @source[x..y]
+      out << @source[x...y]
     end
     return out
   end
