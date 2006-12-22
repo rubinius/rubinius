@@ -9,24 +9,18 @@ require 'machine'
 
 class RubiniusTargetError < RuntimeError; end
 
-class RubiniusTarget
-  attr_reader :block, :source
+class RubiniusSpecExample; end
 
-  def setup
-    make_cache_directory
-  end
-
+module RubiniusTarget
   def example(&block)
     raise ArgumentError, "you must pass a block" unless block_given?
-    @block = block
-    to_source
-    execute(compile(save_source))
+    execute(compile(save_source(&block)))
   end
   
-  def compile(source)
-    name = cache_compiled_name
-    Machine.new.compile_file(source, false)
-    name
+  def compile(source_name)
+    `#{rubinius_path}/bin/rcompile #{source_name}`
+    # Machine.new.compile_file(source, false)
+    source_name + 'c'
   end
   
   def execute(compiled_file)
@@ -51,9 +45,9 @@ class RubiniusTarget
     status = $?.exitstatus
     if !status or status != 0
       if status == 1
-        raise RubiniusError, out << "    ========================================="
+        raise RubiniusTargetError, out << "    ========================================="
       elsif !status or status > 100
-        raise RubiniusError, "Shotgun has crashed"
+        raise RubiniusTargetError, "Shotgun has crashed"
       end
     end
     r.close
@@ -63,29 +57,23 @@ class RubiniusTarget
   def template
     @template ||= <<-CODE
 %s
-RubiniusTarget::SpecExample.new.__example__
+RubiniusSpecExample.new.__example__
 CODE
   end
   
-  def to_source
-    SpecExample.send(:define_method, :__example__, block)
-    @source = template % RubyToRuby.translate(SpecExample)
-  end
-  
-  def save_source
-    name = cache_source_name
+  def save_source(&block)
+    make_cache_directory
+    RubiniusSpecExample.send(:define_method, :__example__, block)
+    source = template % RubyToRuby.translate(RubiniusSpecExample)
+    name = cache_source_name(source)
     File.open(name, "w") do |f|
       f << source
     end
     name
   end
   
-  def cache_source_name
+  def cache_source_name(source)
     "#{cache_path}/#{caller_name}-#{source.hash.abs}.rb"
-  end
-  
-  def cache_compiled_name
-    cache_source_name + 'c'
   end
   
   def caller_name(which=3)
@@ -103,20 +91,4 @@ CODE
   def make_cache_directory
     FileUtils.mkdir_p(cache_path) unless File.exists? cache_path
   end
-
-  private
-  class SpecExample; end
 end
-
-# The big idea:
-# 1) Using ParseTree, convert the block passed to example to an sexp
-#   a) Create a new class
-#   b) Define a method on the class that is the block as a Proc
-#   c) Parse the class into an sexp
-#   d) Extract from the sexp only the sexp for the block body
-# 2) Pass the sexp for the block body to the ByteCode::Compiler
-# 3) Pass the compiled script to the Machine to execute
-# 4) Marshal the return value to a file (put this in the block?)
-# 5) In the Host, read in the marshalled object
-# 6) In the Host, complete execution of spec expectation (e.g. .should == <blah>)
-

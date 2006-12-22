@@ -2,9 +2,13 @@ require 'rubygems'
 require 'spec'
 require File.dirname(__FILE__) + '/../mri_target'
 
+class MRITargetSpec
+  include MRITarget
+end
+
 context "MRITarget" do
   setup do
-    @target = MRITarget.new
+    @target = MRITargetSpec.new
   end
   
   specify "should provide example method" do

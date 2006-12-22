@@ -1,6 +1,6 @@
 require 'test/unit'
 
-class MRITarget
+module MRITarget
   def example(&block)
     yield
   end
