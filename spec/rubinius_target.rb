@@ -14,13 +14,19 @@ class RubiniusSpecExample; end
 module RubiniusTarget
   def example(&block)
     raise ArgumentError, "you must pass a block" unless block_given?
-    execute(compile(save_source(&block)))
+    execute(compile(&block))
   end
   
-  def compile(source_name)
-    `#{rubinius_path}/bin/rcompile #{source_name}`
-    # Machine.new.compile_file(source, false)
-    source_name + 'c'
+  def compile(&block)
+    make_cache_directory
+    RubiniusSpecExample.send(:define_method, :__example__, block)
+    source = template % RubyToRuby.translate(RubiniusSpecExample)
+    name = cache_source_name(source)
+    unless File.exists?(name) and source == File.read(name)
+      File.open(name, "w") { |f| f << source }
+      `#{rubinius_path}/bin/rcompile #{name}`
+    end
+    name + 'c'
   end
   
   def execute(compiled_file)
@@ -60,18 +66,7 @@ module RubiniusTarget
 RubiniusSpecExample.new.__example__
 CODE
   end
-  
-  def save_source(&block)
-    make_cache_directory
-    RubiniusSpecExample.send(:define_method, :__example__, block)
-    source = template % RubyToRuby.translate(RubiniusSpecExample)
-    name = cache_source_name(source)
-    File.open(name, "w") do |f|
-      f << source
-    end
-    name
-  end
-  
+    
   def cache_source_name(source)
     "#{cache_path}/#{caller_name}-#{source.hash.abs}.rb"
   end

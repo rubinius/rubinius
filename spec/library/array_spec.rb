@@ -86,52 +86,43 @@ context "Array" do
   
   specify "[] should provide the element at the specified index" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      puts a[1]
+      puts [ "a", "b", "c", "d", "e" ][1]
     end.should == "b"
   end
   
   specify "[] should provide the element from the end of the array for a negative index" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      puts a[-2]
+      puts [ "a", "b", "c", "d", "e" ][-2]
     end.should == "d"
   end
   
   specify "[] should provide a subarray from start containing length elements" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      start = 2
-      length = 3
-      p a[start, length]
+      p [ "a", "b", "c", "d", "e" ][2, 3]
     end.should == '["c", "d", "e"]'
   end
   
   specify "[] should provide a subarray specified by range" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      p a[1..3]
+      p [ "a", "b", "c", "d", "e" ][1..3]
     end.should == '["b", "c", "d"]'
   end
   
   specify "[] should not return nil if any elements in the requested range exist" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      p a[4..7]
+      p [ "a", "b", "c", "d", "e" ][4..7]
     end.should == '["e"]'
   end
   
   specify "[] should provide nil for a requested index not in the array" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      puts a[5]
+      puts [ "a", "b", "c", "d", "e" ][5]
     end.should == "nil"
   end
   
   specify "[] should return nil if no requested index is in the array" do
     example do
-      a = [ "a", "b", "c", "d", "e" ]
-      p a[6..10]
+      p [ "a", "b", "c", "d", "e" ][6..10]
     end.should == "nil"
   end
   

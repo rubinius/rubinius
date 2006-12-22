@@ -46,18 +46,8 @@ context "RubiniusTarget" do
   specify "template should provide Ruby source wrapper for calling example method in Rubinius" do
     @target.template.should == <<-CODE
 %s
-RubiniusTarget::SpecExample.new.__example__
+RubiniusSpecExample.new.__example__
 CODE
-  end
-  
-  specify "should provide save_source method" do
-    @target.should_respond_to :save_source
-  end
-  
-  specify "save_source should return cache_source_name" do
-    File.stub!(:open)
-    @target.stub!(:cache_source_name).and_return("/rubinius/code-cache/rubinius_spec-74-16090475.rb")
-    @target.save_source { [1,2,3] }.should == "/rubinius/code-cache/rubinius_spec-74-16090475.rb"
   end
   
   specify "should provide cache_source_name method" do
@@ -65,10 +55,9 @@ CODE
   end
   
   specify "cache_source_name should build name of source file in code-cache directory" do
-    @target.stub!(:source).and_return(source_stub)
     @target.stub!(:caller).and_return(caller_stub)
     @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
-    @target.cache_source_name.should == "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rb"
+    @target.cache_source_name(source_stub).should == "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rb"
   end
   
   specify "should provide caller_name method" do
@@ -86,14 +75,13 @@ CODE
   end
   
   specify "compile should return compiled file path" do
-    @target.stub!(:source).and_return(source_stub)
     @target.stub!(:caller).and_return(caller_stub)
     @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
     Object.send(:remove_const, :Machine)
     Machine = mock("Machine", :null_object => true)
     Machine.stub!(:compile_file)
-    @target.compile(@target.cache_source_name).should == 
-      "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rbc"
+    @target.compile { [1, 2, 3] }.should == 
+      "/Users/rubinius/code-cache/rubinius_spec-68-833693234.rbc"
   end
   
   specify "should provide execute method" do
