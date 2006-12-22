@@ -103,7 +103,7 @@ namespace :build do
   task :clean do
     FileUtils.rm_rf 'code-cache'
     FileUtils.rm Dir.glob('lib/kernel.rb*')
-    `cd shotgun;make clean;cd ..`
+    `cd shotgun;make -e clean;cd ..`
   end
   
   task :setup do

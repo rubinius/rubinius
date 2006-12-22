@@ -89,7 +89,7 @@ char *string_byte_address(STATE, OBJECT self) {
 }
 
 #define HashPrime 16777619
-#define MASK_28 (((u_int32_t)1<<28)-1)
+#define MASK_28 (((unsigned int)1<<28)-1)
 
 static inline unsigned int _hash_str(unsigned char *bp, unsigned int sz) {
   unsigned char *be;

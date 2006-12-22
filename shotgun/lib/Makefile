@@ -40,7 +40,7 @@ grammer.c: grammer.y
 	bison -o grammer.c grammer.y
 
 clean:
-	rm -f *.o *.gen *.a auto.c auto.h .*.d
+	rm -f *.o *.gen *.a auto.c auto.h .*.d .*.d.*
 
 .PHONY: test
 
