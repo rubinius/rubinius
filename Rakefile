@@ -173,7 +173,7 @@ namespace :build do
   
   desc "Build shotgun C components."
   task :shotgun => 'build:setup' do
-    system("make -C shotgun rubinius")
+    system("make -e -C shotgun rubinius")
   end
   
   desc "Build the kernel."
