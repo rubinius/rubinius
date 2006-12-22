@@ -111,80 +111,80 @@ static int compile_for_eval = 0;
 static ID cur_mid = 0;
 */
 
-static NODE *cond();
-static NODE *logop();
-static int cond_negative();
+static NODE *cond(NODE*,rb_parse_state*);
+static NODE *logop(enum node_type,NODE*,NODE*,rb_parse_state*);
+static int cond_negative(NODE**);
 
-static NODE *newline_node();
-static void fixpos();
+static NODE *newline_node(rb_parse_state*,NODE*);
+static void fixpos(NODE*,NODE*);
 
-static int value_expr0();
-static void void_expr0();
-static void void_stmts();
-static NODE *remove_begin();
-#define value_expr(node) value_expr0((node) = remove_begin(node), parse_state)
-#define void_expr(node) void_expr0((node) = remove_begin(node), parse_state)
+static int value_expr0(NODE*,rb_parse_state*);
+static void void_expr0(NODE *);
+static void void_stmts(NODE*,rb_parse_state*);
+static NODE *remove_begin(NODE*);
+#define  value_expr(node)  value_expr0((node) = remove_begin(node), parse_state)
+#define void_expr(node) void_expr0((node) = remove_begin(node))
+ 
+static NODE *block_append(rb_parse_state*,NODE*,NODE*);
+static NODE *list_append(rb_parse_state*,NODE*,NODE*);
+static NODE *list_concat(NODE*,NODE*);
+static NODE *arg_concat(rb_parse_state*,NODE*,NODE*);
+static NODE *arg_prepend(rb_parse_state*,NODE*,NODE*);
+static NODE *literal_concat(rb_parse_state*,NODE*,NODE*);
+static NODE *new_evstr(rb_parse_state*,NODE*);
+static NODE *evstr2dstr(rb_parse_state*,NODE*);
+static NODE *call_op(NODE*,ID,int,NODE*,rb_parse_state*);
 
-static NODE *block_append();
-static NODE *list_append();
-static NODE *list_concat();
-static NODE *arg_concat();
-static NODE *arg_prepend();
-static NODE *literal_concat();
-static NODE *new_evstr();
-static NODE *evstr2dstr();
-static NODE *call_op();
+static NODE *negate_lit(NODE*);
+static NODE *ret_args(rb_parse_state*,NODE*);
+static NODE *arg_blk_pass(NODE*,NODE*);
+static NODE *new_call(rb_parse_state*,NODE*,ID,NODE*);
+static NODE *new_fcall(rb_parse_state*,ID,NODE*);
+static NODE *new_super(rb_parse_state*,NODE*);
+static NODE *new_yield(rb_parse_state*,NODE*);
 
-static NODE *negate_lit();
-static NODE *ret_args();
-static NODE *arg_blk_pass();
-static NODE *new_call();
-static NODE *new_fcall();
-static NODE *new_super();
-static NODE *new_yield();
-
-static NODE *syd_gettable();
+static NODE *syd_gettable(rb_parse_state*,ID);
 #define gettable(i) syd_gettable(parse_state, i)
-static NODE *assignable();
-static NODE *aryset();
-static NODE *attrset();
-static void rb_backref_error();
-static NODE *node_assign();
+static NODE *assignable(ID,NODE*,rb_parse_state*);
+static NODE *aryset(NODE*,NODE*,rb_parse_state*);
+static NODE *attrset(NODE*,ID,rb_parse_state*);
+static void rb_backref_error(NODE*);
+static NODE *node_assign(NODE*,NODE*,rb_parse_state*);
 
-static NODE *match_gen();
+static NODE *match_gen(NODE*,NODE*,rb_parse_state*);
 static void syd_local_push(rb_parse_state*, int cnt);
 #define local_push(cnt) syd_local_push(vps, cnt)
 static void syd_local_pop(rb_parse_state*);
 #define local_pop() syd_local_pop(vps)
-static int  syd_local_append();
+static int  syd_local_append(rb_parse_state*,ID);
 #define local_append(i) syd_local_append(vps, i)
-static int  syd_local_cnt();
+static int  syd_local_cnt(rb_parse_state*,ID);
 #define local_cnt(i) syd_local_cnt(vps, i)
-static int  syd_local_id();
+static int  syd_local_id(rb_parse_state*,ID);
 #define local_id(i) syd_local_id(vps, i)
 static ID  *syd_local_tbl();
 static ID   internal_id();
 static ID   convert_op();
-static VALUE syd_dyna_push();
+static VALUE syd_dyna_push(rb_parse_state*);
 #define dyna_push() syd_dyna_push(vps)
-static void syd_dyna_pop();
+static void syd_dyna_pop(rb_parse_state*,VALUE);
 #define dyna_pop(i) syd_dyna_pop(vps, i)
-static int syd_dyna_in_block();
+static int syd_dyna_in_block(rb_parse_state*);
 #define dyna_in_block(vps)
-static NODE *syd_dyna_init();
+static NODE *syd_dyna_init(rb_parse_state*,NODE*,VALUE);
 #define dyna_init(a, b) syd_dyna_init(vps, a, b)
 
 #define ruby_dyna_vars syd_dyna_vars(vps)
-static VALUE syd_dyna_vars();
+static VALUE syd_dyna_vars(rb_parse_state*);
 
 #define rb_dvar_defined(id) syd_dvar_defined(vps, id)
-static VALUE syd_dvar_defined();
+static VALUE syd_dvar_defined(rb_parse_state*,ID);
 
 #define rb_dvar_curr(id) syd_dvar_curr(vps, id)
-static VALUE syd_dvar_curr();
+static VALUE syd_dvar_curr(rb_parse_state*,ID);
 
 #define rb_dvar_push(id, val) syd_dvar_push(vps, id, val)
-static void syd_dvar_push();
+static void syd_dvar_push(rb_parse_state*,ID,VALUE);
 
 // static void top_local_init();
 // static void top_local_setup();
@@ -2731,7 +2731,7 @@ syd_compile_cstr(f, s, len, line)
     const char *f, *s;
     int len, line;
 {
-    return syd_compile_string(f, rb_str_new(s, len), line, NULL);
+    return syd_compile_string(f, rb_str_new(s, len), line, (rb_parse_state *)NULL);
 }
 
 static VALUE parse_io_gets(VALUE input, rb_parse_state *parse_state) {
@@ -2856,10 +2856,7 @@ newtok(rb_parse_state *parse_state)
     return tokenbuf;
 }
 
-static void
-tokadd(c, parse_state)
-    char c;
-    rb_parse_state *parse_state;
+static void tokadd(char c, rb_parse_state *parse_state)
 {
     tokenbuf[tokidx++] = c;
     if (tokidx >= toksiz) {
@@ -2984,7 +2981,7 @@ tokadd_escape(term, parse_state)
             int i;
 
             tokadd('\\', parse_state);
-            tokadd(c, parse_state);
+            tokadd((char)c, parse_state);
             for (i=0; i<2; i++) {
                 c = nextc();
                 if (c == -1) goto eof;
@@ -2992,7 +2989,7 @@ tokadd_escape(term, parse_state)
                     pushback(c, parse_state);
                     break;
                 }
-                tokadd(c, parse_state);
+                tokadd((char)c, parse_state);
             }
         }
         return 0;
@@ -3002,14 +2999,14 @@ tokadd_escape(term, parse_state)
             int numlen;
 
             tokadd('\\', parse_state);
-            tokadd(c, parse_state);
+            tokadd((char)c, parse_state);
             scan_hex(parse_state->lex_p, 2, &numlen);
             if (numlen == 0) {
                 yyerror("Invalid escape character syntax");
                 return -1;
             }
             while (numlen--)
-                tokadd(nextc(), parse_state);
+                tokadd((char)nextc(), parse_state);
         }
         return 0;
 
@@ -3043,7 +3040,7 @@ tokadd_escape(term, parse_state)
             return tokadd_escape(term, parse_state);
         }
         else if (c == -1) goto eof;
-        tokadd(c, parse_state);
+        tokadd((char)c, parse_state);
         return 0;
 
       eof:
@@ -3054,7 +3051,7 @@ tokadd_escape(term, parse_state)
       default:
         if (c != '\\' || c != term)
             tokadd('\\', parse_state);
-        tokadd(c, parse_state);
+        tokadd((char)c, parse_state);
     }
     return 0;
 }
@@ -3094,7 +3091,7 @@ regx_options(rb_parse_state *parse_state)
             kcode = 64;
             break;
           default:
-            tokadd(c, parse_state);
+            tokadd((char)c, parse_state);
             break;
         }
     }
@@ -3168,7 +3165,7 @@ tokadd_string(func, term, paren, nest, parse_state)
                 break;
 
               case '\\':
-                if (func & STR_FUNC_ESCAPE) tokadd(c, parse_state);
+                if (func & STR_FUNC_ESCAPE) tokadd((char)c, parse_state);
                 break;
 
               default:
@@ -3195,7 +3192,7 @@ tokadd_string(func, term, paren, nest, parse_state)
             int i, len = mbclen(c)-1;
 
             for (i = 0; i < len; i++) {
-                tokadd(c, parse_state);
+                tokadd((char)c, parse_state);
                 c = nextc();
             }
         }
@@ -3208,7 +3205,7 @@ tokadd_string(func, term, paren, nest, parse_state)
             rb_compile_error("symbol cannot contain '\\0'");
             continue;
         }
-        tokadd(c, parse_state);
+        tokadd((char)c, parse_state);
     }
     return c;
 }
@@ -3291,7 +3288,7 @@ heredoc_identifier(rb_parse_state *parse_state)
         term = c;
         while ((c = nextc()) != -1 && c != term) {
             len = mbclen(c);
-            do {tokadd(c, parse_state);} while (--len > 0 && (c = nextc()) != -1);
+            do {tokadd((char)c, parse_state);} while (--len > 0 && (c = nextc()) != -1);
         }
         if (c == -1) {
             rb_compile_error("unterminated here document identifier");
@@ -3312,7 +3309,7 @@ heredoc_identifier(rb_parse_state *parse_state)
         tokadd(func |= str_dquote, parse_state);
         do {
             len = mbclen(c);
-            do {tokadd(c, parse_state);} while (--len > 0 && (c = nextc()) != -1);
+            do {tokadd((char)c, parse_state);} while (--len > 0 && (c = nextc()) != -1);
         } while ((c = nextc()) != -1 && is_identchar(c));
         pushback(c, parse_state);
         break;
@@ -3431,12 +3428,12 @@ here_document(here, parse_state)
         }
         do {
             pushback(c, parse_state);
-            if ((c = tokadd_string(func, '\n', 0, NULL, parse_state)) == -1) goto error;
+            if ((c = tokadd_string(func, '\n', 0, (int *)NULL, parse_state)) == -1) goto error;
             if (c != '\n') {
                 pslval->node = NEW_STR(rb_str_new(tok(), toklen()));
                 return tSTRING_CONTENT;
             }
-            tokadd(nextc(), parse_state);
+            tokadd((char)nextc(), parse_state);
             if ((c = nextc()) == -1) goto error;
         } while (!whole_match_p(eos, len, indent, parse_state));
         str = rb_str_new(tok(), toklen());
@@ -3930,7 +3927,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             parse_state->lex_state = EXPR_END;
             newtok(parse_state);
             if (c == '-' || c == '+') {
-                tokadd(c,parse_state);
+                tokadd((char)c,parse_state);
                 c = nextc();
             }
             if (c == '0') {
@@ -3948,7 +3945,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                             }
                             if (!ISXDIGIT(c)) break;
                             nondigit = 0;
-                            tokadd(c,parse_state);
+                            tokadd((char)c,parse_state);
                         } while ((c = nextc()) != -1);
                     }
                     pushback(c, parse_state);
@@ -3972,7 +3969,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                             }
                             if (c != '0' && c != '1') break;
                             nondigit = 0;
-                            tokadd(c, parse_state);
+                            tokadd((char)c, parse_state);
                         } while ((c = nextc()) != -1);
                     }
                     pushback(c, parse_state);
@@ -3996,7 +3993,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                             }
                             if (!ISDIGIT(c)) break;
                             nondigit = 0;
-                            tokadd(c, parse_state);
+                            tokadd((char)c, parse_state);
                         } while ((c = nextc()) != -1);
                     }
                     pushback(c, parse_state);
@@ -4030,7 +4027,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                         }
                         if (c < '0' || c > '7') break;
                         nondigit = 0;
-                        tokadd(c, parse_state);
+                        tokadd((char)c, parse_state);
                     } while ((c = nextc()) != -1);
                     if (toklen() > start) {
                         pushback(c, parse_state);
@@ -4062,7 +4059,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                   case '0': case '1': case '2': case '3': case '4':
                   case '5': case '6': case '7': case '8': case '9':
                     nondigit = 0;
-                    tokadd(c, parse_state);
+                    tokadd((char)c, parse_state);
                     break;
 
                   case '.':
@@ -4079,7 +4076,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                         c = c0;
                     }
                     tokadd('.', parse_state);
-                    tokadd(c, parse_state);
+                    tokadd((char)c, parse_state);
                     is_float++;
                     seen_point++;
                     nondigit = 0;
@@ -4095,13 +4092,13 @@ yylex(YYSTYPE *yylval, void *vstate)
                     if (seen_e) {
                         goto decode_num;
                     }
-                    tokadd(c, parse_state);
+                    tokadd((char)c, parse_state);
                     seen_e++;
                     is_float++;
                     nondigit = c;
                     c = nextc();
                     if (c != '-' && c != '+') continue;
-                    tokadd(c, parse_state);
+                    tokadd((char)c, parse_state);
                     nondigit = c;
                     break;
 
@@ -4444,16 +4441,16 @@ yylex(YYSTYPE *yylval, void *vstate)
           case '>':             /* $>: default output handle */
           case '\"':            /* $": already loaded files */
             tokadd('$', parse_state);
-            tokadd(c, parse_state);
+            tokadd((char)c, parse_state);
             tokfix();
             pslval->id = rb_intern(tok());
             return tGVAR;
 
           case '-':
             tokadd('$', parse_state);
-            tokadd(c, parse_state);
+            tokadd((char)c, parse_state);
             c = nextc();
-            tokadd(c, parse_state);
+            tokadd((char)c, parse_state);
             tokfix();
             pslval->id = rb_intern(tok());
             /* xxx shouldn't check if valid option variable */
@@ -4471,7 +4468,7 @@ yylex(YYSTYPE *yylval, void *vstate)
           case '7': case '8': case '9':
             tokadd('$', parse_state);
             do {
-                tokadd(c, parse_state);
+                tokadd((char)c, parse_state);
                 c = nextc();
             } while (ISDIGIT(c));
             pushback(c, parse_state);
@@ -4531,19 +4528,19 @@ yylex(YYSTYPE *yylval, void *vstate)
     }
 
     do {
-        tokadd(c, parse_state);
+        tokadd((char)c, parse_state);
         if (ismbchar(c)) {
             int i, len = mbclen(c)-1;
 
             for (i = 0; i < len; i++) {
                 c = nextc();
-                tokadd(c, parse_state);
+                tokadd((char)c, parse_state);
             }
         }
         c = nextc();
     } while (is_identchar(c));
     if ((c == '!' || c == '?') && is_identchar(tok()[0]) && !peek('=')) {
-        tokadd(c, parse_state);
+        tokadd((char)c, parse_state);
     }
     else {
         pushback(c, parse_state);
@@ -4575,7 +4572,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                     if ((c = nextc()) == '=' && !peek('~') && !peek('>') &&
                         (!peek('=') || (parse_state->lex_p + 1 < parse_state->lex_pend && (parse_state->lex_p)[1] == '>'))) {
                         result = tIDENTIFIER;
-                        tokadd(c, parse_state);
+                        tokadd((char)c, parse_state);
                         tokfix();
                     }
                     else {

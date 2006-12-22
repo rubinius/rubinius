@@ -1,5 +1,6 @@
 #include "ruby.h"
 #include "sydnode.h"
+#include "sydparse.h"
 #include "runtime.h"
 #include "internal.h"
 
@@ -63,9 +64,8 @@ void compile_error(const char *);
 
 VALUE rb_pt_load_string(int argc, VALUE *argv, VALUE self) {
     VALUE str, get_comments;
-    VALUE pt, old_err, *old_vars;
-    ID *old_tbl;
-    int state;
+    VALUE pt, old_err;
+/*    int state;*/
     rb_parse_state *st;
     
     get_comments = Qfalse;
@@ -99,7 +99,7 @@ VALUE rb_pt_load_string(int argc, VALUE *argv, VALUE self) {
 
 VALUE rb_pt_load_file(int argc, VALUE *argv, VALUE self) {
     VALUE pt, old_err;
-    int state;
+/*    int state;*/
     rb_parse_state *st;
     VALUE file, fname, get_comments;
 
@@ -816,7 +816,7 @@ again_no_block:
         rb_ary_push(current, Qnil);
         /* nothing to do in this case, no name == no use */
       } else {
-        printf("Unknown arg_count %d encountered while processing args.\n", arg_count);
+        printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
         break;
         // exit(1);
       }
