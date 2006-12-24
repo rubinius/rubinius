@@ -57,14 +57,12 @@ class Array
   
   def <<(ent)
     self[@total] = ent
-    return self
   end
   
   def push(*args)
     args.each do |ent|
       self[@total] = ent
     end
-    return self
   end
   
   def compact
