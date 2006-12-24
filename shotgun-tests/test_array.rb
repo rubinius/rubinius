@@ -2,6 +2,14 @@ require File.dirname(__FILE__) + '/helper'
 
 class TestArray < RubiniusTestCase
   
+  def test_array_push
+    out = rp <<-CODE
+    p [0].push(1)
+    CODE
+    
+    assert_equal ['[0, 1]'], out
+  end
+
   def test_array_each
     out = rp <<-CODE
     ary = [1,2,3]
