@@ -8,12 +8,10 @@ system("#{$rubinius_base}/bin/rcompile #{$base_dir}/rubicon_testcase.rb")
 
 def run_single_bfts_testclass filename
   include RubiniusHelper
-    system("#{$rubinius_base}/bin/rcompile #{$base_dir}/foounit.rb")
-    system("#{$rubinius_base}/bin/rcompile #{$base_dir}/rubicon_testcase.rb")
-    code = "$:.unshift(\"#{$base_dir}/\")\n"
-    code << "require \"foounit\"\n"
-    code << IO.read($base_dir + "/../test_true_class.rb")
-    puts rp(code)
+  code = "$:.unshift(\"#{$base_dir}/\")\n"
+  code << "require \"foounit\"\n"
+  code << (IO.read filename)
+  puts rp(code)
 end
 
 Dir[$base_dir + "/../test_*.rb"].each {
