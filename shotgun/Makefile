@@ -5,6 +5,8 @@ LIBS=`pkg-config glib-2.0 --libs` -lncurses -lz external_libs/libtommath/libtomm
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 
+all: rubinius
+
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
