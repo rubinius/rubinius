@@ -70,7 +70,7 @@ namespace :test do
   
   desc "Runs part of BFTS under Rubinius natively."
   task :nativebfts do
-    system("ruby -Ibfts/overlay bfts/overlay/test/test_stuff.rb")
+    system("ruby -Ibfts/overlay bfts/overlay/test_stuff.rb")
   end
   
   desc "Run rubinius's 1.8.* tests."
