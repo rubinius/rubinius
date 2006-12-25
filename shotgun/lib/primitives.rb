@@ -1076,28 +1076,26 @@ class ShotgunPrimitives
 
   def zlib_inflate
     <<-CODE
-    #define ZLIB_CHUNK 512
 
     stack_pop(); //class method, ignore self
     t1 = stack_pop(); //string to inflate
-    if(!RISA(t1, string)) { //parameter must be a string
+    if (!RISA(t1, string)) { //parameter must be a string
       _ret = FALSE;
       return 0;
     }
     else {
-      unsigned char out_buffer[ZLIB_CHUNK];
-      int zerr = 0; // Zlib error code
+      unsigned char out_buffer[ZLIB_CHUNK_SIZE];
       unsigned char *input = string_as_string(state, t1);
       GString *output = g_string_new(NULL);
 
-  
       z_stream zs;
       zs.zfree = Z_NULL;
       zs.zalloc = Z_NULL;
       zs.opaque = Z_NULL;
-      zs.avail_in = strlen(input) + 1; // Is this safe?
+      zs.avail_in = strlen(input) + 1; // Zero terminator is added afterwards, by GString, so we need to account for it. 
       zs.next_in = input;
-      zerr = inflateInit(&zs);
+
+      int zerr = inflateInit(&zs); // Returns zlib error code
       if (zerr != Z_OK) {
         inflateEnd(&zs);
         _ret = FALSE;
@@ -1107,18 +1105,17 @@ class ShotgunPrimitives
       }
 
       do {
-        zs.avail_out = ZLIB_CHUNK;
+        zs.avail_out = ZLIB_CHUNK_SIZE;
         zs.next_out = out_buffer;
         zerr = inflate(&zs, Z_SYNC_FLUSH);
-        k = ZLIB_CHUNK - zs.avail_out; // How much we got.
+        k = ZLIB_CHUNK_SIZE - zs.avail_out; // How much we got.
         switch (zerr) {
           case Z_OK:
-            g_string_append_len(output, out_buffer, k);
-            break;
+            // Fall through
           case Z_STREAM_END:
             g_string_append_len(output, out_buffer, k);
             break;
-          default:
+          default: // Punt on any other return value.
             inflateEnd(&zs);
             _ret = FALSE;
             free(input);
@@ -1140,15 +1137,64 @@ class ShotgunPrimitives
     CODE
   end
 
-  def zlib_deflate # STUB
+  def zlib_deflate
     <<-CODE
     stack_pop(); //class method, ignore self
     t1 = stack_pop(); //string to deflate
-    if(!RISA(t1, string)) { //parameter must be a string
+    if (!RISA(t1, string)) { //parameter must be a string
       _ret = FALSE;
+      return 0;
     }
     else {
-      stack_push(string_new2(state, NULL, 0));
+      unsigned char out_buffer[ZLIB_CHUNK_SIZE];
+      unsigned char *input = string_as_string(state, t1);
+      GString *output = g_string_new(NULL);
+
+      z_stream zs;
+      zs.zfree = Z_NULL;
+      zs.zalloc = Z_NULL;
+      zs.opaque = Z_NULL;
+
+      int zerr = deflateInit(&zs, Z_DEFAULT_COMPRESSION); // Returns zlib error code
+      if (zerr != Z_OK) {
+        deflateEnd(&zs);
+        _ret = FALSE;
+        free(input);
+        g_string_free(output, TRUE);
+        return 0;
+      }
+
+      zs.avail_in = strlen(input); // Lower than for zlib_inflate, so that we don't consume the zero-terminator.
+      zs.next_in = input;
+    do {
+      zs.avail_out = ZLIB_CHUNK_SIZE;
+      zs.next_out = out_buffer;
+      zerr = deflate(&zs, Z_FINISH);
+      k = ZLIB_CHUNK_SIZE - zs.avail_out; // How much we got.
+      switch (zerr) {
+        case Z_OK:
+          // Fall through
+        case Z_STREAM_END:
+          g_string_append_len(output, out_buffer, k);
+          break;
+        default: // Punt on any other return value.
+          deflateEnd(&zs);
+          _ret = FALSE;
+          free(input);
+          g_string_free(output, TRUE);
+          return 0;
+        }
+    } while (zs.avail_out == 0);
+
+    deflateEnd(&zs);
+    free(input);
+
+    if (zerr != Z_STREAM_END && zerr != Z_OK) {
+      _ret = FALSE; 
+      return 0;
+    }
+    stack_push(string_new2(state, output->str, output->len));
+    g_string_free(output, TRUE);
     }
     CODE
   end
