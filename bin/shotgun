@@ -28,11 +28,11 @@ end
 
 
 if gdb
-  cmd = "gdb --args ./bin/rubinius lib/kernel.rbc #{comp}"
+  cmd = "gdb --args ./shotgun/rubinius lib/kernel.rbc #{comp}"
 elsif valgrind
-  cmd = "valgrind --leak-check=full ./bin/rubinius lib/kernel.rbc #{comp}"
+  cmd = "valgrind --leak-check=full ./shotgun/rubinius lib/kernel.rbc #{comp}"
 else
-  cmd = "./bin/rubinius lib/kernel.rbc #{comp}"
+  cmd = "./shotgun/rubinius lib/kernel.rbc #{comp}"
 end
 puts "RUNNING: #{cmd}"
 
