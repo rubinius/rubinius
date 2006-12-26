@@ -63,6 +63,7 @@ class Array
     args.each do |ent|
       self[@total] = ent
     end
+    self
   end
   
   def compact
