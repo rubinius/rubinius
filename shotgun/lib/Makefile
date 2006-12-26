@@ -44,4 +44,4 @@ clean:
 
 .PHONY: test
 
-include $(SOURCES:%.c=.%.d)
+-include $(SOURCES:%.c=.%.d)
