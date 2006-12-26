@@ -25,7 +25,8 @@ namespace :spec do
   end
   
   desc "Run only specs but not any tests."
-  task :only => ['spec:language', 'spec:shotgun', 'spec:library']
+  task :only => ['spec:language', 'spec:shotgun', 'spec:library',
+                 'spec:compatibility']
   
   desc "Run the language specs."
   Spec::Rake::SpecTask.new(:language) do |t|
@@ -48,6 +49,11 @@ namespace :spec do
   desc "Run the specs for the target configurations."
   Spec::Rake::SpecTask.new(:targets) do |t|
     t.spec_files = FileList['spec/targets/*_spec.rb']
+  end
+
+  desc "Run the specs for the MRI Compatibility"
+  Spec::Rake::SpecTask.new(:compatibility) do |t|
+    t.spec_files = FileList['spec/compatibility/*_spec.rb']
   end
 end unless no_spec
 
