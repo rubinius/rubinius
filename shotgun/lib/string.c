@@ -14,8 +14,8 @@ OBJECT string_new2(STATE, char *str, int sz) {
   string_set_bytes(obj, I2N(sz));
   string_set_characters(obj, I2N(sz));
   string_set_encoding(obj, Qnil);
-  
-  data = bytearray_new(state, sz);
+
+  data = bytearray_new(state, sz+1);
   ba = bytearray_byte_address(state, data);
   if(str == NULL) {
     memset(ba, 0, sz);
@@ -28,8 +28,7 @@ OBJECT string_new2(STATE, char *str, int sz) {
 }
 
 OBJECT string_new(STATE, char *str) {
-  int sz;
-  
+  int sz;  
   sz = strlen(str);
   return string_new2(state, str, sz);
 }
