@@ -54,7 +54,7 @@ class MatchData
   def [](idx)
     if idx == 0
       x = full.at(0)
-      y = full.at(1)
+      y = full.at(1) - 1
       @source[x..y]
     else
       captures[idx - 1]
