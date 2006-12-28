@@ -249,6 +249,15 @@ class TestPrimitives < RubiniusTestCase
     assert_equal i.to_s(18), out.first
   end
   
+
+  def test_fixnum_nil_eq
+          i = 4944
+          out = rp <<-CODE
+          p (#{i} == nil)
+          CODE
+          assert_equal "false", out.first
+  end
+
   def test_logical_class
     out = rp <<-CODE
     p 10.class

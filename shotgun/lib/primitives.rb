@@ -149,10 +149,10 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+    if(!FIXNUM_P(self)) {
       _ret = FALSE;
     } else {
-      /* Don't need to convert them to ints since it would have been redundent. */
+      /* Don't need to convert them to ints since it would have been redundant. */
       if(self == t1) {
         stack_push(Qtrue); 
       } else {
