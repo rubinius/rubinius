@@ -45,6 +45,15 @@ namespace :spec do
     `echo "Executing specs under spec/library"`
     t.spec_files = FileList['spec/library/*_spec.rb']
   end
+
+  desc "Generate coverage reports for the library specs."
+  Spec::Rake::SpecTask.new(:library_coverage) do |t|
+    t.spec_files = FileList['spec/library/*_spec.rb']
+    t.rcov_dir = 'coverage/library'
+    # change this later to exclude some files from report
+    #t.rcov_opts = ['--exclude', 'lib/bytecode', 'lib/cpu', 'lib/gc']
+    t.rcov = true
+  end
   
   desc "Run the specs for the target configurations."
   Spec::Rake::SpecTask.new(:targets) do |t|
