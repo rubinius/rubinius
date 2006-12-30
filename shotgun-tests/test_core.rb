@@ -1,6 +1,36 @@
 require File.dirname(__FILE__) + '/helper'
 
 class TestCore < RubiniusTestCase
+
+  def test_if_value
+    out = rp <<-CODE
+    class Blah
+      def test
+        if works
+          puts "in works"
+          true
+        end
+      end
+
+      def works
+        false
+      end
+    end
+
+    p Blah.new.test
+    CODE
+    p out
+    assert_equal "false", out.first
+  end
+
+  def test_pack
+    out = rp <<-CODE
+    p "\\002\\206>\\326"
+    p [42352342].pack("N")
+    CODE
+    assert_equal '"\002\206>\326"', out[0]
+    assert_equal '"\002\206>\326"', out[1]
+  end
   
   def test_at_exit
     out = rp <<-CODE
@@ -86,12 +116,12 @@ class TestCore < RubiniusTestCase
   def test_send
     out = rp <<-CODE
     class Blah
-      def go
-        puts "hello evan"
+      def go(name)
+        puts "hello \#{name}"
       end
     end
     b = Blah.new
-    b.send :go
+    b.send :go, "evan"
     CODE
     
     assert_equal ["hello evan"], out
@@ -442,6 +472,20 @@ class TestCore < RubiniusTestCase
     assert_equal ['5', '6', '"1"', '"2"', '"3"', '8', '[9, 10, 11]'], out
   end
 
+  def test_splat_call
+    out = rp <<-CODE
+    class Blah
+      def show(*a)
+        p a
+      end
+    end
+
+    args = [1,2]
+    Blah.new.show(*args, &nil)
+    CODE
+    assert_equal "[1, 2]", out.first
+  end
+
   def test_throw_catch
     out = rp <<-CODE
       def one_two
@@ -492,6 +536,18 @@ class TestCore < RubiniusTestCase
       p "xyz" !~ /y/
     CODE
     assert_equal ['true', 'false'], out
+  end
+
+  def test_pre_and_post_match
+    out = rp <<-CODE
+      m = /evan/.match("before evan after")
+      puts m.pre_match
+      puts m.post_match
+      m = /-/.match("b-c")
+      puts m.pre_match
+      puts m.post_match
+    CODE
+    assert_equal ['before ',' after','b','c'], out
   end
 
   def test_singleton_method

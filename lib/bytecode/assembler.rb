@@ -1,6 +1,4 @@
 require 'bytecode/encoder'
-require 'object'
-require 'cpu/runtime'
 
 module Bytecode
   class Assembler
@@ -101,41 +99,8 @@ module Bytecode
       return out
     end
 
-    def exceptions_as_tuple
-      return RObject.nil if @exceptions.empty?
-      excs = sorted_exceptions()
-      tuple_of_int_tuples(excs)
-    end
-    
     def lines_as_tuple
-      #require 'pp'
-      #pp @source_lines
       tuple_of_int_tuples @source_lines
-    end
-    
-    def tuple_of_int_tuples(excs)
-      exctup = Rubinius::Tuple.new(excs.size)
-      i = 0
-      excs.each do |ary|
-        tup = Rubinius::Tuple.new(3)
-        tup.put 0, RObject.wrap(ary[0])
-        tup.put 1, RObject.wrap(ary[1])
-        tup.put 2, RObject.wrap(ary[2])
-        exctup.put i, tup
-        i += 1
-      end
-      return exctup
-    end
-    
-    def tuple_of_syms(ary)
-      tup = Rubinius::Tuple.new(ary.size)
-      i = 0
-      ary.each do |t|
-        sym = Rubinius::String.new(t.to_s).to_sym
-        tup.put i, sym
-        i += 1
-      end
-      return tup
     end
     
     def arguments_as_tuple
@@ -151,18 +116,6 @@ module Bytecode
       str = @output.inject("") { |a,i| a + enc.encode(*i) }      
     end
 
-    def into_method
-      cm = Rubinius::CompiledMethod.from_string(bytecodes, @locals.size)
-      if @primitive
-        cm.primitive = RObject.wrap(@primitive)
-      end
-      cm.literals = literals_as_tuple()
-      cm.arguments = arguments_as_tuple()
-      cm.exceptions = exceptions_as_tuple()
-      cm.lines = lines_as_tuple()
-      return cm
-    end
-    
     def translate_labels
       @output.map! do |i|
         next i unless Array === i   
@@ -305,9 +258,9 @@ module Bytecode
       if /^[a-z_][A-Za-z0-9_]*$/.match(what)
         cnt = find_local(what.to_sym)
         return cnt
-      elsif /(^[a-z_][A-Za-z0-9_]*):(\d+)$/.match(what)
-        name = $1.to_sym
-        cnt = $2.to_i
+      elsif m = /(^[a-z_][A-Za-z0-9_]*):(\d+)$/.match(what)
+        name = m[1].to_sym
+        cnt = m[2].to_i
         @locals[name] = cnt
         return cnt
       end
@@ -322,19 +275,20 @@ module Bytecode
     end
     
     def parse_ivar(what)
-      if /(^[a-z_][A-Za-z0-9_]*)\.(.*)/.match(what)
-        cnt = find_local($1.to_sym)
-        lit = find_literal(("@" +$2).to_sym)
+      if m = /(^[a-z_][A-Za-z0-9_]*)\.(.*)/.match(what)
+        cnt = find_local(m[1].to_sym)
+        lit = find_literal(("@" +m[2]).to_sym)
         return [cnt, lit]
       end
       return nil
     end
     
     def parse_aref(what)
-      if /(.*)\[(\d+)\]/.match(what)
-        parse_push($1)
-        return $2.to_i
+      if m = /(.*)\[(\d+)\]/.match(what)
+        parse_push(m[1])
+        return m[2].to_i
       end
+      return nil
     end
     
     def parse_push(what)
@@ -503,7 +457,7 @@ module Bytecode
         return
       when :send_primitive
         sym = parts.shift.to_sym
-        idx = CPU::Primitives.name_to_index(sym)
+        idx = primitive_to_index(sym)
         @current_op += 5
         @output << [:send_primitive, idx]
         return

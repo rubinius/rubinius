@@ -37,6 +37,14 @@ class Hash
   def []=(key, val)
     set_by_hash key.hash, key, val
   end
+
+  def size
+    @entries
+  end
+  
+  def empty?
+    @entries == 0
+  end
   
   def values_data
     @values
@@ -67,7 +75,7 @@ class Hash
   def each
     @values.each do |tup|
       while tup
-        yield tup.at(0), tup.at(1)
+        yield tup.at(1), tup.at(2)
         tup = tup.at(3)
       end
     end

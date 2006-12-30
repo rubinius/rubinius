@@ -2,6 +2,7 @@
 #define RBS_BIGNUM 1
 
 OBJECT bignum_new(STATE, int num);
+OBJECT bignum_new_unsigned(STATE, unsigned int num);
 OBJECT bignum_normalize(STATE, OBJECT b);
 OBJECT bignum_add(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_sub(STATE, OBJECT a, OBJECT b);

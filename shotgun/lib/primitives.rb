@@ -145,6 +145,25 @@ class ShotgunPrimitives
     CODE
   end
   
+  def fixnum_div
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      m = j / k;
+      t2 = I2N(m);
+      if(m != FIXNUM_TO_INT(t2)) {
+        t2 = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
+      }
+      stack_push(t2);
+    }
+    CODE
+  end
+  
   def equal
     <<-CODE
     self = stack_pop();
@@ -205,7 +224,7 @@ class ShotgunPrimitives
       _ret = FALSE;
     } else {
       j = FIXNUM_TO_INT(t1);
-      if(j > NUM_FIELDS(self)) {
+      if(j >= NUM_FIELDS(self)) {
         _ret = FALSE;
       } else {
         stack_push(NTH_FIELD(self, j));
@@ -600,7 +619,7 @@ class ShotgunPrimitives
   def object_id
     <<-CODE
     self = stack_pop();
-    stack_push(I2N((int)self));
+    stack_push(UI2N(self));
     CODE
   end
 
@@ -705,15 +724,15 @@ class ShotgunPrimitives
     if(!FIXNUM_P(t1) || !object_stores_bytes_p(state, self)) {
       _ret = FALSE;
     } else {
-      char *indexed;
+      unsigned char *indexed;
       j = FIXNUM_TO_INT(t1);
       k = bytearray_bytes(state, self);
       if (j < 0 || j >= k) {
         _ret = FALSE;
       } else {
-        indexed = (char*)bytearray_byte_address(state, self);
+        indexed = (unsigned char*)bytearray_byte_address(state, self);
         indexed += j;
-        stack_push(I2N(*indexed));
+        stack_push(UI2N(*indexed));
       }
     }
     CODE
@@ -759,7 +778,8 @@ class ShotgunPrimitives
       _ret = FALSE;
     } else {
       j = bytearray_bytes(state, self);
-      if(j != bytearray_bytes(state, t1)) {
+      k = bytearray_bytes(state, t1);
+      if(j != k) {
         stack_push(Qfalse);
       } else if(j == 0) {
         stack_push(Qtrue);
@@ -961,7 +981,6 @@ class ShotgunPrimitives
       err = NULL;
 
       name = string_as_string(state, t1);
-      printf("Trying to open %s\\n", name);
       io = g_io_channel_new_file(name, "r", &err);
       if(io == NULL) {
         _ret = FALSE;
@@ -976,23 +995,42 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
-  def readline
+    
+  def terminal_raw
     <<-CODE
     {
-      char *str;
-      self = stack_pop();
-      t1 = stack_pop();
-      if(!RISA(t1, string)) {
-        _ret = FALSE;
+      char *env = getenv("_TERM_SETTINGS");
+      stack_pop();
+      if(env && env[0] != 0) {
+        stack_push(Qfalse);
       } else {
-        str = readline(string_as_string(state, t1));
-        if(str == NULL) {
-          stack_push(Qnil);
-        } else {
-          stack_push(string_new(state, str));
-          free(str);
-        }
+        FILE *io;
+        char sbuf[1024];
+        
+        io = popen("stty -g", "r");
+        fgets(sbuf, 1023, io);
+        setenv("_TERM_SETTINGS", sbuf, 1);
+        pclose(io);
+        system("stty raw");
+        stack_push(Qtrue);
+      }
+    }
+    CODE
+  end
+  
+  def terminal_normal
+    <<-CODE
+    {
+      char *env = getenv("_TERM_SETTINGS");
+      stack_pop();
+      if(!env || env[0] == 0) {
+        stack_push(Qfalse);
+      } else {
+        char sbuf[1024];
+        
+        snprintf(sbuf, 1023, "stty %s", env);
+        system(sbuf);
+        stack_push(Qtrue);
       }
     }
     CODE

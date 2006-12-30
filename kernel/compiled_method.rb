@@ -1,4 +1,49 @@
 class CompiledMethod
+  
+  def inspect
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"
+  end
+  
+  def from_string(bc, lcls, req)
+    @bytecodes = bc
+    @primitive = -1
+    @locals = lcls
+    @literals = Tuple.new(0)
+    @required = 0
+    @arguments = Tuple.new(0)
+    @exceptions = nil
+    @lines = nil
+    @file = nil
+    @name = nil
+    @path = nil
+    @required = req
+    return self
+  end
+  
+  def exceptions=(tup)
+    @exceptions = tup
+  end
+  
+  def literals=(tup)
+    @literals = tup
+  end
+  
+  def file=(val)
+    @file = val
+  end
+  
+  def name=(val)
+    @name = val
+  end
+  
+  def lines=(val)
+    @lines = val
+  end
+  
+  def path=(val)
+    @path = val
+  end
+  
   def activate(recv, args, &prc)
     sz = args.total
     Ruby.asm <<-ASM

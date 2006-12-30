@@ -38,4 +38,31 @@ class Array
     
     @tuple.at(idx)
   end
+  
+  # TODO fill out pack.
+  def pack(schema)
+    if schema.size != self.size
+      raise ArgumentError, "Schema includes #{schema.size} conversions, array only has #{self.size} elements."
+    end
+    
+    ret = ""
+    0.upto(schema.size - 1) do |idx|
+      kind = schema[idx]
+      if kind == ?N
+        obj = self[idx]
+        parts = []
+        4.times do
+          parts << (obj % 256)
+          obj = obj / 256
+        end
+        3.downto(0) do |j|
+          ret << parts[j].chr
+        end
+      else
+        raise ArgumentError, "Unknown kind #{kind.chr}"
+      end  
+    end
+    
+    return ret
+  end
 end

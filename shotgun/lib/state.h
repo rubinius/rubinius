@@ -92,7 +92,20 @@ static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   return ret;
 }
 
+static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
+  OBJECT ret;
+  
+  ret = (OBJECT)((num << 3) | 1);
+  
+  if(num != (ret >> 3)) {
+    return bignum_new_unsigned(state, num);
+  }
+  
+  return ret;
+}
+
 #define FIXNUM_TO_INT(obj) rbs_to_int(obj)
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(state, int)
 #define I2N(i) INT_TO_FIXNUM(i)
+#define UI2N(i) rbs_uint_to_fixnum(state, i)
 

@@ -22,6 +22,16 @@ OBJECT bignum_new(STATE, int num) {
   return o;
 }
 
+OBJECT bignum_new_unsigned(STATE, unsigned int num) {
+  mp_int *a;
+  OBJECT o;
+  o = object_memory_new_opaque(state, BASIC_CLASS(bignum), sizeof(mp_int));
+  a = (mp_int*)BYTES_OF(o);
+  mp_init(a);
+  mp_set_int(a, num);
+  return o;
+}
+
 OBJECT bignum_normalize(STATE, OBJECT b) {
   if(mp_count_bits(MP(b)) <= (32 - 3)) {
     int val;

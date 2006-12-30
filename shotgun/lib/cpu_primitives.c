@@ -10,7 +10,6 @@
 #include "bytearray.h"
 #include "tuple.h"
 #include "regexp.h"
-#include "readline/readline.h"
 
 #include <string.h>
 #include <sys/types.h>

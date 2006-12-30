@@ -206,6 +206,29 @@ namespace :build do
     system("cd externals/syd-parser; rake gem")
     puts "\nNow do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser.\n\n"
   end
+  
+  desc "Bootstrap the compiler."
+  task :compiler do
+    files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
+      sexp/simple_processor translation/normalize translation/local_scoping
+      sexp/composite_processor translation/states sexp/exceptions!
+
+    files.each do |name|
+      file = "#{name}.rb"
+      dir = File.dirname(file)
+      dest_dir = File.join("native", dir)
+      path = File.expand_path File.join("lib", file)
+      dest = File.join("native", file)
+      FileUtils.mkdir_p dest_dir
+      FileUtils.symlink path, dest rescue nil
+      sh "bin/rcompile #{dest}"
+    end
+
+    extra = %w!bytecode/rubinius!
+    extra.each do |name|
+      sh "bin/rcompile native/#{name}.rb"
+    end
+  end
 end
 
 namespace :doc do

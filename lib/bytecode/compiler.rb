@@ -299,9 +299,11 @@ module Bytecode
         thn = x.shift
         els = x.shift
         process cond
+        
+        el = unique_lbl()
+        ed = unique_lbl()
+        
         if thn and els
-          el = unique_lbl()
-          ed = unique_lbl()
           gif el
           process thn
           goto ed
@@ -309,14 +311,18 @@ module Bytecode
           process els
           set_label ed
         elsif !els
-          ed = unique_lbl()
-          gif ed
+          gif el
           process thn
+          goto ed
+          set_label el
+          add "push false"
           set_label ed
         elsif !thn
-          ed = unique_lbl()
-          git ed
+          git el
           process els
+          goto ed
+          set_label el
+          add "push false"
           set_label ed
         end
       end
@@ -1112,11 +1118,13 @@ module Bytecode
           return
         end
         
+        grab_args = false
+        
         if args
           if args.first == :argscat
             process(args)
             sz = "+"
-            add "push nil"
+            grab_args = true
           else
             args.shift
             args.reverse.each { |a| process(a) }
@@ -1130,15 +1138,27 @@ module Bytecode
           @post_send = ps = unique_lbl()
         end
         
+        if grab_args
+          add "get_args"
+        end
+        
         if block
           op = "&send"
           process block
         else
+          add "push nil" if grab_args
+          
           op = "send"
         end
         
-        process recv
+        add "swap" if grab_args
                 
+        process recv
+        
+        if grab_args
+          add "swap"
+          add "set_args"
+        end
         add "#{op} #{meth} #{sz}"
         add "#{ps}:" if block
       end

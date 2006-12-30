@@ -57,7 +57,7 @@ class CPU::Primitives
     :bignum_sub,
     :bignum_mul,
     :bignum_equal,
-    :readline,
+    nil,
     :regexp_new,
     :regexp_match,
     :tuple_shifted,
@@ -67,7 +67,10 @@ class CPU::Primitives
     :zlib_inflate,
     :zlib_deflate,
     :fixnum_modulo,
-    :bytearray_size
+    :bytearray_size,
+    :terminal_raw,
+    :terminal_normal,
+    :fixnum_div
   ]
   
   FirstRuntimePrimitive = 1024

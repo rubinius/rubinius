@@ -128,6 +128,7 @@ class ShotgunInstructions
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
+    assert(REFERENCE_P(t2));
     stack_push(NTH_FIELD(t2, FIXNUM_TO_INT(t1)));
     CODE
   end
@@ -135,6 +136,7 @@ class ShotgunInstructions
   def push_my_field
     <<-CODE
     next_int;
+    assert(REFERENCE_P(c->self));
     stack_push(NTH_FIELD(c->self, _int));
     CODE
   end
@@ -581,6 +583,7 @@ class ShotgunInstructions
   def set_args
     <<-CODE
     t1 = stack_pop();
+    assert(FIXNUM_P(t1));
     c->args = FIXNUM_TO_INT(t1);
     CODE
   end

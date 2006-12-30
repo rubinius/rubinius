@@ -29,30 +29,7 @@ module Kernel
     end
     Ruby.asm "push exc\nraise_exc"
   end
-  
-  def load(path)
-    cm = CompiledMethod.load_from_file(path)
-    raise LoadError, "Unable to load file at path: #{path}" unless cm
-    cm.activate_as_script
-  end
-  
-  def require(thing)
-    filename = thing + ".rbc"
-    if File.exists?(filename)
-      $" << filename
-      return load(filename)
-    else
-      $:.each do |dir|
-        path = "#{dir}/#{filename}"
-        if File.exists?(path)
-          $" << path
-          return load(path)
-        end
-      end
-      raise LoadError, "Unable to find '#{thing}' to load"
-    end
-  end
-  
+    
   def exit(code=0)
     Process.exit(code)
   end
@@ -142,7 +119,18 @@ class Object
   end
   
   def inspect
-    to_s
+    if !@__ivars__ or @__ivars__.size == 0
+      return to_s
+    end
+    
+    res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
+    parts = []
+    @__ivars__.each do |k,v|
+      parts << "#{k}=#{v.inspect}"
+    end
+    res << parts.join(" ")
+    res << ">"
+    return res
   end
   
   def respond_to?(meth)
@@ -153,8 +141,8 @@ class Object
     end
   end
   
-  def __send__(meth, *args, &prc)
-    meth = self.class.instance_method(meth)
+  def __send__(name, *args, &prc)
+    meth = self.class.instance_method(name)
     meth = meth.bind(self)
     meth.call(*args, &prc)
   end
@@ -192,12 +180,16 @@ class TrueClass
   def to_s
     "true"
   end
+  
+  alias :inspect :to_s
 end
 
 class FalseClass
   def to_s
     "false"
   end
+  
+  alias :inspect :to_s
 end
 
 class GC

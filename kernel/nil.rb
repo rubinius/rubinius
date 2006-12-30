@@ -3,6 +3,8 @@ class NilClass
     "nil"
   end
   
+  alias :inspect :to_s
+  
   def nil?
     true
   end

@@ -154,7 +154,7 @@ class InstructionEncoder
     if IntArg.include?(kind)
       int = args.shift
       unless Numeric === int
-        raise "#{kind} expects an integer only."
+        raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
       end
       str << [int].pack("N")
     end
@@ -162,7 +162,7 @@ class InstructionEncoder
     if TwoInt.include?(kind)
       int = args.shift
       unless Numeric === int
-        raise "#{kind} expects an integer only."
+        raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
       end
       str << [int].pack("N")
     end

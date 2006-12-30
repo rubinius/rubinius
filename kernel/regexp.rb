@@ -41,6 +41,11 @@ class Regexp
 end
 
 class MatchData
+  
+  def string
+    @source
+  end
+  
   def captures
     out = []
     @region.each do |tup|
@@ -59,5 +64,17 @@ class MatchData
     else
       captures[idx - 1]
     end
+  end
+  
+  def pre_match
+    return "" if full.at(0) == 0
+    nd = full.at(0) - 1
+    @source[0..nd]
+  end
+  
+  def post_match
+    nd = @source.size - 1
+    st = full.at(1)
+    @source[st..nd]
   end
 end

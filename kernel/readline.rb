@@ -1,5 +1,13 @@
 module Readline
   def self.readline(prompt)
-    Ruby.primitive :readline
+    ""
+  end
+  
+  def self._terminal_raw
+    Ruby.primitive :terminal_raw
+  end
+  
+  def self._terminal_normal
+    Ruby.primitive :terminal_normal
   end
 end

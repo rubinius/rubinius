@@ -52,19 +52,23 @@ class Class
     return cls
   end
   
-  def attr_reader(name)
-    sym = "@#{name}".to_sym
-    meth = AccessVarMethod.get_ivar(sym)
-    self.methods[name.to_sym] = meth
-    return name
+  def attr_reader(*args)
+    args.each do |name|
+      sym = "@#{name}".to_sym
+      meth = AccessVarMethod.get_ivar(sym)
+      self.methods[name.to_sym] = meth
+    end
+    return nil
   end
   
-  def attr_writer(name)
-    sym = "@#{name}".to_sym
-    meth = AccessVarMethod.set_ivar(sym)
-    mname = "#{name}=".to_sym
-    self.methods[mname] = meth
-    return name
+  def attr_writer(*args)
+    args.each do |name|
+      sym = "@#{name}".to_sym
+      meth = AccessVarMethod.set_ivar(sym)
+      mname = "#{name}=".to_sym
+      self.methods[mname] = meth
+    end
+    return nil
   end
   
   def attr_accessor(*names)

@@ -15,6 +15,10 @@ class Fixnum
     Ruby.primitive :fixnum_mul
   end
   
+  def /(o)
+    Ruby.primitive :fixnum_div
+  end
+  
   def %(o)
     Ruby.primitive :fixnum_modulo
   end
@@ -50,6 +54,10 @@ class Fixnum
   def based_to_s(base)
     Ruby.primitive :fixnum_to_s
   end
+  
+  def inspect
+    based_to_s(10)
+  end
 
   def zero?
     self == 0
@@ -57,5 +65,9 @@ class Fixnum
 
   def nonzero?
     self != 0
+  end
+  
+  def -@
+    0 - self
   end
 end

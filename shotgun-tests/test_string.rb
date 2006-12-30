@@ -1,6 +1,15 @@
 require File.dirname(__FILE__) + '/helper'
 
 class TestString < RubiniusTestCase
+
+  def test_string_to_i
+    out = rp <<-CODE
+    p "832".to_i
+    p "-1".to_i
+    CODE
+
+    assert_equal ["832", "-1"], out
+  end
   
   def test_string_substring
     out = rp <<-CODE
@@ -100,5 +109,16 @@ class TestString < RubiniusTestCase
     puts a.slice(x-y, y).to_sym == b.to_sym
     CODE
     assert_equal ['true', 'true'], out
+  end
+
+  def test_string_split
+    out = rp <<-CODE
+    str = "a-b-c"
+    p str.split("-")
+    str = "a   b c  "
+    p str.split(/\\s+/)
+    CODE
+    assert_equal '["a", "b", "c"]', out[0]
+    assert_equal '["a", "b", "c"]', out[1]
   end
 end
