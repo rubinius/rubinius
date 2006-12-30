@@ -7,6 +7,10 @@ class Bignum
     radix_to_s(radix)
   end
 
+  def inspect
+    radix_to_s(10)
+  end
+  
   def +(o)
     Ruby.primitive :bignum_add
   end
