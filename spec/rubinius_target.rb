@@ -25,6 +25,10 @@ module RubiniusTarget
     unless File.exists?(name) and source == File.read(name)
       File.open(name, "w") { |f| f << source }
       `#{rubinius_path}/bin/rcompile #{name}`
+      unless $?.success?
+        FileUtils.rm(name)
+        raise RubiniusTargetError, "Unable to compile #{name}"
+      end
     end
     name + 'c'
   end
