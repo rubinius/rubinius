@@ -23,6 +23,10 @@ class Fixnum
     Ruby.primitive :fixnum_modulo
   end
   
+  def &(o)
+    Ruby.primitive :fixnum_and
+  end
+
   def <=>(o)
     Ruby.primitive :compare
   end

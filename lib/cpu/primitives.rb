@@ -67,6 +67,7 @@ class CPU::Primitives
     :zlib_inflate,
     :zlib_deflate,
     :fixnum_modulo,
+    :fixnum_and,
     :bytearray_size,
     :terminal_raw,
     :terminal_normal,

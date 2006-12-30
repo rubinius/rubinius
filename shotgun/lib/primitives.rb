@@ -1256,6 +1256,23 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def fixnum_and
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      m = j & k;
+      t2 = I2N(m);
+      stack_push(t2);
+      _ret = TRUE;
+    }
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
