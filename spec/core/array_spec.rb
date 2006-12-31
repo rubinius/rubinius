@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-# &, *, +, -, <<, <=>, ==, [], []=, abbrev, assoc, at, clear,
+# &, *, +, -, <<, <=>, ==, [], []=, assoc, at, clear,
 # collect, collect!, compact, compact!, concat, delete, delete_at,
 # delete_if, each, each_index, empty?, eql?, fetch, fill, first,
 # flatten, flatten!, frozen?, hash, include?, index, indexes,
@@ -126,12 +126,190 @@ context "Array" do
     end.should == "nil"
   end
   
+  specify "[]= should set the value of the element at index" do
+    example do
+      @a = [1, 2, 3, 4]
+      @a[2] = 5
+      @a[-1] = 6
+      @a[5] = 3
+      p @a
+    end.should == '[1, 2, 5, 6, nil, 3]'
+  end
+  
+  specify "[]= should remove the section defined by start, length when set to nil" do
+    example do
+      @a = ['a', 'b', 'c', 'd', 'e']
+      @a[1, 3] = nil
+      p @a
+    end.should == '["a", "e"]'
+  end
+  
+  specify "[]= should set the section defined by start, length to other" do
+    example do
+      @a = [1, 2, 3, 4, 5, 6]
+      @a[0, 1] = 2
+      @a[3, 2] = ['a', 'b', 'c', 'd']
+      p @a
+    end.should == '[2, 2, 3, "a", "b", "c", "d", 6]'
+  end
+  
+  specify "[]= should remove the section defined by range when set to nil" do
+    example do
+      @a = [1, 2, 3, 4, 5]
+      @a[0..1] = nil
+      p @a
+    end.should == '[3, 4, 5]'
+  end
+  
+  specify "[]= should set the section defined by range to other" do
+    example do
+      @a = [6, 5, 4, 3, 2, 1]
+      @a[1...2] = 9
+      @a[3..6] = [6, 6, 6]
+      p @a
+    end.should == '[6, 9, 4, 6, 6, 6]'
+  end
+  
+  specify "assoc should return the first contained array that the argument as the first element" do
+    example do
+      @s1 = [ "colors", "red", "blue", "green" ] 
+      @s2 = [ "letters", "a", "b", "c" ] 
+      @s3 = "foo" 
+      @a = [ @s1, @s2, @s3 ] 
+      p [@a.assoc("letters"), @a.assoc("foo")]
+    end.should == '[["letters", "a", "b", "c"], nil]'
+  end
+  
+  specify "at should return the element at index" do
+    example do
+      @a = [1, 2, 3, 4, 5, 6]
+      p [@a.at(0), @a.at(-2), @a.at(10)]
+    end.should == '[1, 5, nil]'
+  end
+  
+  specify "clear should remove all elements" do
+    example do
+      @a = [1, 2, 3, 4]
+      @a.clear
+      p @a
+    end.should == '[]'
+  end
+  
+  specify "collect should return a copy of array with each element replaced by the value returned by block" do
+    example do
+      @a = ['a', 'b', 'c', 'd']
+      @b = @a.collect { |i| i + '!' }
+      p @b
+    end.should == '["a!", "b!", "c!", "d!"]'
+  end
+  
+  specify "collect! should replace each element with the value returned by block" do
+    example do
+      @a = [7, 9, 3, 5]
+      @a.collect! { |i| i - 1 }
+      p @a
+    end.should == '[6, 8, 2, 4]'
+  end
+  
+  specify "compact should return a copy of array with all nil elements removed" do
+    example do
+      @a = [1, nil, 2, nil, 4, nil]
+      p @a.compact
+    end.should == '[1, 2, 4]'
+  end
+  
+  specify "compact! should remove all nil elements" do
+    example do
+      @a = ['a', nil, 'b', nil, nil, 'c']
+      p @a.compact!
+    end.should == '["a", "b", "c"]'
+  end
+  
+  specify "compact! should return nil if there are no nil elements to remove" do
+    example do
+      p [1, 2, 3].compact!
+    end.should == 'nil'
+  end
+  
+  specify "concat should append the elements in the other array" do
+    example do
+      p [1, 2, 3].concat([9, 10, 11])
+    end.should == '[1, 2, 3, 9, 10, 11]'
+  end
+  
+  specify "delete should remove elements equal to object" do
+    example do
+      @a = [1, 2, 3, 3, 4, 3, 5]
+      @a.delete(3)
+      p @a
+    end.should == '[1, 2, 4, 5]'
+  end
+  
+  specify "delete should return nil if no elements match object" do
+    example do
+      p [1, 2, 4, 5].delete(3)
+    end.should == 'nil'
+  end
+  
+  specify "delete_at should remove the element at the specified index" do
+    example do
+      @a = [1, 2, 3, 4]
+      @a.delete_at(2)
+      p @a
+    end.should == '[1, 2, 4]'
+  end
+  
+  specify "delete_at should return nil if the index is out of range" do
+    example do
+      @a = [1, 2]
+      p @a.delete_at(3)
+    end.should == 'nil'
+  end
+  
+  specify "delete_if should remove each element for which block returns true" do
+    example do
+      @a = [ "a", "b", "c" ] 
+      @a.delete_if { |x| x >= "b" }
+      p @a
+    end.should == '["a"]'
+  end
+  
   specify "each should yield each element to the block" do
     example do
       [ 1,2,3 ].each { |item| puts item }
     end.should == "1\n2\n3"
   end
-
+  
+  specify "each_index should pass the index of each element to the block" do
+    example do
+      ['a', 'b', 'c', 'd'].each_index { |i| puts i }
+    end.should == "1\n2\n3\n4"
+  end
+  
+  specify "empty? should return true if the array has no elements" do
+    example do
+      p [[].empty?, [1].empty?, [1, 2].empty?]
+    end.should == '[true, false, false]'
+  end
+  
+  specify "eql? should return true if other is the same array" do
+    example do
+      @a = []
+      @b = []
+      p [@a.eql?(@a), @a.eql?(@b)]
+    end.should == '[true, false]'
+  end
+  
+  specify "eql? should return true if other has the same length and elements" do
+    example do
+      @a = [1, 2, 3, 4]
+      @b = [1, 2, 3, 4]
+      @c = [1, 2]
+      @d = ['a', 'b', 'c', 'd']
+      p [@a.eql?(@b), @a.eql?(@c), @a.eql?(@d)]
+    end.should == '[true, false, false]'
+  end
+  
   specify "partition should return two arrays" do
     example do
       puts [].partition.inspect

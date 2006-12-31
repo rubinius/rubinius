@@ -22,6 +22,12 @@ context "Range" do
     end.should == '[-1, 0, 65535]'
   end
   
+  specify "each should pass each element to the block" do
+    example do
+      (-5..5).each { |i| puts i }
+    end.should == "-5\n-4\n-3\n-2\n-1\n0\n1\n2\n3\n4\n5"
+  end
+  
   specify "end should return the last element" do
     example do
       p [(-1..1).end, (0..1).end, (0xffff...0xfffff).end]
