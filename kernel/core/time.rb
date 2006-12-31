@@ -1,4 +1,6 @@
 class Time
+  include Comparable
+
   def self.now
     Ruby.primitive :gettimeofday
   end
@@ -13,6 +15,10 @@ class Time
   
   def seconds
     Ruby.primitive :time_seconds
+  end
+
+  def <=>(other)
+    self.seconds <=> other.seconds
   end
   
   alias :to_i :seconds

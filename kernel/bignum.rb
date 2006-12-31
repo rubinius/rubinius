@@ -1,4 +1,4 @@
-class Bignum
+class Bignum < Integer
   def radix_to_s(radix)
     Ruby.primitive :bignum_to_s
   end

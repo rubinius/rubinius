@@ -1,4 +1,4 @@
-class Fixnum
+class Fixnum < Integer
   def ==(o)
     Ruby.primitive :equal
   end
@@ -27,10 +27,6 @@ class Fixnum
     Ruby.primitive :fixnum_and
   end
 
-  def <=>(o)
-    Ruby.primitive :compare
-  end
-  
   def <(o)
     (self <=> o) == -1
   end

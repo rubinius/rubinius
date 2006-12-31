@@ -41,6 +41,8 @@ struct time_data {
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
+#define IS_INTEGER(obj) (FIXNUM_P(obj) || RISA(obj, bignum))
+
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;

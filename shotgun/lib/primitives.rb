@@ -199,9 +199,11 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+    if(!IS_INTEGER(self) || !IS_INTEGER(t1)) {
       _ret = FALSE;
-    } else {
+    } 
+    else if(FIXNUM_P(self) && FIXNUM_P(t1)) {
+      // both are Fixnum
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       if(j == k) {
@@ -211,6 +213,21 @@ class ShotgunPrimitives
       } else {
         stack_push(I2N(1));
       }
+      _ret = TRUE;
+    }
+    else if(!FIXNUM_P(t1) && FIXNUM_P(self)) { 
+      // other is Bignum, self is Fixnum
+      stack_push(I2N(-1));
+      _ret = TRUE;
+    }
+    else if(!FIXNUM_P(self) && FIXNUM_P(t1)) {
+      // other is Fixnum, self is Bignum
+      stack_push(I2N(1));
+      _ret = TRUE;
+    }
+    else if(!FIXNUM_P(self) && !FIXNUM_P(t1)) {
+      // both are Bignum
+      stack_push(bignum_compare(state, self, t1));
       _ret = TRUE;
     }
     CODE
