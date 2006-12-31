@@ -73,7 +73,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(FIXNUM_P(t1) || RISA(t1, bignum)) {
+    if(IS_INTEGER(t1)) {
       stack_push(bignum_add(state, self, t1));
     } else {
       _ret = FALSE;
@@ -105,7 +105,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(FIXNUM_P(t1) || RISA(t1, bignum)) {
+    if(IS_INTEGER(t1)) {
       stack_push(bignum_sub(state, self, t1));
     } else {
       _ret = FALSE;
@@ -137,7 +137,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(FIXNUM_P(t1) || RISA(t1, bignum)) {
+    if(IS_INTEGER(t1)) {
       stack_push(bignum_mul(state, self, t1));
     } else {
       _ret = FALSE;
@@ -187,7 +187,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(FIXNUM_P(t1) || RISA(t1, bignum)) {
+    if(IS_INTEGER(t1)) {
       stack_push(bignum_equal(state, self, t1));
     } else {
       _ret = FALSE;
