@@ -3,6 +3,8 @@ class Regexp
     def new(str, opts=false)
       create(str, opts)
     end
+    
+    alias :compile :new
 
     def create(str, opts)
       Ruby.primitive :regexp_new

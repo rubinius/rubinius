@@ -1,7 +1,62 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+# class methods
+# compile, escape, last_match, new, quote, union
+
 # ==, ===, =~, casefold?, eql?, hash, inspect, kcode, match, options,
 # source, to_s, ~
+
+context "Regexp class method" do
+  specify "compile should be a synonym for new" do
+    example do
+      p Regexp.compile('').is_a?(Regexp)
+    end.should == 'true'
+  end
+  
+  specify "escape should escape any characters with special meaning in a regular expression" do
+    example do
+      puts Regexp.escape('\*?{}.+^[]()-')
+    end.should == '\\\*\?\{\}\.\+\^\[\]\(\)\-'
+  end
+  
+  specify "last_match with no argument should return MatchData" do
+    example do
+      /c(.)t/ =~ 'cat'
+      puts Regexp.last_match.is_a?(MatchData)
+    end.should == 'true'
+  end
+  
+  specify "last_match with a fixnum argument should return the nth field in this MatchData" do
+    example do
+      /c(.)t/ =~ 'cat'
+      puts Regexp.last_match(1)
+    end.should == 'a'
+  end
+  
+  specify "new should create a new regular expression object" do
+    example do
+      p Regexp.new('').is_a?(Regexp)
+    end.should == 'true'
+  end
+  
+  specify "quote should be a synonym for escape" do
+    example do
+      puts Regexp.escape('\*?{}.+^[]()-')
+    end.should == '\\\*\?\{\}\.\+\^\[\]\(\)\-'
+  end
+  
+  specify "union with no arguments should return /(?!)/" do
+    example do
+      puts Regexp.union
+    end.should == '/(?!)/'
+  end
+  
+  specify "union with arguments should return a regular expression that will match any part" do
+    example do
+      p [Regexp.union("penzance"), Regexp.union("skiing", "sledding"), Regexp.union(/dogs/, /cats/i)]
+    end.should == '[/penzance/, /skiing|sledding/, /(?-mix:dogs)|(?i-mx:cats)/]'
+  end
+end
 
 context "Regexp" do
   specify "== should be true if self and other have the same pattern, character set code, and casefold? values" do
@@ -48,10 +103,10 @@ context "Regexp" do
     end.should == '[true, false, false, false]'
   end
   
-  specify "hash should produce a hash based on the text and options" do
+  specify "should provide hash" do
     example do
-      p [/wonkers/.hash, /bonkers/.hash, /abc/i.hash, /xyz/n.hash]
-    end.should == '[]'
+      p Regexp.new('').respond_to?(:hash)
+    end.should == 'true'
   end
 
   specify "inspect should produce a formatted string" do
@@ -99,5 +154,4 @@ context "Regexp" do
       puts ~ /at/
     end.should == '7'
   end
-
 end
