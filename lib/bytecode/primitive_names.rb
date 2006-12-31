@@ -69,7 +69,9 @@ module Bytecode
       :unmarshal_from_file,
       :archive_files,
       :archive_get_file,
-      :archive_get_object
+      :archive_get_object,
+      :fixnum_and,
+      :time_at
     ]
 
     FirstRuntimePrimitive = 1024

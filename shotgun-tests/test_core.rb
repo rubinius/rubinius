@@ -697,16 +697,25 @@ class TestCore < RubiniusTestCase
     assert_equal ['$', '1'], out
   end
 
-  def test_time_comparison # TODO - Implement this using Time.at. This is lame.
+  def test_time_comparison
     out = rp <<-CODE
-      t1 = Time.now
-      Process.sleep 1
-      t2 = Time.now
+      t1 = Time.at(1167551180)
+      t2 = Time.at(1167551184)
       p(t1 <=> t2)
       p(t2 <=> t1)
       p(t1 <=> t1)
     CODE
     assert_equal ['-1','1','0'], out
+  end
+
+  def test_time_at
+    out = rp <<-CODE
+      t1 = Time.at(1167530180).strftime('%B %Y')
+      puts t1
+      t2 = Time.at(1057530180).strftime('%B %Y')
+      puts t2
+    CODE
+    assert_equal ["December 2006", "July 2003"], out
   end
   
   def test_marshal_simpliest

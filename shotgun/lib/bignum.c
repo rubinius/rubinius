@@ -97,6 +97,10 @@ OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
   return I2N(mp_cmp(MP(a), MP(b)));
 }
 
+unsigned long bignum_to_int(STATE, OBJECT self) {
+  return mp_get_int(MP(self));
+}
+
 OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   char buffer[1024];
   int k;

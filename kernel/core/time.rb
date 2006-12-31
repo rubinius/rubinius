@@ -4,6 +4,15 @@ class Time
   def self.now
     Ruby.primitive :gettimeofday
   end
+
+  def self.at(secs, msecs = 0)
+    self.__at(secs, msecs)
+  end
+
+  # Primitive methods can't take default argument values, so we need a wrapper.
+  def self.__at(secs, msecs)
+    Ruby.primitive :time_at
+  end
   
   def strftime(format)
     Ruby.primitive :strftime

@@ -518,7 +518,7 @@ class ShotgunPrimitives
     if(!RISA(t1, class)) {
       _ret = FALSE;
     } else {
-      do {
+      do { /* introduce a new scope */
         struct time_data td;
         struct time_data *tdp;
       
@@ -532,6 +532,46 @@ class ShotgunPrimitives
       } while(0);
       stack_push(self);
     }
+    CODE
+  end
+
+  def time_at
+    <<-CODE
+      t1 = stack_pop(); // Time class
+      t2 = stack_pop(); // Bignum or Fixnum, seconds
+      t3 = stack_pop(); // Bignum or Fixnum, usecs
+      if(!RISA(t1, class) || !IS_INTEGER(t2) || !IS_INTEGER(t3)) {
+        _ret = FALSE;
+      } else {
+        do { /* introduce a new scope */
+          long tv_sec;
+          long tv_usec;
+          if(FIXNUM_P(t2)) {
+            tv_sec = (long)FIXNUM_TO_INT(t2);
+          } else {
+            tv_sec = (long)bignum_to_int(state, t2);
+          }
+
+          if(FIXNUM_P(t3)) {
+            tv_usec = (long)FIXNUM_TO_INT(t3);
+          } else {
+            tv_usec = (long)bignum_to_int(state, t3);
+          }
+
+          struct time_data td;
+          struct time_data *tdp;
+
+          j = sizeof(struct time_data) / 4;
+          self = NEW_OBJECT(t1, j+1);
+          object_make_byte_storage(state, self);
+          k = gettimeofday(&td.tv, &td.tz); // fetch the local timezone
+          td.tv.tv_sec = tv_sec; // assign specified seconds
+          td.tv.tv_usec = tv_usec; // assign specified microseconds          
+          tdp = (struct time_data*)BYTES_OF(self);    
+          *tdp = td;
+        } while(0);
+        stack_push(self);
+      }
     CODE
   end
   
@@ -1362,3 +1402,4 @@ end
 
 prim = ShotgunPrimitives.new
 prim.generate_select(STDOUT)
+
