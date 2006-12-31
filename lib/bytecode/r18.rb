@@ -12,6 +12,7 @@ module Bytecode
       rescue Object => e
         raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
       end
+            
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = asm.number_of_locals

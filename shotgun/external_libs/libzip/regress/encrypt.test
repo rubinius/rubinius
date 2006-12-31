@@ -1,0 +1,8 @@
+# test encryption support
+# $NiH: encrypt.test,v 1.1 2006/04/24 14:04:19 dillo Exp $
+program encrypt
+return 0
+args encrypt.zip
+file encrypt.zip encrypt.zip encrypt.zip
+stdout 0: 1
+stdout 1: 0

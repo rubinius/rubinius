@@ -1,0 +1,16 @@
+# show comments of a zip archive
+# $NiH: get_comment.test,v 1.1 2006/04/23 00:39:58 wiz Exp $
+program get_comment
+return 0
+args testcomment.zip
+file testcomment.zip testcomment.zip testcomment.zip
+stdout Archive comment: This is the archive comment for the file.
+stdout 
+stdout Long.
+stdout 
+stdout Longer.
+stdout 
+stdout No comment for `file1'
+stdout File comment for `file2': First one had no comment.
+stdout File comment for `file3': Third one.
+stdout File comment for `file4': Last.

@@ -1273,20 +1273,88 @@ class ShotgunPrimitives
     }
     CODE
   end
-
-  def fixnum_and
+  
+  def marshal_object
     <<-CODE
-    self = stack_pop();
-    t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+    stack_pop(); /* class */
+    t1 = stack_pop();
+    stack_push(cpu_marshal(state, t1));
+    CODE
+  end
+  
+  def unmarshal_object
+    <<-CODE
+    stack_pop(); /* class */
+    t1 = stack_pop();
+    if(!RISA(t1, string)) {
       _ret = FALSE;
     } else {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-      m = j & k;
-      t2 = I2N(m);
-      stack_push(t2);
-      _ret = TRUE;
+      stack_push(cpu_unmarshal(state, string_byte_address(state, t1)));
+    }
+    CODE
+  end
+  
+  def marshal_to_file
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(!RISA(t2, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(cpu_marshal_to_file(state, t1, string_byte_address(state, t2)));
+    }
+    CODE
+  end
+  
+  def unmarshal_from_file
+    <<-CODE
+    stack_pop(); /* class */
+    t1 = stack_pop();
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(cpu_unmarshal_file(state, string_byte_address(state, t1)));
+    }
+    CODE
+  end
+  
+  def archive_files
+    <<-CODE
+    stack_pop(); /* blah */
+    t1 = stack_pop();
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(archive_list_files(state, string_byte_address(state, t1)));
+    }
+    CODE
+  end
+  
+  def archive_get_file
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(!RISA(t1, string) || !RISA(t2, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(archive_get_file(state, 
+          string_byte_address(state, t1), string_byte_address(state, t2)));
+    }
+    CODE
+  end
+  
+  def archive_get_object
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(!RISA(t1, string) || !RISA(t2, string)) {
+      _ret = FALSE;
+    } else {
+      stack_push(archive_get_object(state, 
+          string_byte_address(state, t1), string_byte_address(state, t2)));
     }
     CODE
   end

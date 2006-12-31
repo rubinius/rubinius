@@ -44,6 +44,10 @@ class CompiledMethod
     @path = val
   end
   
+  def primitive=(idx)
+    @primitive = idx
+  end
+  
   def activate(recv, args, &prc)
     sz = args.total
     Ruby.asm <<-ASM

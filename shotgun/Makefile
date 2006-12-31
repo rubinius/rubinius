@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs` -lncurses -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a
+LIBS=`pkg-config glib-2.0 --libs` -lncurses -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 
@@ -16,7 +16,10 @@ external_libs/libtommath/libtommath.a:
 external_libs/onig/.libs/libonig.a:
 	cd external_libs/onig; ./configure; $(MAKE)
 
-librubinius.a: external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a
+external_libs/libzip/lib/.libs/libzip.a:
+	cd external_libs/libzip; ./configure; $(MAKE)
+
+librubinius.a: external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
 	cd lib; $(MAKE) librubinius.a
 
 .PHONY: librubinius.a

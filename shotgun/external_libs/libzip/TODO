@@ -1,0 +1,87 @@
+* php windows fixes:
+  . zip_close: close za->zp before rename, reopen on error
+* add functions to:
+  . set compression method for new/changed entry
+  . set last modification time for entry
+  . read/set EAs
+  . parse/create some EAs?
+  . read/set ASCII file flag
+* do not compress if storing is smaller
+* zip_open: check whether file can be created and fail if not
+------------------------------------------------ API ideas
+struct zip *zip_open_encrypted(const char *path, int flags,
+                               const char *password, int *errorp);
+void zip_set_default_password(struct zip *archive, const char *password);
+(NULL for unsetting)
+
+struct zip_file *zip_fopen_encrypted(struct zip *archive,
+                                     const char *fname, int flags,
+                                     const char *password);
+struct zip_file *zip_fopen_index_encrypted(struct zip *archive,
+                                           int index, int flags,
+                                           const char *password);
+
+int zip_set_encryption(struct zip *archive, int idx, int method,
+                       const char *password);
+void zip_set_archive_encryption(struct zip *archive, int encryption_method,
+                                const char *password);
+
+struct zip_source *zip_source_writable(struct zip *archive);
+zip_source_write(struct zip_source *, const void *data, size_t len);
+zip_source_printf(struct zip_source *, const char *fmt, ...);
+/* maybe
+zip_source_vprintf(struct zip_source *, const char *fmt, va_list ap);
+*/
+------------------------------------------------ others
+* regression tests (duplicate file names, unchange, .{200})
+* zip_commit
+* zip_replace_zip: allow rewinding
+* API for extracting and setting extra fields
+* zipcmp: add option for file content comparison
+* support for zip64 (large file)
+
+* append to files (for self-extracting files)
+* add custom compression function support
+* zip_replace_zip: remember compression method, recompress if different speced
+* close even if error...
+* update-zip (instead of close, reopen)
+* support for old compression methods?????
+------------------------------------------------ regression tests
+* (add, replace)
+	add to empty zip
+	add to existing zip
+	add w/ existing file name [E]
+	replace ok
+	replace w/ illegal index [E]
+	replace w/ deleted name [E]
+	unchange added/replaced file
+* (close)
+	copy zip file
+	open copy
+	rename, delete, replace, add w/ new name, add w/ deleted name
+	close
+	zipcmp copy expected
+	remove copy
+* (delete)
+* (error_get)
+* (error_get_sys_type)
+* (error_to_str)
+* (file_error_get)
+* (file_strerror)
+* (fopen_index)
+	illegal index
+* (get_name)
+* (get_num_files)
+* (rename)
+* (replace)
+* (source_buffer)
+* (source_file)
+* (source_filep)
+* (source_free)
+* (source_function)
+* (source_zip)
+* (stat)
+* (stat_index)
+* (strerror)
+* (unchange)
+* (unchange_all)

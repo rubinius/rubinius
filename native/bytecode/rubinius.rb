@@ -10,18 +10,18 @@ module Bytecode
       rescue Object => e
         raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
       end
-      
+            
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = asm.number_of_locals
-      
+            
       cmeth = CompiledMethod.new.from_string bc.data, lcls, @required
       cmeth.exceptions = asm.exceptions_as_tuple
 
       if @primitive.kind_of? Symbol
-        idx = CPU::Primitives.name_to_index(@primitive)
+        idx = Bytecode::Compiler::Primitives.index(@primitive)
         begin
-          cmeth.primitive = RObject.wrap(idx)
+          cmeth.primitive = idx
         rescue Object
           raise ArgumentError, "Unknown primitive '#{@primitive}'"
         end
@@ -104,21 +104,9 @@ module Bytecode
       end
       return tup
     end
-    
-    def into_method
-      cm = Rubinius::CompiledMethod.from_string(bytecodes, @locals.size)
-      if @primitive
-        cm.primitive = RObject.wrap(@primitive)
-      end
-      cm.literals = literals_as_tuple()
-      cm.arguments = arguments_as_tuple()
-      cm.exceptions = exceptions_as_tuple()
-      cm.lines = lines_as_tuple()
-      return cm
-    end
-    
+        
     def primitive_to_index(sym)
-      idx = CPU::Primitives.name_to_index(sym)
+      Bytecode::Compiler::Primitives.index(sym)
     end
   end
 end

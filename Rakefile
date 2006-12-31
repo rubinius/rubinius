@@ -211,7 +211,8 @@ namespace :build do
   task :compiler do
     files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
       sexp/simple_processor translation/normalize translation/local_scoping
-      sexp/composite_processor translation/states sexp/exceptions!
+      sexp/composite_processor translation/states sexp/exceptions
+      bytecode/primitive_names!
 
     files.each do |name|
       file = "#{name}.rb"

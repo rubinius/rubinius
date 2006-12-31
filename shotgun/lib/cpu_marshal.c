@@ -11,13 +11,35 @@
 
 struct marshal_state {
   int consumed;
+  GPtrArray *objects;
 };
 
+static int _find_object(OBJECT obj, struct marshal_state *ms) {
+  int i;
+  for(i = 0; i < ms->objects->len; i++) {
+    if(obj == (OBJECT)g_ptr_array_index(ms->objects, i)) {
+      return i;
+    }
+  }
+  
+  return -1;
+}
+
+static void _add_object(OBJECT obj, struct marshal_state *ms) {
+  g_ptr_array_add(ms->objects, (gpointer)obj);
+}
+
 static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms);
-static void   marshal(STATE, OBJECT obj, GString *buf);
+static void   marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms);
 
 #define append_c(ch) g_string_append_c(buf, ch)
-#define append_sz(sz) g_string_append_len(buf, (char*)&sz, 4)
+static void _append_sz(GString *buf, unsigned int i) {
+#ifndef __BIG_ENDIAN__
+    i = swap32(i);
+#endif
+  g_string_append_len(buf, (char*)&i, 4);
+}
+#define append_sz(sz) _append_sz(buf, (unsigned int)sz)
 #define append_str(str, sz) g_string_append_len(buf, str, sz)
 
 static void marshal_int(STATE, OBJECT obj, GString *buf) {
@@ -40,6 +62,14 @@ static int read_int(char *str) {
   i = swap32(i);
 #endif
   return i;
+}
+
+static OBJECT _nth_object(STATE, char *str, struct marshal_state *ms) {
+  int ref;
+  
+  ms->consumed += 5;
+  ref = read_int(str + 1);
+  return (OBJECT)g_ptr_array_index(ms->objects, ref);
 }
 
 static OBJECT unmarshal_int(STATE, char *str, struct marshal_state *ms) {
@@ -72,10 +102,10 @@ static void marshal_sym(STATE, OBJECT obj, GString *buf) {
   OBJECT str;
   int i;
   str = symtbl_find_string(state, state->global->symbols, obj);
-  i = FIXNUM_TO_INT(string_get_bytes(obj));
+  i = FIXNUM_TO_INT(string_get_bytes(str));
   append_c('x');
   append_sz(i);
-  append_str(string_byte_address(state, obj), i);
+  append_str(string_byte_address(state, str), i);
 }
 
 static OBJECT unmarshal_sym(STATE, char *str, struct marshal_state *ms) {
@@ -84,13 +114,13 @@ static OBJECT unmarshal_sym(STATE, char *str, struct marshal_state *ms) {
   return string_to_sym(state, obj);
 }
 
-static void marshal_fields_as(STATE, OBJECT obj, GString *buf, char type) {
+static void marshal_fields_as(STATE, OBJECT obj, GString *buf, char type, struct marshal_state *ms) {
   int sz, i;
   sz = NUM_FIELDS(obj);
   append_c(type);
   append_sz(sz);
   for(i = 0; i < sz; i++) {
-    marshal(state, NTH_FIELD(obj, i), buf);    
+    marshal(state, NTH_FIELD(obj, i), buf, ms);
   }
 }
 
@@ -118,8 +148,39 @@ static int unmarshal_num_fields(char *str) {
   return i;
 }
 
-static void marshal_tup(STATE, OBJECT obj, GString *buf) {
-  return marshal_fields_as(state, obj, buf, 'p');
+/*
+
+static void marshal_object(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
+  marshal_fields_as(state, obj, buf, 'o', ms);
+  marshal_sym(state, class_get_name(object_logical_class(state, obj)));
+}
+
+static OBJECT unmarshal_object(STATE, char *str, struct marshal_state *ms) {
+  OBJECT tup, name, klass;
+  int before;
+  
+  before = ms->consumed;
+  
+  sz = unmarshal_num_fields(str);
+  tup = tuple_new(state, sz);
+  
+  tup = unmarshal_into_fields(state, str, ms);
+  str += (ms->consumed - before);
+  name = unmarshal_sym(state, str, ms);
+  klass = module_const_get(state, state->global->object, name);
+  if(klass == Qnil || klass == Qundef) {
+    printf("Couldn't resolve a generic object's class!\n");
+    return Qnil;
+  }
+  
+  HEADER(tup)->klass = klass;
+  return tup;
+}
+
+*/
+
+static void marshal_tup(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
+  return marshal_fields_as(state, obj, buf, 'p', ms);
 }
 
 static OBJECT unmarshal_tup(STATE, char *str, struct marshal_state *ms) {
@@ -132,7 +193,7 @@ static OBJECT unmarshal_tup(STATE, char *str, struct marshal_state *ms) {
 }
 
 static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
-  int i, j;
+  int i;
   char buffer[1024];
   char *s;
   i = NUM_FIELDS(obj);
@@ -148,8 +209,7 @@ static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
 }
 
 static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
-  OBJECT obj;
-  int i, sz;
+  int sz;
   sz = read_int(str + 1);
   ms->consumed += 5;
   ms->consumed += sz;
@@ -158,7 +218,7 @@ static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
 
 static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
   int i;
-  i = NUM_FIELDS(obj);
+  i = NUM_FIELDS(obj) * 4; // FIXME 4 is size_t 
   append_c('b');
   append_sz(i);
   append_str(bytearray_byte_address(state, obj), i);
@@ -179,8 +239,8 @@ static OBJECT unmarshal_bytes(STATE, char *str, struct marshal_state *ms) {
   return obj;
 }
 
-static void marshal_cmethod(STATE, OBJECT obj, GString *buf) {
-  marshal_fields_as(state, obj, buf, 'm');
+static void marshal_cmethod(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
+  marshal_fields_as(state, obj, buf, 'm', ms);
 }
 
 static OBJECT unmarshal_cmethod(STATE, char *str, struct marshal_state *ms) {
@@ -203,21 +263,29 @@ static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
       break;
     case 's':
       o = unmarshal_str(state, str, ms);
+      _add_object(o, ms);
       break;
     case 'x':
       o = unmarshal_sym(state, str, ms);
       break;
     case 'p':
       o = unmarshal_tup(state, str, ms);
+      _add_object(o, ms);
       break;
     case 'b':
       o = unmarshal_bytes(state, str, ms);
+      _add_object(o, ms);
       break;
     case 'm':
       o = unmarshal_cmethod(state, str, ms);
+      _add_object(o, ms);
       break;
     case 'B':
       o = unmarshal_bignum(state, str, ms);
+      _add_object(o, ms);
+      break;
+    case 'r':
+      o = _nth_object(state, str, ms);
       break;
     case 'n':
       ms->consumed += 1;
@@ -238,8 +306,10 @@ static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
   return o;
 }
 
-static void marshal(STATE, OBJECT obj, GString *buf) {
+static void marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
   OBJECT kls;
+  int ref;
+  
   if(FIXNUM_P(obj)) {
     marshal_int(state, obj, buf);
   } else if(SYMBOL_P(obj)) {
@@ -251,36 +321,87 @@ static void marshal(STATE, OBJECT obj, GString *buf) {
   } else if(obj == Qfalse) {
     append_c('f');
   } else if(REFERENCE_P(obj)) {
-    kls = object_class(state, obj);
-    if(kls == state->global->string) {
-      marshal_str(state, obj, buf);
-    } else if(kls == state->global->tuple) {
-      marshal_tup(state, obj, buf);
-    } else if(kls == state->global->cmethod) {
-      marshal_cmethod(state, obj, buf);
-    } else if(kls == state->global->bytearray) {
-      marshal_bytes(state, obj, buf);
-    } else if(kls == BASIC_CLASS(bignum)) {
-      marshal_bignum(state, obj, buf);
+    if((ref = _find_object(obj, ms)) > 0) {
+      append_c('r');
+      append_sz(ref);
     } else {
-      printf("Unable to marshal!\n");
-      abort();
+      _add_object(obj, ms);
+      kls = object_class(state, obj);
+      if(kls == state->global->string) {
+        marshal_str(state, obj, buf);
+      } else if(kls == state->global->tuple) {
+        marshal_tup(state, obj, buf, ms);
+      } else if(kls == state->global->cmethod) {
+        marshal_cmethod(state, obj, buf, ms);
+      } else if(kls == state->global->bytearray) {
+        marshal_bytes(state, obj, buf);
+      } else if(kls == BASIC_CLASS(bignum)) {
+        marshal_bignum(state, obj, buf);
+      } else {
+        printf("Unable to marshal!\n");
+      }
     }
   }
 }
 
-GString *cpu_marshal(STATE, OBJECT obj) {
+OBJECT cpu_marshal(STATE, OBJECT obj) {
   GString *buf;
+  OBJECT ret;
+  struct marshal_state ms;
+  ms.consumed = 0;
+  ms.objects = g_ptr_array_new();
   
   buf = g_string_new(NULL);
-  marshal(state, obj, buf);
-  return buf;
+  g_string_append(buf, "RBIS");
+  marshal(state, obj, buf, &ms);
+  ret = string_new2(state, buf->str, buf->len);
+  g_string_free(buf, 1);
+  g_ptr_array_free(ms.objects, 1);
+  return ret;
+}
+
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path) {
+  GString *buf;
+  GIOChannel *io;
+  GError *err;
+  gsize sz;
+  struct marshal_state ms;
+  
+  err = NULL;
+  
+  io = g_io_channel_new_file(path, "w", &err);
+  if(io == NULL) { return Qfalse; }
+  
+  ms.consumed = 0;
+  ms.objects = g_ptr_array_new();
+  
+  buf = g_string_new(NULL);
+  marshal(state, obj, buf, &ms);
+  
+  g_io_channel_set_encoding(io, NULL, &err);
+  /* TODO do error chceking here */
+  g_io_channel_write_chars(io, "RBIS", -1, NULL, &err);
+  g_io_channel_write_chars(io, buf->str, buf->len, &sz, &err);
+  g_io_channel_shutdown(io, TRUE, &err);
+  g_io_channel_unref(io);
+  g_string_free(buf, 1);
+  g_ptr_array_free(ms.objects, 1);
+  return Qtrue;
 }
 
 OBJECT cpu_unmarshal(STATE, char *str) {
   struct marshal_state ms;
+  OBJECT ret;
+  if(strncmp(str, "RBIS", 4)) {
+    printf("Invalid compiled file.\n");
+    return Qnil;
+  }
   ms.consumed = 0;
-  return unmarshal(state, str, &ms);
+  ms.objects = g_ptr_array_new();
+  str += 4;
+  ret = unmarshal(state, str, &ms);
+  g_ptr_array_free(ms.objects, 1);
+  return ret;
 }
 
 OBJECT cpu_unmarshal_file(STATE, char *path) {
@@ -290,6 +411,8 @@ OBJECT cpu_unmarshal_file(STATE, char *path) {
   gsize sz, count = 4;
   gchar buf[4];
   OBJECT obj;
+  struct marshal_state ms;
+  ms.consumed = 0;
   
   err = NULL;
   
@@ -297,15 +420,17 @@ OBJECT cpu_unmarshal_file(STATE, char *path) {
   if(io == NULL) {return Qnil;}
   g_io_channel_set_encoding(io, NULL, &err);
   g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
+  ms.objects = g_ptr_array_new();
   if(strncmp(buf, "RBIS", 4)) {
     printf("Invalid compiled file.\n");
-    return Qnil;
+    obj = Qnil;
+  } else {
+    g_io_channel_read_to_end(io, &data, &sz, &err);
+    obj = unmarshal(state, data, &ms);
   }
-  g_io_channel_read_to_end(io, &data, &sz, &err);
-  
-  obj = cpu_unmarshal(state, data);
   g_io_channel_shutdown(io, TRUE, &err);
   g_io_channel_unref(io);
   g_free(data);
+  g_ptr_array_free(ms.objects, 1);
   return obj;
 }

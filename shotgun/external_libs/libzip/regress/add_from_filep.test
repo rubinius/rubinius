@@ -1,0 +1,7 @@
+# add file to zip
+# $NiH: add_from_filep.test,v 1.2 2006/04/23 00:38:44 wiz Exp $
+program add_from_filep
+return 0
+args testfile.zip testfile.txt
+file testfile.txt testfile.txt testfile.txt
+file-new testfile.zip testfile.zip

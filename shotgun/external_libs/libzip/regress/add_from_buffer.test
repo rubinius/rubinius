@@ -1,0 +1,6 @@
+# add buffer contents as file to zip
+# $NiH: add_from_buffer.test,v 1.2 2006/04/23 00:38:44 wiz Exp $
+program add_from_buffer
+return 0
+args testbuffer.zip
+file-new testbuffer.zip testbuffer.zip

@@ -63,7 +63,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 void cpu_run_script(STATE, cpu c, OBJECT meth);
 
 OBJECT cpu_unmarshal(STATE, char *str);
-GString *cpu_marshal(STATE, OBJECT obj);
+OBJECT cpu_marshal(STATE, OBJECT obj);
 OBJECT cpu_unmarshal_file(STATE, char *path);
 
 void cpu_bootstrap(STATE);

@@ -645,6 +645,20 @@ class TestCore < RubiniusTestCase
     CODE
     assert_equal ['was 1'], out
   end
+  
+  def test_case_multi_when
+    out = rp <<-CODE
+    [1,2].each do |i|
+      case i
+      when 1, 2
+        puts 'was 1 or 2'
+      else
+        puts 'else'
+      end
+    end
+    CODE
+    p out
+  end
 
   def test_case_in_block
     out = rp <<-CODE
@@ -693,5 +707,16 @@ class TestCore < RubiniusTestCase
       p(t1 <=> t1)
     CODE
     assert_equal ['-1','1','0'], out
+  end
+  
+  def test_marshal_simpliest
+    out = rp <<-CODE
+    str = Marshal.dump(1)
+    puts str
+    obj = Marshal.load(str)
+    p obj
+    CODE
+    assert_equal "ip\000\000\000\001", out[0]
+    assert_equal "1", out[1]
   end
 end

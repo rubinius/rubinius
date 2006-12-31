@@ -1,6 +1,7 @@
 require 'cpu/runtime'
 require 'sydparse'
 require 'platform'
+require 'bytecode/primitive_names'
 
 class CPU::Primitives
   def initialize(cpu, con)
@@ -8,80 +9,9 @@ class CPU::Primitives
     @constructor = con
   end
   
-  Primitives = [
-    :noop,
-    :add,
-    :sub,
-    :equal,
-    :compare,
-    :at,
-    :put,
-    :fields,
-    :allocate,
-    :allocate_count,
-    :allocate_bytes,
-    :create_block,
-    :block_given,
-    :block_call,
-    :string_to_sexp,
-    :load_file,
-    :io_write,
-    :io_read,
-    :fixnum_to_s,
-    :logical_class,
-    :object_id,
-    :hash_set,
-    :hash_get,
-    :hash_object,
-    :symbol_index,
-    :symbol_lookup,
-    :dup_into,
-    :fetch_bytes,
-    :compare_bytes,
-    :create_pipe,
-    :gettimeofday,
-    :strftime,
-    :load_file,
-    :activate_as_script,
-    :stat_file,
-    :io_open,
-    :process_exit,
-    :io_close,
-    :time_seconds,
-    :activate_context,
-    :context_sender,
-    :micro_sleep,
-    :fixnum_mul,
-    :bignum_to_s,
-    :bignum_add,
-    :bignum_sub,
-    :bignum_mul,
-    :bignum_equal,
-    nil,
-    :regexp_new,
-    :regexp_match,
-    :tuple_shifted,
-    :gc_start,
-    :file_to_sexp,
-    :get_byte,
-    :zlib_inflate,
-    :zlib_deflate,
-    :fixnum_modulo,
-    :fixnum_and,
-    :bytearray_size,
-    :terminal_raw,
-    :terminal_normal,
-    :fixnum_div
-  ]
-  
-  FirstRuntimePrimitive = 1024
-  
-  RuntimePrimitives = [
-    :set_ivar,
-    :get_ivar,
-    :set_index,
-    :get_index
-  ]
+  Primitives = Bytecode::Compiler::Primitives
+  FirstRuntimePrimitive = Bytecode::Compiler::FirstRuntimePrimitive
+  RuntimePrimitives = Bytecode::Compiler::RuntimePrimitives
   
   def self.name_to_index(name)
     Primitives.index(name)

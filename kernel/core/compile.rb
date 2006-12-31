@@ -3,7 +3,7 @@ module Compile
     require 'bytecode/compiler'
     sexp = File.to_sexp(path, true)
     comp = Bytecode::Compiler.new
-    desc = comp.compile_as_method(sexp, :__script__)
+    desc = comp.compile_as_script(sexp, :__script__)
     require 'bytecode/rubinius'
     return desc.to_cmethod
   end
@@ -16,8 +16,17 @@ module Kernel
       raise LoadError, "Unable to load file at path: #{path}" unless cm
       return cm.activate_as_script
     elsif path.suffix? ".rb"
-      cm = Compile.compile_file(path)
+      comp = "#{path}c"
+      if File.exists?(comp)
+        cm = CompiledMethod.load_from_file(comp)
+        raise LoadError, "Unable to load file at path: #{path}" unless cm
+      else
+        cm = Compile.compile_file(path)
+        Marshal.dump_to_file cm, "#{path}c"
+      end
+      
       return cm.activate_as_script
+      
     else
       raise LoadError, "Can't figure out how to load '#{path}'"
     end

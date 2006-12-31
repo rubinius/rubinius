@@ -2,15 +2,15 @@ class String
   def to_s
     self
   end
-
+  
+  ControlCharacters = [?\n, ?\t, ?\a, ?\b, ?\v, ?\f, ?\r, ?\e]
+  ControlPrintValue = ["\\n", "\\t", "\\a", "\\b", "\\v", "\\f", "\\r", "\\e"]
   def inspect
     res =  "\""
     0.upto(@bytes - 1) do |idx|
       char = @data.get_byte(idx)
-      if char == ?\n
-        res << "\\n"
-      elsif char == ?\t
-        res << "\\t"
+      if ci = ControlCharacters.index(char)
+        res << ControlPrintValue[ci]
       elsif char == ?"
         res << "\\\""
       elsif char == ?\\
@@ -84,6 +84,8 @@ class String
     return false unless String === other
     (@data <=> other.data) == 0
   end
+  
+  alias :=== :==
 
   def <=>(other)
     @data <=> other.data

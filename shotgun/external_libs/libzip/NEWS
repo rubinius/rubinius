@@ -1,0 +1,24 @@
+0.7.1 [2006/05/18]
+
+* bugfix for zip_close
+
+0.7 [2006/05/06]
+
+* struct zip_stat increased for future encryption support
+* zip_add return value changed (now returns new index of added file)
+* shared library major bump because of previous two
+* added functions for reading and writing file and archive comments.
+  New functions: zip_get_archive_comment, zip_get_file_comment,
+  zip_set_archive_comment, zip_set_file_comment, zip_unchange_archive
+
+0.6.1 [2005/07/14]
+
+* various bug fixes
+
+0.6 [2005/06/09]
+
+* first standalone release
+* changed license to three-clause BSD
+* overhauled API
+* added man pages
+* install zipcmp and zipmerge
