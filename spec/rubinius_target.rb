@@ -12,15 +12,15 @@ class RubiniusTargetError < RuntimeError; end
 class RubiniusSpecExample; end
 
 module RubiniusTarget
-  def example(&block)
+  def example(src='', &block)
     raise ArgumentError, "you must pass a block" unless block_given?
-    execute(compile(&block))
+    execute(compile(src, &block))
   end
   
-  def compile(&block)
+  def compile(src, &block)
     make_cache_directory
     RubiniusSpecExample.send(:define_method, :__example__, block)
-    source = template % RubyToRuby.translate(RubiniusSpecExample)
+    source = template % [src, RubyToRuby.translate(RubiniusSpecExample)]
     name = cache_source_name(source)
     unless File.exists?(name) and source == File.read(name)
       File.open(name, "w") { |f| f << source }
@@ -66,6 +66,7 @@ module RubiniusTarget
   
   def template
     @template ||= <<-CODE
+%s
 %s
 RubiniusSpecExample.new.__example__
 CODE

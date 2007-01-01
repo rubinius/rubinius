@@ -35,6 +35,10 @@ context "RubiniusTarget" do
     @target.should_respond_to :example
   end
   
+  specify "example should take a default argument" do
+    @target.method(:example).arity.should == -1
+  end
+  
   specify "example should receive a block" do
     lambda { @target.example }.should_raise ArgumentError
   end
@@ -45,6 +49,7 @@ context "RubiniusTarget" do
   
   specify "template should provide Ruby source wrapper for calling example method in Rubinius" do
     @target.template.should == <<-CODE
+%s
 %s
 RubiniusSpecExample.new.__example__
 CODE
@@ -80,8 +85,8 @@ CODE
     Object.send(:remove_const, :Machine)
     Machine = mock("Machine", :null_object => true)
     Machine.stub!(:compile_file)
-    @target.compile { [1, 2, 3] }.should == 
-      "/Users/rubinius/code-cache/rubinius_spec-68-833693234.rbc"
+    @target.compile('') { [1, 2, 3] }.should == 
+      "/Users/rubinius/code-cache/rubinius_spec-68-890456808.rbc"
   end
   
   specify "should provide execute method" do
