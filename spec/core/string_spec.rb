@@ -54,36 +54,126 @@ context "String" do
     end.should == '["bl", "blah", "ah"]'
   end
   
-  specify "[] with index should " do
+  specify "[] with index should return the code of the character at index" do
+    example do
+      puts "hello"[1]
+    end.should == '101'
   end
   
-  specify "[] with start, length should " do
+  specify "[] with start, length should return the substring of length characters begin at start" do
+    example do
+      p [ "hello"[1, 3],
+          "hello"[-3, 2],
+          "hello"[5, 7] ]
+    end.should == '["ell", "ll", ""]'
   end
   
-  specify "[] with range should " do
+  specify "[] with range should return the substring specified by range" do
+    example do
+      p [ "world"[0..2],
+          "world"[-4..-2],
+          "world"[1...3] ]
+    end.should == '["wor", "orl", "or"]'
   end
   
-  specify "[] with regexp should " do
+  specify "[] with regexp should return the string matching pattern" do
+    example do
+      p [ "hello there"[/[aeiou](.)\1/],
+          "hello there"[/ell/],
+          "hello there"[/o /],
+          "hello there"[/d/] ]
+    end.should == '["ell", "ell", "o ", nil]'
   end
   
-  specify "[] with regexp, length should " do
+  specify "[] with regexp, index should return the string specified by the nth component MatchData" do
+    example do
+      p [ "hello there"[/[aeiou](.)\1/, 0],
+          "hello there"[/he/, 1],
+          "hello there"[/he/, 0],
+          "hello there"[/[aeiou](.)\1/, 2] ]
+    end.should == '["ell", nil, "he", nil]'
   end
   
   specify "[] with string should " do
+    example do
+      p [ "hello"["el"],
+          "hello"["bye"],
+          "hello"["hello"] ]
+    end.should == '["el", nil, "hello"]'
   end
   
-  specify "prefix? should " do
+  specify "prefix? should be true if string begins with argument" do
+    example do
+      p [ "blah".prefix?("bl"),
+          "blah".prefix?("fo"),
+          "go".prefix?("gogo") ]
+    end.should == '[true, false, false]'
   end
   
-  specify "index with fixnum should " do
+  specify "index with fixnum should return the index of the given character" do
+    example do
+      p [ "hello".index(101),
+          "hello".index(52) ]
+    end.should == '[1, nil]'
   end
   
-  specify "index with string should " do
+  specify "index with string should return the index of the beginning of string" do
+    example do
+      p [ "hello".index('e'),
+          "hello".index('lo', -3),
+          "hello".index('lo', -1),
+          "hello".index('a') ]
+    end.should == '[1, 3, nil, nil]'
+  end
+  
+  specify "index with regexp should return the index of the beginning of pattern" do
+    example do
+      puts [ "hello".index(/[aeiou]/, -3),
+             "hello".index(/he/, 2),
+             "hello".index(/el/) ]
+    end.should == '[4, nil, 1]'
   end
   
   specify "slice should be a synonym for []" do
+    example do
+      p [ "hello"[1],
+          "hello"[-3, 2],
+          "world"[-4..-2],
+          "hello there"[/[aeiou](.)\1/],
+          "hello there"[/[aeiou](.)\1/, 0],
+          "hello"["bye"] ]
+    end.should == '[101, "ll", "orl", "ell", "ell", nil]'
   end
   
-  specify "split should " do
+  specify "split with no argument should return an array of substrings separated by $;" do
+    example do
+      p [ $;.nil?,
+          "hello world".split,
+          "hello\frubinius".split,
+          $; = 't',
+          "splitme".split ]
+    end.should == '[true, ["hello", "world"], ["hello", "rubinius"], "t", ["spli", "me"]]'
+  end
+  
+  specify "split with string should return an array of substrings separated by string" do
+    example do
+      p [ "hello".split('l'),
+          "hello".split('e'),
+          "hello".split('h'),
+          "hello".split('el'),
+          "hello".split('o'),
+          "hello".split('d') ]
+    end.should == '[["he", "", "o"], ["h", "llo"], ["", "ello"], ["h", "lo"], ["hell"], ["hello"]]'
+  end
+  
+  specify "split with regexp should return an array of substrings separated by pattern" do
+    example do
+      p [ "hello".split(/l/),
+          "hello".split(/[aeiou]/),
+          "hello".split(/h/),
+          "hello".split(/el/),
+          "hello".split(/[abcde]/),
+          "hello".split(/def/) ]
+    end.should == '[["he", "", "o"], ["h", "ll"], ["", "ello"], ["h", "lo"], ["h", "llo"], ["hello"]]'
   end
 end
