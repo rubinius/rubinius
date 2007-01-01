@@ -15,13 +15,15 @@ context "TrueClass" do
     end.should == '[false, true, true, false, false]'
   end
 
-  specify "to_s should " do
+  specify "to_s should return the string 'true'" do
     example do
-    end.should == ''
+      puts true.to_s
+    end.should == 'true'
   end
 
-  specify "! should return " do
+  specify "! should return true" do
     example do
-    end.should == ''
+      p [true | true, true | false, true | nil, true | "", true | Object.new]
+    end.should == '[true, true, true, true, true]'
   end
 end
