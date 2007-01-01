@@ -177,6 +177,18 @@ TRUE = true
 FALSE = false
 
 class TrueClass
+  def &(other)
+    (other.nil? or other == false) ? false : true
+  end
+  
+  def ^(other)
+    (other.nil? or other == false) ? true : false
+  end
+  
+  def |(other)
+    true
+  end
+  
   def to_s
     "true"
   end
@@ -185,6 +197,16 @@ class TrueClass
 end
 
 class FalseClass
+  def &(other)
+    false
+  end
+  
+  def ^(other)
+    (other == false or other.nil?) ? false : true
+  end
+  
+  alias :| :^
+  
   def to_s
     "false"
   end

@@ -26,4 +26,10 @@ context "FalseClass" do
       p [false | false, false | true, false | nil, false | "", false | Object.new]
     end.should == '[false, true, false, true, true]'
   end
+  
+  specify "inspect should return the string 'false'" do
+    example do
+      puts false.inspect
+    end.should == 'false'
+  end
 end

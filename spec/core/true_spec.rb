@@ -21,9 +21,15 @@ context "TrueClass" do
     end.should == 'true'
   end
 
-  specify "! should return true" do
+  specify "| should return true" do
     example do
       p [true | true, true | false, true | nil, true | "", true | Object.new]
     end.should == '[true, true, true, true, true]'
+  end
+  
+  specify "inspect should return the string 'true'" do
+    example do
+      puts true.inspect
+    end.should == 'true'
   end
 end
