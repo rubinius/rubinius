@@ -1,9 +1,20 @@
+def require_files(files)
+  files.each do |path|
+    require(path)
+  end
+end
+
 begin
   require 'spec/rake/spectask'
 rescue LoadError
   puts "Unable to load spec/rake/spectask, spec tasks are not available"
   no_spec = true
 end
+
+# require local rake libs
+# doesn't do anything gracefully on load error (yet)
+paths = Dir[ File.join(File.dirname(__FILE__), 'rake/*') ]
+require_files(paths)
 
 # By default, run all the specs and tests
 task :default => :spec
@@ -25,44 +36,24 @@ namespace :spec do
   end
   
   desc "Run only specs but not any tests."
-  task :only => ['spec:language', 'spec:shotgun', 'spec:library',
-                 'spec:compatibility']
-  
-  desc "Run the language specs."
-  Spec::Rake::SpecTask.new(:language) do |t|
-    `echo "Executing specs under spec/language"`
-    t.spec_files = FileList['spec/language/*_spec.rb']
-  end
+  task :only => %w(spec:language spec:shotgun spec:library spec:core
+                   spec:targets spec:compatibility)
 
-  desc "Run the shotgun specs."
-  Spec::Rake::SpecTask.new(:shotgun) do |t|
-    `echo "Executing specs under spec/shotgun"`
-    t.spec_files = FileList['spec/shotgun/*_spec.rb']
-  end
-  
-  desc "Run the library (ruby implementation of standard library) specs."
-  Spec::Rake::SpecTask.new(:library) do |t|
-    `echo "Executing specs under spec/library"`
-    t.spec_files = FileList['spec/library/*_spec.rb']
-  end
+  # desc is automatically done with SpecTask
+  GroupSpecTask.new(:language)
+  GroupSpecTask.new(:shotgun)
+  GroupSpecTask.new(:library)
+  GroupSpecTask.new(:core)
+  GroupSpecTask.new(:targets)
+  GroupSpecTask.new(:compatibility)
 
-  desc "Generate coverage reports for the library specs."
-  Spec::Rake::SpecTask.new(:library_coverage) do |t|
-    t.spec_files = FileList['spec/library/*_spec.rb']
-    t.rcov_dir = 'coverage/library'
-    # change this later to exclude some files from report
-    #t.rcov_opts = ['--exclude', 'lib/bytecode', 'lib/cpu', 'lib/gc']
-    t.rcov = true
-  end
-  
-  desc "Run the specs for the target configurations."
-  Spec::Rake::SpecTask.new(:targets) do |t|
-    t.spec_files = FileList['spec/targets/*_spec.rb']
-  end
+  # experimental -- need to adjust exclusions depending on what your testing
+  namespace :coverage do
+    desc "Generate a coverage report for the library specs."
+    GroupCoverageReport.new(:library)
 
-  desc "Run the specs for the MRI Compatibility"
-  Spec::Rake::SpecTask.new(:compatibility) do |t|
-    t.spec_files = FileList['spec/compatibility/*_spec.rb']
+    desc "Generate a coverage report for the core specs."
+    GroupCoverageReport.new(:core)
   end
 end unless no_spec
 
