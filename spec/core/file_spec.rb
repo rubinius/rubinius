@@ -39,5 +39,5 @@ context "File class method" do
   end
 end
 
-context "File" do
+context "File instance method" do
 end

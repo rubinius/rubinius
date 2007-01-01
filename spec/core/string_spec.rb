@@ -11,7 +11,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # swapcase, swapcase!, to_f, to_i, to_s, to_str, to_sym, tr, tr!,
 # tr_s, tr_s!, unpack, upcase, upcase!, upto
 
-context "String" do
+context "String instance method" do
   
   specify "<< should concatenate the other object" do
     example do
@@ -26,12 +26,6 @@ context "String" do
     end.should == "1"
   end
 
-  specify "underlying storage should have the correct size (space for last \0 and multiple of 4)" do
-    example do
-      p "hell".data.size
-    end.should == "8"
-  end
-  
   specify "to_i should convert the string to an integer base (2, 8, 10, or 16)" do
     example do
       p [ "12345".to_i,
@@ -175,5 +169,13 @@ context "String" do
           "hello".split(/[abcde]/),
           "hello".split(/def/) ]
     end.should == '[["he", "", "o"], ["h", "ll"], ["", "ello"], ["h", "lo"], ["h", "llo"], ["hello"]]'
+  end
+end
+
+context "String implementation" do
+  specify "underlying storage should have the correct size (space for last \0 and multiple of 4)" do
+    example do
+      p "hell".data.size
+    end.should == "8"
   end
 end
