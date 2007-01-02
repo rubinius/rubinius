@@ -137,19 +137,33 @@ context "Array" do
   end
   
   specify "[]= should remove the section defined by start, length when set to nil" do
-    example do
-      @a = ['a', 'b', 'c', 'd', 'e']
-      @a[1, 3] = nil
-      p @a
+    example(<<-CODE
+    class Foo
+      def example
+        a = ['a', 'b', 'c', 'd', 'e']
+        a[1, 3] = nil
+        a
+      end
+    end
+    CODE
+    ) do
+      p Foo.new.example
     end.should == '["a", "e"]'
   end
   
   specify "[]= should set the section defined by start, length to other" do
-    example do
-      @a = [1, 2, 3, 4, 5, 6]
-      @a[0, 1] = 2
-      @a[3, 2] = ['a', 'b', 'c', 'd']
-      p @a
+    example(<<-CODE
+    class Foo
+      def example
+        a = [1, 2, 3, 4, 5, 6]
+        a[0, 1] = 2
+        a[3, 2] = ['a', 'b', 'c', 'd']
+        a
+      end
+    end
+    CODE
+    ) do
+      p Foo.new.example
     end.should == '[2, 2, 3, "a", "b", "c", "d", 6]'
   end
   
@@ -283,7 +297,7 @@ context "Array" do
   specify "each_index should pass the index of each element to the block" do
     example do
       ['a', 'b', 'c', 'd'].each_index { |i| puts i }
-    end.should == "1\n2\n3\n4"
+    end.should == "0\n1\n2\n3"
   end
   
   specify "empty? should return true if the array has no elements" do
@@ -297,7 +311,7 @@ context "Array" do
       @a = []
       @b = []
       p [@a.eql?(@a), @a.eql?(@b)]
-    end.should == '[true, false]'
+    end.should == '[true, true]'
   end
   
   specify "eql? should return true if other has the same length and elements" do

@@ -16,7 +16,10 @@ context "String instance method" do
   specify "<< should concatenate the other object" do
     example do
       @a = 'hello '
-      p [@a << 'world', @a << 33]
+      @a << 'world'
+      @b = @a.clone
+      @b << 33
+      p [@a, @b]
     end.should == '["hello world", "hello world!"]'
   end
   
@@ -38,14 +41,6 @@ context "String instance method" do
           "1100101".to_i(10),
           "1100101".to_i(16) ]
     end.should == '[12345, 99, 0, 10, 0, 101, 294977, 1100101, 17826049]'
-  end
-  
-  specify "substring should return the portion of string specified by index, length" do
-    example do
-      p [ "blah".substring(0, 2),
-          "blah".substring(0, 4),
-          "blah".substring(2, 2) ]
-    end.should == '["bl", "blah", "ah"]'
   end
   
   specify "[] with index should return the code of the character at index" do
@@ -96,14 +91,6 @@ context "String instance method" do
     end.should == '["el", nil, "hello"]'
   end
   
-  specify "prefix? should be true if string begins with argument" do
-    example do
-      p [ "blah".prefix?("bl"),
-          "blah".prefix?("fo"),
-          "go".prefix?("gogo") ]
-    end.should == '[true, false, false]'
-  end
-  
   specify "index with fixnum should return the index of the given character" do
     example do
       p [ "hello".index(101),
@@ -122,7 +109,7 @@ context "String instance method" do
   
   specify "index with regexp should return the index of the beginning of pattern" do
     example do
-      puts [ "hello".index(/[aeiou]/, -3),
+      p [ "hello".index(/[aeiou]/, -3),
              "hello".index(/he/, 2),
              "hello".index(/el/) ]
     end.should == '[4, nil, 1]'
@@ -169,13 +156,5 @@ context "String instance method" do
           "hello".split(/[abcde]/),
           "hello".split(/def/) ]
     end.should == '[["he", "", "o"], ["h", "ll"], ["", "ello"], ["h", "lo"], ["h", "llo"], ["hello"]]'
-  end
-end
-
-context "String implementation" do
-  specify "underlying storage should have the correct size (space for last \0 and multiple of 4)" do
-    example do
-      p "hell".data.size
-    end.should == "8"
   end
 end

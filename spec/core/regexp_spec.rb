@@ -16,7 +16,7 @@ context "Regexp class method" do
   specify "escape should escape any characters with special meaning in a regular expression" do
     example do
       puts Regexp.escape('\*?{}.+^[]()-')
-    end.should == '\\\*\?\{\}\.\+\^\[\]\(\)\-'
+    end.should == '\\\\\*\?\{\}\.\+\^\[\]\(\)\-'
   end
   
   specify "last_match with no argument should return MatchData" do
@@ -42,13 +42,13 @@ context "Regexp class method" do
   specify "quote should be a synonym for escape" do
     example do
       puts Regexp.escape('\*?{}.+^[]()-')
-    end.should == '\\\*\?\{\}\.\+\^\[\]\(\)\-'
+    end.should == '\\\\\*\?\{\}\.\+\^\[\]\(\)\-'
   end
   
   specify "union with no arguments should return /(?!)/" do
     example do
       puts Regexp.union
-    end.should == '/(?!)/'
+    end.should == '(?-mix:(?!))'
   end
   
   specify "union with arguments should return a regular expression that will match any part" do
@@ -58,7 +58,7 @@ context "Regexp class method" do
   end
 end
 
-context "Regexp" do
+context "Regexp instance method" do
   specify "== should be true if self and other have the same pattern, character set code, and casefold? values" do
     example do
       p [/abc/ == /abc/, /abc/ == /abc/x, /abc/ == /abc/i, /abc/u == /abc/n]
@@ -80,7 +80,7 @@ context "Regexp" do
   specify "=~ should return a MatchData object describing the match" do
     example do
       /(.)(.)(.)/ =~ "abc"
-      p $~[2]
+      puts $~[2]
     end.should == 'b'
   end
   
