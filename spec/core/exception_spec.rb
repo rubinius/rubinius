@@ -12,6 +12,7 @@ context "Exceptions" do
     end.should == 'exception'
   end
   
+  # FIXME: code string is only necessary because ensure crashes shotgun
   specify "ensure should execute when exception is raised" do
     example(<<-CODE
     class Foo
@@ -32,6 +33,7 @@ context "Exceptions" do
     end.should == "ensure exception"
   end
   
+  # FIXME: code string is only necessary because ensure crashes shotgun
   specify "ensure should execute when exception is not raised" do
     example(<<-CODE
     class Foo
@@ -50,5 +52,32 @@ context "Exceptions" do
     ) do
       puts Foo.new.exception
     end.should == "ensure I never got to be an exception"
+  end
+  
+  # FIXME: code string is only necessary because ensure crashes shotgun
+  specify "retry should restart execution at begin" do
+    example(<<-CODE
+    class Foo
+      def exception
+        @ret = []
+        @count = 1
+        begin
+          @ret << @count
+          raise ArgumentError, 'just kidding' unless @count > 3
+        rescue Exception => @e
+          @count += 1
+          retry
+        else
+          @ret << 7
+        ensure
+          @ret << @count
+        end
+        @ret
+      end
+    end
+    CODE
+    ) do
+      p Foo.new.exception
+    end.should == '[1, 2, 3, 4, 7, 4]'
   end
 end

@@ -83,4 +83,10 @@ context "Fixnum" do
       p [5 - 5.0, 781 - 0.5, 9 - 200.25]
     end.should == '[0.0, 780.5, -191.25]'
   end
+  
+  specify "-@ should negate self" do
+    example do
+      p [2.send(:-@), -2, -0xfffffff, --5, -8.send(:-@)]
+    end.should == '[-2, -2, -268435455, 5, 8]'
+  end
 end

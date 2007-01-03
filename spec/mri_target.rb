@@ -56,11 +56,11 @@ CODE
   end
 
   def cache_source_name(source)
-    "#{cache_path}/#{caller_name}-#{source.hash.abs}.rb"
+    "#{cache_path}/#{caller_name}-#{source.hash.abs}-mri.rb"
   end
 
   def caller_name(which=3)
-    caller[which].match(/\/+(\w*)-mri.rb:(\d*)$/)[1..-1].join('-')
+    caller[which].match(/\/+(\w*).rb:(\d*)$/)[1..-1].join('-')
   end
 
   def rubinius_path
