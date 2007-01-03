@@ -2,6 +2,7 @@
 #include "shotgun.h"
 #include "string.h"
 #include "cpu.h"
+#include "array.h"
 
 OBJECT archive_list_files(STATE, char *path) {
   struct zip *za;
@@ -17,7 +18,7 @@ OBJECT archive_list_files(STATE, char *path) {
   ary = array_new(state, count);
   for(i=0; i < count; i++) {
     zip_stat_index(za, i, 0, &st);
-    array_set(state, ary, i, string_new(state, st.name));
+    array_set(state, ary, i, string_new(state, (char *)st.name));
   }
   
   zip_close(za);
@@ -37,7 +38,7 @@ OBJECT archive_get_file(STATE, char *path, char* name) {
     return Qnil;
   }
   
-  if((file = zip_name_locate(za, name, &err)) < 0) {
+  if((file = zip_name_locate(za, name, 0)) < 0) {
     printf("Unknown file %s\n", name);
     return Qnil;
   }
@@ -76,7 +77,7 @@ OBJECT archive_get_object(STATE, char *path, char* name) {
     return Qnil;
   }
   
-  if((file = zip_name_locate(za, name, &err)) < 0) {
+  if((file = zip_name_locate(za, name, 0)) < 0) {
     printf("Unknown file %s\n", name);
     return Qnil;
   }
