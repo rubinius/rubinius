@@ -19,3 +19,4 @@ void machine_setup_argv(machine m, int argc, char **argv);
 void machine_setup_env(machine m);
 void machine_config_env(machine m);
 void machine_emit_memory(machine m);
+char *_inspect(OBJECT obj);

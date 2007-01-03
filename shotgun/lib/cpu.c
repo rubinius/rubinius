@@ -1,5 +1,6 @@
 #include "shotgun.h"
 #include "cpu.h"
+#include "machine.h"
 #include <stdlib.h>
 #include "tuple.h"
 #include "methctx.h"
@@ -299,7 +300,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
 }
 
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT hsh, val, kls, tup, name;
+  OBJECT hsh, val, kls;
   int i;
   
   val = Qnil;

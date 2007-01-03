@@ -1,3 +1,6 @@
+#ifndef __CPU_H_
+#define __CPU_H_
+
 #include <glib.h>
 
 struct rubinius_cpu {
@@ -69,3 +72,4 @@ OBJECT cpu_unmarshal_file(STATE, char *path);
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
+#endif /* __CPU_H_ */
