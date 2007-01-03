@@ -117,13 +117,15 @@ context "String instance method" do
   
   specify "slice should be a synonym for []" do
     example do
-      p [ "hello"[1],
-          "hello"[-3, 2],
-          "world"[-4..-2],
-          "hello there"[/[aeiou](.)\1/],
-          "hello there"[/[aeiou](.)\1/, 0],
-          "hello"["bye"] ]
-    end.should == '[101, "ll", "orl", "ell", "ell", nil]'
+      p [ "hello".slice(1),
+          "hello".slice(-3, 2),
+          "world".slice(-4..-2),
+          "hello there".slice(/[aeiou](.)\1/),
+          "hello there".slice(/[aeiou](.)\1/, 0),
+          "hello".slice("bye"),
+          "baz.rb".slice(2, 4),
+          "z.rb".slice(1, 1) ]
+    end.should == '[101, "ll", "orl", "ell", "ell", nil, "z.rb", "."]'
   end
   
   specify "split with no argument should return an array of substrings separated by $;" do
