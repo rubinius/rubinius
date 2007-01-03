@@ -599,7 +599,7 @@ class ShotgunPrimitives
       struct tm *time;
       time_t secs;
       char *format = NULL;
-      char str[MAX_STRFTIME_OUTPUT];
+      char str[MAX_STRFTIME_OUTPUT+1];
       size_t out;
       struct time_data *tdp;
 

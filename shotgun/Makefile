@@ -3,6 +3,7 @@ CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 -
 DEPS=../include/rubinius.h
 LIBS=`pkg-config glib-2.0 --libs` -lncurses -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
+LDFLAGS=
 RBLIB=lib/librubinius.a
 
 all: rubinius
@@ -25,7 +26,7 @@ librubinius.a: external_libs/libtommath/libtommath.a external_libs/onig/.libs/li
 .PHONY: librubinius.a
 
 rubinius: librubinius.a main.o
-	$(CC) -o rubinius main.o lib/librubinius.a $(LIBS)
+	$(CC) -o rubinius main.o lib/librubinius.a $(LDFLAGS) $(LIBS)
 
 test/test_state: test/test_state.c librubinius.a
 	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)
