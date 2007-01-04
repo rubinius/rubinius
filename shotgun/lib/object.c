@@ -108,9 +108,7 @@ int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int coun
 
 int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, int dist) {
   int count;
-  char *da;
-  void *start;
-  int sz, i;
+  int i;
 
   count = NUM_FIELDS(self);
   
