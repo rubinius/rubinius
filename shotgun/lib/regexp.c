@@ -80,7 +80,7 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
     gd.state = state;
     o_names = tuple_new(state, num_names);
     gd.tup = o_names;
-    onig_foreach_name(*reg, _gather_names, (void*)&gd);
+    onig_foreach_name(*reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
     regexp_set_names(o_reg, o_names);
   }
   return o_reg;
@@ -91,7 +91,7 @@ void regexp_cleanup(STATE, OBJECT regexp) {
 }
 
 OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
-  int i, j;
+  int i;
   OBJECT tup, sub;
   tup = tuple_new(state, region->num_regs - 1);
   for(i = 1; i < region->num_regs; i++) {
