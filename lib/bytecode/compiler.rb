@@ -583,6 +583,7 @@ module Bytecode
         end
       end
       
+      # TODO - Does this handle Regexp TLVs properly?: $1, $2, etc.
       def process_gvar(x)
         kind = x.shift
         if kind == :$!
@@ -803,7 +804,70 @@ module Bytecode
         raise "'retry' called outside of a begin/end block" unless @retry_label
         goto @retry_label
       end
-      
+
+      # There are two rough groups of arguments that can be passed to :defined?:
+      # 1. Arguments that are always defined, and always return a known string.
+      # e.g. "x = 5" is always 'assignment', whether 'self#x=' is a method or not.
+      # 2. Arguments that need code executed at runtime to determine their status.
+      # e.g. "SomeModule::SomeClass::foo". 'foo' could have been defined as a class
+      # method at any time, so there is no compile-time way to make that determination.
+      # [:defined, [:lasgn, :x, 2, [:lit, 5]]]
+      # All that being said, the behavior of MRI here is insane, and it's not getting
+      # implemented unless somebody pays me to do it.
+      def process_defined(x)
+        expr = x.shift
+        # if something is defined, !something is too.
+        # if !something is undefined, then so is something.
+        expr.shift if expr[0] == :not
+        return(reject_defined) if expr.flatten.include?(:newline) # grouped expression == evil
+
+        static_nodes = [:lit, :lasgn, :gasgn, :iasgn, :cdecl, :cvdecl, :cvasgn, :lvar, :str, :array, :hash]
+        node = expr.shift
+        case node
+          when *static_nodes
+            add "push true"
+          when :call
+            return(reject_defined) if expr[0].first != :self || expr.last.size > 1
+            expr.shift # self
+            add "push :#{expr.shift}" # method name
+            add "push self"
+            add "send respond_to? 1"
+          when :cvar
+            STDERR.puts("WARNING: 'define?' does not yet handle class variables.")
+            add "push false"
+          when :gvar
+            add "push :#{expr.shift}"
+            add "push Globals"
+            add "send key? 1"
+          when :ivar
+            lit = @method.add_literal(expr[0])
+            add "push_literal #{lit}"
+            add "push self"
+            add "send instance_variables 0"
+            add "send include? 1"
+          when :yield
+            add "send_primitive block_given"
+          when :const
+            add "push :#{expr.shift}"
+            add "push Object"
+            add "send const_defined? 1"
+          when :colon2
+            STDERR.puts("WARNING: 'defined?' does not yet handle namespaced constants")
+            add "push false"
+          when :colon3
+            STDERR.puts("WARNING: 'defined?' does not yet handle namespaced constants")
+            add "push false"
+            #add "push_cpath_top"
+          else
+            reject_defined
+          end
+      end
+
+      def reject_defined
+        add "push false"
+        return STDERR.puts("Passed a complex expression to 'defined?'. This is why we can't have nice things.")
+      end
+
       def do_resbody(x, rr, fin)
         x.shift
         cond = x.shift
@@ -1244,7 +1308,7 @@ module Bytecode
       
       def process_evstr(x)
         process x.shift
-        add "send to_s"
+        add "send to_s 0"
       end
       
       def process_dstr(x)
