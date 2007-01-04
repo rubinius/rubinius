@@ -12,4 +12,25 @@ context "Module" do
       p Foo.instance_methods(false)
     end.should == '["foo"]'
   end
+  
+  specify "const_defined? should return false if the name is not defined" do
+    example do
+      p Object.const_defined?("Whee")
+    end.should == 'false'
+  end
+  
+  specify "const_defined? should return true if the name is defined" do
+    example(<<-CODE
+    class Blah
+      class Whee
+      end
+    end
+    CODE
+    ) do
+      p [ Object.const_defined?(:Object),
+          Blah.const_defined?("Whee"), 
+          Object.const_defined?("Blah::Whee"),
+          Object.const_defined?("Blah::Zargle") ]
+    end.should == '[true, true, true, false]'
+  end
 end
