@@ -1,6 +1,26 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 context "A ruby environment" do
+  setup do
+    @src = <<-CODE
+    class Foo
+      def no_args
+      end
+      def args(x)
+      end
+    end
+
+    class Bar < Foo
+      def no_args
+        defined?(super)
+      end
+      def args
+        defined?( super() )
+      end
+    end
+    CODE
+  end
+  
   specify "should return true when defined?(puts) is sent" do
     example do
       puts !!defined?(puts)
@@ -97,18 +117,16 @@ context "A ruby environment" do
   end
 
   specify "should return true when Bar#no_args uses defined?" do
-    example do
-      require File.dirname(__FILE__) + '/../defined_fixtures'
-      b = Bar.new
-      puts !!b.no_args
+    example(@src) do
+      @b = Bar.new
+      puts !!@b.no_args
     end.should == 'true'
   end
 
   specify "should return true when Bar#args uses defined?" do
-    example do
-      require File.dirname(__FILE__) + '/../defined_fixtures'
-      b = Bar.new
-      puts !!b.args
+    example(@src) do
+      @b = Bar.new
+      puts !!@b.args
     end.should == 'true'
   end
 
