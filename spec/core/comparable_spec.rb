@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 # <, <=, ==, >, >=, between?
 
-context "A class with Comparable mixin" do
+context "A class with Comparable mixin, method" do
   setup do
     @src = <<-CODE
     class Weird
@@ -25,7 +25,7 @@ context "A class with Comparable mixin" do
     CODE
   end
   
-  specify "should have <=>" do
+  specify "<=> should be provided" do
     example(@src) do
       p Weird.new(0).respond_to?(:<=>)
     end.should == 'true'
