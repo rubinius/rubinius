@@ -34,4 +34,16 @@ class Module
     raise NameError, "undefined method `#{name}' for #{thing} #{self}"
   end
 
+  def const_defined?(name)
+    name = name.to_s
+    hierarchy = name.split('::')
+    hierarchy.shift if hierarchy.first == ""
+    hierarchy.shift if hierarchy.first == "Object"
+    const = self
+    until hierarchy.empty?
+      const = const.constants[hierarchy.shift.to_sym]
+      return false unless const
+    end
+    return true
+  end
 end
