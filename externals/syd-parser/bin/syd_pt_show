@@ -5,27 +5,26 @@ require 'sydparse'
 require 'pp'
 
 if ARGV.first == "-l"
-    newlines = true
-    ARGV.shift
+  newlines = true
+  ARGV.shift
 elsif ARGV.first == "-u"
-    unified = true
-    ARGV.shift
+  unified = true
+  ARGV.shift
 elsif ARGV.first == "-s"
-    simple = true
-    ARGV.shift
+  simple = true
+  ARGV.shift
 end
 
 name = ARGV.shift
-File.open(name, "r") do |fd|
-    if unified
-        pp SydneyParser.unified_sexp(fd)
-    else
-        syd = SydneyParser.load_file fd
-        out = syd.sexp(false, newlines)
-        if simple
-          p out
-        else
-          pp out
-        end
-    end
+data = name ? File.read(name) : STDIN.read
+if unified
+  pp SydneyParser.unified_sexp(data)
+else
+  syd = SydneyParser.load_string(data)
+  out = syd.sexp(false, newlines)
+  if simple
+    p out
+  else
+    pp out
+  end
 end
