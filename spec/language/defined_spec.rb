@@ -84,10 +84,10 @@ context "A ruby environment" do
     end.should == 'true'
   end
 
-  specify "should return true when defined?(nil) is sent" do
+  specify "should return true when defined?(false) is sent" do
     example do
       puts defined?(false)
-    end.should == 'false'
+    end.should == 'true'
   end
 
   specify "should return false when defined?(x) is sent" do
