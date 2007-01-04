@@ -834,14 +834,14 @@ module Bytecode
             add "push self"
             add "send respond_to? 1"
           when :cvar
-            STDERR.puts("WARNING: 'define?' does not yet handle class variables.")
+            STDERR.puts "WARNING: 'define?' does not yet handle class variables."
             add "push false"
           when :gvar
             add "push :#{expr.shift}"
             add "push Globals"
             add "send key? 1"
           when :ivar
-            lit = @method.add_literal(expr[0])
+            lit = @method.add_literal(expr.shift)
             add "push_literal #{lit}"
             add "push self"
             add "send instance_variables 0"
@@ -852,21 +852,47 @@ module Bytecode
             add "push :#{expr.shift}"
             add "push Object"
             add "send const_defined? 1"
-          when :colon2
-            STDERR.puts("WARNING: 'defined?' does not yet handle namespaced constants")
-            add "push false"
-          when :colon3
-            STDERR.puts("WARNING: 'defined?' does not yet handle namespaced constants")
-            add "push false"
-            #add "push_cpath_top"
+          when :colon2, :colon3
+            str = ""
+            until expr.empty?
+              # Convert the constant parse tree into a string like ::Object::SomeClass
+              str = const_to_string(expr, str)
+            end
+            lit = @method.add_literal str
+            add "push_literal #{lit}"
+            add "push Object"
+            add "send const_defined? 1"
           else
             reject_defined
           end
       end
 
       def reject_defined
+        STDERR.puts "Passed a complex expression to 'defined?'. This is why we can't have nice things."
         add "push false"
-        return STDERR.puts("Passed a complex expression to 'defined?'. This is why we can't have nice things.")
+      end
+  
+      # e.g. [[:const, :Object], :Blah]
+      # e.g. [[:colon3, :Foo], :Bar]
+      # e.g. [[:colon2, [:colon3, :Faz], :Boo], :Batch]
+      # e.g. [[:colon2, [:const, :Zizz], :Koom], :Yonk]
+      # TODO - There is probably a better way, but it is late. Really late.
+      def const_to_string(tree, str)
+        return str if tree.empty?
+        piece = tree.shift 
+        unless str[-2,2] == "::" || str == ""
+          str << "::"
+        end
+        if piece.is_a?(Array)
+          str = const_to_string(piece, str) until piece.empty?
+          str
+        elsif [:const, :colon2].include?(piece)
+          str
+        elsif piece == :colon3
+          "::" + str
+        else
+          str << "#{piece}"
+        end
       end
 
       def do_resbody(x, rr, fin)
