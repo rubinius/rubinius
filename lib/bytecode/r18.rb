@@ -81,6 +81,8 @@ module Bytecode
           out = Rubinius::String.new(lit)
         when Bignum
           out = Rubinius::Bignum.new(lit.to_s)
+        when Float
+          out = Rubinius::Float.new(lit.to_s)
         else
           raise "Unable to encode literal: #{lit.inspect}"
         end

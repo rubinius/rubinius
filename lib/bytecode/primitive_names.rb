@@ -71,7 +71,12 @@ module Bytecode
       :archive_get_file,
       :archive_get_object,
       :fixnum_and,
-      :time_at
+      :time_at,
+      :float_to_s,
+      :float_add,
+      :float_sub,
+      :float_mul,
+      :float_equal
     ]
 
     FirstRuntimePrimitive = 1024

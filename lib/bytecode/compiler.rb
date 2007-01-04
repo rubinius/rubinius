@@ -241,6 +241,9 @@ module Bytecode
         when Bignum
           idx = @method.add_literal obj
           add "push_literal #{idx}"
+        when Float
+          idx = @method.add_literal obj
+          add "push_literal #{idx}"
         when Regexp
           data = [obj.source]
           if obj.options & 4 == 4

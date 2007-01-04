@@ -1398,6 +1398,36 @@ class ShotgunPrimitives
     }
     CODE
   end
+  
+  def float_to_s
+    <<-CODE
+    _ret = FALSE;
+    CODE
+  end
+  
+  def float_add
+    <<-CODE
+    _ret = FALSE;
+    CODE
+  end
+  
+  def float_sub
+    <<-CODE
+    _ret = FALSE;
+    CODE
+  end
+  
+  def float_mul
+    <<-CODE
+    _ret = FALSE;
+    CODE
+  end
+  
+  def float_equal
+    <<-CODE
+    _ret = FALSE;
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new
