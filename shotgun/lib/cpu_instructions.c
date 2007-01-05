@@ -8,14 +8,18 @@
 #include "array.h"
 #include "string.h"
 #include "symbol.h"
+#include "machine.h"
 
 #define EXCESSIVE_TRACING 0
 
-#ifndef __BIG_ENDIAN__
-#define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4
-#else
-#define next_int _int = *(int*)(c->data + c->ip); c->ip += 4
-#endif
+#define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
+#define next_int set_int(_int,(c->data + c->ip)); c->ip += 4
+
+/* #ifndef __BIG_ENDIAN__ */
+/* #define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4 */
+/* #else */
+/* #define next_int _int = *(int*)(c->data + c->ip); c->ip += 4 */
+/* #endif */
 
 #define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
 
@@ -294,7 +298,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
 }
 
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
-  OBJECT sym, mo, ctx, mod;
+  OBJECT sym, mo, mod;
   int missing;
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
@@ -308,7 +312,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -319,7 +323,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
    because unified_send is used SO often that I didn't want to slow it down
    any with checking a flag. */
 static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
-  OBJECT sym, mo, ctx, klass, mod;
+  OBJECT sym, mo, klass, mod;
   int missing;
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);

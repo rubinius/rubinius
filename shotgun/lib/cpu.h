@@ -15,11 +15,11 @@ struct rubinius_cpu {
   OBJECT exceptions;
   OBJECT top_context;
   OBJECT method_module;
-  int sp;
-  int ip;
-  int argcount, args, depth;
-  char *data;
-  int data_size;
+  unsigned int sp;
+  unsigned int ip;
+  unsigned int argcount, args, depth;
+  unsigned char *data;
+  unsigned int data_size;
   
   GPtrArray *paths;
 };
