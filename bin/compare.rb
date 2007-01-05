@@ -10,6 +10,22 @@ def underscore(camel_cased_word)
     downcase
 end
 
+class Ruby
+  def primitive(*args)
+  end
+
+  def asm(*args)
+  end
+end
+
+class Object
+  def ivar_as_index(*args)
+  end
+
+  def instance_fields=(*args)
+  end
+end
+
 module Rubinius
 end
 
@@ -17,12 +33,32 @@ def require_rubinius_class(klass)
   Rubinius.module_eval IO.read(File.join(File.dirname(__FILE__), '../kernel', underscore(klass) + '.rb'))
 end
 
+def mri_class(klass)
+  eval(klass.to_s)
+rescue NameError
+  nil
+end
+
+def rubinius_class(klass)
+  eval('Rubinius::' + klass.to_s)
+rescue NameError
+  nil
+end
+
 def class_methods_left(klass)
-  eval(klass.to_s).methods - eval('Rubinius::' + klass.to_s).methods
+  if mri_class = mri_class(klass)
+    mri_class.methods - rubinius_class(klass).methods
+  else
+    []
+  end
 end
 
 def instance_methods_left(klass)
-  eval(klass.to_s).instance_methods - eval('Rubinius::' + klass.to_s).instance_methods
+  if mri_class = mri_class(klass)
+    mri_class.instance_methods - rubinius_class(klass).instance_methods
+  else
+    []
+  end
 end
 
 def print_comparison(klass)
@@ -37,8 +73,21 @@ def print_comparison(klass)
   end
 end
 
-ARGV.each do |klass|
-  require_rubinius_class(klass)
+kernel_dir = File.dirname(__FILE__), '../kernel'
+files = Dir[File.join(kernel_dir, '*.rb')]
+files.delete_if {|f| f =~ /__loader/ }
+
+files.sort.each do |file|
+  Rubinius.module_eval IO.read(file)
+end
+
+classes = Rubinius.constants.select {|const| Class === Rubinius.module_eval(const) }
+classes.each do |klass|
   print_comparison(klass)
 end
 
+classes_needed = Object.constants - Rubinius.constants
+classes_needed = classes_needed.select {|const| Class === eval(const) }
+puts
+puts 'Classes that need implementing:'
+puts classes_needed.sort
