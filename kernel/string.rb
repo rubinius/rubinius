@@ -128,6 +128,23 @@ class String
     return str.join("")
   end
 
+  def reverse
+    str = ""
+    i = @bytes - 1
+    while i >= 0
+      str << self[i,1]
+      i -= 1
+    end
+    return str
+  end
+
+  def reverse!
+    sd = self.reverse
+    @data = sd.data
+    @bytes = sd.size
+    return self
+  end
+
   def strip
     r = /\s*([^\s].*[^\s])\s*/m
     m = r.match(self)

@@ -114,7 +114,23 @@ context "String instance method" do
              "hello".index(/el/) ]
     end.should == '[4, nil, 1]'
   end
+
+  specify "reverse should reverse the order of the characters" do
+    example do
+      p [ "0123456789".reverse,
+          "M".reverse,
+          "".reverse ]
+    end.should == '["9876543210", "M", ""]'
+  end
   
+  specify "reverse! should reverse the order of the characters and return self" do
+    example do
+      @a = "detsalb"
+      @b = @a.reverse!
+      p [@a, @b, @a.equal?(@b)]
+    end.should == '["blasted", "blasted", true]'
+  end
+
   specify "slice should be a synonym for []" do
     example do
       p [ "hello".slice(1),
