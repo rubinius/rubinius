@@ -1015,7 +1015,7 @@ class ShotgunPrimitives
         str = g_string_new(str1);
         free(str1);
         str2 = string_as_string(state, t1);
-        t1 = syd_compile_string(str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
+        t1 = syd_compile_string(state,str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
         free(str2);
         stack_push(t1);
       }
@@ -1043,7 +1043,7 @@ class ShotgunPrimitives
         _ret = FALSE;
       } else {
         g_io_channel_set_encoding(io, NULL, &err);
-        t1 = syd_compile_file(name, io, 1, RTEST(t2));
+        t1 = syd_compile_file(state,name, io, 1, RTEST(t2));
         g_io_channel_shutdown(io, TRUE, &err);
         g_io_channel_unref(io);
         stack_push(t1);
