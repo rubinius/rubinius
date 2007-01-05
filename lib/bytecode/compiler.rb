@@ -824,18 +824,33 @@ module Bytecode
         expr.shift if expr[0] == :not
         return(reject_defined) if expr.flatten.include?(:newline) # grouped expression == evil
 
-        static_nodes = [:nil, :true, :false, :lit, :lasgn, :gasgn, :iasgn, 
+        static_nodes = [:self, :nil, :true, :false, :lit, :lasgn, :gasgn, :iasgn, 
           :cdecl, :cvdecl, :cvasgn, :lvar, :str, :array, :hash]
         node = expr.shift
         case node
           when *static_nodes
             add "push true"
           when :call
-            return(reject_defined) if expr[0].first != :self || expr.last.size > 1
-            expr.shift # self
-            add "push :#{expr.shift}" # method name
-            add "push self"
-            add "send respond_to? 1"
+            return(reject_defined) unless [:self, :const].include?(expr[0].first) && expr.last.size <= 1
+            receiver = expr.shift # self or a const
+            msg = expr.shift # method name
+            if receiver == :self
+              add "push :#{msg}"
+              add "push self"
+              add "send respond_to? 1"
+            else
+              lbl = unique_lbl()
+              const = receiver[1]
+              add "push :#{const}"
+              add "push Object"
+              add "send const_defined? 1"
+              add "dup" # leave the boolean on the stack
+              gif lbl # if the const doesn't exist, it clearly can't respond
+              add "push :#{msg}"
+              add "push #{const}"
+              add "send respond_to? 1"
+              set_label(lbl)
+            end
           when :cvar
             STDERR.puts "WARNING: 'define?' does not yet handle class variables."
             add "push false"

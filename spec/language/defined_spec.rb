@@ -33,6 +33,12 @@ context "A ruby environment" do
     end.should == 'true'
   end
 
+  specify "should return false when defined?(DoesNotExist.puts) is sent" do
+    example do
+      puts !!defined?(DoesNotExist.puts)
+    end.should == 'false'
+  end
+
   specify "should return true when defined?(x = 2) is sent" do
     example do
       puts !!defined?(x = 2)
