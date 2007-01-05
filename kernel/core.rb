@@ -171,6 +171,16 @@ class Object
     proc.call(self)
   end
   
+  def instance_variables
+    if !@__ivars__ or @__ivars__.size == 0
+      return []
+    end
+    res = []
+    @__ivars__.each do |k,v|
+      res << k
+    end
+    return res
+  end
 end
 
 TRUE = true
