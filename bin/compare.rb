@@ -14,7 +14,7 @@ module Rubinius
 end
 
 def require_rubinius_class(klass)
-  Rubinius.module_eval IO.read(File.join(File.dirname(__FILE__), 'kernel', underscore(klass) + '.rb'))
+  Rubinius.module_eval IO.read(File.join(File.dirname(__FILE__), '../kernel', underscore(klass) + '.rb'))
 end
 
 def class_methods_left(klass)
