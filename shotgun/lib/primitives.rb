@@ -1015,7 +1015,7 @@ class ShotgunPrimitives
         str = g_string_new(str1);
         free(str1);
         str2 = string_as_string(state, t1);
-        t1 = syd_compile_string(state, str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
+        t1 = syd_compile_string(str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
         free(str2);
         stack_push(t1);
       }
@@ -1043,7 +1043,7 @@ class ShotgunPrimitives
         _ret = FALSE;
       } else {
         g_io_channel_set_encoding(io, NULL, &err);
-        t1 = syd_compile_file(state, name, io, 1, RTEST(t2));
+        t1 = syd_compile_file(name, io, 1, RTEST(t2));
         g_io_channel_shutdown(io, TRUE, &err);
         g_io_channel_unref(io);
         stack_push(t1);
@@ -1180,14 +1180,14 @@ class ShotgunPrimitives
     }
     else {
       unsigned char out_buffer[ZLIB_CHUNK_SIZE];
-      unsigned char *input = string_as_string(state, t1);
+      unsigned char *input = (unsigned char *)string_as_string(state, t1);
       GString *output = g_string_new(NULL);
 
       z_stream zs;
       zs.zfree = Z_NULL;
       zs.zalloc = Z_NULL;
       zs.opaque = Z_NULL;
-      zs.avail_in = strlen(input) + 1; // Zero terminator is added afterwards, by GString, so we need to account for it. 
+      zs.avail_in = strlen((char *)input) + 1; // Zero terminator is added afterwards, by GString, so we need to account for it. 
       zs.next_in = input;
 
       int zerr = inflateInit(&zs); // Returns zlib error code
@@ -1208,7 +1208,7 @@ class ShotgunPrimitives
           case Z_OK:
             // Fall through
           case Z_STREAM_END:
-            g_string_append_len(output, out_buffer, k);
+            g_string_append_len(output, (char *)out_buffer, k);
             break;
           default: // Punt on any other return value.
             inflateEnd(&zs);
@@ -1242,7 +1242,7 @@ class ShotgunPrimitives
     }
     else {
       unsigned char out_buffer[ZLIB_CHUNK_SIZE];
-      unsigned char *input = string_as_string(state, t1);
+      unsigned char *input = (unsigned char *)string_as_string(state, t1);
       GString *output = g_string_new(NULL);
 
       z_stream zs;
@@ -1259,7 +1259,7 @@ class ShotgunPrimitives
         return 0;
       }
 
-      zs.avail_in = strlen(input); // Lower than for zlib_inflate, so that we don't consume the zero-terminator.
+      zs.avail_in = strlen((char *)input); // Lower than for zlib_inflate, so that we don't consume the zero-terminator.
       zs.next_in = input;
     do {
       zs.avail_out = ZLIB_CHUNK_SIZE;
@@ -1270,7 +1270,7 @@ class ShotgunPrimitives
         case Z_OK:
           // Fall through
         case Z_STREAM_END:
-          g_string_append_len(output, out_buffer, k);
+          g_string_append_len(output, (char *)out_buffer, k);
           break;
         default: // Punt on any other return value.
           deflateEnd(&zs);

@@ -11,6 +11,8 @@
 #include "tuple.h"
 #include "regexp.h"
 #include "archive.h"
+#include "machine.h"
+#include "grammer.h"
 
 #include <string.h>
 #include <sys/types.h>

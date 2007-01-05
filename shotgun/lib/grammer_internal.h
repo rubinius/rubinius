@@ -1,3 +1,5 @@
+#ifndef __GRAMMER_INTERNAL_H__
+#define __GRAMMER_INTERNAL_H__
 
 #include <glib.h>
 #include "shotgun.h"
@@ -105,3 +107,5 @@ NODE *syd_node_newnode(rb_parse_state*, enum node_type,VALUE,VALUE,VALUE);
 #define tokenbuf PARSE_VAR(token_buffer)
 #define tokidx PARSE_VAR(tokidx)
 #define toksiz PARSE_VAR(toksiz)
+
+#endif /* __GRAMMER_INTERNAL_H__ */

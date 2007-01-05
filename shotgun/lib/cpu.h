@@ -68,6 +68,7 @@ void cpu_run_script(STATE, cpu c, OBJECT meth);
 OBJECT cpu_unmarshal(STATE, char *str);
 OBJECT cpu_marshal(STATE, OBJECT obj);
 OBJECT cpu_unmarshal_file(STATE, char *path);
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path);
 
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots);

@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "grammer_internal.h"
+#include "grammer_runtime.h"
 #include "array.h"
 
 #undef VALUE
@@ -2577,7 +2578,6 @@ static char *lex_p;
 static char *lex_pend;
 */
 
-void create_error(rb_parse_state *parse_state, char *msg);
 
 static int
 syd_yyerror(msg, parse_state)
@@ -2587,7 +2587,7 @@ syd_yyerror(msg, parse_state)
     char *p, *pe, *buf;
     int len, i, col;
     
-    create_error(parse_state, msg);
+    create_error(parse_state, (char *)msg);
     
     // printf("FIXME ERROR: %s, %d ('%s', %d)\n", msg, parse_state->lex_state, parse_state->lex_lastline->str, col);
     /*
@@ -4766,7 +4766,6 @@ yylex(YYSTYPE *yylval, void *vstate)
     }
 }
 
-void *pt_allocate(rb_parse_state *st, int size);
 
 NODE*
 syd_node_newnode(st, type, a0, a1, a2)
