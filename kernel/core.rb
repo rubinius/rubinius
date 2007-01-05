@@ -177,7 +177,7 @@ class Object
     end
     res = []
     @__ivars__.each do |k,v|
-      res << k
+      res << k.to_s
     end
     return res
   end
