@@ -831,10 +831,14 @@ module Bytecode
           when *static_nodes
             add "push true"
           when :call
-            return(reject_defined) unless [:self, :const].include?(expr[0].first) && expr.last.size <= 1
+            node_type = expr[0].first
+            if (node_type != :self && node_type != :const) || expr.last.size > 1
+              return(reject_defined) 
+            end
             receiver = expr.shift # self or a const
             msg = expr.shift # method name
-            if receiver == :self
+
+            if receiver[0] == :self
               add "push :#{msg}"
               add "push self"
               add "send respond_to? 1"
