@@ -24,7 +24,7 @@ class Hash
     out = get_by_hash key.hash, key
     if out.undef?
       return nil unless @default
-      if BlockContext === @default
+      if Proc === @default
         out = @default.call(self, key)
       else
         out = @default
@@ -61,14 +61,9 @@ class Hash
     return out
   end
 
-  def key?(k)
-    @values.each do |tup|
-      while tup
-        return true if tup.at(1) == k
-        tup = tup.at(3)
-      end
-    end
-    return false
+  def key?(key)
+    out = get_by_hash key.hash, key
+    return out.undef? ? false : true
   end
 
   def values

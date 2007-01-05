@@ -706,7 +706,7 @@ class ShotgunPrimitives
     if(!RISA(self, hash) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
-      t3 = hash_get(state, self, FIXNUM_TO_INT(t1));
+      t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
       stack_push(t3);
       _ret = TRUE;
     }

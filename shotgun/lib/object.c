@@ -65,6 +65,10 @@ OBJECT object_logical_class(STATE, OBJECT self) {
   if(self == Qnil) {
     return state->global->nil_class;
   }
+
+  if(self == Qundef) {
+    return state->global->undef_class;
+  }
   
   printf("Unable to figure out logical class.\n");
   abort();

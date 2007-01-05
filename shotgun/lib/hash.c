@@ -121,6 +121,22 @@ OBJECT hash_get(STATE, OBJECT hash, unsigned int hsh) {
   return Qnil;
 }
 
+/* This version of hash_get returns Qundef if the entry was not found.
+ * This is handy when you need to tell the difference between:
+ * x = {} and x = {:a => nil}
+ */
+
+OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh) {
+  OBJECT entry;
+  
+  entry = find_entry(state, hash, hsh);
+  if(RTEST(entry)) {
+    return tuple_at(state, entry, 2);
+  } else {
+    return Qundef;
+  }
+}
+
 OBJECT hash_find(STATE, OBJECT hash, OBJECT key) {
   return hash_get(state, hash, object_hash_int(state, key));
 }
