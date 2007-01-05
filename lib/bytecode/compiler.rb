@@ -863,7 +863,7 @@ module Bytecode
             add "push Globals"
             add "send key? 1"
           when :ivar
-            lit = @method.add_literal(expr.shift)
+            lit = @method.add_literal(expr.shift.to_s)
             add "push_literal #{lit}"
             add "push self"
             add "send instance_variables 0"
