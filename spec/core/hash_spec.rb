@@ -8,5 +8,11 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # size, sort, store, to_a, to_hash, to_s, update, value?, values,
 # values_at
 
-context "Hash" do
+context "Hash instance method" do
+  specify "key? should return true if argument is a key" do
+    example do
+      @h = {:a => 1, :b => 2, :c => 3}
+      p [@h.key?(:a), @h.key?(:b), @h.key?('b'), @h.key?(2)]
+    end.should == '[true, true, false, false]'
+  end
 end
