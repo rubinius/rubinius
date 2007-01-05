@@ -60,7 +60,17 @@ class Hash
     end
     return out
   end
-  
+
+  def key?(k)
+    @values.each do |tup|
+      while tup
+        return true if tup.at(1) == k
+        tup = tup.at(3)
+      end
+    end
+    return false
+  end
+
   def values
     out = []
     @values.each do |tup|
