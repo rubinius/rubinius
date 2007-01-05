@@ -14,7 +14,7 @@ end
 # require local rake libs
 # doesn't do anything gracefully on load error (yet)
 paths = Dir[ File.join(File.dirname(__FILE__), 'rake/*') ]
-require_files(paths)
+require_files(paths) unless no_spec
 
 # By default, run all the specs and tests
 task :default => :spec
