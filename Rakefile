@@ -315,7 +315,7 @@ end
 
 # Build the kernel
 task :bk do
-  deprecate 'build:bk'
+  deprecate 'build:kernel'
   Rake::Task['build:kernel'].invoke
 end
 
