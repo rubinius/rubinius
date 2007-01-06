@@ -362,3 +362,14 @@ context "Array" do
   end
   
 end
+
+# regression tests
+context "Array Bugs" do
+  # per irc conversation between Defiler, evan, mae(listening)
+  specify "[1,2,3][2..-1] should return [3]" do
+    example do
+      p [1,2,3][2..-1]
+    end.should == "[3]"
+  end
+end
+
