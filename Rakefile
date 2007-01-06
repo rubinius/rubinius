@@ -185,7 +185,7 @@ namespace :build do
   desc "Build the kernel."
   task :kernel => 'build:setup:kernel' do
     puts "Compiling kernel.rb..."
-    `bin/rcompile lib/kernel.rb`
+    `bin/obsolete.rcompile lib/kernel.rb`
   end
 
   desc "Build the kernel."
@@ -213,12 +213,12 @@ namespace :build do
       dest = File.join("native", file)
       FileUtils.mkdir_p dest_dir
       FileUtils.symlink path, dest rescue nil
-      sh "bin/rcompile #{dest}"
+      sh "bin/obsolete.rcompile #{dest}"
     end
 
     extra = %w!bytecode/rubinius!
     extra.each do |name|
-      sh "bin/rcompile native/#{name}.rb"
+      sh "bin/obsolete.rcompile native/#{name}.rb"
     end
   end
 end
