@@ -824,11 +824,9 @@ module Bytecode
         expr.shift if expr[0] == :not
         return(reject_defined) if expr.flatten.include?(:newline) # grouped expression == evil
 
-        static_nodes = [:self, :nil, :true, :false, :lit, :lasgn, :gasgn, :iasgn, 
-          :cdecl, :cvdecl, :cvasgn, :lvar, :str, :array, :hash]
         node = expr.shift
         case node
-          when *static_nodes
+          when :self, :nil, :true, :false, :lit, :lasgn, :gasgn, :iasgn, :cdecl, :cvdecl, :cvasgn, :lvar, :str, :array, :hash
             add "push true"
           when :call
             node_type = expr[0].first
