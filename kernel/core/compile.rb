@@ -32,6 +32,19 @@ module Kernel
     end
   end
   
+  def compile(path)
+    cm = Compile.compile_file(path)
+    Marshal.dump_to_file cm, "#{path}c"
+  end
+  
+  def run_code(src)
+    name = "/tmp/rubinius-tmpfile-#{src.hash}.rb"
+    f = File.new(name, 'w')
+    f.write src
+    f.close
+    load(name)
+  end
+  
   def require(thing)
     kinds = [thing + ".rbc", thing + ".rb"]
     

@@ -5,12 +5,22 @@
 
 # Parse options here!
 
-script = ARGV.shift
+# script = ARGV.shift
 
 code = 0
 
 begin
-  load(script) 
+  until ARGV.empty?
+    arg = ARGV.shift
+    case arg
+    when '-c'
+      compile(ARGV.shift)
+    when '-e'
+      run_code(ARGV.shift)
+    else
+      load(arg)
+    end
+  end
 rescue Object => e
   puts "An exception has occured:"
   puts "    #{e.message} (#{e.class})"
