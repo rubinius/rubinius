@@ -33,4 +33,8 @@ class Symbol
   def to_sym
     self
   end
+
+  def ===(o)
+    self == o
+  end
 end

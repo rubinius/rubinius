@@ -42,4 +42,8 @@ class Integer
   def <=>(o)
     Ruby.primitive :compare
   end
+
+  def -@
+    0 - self
+  end
 end

@@ -230,7 +230,17 @@ module Bytecode
         add "push false"
         set_label ed
       end
+
+      def process_negate(x)
+        process x.shift # Pass the buck
+        add "send -@" # ..and then negate it
+      end
       
+      def process_fixnum(x)
+        num = x.shift
+        add "push #{num}"
+      end
+
       def process_lit(x)
         obj = x.shift
         case obj
@@ -869,7 +879,7 @@ module Bytecode
             lit = @method.add_literal(expr.shift.to_s)
             add "push_literal #{lit}"
             add "push self"
-            add "send instance_variables 0"
+            add "send instance_variables"
             add "send include? 1"
           when :yield
             add "send_primitive block_given"
@@ -1360,7 +1370,7 @@ module Bytecode
       
       def process_evstr(x)
         process x.shift
-        add "send to_s 0"
+        add "send to_s"
       end
       
       def process_dstr(x)

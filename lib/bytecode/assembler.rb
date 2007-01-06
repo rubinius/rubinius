@@ -402,33 +402,33 @@ module Bytecode
         return
       end
       
-      case op
-      when :goto, :goto_if_true, :goto_if_false
+      if op == :set
+        parse_set parts.shift
+        return
+      elsif [:goto, :goto_if_true, :goto_if_false].include?(op)
         label = parts.shift.to_sym
         @output << [op, @labels[label]]
         @current_op += 5
         return
-      when :push
+      elsif op == :push
         parse_push parts.shift
         return
-      when :set
-        parse_set parts.shift
-        return
-      when :open_class, :find_const, :add_method, :attach_method,
-           :send_method, :open_class_under, :open_module,
-           :open_module_under
+      elsif [:open_class, :find_const, :add_method, :attach_method, :send_method, :open_class_under, :open_module, :open_module_under].include?(op)
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         @output << [op, idx]
         @current_op += 5
         return
-      when :send_stack
+      elsif op == :push
+        parse_push parts.shift
+        return
+      elsif op == :send_stack
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         @output << [op, idx, parts.shift.to_i]
         @current_op += 9
         return
-      when :"&send", :send
+      elsif [:"&send", :send].include?(op)
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         @current_op += 5
@@ -448,20 +448,20 @@ module Bytecode
           @output << [:send_method, idx]
         end
         return
-      when :super
+      elsif op == :super
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         @current_op += 9
         args = parts.shift
         @output << [:send_super_stack_with_block, idx, args.to_i]
         return
-      when :send_primitive
+      elsif op == :send_primitive
         sym = parts.shift.to_sym
         idx = primitive_to_index(sym)
         @current_op += 5
         @output << [:send_primitive, idx]
         return
-      when :check_argcount
+      elsif op == :check_argcount
         @output << [op, parts.shift.to_i, parts.shift.to_i]
         @current_op += 9
         return

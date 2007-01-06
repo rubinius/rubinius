@@ -67,7 +67,4 @@ class Fixnum < Integer
     self != 0
   end
   
-  def -@
-    0 - self
-  end
 end
