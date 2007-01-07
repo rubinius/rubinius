@@ -75,18 +75,15 @@ CODE
     @target.caller_name.should == "rubinius_spec-68"
   end
   
-  specify "should provide compile method" do
-    @target.should_respond_to :compile
+  specify "should provide source method" do
+    @target.should_respond_to :source
   end
   
-  specify "compile should return compiled file path" do
+  specify "source should return file path" do
     @target.stub!(:caller).and_return(caller_stub)
     @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
-    Object.send(:remove_const, :Machine)
-    Machine = mock("Machine", :null_object => true)
-    Machine.stub!(:compile_file)
-    @target.compile('') { [1, 2, 3] }.should == 
-      "/Users/rubinius/code-cache/rubinius_spec-68-890456808.rbc"
+    @target.source('') { [1, 2, 3] }.should ==
+      "/Users/rubinius/code-cache/rubinius_spec-68-890456808.rb"
   end
   
   specify "should provide execute method" do

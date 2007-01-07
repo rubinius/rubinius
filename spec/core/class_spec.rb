@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context "a class definition" do
+context "A class definition" do
   specify "should create a new class" do
     example(<<-CODE
     class Foo; end
@@ -30,10 +30,10 @@ context "a class definition" do
     end
     CODE
     ) do
-      before = Foo.class_variables
+      @before = Foo.class_variables
       Foo.new
-      after = Foo.class_variables 
-      p [before, after]
+      @after = Foo.class_variables 
+      p [@before, @after]
     end.should == '[[], ["@@bar"]]'
   end
 end

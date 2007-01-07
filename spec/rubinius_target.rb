@@ -2,7 +2,6 @@ require 'rubygems'
 require 'ruby2ruby'
 require 'fileutils'
 require 'test/unit'
-require 'sydparse'
 
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 require 'machine'
@@ -12,28 +11,38 @@ class RubiniusTargetError < RuntimeError; end
 class RubiniusSpecExample; end
 
 module RubiniusTarget
-  def example(src='', &block)
-    raise ArgumentError, "you must pass a block" unless block_given?
-    execute(compile(src, &block))
+  def initialize(*args)
+    super(args)
+    @use_rcompile = true if ENV["COMPILER"] == 'rcompile'
   end
   
-  def compile(src, &block)
+  def example(src='', &block)
+    raise ArgumentError, "you must pass a block" unless block_given?
+    execute(source(src, &block))
+  end
+  
+  def source(src, &block)
     make_cache_directory
     RubiniusSpecExample.send(:define_method, :__example__, block)
     source = template % [src, RubyToRuby.translate(RubiniusSpecExample)]
     name = cache_source_name(source)
     unless File.exists?(name) and source == File.read(name)
       File.open(name, "w") { |f| f << source }
-      `#{rubinius_path}/bin/rcompile #{name}`
+    end
+
+    if @use_rcompile
+      `#{rubinius_path}/bin/obsolete.rcompile #{name}`
       unless $?.success?
         FileUtils.rm(name)
         raise RubiniusTargetError, "Unable to compile #{name}"
       end
+      name << 'c'
     end
-    name + 'c'
+
+    name
   end
   
-  def execute(compiled_file)
+  def execute(file)
     r, w = IO.pipe
     r2, w2 = IO.pipe
     
@@ -44,7 +53,7 @@ module RubiniusTarget
       STDIN.reopen(r2)
       Dir.chdir "#{rubinius_path}"
       
-      exec "./shotgun/rubinius ./lib/kernel.rbc #{compiled_file}"
+      exec "./shotgun/rubinius ./lib/kernel.rbc #{file}"
     }
     
     r2.close
