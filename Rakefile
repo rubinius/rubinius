@@ -103,7 +103,7 @@ task :build => 'build:all'
 
 namespace :build do
   desc "Rebuild shotgun from scratch"
-  task :all => ['build:clean', 'setup:syd', 'build:shotgun', 'build:bk']
+  task :all => ['build:clean', 'setup:syd', 'build:shotgun', 'build:kernel', 'build:compiler']
   
   desc "Cleanup build files."
   task :clean do
