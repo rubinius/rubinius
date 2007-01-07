@@ -48,6 +48,27 @@ class MatchData
     @source
   end
   
+  def begin(idx)
+   return full.at(0) if idx == 0
+   return @region.at(idx - 1).at(0)
+  end
+
+  def end(idx)
+   return full.at(1) if idx == 0
+   @region.at(idx - 1).at(1)
+  end
+
+  def offset(idx)
+   out = []
+   out << self.begin(idx)
+   out << self.end(idx)
+   return out
+  end
+
+  def length
+   @region.length + 1
+  end
+
   def captures
     out = []
     @region.each do |tup|

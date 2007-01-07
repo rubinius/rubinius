@@ -32,15 +32,25 @@ context "String instance method" do
   specify "to_i should convert the string to an integer base (2, 8, 10, or 16)" do
     example do
       p [ "12345".to_i,
+          " 12345".to_i,
+          "+12345".to_i,
+          "-12345".to_i,
+          " ".to_i,
+          "hello".to_i,
           "99 red balloons".to_i,
           "0a".to_i,
           "0a".to_i(16),
+          "0b1100101".to_i(0),
+          "0o1100101".to_i(0),
+          "0x1100101".to_i(0),
+          "01100101".to_i(0),
+          "1100101".to_i(0),
           "hello".to_i,
           "1100101".to_i(2),
           "1100101".to_i(8),
           "1100101".to_i(10),
           "1100101".to_i(16) ]
-    end.should == '[12345, 99, 0, 10, 0, 101, 294977, 1100101, 17826049]'
+    end.should == '[12345, 12345, 12345, -12345, 0, 0, 99, 0, 10, 101, 294977, 17826049, 1100101, 1100101, 0, 101, 294977, 1100101, 17826049]'
   end
   
   specify "[] with index should return the code of the character at index" do

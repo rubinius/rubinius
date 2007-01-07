@@ -179,15 +179,34 @@ class String
       i = 0
       @data.each { |b| return i if b == arg; i += 1 }
     elsif arg.is_a? String
+      idx = 0
+      if offset
+        if offset >= 0
+          return nil if offset >= self.size
+          idx = offset
+        else
+          return nil if (1-offset) >= self.size
+          idx = self.size + offset
+        end
+      end
       argsize = arg.size
       max = self.size - argsize
       if max >= 0 and argsize > 0
-        0.upto(max) do |i|
+        idx.upto(max) do |i|
           if @data.get_byte(i) == arg.data.get_byte(0)
             return i if substring(i,argsize) == arg
           end
         end
       end
+    elsif arg.is_a? Regexp
+      idx = offset ? offset : 0
+      mstr = self[idx..-1]
+      offset = self.size - mstr.size
+      m = arg.match(mstr)
+      if m
+        return offset + m.begin(0)
+      end
+      return nil
     else
       raise ArgumentError.new("String#index cannot accept #{arg.class} objects")
     end
@@ -207,7 +226,9 @@ class String
       return (self.include?(arg) ? arg.dup : nil)
     elsif arg.respond_to? :match
       m = arg.match(self)
-      m[len.to_i] if m
+      return m[len.to_i] if m && len
+      return m[0] if m
+      return nil
     elsif arg.respond_to?(:first) and arg.respond_to?(:last)
       from = arg.first
       to = arg.last
@@ -270,31 +291,77 @@ class String
     return ret
   end
   
+
+  # TODO: check that the string will never go over the maximum range
+  #       as the function is not supposed to raise an exception.
   def to_i(radix=10)
-    if self[0] == ?-
+    i = 0
+    # had to move the char definition out of the block to compile
+    char = 0
+
+    # leading whitespace removal
+    loop do
+      return 0 if i >= @bytes
+      char = @data.get_byte(i)
+      if (char != 32 && char != ?\t && char != ?\n && char != ?\r && char != ?\f)
+        break
+      end
+      i += 1
+    end
+
+    # Sign determination
+    if self[i] == ?-
       neg = true
-      i = 1
+      i += 1
     else
       neg = false
-      i = 0
+      if self[i] == ?+
+        i += 1
+      end
     end
     
+    # Determine the radix from the string for radix = 0
+    # 0b = 2, 0o = 8, 0x = 16, defaults to radix = 10
+    if radix == 0
+      radix = 10
+      if self[i] == ?0
+        if self[i+1] == ?b
+          radix = 2
+          i += 2
+        elsif self[i+1] == ?o
+          radix = 8
+          i += 2
+        elsif self[i+1] == ?x
+          radix = 16
+          i += 2
+        end
+      end
+    end
+
     ret = 0
     i.upto(@bytes - 1) do |idx|
       char = @data.get_byte(idx)
+      value = 0
       if char >= ?0 and char <= ?9
-        ret *= radix
-        ret += (char - ?0)
+        value = (char - ?0)
+      elsif char >= ?A and char <= ?Z
+        value = (char - ?A + 10)
+      elsif char >= ?a and char <= ?z
+        value = (char - ?a + 10)
       # An invalid character.
       elsif char != ?_
-        return ret
+        return neg ? -ret : ret
       end
-      
+
+      if value >= radix
+        return neg ? -ret : ret
+      end
+
+      ret *= radix
+      ret += value
     end
     
-    ret = -ret if neg
-    
-    return ret
+    return neg ? -ret : ret
   end
 end
 
