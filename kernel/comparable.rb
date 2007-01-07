@@ -93,7 +93,7 @@ module Comparable
   #     'gnu'.between?('ant', 'dog')   #=> false
   #     
   def between?(min, max)
-    (min <= self) && (self >= max)
+    (min <= self) && (self <= max)
   end
 
 end
