@@ -157,7 +157,7 @@ OBJECT bignum_from_string_detect(STATE, char *str) {
 OBJECT bignum_from_string(STATE, char *str, int radix) {
   NMP;
   mp_read_radix(n, str, radix);
-  return n_obj;
+  return bignum_normalize(state, n_obj);
 }
 
 void bignum_into_string(STATE, OBJECT self, int radix, char *buf, int sz) {
