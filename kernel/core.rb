@@ -119,8 +119,8 @@ class Object
   end
   
   def inspect
-    if !@__ivars__ or @__ivars__.size == 0
-      return to_s
+    if !@__ivars__ || !@__ivars__.is_a?(Array) || @__ivars__.empty?
+      return self.to_s
     end
     
     res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
@@ -235,3 +235,4 @@ class Hash
   alias :include? :key?
   alias :member?  :key?
 end
+

@@ -13,7 +13,7 @@ class ShotgunInstructions
         fd.puts code
         fd.puts "   break;\n    }"
       else
-        STDERR.puts "Problem with #{ins}"
+        STDERR.puts "Problem with opcode: #{ins}"
       end
       i += 1
     end

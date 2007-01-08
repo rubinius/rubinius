@@ -46,4 +46,5 @@ class Integer
   def -@
     0 - self
   end
+
 end

@@ -16,7 +16,7 @@ class ShotgunPrimitives
         fd.puts code
         fd.puts "   break;\n    }"
       else
-        STDERR.puts "Problem with #{ins}"
+        STDERR.puts "Problem with CPU primitive: #{ins}"
       end
       i += 1
     end
@@ -29,7 +29,7 @@ class ShotgunPrimitives
         fd.puts code
         fd.puts "   break; \n   }"
       else
-        STDERR.puts "Problem with #{ins}"
+        STDERR.puts "Problem with runtime primitive: #{ins}"
       end
       i += 1
     end

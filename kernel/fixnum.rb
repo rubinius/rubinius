@@ -23,10 +23,6 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_modulo
   end
   
-  def &(o)
-    Ruby.primitive :fixnum_and
-  end
-
   def <(o)
     (self <=> o) == -1
   end

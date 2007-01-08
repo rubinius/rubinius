@@ -11,8 +11,6 @@ class InstructionEncoder
     :push_false,
     :allocate,
     :set_class,
-    :find_field,
-    :store_into,
     :store_field,
     :push_int,
     :fetch_field,

@@ -34,7 +34,4 @@ class Symbol
     self
   end
 
-  def ===(o)
-    self == o
-  end
 end
