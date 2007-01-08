@@ -22,7 +22,7 @@ task :default => :spec
 desc "Run all specs and tests."
 task :spec do
   Rake::Task['spec:all'].invoke rescue got_error = true
-  
+
   raise "Spec or test failures." if got_error
 end unless no_spec
 
@@ -31,10 +31,10 @@ namespace :spec do
   task :all do
     Rake::Task['spec:only'].invoke  rescue got_error = true
     Rake::Task['test:all'].invoke   rescue got_error = true
-    
+
     raise "Spec or test failures." if got_error
   end
-  
+
   desc "Run only specs but not any tests."
   task :only => %w(spec:language spec:shotgun spec:library spec:core
                    spec:targets spec:compatibility)
@@ -65,7 +65,7 @@ namespace :test do
   task :all do
     Rake::Task['test:core'].invoke    rescue got_error = true
     Rake::Task['test:shotgun'].invoke rescue got_error = true
-    
+
     raise "Test failures." if got_error
   end
 
@@ -73,17 +73,17 @@ namespace :test do
   task :bfts do
     system("ruby -Inative -Ibfts/overlay bfts/overlay/tc_all.rb")
   end
-  
+
   desc "Runs part of BFTS under Rubinius natively."
   task :nativebfts => ['test:setup:code_cache'] do
     system("ruby -Ibfts/overlay bfts/overlay/test_stuff.rb")
   end
-  
+
   desc "Run rubinius's 1.8.* tests."
   task :core do
     system("ruby -Ilib test/tc_all.rb")
   end
-  
+
   desc "Run shotgun's core tests."
   task :shotgun => ['test:setup:code_cache'] do
     system("ruby test/tc_all.rb shotgun-tests")
@@ -104,18 +104,21 @@ task :build => 'build:all'
 namespace :build do
   desc "Rebuild shotgun from scratch"
   task :all => ['build:clean', 'setup:syd', 'build:shotgun', 'build:kernel', 'build:compiler']
-  
+
   desc "Cleanup build files."
   task :clean do
     FileUtils.rm_rf 'code-cache'
     FileUtils.rm Dir.glob('lib/kernel.rb*')
-    `cd shotgun;make -e clean;cd ..`
+    Dir.chdir('shotgun')
+    `make -e clean`
+    raise 'Failed to build makefile in ./shotgun' if $?.exitstatus != 0
+    Dir.chdir('..')
   end
-  
+
   task :setup do
     sh "ruby bin/rcc"
   end
-  
+
   namespace :setup do
     desc "Ensure that the correct version of the sydparse gem is installed."
     task :syd do
@@ -128,7 +131,7 @@ namespace :build do
         raise "Gem 'sydparse' must be installed from externals/syd-parser/pkg directory. Then re-run 'rake build'."
       end
     end
-    
+
     # Combine the separate .rb files in lib into a single kernel.rb
     task :kernel do
       fd = File.open("lib/kernel.rb", "w")
@@ -151,7 +154,7 @@ namespace :build do
       fd.close
     end
   end
-  
+
   task :fields do
     $:.unshift "lib"
     require 'types'
@@ -176,28 +179,32 @@ namespace :build do
     end
     fd.close
   end
-  
+
   desc "Build shotgun C components."
   task :shotgun => 'build:setup' do
     system("make -e -C shotgun rubinius")
+    raise 'Failed to build shotgun components' if $?.exitstatus != 0
   end
-  
+
   desc "Build the kernel."
   task :kernel => 'build:setup:kernel' do
     puts "Compiling kernel.rb..."
     `bin/obsolete.rcompile lib/kernel.rb`
+    raise 'Failed to compile kernel.rb' if $?.exitstatus != 0
   end
 
   desc "Build the kernel."
   task :bk => 'build:kernel'
-  
+
   desc "Build syd-parser."
   task :syd do
     puts "Building externals/syd-parser gem...\n"
-    system("cd externals/syd-parser; rake gem")
+    Dir.chdir('externals/syd-parser')
+    system("rake gem")
+    raise 'Failed to build externals/syd-parser gem' if $?.exitstatus != 0
     puts "\nNow do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser.\n\n"
   end
-  
+
   desc "Bootstrap the compiler."
   task :compiler do
     files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
@@ -214,11 +221,13 @@ namespace :build do
       FileUtils.mkdir_p dest_dir
       FileUtils.symlink path, dest rescue nil
       sh "bin/obsolete.rcompile #{dest}"
+      raise "Failed to compile #{dest}" if $?.exitstatus != 0
     end
 
     extra = %w!bytecode/rubinius!
     extra.each do |name|
       sh "bin/obsolete.rcompile native/#{name}.rb"
+      raise "Failed to compile native/#{name}" if $?.exitstatus != 0
     end
   end
 end
@@ -226,7 +235,7 @@ end
 namespace :doc do
   desc "Learn how to contribute."
   task :contrib => 'doc:contrib:easy'
-  
+
   namespace :contrib do
     desc "Find out about easy ways to contribute."
     task :easy do
@@ -240,7 +249,7 @@ namespace :doc do
     The 'ri' command is a rich source of examples and test cases.
     EOM
     end
-    
+
     desc "Find out about ways to contribute that may require a lot of knowledge or work."
     task :hard do
       puts "More to come. For now, just make everything work faster than anything else in the world."
@@ -335,4 +344,4 @@ task :find_low_hanging_fruit do
   Rake::Task['doc:contrib:easy'].invoke
 end
 
-# vim: syntax=ruby
+# vim: syntax=ruby shiftwidth=2
