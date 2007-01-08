@@ -193,9 +193,6 @@ namespace :build do
     raise 'Failed to compile kernel.rb' if $?.exitstatus != 0
   end
 
-  desc "Build the kernel."
-  task :bk => 'build:kernel'
-
   desc "Build syd-parser."
   task :syd do
     puts "Building externals/syd-parser gem...\n"
@@ -230,7 +227,17 @@ namespace :build do
       raise "Failed to compile native/#{name}" if $?.exitstatus != 0
     end
   end
+
+  desc "Delete all cached .rbc files"
+  task :delete_rbc do
+    FileList['**/*.rbc', '*.rbc', '/tmp/*.rbc'].each do |fn|
+      FileUtils.rm fn
+    end
+  end
 end
+
+desc "Build the kernel."
+task :bk => 'build:kernel'
 
 namespace :doc do
   desc "Learn how to contribute."
