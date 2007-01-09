@@ -361,6 +361,14 @@ context "Array" do
     end.should == 'nil'
   end
   
+  specify "push should append the arguments to the array" do
+    example do
+      @a = [ "a", "b", "c" ]
+      @a.push("d", "e", "f")
+      p @a
+    end.should == '["a", "b", "c", "d", "e", "f"]'
+  end
+  
 end
 
 # regression tests

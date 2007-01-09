@@ -236,9 +236,6 @@ namespace :build do
   end
 end
 
-desc "Build the kernel."
-task :bk => 'build:kernel'
-
 namespace :doc do
   desc "Learn how to contribute."
   task :contrib => 'doc:contrib:easy'
