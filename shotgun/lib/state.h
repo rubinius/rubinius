@@ -8,6 +8,7 @@ struct rubinius_globals {
   OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
   OBJECT string, symbol, io, metaclass;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
+  OBJECT floatpoint;
   
   /* the primary symbol table */
   OBJECT symbols;
@@ -52,6 +53,7 @@ rstate rubinius_state_new();
 #define DATA_STRUCT(obj, kind) ((kind)BYTES_OF(obj))
 
 #include "bignum.h"
+#include "float.h"
 
 // rubinius.h defines STATE as void*, which means these prototypes fail to match.
 // This is pretty confusing, since they look identical before the pre-processor runs.

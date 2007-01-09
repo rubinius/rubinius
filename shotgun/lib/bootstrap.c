@@ -101,6 +101,7 @@ void cpu_bootstrap(STATE) {
   tmp2 = rbs_class_new(state, "Integer", 0, tmp);
   BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, tmp2);
   BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
+  BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
   
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \

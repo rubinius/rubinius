@@ -760,10 +760,14 @@ again_no_block:
     array_push(current, bignum_from_string(state, node->nd_str->str, 8));
     break;
     
+  case NODE_FLOAT:
+    array_set(state, current, 0, SYMBOL("lit"));
+    array_push(current, float_from_string(state, node->nd_str->str));
+    break;
+    
   case NODE_XSTR:             /* u1    (%x{ls}) */
   case NODE_STR:              /* u1 */
   case NODE_REGEX:
-  case NODE_FLOAT:
   case NODE_MATCH:
     array_push(current, gstring2rubinius(state, node->nd_str));
     break;

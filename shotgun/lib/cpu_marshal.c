@@ -5,6 +5,7 @@
 #include "symbol.h"
 #include "tuple.h"
 #include "bignum.h"
+#include "float.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -216,6 +217,31 @@ static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
   return bignum_from_string(state, str + 5, 10);
 }
 
+static void marshal_floatpoint(STATE, OBJECT obj, GString *buf) {
+  int i;
+  char buffer[26];
+  char *s;
+  // this is in bignum, but it doesn't look necessary
+  //i = NUM_FIELDS(obj);
+  float_into_string(state, obj, buffer, 26);
+  append_c('d');
+  i = strlen(buffer);
+  append_sz(i);
+  s = buffer;
+  while(*s) {
+    append_c(*s++);
+  }
+  append_c(0);
+}
+
+static OBJECT unmarshal_floatpoint(STATE, char *str, struct marshal_state *ms) {
+  int sz;
+  sz = read_int(str + 1);
+  ms->consumed += 5;
+  ms->consumed += sz;
+  return float_from_string(state, str + 5);
+}
+
 static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
   int i;
   i = NUM_FIELDS(obj) * 4; // FIXME 4 is size_t 
@@ -284,6 +310,10 @@ static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
       o = unmarshal_bignum(state, str, ms);
       _add_object(o, ms);
       break;
+    case 'd':
+      o = unmarshal_floatpoint(state, str, ms);
+      _add_object(o, ms);
+      break;
     case 'r':
       o = _nth_object(state, str, ms);
       break;
@@ -337,6 +367,8 @@ static void marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
         marshal_bytes(state, obj, buf);
       } else if(kls == BASIC_CLASS(bignum)) {
         marshal_bignum(state, obj, buf);
+      } else if(kls == BASIC_CLASS(floatpoint)) {
+        marshal_floatpoint(state, obj, buf);
       } else {
         printf("Unable to marshal!\n");
       }
