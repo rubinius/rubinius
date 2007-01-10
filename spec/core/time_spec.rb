@@ -13,6 +13,12 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # wday, xmlschema, yday, year, zone
 
 context "Time class method" do
+  specify "at should convert to time object" do
+    example do
+      @a = Time.at( 1168475924 )
+      p @a
+    end.should == 'Thu Jan 11 00:38:44 +0000 2007'
+  end
 end
 
 context "Time instance method" do

@@ -91,7 +91,6 @@ int baker_gc_mutate_object(baker_gc g, OBJECT obj) {
   OBJECT dest;
   dest = heap_copy_object(g->next, obj);
   baker_gc_set_forwarding_address(obj, dest);
-  CHECK_PTR(dest);
   return dest;
 }
 

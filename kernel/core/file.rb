@@ -28,13 +28,26 @@ class File < IO
   def self.file?(path)
     stat(path).kind == :file
   end
-  
+
   def self.directory?(path)
     stat(path).kind == :dir
   end
   
   def self.link?(path)
     stat(path).kind == :link
+  end
+
+
+  def self.atime(path)
+    Time.at stat(path).atime
+  end
+
+  def self.mtime(path)
+    Time.at stat(path).mtime
+  end
+
+  def self.ctime(path)
+    Time.at stat(path).ctime
   end
 
   # TODO - needs work for Win32
@@ -86,12 +99,12 @@ class File < IO
 
   class Stat
     
-    define_fields :inode, :mode, :kind, :owner, :group, :size, :block, :path
+    define_fields :inode, :mode, :kind, :owner, :group, :size, :block, :atime, :mtime, :ctime, :path
         
     def self.from_tuple(tup, path)
       obj = allocate
       obj.copy_from tup, 0
-      obj.put 7, path
+      obj.put 10, path
       return obj
     end
     

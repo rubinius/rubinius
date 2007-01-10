@@ -907,7 +907,7 @@ class ShotgunPrimitives
           stack_push(Qfalse);
         }
       } else {
-        t2 = tuple_new(state, 7);
+        t2 = tuple_new(state, 10);
         tuple_put(state, t2, 0, I2N((int)sb.st_ino));
         tuple_put(state, t2, 1, I2N((int)sb.st_mode));
         if((sb.st_mode & S_IFIFO) == S_IFIFO) {
@@ -932,6 +932,9 @@ class ShotgunPrimitives
         tuple_put(state, t2, 4, I2N((int)sb.st_gid));
         tuple_put(state, t2, 5, I2N((int)sb.st_size));
         tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
+        tuple_put(state, t2, 7, UI2N((int)sb.st_atime));
+        tuple_put(state, t2, 8, UI2N((int)sb.st_mtime));
+        tuple_put(state, t2, 9, UI2N((int)sb.st_ctime));
       
         stack_push(t2);
       }

@@ -17,7 +17,7 @@ module Kernel
       return cm.activate_as_script
     elsif path.suffix? ".rb"
       comp = "#{path}c"
-      if File.exists?(comp)
+      if File.exists?(comp) && File.mtime(comp) >= File.mtime(path)
         cm = CompiledMethod.load_from_file(comp)
         raise LoadError, "Unable to load file at path: #{path}" unless cm
       else
