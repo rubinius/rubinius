@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # abs, div, divmod, id2name, modulo, power!, quo, rdiv, rpower,
 # size, to_f, to_s, to_sym, zero?, |, ~
 
-context "Fixnum" do
+context "Fixnum instance method" do
   
   specify "% should return self modulo other" do
     example do
@@ -47,4 +47,154 @@ context "Fixnum" do
       p [2.send(:-@), -2, -0xfffffff, --5, -8.send(:-@)]
     end.should == '[-2, -2, -268435455, 5, 8]'
   end
+
+  specify "/ should return self divided by other" do
+    example do
+      p [2 / 2, -1 / 50.4, 1 / 0xffffffff]
+    end.should == '[1, -0.0198412698412698, 0]'
+  end
+  
+  specify "< should return true if self is less than other" do
+    example do
+      p [-1 < 0, 3 < -5.2, 9 < 0xffffffff]
+    end.should == '[true, false, true]'
+  end
+  
+  specify "<= should return true if self is less than or equal to other" do
+    example do
+      p [2 <= 2, 7 <= 5.4, 11 <= 0xffffffff]
+    end.should == '[true, false, true]'
+  end
+  
+  specify "<=> should return -1, 0, 1 when self is less than, equal, or greater than other" do
+    example do
+      p [-1 <=> 0xffffffff, 954 <=> 954.0, 496 <=> 5]
+    end.should == '[-1, 0, 1]'
+  end
+  
+  specify "== should true if self has the same value as other" do
+    example do
+      p [1 == 1.0, 9 == 5, 2 == 0xffffffff]
+    end.should == '[true, false, false]'
+  end
+  
+  specify "> should return true if self is greater than other" do
+    example do
+      p [-500 > -600, 13 > 2.178, 11 > 0xffffffff]
+    end.should == '[true, true, false]'
+  end
+  
+  specify ">= should return true if self is greater than or equal to other" do
+    example do
+      p [-50 >= -50, 14 >= 2.5, 900 >= 0xffffffff]
+    end.should == '[true, true, false]'
+  end
+
+  specify "abs should return the absolute value" do
+    example do
+      p [0.abs, -2.abs, 5.abs]
+    end.should == '[0, 2, 5]'
+  end
+  
+  specify "<< should return self shifted left other bits" do
+    example do
+      p [7 << 2, 9 << 4.2, 6 << 0xff]
+    end.should == '[28, 144, 347376267711948586270712955026063723559809953996921692118372752023739388919808]'
+  end
+  
+  specify ">> should return self shifted right other bits" do
+    example do
+      p [7 >> 1.5, 0xfff >> 3, 9_245_278 >> 1]
+    end.should == '[3, 511, 4622639]'
+  end
+  
+  specify "[] should return the nth bit in the binary representation of self" do
+    example do
+      p [2[3], 15[1.3], 3[0xffffffff]]
+    end.should == '[0, 1, 0]'
+  end
+  
+  specify "^ should return self bitwise EXCLUSIVE OR other" do
+    example do
+      p [3 ^ 5, -2 ^ -255, -7 ^ 15.2, 5 ^ 0xffffffff]
+    end.should == '[6, 255, -10, 4294967290]'
+  end
+  
+  specify "div should return self divided by other as an Integer" do
+    example do
+      p [2.div(2), -1.div(50.4), 1.div(0xffffffff)]
+    end.should == '[1, -1, 0]'
+  end
+  
+  specify "divmod should return an [quotient, modulus] from dividing self by other" do
+    example do
+      p [1.divmod(2.0), -5.divmod(3), 200.divmod(0xffffffff)]
+    end.should == '[[0, 1.0], [-2, 1], [0, 200]]'
+  end
+  
+  specify "id2name should return the string name of the object whose symbol ID is self" do
+    example do
+      @a = :@sym
+      @b = :@ruby
+      @c = :@rubinius
+      p [@a.to_i.id2name, @b.to_i.id2name, @c.to_i.id2name]
+    end.should == '["@sym", "@ruby", "@rubinius"]'
+  end
+  
+  specify "modulo should be a synonym for %" do
+    example do
+      p [451.modulo(2), 93.modulo(3.2), 120.modulo(-4.5)]
+    end.should == '[1, 0.199999999999995, -1.5]'
+  end
+  
+  specify "quo should return the floating-point result of self divided by other" do
+    example do
+      p [2.quo(2.5), 5.quo(2), 45.quo(0xffffffff)]
+    end.should == '[0.8, 2.5, 1.04773789668636e-08]'
+  end
+  
+  specify "size should be provided" do
+    example do
+      p 1.respond_to?(:size)
+    end.should == 'true'
+  end
+  
+  specify "to_f should return self converted to Float" do
+    example do
+      p [0.to_f, -500.to_f, 9_641_278.to_f]
+    end.should == '[0.0, -500.0, 9641278.0]'
+  end
+  
+  specify "to_s should return a string representation of self" do
+    example do
+      p [0xff, 3, 0, -9_002]
+    end.should == '[255, 3, 0, -9002]'
+  end
+  
+  specify "to_sym should return the symbol whose integer value is self" do
+    example do
+      @a = :fred.to_i
+      @b = :wilma.to_i
+      @c = :bambam.to_i
+      p [@a.to_sym, @b.to_sym, @c.to_sym]
+    end.should == '[:fred, :wilma, :bambam]'
+  end
+  
+  specify "zero? should return true if self is 0" do
+    example do
+      p [0.zero?, -1.zero?, 1.zero?]
+    end.should == '[true, false, false]'
+  end
+  
+  specify "| should return self bitwise OR other" do
+    example do
+      p [1 | 0, 5 | 4, 5 | 6, 248 | 4096]
+    end.should == '[1, 5, 7, 4344]'
+  end
+  
+  specify "~ should return self bitwise inverted" do
+    example do
+      p [~0, ~1221, ~-599, ~-2]
+    end.should == '[-1, -1222, 598, 1]'
+  end  
 end
