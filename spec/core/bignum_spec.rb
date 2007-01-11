@@ -14,7 +14,7 @@ context "Bignum instance method" do
     @src = <<-CODE
     module B
       def self.sbm(plus=0)
-        (0x3fffffff + 1) + plus
+        (0x40000000) + plus
       end
     end
     CODE
@@ -113,44 +113,49 @@ context "Bignum instance method" do
   specify ">= should return true if self is greater than or equal to other" do
     example(@src) do
       @a = B.sbm(14)
-      p [@a >= @a, @a >= (@a -2), @a >= 5664.2, @a >= 4]
-    end.should == '[true, true, false, false]'
+      p [@a >= @a, @a >= (@a + 2), @a >= 5664.2, @a >= 4]
+    end.should == '[true, false, true, true]'
   end
 
   specify "abs should return the absolute value" do
     example(@src) do
-      p []
-    end.should == ''
+      p [B.sbm(39).abs, (-B.sbm(18)).abs]
+    end.should == '[1073741863, 1073741842]'
   end
   
   specify "<< should return self shifted left other bits" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(9)
+      p [@a << 4, @a << 1.5, @a << 9]
+    end.should == '[17179869328, 2147483666, 549755818496]'
   end
   
   specify ">> should return self shifted right other bits" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(90812)
+      p [@a >> 3.45, @a >> 2, @a >> 21]
+    end.should == '[134229079, 268458159, 512]'
   end
   
   specify "[] should return the nth bit in the binary representation of self" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(4996)
+      p [@a[2], @a[9.2], @a[21]]
+    end.should == '[1, 1, 0]'
   end
   
   specify "^ should return self bitwise EXCLUSIVE OR other" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(18)
+      p [@a ^ 2, @a ^ @a, @a ^ 14.5]
+    end.should == '[1073741840, 0, 1073741852]'
   end
   
   specify "coerce should return [other, self] both as Bignum if other is an Integer" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm
+      p [@a.coerce(2), @a.coerce(B.sbm(701))]
+    end.should == '[[2, 1073741824], [1073742525, 1073741824]]'
   end
   
   specify "div should be a synonym for /" do
@@ -162,20 +167,22 @@ context "Bignum instance method" do
   
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(55)
+      p [@a.divmod(5), @a.divmod(15.2), @a.divmod(@a + 9)]
+    end.should == '[[214748375, 4], [70640913, 1.40000005019339], [0, 1073741879]]'
   end
   
   specify "eql? should return true if other is a Bignum with the same value" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(13)
+      p [@a.eql?(B.sbm(13)), @a.eql?(2), @a.eql?(3.14)]
+    end.should == '[true, false, false]'
   end
   
   specify "hash should be provided" do
     example(@src) do
-      p []
-    end.should == ''
+      p B.sbm.respond_to?(:hash)
+    end.should == 'true'
   end
   
   specify "modulo should be a synonym for %" do
@@ -187,20 +194,16 @@ context "Bignum instance method" do
   
   specify "quo should return the floating-point result of self divided by other" do
     example(@src) do
-      p []
-    end.should == ''
-  end
-  
-  specify "rdiv should should be a synonym for quo" do
-    example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(3)
+      p [@a.quo(2.5), @a.quo(13), @a.quo(B.sbm)]
+    end.should == '[429496730.8, 82595525.1538462, 1.00000000279397]'
   end
   
   specify "remainder should return the remainder of dividing self by other" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(79)
+      p [@a.remainder(2), @a.remainder(97.345), @a.remainder(B.sbm)]
+    end.should == '[1, 75.16000001254, 79]'
   end
   
   specify "size should be provided" do
@@ -211,25 +214,27 @@ context "Bignum instance method" do
   
   specify "to_f should return self converted to Float" do
     example(@src) do
-      p []
-    end.should == ''
+      p [B.sbm(2).to_f, (-B.sbm(99)).to_f, B.sbm(14).to_f]
+    end.should == '[1073741826.0, -1073741923.0, 1073741838.0]'
   end
   
   specify "to_s should return a string representation of self" do
     example(@src) do
-      p []
-    end.should == ''
+      p [B.sbm(9).to_s, B.sbm.to_s, (-B.sbm(675)).to_s]
+    end.should == '["1073741833", "1073741824", "-1073742499"]'
   end
   
   specify "| should return self bitwise OR other" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(11)
+      p [@a | 2, @a | 9.9, @a | B.sbm]
+    end.should == '[1073741835, 1073741835, 1073741835]'
   end
   
   specify "~ should return self bitwise inverted" do
     example(@src) do
-      p []
-    end.should == ''
+      @a = B.sbm(48)
+      p [~B.sbm(48), ~(-B.sbm(21)), ~B.sbm(1)]
+    end.should == '[-1073741873, 1073741844, -1073741826]'
   end  
 end
