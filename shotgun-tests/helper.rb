@@ -36,7 +36,7 @@ module RubiniusHelper
       File.open(path, "w") do |fd|
         fd << code
       end
-      `#{rubinius_root}/bin/rcompile #{cache_root}/#{name}.rb`
+      `#{rubinius_root}/bin/obsolete.rcompile #{cache_root}/#{name}.rb`
     end
     r, w = IO.pipe
     r2, w2 = IO.pipe

@@ -338,7 +338,7 @@ class TestCore < RubiniusTestCase
       fd.puts "puts 'hello world'"
     end
     
-    `#{rubinius_root}/bin/rcompile #{cache_root}/test_require.rb`
+    `#{rubinius_root}/bin/obsolete.rcompile #{cache_root}/test_require.rb`
   
     out = rp <<-CODE
     require 'test_require'
