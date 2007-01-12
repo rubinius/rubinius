@@ -105,14 +105,14 @@ class TestBytecodeCompiler < Test::Unit::TestCase
   
   def test_process_if_no_else
     sx = [:if, [:true], [:lit, 9]]
-    exc = "push true\ngif lbl1\npush 9\nlbl1:\nret\n"
+    exc = "push true\ngif lbl1\npush 9\ngoto lbl2\nlbl1:\npush false\nlbl2:\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
   end
   
   def test_process_if_no_then
     sx = [:if, [:true], nil, [:lit, 10]]
-    exc = "push true\ngit lbl1\npush 10\nlbl1:\nret\n"
+    exc = "push true\ngit lbl1\npush 10\ngoto lbl2\nlbl1:\npush false\nlbl2:\nret\n"
     compile sx
     assert_equal exc, @meth.assembly
   end
