@@ -57,6 +57,7 @@ class Array
   
   def <<(ent)
     self[@total] = ent
+    self
   end
   
   def push(*args)

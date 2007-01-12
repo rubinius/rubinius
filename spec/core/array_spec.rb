@@ -116,7 +116,7 @@ context "Array" do
   
   specify "[] should provide nil for a requested index not in the array" do
     example do
-      puts [ "a", "b", "c", "d", "e" ][5]
+      p [ "a", "b", "c", "d", "e" ][5]
     end.should == "nil"
   end
   

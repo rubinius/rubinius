@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+GC.disable
 $:.unshift File.dirname(__FILE__) + "/../lib"
 require 'machine'
 
@@ -15,3 +16,6 @@ end
 # mach.import_args ARGV
 # mach.setup_standard_io
 mach.compile_file file, false
+
+GC.enable
+GC.start
