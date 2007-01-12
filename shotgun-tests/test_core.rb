@@ -725,7 +725,7 @@ class TestCore < RubiniusTestCase
     obj = Marshal.load(str)
     p obj
     CODE
-    assert_equal "ip\000\000\000\001", out[0]
+    assert_equal "RBISip\000\000\000\001", out[0]
     assert_equal "1", out[1]
   end
 end
