@@ -52,7 +52,72 @@ class Array
     @tuple.at(idx)
   end
 
-  def []=(idx, ent)
+  def []=(idx, ent, *args)
+    cnt = nil
+    if args.size != 0
+      cnt = ent
+      ent = args[0]             # 2nd arg (cnt) is the optional one!
+    end
+
+    if idx.class == Range
+      if cnt
+        raise ArgumentError, "Second argument invalid with a range"
+      end
+      lst = idx.last
+      if lst < 0
+        lst += @total
+      end
+      lst += 1 unless idx.exclude_end?
+      idx = idx.first
+      if idx < 0
+        idx += @total
+        raise IndexError if idx < 0
+      end
+      cnt = lst - idx
+    end
+
+    if cnt
+      cnt = @total - idx if cnt > @total - idx # MRI seems to be forgiving here!
+      replacement = ent
+      if ent == nil
+        replacement = []
+      elsif ent.class != Array  # FIXME: right test?
+        replacement = [ent]
+      end
+
+      if replacement.size > cnt
+        newtotal = @total + replacement.size - cnt
+        if newtotal > @tuple.fields
+          nt = Tuple.new(newtotal + 10)
+          nt.copy_from @tuple, 0 # FIXME: double copy of right part
+          @tuple = nt
+        end                     # this should be an else
+        f = @total
+        t = newtotal
+        while f > idx + cnt
+          t -= 1
+          f -= 1
+          @tuple.put(t, @tuple.at(f))
+        end
+        @total = newtotal
+      end
+      replacement.each_with_index { |el, i|
+        @tuple.put(idx+i, el)
+      }
+      if replacement.size < cnt
+        f = idx + cnt
+        t = idx + replacement.size
+        while f < @total
+          @tuple.put(t, @tuple.at(f))
+          t += 1
+          f += 1
+        end
+        @total -= cnt - replacement.size
+      end
+
+      return ent
+    end
+
     if idx < 0
       idx += @total
       raise IndexError if idx < 0
@@ -189,6 +254,11 @@ class Array
     return obj
   end
 
+  def assoc(obj)
+    find { |x|
+      Array === x && x.first == obj
+    } || nil
+  end
 
   # TODO fill out pack.
   def pack(schema)
