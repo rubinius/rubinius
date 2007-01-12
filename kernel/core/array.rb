@@ -179,12 +179,14 @@ class Array
     if idx >= @total
       return nil
     end
+    obj = @tuple.at(idx)
     idx += 1
     while idx < @total
       @tuple.put(idx-1, @tuple.at(idx))
       idx += 1
     end
     @total -= 1
+    return obj
   end
 
 

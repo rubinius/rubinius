@@ -272,6 +272,13 @@ context "Array" do
       p @a
     end.should == '[1, 2, 4]'
   end
+
+  specify "delete_at should return the removed element at the specified index" do
+    example do
+      @a = [1, 2, 3, 4]
+      p @a.delete_at(2)
+    end.should == '3'
+  end
   
   specify "delete_at should return nil if the index is out of range" do
     example do
