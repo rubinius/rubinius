@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'bytecode/assembler'
+require 'cpu/runtime.rb'
 require 'test/unit'
 
 require 'bytecode/compiler'
