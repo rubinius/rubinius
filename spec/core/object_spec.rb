@@ -20,8 +20,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Object class method" do
   specify "new should create a new Object" do
     example do
-      p Object.new.class
-    end.should == 'Object'
+      Object.new.class
+    end.should == Object
   end
 end
 
@@ -35,7 +35,7 @@ context "Object instance method" do
     end
     CODE
     ) do
-      puts Foo.new.send(:bar)
+      Foo.new.send(:bar)
     end.should == 'done'
   end
   

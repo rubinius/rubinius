@@ -15,27 +15,27 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "File class method" do
   specify "dirname should return all the components of filename except the last one" do
     example do
-      p [ File.dirname('/home/jason'),
-          File.dirname('/home/jason/poot.txt'),
-          File.dirname('poot.txt'),
-          File.dirname('/holy///schnikies//w00t.bin'),
-          File.dirname(''),
-          File.dirname('/'),
-          File.dirname('/////') ]
-    end.should == '["/home", "/home/jason", ".", "/holy///schnikies", ".", "/", "/"]'
+      [ File.dirname('/home/jason'),
+        File.dirname('/home/jason/poot.txt'),
+        File.dirname('poot.txt'),
+        File.dirname('/holy///schnikies//w00t.bin'),
+        File.dirname(''),
+        File.dirname('/'),
+        File.dirname('/////') ]
+    end.should == ["/home", "/home/jason", ".", "/holy///schnikies", ".", "/", "/"]
   end
   
   specify "basename should return the last component of the filename" do
     example do
-      p [ File.basename('a'),
-          File.basename('/a'),
-          File.basename('/a/b'),
-          File.basename('/ab/ba/bag'),
-          File.basename('/ab/ba/bag.txt'),
-          File.basename('/'),
-          File.basename('/foo/bar/baz.rb', '.rb'),
-          File.basename('baz.rb', 'z.rb') ]
-    end.should == '["a", "a", "b", "bag", "bag.txt", "/", "baz", "ba"]'
+      [ File.basename('a'),
+        File.basename('/a'),
+        File.basename('/a/b'),
+        File.basename('/ab/ba/bag'),
+        File.basename('/ab/ba/bag.txt'),
+        File.basename('/'),
+        File.basename('/foo/bar/baz.rb', '.rb'),
+        File.basename('baz.rb', 'z.rb') ]
+    end.should == ["a", "a", "b", "bag", "bag.txt", "/", "baz", "ba"]
   end
 end
 
