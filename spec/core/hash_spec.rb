@@ -17,8 +17,7 @@ context "Hash class method" do
   
   specify "new with object creates a new Hash with default object" do
     example do
-      @h = Hash.new(5)
-      @h[:a]
+      Hash.new(5)[:a]
     end.should == 5
   end
   
@@ -45,8 +44,7 @@ context "Hash instance method" do
   
   specify "[] should return the default (immediate) value" do
     example do
-      @h = Hash.new(7)
-      @h[1234]
+      Hash.new(7)[1234]
     end.should == 7
   end
 
@@ -59,14 +57,14 @@ context "Hash instance method" do
   
   specify "[]= should associate the key with the value and return the value" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 1 }
+      [@h[:b] = 2, @h]
+    end.should == [2, {:b=>2, :a=>1}]
   end
   
   specify "clear should remove all key, value pairs" do
     example do
-      @h = {:a=>2,:b=>1,:c=>1}
-      @h.clear
-      @h
+      {:a=>2,:b=>1,:c=>1}.clear
     end.should == {}
   end
 
@@ -95,74 +93,95 @@ context "Hash instance method" do
   
   specify "default_proc should return nil if no block was passed to proc" do
     example do
-      @h = Hash.new
-      @h.default_proc
+      Hash.new.default_proc
     end.should == nil
   end
   
   specify "delete should delete the entry whose key is == key" do
     example do
       @h = {:a => 5, :b => 2}
-      @h.delete(:b)
-      @h
-    end.should == {:a=>5}
+      [@h.delete(:b), @h]
+    end.should == [2, { :a => 5 }]
   end
   
   specify "delete should return nil if the key is not found" do
     example do
-      @h = {:a => 1, :b => 10, :c => 100 }
-      @h.delete(:d)
+      {:a => 1, :b => 10, :c => 100 }.delete(:d)
     end.should == nil
   end
   
   specify "delete_if should remove every entry for which block is true" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 1, :b => 2, :c => 3, :d => 4 }
+      [@h.delete_if { |k,v| v % 2 == 1 }, @h]
+    end.should == [{ :b => 2, :d => 4 }, { :b => 2, :d => 4 }]
   end
   
   specify "each should call block once for each entry, passing key, value" do
     example do
-    end.should == "not implemented"
+      @h = {}
+      { :a, 1, :b, 2, :c, 3, :d, 5 }.each { |k,v| @h[k.to_s] = v.to_s }
+      @h
+    end.should == {"a" => "1", "b" => "2", "c" => "3", "d" => "5" }
   end
   
   specify "each_key should call block once for each key, passing key" do
     example do
-    end.should == "not implemented"
+      @h = {}
+      { 1 => -1, 2 => 2, 3 => -3, 4 => 4 }.each_key { |k| @h[k] = k }
+      @h
+    end.should == { 1 => 1, 2 => 2, 3 => 3, 4 => 4 }
   end
   
   specify "each_pair should be a synonym for each" do
     example do
-    end.should == "not implemented"
+      @a = []
+      { :a, 1, :b, 2, :c, 3, :d, 5 }.each_pair { |k,v| @a << "#{k} => #{v}" }
+      @a
+    end.should == ["c => 3", "d => 5", "a => 1", "b => 2"]
   end
   
   specify "each_value should should call block once for each key, passing value" do
     example do
-    end.should == "not implemented"
+      @h = {}
+      { :a => -5, :b => -3, :c => -2, :d => -1 }.each_value { |v| @h[v.abs] = v }
+      @h
+    end.should == { 5 => -5, 1 => -1, 2 => -2, 3 => -3 }
   end
   
   specify "empty? should return true if block has not entries" do
     example do
-    end.should == "not implemented"
+      [{}.empty?, { 1 => 1 }.empty?]
+    end.should == [true, false]
   end
   
   specify "fetch should return the value for key" do
     example do
-    end.should == "not implemented"
+      { :a => 1, :b => -1 }.fetch(:b)
+    end.should == -1
   end
   
   specify "fetch should raise IndexError if key is not found" do
     example do
-    end.should == "not implemented"
+      begin
+        {}.fetch(:a)
+      rescue IndexError
+        @a = 'key not found'
+      end
+      @a
+    end.should == "key not found"
   end
   
   specify "fetch with default should return default if key is not found" do
     example do
-    end.should == "not implemented"
+      {}.fetch(:a, 'not here!')
+    end.should == "not here!"
   end
   
   specify "fetch with block should return value of block if key is not found" do
     example do
-    end.should == "not implemented"
+      {}.fetch('a') { |k| k + '!' }
+    end.should == "a!"
   end
   
   specify "has_key? should be a synonym for key?" do
@@ -174,7 +193,8 @@ context "Hash instance method" do
   
   specify "has_value? should be a synonym for value?" do
     example do
-    end.should == "not implemented"
+      [{ :a => :b }.has_value?(:a), { 1 => 2 }.has_value?(2)]
+    end.should == [false, true]
   end
   
   specify "include? should be a synonym for key?" do
@@ -186,22 +206,26 @@ context "Hash instance method" do
 
   specify "index should return the cooresponding key for value" do
     example do
-    end.should == "not implemented"
+      { 2 => 'a', 1 => 'b' }.index('b')
+    end.should == 1
   end
   
   specify "index should return nil if the value is not found" do
     example do
-    end.should == "not implemented"
+      { :a => -1, :b => 3.14, :c => 2.718 }.index(1)
+    end.should == nil
   end
   
   specify "indexes should be a DEPRECATED synonym for values_at" do
     example do
-    end.should == "not implemented"
+      {:a => 9, :b => 'a', :c => -10, :d => nil}.indexes(:a, :d, :b)
+    end.should == [9, nil, 'a']
   end
   
-  specify "indces should be a DEPRECATED synonym for values_at" do
+  specify "indices should be a DEPRECATED synonym for values_at" do
     example do
-    end.should == "not implemented"
+      {:a => 9, :b => 'a', :c => -10, :d => nil}.indices(:a, :d, :b)
+    end.should == [9, nil, 'a']
   end
   
   specify "initialize_copy should be a synonym for replace" do
@@ -212,57 +236,57 @@ context "Hash instance method" do
   
   specify "inspect should return a string representation" do
     example do
-    end.should == "not implemented"
+      { :a => 0, :b => -2, :c => 4, :d => -6 }.inspect.class
+    end.should == String
   end
   
   specify "invert should return a new hash where keys are values and vice versa" do
     example do
-    end.should == "not implemented"
+      { 1 => 'a', 2 => 'b', 3 => 'c' }.invert
+    end.should == { 'a' => 1, 'b' => 2, 'c' => 3 }
   end
   
   specify "key? should return true if argument is a key" do
     example do
-      @h = {:a => 1, :b => 2, :c => 3}
+      @h = { :a => 1, :b => 2, :c => 3 }
       [@h.key?(:a), @h.key?(:b), @h.key?('b'), @h.key?(2)]
     end.should == [true, true, false, false]
   end
   
   specify "key? should return false if the key was not found" do
     example do
-      @h = {5 => 7}
-      @h.key?(7)
-    end.should == "false"
+      { 5 => 7 }.key?(7)
+    end.should == false
   end
 
   specify "key? should return true if the key's matching value was nil" do
     example do
-      @h = {:xyz => nil}
-      @h.key?(:xyz)
-    end.should == "true"
+      { :xyz => nil }.key?(:xyz)
+    end.should == true
   end
 
   specify "key? should return true if the key's matching value was false" do
     example do
-      @h = {:xyz => false}
-      @h.key?(:xyz)
-    end.should == "true"
+      { :xyz => false }.key?(:xyz)
+    end.should == true
   end
 
   specify "key? should return true if the key was found" do
     example do
-      @h = {:xyz => 9}
-      @h.key?(:xyz)
-    end.should == "true"
+      { :xyz => 9 }.key?(:xyz)
+    end.should == true
   end
 
   specify "keys should return an array populated with keys" do
     example do
-    end.should == "not implemented"
+      { 1 => 2, 2 => 4, 4 => 8 }.keys
+    end.should == [1, 2, 4]
   end
 
   specify "length should return the number of entries" do
     example do
-    end.should == "not implemented"
+      [{ :a => 1, :b => 'c' }.length, {}.length]
+    end.should == [2, 0]
   end
   
   specify "member? should be a synonym for key?" do
@@ -274,22 +298,28 @@ context "Hash instance method" do
   
   specify "merge should return a new hash by combining self with the contents of other" do
     example do
-    end.should == "not implemented"
+      { 1, :a, 2, :b, 3, :c }.merge(:a => 1, :c => 2)
+    end.should == { :c=> 2, 1 => :a, 2 => :b, :a => 1, 3 => :c }
   end
   
   specify "merge with block sets any duplicate key to the value of block" do
     example do
-    end.should == "not implemented"
+      { :a => 2, :b => 1 }.merge(:a => -2, :c => -3) { |k,v| -9 }
+    end.should == { :c => -3, :b => 1, :a => -9 }
   end
   
   specify "merge! should adds the entries from other, overwriting duplicate keys" do
     example do
-    end.should == "not implemented"
+      @h = { :_1 => 'a', :_2 => '3' }
+      [@h.merge!(:_1 => '9', :_9 => 2), @h]
+    end.should == [{ :_1 => "9", :_2 => "3", :_9 => 2 }, {:_1 => "9", :_2 => "3", :_9 => 2 }]
   end
   
   specify "merge! with block sets any duplicate key to the value of block" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 2, :b => -1 }
+      [@h.merge!(:a => -2, :c => 1) { |k,v| 3.14 }, @h]
+    end.should == [{:c => 1, :b => -1, :a => 3.14 }, {:c => 1, :b => -1, :a => 3.14 }]
   end
   
   specify "rehash should be provided" do
@@ -300,81 +330,110 @@ context "Hash instance method" do
   
   specify "reject should be equivalent to hsh.dup.delete_if" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 'a', :b => 'b', :c => 'd' }
+      [@h.reject { |k,v| k == 'd' }, @h]
+    end.should == [{:c=>"d", :b=>"b", :a=>"a"}, {:c=>"d", :b=>"b", :a=>"a"}]
   end
   
   specify "reject! should return nil if no changes were made" do
     example do
-    end.should == "not implemented"
+      { :a => 1 }.reject! { |k,v| v > 1 }
+    end.should == nil
   end
   
   specify "replace should replace the contents of self with other" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 1, :b => 2 }
+      @h.replace(:c => -1, :d => -2)
+    end.should == { :c => -1, :d => -2 }
   end
   
   specify "select should return a new hash of entries for which block is true" do
     example do
-    end.should == "not implemented"
+      { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
+    end.should == [[:d, 2], [:c, 4]]
   end
   
   specify "shift should remove an entry from hash and return it in a two-element array" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 2, :b => 1 }
+      [@h.shift, @h]
+    end.should == [[:a, 2], { :b => 1 }]
   end
   
   specify "size should be a synonym for length" do
     example do
-    end.should == "not implemented"
+      [{ :a => 1, :b => 'c' }.size, {}.size]
+    end.should == [2, 0]
   end
   
   specify "sort should convert self to a nested array of [key, value] arrays and sort with Array#sort" do
     example do
-    end.should == "not implemented"
+      { 'a' => 'b', '1' => '2', 'b' => 'a' }.sort
+    end.should == [["1", "2"], ["a", "b"], ["b", "a"]]
   end
   
   specify "sort with block should use block to sort array" do
     example do
-    end.should == "not implemented"
+      { 1 => 2, 2 => 9, 3 => 4 }.sort { |a,b| b <=> a }
+    end.should == [[3, 4], [2, 9], [1, 2]]
   end
 
-  specify "store should " do
+  specify "store should be a synonym for []=" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 1 }
+      [@h[:b] = 2, @h]
+    end.should == [2, {:b=>2, :a=>1}]
   end
   
-  specify "to_a should " do
+  specify "to_a should return a nested array of [key, value] arrays" do
     example do
-    end.should == "not implemented"
+      { :a => 1, 1 => :a, 3 => :b, :b => 5 }.to_a
+    end.should == [[1, :a], [:a, 1], [3, :b], [:b, 5]]
   end
   
-  specify "to_hash should " do
+  specify "to_hash should should return self" do
     example do
-    end.should == "not implemented"
+      @h = {}
+      @h.to_hash.eql?(@h)
+    end.should == true
   end
   
-  specify "to_s should " do
+  specify "to_s should return a string by calling Hash#to_a and using Array#join with default separator" do
     example do
-    end.should == "not implemented"
+      { :this => :is, :fun => ", too" }.to_s
+    end.should == 'thisisfun, too'
   end
   
-  specify "update should " do
+  specify "update should be a synonym for merge!" do
     example do
-    end.should == "not implemented"
+      @h = { :_1 => 'a', :_2 => '3' }
+      [@h.update(:_1 => '9', :_9 => 2), @h]
+    end.should == [{ :_1 => "9", :_2 => "3", :_9 => 2 }, {:_1 => "9", :_2 => "3", :_9 => 2 }]
   end
   
-  specify "value? should " do
+  specify "update with block should be a synonym for merge!" do
     example do
-    end.should == "not implemented"
+      @h = { :a => 2, :b => -1 }
+      [@h.update(:a => -2, :c => 1) { |k,v| 3.14 }, @h]
+    end.should == [{:c => 1, :b => -1, :a => 3.14 }, {:c => 1, :b => -1, :a => 3.14 }]
   end
   
-  specify "values should " do
+  specify "value? should be a synonym for has_value?" do
     example do
-    end.should == "not implemented"
+      [{ :a => :b }.has_value?(:a), { 1 => 2 }.has_value?(2)]
+    end.should == [false, true]
   end
   
-  specify "values_at should " do
+  specify "values should return an array of values" do
     example do
-    end.should == "not implemented"
+      { 1 => :a, 'a' => :a, 'the' => 'lang'}.values
+    end.should == [:a, :a, "lang"]
+  end
+  
+  specify "values_at should return an array of values for the given keys" do
+    example do
+      {:a => 9, :b => 'a', :c => -10, :d => nil}.values_at(:a, :d, :b)
+    end.should == [9, nil, 'a']
   end
 end
