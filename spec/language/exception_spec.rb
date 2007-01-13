@@ -77,7 +77,7 @@ context "Exceptions" do
     end
     CODE
     ) do
-      p Foo.new.exception
-    end.should == '[1, 2, 3, 4, 7, 4]'
+      Foo.new.exception
+    end.should == [1, 2, 3, 4, 7, 4]
   end
 end

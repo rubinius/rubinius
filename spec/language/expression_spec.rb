@@ -8,8 +8,8 @@ context "if expression" do
       @c = if true
         true
       end
-      p [@a, @b, @c]
-    end.should == '[true, true, true]'
+      [@a, @b, @c]
+    end.should == [true, true, true]
   end
   
   specify "should not evaluate body when the if expression is false" do
@@ -19,8 +19,8 @@ context "if expression" do
       @c = if false
         true
       end
-      p [@a, @b, @c]
-    end.should == '[nil, nil, nil]'
+      [@a, @b, @c]
+    end.should == [nil, nil, nil]
   end
   
   specify "should not evaluate the else body when the if expression is true" do
@@ -36,8 +36,8 @@ context "if expression" do
       else
         false
       end
-      p [@a, @b, @c, @d]
-    end.should == '[true, true, true, true]'
+      [@a, @b, @c, @d]
+    end.should == [true, true, true, true]
   end
   
   specify "should evaluate the else body when the if expression is false" do
@@ -53,7 +53,7 @@ context "if expression" do
       else
         false
       end
-      p [@a, @b, @c, @d]
-    end.should == '[false, false, false, false]'
+      [@a, @b, @c, @d]
+    end.should == [false, false, false, false]
   end
 end
