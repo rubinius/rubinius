@@ -51,7 +51,7 @@ context "MRITarget" do
     @target.template.should == <<-CODE
 %s
 %s
-RubiniusSpecExample.new.__example__
+p RubiniusSpecExample.new.__example__
 CODE
   end
 
@@ -84,7 +84,7 @@ CODE
     @target.stub!(:caller).and_return(caller_stub)
     @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
     @target.source('') { [1, 2, 3] }.should ==
-      "/Users/rubinius/code-cache/mri_spec-68-890456808-mri.rb"
+      "/Users/rubinius/code-cache/mri_spec-68-515417171-mri.rb"
   end
 
   specify "should provide execute method" do

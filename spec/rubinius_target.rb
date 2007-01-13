@@ -3,8 +3,8 @@ require 'ruby2ruby'
 require 'fileutils'
 require 'test/unit'
 
-$:.unshift(File.dirname(__FILE__) + '/../lib')
-require 'machine'
+# $:.unshift(File.dirname(__FILE__) + '/../lib')
+# require 'machine'
 
 class RubiniusTargetError < RuntimeError; end
 
@@ -12,7 +12,7 @@ class RubiniusSpecExample; end
 
 module RubiniusTarget
   def initialize(*args)
-    super(args)
+    super
     @use_rcompile = true if ENV["COMPILER"] == 'rcompile'
   end
   
@@ -70,14 +70,14 @@ module RubiniusTarget
       end
     end
     r.close
-    out.chomp!
+    eval out.chomp!
   end
   
   def template
     @template ||= <<-CODE
 %s
 %s
-RubiniusSpecExample.new.__example__
+p RubiniusSpecExample.new.__example__
 CODE
   end
     

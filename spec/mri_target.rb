@@ -47,14 +47,14 @@ module MRITarget
       raise MRITargetError, out
     end
     r.close
-    out.chomp!
+    eval out.chomp!
   end
 
   def template
     @template ||= <<-CODE
 %s
 %s
-RubiniusSpecExample.new.__example__
+p RubiniusSpecExample.new.__example__
 CODE
   end
 
