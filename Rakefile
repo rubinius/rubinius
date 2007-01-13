@@ -1,6 +1,10 @@
 def require_files(files)
   files.each do |path|
-    require(path)
+    begin
+      require(path)
+    rescue Object => e
+      STDERR.puts "Unable to load #{path}. #{e.message} (#{e.class})"
+    end
   end
 end
 

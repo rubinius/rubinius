@@ -27,6 +27,7 @@ void cpu_initialize(STATE, cpu c) {
   state->global->hash = Qnil;
   state->global->methtbl = Qnil;
   c->stack = tuple_new(state, InitialStackSize);
+  // HEADER(c->stack)->gc |= 0x8000; /* Forever young. */
   c->sp = -1;
   c->ip = 0;
   c->self = Qnil;
@@ -113,7 +114,10 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
 
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   gpointer tmp;
-  #define ar(obj) if(REFERENCE_P(obj)) obj = (OBJECT)g_ptr_array_index(roots, start++)
+  #define ar(obj) if(REFERENCE_P(obj)) { \
+    tmp = g_ptr_array_index(roots, start++); \
+    obj = (OBJECT)tmp; \
+  }
   ar(c->stack);
   ar(c->self);
   ar(c->exception);

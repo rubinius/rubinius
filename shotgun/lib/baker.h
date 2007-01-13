@@ -11,6 +11,10 @@ struct baker_gc_struct {
   rheap next;
   int used;
   GPtrArray *remember_set;
+  void *tenure_data;
+  OBJECT (*tenure)(void*, OBJECT obj);
+  int tenure_now;
+  void *om;
 };
 
 typedef struct baker_gc_struct* baker_gc;
@@ -31,6 +35,7 @@ int baker_gc_contains_p(baker_gc g, OBJECT obj);
 int baker_gc_contains_spill_p(baker_gc g, OBJECT obj);
 OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj);
 int baker_gc_collect(baker_gc g, GPtrArray *roots);
+void baker_gc_clear_gc_flag(baker_gc g, int flag);
 
 #endif
 

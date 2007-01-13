@@ -52,7 +52,17 @@ module Kernel
       kinds.each do |filename|
         path = "#{dir}/#{filename}"
         return false if $".include?(path)
-        if File.exists?(path)
+        if dir.suffix?(".rba") and File.exists?(dir)
+          puts "looking for #{filename} in #{dir} (#{Archive.list_files(dir).inspect})"
+          cm = Archive.get_object(dir, filename)
+          p cm
+          if cm
+            puts "Found #{filename} in #{dir}"
+            $" << path
+            p cm
+            return cm.activate_as_script
+          end
+        elsif File.exists?(path)
           $" << path
           return load(path)
         end

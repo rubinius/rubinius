@@ -30,7 +30,7 @@ int heap_deallocate(rheap h) {
 }
 
 int heap_allocate_memory(rheap h) {
-  h->address = (int)malloc(h->size);
+  h->address = (address)malloc(h->size);
   if(!h->address) {
     return FALSE;
   }
@@ -44,7 +44,7 @@ int heap_allocate_memory(rheap h) {
    After this is called, the heap will begin storing
    data in the extended segment. */
 int heap_allocate_extended(rheap h) {
-  h->extended = (int)malloc(h->size);
+  h->extended = (address)malloc(h->size);
   if(!h->extended) {
     return FALSE;
   }
@@ -61,7 +61,7 @@ int heap_reset(rheap h) {
   return TRUE;
 }
 
-int heap_contains_p(rheap h, int addr) {
+int heap_contains_p(rheap h, address addr) {
   if(h->extended) {
     if(addr >= h->extended && addr < h->extended + h->size) {
       return TRUE;
@@ -84,6 +84,7 @@ address heap_allocate(rheap h, int size) {
   address addr;
   /* maybe raise exception here? */
   if(!heap_enough_space_p(h, size)) {
+    assert(0);
     /* If we're out of space and extended is being used, we're screwed.
        TODO: figure out what to do here. */
     if(h->extended) {
@@ -101,6 +102,15 @@ address heap_allocate(rheap h, int size) {
 }
 
 int heap_enough_space_p(rheap h, int size) {
+  if(h->current + size > h->last) return FALSE;
+  return TRUE;
+}
+
+int heap_enough_fields_p(rheap h, int fields) {
+  int size;
+  
+  size = (HEADER_SIZE + fields) * REFSIZE;
+  
   if(h->current + size > h->last) return FALSE;
   return TRUE;
 }

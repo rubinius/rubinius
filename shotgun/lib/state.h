@@ -3,10 +3,10 @@
 struct rubinius_globals {
   
   /* classes for the core 'types' */
-  OBJECT symtbl, blokctx, cmethod, tuple, module, object, array;
+  OBJECT blokctx, cmethod, tuple, module, object, array;
   OBJECT class, hash, methtbl, bytearray, methctx, blank;
   OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
-  OBJECT string, symbol, io, metaclass;
+  OBJECT string, symbol, io, metaclass, symtbl;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
   OBJECT floatpoint;
   
@@ -111,3 +111,34 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 #define I2N(i) INT_TO_FIXNUM(i)
 #define UI2N(i) rbs_uint_to_fixnum(state, i)
 
+extern void* main_om;
+void object_memory_check_ptr(void *ptr, OBJECT obj);
+inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
+//#define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
+#define CHECK_PTR(obj)
+
+#define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
+
+static inline OBJECT rbs_get_field(OBJECT in, int fel) {
+  OBJECT obj;
+  assert(fel < HEADER(in)->fields);
+  obj = NTH_FIELD_DIRECT(in, fel);
+#ifdef INTERNAL_MACROS
+  CHECK_PTR(obj);
+#endif
+  return obj;
+}
+
+#define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
+
+static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT val) {
+  assert(fel < HEADER(obj)->fields);
+  OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
+  assert(val != 12);
+#ifdef INTERNAL_MACROS
+  object_memory_write_barrier(om, obj, val);
+  CHECK_PTR(val);
+#endif
+  *slot = val;
+  return val;
+}

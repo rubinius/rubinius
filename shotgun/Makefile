@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs` -lncurses -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
+LIBS=`pkg-config glib-2.0 --libs` -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 LDFLAGS=
 RBLIB=lib/librubinius.a
@@ -31,6 +31,10 @@ rubinius: librubinius.a main.o
 test/test_state: test/test_state.c librubinius.a
 	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)
 	$(CC) $(LIBS) -o test/test_state test/test_state.o $(RBLIB)
+
+test/test_gc: test/test_gc.c librubinius.a
+	$(CC) -c -o test/test_gc.o test/test_gc.c $(CFLAGS)
+	$(CC) $(LIBS) -o test/test_gc test/test_gc.o $(RBLIB)
 
 test/test_instructions: test/test_instructions.c librubinius.a 
 	$(CC) -c -o test/test_instructions.o test/test_instructions.c $(CFLAGS)

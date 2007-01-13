@@ -253,7 +253,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   OBJECT ctx;
   int prim = 0;
   if(missing) {
-    DEBUG("%05d: Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
+    DEBUG("%05d: Missed Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
      rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
      rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
   }
@@ -385,7 +385,7 @@ void cpu_run(STATE, cpu c) {
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    #if EXCESSIVE_TRACING
+    #if 0
     printf("%-15s: OP: %s (%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip);
@@ -401,11 +401,29 @@ stack_error:
           "Stack has exploded"));
 check_interupts:
     if(state->om->collect_now) {
-      int b;
-      DEBUG("Memory condition detected at depth %d!\n", c->depth);
-      b = object_memory_used(state->om);
-      state_collect(state, c);
-      DEBUG("Recovered %d bytes.\n", b - object_memory_used(state->om));
+      int cm = state->om->collect_now;
+      /* We're supposed to tenure all the objects now. */
+      if(cm & 0x4) {
+        printf("Tenuring all objects...\n");
+        state->om->tenure_now = 1;
+        state_collect(state, c);
+        state->om->collect_now = 0;
+        printf("Tenure finished.\n");
+      }
+      
+      /* Collect the first generation. */
+      if(cm & 0x1) {
+        // printf("Collecting children..\n");
+        state_collect(state, c);
+      }
+      
+      /* Collect the old generation. */
+      if(cm & 0x2) {
+        // printf("Starting major collection.\n");
+        state_major_collect(state, c);        
+        // printf("Done with major collection.\n");
+      }
+      
       state->om->collect_now = 0;
     }
   }   

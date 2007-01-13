@@ -392,6 +392,20 @@ OBJECT cpu_marshal(STATE, OBJECT obj) {
   return ret;
 }
 
+GString *cpu_marshal_to_gstring(STATE, OBJECT obj) {
+  GString *buf;
+  OBJECT ret;
+  struct marshal_state ms;
+  ms.consumed = 0;
+  ms.objects = g_ptr_array_new();
+  
+  buf = g_string_new(NULL);
+  g_string_append(buf, "RBIS");
+  marshal(state, obj, buf, &ms);
+  g_ptr_array_free(ms.objects, 1);
+  return buf;
+}
+
 OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path) {
   GString *buf;
   GIOChannel *io;

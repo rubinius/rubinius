@@ -1,4 +1,5 @@
 require 'bytecode/assembler'
+require 'bytecode/primitive_names'
 
 module Bytecode
   class MethodDescription
@@ -7,7 +8,7 @@ module Bytecode
       asm = Bytecode::Assembler.new(@literals, @name)
       begin
         stream = asm.assemble @assembly
-      rescue Object => e
+      rescue Hash => e
         raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
       end
             

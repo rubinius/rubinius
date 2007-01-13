@@ -3,6 +3,8 @@
 #include <string.h>
 #include "baker.h"
 
+static int promoted = 0;
+
 baker_gc baker_gc_new(int size) {
   baker_gc g;
   g = (baker_gc)malloc(sizeof(struct baker_gc_struct));
@@ -15,6 +17,16 @@ baker_gc baker_gc_new(int size) {
   g->next =    g->space_b;
   g->used =    0;
   return g;
+}
+
+void baker_gc_describe(baker_gc g) {
+  printf("Size:    %x (%d)\n", g->current->size, g->current->size);
+  printf("Used:    %d\n", g->used);
+  printf("Current: %p => %p\n", g->current->address, 
+      g->current->last);
+  printf("Next:    %p => %p\n", g->next->address, g->next->last);
+  printf("RS Size: %d\n", g->remember_set->len);
+  printf("Promoted last: %d\n", promoted);
 }
 
 int baker_gc_enlarge_next(baker_gc g, int sz) {
@@ -87,10 +99,38 @@ int baker_gc_forwarded_object(OBJECT obj) {
   return out;
 }
 
+#define AGE(obj) (HEADER(obj)->gc & 0x7f)
+#define CLEAR_AGE(obj) (HEADER(obj)->gc = 0)
+#define FOREVER_YOUNG(obj) (HEADER(obj)->gc & 0x8000)
+
+/* TODO: make this a tunable value. */
+#define TENURE_AGE 6
+
+static inline void _mutate_references(baker_gc g, OBJECT iobj);
+
 int baker_gc_mutate_object(baker_gc g, OBJECT obj) {
   OBJECT dest;
-  dest = heap_copy_object(g->next, obj);
-  baker_gc_set_forwarding_address(obj, dest);
+  if(g->tenure_now || ((AGE(obj) == TENURE_AGE) && !FOREVER_YOUNG(obj))) {
+    int age = AGE(obj);
+    CLEAR_AGE(obj);
+    promoted++;
+    dest = (*g->tenure)(g->tenure_data, obj);
+    baker_gc_set_forwarding_address(obj, dest);
+    //printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_now);
+    _mutate_references(g, dest);
+  } else {
+    if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
+      dest = heap_copy_object(g->next, obj);
+      baker_gc_set_forwarding_address(obj, dest);
+      HEADER(dest)->gc++;
+    } else {
+      CLEAR_AGE(obj);
+      promoted++;
+      dest = (*g->tenure)(g->tenure_data, obj);
+      baker_gc_set_forwarding_address(obj, dest);
+      _mutate_references(g, dest);
+    }
+  }
   return dest;
 }
 
@@ -102,15 +142,20 @@ int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
   return heap_contains_p(g->next, obj) || heap_contains_p(g->current, obj);
 }
 
+
 static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
   OBJECT ret;
-  ret = iobj;
+
   if(baker_gc_forwarded_p(iobj)) {
     ret = baker_gc_forwarded_object(iobj);
   } else if(baker_gc_contains_p(g, iobj)) {
     ret = baker_gc_mutate_object(g, iobj);
+  } else {
+    ret = iobj;
   }
   
+  // assert(baker_gc_contains_spill_p(g, ret));
+    
   CHECK_PTR(ret);
   
   return ret;
@@ -118,53 +163,58 @@ static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
 
 int _object_stores_bytes(OBJECT self);
 
-OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj) {
-  OBJECT ret, cls, tmp, mut;
-  int i, count;
+static int depth = 0;
+
+static inline void _mutate_references(baker_gc g, OBJECT iobj) {
+  OBJECT cls, tmp, mut;
+  int i;
   
-  // printf("Starting mutation from %p (%d fields)\n", iobj, NUM_FIELDS(iobj));
-  if(baker_gc_forwarded_p(iobj)) {
-    iobj = baker_gc_forwarded_object(iobj);
-  } else if(baker_gc_contains_p(g, iobj)) {
-    iobj = baker_gc_mutate_object(g, iobj);
-    /* consume iobj so we don't process it twice. */
-    // heap_next_unscanned(g->next);
+  //printf("%d: Mutating class of %p\n", ++depth, iobj);
+  
+  cls = CLASS_OBJECT(iobj);
+  if(REFERENCE_P(cls)) {
+    cls = baker_gc_maybe_mutate(g, cls);
   }
     
-  ret = iobj;
+  HEADER(iobj)->klass = cls;
+  
+  //printf("%d: Mutating references of %p\n", depth, iobj);
+  
+  if(!_object_stores_bytes(iobj)) {
+    for(i = 0; i < NUM_FIELDS(iobj); i++) {
+      tmp = NTH_FIELD(iobj, i);
+      if(!REFERENCE_P(tmp)) continue;
+    
+      mut = baker_gc_maybe_mutate(g, tmp);
+      rbs_set_field(g->om, iobj, i, mut);
+    }
+  }
+  depth--;
+}
+
+OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
+  OBJECT ret, cls, tmp, mut, iobj;
+  int i, count;
+  
+  //printf("!!!\n   => From %p\n!!!\n", iobj);
+  
+  if(baker_gc_forwarded_p(orig)) {
+    ret = baker_gc_forwarded_object(orig);
+  } else if(baker_gc_contains_p(g, orig)) {
+    ret = baker_gc_mutate_object(g, orig);
+  } else {
+    ret = orig;
+  }
+  
+  // assert(baker_gc_contains_spill_p(g, ret));
+
+  iobj = ret;
   
   count = 0;
   
   while(iobj) {
     count++;
-    cls = CLASS_OBJECT(iobj);
-    if(REFERENCE_P(cls)) {
-      cls = baker_gc_maybe_mutate(g, cls);
-    }
-    
-    // printf("%s: %p\n", _inspect(module_get_name(cls)), iobj);
-    
-    HEADER(iobj)->klass = cls;
-    
-    if(!_object_stores_bytes(iobj)) {
-      if(NUM_FIELDS(iobj) > 100) {
-        // printf("  big object: %p (%d)\n", iobj, NUM_FIELDS(iobj));
-      }
-      for(i = 0; i < NUM_FIELDS(iobj); i++) {
-        tmp = NTH_FIELD(iobj, i);
-        /*
-        if(i > 0 && i % 10 == 0) {
-          printf("  %d: %p\n", i, tmp);
-        }
-        */
-        // printf("   %d: %p (%d)\n", i, tmp, REFERENCE_P(tmp));
-        if(!REFERENCE_P(tmp)) continue;
-      
-        mut = baker_gc_maybe_mutate(g, tmp);
-        SET_FIELD(iobj, i, mut);
-      }
-    }
-    
+    _mutate_references(g, iobj);
     iobj = heap_next_unscanned(g->next);
   }
   
@@ -178,7 +228,10 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
   int i, sz, enlarged_size, c;
   OBJECT tmp, dest, root;
   rheap new_heap, old_next;
+  promoted = 0;
   
+  //printf("Running garbage collector...\n");
+    
   enlarged_size = 0;
   old_next = NULL;
   if(heap_using_extended_p(g->current)) {
@@ -198,17 +251,7 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
     old_next = g->next;
     baker_gc_set_next(g, new_heap);
   }
-  
-  sz = g->remember_set->len;
-  for(i = 0; i < sz; i++) {
-    root = (OBJECT)(g_ptr_array_index(g->remember_set, i));
-    // printf("Collecting from root %d\n", i);
-    // printf("Start at RS: %p\n", root);
-    if(!REFERENCE_P(root)) { continue; }
-    tmp = baker_gc_mutate_from(g, root);
-    g_ptr_array_set_index(g->remember_set, i, tmp);
-  }
-  
+    
   sz = roots->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(roots, i));
@@ -220,17 +263,51 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
     g_ptr_array_set_index(roots, i, tmp);
   }
   
+  sz = g->remember_set->len;
+  for(i = 0; i < sz; i++) {
+    root = (OBJECT)(g_ptr_array_index(g->remember_set, i));
+    // printf("Collecting from root %d\n", i);
+    // printf("Start at RS: %p\n", root);
+    if(!REFERENCE_P(root)) { continue; }
+    tmp = baker_gc_mutate_from(g, root);
+    g_ptr_array_set_index(g->remember_set, i, tmp);
+  }
+    
   baker_gc_swap(g);
-  /* If we enlarged next before we did the compaction, then also
-     enlarge next after we swap so both areas are the same size. */
-  if(enlarged_size) {
-    DEBUG("Finished enlarging.\n");
-    baker_gc_enlarge_next(g, enlarged_size);
+  
+  if(g->current->size != g->next->size) {
+    baker_gc_enlarge_next(g, g->current->size);
+  }
+
+  if(g->used > g->current->size * 0.90) {
+    DEBUG("Enlarging next!\n");
+    baker_gc_enlarge_next(g, g->current->size * 1.5);
   }
   if(old_next) {
     DEBUG("Cleaning up old next..\n");
     heap_deallocate(old_next);
     free(old_next);
   }
+  
+  // printf("%d objects promoted.\n", promoted);
   return TRUE;
+}
+
+void baker_gc_clear_gc_flag(baker_gc g, int flag) {
+  int sz, osz;
+  char *end, *cur;
+  OBJECT obj;
+  
+  sz = baker_gc_used(g);
+  cur = (char*)g->current->address;
+  end = cur + sz;
+  
+  while(cur < end) {
+    obj = (OBJECT)cur;
+    osz = SIZE_IN_BYTES(cur);
+    
+    HEADER(obj)->gc ^= flag;
+        
+    cur += osz;
+  }  
 }

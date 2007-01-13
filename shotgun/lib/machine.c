@@ -31,6 +31,11 @@ void machine_collect(machine m) {
   state_collect(m->s, m->c);
 }
 
+void machine_tenure_collect(machine m) {
+  m->s->om->tenure_now = 1;
+  state_collect(m->s, m->c);
+}
+
 void machine_emit_memory(machine m) {
   char *fd;
   FILE *fobj;
@@ -148,4 +153,8 @@ char *_inspect(OBJECT obj) {
     return rbs_symbol_to_cstring(current_machine->s, obj);
   }
   return rbs_inspect(current_machine->s, obj);
+}
+
+void _class(OBJECT obj) {
+  rbs_show_classes(current_machine->s, obj);
 }

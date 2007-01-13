@@ -1,4 +1,4 @@
-#include "rubinius.h"
+#include "shotgun.h"
 #include "bootstrap.h"
 #include <assert.h>
 #include <unistd.h>

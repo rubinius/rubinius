@@ -59,6 +59,7 @@ char *rbs_inspect(STATE, OBJECT obj) {
   kls = object_logical_class(state, obj);
   
   if(NIL_P(kls)) {
+    assert(RTEST(kls) && "class is nil");
     sprintf(buf, "<(NilClass!!):%p>", (void*)obj);
   } else if(kls == state->global->class) {
     sprintf(buf, "%s", rbs_symbol_to_cstring(state, module_get_name(obj)));

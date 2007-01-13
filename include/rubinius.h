@@ -9,8 +9,9 @@ typedef unsigned long OBJECT;
 struct rubinius_object {
   unsigned char flags;
   unsigned char flags2;
-  unsigned char unused;
-  unsigned char unused2;
+  /* Used by the GC to store data about the object. */
+  unsigned short int gc;
+  unsigned long hash;
   
   OBJECT klass;
   unsigned long fields;  
@@ -22,26 +23,31 @@ struct rubinius_object {
 #define OBJECTS(obj) ((OBJECT*)obj)
 #define FLAGS_OFFSET 0
 #define FLAGS2_OFFSET 1
-#define CLASS_OFFSET 4
-#define FIELDS_OFFSET 8
+#define HASH_OFFSET 4
+#define CLASS_OFFSET 8
+#define FIELDS_OFFSET 12
 /* Header size is in longs */
-#define HEADER_SIZE 3
+#define HEADER_SIZE 4
+
+#define REFSIZE (sizeof(size_t))
 
 #define CLASS_OBJECT(obj) (HEADER(obj)->klass)
+
+/* ->fields is shifted by 1 so that the least most bit is always
+    1. This protects the field from being interpretted as a reference
+    if it's blindly looked at. */
+
 #define NUM_FIELDS(obj) (HEADER(obj)->fields)
-#define SIZE_IN_BYTES(obj) ((NUM_FIELDS(obj) + HEADER_SIZE) * 4)
-#define SIZE_OF_BODY(obj) (NUM_FIELDS(obj) * 4)
+#define SET_NUM_FIELDS(obj, fel) (HEADER(obj)->fields = fel)
+#define SIZE_IN_BYTES(obj) ((NUM_FIELDS(obj) + HEADER_SIZE) * REFSIZE)
+#define SIZE_OF_BODY(obj) (NUM_FIELDS(obj) * REFSIZE)
 #define ADDRESS_OF_FIELD(obj, fel) ((OBJECT)(OBJECTS(obj) + HEADER_SIZE + fel))
 #define NTH_FIELD_DIRECT(obj, fel) (*(OBJECT*)(OBJECTS(obj) + HEADER_SIZE + fel))
 
 #define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
 #define FIXNUM_NEG(obj) ((((unsigned long)obj) & 4) == 4)
 
-#ifdef INTERNAL_MACROS
-extern void* main_om;
-void object_memory_check_ptr(void *ptr, OBJECT obj);
-#define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
-#endif
+#ifndef INTERNAL_MACROS
 
 #define SET_FIELD(obj, fel, val) rbs_set_field(obj, fel, val)
 
@@ -49,9 +55,6 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
   assert(fel < HEADER(in)->fields);
   obj = NTH_FIELD_DIRECT(in, fel);
-#ifdef INTERNAL_MACROS
-  CHECK_PTR(obj);
-#endif
   return obj;
 }
 
@@ -61,13 +64,11 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
   assert(fel < HEADER(obj)->fields);
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
   assert(val != 12);
-#ifdef INTERNAL_MACROS
-  object_memory_check_ptr(main_om, val);
-#endif
   *slot = val;
   return val;
 }
 
+#endif
 
 #ifdef Qfalse
 #undef Qfalse
@@ -93,6 +94,10 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 
 #define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)
+
+#define FLAG_SET_ON(obj, fel, flag) (HEADER(obj)->fel |= flag)
+#define FLAG_SET_ON_P(obj, fel, flag) ((HEADER(obj)->fel & flag) == flag)
+
 
 #ifndef TRUE
 #define TRUE 1

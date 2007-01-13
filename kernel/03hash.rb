@@ -3,6 +3,9 @@ class Hash
   def self.new(default=nil,&block)
     hsh = {}
     hsh.put 5, (default or block)
+    if block
+      p block
+    end
     return hsh
   end
   

@@ -1,1 +1,1 @@
-Globals = {:$; => nil, :$/ => "\n", :$> => STDOUT, :$: => [".", "native", "lib"], :$" => [], :$stderr => STDERR, :$stdout => STDOUT}
+Globals = {:$; => nil, :$/ => "\n", :$> => STDOUT, :$: => [".", "native", "lib", "test.rba"], :$" => [], :$stderr => STDERR, :$stdout => STDOUT}

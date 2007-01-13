@@ -1,6 +1,6 @@
 CC=gcc
 CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
-CFLAGS=-Wall -g -ggdb3 $(CPPFLAGS)
+CFLAGS=-Wall -g $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 SOURCES=$(wildcard *.c)

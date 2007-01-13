@@ -1,24 +1,25 @@
 #ifndef __RUBINIUS_HEAP__
 #define __RUBINIUS_HEAP__ 1
 
+typedef unsigned long address;
+
 struct heap {
   int size;
-  int address;
-  int current;
-  int last;
-  int scan;
-  int extended;
+  address address;
+  address current;
+  address last;
+  address scan;
+  address extended;
 };
 
 typedef struct heap* rheap;
-typedef unsigned long address;
 
 rheap heap_new(int size);
 int heap_deallocate(rheap h);
 int heap_allocate_memory(rheap h);
 int heap_allocate_extended(rheap h);
 int heap_reset(rheap h);
-int heap_contains_p(rheap h, int addr);
+int heap_contains_p(rheap h, address addr);
 int heap_allocated_p(rheap h);
 int heap_using_extended_p(rheap h);
 address heap_allocate(rheap h, int size);

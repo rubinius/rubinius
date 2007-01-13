@@ -1,5 +1,6 @@
 #include "shotgun.h"
 #include "baker.h"
+#include "marksweep.h"
 #include <glib.h>
 #include <stdlib.h>
 
@@ -12,8 +13,11 @@
 struct object_memory_struct {
   int collect_now;
   int enlarge_now;
+  int tenure_now;
   int new_size;
-  baker_gc gc;  
+  int last_object_id;
+  baker_gc gc;
+  mark_sweep_gc ms;
 };
 
 typedef struct object_memory_struct *object_memory;
@@ -26,6 +30,8 @@ void object_memory_check_memory(object_memory om);
 OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields);
 void object_memory_print_stats(object_memory om);
 OBJECT object_memory_new_opaque();
+OBJECT object_memory_tenure_object(object_memory om, OBJECT obj);
+void object_memory_major_collect(object_memory om, GPtrArray *roots);
 
 #endif
 

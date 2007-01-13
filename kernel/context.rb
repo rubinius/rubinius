@@ -117,9 +117,10 @@ end
 class Proc
   
   self.instance_fields = 3
+  ivar_as_index :__ivars__ => 0, :block => 1, :check_args => 2
   
   def block
-    at(1)
+    @block
   end
   
   def self.from_environment(env, check_args=false)
@@ -159,7 +160,8 @@ class Proc
   end
     
   def call(*args)
-    obj = self.block
+    obj = at(1)
+    raise "Corrupt proc detected!" unless obj
     obj.call(*args)
   end
 end

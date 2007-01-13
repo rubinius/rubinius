@@ -38,18 +38,18 @@ OBJECT archive_get_file(STATE, char *path, char* name) {
     return Qnil;
   }
   
-  if((file = zip_name_locate(za, name, 0)) < 0) {
-    printf("Unknown file %s\n", name);
+  if((file = zip_name_locate(za, (const char*)name, &err)) < 0) {
+    zip_close(za);    
     return Qnil;
   }
   
   if((zf=zip_fopen_index(za, file, 0)) == NULL) {
+    zip_close(za);
     return Qnil;
   }
   
   zip_stat_index(za, file, 0, &st);
   total = st.size;
-  printf("Bringing in file %s (%d) of %d bytes.\n", name, file, total);
   str = string_new2(state, NULL, total);
   buf = string_byte_address(state, str);
   
@@ -70,25 +70,27 @@ OBJECT archive_get_object(STATE, char *path, char* name) {
   struct zip_file *zf;
   char *str;
   OBJECT ret;
-  int n, total, err, file;
+  int n, total, err, file = -1;
   char *buf;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
     return Qnil;
   }
   
-  if((file = zip_name_locate(za, name, 0)) < 0) {
-    printf("Unknown file %s\n", name);
+  file = zip_name_locate(za, name, &err);
+  if(file < 0) {
+    printf("Couldn't find %s in %s (%s/%d/%s)\n", name, path, zip_strerror(za), file, strlen(name));
+    zip_close(za);
     return Qnil;
   }
   
   if((zf=zip_fopen_index(za, file, 0)) == NULL) {
+    zip_close(za);
     return Qnil;
   }
   
   zip_stat_index(za, file, 0, &st);
   total = st.size;
-  printf("Bringing in file %s (%d) of %d bytes.\n", name, file, total);
   str = malloc(sizeof(char) * total);
   buf = str;
   
@@ -105,4 +107,87 @@ OBJECT archive_get_object(STATE, char *path, char* name) {
   return ret;
 }
 
+static OBJECT add_or_replace(struct zip *za, char *name, struct zip_source *zs) {
+  OBJECT ret;
+  int idx = zip_name_locate(za, name, 0);
+  
+  if(idx < 0) {
+    if(zip_add(za, name, zs) < 0) {
+      ret = Qfalse;
+    } else {
+      ret = Qtrue;
+    }
+  } else {
+    if(zip_replace(za, idx, zs) < 0) {
+      ret = Qfalse;
+    } else {
+      ret = Qtrue;
+    }
+  }
+  return ret;
+}
+
+OBJECT archive_add_file(STATE, char *path, char *name, char *file) {
+  struct zip *za;
+  struct zip_source *zs;
+  OBJECT ret;
+  int err;
+  
+  if((za=zip_open(path, 0, &err)) == NULL) {
+    return Qnil;
+  }
+  
+  if((zs=zip_source_file(za, file, 0, 0)) == NULL) {
+    zip_close(za);
+    return Qfalse;
+  }
+  
+  ret = add_or_replace(za, name, zs);
+  
+  zip_source_free(zs);  
+  zip_close(za);
+  return ret;
+}
+
+OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj) {
+  struct zip *za;
+  struct zip_source *zs;
+  GString *buf;
+  OBJECT ret;
+  int err;
+  
+  if((za=zip_open(path, 0, &err)) == NULL) {
+    return Qnil;
+  }
+  
+  buf = cpu_marshal_to_gstring(state, obj);
+  
+  zs = zip_source_buffer(za, buf->str, buf->len, 0);
+
+  ret = add_or_replace(za, name, zs);
+    
+  g_string_free(buf, 1);
+  zip_source_free(zs);  
+  zip_close(za);
+  return ret;
+}
+
+OBJECT archive_delete_file(STATE, char *path, int idx) {
+  struct zip *za;
+  OBJECT ret;
+  int err;
+  
+  if((za=zip_open(path, 0, &err)) == NULL) {
+    return Qnil;
+  }
+    
+  if(zip_delete(za, idx) < 0) {
+    ret = Qfalse;
+  } else {
+    ret = Qtrue;
+  }
+  
+  zip_close(za);
+  return ret;
+}
 

@@ -41,6 +41,20 @@ OBJECT object_class(STATE, OBJECT self) {
   return cls;
 }
 
+void rbs_show_classes(STATE, OBJECT self) {
+  OBJECT cls = HEADER(self)->klass;
+  printf("Class from %p\n", self);
+  while(REFERENCE_P(cls) && metaclass_s_metaclass_p(state, cls)) {
+    printf(" => %d %p %s\n",
+        HEADER(cls)->klass == state->global->metaclass,
+        cls,
+        rbs_symbol_to_cstring(state,
+          class_get_name(object_logical_class(state, cls))));
+    cls = class_get_superclass(cls);
+  }
+  printf(" found => %p\n", cls);
+}
+
 OBJECT object_logical_class(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
     return object_class(state, self);
@@ -143,6 +157,8 @@ unsigned int object_hash_int(STATE, OBJECT self) {
     hsh = hsh >> 2;
   } else if(REFERENCE_P(self) && HEADER(self)->klass == state->global->string) {
     hsh = string_hash_int(state, self);
+  } else {
+    hsh = HEADER(self)->hash;
   }
   
   return hsh;

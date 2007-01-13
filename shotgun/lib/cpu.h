@@ -3,6 +3,12 @@
 
 #include <glib.h>
 
+struct _method_cache {
+  
+};
+
+typedef struct _method_cache method_cache;
+
 struct rubinius_cpu {
   OBJECT stack;
   OBJECT self;
@@ -68,6 +74,7 @@ void cpu_run_script(STATE, cpu c, OBJECT meth);
 OBJECT cpu_unmarshal(STATE, char *str);
 OBJECT cpu_marshal(STATE, OBJECT obj);
 OBJECT cpu_unmarshal_file(STATE, char *path);
+GString *cpu_marshal_to_gstring(STATE, OBJECT obj);
 OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path);
 
 void cpu_bootstrap(STATE);

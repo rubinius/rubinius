@@ -2,6 +2,7 @@
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
 
+GC.start
 
 # Parse options here!
 

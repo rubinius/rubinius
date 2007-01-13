@@ -1124,7 +1124,12 @@ class ShotgunPrimitives
   def gc_start
     <<-CODE
     stack_pop();
-    state->om->collect_now = 1;
+    t1 = stack_pop();
+    if(RTEST(t1)) {
+      state->om->collect_now = 0x4;
+    } else {
+      state->om->collect_now = 0x3;
+    }
     stack_push(Qtrue);
     CODE
   end
@@ -1401,6 +1406,56 @@ class ShotgunPrimitives
     }
     CODE
   end
+  
+  def archive_add_file
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    t3 = stack_pop();
+    if(!RISA(t1, string) || !RISA(t2, string) || !RISA(t3, string)) {
+      _ret = FALSE;
+    } else {
+      t1 = archive_add_file(state, 
+                           string_byte_address(state, t1), 
+                           string_byte_address(state, t2),
+                           string_byte_address(state, t3));
+      stack_push(t1);
+    }
+    CODE
+  end
+  
+  def archive_add_object
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    t3 = stack_pop();
+    if(!RISA(t1, string) || !RISA(t2, string)) {
+      _ret = FALSE;
+    } else {
+      t1 = archive_add_object(state, 
+                           string_byte_address(state, t1), 
+                           string_byte_address(state, t2),
+                           t3);
+      stack_push(t1);
+    }
+    CODE
+  end
+  
+  def archive_delete_file
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(!RISA(t1, string) || !FIXNUM_P(t2)) {
+      _ret = FALSE;
+    } else {
+      t3 = archive_delete_file(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2));
+      stack_push(t3);
+    }
+    CODE
+  end  
   
   def float_to_s
     <<-CODE
