@@ -132,6 +132,18 @@ class ShotgunPrimitives
     CODE
   end
   
+  def fixnum_size
+    <<-CODE
+    self = stack_pop();
+    if(!FIXNUM_P(self)) {
+      _ret = FALSE;
+    } else {
+      t2 = I2N(sizeof(int));
+      stack_push(t2);
+    }
+    CODE
+  end
+
   def bignum_mul
     <<-CODE
     self = stack_pop();

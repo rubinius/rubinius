@@ -51,6 +51,10 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_to_s
   end
   
+  def size
+    Ruby.primitive :fixnum_size
+  end
+
   def inspect
     based_to_s(10)
   end
