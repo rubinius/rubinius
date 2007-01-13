@@ -6,8 +6,8 @@ context "A class definition" do
     class Foo; end
     CODE
     ) do
-      p Foo.new.class
-    end.should == 'Foo'
+      Foo.new.class.to_s
+    end.should == "Foo"
   end
 
   specify "should allow the declaration of cvars in the body" do
@@ -17,8 +17,8 @@ context "A class definition" do
     end
     CODE
     ) do
-      puts Foo.class_variables
-    end.should == '@@bar'
+      Foo.class_variables
+    end.should == ["@@bar"]
   end
 
   specify "should allow the declaration of cvars in a method" do
@@ -33,8 +33,8 @@ context "A class definition" do
       @before = Foo.class_variables
       Foo.new
       @after = Foo.class_variables 
-      p [@before, @after]
-    end.should == '[[], ["@@bar"]]'
+      [@before, @after]
+    end.should == [[], ["@@bar"]]
   end
 end
 
@@ -48,7 +48,7 @@ context "def" do
     end
     CODE
     ) do
-      puts Foo.new.foo
+      Foo.new.foo
     end.should == 'foo'
   end
 end
