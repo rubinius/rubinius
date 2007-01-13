@@ -115,7 +115,6 @@ namespace :build do
     FileUtils.rm Dir.glob('lib/kernel.rb*')
     Dir.chdir('shotgun')
     `make -e clean`
-    raise 'Failed to build makefile in ./shotgun' if $?.exitstatus != 0
     Dir.chdir('..')
   end
 
