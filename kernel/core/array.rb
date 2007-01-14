@@ -260,6 +260,76 @@ class Array
     } || nil
   end
 
+  # FRED
+    def - (ary)
+      set_exclude = { }
+      out = []
+      ary.each {  |x|
+        set_exclude[x] = true
+      }
+      each {  |x|
+        unless set_exclude[x]
+          out << x
+          #        set_exclude[x] = true    No!
+        end
+      }
+    out
+  end
+
+  def | (ary)
+    set_exclude = { }
+    out = []
+    each {  |x|
+      unless set_exclude[x]
+        out << x
+        set_exclude[x] = true
+      end
+    }
+    ary.each {  |x|
+      unless set_exclude[x]
+        out << x
+        set_exclude[x] = true
+      end
+    }
+    out
+  end
+
+  def & (ary)
+    set_include = { }
+    out = []
+    ary.each {  |x|
+      set_include[x] = true
+    }
+    each {  |x|
+      if set_include[x]
+        out << x
+        set_include[x] = false
+      end
+    }
+    out
+  end
+
+  def to_ary
+    self
+  end
+
+  def to_s
+    self.join
+  end
+
+  alias slice []
+
+# crashes compiler:
+#  def slice! (*args)
+#    out = self[*args]
+#    self[*args] = []
+#    result
+#  end
+
+  def self.[] (*args)
+    args
+  end
+
   # TODO fill out pack.
   def pack(schema)
     if schema.size != self.size
