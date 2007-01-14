@@ -20,7 +20,7 @@ class TestCore < RubiniusTestCase
     p Blah.new.test
     CODE
     p out
-    assert_equal "false", out.first
+    assert_equal "nil", out.first
   end
 
   def test_pack
