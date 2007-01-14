@@ -326,6 +326,33 @@ class Array
 #    result
 #  end
 
+  def flatten!
+    ret = nil
+    i = 0
+    while i < @total
+      o = @tuple.at(i)
+      if Array === o
+        self[i, 1] = o          # FIXME: quadratic.
+        ret = self
+      else
+        i += 1
+      end
+    end
+    ret
+  end
+
+  def flatten
+    ret = []
+    each { |o|
+      if Array === o
+        ret.concat(o.flatten)
+      else
+        ret << o
+      end
+    }
+    ret
+  end
+
   def self.[] (*args)
     args
   end
