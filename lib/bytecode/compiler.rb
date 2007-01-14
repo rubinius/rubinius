@@ -328,14 +328,14 @@ module Bytecode
           process thn
           goto ed
           set_label el
-          add "push false"
+          add "push nil"
           set_label ed
         elsif !thn
           git el
           process els
           goto ed
           set_label el
-          add "push false"
+          add "push nil"
           set_label ed
         end
       end
