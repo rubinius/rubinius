@@ -1,6 +1,7 @@
 $:.unshift File.dirname(__FILE__)
 require 'mri_target'
 require 'rubinius_target'
+require 'jruby_target'
 
 # Example courtesy of nicksieger, many thanks!
 class Spec::Runner::Context
@@ -9,7 +10,7 @@ class Spec::Runner::Context
     when /mri/
       @context_eval_module.include MRITarget
     when /jruby/
-      # that's right folks, we share
+      @context_eval_module.include JRubyTarget
     else
       @context_eval_module.include RubiniusTarget
     end
