@@ -8,8 +8,8 @@ context "Fixnum instance method" do
   
   specify "% should return self modulo other" do
     example do
-      [451 % 2, 93 % 3.2, 120 % -4.5]
-    end.should == [1, 0.199999999999995, -1.5]
+      [451 % 2, (93 % 3.2).to_s, 120 % -4.5]
+    end.should == [1, "0.199999999999995", -1.5]
   end
 
   specify "& should return self bitwise AND other" do
@@ -50,8 +50,8 @@ context "Fixnum instance method" do
 
   specify "/ should return self divided by other" do
     example do
-      [2 / 2, -1 / 50.4, 1 / 0xffffffff]
-    end.should == [1, -0.0198412698412698, 0]
+      [2 / 2, (-1 / 50.4).to_s, 1 / 0xffffffff]
+    end.should == [1, "-0.0198412698412698", 0]
   end
   
   specify "< should return true if self is less than other" do
@@ -143,14 +143,15 @@ context "Fixnum instance method" do
   
   specify "modulo should be a synonym for %" do
     example do
-      [451.modulo(2), 93.modulo(3.2), 120.modulo(-4.5)]
-    end.should == [1, 0.199999999999995, -1.5]
+      [451.modulo(2), 93.modulo(3.2), 120.modulo(-4.5)].inspect
+    end.should == '[1, 0.199999999999995, -1.5]'
   end
   
   specify "quo should return the floating-point result of self divided by other" do
     example do
-      [2.quo(2.5), 5.quo(2), 45.quo(0xffffffff)]
-    end.should == [0.8, 2.5, 1.04773789668636e-08]
+      # the to_f is required because RSpec (I'm assuming) requires 'rational'
+      [2.quo(2.5), 5.quo(2).to_f, 45.quo(0xffffffff).to_f].inspect
+    end.should == '[0.8, 2.5, 1.04773789668636e-08]'
   end
   
   specify "size should be provided" do

@@ -137,8 +137,8 @@ context "Hash instance method" do
     example do
       @a = []
       { :a, 1, :b, 2, :c, 3, :d, 5 }.each_pair { |k,v| @a << "#{k} => #{v}" }
-      @a
-    end.should == ["c => 3", "d => 5", "a => 1", "b => 2"]
+      @a.sort
+    end.should == ["a => 1", "b => 2", "c => 3", "d => 5"]
   end
   
   specify "each_value should should call block once for each key, passing value" do
@@ -350,15 +350,16 @@ context "Hash instance method" do
   
   specify "select should return a new hash of entries for which block is true" do
     example do
-      { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
-    end.should == [[:d, 2], [:c, 4]]
+      @h = { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
+      @h.sort { |a,b| a.to_s <=> b.to_s }
+    end.should == [[:c, 4], [:d, 2]]
   end
   
   specify "shift should remove an entry from hash and return it in a two-element array" do
     example do
-      @h = { :a => 2, :b => 1 }
+      @h = { :a => 2 }
       [@h.shift, @h]
-    end.should == [[:a, 2], { :b => 1 }]
+    end.should == [[:a, 2], { }]
   end
   
   specify "size should be a synonym for length" do
@@ -388,8 +389,8 @@ context "Hash instance method" do
   
   specify "to_a should return a nested array of [key, value] arrays" do
     example do
-      { :a => 1, 1 => :a, 3 => :b, :b => 5 }.to_a
-    end.should == [[1, :a], [:a, 1], [3, :b], [:b, 5]]
+      { :a => 1, 1 => :a, 3 => :b, :b => 5 }.to_a.sort { |a,b| a.to_s <=> b.to_s }
+    end.should == [[1, :a], [3, :b], [:a, 1], [:b, 5]]
   end
   
   specify "to_hash should should return self" do
@@ -401,8 +402,8 @@ context "Hash instance method" do
   
   specify "to_s should return a string by calling Hash#to_a and using Array#join with default separator" do
     example do
-      { :this => :is, :fun => ", too" }.to_s
-    end.should == 'thisisfun, too'
+      { :fun => 'fun', 'fun' => :fun }.to_s
+    end.should == 'funfunfunfun'
   end
   
   specify "update should be a synonym for merge!" do

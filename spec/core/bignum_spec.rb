@@ -23,8 +23,8 @@ context "Bignum instance method" do
   specify "% should return self modulo other" do
     example(@src) do
       @a = B.sbm(2_222)
-      [@a % 5, @a % 2.22, @a % B.sbm]
-    end.should == [1, 0.419999905491539, 2222]
+      [@a % 5, @a % 2.22, @a % B.sbm].inspect
+    end.should == '[1, 0.419999905491539, 2222]'
   end
   
   specify "& should return self bitwise AND other" do
@@ -37,8 +37,8 @@ context "Bignum instance method" do
   specify "* should return self multiplied by other" do
     example(@src) do
       @a = B.sbm(772)
-      [@a * 98.6, @a * 10, @a * (@a - 40)]
-    end.should == [105871019965.6, 10737425960, 1152923119515115376]
+      [@a * 98.6, @a * 10, @a * (@a - 40)].inspect
+    end.should == '[105871019965.6, 10737425960, 1152923119515115376]'
   end
   
   specify "** should return self raised to other power" do
@@ -71,8 +71,8 @@ context "Bignum instance method" do
   specify "/ should return self divided by other" do
     example(@src) do
       @a = B.sbm(88)
-      [@a / 4, @a / 16.2, @a / B.sbm(2)]
-    end.should == [268435478, 66280364.9382716, 1]
+      [@a / 4, @a / 16.2, @a / B.sbm(2)].inspect
+    end.should == '[268435478, 66280364.9382716, 1]'
   end
   
   specify "< should return true if self is less than other" do
@@ -161,15 +161,15 @@ context "Bignum instance method" do
   specify "div should be a synonym for /" do
     example(@src) do
       @a = B.sbm(41622)
-      [@a.div(4), @a.div(16.2), @a.div(B.sbm(2))]
-    end.should == [268445861, 66282928.7654321, 1]
+      [@a.div(4), @a.div(16.2), @a.div(B.sbm(2))].inspect
+    end.should == '[268445861, 66282928.7654321, 1]'
   end
   
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
     example(@src) do
       @a = B.sbm(55)
-      [@a.divmod(5), @a.divmod(15.2), @a.divmod(@a + 9)]
-    end.should == [[214748375, 4], [70640913, 1.40000005019339], [0, 1073741879]]
+      [@a.divmod(5), @a.divmod(15.2), @a.divmod(@a + 9)].inspect
+    end.should == '[[214748375, 4], [70640913, 1.40000005019339], [0, 1073741879]]'
   end
   
   specify "eql? should return true if other is a Bignum with the same value" do
@@ -188,22 +188,22 @@ context "Bignum instance method" do
   specify "modulo should be a synonym for %" do
     example(@src) do
       @a = B.sbm(2_222)
-      [@a.modulo(5), @a.modulo(2.22), @a.modulo(B.sbm)]
-    end.should == [1, 0.419999905491539, 2222]
+      [@a.modulo(5), @a.modulo(2.22), @a.modulo(B.sbm)].inspect
+    end.should == '[1, 0.419999905491539, 2222]'
   end
   
   specify "quo should return the floating-point result of self divided by other" do
     example(@src) do
       @a = B.sbm(3)
-      [@a.quo(2.5), @a.quo(13), @a.quo(B.sbm)]
-    end.should == [429496730.8, 82595525.1538462, 1.00000000279397]
+      [@a.quo(2.5).to_f, @a.quo(13).to_f, @a.quo(B.sbm).to_f].inspect
+    end.should == '[429496730.8, 82595525.1538462, 1.00000000279397]'
   end
   
   specify "remainder should return the remainder of dividing self by other" do
     example(@src) do
       @a = B.sbm(79)
-      [@a.remainder(2), @a.remainder(97.345), @a.remainder(B.sbm)]
-    end.should == [1, 75.16000001254, 79]
+      [@a.remainder(2), @a.remainder(97.345), @a.remainder(B.sbm)].inspect
+    end.should == '[1, 75.16000001254, 79]'
   end
   
   specify "size should be provided" do

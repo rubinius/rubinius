@@ -3,13 +3,15 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Exceptions" do
   specify "raise should abort execution" do
     example do
+      @a = []
       begin
         raise ArgumentError, "exception"
-        puts "raise failed"
+        @a << "raise failed"
       rescue Exception => @e
-        puts @e.message
+        @a << @e.message
       end
-    end.should == 'exception'
+      @a
+    end.should == ["exception"]
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
@@ -29,7 +31,7 @@ context "Exceptions" do
     end
     CODE
     ) do
-      puts Foo.new.exception
+      Foo.new.exception
     end.should == "ensure exception"
   end
   
@@ -50,7 +52,7 @@ context "Exceptions" do
     end
     CODE
     ) do
-      puts Foo.new.exception
+      Foo.new.exception
     end.should == "ensure I never got to be an exception"
   end
   

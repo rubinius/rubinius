@@ -7,26 +7,26 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Float" do
   specify "% should return self modulo other" do
     example do
-      [6543.21 % 137, 5667.19 % 0xffffffff, 6543.21 % 137.24]
-    end.should == [104.21, 5667.19, 92.9299999999996]
+      [6543.21 % 137, 5667.19 % 0xffffffff, 6543.21 % 137.24].inspect
+    end.should == '[104.21, 5667.19, 92.9299999999996]'
   end
   
   specify "* should return self multiplied by other" do
     example do
-      [4923.98221 * 2, 256.4096 * 0xffffffff, 6712.5 * 0.25]
-    end.should == [9847.96442, 1101270846124.03, 1678.125]
+      [4923.98221 * 2, (256.4096 * 0xffffffff).to_s, 6712.5 * 0.25]
+    end.should == [9847.96442, "1101270846124.03", 1678.125]
   end
   
   specify "** should return self raise to the other power" do
     example do
-      [2.3 ** 3, 5.2 ** -1, 9.5 ** 0.5, (9.5 ** 0xffffffff).to_s]
-    end.should == [12.167, 0.192307692307692, 3.08220700148449, "Infinity"]
+      [2.3 ** 3, 5.2 ** -1, 9.5 ** 0.5, 9.5 ** 0xffffffff].inspect
+    end.should == '[12.167, 0.192307692307692, 3.08220700148449, Infinity]'
   end
   
   specify "+ should return self plus other" do
     example do
-      [491.213 + 2, 9.99 + 0xffffffff, 1001.99 + 5.219]
-    end.should == [493.213, 4294967304.99, 1007.209]
+      [491.213 + 2, 9.99 + 0xffffffff, 1001.99 + 5.219].inspect
+    end.should == '[493.213, 4294967304.99, 1007.209]'
   end
 
   specify "- should return self minus other" do
@@ -43,8 +43,8 @@ context "Float" do
 
   specify "/ should return self divided by other" do
     example do
-      [5.75 / -2, 451.0 / 9.3, 91.1 / -0xffffffff]
-    end.should == [-2.875, 48.494623655914, -2.12108716418061e-08]
+      [(5.75 / -2).to_s, (451.0 / 9.3).to_s, (91.1 / -0xffffffff).to_s]
+    end.should == ["-2.875", "48.494623655914", "-2.12108716418061e-08"]
   end
   
   specify "< should return true if self is less than other" do
@@ -103,8 +103,8 @@ context "Float" do
   
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
     example do
-      [3.14.divmod(2), 2.8284.divmod(3.1415), -1.0.divmod(0xffffffff)]
-    end.should == [[1, 1.14], [0, 2.8284], [-1, 4294967294.0]]
+      [3.14.divmod(2).inspect, 2.8284.divmod(3.1415).inspect, -1.0.divmod(0xffffffff).inspect]
+    end.should == ["[1, 1.14]", "[0, 2.8284]", "[-1, 4294967294.0]"]
   end
   
   specify "eql? should true if other is a Float equal to self" do
@@ -139,8 +139,8 @@ context "Float" do
   
   specify "modulo should be a synonym for %" do
     example do
-      [6543.21.modulo(137), 5667.19.modulo(0xffffffff), 6543.21.modulo(137.24)]
-    end.should == [104.21, 5667.19, 92.9299999999996]
+      [6543.21.modulo(137), 5667.19.modulo(0xffffffff), 6543.21.modulo(137.24)].inspect
+    end.should == '[104.21, 5667.19, 92.9299999999996]'
   end
   
   specify "nan? should return true if self is not a valid IEEE floating-point number" do

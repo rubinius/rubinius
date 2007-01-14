@@ -10,8 +10,10 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Integer class method" do
   specify "induced_from should convert other to Integer" do
     example do
-      [Integer.induced_from(2.5), Integer.induced_from(-3.14), Integer.induced_from(1.233450999123389e+20)]
-    end.should == [2, -3, 123345099912338997248]
+      [ Integer.induced_from(2.5), 
+        Integer.induced_from(-3.14), 
+        Integer.induced_from(1.233450999123389e+12)]
+    end.should == [2, -3, 1233450999123]
   end
 end
 
