@@ -40,16 +40,20 @@ namespace :spec do
   end
 
   desc "Run only specs but not any tests."
-  task :only => %w(spec:language spec:shotgun spec:library spec:core
-                   spec:targets spec:compatibility)
+  spec_targets = %w(language shotgun library core targets compatibility)
 
-  # desc is automatically done with SpecTask
-  GroupSpecTask.new(:language)
-  GroupSpecTask.new(:shotgun)
-  GroupSpecTask.new(:library)
-  GroupSpecTask.new(:core)
-  GroupSpecTask.new(:targets)
-  GroupSpecTask.new(:compatibility)
+  # Convenience method to run a single spec test
+  spec_targets.each do |group|
+    spec_files = Dir[ File.join(File.dirname(__FILE__),"spec/#{group}/*_spec.rb") ]
+    GroupSpecTask.new(group)
+    namespace group do
+      spec_files.each do |file|
+        SpecificGroupSpecTask.new(File.basename(file, '_spec.rb'), :core)
+      end
+    end
+  end
+
+  task :only => spec_targets.collect! { |g| 'spec:' << g }
 
   # experimental -- need to adjust exclusions depending on what your testing
   namespace :coverage do

@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'test/unit'
 require 'ruby2ruby'
 require 'fileutils'
