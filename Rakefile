@@ -234,6 +234,9 @@ namespace :build do
       raise "Failed to compile native/#{name}" if $?.exitstatus != 0
     end
   end
+  
+  desc "Builds shotgun, kernel, and bootstraps the compiler"
+  task :rubinius => ['build:shotgun', 'build:kernel', 'build:compiler']
 
   desc "Delete all cached .rbc files"
   task :delete_rbc do

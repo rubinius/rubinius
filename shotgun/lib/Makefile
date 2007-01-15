@@ -45,7 +45,7 @@ grammar.c: grammar.y
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.gen *.a auto.c auto.h .*.d .*.d.*
+	rm -f *.o *.gen *.a auto.c auto.h .*.d .*.d.* grammar.c
 
 .PHONY: test
 
