@@ -49,4 +49,6 @@ clean:
 
 .PHONY: test
 
+ifneq ($(MAKECMDGOALS),clean)
 -include $(SOURCES:%.c=.%.d)
+endif
