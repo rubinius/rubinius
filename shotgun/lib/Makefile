@@ -9,7 +9,7 @@ ifeq ($(UNAME),SunOS)
   CFLAGS+=-D__C99FEATURES__
 endif
 
-SOURCES=$(wildcard *.c)
+SOURCES=$(wildcard *.c) grammar.c
 OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib
 
@@ -41,8 +41,8 @@ auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
 	$(CC) -c -o auto.o auto.c $(CFLAGS)
 
-grammer.c: grammer.y
-	bison -o grammer.c grammer.y
+grammar.c: grammar.y
+	bison -o grammar.c grammar.y
 
 clean:
 	rm -f *.o *.gen *.a auto.c auto.h .*.d .*.d.*
