@@ -43,12 +43,32 @@ context "String instance method" do
     end.should == 'not implemented'
   end
   
-  specify "== should " do
+  specify "== with other String should return true if <=> returns 0" do
     example do
     end.should == 'not implemented'
   end
   
-  specify "=~ should " do
+  specify "== with other not String should return self == other.to_str if other responds to to_str" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "== with other not String should return false if other does not respond to to_str" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "=== should be a synonym for ==" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "=~ should return the position of match start" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "=~ should return nil if there is no match" do
     example do
     end.should == 'not implemented'
   end
@@ -93,7 +113,7 @@ context "String instance method" do
     end.should == ["ell", nil, "he", nil]
   end
   
-  specify "[] with string should " do
+  specify "[] with string should return other if it occurs in self, otherwise nil" do
     example do
       [ "hello"["el"],
         "hello"["bye"],
@@ -101,52 +121,114 @@ context "String instance method" do
     end.should == ["el", nil, "hello"]
   end
   
-  specify "[]= should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "capitalize should " do
+  specify "[]= with index should replace the character at index with the character code" do
     example do
     end.should == 'not implemented'
   end
   
-  specify "capitalize! should " do
+  specify "[]= with index should replace the character at index with string" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "[]= with start, length should replace length characters at start with string" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "[]= with range should replace characters in range with string" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "[]= with regexp should replace the characters that match pattern with string" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "casecmp should " do
+  specify "[]= with regexp and index should replace the specified portion of the match with string" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "center should " do
+  specify "[]= with string should replace the string with other string" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "~ should be equivalent to $_ =~ self" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "chomp should " do
+  specify "capitalize should return a copy of string and convert the first character to uppercase and the rest to lowercase" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "capitalize! should modify self to convert the first character to upper case and the rest to lowercase" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "chomp! should " do
+  specify "casecmp should be a case-insensitive version of <=>" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "chop should " do
+  specify "center should return a string padded on both sides" do
     example do
     end.should == 'not implemented'
   end
+  
+  specify "center should return string when length of string is greater than argument"
 
-  specify "chop! should " do
+  specify "chomp should return a new string with the given record separator removed from the end" do
     example do
-    end.should == 'not implemented'
+      @s = "one\n"
+      @t = "two\r\n"
+      @u = "three\r"
+      @v = "four"
+      [@s.chomp, @s, @t.chomp, @t, @u.chomp, @u, @v.chomp, @v]
+    end.should == ["one", "one\n", "two", "two\r\n", "three", "three\r", "four", "four"]
   end
 
-  specify "concat should " do
+  specify "chomp! should modify self to remove the given record separator from the end" do
+    example do
+      @s = "one\n"
+      @t = "two\r\n"
+      @u = "three\r"
+      @v = "four"
+      [@s.chomp!, @t.chomp!, @u.chomp!, @v.chomp!]
+    end.should == ["one", "two", "three", nil]
+  end
+  
+  specify "chomp! should return nil if no changes are made" do
+    example do
+      ["".chomp!, "line".chomp!]
+    end.should == [nil, nil]
+  end
+
+  specify "chop should return a new string with the last character removed" do
+    example do
+      @s = "block"
+      [@s.chop, @s]
+    end.should == ["bloc", "block"]
+  end
+
+  specify "chop! should modify self to remove the last character" do
+    example do
+      "ouch".chop!
+    end.should == "ouc"
+  end
+  
+  specify "chop! should return nil if no changes are made" do
+    example do
+      "".chop!
+    end.should == nil
+  end
+
+  specify "concat should be a synonym for <<" do
     example do
     end.should == 'not implemented'
   end
@@ -156,79 +238,97 @@ context "String instance method" do
     end.should == 'not implemented'
   end
 
-  specify "crypt should " do
+  specify "crypt should return a one-way cryptographic hash of self using the standard libary function crypt" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "delete should " do
+  specify "delete should return a copy of self removing all characters in the intersection of its arguments" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "delete! should " do
+  specify "delete! should perform method delete in place on self" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "delete! should return nil if no changes are made" do
+    example do
+      "help".delete!("q", "r", "biff")
+    end.should == nil
+  end
+
+  specify "downcase should return a copy of self with A-Z converted to a-z" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "downcase should " do
+  specify "downcase! should perform downcase in place on self" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "downcase! should " do
+  specify "dump should return a string with all non-printing characters replaced with \\nnn notation" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "dump should " do
+  specify "each should split self on the argument ($/ default) and pass each substring to block" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "each_byte should pass each byte to block" do
+    example do
+      @a = []
+      "Rubinius".each_byte { |b| @a << b }
+      @a
+    end.should == [82, 117, 98, 105, 110, 105, 117, 115]
+  end
+
+  specify "each_line should be a synonym for each" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "each should " do
+  specify "empty? should return true if self is sero-length" do
+    example do
+      ["".empty?, "Ruby".empty?]
+    end.should == [true, false]
+  end
+
+  specify "eql? should return true if other is a String with identical contents" do
+    example do
+      ["".eql?(""), "Rubinius".eql?(Fixnum), "1".eql?(1)]
+    end.should == [true, false, false]
+  end
+
+  specify "gsub should return a string with all instances of pattern replaced by replacement" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "gsub with block should return a string with all instances of pattern replaced by the value of block" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "each_byte should " do
+  specify "gsub! should perform gsub in place on self" do
     example do
     end.should == 'not implemented'
   end
-
-  specify "each_char should " do
+  
+  specify "gsub! should return nil if no changes are made" do
     example do
-    end.should == 'not implemented'
+      "".gsub!(/./, 'R')
+    end.should == nil
   end
 
-  specify "each_line should " do
+  specify "hash should be provided" do
     example do
-    end.should == 'not implemented'
-  end
-
-  specify "empty? should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "eql? should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "gsub should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "gsub! should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "hash should " do
-    example do
-    end.should == 'not implemented'
+      "".respond_to?(:hash)
+    end.should == true
   end
 
   specify "hex should " do
