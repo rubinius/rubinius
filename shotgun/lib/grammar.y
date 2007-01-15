@@ -2811,7 +2811,6 @@ static GString* parse_io_gets(rb_parse_state *parse_state) {
   output = g_string_new(NULL);
   err = NULL;
   g_io_channel_read_line_string(parse_state->lex_io, output, NULL, &err);
-  printf ("FRED: %s\n",output->str);
   
   return output;
 }
