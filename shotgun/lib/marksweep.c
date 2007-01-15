@@ -17,6 +17,7 @@
 */
 
 #include "shotgun.h"
+#include "object.h"
 
 #define FREE_OBJECT 0x10000
 #define BARRIER (2**REFSIZE)
@@ -270,8 +271,8 @@ void mark_sweep_describe(mark_sweep_gc ms) {
 }
 
 void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
-  OBJECT ret, cls, tmp, mut;
-  int i, count;
+  OBJECT cls, tmp;
+  int i;
   
   /* Already marked! */
   if(MARKED_P(iobj)) return;
@@ -301,7 +302,7 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
 
 void mark_sweep_mark_phase(mark_sweep_gc ms, GPtrArray *roots) {
   int i, sz;
-  OBJECT root, tmp;
+  OBJECT root;
   
   marked_objects = 0;
   
@@ -325,7 +326,7 @@ void mark_sweep_mark_phase(mark_sweep_gc ms, GPtrArray *roots) {
 void mark_sweep_sweep_phase(mark_sweep_gc ms) {
   ms_chunk *cur;
   char *addr, *last;
-  OBJECT obj, lst;
+  OBJECT obj;
   int osz, used;
   
   cur = ms->chunks;

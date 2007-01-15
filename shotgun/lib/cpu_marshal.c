@@ -59,8 +59,9 @@ static void marshal_int(STATE, OBJECT obj, GString *buf) {
 static int read_int(char *str) {
   int i;
   memcpy(&i, str, 4);
+  
 #ifndef __BIG_ENDIAN__
-  i = swap32(i);
+/* FRED   i = swap32(i);*/
 #endif
   return i;
 }
@@ -254,6 +255,7 @@ static OBJECT unmarshal_bytes(STATE, char *str, struct marshal_state *ms) {
   int sz;
   OBJECT obj;
   sz = read_int(str + 1);
+  
   ms->consumed += 5;
   ms->consumed += sz;
   obj = bytearray_new(state, sz);
@@ -282,7 +284,7 @@ static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
   char tag;
   OBJECT o;
   tag = str[0];
-  // printf("%c\n", tag);
+//  printf("%c\n", tag);
   switch(tag) {
     case 'i':
       o = unmarshal_int(state, str, ms);
@@ -394,8 +396,8 @@ OBJECT cpu_marshal(STATE, OBJECT obj) {
 
 GString *cpu_marshal_to_gstring(STATE, OBJECT obj) {
   GString *buf;
-  OBJECT ret;
   struct marshal_state ms;
+  
   ms.consumed = 0;
   ms.objects = g_ptr_array_new();
   

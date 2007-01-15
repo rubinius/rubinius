@@ -28,6 +28,7 @@ OBJECT heap_copy_object(rheap h, OBJECT obj);
 OBJECT heap_next_object(rheap h);
 OBJECT heap_fully_scanned_p(rheap h);
 OBJECT heap_next_unscanned(rheap h);
+int heap_enough_fields_p(rheap h, int fields);
 
 #endif
 

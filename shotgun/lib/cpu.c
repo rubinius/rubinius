@@ -168,7 +168,7 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
     c->data = NULL;
     c->data_size = 0;
   } else {
-    c->data = bytearray_byte_address(state, ba);
+    c->data = bytearray_byte_address(state, ba);    
     c->data_size = bytearray_bytes(state, ba);
   }
   

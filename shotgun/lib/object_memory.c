@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-
+#include "machine.h"
+#include "baker.h"
+#include "marksweep.h"
 
 void *main_om;
 
@@ -12,7 +14,7 @@ static int allocated_objects = 0;
 void _describe(OBJECT ptr) {
   object_memory om;
   om = (object_memory)main_om;
-  printf("Address:             %p (%lu)\n", ptr, (unsigned int)ptr);
+  printf("Address:             %p (%lu)\n", (void *)ptr, (address)ptr);
   printf("Contained in baker?: %d/%d\n", baker_gc_contains_p(om->gc, ptr), baker_gc_contains_spill_p(om->gc, ptr));
   printf("Contained in m/s?:   %d\n", mark_sweep_contains_p(om->ms, ptr));
 }
@@ -32,7 +34,7 @@ object_memory object_memory_new() {
   om = (object_memory)malloc(sizeof(struct object_memory_struct));
   memset((void*)om, 0, sizeof(struct object_memory_struct));
   om->gc = baker_gc_new(OMDefaultSize);
-  om->gc->tenure = object_memory_tenure_object;
+  om->gc->tenure = (OBJECT (*)(void*,OBJECT))object_memory_tenure_object;
   om->gc->tenure_data = om;
   om->gc->om = om;
   
@@ -91,6 +93,7 @@ int object_memory_collect(object_memory om, GPtrArray *roots) {
   i = baker_gc_collect(om->gc, roots);
   // object_memory_check_memory(om);
   om->gc->tenure_now = om->tenure_now = 0;
+  om->collect_now = 0;
   return i;
 }
 
@@ -144,7 +147,7 @@ int object_memory_is_reference_p(object_memory om, OBJECT tmp) {
 int _object_stores_bytes(OBJECT self);
 
 void object_memory_check_memory(object_memory om) {
-  int i, j, sz, osz, fel, num;
+  int i, sz, osz, fel, num;
   char *start, *end, *cur;
   OBJECT obj, tmp;
   
@@ -166,7 +169,7 @@ void object_memory_check_memory(object_memory om) {
         tmp = NTH_FIELD_DIRECT(obj, i);
         if(REFERENCE_P(tmp) && !object_memory_is_reference_p(om,tmp)) { 
           printf("(%p-%p) %d: %s (%d of %d) contains a bad field!!\n", 
-            om->gc->current->address, om->gc->current->last,
+            (void *)om->gc->current->address, (void *)om->gc->current->last,
             num, _inspect(obj), i, fel);
           assert(0);
         }
@@ -180,9 +183,9 @@ void object_memory_check_memory(object_memory om) {
 }
 
 void object_memory_detect_cleanup(object_memory om) {
-  int i, j, sz, osz, fel, num;
+  int sz, osz, num;
   char *start, *end, *cur;
-  OBJECT obj, tmp;
+  OBJECT obj;
   
   sz = object_memory_used(om);
   start = (char*)om->gc->current->address;
@@ -208,9 +211,9 @@ void object_memory_detect_cleanup(object_memory om) {
 }
 
 void state_each_object(STATE, OBJECT kls, void (*cb)(STATE, OBJECT)) {
-  int i, j, sz, osz, fel, num;
+  int sz, osz, num;
   char *start, *end, *cur;
-  OBJECT obj, tmp;
+  OBJECT obj;
   object_memory om;
   
   om = state->om;

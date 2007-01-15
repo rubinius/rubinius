@@ -43,16 +43,16 @@ OBJECT object_class(STATE, OBJECT self) {
 
 void rbs_show_classes(STATE, OBJECT self) {
   OBJECT cls = HEADER(self)->klass;
-  printf("Class from %p\n", self);
+  printf("Class from %p\n", (void *)self);
   while(REFERENCE_P(cls) && metaclass_s_metaclass_p(state, cls)) {
     printf(" => %d %p %s\n",
         HEADER(cls)->klass == state->global->metaclass,
-        cls,
+        (void *)cls,
         rbs_symbol_to_cstring(state,
           class_get_name(object_logical_class(state, cls))));
     cls = class_get_superclass(cls);
   }
-  printf(" found => %p\n", cls);
+  printf(" found => %p\n", (void *)cls);
 }
 
 OBJECT object_logical_class(STATE, OBJECT self) {

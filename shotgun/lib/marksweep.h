@@ -1,3 +1,6 @@
+#ifndef __MARKSWEEP_H__
+#define __MARKSWEEP_H__
+
 struct ms_chunk;
 
 struct ms_chunk {
@@ -37,4 +40,6 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj);
 void mark_sweep_mark_phase(mark_sweep_gc ms, GPtrArray *roots);
 void mark_sweep_sweep_phase(mark_sweep_gc ms);
 void mark_sweep_collect(mark_sweep_gc ms, GPtrArray *roots);
+void mark_sweep_describe(mark_sweep_gc ms);
 
+#endif /* __MARKSWEEP_H__ */

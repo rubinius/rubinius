@@ -1,4 +1,5 @@
 #include <zip.h>
+#include <string.h>
 #include "shotgun.h"
 #include "string.h"
 #include "cpu.h"
@@ -38,7 +39,7 @@ OBJECT archive_get_file(STATE, char *path, char* name) {
     return Qnil;
   }
   
-  if((file = zip_name_locate(za, (const char*)name, &err)) < 0) {
+  if((file = zip_name_locate(za, (const char*)name, 0)) < 0) {
     zip_close(za);    
     return Qnil;
   }
@@ -77,9 +78,9 @@ OBJECT archive_get_object(STATE, char *path, char* name) {
     return Qnil;
   }
   
-  file = zip_name_locate(za, name, &err);
+  file = zip_name_locate(za, name, 0);
   if(file < 0) {
-    printf("Couldn't find %s in %s (%s/%d/%s)\n", name, path, zip_strerror(za), file, strlen(name));
+    printf("Couldn't find %s in %s (%s/%d/%d)\n", name, path, zip_strerror(za), file, strlen(name));
     zip_close(za);
     return Qnil;
   }

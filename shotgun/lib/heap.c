@@ -67,6 +67,7 @@ int heap_contains_p(rheap h, address addr) {
       return TRUE;
     }
   }
+
   if(addr < h->address) return FALSE;
   if(addr >= h->address + h->size) return FALSE;
   return TRUE;
@@ -88,7 +89,7 @@ address heap_allocate(rheap h, int size) {
     /* If we're out of space and extended is being used, we're screwed.
        TODO: figure out what to do here. */
     if(h->extended) {
-      printf("HEAP ERROR: Not enough space to allocate %d bytes. total:%d, used:%d, left:%d.\n", size, h->size, h->current - h->address, h->last - h->current);
+      printf("HEAP ERROR: Not enough space to allocate %d bytes. total:%d, used:%d, left:%d.\n", size, h->size, (int)(h->current - h->address), (int)(h->last - h->current));
       abort();
       return 0;
     }
@@ -98,6 +99,7 @@ address heap_allocate(rheap h, int size) {
   assert(addr < h->last);
   memset((void*)addr, 0, size);
   h->current += size;
+  
   return addr;
 }
 

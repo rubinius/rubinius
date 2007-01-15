@@ -1,8 +1,14 @@
 CC=gcc
+UNAME=$(shell uname)
 CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
 CFLAGS=-Wall -g $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
+
+ifeq ($(UNAME),SunOS)
+  CFLAGS+=-D__C99FEATURES__
+endif
+
 SOURCES=$(wildcard *.c)
 OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib

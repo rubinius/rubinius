@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "baker.h"
+#include "heap.h"
 
 static int promoted = 0;
 
@@ -22,9 +23,9 @@ baker_gc baker_gc_new(int size) {
 void baker_gc_describe(baker_gc g) {
   printf("Size:    %x (%d)\n", g->current->size, g->current->size);
   printf("Used:    %d\n", g->used);
-  printf("Current: %p => %p\n", g->current->address, 
-      g->current->last);
-  printf("Next:    %p => %p\n", g->next->address, g->next->last);
+  printf("Current: %p => %p\n", (void *)g->current->address, 
+      (void *)g->current->last);
+  printf("Next:    %p => %p\n", (void *)g->next->address, (void *)g->next->last);
   printf("RS Size: %d\n", g->remember_set->len);
   printf("Promoted last: %d\n", promoted);
 }
@@ -111,7 +112,7 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj);
 int baker_gc_mutate_object(baker_gc g, OBJECT obj) {
   OBJECT dest;
   if(g->tenure_now || ((AGE(obj) == TENURE_AGE) && !FOREVER_YOUNG(obj))) {
-    int age = AGE(obj);
+    /* int age = AGE(obj); */
     CLEAR_AGE(obj);
     promoted++;
     dest = (*g->tenure)(g->tenure_data, obj);
@@ -193,8 +194,8 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
 }
 
 OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
-  OBJECT ret, cls, tmp, mut, iobj;
-  int i, count;
+  OBJECT ret, iobj;
+  int count;
   
   //printf("!!!\n   => From %p\n!!!\n", iobj);
   
