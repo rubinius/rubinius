@@ -4,25 +4,25 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "A class with Comparable mixin, method" do
   setup do
-    @src = <<-CODE
-    class Weird
-      include Comparable
-      
-      def initialize(int)
-        @int = int
-      end
-      
-      def negative?
-        @int < 0
-      end
-      
-      def <=>(other)
-        return 0 if self.negative? == other.negative?
-        return 1 if self.negative?
-        -1
+    @src = code do
+      class Weird
+        include Comparable
+        
+        def initialize(int)
+          @int = int
+        end
+        
+        def negative?
+          @int < 0
+        end
+        
+        def <=>(other)
+          return 0 if self.negative? == other.negative?
+          return 1 if self.negative?
+          -1
+        end
       end
     end
-    CODE
   end
   
   specify "<=> should be provided" do

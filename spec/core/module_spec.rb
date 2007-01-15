@@ -2,13 +2,12 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "Module" do
   specify "instance_methods with false should exclude super class instance methods" do
-    example(<<-CODE
-    class Foo
-      def foo
+    example do
+      class Foo
+        def foo
+        end
       end
-    end
-    CODE
-    ) do
+
       Foo.instance_methods(false)
     end.should == ["foo"]
   end
@@ -20,13 +19,12 @@ context "Module" do
   end
   
   specify "const_defined? should return true if the name is defined" do
-    example(<<-CODE
-    class Blah
-      class Whee
+    example do
+      class Blah
+        class Whee
+        end
       end
-    end
-    CODE
-    ) do
+
       [ Object.const_defined?(:Object),
         Blah.const_defined?("Whee"), 
         Object.const_defined?("Blah::Whee"),

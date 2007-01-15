@@ -27,14 +27,13 @@ end
 
 context "Object instance method" do
   specify "send should invoke the named method" do
-    example(<<-CODE
-    class Foo
-      def bar
-        'done'
+    example do
+      class Foo
+        def bar
+          'done'
+        end
       end
-    end
-    CODE
-    ) do
+
       Foo.new.send(:bar)
     end.should == 'done'
   end

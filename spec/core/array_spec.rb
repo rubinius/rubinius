@@ -805,10 +805,9 @@ context "Array instance method" do
   end
   
   specify "to_a called on a subclass of Array should return an instance of Array" do
-    example(<<-CODE
-    class Ary < Array; end
-    CODE
-    ) do
+    example do
+      class Ary < Array; end
+
       Ary.new.to_a.class
     end.should == Array
   end

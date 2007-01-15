@@ -4,22 +4,22 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "A class with Enumerable::Enumerator mixin" do
   setup do
-    @src = <<-CODE
-    require 'enumerator'
-    
-    class Numerous
-      include Enumerable
+    @src = code do
+      require 'enumerator'
       
-      def initialize(*list)
-        @list = list.empty? ? [2, 5, 3, 6, 1, 4] : list
+      class Numerous
+        include Enumerable
+        
+        def initialize(*list)
+          @list = list.empty? ? [2, 5, 3, 6, 1, 4] : list
+        end
+        
+        def each
+          @list.each { |i| yield i }
+        end
+        
       end
-      
-      def each
-        @list.each { |i| yield i }
-      end
-      
     end
-    CODE
   end
 
   specify "each_cons should iterate the block for each array of n consecutive elements" do

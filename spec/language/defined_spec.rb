@@ -2,23 +2,23 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "A ruby environment" do
   setup do
-    @src = <<-CODE
-    class Foo
-      def no_args
+    @src = code do
+      class Foo
+        def no_args
+        end
+        def args(x)
+        end
       end
-      def args(x)
+      
+      class Bar < Foo
+        def no_args
+          defined?(super)
+        end
+        def args
+          defined?( super() )
+        end
       end
     end
-
-    class Bar < Foo
-      def no_args
-        defined?(super)
-      end
-      def args
-        defined?( super() )
-      end
-    end
-    CODE
   end
   
   specify "should return true when defined?(puts) is sent" do

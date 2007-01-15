@@ -8,8 +8,6 @@ require 'test/unit'
 
 class RubiniusTargetError < RuntimeError; end
 
-class RubiniusSpecExample; end
-
 module RubiniusTarget
   def initialize(*args)
     super
@@ -20,11 +18,18 @@ module RubiniusTarget
     raise ArgumentError, "you must pass a block" unless block_given?
     execute(source(src, &block))
   end
+
+  #  Return the source of the given block by using ruby2ruby
+  def code(&block)
+    src = Module.new { define_method(:__block__, block) }
+    src = RubyToRuby.translate(src, :__block__)
+    src.gsub(/^(def __block__|end)\n?/, "")
+  end
   
   def source(src, &block)
     make_cache_directory
-    RubiniusSpecExample.send(:define_method, :__example__, block)
-    source = template % [src, RubyToRuby.translate(RubiniusSpecExample)]
+    src = code(&src) if src.respond_to? :to_proc
+    source = template % [src, code(&block)]
     name = cache_source_name(source)
     unless File.exists?(name) and source == File.read(name)
       File.open(name, "w") { |f| f << source }
@@ -75,12 +80,10 @@ module RubiniusTarget
   
   def template
     @template ||= <<-CODE
-%s
-%s
-p RubiniusSpecExample.new.__example__
+Kernel::p lambda { %s; %s }.call
 CODE
   end
-    
+  
   def cache_source_name(source)
     "#{cache_path}/#{caller_name}-#{source.hash.abs}.rb"
   end
