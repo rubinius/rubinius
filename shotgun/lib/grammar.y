@@ -2504,16 +2504,19 @@ assoc           : assoc1
                     { $$ = $1; }
                 | assoc2
                     { $$  = $1; }
+                ;
 
 assoc1          : arg_value tASSOC arg_value
                     {
                         $$ = list_append(parse_state, NEW_LIST($1), $3);
                     }
                 ;
+
 assoc2          : tKEYSYM arg_value
                     {
                         $$ = list_append(parse_state, NEW_LIST(NEW_LIT(ID2SYM($1))), $2);
                     }
+                ;
 
 operation       : tIDENTIFIER
                 | tCONSTANT

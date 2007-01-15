@@ -6,7 +6,7 @@
 #include "tuple.h"
 #include "bignum.h"
 #include "symbol.h"
-#include "grammer.h"
+#include "grammar.h"
 
 rb_parse_state *alloc_parse_state() {
     rb_parse_state *parse_state = (rb_parse_state*)malloc(sizeof(rb_parse_state));

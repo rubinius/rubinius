@@ -12,7 +12,7 @@
 #include "regexp.h"
 #include "archive.h"
 #include "machine.h"
-#include "grammer.h"
+#include "grammar.h"
 
 #include <string.h>
 #include <sys/types.h>
