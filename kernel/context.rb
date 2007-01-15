@@ -124,10 +124,16 @@ class Proc
   end
   
   def self.from_environment(env, check_args=false)
-    obj = allocate()
-    obj.put 1, env
-    obj.put 2, check_args
-    return obj
+    if env.nil?
+      nil
+    elsif env.respond_to? :to_proc
+      env.to_proc
+    else
+      obj = allocate()
+      obj.put 1, env
+      obj.put 2, check_args
+      obj
+    end
   end
   
   def self.new(&block)
@@ -136,6 +142,10 @@ class Proc
   
   def inspect
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
+  end
+
+  def to_proc
+    self
   end
   
   def self.block_passed(blk)
@@ -164,6 +174,7 @@ class Proc
     raise "Corrupt proc detected!" unless obj
     obj.call(*args)
   end
+
 end
 
 class Backtrace
