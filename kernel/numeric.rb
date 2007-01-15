@@ -36,7 +36,7 @@ class Integer
 
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self >= 255 || self < 0
-    CHARACTERS[self]
+    CHARACTERS[self].dup
   end
 
   def <=>(o)
