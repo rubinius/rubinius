@@ -14,7 +14,6 @@ ifeq ($(UNAME),SunOS)
 else
   ifeq ($(UNAME),Darwin)
     OBJS+=missing/backtrace.o
-    CFLAGS+=-D__APPLE__=1
   endif
 endif
 
