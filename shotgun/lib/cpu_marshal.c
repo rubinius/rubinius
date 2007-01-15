@@ -61,7 +61,7 @@ static int read_int(char *str) {
   memcpy(&i, str, 4);
   
 #ifndef __BIG_ENDIAN__
-/* FRED   i = swap32(i);*/
+i = swap32(i);
 #endif
   return i;
 }
