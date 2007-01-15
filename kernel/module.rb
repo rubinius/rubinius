@@ -48,4 +48,29 @@ class Module
     end
     return true
   end
+
+  def define_method(name, meth = nil, &prc)
+    meth ||= prc
+    case meth
+    when Proc
+      block_env = meth.block
+      meth_ctx = block_env.home
+      cm = meth_ctx.method.dup
+      initial = block_env.initial_ip
+      last = block_env.last_ip
+      block_bytecodes = cm.bytecodes.fetch_bytes(initial, last - initial)
+      cm.put(3, block_bytecodes)
+    when Method, UnboundMethod
+      cm = meth.instance_eval { @method }
+      meth = meth.dup
+    when CompiledMethod
+      cm = meth
+      meth = UnboundMethod.new(self, cm)
+    else
+      raise TypeError, "invalid argument type #{meth.class} (expected Proc/Method)"
+    end
+    self.methods[name.to_sym] = cm
+    meth
+  end
+
 end

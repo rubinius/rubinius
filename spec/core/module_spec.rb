@@ -74,3 +74,69 @@ context "Module#module_eval given a block" do
 
 end
 
+context "Module.define_method" do
+
+  setup do 
+    @src = code do
+      class Foo
+        def foo
+          "ok"
+        end
+      end
+      
+      @foo = Foo.new
+    end
+  end
+  
+  specify "should be private" do
+    example(@src) do
+      begin
+        Foo.define_method(:a) {  }
+      rescue NoMethodError
+        "ok"
+      end
+    end.should == "ok"
+  end
+
+  specify "should receive an UnboundMethod" do
+    example(@src) do
+      Foo.module_eval do 
+        define_method(:bar, instance_method(:foo))
+      end
+
+      @foo.bar
+    end.should == "ok"
+  end
+
+  specify "should receive a Method" do
+    example(@src)  do
+      Foo.module_eval do
+        define_method(:bar, Foo.new.method(:foo))
+      end
+      
+      @foo.bar
+    end.should == "ok"
+  end
+
+  specify "should take a block with arguments" do
+    example(@src) do
+      Foo.module_eval do 
+        define_method(:bar) { |what| "I love #{what}" }
+      end
+      @foo.bar("rubinius")
+    end.should == "I love rubinius"
+  end
+
+  specify "should raise TypeError if not given a Proc/Method" do
+    example(@src) do
+      begin
+        Foo.module_eval do
+          define_method(:bar, 1)
+        end
+      rescue TypeError
+        "ok"
+      end
+    end.should == "ok"
+  end
+  
+end
