@@ -49,10 +49,12 @@ context "RubiniusTarget" do
   
   specify "template should provide Ruby source wrapper for calling example method in Rubinius" do
     @target.template.should == <<-CODE
-%s
-%s
-p RubiniusSpecExample.new.__example__
+Kernel::p lambda { %s; %s }.call
 CODE
+  end
+  
+  specify "should provide a code method" do
+    @target.should_respond_to :code
   end
   
   specify "should provide cache_source_name method" do
@@ -62,7 +64,8 @@ CODE
   specify "cache_source_name should build name of source file in code-cache directory" do
     @target.stub!(:caller).and_return(caller_stub)
     @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
-    @target.cache_source_name(source_stub).should == "/Users/rubinius/code-cache/rubinius_spec-68-16000475.rb"
+    @target.cache_source_name(source_stub).should_match(
+      %r!/Users/rubinius/code-cache/rubinius_spec-68-\d*.rb!)
   end
   
   specify "should provide caller_name method" do
@@ -82,8 +85,8 @@ CODE
   specify "source should return file path" do
     @target.stub!(:caller).and_return(caller_stub)
     @target.stub!(:cache_path).and_return("/Users/rubinius/code-cache")
-    @target.source('') { [1, 2, 3] }.should ==
-      "/Users/rubinius/code-cache/rubinius_spec-68-515417171.rb"
+    @target.source('') { [1, 2, 3] }.should_match(
+      %r!/Users/rubinius/code-cache/rubinius_spec-68-\d*.rb!)
   end
   
   specify "should provide execute method" do
