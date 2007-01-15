@@ -30,5 +30,47 @@ context "Module" do
         Object.const_defined?("Blah::Whee"),
         Object.const_defined?("Blah::Zargle") ]
     end.should == [true, true, true, false]
-  end
+  end  
 end
+
+context "Module.new method" do
+
+  specify "should return a new instance" do
+    example do
+      Module.new.class
+    end.should == Module
+  end
+
+  specify "may receive a block" do
+    example do
+      Module.new { self }.class
+    end.should == Module
+  end
+
+end
+
+context "Module#module_eval given a block" do
+  setup do
+    @src = code do
+      module Hello
+        def en
+          "hello"
+        end
+      end
+    end
+  end
+
+  specify "should execute on the receiver context" do
+    example(@src) do
+      Hello.module_eval { name }
+    end.should == :Hello
+  end
+
+  specify "should bind self to the receiver module" do
+    example(@src) do
+      Hello.object_id == Hello.module_eval { self.object_id }
+    end.should == true
+  end
+
+end
+

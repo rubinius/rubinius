@@ -39,3 +39,92 @@ context "Object instance method" do
   end
   
 end
+
+context "Object#instance_exec" do
+  specify "should expect a block to be given" do
+    example do
+      begin
+        "hola".instance_exec
+      rescue ArgumentError
+        "ok"
+      end
+    end.should == "ok"
+  end
+
+  specify "should pass arguments given to the block" do
+    example do
+      "hola".instance_exec(4, 5) { |a, b| a + b }
+    end.should == 9
+  end
+
+  specify "should bind self to the receiver" do
+    example do
+      @o = "hola"
+      @o == @o.instance_exec { self }
+    end.should == true
+  end
+end
+
+context "Object#instance_eval given a block" do
+  specify "should execute on the reciver context" do
+    example do
+      "hola".instance_eval { size }
+    end.should == 4
+  end
+
+  specify "should bind self to the receiver" do
+    example do
+      @o = Object.new
+      @o == @o.instance_eval { self }
+    end.should == true
+  end
+
+  specify "should have access to receiver's instance variables" do
+    example do
+      class Klass
+        def initialize
+          @secret = 99
+        end
+      end
+      
+      @k = Klass.new
+      @k.instance_eval { @secret }
+    end.should == 99
+  end
+  
+  specify "should pass no arguments to the block" do
+    example do
+      Object.new.instance_eval { |o| o }
+    end.should == nil
+  end
+  
+end
+
+
+context "Object#instance_eval given an string" do
+  specify "should execute on the reciver context" do
+    example do
+      "hola".instance_eval("size")
+    end.should == 4
+  end
+
+  specify "should bind self to the receiver" do
+    example do
+      @o = Object.new
+      @o == @o.instance_eval("self")
+    end.should == true
+  end
+
+  specify "should have access to receiver's instance variables" do
+    example do
+      class Klass
+        def initialize
+          @secret = 99
+        end
+      end
+      
+      @k = Klass.new
+      @k.instance_eval("@secret")
+    end.should == 99
+  end
+end

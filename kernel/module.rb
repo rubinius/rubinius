@@ -2,9 +2,7 @@ class Module
   
   def self.new(&prc)
     mod = allocate
-    if block_given?
-      mod.instance_eval(&prc)
-    end
+    mod.module_eval(&prc) if block_given?
     mod
   end
 
@@ -16,10 +14,14 @@ class Module
     end
   end
 
-  def module_eval(string = nil, filename = nil, lineno = 0, &prc)
+  def module_exec(*args, &prc)
+    instance_exec(*args, &prc)
+  end
+  alias_method :class_exec, :module_exec
+
+  def module_eval(string = nil, filename = "(eval)", lineno = 1, &prc)
     instance_eval(string, filename, lineno, &prc)
   end
-
   alias_method :class_eval, :module_eval
 
   def instance_method(name)

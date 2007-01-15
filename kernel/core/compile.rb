@@ -9,6 +9,17 @@ module Compile
   end
 end
 
+class String
+  def compile_as_method(filename = "(eval)", line = 1, newlines = true)
+    sexp = self.to_sexp(filename, line, newlines)
+    require 'bytecode/compiler'
+    comp = Bytecode::Compiler.new
+    desc = comp.compile_as_method(sexp, :__script__)
+    require 'bytecode/rubinius'
+    return desc.to_cmethod
+  end
+end
+
 module Kernel
   def load(path)
     if path.suffix? ".rbc"
