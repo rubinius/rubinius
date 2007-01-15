@@ -1,5 +1,9 @@
+#define MAIN 1
+
 #include "shotgun.h"
 #include "machine.h"
+
+void *__main_address;
 
 int main(int argc, char **argv) {
   char *path;
@@ -10,9 +14,15 @@ int main(int argc, char **argv) {
     return 1;
   }
   
+  /* Setup the global that contains the address of the 
+     frame pointer for main. This is so the missing
+     backtrace knows where to stop looking for return address. */
+  __main_address = __builtin_frame_address(0);
+    
   path = argv[1];
     
   m = machine_new();
+  machine_save_args(m, argc, argv);
   machine_setup_standard_io(m);
   machine_setup_ruby(m, argv[0]);
   /* move argc and argv around so that the kernel and rubinius
@@ -26,7 +36,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   
-  machine_emit_memory(m);
+  // machine_emit_memory(m);
   
   // object_memory_print_stats(m->s->om);
     
