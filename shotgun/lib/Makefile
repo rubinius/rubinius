@@ -5,13 +5,18 @@ CFLAGS=-Wall -g -fno-omit-frame-pointer $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 
-ifeq ($(UNAME),SunOS)
-  CFLAGS+=-D__C99FEATURES__
-endif
-
 SOURCES=$(wildcard *.c) grammar.c
 OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib
+
+ifeq ($(UNAME),SunOS)
+  CFLAGS+=-D__C99FEATURES__
+else
+  ifeq ($(UNAME),Darwin)
+    OBJS+=missing/backtrace.o
+    CFLAGS+=-D__APPLE__=1
+  endif
+endif
 
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -22,9 +27,9 @@ RUBY=ruby -I../../lib
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o missing/backtrace.o
+librubinius.a: $(DEPS) $(OBJS) 
 	rm -f librubinius.a
-	ar rc librubinius.a *.o missing/*.o
+	ar rc librubinius.a $(OBJS)
 	ranlib librubinius.a
 
 cpu_instructions.o: instructions.gen instruction_names.gen

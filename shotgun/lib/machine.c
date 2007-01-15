@@ -10,7 +10,13 @@
 #include <sys/param.h>
 #include <signal.h>
 
+#ifdef  __linux__
+#include <execinfo.h>
+#elif defined(__APPLE__)
 #include "missing/backtrace.h"
+#else
+#error "Platform not yet supported"
+#endif
 
 machine current_machine;
 
