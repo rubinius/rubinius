@@ -80,7 +80,7 @@ OBJECT archive_get_object(STATE, char *path, char* name) {
   
   file = zip_name_locate(za, name, 0);
   if(file < 0) {
-    printf("Couldn't find %s in %s (%s/%d/%d)\n", name, path, zip_strerror(za), file, strlen(name));
+    printf("Couldn't find %s in %s (%s/%d)\n", name, path, zip_strerror(za), file);
     zip_close(za);
     return Qnil;
   }

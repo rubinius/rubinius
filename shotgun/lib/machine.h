@@ -4,6 +4,9 @@
 struct rubinius_machine {
   rstate s;
   cpu c;
+  struct sigaction error_report;
+  int argc;
+  char **argv;
 };
 
 typedef struct rubinius_machine *machine;

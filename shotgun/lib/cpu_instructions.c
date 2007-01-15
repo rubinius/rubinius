@@ -369,6 +369,9 @@ int cpu_dispatch(STATE, cpu c) {
   return TRUE;
 }
 
+void state_collect(STATE, cpu c);
+void state_major_collect(STATE, cpu c);
+
 void cpu_run(STATE, cpu c) {
   unsigned char op;
   

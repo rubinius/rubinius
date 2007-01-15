@@ -30,7 +30,7 @@ void object_memory_check_memory(object_memory om);
 OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields);
 void object_memory_print_stats(object_memory om);
 OBJECT object_memory_new_opaque();
-OBJECT object_memory_tenure_object(object_memory om, OBJECT obj);
+OBJECT object_memory_tenure_object(void* data, OBJECT obj);
 void object_memory_major_collect(object_memory om, GPtrArray *roots);
 
 #endif

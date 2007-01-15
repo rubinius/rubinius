@@ -1,7 +1,7 @@
 CC=gcc
 UNAME=$(shell uname)
 CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
-CFLAGS=-Wall -g $(CPPFLAGS)
+CFLAGS=-Wall -g -fno-omit-frame-pointer $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 
@@ -13,7 +13,6 @@ SOURCES=$(wildcard *.c)
 OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib
 
-
 %.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
@@ -23,9 +22,9 @@ RUBY=ruby -I../../lib
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o
+librubinius.a: $(DEPS) $(OBJS) cpu_primitives.o cpu_instructions.o missing/backtrace.o
 	rm -f librubinius.a
-	ar rc librubinius.a *.o
+	ar rc librubinius.a *.o missing/*.o
 	ranlib librubinius.a
 
 cpu_instructions.o: instructions.gen instruction_names.gen

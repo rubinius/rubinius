@@ -41,6 +41,7 @@ OBJECT object_class(STATE, OBJECT self) {
   return cls;
 }
 
+/*
 void rbs_show_classes(STATE, OBJECT self) {
   OBJECT cls = HEADER(self)->klass;
   printf("Class from %p\n", (void *)self);
@@ -54,6 +55,7 @@ void rbs_show_classes(STATE, OBJECT self) {
   }
   printf(" found => %p\n", (void *)cls);
 }
+*/
 
 OBJECT object_logical_class(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {

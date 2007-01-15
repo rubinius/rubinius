@@ -14,7 +14,7 @@ static int allocated_objects = 0;
 void _describe(OBJECT ptr) {
   object_memory om;
   om = (object_memory)main_om;
-  printf("Address:             %p (%lu)\n", (void *)ptr, (address)ptr);
+  printf("Address:             %p (%lu)\n", (void*)ptr, (unsigned long int)ptr);
   printf("Contained in baker?: %d/%d\n", baker_gc_contains_p(om->gc, ptr), baker_gc_contains_spill_p(om->gc, ptr));
   printf("Contained in m/s?:   %d\n", mark_sweep_contains_p(om->ms, ptr));
 }
@@ -109,8 +109,10 @@ void object_memory_major_collect(object_memory om, GPtrArray *roots) {
   }
 }
 
-OBJECT object_memory_tenure_object(object_memory om, OBJECT obj) {
+OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
   OBJECT dest;
+  object_memory om = (object_memory)data;
+  
   dest = mark_sweep_allocate(om->ms, NUM_FIELDS(obj));
   /*
   HEADER(dest)->flags = HEADER(obj)->flags;
@@ -169,7 +171,7 @@ void object_memory_check_memory(object_memory om) {
         tmp = NTH_FIELD_DIRECT(obj, i);
         if(REFERENCE_P(tmp) && !object_memory_is_reference_p(om,tmp)) { 
           printf("(%p-%p) %d: %s (%d of %d) contains a bad field!!\n", 
-            (void *)om->gc->current->address, (void *)om->gc->current->last,
+            (void*)om->gc->current->address, (void*)om->gc->current->last,
             num, _inspect(obj), i, fel);
           assert(0);
         }

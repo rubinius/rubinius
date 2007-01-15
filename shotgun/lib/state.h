@@ -63,7 +63,9 @@ OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, char *name);
 OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT obj);
 char *rbs_symbol_to_cstring(STATE, OBJECT sym);
+OBJECT rbs_symbol_to_string(STATE, OBJECT sym);
 char *rbs_inspect(STATE, OBJECT obj);
+char *_inspect(OBJECT obj);
 #endif
 
 static inline long rbs_to_int(OBJECT obj) {

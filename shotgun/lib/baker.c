@@ -6,6 +6,8 @@
 
 static int promoted = 0;
 
+#define DEFAULT_TENURE_AGE 6
+
 baker_gc baker_gc_new(int size) {
   baker_gc g;
   g = (baker_gc)malloc(sizeof(struct baker_gc_struct));
@@ -17,15 +19,16 @@ baker_gc baker_gc_new(int size) {
   g->current = g->space_a;
   g->next =    g->space_b;
   g->used =    0;
+  g->tenure_age = DEFAULT_TENURE_AGE;
   return g;
 }
 
 void baker_gc_describe(baker_gc g) {
   printf("Size:    %x (%d)\n", g->current->size, g->current->size);
   printf("Used:    %d\n", g->used);
-  printf("Current: %p => %p\n", (void *)g->current->address, 
-      (void *)g->current->last);
-  printf("Next:    %p => %p\n", (void *)g->next->address, (void *)g->next->last);
+  printf("Current: %p => %p\n", (void*)g->current->address, 
+      (void*)g->current->last);
+  printf("Next:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);
   printf("RS Size: %d\n", g->remember_set->len);
   printf("Promoted last: %d\n", promoted);
 }
@@ -104,15 +107,13 @@ int baker_gc_forwarded_object(OBJECT obj) {
 #define CLEAR_AGE(obj) (HEADER(obj)->gc = 0)
 #define FOREVER_YOUNG(obj) (HEADER(obj)->gc & 0x8000)
 
-/* TODO: make this a tunable value. */
-#define TENURE_AGE 6
 
 static inline void _mutate_references(baker_gc g, OBJECT iobj);
 
 int baker_gc_mutate_object(baker_gc g, OBJECT obj) {
   OBJECT dest;
-  if(g->tenure_now || ((AGE(obj) == TENURE_AGE) && !FOREVER_YOUNG(obj))) {
-    /* int age = AGE(obj); */
+  if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
+    // int age = AGE(obj);
     CLEAR_AGE(obj);
     promoted++;
     dest = (*g->tenure)(g->tenure_data, obj);
@@ -226,33 +227,12 @@ OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
 #define g_ptr_array_set_index(ary, idx, val) (ary->pdata[idx] = (void*)val)
 
 int baker_gc_collect(baker_gc g, GPtrArray *roots) {
-  int i, sz, enlarged_size, c;
-  OBJECT tmp, dest, root;
-  rheap new_heap, old_next;
+  int i, sz;
+  OBJECT tmp, root;
   promoted = 0;
   
   //printf("Running garbage collector...\n");
-    
-  enlarged_size = 0;
-  old_next = NULL;
-  if(heap_using_extended_p(g->current)) {
-    enlarged_size = g->current->size * 2;
-    new_heap = heap_new(enlarged_size);
-    DEBUG("Detected heap is using extended space, enlarging to %d.\n", enlarged_size);
-    if(!heap_fully_scanned_p(g->next)) {
-      DEBUG("Heap to enlarged was spilled to, transfering spill first.\n");
-      c = 0;
-      while((tmp = heap_next_unscanned(g->next))) {
-        dest = heap_copy_object(new_heap, tmp);
-        baker_gc_set_forwarding_address(tmp, dest);
-        c++;
-      }
-      DEBUG("Transfered %d objects from spill.\n", c);
-    }
-    old_next = g->next;
-    baker_gc_set_next(g, new_heap);
-  }
-    
+          
   sz = roots->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(roots, i));
@@ -283,11 +263,6 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
   if(g->used > g->current->size * 0.90) {
     DEBUG("Enlarging next!\n");
     baker_gc_enlarge_next(g, g->current->size * 1.5);
-  }
-  if(old_next) {
-    DEBUG("Cleaning up old next..\n");
-    heap_deallocate(old_next);
-    free(old_next);
   }
   
   // printf("%d objects promoted.\n", promoted);

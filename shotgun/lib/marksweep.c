@@ -270,6 +270,8 @@ void mark_sweep_describe(mark_sweep_gc ms) {
   printf("Last marked: %d\n", objects_marked);
 }
 
+int _object_stores_bytes(OBJECT self);
+
 void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;

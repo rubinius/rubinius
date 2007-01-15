@@ -10,6 +10,7 @@ struct baker_gc_struct {
   rheap current;
   rheap next;
   int used;
+  int tenure_age;
   GPtrArray *remember_set;
   void *tenure_data;
   OBJECT (*tenure)(void*, OBJECT obj);

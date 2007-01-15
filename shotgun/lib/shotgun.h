@@ -10,6 +10,10 @@
                         |(((x)&0x00FF0000)>>8)  )
 #endif
 
+#ifndef MAIN
+extern void *__main_address;
+#endif
+
 #include "rubinius.h"
 #include "state.h"
 #include "object.h"
