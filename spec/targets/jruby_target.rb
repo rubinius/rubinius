@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'spec'
-require File.dirname(__FILE__) + '/../mri_target'
+require File.dirname(__FILE__) + '/../jruby_target'
 
 class JRubyTargetSpec
   include JRubyTarget
@@ -21,5 +21,9 @@ context "JRubyTarget" do
 
   specify "example should receive a block" do
     lambda { @target.example }.should_raise ArgumentError
+  end
+  
+  specify "should provide a code method" do
+    @target.should_respond_to :code
   end
 end

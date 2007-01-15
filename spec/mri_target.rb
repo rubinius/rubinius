@@ -5,7 +5,11 @@ class RubiniusSpecExample; end
 module MRITarget
   def example(src='', &block)
     raise ArgumentError, "you must pass a block" unless block_given?
-    Object.class_eval(src)
+    src.respond_to?(:call) ? src.call : Object.class_eval(src)
     yield
+  end
+  
+  def code(&block)
+    block
   end
 end

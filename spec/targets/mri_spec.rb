@@ -22,4 +22,8 @@ context "MRITarget" do
   specify "example should receive a block" do
     lambda { @target.example }.should_raise ArgumentError
   end
+  
+  specify "should provide a code method" do
+    @target.should_respond_to :code
+  end
 end
