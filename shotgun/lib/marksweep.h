@@ -41,5 +41,4 @@ void mark_sweep_mark_phase(mark_sweep_gc ms, GPtrArray *roots);
 void mark_sweep_sweep_phase(mark_sweep_gc ms);
 void mark_sweep_collect(mark_sweep_gc ms, GPtrArray *roots);
 void mark_sweep_describe(mark_sweep_gc ms);
-
 #endif /* __MARKSWEEP_H__ */

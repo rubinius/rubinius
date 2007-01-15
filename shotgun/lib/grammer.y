@@ -2590,8 +2590,8 @@ syd_yyerror(msg, parse_state)
     const char *msg;
     rb_parse_state *parse_state;
 {
-/*    char *p, *pe,*buf;*/
-/*    int len, i, col;*/
+    // char *p, *pe, *buf;
+    // int len, i, col;
     
     create_error(parse_state, (char *)msg);
     
