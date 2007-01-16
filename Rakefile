@@ -342,6 +342,12 @@ task :bk do
   Rake::Task['build:kernel'].invoke
 end
 
+# Build rubinius vm (i.e. shotgun, kernel, compiler bootstrap)
+task :br do
+  deprecate 'build:rubinius'
+  Rake::Task['build:rubinius'].invoke
+end
+
 task :clean do
   deprecate 'build:clean'
   Rake::Task['build:clean'].invoke
