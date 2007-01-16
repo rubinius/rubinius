@@ -278,22 +278,27 @@ class Array
   def assoc(obj)
     find { |x|
       Array === x && x.first == obj
-    } || nil
+    }
   end
 
-  # FRED
-    def - (ary)
-      set_exclude = { }
-      out = []
-      ary.each {  |x|
-        set_exclude[x] = true
-      }
-      each {  |x|
-        unless set_exclude[x]
-          out << x
-          #        set_exclude[x] = true    No!
-        end
-      }
+  def rassoc(obj)
+    find { |x|
+      Array === x && x[1] == obj
+    }
+  end
+
+  def - (ary)
+    set_exclude = { }
+    out = []
+    ary.each {  |x|
+      set_exclude[x] = true
+    }
+    each {  |x|
+      unless set_exclude[x]
+        out << x
+        #        set_exclude[x] = true    No!
+      end
+    }
     out
   end
 
@@ -414,8 +419,87 @@ class Array
     out
   end
 
-  alias indexes values_at
-  alias indices values_at
+  def indexes (*args)
+    out = []
+    args.each { |x|
+      out << self[x]
+    }
+    out
+  end
+
+  alias indices indexes
+
+  def transpose
+    out = []
+    a1 = shift
+    a1.zip(*self) { |x| out << x }
+    out
+  end
+
+  def sort (&block)
+    if size <= 1
+      self.dup
+    else
+      midval = self[size/2]
+      al, am, ar = [], [], []
+      if block_given?
+        each { |o|
+          cmp = yield(o, midval)
+          if cmp < 0; al << o
+          elsif cmp == 0; am << o
+          else; ar << o
+          end
+        }
+        out = al.sort(&block)
+        out.concat am
+        out.concat(ar.sort(&block))
+      else
+        each { |o1|
+          cmp = o1 <=> midval
+          if cmp < 0; al << o1
+          elsif cmp == 0; am << o1
+          else; ar << o1
+          end
+        }
+        out = al.sort
+        out.concat am
+        out.concat(ar.sort)
+      end
+      out
+    end
+  end
+
+
+  def sort!(&block)
+    replace(sort(&block))
+  end
+
+  def reverse_each
+    i = @total
+    while i > 0
+      i -= 1
+      yield @tuple.at(i)
+    end
+    self
+  end
+
+  def rindex(obj)
+    i = @total
+    while i > 0
+      i -= 1
+      return i if @tuple.at(i) == obj
+    end
+    nil
+  end
+
+  def index(obj)
+    i = 0
+    while i < @total
+      return i if @tuple.at(i) == obj
+      i += 1
+    end
+    nil
+  end
 
   # TODO fill out pack.
   def pack(schema)
