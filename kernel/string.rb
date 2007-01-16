@@ -146,8 +146,9 @@ class String
   end
 
   def strip
-    r = /\s*([^\s].*[^\s])\s*/m
+    r = /\s*([^\s](.*[^\s])?)\s*/m
     m = r.match(self)
+    return '' unless m
     return m.captures[0]
   end
   

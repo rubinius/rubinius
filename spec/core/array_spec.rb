@@ -722,10 +722,18 @@ context "Array instance method" do
     end.should == [1, 4, 6]
   end
   
-  specify "shift should remove and return the first element" do
+  specify "shift should return the first element" do
     example do
       [5, 1, 1, 5, 4].shift
     end.should == 5
+  end
+  
+  specify "shift should remove the first element" do
+    example do
+        @a = [5, 1, 1, 5, 4]
+        @a.shift
+        @a
+    end.should == [1, 1, 5, 4]
   end
   
   specify "shift should return nil when the array is empty" do
