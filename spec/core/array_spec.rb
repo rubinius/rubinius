@@ -756,25 +756,25 @@ context "Array instance method" do
   specify "slice! with index should remove and return the element at index" do
     example do
       @a = [1, 2, 3, 4]
-      @a.slice!(2)
-      @a
-    end.should == [1, 2, 4]
+      @b = @a.slice!(2)
+      [@a, @b]
+    end.should == [[1, 2, 4], 3]
   end
   
   specify "slice! with start, length should remove and return length elements beginning at start" do
     example do
       @a = [0, 1, 1, 2, 3, 5, 8]
-      @a.slice!(2, 3)
-      @a
-    end.should == [0, 1, 5, 8]
+      @b = @a.slice!(2, 3)
+      [@a, @b]
+    end.should == [[0, 1, 5, 8], [1, 2, 3]]
   end
 
   specify "slice! with range should remove and return elements in range" do
     example do
       @a = [1, 1, 2, 2, 3, 3, 4, 5]
-      @a.slice!(1...4)
-      @a
-    end.should == [1, 3, 3, 4, 5]
+      @b = @a.slice!(1...4)
+      [@a, @b]
+    end.should == [[1, 3, 3, 4, 5], [1, 2, 2]]
   end
   
   specify "sort should return a new array from sorting elements using <=>" do

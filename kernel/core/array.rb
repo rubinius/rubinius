@@ -322,9 +322,20 @@ class Array
 # crashes compiler:
 #  def slice! (*args)
 #    out = self[*args]
-#    self[*args] = []
-#    result
+#    self[*args] = nil
+#    out
 #  end
+  def slice! (*args)
+    a1 = args.shift
+    out = self[a1, *args]       # FIXME: a1 is needed to avoid compiler crash
+    args.unshift a1
+
+    args << 1 if args.size == 1 && !(Range === args[0])
+    args << []
+    self.[]=(*args)
+#    self[*args] = []       # FIXME: this has mysterious bugs
+    out
+  end
 
   def flatten!
     ret = nil
