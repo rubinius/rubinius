@@ -21,7 +21,7 @@ module Bytecode
     attr_accessor :newlines
     
     def convert_to_sexp(code)
-      GC.disable
+      o = GC.disable
       if IO === code
         syd = SydneyParser.load_file code
       else
@@ -29,7 +29,7 @@ module Bytecode
       end
       #return [:newline, 1, "lib/kernel.rb", [:hash, [:lit, 1], [:str, ""], [:lit, 2], [:str, ""]]]
       result = syd.sexp(false, @newlines)
-      GC.enable
+      GC.enable unless o
       return result
     end
         
