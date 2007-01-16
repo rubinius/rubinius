@@ -35,12 +35,12 @@ static void   marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms)
 
 #define append_c(ch) g_string_append_c(buf, ch)
 static void _append_sz(GString *buf, unsigned int i) {
-  char bytes[_SZ_BYTES];
+  char bytes[4];
   bytes[0] = ( i >> 24 ) & 0xff;
   bytes[1] = ( i >> 16 ) & 0xff;
   bytes[2] = ( i >> 8  ) & 0xff;
   bytes[3] = i & 0xff;
-  g_string_append_len(buf, bytes, _SZ_BYTES);
+  g_string_append_len(buf, bytes, 4);
 }
 #define append_sz(sz) _append_sz(buf, (unsigned int)sz)
 #define append_str(str, sz) g_string_append_len(buf, str, sz)
