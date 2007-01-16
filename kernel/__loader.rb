@@ -23,7 +23,6 @@ begin
       out = Compile.execute ARGV.shift
       puts "\nOutput: #{out.inspect}"
     else
-      puts "loading #{arg}"
       load(arg)
     end
   end
