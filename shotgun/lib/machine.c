@@ -10,7 +10,9 @@
 #include <sys/param.h>
 #include <signal.h>
 
-#ifdef  __linux__
+#ifdef  __linux__ 
+#include <execinfo.h>
+#elif defined(__FreeBSD__)          /* FreeBSD libexecinfo */
 #include <execinfo.h>
 #elif defined(__APPLE__)
 #include "missing/backtrace.h"

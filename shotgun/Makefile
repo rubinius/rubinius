@@ -9,6 +9,11 @@ ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt
 endif
 
+# Support FreeBSD libexecinfo for backtrace etc.
+ifeq ($(UNAME),FreeBSD)
+  LIBS+=-lexecinfo
+endif
+
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 
