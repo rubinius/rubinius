@@ -1,5 +1,26 @@
 class Array
   include Enumerable
+
+  def initialize (sz=0, obj=nil)
+#    super
+    if Array === sz #.class == Array        # can we really use === here?
+      # dup from sz, which is really an Array
+      @tuple = Tuple.new(sz.size + 10)
+      @tuple.copy_from sz.tuple, 0
+      @total = sz.size
+    elsif block_given?          # FIXME in class.rb: This apparently never is true!
+      # fill sz times from yield
+      @tuple = Tuple.new(sz + 10)
+      sz.times { |i| @tuple.put i, yield }
+      @total = sz
+    else
+      # fill sz times from obj
+      @tuple = Tuple.new(sz + 10)
+      sz.times { |i| @tuple.put i, obj }
+      @total = sz
+    end
+  end
+
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will desend and spiral out to infinity!
@@ -367,6 +388,22 @@ class Array
   def self.[] (*args)
     args
   end
+
+  def values_at (*args)
+    out = []
+    args.each { |x|
+      if Range === x
+        out.concat self[x]
+        # FIXME:       [1, 2, 3, 4, 5].values_at(0..2, 1...3, 4..6).should == [1, 2, 3, 2, 3, 5, nil]
+      else
+        out << self[x]
+      end
+    }
+    out
+  end
+
+  alias indexes values_at
+  alias indices values_at
 
   # TODO fill out pack.
   def pack(schema)

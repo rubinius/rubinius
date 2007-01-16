@@ -3,9 +3,9 @@ class Class
     Ruby.primitive :allocate
   end
   
-  def new(*arg)
+  def new(*arg) # FIXME: , &block) -> crash
     obj = self.allocate()
-    obj.initialize(*arg)
+    obj.initialize(*arg) # FIXME: , &block)
     return obj
   end
   

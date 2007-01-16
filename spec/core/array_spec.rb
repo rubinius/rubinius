@@ -38,6 +38,13 @@ context "Array class method" do
   
   specify "new with size and block should return an array of size elements from the result of passing each index to block" do
     example do
+      @a = Array.new(5) { |i| i + 1 }
+      @a
+    end.should == [1, 2, 3, 4, 5]
+  end
+
+  specify "new with size and block should have proper side effects from passing each index to block" do
+    example do
       @a = []
       Array.new(5) { |i| @a << i + 1 }
       @a
