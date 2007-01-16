@@ -49,7 +49,7 @@ class Array
     return self
   end
   
-  def join(sep, meth=:to_s)
+  def join(sep='', meth=:to_s)
     str = ""
     return str if @total == 0
     tuple.join_upto(sep, @total, meth)
