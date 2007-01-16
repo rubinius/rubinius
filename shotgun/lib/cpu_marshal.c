@@ -35,10 +35,12 @@ static void   marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms)
 
 #define append_c(ch) g_string_append_c(buf, ch)
 static void _append_sz(GString *buf, unsigned int i) {
-#ifndef __BIG_ENDIAN__
-    i = swap32(i);
-#endif
-  g_string_append_len(buf, (char*)&i, 4);
+  char bytes[4];
+  bytes[0] = ( i >> 24 ) & 0xff;
+  bytes[1] = ( i >> 16 ) & 0xff;
+  bytes[2] = ( i >> 8  ) & 0xff;
+  bytes[3] = i & 0xff;
+  g_string_append_len(buf, bytes, 4);
 }
 #define append_sz(sz) _append_sz(buf, (unsigned int)sz)
 #define append_str(str, sz) g_string_append_len(buf, str, sz)
@@ -57,13 +59,10 @@ static void marshal_int(STATE, OBJECT obj, GString *buf) {
 }
 
 static int read_int(char *str) {
-  int i;
-  memcpy(&i, str, 4);
-  
-#ifndef __BIG_ENDIAN__
-  i = swap32(i);
-#endif
-  return i;
+  return (int)( ( (unsigned char)str[0] << 24 )
+              | ( (unsigned char)str[1] << 16 )
+              | ( (unsigned char)str[2] << 8  )
+              |   (unsigned char)str[3]         );
 }
 
 static OBJECT _nth_object(STATE, char *str, struct marshal_state *ms) {
