@@ -32,6 +32,12 @@ context "Integer instance method" do
          114.chr, 111.chr, 99.chr, 107.chr, 115.chr ]
     end.should == ["R", "u", "b", "i", "n", "i", "u", "s", " ", "r", "o", "c", "k", "s"]
   end
+
+  specify "chr should return a new string" do
+    example do
+       82.chr.equal?(82.chr)
+    end.should == false
+  end
   
   specify "downto should pass block decreasing values from self down to and including other Integer" do
     example do
