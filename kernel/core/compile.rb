@@ -7,6 +7,20 @@ module Compile
     require 'bytecode/rubinius'
     return desc.to_cmethod
   end
+  
+  def self.compile_string(string)
+    require 'bytecode/compiler'
+    sexp = string.to_sexp
+    comp = Bytecode::Compiler.new
+    desc = comp.compile_as_method(sexp, :__eval_script__)
+    require 'bytecode/rubinius'
+    return desc.to_cmethod
+  end
+  
+  def self.execute(string)
+    cm = compile_string(string)
+    cm.activate MAIN, []
+  end
 end
 
 class String
@@ -47,15 +61,7 @@ module Kernel
     cm = Compile.compile_file(path)
     Marshal.dump_to_file cm, "#{path}c"
   end
-  
-  def run_code(src)
-    name = "/tmp/rubinius-tmpfile-#{src.hash}.rb"
-    f = File.new(name, 'w')
-    f.write src
-    f.close
-    load(name)
-  end
-  
+    
   def require(thing)
     kinds = [thing + ".rbc", thing + ".rb"]
     

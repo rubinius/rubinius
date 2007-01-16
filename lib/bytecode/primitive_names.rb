@@ -80,7 +80,8 @@ module Bytecode
       :float_sub,
       :float_mul,
       :float_equal,
-      :fixnum_size
+      :fixnum_size,
+      :file_unlink
     ]
 
     FirstRuntimePrimitive = 1024

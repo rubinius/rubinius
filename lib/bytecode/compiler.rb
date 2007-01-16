@@ -456,7 +456,7 @@ module Bytecode
         single = (whns.size == 1 and !els)
         
         # nxt = post
-
+        
         process recv
                 
         cur = nil
@@ -468,7 +468,7 @@ module Bytecode
         whns.each do |w|
           cur = lbls.shift
           add "#{cur}:"
-          generate_when w, lbls[1], post
+          generate_when w, lbls[0], post
         end
         
         if lst

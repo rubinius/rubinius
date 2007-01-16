@@ -199,7 +199,9 @@ class ShotgunInstructions
   end
   
   def dup_top
-    "stack_push(stack_top());"
+    <<-CODE
+    stack_push(stack_top());
+    CODE
   end
   
   def pop

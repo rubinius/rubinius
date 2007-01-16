@@ -130,4 +130,8 @@ class File < IO
   def self.to_sexp(path, newlines)
     Ruby.primitive :file_to_sexp
   end
+  
+  def self.unlink(path)
+    Ruby.primitive :file_unlink
+  end
 end

@@ -48,6 +48,7 @@ void cpu_setup_top_scope(STATE, cpu c) {
   c->enclosing_class = state->global->object;
   c->method_module = state->global->object;
   c->new_class_of = state->global->class;
+  rbs_const_set(state, state->global->object, "MAIN", c->main);
 }
 
 void cpu_initialize_context(STATE, cpu c) {

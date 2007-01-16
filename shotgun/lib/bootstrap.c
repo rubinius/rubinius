@@ -113,5 +113,5 @@ void cpu_bootstrap(STATE) {
   
   cpu_bootstrap_exceptions(state);
   
-  state->global->external_ivars = hash_new(state);
+  state->global->external_ivars = hash_new(state);  
 }

@@ -14,11 +14,16 @@ begin
   until ARGV.empty?
     arg = ARGV.shift
     case arg
+    when '-dc'
+      puts "[Compiler debugging enabled]"
+      $DEBUG_COMPILER = true      
     when '-c'
       compile(ARGV.shift)
     when '-e'
-      run_code(ARGV.shift)
+      out = Compile.execute ARGV.shift
+      puts "\nOutput: #{out.inspect}"
     else
+      puts "loading #{arg}"
       load(arg)
     end
   end

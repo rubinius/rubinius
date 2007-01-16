@@ -5,11 +5,22 @@ module Bytecode
   class MethodDescription
     
     def to_cmethod
+      if $DEBUG_COMPILER
+        puts "==================================="
+        puts "Assembly of #{@name} in #{@file} (#{@path.inspect}):"
+        p @assembly
+      end
+      
       asm = Bytecode::Assembler.new(@literals, @name)
       begin
         stream = asm.assemble @assembly
       rescue Hash => e
         raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
+      end
+      
+      if $DEBUG_COMPILER
+        puts "\nPre-encoded:"
+        p stream
       end
             
       enc = Bytecode::InstructionEncoder.new
@@ -31,6 +42,12 @@ module Bytecode
       end
 
       cmeth.literals = encode_literals
+      if $DEBUG_COMPILER
+        puts "\nLiterals:"
+        p cmeth.literals
+        puts "==================================="
+      end
+      
       if @file
         # Log.info "Method #{@name} is contained in #{@file}."
         cmeth.file = @file.to_sym

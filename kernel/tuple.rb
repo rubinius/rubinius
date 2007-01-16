@@ -28,7 +28,12 @@ class Tuple
   end
   
   def inspect
-    "#<Tuple: #{join(", ", :inspect)}>"
+    str = "#<Tuple"
+    if fields != 0
+      str << ": #{join(", ", :inspect)}"
+    end
+    str << ">"
+    return str
   end
   
   def join(sep, meth=:to_s)

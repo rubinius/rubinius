@@ -503,6 +503,26 @@ class ShotgunPrimitives
     CODE
   end
   
+  def file_unlink
+    <<-CODE
+    stack_pop();
+    t1 = stack_pop();
+    if(!RISA(t1, string)) {
+      _ret = FALSE;
+    } else {
+      char *name;
+      name = string_as_string(state, t1);
+      if(unlink(name) == 0) {
+        stack_push(Qtrue);
+      } else {
+        /* TODO translate errno into an exception. */
+        stack_push(Qfalse);
+      }
+      free(name);
+    }
+    CODE
+  end
+  
 =begin
   def socket_open
     <<-CODE

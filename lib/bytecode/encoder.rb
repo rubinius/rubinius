@@ -148,13 +148,16 @@ class InstructionEncoder
   
   def process_args(kind, opcode, args)
     str = opcode.chr
+    # puts "#{kind} args. (#{str.inspect})"
     
     if IntArg.include?(kind)
       int = args.shift
       unless Numeric === int
         raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
       end
-      str << [int].pack("N")
+      is = [int].pack("N")
+      # puts "#{kind} has a first arg: #{int} => #{is.inspect}."
+      str << is
     end
     
     if TwoInt.include?(kind)
@@ -162,7 +165,9 @@ class InstructionEncoder
       unless Numeric === int
         raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
       end
-      str << [int].pack("N")
+      is = [int].pack("N")
+      # puts "#{kind} has a 2nd arg: #{int} => #{is.inspect}"
+      str << is
     end
     
     unless args.empty?
