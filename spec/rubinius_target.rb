@@ -71,7 +71,7 @@ module RubiniusTarget
       if status == 1
         raise RubiniusTargetError, out << "    ========================================="
       elsif !status or status > 100
-        raise RubiniusTargetError, "Shotgun has crashed"
+        raise RubiniusTargetError, "Shotgun has crashed: " + out
       end
     end
     r.close
