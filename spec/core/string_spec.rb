@@ -163,25 +163,37 @@ context "String instance method" do
 
   specify "capitalize should return a copy of string and convert the first character to uppercase and the rest to lowercase" do
     example do
-    end.should == 'not implemented'
+      @a = "LOWER"
+      @b = "MenTaLguY"
+      [@a.capitalize, @a, @b.capitalize, @b]
+    end.should == ["Lower", "LOWER", "Mentalguy", "MenTaLguY"]
   end
   
   specify "capitalize! should modify self to convert the first character to upper case and the rest to lowercase" do
     example do
-    end.should == 'not implemented'
+      @a = "this"
+      @b = "THIS"
+      [@a.capitalize!, @a, @b, @b.capitalize!]
+    end.should == ["This", "This", "This", "This"]
   end
 
   specify "casecmp should be a case-insensitive version of <=>" do
     example do
-    end.should == 'not implemented'
+      ["One".casecmp("one"), "Two".casecmp("too"), "MINE".casecmp("nINE")]
+    end.should == [0, 1, -1]
   end
 
   specify "center should return a string padded on both sides" do
     example do
-    end.should == 'not implemented'
+      ["one".center(9,'.'), "two".center(5), "middle".center(13,'-')]
+    end.should == ["...one...", " two ", "---middle----"]
   end
   
-  specify "center should return string when length of string is greater than argument"
+  specify "center should return a string when length of self is greater than argument" do
+    example do
+      ["this".center(3), "radiology".center(8, '-')]
+    end.should == ["this", "radiology"]
+  end
 
   specify "chomp should return a new string with the given record separator removed from the end" do
     example do
@@ -331,17 +343,19 @@ context "String instance method" do
     end.should == true
   end
 
-  specify "hex should " do
+  specify "hex should convert the leading characters (0x optional) to a number base 16" do
     example do
-    end.should == 'not implemented'
+      ["0x1".hex, "0x".hex, "0x10".hex, "ffb3".hex ]
+    end.should == [1, 0, 16, 65459]
+  end
+  
+  specify "hex should return 0 when characters are not a hexadecimal representation" do
+    example do
+      ["x0".hex, "Jupiter".hex]
+    end.should == [0, 0]
   end
 
-  specify "import should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "include? should " do
+  specify "include? should return true when self contains other string or character" do
     example do
     end.should == 'not implemented'
   end
@@ -376,74 +390,98 @@ context "String instance method" do
     end.should == 1
   end
 
-  specify "initialize_copy should " do
+  specify "initialize_copy should return a new string initialized with other" do
+    example do
+      "".send(:initialize_copy, "Dolly")
+    end.should == "Dolly"
+  end
+  
+  specify "insert with positive index should insert other string before the character at index" do
+    example do
+      ["rinius".insert(1,"ub"), "p".insert(0,"lis")]
+    end.should == ["rubinius", "lisp"]
+  end
+  
+  specify "insert with negative index should insert other string after the charracter at index" do
+    example do
+      ["to".insert(-1,"day"), "hosal".insert(-3,"pit")]
+    end.should == ["today", "hospital"]
+  end
+
+  specify "inspect should return a quoted string suitable to eval" do
+    example do
+      ["Rubinius".inspect, "Ruby".inspect]
+    end.should == ["\"Rubinius\"", "\"Ruby\""]
+  end
+
+  specify "intern should return the symbol corresponding to self" do
+    example do
+      ["intern".intern, "rubinius".intern, "$4.99 for one or two".intern]
+    end.should == [:intern, :rubinius, :'$4.99 for one or two']
+  end
+
+  specify "length should return the length of self" do
+    example do
+      ["".length, "one".length, "two".length, "three".length, "four".length]
+    end.should == [0, 3, 3, 5, 4]
+  end
+
+  specify "ljust should return a string left justified in width characters padded on the right" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "ljust should return self if length of self is greater than width" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "insert should " do
+  specify "lstrip should return self with leading whitespace characters removed" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "inspect should " do
+  specify "lstrip! should modify self removing leading whitespace characters" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "lstrip! should return nil if no changes were made" do
+    example do
+      "this".lstrip!
+    end.should == nil
+  end
+
+  specify "match should convert pattern to a Regexp and invoke its match method on self" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "intern should " do
+  specify "next should be a synonym for succ" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "length should " do
+  specify "next! should be a synonym for succ!" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "ljust should " do
+  specify "oct should convert the leading characters (+/- optional) to a number base 8" do
     example do
-    end.should == 'not implemented'
+      ["0845".oct, "7712".oct, "-012345678".oct]
+    end.should == [0, 4042, -342391]
   end
 
-  specify "lstrip should " do
+  specify "replace should replace the contents and taintedness of self with other" do
     example do
-    end.should == 'not implemented'
-  end
-
-  specify "lstrip! should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "match should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "next should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "next! should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "oct should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "quote should " do
-    example do
-    end.should == 'not implemented'
-  end
-
-  specify "replace should " do
-    example do
-    end.should == 'not implemented'
+      @a = "tainted"
+      @a.taint
+      @b = "pure"
+      @c = "replace"
+      @c.replace(@a)
+      [@a, @c, @c.tainted?, "".replace(@b), @b.tainted?]
+    end.should == ["tainted", "tainted", true, "pure", false]
   end
 
   specify "reverse should reverse the order of the characters" do
@@ -462,39 +500,55 @@ context "String instance method" do
     end.should == ["blasted", "blasted", true]
   end
 
-  specify "rindex should " do
+  specify "rindex with integer should return the last index of the character" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "rindex with string should return the last index of the substring" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "rjust should " do
+  specify "rindex with regexp should return the last index of the substring" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "rjust should return a string right justified in width characters padded on the left" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "rjust should return self if length of self is greater than width" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "rstrip should " do
+  specify "rstrip should return a string first removing trailing \\000 characters and then removing trailing spaces" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "rstrip! should " do
+  specify "rstrip! should modify self by first removing trailing \\000 characters and then removing trailing spaces " do
     example do
     end.should == 'not implemented'
   end
 
-  specify "scan should " do
+  specify "scan should return an array containing each substring matching pattern" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "scan with block should pass each substring matching pattern to block" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "scanf should " do
+  specify "size should be a synonym for length" do
     example do
-    end.should == 'not implemented'
-  end
-
-  specify "size should " do
-    example do
-    end.should == 'not implemented'
+      ["".size, "one".size, "two".size, "three".size, "four".size]
+    end.should == [0, 3, 3, 5, 4]
   end
 
   specify "slice should be a synonym for []" do
@@ -510,7 +564,19 @@ context "String instance method" do
     end.should == [101, "ll", "orl", "ell", "ell", nil, "z.rb", "."]
   end
   
-  specify "slice! should " do
+  specify "slice! should remove and return the specified portion from self" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "slice! with index should raise IndexError if the value is out of range" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "slice! with range should raise RangeError if the value is out of range" do
+    example do
+    end.should == 'not implemented'
   end
   
   specify "split with no argument should return an array of substrings separated by $;" do
@@ -555,22 +621,32 @@ context "String instance method" do
     end.should == 'not implemented'
   end
 
-  specify "strip should " do
+  specify "strip should return a string with trailing \\000, leading and trailing spaces removed" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "strip! should " do
+  specify "strip! should modify self to remove trailing \\000, and leading and trailing spaces" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "sub should " do
+  specify "sub should return a string with the first occurrence of pattern replaced with string" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "sub with block should return a string replacing the first occurrence of pattern with the value of the block" do
     example do
     end.should == 'not implemented'
   end
 
-  specify "sub! should " do
+  specify "sub! should modify self to replace the first occurrence of pattern with string" do
+    example do
+    end.should == 'not implemented'
+  end
+  
+  specify "sub! should return nil if no changes are made" do
     example do
     end.should == 'not implemented'
   end
@@ -590,14 +666,23 @@ context "String instance method" do
     end.should == 'not implemented'
   end
 
-  specify "swapcase should " do
+  specify "swapcase should return a string with lowercase characters converted to uppercase and vice versa" do
     example do
-    end.should == 'not implemented'
+      "MenTaLguY".swapcase
+    end.should == "mENtAlGUy"
   end
 
-  specify "swapcase! should " do
+  specify "swapcase! should modify self to convert lowercase characters to uppercase and vice versa" do
     example do
-    end.should == 'not implemented'
+      @s = "MenTaLguY"
+      [@s.swapcase!, @s]
+    end.should == ["mENtAlGUy", "mENtAlGUy"]
+  end
+  
+  specify "swapcase! should return nil if no changes were made" do
+    example do
+      "".swapcase!
+    end.should == nil
   end
 
   specify "to_f should " do
@@ -629,9 +714,11 @@ context "String instance method" do
     end.should == [12345, 12345, 12345, -12345, 0, 0, 99, 0, 10, 101, 294977, 17826049, 294977, 1100101, 0, 101, 294977, 1100101, 17826049]
   end
   
-  specify "to_s should " do
+  specify "to_s should return self" do
     example do
-    end.should == 'not implemented'
+      @s = "self"
+      [@s, @s.to_s, @s.to_s.equal?(@s)]
+    end.should == ["self", "self", true]
   end
 
   specify "to_str should " do
@@ -639,9 +726,10 @@ context "String instance method" do
     end.should == 'not implemented'
   end
 
-  specify "to_sym should " do
+  specify "to_sym should return a symbol created from self" do
     example do
-    end.should == 'not implemented'
+      ["ruby".to_sym, "rubinius".to_sym, "&smack".to_sym]
+    end.should == [:ruby, :rubinius, :'&smack']
   end
 
   specify "tr should " do
