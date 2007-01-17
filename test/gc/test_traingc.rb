@@ -1,5 +1,5 @@
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'gc/traingc'
-require 'test/unit'
 
 class TestTrainGC < Test::Unit::TestCase
   def setup

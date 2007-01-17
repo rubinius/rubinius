@@ -1,6 +1,6 @@
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'translation/typer'
 require 'translation/extractors'
-require 'test/unit'
 
 class TestTyper < Test::Unit::TestCase
   def setup

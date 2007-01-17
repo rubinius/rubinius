@@ -1,7 +1,6 @@
-require 'rubygems'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'bytecode/assembler'
 require 'cpu/runtime.rb'
-require 'test/unit'
 
 
 class TestBytecodeAssembler < Test::Unit::TestCase

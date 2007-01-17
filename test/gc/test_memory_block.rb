@@ -2,7 +2,7 @@
 #                 classname: asrt / meth =  ratio%
 #               MemoryBlock:    0 /    7 =   0.00%
 
-require 'test/unit' unless defined? $ZENTEST and $ZENTEST
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'gc/memory_block'
 
 class TestMemoryBlock < Test::Unit::TestCase

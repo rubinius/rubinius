@@ -1,5 +1,4 @@
-require 'rubygems'
-require 'test/unit'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'cpu/instructions'
 require 'cpu/runtime'
 require 'bytecode/encoder'
@@ -63,20 +62,6 @@ class TestInstructionEncoder < Test::Unit::TestCase
     assert_equal 1, bytes.size
     codes = decI bytes
     assert_is_op :set_class, codes[0]
-  end
-  
-  def test_find_field
-    bytes = @encoder.encode :find_field, 1
-    assert_equal 5, bytes.size
-    codes = decI bytes
-    assert_is_op :find_field, codes[0]
-    assert codes[1] == 1
-  end
-  
-  def test_store_into
-    bytes = @encoder.encode :store_into
-    assert_equal 1, bytes.size
-    assert_is_op :store_into, bytes[0]
   end
   
   def test_push_int

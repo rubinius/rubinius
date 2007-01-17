@@ -1,4 +1,4 @@
-require 'test/unit'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'translation/local_scoping'
 
 class TestLocalScoping < Test::Unit::TestCase

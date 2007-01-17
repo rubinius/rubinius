@@ -1,4 +1,4 @@
-require 'test/unit'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'gc/baker_gc'
 
 class TestBakerGC < Test::Unit::TestCase

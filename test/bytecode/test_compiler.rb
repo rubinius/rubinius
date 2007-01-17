@@ -1,10 +1,7 @@
-require 'rubygems'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'bytecode/assembler'
 require 'cpu/runtime.rb'
-require 'test/unit'
-
 require 'bytecode/compiler'
-require 'pp'
 
 class TestBytecodeMethodDescription < Test::Unit::TestCase
   def test_encode_literals
@@ -34,7 +31,7 @@ class TestBytecodeCompiler < Test::Unit::TestCase
     # normalize the rest of the sexp...
     comp << RsNormalizer.new
     
-    pp comp.process(x)
+    p comp.process(x)
   end
     
   def test_compile_as_method

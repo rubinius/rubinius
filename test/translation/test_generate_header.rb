@@ -1,4 +1,4 @@
-require 'test/unit'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'translation/generate_header'
 
 class TestGenerateHeader < Test::Unit::TestCase

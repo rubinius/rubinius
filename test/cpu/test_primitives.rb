@@ -1,6 +1,4 @@
-require 'cpu/primitives'
-require 'test/unit'
-
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'tempfile'
 require 'bytecode/constructor'
 

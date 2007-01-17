@@ -1,7 +1,6 @@
-require 'rubygems'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'bytecode/constructor'
 require 'cpu/runtime'
-require 'test/unit'
 require 'tempfile'
 
 class TestConverter < Test::Unit::TestCase

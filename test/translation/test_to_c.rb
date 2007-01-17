@@ -1,6 +1,5 @@
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'translation/to_c'
-require 'test/unit'
-require 'pp'
 
 class TestRsToC < Test::Unit::TestCase
   def setup

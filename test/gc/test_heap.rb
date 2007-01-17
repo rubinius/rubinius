@@ -1,4 +1,4 @@
-require 'test/unit' unless defined? $ZENTEST and $ZENTEST
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'gc/heap'
 
 class TestHeap < Test::Unit::TestCase

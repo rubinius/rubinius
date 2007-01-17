@@ -1,5 +1,4 @@
-require 'rubygems'
-require 'test/unit'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'cpu/instructions'
 require 'cpu/runtime'
 require 'bytecode/encoder'

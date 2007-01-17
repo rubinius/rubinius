@@ -1,5 +1,5 @@
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'gc/mark_sweepgc'
-require 'test/unit'
 
 class TestMarkSweepGC < Test::Unit::TestCase
   def setup

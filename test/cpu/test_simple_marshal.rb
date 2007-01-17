@@ -1,7 +1,5 @@
-require 'rubygems'
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'cpu/simple_marshal'
-require 'test/unit'
-
 require 'cpu/runtime'
 
 class TestSimpleMarshal < Test::Unit::TestCase

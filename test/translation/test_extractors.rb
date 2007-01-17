@@ -1,5 +1,5 @@
+require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 require 'translation/extractors'
-require 'test/unit'
 
 class TestExtractClasses # < Test::Unit::TestCase
   def setup
