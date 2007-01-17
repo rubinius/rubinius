@@ -1,6 +1,0 @@
-History.txt
-Manifest.txt
-README.txt
-Rakefile
-lib/test/unit.rb
-lib/test/unit/testcase.rb
