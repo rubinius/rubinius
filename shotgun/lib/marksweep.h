@@ -26,7 +26,7 @@ struct _mark_sweep_gc {
 typedef struct _mark_sweep_gc *mark_sweep_gc;
 
 #define MS_MARK 0x80
-#define MS_CHUNKSIZE 0x2000
+#define MS_CHUNKSIZE 0x20000
 
 mark_sweep_gc mark_sweep_new(int chunk_size);
 void mark_sweep_adjust_extremes(mark_sweep_gc ms, ms_chunk *new);
