@@ -419,6 +419,8 @@ class TestCore < RubiniusTestCase
         i = 0
         while i < 5
           go()
+          # What is this supposed to test without:
+          i += 1
         end
       end
     

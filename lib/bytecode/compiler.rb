@@ -345,6 +345,7 @@ module Bytecode
         while i = x.shift
           next if i.empty?
           process i
+#          add "pop" unless x.empty?               # stack cleanup FIXME! condition is lame
         end
       end
       
@@ -378,6 +379,7 @@ module Bytecode
         add "#{cond} #{bot}"
         set_label @redo
         process x.shift
+        add "pop"               # stack cleanup
         goto top
         set_label bot
         
@@ -394,6 +396,7 @@ module Bytecode
         top = unique_lbl()
         set_label top
         process(x.shift)
+        add "pop"               # stack cleanup
         goto top
         set_label @break
         @break = b
