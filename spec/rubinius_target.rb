@@ -76,9 +76,11 @@ module RubiniusTarget
     end
     r.close
     result, stdout = eval(out)
-    (class << result; self; end).module_eval do
-      define_method(:stdout_lines) { stdout }
-      define_method(:stdout) { stdout.join if stdout }
+    unless Symbol === result || Numeric === result
+      (class << result; self; end).module_eval do
+        define_method(:stdout_lines) { stdout }
+        define_method(:stdout) { stdout.join if stdout }
+      end
     end
     result
   end
@@ -86,12 +88,12 @@ module RubiniusTarget
   def template
     @template ||= <<-CODE
 class IO
-    alias :native_write :write
+  alias :native_write :write
 end
 
 def STDOUT.write(str)
-      @output ||= []
-      @output << str
+  @output ||= []
+  @output << str
 end
     
 def STDOUT.output
@@ -102,7 +104,14 @@ result = lambda do
   %s
   %s
 end.call
-STDOUT.native_write [result, STDOUT.output].inspect
+
+STDOUT.native_write "[ "
+result = result.inspect
+result = result.inspect if /^#\<.+\>/.match(result)
+STDOUT.native_write result
+STDOUT.native_write ", "
+STDOUT.native_write STDOUT.output.inspect
+STDOUT.native_write " ]"
 CODE
   end
   

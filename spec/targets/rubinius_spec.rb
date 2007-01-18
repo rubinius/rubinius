@@ -50,12 +50,12 @@ context "RubiniusTarget" do
   specify "template should provide Ruby source wrapper for calling example method in Rubinius" do
     @target.template.should == <<-CODE
 class IO
-    alias :native_write :write
+  alias :native_write :write
 end
 
 def STDOUT.write(str)
-      @output ||= []
-      @output << str
+  @output ||= []
+  @output << str
 end
     
 def STDOUT.output
@@ -66,7 +66,14 @@ result = lambda do
   %s
   %s
 end.call
-STDOUT.native_write [result, STDOUT.output].inspect
+
+STDOUT.native_write "[ "
+result = result.inspect
+result = result.inspect if /^#\<.+\>/.match(result)
+STDOUT.native_write result
+STDOUT.native_write ", "
+STDOUT.native_write STDOUT.output.inspect
+STDOUT.native_write " ]"
 CODE
   end
   
