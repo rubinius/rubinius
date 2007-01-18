@@ -81,7 +81,12 @@ module Bytecode
       :float_mul,
       :float_equal,
       :fixnum_size,
-      :file_unlink
+      :file_unlink,
+      :fixnum_or,
+      :fixnum_xor,
+      :fixnum_invert,
+      :fixnum_neg,
+      :fixnum_shift
     ]
 
     FirstRuntimePrimitive = 1024

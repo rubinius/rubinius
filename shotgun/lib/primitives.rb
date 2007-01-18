@@ -1575,6 +1575,142 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def fixnum_and
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      m = j & k;
+      t2 = I2N(m);
+      stack_push(t2);
+      _ret = TRUE;
+    }
+    CODE
+  end
+
+  def fixnum_or
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      m = j | k;
+      t2 = I2N(m);
+      stack_push(t2);
+      _ret = TRUE;
+    }
+    CODE
+  end
+
+  def fixnum_xor
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      m = j ^ k;
+      t2 = I2N(m);
+      stack_push(t2);
+      _ret = TRUE;
+    }
+    CODE
+  end
+
+  def fixnum_invert
+    <<-CODE
+    self = stack_pop();
+    if(!FIXNUM_P(self)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      t2 = I2N(~j);
+      stack_push(t2);
+      _ret = TRUE;
+    }
+    CODE
+  end
+
+  def fixnum_neg
+    <<-CODE
+    self = stack_pop();
+    if(!FIXNUM_P(self)) {
+      _ret = FALSE;
+    } else {
+      j = FIXNUM_TO_INT(self);
+      t2 = I2N(-j);
+      stack_push(t2);
+      _ret = TRUE;
+    }
+    CODE
+  end
+
+  def fixnum_shift
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    t2   = stack_pop();
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1) || !FIXNUM_P(t2)) {
+      _ret = FALSE;
+    } else {
+      long value;
+      value = FIXNUM_TO_INT(self);
+      int  width;
+      width = FIXNUM_TO_INT(t1);
+      int  dir;
+      dir = FIXNUM_TO_INT(t2);
+
+      /* shift direction -1 == left, 1 == right          */
+      /* negative width shifts in the opposite direction */
+      if (width < 0) {
+        dir   = -dir;
+        width = -width;
+      }
+
+      if (dir == 1) {
+        /* right shift */
+        if (width > 0) {
+          if (width >= sizeof(value)*8-1) {
+            if (value < 0) {
+              value = -1;
+            } else {
+              value = 0;
+            }
+          } else {
+            value >>= width;
+          }
+        }
+        t2 = I2N(value);
+        stack_push(t2);
+      }
+
+      if (dir == -1) {
+        /* left shift */
+        /* if (width > sizeof(value)*8-1 || */
+        /*   ((unsigned long)value) >> (sizeof(value)*8-1-width) > 0) { */
+        /*  t2 = bignum_left_shift(state, self, width); */
+        /*  stack_push(t2); */
+        /* } else { */
+          value <<= width;
+          t2 = I2N(value);
+          stack_push(t2);
+        /* } */
+      }
+      _ret = TRUE;
+    }
+    CODE
+  end
+
 end
 
 prim = ShotgunPrimitives.new

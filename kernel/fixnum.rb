@@ -23,6 +23,38 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_modulo
   end
   
+  def &(o)
+    Ruby.primitive :fixnum_and
+  end
+
+  def |(o)
+    Ruby.primitive :fixnum_or
+  end
+
+  def ^(o)
+    Ruby.primitive :fixnum_xor
+  end
+
+  def ~
+    Ruby.primitive :fixnum_invert
+  end
+
+  def -@
+    Ruby.primitive :fixnum_neg
+  end
+
+  def <<(c)
+    self.__fixnum_shift__(c, -1)
+  end
+
+  def >>(c)
+    self.__fixnum_shift__(c, 1)
+  end
+
+  def __fixnum_shift__(count, direction)
+    Ruby.primitive :fixnum_shift
+  end
+
   def <(o)
     (self <=> o) == -1
   end
