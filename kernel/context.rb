@@ -118,27 +118,100 @@ class Proc
   
   self.instance_fields = 3
   ivar_as_index :__ivars__ => 0, :block => 1, :check_args => 2
+
+  class << self
+    def from_environment(env, check_args=false)
+      if env.nil?
+        nil
+      elsif env.respond_to? :to_proc
+        env.to_proc
+      elsif env.kind_of?(BlockEnvironment)
+        obj = allocate()
+        obj.put 1, env
+        obj.put 2, check_args
+        obj
+      else
+        raise ArgumentError.new("Unable to turn a #{env.inspect} into a Proc")
+      end
+    end
+    
+    def new(&block)
+      return block
+    end
+    
+    # Return the proc given to the currently running method or 
+    # to the given MethodContext/Binding.
+    #
+    #   def bar(&prc)
+    #      a = [prc.nil?, Proc.given.nil?]
+    #      a << block_given? == !Proc.given.nil?
+    #      if block_given?
+    #         a << prc.object_id == Proc.given.object_id
+    #         a << prc.block.object_id == Proc.given.block.object_id
+    #         a << Proc.given.call(21)
+    #      end
+    #      a
+    #   end
+    #   
+    #   bar()                 # => [true, true, true]
+    #   bar() { |n| n * 2 }   # => [false, false, true, false, true, 42]
+    #
+    # An example mind trick using MethodContext.
+    #
+    #   def stormtrooper
+    #      yield "Let me see your identification."
+    #      obiwan { |reply| puts "Obi-Wan: #{reply}" }
+    #   end
+    #
+    #   def obiwan
+    #      yield "[with a small wave of his hand] You don't need to see his identification."
+    #      ctx = MethodContext.current.sender
+    #      Proc.given(ctx).call("We don't need to see his identification.")
+    #   end
+    #
+    #   stormtrooper { |msg| puts "Stormtrooper: #{msg}" }
+    #      
+    # produces the following output:
+    #
+    #   Stormtrooper: Let me see your identification.
+    #   Obi-Wan: [with a small wave of his hand] You don't need to see his identification.
+    #   Stormtrooper: We don't need to see his identification
+    #
+    # Using a binging to obtain the given proc where the binding was created
+    #
+    #   def stormtrooper
+    #      binding
+    #   end
+    #
+    #   def obiwan(trick)
+    #      yield "These aren't the droids you're looking for."
+    #      trick.call("There aren't the droids we're looking for.")
+    #      yield "He can go about his business."
+    #      trick.call("You can go about your business.")
+    #   end
+    #
+    #   trick = stormtrooper { |msg| puts "Stormtrooper: #{msg}" }
+    #   obiwan(Proc.given(trick)) { |msg| puts "Obi-Wan: #{msg}" }
+    #
+    def given(ctx = nil)
+      case ctx
+      when nil
+        ctx = MethodContext.current.sender.block
+      when MethodContext
+        ctx = ctx.block
+        # when BlockEnvironment
+        # when Binding
+        # ctx = ctx.context
+      end
+      from_environment(ctx)
+    end
+  
+  end
   
   def block
     @block
   end
   
-  def self.from_environment(env, check_args=false)
-    if env.nil?
-      nil
-    elsif env.respond_to? :to_proc
-      env.to_proc
-    else
-      obj = allocate()
-      obj.put 1, env
-      obj.put 2, check_args
-      obj
-    end
-  end
-  
-  def self.new(&block)
-    return block
-  end
   
   def inspect
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
@@ -147,28 +220,8 @@ class Proc
   def to_proc
     self
   end
+
   
-  def self.block_passed(blk)
-    if blk === Proc
-      blk = blk.block
-    elsif !blk.kind_of?(BlockEnvironment)
-      if blk.respond_to?(:to_proc)
-        prc = blk.to_proc
-        if Proc === prc
-          blk = prc.block
-        else
-          raise ArgumentError.new("to_proc did not return a Proc")
-        end
-      else
-        raise ArgumentError.new("Unable to turn a #{blk.class} into a Proc")
-      end
-    end
-      
-    obj = allocate()
-    obj.put 1, blk
-    return obj
-  end
-    
   def call(*args)
     obj = at(1)
     raise "Corrupt proc detected!" unless obj

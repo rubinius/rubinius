@@ -67,3 +67,61 @@ context "A Proc instance" do
   end
 end
 
+context "A Proc instance created using Proc.given" do
+  specify "should be nil if no block given" do
+    example do
+      def answer
+        Proc.given.nil?
+      end
+      answer
+    end.should == true
+  end
+
+  specify "should reference the same block" do
+    example do
+      def answer(&prc)
+        prc.block.object_id == Proc.given.block.object_id
+      end
+      answer { }
+    end.should == true
+  end
+
+  specify "should be able to call the block" do
+    example do
+      def answer(&prc)
+        a = [prc.nil?, Proc.given.nil?]
+         a << (block_given? == !Proc.given.nil?)
+         if block_given?
+            a << (prc.object_id == Proc.given.object_id)
+            a << (prc.block.object_id == Proc.given.block.object_id)
+            a << Proc.given.call(21)
+         end
+        a
+      end
+      
+      [answer, answer { |n| n * 2} ]
+    end.should == [ [true, true, true], [false, false, true, false, true, 42]]
+  end
+
+  specify "using a MethodContext should do the mind trick" do
+    example do
+      def stormtrooper
+        yield "Let me see your identification."
+        obiwan { |reply| puts "Obi-Wan: #{reply}" }
+      end
+      
+      def obiwan
+        yield "[with a small wave of his hand] You don't need to see his identification."
+        ctx = MethodContext.current.sender
+        Proc.given(ctx).call("We don't need to see his identification.")
+      end
+      
+      stormtrooper { |msg| puts "Stormtrooper: #{msg}" }
+    end.stdout.should == <<-OUT.unindent
+      Stormtrooper: Let me see your identification.
+      Obi-Wan: [with a small wave of his hand] You don't need to see his identification.
+      Stormtrooper: We don't need to see his identification.
+    OUT
+  end
+
+end
