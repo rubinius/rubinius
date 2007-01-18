@@ -130,3 +130,46 @@ CODE
      ]
   end
 end
+
+require File.dirname(__FILE__) + '/../spec_helper'
+context "Rubinius target" do
+  specify "should allow to get the strings written STDOUT" do
+    example do
+      puts "hola"
+      puts "space is significant in this heredoc"
+      puts "unindent removes the first blanks found on the first line"
+      puts "on each of these lines"
+      puts "adios"
+    end.stdout.should == <<-OUT.unindent
+      hola
+      space is significant in this heredoc
+      unindent removes the first blanks found on the first line
+      on each of these lines
+      adios
+    OUT
+    end
+
+  specify "should allow to get the lines written to STDOUT" do
+    example do
+      puts "hello"
+    end.stdout_lines.length == 1
+
+    example do
+      print "bye"
+    end.stdout_lines.first.should == "bye"
+  end
+
+  specify "should allow to access the evaluation result along with STDOUT" do
+    result = example do
+      puts 42
+      "The answer is"
+    end
+
+    result.should == "The answer is"
+    result.stdout_lines.should == ["42\n"]
+  end
+
+
+end
+
+
