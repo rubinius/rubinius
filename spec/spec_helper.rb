@@ -1,5 +1,15 @@
 $:.unshift File.dirname(__FILE__)
 
+class String
+  # remove indentation from the beginning of each line
+  # according to the number of blanks in the first line
+  def unindent
+    match = /^\s+/.match(self)
+    return unless match
+    self.gsub(/^\s{#{match[0].length}}/, "")
+  end
+end
+
 # Example courtesy of nicksieger, many thanks!
 class Spec::Runner::Context
   def before_context_eval
@@ -16,3 +26,4 @@ class Spec::Runner::Context
     end
   end
 end
+

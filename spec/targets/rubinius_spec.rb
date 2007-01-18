@@ -49,7 +49,24 @@ context "RubiniusTarget" do
   
   specify "template should provide Ruby source wrapper for calling example method in Rubinius" do
     @target.template.should == <<-CODE
-Kernel::p lambda { %s; %s }.call
+class IO
+    alias :native_write :write
+end
+
+def STDOUT.write(str)
+      @output ||= []
+      @output << str
+end
+    
+def STDOUT.output
+  @output
+end
+
+result = lambda do
+  %s
+  %s
+end.call
+STDOUT.native_write [result, STDOUT.output].inspect
 CODE
   end
   

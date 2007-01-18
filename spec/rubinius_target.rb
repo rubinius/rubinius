@@ -75,12 +75,34 @@ module RubiniusTarget
       end
     end
     r.close
-    eval out.chomp!
+    result, stdout = eval(out)
+    (class << result; self; end).module_eval do
+      define_method(:stdout_lines) { stdout }
+      define_method(:stdout) { stdout.join if stdout }
+    end
+    result
   end
   
   def template
     @template ||= <<-CODE
-Kernel::p lambda { %s; %s }.call
+class IO
+    alias :native_write :write
+end
+
+def STDOUT.write(str)
+      @output ||= []
+      @output << str
+end
+    
+def STDOUT.output
+  @output
+end
+
+result = lambda do
+  %s
+  %s
+end.call
+STDOUT.native_write [result, STDOUT.output].inspect
 CODE
   end
   
