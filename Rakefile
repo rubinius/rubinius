@@ -309,8 +309,8 @@ end
 
 desc "DEPRECATED: Prepare the code-cache directory"
 task :code_cache do
-  deprecate 'test:setup:code-cache'
-  Rake::Task['test:setup:code-cache'].invoke
+  deprecate 'test:setup:code_cache'
+  Rake::Task['test:setup:code_cache'].invoke
 end
 
 desc "DEPRECATED: Ensure that the correct version of the sydparse gem is installed."
