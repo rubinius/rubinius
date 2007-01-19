@@ -58,7 +58,7 @@ module RubiniusTarget
       STDIN.reopen(r2)
       Dir.chdir "#{rubinius_path}"
       
-      exec "./shotgun/rubinius ./lib/kernel.rbc #{file}"
+      exec "./shotgun/rubinius #{file}"
     }
     
     r2.close
