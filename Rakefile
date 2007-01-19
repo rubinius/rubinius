@@ -121,6 +121,7 @@ namespace :build do
   task :clean do
     FileUtils.rm_rf 'code-cache'
     FileUtils.rm Dir.glob('lib/kernel.rb*')
+    sh "find native -name '*.rbc' | xargs rm"
     Dir.chdir('shotgun')
     `make -e clean`
     Dir.chdir('..')
@@ -251,43 +252,48 @@ namespace :build do
     puts "\nNow do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser.\n\n"
   end
 
-  desc "Bootstrap the compiler."
-  task :compiler do
-    files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
-      sexp/simple_processor translation/normalize translation/local_scoping
-      sexp/composite_processor translation/states sexp/exceptions
-      bytecode/primitive_names!
+  namespace :compiler do
+    desc "Bootstrap the compiler."
+    task :bootstrap do
+      files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
+        sexp/simple_processor translation/normalize translation/local_scoping
+        sexp/composite_processor translation/states sexp/exceptions
+        bytecode/primitive_names!
 
-    files.each do |name|
-      file = "#{name}.rb"
-      dir = File.dirname(file)
-      dest_dir = File.join("native", dir)
-      path = File.expand_path File.join("lib", file)
-      dest = File.join("native", file)
-      FileUtils.mkdir_p dest_dir
-      FileUtils.symlink path, dest rescue nil
-      Dir.chdir "native" do
-        sh "../bin/obsolete.rcompile #{file}"
+      files.each do |name|
+        file = "#{name}.rb"
+        dir = File.dirname(file)
+        dest_dir = File.join("native", dir)
+        path = File.expand_path File.join("lib", file)
+        dest = File.join("native", file)
+        FileUtils.mkdir_p dest_dir
+        FileUtils.symlink path, dest rescue nil
+        Dir.chdir "native" do
+          sh "../bin/obsolete.rcompile #{file}"
+        end
+        raise "Failed to compile #{dest}" if $?.exitstatus != 0
       end
-      raise "Failed to compile #{dest}" if $?.exitstatus != 0
+
+      extra = %w!bytecode/rubinius!
+      extra.each do |name|
+        Dir.chdir "native" do
+          sh "../bin/obsolete.rcompile #{name}.rb"
+        end
+        raise "Failed to compile native/#{name}" if $?.exitstatus != 0
+      end
     end
-
-    extra = %w!bytecode/rubinius!
-    extra.each do |name|
+  
+    desc "Package up the compiler"
+    task :package do
+      File.unlink "compiler.rba" rescue nil
       Dir.chdir "native" do
-        sh "../bin/obsolete.rcompile #{name}.rb"
+        sh "zip ../runtime/compiler.rba **/*.rbc"
       end
-      raise "Failed to compile native/#{name}" if $?.exitstatus != 0
     end
   end
   
-  desc "Package up the compiler"
-  task :packcompiler do
-    File.unlink "compiler.rba" rescue nil
-    Dir.chdir "native" do
-      sh "zip ../runtime/compiler.rba **/*.rbc"
-    end
-  end
+  desc "Bootstrap and package the compiler"
+  task :compiler => ['build:compiler:bootstrap', 'build:compiler:package']
   
   desc "Builds shotgun, kernel, and bootstraps the compiler"
   task :rubinius => ['build:shotgun', 'build:kernel', 'build:compiler']
