@@ -427,7 +427,6 @@ void cpu_push_encloser(STATE, cpu c) {
 
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meths;
-  
   // Handle a special case where we try and add a method to main
   if(target == c->main) {
     target = c->enclosing_class;

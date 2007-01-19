@@ -49,11 +49,19 @@ module Bytecode
     def find_ivar_index(name)
       return nil unless @current_class
       idx = @indexed_ivars[@current_class.first][name]
+      # puts "Looking for #{name.inspect} on #{@current_class.first.inspect}: #{idx}"
       return idx if idx
       if sup = @current_class.last
         return @indexed_ivars[sup.to_s][name]
       end
       return nil
+    end
+    
+    def load_hints(path)
+      require 'yaml'
+      puts "Loading hints from #{path}"
+      hsh = YAML.load(File.read(path))
+      @indexed_ivars.update hsh
     end
     
     attr_accessor :current_class, :in_class_body, :in_method_body

@@ -1401,40 +1401,50 @@ class ShotgunPrimitives
   
   def archive_files
     <<-CODE
+    char *path;
     stack_pop(); /* blah */
     t1 = stack_pop();
     if(!RISA(t1, string)) {
       _ret = FALSE;
     } else {
-      stack_push(archive_list_files(state, string_byte_address(state, t1)));
+      path = string_as_string(state, t1);
+      stack_push(archive_list_files(state, path));
     }
     CODE
   end
   
   def archive_get_file
     <<-CODE
+    char *path, *file;
     stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
     if(!RISA(t1, string) || !RISA(t2, string)) {
       _ret = FALSE;
     } else {
-      stack_push(archive_get_file(state, 
-          string_byte_address(state, t1), string_byte_address(state, t2)));
+      path = string_as_string(state, t1);
+      file = string_as_string(state, t2);
+      stack_push(archive_get_file(state, path, file));
+      free(path);
+      free(file);
     }
     CODE
   end
   
   def archive_get_object
     <<-CODE
+    char *path, *file;
     stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
     if(!RISA(t1, string) || !RISA(t2, string)) {
       _ret = FALSE;
     } else {
-      stack_push(archive_get_object(state, 
-          string_byte_address(state, t1), string_byte_address(state, t2)));
+      path = string_as_string(state, t1);
+      file = string_as_string(state, t2);
+      stack_push(archive_get_object(state, path, file));
+      free(path);
+      free(file);
     }
     CODE
   end

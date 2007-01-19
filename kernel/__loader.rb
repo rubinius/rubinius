@@ -16,14 +16,27 @@ begin
     case arg
     when '-dc'
       puts "[Compiler debugging enabled]"
-      $DEBUG_COMPILER = true      
+      $DEBUG_COMPILER = true
+    when '-dl'
+      $DEBUG_LOADING = true
+      puts "[Code loading debugging enabled]"
     when '-c'
-      compile(ARGV.shift)
+      file = ARGV.shift
+      path = compile(file)
+      puts "Compiled #{file} to #{path}"
     when '-e'
       out = Compile.execute ARGV.shift
       puts "\nOutput: #{out.inspect}"
     else
-      load(arg)
+      if arg.prefix? "-I"
+        arg[2..-1].split(":").each do |path|
+          $:.unshift(path)
+        end
+      elsif arg.prefix? "-r"
+        require(arg[2..-1])
+      else
+        load(arg)
+      end
     end
   end
 rescue Object => e

@@ -134,7 +134,11 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
 
 static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT val) {
-  assert(fel < HEADER(obj)->fields);
+  if(fel >= HEADER(obj)->fields) {
+    printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
+      fel, NUM_FIELDS(obj), _inspect(obj));
+    assert(0);
+  }
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
   assert(val != 12);
 #ifdef INTERNAL_MACROS

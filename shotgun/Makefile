@@ -14,6 +14,10 @@ ifeq ($(UNAME),FreeBSD)
   LIBS+=-lexecinfo
 endif
 
+ifeq ($(UNAME),Linux)
+	LIBS+=-ldl
+endif
+
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 

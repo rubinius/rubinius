@@ -39,13 +39,16 @@ module Kernel
     if path.suffix? ".rbc"
       cm = CompiledMethod.load_from_file(path)
       raise LoadError, "Unable to load file at path: #{path}" unless cm
+      puts "[Loading #{path}]" if $DEBUG_LOADING
       return cm.activate_as_script
     elsif path.suffix? ".rb"
       comp = "#{path}c"
       if File.exists?(comp) && File.mtime(comp) >= File.mtime(path)
+        puts "[Loading #{comp} for #{path}]" if $DEBUG_LOADING
         cm = CompiledMethod.load_from_file(comp)
         raise LoadError, "Unable to load file at path: #{path}" unless cm
       else
+        puts "[Compiling and loading #{path}]" if $DEBUG_LOADING
         cm = Compile.compile_file(path)
         Marshal.dump_to_file cm, "#{path}c"
       end
@@ -58,8 +61,10 @@ module Kernel
   end
   
   def compile(path)
+    out = "#{path}c"
     cm = Compile.compile_file(path)
-    Marshal.dump_to_file cm, "#{path}c"
+    Marshal.dump_to_file cm, out
+    return out
   end
     
   def require(thing)
@@ -70,13 +75,11 @@ module Kernel
         path = "#{dir}/#{filename}"
         return false if $".include?(path)
         if dir.suffix?(".rba") and File.exists?(dir)
-          puts "looking for #{filename} in #{dir} (#{Archive.list_files(dir).inspect})"
+          # puts "looking for #{filename} in #{dir}" #(#{Archive.list_files(dir).inspect})"
           cm = Archive.get_object(dir, filename)
-          p cm
           if cm
-            puts "Found #{filename} in #{dir}"
+            # puts "Found #{filename} in #{dir}"
             $" << path
-            p cm
             return cm.activate_as_script
           end
         elsif File.exists?(path)

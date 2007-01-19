@@ -7,6 +7,7 @@
 #include "machine.h"
 #include <string.h>
 #include "array.h"
+#include "archive.h"
 #include <sys/param.h>
 #include <signal.h>
 
@@ -79,6 +80,198 @@ void machine_print_stack(machine m) {
   
 }
 
+/* Cleans up the code that uses it for access specific addresses. */
+static inline unsigned _mem_at(unsigned long addr) {
+  return *(unsigned long*)(addr);
+}
+
+#if defined (__i486__)
+#define X8632
+#endif
+
+
+#ifdef __ppc__
+
+#include <dlfcn.h>
+#include <ucontext.h>
+#define BETTER_BT 1
+
+void machine_gather_ppc_frames(ucontext_t *ctx, unsigned long *frames, int *count) {
+  unsigned long sp, pc;
+  int i;
+  
+  /* Populate the initial value of the stack pointer from
+     the context (probably generated from a signal) */
+  sp = ctx->uc_mcontext->ss.r1;
+  for(i = 0; i < *count && sp; i++) {
+    /* The address of the routine is stored 8 bytes past
+       the stark pointer on PPC. */
+    pc = _mem_at(sp + 8);
+    /* We subtract 4 since pc points to the next instruction, and
+     * we want the current one. */
+    frames[i] = pc - 4;
+    
+    if(sp == (unsigned long)__main_address) break;
+    /* The saved stack pointer is the first thing pushed
+       on the stack by the caller. */
+    sp = _mem_at(sp);
+  }
+  
+  *count = i + 1;
+}
+
+void machine_show_ppc_backtrace(ucontext_t *ctx) {
+  unsigned long sp, sym, offset;
+  Dl_info info;
+  
+  /* Populate the initial value of the stack pointer from
+     the context (probably generated from a signal) */
+  sp = ctx->uc_mcontext->ss.r1;
+  while(sp) {
+    /* The address of the routine is stored 8 bytes past
+       the stark pointer on PPC. */
+    sym = _mem_at(sp + 8);
+    if(!dladdr((void*)sym, &info)) {
+      return;
+    } else {
+      if (info.dli_sname == NULL)
+        info.dli_sname = "???";
+      if (info.dli_saddr == NULL) {
+        offset = 0;
+      } else {
+        offset = sym - (unsigned long)info.dli_saddr;        
+      }
+      
+      fprintf(stdout, "%10p <%s+%d> at %s\n",
+            (void*)sym, info.dli_sname, (int)offset, info.dli_fname);
+      
+      if(sp == (unsigned long)__main_address) return;
+      /* The saved stack pointer is the first thing pushed
+         on the stack by the caller. */
+      sp = _mem_at(sp);
+    }
+  }
+}
+
+/* Only for 32bit x86 */
+#elif defined(X8632)
+#define __USE_GNU
+#include <dlfcn.h>
+#include <ucontext.h>
+#define BETTER_BT 1
+
+void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *count) {
+  unsigned long sp, pc;
+  int i;
+  
+  /* Populate the initial value of the stack pointer.
+     Different OS's have different structures for ucontext,
+     so we use #ifdef's here to figure out where to get sp from. */
+  #ifdef __linux__
+  sp = ctx->uc_mcontext.gregs[REG_EBP];
+  #elif __APPLE__
+  sp = ctx->uc_mcontext.sc.sc_ebp;
+  #endif
+  
+  for(i = 0; i < *count && sp; i++) {
+    pc = _mem_at(sp + 4);
+    /* We subtract 4 since pc points to the next instruction, and
+     * we want the current one. */
+    frames[i] = pc - 4;
+    
+    if(sp == (unsigned long)__main_address) break;
+    /* The saved stack pointer is the first thing on the stack at
+       the current pointer. */
+    sp = _mem_at(sp);
+  }
+  
+  *count = i + 1;
+}
+
+#endif
+
+#ifdef __linux__
+void machine_resolve_address(unsigned long pc, 
+                    char *function, int fs, char *loc, int ls) {
+  FILE *io;
+  char cmd[1025];
+
+  memset(cmd, 0, 1025);
+
+  snprintf(cmd, 1024, "addr2line -f -e %s %p", current_machine->interpreter, (void*)pc);
+  io = popen(cmd, "r");
+  fgets(function, fs, io);
+  function[strlen(function)-1] = 0;
+  fgets(loc, ls, io);
+  loc[strlen(loc)-1] = 0;
+  pclose(io);
+}
+#elif defined(__APPLE__)
+void machine_resolve_address(unsigned long pc, 
+                    char *function, int fs, char *loc, int ls) {
+  FILE *io;
+  char cmd[1025];
+  int line;
+  char buf[1025];
+
+  memset(cmd, 0, 1025);
+
+  snprintf(cmd, 1024, "atos -o %s %p", current_machine->interpreter, (void*)pc);
+  io = popen(cmd, "r");
+  fgets(cmd, 1025, io);
+  if(cmd[0] == '0') {
+    strncpy(function, "unknown", fs);
+    strncpy(loc, "??:0", ls);
+  } else {
+    line = sscanf(cmd, "_%s (in %s (%s\n", function, buf, loc);
+    loc[strlen(loc)-1] = 0;
+  }  
+  pclose(io);
+}
+#else
+void machine_resolve_address(unsigned long pc,
+                  char *function, int fs, char *loc, int ls) {
+  int offset;
+  Dl_info info;
+  if(!dladdr((void*)pc, &info)) {
+    strncpy(function, "<unknown>", fs);
+    strncpy(loc, "??:0", ls);
+  } else {
+    if (info.dli_sname == NULL)
+      info.dli_sname = "??";
+    if (info.dli_saddr == NULL) {
+      offset = 0;
+    } else {
+      offset = pc - (unsigned long)info.dli_saddr;        
+    }
+
+    snprintf(function, fs, "%s+%d", info.dli_sname, (int)offset);
+    strncpy(loc, info.dli_fname, ls);
+  }
+}
+#endif
+
+void machine_show_backtrace(unsigned long *frames, int count) {
+  unsigned long sym;
+  int i;
+  char function[1025];
+  char loc[1025];
+
+  for(i = 0; i < count; i++) {
+    memset(function, 0, 1025);
+    memset(loc, 0, 1025);
+    sym = frames[i];
+    machine_resolve_address(sym, function, 1024, loc, 1024);
+    fprintf(stdout, "%10p <%s> at %s\n", (void*)sym, function, loc);
+  }
+}
+
+void machine_print_registers(machine m) {
+  printf("IP: %04d     SP: %04d\n", m->c->ip, m->c->sp);
+  printf("AC: %04d     AR: %04d\n", m->c->argcount, m->c->args);
+  printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));
+}
+
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   
   char *signame;
@@ -107,13 +300,28 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     
   printf("\nAn error has occured: %s\n\n", signame);
   printf("C backtrace:\n");
+#ifdef BETTER_BT
+  do {
+    unsigned long frames[128];
+    int count = 128;
+#   if defined(__ppc__)
+      machine_gather_ppc_frames(ctx, frames, &count);
+#   elif defined(X8632)
+      machine_gather_x86_frames(ctx, frames, &count);
+#   endif
+    machine_show_backtrace(frames, count);
+  } while(0);
+#else
   bt_size = backtrace(bt, 3);
   
-	backtrace_symbols_fd(bt, bt_size, 1);
-	printf("\nRuby backtrace:\n");
-	machine_print_callstack(current_machine);
-	printf("\nRuby stack:\n");
-	machine_print_stack(current_machine);
+  backtrace_symbols_fd(bt, bt_size, 1);
+#endif
+  printf("\nRuby backtrace:\n");
+  machine_print_callstack(current_machine);
+  printf("\nRuby stack:\n");
+  machine_print_stack(current_machine);
+  printf("\nVM Registers:\n");
+  machine_print_registers(current_machine);
   
   exit(-2);
 }
@@ -178,6 +386,15 @@ void machine_show_exception(machine m, OBJECT exc) {
   printf(" => %s (%s)\n", string_as_string(m->s, NTH_FIELD(exc, 0)), rbs_inspect(m->s, HEADER(exc)->klass));
 }
 
+int machine_run(machine m) {
+  cpu_run(m->s, m->c);
+  if(RTEST(m->c->exception)) {
+    machine_show_exception(m, m->c->exception);
+    return TRUE;
+  }
+  return TRUE;
+}
+
 int machine_run_file(machine m, char *path) {
   OBJECT meth;
   
@@ -188,12 +405,7 @@ int machine_run_file(machine m, char *path) {
   }
   
   cpu_run_script(m->s, m->c, meth);
-  cpu_run(m->s, m->c);
-  if(RTEST(m->c->exception)) {
-    machine_show_exception(m, m->c->exception);
-    return TRUE;
-  }
-  return TRUE;
+  return machine_run(m);
 }
 
 void machine_set_const(machine m, char *str, OBJECT val) {
@@ -242,6 +454,7 @@ void machine_setup_ruby(machine m, char *name) {
     name = buf;
   }
   machine_set_const(m, "RUBY_BIN_PATH", string_new(m->s, name));
+  m->interpreter = strdup(buf);
 }
 
 void machine_setup_argv(machine m, int argc, char **argv) {
@@ -287,6 +500,30 @@ void machine_setup_env(machine m) {
   } while(cur);
   
   machine_set_const(m, "ENV", hash);
+}
+
+OBJECT machine_load_archive(machine m, char *path) {
+  OBJECT order, cm;
+  char *files, *nxt, *top;
+  order = archive_get_file(m->s, path, ".load_order.txt");
+  if(!RTEST(order)) return Qfalse;
+  
+  top = files = string_as_string(m->s, order);
+  nxt = strchr(files, '\n');
+  
+  while(nxt) {
+    *nxt++ = 0;
+    cm = archive_get_object(m->s, path, files);
+    if(!RTEST(cm)) return Qfalse;
+    cpu_run_script(m->s, m->c, cm);
+    machine_run(m);
+    files = nxt;
+    nxt = strchr(nxt, '\n');
+  }
+  
+  free(top);
+  
+  return Qtrue;
 }
 
 char *_inspect(OBJECT obj) {

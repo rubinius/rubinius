@@ -29,7 +29,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     
   next_literal;
   sym = _lit;
-  
+    
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
     val = class_allocate(state);

@@ -36,6 +36,11 @@ module Bytecode
     def compile(code)
       sexp = convert_to_sexp(code)
       comp = Bytecode::Compiler.new
+      if File.exists?("kernel/hints")
+        comp.load_hints "kernel/hints"
+      elsif File.exists?("hints")
+        comp.load_hints "hints"
+      end
       desc = comp.compile_as_script sexp, :__script__
       return desc.to_cmethod
     end

@@ -110,8 +110,12 @@ end
 task :build => 'build:all'
 
 namespace :build do
-  desc "Rebuild shotgun from scratch"
-  task :all => ['build:clean', 'setup:syd', 'build:shotgun', 'build:kernel', 'build:compiler']
+  
+  desc "Build shotgun only."
+  task :all => ['build:clean', 'setup:syd', 'build:shotgun']
+  
+  desc "Rebuild all parts and archives from scratch."
+  task :dev => ['build:clean', 'setup:syd', 'build:shotgun', 'build:kernel', 'build:compiler']
 
   desc "Cleanup build files."
   task :clean do
@@ -140,7 +144,7 @@ namespace :build do
     end
 
     # Combine the separate .rb files in lib into a single kernel.rb
-    task :kernel do
+    task :kernel_old do
       fd = File.open("lib/kernel.rb", "w")
       Dir["kernel/*.rb"].sort.each do |path|
         next if File.basename(path) == "__loader.rb"
@@ -159,16 +163,18 @@ namespace :build do
 
       fd << File.read("kernel/__loader.rb")
       fd.close
-    end
+    end    
   end
 
   task :fields do
     $:.unshift "lib"
     require 'types'
     fd = File.open("kernel/00auto_fields.rb", "w")
+    hints = {}
     Rubinius::Types.each do |name, mod|
       next if mod::TotalFields.size == 0
       sname = mod.name.split("::").last
+      sub = {}
       fd.puts "class #{sname}"
       idx = 0
       str = []
@@ -176,15 +182,22 @@ namespace :build do
         if fel == :instance_variables
           fel = :__ivars__
         end
+        sub["@#{fel}".to_sym] = idx
         str << [":#{fel} => #{idx}"]
         # fd.puts "index_accessor :#{fel}, #{idx}"
         fd.puts "  def #{fel}; Ruby.asm \"push self\\npush #{idx}\\nfetch_field\"; end"
         idx += 1
       end
+      hints[sname] = sub
       fd.puts "  ivar_as_index #{str.join(", ")}"
       fd.puts "end"
     end
     fd.close
+    
+    require 'yaml'
+    File.open("kernel/hints", "w") do |f|
+      f << hints.to_yaml
+    end
   end
 
   desc "Build shotgun C components."
@@ -194,12 +207,41 @@ namespace :build do
   end
 
   desc "Build the kernel."
-  task :kernel => 'build:setup:kernel' do
-    puts "Compiling kernel.rb..."
-    puts `bin/obsolete.rcompile lib/kernel.rb`
-    raise 'Failed to compile kernel.rb' if $?.exitstatus != 0
-  end
+  task :kernel do
+    files = nil
+    Dir.chdir("kernel") do
+      files = Dir["*.rb"].sort
+      files.delete "__loader.rb"
 
+      files += Dir["core/*.rb"]
+      files << "__loader.rb"
+      
+      changed = []
+      files.each do |file|
+        cmp = "#{file}c"
+        unless File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+          changed << cmp
+          system "../bin/obsolete.rcompile #{file}"
+          raise "Failed to compile #{file}" if $?.exitstatus != 0
+        end
+        file << "c"
+      end
+
+      File.open(".load_order.txt","w") do |f|
+        f.puts files.join("\n")
+      end
+      
+      kern = "../runtime/kernel.rba"
+
+      # File.unlink("../kernel.rba") if File.exists?("../kernel.rba")
+      if File.exists? kern
+        system "zip -u #{kern} .load_order.txt #{changed.join(' ')}"
+      else
+        system "zip #{kern} .load_order.txt #{files.join(' ')}"
+      end
+    end
+  end
+  
   desc "Build syd-parser."
   task :syd do
     puts "Building externals/syd-parser gem...\n"
@@ -224,14 +266,26 @@ namespace :build do
       dest = File.join("native", file)
       FileUtils.mkdir_p dest_dir
       FileUtils.symlink path, dest rescue nil
-      sh "bin/obsolete.rcompile #{dest}"
+      Dir.chdir "native" do
+        sh "../bin/obsolete.rcompile #{file}"
+      end
       raise "Failed to compile #{dest}" if $?.exitstatus != 0
     end
 
     extra = %w!bytecode/rubinius!
     extra.each do |name|
-      sh "bin/obsolete.rcompile native/#{name}.rb"
+      Dir.chdir "native" do
+        sh "../bin/obsolete.rcompile #{name}.rb"
+      end
       raise "Failed to compile native/#{name}" if $?.exitstatus != 0
+    end
+  end
+  
+  desc "Package up the compiler"
+  task :packcompiler do
+    File.unlink "compiler.rba" rescue nil
+    Dir.chdir "native" do
+      sh "zip ../runtime/compiler.rba **/*.rbc"
     end
   end
   
