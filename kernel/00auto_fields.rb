@@ -1,3 +1,34 @@
+class MatchData
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def regexp; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def full; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def region; Ruby.asm "push self\npush 4\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
+end
+class Class
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def name; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
+  def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
+  def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6, :instance_fields => 7, :instance_flags => 8
+end
+class Object
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0
+end
+class Regexp
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def data; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def names; Ruby.asm "push self\npush 3\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
+end
 class CompiledMethod
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   def primitive; Ruby.asm "push self\npush 1\nfetch_field"; end
@@ -32,18 +63,6 @@ class MetaClass
   def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
   def attached_instance; Ruby.asm "push self\npush 9\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6, :instance_fields => 7, :instance_flags => 8, :attached_instance => 9
-end
-class Class
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def name; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
-  def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
-  def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6, :instance_fields => 7, :instance_flags => 8
 end
 class BlockEnvironment
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -84,6 +103,13 @@ class Hash
   def default; Ruby.asm "push self\npush 5\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5
 end
+class String
+  def bytes; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def characters; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def encoding; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def data; Ruby.asm "push self\npush 3\nfetch_field"; end
+  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
+end
 class Module
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
@@ -93,12 +119,9 @@ class Module
   def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
 end
-class String
-  def bytes; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def characters; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def encoding; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def data; Ruby.asm "push self\npush 3\nfetch_field"; end
-  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
+class IO
+  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
+  ivar_as_index :descriptor => 0
 end
 class BlockContext
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -118,27 +141,4 @@ class MethodTable
   def entries; Ruby.asm "push self\npush 4\nfetch_field"; end
   def default; Ruby.asm "push self\npush 5\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5
-end
-class MatchData
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def regexp; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def full; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def region; Ruby.asm "push self\npush 4\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
-end
-class IO
-  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
-  ivar_as_index :descriptor => 0
-end
-class Object
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0
-end
-class Regexp
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def data; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def names; Ruby.asm "push self\npush 3\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
 end

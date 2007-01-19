@@ -206,9 +206,18 @@ namespace :build do
     system("make -e -C shotgun rubinius")
     raise 'Failed to build shotgun components' if $?.exitstatus != 0
   end
+  
+  FileList['lib/types/*.rb'].each do |src|
+  	file 'kernel/hints' => src
+  end
+    
+  file 'kernel/hints' do
+    puts "Building hints and fields..."
+    Rake::Task['build:fields'].invoke
+  end
 
   desc "Build the kernel."
-  task :kernel do
+  task :kernel => 'kernel/hints' do
     files = nil
     Dir.chdir("kernel") do
       files = Dir["*.rb"].sort
@@ -236,7 +245,11 @@ namespace :build do
 
       # File.unlink("../kernel.rba") if File.exists?("../kernel.rba")
       if File.exists? kern
-        system "zip -u #{kern} .load_order.txt #{changed.join(' ')}"
+        if changed.empty?
+          puts "No files to update."
+        else
+          system "zip -u #{kern} .load_order.txt #{changed.join(' ')}"
+        end
       else
         system "zip #{kern} .load_order.txt #{files.join(' ')}"
       end
