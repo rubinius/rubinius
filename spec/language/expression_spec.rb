@@ -56,8 +56,10 @@ context "if expression" do
       [@a, @b, @c, @d]
     end.should == [false, false, false, false]
   end
+end
 
-  specify "unless is the contrary of if, it's happy with false returns" do
+context "unless expression" do
+  specify "unless should evaluate the else body when the unless expression is false" do
     example do
       @a = unless false: true; else false; end
       @b = unless false then true; else false; end
@@ -73,10 +75,10 @@ context "if expression" do
       [@a, @b, @c, @d]
     end.should == [true, true, true, true]
   end
+  
 end
-
 context "case expression" do
-  specify "simple case" do
+  specify "should evaluate the body of the when clause whose expression matches the case target expression" do
     example do
       case 1
         when 1: true
@@ -84,7 +86,7 @@ context "case expression" do
     end.should == true
   end
 
-  specify "for a same result, comparison variables can be collated with a comma" do
+  specify "should evaluate the body of the when clause whose array expression includes the case target expression" do
     example do
       case 2
         when 1,2: true
@@ -92,7 +94,7 @@ context "case expression" do
     end.should == true
   end
 
-  specify "you can also use ranges for a numeric comparison" do
+  specify "should evaluate the body of the when clause whose range expression includes the case target expression" do
     example do
       case 5
       when 1..20: true
@@ -100,7 +102,7 @@ context "case expression" do
     end.should == true
   end
 
-  specify "for a default exit, use else" do
+  specify "should evaluate the body of the else clause if no when expressions match the case target expression" do
     example do
       case 3
       when 6: false
@@ -121,16 +123,17 @@ context "case expression" do
   end
 =end
   
-  specify "that if no value is given to case, the default is true" do
+  specify "should evaluate the body of the first when clause that is true when no case target expression is given" do
     example do
       case
       when 3==3: true
+      when 4==4: false
       end
     end.should == true
   end
 
   # NOTE : This should not work yet, since Onig is not integrated.
-  specify "if a string is given, regexp can be used" do
+  specify "should evaluate the body of the when clause whose expression is a regex that matches the case target expression" do
     example do
       case 'hello'
       when /^hell/: true # mouahahaha
@@ -138,7 +141,7 @@ context "case expression" do
     end.should == true
   end
 
-  specify "if class are given as comparators, they are used to compare the var's class (using var.kind_of? i think)" do
+  specify "should evaluate the body of the when clause whose expression is a class using class === case target expression" do
     example do
       case 'x'
       when String: true
@@ -148,41 +151,46 @@ context "case expression" do
 
 end
 
-=begin todo
-loop do
-  body
+# * break terminates loop immediately.
+# * redo immediately repeats w/o rerunning the condition.
+# * next starts the next iteration through the loop.
+# * retry restarts the loop, rerunning the condition.
+
+context "loop" do
+  # loop do
+  #   body
+  # end
 end
 
-while bool-expr [do]
- body
+context "while expression" do
+  
+  # while bool-expr [do]
+  #  body
+  # end
+
+  # begin
+  #  body
+  # end until bool-expr
+
+  # expr while bool-expr
+
 end
 
-until bool-expr [do]
- body
+context "until expression" do
+  # until bool-expr [do]
+  #  body
+  # end
+
+  # begin
+  #  body
+  # end while bool-expr
+
+  # expr until bool-expr
+
 end
 
-begin
- body
-end while bool-expr
-
-begin
- body
-end until bool-expr
-
-for name[, name]... in expr [do]
-  body
+context "for expression" do
+  # for name[, name]... in expr [do]
+  #   body
+  # end
 end
-
-expr.each do | name[, name]... |
-  body
-end
-
-expr while bool-expr
-expr until bool-expr
-
-    * break terminates loop immediately.
-    * redo immediately repeats w/o rerunning the condition.
-    * next starts the next iteration through the loop.
-    * retry restarts the loop, rerunning the condition.
-
-=end
