@@ -460,6 +460,12 @@ context "Array instance method" do
     end.should == true
   end
   
+  specify "first should return nil if self is empty" do
+    example do
+      [].first
+    end.should == nil
+  end
+  
   specify "first with count should return the first count elements" do
     example do
       [true, false, true, nil, false].first(2)
@@ -583,6 +589,12 @@ context "Array instance method" do
     example do
       [1, 1, 1, 1, 2].last
     end.should == 2
+  end
+  
+  specify "last should return nil if self is empty" do
+    example do
+      [].last
+    end.should == nil
   end
   
   specify "last with count should return the last count elements" do

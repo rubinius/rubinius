@@ -91,6 +91,7 @@ class Array
 
   
   def first
+    return nil if @total == 0
     @tuple.at(0)
   end
   
