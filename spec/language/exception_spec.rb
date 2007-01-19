@@ -79,4 +79,51 @@ context "Exceptions" do
       Foo.new.exception
     end.should == [1, 2, 3, 4, 7, 4]
   end
+
+  # TODO : Add "x = something() rescue nil" construct
+  # TODO : Check standard exceptions availability
+  #
+  # * Exception
+  #   o NoMemoryError
+  #   o ScriptError
+  #     + LoadError
+  #     + NotImplementedError
+  #     + SyntaxError
+  #   o SignalExceptio
+  #     + Interrupt
+  #   o StandardError (default for rescue) 
+  #     + ArgumentError
+  #     + IOError
+  #       * EOFError
+  #     + IndexError
+  #     + LocalJumpError
+  #     + NameError
+  #       * NoMethodError
+  #     + RangeError
+  #       * FloatDomainError
+  #     + RegexpError
+  #     + RuntimeError (default for raise)
+  #     + SecurityError
+  #     + SystemCallError
+  #       * Errno::*
+  #     + SystemStackError
+  #     + ThreadError
+  #     + TypeError
+  #     + ZeroDivisionError
+  #   o SystemExit
+  #   o fatal
+  #
+  # Exception construct :
+  #
+  #   begin
+  #     expr..
+  #   [rescue [error_type [=> var],..]
+  #     expr..]..
+  #   [else
+  #     expr..]
+  #   [ensure
+  #     expr..]
+  #   end
+  #
 end
+
