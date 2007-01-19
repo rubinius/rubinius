@@ -89,6 +89,7 @@ module Bytecode
     end
     
     def assemble(str)
+      puts str if ENV["DEBUG_ASSEMBLER"]
       lines = str.split("\n")
       lines.each { |l| parse_line l }
       translate_labels
@@ -96,6 +97,7 @@ module Bytecode
         ent[1] = @current_op
       end
       out = @output
+      puts out.inspect if ENV["DEBUG_ASSEMBLER"]
       return out
     end
 

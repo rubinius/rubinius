@@ -196,7 +196,7 @@ namespace :build do
   desc "Build the kernel."
   task :kernel => 'build:setup:kernel' do
     puts "Compiling kernel.rb..."
-    `bin/obsolete.rcompile lib/kernel.rb`
+    puts `bin/obsolete.rcompile lib/kernel.rb`
     raise 'Failed to compile kernel.rb' if $?.exitstatus != 0
   end
 

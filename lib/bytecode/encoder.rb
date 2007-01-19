@@ -119,6 +119,7 @@ class InstructionEncoder
     stream.each do |ent|
       out << encode(*ent)
     end
+    puts out.inspect if ENV["DEBUG_ASSEMBLER"]
     return out
   end
   
@@ -142,7 +143,7 @@ class InstructionEncoder
     
     orig = args.dup
     out = process_args(kind, opcode, args)
-    # puts "#{kind} (#{orig.inspect}) encoded as: #{out.inspect}"
+    puts "#{kind} (#{orig.inspect}) encoded as: #{out.inspect}" if ENV["DEBUG_ASSEMBLER"]
     out
   end
   
@@ -150,6 +151,8 @@ class InstructionEncoder
     str = opcode.chr
     # puts "#{kind} args. (#{str.inspect})"
     
+    # puts args.inspect if ENV["DEBUG_ASSEMBLER"]
+
     if IntArg.include?(kind)
       int = args.shift
       unless Numeric === int
