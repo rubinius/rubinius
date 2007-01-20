@@ -121,7 +121,7 @@ namespace :build do
   task :clean do
     FileUtils.rm_rf 'code-cache'
     FileUtils.rm Dir.glob('lib/kernel.rb*')
-    sh "find native -name '*.rbc' | xargs rm"
+    sh "(find native -name '*.rbc' | xargs rm) || true"
     Dir.chdir('shotgun')
     `make -e clean`
     Dir.chdir('..')
