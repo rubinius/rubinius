@@ -83,6 +83,9 @@ module Bytecode
       lits = @literals
       # puts " => literals: #{lits.inspect}"
       lits.each do |lit|
+        if MethodDescription === lit
+          lit = lit.to_cmethod
+        end
         tup.put i, lit
         i += 1
       end
