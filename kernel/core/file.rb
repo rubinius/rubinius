@@ -12,6 +12,11 @@ class File < IO
     Ruby.primitive :io_open
   end
   
+  def self.open(path, mode)
+    raise Exception, "File.open with block is not implemented" if block_given?
+    return open_with_mode(path, mode)
+  end
+  
   def self.raw_stat(path)
     Ruby.primitive :stat_file
   end

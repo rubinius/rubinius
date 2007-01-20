@@ -4,4 +4,8 @@ class IO
     exc = IOError.new("Unable to write '#{str}' via #{self}")
     raise exc
   end
+  
+  def <<(obj)
+    write(obj.to_s)
+  end
 end
