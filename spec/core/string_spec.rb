@@ -624,8 +624,8 @@ context "String instance method" do
 
   specify "intern should return the symbol corresponding to self" do
     example do
-      ["intern".intern, "rubinius".intern, "$4.99 for one or two".intern]
-    end.should == [:intern, :rubinius, :'$4.99 for one or two']
+      ["intern".intern, "rubinius".intern]
+    end.should == [:intern, :rubinius]
   end
 
   specify "length should return the length of self" do
