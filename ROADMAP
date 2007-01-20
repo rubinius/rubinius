@@ -241,7 +241,10 @@ linked from ./native (see below).
 ./lib/bytecode/compiler.rb              -- translates sexps into assembly language
 ./lib/bytecode/assembler.rb             -- assembler
 ./lib/bytecode/encoder.rb               -- generates the actual bytecodes
-./lib/bytecode/primitive_names.rb
+./lib/bytecode/primitive_names.rb       -- give fixnum indexes to primitives, which are C code
+                                           that implements parts of the Ruby core/stdlib
+                                           Note: DO NOT reorganize these names as you will
+                                           break binary compatibility
 
 This is the compiler that translates Ruby (as parsed by grammar.y)
 into Rubinius bytecodes.  The same code is interpreted in MRI by
@@ -312,15 +315,26 @@ These directories contain the tests for making sure Rubinius actually
 implements Ruby.  ./test is the old syntax to write a test, ./spec is the
 new syntax.
 
+RSpec is the machinery behind executing these specs. The intention is to both
+1) have specs for Ruby as a language and set of standard librarie, and 2) to
+TDD/BDD the development of Rubinius. Some spec directories below are 
+implementation agnostic and some are specific to Rubinius.
+
+To allow the specs to be executed by different implementation, a host/target
+configuration is used. The 'host' is the Ruby implementation that is
+executing RSpec. The 'target' is the Ruby implementation that is executing
+the content of the particular specs. 
+
 [[ Add commentary on the files below:
-./spec/compatibility
+./spec/compatibility                         -- incomplete; intended to test compatibility of different
+                                                implementations
 ./spec/compatibility/compatibility_spec.rb
 ./spec/compatibility/expressions
 ./spec/compatibility/expressions/array
 ./spec/compatibility/expressions/misc
 ./spec/compatibility/expressions/primitives
 ./spec/compatibility/target_context_extension.rb
-./spec/core
+./spec/core                                 -- specs for any Classes in the Ruby core library
 ./spec/core/array_spec.rb
 ./spec/core/bignum_spec.rb
 ./spec/core/class_spec.rb
@@ -343,8 +357,11 @@ new syntax.
 ./spec/core/time_spec.rb
 ./spec/core/true_spec.rb
 ./spec/defined_fixtures.rb
-./spec/jruby_target.rb
-./spec/language
+./spec/jruby_target.rb                      -- implements the 'target' side for running specs with JRuby
+./spec/language                             -- specs that are implementation agnostic and are intended
+                                               to describe the "language" aspects like grammar and
+                                               syntax, including things like literals (e.g. "string",
+                                               {} for Hash, [] for Array, etc.)       
 ./spec/language/exception_spec.rb
 ./spec/language/expression_spec.rb
 ./spec/language/keywords
@@ -359,14 +376,14 @@ new syntax.
 ./spec/language/literals/string_spec.rb
 ./spec/language/operators_spec.rb
 ./spec/language/variables_spec.rb
-./spec/library
+./spec/library                              -- specs for any classes in Ruby stdlib library
 ./spec/library/enumerator_spec.rb
 ./spec/library/time_spec.rb
-./spec/mri_target.rb
-./spec/parser
+./spec/mri_target.rb                        -- implements the 'target' side for running specs with MRI
+./spec/parser                               -- specs to drive development of a new Ruby parser
 ./spec/parser/symbol_spec.rb
-./spec/rubinius_target.rb
-./spec/shotgun
+./spec/rubinius_target.rb                   -- implements the 'target' side for running specs with Rubinius
+./spec/shotgun                              -- specs to drive development of the Rubinius VM written in C
 ./spec/shotgun/bignum_spec.rb
 ./spec/shotgun/compression_spec.rb
 ./spec/shotgun/fixnum_spec.rb
@@ -374,12 +391,12 @@ new syntax.
 ./spec/shotgun/string_spec.rb
 ./spec/shotgun/tuple_spec.rb
 ./spec/spec_helper.rb
-./spec/targets
+./spec/targets                              -- specs to drive development of the various 'targets'
 ./spec/targets/jruby_target.rb
 ./spec/targets/mri_spec.rb
 ./spec/targets/rubinius_spec.rb
 
-./test/bytecode
+./test/bytecode                             -- tests to drive development of the compiler tool chain
 ./test/bytecode/test_assembler.rb
 ./test/bytecode/test_compiler.rb
 ./test/bytecode/test_constructor.rb
