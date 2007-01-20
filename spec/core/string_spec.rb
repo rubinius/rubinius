@@ -1057,8 +1057,8 @@ context "String instance method" do
 
   specify "to_sym should return a symbol created from self" do
     example do
-      ["ruby".to_sym, "rubinius".to_sym, "&smack".to_sym]
-    end.should == [:ruby, :rubinius, :'&smack']
+      ["ruby".to_sym, "rubinius".to_sym]
+    end.should == [:ruby, :rubinius]
   end
 
   specify "tr should replace characters in to_string with corresponding characters in from_string" do
