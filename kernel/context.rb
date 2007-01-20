@@ -177,7 +177,7 @@ class Proc
     #   Obi-Wan: [with a small wave of his hand] You don't need to see his identification.
     #   Stormtrooper: We don't need to see his identification
     #
-    # Using a binging to obtain the given proc where the binding was created
+    # Using a binding to obtain the given proc where the binding was created
     #
     #   def stormtrooper
     #      binding
