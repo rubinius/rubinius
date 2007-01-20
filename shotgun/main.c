@@ -7,19 +7,34 @@
 
 void *__main_address;
 
-static char *find_kernel() {
+static char kernel_path[PATH_MAX+1];
+
+static char *find_kernel(char *rubinius_path) {
   char *env;
   struct stat st = {0,};
-  
   env = getenv("KERNEL");
-  if(env) return env;
-    
-  if(stat("runtime/kernel.rba", &st) == 0) {
-    return "runtime/kernel.rba";
+  if(env)
+  {
+      strncpy (&kernel_path[0], env, PATH_MAX );
+  }
+  else {
+      int len;
+      
+      /* Get dirname of rubinius */
+      strncpy (&kernel_path[0], rubinius_path, PATH_MAX );
+      dirname ( kernel_path );
+      len = PATH_MAX - strlen ( kernel_path );
+      strncat ( &kernel_path[0], "/../runtime/kernel.rba", len );
+      if (stat( kernel_path, &st) != 0)
+      {
+          strncpy (&kernel_path[0], rubinius_path, PATH_MAX );
+          dirname ( kernel_path );
+          len = PATH_MAX - strlen ( kernel_path );
+          strncat ( &kernel_path[0], "/../runtime/kernel.rbc", len );          
+      }
   }
   
-  /* TODO check the system library path */
-  return "lib/kernel.rbc";
+  return kernel_path;
 }
 
 int main(int argc, char **argv) {
@@ -34,7 +49,7 @@ int main(int argc, char **argv) {
      backtrace knows where to stop looking for return address. */
   __main_address = __builtin_frame_address(0);
   
-  kernel = find_kernel();
+  kernel = find_kernel( argv[0] );
   if(!kernel) {
     printf("Unable to find a kernel to load!\n");
     return 1;

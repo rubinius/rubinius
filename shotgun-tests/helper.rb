@@ -49,7 +49,7 @@ module RubiniusHelper
       STDIN.reopen(r2)
       Dir.chdir "#{cached_cache_root}"
       
-      exec "#{cached_rbs_root}/shotgun/rubinius #{cached_rbs_root}/lib/kernel.rbc #{cached_cache_root}/#{name}.rbc"
+      exec "#{cached_rbs_root}/shotgun/rubinius #{cached_cache_root}/#{name}.rbc"
     }
     
     r2.close
