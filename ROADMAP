@@ -19,6 +19,11 @@ It is used to build runtime/*.rba (see below).
 Because of GC related bugs in sydparse (see below), it disables GC at
 the start.
 
+It uses things under CURRENT below, as well as:
+
+./lib/bytecode/r18.rb
+./lib/bytecode/constructor.rb
+
 ./externals/syd-parser
 
 This is a Ruby parser based on MRI.  Somewhat buggy.  There is little
@@ -233,10 +238,9 @@ linked from ./native (see below).
 ./lib/.gdb_history              -- (Junk)
 
 ./lib/bytecode
-./lib/bytecode/assembler.rb
-./lib/bytecode/compiler.rb
-./lib/bytecode/constructor.rb
-./lib/bytecode/encoder.rb
+./lib/bytecode/compiler.rb              -- translates sexps into assembly language
+./lib/bytecode/assembler.rb             -- assembler
+./lib/bytecode/encoder.rb               -- generates the actual bytecodes
 ./lib/bytecode/primitive_names.rb
 
 This is the compiler that translates Ruby (as parsed by grammar.y)
@@ -433,7 +437,7 @@ FUTURE:
 Ruby stuff that is not currently used, but served as input for writing
 the C parts of Rubinius.
 
-./lib/bytecode/r18.rb
+
 ./lib/cpu
 ./lib/cpu/bootstrap.rb
 ./lib/cpu/instructions.rb
