@@ -3,6 +3,7 @@
 #include "shotgun.h"
 #include "machine.h"
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <string.h>
 
 void *__main_address;
@@ -13,24 +14,30 @@ static char *find_kernel(char *rubinius_path) {
   char *env;
   struct stat st = {0,};
   env = getenv("KERNEL");
-  if(env)
-  {
+
+#define BUILD_KERNEL_PATH(kp,rp,ext)                        \
+  do                                                        \
+  {                                                         \
+      int __len__;                                          \
+                                                            \
+      strncpy ((kp), (rp), PATH_MAX );                      \
+      dirname ( (kp) );                                     \
+      __len__ = PATH_MAX - strlen ( (kp) );                 \
+      strncat ( (kp), "/../runtime/kernel."ext, __len__ );  \
+  }                                                         \
+  while(0)
+  
+  if(env)  {
       strncpy (&kernel_path[0], env, PATH_MAX );
   }
-  else {
-      int len;
-      
-      /* Get dirname of rubinius */
-      strncpy (&kernel_path[0], rubinius_path, PATH_MAX );
-      dirname ( kernel_path );
-      len = PATH_MAX - strlen ( kernel_path );
-      strncat ( &kernel_path[0], "/../runtime/kernel.rba", len );
+  else
+  {    
+      BUILD_KERNEL_PATH (&kernel_path[0], rubinius_path, "rba" );   
+      /* Is kernel.rba available ? */
       if (stat( kernel_path, &st) != 0)
       {
-          strncpy (&kernel_path[0], rubinius_path, PATH_MAX );
-          dirname ( kernel_path );
-          len = PATH_MAX - strlen ( kernel_path );
-          strncat ( &kernel_path[0], "/../runtime/kernel.rbc", len );          
+          /* No ? so let's take kernel.rbc  */
+          BUILD_KERNEL_PATH (&kernel_path[0], rubinius_path, "rbc" );
       }
   }
   
