@@ -1,0 +1,536 @@
+The contents of this repository are somewhat confusing, as there is
+old stuff that is still needed for bootstrapping, current stuff, as
+well as future stuff that is lying dormant for steps still to be
+taken.
+
+Here is a quick overview over the most important files.
+
+* SHOULD_BE_REMOVED:
+
+./bin/old.rubinius
+
+* OLD, but needed:
+
+./bin/obsolete.rcompile
+
+This is the script for starting the compiler used during
+bootstrapping.  It uses MRI (Matz' Ruby Interpreter).
+It is used to build runtime/*.rba (see below).
+Because of GC related bugs in sydparse (see below), it disables GC at
+the start.
+
+./externals/syd-parser
+
+This is a Ruby parser based on MRI.  Somewhat buggy.  There is little
+incentive to fix sydparse, as the current version of rubinius uses its
+own parser in grammar.y (see below, also derived from MRI).
+
+* STALE:
+
+./bin/shotgun
+
+* CURRENT:
+
+./code-cache
+
+This keeps cached bits of compiled Ruby, e.g. from the test suites.
+This cache is the reason why running the tests again is so much faster
+than running them the first time.
+Stale compiled files (.rbc) in this directory can make testing the
+compiler very confusing.
+
+./include
+./include/rubinius.h
+./shotgun/lib
+
+These are the directories where the C part of Rubinius lives, which
+compile into:
+
+./shotgun/rubinius
+
+There are a lot of .d files (tracking dependencies) in ./shotgun/lib
+which you can ignore (unless you have a problem with the Makefile
+dependency mechanism).
+
+[[ add commentary on the files below:
+./shotgun/lib/archive.c
+./shotgun/lib/archive.h
+./shotgun/lib/array.c
+./shotgun/lib/array.h
+./shotgun/lib/auto.c
+./shotgun/lib/auto.h
+./shotgun/lib/auto_ins.h
+./shotgun/lib/baker.c
+./shotgun/lib/baker.h
+./shotgun/lib/bignum.c
+./shotgun/lib/bignum.h
+./shotgun/lib/bootstrap.c
+./shotgun/lib/bootstrap.h
+./shotgun/lib/bytearray.c
+./shotgun/lib/bytearray.h
+./shotgun/lib/class.c
+./shotgun/lib/class.h
+./shotgun/lib/cpu.c
+./shotgun/lib/cpu.h
+./shotgun/lib/cpu_instructions.c        -- shell; includes instructions.gen
+./shotgun/lib/cpu_marshal.c
+./shotgun/lib/cpu_primitives.c          -- shell: includes system_primitives.gen
+./shotgun/lib/cuby_primitives.rb
+./shotgun/lib/float.c
+./shotgun/lib/float.h
+./shotgun/lib/genheader.rb
+./shotgun/lib/grammar.c
+./shotgun/lib/grammar.h
+./shotgun/lib/grammar.y
+./shotgun/lib/grammer_internal.h
+./shotgun/lib/grammer_lex.c.tab
+./shotgun/lib/grammer_node.h
+./shotgun/lib/grammer_runtime.c
+./shotgun/lib/grammer_runtime.h
+./shotgun/lib/hash.c
+./shotgun/lib/hash.h
+./shotgun/lib/heap.c
+./shotgun/lib/heap.h
+./shotgun/lib/instruction_names.gen
+./shotgun/lib/instructions.gen          -- generated from instructions.rb
+./shotgun/lib/instructions.rb           -- source for the core bytecodes interpreter
+./shotgun/lib/io.c
+./shotgun/lib/io.h
+./shotgun/lib/librubinius.a
+./shotgun/lib/log.c
+./shotgun/lib/log.h
+./shotgun/lib/machine.c
+./shotgun/lib/machine.h
+./shotgun/lib/Makefile
+./shotgun/lib/marksweep.c
+./shotgun/lib/marksweep.h
+./shotgun/lib/metaclass.c
+./shotgun/lib/metaclass.h
+./shotgun/lib/methctx.c
+./shotgun/lib/methctx.h
+./shotgun/lib/methtbl.c
+./shotgun/lib/methtbl.h
+./shotgun/lib/missing
+./shotgun/lib/missing/backtrace.c
+./shotgun/lib/missing/backtrace.h
+./shotgun/lib/module.c
+./shotgun/lib/module.h
+./shotgun/lib/object.c
+./shotgun/lib/object.h
+./shotgun/lib/object_memory.c
+./shotgun/lib/object_memory.h
+./shotgun/lib/primitives
+./shotgun/lib/primitives/fixnum.rb
+./shotgun/lib/primitives/ltm.rb
+./shotgun/lib/primitives.rb
+./shotgun/lib/regexp.c
+./shotgun/lib/regexp.h
+./shotgun/lib/rubinius.c
+./shotgun/lib/shotgun.h
+./shotgun/lib/state.c
+./shotgun/lib/state.h
+./shotgun/lib/string.c
+./shotgun/lib/string.h
+./shotgun/lib/symbol.c
+./shotgun/lib/symbol.h
+./shotgun/lib/system_primitives.gen     -- generated from primitives.rb
+./shotgun/lib/tuple.c
+./shotgun/lib/tuple.h
+./shotgun/lib/var_table.c
+./shotgun/lib/var_table.h
+./shotgun/main.c
+./shotgun/Makefile
+./shotgun/test
+./shotgun/test/test_instructions.c
+./shotgun/test/test_state.c
+]]
+
+./shotgun/external_libs
+
+The C part of Rubinius uses a number of external libraries that are
+included in the repository for convenience:
+
+./shotgun/external_libs/libedit
+
+...
+
+./shotgun/external_libs/libtommath
+
+Bignum math.
+
+./shotgun/external_libs/libzip
+
+ZIP file format.
+
+./shotgun/external_libs/onig
+
+Onigurama, the magic regexp parser/interpreter.
+
+./kernel
+
+This is the Ruby language additions to the basic VM.
+They are compiled into runtime/kernel.rba (the .rbc files in this
+directory are build-time intermediates).
+In ./kernel itself, there are the files that need to be loaded first
+(almost in alphabetical order; see .load_order.txt);
+./kernel/core contains the rest of the Ruby language library
+(i.e. everything in MRI that is available without a 'require').
+
+[[ Add commentary on the files below
+./kernel/.load_order.txt        -- generated file
+./kernel/hints                  -- generated file
+./kernel/00auto_fields.rb       -- generated file
+
+./kernel/00io.rb
+./kernel/00object.rb
+./kernel/01class.rb
+./kernel/02module.rb
+./kernel/03hash.rb
+./kernel/array.rb
+./kernel/bignum.rb
+./kernel/class.rb
+./kernel/comparable.rb
+./kernel/compiled_method.rb
+./kernel/compression.rb
+./kernel/context.rb
+./kernel/continuation.rb
+./kernel/core/00io.rb
+./kernel/core/01range.rb
+./kernel/core/archive.rb
+./kernel/core/array.rb
+./kernel/core/compile.rb
+./kernel/core/file.rb
+./kernel/core/hash.rb
+./kernel/core/marshal.rb
+./kernel/core/time.rb
+./kernel/core.rb
+./kernel/enumerable.rb
+./kernel/exception.rb
+./kernel/fixnum.rb
+./kernel/float.rb
+./kernel/global.rb
+./kernel/method_missing.rb
+./kernel/method_table.rb
+./kernel/module.rb
+./kernel/nil.rb
+./kernel/numeric.rb
+./kernel/readline.rb
+./kernel/regexp.rb
+./kernel/string.rb
+./kernel/symbol.rb
+./kernel/throw_catch.rb
+./kernel/tuple.rb
+
+./kernel/__loader.rb            -- The command line parser/toplevel.
+]]
+
+./lib
+
+This is where the Ruby part of Rubinius itself (everything Ruby except
+./kernel) lives.  You can pretty much ignore everything that is not
+linked from ./native (see below).
+
+./lib/.gdb_history              -- (Junk)
+
+./lib/bytecode
+./lib/bytecode/assembler.rb
+./lib/bytecode/compiler.rb
+./lib/bytecode/constructor.rb
+./lib/bytecode/encoder.rb
+./lib/bytecode/primitive_names.rb
+
+This is the compiler that translates Ruby (as parsed by grammar.y)
+into Rubinius bytecodes.  The same code is interpreted in MRI by
+obsolete.rcompile and in Rubinius by shotgun/rubinius.
+
+./lib/sexp
+./lib/sexp/composite_processor.rb
+./lib/sexp/exceptions.rb
+./lib/sexp/processor.rb
+./lib/sexp/sexp.rb
+./lib/sexp/simple_processor.rb
+./lib/translation
+./lib/translation/case_convert.rb
+./lib/translation/extractors.rb
+./lib/translation/generate_header.rb
+./lib/translation/infrastructure.rb
+./lib/translation/local_scoping.rb
+./lib/translation/normalize.rb
+./lib/translation/rbs_translate.rb
+./lib/translation/states.rb
+./lib/translation/to_c.rb
+./lib/translation/type.rb
+./lib/translation/typer.rb
+./lib/translation/types
+./lib/translation/types/c
+./lib/translation/types/c/fixnum.rb
+./lib/translation/types/c/memory.rb
+./lib/translation/types/c/robject.rb
+
+./native
+
+The build directory for the Ruby parts of Rubinius outside kernel.
+Mostly links into ./lib; this is also the place where the associated
+.rbc files are staged.
+
+./native/bytecode
+./native/bytecode/assembler.rb
+./native/bytecode/assembler.rbc
+./native/bytecode/compiler.rb
+./native/bytecode/compiler.rbc
+./native/bytecode/encoder.rb
+./native/bytecode/encoder.rbc
+./native/bytecode/primitive_names.rb
+./native/bytecode/primitive_names.rbc
+./native/bytecode/rubinius.rb
+./native/bytecode/rubinius.rbc
+./native/sexp
+./native/sexp/composite_processor.rb
+./native/sexp/composite_processor.rbc
+./native/sexp/exceptions.rb
+./native/sexp/exceptions.rbc
+./native/sexp/simple_processor.rb
+./native/sexp/simple_processor.rbc
+./native/test
+./native/test/unit.rb
+./native/translation
+./native/translation/local_scoping.rb
+./native/translation/local_scoping.rbc
+./native/translation/normalize.rb
+./native/translation/normalize.rbc
+./native/translation/states.rb
+./native/translation/states.rbc
+
+./spec
+./test
+
+These directories contain the tests for making sure Rubinius actually
+implements Ruby.  ./test is the old syntax to write a test, ./spec is the
+new syntax.
+
+[[ Add commentary on the files below:
+./spec/compatibility
+./spec/compatibility/compatibility_spec.rb
+./spec/compatibility/expressions
+./spec/compatibility/expressions/array
+./spec/compatibility/expressions/misc
+./spec/compatibility/expressions/primitives
+./spec/compatibility/target_context_extension.rb
+./spec/core
+./spec/core/array_spec.rb
+./spec/core/bignum_spec.rb
+./spec/core/class_spec.rb
+./spec/core/comparable_spec.rb
+./spec/core/enumerable_spec.rb
+./spec/core/false_spec.rb
+./spec/core/file_spec.rb
+./spec/core/fixnum_spec.rb
+./spec/core/float_spec.rb
+./spec/core/hash_spec.rb
+./spec/core/integer_spec.rb
+./spec/core/module_spec.rb
+./spec/core/nil_spec.rb
+./spec/core/object_spec.rb
+./spec/core/proc_spec.rb
+./spec/core/range_spec.rb
+./spec/core/regexp_spec.rb
+./spec/core/string_spec.rb
+./spec/core/symbol_spec.rb
+./spec/core/time_spec.rb
+./spec/core/true_spec.rb
+./spec/defined_fixtures.rb
+./spec/jruby_target.rb
+./spec/language
+./spec/language/exception_spec.rb
+./spec/language/expression_spec.rb
+./spec/language/keywords
+./spec/language/keywords/defined_spec.rb
+./spec/language/literals
+./spec/language/literals/array_spec.rb
+./spec/language/literals/block_spec.rb
+./spec/language/literals/execution_spec.rb
+./spec/language/literals/hash_spec.rb
+./spec/language/literals/numbers_spec.rb
+./spec/language/literals/regexp_spec.rb
+./spec/language/literals/string_spec.rb
+./spec/language/operators_spec.rb
+./spec/language/variables_spec.rb
+./spec/library
+./spec/library/enumerator_spec.rb
+./spec/library/time_spec.rb
+./spec/mri_target.rb
+./spec/parser
+./spec/parser/symbol_spec.rb
+./spec/rubinius_target.rb
+./spec/shotgun
+./spec/shotgun/bignum_spec.rb
+./spec/shotgun/compression_spec.rb
+./spec/shotgun/fixnum_spec.rb
+./spec/shotgun/sexp_spec.rb
+./spec/shotgun/string_spec.rb
+./spec/shotgun/tuple_spec.rb
+./spec/spec_helper.rb
+./spec/targets
+./spec/targets/jruby_target.rb
+./spec/targets/mri_spec.rb
+./spec/targets/rubinius_spec.rb
+
+./test/bytecode
+./test/bytecode/test_assembler.rb
+./test/bytecode/test_compiler.rb
+./test/bytecode/test_constructor.rb
+./test/bytecode/test_encoder.rb
+./test/cpu
+./test/cpu/test_compiled_method.rb
+./test/cpu/test_cpu.rb
+./test/cpu/test_instructions.rb
+./test/cpu/test_method_context.rb
+./test/cpu/test_primitives.rb
+./test/cpu/test_simple_marshal.rb
+./test/cpu/test_types.rb
+./test/gc
+./test/gc/test_baker_gc.rb
+./test/gc/test_cheney_heap.rb
+./test/gc/test_heap.rb
+./test/gc/test_mark_sweepgc.rb
+./test/gc/test_memory_block.rb
+./test/gc/test_traingc.rb
+./test/notest_hybridgc.rb
+./test/nullptr.rb
+./test/tc_all.rb
+./test/test_cuby.rb
+./test/test_cuby_loader.rb
+./test/test_helper.rb
+./test/test_machine.rb
+./test/test_memory.rb
+./test/test_object.rb
+./test/test_simple_processor.rb
+./test/translation
+./test/translation/test_case_convert.rb
+./test/translation/test_extractors.rb
+./test/translation/test_generate_header.rb
+./test/translation/test_local_scoping.rb
+./test/translation/test_normalize.rb
+./test/translation/test_rbs_translate.rb
+./test/translation/test_to_c.rb
+./test/translation/test_typer.rb
+]]
+
+./shotgun-tests
+
+There is also another directory of somewhat half-stale tests (add text).
+
+./shotgun-tests/helper.rb
+./shotgun-tests/test_core.rb
+./shotgun-tests/test_file.rb
+./shotgun-tests/test_primitives.rb
+./shotgun-tests/test_sexp.rb
+./shotgun-tests/test_string.rb
+
+
+FUTURE:
+
+Ruby stuff that is not currently used, but served as input for writing
+the C parts of Rubinius.
+
+./lib/bytecode/r18.rb
+./lib/cpu
+./lib/cpu/bootstrap.rb
+./lib/cpu/instructions.rb
+./lib/cpu/primitives.rb
+./lib/cpu/runtime.rb
+./lib/cpu/simple_marshal.rb
+./lib/cuby.rb
+./lib/cuby_loader.rb
+./lib/gc
+./lib/gc/baker_gc.rb
+./lib/gc/cheney_heap.rb
+./lib/gc/gc.rb
+./lib/gc/heap.rb
+./lib/gc/hybridgc.rb
+./lib/gc/mark_sweepgc.rb
+./lib/gc/memory_block.rb
+./lib/gc/stepgc.rb
+./lib/gc/traingc.rb
+./lib/log.rb
+./lib/machine.rb
+./lib/memory.rb
+./lib/memrender.rb
+./lib/object.rb
+./lib/object_memory.rb
+./lib/platform.rb
+./lib/types
+./lib/types/array.rb
+./lib/types/bignum.rb
+./lib/types/bytearray.rb
+./lib/types/class.rb
+./lib/types/compiled_method.rb
+./lib/types/hash.rb
+./lib/types/io.rb
+./lib/types/metaclass.rb
+./lib/types/method_context.rb
+./lib/types/method_table.rb
+./lib/types/module.rb
+./lib/types/object.rb
+./lib/types/regexp.rb
+./lib/types/string.rb
+./lib/types/symbol.rb
+./lib/types/tuple.rb
+./lib/types.rb
+
+
+YOU TELL ME:
+.
+./apps
+./apps/irb
+./apps/irb/sirb.rb
+./AUTHORS
+./bfts
+./bfts/History.txt
+./bfts/Manifest.txt
+./bfts/overlay
+./bfts/overlay/foounit.rb
+./bfts/overlay/rubicon_testcase.rb
+./bfts/overlay/tc_all.rb
+./bfts/overlay/test_stuff.rb
+./bfts/Rakefile
+./bfts/README.rubinius
+./bfts/README.txt
+./bfts/rubicon_testcase.rb
+./bfts/test_array.rb
+./bfts/test_comparable.rb
+./bfts/test_exception.rb
+./bfts/test_false_class.rb
+./bfts/test_file_test.rb
+./bfts/test_hash.rb
+./bfts/test_nil_class.rb
+./bfts/test_range.rb
+./bfts/test_string.rb
+./bfts/test_struct.rb
+./bfts/test_time.rb
+./bfts/test_true_class.rb
+./bin
+./bin/autotestng.rb
+./bin/compare.rb
+./bin/rcc
+./doc
+./doc/cond_mod.txt
+./doc/exceptions.txt
+./doc/methods.txt
+./doc/TODO
+./externals
+./externals/gems
+./externals/gems/emp-1.0.0.gem
+./rake
+./rake/group_coverage_report.rb
+./rake/group_spec_task.rb
+./rake/specific_group_spec_task.rb
+./Rakefile
+./README
+./ROADMAP
+./runtime
+./runtime/compiler.rba
+./runtime/kernel.rba
+./shotgun
+./shotgun/.gdb_history
+./THANKS
