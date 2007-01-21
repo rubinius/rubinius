@@ -44,7 +44,7 @@ class ShotgunPrimitives
   end
     
   def noop
-    "stack_pop(); _ret = TRUE;"
+    "stack_pop();"
   end
   
   def add
@@ -64,7 +64,6 @@ class ShotgunPrimitives
         t2 = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
       }
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -96,7 +95,6 @@ class ShotgunPrimitives
         t2 = bignum_sub(state, bignum_new(state, j), bignum_new(state, k));
       }
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -189,7 +187,6 @@ class ShotgunPrimitives
       } else {
         stack_push(Qfalse);
       }
-      _ret = TRUE;
     }
     CODE
   end
@@ -225,22 +222,18 @@ class ShotgunPrimitives
       } else {
         stack_push(I2N(1));
       }
-      _ret = TRUE;
     }
     else if(!FIXNUM_P(t1) && FIXNUM_P(self)) { 
       // other is Bignum, self is Fixnum
       stack_push(I2N(-1));
-      _ret = TRUE;
     }
     else if(!FIXNUM_P(self) && FIXNUM_P(t1)) {
       // other is Fixnum, self is Bignum
       stack_push(I2N(1));
-      _ret = TRUE;
     }
     else if(!FIXNUM_P(self) && !FIXNUM_P(t1)) {
       // both are Bignum
       stack_push(bignum_compare(state, self, t1));
-      _ret = TRUE;
     }
     CODE
   end
@@ -257,7 +250,6 @@ class ShotgunPrimitives
         _ret = FALSE;
       } else {
         stack_push(NTH_FIELD(self, j));
-        _ret = TRUE;
       }
     }
     CODE
@@ -277,7 +269,6 @@ class ShotgunPrimitives
       } else {
         SET_FIELD(self, j, t2);
         stack_push(t2);
-        _ret = TRUE;
       }
     }
     CODE
@@ -290,7 +281,6 @@ class ShotgunPrimitives
       _ret = FALSE;
     } else {
       stack_push(I2N(NUM_FIELDS(self)));
-      _ret = TRUE;
     }
     CODE
   end
@@ -307,7 +297,6 @@ class ShotgunPrimitives
       } else {
         t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
         stack_push(t2);
-        _ret = TRUE;
       }
     }
     CODE
@@ -325,7 +314,6 @@ class ShotgunPrimitives
       } else {
         t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
         stack_push(t2);
-        _ret = TRUE;
       }
     }
     CODE
@@ -344,7 +332,6 @@ class ShotgunPrimitives
         t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1) / 4);
         object_make_byte_storage(state, t2);
         stack_push(t2);
-        _ret = TRUE;
       }
     }
     CODE
@@ -388,7 +375,6 @@ class ShotgunPrimitives
     } else {
       stack_push(Qfalse);
     }
-    _ret = TRUE;
     CODE
   end
   
@@ -442,7 +428,6 @@ class ShotgunPrimitives
         t2 = t3;
       }
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -462,7 +447,6 @@ class ShotgunPrimitives
         SET_FIELD(t2, 0, I2N(fds[1]));
       }
       stack_push(I2N(j));
-      _ret = TRUE;
     }
     CODE
   end
@@ -732,7 +716,6 @@ class ShotgunPrimitives
     } else {
       hash_add(state, self, FIXNUM_TO_INT(t1), t2, t3);
       stack_push(t3);
-      _ret = TRUE;
     }
     CODE
   end
@@ -748,7 +731,6 @@ class ShotgunPrimitives
     } else {
       t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
       stack_push(t3);
-      _ret = TRUE;
     }
     CODE
   end
@@ -758,7 +740,6 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = I2N(object_hash_int(state, self));
     stack_push(t1);
-    _ret = TRUE;
     CODE
   end
 
@@ -1357,7 +1338,6 @@ class ShotgunPrimitives
         t2 = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
       }
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -1606,7 +1586,6 @@ class ShotgunPrimitives
       m = j & k;
       t2 = I2N(m);
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -1623,7 +1602,6 @@ class ShotgunPrimitives
       m = j | k;
       t2 = I2N(m);
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -1640,7 +1618,6 @@ class ShotgunPrimitives
       m = j ^ k;
       t2 = I2N(m);
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -1654,7 +1631,6 @@ class ShotgunPrimitives
       j = FIXNUM_TO_INT(self);
       t2 = I2N(~j);
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -1668,7 +1644,6 @@ class ShotgunPrimitives
       j = FIXNUM_TO_INT(self);
       t2 = I2N(-j);
       stack_push(t2);
-      _ret = TRUE;
     }
     CODE
   end
@@ -1724,7 +1699,6 @@ class ShotgunPrimitives
           stack_push(t2);
         /* } */
       }
-      _ret = TRUE;
     }
     CODE
   end
