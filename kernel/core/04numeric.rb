@@ -10,6 +10,7 @@ class Integer
       yield i
       i += 1
     end
+    self
   end
   
   def upto(val)
