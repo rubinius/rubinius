@@ -470,16 +470,21 @@ class ShotgunPrimitives
   def io_open
     <<-CODE
     FILE *_fobj;
+    char *_path, *_mode;
     self = stack_pop();
     t1 =   stack_pop();
     t2 =   stack_pop();
     if(!RISA(t1, string) || !RISA(t2, string)) {
       _ret = FALSE;
     } else {
-      _fobj = fopen(string_as_string(state, t1), string_as_string(state, t2));
+      _path = string_as_string(state, t1);
+      _mode = string_as_string(state, t2);
+      _fobj = fopen(_path, _mode);
       t3 = NEW_OBJECT(self, 2);
       SET_FIELD(t3, 0, I2N(fileno(_fobj)));
       SET_FIELD(t3, 1, t1);
+      free(_path);
+      free(_mode);
       stack_push(t3);
     }
     CODE

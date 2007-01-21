@@ -14,6 +14,7 @@
 #include "machine.h"
 #include "grammar.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/uio.h>
