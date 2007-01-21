@@ -27,3 +27,21 @@ end
 class NotImplementedError < Exception
 end
 
+class SyntaxError
+  self.instance_fields = 4
+
+  ivar_as_index :column => 2, :line => 3
+
+  def column
+    @column
+  end
+
+  def line
+    @line
+  end
+
+  def import_position(c,l)
+    @column = c
+    @line = l
+  end
+end

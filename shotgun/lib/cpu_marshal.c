@@ -371,7 +371,7 @@ static void marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
       } else if(kls == BASIC_CLASS(floatpoint)) {
         marshal_floatpoint(state, obj, buf);
       } else {
-	  printf("Unable to marshal class %p = %s!\n", (void *)kls, rbs_inspect(state, kls));
+        printf("Unable to marshal class %p = %s!\n", (void *)kls, rbs_inspect(state, kls));
       }
     }
   }

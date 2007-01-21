@@ -27,10 +27,6 @@ class Array
     self
   end
   
-  def index(val)
-    find_index { |o| o == val }
-  end
-  
   def ==(other)
     return false unless other.kind_of?(Array)
     return false if @total != other.size
@@ -89,7 +85,6 @@ class Array
     @tuple.at(idx)
   end
 
-  
   def first
     return nil if @total == 0
     @tuple.at(0)
@@ -138,40 +133,6 @@ class Array
     out = dup()
     other.each { |e| out << e }
     return out
-  end
-
-  def -(other)
-    out = []
-    each { |e| 
-      unless other.include?(e)
-        out << e 
-      end
-    }
-    return out
-  end
-  
-  def &(other)    
-    out=[]
-    self.uniq!
-    each { |e| 
-      if other.include?(e)
-        out << e 
-      end
-    }
-    return out
-  end
-  
-  # TODO: test val for negative values and floats 
-  def *(val)
-    if val.class == String
-      return self.join(val)
-    else
-      out=[]
-      val.times do
-        out.push *self
-      end
-      return out
-    end
   end
   
   def <=>(other)
@@ -222,33 +183,4 @@ class Array
     @total -= 1
     return ele
   end
-    
-  def reverse
-    ary = []
-    i = @total - 1
-    while i >= 0
-      ary << self[i]
-      i -= 1
-    end
-    return ary
-  end
-
-  def uniq
-    seen = {}
-    ary = []
-    i = 0
-    while i < @total
-      e = @tuple.at(i)
-      ary << e unless seen[e]
-      seen[e] = true
-      i += 1
-    end
-    ary
-  end
-
-  def uniq!
-    ary = self.uniq
-    ary.size == self.size ? nil : replace(ary)
-  end
-
 end

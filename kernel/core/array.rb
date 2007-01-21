@@ -499,7 +499,7 @@ class Array
       i += 1
     end
     nil
-  end
+  end  
 
   # TODO fill out pack.
   def pack(schema)
@@ -527,4 +527,67 @@ class Array
     
     return ret
   end
+  
+  def reverse
+    ary = []
+    i = @total - 1
+    while i >= 0
+      ary << self[i]
+      i -= 1
+    end
+    return ary
+  end
+
+  def uniq
+    seen = {}
+    ary = []
+    i = 0
+    while i < @total
+      e = @tuple.at(i)
+      ary << e unless seen[e]
+      seen[e] = true
+      i += 1
+    end
+    ary
+  end
+
+  def uniq!
+    ary = self.uniq
+    ary.size == self.size ? nil : replace(ary)
+  end
+  
+  def -(other)
+    out = []
+    each { |e| 
+      unless other.include?(e)
+        out << e 
+      end
+    }
+    return out
+  end
+  
+  def &(other)    
+    out=[]
+    self.uniq!
+    each { |e| 
+      if other.include?(e)
+        out << e 
+      end
+    }
+    return out
+  end
+  
+  # TODO: test val for negative values and floats 
+  def *(val)
+    if val.class == String
+      return self.join(val)
+    else
+      out=[]
+      val.times do
+        out.push *self
+      end
+      return out
+    end
+  end
+  
 end

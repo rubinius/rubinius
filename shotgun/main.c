@@ -3,78 +3,48 @@
 #include "shotgun.h"
 #include "machine.h"
 #include <sys/stat.h>
-#include <libgen.h>
 #include <string.h>
+#include <setjmp.h>
 
 void *__main_address;
 
-/* WATCH OUT: pointer returned by find_kernel should be free'd by called */
+/* TODO incorporate system paths calculated at compile time. */
+char *search_path[] = {"runtime", NULL};
 
-static char *find_kernel(char *rubinius_path) {
+static char *search_for(char *evs, char *file) {
   char *env;
-  char *dir;
-  char *rb_path = NULL;
-  char kernel_path[PATH_MAX+1];  
-  struct stat st = {0,};
+  char path[PATH_MAX];
+  struct stat _st;
+  int i;
+
+  #define file_exists_p(file) stat(file, &_st) == 0
   
-  env = getenv("KERNEL");
-
-  if(env)  {
-      strncpy (&kernel_path[0], env, PATH_MAX );
-  }
-  else
-  {    
-      /* We need to get the dir part of the rubinius path */
-      /* as dirname can modify its parameter (at least if we keep POSIX */
-      /* compliance), we need to dup it first (at think about releasing */
-      rb_path = strdup ( rubinius_path );
-      dir = dirname ( rb_path );
-
-      snprintf (&kernel_path[0], PATH_MAX, "%s/../runtime/kernel.rba", dir);
-      
-      /* Is kernel.rba available ? */
-      if (stat( kernel_path, &st) != 0)
-      {
-          /* No ? so let's build a potential path to kernel.rbc  */
-          snprintf (&kernel_path[0], PATH_MAX, "%s/../runtime/kernel.rbc", dir);         
-      }
-  }
-
-  if ( rb_path != NULL )
-  {
-      free (rb_path);
-      rb_path = NULL;
+  env = getenv(evs);
+  if(env) {
+    if(file_exists_p(env)) return strdup(env);
+    return NULL;
   }
   
-  /* Let's dup kernel_path (called needs to think about freeing it) */
-  rb_path = strdup ( &kernel_path[0]);
+  for(i = 0; search_path[i]; i++) {
+    snprintf(path, PATH_MAX, "%s/%s", search_path[i], file);
+    if(file_exists_p(path)) {
+      return strdup(path);
+    }
+  }
   
-  return rb_path;
+  return NULL;
 }
 
 int main(int argc, char **argv) {
-  char *kernel;
+  char *archive;
   machine m;
-  struct stat st;
   int offset = 0;
   int flag;
-    
+  
   /* Setup the global that contains the address of the 
      frame pointer for main. This is so the missing
      backtrace knows where to stop looking for return address. */
   __main_address = __builtin_frame_address(0);
-  
-  kernel = find_kernel( argv[0] );
-  if(!kernel) {
-    printf("Unable to find a kernel to load!\n");
-    return 1;
-  }
-  
-  if(stat(kernel, &st) < 0) {
-    printf("Kernel '%s' not found.\n", kernel);
-    free (kernel);
-    return 1;
-  }
   
   m = machine_new();
   machine_save_args(m, argc, argv);
@@ -86,15 +56,33 @@ int main(int argc, char **argv) {
   machine_setup_argv(m, argc-offset, argv+offset);
   machine_setup_env(m);
   
-  if(strstr(kernel, ".rba")) {
-    flag = machine_load_archive(m, kernel);
-  } else {
-    flag = machine_run_file(m, kernel);
+  /* Load the bootstrap. */
+  
+  archive = search_for("BOOTSTRAP", "bootstrap.rba");
+  if(!archive) {
+    printf("Unable to find a bootstrap (bootstrap.rba) to load!\n");
+    return 1;
   }
+    
+  flag = machine_load_archive(m, archive);
   
   if(!flag) {
-    printf("Unable to run %s\n", kernel);
-    free (kernel);
+    printf("Unable to run %s\n", archive);
+    return 1;
+  }
+  
+  /* Load the core. */
+
+  archive = search_for("CORE", "core.rba");
+  if(!archive) {
+    printf("Unable to find a core (core.rba) to load!\n");
+    return 1;
+  }
+    
+  flag = machine_load_archive(m, archive);
+  
+  if(!flag) {
+    printf("Unable to run %s\n", archive);
     return 1;
   }
   
@@ -102,6 +90,5 @@ int main(int argc, char **argv) {
   
   // object_memory_print_stats(m->s->om);
     
-  free (kernel);
   return 0;
 }

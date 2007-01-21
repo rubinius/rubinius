@@ -215,16 +215,49 @@ namespace :build do
     puts "Building hints and fields..."
     Rake::Task['build:fields'].invoke
   end
+  
+  task :bootstrap => 'kernel/hints' do
+    Dir.chdir "kernel" do
+      files = Dir["bootstrap/*.rb"].sort
+
+      changed = []
+      files.each do |file|
+        cmp = "#{file}c"
+        unless File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+          changed << cmp
+          system "../bin/obsolete.rcompile #{file}"
+          raise "Failed to compile #{file}" if $?.exitstatus != 0
+        end
+        file << "c"
+      end
+
+      File.open(".load_order.txt","w") do |f|
+        f.puts files.join("\n")
+      end
+    
+      kern = "../runtime/bootstrap.rba"
+
+      # File.unlink("../kernel.rba") if File.exists?("../kernel.rba")
+      if File.exists? kern
+        if changed.empty?
+          puts "No files to update."
+        else
+          system "zip -u #{kern} .load_order.txt #{changed.join(' ')}"
+        end
+      else
+        system "zip #{kern} .load_order.txt #{files.join(' ')}"
+      end
+    end
+  end
 
   desc "Build the kernel."
-  task :kernel => 'kernel/hints' do
+  task :core => 'kernel/hints' do
     files = nil
     Dir.chdir("kernel") do
-      files = Dir["*.rb"].sort
-      files.delete "__loader.rb"
+      files = Dir["core/*.rb"].sort
+      files.delete "core/__loader.rb"
 
-      files += Dir["core/*.rb"]
-      files << "__loader.rb"
+      files << "core/__loader.rb"
       
       changed = []
       files.each do |file|
@@ -241,7 +274,7 @@ namespace :build do
         f.puts files.join("\n")
       end
       
-      kern = "../runtime/kernel.rba"
+      kern = "../runtime/core.rba"
 
       # File.unlink("../kernel.rba") if File.exists?("../kernel.rba")
       if File.exists? kern

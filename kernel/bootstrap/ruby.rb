@@ -1,0 +1,4 @@
+
+module Ruby
+  AtExit = []
+end

@@ -33,7 +33,7 @@ OBJECT symtbl_new(STATE) {
 OBJECT symtbl_lookup_cstr(STATE, OBJECT self, char *str) {
   unsigned int hash;
   OBJECT strs, idx, syms;
-  
+
   hash = string_hash_cstr(state, str);
   strs = symtbl_get_strings(self);
   syms = symtbl_get_symbols(self);

@@ -390,7 +390,7 @@ int machine_run(machine m) {
   cpu_run(m->s, m->c);
   if(RTEST(m->c->exception)) {
     machine_show_exception(m, m->c->exception);
-    return TRUE;
+    return FALSE;
   }
   return TRUE;
 }
@@ -516,7 +516,9 @@ OBJECT machine_load_archive(machine m, char *path) {
     cm = archive_get_object(m->s, path, files);
     if(!RTEST(cm)) return Qfalse;
     cpu_run_script(m->s, m->c, cm);
-    machine_run(m);
+    if(!machine_run(m)) {
+      return Qfalse;
+    }
     files = nxt;
     nxt = strchr(nxt, '\n');
   }
