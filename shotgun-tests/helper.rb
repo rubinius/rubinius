@@ -48,7 +48,8 @@ module RubiniusHelper
       STDOUT.reopen(w)
       STDIN.reopen(r2)
       Dir.chdir "#{cached_cache_root}"
-      
+      ENV['BOOTSTRAP'] = "#{cached_rbs_root}/runtime/bootstrap.rba"
+      ENV['CORE'] = "#{cached_rbs_root}/runtime/core.rba"
       exec "#{cached_rbs_root}/shotgun/rubinius #{cached_cache_root}/#{name}.rbc"
     }
     
