@@ -9,6 +9,7 @@ class IO
   
   def <<(obj)
     write(obj.to_s)
+    return self
   end
 
   def read(size)

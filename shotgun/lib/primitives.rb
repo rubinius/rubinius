@@ -417,8 +417,11 @@ class ShotgunPrimitives
       buf = string_byte_address(state, t1);
       k = FIXNUM_TO_INT(string_get_bytes(t1));
       k = write(j, buf, k);
-      /* TODO: need to return k here. */
-      _ret = TRUE;
+      t2 = I2N(k);
+      if(k != FIXNUM_TO_INT(t2)) {
+        t2 = bignum_new(state, k);
+      }
+      stack_push(t2);
     }
     CODE
   end
