@@ -1364,25 +1364,31 @@ class ShotgunPrimitives
   
   def marshal_to_file
     <<-CODE
+    char *_path;
     stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
     if(!RISA(t2, string)) {
       _ret = FALSE;
     } else {
-      stack_push(cpu_marshal_to_file(state, t1, string_byte_address(state, t2)));
+      _path = string_as_string(state, t2);
+      stack_push(cpu_marshal_to_file(state, t1, _path));
+      free(_path);
     }
     CODE
   end
   
   def unmarshal_from_file
     <<-CODE
+    char *_path;
     stack_pop(); /* class */
     t1 = stack_pop();
     if(!RISA(t1, string)) {
       _ret = FALSE;
     } else {
-      stack_push(cpu_unmarshal_file(state, string_byte_address(state, t1)));
+      _path = string_as_string(state, t1);
+      stack_push(cpu_unmarshal_file(state, _path));
+      free(_path);
     }
     CODE
   end
@@ -1397,6 +1403,7 @@ class ShotgunPrimitives
     } else {
       path = string_as_string(state, t1);
       stack_push(archive_list_files(state, path));
+      free(path);
     }
     CODE
   end
