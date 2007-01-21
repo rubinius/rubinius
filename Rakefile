@@ -106,16 +106,16 @@ namespace :test do
   end
 end
 
-"Rebuild the whole project"
+desc "Build the whole project"
 task :build => 'build:all'
 
 namespace :build do
   
-  desc "Build shotgun only."
+  desc "Build rubinius (shotgun)."
   task :all => ['build:clean', 'setup:syd', 'build:shotgun']
   
   desc "Rebuild all parts and archives from scratch."
-  task :dev => ['build:clean', 'setup:syd', 'build:shotgun', 'build:kernel', 'build:compiler']
+  task :dev => ['build:clean', 'setup:syd', 'build:shotgun', 'build:core', 'build:compiler']
 
   desc "Cleanup build files."
   task :clean do
@@ -216,6 +216,7 @@ namespace :build do
     Rake::Task['build:fields'].invoke
   end
   
+  desc "Build the VM bootstrap archive."
   task :bootstrap => 'kernel/hints' do
     Dir.chdir "kernel" do
       files = Dir["bootstrap/*.rb"].sort
@@ -250,7 +251,7 @@ namespace :build do
     end
   end
 
-  desc "Build the kernel."
+  desc "Build the core classes and methods archive."
   task :core => 'kernel/hints' do
     files = nil
     Dir.chdir("kernel") do
@@ -342,7 +343,7 @@ namespace :build do
   task :compiler => ['build:compiler:bootstrap', 'build:compiler:package']
   
   desc "Builds shotgun, kernel, and bootstraps the compiler"
-  task :rubinius => ['build:shotgun', 'build:kernel', 'build:compiler']
+  task :rubinius => ['build:shotgun']
 
   desc "Delete all cached .rbc files"
   task :delete_rbc do
@@ -438,14 +439,14 @@ end
 
 # Combine the separate .rb files in lib into a single kernel.rb
 task :kernel do
-  deprecate 'build:setup:kernel'
-  Rake::Task['build:setup:kernel'].invoke
+  deprecate 'build:setup:core'
+  Rake::Task['build:core'].invoke
 end
 
 # Build the kernel
 task :bk do
-  deprecate 'build:kernel'
-  Rake::Task['build:kernel'].invoke
+  deprecate 'build:core'
+  Rake::Task['build:core'].invoke
 end
 
 # Build rubinius vm (i.e. shotgun, kernel, compiler bootstrap)
