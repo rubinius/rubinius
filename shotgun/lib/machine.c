@@ -11,14 +11,24 @@
 #include <sys/param.h>
 #include <signal.h>
 
+/* Backtrace support */
 #ifdef  __linux__ 
 #include <execinfo.h>
-#elif defined(__FreeBSD__)          /* FreeBSD libexecinfo */
+#elif defined(__FreeBSD__) 
+#include <execinfo.h>
+#elif defined(__OpenBSD__) 
 #include <execinfo.h>
 #elif defined(__APPLE__)
 #include "missing/backtrace.h"
 #else
-#error "Platform not yet supported"
+#error "Platform not yet supported (missing backtrace functionality)"
+#endif
+
+/* *BSD dl support */
+#ifdef __FreeBSD__
+#include <dlfcn.h>
+#elif defined(__OpenBSD__)
+#include <dlfcn.h>
 #endif
 
 machine current_machine;
@@ -229,6 +239,7 @@ void machine_resolve_address(unsigned long pc,
   pclose(io);
 }
 #else
+
 void machine_resolve_address(unsigned long pc,
                   char *function, int fs, char *loc, int ls) {
   int offset;

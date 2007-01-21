@@ -9,10 +9,15 @@ ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt
 endif
 
-# Support FreeBSD libexecinfo for backtrace etc.
+# Support *BSD libexecinfo for backtrace etc.
 ifeq ($(UNAME),FreeBSD)
   LIBS+=-lexecinfo
 endif
+
+ifeq ($(UNAME),OpenBSD)
+  LIBS+=-lexecinfo
+endif
+
 
 ifeq ($(UNAME),Linux)
 	LIBS+=-ldl
