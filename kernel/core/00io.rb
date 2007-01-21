@@ -11,8 +11,12 @@ class IO
     Ruby.primitive :io_write
     exc = IOError.new("Unable to write '#{str}' via #{self}")
     raise exc
-  end
+  end  
   
+  def <<(obj)
+    write(obj.to_s)
+  end
+
   def read(size)
     Ruby.primitive :io_read
   end
