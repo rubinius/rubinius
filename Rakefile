@@ -112,7 +112,7 @@ task :build => 'build:all'
 namespace :build do
   
   desc "Build rubinius (shotgun)."
-  task :all => ['build:clean', 'setup:syd', 'build:shotgun']
+  task :all => ['build:clean', 'build:shotgun']
   
   desc "Rebuild all parts and archives from scratch."
   task :dev => ['build:clean', 'setup:syd', 'build:shotgun', 'build:core', 'build:compiler']
@@ -167,7 +167,7 @@ namespace :build do
     end    
   end
 
-  task :fields do
+  task :fields => ['setup:syd'] do
     $:.unshift "lib"
     require 'types'
     fd = File.open("kernel/00auto_fields.rb", "w")
