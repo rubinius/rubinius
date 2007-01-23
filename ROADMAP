@@ -19,7 +19,7 @@ It is used to build runtime/*.rba (see below).
 Because of GC related bugs in sydparse (see below), it disables GC at
 the start.
 
-It uses things under CURRENT below, as well as:
+It uses things under CURRENT below, as well as the following old stuff:
 
 ./lib/bytecode/r18.rb
 ./lib/bytecode/constructor.rb
@@ -184,49 +184,53 @@ In ./kernel itself, there are the files that need to be loaded first
 [[ Add commentary on the files below
 ./kernel/.load_order.txt        -- generated file
 ./kernel/hints                  -- generated file
-./kernel/00auto_fields.rb       -- generated file
+./kernel/bootstrap/00auto_fields.rb       -- generated file
 
-./kernel/00io.rb
-./kernel/00object.rb
-./kernel/01class.rb
-./kernel/02module.rb
-./kernel/03hash.rb
-./kernel/array.rb
-./kernel/bignum.rb
-./kernel/class.rb
-./kernel/comparable.rb
-./kernel/compiled_method.rb
-./kernel/compression.rb
-./kernel/context.rb
-./kernel/continuation.rb
+./kernel/bootstrap/00io.rb
+./kernel/bootstrap/00object.rb
+./kernel/bootstrap/01class.rb
+./kernel/bootstrap/02module.rb
+./kernel/bootstrap/03hash.rb
+./kernel/bootstrap/04kernel.rb
+./kernel/bootstrap/array.rb
+./kernel/bootstrap/bignum.rb
+./kernel/bootstrap/class.rb
+./kernel/bootstrap/compiled_method.rb
+./kernel/bootstrap/context.rb
+./kernel/bootstrap/core.rb
+./kernel/bootstrap/exception.rb
+./kernel/bootstrap/fixnum.rb
+./kernel/bootstrap/float.rb
+./kernel/bootstrap/gc.rb
+./kernel/bootstrap/global.rb
+./kernel/bootstrap/method_missing.rb
+./kernel/bootstrap/method_table.rb
+./kernel/bootstrap/module.rb
+./kernel/bootstrap/nil.rb
+./kernel/bootstrap/regexp.rb
+./kernel/bootstrap/ruby.rb
+./kernel/bootstrap/string.rb
+./kernel/bootstrap/symbol.rb
+./kernel/bootstrap/tuple.rb
 ./kernel/core/00io.rb
-./kernel/core/01range.rb
+./kernel/core/01enumerable.rb
+./kernel/core/02range.rb
+./kernel/core/03comparable.rb
+./kernel/core/04numeric.rb
 ./kernel/core/archive.rb
 ./kernel/core/array.rb
 ./kernel/core/compile.rb
+./kernel/core/compression.rb
+./kernel/core/continuation.rb
 ./kernel/core/file.rb
-./kernel/core/hash.rb
-./kernel/core/marshal.rb
+./kernel/core/object.rb
+./kernel/core/process.rb
+./kernel/core/readline.rb
+./kernel/core/string.rb
+./kernel/core/throw_catch.rb
 ./kernel/core/time.rb
-./kernel/core.rb
-./kernel/enumerable.rb
-./kernel/exception.rb
-./kernel/fixnum.rb
-./kernel/float.rb
-./kernel/global.rb
-./kernel/method_missing.rb
-./kernel/method_table.rb
-./kernel/module.rb
-./kernel/nil.rb
-./kernel/numeric.rb
-./kernel/readline.rb
-./kernel/regexp.rb
-./kernel/string.rb
-./kernel/symbol.rb
-./kernel/throw_catch.rb
-./kernel/tuple.rb
 
-./kernel/__loader.rb            -- The command line parser/toplevel.
+./kernel/core/__loader.rb            -- The command line parser/toplevel.
 ]]
 
 ./lib
