@@ -12,7 +12,7 @@ class File < IO
     Ruby.primitive :io_open
   end
   
-  def self.open(path, mode)
+  def self.open(path, mode="r")
     raise Exception, "File.open with block is not implemented" if block_given?
     return open_with_mode(path, mode)
   end

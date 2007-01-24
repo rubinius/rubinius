@@ -80,7 +80,7 @@ int heap_enough_fields_p(rheap h, int fields) {
 }
 
 OBJECT heap_copy_object(rheap h, OBJECT obj) {
-  int out;
+  address out;
   int size;
   if(heap_contains_p(h, obj)) return obj;
   size = SIZE_IN_BYTES(obj);

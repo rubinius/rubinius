@@ -49,7 +49,7 @@ int baker_gc_set_next(baker_gc g, rheap h) {
   return TRUE;
 }
 
-int baker_gc_start_address(baker_gc g) {
+address baker_gc_start_address(baker_gc g) {
   return g->current->address;
 }
 
@@ -82,7 +82,7 @@ address baker_gc_allocate(baker_gc g, int size) {
   return out;
 }
 
-int baker_gc_allocate_spilled(baker_gc g, int size) {
+address baker_gc_allocate_spilled(baker_gc g, int size) {
   return heap_allocate(g->next, size);
 }
 
@@ -97,7 +97,7 @@ int baker_gc_forwarded_p(OBJECT obj) {
   return HEADER(obj)->flags == FORWARDING_MAGIC;
 }
 
-int baker_gc_forwarded_object(OBJECT obj) {
+OBJECT baker_gc_forwarded_object(OBJECT obj) {
   OBJECT out = HEADER(obj)->klass;
   CHECK_PTR(out);
   return out;
@@ -110,7 +110,7 @@ int baker_gc_forwarded_object(OBJECT obj) {
 
 static inline void _mutate_references(baker_gc g, OBJECT iobj);
 
-int baker_gc_mutate_object(baker_gc g, OBJECT obj) {
+OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj) {
   OBJECT dest;
   if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
     // int age = AGE(obj);
