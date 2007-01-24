@@ -174,12 +174,15 @@ Onigurama, the magic regexp parser/interpreter.
 ./kernel
 
 This is the Ruby language additions to the basic VM.
-They are compiled into runtime/kernel.rba (the .rbc files in this
-directory are build-time intermediates).
-In ./kernel itself, there are the files that need to be loaded first
-(almost in alphabetical order; see .load_order.txt);
+They are compiled into runtime/bootstrap.rba and runtime/core.rba (the
+.rbc files in this directory are build-time intermediates).
+In ./kernel/bootstrap, there are the files that need to be loaded first
+(in alphabetical order; see .load_order.txt);
+(Note that there is no relation between the name "bootstrap" and the
+act of bootstrapping the VM alluded to above.)
 ./kernel/core contains the rest of the Ruby language library
-(i.e. everything in MRI that is available without a 'require').
+(i.e. everything in MRI that is available without a 'require'), which
+is loaded almost in alphabetical order (__loader.rb is actually loaded last).
 
 [[ Add commentary on the files below
 ./kernel/.load_order.txt        -- generated file
