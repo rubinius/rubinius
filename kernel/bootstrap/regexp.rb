@@ -66,7 +66,7 @@ class MatchData
   end
 
   def length
-   @region.length + 1
+   @region.fields + 1
   end
 
   def captures

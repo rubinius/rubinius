@@ -1,4 +1,6 @@
 class String
+  alias_method :to_str, :to_s
+
   def to_sexp_full(name, line, newlines)
     Ruby.primitive :string_to_sexp
   end

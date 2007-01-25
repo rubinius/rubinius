@@ -48,13 +48,13 @@ context "Regexp class method" do
   specify "union with no arguments should return /(?!)/" do
     example do
       Regexp.union
-    end.should == /(?!)/
+    end.should == "/(?!)/"
   end
   
   specify "union with arguments should return a regular expression that will match any part" do
     example do
       [Regexp.union("penzance"), Regexp.union("skiing", "sledding"), Regexp.union(/dogs/, /cats/i)]
-    end.should == [/penzance/, /skiing|sledding/, /(?-mix:dogs)|(?i-mx:cats)/]
+    end.should == ["/penzance/", "/skiing|sledding/", "/(?-mix:dogs)|(?i-mx:cats)/"]
   end
 end
 

@@ -263,10 +263,7 @@ module Bytecode
           idx = @method.add_literal obj
           add "push_literal #{idx}"
         when Regexp
-          data = [obj.source]
-          if obj.options & 4 == 4
-            data << true
-          end
+          data = [obj.source, obj.options]
           process_regex(data)
         else
           raise "Unable to handle literal '#{obj.inspect}'"
@@ -287,6 +284,14 @@ module Bytecode
         add "send new 2"
       end
 
+      def process_match2(x)
+        pattern = x.shift
+        target = x.shift
+        process target
+        process pattern
+        add "send match 1"
+      end
+
       # TODO match3 is an optimization node where we know
       # that the left hand side was a literal regex. Right now
       # we just send the method, but if there was a regex instruction
@@ -294,9 +299,9 @@ module Bytecode
       def process_match3(x)
         pattern = x.shift
         target = x.shift
-        process pattern
         process target
-        add "send =~ 1"
+        process pattern
+        add "send match 1"
       end
       
       def set_label(name)
