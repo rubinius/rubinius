@@ -74,8 +74,17 @@ def print_comparison(klass)
 end
 
 kernel_dir = File.dirname(__FILE__), '../kernel'
-files = Dir[File.join(kernel_dir, '*.rb')]
+files = Dir[File.join(kernel_dir, '**', '*.rb')]
 files.delete_if {|f| f =~ /__loader/ }
+
+#we need to put in these dummy methods so that ruby will be able
+#to eval rubinius classes which use them
+class Class
+  def index_reader(name, idx)
+  end
+  def define_fields(*args)
+  end
+end
 
 files.sort.each do |file|
   Rubinius.module_eval IO.read(file)
