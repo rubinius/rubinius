@@ -3,6 +3,7 @@
 #include "symbol.h"
 #include "module.h"
 #include "class.h"
+#include <string.h>
 
 OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj) {
   OBJECT sym, str;
