@@ -65,6 +65,7 @@ OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT obj);
 char *rbs_symbol_to_cstring(STATE, OBJECT sym);
 OBJECT rbs_symbol_to_string(STATE, OBJECT sym);
 char *rbs_inspect(STATE, OBJECT obj);
+char *rbs_inspect1(STATE, OBJECT obj);
 char *_inspect(OBJECT obj);
 #endif
 

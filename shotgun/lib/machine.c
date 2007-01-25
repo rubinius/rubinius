@@ -85,7 +85,7 @@ void machine_print_stack(machine m) {
     } else {
       printf("%4d    ", i);
     }
-    printf("%s\n", rbs_inspect(m->s, NTH_FIELD(m->c->stack, i)));
+    printf("%s\n", rbs_inspect1(m->s, NTH_FIELD(m->c->stack, i)));
   }
   
 }

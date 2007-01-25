@@ -69,3 +69,29 @@ char *rbs_inspect(STATE, OBJECT obj) {
   return buf;
 }
 
+char *rbs_inspect1(STATE, OBJECT obj) {
+  OBJECT kls;
+  static char buf[1024];
+  
+  kls = object_logical_class(state, obj);
+  
+  if(NIL_P(kls)) {
+    assert(RTEST(kls) && "class is nil");
+    sprintf(buf, "<(NilClass!!):%p>", (void*)obj);
+  } else if(kls == state->global->class) {
+    sprintf(buf, "%s", rbs_symbol_to_cstring(state, module_get_name(obj)));
+  } else {
+    char *s = 0;
+    sprintf(buf, "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
+    if (kls == state->global->symbol)
+      s = rbs_symbol_to_cstring(state, obj);
+    if (kls == state->global->string)
+      s = string_as_string(state, obj);
+    if (s) {
+      strncat(buf, s, 30);
+      if (strlen(s) > 30)
+        strcat(buf, "...");
+    }
+  }
+  return buf;
+}
