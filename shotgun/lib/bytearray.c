@@ -9,8 +9,8 @@ OBJECT bytearray_new(STATE, int size) {
   
   assert(size >= 0);
   
-  words = size / 4;
-  if(size % 4 != 0) {
+  words = size / REFSIZE;
+  if(size % REFSIZE != 0) {
     words += 1;
   }
   
@@ -25,7 +25,7 @@ OBJECT bytearray_new(STATE, int size) {
 void *bytearray_byte_address(STATE, OBJECT self) {
   void *addr;
   
-  addr = (void*)(self + (HEADER_SIZE * 4));
+  addr = (void*)(self + (HEADER_SIZE * REFSIZE));
   
   return addr;
 }
@@ -41,7 +41,7 @@ char *bytearray_as_string(STATE, OBJECT self) {
   
   str = (char*)bytearray_byte_address(state, self);
   
-  sz = NUM_FIELDS(self) * 4;
+  sz = NUM_FIELDS(self) * REFSIZE;
   out = malloc(sizeof(char) * sz);
   
   memcpy(out, str, sz);

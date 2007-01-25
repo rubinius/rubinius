@@ -197,7 +197,6 @@ static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
   int i;
   char buffer[1024];
   char *s;
-  i = NUM_FIELDS(obj);
   bignum_into_string(state, obj, 10, buffer, 1024);
   append_c('B');
   i = strlen(buffer);
@@ -244,7 +243,7 @@ static OBJECT unmarshal_floatpoint(STATE, char *str, struct marshal_state *ms) {
 
 static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
   int i;
-  i = NUM_FIELDS(obj) * 4; // FIXME 4 is size_t 
+  i = NUM_FIELDS(obj) * REFSIZE;
   append_c('b');
   append_sz(i);
   append_str(bytearray_byte_address(state, obj), i);

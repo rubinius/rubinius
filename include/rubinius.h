@@ -81,16 +81,16 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #undef FIXNUM_P
 #endif
 
-#define Qfalse ((OBJECT)0)
-#define Qtrue  ((OBJECT)2)
-#define Qnil   ((OBJECT)4)
-#define Qundef ((OBJECT)6)
+#define Qfalse ((OBJECT)0L)
+#define Qtrue  ((OBJECT)2L)
+#define Qnil   ((OBJECT)4L)
+#define Qundef ((OBJECT)6L)
 
 #define RTEST(v) (((OBJECT)(v) & ~Qnil) != 0)
 #define NIL_P(v) ((OBJECT)(v) == Qnil)
-#define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 10 && ((_i & 1) == 0); })
-#define SYMBOL_P(v) (((OBJECT)(v) & 3) == 3)
-#define FIXNUM_P(v) (((OBJECT)(v) & 3) == 1)
+#define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 10 && ((_i & 1L) == 0L); })
+#define SYMBOL_P(v) (((OBJECT)(v) & 3L) == 3)
+#define FIXNUM_P(v) (((OBJECT)(v) & 3L) == 1)
 
 #define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)

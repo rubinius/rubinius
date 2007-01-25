@@ -119,8 +119,8 @@ int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int coun
   int sz;
   
   da = object_byte_start(state, dest);
-  sz = count * 4;
-  start = (void*)((first * 4) + object_byte_start(state, self));
+  sz = count * REFSIZE;
+  start = (void*)((first * REFSIZE) + object_byte_start(state, self));
   
   memcpy((void*)da, (const void *)start, (size_t)sz);
   return TRUE;
