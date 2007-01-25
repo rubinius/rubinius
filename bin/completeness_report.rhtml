@@ -1,0 +1,53 @@
+<%
+# Wooter an html report :) --matt
+require File.expand_path(File.dirname(__FILE__) + '/compare_tools')
+include CompareTools
+
+title = 'Rubinius Completeness Report'
+generated = Time.now
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title><%= title %></title>
+  </head>
+  <body>
+    <div>Generated on <%= generated %>.</div>
+    <h1><%= title %></h1>
+
+    <h2>Partially Complete Classes</h2>
+    <table border="1">
+      <th>Class</th>
+      <th>class methods needed</th>
+      <th>instance methods needed</th>
+      <% partially_complete_classes.each do |klass, info| %>
+      <tr>
+        <td><%= klass %></td>
+        <td style="color: red"><%= info[:method_diff].join(', ') %></td>
+        <td style="color: red"><%= info[:instance_method_diff].join(', ') %></td>
+      </tr>
+      <% end %>
+    </table>
+
+    <h2>Complete Classes</h2>
+    <ul>
+      <% for klass in complete_classes %>
+      <li style="font-weight: bold; color: green"><%= klass %></li>
+      <% end %>
+    </ul>
+
+    <h2>Incomplete Classes</h2>
+    <ul>
+      <% for klass in incomplete_classes %>
+      <li style="font-weight: bold; color: red"><%= klass %></li>
+      <% end %>
+    </ul>
+
+    <p style="font-size: smaller; font-weight: bold; text-align: center">
+      envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
+    </p>
+  </body>
+</html>
+

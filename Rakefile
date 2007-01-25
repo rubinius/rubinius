@@ -1,3 +1,5 @@
+ROOT = File.expand_path(File.dirname(__FILE__))
+
 def require_files(files)
   files.each do |path|
     begin
@@ -29,6 +31,13 @@ task :spec do
 
   raise "Spec or test failures." if got_error
 end unless no_spec
+
+desc "Build all reports"
+task :build_reports do
+  `mkdir #{ROOT}/reports` # do it if its not there
+  sh "erb #{ROOT}/bin/completeness_report.rhtml > " +
+     "#{ROOT}/reports/completeness.html"
+end
 
 namespace :spec do
   desc "Run all specs and tests."
