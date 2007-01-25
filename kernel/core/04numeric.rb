@@ -48,4 +48,31 @@ class Integer
     0 - self
   end
 
+  def [](i)
+    if i < 0
+      0
+    else
+      (self >> i) & 1
+    end
+  end
+
+  def **(exp)
+    if exp < 0 || !(Integer === exp)
+      FLoat(self)**Float(exp)
+    else
+      out = 1
+      base = self
+      while exp > 0
+        if (exp & 1) != 0
+          out *= base
+          exp -= 1
+        else
+          out *= out
+          exp >>= 1
+        end
+      end
+      out
+    end
+  end
+
 end
