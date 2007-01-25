@@ -2,6 +2,7 @@
 #include "tommath.h"
 #include "string.h"
 #include <ctype.h>
+#include "math.h"
 
 #define NMP mp_int *n; OBJECT n_obj; \
   NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \
@@ -81,13 +82,96 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
   return bignum_normalize(state, n_obj);
 }
 
+OBJECT bignum_and(STATE, OBJECT a, OBJECT b) {
+  NMP;
+
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, FIXNUM_TO_INT(b));
+  }
+
+  mp_and(MP(a), MP(b), n);
+  return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_or(STATE, OBJECT a, OBJECT b) {
+  NMP;
+
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, FIXNUM_TO_INT(b));
+  }
+
+  mp_or(MP(a), MP(b), n);
+  return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_xor(STATE, OBJECT a, OBJECT b) {
+  NMP;
+
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, FIXNUM_TO_INT(b));
+  }
+
+  mp_xor(MP(a), MP(b), n);
+  return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_invert(STATE, OBJECT self) {
+  NMP;
+
+  mp_int a;  mp_init(&a);
+  mp_int b;  mp_init_set_int(&b, 1);
+
+  /* inversion by -(a)-1 */
+  mp_neg(MP(self), &a);
+  mp_sub(&a, &b, n);
+
+  mp_clear(&a); mp_clear(&b);
+  return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_neg(STATE, OBJECT self) {
+  NMP;
+
+  mp_neg(MP(self), n);
+  return bignum_normalize(state, n_obj);
+}
+
+/* I don't think these are the right functions
+OBJECT bignum_left_shift(STATE, OBJECT self, int width) {
+  NMP;
+
+  if(FIXNUM_P(self)) {
+    int j;
+    j = FIXNUM_TO_INT(self);
+    mp_set_int(n, (unsigned int)j);
+  } else {
+    mp_copy(MP(self), n);
+  }
+  mp_lshd(n, width);
+  return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_right_shift(STATE, OBJECT self, int width) {
+  NMP;
+
+  if(FIXNUM_P(self)) {
+    mp_set_int(n, FIXNUM_TO_INT(self));
+  } else {
+    mp_copy(MP(self), n);
+  }
+
+  mp_rshd(n, width);
+  return bignum_normalize(state, n_obj);
+}
+*/
+
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
   
   if(FIXNUM_P(b)) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
   
-  if(!mp_cmp(MP(a), MP(b))) {
+  if(mp_cmp(MP(a), MP(b)) == MP_EQ) {
     return Qtrue;
   }
   return Qfalse;
@@ -163,4 +247,74 @@ OBJECT bignum_from_string(STATE, char *str, int radix) {
 void bignum_into_string(STATE, OBJECT self, int radix, char *buf, int sz) {
   int k;
   mp_toradix_nd(MP(self), buf, radix, sz, &k);
+}
+
+#define DIGIT_RADIX (1 << DIGIT_BIT)
+double bignum_to_double(STATE, OBJECT self) {
+  int i;
+  double res;
+  double m;
+  mp_int *a;
+
+  a = MP(self);
+  
+  if (a->used == 0) {
+     return 0;
+  }
+
+  /* get number of digits of the lsb we have to read */
+  i = a->used;
+  m = DIGIT_RADIX;
+
+  /* get most significant digit of result */
+  res = DIGIT(a,i);
+
+  while (--i >= 0) {
+    res = (res * m) + DIGIT(a,i);
+  }
+
+  if(isinf(res)) {
+    /* Bignum out of range */
+    res = HUGE_VAL;
+  }
+
+  if(a->sign == MP_NEG) res = -res;
+
+  return res;
+}
+
+OBJECT bignum_from_double(STATE, double d)
+{
+  NMP;
+
+  long i;
+  unsigned int c;
+  double value;
+  value = (d < 0)? -d : d;
+
+  /*
+  if (isinf(d)) {
+    rb_raise(rb_eFloatDomainError, d < 0 ? "-Infinity" : "Infinity");
+  }
+  if (isnan(d)) {
+    rb_raise(rb_eFloatDomainError, "NaN");
+  }
+  */
+
+  while ((value > (DIGIT_RADIX-1)) || 0 != (long)value) {
+    value = value / (double)(DIGIT_RADIX);
+    i++;
+  }
+
+  mp_grow(n, i);
+ 
+  i = 0;
+  while (i--) {
+    value *= DIGIT_RADIX;
+    c = (unsigned int)value;
+    value -= c;
+    DIGIT(n,i) = c;
+  }
+
+  return n_obj;
 }

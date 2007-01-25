@@ -199,7 +199,7 @@ class ShotgunPrimitives
     if(IS_INTEGER(t1)) {
       stack_push(bignum_equal(state, self, t1));
     } else {
-      _ret = FALSE;
+      stack_push(Qfalse);
     }
     CODE
   end
@@ -1707,6 +1707,70 @@ class ShotgunPrimitives
         /* } */
       }
     }
+    CODE
+  end
+
+  def bignum_to_float
+    <<-CODE
+    _ret = TRUE;
+    self = stack_pop();
+    t2 = float_new(state, bignum_to_double(state, self));
+    stack_push(t2);
+    CODE
+  end
+
+
+  def bignum_and
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+
+    if(IS_INTEGER(t1)) {
+      stack_push(bignum_and(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
+
+  def bignum_or
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+
+    if(IS_INTEGER(t1)) {
+      stack_push(bignum_or(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
+
+  def bignum_xor
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+
+    if(IS_INTEGER(t1)) {
+      stack_push(bignum_xor(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
+
+  def bignum_neg
+    <<-CODE
+    self = stack_pop();
+    stack_push(bignum_neg(state, self));
+    CODE
+  end
+
+
+  def bignum_invert
+    <<-CODE
+    self = stack_pop();
+    stack_push(bignum_neg(state, self));
     CODE
   end
 

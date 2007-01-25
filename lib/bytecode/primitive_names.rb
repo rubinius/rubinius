@@ -86,7 +86,13 @@ module Bytecode
       :fixnum_xor,
       :fixnum_invert,
       :fixnum_neg,
-      :fixnum_shift
+      :fixnum_shift,
+      :bignum_to_float,
+      :bignum_and,
+      :bignum_or,
+      :bignum_xor,
+      :bignum_neg,
+      :bignum_invert
     ]
 
     FirstRuntimePrimitive = 1024

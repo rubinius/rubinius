@@ -23,7 +23,31 @@ class Bignum < Integer
     Ruby.primitive :bignum_mul
   end
 
+  def &(o)
+    Ruby.primitive :bignum_and
+  end
+
+  def |(o)
+    Ruby.primitive :bignum_or
+  end
+
+  def ^(o)
+    Ruby.primitive :bignum_xor
+  end
+
+  def ~
+    Ruby.primitive :bignum_invert
+  end
+
+  def -@
+    Ruby.primitive :bignum_neg
+  end
+
   def ==(o)
     Ruby.primitive :bignum_equal
+  end
+
+  def to_f
+    Ruby.primitive :bignum_to_float
   end
 end
