@@ -99,6 +99,34 @@ module CompareTools
       map {|klass| klass.to_s }.sort
   end
 
+  def total_mri_instance_methods
+    mri_classes.map {|klass| klass.instance_methods.length }.
+      inject {|x, y| x + y }
+  end
+
+  def total_mri_class_methods
+    mri_classes.map {|klass| klass.methods.length }.
+      inject {|x, y| x + y }
+  end
+
+  def total_mri_methods
+    total_mri_class_methods + total_mri_instance_methods
+  end
+
+  def total_rubinius_instance_methods
+    rubinius_classes.map {|klass| klass.instance_methods.length }.
+      inject {|x, y| x + y }
+  end
+
+  def total_rubinius_class_methods
+    rubinius_classes.map {|klass| klass.methods.length }.
+      inject {|x, y| x + y }
+  end
+
+  def total_rubinius_methods
+    total_rubinius_class_methods + total_rubinius_instance_methods
+  end
+
   def diffs
     @diffs ||= mri_classes.inject({}) do |info, klass|
       # if the rubinius class exists, add this info

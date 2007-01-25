@@ -5,6 +5,22 @@ include CompareTools
 
 title = 'Rubinius Completeness Report'
 generated = Time.now
+
+def percent_bar(pct)
+  width = (pct * 200).round
+  rest = 200 - width
+  percent = ((pct * 10000.0).round / 100.0).to_s + '%'
+<<HTML
+<table width="200" cellspacing="0" cellpadding="0" style="border: 1px solid black">
+  <tr>
+    <td width="#{width}" height="15" style="text-align: right; color: #000000; background: #00f000">
+      #{pct >= 0.5 ? percent + '&nbsp;&nbsp;' : ''}</td>
+    <td width="#{rest}" height="15" style="text-align: left; color: #ffffff; background: #e00000">
+      #{pct < 0.5 ? '&nbsp;&nbsp;' + percent : ''}</td>
+  </tr>
+</table>
+HTML
+end
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -16,6 +32,17 @@ generated = Time.now
   <body>
     <div>Generated on <%= generated %>.</div>
     <h1><%= title %></h1>
+
+    <%
+    class_methods_pct = total_rubinius_class_methods.to_f / total_mri_class_methods
+    instance_methods_pct = total_rubinius_instance_methods.to_f / total_mri_instance_methods
+    %>
+    <h2>Overview</h2>
+    <strong>Class Methods(<%= "#{total_rubinius_class_methods} out of #{total_mri_class_methods}"%>)</strong>
+    <%= percent_bar(class_methods_pct) %>
+    <br />
+    <strong>Instance Methods(<%= "#{total_rubinius_instance_methods} out of #{total_mri_instance_methods}"%>)</strong>
+    <%= percent_bar(instance_methods_pct) %>
 
     <h2>Partially Complete Classes</h2>
     <table border="1">
@@ -44,6 +71,10 @@ generated = Time.now
       <li style="font-weight: bold; color: red"><%= klass %></li>
       <% end %>
     </ul>
+    <%= percent_bar(0.97) %>
+    <%= percent_bar(0.34) %>
+    <%= percent_bar(1) %>
+    <%= percent_bar(0) %>
 
     <p style="font-size: smaller; font-weight: bold; text-align: center">
       envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
