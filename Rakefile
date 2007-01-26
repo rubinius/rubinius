@@ -32,13 +32,6 @@ task :spec do
   raise "Spec or test failures." if got_error
 end unless no_spec
 
-desc "Build all reports"
-task :build_reports do
-  `mkdir #{ROOT}/reports` # do it if its not there
-  sh "erb #{ROOT}/bin/completeness_report.rhtml > " +
-     "#{ROOT}/reports/completeness.html"
-end
-
 namespace :spec do
   desc "Run all specs and tests."
   task :all do
@@ -360,6 +353,15 @@ namespace :build do
       FileUtils.rm fn
     end
   end
+
+  desc "Build all reports"
+  task :reports do
+    mkdir_p "#{ROOT}/reports" # do it if its not there
+    # ENV['RUBYOPT'] = ''
+    sh "RUBYOPT= erb #{ROOT}/bin/completeness_report.rhtml > " +
+      "#{ROOT}/reports/completeness.html"
+  end
+
 end
 
 namespace :doc do
