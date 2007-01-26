@@ -34,14 +34,29 @@ end
     <h1><%= title %></h1>
 
     <%
-    class_methods_pct = total_rubinius_class_methods.to_f / total_mri_class_methods
-    instance_methods_pct = total_rubinius_instance_methods.to_f / total_mri_instance_methods
+    total_classes = mri_classes.length
+    classes_left = incomplete_classes.length
+    classes_done = total_classes - classes_left
+    classes_pct = 1.0 - classes_left.to_f / total_classes
+
+    total_class_methods = mri_class_methods_total
+    class_methods_left = class_methods_left()
+    class_methods_done = total_class_methods - class_methods_left
+    class_methods_pct = 1.0 - class_methods_left.to_f / total_class_methods
+
+    total_instance_methods = mri_instance_methods_total
+    instance_methods_left = instance_methods_left()
+    instance_methods_done = total_instance_methods - instance_methods_left
+    instance_methods_pct = 1.0 - instance_methods_left.to_f / total_instance_methods
     %>
     <h2>Overview</h2>
-    <strong>Class Methods(<%= "#{total_rubinius_class_methods} out of #{total_mri_class_methods}"%>)</strong>
+    <strong>Classes(<%= "#{classes_done} out of #{total_classes}" %>)</strong>
+    <%= percent_bar(classes_pct) %>
+    <br />
+    <strong>Class Methods(<%= "#{class_methods_done} out of #{total_class_methods}" %>)</strong>
     <%= percent_bar(class_methods_pct) %>
     <br />
-    <strong>Instance Methods(<%= "#{total_rubinius_instance_methods} out of #{total_mri_instance_methods}"%>)</strong>
+    <strong>Instance Methods(<%= "#{instance_methods_done} out of #{total_instance_methods}" %>)</strong>
     <%= percent_bar(instance_methods_pct) %>
 
     <h2>Partially Complete Classes</h2>
@@ -52,8 +67,8 @@ end
       <% partially_complete_classes.each do |klass, info| %>
       <tr>
         <td><%= klass %></td>
-        <td style="color: red"><%= info[:method_diff].join(', ') %></td>
-        <td style="color: red"><%= info[:instance_method_diff].join(', ') %></td>
+        <td style="color: red"><%= info[:class_methods].join(', ') %></td>
+        <td style="color: red"><%= info[:instance_methods].join(', ') %></td>
       </tr>
       <% end %>
     </table>
@@ -71,10 +86,6 @@ end
       <li style="font-weight: bold; color: red"><%= klass %></li>
       <% end %>
     </ul>
-    <%= percent_bar(0.97) %>
-    <%= percent_bar(0.34) %>
-    <%= percent_bar(1) %>
-    <%= percent_bar(0) %>
 
     <p style="font-size: smaller; font-weight: bold; text-align: center">
       envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
