@@ -5,6 +5,17 @@
 GC.start
 
 # Parse options here!
+RBS_USAGE = <<END
+Usage: rubinius [options] [file]
+  File may be any valid Ruby source file (.rb) or a compiled Ruby file (.rbc).
+
+  Options: 
+          -c   Compile file only.
+          -e   Directly compile and execute code that follows (no file provided). 
+
+          -dc  Display debugging information for compiler.
+          -dl  Display debugging information for loader.
+END
 
 # script = ARGV.shift
 
@@ -14,6 +25,8 @@ begin
   until ARGV.empty?
     arg = ARGV.shift
     case arg
+    when '-h'
+      puts RBS_USAGE
     when '-dc'
       puts "[Compiler debugging enabled]"
       $DEBUG_COMPILER = true
