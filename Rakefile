@@ -1,4 +1,5 @@
 ROOT = File.expand_path(File.dirname(__FILE__))
+require 'erb'
 
 def require_files(files)
   files.each do |path|
@@ -34,9 +35,11 @@ end unless no_spec
 
 desc "Build all reports"
 task :build_reports do
-  `mkdir #{ROOT}/reports` # do it if its not there
-  sh "erb #{ROOT}/bin/completeness_report.rhtml > " +
-     "#{ROOT}/reports/completeness.html"
+  Dir.mkdir("#{ROOT}/reports") if !File.exist?("#{ROOT}/reports")
+  template = ERB.new(IO.read("#{ROOT}/bin/completeness_report.rhtml"))
+  File.open("#{ROOT}/reports/completeness.html", "w") do |f|
+    f.write(template.result)
+  end
 end
 
 namespace :spec do
