@@ -3,7 +3,6 @@
 # get info from my hacky comparison tools
 info = eval `ruby -W0 #{File.dirname(__FILE__) + '/compare_info.rb'}`
 info.each do |key, value|
-  #(class << self; self; end).send(:define_method, key) { value }
   self.class.send(:define_method, key) { value }
 end
 
@@ -31,9 +30,8 @@ end
 title = 'Rubinius Completeness Report'
 generated = Time.now
 total_classes = total_classes()
-classes_left = incomplete_classes.length
-classes_done = total_classes - classes_left
-classes_pct = 1.0 - classes_left.to_f / total_classes
+classes_done = complete_classes.length
+classes_pct = classes_done.to_f / total_classes
 
 total_class_methods = mri_class_methods_total
 class_methods_left = class_methods_left()
