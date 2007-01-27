@@ -1,39 +1,39 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
     <title><%= title %></title>
   </head>
   <body>
-    <div>Generated on <%= generated %>.</div>
     <h1><%= title %></h1>
+    <div>Generated on <%= generated %>.</div>
 
     <h2>Overview</h2>
-    <strong>Complete Classes</strong>
-    <div>(<%= "#{classes_done} out of #{total_classes}" %>)</div>
+
+    <h3>Complete Classes</h3>
     <%= percent_bar(classes_pct) %>
-    <br />
+    <p>(<%= "#{classes_done} out of #{total_classes}" %>)</p>
 
-    <strong>Class Methods</strong>
-    <div>(<%= "#{class_methods_done} out of #{total_class_methods}" %>)</div>
+    <h3>Class Methods</h3>
     <%= percent_bar(class_methods_pct) %>
-    <br />
+    <p>(<%= "#{class_methods_done} out of #{total_class_methods}" %>)</p>
 
-    <strong>Instance Methods</strong>
-    <div>(<%= "#{instance_methods_done} out of #{total_instance_methods}" %>)</div>
+    <h3>Instance Methods</h3>
     <%= percent_bar(instance_methods_pct) %>
-    <br />
+    <p>(<%= "#{instance_methods_done} out of #{total_instance_methods}" %>)</p>
 
     <h2>Partially Complete Classes</h2>
     <table border="1">
-      <th>Class</th>
-      <th>class methods needed</th>
-      <th>instance methods needed</th>
+      <tr>
+        <th>Class</th>
+        <th>class methods needed</th>
+        <th>instance methods needed</th>
+      </tr>
       <% partially_complete_classes.each do |klass, info| %>
       <tr>
         <td><%= klass %></td>
-        <td><%= info[:class_methods].join(', ') %></td>
-        <td><%= info[:instance_methods].join(', ') %></td>
+        <td><%=h info[:class_methods].join(', ') %></td>
+        <td><%=h info[:instance_methods].join(', ') %></td>
       </tr>
       <% end %>
     </table>
@@ -53,7 +53,9 @@
     </ul>
 
     <p style="font-size: smaller; font-weight: bold; text-align: center">
-      envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
+    envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
+    <img src="http://www.w3.org/Icons/valid-xhtml10"
+    alt="Valid XHTML 1.0 Strict" height="31" width="88" />
     </p>
   </body>
 </html>

@@ -7,19 +7,21 @@ info.each do |key, value|
 end
 
 # helpers (probably need to make this whole thing way less messy)
+require 'cgi'
+def h(html)
+  CGI.escapeHTML(html)
+end
+
 def percent_bar(pct)
   width = (pct * 200).round
   rest = 200 - width
   percent = ((pct * 100.0).round).to_s + '%'
   <<HTML
-<table width="200" cellspacing="0" cellpadding="0"
-style="border: 1px solid black">
+<table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td width="#{width}" height="15"
-    style="text-align: right; color: #000000; background: #00f000">
+    <td style="width: #{width}px; text-align: right; color: #000000; background: #00f000">
       #{pct >= 0.5 ? percent + '&nbsp;&nbsp;' : ''}</td>
-    <td width="#{rest}" height="15"
-    style="text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: #{width}px; text-align: left; color: #ffffff; background: #e00000">
       #{pct < 0.5 ? '&nbsp;&nbsp;' + percent : ''}</td>
   </tr>
 </table>
