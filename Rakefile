@@ -353,15 +353,31 @@ namespace :build do
       FileUtils.rm fn
     end
   end
+end
 
+task :report => 'report:all' # default
+namespace :report do
   desc "Build all reports"
-  task :reports do
-    mkdir_p "#{ROOT}/reports" # do it if its not there
-    # ENV['RUBYOPT'] = ''
-    sh "RUBYOPT= erb #{ROOT}/bin/completeness_report.rhtml > " +
-      "#{ROOT}/reports/completeness.html"
+  task :all => [:completeness]
+
+  desc "Build completeness report"
+  task :completeness => :pre do
+    run_report(:completeness)
   end
 
+  desc "Prerequisite actions before reports are built"
+  task :pre do
+    mkdir_p "#{ROOT}/reports" # do it if its not there
+  end
+
+  def run_report(name)
+    report = "#{ROOT}/bin/reports/#{name}.rb"
+    dest   = "#{ROOT}/reports/#{name}.html"
+    puts "ruby #{report} > #{dest}"
+    File.open("#{ROOT}/reports/#{name}.html", 'w') do |f|
+      f.write `RUBYOPT='' ruby #{report}`
+    end
+  end
 end
 
 namespace :doc do

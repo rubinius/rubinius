@@ -31,7 +31,7 @@ module Rubinius
 end
 
 # load it all up
-kernel_dir = File.dirname(__FILE__), '../kernel'
+kernel_dir = File.dirname(__FILE__), '../../kernel'
 files = Dir[File.join(kernel_dir, '**', '*.rb')]
 files.delete_if {|f| f =~ /__loader/ }
 # sort in case lexicographical order matters
@@ -42,17 +42,8 @@ end
 
 # heavy lifting
 module CompareTools
-
-  def mri_class(klass)
-    eval('::' + klass.to_s)
-  rescue NameError
-    nil
-  end
-
-  def rubinius_class(klass)
-    eval('::' + 'Rubinius::' + klass.to_s)
-  rescue NameError
-    nil
+  def total_classes
+    mri_classes.length
   end
 
   def rubinius_classes
@@ -109,7 +100,7 @@ module CompareTools
       else
         classes.merge(klass => info) # incomplete
       end
-    end
+    end.to_a.sort
   end
 
   # a classes that are finished (all methods implemented)
@@ -121,7 +112,7 @@ module CompareTools
       else
         nil
       end
-    end.compact
+    end.compact.sort
   end
 
   # classes that are not even in objectspace
@@ -129,7 +120,7 @@ module CompareTools
   def incomplete_classes
     all = mri_classes.map {|c| c.to_s }
     present = class_diffs.keys
-    all - present
+    (all - present).sort
   end
 
   # diff present classes in rubinius core
@@ -143,12 +134,25 @@ module CompareTools
     end
   end
 
+  private
   # generic class diffing algorithm
   def class_diff(klass1, klass2)
     {
       :instance_methods => klass1.instance_methods - klass2.instance_methods,
       :class_methods => klass1.methods - klass2.methods
     }
+  end
+
+  def mri_class(klass)
+    eval('::' + klass.to_s)
+  rescue NameError
+    nil
+  end
+
+  def rubinius_class(klass)
+    eval('::' + 'Rubinius::' + klass.to_s)
+  rescue NameError
+    nil
   end
 end
 

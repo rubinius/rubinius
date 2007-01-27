@@ -1,28 +1,3 @@
-<%
-# Wooter an html report :) --matt
-require File.expand_path(File.dirname(__FILE__) + '/compare_tools')
-include CompareTools
-
-title = 'Rubinius Completeness Report'
-generated = Time.now
-
-def percent_bar(pct)
-  width = (pct * 200).round
-  rest = 200 - width
-  percent = ((pct * 10000.0).round / 100.0).to_s + '%'
-<<HTML
-<table width="200" cellspacing="0" cellpadding="0" style="border: 1px solid black">
-  <tr>
-    <td width="#{width}" height="15" style="text-align: right; color: #000000; background: #00f000">
-      #{pct >= 0.5 ? percent + '&nbsp;&nbsp;' : ''}</td>
-    <td width="#{rest}" height="15" style="text-align: left; color: #ffffff; background: #e00000">
-      #{pct < 0.5 ? '&nbsp;&nbsp;' + percent : ''}</td>
-  </tr>
-</table>
-HTML
-end
-%>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -33,22 +8,6 @@ end
     <div>Generated on <%= generated %>.</div>
     <h1><%= title %></h1>
 
-    <%
-    total_classes = mri_classes.length
-    classes_left = incomplete_classes.length
-    classes_done = total_classes - classes_left
-    classes_pct = 1.0 - classes_left.to_f / total_classes
-
-    total_class_methods = mri_class_methods_total
-    class_methods_left = class_methods_left()
-    class_methods_done = total_class_methods - class_methods_left
-    class_methods_pct = 1.0 - class_methods_left.to_f / total_class_methods
-
-    total_instance_methods = mri_instance_methods_total
-    instance_methods_left = instance_methods_left()
-    instance_methods_done = total_instance_methods - instance_methods_left
-    instance_methods_pct = 1.0 - instance_methods_left.to_f / total_instance_methods
-    %>
     <h2>Overview</h2>
     <strong>Classes(<%= "#{classes_done} out of #{total_classes}" %>)</strong>
     <%= percent_bar(classes_pct) %>
