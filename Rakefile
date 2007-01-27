@@ -361,13 +361,8 @@ namespace :report do
   task :all => [:completeness]
 
   desc "Build completeness report"
-  task :completeness => :pre do
+  task :completeness do
     run_report(:completeness)
-  end
-
-  desc "Prerequisite actions before reports are built"
-  task :pre do
-    mkdir_p "#{ROOT}/reports" # do it if its not there
   end
 
   def run_report(name)

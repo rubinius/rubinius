@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title>Rubinius Completeness Report</title>
+  </head>
+  <body>
+    <h1>Rubinius Completeness Report</h1>
+    <div>Generated on Sat Jan 27 15:02:09 -0800 2007.</div>
+
+    <h2>Overview</h2>
+
+    <h3>Complete Classes</h3>
+    <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="width: 17px; text-align: right; color: #000000; background: #00f000">
+      </td>
+    <td style="width: 183px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;8%</td>
+  </tr>
+</table>
+
+    <p>(5 out of 60)</p>
+
+    <h3>Class Methods</h3>
+    <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="width: 101px; text-align: right; color: #000000; background: #00f000">
+      51%&nbsp;&nbsp;</td>
+    <td style="width: 99px; text-align: left; color: #ffffff; background: #e00000">
+      </td>
+  </tr>
+</table>
+
+    <p>(2733 out of 5410)</p>
+
+    <h3>Instance Methods</h3>
+    <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="width: 93px; text-align: right; color: #000000; background: #00f000">
+      </td>
+    <td style="width: 107px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;46%</td>
+  </tr>
+</table>
+
+    <p>(2001 out of 4311)</p>
+
+    <h2>Partially Complete Classes</h2>
+    <table border="1">
+      <tr>
+        <th>Class</th>
+        <th>class methods needed</th>
+        <th>instance methods needed</th>
+      </tr>
+      
+      <tr>
+        <td>Array</td>
+        <td></td>
+        <td>fetch, fill, insert, nitems, reject!, reverse!</td>
+      </tr>
+      
+      <tr>
+        <td>Bignum</td>
+        <td></td>
+        <td>%, **, /, &lt;&lt;, &gt;&gt;, [], size</td>
+      </tr>
+      
+      <tr>
+        <td>Class</td>
+        <td>nesting</td>
+        <td>&lt;=, &lt;=&gt;, &gt;, &gt;=, autoload, autoload?, class_eval, class_variables, const_defined?, const_get, const_missing, const_set, include?, included_modules, instance_method, method_defined?, module_eval, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
+      </tr>
+      
+      <tr>
+        <td>Continuation</td>
+        <td></td>
+        <td>[]</td>
+      </tr>
+      
+      <tr>
+        <td>Exception</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
+        <td>File</td>
+        <td>blockdev?, chardev?, chmod, chown, delete, executable?, executable_real?, exist?, expand_path, extname, fnmatch, fnmatch?, for_fd, foreach, ftype, grpowned?, identical?, join, lchmod, lchown, link, lstat, owned?, pipe?, popen, read, readable?, readable_real?, readlines, readlink, rename, select, setgid?, setuid?, size, size?, socket?, split, sticky?, symlink, symlink?, sysopen, truncate, umask, utime, writable?, writable_real?, zero?</td>
+        <td>all?, any?, atime, binmode, chmod, chown, close_read, close_write, collect, ctime, detect, each, each_byte, each_line, each_with_index, entries, eof, eof?, fcntl, fileno, find, find_all, flock, flush, fsync, getc, gets, grep, include?, inject, ioctl, isatty, lineno, lineno=, lstat, map, max, member?, min, mtime, partition, path, pid, pos, pos=, print, printf, putc, read_nonblock, readchar, readline, readlines, readpartial, reject, reopen, rewind, seek, select, sort, sort_by, stat, sysread, sysseek, syswrite, tell, to_i, to_io, truncate, tty?, ungetc, write_nonblock, zip</td>
+      </tr>
+      
+      <tr>
+        <td>Fixnum</td>
+        <td></td>
+        <td>**, [], id2name, to_f, to_sym</td>
+      </tr>
+      
+      <tr>
+        <td>Float</td>
+        <td>induced_from</td>
+        <td>%, **, /, finite?, infinite?, nan?, prec, prec_f, prec_i, to_f, to_i</td>
+      </tr>
+      
+      <tr>
+        <td>Hash</td>
+        <td>[]</td>
+        <td>all?, any?, clear, collect, default=, default_proc, delete, delete_if, detect, each_key, each_pair, each_value, each_with_index, fetch, find, find_all, grep, has_value?, index, indexes, indices, inject, invert, length, map, max, merge, merge!, min, partition, rehash, reject, reject!, replace, select, shift, sort, sort_by, store, to_hash, update, value?, values_at, zip</td>
+      </tr>
+      
+      <tr>
+        <td>IO</td>
+        <td>for_fd, foreach, open, popen, read, readlines, select, sysopen</td>
+        <td>all?, any?, binmode, close_read, close_write, collect, detect, each, each_byte, each_line, each_with_index, entries, eof, eof?, fcntl, fileno, find, find_all, flush, fsync, getc, gets, grep, include?, inject, ioctl, isatty, lineno, lineno=, map, max, member?, min, partition, pid, pos, pos=, print, printf, putc, read_nonblock, readchar, readline, readlines, readpartial, reject, reopen, rewind, seek, select, sort, sort_by, stat, sysread, sysseek, syswrite, tell, to_i, to_io, tty?, ungetc, write_nonblock, zip</td>
+      </tr>
+      
+      <tr>
+        <td>IOError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
+        <td>Integer</td>
+        <td>induced_from</td>
+        <td>+@, abs, ceil, coerce, div, divmod, floor, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, succ, to_int, truncate, zero?</td>
+      </tr>
+      
+      <tr>
+        <td>MatchData</td>
+        <td></td>
+        <td>select, size, values_at</td>
+      </tr>
+      
+      <tr>
+        <td>Method</td>
+        <td></td>
+        <td>[], arity, to_proc</td>
+      </tr>
+      
+      <tr>
+        <td>Module</td>
+        <td>nesting</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, &gt;, &gt;=, ancestors, autoload, autoload?, class_variables, const_get, const_missing, const_set, include?, included_modules, instance_methods, method_defined?, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
+      </tr>
+      
+      <tr>
+        <td>NotImplementedError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
+        <td>Proc</td>
+        <td></td>
+        <td>[], arity, binding</td>
+      </tr>
+      
+      <tr>
+        <td>Regexp</td>
+        <td>last_match, union</td>
+        <td>casefold?, kcode, options, ~</td>
+      </tr>
+      
+      <tr>
+        <td>Ruby</td>
+        <td>allocate, new, superclass</td>
+        <td>==, ===, =~, __id__, __send__, asm, class, class_diffs, class_methods_left, clone, complete_classes, define_fields, display, dup, eql?, equal?, extend, freeze, frozen?, hash, id, incomplete_classes, index_reader, inspect, instance_eval, instance_fields=, instance_methods_left, instance_of?, instance_variable_get, instance_variable_set, instance_variables, is_a?, ivar_as_index, kind_of?, method, methods, mri_class_methods_total, mri_classes, mri_instance_methods_total, nil?, object_id, partially_complete_classes, primitive, private_methods, protected_methods, public_methods, respond_to?, rubinius_classes, send, singleton_methods, taint, tainted?, to_a, to_s, total_classes, type, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>ScriptError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
+        <td>String</td>
+        <td></td>
+        <td>%, &lt;, &lt;=, &gt;, &gt;=, []=, all?, any?, between?, capitalize, capitalize!, casecmp, center, chomp, chomp!, chop, chop!, collect, concat, count, crypt, delete, delete!, detect, downcase, downcase!, dump, each, each_line, each_with_index, entries, find, find_all, grep, gsub, gsub!, hex, inject, insert, ljust, lstrip, lstrip!, map, match, max, member?, min, next, next!, oct, partition, reject, replace, rindex, rjust, rstrip, rstrip!, scan, select, slice!, sort, sort_by, squeeze, squeeze!, sub, sub!, succ, succ!, sum, swapcase, swapcase!, to_f, tr, tr!, tr_s, tr_s!, unpack, upcase, upcase!, upto, zip</td>
+      </tr>
+      
+      <tr>
+        <td>Symbol</td>
+        <td>all_symbols</td>
+        <td></td>
+      </tr>
+      
+      <tr>
+        <td>SyntaxError</td>
+        <td>exception</td>
+        <td>backtrace, exception, message, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
+        <td>Time</td>
+        <td>_load, gm, local, mktime, times, utc</td>
+        <td>+, -, _dump, asctime, ctime, day, dst?, getgm, getlocal, getutc, gmt?, gmt_offset, gmtime, gmtoff, hour, isdst, localtime, mday, min, mon, month, sec, succ, to_f, tv_sec, tv_usec, usec, utc, utc?, utc_offset, wday, yday, year, zone</td>
+      </tr>
+      
+      <tr>
+        <td>UnboundMethod</td>
+        <td></td>
+        <td>arity</td>
+      </tr>
+      
+    </table>
+
+    <h2>Complete Classes</h2>
+    <ul>
+      
+      <li style="font-weight: bold; color: green">FalseClass</li>
+      
+      <li style="font-weight: bold; color: green">NilClass</li>
+      
+      <li style="font-weight: bold; color: green">Object</li>
+      
+      <li style="font-weight: bold; color: green">Range</li>
+      
+      <li style="font-weight: bold; color: green">TrueClass</li>
+      
+    </ul>
+
+    <h2>Un-Implemented Classes</h2>
+    <ul>
+      
+      <li style="font-weight: bold; color: red">ArgumentError</li>
+      
+      <li style="font-weight: bold; color: red">Binding</li>
+      
+      <li style="font-weight: bold; color: red">Data</li>
+      
+      <li style="font-weight: bold; color: red">Dir</li>
+      
+      <li style="font-weight: bold; color: red">EOFError</li>
+      
+      <li style="font-weight: bold; color: red">FloatDomainError</li>
+      
+      <li style="font-weight: bold; color: red">IndexError</li>
+      
+      <li style="font-weight: bold; color: red">Interrupt</li>
+      
+      <li style="font-weight: bold; color: red">LoadError</li>
+      
+      <li style="font-weight: bold; color: red">LocalJumpError</li>
+      
+      <li style="font-weight: bold; color: red">NameError</li>
+      
+      <li style="font-weight: bold; color: red">NoMemoryError</li>
+      
+      <li style="font-weight: bold; color: red">NoMethodError</li>
+      
+      <li style="font-weight: bold; color: red">Numeric</li>
+      
+      <li style="font-weight: bold; color: red">RangeError</li>
+      
+      <li style="font-weight: bold; color: red">RegexpError</li>
+      
+      <li style="font-weight: bold; color: red">RuntimeError</li>
+      
+      <li style="font-weight: bold; color: red">SecurityError</li>
+      
+      <li style="font-weight: bold; color: red">SignalException</li>
+      
+      <li style="font-weight: bold; color: red">StandardError</li>
+      
+      <li style="font-weight: bold; color: red">Struct</li>
+      
+      <li style="font-weight: bold; color: red">SystemCallError</li>
+      
+      <li style="font-weight: bold; color: red">SystemExit</li>
+      
+      <li style="font-weight: bold; color: red">SystemStackError</li>
+      
+      <li style="font-weight: bold; color: red">Thread</li>
+      
+      <li style="font-weight: bold; color: red">ThreadError</li>
+      
+      <li style="font-weight: bold; color: red">ThreadGroup</li>
+      
+      <li style="font-weight: bold; color: red">TypeError</li>
+      
+      <li style="font-weight: bold; color: red">ZeroDivisionError</li>
+      
+    </ul>
+
+    <p style="font-size: smaller; font-weight: bold; text-align: center">
+    envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
+    <img src="http://www.w3.org/Icons/valid-xhtml10"
+    alt="Valid XHTML 1.0 Strict" height="31" width="88" />
+    </p>
+  </body>
+</html>
+
