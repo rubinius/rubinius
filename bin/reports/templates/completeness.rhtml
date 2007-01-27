@@ -32,8 +32,8 @@
       <% partially_complete_classes.each do |klass, info| %>
       <tr>
         <td><%= klass %></td>
-        <td style="color: red"><%= info[:class_methods].join(', ') %></td>
-        <td style="color: red"><%= info[:instance_methods].join(', ') %></td>
+        <td><%= info[:class_methods].join(', ') %></td>
+        <td><%= info[:instance_methods].join(', ') %></td>
       </tr>
       <% end %>
     </table>
