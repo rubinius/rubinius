@@ -10,7 +10,7 @@ end
 def percent_bar(pct)
   width = (pct * 200).round
   rest = 200 - width
-  percent = ((pct * 10000.0).round / 100.0).to_s + '%'
+  percent = ((pct * 100.0).round).to_s + '%'
   <<HTML
 <table width="200" cellspacing="0" cellpadding="0"
 style="border: 1px solid black">
