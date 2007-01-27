@@ -1508,8 +1508,7 @@ class ShotgunPrimitives
     if (FIXNUM_P(t1)) {
       stack_push(float_add(state, self, float_new(state, (double) FIXNUM_TO_INT(t1))));
     } else if (BIGNUM_P(t1)) {
-      stack_push(float_add(state, self, float_new(state, 0.0)));
-      // bignum_to_float(t1);
+      stack_push(float_add(state, self, bignum_to_double(state, t1)));
     } else if (COMPLEX_P(t1)) {
       stack_push(float_add(state, self, float_new(state, 0.0)));
       // complex_to_float(t1);
@@ -1528,8 +1527,7 @@ class ShotgunPrimitives
     if (FIXNUM_P(t1)) {
       stack_push(float_sub(state, self, float_new(state, (double) FIXNUM_TO_INT(t1))));
     } else if (BIGNUM_P(t1)) {
-      stack_push(float_sub(state, self, float_new(state, 0.0)));
-      // bignum_to_float(t1);
+      stack_push(float_sub(state, self, bignum_to_double(state, t1)));
     } else if (COMPLEX_P(t1)) {
       stack_push(float_sub(state, self, float_new(state, 0.0)));
       // complex_to_float(t1);
@@ -1548,8 +1546,7 @@ class ShotgunPrimitives
     if (FIXNUM_P(t1)) {
       stack_push(float_mul(state, self, float_new(state, (double) FIXNUM_TO_INT(t1))));
     } else if (BIGNUM_P(t1)) {
-      stack_push(float_mul(state, self, float_new(state, 0.0)));
-      // bignum_to_float(t1);
+      stack_push(float_mul(state, self, bignum_to_double(state, t1)));
     } else if (COMPLEX_P(t1)) {
       stack_push(float_mul(state, self, float_new(state, 0.0)));
       // complex_to_float(t1);
@@ -1568,8 +1565,7 @@ class ShotgunPrimitives
     if (FIXNUM_P(t1)) {
       stack_push(float_equal(state, self, float_new(state, (double) FIXNUM_TO_INT(t1))));
     } else if (BIGNUM_P(t1)) {
-      stack_push(float_equal(state, self, float_new(state, 0.0)));
-      // bignum_to_float(t1);
+      stack_push(float_equal(state, self, bignum_to_double(state, t1)));
     } else if (COMPLEX_P(t1)) {
       stack_push(float_equal(state, self, float_new(state, 0.0)));
       // complex_to_float(t1);
@@ -1771,6 +1767,46 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     stack_push(bignum_neg(state, self));
+    CODE
+  end
+  
+  def float_nan_p
+    <<-CODE
+    self = stack_pop();
+    stack_push(float_nan_p(state, self));
+    CODE
+  end
+  
+  def float_infinite_p
+    <<-CODE
+    self = stack_pop();
+    stack_push(float_infinite_p(state, self));
+    CODE
+  end
+  
+  def float_div
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    if (FIXNUM_P(t1)) {
+      stack_push(float_div(state, self, float_new(state, (double) FIXNUM_TO_INT(t1))));
+    } else if (BIGNUM_P(t1)) {
+      stack_push(float_div(state, self, bignum_to_double(state, t1)));
+    } else if (COMPLEX_P(t1)) {
+      stack_push(float_div(state, self, float_new(state, 0.0)));
+      // complex_to_float(t1);
+    } else if (FLOAT_P(t1)) {
+      stack_push(float_div(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
+  
+  def float_uminus
+    <<-CODE
+    self = stack_pop();
+    stack_push(float_uminus(state, self));
     CODE
   end
 

@@ -43,6 +43,14 @@ OBJECT float_mul(STATE, OBJECT a, OBJECT b) {
   return float_new(state, FLT(a) * FLT(b));
 }
 
+OBJECT float_div(STATE, OBJECT a, OBJECT b) {
+  return float_new(state, FLT(a) / FLT(b));
+}
+
+OBJECT float_uminus(STATE, OBJECT self) {
+  return float_new(state, -FLT(self));
+}
+
 OBJECT float_equal(STATE, OBJECT a, OBJECT b) {
   return FLT(a) == FLT(b) ? Qtrue : Qfalse;
 }
@@ -102,4 +110,17 @@ OBJECT float_from_string(STATE, char *str) {
   
   sscanf(str, "%lf", &d);
   return float_new(state, d);
+}
+
+inline OBJECT float_nan_p(STATE, OBJECT self) {
+  return isnan(FLT(self)) ? Qtrue : Qfalse;
+}
+
+inline OBJECT float_infinite_p(STATE, OBJECT self) {
+  double value = FLT(self);
+  
+  if isinf(value)
+    return I2N(value < 0 ? -1 : 1);
+    
+  return Qnil;
 }

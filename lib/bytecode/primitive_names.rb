@@ -92,7 +92,11 @@ module Bytecode
       :bignum_or,
       :bignum_xor,
       :bignum_neg,
-      :bignum_invert
+      :bignum_invert,
+      :float_nan_p,
+      :float_infinite_p,
+      :float_div,
+      :float_uminus
     ]
 
     FirstRuntimePrimitive = 1024

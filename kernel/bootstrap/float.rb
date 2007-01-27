@@ -19,6 +19,10 @@ class Float < Numeric
     Ruby.primitive :float_mul
   end
 
+  def /(o)
+    Ruby.primitive :float_div
+  end
+  
   def ==(o)
     Ruby.primitive :float_equal
   end
