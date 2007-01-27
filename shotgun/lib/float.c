@@ -119,8 +119,9 @@ inline OBJECT float_nan_p(STATE, OBJECT self) {
 inline OBJECT float_infinite_p(STATE, OBJECT self) {
   double value = FLT(self);
   
-  if isinf(value)
+  if (isinf(value))
     return I2N(value < 0 ? -1 : 1);
     
   return Qnil;
 }
+ 
