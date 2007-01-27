@@ -21,7 +21,7 @@ def percent_bar(pct)
   <tr>
     <td style="width: #{width}px; text-align: right; color: #000000; background: #00f000">
       #{pct >= 0.5 ? percent + '&nbsp;&nbsp;' : ''}</td>
-    <td style="width: #{width}px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: #{rest}px; text-align: left; color: #ffffff; background: #e00000">
       #{pct < 0.5 ? '&nbsp;&nbsp;' + percent : ''}</td>
   </tr>
 </table>
