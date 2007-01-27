@@ -74,7 +74,7 @@ context "Array instance method" do
   
   specify "& should create an array with no duplicates" do
     example do
-      p(([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).uniq!)
+      ([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).uniq!
     end.should == nil
   end
   
