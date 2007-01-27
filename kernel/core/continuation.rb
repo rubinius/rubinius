@@ -30,6 +30,8 @@ class Continuation
     method_context.put 2, @start
     method_context.activate(nil)
   end
+
+  alias :[] :call
 end
 
 module Kernel
