@@ -138,8 +138,8 @@ module CompareTools
   # generic class diffing algorithm
   def class_diff(klass1, klass2)
     {
-      :instance_methods => klass1.instance_methods - klass2.instance_methods,
-      :class_methods => klass1.methods - klass2.methods
+      :instance_methods => (klass1.instance_methods - klass2.instance_methods).sort,
+      :class_methods => (klass1.methods - klass2.methods).sort
     }
   end
 
