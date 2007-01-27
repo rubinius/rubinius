@@ -67,7 +67,7 @@ class Integer
           out *= base
           exp -= 1
         else
-          out *= out
+          base *= base
           exp >>= 1
         end
       end
