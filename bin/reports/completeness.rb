@@ -1,7 +1,7 @@
 # Wooter an html report :) --matt
 
 # get info from my hacky comparison tools
-info = eval `ruby #{File.dirname(__FILE__) + '/compare_info.rb'}`
+info = eval `ruby -W0 #{File.dirname(__FILE__) + '/compare_info.rb'}`
 info.each do |key, value|
   #(class << self; self; end).send(:define_method, key) { value }
   self.class.send(:define_method, key) { value }
