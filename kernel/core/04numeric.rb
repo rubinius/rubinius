@@ -58,7 +58,7 @@ class Integer
 
   def **(exp)
     if exp < 0 || !(Integer === exp)
-      FLoat(self)**Float(exp)
+      Float(self)**Float(exp)
     else
       out = 1
       base = self
