@@ -1822,6 +1822,13 @@ class ShotgunPrimitives
     }
     CODE
   end
+  
+  def float_to_i
+    <<-CODE
+    self = stack_pop();
+    stack_push(float_to_i(state, self));
+    CODE
+  end
 
 end
 

@@ -22,4 +22,11 @@ class Float
   def **(o)
     Ruby.primitive :float_pow
   end
+  
+  def to_i
+    Ruby.primitive :float_to_i
+  end
+  
+  alias :to_int :to_i
+  alias :truncate :to_i
 end

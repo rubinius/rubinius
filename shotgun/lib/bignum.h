@@ -21,4 +21,5 @@ void bignum_into_string(STATE, OBJECT self, int radix, char *buf, int sz);
 OBJECT bignum_from_string(STATE, char *str, int radix);
 OBJECT bignum_from_string_detect(STATE, char *str);
 double bignum_to_double(STATE, OBJECT self);
+OBJECT bignum_from_double(STATE, double d);
 #endif

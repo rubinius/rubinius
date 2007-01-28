@@ -1,5 +1,6 @@
 #include "shotgun.h"
 #include "string.h"
+#include "bignum.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -55,6 +56,15 @@ OBJECT float_equal(STATE, OBJECT a, OBJECT b) {
 
 OBJECT float_pow(STATE, OBJECT a, OBJECT b) {
   return float_new(state, pow(FLOAT_TO_DOUBLE(a), FLOAT_TO_DOUBLE(b)));
+}
+
+OBJECT float_to_i(STATE, OBJECT self) {
+  double value;
+  value = FLOAT_TO_DOUBLE(self);
+  if (value > 0.0) value = floor(value);
+  if (value < 0.0) value = ceil(value);
+  
+  return bignum_normalize(state, bignum_from_double(state, value));
 }
 
 OBJECT float_compare(STATE, OBJECT a, OBJECT b) {

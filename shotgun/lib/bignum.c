@@ -298,10 +298,10 @@ OBJECT bignum_from_double(STATE, double d)
 {
   NMP;
 
-  long i;
+  long i = 0;
   unsigned int c;
   double value;
-  value = (d < 0)? -d : d;
+  value = (d < 0) ? -d : d;
 
   /*
   if (isinf(d)) {
@@ -319,7 +319,6 @@ OBJECT bignum_from_double(STATE, double d)
 
   mp_grow(n, i);
  
-  i = 0;
   while (i--) {
     value *= DIGIT_RADIX;
     c = (unsigned int)value;
