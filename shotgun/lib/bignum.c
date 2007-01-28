@@ -82,6 +82,17 @@ OBJECT bignum_mul(STATE, OBJECT a, OBJECT b) {
   return bignum_normalize(state, n_obj);
 }
 
+OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
+  NMP;
+  
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, FIXNUM_TO_INT(b));
+  }
+  
+  mp_div(MP(a), MP(b), n, NULL);
+  return bignum_normalize(state, n_obj);
+}
+
 OBJECT bignum_and(STATE, OBJECT a, OBJECT b) {
   NMP;
 

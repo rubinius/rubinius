@@ -13,7 +13,6 @@ class Fixnum < Integer
   
   def *(o)
     Ruby.primitive :fixnum_mul
-    o * self
   end
   
   def /(o)

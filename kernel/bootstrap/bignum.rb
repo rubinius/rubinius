@@ -22,7 +22,11 @@ class Bignum < Integer
   def *(o)
     Ruby.primitive :bignum_mul
   end
-
+  
+  def /(o)
+    Ruby.primitive :bignum_div
+  end
+  
   def &(o)
     Ruby.primitive :bignum_and
   end

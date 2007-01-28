@@ -7,6 +7,7 @@ OBJECT bignum_normalize(STATE, OBJECT b);
 OBJECT bignum_add(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_sub(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_mul(STATE, OBJECT a, OBJECT b);
+OBJECT bignum_div(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_compare(STATE, OBJECT a, OBJECT b);
 OBJECT bignum_and(STATE, OBJECT a, OBJECT b);

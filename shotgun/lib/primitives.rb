@@ -51,19 +51,14 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
+    if (FIXNUM_P(t1)) {
+      stack_push(fixnum_add(state, self, t1));
+    } else if (BIGNUM_P(t1)) {
+      stack_push(bignum_add(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+    } else if (FLOAT_P(t1)) {
+      stack_push(float_add(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
     } else {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-      m = j + k;
-      t2 = I2N(m);
-      /* Detect overflow. */
-      // printf("overflow? %d =?= %d\\n", m, I2N(FIXNUM_TO_INT(t2)));
-      if(m != FIXNUM_TO_INT(t2)) {
-        t2 = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
-      }
-      stack_push(t2);
+      _ret = FALSE;
     }
     CODE
   end
@@ -84,17 +79,14 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
+    if (FIXNUM_P(t1)) {
+      stack_push(fixnum_sub(state, self, t1));
+    } else if (BIGNUM_P(t1)) {
+      stack_push(bignum_sub(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+    } else if (FLOAT_P(t1)) {
+      stack_push(float_sub(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
     } else {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-      m = j - k;
-      t2 = I2N(m);
-      if(m != FIXNUM_TO_INT(t2)) {
-        t2 = bignum_sub(state, bignum_new(state, j), bignum_new(state, k));
-      }
-      stack_push(t2);
+      _ret = FALSE;
     }
     CODE
   end
@@ -115,19 +107,14 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
+    if (FIXNUM_P(t1)) {
+      stack_push(fixnum_mul(state, self, t1));
+    } else if (BIGNUM_P(t1)) {
+      stack_push(bignum_mul(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+    } else if (FLOAT_P(t1)) {
+      stack_push(float_mul(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
     } else {
-      long long ll;
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-      ll = (long long)j * (long long)k;
-      m = ll;
-      t2 = I2N(m);
-      if(ll != FIXNUM_TO_INT(t2)) {
-        t2 = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
-      }
-      stack_push(t2);
+      _ret = FALSE;
     }
     CODE
   end
@@ -161,17 +148,26 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
+    if (FIXNUM_P(t1)) {
+      stack_push(fixnum_div(state, self, t1));
+    } else if (BIGNUM_P(t1)) {
+      stack_push(bignum_div(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
+    } else if (FLOAT_P(t1)) {
+      stack_push(float_div(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
     } else {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-      m = j / k;
-      t2 = I2N(m);
-      if(m != FIXNUM_TO_INT(t2)) {
-        t2 = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
-      }
-      stack_push(t2);
+      _ret = FALSE;
+    }
+    CODE
+  end
+  
+  def bignum_div
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    if(IS_INTEGER(t1)) {
+      stack_push(bignum_div(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end

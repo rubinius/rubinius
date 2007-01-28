@@ -54,6 +54,7 @@ rstate rubinius_state_new();
 
 #include "bignum.h"
 #include "float.h"
+#include "fixnum.h"
 
 // rubinius.h defines STATE as void*, which means these prototypes fail to match.
 // This is pretty confusing, since they look identical before the pre-processor runs.
