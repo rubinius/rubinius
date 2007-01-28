@@ -1,5 +1,4 @@
 class CompiledMethod
-  
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"
   end
@@ -79,6 +78,10 @@ class CompiledMethod
     end
     return 0
   end
+
+  def arity
+    @required
+  end
 end
 
 class Method
@@ -100,10 +103,12 @@ class Method
     UnboundMethod.new(@module, @method)
   end
 
+  def arity
+    @method.arity
+  end
 end
 
 class UnboundMethod
-
   def initialize(mod, cm)
     @method = cm
     @module = mod
@@ -117,6 +122,9 @@ class UnboundMethod
     Method.new(receiver, @module, @method)
   end
 
+  def arity
+    @method.arity
+  end
 end
 
 class RuntimePrimitive
