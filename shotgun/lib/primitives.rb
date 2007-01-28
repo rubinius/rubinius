@@ -118,11 +118,13 @@ class ShotgunPrimitives
     if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
     } else {
+      long long ll;
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
-      m = j * k;
+      ll = (long long)j * (long long)k;
+      m = ll;
       t2 = I2N(m);
-      if(m != FIXNUM_TO_INT(t2)) {
+      if(ll != FIXNUM_TO_INT(t2)) {
         t2 = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
       }
       stack_push(t2);
