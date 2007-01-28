@@ -2,7 +2,7 @@ CC=gcc
 UNAME=$(shell uname)
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs` -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
+LIBS=`pkg-config glib-2.0 --libs` -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a -lm
 LDFLAGS=
 
 ifeq ($(UNAME),SunOS)
