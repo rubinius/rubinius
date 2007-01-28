@@ -32,8 +32,8 @@ context "Fixnum instance method" do
 
   specify "* should return self multiplied by other" do
     example do
-      [4923 * 2, 1342177 * 800]
-    end.should == [9846, 1073741600]
+      [4923 * 2, 1342177 * 800, 65536 * 65536]
+    end.should == [9846, 1073741600, 4294967296]
   end
 
   specify "* should coerce fixnum and return self multiplied by other" do 
@@ -52,6 +52,18 @@ context "Fixnum instance method" do
     example do
       [5 ** -1, 9 ** 0.5]
     end.should == [0.2, 3.0]
+  end
+
+  specify "** should seamlessly progress into the bignum range" do
+    example do
+      (0..40).map {|x| 2**x}
+    end.should == [1, 2, 4, 8, 16, 32, 64, 128,
+                   256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
+                   65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608,
+                   16777216, 33554432, 67108864, 134217728, 268435456, 536870912,
+                   1073741824, 2147483648, 4294967296, 8589934592, 17179869184,
+                   34359738368, 68719476736, 137438953472, 274877906944, 549755813888,
+                   1099511627776]
   end
 
   specify "+ should return self plus other" do
