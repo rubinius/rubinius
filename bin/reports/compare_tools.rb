@@ -1,15 +1,7 @@
 # Matthew Elder <sseses@gmail.com>
 # See what methods were missing on core ruby classes for rubinius
 
-## Start dummy methods so mri understands rubinius core classes
-class Ruby
-  def primitive(*args)
-  end
-
-  def asm(*args)
-  end
-end
-
+# dummy Object methods so mri can understand
 class Object
   def ivar_as_index(*args)
   end
@@ -17,17 +9,23 @@ class Object
   def instance_fields=(*args)
   end
 
-  def index_reader(name, idx)
+  def index_reader(*args)
   end
 
   def define_fields(*args)
   end
 end
 
-# end dummy methods
-
 # module to hold rubinius core namespace
 module Rubinius
+  # fake these
+  module Ruby
+    def self.primitive(*args)
+    end
+
+    def self.asm(*args)
+    end
+  end
 end
 
 # load it all up
