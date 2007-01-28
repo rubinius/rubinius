@@ -37,7 +37,13 @@ static int _recursive_reporting = 0;
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
+void machine_print_callstack1(machine m, int maxlev);
+
 void machine_print_callstack(machine m) {
+    machine_print_callstack1(m, -1);
+}
+
+void machine_print_callstack1(machine m, int maxlev) {
   OBJECT context;
   char *modname;
   char *methname;
@@ -45,7 +51,12 @@ void machine_print_callstack(machine m) {
   
   context = m->c->active_context;
   
-  while(RTEST(context)) {
+  while(RTEST(context) && maxlev--) {
+    if (NUM_FIELDS(context) == 7) { /* FIXME: print_callstack does not know about block contexts */
+        printf("Skipping Block Context\n");
+        context = blokctx_get_sender(context);
+        continue;
+    }
     if(RTEST(methctx_get_module(context))) {
       modname = SYM2STR(m->s, module_get_name(methctx_get_module(context)));
     } else {
@@ -543,7 +554,7 @@ char *_inspect(OBJECT obj) {
   if(SYMBOL_P(obj)) {
     return rbs_symbol_to_cstring(current_machine->s, obj);
   }
-  return rbs_inspect(current_machine->s, obj);
+  return rbs_inspect1(current_machine->s, obj);
 }
 
 /*
