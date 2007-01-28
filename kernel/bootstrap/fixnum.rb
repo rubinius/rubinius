@@ -13,6 +13,7 @@ class Fixnum < Integer
   
   def *(o)
     Ruby.primitive :fixnum_mul
+    o * self
   end
   
   def /(o)
@@ -60,9 +61,7 @@ class Fixnum < Integer
   end
   
   def <=(o)
-    comp = (self <=> o)
-    return true if comp == 0 or comp == -1
-    return false
+    (self <=> o) != 1
   end
   
   def >(o)
@@ -70,9 +69,7 @@ class Fixnum < Integer
   end
   
   def >=(o)
-    comp = (self <=> o)
-    return true if comp == 0 or comp == 1
-    return false
+    (self <=> o) != -1
   end
   
   def to_s(base=10)
