@@ -27,6 +27,7 @@
 #include <sys/time.h>
 #include <glib.h>
 #include <zlib.h>
+#include <math.h>
 
 #define STATIC_SIZE 100
 

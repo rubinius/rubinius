@@ -20,8 +20,6 @@
 #define ISXDIGIT(c) (ISASCII(c) && isxdigit((int)(unsigned char)(c)))
 #endif
 
-#define FLT(k) (*DATA_STRUCT(k, double*))
-
 OBJECT float_new(STATE, double dbl) {
   double *value;
   OBJECT o;
@@ -32,35 +30,39 @@ OBJECT float_new(STATE, double dbl) {
 }
 
 OBJECT float_add(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLT(a) + FLT(b));
+  return float_new(state, FLOAT_TO_DOUBLE(a) + FLOAT_TO_DOUBLE(b));
 }
 
 OBJECT float_sub(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLT(a) - FLT(b));
+  return float_new(state, FLOAT_TO_DOUBLE(a) - FLOAT_TO_DOUBLE(b));
 }
 
 OBJECT float_mul(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLT(a) * FLT(b));
+  return float_new(state, FLOAT_TO_DOUBLE(a) * FLOAT_TO_DOUBLE(b));
 }
 
 OBJECT float_div(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLT(a) / FLT(b));
+  return float_new(state, FLOAT_TO_DOUBLE(a) / FLOAT_TO_DOUBLE(b));
 }
 
 OBJECT float_uminus(STATE, OBJECT self) {
-  return float_new(state, -FLT(self));
+  return float_new(state, -FLOAT_TO_DOUBLE(self));
 }
 
 OBJECT float_equal(STATE, OBJECT a, OBJECT b) {
-  return FLT(a) == FLT(b) ? Qtrue : Qfalse;
+  return FLOAT_TO_DOUBLE(a) == FLOAT_TO_DOUBLE(b) ? Qtrue : Qfalse;
+}
+
+OBJECT float_pow(STATE, OBJECT a, OBJECT b) {
+  return float_new(state, pow(FLOAT_TO_DOUBLE(a), FLOAT_TO_DOUBLE(b)));
 }
 
 OBJECT float_compare(STATE, OBJECT a, OBJECT b) {
   int i;
   double c, d;
   
-  c = FLT(a);
-  d = FLT(b);
+  c = FLOAT_TO_DOUBLE(a);
+  d = FLOAT_TO_DOUBLE(b);
   if (c < d) {
     i = -1;
   } else if (c > d) {
@@ -76,7 +78,7 @@ OBJECT float_to_s(STATE, OBJECT self) {
   double value;
   char *p, *e;
   
-  value = FLT(self);
+  value = FLOAT_TO_DOUBLE(self);
   
   // adapted from ruby 1.8.x source
   if (isinf(value))
@@ -102,7 +104,7 @@ OBJECT float_to_s(STATE, OBJECT self) {
 }
 
 void float_into_string(STATE, OBJECT self, char *buf, int sz) {
-  snprintf(buf, sz, "%+.17e", FLT(self));
+  snprintf(buf, sz, "%+.17e", FLOAT_TO_DOUBLE(self));
 }
 
 OBJECT float_from_string(STATE, char *str) {
@@ -113,15 +115,14 @@ OBJECT float_from_string(STATE, char *str) {
 }
 
 inline OBJECT float_nan_p(STATE, OBJECT self) {
-  return isnan(FLT(self)) ? Qtrue : Qfalse;
+  return isnan(FLOAT_TO_DOUBLE(self)) ? Qtrue : Qfalse;
 }
 
 inline OBJECT float_infinite_p(STATE, OBJECT self) {
-  double value = FLT(self);
+  double value = FLOAT_TO_DOUBLE(self);
   
   if (isinf(value))
     return I2N(value < 0 ? -1 : 1);
     
   return Qnil;
 }
- 

@@ -18,4 +18,8 @@ class Float
   def -@
     Ruby.primitive :float_uminus
   end
+  
+  def **(o)
+    Ruby.primitive :float_pow
+  end
 end

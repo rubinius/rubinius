@@ -1806,6 +1806,22 @@ class ShotgunPrimitives
     stack_push(float_uminus(state, self));
     CODE
   end
+  
+  def float_pow
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    if (FIXNUM_P(t1)) {
+      stack_push(float_pow(state, self, float_new(state, (double)FIXNUM_TO_INT(t1))));
+    } else if (BIGNUM_P(t1)) {
+      stack_push(float_pow(state, self, float_new(state, bignum_to_double(state, t1))));
+    } else if (FLOAT_P(t1)) {
+      stack_push(float_pow(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
 
 end
 

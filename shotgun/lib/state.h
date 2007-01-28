@@ -114,6 +114,8 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(state, int)
 #define I2N(i) INT_TO_FIXNUM(i)
 #define UI2N(i) rbs_uint_to_fixnum(state, i)
+#define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
+
 
 extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);

@@ -14,5 +14,6 @@ void float_into_string(STATE, OBJECT self, char *buf, int sz);
 OBJECT float_from_string(STATE, char *str);
 inline OBJECT float_nan_p(STATE, OBJECT self);
 inline OBJECT float_infinite_p(STATE, OBJECT self);
+OBJECT float_pow(STATE, OBJECT a, OBJECT b);
 
 #endif
