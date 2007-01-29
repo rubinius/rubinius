@@ -89,7 +89,7 @@ char *string_byte_address(STATE, OBJECT self) {
   i = FIXNUM_TO_INT(string_get_bytes(self));
   data = string_get_data(self);
   out = bytearray_byte_address(state, data);
-  out[i] = 0;
+//  out[i] = 0;       Nice idea, but we don't have the space necessarily.   Use string_as_string!
   return out;
 }
 
