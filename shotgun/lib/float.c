@@ -67,22 +67,6 @@ OBJECT float_to_i(STATE, OBJECT self) {
   return bignum_normalize(state, bignum_from_double(state, value));
 }
 
-OBJECT float_compare(STATE, OBJECT a, OBJECT b) {
-  int i;
-  double c, d;
-  
-  c = FLOAT_TO_DOUBLE(a);
-  d = FLOAT_TO_DOUBLE(b);
-  if (c < d) {
-    i = -1;
-  } else if (c > d) {
-    i = 1;
-  } else {
-    i = 0;
-  }
-  return I2N(i);
-}
-
 OBJECT float_to_s(STATE, OBJECT self) {
   char buf[32];
   double value;

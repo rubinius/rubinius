@@ -188,10 +188,6 @@ OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
   return Qfalse;
 }
 
-OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
-  return I2N(mp_cmp(MP(a), MP(b)));
-}
-
 unsigned long bignum_to_int(STATE, OBJECT self) {
   return mp_get_int(MP(self));
 }

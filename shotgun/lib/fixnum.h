@@ -7,3 +7,4 @@ OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b);
 OBJECT fixnum_div(STATE, OBJECT a, OBJECT b);
 
 #endif
+
