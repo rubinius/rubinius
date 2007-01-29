@@ -312,7 +312,7 @@ OBJECT bignum_from_double(STATE, double d)
   }
   */
 
-  while ((value > (DIGIT_RADIX-1)) || 0 != (long)value) {
+  while (!(value <= (LONG_MAX >> 1)) || 0 != (long)value) {
     value = value / (double)(DIGIT_RADIX);
     i++;
   }
@@ -324,6 +324,11 @@ OBJECT bignum_from_double(STATE, double d)
     c = (unsigned int)value;
     value -= c;
     DIGIT(n,i) = c;
+    n->used += 1;
+  }
+
+  if (d < 0) {
+    mp_neg(n, n);
   }
 
   return n_obj;

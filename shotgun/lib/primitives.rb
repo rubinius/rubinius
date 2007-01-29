@@ -1763,7 +1763,7 @@ class ShotgunPrimitives
   def bignum_invert
     <<-CODE
     self = stack_pop();
-    stack_push(bignum_neg(state, self));
+    stack_push(bignum_invert(state, self));
     CODE
   end
   
