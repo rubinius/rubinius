@@ -65,7 +65,8 @@ address heap_allocate(rheap h, int size) {
   return addr;
 }
 
-int heap_enough_space_p(rheap h, unsigned int size) {
+int heap_enough_space_p(rheap h, int size) {
+  if (size < 0) abort();
   if(h->current + size > h->last) return FALSE;
   return TRUE;
 }
