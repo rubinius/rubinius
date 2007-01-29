@@ -115,9 +115,19 @@ module Bytecode
     attr_accessor :path
     
     def compile(sx, name, state=RsLocalState.new)
+      if $DEBUG_COMPILER
+        puts "==================================="
+        puts "Sexp:"
+        p sx
+      end
+
       nx = fully_normalize(sx, state)
-      #require 'pp'
-      #pp nx
+      if $DEBUG_COMPILER
+        puts "==================================="
+        puts "Normalized Sexp:"
+        p nx
+      end
+
       meth = MethodDescription.new(name)
       meth.path = @path.dup
       
