@@ -29,5 +29,9 @@ class Numeric
   def <=>(other)
     Ruby.primitive :numeric_compare
   end
+  
+  def coerce(other)
+    Ruby.primitive :numeric_coerce
+  end
 end
 

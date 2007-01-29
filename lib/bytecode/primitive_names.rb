@@ -99,7 +99,8 @@ module Bytecode
       :float_uminus,
       :bignum_div,
       :float_pow,
-      :float_to_i
+      :float_to_i,
+      :numeric_coerce
     ]
 
     FirstRuntimePrimitive = 1024

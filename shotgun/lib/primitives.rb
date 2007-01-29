@@ -1852,6 +1852,12 @@ class ShotgunPrimitives
     stack_push(float_to_i(state, self));
     CODE
   end
+  
+  def numeric_coerce
+    <<-CODE
+    _ret = FALSE;
+    CODE
+  end
 
 end
 

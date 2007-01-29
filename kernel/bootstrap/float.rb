@@ -1,5 +1,4 @@
 class Float < Numeric
-  # include Precision
   
   def to_s
     Ruby.primitive :float_to_s
