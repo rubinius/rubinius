@@ -8,7 +8,7 @@ class SymbolTable
   end
   
   def symbol_to_string(sym)
-    @symbols.at(sym.index)
+    @symbols.at(sym.index).dup
   end  
 end
 
