@@ -89,9 +89,13 @@ char *rbs_inspect1(STATE, OBJECT obj) {
     if (kls == state->global->string)
       s = string_as_string(state, obj);
     if (s) {
-      strncat(buf, s, 30);
-      if (strlen(s) > 30)
-        strcat(buf, "...");
+      int l;
+      if ((l = strlen(s)) > 40) {
+          strncat(buf, s, 20);
+          strcat(buf, "...");
+          strncat(buf, s+l-20, 20);
+      } else
+          strncat(buf, s, 40);
     }
   }
   return buf;
