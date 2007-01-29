@@ -1,4 +1,8 @@
 class Float
+  def <=>(other)
+    Ruby.primitive :compare
+  end
+
   def nan?
     Ruby.primitive :float_nan_p
   end

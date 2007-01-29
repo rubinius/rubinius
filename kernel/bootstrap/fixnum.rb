@@ -94,5 +94,8 @@ class Fixnum < Integer
   def nonzero?
     self != 0
   end
-  
+
+  def <=>(other)
+    Ruby.primitive :compare
+  end
 end
