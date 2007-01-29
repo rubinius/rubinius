@@ -82,9 +82,15 @@ char *string_as_string(STATE, OBJECT self) {
 }
 
 char *string_byte_address(STATE, OBJECT self) {
+  int i;
   OBJECT data;
+  char *out;
+  
+  i = FIXNUM_TO_INT(string_get_bytes(self));
   data = string_get_data(self);
-  return bytearray_byte_address(state, data);
+  out = bytearray_byte_address(state, data);
+  out[i] = 0;
+  return out;
 }
 
 #define HashPrime 16777619
