@@ -100,7 +100,8 @@ module Bytecode
       :bignum_div,
       :float_pow,
       :float_to_i,
-      :numeric_coerce
+      :numeric_coerce,
+      :hash_delete
     ]
 
     FirstRuntimePrimitive = 1024

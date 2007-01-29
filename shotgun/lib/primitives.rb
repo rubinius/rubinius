@@ -763,6 +763,19 @@ class ShotgunPrimitives
     stack_push(t1);
     CODE
   end
+  
+  def hash_delete
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    if(!RISA(self, hash) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
+      stack_push(t2);
+    }
+    CODE
+  end
 
   def symbol_index
     <<-CODE
