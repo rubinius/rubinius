@@ -12,7 +12,7 @@ class Hash
   end
   
   def value?(val)
-    self.values.include?(val)
+    values.include?(val)
   end
   alias :has_value? :value?
   
@@ -32,25 +32,25 @@ class Hash
   end
   
   def delete_if
-    self.each {|k, v| delete(k) if yield(k, v)}
+    each {|k, v| delete(k) if yield(k, v)}
   end
   
   def clear
-    self.each {|k, v| delete(k)}
+    delete_if {true}
   end
   
-  def each_key
-    self.keys.each {|k| yield k}
+  def each_key(&block)
+    keys.each(&block)
     self
   end
   
-  def each_value
-    self.values.each {|v| yield v}
+  def each_value(&block)
+    values.each(&block)
     self
   end
   
   def index(val)
-    self.each {|k, v| return k if v == val}
+    each {|k, v| return k if v == val}
     nil
   end
   
@@ -69,10 +69,10 @@ class Hash
   def shift
     out = nil
     if empty?
-      if self.default_proc
-        self.default_proc.call(nil)
+      if default_proc
+        out = default_proc.call(nil)
       else
-        self.default
+        out = default
       end
     else
       i = 0
@@ -83,37 +83,34 @@ class Hash
       end
       key = tup.at(1)
       out = [key, self[key]]
-      self.delete(key)
+      delete(key)
     end
     out
   end
   
   def values_at(*args)
-    out = []
-    args.each { |a| out << self[a]}
-    out
+    args.collect { self[a] }
   end
   alias :indexes :values_at
   alias :indices :values_at
   
   def merge(other_hash, &block)
-    hsh = self.dup
-    hsh.merge!(other_hash, &block)
+    dup.merge!(other_hash, &block)
   end
   
   def reject(&block)
-    self.dup.delete_if(&block)
+    dup.delete_if(&block)
   end
   
   def reject!(&block)
-    old_size = self.size
-    self.delete_if(&block)
-    old_size == self.size ? nil : self
+    old_size = size
+    delete_if(&block)
+    old_size == size ? nil : self
   end
   
   def invert
     out = {}
-    self.each {|k, v| out[v] = k}
+    each {|k, v| out[v] = k}
     out
   end
   
@@ -122,27 +119,27 @@ class Hash
   end
   
   def replace(other_hash)
-    unless other_hash.equal? self
-      self.clear
+    unless self.equal?(other_hash)
+      clear
       other_hash.each {|k, v| self[k] = v}
-      #set default
+      #TODO: set default
     end
     self
   end
   
   def rehash
     out = {}
-    self.each {|k, v| out[k] = v}
-    self.replace(out)
+    each {|k, v| out[k] = v}
+    replace(out)
   end
   
   def ==(other)
-    return true if self.equal? other
+    return true if self.equal?(other)
     unless other.kind_of?(Hash)
       return other.respond_to?(:to_hash) ? self == other.to_hash : false
     end
-    return false unless other.size == self.size && self.default == other.default
-    self.each {|k, v| return false unless other.key?(k) && other[k] == v}
+    return false unless other.size == size && default == other.default
+    each {|k, v| return false unless other.key?(k) && other[k] == v}
     true
   end
   
@@ -152,7 +149,7 @@ class Hash
 
   def fetch(key, *rest)
     raise ArgumentError, "wrong number of arguments (#{rest.size + 1} for 2)" if rest.size > 1
-    val = self.get_by_hash(key.hash, key)
+    val = get_by_hash(key.hash, key)
     if val.undef?
       if rest.size == 0 && !block_given?
         raise IndexError, 'key not found'
