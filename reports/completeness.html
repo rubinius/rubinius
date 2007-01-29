@@ -6,45 +6,45 @@
   </head>
   <body>
     <h1>Rubinius Completeness Report</h1>
-    <div>Generated on Sat Jan 27 18:08:20 -0800 2007.</div>
+    <div>Generated on Mon Jan 29 04:41:00 -0800 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Complete Classes</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 27px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 31px; text-align: right; color: #000000; background: #00f000">
       </td>
-    <td style="width: 173px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;14%</td>
+    <td style="width: 169px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;15%</td>
   </tr>
 </table>
 
-    <p>(8 out of 59)</p>
+    <p>(9 out of 59)</p>
 
     <h3>Class Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 100px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 103px; text-align: right; color: #000000; background: #00f000">
+      51%&nbsp;&nbsp;</td>
+    <td style="width: 97px; text-align: left; color: #ffffff; background: #e00000">
       </td>
-    <td style="width: 100px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;50%</td>
   </tr>
 </table>
 
-    <p>(2649 out of 5322)</p>
+    <p>(2737 out of 5322)</p>
 
     <h3>Instance Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 94px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 97px; text-align: right; color: #000000; background: #00f000">
       </td>
-    <td style="width: 106px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;47%</td>
+    <td style="width: 103px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;49%</td>
   </tr>
 </table>
 
-    <p>(2009 out of 4254)</p>
+    <p>(2073 out of 4254)</p>
 
     <h2>Partially Complete Classes</h2>
     <table border="1">
@@ -55,15 +55,9 @@
       </tr>
       
       <tr>
-        <td>Array</td>
-        <td></td>
-        <td>fetch, fill, insert, nitems, reject!, reverse!</td>
-      </tr>
-      
-      <tr>
         <td>Bignum</td>
         <td></td>
-        <td>%, **, /, &lt;&lt;, &gt;&gt;, [], size</td>
+        <td>%, **, &lt;&lt;, &gt;&gt;, [], size</td>
       </tr>
       
       <tr>
@@ -93,7 +87,7 @@
       <tr>
         <td>Float</td>
         <td>induced_from</td>
-        <td>%, **, prec, prec_f, prec_i, to_i</td>
+        <td>%, abs, coerce, div, divmod, integer?, modulo, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, zero?</td>
       </tr>
       
       <tr>
@@ -117,7 +111,7 @@
       <tr>
         <td>Integer</td>
         <td>induced_from</td>
-        <td>+@, abs, ceil, coerce, div, divmod, floor, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, succ, to_int, truncate, zero?</td>
+        <td>abs, coerce, div, divmod, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, succ, to_int, truncate, zero?</td>
       </tr>
       
       <tr>
@@ -142,6 +136,12 @@
         <td>NotImplementedError</td>
         <td>exception</td>
         <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
+        <td>Numeric</td>
+        <td></td>
+        <td>abs, coerce, div, divmod, integer?, modulo, nonzero?, quo, remainder, round, singleton_method_added, step, to_int, truncate, zero?</td>
       </tr>
       
       <tr>
@@ -184,6 +184,8 @@
 
     <h2>Complete Classes</h2>
     <ul>
+      
+      <li style="font-weight: bold; color: green">Array</li>
       
       <li style="font-weight: bold; color: green">Continuation</li>
       
@@ -231,8 +233,6 @@
       <li style="font-weight: bold; color: red">NoMemoryError</li>
       
       <li style="font-weight: bold; color: red">NoMethodError</li>
-      
-      <li style="font-weight: bold; color: red">Numeric</li>
       
       <li style="font-weight: bold; color: red">RangeError</li>
       

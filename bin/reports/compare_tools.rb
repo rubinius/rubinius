@@ -26,6 +26,8 @@ module Rubinius
     def self.asm(*args)
     end
   end
+
+  class Numeric; end
 end
 
 # load it all up

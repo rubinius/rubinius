@@ -54,4 +54,9 @@ class Bignum < Integer
   def to_f
     Ruby.primitive :bignum_to_float
   end
+
+  def <=>(other)
+    Ruby.primitive :numeric_compare
+  end
 end
+

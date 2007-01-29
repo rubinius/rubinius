@@ -95,5 +95,5 @@ module Comparable
   def between?(min, max)
     (min <= self) && (self <= max)
   end
-
 end
+

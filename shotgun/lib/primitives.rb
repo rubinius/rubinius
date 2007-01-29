@@ -202,7 +202,7 @@ class ShotgunPrimitives
     CODE
   end
   
-  def compare
+  def numeric_compare
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();

@@ -1,8 +1,4 @@
-class Float
-  def <=>(other)
-    Ruby.primitive :compare
-  end
-
+class Float < Numeric
   def nan?
     Ruby.primitive :float_nan_p
   end
@@ -34,3 +30,4 @@ class Float
   alias :to_int :to_i
   alias :truncate :to_i
 end
+

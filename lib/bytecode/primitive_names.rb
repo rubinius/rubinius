@@ -5,7 +5,7 @@ module Bytecode
       :add,
       :sub,
       :equal,
-      :compare,
+      :numeric_compare,
       :at,
       :put,
       :fields,
