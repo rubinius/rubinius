@@ -207,28 +207,47 @@ class ShotgunPrimitives
     self = stack_pop();
     t1   = stack_pop();
 
-    // Guard
-    if( !NUMERIC_P(self) || !NUMERIC_P(t1) ) _ret = FALSE; // Guard
-     
+    // FIXME: This really should be using #coerce()
+
     // KISS; convert to double and compare
-    // Work now, optimize later :D
+    // Work now, fix later :D
     double x, y;
 
-    // self to double
-    if( FLOAT_P(self) )
-      x = FLOAT_TO_DOUBLE(self);
-    else if( BIGNUM_P(self) )
-      x = bignum_to_double(state, self);
-    else
+    if (FIXNUM_P(self)) {
+      if (FIXNUM_P(t1)) { // fast track
+        j = FIXNUM_TO_INT(self);
+        k = FIXNUM_TO_INT(t1);
+        if(j == k) {
+            stack_push(I2N(0)); 
+        } else if(j < k) {
+          stack_push(I2N(-1));
+        } else {
+          stack_push(I2N(1));
+        }
+        break;             /* We know this leaves the primitive */
+      }
       x = FIXNUM_TO_DOUBLE(self);
+    } else if( FLOAT_P(self) )
+      x = FLOAT_TO_DOUBLE(self);
+    else if( BIGNUM_P(self) ) {
+      // if (BIGNUM_P(t1)) ... do bignum_compare...
+      x = bignum_to_double(state, self);
+    } else {
+      _ret = FALSE;
+      break;                  /* ditto */
+    }
 
     // other to double
-    if( FLOAT_P(t1) )
+    if (FIXNUM_P(t1))
+      y = FIXNUM_TO_DOUBLE(t1);
+    else if( FLOAT_P(t1) )
       y = FLOAT_TO_DOUBLE(t1);
     else if( BIGNUM_P(t1) )
       y = bignum_to_double(state, t1);
-    else
-      y = FIXNUM_TO_DOUBLE(t1);
+    else {
+      _ret = FALSE;
+      break;                  /* ditto */
+    }
 
     // compare! (a winning formula)
     if(x == y)
