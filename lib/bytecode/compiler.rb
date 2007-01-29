@@ -1340,6 +1340,9 @@ module Bytecode
       end
       
       def process_attrasgn(x)
+        if x[1].to_s[-1,1] != "=" # patch a grammar.y issue here for now
+          x[1] = (x[1].to_s << "=").intern
+        end
         process_call x
       end
       
