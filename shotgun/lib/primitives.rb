@@ -206,37 +206,33 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-
-    // Guard
-    if( !NUMERIC_P(self) || !NUMERIC_P(t1) ) _ret = FALSE; // Guard
-     
-    // KISS; convert to double and compare
-    // Work now, optimize later :D
-    double x, y;
-
-    // self to double
-    if( FLOAT_P(self) )
-      x = FLOAT_TO_DOUBLE(self);
-    else if( BIGNUM_P(self) )
-      x = bignum_to_double(state, self);
-    else
-      x = FIXNUM_TO_DOUBLE(self);
-
-    // other to double
-    if( FLOAT_P(t1) )
-      y = FLOAT_TO_DOUBLE(t1);
-    else if( BIGNUM_P(t1) )
-      y = bignum_to_double(state, t1);
-    else
-      y = FIXNUM_TO_DOUBLE(t1);
-
-    // compare! (a winning formula)
-    if(x == y)
-      stack_push( I2N(0) );
-    else if(j < k)
-      stack_push( I2N(-1) );
-    else
-      stack_push( I2N(1) );
+    if(!IS_INTEGER(self) || !IS_INTEGER(t1)) {
+      _ret = FALSE;
+    } 
+    else if(FIXNUM_P(self) && FIXNUM_P(t1)) {
+      // both are Fixnum
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      if(j == k) {
+        stack_push(I2N(0)); 
+      } else if(j < k) {
+        stack_push(I2N(-1));
+      } else {
+        stack_push(I2N(1));
+      }
+    }
+    else if(!FIXNUM_P(t1) && FIXNUM_P(self)) { 
+      // other is Bignum, self is Fixnum
+      stack_push(I2N(-1));
+    }
+    else if(!FIXNUM_P(self) && FIXNUM_P(t1)) {
+      // other is Fixnum, self is Bignum
+      stack_push(I2N(1));
+    }
+    else if(!FIXNUM_P(self) && !FIXNUM_P(t1)) {
+      // both are Bignum
+      stack_push(bignum_compare(state, self, t1));
+    }
     CODE
   end
   
