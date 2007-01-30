@@ -6,23 +6,32 @@ class Float < Numeric
   
   alias :inspect :to_s
 
-  def +(o)
+  def +(other)
     Ruby.primitive :float_add
+    super(other)
   end
 
-  def -(o)
+  def -(other)
     Ruby.primitive :float_sub
+    super(other)
   end
 
-  def *(o)
+  def *(other)
     Ruby.primitive :float_mul
+    super(other)
   end
 
-  def /(o)
+  def /(other)
     Ruby.primitive :float_div
+    super(other)
   end
   
-  def ==(o)
+  def ==(other)
     Ruby.primitive :float_equal
+  end
+  
+  def <=>(other)
+    Ruby.primitive :float_compare
+    super(other)
   end
 end

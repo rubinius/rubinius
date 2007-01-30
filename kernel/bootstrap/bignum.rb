@@ -13,18 +13,22 @@ class Bignum < Integer
   
   def +(o)
     Ruby.primitive :bignum_add
+    super(o)
   end
 
   def -(o)
     Ruby.primitive :bignum_sub
+    super(o)
   end
 
   def *(o)
     Ruby.primitive :bignum_mul
+    super(o)
   end
   
   def /(o)
     Ruby.primitive :bignum_div
+    super(o)
   end
   
   def &(o)
@@ -56,7 +60,8 @@ class Bignum < Integer
   end
 
   def <=>(other)
-    Ruby.primitive :numeric_compare
+    Ruby.primitive :bignum_compare
+    super(other)
   end
 end
 

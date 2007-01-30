@@ -54,6 +54,18 @@ OBJECT float_equal(STATE, OBJECT a, OBJECT b) {
   return FLOAT_TO_DOUBLE(a) == FLOAT_TO_DOUBLE(b) ? Qtrue : Qfalse;
 }
 
+OBJECT float_compare(STATE, OBJECT a, OBJECT b) {
+  double x, y;
+  
+  x = FLOAT_TO_DOUBLE(a);
+  y = FLOAT_TO_DOUBLE(b);
+  if (x < y)
+    return I2N(-1);
+  else if (x > y)
+    return I2N(1);
+  else return I2N(0);
+}
+
 OBJECT float_pow(STATE, OBJECT a, OBJECT b) {
   return float_new(state, pow(FLOAT_TO_DOUBLE(a), FLOAT_TO_DOUBLE(b)));
 }

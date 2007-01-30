@@ -51,14 +51,10 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if (FIXNUM_P(t1)) {
-      stack_push(fixnum_add(state, self, t1));
-    } else if (BIGNUM_P(t1)) {
-      stack_push(bignum_add(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
-    } else if (FLOAT_P(t1)) {
-      stack_push(float_add(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
-    } else {
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
+    } else {
+      stack_push(fixnum_add(state, self, t1));
     }
     CODE
   end
@@ -67,7 +63,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_add(state, self, t1));
     } else {
       _ret = FALSE;
@@ -79,14 +75,10 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if (FIXNUM_P(t1)) {
-      stack_push(fixnum_sub(state, self, t1));
-    } else if (BIGNUM_P(t1)) {
-      stack_push(bignum_sub(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
-    } else if (FLOAT_P(t1)) {
-      stack_push(float_sub(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
-    } else {
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
+    } else {
+      stack_push(fixnum_sub(state, self, t1));
     }
     CODE
   end
@@ -95,7 +87,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_sub(state, self, t1));
     } else {
       _ret = FALSE;
@@ -107,14 +99,10 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if (FIXNUM_P(t1)) {
-      stack_push(fixnum_mul(state, self, t1));
-    } else if (BIGNUM_P(t1)) {
-      stack_push(bignum_mul(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
-    } else if (FLOAT_P(t1)) {
-      stack_push(float_mul(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
-    } else {
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
+    } else {
+      stack_push(fixnum_mul(state, self, t1));
     }
     CODE
   end
@@ -136,7 +124,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_mul(state, self, t1));
     } else {
       _ret = FALSE;
@@ -148,14 +136,10 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if (FIXNUM_P(t1)) {
-      stack_push(fixnum_div(state, self, t1));
-    } else if (BIGNUM_P(t1)) {
-      stack_push(bignum_div(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
-    } else if (FLOAT_P(t1)) {
-      stack_push(float_div(state, float_new(state, (double) FIXNUM_TO_INT(self)), t1));
-    } else {
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
       _ret = FALSE;
+    } else {
+      stack_push(fixnum_div(state, self, t1));
     }
     CODE
   end
@@ -164,7 +148,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_div(state, self, t1));
     } else {
       _ret = FALSE;
@@ -194,7 +178,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_equal(state, self, t1));
     } else {
       stack_push(Qfalse);
@@ -202,60 +186,22 @@ class ShotgunPrimitives
     CODE
   end
   
-  def numeric_compare
+  def compare
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-
-    // FIXME: This really should be using #coerce()
-
-    // KISS; convert to double and compare
-    // Work now, fix later :D
-    double x, y;
-
-    if (FIXNUM_P(self)) {
-      if (FIXNUM_P(t1)) { // fast track
-        j = FIXNUM_TO_INT(self);
-        k = FIXNUM_TO_INT(t1);
-        if(j == k) {
-            stack_push(I2N(0)); 
-        } else if(j < k) {
-          stack_push(I2N(-1));
-        } else {
-          stack_push(I2N(1));
-        }
-        break;             /* We know this leaves the primitive */
-      }
-      x = FIXNUM_TO_DOUBLE(self);
-    } else if( FLOAT_P(self) )
-      x = FLOAT_TO_DOUBLE(self);
-    else if( BIGNUM_P(self) ) {
-      // if (BIGNUM_P(t1)) ... do bignum_compare...
-      x = bignum_to_double(state, self);
+    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
+      _ret = FALSE;
     } else {
-      _ret = FALSE;
-      break;                  /* ditto */
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      if (j < k)
+        stack_push(I2N(-1));
+      else if (j > k)
+        stack_push(I2N(1));
+      else
+        stack_push(I2N(0));
     }
-
-    // other to double
-    if (FIXNUM_P(t1))
-      y = FIXNUM_TO_DOUBLE(t1);
-    else if( FLOAT_P(t1) )
-      y = FLOAT_TO_DOUBLE(t1);
-    else if( BIGNUM_P(t1) )
-      y = bignum_to_double(state, t1);
-    else {
-      _ret = FALSE;
-      break;                  /* ditto */
-    }
-
-    // compare! (a winning formula)
-    if(x == y)
-      stack_push( I2N(0) );
-    else if(x < y)
-      stack_push( I2N(-1) );
-    else
-      stack_push( I2N(1) );
     CODE
   end
   
@@ -585,7 +531,7 @@ class ShotgunPrimitives
       t1 = stack_pop(); // Time class
       t2 = stack_pop(); // Bignum or Fixnum, seconds
       t3 = stack_pop(); // Bignum or Fixnum, usecs
-      if(!RISA(t1, class) || !IS_INTEGER(t2) || !IS_INTEGER(t3)) {
+      if(!RISA(t1, class) || !INTEGER_P(t2) || !INTEGER_P(t3)) {
         _ret = FALSE;
       } else {
         do { /* introduce a new scope */
@@ -1754,7 +1700,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_and(state, self, t1));
     } else {
       _ret = FALSE;
@@ -1767,7 +1713,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_or(state, self, t1));
     } else {
       _ret = FALSE;
@@ -1780,7 +1726,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 =   stack_pop();
 
-    if(IS_INTEGER(t1)) {
+    if(INTEGER_P(t1)) {
       stack_push(bignum_xor(state, self, t1));
     } else {
       _ret = FALSE;
@@ -1868,7 +1814,61 @@ class ShotgunPrimitives
   
   def numeric_coerce
     <<-CODE
-    _ret = FALSE;
+    self = stack_pop();
+    t1 = stack_pop();
+    if(!INTEGER_P(self) || !INTEGER_P(t1)) {
+      _ret = FALSE;
+    } else {
+      t3 = array_new(state, 2);
+      if(BIGNUM_P(self)) {
+        if(BIGNUM_P(t1)) {
+          array_set(state, t3, 0, t1);
+        } else {
+          array_set(state, t3, 0, bignum_new(state, FIXNUM_TO_INT(t1)));
+        }
+        array_set(state, t3, 1, self);
+      } else {
+        if(BIGNUM_P(t1)) {
+          array_set(state, t3, 0, t1);
+          array_set(state, t3, 1, bignum_new(state, FIXNUM_TO_INT(self)));
+        } else {
+          array_set(state, t3, 0, t1);
+          array_set(state, t3, 1, self);
+        }
+      }
+      stack_push(t3);
+    }
+    CODE
+  end
+  
+  def bignum_compare
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(!BIGNUM_P(self) || !BIGNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      stack_push(bignum_compare(state, self, t1));
+    }
+    CODE
+  end
+  
+  def float_compare
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(!FLOAT_P(self) || !FLOAT_P(t1)) {
+      _ret = FALSE;
+    } else {
+      stack_push(float_compare(state, self, t1));
+    }
+    CODE
+  end
+  
+  def fixnum_to_f
+    <<-CODE
+    self = stack_pop();
+    stack_push(float_new(state, (double)FIXNUM_TO_INT(self)));
     CODE
   end
 

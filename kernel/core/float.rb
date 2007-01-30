@@ -19,7 +19,7 @@ class Float < Numeric
     Ruby.primitive :float_uminus
   end
   
-  def **(o)
+  def **(other)
     Ruby.primitive :float_pow
   end
   

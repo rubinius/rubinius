@@ -1,5 +1,25 @@
 class Numeric
   include Comparable
+  
+  def +(other)
+    b, a = self.coerce(other)
+    a + b
+  end
+  
+  def -(other)
+    b, a = self.coerce(other)
+    a - b
+  end
+  
+  def *(other)
+    b, a = self.coerce(other)
+    a * b
+  end
+  
+  def /(other)
+    b, a = self.coerce(other)
+    a / b
+  end
 
   def floor
     if self >= 0
@@ -25,13 +45,15 @@ class Numeric
   def -@
     0 - self
   end
-
-  def <=>(other)
-    Ruby.primitive :numeric_compare
-  end
   
+  def <=>(other)
+    b, a = self.coerce(other)
+    a <=> b
+  end
+
   def coerce(other)
     Ruby.primitive :numeric_coerce
+    self.class == other.class ? [other, self] : [Float(other), Float(self)]
   end
 end
 

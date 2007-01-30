@@ -5,7 +5,7 @@ module Bytecode
       :add,
       :sub,
       :equal,
-      :numeric_compare,
+      :compare,
       :at,
       :put,
       :fields,
@@ -101,7 +101,10 @@ module Bytecode
       :float_pow,
       :float_to_i,
       :numeric_coerce,
-      :hash_delete
+      :hash_delete,
+      :bignum_compare,
+      :float_compare,
+      :fixnum_to_f
     ]
 
     FirstRuntimePrimitive = 1024

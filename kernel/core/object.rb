@@ -62,4 +62,9 @@ class Object
     end
     return res
   end
+  
+  def Float(obj)
+    return obj.to_f if obj.respond_to?(:to_f)
+    raise TypeError, "can't convert #{obj.class} into Float"
+  end
 end

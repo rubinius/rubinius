@@ -5,18 +5,22 @@ class Fixnum < Integer
   
   def +(o)
     Ruby.primitive :add
+    super(o)
   end
   
   def -(o)
     Ruby.primitive :sub
+    super(o)
   end
   
   def *(o)
     Ruby.primitive :fixnum_mul
+    super(o)
   end
   
   def /(o)
     Ruby.primitive :fixnum_div
+    super(o)
   end
   
   def %(o)
@@ -96,6 +100,11 @@ class Fixnum < Integer
   end
 
   def <=>(other)
-    Ruby.primitive :numeric_compare
+    Ruby.primitive :compare
+    super(other)
+  end
+  
+  def to_f
+    Ruby.primitive :fixnum_to_f
   end
 end

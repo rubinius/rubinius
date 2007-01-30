@@ -156,7 +156,7 @@ context "Fixnum instance method" do
     end.should == [true, false]
   end
   
-  specify "== should coerce fixnum and retrun true if self has the same value as other" do
+  specify "== should coerce fixnum and return true if self has the same value as other" do
     example do
       [1 == 1.0, 2 == 0xffffffff]
     end.should == [true, false]
@@ -325,3 +325,35 @@ context "Fixnum instance method" do
     end.should == [-1, -1222, 598, 1]
   end  
 end
+
+context "Fixnum#coerce" do
+  specify "should have a receiver that is a Fixnum" do
+    example { FIXNUM.class }.should == Fixnum
+  end
+
+  specify "should return Fixnums when a Fixnum is received" do
+    x, y = example { FIXNUM.coerce(FIXNUM) }
+    x.class.should == Fixnum
+    x.class.should == y.class
+  end
+
+  specify "should return Bignums when a Bignum is received" do
+    x, y = example { FIXNUM.coerce(BIGNUM) }
+    x.class.should == Bignum
+    x.class.should == y.class
+  end
+
+  specify "should return Floats when a Float is received" do
+    x, y = example { FIXNUM.coerce(FLOAT) }
+    x.class.should == Float
+    x.class.should == y.class
+  end
+
+  specify "should return correct arguments in the order: other, self" do
+    example { FIXNUM.coerce(FIXNUM2) }.should == [FIXNUM2, FIXNUM]
+    example { FIXNUM.coerce(BIGNUM)  }.should == [BIGNUM, FIXNUM]
+    example { FIXNUM.coerce(FLOAT)   }.should == [FLOAT, FIXNUM.to_f]
+  end
+end
+
+
