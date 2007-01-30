@@ -2,8 +2,11 @@
 #include "bytearray.h"
 #include "object.h"
 #include "symbol.h"
+#include "string.h"
 #include <string.h>
 #include <stdlib.h>
+
+#define STRING_P(obj) (REFERENCE_P(obj) && HEADER(obj)->klass == state->global->string)
 
 OBJECT string_new2(STATE, char *str, int sz) {
   OBJECT obj, data;
@@ -36,6 +39,7 @@ OBJECT string_new(STATE, char *str) {
 OBJECT string_dup(STATE, OBJECT self) {
   char *ba;
   
+  assert(STRING_P(self));
   ba = bytearray_byte_address(state, string_get_data(self));
   
   return string_new2(state, ba, FIXNUM_TO_INT(string_get_bytes(self)));
@@ -44,6 +48,10 @@ OBJECT string_dup(STATE, OBJECT self) {
 OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   OBJECT cur, obs, nd;
   int cur_sz, oth_sz, ns, tmp;
+  char *ba;
+  
+  assert(STRING_P(self));
+  assert(STRING_P(other));
   
   cur = string_get_data(self);
   obs = string_get_data(other);
@@ -52,17 +60,18 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   
   ns = cur_sz + oth_sz;
   tmp = bytearray_bytes(state, cur);
-  if(ns > tmp) {
-    nd = bytearray_new(state, ns);
+  if(ns+1 > tmp) {
+    nd = bytearray_new(state, ns+1);
     object_copy_bytes_into(state, cur, nd, cur_sz, 0);
     object_copy_bytes_into(state, obs, nd, oth_sz, cur_sz);
+    ba = bytearray_byte_address(state, nd);
     string_set_data(self, nd);
   } else {
     object_copy_bytes_into(state, obs, cur, oth_sz, cur_sz);
+    ba = bytearray_byte_address(state, cur);
   }
-  
+  ba[ns] = 0;
   string_set_bytes(self, I2N(ns));
-  cur_sz = FIXNUM_TO_INT(string_get_bytes(self));
   return self;
 }
 
@@ -71,6 +80,7 @@ char *string_as_string(STATE, OBJECT self) {
   OBJECT data;
   char *out;
   
+  assert(STRING_P(self));
   i = FIXNUM_TO_INT(string_get_bytes(self));
   data = string_get_data(self);
   
@@ -82,15 +92,11 @@ char *string_as_string(STATE, OBJECT self) {
 }
 
 char *string_byte_address(STATE, OBJECT self) {
-  int i;
   OBJECT data;
-  char *out;
-  
-  i = FIXNUM_TO_INT(string_get_bytes(self));
+
+  assert(STRING_P(self));
   data = string_get_data(self);
-  out = bytearray_byte_address(state, data);
-//  out[i] = 0;       Nice idea, but we don't have the space necessarily.   Use string_as_string!
-  return out;
+  return bytearray_byte_address(state, data);
 }
 
 #define HashPrime 16777619
@@ -117,6 +123,7 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   unsigned char *bp;
   unsigned int sz;
   
+  assert(STRING_P(self));
   bp = (unsigned char*)bytearray_byte_address(state, string_get_data(self));
   sz = FIXNUM_TO_INT(string_get_bytes(self));
   
@@ -129,5 +136,6 @@ unsigned int string_hash_cstr(STATE, char *bp) {
 }
 
 OBJECT string_to_sym(STATE, OBJECT self) {
+  assert(STRING_P(self));
   return symtbl_lookup(state, state->global->symbols, self);
 }

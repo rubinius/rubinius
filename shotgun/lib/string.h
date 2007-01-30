@@ -1,3 +1,6 @@
+#ifndef RBS_STRING
+#define RBS_STRING 1
+
 OBJECT string_new(STATE, char *str);
 OBJECT string_new2(STATE, char *str, int sz);
 OBJECT string_dup(STATE, OBJECT self);
@@ -8,3 +11,4 @@ unsigned int string_hash_int(STATE, OBJECT self);
 unsigned int string_hash_cstr(STATE, char *bp);
 OBJECT string_to_sym(STATE, OBJECT self);
 
+#endif
