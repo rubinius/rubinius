@@ -403,6 +403,7 @@ stack_error:
           cpu_new_exception(state, c, state->global->exc_stack_explosion,
           "Stack has exploded"));
 check_interupts:
+    if (0 && !state->om->collect_now) object_memory_check_memory(state->om); /* XXX */
     if(state->om->collect_now) {
       int cm = state->om->collect_now;
       /* We're supposed to tenure all the objects now. */

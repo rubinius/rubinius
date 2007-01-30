@@ -148,6 +148,16 @@ int object_memory_is_reference_p(object_memory om, OBJECT tmp) {
 
 int _object_stores_bytes(OBJECT self);
 
+/*
+ * consistency check the object_memory: all objects either store bytes
+ * (in which case we don't care about their contents) or they store
+ * fields that are valid objects.
+ *
+ * object_memory_check_memory only works correctly if om->collect_now
+ * is false; as the function object_memory_is_reference_p assumes
+ * there haven't been any spills yet.  [Bug or feature?]
+ */
+
 void object_memory_check_memory(object_memory om) {
   int i, sz, osz, fel, num;
   char *start, *end, *cur;
@@ -170,9 +180,11 @@ void object_memory_check_memory(object_memory om) {
       for(i = 0; i < fel; i++) {
         tmp = NTH_FIELD_DIRECT(obj, i);
         if(REFERENCE_P(tmp) && !object_memory_is_reference_p(om,tmp)) { 
-          printf("(%p-%p) %d: %s (%d of %d) contains a bad field!!\n", 
+          printf("(%p-%p) %d: %s (%d of %d) contains a bad field (%p)!!\n", 
             (void*)om->gc->current->address, (void*)om->gc->current->last,
-            num, _inspect(obj), i, fel);
+                 num, _inspect(obj), i, fel, tmp);
+          /* separate printf as this one might segfault: */
+          printf("bad field is: %s\n", _inspect(tmp));
           assert(0);
         }
       }
