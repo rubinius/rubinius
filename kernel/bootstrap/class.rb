@@ -19,16 +19,6 @@ class Class
     return out
   end
 
-  def junk_code
-    out = []
-    sup = direct_superclass()
-    while     sup
-      out[out.size] = sup
-      sup = sup.direct_superclass()
-    end
-    out
-  end
-  
   def <(other)
     return true if object_id == other.object_id
     sup = direct_superclass()
@@ -36,7 +26,6 @@ class Class
       return true if sup.object_id == other.object_id
       sup = sup.direct_superclass()
     end
-    x = junk_code.include?(nil) # Junk code to appease VM -- don't delete
     false
   end
   
