@@ -1488,10 +1488,10 @@ class ShotgunPrimitives
   def float_to_s
     <<-CODE
     self = stack_pop();
-    if(!FLOAT_P(self)) {
-      _ret = FALSE;
-    } else {
+    if( FLOAT_P(self) ) {
       stack_push(float_to_s(state, self));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1499,11 +1499,12 @@ class ShotgunPrimitives
   def float_add
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(!FLOAT_P(self) || !FLOAT_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FLOAT_P(self) && FLOAT_P(t1) ) {
       stack_push(float_add(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1511,11 +1512,12 @@ class ShotgunPrimitives
   def float_sub
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(!FLOAT_P(self) || !FLOAT_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FLOAT_P(self) && FLOAT_P(t1) ) {
       stack_push(float_sub(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1523,11 +1525,12 @@ class ShotgunPrimitives
   def float_mul
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(!FLOAT_P(self) || !FLOAT_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FLOAT_P(self) && FLOAT_P(t1) ) {
       stack_push(float_mul(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1535,11 +1538,12 @@ class ShotgunPrimitives
   def float_equal
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(!FLOAT_P(self) || !FLOAT_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FLOAT_P(self) && FLOAT_P(t1) ) {
       stack_push(float_equal(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1547,14 +1551,15 @@ class ShotgunPrimitives
   def fixnum_and
     <<-CODE
     self = stack_pop();
-    t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j & k;
       stack_push(I2N(m));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1562,14 +1567,15 @@ class ShotgunPrimitives
   def fixnum_or
     <<-CODE
     self = stack_pop();
-    t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j | k;
       stack_push(I2N(m));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1578,13 +1584,13 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j ^ k;
       stack_push(I2N(m));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1592,11 +1598,11 @@ class ShotgunPrimitives
   def fixnum_invert
     <<-CODE
     self = stack_pop();
-    if(!FIXNUM_P(self)) {
-      _ret = FALSE;
-    } else {
+    if( FIXNUM_P(self) ) {
       j = FIXNUM_TO_INT(self);
       stack_push(I2N(~j));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1604,11 +1610,11 @@ class ShotgunPrimitives
   def fixnum_neg
     <<-CODE
     self = stack_pop();
-    if(!FIXNUM_P(self)) {
-      _ret = FALSE;
-    } else {
+    if( FIXNUM_P(self) ) {
       j = FIXNUM_TO_INT(self);
       stack_push(I2N(-j));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1671,10 +1677,11 @@ class ShotgunPrimitives
   def bignum_to_float
     <<-CODE
     self = stack_pop();
-    if(!BIGNUM_P(self)) {
-      _ret = FALSE;
-    } else {
+
+    if( BIGNUM_P(self) ) {
       stack_push(float_new(state, bignum_to_double(state, self)));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -1683,8 +1690,9 @@ class ShotgunPrimitives
   def bignum_and
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_and(state, self, t1));
     } else {
       _ret = FALSE;
@@ -1695,8 +1703,9 @@ class ShotgunPrimitives
   def bignum_or
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_or(state, self, t1));
     } else {
       _ret = FALSE;
@@ -1707,9 +1716,9 @@ class ShotgunPrimitives
   def bignum_xor
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
+    t1 = stack_pop();
 
-    if(INTEGER_P(t1)) {
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_xor(state, self, t1));
     } else {
       _ret = FALSE;
@@ -1720,7 +1729,12 @@ class ShotgunPrimitives
   def bignum_neg
     <<-CODE
     self = stack_pop();
-    stack_push(bignum_neg(state, self));
+
+    if( INTEGER_P(self) ) {
+      stack_push(bignum_neg(state, self));
+    } else {
+      _ret = FALSE;
+    }
     CODE
   end
 
@@ -1728,17 +1742,24 @@ class ShotgunPrimitives
   def bignum_invert
     <<-CODE
     self = stack_pop();
+
+    if( INTEGER_P(self) ) {
     stack_push(bignum_invert(state, self));
+
+    } else {
+      _ret = FALSE;
+    }
     CODE
   end
   
   def float_nan_p
     <<-CODE
     self = stack_pop();
-    if(!FLOAT_P(self)) {
-      _ret = FALSE;
-    } else {
+
+    if( FLOAT_P(self) ) {
       stack_push(float_nan_p(state, self));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
