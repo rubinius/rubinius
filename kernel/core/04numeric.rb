@@ -21,6 +21,11 @@ class Numeric
     a / b
   end
 
+  def abs
+    return -self if self < 0
+    self
+  end
+
   def floor
     if self >= 0
       self.to_i
