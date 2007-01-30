@@ -355,6 +355,19 @@ namespace :build do
   end
 end
 
+desc "Remove runtime/*.rba then svn up"
+task :svn => 'svn:up'
+namespace :svn do
+  desc "Remove runtime/*.rba then svn up"
+  task :up do
+    FileList['runtime/*.rba'].each do |f|
+      FileUtils.rm f
+    end
+    puts `svn up`
+    
+  end
+end
+
 task :report => 'report:all' # default
 namespace :report do
   desc "Build all reports"
