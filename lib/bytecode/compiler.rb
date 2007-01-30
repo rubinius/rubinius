@@ -121,6 +121,7 @@ module Bytecode
         p sx
       end
 
+      @nx = nx if $DEBUG_COMPILER
       nx = fully_normalize(sx, state)
       if $DEBUG_COMPILER
         puts "==================================="
@@ -367,7 +368,7 @@ module Bytecode
         if x.empty? || x == [[nil]]
           add "push nil"        # stack maintenance
         end
-        puts "FIXME # {@nx}: block [[nil]]" if x == [[nil]]
+        puts "FIXME #{@nx}: block [[nil]]" if x == [[nil]] if $DEBUG_COMPILER
         return [] if x == [[nil]]
         while i = x.shift
           puts "FIXME # {@nx}: empty i: "+i if i.empty? # FIXME: When exactly does this happen?
