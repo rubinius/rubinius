@@ -1868,7 +1868,7 @@ class ShotgunPrimitives
   def fixnum_to_f
     <<-CODE
     self = stack_pop();
-    stack_push(float_new(state, (double)FIXNUM_TO_INT(self)));
+    stack_push(float_new(state, FIXNUM_TO_DOUBLE(self)));
     CODE
   end
 
