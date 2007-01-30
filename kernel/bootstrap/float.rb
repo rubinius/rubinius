@@ -28,6 +28,7 @@ class Float < Numeric
   
   def ==(other)
     Ruby.primitive :float_equal
+    super(other)
   end
   
   def <=>(other)

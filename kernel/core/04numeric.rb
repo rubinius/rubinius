@@ -46,6 +46,15 @@ class Numeric
     0 - self
   end
   
+  def ==(other)
+    begin
+      b, a = self.coerce(other)
+      return a == b
+    rescue TypeError
+      return false
+    end
+  end
+  
   def <=>(other)
     b, a = self.coerce(other)
     a <=> b
