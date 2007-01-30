@@ -10,7 +10,11 @@ class Hash
   def default_proc
     @default.kind_of?(Proc) ? @default : nil
   end
-  
+
+  def default=(nd)
+    @default = nd
+  end
+
   def value?(val)
     values.include?(val)
   end
