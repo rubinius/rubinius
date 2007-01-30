@@ -1,63 +1,63 @@
 --- 
 CompiledMethod: 
-  :@primitive: 1
-  :@name: 11
-  :@exceptions: 8
-  :@required: 2
-  :@path: 12
-  :@lines: 9
-  :@bytecodes: 3
   :@file: 10
-  :@scope: 7
-  :@locals: 4
-  :@__ivars__: 0
+  :@bytecodes: 3
+  :@name: 11
+  :@primitive: 1
   :@literals: 5
+  :@path: 12
+  :@scope: 7
+  :@required: 2
   :@arguments: 6
+  :@locals: 4
+  :@exceptions: 8
+  :@lines: 9
+  :@__ivars__: 0
 MetaClass: 
-  :@attached_instance: 9
-  :@method_cache: 2
+  :@methods: 1
+  :@instance_flags: 8
   :@name: 3
+  :@method_cache: 2
   :@constants: 4
   :@parent: 5
   :@superclass: 6
+  :@attached_instance: 9
   :@__ivars__: 0
   :@instance_fields: 7
-  :@methods: 1
-  :@instance_flags: 8
+MethodTable: 
+  :@keys: 1
+  :@values: 2
+  :@bins: 3
+  :@entries: 4
+  :@__ivars__: 0
+  :@default: 5
 BlockContext: 
   :@sp: 3
+  :@raiseable: 5
   :@block: 4
   :@env: 6
-  :@raiseable: 5
-  :@__ivars__: 0
   :@sender: 1
   :@ip: 2
+  :@__ivars__: 0
 Regexp: 
   :@source: 1
-  :@__ivars__: 0
-  :@data: 2
   :@names: 3
-MethodTable: 
-  :@bins: 3
-  :@entries: 4
-  :@default: 5
+  :@data: 2
   :@__ivars__: 0
-  :@keys: 1
-  :@values: 2
-Hash: 
-  :@bins: 3
-  :@entries: 4
-  :@default: 5
-  :@__ivars__: 0
-  :@keys: 1
-  :@values: 2
 Array: 
   :@tuple: 1
   :@total: 0
-SymbolTable: 
+Hash: 
+  :@keys: 1
+  :@values: 2
+  :@bins: 3
+  :@entries: 4
   :@__ivars__: 0
+  :@default: 5
+SymbolTable: 
   :@symbols: 1
   :@strings: 2
+  :@__ivars__: 0
 MatchData: 
   :@source: 1
   :@regexp: 2
@@ -65,49 +65,49 @@ MatchData:
   :@__ivars__: 0
   :@region: 4
 Module: 
-  :@method_cache: 2
+  :@methods: 1
   :@name: 3
+  :@method_cache: 2
   :@constants: 4
   :@parent: 5
   :@__ivars__: 0
-  :@methods: 1
 BlockEnvironment: 
+  :@home: 1
   :@initial_ip: 2
   :@last_ip: 3
-  :@post_send: 4
   :@__ivars__: 0
-  :@home: 1
+  :@post_send: 4
 IO: 
   :@descriptor: 0
 Class: 
-  :@method_cache: 2
+  :@methods: 1
+  :@instance_flags: 8
   :@name: 3
+  :@method_cache: 2
   :@constants: 4
   :@parent: 5
   :@superclass: 6
   :@__ivars__: 0
   :@instance_fields: 7
-  :@methods: 1
-  :@instance_flags: 8
 MethodContext: 
-  :@sp: 3
-  :@module: 13
-  :@name: 12
-  :@block: 4
   :@bytecodes: 7
-  :@raiseable: 5
-  :@locals: 10
-  :@method: 6
-  :@__ivars__: 0
-  :@sender: 1
-  :@receiver: 9
+  :@sp: 3
+  :@name: 12
   :@literals: 8
-  :@ip: 2
+  :@raiseable: 5
+  :@block: 4
+  :@receiver: 9
+  :@locals: 10
+  :@sender: 1
   :@argcount: 11
+  :@method: 6
+  :@ip: 2
+  :@__ivars__: 0
+  :@module: 13
 Object: 
   :@__ivars__: 0
 String: 
   :@bytes: 0
   :@characters: 1
-  :@data: 3
   :@encoding: 2
+  :@data: 3
