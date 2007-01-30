@@ -50,11 +50,12 @@ class ShotgunPrimitives
   def add
     <<-CODE
     self = stack_pop();
-    t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_add(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -62,8 +63,9 @@ class ShotgunPrimitives
   def bignum_add
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_add(state, self, t1));
     } else {
       _ret = FALSE;
@@ -74,11 +76,12 @@ class ShotgunPrimitives
   def sub
     <<-CODE
     self = stack_pop();
-    t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_sub(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -86,8 +89,9 @@ class ShotgunPrimitives
   def bignum_sub
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_sub(state, self, t1));
     } else {
       _ret = FALSE;
@@ -98,11 +102,12 @@ class ShotgunPrimitives
   def fixnum_mul
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_mul(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -110,10 +115,11 @@ class ShotgunPrimitives
   def fixnum_size
     <<-CODE
     self = stack_pop();
-    if(!FIXNUM_P(self)) {
-      _ret = FALSE;
-    } else {
+
+    if( FIXNUM_P(self) ) {
       stack_push(I2N(sizeof(int)));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -121,8 +127,8 @@ class ShotgunPrimitives
   def bignum_mul
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_mul(state, self, t1));
     } else {
       _ret = FALSE;
@@ -133,11 +139,12 @@ class ShotgunPrimitives
   def fixnum_div
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_div(state, self, t1));
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -145,8 +152,9 @@ class ShotgunPrimitives
   def bignum_div
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_div(state, self, t1));
     } else {
       _ret = FALSE;
@@ -157,16 +165,22 @@ class ShotgunPrimitives
   def equal
     <<-CODE
     self = stack_pop();
-    t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+    t1 = stack_pop();
+
+    /* i think we can assume self is fixnum but i don't know where this is called */
+    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+
       /* Don't need to convert them to ints since it would have been redundant. */
-      if(self == t1) {
+      /* Its done everywhere else -- going to cast them explicitly just in case */
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+      if(j == k) {
         stack_push(Qtrue); 
       } else {
         stack_push(Qfalse);
       }
+    } else {
+      _ret = FALSE;
     }
     CODE
   end
@@ -174,8 +188,8 @@ class ShotgunPrimitives
   def bignum_equal
     <<-CODE
     self = stack_pop();
-    t1 =   stack_pop();
-    if(INTEGER_P(t1)) {
+    t1 = stack_pop();
+    if( INTEGER_P(t1) ) {
       stack_push(bignum_equal(state, self, t1));
     } else {
       stack_push(Qfalse);
