@@ -7,7 +7,7 @@
 #ifndef __RUBINIUS_OM__
 #define __RUBINIUS_OM__ 1
 
-#define OMDefaultSize 648000
+#define OMDefaultSize 1048576
 //#define OMDefaultSize 100000
 
 struct object_memory_struct {
