@@ -29,11 +29,23 @@ void _stats() {
   mark_sweep_describe(om->ms);
 }
 
+int object_memory_actual_omsize() {
+    int omsize = OMDefaultSize;
+    char *s = getenv("RUBINIUS_OMSIZE");
+    if (s) {
+        omsize = atoi(s);
+        printf("OMSize set to: %d\n", omsize);
+    }
+    assert(omsize > 0);         /* general sanity */
+    assert((omsize & 7) == 0);  /* alignment */
+    return omsize;
+}
+
 object_memory object_memory_new() {
   object_memory om;
   om = (object_memory)malloc(sizeof(struct object_memory_struct));
   memset((void*)om, 0, sizeof(struct object_memory_struct));
-  om->gc = baker_gc_new(OMDefaultSize);
+  om->gc = baker_gc_new(object_memory_actual_omsize());
   om->gc->tenure = (OBJECT (*)(void*,OBJECT))object_memory_tenure_object;
   om->gc->tenure_data = om;
   om->gc->om = om;
