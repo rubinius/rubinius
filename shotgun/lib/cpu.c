@@ -151,15 +151,19 @@ void cpu_save_registers(STATE, cpu c) {
 }
 
 void cpu_restore_context(STATE, cpu c, OBJECT x) {
-  cpu_restore_context_with_home(state, c, x, x, FALSE);
+    cpu_restore_context_with_home(state, c, x, x, FALSE, FALSE);
 }
 
-void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret) {
+void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   c->depth--;
   c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
   c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
   if(ret && c->argcount > 0) {
-    c->sp -= c->argcount;
+    if (is_block) {
+      --c->sp;
+    } else {
+      c->sp -= c->argcount;
+    }
   }
   
   OBJECT ba;
@@ -197,7 +201,7 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
 void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home) {
   c->depth += 2;
   cpu_save_registers(state, c);
-  cpu_restore_context_with_home(state, c, ctx, home, FALSE);
+  cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
 }
 
 void cpu_return_to_sender(STATE, cpu c, int consider_block) {
@@ -237,7 +241,7 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
       home = sender;
     }
     
-    cpu_restore_context_with_home(state, c, sender, home, TRUE);
+    cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
     cpu_stack_push(state, c, top, FALSE);
   }
 }

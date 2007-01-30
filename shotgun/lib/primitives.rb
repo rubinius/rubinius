@@ -180,7 +180,7 @@ class ShotgunPrimitives
         stack_push(Qfalse);
       }
     } else {
-      _ret = FALSE;
+      stack_push(Qfalse);
     }
     CODE
   end

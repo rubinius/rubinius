@@ -47,7 +47,7 @@ void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
 void cpu_save_registers(STATE, cpu c);
 void cpu_restore_context(STATE, cpu c, OBJECT x);
-void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret);
+void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home);
 void cpu_return_to_sender(STATE, cpu c, int consider_block);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);

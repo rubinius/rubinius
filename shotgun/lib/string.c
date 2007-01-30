@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+int debugging = 0;
+
 #define STRING_P(obj) (REFERENCE_P(obj) && HEADER(obj)->klass == state->global->string)
 
 OBJECT string_new2(STATE, char *str, int sz) {
@@ -80,7 +82,7 @@ char *string_as_string(STATE, OBJECT self) {
   OBJECT data;
   char *out;
   
-  assert(STRING_P(self));
+  assert(STRING_P(self) || debugging);
   i = FIXNUM_TO_INT(string_get_bytes(self));
   data = string_get_data(self);
   

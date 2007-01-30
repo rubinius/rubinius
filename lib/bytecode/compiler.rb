@@ -364,17 +364,23 @@ module Bytecode
       end
       
       def process_block(x)
+        if x.empty? || x == [[nil]]
+          add "push nil"        # stack maintenance
+        end
+        puts "FIXME # {@nx}: block [[nil]]" if x == [[nil]]
         return [] if x == [[nil]]
         while i = x.shift
+          puts "FIXME # {@nx}: empty i: "+i if i.empty? # FIXME: When exactly does this happen?
           next if i.empty?
           process i
-#          add "pop" unless x.empty?               # stack cleanup FIXME! condition is lame
+          add "pop" unless x.empty?               # stack cleanup FIXME! condition is lame
         end
       end
       
       def process_scope(x)
         if x.first.empty?
           x.clear
+          add "push nil"        # stack un-cleanup
           return []
         end
         out = process x.shift
@@ -401,10 +407,12 @@ module Bytecode
         process x.shift
         add "#{cond} #{bot}"
         set_label @redo
+        dontpop = x[0].nil?     # fixme -- why is a nil there?
         process x.shift
-        add "pop"               # stack cleanup
+        add "pop" unless dontpop # stack cleanup
         goto top
         set_label bot
+        add "push nil"          # stack un-cleanup
         
         restore_condmod(*cm)
       end
@@ -418,14 +426,17 @@ module Bytecode
         @break = unique_lbl()
         top = unique_lbl()
         set_label top
+        dontpop = x[0].nil?     # fixme -- why is a nil there?
         process(x.shift)
-        add "pop"               # stack cleanup
+        add "pop" unless dontpop # stack cleanup
         goto top
         set_label @break
         @break = b
+        add "push nil"          # stack un-cleanup
       end
       
       def process_break(x)
+        # FIXME: stack cleanup?
         if @break
           goto @break
         else
@@ -434,6 +445,7 @@ module Bytecode
       end
             
       def process_redo(x)
+        # FIXME: stack cleanup?
         if @redo
           goto @redo
         else
@@ -528,7 +540,9 @@ module Bytecode
       def process_op_asgn_or(x)
         process x.shift #lvar
         lbl = unique_lbl()
+        add "dup"
         git lbl
+        add "pop"
         process x.shift #rhs
         set_label lbl
       end
@@ -539,7 +553,9 @@ module Bytecode
         # [:op_asgn_and, [:lvar, :x, 2], [:lasgn, :x, 2, [:lit, 7]]]]
         process x.shift #lvar
         lbl = unique_lbl()
+        add "dup"
         gif lbl
+        add "pop"
         process x.shift #rhs
         set_label lbl
       end
@@ -561,7 +577,9 @@ module Bytecode
         arg = x.shift
         process(lvar.dup)
         add "send #{msg}"
+        add "dup"
         (operator == :or) ? git(lbl) : gif(lbl)
+        add "pop"
         x.unshift [:array, arg]
         x.unshift msg2
         x.unshift lvar
@@ -755,6 +773,7 @@ module Bytecode
         add "send __class_init__"
         add "pop"
         add "push_encloser"
+        add "push nil"          # stack management
         # add "set_encloser"
       end
       
@@ -796,6 +815,7 @@ module Bytecode
         add "send __module_init__"
         add "pop"
         add "push_encloser"
+        add "push nil"          # stack management
         # add "set_encloser"
       end
       
@@ -1257,6 +1277,7 @@ module Bytecode
           out = detect_class_special(x.dup)
           if out
             x.clear
+            add "push nil"
             return
           end
         end
