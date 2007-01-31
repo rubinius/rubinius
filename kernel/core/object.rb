@@ -65,7 +65,7 @@ class Object
   
   def Float(o)
     return o.to_f if o.respond_to?(:to_f)
-    raise TypeError, "can't convert #{obj.class} into Float"
+    raise TypeError, "can't convert #{o.class} into Float"
   end
   
   def Integer(o)
