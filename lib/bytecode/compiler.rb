@@ -121,8 +121,8 @@ module Bytecode
         p sx
       end
 
-      @nx = nx if $DEBUG_COMPILER
       nx = fully_normalize(sx, state)
+      @nx = nx if $DEBUG_COMPILER
       if $DEBUG_COMPILER
         puts "==================================="
         puts "Normalized Sexp:"
