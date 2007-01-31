@@ -1279,7 +1279,7 @@ class ShotgunPrimitives
         return 0;
       }
 
-      zs.avail_in = strlen((char *)input); // Lower than for zlib_inflate, so that we don't consume the zero-terminator.
+      zs.avail_in = strlen((char *)input); // Lower than for zlib_inflate, so that we don't consume the zero-terminator.  [and appease emacs' syntax parser]
       zs.next_in = input;
     do {
       zs.avail_out = ZLIB_CHUNK_SIZE;
@@ -1929,6 +1929,18 @@ class ShotgunPrimitives
     } else {
       _ret = FALSE;
     }
+    CODE
+  end
+
+  def find_method
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop(); // must be sym already
+    t1 = exported_cpu_find_method(state, c, self, t1, &t2);
+    t3 = tuple_new(state, 2);
+    tuple_put(state, t3, 0, t2);
+    tuple_put(state, t3, 1, t1);
+    stack_push(t3);
     CODE
   end
 

@@ -76,11 +76,9 @@ class Object
   end
   
   def respond_to?(meth)
-    begin
-      !self.class.instance_method(meth).nil?
-    rescue NameError
-      false
-    end
+    meth = meth.to_sym
+    cur, cm = self.class.__find_method(meth)
+    !cm.nil?
   end
   
   def __send__(name, *args, &prc)

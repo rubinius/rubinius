@@ -141,6 +141,10 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   return meth;
 }
 
+OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod) {
+    return cpu_find_method(state, c, klass, name, mod);
+}
+
 static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym, 
           OBJECT *mod, int *missing) {
   OBJECT mo;

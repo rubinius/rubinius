@@ -109,7 +109,8 @@ module Bytecode
       :float_divmod,
       :fixnum_divmod,
       :float_floor,
-      :float_round
+      :float_round,
+      :find_method
     ]
 
     FirstRuntimePrimitive = 1024

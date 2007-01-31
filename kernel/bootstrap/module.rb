@@ -24,14 +24,15 @@ class Module
   end
   alias_method :class_eval, :module_eval
 
+
+  def __find_method(namesym)
+    Ruby.primitive :find_method
+  end
+
   def instance_method(name)
     name = name.to_sym
-    cur  = self
-    while cur
-      cm = cur.methods[name]
-      return UnboundMethod.new(cur, cm) if cm
-      cur = cur.direct_superclass
-    end
+    cur, cm = __find_method(name)
+    return UnboundMethod.new(cur, cm) if cm
     thing = self.kind_of?(Class) ? "class" : "module"
     raise NameError, "undefined method `#{name}' for #{thing} #{self}"
   end

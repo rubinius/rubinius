@@ -71,6 +71,8 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);
 
+OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
+
 OBJECT cpu_unmarshal(STATE, char *str);
 OBJECT cpu_marshal(STATE, OBJECT obj);
 OBJECT cpu_unmarshal_file(STATE, char *path);
