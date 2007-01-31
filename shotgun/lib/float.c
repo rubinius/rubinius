@@ -135,3 +135,10 @@ OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
   array_set(state, ary, 1, float_new(state, mod));
   return ary;
 }
+
+OBJECT float_floor(STATE, OBJECT self) {
+  double value;
+  
+  value = floor(FLOAT_TO_DOUBLE(self));
+  return bignum_from_double(state, value);
+}

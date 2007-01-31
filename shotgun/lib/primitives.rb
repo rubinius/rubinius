@@ -1909,6 +1909,17 @@ class ShotgunPrimitives
     }
     CODE
   end
+  
+  def float_floor
+    <<-CODE
+    self = stack_pop();
+    if(FLOAT_P(self)) {
+      stack_push(float_floor(state, self));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
 
 end
 

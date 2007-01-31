@@ -65,6 +65,9 @@ class Float < Numeric
     Ruby.primitive :float_to_i
   end
   
+  alias :to_int :to_i
+  alias :truncate :to_i
+
   def divmod(other)
     Ruby.primitive :float_divmod
     super(other)
@@ -74,14 +77,15 @@ class Float < Numeric
     self.divmod(other)[1]
   end
   
+  alias :modulo :%
+
   def zero?
     # FIXME: can't handle float literals in rcompile
     self == '0.0'.to_f
   end
   
-  alias :modulo :%
-  
-  alias :to_int :to_i
-  alias :truncate :to_i
+  def floor
+    Ruby.primitive :float_floor
+  end
 end
 

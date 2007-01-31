@@ -107,7 +107,8 @@ module Bytecode
       :fixnum_to_f,
       :string_to_f,
       :float_divmod,
-      :fixnum_divmod
+      :fixnum_divmod,
+      :float_floor
     ]
 
     FirstRuntimePrimitive = 1024
