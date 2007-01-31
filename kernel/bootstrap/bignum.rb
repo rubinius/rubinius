@@ -55,6 +55,24 @@ class Bignum < Integer
     Ruby.primitive :bignum_equal
   end
 
+  def <<(s)
+    return __bignum_right_shift__(-s) if s < 0
+    return __bignum_left_shift__(s)
+  end
+
+  def __bignum_left_shift__(s)
+    Ruby.primitive :bignum_left_shift
+  end
+
+  def >>(s)
+    return __bignum_left_shift__(-s) if s < 0
+    return __bignum_right_shift__(s)
+  end
+
+  def __bignum_right_shift__(s)
+    Ruby.primitive :bignum_right_shift
+  end
+
   def to_f
     Ruby.primitive :bignum_to_float
   end

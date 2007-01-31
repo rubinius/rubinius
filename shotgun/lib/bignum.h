@@ -22,4 +22,6 @@ OBJECT bignum_from_string(STATE, char *str, int radix);
 OBJECT bignum_from_string_detect(STATE, char *str);
 double bignum_to_double(STATE, OBJECT self);
 OBJECT bignum_from_double(STATE, double d);
+OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits);
+OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits);
 #endif

@@ -1936,6 +1936,30 @@ class ShotgunPrimitives
     CODE
   end
 
+  def bignum_left_shift
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if (!FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      stack_push(bignum_left_shift(state, self, t1));
+    }
+    CODE
+  end
+
+  def bignum_right_shift
+    <<-CODE
+    self = stack_pop();
+    t1   = stack_pop();
+    if (!FIXNUM_P(t1)) {
+      _ret = FALSE;
+    } else {
+      stack_push(bignum_right_shift(state, self, t1));
+    }
+    CODE
+  end
+
   def find_method
     <<-CODE
     self = stack_pop();

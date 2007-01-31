@@ -9,6 +9,8 @@
   mp_init(n)
 
 #define MP(k) DATA_STRUCT(k, mp_int*)
+#define BDIGIT_DBL long long
+#define DIGIT_RADIX (1 << DIGIT_BIT)
 
 OBJECT bignum_new(STATE, int num) {
   mp_int *a;
@@ -126,11 +128,34 @@ OBJECT bignum_xor(STATE, OBJECT a, OBJECT b) {
   return bignum_normalize(state, n_obj);
 }
 
+void twos_complement(mp_int *a)
+{
+  long i = a->used;
+  BDIGIT_DBL num;
+
+  while (i--) {
+    DIGIT(a,i) = ~DIGIT(a,i);
+  }
+
+  i = 0; num = 1;
+  do {
+    num += DIGIT(a,i);
+    DIGIT(a,i++) = num & (DIGIT_RADIX-1);
+    num = num >> DIGIT_BIT;
+  } while (i < a->used);
+
+  if (num != 0) {
+    mp_grow(a, (a->used + 1));
+    DIGIT(a, i) = 1;
+    a->used += 1;
+  }
+}
+
 OBJECT bignum_invert(STATE, OBJECT self) {
   NMP;
 
-  mp_int a;  mp_init(&a);
-  mp_int b;  mp_init_set_int(&b, 1);
+  mp_int a; mp_init(&a);
+  mp_int b; mp_init_set_int(&b, 1);
 
   /* inversion by -(a)-1 */
   mp_neg(MP(self), &a);
@@ -147,34 +172,100 @@ OBJECT bignum_neg(STATE, OBJECT self) {
   return bignum_normalize(state, n_obj);
 }
 
-/* I don't think these are the right functions
-OBJECT bignum_left_shift(STATE, OBJECT self, int width) {
+OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
 
-  if(FIXNUM_P(self)) {
-    int j;
-    j = FIXNUM_TO_INT(self);
-    mp_set_int(n, (unsigned int)j);
-  } else {
-    mp_copy(MP(self), n);
+  int shift = FIXNUM_TO_INT(bits);
+  int s1 = shift / DIGIT_BIT;
+  int s2 = shift % DIGIT_BIT;
+  long len, i, j;
+
+  mp_int * a;
+  BDIGIT_DBL num = 0;
+
+  a   = MP(self);
+  len = a->used;
+
+  n->sign = a->sign;
+  mp_grow(n,len + s1 + 1);
+
+  for (i=0; i < s1; i++) {
+    DIGIT(n,i) = 0;
+    n->used += 1;
   }
-  mp_lshd(n, width);
+
+  for (j=0; j < len; j++) {
+    num = num | (BDIGIT_DBL)DIGIT(a,j) << s2;
+    DIGIT(n,i++) = (num & (DIGIT_RADIX-1));
+    num = num >> DIGIT_BIT;
+    n->used += 1;
+  }
+
+  DIGIT(n,i) = (num & (DIGIT_RADIX-1));
+  n->used += 1;
+
   return bignum_normalize(state, n_obj);
 }
 
-OBJECT bignum_right_shift(STATE, OBJECT self, int width) {
+OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
 
-  if(FIXNUM_P(self)) {
-    mp_set_int(n, FIXNUM_TO_INT(self));
-  } else {
-    mp_copy(MP(self), n);
+  int shift = FIXNUM_TO_INT(bits);
+  long s1 = shift / DIGIT_BIT;
+  long s2 = shift % DIGIT_BIT;
+
+  BDIGIT_DBL num = 0;
+  long i, j;
+
+  mp_int * a;
+  mp_int b;
+
+  mp_init(&b);
+  a =  MP(self);
+
+  if (s1 > a->used) {
+    if (a->sign == MP_ZPOS)
+      return I2N(0);
+    else
+      return I2N(-1);
   }
 
-  mp_rshd(n, width);
+  if (a->sign == MP_NEG) {
+    mp_copy(a, &b);
+    twos_complement(&b);
+    a = &b;
+  }
+
+  i = a->used; 
+  j = i - s1;
+
+  if (j == 0) {
+    if (a->sign == MP_ZPOS)
+      return I2N(0);
+    else
+      return I2N(-1);
+  }
+
+  n->sign = a->sign;
+  mp_grow(n, j);
+
+  if (a->sign == MP_NEG) {
+    num = ((BDIGIT_DBL)~0) << DIGIT_BIT;
+  }
+  while (i--, j--) {
+    num = (num | DIGIT(a,i)) >> s2;
+    DIGIT(n,j) = num & (DIGIT_RADIX-1);
+    num = ((BDIGIT_DBL)DIGIT(a,i)) << DIGIT_BIT;
+    n->used += 1;
+  }
+
+  if (a->sign == MP_NEG) {
+    twos_complement(n);
+  }
+
+  mp_clear(&b);
   return bignum_normalize(state, n_obj);
 }
-*/
 
 OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
   
@@ -266,7 +357,6 @@ void bignum_into_string(STATE, OBJECT self, int radix, char *buf, int sz) {
   mp_toradix_nd(MP(self), buf, radix, sz, &k);
 }
 
-#define DIGIT_RADIX (1 << DIGIT_BIT)
 double bignum_to_double(STATE, OBJECT self) {
   int i;
   double res;
