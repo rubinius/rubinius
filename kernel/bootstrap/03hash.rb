@@ -2,7 +2,9 @@ class Hash
   
   def self.new(default=nil,&block)
     hsh = {}
+    raise ArgumentError, 'wrong number of arguments' if default && block
     hsh.put 5, (default or block)
+    hsh.put 6, (block != nil)
     return hsh
   end
   
@@ -16,19 +18,18 @@ class Hash
     Ruby.primitive :hash_set
   end
   
-  def default
-    @default
+  def default(key = nil)
+    @default_proc ? @default.call(self, key) : @default
   end
   
   def [](key)
     out = get_by_hash key.hash, key
     if out.undef?
       return nil unless @default
-      if Proc === @default
+      if @default_proc
         out = @default.call(self, key)
       else
         out = @default
-        self[key] = out
       end
     end
     return out

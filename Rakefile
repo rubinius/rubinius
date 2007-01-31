@@ -172,7 +172,7 @@ namespace :build do
   task :fields => ['setup:syd'] do
     $:.unshift "lib"
     require 'types'
-    fd = File.open("kernel/00auto_fields.rb", "w")
+    fd = File.open("kernel/bootstrap/00auto_fields.rb", "w")
     hints = {}
     Rubinius::Types.each do |name, mod|
       next if mod::TotalFields.size == 0

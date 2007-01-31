@@ -8,10 +8,11 @@ class Hash
   alias :store      :[]=
   
   def default_proc
-    @default.kind_of?(Proc) ? @default : nil
+    @default_proc ? @default : nil
   end
 
   def default=(nd)
+    @default_proc = false
     @default = nd
   end
 
@@ -73,11 +74,7 @@ class Hash
   def shift
     out = nil
     if empty?
-      if default_proc
-        out = default_proc.call(nil)
-      else
-        out = default
-      end
+      out = default_proc ? default_proc.call(self, nil) : default
     else
       i = 0
       tup = nil
@@ -93,7 +90,7 @@ class Hash
   end
   
   def values_at(*args)
-    args.collect { self[a] }
+    args.collect { |a| self[a] }
   end
   alias :indexes :values_at
   alias :indices :values_at
@@ -126,7 +123,7 @@ class Hash
     unless self.equal?(other_hash)
       clear
       other_hash.each {|k, v| self[k] = v}
-      #TODO: set default
+      self.default = other_hash.default
     end
     self
   end
@@ -142,8 +139,10 @@ class Hash
     unless other.kind_of?(Hash)
       return other.respond_to?(:to_hash) ? self == other.to_hash : false
     end
-    return false unless other.size == size && default == other.default
-    each {|k, v| return false unless other.key?(k) && other[k] == v}
+    return false unless other.size == size
+    #pickaxe claims that defaults are compared, but MRI 1.8.4 doesn't actually do that
+    #return false unless other.default == default
+    each {|k, v| return false unless other.get_by_hash(k.hash, k) == get_by_hash(k.hash, k)}
     true
   end
   

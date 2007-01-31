@@ -1,6 +1,6 @@
 module Rubinius
   module Hash
-    Fields = [:keys, :values, :bins, :entries, :default]
+    Fields = [:keys, :values, :bins, :entries, :default, :default_proc]
     
     Increments = 16
     
