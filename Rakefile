@@ -40,6 +40,17 @@ namespace :spec do
 
     raise "Spec or test failures." if got_error
   end
+  
+  desc "Setup code-cache directory"
+  task :setup => 'setup:code_cache'
+  
+  namespace :setup do
+    desc "Setup code-cache directory"
+    task :code_cache do
+      Dir.mkdir "code-cache" unless File.exists?("code-cache")
+      FileUtils.rm Dir.glob("code-cache/*")
+    end
+  end
 
   desc "Run only specs but not any tests."
   spec_targets = %w(language shotgun library core targets compatibility)
@@ -101,10 +112,7 @@ namespace :test do
 
   namespace :setup do
     desc "Prepare the code-cache directory"
-    task :code_cache do
-      Dir.mkdir "code-cache" unless File.exists?("code-cache")
-      FileUtils.rm Dir.glob("code-cache/*")
-    end
+    task :code_cache => 'spec:setup:code_cache'
   end
 end
 
@@ -204,7 +212,7 @@ namespace :build do
   end
 
   desc "Build shotgun C components."
-  task :shotgun => 'build:setup' do
+  task :shotgun => ['build:setup', 'spec:setup:code_cache'] do
     system("make -e -C shotgun rubinius")
     raise 'Failed to build shotgun components' if $?.exitstatus != 0
   end
@@ -396,13 +404,26 @@ namespace :doc do
     desc "Find out about easy ways to contribute."
     task :easy do
       puts <<-EOM
+      
     The Rubinius team welcomes contributions, bug reports, test cases, and monetary support.
     One possible way to help is:
-    1. Add a test for a Ruby core method.
-    2. Go to the appropriately-named file in the 'kernel' directory.
-    3. Implement that method in Ruby.
-    4. Run the tests until they pass. :)
+    1. Visit the wiki at http://rubini.us
+    2. Read up on writing RSpec specs for Rubinius.
+    3. Read up on implementing the Ruby core library.
+    4. Check if a spec exists for the method you are adding.
+    5. Red, green, refactor.
+    6. Submit a nice diff to the mailing list: http://groups.google.com/group/rubinius-devel
+    7. When your patch is accepted, ask Evan for a commit bit.
+
     The 'ri' command is a rich source of examples and test cases.
+    
+    There are a lot of folks working, so pop into #rubinius channel on freenode and ask
+    questions. Try to follow the conventions in the code and restrain impulses to go
+    mad refactoring and reorganizing until you are well familiar with the code and have
+    asked other's opinions. In the words of the venerable cabo: 'Primum non nocere'
+    
+    Thanks for helping to spread good will among all beings. Go on, start coding!
+    
     EOM
     end
 
