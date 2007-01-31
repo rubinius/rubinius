@@ -154,5 +154,7 @@ class String
 
   alias_method :slice, :[]
   
-  
+  def to_f
+    Ruby.primitive :string_to_f
+  end
 end

@@ -104,7 +104,8 @@ module Bytecode
       :hash_delete,
       :bignum_compare,
       :float_compare,
-      :fixnum_to_f
+      :fixnum_to_f,
+      :string_to_f
     ]
 
     FirstRuntimePrimitive = 1024

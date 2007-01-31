@@ -5,6 +5,7 @@
 #include "string.h"
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 int debugging = 0;
 
@@ -99,6 +100,36 @@ char *string_byte_address(STATE, OBJECT self) {
   assert(STRING_P(self));
   data = string_get_data(self);
   return bytearray_byte_address(state, data);
+}
+
+double string_to_double(STATE, OBJECT self) {
+  OBJECT data, str;
+  double value;
+  char *p, *n, *ba, *rest;
+  
+  assert(STRING_P(self));
+  str = string_dup(state, self);
+  data = string_get_data(str);
+  ba = bytearray_byte_address(state, data);
+  
+  p = ba;
+  while (ISSPACE(*p)) p++;
+  n = p;
+  while (*p) {
+    if (*p == '_') {
+      p++;
+    } else {
+      *n++ = *p++;
+    }
+  }
+  *n = 0;
+  
+  value = strtod(ba, &rest);
+  if (errno == ERANGE) {
+	  printf("Float %s out of range\n", ba);
+  }
+  
+  return value;
 }
 
 #define HashPrime 16777619

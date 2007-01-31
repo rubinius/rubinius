@@ -54,6 +54,8 @@ struct time_data {
 #define FLOAT_P(obj) (RISA(obj, floatpoint))
 #define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
 
+#define STRING_P(obj) (RISA(obj, string))
+
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;
