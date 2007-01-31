@@ -323,37 +323,19 @@ context "Fixnum instance method" do
     example do
       [~0, ~1221, ~-599, ~-2]
     end.should == [-1, -1222, 598, 1]
-  end  
-end
-
-context "Fixnum#coerce" do
-  specify "should have a receiver that is a Fixnum" do
-    example { FIXNUM.class }.should == Fixnum
   end
-
-  specify "should return Fixnums when a Fixnum is received" do
-    x, y = example { FIXNUM.coerce(FIXNUM) }
-    x.class.should == Fixnum
-    x.class.should == y.class
+  
+  specify "coerce should return [Fixnum, Fixnum] if other is a Fixnum" do
+    example do
+      [1.coerce(2), 1.coerce(2).collect { |i| i.class }]
+    end.should == [[2, 1], [Fixnum, Fixnum]]
   end
-
-  specify "should return Bignums when a Bignum is received" do
-    x, y = example { FIXNUM.coerce(BIGNUM) }
-    x.class.should == Bignum
-    x.class.should == y.class
-  end
-
-  specify "should return Floats when a Float is received" do
-    x, y = example { FIXNUM.coerce(FLOAT) }
-    x.class.should == Float
-    x.class.should == y.class
-  end
-
-  specify "should return correct arguments in the order: other, self" do
-    example { FIXNUM.coerce(FIXNUM2) }.should == [FIXNUM2, FIXNUM]
-    example { FIXNUM.coerce(BIGNUM)  }.should == [BIGNUM, FIXNUM]
-    example { FIXNUM.coerce(FLOAT)   }.should == [FLOAT, FIXNUM.to_f]
+  
+  specify "coerce should return [Float, Float] if other is not a Bignum or Fixnum" do
+    example do
+      @a = 1.coerce("2")
+      @b = 1.coerce(1.5)
+      [@a, @a.collect { |i| i.class }, @b, @b.collect { |i| i.class }]
+    end.should == [[2.0, 1.0], [Float, Float], [1.5, 1.0], [Float, Float]]
   end
 end
-
-
