@@ -12,6 +12,25 @@
 #define BDIGIT_DBL long long
 #define DIGIT_RADIX (1 << DIGIT_BIT)
 
+
+void twos_complement(mp_int *a)
+{
+  long i = a->used;
+  BDIGIT_DBL num;
+
+  while (i--) {
+    DIGIT(a,i) = (~DIGIT(a,i)) & (DIGIT_RADIX-1);
+  }
+
+  i = 0; num = 1;
+  do {
+    num += DIGIT(a,i);
+    DIGIT(a,i++) = num & (DIGIT_RADIX-1);
+    num = num >> DIGIT_BIT;
+  } while (i < a->used);
+
+}
+
 OBJECT bignum_new(STATE, int num) {
   mp_int *a;
   OBJECT o;
@@ -95,6 +114,83 @@ OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
   return bignum_normalize(state, n_obj);
 }
 
+#define BITWISE_OP_AND 1
+#define BITWISE_OP_OR  2
+#define BITWISE_OP_XOR 3
+
+void bignum_bitwise_op(int op, mp_int *x, mp_int *y, mp_int *n)
+{
+  mp_int   a,   b;
+  mp_int *d1, *d2;
+  int i, sign,  l1,  l2;
+  mp_init(&a) ; mp_init(&b);
+
+  if (y->sign == MP_NEG) {
+    mp_copy(y, &b);
+    twos_complement(&b);
+    y = &b;
+  }
+
+  if (x->sign == MP_NEG) {
+    mp_copy(x, &a);
+    twos_complement(&a);
+    x = &a;
+  }
+
+  if (x->used > y->used) {
+    l1 = y->used;
+    l2 = x->used;
+    d1 = y;
+    d2 = x;
+    sign = y->sign;
+  } else {
+    l1 = x->used;
+    l2 = y->used;
+    d1 = x;
+    d2 = y;
+    sign = x->sign;
+  }
+
+  mp_grow(n, l2);
+  n->used = l2;
+  n->sign = MP_ZPOS;
+  switch(op) {
+    case BITWISE_OP_AND:
+      if (x->sign == MP_NEG && y->sign == MP_NEG) n->sign = MP_NEG;
+      for (i=0; i < l1; i++) {
+        DIGIT(n,i) = DIGIT(d1,i) & DIGIT(d2,i);
+      }
+      for (; i < l2; i++) {
+        DIGIT(n,i) = (sign == MP_ZPOS)?0:DIGIT(d2,i);
+      }
+      break;
+    case BITWISE_OP_OR:
+      if (x->sign == MP_NEG || y->sign == MP_NEG) n->sign = MP_NEG;
+      for (i=0; i < l1; i++) {
+        DIGIT(n,i) = DIGIT(d1,i) | DIGIT(d2,i);
+      }
+      for (; i < l2; i++) {
+        DIGIT(n,i) = (sign == MP_ZPOS)?DIGIT(d2,i):(DIGIT_RADIX-1);
+      }
+      break;
+    case BITWISE_OP_XOR:
+      if (x->sign != y->sign) n->sign = MP_NEG;
+      for (i=0; i < l1; i++) {
+        DIGIT(n,i) = DIGIT(d1,i) ^ DIGIT(d2,i);
+      }
+      for (; i < l2; i++) {
+        DIGIT(n,i) = (sign == MP_ZPOS)?DIGIT(d2,i):~DIGIT(d2,i);
+      }
+      break;
+  }
+
+  if (n->sign == MP_NEG) twos_complement(n);
+
+  /* free allocated resources for twos complement copies */
+  mp_clear(&a);
+  mp_clear(&b);
+}
+
 OBJECT bignum_and(STATE, OBJECT a, OBJECT b) {
   NMP;
 
@@ -102,7 +198,7 @@ OBJECT bignum_and(STATE, OBJECT a, OBJECT b) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
 
-  mp_and(MP(a), MP(b), n);
+  bignum_bitwise_op(BITWISE_OP_AND, MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 
@@ -113,7 +209,7 @@ OBJECT bignum_or(STATE, OBJECT a, OBJECT b) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
 
-  mp_or(MP(a), MP(b), n);
+  bignum_bitwise_op(BITWISE_OP_OR, MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
 
@@ -124,31 +220,8 @@ OBJECT bignum_xor(STATE, OBJECT a, OBJECT b) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
 
-  mp_xor(MP(a), MP(b), n);
+  bignum_bitwise_op(BITWISE_OP_XOR, MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
-}
-
-void twos_complement(mp_int *a)
-{
-  long i = a->used;
-  BDIGIT_DBL num;
-
-  while (i--) {
-    DIGIT(a,i) = ~DIGIT(a,i);
-  }
-
-  i = 0; num = 1;
-  do {
-    num += DIGIT(a,i);
-    DIGIT(a,i++) = num & (DIGIT_RADIX-1);
-    num = num >> DIGIT_BIT;
-  } while (i < a->used);
-
-  if (num != 0) {
-    mp_grow(a, (a->used + 1));
-    DIGIT(a, i) = 1;
-    a->used += 1;
-  }
 }
 
 OBJECT bignum_invert(STATE, OBJECT self) {
@@ -187,7 +260,7 @@ OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
   len = a->used;
 
   n->sign = a->sign;
-  mp_grow(n,len + s1 + 1);
+  mp_grow(n, len + s1 + 1);
 
   for (i=0; i < s1; i++) {
     DIGIT(n,i) = 0;
