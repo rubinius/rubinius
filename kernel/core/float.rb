@@ -74,6 +74,11 @@ class Float < Numeric
     self.divmod(other)[1]
   end
   
+  def zero?
+    # FIXME: can't handle float literals in rcompile
+    self == '0.0'.to_f
+  end
+  
   alias :modulo :%
   
   alias :to_int :to_i

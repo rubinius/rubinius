@@ -61,7 +61,7 @@ OBJECT float_to_i(STATE, OBJECT self) {
   if (value > 0.0) value = floor(value);
   if (value < 0.0) value = ceil(value);
   
-  return bignum_normalize(state, bignum_from_double(state, value));
+  return bignum_from_double(state, value);
 }
 
 OBJECT float_to_s(STATE, OBJECT self) {

@@ -64,7 +64,6 @@ class Numeric
   def divmod(other)
     b, a = self.coerce(other)
     a.divmod(b)
-    #[(a / b).floor, a % b]
   end
   
   def ==(other)
