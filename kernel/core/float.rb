@@ -87,5 +87,9 @@ class Float < Numeric
   def floor
     Ruby.primitive :float_floor
   end
+  
+  def round
+    Ruby.primitive :float_round
+  end
 end
 

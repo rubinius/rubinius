@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Rubinius Completeness Report</h1>
-    <div>Generated on Mon Jan 29 21:39:08 +0100 2007.</div>
+    <div>Generated on Wed Jan 31 03:17:50 -0800 2007.</div>
 
     <h2>Overview</h2>
 
@@ -25,26 +25,26 @@
     <h3>Class Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 103px; text-align: right; color: #000000; background: #00f000">
-      51%&nbsp;&nbsp;</td>
-    <td style="width: 97px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 116px; text-align: right; color: #000000; background: #00f000">
+      58%&nbsp;&nbsp;</td>
+    <td style="width: 84px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(2737 out of 5322)</p>
+    <p>(3089 out of 5322)</p>
 
     <h3>Instance Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 100px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 111px; text-align: right; color: #000000; background: #00f000">
+      55%&nbsp;&nbsp;</td>
+    <td style="width: 89px; text-align: left; color: #ffffff; background: #e00000">
       </td>
-    <td style="width: 100px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;50%</td>
   </tr>
 </table>
 
-    <p>(2119 out of 4254)</p>
+    <p>(2360 out of 4254)</p>
 
     <h2>Partially Complete Classes</h2>
     <table border="1">
@@ -52,6 +52,12 @@
         <th>Class</th>
         <th>class methods needed</th>
         <th>instance methods needed</th>
+      </tr>
+      
+      <tr>
+        <td>ArgumentError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
       </tr>
       
       <tr>
@@ -81,19 +87,19 @@
       <tr>
         <td>Fixnum</td>
         <td></td>
-        <td>**, [], id2name, to_f, to_sym</td>
+        <td>**, [], id2name, to_sym</td>
       </tr>
       
       <tr>
         <td>Float</td>
         <td>induced_from</td>
-        <td>%, abs, div, divmod, integer?, modulo, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, zero?</td>
+        <td>div, integer?, nonzero?, prec, prec_f, prec_i, quo, remainder, singleton_method_added, step</td>
       </tr>
       
       <tr>
         <td>Hash</td>
         <td>[]</td>
-        <td>default=</td>
+        <td></td>
       </tr>
       
       <tr>
@@ -109,9 +115,15 @@
       </tr>
       
       <tr>
+        <td>IndexError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
         <td>Integer</td>
         <td>induced_from</td>
-        <td>abs, div, divmod, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, succ, to_int, truncate, zero?</td>
+        <td>div, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, succ, to_int, truncate, zero?</td>
       </tr>
       
       <tr>
@@ -141,7 +153,7 @@
       <tr>
         <td>Numeric</td>
         <td></td>
-        <td>abs, div, divmod, integer?, modulo, nonzero?, quo, remainder, round, singleton_method_added, step, to_int, truncate, zero?</td>
+        <td>div, integer?, modulo, nonzero?, quo, remainder, round, singleton_method_added, step, to_int, truncate, zero?</td>
       </tr>
       
       <tr>
@@ -163,9 +175,15 @@
       </tr>
       
       <tr>
+        <td>StandardError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
+      </tr>
+      
+      <tr>
         <td>String</td>
         <td></td>
-        <td>%, &lt;, &lt;=, &gt;, &gt;=, []=, all?, any?, between?, capitalize, capitalize!, casecmp, center, chomp, chomp!, chop, chop!, collect, concat, count, crypt, delete, delete!, detect, downcase, downcase!, dump, each, each_line, each_with_index, entries, find, find_all, grep, gsub, gsub!, hex, inject, insert, ljust, lstrip, lstrip!, map, match, max, member?, min, next, next!, oct, partition, reject, replace, rindex, rjust, rstrip, rstrip!, scan, select, slice!, sort, sort_by, squeeze, squeeze!, sub, sub!, succ, succ!, sum, swapcase, swapcase!, to_f, tr, tr!, tr_s, tr_s!, unpack, upcase, upcase!, upto, zip</td>
+        <td>%, &lt;, &lt;=, &gt;, &gt;=, []=, all?, any?, between?, capitalize, capitalize!, casecmp, center, chomp, chomp!, chop, chop!, collect, concat, count, crypt, delete, delete!, detect, downcase, downcase!, dump, each, each_line, each_with_index, entries, find, find_all, grep, gsub, gsub!, hex, inject, insert, ljust, lstrip, lstrip!, map, match, max, member?, min, next, next!, oct, partition, reject, replace, rindex, rjust, rstrip, rstrip!, scan, select, slice!, sort, sort_by, squeeze, squeeze!, sub, sub!, succ, succ!, sum, swapcase, swapcase!, tr, tr!, tr_s, tr_s!, unpack, upcase, upcase!, upto, zip</td>
       </tr>
       
       <tr>
@@ -178,6 +196,12 @@
         <td>Time</td>
         <td>_load, gm, local, mktime, times, utc</td>
         <td>+, -, _dump, asctime, ctime, day, dst?, getgm, getlocal, getutc, gmt?, gmt_offset, gmtime, gmtoff, hour, isdst, localtime, mday, min, mon, month, sec, succ, to_f, tv_sec, tv_usec, usec, utc, utc?, utc_offset, wday, yday, year, zone</td>
+      </tr>
+      
+      <tr>
+        <td>ZeroDivisionError</td>
+        <td>exception</td>
+        <td>exception, set_backtrace, to_str</td>
       </tr>
       
     </table>
@@ -208,8 +232,6 @@
     <h2>Un-Implemented Classes</h2>
     <ul>
       
-      <li style="font-weight: bold; color: red">ArgumentError</li>
-      
       <li style="font-weight: bold; color: red">Binding</li>
       
       <li style="font-weight: bold; color: red">Data</li>
@@ -219,8 +241,6 @@
       <li style="font-weight: bold; color: red">EOFError</li>
       
       <li style="font-weight: bold; color: red">FloatDomainError</li>
-      
-      <li style="font-weight: bold; color: red">IndexError</li>
       
       <li style="font-weight: bold; color: red">Interrupt</li>
       
@@ -244,8 +264,6 @@
       
       <li style="font-weight: bold; color: red">SignalException</li>
       
-      <li style="font-weight: bold; color: red">StandardError</li>
-      
       <li style="font-weight: bold; color: red">Struct</li>
       
       <li style="font-weight: bold; color: red">SystemCallError</li>
@@ -261,8 +279,6 @@
       <li style="font-weight: bold; color: red">ThreadGroup</li>
       
       <li style="font-weight: bold; color: red">TypeError</li>
-      
-      <li style="font-weight: bold; color: red">ZeroDivisionError</li>
       
     </ul>
 

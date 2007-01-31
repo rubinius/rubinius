@@ -107,7 +107,7 @@ context "Float" do
     end.should == ["[1, 1.14]", "[0, 2.8284]", "[-1, 4294967294.0]"]
   end
   
-  specify "eql? should true if other is a Float equal to self" do
+  specify "eql? should return true if other is a Float equal to self" do
     example do
       [1.0.eql?(1), 0.0.eql?(0.0)]
     end.should == [false, true]

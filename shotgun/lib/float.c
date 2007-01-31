@@ -142,3 +142,12 @@ OBJECT float_floor(STATE, OBJECT self) {
   value = floor(FLOAT_TO_DOUBLE(self));
   return bignum_from_double(state, value);
 }
+
+OBJECT float_round(STATE, OBJECT self) {
+  double value;
+  
+  value = FLOAT_TO_DOUBLE(self);
+  if (value > 0.0) value = floor(value+0.5);
+  if (value < 0.0) value = ceil(value-0.5);
+  return bignum_from_double(state, value);
+}
