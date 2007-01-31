@@ -70,6 +70,12 @@ class Float < Numeric
     super(other)
   end
   
+  def %(other)
+    self.divmod(other)[1]
+  end
+  
+  alias :modulo :%
+  
   alias :to_int :to_i
   alias :truncate :to_i
 end
