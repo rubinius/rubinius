@@ -1546,14 +1546,15 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
-
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    if (!FIXNUM_P(self) || !INTEGER_P(t1)) {
+      _ret = FALSE;
+    } else if(FIXNUM_P(t1)) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j & k;
       stack_push(I2N(m));
     } else {
-      _ret = FALSE;
+      stack_push(bignum_and(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
     }
     CODE
   end
@@ -1562,14 +1563,15 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
-
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    if (!FIXNUM_P(self) || !INTEGER_P(t1)) {
+      _ret = FALSE;
+    } else if(FIXNUM_P(t1)) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j | k;
       stack_push(I2N(m));
     } else {
-      _ret = FALSE;
+      stack_push(bignum_or(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
     }
     CODE
   end
@@ -1578,13 +1580,15 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    if (!FIXNUM_P(self) || !INTEGER_P(t1)) {
+      _ret = FALSE;
+    } else if(FIXNUM_P(t1)) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j ^ k;
       stack_push(I2N(m));
     } else {
-      _ret = FALSE;
+      stack_push(bignum_xor(state, bignum_new(state, FIXNUM_TO_INT(self)), t1));
     }
     CODE
   end

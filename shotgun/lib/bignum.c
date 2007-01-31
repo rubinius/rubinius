@@ -189,6 +189,12 @@ OBJECT bignum_equal(STATE, OBJECT a, OBJECT b) {
 }
 
 OBJECT bignum_compare(STATE, OBJECT a, OBJECT b) {
+  switch(mp_cmp(MP(a), MP(b))) {
+    case MP_LT:
+      return I2N(-1);
+    case MP_GT:
+      return I2N(1);
+  }
   return I2N(0);
 }
 
