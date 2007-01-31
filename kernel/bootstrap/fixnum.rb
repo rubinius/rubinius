@@ -25,7 +25,10 @@ class Fixnum < Integer
   
   def %(o)
     Ruby.primitive :fixnum_modulo
+    super(o)
   end
+  
+  alias :modulo :%
   
   def &(o)
     Ruby.primitive :fixnum_and
