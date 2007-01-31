@@ -25,6 +25,11 @@ class Numeric
     b, a = self.coerce(other)
     a ** b
   end
+  
+  def %(other)
+    b, a = self.coerce(other)
+    a % b
+  end
 
   def abs
     return -self if self < 0
@@ -54,6 +59,11 @@ class Numeric
 
   def -@
     0 - self
+  end
+  
+  def divmod(other)
+    b, a = self.coerce(other)
+    a.divmod(b)
   end
   
   def ==(other)

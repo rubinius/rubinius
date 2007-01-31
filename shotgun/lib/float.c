@@ -1,6 +1,7 @@
 #include "shotgun.h"
 #include "string.h"
 #include "bignum.h"
+#include "array.h"
 
 #include <string.h>
 #include <math.h>
@@ -115,4 +116,22 @@ inline OBJECT float_infinite_p(STATE, OBJECT self) {
     return I2N(value < 0 ? -1 : 1);
     
   return Qnil;
+}
+
+OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
+  OBJECT ary;
+  double x, y, div, mod;
+  
+  x = FLOAT_TO_DOUBLE(a);
+  y = FLOAT_TO_DOUBLE(b);
+  mod = fmod(x, y);
+  div = (x - mod) / y;
+  if (y*mod < 0) {
+  	mod += y;
+  	div -= 1.0;
+  }
+  ary = array_new(state, 2);
+  array_set(state, ary, 0, bignum_from_double(state, div));
+  array_set(state, ary, 1, float_new(state, mod));
+  return ary;
 }

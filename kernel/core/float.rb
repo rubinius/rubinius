@@ -58,10 +58,16 @@ class Float < Numeric
   
   def **(other)
     Ruby.primitive :float_pow
+    super(other)
   end
   
   def to_i
     Ruby.primitive :float_to_i
+  end
+  
+  def divmod(other)
+    Ruby.primitive :float_divmod
+    super(other)
   end
   
   alias :to_int :to_i

@@ -1887,6 +1887,18 @@ class ShotgunPrimitives
     }
     CODE
   end
+  
+  def float_divmod
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(FLOAT_P(self) && FLOAT_P(t1)) {
+      stack_push(float_divmod(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
 
 end
 

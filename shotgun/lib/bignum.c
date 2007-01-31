@@ -331,5 +331,5 @@ OBJECT bignum_from_double(STATE, double d)
     mp_neg(n, n);
   }
 
-  return n_obj;
+  return bignum_normalize(state, n_obj);
 }
