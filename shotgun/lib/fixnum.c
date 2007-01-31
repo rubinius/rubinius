@@ -67,3 +67,35 @@ OBJECT fixnum_div(STATE, OBJECT a, OBJECT b) {
 
   return r;
 }
+
+OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
+  OBJECT ary;
+  long div, mod;
+  int x, y;
+
+  x = FIXNUM_TO_INT(a);
+  y = FIXNUM_TO_INT(b);
+  
+  // adapted from ruby 1.8.x
+  if (y < 0) {
+    if (x < 0)
+      div = -x / -y;
+    else
+      div = - (x / -y);
+  } else {
+    if (x < 0)
+      div = - (-x / y);
+    else
+      div = x / y;
+  }
+  mod = x - div*y;
+  if ((mod < 0 && y > 0) || (mod > 0 && y < 0)) {
+    mod += y;
+    div -= 1;
+  }
+  
+  ary = array_new(state, 2);
+  array_set(state, ary, 0, I2N(div));
+  array_set(state, ary, 1, I2N(mod));
+  return ary;
+}

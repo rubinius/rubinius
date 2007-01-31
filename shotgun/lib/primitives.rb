@@ -1318,17 +1318,11 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
+    if(FIXNUM_P(self) && FIXNUM_P(t1)) {
+      t3 = fixnum_divmod(state, self, t1);
+      stack_push(array_get(state, t3, 1));
     } else {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-      m = j % k;
-      t2 = I2N(m);
-      if(m != FIXNUM_TO_INT(t2)) {
-        t2 = bignum_add(state, bignum_new(state, j), bignum_new(state, k));
-      }
-      stack_push(t2);
+      _ret = FALSE;
     }
     CODE
   end
@@ -1894,6 +1888,22 @@ class ShotgunPrimitives
     t1 = stack_pop();
     if(FLOAT_P(self) && FLOAT_P(t1)) {
       stack_push(float_divmod(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
+  
+  def fixnum_divmod
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(FIXNUM_P(self) && FIXNUM_P(t1) && FIXNUM_TO_INT(t1) != 0) {
+      // maybe this would be preferable
+      if(FIXNUM_TO_INT(t1) == 0) {
+        // cpu_raise_exception(state, c, cpu_new_exception(state, c, klass, "divide by 0"));
+      }
+      stack_push(fixnum_divmod(state, self, t1));
     } else {
       _ret = FALSE;
     }
