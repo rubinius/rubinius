@@ -17,7 +17,6 @@ inline OBJECT float_infinite_p(STATE, OBJECT self);
 OBJECT float_pow(STATE, OBJECT a, OBJECT b);
 OBJECT float_to_i(STATE, OBJECT self);
 OBJECT float_divmod(STATE, OBJECT a, OBJECT b);
-OBJECT float_floor(STATE, OBJECT self);
 OBJECT float_round(STATE, OBJECT self);
 
 #endif

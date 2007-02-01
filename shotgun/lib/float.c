@@ -136,13 +136,6 @@ OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
   return ary;
 }
 
-OBJECT float_floor(STATE, OBJECT self) {
-  double value;
-  
-  value = floor(FLOAT_TO_DOUBLE(self));
-  return bignum_from_double(state, value);
-}
-
 OBJECT float_round(STATE, OBJECT self) {
   double value;
   
