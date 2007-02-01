@@ -28,6 +28,7 @@ module Rubinius
   end
 
   class Numeric; end
+  class Integer < Numeric; end
 end
 
 # load it all up
