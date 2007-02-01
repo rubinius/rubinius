@@ -53,6 +53,12 @@ context "Float" do
     end.should == ["-2.875", "48.494623655914", "-2.12108716418061e-08"]
   end
   
+  specify "/ should NOT raise ZeroDivisionError if other is zero" do
+    example do
+      [1.0 / 0.0, -1.0 / 0.0, 1.0 / -0.0, -1.0 / -0.0, 0.0 / 0.0, -0.0 / 0.0, -0.0 / -0.0].inspect
+    end.should == '[Infinity, -Infinity, -Infinity, Infinity, NaN, NaN, NaN]'
+  end
+  
   specify "< should return true if self is less than other" do
     example do
       [71.3 < 91.8, 192.6 < -500,  -0.12 < 0x4fffffff]
@@ -112,6 +118,14 @@ context "Float" do
       [3.14.divmod(2).inspect, 2.8284.divmod(3.1415).inspect, -1.0.divmod(0xffffffff).inspect]
     end.should == ["[1, 1.14]", "[0, 2.8284]", "[-1, 4294967294.0]"]
   end
+  
+  specify "divmod should raise FloatDomainError if other is zero" do
+    example do
+      @a = try(FloatDomainError) { 1.0.divmod(0) }
+      @b = try(FloatDomainError) { 1.0.divmod(0.0) }
+      [@a, @b]
+    end.should == [true, true]
+  end      
   
   specify "eql? should return true if other is a Float equal to self" do
     example do

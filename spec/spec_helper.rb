@@ -10,9 +10,23 @@ class String
   end
 end
 
+module ExceptionHelper
+  # try(anException, result) { ... } 
+  #   => result if block does not raise anException, else nil
+  def try(a, b=true)
+    begin
+      yield
+    rescue a
+      return b
+    end
+  end
+end
+  
 # Example courtesy of nicksieger, many thanks!
 class Spec::Runner::Context
   def before_context_eval
+    @context_eval_module.include ExceptionHelper
+
     case ENV['SPEC_TARGET']
     when /mri/
       require 'mri_target'
