@@ -328,6 +328,12 @@ context "Fixnum instance method" do
     end.should == '[0.8, 2.5, 1.04773789668636e-08]'
   end
   
+  specify "quo should NOT raise an exception when other is zero" do
+    example do
+      [1.quo(0), 1.quo(0.0), 1.quo(-0.0)].inspect
+    end.should == ''
+  end
+  
   specify "size should be provided" do
     example do
       1.respond_to?(:size)
