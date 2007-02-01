@@ -1,6 +1,7 @@
 class Fixnum < Integer
   def ==(o)
     Ruby.primitive :equal
+    super(o)
   end
   
   def +(o)

@@ -52,10 +52,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_add(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -65,7 +63,11 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
+<<<<<<< .mine
+    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
+=======
     GUARD ( INTEGER_P(t1) ) {
+>>>>>>> .r614
       stack_push(bignum_add(state, self, t1));
     }
     CODE
@@ -76,10 +78,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_sub(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -89,10 +89,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( INTEGER_P(t1) ) {
+    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
       stack_push(bignum_sub(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -102,10 +100,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_mul(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -114,10 +110,8 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
 
-    if( FIXNUM_P(self) ) {
+    GUARD( FIXNUM_P(self) ) {
       stack_push(I2N(sizeof(int)));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -126,10 +120,9 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
-    if( INTEGER_P(t1) ) {
+
+    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
       stack_push(bignum_mul(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -139,10 +132,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
+    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       stack_push(fixnum_div(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -152,10 +143,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( INTEGER_P(t1) ) {
+    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
       stack_push(bignum_div(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
@@ -165,20 +154,15 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    /* i think we can assume self is fixnum but i don't know where this is called */
-    if( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-
-      /* Don't need to convert them to ints since it would have been redundant. */
-      /* Its done everywhere else -- going to cast them explicitly just in case */
+    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
+
       if(j == k) {
         stack_push(Qtrue); 
       } else {
         stack_push(Qfalse);
       }
-    } else {
-      stack_push(Qfalse);
     }
     CODE
   end
@@ -187,10 +171,9 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
-    if( INTEGER_P(t1) ) {
+
+    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
       stack_push(bignum_equal(state, self, t1));
-    } else {
-      stack_push(Qfalse);
     }
     CODE
   end
@@ -199,11 +182,11 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
+
+    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
+
       if (j < k)
         stack_push(I2N(-1));
       else if (j > k)
@@ -218,9 +201,8 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 =   stack_pop();
-    if(!FIXNUM_P(t1) || !INDEXED(self)) {
-      _ret = FALSE;
-    } else {
+
+    GUARD( INDEXED(self) && FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(t1);
       if(j >= NUM_FIELDS(self)) {
         _ret = FALSE;

@@ -46,12 +46,11 @@ struct time_data {
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
-// should this be INTEGER_P to follow FIXNUM_P?
-#define INTEGER_P(obj) (FIXNUM_P(obj) || RISA(obj, bignum))
-
 #define BIGNUM_P(obj) (RISA(obj, bignum))
-#define COMPLEX_P(obj) (FALSE)
 #define FLOAT_P(obj) (RISA(obj, floatpoint))
+#define COMPLEX_P(obj) (FALSE)
+
+#define INTEGER_P(obj) (FIXNUM_P(obj) || BIGNUM_P(obj))
 #define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
 
 #define STRING_P(obj) (RISA(obj, string))
