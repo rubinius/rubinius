@@ -6,7 +6,20 @@ class Hash
   alias :each_pair  :each
   alias :length     :size
   alias :store      :[]=
-  
+
+  def self.[](*args)
+    hsh = {}
+    while args.size >= 2
+      k = args.shift
+      v = args.shift
+      hsh[k] = v
+    end
+    if args.size == 1
+      hsh.merge! args[0]
+    end
+    hsh
+  end
+
   def default_proc
     @default_proc ? @default : nil
   end
