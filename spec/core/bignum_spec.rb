@@ -26,6 +26,21 @@ context "Bignum instance method" do
       [@a % 5, @a % 2.22, @a % B.sbm].inspect
     end.should == '[1, 0.419999905491539, 2222]'
   end
+
+  specify "% should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      @a = B.sbm
+      try(ZeroDivisionError) { @a % 0 }
+    end.should == true
+  end
+  
+  specify "% should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      @a = B.sbm(5_221)
+      @b = B.sbm(25)
+      [@a % 0.0, @b % -0.0].inspect
+    end.should == '[NaN, NaN]'
+  end
   
   specify "& should return self bitwise AND other" do
     example(@src) do
@@ -73,6 +88,21 @@ context "Bignum instance method" do
       @a = B.sbm(88)
       [@a / 4, @a / 16.2, @a / B.sbm(2)].inspect
     end.should == '[268435478, 66280364.9382716, 1]'
+  end
+  
+  specify "/ should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      @a = B.sbm
+      try(ZeroDivisionError) { @a / 0 }
+    end.should == true
+  end
+  
+  specify "/ should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      @a = B.sbm(5_221)
+      @b = B.sbm(25)
+      [@a / 0.0, @b / -0.0].inspect
+    end.should == '[Infinity, -Infinity]'
   end
   
   specify "< should return true if self is less than other" do
@@ -165,6 +195,21 @@ context "Bignum instance method" do
     end.should == '[268445861, 66282928.7654321, 1]'
   end
   
+  specify "div should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      @a = B.sbm
+      try(ZeroDivisionError) { @a.div(0) }
+    end.should == true
+  end
+  
+  specify "div should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      @a = B.sbm(5_221)
+      @b = B.sbm(25)
+      [@a.div(0.0), @b.div(-0.0)].inspect
+    end.should == '[Infinity, -Infinity]'
+  end
+  
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
     example(@src) do
       @a = B.sbm(55)
@@ -172,6 +217,20 @@ context "Bignum instance method" do
     end.should == '[[214748375, 4], [70640913, 1.40000005019339], [0, 1073741879]]'
   end
   
+  specify "divmod should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      @a = B.sbm(2)
+      try(ZeroDivisionError) { @a.divmod(0) }
+    end.should == true
+  end
+  
+  specify "divmod should raise FloatDomainError if other is zero and is a Float" do
+    example do
+      @a = B.sbm(9)
+      try(FloatDomainError) { @a.divmod(0.0) }
+    end
+  end
+
   specify "eql? should return true if other is a Bignum with the same value" do
     example(@src) do
       @a = B.sbm(13)
@@ -192,11 +251,36 @@ context "Bignum instance method" do
     end.should == '[1, 0.419999905491539, 2222]'
   end
   
+  specify "% should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      @a = B.sbm
+      try(ZeroDivisionError) { @a.modulo(0) }
+    end.should == true
+  end
+  
+  specify "modulo should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      @a = B.sbm(5_221)
+      @b = B.sbm(25)
+      [@a.modulo(0.0), @b.modulo(-0.0)].inspect
+    end.should == '[NaN, NaN]'
+  end
+  
   specify "quo should return the floating-point result of self divided by other" do
     example(@src) do
       @a = B.sbm(3)
       [@a.quo(2.5).to_f, @a.quo(13).to_f, @a.quo(B.sbm).to_f].inspect
     end.should == '[429496730.8, 82595525.1538462, 1.00000000279397]'
+  end
+
+  specify "quo should NOT raise an exception when other is zero" do
+    example do
+      # @a.quo(0) should also not raise (i.e works in irb and from a file),
+      # but fails here.
+      @a = B.sbm(91)
+      @b = B.sbm(28)
+      [@a.quo(0.0), @b.quo(-0.0)].inspect
+    end.should == '[Infinity, -Infinity]'
   end
   
   specify "remainder should return the remainder of dividing self by other" do
@@ -205,6 +289,20 @@ context "Bignum instance method" do
       [@a.remainder(2), @a.remainder(97.345), @a.remainder(B.sbm)].inspect
     end.should == '[1, 75.16000001254, 79]'
   end
+  
+  specify "remainder should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      try(ZeroDivisionError) { B.sbm(66).remainder(0) }
+    end.should == true
+  end
+  
+  specify "remainder should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      @a = B.sbm(7)
+      @b = B.sbm(32)
+      [@a.remainder(0.0), @b.remainder(-0.0)].inspect
+    end.should == '[NaN, NaN]'
+  end    
   
   specify "size should be provided" do
     example(@src) do

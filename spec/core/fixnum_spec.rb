@@ -26,8 +26,8 @@ context "Fixnum instance method" do
   
   specify "% should NOT raise ZeroDivisionError if other is zero and is a Float" do
     example do
-      (1 % 0.0).to_s
-    end.should == 'NaN'
+      [1.modulo(0.0), 1.modulo(-0.0)].inspect
+    end.should == '[NaN, NaN]'
   end
   
   specify "& should return self bitwise AND other" do
@@ -319,6 +319,18 @@ context "Fixnum instance method" do
     example do
       [451.modulo(2), 93.modulo(3.2), 120.modulo(-4.5)].inspect
     end.should == '[1, 0.199999999999995, -1.5]'
+  end
+  
+  specify "modulo should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      try(ZeroDivisionError) { 1.modulo(0) }
+    end.should == true
+  end
+  
+  specify "modulo should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      [1.modulo(0.0), 1.modulo(-0.0)].inspect
+    end.should == '[NaN, NaN]'
   end
   
   specify "quo should return the floating-point result of self divided by other" do
