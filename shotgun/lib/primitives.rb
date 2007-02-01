@@ -178,83 +178,52 @@ class ShotgunPrimitives
   
   def put
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
-    if(!INDEXED(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      j = FIXNUM_TO_INT(t1);
-      if(j >= NUM_FIELDS(self)) {
-        _ret = FALSE;
-      } else {
-        SET_FIELD(self, j, t2);
-        stack_push(t2);
-      }
-    }
+    self = stack_pop(); GUARD( INDEXED(self) )
+    t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
+    t2 = stack_pop(); // We don't care about the type
+    j = FIXNUM_TO_INT(t1); GUARD( j < NUM_FIELDS(self) )
+
+    SET_FIELD(self, j, t2);
+    stack_push(t2);
     CODE
   end
   
   def fields
     <<-CODE
-    self = stack_pop();
-    if(!REFERENCE_P(self)) {
-      _ret = FALSE;
-    } else {
-      stack_push(I2N(NUM_FIELDS(self)));
-    }
+    POP(self, REFERENCE)
+
+    stack_push(I2N(NUM_FIELDS(self)));
     CODE
   end
   
   def allocate
     <<-CODE
-    self = stack_pop();
-    if(!RISA(self, class)) {
-      _ret = FALSE;
-    } else {
-      t1 = class_get_instance_fields(self);
-      if(!FIXNUM_P(t1)) {
-        _ret = FALSE;
-      } else {
-        t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
-        stack_push(t2);
-      }
-    }
+    self = stack_pop(); GUARD( RISA(self, class) )
+    t1 = class_get_instance_fields(self); GUARD( FIXNUM_P(t1) )
+
+    t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
+    stack_push(t2);
     CODE
   end
   
   def allocate_count
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    if(!RISA(self, class)) {
-      _ret = FALSE;
-    } else {
-      if(!FIXNUM_P(t1)) {
-        _ret = FALSE;
-      } else {
-        t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
-        stack_push(t2);
-      }
-    }
+    self = stack_pop(); GUARD( RISA(self, class) )
+    POP(t1, FIXNUM)
+
+    t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
+    stack_push(t2);
     CODE
   end
   
   def allocate_bytes
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    if(!RISA(self, class)) {
-      _ret = FALSE;
-    } else {
-      if(!FIXNUM_P(t1)) {
-        _ret = FALSE;
-      } else {
-        t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1) / 4);
-        object_make_byte_storage(state, t2);
-        stack_push(t2);
-      }
-    }
+    self = stack_pop(); GUARD( RISA(self, class) )
+    POP(t1, FIXNUM)
+
+    t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1) / 4);
+    object_make_byte_storage(state, t2);
+    stack_push(t2);
     CODE
   end
   
