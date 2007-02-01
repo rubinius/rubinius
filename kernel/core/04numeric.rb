@@ -30,6 +30,18 @@ class Numeric
     b, a = self.coerce(other)
     a % b
   end
+  
+  def &(other)
+    self & Integer(other)
+  end
+  
+  def |(other)
+    self | Integer(other)
+  end
+  
+  def ^(other)
+    self ^ Integer(other)
+  end
 
   def abs
     return -self if self < 0

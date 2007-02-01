@@ -33,14 +33,17 @@ class Bignum < Integer
   
   def &(o)
     Ruby.primitive :bignum_and
+    super(o)
   end
 
   def |(o)
     Ruby.primitive :bignum_or
+    super(o)
   end
 
   def ^(o)
     Ruby.primitive :bignum_xor
+    super(o)
   end
 
   def ~
@@ -87,4 +90,3 @@ class Bignum < Integer
     super(other)
   end
 end
-

@@ -8,14 +8,17 @@ class Fixnum < Integer
   
   def &(o)
     Ruby.primitive :fixnum_and
+    super(o)
   end
 
   def |(o)
     Ruby.primitive :fixnum_or
+    super(o)
   end
 
   def ^(o)
     Ruby.primitive :fixnum_xor
+    super(o)
   end
 
   def ~
