@@ -1,5 +1,7 @@
+class StandardError < Exception
+end
 
-class IOError < Exception
+class IOError < StandardError
 end
 
 class IO

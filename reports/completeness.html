@@ -6,45 +6,45 @@
   </head>
   <body>
     <h1>Rubinius Completeness Report</h1>
-    <div>Generated on Wed Jan 31 19:18:49 -0800 2007.</div>
+    <div>Generated on Thu Feb 01 09:03:28 +0100 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Complete Classes</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 31px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 102px; text-align: right; color: #000000; background: #00f000">
+      51%&nbsp;&nbsp;</td>
+    <td style="width: 98px; text-align: left; color: #ffffff; background: #e00000">
       </td>
-    <td style="width: 169px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;15%</td>
   </tr>
 </table>
 
-    <p>(9 out of 59)</p>
+    <p>(30 out of 59)</p>
 
     <h3>Class Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 116px; text-align: right; color: #000000; background: #00f000">
-      58%&nbsp;&nbsp;</td>
-    <td style="width: 84px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 177px; text-align: right; color: #000000; background: #00f000">
+      88%&nbsp;&nbsp;</td>
+    <td style="width: 23px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(3091 out of 5322)</p>
+    <p>(4701 out of 5322)</p>
 
     <h3>Instance Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 110px; text-align: right; color: #000000; background: #00f000">
-      55%&nbsp;&nbsp;</td>
-    <td style="width: 90px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 162px; text-align: right; color: #000000; background: #00f000">
+      81%&nbsp;&nbsp;</td>
+    <td style="width: 38px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(2337 out of 4254)</p>
+    <p>(3444 out of 4254)</p>
 
     <h2>Partially Complete Classes</h2>
     <table border="1">
@@ -55,27 +55,15 @@
       </tr>
       
       <tr>
-        <td>ArgumentError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
-      </tr>
-      
-      <tr>
         <td>Bignum</td>
         <td></td>
-        <td>div, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, size, step, succ, to_int, truncate, zero?</td>
+        <td>integer?, next, nonzero?, prec, prec_f, prec_i, remainder, round, singleton_method_added, size, step, succ, to_int, truncate, zero?</td>
       </tr>
       
       <tr>
         <td>Class</td>
         <td>nesting</td>
         <td>&lt;=, &lt;=&gt;, &gt;, &gt;=, autoload, autoload?, class_eval, class_variables, const_defined?, const_get, const_missing, const_set, include?, included_modules, instance_method, method_defined?, module_eval, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
-      </tr>
-      
-      <tr>
-        <td>Exception</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
       </tr>
       
       <tr>
@@ -109,21 +97,15 @@
       </tr>
       
       <tr>
-        <td>IOError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
-      </tr>
-      
-      <tr>
-        <td>IndexError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
-      </tr>
-      
-      <tr>
         <td>Integer</td>
         <td></td>
         <td>div, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, quo, remainder, round, singleton_method_added, step, succ, to_int, truncate, zero?</td>
+      </tr>
+      
+      <tr>
+        <td>LocalJumpError</td>
+        <td></td>
+        <td>exit_value, reason</td>
       </tr>
       
       <tr>
@@ -145,9 +127,15 @@
       </tr>
       
       <tr>
-        <td>NotImplementedError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
+        <td>NameError</td>
+        <td></td>
+        <td>name</td>
+      </tr>
+      
+      <tr>
+        <td>NoMethodError</td>
+        <td></td>
+        <td>args, name</td>
       </tr>
       
       <tr>
@@ -169,18 +157,6 @@
       </tr>
       
       <tr>
-        <td>ScriptError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
-      </tr>
-      
-      <tr>
-        <td>StandardError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
-      </tr>
-      
-      <tr>
         <td>String</td>
         <td></td>
         <td>%, &lt;, &lt;=, &gt;, &gt;=, []=, all?, any?, between?, capitalize, capitalize!, casecmp, center, chomp, chomp!, chop, chop!, collect, concat, count, crypt, delete, delete!, detect, downcase, downcase!, dump, each, each_line, each_with_index, entries, find, find_all, grep, gsub, gsub!, hex, inject, insert, ljust, lstrip, lstrip!, map, match, max, member?, min, next, next!, oct, partition, reject, replace, rindex, rjust, rstrip, rstrip!, scan, select, slice!, sort, sort_by, squeeze, squeeze!, sub, sub!, succ, succ!, sum, swapcase, swapcase!, tr, tr!, tr_s, tr_s!, unpack, upcase, upcase!, upto, zip</td>
@@ -193,15 +169,21 @@
       </tr>
       
       <tr>
-        <td>Time</td>
-        <td>_load, gm, local, mktime, times, utc</td>
-        <td>+, -, _dump, asctime, ctime, day, dst?, getgm, getlocal, getutc, gmt?, gmt_offset, gmtime, gmtoff, hour, isdst, localtime, mday, min, mon, month, sec, succ, to_f, tv_sec, tv_usec, usec, utc, utc?, utc_offset, wday, yday, year, zone</td>
+        <td>SystemCallError</td>
+        <td></td>
+        <td>errno</td>
       </tr>
       
       <tr>
-        <td>ZeroDivisionError</td>
-        <td>exception</td>
-        <td>exception, set_backtrace, to_str</td>
+        <td>SystemExit</td>
+        <td></td>
+        <td>status, success?</td>
+      </tr>
+      
+      <tr>
+        <td>Time</td>
+        <td>_load, gm, local, mktime, times, utc</td>
+        <td>+, -, _dump, asctime, ctime, day, dst?, getgm, getlocal, getutc, gmt?, gmt_offset, gmtime, gmtoff, hour, isdst, localtime, mday, min, mon, month, sec, succ, to_f, tv_sec, tv_usec, usec, utc, utc?, utc_offset, wday, yday, year, zone</td>
       </tr>
       
     </table>
@@ -209,23 +191,65 @@
     <h2>Complete Classes</h2>
     <ul>
       
+      <li style="font-weight: bold; color: green">ArgumentError</li>
+      
       <li style="font-weight: bold; color: green">Array</li>
       
       <li style="font-weight: bold; color: green">Continuation</li>
       
+      <li style="font-weight: bold; color: green">EOFError</li>
+      
+      <li style="font-weight: bold; color: green">Exception</li>
+      
       <li style="font-weight: bold; color: green">FalseClass</li>
       
+      <li style="font-weight: bold; color: green">FloatDomainError</li>
+      
+      <li style="font-weight: bold; color: green">IOError</li>
+      
+      <li style="font-weight: bold; color: green">IndexError</li>
+      
+      <li style="font-weight: bold; color: green">Interrupt</li>
+      
+      <li style="font-weight: bold; color: green">LoadError</li>
+      
       <li style="font-weight: bold; color: green">NilClass</li>
+      
+      <li style="font-weight: bold; color: green">NoMemoryError</li>
+      
+      <li style="font-weight: bold; color: green">NotImplementedError</li>
       
       <li style="font-weight: bold; color: green">Object</li>
       
       <li style="font-weight: bold; color: green">Range</li>
       
+      <li style="font-weight: bold; color: green">RangeError</li>
+      
+      <li style="font-weight: bold; color: green">RegexpError</li>
+      
+      <li style="font-weight: bold; color: green">RuntimeError</li>
+      
+      <li style="font-weight: bold; color: green">ScriptError</li>
+      
+      <li style="font-weight: bold; color: green">SecurityError</li>
+      
+      <li style="font-weight: bold; color: green">SignalException</li>
+      
+      <li style="font-weight: bold; color: green">StandardError</li>
+      
       <li style="font-weight: bold; color: green">Symbol</li>
+      
+      <li style="font-weight: bold; color: green">SystemStackError</li>
+      
+      <li style="font-weight: bold; color: green">ThreadError</li>
       
       <li style="font-weight: bold; color: green">TrueClass</li>
       
+      <li style="font-weight: bold; color: green">TypeError</li>
+      
       <li style="font-weight: bold; color: green">UnboundMethod</li>
+      
+      <li style="font-weight: bold; color: green">ZeroDivisionError</li>
       
     </ul>
 
@@ -238,47 +262,11 @@
       
       <li style="font-weight: bold; color: red">Dir</li>
       
-      <li style="font-weight: bold; color: red">EOFError</li>
-      
-      <li style="font-weight: bold; color: red">FloatDomainError</li>
-      
-      <li style="font-weight: bold; color: red">Interrupt</li>
-      
-      <li style="font-weight: bold; color: red">LoadError</li>
-      
-      <li style="font-weight: bold; color: red">LocalJumpError</li>
-      
-      <li style="font-weight: bold; color: red">NameError</li>
-      
-      <li style="font-weight: bold; color: red">NoMemoryError</li>
-      
-      <li style="font-weight: bold; color: red">NoMethodError</li>
-      
-      <li style="font-weight: bold; color: red">RangeError</li>
-      
-      <li style="font-weight: bold; color: red">RegexpError</li>
-      
-      <li style="font-weight: bold; color: red">RuntimeError</li>
-      
-      <li style="font-weight: bold; color: red">SecurityError</li>
-      
-      <li style="font-weight: bold; color: red">SignalException</li>
-      
       <li style="font-weight: bold; color: red">Struct</li>
-      
-      <li style="font-weight: bold; color: red">SystemCallError</li>
-      
-      <li style="font-weight: bold; color: red">SystemExit</li>
-      
-      <li style="font-weight: bold; color: red">SystemStackError</li>
       
       <li style="font-weight: bold; color: red">Thread</li>
       
-      <li style="font-weight: bold; color: red">ThreadError</li>
-      
       <li style="font-weight: bold; color: red">ThreadGroup</li>
-      
-      <li style="font-weight: bold; color: red">TypeError</li>
       
     </ul>
 

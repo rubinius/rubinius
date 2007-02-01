@@ -24,7 +24,7 @@ end
 class ScriptError < Exception
 end
 
-class NotImplementedError < Exception
+class NotImplementedError < ScriptError
 end
 
 class SyntaxError
