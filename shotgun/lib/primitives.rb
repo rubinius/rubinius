@@ -65,10 +65,8 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-    if( INTEGER_P(t1) ) {
+    GUARD ( INTEGER_P(1) ) {
       stack_push(bignum_add(state, self, t1));
-    } else {
-      _ret = FALSE;
     }
     CODE
   end
