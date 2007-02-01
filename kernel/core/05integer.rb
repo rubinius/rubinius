@@ -70,4 +70,8 @@ class Integer < Numeric
     end
   end
 
+  def quo(other)
+    Float(self) / Float(other)
+  end
+  
 end
