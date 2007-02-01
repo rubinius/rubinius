@@ -11,6 +11,12 @@ context "Float" do
     end.should == '[104.21, 5667.19, 92.9299999999996]'
   end
   
+  specify "% should NOT raise ZeroDivisionError if other is zero" do
+    example do
+      [1.0 % 0, 1.0 % 0.0].inspect
+    end.should == '[NaN, NaN]'
+  end
+  
   specify "* should return self multiplied by other" do
     example do
       [4923.98221 * 2, (256.4096 * 0xffffffff).to_s, 6712.5 * 0.25]
