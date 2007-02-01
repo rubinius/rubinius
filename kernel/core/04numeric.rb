@@ -23,7 +23,11 @@ class Numeric
   
   def /(other)
     b, a = self.coerce(other)
-    a / b
+    if b == 0
+      raise "Divide by zero (from Numeric#/)"
+    else
+      a / b
+    end
   end
   
   def **(other)
@@ -33,7 +37,11 @@ class Numeric
   
   def %(other)
     b, a = self.coerce(other)
-    a % b
+    if b == 0
+      raise "Divide by zero (from Numeric#%)"
+    else
+      a % b
+    end
   end
   
   def &(other)
@@ -81,7 +89,11 @@ class Numeric
   
   def divmod(other)
     b, a = self.coerce(other)
-    a.divmod(b)
+    if b == 0
+      raise "Divide by zero (from Numeric#divmod)"
+    else
+      a.divmod(b)
+    end
   end
   
   def ==(other)
@@ -101,6 +113,10 @@ class Numeric
   def coerce(other)
     Ruby.primitive :numeric_coerce
     self.class == other.class ? [other, self] : [Float(other), Float(self)]
+  end
+
+  def zero?
+    self == 0
   end
 end
 

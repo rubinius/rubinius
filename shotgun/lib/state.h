@@ -106,6 +106,7 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 
 #define FIXNUM_TO_INT(obj) rbs_to_int(obj)
 #define FIXNUM_TO_DOUBLE(obj) rbs_fixnum_to_double(obj)
+#define BIGNUM_TO_INT(o) bignum_to_int(state, o)
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(state, int)
 #define I2N(i) INT_TO_FIXNUM(i)
 #define UI2N(i) rbs_uint_to_fixnum(state, i)

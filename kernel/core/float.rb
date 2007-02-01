@@ -88,11 +88,6 @@ class Float < Numeric
   
   alias :modulo :%
 
-  def zero?
-    # FIXME: can't handle float literals in rcompile
-    self == '0.0'.to_f
-  end
-  
   def round
     Ruby.primitive :float_round
   end

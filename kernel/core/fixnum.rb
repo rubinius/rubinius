@@ -47,7 +47,6 @@ class Fixnum < Integer
   
   def divmod(other)
     Ruby.primitive :fixnum_divmod
-    raise ZeroDivisionError, 'divide by 0' if other == 0
     super(other)
   end
   
