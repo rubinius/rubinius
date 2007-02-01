@@ -8,13 +8,35 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # size, sort, store, to_a, to_hash, to_s, update, value?, values,
 # values_at
 
-context "Hash class method" do
-  specify "[] should create a new Hash" do
+context 'Creating a Hash' do
+  specify 'Hash[] is a shorthand for creating a Hash, values can be provided as  key => value, .. OR key, value, ...' do
     example do
-      Hash[:a => 1].class
-    end.should == Hash
+    [Hash[:a => 1, :b => 2], Hash[:a, 1, :b, 2]]
+    end.should == [{:a => 1, :b => 2}, {:a => 1, :b => 2}]
   end
-  
+ 
+  specify 'Using the parameter list format for Hash[], an even number of arguments must be provided' do
+    example do
+      begin 
+        Hash[1, 2, 3] 
+      rescue ArgumentError
+        :failed
+      end
+    end.should == :failed
+  end
+ 
+  specify 'The two argument styles to Hash[] cannot be mixed' do
+    example do
+      begin 
+        eval 'Hash[1, 2, 3 => 4]' 
+      rescue SyntaxError
+        :failed
+      end
+    end.should == :failed
+  end
+end
+
+context "Hash class method" do
   specify "new with object creates a new Hash with default object" do
     example do
       Hash.new(5)[:a]
