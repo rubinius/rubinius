@@ -4,4 +4,10 @@ class Bignum < Integer
   end
   
   alias :modulo :%
+  
+  def quo(other)
+    Float(self) / Float(other)
+  end
+  
+  alias :div :/
 end
