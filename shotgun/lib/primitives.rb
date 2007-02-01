@@ -1781,6 +1781,7 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, FLOAT)
     POP(t1, FLOAT)
+    GUARD( FLOAT_TO_DOUBLE(t1) != 0.0 ) // no divide by zero
 
     stack_push(float_divmod(state, self, t1));
     CODE

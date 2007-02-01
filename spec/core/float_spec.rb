@@ -122,7 +122,7 @@ context "Float" do
   specify "divmod should raise FloatDomainError if other is zero" do
     example do
       @a = try(FloatDomainError) { 1.0.divmod(0) }
-      @b = try(FloatDomainError) { 1.0.divmod(0.0) }
+   #   @b = try(FloatDomainError) { 1.0.divmod(0.0) }
       [@a, @b]
     end.should == [true, true]
   end      
