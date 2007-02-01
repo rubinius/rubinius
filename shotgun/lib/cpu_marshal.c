@@ -205,7 +205,7 @@ static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
   while(*s) {
     append_c(*s++);
   }
-  append_c(0);
+  append_c(0);                  /* zero byte */
 }
 
 static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
@@ -213,6 +213,7 @@ static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
   sz = read_int(str + 1);
   ms->consumed += 5;
   ms->consumed += sz;
+  ms->consumed++;               /* zero byte */
   return bignum_from_string(state, str + 5, 10);
 }
 
@@ -230,7 +231,7 @@ static void marshal_floatpoint(STATE, OBJECT obj, GString *buf) {
   while(*s) {
     append_c(*s++);
   }
-  append_c(0);
+  append_c(0);               /* zero byte */
 }
 
 static OBJECT unmarshal_floatpoint(STATE, char *str, struct marshal_state *ms) {
@@ -238,6 +239,7 @@ static OBJECT unmarshal_floatpoint(STATE, char *str, struct marshal_state *ms) {
   sz = read_int(str + 1);
   ms->consumed += 5;
   ms->consumed += sz;
+  ms->consumed++;               /* zero byte */
   return float_from_string(state, str + 5);
 }
 
@@ -330,7 +332,7 @@ static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
       o = Qfalse;
       break;
     default:
-      printf("Unknown type '%c'!\n", tag);
+      printf("Unknown marshal type '0x%x' at %d!\n", tag, ms->consumed);
       abort();
   }
   return o;
@@ -480,3 +482,4 @@ OBJECT cpu_unmarshal_file(STATE, char *path) {
   g_ptr_array_free(ms.objects, 1);
   return obj;
 }
+

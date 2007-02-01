@@ -45,7 +45,7 @@ struct rubinius_object {
 #define NTH_FIELD_DIRECT(obj, fel) (*(OBJECT*)(OBJECTS(obj) + HEADER_SIZE + fel))
 
 #define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
-#define FIXNUM_NEG(obj) ((((unsigned long)obj) & 4) == 4)
+#define FIXNUM_NEG(obj) (((int)(obj)) < 0)
 
 #ifndef INTERNAL_MACROS
 
@@ -123,24 +123,21 @@ char *rbs_inspect(STATE, OBJECT obj);
 
 #ifndef INTERNAL_MACROS
 static inline long rbs_to_int(OBJECT obj) {
-  long val = ((unsigned long)obj) >> 3;
-  if(FIXNUM_NEG(obj)) { 
-    val = -val;
-  }
+  int val = ((int)obj) >> 2;
   return val;
 }
 
-static inline OBJECT rbs_int_to_fixnum(int num) {
+static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   OBJECT ret;
-  int ab;
-  ab = abs(num);
-  ret = (ab << 3) | 1;
-
-  if(num < 0) {
-    ret = ret | 4;
+  ret = (num << 2) | 1;
+  
+  /* Number is too big for fixnum. Use bignum. */
+  if(rbs_to_int(ret) != num) {
+    return bignum_new(state, num);
   }
   return ret;
 }
+
 
 #define FIXNUM_TO_INT(obj) rbs_to_int(obj)
 #define INT_TO_FIXNUM(int) rbs_int_to_fixnum(int)
