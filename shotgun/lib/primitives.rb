@@ -227,117 +227,99 @@ class ShotgunPrimitives
     CODE
   end
   
+  # FIXME: this is really messy can someone who knows this better refactor it
   def create_block
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
+    self = stack_pop(); // Again no type assertions can be made (or can they!?)
+    POP(t1, FIXNUM)
+    POP(t2, FIXNUM)
+
     t3 =   Qnil;
+    if( !RISA(self, methctx) && RISA(self, blokctx) )
+      t3 = blokenv_get_home(blokctx_get_env(self));
+    else
+      t3 = self;
     
-    if(!FIXNUM_P(t1) || !FIXNUM_P(t2)) {
+    // GUARD(t3 == Qnil) would like to use this...
+    if(t3 == Qnil) {
+      // can this be put somewhere else?
+      printf("Create block failed, %s!!\\n", _inspect(self));
       _ret = FALSE;
     } else {
-      if(!RISA(self, methctx)) {
-        if(RISA(self, blokctx)) {
-          t3 = blokenv_get_home(blokctx_get_env(self));
-        }
-      } else {
-        t3 = self;
-      }
-      
-      if(t3 == Qnil) {
-        printf("Create block failed, %s!!\\n", _inspect(self));
-        _ret = FALSE;
-      } else {
-        methctx_set_ip(self, I2N(c->ip));
-        j = FIXNUM_TO_INT(methctx_get_ip(self)) + 5;
-        t2 = blokenv_s_under_context(state, t3, j, t1, t2);
-        stack_push(t2);
-      }
+      methctx_set_ip(self, I2N(c->ip));
+      j = FIXNUM_TO_INT(methctx_get_ip(self)) + 5;
+      t2 = blokenv_s_under_context(state, t3, j, t1, t2);
+      stack_push(t2);
     }
     CODE
   end
   
   def block_given
     <<-CODE
-    if(RTEST(c->block)) {
+    if( RTEST(c->block) )
       stack_push(Qtrue);
-    } else {
+    else
       stack_push(Qfalse);
-    }
     CODE
   end
   
   def block_call
     <<-CODE
-    self = stack_pop();
-    if(!RISA(self, blokenv)) {
-      _ret = FALSE;
-    } else {
-      t2 = blokenv_create_context(state, self);
-      blokctx_set_sender(t2, c->active_context);
-      blokctx_set_sp(t2, I2N(c->sp));
-      cpu_activate_context(state, c, t2, blokenv_get_home(self));
-    }
+    self = stack_pop(); GUARD( RISA(self, blokenv) )
+
+    t2 = blokenv_create_context(state, self);
+    blokctx_set_sender(t2, c->active_context);
+    blokctx_set_sp(t2, I2N(c->sp));
+    cpu_activate_context(state, c, t2, blokenv_get_home(self));
     CODE
   end
   
   def io_write
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    if(!RISA(self, io) || !STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      j = FIXNUM_TO_INT(io_get_descriptor(self));
-      buf = string_byte_address(state, t1);
-      k = FIXNUM_TO_INT(string_get_bytes(t1));
-      k = write(j, buf, k);
-      t2 = I2N(k);
-      if(k != FIXNUM_TO_INT(t2)) {
-        t2 = bignum_new(state, k);
-      }
-      stack_push(t2);
+    self = stack_pop(); GUARD( RISA(self, io) )
+    POP(t1, STRING)
+
+    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    buf = string_byte_address(state, t1);
+    k = FIXNUM_TO_INT(string_get_bytes(t1));
+    k = write(j, buf, k);
+    t2 = I2N(k);
+    if(k != FIXNUM_TO_INT(t2)) {
+      t2 = bignum_new(state, k);
     }
+    stack_push(t2);
     CODE
   end
   
   def io_read
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    if(!RISA(self, io) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
-      j = FIXNUM_TO_INT(io_get_descriptor(self));
-      k = read(j, string_byte_address(state, t2), FIXNUM_TO_INT(t1));
-      if(k != FIXNUM_TO_INT(t1)) {
-        t3 = string_new2(state, NULL, k);
-        memcpy(string_byte_address(state, t3), string_byte_address(state, t2), k);
-        t2 = t3;
-      }
-      stack_push(t2);
+    self = stack_pop(); GUARD( RISA(self, io) )
+    POP(t1, FIXNUM)
+
+    t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
+    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    k = read(j, string_byte_address(state, t2), FIXNUM_TO_INT(t1));
+    if(k != FIXNUM_TO_INT(t1)) {
+      t3 = string_new2(state, NULL, k);
+      memcpy(string_byte_address(state, t3), string_byte_address(state, t2), k);
+      t2 = t3;
     }
+    stack_push(t2);
     CODE
   end
   
   def create_pipe
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
+    self = stack_pop(); //FIXME: what guard?
+    t1 = stack_pop(); GUARD( RISA(t1, io) )
+    t2 = stack_pop(); GUARD( RISA(t2, io) )
     
-    if(!RISA(t1, io) || !RISA(t2, io)) {
-      _ret = FALSE;
-    } else {
-      j = pipe(fds);
-      if(!j) {
-        SET_FIELD(t1, 0, I2N(fds[0]));
-        SET_FIELD(t2, 0, I2N(fds[1]));
-      }
-      stack_push(I2N(j));
+    j = pipe(fds);
+    if(!j) {
+      SET_FIELD(t1, 0, I2N(fds[0]));
+      SET_FIELD(t2, 0, I2N(fds[1]));
     }
+    stack_push(I2N(j));
     CODE
   end
   
