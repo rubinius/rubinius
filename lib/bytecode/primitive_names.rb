@@ -112,7 +112,8 @@ module Bytecode
       :float_round,
       :find_method,
       :bignum_left_shift,
-      :bignum_right_shift
+      :bignum_right_shift,
+      :bignum_divmod
     ]
 
     FirstRuntimePrimitive = 1024

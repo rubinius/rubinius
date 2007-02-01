@@ -81,5 +81,10 @@ class Bignum < Integer
     Ruby.primitive :bignum_compare
     super(other)
   end
+  
+  def divmod(other)
+    Ruby.primitive :bignum_divmod
+    super(other)
+  end
 end
 

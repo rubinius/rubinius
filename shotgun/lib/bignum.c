@@ -7,6 +7,10 @@
 #define NMP mp_int *n; OBJECT n_obj; \
   NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \
   mp_init(n)
+#define MMP mp_int *m; OBJECT m_obj; \
+  NEW_STRUCT(m_obj, m, BASIC_CLASS(bignum), mp_int); \
+  mp_init(m)
+
 
 #define MP(k) DATA_STRUCT(k, mp_int*)
 #define BDIGIT_DBL long long
@@ -112,6 +116,18 @@ OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
   
   mp_div(MP(a), MP(b), n, NULL);
   return bignum_normalize(state, n_obj);
+}
+
+OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
+  NMP;
+  MMP;
+  OBJECT ary;
+  
+  mp_div(MP(a), MP(b), n, m);
+  ary = array_new(state, 2);
+  array_set(state, ary, 0, n_obj);
+  array_set(state, ary, 1, m_obj);
+  return ary;
 }
 
 #define BITWISE_OP_AND 1

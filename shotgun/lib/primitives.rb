@@ -1969,6 +1969,18 @@ class ShotgunPrimitives
     stack_push(t3);
     CODE
   end
+  
+  def bignum_divmod
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    if(BIGNUM_P(self) && BIGNUM_P(t1)) {
+      stack_push(bignum_divmod(state, self, t1));
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
 
 end
 

@@ -24,4 +24,6 @@ double bignum_to_double(STATE, OBJECT self);
 OBJECT bignum_from_double(STATE, double d);
 OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits);
 OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits);
+OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b);
+
 #endif
