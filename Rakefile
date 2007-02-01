@@ -53,7 +53,7 @@ namespace :spec do
   end
 
   desc "Run only specs but not any tests."
-  spec_targets = %w(language shotgun library core targets compatibility)
+  spec_targets = %w(language shotgun library core targets)
 
   # Convenience method to run a single spec test
   spec_targets.each do |group|
