@@ -63,11 +63,7 @@ class ShotgunPrimitives
     self = stack_pop();
     t1 = stack_pop();
 
-<<<<<<< .mine
     GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
-=======
-    GUARD ( INTEGER_P(t1) ) {
->>>>>>> .r614
       stack_push(bignum_add(state, self, t1));
     }
     CODE
