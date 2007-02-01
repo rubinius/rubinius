@@ -1,5 +1,10 @@
 class Numeric
   include Comparable
+
+  def ==(other)
+    b, a = self.coerce(other)
+    a == b
+  end
   
   def +(other)
     b, a = self.coerce(other)

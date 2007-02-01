@@ -30,9 +30,9 @@ class Float < Numeric
     super(other)
   end
   
-  def ==(other)
+  def ==(o)
     Ruby.primitive :float_equal
-    false
+    super(o)
   end
 
   def eql?(other)

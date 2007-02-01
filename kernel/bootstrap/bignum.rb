@@ -56,7 +56,7 @@ class Bignum < Integer
 
   def ==(o)
     Ruby.primitive :bignum_equal
-    super(0)
+    super(o)
   end
 
   def <<(s)
