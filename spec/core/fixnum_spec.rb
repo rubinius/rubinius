@@ -101,6 +101,22 @@ context "Fixnum instance method" do
       [2 / 2, 3 / 2]
     end.should == [1, 1]
   end
+  
+  specify "/ should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      begin
+        1 / 0
+      rescue ZeroDivisionError
+        @a = true
+      end
+    end.should == true
+  end
+  
+  specify "/ should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      [1 / 0.0, -1 / 0.0].inspect
+    end.should == '[Infinity, -Infinity]'
+  end
 
   specify "/ should coerce fixnum and return self divided by other" do
     example do

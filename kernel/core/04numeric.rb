@@ -23,11 +23,8 @@ class Numeric
   
   def /(other)
     b, a = self.coerce(other)
-    if b == 0
-      raise "Divide by zero (from Numeric#/)"
-    else
-      a / b
-    end
+    raise "Divide by 0" unless Float === b or b != 0
+    a / b
   end
   
   def **(other)
@@ -37,11 +34,8 @@ class Numeric
   
   def %(other)
     b, a = self.coerce(other)
-    if b == 0
-      raise "Divide by zero (from Numeric#%)"
-    else
-      a % b
-    end
+    raise "Divide by 0" unless Float === b or b != 0
+    a % b
   end
   
   def &(other)
@@ -89,11 +83,8 @@ class Numeric
   
   def divmod(other)
     b, a = self.coerce(other)
-    if b == 0
-      raise "Divide by zero (from Numeric#divmod)"
-    else
-      a.divmod(b)
-    end
+    raise "Divide by 0" unless Float === b or b != 0
+    a.divmod(b)
   end
   
   def ==(other)

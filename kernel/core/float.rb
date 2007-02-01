@@ -79,11 +79,12 @@ class Float < Numeric
 
   def divmod(other)
     Ruby.primitive :float_divmod
+    raise ZeroDivisionError, "divide by 0" if other == 0
     super(other)
   end
   
   def %(other)
-    self.divmod(other)[1]
+    self.divmod(Float(other))[1]
   end
   
   alias :modulo :%
