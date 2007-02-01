@@ -91,8 +91,8 @@ context "Float" do
   
   specify "ceil should return the smallest Integer greater than or equal to self" do
     example do
-      [-0.0.ceil, -1.0.ceil, 3.14159.ceil]
-    end.should == [0, -1, 4]
+      [-1.2.ceil, -1.0.ceil, 0.0.ceil, 1.3.ceil, 3.0.ceil]
+    end.should == [-1, -1, 0, 2, 3]
   end
   
   specify "coerce should [other, self] both as Floats" do
@@ -121,8 +121,8 @@ context "Float" do
   
   specify "floor should return the largest Integer less than or equal to self" do
     example do
-      [-1.0.floor, 0.2.floor, 5.9.floor]
-    end.should == [-1, 0, 5]
+      [-1.2.floor, -1.0.floor, 0.0.floor, 1.0.floor, 5.9.floor]
+    end.should == [-2, -1, 0, 1, 5]
   end
   
   specify "hash should be provided" do

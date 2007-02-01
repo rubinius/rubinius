@@ -30,6 +30,11 @@ class Float < Numeric
     Ruby.primitive :float_equal
     super(other)
   end
+
+  def eql?(other)
+    Ruby.primitive :float_equal
+    false
+  end
   
   def <=>(other)
     Ruby.primitive :float_compare
@@ -82,10 +87,6 @@ class Float < Numeric
   def zero?
     # FIXME: can't handle float literals in rcompile
     self == '0.0'.to_f
-  end
-  
-  def floor
-    Ruby.primitive :float_floor
   end
   
   def round

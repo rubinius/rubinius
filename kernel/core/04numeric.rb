@@ -37,15 +37,20 @@ class Numeric
   end
 
   def floor
-    Float(self).floor
+    int = self.to_i
+    if self == int or self > 0
+      int
+    else
+      int - 1
+    end
   end
 
   def ceil
     int = self.to_i
-    if self < 0 or self == int
+    if self == int or self < 0
       int
     else
-      self.to_i + 1
+      int + 1
     end
   end
 
@@ -79,10 +84,6 @@ class Numeric
   def coerce(other)
     Ruby.primitive :numeric_coerce
     self.class == other.class ? [other, self] : [Float(other), Float(self)]
-  end
-  
-  def eql?(other)
-    self.class == other.class ? self == other : false
   end
 end
 
