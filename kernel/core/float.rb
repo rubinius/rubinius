@@ -1,5 +1,9 @@
 class Float < Numeric
-  
+  def self.induced_from(o)
+    return o.to_f if o.respond_to?(:to_f)
+    raise TypeError, "can't convert #{o.class} into Float"
+  end
+
   def to_s
     Ruby.primitive :float_to_s
   end

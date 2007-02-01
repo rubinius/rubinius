@@ -1,5 +1,4 @@
 class Fixnum < Integer
-
   def %(o)
     Ruby.primitive :fixnum_modulo
     super(o)
