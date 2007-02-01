@@ -162,7 +162,13 @@ context "Float" do
       [6543.21.modulo(137), 5667.19.modulo(0xffffffff), 6543.21.modulo(137.24)].inspect
     end.should == '[104.21, 5667.19, 92.9299999999996]'
   end
-  
+
+  specify "modulo should NOT raise ZeroDivisionError if other is zero" do
+    example do
+      [1.0 % 0, 1.0 % 0.0].inspect
+    end.should == '[NaN, NaN]'
+  end
+
   specify "nan? should return true if self is not a valid IEEE floating-point number" do
     example do
       [0.0.nan?, -1.5.nan?, (0.0/0.0).nan?]

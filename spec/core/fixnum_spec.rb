@@ -17,7 +17,19 @@ context "Fixnum instance method" do
       [(93 % 3.2).to_s, 120 % -4.5]
     end.should == ["0.199999999999995", -1.5]
   end
-
+  
+  specify "% should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      try(ZeroDivisionError) { 1 % 0 }
+    end.should == true
+  end
+  
+  specify "% should NOT raise ZeroDivisionError if other is zero and is a Float" do
+    example do
+      (1 % 0.0).to_s
+    end.should == 'NaN'
+  end
+  
   specify "& should return self bitwise AND other" do
     example do
       [2010 & 5, 65535 & 1]
@@ -104,11 +116,7 @@ context "Fixnum instance method" do
   
   specify "/ should raise ZeroDivisionError if other is zero and not a Float" do
     example do
-      begin
-        1 / 0
-      rescue ZeroDivisionError
-        @a = true
-      end
+      try(ZeroDivisionError) { 1 / 0 }
     end.should == true
   end
   
@@ -261,6 +269,18 @@ context "Fixnum instance method" do
       [-1.div(50.4), 1.div(0xffffffff)]
     end.should == [-1, 0]
   end
+  
+  specify "div should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      try(ZeroDivisionError) { 1.div(0) }
+    end.should == true
+  end
+  
+  specify "div should raise FloatDomainError if other is zero and is a Float" do
+    example do
+      try(FloatDomainError) { 1.div(0.0) }
+    end
+  end
 
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
     example do
@@ -272,6 +292,18 @@ context "Fixnum instance method" do
     example do
       [1.divmod(2.0), 200.divmod(0xffffffff)]
     end.should == [[0, 1.0], [0, 200]]
+  end
+  
+  specify "divmod should raise ZeroDivisionError if other is zero and not a Float" do
+    example do
+      try(ZeroDivisionError) { 1.divmod(0) }
+    end.should == true
+  end
+  
+  specify "divmod should raise FloatDomainError if other is zero and is a Float" do
+    example do
+      try(FloatDomainError) { 1.divmod(0.0) }
+    end
   end
 
   specify "id2name should return the string name of the object whose symbol ID is self" do
