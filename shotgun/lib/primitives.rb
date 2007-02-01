@@ -49,163 +49,130 @@ class ShotgunPrimitives
   
   def add
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
 
-    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-      stack_push(fixnum_add(state, self, t1));
-    }
+    stack_push(fixnum_add(state, self, t1));
     CODE
   end
   
   def bignum_add
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, BIGNUM)
+    POP(t1, INTEGER)
 
-    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
-      stack_push(bignum_add(state, self, t1));
-    }
+    stack_push(bignum_add(state, self, t1));
     CODE
   end
   
   def sub
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
 
-    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-      stack_push(fixnum_sub(state, self, t1));
-    }
+    stack_push(fixnum_sub(state, self, t1));
     CODE
   end
   
   def bignum_sub
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, BIGNUM)
+    POP(t1, INTEGER)
 
-    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
-      stack_push(bignum_sub(state, self, t1));
-    }
+    stack_push(bignum_sub(state, self, t1));
     CODE
   end
   
   def fixnum_mul
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
 
-    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-      stack_push(fixnum_mul(state, self, t1));
-    }
+    stack_push(fixnum_mul(state, self, t1));
     CODE
   end
   
   def fixnum_size
     <<-CODE
-    self = stack_pop();
+    POP(self, FIXNUM)
 
-    GUARD( FIXNUM_P(self) ) {
-      stack_push(I2N(sizeof(int)));
-    }
+    stack_push(I2N(sizeof(int)));
     CODE
   end
 
   def bignum_mul
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, BIGNUM)
+    POP(t1, INTEGER)
 
-    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
-      stack_push(bignum_mul(state, self, t1));
-    }
+    stack_push(bignum_mul(state, self, t1));
     CODE
   end
   
   def fixnum_div
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
 
-    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-      stack_push(fixnum_div(state, self, t1));
-    }
+    stack_push(fixnum_div(state, self, t1));
     CODE
   end
   
   def bignum_div
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, BIGNUM)
+    POP(t1, INTEGER)
 
-    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
-      stack_push(bignum_div(state, self, t1));
-    }
+    stack_push(bignum_div(state, self, t1));
     CODE
   end
   
   def equal
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
+    j = FIXNUM_TO_INT(self);
+    k = FIXNUM_TO_INT(t1);
 
-    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-
-      if(j == k) {
-        stack_push(Qtrue); 
-      } else {
-        stack_push(Qfalse);
-      }
-    }
+    if(j == k)
+      stack_push(Qtrue); 
+    else
+      stack_push(Qfalse);
     CODE
   end
   
   def bignum_equal
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, BIGNUM)
+    POP(t1, INTEGER)
 
-    GUARD( BIGNUM_P(self) && INTEGER_P(t1) ) {
-      stack_push(bignum_equal(state, self, t1));
-    }
+    stack_push(bignum_equal(state, self, t1));
     CODE
   end
   
   def compare
     <<-CODE
-    self = stack_pop();
-    t1   = stack_pop();
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
+    j = FIXNUM_TO_INT(self);
+    k = FIXNUM_TO_INT(t1);
 
-    GUARD( FIXNUM_P(self) && FIXNUM_P(t1) ) {
-      j = FIXNUM_TO_INT(self);
-      k = FIXNUM_TO_INT(t1);
-
-      if (j < k)
-        stack_push(I2N(-1));
-      else if (j > k)
-        stack_push(I2N(1));
-      else
-        stack_push(I2N(0));
-    }
+    if (j < k)
+      stack_push(I2N(-1));
+    else if (j > k)
+      stack_push(I2N(1));
+    else
+      stack_push(I2N(0));
     CODE
   end
   
   def at
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
+    self = stack_pop(); GUARD( INDEXED(self) )
+    t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
+    j = FIXNUM_TO_INT(t1); GUARD( j < NUM_FIELDS(self) )
 
-    GUARD( INDEXED(self) && FIXNUM_P(t1) ) {
-      j = FIXNUM_TO_INT(t1);
-      if(j >= NUM_FIELDS(self)) {
-        _ret = FALSE;
-      } else {
-        stack_push(NTH_FIELD(self, j));
-      }
-    }
+    stack_push(NTH_FIELD(self, j));
     CODE
   end
   

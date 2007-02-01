@@ -110,8 +110,12 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 #define I2N(i) INT_TO_FIXNUM(i)
 #define UI2N(i) rbs_uint_to_fixnum(state, i)
 #define FLOAT_TO_DOUBLE(k) (*DATA_STRUCT(k, double*))
-#define GUARD_PRIMITIVE(predicate_expression) if( ! (predicate_expression) ) _ret = FALSE; else
-#define GUARD(exp) GUARD_PRIMITIVE(exp)
+
+// for primitive protection
+#define GUARD(predicate_expression) if( ! (predicate_expression) ) { _ret = FALSE; break; }
+// popping with type checking -- a predicate function must be specified
+// i.e. if type is STRING then STRING_P must be specified
+#define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
 
 extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
