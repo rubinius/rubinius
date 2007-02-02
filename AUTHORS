@@ -3,9 +3,6 @@ Evan Phoenix <evan@fallingsnow.net>
 - Mastermind
 - VM Creator
 
-
-Fill in the blanks people
-
 Wilson Bilkovich <wilsonb@gmail.com>
 - 'defiler' on irc
 - Compiler Admiral
@@ -15,15 +12,14 @@ Brian Ford <brixen@gmail.com>
 - 'brixen' on irc
 - writes lots of specs
 
-.
-.
-
 Matthew Elder <sseses@gmail.com>
 - 'mae' on irc
 - progress verification (classes/methods) bin/compare.rb
 - wants to improve specs when rubinius is more mature
+- primitives.rb cleanup with GUARD and POP macros
 
 Frédérick Ros <sl33p3r@free.fr>
 - '_sleeper_' on irc
 - architecture agnostic compiled files fan
 - C warnings hunter
+
