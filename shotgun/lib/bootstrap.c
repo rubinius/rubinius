@@ -39,10 +39,7 @@ void cpu_bootstrap_exceptions(STATE) {
 
   OBJECT ern = dexc(Errno, sce);
 
-  /*
-   * This is broken: The rbs_class_new should happen not in the namespace of BASIC_CLASS(object), but in Errno
-   */
-#define set_syserr(num, name) rbs_const_set(state, rbs_class_new1(state, name, sz, ern, ern), "Errno", I2N(num));
+#define set_syserr(num, name) rbs_const_set(state, rbs_class_new_with_namespace(state, name, sz, ern, ern), "Errno", I2N(num));
 
 /*
  * Stolen from MRI

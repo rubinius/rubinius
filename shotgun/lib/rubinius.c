@@ -25,10 +25,10 @@ OBJECT rbs_const_get(STATE, OBJECT module, char *name) {
 }
 
 OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT sup) {
-  return class_new(state, name, fields, sup);
+    return class_new(state, name, fields, sup, BASIC_CLASS(object));
 }
-OBJECT rbs_class_new1(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
-  return class_new1(state, name, fields, sup, ns);
+OBJECT rbs_class_new_with_namespace(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
+  return class_new(state, name, fields, sup, ns);
 }
 
 OBJECT rbs_symbol_to_string(STATE, OBJECT sym) {
@@ -73,7 +73,7 @@ char *rbs_inspect(STATE, OBJECT obj) {
   return buf;
 }
 
-char *rbs_inspect1(STATE, OBJECT obj) {
+char *rbs_inspect_verbose(STATE, OBJECT obj) {
   OBJECT kls;
   static char buf[1024];
   

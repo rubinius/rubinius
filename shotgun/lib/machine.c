@@ -37,13 +37,13 @@ static int _recursive_reporting = 0;
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
-void machine_print_callstack1(machine m, int maxlev);
+void machine_print_callstack_limited(machine m, int maxlev);
 
 void machine_print_callstack(machine m) {
-    machine_print_callstack1(m, -1);
+    machine_print_callstack_limited(m, -1);
 }
 
-void machine_print_callstack1(machine m, int maxlev) {
+void machine_print_callstack_limited(machine m, int maxlev) {
   OBJECT context;
   char *modname;
   char *methname;
@@ -96,7 +96,7 @@ void machine_print_stack(machine m) {
     } else {
       printf("%4d    ", i);
     }
-    printf("%s\n", rbs_inspect1(m->s, NTH_FIELD(m->c->stack, i)));
+    printf("%s\n", rbs_inspect_verbose(m->s, NTH_FIELD(m->c->stack, i)));
   }
   
 }
@@ -554,7 +554,7 @@ char *_inspect(OBJECT obj) {
   if(SYMBOL_P(obj)) {
     return rbs_symbol_to_cstring(current_machine->s, obj);
   }
-  return rbs_inspect1(current_machine->s, obj);
+  return rbs_inspect_verbose(current_machine->s, obj);
 }
 
 /*
