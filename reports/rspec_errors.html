@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Make RSpec work on Rubinius Report</h1>
-    <div>Generated on Fri Feb 02 02:55:51 -0800 2007.</div>
+    <div>Generated on Fri Feb 02 03:24:12 -0800 2007.</div>
 
     <h2>Overview</h2>
 
@@ -30,156 +30,76 @@
       </tr>
       
       <tr>
-        <td>lib/spec/rake/spectask.rb</td>
-        <td>An exception has occured:
-    Unknown type 'ihash', [[:lit, :clobber], [:array, [:lvar, :clobber_task, 9]]] (RuntimeError)
+        <td>spec/rake/spectask</td>
+        <td>
+An error has occured: Segmentation fault (SIGSEGV)
 
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1300
-                       BlockEnvironment#call at bootstrap/context.rb:94
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1300
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1478
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_if at bytecode/compiler.rb:348
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1478
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:383
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1175
-                       BlockEnvironment#call at bootstrap/context.rb:96
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1175
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1478
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:383
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:760
-                       BlockEnvironment#call at bootstrap/context.rb:96
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:760
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1478
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:383
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
-                       BlockEnvironment#call at bootstrap/context.rb:96
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1478
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:383
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
-                       BlockEnvironment#call at bootstrap/context.rb:96
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1478
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                             main.__script__ at core/__loader.rb:58
+C backtrace:
+ 0x804c771 &lt;symtbl_lookup_cstr&gt; at /home/mae/projects/rubinius/shotgun/lib/symbol.c:37
+ 0x8076a90 &lt;cstring_to_symbol&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:162
+ 0x8076b00 &lt;quark_to_symbol&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:177
+ 0x807810e &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:638
+ 0x807893a &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x80777ad &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
+ 0x8078225 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
+ 0x807893a &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x80777ad &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
+ 0x8078225 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
+ 0x807893a &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x80777ad &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
+ 0x8078225 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
+ 0x807893a &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x806e4f0 &lt;convert_to_sexp&gt; at /home/mae/projects/rubinius/shotgun/lib/grammar.y:2764
+ 0x806e6c8 &lt;syd_compile_file&gt; at /home/mae/projects/rubinius/shotgun/lib/grammar.y:2836
+ 0x805f725 &lt;cpu_perform_system_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/system_primitives.gen:707
+ 0x8064ed0 &lt;cpu_perform_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_primitives.c:76
+ 0x8053a2b &lt;cpu_try_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:216
+ 0x8056bc4 &lt;_cpu_build_and_activate&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:271
+ 0x8056a48 &lt;cpu_unified_send&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:323
+ 0x805894c &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:268
+ 0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
+ 0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
+ 0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
+0xb7d398c8 &lt;??&gt; at ??:0
+ 0x8049ffd &lt;_start&gt; at ??:0
+0xff0a0000 &lt;??&gt; at ??:0
+
+Ruby backtrace:
+0xb7c05430 Class#compile_file+31 in core/compile.rb
+0xb7c05548 Kernel#load+573 in core/compile.rb
+Skipping Block Context
+0xb7c057b4 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c058b0 Array#each+72 in bootstrap/array.rb
+Skipping Block Context
+0xb7c05ac4 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c05cdc Array#each+72 in bootstrap/array.rb
+0xb7c0591c Kernel#require+479 in core/compile.rb
+0xb7c05a44 Class#__eval_script__+52 in (eval)
+0xb7c05b5c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb7a0751c Class#execute+59 in core/compile.rb
+0xb7b0100c Class#__script__+412 in core/__loader.rb
+
+Ruby stack:
+  86    &lt;String:0xb7c056e4&gt;/home/mae/projects/r...pec/rake/spectask.rb
+  87    &lt;NilClass:0x4&gt;
+  88    &lt;Array:0xb7ae0408&gt;
+  89    &lt;String:0xb7c05820&gt;/home/mae/projects/r...ec/rake/spectask.rbc
+  90    &lt;NilClass:0x4&gt;
+  91 =&gt; &lt;FalseClass:(nil)&gt;
+  92    &lt;TrueClass:0x2&gt;
+  93    &lt;String:0xb7c056e4&gt;/home/mae/projects/r...pec/rake/spectask.rb
+  94    File
+  95    &lt;String:0xb7ae04a8&gt;runtime/compiler.rba
+
+VM Registers:
+IP: 0051     SP: 0091
+AC: 0001     AR: 0000
+Exception: &lt;NilClass:0x4&gt;
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/rake/verify_rcov.rb</td>
+        <td>spec/rake/verify_rcov</td>
         <td>An exception has occured:
     Unknown type 'nth_ref', [1] (RuntimeError)
 
@@ -340,12 +260,22 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/diff.rb</td>
+        <td>spec/expectations/diff</td>
         <td>WARNING: 'define?' does not yet handle class variables.
 An exception has occured:
     Unknown type 'cvdecl', [:@@differ, [:nil]] (RuntimeError)
@@ -477,12 +407,22 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/differs/default.rb</td>
+        <td>spec/expectations/differs/default</td>
         <td>An exception has occured:
     No method 'first' on an instance of Fixnum. (NoMethodError)
 
@@ -637,28 +577,87 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should.rb</td>
+        <td>spec/expectations/should</td>
         <td>An exception has occured:
-    Unable to find 'spec/expectations/should/base' to load (LoadError)
+    Unknown set argument '~' (RuntimeError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/should.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/expectations/should/base.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/expectations/should/base.rb in runtime/compiler.rba (No such file/-1)
+                   Bytecode::Assembler#raise at bootstrap/04kernel.rb:20
+               Bytecode::Assembler#parse_set at bytecode/assembler.rb:391
+         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:408
+              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+                        Compile.compile_file at core/compile.rb:8
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/should.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/change.rb</td>
+        <td>spec/expectations/should/change</td>
         <td>An exception has occured:
     No method 'private' on an instance of Class. (NoMethodError)
 
@@ -669,20 +668,30 @@ Backtrace:
                Expectations.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:3
                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:2
                             main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:1
-                                  main.load at core/compile.rb:56
+                                  main.load at core/compile.rb:43
+                               main.require at core/compile.rb:87
+                      BlockEnvironment#call at bootstrap/context.rb:94
+                                 Array#each at bootstrap/array.rb:24
+                               main.require at core/compile.rb:87
+                      BlockEnvironment#call at bootstrap/context.rb:94
+                                 Array#each at bootstrap/array.rb:24
+                               main.require at core/compile.rb:87
+                       main.__eval_script__ at (eval):1
+                    CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                            Compile.execute at core/compile.rb:22
                             main.__script__ at core/__loader.rb:58
 Couldn't find constant Base.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/should.rb</td>
+        <td>spec/expectations/should/should</td>
         <td>Couldn't find constant Base.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/have.rb</td>
+        <td>spec/expectations/should/have</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -723,18 +732,28 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/not.rb</td>
+        <td>spec/expectations/should/not</td>
         <td>Couldn't find constant Base.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/base.rb</td>
+        <td>spec/expectations/should/base</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -775,12 +794,22 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/extensions/numeric.rb</td>
+        <td>spec/expectations/extensions/numeric</td>
         <td>An exception has occured:
     No method 'private' on an instance of Module. (NoMethodError)
 
@@ -790,76 +819,146 @@ Backtrace:
                 Expectations.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:3
                         Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:2
                              main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:1
-                                   main.load at core/compile.rb:56
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/extensions/object.rb</td>
+        <td>spec/expectations/extensions/object</td>
         <td>rubinius: instructions.gen:48: cpu_run: Assertion `({ unsigned long _i = (unsigned long)t2; _i &gt; 10 &amp;&amp; ((_i &amp; 1L) == 0L); })' failed.
 Couldn't find constant UnderscoreSugar.
 
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7de6eef &lt;??&gt; at ??:0
-0xb7ddedb7 &lt;??&gt; at ??:0
+0xb7d0deef &lt;??&gt; at ??:0
+0xb7d05db7 &lt;??&gt; at ??:0
  0x8057192 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7dd18c8 &lt;??&gt; at ??:0
+0xb7cf88c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
-       0x4 &lt;??&gt; at ??:0
+ 0x807af33 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
 
 Ruby backtrace:
-0xb7d32978 Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7d3290c IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7d32840 Class#new+62 in bootstrap/class.rb
-0xb7d327d0 Module#include+34 in bootstrap/02module.rb
-0xb7d32168 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7d3052c Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7d25640 Kernel#load+635 in core/compile.rb
-0xb7d2287c Class#__script__+668 in core/__loader.rb
+0xb7bba328 Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7bba2bc IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7bba1f0 Class#new+62 in bootstrap/class.rb
+0xb7bba180 Module#include+34 in bootstrap/02module.rb
+0xb7bb9b18 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7bb8094 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7babf2c Kernel#load+191 in core/compile.rb
+Skipping Block Context
+0xb7ba7dcc BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7ba7cf4 Array#each+72 in bootstrap/array.rb
+Skipping Block Context
+0xb7ba7b3c BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7ba7a64 Array#each+72 in bootstrap/array.rb
+0xb7ba7264 Kernel#require+479 in core/compile.rb
+0xb7ba6fdc Class#__eval_script__+52 in (eval)
+0xb7ba6e20 CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb79c6530 Class#execute+59 in core/compile.rb
+0xb7ac0008 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  78    &lt;String:0xb7d26120&gt;/home/mae/projects/r...xtensions/object.rbc
-  79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7d26f3c&gt;
-  81    &lt;NilClass:0x4&gt;
-  82    &lt;TrueClass:0x2&gt;
-  83 =&gt; Object
-  84    &lt;NilClass:0x4&gt;
-  85    &lt;Fixnum:0x1&gt;
-  86    &lt;IncludedModule:0xb7d328dc&gt;
-  87    &lt;Fixnum:0x5&gt;
+  87    &lt;Array:0xb7a9f3f4&gt;
+  88    &lt;CompiledMethod:0xb7bac48c&gt;
+  89    &lt;NilClass:0x4&gt;
+  90    &lt;NilClass:0x4&gt;
+  91    &lt;TrueClass:0x2&gt;
+  92 =&gt; Object
+  93    &lt;NilClass:0x4&gt;
+  94    &lt;Fixnum:0x1&gt;
+  95    &lt;IncludedModule:0xb7bba28c&gt;
+  96    &lt;Fixnum:0x5&gt;
 
 VM Registers:
-IP: 0016     SP: 0083
+IP: 0016     SP: 0092
 AC: 0000     AR: 0001
 Exception: &lt;NilClass:0x4&gt;
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/extensions.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/expectations/extensions/object' to load (LoadError)
+        <td>spec/expectations/extensions</td>
+        <td>rubinius: instructions.gen:48: cpu_run: Assertion `({ unsigned long _i = (unsigned long)t2; _i &gt; 10 &amp;&amp; ((_i &amp; 1L) == 0L); })' failed.
+Couldn't find constant UnderscoreSugar.
 
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/extensions.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/expectations/extensions/object.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/expectations/extensions/object.rb in runtime/compiler.rba (No such file/-1)
+An error has occured: Software abort (SIGABRT)
+
+C backtrace:
+0xb7d83eef &lt;??&gt; at ??:0
+0xb7d7bdb7 &lt;??&gt; at ??:0
+ 0x8057192 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
+ 0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
+ 0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
+ 0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
+0xb7d6e8c8 &lt;??&gt; at ??:0
+ 0x8049ffd &lt;_start&gt; at ??:0
+ 0x807af33 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
+
+Ruby backtrace:
+0xb7c35eec Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7c35e80 IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7c35db4 Class#new+62 in bootstrap/class.rb
+0xb7c35d44 Module#include+34 in bootstrap/02module.rb
+0xb7c356dc Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c33c58 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c27af0 Kernel#load+191 in core/compile.rb
+Skipping Block Context
+0xb7c23534 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c2345c Array#each+72 in bootstrap/array.rb
+Skipping Block Context
+0xb7c232a4 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c231cc Array#each+72 in bootstrap/array.rb
+0xb7c229cc Kernel#require+479 in core/compile.rb
+0xb7c22910 Class#__script__+16 in externals/rspec-0.7.5/lib/spec/expectations/extensions.rb
+0xb7c21ed8 Kernel#load+191 in core/compile.rb
+Skipping Block Context
+0xb7c1dd80 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c1dca8 Array#each+72 in bootstrap/array.rb
+Skipping Block Context
+0xb7c1daf0 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c1da18 Array#each+72 in bootstrap/array.rb
+0xb7c1d25c Kernel#require+479 in core/compile.rb
+0xb7c1cfd8 Class#__eval_script__+52 in (eval)
+0xb7c1ce1c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb7a3c530 Class#execute+59 in core/compile.rb
+0xb7b36000 Class#__script__+412 in core/__loader.rb
+
+Ruby stack:
+  99    &lt;Array:0xb7b153f4&gt;
+ 100    &lt;CompiledMethod:0xb7c28050&gt;
+ 101    &lt;NilClass:0x4&gt;
+ 102    &lt;NilClass:0x4&gt;
+ 103    &lt;TrueClass:0x2&gt;
+ 104 =&gt; Object
+ 105    &lt;NilClass:0x4&gt;
+ 106    &lt;Fixnum:0x1&gt;
+ 107    &lt;IncludedModule:0xb7c35e50&gt;
+ 108    &lt;Fixnum:0x5&gt;
+
+VM Registers:
+IP: 0016     SP: 0104
+AC: 0000     AR: 0001
+Exception: &lt;NilClass:0x4&gt;
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/sugar.rb</td>
+        <td>spec/expectations/sugar</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -900,14 +999,24 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/argument_expectation.rb</td>
+        <td>spec/mocks/argument_expectation</td>
         <td>An exception has occured:
-    Unknown type 'cvdecl', [:@@constraint_classes, [:iter, [:call, [:const, :Hash], :new, [:array]], [:masgn, [:array, [:lasgn, :hash, 2], [:lasgn, :key, 3]], nil, nil], [:block, [:newline, 75, &quot;/home/mae/projects/rubinius/bin/reports/../../externals/rspec-0.7.5/lib/spec/mocks/argument_expectation.rb&quot;, [:const, :LiteralArgConstraint]]]]] (RuntimeError)
+    Unknown type 'cvdecl', [:@@constraint_classes, [:iter, [:call, [:const, :Hash], :new, [:array]], [:masgn, [:array, [:lasgn, :hash, 2], [:lasgn, :key, 3]], nil, nil], [:block, [:newline, 75, &quot;/home/mae/projects/rubinius/externals/rspec-0.7.5/lib/spec/mocks/argument_expectation.rb&quot;, [:const, :LiteralArgConstraint]]]]] (RuntimeError)
 
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
@@ -996,13 +1105,23 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 Unknown arg_count 0 encountered while processing args.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/mock.rb</td>
+        <td>spec/mocks/mock</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -1038,12 +1157,22 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/mock_methods.rb</td>
+        <td>spec/mocks/mock_methods</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -1079,17 +1208,27 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/mock_handler.rb</td>
+        <td>spec/mocks/mock_handler</td>
         <td>Timed out (infinite loop?)</td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/extensions/object.rb</td>
+        <td>spec/mocks/extensions/object</td>
         <td>sh: Syntax error: &quot;(&quot; unexpected
 Couldn't find constant Spec.
 
@@ -1101,37 +1240,47 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d3e8c8 &lt;??&gt; at ??:0
+0xb7d208c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
      (nil) &lt;&gt; at 
 
 Ruby backtrace:
-0xb7c94f9c Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7c94f34 Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7c92638 Kernel#load+635 in core/compile.rb
-0xb7c8f874 Class#__script__+668 in core/__loader.rb
+0xb7bd4b04 Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7bd4a9c Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7bd3ed8 Kernel#load+191 in core/compile.rb
+Skipping Block Context
+0xb7bcfd80 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7bcfca8 Array#each+72 in bootstrap/array.rb
+Skipping Block Context
+0xb7bcfaf0 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7bcfa18 Array#each+72 in bootstrap/array.rb
+0xb7bcf25c Kernel#require+479 in core/compile.rb
+0xb7bcefd8 Class#__eval_script__+52 in (eval)
+0xb7bcee1c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb79ee530 Class#execute+59 in core/compile.rb
+0xb7ae8000 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  78    &lt;String:0xb7c93118&gt;/home/mae/projects/r...xtensions/object.rbc
-  79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7c93fa8&gt;
-  81    &lt;NilClass:0x4&gt;
-  82    &lt;TrueClass:0x2&gt;
-  83 =&gt; Object
-  84    &lt;NilClass:0x4&gt;
-  85    Object
-  86    &lt;CompiledMethod:0xb7c7bdb8&gt;
-  87    &lt;NilClass:0x4&gt;
+  87    &lt;Array:0xb7ac73f4&gt;
+  88    &lt;CompiledMethod:0xb7bd4438&gt;
+  89    &lt;NilClass:0x4&gt;
+  90    &lt;NilClass:0x4&gt;
+  91    &lt;TrueClass:0x2&gt;
+  92 =&gt; Object
+  93    &lt;NilClass:0x4&gt;
+  94    Object
+  95    &lt;String:0xb7bd4228&gt;.rbc
+  96    &lt;Fixnum:0x2d&gt;
 
 VM Registers:
-IP: 0012     SP: 0083
-AC: 0000     AR: 0001
+IP: 0012     SP: 0092
+AC: 0000     AR: 0000
 Exception: &lt;NilClass:0x4&gt;
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/error_generator.rb</td>
+        <td>spec/mocks/error_generator</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -1167,6 +1316,16 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 Unknown arg_count 0 encountered while processing args.
 Unknown arg_count 0 encountered while processing args.
@@ -1175,7 +1334,7 @@ Unknown arg_count 0 encountered while processing args.
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/errors.rb</td>
+        <td>spec/mocks/errors</td>
         <td>sh: Syntax error: &quot;(&quot; unexpected
 Couldn't find constant Expectations.
 
@@ -1187,54 +1346,108 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d798c8 &lt;??&gt; at ??:0
+0xb7d308c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
      (nil) &lt;&gt; at 
 
 Ruby backtrace:
-0xb7cd12e4 Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7cd0d14 Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7cd058c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7ccd630 Kernel#load+635 in core/compile.rb
-0xb7cca86c Class#__script__+668 in core/__loader.rb
+0xb7be6bfc Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7be662c Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7be605c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7be3c34 Kernel#load+191 in core/compile.rb
+Skipping Block Context
+0xb7bdfae8 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7bdfa10 Array#each+72 in bootstrap/array.rb
+Skipping Block Context
+0xb7bdf858 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7bdf780 Array#each+72 in bootstrap/array.rb
+0xb7bdefc0 Kernel#require+479 in core/compile.rb
+0xb7bded48 Class#__eval_script__+52 in (eval)
+0xb7bdeb8c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb79fe51c Class#execute+59 in core/compile.rb
+0xb7af800c Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7ccef1c&gt;
-  81    &lt;NilClass:0x4&gt;
-  82    &lt;TrueClass:0x2&gt;
-  83    &lt;Module:0xb7cd05f4&gt;
-  84 =&gt; &lt;Module:0xb7cd0d7c&gt;
-  85    &lt;NilClass:0x4&gt;
-  86    &lt;Module:0xb7cd0d7c&gt;
-  87    &lt;NilClass:0x4&gt;
-  88    &lt;CompiledMethod:0xb7cb6db0&gt;
+  88    &lt;CompiledMethod:0xb7be4194&gt;
+  89    &lt;NilClass:0x4&gt;
+  90    &lt;NilClass:0x4&gt;
+  91    &lt;TrueClass:0x2&gt;
+  92    &lt;Module:0xb7be60c4&gt;
+  93 =&gt; &lt;Module:0xb7be6694&gt;
+  94    &lt;NilClass:0x4&gt;
+  95    &lt;Module:0xb7be6694&gt;
+  96    &lt;Fixnum:0x2d&gt;
+  97    &lt;NilClass:0x4&gt;
 
 VM Registers:
-IP: 0012     SP: 0084
-AC: 0000     AR: 0001
+IP: 0012     SP: 0093
+AC: 0000     AR: 0000
 Exception: &lt;NilClass:0x4&gt;
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks.rb</td>
+        <td>spec/mocks</td>
         <td>An exception has occured:
-    Unable to find 'spec/mocks/mock_methods' to load (LoadError)
+    Unknown set argument '~' (RuntimeError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/mocks.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/mocks/mock_methods.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/mocks/mock_methods.rb in runtime/compiler.rba (No such file/-1)
+                   Bytecode::Assembler#raise at bootstrap/04kernel.rb:20
+               Bytecode::Assembler#parse_set at bytecode/assembler.rb:391
+         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:408
+              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+                        Compile.compile_file at core/compile.rb:8
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/mocks.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/callback/callback_container.rb</td>
+        <td>spec/callback/callback_container</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -1265,12 +1478,22 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/callback/extensions/module.rb</td>
+        <td>spec/callback/extensions/module</td>
         <td>An exception has occured:
     No method 'private' on an instance of Module. (NoMethodError)
 
@@ -1279,13 +1502,23 @@ Backtrace:
              ModuleMethods.__module_init__ at externals/rspec-0.7.5/lib/spec/callback/extensions/module.rb:11
                   Callback.__module_init__ at externals/rspec-0.7.5/lib/spec/callback/extensions/module.rb:2
                            main.__script__ at externals/rspec-0.7.5/lib/spec/callback/extensions/module.rb:1
-                                 main.load at core/compile.rb:56
+                                 main.load at core/compile.rb:43
+                              main.require at core/compile.rb:87
+                     BlockEnvironment#call at bootstrap/context.rb:94
+                                Array#each at bootstrap/array.rb:24
+                              main.require at core/compile.rb:87
+                     BlockEnvironment#call at bootstrap/context.rb:94
+                                Array#each at bootstrap/array.rb:24
+                              main.require at core/compile.rb:87
+                      main.__eval_script__ at (eval):1
+                   CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                           Compile.execute at core/compile.rb:22
                            main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/callback/extensions/object.rb</td>
+        <td>spec/callback/extensions/object</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
 
@@ -1316,60 +1549,148 @@ Backtrace:
       Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/callback.rb</td>
+        <td>spec/callback</td>
         <td>An exception has occured:
-    Unable to find 'spec/callback/callback_container' to load (LoadError)
+    Unknown set argument '~' (RuntimeError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/callback.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/callback/callback_container.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/callback/callback_container.rb in runtime/compiler.rba (No such file/-1)
+                   Bytecode::Assembler#raise at bootstrap/04kernel.rb:20
+               Bytecode::Assembler#parse_set at bytecode/assembler.rb:391
+         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:408
+              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+                        Compile.compile_file at core/compile.rb:8
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/callback.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner.rb</td>
+        <td>spec/runner</td>
         <td>An exception has occured:
-    Unable to find 'spec/runner/formatter' to load (LoadError)
+    No method 'protected' on an instance of Class. (NoMethodError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/runner/formatter.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/runner/formatter.rb in runtime/compiler.rba (No such file/-1)
+    Formatter::BaseTextFormatter.protected (method_missing) at bootstrap/method_missing.rb:8
+    Formatter::BaseTextFormatter.__class_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:92
+                   Formatter.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:7
+                      Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:3
+                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:2
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/option_parser.rb</td>
+        <td>spec/runner/option_parser</td>
         <td>An exception has occured:
     Unable to find 'ostruct' to load (LoadError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/option_parser.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
+                 main.raise at bootstrap/04kernel.rb:23
+               main.require at core/compile.rb:91
+            main.__script__ at externals/rspec-0.7.5/lib/spec/runner/option_parser.rb:1
+                  main.load at core/compile.rb:43
+               main.require at core/compile.rb:87
+      BlockEnvironment#call at bootstrap/context.rb:94
+                 Array#each at bootstrap/array.rb:24
+               main.require at core/compile.rb:87
+      BlockEnvironment#call at bootstrap/context.rb:94
+                 Array#each at bootstrap/array.rb:24
+               main.require at core/compile.rb:87
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at bootstrap/compiled_method.rb:52
+            Compile.execute at core/compile.rb:22
+            main.__script__ at core/__loader.rb:58
 Couldn't find ostruct.rbc in runtime/compiler.rba (No such file/-1)
 Couldn't find ostruct.rb in runtime/compiler.rba (No such file/-1)
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/backtrace_tweaker.rb</td>
+        <td>spec/runner/backtrace_tweaker</td>
         <td>An exception has occured:
     Unknown type 'dregx', [&quot;&quot;, [:evstr, [:lvar, :subpath, 5]]] (RuntimeError)
 
@@ -1501,12 +1822,22 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/reporter.rb</td>
+        <td>spec/runner/reporter</td>
         <td>An exception has occured:
     No method 'private' on an instance of Class. (NoMethodError)
 
@@ -1516,13 +1847,23 @@ Backtrace:
                       Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:3
                         Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:2
                              main.__script__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:1
-                                   main.load at core/compile.rb:56
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/spec_matcher.rb</td>
+        <td>spec/runner/spec_matcher</td>
         <td>An exception has occured:
     Unknown type 'dregx', [&quot;^&quot;, [:evstr, [:call, [:const, :Regexp], :escape, [:array, [:ivar, :@context_name]]]], [:str, &quot;\\b&quot;, 0]] (RuntimeError)
 
@@ -1593,12 +1934,22 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/context.rb</td>
+        <td>spec/runner/context</td>
         <td>An exception has occured:
     Unknown type 'zsuper', [] (RuntimeError)
 
@@ -1744,29 +2095,49 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 Unknown arg_count 0 encountered while processing args.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/drb_command_line.rb</td>
+        <td>spec/runner/drb_command_line</td>
         <td>An exception has occured:
     Unable to find 'drb/drb' to load (LoadError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/drb_command_line.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
+                 main.raise at bootstrap/04kernel.rb:23
+               main.require at core/compile.rb:91
+            main.__script__ at externals/rspec-0.7.5/lib/spec/runner/drb_command_line.rb:1
+                  main.load at core/compile.rb:43
+               main.require at core/compile.rb:87
+      BlockEnvironment#call at bootstrap/context.rb:94
+                 Array#each at bootstrap/array.rb:24
+               main.require at core/compile.rb:87
+      BlockEnvironment#call at bootstrap/context.rb:94
+                 Array#each at bootstrap/array.rb:24
+               main.require at core/compile.rb:87
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at bootstrap/compiled_method.rb:52
+            Compile.execute at core/compile.rb:22
+            main.__script__ at core/__loader.rb:58
 Couldn't find drb/drb.rbc in runtime/compiler.rba (No such file/-1)
 Couldn't find drb/drb.rb in runtime/compiler.rba (No such file/-1)
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/spec_parser.rb</td>
+        <td>spec/runner/spec_parser</td>
         <td>An exception has occured:
     Unknown type 'nth_ref', [1] (RuntimeError)
 
@@ -1918,24 +2289,34 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter/rdoc_formatter.rb</td>
+        <td>spec/runner/formatter/rdoc_formatter</td>
         <td>Couldn't find constant BaseTextFormatter.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter/progress_bar_formatter.rb</td>
+        <td>spec/runner/formatter/progress_bar_formatter</td>
         <td>Couldn't find constant BaseTextFormatter.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter/base_text_formatter.rb</td>
+        <td>spec/runner/formatter/base_text_formatter</td>
         <td>An exception has occured:
     No method 'protected' on an instance of Class. (NoMethodError)
 
@@ -1946,13 +2327,23 @@ Backtrace:
                       Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:3
                         Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:2
                              main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:1
-                                   main.load at core/compile.rb:56
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter/html_formatter.rb</td>
+        <td>spec/runner/formatter/html_formatter</td>
         <td>An exception has occured:
     Unknown type 'zsuper', [] (RuntimeError)
 
@@ -2093,43 +2484,71 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter/specdoc_formatter.rb</td>
+        <td>spec/runner/formatter/specdoc_formatter</td>
         <td>Couldn't find constant BaseTextFormatter.
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/context_runner.rb</td>
+        <td>spec/runner/context_runner</td>
         <td>An exception has occured:
-    Unable to find 'spec/version' to load (LoadError)
+    No method 'match' on an instance of String. (NoMethodError)
 
 Backtrace:
-               main.raise at bootstrap/04kernel.rb:23
-             main.require at core/compile.rb:91
-          main.__script__ at ./externals/rspec-0.7.5/lib/spec/runner/../../spec.rb:1
-                main.load at core/compile.rb:43
-             main.require at core/compile.rb:87
-    BlockEnvironment#call at bootstrap/context.rb:94
-               Array#each at bootstrap/array.rb:24
-             main.require at core/compile.rb:87
-    BlockEnvironment#call at bootstrap/context.rb:94
-               Array#each at bootstrap/array.rb:24
-             main.require at core/compile.rb:87
-          main.__script__ at externals/rspec-0.7.5/lib/spec/runner/context_runner.rb:1
-                main.load at core/compile.rb:56
-          main.__script__ at core/__loader.rb:58
-Couldn't find spec/version.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
+    String#match (method_missing) at bootstrap/method_missing.rb:8
+          VERSION.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:8
+             Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:2
+                  main.__script__ at externals/rspec-0.7.5/lib/spec/version.rb:1
+                        main.load at core/compile.rb:43
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+                  main.__script__ at ./externals/rspec-0.7.5/lib/spec/runner/../../spec.rb:1
+                        main.load at core/compile.rb:43
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+                  main.__script__ at externals/rspec-0.7.5/lib/spec/runner/context_runner.rb:1
+                        main.load at core/compile.rb:43
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+             main.__eval_script__ at (eval):1
+          CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                  Compile.execute at core/compile.rb:22
+                  main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/specification.rb</td>
+        <td>spec/runner/specification</td>
         <td>An exception has occured:
     No method 'attr_accessor' on an instance of Module. (NoMethodError)
 
@@ -2140,45 +2559,83 @@ Backtrace:
                       Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:3
                         Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:2
                              main.__script__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:1
-                                   main.load at core/compile.rb:56
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/extensions/kernel.rb</td>
+        <td>spec/runner/extensions/kernel</td>
         <td>An exception has occured:
-    Unable to find 'spec/runner/extensions/object' to load (LoadError)
+    No method 'private' on an instance of Module. (NoMethodError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/extensions/kernel.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/runner/extensions/object.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/runner/extensions/object.rb in runtime/compiler.rba (No such file/-1)
+    Kernel.private (method_missing) at bootstrap/method_missing.rb:8
+             Kernel.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/extensions/kernel.rb:9
+                    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/extensions/kernel.rb:3
+                          main.load at core/compile.rb:43
+                       main.require at core/compile.rb:87
+              BlockEnvironment#call at bootstrap/context.rb:94
+                         Array#each at bootstrap/array.rb:24
+                       main.require at core/compile.rb:87
+              BlockEnvironment#call at bootstrap/context.rb:94
+                         Array#each at bootstrap/array.rb:24
+                       main.require at core/compile.rb:87
+               main.__eval_script__ at (eval):1
+            CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                    Compile.execute at core/compile.rb:22
+                    main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter.rb</td>
+        <td>spec/runner/formatter</td>
         <td>An exception has occured:
-    Unable to find 'spec/runner/formatter/base_text_formatter' to load (LoadError)
+    No method 'protected' on an instance of Class. (NoMethodError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/runner/formatter/base_text_formatter.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/runner/formatter/base_text_formatter.rb in runtime/compiler.rba (No such file/-1)
+    Formatter::BaseTextFormatter.protected (method_missing) at bootstrap/method_missing.rb:8
+    Formatter::BaseTextFormatter.__class_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:92
+                   Formatter.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:7
+                      Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:3
+                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:2
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/context_eval.rb</td>
+        <td>spec/runner/context_eval</td>
         <td>An exception has occured:
     Unknown type 'zsuper', [] (RuntimeError)
 
@@ -2324,12 +2781,22 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/runner/heckle_runner.rb</td>
+        <td>spec/runner/heckle_runner</td>
         <td>An exception has occured:
     Unknown type 'nth_ref', [2] (RuntimeError)
 
@@ -2478,28 +2945,87 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
                              main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/expectations.rb</td>
+        <td>spec/expectations</td>
         <td>An exception has occured:
-    Unable to find 'spec/expectations/sugar' to load (LoadError)
+    Unknown set argument '~' (RuntimeError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/expectations.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/expectations/sugar.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/expectations/sugar.rb in runtime/compiler.rba (No such file/-1)
+                   Bytecode::Assembler#raise at bootstrap/04kernel.rb:20
+               Bytecode::Assembler#parse_set at bytecode/assembler.rb:391
+         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:408
+              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+                        Compile.compile_file at core/compile.rb:8
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at externals/rspec-0.7.5/lib/spec/expectations.rb:1
+                                   main.load at core/compile.rb:43
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:94
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec/version.rb</td>
+        <td>spec/version</td>
         <td>An exception has occured:
     No method 'match' on an instance of String. (NoMethodError)
 
@@ -2508,24 +3034,52 @@ Backtrace:
           VERSION.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:8
              Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:2
                   main.__script__ at externals/rspec-0.7.5/lib/spec/version.rb:1
-                        main.load at core/compile.rb:56
+                        main.load at core/compile.rb:43
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+             main.__eval_script__ at (eval):1
+          CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                  Compile.execute at core/compile.rb:22
                   main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
       <tr>
-        <td>lib/spec.rb</td>
+        <td>spec</td>
         <td>An exception has occured:
-    Unable to find 'spec/version' to load (LoadError)
+    No method 'match' on an instance of String. (NoMethodError)
 
 Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at ./externals/rspec-0.7.5/lib/spec/runner/../../spec.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/version.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
+    String#match (method_missing) at bootstrap/method_missing.rb:8
+          VERSION.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:8
+             Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:2
+                  main.__script__ at externals/rspec-0.7.5/lib/spec/version.rb:1
+                        main.load at core/compile.rb:43
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+                  main.__script__ at ./externals/rspec-0.7.5/lib/spec/runner/../../spec.rb:1
+                        main.load at core/compile.rb:43
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+            BlockEnvironment#call at bootstrap/context.rb:94
+                       Array#each at bootstrap/array.rb:24
+                     main.require at core/compile.rb:87
+             main.__eval_script__ at (eval):1
+          CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                  Compile.execute at core/compile.rb:22
+                  main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
@@ -2534,25 +3088,25 @@ Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
     <h2>Working Files</h2>
     <ul>
       
-      <li style="font-weight: bold; color: green">lib/spec/expectations/message_builder.rb</li>
+      <li style="font-weight: bold; color: green">spec/expectations/message_builder</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/expectations/extensions/string.rb</li>
+      <li style="font-weight: bold; color: green">spec/expectations/extensions/string</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/expectations/extensions/proc.rb</li>
+      <li style="font-weight: bold; color: green">spec/expectations/extensions/proc</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/expectations/errors.rb</li>
+      <li style="font-weight: bold; color: green">spec/expectations/errors</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/mocks/order_group.rb</li>
+      <li style="font-weight: bold; color: green">spec/mocks/order_group</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/mocks/message_expectation.rb</li>
+      <li style="font-weight: bold; color: green">spec/mocks/message_expectation</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/runner/command_line.rb</li>
+      <li style="font-weight: bold; color: green">spec/runner/command_line</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/runner/execution_context.rb</li>
+      <li style="font-weight: bold; color: green">spec/runner/execution_context</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/runner/extensions/object.rb</li>
+      <li style="font-weight: bold; color: green">spec/runner/extensions/object</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/runner/spec_should_raise_handler.rb</li>
+      <li style="font-weight: bold; color: green">spec/runner/spec_should_raise_handler</li>
       
     </ul>
 

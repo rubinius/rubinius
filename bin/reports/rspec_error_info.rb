@@ -1,15 +1,16 @@
 require 'timeout'
-files = `find #{File.dirname(__FILE__)}/../../externals/rspec-0.7.5/lib -type f`.scan(/^[^.].+?\.rb$/)
+RSPEC_PATH = File.expand_path(File.dirname(__FILE__) + '/../../externals/rspec-0.7.5/lib')
+files = `find #{RSPEC_PATH} -type f`.scan(/^[^.].+?\.rb$/).map {|f| f.split('rspec-0.7.5/lib/')[1].split('.rb')[0] }
 
 results = files.map do |path|
   begin
-    command = "shotgun/rubinius #{path}"
+    command = "shotgun/rubinius -e \"$:.unshift('#{RSPEC_PATH}'); require '#{path}'\""
     output = Timeout::timeout(5) do
       `(#{command}) 2>&1`
     end
-    [path.split('rspec-0.7.5/')[1], output]
+    [path, output]
   rescue Timeout::Error
-    [path.split('rspec-0.7.5/')[1], 'Timed out (infinite loop?)']
+    [path, 'Timed out (infinite loop?)']
   end
 end
 
