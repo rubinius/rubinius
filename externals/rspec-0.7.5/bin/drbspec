@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+require File.expand_path(File.dirname(__FILE__) + "/../lib/spec")
+::Spec::Runner::DrbCommandLine.run(ARGV, STDERR, STDOUT)

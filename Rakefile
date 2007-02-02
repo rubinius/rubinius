@@ -386,13 +386,18 @@ namespace :report do
     run_report(:completeness)
   end
 
+  desc "Build completeness report"
+  task :completeness do
+    run_report(:rspec_errors)
+  end
+
   def run_report(name)
     report = "#{ROOT}/bin/reports/#{name}.rb"
     dest   = "#{ROOT}/reports/#{name}.html"
-    puts "ruby #{report} > #{dest}"
     File.open("#{ROOT}/reports/#{name}.html", 'w') do |f|
       f.write `RUBYOPT='' ruby #{report}`
     end
+    puts "ruby #{report} > #{dest}"
   end
 end
 

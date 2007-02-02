@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <title><%= title %></title>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <div>Generated on <%= generated %>.</div>
+
+    <h2>Overview</h2>
+
+    <h3>Working Files</h3>
+    <%= percent_bar(working_files_pct) %>
+    <p>(<%= "#{working_files_len} out of #{all_files_len}" %>)</p>
+
+    <h2>Non-Working Files</h2>
+    <table border="1">
+      <tr>
+        <th>File</th>
+        <th>Error</th>
+      </tr>
+      <% nonworking_files.each do |file, msg| %>
+      <tr>
+        <td><%= file %></td>
+        <td><%=h msg %></td>
+      </tr>
+      <% end %>
+    </table>
+
+    <h2>Working Files</h2>
+    <ul>
+      <% working_files.each do |file, msg| %>
+      <li style="font-weight: bold; color: green"><%= file %></li>
+      <% end %>
+    </ul>
+
+
+    <p style="font-size: smaller; font-weight: bold; text-align: center">
+    envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa
+    </p>
+  </body>
+</html>
+

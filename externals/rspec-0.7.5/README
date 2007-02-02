@@ -1,0 +1,50 @@
+== RSpec
+
+RSpec is a framework for developing ruby applications using Behaviour Driven Development.
+
+== Expectations
+
+RSpec adds expectation methods to every object, with specific types of expectations
+set on specific classes. For example ...
+
+<code>
+@message = "some message"
+@message.should == "some message"
+</code>
+
+... will be available on every object, whereas ...
+
+<code>
+proc { @number = @number + 1 }.should_change{ @number }.by(1)
+</code>
+
+... will only be available for proc objects.
+
+See Spec::Expectations for details on the different expectations you can set.
+
+== Building the RSpec gem
+rake gem
+gem install pkg/rspec-0.x.x.gem (you may have to sudo)
+
+== Running the specs ==
+In order to run RSpec's full suite of specs (rake pre_commit) you must install the following gems:
+
+* rake          # Runs the build script
+* rcov          # Verifies that the code is 100% covered by specs
+* webgen        # Generates the static HTML website
+* RedCloth      # Required by webgen
+* syntax        # Required by our own custom webgen extension to highlight ruby code
+* diff-lcs      # Required if you use the --diff switch
+* win32console  # Required by the --colour switch if you're on Windows
+* meta_project  # Required in order to make releases at RubyForge
+* heckle        # Required if you use the --heckle switch
+
+Note that RSpec itself - once built - doesn't have any dependencies outside the Ruby core 
+and stdlib - with a few exceptions:
+
+* The spec command line uses diff-lcs when --diff is specified.
+* The spec command line uses heckle when --heckle is specified.
+* The Spec::Rake::SpecTask needs RCov if RCov is enabled in the task.
+* RSpec on Rails needs the ZenTest gem to be installed (and Rails and its dependencies of course)
+
+See http://rspec.rubyforge.org for further documentation.
