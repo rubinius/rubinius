@@ -6,250 +6,48 @@
   </head>
   <body>
     <h1>Rubinius Completeness Report</h1>
-    <div>Generated on Thu Feb 01 20:25:22 +1100 2007.</div>
+    <div>Generated on Fri Feb 02 01:10:53 -0800 2007.</div>
 
     <h2>Overview</h2>
 
-    <h3>Complete Classes</h3>
+    <h3>Completed Constants</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 105px; text-align: right; color: #000000; background: #00f000">
-      53%&nbsp;&nbsp;</td>
-    <td style="width: 95px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 2px; text-align: right; color: #000000; background: #00f000">
       </td>
+    <td style="width: 198px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;1%</td>
   </tr>
 </table>
 
-    <p>(31 out of 59)</p>
+    <p>(2 out of 200)</p>
 
-    <h3>Class Methods</h3>
+    <h3>Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 177px; text-align: right; color: #000000; background: #00f000">
-      88%&nbsp;&nbsp;</td>
-    <td style="width: 23px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 60px; text-align: right; color: #000000; background: #00f000">
       </td>
+    <td style="width: 140px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;30%</td>
   </tr>
 </table>
 
-    <p>(4703 out of 5322)</p>
+    <p>(4736 out of 15798)</p>
 
     <h3>Instance Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 162px; text-align: right; color: #000000; background: #00f000">
-      81%&nbsp;&nbsp;</td>
-    <td style="width: 38px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 68px; text-align: right; color: #000000; background: #00f000">
       </td>
+    <td style="width: 132px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;34%</td>
   </tr>
 </table>
 
-    <p>(3456 out of 4254)</p>
+    <p>(3357 out of 9943)</p>
 
-    <h2>Partially Complete Classes</h2>
-    <table border="1">
-      <tr>
-        <th>Class</th>
-        <th>class methods needed</th>
-        <th>instance methods needed</th>
-      </tr>
-      
-      <tr>
-        <td>Bignum</td>
-        <td></td>
-        <td>integer?, next, nonzero?, prec, prec_f, prec_i, remainder, round, singleton_method_added, size, step, succ, to_int, truncate</td>
-      </tr>
-      
-      <tr>
-        <td>Class</td>
-        <td>nesting</td>
-        <td>&lt;=, &lt;=&gt;, &gt;, &gt;=, autoload, autoload?, class_eval, class_variables, const_defined?, const_get, const_missing, const_set, include?, included_modules, instance_method, method_defined?, module_eval, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
-      </tr>
-      
-      <tr>
-        <td>File</td>
-        <td>blockdev?, chardev?, chmod, chown, delete, executable?, executable_real?, exist?, expand_path, extname, fnmatch, fnmatch?, for_fd, foreach, ftype, grpowned?, identical?, join, lchmod, lchown, link, lstat, owned?, pipe?, popen, read, readable?, readable_real?, readlines, readlink, rename, select, setgid?, setuid?, size, size?, socket?, split, sticky?, symlink, symlink?, sysopen, truncate, umask, utime, writable?, writable_real?, zero?</td>
-        <td>all?, any?, atime, binmode, chmod, chown, close_read, close_write, collect, ctime, detect, each, each_byte, each_line, each_with_index, entries, eof, eof?, fcntl, fileno, find, find_all, flock, flush, fsync, getc, gets, grep, include?, inject, ioctl, isatty, lineno, lineno=, lstat, map, max, member?, min, mtime, partition, path, pid, pos, pos=, print, printf, putc, read_nonblock, readchar, readline, readlines, readpartial, reject, reopen, rewind, seek, select, sort, sort_by, stat, sysread, sysseek, syswrite, tell, to_i, to_io, truncate, tty?, ungetc, write_nonblock, zip</td>
-      </tr>
-      
-      <tr>
-        <td>Fixnum</td>
-        <td></td>
-        <td>id2name, integer?, next, prec, prec_f, prec_i, remainder, round, singleton_method_added, step, succ, to_int, to_sym, truncate</td>
-      </tr>
-      
-      <tr>
-        <td>Float</td>
-        <td></td>
-        <td>div, integer?, nonzero?, prec, prec_f, prec_i, quo, remainder, singleton_method_added, step</td>
-      </tr>
-      
-      <tr>
-        <td>IO</td>
-        <td>for_fd, foreach, open, popen, read, readlines, select, sysopen</td>
-        <td>all?, any?, binmode, close_read, close_write, collect, detect, each, each_byte, each_line, each_with_index, entries, eof, eof?, fcntl, fileno, find, find_all, flush, fsync, getc, gets, grep, include?, inject, ioctl, isatty, lineno, lineno=, map, max, member?, min, partition, pid, pos, pos=, print, printf, putc, read_nonblock, readchar, readline, readlines, readpartial, reject, reopen, rewind, seek, select, sort, sort_by, stat, sysread, sysseek, syswrite, tell, to_i, to_io, tty?, ungetc, write_nonblock, zip</td>
-      </tr>
-      
-      <tr>
-        <td>Integer</td>
-        <td></td>
-        <td>div, integer?, modulo, next, nonzero?, prec, prec_f, prec_i, remainder, round, singleton_method_added, step, succ, to_int, truncate</td>
-      </tr>
-      
-      <tr>
-        <td>LocalJumpError</td>
-        <td></td>
-        <td>exit_value, reason</td>
-      </tr>
-      
-      <tr>
-        <td>MatchData</td>
-        <td></td>
-        <td>values_at</td>
-      </tr>
-      
-      <tr>
-        <td>Method</td>
-        <td></td>
-        <td>[], to_proc</td>
-      </tr>
-      
-      <tr>
-        <td>Module</td>
-        <td>nesting</td>
-        <td>&lt;, &lt;=, &lt;=&gt;, &gt;, &gt;=, ancestors, autoload, autoload?, class_variables, const_get, const_missing, const_set, include?, included_modules, instance_methods, method_defined?, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
-      </tr>
-      
-      <tr>
-        <td>NameError</td>
-        <td></td>
-        <td>name</td>
-      </tr>
-      
-      <tr>
-        <td>NoMethodError</td>
-        <td></td>
-        <td>args, name</td>
-      </tr>
-      
-      <tr>
-        <td>Numeric</td>
-        <td></td>
-        <td>div, integer?, modulo, nonzero?, quo, remainder, round, singleton_method_added, step, to_int, truncate</td>
-      </tr>
-      
-      <tr>
-        <td>Proc</td>
-        <td></td>
-        <td>[], arity, binding</td>
-      </tr>
-      
-      <tr>
-        <td>Regexp</td>
-        <td>last_match</td>
-        <td>~</td>
-      </tr>
-      
-      <tr>
-        <td>String</td>
-        <td></td>
-        <td>%, &lt;, &lt;=, &gt;, &gt;=, []=, all?, any?, between?, capitalize, capitalize!, casecmp, center, chomp, chomp!, chop, chop!, collect, concat, count, crypt, delete, delete!, detect, downcase, downcase!, dump, each, each_line, each_with_index, entries, find, find_all, grep, gsub, gsub!, hex, inject, insert, ljust, lstrip, lstrip!, map, match, max, member?, min, next, next!, oct, partition, reject, replace, rindex, rjust, rstrip, rstrip!, scan, select, slice!, sort, sort_by, squeeze, squeeze!, sub, sub!, succ, succ!, sum, swapcase, swapcase!, tr, tr!, tr_s, tr_s!, unpack, upcase, upcase!, upto, zip</td>
-      </tr>
-      
-      <tr>
-        <td>SyntaxError</td>
-        <td>exception</td>
-        <td>backtrace, exception, message, set_backtrace, to_str</td>
-      </tr>
-      
-      <tr>
-        <td>SystemCallError</td>
-        <td></td>
-        <td>errno</td>
-      </tr>
-      
-      <tr>
-        <td>SystemExit</td>
-        <td></td>
-        <td>status, success?</td>
-      </tr>
-      
-      <tr>
-        <td>Time</td>
-        <td>_load, gm, local, mktime, times, utc</td>
-        <td>+, -, _dump, asctime, ctime, day, dst?, getgm, getlocal, getutc, gmt?, gmt_offset, gmtime, gmtoff, hour, isdst, localtime, mday, min, mon, month, sec, succ, to_f, tv_sec, tv_usec, usec, utc, utc?, utc_offset, wday, yday, year, zone</td>
-      </tr>
-      
-    </table>
 
-    <h2>Complete Classes</h2>
-    <ul>
-      
-      <li style="font-weight: bold; color: green">ArgumentError</li>
-      
-      <li style="font-weight: bold; color: green">Array</li>
-      
-      <li style="font-weight: bold; color: green">Continuation</li>
-      
-      <li style="font-weight: bold; color: green">EOFError</li>
-      
-      <li style="font-weight: bold; color: green">Exception</li>
-      
-      <li style="font-weight: bold; color: green">FalseClass</li>
-      
-      <li style="font-weight: bold; color: green">FloatDomainError</li>
-      
-      <li style="font-weight: bold; color: green">Hash</li>
-      
-      <li style="font-weight: bold; color: green">IOError</li>
-      
-      <li style="font-weight: bold; color: green">IndexError</li>
-      
-      <li style="font-weight: bold; color: green">Interrupt</li>
-      
-      <li style="font-weight: bold; color: green">LoadError</li>
-      
-      <li style="font-weight: bold; color: green">NilClass</li>
-      
-      <li style="font-weight: bold; color: green">NoMemoryError</li>
-      
-      <li style="font-weight: bold; color: green">NotImplementedError</li>
-      
-      <li style="font-weight: bold; color: green">Object</li>
-      
-      <li style="font-weight: bold; color: green">Range</li>
-      
-      <li style="font-weight: bold; color: green">RangeError</li>
-      
-      <li style="font-weight: bold; color: green">RegexpError</li>
-      
-      <li style="font-weight: bold; color: green">RuntimeError</li>
-      
-      <li style="font-weight: bold; color: green">ScriptError</li>
-      
-      <li style="font-weight: bold; color: green">SecurityError</li>
-      
-      <li style="font-weight: bold; color: green">SignalException</li>
-      
-      <li style="font-weight: bold; color: green">StandardError</li>
-      
-      <li style="font-weight: bold; color: green">Symbol</li>
-      
-      <li style="font-weight: bold; color: green">SystemStackError</li>
-      
-      <li style="font-weight: bold; color: green">ThreadError</li>
-      
-      <li style="font-weight: bold; color: green">TrueClass</li>
-      
-      <li style="font-weight: bold; color: green">TypeError</li>
-      
-      <li style="font-weight: bold; color: green">UnboundMethod</li>
-      
-      <li style="font-weight: bold; color: green">ZeroDivisionError</li>
-      
-    </ul>
-
-    <h2>Un-Implemented Classes</h2>
+    <h2>Unimplemented Constants</h2>
     <ul>
       
       <li style="font-weight: bold; color: red">Binding</li>
@@ -258,13 +56,645 @@
       
       <li style="font-weight: bold; color: red">Dir</li>
       
+      <li style="font-weight: bold; color: red">Errno</li>
+      
+      <li style="font-weight: bold; color: red">Errno::E2BIG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EACCES</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EADDRINUSE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EADDRNOTAVAIL</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EADV</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EAFNOSUPPORT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EAGAIN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EALREADY</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADF</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADFD</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADMSG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADR</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADRQC</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBADSLT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBFONT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EBUSY</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ECHILD</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ECHRNG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ECOMM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ECONNABORTED</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ECONNREFUSED</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ECONNRESET</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EDEADLK</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EDESTADDRREQ</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EDOM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EDOTDOT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EDQUOT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EEXIST</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EFAULT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EFBIG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EHOSTDOWN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EHOSTUNREACH</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EIDRM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EILSEQ</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EINPROGRESS</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EINTR</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EINVAL</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EIO</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EISCONN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EISDIR</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EISNAM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EL2HLT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EL2NSYNC</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EL3HLT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EL3RST</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELIBACC</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELIBBAD</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELIBEXEC</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELIBMAX</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELIBSCN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELNRNG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ELOOP</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EMFILE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EMLINK</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EMSGSIZE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EMULTIHOP</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENAMETOOLONG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENAVAIL</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENETDOWN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENETRESET</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENETUNREACH</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENFILE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOANO</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOBUFS</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOCSI</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENODATA</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENODEV</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOENT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOEXEC</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOLCK</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOLINK</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOMEM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOMSG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENONET</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOPKG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOPROTOOPT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOSPC</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOSR</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOSTR</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOSYS</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTBLK</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTCONN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTDIR</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTEMPTY</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTNAM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTSOCK</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTTY</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENOTUNIQ</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ENXIO</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EOPNOTSUPP</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EOVERFLOW</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EPERM</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EPFNOSUPPORT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EPIPE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EPROTO</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EPROTONOSUPPORT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EPROTOTYPE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ERANGE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EREMCHG</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EREMOTE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EREMOTEIO</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ERESTART</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EROFS</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESHUTDOWN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESOCKTNOSUPPORT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESPIPE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESRCH</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESRMNT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESTALE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ESTRPIPE</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ETIME</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ETIMEDOUT</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ETOOMANYREFS</li>
+      
+      <li style="font-weight: bold; color: red">Errno::ETXTBSY</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EUCLEAN</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EUNATCH</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EUSERS</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EXDEV</li>
+      
+      <li style="font-weight: bold; color: red">Errno::EXFULL</li>
+      
+      <li style="font-weight: bold; color: red">File::Constants</li>
+      
+      <li style="font-weight: bold; color: red">FileTest</li>
+      
+      <li style="font-weight: bold; color: red">Math</li>
+      
+      <li style="font-weight: bold; color: red">NameError::message</li>
+      
+      <li style="font-weight: bold; color: red">ObjectSpace</li>
+      
+      <li style="font-weight: bold; color: red">Precision</li>
+      
+      <li style="font-weight: bold; color: red">Process::GID</li>
+      
+      <li style="font-weight: bold; color: red">Process::Status</li>
+      
+      <li style="font-weight: bold; color: red">Process::Sys</li>
+      
+      <li style="font-weight: bold; color: red">Process::UID</li>
+      
+      <li style="font-weight: bold; color: red">Signal</li>
+      
       <li style="font-weight: bold; color: red">Struct</li>
+      
+      <li style="font-weight: bold; color: red">Struct::Tms</li>
       
       <li style="font-weight: bold; color: red">Thread</li>
       
       <li style="font-weight: bold; color: red">ThreadGroup</li>
       
+      <li style="font-weight: bold; color: red">fatal</li>
+      
+      <li style="font-weight: bold; color: red">main</li>
+      
     </ul>
+
+    <h2>Incomplete Constants</h2>
+    <table border="1">
+      <tr>
+        <th>Constant</th>
+        <th>methods needed</th>
+        <th>instance methods needed</th>
+      </tr>
+      
+      <tr>
+        <td>ArgumentError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Array</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, instance_variable_get, frozen?, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Bignum</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>prec_i, clone, integer?, public_methods, freeze, truncate, prec_f, to_int, size, extend, next, id, step, singleton_methods, remainder, taint, nonzero?, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, prec, singleton_method_added, tainted?, =~, private_methods, succ, untaint, round</td>
+      </tr>
+      
+      <tr>
+        <td>Class</td>
+        <td>nesting</td>
+        <td>class_eval, autoload, protected_instance_methods, private_method_defined?, instance_method, include?, private_instance_methods, protected_method_defined?, const_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, module_eval, class_variables, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+      </tr>
+      
+      <tr>
+        <td>Continuation</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>EOFError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Exception</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>FalseClass</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>File</td>
+        <td>executable?, link, private_instance_methods, blockdev?, extname, method_defined?, executable_real?, symlink, chardev?, zero?, public_method_defined?, readlink, const_get, exist?, setuid?, private_method_defined?, fnmatch, size?, split, const_set, utime, setgid?, sysopen, protected_method_defined?, delete, owned?, public_class_method, rename, select, readable?, chmod, fnmatch?, sticky?, for_fd, grpowned?, private_class_method, umask, size, readable_real?, chown, identical?, popen, truncate, autoload, pipe?, included_modules, expand_path, &lt;=&gt;, const_missing, writable?, read, lchmod, foreach, public_instance_methods, &gt;=, lstat, &lt;=, symlink?, writable_real?, join, lchown, &gt;, autoload?, protected_instance_methods, include?, ftype, socket?, readlines</td>
+        <td>collect, lineno=, ungetc, all?, flock, close_write, clone, entries, fileno, public_methods, ioctl, freeze, chmod, read_nonblock, detect, zip, readlines, truncate, flush, map, getc, isatty, any?, to_io, sort, atime, include?, min, putc, extend, eof?, fcntl, write_nonblock, path, find_all, chown, each, each_line, id, reopen, singleton_methods, inject, tell, taint, sort_by, mtime, fsync, frozen?, instance_variable_get, max, rewind, pid, select, to_a, readpartial, display, each_byte, type, stat, syswrite, tty?, protected_methods, partition, seek, binmode, ctime, grep, instance_variable_set, pos, gets, readchar, reject, pos=, close_read, lstat, sysread, tainted?, printf, =~, private_methods, sysseek, member?, untaint, find, lineno, each_with_index, readline, eof, to_i</td>
+      </tr>
+      
+      <tr>
+        <td>File::Stat</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>directory?, clone, symlink?, ftype, uid, public_methods, writable?, freeze, setgid?, blksize, dev_minor, size?, zero?, gid, size, socket?, atime, extend, writable_real?, blocks, sticky?, ino, id, owned?, singleton_methods, taint, blockdev?, mtime, rdev, frozen?, instance_variable_get, executable?, to_a, display, type, grpowned?, mode, &lt;, protected_methods, &lt;=&gt;, &gt;, readable?, chardev?, ctime, rdev_major, instance_variable_set, dev, executable_real?, &gt;=, between?, &lt;=, nlink, pipe?, tainted?, =~, private_methods, readable_real?, rdev_minor, untaint, setuid?, file?, dev_major</td>
+      </tr>
+      
+      <tr>
+        <td>Fixnum</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>prec_i, clone, integer?, public_methods, freeze, truncate, prec_f, to_int, extend, next, id, step, singleton_methods, remainder, taint, id2name, frozen?, instance_variable_get, to_a, display, type, protected_methods, to_sym, instance_variable_set, prec, singleton_method_added, tainted?, =~, private_methods, succ, untaint, round</td>
+      </tr>
+      
+      <tr>
+        <td>Float</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>prec_i, clone, integer?, public_methods, freeze, prec_f, extend, id, step, singleton_methods, remainder, taint, nonzero?, frozen?, instance_variable_get, to_a, display, quo, type, protected_methods, instance_variable_set, prec, div, singleton_method_added, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>FloatDomainError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>GC</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, enable, include?, private_instance_methods, protected_method_defined?, public_class_method, disable, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>garbage_collect</td>
+      </tr>
+      
+      <tr>
+        <td>Hash</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>IO</td>
+        <td>read, sysopen, autoload, protected_instance_methods, private_method_defined?, readlines, for_fd, include?, private_instance_methods, protected_method_defined?, public_class_method, popen, autoload?, select, private_class_method, const_missing, open, &lt;=&gt;, foreach, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>collect, lineno=, ungetc, all?, close_write, clone, entries, fileno, public_methods, ioctl, freeze, read_nonblock, detect, zip, readlines, flush, map, getc, isatty, any?, to_io, sort, include?, min, putc, extend, eof?, fcntl, write_nonblock, find_all, each, each_line, id, reopen, singleton_methods, inject, tell, taint, sort_by, fsync, frozen?, instance_variable_get, max, rewind, pid, select, to_a, readpartial, display, each_byte, type, stat, syswrite, tty?, protected_methods, partition, seek, binmode, grep, instance_variable_set, pos, gets, readchar, reject, pos=, close_read, sysread, printf, tainted?, =~, private_methods, sysseek, member?, untaint, find, lineno, each_with_index, readline, eof, to_i</td>
+      </tr>
+      
+      <tr>
+        <td>IOError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>IndexError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Integer</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>prec_i, clone, integer?, public_methods, freeze, truncate, modulo, prec_f, to_int, extend, next, id, step, singleton_methods, remainder, taint, nonzero?, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, prec, div, singleton_method_added, tainted?, =~, private_methods, succ, untaint, round</td>
+      </tr>
+      
+      <tr>
+        <td>Interrupt</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Kernel</td>
+        <td>chomp, fail, sleep, sub!, srand, iterator?, readlines, getc, split, caller, putc, gsub!, rand, test, block_given?, sub, loop, exec, syscall, String, fork, sprintf, binding, chop!, scan, trace_var, select, global_variables, warn, `, gsub, open, Array, format, proc, abort, chomp!, gets, eval, trap, untrace_var, local_variables, exit!, system, chop, printf, readline, set_trace_func</td>
+        <td>instance_of?, instance_variables, method, to_s, dup, private_methods, object_id, __id__, =~, send, class, tainted?, singleton_methods, eql?, untaint, kind_of?, id, instance_variable_get, inspect, nil?, taint, frozen?, public_methods, extend, instance_eval, to_a, __send__, display, clone, protected_methods, hash, freeze, is_a?, ==, instance_variable_set, type, respond_to?, ===, equal?, methods</td>
+      </tr>
+      
+      <tr>
+        <td>LoadError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>LocalJumpError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, exit_value, tainted?, =~, private_methods, untaint, reason</td>
+      </tr>
+      
+      <tr>
+        <td>Marshal</td>
+        <td>restore</td>
+        <td></td>
+      </tr>
+      
+      <tr>
+        <td>MatchData</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, values_at, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Method</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, to_proc, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint, []</td>
+      </tr>
+      
+      <tr>
+        <td>Module</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, nesting, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, autoload, protected_instance_methods, private_method_defined?, freeze, include?, private_instance_methods, extend, protected_method_defined?, public_class_method, id, singleton_methods, autoload?, taint, frozen?, instance_variable_get, to_a, ancestors, display, private_class_method, const_missing, type, &lt;, protected_methods, &lt;=&gt;, instance_methods, method_defined?, &gt;, instance_variable_set, const_get, &gt;=, &lt;=, class_variables, public_instance_methods, tainted?, =~, private_methods, public_method_defined?, untaint, included_modules, const_set</td>
+      </tr>
+      
+      <tr>
+        <td>NameError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, name, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>NilClass</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>NoMemoryError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>NoMethodError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, args, extend, name, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>NotImplementedError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Numeric</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, integer?, public_methods, freeze, truncate, modulo, to_int, extend, id, step, singleton_methods, remainder, taint, nonzero?, frozen?, instance_variable_get, to_a, display, quo, type, protected_methods, instance_variable_set, div, singleton_method_added, tainted?, =~, private_methods, untaint, round</td>
+      </tr>
+      
+      <tr>
+        <td>Object</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Proc</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>arity, clone, public_methods, freeze, extend, id, singleton_methods, binding, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint, []</td>
+      </tr>
+      
+      <tr>
+        <td>Process</td>
+        <td>initgroups, detach, setsid, uid, autoload, protected_instance_methods, private_method_defined?, wait2, uid=, getpgrp, groups, getpriority, gid, include?, private_instance_methods, groups=, protected_method_defined?, getrlimit, waitpid, gid=, public_class_method, setpgrp, maxgroups, setpriority, fork, autoload?, maxgroups=, setrlimit, pid, euid, waitpid2, private_class_method, getpgid, const_missing, &lt;=&gt;, euid=, method_defined?, &gt;, abort, const_get, &gt;=, exit!, waitall, egid, &lt;=, setpgid, times, public_instance_methods, egid=, public_method_defined?, kill, included_modules, wait, const_set, ppid</td>
+        <td></td>
+      </tr>
+      
+      <tr>
+        <td>Range</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>RangeError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Regexp</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, last_match, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, ~, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>RegexpError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>RuntimeError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>ScriptError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>SecurityError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>SignalException</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>StandardError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>String</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>%, collect, []=, oct, all?, clone, entries, chomp, public_methods, upcase, sub!, squeeze, upcase!, crypt, delete!, freeze, detect, zip, lstrip!, center, rindex, map, any?, sort, count, succ!, downcase, min, gsub!, extend, squeeze!, downcase!, next, find_all, each, rstrip!, each_line, id, sub, slice!, singleton_methods, replace, inject, tr, taint, sort_by, unpack, lstrip, frozen?, instance_variable_get, capitalize, max, chop!, capitalize!, scan, select, to_a, display, type, gsub, casecmp, &lt;, protected_methods, partition, tr_s, tr!, &gt;, rstrip, match, grep, instance_variable_set, chomp!, next!, swapcase, swapcase!, ljust, &gt;=, upto, between?, reject, &lt;=, sum, hex, insert, chop, tainted?, private_methods, dump, delete, concat, member?, tr_s!, untaint, succ, find, each_with_index, rjust</td>
+      </tr>
+      
+      <tr>
+        <td>Symbol</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>SyntaxError</td>
+        <td>autoload, protected_instance_methods, exception, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, exception, freeze, message, extend, id, singleton_methods, taint, frozen?, instance_variable_get, backtrace, to_a, display, type, protected_methods, to_str, instance_variable_set, set_backtrace, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>SystemCallError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, errno, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>SystemExit</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, status, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, success?, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>SystemStackError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>ThreadError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>Time</td>
+        <td>mktime, autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, utc, autoload?, private_class_method, const_missing, gm, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, _load, &lt;=, times, local, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>mday, clone, public_methods, wday, freeze, getutc, gmtoff, +, gmt?, to_f, day, -, tv_sec, localtime, min, yday, extend, asctime, gmt_offset, utc, id, mon, singleton_methods, tv_usec, gmtime, taint, frozen?, isdst, instance_variable_get, to_a, sec, _dump, display, utc_offset, type, protected_methods, month, usec, ctime, getlocal, instance_variable_set, hour, tainted?, =~, year, private_methods, dst?, succ, getgm, untaint, zone, utc?</td>
+      </tr>
+      
+      <tr>
+        <td>TrueClass</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>TypeError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>UnboundMethod</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+      <tr>
+        <td>ZeroDivisionError</td>
+        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>clone, public_methods, freeze, extend, id, singleton_methods, taint, frozen?, instance_variable_get, to_a, display, type, protected_methods, instance_variable_set, tainted?, =~, private_methods, untaint</td>
+      </tr>
+      
+    </table>
+
+    <h2>Completed Constants</h2>
+    <ul>
+      
+      <li style="font-weight: bold; color: green">Comparable</li>
+      
+      <li style="font-weight: bold; color: green">Enumerable</li>
+      
+    </ul>
+
 
     <p style="font-size: smaller; font-weight: bold; text-align: center">
     envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa

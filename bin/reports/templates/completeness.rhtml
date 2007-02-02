@@ -10,47 +10,49 @@
 
     <h2>Overview</h2>
 
-    <h3>Complete Classes</h3>
-    <%= percent_bar(classes_pct) %>
-    <p>(<%= "#{classes_done} out of #{total_classes}" %>)</p>
+    <h3>Completed Constants</h3>
+    <%= percent_bar(constants_pct) %>
+    <p>(<%= "#{completed_constants_length} out of #{constants_length}" %>)</p>
 
-    <h3>Class Methods</h3>
-    <%= percent_bar(class_methods_pct) %>
-    <p>(<%= "#{class_methods_done} out of #{total_class_methods}" %>)</p>
+    <h3>Methods</h3>
+    <%= percent_bar(methods_pct) %>
+    <p>(<%= "#{completed_methods_length} out of #{methods_length}" %>)</p>
 
     <h3>Instance Methods</h3>
     <%= percent_bar(instance_methods_pct) %>
-    <p>(<%= "#{instance_methods_done} out of #{total_instance_methods}" %>)</p>
+    <p>(<%= "#{completed_instance_methods_length} out of #{instance_methods_length}" %>)</p>
 
-    <h2>Partially Complete Classes</h2>
+
+    <h2>Unimplemented Constants</h2>
+    <ul>
+      <% for klass in unimplemented_constants %>
+      <li style="font-weight: bold; color: red"><%= klass %></li>
+      <% end %>
+    </ul>
+
+    <h2>Incomplete Constants</h2>
     <table border="1">
       <tr>
-        <th>Class</th>
-        <th>class methods needed</th>
+        <th>Constant</th>
+        <th>methods needed</th>
         <th>instance methods needed</th>
       </tr>
-      <% partially_complete_classes.each do |klass, info| %>
+      <% incomplete_constants.each do |klass, info| %>
       <tr>
         <td><%= klass %></td>
-        <td><%=h info[:class_methods].join(', ') %></td>
-        <td><%=h info[:instance_methods].join(', ') %></td>
+        <td><%=h info[:methods_diff].join(', ') %></td>
+        <td><%=h info[:instance_methods_diff].join(', ') %></td>
       </tr>
       <% end %>
     </table>
 
-    <h2>Complete Classes</h2>
+    <h2>Completed Constants</h2>
     <ul>
-      <% for klass in complete_classes %>
+      <% for klass in completed_constants %>
       <li style="font-weight: bold; color: green"><%= klass %></li>
       <% end %>
     </ul>
 
-    <h2>Un-Implemented Classes</h2>
-    <ul>
-      <% for klass in incomplete_classes %>
-      <li style="font-weight: bold; color: red"><%= klass %></li>
-      <% end %>
-    </ul>
 
     <p style="font-size: smaller; font-weight: bold; text-align: center">
     envisioned by Matthew Elder &lt;sseses@gmail.com&gt; MuHaHaHaHa

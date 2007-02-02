@@ -1,10 +1,7 @@
 # Wooter an html report :) --matt
 
-# get info from my hacky comparison tools
-info = eval `ruby -W0 #{File.dirname(__FILE__) + '/compare_info.rb'}`
-info.each do |key, value|
-  self.class.send(:define_method, key) { value }
-end
+# get info from my refactored comparison tools
+info = Marshal.load(`ruby -W0 #{File.dirname(__FILE__) + '/compare.rb'}`)
 
 # helpers (probably need to make this whole thing way less messy)
 require 'cgi'
@@ -31,19 +28,20 @@ end
 # instance vars... (also .. less messy) lol
 title = 'Rubinius Completeness Report'
 generated = Time.now
-total_classes = total_classes()
-classes_done = complete_classes.length
-classes_pct = classes_done.to_f / total_classes
 
-total_class_methods = mri_class_methods_total
-class_methods_left = class_methods_left()
-class_methods_done = total_class_methods - class_methods_left
-class_methods_pct = 1.0 - class_methods_left.to_f / total_class_methods
+unimplemented_constants = info[:unimplemented_constants]
+incomplete_constants = info[:incomplete_constants]
+completed_constants = info[:completed_constants]
+constants_length = info[:constants_length]
+completed_constants_length = info[:completed_constants_length]
+methods_length = info[:methods_length]
+completed_methods_length = info[:completed_methods_length]
+instance_methods_length = info[:instance_methods_length]
+completed_instance_methods_length = info[:completed_instance_methods_length]
 
-total_instance_methods = mri_instance_methods_total
-instance_methods_left = instance_methods_left()
-instance_methods_done = total_instance_methods - instance_methods_left
-instance_methods_pct = 1.0 - instance_methods_left.to_f / total_instance_methods
+constants_pct = completed_constants_length.to_f / constants_length
+methods_pct = completed_methods_length.to_f / methods_length
+instance_methods_pct = completed_instance_methods_length.to_f / instance_methods_length
 
 # read and run template
 require 'erb'
