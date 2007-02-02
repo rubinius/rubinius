@@ -37,7 +37,7 @@ end
 # module to hold rubinius core namespace
 module Rubinius
   BASE = %w(__ ivar_as_index instance_fields index_reader define_fields to_s
-            class methods instance_methods)
+            class methods instance_methods superclass instance_of?)
   BASE_EXP = Regexp.new('^' + BASE.join('|^'))
 
   module Ruby
@@ -99,9 +99,13 @@ mri_modules = {}
 rubinius_modules = {}
 # use proc so it doesn't add to ObjectSpace
 info = Proc.new do |mod|
+  methods = mod.methods
+  methods -= mod.superclass.methods if mod.instance_of?(Class) and mod.superclass
+  instance_methods = mod.instance_methods
+  instance_methods -= mod.superclass.instance_methods if mod.instance_of?(Class) and mod.superclass
   {:class => mod.class,
-    :methods => mod.methods,
-    :instance_methods => mod.instance_methods}
+   :methods => methods,
+   :instance_methods => instance_methods}
 end
 
 ObjectSpace.each_object(Module) do |mod|
@@ -124,7 +128,7 @@ mri_modules.each do |name, info|
   rbn_info = rubinius_modules[name]
   if rbn_info
     # in ruby Object is the simplest form of "instance" -- its class needs to have its instance methods
-    mri_modules[name][:methods_diff] = (info[:methods] - rbn_info[:methods])
+    mri_modules[name][:methods_diff] = info[:methods] - rbn_info[:methods]
     mri_modules[name][:methods_diff] -= Rubinius::Object.instance_methods
     mri_modules[name][:methods_diff] -= Rubinius::Module.instance_methods
     mri_modules[name][:methods_diff] -= Rubinius::Class.instance_methods
