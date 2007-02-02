@@ -49,7 +49,6 @@ void cpu_bootstrap_exceptions(STATE) {
  */
 
 #ifdef EPERM
-  printf("huhu");
     set_syserr(EPERM, "EPERM");
 #endif
 #ifdef ENOENT
