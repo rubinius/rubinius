@@ -73,5 +73,14 @@ class Module
     self.methods[name.to_sym] = cm
     meth
   end
+  
+  def private(*args)
+  end
+  
+  def protected(*args)
+  end
+  
+  def public(*args)
+  end
 
 end

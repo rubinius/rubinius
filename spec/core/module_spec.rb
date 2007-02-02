@@ -140,3 +140,65 @@ context "Module.define_method" do
   end
   
 end
+
+context "Module" do
+  setup do
+    @src = code do
+      module Moo
+        def a; end
+        def b; end
+      end
+    end
+  end
+  
+  specify "should provide a method private that takes no arguments" do
+    example do
+      module Yauk
+        private
+        def a; end
+      end
+    end.should == nil
+  end
+  
+  specify "should provide a method private that takes multiple arguments" do
+    example(@src) do
+      module Moo
+        private :a, :b, :c
+      end
+    end.should == nil
+  end
+  
+  specify "should provide a method protected that takes no arguments" do
+    example do
+      module Zar
+        protected
+        def a; end
+      end
+    end.should == nil
+  end
+  
+  specify "should provide a method protected that takes multiple arguments" do
+    example(@src) do
+      module Moo
+        protected :a, :b, :c
+      end
+    end.should == nil
+  end
+  
+  specify "should provide a method public that takes no arguments" do
+    example do
+      module Rilsk
+        public
+        def a; end
+      end
+    end.should == nil
+  end
+  
+  specify "should provide a method public that takes multiple arguments" do
+    example(@src) do
+      module Moo
+        public :a, :b, :c
+      end
+    end
+  end
+end

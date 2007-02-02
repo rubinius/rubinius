@@ -157,4 +157,9 @@ class String
   def to_f
     Ruby.primitive :string_to_f
   end
+  
+  def match(pattern)
+    pattern = Regexp.new(pattern) unless Regexp === pattern
+    pattern.match(self)
+  end
 end
