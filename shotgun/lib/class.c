@@ -10,6 +10,15 @@ OBJECT class_new(STATE, char *name, int fields, OBJECT sup) {
   module_setup(state, cls, name);
   return cls;
 }
+OBJECT class_new1(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
+  OBJECT cls;
+  
+  cls = class_allocate(state);
+  class_set_instance_fields(cls, I2N(fields));
+  class_set_superclass(cls, sup);
+  module_setup1(state, cls, name, ns);
+  return cls;
+}
 
 OBJECT class_new_instance(STATE, OBJECT self) {
   int count;

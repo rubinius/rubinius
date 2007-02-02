@@ -18,10 +18,24 @@ void module_setup_name(STATE, OBJECT module, char *name) {
   module_const_set(state, BASIC_CLASS(object), sym, module);
   return;
 }
+void module_setup_name1(STATE, OBJECT module, char *name, OBJECT ns) {
+  OBJECT str, sym;
+  
+  str = string_new(state, name);
+  sym = string_to_sym(state, str);
+  module_set_name(module, sym);
+  module_const_set(state, ns, sym, module);
+  return;
+}
 
 void module_setup(STATE, OBJECT module, char *name) {
   module_setup_fields(state, module);
   module_setup_name(state, module, name);
+  module_setup_fields(state, object_metaclass(state, module));
+}
+void module_setup1(STATE, OBJECT module, char *name, OBJECT ns) {
+  module_setup_fields(state, module);
+  module_setup_name1(state, module, name, ns);
   module_setup_fields(state, object_metaclass(state, module));
 }
 

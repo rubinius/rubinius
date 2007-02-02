@@ -27,6 +27,9 @@ OBJECT rbs_const_get(STATE, OBJECT module, char *name) {
 OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT sup) {
   return class_new(state, name, fields, sup);
 }
+OBJECT rbs_class_new1(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
+  return class_new1(state, name, fields, sup, ns);
+}
 
 OBJECT rbs_symbol_to_string(STATE, OBJECT sym) {
   OBJECT str;
