@@ -34,12 +34,14 @@
     <table border="1">
       <tr>
         <th>Constant</th>
-        <th>methods needed</th>
-        <th>instance methods needed</th>
+        <th>Type</th>
+        <th>Methods needed</th>
+        <th>Instance methods needed</th>
       </tr>
       <% incomplete_constants.each do |klass, info| %>
       <tr>
         <td><%= klass %></td>
+        <td><%= info[:class] %></td>
         <td><%=h info[:methods_diff].join(', ') %></td>
         <td><%=h info[:instance_methods_diff].join(', ') %></td>
       </tr>
