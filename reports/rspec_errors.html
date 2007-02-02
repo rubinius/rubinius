@@ -6,105 +6,27 @@
   </head>
   <body>
     <h1>Make RSpec work on Rubinius Report</h1>
-    <div>Generated on Fri Feb 02 02:49:17 -0800 2007.</div>
+    <div>Generated on Fri Feb 02 02:55:51 -0800 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Working Files</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 30px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 34px; text-align: right; color: #000000; background: #00f000">
       </td>
-    <td style="width: 170px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;15%</td>
+    <td style="width: 166px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;17%</td>
   </tr>
 </table>
 
-    <p>(20 out of 132)</p>
+    <p>(10 out of 58)</p>
 
     <h2>Non-Working Files</h2>
     <table border="1">
       <tr>
         <th>File</th>
         <th>Error</th>
-      </tr>
-      
-      <tr>
-        <td>lib/.svn/props/spec.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/.svn/props/mocks.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/.svn/props/version.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/.svn/props/expectations.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/.svn/props/callback.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/.svn/props/runner.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
       </tr>
       
       <tr>
@@ -423,58 +345,6 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/.svn/props/errors.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/.svn/props/should.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/.svn/props/message_builder.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/.svn/props/extensions.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/expectations/diff.rb</td>
         <td>WARNING: 'define?' does not yet handle class variables.
 An exception has occured:
@@ -788,61 +658,6 @@ Couldn't find spec/expectations/should/base.rb in runtime/compiler.rba (No such 
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/expectations/should/base' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/should.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/expectations/should/base.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/expectations/should/base.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/should/.svn/props/change.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/should/.svn/props/not.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/should/.svn/props/should.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/expectations/should/change.rb</td>
         <td>An exception has occured:
     No method 'private' on an instance of Class. (NoMethodError)
@@ -857,12 +672,6 @@ Backtrace:
                                   main.load at core/compile.rb:56
                             main.__script__ at core/__loader.rb:58
 Couldn't find constant Base.
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/should/should.rb</td>
-        <td>Couldn't find constant Base.
 </td>
       </tr>
       
@@ -925,12 +734,6 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/not.rb</td>
-        <td>Couldn't find constant Base.
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/expectations/should/base.rb</td>
         <td>An exception has occured:
     Unknown set argument '~' (RuntimeError)
@@ -977,92 +780,6 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/expectations/should/change.rb</td>
-        <td>An exception has occured:
-    No method 'private' on an instance of Class. (NoMethodError)
-
-Backtrace:
-    Should::Change.private (method_missing) at bootstrap/method_missing.rb:8
-              Should::Change.__class_init__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:52
-                     Should.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:4
-               Expectations.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:3
-                       Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:2
-                            main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/should/change.rb:1
-                                  main.load at core/compile.rb:56
-                            main.__script__ at core/__loader.rb:58
-Couldn't find constant Base.
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/expectations/extensions/object' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/extensions.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/expectations/extensions/object.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/expectations/extensions/object.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions/.svn/props/numeric.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions/.svn/props/object.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions/.svn/props/proc.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions/.svn/props/string.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/expectations/extensions/numeric.rb</td>
         <td>An exception has occured:
     No method 'private' on an instance of Module. (NoMethodError)
@@ -1086,99 +803,36 @@ Couldn't find constant UnderscoreSugar.
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7d4ceef &lt;??&gt; at ??:0
-0xb7d44db7 &lt;??&gt; at ??:0
+0xb7de6eef &lt;??&gt; at ??:0
+0xb7ddedb7 &lt;??&gt; at ??:0
  0x8057192 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d378c8 &lt;??&gt; at ??:0
+0xb7dd18c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
        0x4 &lt;??&gt; at ??:0
 
 Ruby backtrace:
-0xb7c98978 Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7c9890c IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7c98840 Class#new+62 in bootstrap/class.rb
-0xb7c987d0 Module#include+34 in bootstrap/02module.rb
-0xb7c98168 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c9652c Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c8b640 Kernel#load+635 in core/compile.rb
-0xb7c8887c Class#__script__+668 in core/__loader.rb
+0xb7d32978 Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7d3290c IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7d32840 Class#new+62 in bootstrap/class.rb
+0xb7d327d0 Module#include+34 in bootstrap/02module.rb
+0xb7d32168 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7d3052c Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7d25640 Kernel#load+635 in core/compile.rb
+0xb7d2287c Class#__script__+668 in core/__loader.rb
 
 Ruby stack:
-  78    &lt;String:0xb7c8c120&gt;/home/mae/projects/r...xtensions/object.rbc
+  78    &lt;String:0xb7d26120&gt;/home/mae/projects/r...xtensions/object.rbc
   79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7c8cf3c&gt;
+  80    &lt;CompiledMethod:0xb7d26f3c&gt;
   81    &lt;NilClass:0x4&gt;
   82    &lt;TrueClass:0x2&gt;
   83 =&gt; Object
   84    &lt;NilClass:0x4&gt;
   85    &lt;Fixnum:0x1&gt;
-  86    &lt;IncludedModule:0xb7c988dc&gt;
-  87    &lt;Fixnum:0x5&gt;
-
-VM Registers:
-IP: 0016     SP: 0083
-AC: 0000     AR: 0001
-Exception: &lt;NilClass:0x4&gt;
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions/numeric.rb</td>
-        <td>An exception has occured:
-    No method 'private' on an instance of Module. (NoMethodError)
-
-Backtrace:
-    NumericExpectations.private (method_missing) at bootstrap/method_missing.rb:8
-         NumericExpectations.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:9
-                Expectations.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:3
-                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:2
-                             main.__script__ at externals/rspec-0.7.5/lib/spec/expectations/extensions/numeric.rb:1
-                                   main.load at core/compile.rb:56
-                             main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations/extensions/object.rb</td>
-        <td>rubinius: instructions.gen:48: cpu_run: Assertion `({ unsigned long _i = (unsigned long)t2; _i &gt; 10 &amp;&amp; ((_i &amp; 1L) == 0L); })' failed.
-Couldn't find constant UnderscoreSugar.
-
-An error has occured: Software abort (SIGABRT)
-
-C backtrace:
-0xb7d33eef &lt;??&gt; at ??:0
-0xb7d2bdb7 &lt;??&gt; at ??:0
- 0x8057192 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
- 0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
- 0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
- 0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d1e8c8 &lt;??&gt; at ??:0
- 0x8049ffd &lt;_start&gt; at ??:0
-       0x4 &lt;??&gt; at ??:0
-
-Ruby backtrace:
-0xb7c7f978 Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7c7f90c IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7c7f840 Class#new+62 in bootstrap/class.rb
-0xb7c7f7d0 Module#include+34 in bootstrap/02module.rb
-0xb7c7f168 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c7d52c Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c72640 Kernel#load+635 in core/compile.rb
-0xb7c6f87c Class#__script__+668 in core/__loader.rb
-
-Ruby stack:
-  78    &lt;String:0xb7c73120&gt;/home/mae/projects/r...xtensions/object.rbc
-  79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7c73f3c&gt;
-  81    &lt;NilClass:0x4&gt;
-  82    &lt;TrueClass:0x2&gt;
-  83 =&gt; Object
-  84    &lt;NilClass:0x4&gt;
-  85    &lt;Fixnum:0x1&gt;
-  86    &lt;IncludedModule:0xb7c7f8dc&gt;
+  86    &lt;IncludedModule:0xb7d328dc&gt;
   87    &lt;Fixnum:0x5&gt;
 
 VM Registers:
@@ -1247,45 +901,6 @@ Backtrace:
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
                              main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/mocks/.svn/props/message_expectation.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/mocks/.svn/props/errors.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/mocks/.svn/props/order_group.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
@@ -1469,67 +1084,11 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/errors.rb</td>
-        <td>sh: Syntax error: &quot;(&quot; unexpected
-Couldn't find constant Expectations.
-
-An error has occured: Segmentation fault (SIGSEGV)
-
-C backtrace:
- 0x8052ac3 &lt;cpu_const_get&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu.c:317
- 0x8057f6d &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:172
- 0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
- 0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
- 0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d1f8c8 &lt;??&gt; at ??:0
- 0x8049ffd &lt;_start&gt; at ??:0
-     (nil) &lt;&gt; at 
-
-Ruby backtrace:
-0xb7c772e4 Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7c76d14 Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7c7658c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7c73630 Kernel#load+635 in core/compile.rb
-0xb7c7086c Class#__script__+668 in core/__loader.rb
-
-Ruby stack:
-  79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7c74f1c&gt;
-  81    &lt;NilClass:0x4&gt;
-  82    &lt;TrueClass:0x2&gt;
-  83    &lt;Module:0xb7c765f4&gt;
-  84 =&gt; &lt;Module:0xb7c76d7c&gt;
-  85    &lt;NilClass:0x4&gt;
-  86    &lt;Module:0xb7c76d7c&gt;
-  87    &lt;NilClass:0x4&gt;
-  88    &lt;CompiledMethod:0xb7c5cdb0&gt;
-
-VM Registers:
-IP: 0012     SP: 0084
-AC: 0000     AR: 0001
-Exception: &lt;NilClass:0x4&gt;
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/mocks/mock_handler.rb</td>
         <td>Timed out (infinite loop?)</td>
       </tr>
       
       <tr>
-        <td>lib/spec/mocks/extensions/.svn/props/object.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/mocks/extensions/object.rb</td>
         <td>sh: Syntax error: &quot;(&quot; unexpected
 Couldn't find constant Spec.
@@ -1542,68 +1101,26 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d658c8 &lt;??&gt; at ??:0
+0xb7d3e8c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
      (nil) &lt;&gt; at 
 
 Ruby backtrace:
-0xb7cbbf9c Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7cbbf34 Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7cb9638 Kernel#load+635 in core/compile.rb
-0xb7cb6874 Class#__script__+668 in core/__loader.rb
+0xb7c94f9c Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7c94f34 Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7c92638 Kernel#load+635 in core/compile.rb
+0xb7c8f874 Class#__script__+668 in core/__loader.rb
 
 Ruby stack:
-  78    &lt;String:0xb7cba118&gt;/home/mae/projects/r...xtensions/object.rbc
+  78    &lt;String:0xb7c93118&gt;/home/mae/projects/r...xtensions/object.rbc
   79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7cbafa8&gt;
+  80    &lt;CompiledMethod:0xb7c93fa8&gt;
   81    &lt;NilClass:0x4&gt;
   82    &lt;TrueClass:0x2&gt;
   83 =&gt; Object
   84    &lt;NilClass:0x4&gt;
   85    Object
-  86    &lt;CompiledMethod:0xb7ca2db8&gt;
-  87    &lt;NilClass:0x4&gt;
-
-VM Registers:
-IP: 0012     SP: 0083
-AC: 0000     AR: 0001
-Exception: &lt;NilClass:0x4&gt;
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/mocks/extensions/object.rb</td>
-        <td>sh: Syntax error: &quot;(&quot; unexpected
-Couldn't find constant Spec.
-
-An error has occured: Segmentation fault (SIGSEGV)
-
-C backtrace:
- 0x8052ac3 &lt;cpu_const_get&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu.c:317
- 0x8057f6d &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:172
- 0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
- 0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
- 0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7da38c8 &lt;??&gt; at ??:0
- 0x8049ffd &lt;_start&gt; at ??:0
-     (nil) &lt;&gt; at 
-
-Ruby backtrace:
-0xb7cf9f9c Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7cf9f34 Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7cf7638 Kernel#load+635 in core/compile.rb
-0xb7cf4874 Class#__script__+668 in core/__loader.rb
-
-Ruby stack:
-  78    &lt;String:0xb7cf8118&gt;/home/mae/projects/r...xtensions/object.rbc
-  79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7cf8fa8&gt;
-  81    &lt;NilClass:0x4&gt;
-  82    &lt;TrueClass:0x2&gt;
-  83 =&gt; Object
-  84    &lt;NilClass:0x4&gt;
-  85    Object
-  86    &lt;CompiledMethod:0xb7ce0db8&gt;
+  86    &lt;CompiledMethod:0xb7c7bdb8&gt;
   87    &lt;NilClass:0x4&gt;
 
 VM Registers:
@@ -1670,64 +1187,33 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d968c8 &lt;??&gt; at ??:0
+0xb7d798c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
      (nil) &lt;&gt; at 
 
 Ruby backtrace:
-0xb7cee2e4 Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7cedd14 Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7ced58c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7cea630 Kernel#load+635 in core/compile.rb
-0xb7ce786c Class#__script__+668 in core/__loader.rb
+0xb7cd12e4 Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7cd0d14 Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7cd058c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7ccd630 Kernel#load+635 in core/compile.rb
+0xb7cca86c Class#__script__+668 in core/__loader.rb
 
 Ruby stack:
   79    &lt;NilClass:0x4&gt;
-  80    &lt;CompiledMethod:0xb7cebf1c&gt;
+  80    &lt;CompiledMethod:0xb7ccef1c&gt;
   81    &lt;NilClass:0x4&gt;
   82    &lt;TrueClass:0x2&gt;
-  83    &lt;Module:0xb7ced5f4&gt;
-  84 =&gt; &lt;Module:0xb7cedd7c&gt;
+  83    &lt;Module:0xb7cd05f4&gt;
+  84 =&gt; &lt;Module:0xb7cd0d7c&gt;
   85    &lt;NilClass:0x4&gt;
-  86    &lt;Module:0xb7cedd7c&gt;
+  86    &lt;Module:0xb7cd0d7c&gt;
   87    &lt;NilClass:0x4&gt;
-  88    &lt;CompiledMethod:0xb7cd3db0&gt;
+  88    &lt;CompiledMethod:0xb7cb6db0&gt;
 
 VM Registers:
 IP: 0012     SP: 0084
 AC: 0000     AR: 0001
 Exception: &lt;NilClass:0x4&gt;
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/mocks.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/mocks/mock_methods' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/mocks.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/mocks/mock_methods.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/mocks/mock_methods.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/version.rb</td>
-        <td>An exception has occured:
-    No method 'match' on an instance of String. (NoMethodError)
-
-Backtrace:
-    String#match (method_missing) at bootstrap/method_missing.rb:8
-          VERSION.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:8
-             Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/version.rb:2
-                  main.__script__ at externals/rspec-0.7.5/lib/spec/version.rb:1
-                        main.load at core/compile.rb:56
-                  main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
@@ -1780,34 +1266,6 @@ Backtrace:
                         Compile.compile_file at core/compile.rb:8
                                    main.load at core/compile.rb:52
                              main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/callback/extensions/.svn/props/module.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/callback/extensions/module.rb</td>
-        <td>An exception has occured:
-    No method 'private' on an instance of Module. (NoMethodError)
-
-Backtrace:
-    ModuleMethods.private (method_missing) at bootstrap/method_missing.rb:8
-             ModuleMethods.__module_init__ at externals/rspec-0.7.5/lib/spec/callback/extensions/module.rb:11
-                  Callback.__module_init__ at externals/rspec-0.7.5/lib/spec/callback/extensions/module.rb:2
-                           main.__script__ at externals/rspec-0.7.5/lib/spec/callback/extensions/module.rb:1
-                                 main.load at core/compile.rb:56
-                           main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
@@ -1879,22 +1337,6 @@ Couldn't find spec/callback/callback_container.rb in runtime/compiler.rba (No su
       </tr>
       
       <tr>
-        <td>lib/spec/callback.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/callback/callback_container' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/callback.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/callback/callback_container.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/callback/callback_container.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/runner.rb</td>
         <td>An exception has occured:
     Unable to find 'spec/runner/formatter' to load (LoadError)
@@ -1907,123 +1349,6 @@ Backtrace:
     main.__script__ at core/__loader.rb:58
 Couldn't find spec/runner/formatter.rbc in runtime/compiler.rba (No such file/-1)
 Couldn't find spec/runner/formatter.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/spec_should_raise_handler.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/command_line.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/option_parser.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/context_runner.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/formatter.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/execution_context.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/specification.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/drb_command_line.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/.svn/props/reporter.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
 </td>
       </tr>
       
@@ -2269,39 +1594,6 @@ Backtrace:
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
                              main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/specification.rb</td>
-        <td>An exception has occured:
-    No method 'attr_accessor' on an instance of Module. (NoMethodError)
-
-Backtrace:
-    ClassMethods.attr_accessor (method_missing) at bootstrap/method_missing.rb:8
-                ClassMethods.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:5
-        Runner::Specification.__class_init__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:4
-                      Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:3
-                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:2
-                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/specification.rb:1
-                                   main.load at core/compile.rb:56
-                             main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/option_parser.rb</td>
-        <td>An exception has occured:
-    Unable to find 'ostruct' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/option_parser.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find ostruct.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find ostruct.rb in runtime/compiler.rba (No such file/-1)
 </td>
       </tr>
       
@@ -2631,58 +1923,6 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/runner/formatter/.svn/props/specdoc_formatter.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/.svn/props/rdoc_formatter.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/.svn/props/progress_bar_formatter.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/.svn/props/base_text_formatter.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/runner/formatter/rdoc_formatter.rb</td>
         <td>Couldn't find constant BaseTextFormatter.
 </td>
@@ -2690,41 +1930,6 @@ Backtrace:
       
       <tr>
         <td>lib/spec/runner/formatter/progress_bar_formatter.rb</td>
-        <td>Couldn't find constant BaseTextFormatter.
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/rdoc_formatter.rb</td>
-        <td>Couldn't find constant BaseTextFormatter.
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/progress_bar_formatter.rb</td>
-        <td>Couldn't find constant BaseTextFormatter.
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/base_text_formatter.rb</td>
-        <td>An exception has occured:
-    No method 'protected' on an instance of Class. (NoMethodError)
-
-Backtrace:
-    Formatter::BaseTextFormatter.protected (method_missing) at bootstrap/method_missing.rb:8
-    Formatter::BaseTextFormatter.__class_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:92
-                   Formatter.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:7
-                      Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:3
-                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:2
-                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter/base_text_formatter.rb:1
-                                   main.load at core/compile.rb:56
-                             main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter/specdoc_formatter.rb</td>
         <td>Couldn't find constant BaseTextFormatter.
 </td>
       </tr>
@@ -2941,32 +2146,6 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/runner/extensions/.svn/props/object.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/extensions/.svn/props/kernel.rb</td>
-        <td>An exception has occured:
-    Primitive file_to_sexp failed. (ArgumentError)
-
-Backtrace:
-            File.to_sexp at :0
-    Compile.compile_file at core/compile.rb:4
-               main.load at core/compile.rb:52
-         main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/runner/extensions/kernel.rb</td>
         <td>An exception has occured:
     Unable to find 'spec/runner/extensions/object' to load (LoadError)
@@ -2979,38 +2158,6 @@ Backtrace:
     main.__script__ at core/__loader.rb:58
 Couldn't find spec/runner/extensions/object.rbc in runtime/compiler.rba (No such file/-1)
 Couldn't find spec/runner/extensions/object.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/extensions/kernel.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/runner/extensions/object' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/extensions/kernel.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/runner/extensions/object.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/runner/extensions/object.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/formatter.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/runner/formatter/base_text_formatter' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/formatter.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/runner/formatter/base_text_formatter.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/runner/formatter/base_text_formatter.rb in runtime/compiler.rba (No such file/-1)
 </td>
       </tr>
       
@@ -3336,63 +2483,6 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>lib/spec/runner/drb_command_line.rb</td>
-        <td>An exception has occured:
-    Unable to find 'drb/drb' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner/drb_command_line.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find drb/drb.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find drb/drb.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/context_runner.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/version' to load (LoadError)
-
-Backtrace:
-               main.raise at bootstrap/04kernel.rb:23
-             main.require at core/compile.rb:91
-          main.__script__ at ./externals/rspec-0.7.5/lib/spec/runner/../../spec.rb:1
-                main.load at core/compile.rb:43
-             main.require at core/compile.rb:87
-    BlockEnvironment#call at bootstrap/context.rb:94
-               Array#each at bootstrap/array.rb:24
-             main.require at core/compile.rb:87
-    BlockEnvironment#call at bootstrap/context.rb:94
-               Array#each at bootstrap/array.rb:24
-             main.require at core/compile.rb:87
-          main.__script__ at externals/rspec-0.7.5/lib/spec/runner/context_runner.rb:1
-                main.load at core/compile.rb:56
-          main.__script__ at core/__loader.rb:58
-Couldn't find spec/version.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner/reporter.rb</td>
-        <td>An exception has occured:
-    No method 'private' on an instance of Class. (NoMethodError)
-
-Backtrace:
-    Runner::Reporter.private (method_missing) at bootstrap/method_missing.rb:8
-             Runner::Reporter.__class_init__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:49
-                      Runner.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:3
-                        Spec.__module_init__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:2
-                             main.__script__ at externals/rspec-0.7.5/lib/spec/runner/reporter.rb:1
-                                   main.load at core/compile.rb:56
-                             main.__script__ at core/__loader.rb:58
-</td>
-      </tr>
-      
-      <tr>
         <td>lib/spec/expectations.rb</td>
         <td>An exception has occured:
     Unable to find 'spec/expectations/sugar' to load (LoadError)
@@ -3405,38 +2495,6 @@ Backtrace:
     main.__script__ at core/__loader.rb:58
 Couldn't find spec/expectations/sugar.rbc in runtime/compiler.rba (No such file/-1)
 Couldn't find spec/expectations/sugar.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/expectations.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/expectations/sugar' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/expectations.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/expectations/sugar.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/expectations/sugar.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
-      <tr>
-        <td>lib/spec/runner.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/runner/formatter' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at externals/rspec-0.7.5/lib/spec/runner.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/runner/formatter.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/runner/formatter.rb in runtime/compiler.rba (No such file/-1)
 </td>
       </tr>
       
@@ -3471,22 +2529,6 @@ Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
 </td>
       </tr>
       
-      <tr>
-        <td>lib/spec.rb</td>
-        <td>An exception has occured:
-    Unable to find 'spec/version' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at ./externals/rspec-0.7.5/lib/spec/runner/../../spec.rb:1
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find spec/version.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
-</td>
-      </tr>
-      
     </table>
 
     <h2>Working Files</h2>
@@ -3494,15 +2536,7 @@ Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
       
       <li style="font-weight: bold; color: green">lib/spec/expectations/message_builder.rb</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/expectations/errors.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/expectations/message_builder.rb</li>
-      
       <li style="font-weight: bold; color: green">lib/spec/expectations/extensions/string.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/expectations/extensions/string.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/expectations/extensions/proc.rb</li>
       
       <li style="font-weight: bold; color: green">lib/spec/expectations/extensions/proc.rb</li>
       
@@ -3512,21 +2546,9 @@ Couldn't find spec/version.rb in runtime/compiler.rba (No such file/-1)
       
       <li style="font-weight: bold; color: green">lib/spec/mocks/message_expectation.rb</li>
       
-      <li style="font-weight: bold; color: green">lib/spec/mocks/order_group.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/mocks/message_expectation.rb</li>
-      
       <li style="font-weight: bold; color: green">lib/spec/runner/command_line.rb</li>
       
       <li style="font-weight: bold; color: green">lib/spec/runner/execution_context.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/runner/command_line.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/runner/spec_should_raise_handler.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/runner/execution_context.rb</li>
-      
-      <li style="font-weight: bold; color: green">lib/spec/runner/extensions/object.rb</li>
       
       <li style="font-weight: bold; color: green">lib/spec/runner/extensions/object.rb</li>
       

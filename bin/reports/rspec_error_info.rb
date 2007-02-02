@@ -1,5 +1,5 @@
 require 'timeout'
-files = `find #{File.dirname(__FILE__)}/../../externals/rspec-0.7.5/lib -type f`.scan(/.+\.rb/)
+files = `find #{File.dirname(__FILE__)}/../../externals/rspec-0.7.5/lib -type f`.scan(/^[^.].+?\.rb$/)
 
 results = files.map do |path|
   begin
