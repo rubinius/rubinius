@@ -6,6 +6,10 @@ require 'test/unit'
 # $:.unshift(File.dirname(__FILE__) + '/../lib')
 # require 'machine'
 
+
+# This must be fixed to protect against changing directories
+$rubinius_path = File.expand_path(File.dirname(__FILE__) + '/../') 
+
 class RubiniusTargetError < RuntimeError; end
 
 module RubiniusTarget
@@ -124,7 +128,9 @@ CODE
   end
   
   def rubinius_path
-    File.expand_path(File.dirname(__FILE__) + '/..')
+# This vas causing problems
+#    File.expand_path(File.dirname(__FILE__) + '/..')
+    $rubinius_path
   end
 
   def cache_path
