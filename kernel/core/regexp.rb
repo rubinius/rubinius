@@ -41,6 +41,16 @@ class Regexp
 
   alias_method :==, :eql?
 
+  def hash
+    str = '/' << source << '/' << option_to_string(options)
+    if options & KCODE_MASK == 0
+      str << 'n'
+    else
+      str << kcode[0,1]
+    end
+    str.hash
+  end
+
   def inspect
     '/' << source << '/' << option_to_string(options) << kcode[0,1]
   end
@@ -109,6 +119,7 @@ class Regexp
     string << ':' << pattern[idx..endpt] << ')'
   end
 
+  # private functions
   def get_option_string_length(string)
     idx = 0
     while idx < string.length do
@@ -129,3 +140,70 @@ class Regexp
   end
 
 end
+
+class MatchData
+
+  def [](idx, len = nil)
+    if idx.is_a?(Integer)
+      idx += self.length if idx < 0
+      if len.nil?
+        if idx >= 0 && idx <= self.length
+          x = self.begin(idx)
+          y = self.end(idx)
+          return @source[x...y]
+        else
+          return nil
+        end
+      else
+        if idx >=0 && idx < self.length
+          return get_match_array(0)[idx, len]
+        else
+          return nil
+        end
+      end
+    elsif idx.respond_to?(:first) && idx.respond_to?(:last)
+      return get_match_array(0)[idx]
+    end
+    return nil
+  end
+
+  def captures
+    return get_match_array(1)
+  end
+
+  def inspect
+    self[0]
+  end
+
+  def select(*index)
+    out = Array.new
+    if index.is_a?(Array)
+      index.each do |idx|
+        out << self[idx]
+      end
+    end
+    return out
+  end
+
+  alias_method :size, :length
+
+  def to_a
+    return get_match_array(0)
+  end
+
+  alias_method :to_s, :inspect
+
+  # private functions
+  def get_match_array(start)
+    out  = Array.new
+    last = self.length
+    (start...last).each do |i|
+      x = self.begin(i)
+      y = self.end(i)
+      out << @source[x...y]
+    end
+    return out
+  end
+
+end
+

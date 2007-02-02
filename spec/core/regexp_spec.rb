@@ -109,6 +109,17 @@ context "Regexp instance method" do
     end.should == true
   end
 
+  specify "hash is based on the text and options of Regexp" do
+    example do
+      [
+      /cat/ix.hash == /cat/ixn.hash,
+      /dog/m.hash  == /dog/m.hash,
+      /cat/.hash   == /cat/ix.hash,
+      /cat/.hash   == /dog/.hash
+      ]
+    end.should == [true, true, false, false]
+  end
+
   specify "inspect should produce a formatted string" do
     example do
       [/ab+c/ix.inspect, /a(.)+s/n.inspect]
