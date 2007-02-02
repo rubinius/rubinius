@@ -113,7 +113,8 @@ module Bytecode
       :find_method,
       :bignum_left_shift,
       :bignum_right_shift,
-      :bignum_divmod
+      :bignum_divmod,
+      :regexp_options
     ]
 
     FirstRuntimePrimitive = 1024

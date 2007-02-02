@@ -284,11 +284,7 @@ module Bytecode
       def process_regex(x)
         str = x.shift
         opt = x.shift
-        if opt
-          add "push true"
-        else
-          add "push false"
-        end
+        add "push #{opt}"
         cnt = @method.add_literal str
         add "push_literal #{cnt}"
         add "push Regexp"

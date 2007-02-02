@@ -1028,6 +1028,13 @@ class ShotgunPrimitives
     }
     CODE
   end
+
+  def regexp_options
+    <<-CODE
+    self = stack_pop();
+    stack_push(regexp_options(state, self));
+    CODE
+  end
   
   def gc_start
     <<-CODE

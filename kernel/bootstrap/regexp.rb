@@ -1,12 +1,45 @@
 class Regexp
+
+  ValidKcode = [?n,?e,?s,?u]
+  KcodeValue = [16,32,48,64]
+
+  IGNORECASE  = 1
+  EXTENDED    = 2
+  MULTILINE   = 4
+  OPTION_MASK = 7
+
+  KCODE_ASCII = 0
+  KCODE_NONE  = 16
+  KCODE_EUC   = 32
+  KCODE_SJIS  = 48
+  KCODE_UTF8  = 64
+  KCODE_MASK  = 112
+
   class << self
-    def new(str, opts=false)
-      create(str, opts)
+    def new(arg, opts=nil, lang=nil)
+     if arg.is_a?(Regexp)
+        opts = arg.options
+        arg  = arg.source
+      elsif opts.is_a?(Fixnum)
+          opts = opts & (OPTION_MASK | KCODE_MASK)
+      elsif opts
+        opts = IGNORECASE
+      else
+        opts = 0
+      end
+
+      if !lang.nil? && !opts.nil? && lang.is_a?(String)
+        opts &= OPTION_MASK
+        idx   = ValidKcode.index(lang[0])
+        opts |= KcodeValue[idx] if idx
+      end
+
+      __regexp_new__(arg, opts)
     end
-    
+
     alias :compile :new
 
-    def create(str, opts)
+    def __regexp_new__(str, opts)
       Ruby.primitive :regexp_new
     end
 

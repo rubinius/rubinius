@@ -3,6 +3,19 @@
 #include "tuple.h"
 #include "string.h"
 
+
+#define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
+#define OPTION_EXTENDED   ONIG_OPTION_EXTEND
+#define OPTION_MULTILINE  ONIG_OPTION_MULTILINE
+#define OPTION_MASK       (OPTION_IGNORECASE|OPTION_EXTENDED|OPTION_MULTILINE)
+
+#define KCODE_ASCII       0
+#define KCODE_NONE        16
+#define KCODE_EUC         32
+#define KCODE_SJIS        48
+#define KCODE_UTF8        64
+#define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
+
 void regexp_init(STATE) {
   onig_init();
 }
@@ -36,6 +49,41 @@ static int _gather_names(const UChar *name, const UChar *name_end,
   return 0;
 }
 
+OnigEncoding get_enc_from_kcode(int kcode)
+{
+  OnigEncoding r;
+
+  r = ONIG_ENCODING_ASCII;
+  switch (kcode) {
+    case KCODE_NONE:
+      r = ONIG_ENCODING_ASCII;
+      break;
+    case KCODE_EUC:
+      r = ONIG_ENCODING_EUC_JP;
+      break;
+    case KCODE_SJIS:
+      r = ONIG_ENCODING_SJIS;
+      break;
+    case KCODE_UTF8:
+      r = ONIG_ENCODING_UTF8;
+      break;
+    }
+    return r;
+}
+
+
+int get_kcode_from_enc(OnigEncoding enc)
+{
+  int r;
+
+  r = KCODE_ASCII;
+  if (enc == ONIG_ENCODING_ASCII)  r = KCODE_NONE;
+  if (enc == ONIG_ENCODING_EUC_JP) r = KCODE_EUC;
+  if (enc == ONIG_ENCODING_SJIS)   r = KCODE_SJIS;
+  if (enc == ONIG_ENCODING_UTF8)   r = KCODE_UTF8;
+  return r;
+}
+
 OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
   regex_t **reg;
   const UChar *pat;
@@ -43,7 +91,8 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
   OBJECT o_regdata, o_reg, o_names;
   OnigErrorInfo err_info;
   OnigOptionType opts;
-  int err, num_names;
+  OnigEncoding enc;
+  int err, num_names, kcode;
   
   pat = (UChar*)string_byte_address(state, pattern);
   end = pat + FIXNUM_TO_INT(string_get_bytes(pattern));
@@ -55,14 +104,14 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
      pointer to the real regex structure. */
      
   NEW_STRUCT(o_regdata, reg, BASIC_CLASS(regexpdata), regex_t*);
-  
-  opts = ONIG_OPTION_NONE;
-  if(options == Qtrue) {
-    opts |= ONIG_OPTION_MULTILINE;
-  }
+
+  opts  = FIXNUM_TO_INT(options);
+  kcode = opts & KCODE_MASK;
+  enc   = get_enc_from_kcode(kcode);
+  opts &= OPTION_MASK;
   
   err = onig_new(reg, pat, end, 
-      opts, ONIG_ENCODING_ASCII, ONIG_SYNTAX_RUBY, &err_info); 
+      opts, enc, ONIG_SYNTAX_RUBY, &err_info); 
     
   /* FIXME: error detection! */
   if(err != ONIG_NORMAL) {
@@ -84,6 +133,19 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
     regexp_set_names(o_reg, o_names);
   }
   return o_reg;
+}
+
+OBJECT regexp_options(STATE, OBJECT regexp)
+{
+  OnigEncoding   enc;
+  OnigOptionType option;
+  regex_t*       reg;
+
+  reg    = REG(regexp_get_data(regexp));
+  option = onig_get_options(reg);
+  enc    = onig_get_encoding(reg);
+
+  return I2N((int)(option & OPTION_MASK) | get_kcode_from_enc(enc));
 }
 
 void regexp_cleanup(STATE, OBJECT regexp) {

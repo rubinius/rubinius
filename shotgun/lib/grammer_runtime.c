@@ -609,6 +609,7 @@ again_no_block:
           array_push(current, ID2SYM(node->u2.id));
       }
       */
+      /* array_push(current, I2N(node->nd_cnt)); */
       array_push(current, gstring2rubinius(state, node->nd_str));
       while (list) {
 	      if (list->nd_head) {
@@ -771,6 +772,7 @@ again_no_block:
   case NODE_REGEX:
   case NODE_MATCH:
     array_push(current, gstring2rubinius(state, node->nd_str));
+    array_push(current, I2N(node->nd_cnt));
     break;
   case NODE_LIT:
     array_push(current, ID2SYM(node->nd_lit));
