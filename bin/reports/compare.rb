@@ -66,7 +66,10 @@ module Rubinius
   end
 
   class Numeric < Object; end
+  class Float < Numeric; end
   class Integer < Numeric; end
+  class Fixnum < Integer; end
+  class Bignum < Integer; end
 end
 
 

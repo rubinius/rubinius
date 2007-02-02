@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Make RSpec work on Rubinius Report</h1>
-    <div>Generated on Fri Feb 02 03:24:12 -0800 2007.</div>
+    <div>Generated on Fri Feb 02 03:27:43 -0800 2007.</div>
 
     <h2>Overview</h2>
 
@@ -60,36 +60,36 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d398c8 &lt;??&gt; at ??:0
+0xb7dd98c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
 0xff0a0000 &lt;??&gt; at ??:0
 
 Ruby backtrace:
-0xb7c05430 Class#compile_file+31 in core/compile.rb
-0xb7c05548 Kernel#load+573 in core/compile.rb
+0xb7ca5430 Class#compile_file+31 in core/compile.rb
+0xb7ca5548 Kernel#load+573 in core/compile.rb
 Skipping Block Context
-0xb7c057b4 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7c058b0 Array#each+72 in bootstrap/array.rb
+0xb7ca57b4 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7ca58b0 Array#each+72 in bootstrap/array.rb
 Skipping Block Context
-0xb7c05ac4 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7c05cdc Array#each+72 in bootstrap/array.rb
-0xb7c0591c Kernel#require+479 in core/compile.rb
-0xb7c05a44 Class#__eval_script__+52 in (eval)
-0xb7c05b5c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
-0xb7a0751c Class#execute+59 in core/compile.rb
-0xb7b0100c Class#__script__+412 in core/__loader.rb
+0xb7ca5ac4 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7ca5cdc Array#each+72 in bootstrap/array.rb
+0xb7ca591c Kernel#require+479 in core/compile.rb
+0xb7ca5a44 Class#__eval_script__+52 in (eval)
+0xb7ca5b5c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb7aa751c Class#execute+59 in core/compile.rb
+0xb7ba100c Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  86    &lt;String:0xb7c056e4&gt;/home/mae/projects/r...pec/rake/spectask.rb
+  86    &lt;String:0xb7ca56e4&gt;/home/mae/projects/r...pec/rake/spectask.rb
   87    &lt;NilClass:0x4&gt;
-  88    &lt;Array:0xb7ae0408&gt;
-  89    &lt;String:0xb7c05820&gt;/home/mae/projects/r...ec/rake/spectask.rbc
+  88    &lt;Array:0xb7b80408&gt;
+  89    &lt;String:0xb7ca5820&gt;/home/mae/projects/r...ec/rake/spectask.rbc
   90    &lt;NilClass:0x4&gt;
   91 =&gt; &lt;FalseClass:(nil)&gt;
   92    &lt;TrueClass:0x2&gt;
-  93    &lt;String:0xb7c056e4&gt;/home/mae/projects/r...pec/rake/spectask.rb
+  93    &lt;String:0xb7ca56e4&gt;/home/mae/projects/r...pec/rake/spectask.rb
   94    File
-  95    &lt;String:0xb7ae04a8&gt;runtime/compiler.rba
+  95    &lt;String:0xb7b804a8&gt;runtime/compiler.rba
 
 VM Registers:
 IP: 0051     SP: 0091
@@ -842,46 +842,46 @@ Couldn't find constant UnderscoreSugar.
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7d0deef &lt;??&gt; at ??:0
-0xb7d05db7 &lt;??&gt; at ??:0
+0xb7d65eef &lt;??&gt; at ??:0
+0xb7d5ddb7 &lt;??&gt; at ??:0
  0x8057192 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7cf88c8 &lt;??&gt; at ??:0
+0xb7d508c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
  0x807af33 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
 
 Ruby backtrace:
-0xb7bba328 Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7bba2bc IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7bba1f0 Class#new+62 in bootstrap/class.rb
-0xb7bba180 Module#include+34 in bootstrap/02module.rb
-0xb7bb9b18 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7bb8094 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7babf2c Kernel#load+191 in core/compile.rb
+0xb7c12328 Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7c122bc IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7c121f0 Class#new+62 in bootstrap/class.rb
+0xb7c12180 Module#include+34 in bootstrap/02module.rb
+0xb7c11b18 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c10094 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c03f2c Kernel#load+191 in core/compile.rb
 Skipping Block Context
-0xb7ba7dcc BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7ba7cf4 Array#each+72 in bootstrap/array.rb
+0xb7bffdcc BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7bffcf4 Array#each+72 in bootstrap/array.rb
 Skipping Block Context
-0xb7ba7b3c BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7ba7a64 Array#each+72 in bootstrap/array.rb
-0xb7ba7264 Kernel#require+479 in core/compile.rb
-0xb7ba6fdc Class#__eval_script__+52 in (eval)
-0xb7ba6e20 CompiledMethod#activate+79 in bootstrap/compiled_method.rb
-0xb79c6530 Class#execute+59 in core/compile.rb
-0xb7ac0008 Class#__script__+412 in core/__loader.rb
+0xb7bffb3c BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7bffa64 Array#each+72 in bootstrap/array.rb
+0xb7bff264 Kernel#require+479 in core/compile.rb
+0xb7bfefdc Class#__eval_script__+52 in (eval)
+0xb7bfee20 CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb7a1e530 Class#execute+59 in core/compile.rb
+0xb7b18008 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  87    &lt;Array:0xb7a9f3f4&gt;
-  88    &lt;CompiledMethod:0xb7bac48c&gt;
+  87    &lt;Array:0xb7af73f4&gt;
+  88    &lt;CompiledMethod:0xb7c0448c&gt;
   89    &lt;NilClass:0x4&gt;
   90    &lt;NilClass:0x4&gt;
   91    &lt;TrueClass:0x2&gt;
   92 =&gt; Object
   93    &lt;NilClass:0x4&gt;
   94    &lt;Fixnum:0x1&gt;
-  95    &lt;IncludedModule:0xb7bba28c&gt;
+  95    &lt;IncludedModule:0xb7c1228c&gt;
   96    &lt;Fixnum:0x5&gt;
 
 VM Registers:
@@ -899,55 +899,55 @@ Couldn't find constant UnderscoreSugar.
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7d83eef &lt;??&gt; at ??:0
-0xb7d7bdb7 &lt;??&gt; at ??:0
+0xb7ddbeef &lt;??&gt; at ??:0
+0xb7dd3db7 &lt;??&gt; at ??:0
  0x8057192 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d6e8c8 &lt;??&gt; at ??:0
+0xb7dc68c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
  0x807af33 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
 
 Ruby backtrace:
-0xb7c35eec Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7c35e80 IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7c35db4 Class#new+62 in bootstrap/class.rb
-0xb7c35d44 Module#include+34 in bootstrap/02module.rb
-0xb7c356dc Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c33c58 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c27af0 Kernel#load+191 in core/compile.rb
+0xb7c8deec Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7c8de80 IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7c8ddb4 Class#new+62 in bootstrap/class.rb
+0xb7c8dd44 Module#include+34 in bootstrap/02module.rb
+0xb7c8d6dc Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c8bc58 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c7faf0 Kernel#load+191 in core/compile.rb
 Skipping Block Context
-0xb7c23534 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7c2345c Array#each+72 in bootstrap/array.rb
+0xb7c7b534 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c7b45c Array#each+72 in bootstrap/array.rb
 Skipping Block Context
-0xb7c232a4 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7c231cc Array#each+72 in bootstrap/array.rb
-0xb7c229cc Kernel#require+479 in core/compile.rb
-0xb7c22910 Class#__script__+16 in externals/rspec-0.7.5/lib/spec/expectations/extensions.rb
-0xb7c21ed8 Kernel#load+191 in core/compile.rb
+0xb7c7b2a4 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c7b1cc Array#each+72 in bootstrap/array.rb
+0xb7c7a9cc Kernel#require+479 in core/compile.rb
+0xb7c7a910 Class#__script__+16 in externals/rspec-0.7.5/lib/spec/expectations/extensions.rb
+0xb7c79ed8 Kernel#load+191 in core/compile.rb
 Skipping Block Context
-0xb7c1dd80 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7c1dca8 Array#each+72 in bootstrap/array.rb
+0xb7c75d80 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c75ca8 Array#each+72 in bootstrap/array.rb
 Skipping Block Context
-0xb7c1daf0 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7c1da18 Array#each+72 in bootstrap/array.rb
-0xb7c1d25c Kernel#require+479 in core/compile.rb
-0xb7c1cfd8 Class#__eval_script__+52 in (eval)
-0xb7c1ce1c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
-0xb7a3c530 Class#execute+59 in core/compile.rb
-0xb7b36000 Class#__script__+412 in core/__loader.rb
+0xb7c75af0 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c75a18 Array#each+72 in bootstrap/array.rb
+0xb7c7525c Kernel#require+479 in core/compile.rb
+0xb7c74fd8 Class#__eval_script__+52 in (eval)
+0xb7c74e1c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb7a94530 Class#execute+59 in core/compile.rb
+0xb7b8e000 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  99    &lt;Array:0xb7b153f4&gt;
- 100    &lt;CompiledMethod:0xb7c28050&gt;
+  99    &lt;Array:0xb7b6d3f4&gt;
+ 100    &lt;CompiledMethod:0xb7c80050&gt;
  101    &lt;NilClass:0x4&gt;
  102    &lt;NilClass:0x4&gt;
  103    &lt;TrueClass:0x2&gt;
  104 =&gt; Object
  105    &lt;NilClass:0x4&gt;
  106    &lt;Fixnum:0x1&gt;
- 107    &lt;IncludedModule:0xb7c35e50&gt;
+ 107    &lt;IncludedModule:0xb7c8de50&gt;
  108    &lt;Fixnum:0x5&gt;
 
 VM Registers:
@@ -1240,36 +1240,36 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d208c8 &lt;??&gt; at ??:0
+0xb7de68c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
      (nil) &lt;&gt; at 
 
 Ruby backtrace:
-0xb7bd4b04 Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7bd4a9c Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7bd3ed8 Kernel#load+191 in core/compile.rb
+0xb7c9ab04 Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7c9aa9c Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7c99ed8 Kernel#load+191 in core/compile.rb
 Skipping Block Context
-0xb7bcfd80 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7bcfca8 Array#each+72 in bootstrap/array.rb
+0xb7c95d80 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c95ca8 Array#each+72 in bootstrap/array.rb
 Skipping Block Context
-0xb7bcfaf0 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7bcfa18 Array#each+72 in bootstrap/array.rb
-0xb7bcf25c Kernel#require+479 in core/compile.rb
-0xb7bcefd8 Class#__eval_script__+52 in (eval)
-0xb7bcee1c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
-0xb79ee530 Class#execute+59 in core/compile.rb
-0xb7ae8000 Class#__script__+412 in core/__loader.rb
+0xb7c95af0 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7c95a18 Array#each+72 in bootstrap/array.rb
+0xb7c9525c Kernel#require+479 in core/compile.rb
+0xb7c94fd8 Class#__eval_script__+52 in (eval)
+0xb7c94e1c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb7ab4530 Class#execute+59 in core/compile.rb
+0xb7bae000 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  87    &lt;Array:0xb7ac73f4&gt;
-  88    &lt;CompiledMethod:0xb7bd4438&gt;
+  87    &lt;Array:0xb7b8d3f4&gt;
+  88    &lt;CompiledMethod:0xb7c9a438&gt;
   89    &lt;NilClass:0x4&gt;
   90    &lt;NilClass:0x4&gt;
   91    &lt;TrueClass:0x2&gt;
   92 =&gt; Object
   93    &lt;NilClass:0x4&gt;
   94    Object
-  95    &lt;String:0xb7bd4228&gt;.rbc
+  95    &lt;String:0xb7c9a228&gt;.rbc
   96    &lt;Fixnum:0x2d&gt;
 
 VM Registers:
@@ -1346,36 +1346,36 @@ C backtrace:
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d308c8 &lt;??&gt; at ??:0
+0xb7cf48c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
      (nil) &lt;&gt; at 
 
 Ruby backtrace:
-0xb7be6bfc Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7be662c Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7be605c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7be3c34 Kernel#load+191 in core/compile.rb
+0xb7baabfc Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7baa62c Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7baa05c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7ba7c34 Kernel#load+191 in core/compile.rb
 Skipping Block Context
-0xb7bdfae8 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7bdfa10 Array#each+72 in bootstrap/array.rb
+0xb7ba3ae8 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7ba3a10 Array#each+72 in bootstrap/array.rb
 Skipping Block Context
-0xb7bdf858 BlockEnvironment#call+91 in bootstrap/context.rb
-0xb7bdf780 Array#each+72 in bootstrap/array.rb
-0xb7bdefc0 Kernel#require+479 in core/compile.rb
-0xb7bded48 Class#__eval_script__+52 in (eval)
-0xb7bdeb8c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
-0xb79fe51c Class#execute+59 in core/compile.rb
-0xb7af800c Class#__script__+412 in core/__loader.rb
+0xb7ba3858 BlockEnvironment#call+91 in bootstrap/context.rb
+0xb7ba3780 Array#each+72 in bootstrap/array.rb
+0xb7ba2fc0 Kernel#require+479 in core/compile.rb
+0xb7ba2d48 Class#__eval_script__+52 in (eval)
+0xb7ba2b8c CompiledMethod#activate+79 in bootstrap/compiled_method.rb
+0xb79c251c Class#execute+59 in core/compile.rb
+0xb7abc00c Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
-  88    &lt;CompiledMethod:0xb7be4194&gt;
+  88    &lt;CompiledMethod:0xb7ba8194&gt;
   89    &lt;NilClass:0x4&gt;
   90    &lt;NilClass:0x4&gt;
   91    &lt;TrueClass:0x2&gt;
-  92    &lt;Module:0xb7be60c4&gt;
-  93 =&gt; &lt;Module:0xb7be6694&gt;
+  92    &lt;Module:0xb7baa0c4&gt;
+  93 =&gt; &lt;Module:0xb7baa694&gt;
   94    &lt;NilClass:0x4&gt;
-  95    &lt;Module:0xb7be6694&gt;
+  95    &lt;Module:0xb7baa694&gt;
   96    &lt;Fixnum:0x2d&gt;
   97    &lt;NilClass:0x4&gt;
 

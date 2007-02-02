@@ -379,7 +379,7 @@ end
 task :report => 'report:all' # default
 namespace :report do
   desc "Build all reports"
-  task :all => [:completeness]
+  task :all => [:completeness, :rspec_errors]
 
   desc "Build completeness report"
   task :completeness do
@@ -387,7 +387,7 @@ namespace :report do
   end
 
   desc "Build completeness report"
-  task :completeness do
+  task :rspec_errors do
     run_report(:rspec_errors)
   end
 
