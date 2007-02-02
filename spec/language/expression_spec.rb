@@ -193,4 +193,13 @@ context "for expression" do
   # for name[, name]... in expr [do]
   #   body
   # end
+  specify "should iterate over the collection passing each element to the block" do
+    example do
+      @j = 0
+      for @i in 1..3
+        @j += @i
+      end
+      @j
+    end.should == 6
+  end
 end

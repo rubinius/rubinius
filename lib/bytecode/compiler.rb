@@ -973,6 +973,14 @@ module Bytecode
         end
       end
 
+      def process_for(x)
+        enum = x.shift
+       lasgn = x.shift
+       block = x.shift
+        block = [:block, block] if block.first != :block
+       process_iter [[:call, enum, :each, [:array]], lasgn, block]
+      end
+      
       def do_resbody(x, rr, fin)
         x.shift
         cond = x.shift
