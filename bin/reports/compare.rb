@@ -180,19 +180,27 @@ constants_length = mri_modules.length
 
 completed_constants_length = completed_constants.length
 
+# rough estimation -- not *exact*
 methods_length = mri_modules.
-  map {|name, info| info[:methods].length }.sum
+  map {|name, info| info[:methods].length - Object.methods.length }.sum +
+  Object.methods.length
 
+# rough estimation -- not *exact*
 completed_methods_length = completed_constants.
-  map {|name| mri_modules[name][:methods].length }.sum +
-  incomplete_constants.map {|name, info| info[:methods].length }.sum
+  map {|name| mri_modules[name][:methods].length - Object.methods.length }.sum +
+  incomplete_constants.map {|name, info| info[:methods].length - Object.methods.length }.sum +
+  Object.methods.length
 
+# rough estimation -- not *exact*
 instance_methods_length = mri_modules.
-  map {|name, info| info[:instance_methods].length }.sum
+  map {|name, info| info[:instance_methods].length - Array(info[:inherited_instance_methods]).length }.sum
 
+# rough estimation -- not *exact*
 completed_instance_methods_length = completed_constants.
-  map {|name| mri_modules[name][:instance_methods].length }.sum +
-  incomplete_constants.map {|name, info| info[:instance_methods].length }.sum
+  map {|name| mod = mri_modules[name]; mod[:instance_methods].length -
+  Array(mod[:inherited_instance_methods]).length }.sum +
+  incomplete_constants.map {|name, info| info[:instance_methods].length -
+  Array(info[:inherited_instance_methods]).length }.sum
 
 puts Marshal.dump({
   :unimplemented_constants => unimplemented_constants.sort,
