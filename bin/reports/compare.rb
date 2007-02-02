@@ -65,7 +65,8 @@ module Rubinius
     end
   end
 
-  class Numeric < Object; end
+  # descendency hints
+  class Numeric < ::Rubinius::Object; end
   class Float < Numeric; end
   class Integer < Numeric; end
   class Fixnum < Integer; end
@@ -103,12 +104,18 @@ rubinius_modules = {}
 # use proc so it doesn't add to ObjectSpace
 info = Proc.new do |mod|
   methods = mod.methods
-  methods -= mod.superclass.methods if mod.instance_of?(Class) and mod.superclass
   instance_methods = mod.instance_methods
-  instance_methods -= mod.superclass.instance_methods if mod.instance_of?(Class) and mod.superclass
+  inherited_instance_methods =
+
+  # if class then specify inherited methods
+  if mod.instance_of?(Class) and mod.superclass
+    inherited_instance_methods = mod.superclass.instance_methods
+  end
+
   {:class => mod.class,
    :methods => methods,
-   :instance_methods => instance_methods}
+   :instance_methods => instance_methods,
+   :inherited_instance_methods => inherited_instance_methods}
 end
 
 ObjectSpace.each_object(Module) do |mod|
@@ -131,11 +138,23 @@ mri_modules.each do |name, info|
   rbn_info = rubinius_modules[name]
   if rbn_info
     # in ruby Object is the simplest form of "instance" -- its class needs to have its instance methods
-    mri_modules[name][:methods_diff] = info[:methods] - rbn_info[:methods]
-    mri_modules[name][:methods_diff] -= Rubinius::Object.instance_methods
-    mri_modules[name][:methods_diff] -= Rubinius::Module.instance_methods
-    mri_modules[name][:methods_diff] -= Rubinius::Class.instance_methods
-    mri_modules[name][:instance_methods_diff] = info[:instance_methods] - rbn_info[:instance_methods]
+    mri_modules[name][:methods_diff] = info[:methods]
+    mri_modules[name][:methods_diff] -= rbn_info[:methods]
+    # we want to know diff for low level classes but not for all others
+    if ['Object', 'Module'].include?(name)
+      mri_modules[name][:methods_diff] -= Rubinius::Object.instance_methods
+      mri_modules[name][:methods_diff] -= Rubinius::Module.instance_methods
+    else
+      mri_modules[name][:methods_diff] -= Object.methods
+      mri_modules[name][:methods_diff] -= Module.methods
+    end
+    mri_modules[name][:methods_diff].sort!
+
+    mri_modules[name][:instance_methods_diff] = info[:instance_methods]
+    mri_modules[name][:instance_methods_diff] -= rbn_info[:instance_methods]
+    mri_modules[name][:instance_methods_diff] -= Array(info[:inherited_instance_methods])
+    mri_modules[name][:instance_methods_diff] -= Array(rbn_info[:inherited_instance_methods])
+    mri_modules[name][:instance_methods_diff].sort!
   end
 end
 
@@ -186,4 +205,3 @@ puts Marshal.dump({
   :instance_methods_length => instance_methods_length,
   :completed_instance_methods_length => completed_instance_methods_length
 })
-

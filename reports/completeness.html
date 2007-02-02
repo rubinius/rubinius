@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Rubinius Completeness Report</h1>
-    <div>Generated on Fri Feb 02 03:28:36 -0800 2007.</div>
+    <div>Generated on Fri Feb 02 05:02:47 -0800 2007.</div>
 
     <h2>Overview</h2>
 
@@ -25,26 +25,26 @@
     <h3>Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 86px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 60px; text-align: right; color: #000000; background: #00f000">
       </td>
-    <td style="width: 114px; text-align: left; color: #ffffff; background: #e00000">
-      &nbsp;&nbsp;43%</td>
+    <td style="width: 140px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;30%</td>
   </tr>
 </table>
 
-    <p>(706 out of 1639)</p>
+    <p>(4736 out of 15798)</p>
 
     <h3>Instance Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 173px; text-align: right; color: #000000; background: #00f000">
-      87%&nbsp;&nbsp;</td>
-    <td style="width: 27px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 68px; text-align: right; color: #000000; background: #00f000">
       </td>
+    <td style="width: 132px; text-align: left; color: #ffffff; background: #e00000">
+      &nbsp;&nbsp;34%</td>
   </tr>
 </table>
 
-    <p>(717 out of 828)</p>
+    <p>(3357 out of 9943)</p>
 
 
     <h2>Unimplemented Constants</h2>
@@ -344,73 +344,66 @@
       </tr>
       
       <tr>
-        <td>Array</td>
-        <td>Class</td>
-        <td></td>
-        <td>at</td>
-      </tr>
-      
-      <tr>
         <td>Bignum</td>
         <td>Class</td>
         <td></td>
-        <td>%, &amp;, *, +, -, /, size, |, ^, **, []</td>
+        <td>size</td>
       </tr>
       
       <tr>
         <td>File</td>
         <td>Class</td>
-        <td>executable?, link, blockdev?, extname, executable_real?, symlink, chardev?, zero?, readlink, exist?, setuid?, fnmatch, size?, split, utime, setgid?, delete, owned?, rename, readable?, chmod, fnmatch?, sticky?, grpowned?, umask, size, readable_real?, chown, identical?, truncate, pipe?, expand_path, writable?, lchmod, lstat, symlink?, writable_real?, join, lchown, ftype, socket?</td>
-        <td>flock, chmod, truncate, atime, path, chown, mtime, ctime, lstat</td>
+        <td>blockdev?, chardev?, chmod, chown, delete, executable?, executable_real?, exist?, expand_path, extname, fnmatch, fnmatch?, for_fd, foreach, ftype, grpowned?, identical?, join, lchmod, lchown, link, lstat, owned?, pipe?, popen, read, readable?, readable_real?, readlines, readlink, rename, select, setgid?, setuid?, size, size?, socket?, split, sticky?, symlink, symlink?, sysopen, truncate, umask, utime, writable?, writable_real?, zero?</td>
+        <td>atime, chmod, chown, ctime, flock, lstat, mtime, path, truncate</td>
       </tr>
       
       <tr>
         <td>File::Stat</td>
         <td>Class</td>
         <td></td>
-        <td>directory?, symlink?, ftype, uid, writable?, setgid?, blksize, dev_minor, size?, zero?, gid, size, socket?, atime, writable_real?, blocks, sticky?, ino, owned?, blockdev?, mtime, rdev, executable?, grpowned?, mode, &lt;, &lt;=&gt;, &gt;, readable?, chardev?, ctime, rdev_major, dev, executable_real?, &gt;=, between?, &lt;=, nlink, pipe?, readable_real?, rdev_minor, setuid?, file?, dev_major</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, &gt;, &gt;=, atime, between?, blksize, blockdev?, blocks, chardev?, ctime, dev, dev_major, dev_minor, directory?, executable?, executable_real?, file?, ftype, gid, grpowned?, ino, mode, mtime, nlink, owned?, pipe?, rdev, rdev_major, rdev_minor, readable?, readable_real?, setgid?, setuid?, size, size?, socket?, sticky?, symlink?, uid, writable?, writable_real?, zero?</td>
       </tr>
       
       <tr>
         <td>Fixnum</td>
         <td>Class</td>
         <td></td>
-        <td>%, &amp;, *, +, -, /, |, id2name, ^, **, to_sym, []</td>
+        <td>id2name, to_sym</td>
       </tr>
       
       <tr>
         <td>Float</td>
         <td>Class</td>
         <td></td>
-        <td>%, prec_i, *, +, -, prec_f, /, **, prec</td>
+        <td>prec, prec_f, prec_i</td>
       </tr>
       
       <tr>
         <td>GC</td>
         <td>Module</td>
-        <td>autoload, protected_instance_methods, private_method_defined?, enable, include?, private_instance_methods, protected_method_defined?, public_class_method, disable, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, class_variables, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>disable, enable</td>
         <td>garbage_collect</td>
       </tr>
       
       <tr>
         <td>IO</td>
         <td>Class</td>
-        <td>read, sysopen, readlines, for_fd, popen, select, open, foreach</td>
-        <td>collect, lineno=, ungetc, all?, close_write, entries, fileno, print, ioctl, read_nonblock, detect, zip, readlines, flush, map, getc, isatty, any?, to_io, sort, include?, min, putc, eof?, fcntl, write_nonblock, find_all, each, each_line, reopen, inject, tell, sort_by, fsync, max, puts, rewind, pid, select, readpartial, each_byte, stat, syswrite, tty?, partition, seek, binmode, grep, pos, gets, readchar, reject, pos=, close_read, sysread, printf, sysseek, member?, find, lineno, each_with_index, readline, eof, to_i</td>
+        <td>for_fd, foreach, open, popen, read, readlines, select, sysopen</td>
+        <td>all?, any?, binmode, close_read, close_write, collect, detect, each, each_byte, each_line, each_with_index, entries, eof, eof?, fcntl, fileno, find, find_all, flush, fsync, getc, gets, grep, include?, inject, ioctl, isatty, lineno, lineno=, map, max, member?, min, partition, pid, pos, pos=, printf, putc, read_nonblock, readchar, readline, readlines, readpartial, reject, reopen, rewind, seek, select, sort, sort_by, stat, sysread, sysseek, syswrite, tell, to_i, to_io, tty?, ungetc, write_nonblock, zip</td>
       </tr>
       
       <tr>
         <td>Integer</td>
         <td>Class</td>
         <td></td>
-        <td>prec_i, prec_f, next, prec, succ</td>
+        <td>next, prec, prec_f, prec_i, succ</td>
       </tr>
       
       <tr>
         <td>Kernel</td>
         <td>Module</td>
-        <td>chomp, fail, sleep, sub!, srand, iterator?, readlines, getc, split, caller, putc, gsub!, rand, test, block_given?, sub, loop, exec, syscall, String, fork, sprintf, binding, chop!, scan, trace_var, select, global_variables, warn, `, gsub, open, Array, format, proc, abort, chomp!, gets, eval, trap, untrace_var, local_variables, exit!, system, chop, printf, readline, set_trace_func</td>
-        <td>instance_of?, instance_variables, method, to_s, dup, private_methods, object_id, __id__, =~, send, class, tainted?, singleton_methods, eql?, untaint, kind_of?, id, instance_variable_get, inspect, nil?, taint, frozen?, public_methods, extend, instance_eval, to_a, __send__, display, clone, protected_methods, hash, freeze, is_a?, ==, instance_variable_set, type, respond_to?, ===, equal?, methods</td>
+        <td>Array, Float, Integer, String, `, abort, at_exit, binding, block_given?, callcc, caller, catch, chomp, chomp!, chop, chop!, eval, exec, exit, exit!, fail, fork, format, getc, gets, global_variables, gsub, gsub!, iterator?, lambda, load, local_variables, loop, method_missing, open, p, print, printf, proc, putc, puts, raise, rand, readline, readlines, require, scan, select, set_trace_func, sleep, split, sprintf, srand, sub, sub!, syscall, system, test, throw, trace_var, trap, untrace_var, warn</td>
+        <td>==, ===, =~, __id__, __send__, class, clone, display, dup, eql?, equal?, extend, freeze, frozen?, hash, id, inspect, instance_eval, instance_of?, instance_variable_get, instance_variable_set, instance_variables, is_a?, kind_of?, method, methods, nil?, object_id, private_methods, protected_methods, public_methods, respond_to?, send, singleton_methods, taint, tainted?, to_a, to_s, type, untaint</td>
       </tr>
       
       <tr>
@@ -438,14 +431,14 @@
         <td>Method</td>
         <td>Class</td>
         <td></td>
-        <td>to_proc, []</td>
+        <td>[], to_proc</td>
       </tr>
       
       <tr>
         <td>Module</td>
         <td>Class</td>
-        <td>nesting</td>
-        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, ancestors, private_class_method, const_missing, &lt;, &lt;=&gt;, instance_methods, method_defined?, &gt;, const_get, &gt;=, &lt;=, class_variables, public_instance_methods, public_method_defined?, included_modules, const_set</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, =~, &gt;, &gt;=, allocate, ancestors, autoload, autoload?, clone, const_get, const_missing, const_set, display, extend, freeze, frozen?, id, include?, included_modules, instance_variable_get, instance_variable_set, method_defined?, nesting, private_class_method, private_instance_methods, private_method_defined?, private_methods, protected_instance_methods, protected_method_defined?, protected_methods, public_class_method, public_instance_methods, public_method_defined?, public_methods, singleton_methods, taint, tainted?, to_a, type, untaint</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, &gt;, &gt;=, ancestors, autoload, autoload?, class_variables, const_get, const_missing, const_set, include?, included_modules, instance_methods, method_defined?, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
       </tr>
       
       <tr>
@@ -466,27 +459,27 @@
         <td>Numeric</td>
         <td>Class</td>
         <td></td>
-        <td>integer?, truncate, modulo, to_int, step, remainder, nonzero?, quo, div, singleton_method_added, round</td>
+        <td>div, integer?, modulo, nonzero?, quo, remainder, round, singleton_method_added, step, to_int, truncate</td>
       </tr>
       
       <tr>
         <td>Object</td>
         <td>Class</td>
-        <td>autoload, protected_instance_methods, private_method_defined?, include?, private_instance_methods, protected_method_defined?, public_class_method, autoload?, private_class_method, const_missing, &lt;=&gt;, method_defined?, &gt;, const_get, &gt;=, &lt;=, class_variables, public_instance_methods, public_method_defined?, included_modules, const_set</td>
-        <td>inspect, send, clone, public_methods, __send__, equal?, freeze, define_fields, methods, instance_eval, dup, instance_variables, extend, instance_of?, eql?, hash, id, singleton_methods, taint, frozen?, instance_variable_get, kind_of?, ivar_as_index, method, to_a, display, type, protected_methods, ==, ===, instance_variable_set, is_a?, respond_to?, to_s, instance_fields=, class, object_id, tainted?, =~, private_methods, __id__, nil?, untaint, index_reader</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, =~, &gt;, &gt;=, allocate, ancestors, autoload, autoload?, clone, const_get, const_missing, const_set, display, extend, freeze, frozen?, id, include?, included_modules, instance_variable_get, instance_variable_set, method_defined?, new, private_class_method, private_instance_methods, private_method_defined?, private_methods, protected_instance_methods, protected_method_defined?, protected_methods, public_class_method, public_instance_methods, public_method_defined?, public_methods, singleton_methods, taint, tainted?, to_a, type, untaint</td>
+        <td></td>
       </tr>
       
       <tr>
         <td>Proc</td>
         <td>Class</td>
         <td></td>
-        <td>arity, binding, []</td>
+        <td>[], arity, binding</td>
       </tr>
       
       <tr>
         <td>Process</td>
         <td>Module</td>
-        <td>initgroups, detach, setsid, uid, autoload, protected_instance_methods, private_method_defined?, wait2, uid=, getpgrp, groups, getpriority, gid, include?, private_instance_methods, groups=, protected_method_defined?, getrlimit, waitpid, gid=, public_class_method, setpgrp, maxgroups, setpriority, fork, autoload?, maxgroups=, setrlimit, pid, euid, waitpid2, private_class_method, getpgid, const_missing, &lt;=&gt;, euid=, method_defined?, &gt;, abort, const_get, &gt;=, exit!, waitall, egid, &lt;=, class_variables, setpgid, times, public_instance_methods, egid=, public_method_defined?, kill, included_modules, wait, const_set, ppid</td>
+        <td>abort, detach, egid, egid=, euid, euid=, exit!, fork, getpgid, getpgrp, getpriority, getrlimit, gid, gid=, groups, groups=, initgroups, kill, maxgroups, maxgroups=, pid, ppid, setpgid, setpgrp, setpriority, setrlimit, setsid, times, uid, uid=, wait, wait2, waitall, waitpid, waitpid2</td>
         <td></td>
       </tr>
       
@@ -501,7 +494,14 @@
         <td>String</td>
         <td>Class</td>
         <td></td>
-        <td>%, collect, []=, oct, all?, entries, chomp, upcase, sub!, squeeze, upcase!, crypt, delete!, detect, zip, lstrip!, center, rindex, map, any?, sort, count, succ!, downcase, min, gsub!, squeeze!, downcase!, next, find_all, each, rstrip!, each_line, sub, slice!, replace, inject, tr, sort_by, unpack, lstrip, capitalize, max, chop!, capitalize!, scan, select, gsub, casecmp, &lt;, partition, tr_s, tr!, &gt;, rstrip, match, grep, chomp!, next!, swapcase, swapcase!, ljust, &gt;=, upto, between?, reject, &lt;=, sum, hex, insert, chop, dump, delete, concat, member?, tr_s!, succ, find, each_with_index, rjust</td>
+        <td>%, &lt;, &lt;=, &gt;, &gt;=, []=, all?, any?, between?, capitalize, capitalize!, casecmp, center, chomp, chomp!, chop, chop!, collect, concat, count, crypt, delete, delete!, detect, downcase, downcase!, dump, each, each_line, each_with_index, entries, find, find_all, grep, gsub, gsub!, hex, inject, insert, ljust, lstrip, lstrip!, map, match, max, member?, min, next, next!, oct, partition, reject, replace, rindex, rjust, rstrip, rstrip!, scan, select, slice!, sort, sort_by, squeeze, squeeze!, sub, sub!, succ, succ!, sum, swapcase, swapcase!, tr, tr!, tr_s, tr_s!, unpack, upcase, upcase!, upto, zip</td>
+      </tr>
+      
+      <tr>
+        <td>SyntaxError</td>
+        <td>Class</td>
+        <td>exception</td>
+        <td></td>
       </tr>
       
       <tr>
@@ -521,8 +521,8 @@
       <tr>
         <td>Time</td>
         <td>Class</td>
-        <td>mktime, utc, gm, _load, times, local</td>
-        <td>mday, wday, getutc, gmtoff, +, gmt?, to_f, day, -, tv_sec, localtime, min, yday, asctime, gmt_offset, utc, mon, tv_usec, gmtime, isdst, sec, _dump, utc_offset, month, usec, ctime, getlocal, hour, year, dst?, succ, getgm, zone, utc?</td>
+        <td>_load, gm, local, mktime, times, utc</td>
+        <td>+, -, _dump, asctime, ctime, day, dst?, getgm, getlocal, getutc, gmt?, gmt_offset, gmtime, gmtoff, hour, isdst, localtime, mday, min, mon, month, sec, succ, to_f, tv_sec, tv_usec, usec, utc, utc?, utc_offset, wday, yday, year, zone</td>
       </tr>
       
     </table>
@@ -531,6 +531,8 @@
     <ul>
       
       <li style="font-weight: bold; color: green">ArgumentError</li>
+      
+      <li style="font-weight: bold; color: green">Array</li>
       
       <li style="font-weight: bold; color: green">Class</li>
       
@@ -581,8 +583,6 @@
       <li style="font-weight: bold; color: green">StandardError</li>
       
       <li style="font-weight: bold; color: green">Symbol</li>
-      
-      <li style="font-weight: bold; color: green">SyntaxError</li>
       
       <li style="font-weight: bold; color: green">SystemStackError</li>
       
