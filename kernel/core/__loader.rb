@@ -39,7 +39,6 @@ begin
       puts "Compiled #{file} to #{path}"
     when '-e'
       out = Compile.execute ARGV.shift
-      puts "\nOutput: #{out.inspect}"
     else
       if arg.prefix? "-I"
         arg[2..-1].split(":").each do |path|
