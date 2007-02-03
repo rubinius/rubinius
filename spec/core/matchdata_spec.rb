@@ -98,10 +98,16 @@ context "MatchData instance method" do
     end.should == ["T","T"]
   end
 
-  specify "select([index]*) should return an array of the matching value" do
+  specify "values_at([index]*) should return an array of the matching value" do
     example do
-      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").select(0, 2, -2)
+      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0, 2, -2)
     end.should == ["HX1138", "X", "113"]
+  end
+
+  specify "select (depreciated) should yield the contents of the match array to a block" do
+    example do
+       /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").select { |x| x }
+    end.should == ["HX1138", "H", "X", "113", "8"]
   end
 
   specify "string should return a frozen copy of the match string" do

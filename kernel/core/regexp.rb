@@ -175,14 +175,14 @@ class MatchData
     self[0]
   end
 
-  def select(*index)
-    out = Array.new
-    if index.is_a?(Array)
-      index.each do |idx|
-        out << self[idx]
+  def select
+    if block_given?
+      get_match_array(0).each do |m|
+        yield(m)
       end
+    else
+      # TODO This method requires a block raise exception
     end
-    return out
   end
 
   alias_method :size, :length
@@ -192,6 +192,16 @@ class MatchData
   end
 
   alias_method :to_s, :inspect
+
+  def values_at(*index)
+    out = Array.new
+    if index.is_a?(Array)
+      index.each do |idx|
+        out << self[idx]
+      end
+    end
+    return out
+  end
 
   # private functions
   def get_match_array(start)
