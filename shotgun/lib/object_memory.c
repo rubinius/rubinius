@@ -32,9 +32,9 @@ void _stats() {
 int object_memory_actual_omsize() {
     int omsize = OMDefaultSize;
     char *s = getenv("RUBINIUS_OMSIZE");
-    if (s) {
+    if(s) {
         omsize = atoi(s);
-        printf("OMSize set to: %d\n", omsize);
+        /* fprintf(stderr, "OMSize set to: %d\n", omsize); */
     }
     assert(omsize > 0);         /* general sanity */
     assert((omsize & 7) == 0);  /* alignment */
