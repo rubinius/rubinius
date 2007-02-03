@@ -90,11 +90,7 @@ end
 
 class BlockEnvironment
   def call(*args)
-    if args.total == 1
-      execute args.tuple.at(0) # [0] -> this should be unified with some compiler work
-    else
-      execute args.tuple
-    end
+    execute args.tuple
   end
   
   def execute(args)

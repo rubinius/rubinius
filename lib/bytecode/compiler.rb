@@ -1384,6 +1384,7 @@ module Bytecode
         args = x.shift
         body = x.shift
         kind = cl.shift
+        args = [:masgn, [:array, args]] unless !args or args[0] == :masgn # temporary fix
         iter = [:block_iter, args, body]
         if kind == :call
           process_call cl, iter
