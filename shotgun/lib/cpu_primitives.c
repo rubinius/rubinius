@@ -53,7 +53,11 @@ struct time_data {
 #define INTEGER_P(obj) (FIXNUM_P(obj) || BIGNUM_P(obj))
 #define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
 
-#define STRING_P(obj) (RISA(obj, string))
+#define CLASS_P(obj) RISA(obj, class)
+#define IO_P(obj) RISA(obj, io)
+#define STRING_P(obj) RISA(obj, string)
+#define HASH_P(obj) RISA(obj, hash)
+
 
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {
   int _ret = TRUE;

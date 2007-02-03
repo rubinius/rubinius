@@ -258,10 +258,11 @@ class ShotgunPrimitives
   
   def block_given
     <<-CODE
-    if( RTEST(c->block) )
+    if( RTEST(c->block) ) {
       stack_push(Qtrue);
-    else
+    } else {
       stack_push(Qfalse);
+    }
     CODE
   end
   
@@ -278,7 +279,7 @@ class ShotgunPrimitives
   
   def io_write
     <<-CODE
-    self = stack_pop(); GUARD( RISA(self, io) )
+    POP(self, IO)
     POP(t1, STRING)
 
     j = FIXNUM_TO_INT(io_get_descriptor(self));
@@ -295,7 +296,7 @@ class ShotgunPrimitives
   
   def io_read
     <<-CODE
-    self = stack_pop(); GUARD( RISA(self, io) )
+    POP(self, IO)
     POP(t1, FIXNUM)
 
     t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
@@ -312,9 +313,11 @@ class ShotgunPrimitives
   
   def create_pipe
     <<-CODE
-    self = stack_pop(); //FIXME: what guard?
-    t1 = stack_pop(); GUARD( RISA(t1, io) )
-    t2 = stack_pop(); GUARD( RISA(t2, io) )
+    // FIXME: if its not an IO .. just what the hell is it?
+    // POP(self, IO)
+    self = stack_pop();
+    POP(t1, IO)
+    POP(t2, IO)
     
     j = pipe(fds);
     if(!j) {
@@ -329,63 +332,51 @@ class ShotgunPrimitives
     <<-CODE
     FILE *_fobj;
     char *_path, *_mode;
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
-    if(!STRING_P(t1) || !STRING_P(t2)) {
-      _ret = FALSE;
-    } else {
-      _path = string_as_string(state, t1);
-      _mode = string_as_string(state, t2);
-      _fobj = fopen(_path, _mode);
-      t3 = NEW_OBJECT(self, 2);
-      SET_FIELD(t3, 0, I2N(fileno(_fobj)));
-      SET_FIELD(t3, 1, t1);
-      free(_path);
-      free(_mode);
-      stack_push(t3);
-    }
+    POP(self, IO)
+    POP(t1, STRING)
+    POP(t2, STRING)
+
+    _path = string_as_string(state, t1);
+    _mode = string_as_string(state, t2);
+    _fobj = fopen(_path, _mode);
+    t3 = NEW_OBJECT(self, 2);
+    SET_FIELD(t3, 0, I2N(fileno(_fobj)));
+    SET_FIELD(t3, 1, t1);
+    free(_path);
+    free(_mode);
+    stack_push(t3);
     CODE
   end
   
   def io_close
     <<-CODE
-    self = stack_pop();
-    if(!RISA(self, io)) {
-      _ret = FALSE;
+    POP(self, IO)
+    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    GUARD(j >= 0)
+
+    if( close(j) ) {
+      stack_push(Qfalse);
     } else {
-      j = FIXNUM_TO_INT(io_get_descriptor(self));
-      if(j < 0) {
-        _ret = FALSE;
-      } else {
-        if(!close(j)) {
-          io_set_descriptor(self, I2N(-1));
-          stack_push(Qtrue);
-        } else {
-          stack_push(Qfalse);
-        }
-      }
+      io_set_descriptor(self, I2N(-1));
+      stack_push(Qtrue);
     }
     CODE
   end
   
   def file_unlink
     <<-CODE
-    stack_pop();
-    t1 = stack_pop();
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
+    stack_pop(); // FIXME: what is the type restriction?
+    POP(t1, STRING)
+
+    char *name;
+    name = string_as_string(state, t1);
+    if(unlink(name) == 0) {
+      stack_push(Qtrue);
     } else {
-      char *name;
-      name = string_as_string(state, t1);
-      if(unlink(name) == 0) {
-        stack_push(Qtrue);
-      } else {
-        /* TODO translate errno into an exception. */
-        stack_push(Qfalse);
-      }
-      free(name);
+      /* TODO translate errno into an exception. */
+      stack_push(Qfalse);
     }
+    free(name);
     CODE
   end
   
@@ -412,160 +403,144 @@ class ShotgunPrimitives
   
   def gettimeofday
     <<-CODE
-    t1 = stack_pop(); /* class */
-    if(!RISA(t1, class)) {
-      _ret = FALSE;
-    } else {
-      do { /* introduce a new scope */
-        struct time_data td;
-        struct time_data *tdp;
-      
-        j = sizeof(struct time_data) / 4;
-        self = NEW_OBJECT(t1, j+1);
-        object_make_byte_storage(state, self);
-        k = gettimeofday(&td.tv, &td.tz);
-        tdp = (struct time_data*)BYTES_OF(self);
-      
-        *tdp = td;
-      } while(0);
-      stack_push(self);
-    }
+    POP(t1, CLASS)
+
+    do { /* introduce a new scope */
+      struct time_data td;
+      struct time_data *tdp;
+    
+      j = sizeof(struct time_data) / 4;
+      self = NEW_OBJECT(t1, j+1);
+      object_make_byte_storage(state, self);
+      k = gettimeofday(&td.tv, &td.tz);
+      tdp = (struct time_data*)BYTES_OF(self);
+    
+      *tdp = td;
+    } while(0);
+    stack_push(self);
     CODE
   end
 
   def time_at
     <<-CODE
-      t1 = stack_pop(); // Time class
-      t2 = stack_pop(); // Bignum or Fixnum, seconds
-      t3 = stack_pop(); // Bignum or Fixnum, usecs
-      if(!RISA(t1, class) || !INTEGER_P(t2) || !INTEGER_P(t3)) {
-        _ret = FALSE;
+    POP(t1, CLASS)
+    POP(t2, INTEGER) // seconds
+    POP(t3, INTEGER) // usecs
+
+    do { /* introduce a new scope */
+      long tv_sec;
+      long tv_usec;
+      // FIXME: we shouldn't need to worry about this awareness
+      // how can we get rid of this dual type checking in C?
+      if(FIXNUM_P(t2)) {
+        tv_sec = (long)FIXNUM_TO_INT(t2);
       } else {
-        do { /* introduce a new scope */
-          long tv_sec;
-          long tv_usec;
-          if(FIXNUM_P(t2)) {
-            tv_sec = (long)FIXNUM_TO_INT(t2);
-          } else {
-            tv_sec = (long)bignum_to_int(state, t2);
-          }
-
-          if(FIXNUM_P(t3)) {
-            tv_usec = (long)FIXNUM_TO_INT(t3);
-          } else {
-            tv_usec = (long)bignum_to_int(state, t3);
-          }
-
-          struct time_data td;
-          struct time_data *tdp;
-
-          j = sizeof(struct time_data) / 4;
-          self = NEW_OBJECT(t1, j+1);
-          object_make_byte_storage(state, self);
-          k = gettimeofday(&td.tv, &td.tz); // fetch the local timezone
-          td.tv.tv_sec = tv_sec; // assign specified seconds
-          td.tv.tv_usec = tv_usec; // assign specified microseconds          
-          tdp = (struct time_data*)BYTES_OF(self);    
-          *tdp = td;
-        } while(0);
-        stack_push(self);
+        tv_sec = (long)bignum_to_int(state, t2);
       }
+
+      if(FIXNUM_P(t3)) {
+        tv_usec = (long)FIXNUM_TO_INT(t3);
+      } else {
+        tv_usec = (long)bignum_to_int(state, t3);
+      }
+
+      struct time_data td;
+      struct time_data *tdp;
+
+      j = sizeof(struct time_data) / 4;
+      self = NEW_OBJECT(t1, j+1);
+      object_make_byte_storage(state, self);
+      k = gettimeofday(&td.tv, &td.tz); // fetch the local timezone
+      td.tv.tv_sec = tv_sec; // assign specified seconds
+      td.tv.tv_usec = tv_usec; // assign specified microseconds          
+      tdp = (struct time_data*)BYTES_OF(self);    
+      *tdp = td;
+    } while(0);
+    stack_push(self);
     CODE
   end
   
   def time_seconds
     <<-CODE
-    self = stack_pop();
-    if(!REFERENCE_P(self)) {
-      _ret = FALSE;
-    } else {
-      struct time_data *tdp;
-      tdp = (struct time_data*)BYTES_OF(self);
-      stack_push(I2N(tdp->tv.tv_sec));
-    }
+    POP(self, REFERENCE)
+
+    struct time_data *tdp;
+    tdp = (struct time_data*)BYTES_OF(self);
+    stack_push(I2N(tdp->tv.tv_sec));
     CODE
   end
   
   def strftime
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
+    POP(self, REFERENCE)
+    POP(t1, STRING)
 
-    if(!STRING_P(t1) || !REFERENCE_P(self)) {
-       _ret = FALSE;
-    } else {
-      struct tm *time;
-      time_t secs;
-      char *format = NULL;
-      char str[MAX_STRFTIME_OUTPUT+1];
-      size_t out;
-      struct time_data *tdp;
+    struct tm *time;
+    time_t secs;
+    char *format = NULL;
+    char str[MAX_STRFTIME_OUTPUT+1];
+    size_t out;
+    struct time_data *tdp;
 
-      format = string_as_string(state, t1);
-      tdp = (struct time_data*)BYTES_OF(self);
-      secs = tdp->tv.tv_sec;
+    format = string_as_string(state, t1);
+    tdp = (struct time_data*)BYTES_OF(self);
+    secs = tdp->tv.tv_sec;
 
-      time = localtime(&secs);
-      out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, time);
-      str[MAX_STRFTIME_OUTPUT] = '\\0';
-      t2 = string_new2(state, str, out);
-      stack_push(t2);
-      if(format) {free(format);}
-    }
+    time = localtime(&secs);
+    out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, time);
+    str[MAX_STRFTIME_OUTPUT] = '\\0';
+    t2 = string_new2(state, str, out);
+    stack_push(t2);
+    if(format) {free(format);}
     CODE
   end
 
   def fixnum_to_s
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-      char buf[100];
-      char *b = buf + sizeof(buf);
+    POP(self, FIXNUM)
+    POP(t1, FIXNUM)
 
-      j = FIXNUM_TO_INT(t1);
-      k = FIXNUM_TO_INT(self);
-      /* Algorithm taken from 1.8.4 rb_fix2str */
-      if(j < 2 || 36 < j) {
-        _ret = FALSE;
-      } else if(k == 0) {
-        stack_push(string_new(state, "0"));
-      } else {
-        m = 0;
-        if(k < 0) {
-          k = -k;
-          m = 1;
-        }
-        *--b = '\\0';
-        do {
-          *--b = digitmap[(int)(k % j)];
-        } while(k /= j);
-        if(m) {
-          *--b = '-';
-        }
-        stack_push(string_new(state, b));
+    static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    char buf[100];
+    char *b = buf + sizeof(buf);
+
+    j = FIXNUM_TO_INT(t1);
+    k = FIXNUM_TO_INT(self);
+    GUARD( j >= 2 && j <= 36 )
+
+    /* Algorithm taken from 1.8.4 rb_fix2str */
+    if(k == 0) {
+      stack_push(string_new(state, "0"));
+    } else {
+      m = 0;
+      if(k < 0) {
+        k = -k;
+        m = 1;
       }
+      *--b = '\\0';
+      do {
+        *--b = digitmap[(int)(k % j)];
+      } while(k /= j);
+      if(m) {
+        *--b = '-';
+      }
+      stack_push(string_new(state, b));
     }
     CODE
   end
 
   def bignum_to_s
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if(!FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      stack_push(bignum_to_s(state, self, t1));
-    }
+    POP(self, BIGNUM)
+    POP(t1, FIXNUM)
+
+    stack_push(bignum_to_s(state, self, t1));
     CODE
   end
 
   def logical_class
     <<-CODE
+    // FIXME: can we put a guard here?
     self = stack_pop();
     stack_push(object_logical_class(state, self));
     CODE
@@ -573,6 +548,7 @@ class ShotgunPrimitives
 
   def object_id
     <<-CODE
+    // FIXME: can we put a guard here?
     self = stack_pop();
     stack_push(UI2N(self));
     CODE
@@ -580,37 +556,30 @@ class ShotgunPrimitives
 
   def hash_set
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
-    t3 =   stack_pop();
+    POP(self, HASH)
+    POP(t1, FIXNUM)
+    t2 = stack_pop(); // some type of object
+    t3 = stack_pop(); // some type of object can we do an object guard?
 
-    if(!RISA(self, hash) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      hash_add(state, self, FIXNUM_TO_INT(t1), t2, t3);
-      stack_push(t3);
-    }
+    hash_add(state, self, FIXNUM_TO_INT(t1), t2, t3);
+    stack_push(t3);
     CODE
   end
 
   def hash_get
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
+    POP(self, HASH)
+    POP(t1, FIXNUM)
+    t2 = stack_pop();
 
-    if(!RISA(self, hash) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
-      stack_push(t3);
-    }
+    t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
+    stack_push(t3);
     CODE
   end
 
   def hash_object
     <<-CODE
+    // FIXME: what is self etc.. GUARD !
     self = stack_pop();
     t1 = I2N(object_hash_int(state, self));
     stack_push(t1);
@@ -619,51 +588,40 @@ class ShotgunPrimitives
   
   def hash_delete
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    if(!RISA(self, hash) || !FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
-      stack_push(t2);
-    }
+    POP(self, HASH)
+    POP(t1, FIXNUM)
+
+    t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
+    stack_push(t2);
     CODE
   end
 
   def symbol_index
     <<-CODE
-    self = stack_pop();
-    if(!SYMBOL_P(self)) {
-      _ret = FALSE;
-    } else {
-      stack_push(I2N(symbol_to_index(state, self)));
-    }
+    POP(self, SYMBOL)
+
+    stack_push(I2N(symbol_to_index(state, self)));
     CODE
   end
 
   def symbol_lookup
     <<-CODE
-    self = stack_pop();
-    if(!STRING_P(self)) {
-      _ret = FALSE;
-    } else {
-      stack_push(string_to_sym(state, self));
-    }
+    POP(self, STRING)
+
+    stack_push(string_to_sym(state, self));
     CODE
   end
 
   def dup_into
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    j =    FIXNUM_TO_INT(stack_pop());
-    if(!REFERENCE_P(self) || !REFERENCE_P(t1)) {
-      _ret = FALSE;
-    } else {
-      object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
-      HEADER(t1)->flags = HEADER(self)->flags;
-      stack_push(t1);
-    }
+    POP(self, REFERENCE)
+    POP(t1, REFERENCE)
+    POP(t2, FIXNUM)
+
+    j = FIXNUM_TO_INT(t2);
+    object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
+    HEADER(t1)->flags = HEADER(self)->flags;
+    stack_push(t1);
     CODE
   end
 
