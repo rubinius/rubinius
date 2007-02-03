@@ -34,6 +34,7 @@ class Object
   end
 end
 
+
 # module to hold rubinius core namespace
 module Rubinius
   BASE = %w(__ ivar_as_index instance_fields index_reader define_fields to_s
@@ -71,6 +72,7 @@ module Rubinius
   class Integer < Numeric; end
   class Fixnum < Integer; end
   class Bignum < Integer; end
+  module Errno; end
 end
 
 
@@ -97,6 +99,13 @@ files.each do |file|
     end
   end
   Rubinius.module_eval(code)
+end
+
+# system errors are defined in C
+# can't we just define these errors in ruby CABO ?!?!
+system_errors = open('shotgun/lib/bootstrap.c').read.scan(/set_syserr\((.+?),/).flatten - ['num']
+system_errors.each do |name|
+  Rubinius::Errno.module_eval "class #{name} < SystemCallError; end"
 end
 
 mri_modules = {}
