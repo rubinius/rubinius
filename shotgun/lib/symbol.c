@@ -10,15 +10,15 @@
 OBJECT symbol_from_index(STATE, int idx) {
   int self;
   
-  self = idx << 2;
-  self |= 3;
+  self = idx << SYMBOL_SHIFT;
+  self |= SYMBOL_MARKER;
   return (OBJECT)self;
 }
 
 int symbol_to_index(STATE, OBJECT self) {
   int idx;
   idx = (int)self;
-  idx = idx >> 2;
+  idx = idx >> SYMBOL_SHIFT;
   return idx;
 }
 

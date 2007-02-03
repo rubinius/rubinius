@@ -81,16 +81,39 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #undef FIXNUM_P
 #endif
 
+
+#define SYMBOL_P(v) (((OBJECT)(v) & ((1L<<SYMBOL_SHIFT)-1)) == SYMBOL_MARKER)
+#define FIXNUM_P(v) (((OBJECT)(v) & ((1L<<FIXNUM_SHIFT)-1)) == FIXNUM_MARKER)
+
+/*#define ALTERNATIVE_REPRESENTATION 666*/
+/*#define ALTERNATIVE_REPRESENTATION 1*/
+#if ALTERNATIVE_REPRESENTATION == 1
+/* MRI-like, but with hacked specials just to be different */
+#define Qfalse ((OBJECT)0L)
+#define Qtrue  ((OBJECT)4L)
+#define Qnil   ((OBJECT)2L)
+#define Qundef ((OBJECT)6L)
+#define RTEST(v) (((OBJECT)(v) & ~Qnil) != 0)
+#define NIL_P(v) ((OBJECT)(v) == Qnil)
+#define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 20 && ((_i & 3L) == 0L); })
+#define SYMBOL_MARKER 0xe
+#define SYMBOL_SHIFT 4
+#define FIXNUM_MARKER 1
+#define FIXNUM_SHIFT 1
+#else
+/* Standard Rubinius Representation */
 #define Qfalse ((OBJECT)0L)
 #define Qtrue  ((OBJECT)2L)
 #define Qnil   ((OBJECT)4L)
 #define Qundef ((OBJECT)6L)
-
 #define RTEST(v) (((OBJECT)(v) & ~Qnil) != 0)
 #define NIL_P(v) ((OBJECT)(v) == Qnil)
 #define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 10 && ((_i & 1L) == 0L); })
-#define SYMBOL_P(v) (((OBJECT)(v) & 3L) == 3)
-#define FIXNUM_P(v) (((OBJECT)(v) & 3L) == 1)
+#define SYMBOL_MARKER 3
+#define SYMBOL_SHIFT 2
+#define FIXNUM_MARKER 1
+#define FIXNUM_SHIFT 2
+#endif
 
 #define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)
@@ -123,13 +146,13 @@ char *rbs_inspect(STATE, OBJECT obj);
 
 #ifndef INTERNAL_MACROS
 static inline long rbs_to_int(OBJECT obj) {
-  int val = ((int)obj) >> 2;
+  int val = ((int)obj) >> FIXNUM_SHIFT;
   return val;
 }
 
 static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   OBJECT ret;
-  ret = (num << 2) | 1;
+  ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
   
   /* Number is too big for fixnum. Use bignum. */
   if(rbs_to_int(ret) != num) {

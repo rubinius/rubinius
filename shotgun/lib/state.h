@@ -73,13 +73,13 @@ char *_inspect(OBJECT obj);
 #endif
 
 static inline long rbs_to_int(OBJECT obj) {
-  int val = ((int)obj) >> 2;
+  int val = ((int)obj) >> FIXNUM_SHIFT;
   return val;
 }
 
 static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   OBJECT ret;
-  ret = (num << 2) | 1;
+  ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
   
   /* Number is too big for fixnum. Use bignum. */
   if(rbs_to_int(ret) != num) {
@@ -96,7 +96,7 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
 static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
   OBJECT ret;
   
-  ret = (num << 2) | 1;
+  ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
   
   if(rbs_to_int(ret) != num) {
     return bignum_new_unsigned(state, num);
