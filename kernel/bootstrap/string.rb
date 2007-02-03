@@ -225,7 +225,11 @@ class ByteArray
   def get_byte(index)
     Ruby.primitive :get_byte
   end
-  
+
+  def set_byte(index, value)
+    Ruby.primitive :set_byte
+  end
+
   def <=>(other)
     Ruby.primitive :compare_bytes
   end  

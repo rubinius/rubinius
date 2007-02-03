@@ -182,7 +182,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( INDEXED(self) )
     t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
-    t2 = stack_pop(); // We don't care about the type
+    t2 = stack_pop(); // We do not care about the type
     j = FIXNUM_TO_INT(t1); GUARD( j < NUM_FIELDS(self) )
 
     SET_FIELD(self, j, t2);
@@ -698,6 +698,29 @@ class ShotgunPrimitives
         indexed = (unsigned char*)bytearray_byte_address(state, self);
         indexed += j;
         stack_push(UI2N(*indexed));
+      }
+    }
+    CODE
+  end
+
+  def set_byte
+    <<-CODE
+    self = stack_pop();
+    POP(t1, FIXNUM); /* index */
+    POP(t2, FIXNUM); /* value */
+    if(!object_stores_bytes_p(state, self)) {
+      _ret = FALSE;
+    } else {
+      unsigned char *indexed;
+      j = FIXNUM_TO_INT(t1);
+      k = bytearray_bytes(state, self);
+      if (j < 0 || j >= k) {
+        _ret = FALSE;
+      } else {
+        indexed = (unsigned char*)bytearray_byte_address(state, self);
+        indexed += j;
+        t2 = (*indexed = FIXNUM_TO_INT(t2));
+        stack_push(UI2N(t2));
       }
     }
     CODE

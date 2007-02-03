@@ -108,7 +108,7 @@ module Bytecode
       :string_to_f,
       :float_divmod,
       :fixnum_divmod,
-      :nil, # :float_floor, thank mae for the hole :P
+      :set_byte,
       :float_round,
       :find_method,
       :bignum_left_shift,

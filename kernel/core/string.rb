@@ -115,7 +115,7 @@ class String
 
     if arg.is_a? String
       unless len.nil?
-        raise ArgumentError.new("String#[] got incorrect arguments.") # TODO: Make this helpful.
+        raise ArgumentError.new("String#[] cannot accept a second argument with a String.")
       end
       return (self.include?(arg) ? arg.dup : nil)
     elsif arg.respond_to? :match
@@ -153,7 +153,48 @@ class String
   end
 
   alias_method :slice, :[]
-  
+
+  def []=(idx, ent, *args)
+    cnt = nil
+    if args.size != 0
+      cnt = ent
+      ent = args[0]             # 2nd arg (cnt) is the optional one!
+    end
+
+    if idx.class == Range
+      if cnt
+        raise ArgumentError, "Second argument invalid with a range"
+      end
+      lst = idx.last
+      if lst < 0
+        lst += @bytes
+      end
+      lst += 1 unless idx.exclude_end?
+      idx = idx.first
+      if idx < 0
+        idx += @bytes
+        raise IndexError if idx < 0
+      end
+      cnt = lst - idx
+    end
+
+    if cnt
+      raise "String slicing not implemented yet"
+    end
+
+    if idx < 0
+      idx += @bytes
+      raise IndexError if idx < 0
+    end
+
+    if idx >= @bytes
+      raise IndexError, "index #{idx} out of string"
+    end
+
+    @data.set_byte idx, ent
+    return ent
+  end
+
   def to_f
     Ruby.primitive :string_to_f
   end
