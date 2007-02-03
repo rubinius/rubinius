@@ -54,6 +54,7 @@ struct time_data {
 #define NUMERIC_P(obj) (FIXNUM_P(obj) || COMPLEX_P(obj) || BIGNUM_P(obj) || FLOAT_P(obj))
 
 #define CLASS_P(obj) RISA(obj, class)
+#define TUPLE_P(obj) RISA(obj, tuple)
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RISA(obj, string)
 #define HASH_P(obj) RISA(obj, hash)

@@ -627,127 +627,103 @@ class ShotgunPrimitives
 
   def tuple_shifted
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop(); /* distance to shift. */
-    if(!FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      j = FIXNUM_TO_INT(t1);
-      t2 = tuple_new(state, NUM_FIELDS(self) + j);
-      object_copy_fields_shifted(state, self, t2, j);
-      stack_push(t2); 
-    }
+    POP(self, TUPLE)
+    POP(t1, FIXNUM)
+
+    j = FIXNUM_TO_INT(t1);
+    t2 = tuple_new(state, NUM_FIELDS(self) + j);
+    object_copy_fields_shifted(state, self, t2, j);
+    stack_push(t2); 
     CODE
   end
 
   def get_byte
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop(); /* index */
-    if(!FIXNUM_P(t1) || !object_stores_bytes_p(state, self)) {
-      _ret = FALSE;
-    } else {
-      unsigned char *indexed;
-      j = FIXNUM_TO_INT(t1);
-      k = bytearray_bytes(state, self);
-      if (j < 0 || j >= k) {
-        _ret = FALSE;
-      } else {
-        indexed = (unsigned char*)bytearray_byte_address(state, self);
-        indexed += j;
-        stack_push(UI2N(*indexed));
-      }
-    }
+    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    POP(t1, FIXNUM) /* index */
+
+    unsigned char *indexed;
+    j = FIXNUM_TO_INT(t1);
+    k = bytearray_bytes(state, self);
+
+    GUARD( j >= 0 && j < k )
+    indexed = (unsigned char*)bytearray_byte_address(state, self);
+    indexed += j;
+    stack_push(UI2N(*indexed));
     CODE
   end
 
   def set_byte
     <<-CODE
-    self = stack_pop();
-    POP(t1, FIXNUM); /* index */
-    POP(t2, FIXNUM); /* value */
-    if(!object_stores_bytes_p(state, self)) {
-      _ret = FALSE;
-    } else {
-      unsigned char *indexed;
-      j = FIXNUM_TO_INT(t1);
-      k = bytearray_bytes(state, self);
-      if (j < 0 || j >= k) {
-        _ret = FALSE;
-      } else {
-        indexed = (unsigned char*)bytearray_byte_address(state, self);
-        indexed += j;
-        t2 = (*indexed = FIXNUM_TO_INT(t2));
-        stack_push(UI2N(t2));
-      }
-    }
+    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    POP(t1, FIXNUM) /* index */
+    POP(t2, FIXNUM) /* value */
+
+    unsigned char *indexed;
+    j = FIXNUM_TO_INT(t1);
+    k = bytearray_bytes(state, self);
+
+    GUARD( j >= 0 && j < k )
+    indexed = (unsigned char*)bytearray_byte_address(state, self);
+    indexed += j;
+    t2 = (*indexed = FIXNUM_TO_INT(t2));
+    stack_push(UI2N(t2));
     CODE
   end
     
   def fetch_bytes
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    t2 =   stack_pop();
-    if(!FIXNUM_P(t1) || !FIXNUM_P(t2) || !object_stores_bytes_p(state, self)) {
-      _ret = FALSE;
-    } else {
-      char *source, *dest;
-      int num;
-      j = FIXNUM_TO_INT(t1);
-      k = FIXNUM_TO_INT(t2);
-      m = bytearray_bytes(state, self);
+    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    POP(t1, FIXNUM)
+    POP(t2, FIXNUM)
 
-      num = abs(j - k);
+    char *source, *dest;
+    int num;
+    j = FIXNUM_TO_INT(t1);
+    k = FIXNUM_TO_INT(t2);
+    m = bytearray_bytes(state, self);
 
-      if(j < 0 || k < 0 || j > m || m < num) {
-        _ret = FALSE;
-      } else {
-        t3 = bytearray_new(state, k+1);
-        source = (char*)bytearray_byte_address(state, self);
-        dest = (char*)bytearray_byte_address(state, t3);
-        source += j;
-        memcpy(dest, source, k);
-        dest[k] = 0;
-        stack_push(t3);
-      }
-    }
+    num = abs(j - k);
+
+    GUARD( m >= num )
+    GUARD( k >= 0 )
+    GUARD( j >= 0 && j <= m )
+    t3 = bytearray_new(state, k+1);
+    source = (char*)bytearray_byte_address(state, self);
+    dest = (char*)bytearray_byte_address(state, t3);
+    source += j;
+    memcpy(dest, source, k);
+    dest[k] = 0;
+    stack_push(t3);
     CODE
   end
 
   def compare_bytes
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
+    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+    t1 = stack_pop(); GUARD( object_stores_bytes_p(state, t1) )
 
-    if(!object_stores_bytes_p(state, self) || !object_stores_bytes_p(state, t1)) {
-      _ret = FALSE;
+    j = bytearray_bytes(state, self);
+    k = bytearray_bytes(state, t1);
+    if(j != k) {
+      stack_push(Qfalse);
+    } else if(j == 0) {
+      stack_push(Qtrue);
     } else {
-      j = bytearray_bytes(state, self);
-      k = bytearray_bytes(state, t1);
-      if(j != k) {
-        stack_push(Qfalse);
-      } else if(j == 0) {
-        stack_push(Qtrue);
-      } else {
-        k = memcmp(bytearray_byte_address(state, self), bytearray_byte_address(state, t1), j);
-        if(k > 1) {k = 1;} // Normalize return
-        if(k < -1) {k = -1;} // values for <=> method.
-        stack_push(I2N(k));
-      }
+      k = memcmp(bytearray_byte_address(state, self), bytearray_byte_address(state, t1), j);
+      if(k > 1) {k = 1;} // Normalize return
+      if(k < -1) {k = -1;} // values for <=> method.
+      stack_push(I2N(k));
     }
     CODE
   end
 
   def bytearray_size
     <<-CODE
-    self = stack_pop();
-    if (!object_stores_bytes_p(state, self)) {
-      _ret = FALSE;
-    } else {
-      j = bytearray_bytes(state, self);
-      stack_push(I2N(j));
-    }
+    self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
+
+    j = bytearray_bytes(state, self);
+    stack_push(I2N(j));
     CODE
   end
   
