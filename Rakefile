@@ -386,9 +386,14 @@ namespace :report do
     run_report(:completeness)
   end
 
-  desc "Build completeness report"
+  desc "Build rspec errors report"
   task :rspec_errors do
     run_report(:rspec_errors)
+  end
+
+  desc "Build self-hosting errors report"
+  task :self_hosting_errors do
+    run_report(:self_hosting_errors)
   end
 
   def run_report(name)

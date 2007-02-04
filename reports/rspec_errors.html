@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Make RSpec work on Rubinius Report</h1>
-    <div>Generated on Sat Feb 03 00:15:29 -0800 2007.</div>
+    <div>Generated on Sun Feb 04 10:11:29 -0800 2007.</div>
 
     <h2>Overview</h2>
 
@@ -36,63 +36,63 @@ An error has occured: Segmentation fault (SIGSEGV)
 
 C backtrace:
  0x804c7ad &lt;symtbl_lookup_cstr&gt; at /home/mae/projects/rubinius/shotgun/lib/symbol.c:37
- 0x8079544 &lt;cstring_to_symbol&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:162
- 0x80795b4 &lt;quark_to_symbol&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:177
- 0x807abc2 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:638
- 0x807b3ee &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
- 0x807a261 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
- 0x807acd9 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
- 0x807b3ee &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
- 0x807a261 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
- 0x807acd9 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
- 0x807b3ee &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
- 0x807a261 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
- 0x807acd9 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
- 0x807b3ee &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
- 0x8070fa4 &lt;convert_to_sexp&gt; at /home/mae/projects/rubinius/shotgun/lib/grammar.y:2764
- 0x807117c &lt;syd_compile_file&gt; at /home/mae/projects/rubinius/shotgun/lib/grammar.y:2836
- 0x80621d9 &lt;cpu_perform_system_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/system_primitives.gen:707
- 0x8067984 &lt;cpu_perform_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_primitives.c:76
+ 0x8079a84 &lt;cstring_to_symbol&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:162
+ 0x8079af4 &lt;quark_to_symbol&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:177
+ 0x807b102 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:638
+ 0x807b92e &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x807a7a1 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
+ 0x807b219 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
+ 0x807b92e &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x807a7a1 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
+ 0x807b219 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
+ 0x807b92e &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x807a7a1 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:454
+ 0x807b219 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:654
+ 0x807b92e &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius/shotgun/lib/grammer_runtime.c:786
+ 0x80714e4 &lt;convert_to_sexp&gt; at /home/mae/projects/rubinius/shotgun/lib/grammar.y:2764
+ 0x80716bc &lt;syd_compile_file&gt; at /home/mae/projects/rubinius/shotgun/lib/grammar.y:2836
+ 0x806253e &lt;cpu_perform_system_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/system_primitives.gen:661
+ 0x8067ec5 &lt;cpu_perform_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_primitives.c:81
  0x80564df &lt;cpu_try_primitive&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:216
- 0x8059678 &lt;_cpu_build_and_activate&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:271
- 0x80594fc &lt;cpu_unified_send&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:323
- 0x805b400 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:268
+ 0x8059709 &lt;_cpu_build_and_activate&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:271
+ 0x805958d &lt;cpu_unified_send&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu_instructions.c:323
+ 0x805b522 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:272
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d938c8 &lt;??&gt; at ??:0
+0xb7db58c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
 0xff0a0000 &lt;??&gt; at ??:0
 
 Ruby backtrace:
-0xb7cf1e18 Class#compile_file+31 in core/compile.rb
-0xb7cf0c34 Kernel#load+580 in core/compile.rb
+0xb7cec888 Class#compile_file+31 in core/compile.rb
+0xb7ceb6a4 Kernel#load+580 in core/compile.rb
 Skipping Block Context
-0xb7cecf08 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7ce9210 Array#each+73 in bootstrap/array.rb
+0xb7ce7978 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7ce3c80 Array#each+73 in bootstrap/array.rb
 Skipping Block Context
-0xb7ce90b0 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7ce8fd8 Array#each+73 in bootstrap/array.rb
-0xb7ce8818 Kernel#require+489 in core/compile.rb
-0xb7ce85a0 Class#__eval_script__+52 in (eval)
-0xb7ce83e4 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
-0xb7a82784 Class#execute+60 in core/compile.rb
-0xb7a64464 Class#__script__+412 in core/__loader.rb
+0xb7ce3b20 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7ce3a48 Array#each+73 in bootstrap/array.rb
+0xb7ce3288 Kernel#require+497 in core/compile.rb
+0xb7ce3010 Class#__eval_script__+52 in (eval)
+0xb7ce2e54 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
+0xb7a9e068 Class#execute+60 in core/compile.rb
+0xb7b7efa4 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
- 102    &lt;TrueClass:0x2&gt;
- 103    &lt;NilClass:0x4&gt;
  104    &lt;TrueClass:0x2&gt;
- 105    &lt;String:0xb7a620c4&gt;-e
- 106    &lt;Tuple:0xb7ce91dc&gt;
- 107 =&gt; &lt;Tuple:0xb7ced034&gt;
- 108    &lt;TrueClass:0x2&gt;
- 109    &lt;String:0xb7ced148&gt;/home/mae/projects/r...pec/rake/spectask.rb
- 110    File
- 111    &lt;TrueClass:0x2&gt;
+ 105    &lt;NilClass:0x4&gt;
+ 106    &lt;TrueClass:0x2&gt;
+ 107    &lt;String:0xb7b7c8e8&gt;-e
+ 108    &lt;Tuple:0xb7ce3c4c&gt;
+ 109 =&gt; &lt;Tuple:0xb7ce7aa4&gt;
+ 110    &lt;TrueClass:0x2&gt;
+ 111    &lt;String:0xb7ce7bb8&gt;/home/mae/projects/r...pec/rake/spectask.rb
+ 112    File
+ 113    &lt;TrueClass:0x2&gt;
 
 VM Registers:
-IP: 0052     SP: 0107
+IP: 0052     SP: 0109
 AC: 0001     AR: 0000
 Exception: &lt;NilClass:0x4&gt;
 </pre></td>
@@ -106,10 +106,10 @@ Exception: &lt;NilClass:0x4&gt;
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1308
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1309
                        BlockEnvironment#call at bootstrap/context.rb:93
                                   Array#each at bootstrap/array.rb:24
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1308
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1309
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -119,7 +119,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -134,7 +134,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -144,18 +144,18 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1405
+    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1406
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1325
-    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1390
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1326
+    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1391
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -165,18 +165,18 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1405
+    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1406
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1325
-    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1390
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1326
+    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1391
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -193,15 +193,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -226,7 +226,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -251,7 +251,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -283,7 +283,7 @@ An exception has occured:
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -298,7 +298,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -323,7 +323,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -348,7 +348,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -373,7 +373,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -398,7 +398,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -438,7 +438,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -455,15 +455,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -488,7 +488,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -513,7 +513,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -538,7 +538,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -563,7 +563,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -794,50 +794,50 @@ Couldn't find constant UnderscoreSugar.
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7d43eef &lt;??&gt; at ??:0
-0xb7d3bdb7 &lt;??&gt; at ??:0
- 0x8059c46 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
+0xb7dd3eef &lt;??&gt; at ??:0
+0xb7dcbdb7 &lt;??&gt; at ??:0
+ 0x8059cd7 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d2e8c8 &lt;??&gt; at ??:0
+0xb7dbe8c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
- 0x807da17 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
+ 0x807df44 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
 
 Ruby backtrace:
-0xb7c96ea4 Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7c96e38 IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7c96d6c Class#new+62 in bootstrap/class.rb
-0xb7c96cfc Module#include+34 in bootstrap/02module.rb
-0xb7c96694 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c94c10 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7c88088 Kernel#load+194 in core/compile.rb
+0xb7cff96c Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7cff900 IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7cff834 Class#new+62 in bootstrap/class.rb
+0xb7cff7c4 Module#include+34 in bootstrap/02module.rb
+0xb7cff15c Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7cfd6d8 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7cf0b50 Kernel#load+194 in core/compile.rb
 Skipping Block Context
-0xb7c84348 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c84270 Array#each+73 in bootstrap/array.rb
+0xb7cece10 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7cecd38 Array#each+73 in bootstrap/array.rb
 Skipping Block Context
-0xb7c84110 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c84038 Array#each+73 in bootstrap/array.rb
-0xb7c83838 Kernel#require+489 in core/compile.rb
-0xb7c835b0 Class#__eval_script__+52 in (eval)
-0xb7c833f4 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
-0xb7a1d794 Class#execute+60 in core/compile.rb
-0xb79ff474 Class#__script__+412 in core/__loader.rb
+0xb7cecbd8 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7cecb00 Array#each+73 in bootstrap/array.rb
+0xb7cec300 Kernel#require+497 in core/compile.rb
+0xb7cec078 Class#__eval_script__+52 in (eval)
+0xb7cebebc CompiledMethod#activate+80 in bootstrap/compiled_method.rb
+0xb7aa9e3c Class#execute+60 in core/compile.rb
+0xb7b86484 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
- 104    &lt;TrueClass:0x2&gt;
- 105    &lt;String:0xb79f908c&gt;-e
- 106    &lt;Tuple:0xb7c8423c&gt;
- 107    &lt;Tuple:0xb7c84474&gt;
- 108    &lt;TrueClass:0x2&gt;
- 109 =&gt; Object
- 110    &lt;NilClass:0x4&gt;
- 111    &lt;Fixnum:0x1&gt;
- 112    &lt;IncludedModule:0xb7c96e08&gt;
- 113    &lt;Fixnum:0x5&gt;
+ 106    &lt;TrueClass:0x2&gt;
+ 107    &lt;String:0xb7b858d0&gt;-e
+ 108    &lt;Tuple:0xb7cecd04&gt;
+ 109    &lt;Tuple:0xb7cecf3c&gt;
+ 110    &lt;TrueClass:0x2&gt;
+ 111 =&gt; Object
+ 112    &lt;NilClass:0x4&gt;
+ 113    &lt;Fixnum:0x1&gt;
+ 114    &lt;IncludedModule:0xb7cff8d0&gt;
+ 115    &lt;Fixnum:0x5&gt;
 
 VM Registers:
-IP: 0016     SP: 0109
+IP: 0016     SP: 0111
 AC: 0000     AR: 0001
 Exception: &lt;NilClass:0x4&gt;
 </pre></td>
@@ -851,59 +851,59 @@ Couldn't find constant UnderscoreSugar.
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7d5ceef &lt;??&gt; at ??:0
-0xb7d54db7 &lt;??&gt; at ??:0
- 0x8059c46 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
+0xb7d4ceef &lt;??&gt; at ??:0
+0xb7d44db7 &lt;??&gt; at ??:0
+ 0x8059cd7 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:48
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d478c8 &lt;??&gt; at ??:0
+0xb7d378c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
- 0x807da17 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
+ 0x807df44 &lt;object_memory_tenure_object&gt; at /home/mae/projects/rubinius/shotgun/lib/object_memory.c:128
 
 Ruby backtrace:
-0xb7cb5598 Object#__ivars__+0 in bootstrap/00auto_fields.rb
-0xb7cb552c IncludedModule#initialize+29 in bootstrap/02module.rb
-0xb7cb5460 Class#new+62 in bootstrap/class.rb
-0xb7cb53f0 Module#include+34 in bootstrap/02module.rb
-0xb7cb4d88 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7cb3304 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
-0xb7ca677c Kernel#load+194 in core/compile.rb
+0xb7c7e008 Object#__ivars__+0 in bootstrap/00auto_fields.rb
+0xb7c7df9c IncludedModule#initialize+29 in bootstrap/02module.rb
+0xb7c7ded0 Class#new+62 in bootstrap/class.rb
+0xb7c7de60 Module#include+34 in bootstrap/02module.rb
+0xb7c7d7f8 Class#__class_init__+53 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c7bd74 Class#__script__+51 in externals/rspec-0.7.5/lib/spec/expectations/extensions/object.rb
+0xb7c6f1ec Kernel#load+194 in core/compile.rb
 Skipping Block Context
-0xb7ca2638 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7ca2560 Array#each+73 in bootstrap/array.rb
+0xb7c6b0a8 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7c6afd0 Array#each+73 in bootstrap/array.rb
 Skipping Block Context
-0xb7ca2400 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7ca2328 Array#each+73 in bootstrap/array.rb
-0xb7ca1b28 Kernel#require+489 in core/compile.rb
-0xb7ca1a6c Class#__script__+16 in externals/rspec-0.7.5/lib/spec/expectations/extensions.rb
-0xb7ca1034 Kernel#load+194 in core/compile.rb
+0xb7c6ae70 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7c6ad98 Array#each+73 in bootstrap/array.rb
+0xb7c6a598 Kernel#require+497 in core/compile.rb
+0xb7c6a4dc Class#__script__+16 in externals/rspec-0.7.5/lib/spec/expectations/extensions.rb
+0xb7c69aa4 Kernel#load+194 in core/compile.rb
 Skipping Block Context
-0xb7c9d2fc BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c9d224 Array#each+73 in bootstrap/array.rb
+0xb7c65d6c BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7c65c94 Array#each+73 in bootstrap/array.rb
 Skipping Block Context
-0xb7c9d0c4 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c9cfec Array#each+73 in bootstrap/array.rb
-0xb7c9c830 Kernel#require+489 in core/compile.rb
-0xb7c9c5ac Class#__eval_script__+52 in (eval)
-0xb7c9c3f0 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
-0xb7a3678c Class#execute+60 in core/compile.rb
-0xb7a1846c Class#__script__+412 in core/__loader.rb
+0xb7c65b34 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7c65a5c Array#each+73 in bootstrap/array.rb
+0xb7c652a0 Kernel#require+497 in core/compile.rb
+0xb7c6501c Class#__eval_script__+52 in (eval)
+0xb7c64e60 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
+0xb7a20064 Class#execute+60 in core/compile.rb
+0xb7aff4a0 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
- 107    &lt;Tuple:0xb7c9d428&gt;
- 108    &lt;TrueClass:0x2&gt;
- 109    &lt;Tuple:0xb7ca252c&gt;
- 110    &lt;Tuple:0xb7ca2764&gt;
- 111    &lt;TrueClass:0x2&gt;
- 112 =&gt; Object
- 113    &lt;NilClass:0x4&gt;
- 114    &lt;Fixnum:0x1&gt;
- 115    &lt;IncludedModule:0xb7cb54fc&gt;
- 116    &lt;Fixnum:0x5&gt;
+ 109    &lt;Tuple:0xb7c65e98&gt;
+ 110    &lt;TrueClass:0x2&gt;
+ 111    &lt;Tuple:0xb7c6af9c&gt;
+ 112    &lt;Tuple:0xb7c6b1d4&gt;
+ 113    &lt;TrueClass:0x2&gt;
+ 114 =&gt; Object
+ 115    &lt;NilClass:0x4&gt;
+ 116    &lt;Fixnum:0x1&gt;
+ 117    &lt;IncludedModule:0xb7c7df6c&gt;
+ 118    &lt;Fixnum:0x5&gt;
 
 VM Registers:
-IP: 0016     SP: 0112
+IP: 0016     SP: 0114
 AC: 0000     AR: 0001
 Exception: &lt;NilClass:0x4&gt;
 </pre></td>
@@ -973,7 +973,7 @@ Backtrace:
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -998,7 +998,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1023,7 +1023,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1048,7 +1048,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1176,56 +1176,101 @@ Backtrace:
       
       <tr>
         <td>spec/mocks/mock_handler</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occured:
+    Unknown set argument '~' (RuntimeError)
+
+Backtrace:
+                   Bytecode::Assembler#raise at bootstrap/04kernel.rb:20
+               Bytecode::Assembler#parse_set at bytecode/assembler.rb:391
+         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:408
+              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+                        Compile.compile_file at core/compile.rb:8
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:93
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/mocks/extensions/object</td>
-        <td><pre>sh: Syntax error: &quot;(&quot; unexpected
-Couldn't find constant Spec.
+        <td><pre>Couldn't find constant Spec.
 
 An error has occured: Segmentation fault (SIGSEGV)
 
 C backtrace:
  0x8055577 &lt;cpu_const_get&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu.c:317
- 0x805aa21 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:172
+ 0x805ab3d &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:175
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d058c8 &lt;??&gt; at ??:0
+0xb7db28c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
-     (nil) &lt;&gt; at 
+0x45c5a9e1 &lt;??&gt; at ??:0
 
 Ruby backtrace:
-0xb7c5fc60 Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7c5fbf8 Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
-0xb7c5f034 Kernel#load+194 in core/compile.rb
+0xb7ce56d0 Class#__class_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7ce5668 Class#__script__+24 in externals/rspec-0.7.5/lib/spec/mocks/extensions/object.rb
+0xb7ce4aa4 Kernel#load+194 in core/compile.rb
 Skipping Block Context
-0xb7c5b2fc BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c5b224 Array#each+73 in bootstrap/array.rb
+0xb7ce0d6c BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7ce0c94 Array#each+73 in bootstrap/array.rb
 Skipping Block Context
-0xb7c5b0c4 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c5afec Array#each+73 in bootstrap/array.rb
-0xb7c5a830 Kernel#require+489 in core/compile.rb
-0xb7c5a5ac Class#__eval_script__+52 in (eval)
-0xb7c5a3f0 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
-0xb79f478c Class#execute+60 in core/compile.rb
-0xb79d646c Class#__script__+412 in core/__loader.rb
+0xb7ce0b34 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7ce0a5c Array#each+73 in bootstrap/array.rb
+0xb7ce02a0 Kernel#require+497 in core/compile.rb
+0xb7ce001c Class#__eval_script__+52 in (eval)
+0xb7cdfe60 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
+0xb7a9b064 Class#execute+60 in core/compile.rb
+0xb7b7a4a0 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
- 104    &lt;TrueClass:0x2&gt;
- 105    &lt;String:0xb79d0084&gt;-e
- 106    &lt;Tuple:0xb7c5b1f0&gt;
- 107    &lt;Tuple:0xb7c5b428&gt;
- 108    &lt;TrueClass:0x2&gt;
- 109 =&gt; Object
- 110    &lt;NilClass:0x4&gt;
- 111    Object
- 112    &lt;Fixnum:0xd&gt;
- 113    &lt;Symbol:0x1093&gt;open_class_under
+ 106    &lt;TrueClass:0x2&gt;
+ 107    &lt;String:0xb7b798ec&gt;-e
+ 108    &lt;Tuple:0xb7ce0c60&gt;
+ 109    &lt;Tuple:0xb7ce0e98&gt;
+ 110    &lt;TrueClass:0x2&gt;
+ 111 =&gt; Object
+ 112    &lt;NilClass:0x4&gt;
+ 113    Object
+ 114    &lt;Fixnum:0xd&gt;
+ 115    &lt;Symbol:0x1097&gt;open_class_under
 
 VM Registers:
-IP: 0012     SP: 0109
+IP: 0012     SP: 0111
 AC: 0000     AR: 0000
 Exception: &lt;NilClass:0x4&gt;
 </pre></td>
@@ -1287,52 +1332,51 @@ Unknown arg_count 0 encountered while processing args.
       
       <tr>
         <td>spec/mocks/errors</td>
-        <td><pre>sh: Syntax error: &quot;(&quot; unexpected
-Couldn't find constant Expectations.
+        <td><pre>Couldn't find constant Expectations.
 
 An error has occured: Segmentation fault (SIGSEGV)
 
 C backtrace:
  0x8055577 &lt;cpu_const_get&gt; at /home/mae/projects/rubinius/shotgun/lib/cpu.c:317
- 0x805aa21 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:172
+ 0x805ab3d &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:175
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d198c8 &lt;??&gt; at ??:0
+0xb7d228c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
-     (nil) &lt;&gt; at 
+0x45c5a9e2 &lt;??&gt; at ??:0
 
 Ruby backtrace:
-0xb7c74e5c Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7c7488c Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7c742bc Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
-0xb7c73014 Kernel#load+194 in core/compile.rb
+0xb7c568cc Class#__module_init__+0 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7c562fc Class#__module_init__+25 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7c55d2c Class#__script__+23 in externals/rspec-0.7.5/lib/spec/mocks/errors.rb
+0xb7c54a84 Kernel#load+194 in core/compile.rb
 Skipping Block Context
-0xb7c6f2e8 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c6f210 Array#each+73 in bootstrap/array.rb
+0xb7c50d58 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7c50c80 Array#each+73 in bootstrap/array.rb
 Skipping Block Context
-0xb7c6f0b0 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb7c6efd8 Array#each+73 in bootstrap/array.rb
-0xb7c6e818 Kernel#require+489 in core/compile.rb
-0xb7c6e5a0 Class#__eval_script__+52 in (eval)
-0xb7c6e3e4 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
-0xb7a08784 Class#execute+60 in core/compile.rb
-0xb79ea464 Class#__script__+412 in core/__loader.rb
+0xb7c50b20 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb7c50a48 Array#each+73 in bootstrap/array.rb
+0xb7c50288 Kernel#require+497 in core/compile.rb
+0xb7c50010 Class#__eval_script__+52 in (eval)
+0xb7c4fe54 CompiledMethod#activate+80 in bootstrap/compiled_method.rb
+0xb7a0b068 Class#execute+60 in core/compile.rb
+0xb7aebfa4 Class#__script__+412 in core/__loader.rb
 
 Ruby stack:
- 105    &lt;String:0xb79e80c4&gt;-e
- 106    &lt;Tuple:0xb7c6f1dc&gt;
- 107    &lt;Tuple:0xb7c6f414&gt;
- 108    &lt;TrueClass:0x2&gt;
- 109    &lt;Module:0xb7c74324&gt;
- 110 =&gt; &lt;Module:0xb7c748f4&gt;
- 111    &lt;NilClass:0x4&gt;
- 112    &lt;Module:0xb7c748f4&gt;
- 113    &lt;Symbol:0x1093&gt;open_class_under
- 114    &lt;Symbol:0x1097&gt;open_module
+ 107    &lt;String:0xb7ae98e8&gt;-e
+ 108    &lt;Tuple:0xb7c50c4c&gt;
+ 109    &lt;Tuple:0xb7c50e84&gt;
+ 110    &lt;TrueClass:0x2&gt;
+ 111    &lt;Module:0xb7c55d94&gt;
+ 112 =&gt; &lt;Module:0xb7c56364&gt;
+ 113    &lt;NilClass:0x4&gt;
+ 114    &lt;Module:0xb7c56364&gt;
+ 115    &lt;Symbol:0x1097&gt;open_class_under
+ 116    &lt;Symbol:0x109b&gt;open_module
 
 VM Registers:
-IP: 0012     SP: 0110
+IP: 0012     SP: 0112
 AC: 0000     AR: 0000
 Exception: &lt;NilClass:0x4&gt;
 </pre></td>
@@ -1553,7 +1597,7 @@ Backtrace:
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1570,15 +1614,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1603,7 +1647,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1628,7 +1672,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1653,7 +1697,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1678,7 +1722,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1753,7 +1797,7 @@ Couldn't find ostruct.rb in runtime/compiler.rba (No such file/-1)
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1763,13 +1807,13 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1405
+    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1406
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1325
-    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1390
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1326
+    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1391
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1779,7 +1823,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1794,7 +1838,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1819,7 +1863,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1844,7 +1888,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1869,7 +1913,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1905,7 +1949,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1922,15 +1966,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1955,7 +1999,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -1991,7 +2035,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2008,15 +2052,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2041,7 +2085,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2066,7 +2110,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2091,7 +2135,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2116,7 +2160,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2189,7 +2233,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2199,18 +2243,18 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1405
+    Bytecode::Compiler::Processor#process_block_iter at bytecode/compiler.rb:1406
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1325
-    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1390
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1326
+    Bytecode::Compiler::Processor#process_iter at bytecode/compiler.rb:1391
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2227,15 +2271,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2260,7 +2304,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2285,7 +2329,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2310,7 +2354,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2353,7 +2397,7 @@ Backtrace:
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2370,15 +2414,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2403,7 +2447,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2428,7 +2472,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2453,7 +2497,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2478,7 +2522,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2615,7 +2659,7 @@ Backtrace:
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2632,15 +2676,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2665,7 +2709,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2690,7 +2734,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2715,7 +2759,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2740,7 +2784,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2785,7 +2829,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2802,40 +2846,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:383
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
-                       BlockEnvironment#call at bootstrap/context.rb:93
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:99
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2860,7 +2879,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2885,7 +2904,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2910,7 +2929,32 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:99
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:372
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:99
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:383
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:99
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
+                       BlockEnvironment#call at bootstrap/context.rb:93
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:802
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:99
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2941,10 +2985,10 @@ Backtrace:
 Backtrace:
          Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:23
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1308
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1309
                        BlockEnvironment#call at bootstrap/context.rb:93
                                   Array#each at bootstrap/array.rb:24
-    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1308
+    Bytecode::Compiler::Processor#process_call at bytecode/compiler.rb:1309
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2954,7 +2998,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2969,7 +3013,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -2986,15 +3030,15 @@ Backtrace:
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
                   Bytecode::Compiler#compile at bytecode/compiler.rb:136
         Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                        BlockEnvironment#call at bootstrap/context.rb:93
            Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1183
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1185
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -3019,7 +3063,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -3044,7 +3088,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
@@ -3069,7 +3113,7 @@ Backtrace:
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
        Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1487
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1488
                      CompiledMethod#activate at bootstrap/compiled_method.rb:52
                                  Method#call at bootstrap/compiled_method.rb:99
     Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
