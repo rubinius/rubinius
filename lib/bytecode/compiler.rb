@@ -1130,15 +1130,19 @@ module Bytecode
         
         return nil
       end
-      
+
       def detect_special(kind, cl)
         if cl.kind_of?(Array) and cl[0,3] == [:call, [:const, :Ruby], kind]
           args = cl.last
           args.shift
           if args.size == 1
             ary = args.last
-            if ary.kind_of? Array and [:lit, :str].include?(ary[0])
-              return ary.last
+            if ary.kind_of? Array
+              if ary[0] == :lit
+                return ary.last
+              elsif ary[0] == :string
+                return ary[-2]
+              end
             end
           end
         end

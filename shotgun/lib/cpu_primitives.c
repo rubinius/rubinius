@@ -80,7 +80,8 @@ int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args) {
   if(prim < MAX_SYSTEM_PRIM) {
     return cpu_perform_system_primitive(state, c, prim, mo, args);
   } else {
-    printf("TODO: implement custom primitives.\n");
+    printf("Error: Primitive index out of range for this VM\n");
     abort();
   }
 }
+
