@@ -1,7 +1,7 @@
 require 'timeout'
 
 BYTECODE = File.expand_path(File.dirname(__FILE__) + '/../../lib/bytecode')
-CORE = File.expand_path(File.dirname(__FILE__) + '/../../kernel/core') +
+CORE = File.expand_path(File.dirname(__FILE__) + '/../../kernel/core')
 BOOTSTRAP = File.expand_path(File.dirname(__FILE__) + '/../../kernel/bootstrap')
 files  = Dir[BYTECODE + '/*.rb']
 files += Dir[BOOTSTRAP + '/*.rb']

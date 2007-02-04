@@ -6,21 +6,21 @@
   </head>
   <body>
     <h1>Self Hosting Errors (Make Rubinius Completely Self-Hosted) Report</h1>
-    <div>Generated on Sun Feb 04 10:14:27 -0800 2007.</div>
+    <div>Generated on Sun Feb 04 10:20:33 -0800 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Working Files</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 170px; text-align: right; color: #000000; background: #00f000">
-      85%&nbsp;&nbsp;</td>
-    <td style="width: 30px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 184px; text-align: right; color: #000000; background: #00f000">
+      92%&nbsp;&nbsp;</td>
+    <td style="width: 16px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(28 out of 33)</p>
+    <p>(56 out of 61)</p>
 
     <h2>Non-Working Files</h2>
     <table border="1">
@@ -78,30 +78,30 @@ rubinius: rubinius.c:83: rbs_inspect_verbose: Assertion `(((OBJECT)(kls) &amp; ~
 An error has occured: Software abort (SIGABRT)
 
 C backtrace:
-0xb7d15eef &lt;??&gt; at ??:0
-0xb7d0ddb7 &lt;??&gt; at ??:0
+0xb7d04eef &lt;??&gt; at ??:0
+0xb7cfcdb7 &lt;??&gt; at ??:0
  0x804be2a &lt;string_dup&gt; at /home/mae/projects/rubinius/shotgun/lib/string.c:45
  0x805bea3 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:395
  0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
  0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
  0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7d008c8 &lt;??&gt; at ??:0
+0xb7cef8c8 &lt;??&gt; at ??:0
  0x8049ffd &lt;_start&gt; at ??:0
  0x80c80e0 &lt;??&gt; at ??:0
 
 Ruby backtrace:
-0xb798ca74 SimpleSexpProcessor#process+62 in sexp/simple_processor.rb
-0xb798ca00 RsNormalizer#process+112 in translation/normalize.rb
+0xb797ba74 SimpleSexpProcessor#process+62 in sexp/simple_processor.rb
+0xb797ba00 RsNormalizer#process+112 in translation/normalize.rb
 Skipping Block Context
-0xb798c8c4 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb798c7ec Array#each+73 in bootstrap/array.rb
-0xb798c758 CompositeSexpProcessor#process+86 in sexp/composite_processor.rb
-0xb798b428 Bytecode::Compiler#fully_normalize+149 in bytecode/compiler.rb
-0xb798b018 Bytecode::Compiler#compile+148 in bytecode/compiler.rb
-0xb798afa4 Bytecode::Compiler#compile_as_script+41 in bytecode/compiler.rb
-0xb7a8d7d4 Class#compile_file+107 in core/compile.rb
-0xb7a8d81c Kernel#load+580 in core/compile.rb
-0xb7a8d864 Class#__script__+674 in core/__loader.rb
+0xb797b8c4 BlockEnvironment#call+44 in bootstrap/context.rb
+0xb797b7ec Array#each+73 in bootstrap/array.rb
+0xb797b758 CompositeSexpProcessor#process+86 in sexp/composite_processor.rb
+0xb797a428 Bytecode::Compiler#fully_normalize+149 in bytecode/compiler.rb
+0xb797a018 Bytecode::Compiler#compile+148 in bytecode/compiler.rb
+0xb7979fa4 Bytecode::Compiler#compile_as_script+41 in bytecode/compiler.rb
+0xb7a7c7d4 Class#compile_file+107 in core/compile.rb
+0xb7a7c81c Kernel#load+580 in core/compile.rb
+0xb7a7c864 Class#__script__+674 in core/__loader.rb
 
 Ruby stack:
  104    &lt;TrueClass:0x2&gt;
@@ -117,7 +117,18 @@ Ruby stack:
       
       <tr>
         <td>/home/mae/projects/rubinius/lib/bytecode/constructor.rb</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occured:
+    Unable to find 'sydparse' to load (LoadError)
+
+Backtrace:
+         main.raise at bootstrap/04kernel.rb:23
+       main.require at core/compile.rb:91
+    main.__script__ at /home/mae/projects/rubinius/lib/bytecode/constructor.rb:3
+          main.load at core/compile.rb:56
+    main.__script__ at core/__loader.rb:58
+Couldn't find sydparse.rbc in runtime/compiler.rba (No such file/-1)
+Couldn't find sydparse.rb in runtime/compiler.rba (No such file/-1)
+</pre></td>
       </tr>
       
     </table>
@@ -180,6 +191,62 @@ Ruby stack:
       <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/03hash.rb</li>
       
       <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/fixnum.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/continuation.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/throw_catch.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/string.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/bignum.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/compile.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/05integer.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/marshal.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/02range.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/file.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/compression.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/time.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/03comparable.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/archive.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/kernel.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/01enumerable.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/hash.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/process.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/object.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/exception.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/04numeric.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/00io.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/array.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/01range.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/__loader.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/float.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/regexp.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/fixnum.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/readline.rb</li>
       
     </ul>
 
