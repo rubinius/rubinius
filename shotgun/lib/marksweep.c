@@ -226,6 +226,9 @@ void mark_sweep_free(mark_sweep_gc ms, OBJECT obj) {
 }
 
 void mark_sweep_free_fast(mark_sweep_gc ms, OBJECT obj) {
+  HEADER(obj)->klass = 0;
+  HEADER(obj)->flags = FREE_FLAG;
+  
   if(!ms->free_list) {
     ms->free_list = obj;
   } else {
