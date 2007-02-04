@@ -1132,17 +1132,15 @@ module Bytecode
       end
 
       def detect_special(kind, cl)
+        #[:call, [:const, :Ruby], :asm, [:array, [:str, "push 1\nsend puts 1", 0]]]]
         if cl.kind_of?(Array) and cl[0,3] == [:call, [:const, :Ruby], kind]
           args = cl.last
           args.shift
-          if args.size == 1
-            ary = args.last
-            if ary.kind_of? Array
-              if ary[0] == :lit
-                return ary.last
-              elsif ary[0] == :string
-                return ary[-2]
-              end
+
+          if args.length == 1
+            ary = args.first # should be [:str, "foo"] or [:lit, :bar]
+            if ary.kind_of? Array and [:str, :lit].include?(ary.first)
+              return ary[1]
             end
           end
         end
