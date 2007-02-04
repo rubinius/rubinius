@@ -925,7 +925,7 @@ module Bytecode
             add "send instance_variables"
             add "send include? 1"
           when :yield
-            add "send_primitive block_given"
+            add "send_primitive block_given 0"
           when :const
             add "push :#{expr.shift}"
             add "push Object"
@@ -1265,9 +1265,8 @@ module Bytecode
         end
         return false
       end
-      
+
       def process_call(x, block=false)
-        
         x.unshift :call
         asm = detect_special(:asm, x)
         if asm
@@ -1294,7 +1293,7 @@ module Bytecode
         args = x.shift
         
         if meth == :block_given?
-          add "send_primitive block_given"
+          add "send_primitive block_given 0"
           return
         end
         
@@ -1401,7 +1400,7 @@ module Bytecode
         add "push &#{@post_send}"
         add "push &#{one}"
         add "push_context"
-        add "send_primitive create_block"
+        add "send_primitive create_block 3"
         goto two
         process x.shift
         process x.shift

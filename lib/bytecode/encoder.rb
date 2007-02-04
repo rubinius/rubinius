@@ -111,7 +111,8 @@ class InstructionEncoder
   TwoInt = [
     :send_stack, :send_stack_with_block,
     :check_argcount,
-    :send_super_stack_with_block
+    :send_super_stack_with_block,
+    :send_primitive
   ]
   
   def encode_stream(stream)

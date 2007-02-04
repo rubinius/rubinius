@@ -148,10 +148,16 @@ class ShotgunInstructions
     CODE
   end
   
+  # cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args)
+  # Make primitives safer by having the opcode be aware of the number of args sent.
+  # This way we can remove the dependency of primitives being embedded in methods.
   def send_primitive
     <<-CODE
     next_int;
-    cpu_perform_primitive(state, c, _int, Qnil, 0);
+    j = _int; // primitive index
+    next_int;
+    k = _int; // num_args
+    cpu_perform_primitive(state, c, j, Qnil, k);
     CODE
   end
   
@@ -443,9 +449,10 @@ class ShotgunInstructions
   def send_stack
     <<-CODE
     next_int;
-    j = _int;
+    j = _int; // index
     next_int;
-    cpu_unified_send(state, c, stack_pop(), j, _int, Qnil);
+    k = _int; // num_args
+    cpu_unified_send(state, c, stack_pop(), j, k, Qnil);
     CODE
   end
   

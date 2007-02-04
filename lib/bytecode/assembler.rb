@@ -460,8 +460,9 @@ module Bytecode
       elsif op == :send_primitive
         sym = parts.shift.to_sym
         idx = primitive_to_index(sym)
-        @current_op += 5
-        @output << [:send_primitive, idx]
+        num_args = parts.shift.to_i
+        @current_op += 9
+        @output << [:send_primitive, idx, num_args]
         return
       elsif op == :check_argcount
         @output << [op, parts.shift.to_i, parts.shift.to_i]
