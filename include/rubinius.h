@@ -133,7 +133,7 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #endif
 
 #ifndef STATE
-#define STATE void*
+#define STATE void* state
 #endif
 
 #ifndef __SHOTGUN__
@@ -152,14 +152,10 @@ static inline long rbs_to_int(OBJECT obj) {
   return val;
 }
 
-static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
+static inline OBJECT rbs_int_to_fixnum(int num) {
   OBJECT ret;
   ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
   
-  /* Number is too big for fixnum. Use bignum. */
-  if(rbs_to_int(ret) != num) {
-    return bignum_new(state, num);
-  }
   return ret;
 }
 

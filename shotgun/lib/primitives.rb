@@ -4,15 +4,20 @@ require 'cpu/primitives'
 class ShotgunPrimitives
   
   Header = ""
-  
+ 
   def generate_select(fd, op="prim")
     i = 0
     order = CPU::Primitives::Primitives
     fd.puts "switch(#{op}) {"
     order.each do |ins|
-      code = send(ins) rescue nil
+      meth = method(ins)
+      args = [nil] * meth.arity
+      code = send(ins, *args) rescue nil
       if code
         fd.puts "   case #{i}: {"
+        if meth.arity > 0
+          fd.puts "  ARITY(#{meth.arity});"
+        end
         fd.puts code
         fd.puts "   break;\n    }"
       else
@@ -47,7 +52,7 @@ class ShotgunPrimitives
     "stack_pop();"
   end
   
-  def add
+  def add(t1)
     <<-CODE
     POP(self, FIXNUM)
     POP(t1, FIXNUM)
