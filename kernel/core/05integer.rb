@@ -41,6 +41,10 @@ class Integer < Numeric
     a.data.set_byte(0, self)
     a
   end
+  
+  def isspace
+    self == ?\s or self == ?\n or self == ?\t or self == ?\r or self == ?\f or self == ?\v
+  end
 
   def [](i)
     if i < 0

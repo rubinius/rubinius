@@ -51,39 +51,37 @@ class String
   end
   
   def lstrip!
-    replace(lstrip)
+    str = lstrip
+    self == str ? nil : replace(str)
   end
   
   def rstrip
-    str = self.dup
-    i = str.bytes - 1
-    while i >= 0 and str.data.get_byte(i) == 0
-      i -= 1
-    end
+    i = @bytes - 1
     while i >= 0
-      c = str.data.get_byte(i)
-      if c == ?\s or c == ?\t or c == ?\n or c == ?\r or c == ?\f
+      c = @data.get_byte(i)
+      if c.isspace or c == 0
         i -= 1
       else
         break
       end
     end
+    str = self.dup
     str.substring(0, i+1)
   end
   
   def rstrip!
-    replace(rstrip)
+    str = rstrip
+    self == str ? nil : replace(str)
   end
 
   def strip
-    r = /\s*([^\s](.*[^\s])?)\s*/m
-    m = r.match(self)
-    return '' unless m
-    return m.captures[0]
+    str = lstrip
+    str.rstrip
   end
   
   def strip!
-    replace(strip)
+    str = strip
+    self == str ? nil : replace(str)
   end
 
   def =~(pattern)

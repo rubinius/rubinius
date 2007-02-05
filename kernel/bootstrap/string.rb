@@ -109,7 +109,9 @@ class String
   alias :intern :to_sym
 
   def each_byte(&prc)
-    @data.each(&prc)
+    0.upto(@bytes - 1) do |i|
+      yield @data.get_byte(i)
+    end
   end
   
   def empty?
