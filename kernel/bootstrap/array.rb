@@ -27,6 +27,15 @@ class Array
     self
   end
   
+  def reverse_each
+    i = @total
+    while i > 0
+      i -= 1
+      yield @tuple.at(i)
+    end
+    self
+  end
+  
   def ==(other)
     return false unless other.kind_of?(Array)
     return false if @total != other.size

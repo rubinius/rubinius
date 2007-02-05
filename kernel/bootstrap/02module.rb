@@ -8,8 +8,11 @@ class Module
     im.attach_to mod
   end
   
+  def included(mod); end
+  
   def include(mod)
     mod.append_features(self)
+    mod.included(self)
   end
   
   def alias_method(nw,cur)

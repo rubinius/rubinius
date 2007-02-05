@@ -6,9 +6,10 @@ class Module
     mod
   end
   
-  def include(*mod)
-    mod.each do |m|
-      m.append_features(self)
+  def include(*modules)
+    modules.reverse_each do |mod|
+      mod.append_features(self)
+      mod.included(self)
     end
   end
 

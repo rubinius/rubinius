@@ -1,4 +1,6 @@
 class String
+  include Comparable, Enumerable
+  
   alias_method :to_str, :to_s
 
   def to_sexp_full(name, line, newlines)
@@ -20,6 +22,14 @@ class String
     num.times { str << self }
     return str.join("")
   end
+  
+  def replace(other)
+    @data = other.dup.data
+    @bytes = other.bytes
+    @characters = other.characters
+    @encoding = other.encoding
+    self
+  end
 
   def reverse
     str = ""
@@ -32,10 +42,37 @@ class String
   end
 
   def reverse!
-    sd = self.reverse
-    @data = sd.data
-    @bytes = sd.size
-    return self
+    replace(reverse)
+  end
+  
+  def lstrip
+    m = self.match(/\s*(.*)/m)
+    m[1]
+  end
+  
+  def lstrip!
+    replace(lstrip)
+  end
+  
+  def rstrip
+    str = self.dup
+    i = str.bytes - 1
+    while i >= 0 and str.data.get_byte(i) == 0
+      i -= 1
+    end
+    while i >= 0
+      c = str.data.get_byte(i)
+      if c == ?\s or c == ?\t or c == ?\n or c == ?\r or c == ?\f
+        i -= 1
+      else
+        break
+      end
+    end
+    str.substring(0, i+1)
+  end
+  
+  def rstrip!
+    replace(rstrip)
   end
 
   def strip
@@ -46,10 +83,7 @@ class String
   end
   
   def strip!
-    sd = self.strip
-    @data = sd.data
-    @bytes = sd.size
-    return self
+    replace(strip)
   end
 
   def =~(pattern)

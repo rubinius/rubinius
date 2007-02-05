@@ -474,15 +474,6 @@ class Array
     replace(sort(&block))
   end
 
-  def reverse_each
-    i = @total
-    while i > 0
-      i -= 1
-      yield @tuple.at(i)
-    end
-    self
-  end
-
   def rindex(obj)
     i = @total
     while i > 0
