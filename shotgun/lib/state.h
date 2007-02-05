@@ -19,6 +19,7 @@ struct rubinius_globals {
   OBJECT exc_arg;
   OBJECT exc_loe;
   OBJECT exc_stack_explosion;
+  OBJECT exc_primitive_failure;
   
   /* The external ivars table. */
   OBJECT external_ivars;

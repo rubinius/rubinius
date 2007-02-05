@@ -202,6 +202,16 @@ void cpu_raise_arg_error(STATE, cpu c, int args, int req) {
   cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_arg, msg));
 }
 
+void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
+  char msg[1024];
+  OBJECT primitive_failure;
+  snprintf(msg, 1024, "Primitive with index (%d) failed", primitive_idx);
+
+  printf("EXCEPTION: %s\n", msg);
+  primitive_failure = cpu_new_exception(state, c, state->global->exc_primitive_failure, msg);
+  cpu_raise_exception(state, c, primitive_failure);
+}
+
 static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args) {
   int prim, req, ret;
   

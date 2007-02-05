@@ -98,3 +98,8 @@ end
 
 class LocalJumpError < StandardError
 end
+
+# primitive fails from opcode "send_primitive"
+class PrimitiveFailure < Exception
+end
+

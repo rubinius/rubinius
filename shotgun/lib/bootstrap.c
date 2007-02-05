@@ -36,6 +36,7 @@ void cpu_bootstrap_exceptions(STATE) {
   state->global->exc_loe = loe;
   
   state->global->exc_stack_explosion = sxp;
+  state->global->exc_primitive_failure = dexc(PrimitiveFailure, exc);
 
   OBJECT ern = dexc(Errno, sce);
 

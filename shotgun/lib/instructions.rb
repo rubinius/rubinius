@@ -157,7 +157,15 @@ class ShotgunInstructions
     j = _int; // primitive index
     next_int;
     k = _int; // num_args
-    cpu_perform_primitive(state, c, j, Qnil, k);
+
+    // Should the OBJECT parameter be removed since a primitive is not necesarily
+    // performed on an object? Or should we state that the semantics of a primitive 
+    // will always have an object or else it needs to be an opcode... ?
+    // If the primitive fails raise an exception
+    if( ! cpu_perform_primitive(state, c, j, Qnil, k) )
+    {
+      cpu_raise_primitive_failure(state, c, j);
+    }
     CODE
   end
   
