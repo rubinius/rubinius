@@ -2,6 +2,16 @@ class Regexp
 
   ValidOptions = ['m','i','x']
 
+  def self.last_match(field = nil)
+    match = $~
+    if match
+      return match if field.nil?
+      return match[field]
+    else
+      return nil
+    end
+  end
+
   def self.union(*patterns)
     if patterns.nil? || patterns.length == 0
       return '/(?!)/'
@@ -17,10 +27,20 @@ class Regexp
     end
   end
 
+  def ~
+    line = $_
+    if !line.is_a?(String)
+      $~ = nil
+      return nil
+    end
+    res = self.match(line)
+    return res.nil? ? nil : res.begin(0)
+  end
+
   def ===(other)
     if !other.is_a?(String)
       if !other.respond_to(:to_str)
-        #$~ = nil # FIXME should special global $~ (last_match)
+        $~ = nil
         return false
       end
     end
@@ -64,10 +84,19 @@ class Regexp
     return nil
   end
 
+  def match(str)
+    obj = __regexp_match__(str)
+    $~ = obj
+    return obj
+  end
+
+  def __regexp_match__(str)
+    Ruby.primitive :regexp_match
+  end
+
   def options
     Ruby.primitive :regexp_options
   end
-
 
   def to_s
     idx     = 0
@@ -147,7 +176,7 @@ class MatchData
     if idx.is_a?(Integer)
       idx += self.length if idx < 0
       if len.nil?
-        if idx >= 0 && idx <= self.length
+        if idx >= 0 && idx < self.length
           x = self.begin(idx)
           y = self.end(idx)
           return @source[x...y]
@@ -191,7 +220,9 @@ class MatchData
     return get_match_array(0)
   end
 
-  alias_method :to_s, :inspect
+  def to_s
+    self[0]
+  end
 
   def values_at(*index)
     out = Array.new

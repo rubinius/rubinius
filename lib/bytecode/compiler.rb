@@ -310,6 +310,43 @@ module Bytecode
         process pattern
         add "send match 1"
       end
+
+      # Only call regexp special var method if $~ is_a? MatchData
+      def valid_last_match(op, nth_ref=nil)
+        el = unique_lbl()
+        ed = unique_lbl()
+        add "push MatchData"
+        process_gvar([:$~])
+        add "send is_a? 1"
+        gif(el)
+        add "push #{nth_ref}" if nth_ref
+        process_gvar([:$~])
+        add op
+        goto ed
+        set_label el
+        add "push nil"
+        set_label ed        
+      end
+
+      # Regexp special var handling $&, $`, $'
+      def process_back_ref(x)
+        kind = x.shift
+        if kind == ?'
+          valid_last_match "send post_match 0"
+        elsif kind == ?`
+          valid_last_match "send pre_match 0"
+        elsif kind == ?&
+          valid_last_match "send to_s 0"          
+        else
+          raise "'back_ref' #{kind} not implemented yet"
+        end
+      end
+
+      # Handle $1, $2, ....
+      def process_nth_ref(x)
+        num = x.shift
+        valid_last_match "send [] 1", num
+      end
       
       def set_label(name)
         add "#{name}:"
@@ -650,7 +687,8 @@ module Bytecode
           add "send [] 1"
         end
       end
-      
+
+      # TODO Need to ensure that $~ only cotains nil or MatchData
       def process_gasgn(x)
         kind = x.shift
         idx = @method.add_literal kind
