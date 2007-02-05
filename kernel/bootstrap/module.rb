@@ -5,6 +5,12 @@ class Module
     mod.module_eval(&prc) if block_given?
     mod
   end
+  
+  def include(*mod)
+    mod.each do |m|
+      m.append_features(self)
+    end
+  end
 
   def to_s
     if name

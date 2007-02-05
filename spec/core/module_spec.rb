@@ -30,7 +30,55 @@ context "Module" do
         Object.const_defined?("Blah::Whee"),
         Object.const_defined?("Blah::Zargle") ]
     end.should == [true, true, true, false]
-  end  
+  end
+  
+  specify "include should accept multiple arguments" do
+    example do
+      class Foo
+        include Comparable, Enumerable
+      end
+      Foo.new.class.to_s
+    end.should == 'Foo'
+  end
+  
+  specify "should provide append_features" do
+    example(<<-CODE
+    module Pod
+
+      def self.append_features(mod)
+        super(mod)
+        mod.some_class_method
+      end
+
+    end
+
+    class Foo
+      def self.some_class_method
+        @included = true
+      end
+      
+      def self.included?
+        @included
+      end
+      
+      include Pod
+    end
+    CODE
+    ) do
+      Foo.included?
+    end.should == true
+  end
+        
+  specify "append_features should include self in other module unless it is already included" do
+    example do
+      module Sod; end
+      module Mod; end
+      class Bar
+        include Sod, Mod
+      end
+      Bar.ancestors.reject { |m| m.to_s.include?(':') }.inspect
+    end.should == '[Bar, Sod, Mod, Object, Kernel]'
+  end
 end
 
 context "Module.new method" do
@@ -63,7 +111,7 @@ context "Module#module_eval given a block" do
   specify "should execute on the receiver context" do
     example(@src) do
       Hello.module_eval { name }
-    end.should == :Hello
+    end.should == 'Hello'
   end
 
   specify "should bind self to the receiver module" do
@@ -147,6 +195,7 @@ context "Module" do
       module Moo
         def a; end
         def b; end
+        def c; end
       end
     end
   end
@@ -157,7 +206,8 @@ context "Module" do
         private
         def a; end
       end
-    end.should == nil
+      Yauk.private_instance_methods
+    end.should == ["a"]
   end
   
   specify "should provide a method private that takes multiple arguments" do
@@ -165,7 +215,8 @@ context "Module" do
       module Moo
         private :a, :b, :c
       end
-    end.should == nil
+      Moo.private_instance_methods
+    end.should == ["a", "b", "c"]
   end
   
   specify "should provide a method protected that takes no arguments" do
@@ -174,7 +225,8 @@ context "Module" do
         protected
         def a; end
       end
-    end.should == nil
+      Zar.protected_instance_methods
+    end.should == ["a"]
   end
   
   specify "should provide a method protected that takes multiple arguments" do
@@ -182,7 +234,8 @@ context "Module" do
       module Moo
         protected :a, :b, :c
       end
-    end.should == nil
+      Moo.protected_instance_methods
+    end.should == ["a", "b", "c"]
   end
   
   specify "should provide a method public that takes no arguments" do
@@ -191,7 +244,8 @@ context "Module" do
         public
         def a; end
       end
-    end.should == nil
+      Rilsk.public_instance_methods
+    end.should == ["a"]
   end
   
   specify "should provide a method public that takes multiple arguments" do
@@ -199,6 +253,7 @@ context "Module" do
       module Moo
         public :a, :b, :c
       end
-    end
+      Moo.public_instance_methods
+    end.should == ["a", "b", "c"]
   end
 end

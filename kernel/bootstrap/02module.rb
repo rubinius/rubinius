@@ -3,11 +3,15 @@ class Module
     @name
   end
   
-  def include(mod)
-    im = IncludedModule.new(mod)
-    im.attach_to self
+  def append_features(mod)
+    im = IncludedModule.new(self)
+    im.attach_to mod
   end
-
+  
+  def include(mod)
+    mod.append_features(self)
+  end
+  
   def alias_method(nw,cur)
     meth = @methods[cur]
     unless meth
