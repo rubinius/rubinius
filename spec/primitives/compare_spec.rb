@@ -28,10 +28,10 @@ end
 
 class PrimitiveFailure < Exception; end
 
-class String
-  # all this does is assumes that the string _is_ the exception name
+class Object
+  # all this does is assumes that the string rep of self _is_ the exception name
   def should_raise(exc)
-    self == exc.to_s
+    self.to_s.should == exc.to_s
   end
 end
 
@@ -61,20 +61,34 @@ end
 context "The compare primitive sent non-integers" do
   include PrimitiveSpecHelper
 
-  specify "should raise PrimitiveFailure if sent int, non-int" do
+  specify "should raise PrimitiveFailure with int, non-int" do
     run_primitive(:compare, 3, "foo").should_raise(PrimitiveFailure)
     run_primitive(:compare, 3, 7.9).should_raise(PrimitiveFailure)
   end
 
-  specify "should raise PrimitiveFailure if sent non-int, int" do
+  specify "should raise PrimitiveFailure with non-int, int" do
     run_primitive(:compare, "foo", 80).should_raise(PrimitiveFailure)
     run_primitive(:compare, 100.0, 80).should_raise(PrimitiveFailure)
   end
 
-  specify "should raise PrimitiveFailure if sent non-int, non-int" do
+  specify "should raise PrimitiveFailure with non-int, non-int" do
     run_primitive(:compare, "foo", "bar").should_raise(PrimitiveFailure)
     run_primitive(:compare, "foo", 38.8).should_raise(PrimitiveFailure)
     run_primitive(:compare, 8.8, 38.8).should_raise(PrimitiveFailure)
+  end
+end
+
+context "The compare primitive sent the wrong number of args" do
+  include PrimitiveSpecHelper
+
+  specify "should raise PrimitiveFailure with more than 2 args" do
+    run_primitive(:compare, 1, 2, 3).should_raise(PrimitiveFailure)
+    run_primitive(:compare, 1, 2, 3, 4).should_raise(PrimitiveFailure)
+  end
+
+  specify "should raise PrimitiveFailure with less than 2 args" do
+    run_primitive(:compare, 1).should_raise(PrimitiveFailure)
+    run_primitive(:compare).should_raise(PrimitiveFailure)
   end
 end
 
