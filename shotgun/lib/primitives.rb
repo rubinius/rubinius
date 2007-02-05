@@ -131,6 +131,7 @@ class ShotgunPrimitives
   
   def equal
     <<-CODE
+    ARITY(1)
     POP(self, FIXNUM)
     POP(t1, FIXNUM)
     j = FIXNUM_TO_INT(self);
@@ -154,6 +155,7 @@ class ShotgunPrimitives
   
   def compare
     <<-CODE
+    ARITY(1)
     POP(self, FIXNUM)
     POP(t1, FIXNUM)
     j = FIXNUM_TO_INT(self);
@@ -258,6 +260,10 @@ class ShotgunPrimitives
   
   def block_given
     <<-CODE
+    ARITY(0)
+    // pop true off the stack to conform to the "all primitives have a self rule"
+    self = stack_pop(); GUARD( TRUE_P(self) )
+
     if( RTEST(c->block) ) {
       stack_push(Qtrue);
     } else {

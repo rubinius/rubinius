@@ -107,6 +107,8 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #define Qnil   ((OBJECT)4L)
 #define Qundef ((OBJECT)6L)
 #define RTEST(v) (((OBJECT)(v) & ~Qnil) != 0)
+#define FALSE_P(v) ((OBJECT)(v) == Qfalse)
+#define TRUE_P(v) ((OBJECT)(v) == Qtrue)
 #define NIL_P(v) ((OBJECT)(v) == Qnil)
 #define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 10 && ((_i & 1L) == 0L); })
 #define SYMBOL_MARKER 3

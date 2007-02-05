@@ -58,6 +58,7 @@ struct time_data {
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RISA(obj, string)
 #define HASH_P(obj) RISA(obj, hash)
+#define ARITY(length) GUARD( (length) == num_args )
 
 
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {

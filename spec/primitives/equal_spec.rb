@@ -39,14 +39,13 @@ end
 context "The equal primitive sent the wrong number of args" do
   include PrimitiveSpecHelper
 
-  specify "should raise PrimitiveFailure with more than 2 args" do
-    run_primitive(:equal, 1, 2, 3).should_raise(PrimitiveFailure)
-    run_primitive(:equal, 1, 2, 3, 4).should_raise(PrimitiveFailure)
+  specify "should raise PrimitiveFailure with more than 1 args" do
+    run_primitive(:equal, 1, 2, 3).should_raise(PrimitiveFailure) # 2 args
+    run_primitive(:equal, 1, 2, 3, 4).should_raise(PrimitiveFailure) # 3 args
   end
 
-  specify "should raise PrimitiveFailure with less than 2 args" do
-    run_primitive(:equal, 1).should_raise(PrimitiveFailure)
-    run_primitive(:equal).should_raise(PrimitiveFailure)
+  specify "should raise PrimitiveFailure with less than 1 args" do
+    run_primitive(:equal, 1).should_raise(PrimitiveFailure) # 0 args
   end
 end
 

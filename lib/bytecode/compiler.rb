@@ -963,6 +963,7 @@ module Bytecode
             add "send instance_variables"
             add "send include? 1"
           when :yield
+            add "push true" # conform to "all primitives have a self" rule
             add "send_primitive block_given 0"
           when :const
             add "push :#{expr.shift}"
@@ -1331,6 +1332,7 @@ module Bytecode
         args = x.shift
         
         if meth == :block_given?
+          add "push true"
           add "send_primitive block_given 0"
           return
         end
@@ -1438,7 +1440,7 @@ module Bytecode
         add "push &#{@post_send}"
         add "push &#{one}"
         add "push_context"
-        add "send_primitive create_block 3"
+        add "send_primitive create_block 2"
         goto two
         process x.shift
         process x.shift
