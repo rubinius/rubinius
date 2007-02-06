@@ -25,6 +25,24 @@ context "CType instance method" do
     end.should == [false, true, true, false, true, false, true, true, false]
   end
   
+  specify "isalnum should return true if self is between A..Z, a..z, 0..9" do
+    example do
+      @a = []
+      "aAbB9;2-\0005Zt!@#b{$}x9".each_byte { |b| @a << b.isalnum }
+      @a
+    end.should == [ true, true, true, true, true, false, true, false, false, true, true, 
+                    true, false, false, false, true, false, false, false, true, true]
+  end
+  
+  specify "isdigit should return true if self is between 0..9" do
+    example do
+      @a = []
+      "0a1b2C3;4:5d6=7+8p9".each_byte { |b| @a << b.isdigit }
+      @a
+    end.should == [ true, false, true, false, true, false, true, false, true, false, true, 
+                    false, true, false, true, false, true, false, true]
+  end
+  
   specify "tolower should return self in range a..z if self is between A..Z, otherwise return self" do
     example do
       @a = []

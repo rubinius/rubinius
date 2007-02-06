@@ -14,6 +14,14 @@ module CType
     self.between?(?a, ?z)
   end
   
+  def isdigit
+    self.between?(?0, ?9)
+  end
+  
+  def isalnum
+    islower or isupper or isdigit
+  end
+  
   def toupper
     self.islower ? self - ?\s : self
   end
