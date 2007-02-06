@@ -1,6 +1,7 @@
 class Float < Numeric
   def self.induced_from(o)
-    return o.to_f if o.respond_to?(:to_f)
+    return self if Float === o
+    return o.to_f if Fixnum === o or Bignum === o
     raise TypeError, "can't convert #{o.class} into Float"
   end
 
