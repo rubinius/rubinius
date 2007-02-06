@@ -26,5 +26,17 @@ module PrimitiveGenerator
   def method_missing(name, *args, &block)
     PrimitiveGenerator.push_type(name)
   end
+
+  def qfalse
+    PrimitiveGenerator.push_type('FALSE')
+  end
+
+  def qtrue
+    PrimitiveGenerator.push_type('TRUE')
+  end
+
+  def qnil
+    PrimitiveGenerator.push_type('NIL')
+  end
 end
 

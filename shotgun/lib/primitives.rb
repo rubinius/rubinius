@@ -51,10 +51,8 @@ class ShotgunPrimitives
     fd.puts "char buffer[1024];"
   end
     
-  def noop
-    <<-CODE
-    stack_pop();
-    CODE
+  def noop(_ = qtrue)
+    ""
   end
   
   def add(_ = fixnum, t1 = fixnum)

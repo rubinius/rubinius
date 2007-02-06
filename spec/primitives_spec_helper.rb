@@ -3,7 +3,11 @@ require 'spec'
 
 module PrimitiveSpecHelper
   def run_code(code)
-  `shotgun/rubinius -e '#{code}'`
+  `shotgun/rubinius -e '#{code}'`.strip
+  end
+
+  def run_asm(asm)
+    eval(run_code("p Ruby.asm(\"#{asm}\")"))
   end
 
   # have to do this the long way in case literals need to be pushed
@@ -20,7 +24,7 @@ module PrimitiveSpecHelper
       instructions << "push #{id}\n"
     end
 
-    code = "begin; #{declarations} puts Ruby.asm(\"" +
+    code = "begin; #{declarations} p Ruby.asm(\"" +
            "#{instructions}send_primitive #{name} #{num_args}" +
            "\"); " +
            "rescue Exception => e; p e.class.to_s; end"
