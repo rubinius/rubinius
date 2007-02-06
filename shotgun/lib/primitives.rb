@@ -136,11 +136,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  def equal
+  def equal(_ = fixnum, t1 = fixnum)
     <<-CODE
-    ARITY(1)
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
     j = FIXNUM_TO_INT(self);
     k = FIXNUM_TO_INT(t1);
 
@@ -160,11 +157,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  def compare
+  def compare(_ = fixnum, t1 = fixnum)
     <<-CODE
-    ARITY(1)
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
     j = FIXNUM_TO_INT(self);
     k = FIXNUM_TO_INT(t1);
 

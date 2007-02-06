@@ -44,8 +44,8 @@ context "The equal primitive sent the wrong number of args" do
     run_primitive(:equal, 1, 2, 3, 4).should_raise(ArgumentError) # 3 args
   end
 
-  specify "should raise PrimitiveFailure with less than 1 args" do
-    run_primitive(:equal, 1).should_raise(PrimitiveFailure) # 0 args
+  specify "should raise ArgumentError with less than 1 args" do
+    run_primitive(:equal, 1).should_raise(ArgumentError) # 0 args
   end
 end
 
