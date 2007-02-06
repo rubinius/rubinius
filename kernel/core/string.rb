@@ -31,6 +31,10 @@ class String
     self
   end
   
+  def replace_if(other)
+    self == other ? nil : replace(other)
+  end
+  
   def capitalize
     str = self.dup
     c = str.data.get_byte(0)
@@ -45,8 +49,37 @@ class String
   end
   
   def capitalize!
-    str = capitalize
-    self == str ? nil : replace(str)
+    replace_if(capitalize)
+  end
+  
+  def upcase
+    str = self.dup
+    i = 0
+    while i < str.bytes
+      c = str.data.get_byte(i)
+      str.data.set_byte(i, c.toupper)
+      i += 1
+    end
+    str
+  end
+  
+  def upcase!
+    replace_if(upcase)
+  end
+  
+  def downcase
+    str = self.dup
+    i = 0
+    while i < str.bytes
+      c = str.data.get_byte(i)
+      str.data.set_byte(i, c.tolower)
+      i += 1
+    end
+    str
+  end
+  
+  def downcase!
+    replace_if(downcase)
   end
 
   def reverse
@@ -66,7 +99,7 @@ class String
   end
 
   def reverse!
-    replace(reverse)
+    replace_if(reverse)
   end
   
   def lstrip
@@ -84,8 +117,7 @@ class String
   end
   
   def lstrip!
-    str = lstrip
-    self == str ? nil : replace(str)
+    replace_if(lstrip)
   end
   
   def rstrip
@@ -103,8 +135,7 @@ class String
   end
   
   def rstrip!
-    str = rstrip
-    self == str ? nil : replace(str)
+    replace_if(rstrip)
   end
 
   def strip
@@ -113,8 +144,7 @@ class String
   end
   
   def strip!
-    str = strip
-    self == str ? nil : replace(str)
+    replace_if(strip)
   end
 
   def =~(pattern)
