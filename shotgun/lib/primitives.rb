@@ -1,28 +1,31 @@
-
-require 'cpu/primitives'
+require File.dirname(__FILE__) + '/../../lib/cpu/primitives'
+require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
-  
+  include PrimitiveGenerator
   Header = ""
  
   def generate_select(fd, op="prim")
     i = 0
     order = CPU::Primitives::Primitives
     fd.puts "switch(#{op}) {"
+
     order.each do |ins|
       meth = method(ins)
-      args = [nil] * meth.arity
-      code = send(ins, *args) rescue nil
+      code = send(ins)
+
       if code
-        fd.puts "   case #{i}: {"
-        if meth.arity > 0
-          fd.puts "  ARITY(#{meth.arity});"
+        fd.puts "   case #{i}: { // #{ins}"
+        if meth.arity < 0 # relinquish control to the new PrimitiveGenerator
+          fd.puts PrimitiveGenerator.generate(meth)
+        else # just put code
+          fd.puts code
         end
-        fd.puts code
-        fd.puts "   break;\n    }"
+        fd.puts "    break;\n   }"
       else
         STDERR.puts "Problem with CPU primitive: #{ins}"
       end
+
       i += 1
     end
     i = CPU::Primitives::FirstRuntimePrimitive
@@ -49,14 +52,13 @@ class ShotgunPrimitives
   end
     
   def noop
-    "stack_pop();"
+    <<-CODE
+    stack_pop();
+    CODE
   end
   
-  def add(t1)
+  def add(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
-
     stack_push(fixnum_add(state, self, t1));
     CODE
   end
