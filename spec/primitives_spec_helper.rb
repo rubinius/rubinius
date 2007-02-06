@@ -23,7 +23,7 @@ module PrimitiveSpecHelper
     code = "begin; #{declarations} puts Ruby.asm(\"" +
            "#{instructions}send_primitive #{name} #{num_args}" +
            "\"); " +
-           "rescue PrimitiveFailure; puts \"PrimitiveFailure\".inspect; end"
+           "rescue Exception => e; p e.class.to_s; end"
     eval run_code(code)
   end
 end

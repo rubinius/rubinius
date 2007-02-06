@@ -58,8 +58,16 @@ struct time_data {
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RISA(obj, string)
 #define HASH_P(obj) RISA(obj, hash)
-#define ARITY(length) GUARD( (length) == num_args )
 
+// defines a required arity for a primitive
+// return true because we want other handler code to ignore it
+// this is because it is raised directly in the primitive as an exception
+#define ARITY(required) if((required) != num_args) { _ret = TRUE; cpu_raise_arg_error(state, c, num_args, required); break; }
+// for primitive protection
+#define GUARD(predicate_expression) if( ! (predicate_expression) ) { _ret = FALSE; break; }
+// popping with type checking -- a predicate function must be specified
+// i.e. if type is STRING then STRING_P must be specified
+#define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
 
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {
   int _ret = TRUE;
