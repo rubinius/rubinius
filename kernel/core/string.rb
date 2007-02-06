@@ -214,9 +214,20 @@ class String
   def succ
     return "" if length == 0
     out = self.dup
+
+    start = length-1
+    while start >= 0       # can't break from a step or downto yet
+      if out[start].isalnum
+        break
+      else
+        start -= 1
+      end
+    end
+    start = length-1 if start < 0
+    
     carry = false
     c = 0
-    (length - 1).step(0, -1) do |idx|
+    start.step(0, -1) do |idx|
       c = out[idx]
       carry = true 
       if c == ?9
