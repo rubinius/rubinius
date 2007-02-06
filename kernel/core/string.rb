@@ -287,27 +287,42 @@ class String
       end
       lst += 1 unless idx.exclude_end?
       idx = idx.first
-      if idx < 0
-        idx += @bytes
-        raise IndexError if idx < 0
-      end
-      cnt = lst - idx
-    end
-
-    if cnt
-      raise "String slicing not implemented yet"
+    elsif Fixnum === idx
+      # Check type of cnt here and raise TypeError if can't coerce to int
+      raise IndexError, "negative length #{cnt}" if cnt && cnt < 0
+    elsif Regexp === idx
+      cnt = 0 if cnt.nil?  # if capture group not specified default to 0
+      m = idx.match(self)
+      raise IndexError, "regexp not matched" if m.nil?
+      raise IndexError, "index #{cnt} out of regexp" if cnt >= m.size
+      idx = m.begin(cnt) 
+      cnt = m.end(cnt) - idx
     end
 
     if idx < 0
       idx += @bytes
-      raise IndexError if idx < 0
     end
 
-    if idx >= @bytes
+    if idx < 0 || idx >= @bytes
       raise IndexError, "index #{idx} out of string"
     end
 
-    @data.set_byte idx, ent
+    # Tidy-up the Range parameters
+    if lst && cnt.nil?
+      lst = idx if lst < idx
+      cnt = lst - idx
+    end
+
+    if String === ent
+      cnt = 1 if cnt.nil? # for index arg. only replace the indexed char
+      out = ""
+      out << substring(0, idx) if idx > 0
+      out << ent
+      out << substring(idx + cnt, @bytes - (idx + cnt)) if idx + cnt < @bytes
+      replace out
+    elsif Fixnum === ent
+      @data.set_byte idx, ent
+    end
     return ent
   end
 

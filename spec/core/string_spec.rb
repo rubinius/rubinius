@@ -165,7 +165,7 @@ context "String instance method" do
     example do
       @a = 'hello '
       @a << 'world'
-      @b = @a.clone
+      @b = @a.dup
       @b << 33
       [@a, @b]
     end.should == ["hello world", "hello world!"]
@@ -289,8 +289,11 @@ context "String instance method" do
   
   specify "[]= with start, length should replace length characters at start with string" do
     example do
-      @s = "once upon a time"
-      [@s[5, 11] = "a lifetime", @s]
+      @r = 'once upon a time'
+      [
+       @r[5,11]= 'a lifetime', 
+       @r
+      ]
     end.should == ["a lifetime", "once a lifetime"]
   end
   
@@ -310,8 +313,8 @@ context "String instance method" do
 
   specify "[]= with regexp and index should replace the specified portion of the match with string" do
     example do
-      @s = "abc123def411"
-      [@s[/(\d+)([a-e]*)/, 1] = "abcc", @s]
+      @r = "abc123def411"
+      [@r[/(\d+)([a-e]*)/, 1] = "abcc", @r]
     end.should == ["abcc", "abcabccdef411"]
   end
 
@@ -413,7 +416,7 @@ context "String instance method" do
     example do
       @a = 'hello '
       @a.concat('world')
-      @b = @a.clone
+      @b = @a.dup
       @b.concat(33)
       [@a, @b]
     end.should == ["hello world", "hello world!"]
