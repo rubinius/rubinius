@@ -35,6 +35,27 @@ class String
     self == other ? nil : replace(other)
   end
   
+  def chomp
+    return "" unless @bytes > 0
+    i = @bytes-1
+    i -= 1 if @data.get_byte(i) == ?\n
+    i -= 1 if @data.get_byte(i) == ?\r and i > 0
+    substring(0, i+1)
+  end
+  
+  def chomp!
+    replace_if(chomp)
+  end
+  
+  def chop
+    count = @bytes > 0 ? @bytes-1 : 0
+    substring(0, count)
+  end
+  
+  def chop!
+    replace_if(chop)
+  end
+  
   def capitalize
     str = self.dup
     c = str.data.get_byte(0)

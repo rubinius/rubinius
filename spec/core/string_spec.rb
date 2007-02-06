@@ -379,8 +379,9 @@ context "String instance method" do
       @t = "two\r\n"
       @u = "three\r"
       @v = "four"
-      [@s.chomp!, @t.chomp!, @u.chomp!, @v.chomp!]
-    end.should == ["one", "two", "three", nil]
+      @w = "four\n\r"
+      [@s.chomp!, @t.chomp!, @u.chomp!, @v.chomp!, @w.chomp!]
+    end.should == ["one", "two", "three", nil, "four\n"]
   end
   
   specify "chomp! should return nil if no changes are made" do
