@@ -440,25 +440,30 @@ class Array
     if size <= 1
       self.dup
     else
-      midval = self[size/2]
-      al, am, ar = [], [], []
+      mid = size/2
+      midval = self[mid]
+      al, am, ar = [], [midval], []
       if block_given?
-        each { |o|
-          cmp = yield(o, midval)
-          if cmp < 0; al << o
-          elsif cmp == 0; am << o
-          else; ar << o
+        each_with_index { |o, i|
+          if i != mid
+            cmp = yield(o, midval)
+            if cmp < 0; al << o
+            elsif cmp == 0; am << o
+            else; ar << o
+            end
           end
         }
         out = al.sort(&block)
         out.concat am
         out.concat(ar.sort(&block))
       else
-        each { |o1|
-          cmp = o1 <=> midval
-          if cmp < 0; al << o1
-          elsif cmp == 0; am << o1
-          else; ar << o1
+        each_with_index { |o1, i1|
+          if i1 != mid
+            cmp = o1 <=> midval
+            if cmp < 0; al << o1
+            elsif cmp == 0; am << o1
+            else; ar << o1
+            end
           end
         }
         out = al.sort
