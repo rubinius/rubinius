@@ -296,7 +296,7 @@ module Bytecode
         target = x.shift
         process target
         process pattern
-        add "send match 1"
+        add "send =~ 1"
       end
 
       # TODO match3 is an optimization node where we know
@@ -308,7 +308,7 @@ module Bytecode
         target = x.shift
         process target
         process pattern
-        add "send match 1"
+        add "send =~ 1"
       end
 
       # Only call regexp special var method if $~ is_a? MatchData

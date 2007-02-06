@@ -37,6 +37,12 @@ class Regexp
     return res.nil? ? nil : res.begin(0)
   end
 
+  def =~(str)
+    m = match(str)
+    return m.begin(0) if m
+    nil
+  end
+
   def ===(other)
     if !other.is_a?(String)
       if !other.respond_to(:to_str)

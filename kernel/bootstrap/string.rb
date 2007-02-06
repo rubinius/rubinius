@@ -81,8 +81,12 @@ class String
   end
 
   def ==(other)
-    return false unless String === other
-    (@data <=> other.data) == 0
+    if String === other
+      return (@data <=> other.data) == 0
+    elsif other.respond_to?(:to_str)
+      return other == self
+    end
+    false
   end
   
   alias :=== :==

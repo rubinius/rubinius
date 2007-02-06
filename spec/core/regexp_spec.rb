@@ -77,11 +77,13 @@ context "Regexp instance method" do
     end.should == false
   end
   
-  specify "=~ should return a MatchData object describing the match" do
+  specify "=~ should return the first position of the match" do
     example do
-      /(.)(.)(.)/ =~ "abc"
-      $~[2]
-    end.should == 'b'
+      [
+      /(.)(.)(.)/ =~ "abc",
+      $~.begin(0)
+      ]
+    end.should == [0,0]
   end
   
   specify "=~ should return nil if there is no match" do
