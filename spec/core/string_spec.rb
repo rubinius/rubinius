@@ -651,10 +651,10 @@ context "String instance method" do
 
   specify "lstrip should return self with leading whitespace characters removed" do
     example do
-      [ " hello ".lstrip,
-        "\000 hello ".lstrip,
+      [ "".lstrip,
+        " hello ".lstrip,
         "hello".lstrip ]
-    end.should == ["hello ", "\000 hello ", "hello"]
+    end.should == ["", "hello ", "hello"]
   end
 
   specify "lstrip! should modify self removing leading whitespace characters" do
@@ -713,7 +713,15 @@ context "String instance method" do
     end.should == [0, 4042, -342391]
   end
 
-  specify "replace should replace the contents and taintedness of self with other" do
+  specify "replace should replace the contents of self with other" do
+    example do
+      @a = "me"
+      @b = "you"
+      ["".replace(@a), @a.replace(@b), @b.replace("we")]
+    end.should == ["me", "you", "we"]
+  end
+  
+  specify "replace should copy the taintedness of other" do
     example do
       @a = "tainted"
       @a.taint
@@ -772,24 +780,20 @@ context "String instance method" do
 
   specify "rstrip should return a string first removing trailing \\000 characters and then removing trailing spaces" do
     example do
-      [ " hello ".strip,
-        "\tgoodbye\r\n".strip,
-        "goodbye \000".strip,
-        "goodbye \000 ".strip ]
-    end.should == ["hello", "goodbye", "goodbye", "goodbye \000"]
+      [ " hello ".rstrip,
+        "\tgoodbye\r\n".rstrip ]
+    end.should == [" hello", "\tgoodbye"]
   end
 
   specify "rstrip! should modify self by first removing trailing \\000 characters and then removing trailing spaces " do
     example do
       @s = " hello "
       @t = "\tgoodbye\r\n"
-      @u = "goodbye \000"
-      @v = "goodbye \000 "
-      [ @s.strip!,
-        @t.strip!,
-        @u.strip!,
-        @v.strip! ]
-    end.should == ["hello", "goodbye", "goodbye", "goodbye \000"]
+      @u = "goodbye\000"
+      [ @s.rstrip!,
+        @t.rstrip!,
+        @u.rstrip! ]
+    end.should == [" hello", "\tgoodbye", "goodbye"]
   end
   
   specify "rstrip! should return nil if no changes are made" do
@@ -918,17 +922,16 @@ context "String instance method" do
     example do
       [ " hello ".strip,
         "\tgoodbye\r\n".strip,
-        "goodbye \000".strip,
-        "goodbye \000 ".strip ]
-    end.should == ["hello", "goodbye", "goodbye", "goodbye \000"]
+        "goodbye \000".strip ]
+    end.should == ["hello", "goodbye", "goodbye"]
   end
 
   specify "strip! should modify self to remove trailing \\000, and leading and trailing spaces" do
     example do
       @s = "  strip  \000"
-      @r = "  rip \000  \000"
+      @r = "  rip \000\000"
       [@s.strip!, @s, @r.strip!, @r]
-    end.should == ["strip", "strip", "rip \000", "rip \000"]
+    end.should == ["strip", "strip", "rip", "rip"]
   end
 
   specify "sub should return a string with the first occurrence of pattern replaced with string" do

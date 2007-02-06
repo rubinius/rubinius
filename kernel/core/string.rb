@@ -50,13 +50,19 @@ class String
   end
 
   def reverse
-    str = ""
-    i = @bytes - 1
-    while i >= 0
-      str << self[i,1]
-      i -= 1
+    str = self.dup
+    i = 0
+    j = str.bytes - 1
+    d = str.data
+    while i < j
+      a = d.get_byte(i)
+      b = d.get_byte(j)
+      d.set_byte(j, a)
+      d.set_byte(i, b)
+      i += 1
+      j -= 1
     end
-    return str
+    str
   end
 
   def reverse!
