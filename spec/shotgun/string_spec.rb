@@ -15,7 +15,8 @@ context "String instance method" do
         "blah".substring(0, 4),
         "blah".substring(2, 2) ]
     end.should == ["bl", "blah", "ah"]
-  end  
+  end
+  
 end
 
 context "String implementation" do

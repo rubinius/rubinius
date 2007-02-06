@@ -1,6 +1,25 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 context "String instance method" do
+  specify "lstrip should return a string with all leading \\000 and whitespace characters removed" do
+    example do
+      [ "".lstrip,
+        " hello ".lstrip,
+        "\000  hello ".lstrip,
+        "\000\t \000hello ".lstrip,
+        "hello".lstrip ]
+    end.should == ["", "hello ", "hello ", "hello ", "hello"]
+  end
+
+  specify "lstrip! should modify self by removing all leading \\000 and whitespace characters" do
+    example do
+      @s = "\n\t This \000"
+      @t = "\000 another one"
+      @u = "\000  \000\t\v\000two  "
+      [@s.lstrip!, @t.lstrip!, @u.lstrip!]
+    end.should == ["This \000", "another one", "two  "]
+  end
+  
   specify "rstrip should return a string with all trailing \\000 and whitespace characters removed" do
     example do
       [ " \t\n ".rstrip,
@@ -27,6 +46,6 @@ context "String instance method" do
         @v.rstrip!,
         @w.rstrip!,
         @z.rstrip! ]
-    end.should == [" hello", "\tgoodbye", "goodbye", "goodbye", "", ""]
+    end.should == [" hello", "\tgoodbye", "goodbye", "goodbye", nil, ""]
   end
 end

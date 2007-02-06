@@ -1,4 +1,6 @@
 class Integer < Numeric
+  include CType
+  
   def self.induced_from(o)
     return o.to_i if o.respond_to?(:to_i)
     raise TypeError, "can't convert #{o.class} into Integer"
@@ -42,10 +44,6 @@ class Integer < Numeric
     a
   end
   
-  def isspace
-    self == ?\s or self == ?\n or self == ?\t or self == ?\r or self == ?\f or self == ?\v
-  end
-
   def [](i)
     if i < 0
       0
@@ -76,5 +74,4 @@ class Integer < Numeric
   def quo(other)
     Float(self) / Float(other)
   end
-  
 end

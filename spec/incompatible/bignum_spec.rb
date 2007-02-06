@@ -12,7 +12,7 @@ context "Bignum instance method" do
     example do
       @a = 0xffffffff.coerce("2")
       @b = 0xffffffff.coerce(1.5)
-      [@a, @a.collect { |i| i.class }]
-    end.should == [[2.0, 1.0], [Float, Float], [1.5, 1.0], [Float, Float]]
+      [@a, @a.collect { |i| i.class }, @b, @b.collect { |i| i.class }]
+    end.should == [[2.0, 4294967295.0], [Float, Float], [1.5, 4294967295.0], [Float, Float]]
   end
 end

@@ -30,6 +30,24 @@ class String
     @encoding = other.encoding
     self
   end
+  
+  def capitalize
+    str = self.dup
+    c = str.data.get_byte(0)
+    str.data.set_byte(0, c.toupper)
+    i = 1
+    while i < str.bytes
+      c = str.data.get_byte(i)
+      str.data.set_byte(i, c.tolower)
+      i += 1
+    end
+    str
+  end
+  
+  def capitalize!
+    str = capitalize
+    self == str ? nil : replace(str)
+  end
 
   def reverse
     str = ""
@@ -46,8 +64,17 @@ class String
   end
   
   def lstrip
-    m = self.match(/\s*(.*)/m)
-    m[1]
+    i = 0
+    while i < @bytes
+      c = @data.get_byte(i)
+      if c.isspace or c == 0
+        i += 1
+      else
+        break
+      end
+    end
+    str = self.dup
+    str.substring(i, @bytes - i)
   end
   
   def lstrip!
