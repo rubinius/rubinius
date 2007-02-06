@@ -39,10 +39,23 @@ context "NilClass" do
     end.should == 0.0
   end
 
+  specify "to_f should not cause NilClass to be coerced into Float" do
+    example do
+      0.0 == nil
+    end.should == false
+  end
+
+
   specify "to_i should return 0" do
     example do
       nil.to_i
     end.should == 0
+  end
+
+  specify "to_i should not cause NilClass to be coerced into Fixnum" do
+    example do
+      0 == nil
+    end.should == false
   end
 
   specify "to_s should return ''" do

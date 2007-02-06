@@ -121,7 +121,7 @@ class String
       @data.each { |b|  return true if b == arg }
       return false
     elsif arg.is_a? String
-      return (self.index(arg) != nil) 
+      return (nil != self.index(arg)) 
     else
       raise ArgumentError.new("String#include? cannot accept #{arg.class} objects")
     end
