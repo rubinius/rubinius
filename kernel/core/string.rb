@@ -211,6 +211,41 @@ class String
     replace_if(gsub(pattern, rep))
   end
 
+  def succ
+    return "" if length == 0
+    out = self.dup
+    carry = false
+    c = 0
+    (length - 1).step(0, -1) do |idx|
+      c = out[idx]
+      carry = true 
+      if c == ?9
+        c = ?0
+      elsif c == ?Z
+        c = ?A
+      elsif c == ?z
+        c = ?a
+      else
+        c = (c + 1) % 256
+        carry = false if c != 0
+      end
+      out[idx] = c
+      return out if !carry
+    end
+    c += 1 if c == ?0 || c == 0
+    # work around for << not taking Fixnum
+    out = " " << out
+    out[0] = c
+    return out
+  end
+
+  def succ!
+    replace_if(succ)
+  end
+
+  alias_method :next, :succ
+  alias_method :next!, :succ!
+
   def =~(pattern)
     m = pattern.match(self)
     m ? m.full.at(0) : nil 
