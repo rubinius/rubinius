@@ -290,9 +290,9 @@ context "String instance method" do
   specify "[]= with start, length should replace length characters at start with string" do
     example do
       @r = 'once upon a time'
-      [
-       @r[5,11]= 'a lifetime', 
-       @r
+      [ 
+      @r.send(:[]=,5,11,'a lifetime'), 
+      @r
       ]
     end.should == ["a lifetime", "once a lifetime"]
   end
@@ -314,7 +314,7 @@ context "String instance method" do
   specify "[]= with regexp and index should replace the specified portion of the match with string" do
     example do
       @r = "abc123def411"
-      [@r[/(\d+)([a-e]*)/, 1] = "abcc", @r]
+      [@r.send(:[]=,/(\d+)([a-e]*)/, 1, "abcc"), @r]
     end.should == ["abcc", "abcabccdef411"]
   end
 

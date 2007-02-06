@@ -314,6 +314,10 @@ class String
       raise IndexError, "index #{cnt} out of regexp" if cnt >= m.size
       idx = m.begin(cnt) 
       cnt = m.end(cnt) - idx
+    elsif String === idx
+      cnt = idx.length
+      idx = index(idx)
+      raise IndexError, "string not matched" if idx.nil?
     end
 
     if idx < 0
