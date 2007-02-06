@@ -73,6 +73,23 @@ class String
     replace_if(capitalize)
   end
   
+  def swapcase
+    str = self.dup
+    i = 0
+    d = str.data
+    while i < str.bytes
+      c = d.get_byte(i)
+      d.set_byte(i, c.toupper) if c.islower
+      d.set_byte(i, c.tolower) if c.isupper
+      i += 1
+    end
+    str
+  end
+  
+  def swapcase!
+    replace_if(swapcase)
+  end
+  
   def upcase
     str = self.dup
     i = 0
