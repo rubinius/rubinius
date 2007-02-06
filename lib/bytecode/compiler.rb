@@ -1138,6 +1138,8 @@ module Bytecode
         end
         
         source.zip(rhs).each do |k, v|
+          puts "k = " + k.inspect if $DEBUG_COMPILER
+          puts "v = " + v.inspect if $DEBUG_COMPILER
           process k
           process v
           add "pop"
@@ -1442,6 +1444,27 @@ module Bytecode
         add "push_context"
         add "send_primitive create_block 2"
         goto two
+        if x[0] && x[0][1].size > 2 # multi-arg block
+          puts "x[0][1]" + x[0][1].inspect if $DEBUG_COMPILER
+          noarrayexpand = unique_lbl()
+          add "dup"
+          add "send fields 0"   # XXX better insn?
+          add "push 1"
+          add "send equal? 1"
+          add "gif #{noarrayexpand}"
+          add "dup"
+          add "push 0"
+          add "fetch_field"
+          add "send class 0"
+          add "push Array"
+          add "send equal? 1"
+          add "gif #{noarrayexpand}"
+          add "push 0"
+          add "fetch_field"
+          add "push 1"
+          add "fetch_field"
+          add "#{noarrayexpand}:"
+        end
         process x.shift
         process x.shift
         add "#{one}: soft_return"
