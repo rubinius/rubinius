@@ -38,8 +38,8 @@ class String
   def chomp
     return "" unless @bytes > 0
     i = @bytes-1
-    i -= 1 if @data.get_byte(i) == ?\n
-    i -= 1 if @data.get_byte(i) == ?\r and i > 0
+    i -= 1 if @data[i] == ?\n
+    i -= 1 if @data[i] == ?\r and i > 0
     substring(0, i+1)
   end
   
@@ -58,12 +58,12 @@ class String
   
   def capitalize
     str = self.dup
-    c = str.data.get_byte(0)
-    str.data.set_byte(0, c.toupper)
+    c = str.data[0]
+    str.data[0] = c.toupper
     i = 1
     while i < str.bytes
-      c = str.data.get_byte(i)
-      str.data.set_byte(i, c.tolower)
+      c = str.data[i]
+      str.data[i] = c.tolower
       i += 1
     end
     str
@@ -78,9 +78,9 @@ class String
     i = 0
     d = str.data
     while i < str.bytes
-      c = d.get_byte(i)
-      d.set_byte(i, c.toupper) if c.islower
-      d.set_byte(i, c.tolower) if c.isupper
+      c = d[i]
+      d[i] = c.toupper if c.islower
+      d[i] = c.tolower if c.isupper
       i += 1
     end
     str
@@ -94,8 +94,8 @@ class String
     str = self.dup
     i = 0
     while i < str.bytes
-      c = str.data.get_byte(i)
-      str.data.set_byte(i, c.toupper)
+      c = str.data[i]
+      str.data[i] = c.toupper
       i += 1
     end
     str
@@ -109,8 +109,8 @@ class String
     str = self.dup
     i = 0
     while i < str.bytes
-      c = str.data.get_byte(i)
-      str.data.set_byte(i, c.tolower)
+      c = str.data[i]
+      str.data[i] = c.tolower
       i += 1
     end
     str
@@ -126,10 +126,10 @@ class String
     j = str.bytes - 1
     d = str.data
     while i < j
-      a = d.get_byte(i)
-      b = d.get_byte(j)
-      d.set_byte(j, a)
-      d.set_byte(i, b)
+      a = d[i]
+      b = d[j]
+      d[j] = a
+      d[i] = b
       i += 1
       j -= 1
     end
@@ -143,7 +143,7 @@ class String
   def lstrip
     i = 0
     while i < @bytes
-      c = @data.get_byte(i)
+      c = @data[i]
       if c.isspace or c == 0
         i += 1
       else
@@ -161,7 +161,7 @@ class String
   def rstrip
     i = @bytes - 1
     while i >= 0
-      c = @data.get_byte(i)
+      c = @data[i]
       if c.isspace or c == 0
         i -= 1
       else
@@ -281,7 +281,7 @@ class String
       max = self.size - argsize
       if max >= 0 and argsize > 0
         idx.upto(max) do |i|
-          if @data.get_byte(i) == arg.data.get_byte(0)
+          if @data[i] == arg.data[0]
             return i if substring(i,argsize) == arg
           end
         end
@@ -336,7 +336,7 @@ class String
           len = size - arg if arg + len >= size
           substring(arg, len)
         else
-          @data.get_byte(arg)
+          @data[arg]
         end
       else # invalid start index
         len ? "" : nil
@@ -403,7 +403,7 @@ class String
       out << substring(idx + cnt, @bytes - (idx + cnt)) if idx + cnt < @bytes
       replace out
     elsif Fixnum === ent
-      @data.set_byte idx, ent
+      @data[idx] = ent
     end
     return ent
   end
