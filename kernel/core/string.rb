@@ -372,6 +372,14 @@ class String
     end
     return ent
   end
+  
+  def oct
+    self.to_i(8)
+  end
+  
+  def hex
+    self.to_i(16)
+  end
 
   def to_f
     Ruby.primitive :string_to_f

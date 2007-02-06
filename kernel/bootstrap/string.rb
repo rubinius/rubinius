@@ -157,7 +157,7 @@ class String
     loop do
       return 0 if i >= @bytes
       char = @data.get_byte(i)
-      if (char != 32 && char != ?\t && char != ?\n && char != ?\r && char != ?\f)
+      unless char.isspace # if (char != 32 && char != ?\t && char != ?\n && char != ?\r && char != ?\f)
         break
       end
       i += 1
@@ -179,16 +179,22 @@ class String
     if radix == 0
       radix = 10
       if self[i] == ?0
-        if self[i+1] == ?b
+        if self[i+1].tolower == ?b
           radix = 2
           i += 2
-        elsif self[i+1] == ?o
+        elsif self[i+1].tolower == ?o
           radix = 8
           i += 2
-        elsif self[i+1] == ?x
+        elsif self[i+1].tolower == ?x
           radix = 16
           i += 2
+        else
+          radix = 8
         end
+      end
+    elsif radix == 16
+      if self[i] == ?0 and self[i+1].tolower == ?x
+        i += 2
       end
     end
 
