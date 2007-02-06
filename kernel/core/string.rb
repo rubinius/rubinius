@@ -185,6 +185,32 @@ class String
     replace_if(strip)
   end
 
+  def gsub(pattern, rep=nil)
+    str = self.dup
+    out = ""
+    pattern = Regexp.new(pattern) if String === pattern
+
+    if block_given?
+      while m = pattern.match(str)
+        out << str[0...m.begin(0)] if m.begin(0) > 0
+        out << yield(m[0])
+        str = str[m.end(0)..-1]
+      end
+    else
+      raise ArgumentError, "wrong number of (1 for 2)" if rep == nil
+      while m = pattern.match(str)
+        out << str[0...m.begin(0)] if m.begin(0) > 0
+        out << rep.gsub(/\\\d/) { |x| m[x[0] - ?0] }
+        str = str[m.end(0)..-1]
+      end
+    end
+    return out << str
+  end
+
+  def gsub!(pattern, rep=nil)
+    replace_if(gsub(pattern, rep))
+  end
+
   def =~(pattern)
     m = pattern.match(self)
     m ? m.full.at(0) : nil 
