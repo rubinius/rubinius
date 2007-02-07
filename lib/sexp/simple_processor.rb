@@ -55,7 +55,7 @@ class SimpleSexpProcessor
     elsif respond_to?(sel)
       return send(sel, x)
     else
-      raise RuntimeError, "Unknown type '#{name}', #{x.inspect}"
+      raise RuntimeError, "Unknown type '#{name.inspect}', #{x.inspect}"
     end
   end
   

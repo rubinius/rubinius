@@ -566,6 +566,7 @@ module Bytecode
         name = x.shift
         idx = x.shift
         if val = x.shift
+          val = val[1] if val.first == :svalue # Adjust svalues away
           process val
         end
         add "set #{name}:#{idx}"
@@ -1511,16 +1512,19 @@ module Bytecode
         x = x.shift
         # Get rid of the :array
         x.shift
-        str = x.shift           # FIXME: NEED TO LOOK AT WHOLE :array
-        puts "dsym str = " + str.inspect if $DEBUG_COMPILER # delete when fixed
-
-        # Static strings can be statically dealt with
-        if str.first == :str
-          add "push :#{str[1]}"
+        if x.size == 1
+          str = x.shift
+          puts "dsym 1 str = " + str.inspect if $DEBUG_COMPILER # delete when fixed
+          # Static strings can be statically dealt with
+          if str.first == :str
+            add "push :#{str[1]}"
+          else
+            # Dynamic Strings can symbolise themselves
+            process str
+            add 'send to_sym 0'
+          end
         else
-          # Dynamic Strings can symbolise themselves
-          process str
-          add 'send to_sym 0'
+          raise "Compiler doesn't handle complex dsyms yet" unless x.size == 1
         end
       end
 
