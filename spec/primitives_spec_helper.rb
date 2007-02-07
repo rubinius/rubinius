@@ -37,6 +37,8 @@ module PrimitiveSpecHelper
       abort
     end
   end
+  
+  alias :primitive :run_primitive
 end
 
 # stub so we can be declarative in the specs
@@ -46,6 +48,12 @@ class Object
   # all this does is assumes that the string rep of self _is_ the exception name
   def should_raise(exc)
     self.to_s.should == exc.to_s
+  end
+end
+
+class Spec::Runner::Context
+  def before_context_eval
+    @context_eval_module.include PrimitiveSpecHelper
   end
 end
 
