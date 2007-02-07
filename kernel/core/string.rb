@@ -207,8 +207,21 @@ class String
     return out << str
   end
 
-  def gsub!(pattern, rep=nil)
-    replace_if(gsub(pattern, rep))
+  def gsub!(pattern, rep=nil, &block)
+    replace_if(gsub(pattern, rep, &block))
+  end
+
+  def insert(idx, str)
+    if idx < 0
+      idx += length + 1
+    end
+    raise IndexError, "index #{idx} out of string" if idx < 0 || idx > length
+    if idx < length
+      self[idx,0] = str
+    else
+      self << str
+    end
+    self
   end
 
   def succ
