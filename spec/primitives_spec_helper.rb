@@ -26,6 +26,8 @@ module PrimitiveSpecHelper
            "rescue Exception => e; p e.class.to_s; end"
     try_eval run_code(code)
   end
+  
+  alias :primitive :run_primitive
 
   def run_code(code)
   `shotgun/rubinius -e '#{code}'`.strip
