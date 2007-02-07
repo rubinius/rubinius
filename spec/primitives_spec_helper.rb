@@ -28,7 +28,14 @@ module PrimitiveSpecHelper
            "#{instructions}send_primitive #{name} #{num_args}" +
            "\"); " +
            "rescue Exception => e; p e.class.to_s; end"
-    eval run_code(code)
+    begin
+      eval run_code(code)
+    rescue SyntaxError
+      puts "!! The following code caused shotgun to crash:"
+      p code
+      puts run_code(code)
+      abort
+    end
   end
 end
 

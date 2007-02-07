@@ -70,11 +70,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  def sub
+  def sub(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
-
     stack_push(fixnum_sub(state, self, t1));
     CODE
   end
@@ -88,19 +85,14 @@ class ShotgunPrimitives
     CODE
   end
   
-  def fixnum_mul
+  def fixnum_mul(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
-
     stack_push(fixnum_mul(state, self, t1));
     CODE
   end
   
-  def fixnum_size
+  def fixnum_size(_ = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-
     stack_push(I2N(sizeof(int)));
     CODE
   end
@@ -114,12 +106,9 @@ class ShotgunPrimitives
     CODE
   end
   
-  def fixnum_div
+  def fixnum_div(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
     GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
-
     stack_push(fixnum_div(state, self, t1));
     CODE
   end
@@ -500,11 +489,8 @@ class ShotgunPrimitives
     CODE
   end
 
-  def fixnum_to_s
+  def fixnum_to_s(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
-
     static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     char buf[100];
     char *b = buf + sizeof(buf);
@@ -1179,10 +1165,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  def fixnum_modulo
+  def fixnum_modulo(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
     GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
 
     t3 = fixnum_divmod(state, self, t1);
@@ -1756,12 +1740,9 @@ class ShotgunPrimitives
     CODE
   end
   
-  def fixnum_divmod
+  def fixnum_divmod(_ = fixnum, t1 = fixnum)
     <<-CODE
-    POP(self, FIXNUM)
-    POP(t1, FIXNUM)
     GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
-
     stack_push(fixnum_divmod(state, self, t1));
     CODE
   end
