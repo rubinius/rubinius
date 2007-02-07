@@ -144,3 +144,4 @@ OBJECT float_round(STATE, OBJECT self) {
   if (value < 0.0) value = ceil(value-0.5);
   return bignum_from_double(state, value);
 }
+

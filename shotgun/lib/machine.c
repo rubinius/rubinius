@@ -297,8 +297,6 @@ void machine_print_registers(machine m) {
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   
   char *signame;
-  void *bt[128];
-  int bt_size;
   
   if(_recursive_reporting) {
     exit(-2);
@@ -334,8 +332,10 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     machine_show_backtrace(frames, count);
   } while(0);
 #else
+  void *bt[128];
+  int bt_size;
+
   bt_size = backtrace(bt, 3);
-  
   backtrace_symbols_fd(bt, bt_size, 1);
 #endif
   printf("\nRuby backtrace:\n");

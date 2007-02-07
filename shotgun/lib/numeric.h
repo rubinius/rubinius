@@ -4,3 +4,4 @@
 OBJECT numeric_coerce(STATE, OBJECT a, OBJECT b);
 
 #endif
+

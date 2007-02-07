@@ -2,12 +2,8 @@ require 'rubygems'
 require 'spec'
 
 module PrimitiveSpecHelper
-  def run_code(code)
-  `shotgun/rubinius -e '#{code}'`.strip
-  end
-
   def run_asm(asm)
-    eval(run_code("p Ruby.asm(\"#{asm}\")"))
+    try_eval run_code("p Ruby.asm(\"#{asm}\")")
   end
 
   # have to do this the long way in case literals need to be pushed
@@ -28,8 +24,17 @@ module PrimitiveSpecHelper
            "#{instructions}send_primitive #{name} #{num_args}" +
            "\"); " +
            "rescue Exception => e; p e.class.to_s; end"
+    try_eval run_code(code)
+  end
+
+  def run_code(code)
+  `shotgun/rubinius -e '#{code}'`.strip
+  end
+
+  # shows information about eval failure if needed
+  def try_eval(code)
     begin
-      eval run_code(code)
+      eval code
     rescue SyntaxError
       puts "!! The following code caused shotgun to crash:"
       p code
@@ -37,8 +42,6 @@ module PrimitiveSpecHelper
       abort
     end
   end
-  
-  alias :primitive :run_primitive
 end
 
 # stub so we can be declarative in the specs
@@ -51,6 +54,7 @@ class Object
   end
 end
 
+# this is good brix, thx for the trick
 class Spec::Runner::Context
   def before_context_eval
     @context_eval_module.include PrimitiveSpecHelper

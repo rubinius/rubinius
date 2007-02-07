@@ -1,8 +1,6 @@
 require File.dirname(__FILE__) + '/../primitives_spec_helper'
 
 context "The noop primitive " do
-  include PrimitiveSpecHelper
-
   specify "should pop the stack" do
     run_asm('push 5\npush true\nsend_primitive noop 0').
       should == 5

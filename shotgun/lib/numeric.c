@@ -5,3 +5,4 @@
 OBJECT numeric_coerce(STATE, OBJECT a, OBJECT b) {
   return Qnil;
 }
+

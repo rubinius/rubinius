@@ -1,8 +1,6 @@
 require File.dirname(__FILE__) + '/../primitives_spec_helper'
 
 context "The fixnum_to_s primitive sent self and a base (as a fixnum)" do
-  include PrimitiveSpecHelper
-
   specify "should return the representation of the number in decimal" do
     run_primitive(:fixnum_to_s, 5, 10).should == '5'
     run_primitive(:fixnum_to_s, 31, 10).should == '31'
@@ -25,8 +23,6 @@ context "The fixnum_to_s primitive sent self and a base (as a fixnum)" do
 end
 
 context "The fixnum_to_s primitive sent non-fixnums" do
-  include PrimitiveSpecHelper
-
   specify "should raise PrimitiveFailure with fixnum, non-fixnum" do
     run_primitive(:fixnum_to_s, 3, "foo").should_raise(PrimitiveFailure)
     run_primitive(:fixnum_to_s, 3, 7.9).should_raise(PrimitiveFailure)
@@ -45,8 +41,6 @@ context "The fixnum_to_s primitive sent non-fixnums" do
 end
 
 context "The fixnum_to_s primitive sent the wrong number of args" do
-  include PrimitiveSpecHelper
-
   specify "should raise ArgumentError with more than 1 args" do
     run_primitive(:fixnum_to_s, 1, 2, 3).should_raise(ArgumentError) # 2 args
     run_primitive(:fixnum_to_s, 1, 2, 3, 4).should_raise(ArgumentError) # 3 args

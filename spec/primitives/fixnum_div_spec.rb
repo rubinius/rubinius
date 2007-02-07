@@ -1,8 +1,6 @@
 require File.dirname(__FILE__) + '/../primitives_spec_helper'
 
 context "The fixnum_div primitive sent two fixnums" do
-  include PrimitiveSpecHelper
-
   specify "should return the quotient of its arguments" do
     run_primitive(:fixnum_div, 5, 5).should == 1
     run_primitive(:fixnum_div, -11, -11).should == 1
@@ -24,8 +22,6 @@ context "The fixnum_div primitive sent two fixnums" do
 end
 
 context "The fixnum_div primitive sent non-fixnums" do
-  include PrimitiveSpecHelper
-
   specify "should raise PrimitiveFailure with fixnum, non-fixnum" do
     run_primitive(:fixnum_div, 3, "foo").should_raise(PrimitiveFailure)
     run_primitive(:fixnum_div, 3, 7.9).should_raise(PrimitiveFailure)
@@ -44,8 +40,6 @@ context "The fixnum_div primitive sent non-fixnums" do
 end
 
 context "The fixnum_div primitive sent the wrong number of args" do
-  include PrimitiveSpecHelper
-
   specify "should raise ArgumentError with more than 1 args" do
     run_primitive(:fixnum_div, 1, 2, 3).should_raise(ArgumentError) # 2 args
     run_primitive(:fixnum_div, 1, 2, 3, 4).should_raise(ArgumentError) # 3 args

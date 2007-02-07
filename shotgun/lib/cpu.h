@@ -63,6 +63,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args);
 void cpu_raise_exception(STATE, cpu c, OBJECT exc);
+void cpu_raise_arg_error(STATE, cpu c, int args, int req);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 
