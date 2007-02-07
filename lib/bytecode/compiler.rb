@@ -1505,7 +1505,25 @@ module Bytecode
         add "string_dup"
         cnt.times { add "string_append" }
       end
-      
+
+      def process_dsym(x) # Dynamic Symbols like :'foo'
+        # unpack
+        x = x.shift
+        # Get rid of the :array
+        x.shift
+        str = x.shift           # FIXME: NEED TO LOOK AT WHOLE :array
+        puts "dsym str = " + str.inspect if $DEBUG_COMPILER # delete when fixed
+
+        # Static strings can be statically dealt with
+        if str.first == :str
+          add "push :#{str[1]}"
+        else
+          # Dynamic Strings can symbolise themselves
+          process str
+          add 'send to_sym 0'
+        end
+      end
+
       def process_yield(x)
         args = x.shift
         
