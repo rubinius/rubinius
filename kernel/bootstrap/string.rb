@@ -149,19 +149,15 @@ class String
   # TODO: check that the string will never go over the maximum range
   #       as the function is not supposed to raise an exception.
   def to_i(radix=10)
-    i = 0
-    # had to move the char definition out of the block to compile
-    char = 0
-
+    return 0 unless @bytes > 0
+    
     # leading whitespace removal
-    loop do
-      return 0 if i >= @bytes
-      char = @data.get_byte(i)
-      unless char.isspace # if (char != 32 && char != ?\t && char != ?\n && char != ?\r && char != ?\f)
-        break
-      end
+    i = 0
+    while i < @bytes
+      break unless self[i].isspace
       i += 1
     end
+    return 0 if i >= @bytes
 
     # Sign determination
     if self[i] == ?-
@@ -176,25 +172,29 @@ class String
     
     # Determine the radix from the string for radix = 0
     # 0b = 2, 0o = 8, 0x = 16, defaults to radix = 10
-    if radix == 0
-      radix = 10
-      if self[i] == ?0
-        if self[i+1].tolower == ?b
-          radix = 2
-          i += 2
-        elsif self[i+1].tolower == ?o
-          radix = 8
-          i += 2
-        elsif self[i+1].tolower == ?x
-          radix = 16
-          i += 2
-        else
-          radix = 8
+    if @bytes - i >= 2
+      z = self[i]
+      f = self[i+1].tolower
+      if radix == 0
+        radix = 10
+        if z == ?0
+          if f == ?b
+            radix = 2
+          elsif f == ?o
+            radix = 8
+          elsif f == ?x
+            radix = 16
+          else
+            radix = 8
+          end
         end
       end
-    elsif radix == 16
-      if self[i] == ?0 and self[i+1].tolower == ?x
-        i += 2
+      if z == ?0
+        if (radix == 2 and f == ?b) or
+           (radix == 8 and f == ?o) or
+           (radix == 16 and f == ?x)
+          i += 2
+        end
       end
     end
 
