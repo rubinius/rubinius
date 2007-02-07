@@ -1389,13 +1389,11 @@ class ShotgunPrimitives
     CODE
   end
 
-  def fixnum_and
+  # FIXME: get rid of bignum awareness and use coerce
+  # i.e. t1 = fixnum
+  def fixnum_and(_ = fixnum, t1 = integer)
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if (!FIXNUM_P(self) || !INTEGER_P(t1)) {
-      _ret = FALSE;
-    } else if(FIXNUM_P(t1)) {
+    if( FIXNUM_P(t1) ) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j & k;
@@ -1406,13 +1404,11 @@ class ShotgunPrimitives
     CODE
   end
 
-  def fixnum_or
+  # FIXME: get rid of bignum awareness and use coerce
+  # i.e. t1 = fixnum
+  def fixnum_or(_ = fixnum, t1 = integer)
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if (!FIXNUM_P(self) || !INTEGER_P(t1)) {
-      _ret = FALSE;
-    } else if(FIXNUM_P(t1)) {
+    if(FIXNUM_P(t1)) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j | k;
@@ -1423,13 +1419,11 @@ class ShotgunPrimitives
     CODE
   end
 
-  def fixnum_xor
+  # FIXME: get rid of bignum awareness and use coerce
+  # i.e. t1 = fixnum
+  def fixnum_xor(_ = fixnum, t1 = integer)
     <<-CODE
-    self = stack_pop();
-    t1   = stack_pop();
-    if (!FIXNUM_P(self) || !INTEGER_P(t1)) {
-      _ret = FALSE;
-    } else if(FIXNUM_P(t1)) {
+    if(FIXNUM_P(t1)) {
       j = FIXNUM_TO_INT(self);
       k = FIXNUM_TO_INT(t1);
       m = j ^ k;
@@ -1440,27 +1434,17 @@ class ShotgunPrimitives
     CODE
   end
 
-  def fixnum_invert
+  def fixnum_invert(_ = fixnum)
     <<-CODE
-    self = stack_pop();
-    if( FIXNUM_P(self) ) {
       j = FIXNUM_TO_INT(self);
       stack_push(I2N(~j));
-    } else {
-      _ret = FALSE;
-    }
     CODE
   end
 
-  def fixnum_neg
+  def fixnum_neg(_ = fixnum)
     <<-CODE
-    self = stack_pop();
-    if( FIXNUM_P(self) ) {
       j = FIXNUM_TO_INT(self);
       stack_push(I2N(-j));
-    } else {
-      _ret = FALSE;
-    }
     CODE
   end
 
