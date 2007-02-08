@@ -518,7 +518,7 @@ static void syd_dvar_push();
 
 #define NODE_STRTERM NODE_ZARRAY        /* nothing to gc */
 #define NODE_HEREDOC NODE_ARRAY         /* 1, 3 to gc */
-#define SIGN_EXTEND(x,n) ((((1<<(n))-1)^((x)&~(~0<<(n))))-((1<<(n))-1))
+#define SIGN_EXTEND(x,n) (((1<<(n)-1)^((x)&~(~0<<(n))))-(1<<(n)-1))
 #define nd_func u1.id
 #if SIZEOF_SHORT == 2
 #define nd_term(node) ((signed short)(node)->u2.id)
@@ -7029,9 +7029,9 @@ yyreduce:
                                 nd_set_type((yyval.node), NODE_DSYM);
                                 break;
                               case NODE_STR:
-                                /*
-                                if (strlen($$->nd_str->str) == $$->nd_str->len) {
-                                    $$->nd_lit = rb_intern($$->nd_str->str);
+                                /* FIXME
+                                if (strlen(RSTRING($$->nd_lit)->ptr) == RSTRING($$->nd_lit)->len) {
+                                    $$->nd_lit = ID2SYM(rb_intern(RSTRING($$->nd_lit)->ptr));
                                     nd_set_type($$, NODE_LIT);
                                     break;
                                 }
@@ -7819,8 +7819,8 @@ lex_get_str(parse_state)
     str = parse_state->lex_string->str;
     beg = str;
     
-    if(parse_state->lex_str_used) {
-        if((int)parse_state->lex_string->len == parse_state->lex_str_used) return NULL;
+    if (parse_state->lex_str_used) {
+        if (parse_state->lex_string->len == parse_state->lex_str_used) return NULL;
         beg += parse_state->lex_str_used;
     }
     
@@ -8699,7 +8699,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             
             while((c = nextc()) != '\n' && c != -1) {
                 cur_line->str[i++] = c;
-                if(i == (int)cur_line->len) {
+                if(i == cur_line->len) {
                     g_string_set_size(cur_line, i+50);
                 }
             }
@@ -10422,7 +10422,7 @@ rb_backref_error(node)
 {
     switch (nd_type(node)) {
       case NODE_NTH_REF:
-        rb_compile_error("Can't set variable $%lu", node->nd_nth);
+        rb_compile_error("Can't set variable $%u", node->nd_nth);
         break;
       case NODE_BACK_REF:
         rb_compile_error("Can't set variable $%c", (int)node->nd_nth);

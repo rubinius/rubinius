@@ -139,7 +139,7 @@ module Bytecode
     end
     
     def primitive_to_index(sym)
-      CPU::Primitives.name_to_index(sym)
+      CPU::Primitives.name_to_index(sym) # noop offset is handled by name_to_index function
     end
   end
 end
