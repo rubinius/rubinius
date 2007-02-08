@@ -156,7 +156,7 @@ class InstructionEncoder
 
     if IntArg.include?(kind)
       int = args.shift
-      unless Numeric === int
+      unless Numeric === int or ::Bytecode::Assembler::Label
         raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
       end
       is = [int].pack("N")
