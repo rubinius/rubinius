@@ -1,3 +1,4 @@
+#require File.dirname(__FILE__) + '/../../lib/bytecode/primitive_names'
 require File.dirname(__FILE__) + '/../../lib/cpu/primitives'
 require File.dirname(__FILE__) + '/primitive_generator'
 
@@ -7,7 +8,7 @@ class ShotgunPrimitives
  
   def generate_select(fd, op="prim")
     i = 0
-    order = CPU::Primitives::Primitives
+    order = Bytecode::Compiler::Primitives
     fd.puts "switch(#{op}) {"
 
     order.each do |ins|
@@ -28,8 +29,8 @@ class ShotgunPrimitives
 
       i += 1
     end
-    i = CPU::Primitives::FirstRuntimePrimitive
-    order = CPU::Primitives::RuntimePrimitives
+    i = Bytecode::Compiler::FirstRuntimePrimitive
+    order = Bytecode::Compiler::RuntimePrimitives
     order.each do |ins|
       code = send(ins) rescue nil
       if code

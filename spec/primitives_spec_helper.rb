@@ -3,7 +3,7 @@ require 'spec'
 
 module PrimitiveSpecHelper
   def run_asm(asm)
-    try_eval run_code("p Ruby.asm(\"#{asm}\")")
+    try_code "p Ruby.asm(\"#{asm}\")"
   end
 
   # have to do this the long way in case literals need to be pushed
@@ -15,7 +15,8 @@ module PrimitiveSpecHelper
     num_args = (args.length - 1)
 
     ('a'..'zzz').each do |id|
-      break unless _value = args.pop
+      _value = args.pop
+      break if _value.nil?
       declarations << "#{id} = #{_value.inspect}; "
       instructions << "push #{id}\n"
     end
@@ -24,7 +25,7 @@ module PrimitiveSpecHelper
            "#{instructions}send_primitive #{name} #{num_args}" +
            "\"); " +
            "rescue Exception => e; p e.class.to_s; end"
-    try_eval run_code(code)
+    try_code(code)
   end
   
   alias :primitive :run_primitive
@@ -34,13 +35,14 @@ module PrimitiveSpecHelper
   end
 
   # shows information about eval failure if needed
-  def try_eval(code)
+  def try_code(code)
+    output = run_code(code)
     begin
-      eval code
+      eval(output)
     rescue SyntaxError
       puts "!! The following code caused shotgun to crash:"
       p code
-      puts run_code(code)
+      puts output
       abort
     end
   end
