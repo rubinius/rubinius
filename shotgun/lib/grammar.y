@@ -2225,11 +2225,13 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                                 nd_set_type($$, NODE_DSYM);
                                 break;
                               case NODE_STR:
+                                /*
                                 if (strlen($$->nd_str->str) == $$->nd_str->len) {
                                     $$->nd_lit = rb_intern($$->nd_str->str);
                                     nd_set_type($$, NODE_LIT);
                                     break;
                                 }
+                                */
                                 /* fall through */
                               default:
                                 $$ = NEW_NODE(NODE_DSYM, string_new(0, 0), 1, NEW_LIST($$));
