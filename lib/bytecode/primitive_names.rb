@@ -1,7 +1,6 @@
 module Bytecode
   class Compiler
     Primitives = [
-      :noop,
       :add,
       :sub,
       :equal,

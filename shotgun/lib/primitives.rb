@@ -7,10 +7,11 @@ class ShotgunPrimitives
   Header = ""
  
   def generate_select(fd, op="prim")
-    i = 0
+    i = 1
     order = Bytecode::Compiler::Primitives
-    fd.puts "switch(#{op}) {"
 
+    fd.puts "switch(#{op}) {"
+    fd.puts "   // NOOP is 0 and signifies a method with no primitive"
     order.each do |ins|
       meth = method(ins)
       code = send(ins)
@@ -52,10 +53,6 @@ class ShotgunPrimitives
     fd.puts "char buffer[1024];"
   end
     
-  def noop(_ = qtrue)
-    ""
-  end
-  
   def add(_ = fixnum, t1 = fixnum)
     <<-CODE
     stack_push(fixnum_add(state, self, t1));
