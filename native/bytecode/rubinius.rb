@@ -127,7 +127,7 @@ module Bytecode
     end
         
     def primitive_to_index(sym)
-      Bytecode::Compiler::Primitives.index(sym)
+      Bytecode::Compiler::Primitives.index(sym) + 1 # add 1 for noop padding
     end
   end
 end

@@ -14,7 +14,7 @@ class CPU::Primitives
   RuntimePrimitives = Bytecode::Compiler::RuntimePrimitives
   
   def self.name_to_index(name)
-    Primitives.index(name) + 1 # 0 is noop so leave room for it
+    Primitives.index(name)
   end
   
   def perform(prim, mo)
