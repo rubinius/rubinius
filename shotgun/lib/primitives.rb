@@ -1690,14 +1690,9 @@ class ShotgunPrimitives
     CODE
   end
   
-  def fixnum_to_f
+  def fixnum_to_f(_ = fixnum)
     <<-CODE
-    self = stack_pop();
-    if(FIXNUM_P(self)) {
-      stack_push(float_new(state, FIXNUM_TO_DOUBLE(self)));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(float_new(state, FIXNUM_TO_DOUBLE(self)));
     CODE
   end
   

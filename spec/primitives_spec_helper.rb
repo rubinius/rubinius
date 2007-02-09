@@ -28,8 +28,6 @@ module PrimitiveSpecHelper
     try_code(code)
   end
   
-  alias :primitive :run_primitive
-
   def run_code(code)
   `shotgun/rubinius -e '#{code}'`.strip
   end
@@ -55,6 +53,21 @@ class Object
   # all this does is assumes that the string rep of self _is_ the exception name
   def should_raise(exc)
     self.to_s.should == exc.to_s
+  end
+
+  def prim
+    @proxy ||= PrimitiveProxy.new(self)
+  end
+end
+
+class PrimitiveProxy
+  include PrimitiveSpecHelper
+  def initialize(target)
+    @self = target
+  end
+
+  def method_missing(prim, *args, &block)
+    run_primitive(prim, @self, *args)
   end
 end
 
