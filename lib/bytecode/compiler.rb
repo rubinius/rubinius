@@ -266,7 +266,9 @@ module Bytecode
         when Fixnum
           add "push #{obj}"
         when Symbol
-          add "push :#{obj}"
+          #add "push :#{obj}"
+          idx = @method.add_literal obj
+          add "push_literal #{idx}"
         when Bignum
           idx = @method.add_literal obj
           add "push_literal #{idx}"
