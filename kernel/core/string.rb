@@ -293,11 +293,12 @@ class String
 
   # used by count, delete, squeeze
   def intersect_string_from_arg(*arg)
-    raise TypeError, "can't convert #{to_str.class} to String"   unless String === arg[0]
+    raise ArgumentError, "wrong number of arguments" if arg.length == 0
+    raise TypeError, "can't convert #{arg[0].class} to String" unless String === arg[0]
     first = expand_tr_str(arg[0])
     if arg.size > 1
       (1...arg.size).each do |arg_idx|
-        raise TypeError, "can't convert #{to_str.class} to String"   unless String === arg[arg_idx]
+        raise TypeError, "can't convert #{arg[arg_idx].class} to String" unless String === arg[arg_idx]
         second = expand_tr_str(arg[arg_idx])
         str = ""
         remove_flag = second.data[0] == ?^
@@ -318,13 +319,57 @@ class String
 
   def delete(*arg)
     str = intersect_string_from_arg(*arg)
-    return nil if str == nil
+    return self.dup if str == nil
     tr_string(str,"",false)
   end
 
   def delete!(*str)
-    res = delete(*str)
-    replace_if(res) if res
+    replace_if(delete(*str))
+  end
+
+  def count(*arg)
+    str = intersect_string_from_arg(*arg)
+    return 0 if str == nil
+    char_map = 0.chr * 256
+    str.each_byte { |c| char_map[c] = 1 }
+    cnt = 0
+    each_byte do |c|
+      cnt +=1 if char_map[c] == 1
+    end
+    cnt
+  end
+
+  def squeeze(*arg)
+
+    out = ""
+    last_char = -1
+
+    if arg.length > 0
+      # Build the target character map
+      str = intersect_string_from_arg(*arg)
+      return self.dup if str == nil
+      char_map = 0.chr * 256
+      str.each_byte { |c| char_map[c] = 1 }
+
+      each_byte do |c|
+        if char_map[c] == 1
+          out << c if c != last_char
+        else
+          out << c
+        end
+        last_char = c
+      end
+    else
+      each_byte do |c|
+        out << c if c != last_char
+        last_char = c
+      end
+    end
+    out
+  end
+
+  def squeeze!(*arg)
+    replace_if(squeeze(*arg))
   end
 
   # Generic function for the family of tr functions
