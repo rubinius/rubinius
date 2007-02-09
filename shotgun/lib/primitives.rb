@@ -59,11 +59,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  def bignum_add
+  def bignum_add(_ = bignum, t1 = bignum)
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, INTEGER)
-
     stack_push(bignum_add(state, self, t1));
     CODE
   end
@@ -133,11 +130,8 @@ class ShotgunPrimitives
     CODE
   end
   
-  def bignum_equal
+  def bignum_equal(_ = bignum, t1 = bignum)
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, INTEGER)
-
     stack_push(bignum_equal(state, self, t1));
     CODE
   end
@@ -1513,15 +1507,9 @@ class ShotgunPrimitives
   end
 
 
-  def bignum_and
+  def bignum_and(_ = bignum, t1 = bignum)
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if( INTEGER_P(t1) ) {
-      stack_push(bignum_and(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(bignum_and(state, self, t1));
     CODE
   end
 
@@ -1666,15 +1654,9 @@ class ShotgunPrimitives
     CODE
   end
   
-  def bignum_compare
+  def bignum_compare(_ = bignum, t1 = bignum)
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if(BIGNUM_P(self) && BIGNUM_P(t1)) {
-      stack_push(bignum_compare(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(bignum_compare(state, self, t1));
     CODE
   end
   
@@ -1762,11 +1744,10 @@ class ShotgunPrimitives
     CODE
   end
   
-  def bignum_divmod
+  def bignum_divmod(_ = bignum, t1 = bignum)
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, BIGNUM)
-    GUARD( BIGNUM_TO_INT(t1) != 0 ) // no divide by zero
+    // no divide by zero
+    GUARD( ! bignum_equal(state, t1, bignum_new(state, 0)) )
 
     stack_push(bignum_divmod(state, self, t1));
     CODE

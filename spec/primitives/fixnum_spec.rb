@@ -629,3 +629,4 @@ context "The fixnum_to_f primitive sent the wrong number of args" do
   end
 end
 
+# TODO: fixnum_shift (would like to simplify primitive actually but evan says NO
