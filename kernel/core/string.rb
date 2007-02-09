@@ -518,6 +518,7 @@ class String
 
   def rindex(arg, finish = nil )
     if finish
+      raise TypeError, "can't convert #{finish.class} into Integer" if !finish.is_a?(Integer)
       finish += @bytes if finish < 0
       return nil if finish < 0
       finish = @bytes - 1 if finish >= @bytes
@@ -527,7 +528,6 @@ class String
     
     if arg.is_a?(Fixnum)
       finish.step(0, -1) do |idx|
-        puts "idx #{idx} arg #{arg} data #{@data[idx]}"
         return idx if @data[idx] == arg
       end
     elsif arg.is_a? String
@@ -552,6 +552,24 @@ class String
       raise ArgumentError.new("String#index cannot accept #{arg.class} objects")
     end
     return nil
+  end
+
+  def justify_string(width, str, left_just=true)
+    raise TypeError, "can't convert #{width.class} into Integer" if !width.is_a?(Integer)
+    raise TypeError, "can't convert #{str.class} into String" if !str.respond_to?(:to_str)
+    return self if width <= @bytes
+    pad = width - @bytes
+    out = str.to_str * (pad / str.length)
+    out << str[0, pad - out.length] if out.length < pad
+    return left_just == true ? self << out : out << self
+  end
+
+  def rjust(width, str=" ")
+    justify_string(width, str, false)
+  end
+
+  def ljust(width, str=" ")
+    justify_string(width, str, true)
   end
 
   def [](arg, len = nil)
