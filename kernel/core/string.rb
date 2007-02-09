@@ -554,22 +554,30 @@ class String
     return nil
   end
 
-  def justify_string(width, str, left_just=true)
+  # justify left = -1, center = 0, right = 1
+  def justify_string(width, str, justify)
     raise TypeError, "can't convert #{width.class} into Integer" if !width.is_a?(Integer)
     raise TypeError, "can't convert #{str.class} into String" if !str.respond_to?(:to_str)
     return self if width <= @bytes
     pad = width - @bytes
     out = str.to_str * (pad / str.length)
     out << str[0, pad - out.length] if out.length < pad
-    return left_just == true ? self << out : out << self
+    return self << out if justify == -1
+    return out << self if justify == 1
+    split = (width / 2) - (@bytes / 2)
+    return out.insert(split, self)
   end
 
   def rjust(width, str=" ")
-    justify_string(width, str, false)
+    justify_string(width, str, 1)
   end
 
   def ljust(width, str=" ")
-    justify_string(width, str, true)
+    justify_string(width, str, -1)
+  end
+
+  def center(width, str=" ")
+    justify_string(width, str, 0) 
   end
 
   def [](arg, len = nil)
