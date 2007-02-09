@@ -53,6 +53,7 @@ class String
     Ruby.asm "push other\npush self\nstring_append\nset out"
     return out
   end
+  alias :concat :<<
 
   def +(other)
     o = self.dup
@@ -126,26 +127,24 @@ class String
     @bytes == 0
   end
   
-  def split(pattern, limit=nil)
+  def split(pattern=nil, limit=nil)
     return [] if @bytes == 0
     return [self] if limit == 0
+    pattern = $; if pattern.nil?
+    pattern = /\s+/ if pattern.nil?
+    pattern = Regexp.new Regexp.quote(pattern) unless Regexp === pattern
     
     ret = []
     count = 0
-    pattern = Regexp.new Regexp.quote(pattern) unless Regexp === pattern
     str = self
     while match = pattern.match(str)
       count += 1
       ret << match.pre_match
       str = match.post_match
-      
       return ret if limit and limit == count
     end
-    
-    unless str.empty?
-      ret << str
-    end
-    
+
+    ret << str unless str.empty?
     return ret
   end
   

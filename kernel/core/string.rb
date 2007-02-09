@@ -197,7 +197,7 @@ class String
         str = str[m.end(0)..-1]
       end
     else
-      raise ArgumentError, "wrong number of (1 for 2)" if rep == nil
+      raise ArgumentError, "wrong number of arguments (1 for 2)" if rep == nil
       while m = pattern.match(str)
         out << str[0...m.begin(0)] if m.begin(0) > 0
         out << rep.gsub(/\\\d/) { |x| m[x[0] - ?0] }
@@ -469,10 +469,10 @@ class String
     elsif arg.respond_to?(:first) and arg.respond_to?(:last)
       from = arg.first
       to = arg.last
-      to = to - 1 if arg.respond_to?(:exclude_end?) && arg.exclude_end?
+      to -= 1 if arg.respond_to?(:exclude_end?) && arg.exclude_end?
       size = self.size
       from = from + size if from < 0
-      to = to + size if to < 0
+      to += size if to < 0
       len = to - from + 1
       self[from, len]
       
@@ -573,4 +573,23 @@ class String
     pattern = Regexp.new(pattern) unless Regexp === pattern
     pattern.match(self)
   end
+  
+  def sum(bits=16)
+    sum = 0
+    @data.each do |b|
+      sum += b
+    end
+    sum & ((1 << bits) - 1)
+  end
+  
+  def upto(stop)
+    str = self.dup
+    loop do
+      yield str.dup
+      break unless str < stop
+      str.succ!
+    end
+    self
+  end
+  
 end
