@@ -192,16 +192,16 @@ class String
 
     if block_given?
       while m = pattern.match(str)
-        out << str[0...m.begin(0)] if m.begin(0) > 0
+        out << m.pre_match #str[0...m.begin(0)] if m.begin(0) > 0
         out << yield(m[0])
-        str = str[m.end(0)..-1]
+        str = m.post_match #str[m.end(0)..-1]
       end
     else
       raise ArgumentError, "wrong number of arguments (1 for 2)" if rep == nil
       while m = pattern.match(str)
-        out << str[0...m.begin(0)] if m.begin(0) > 0
+        out << m.pre_match #str[0...m.begin(0)] if m.begin(0) > 0
         out << rep.gsub(/\\\d/) { |x| m[x[0] - ?0] }
-        str = str[m.end(0)..-1]
+        str = m.post_match #str[m.end(0)..-1]
       end
     end
     return out << str
@@ -209,6 +209,26 @@ class String
 
   def gsub!(pattern, rep=nil, &block)
     replace_if(gsub(pattern, rep, &block))
+  end
+
+  def sub(pattern, rep=nil)
+    str = self.dup
+    out = ""
+    pattern = Regexp.new(pattern) if String === pattern
+    m = pattern.match(str)
+    return self.dup if m == nil
+    out << m.pre_match
+    if block_given?
+      out << yield(m[0])
+    else
+      raise ArgumentError, "wrong number of arguments (1 for 2)" if rep == nil
+      out << rep.gsub(/\\\d/) { |x| m[x[0] - ?0] }
+    end
+    return out << m.post_match
+  end
+
+  def sub!(pattern, rep=nil, &block)
+    replace_if(sub(pattern, rep, &block))
   end
 
   def insert(idx, str)
