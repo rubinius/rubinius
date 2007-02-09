@@ -515,6 +515,45 @@ class String
     return nil 
   end
 
+
+  def rindex(arg, finish = nil )
+    if finish
+      finish += @bytes if finish < 0
+      return nil if finish < 0
+      finish = @bytes - 1 if finish >= @bytes
+    else
+      finish = @bytes - 1
+    end
+    
+    if arg.is_a?(Fixnum)
+      finish.step(0, -1) do |idx|
+        puts "idx #{idx} arg #{arg} data #{@data[idx]}"
+        return idx if @data[idx] == arg
+      end
+    elsif arg.is_a? String
+      return nil if arg.length > finish
+      len   = arg.length
+      start = finish - len
+      start.step(0, -1) do |idx|
+        if @data[idx] == arg.data[0]
+          return idx if substring(idx,len) == arg
+        end
+      end
+    elsif arg.is_a? Regexp
+      mstr = self[0..finish]
+      offset = nil
+      while m = arg.match(mstr)
+        offset = offset ? offset += m.begin(0) + len : m.begin(0)
+        len = m.end(0) - m.begin(0)
+        mstr = m.post_match
+      end
+      return offset
+    else
+      raise ArgumentError.new("String#index cannot accept #{arg.class} objects")
+    end
+    return nil
+  end
+
   def [](arg, len = nil)
     if len
       len = len.to_i
