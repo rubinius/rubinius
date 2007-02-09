@@ -270,6 +270,131 @@ class String
   alias_method :next, :succ
   alias_method :next!, :succ!
 
+  def expand_tr_str(str)
+    out = ""
+    str.gsub(/[^-]-[^-]/) { |r| out = "" ; r[0].upto(r[2]) { |c| out << c }; out }
+  end
+
+  def tr(from_str, to_str)
+    tr_string(from_str, to_str, false)
+  end
+
+  def tr!(from_str, to_str)
+    replace_if(tr_string(from_str, to_str, false))
+  end
+
+  def tr_s(from_str, to_str)
+    tr_string(from_str, to_str, true)
+  end
+
+  def tr_s!(from_str, to_str)
+    replace_if(tr_string(from_str, to_str, true))
+  end
+
+  # used by count, delete, squeeze
+  def intersect_string_from_arg(*arg)
+    raise TypeError, "can't convert #{to_str.class} to String"   unless String === arg[0]
+    first = expand_tr_str(arg[0])
+    if arg.size > 1
+      (1...arg.size).each do |arg_idx|
+        raise TypeError, "can't convert #{to_str.class} to String"   unless String === arg[arg_idx]
+        second = expand_tr_str(arg[arg_idx])
+        str = ""
+        remove_flag = second.data[0] == ?^
+        (0...first.length).each do |idx|
+          pos = second.index(first.data[idx])
+          if remove_flag == true
+            str << first.data[idx] if pos == nil
+          else
+            str << first.data[idx] if pos != nil
+          end
+        end
+        first = str
+        return nil if first.length == 0
+      end
+    end
+    first 
+  end
+
+  def delete(*arg)
+    str = intersect_string_from_arg(*arg)
+    return nil if str == nil
+    tr_string(str,"",false)
+  end
+
+  def delete!(*str)
+    res = delete(*str)
+    replace_if(res) if res
+  end
+
+  # Generic function for the family of tr functions
+  def tr_string(from_str, to_str, no_dups=false)
+    raise TypeError, "can't convert #{from_str.class} to String" unless String === from_str
+    raise TypeError, "can't convert #{to_str.class} to String"   unless String === to_str
+
+    return "" if from_str == ""
+
+    del_chars = to_str.length == 0
+    from_str  = expand_tr_str(from_str)
+    to_str    = expand_tr_str(to_str)
+
+    # Build out the to_str translations to the same length as from_str
+    if to_str.length < from_str.length
+      to_str << ((to_str.length > 0 ? to_str[-1,1] : ' ') * (from_str.length - to_str.length))
+    end
+
+    # Create an ASCII  translation map
+    trans = 1.chr * 256
+    c = 0
+    if from_str[0] == ?^
+      # This is the inverse map
+      cnt = 0
+      (1...from_str.length).each do |idx| 
+        trans.data[from_str.data[idx]] = 0
+      end
+      (0..255).each do |idx|
+        c = trans.data[idx] == 1 ? to_str.data[cnt] : idx
+        trans.data[idx] = c
+        cnt += 1 if cnt < (to_str.length-1)
+      end
+    else
+      (0..255).each do |idx|
+        trans[idx] = idx
+      end
+      (0...from_str.length).each do |idx| 
+        trans.data[from_str.data[idx]] = to_str.data[idx]
+      end
+    end
+
+    # Translate self using the trans character map
+    out = self.dup
+    idx = 0
+    w_idx = 0
+    last_char = -1
+    while idx < out.length
+      c = trans[out.data[idx]]
+      no_trans_flag = c == out.data[idx]
+      if no_dups == false || no_trans_flag == true || c != last_char
+        # If a translation occured remember the last char to remove
+        # duplicate translations with the no_dup flag (if required).
+        # Ordering is important here don't move this test below the
+        # substitution.
+        last_char = no_trans_flag == true ? -1 : c
+        if del_chars == false || no_trans_flag == true
+          out.data[w_idx] = c
+          w_idx += 1
+        end
+      end
+      idx += 1
+    end
+    # truncate the string if required
+    out[0,w_idx]
+  end
+
+  def tr!(from_str, to_str)
+    replace_if(tr(from_str, to_str))
+  end
+
   def =~(pattern)
     m = pattern.match(self)
     m ? m.full.at(0) : nil 

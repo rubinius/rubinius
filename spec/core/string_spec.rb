@@ -440,19 +440,32 @@ context "String instance method" do
 
   specify "delete should return a copy of self removing all characters in the intersection of its arguments" do
     example do
-      [ "hello".delete("l","lo"),
-        "hello".delete("lo"),
-        "hello".delete("aeiou", "^e"),
-        "hello".delete("ej-m") ]
-    end.should == ["heo", "he", "hell", "ho"]
+      "hello".delete("l","lo")
+    end.should == "heo"
+
+    example do
+      "hello".delete("lo")
+    end.should == "he"
+
+    example do
+      "hello".delete("aeiou", "^e")
+    end.should == "hell"
+
+    example do
+      "hello".delete("ej-m")
+    end.should == "ho"
   end
 
   specify "delete! should perform method delete in place on self" do
     example do
       @s = "hello"
+      [@s.delete!("l", "lo"), @s]
+    end.should == ["heo", "heo"]
+
+    example do
       @t = "world"
-      [@s.delete!("l", "lo"), @s, @t.delete!("aeiou", "^e"), @t]
-    end.should == ["heo", "heo", "wrld", "wrld"]
+      [@t.delete!("aeiou", "^e"), @t]
+    end.should == ["wrld", "wrld"]
   end
   
   specify "delete! should return nil if no changes are made" do
@@ -1100,8 +1113,11 @@ context "String instance method" do
   
   specify "tr should accept from_string starting with ^ to denote all characters except those listed" do
     example do
-      ["123456789".tr("^345", "abc"), "abcdefghijk".tr("^d-g", "9131")]
-    end.should == ["cc345cccc", "111defg1111"]
+      "123456789".tr("^345", "abc")
+    end.should == "cc345cccc"
+    example do
+      "abcdefghijk".tr("^d-g", "9131")
+    end.should == "111defg1111"
   end
   
   specify "tr should pad to_string with its last character if it is short than from_string" do
@@ -1113,26 +1129,44 @@ context "String instance method" do
   specify "tr! should modify self in place by performing tr on it" do
     example do
       @s = "abcdefghijklmnopqR"
-      [@s.tr!("cdefg", "12"), @s]
-    end.should == ["ab12222hijklmnopqR", "ab12222hijklmnopqR"]
+      @s.tr!("cdefg", "12")
+      [@s]
+    end.should == ["ab12222hijklmnopqR"]
   end
 
   specify "tr_s should return a string processed according to tr with duplicate characters removed" do
     example do
-      [ "Lisp".tr_s("Lisp", "Ruby"),
-        "123456789".tr_s("2-5","abcdefg"),
-        "this".tr_s("this","x"),
-        "abcdefghijklmnopqR".tr_s("cdefg", "12") ]
-    end.should == ["Ruby", "1abcd6789", "x", "ab12hijklmnopqR"]
+      "Lisp".tr_s("Lisp", "Ruby")
+    end.should == "Ruby"
+
+    example do
+      "123456789".tr_s("2-5","abcdefg")
+    end.should == "1abcd6789"
+
+    example do
+      "this".tr_s("this","x")
+    end.should == "x"
+
+    example do
+      "abcdefghijklmnopqR".tr_s("cdefg", "12")
+    end.should == "ab12hijklmnopqR"
   end
 
   specify "tr_s! should modify self in place by applying tr_s" do
     example do
       @a = "54321"
+      [@a.tr_s!("432", "ab"), @a]
+    end.should == ["5ab1", "5ab1"]
+
+    example do
       @b = "Ruby"
+      [@b.tr_s!("R", "c"), @b]
+    end.should == ["cuby", "cuby"]
+
+    example do
       @c = "chocolate"
-      [@a.tr_s!("432", "ab"), @a, @b.tr_s!("R", "c"), @b, @c.tr_s!("oa", ""), @c]
-    end.should == ["5ab1", "5ab1", "cuby", "cuby", "chclte", "chclte"]
+      [@c.tr_s!("oa", ""), @c]
+    end.should == ["chclte", "chclte"]
   end
 
   specify "unpack should return an array by decoding self according to the format string" do

@@ -42,7 +42,11 @@ class String
 
   def <<(other)
     unless other.kind_of? String
-      other = other.to_str
+      if other.is_a?(Integer)
+        other = other.chr
+      else
+        other = other.to_str
+      end
     end
     
     out = nil
