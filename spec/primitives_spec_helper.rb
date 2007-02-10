@@ -35,10 +35,11 @@ module PrimitiveSpecHelper
   # shows information about eval failure if needed
   def try_code(code)
     output = run_code(code)
+    output.gsub!("NaN", "0.0 / 0.0") # transfer NaN's
     begin
       eval(output)
-    rescue SyntaxError
-      puts "!! The following code caused shotgun to crash:"
+    rescue Exception => e
+      puts "!#{e.class}! The following code caused shotgun to crash:"
       p code
       puts output
       abort

@@ -5,7 +5,7 @@
 #include <math.h>
 
 
-OBJECT math_sqrt(STATE, OBJECT self, OBJECT a) {
+OBJECT math_sqrt(STATE, OBJECT a) {
   return float_new(state, sqrt(FLOAT_TO_DOUBLE(a)) );
 }
 

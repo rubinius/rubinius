@@ -1755,7 +1755,7 @@ class ShotgunPrimitives
   
   def math_sqrt(_ = reference, t1 = float)
     <<-CODE
-      stack_push(math_sqrt(state, self, t1));
+      stack_push(math_sqrt(state, t1));
     CODE
   end
 
