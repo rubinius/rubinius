@@ -1,7 +1,12 @@
 class Float < Numeric
   def self.induced_from(o)
-    return o if Float === o
-    return o.to_f if Fixnum === o or Bignum === o
+    flt = o.to_f
+    if Float === flt # check to make sure float was returned
+      flt
+    else
+      raise TypeError, "can't convert #{o.class} into float (to_f returned a #{flt.class})"
+    end
+  rescue NoMethodError
     raise TypeError, "can't convert #{o.class} into Float"
   end
 

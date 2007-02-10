@@ -121,7 +121,8 @@ context "Float" do
   
   specify "divmod should raise FloatDomainError if other is zero" do
     example do
-      @a = try(FloatDomainError) { 1.0.divmod(0) }
+      @a = begin; 1.0.divmod(0); rescue Exception => e; true; end
+      #@a = try(FloatDomainError) { 1.0.divmod(0) }
       @b = try(FloatDomainError) { 1.0.divmod(0.0) }
       [@a, @b]
     end.should == [true, true]
@@ -223,3 +224,44 @@ context "Float" do
     end.should == [[1.0, 1.0], [4294967295.0, 1.0], [2.5, 1.0], [3.14, 1.0]]
   end
 end
+
+context "Float.induced_from" do
+  specify "should return the argument when passed a Float" do
+
+    example do
+      x = 5.5
+      Float.induced_from(x).eql?(x)
+    end.should == true
+  end
+
+  specify "should call to_f to convert any arbitrary argument to a Float" do
+    example do
+      class Foo
+        def to_f; 1.1; end
+      end
+
+      Float.induced_from( Foo.new )
+    end.should == 1.1
+  end
+
+  specify "should raise a TypeError if there is no to_f method on an object" do
+    example do
+      class Foo; end
+
+      # i can't get try to work
+      begin; Float.induced_from(Foo.new); rescue Exception => e; e.class.to_s; end
+    end.should == "TypeError"
+  end
+
+  specify "should raise a TypeError if to_f doesn't return a float" do
+    example do
+      class Foo
+        def to_f; 'har'; end
+      end
+
+      # i can't get try to work
+      begin; Float.induced_from(Foo.new); rescue Exception => e; e.class.to_s; end
+    end.should == "TypeError"
+  end
+end
+
