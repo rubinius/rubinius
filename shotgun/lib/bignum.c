@@ -2,7 +2,7 @@
 #include "tommath.h"
 #include "string.h"
 #include <ctype.h>
-#include "math.h"
+#include <math.h>
 
 #define NMP mp_int *n; OBJECT n_obj; \
   NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \

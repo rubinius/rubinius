@@ -1752,6 +1752,12 @@ class ShotgunPrimitives
     stack_push(bignum_divmod(state, self, t1));
     CODE
   end
+  
+  def math_sqrt(_ = reference, t1 = float)
+    <<-CODE
+      stack_push(math_sqrt(state, self, t1));
+    CODE
+  end
 
 end
 
