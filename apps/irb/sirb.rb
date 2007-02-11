@@ -3,6 +3,46 @@
 require 'bytecode/compiler'
 require 'bytecode/rubinius'
 
+# recognize a few simple options
+def usage
+  puts <<-USAGE
+  Usage: sirb [options]
+    sirb is a RCEPL (read, compile, execute, print, loop) program for rubinius
+
+    Options: 
+            -x   Print S-Expression.
+            -s   Print assembly instructions.
+            -b   Print bytecode encoding
+  USAGE
+end
+
+  
+begin
+  until ARGV.empty?
+    arg = ARGV.shift
+    case arg
+    when '-h'
+      usage
+    when '-x'
+      $show_sexp = true
+    when '-s'
+      $show_asm = true
+    when '-b'
+      $show_bytes = true
+    else
+      puts "Unrecognized option: #{arg}"
+    end
+  end
+end
+
+def print_bytecodes(bc)
+  str = ""
+  bc.each do |b|
+    str << b.chr
+  end
+  puts "\nBytecodes:", str.inspect
+end
+
 context = ""
 line = 0
 compiler = Bytecode::Compiler.new
@@ -15,8 +55,11 @@ while true
     begin
       line += 1
       sexp = context.to_sexp
+      puts "\nS-exp:", sexp.inspect if $show_sexp
       desc = compiler.compile_as_method(sexp, :__eval_script__)
+      puts "\nAsm:", desc.assembly if $show_asm
       cm = desc.to_cmethod
+      print_bytecodes(cm.bytecodes) if $show_bytes
       out = cm.activate(MAIN, [])
       puts "=> #{out.inspect}" # do it like this so exit won't do =>
       context = ""

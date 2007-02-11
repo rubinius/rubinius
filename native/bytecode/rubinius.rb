@@ -92,6 +92,14 @@ module Bytecode
       
       return tup
     end
+    
+    def assembly
+      @assembly
+    end
+    
+    def output
+      @output
+    end
   end
   
   class Assembler

@@ -82,6 +82,10 @@ class CompiledMethod
   def arity
     @required
   end
+  
+  def bytecodes
+    @bytecodes
+  end
 end
 
 class Method
