@@ -170,58 +170,45 @@ context "The bignum_divmod primitive sent the wrong number of args" do
   end
 end
 
-=begin
 
 context "The bignum_div primitive sent two bignums" do
   specify "should return the quotient of its arguments" do
-    5.prim.bignum_div( 5).should == 1
-    -11.prim.bignum_div( -11).should == 1
-    -20.prim.bignum_div( 5).should == -4
-    10.prim.bignum_div( 1).should == 10
+    BIGNUM1.prim.bignum_div(BIGNUM2).should == (BIGNUM1 / BIGNUM2)
+    BIGNUM2.prim.bignum_div(BIGNUM1).should == (BIGNUM2 / BIGNUM1)
   end
 
   specify "should discard the remainder of a division" do
-    10.prim.bignum_div( 3).should == 3
-    3.prim.bignum_div( 10).should == 0
+    900000000000.prim.bignum_div(10000000000000).should == 0
   end
-
-  specify "should raise PrimitiveFailure when division by zero occurs" do
-    10.prim.bignum_div( 0).should_raise(PrimitiveFailure)
-    -10.prim.bignum_div( 0).should_raise(PrimitiveFailure)
-    -10.prim.bignum_div( -0).should_raise(PrimitiveFailure)
-    10.prim.bignum_div( -0).should_raise(PrimitiveFailure)
-  end
+  #NOTE: division by zero AFAIK cannot happen with bignum (always > or <  0)
 end
 
 context "The bignum_div primitive sent non-bignums" do
   specify "should raise PrimitiveFailure with bignum, non-bignum" do
-    3.prim.bignum_div( "foo").should_raise(PrimitiveFailure)
-    3.prim.bignum_div( 7.9).should_raise(PrimitiveFailure)
+    BIGNUM1.prim.bignum_div("foo").should_raise(PrimitiveFailure)
   end
 
   specify "should raise PrimitiveFailure with non-bignum, bignum" do
-    "foo".prim.bignum_div( 80).should_raise(PrimitiveFailure)
-    100.0.prim.bignum_div( 80).should_raise(PrimitiveFailure)
+    "foo".prim.bignum_div(BIGNUM1).should_raise(PrimitiveFailure)
   end
 
   specify "should raise PrimitiveFailure with non-bignum, non-bignum" do
     "foo".prim.bignum_div( "bar").should_raise(PrimitiveFailure)
-    "foo".prim.bignum_div( 38.8).should_raise(PrimitiveFailure)
-    8.8.prim.bignum_div( 38.8).should_raise(PrimitiveFailure)
   end
 end
 
 context "The bignum_div primitive sent the wrong number of args" do
   specify "should raise ArgumentError with more than 1 args" do
-    1.prim.bignum_div( 2, 3).should_raise(ArgumentError) # 2 args
-    1.prim.bignum_div( 2, 3, 4).should_raise(ArgumentError) # 3 args
+    BIGNUM1.prim.bignum_div(BIGNUM1, BIGNUM2).should_raise(ArgumentError) # 2 args
+    BIGNUM1.prim.bignum_div(BIGNUM2, BIGNUM2, BIGNUM2).should_raise(ArgumentError) # 3 args
   end
 
   specify "should raise ArgumentError with less than 1 args" do
-    1.prim.bignum_div.should_raise(ArgumentError) # 0 args
+    BIGNUM1.prim.bignum_div.should_raise(ArgumentError) # 0 args
   end
 end
 
+=begin
 context "The bignum_invert primitive sent a bignum" do
   specify "should return the complement of its bignum argument" do
     5.prim.bignum_invert.should == -6

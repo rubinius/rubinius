@@ -1,3 +1,5 @@
+#!shotgun/rubinius
+
 require 'bytecode/compiler'
 require 'bytecode/rubinius'
 
@@ -15,8 +17,8 @@ while true
       sexp = context.to_sexp
       desc = compiler.compile_as_method(sexp, :__eval_script__)
       cm = desc.to_cmethod
-      print "=> "
-      p cm.activate(MAIN, [])
+      out = cm.activate(MAIN, [])
+      puts "=> #{out.inspect}" # do it like this so exit won't do =>
       context = ""
     rescue SyntaxError => e
       # ignore, waiting for a complete expression

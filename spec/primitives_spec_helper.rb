@@ -21,41 +21,11 @@ module PrimitiveSpecHelper
       instructions << "push #{id}\n"
     end
 
-    code = "begin; #{declarations} p Ruby.asm(\"" +
+    code = "#{declarations} begin; p Ruby.asm(\"" +
            "#{instructions}send_primitive #{name} #{num_args}" +
            "\"); " +
            "rescue Exception => e; p e.class.to_s; end"
-    activate_object(code)
-  end
-
-  # only works on methods that have a metaclass
-  def activate_object(code)
-    obj = try_code(code)
-    begin
-      ao = method(:activate_object)
-      (class << obj; self; end).instance_eval do
-        instance_methods.each {|m| undef_method(m) unless m =~ /^__|^should/ }
-
-        define_method(:method_missing) do |m, *args|
-          if m.to_s =~ /^prim$/
-            raise "Cannot chain more than one primitive for testing"
-          elsif m.to_s =~ /^should/
-            obj.send(m, *args)
-          else
-            args = args.map {|arg| arg.inspect }.join(", ")
-            call = ".#{m}#{args.empty? ? '' : '(' + args + ')' }"
-            ao.call(code + call)
-          end
-        end
-      end
-    rescue TypeError
-      fail_with_message "Can't chain methods on primitive_specs for #{obj.class}"
-    end
-    obj
-  end
-  
-  def run_code(code)
-  `shotgun/rubinius -e '#{code}'`.strip
+    try_code(code)
   end
 
   # shows information about eval failure if needed
@@ -70,6 +40,10 @@ module PrimitiveSpecHelper
       puts output
       abort
     end
+  end
+
+  def run_code(code)
+    `shotgun/rubinius -e '#{code}'`.strip
   end
 end
 

@@ -38,7 +38,7 @@ begin
       path = compile(file)
       puts "Compiled #{file} to #{path}"
     when '-e'
-      out = Compile.execute ARGV.shift
+      Compile.execute ARGV.shift
     else
       if arg.prefix? "-I"
         arg[2..-1].split(":").each do |path|

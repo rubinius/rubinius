@@ -108,12 +108,10 @@ class ShotgunPrimitives
     CODE
   end
   
-  def bignum_div
+  def bignum_div(_ = bignum, t1 = bignum)
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, INTEGER)
-    GUARD( BIGNUM_TO_INT(t1) != 0 ) // no divide by zero
-
+    // Can this ever happen since bignum will always be > zero?
+    GUARD( ! bignum_equal(state, t1, bignum_new(state, 0)) )
     stack_push(bignum_div(state, self, t1));
     CODE
   end

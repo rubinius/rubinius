@@ -2,17 +2,20 @@ module Kernel
   def puts(*a)
     a = [""] if a.empty?
     a.each { |obj| STDOUT.puts obj.to_s }
+    nil
   end
   
   def p(*a)
     a = [nil] if a.empty?
     a.each { |obj| STDOUT.puts obj.inspect }
+    nil
   end
 
   def print(*args)
     args.each do |obj|
       STDOUT.write obj.to_s
     end
+    nil
   end
   
   def raise(exc=$!, msg=nil)
