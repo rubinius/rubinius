@@ -10,9 +10,10 @@ def usage
     sirb is a RCEPL (read, compile, execute, print, loop) program for rubinius
 
     Options: 
-            -x   Print S-Expression.
+            -p   Print the parsed s-expression
+            -x   Print the normalized s-expression.
             -s   Print assembly instructions.
-            -b   Print bytecode encoding
+            -b   Print bytecode encoding.
   USAGE
 end
 
@@ -23,6 +24,8 @@ begin
     case arg
     when '-h'
       usage
+    when '-p'
+      $show_parse = true
     when '-x'
       $show_sexp = true
     when '-s'
@@ -55,9 +58,11 @@ while true
     begin
       line += 1
       sexp = context.to_sexp
-      puts "\nS-exp:", sexp.inspect if $show_sexp
-      desc = compiler.compile_as_method(sexp, :__eval_script__)
-      puts "\nAsm:", desc.assembly if $show_asm
+      puts "\nS-exp:\n#{sexp.inspect}" if $show_parse
+      nx = compiler.fully_normalize(sexp)
+      puts "\nNormalized S-exp:\n#{nx.inspect}" if $show_sexp
+      desc = compiler.compile_as_method(nx, :__eval_script__)
+      puts "\nAsm:\n#{desc.assembly}" if $show_asm
       cm = desc.to_cmethod
       print_bytecodes(cm.bytecodes) if $show_bytes
       out = cm.activate(MAIN, [])
