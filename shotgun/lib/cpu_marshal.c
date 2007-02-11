@@ -221,8 +221,7 @@ static void marshal_floatpoint(STATE, OBJECT obj, GString *buf) {
   int i;
   char buffer[26];
   char *s;
-  // this is in bignum, but it doesn't look necessary
-  //i = NUM_FIELDS(obj);
+
   float_into_string(state, obj, buffer, 26);
   append_c('d');
   i = strlen(buffer);

@@ -63,6 +63,10 @@ class Regexp
   def names; Ruby.asm "push self\npush 3\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
 end
+class Float
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0
+end
 class CompiledMethod
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   def primitive; Ruby.asm "push self\npush 1\nfetch_field"; end

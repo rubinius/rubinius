@@ -58,6 +58,7 @@ class CPU
     Global.fixnum = Rubinius::Class.create_normal "Fixnum", int, 0
     Global.undef_class = Rubinius::Class.create_normal "UndefClass", Global.object, 0
     Global.bignum = Rubinius::Class.create_normal "Bignum", int, 0
+    Global.floatpoint = Rubinius::Class.create_normal "Float", num, 0
     bootstrap_contexts
     initialize_context
     bootstrap_exceptions

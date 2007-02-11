@@ -16,6 +16,8 @@ class SimpleMarshal
         marshal_bytes(obj)
       elsif kls == CPU::Global.bignum
         marshal_bignum(obj)
+      elsif kls == CPU::Global.floatpoint
+        marshal_floatpoint(obj)
       else
         kls.as :class
         name = kls.name
@@ -117,6 +119,13 @@ class SimpleMarshal
     str = obj.as_string
     sz = str.size + 1
     ?B.chr + [sz].pack("N") + str + "\0"
+  end
+  
+  def marshal_floatpoint(obj)
+    obj.as :floatpoint
+    str = obj.as_string
+    sz = str.size
+    ?d.chr + [sz].pack("N") + str + "\0"
   end
   
   def unmarshal_bignum(str, state)

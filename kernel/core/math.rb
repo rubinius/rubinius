@@ -1,10 +1,8 @@
-
 module Math
 
   # Constants
-# FIXME:
-#  PI=3.14159_26535_89793_23846
-#  E=2.71828_18284_59045_23536
+  PI = 3.14159_26535_89793_23846
+  E  = 2.71828_18284_59045_23536
 
 # FIXME: extend Math
 
@@ -17,6 +15,4 @@ module Math
     sqrt(Float(v))
   end
 
-
-  
 end

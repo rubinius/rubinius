@@ -26,8 +26,7 @@ class NilClass
   end
   
   def to_f
-    # FIXME: couldn't handle float literals
-    '0.0'.to_f
+    0.0
   end
 
   def to_i
