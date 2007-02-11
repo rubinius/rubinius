@@ -1,27 +1,32 @@
 require 'bytecode/compiler'
+require 'bytecode/rubinius'
 
-str = Readline.readline("irb> ")
-while str
-  if str
+context = ""
+line = 0
+compiler = Bytecode::Compiler.new
+MAIN = Object.new
+
+while true
+  str = Readline.readline("sirb(eval):#{line}> ")
+  context << str
+  if context.size > 1
     begin
-      sx = str.to_sexp("(irb)", 1, false)
-      puts "=== INPUT SEXP"
-      p sx
-      comp = Bytecode::Compiler.new
-      ful = comp.fully_normalize(sx)
-      puts "=== NORMALIZED SEXP"
-      p ful
-      meth = comp.compile_as_method(ful, :__test__)
-      puts "=== ASSEMBLY"
-      puts meth.assembly
+      line += 1
+      sexp = context.to_sexp
+      desc = compiler.compile_as_method(sexp, :__eval_script__)
+      cm = desc.to_cmethod
+      print "=> "
+      p cm.activate(MAIN, [])
+      context = ""
     rescue SyntaxError => e
-      puts "SyntaxError: #{e.message}"
-      puts  "||  #{e.line}"
-      print "||  "
-      e.column.times { print " " }
-      puts "^"
+      # ignore, waiting for a complete expression
+    rescue Exception => e
+      puts e
+      puts e.backtrace.show
+      context = ""
     end
+  else
+    context = ""
+    line += 1
   end
-  
-  str = Readline.readline("irb> ")
 end

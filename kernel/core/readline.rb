@@ -1,6 +1,7 @@
 module Readline
   def self.readline(prompt)
-    ""
+    print prompt
+    STDIN.read(1024)
   end
   
   def self._terminal_raw
