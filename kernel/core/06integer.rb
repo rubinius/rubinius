@@ -1,6 +1,11 @@
 class Integer < Numeric
   include CType
   
+  def &(other)
+    b, a = self.coerce(other)
+    a & b
+  end
+
   def self.induced_from(o)
     return o.to_i if o.respond_to?(:to_i)
     raise TypeError, "can't convert #{o.class} into Integer"

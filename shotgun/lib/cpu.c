@@ -375,8 +375,10 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     }
     
     if(NIL_P(val)) {  
-      printf("Couldn't find constant %s.\n", 
-        string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)));
+      // FIXME: raise some type of constant not found error or something here?
+      // had to remove printf side effect because its annoying
+      //printf("Couldn't find constant %s.\n", 
+      //  string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)));
       val = Qnil;
     } /*
     else {

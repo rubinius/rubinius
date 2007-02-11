@@ -14,11 +14,16 @@ module ExceptionHelper
   # try(anException, result) { ... } 
   #   => result if block does not raise anException, else nil
   def try(a, b=true)
-    begin
-      yield
-    rescue a
-      return b
-    end
+    yield
+  rescue a
+    return b
+  end
+end
+
+class Object
+  # all this does is assumes that the string rep of self _is_ the exception name
+  def should_raise(exc)
+    self.to_s.should == exc.to_s
   end
 end
   

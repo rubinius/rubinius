@@ -37,11 +37,7 @@ class Numeric
     raise ZeroDivisionError, "Divide by 0" unless Float === b or b != 0
     a % b
   end
-  
-  def &(other)
-    self & Integer(other)
-  end
-  
+   
   def |(other)
     self | Integer(other)
   end
@@ -102,8 +98,12 @@ class Numeric
   end
 
   def coerce(other)
-    Ruby.primitive :numeric_coerce
-    self.class == other.class ? [other, self] : [Float(other), Float(self)]
+    Ruby.primitive(:numeric_coerce) # try to keep bignum/fixnum precision
+    if other.nil?
+      raise TypeError, "nil can't be coerced into #{self.class}"
+    else
+      [Float(other), Float(self)]
+    end
   end
 
   def zero?

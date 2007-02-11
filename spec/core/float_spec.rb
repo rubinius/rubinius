@@ -120,12 +120,8 @@ context "Float" do
   end
   
   specify "divmod should raise FloatDomainError if other is zero" do
-    example do
-      @a = begin; 1.0.divmod(0); rescue Exception => e; true; end
-      #@a = try(FloatDomainError) { 1.0.divmod(0) }
-      @b = try(FloatDomainError) { 1.0.divmod(0.0) }
-      [@a, @b]
-    end.should == [true, true]
+    example { 1.0.divmod(0) }.should_raise(FloatDomainError)
+    example { 1.0.divmod(0.0) }.should_raise(FloatDomainError)
   end      
   
   specify "eql? should return true if other is a Float equal to self" do
@@ -227,41 +223,32 @@ end
 
 context "Float.induced_from" do
   specify "should return the argument when passed a Float" do
-
     example do
       x = 5.5
       Float.induced_from(x).eql?(x)
     end.should == true
   end
 
-  specify "should call to_f to convert any arbitrary argument to a Float" do
+  specify "should return a Float of the correct value when sent a Fixnum" do
     example do
-      class Foo
-        def to_f; 1.1; end
-      end
-
-      Float.induced_from( Foo.new )
-    end.should == 1.1
+      Float.induced_from(36)
+    end.should == 36.0
   end
 
-  specify "should raise a TypeError if there is no to_f method on an object" do
+  specify "should return a Float of the correct value when sent a Bignum" do
     example do
-      class Foo; end
-
-      # i can't get try to work
-      begin; Float.induced_from(Foo.new); rescue Exception => e; e.class.to_s; end
-    end.should == "TypeError"
+      Float.induced_from(23472398472349872349872349872348972348972439423)
+    end.should == 2.34723984723499e+46
   end
 
-  specify "should raise a TypeError if to_f doesn't return a float" do
+  specify "should raise a TypeError if the argument is not a Float, Fixnum, or Bignum" do
     example do
       class Foo
-        def to_f; 'har'; end
+        def to_f; 9.9; end
       end
 
-      # i can't get try to work
-      begin; Float.induced_from(Foo.new); rescue Exception => e; e.class.to_s; end
-    end.should == "TypeError"
+      Float.induced_from(Foo.new)
+    end.should_raise(TypeError)
   end
 end
 

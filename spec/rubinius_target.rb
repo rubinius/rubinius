@@ -10,7 +10,37 @@ require 'test/unit'
 # This must be fixed to protect against changing directories
 $rubinius_path = File.expand_path(File.dirname(__FILE__) + '/../') 
 
-class RubiniusTargetError < RuntimeError; end
+class RubiniusTargetError < RuntimeError
+  attr_reader :rubinius_exception, :rubinius_backtrace
+  # takes the name of the Rubinius exception and it's backtrace
+  def initialize(exc, bt)
+    @rubinius_exception = exc
+    @rubinius_backtrace = bt
+    super(self.message)
+  end
+
+  def message
+    "#{rubinius_exception} has occured in Rubinius:\n#{rubinius_backtrace}\n"
+  end
+
+  alias :inspect :message
+end
+
+class Object
+  # if self is a RubiniusTargetError then we know more info
+  def should_raise(exc)
+    if RubiniusTargetError === self
+      actual = self.rubinius_exception
+      expected = exc.to_s
+      unless actual == expected  # passing condition
+        msg =  "should raise #{expected} but raised (#{actual}) instead:\n#{self.rubinius_backtrace}"
+        Spec::Expectations.fail_with(msg)
+      end
+    else
+      super(exc)
+    end
+  end
+end
 
 module RubiniusTarget
   def initialize(*args)
@@ -21,6 +51,8 @@ module RubiniusTarget
   def example(src='', &block)
     raise ArgumentError, "you must pass a block" unless block_given?
     execute(source(src, &block))
+  rescue RubiniusTargetError => e
+    e
   end
 
   #  Return the source of the given block by using ruby2ruby
@@ -32,7 +64,8 @@ module RubiniusTarget
   
   def source(src, &block)
     make_cache_directory
-    src = code(&src) if src.respond_to? :to_proc
+    src = "#{@src}\n" # add setup @src
+    src << code(&src) if src.respond_to? :to_proc
     source = template % [src, code(&block)]
     name = cache_source_name(source)
     unless File.exists?(name) and source == File.read(name)
@@ -55,13 +88,14 @@ module RubiniusTarget
     r, w = IO.pipe
     r2, w2 = IO.pipe
     
+    output = ''
     pid = fork {
       r.close
       w2.close
       STDOUT.reopen(w)
       STDIN.reopen(r2)
       Dir.chdir "#{rubinius_path}"
-      
+
       exec "./shotgun/rubinius #{file}"
     }
     
@@ -73,50 +107,51 @@ module RubiniusTarget
     status = $?.exitstatus
     if !status or status != 0
       if status == 1
-        raise RubiniusTargetError, out << "    ========================================="
+        out << "#{file} returned blank output, whats going on?\n" if out.empty?
+        out << "========================================="
+        raise RubiniusTargetError, out
       elsif !status or status > 100
         raise RubiniusTargetError, "Shotgun has crashed: " + out
       end
     end
     r.close
-    result, stdout = eval(out)
-    unless Symbol === result || Numeric === result
-      (class << result; self; end).module_eval do
-        define_method(:stdout_lines) { stdout }
-        define_method(:stdout) { stdout.join if stdout }
-      end
+
+    result, backtrace = nil, nil
+    begin
+      result, backtrace = eval(out)
+    rescue Exception => e
+      puts "!#{e.class}! The following output from shotgun caused eval() to fail:"
+      puts out
+      abort
+    end
+
+    if backtrace
+      raise RubiniusTargetError.new(result, backtrace)
     end
     result
   end
   
   def template
     @template ||= <<-CODE
-class IO
-  alias :native_write :write
-end
+    def try(a, b=true)
+      yield
+    rescue a
+      return b
+    end
 
-def STDOUT.write(str)
-  @output ||= []
-  @output << str
-end
-    
-def STDOUT.output
-  @output
-end
+    code = Proc.new do
+      %s
+      %s
+    end
 
-result = lambda do
-  %s
-  %s
-end.call
+    rval = begin
+      [code.call, nil] # nil means no backtrace
+    rescue Exception => e
+      [e.class.to_s, e.backtrace.show]
+    end
 
-STDOUT.native_write "[ "
-result = result.inspect
-result = result.inspect if /^#\<.+\>/.match(result)
-STDOUT.native_write result
-STDOUT.native_write ", "
-STDOUT.native_write STDOUT.output.inspect
-STDOUT.native_write " ]"
-CODE
+    p rval
+    CODE
   end
   
   def cache_source_name(source)
