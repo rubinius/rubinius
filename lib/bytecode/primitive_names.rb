@@ -114,7 +114,11 @@ module Bytecode
       :bignum_right_shift,
       :bignum_divmod,
       :regexp_options,
-      :math_sqrt
+      :math_sqrt,
+      :object_taint,
+      :object_tainted_p,
+      :object_freeze,
+      :object_frozen_p
     ]
 
     FirstRuntimePrimitive = 1024

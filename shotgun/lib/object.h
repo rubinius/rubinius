@@ -16,6 +16,10 @@ unsigned int object_hash_int(STATE, OBJECT self);
 int object_stores_bytes_p(STATE, OBJECT self);
 void object_make_byte_storage(STATE, OBJECT self);
 void object_initialize_bytes(STATE, OBJECT self);
+void object_set_tainted(STATE, OBJECT self);
+int object_tainted_p(STATE, OBJECT self);
+void object_set_frozen(STATE, OBJECT self);
+int object_frozen_p(STATE, OBJECT self);
 
 #define ISA(o, c) object_kind_of_p(state, o, c)
 

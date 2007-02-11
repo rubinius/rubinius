@@ -1,7 +1,6 @@
 #include "shotgun.h"
 #include "module.h"
-
-#define IsMetaFlag 0x80
+#include "flags.h"
 
 OBJECT metaclass_s_attach(STATE, OBJECT obj) {
   OBJECT meta;

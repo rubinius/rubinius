@@ -1758,6 +1758,36 @@ class ShotgunPrimitives
       stack_push(math_sqrt(state, t1));
     CODE
   end
+  
+  def object_taint
+    <<-CODE
+    self = stack_pop();
+    object_set_tainted(state, self);
+    stack_push(self);
+    CODE
+  end
+  
+  def object_tainted_p
+    <<-CODE
+    self = stack_pop();
+    stack_push(object_tainted_p(state, self) ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def object_freeze
+    <<-CODE
+    self = stack_pop();
+    object_set_frozen(state, self);
+    stack_push(self);
+    CODE
+  end
+  
+  def object_frozen_p
+    <<-CODE
+    self = stack_pop();
+    stack_push(object_frozen_p(state, self) ? Qtrue : Qfalse);
+    CODE
+  end
 
 end
 

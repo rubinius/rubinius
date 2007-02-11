@@ -62,4 +62,20 @@ class Object
     end
     return res
   end
+  
+  def taint
+    Ruby.primitive :object_taint
+  end
+  
+  def tainted?
+    Ruby.primitive :object_tainted_p
+  end
+  
+  def freeze
+    Ruby.primitive :object_freeze
+  end
+  
+  def frozen?
+    Ruby.primitive :object_frozen_p
+  end
 end

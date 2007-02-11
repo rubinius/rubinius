@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "hash.h"
 #include "string.h"
+#include "flags.h"
 
 OBJECT object_new(STATE) {
   return object_allocate(state);
@@ -167,10 +168,8 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   return hsh;
 }
 
-#define CanStoreIvars 0x02
-
 int object_has_ivars(STATE, OBJECT self) {
-  if(FLAG_SET_P(self, CanStoreIvars)) {
+  if(FLAG_SET_P(self, CanStoreIvarsFlag)) {
     /* TODO: here we could check that the 1st field
        is currently storing a Hash for the ivars and also
        use that to determine if this object has ivars. */
@@ -181,7 +180,7 @@ int object_has_ivars(STATE, OBJECT self) {
 }
 
 void object_set_has_ivars(STATE, OBJECT self) {
-  FLAG_SET(self, CanStoreIvars);
+  FLAG_SET(self, CanStoreIvarsFlag);
 }
 
 OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
@@ -253,7 +252,6 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   return val;
 }
 
-#define StoresBytesFlag 0x04
 int object_stores_bytes_p(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return FALSE;
   if(FLAG_SET_P(self, StoresBytesFlag)) return TRUE;
@@ -273,4 +271,28 @@ void object_initialize_bytes(STATE, OBJECT self) {
   int sz;
   sz = SIZE_OF_BODY(self);
   memset(object_byte_start(state, self), 0, sz);
+}
+
+void object_set_tainted(STATE, OBJECT self) {
+  if(!REFERENCE_P(self)) return;
+	FLAG_SET(self, IsTaintedFlag);
+}
+
+int object_tainted_p(STATE, OBJECT self) {
+  if(REFERENCE_P(self) && FLAG_SET_P(self, IsTaintedFlag)) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+void object_set_frozen(STATE, OBJECT self) {
+  if(!REFERENCE_P(self)) return;
+  FLAG_SET(self, IsFrozenFlag);
+}
+
+int object_frozen_p(STATE, OBJECT self) {
+  if(REFERENCE_P(self) && FLAG_SET_P(self, IsFrozenFlag)) {
+    return TRUE;
+  }
+  return FALSE;
 }

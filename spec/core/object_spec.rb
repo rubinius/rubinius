@@ -38,48 +38,111 @@ context "Object instance method" do
     end.should == 'done'
   end
   
-end
-
-context "Object#instance_exec" do
-  specify "should expect a block to be given" do
+  specify "freeze should prevent self from being further modified" do
     example do
+      module Mod; end
+      @o = Object.new
+      @o.freeze
       begin
-        "hola".instance_exec
-      rescue ArgumentError
-        "ok"
+        @o.extend(Mod)
+      rescue TypeError => @e
+        @e.message
       end
-    end.should == "ok"
+    end.should == "can't modify frozen object"
   end
-
-  specify "should pass arguments given to the block" do
+  
+  specify "freeze should have no effect on immediate values" do
     example do
-      "hola".instance_exec(4, 5) { |a, b| a + b }
-    end.should == 9
+      @a = nil
+      @b = true
+      @c = false
+      @d = 1
+      @a.freeze
+      @b.freeze
+      @c.freeze
+      @d.freeze
+      [@a.frozen?, @b.frozen?, @c.frozen?, @d.frozen?]
+    end.should == [false, false, false, false]
   end
-
-  specify "should bind self to the receiver" do
-    example do
-      @o = "hola"
-      @o == @o.instance_exec { self }
-    end.should == true
-  end
-end
-
-context "Object#instance_eval given a block" do
-  specify "should execute on the reciver context" do
-    example do
-      "hola".instance_eval { size }
-    end.should == 4
-  end
-
-  specify "should bind self to the receiver" do
+  
+  specify "frozen? should return true if self is frozen" do
     example do
       @o = Object.new
-      @o == @o.instance_eval { self }
+      @p = Object.new
+      @p.freeze
+      [@o.frozen?, @p.frozen?]
+    end.should == [false, true]
+  end
+  
+  specify "taint should set self to be tainted" do
+    example do
+      Object.new.taint.tainted?
     end.should == true
   end
+  
+  specify "taint should have no effect on immediate values" do
+    example do
+      @a = nil
+      @b = true
+      @c = false
+      @d = 1
+      @a.taint
+      @b.taint
+      @c.taint
+      @d.taint
+      [@a.tainted?, @b.tainted?, @c.tainted?, @d.tainted?]
+    end.should == [false, false, false, false]
+  end
+  
+  specify "tainted? should return true if Object is tainted" do
+    example do
+      @o = Object.new
+      @p = Object.new
+      @p.taint
+      [@o.tainted?, @p.tainted?]
+    end.should == [false, true]
+  end
+  
+  specify "instance_eval with no arguments should expect a block" do
+    example do
+      begin
+        "hola".instance_eval
+      rescue ArgumentError => @e
+        @e.message
+      end
+    end.should == "block not supplied"
+  end
+  
+  specify "instance_eval with a block should take no arguments" do
+    example do
+      begin
+        "hola".instance_eval(4, 5) { |a,b| a + b }
+      rescue ArgumentError => @e
+        @e.message
+      end
+    end.should == "wrong number of arguments (2 for 0)"
+  end
+  
+  specify "instance_eval with a block should pass the object to the block" do
+    example do
+      "hola".instance_eval { |o| o.size }
+    end.should == 4
+  end
+  
+  specify "instance_eval with a block should bind self to the receiver" do
+    example do
+      @s = "hola"
+      @s == @s.instance_eval { self }
+    end.should == true
+  end
+  
+  specify "instance_eval with a block should execute in the context of the receiver" do
+    example do
+      "Ruby-fu".instance_eval { size }
+    end.should == 7
+  end
 
-  specify "should have access to receiver's instance variables" do
+  specify "instance_eval with a block should have access to receiver's instance variables" do
     example do
       class Klass
         def initialize
@@ -92,30 +155,20 @@ context "Object#instance_eval given a block" do
     end.should == 99
   end
   
-  specify "should pass no arguments to the block" do
-    example do
-      Object.new.instance_eval { |o| o }
-    end.should == nil
-  end
-  
-end
-
-
-context "Object#instance_eval given an string" do
-  specify "should execute on the reciver context" do
+  specify "instance_eval with string argument should execute on the receiver context" do
     example do
       "hola".instance_eval("size")
     end.should == 4
   end
 
-  specify "should bind self to the receiver" do
+  specify "instance_eval with string argument should bind self to the receiver" do
     example do
       @o = Object.new
       @o == @o.instance_eval("self")
     end.should == true
   end
 
-  specify "should have access to receiver's instance variables" do
+  specify "instance_eval with string argument should have access to receiver's instance variables" do
     example do
       class Klass
         def initialize

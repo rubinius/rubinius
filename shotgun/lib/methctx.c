@@ -1,6 +1,7 @@
 #include "shotgun.h"
 #include "methctx.h"
 #include "tuple.h"
+#include "flags.h"
 
 OBJECT methctx_new(STATE, int cnt) {
   OBJECT obj;
@@ -48,14 +49,12 @@ void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from, OBJECT mod) {
   methctx_setup_from_method(state, self, meth, from, mod);
 }
 
-#define WasReferenced 0x20
-
 int methctx_s_was_referenced_p(STATE, OBJECT obj) {
-  return FLAG_SET_P(obj, WasReferenced);
+  return FLAG_SET_P(obj, WasReferencedFlag);
 }
 
 void methctx_reference(STATE, OBJECT self) {
-  FLAG_SET(self, WasReferenced);
+  FLAG_SET(self, WasReferencedFlag);
 }
 
 void methctx_describe(STATE, OBJECT ctx, int count) {
@@ -71,8 +70,6 @@ void methctx_describe(STATE, OBJECT ctx, int count) {
     ctx = methctx_get_sender(ctx);
   }
 }
-
-#define IsBlockContextFlag 0x40
 
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT vlst) {
   OBJECT obj;
