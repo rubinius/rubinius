@@ -10,7 +10,7 @@ files += Dir[CORE + '/*.rb']
 results = files.map do |path|
   begin
     command = "shotgun/rubinius #{path}"
-    output = Timeout::timeout(5) do
+    output = Timeout::timeout(15) do
       `(#{command}) 2>&1`
     end
     [path, output]
