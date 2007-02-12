@@ -838,7 +838,35 @@ again_no_block:
     break;
 
   case NODE_DSYM:               /* :"#{foo}" u1 u2 u3 */
+    /*
+    printf("DSYM: %s", node->nd_str->str);
+    printf("DSYM: %s", node_type_string[nd_type(node->nd_head)]);
+    */
+
     add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
+
+    /* FIXME: Oh for the love of kittens and fuzzy stuff, please FIX ME!
+     *        This hacks around a problem where the first string section
+     *        of a dsym is chopped off because it is being stored in this
+     *        node! -rue */
+
+    /* First we generate our very own manual dstr node */
+    OBJECT a2   = array_pop(state, current);
+    int sz      = FIXNUM_TO_INT(array_get_total(a2));
+    OBJECT hack = array_new(state, sz);
+
+    array_append(state, hack, SYMBOL("dstr"));
+    array_append(state, hack, gstring2rubinius(state, node->nd_str));
+
+    int i = 1;
+    while (i < sz) {
+      array_append(state, hack, array_get(state, a2, i++));
+    }
+
+    /* Then we cleverly replace the array element with it! */
+    array_append(state, current, hack);
+
+    /* End hack */
     break;
 
   case NODE_EVSTR:

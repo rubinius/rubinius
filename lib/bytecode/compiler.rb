@@ -1509,25 +1509,10 @@ module Bytecode
         cnt.times { add "string_append" }
       end
 
-      def process_dsym(x) # Dynamic Symbols like :'foo'
-        # unpack
-        x = x.shift
-        # Get rid of the :array
-        x.shift
-        if x.size == 1
-          str = x.shift
-          puts "dsym 1 str = " + str.inspect if $DEBUG_COMPILER # delete when fixed
-          # Static strings can be statically dealt with
-          if str.first == :str
-            add "push :#{str[1]}"
-          else
-            # Dynamic Strings can symbolise themselves
-            process str
-            add 'send to_sym 0'
-          end
-        else
-          raise "Compiler doesn't handle complex dsyms yet" unless x.size == 1
-        end
+      def process_dsym(x) # Symbols with String interpolation
+        # Unpack, process contained String and have it symbolise itself
+        process x.shift
+        add 'send to_sym 0'
       end
 
       def process_yield(x)
