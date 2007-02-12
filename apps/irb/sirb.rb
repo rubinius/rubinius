@@ -49,7 +49,8 @@ end
 context = ""
 line = 0
 compiler = Bytecode::Compiler.new
-MAIN = Object.new
+# This is unnecessary, MAIN already exists
+#MAIN = Object.new
 
 while true
   str = Readline.readline("sirb(eval):#{line}> ")
@@ -68,12 +69,13 @@ while true
       out = cm.activate(MAIN, [])
       puts "=> #{out.inspect}" # do it like this so exit won't do =>
       context = ""
-    rescue SyntaxError => e
-      # ignore, waiting for a complete expression
     rescue Exception => e
-      puts e
-      puts e.backtrace.show
-      context = ""
+      # Processing may continue with incomplete expressions
+      unless SyntaxError === e and e.message =~ /unexpected \$end|unterminated string/
+        puts e
+        puts e.backtrace.show
+        context = ""
+      end
     end
   else
     context = ""
