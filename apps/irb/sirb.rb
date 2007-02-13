@@ -53,11 +53,14 @@ compiler = Bytecode::Compiler.new
 #MAIN = Object.new
 
 while true
-  str = Readline.readline("sirb(eval):#{line}> ")
+  str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}> ")
   context << str
-  if context.size > 1
+  line += 1
+  if str.size == 0
+    puts "\n=> Terminating input"
+    context = ""
+  elsif context.size > 1
     begin
-      line += 1
       sexp = context.to_sexp
       puts "\nS-exp:\n#{sexp.inspect}" if $show_parse
       nx = compiler.fully_normalize(sexp)
@@ -79,6 +82,5 @@ while true
     end
   else
     context = ""
-    line += 1
   end
 end
