@@ -194,11 +194,38 @@ context "Object instance method" do
     end.should == ["cat", 99]
   end
   
-  specify "instance_variable_get should raise NameError exception if the the argument is not of form '@x'" do
+  specify "instance_variable_get should raise NameError exception if the argument is not of form '@x'" do
     example do
       class NoFred
       end
       try(NameError) { NoFred.new.instance_variable_get(:c) }
+    end.should == true
+  end
+  
+  specify "instance_variable_set should set the value of the specified instance variable" do
+    example do
+      class Dog
+        def initialize(p1, p2) 
+          @a, @b = p1, p2 
+        end 
+      end 
+      @dog = Dog.new('cat', 99) 
+      @dog.instance_variable_set(:@a, 'dog') 
+    end.should == "dog"
+  end
+  
+  specify "instance_variable_set should set the value of the instance variable when no instance variables exist yet" do
+    example do
+      class NoVariables; end
+      NoVariables.new.instance_variable_set(:@a, "new")
+    end.should == "new"
+  end
+  
+  specify "instance_variable_set should raise NameError exception if the argument is not of form '@x'" do
+    example do
+      class NoDog
+      end
+      try(NameError) { NoDog.new.instance_variable_set(:c, "cat") }
     end.should == true
   end
 end

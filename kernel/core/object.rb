@@ -77,6 +77,14 @@ class Object
     end
     return nil
   end
+
+  def instance_variable_set(sym, value)
+    unless sym.to_s[0] == ?@
+      raise NameError.new("`#{sym}' is not allowed as an instance variable name")
+    end
+    @__ivars__ = Hash.new unless instance_variables?
+    @__ivars__[sym.to_sym] = value
+  end
   
   def taint
     Ruby.primitive :object_taint
