@@ -2,6 +2,7 @@ class String
   include Comparable, Enumerable
   
   alias_method :to_str, :to_s
+  alias_method :dump, :inspect
 
   def to_sexp_full(name, line, newlines)
     Ruby.primitive :string_to_sexp
@@ -721,5 +722,71 @@ class String
     end
     self
   end
-  
+
+  def casecmp(to)
+    self.upcase <=> to.upcase
+  end
+
+  def each(separator=$/)
+    raise LocalJumpError, "no block given" unless block_given?
+    index      = separator.length
+    min_index  = 0
+    last_index = 0
+    
+    while index < self.length
+      min_index = index - separator.length + 1
+
+      if self[min_index..index] == separator
+        yield self[last_index..index]
+        last_index = index + 1
+      end
+      index += 1
+    end
+
+    unless last_index == self.length
+      yield self[last_index..index]
+    end
+
+    self
+  end
+  alias_method :each_line, :each
+
+
+  def scan(pattern, &block)
+    pattern = Regexp.new(pattern) if String === pattern
+    index = 0
+    if block_given?
+      ret = self
+    else
+      ret = []
+      block = lambda{|x| ret << x}
+    end
+
+    while index < self.length and md = pattern.match(self[index..-1])
+      block.call(md.length > 1 ? md.captures : md[0])
+      index = index + md.end(md.length-1)
+    end
+    return ret
+  end
+
+=begin
+
+  def %(arg)
+    Kernel::sprintf(self, *arg)
+  end
+
+  # Should be added when Crypt is required
+  def crypt(other_str)
+    raise NotImplementedError
+  end
+
+  def slice!(other_str)
+    raise NotImplementedError
+  end
+
+  def unpack(format) # => anArray
+    raise NotImplementedError
+  end
+=end
+
 end
