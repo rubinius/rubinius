@@ -52,15 +52,30 @@ class Object
     end
   end
   
+  def instance_variables?
+    @__ivars__ and @__ivars__.size > 0
+  end
+  private :instance_variables?
+  
   def instance_variables
-    if !@__ivars__ or @__ivars__.size == 0
-      return []
-    end
+    return [] unless instance_variables?
     res = []
     @__ivars__.each do |k,v|
       res << k.to_s
     end
     return res
+  end
+  
+  def instance_variable_get(sym)
+    unless sym.to_s[0] == ?@
+      raise NameError.new("`#{sym}' is not allowed as an instance variable name")
+    end
+    return nil unless instance_variables?
+    sym = sym.to_sym unless Symbol === sym
+    @__ivars__.each do |k,v|
+      return v if k == sym 
+    end
+    return nil
   end
   
   def taint

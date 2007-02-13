@@ -46,8 +46,8 @@ context "Object instance method" do
       begin
         @o.extend(Mod)
       rescue TypeError => @e
-        @e.message
       end
+      @e.message
     end.should == "can't modify frozen object"
   end
   
@@ -179,5 +179,26 @@ context "Object instance method" do
       @k = Klass.new
       @k.instance_eval("@secret")
     end.should == 99
+  end
+  
+  specify "instance_variable_get should return the value of the instance variable" do
+    example do
+      class Fred 
+      def initialize(p1, p2) 
+      @a, @b = p1, p2 
+      end 
+      end 
+      @fred = Fred.new('cat', 99) 
+      [ @fred.instance_variable_get(:@a),
+        @fred.instance_variable_get("@b") ]
+    end.should == ["cat", 99]
+  end
+  
+  specify "instance_variable_get should raise NameError exception if the the argument is not of form '@x'" do
+    example do
+      class NoFred
+      end
+      try(NameError) { NoFred.new.instance_variable_get(:c) }
+    end.should == true
   end
 end
