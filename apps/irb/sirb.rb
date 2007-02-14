@@ -49,11 +49,18 @@ end
 context = ""
 line = 0
 compiler = Bytecode::Compiler.new
-# This is unnecessary, MAIN already exists
-#MAIN = Object.new
+
+# We use the same compiler state for each evaluation so we can save
+# stuff like locals between statements.
+compiler_state = RsLocalState.new
+
+# Start off with just 10 slots, but we enlarge as needed below.
+locals = Tuple.new(10)
+
+pstate = ">"
 
 while true
-  str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}> ")
+  str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} ")
   context << str
   line += 1
   if str.size == 0
@@ -61,23 +68,44 @@ while true
     context = ""
   elsif context.size > 1
     begin
-      sexp = context.to_sexp
-      puts "\nS-exp:\n#{sexp.inspect}" if $show_parse
-      nx = compiler.fully_normalize(sexp)
-      puts "\nNormalized S-exp:\n#{nx.inspect}" if $show_sexp
-      desc = compiler.compile_as_method(nx, :__eval_script__)
-      puts "\nAsm:\n#{desc.assembly}" if $show_asm
-      cm = desc.to_cmethod
-      print_bytecodes(cm.bytecodes) if $show_bytes
-      out = cm.activate(MAIN, [])
-      puts "=> #{out.inspect}" # do it like this so exit won't do =>
-      context = ""
+      # Enlarge locals as needed.
+      if compiler_state.locals.size >= locals.fields
+        nl = Tuple.new(compiler_state.locals.size + 10)
+        nl.copy_from locals, 0
+        locals = nl
+      end
+      
+      if str == "local_variables\n"
+        puts " Names: #{compiler_state.locals.inspect}\nValues: #{locals.inspect}\n"
+        context = ""
+      else  
+        pstate = ">"
+        sexp = context.to_sexp
+        puts "\nS-exp:\n#{sexp.inspect}" if $show_parse
+        nx = compiler.fully_normalize(sexp, compiler_state)
+        puts "\nNormalized S-exp:\n#{nx.inspect}" if $show_sexp
+        desc = compiler.compile_as_method(nx, :__eval_script__, compiler_state)
+        puts "\nAssembly:\n#{desc.assembly}" if $show_asm
+        cm = desc.to_cmethod
+        print_bytecodes(cm.bytecodes) if $show_bytes
+        out = cm.activate(MAIN, [], locals)
+        
+        # Support _ being the last value.
+        locals.put 0, out
+        
+        puts "=> #{out.inspect}" # do it like this so exit won't do =>
+        context = ""
+      end
     rescue Exception => e
       # Processing may continue with incomplete expressions
       unless SyntaxError === e and e.message =~ /unexpected \$end|unterminated string/
-        puts e
+        puts ""
+        puts "An exception has occured: #{e.message}"
+        puts "Backtrace:"
         puts e.backtrace.show
         context = ""
+      else
+        pstate = "*"
       end
     end
   else

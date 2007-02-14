@@ -23,4 +23,8 @@ class RsLocalState
     
     return cnt
   end
+  
+  def local?(name)
+    @locals.include? name
+  end
 end

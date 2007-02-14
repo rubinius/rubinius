@@ -47,11 +47,12 @@ class CompiledMethod
     @primitive = idx
   end
   
-  def activate(recv, args, &prc)
+  def activate(recv, args, locals=nil, &prc)
     sz = args.total
     Ruby.asm <<-ASM
     push args
     push_array
+    push locals
     push sz
     push self
     push recv

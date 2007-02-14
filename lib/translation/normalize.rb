@@ -151,7 +151,13 @@ class RsNormalizer < SimpleSexpProcessor
   end
   
   def process_vcall(x)
-    return [:call, [:self], x.shift, [:array]]
+    name = x.shift
+    # Allow us to 'overrule' what the parser thought was a lvar.
+    if @state.local?(name)
+      [:lvar, name, lvar_idx(name)]
+    else
+      [:call, [:self], name, [:array]]
+    end
   end
   
   def lvar_idx(name)

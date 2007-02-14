@@ -442,7 +442,14 @@ class ShotgunInstructions
     t1 = stack_pop();
     t2 = stack_pop();
     j = FIXNUM_TO_INT(stack_pop());
+    t3 = stack_pop();
     cpu_goto_method(state, c, t1, t2, j, cmethod_get_name(t2));
+    if(RTEST(t3)) {
+      if(NUM_FIELDS(t3) >= NUM_FIELDS(c->locals)) {
+        methctx_set_locals(c->active_context, t3);
+        c->locals = t3;
+      }
+    }
     CODE
   end
   

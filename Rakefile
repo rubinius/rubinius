@@ -52,6 +52,8 @@ namespace :spec do
     end
   end
 
+  unless no_spec
+
   desc "Run only specs but not any tests."
   spec_targets = %w(language shotgun library core targets primitives)
 
@@ -66,6 +68,7 @@ namespace :spec do
     end
   end
 
+
   task :only => spec_targets.collect! { |g| 'spec:' << g }
 
   # experimental -- need to adjust exclusions depending on what your testing
@@ -76,7 +79,9 @@ namespace :spec do
     desc "Generate a coverage report for the core specs."
     GroupCoverageReport.new(:core)
   end
-end unless no_spec
+  
+  end
+end 
 
 desc "Alias for test:all"
 task :test => 'test:all'
