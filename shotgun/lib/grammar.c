@@ -993,11 +993,11 @@ static const unsigned short yyrline[] =
     2262,  2263,  2264,  2267,  2273,  2279,  2280,  2283,  2288,  2287,
     2295,  2298,  2303,  2309,  2314,  2318,  2323,  2327,  2332,  2336,
     2341,  2345,  2351,  2355,  2359,  2363,  2367,  2378,  2379,  2385,
-    2395,  2400,  2406,  2407,  2410,  2418,  2424,  2425,  2428,  2438,
-    2442,  2445,  2455,  2455,  2480,  2481,  2485,  2494,  2495,  2501,
-    2503,  2507,  2513,  2519,  2520,  2521,  2524,  2525,  2526,  2527,
-    2530,  2531,  2532,  2535,  2536,  2539,  2540,  2543,  2544,  2547,
-    2548,  2549,  2552,  2553,  2556,  2557,  2560
+    2395,  2400,  2406,  2407,  2410,  2418,  2425,  2426,  2429,  2439,
+    2443,  2446,  2456,  2456,  2481,  2482,  2486,  2495,  2496,  2502,
+    2504,  2508,  2514,  2520,  2521,  2522,  2525,  2526,  2527,  2528,
+    2531,  2532,  2533,  2536,  2537,  2540,  2541,  2544,  2545,  2548,
+    2549,  2550,  2553,  2554,  2557,  2558,  2561
 };
 #endif
 
@@ -6904,12 +6904,13 @@ yyreduce:
   case 465:
 #line 2419 "grammar.y"
     {
-                        yyval.id = -2;
+                        //$$ = -2;
+                        yyval.id = 0;
                     }
     break;
 
   case 468:
-#line 2429 "grammar.y"
+#line 2430 "grammar.y"
     {
                         if (!is_local_id(yyvsp[0].id))
                             yyerror("block argument must be local variable");
@@ -6920,14 +6921,14 @@ yyreduce:
     break;
 
   case 469:
-#line 2439 "grammar.y"
+#line 2440 "grammar.y"
     {
                         yyval.node = yyvsp[0].node;
                     }
     break;
 
   case 471:
-#line 2446 "grammar.y"
+#line 2447 "grammar.y"
     {
                         if (nd_type(yyvsp[0].node) == NODE_SELF) {
                             yyval.node = NEW_SELF();
@@ -6940,12 +6941,12 @@ yyreduce:
     break;
 
   case 472:
-#line 2455 "grammar.y"
+#line 2456 "grammar.y"
     {vps->lex_state = EXPR_BEG;}
     break;
 
   case 473:
-#line 2456 "grammar.y"
+#line 2457 "grammar.y"
     {
                         if (yyvsp[-2].node == 0) {
                             yyerror("can't define singleton method for ().");
@@ -6971,14 +6972,14 @@ yyreduce:
     break;
 
   case 475:
-#line 2482 "grammar.y"
+#line 2483 "grammar.y"
     {
                         yyval.node = yyvsp[-1].node;
                     }
     break;
 
   case 476:
-#line 2486 "grammar.y"
+#line 2487 "grammar.y"
     {
                         if (yyvsp[-1].node->nd_alen%2 != 0) {
                             yyerror("odd number list for Hash");
@@ -6988,48 +6989,48 @@ yyreduce:
     break;
 
   case 478:
-#line 2496 "grammar.y"
+#line 2497 "grammar.y"
     {
                         yyval.node = list_concat(yyvsp[-2].node, yyvsp[0].node);
                     }
     break;
 
   case 479:
-#line 2502 "grammar.y"
+#line 2503 "grammar.y"
     { yyval.node = yyvsp[0].node; }
     break;
 
   case 480:
-#line 2504 "grammar.y"
+#line 2505 "grammar.y"
     { yyval.node  = yyvsp[0].node; }
     break;
 
   case 481:
-#line 2508 "grammar.y"
+#line 2509 "grammar.y"
     {
                         yyval.node = list_append(parse_state, NEW_LIST(yyvsp[-2].node), yyvsp[0].node);
                     }
     break;
 
   case 482:
-#line 2514 "grammar.y"
+#line 2515 "grammar.y"
     {
                         yyval.node = list_append(parse_state, NEW_LIST(NEW_LIT(ID2SYM(yyvsp[-1].id))), yyvsp[0].node);
                     }
     break;
 
   case 502:
-#line 2552 "grammar.y"
+#line 2553 "grammar.y"
     {yyerrok;}
     break;
 
   case 505:
-#line 2557 "grammar.y"
+#line 2558 "grammar.y"
     {yyerrok;}
     break;
 
   case 506:
-#line 2560 "grammar.y"
+#line 2561 "grammar.y"
     {yyval.node = 0;}
     break;
 
@@ -7037,7 +7038,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/local/share/bison/yacc.c.  */
-#line 7041 "grammar.c"
+#line 7042 "grammar.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -7256,7 +7257,7 @@ yyreturn:
 }
 
 
-#line 2562 "grammar.y"
+#line 2563 "grammar.y"
 
 
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',

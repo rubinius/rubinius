@@ -2417,7 +2417,8 @@ f_rest_arg      : restarg_mark tIDENTIFIER
                     }
                 | restarg_mark
                     {
-                        $$ = -2;
+                        //$$ = -2;
+                        $$ = 0;
                     }
                 ;
 
