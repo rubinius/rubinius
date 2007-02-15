@@ -2413,7 +2413,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER
                             yyerror("rest argument must be local variable");
                         else if (local_id($2))
                             yyerror("duplicate rest argument name");
-                        $$ = local_cnt($2);
+                        $$ = local_cnt($2) + 1;
                     }
                 | restarg_mark
                     {

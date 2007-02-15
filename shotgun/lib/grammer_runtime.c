@@ -697,7 +697,7 @@ again_no_block:
         /* *arg name */
         tmp = array_new(state, 4);
         /* Hop over the statics --rue */
-        array_push(tmp, ID2SYM(locals[arg_count + 3])); 
+        array_push(tmp, ID2SYM(locals[arg_count + 2]));
         array_push(tmp, I2N(arg_count));
         //VALUE sym = rb_str_intern(rb_str_plus(rb_str_new2("*"),
         //        rb_str_new2(rb_id2name(locals[node->nd_rest + 1]))));

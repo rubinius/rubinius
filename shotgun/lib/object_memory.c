@@ -313,7 +313,7 @@ OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields) {
   
   //fields += 4; /* PAD */
   size = (HEADER_SIZE + fields) * REFSIZE;
-  if(!heap_enough_space_p(om->gc->current, size)) {
+  if(!heap_enough_space_p(om->gc->current, size)) {          // Duplication? allocate will assert this anyway
     obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
     assert(heap_enough_space_p(om->gc->next, size));
     DEBUG("Ran out of space! spilled into %p\n", obj);
