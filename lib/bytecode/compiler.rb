@@ -654,6 +654,9 @@ module Bytecode
         
         add "make_hash #{sz}"
       end
+
+      # Implicit hashes from method calls
+      alias process_ihash process_hash
       
       def process_argscat(x)
         ary = x.shift        

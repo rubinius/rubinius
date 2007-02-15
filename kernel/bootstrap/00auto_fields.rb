@@ -1,25 +1,3 @@
-class BlockContext
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def sender; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def ip; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def sp; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def block; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def env; Ruby.asm "push self\npush 6\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :env => 6
-end
-class Class
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def name; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
-  def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
-  def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6, :instance_fields => 7, :instance_flags => 8
-end
 class MatchData
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   def source; Ruby.asm "push self\npush 1\nfetch_field"; end
@@ -27,13 +5,6 @@ class MatchData
   def full; Ruby.asm "push self\npush 3\nfetch_field"; end
   def region; Ruby.asm "push self\npush 4\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
-end
-class Regexp
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def data; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def names; Ruby.asm "push self\npush 3\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
 end
 class MethodTable
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -51,14 +22,21 @@ class SymbolTable
   def strings; Ruby.asm "push self\npush 2\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :symbols => 1, :strings => 2
 end
+class Class
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def name; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
+  def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
+  def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6, :instance_fields => 7, :instance_flags => 8
+end
 class Float
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   ivar_as_index :__ivars__ => 0
-end
-class Array
-  def total; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def tuple; Ruby.asm "push self\npush 1\nfetch_field"; end
-  ivar_as_index :total => 0, :tuple => 1
 end
 class BlockEnvironment
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -68,15 +46,9 @@ class BlockEnvironment
   def post_send; Ruby.asm "push self\npush 4\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, :post_send => 4
 end
-class Hash
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def keys; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def values; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def bins; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def entries; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def default; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def default_proc; Ruby.asm "push self\npush 6\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
+class IO
+  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
+  ivar_as_index :descriptor => 0
 end
 class MetaClass
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -108,9 +80,12 @@ class MethodContext
   def module; Ruby.asm "push self\npush 13\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :method => 6, :bytecodes => 7, :literals => 8, :receiver => 9, :locals => 10, :argcount => 11, :name => 12, :module => 13
 end
-class Object
+class Regexp
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0
+  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def data; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def names; Ruby.asm "push self\npush 3\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
 end
 class CompiledMethod
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -128,16 +103,20 @@ class CompiledMethod
   def path; Ruby.asm "push self\npush 12\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :bytecodes => 3, :locals => 4, :literals => 5, :arguments => 6, :scope => 7, :exceptions => 8, :lines => 9, :file => 10, :name => 11, :path => 12
 end
-class String
-  def bytes; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def characters; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def encoding; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def data; Ruby.asm "push self\npush 3\nfetch_field"; end
-  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
+class Array
+  def total; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def tuple; Ruby.asm "push self\npush 1\nfetch_field"; end
+  ivar_as_index :total => 0, :tuple => 1
 end
-class IO
-  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
-  ivar_as_index :descriptor => 0
+class Hash
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def keys; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def values; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def bins; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def entries; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def default; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def default_proc; Ruby.asm "push self\npush 6\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
 end
 class Module
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -147,4 +126,25 @@ class Module
   def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
   def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
+end
+class Object
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0
+end
+class String
+  def bytes; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def characters; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def encoding; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def data; Ruby.asm "push self\npush 3\nfetch_field"; end
+  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
+end
+class BlockContext
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def sender; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def ip; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def sp; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def block; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def env; Ruby.asm "push self\npush 6\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :env => 6
 end

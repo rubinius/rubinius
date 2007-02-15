@@ -339,7 +339,41 @@ namespace :build do
       extra = %w!bytecode/rubinius!
       extra.each do |name|
         Dir.chdir "native" do
+          file = name + '.rb'
           sh "../bin/obsolete.rcompile #{name}.rb"
+        end
+        raise "Failed to compile native/#{name}" if $?.exitstatus != 0
+      end
+    end
+
+    desc "Bootstrap the compiler using shotgun/rubinius."
+    task :bootstrap_shotgun do
+      files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
+        sexp/simple_processor translation/normalize translation/local_scoping
+        sexp/composite_processor translation/states sexp/exceptions
+        bytecode/primitive_names!
+
+      files.each do |name|
+        file = "#{name}.rb"
+        dir = File.dirname(file)
+        dest_dir = File.join("native", dir)
+        path = File.expand_path File.join("lib", file)
+        dest = File.join("native", file)
+        FileUtils.mkdir_p dest_dir
+        FileUtils.symlink path, dest rescue nil
+        Dir.chdir "native" do
+ #         sh "../bin/obsolete.rcompile #{file}"
+          sh "../shotgun/rubinius -c #{file}" 
+        end
+        raise "Failed to compile #{dest}" if $?.exitstatus != 0
+      end
+
+      extra = %w!bytecode/rubinius!
+      extra.each do |name|
+        Dir.chdir "native" do
+          file = name + '.rb'
+#          sh "../bin/obsolete.rcompile #{name}.rb"
+          sh "../shotgun/rubinius -c #{file}" 
         end
         raise "Failed to compile native/#{name}" if $?.exitstatus != 0
       end
@@ -356,6 +390,9 @@ namespace :build do
   
   desc "Bootstrap and package the compiler"
   task :compiler => ['build:compiler:bootstrap', 'build:compiler:package']
+  
+  desc "Bootstrap and package the compiler using shotgun/rubinius"
+  task :compiler_shotgun => ['build:compiler:bootstrap_shotgun', 'build:compiler:package']
   
   desc "Builds shotgun, kernel, and bootstraps the compiler"
   task :rubinius => ['build:shotgun', 'build:bootstrap', 'build:core', 'build:compiler']
