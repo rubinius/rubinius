@@ -42,13 +42,15 @@ void cpu_initialize(STATE, cpu c) {
   c->argcount = 0;
   c->args = 0;
   c->depth = 0;
-  
+
+  /*
 #if CTX_USE_FAST
   printf("[ FastMethodContext objects enabled.]\n");
   #if CTX_CACHE_ENABLED
     printf("[ Context caching enabled.]\n");
   #endif
 #endif
+  */
 }
 
 void cpu_setup_top_scope(STATE, cpu c) {
