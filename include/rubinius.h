@@ -85,22 +85,6 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #define SYMBOL_P(v) (((OBJECT)(v) & ((1L<<SYMBOL_SHIFT)-1)) == SYMBOL_MARKER)
 #define FIXNUM_P(v) (((OBJECT)(v) & ((1L<<FIXNUM_SHIFT)-1)) == FIXNUM_MARKER)
 
-/*#define ALTERNATIVE_REPRESENTATION 666*/
-/*#define ALTERNATIVE_REPRESENTATION 1*/
-#if ALTERNATIVE_REPRESENTATION == 1
-/* MRI-like, but with hacked specials just to be different */
-#define Qfalse ((OBJECT)0L)
-#define Qtrue  ((OBJECT)4L)
-#define Qnil   ((OBJECT)2L)
-#define Qundef ((OBJECT)6L)
-#define RTEST(v) (((OBJECT)(v) & ~Qnil) != 0)
-#define NIL_P(v) ((OBJECT)(v) == Qnil)
-#define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 20 && ((_i & 3L) == 0L); })
-#define SYMBOL_MARKER 0xe
-#define SYMBOL_SHIFT 4
-#define FIXNUM_MARKER 1
-#define FIXNUM_SHIFT 1
-#else
 /* Standard Rubinius Representation */
 #define Qfalse ((OBJECT)0L)
 #define Qtrue  ((OBJECT)2L)
@@ -115,7 +99,6 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #define SYMBOL_SHIFT 2
 #define FIXNUM_MARKER 1
 #define FIXNUM_SHIFT 2
-#endif
 
 #define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)

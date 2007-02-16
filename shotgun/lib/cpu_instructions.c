@@ -9,6 +9,8 @@
 #include "string.h"
 #include "symbol.h"
 #include "machine.h"
+#include "flags.h"
+#include "bytearray.h"
 
 #define EXCESSIVE_TRACING 0
 
@@ -164,31 +166,59 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
 }
 
 static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
-      OBJECT name, OBJECT mod) {
-  OBJECT sender, ctx;
-  int len;
+      OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
+  OBJECT sender, ctx, ba;
+  int len, num_lcls;
+  struct fast_context *fc;
   
   sender = c->active_context;
-  if(NIL_P(sender)) {
-    sender = Qnil;
-  }
+  
+  num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
 
-  /* Check in context cache here. */
-  len = state->free_contexts->len;
-  if(len == 0) {
-    ctx = methctx_s_from_method(state, mo, sender, mod);
-    // printf("Created context %p...\n", ctx);
+#if CTX_USE_FAST
+
+  ctx = c->context_cache;
+  if(!ctx) {
+    ctx = object_memory_new_object(state->om, state->global->fastctx, FASTCTX_FIELDS);
   } else {
-    /* Use the last one so that it's a lifo */
-    ctx = (OBJECT)g_ptr_array_remove_index(state->free_contexts, len - 1);
-    methctx_s_reuse(state, ctx, mo, sender, mod);
-    // printf("Reusing context %d %p '%s'...\n", len, ctx, _inspect(ctx));
+    c->context_cache = HEADER(ctx)->klass;
+    HEADER(ctx)->klass = state->global->fastctx;
   }
   
+  FLAG_SET(ctx, CTXFastFlag);
+  FLAG_SET(ctx, StoresBytesFlag);
+  
+  fc = FASTCTX(ctx);
+  memset(fc, 0, sizeof(struct fast_context));
+  fc->sender = sender;
+  fc->ip = 0;
+  fc->sp = c->sp;
+  fc->block = block;
+  fc->raiseable = Qtrue;
+  fc->method = mo;
+  ba = cmethod_get_bytecodes(mo);
+  fc->data = bytearray_byte_address(state, ba);
+  fc->data_size = bytearray_bytes(state, ba);
+  fc->literals = cmethod_get_literals(mo);
+  fc->self = recv;
+  fc->locals = tuple_new(state, num_lcls + 2);
+  fc->argcount = args;
+  fc->name = name;
+  fc->method_module = mod;
+  fc->num_locals = num_lcls;
+  fc->is_fast = 1;
+  
+#else
+
+  ctx = methctx_s_from_method(state, mo, sender, mod);
   methctx_set_receiver(ctx, recv);
   methctx_set_name(ctx, name);
   methctx_set_sp(ctx, I2N(c->sp));
   methctx_set_method(ctx, mo);
+  methctx_set_block(ctx, block);
+  methctx_set_argcount(ctx, I2N(args));
+#endif
+
   return ctx;
 }
 
@@ -240,8 +270,8 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
   OBJECT ctx;
   
   if(cpu_try_primitive(state, c, meth, recv, count)) { return; }
-  ctx = cpu_create_context(state, c, recv, meth, name, _real_class(state, recv));
-  methctx_set_argcount(ctx, I2N(count));
+  ctx = cpu_create_context(state, c, recv, meth, name, 
+        _real_class(state, recv), (unsigned long int)count, Qnil);
   cpu_activate_context(state, c, ctx, ctx);
 }
 
@@ -251,9 +281,8 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
   if(NIL_P(mo)) return;
   stack_push(arg);
   
-  ctx = cpu_create_context(state, c, recv, mo, meth, _real_class(state, recv));
-  methctx_set_argcount(ctx, I2N(1));
-  methctx_set_block(ctx, Qnil);
+  ctx = cpu_create_context(state, c, recv, mo, meth, 
+        _real_class(state, recv), 1, Qnil);
   cpu_activate_context(state, c, ctx, ctx);
 }
 
@@ -293,14 +322,12 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     prim ? "" : "PRIM FAILED"
    );
   #endif
-  ctx = cpu_create_context(state, c, recv, mo, sym, mod);
-  methctx_set_argcount(ctx, I2N(args));
+  ctx = cpu_create_context(state, c, recv, mo, sym, mod, (unsigned long int)args, block);
   /*
   if(RTEST(block)) {
     printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
   }
   */
-  methctx_set_block(ctx, block);
   cpu_activate_context(state, c, ctx, ctx);
   //printf("Setting method module to: %s\n", _inspect(mod));
   c->method_module = mod;
@@ -397,7 +424,7 @@ void cpu_run(STATE, cpu c) {
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    #if 0
+    #if EXCESSIVE_TRACING
     printf("%-15s: OP: %s (%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip);

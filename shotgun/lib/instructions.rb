@@ -516,7 +516,7 @@ class ShotgunInstructions
   def caller_return
     <<-CODE
     t1 = c->active_context;
-    c->active_context = methctx_get_sender(t1);
+    c->active_context = c->sender;
     cpu_return_to_sender(state, c, TRUE);
     CODE
   end
@@ -554,7 +554,7 @@ class ShotgunInstructions
   def make_rest
     <<-CODE
     next_int;
-    j = FIXNUM_TO_INT(methctx_get_argcount(c->active_context)) - _int;
+    j = c->argcount - _int;
     t1 = array_new(state, j);
     for(k = 0; k < j; k++) {
       array_set(state, t1, k, stack_pop());
@@ -569,9 +569,9 @@ class ShotgunInstructions
     j = _int;
     next_int;
     
-    if(c->argcount < j) {
+    if(c->argcount < (unsigned long int)j) {
       cpu_raise_arg_error(state, c, c->argcount, j);
-    } else if(_int > 0 && c->argcount > _int) {
+    } else if(_int > 0 && c->argcount > (unsigned long int)_int) {
       cpu_raise_arg_error(state, c, c->argcount, _int);
     }
     CODE
@@ -580,7 +580,7 @@ class ShotgunInstructions
   def passed_arg
     <<-CODE
     next_int;
-    if(_int < c->argcount) {
+    if((unsigned long int)_int < c->argcount) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);

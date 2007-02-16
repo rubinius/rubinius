@@ -481,6 +481,7 @@ void cpu_bootstrap(STATE) {
   BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
   BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
+  BC(fastctx) = rbs_class_new(state, "FastMethodContext", 0, BC(methctx));
   
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
     module_setup(state, BC(name), string);

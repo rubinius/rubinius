@@ -89,8 +89,12 @@ char *string_as_string(STATE, OBJECT self) {
   
   out = (char*)malloc(i+1);
   
-  memcpy(out, bytearray_byte_address(state, data), i);
-  out[i] = 0;
+  if(!NIL_P(data)) {
+    memcpy(out, bytearray_byte_address(state, data), i);
+    out[i] = 0;
+  } else {
+    out[0] = 0;
+  }
   return out;
 }
 

@@ -8,7 +8,7 @@ class Exception
   
   def backtrace
     bk = at(1)
-    if MethodContext === bk
+    if FastMethodContext === bk
       bk = Backtrace.backtrace(bk)
       self.put 1, bk
     end

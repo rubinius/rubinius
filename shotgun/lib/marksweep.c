@@ -18,6 +18,9 @@
 
 #include "shotgun.h"
 #include "object.h"
+#include "methctx.h"
+#include "cpu.h"
+#include "bytearray.h"
 
 #define FREE_OBJECT 0x10000
 #define BARRIER (2**REFSIZE)
@@ -229,6 +232,8 @@ void mark_sweep_free_fast(mark_sweep_gc ms, OBJECT obj) {
   HEADER(obj)->flags = FREE_FLAG;
   HEADER(obj)->klass = ms->free_list;
   ms->free_list = obj;
+  
+  /* FIXME: adjust the remember set */
 }
 
 #define MARK_OBJ(obj) (HEADER(obj)->gc |= MS_MARK)
@@ -295,6 +300,25 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
       if(!REFERENCE_P(tmp)) continue;
       
       mark_sweep_mark_object(ms, tmp);
+    }
+  } else {
+    if(methctx_is_fast_p(state, iobj)) {
+      struct fast_context *fc = FASTCTX(iobj);
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) mark_sweep_mark_object(ms, fc->field)
+      fc_mutate(sender);
+      fc_mutate(block);
+      fc_mutate(method);
+      fc_mutate(literals);
+      fc_mutate(self);
+      fc_mutate(locals);
+      fc_mutate(method_module);
+#undef fc_mutate
+
+      /* We cache the bytecode in a char*, so adjust it. */
+      OBJECT ba;
+      ba = cmethod_get_bytecodes(fc->method);
+      fc->data = BYTEARRAY_ADDRESS(ba);
+      fc->data_size = BYTEARRAY_SIZE(ba);
     }
   }
 }

@@ -8,7 +8,7 @@ struct rubinius_globals {
   OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
   OBJECT string, symbol, io, metaclass, symtbl;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
-  OBJECT floatpoint;
+  OBJECT floatpoint, fastctx;
   
   /* the primary symbol table */
   OBJECT symbols;

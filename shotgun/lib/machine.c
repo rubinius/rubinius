@@ -404,7 +404,7 @@ OBJECT machine_load_file(machine m, char *path) {
 }
 
 void machine_show_exception(machine m, OBJECT exc) {
-  printf("An exception occurred:\n");
+  printf("\nError: An unhandled exception has terminated this VM.\n");
   printf(" => %s (%s)\n", string_as_string(m->s, NTH_FIELD(exc, 0)), rbs_inspect(m->s, HEADER(exc)->klass));
 }
 

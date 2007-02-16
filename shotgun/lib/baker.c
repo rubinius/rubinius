@@ -3,6 +3,9 @@
 #include <string.h>
 #include "baker.h"
 #include "heap.h"
+#include "methctx.h"
+#include "cpu.h"
+#include "bytearray.h"
 
 static int promoted = 0;
 
@@ -189,6 +192,25 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
     
       mut = baker_gc_maybe_mutate(g, tmp);
       rbs_set_field(g->om, iobj, i, mut);
+    }
+  } else {
+    if(methctx_is_fast_p(state, iobj)) {
+      struct fast_context *fc = FASTCTX(iobj);
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(g, fc->field)
+      fc_mutate(sender);
+      fc_mutate(block);
+      fc_mutate(method);
+      fc_mutate(literals);
+      fc_mutate(self);
+      fc_mutate(locals);
+      fc_mutate(method_module);
+#undef fc_mutate
+
+      /* We cache the bytecode in a char*, so adjust it. */
+      OBJECT ba;
+      ba = cmethod_get_bytecodes(fc->method);
+      fc->data = BYTEARRAY_ADDRESS(ba);
+      fc->data_size = BYTEARRAY_SIZE(ba);
     }
   }
   depth--;

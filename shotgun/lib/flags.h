@@ -8,5 +8,6 @@
 #define IsMetaFlag           0x80
 #define IsTaintedFlag        0x22
 #define IsFrozenFlag         0x24
+#define CTXFastFlag          (1<<7)
 
 #endif 

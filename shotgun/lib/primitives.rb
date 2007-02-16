@@ -1786,6 +1786,64 @@ class ShotgunPrimitives
     stack_push(object_frozen_p(state, self) ? Qtrue : Qfalse);
     CODE
   end
+  
+  def fastctx_get_field
+    <<-CODE
+    int i;
+    struct fast_context *fc;
+    t1 = stack_pop();
+    if(RISA(t1, fastctx)) {
+      fc = FASTCTX(t1);
+      i = FIXNUM_TO_INT(stack_pop());
+      switch(i) {
+        case 0:
+          if(!NIL_P(fc->sender)) {
+            methctx_reference(state, fc->sender);
+          }
+          stack_push(fc->sender);
+          break;
+        case 1:
+          stack_push(I2N(fc->ip));
+          break;
+        case 2:
+          stack_push(I2N(fc->sp));
+          break;
+        case 3:
+          stack_push(fc->block);
+          break;
+        case 4:
+          stack_push(fc->raiseable);
+          break;
+        case 5:
+          stack_push(fc->method);
+          break;
+        case 6:
+          stack_push(fc->literals);
+          break;
+        case 7:
+          stack_push(fc->self);
+          break;
+        case 8:
+          stack_push(fc->locals);
+          break;
+        case 9:
+          stack_push(I2N(fc->argcount));
+          break;
+        case 10:
+          stack_push(fc->name);
+          break;
+        case 11:
+          stack_push(fc->method_module);
+          break;
+        default:
+          stack_push(Qnil);
+      }
+    } else {
+      _ret = FALSE;
+    }
+    CODE
+  end
+
 
 end
 

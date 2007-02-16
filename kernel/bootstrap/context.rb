@@ -59,6 +59,40 @@ class MethodContext
   end
 end
 
+class FastMethodContext
+  def _get_field(int)
+    Ruby.primitive :fastctx_get_field
+  end
+  
+  def sender
+    _get_field(0)
+  end
+
+  def ip
+    _get_field(1)
+  end
+
+  def sp
+    _get_field(2)
+  end
+
+  def block
+    _get_field(3)
+  end
+  
+  def method
+    _get_field(5)
+  end
+  
+  def receiver
+    _get_field(7)
+  end
+
+  def name
+    _get_field(10)
+  end
+end
+
 class BlockContext
   def activate(val)
     Ruby.primitive :activate_context    

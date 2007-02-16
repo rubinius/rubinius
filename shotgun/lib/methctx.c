@@ -49,14 +49,6 @@ void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from, OBJECT mod) {
   methctx_setup_from_method(state, self, meth, from, mod);
 }
 
-int methctx_s_was_referenced_p(STATE, OBJECT obj) {
-  return FLAG_SET_P(obj, WasReferencedFlag);
-}
-
-void methctx_reference(STATE, OBJECT self) {
-  FLAG_SET(self, WasReferencedFlag);
-}
-
 void methctx_describe(STATE, OBJECT ctx, int count) {
   int i;
   for(i = 0; RTEST(ctx) && i < count; i++) {

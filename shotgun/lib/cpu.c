@@ -28,7 +28,7 @@ void cpu_initialize(STATE, cpu c) {
   state->global->methtbl = Qnil;
   c->stack = tuple_new(state, InitialStackSize);
   // HEADER(c->stack)->gc |= 0x8000; /* Forever young. */
-  c->sp = -1;
+  c->sp = 0;
   c->ip = 0;
   c->self = Qnil;
   c->exception = Qnil;
@@ -42,6 +42,13 @@ void cpu_initialize(STATE, cpu c) {
   c->argcount = 0;
   c->args = 0;
   c->depth = 0;
+  
+#if CTX_USE_FAST
+  printf("[ FastMethodContext objects enabled.]\n");
+  #if CTX_CACHE_ENABLED
+    printf("[ Context caching enabled.]\n");
+  #endif
+#endif
 }
 
 void cpu_setup_top_scope(STATE, cpu c) {
@@ -53,9 +60,8 @@ void cpu_setup_top_scope(STATE, cpu c) {
 
 void cpu_initialize_context(STATE, cpu c) {
   object_set_has_ivars(state, c->stack);
-  c->active_context = methctx_new(state, 0);
+  c->active_context = Qnil;
   c->top_context = c->active_context;
-  methctx_set_raiseable(c->active_context, Qfalse);
   c->home_context = c->active_context;
   c->enclosing_class = state->global->object;
   c->new_class_of = state->global->class;
@@ -86,6 +92,7 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   #define ar(obj) if(REFERENCE_P(obj)) { \
     g_ptr_array_add(roots, (gpointer)obj); \
   }
+  ar(c->sender);
   ar(c->stack);
   ar(c->self);
   ar(c->exception);
@@ -102,6 +109,7 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->top_context);
   ar(c->method_module);
   len = c->paths->len;
+  g_ptr_array_add(roots, (gpointer)I2N(len));
   // printf("Paths: %d\n", len);
   for(i = 0; i < len; i++) {
     t = g_ptr_array_remove_index(c->paths, 0);
@@ -115,10 +123,12 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
 
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   gpointer tmp;
+  int i, len;
   #define ar(obj) if(REFERENCE_P(obj)) { \
     tmp = g_ptr_array_index(roots, start++); \
     obj = (OBJECT)tmp; \
   }
+  ar(c->sender);
   ar(c->stack);
   ar(c->self);
   ar(c->exception);
@@ -134,8 +144,9 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->exceptions);
   ar(c->top_context);
   ar(c->method_module);
-  //printf("Update roots: %d, %d\n", start, roots->len);
-  for(; start < roots->len; start++) {
+  tmp = g_ptr_array_index(roots, start++);
+  len = FIXNUM_TO_INT((OBJECT)tmp);
+  for(i = 0; i < len; start++, i++) {
     tmp = g_ptr_array_index(roots, start);
     //printf("Adding path %s back in...\n", _inspect(tmp));
     g_ptr_array_add(c->paths, tmp);
@@ -146,56 +157,96 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
 
 void cpu_save_registers(STATE, cpu c) {
   if(!RTEST(c->active_context)) return;
-  methctx_set_sp(c->active_context, I2N(c->sp));
-  methctx_set_ip(c->active_context, I2N(c->ip));
+  if(methctx_is_fast_p(state, c->active_context)) {
+    struct fast_context *fc;
+    fc = (struct fast_context*)BYTES_OF(c->active_context);
+    fc->sp = c->sp;
+    fc->ip = c->ip;
+  } else {
+    methctx_set_sp(c->active_context, I2N(c->sp));
+    methctx_set_ip(c->active_context, I2N(c->ip));
+  }
 }
 
 void cpu_restore_context(STATE, cpu c, OBJECT x) {
     cpu_restore_context_with_home(state, c, x, x, FALSE, FALSE);
 }
 
+#include <string.h>
+
 void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
+  int ac;
+  
+  ac = c->argcount;
   c->depth--;
-  c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
-  c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
-  if(ret && c->argcount > 0) {
-    if (is_block) {
-      --c->sp;
+  
+  /* Home is actually the main context here because it's the method
+     context that holds all the data. So if it's a fast, we restore
+     it's data, then if ctx != home, we restore a little more */
+  
+  if(methctx_is_fast_p(state, home)) {
+    struct fast_context *fc;
+    fc = (struct fast_context*)BYTES_OF(home);
+    memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
+    // printf("Restoring fast context %p\n", home);
+    
+    /* Only happens if we're restoring a block. */
+    if(ctx != home) {
+      c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
+      c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
+      c->sender = methctx_get_sender(ctx);
+      /* FIXME: seems like we should set c->block too.. but that
+         seems to break things.. */
+    }
+    
+    if(ret && ac > 0) {
+      if (is_block) {
+        --c->sp;
+      } else {
+        c->sp -= ac;
+      }
+    }
+  } else {
+    c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
+    c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
+    if(ret && c->argcount > 0) {
+      if (is_block) {
+        --c->sp;
+      } else {
+        c->sp -= c->argcount;
+      }
+    }
+  
+    OBJECT ba;
+  
+    ba = methctx_get_bytecodes(home);
+    if(!RTEST(ba)) {
+      c->data = NULL;
+      c->data_size = 0;
     } else {
-      c->sp -= c->argcount;
+      c->data = bytearray_byte_address(state, ba);    
+      c->data_size = bytearray_bytes(state, ba);
+    }
+  
+    c->raiseable = RTEST(methctx_get_raiseable(home));
+    c->sender = methctx_get_sender(ctx);
+    c->self = methctx_get_receiver(home);
+    c->home_context = home;
+    c->locals = methctx_get_locals(home);
+    c->block = methctx_get_block(home);
+    c->method = methctx_get_method(home);
+    c->literals = methctx_get_literals(home);
+    c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
+    c->method_module = methctx_get_module(home);
+  
+    if(RTEST(c->method)) {
+      c->exceptions = cmethod_get_exceptions(c->method);
+    } else {
+      c->exceptions = Qnil;
     }
   }
-  
-  OBJECT ba;
-  
-  ba = methctx_get_bytecodes(home);
-  if(!RTEST(ba)) {
-    c->data = NULL;
-    c->data_size = 0;
-  } else {
-    c->data = bytearray_byte_address(state, ba);    
-    c->data_size = bytearray_bytes(state, ba);
-  }
-  
+    
   c->active_context = ctx;
-  c->self = methctx_get_receiver(home);
-  c->home_context = home;
-  c->locals = methctx_get_locals(home);
-  c->block = methctx_get_block(home);
-  if(RTEST(c->block)) {
-    // printf("Restored block as: %s\n", _inspect(c->block));
-  }
-  c->method = methctx_get_method(home);
-  c->literals = methctx_get_literals(home);
-  c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
-  c->method_module = methctx_get_module(home);
-  //printf("Restored method_module to %s\n", _inspect(c->method_module));
-  
-  if(RTEST(c->method)) {
-    c->exceptions = cmethod_get_exceptions(c->method);
-  } else {
-    c->exceptions = Qnil;
-  }
 }
 
 void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home) {
@@ -208,10 +259,10 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
   OBJECT sender, top, home, home_sender;
   int is_block;
   
-  // printf("%d: Returning to sender..\n", c->depth);
-  assert(RTEST(c->active_context));
-  sender = methctx_get_sender(c->active_context);
-  if(!RTEST(sender)) {
+  is_block = blokctx_s_block_context_p(state, c->active_context);
+  sender = c->sender;
+  
+  if(sender == Qnil) {
     c->active_context = Qnil;
   } else {
     if(cpu_stack_empty_p(state, c)) {
@@ -220,27 +271,34 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
       top = cpu_stack_top(state, c);
     }
     
-    is_block = blokctx_s_block_context_p(state, c->active_context);
     if(consider_block && is_block) {
       home = blokctx_home(state, c->active_context);
-      home_sender = methctx_get_sender(home);
+      if(methctx_is_fast_p(state, home)) {
+        home_sender = FASTCTX(home)->sender;
+      } else {
+        home_sender = methctx_get_sender(home);
+      }
+      
       sender = home_sender;
     }
-    
-    /* for context caching... */
-    if(0 && !is_block && !methctx_s_was_referenced_p(state, c->active_context)) {
-      if(state->free_contexts->len < 10) {
-        // printf("Caching context %p...\n", c->active_context);
-        g_ptr_array_add(state->free_contexts, (gpointer)c->active_context);
-      }
-    }
-    
+        
     if(blokctx_s_block_context_p(state, sender)) {
       home = blokctx_home(state, sender);
     } else {
       home = sender;
     }
     
+    /* Cache the context if we can. */
+#if CTX_USE_FAST && CTX_CACHE_ENABLED
+    if(!is_block && !methctx_s_was_referenced_p(state, c->active_context)) {
+      HEADER(c->active_context)->klass = 0;
+      if(!c->context_cache) {
+        c->context_cache = c->active_context;
+      } else {
+        HEADER(c->context_cache)->klass = c->active_context;
+      }
+    }
+#endif
     cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
     cpu_stack_push(state, c, top, FALSE);
   }
@@ -249,7 +307,6 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block) {
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   OBJECT ctx, table, ent;
   int cur, total, target, idx, l, r;
-  // printf("Setting exception to %p\n", (void*)exc);
   c->exception = exc;
   ctx = c->active_context;
   
@@ -258,15 +315,12 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
     assert(0);
   }
   
-  while(RTEST(ctx)) {
-    // printf("Searching for exception handler in %p / %p / %p..\n", ctx, c->exceptions, c->top_context);
-    if(!RTEST(methctx_get_raiseable(ctx))) { return; }
-    if(ctx == c->top_context) {
-      printf("Top of activation stack reached!\n");
-      return;
-    }
+  while(!NIL_P(ctx)) {
+    // printf("Searching for exception handler in %p / %p..\n", ctx, c->exceptions);
+    if(!c->raiseable) return;
     
-    table = c->exceptions;
+    table = cmethod_get_exceptions(c->method);
+    
     if(!table || NIL_P(table)) {
       cpu_return_to_sender(state, c, TRUE);
       ctx = c->active_context;
@@ -304,6 +358,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
   obj = class_new_instance(state, klass);
   str = string_new(state, msg);
   SET_FIELD(obj, 0, str);
+  methctx_reference(state, c->active_context);
   SET_FIELD(obj, 1, c->active_context);
   return obj;
 }

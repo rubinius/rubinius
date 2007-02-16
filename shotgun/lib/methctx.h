@@ -7,7 +7,28 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT 
 OBJECT blokenv_create_context(STATE, OBJECT self);
 OBJECT blokctx_home(STATE, OBJECT self);
 int blokctx_s_block_context_p(STATE, OBJECT ctx);
-int methctx_s_was_referenced_p(STATE, OBJECT obj);
-void methctx_reference(STATE, OBJECT self);
 void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from, OBJECT mod);
+
+#include "flags.h"
+
+#define methctx_is_fast_p(st, ctx) FLAG_SET_P(ctx, CTXFastFlag)
+#define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
+
+static inline int methctx_s_was_referenced_p(STATE, OBJECT obj) {
+  return FLAG_SET_P(obj, WasReferencedFlag);
+}
+
+static inline void methctx_reference(STATE, OBJECT self) {
+  OBJECT ctx;
+  
+  ctx = self;
+  while(RTEST(ctx)) {
+    FLAG_SET(ctx, WasReferencedFlag);
+#if CTX_USE_FAST
+    ctx = FASTCTX(ctx)->sender;
+#else
+    ctx = methctx_get_sender(ctx);
+#endif
+  }
+}
 

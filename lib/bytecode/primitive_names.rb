@@ -118,7 +118,8 @@ module Bytecode
       :object_taint,
       :object_tainted_p,
       :object_freeze,
-      :object_frozen_p
+      :object_frozen_p,
+      :fastctx_get_field
     ]
 
     FirstRuntimePrimitive = 1024

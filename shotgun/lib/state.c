@@ -27,7 +27,10 @@ static GPtrArray *_gather_roots(STATE, cpu c) {
 
 void state_collect(STATE, cpu c) {
   GPtrArray *roots;
+  c->context_cache = 0;
   state->free_contexts->len = 0;
+  
+  printf("[ Garbage collection running!]\n");
   
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
@@ -43,6 +46,7 @@ void state_collect(STATE, cpu c) {
 
 void state_major_collect(STATE, cpu c) {
   GPtrArray *roots;
+  c->context_cache = 0;
   state->free_contexts->len = 0;
   
   /* HACK: external_ivars needs to be moved out of being a generic

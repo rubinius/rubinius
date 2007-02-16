@@ -3,31 +3,65 @@
 
 #include <glib.h>
 
+/* Configuration macros. */
+
+/* Enables use of FastMethodContext objects. */
+#define CTX_USE_FAST 1
+
+/* Enables the context cache. */
+#define CTX_CACHE_ENABLED 0
+
 struct _method_cache {
   
 };
 
 typedef struct _method_cache method_cache;
 
+#define CPU_REGISTERS OBJECT sender; \
+  unsigned long int ip; \
+  unsigned long int sp; \
+  OBJECT block; \
+  unsigned long int raiseable; \
+  OBJECT method; \
+  unsigned char *data; \
+  unsigned long int data_size; \
+  OBJECT literals; \
+  OBJECT self; \
+  OBJECT locals; \
+  unsigned long int argcount; \
+  OBJECT name; \
+  OBJECT method_module; \
+  unsigned long int num_locals; \
+  long is_fast;
+
+struct fast_context {
+  CPU_REGISTERS
+};
+
+#define FASTCTX_FIELDS 20
+
 struct rubinius_cpu {
+  CPU_REGISTERS
+  
+  char buffer[20];
+  
+  /* Below here, the cpu registers are not saved and restored
+     per call. */
+  
+  long int args;
   OBJECT stack;
-  OBJECT self;
   OBJECT exception;
   OBJECT enclosing_class;
   OBJECT new_class_of;
-  OBJECT locals, literals;
-  OBJECT block, method;
-  OBJECT active_context, home_context, main;
   OBJECT exceptions;
   OBJECT top_context;
-  OBJECT method_module;
-  unsigned int sp;
-  unsigned int ip;
-  unsigned int argcount, args, depth;
-  unsigned char *data;
-  unsigned int data_size;
+
+  OBJECT active_context, home_context, main;
   
   GPtrArray *paths;
+  unsigned int depth;
+  
+  OBJECT context_cache;
 };
 
 typedef struct rubinius_cpu *cpu;
