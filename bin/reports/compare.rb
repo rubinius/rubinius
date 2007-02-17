@@ -89,8 +89,8 @@ files.each do |file|
 
   code = IO.read(file)
   code.gsub!(/#{klass}[^\S\n]*$/) do |str|
-    # don't do it for Object or Class
-    if str =~ /^class\s+Class/
+    # don't do it for Object or Class, Float, Integer, Fixnum, or Bignum
+    if str =~ /^class\s+(Class|Float|Integer|Fixnum|Bignum)/
       str # do nothing
     elsif str =~ /^class\s+Object/
       str + " < ::Object"
