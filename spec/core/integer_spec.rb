@@ -65,6 +65,11 @@ context "Integer instance method" do
       [0.next, -1.next, 0xffffffff.next, 20.next]
     end.should == [1, 0, 4294967296, 21]
   end
+  specify "succ should be an alias for next" do
+    example do
+      [0.succ, -1.succ, 0xffffffff.succ, 20.succ]
+    end.should == [1, 0, 4294967296, 21]
+  end
   
   specify "round should be a synonym for to_i" do
     example do

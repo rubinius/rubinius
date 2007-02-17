@@ -266,8 +266,8 @@ context "Fixnum instance method" do
   
   specify "div should coerce fixnum and return self divided by other as an Integer" do
     example do
-      [-1.div(50.4), 1.div(0xffffffff)]
-    end.should == [-1, 0]
+      [1.div(0.2), -1.div(50.4), 1.div(0xffffffff)]
+    end.should == [5, 0, 0]
   end
   
   specify "div should raise ZeroDivisionError if other is zero and not a Float" do

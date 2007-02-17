@@ -224,8 +224,7 @@ end
 context "Float.induced_from" do
   specify "should return the argument when passed a Float" do
     example do
-      x = 5.5
-      Float.induced_from(x).eql?(x)
+      Float.induced_from(5.5).eql?(5.5)
     end.should == true
   end
 

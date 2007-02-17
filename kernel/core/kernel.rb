@@ -22,5 +22,15 @@ module Kernel
   rescue NoMethodError
     raise TypeError, "can't convert #{obj.class} into Integer"
   end
+
+  def Array(obj)
+    obj.to_ary
+  rescue NoMethodError
+    obj.to_a
+  end
+
+  def String(obj)
+    obj.to_s
+  end
 end
 

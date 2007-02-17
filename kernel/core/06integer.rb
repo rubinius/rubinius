@@ -41,6 +41,9 @@ class Integer < Numeric
   def to_i
     self
   end
+  alias to_int to_i
+  alias round to_i
+  alias truncate to_i
 
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0
@@ -78,5 +81,14 @@ class Integer < Numeric
 
   def quo(other)
     Float(self) / Float(other)
+  end
+  
+  def next
+    self + 1
+  end
+  alias succ next
+
+  def integer?
+    true
   end
 end

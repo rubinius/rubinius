@@ -631,6 +631,10 @@ class String
 
   alias_method :slice, :[]
 
+  def slice!(arg, len=nil)
+    replace_if(slice(arg, len))
+  end
+
   def []=(idx, ent, *args)
     cnt = nil
     if args.size != 0
@@ -783,9 +787,6 @@ class String
     raise NotImplementedError
   end
 
-  def slice!(other_str)
-    raise NotImplementedError
-  end
 
   def unpack(format) # => anArray
     raise NotImplementedError

@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Make RSpec work on Rubinius Report</h1>
-    <div>Generated on Sat Feb 17 19:34:55 +1100 2007.</div>
+    <div>Generated on Sat Feb 17 10:24:27 -0800 2007.</div>
 
     <h2>Overview</h2>
 
@@ -30,240 +30,41 @@
       </tr>
       
       <tr>
-        <td>spec/expectations/extensions/object</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should/have</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should/should</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should/not</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/differs/default</td>
-        <td><pre>An exception has occured:
-    You must gem install diff-lcs to use diffing (RuntimeError)
-
-Backtrace:
-                 main.raise at bootstrap/04kernel.rb:23
-            main.__script__ at /var/rb/externals/rspec-0.7.5/lib/spec/expectations/differs/default.rb:5
-                  main.load at core/compile.rb:56
-               main.require at core/compile.rb:87
-      BlockEnvironment#call at bootstrap/context.rb:127
-                 Array#each at bootstrap/array.rb:24
-               main.require at core/compile.rb:87
-      BlockEnvironment#call at bootstrap/context.rb:127
-                 Array#each at bootstrap/array.rb:24
-               main.require at core/compile.rb:87
-       main.__eval_script__ at (eval):1
-    CompiledMethod#activate at bootstrap/compiled_method.rb:52
-            Compile.execute at core/compile.rb:22
-            main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/extensions</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/diff</td>
-        <td><pre>WARNING: 'define?' does not yet handle class variables.
-An exception has occured:
-    Unknown type ':cvdecl', [:@@differ, [:nil]] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_if at bytecode/compiler.rb:394
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/callback/extensions/object</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/callback/callback_container</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations</td>
-        <td><pre>shotgun/rubinius[0x804a593]
-[0x4a1440]
-shotgun/rubinius[0x807e096]
-rubinius: state.h:127: rbs_get_field: Assertion `fel &lt; ((struct rubinius_object*)in)-&gt;fields' failed.
-
-An error has occured: Segmentation fault (SIGSEGV)
-
-C backtrace:
-
-Ruby backtrace:
-</pre></td>
-      </tr>
-      
-      <tr>
         <td>spec/rake/spectask</td>
-        <td><pre>shotgun/rubinius[0x804a593]
-[0xa3f440]
-shotgun/rubinius[0x804c26d]
+        <td><pre>sh: Syntax error: &quot;(&quot; unexpected
 rubinius: state.h:127: rbs_get_field: Assertion `fel &lt; ((struct rubinius_object*)in)-&gt;fields' failed.
 
 An error has occured: Segmentation fault (SIGSEGV)
 
 C backtrace:
+ 0x804c715 &lt;symtbl_lookup_cstr&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/symbol.c:37
+ 0x807afbc &lt;cstring_to_symbol&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:162
+ 0x807b02c &lt;quark_to_symbol&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:177
+ 0x807c63d &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:638
+ 0x807ce69 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:787
+ 0x807bcdc &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:454
+ 0x807c754 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:654
+ 0x807ce69 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:787
+ 0x807bcdc &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:454
+ 0x807c754 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:654
+ 0x807ce69 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:787
+ 0x807bcdc &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:454
+ 0x807c754 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:654
+ 0x807ce69 &lt;syd_add_to_parse_tree&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammer_runtime.c:787
+ 0x8072a1b &lt;convert_to_sexp&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammar.y:2763
+ 0x8072bf3 &lt;syd_compile_file&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/grammar.y:2835
+ 0x8062bcf &lt;cpu_perform_system_primitive&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/system_primitives.gen:664
+ 0x806913f &lt;cpu_perform_primitive&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/cpu_primitives.c:90
+ 0x805684c &lt;cpu_try_primitive&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/cpu_instructions.c:251
+ 0x8059b5f &lt;_cpu_build_and_activate&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/cpu_instructions.c:305
+ 0x80599e0 &lt;cpu_unified_send&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/cpu_instructions.c:355
+ 0x805b93d &lt;cpu_run&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/instructions.gen:280
+ 0x804aca8 &lt;machine_run&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/machine.c:412
+ 0x804b2af &lt;machine_load_archive&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/machine.c:541
+ 0x804a24a &lt;main&gt; at /home/mae/projects/rubinius_trunk/shotgun/main.c:82
+0xb7d038c8 &lt;??&gt; at ??:0
+ 0x8049f3d &lt;_start&gt; at ??:0
+     (nil) &lt;&gt; at 
 
 Ruby backtrace:
 </pre></td>
@@ -437,7 +238,455 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>spec/runner/extensions/kernel</td>
+        <td>spec/expectations/diff</td>
+        <td><pre>WARNING: 'define?' does not yet handle class variables.
+An exception has occured:
+    Unknown type ':cvdecl', [:@@differ, [:nil]] (RuntimeError)
+
+Backtrace:
+         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_if at bytecode/compiler.rb:394
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                       BlockEnvironment#call at bootstrap/context.rb:127
+            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
+                        Compile.compile_file at core/compile.rb:6
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/expectations/differs/default</td>
+        <td><pre>An exception has occured:
+    You must gem install diff-lcs to use diffing (RuntimeError)
+
+Backtrace:
+                 main.raise at bootstrap/04kernel.rb:23
+            main.__script__ at /home/mae/projects/rubinius_trunk/externals/rspec-0.7.5/lib/spec/expectations/differs/default.rb:5
+                  main.load at core/compile.rb:56
+               main.require at core/compile.rb:87
+      BlockEnvironment#call at bootstrap/context.rb:127
+                 Array#each at bootstrap/array.rb:24
+               main.require at core/compile.rb:87
+      BlockEnvironment#call at bootstrap/context.rb:127
+                 Array#each at bootstrap/array.rb:24
+               main.require at core/compile.rb:87
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at bootstrap/compiled_method.rb:52
+            Compile.execute at core/compile.rb:22
+            main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/expectations/should</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/expectations/should/should</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/expectations/extensions/object</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/expectations/extensions</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/argument_expectation</td>
+        <td><pre>An exception has occured:
+    Unknown type ':cvdecl', [:@@constraint_classes, [:iter, [:call, [:const, :Hash], :new, [:array]], [:masgn, [:array, [:lasgn, :hash, 2], [:lasgn, :key, 3]], nil, nil], [:block, [:newline, 75, &quot;/home/mae/projects/rubinius_trunk/externals/rspec-0.7.5/lib/spec/mocks/argument_expectation.rb&quot;, [:const, :LiteralArgConstraint]]]]] (RuntimeError)
+
+Backtrace:
+         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                       BlockEnvironment#call at bootstrap/context.rb:127
+            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
+                        Compile.compile_file at core/compile.rb:6
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/message_expectation</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/mock</td>
+        <td><pre>An exception has occured:
+    No method 'to_sym' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+            NilClass#to_sym (method_missing) at bootstrap/method_missing.rb:8
+         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:434
+              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
+      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
+                        Compile.compile_file at core/compile.rb:8
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/mock_methods</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/mock_handler</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/extensions/object</td>
+        <td><pre>
+An error has occured: Segmentation fault (SIGSEGV)
+
+C backtrace:
+ 0x80558ae &lt;cpu_const_get&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/cpu.c:374
+ 0x805af6a &lt;cpu_run&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/instructions.gen:183
+ 0x804aca8 &lt;machine_run&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/machine.c:412
+ 0x804b2af &lt;machine_load_archive&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/machine.c:541
+ 0x804a24a &lt;main&gt; at /home/mae/projects/rubinius_trunk/shotgun/main.c:82
+0xb7d6c8c8 &lt;??&gt; at ??:0
+ 0x8049f3d &lt;_start&gt; at ??:0
+ 0x8081248 &lt;rbs_set_field&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/state.h:149
+
+Ruby backtrace:
+0xb7cfbc80 Class#__class_init__+29 in RegexpData
+
+Ruby stack:
+ 114    &lt;TrueClass:0x2&gt;
+ 115    &lt;String:0xb7b320d4&gt;-e
+ 116    &lt;Tuple:0xb7c411c0&gt;
+ 117    &lt;Tuple:0xb7c411d0&gt;
+ 118    &lt;TrueClass:0x2&gt;
+ 119 =&gt; Object
+ 120    &lt;NilClass:0x4&gt;
+ 121    Object
+ 122    &lt;Tuple:0xb7cf96d0&gt;
+ 123    &lt;CompiledMethod:0xb7cf5c18&gt;
+
+VM Registers:
+IP: 0012     SP: 0119
+AC: 0000     AR: 0000
+Exception: &lt;NilClass:0x4&gt;
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/error_generator</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/errors</td>
+        <td><pre>rubinius: state.h:127: rbs_get_field: Assertion `fel &lt; ((struct rubinius_object*)in)-&gt;fields' failed.
+
+An error has occured: Segmentation fault (SIGSEGV)
+
+C backtrace:
+ 0x80558ae &lt;cpu_const_get&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/cpu.c:374
+ 0x805af6a &lt;cpu_run&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/instructions.gen:183
+ 0x804aca8 &lt;machine_run&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/machine.c:412
+ 0x804b2af &lt;machine_load_archive&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/machine.c:541
+ 0x804a24a &lt;main&gt; at /home/mae/projects/rubinius_trunk/shotgun/main.c:82
+0xb7d548c8 &lt;??&gt; at ??:0
+ 0x8049f3d &lt;_start&gt; at ??:0
+ 0x8081248 &lt;rbs_set_field&gt; at /home/mae/projects/rubinius_trunk/shotgun/lib/state.h:149
+
+Ruby backtrace:
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/callback/callback_container</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/callback/extensions/object</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/callback</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/option_parser</td>
         <td><pre>Timed out (infinite loop?)</pre></td>
       </tr>
       
@@ -574,6 +823,458 @@ Backtrace:
         Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
                         Compile.compile_file at core/compile.rb:6
                                    main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/reporter</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/spec_matcher</td>
+        <td><pre>An exception has occured:
+    Unknown type ':dregx', [&quot;^&quot;, [:evstr, [:call, [:const, :Regexp], :escape, [:array, [:ivar, :@context_name]]]], [:str, &quot;\\b&quot;, 0]] (RuntimeError)
+
+Backtrace:
+         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
+    Bytecode::Compiler::Processor#process_match3 at bytecode/compiler.rb:312
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                       BlockEnvironment#call at bootstrap/context.rb:127
+            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
+                        Compile.compile_file at core/compile.rb:6
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/context</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/drb_command_line</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/command_line</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/spec_parser</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/execution_context</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/formatter/html_formatter</td>
+        <td><pre>An exception has occured:
+    Unknown type ':zsuper', [] (RuntimeError)
+
+Backtrace:
+         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                       BlockEnvironment#call at bootstrap/context.rb:127
+            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
+                        Compile.compile_file at core/compile.rb:6
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                             Compile.execute at core/compile.rb:22
+                             main.__script__ at core/__loader.rb:58
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/context_runner</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/specification</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/extensions/kernel</td>
+        <td><pre>Timed out (infinite loop?)</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/runner/formatter</td>
+        <td><pre>An exception has occured:
+    Unknown type ':zsuper', [] (RuntimeError)
+
+Backtrace:
+         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
+    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                       BlockEnvironment#call at bootstrap/context.rb:127
+            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
+    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                       BlockEnvironment#call at bootstrap/context.rb:127
+           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
+    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
+                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
+                                 Method#call at bootstrap/compiled_method.rb:104
+    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
+       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
+                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
+        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
+                        Compile.compile_file at core/compile.rb:6
+                                   main.load at core/compile.rb:52
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                       BlockEnvironment#call at bootstrap/context.rb:127
+                                  Array#each at bootstrap/array.rb:24
+                                main.require at core/compile.rb:87
+                             main.__script__ at /home/mae/projects/rubinius_trunk/externals/rspec-0.7.5/lib/spec/runner/formatter.rb:5
+                                   main.load at core/compile.rb:43
                                 main.require at core/compile.rb:87
                        BlockEnvironment#call at bootstrap/context.rb:127
                                   Array#each at bootstrap/array.rb:24
@@ -750,429 +1451,7 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>spec/runner/context_runner</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/specification</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/context</td>
-        <td><pre>An exception has occured:
-    Unknown type ':zsuper', [] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_lasgn at bytecode/compiler.rb:572
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/formatter</td>
-        <td><pre>An exception has occured:
-    Unknown type ':zsuper', [] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                             main.__script__ at /var/rb/externals/rspec-0.7.5/lib/spec/runner/formatter.rb:5
-                                   main.load at core/compile.rb:43
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/spec_matcher</td>
-        <td><pre>An exception has occured:
-    Unknown type ':dregx', [&quot;^&quot;, [:evstr, [:call, [:const, :Regexp], :escape, [:array, [:ivar, :@context_name]]]], [:str, &quot;\\b&quot;, 0]] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_match3 at bytecode/compiler.rb:312
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/option_parser</td>
+        <td>spec/runner/heckle_runner</td>
         <td><pre>Timed out (infinite loop?)</pre></td>
       </tr>
       
@@ -1182,552 +1461,7 @@ Backtrace:
       </tr>
       
       <tr>
-        <td>spec/runner/formatter/html_formatter</td>
-        <td><pre>An exception has occured:
-    Unknown type ':zsuper', [] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/heckle_runner</td>
-        <td><pre>An exception has occured:
-    Unknown type ':dregx', [&quot;^&quot;, [:evstr, [:ivar, :@filter]]] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_lasgn at bytecode/compiler.rb:572
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/drb_command_line</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/reporter</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/version</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/extensions/object</td>
-        <td><pre>shotgun/rubinius[0x804a593]
-[0x84d440]
-shotgun/rubinius[0x80553de]
-
-An error has occured: Segmentation fault (SIGSEGV)
-
-C backtrace:
-
-Ruby backtrace:
-0xb7f99214 Class#__class_init__+29 in RegexpData
-
-Ruby stack:
- 114    &lt;TrueClass:0x2&gt;
- 115    &lt;String:0xb7dd0af8&gt;-e
- 116    &lt;Tuple:0xb7edf8cc&gt;
- 117    &lt;Tuple:0xb7edf8dc&gt;
- 118    &lt;TrueClass:0x2&gt;
- 119 =&gt; Object
- 120    &lt;NilClass:0x4&gt;
- 121    Object
- 122    &lt;Tuple:0xb7f96cec&gt;
- 123    &lt;CompiledMethod:0xb7f93234&gt;
-
-VM Registers:
-IP: 0012     SP: 0119
-AC: 0000     AR: 0000
-Exception: &lt;NilClass:0x4&gt;
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/error_generator</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/mock</td>
-        <td><pre>An exception has occured:
-    No method 'to_sym' on an instance of NilClass. (NoMethodError)
-
-Backtrace:
-            NilClass#to_sym (method_missing) at bootstrap/method_missing.rb:8
-         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:434
-              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
-                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-                        Compile.compile_file at core/compile.rb:8
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/argument_expectation</td>
-        <td><pre>An exception has occured:
-    Unknown type ':cvdecl', [:@@constraint_classes, [:iter, [:call, [:const, :Hash], :new, [:array]], [:masgn, [:array, [:lasgn, :hash, 2], [:lasgn, :key, 3]], nil, nil], [:block, [:newline, 75, &quot;/var/rb/externals/rspec-0.7.5/lib/spec/mocks/argument_expectation.rb&quot;, [:const, :LiteralArgConstraint]]]]] (RuntimeError)
-
-Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:26
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:93
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:846
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1563
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                                 Method#call at bootstrap/compiled_method.rb:104
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
-                        Compile.compile_file at core/compile.rb:6
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:24
-                                main.require at core/compile.rb:87
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:52
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/message_expectation</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/order_group</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/errors</td>
-        <td><pre>shotgun/rubinius[0x804a593]
-[0x691440]
-shotgun/rubinius[0x80553de]
-rubinius: state.h:127: rbs_get_field: Assertion `fel &lt; ((struct rubinius_object*)in)-&gt;fields' failed.
-
-An error has occured: Segmentation fault (SIGSEGV)
-
-C backtrace:
-
-Ruby backtrace:
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/mock_methods</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/mock_handler</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/callback</td>
+        <td>spec/expectations</td>
         <td><pre>Timed out (infinite loop?)</pre></td>
       </tr>
       
@@ -1741,41 +1475,41 @@ Ruby backtrace:
     <h2>Working Files</h2>
     <ul>
       
-      <li style="font-weight: bold; color: green">spec/expectations/extensions/numeric</li>
-      
-      <li style="font-weight: bold; color: green">spec/expectations/extensions/proc</li>
-      
-      <li style="font-weight: bold; color: green">spec/expectations/extensions/string</li>
-      
-      <li style="font-weight: bold; color: green">spec/expectations/sugar</li>
+      <li style="font-weight: bold; color: green">spec/expectations/message_builder</li>
       
       <li style="font-weight: bold; color: green">spec/expectations/should/change</li>
       
+      <li style="font-weight: bold; color: green">spec/expectations/should/have</li>
+      
+      <li style="font-weight: bold; color: green">spec/expectations/should/not</li>
+      
       <li style="font-weight: bold; color: green">spec/expectations/should/base</li>
       
-      <li style="font-weight: bold; color: green">spec/expectations/should</li>
+      <li style="font-weight: bold; color: green">spec/expectations/extensions/numeric</li>
       
-      <li style="font-weight: bold; color: green">spec/expectations/message_builder</li>
+      <li style="font-weight: bold; color: green">spec/expectations/extensions/string</li>
+      
+      <li style="font-weight: bold; color: green">spec/expectations/extensions/proc</li>
+      
+      <li style="font-weight: bold; color: green">spec/expectations/sugar</li>
       
       <li style="font-weight: bold; color: green">spec/expectations/errors</li>
       
+      <li style="font-weight: bold; color: green">spec/mocks/order_group</li>
+      
       <li style="font-weight: bold; color: green">spec/callback/extensions/module</li>
       
-      <li style="font-weight: bold; color: green">spec/runner/execution_context</li>
-      
-      <li style="font-weight: bold; color: green">spec/runner/extensions/object</li>
-      
-      <li style="font-weight: bold; color: green">spec/runner/spec_parser</li>
-      
-      <li style="font-weight: bold; color: green">spec/runner/command_line</li>
-      
       <li style="font-weight: bold; color: green">spec/runner/formatter/rdoc_formatter</li>
-      
-      <li style="font-weight: bold; color: green">spec/runner/formatter/specdoc_formatter</li>
       
       <li style="font-weight: bold; color: green">spec/runner/formatter/progress_bar_formatter</li>
       
       <li style="font-weight: bold; color: green">spec/runner/formatter/base_text_formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter/specdoc_formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/extensions/object</li>
+      
+      <li style="font-weight: bold; color: green">spec/version</li>
       
     </ul>
 

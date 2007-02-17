@@ -50,7 +50,4 @@ class Fixnum < Integer
     super(other)
   end
   
-  def div(other)
-    Integer === other ? self / other : self / Integer(other)
-  end
 end

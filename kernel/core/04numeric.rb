@@ -76,7 +76,15 @@ class Numeric
   def -@
     0 - self
   end
-  
+
+  def integer?
+    false
+  end
+ 
+  def div(numeric)
+    (self / numeric).to_i
+  end
+
   def divmod(other)
     b, a = self.coerce(other)
     raise ZeroDivisionError, "Divide by 0" unless Float === b or b != 0
