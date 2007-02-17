@@ -1479,15 +1479,15 @@ class ShotgunPrimitives
 
       if (dir == -1) {
         /* left shift */
-        /* if (width > sizeof(value)*8-1 || */
-        /*   ((unsigned long)value) >> (sizeof(value)*8-1-width) > 0) { */
-        /*  t2 = bignum_left_shift(state, self, width); */
-        /*  stack_push(t2); */
-        /* } else { */
+        if (width > sizeof(value)*8-1 ||
+          ((unsigned long)value) >> (sizeof(value)*8-1-width) > 0) {
+          t2 = bignum_left_shift(state, self, width);
+          stack_push(t2);
+         } else { 
           value <<= width;
           t2 = I2N(value);
           stack_push(t2);
-        /* } */
+        }
       }
     }
     CODE

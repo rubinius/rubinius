@@ -6,33 +6,33 @@
   </head>
   <body>
     <h1>Rubinius Completeness Report</h1>
-    <div>Generated on Thu Feb 08 23:53:31 -0800 2007.</div>
+    <div>Generated on Sat Feb 17 19:31:32 +1100 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Completed Constants</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 156px; text-align: right; color: #000000; background: #00f000">
+    <td style="width: 155px; text-align: right; color: #000000; background: #00f000">
       78%&nbsp;&nbsp;</td>
-    <td style="width: 44px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 45px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(156 out of 200)</p>
+    <p>(155 out of 200)</p>
 
     <h3>Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 163px; text-align: right; color: #000000; background: #00f000">
-      81%&nbsp;&nbsp;</td>
-    <td style="width: 37px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 171px; text-align: right; color: #000000; background: #00f000">
+      85%&nbsp;&nbsp;</td>
+    <td style="width: 29px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(approximately 387 out of 475)</p>
+    <p>(approximately 406 out of 475)</p>
 
     <h3>Instance Methods</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
@@ -59,8 +59,6 @@
       <li style="font-weight: bold; color: red">File::Constants</li>
       
       <li style="font-weight: bold; color: red">FileTest</li>
-      
-      <li style="font-weight: bold; color: red">Math</li>
       
       <li style="font-weight: bold; color: red">NameError::message</li>
       
@@ -179,6 +177,13 @@
       </tr>
       
       <tr>
+        <td>Math</td>
+        <td>Module</td>
+        <td>acos, acosh, asin, asinh, atan, atan2, atanh, cos, cosh, erf, erfc, exp, frexp, hypot, ldexp, log, log10, sin, sinh, tan, tanh</td>
+        <td></td>
+      </tr>
+      
+      <tr>
         <td>Method</td>
         <td>Class</td>
         <td></td>
@@ -188,8 +193,8 @@
       <tr>
         <td>Module</td>
         <td>Class</td>
-        <td>&lt;, &lt;=, &lt;=&gt;, =~, &gt;, &gt;=, allocate, ancestors, autoload, autoload?, clone, const_get, const_missing, const_set, display, extend, freeze, frozen?, id, include?, included_modules, instance_variable_get, instance_variable_set, method_defined?, nesting, private_class_method, private_instance_methods, private_method_defined?, private_methods, protected_instance_methods, protected_method_defined?, protected_methods, public_class_method, public_instance_methods, public_method_defined?, public_methods, singleton_methods, taint, tainted?, to_a, type, untaint</td>
-        <td>&lt;, &lt;=, &lt;=&gt;, &gt;, &gt;=, ancestors, autoload, autoload?, class_variables, const_get, const_missing, const_set, include?, included_modules, instance_methods, method_defined?, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, =~, &gt;, &gt;=, allocate, ancestors, autoload, autoload?, clone, const_get, const_missing, const_set, constants, display, extend, id, include?, included_modules, method_defined?, nesting, private_class_method, private_instance_methods, private_method_defined?, private_methods, protected_instance_methods, protected_method_defined?, protected_methods, public_class_method, public_instance_methods, public_method_defined?, public_methods, singleton_methods, to_a, type, untaint</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, &gt;, &gt;=, ancestors, autoload, autoload?, class_variables, const_get, const_missing, const_set, constants, include?, included_modules, instance_methods, method_defined?, private_class_method, private_instance_methods, private_method_defined?, protected_instance_methods, protected_method_defined?, public_class_method, public_instance_methods, public_method_defined?</td>
       </tr>
       
       <tr>
@@ -216,7 +221,7 @@
       <tr>
         <td>Object</td>
         <td>Class</td>
-        <td>&lt;, &lt;=, &lt;=&gt;, =~, &gt;, &gt;=, allocate, ancestors, autoload, autoload?, clone, const_get, const_missing, const_set, display, extend, freeze, frozen?, id, include?, included_modules, instance_variable_get, instance_variable_set, method_defined?, new, private_class_method, private_instance_methods, private_method_defined?, private_methods, protected_instance_methods, protected_method_defined?, protected_methods, public_class_method, public_instance_methods, public_method_defined?, public_methods, singleton_methods, taint, tainted?, to_a, type, untaint</td>
+        <td>&lt;, &lt;=, &lt;=&gt;, =~, &gt;, &gt;=, allocate, ancestors, autoload, autoload?, clone, const_get, const_missing, const_set, constants, display, extend, id, include?, included_modules, method_defined?, new, private_class_method, private_instance_methods, private_method_defined?, private_methods, protected_instance_methods, protected_method_defined?, protected_methods, public_class_method, public_instance_methods, public_method_defined?, public_methods, singleton_methods, to_a, type, untaint</td>
         <td></td>
       </tr>
       
@@ -235,10 +240,17 @@
       </tr>
       
       <tr>
+        <td>Regexp</td>
+        <td>Class</td>
+        <td></td>
+        <td>source</td>
+      </tr>
+      
+      <tr>
         <td>String</td>
         <td>Class</td>
         <td></td>
-        <td>%, casecmp, crypt, dump, each, each_line, scan, slice!, unpack</td>
+        <td>%, crypt, slice!, unpack</td>
       </tr>
       
       <tr>
@@ -557,8 +569,6 @@
       <li style="font-weight: bold; color: green">Range</li>
       
       <li style="font-weight: bold; color: green">RangeError</li>
-      
-      <li style="font-weight: bold; color: green">Regexp</li>
       
       <li style="font-weight: bold; color: green">RegexpError</li>
       

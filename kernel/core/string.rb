@@ -563,8 +563,11 @@ class String
     pad = width - @bytes
     out = str.to_str * (pad / str.length)
     out << str[0, pad - out.length] if out.length < pad
+    # Left justification
     return self << out if justify == -1
+    # Right justification
     return out << self if justify == 1
+    # and finially center
     split = (width / 2) - (@bytes / 2)
     return out.insert(split, self)
   end
