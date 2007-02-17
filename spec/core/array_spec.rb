@@ -13,8 +13,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Array class method" do
   specify "new without arguments should return a new array" do
     example do
-      @a = Array.new
-      @a.class
+      a = Array.new
+      a.class
     end.should == Array
   end
   
@@ -38,16 +38,15 @@ context "Array class method" do
   
   specify "new with size and block should return an array of size elements from the result of passing each index to block" do
     example do
-      @a = Array.new(5) { |i| i + 1 }
-      @a
+      Array.new(5) { |i| i + 1 }
     end.should == [1, 2, 3, 4, 5]
   end
 
   specify "new with size and block should have proper side effects from passing each index to block" do
     example do
-      @a = []
-      Array.new(5) { |i| @a << i + 1 }
-      @a
+      a = []
+      Array.new(5) { |i| a << i + 1 }
+      a
     end.should == [1, 2, 3, 4, 5]
   end
   
@@ -182,114 +181,100 @@ context "Array instance method" do
   
   specify "[]= should set the value of the element at index" do
     example do
-      @a = [1, 2, 3, 4]
-      @a[2] = 5
-      @a[-1] = 6
-      @a[5] = 3
-      @a
+      a = [1, 2, 3, 4]
+      a[2] = 5
+      a[-1] = 6
+      a[5] = 3
+      a
     end.should == [1, 2, 5, 6, nil, 3]
   end
   
   specify "[]= should remove the section defined by start, length when set to nil" do
-    example(<<-CODE
-    class Foo
-      def example
-        a = ['a', 'b', 'c', 'd', 'e']
-        a[1, 3] = nil
-        a
-      end
-    end
-    CODE
-    ) do
-      Foo.new.example
+    example do
+      a = ['a', 'b', 'c', 'd', 'e']
+      a[1, 3] = nil
+      a
     end.should == ["a", "e"]
   end
   
   specify "[]= should set the section defined by start, length to other" do
-    example(<<-CODE
-    class Foo
-      def example
-        a = [1, 2, 3, 4, 5, 6]
-        a[0, 1] = 2
-        a[3, 2] = ['a', 'b', 'c', 'd']
-        a
-      end
-    end
-    CODE
-    ) do
-      Foo.new.example
+    example do
+      a = [1, 2, 3, 4, 5, 6]
+      a[0, 1] = 2
+      a[3, 2] = ['a', 'b', 'c', 'd']
+      a
     end.should == [2, 2, 3, "a", "b", "c", "d", 6]
   end
   
   specify "[]= should remove the section defined by range when set to nil" do
     example do
-      @a = [1, 2, 3, 4, 5]
-      @a[0..1] = nil
-      @a
+      a = [1, 2, 3, 4, 5]
+      a[0..1] = nil
+      a
     end.should == [3, 4, 5]
   end
   
   specify "[]= should set the section defined by range to other" do
     example do
-      @a = [6, 5, 4, 3, 2, 1]
-      @a[1...2] = 9
-      @a[3..6] = [6, 6, 6]
-      @a
+      a = [6, 5, 4, 3, 2, 1]
+      a[1...2] = 9
+      a[3..6] = [6, 6, 6]
+      a
     end.should == [6, 9, 4, 6, 6, 6]
   end
   
   specify "assoc should return the first contained array that the argument as the first element" do
     example do
-      @s1 = [ "colors", "red", "blue", "green" ] 
-      @s2 = [ "letters", "a", "b", "c" ] 
-      @s3 = "foo" 
-      @a = [ @s1, @s2, @s3 ] 
-      [@a.assoc("letters"), @a.assoc("foo")]
+      s1 = [ "colors", "red", "blue", "green" ] 
+      s2 = [ "letters", "a", "b", "c" ] 
+      s3 = "foo" 
+      a = [ s1, s2, s3 ] 
+      [a.assoc("letters"), a.assoc("foo")]
     end.should == [["letters", "a", "b", "c"], nil]
   end
   
   specify "at should return the element at index" do
     example do
-      @a = [1, 2, 3, 4, 5, 6]
-      [@a.at(0), @a.at(-2), @a.at(10)]
+      a = [1, 2, 3, 4, 5, 6]
+      [a.at(0), a.at(-2), a.at(10)]
     end.should == [1, 5, nil]
   end
   
   specify "clear should remove all elements" do
     example do
-      @a = [1, 2, 3, 4]
-      @a.clear
-      @a
+      a = [1, 2, 3, 4]
+      a.clear
+      a
     end.should == []
   end
   
   specify "collect should return a copy of array with each element replaced by the value returned by block" do
     example do
-      @a = ['a', 'b', 'c', 'd']
-      @b = @a.collect { |i| i + '!' }
-      @b
+      a = ['a', 'b', 'c', 'd']
+      b = a.collect { |i| i + '!' }
+      b
     end.should == ["a!", "b!", "c!", "d!"]
   end
   
   specify "collect! should replace each element with the value returned by block" do
     example do
-      @a = [7, 9, 3, 5]
-      @a.collect! { |i| i - 1 }
-      @a
+      a = [7, 9, 3, 5]
+      a.collect! { |i| i - 1 }
+      a
     end.should == [6, 8, 2, 4]
   end
   
   specify "compact should return a copy of array with all nil elements removed" do
     example do
-      @a = [1, nil, 2, nil, 4, nil]
-      @a.compact
+      a = [1, nil, 2, nil, 4, nil]
+      a.compact
     end.should == [1, 2, 4]
   end
   
   specify "compact! should remove all nil elements" do
     example do
-      @a = ['a', nil, 'b', nil, nil, 'c']
-      @a.compact!
+      a = ['a', nil, 'b', nil, nil, 'c']
+      a.compact!
     end.should == ["a", "b", "c"]
   end
   
@@ -307,9 +292,9 @@ context "Array instance method" do
   
   specify "delete should remove elements equal to object" do
     example do
-      @a = [1, 2, 3, 3, 4, 3, 5]
-      @a.delete(3)
-      @a
+      a = [1, 2, 3, 3, 4, 3, 5]
+      a.delete(3)
+      a
     end.should == [1, 2, 4, 5]
   end
   
@@ -321,47 +306,47 @@ context "Array instance method" do
   
   specify "delete_at should remove the element at the specified index" do
     example do
-      @a = [1, 2, 3, 4]
-      @a.delete_at(2)
-      @a
+      a = [1, 2, 3, 4]
+      a.delete_at(2)
+      a
     end.should == [1, 2, 4]
   end
 
   specify "delete_at should return the removed element at the specified index" do
     example do
-      @a = [1, 2, 3, 4]
-      @a.delete_at(2)
+      a = [1, 2, 3, 4]
+      a.delete_at(2)
     end.should == 3
   end
   
   specify "delete_at should return nil if the index is out of range" do
     example do
-      @a = [1, 2]
-      @a.delete_at(3)
+      a = [1, 2]
+      a.delete_at(3)
     end.should == nil
   end
   
   specify "delete_if should remove each element for which block returns true" do
     example do
-      @a = [ "a", "b", "c" ] 
-      @a.delete_if { |x| x >= "b" }
-      @a
+      a = [ "a", "b", "c" ] 
+      a.delete_if { |x| x >= "b" }
+      a
     end.should == ["a"]
   end
   
   specify "each should yield each element to the block" do
     example do
-      @a = []
-      [ 1,2,3 ].each { |item| @a << item }
-      @a
+      a = []
+      [ 1,2,3 ].each { |item| a << item }
+      a
     end.should == [1, 2, 3]
   end
   
   specify "each_index should pass the index of each element to the block" do
     example do
-      @a = []
-      ['a', 'b', 'c', 'd'].each_index { |i| @a << i }
-      @a
+      a = []
+      ['a', 'b', 'c', 'd'].each_index { |i| a << i }
+      a
     end.should == [0, 1, 2, 3]
   end
   
@@ -373,19 +358,19 @@ context "Array instance method" do
   
   specify "eql? should return true if other is the same array" do
     example do
-      @a = []
-      @b = []
-      [@a.eql?(@a), @a.eql?(@b)]
+      a = []
+      b = []
+      [a.eql?(a), a.eql?(b)]
     end.should == [true, true]
   end
   
   specify "eql? should return true if other has the same length and elements" do
     example do
-      @a = [1, 2, 3, 4]
-      @b = [1, 2, 3, 4]
-      @c = [1, 2]
-      @d = ['a', 'b', 'c', 'd']
-      [@a.eql?(@b), @a.eql?(@c), @a.eql?(@d)]
+      a = [1, 2, 3, 4]
+      b = [1, 2, 3, 4]
+      c = [1, 2]
+      d = ['a', 'b', 'c', 'd']
+      [a.eql?(b), a.eql?(c), a.eql?(d)]
     end.should == [true, false, false]
   end
 
@@ -400,9 +385,9 @@ context "Array instance method" do
       begin
         [1, 2, 3].fetch(3) 
       rescue IndexError
-        @a = "index 3 out of array"
+        a = "index 3 out of array"
       end
-      @a
+      a
     end.should == "index 3 out of array"
   end
   
@@ -480,9 +465,9 @@ context "Array instance method" do
   
   specify "flatten! should modify array to produce a one-dimensional flattening recursively" do
     example do
-      @a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]]]
-      @a.flatten!
-      @a
+      a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]]]
+      a.flatten!
+      a
     end.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
   end
   
@@ -494,10 +479,10 @@ context "Array instance method" do
   
   specify "frozen? should return true if array is temporarily frozen while being sorted" do
     example do
-      @a = [1, 2, 3]
-      @b = []
-      @a.sort! { |a,b| @b << @a.frozen?; a <=> b }
-      @b
+      a = [1, 2, 3]
+      b = []
+      a.sort! { |x,y| b << a.frozen?; x <=> y }
+      b
     end.should == [true, true]
   end
   
@@ -611,17 +596,17 @@ context "Array instance method" do
   
   specify "map should be a synonym for collect" do
     example do
-      @a = ['a', 'b', 'c', 'd']
-      @b = @a.collect { |i| i + '!' }
-      @b
+      a = ['a', 'b', 'c', 'd']
+      b = a.collect { |i| i + '!' }
+      b
     end.should == ["a!", "b!", "c!", "d!"]
   end
   
   specify "map! should be a synonym for collect!" do
     example do
-      @a = [7, 9, 3, 5]
-      @a.collect! { |i| i - 1 }
-      @a
+      a = [7, 9, 3, 5]
+      a.collect! { |i| i - 1 }
+      a
     end.should == [6, 8, 2, 4]
   end
   
@@ -650,8 +635,8 @@ context "Array instance method" do
   
   specify "pop should remove and return the last element of the array" do
     example do
-      @a = ["a", 1, nil, true]
-      [@a.pop, @a.length]
+      a = ["a", 1, nil, true]
+      [a.pop, a.length]
     end.should == [true, 3]
   end
   
@@ -663,9 +648,9 @@ context "Array instance method" do
   
   specify "push should append the arguments to the array" do
     example do
-      @a = [ "a", "b", "c" ]
-      @a.push("d", "e", "f")
-      @a
+      a = [ "a", "b", "c" ]
+      a.push("d", "e", "f")
+      a
     end.should == ["a", "b", "c", "d", "e", "f"]
   end
   
@@ -683,9 +668,9 @@ context "Array instance method" do
   
   specify "reject! should remove elements for which block is true" do
     example do
-      @a = [3, 4, 5, 6, 7, 8, 9, 10, 11]
-      @a.reject! { |i| i % 2 == 0 }
-      @a
+      a = [3, 4, 5, 6, 7, 8, 9, 10, 11]
+      a.reject! { |i| i % 2 == 0 }
+      a
     end.should == [3, 5, 7, 9, 11]
   end
   
@@ -709,17 +694,17 @@ context "Array instance method" do
   
   specify "reverse! should reverse the elements in place" do
     example do
-      @a = [6, 3, 4, 2, 1]
-      @a.reverse!
-      @a
+      a = [6, 3, 4, 2, 1]
+      a.reverse!
+      a
     end.should == [1, 2, 4, 3, 6]
   end
   
   specify "reverse_each should traverse array in reverse order and pass each element to block" do
     example do
-      @a = []
-      [1, 3, 4, 6].reverse_each { |i| @a << i }
-      @a
+      a = []
+      [1, 3, 4, 6].reverse_each { |i| a << i }
+      a
     end.should == [6, 4, 3, 1]
   end
   
@@ -749,9 +734,9 @@ context "Array instance method" do
   
   specify "shift should remove the first element" do
     example do
-        @a = [5, 1, 1, 5, 4]
-        @a.shift
-        @a
+      a = [5, 1, 1, 5, 4]
+      a.shift
+      a
     end.should == [1, 1, 5, 4]
   end
   
@@ -774,25 +759,25 @@ context "Array instance method" do
   
   specify "slice! with index should remove and return the element at index" do
     example do
-      @a = [1, 2, 3, 4]
-      @b = @a.slice!(2)
-      [@a, @b]
+      a = [1, 2, 3, 4]
+      b = a.slice!(2)
+      [a, b]
     end.should == [[1, 2, 4], 3]
   end
   
   specify "slice! with start, length should remove and return length elements beginning at start" do
     example do
-      @a = [0, 1, 1, 2, 3, 5, 8]
-      @b = @a.slice!(2, 3)
-      [@a, @b]
+      a = [0, 1, 1, 2, 3, 5, 8]
+      b = a.slice!(2, 3)
+      [a, b]
     end.should == [[0, 1, 5, 8], [1, 2, 3]]
   end
 
   specify "slice! with range should remove and return elements in range" do
     example do
-      @a = [1, 1, 2, 2, 3, 3, 4, 5]
-      @b = @a.slice!(1...4)
-      [@a, @b]
+      a = [1, 1, 2, 2, 3, 3, 4, 5]
+      b = a.slice!(1...4)
+      [a, b]
     end.should == [[1, 3, 3, 4, 5], [1, 2, 2]]
   end
   
@@ -804,24 +789,24 @@ context "Array instance method" do
   
   specify "sort with block should return a new array from sorting elements using block value" do
     example do
-      @a = [1, 2, 3, 4, 5]
-      [@a.sort { |a,b| b <=> (a - 1) }, @a]
+      a = [1, 2, 3, 4, 5]
+      [a.sort { |x,y| y <=> (x - 1) }, a]
     end.should == [[5, 4, 3, 2, 1], [1, 2, 3, 4, 5]]
   end
   
   specify "sort! should sort array in place using <=>" do
     example do
-      @a = [1, 9, 7, 11, -1, -4]
-      @a.sort!
-      @a
+      a = [1, 9, 7, 11, -1, -4]
+      a.sort!
+      a
     end.should == [-4, -1, 1, 7, 9, 11]
   end
   
   specify "sort! should sort array in place using block value" do
     example do
-      @a = [3, 4, 5, 9, 10]
-      @a.sort! { |a, b| b <=> a }
-      @a
+      a = [3, 4, 5, 9, 10]
+      a.sort! { |x, y| y <=> x }
+      a
     end.should == [10, 9, 5, 4, 3]
   end
   
@@ -841,8 +826,8 @@ context "Array instance method" do
   
   specify "to_ary should return self" do
     example do
-      @a = [1, 2, 3]
-      @a.equal?(@a.to_ary)
+      a = [1, 2, 3]
+      a.equal?(a.to_ary)
     end.should == true
   end
   
@@ -866,8 +851,8 @@ context "Array instance method" do
   
   specify "uniq! should return the same array" do
     example do
-      @a = [ "a", "a", "b", "b", "c" ]
-      @a.equal?(@a.uniq!)
+      a = [ "a", "a", "b", "b", "c" ]
+      a.equal?(a.uniq!)
     end.should == true
   end
   
@@ -915,8 +900,8 @@ context "Array instance method" do
   
   specify "| should return an array with no duplicates" do
     example do
-      @a = [1, 2, 3] | [1, 1, 2, 3, 4, 4, 5]
-      @a.uniq!
+      a = [1, 2, 3] | [1, 1, 2, 3, 4, 4, 5]
+      a.uniq!
     end.should == nil
   end
 end
