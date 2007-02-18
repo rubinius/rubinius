@@ -454,6 +454,16 @@ class ShotgunPrimitives
     CODE
   end
   
+  def time_usec
+    <<-CODE
+    POP(self, REFERENCE)
+    
+    struct time_data *tdp;
+    tdp = (struct time_data*)BYTES_OF(self);
+    stack_push(I2N(tdp->tv.tv_usec));
+    CODE
+  end
+  
   def strftime
     <<-CODE
     POP(self, REFERENCE)
