@@ -123,3 +123,12 @@ context "Integer instance method" do
     end.should == [9, 10, 11, 12, 13]
   end
 end
+
+context "Integer#bits" do
+  specify "should return the minimum bits of storage needed for the number as a signed int" do
+    example do
+      [1.bits, -1.bits, -2.bits, 2.bits, 4.bits, 536870911.bits, -536870912.bits, 536870912.bits, -536870913.bits]
+    end.should == [2, 2, 2, 3, 4, 30, 30, 31, 31]
+  end
+end
+

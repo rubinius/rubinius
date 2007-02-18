@@ -91,4 +91,21 @@ class Integer < Numeric
   def integer?
     true
   end
+
+  # returns minimum bit storage required for integer in (signed int) binary format
+  # NOTE: rshift would probably be slightly more efficient but since i'm
+  # probably going to use this to simplify the complex behavior of
+  # ruby's << and >> it would defeat the purpose by creating a circular
+  # dependency.
+  # TODO: convert algorithm to primitive so no circular dependency?
+  def bits(int = self)
+    if int.zero?
+      1 # sign bit storage
+    elsif int > 0
+      bits(int / 2) + 1 # could use >> in primitive
+    else
+      bits(~int / 2) + 1 # could use >> in primitive
+    end
+  end
 end
+
