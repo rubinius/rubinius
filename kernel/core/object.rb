@@ -58,10 +58,11 @@ class Object
   private :instance_variables?
   
   def instance_variables
-    return [] unless instance_variables?
     res = []
-    @__ivars__.each do |k,v|
-      res << k.to_s
+    if instance_variables?
+      @__ivars__.each do |k,v|
+        res << k.to_s
+      end
     end
     return res
   end
@@ -70,10 +71,11 @@ class Object
     unless sym.to_s[0] == ?@
       raise NameError.new("`#{sym}' is not allowed as an instance variable name")
     end
-    return nil unless instance_variables?
-    sym = sym.to_sym unless Symbol === sym
-    @__ivars__.each do |k,v|
-      return v if k == sym 
+    if instance_variables?
+      sym = sym.to_sym unless Symbol === sym
+      @__ivars__.each do |k,v|
+        return v if k == sym 
+      end
     end
     return nil
   end

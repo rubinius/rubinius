@@ -534,7 +534,7 @@ context "String instance method" do
       ["".eql?(""), "Rubinius".eql?(Fixnum), "1".eql?(1)]
     end.should == [true, false, false]
   end
-
+  
   specify "gsub should return a string with all instances of pattern replaced by replacement" do
     example do
       "abracadabra".gsub("a", "xu")
@@ -1200,5 +1200,27 @@ context "String instance method" do
       "*+".upto("*3") { |s| @a << s }
       @a
     end.should == ["*+", "*,", "*-", "*.", "*/", "*0", "*1", "*2", "*3"]
+  end
+end
+
+context "String inherited instance method" do
+  specify "instance_variable_get should return the value of the instance variable" do
+    example do
+      s = "this"
+      s.instance_variable_set(:@c, "that")
+      s.instance_variable_get(:@c)
+    end.should == "that"
+  end
+  
+  specify "instance_variable_get should return nil if the instance variable does not exist" do
+    example do
+      "another".instance_variable_get(:@c)
+    end.should == nil
+  end
+  
+  specify "instance_variable_get should raise NameError if the argument is not of form '@x'" do
+    example do
+      try(NameError) { "raise".instance_variable_get(:c) }
+    end.should == true
   end
 end

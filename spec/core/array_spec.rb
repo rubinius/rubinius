@@ -916,3 +916,24 @@ context "Array Bugs" do
   end
 end
 
+context "Array inherited instance method" do
+  specify "instance_variable_get should return the value of the instance variable" do
+    example do
+      a = []
+      a.instance_variable_set(:@c, 1)
+      a.instance_variable_get(:@c)
+    end.should == 1
+  end
+  
+  specify "instance_variable_get should return nil if the instance variable does not exist" do
+    example do
+      [].instance_variable_get(:@c)
+    end.should == nil
+  end
+  
+  specify "instance_variable_get should raise NameError if the argument is not of form '@x'" do
+    example do
+      try(NameError) { [].instance_variable_get(:c) }
+    end.should == true
+  end
+end

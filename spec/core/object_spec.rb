@@ -201,7 +201,7 @@ context "Object instance method" do
       try(NameError) { NoFred.new.instance_variable_get(:c) }
     end.should == true
   end
-  
+
   specify "instance_variable_set should set the value of the specified instance variable" do
     example do
       class Dog
