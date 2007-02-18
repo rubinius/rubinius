@@ -1448,61 +1448,53 @@ class ShotgunPrimitives
     CODE
   end
 
-  def fixnum_shift
+  def fixnum_right_shift(_ = fixnum, t1 = fixnum)
     <<-CODE
-    self = stack_pop();
-    t1   = stack_pop();
-    t2   = stack_pop();
-    if(!FIXNUM_P(self) || !FIXNUM_P(t1) || !FIXNUM_P(t2)) {
-      _ret = FALSE;
-    } else {
-      long value;
-      value = FIXNUM_TO_INT(self);
-      int  width;
-      width = FIXNUM_TO_INT(t1);
-      int  dir;
-      dir = FIXNUM_TO_INT(t2);
+    long value;
+    int  width;
+    value = FIXNUM_TO_INT(self);
+    width = FIXNUM_TO_INT(t1);
 
-      /* shift direction -1 == left, 1 == right          */
-      /* negative width shifts in the opposite direction */
-      if (width < 0) {
-        dir   = -dir;
-        width = -width;
-      }
-
-      if (dir == 1) {
-        /* right shift */
-        if (width > 0) {
-          if (width >= sizeof(value)*8-1) {
-            if (value < 0) {
-              value = -1;
-            } else {
-              value = 0;
-            }
-          } else {
-            value >>= width;
-          }
+    if (width > 0) {
+      if (width >= sizeof(value)*8-1) {
+        if (value < 0) {
+          value = -1;
+        } else {
+          value = 0;
         }
-        t2 = I2N(value);
-        stack_push(t2);
-      }
-
-      if (dir == -1) {
-        /* left shift */
-        if (width > sizeof(value)*8-1 ||
-          ((unsigned long)value) >> (sizeof(value)*8-1-width) > 0) {
-          t2 = bignum_left_shift(state, self, width);
-          stack_push(t2);
-         } else { 
-          value <<= width;
-          t2 = I2N(value);
-          stack_push(t2);
-        }
+      } else {
+        value >>= width;
       }
     }
+    t2 = I2N(value);
+    stack_push(t2);
+
     CODE
   end
 
+  def fixnum_left_shift(_ = fixnum, t1 = fixnum)
+    <<-CODE
+
+    long value;
+    int  width;
+    value = FIXNUM_TO_INT(self);
+    width = FIXNUM_TO_INT(t1);
+
+    value <<= width;
+    t2 = I2N(value);
+    stack_push(t2);
+
+    CODE
+  end
+
+  def bignum_new
+    <<-CODE
+    stack_pop();
+    POP(t1, FIXNUM);
+    stack_push(bignum_new(state, FIXNUM_TO_INT(t1)));
+    CODE
+  end
+  
   def bignum_to_float
     <<-CODE
     self = stack_pop();

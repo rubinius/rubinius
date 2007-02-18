@@ -85,7 +85,7 @@ module Bytecode
       :fixnum_xor,
       :fixnum_invert,
       :fixnum_neg,
-      :fixnum_shift,
+      :bignum_new,
       :bignum_to_float,
       :bignum_and,
       :bignum_or,
@@ -120,7 +120,9 @@ module Bytecode
       :object_freeze,
       :object_frozen_p,
       :fastctx_get_field,
-      :time_usec
+      :time_usec,
+      :fixnum_right_shift,
+      :fixnum_left_shift
     ]
 
     FirstRuntimePrimitive = 1024
