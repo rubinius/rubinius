@@ -49,5 +49,15 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_divmod
     super(other)
   end
-  
+
+  def id2name
+    Symbols.symbols.to_a[self]
+  end
+
+  def to_sym
+    id2name.to_sym
+  rescue NoMethodError
+    nil
+  end
 end
+

@@ -69,3 +69,4 @@ class Fixnum < Integer
     super(other)
   end
 end
+
