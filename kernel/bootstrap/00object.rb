@@ -1,6 +1,6 @@
 class Object
-  def extend(mod)
-    (class << self; self; end).include(mod)
+  def extend(*mods)
+    (class << self; self; end).include(*mods)
   end
 
   def at(idx)
