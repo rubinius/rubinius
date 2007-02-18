@@ -21,7 +21,7 @@ context "A class definition" do
     end.should == "Foo"
   end
 
-  specify "should allow the declaration of cvars in the body" do
+  specify "should allow the declaration of class variables in the body" do
     example do
       class Foo
         @@bar = 'foo'
@@ -31,7 +31,7 @@ context "A class definition" do
     end.should == ["@@bar"]
   end
 
-  specify "should allow the declaration of cvars in a method" do
+  specify "should allow the declaration of class variables in a method" do
     example do
       class ClassSyntaxSpec
         def setup_cv
@@ -48,8 +48,8 @@ context "A class definition" do
   end
 end
 
-context "def" do
-  specify "should create a new method" do
+context "In a class definition" do
+  specify "def should create a new method" do
     example do
       class Foo
         def foo

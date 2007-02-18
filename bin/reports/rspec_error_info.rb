@@ -5,7 +5,7 @@ files = `find #{RSPEC_PATH} -type f`.scan(/^[^.].+?\.rb$/).map {|f| f.split('rsp
 results = files.map do |path|
   begin
     command = "shotgun/rubinius -e \"$:.unshift('#{RSPEC_PATH}'); require '#{path}'\""
-    output = Timeout::timeout(5) do
+    output = Timeout::timeout(20) do
       `(#{command}) 2>&1`
     end
     [path, output]
