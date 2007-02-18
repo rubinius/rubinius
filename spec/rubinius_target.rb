@@ -109,9 +109,9 @@ module RubiniusTarget
       if status == 1
         out << "#{file} returned blank output, whats going on?\n" if out.empty?
         out << "========================================="
-        raise RubiniusTargetError, out
+        raise RubiniusTargetError.new(out, '')
       elsif !status or status > 100
-        raise RubiniusTargetError, "Shotgun has crashed: " + out
+        raise RubiniusTargetError.new("Shotgun has crashed: ", '')
       end
     end
     r.close

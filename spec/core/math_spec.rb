@@ -11,7 +11,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 TOLERANCE=0.00003
 
 context "Math constants" do
-
   specify "Constant PI should approximate the value of pi" do
     example do
       Math::PI
@@ -23,21 +22,33 @@ context "Math constants" do
       Math::E
     end.should_be_close 2.71828_18284_59045_23536, TOLERANCE
   end
-
 end
 
-
-
 context "Math methods" do
-
   specify "sqrt should return the square root of parameter" do
     example do
       [Math.sqrt(1), Math.sqrt(4.0), Math.sqrt(15241578780673814.441547445)].inspect
     end.should == "[1.0, 2.0, 123456789.123457]"
   end
+end
 
+context "Math included in another object" do
+  specify "should make the Math methods available to the object" do
+    example do
+      class Foo
+        include Math
+      end
+      Foo.new.sqrt(1)
+    end.should == 1
+  end
 
-
-
+  specify "should make the Math constants available to the object" do
+    example do
+      class Foo
+        include Math
+      end
+      Foo::PI
+    end.should_be_close 2.71828_18284_59045_23536, TOLERANCE
+  end
 end
 

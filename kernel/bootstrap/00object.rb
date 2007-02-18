@@ -1,4 +1,8 @@
 class Object
+  def extend(mod)
+    (class << self; self; end).include(mod)
+  end
+
   def at(idx)
     Ruby.primitive :at
     exc = InvalidIndex.new("Could not access index #{idx} of #{self}")
@@ -15,3 +19,4 @@ class Object
     Ruby.primitive :fields
   end
 end
+
