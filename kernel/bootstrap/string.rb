@@ -1,4 +1,6 @@
 class String
+  def __ivars__; @__ivars__; end
+
   def to_s
     self
   end

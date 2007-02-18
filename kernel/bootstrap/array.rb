@@ -10,6 +10,8 @@
 # uniq, uniq!, unshift, values_at, yaml_initialize, zip, |
 
 class Array
+  def __ivars__; @__ivars__; end
+
   def to_s
     "#<Array:0x#{object_id.to_s(16)} #{@total} elements>"
   end
