@@ -1,5 +1,5 @@
 class String
-  def __ivars__; @__ivars__; end
+  def __ivars__; nil; end
 
   def to_s
     self

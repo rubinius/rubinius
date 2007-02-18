@@ -1,5 +1,5 @@
 class IO
-  def __ivars__; @__ivars__; end
+  def __ivars__; nil; end
 
   def write(str)
     Ruby.primitive :io_write
