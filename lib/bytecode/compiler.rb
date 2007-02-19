@@ -1415,6 +1415,8 @@ module Bytecode
       end
       
       def process_attrasgn(x)
+        # The following line would be a ||=, but that doesn't work either at the moment
+        x[0] = [:self] unless x[0] # grammar.y NODE_ATTRASGN provides a nil for self
         if x[1].to_s[-1,1] != "=" # patch a grammar.y issue here for now
           x[1] = (x[1].to_s << "=").intern
         end
