@@ -293,8 +293,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "grammer_internal.h"
-#include "grammer_runtime.h"
+#include "grammar_internal.h"
+#include "grammar_runtime.h"
 #include "array.h"
 
 #undef VALUE
@@ -8626,7 +8626,7 @@ here_document(here, parse_state)
     return tSTRING_CONTENT;
 }
 
-#include "grammer_lex.c.tab"
+#include "grammar_lex.c.tab"
 
 static void
 arg_ambiguous()

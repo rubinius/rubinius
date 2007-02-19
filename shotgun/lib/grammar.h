@@ -1,4 +1,4 @@
-#include "grammer_internal.h"
+#include "grammar_internal.h"
 
 OBJECT syd_compile_string(STATE, const char *f, GString *s, int line, int newlines);
 OBJECT syd_compile_file(STATE, const char *f, GIOChannel *file, int start, int newlines);

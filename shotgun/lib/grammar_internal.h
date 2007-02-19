@@ -27,7 +27,7 @@ typedef unsigned LONG_LONG stack_type;
 typedef unsigned long stack_type;
 #endif
 
-#include "grammer_node.h"
+#include "grammar_node.h"
 
 typedef struct rb_parse_state {
     int end_seen;

@@ -1,5 +1,5 @@
 #include "shotgun.h"
-#include "grammer_internal.h"
+#include "grammar_internal.h"
 #include <string.h>
 #include "array.h"
 #include "string.h"
