@@ -770,6 +770,8 @@ again_no_block:
     
   case NODE_XSTR:             /* u1    (%x{ls}) */
   case NODE_STR:              /* u1 */
+    array_push(current, gstring2rubinius(state, node->nd_str));
+    break;
   case NODE_REGEX:
   case NODE_MATCH:
     array_push(current, gstring2rubinius(state, node->nd_str));
