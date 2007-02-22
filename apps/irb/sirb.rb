@@ -96,11 +96,13 @@ while true
         puts "=> #{out.inspect}" # do it like this so exit won't do =>
         context = ""
       end
+    rescue SystemExit => e
+      raise
     rescue Exception => e
       # Processing may continue with incomplete expressions
       unless SyntaxError === e and e.message =~ /unexpected \$end|unterminated string/
         puts ""
-        puts "An exception has occured: #{e.message} (#{e.class})"
+        puts "An exception has occured:\n    #{e.message} (#{e.class})"
         puts "Backtrace:"
         puts e.backtrace.show
         context = ""

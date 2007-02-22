@@ -927,7 +927,7 @@ class ShotgunPrimitives
         fgets(sbuf, 1023, io);
         setenv("_TERM_SETTINGS", sbuf, 1);
         pclose(io);
-        system("stty raw");
+        system("stty -icanon -isig -echo min 1");
         stack_push(Qtrue);
       }
     }

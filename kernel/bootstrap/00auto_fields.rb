@@ -1,11 +1,3 @@
-class MatchData
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def regexp; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def full; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def region; Ruby.asm "push self\npush 4\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
-end
 class MethodTable
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   def keys; Ruby.asm "push self\npush 1\nfetch_field"; end
@@ -45,10 +37,6 @@ class BlockEnvironment
   def last_ip; Ruby.asm "push self\npush 3\nfetch_field"; end
   def post_send; Ruby.asm "push self\npush 4\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, :post_send => 4
-end
-class IO
-  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
-  ivar_as_index :descriptor => 0
 end
 class MetaClass
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
@@ -147,4 +135,16 @@ class BlockContext
   def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
   def env; Ruby.asm "push self\npush 6\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :env => 6
+end
+class IO
+  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
+  ivar_as_index :descriptor => 0
+end
+class MatchData
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def regexp; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def full; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def region; Ruby.asm "push self\npush 4\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
 end

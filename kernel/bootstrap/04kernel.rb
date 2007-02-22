@@ -28,10 +28,6 @@ module Kernel
     Ruby.asm "push exc\nraise_exc"
   end
     
-  def exit(code=0)
-    Process.exit(code)
-  end
-  
   def at_exit(&block)
     Ruby::AtExit << block
   end

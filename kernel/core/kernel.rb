@@ -32,5 +32,24 @@ module Kernel
   def String(obj)
     obj.to_s
   end
+  
+
+  def exit(code=0)
+    raise SystemExit.new(code)
+  end
+
+  def exit!(code=0)
+    Process.exit(code)
+  end
+  
 end
 
+class SystemExit < Exception
+  def code
+    at(0)
+  end
+
+  def message
+    "System is exiting with code '#{code}'"
+  end
+end

@@ -50,9 +50,6 @@ end
 class SystemCallError < StandardError
 end
 
-class SystemExit < Exception
-end
-
 class SystemStackError < Exception
 end
 

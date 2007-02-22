@@ -51,6 +51,8 @@ begin
       end
     end
   end
+rescue SystemExit => e
+  code = e.code
 rescue Object => e
   puts "An exception has occured:"
   puts "    #{e.message} (#{e.class})"
@@ -69,5 +71,5 @@ rescue Object => e
   code = 1
 end
 
-exit(code)
+Process.exit(code)
 
