@@ -28,8 +28,8 @@ context 'Creating a Hash' do
   specify 'The two argument styles to Hash[] cannot be mixed' do
     example do
       begin 
-        eval 'Hash[1, 2, 3 => 4]' 
-      rescue SyntaxError
+        Hash[1, 2, {3 => 4}]
+      rescue ArgumentError 
         :failed
       end
     end.should == :failed
@@ -370,7 +370,7 @@ context "Hash instance method" do
     end.should == { :c => -1, :d => -2 }
   end
   
-  specify "select should return a new hash of entries for which block is true" do
+  specify "select should return an array of entries for which block is true" do
     example do
       @h = { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
       @h.sort { |a,b| a.to_s <=> b.to_s }
@@ -451,7 +451,7 @@ context "Hash instance method" do
   specify "values should return an array of values" do
     example do
       { 1 => :a, 'a' => :a, 'the' => 'lang'}.values
-    end.should == [:a, :a, "lang"]
+    end.should == ["lang", :a, :a] # hash is not ordered! results may vary
   end
   
   specify "values_at should return an array of values for the given keys" do

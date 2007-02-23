@@ -132,10 +132,22 @@ context "In the Exception class hierarchy" do
     end.should_be_kind_of StandardError
   end
   
+  specify "NameError.new should take optional name argument" do
+    example do
+      NameError.new("msg","name").name
+    end.should == "name"
+  end
+  
   specify "NoMethodError should subclass NameError" do
     example do
       NoMethodError.new
     end.should_be_kind_of NameError
+  end
+  
+  specify "NoMethodError.new should allow passing method args" do
+    example do
+      NoMethodError.new("msg","name","args").args
+    end.should == "args"
   end
 
   specify "RangeError should subclass StandardError" do
@@ -147,7 +159,7 @@ context "In the Exception class hierarchy" do
   specify "FloatDomainError should subclass RangeError" do
     example do
       FloatDomainError.new
-    end.should_be_kind_of FloatDomainError
+    end.should_be_kind_of RangeError
   end
 
   specify "RegexpError should subclass StandardError" do

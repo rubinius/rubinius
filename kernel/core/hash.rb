@@ -8,6 +8,9 @@ class Hash
   alias :store      :[]=
 
   def self.[](*args)
+    unless args.size % 2 == 0 or (args.size == 1 and args[0].is_a?(Hash))
+      raise ArgumentError, "odd number of arguments for Hash" 
+    end
     hsh = {}
     while args.size >= 2
       k = args.shift
@@ -140,6 +143,7 @@ class Hash
     end
     self
   end
+  alias :initialize_copy :replace
   
   def rehash
     out = {}
@@ -162,7 +166,6 @@ class Hash
   def dup
     {}.replace(self)
   end
-
   def fetch(key, *rest)
     raise ArgumentError, "wrong number of arguments (#{rest.size + 1} for 2)" if rest.size > 1
     val = get_by_hash(key.hash, key)
@@ -177,5 +180,25 @@ class Hash
     end
     val
   end
-   
+  
+  def to_a
+    a = []
+    each {|k,v| a << [k,v] }
+	a
+  end
+
+  def to_s
+    to_a.join
+  end
+
+  def sort(&block)
+    to_a.sort(&block)
+  end
+  
+  def find_all(&block)
+    a = []
+   	each {|k,v| a << [k,v] if yield(k,v) }
+    a
+  end
+  alias_method :select, :find_all
 end
