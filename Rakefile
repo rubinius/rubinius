@@ -13,14 +13,16 @@ end
 begin
   require 'spec/rake/spectask'
 rescue LoadError
-  puts "Unable to load spec/rake/spectask, spec tasks are not available"
-  no_spec = true
+  raise <<-EOM
+  Unable to load spec/rake/spectask. RSpec is a requirement to build Rubinius.
+  Please install RSpec before building (http://rspec.rubyforge.org).
+EOM
 end
 
 # require local rake libs
 # doesn't do anything gracefully on load error (yet)
 paths = Dir[ File.join(File.dirname(__FILE__), 'rake/*') ]
-require_files(paths) unless no_spec
+require_files(paths)
 
 # By default, run all the specs and tests
 task :default => :spec
@@ -30,7 +32,7 @@ task :spec do
   Rake::Task['spec:all'].invoke rescue got_error = true
 
   raise "Spec or test failures." if got_error
-end unless no_spec
+end
 
 namespace :spec do
   desc "Run all specs and tests."
@@ -51,8 +53,6 @@ namespace :spec do
       FileUtils.rm Dir.glob("code-cache/*")
     end
   end
-
-  unless no_spec
 
   desc "Run only specs but not any tests."
   spec_targets = %w(language shotgun library core targets primitives)
@@ -78,8 +78,6 @@ namespace :spec do
 
     desc "Generate a coverage report for the core specs."
     GroupCoverageReport.new(:core)
-  end
-  
   end
 end 
 

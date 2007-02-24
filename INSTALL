@@ -1,0 +1,38 @@
+1. Getting the source
+
+The source code is available from a Subversion repository. Ensure you have the
+svn command available and check out the source:
+
+  svn co http://code.fallingsnow.net/svn/rubinius/trunk rubinius
+
+2. Requirements
+
+Currently Rubinius can be built on UNIX-like systems, such as Linux and Mac OS X.
+To build and run Rubinius (but not do development), ensure you have the following
+dependencies installed:
+
+	* Ruby gems 
+	* rake gem
+	* rspec gem (rspec.rubyforge.org)
+	* rubyinline gem
+	* ruby2ruby gem
+	* glib2
+	* pkg-config (or pkgconfig on OS X pkgconfig.darwinports.org)
+	* ruby 1.8.x
+	* gcc 4.x (version 3.x will not work)
+	* zip and unzip commands
+	* sydparse gem. You *must* get this from the Rubinius source directory 
+	  /externals/syd-parser
+
+3. Compiling Rubinius
+
+You must ensure that you are using the sydparse gem provided with the Rubinius source.
+Type gem list sydparse to see what sydparse gems are installed. Type rake build:syd
+to build the included sydparse gem. The gem will be in externals/syd-parser/pkg/. 
+Use the gem command to install it.
+
+If you are not doing any development with Rubinius, you can compile just the C code
+portions. Use the command: rake build
+
+If you are doing development, there are several convenience compile commands. To get
+a list of these, use the command rake -T build.

@@ -1,97 +1,45 @@
-WHAT IS RUBINIUS
+1. What is Rubinius
 
 Rubinius is a next-generation virtual machine and compiler for Ruby.
 Based loosely on the Smalltalk-80 'Blue Book' design, Rubinius will provide
 a rich, high-performance environment for running Ruby code.
 
-COMPILING RUBINIUS
+2. Running Rubinius
 
-Currently Rubinius can be built on UNIX-like systems, such as Linux and MacOS.
-It requires gcc 4.x and glib2, though these dependencies are temporary.
-Additionally, you will need an installation of ruby 1.8.x, and the following
-as gems or libraries:
-  * rake
-  * rspec (if you want to run specs, currently works with 0.7.5)
-??: * ruby2ruby (also used in specs)
+Refer to the INSTALL file for instructions on getting and building Rubinius.
 
-Once these are installed, type: 'rake build:all' to compile Rubinius. 
-This builds the current version of Rubinius, known as 'shotgun'.
-Use 'rake test' to run the tests.
-
-RUNNING RUBINIUS
-
-After running 'rake build:all', there will be a 'rubinius' binary in
-the 'shotgun' directory. This binary currently does not mimic the usual 'ruby'
-command-line args. To run a Ruby script, type:
-./shotgun/rubinius some_ruby_file.rb
-The command first compiles the script to an 'rbc' file, then uses Rubinius to execute it.
-
-BOOTSTRAPPING/DEVELOPING RUBINIUS
-
-Requires:
-  * ParseTree [?]
-  * sydparse (the version included, use 'rake build:syd' to obtain the gem)
-  * zip (provided on pretty much all unix platforms these days)
-
-Use the local sydparse by building locally using the 'rake build:syd' command. 
-The bootstrapping tasks will fail until you install the correct version of sydparse.
-
-Bootstrapping uses a command aptly called bin/obsolete.rcompile
-(obsolete because it makes use of the fragile sydparse).
-
-rake build:bootstrap build:core build:compiler
-rebuilds the three .rba files in runtime/ -- you don't need to do this
-until you start hacking the Ruby files in lib and kernel.
-
-rake build:dev is a shortcut for rebuilding shotgun, core and compiler
-(but not bootstrap as this is touched less often) if you are
-developing things.
-
-OBSOLETE STUFF
-
-Don't touch:
-./bin/shotgun
-(list to be completed)
-[evan: can we delete the cruft, please?]
-
-STATUS
+3. Status
 
 Rubinius is under heavy development, and currently supports the basic Ruby 
-classes and kernel methods. The codebase is written in a mixture of 
+classes and kernel methods. The code base is written in a mixture of 
 ANSI C and Ruby; with more Ruby and less C as the project proceeds.
 You should not run your mission-critical Rails apps under Rubinius yet.
 
-GOALS
+4. Goals
 
-* Thread safety. Rubinius intends to be thread-safe and embeddable.
-  It does not currently meet this goal due to some components borrowed from
-  the mainline Ruby interpreter.
+* Thread safety. Rubinius intends to be thread-safe so you could embed more
+  than one interpreter in a single application. It does not currently meet 
+	this goal due to some components borrowed from the mainline Ruby interpreter.
 
 * Clean, readable code that is easy for users to understand and extend.
 
 * Reliable, rock-solid code.  Valgrind is used to help verify correctness.
 
-* Bring modern techiques to the Ruby runtime. Pluggable garbage collectors and
+* Bring modern techniques to the Ruby runtime. Pluggable garbage collectors and
   code optimizers are possible examples.
 
-VOLUNTEERING TO HELP
+5. Volunteering to Help
 
-The Rubinius team welcomes contributions, bug reports, test cases, and monetary support.
-One possible way to help is:
-1. Add a test for a Ruby core method.
-2. Go to the appropriately-named file in the 'kernel' directory.
-3. Implement that method in Ruby.
-4. Type 'rake build:kernel' to make your change take effect.
-5. Run the tests until they pass. :)
-6. Create a patch with 'svn diff' and send it to the mailing list.
-The 'ri' command is a rich source of examples and test cases.
+The Rubinius team welcomes contributions, bug reports, test cases, and monetary 
+support. One possible way to help is implement Ruby library classes. Visit
+http://rubini.us for documentation on how to begin hacking Rubinius.
 
-STRUCTURE
+6. Architecture
 
-Rubinius currently uses C to bootstrap the system.
-In the future, a limited dialect of Ruby called 'cuby' will be used to generate C.
-This is a time-honored technique, used by systems such as Squeak, Smalltalk, and 
-Algol on the Burroughs systems (as seen in the movie 'Tron').
+Rubinius currently uses C to bootstrap the system. In the future, a limited dialect of 
+Ruby called cuby/garnet will be used to generate C. This is a time-honored technique, 
+used by systems such as Squeak, Smalltalk, and Algol on the Burroughs systems (as seen 
+in the movie 'Tron').
 
 For now, this code is hand-written, and can be found in the ./shotgun/lib directory.
 This code was ported from a Ruby implementation found in the ./lib directory.
