@@ -291,6 +291,17 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     ent++;
   }
   
+  /* Now the stack. */
+  OBJECT *sp;
+  
+  sp = state->current_stack;
+  while(sp <= state->current_sp) {
+    if(REFERENCE_P(*sp)) {
+      *sp = baker_gc_mutate_from(g, *sp);
+    }
+    sp++;
+  }
+  
   baker_gc_swap(g);
   
   if(g->current->size != g->next->size) {

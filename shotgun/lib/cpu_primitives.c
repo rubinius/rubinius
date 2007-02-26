@@ -71,13 +71,16 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;
   int j, k, m, _orig_sp;
+  OBJECT *_orig_sp_ptr;
   int fds[2];
   char *buf;
   
+  _orig_sp_ptr = c->sp_ptr;
   _orig_sp = c->sp;
   #include "system_primitives.gen"
   
   if(!_ret) {
+    c->sp_ptr = _orig_sp_ptr;
     c->sp = _orig_sp;
   }
   return _ret;

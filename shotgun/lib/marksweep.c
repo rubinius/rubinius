@@ -360,6 +360,17 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
     ent++;
   }
   
+  /* Now the stack. */
+  OBJECT *sp;
+  
+  sp = state->current_stack;
+  while(sp <= state->current_sp) {
+    if(REFERENCE_P(*sp)) {
+      mark_sweep_mark_object(ms, *sp);
+    }
+    sp++;
+  }
+  
   // printf("Marked Objects: %d\n", marked_objects);
 }
 

@@ -43,7 +43,8 @@ struct rubinius_cpu {
      per call. */
   
   long int args;
-  OBJECT stack;
+  OBJECT *stack_top;
+  unsigned long int stack_size;
   OBJECT exception;
   OBJECT enclosing_class;
   OBJECT new_class_of;
@@ -63,7 +64,7 @@ struct rubinius_cpu {
 
 typedef struct rubinius_cpu *cpu;
 
-#define cpu_stack_empty_p(state, cpu) (cpu->sp == -1)
+#define cpu_stack_empty_p(state, cpu) (cpu->sp_ptr <= cpu->stack_top)
 #define cpu_local_get(state, cpu, idx) (NTH_FIELD(cpu->locals, idx))
 #define cpu_local_set(state, cpu, idx, obj) (SET_FIELD(cpu->locals, idx, obj))
 
@@ -72,13 +73,10 @@ typedef struct rubinius_cpu *cpu;
 #define stack_top() cpu_stack_top(state, c)
 
 #define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
-// #define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack - HEADER_SIZE))
-
-// #define cpu_flush_ip(cpu) 1
-#define cpu_flush_sp(cpu) 1
+#define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack_top))
 
 #define cpu_cache_ip(cpu) (cpu->ip_ptr = (cpu->data + cpu->ip))
-#define cpu_cache_sp(cpu) (cpu->sp_ptr = ((OBJECT*)BYTES_OF(cpu->stack)) + cpu->sp)
+#define cpu_cache_sp(cpu) (cpu->sp_ptr = (cpu->stack_top + cpu->sp))
 
 cpu cpu_new(STATE);
 void cpu_initialize(STATE, cpu c);
@@ -125,6 +123,13 @@ void cpu_clear_cache(STATE, cpu c);
 void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth);
 void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 
+#if 1
+
+#define cpu_stack_push(state, c, oop, check) ({ OBJECT _tmp = (oop); (c)->sp_ptr++; *((c)->sp_ptr) = _tmp; })
+#define cpu_stack_pop(state, c) (*(c)->sp_ptr--)
+#define cpu_stack_top(state, c) (*(c)->sp_ptr)
+
+#else 
 static inline int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {
   c->sp += 1;
 #if 0
@@ -148,6 +153,8 @@ static inline OBJECT cpu_stack_pop(STATE, cpu c) {
 static inline OBJECT cpu_stack_top(STATE, cpu c) {
   return NTH_FIELD(c->stack, c->sp);
 }
+
+#endif
 
 #define MAX_SYSTEM_PRIM 2048
 

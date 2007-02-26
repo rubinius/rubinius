@@ -86,17 +86,17 @@ void machine_print_callstack_limited(machine m, int maxlev) {
 
 void machine_print_stack(machine m) {
   unsigned int i, start, end;
-  
+  cpu_flush_sp(m->c);
   i = m->c->sp;
   start = (i < 5 ? 0 : i - 5);
-  end =   (i + 5 > NUM_FIELDS(m->c->stack) ? NUM_FIELDS(m->c->stack) : i + 5);
+  end =   (i + 5 > m->c->stack_size) ? m->c->stack_size : i + 5;
   for(i = start; i < end; i++) {
     if(i == m->c->sp) {
       printf("%4d => ", i);
     } else {
       printf("%4d    ", i);
     }
-    printf("%s\n", rbs_inspect_verbose(m->s, NTH_FIELD(m->c->stack, i)));
+    printf("%s\n", rbs_inspect_verbose(m->s, m->c->stack_top[i]));
   }
   
 }
@@ -289,6 +289,8 @@ void machine_show_backtrace(unsigned long *frames, int count) {
 }
 
 void machine_print_registers(machine m) {
+  cpu_flush_sp(m->c);
+  cpu_flush_ip(m->c);
   printf("IP: %04lu     SP: %04lu\n", m->c->ip, m->c->sp);
   printf("AC: %04lu     AR: %04lu\n", m->c->argcount, m->c->args);
   printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));

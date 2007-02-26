@@ -66,6 +66,10 @@ struct rubinius_state {
   int cache_misses;
   
   struct rubinius_globals *global;
+  
+  /* Used to pass information down to the garbage collectors */
+  OBJECT *current_stack;
+  OBJECT *current_sp;
 };
 
 #define BASIC_CLASS(kind) state->global->kind

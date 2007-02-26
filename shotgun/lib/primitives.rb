@@ -236,6 +236,7 @@ class ShotgunPrimitives
       printf("Create block failed, %s!!\\n", _inspect(self));
       _ret = FALSE;
     } else {
+      cpu_flush_sp(c);
       cpu_flush_ip(c);
       methctx_set_ip(self, I2N(c->ip));
       j = FIXNUM_TO_INT(methctx_get_ip(self)) + 5;
@@ -265,6 +266,7 @@ class ShotgunPrimitives
 
     t2 = blokenv_create_context(state, self);
     blokctx_set_sender(t2, c->active_context);
+    cpu_flush_sp(c);
     blokctx_set_sp(t2, I2N(c->sp));
     cpu_activate_context(state, c, t2, blokenv_get_home(self));
     CODE

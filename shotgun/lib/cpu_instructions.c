@@ -203,7 +203,9 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   sender = c->active_context;
   
   num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
-
+  
+  cpu_flush_sp(c);
+  
 #if CTX_USE_FAST
 
   ctx = c->context_cache;
@@ -425,13 +427,9 @@ void cpu_run_old(STATE, cpu c) {
 }
 
 int cpu_dispatch(STATE, cpu c) {
-  unsigned char op;
-  
-  if(!c->data) { return FALSE; }
-  if(c->ip >= c->data_size) { return FALSE; }
-  
-  op = (unsigned char)(c->data[c->ip]);
-  c->ip += 1;
+  unsigned char op;  
+
+  op = *c->ip_ptr++;
   // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
   #include "instructions.gen"
   return TRUE;
@@ -459,9 +457,8 @@ void cpu_run(STATE, cpu c) {
     
     op = *c->ip_ptr++;
     
-    #undef stack_push
-    // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
-    #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
+    // #undef stack_push
+    // #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
     #if EXCESSIVE_TRACING
     cpu_flush_ip(c);
@@ -473,7 +470,8 @@ void cpu_run(STATE, cpu c) {
     goto check_interupts;
 stack_error:
     /* enlarge the stack to handle the exception */
-    c->stack = tuple_enlarge(state, c->stack, NUM_FIELDS(c->stack) + 128);
+    c->stack_top = realloc(c->stack_top, c->stack_size += 128);
+    
     // printf("HEAP INFO: %d used, %d total.\n", state->om->gc->current->current - state->om->gc->current->address, state->om->gc->current->size);
     cpu_raise_exception(state, c, 
           cpu_new_exception(state, c, state->global->exc_stack_explosion,

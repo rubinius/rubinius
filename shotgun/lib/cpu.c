@@ -26,8 +26,9 @@ void cpu_initialize(STATE, cpu c) {
   state->global->tuple = Qnil;
   state->global->hash = Qnil;
   state->global->methtbl = Qnil;
-  c->stack = tuple_new(state, InitialStackSize);
-  // HEADER(c->stack)->gc |= 0x8000; /* Forever young. */
+  c->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+  c->sp_ptr = c->stack_top;
+  c->stack_size = InitialStackSize;
   c->sp = 0;
   c->ip = 0;
   c->self = Qnil;
@@ -61,7 +62,6 @@ void cpu_setup_top_scope(STATE, cpu c) {
 }
 
 void cpu_initialize_context(STATE, cpu c) {
-  object_set_has_ivars(state, c->stack);
   c->active_context = Qnil;
   c->top_context = c->active_context;
   c->home_context = c->active_context;
@@ -84,8 +84,6 @@ void cpu_initialize_context(STATE, cpu c) {
         
   state->global->sym_s_method_added = string_to_sym(state,
         string_new(state, "singleton_method_added"));
-          
-  HEADER(c->stack)->klass = state->global->tuple;
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
@@ -95,7 +93,6 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
     g_ptr_array_add(roots, (gpointer)obj); \
   }
   ar(c->sender);
-  ar(c->stack);
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
@@ -131,7 +128,6 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
     obj = (OBJECT)tmp; \
   }
   ar(c->sender);
-  ar(c->stack);
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);

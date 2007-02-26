@@ -34,6 +34,10 @@ void state_collect(STATE, cpu c) {
     state->cache_hits, state->cache_misses, 
     (float)state->cache_hits / state->cache_misses);
   */  
+  
+  state->current_stack = c->stack_top;
+  state->current_sp =    c->sp_ptr;
+  
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
       can't keep objects alive. */
@@ -54,6 +58,9 @@ void state_major_collect(STATE, cpu c) {
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
       can't keep objects alive. */
+      
+  state->current_stack = c->stack_top;
+  state->current_sp =    c->sp_ptr;
 
   roots = _gather_roots(state, c);
   object_memory_major_collect(state, state->om, roots);
