@@ -296,6 +296,173 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
   return ret;
 }
 
+/* Raw most functions for moving in a method. Adjusts register. */
+
+static inline void cpu_save_registers(STATE, cpu c) {
+  if(!RTEST(c->active_context)) return;
+  cpu_flush_ip(c);
+  cpu_flush_sp(c);
+  if(methctx_is_fast_p(state, c->active_context)) {
+    struct fast_context *fc;
+    fc = (struct fast_context*)BYTES_OF(c->active_context);
+    fc->sp = c->sp;
+    fc->ip = c->ip;
+  } else {
+    methctx_set_sp(c->active_context, I2N(c->sp));
+    methctx_set_ip(c->active_context, I2N(c->ip));
+  }
+}
+
+#include <string.h>
+
+static inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
+  int ac;
+  
+  ac = c->argcount;
+  c->depth--;
+  
+  /* Home is actually the main context here because it's the method
+     context that holds all the data. So if it's a fast, we restore
+     it's data, then if ctx != home, we restore a little more */
+  
+  if(methctx_is_fast_p(state, home)) {
+    struct fast_context *fc;
+    fc = (struct fast_context*)BYTES_OF(home);
+    memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
+    // printf("Restoring fast context %p\n", home);
+    
+    /* Only happens if we're restoring a block. */
+    if(ctx != home) {
+      c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
+      c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
+            
+      c->sender = methctx_get_sender(ctx);
+      /* FIXME: seems like we should set c->block too.. but that
+         seems to break things.. */
+    }
+    
+    if(ret && ac > 0) {
+      if (is_block) {
+        --c->sp;
+      } else {
+        c->sp -= ac;
+      }
+    }
+    
+  } else {
+    c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
+    c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
+    if(ret && c->argcount > 0) {
+      if (is_block) {
+        --c->sp;
+      } else {
+        c->sp -= c->argcount;
+      }
+    }
+  
+    OBJECT ba;
+  
+    ba = methctx_get_bytecodes(home);
+    if(!RTEST(ba)) {
+      c->data = NULL;
+      c->data_size = 0;
+    } else {
+      c->data = bytearray_byte_address(state, ba);    
+      c->data_size = bytearray_bytes(state, ba);
+    }
+  
+    c->raiseable = RTEST(methctx_get_raiseable(home));
+    c->sender = methctx_get_sender(ctx);
+    c->self = methctx_get_receiver(home);
+    c->home_context = home;
+    c->locals = methctx_get_locals(home);
+    c->block = methctx_get_block(home);
+    c->method = methctx_get_method(home);
+    c->literals = methctx_get_literals(home);
+    c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
+    c->method_module = methctx_get_module(home);
+  
+    if(RTEST(c->method)) {
+      c->exceptions = cmethod_get_exceptions(c->method);
+    } else {
+      c->exceptions = Qnil;
+    }
+  }
+  
+  cpu_cache_ip(c);
+  cpu_cache_sp(c);
+    
+  c->active_context = ctx;
+}
+
+/* Layer 2 method movement: use lower level only. */
+
+inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home) {
+  c->depth += 2;
+  cpu_save_registers(state, c);
+  cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
+}
+
+static inline void cpu_restore_context(STATE, cpu c, OBJECT x) {
+    cpu_restore_context_with_home(state, c, x, x, FALSE, FALSE);
+}
+
+/* Layer 2.5: Uses lower layers to return to the calling context.
+   Returning ends here. */
+
+inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
+  OBJECT sender, top, home, home_sender;
+  int is_block;
+  
+  is_block = blokctx_s_block_context_p(state, c->active_context);
+  sender = c->sender;
+  
+  if(sender == Qnil) {
+    c->active_context = Qnil;
+  } else {
+    if(cpu_stack_empty_p(state, c)) {
+      top = Qnil;
+    } else {
+      top = cpu_stack_top(state, c);
+    }
+    
+    if(consider_block && is_block) {
+      home = blokctx_home(state, c->active_context);
+      if(methctx_is_fast_p(state, home)) {
+        home_sender = FASTCTX(home)->sender;
+      } else {
+        home_sender = methctx_get_sender(home);
+      }
+      
+      sender = home_sender;
+    }
+        
+    if(blokctx_s_block_context_p(state, sender)) {
+      home = blokctx_home(state, sender);
+    } else {
+      home = sender;
+    }
+    
+    /* Cache the context if we can. */
+#if CTX_USE_FAST && CTX_CACHE_ENABLED
+    if(!is_block && !methctx_s_was_referenced_p(state, c->active_context)) {
+      HEADER(c->active_context)->klass = 0;
+      if(!c->context_cache) {
+        c->context_cache = c->active_context;
+      } else {
+        HEADER(c->context_cache)->klass = c->active_context;
+      }
+    }
+#endif
+    cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
+    cpu_stack_push(state, c, top, FALSE);
+  }
+}
+
+
+/* Layer 3: goto. Basically jumps directly into the specificed method. 
+   no lookup required. */
+
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name) {
   OBJECT ctx;
@@ -305,6 +472,8 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
         _real_class(state, recv), (unsigned long int)count, Qnil);
   cpu_activate_context(state, c, ctx, ctx);
 }
+
+/* Layer 3: hook. Shortcut for running hook methods. */
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
   OBJECT ctx, mo, mod;
@@ -316,6 +485,11 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
         _real_class(state, recv), 1, Qnil);
   cpu_activate_context(state, c, ctx, ctx);
 }
+
+/* Layer 4: High level method calling. */
+
+/* Callings +mo+ either as a primitive or by allocating a context and
+   activating it. */
 
 static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
@@ -365,6 +539,8 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   //printf("Setting method module to: %s\n", _inspect(mod));
   c->method_module = mod;
 }
+
+/* Layer 4: send. Primary method calling function. */
 
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
   OBJECT sym, mo, mod;

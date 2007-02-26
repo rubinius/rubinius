@@ -8,7 +8,7 @@ ifdef DEV
   OPTIMIZATIONS=
   WARNINGS=-Wall
 else
-  INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=2000 --param large-function-growth=500 --param inline-unit-growth=300
+  INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=3000 --param large-function-growth=1000 --param inline-unit-growth=500
   OPTIMIZATIONS=-O2 -ffast-math -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
   WARNINGS=-Wall -Winline
 endif
