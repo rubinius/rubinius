@@ -29,6 +29,17 @@ struct rubinius_object {
 /* Header size is in longs */
 #define HEADER_SIZE 4
 
+/* Macros to find out the zone of an object. */
+#define ZONE_BITS 2
+#define ZONE_OFFSET 6
+#define GC_ZONE(obj) (HEADER(obj)->flags2 >> ZONE_OFFSET)
+/* Mask the current flags2 to remove the current zone bits, then or
+   them with the new desired ones. */
+#define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ((1 << ZONE_OFFSET) - 1)) | (((val) & ((1 << ZONE_BITS) - 1)) << ZONE_OFFSET)))
+#define GC_MATURE_OBJECTS 0
+#define GC_YOUNG_OBJECTS  1
+#define GC_LARGE_OBJECTS  2
+
 #define REFSIZE (sizeof(size_t))
 
 #define CLASS_OBJECT(obj) (HEADER(obj)->klass)

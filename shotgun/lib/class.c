@@ -1,10 +1,11 @@
 #include "shotgun.h"
 #include "module.h"
+#include "class.h"
 
 OBJECT class_new(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
   OBJECT cls;
   
-  cls = class_allocate(state);
+  cls = class_create(state);
   class_set_instance_fields(cls, I2N(fields));
   class_set_superclass(cls, sup);
   module_setup_with_namespace(state, cls, name, ns);

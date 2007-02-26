@@ -1,4 +1,4 @@
-#include "object_memory.h"
+#include "shotgun.h"
 
 struct rubinius_globals {
   
@@ -25,16 +25,24 @@ struct rubinius_globals {
   OBJECT external_ivars;
 };
 
+
+
 #define GLOBAL_cmethod
 
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
 
-struct rubinius_state {
-  object_memory om;
-  GPtrArray *free_contexts;
-  
-  struct rubinius_globals *global;
+#define CPU_CACHE_SIZE 0x800
+#define CPU_CACHE_MASK 0x7ff
+#define CPU_CACHE_HASH(c,m) ((((c)>>3)^(m)) & CPU_CACHE_MASK)
+
+struct method_cache {
+  OBJECT klass;
+  OBJECT name;
+  OBJECT module;
+  OBJECT method;
 };
+
+struct rubinius_state;
 
 typedef struct rubinius_state* rstate;
 
@@ -45,6 +53,21 @@ rstate rubinius_state_new();
 #endif
 
 #define STATE rstate state
+
+#include "object_memory.h"
+
+struct rubinius_state {
+  object_memory om;
+  GPtrArray *free_contexts;
+  
+  struct method_cache method_cache[CPU_CACHE_SIZE];
+  
+  int cache_hits;
+  int cache_misses;
+  
+  struct rubinius_globals *global;
+};
+
 #define BASIC_CLASS(kind) state->global->kind
 #define NEW_OBJECT(kls, size) object_memory_new_object(state->om, kls, size)
 #define NEW_STRUCT(obj, str, kls, kind) \
@@ -116,11 +139,14 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 
 extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
-inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
+static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
 //#define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
 #define CHECK_PTR(obj)
 
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
+#define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
+
+#include "object_memory-barrier.h"
 
 static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
@@ -132,8 +158,6 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   return obj;
 }
 
-#define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
-
 static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT val) {
   if(fel >= HEADER(obj)->fields) {
     printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
@@ -143,9 +167,14 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
   assert(val != 12);
 #ifdef INTERNAL_MACROS
-  object_memory_write_barrier(om, obj, val);
+  /* Check that it's even, ie a ref, and above the special range. */
+  if(((val & 1) == 0) && (val > 12)) {
+    object_memory_write_barrier(om, obj, val);
+  }
   CHECK_PTR(val);
 #endif
   *slot = val;
   return val;
 }
+
+#include "object_memory-inline.h"

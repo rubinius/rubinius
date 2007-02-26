@@ -1,11 +1,11 @@
 #include "shotgun.h"
 #include <stdlib.h>
 #include <string.h>
-#include "baker.h"
 #include "heap.h"
 #include "methctx.h"
 #include "cpu.h"
 #include "bytearray.h"
+#include "baker.h"
 
 static int promoted = 0;
 
@@ -78,17 +78,6 @@ int baker_gc_destroy(baker_gc g) {
   return TRUE;
 }
 
-address baker_gc_allocate(baker_gc g, int size) {
-  address out;
-  out = (address)heap_allocate(g->current, size);
-  g->used += size;
-  return out;
-}
-
-address baker_gc_allocate_spilled(baker_gc g, int size) {
-  return heap_allocate(g->next, size);
-}
-
 #define FORWARDING_MAGIC 0xff
 
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
@@ -110,44 +99,18 @@ OBJECT baker_gc_forwarded_object(OBJECT obj) {
 #define CLEAR_AGE(obj) (HEADER(obj)->gc = 0)
 #define FOREVER_YOUNG(obj) (HEADER(obj)->gc & 0x8000)
 
+#define baker_gc_maybe_mutate(g, iobj) ({     \
+  OBJECT ret;                                 \
+  if(baker_gc_forwarded_p(iobj)) {            \
+    ret = baker_gc_forwarded_object(iobj);    \
+  } else if(baker_gc_contains_p(g, iobj)) {   \
+    ret = baker_gc_mutate_object(g, iobj);    \
+  } else {                                    \
+    ret = iobj;                               \
+  }                                           \
+  ret; })
 
-static inline void _mutate_references(baker_gc g, OBJECT iobj);
-
-OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj) {
-  OBJECT dest;
-  if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
-    // int age = AGE(obj);
-    CLEAR_AGE(obj);
-    promoted++;
-    dest = (*g->tenure)(g->tenure_data, obj);
-    baker_gc_set_forwarding_address(obj, dest);
-    //printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_now);
-    _mutate_references(g, dest);
-  } else {
-    if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
-      dest = heap_copy_object(g->next, obj);
-      baker_gc_set_forwarding_address(obj, dest);
-      HEADER(dest)->gc++;
-    } else {
-      CLEAR_AGE(obj);
-      promoted++;
-      dest = (*g->tenure)(g->tenure_data, obj);
-      baker_gc_set_forwarding_address(obj, dest);
-      _mutate_references(g, dest);
-    }
-  }
-  return dest;
-}
-
-int baker_gc_contains_p(baker_gc g, OBJECT obj) {
-  return heap_contains_p(g->current, obj);
-}
-
-int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
-  return heap_contains_p(g->next, obj) || heap_contains_p(g->current, obj);
-}
-
-
+/*
 static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
   OBJECT ret;
 
@@ -165,9 +128,9 @@ static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
   
   return ret;
 }
+*/
 
 int _object_stores_bytes(OBJECT self);
-
 static int depth = 0;
 
 static inline void _mutate_references(baker_gc g, OBJECT iobj) {
@@ -216,6 +179,41 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
   depth--;
 }
 
+OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj) {
+  OBJECT dest;
+  if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
+    // int age = AGE(obj);
+    CLEAR_AGE(obj);
+    promoted++;
+    dest = (*g->tenure)(g->tenure_data, obj);
+    baker_gc_set_forwarding_address(obj, dest);
+    //printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_now);
+    _mutate_references(g, dest);
+  } else {
+    if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
+      dest = heap_copy_object(g->next, obj);
+      baker_gc_set_forwarding_address(obj, dest);
+      HEADER(dest)->gc++;
+    } else {
+      CLEAR_AGE(obj);
+      promoted++;
+      dest = (*g->tenure)(g->tenure_data, obj);
+      baker_gc_set_forwarding_address(obj, dest);
+      _mutate_references(g, dest);
+    }
+  }
+  return dest;
+}
+
+int baker_gc_contains_p(baker_gc g, OBJECT obj) {
+  return heap_contains_p(g->current, obj);
+}
+
+int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
+  return heap_contains_p(g->next, obj) || heap_contains_p(g->current, obj);
+}
+
+
 OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
   OBJECT ret, iobj;
   int count;
@@ -248,9 +246,10 @@ OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
 
 #define g_ptr_array_set_index(ary, idx, val) (ary->pdata[idx] = (void*)val)
 
-int baker_gc_collect(baker_gc g, GPtrArray *roots) {
+int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   int i, sz;
   OBJECT tmp, root;
+  struct method_cache *end, *ent;
   promoted = 0;
   
   //printf("Running garbage collector...\n");
@@ -275,7 +274,23 @@ int baker_gc_collect(baker_gc g, GPtrArray *roots) {
     tmp = baker_gc_mutate_from(g, root);
     g_ptr_array_set_index(g->remember_set, i, tmp);
   }
-    
+  
+  ent = state->method_cache;
+  end = ent + CPU_CACHE_SIZE;
+  
+  while(ent < end) {
+    if(ent->klass)
+      ent->klass = baker_gc_mutate_from(g, ent->klass);
+      
+    if(ent->module)
+      ent->module = baker_gc_mutate_from(g, ent->module);
+      
+    if(ent->method)
+      ent->method = baker_gc_mutate_from(g, ent->method);
+
+    ent++;
+  }
+  
   baker_gc_swap(g);
   
   if(g->current->size != g->next->size) {

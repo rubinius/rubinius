@@ -25,13 +25,24 @@ typedef struct object_memory_struct *object_memory;
 object_memory object_memory_new();
 int object_memory_delete(object_memory om);
 int object_memory_used(object_memory om);
-int object_memory_collect(object_memory om, GPtrArray *roots);
+int object_memory_collect(STATE, object_memory om, GPtrArray *roots);
 void object_memory_check_memory(object_memory om);
-OBJECT object_memory_new_object(object_memory om, OBJECT cls, int fields);
+OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields);
+static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields);
+
+OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields);
 void object_memory_print_stats(object_memory om);
 OBJECT object_memory_new_opaque();
 OBJECT object_memory_tenure_object(void* data, OBJECT obj);
-void object_memory_major_collect(object_memory om, GPtrArray *roots);
+void object_memory_major_collect(STATE, object_memory om, GPtrArray *roots);
+
+#define FAST_NEW 1
+
+#ifdef FAST_NEW
+#define object_memory_new_object _om_inline_new_object
+#else
+#define object_memory_new_object object_memory_new_object_normal
+#endif
 
 #endif
 

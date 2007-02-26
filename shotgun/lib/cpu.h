@@ -11,12 +11,6 @@
 /* Enables the context cache. */
 #define CTX_CACHE_ENABLED 0
 
-struct _method_cache {
-  
-};
-
-typedef struct _method_cache method_cache;
-
 #define CPU_REGISTERS OBJECT sender; \
   unsigned long int ip; \
   unsigned long int sp; \
@@ -87,9 +81,6 @@ void cpu_return_to_sender(STATE, cpu c, int consider_block);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c);
-int  cpu_stack_push(STATE, cpu c, OBJECT oop, int check);
-OBJECT cpu_stack_pop(STATE, cpu c);
-OBJECT cpu_stack_top(STATE, cpu c);
 int cpu_dispatch(STATE, cpu c);
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);
@@ -117,4 +108,35 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path);
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
+
+/* Method cache functions */
+void cpu_clear_cache(STATE, cpu c);
+void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth);
+void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
+
+static inline int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {
+  c->sp += 1;
+#if 0
+  if(check) {
+    if(NUM_FIELDS(c->stack) <= c->sp) {
+      return FALSE;
+    }
+  }
+#endif
+  SET_FIELD(c->stack, c->sp, oop);
+  return TRUE;
+}
+
+static inline OBJECT cpu_stack_pop(STATE, cpu c) {
+  OBJECT obj;
+  obj = NTH_FIELD(c->stack, c->sp);
+  c->sp -= 1;
+  return obj;
+}
+
+static inline OBJECT cpu_stack_top(STATE, cpu c) {
+  return NTH_FIELD(c->stack, c->sp);
+}
+
+
 #endif /* __CPU_H_ */

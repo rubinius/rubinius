@@ -12,6 +12,8 @@
 #include "flags.h"
 #include "bytearray.h"
 
+#include <string.h>
+
 #define EXCESSIVE_TRACING 0
 
 #define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
@@ -34,7 +36,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
-    val = class_allocate(state);
+    val = class_create(state);
     
     if(NIL_P(sup)) {
       sup = state->global->object;
@@ -85,7 +87,7 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
   
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
-    val = module_allocate(state);
+    val = module_allocate_mature(state, 0);
     module_setup_fields(state, val);
     module_set_name(val, sym);
     module_const_set(state, under, sym, val);
@@ -104,10 +106,29 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
   }
 }
 
+/* Locate the method object for calling method +name+ on an instance of +klass+.
+   +mod+ is updated to point to the Module that holds the method.
+   
+   
+   * The method is then looked for in the hash tables up the superclass
+     chain.
+     
+ */
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
-  OBJECT ok, meth, hsh;
+  OBJECT ok, meth, hsh, orig_klass;
+  struct method_cache *ent;
+  
   *mod = Qnil;
   if(NIL_P(klass)) { return Qnil; }
+  
+  ent = state->method_cache + CPU_CACHE_HASH(klass, name);
+  if(ent->name == name && ent->klass == klass) {
+    *mod = ent->module;
+    state->cache_hits++;
+    return ent->method;
+  }
+  
+  state->cache_misses++;
 
   hsh = module_get_methods(klass);
   
@@ -120,6 +141,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
         class_get_name(object_logical_class(state, obj))))
     );
   */
+  
+  orig_klass = klass;
   while(NIL_P(meth)) {
     ok = klass;
     klass = class_get_superclass(klass);
@@ -134,11 +157,16 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     meth = hash_find(state, module_get_methods(klass), name);
   }
   
-  if(REFERENCE_P(klass) && SYMBOL_P(module_get_name(klass))) {
-    // printf("Found method.\n");
-  }
-  
   *mod = klass;
+  
+  /* Update the cache. */
+  if(RTEST(meth)) {
+    ent = state->method_cache + CPU_CACHE_HASH(orig_klass, name);
+    ent->klass = orig_klass;
+    ent->name = name;
+    ent->module = klass;
+    ent->method = meth;
+  }
   
   return meth;
 }
@@ -168,7 +196,7 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
 static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
       OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
   OBJECT sender, ctx, ba;
-  int len, num_lcls;
+  int num_lcls;
   struct fast_context *fc;
   
   sender = c->active_context;
@@ -348,7 +376,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }

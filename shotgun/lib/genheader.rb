@@ -23,11 +23,17 @@ Rubinius::Types.each do |name, obj|
   puts "  return NEW_OBJECT(BASIC_CLASS(#{name}), #{sz} + extra);"
   puts "}"
   puts
+  puts "OBJECT #{prefix}allocate_mature(STATE, int extra) {"
+  puts "  return object_memory_new_object_mature(state->om, BASIC_CLASS(#{name}), #{sz} + extra);"
+  puts "}"
+  puts
+  
   
   fd.puts "#define #{prefix}allocate(st) #{prefix}allocate_with_extra(st, 0)"
   fd.puts "#define #{prefix.upcase}FIELDS #{sz}"
   
   fd.puts "OBJECT #{prefix}allocate_with_extra(STATE, int extra);"
+  fd.puts "OBJECT #{prefix}allocate_mature(STATE, int extra);"
   
   klasses << [name, sz, obj::TotalFields.first == :instance_variables]
 end
@@ -38,7 +44,7 @@ klasses.each do |name, sz, has_ivars|
   fd.puts "OBJECT _#{name}_basic_class(STATE, OBJECT sup);"
   puts "OBJECT _#{name}_basic_class(STATE, OBJECT sup) {"
   puts "   OBJECT cls;"
-  puts "   cls = class_allocate_with_extra(state, 0);"
+  puts "   cls = class_allocate_mature(state, 0);"
   puts "   class_set_instance_fields(cls, I2N(#{sz}));"
   if has_ivars
     # HACK i hate that this is hardcoded here.

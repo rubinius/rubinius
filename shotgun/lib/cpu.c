@@ -495,6 +495,9 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
     target = c->enclosing_class;
   }
   // printf("Attaching %s to %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(target));
+  
+  cpu_clear_cache_for_method(state, c, sym);
+  
   meths = module_get_methods(target);
   assert(RTEST(meths));
   hash_set(state, meths, sym, method);
@@ -506,29 +509,6 @@ void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   meta = object_metaclass(state, target);
   cpu_add_method(state, c, meta, sym, method);
   cpu_perform_hook(state, c, target, state->global->sym_s_method_added, sym);
-}
-
-int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {
-  CHECK_PTR(oop);
-  c->sp += 1;
-  if(check) {
-    if(NUM_FIELDS(c->stack) <= c->sp) {
-      return FALSE;
-    }
-  }
-  SET_FIELD(c->stack, c->sp, oop);
-  return TRUE;
-}
-
-OBJECT cpu_stack_pop(STATE, cpu c) {
-  OBJECT obj;
-  obj = NTH_FIELD(c->stack, c->sp);
-  c->sp -= 1;
-  return obj;
-}
-
-OBJECT cpu_stack_top(STATE, cpu c) {
-  return NTH_FIELD(c->stack, c->sp);
 }
 
 char *cpu_show_context(STATE, cpu c, OBJECT ctx) {

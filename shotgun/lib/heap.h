@@ -22,13 +22,42 @@ int heap_contains_p(rheap h, address addr);
 int heap_enough_fields_p(rheap h, int fields);
 int heap_allocated_p(rheap h);
 int heap_using_extended_p(rheap h);
-address heap_allocate(rheap h, int size);
-int heap_enough_space_p(rheap h, int size);
 OBJECT heap_copy_object(rheap h, OBJECT obj);
 OBJECT heap_next_object(rheap h);
 OBJECT heap_fully_scanned_p(rheap h);
 OBJECT heap_next_unscanned(rheap h);
 int heap_enough_fields_p(rheap h, int fields);
+
+#define FAST_HEAP 1
+
+#ifdef FAST_HEAP
+
+#include <string.h>
+
+static inline address heap_allocate(rheap h, int size) {
+  address addr;
+  addr = (address)h->current;
+  memset((void*)addr, 0, size);
+  h->current += size;
+  
+  return addr;
+}
+
+static inline int heap_enough_space_p(rheap h, int size) {
+  if(h->current + size > h->last) return FALSE;
+  return TRUE;
+}
+
+// #define heap_enough_space_p(h, size) ((h)->current + size <= (h)->last)
+
+// #define heap_allocate(h, size) ({ address addr = (address)((h)->current); (h)->current += size; addr; })
+
+#else
+
+address heap_allocate(rheap h, int size);
+int heap_enough_space_p(rheap h, int size);
+
+#endif
 
 #endif
 

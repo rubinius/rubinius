@@ -53,6 +53,8 @@ int heap_allocated_p(rheap h) {
   return h->address > 0;
 }
 
+#ifndef FAST_HEAP
+
 address heap_allocate(rheap h, int size) {
   address addr;
   /* maybe raise exception here? */
@@ -70,6 +72,8 @@ int heap_enough_space_p(rheap h, int size) {
   if(h->current + size > h->last) return FALSE;
   return TRUE;
 }
+
+#endif
 
 int heap_enough_fields_p(rheap h, int fields) {
   int size;

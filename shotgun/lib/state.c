@@ -5,7 +5,7 @@
 
 rstate rubinius_state_new() {
   rstate st;
-  st = (rstate)malloc(sizeof(struct rubinius_state));
+  st = (rstate)calloc(1, sizeof(struct rubinius_state));
   st->om = object_memory_new();
   st->free_contexts = g_ptr_array_new();
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
@@ -29,13 +29,17 @@ void state_collect(STATE, cpu c) {
   GPtrArray *roots;
   c->context_cache = 0;
   state->free_contexts->len = 0;
-    
+  /*
+  printf("Cache Hits:   %d\nCache Misses: %d\nCache Perc:   %.2f\n\n", 
+    state->cache_hits, state->cache_misses, 
+    (float)state->cache_hits / state->cache_misses);
+  */  
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
       can't keep objects alive. */
 
   roots = _gather_roots(state, c);
-  object_memory_collect(state->om, roots);
+  object_memory_collect(state, state->om, roots);
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
@@ -52,7 +56,7 @@ void state_major_collect(STATE, cpu c) {
       can't keep objects alive. */
 
   roots = _gather_roots(state, c);
-  object_memory_major_collect(state->om, roots);
+  object_memory_major_collect(state, state->om, roots);
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 

@@ -289,8 +289,8 @@ void machine_show_backtrace(unsigned long *frames, int count) {
 }
 
 void machine_print_registers(machine m) {
-  printf("IP: %04d     SP: %04d\n", m->c->ip, m->c->sp);
-  printf("AC: %04d     AR: %04d\n", m->c->argcount, m->c->args);
+  printf("IP: %04lu     SP: %04lu\n", m->c->ip, m->c->sp);
+  printf("AC: %04lu     AR: %04lu\n", m->c->argcount, m->c->args);
   printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));
 }
 

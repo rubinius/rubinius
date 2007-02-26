@@ -323,9 +323,10 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
   }
 }
 
-void mark_sweep_mark_phase(mark_sweep_gc ms, GPtrArray *roots) {
+void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   int i, sz;
   OBJECT root;
+  struct method_cache *end, *ent;
   
   marked_objects = 0;
   
@@ -341,6 +342,22 @@ void mark_sweep_mark_phase(mark_sweep_gc ms, GPtrArray *roots) {
     root = (OBJECT)(g_ptr_array_index(ms->remember_set, i));
     if(!REFERENCE_P(root)) { continue; }
     mark_sweep_mark_object(ms, root);
+  }
+  
+  ent = state->method_cache;
+  end = ent + CPU_CACHE_SIZE;
+  
+  while(ent < end) {
+    if(ent->klass)
+      mark_sweep_mark_object(ms, ent->klass);
+      
+    if(ent->module)
+      mark_sweep_mark_object(ms, ent->module);
+      
+    if(ent->method)
+      mark_sweep_mark_object(ms, ent->method);
+
+    ent++;
   }
   
   // printf("Marked Objects: %d\n", marked_objects);
@@ -393,10 +410,10 @@ void mark_sweep_sweep_phase(mark_sweep_gc ms) {
   // printf("Free'd Objects: %d\n", freed_objects);
 }
 
-void mark_sweep_collect(mark_sweep_gc ms, GPtrArray *roots) {
+void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   ms->enlarged = 0;
   objects_marked = 0;
-  mark_sweep_mark_phase(ms, roots);
+  mark_sweep_mark_phase(state, ms, roots);
   // printf("%d objects marked.\n", objects_marked);
   mark_sweep_sweep_phase(ms);  
 }

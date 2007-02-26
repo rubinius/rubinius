@@ -1,7 +1,11 @@
 CC=gcc
 UNAME=$(shell uname)
 CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
-CFLAGS=-Wall -g -fno-omit-frame-pointer $(CPPFLAGS)
+WARNINGS=-Wall -Winline
+INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=2000 --param large-function-growth=300
+OPTIMIZATIONS=-O -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
+DEBUG=-g
+CFLAGS=$(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 
@@ -17,8 +21,14 @@ else
   endif
 endif
 
+show_info:
+	@echo "Warnings: $(WARNINGS)"
+	@echo "Optimizations: $(OPTIMIZATIONS)"
+	@echo "Debugging: $(DEBUG)"
+
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	@echo "CC $@"
+	@$(CC) -c -o $@ $< $(CFLAGS)
 
 .%.d:  %.c  $(DEPS)
 	@set -e; rm -f $@; \
@@ -26,7 +36,7 @@ endif
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-librubinius.a: $(DEPS) $(OBJS) 
+librubinius.a: show_info $(DEPS) $(OBJS) 
 	rm -f librubinius.a
 	ar rc librubinius.a $(OBJS)
 	ranlib librubinius.a
@@ -43,7 +53,8 @@ system_primitives.gen: primitives.rb
 
 auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
-	$(CC) -c -o auto.o auto.c $(CFLAGS)
+	@echo "CC auto.o"
+	@$(CC) -c -o auto.o auto.c $(CFLAGS)
 
 grammar.c: grammar.y
 	bison -o grammar.c grammar.y
