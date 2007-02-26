@@ -88,10 +88,6 @@ OBJECT blokenv_create_context(STATE, OBJECT self) {
   return obj;
 }
 
-int blokctx_s_block_context_p(STATE, OBJECT ctx) {
-  return FLAG_SET_P(ctx, IsBlockContextFlag);
-}
-
 OBJECT blokctx_home(STATE, OBJECT self) {
   OBJECT env, home;
   env = blokctx_get_env(self);

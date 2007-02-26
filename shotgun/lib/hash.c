@@ -137,10 +137,6 @@ OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh) {
   }
 }
 
-OBJECT hash_find(STATE, OBJECT hash, OBJECT key) {
-  return hash_get(state, hash, object_hash_int(state, key));
-}
-
 OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
   unsigned int bin;
   OBJECT entry, th, lk, val;

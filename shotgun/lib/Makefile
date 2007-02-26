@@ -1,9 +1,20 @@
 CC=gcc
 UNAME=$(shell uname)
+CPU=$(shell uname -p)
 CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
 WARNINGS=-Wall -Winline
-INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=2000 --param large-function-growth=300
-OPTIMIZATIONS=-O -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
+
+ifdef DEV
+  OPTIMIZATIONS=
+  WARNINGS=-Wall
+else
+  INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=2000 --param large-function-growth=500 --param inline-unit-growth=300
+  OPTIMIZATIONS=-O2 -ffast-math -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
+  WARNINGS=-Wall -Winline
+endif
+ifeq ($(CPU), powerpc)
+  OPTIMIZATIONS+=-falign-loops=16
+endif
 DEBUG=-g
 CFLAGS=$(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen

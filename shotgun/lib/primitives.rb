@@ -118,10 +118,8 @@ class ShotgunPrimitives
   
   def equal(_ = fixnum, t1 = fixnum)
     <<-CODE
-    j = FIXNUM_TO_INT(self);
-    k = FIXNUM_TO_INT(t1);
-
-    if(j == k)
+    /* No need to shift them to be longs, the comparison is the same. */
+    if(self == t1)
       stack_push(Qtrue); 
     else
       stack_push(Qfalse);
@@ -136,15 +134,25 @@ class ShotgunPrimitives
   
   def compare(_ = fixnum, t1 = fixnum)
     <<-CODE
-    j = FIXNUM_TO_INT(self);
-    k = FIXNUM_TO_INT(t1);
-
-    if (j < k)
-      stack_push(I2N(-1));
-    else if (j > k)
-      stack_push(I2N(1));
-    else
+    
+    /* we can deduce == quickly and easily, so do it first. */
+    
+    if(self == t1) {
       stack_push(I2N(0));
+    } else {
+      j = FIXNUM_TO_INT(self);
+      k = FIXNUM_TO_INT(t1);
+
+      if (j < k) {
+        stack_push(I2N(-1));
+      }
+      else if (j > k) {
+        stack_push(I2N(1));
+      } else {
+        /* We shouldn't be here! */
+        stack_push(I2N(0));
+      }
+    }
     CODE
   end
   
@@ -228,6 +236,7 @@ class ShotgunPrimitives
       printf("Create block failed, %s!!\\n", _inspect(self));
       _ret = FALSE;
     } else {
+      cpu_flush_ip(c);
       methctx_set_ip(self, I2N(c->ip));
       j = FIXNUM_TO_INT(methctx_get_ip(self)) + 5;
       t2 = blokenv_s_under_context(state, t3, j, t1, t2);

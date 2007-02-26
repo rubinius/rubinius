@@ -170,7 +170,11 @@ class ShotgunInstructions
   end
   
   def goto
-    "next_int; c->ip = _int;"
+    <<-CODE
+    next_int;
+    c->ip = _int;
+    cpu_cache_ip(c);
+    CODE
   end
   
   def goto_if_false
@@ -179,6 +183,7 @@ class ShotgunInstructions
     t1 = stack_pop();
     if(!RTEST(t1)) {
       c->ip = _int;
+      cpu_cache_ip(c);
     }
     CODE
   end
@@ -189,6 +194,7 @@ class ShotgunInstructions
     t1 = stack_pop();
     if(RTEST(t1)) {
       c->ip = _int;
+      cpu_cache_ip(c);
     }
     CODE
   end
@@ -199,6 +205,7 @@ class ShotgunInstructions
     t1 = stack_pop();
     if(t1 != Qundef) {
       c->ip = _int;
+      cpu_cache_ip(c);
     }
     CODE
   end

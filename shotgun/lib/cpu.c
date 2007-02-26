@@ -159,6 +159,8 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
 
 void cpu_save_registers(STATE, cpu c) {
   if(!RTEST(c->active_context)) return;
+  cpu_flush_ip(c);
+  cpu_flush_sp(c);
   if(methctx_is_fast_p(state, c->active_context)) {
     struct fast_context *fc;
     fc = (struct fast_context*)BYTES_OF(c->active_context);
@@ -196,6 +198,7 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
     if(ctx != home) {
       c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
       c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
+            
       c->sender = methctx_get_sender(ctx);
       /* FIXME: seems like we should set c->block too.. but that
          seems to break things.. */
@@ -208,6 +211,7 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
         c->sp -= ac;
       }
     }
+    
   } else {
     c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
     c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
@@ -247,6 +251,9 @@ void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int re
       c->exceptions = Qnil;
     }
   }
+  
+  cpu_cache_ip(c);
+  cpu_cache_sp(c);
     
   c->active_context = ctx;
 }
@@ -317,6 +324,8 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
     assert(0);
   }
   
+  cpu_flush_ip(c);
+  
   while(!NIL_P(ctx)) {
     // printf("Searching for exception handler in %p / %p..\n", ctx, c->exceptions);
     if(!c->raiseable) return;
@@ -339,6 +348,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
       if(cur >= l && cur <= r) {
         target = FIXNUM_TO_INT(tuple_at(state, ent, 2));
         c->ip = target;
+        cpu_cache_ip(c);
         return;
       }
     }

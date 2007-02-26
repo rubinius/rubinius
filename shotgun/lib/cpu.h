@@ -56,6 +56,9 @@ struct rubinius_cpu {
   unsigned int depth;
   
   OBJECT context_cache;
+  
+  unsigned char *ip_ptr;
+  OBJECT *sp_ptr;
 };
 
 typedef struct rubinius_cpu *cpu;
@@ -67,6 +70,15 @@ typedef struct rubinius_cpu *cpu;
 #define stack_push(obj) cpu_stack_push(state, c, obj, FALSE)
 #define stack_pop() cpu_stack_pop(state, c)
 #define stack_top() cpu_stack_top(state, c)
+
+#define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
+// #define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack - HEADER_SIZE))
+
+// #define cpu_flush_ip(cpu) 1
+#define cpu_flush_sp(cpu) 1
+
+#define cpu_cache_ip(cpu) (cpu->ip_ptr = (cpu->data + cpu->ip))
+#define cpu_cache_sp(cpu) (cpu->sp_ptr = ((OBJECT*)BYTES_OF(cpu->stack)) + cpu->sp)
 
 cpu cpu_new(STATE);
 void cpu_initialize(STATE, cpu c);
@@ -86,7 +98,6 @@ void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
-int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args);
 void cpu_raise_exception(STATE, cpu c, OBJECT exc);
 void cpu_raise_arg_error(STATE, cpu c, int args, int req);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
@@ -137,6 +148,20 @@ static inline OBJECT cpu_stack_pop(STATE, cpu c) {
 static inline OBJECT cpu_stack_top(STATE, cpu c) {
   return NTH_FIELD(c->stack, c->sp);
 }
+
+#define MAX_SYSTEM_PRIM 2048
+
+int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args);
+
+static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args) {
+  if(prim < MAX_SYSTEM_PRIM) {
+    return cpu_perform_system_primitive(state, c, prim, mo, args);
+  } else {
+    printf("Error: Primitive index out of range for this VM\n");
+    abort();
+  }
+}
+
 
 
 #endif /* __CPU_H_ */

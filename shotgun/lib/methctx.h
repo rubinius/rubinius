@@ -6,7 +6,6 @@ OBJECT blokctx_s_under_context(STATE, OBJECT ctx);
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT vlst);
 OBJECT blokenv_create_context(STATE, OBJECT self);
 OBJECT blokctx_home(STATE, OBJECT self);
-int blokctx_s_block_context_p(STATE, OBJECT ctx);
 void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from, OBJECT mod);
 
 #include "flags.h"
@@ -32,3 +31,6 @@ static inline void methctx_reference(STATE, OBJECT self) {
   }
 }
 
+static inline int blokctx_s_block_context_p(STATE, OBJECT ctx) {
+  return FLAG_SET_P(ctx, IsBlockContextFlag);
+}

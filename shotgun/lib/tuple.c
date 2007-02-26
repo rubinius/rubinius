@@ -2,10 +2,6 @@
 #include <stdarg.h>
 #include "tuple.h"
 
-OBJECT tuple_new(STATE, int size) {
-  return tuple_allocate_with_extra(state, size);
-}
-
 OBJECT tuple_enlarge(STATE, OBJECT tup, int inc) {
   int sz;
   OBJECT ns;

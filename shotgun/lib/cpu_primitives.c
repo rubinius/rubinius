@@ -36,8 +36,6 @@ struct time_data {
   struct timezone tz;
 };
 
-#define MAX_SYSTEM_PRIM 2048
-
 #define MAX_STRFTIME_OUTPUT 1024
 
 #define ZLIB_CHUNK_SIZE 512
@@ -83,14 +81,5 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args
     c->sp = _orig_sp;
   }
   return _ret;
-}
-
-int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args) {
-  if(prim < MAX_SYSTEM_PRIM) {
-    return cpu_perform_system_primitive(state, c, prim, mo, args);
-  } else {
-    printf("Error: Primitive index out of range for this VM\n");
-    abort();
-  }
 }
 

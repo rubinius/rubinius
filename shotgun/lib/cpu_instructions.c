@@ -17,7 +17,8 @@
 #define EXCESSIVE_TRACING 0
 
 #define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
-#define next_int set_int(_int,(c->data + c->ip)); c->ip += 4
+#define next_int set_int(_int,(c->ip_ptr)); c->ip_ptr += 4
+// #define next_int set_int(_int,(c->data + c->ip)); c->ip += 4; c->ip_ptr += 4
 
 /* #ifndef __BIG_ENDIAN__ */
 /* #define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4 */
@@ -319,6 +320,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   OBJECT ctx;
   int prim = 0;
   if(missing) {
+    cpu_flush_ip(c);
     DEBUG("%05d: Missed Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
      rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
      rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
@@ -342,6 +344,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   }
 
   #if EXCESSIVE_TRACING
+  cpu_flush_ip(c);
   printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
     rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
     rbs_symbol_to_cstring(state, module_get_name(mod)),
@@ -376,6 +379,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
+    cpu_flush_ip(c);
     printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
@@ -439,20 +443,28 @@ void state_major_collect(STATE, cpu c);
 void cpu_run(STATE, cpu c) {
   unsigned char op;
   
-  while(RTEST(c->active_context)) {
+  while(c->active_context != Qnil) {
+    
+    /* This check I've commented out is a safety blanket. I've tested
+       running my benchmark (compiling sirb.rb) and it's not hit. It's
+       therefore just excess overhead per VM instruction, so it's not
+       going to be run normally. */
+       
+    #if 0
     if(!c->data || c->ip >= c->data_size) {
       cpu_return_to_sender(state, c, FALSE);
       continue;
     }
+    #endif
     
-    op = (unsigned char)(c->data[c->ip]);
-    c->ip += 1;
+    op = *c->ip_ptr++;
     
     #undef stack_push
     // #define stack_push(obj) SET_FIELD(c->stack, ++(c->sp), obj)
     #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
     #if EXCESSIVE_TRACING
+    cpu_flush_ip(c);
     printf("%-15s: OP: %s (%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip);
@@ -467,7 +479,7 @@ stack_error:
           cpu_new_exception(state, c, state->global->exc_stack_explosion,
           "Stack has exploded"));
 check_interupts:
-    if (0 && !state->om->collect_now) object_memory_check_memory(state->om); /* XXX */
+    // if (0 && !state->om->collect_now) object_memory_check_memory(state->om);
     if(state->om->collect_now) {
       int cm = state->om->collect_now;
       /* We're supposed to tenure all the objects now. */
