@@ -47,6 +47,14 @@ class CompiledMethod
     @primitive = idx
   end
   
+  def cache=(tup)
+    @cache = tup
+  end
+  
+  def serial=(ser)
+    @serial = ser
+  end
+  
   def activate(recv, args, locals=nil, &prc)
     sz = args.total
     Ruby.asm <<-ASM
@@ -140,13 +148,14 @@ class RuntimePrimitive
 end
 
 class AccessVarMethod < RuntimePrimitive
-  self.instance_fields = 4
+  self.instance_fields = 5
   
   def self.get_ivar(name)
     obj = allocate()
     obj.put 1, RuntimePrimitive::GetIvar
     obj.put 2, 0
-    obj.put 3, name
+    obj.put 3, 0 # serial number
+    obj.put 4, name
     return obj
   end
   
@@ -154,7 +163,8 @@ class AccessVarMethod < RuntimePrimitive
     obj = allocate()
     obj.put 1, RuntimePrimitive::SetIvar
     obj.put 2, 1
-    obj.put 3, name
+    obj.put 3, 0 # serial number
+    obj.put 4, name
     return obj
   end
   
@@ -162,7 +172,8 @@ class AccessVarMethod < RuntimePrimitive
     obj = allocate()
     obj.put 1, RuntimePrimitive::GetIndex
     obj.put 2, 0
-    obj.put 3, idx
+    obj.put 3, 0 # serial number
+    obj.put 4, idx
     return obj
   end
   
@@ -170,7 +181,8 @@ class AccessVarMethod < RuntimePrimitive
     obj = allocate()
     obj.put 1, RuntimePrimitive::SetIndex
     obj.put 2, 1
-    obj.put 3, idx
+    obj.put 3, 0 # serial number
+    obj.put 4, idx
     return obj
   end
   

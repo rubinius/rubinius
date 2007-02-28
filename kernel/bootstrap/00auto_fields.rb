@@ -79,17 +79,19 @@ class CompiledMethod
   def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
   def primitive; Ruby.asm "push self\npush 1\nfetch_field"; end
   def required; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def bytecodes; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def locals; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def literals; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def arguments; Ruby.asm "push self\npush 6\nfetch_field"; end
-  def scope; Ruby.asm "push self\npush 7\nfetch_field"; end
-  def exceptions; Ruby.asm "push self\npush 8\nfetch_field"; end
-  def lines; Ruby.asm "push self\npush 9\nfetch_field"; end
-  def file; Ruby.asm "push self\npush 10\nfetch_field"; end
-  def name; Ruby.asm "push self\npush 11\nfetch_field"; end
-  def path; Ruby.asm "push self\npush 12\nfetch_field"; end
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :bytecodes => 3, :locals => 4, :literals => 5, :arguments => 6, :scope => 7, :exceptions => 8, :lines => 9, :file => 10, :name => 11, :path => 12
+  def serial; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def bytecodes; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def locals; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def literals; Ruby.asm "push self\npush 6\nfetch_field"; end
+  def arguments; Ruby.asm "push self\npush 7\nfetch_field"; end
+  def scope; Ruby.asm "push self\npush 8\nfetch_field"; end
+  def exceptions; Ruby.asm "push self\npush 9\nfetch_field"; end
+  def lines; Ruby.asm "push self\npush 10\nfetch_field"; end
+  def file; Ruby.asm "push self\npush 11\nfetch_field"; end
+  def name; Ruby.asm "push self\npush 12\nfetch_field"; end
+  def path; Ruby.asm "push self\npush 13\nfetch_field"; end
+  def cache; Ruby.asm "push self\npush 14\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :locals => 5, :literals => 6, :arguments => 7, :scope => 8, :exceptions => 9, :lines => 10, :file => 11, :name => 12, :path => 13, :cache => 14
 end
 class Array
   def total; Ruby.asm "push self\npush 0\nfetch_field"; end

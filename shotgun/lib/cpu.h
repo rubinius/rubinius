@@ -43,6 +43,8 @@ struct rubinius_cpu {
      per call. */
   
   long int args;
+  long int cache_index;
+  
   OBJECT *stack_top;
   unsigned long int stack_size;
   OBJECT exception;

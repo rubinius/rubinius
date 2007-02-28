@@ -344,6 +344,7 @@ class ShotgunInstructions
     next_int;
     t1 = tuple_at(state, c->literals, _int);
     stack_push(cpu_const_get(state, c, t1, c->enclosing_class));
+    c->cache_index = -1;
     CODE
   end
   
@@ -353,6 +354,7 @@ class ShotgunInstructions
     next_int;
     t2 = tuple_at(state, c->literals, _int);
     stack_push(cpu_const_get(state, c, t2, t1));
+    c->cache_index = -1;
     CODE
   end
   
@@ -622,6 +624,13 @@ class ShotgunInstructions
   def get_args
     <<-CODE
     stack_push(I2N(c->args));
+    CODE
+  end
+  
+  def set_cache_index
+    <<-CODE
+    next_int;
+    c->cache_index = _int;
     CODE
   end
 end

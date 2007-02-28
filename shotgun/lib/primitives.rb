@@ -1011,7 +1011,7 @@ class ShotgunPrimitives
   def get_ivar
     <<-CODE
     self = stack_pop();
-    t1 = NTH_FIELD(mo, 3);
+    t1 = NTH_FIELD(mo, 4);
     stack_push(object_get_ivar(state, self, t1));
     CODE
   end
@@ -1019,7 +1019,7 @@ class ShotgunPrimitives
   def set_ivar
     <<-CODE
     self = stack_pop();
-    t1 = NTH_FIELD(mo, 3);
+    t1 = NTH_FIELD(mo, 4);
     t2 = stack_pop();
     object_set_ivar(state, self, t1, t2);
     stack_push(t2);
@@ -1032,7 +1032,7 @@ class ShotgunPrimitives
     if(!INDEXED(self)) {
       _ret = FALSE;
     } else {
-      j = FIXNUM_TO_INT(NTH_FIELD(mo, 3));
+      j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
       SET_FIELD(self, j, stack_pop());
       stack_push(NTH_FIELD(self, j));  
       }  
@@ -1045,7 +1045,7 @@ class ShotgunPrimitives
     if(!INDEXED(self)) {
       _ret = FALSE;
     } else {
-      j = FIXNUM_TO_INT(NTH_FIELD(mo, 3));
+      j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
       stack_push(NTH_FIELD(self, j));
     }
     CODE
@@ -1854,6 +1854,24 @@ class ShotgunPrimitives
     } else {
       _ret = FALSE;
     }
+    CODE
+  end
+  
+  def vm_stats
+    <<-CODE
+#ifdef TRACK_STATS
+    t1 = tuple_new(state, 7);
+    tuple_put(state, t1, 0, I2N(state->cache_hits));
+    tuple_put(state, t1, 1, I2N(state->cache_misses));
+    tuple_put(state, t1, 2, I2N(state->cache_used));
+    tuple_put(state, t1, 3, I2N(state->cache_collisions));
+    tuple_put(state, t1, 4, I2N(state->cache_inline_hit));
+    tuple_put(state, t1, 5, I2N(state->cache_inline_stale));
+    tuple_put(state, t1, 6, I2N(state->cache_inline_const_hit));
+    stack_push(t1);
+#else
+    stack_push(Qfalse);
+#endif
     CODE
   end
 

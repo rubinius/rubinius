@@ -8,7 +8,7 @@ ifdef DEV
   OPTIMIZATIONS=
   WARNINGS=-Wall
 else
-  INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=3000 --param large-function-growth=1000 --param inline-unit-growth=500
+  INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=2000 --param inline-unit-growth=1000
   OPTIMIZATIONS=-O2 -ffast-math -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
   WARNINGS=-Wall -Winline
 endif
@@ -66,6 +66,10 @@ auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
 	@echo "CC auto.o"
 	@$(CC) -c -o auto.o auto.c $(CFLAGS)
+
+grammar.o: grammar.y
+	@echo "CC grammar.o"
+	@$(CC) -c -o grammar.o grammar.c $(WARNINGS) -O $(DEBUG) $(CPPFLAGS)
 
 grammar.c: grammar.y
 	bison -o grammar.c grammar.y

@@ -14,6 +14,7 @@ def usage
             -x   Print the normalized s-expression.
             -s   Print assembly instructions.
             -b   Print bytecode encoding.
+            -t   Print stats.
   USAGE
 end
 
@@ -32,6 +33,8 @@ begin
       $show_asm = true
     when '-b'
       $show_bytes = true
+    when '-t'
+      $show_stats = true
     else
       puts "Unrecognized option: #{arg}"
     end
@@ -95,6 +98,13 @@ while true
         
         puts "=> #{out.inspect}" # do it like this so exit won't do =>
         context = ""
+        if $show_stats
+          stats = VM.stats
+          ch = stats.at(0)
+          cm = stats.at(1)
+          per = ch / cm
+          puts "[Stats] [Cache] hits:#{ch}, misses:#{cm}, perc:#{per}"
+        end
       end
     rescue SystemExit => e
       raise

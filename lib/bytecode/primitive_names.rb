@@ -122,7 +122,8 @@ module Bytecode
       :fastctx_get_field,
       :time_usec,
       :fixnum_right_shift,
-      :fixnum_left_shift
+      :fixnum_left_shift,
+      :vm_stats
     ]
 
     FirstRuntimePrimitive = 1024

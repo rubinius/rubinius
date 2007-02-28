@@ -15,6 +15,8 @@
 #include <string.h>
 
 #define EXCESSIVE_TRACING 0
+#define USE_GLOBAL_CACHING 1
+#define USE_INLINE_CACHING 1
 
 #define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
 #define next_int set_int(_int,(c->ip_ptr)); c->ip_ptr += 4
@@ -115,21 +117,61 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
      chain.
      
  */
+ 
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
-  OBJECT ok, meth, hsh, orig_klass;
+  OBJECT ok, hsh, cache, orig_klass, meth, ser;
   struct method_cache *ent;
+
+#if USE_INLINE_CACHING
+  cache = cmethod_get_cache(c->method);
   
-  *mod = Qnil;
-  if(NIL_P(klass)) { return Qnil; }
-  
+  /* There is a cache index for this send, use it! */
+  if(c->cache_index > 0) {
+    if(tuple_at(state, cache, c->cache_index) == klass) {
+      meth = tuple_at(state, cache, c->cache_index + 2);
+      ser =  tuple_at(state, cache, c->cache_index + 3);
+      if(cmethod_get_serial(meth) == ser) {
+#if TRACK_STATS
+        state->cache_inline_hit++;
+#endif
+        *mod = tuple_at(state, cache, c->cache_index + 1);
+        return meth;
+      } else {
+#if TRACK_STATS
+        state->cache_inline_stale++;
+#endif
+      }
+    }
+  }
+#endif
+
+#if USE_GLOBAL_CACHING
   ent = state->method_cache + CPU_CACHE_HASH(klass, name);
   if(ent->name == name && ent->klass == klass) {
     *mod = ent->module;
+
+#if USE_INLINE_CACHING
+    /* Update the inline cache. */
+    if(c->cache_index > 0) {
+      tuple_put(state, cache, c->cache_index, klass);
+      tuple_put(state, cache, c->cache_index + 1, ent->module);
+      tuple_put(state, cache, c->cache_index + 2, ent->method);
+      tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(ent->method));
+    }
+#endif
+    
+#if TRACK_STATS
     state->cache_hits++;
+#endif
     return ent->method;
   }
-  
+#if TRACK_STATS
+  if(ent->name) {
+    state->cache_collisions++;
+  }
   state->cache_misses++;
+#endif
+#endif
 
   hsh = module_get_methods(klass);
   
@@ -159,15 +201,26 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   }
   
   *mod = klass;
-  
+
+#if USE_GLOBAL_CACHING
   /* Update the cache. */
   if(RTEST(meth)) {
-    ent = state->method_cache + CPU_CACHE_HASH(orig_klass, name);
     ent->klass = orig_klass;
     ent->name = name;
     ent->module = klass;
     ent->method = meth;
+
+#if USE_INLINE_CACHING
+    /* Update the inline cache. */
+    if(c->cache_index > 0) {
+      tuple_put(state, cache, c->cache_index, orig_klass);
+      tuple_put(state, cache, c->cache_index + 1, ent->module);
+      tuple_put(state, cache, c->cache_index + 2, ent->method);
+      tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(ent->method));
+    }
+#endif    
   }
+#endif
   
   return meth;
 }
@@ -562,6 +615,11 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
+  
+  /* Make sure no one else sees the a recently set cache_index, it was
+     only for us! */
+  c->cache_index = -1;
+  
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }
 
@@ -585,6 +643,11 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, in
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
+  
+  /* Make sure no one else sees the a recently set cache_index, it was
+     only for us! */
+  c->cache_index = -1;
+  
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }
 

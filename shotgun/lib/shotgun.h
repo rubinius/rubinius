@@ -3,6 +3,9 @@
 #define INTERNAL_MACROS 1
 #define INTERNAL_DEBUG 1
 
+#define TRACK_STATS 1
+#define DISABLE_CHECKS 1
+
 #ifndef MAIN
 extern void *__main_address;
 #endif

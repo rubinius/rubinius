@@ -147,7 +147,6 @@ int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offse
   str = (char*)object_byte_start(state, dest);
   start = str + offset;
   
-  assert(count >= 0);
   memcpy((void*)start, object_byte_start(state, self), count);
   return TRUE;
 }

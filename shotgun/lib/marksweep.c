@@ -131,9 +131,7 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
 
   fields = obj_fields + HEADER_SIZE;
   bytes = fields * REFSIZE;
-  
-  assert(fields < ms->chunk_size);
-  
+    
   lst = 0;
   
   obj = ms->free_list;
@@ -223,7 +221,6 @@ void mark_sweep_free(mark_sweep_gc ms, OBJECT obj) {
   
   if(lst == obj) {}
   
-  assert(lst != obj);
   /* Couldn't collapse it, append it to the end. */
   HEADER(lst)->klass = obj;
 }

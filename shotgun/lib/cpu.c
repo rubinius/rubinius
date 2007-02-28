@@ -43,6 +43,7 @@ void cpu_initialize(STATE, cpu c) {
   c->argcount = 0;
   c->args = 0;
   c->depth = 0;
+  c->cache_index = -1;
 
   /*
 #if CTX_USE_FAST
@@ -215,9 +216,21 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
   return obj;
 }
 
+/* FIXME: the inline caches of constants aren't flushed! */
+
+#define update_cache(val) if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(c->method), c->cache_index, val)
+
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   OBJECT hsh, val, kls;
   int i;
+  
+  if(c->cache_index >= 0) {
+#if TRACK_STATS
+    state->cache_inline_const_hit++;
+#endif
+    val = tuple_at(state, cmethod_get_cache(c->method), c->cache_index);
+    if(val != Qnil) return val;
+  }
   
   val = Qnil;
   
@@ -229,6 +242,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     _inspect(under), c->paths->len, _inspect(c->self));
   */
   if(RTEST(val)) {
+    update_cache(val);
     return val;
   }
   
@@ -243,6 +257,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
        hsh = module_get_constants(c->self);
        val = hash_find(state, hsh, sym);
        if(RTEST(val)) {
+         update_cache(val);
          // printf("Found under %s.\n", _inspect(c->self));
          return val;
        }
@@ -251,7 +266,10 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   /* Case 2: Check in the module that defined the method. */
   hsh = module_get_constants(c->method_module);
   val = hash_find(state, hsh, sym);
-  if(RTEST(val)) { return val; }
+  if(RTEST(val)) {
+    update_cache(val);
+    return val; 
+  }
   
   /* Case 3: Look up the compile time lexical stack. */
   
@@ -260,7 +278,10 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   while(RTEST(under)) {
     hsh = module_get_constants(under);
     val = hash_find(state, hsh, sym);
-    if(RTEST(val)) { return val; }
+    if(RTEST(val)) {
+      update_cache(val);
+      return val;
+    }
     under = module_get_parent(under);
   }
   
@@ -296,9 +317,14 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     
   }
   
+  if(val != Qnil) {
+    update_cache(val);
+  }
   
   return val;
 }
+
+#undef update_cache
 
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
   OBJECT hsh;
@@ -339,7 +365,7 @@ void cpu_push_encloser(STATE, cpu c) {
 }
 
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
-  OBJECT meths;
+  OBJECT meths, cur;
   // Handle a special case where we try and add a method to main
   if(target == c->main) {
     target = c->enclosing_class;
@@ -349,7 +375,14 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   cpu_clear_cache_for_method(state, c, sym);
   
   meths = module_get_methods(target);
-  assert(RTEST(meths));
+  cur = hash_find(state, meths, sym);
+  
+  /* If there is already a method there, increment it's serial number
+     to invalidate it in any caches. */
+     
+  if(RTEST(cur)) {
+    cmethod_set_serial(cur, FIXNUM_TO_INT(cmethod_get_serial(cur)) + 1);
+  }
   hash_set(state, meths, sym, method);
   cpu_perform_hook(state, c, target, state->global->sym_method_added, sym);
 }

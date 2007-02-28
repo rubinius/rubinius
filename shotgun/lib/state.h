@@ -31,8 +31,8 @@ struct rubinius_globals {
 
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
 
-#define CPU_CACHE_SIZE 0x800
-#define CPU_CACHE_MASK 0x7ff
+#define CPU_CACHE_SIZE 0x1000
+#define CPU_CACHE_MASK 0xfff
 #define CPU_CACHE_HASH(c,m) ((((c)>>3)^(m)) & CPU_CACHE_MASK)
 
 struct method_cache {
@@ -62,9 +62,16 @@ struct rubinius_state {
   
   struct method_cache method_cache[CPU_CACHE_SIZE];
   
+#ifdef TRACK_STATS
   int cache_hits;
   int cache_misses;
-  
+  int cache_used;
+  int cache_collisions;
+  int cache_inline_hit;
+  int cache_inline_stale;
+  int cache_inline_const_hit;
+#endif
+
   struct rubinius_globals *global;
   
   /* Used to pass information down to the garbage collectors */
@@ -147,14 +154,34 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 //#define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
 #define CHECK_PTR(obj)
 
+#include "object_memory-barrier.h"
+
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
 
-#include "object_memory-barrier.h"
+// #define ACCESS_MACROS 1
+
+#ifdef ACCESS_MACROS
+
+#define rbs_set_field(om, obj, fel, val) ({ \
+  OBJECT _v, _o; \
+  _v = (val); _o = (obj);\
+  if(((_v & 1) == 0) && (_v > 12)) { \
+    object_memory_write_barrier(om, _o, _v); \
+  } \
+  OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(_o, fel);\
+  *slot = _v;\
+})
+
+#define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
+
+#else
 
 static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
+#if DISABLE_CHECKS
   assert(fel < HEADER(in)->fields);
+#endif
   obj = NTH_FIELD_DIRECT(in, fel);
 #ifdef INTERNAL_MACROS
   CHECK_PTR(obj);
@@ -163,13 +190,15 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
 }
 
 static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT val) {
+#if DISABLE_CHECKS
   if(fel >= HEADER(obj)->fields) {
     printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
       fel, NUM_FIELDS(obj), _inspect(obj));
     assert(0);
   }
+#endif
+
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
-  assert(val != 12);
 #ifdef INTERNAL_MACROS
   /* Check that it's even, ie a ref, and above the special range. */
   if(((val & 1) == 0) && (val > 12)) {
@@ -180,5 +209,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   *slot = val;
   return val;
 }
+
+#endif
 
 #include "object_memory-inline.h"

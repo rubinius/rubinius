@@ -62,6 +62,8 @@ module Bytecode
       
       cmeth.lines = asm.lines_as_tuple
       cmeth.path = encode_path()
+      cmeth.cache = asm.cache_tuple
+      cmeth.serial = 0
       return cmeth
     end
 
@@ -103,6 +105,11 @@ module Bytecode
   end
   
   class Assembler
+    
+    def cache_tuple
+      Tuple.new(@cache_idx)
+    end
+    
     def exceptions_as_tuple
       return nil if @exceptions.empty?
       excs = sorted_exceptions()

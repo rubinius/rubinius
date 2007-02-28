@@ -29,11 +29,6 @@ void state_collect(STATE, cpu c) {
   GPtrArray *roots;
   c->context_cache = 0;
   state->free_contexts->len = 0;
-  /*
-  printf("Cache Hits:   %d\nCache Misses: %d\nCache Perc:   %.2f\n\n", 
-    state->cache_hits, state->cache_misses, 
-    (float)state->cache_hits / state->cache_misses);
-  */  
   
   state->current_stack = c->stack_top;
   state->current_sp =    c->sp_ptr;

@@ -1,18 +1,20 @@
 --- 
 CompiledMethod: 
-  :@lines: 9
-  :@literals: 5
-  :@file: 10
+  :@exceptions: 9
+  :@literals: 6
+  :@lines: 10
   :@primitive: 1
-  :@scope: 7
-  :@locals: 4
+  :@file: 11
+  :@scope: 8
+  :@locals: 5
   :@required: 2
   :@__ivars__: 0
-  :@path: 12
-  :@arguments: 6
-  :@name: 11
-  :@exceptions: 8
-  :@bytecodes: 3
+  :@cache: 14
+  :@path: 13
+  :@serial: 3
+  :@name: 12
+  :@arguments: 7
+  :@bytecodes: 4
 MetaClass: 
   :@attached_instance: 9
   :@methods: 1
@@ -25,9 +27,9 @@ MetaClass:
   :@instance_fields: 7
   :@name: 3
 BlockContext: 
-  :@env: 6
   :@sender: 1
   :@ip: 2
+  :@env: 6
   :@block: 4
   :@sp: 3
   :@__ivars__: 0
@@ -54,14 +56,14 @@ Hash:
   :@keys: 1
   :@values: 2
 Array: 
-  :@tuple: 1
   :@total: 0
+  :@tuple: 1
 MatchData: 
   :@source: 1
-  :@regexp: 2
-  :@__ivars__: 0
   :@full: 3
   :@region: 4
+  :@__ivars__: 0
+  :@regexp: 2
 SymbolTable: 
   :@__ivars__: 0
   :@symbols: 1
@@ -111,7 +113,7 @@ MethodContext:
 Object: 
   :@__ivars__: 0
 String: 
-  :@encoding: 2
   :@bytes: 0
   :@characters: 1
+  :@encoding: 2
   :@data: 3

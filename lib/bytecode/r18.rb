@@ -48,6 +48,8 @@ module Bytecode
       
       cmeth.lines = asm.lines_as_tuple
       cmeth.path = encode_path()
+      cmeth.cache = asm.cache_tuple
+      cmeth.serial = RObject.wrap(0)
       return cmeth
     end
     
@@ -95,6 +97,11 @@ module Bytecode
   end
   
   class Assembler
+    
+    def cache_tuple
+      Rubinius::Tuple.new(@cache_idx)
+    end
+    
     def exceptions_as_tuple
       return RObject.nil if @exceptions.empty?
       excs = sorted_exceptions()

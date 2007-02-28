@@ -1,7 +1,7 @@
 module Rubinius
   module CompiledMethod
-    Fields = [ :primitive, :required, :bytecodes, :locals, :literals,
-      :arguments, :scope, :exceptions, :lines, :file, :name, :path]
+    Fields = [ :primitive, :required, :serial, :bytecodes, :locals, :literals,
+      :arguments, :scope, :exceptions, :lines, :file, :name, :path, :cache]
     
     def self.from_string(bc, lcls)
       obj = allocate()

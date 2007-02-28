@@ -38,6 +38,26 @@ module Bytecode
       @exception_depth = []
       @primitive = nil
       @arguments = []
+      @cache_idx = 0
+    end
+    
+    CacheSlotsPerEntry = 4
+    CacheSlotsForConst = 1
+        
+    def next_cache_index(count)
+      c = @cache_idx
+      @cache_idx += count
+      return c
+    end
+    
+    def add_cache_index
+      @current_op += 5
+      @output << [:set_cache_index, next_cache_index(CacheSlotsPerEntry)]
+    end
+    
+    def add_const_cache_index
+      @current_op += 5
+      @output << [:set_cache_index, next_cache_index(CacheSlotsForConst)]
     end
     
     attr_reader :labels, :source_lines, :primitive, :literals
@@ -336,6 +356,7 @@ module Bytecode
             @output << [:push_ivar, info.last]
             @current_op += 10
           elsif cnt = parse_const(what)
+            add_const_cache_index
             @output << [:push_const, cnt]
             @current_op += 5
           else
@@ -369,6 +390,7 @@ module Bytecode
       elsif what.index("::")
         parent, chld = what.split("::", 2)
         if cnt = parse_const(parent)
+          add_const_cache_index
           @output << [:push_const, cnt]
         else
           raise "Invalid lhs to double colon (#{parent})"
@@ -418,6 +440,8 @@ module Bytecode
       elsif [:open_class, :find_const, :add_method, :attach_method, :send_method, :open_class_under, :open_module, :open_module_under].include?(op)
         sym = parts.shift.to_sym
         idx = find_literal(sym)
+        add_const_cache_index if op == :find_const
+        add_cache_index if op == :send_method
         @output << [op, idx]
         @current_op += 5
         return
@@ -427,12 +451,14 @@ module Bytecode
       elsif op == :send_stack
         sym = parts.shift.to_sym
         idx = find_literal(sym)
+        add_cache_index
         @output << [op, idx, parts.shift.to_i]
         @current_op += 9
         return
       elsif [:"&send", :send].include?(op)
         sym = parts.shift.to_sym
         idx = find_literal(sym)
+        add_cache_index
         @current_op += 5
         if args = parts.shift
           if args.to_i.to_s == args
@@ -453,6 +479,7 @@ module Bytecode
       elsif op == :super
         sym = parts.shift.to_sym
         idx = find_literal(sym)
+        add_cache_index
         @current_op += 9
         args = parts.shift
         @output << [:send_super_stack_with_block, idx, args.to_i]
