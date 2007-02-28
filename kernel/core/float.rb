@@ -57,7 +57,7 @@ class Float < Numeric
   end
 
   def finite?
-    infinite?.nil?
+    not (nan? or infinite?) 
   end
 
   def to_f
@@ -75,6 +75,8 @@ class Float < Numeric
   
   def to_i
     Ruby.primitive :float_to_i
+    raise FloatDomainError, "Infinity" if infinite?
+    self if nan?
   end
   
   alias :to_int :to_i

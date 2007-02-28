@@ -1628,7 +1628,7 @@ class ShotgunPrimitives
   def float_to_i
     <<-CODE
     self = stack_pop();
-    if(FLOAT_P(self)) {
+    if(FLOAT_P(self) && float_infinite_p(state, self) == Qfalse && float_nan_p(state, self) == Qfalse) {
       stack_push(float_to_i(state, self));
     } else {
       _ret = FALSE;
