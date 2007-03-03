@@ -5,20 +5,27 @@ class Exception
     put 0, message
     put 1, ctx
   end
-  
+
   def backtrace
     bk = at(1)
     if FastMethodContext === bk
       bk = Backtrace.backtrace(bk)
       self.put 1, bk
     end
-    
+
     return bk
   end
   
-  def message
-    at(0)
+  def to_s
+    at(0) or self.class.name
   end
+  
+  def inspect
+    "#<#{self.class.name}: #{self.to_s}>"
+  end
+  
+  alias :message :to_s
+  alias :to_str :to_s
 end
 
 class ScriptError < Exception

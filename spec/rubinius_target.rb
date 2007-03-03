@@ -135,6 +135,7 @@ module RubiniusTarget
     @template ||= <<-CODE
     def try(a, b=true)
       yield
+      return nil
     rescue a
       return b
     end

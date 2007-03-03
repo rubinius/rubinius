@@ -10,8 +10,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Exception class method" do
   specify "new should create a new instance of Exception" do
     example do
-      Exception.new
-    end.should_be_kind_of Exception
+      Exception.new.class.ancestors
+    end.should_include Exception
   end
   
   specify "new with message should set the message of the Exception" do
@@ -22,8 +22,8 @@ context "Exception class method" do
   
   specify "exception should be a synonym for new" do
     example do
-      Exception.exception
-    end.should_be_kind_of Exception
+      Exception.exception.class.ancestors
+    end.should_include Exception
   end
   
   specify "exception should return 'Exception' for message when no message given" do
@@ -62,92 +62,92 @@ end
 context "In the Exception class hierarchy" do
   specify "Exception should exist" do
     example do
-      Exception.new
-    end.should_be_kind_of Exception
+      Exception.new.class.ancestors
+    end.should_include Exception
   end
   
   specify "NoMemoryError should subclass Exception" do
     example do
-      NoMemoryError.new
-    end.should_be_kind_of Exception
+      NoMemoryError.new.class.ancestors
+    end.should_include Exception
   end
 
   specify "ScriptError should subclass Exception" do
     example do
-      ScriptError.new
-    end.should_be_kind_of Exception
+      ScriptError.new.class.ancestors
+    end.should_include Exception
   end
   
   specify "LoadError should subclass ScriptError" do
     example do
-      LoadError.new
-    end.should_be_kind_of ScriptError
+      LoadError.new.class.ancestors
+    end.should_include ScriptError
   end
 
   specify "NotImplementedError should subclass ScriptError" do
     example do
-      NotImplementedError.new
-    end.should_be_kind_of ScriptError
+      NotImplementedError.new.class.ancestors
+    end.should_include ScriptError
   end
 
   specify "SyntaxError should subclass ScriptError" do
     example do
-      SyntaxError.new
-    end.should_be_kind_of ScriptError
+      SyntaxError.new.class.ancestors
+    end.should_include ScriptError
   end
 
   specify "SignalException should subclass Exception" do
     example do
-      SignalException.new
-    end.should_be_kind_of Exception
+      SignalException.new.class.ancestors
+    end.should_include Exception
   end
   
   specify "Interrupt should subclass SignalException" do
     example do
-      Interrupt.new
-    end.should_be_kind_of SignalException
+      Interrupt.new.class.ancestors
+    end.should_include SignalException
   end
 
   specify "StandardError should subclass Exception" do
     example do
-      StandardError.new
-    end.should_be_kind_of Exception
+      StandardError.new.class.ancestors
+    end.should_include Exception
   end
   
   specify "ArgumentError should subclass StandardError" do
     example do
-      ArgumentError.new
-    end.should_be_kind_of StandardError
+      ArgumentError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "IOError should subclass StandardError" do
     example do
-      IOError.new
-    end.should_be_kind_of StandardError
+      IOError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "EOFError should subclass IOError" do
     example do
-      EOFError.new
-    end.should_be_kind_of IOError
+      EOFError.new.class.ancestors
+    end.should_include IOError
   end
   
   specify "IndexError should subclass StandardError" do
     example do
-      IndexError.new
-    end.should_be_kind_of StandardError
+      IndexError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "LocalJumpError should subclass StandardError" do
     example do
-      LocalJumpError.new
-    end.should_be_kind_of StandardError
+      LocalJumpError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "NameError should subclass StandardError" do
     example do
-      NameError.new
-    end.should_be_kind_of StandardError
+      NameError.new.class.ancestors
+    end.should_include StandardError
   end
   
   specify "NameError.new should take optional name argument" do
@@ -158,8 +158,8 @@ context "In the Exception class hierarchy" do
   
   specify "NoMethodError should subclass NameError" do
     example do
-      NoMethodError.new
-    end.should_be_kind_of NameError
+      NoMethodError.new.class.ancestors
+    end.should_include NameError
   end
   
   specify "NoMethodError.new should allow passing method args" do
@@ -170,38 +170,38 @@ context "In the Exception class hierarchy" do
 
   specify "RangeError should subclass StandardError" do
     example do
-      RangeError.new
-    end.should_be_kind_of StandardError
+      RangeError.new.class.ancestors
+    end.should_include StandardError
   end
   
   specify "FloatDomainError should subclass RangeError" do
     example do
-      FloatDomainError.new
-    end.should_be_kind_of RangeError
+      FloatDomainError.new.class.ancestors
+    end.should_include RangeError
   end
 
   specify "RegexpError should subclass StandardError" do
     example do
-      RegexpError.new
-    end.should_be_kind_of StandardError
+      RegexpError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "RuntimeError should subclass StandardError" do
     example do
-      RuntimeError.new
-    end.should_be_kind_of StandardError
+      RuntimeError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "SecurityError should subclass StandardError" do
     example do
-      SecurityError.new
-    end.should_be_kind_of StandardError
+      SecurityError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "SystemCallError should subclass StandardError" do
     example do
-      SystemCallError.new("")
-    end.should_be_kind_of StandardError
+      SystemCallError.new("").class.ancestors
+    end.should_include StandardError
   end
   
   specify "SystemCallError.new requires at least one argumentt" do
@@ -214,8 +214,8 @@ context "In the Exception class hierarchy" do
   
   specify "SystemCallError.new should take optional errno argument" do
     example do
-      SystemCallError.new("message",1)
-    end.should_be_kind_of SystemCallError
+      SystemCallError.new("message",1).class.ancestors
+    end.should_include SystemCallError
   end
   
   context "SystemCallError instance methods" do
@@ -234,31 +234,31 @@ context "In the Exception class hierarchy" do
 
   specify "ThreadError should subclass StandardError" do
     example do
-      ThreadError.new
-    end.should_be_kind_of StandardError
+      ThreadError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "TypeError should subclass StandardError" do
     example do
-      TypeError.new
-    end.should_be_kind_of StandardError
+      TypeError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "ZeroDivisionError should subclass StandardError" do
     example do
-      ZeroDivisionError.new
-    end.should_be_kind_of StandardError
+      ZeroDivisionError.new.class.ancestors
+    end.should_include StandardError
   end
 
   specify "SystemExit should subclass Exception" do
     example do
-      SystemExit.new
-    end.should_be_kind_of Exception
+      SystemExit.new.class.ancestors
+    end.should_include Exception
   end
 
   specify "SystemStackError should subclass Exception" do
     example do
-      SystemStackError.new
-    end.should_be_kind_of Exception
+      SystemStackError.new.class.ancestors
+    end.should_include Exception
   end
 end

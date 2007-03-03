@@ -8,10 +8,6 @@ class Exception
     else self
     end
   end
-  def to_s
-    message || self.class.name
-  end
-  alias :to_str :to_s
   def set_backtrace(bt)
     put 1, bt
   end
@@ -36,9 +32,20 @@ class LocalJumpError < StandardError
 end
 
 class NameError < StandardError
+  attr_reader :name
+  def initialize(*args)
+    super(args.shift)
+    @name = args.shift
+  end
 end
 
 class NoMethodError < NameError
+  attr_reader :name, :args
+  def initialize(*arguments)
+    super(arguments.shift)
+    @name = arguments.shift
+    @args = arguments.shift
+  end
 end
 
 class RuntimeError < StandardError
@@ -48,6 +55,11 @@ class SecurityError < StandardError
 end
 
 class SystemCallError < StandardError
+  attr_reader :errno
+  def initialize(*args)
+    super(args.shift)
+    @errno = args.shift
+  end
 end
 
 class SystemStackError < Exception
