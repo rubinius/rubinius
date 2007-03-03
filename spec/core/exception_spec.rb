@@ -26,6 +26,12 @@ context "Exception class method" do
     end.should_be_kind_of Exception
   end
   
+  specify "exception should return 'Exception' for message when no message given" do
+    example do 
+      Exception.exception.message
+    end.should == "Exception"
+  end
+  
   specify "exception with message should set the message of the Exception" do
     example do
       Exception.exception("Help, I've fallen.").message
@@ -38,6 +44,18 @@ context "Exception instance method" do
     example do
       [Exception.new.message, Exception.new("Ouch!").message]
     end.should == ["Exception", "Ouch!"]
+  end
+  
+  specify "inspect should return '#<Exception: Exception>' when no message given" do
+    example do
+      Exception.new.inspect
+    end.should == "#<Exception: Exception>"
+  end
+  
+  specify "inspect should include message when given" do
+    example do
+      [Exception.new("foobar").inspect]
+    end.should == ["#<Exception: foobar>"]
   end
 end
 
@@ -182,8 +200,36 @@ context "In the Exception class hierarchy" do
 
   specify "SystemCallError should subclass StandardError" do
     example do
-      SystemCallError.new(0)
+      SystemCallError.new("")
     end.should_be_kind_of StandardError
+  end
+  
+  specify "SystemCallError.new requires at least one argumentt" do
+    example do
+      try(ArgumentError,"success") do
+        SystemCallError.new
+      end
+    end.should == "success"
+  end
+  
+  specify "SystemCallError.new should take optional errno argument" do
+    example do
+      SystemCallError.new("message",1)
+    end.should_be_kind_of SystemCallError
+  end
+  
+  context "SystemCallError instance methods" do
+    specify "errno should return nil when no errno given" do
+      example do
+        SystemCallError.new("message").errno
+      end.should == nil
+    end  
+    
+    specify "errno should return the errno given as optional argument to new" do
+      example do
+        SystemCallError.new("message", 42).errno
+      end.should == 42
+    end
   end
 
   specify "ThreadError should subclass StandardError" do
