@@ -17,7 +17,7 @@ class Exception
   end
   
   def to_s
-    at(0) or self.class.name
+    at(0) or self.class.to_s
   end
   
   def inspect
