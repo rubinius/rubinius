@@ -54,14 +54,6 @@ end
 class SecurityError < StandardError
 end
 
-class SystemCallError < StandardError
-  attr_reader :errno
-  def initialize(*args)
-    super(args.shift)
-    @errno = args.shift
-  end
-end
-
 class SystemStackError < Exception
 end
 

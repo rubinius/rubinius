@@ -52,3 +52,15 @@ class SyntaxError
     @line = l
   end
 end
+
+class SystemCallError < StandardError
+  self.instance_fields = 3
+  def initialize(message, errno = 0)
+    super(message)
+    put 2, errno
+  end
+  
+  def errno
+    at(2)
+  end
+end
