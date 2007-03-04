@@ -14,19 +14,20 @@ void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 2;
   
-  OBJECT exc, std, arg, loe, stk, sxp, sce;
+  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
   exc = dexc(Exception, BC(object));
   dexc(fatal, exc);
+  scp = dexc(ScriptError, exc);
   std = dexc(StandardError, exc);
   dexc(TypeError, std);
-  arg = dexc(ArgumentError, exc);
-  dexc(NameError, std);
-  dexc(NoMethodError, exc);
-  dexc(SyntaxError, exc);
-  loe = dexc(LoadError, exc);
+  arg = dexc(ArgumentError, std);
+  nam = dexc(NameError, std);
+  dexc(NoMethodError, nam);
+  dexc(SyntaxError, scp);
+  loe = dexc(LoadError, scp);
   dexc(RuntimeError, std);
   sce = dexc(SystemCallError, std);
   stk = dexc(StackError, exc);
