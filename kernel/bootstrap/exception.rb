@@ -55,7 +55,7 @@ end
 
 class SystemCallError < StandardError
   self.instance_fields = 3
-  def initialize(message, errno = 0)
+  def initialize(message, errno = nil)
     super(message)
     put 2, errno
   end
