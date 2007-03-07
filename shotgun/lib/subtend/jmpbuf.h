@@ -50,7 +50,7 @@ buf->__pc = (func);
 buf->_jb[2] = (long)(stack); \
 buf->_jb[0] = (long)(func);
 
-#elif defined(__jmp_buf)
+#elif defined(linux) || defined(__linux__)
 
 #define JB_SP	4
 #define JB_PC	5
