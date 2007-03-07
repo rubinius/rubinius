@@ -1,7 +1,14 @@
 module Kernel
   def puts(*a)
     a = [""] if a.empty?
-    a.each { |obj| STDOUT.puts obj.to_s }
+    a.each do |obj| 
+      str = obj.to_s
+      if str[-1] == 10
+        STDOUT.print str
+      else
+        STDOUT.puts str
+      end
+    end
     nil
   end
   

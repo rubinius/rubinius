@@ -1,0 +1,13852 @@
+kernel/bootstrap/00auto_fields.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7514.0	2007-03-07 12:52:13.000000000 -0800
++++ /tmp/compare2.7514.0	2007-03-07 12:52:14.000000000 -0800
+@@ -273,7 +273,29 @@
+ add_method attached_instance
+ pop
+ #line 12
+-push nil
++push 9
++push_literal 10
++push 8
++push_literal 11
++push 7
++push_literal 12
++push 6
++push_literal 13
++push 5
++push_literal 14
++push 4
++push_literal 15
++push 3
++push_literal 16
++push 2
++push_literal 17
++push 1
++push_literal 18
++push 0
++push_literal 19
++make_hash 20
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 2
+@@ -408,7 +430,37 @@
+ add_method module
+ pop
+ #line 29
+-push nil
++push 13
++push_literal 14
++push 12
++push_literal 15
++push 11
++push_literal 16
++push 10
++push_literal 17
++push 9
++push_literal 18
++push 8
++push_literal 19
++push 7
++push_literal 20
++push 6
++push_literal 21
++push 5
++push_literal 22
++push 4
++push_literal 23
++push 3
++push_literal 24
++push 2
++push_literal 25
++push 1
++push_literal 26
++push 0
++push_literal 27
++make_hash 28
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 15
+@@ -542,7 +594,27 @@
+ add_method instance_flags
+ pop
+ #line 41
+-push nil
++push 8
++push_literal 9
++push 7
++push_literal 10
++push 6
++push_literal 11
++push 5
++push_literal 12
++push 4
++push_literal 13
++push 3
++push_literal 14
++push 2
++push_literal 15
++push 1
++push_literal 16
++push 0
++push_literal 17
++make_hash 18
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 32
+@@ -676,7 +748,39 @@
+ add_method cache
+ pop
+ #line 59
+-push nil
++push 14
++push_literal 15
++push 13
++push_literal 16
++push 12
++push_literal 17
++push 11
++push_literal 18
++push 10
++push_literal 19
++push 9
++push_literal 20
++push 8
++push_literal 21
++push 7
++push_literal 22
++push 6
++push_literal 23
++push 5
++push_literal 24
++push 4
++push_literal 25
++push 3
++push_literal 26
++push 2
++push_literal 27
++push 1
++push_literal 28
++push 0
++push_literal 29
++make_hash 30
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 44
+@@ -791,7 +895,17 @@
+ add_method names
+ pop
+ #line 66
+-push nil
++push 3
++push_literal 4
++push 2
++push_literal 5
++push 1
++push_literal 6
++push 0
++push_literal 7
++make_hash 8
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 62
+@@ -850,7 +964,21 @@
+ add_method parent
+ pop
+ #line 75
+-push nil
++push 5
++push_literal 6
++push 4
++push_literal 7
++push 3
++push_literal 8
++push 2
++push_literal 9
++push 1
++push_literal 10
++push 0
++push_literal 11
++make_hash 12
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 69
+@@ -901,7 +1029,13 @@
+ add_method tuple
+ pop
+ #line 80
+-push nil
++push 1
++push_literal 2
++push 0
++push_literal 3
++make_hash 4
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 78
+@@ -953,7 +1087,23 @@
+ add_method env
+ pop
+ #line 90
+-push nil
++push 6
++push_literal 7
++push 5
++push_literal 8
++push 4
++push_literal 9
++push 3
++push_literal 10
++push 2
++push_literal 11
++push 1
++push_literal 12
++push 0
++push_literal 13
++make_hash 14
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 83
+@@ -1035,7 +1185,23 @@
+ add_method default_proc
+ pop
+ #line 100
+-push nil
++push 6
++push_literal 7
++push 5
++push_literal 8
++push 4
++push_literal 9
++push 3
++push_literal 10
++push 2
++push_literal 11
++push 1
++push_literal 12
++push 0
++push_literal 13
++make_hash 14
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 93
+@@ -1087,7 +1253,11 @@
+ add_method __ivars__
+ pop
+ #line 104
+-push nil
++push 0
++push_literal 1
++make_hash 2
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 103
+@@ -1118,7 +1288,17 @@
+ add_method data
+ pop
+ #line 111
+-push nil
++push 3
++push_literal 4
++push 2
++push_literal 5
++push 1
++push_literal 6
++push 0
++push_literal 7
++make_hash 8
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 107
+@@ -1172,7 +1352,19 @@
+ add_method region
+ pop
+ #line 119
+-push nil
++push 4
++push_literal 5
++push 3
++push_literal 6
++push 2
++push_literal 7
++push 1
++push_literal 8
++push 0
++push_literal 9
++make_hash 10
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 114
+@@ -1212,7 +1404,11 @@
+ add_method descriptor
+ pop
+ #line 123
+-push nil
++push 0
++push_literal 1
++make_hash 2
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 122
+@@ -1258,7 +1454,23 @@
+ add_method default_proc
+ pop
+ #line 133
+-push nil
++push 6
++push_literal 7
++push 5
++push_literal 8
++push 4
++push_literal 9
++push 3
++push_literal 10
++push 2
++push_literal 11
++push 1
++push_literal 12
++push 0
++push_literal 13
++make_hash 14
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 126
+@@ -1320,7 +1532,15 @@
+ add_method strings
+ pop
+ #line 139
+-push nil
++push 2
++push_literal 3
++push 1
++push_literal 4
++push 0
++push_literal 5
++make_hash 6
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 136
+@@ -1348,7 +1568,11 @@
+ add_method __ivars__
+ pop
+ #line 143
+-push nil
++push 0
++push_literal 1
++make_hash 2
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 142
+@@ -1384,7 +1608,19 @@
+ add_method post_send
+ pop
+ #line 151
+-push nil
++push 4
++push_literal 5
++push 3
++push_literal 6
++push 2
++push_literal 7
++push 1
++push_literal 8
++push 0
++push_literal 9
++make_hash 10
++push self
++send ivar_as_index 1
+ ret
+ check_argcount 0 0
+ #line 146
+1
+kernel/bootstrap/00io.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/00object.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/01class.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7532.0	2007-03-07 12:52:20.000000000 -0800
++++ /tmp/compare2.7532.0	2007-03-07 12:52:31.000000000 -0800
+@@ -1,28 +1,19 @@
+-#line 1
+-push nil
+-open_class Class
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 3
+-push_literal 0
+-push_self
+-add_method instance_fields=
+-ret
+-check_argcount 1 1
+-set num:2
+-pop
+-#line 4
+-push num:2
+-set @instance_fields
+-ret
++
++An error has occured: Bus violation (SIGBUS)
++
++C backtrace:
++0xffffffff <unknown> at ??:0
++    0x732c <symtbl_lookup_cstr> at symbol.c:37
++   0x70764 <syd_add_to_parse_tree> at grammar_runtime.c:177
++   0x710a0 <syd_add_to_parse_tree> at grammar_runtime.c:879
++   0x6ffd8 <syd_add_to_parse_tree> at grammar_runtime.c:454
++   0x710a0 <syd_add_to_parse_tree> at grammar_runtime.c:879
++   0x710a0 <syd_add_to_parse_tree> at grammar_runtime.c:879
++   0x63b5c <convert_to_sexp> at grammar.y:2763
++   0x63d5c <syd_compile_file> at grammar.y:2835
++   0x59ac8 <cpu_perform_system_primitive> at system_primitives.gen:662
++   0x45d00 <cpu_run> at cpu.h:171
++    0x3e28 <machine_load_archive> at machine.c:429
++    0x3290 <main> at main.c:90
++
++Ruby backtrace:
+1
+kernel/bootstrap/02module.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/03hash.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7558.0	2007-03-07 12:52:36.000000000 -0800
++++ /tmp/compare2.7558.0	2007-03-07 12:52:37.000000000 -0800
+@@ -455,44 +455,44 @@
+ send_primitive create_block 2
+ goto lbl3
+ unshift_tuple
+-set tup:4
++set tup:3
+ pop
+ #line 94
+ lbl4:
+-push tup:4
++push tup:3
+ gif lbl5
+ lbl6:
+ #line 95
+ push 1
+-push tup:4
++push tup:3
+ send at 1
+ send inspect 0
+-set str:3
++set str:4
+ pop
+ #line 96
+ push_literal 0
+ string_dup
+-push str:3
++push str:4
+ send << 1
+ pop
+ #line 97
+ push 2
+-push tup:4
++push tup:3
+ send at 1
+ send inspect 0
+-push str:3
++push str:4
+ send << 1
+ pop
+ #line 99
+-push str:3
++push str:4
+ push ary:2
+ send << 1
+ pop
+ #line 100
+ push 3
+-push tup:4
++push tup:3
+ send at 1
+-set tup:4
++set tup:3
+ pop
+ goto lbl4
+ lbl5:
+@@ -515,9 +515,9 @@
+ string_dup
+ string_append
+ string_append
+-set str:3
++set str:4
+ pop
+ #line 104
+-push str:3
++push str:4
+ ret
+ ret
+1
+kernel/bootstrap/04kernel.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7564.0	2007-03-07 12:52:39.000000000 -0800
++++ /tmp/compare2.7564.0	2007-03-07 12:52:39.000000000 -0800
+@@ -71,7 +71,8 @@
+ pop
+ #line 6
+ push 10
+-push -1
++push 1
++send -@
+ push str:4
+ send [] 1
+ send == 1
+1
+kernel/bootstrap/array.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7570.0	2007-03-07 12:52:42.000000000 -0800
++++ /tmp/compare2.7570.0	2007-03-07 12:52:43.000000000 -0800
+@@ -714,7 +714,8 @@
+ push a:3
+ send nil? 0
+ gif lbl5
+-push -1
++push 1
++send -@
+ ret
+ goto lbl6
+ lbl5:
+1
+kernel/bootstrap/bignum.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/bytearray.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/class.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/compiled_method.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7594.0	2007-03-07 12:52:52.000000000 -0800
++++ /tmp/compare2.7594.0	2007-03-07 12:53:03.000000000 -0800
+@@ -1,856 +1,19 @@
+-#line 1
+-push nil
+-open_class NativeMethod
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-pop
+-#line 19
+-push nil
+-open_class CompiledMethod
+-dup
+-push_literal 1
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-pop
+-#line 118
+-push nil
+-open_class Method
+-dup
+-push_literal 2
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-pop
+-#line 142
+-push nil
+-open_class UnboundMethod
+-dup
+-push_literal 3
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-pop
+-#line 161
+-push nil
+-open_class RuntimePrimitive
+-dup
+-push_literal 4
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-pop
+-#line 168
+-push RuntimePrimitive
+-open_class AccessVarMethod
+-dup
+-push_literal 5
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 2
+-push_literal 0
+-push_self
+-add_method lines
+-pop
+-#line 6
+-push_literal 1
+-push_self
+-add_method exceptions
+-pop
+-#line 10
+-push_literal 2
+-push_self
+-add_method literals
+-pop
+-#line 14
+-push_literal 3
+-push_self
+-add_method line_from_ip
+-ret
+-check_argcount 0 0
+-#line 3
+-push nil
+-ret
+-check_argcount 0 0
+-#line 7
+-push nil
+-ret
+-check_argcount 0 0
+-#line 11
+-push nil
+-ret
+-check_argcount 1 1
+-set i:2
+-pop
+-#line 15
+-push 0
+-ret
+-push self
+-set_encloser
+-#line 20
+-push_literal 0
+-push_self
+-add_method inspect
+-pop
+-#line 24
+-push_literal 1
+-push_self
+-add_method from_string
+-pop
+-#line 40
+-push_literal 2
+-push_self
+-add_method exceptions=
+-pop
+-#line 44
+-push_literal 3
+-push_self
+-add_method literals=
+-pop
+-#line 48
+-push_literal 4
+-push_self
+-add_method file=
+-pop
+-#line 52
+-push_literal 5
+-push_self
+-add_method name=
+-pop
+-#line 56
+-push_literal 6
+-push_self
+-add_method lines=
+-pop
+-#line 60
+-push_literal 7
+-push_self
+-add_method path=
+-pop
+-#line 64
+-push_literal 8
+-push_self
+-add_method primitive=
+-pop
+-#line 68
+-push_literal 9
+-push_self
+-add_method cache=
+-pop
+-#line 72
+-push_literal 10
+-push_self
+-add_method serial=
+-pop
+-#line 76
+-push_literal 11
+-push_self
+-add_method activate
+-pop
+-#line 89
+-push_literal 12
+-push self
+-attach_method load_from_file
+-pop
+-#line 93
+-push_literal 13
+-push_self
+-add_method activate_as_script
+-pop
+-#line 97
+-push_literal 14
+-push_self
+-add_method line_from_ip
+-pop
+-#line 109
+-push_literal 15
+-push_self
+-add_method arity
+-pop
+-#line 113
+-push_literal 16
+-push_self
+-add_method bytecodes
+-ret
+-check_argcount 0 0
+-#line 21
+-push_literal 0
+-string_dup
+-push @file
+-send to_s
+-push_literal 1
+-string_dup
+-push @name
+-send to_s
+-push_literal 2
+-string_dup
+-push 16
+-push self
+-send object_id 0
+-send to_s 1
+-send to_s
+-push_literal 3
+-string_dup
+-push self
+-send class 0
+-send name 0
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-ret
+-check_argcount 3 3
+-set bc:2
+-pop
+-set lcls:3
+-pop
+-set req:4
+-pop
+-#line 25
+-push bc:2
+-set @bytecodes
+-pop
+-#line 26
+-push -1
+-set @primitive
+-pop
+-#line 27
+-push lcls:3
+-set @locals
+-pop
+-#line 28
+-push 0
+-push Tuple
+-send new 1
+-set @literals
+-pop
+-#line 29
+-push 0
+-set @required
+-pop
+-#line 30
+-push 0
+-push Tuple
+-send new 1
+-set @arguments
+-pop
+-#line 31
+-push nil
+-set @exceptions
+-pop
+-#line 32
+-push nil
+-set @lines
+-pop
+-#line 33
+-push nil
+-set @file
+-pop
+-#line 34
+-push nil
+-set @name
+-pop
+-#line 35
+-push nil
+-set @path
+-pop
+-#line 36
+-push req:4
+-set @required
+-pop
+-#line 37
+-push self
+-ret
+-ret
+-check_argcount 1 1
+-set tup:2
+-pop
+-#line 41
+-push tup:2
+-set @exceptions
+-ret
+-check_argcount 1 1
+-set tup:2
+-pop
+-#line 45
+-push tup:2
+-set @literals
+-ret
+-check_argcount 1 1
+-set val:2
+-pop
+-#line 49
+-push val:2
+-set @file
+-ret
+-check_argcount 1 1
+-set val:2
+-pop
+-#line 53
+-push val:2
+-set @name
+-ret
+-check_argcount 1 1
+-set val:2
+-pop
+-#line 57
+-push val:2
+-set @lines
+-ret
+-check_argcount 1 1
+-set val:2
+-pop
+-#line 61
+-push val:2
+-set @path
+-ret
+-check_argcount 1 1
+-set idx:2
+-pop
+-#line 65
+-push idx:2
+-set @primitive
+-ret
+-check_argcount 1 1
+-set tup:2
+-pop
+-#line 69
+-push tup:2
+-set @cache
+-ret
+-check_argcount 1 1
+-set ser:2
+-pop
+-#line 73
+-push ser:2
+-set @serial
+-ret
+-check_argcount 2 3
+-set recv:2
+-pop
+-set args:3
+-pop
+-passed_arg 2
+-git set1
+-push nil
+-set1:
+-set locals:4
+-pop
+-push_block
+-push Proc
+-send from_environment 1
+-set prc:6
+-pop
+-#line 77
+-push args:3
+-send total 0
+-set sz:5
+-pop
+-#line 78
+-push args
+-    push_array
+-    push locals
+-    push sz
+-    push self
+-    push recv
+-    activate_method
+-ret
+-check_argcount 1 1
+-set path:2
+-pop
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-ret
+-check_argcount 0 0
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-ret
+-check_argcount 1 1
+-set i:2
+-pop
+-#line 98
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set t:3
+-pop
+-#line 99
+-push 0
+-push t:3
+-send at 1
+-set start:4
+-pop
+-#line 100
+-push 1
+-push t:3
+-send at 1
+-set nd:5
+-pop
+-#line 101
+-push 2
+-push t:3
+-send at 1
+-set op:6
+-pop
+-#line 102
+-push start:4
+-push i:2
+-send >= 1
+-dup
+-gif lbl4
+-pop
+-push nd:5
+-push i:2
+-send <= 1
+-lbl4:
+-gif lbl5
+-#line 103
+-push op:6
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-lbl2: soft_return
+-lbl3:
+-push @lines
+-&send each 0
+-lbl1:
+-pop
+-#line 106
+-push 0
+-ret
+-ret
+-check_argcount 0 0
+-#line 110
+-push @required
+-ret
+-check_argcount 0 0
+-#line 114
+-push @bytecodes
+-ret
+-push self
+-set_encloser
+-#line 119
+-push_literal 0
+-push_self
+-add_method initialize
+-pop
+-#line 125
+-push_literal 1
+-push_self
+-add_method inspect
+-pop
+-#line 129
+-push_literal 2
+-push_self
+-add_method call
+-pop
+-#line 133
+-push_literal 3
+-push_self
+-add_method unbind
+-pop
+-#line 137
+-push_literal 4
+-push_self
+-add_method arity
+-ret
+-check_argcount 3 3
+-set recv:2
+-pop
+-set mod:3
+-pop
+-set cm:4
+-pop
+-#line 120
+-push recv:2
+-set @receiver
+-pop
+-#line 121
+-push cm:4
+-set @method
+-pop
+-#line 122
+-push mod:3
+-set @module
+-ret
+-check_argcount 0 0
+-#line 126
+-push_literal 0
+-string_dup
+-push @method
+-send name 0
+-send to_s
+-push_literal 1
+-string_dup
+-push @module
+-send to_s
+-push_literal 2
+-string_dup
+-push @receiver
+-send class 0
+-send to_s
+-push_literal 3
+-string_dup
+-push self
+-send class 0
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set args
+-pop
+-push_block
+-push Proc
+-send from_environment 1
+-set prc:3
+-pop
+-#line 130
+-push args:2
+-push @receiver
+-push prc:3
+-push @method
+-&send activate 2
+-lbl1:
+-ret
+-check_argcount 0 0
+-#line 134
+-push @method
+-push @module
+-push UnboundMethod
+-send new 2
+-ret
+-check_argcount 0 0
+-#line 138
+-push @method
+-send arity 0
+-ret
+-push self
+-set_encloser
+-#line 143
+-push_literal 0
+-push_self
+-add_method initialize
+-pop
+-#line 148
+-push_literal 1
+-push_self
+-add_method inspect
+-pop
+-#line 152
+-push_literal 2
+-push_self
+-add_method bind
+-pop
+-#line 156
+-push_literal 3
+-push_self
+-add_method arity
+-ret
+-check_argcount 2 2
+-set mod:2
+-pop
+-set cm:3
+-pop
+-#line 144
+-push cm:3
+-set @method
+-pop
+-#line 145
+-push mod:2
+-set @module
+-ret
+-check_argcount 0 0
+-#line 149
+-push_literal 0
+-string_dup
+-push @method
+-send name 0
+-send to_s
+-push_literal 1
+-string_dup
+-push @module
+-send to_s
+-push_literal 2
+-string_dup
+-push self
+-send class 0
+-send to_s
+-push_literal 3
+-string_dup
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-string_append
+-ret
+-check_argcount 1 1
+-set receiver:2
+-pop
+-#line 153
+-push @method
+-push @module
+-push receiver:2
+-push Method
+-send new 3
+-ret
+-check_argcount 0 0
+-#line 157
+-push @method
+-send arity 0
+-ret
+-push self
+-set_encloser
+-#line 162
+-push 1024
+-set SetIvar
+-pop
+-#line 163
+-push 1025
+-set GetIvar
+-pop
+-#line 164
+-push 1026
+-set SetIndex
+-pop
+-#line 165
+-push 1027
+-set GetIndex
+-ret
+-push self
+-set_encloser
+-#line 169
+-push 5
+-push self
+-send instance_fields= 1
+-pop
+-#line 171
+-push_literal 0
+-push self
+-attach_method get_ivar
+-pop
+-#line 180
+-push_literal 1
+-push self
+-attach_method set_ivar
+-pop
+-#line 189
+-push_literal 2
+-push self
+-attach_method get_index
+-pop
+-#line 198
+-push_literal 3
+-push self
+-attach_method set_index
+-ret
+-check_argcount 1 1
+-set name:2
+-pop
+-#line 172
+-push self
+-send allocate 0
+-set obj:3
+-pop
+-#line 173
+-push RuntimePrimitive
+-find GetIvar
+-push 1
+-push obj:3
+-send put 2
+-pop
+-#line 174
+-push 0
+-push 2
+-push obj:3
+-send put 2
+-pop
+-#line 175
+-push 0
+-push 3
+-push obj:3
+-send put 2
+-pop
+-#line 176
+-push name:2
+-push 4
+-push obj:3
+-send put 2
+-pop
+-#line 177
+-push obj:3
+-ret
+-ret
+-check_argcount 1 1
+-set name:2
+-pop
+-#line 181
+-push self
+-send allocate 0
+-set obj:3
+-pop
+-#line 182
+-push RuntimePrimitive
+-find SetIvar
+-push 1
+-push obj:3
+-send put 2
+-pop
+-#line 183
+-push 1
+-push 2
+-push obj:3
+-send put 2
+-pop
+-#line 184
+-push 0
+-push 3
+-push obj:3
+-send put 2
+-pop
+-#line 185
+-push name:2
+-push 4
+-push obj:3
+-send put 2
+-pop
+-#line 186
+-push obj:3
+-ret
+-ret
+-check_argcount 1 1
+-set idx:2
+-pop
+-#line 190
+-push self
+-send allocate 0
+-set obj:3
+-pop
+-#line 191
+-push RuntimePrimitive
+-find GetIndex
+-push 1
+-push obj:3
+-send put 2
+-pop
+-#line 192
+-push 0
+-push 2
+-push obj:3
+-send put 2
+-pop
+-#line 193
+-push 0
+-push 3
+-push obj:3
+-send put 2
+-pop
+-#line 194
+-push idx:2
+-push 4
+-push obj:3
+-send put 2
+-pop
+-#line 195
+-push obj:3
+-ret
+-ret
+-check_argcount 1 1
+-set idx:2
+-pop
+-#line 199
+-push self
+-send allocate 0
+-set obj:3
+-pop
+-#line 200
+-push RuntimePrimitive
+-find SetIndex
+-push 1
+-push obj:3
+-send put 2
+-pop
+-#line 201
+-push 1
+-push 2
+-push obj:3
+-send put 2
+-pop
+-#line 202
+-push 0
+-push 3
+-push obj:3
+-send put 2
+-pop
+-#line 203
+-push idx:2
+-push 4
+-push obj:3
+-send put 2
+-pop
+-#line 204
+-push obj:3
+-ret
+-ret
++
++An error has occured: Bus violation (SIGBUS)
++
++C backtrace:
++  0x717834 <unknown> at ??:0
++    0x732c <symtbl_lookup_cstr> at symbol.c:37
++   0x70764 <syd_add_to_parse_tree> at grammar_runtime.c:177
++   0x710a0 <syd_add_to_parse_tree> at grammar_runtime.c:879
++   0x6ffd8 <syd_add_to_parse_tree> at grammar_runtime.c:454
++   0x710a0 <syd_add_to_parse_tree> at grammar_runtime.c:879
++   0x710a0 <syd_add_to_parse_tree> at grammar_runtime.c:879
++   0x63b5c <convert_to_sexp> at grammar.y:2763
++   0x63d5c <syd_compile_file> at grammar.y:2835
++   0x59ac8 <cpu_perform_system_primitive> at system_primitives.gen:662
++   0x45d00 <cpu_run> at cpu.h:171
++    0x3e28 <machine_load_archive> at machine.c:429
++    0x3290 <main> at main.c:90
++
++Ruby backtrace:
+1
+kernel/bootstrap/context.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/core.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/exception.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/fixnum.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7632.0	2007-03-07 12:53:17.000000000 -0800
++++ /tmp/compare2.7632.0	2007-03-07 12:53:18.000000000 -0800
+@@ -138,7 +138,8 @@
+ set o:2
+ pop
+ #line 28
+-push -1
++push 1
++send -@
+ #line 28
+ push o:2
+ push self
+@@ -177,7 +178,8 @@
+ set o:2
+ pop
+ #line 40
+-push -1
++push 1
++send -@
+ #line 40
+ push o:2
+ push self
+1
+kernel/bootstrap/gc.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/global.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/method_missing.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/method_table.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/module.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/nil.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/regexp.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/ruby.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/string.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/symbol.rb
+=> r18
+=> rubinius
+0
+kernel/bootstrap/tuple.rb
+=> r18
+=> rubinius
+0
+kernel/core/00io.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7704.0	2007-03-07 12:53:56.000000000 -0800
++++ /tmp/compare2.7704.0	2007-03-07 12:53:57.000000000 -0800
+@@ -139,7 +139,8 @@
+ ret
+ check_argcount 0 0
+ #line 24
+-push -1
++push 1
++send -@
+ push @descriptor
+ send == 1
+ gif lbl1
+@@ -163,7 +164,8 @@
+ ret
+ check_argcount 0 0
+ #line 34
+-push -1
++push 1
++send -@
+ push @descriptor
+ send == 1
+ ret
+1
+kernel/core/01enumerable.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7710.0	2007-03-07 12:54:00.000000000 -0800
++++ /tmp/compare2.7710.0	2007-03-07 12:54:01.000000000 -0800
+@@ -307,7 +307,7 @@
+ push_block
+ push Proc
+ send from_environment 1
+-set prc:3
++set prc:4
+ pop
+ #line 30
+ push &lbl1
+@@ -316,11 +316,11 @@
+ send_primitive create_block 2
+ goto lbl3
+ unshift_tuple
+-set a:4
++set a:5
+ pop
+ #line 30
+ push 1
+-push a:4
++push a:5
+ send [] 1
+ lbl2: soft_return
+ lbl3:
+@@ -330,13 +330,13 @@
+ send_primitive create_block 2
+ goto lbl6
+ unshift_tuple
+-set x:5
++set x:3
+ pop
+ #line 29
+-push x:5
+-push prc:3
++push x:3
++push prc:4
+ send call 1
+-push x:5
++push x:3
+ make_array 2
+ lbl5: soft_return
+ lbl6:
+@@ -354,7 +354,7 @@
+ push_block
+ push Proc
+ send from_environment 1
+-set prc:5
++set prc:6
+ pop
+ #line 35
+ push xs:2
+@@ -392,12 +392,12 @@
+ send_primitive create_block 2
+ goto lbl7
+ unshift_tuple
+-set o:6
++set o:5
+ pop
+ #line 38
+ push pivot:3
+-push o:6
+-push prc:5
++push o:5
++push prc:6
+ send call 2
+ lbl6: soft_return
+ lbl7:
+@@ -415,7 +415,8 @@
+ push 0
+ push lmr:4
+ send [] 1
+-push -1
++push 1
++send -@
+ push lmr:4
+ send [] 1
+ push self
+@@ -456,7 +457,7 @@
+ push_block
+ push Proc
+ send from_environment 1
+-set prc:4
++set prc:5
+ pop
+ #line 75
+ make_array 0
+@@ -469,24 +470,24 @@
+ send_primitive create_block 2
+ goto lbl3
+ unshift_tuple
+-set o:5
++set o:4
+ pop
+ #line 77
+-push o:5
++push o:4
+ push pattern:2
+ send === 1
+ gif lbl4
+ #line 78
+-push prc:4
++push prc:5
+ push ary:3
+ send << 1
+ gif lbl6
+-push o:5
+-push prc:4
++push o:4
++push prc:5
+ send call 1
+ goto lbl7
+ lbl6:
+-push o:5
++push o:4
+ lbl7:
+ goto lbl5
+ lbl4:
+@@ -585,10 +586,10 @@
+ send_primitive create_block 2
+ goto lbl10
+ unshift_tuple
+-set o:5
++set o:4
+ pop
+ #line 191
+-push o:5
++push o:4
+ push_block
+ send call 1
+ gif lbl11
+@@ -661,7 +662,8 @@
+ set ifnone:2
+ pop
+ #line 227
+-push -1
++push 1
++send -@
+ set idx:3
+ pop
+ #line 228
+@@ -1150,10 +1152,10 @@
+ send_primitive create_block 2
+ goto lbl5
+ unshift_tuple
+-set obj:4
++set obj:3
+ pop
+ #line 433
+-push obj:4
++push obj:3
+ lbl4: soft_return
+ lbl5:
+ push self
+@@ -1167,7 +1169,7 @@
+ pop
+ #line 434
+ push 0
+-set times:3
++set times:4
+ pop
+ #line 435
+ push &lbl6
+@@ -1184,9 +1186,9 @@
+ send call 1
+ gif lbl9
+ push 1
+-push times:3
++push times:4
+ send + 1
+-set times:3
++set times:4
+ goto lbl10
+ lbl9:
+ push nil
+@@ -1199,7 +1201,7 @@
+ pop
+ #line 436
+ push 1
+-push times:3
++push times:4
+ send == 1
+ ret
+ check_argcount 0 0
+@@ -1218,10 +1220,10 @@
+ send_primitive create_block 2
+ goto lbl5
+ unshift_tuple
+-set obj:4
++set obj:3
+ pop
+ #line 452
+-push obj:4
++push obj:3
+ lbl4: soft_return
+ lbl5:
+ push self
+@@ -1235,7 +1237,7 @@
+ pop
+ #line 453
+ push 0
+-set times:3
++set times:4
+ pop
+ #line 454
+ push &lbl6
+@@ -1252,9 +1254,9 @@
+ send call 1
+ gif lbl9
+ push 1
+-push times:3
++push times:4
+ send + 1
+-set times:3
++set times:4
+ goto lbl10
+ lbl9:
+ push nil
+@@ -1267,7 +1269,7 @@
+ pop
+ #line 455
+ push 0
+-push times:3
++push times:4
+ send == 1
+ ret
+ check_argcount 0 0
+@@ -1303,14 +1305,14 @@
+ fetch_field
+ lbl6:
+ unshift_tuple
+-set a:4
++set a:3
+ pop
+ unshift_tuple
+-set b:5
++set b:4
+ pop
+ #line 471
+-push b:5
+-push a:4
++push b:4
++push a:3
+ send <=> 1
+ lbl4: soft_return
+ lbl5:
+@@ -1325,7 +1327,7 @@
+ pop
+ #line 472
+ push nil
+-set min:3
++set min:5
+ pop
+ #line 473
+ push &lbl7
+@@ -1337,21 +1339,21 @@
+ set o:6
+ pop
+ #line 474
+-push min:3
++push min:5
+ send nil? 0
+ dup
+ git lbl10
+ pop
+ push 0
+ push o:6
+-push min:3
++push min:5
+ push prc:2
+ send call 2
+ send > 1
+ lbl10:
+ gif lbl11
+ push o:6
+-set min:3
++set min:5
+ goto lbl12
+ lbl11:
+ push nil
+@@ -1363,7 +1365,7 @@
+ lbl7:
+ pop
+ #line 476
+-push min:3
++push min:5
+ ret
+ check_argcount 0 0
+ push_block
+@@ -1398,14 +1400,14 @@
+ fetch_field
+ lbl6:
+ unshift_tuple
+-set a:4
++set a:3
+ pop
+ unshift_tuple
+-set b:5
++set b:4
+ pop
+ #line 492
+-push b:5
+-push a:4
++push b:4
++push a:3
+ send <=> 1
+ lbl4: soft_return
+ lbl5:
+@@ -1420,7 +1422,7 @@
+ pop
+ #line 493
+ push nil
+-set max:3
++set max:5
+ pop
+ #line 494
+ push &lbl7
+@@ -1432,7 +1434,7 @@
+ set o:6
+ pop
+ #line 495
+-push max:3
++push max:5
+ send nil? 0
+ dup
+ git lbl10
+@@ -1447,7 +1449,7 @@
+ lbl10:
+ gif lbl11
+ push o:6
+-set max:3
++set max:5
+ goto lbl12
+ lbl11:
+ push nil
+@@ -1459,7 +1461,7 @@
+ lbl7:
+ pop
+ #line 497
+-push max:3
++push max:5
+ ret
+ check_argcount 0 0
+ #line 509
+@@ -1733,11 +1735,11 @@
+ set ary:7
+ pop
+ unshift_tuple
+-set a:8
++set a:4
+ pop
+ #line 595
+ push i:6
+-push a:8
++push a:4
+ send [] 1
+ push ary:7
+ send << 1
+1
+kernel/core/01range.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7716.0	2007-03-07 12:54:04.000000000 -0800
++++ /tmp/compare2.7716.0	2007-03-07 12:54:05.000000000 -0800
+@@ -1,628 +1,125 @@
+-#line 3
+-push nil
+-open_class Range
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 5
+-push Enumerable
+-push self
+-send include 1
+-pop
+-#line 16
+-push_literal 0
+-push_self
+-add_method initialize
+-pop
+-#line 34
+-push_literal 1
+-push_self
+-add_method ==
+-pop
+-#line 59
+-push_literal 2
+-push_self
+-add_method ===
+-pop
+-#line 71
+-push_literal 3
+-push_literal 4
+-push self
+-send alias_method 2
+-pop
+-#line 72
+-push_literal 5
+-push_literal 6
+-push self
+-send alias_method 2
+-pop
+-#line 91
+-push_literal 7
+-push_self
+-add_method each
+-pop
+-#line 134
+-push_literal 8
+-push_self
+-add_method eql?
+-pop
+-#line 147
+-push_literal 9
+-push_self
+-add_method exclude_end?
+-pop
+-#line 158
+-push_literal 10
+-push_self
+-add_method first
+-pop
+-#line 161
+-push_literal 11
+-push_literal 12
+-push self
+-send alias_method 2
+-pop
+-#line 171
+-push_literal 13
+-push_self
+-add_method hash
+-pop
+-#line 187
+-push_literal 14
+-push_self
+-add_method inspect
+-pop
+-#line 202
+-push_literal 15
+-push_self
+-add_method last
+-pop
+-#line 205
+-push_literal 16
+-push_literal 17
+-push self
+-send alias_method 2
+-pop
+-#line 233
+-push_literal 18
+-push_self
+-add_method step
+-pop
+-#line 251
+-push_literal 19
+-push_self
+-add_method to_s
+-ret
+-check_argcount 2 3
+-set first:2
+-pop
+-set last:3
+-pop
+-passed_arg 2
+-git set1
+-push false
+-set1:
+-set exclude_end:4
+-pop
+-#line 17
+-push first:2
+-set @first
+-pop
+-#line 18
+-push last:3
+-set @last
+-pop
+-#line 19
+-push exclude_end:4
+-set @exclude_end
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 35
+-push other:2
+-push Range
+-send === 1
+-git lbl1
+-push false
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 36
+-push other:2
+-send first 0
+-push self
+-send first 0
+-send == 1
+-dup
+-gif lbl3
+-pop
+-push other:2
+-send last 0
+-push self
+-send last 0
+-send == 1
+-dup
+-gif lbl4
+-pop
+-push other:2
+-send exclude_end? 0
+-push self
+-send exclude_end? 0
+-send == 1
+-lbl4:
+-lbl3:
+-ret
+-ret
+-check_argcount 1 1
+-set value:2
+-pop
+-lbl4:
+-#exc_start exc1
+-#line 60
+-push value:2
+-push @first
+-send <= 1
+-gif lbl5
+-#line 61
+-push self
+-send exclude_end? 0
+-gif lbl7
+-#line 62
+-push @last
+-push value:2
+-send < 1
+-gif lbl9
+-push true
+-ret
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-goto lbl8
+-lbl7:
+-#line 64
+-push @last
+-push value:2
+-send <= 1
+-gif lbl11
+-push true
+-ret
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-lbl8:
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 67
+-push false
+-ret
+-goto lbl2
+-#exceptions exc1
+-push_exception
+-push RuntimeError
+-send === 1
+-gif lbl3
+-#line 69
+-push false
+-ret
+-goto lbl2
+-lbl3:
+-push_exception
+-raise_exc
+-lbl2:
+-clear_exception
+-#exc_end exc1
+-ret
+-check_argcount 0 0
+-#line 92
+-push self
+-send first 0
+-set first:2
+-pop
+-#line 93
+-push self
+-send last 0
+-set last:3
+-pop
+-#line 95
+-push first:2
+-push Fixnum
+-send === 1
+-dup
+-gif lbl1
+-pop
+-push last:3
+-push Fixnum
+-send === 1
+-lbl1:
+-gif lbl2
+-#line 96
+-push self
+-send exclude_end? 0
+-gif lbl4
+-push 1
+-push last:3
+-send - 1
+-set last:3
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 97
+-push last:3
+-push &lbl6
+-push &lbl7
+-push_context
+-send_primitive create_block 2
+-goto lbl8
+-unshift_tuple
+-set i:5
+-pop
+-#line 97
+-push i:5
+-push_block
+-send call 1
+-lbl7: soft_return
+-lbl8:
+-push first:2
+-&send upto 1
+-lbl6:
+-goto lbl3
+-lbl2:
+-push first:2
+-push String
+-send === 1
+-gif lbl9
+-#line 99
+-push last:3
+-push &lbl11
+-push &lbl12
+-push_context
+-send_primitive create_block 2
+-goto lbl13
+-unshift_tuple
+-set s:6
+-pop
+-#line 100
+-push @exclude_end
+-dup
+-gif lbl14
+-pop
+-push last:3
+-push s:6
+-send == 1
+-lbl14:
+-gif lbl15
+-push nil
+-soft_return
+-goto lbl16
+-lbl15:
+-push nil
+-lbl16:
+-pop
+-#line 101
+-push s:6
+-push_block
+-send call 1
+-lbl12: soft_return
+-lbl13:
+-push first:2
+-&send upto 1
+-lbl11:
+-goto lbl10
+-lbl9:
+-#line 104
+-push first:2
+-set current:4
+-pop
+-#line 105
+-push @exclude_end
+-gif lbl17
+-#line 106
+-lbl20:
+-#line 107
+-push last:3
+-push current:4
+-send == 1
+-gif lbl21
+-goto lbl19
+-goto lbl22
+-lbl21:
+-push nil
+-lbl22:
+-pop
+-#line 108
+-push current:4
+-push_block
+-send call 1
+-pop
+-#line 109
+-push current:4
+-send succ 0
+-set current:4
+-pop
+-goto lbl20
+-lbl19:
+-push nil
+-goto lbl18
+-lbl17:
+-#line 112
+-lbl24:
+-#line 113
+-push current:4
+-push_block
+-send call 1
+-pop
+-#line 114
+-push last:3
+-push current:4
+-send == 1
+-gif lbl25
+-goto lbl23
+-goto lbl26
+-lbl25:
+-push nil
+-lbl26:
+-pop
+-#line 115
+-push current:4
+-send succ 0
+-set current:4
+-pop
+-goto lbl24
+-lbl23:
+-push nil
+-lbl18:
+-lbl10:
+-lbl3:
+-pop
+-#line 119
+-push self
+-ret
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 135
+-push other:2
+-push Range
+-send === 1
+-git lbl1
+-push false
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 138
+-push other:2
+-send first 0
+-push self
+-send first 0
+-send eql? 1
+-dup
+-gif lbl3
+-pop
+-push other:2
+-send last 0
+-push self
+-send last 0
+-send eql? 1
+-dup
+-gif lbl4
+-pop
+-push other:2
+-send exclude_end? 0
+-push self
+-send exclude_end? 0
+-send == 1
+-lbl4:
+-lbl3:
+-ret
+-ret
+-check_argcount 0 0
+-#line 148
+-push @exclude_end
+-ret
+-check_argcount 0 0
+-#line 159
+-push @first
+-ret
+-check_argcount 0 0
+-#line 172
+-push @exclude_end
+-gif lbl1
+-push 1
+-goto lbl2
+-lbl1:
+-push 0
+-lbl2:
+-set excl:2
+-pop
+-#line 173
+-push excl:2
+-set hash:3
+-pop
+-#line 174
+-push 1
+-push @first
+-send hash 0
+-send << 1
+-push hash:3
+-send ^ 1
+-set hash:3
+-pop
+-#line 175
+-push 9
+-push @last
+-send hash 0
+-send << 1
+-push hash:3
+-send ^ 1
+-set hash:3
+-pop
+-#line 176
+-push 24
+-push excl:2
+-send << 1
+-push hash:3
+-send ^ 1
+-set hash:3
+-pop
+-#line 177
+-push hash:3
+-ret
+-ret
+-check_argcount 0 0
+-#line 188
+-push @exclude_end
+-gif lbl1
+-push_literal 0
+-string_dup
+-goto lbl2
+-lbl1:
+-push_literal 1
+-string_dup
+-lbl2:
+-set joiner:2
+-pop
+-#line 189
+-push @last
+-send inspect 0
+-send to_s
+-push joiner:2
+-send to_s
+-push @first
+-send inspect 0
+-send to_s
+-push_literal 2
+-string_dup
+-string_append
+-string_append
+-string_append
+-ret
+-ret
+-check_argcount 0 0
+-#line 203
+-push @last
+-ret
+-ret
+-check_argcount 0 1
+-passed_arg 0
+-git set11
+-push 1
+-set11:
+-set n:2
+-pop
+-#line 234
+-push 1
+-push n:2
+-send == 1
+-gif lbl1
+-#line 235
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set o:4
+-pop
+-#line 235
+-push o:4
+-push_block
+-send call 1
+-lbl4: soft_return
+-lbl5:
+-push self
+-&send each 0
+-lbl3:
+-goto lbl2
+-lbl1:
+-#line 237
+-push 0
+-set counter:3
+-pop
+-#line 238
+-push &lbl6
+-push &lbl7
+-push_context
+-send_primitive create_block 2
+-goto lbl8
+-unshift_tuple
+-set o:5
+-pop
+-#line 239
+-push 0
+-push n:2
+-push counter:3
+-send % 1
+-send == 1
+-gif lbl9
+-push o:5
+-push_block
+-send call 1
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 240
+-push 1
+-push counter:3
+-send + 1
+-set counter:3
+-lbl7: soft_return
+-lbl8:
+-push self
+-&send each 0
+-lbl6:
+-lbl2:
+-ret
+-check_argcount 0 0
+-#line 252
+-push @exclude_end
+-gif lbl1
+-push_literal 0
+-string_dup
+-goto lbl2
+-lbl1:
+-push_literal 1
+-string_dup
+-lbl2:
+-set joiner:2
+-pop
+-#line 253
+-push @last
+-send to_s
+-push joiner:2
+-send to_s
+-push @first
+-send to_s
+-push_literal 2
+-string_dup
+-string_append
+-string_append
+-string_append
+-ret
+-ret
++An exception has occured:
++    Incorrect usage of dasgn_curr current, needs a value. (nil) (RuntimeError)
++
++Backtrace:
++                         RsLocalScoper#raise at bootstrap/04kernel.rb:30
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:110
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++              CompositeSexpProcessor#process at sexp/composite_processor.rb:34
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                  Array#each at bootstrap/array.rb:26
++              CompositeSexpProcessor#process at sexp/composite_processor.rb:34
++          Bytecode::Compiler#fully_normalize at bytecode/compiler.rb:145
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:124
++        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
++    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
++                       BlockEnvironment#call at bootstrap/context.rb:127
++           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
++    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1565
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
++        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
++    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
++                       BlockEnvironment#call at bootstrap/context.rb:127
++            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
++    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1565
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
++        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
++                             main.__script__ at bin/rasm.rb:20
++                                   main.load at core/compile.rb:56
++                             main.__script__ at core/__loader.rb:60
+1
+kernel/core/02range.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7722.0	2007-03-07 12:54:08.000000000 -0800
++++ /tmp/compare2.7722.0	2007-03-07 12:54:09.000000000 -0800
+@@ -1,628 +1,125 @@
+-#line 3
+-push nil
+-open_class Range
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 5
+-push Enumerable
+-push self
+-send include 1
+-pop
+-#line 16
+-push_literal 0
+-push_self
+-add_method initialize
+-pop
+-#line 34
+-push_literal 1
+-push_self
+-add_method ==
+-pop
+-#line 59
+-push_literal 2
+-push_self
+-add_method ===
+-pop
+-#line 71
+-push_literal 3
+-push_literal 4
+-push self
+-send alias_method 2
+-pop
+-#line 72
+-push_literal 5
+-push_literal 6
+-push self
+-send alias_method 2
+-pop
+-#line 91
+-push_literal 7
+-push_self
+-add_method each
+-pop
+-#line 134
+-push_literal 8
+-push_self
+-add_method eql?
+-pop
+-#line 147
+-push_literal 9
+-push_self
+-add_method exclude_end?
+-pop
+-#line 158
+-push_literal 10
+-push_self
+-add_method first
+-pop
+-#line 161
+-push_literal 11
+-push_literal 12
+-push self
+-send alias_method 2
+-pop
+-#line 171
+-push_literal 13
+-push_self
+-add_method hash
+-pop
+-#line 187
+-push_literal 14
+-push_self
+-add_method inspect
+-pop
+-#line 202
+-push_literal 15
+-push_self
+-add_method last
+-pop
+-#line 205
+-push_literal 16
+-push_literal 17
+-push self
+-send alias_method 2
+-pop
+-#line 233
+-push_literal 18
+-push_self
+-add_method step
+-pop
+-#line 251
+-push_literal 19
+-push_self
+-add_method to_s
+-ret
+-check_argcount 2 3
+-set first:2
+-pop
+-set last:3
+-pop
+-passed_arg 2
+-git set1
+-push false
+-set1:
+-set exclude_end:4
+-pop
+-#line 17
+-push first:2
+-set @first
+-pop
+-#line 18
+-push last:3
+-set @last
+-pop
+-#line 19
+-push exclude_end:4
+-set @exclude_end
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 35
+-push other:2
+-push Range
+-send === 1
+-git lbl1
+-push false
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 36
+-push other:2
+-send first 0
+-push self
+-send first 0
+-send == 1
+-dup
+-gif lbl3
+-pop
+-push other:2
+-send last 0
+-push self
+-send last 0
+-send == 1
+-dup
+-gif lbl4
+-pop
+-push other:2
+-send exclude_end? 0
+-push self
+-send exclude_end? 0
+-send == 1
+-lbl4:
+-lbl3:
+-ret
+-ret
+-check_argcount 1 1
+-set value:2
+-pop
+-lbl4:
+-#exc_start exc1
+-#line 60
+-push value:2
+-push @first
+-send <= 1
+-gif lbl5
+-#line 61
+-push self
+-send exclude_end? 0
+-gif lbl7
+-#line 62
+-push @last
+-push value:2
+-send < 1
+-gif lbl9
+-push true
+-ret
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-goto lbl8
+-lbl7:
+-#line 64
+-push @last
+-push value:2
+-send <= 1
+-gif lbl11
+-push true
+-ret
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-lbl8:
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 67
+-push false
+-ret
+-goto lbl2
+-#exceptions exc1
+-push_exception
+-push RuntimeError
+-send === 1
+-gif lbl3
+-#line 69
+-push false
+-ret
+-goto lbl2
+-lbl3:
+-push_exception
+-raise_exc
+-lbl2:
+-clear_exception
+-#exc_end exc1
+-ret
+-check_argcount 0 0
+-#line 92
+-push self
+-send first 0
+-set first:2
+-pop
+-#line 93
+-push self
+-send last 0
+-set last:3
+-pop
+-#line 95
+-push first:2
+-push Fixnum
+-send === 1
+-dup
+-gif lbl1
+-pop
+-push last:3
+-push Fixnum
+-send === 1
+-lbl1:
+-gif lbl2
+-#line 96
+-push self
+-send exclude_end? 0
+-gif lbl4
+-push 1
+-push last:3
+-send - 1
+-set last:3
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 97
+-push last:3
+-push &lbl6
+-push &lbl7
+-push_context
+-send_primitive create_block 2
+-goto lbl8
+-unshift_tuple
+-set i:5
+-pop
+-#line 97
+-push i:5
+-push_block
+-send call 1
+-lbl7: soft_return
+-lbl8:
+-push first:2
+-&send upto 1
+-lbl6:
+-goto lbl3
+-lbl2:
+-push first:2
+-push String
+-send === 1
+-gif lbl9
+-#line 99
+-push last:3
+-push &lbl11
+-push &lbl12
+-push_context
+-send_primitive create_block 2
+-goto lbl13
+-unshift_tuple
+-set s:6
+-pop
+-#line 100
+-push @exclude_end
+-dup
+-gif lbl14
+-pop
+-push last:3
+-push s:6
+-send == 1
+-lbl14:
+-gif lbl15
+-push nil
+-soft_return
+-goto lbl16
+-lbl15:
+-push nil
+-lbl16:
+-pop
+-#line 101
+-push s:6
+-push_block
+-send call 1
+-lbl12: soft_return
+-lbl13:
+-push first:2
+-&send upto 1
+-lbl11:
+-goto lbl10
+-lbl9:
+-#line 104
+-push first:2
+-set current:4
+-pop
+-#line 105
+-push @exclude_end
+-gif lbl17
+-#line 106
+-lbl20:
+-#line 107
+-push last:3
+-push current:4
+-send == 1
+-gif lbl21
+-goto lbl19
+-goto lbl22
+-lbl21:
+-push nil
+-lbl22:
+-pop
+-#line 108
+-push current:4
+-push_block
+-send call 1
+-pop
+-#line 109
+-push current:4
+-send succ 0
+-set current:4
+-pop
+-goto lbl20
+-lbl19:
+-push nil
+-goto lbl18
+-lbl17:
+-#line 112
+-lbl24:
+-#line 113
+-push current:4
+-push_block
+-send call 1
+-pop
+-#line 114
+-push last:3
+-push current:4
+-send == 1
+-gif lbl25
+-goto lbl23
+-goto lbl26
+-lbl25:
+-push nil
+-lbl26:
+-pop
+-#line 115
+-push current:4
+-send succ 0
+-set current:4
+-pop
+-goto lbl24
+-lbl23:
+-push nil
+-lbl18:
+-lbl10:
+-lbl3:
+-pop
+-#line 119
+-push self
+-ret
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 135
+-push other:2
+-push Range
+-send === 1
+-git lbl1
+-push false
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 138
+-push other:2
+-send first 0
+-push self
+-send first 0
+-send eql? 1
+-dup
+-gif lbl3
+-pop
+-push other:2
+-send last 0
+-push self
+-send last 0
+-send eql? 1
+-dup
+-gif lbl4
+-pop
+-push other:2
+-send exclude_end? 0
+-push self
+-send exclude_end? 0
+-send == 1
+-lbl4:
+-lbl3:
+-ret
+-ret
+-check_argcount 0 0
+-#line 148
+-push @exclude_end
+-ret
+-check_argcount 0 0
+-#line 159
+-push @first
+-ret
+-check_argcount 0 0
+-#line 172
+-push @exclude_end
+-gif lbl1
+-push 1
+-goto lbl2
+-lbl1:
+-push 0
+-lbl2:
+-set excl:2
+-pop
+-#line 173
+-push excl:2
+-set hash:3
+-pop
+-#line 174
+-push 1
+-push @first
+-send hash 0
+-send << 1
+-push hash:3
+-send ^ 1
+-set hash:3
+-pop
+-#line 175
+-push 9
+-push @last
+-send hash 0
+-send << 1
+-push hash:3
+-send ^ 1
+-set hash:3
+-pop
+-#line 176
+-push 24
+-push excl:2
+-send << 1
+-push hash:3
+-send ^ 1
+-set hash:3
+-pop
+-#line 177
+-push hash:3
+-ret
+-ret
+-check_argcount 0 0
+-#line 188
+-push @exclude_end
+-gif lbl1
+-push_literal 0
+-string_dup
+-goto lbl2
+-lbl1:
+-push_literal 1
+-string_dup
+-lbl2:
+-set joiner:2
+-pop
+-#line 189
+-push @last
+-send inspect 0
+-send to_s
+-push joiner:2
+-send to_s
+-push @first
+-send inspect 0
+-send to_s
+-push_literal 2
+-string_dup
+-string_append
+-string_append
+-string_append
+-ret
+-ret
+-check_argcount 0 0
+-#line 203
+-push @last
+-ret
+-ret
+-check_argcount 0 1
+-passed_arg 0
+-git set11
+-push 1
+-set11:
+-set n:2
+-pop
+-#line 234
+-push 1
+-push n:2
+-send == 1
+-gif lbl1
+-#line 235
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set o:4
+-pop
+-#line 235
+-push o:4
+-push_block
+-send call 1
+-lbl4: soft_return
+-lbl5:
+-push self
+-&send each 0
+-lbl3:
+-goto lbl2
+-lbl1:
+-#line 237
+-push 0
+-set counter:3
+-pop
+-#line 238
+-push &lbl6
+-push &lbl7
+-push_context
+-send_primitive create_block 2
+-goto lbl8
+-unshift_tuple
+-set o:5
+-pop
+-#line 239
+-push 0
+-push n:2
+-push counter:3
+-send % 1
+-send == 1
+-gif lbl9
+-push o:5
+-push_block
+-send call 1
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 240
+-push 1
+-push counter:3
+-send + 1
+-set counter:3
+-lbl7: soft_return
+-lbl8:
+-push self
+-&send each 0
+-lbl6:
+-lbl2:
+-ret
+-check_argcount 0 0
+-#line 252
+-push @exclude_end
+-gif lbl1
+-push_literal 0
+-string_dup
+-goto lbl2
+-lbl1:
+-push_literal 1
+-string_dup
+-lbl2:
+-set joiner:2
+-pop
+-#line 253
+-push @last
+-send to_s
+-push joiner:2
+-send to_s
+-push @first
+-send to_s
+-push_literal 2
+-string_dup
+-string_append
+-string_append
+-string_append
+-ret
+-ret
++An exception has occured:
++    Incorrect usage of dasgn_curr current, needs a value. (nil) (RuntimeError)
++
++Backtrace:
++                         RsLocalScoper#raise at bootstrap/04kernel.rb:30
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:110
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++              CompositeSexpProcessor#process at sexp/composite_processor.rb:34
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                  Array#each at bootstrap/array.rb:26
++              CompositeSexpProcessor#process at sexp/composite_processor.rb:34
++          Bytecode::Compiler#fully_normalize at bytecode/compiler.rb:145
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:124
++        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
++    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
++                       BlockEnvironment#call at bootstrap/context.rb:127
++           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
++    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1565
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
++        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
++    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
++                       BlockEnvironment#call at bootstrap/context.rb:127
++            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
++    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1565
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
++        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
++                             main.__script__ at bin/rasm.rb:20
++                                   main.load at core/compile.rb:56
++                             main.__script__ at core/__loader.rb:60
+1
+kernel/core/03comparable.rb
+=> r18
+=> rubinius
+0
+kernel/core/04numeric.rb
+=> r18
+=> rubinius
+0
+kernel/core/05ctype.rb
+=> r18
+=> rubinius
+0
+kernel/core/06integer.rb
+=> r18
+=> rubinius
+0
+kernel/core/__loader.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7752.0	2007-03-07 12:54:26.000000000 -0800
++++ /tmp/compare2.7752.0	2007-03-07 12:54:27.000000000 -0800
+@@ -146,7 +146,8 @@
+ lbl19:
+ push_literal 14
+ string_dup
+-push -1
++push 1
++send -@
+ push 2
+ push Range
+ send new 2
+@@ -163,7 +164,8 @@
+ send prefix? 1
+ gif lbl20
+ #line 48
+-push -1
++push 1
++send -@
+ push 2
+ push Range
+ send new 2
+1
+kernel/core/archive.rb
+=> r18
+=> rubinius
+0
+kernel/core/array.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7764.0	2007-03-07 12:54:34.000000000 -0800
++++ /tmp/compare2.7764.0	2007-03-07 12:54:39.000000000 -0800
+@@ -1,3723 +1,9 @@
+-#line 1
+-push nil
+-open_class Array
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 2
+-push Enumerable
+-push self
+-send include 1
+-pop
+-#line 4
+-push_literal 0
+-push_self
+-add_method initialize
+-pop
+-#line 24
+-push_literal 1
+-push_self
+-add_method []
+-pop
+-#line 63
+-push_literal 2
+-push_self
+-add_method at
+-pop
+-#line 76
+-push_literal 3
+-push_self
+-add_method []=
+-pop
+-#line 160
+-push_literal 4
+-push_self
+-add_method each_index
+-pop
+-#line 169
+-push_literal 5
+-push_self
+-add_method eql?
+-pop
+-#line 188
+-push :map!
+-push :collect!
+-push self
+-send alias_method 2
+-pop
+-#line 190
+-push_literal 6
+-push_self
+-add_method concat
+-pop
+-#line 195
+-push_literal 7
+-push_self
+-add_method compact!
+-pop
+-#line 216
+-push_literal 8
+-push_self
+-add_method delete
+-pop
+-#line 238
+-push_literal 9
+-push_self
+-add_method delete_if
+-pop
+-#line 259
+-push_literal 10
+-push_self
+-add_method delete_at
+-pop
+-#line 278
+-push_literal 11
+-push_self
+-add_method assoc
+-pop
+-#line 284
+-push_literal 12
+-push_self
+-add_method rassoc
+-pop
+-#line 290
+-push_literal 13
+-push_self
+-add_method -
+-pop
+-#line 305
+-push_literal 14
+-push_self
+-add_method |
+-pop
+-#line 323
+-push_literal 15
+-push_self
+-add_method &
+-pop
+-#line 338
+-push_literal 16
+-push_self
+-add_method to_ary
+-pop
+-#line 342
+-push_literal 17
+-push_self
+-add_method to_s
+-pop
+-#line 346
+-push :[]
+-push :slice
+-push self
+-send alias_method 2
+-pop
+-#line 354
+-push_literal 18
+-push_self
+-add_method slice!
+-pop
+-#line 366
+-push_literal 19
+-push_self
+-add_method flatten!
+-pop
+-#line 381
+-push_literal 20
+-push_self
+-add_method flatten
+-pop
+-#line 393
+-push_literal 21
+-push self
+-attach_method []
+-pop
+-#line 397
+-push_literal 22
+-push_self
+-add_method values_at
+-pop
+-#line 422
+-push_literal 23
+-push_self
+-add_method indexes
+-pop
+-#line 430
+-push :indexes
+-push :indices
+-push self
+-send alias_method 2
+-pop
+-#line 432
+-push_literal 24
+-push_self
+-add_method transpose
+-pop
+-#line 439
+-push_literal 25
+-push_self
+-add_method sort
+-pop
+-#line 478
+-push_literal 26
+-push_self
+-add_method sort!
+-pop
+-#line 482
+-push_literal 27
+-push_self
+-add_method rindex
+-pop
+-#line 491
+-push_literal 28
+-push_self
+-add_method index
+-pop
+-#line 501
+-push_literal 29
+-push_self
+-add_method pack
+-pop
+-#line 527
+-push_literal 30
+-push_self
+-add_method reverse
+-pop
+-#line 537
+-push_literal 31
+-push_self
+-add_method uniq
+-pop
+-#line 550
+-push_literal 32
+-push_self
+-add_method uniq!
+-pop
+-#line 555
+-push_literal 33
+-push_self
+-add_method -
+-pop
+-#line 565
+-push_literal 34
+-push_self
+-add_method &
+-pop
+-#line 577
+-push_literal 35
+-push_self
+-add_method *
+-pop
+-#line 589
+-push_literal 36
+-push_self
+-add_method fetch
+-pop
+-#line 610
+-push_literal 37
+-push_self
+-add_method nitems
+-pop
+-#line 614
+-push_literal 38
+-push_self
+-add_method insert
+-pop
+-#line 637
+-push_literal 39
+-push_self
+-add_method reject!
+-pop
+-#line 643
+-push_literal 40
+-push_self
+-add_method reverse!
+-pop
+-#line 655
+-push_literal 41
+-push_self
+-add_method fill
+-ret
+-check_argcount 0 2
+-passed_arg 0
+-git set11
+-push 0
+-set11:
+-set sz:2
+-pop
+-passed_arg 1
+-git set12
+-push nil
+-set12:
+-set obj:3
+-pop
+-#line 6
+-push sz:2
+-push Array
+-send === 1
+-gif lbl1
+-#line 8
+-push 10
+-push sz:2
+-send size 0
+-send + 1
+-push Tuple
+-send new 1
+-set @tuple
+-pop
+-#line 9
+-push 0
+-push sz:2
+-send tuple 0
+-push @tuple
+-send copy_from 2
+-pop
+-#line 10
+-push sz:2
+-send size 0
+-set @total
+-goto lbl2
+-lbl1:
+-push true
+-send_primitive block_given 0
+-gif lbl3
+-#line 13
+-push 10
+-push sz:2
+-send + 1
+-push Tuple
+-send new 1
+-set @tuple
+-pop
+-#line 14
+-push &lbl5
+-push &lbl6
+-push_context
+-send_primitive create_block 2
+-goto lbl7
+-unshift_tuple
+-set i:4
+-pop
+-#line 14
+-push_block
+-send call 0
+-push i:4
+-push @tuple
+-send put 2
+-lbl6: soft_return
+-lbl7:
+-push sz:2
+-&send times 0
+-lbl5:
+-pop
+-#line 15
+-push sz:2
+-set @total
+-goto lbl4
+-lbl3:
+-#line 18
+-push 10
+-push sz:2
+-send + 1
+-push Tuple
+-send new 1
+-set @tuple
+-pop
+-#line 19
+-push &lbl8
+-push &lbl9
+-push_context
+-send_primitive create_block 2
+-goto lbl10
+-unshift_tuple
+-set i:5
+-pop
+-#line 19
+-push obj:3
+-push i:5
+-push @tuple
+-send put 2
+-lbl9: soft_return
+-lbl10:
+-push sz:2
+-&send times 0
+-lbl8:
+-pop
+-#line 20
+-push sz:2
+-set @total
+-lbl4:
+-lbl2:
+-ret
+-check_argcount 1 2
+-set idx:2
+-pop
+-passed_arg 1
+-git set24
+-push nil
+-set24:
+-set cnt:3
+-pop
+-#line 27
+-push Range
+-push idx:2
+-send class 0
+-send == 1
+-gif lbl1
+-#line 28
+-push cnt:3
+-gif lbl3
+-#line 29
+-push_literal 0
+-string_dup
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 31
+-push idx:2
+-send last 0
+-set lst:4
+-pop
+-#line 32
+-push 0
+-push lst:4
+-send < 1
+-gif lbl5
+-#line 33
+-push @total
+-push lst:4
+-send + 1
+-set lst:4
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 35
+-push idx:2
+-send exclude_end? 0
+-git lbl7
+-push 1
+-push lst:4
+-send + 1
+-set lst:4
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 36
+-push idx:2
+-send first 0
+-set idx:2
+-pop
+-#line 37
+-push idx:2
+-push lst:4
+-send - 1
+-set cnt:3
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 40
+-push cnt:3
+-gif lbl9
+-#line 41
+-make_array 0
+-set out:5
+-pop
+-#line 42
+-push 1
+-push cnt:3
+-push idx:2
+-send + 1
+-send - 1
+-set max:6
+-pop
+-#line 43
+-push @total
+-push max:6
+-send >= 1
+-gif lbl11
+-push 1
+-push @total
+-send - 1
+-set max:6
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-pop
+-#line 44
+-push max:6
+-push &lbl13
+-push &lbl14
+-push_context
+-send_primitive create_block 2
+-goto lbl15
+-unshift_tuple
+-set i:7
+-pop
+-#line 45
+-push i:7
+-push @tuple
+-send at 1
+-push out:5
+-send << 1
+-lbl14: soft_return
+-lbl15:
+-push idx:2
+-&send upto 1
+-lbl13:
+-pop
+-#line 48
+-push @total
+-push idx:2
+-send > 1
+-dup
+-git lbl16
+-pop
+-push 0
+-push max:6
+-send < 1
+-lbl16:
+-gif lbl17
+-push nil
+-ret
+-goto lbl18
+-lbl17:
+-push nil
+-lbl18:
+-pop
+-#line 49
+-push out:5
+-ret
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 52
+-push 0
+-push idx:2
+-send < 1
+-gif lbl19
+-#line 53
+-push idx:2
+-push @total
+-send + 1
+-set idx:2
+-goto lbl20
+-lbl19:
+-push nil
+-lbl20:
+-pop
+-#line 56
+-push 0
+-push idx:2
+-send < 1
+-dup
+-git lbl21
+-pop
+-push @total
+-push idx:2
+-send >= 1
+-lbl21:
+-gif lbl22
+-#line 57
+-push nil
+-ret
+-goto lbl23
+-lbl22:
+-push nil
+-lbl23:
+-pop
+-#line 60
+-push idx:2
+-push @tuple
+-send at 1
+-ret
+-check_argcount 1 1
+-set idx:2
+-pop
+-#line 64
+-push 0
+-push idx:2
+-send < 1
+-gif lbl1
+-#line 65
+-push @total
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 66
+-push 0
+-push idx:2
+-send < 1
+-gif lbl3
+-push nil
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 69
+-push @total
+-push idx:2
+-send >= 1
+-gif lbl5
+-#line 70
+-push nil
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 73
+-push idx:2
+-push @tuple
+-send at 1
+-ret
+-check_argcount 2 0
+-set idx:2
+-pop
+-set ent:3
+-pop
+-make_rest 2
+-set args
+-pop
+-#line 77
+-push nil
+-set cnt:5
+-pop
+-#line 78
+-push 0
+-push args:4
+-send size 0
+-send == 1
+-git lbl1
+-#line 79
+-push ent:3
+-set cnt:5
+-pop
+-#line 80
+-push 0
+-push args:4
+-send [] 1
+-set ent:3
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 83
+-push Range
+-push idx:2
+-send class 0
+-send == 1
+-gif lbl3
+-#line 84
+-push cnt:5
+-gif lbl5
+-#line 85
+-push_literal 0
+-string_dup
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 87
+-push idx:2
+-send last 0
+-set lst:6
+-pop
+-#line 88
+-push 0
+-push lst:6
+-send < 1
+-gif lbl7
+-#line 89
+-push @total
+-push lst:6
+-send + 1
+-set lst:6
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 91
+-push idx:2
+-send exclude_end? 0
+-git lbl9
+-push 1
+-push lst:6
+-send + 1
+-set lst:6
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 92
+-push idx:2
+-send first 0
+-set idx:2
+-pop
+-#line 93
+-push 0
+-push idx:2
+-send < 1
+-gif lbl11
+-#line 94
+-push @total
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 95
+-push 0
+-push idx:2
+-send < 1
+-gif lbl13
+-push IndexError
+-push self
+-send raise 1
+-goto lbl14
+-lbl13:
+-push nil
+-lbl14:
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-pop
+-#line 97
+-push idx:2
+-push lst:6
+-send - 1
+-set cnt:5
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 100
+-push cnt:5
+-gif lbl15
+-#line 101
+-push idx:2
+-push @total
+-send - 1
+-push cnt:5
+-send > 1
+-gif lbl17
+-push idx:2
+-push @total
+-send - 1
+-set cnt:5
+-goto lbl18
+-lbl17:
+-push nil
+-lbl18:
+-pop
+-#line 102
+-push ent:3
+-set replacement:7
+-pop
+-#line 103
+-push nil
+-push ent:3
+-send == 1
+-gif lbl19
+-#line 104
+-make_array 0
+-set replacement:7
+-goto lbl20
+-lbl19:
+-push Array
+-push ent:3
+-send class 0
+-send == 1
+-git lbl21
+-push true
+-goto lbl22
+-lbl21:
+-push false
+-lbl22:
+-gif lbl23
+-#line 106
+-push ent:3
+-make_array 1
+-set replacement:7
+-goto lbl24
+-lbl23:
+-push nil
+-lbl24:
+-lbl20:
+-pop
+-#line 109
+-push cnt:5
+-push replacement:7
+-send size 0
+-send > 1
+-gif lbl25
+-#line 110
+-push cnt:5
+-push replacement:7
+-send size 0
+-push @total
+-send + 1
+-send - 1
+-set newtotal:8
+-pop
+-#line 111
+-push @tuple
+-send fields 0
+-push newtotal:8
+-send > 1
+-gif lbl27
+-#line 112
+-push 10
+-push newtotal:8
+-send + 1
+-push Tuple
+-send new 1
+-set nt:9
+-pop
+-#line 113
+-push 0
+-push @tuple
+-push nt:9
+-send copy_from 2
+-pop
+-#line 114
+-push nt:9
+-set @tuple
+-goto lbl28
+-lbl27:
+-push nil
+-lbl28:
+-pop
+-#line 116
+-push @total
+-set f:10
+-pop
+-#line 117
+-push newtotal:8
+-set t:11
+-pop
+-#line 118
+-lbl29:
+-push cnt:5
+-push idx:2
+-send + 1
+-push f:10
+-send > 1
+-gif lbl30
+-lbl31:
+-#line 119
+-push 1
+-push t:11
+-send - 1
+-set t:11
+-pop
+-#line 120
+-push 1
+-push f:10
+-send - 1
+-set f:10
+-pop
+-#line 121
+-push f:10
+-push @tuple
+-send at 1
+-push t:11
+-push @tuple
+-send put 2
+-pop
+-goto lbl29
+-lbl30:
+-push nil
+-pop
+-#line 123
+-push newtotal:8
+-set @total
+-goto lbl26
+-lbl25:
+-push nil
+-lbl26:
+-pop
+-#line 125
+-push &lbl32
+-push &lbl33
+-push_context
+-send_primitive create_block 2
+-goto lbl34
+-dup
+-send fields 0
+-push 1
+-send equal? 1
+-gif lbl35
+-dup
+-push 0
+-fetch_field
+-send class 0
+-push Array
+-send equal? 1
+-gif lbl35
+-push 0
+-fetch_field
+-push 1
+-fetch_field
+-lbl35:
+-unshift_tuple
+-set el:12
+-pop
+-unshift_tuple
+-set i:13
+-pop
+-#line 126
+-push el:12
+-push i:13
+-push idx:2
+-send + 1
+-push @tuple
+-send put 2
+-lbl33: soft_return
+-lbl34:
+-push replacement:7
+-&send each_with_index 0
+-lbl32:
+-pop
+-#line 128
+-push cnt:5
+-push replacement:7
+-send size 0
+-send < 1
+-gif lbl36
+-#line 129
+-push cnt:5
+-push idx:2
+-send + 1
+-set f:10
+-pop
+-#line 130
+-push replacement:7
+-send size 0
+-push idx:2
+-send + 1
+-set t:11
+-pop
+-#line 131
+-lbl38:
+-push @total
+-push f:10
+-send < 1
+-gif lbl39
+-lbl40:
+-#line 132
+-push f:10
+-push @tuple
+-send at 1
+-push t:11
+-push @tuple
+-send put 2
+-pop
+-#line 133
+-push 1
+-push t:11
+-send + 1
+-set t:11
+-pop
+-#line 134
+-push 1
+-push f:10
+-send + 1
+-set f:10
+-pop
+-goto lbl38
+-lbl39:
+-push nil
+-pop
+-#line 136
+-push replacement:7
+-send size 0
+-push cnt:5
+-send - 1
+-push @total
+-send - 1
+-set @total
+-goto lbl37
+-lbl36:
+-push nil
+-lbl37:
+-pop
+-#line 139
+-push ent:3
+-ret
+-goto lbl16
+-lbl15:
+-push nil
+-lbl16:
+-pop
+-#line 142
+-push 0
+-push idx:2
+-send < 1
+-gif lbl41
+-#line 143
+-push @total
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 144
+-push 0
+-push idx:2
+-send < 1
+-gif lbl43
+-push IndexError
+-push self
+-send raise 1
+-goto lbl44
+-lbl43:
+-push nil
+-lbl44:
+-goto lbl42
+-lbl41:
+-push nil
+-lbl42:
+-pop
+-#line 147
+-push @tuple
+-send fields 0
+-push idx:2
+-send >= 1
+-gif lbl45
+-#line 148
+-push 10
+-push idx:2
+-send + 1
+-push Tuple
+-send new 1
+-set nt:9
+-pop
+-#line 149
+-push 0
+-push @tuple
+-push nt:9
+-send copy_from 2
+-pop
+-#line 150
+-push nt:9
+-set @tuple
+-goto lbl46
+-lbl45:
+-push nil
+-lbl46:
+-pop
+-#line 153
+-push ent:3
+-push idx:2
+-push @tuple
+-send put 2
+-pop
+-#line 154
+-push 1
+-push @total
+-send - 1
+-push idx:2
+-send >= 1
+-gif lbl47
+-#line 155
+-push 1
+-push idx:2
+-send + 1
+-set @total
+-goto lbl48
+-lbl47:
+-push nil
+-lbl48:
+-pop
+-#line 157
+-push ent:3
+-ret
+-ret
+-check_argcount 0 0
+-#line 161
+-push 0
+-set i:2
+-pop
+-#line 162
+-lbl1:
+-push @total
+-push i:2
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 163
+-push i:2
+-push_block
+-send call 1
+-pop
+-#line 164
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 166
+-push self
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 170
+-push other:2
+-push self
+-send equal? 1
+-gif lbl1
+-push true
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 171
+-push Array
+-push other:2
+-send kind_of? 1
+-git lbl3
+-push false
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 172
+-push other:2
+-send size 0
+-push @total
+-send == 1
+-git lbl5
+-push false
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 173
+-push &lbl7
+-push &lbl8
+-push_context
+-send_primitive create_block 2
+-goto lbl9
+-dup
+-send fields 0
+-push 1
+-send equal? 1
+-gif lbl10
+-dup
+-push 0
+-fetch_field
+-send class 0
+-push Array
+-send equal? 1
+-gif lbl10
+-push 0
+-fetch_field
+-push 1
+-fetch_field
+-lbl10:
+-unshift_tuple
+-set o:3
+-pop
+-unshift_tuple
+-set i:4
+-pop
+-#line 174
+-push i:4
+-push other:2
+-send [] 1
+-push o:3
+-send eql? 1
+-git lbl11
+-push false
+-ret
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-lbl8: soft_return
+-lbl9:
+-push self
+-&send each_with_index 0
+-lbl7:
+-pop
+-#line 176
+-push true
+-ret
+-ret
+-check_argcount 1 1
+-set arr:2
+-pop
+-#line 191
+-push arr:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send push +
+-ret
+-check_argcount 0 0
+-#line 196
+-push 0
+-set i:2
+-pop
+-#line 197
+-lbl1:
+-push @total
+-push i:2
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 198
+-push nil
+-push i:2
+-push @tuple
+-send at 1
+-send == 1
+-gif lbl4
+-#line 199
+-push i:2
+-set j:3
+-pop
+-#line 200
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-#line 201
+-lbl6:
+-push @total
+-push i:2
+-send < 1
+-gif lbl7
+-lbl8:
+-#line 202
+-push nil
+-push i:2
+-push @tuple
+-send at 1
+-send == 1
+-git lbl9
+-#line 203
+-push i:2
+-push @tuple
+-send at 1
+-push j:3
+-push @tuple
+-send put 2
+-pop
+-#line 204
+-push 1
+-push j:3
+-send + 1
+-set j:3
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 206
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-goto lbl6
+-lbl7:
+-push nil
+-pop
+-#line 208
+-push j:3
+-set @total
+-pop
+-#line 209
+-push self
+-ret
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 211
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 213
+-push nil
+-ret
+-check_argcount 1 1
+-set obj:2
+-pop
+-#line 217
+-push 0
+-set i:3
+-pop
+-#line 218
+-lbl1:
+-push @total
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 219
+-push obj:2
+-push i:3
+-push @tuple
+-send at 1
+-send == 1
+-gif lbl4
+-#line 220
+-push i:3
+-set j:4
+-pop
+-#line 221
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-#line 222
+-lbl6:
+-push @total
+-push i:3
+-send < 1
+-gif lbl7
+-lbl8:
+-#line 223
+-push obj:2
+-push i:3
+-push @tuple
+-send at 1
+-send == 1
+-git lbl9
+-#line 224
+-push i:3
+-push @tuple
+-send at 1
+-push j:4
+-push @tuple
+-send put 2
+-pop
+-#line 225
+-push 1
+-push j:4
+-send + 1
+-set j:4
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 227
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-goto lbl6
+-lbl7:
+-push nil
+-pop
+-#line 229
+-push j:4
+-set @total
+-pop
+-#line 230
+-push obj:2
+-ret
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 232
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 234
+-push true
+-send_primitive block_given 0
+-gif lbl11
+-push_block
+-send call 0
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-pop
+-#line 235
+-push nil
+-ret
+-check_argcount 0 0
+-#line 239
+-push 0
+-set i:2
+-pop
+-#line 240
+-lbl1:
+-push @total
+-push i:2
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 241
+-push i:2
+-push @tuple
+-send at 1
+-push_block
+-send call 1
+-gif lbl4
+-#line 242
+-push i:2
+-set j:3
+-pop
+-#line 243
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-#line 244
+-lbl6:
+-push @total
+-push i:2
+-send < 1
+-gif lbl7
+-lbl8:
+-#line 245
+-push i:2
+-push @tuple
+-send at 1
+-push_block
+-send call 1
+-git lbl9
+-#line 246
+-push i:2
+-push @tuple
+-send at 1
+-push j:3
+-push @tuple
+-send put 2
+-pop
+-#line 247
+-push 1
+-push j:3
+-send + 1
+-set j:3
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 249
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-goto lbl6
+-lbl7:
+-push nil
+-pop
+-#line 251
+-push j:3
+-set @total
+-pop
+-#line 252
+-push self
+-ret
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 254
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 256
+-push self
+-ret
+-ret
+-check_argcount 1 1
+-set idx:2
+-pop
+-#line 260
+-push 0
+-push idx:2
+-send < 1
+-gif lbl1
+-#line 261
+-push idx:2
+-push @total
+-send - 1
+-set idx:2
+-pop
+-#line 262
+-push 0
+-push idx:2
+-send < 1
+-gif lbl3
+-push nil
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 265
+-push @total
+-push idx:2
+-send >= 1
+-gif lbl5
+-#line 266
+-push nil
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 268
+-push idx:2
+-push @tuple
+-send at 1
+-set obj:3
+-pop
+-#line 269
+-push 1
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 270
+-lbl7:
+-push @total
+-push idx:2
+-send < 1
+-gif lbl8
+-lbl9:
+-#line 271
+-push idx:2
+-push @tuple
+-send at 1
+-push 1
+-push idx:2
+-send - 1
+-push @tuple
+-send put 2
+-pop
+-#line 272
+-push 1
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-goto lbl7
+-lbl8:
+-push nil
+-pop
+-#line 274
+-push 1
+-push @total
+-send - 1
+-set @total
+-pop
+-#line 275
+-push obj:3
+-ret
+-ret
+-check_argcount 1 1
+-set obj:2
+-pop
+-#line 279
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:3
+-pop
+-#line 280
+-push x:3
+-push Array
+-send === 1
+-dup
+-gif lbl4
+-pop
+-push obj:2
+-push x:3
+-send first 0
+-send == 1
+-lbl4:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send find 0
+-lbl1:
+-ret
+-check_argcount 1 1
+-set obj:2
+-pop
+-#line 285
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:3
+-pop
+-#line 286
+-push x:3
+-push Array
+-send === 1
+-dup
+-gif lbl4
+-pop
+-push obj:2
+-push 1
+-push x:3
+-send [] 1
+-send == 1
+-lbl4:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send find 0
+-lbl1:
+-ret
+-check_argcount 1 1
+-set ary:2
+-pop
+-#line 291
+-make_hash 0
+-set set_exclude:3
+-pop
+-#line 292
+-make_array 0
+-set out:4
+-pop
+-#line 293
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:5
+-pop
+-#line 294
+-push true
+-push x:5
+-push set_exclude:3
+-send []= 2
+-lbl2: soft_return
+-lbl3:
+-push ary:2
+-&send each 0
+-lbl1:
+-pop
+-#line 296
+-push &lbl4
+-push &lbl5
+-push_context
+-send_primitive create_block 2
+-goto lbl6
+-unshift_tuple
+-set x:6
+-pop
+-#line 297
+-push x:6
+-push set_exclude:3
+-send [] 1
+-git lbl7
+-#line 298
+-push x:6
+-push out:4
+-send << 1
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-lbl5: soft_return
+-lbl6:
+-push self
+-&send each 0
+-lbl4:
+-pop
+-#line 302
+-push out:4
+-ret
+-check_argcount 1 1
+-set ary:2
+-pop
+-#line 306
+-make_hash 0
+-set set_exclude:3
+-pop
+-#line 307
+-make_array 0
+-set out:4
+-pop
+-#line 308
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:5
+-pop
+-#line 309
+-push x:5
+-push set_exclude:3
+-send [] 1
+-git lbl4
+-#line 310
+-push x:5
+-push out:4
+-send << 1
+-pop
+-#line 311
+-push true
+-push x:5
+-push set_exclude:3
+-send []= 2
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send each 0
+-lbl1:
+-pop
+-#line 314
+-push &lbl6
+-push &lbl7
+-push_context
+-send_primitive create_block 2
+-goto lbl8
+-unshift_tuple
+-set x:6
+-pop
+-#line 315
+-push x:6
+-push set_exclude:3
+-send [] 1
+-git lbl9
+-#line 316
+-push x:6
+-push out:4
+-send << 1
+-pop
+-#line 317
+-push true
+-push x:6
+-push set_exclude:3
+-send []= 2
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-lbl7: soft_return
+-lbl8:
+-push ary:2
+-&send each 0
+-lbl6:
+-pop
+-#line 320
+-push out:4
+-ret
+-check_argcount 1 1
+-set ary:2
+-pop
+-#line 324
+-make_hash 0
+-set set_include:3
+-pop
+-#line 325
+-make_array 0
+-set out:4
+-pop
+-#line 326
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:5
+-pop
+-#line 327
+-push true
+-push x:5
+-push set_include:3
+-send []= 2
+-lbl2: soft_return
+-lbl3:
+-push ary:2
+-&send each 0
+-lbl1:
+-pop
+-#line 329
+-push &lbl4
+-push &lbl5
+-push_context
+-send_primitive create_block 2
+-goto lbl6
+-unshift_tuple
+-set x:6
+-pop
+-#line 330
+-push x:6
+-push set_include:3
+-send [] 1
+-gif lbl7
+-#line 331
+-push x:6
+-push out:4
+-send << 1
+-pop
+-#line 332
+-push false
+-push x:6
+-push set_include:3
+-send []= 2
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-lbl5: soft_return
+-lbl6:
+-push self
+-&send each 0
+-lbl4:
+-pop
+-#line 335
+-push out:4
+-ret
+-check_argcount 0 0
+-#line 339
+-push self
+-ret
+-check_argcount 0 0
+-#line 343
+-push self
+-send join 0
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set args
+-pop
+-#line 355
+-push args:2
+-send shift 0
+-set a1:3
+-pop
+-#line 356
+-push args:2
+-cast_array_for_args 1
+-push_array
+-push a1:3
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send [] +
+-set out:4
+-pop
+-#line 357
+-push a1:3
+-push args:2
+-send unshift 1
+-pop
+-#line 359
+-push 1
+-push args:2
+-send size 0
+-send == 1
+-dup
+-gif lbl1
+-pop
+-#line 359
+-push 0
+-push args:2
+-send [] 1
+-push Range
+-send === 1
+-git lbl2
+-push true
+-goto lbl3
+-lbl2:
+-push false
+-lbl3:
+-lbl1:
+-gif lbl4
+-push 1
+-push args:2
+-send << 1
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 360
+-make_array 0
+-push args:2
+-send << 1
+-pop
+-#line 361
+-push args:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send []= +
+-pop
+-#line 363
+-push out:4
+-ret
+-check_argcount 0 0
+-#line 367
+-push nil
+-set ret:2
+-pop
+-#line 368
+-push 0
+-set i:3
+-pop
+-#line 369
+-lbl1:
+-push @total
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 370
+-push i:3
+-push @tuple
+-send at 1
+-set o:4
+-pop
+-#line 371
+-push o:4
+-push Array
+-send === 1
+-gif lbl4
+-#line 372
+-push o:4
+-push 1
+-push i:3
+-push self
+-send []= 3
+-pop
+-#line 373
+-push self
+-set ret:2
+-goto lbl5
+-lbl4:
+-#line 375
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-lbl5:
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 378
+-push ret:2
+-ret
+-check_argcount 0 0
+-#line 382
+-make_array 0
+-set ret:2
+-pop
+-#line 383
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set o:3
+-pop
+-#line 384
+-push o:3
+-push Array
+-send === 1
+-gif lbl4
+-#line 385
+-push o:3
+-send flatten 0
+-push ret:2
+-send concat 1
+-goto lbl5
+-lbl4:
+-#line 387
+-push o:3
+-push ret:2
+-send << 1
+-lbl5:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send each 0
+-lbl1:
+-pop
+-#line 390
+-push ret:2
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set args
+-pop
+-#line 394
+-push args:2
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set args
+-pop
+-#line 398
+-make_array 0
+-set out:3
+-pop
+-#line 399
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:4
+-pop
+-#line 400
+-push x:4
+-push Range
+-send === 1
+-gif lbl4
+-#line 403
+-push x:4
+-send last 0
+-set lst:5
+-pop
+-#line 404
+-push 0
+-push lst:5
+-send < 1
+-gif lbl6
+-#line 405
+-push @total
+-push lst:5
+-send + 1
+-set lst:5
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 407
+-push self
+-send size 0
+-push lst:5
+-send > 1
+-gif lbl8
+-#line 408
+-push self
+-send size 0
+-set lst:5
+-goto lbl9
+-lbl8:
+-push nil
+-lbl9:
+-pop
+-#line 410
+-push x:4
+-send exclude_end? 0
+-gif lbl10
+-push 1
+-push lst:5
+-send - 1
+-set lst:5
+-goto lbl11
+-lbl10:
+-push nil
+-lbl11:
+-pop
+-#line 411
+-push x:4
+-send first 0
+-set idx:6
+-pop
+-#line 412
+-push lst:5
+-push &lbl12
+-push &lbl13
+-push_context
+-send_primitive create_block 2
+-goto lbl14
+-unshift_tuple
+-set i:7
+-pop
+-#line 413
+-push i:7
+-push self
+-send [] 1
+-push out:3
+-send << 1
+-lbl13: soft_return
+-lbl14:
+-push idx:6
+-&send upto 1
+-lbl12:
+-goto lbl5
+-lbl4:
+-#line 416
+-push x:4
+-push self
+-send [] 1
+-push out:3
+-send << 1
+-lbl5:
+-lbl2: soft_return
+-lbl3:
+-push args:2
+-&send each 0
+-lbl1:
+-pop
+-#line 419
+-push out:3
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set args
+-pop
+-#line 423
+-make_array 0
+-set out:3
+-pop
+-#line 424
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:4
+-pop
+-#line 425
+-push x:4
+-push self
+-send [] 1
+-push out:3
+-send << 1
+-lbl2: soft_return
+-lbl3:
+-push args:2
+-&send each 0
+-lbl1:
+-pop
+-#line 427
+-push out:3
+-ret
+-check_argcount 0 0
+-#line 433
+-make_array 0
+-set out:2
+-pop
+-#line 434
+-push self
+-send shift 0
+-set a1:3
+-pop
+-#line 435
+-push self
+-cast_array_for_args 0
+-push_array
+-get_args
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set x:4
+-pop
+-#line 435
+-push x:4
+-push out:2
+-send << 1
+-lbl2: soft_return
+-lbl3:
+-swap
+-push a1:3
+-swap
+-set_args
+-&send zip +
+-lbl1:
+-pop
+-#line 436
+-push out:2
+-ret
+-check_argcount 0 0
+-push_block
+-push Proc
+-send from_environment 1
+-set block:8
+-pop
+-#line 440
+-push 1
+-push self
+-send size 0
+-send <= 1
+-gif lbl1
+-#line 441
+-push self
+-send dup 0
+-goto lbl2
+-lbl1:
+-#line 443
+-push 2
+-push self
+-send size 0
+-send / 1
+-set mid:2
+-pop
+-#line 444
+-push mid:2
+-push self
+-send [] 1
+-set midval:3
+-pop
+-#line 445
+-make_array 0
+-set al:4
+-pop
+-push midval:3
+-make_array 1
+-set am:5
+-pop
+-make_array 0
+-set ar:6
+-pop
+-pop
+-#line 446
+-push true
+-send_primitive block_given 0
+-gif lbl3
+-#line 447
+-push &lbl5
+-push &lbl6
+-push_context
+-send_primitive create_block 2
+-goto lbl7
+-dup
+-send fields 0
+-push 1
+-send equal? 1
+-gif lbl8
+-dup
+-push 0
+-fetch_field
+-send class 0
+-push Array
+-send equal? 1
+-gif lbl8
+-push 0
+-fetch_field
+-push 1
+-fetch_field
+-lbl8:
+-unshift_tuple
+-set o:9
+-pop
+-unshift_tuple
+-set i:10
+-pop
+-#line 448
+-push mid:2
+-push i:10
+-send == 1
+-git lbl9
+-#line 449
+-push midval:3
+-push o:9
+-push_block
+-send call 2
+-set cmp:11
+-pop
+-#line 450
+-push 0
+-push cmp:11
+-send < 1
+-gif lbl11
+-#line 450
+-push o:9
+-push al:4
+-send << 1
+-goto lbl12
+-lbl11:
+-push 0
+-push cmp:11
+-send == 1
+-gif lbl13
+-#line 451
+-push o:9
+-push am:5
+-send << 1
+-goto lbl14
+-lbl13:
+-#line 452
+-push o:9
+-push ar:6
+-send << 1
+-lbl14:
+-lbl12:
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-lbl6: soft_return
+-lbl7:
+-push self
+-&send each_with_index 0
+-lbl5:
+-pop
+-#line 456
+-push block:8
+-push al:4
+-&send sort 0
+-lbl15:
+-set out:7
+-pop
+-#line 457
+-push am:5
+-push out:7
+-send concat 1
+-pop
+-#line 458
+-push block:8
+-push ar:6
+-&send sort 0
+-lbl16:
+-push out:7
+-send concat 1
+-goto lbl4
+-lbl3:
+-#line 460
+-push &lbl17
+-push &lbl18
+-push_context
+-send_primitive create_block 2
+-goto lbl19
+-dup
+-send fields 0
+-push 1
+-send equal? 1
+-gif lbl20
+-dup
+-push 0
+-fetch_field
+-send class 0
+-push Array
+-send equal? 1
+-gif lbl20
+-push 0
+-fetch_field
+-push 1
+-fetch_field
+-lbl20:
+-unshift_tuple
+-set o1:12
+-pop
+-unshift_tuple
+-set i1:13
+-pop
+-#line 461
+-push mid:2
+-push i1:13
+-send == 1
+-git lbl21
+-#line 462
+-push midval:3
+-push o1:12
+-send <=> 1
+-set cmp:11
+-pop
+-#line 463
+-push 0
+-push cmp:11
+-send < 1
+-gif lbl23
+-#line 463
+-push o1:12
+-push al:4
+-send << 1
+-goto lbl24
+-lbl23:
+-push 0
+-push cmp:11
+-send == 1
+-gif lbl25
+-#line 464
+-push o1:12
+-push am:5
+-send << 1
+-goto lbl26
+-lbl25:
+-#line 465
+-push o1:12
+-push ar:6
+-send << 1
+-lbl26:
+-lbl24:
+-goto lbl22
+-lbl21:
+-push nil
+-lbl22:
+-lbl18: soft_return
+-lbl19:
+-push self
+-&send each_with_index 0
+-lbl17:
+-pop
+-#line 469
+-push al:4
+-send sort 0
+-set out:7
+-pop
+-#line 470
+-push am:5
+-push out:7
+-send concat 1
+-pop
+-#line 471
+-push ar:6
+-send sort 0
+-push out:7
+-send concat 1
+-lbl4:
+-pop
+-#line 473
+-push out:7
+-lbl2:
+-ret
+-check_argcount 0 0
+-push_block
+-push Proc
+-send from_environment 1
+-set block:2
+-pop
+-#line 479
+-push block:2
+-push self
+-&send sort 0
+-lbl1:
+-push self
+-send replace 1
+-ret
+-check_argcount 1 1
+-set obj:2
+-pop
+-#line 483
+-push @total
+-set i:3
+-pop
+-#line 484
+-lbl1:
+-push 0
+-push i:3
+-send > 1
+-gif lbl2
+-lbl3:
+-#line 485
+-push 1
+-push i:3
+-send - 1
+-set i:3
+-pop
+-#line 486
+-push obj:2
+-push i:3
+-push @tuple
+-send at 1
+-send == 1
+-gif lbl4
+-push i:3
+-ret
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 488
+-push nil
+-ret
+-check_argcount 1 1
+-set obj:2
+-pop
+-#line 492
+-push 0
+-set i:3
+-pop
+-#line 493
+-lbl1:
+-push @total
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 494
+-push obj:2
+-push i:3
+-push @tuple
+-send at 1
+-send == 1
+-gif lbl4
+-push i:3
+-ret
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 495
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 497
+-push nil
+-ret
+-check_argcount 1 1
+-set schema:2
+-pop
+-#line 502
+-push self
+-send size 0
+-push schema:2
+-send size 0
+-send == 1
+-git lbl1
+-#line 503
+-push_literal 0
+-string_dup
+-push self
+-send size 0
+-send to_s
+-push_literal 1
+-string_dup
+-push schema:2
+-send size 0
+-send to_s
+-push_literal 2
+-string_dup
+-string_append
+-string_append
+-string_append
+-string_append
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 506
+-push_literal 3
+-string_dup
+-set ret:3
+-pop
+-#line 507
+-push 1
+-push schema:2
+-send size 0
+-send - 1
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set idx:4
+-pop
+-#line 508
+-push idx:4
+-push schema:2
+-send [] 1
+-set kind:5
+-pop
+-#line 509
+-push 78
+-push kind:5
+-send == 1
+-gif lbl6
+-#line 510
+-push idx:4
+-push self
+-send [] 1
+-set obj:6
+-pop
+-#line 511
+-make_array 0
+-set parts:7
+-pop
+-#line 512
+-push &lbl8
+-push &lbl9
+-push_context
+-send_primitive create_block 2
+-goto lbl10
+-#line 513
+-#line 513
+-push 256
+-push obj:6
+-send % 1
+-push parts:7
+-send << 1
+-pop
+-#line 514
+-push 256
+-push obj:6
+-send / 1
+-set obj:6
+-lbl9: soft_return
+-lbl10:
+-push 4
+-&send times 0
+-lbl8:
+-pop
+-#line 516
+-push 0
+-push &lbl11
+-push &lbl12
+-push_context
+-send_primitive create_block 2
+-goto lbl13
+-unshift_tuple
+-set j:8
+-pop
+-#line 517
+-push j:8
+-push parts:7
+-send [] 1
+-send chr 0
+-push ret:3
+-send << 1
+-lbl12: soft_return
+-lbl13:
+-push 3
+-&send downto 1
+-lbl11:
+-goto lbl7
+-lbl6:
+-#line 520
+-push kind:5
+-send chr 0
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-push ArgumentError
+-push self
+-send raise 2
+-lbl7:
+-lbl4: soft_return
+-lbl5:
+-push 0
+-&send upto 1
+-lbl3:
+-pop
+-#line 524
+-push ret:3
+-ret
+-ret
+-check_argcount 0 0
+-#line 528
+-make_array 0
+-set ary:2
+-pop
+-#line 529
+-push 1
+-push @total
+-send - 1
+-set i:3
+-pop
+-#line 530
+-lbl1:
+-push 0
+-push i:3
+-send >= 1
+-gif lbl2
+-lbl3:
+-#line 531
+-push i:3
+-push self
+-send [] 1
+-push ary:2
+-send << 1
+-pop
+-#line 532
+-push 1
+-push i:3
+-send - 1
+-set i:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 534
+-push ary:2
+-ret
+-ret
+-check_argcount 0 0
+-#line 538
+-make_hash 0
+-set seen:2
+-pop
+-#line 539
+-make_array 0
+-set ary:3
+-pop
+-#line 540
+-push 0
+-set i:4
+-pop
+-#line 541
+-lbl1:
+-push @total
+-push i:4
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 542
+-push i:4
+-push @tuple
+-send at 1
+-set e:5
+-pop
+-#line 543
+-push e:5
+-push seen:2
+-send [] 1
+-git lbl4
+-push e:5
+-push ary:3
+-send << 1
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 544
+-push true
+-push e:5
+-push seen:2
+-send []= 2
+-pop
+-#line 545
+-push 1
+-push i:4
+-send + 1
+-set i:4
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 547
+-push ary:3
+-ret
+-check_argcount 0 0
+-#line 551
+-push self
+-send uniq 0
+-set ary:2
+-pop
+-#line 552
+-push self
+-send size 0
+-push ary:2
+-send size 0
+-send == 1
+-gif lbl1
+-push nil
+-goto lbl2
+-lbl1:
+-push ary:2
+-push self
+-send replace 1
+-lbl2:
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 556
+-make_array 0
+-set out:3
+-pop
+-#line 557
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set e:4
+-pop
+-#line 558
+-push e:4
+-push other:2
+-send include? 1
+-git lbl4
+-#line 559
+-push e:4
+-push out:3
+-send << 1
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send each 0
+-lbl1:
+-pop
+-#line 562
+-push out:3
+-ret
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 566
+-make_array 0
+-set out:3
+-pop
+-#line 567
+-push self
+-send uniq! 0
+-pop
+-#line 568
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set e:4
+-pop
+-#line 569
+-push e:4
+-push other:2
+-send include? 1
+-gif lbl4
+-#line 570
+-push e:4
+-push out:3
+-send << 1
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send each 0
+-lbl1:
+-pop
+-#line 573
+-push out:3
+-ret
+-ret
+-check_argcount 1 1
+-set val:2
+-pop
+-#line 578
+-push String
+-push val:2
+-send class 0
+-send == 1
+-gif lbl1
+-#line 579
+-push val:2
+-push self
+-send join 1
+-ret
+-goto lbl2
+-lbl1:
+-#line 581
+-make_array 0
+-set out:3
+-pop
+-#line 582
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-#line 583
+-push self
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push out:3
+-swap
+-set_args
+-send push +
+-lbl4: soft_return
+-lbl5:
+-push val:2
+-&send times 0
+-lbl3:
+-pop
+-#line 585
+-push out:3
+-ret
+-lbl2:
+-ret
+-check_argcount 1 0
+-set pos:2
+-pop
+-make_rest 1
+-set rest
+-pop
+-#line 590
+-push 1
+-push rest:3
+-send length 0
+-send > 1
+-gif lbl1
+-#line 591
+-push_literal 0
+-string_dup
+-push rest:3
+-send length 0
+-push 1
+-send + 1
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 593
+-push rest:3
+-send empty? 0
+-git lbl3
+-push true
+-goto lbl4
+-lbl3:
+-push false
+-lbl4:
+-dup
+-gif lbl5
+-pop
+-push true
+-send_primitive block_given 0
+-lbl5:
+-gif lbl6
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 596
+-push pos:2
+-set index:4
+-pop
+-#line 597
+-push 0
+-push index:4
+-send < 1
+-gif lbl8
+-#line 598
+-push self
+-send length 0
+-push index:4
+-send + 1
+-set index:4
+-goto lbl9
+-lbl8:
+-push nil
+-lbl9:
+-pop
+-#line 600
+-push 0
+-push index:4
+-send < 1
+-dup
+-git lbl10
+-pop
+-push index:4
+-push self
+-send length 0
+-send <= 1
+-lbl10:
+-gif lbl11
+-#line 601
+-push true
+-send_primitive block_given 0
+-gif lbl13
+-push pos:2
+-push_block
+-send call 1
+-ret
+-goto lbl14
+-lbl13:
+-push nil
+-lbl14:
+-pop
+-#line 602
+-push 0
+-push rest:3
+-send length 0
+-send == 1
+-gif lbl15
+-#line 603
+-push_literal 2
+-string_dup
+-push index:4
+-send to_s
+-push_literal 3
+-string_dup
+-string_append
+-string_append
+-push IndexError
+-push self
+-send raise 2
+-goto lbl16
+-lbl15:
+-push nil
+-lbl16:
+-pop
+-#line 605
+-push 0
+-push rest:3
+-send [] 1
+-ret
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-pop
+-#line 607
+-push index:4
+-push self
+-send at 1
+-ret
+-check_argcount 0 0
+-#line 611
+-push 0
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-dup
+-send fields 0
+-push 1
+-send equal? 1
+-gif lbl4
+-dup
+-push 0
+-fetch_field
+-send class 0
+-push Array
+-send equal? 1
+-gif lbl4
+-push 0
+-fetch_field
+-push 1
+-fetch_field
+-lbl4:
+-unshift_tuple
+-set count:2
+-pop
+-unshift_tuple
+-set elt:3
+-pop
+-#line 611
+-push elt:3
+-gif lbl5
+-push 1
+-push count:2
+-send + 1
+-goto lbl6
+-lbl5:
+-push count:2
+-lbl6:
+-lbl2: soft_return
+-lbl3:
+-push self
+-&send inject 1
+-lbl1:
+-ret
+-check_argcount 1 0
+-set index:2
+-pop
+-make_rest 1
+-set items
+-pop
+-#line 615
+-push 0
+-push items:3
+-send length 0
+-send == 1
+-gif lbl1
+-push self
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 617
+-push index:2
+-set pos:4
+-pop
+-#line 618
+-push -1
+-push pos:4
+-send == 1
+-gif lbl3
+-#line 619
+-push self
+-send length 0
+-set pos:4
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 621
+-push 0
+-push pos:4
+-send < 1
+-gif lbl5
+-#line 622
+-push 1
+-push self
+-send length 0
+-send + 1
+-push pos:4
+-send + 1
+-set pos:4
+-pop
+-#line 623
+-push 0
+-push pos:4
+-send < 1
+-gif lbl7
+-#line 624
+-push_literal 0
+-string_dup
+-push index:2
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push IndexError
+-push self
+-send raise 2
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 630
+-push self
+-send length 0
+-push pos:4
+-send < 1
+-gif lbl9
+-#line 631
+-push pos:4
+-push &lbl11
+-push &lbl12
+-push_context
+-send_primitive create_block 2
+-goto lbl13
+-unshift_tuple
+-set i:5
+-pop
+-#line 631
+-push i:5
+-push self
+-send [] 1
+-push items:3
+-send length 0
+-push i:5
+-send + 1
+-push self
+-send []= 2
+-lbl12: soft_return
+-lbl13:
+-#line 631
+-push 1
+-push self
+-send length 0
+-send - 1
+-&send downto 1
+-lbl11:
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 633
+-push &lbl14
+-push &lbl15
+-push_context
+-send_primitive create_block 2
+-goto lbl16
+-dup
+-send fields 0
+-push 1
+-send equal? 1
+-gif lbl17
+-dup
+-push 0
+-fetch_field
+-send class 0
+-push Array
+-send equal? 1
+-gif lbl17
+-push 0
+-fetch_field
+-push 1
+-fetch_field
+-lbl17:
+-unshift_tuple
+-set el:6
+-pop
+-unshift_tuple
+-set i:7
+-pop
+-#line 633
+-push el:6
+-push pos:4
+-push i:7
+-send + 1
+-push self
+-send []= 2
+-lbl15: soft_return
+-lbl16:
+-push items:3
+-&send each_with_index 0
+-lbl14:
+-pop
+-#line 634
+-push self
+-ret
+-check_argcount 0 0
+-push_block
+-push Proc
+-send from_environment 1
+-set block:3
+-pop
+-#line 638
+-push self
+-send length 0
+-set old_length:2
+-pop
+-#line 639
+-push block:3
+-push self
+-&send delete_if 0
+-lbl1:
+-pop
+-#line 640
+-push self
+-send length 0
+-push old_length:2
+-send == 1
+-gif lbl2
+-push nil
+-goto lbl3
+-lbl2:
+-push self
+-lbl3:
+-ret
+-check_argcount 0 0
+-#line 644
+-push 1
+-push self
+-send length 0
+-send > 1
+-gif lbl1
+-#line 645
+-push 1
+-push self
+-send length 0
+-send - 1
+-set len:2
+-pop
+-#line 646
+-push 2
+-push len:2
+-send / 1
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set i:3
+-pop
+-#line 647
+-push i:3
+-push self
+-send [] 1
+-set tmp:4
+-pop
+-#line 648
+-push i:3
+-push len:2
+-send - 1
+-push self
+-send [] 1
+-push i:3
+-push self
+-send []= 2
+-pop
+-#line 649
+-push tmp:4
+-push i:3
+-push len:2
+-send - 1
+-push self
+-send []= 2
+-lbl4: soft_return
+-lbl5:
+-push 0
+-&send upto 1
+-lbl3:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 652
+-push self
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set args
+-pop
+-#line 656
+-push 0
+-set start_index:3
+-pop
+-#line 657
+-push 1
+-push self
+-send length 0
+-send - 1
+-set end_index:4
+-pop
+-#line 658
+-push nil
+-set item:6
+-set len:5
+-pop
+-#line 659
+-push args:2
+-send length 0
+-set arg_length:7
+-pop
+-#line 660
+-push 0
+-set arg_index_offset:8
+-pop
+-#line 661
+-push 2
+-set max_args:9
+-pop
+-#line 662
+-push true
+-send_primitive block_given 0
+-git lbl1
+-#line 663
+-push 0
+-push args:2
+-send [] 1
+-set item:6
+-pop
+-#line 664
+-push 1
+-push arg_length:7
+-send - 1
+-set arg_length:7
+-pop
+-#line 665
+-push 1
+-set arg_index_offset:8
+-pop
+-#line 666
+-push 3
+-set max_args:9
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 669
+-push arg_index_offset:8
+-push args:2
+-send [] 1
+-dup
+-git lbl3
+-pop
+-push 0
+-lbl3:
+-set arg1:10
+-pop
+-#line 670
+-push arg_index_offset:8
+-push 1
+-send + 1
+-push args:2
+-send [] 1
+-set arg2:11
+-pop
+-#line 672
+-push arg_length:7
+-dup
+-push 0
+-send === 1
+-gif lbl4
+-#line 674
+-push 0
+-set start_index:3
+-pop
+-#line 675
+-push 1
+-push self
+-send length 0
+-send - 1
+-set end_index:4
+-goto lbl7
+-lbl4:
+-dup
+-push 1
+-send === 1
+-gif lbl5
+-#line 677
+-push arg1:10
+-send nil? 0
+-dup
+-git lbl8
+-pop
+-push Integer
+-push arg1:10
+-send kind_of? 1
+-lbl8:
+-gif lbl9
+-#line 678
+-push arg1:10
+-dup
+-git lbl11
+-pop
+-push 0
+-lbl11:
+-set start_index:3
+-pop
+-#line 679
+-push 1
+-push self
+-send length 0
+-send - 1
+-set end_index:4
+-goto lbl10
+-lbl9:
+-push Range
+-push arg1:10
+-send kind_of? 1
+-gif lbl12
+-#line 681
+-push arg1:10
+-send first 0
+-set start_index:3
+-pop
+-#line 682
+-push arg1:10
+-send last 0
+-set end_index:4
+-pop
+-#line 683
+-push arg1:10
+-send exclude_end? 0
+-gif lbl14
+-push 1
+-push end_index:4
+-send - 1
+-set end_index:4
+-goto lbl15
+-lbl14:
+-push nil
+-lbl15:
+-pop
+-#line 684
+-push 0
+-push end_index:4
+-send < 1
+-gif lbl16
+-#line 685
+-push self
+-send length 0
+-push end_index:4
+-send + 1
+-set end_index:4
+-goto lbl17
+-lbl16:
+-push nil
+-lbl17:
+-goto lbl13
+-lbl12:
+-#line 688
+-push_literal 0
+-string_dup
+-push arg1:10
+-send class 0
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-lbl13:
+-lbl10:
+-goto lbl7
+-lbl5:
+-dup
+-push 2
+-send === 1
+-gif lbl6
+-#line 691
+-push arg1:10
+-set start_index:3
+-pop
+-#line 692
+-push arg2:11
+-set len:5
+-goto lbl7
+-lbl6:
+-#line 694
+-push_literal 2
+-string_dup
+-push max_args:9
+-send to_s
+-push_literal 3
+-string_dup
+-push args:2
+-send length 0
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-string_append
+-string_append
+-string_append
+-push ArgumentError
+-push self
+-send raise 2
+-lbl7:
+-swap
+-pop
+-pop
+-#line 696
+-push 0
+-push start_index:3
+-send < 1
+-gif lbl18
+-#line 697
+-push self
+-send length 0
+-push start_index:3
+-send + 1
+-set start_index:3
+-pop
+-#line 698
+-push 0
+-push start_index:3
+-send < 1
+-gif lbl20
+-push 0
+-set start_index:3
+-goto lbl21
+-lbl20:
+-push nil
+-lbl21:
+-goto lbl19
+-lbl18:
+-push nil
+-lbl19:
+-pop
+-#line 700
+-push len:5
+-gif lbl22
+-#line 701
+-push 1
+-push len:5
+-push start_index:3
+-send + 1
+-send - 1
+-set end_index:4
+-goto lbl23
+-lbl22:
+-push nil
+-lbl23:
+-pop
+-#line 704
+-push &lbl24
+-push &lbl25
+-push_context
+-send_primitive create_block 2
+-goto lbl26
+-unshift_tuple
+-set i:12
+-pop
+-#line 705
+-push true
+-send_primitive block_given 0
+-gif lbl27
+-push i:12
+-push_block
+-send call 1
+-goto lbl28
+-lbl27:
+-push item:6
+-lbl28:
+-push i:12
+-push self
+-send []= 2
+-lbl25: soft_return
+-lbl26:
+-#line 704
+-push end_index:4
+-push start_index:3
+-push Range
+-send new 2
+-&send each 0
+-lbl24:
+-pop
+-#line 707
+-push self
+-ret
++`*' interpreted as argument prefix
++An error has occured: Segmentation fault (SIGSEGV)
++
++C backtrace:
++   0x4f790 <cpu_run> at cpu_instructions.c:773
++    0x3e28 <machine_load_archive> at machine.c:429
++    0x3290 <main> at main.c:90
++
++Ruby backtrace:
+1
+kernel/core/bignum.rb
+=> r18
+=> rubinius
+0
+kernel/core/bytearray.rb
+=> r18
+=> rubinius
+0
+kernel/core/compile.rb
+=> r18
+=> rubinius
+0
+kernel/core/compression.rb
+=> r18
+=> rubinius
+0
+kernel/core/continuation.rb
+=> r18
+=> rubinius
+0
+kernel/core/exception.rb
+=> r18
+=> rubinius
+0
+kernel/core/file.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7810.0	2007-03-07 12:55:06.000000000 -0800
++++ /tmp/compare2.7810.0	2007-03-07 12:55:08.000000000 -0800
+@@ -349,7 +349,8 @@
+ lbl2:
+ pop
+ #line 62
+-push -1
++push 1
++send -@
+ set slash:3
+ pop
+ #line 63
+@@ -424,7 +425,8 @@
+ lbl10:
+ pop
+ #line 74
+-push -1
++push 1
++send -@
+ push slash:3
+ send == 1
+ gif lbl11
+@@ -468,7 +470,8 @@
+ lbl2:
+ pop
+ #line 82
+-push -1
++push 1
++send -@
+ set slash:4
+ pop
+ #line 83
+@@ -482,19 +485,19 @@
+ send_primitive create_block 2
+ goto lbl5
+ unshift_tuple
+-set i:8
++set i:5
+ pop
+ #line 84
+ push_literal 1
+ string_dup
+-push i:8
++push i:5
+ push path:2
+ send [] 1
+ send chr 0
+ send == 1
+ gif lbl6
+ #line 85
+-push i:8
++push i:5
+ set slash:4
+ goto lbl7
+ lbl6:
+@@ -507,7 +510,8 @@
+ lbl3:
+ pop
+ #line 88
+-push -1
++push 1
++send -@
+ push slash:4
+ send == 1
+ gif lbl8
+@@ -540,50 +544,50 @@
+ push slash:4
+ push path:2
+ send slice 2
+-set bn:5
++set bn:6
+ pop
+ #line 94
+ #line 94
+ push ext:3
+ gif lbl12
+ #line 95
+-push bn:5
++push bn:6
+ send length 0
+-set x:6
++set x:7
+ pop
+ #line 96
+ push ext:3
+ send length 0
+-set y:7
++set y:8
+ pop
+ #line 98
+ #line 98
+-push y:7
+-push x:6
++push y:8
++push x:7
+ send > 1
+ dup
+ gif lbl14
+ pop
+ push ext:3
+ send to_sym 0
+-push y:7
+-push y:7
+-push x:6
++push y:8
++push y:8
++push x:7
+ send - 1
+-push bn:5
++push bn:6
+ send slice 2
+ send to_sym 0
+ send == 1
+ lbl14:
+ gif lbl15
+ #line 99
+-push y:7
+-push x:6
++push y:8
++push x:7
+ send - 1
+ push 0
+-push bn:5
++push bn:6
+ send slice 2
+-set bn:5
++set bn:6
+ goto lbl16
+ lbl15:
+ push nil
+@@ -594,7 +598,7 @@
+ lbl13:
+ pop
+ #line 102
+-push bn:5
++push bn:6
+ ret
+ ret
+ push self
+1
+kernel/core/fixnum.rb
+=> r18
+=> rubinius
+0
+kernel/core/float.rb
+=> r18
+=> rubinius
+0
+kernel/core/hash.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7829.0	2007-03-07 12:55:21.000000000 -0800
++++ /tmp/compare2.7829.0	2007-03-07 12:55:23.000000000 -0800
+@@ -68,7 +68,7 @@
+ #line 30
+ push_literal 2
+ push_self
+-add_method default=
++add_method val
+ pop
+ #line 35
+ push_literal 3
+1
+kernel/core/kernel.rb
+=> r18
+=> rubinius
+0
+kernel/core/marshal.rb
+=> r18
+=> rubinius
+0
+kernel/core/math.rb
+=> r18
+=> rubinius
+0
+kernel/core/object.rb
+=> r18
+=> rubinius
+0
+kernel/core/process.rb
+=> r18
+=> rubinius
+0
+kernel/core/readline.rb
+=> r18
+=> rubinius
+0
+kernel/core/regexp.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7871.0	2007-03-07 12:55:51.000000000 -0800
++++ /tmp/compare2.7871.0	2007-03-07 12:55:52.000000000 -0800
+@@ -1,1368 +1,150 @@
+-#line 1
+-push nil
+-open_class Regexp
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-pop
+-#line 179
+-push nil
+-open_class MatchData
+-dup
+-push_literal 1
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 3
+-push_literal 0
+-string_dup
+-push_literal 1
+-string_dup
+-push_literal 2
+-string_dup
+-make_array 3
+-set ValidOptions
+-pop
+-#line 5
+-push_literal 3
+-push self
+-attach_method last_match
+-pop
+-#line 15
+-push_literal 4
+-push self
+-attach_method union
+-pop
+-#line 30
+-push_literal 5
+-push_self
+-add_method ~
+-pop
+-#line 40
+-push_literal 6
+-push_self
+-add_method =~
+-pop
+-#line 46
+-push_literal 7
+-push_self
+-add_method ===
+-pop
+-#line 56
+-push_literal 8
+-push_self
+-add_method casefold?
+-pop
+-#line 60
+-push_literal 9
+-push_self
+-add_method eql?
+-pop
+-#line 68
+-push_literal 10
+-push_literal 11
+-push self
+-send alias_method 2
+-pop
+-#line 70
+-push_literal 12
+-push_self
+-add_method hash
+-pop
+-#line 80
+-push_literal 13
+-push_self
+-add_method inspect
+-pop
+-#line 84
+-push_literal 14
+-push_self
+-add_method kcode
+-pop
+-#line 93
+-push_literal 15
+-push_self
+-add_method match
+-pop
+-#line 99
+-push_literal 16
+-push_self
+-add_method __regexp_match__
+-pop
+-#line 103
+-push_literal 17
+-push_self
+-add_method options
+-pop
+-#line 107
+-push_literal 18
+-push_self
+-add_method to_s
+-pop
+-#line 158
+-push_literal 19
+-push_self
+-add_method get_option_string_length
+-pop
+-#line 169
+-push_literal 20
+-push_self
+-add_method option_to_string
+-ret
+-check_argcount 0 1
+-passed_arg 0
+-git set5
+-push nil
+-set5:
+-set field:2
+-pop
+-#line 6
+-push_literal 0
+-push_cpath_top
+-find Globals
+-send [] 1
+-set match:3
+-pop
+-#line 7
+-push match:3
+-gif lbl1
+-#line 8
+-push field:2
+-send nil? 0
+-gif lbl3
+-push match:3
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 9
+-push field:2
+-push match:3
+-send [] 1
+-ret
+-goto lbl2
+-lbl1:
+-#line 11
+-push nil
+-ret
+-lbl2:
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set patterns
+-pop
+-#line 16
+-push patterns:2
+-send nil? 0
+-dup
+-git lbl1
+-pop
+-push 0
+-push patterns:2
+-send length 0
+-send == 1
+-lbl1:
+-gif lbl2
+-#line 17
+-push_literal 0
+-string_dup
+-ret
+-goto lbl3
+-lbl2:
+-#line 19
+-push false
+-set flag:3
+-pop
+-#line 20
+-push_literal 1
+-string_dup
+-set string:4
+-pop
+-#line 21
+-push &lbl4
+-push &lbl5
+-push_context
+-send_primitive create_block 2
+-goto lbl6
+-unshift_tuple
+-set pattern:5
+-pop
+-#line 22
+-push flag:3
+-gif lbl7
+-push_literal 2
+-string_dup
+-push string:4
+-send + 1
+-set string:4
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 23
+-push pattern:5
+-send to_s 0
+-push string:4
+-send + 1
+-set string:4
+-pop
+-#line 24
+-push true
+-set flag:3
+-lbl5: soft_return
+-lbl6:
+-push patterns:2
+-&send each 0
+-lbl4:
+-pop
+-#line 26
+-push_literal 3
+-string_dup
+-push string:4
+-send + 1
+-set string:4
+-ret
+-lbl3:
+-ret
+-check_argcount 0 0
+-#line 31
+-push_literal 0
+-push_cpath_top
+-find Globals
+-send [] 1
+-set line:2
+-pop
+-#line 32
+-push String
+-push line:2
+-send is_a? 1
+-git lbl1
+-#line 33
+-push nil
+-push_literal 1
+-push_cpath_top
+-find Globals
+-send []= 2
+-pop
+-#line 34
+-push nil
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 36
+-push line:2
+-push self
+-send match 1
+-set res:3
+-pop
+-#line 37
+-push res:3
+-send nil? 0
+-gif lbl3
+-push nil
+-goto lbl4
+-lbl3:
+-push 0
+-push res:3
+-send begin 1
+-lbl4:
+-ret
+-ret
+-check_argcount 1 1
+-set str:2
+-pop
+-#line 41
+-push str:2
+-push self
+-send match 1
+-set m:3
+-pop
+-#line 42
+-push m:3
+-gif lbl1
+-push 0
+-push m:3
+-send begin 1
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 43
+-push nil
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 47
+-push String
+-push other:2
+-send is_a? 1
+-git lbl1
+-#line 48
+-push_literal 0
+-push other:2
+-send respond_to 1
+-git lbl3
+-#line 49
+-push nil
+-push_literal 1
+-push_cpath_top
+-find Globals
+-send []= 2
+-pop
+-#line 50
+-push false
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 53
+-push other:2
+-send to_str 0
+-push self
+-send match 1
+-send nil? 0
+-git lbl5
+-push true
+-goto lbl6
+-lbl5:
+-push false
+-lbl6:
+-ret
+-ret
+-check_argcount 0 0
+-#line 57
+-push 0
+-#line 57
+-push IGNORECASE
+-push self
+-send options 0
+-send & 1
+-send > 1
+-gif lbl1
+-push true
+-goto lbl2
+-lbl1:
+-push false
+-lbl2:
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 61
+-push other:2
+-push Regexp
+-send === 1
+-git lbl1
+-push false
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 63
+-push 0
+-push KCODE_MASK
+-push self
+-send options 0
+-send & 1
+-send == 1
+-git lbl3
+-push true
+-goto lbl4
+-lbl3:
+-push false
+-lbl4:
+-gif lbl5
+-push self
+-send options 0
+-goto lbl6
+-lbl5:
+-push KCODE_NONE
+-push self
+-send options 0
+-send + 1
+-lbl6:
+-set self_options:3
+-pop
+-#line 64
+-push 0
+-push KCODE_MASK
+-push other:2
+-send options 0
+-send & 1
+-send == 1
+-git lbl7
+-push true
+-goto lbl8
+-lbl7:
+-push false
+-lbl8:
+-gif lbl9
+-push other:2
+-send options 0
+-goto lbl10
+-lbl9:
+-push KCODE_NONE
+-push other:2
+-send options 0
+-send + 1
+-lbl10:
+-set other_options:4
+-pop
+-#line 65
+-#line 65
+-push other:2
+-send source 0
+-push self
+-send source 0
+-send == 1
+-dup
+-gif lbl11
+-pop
+-#line 65
+-push other_options:4
+-push self_options:3
+-send == 1
+-lbl11:
+-ret
+-ret
+-check_argcount 0 0
+-#line 71
+-push self
+-send options 0
+-push self
+-send option_to_string 1
+-push_literal 0
+-string_dup
+-push self
+-send source 0
+-push_literal 1
+-string_dup
+-send << 1
+-send << 1
+-send << 1
+-set str:2
+-pop
+-#line 72
+-push 0
+-push KCODE_MASK
+-push self
+-send options 0
+-send & 1
+-send == 1
+-gif lbl1
+-#line 73
+-push_literal 2
+-string_dup
+-push str:2
+-send << 1
+-goto lbl2
+-lbl1:
+-#line 75
+-push 1
+-push 0
+-push self
+-send kcode 0
+-send [] 2
+-push str:2
+-send << 1
+-lbl2:
+-pop
+-#line 77
+-push str:2
+-send hash 0
+-ret
+-check_argcount 0 0
+-#line 81
+-push 1
+-push 0
+-push self
+-send kcode 0
+-send [] 2
+-push self
+-send options 0
+-push self
+-send option_to_string 1
+-push_literal 0
+-string_dup
+-push self
+-send source 0
+-push_literal 1
+-string_dup
+-send << 1
+-send << 1
+-send << 1
+-send << 1
+-ret
+-check_argcount 0 0
+-#line 85
+-push KCODE_MASK
+-push self
+-send options 0
+-send & 1
+-set lang:2
+-pop
+-#line 86
+-push KCODE_NONE
+-push lang:2
+-send == 1
+-gif lbl1
+-push_literal 0
+-string_dup
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 87
+-push KCODE_EUC
+-push lang:2
+-send == 1
+-gif lbl3
+-push_literal 1
+-string_dup
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 88
+-push KCODE_SJIS
+-push lang:2
+-send == 1
+-gif lbl5
+-push_literal 2
+-string_dup
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 89
+-push KCODE_UTF8
+-push lang:2
+-send == 1
+-gif lbl7
+-push_literal 3
+-string_dup
+-ret
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 90
+-push nil
+-ret
+-ret
+-check_argcount 1 1
+-set str:2
+-pop
+-#line 94
+-push str:2
+-push self
+-send __regexp_match__ 1
+-set obj:3
+-pop
+-#line 95
+-push obj:3
+-push_literal 0
+-push_cpath_top
+-find Globals
+-send []= 2
+-pop
+-#line 96
+-push obj:3
+-ret
+-ret
+-check_argcount 1 1
+-set str:2
+-pop
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-ret
+-check_argcount 0 0
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-ret
+-check_argcount 0 0
+-#line 108
+-push 0
+-set idx:2
+-pop
+-#line 109
+-push 0
+-set offset:3
+-pop
+-#line 110
+-push self
+-send source 0
+-set pattern:4
+-pop
+-#line 111
+-push self
+-send options 0
+-set option:5
+-pop
+-#line 112
+-push pattern:4
+-send size 0
+-set len:6
+-pop
+-#line 113
+-push -1
+-set endpt:7
+-pop
+-#line 115
+-lbl2:
+-#line 116
+-push 4
+-#line 116
+-push idx:2
+-push len:6
+-send - 1
+-send > 1
+-dup
+-gif lbl3
+-pop
+-push_literal 0
+-string_dup
+-push 2
+-push idx:2
+-push pattern:4
+-send [] 2
+-send == 1
+-lbl3:
+-gif lbl4
+-#line 117
+-push 2
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 119
+-push -1
+-push idx:2
+-push Range
+-send new 2
+-push pattern:4
+-send [] 1
+-push self
+-send get_option_string_length 1
+-set offset:3
+-pop
+-#line 120
+-push 0
+-push offset:3
+-send > 1
+-gif lbl6
+-#line 121
+-push offset:3
+-push idx:2
+-push pattern:4
+-send [] 2
+-push self
+-send string_to_option 1
+-push option:5
+-send | 1
+-set option:5
+-pop
+-#line 122
+-push offset:3
+-push idx:2
+-send + 1
+-set idx:2
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 125
+-push_literal 1
+-string_dup
+-push 1
+-push idx:2
+-push pattern:4
+-send [] 2
+-send == 1
+-gif lbl8
+-#line 126
+-push 1
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 127
+-push -1
+-push idx:2
+-push Range
+-send new 2
+-push pattern:4
+-send [] 1
+-push self
+-send get_option_string_length 1
+-set offset:3
+-pop
+-#line 128
+-push 0
+-push offset:3
+-send > 1
+-gif lbl10
+-#line 129
+-push offset:3
+-push idx:2
+-push pattern:4
+-send [] 2
+-push self
+-send string_to_option 1
+-send ~ 0
+-push option:5
+-send & 1
+-set option:5
+-pop
+-#line 130
+-push offset:3
+-push idx:2
+-send + 1
+-set idx:2
+-goto lbl11
+-lbl10:
+-push nil
+-lbl11:
+-goto lbl9
+-lbl8:
+-push nil
+-lbl9:
+-pop
+-#line 134
+-push_literal 2
+-string_dup
+-push 1
+-push idx:2
+-push Range
+-send new 2
+-push pattern:4
+-send [] 1
+-send == 1
+-gif lbl12
+-#line 135
+-push 1
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 136
+-push nil
+-soft_return
+-goto lbl13
+-lbl12:
+-push_literal 3
+-string_dup
+-push 1
+-push idx:2
+-push pattern:4
+-send [] 2
+-send == 1
+-dup
+-gif lbl14
+-pop
+-push_literal 4
+-string_dup
+-push 1
+-push -1
+-push pattern:4
+-send [] 2
+-send == 1
+-lbl14:
+-gif lbl15
+-#line 138
+-push 1
+-push idx:2
+-send + 1
+-set idx:2
+-pop
+-#line 139
+-push Regexp
+-push 0
+-push -2
+-push idx:2
+-push Range
+-send new 2
+-push pattern:4
+-send [] 1
+-push Regexp
+-send new 2
+-send is_a? 1
+-gif lbl17
+-#line 143
+-push 1
+-push endpt:7
+-send - 1
+-set endpt:7
+-goto lbl18
+-lbl17:
+-#line 140
+-push self
+-send options 0
+-set option:5
+-pop
+-#line 141
+-push 0
+-set idx:2
+-lbl18:
+-goto lbl16
+-lbl15:
+-push nil
+-lbl16:
+-lbl13:
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 147
+-goto lbl1
+-pop
+-goto lbl2
+-lbl1:
+-push nil
+-pop
+-#line 149
+-push_literal 5
+-string_dup
+-set string:8
+-pop
+-#line 150
+-push option:5
+-push self
+-send option_to_string 1
+-push string:8
+-send << 1
+-pop
+-#line 151
+-push OPTION_MASK
+-#line 151
+-push OPTION_MASK
+-push option:5
+-send & 1
+-send == 1
+-git lbl19
+-#line 152
+-push option:5
+-send ~ 0
+-push self
+-send option_to_string 1
+-push_literal 6
+-string_dup
+-push string:8
+-send << 1
+-send << 1
+-goto lbl20
+-lbl19:
+-push nil
+-lbl20:
+-pop
+-#line 154
+-push_literal 7
+-string_dup
+-push endpt:7
+-push idx:2
+-push Range
+-send new 2
+-push pattern:4
+-send [] 1
+-push_literal 8
+-string_dup
+-push string:8
+-send << 1
+-send << 1
+-send << 1
+-ret
+-check_argcount 1 1
+-set string:2
+-pop
+-#line 159
+-push 0
+-set idx:3
+-pop
+-#line 160
+-lbl1:
+-push string:2
+-send length 0
+-push idx:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 161
+-push 1
+-push idx:3
+-push string:2
+-send [] 2
+-push ValidOptions
+-send include? 1
+-git lbl4
+-#line 162
+-push idx:3
+-ret
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 164
+-push 1
+-push idx:3
+-send + 1
+-set idx:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 166
+-push idx:3
+-ret
+-ret
+-check_argcount 1 1
+-set option:2
+-pop
+-#line 170
+-push_literal 0
+-string_dup
+-set string:3
+-pop
+-#line 171
+-push 0
+-#line 171
+-push MULTILINE
+-push option:2
+-send & 1
+-send > 1
+-gif lbl1
+-push_literal 1
+-string_dup
+-push string:3
+-send << 1
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 172
+-push 0
+-#line 172
+-push IGNORECASE
+-push option:2
+-send & 1
+-send > 1
+-gif lbl3
+-push_literal 2
+-string_dup
+-push string:3
+-send << 1
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 173
+-push 0
+-#line 173
+-push EXTENDED
+-push option:2
+-send & 1
+-send > 1
+-gif lbl5
+-push_literal 3
+-string_dup
+-push string:3
+-send << 1
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 174
+-push string:3
+-ret
+-ret
+-push self
+-set_encloser
+-#line 181
+-push_literal 0
+-push_self
+-add_method []
+-pop
+-#line 205
+-push_literal 1
+-push_self
+-add_method captures
+-pop
+-#line 209
+-push_literal 2
+-push_self
+-add_method inspect
+-pop
+-#line 213
+-push_literal 3
+-push_self
+-add_method select
+-pop
+-#line 223
+-push_literal 4
+-push_literal 5
+-push self
+-send alias_method 2
+-pop
+-#line 225
+-push_literal 6
+-push_self
+-add_method to_a
+-pop
+-#line 229
+-push_literal 7
+-push_self
+-add_method to_s
+-pop
+-#line 233
+-push_literal 8
+-push_self
+-add_method values_at
+-pop
+-#line 244
+-push_literal 9
+-push_self
+-add_method get_match_array
+-ret
+-check_argcount 1 2
+-set idx:2
+-pop
+-passed_arg 1
+-git set16
+-push nil
+-set16:
+-set len:3
+-pop
+-#line 182
+-push Integer
+-push idx:2
+-send is_a? 1
+-gif lbl1
+-#line 183
+-push 0
+-push idx:2
+-send < 1
+-gif lbl3
+-push self
+-send length 0
+-push idx:2
+-send + 1
+-set idx:2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 184
+-push len:3
+-send nil? 0
+-gif lbl5
+-#line 185
+-push 0
+-push idx:2
+-send >= 1
+-dup
+-gif lbl7
+-pop
+-push self
+-send length 0
+-push idx:2
+-send < 1
+-lbl7:
+-gif lbl8
+-#line 186
+-push idx:2
+-push self
+-send begin 1
+-set x:4
+-pop
+-#line 187
+-push idx:2
+-push self
+-send end 1
+-set y:5
+-pop
+-#line 188
+-push true
+-push y:5
+-push x:4
+-push Range
+-send new 3
+-push @source
+-send [] 1
+-ret
+-goto lbl9
+-lbl8:
+-#line 190
+-push nil
+-ret
+-lbl9:
+-goto lbl6
+-lbl5:
+-#line 193
+-push 0
+-push idx:2
+-send >= 1
+-dup
+-gif lbl10
+-pop
+-push self
+-send length 0
+-push idx:2
+-send < 1
+-lbl10:
+-gif lbl11
+-#line 194
+-push len:3
+-push idx:2
+-push 0
+-push self
+-send get_match_array 1
+-send [] 2
+-ret
+-goto lbl12
+-lbl11:
+-#line 196
+-push nil
+-ret
+-lbl12:
+-lbl6:
+-goto lbl2
+-lbl1:
+-push_literal 0
+-push idx:2
+-send respond_to? 1
+-dup
+-gif lbl13
+-pop
+-push_literal 1
+-push idx:2
+-send respond_to? 1
+-lbl13:
+-gif lbl14
+-#line 200
+-push idx:2
+-push 0
+-push self
+-send get_match_array 1
+-send [] 1
+-ret
+-goto lbl15
+-lbl14:
+-push nil
+-lbl15:
+-lbl2:
+-pop
+-#line 202
+-push nil
+-ret
+-ret
+-check_argcount 0 0
+-#line 206
+-push 1
+-push self
+-send get_match_array 1
+-ret
+-ret
+-check_argcount 0 0
+-#line 210
+-push 0
+-push self
+-send [] 1
+-ret
+-check_argcount 0 0
+-#line 214
+-push true
+-send_primitive block_given 0
+-gif lbl1
+-#line 215
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set m:2
+-pop
+-#line 216
+-push m:2
+-push_block
+-send call 1
+-lbl4: soft_return
+-lbl5:
+-push 0
+-push self
+-send get_match_array 1
+-&send each 0
+-lbl3:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-ret
+-check_argcount 0 0
+-#line 226
+-push 0
+-push self
+-send get_match_array 1
+-ret
+-ret
+-check_argcount 0 0
+-#line 230
+-push 0
+-push self
+-send [] 1
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set index
+-pop
+-#line 234
+-push Array
+-send new 0
+-set out:3
+-pop
+-#line 235
+-push Array
+-push index:2
+-send is_a? 1
+-gif lbl1
+-#line 236
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set idx:4
+-pop
+-#line 237
+-push idx:4
+-push self
+-send [] 1
+-push out:3
+-send << 1
+-lbl4: soft_return
+-lbl5:
+-push index:2
+-&send each 0
+-lbl3:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 240
+-push out:3
+-ret
+-ret
+-check_argcount 1 1
+-set start:2
+-pop
+-#line 245
+-push Array
+-send new 0
+-set out:3
+-pop
+-#line 246
+-push self
+-send length 0
+-set last:4
+-pop
+-#line 247
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set i:5
+-pop
+-#line 248
+-push i:5
+-push self
+-send begin 1
+-set x:6
+-pop
+-#line 249
+-push i:5
+-push self
+-send end 1
+-set y:7
+-pop
+-#line 250
+-push true
+-push y:7
+-push x:6
+-push Range
+-send new 3
+-push @source
+-send [] 1
+-push out:3
+-send << 1
+-lbl2: soft_return
+-lbl3:
+-#line 247
+-push true
+-push last:4
+-push start:2
+-push Range
+-send new 3
+-&send each 0
+-lbl1:
+-pop
+-#line 252
+-push out:3
+-ret
+-ret
++An exception has occured:
++    Incorrect usage of dasgn_curr idx, needs a value. (nil) (RuntimeError)
++
++Backtrace:
++                         RsLocalScoper#raise at bootstrap/04kernel.rb:30
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:110
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++            RsLocalScoper#process_dasgn_curr at translation/local_scoping.rb:113
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++               RsLocalScoper#send (__send__) at bootstrap/core.rb:87
++                       RsLocalScoper#process at sexp/simple_processor.rb:44
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:66
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                Fixnum#times at core/06integer.rb:17
++                    RsLocalScoper#concat_all at sexp/simple_processor.rb:68
++                       RsLocalScoper#process at sexp/simple_processor.rb:53
++              CompositeSexpProcessor#process at sexp/composite_processor.rb:34
++                       BlockEnvironment#call at bootstrap/context.rb:127
++                                  Array#each at bootstrap/array.rb:26
++              CompositeSexpProcessor#process at sexp/composite_processor.rb:34
++          Bytecode::Compiler#fully_normalize at bytecode/compiler.rb:145
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:124
++        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
++    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
++                       BlockEnvironment#call at bootstrap/context.rb:127
++           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:107
++    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1232
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1565
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:422
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
++        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:150
++    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
++                       BlockEnvironment#call at bootstrap/context.rb:127
++            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:79
++    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:804
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1565
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:411
++                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
++                                 Method#call at bootstrap/compiled_method.rb:130
++    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
++       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
++                  Bytecode::Compiler#compile at bytecode/compiler.rb:136
++        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:161
++                             main.__script__ at bin/rasm.rb:20
++                                   main.load at core/compile.rb:56
++                             main.__script__ at core/__loader.rb:60
+1
+kernel/core/string.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7877.0	2007-03-07 12:55:57.000000000 -0800
++++ /tmp/compare2.7877.0	2007-03-07 12:55:57.000000000 -0800
+@@ -1,4742 +1,5 @@
+-#line 1
+-push nil
+-open_class String
+-dup
+-push_literal 0
+-swap
+-attach __class_init__
+-pop
+-send __class_init__
+-pop
+-push_encloser
+-push nil
+-push true
+-ret
+-push self
+-set_encloser
+-#line 2
+-push Enumerable
+-push Comparable
+-push self
+-send include 2
+-pop
+-#line 4
+-push_literal 0
+-push_literal 1
+-push self
+-send alias_method 2
+-pop
+-#line 5
+-push_literal 2
+-push_literal 3
+-push self
+-send alias_method 2
+-pop
+-#line 7
+-push_literal 4
+-push_self
+-add_method to_sexp_full
+-pop
+-#line 11
+-push_literal 5
+-push_self
+-add_method to_sexp
+-pop
+-#line 21
+-push_literal 6
+-push_self
+-add_method *
+-pop
+-#line 27
+-push_literal 7
+-push_self
+-add_method replace
+-pop
+-#line 35
+-push_literal 8
+-push_self
+-add_method replace_if
+-pop
+-#line 39
+-push_literal 9
+-push_self
+-add_method chomp
+-pop
+-#line 47
+-push_literal 10
+-push_self
+-add_method chomp!
+-pop
+-#line 51
+-push_literal 11
+-push_self
+-add_method chop
+-pop
+-#line 56
+-push_literal 12
+-push_self
+-add_method chop!
+-pop
+-#line 60
+-push_literal 13
+-push_self
+-add_method capitalize
+-pop
+-#line 73
+-push_literal 14
+-push_self
+-add_method capitalize!
+-pop
+-#line 77
+-push_literal 15
+-push_self
+-add_method swapcase
+-pop
+-#line 90
+-push_literal 16
+-push_self
+-add_method swapcase!
+-pop
+-#line 94
+-push_literal 17
+-push_self
+-add_method upcase
+-pop
+-#line 105
+-push_literal 18
+-push_self
+-add_method upcase!
+-pop
+-#line 109
+-push_literal 19
+-push_self
+-add_method downcase
+-pop
+-#line 120
+-push_literal 20
+-push_self
+-add_method downcase!
+-pop
+-#line 124
+-push_literal 21
+-push_self
+-add_method reverse
+-pop
+-#line 140
+-push_literal 22
+-push_self
+-add_method reverse!
+-pop
+-#line 144
+-push_literal 23
+-push_self
+-add_method lstrip
+-pop
+-#line 158
+-push_literal 24
+-push_self
+-add_method lstrip!
+-pop
+-#line 162
+-push_literal 25
+-push_self
+-add_method rstrip
+-pop
+-#line 176
+-push_literal 26
+-push_self
+-add_method rstrip!
+-pop
+-#line 180
+-push_literal 27
+-push_self
+-add_method strip
+-pop
+-#line 185
+-push_literal 28
+-push_self
+-add_method strip!
+-pop
+-#line 189
+-push_literal 29
+-push_self
+-add_method gsub
+-pop
+-#line 211
+-push_literal 30
+-push_self
+-add_method gsub!
+-pop
+-#line 215
+-push_literal 31
+-push_self
+-add_method sub
+-pop
+-#line 231
+-push_literal 32
+-push_self
+-add_method sub!
+-pop
+-#line 235
+-push_literal 33
+-push_self
+-add_method insert
+-pop
+-#line 248
+-push_literal 34
+-push_self
+-add_method succ
+-pop
+-#line 287
+-push_literal 35
+-push_self
+-add_method succ!
+-pop
+-#line 291
+-push_literal 36
+-push_literal 37
+-push self
+-send alias_method 2
+-pop
+-#line 292
+-push_literal 38
+-push_literal 39
+-push self
+-send alias_method 2
+-pop
+-#line 294
+-push_literal 40
+-push_self
+-add_method expand_tr_str
+-pop
+-#line 299
+-push_literal 41
+-push_self
+-add_method tr
+-pop
+-#line 303
+-push_literal 42
+-push_self
+-add_method tr!
+-pop
+-#line 307
+-push_literal 43
+-push_self
+-add_method tr_s
+-pop
+-#line 311
+-push_literal 44
+-push_self
+-add_method tr_s!
+-pop
+-#line 316
+-push_literal 45
+-push_self
+-add_method intersect_string_from_arg
+-pop
+-#line 341
+-push_literal 46
+-push_self
+-add_method delete
+-pop
+-#line 347
+-push_literal 47
+-push_self
+-add_method delete!
+-pop
+-#line 351
+-push_literal 48
+-push_self
+-add_method count
+-pop
+-#line 363
+-push_literal 49
+-push_self
+-add_method squeeze
+-pop
+-#line 392
+-push_literal 50
+-push_self
+-add_method squeeze!
+-pop
+-#line 397
+-push_literal 51
+-push_self
+-add_method tr_string
+-pop
+-#line 460
+-push_literal 52
+-push_self
+-add_method tr!
+-pop
+-#line 464
+-push_literal 53
+-push_self
+-add_method =~
+-pop
+-#line 469
+-push_literal 54
+-push_self
+-add_method include?
+-pop
+-#line 480
+-push_literal 55
+-push_self
+-add_method index
+-pop
+-#line 520
+-push_literal 56
+-push_self
+-add_method rindex
+-pop
+-#line 559
+-push_literal 57
+-push_self
+-add_method justify_string
+-pop
+-#line 575
+-push_literal 58
+-push_self
+-add_method rjust
+-pop
+-#line 579
+-push_literal 59
+-push_self
+-add_method ljust
+-pop
+-#line 583
+-push_literal 60
+-push_self
+-add_method center
+-pop
+-#line 587
+-push_literal 61
+-push_self
+-add_method []
+-pop
+-#line 632
+-push_literal 62
+-push_literal 63
+-push self
+-send alias_method 2
+-pop
+-#line 634
+-push_literal 64
+-push_self
+-add_method slice!
+-pop
+-#line 638
+-push_literal 65
+-push_self
+-add_method []=
+-pop
+-#line 698
+-push_literal 66
+-push_self
+-add_method oct
+-pop
+-#line 702
+-push_literal 67
+-push_self
+-add_method hex
+-pop
+-#line 706
+-push_literal 68
+-push_self
+-add_method to_f
+-pop
+-#line 710
+-push_literal 69
+-push_self
+-add_method match
+-pop
+-#line 715
+-push_literal 70
+-push_self
+-add_method sum
+-pop
+-#line 723
+-push_literal 71
+-push_self
+-add_method upto
+-pop
+-#line 733
+-push_literal 72
+-push_self
+-add_method casecmp
+-pop
+-#line 737
+-push_literal 73
+-push_self
+-add_method each
+-pop
+-#line 759
+-push_literal 74
+-push_literal 75
+-push self
+-send alias_method 2
+-pop
+-#line 762
+-push_literal 76
+-push_self
+-add_method scan
+-ret
+-check_argcount 3 3
+-set name:2
+-pop
+-set line:3
+-pop
+-set newlines:4
+-pop
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-ret
+-check_argcount 0 3
+-passed_arg 0
+-git set3
+-push_literal 0
+-string_dup
+-set3:
+-set name:2
+-pop
+-passed_arg 1
+-git set4
+-push 1
+-set4:
+-set line:3
+-pop
+-passed_arg 2
+-git set5
+-push true
+-set5:
+-set newlines:4
+-pop
+-#line 12
+-push newlines:4
+-push line:3
+-push name:2
+-push self
+-send to_sexp_full 3
+-set out:5
+-pop
+-#line 13
+-push Tuple
+-push out:5
+-send kind_of? 1
+-gif lbl1
+-#line 14
+-push 0
+-push out:5
+-send at 1
+-push SyntaxError
+-send new 1
+-set exc:6
+-pop
+-#line 15
+-push 2
+-push out:5
+-send at 1
+-push 1
+-push out:5
+-send at 1
+-push exc:6
+-send import_position 2
+-pop
+-#line 16
+-push exc:6
+-push self
+-send raise 1
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 18
+-push out:5
+-ret
+-ret
+-check_argcount 1 1
+-set num:2
+-pop
+-#line 22
+-make_array 0
+-set str:3
+-pop
+-#line 23
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-#line 23
+-push self
+-push str:3
+-send << 1
+-lbl2: soft_return
+-lbl3:
+-push num:2
+-&send times 0
+-lbl1:
+-pop
+-#line 24
+-push_literal 0
+-string_dup
+-push str:3
+-send join 1
+-ret
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 28
+-push other:2
+-send dup 0
+-send data 0
+-set @data
+-pop
+-#line 29
+-push other:2
+-send bytes 0
+-set @bytes
+-pop
+-#line 30
+-push other:2
+-send characters 0
+-set @characters
+-pop
+-#line 31
+-push other:2
+-send encoding 0
+-set @encoding
+-pop
+-#line 32
+-push self
+-ret
+-check_argcount 1 1
+-set other:2
+-pop
+-#line 36
+-push other:2
+-push self
+-send == 1
+-gif lbl1
+-push nil
+-goto lbl2
+-lbl1:
+-push other:2
+-push self
+-send replace 1
+-lbl2:
+-ret
+-check_argcount 0 0
+-#line 40
+-push 0
+-push @bytes
+-send > 1
+-git lbl1
+-push_literal 0
+-string_dup
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 41
+-push 1
+-push @bytes
+-send - 1
+-set i:2
+-pop
+-#line 42
+-push 10
+-push i:2
+-push @data
+-send [] 1
+-send == 1
+-gif lbl3
+-push 1
+-push i:2
+-send - 1
+-set i:2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 43
+-push 13
+-push i:2
+-push @data
+-send [] 1
+-send == 1
+-dup
+-gif lbl5
+-pop
+-push 0
+-push i:2
+-send > 1
+-lbl5:
+-gif lbl6
+-push 1
+-push i:2
+-send - 1
+-set i:2
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 44
+-push 1
+-push i:2
+-send + 1
+-push 0
+-push self
+-send substring 2
+-ret
+-check_argcount 0 0
+-#line 48
+-push self
+-send chomp 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 52
+-push 0
+-push @bytes
+-send > 1
+-gif lbl1
+-push 1
+-push @bytes
+-send - 1
+-goto lbl2
+-lbl1:
+-push 0
+-lbl2:
+-set count:2
+-pop
+-#line 53
+-push count:2
+-push 0
+-push self
+-send substring 2
+-ret
+-check_argcount 0 0
+-#line 57
+-push self
+-send chop 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 61
+-push self
+-send dup 0
+-set str:2
+-pop
+-#line 62
+-push 0
+-push str:2
+-send data 0
+-send [] 1
+-set c:3
+-pop
+-#line 63
+-push c:3
+-send toupper 0
+-push 0
+-push str:2
+-send data 0
+-send []= 2
+-pop
+-#line 64
+-push 1
+-set i:4
+-pop
+-#line 65
+-lbl1:
+-push str:2
+-send bytes 0
+-push i:4
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 66
+-push i:4
+-push str:2
+-send data 0
+-send [] 1
+-set c:3
+-pop
+-#line 67
+-push c:3
+-send tolower 0
+-push i:4
+-push str:2
+-send data 0
+-send []= 2
+-pop
+-#line 68
+-push 1
+-push i:4
+-send + 1
+-set i:4
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 70
+-push str:2
+-ret
+-check_argcount 0 0
+-#line 74
+-push self
+-send capitalize 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 78
+-push self
+-send dup 0
+-set str:2
+-pop
+-#line 79
+-push 0
+-set i:3
+-pop
+-#line 80
+-push str:2
+-send data 0
+-set d:4
+-pop
+-#line 81
+-lbl1:
+-push str:2
+-send bytes 0
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 82
+-push i:3
+-push d:4
+-send [] 1
+-set c:5
+-pop
+-#line 83
+-push c:5
+-send islower 0
+-gif lbl4
+-push c:5
+-send toupper 0
+-push i:3
+-push d:4
+-send []= 2
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 84
+-push c:5
+-send isupper 0
+-gif lbl6
+-push c:5
+-send tolower 0
+-push i:3
+-push d:4
+-send []= 2
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 85
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 87
+-push str:2
+-ret
+-check_argcount 0 0
+-#line 91
+-push self
+-send swapcase 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 95
+-push self
+-send dup 0
+-set str:2
+-pop
+-#line 96
+-push 0
+-set i:3
+-pop
+-#line 97
+-lbl1:
+-push str:2
+-send bytes 0
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 98
+-push i:3
+-push str:2
+-send data 0
+-send [] 1
+-set c:4
+-pop
+-#line 99
+-push c:4
+-send toupper 0
+-push i:3
+-push str:2
+-send data 0
+-send []= 2
+-pop
+-#line 100
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 102
+-push str:2
+-ret
+-check_argcount 0 0
+-#line 106
+-push self
+-send upcase 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 110
+-push self
+-send dup 0
+-set str:2
+-pop
+-#line 111
+-push 0
+-set i:3
+-pop
+-#line 112
+-lbl1:
+-push str:2
+-send bytes 0
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 113
+-push i:3
+-push str:2
+-send data 0
+-send [] 1
+-set c:4
+-pop
+-#line 114
+-push c:4
+-send tolower 0
+-push i:3
+-push str:2
+-send data 0
+-send []= 2
+-pop
+-#line 115
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 117
+-push str:2
+-ret
+-check_argcount 0 0
+-#line 121
+-push self
+-send downcase 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 125
+-push self
+-send dup 0
+-set str:2
+-pop
+-#line 126
+-push 0
+-set i:3
+-pop
+-#line 127
+-push 1
+-push str:2
+-send bytes 0
+-send - 1
+-set j:4
+-pop
+-#line 128
+-push str:2
+-send data 0
+-set d:5
+-pop
+-#line 129
+-lbl1:
+-push j:4
+-push i:3
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 130
+-push i:3
+-push d:5
+-send [] 1
+-set a:6
+-pop
+-#line 131
+-push j:4
+-push d:5
+-send [] 1
+-set b:7
+-pop
+-#line 132
+-push a:6
+-push j:4
+-push d:5
+-send []= 2
+-pop
+-#line 133
+-push b:7
+-push i:3
+-push d:5
+-send []= 2
+-pop
+-#line 134
+-push 1
+-push i:3
+-send + 1
+-set i:3
+-pop
+-#line 135
+-push 1
+-push j:4
+-send - 1
+-set j:4
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 137
+-push str:2
+-ret
+-check_argcount 0 0
+-#line 141
+-push self
+-send reverse 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 145
+-push 0
+-set i:2
+-pop
+-#line 146
+-lbl1:
+-push @bytes
+-push i:2
+-send < 1
+-gif lbl2
+-lbl3:
+-#line 147
+-push i:2
+-push @data
+-send [] 1
+-set c:3
+-pop
+-#line 148
+-push c:3
+-send isspace 0
+-dup
+-git lbl4
+-pop
+-push 0
+-push c:3
+-send == 1
+-lbl4:
+-gif lbl5
+-#line 149
+-push 1
+-push i:2
+-send + 1
+-set i:2
+-goto lbl6
+-lbl5:
+-#line 151
+-goto lbl2
+-lbl6:
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 154
+-push self
+-send dup 0
+-set str:4
+-pop
+-#line 155
+-push i:2
+-push @bytes
+-send - 1
+-push i:2
+-push str:4
+-send substring 2
+-ret
+-check_argcount 0 0
+-#line 159
+-push self
+-send lstrip 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 163
+-push 1
+-push @bytes
+-send - 1
+-set i:2
+-pop
+-#line 164
+-lbl1:
+-push 0
+-push i:2
+-send >= 1
+-gif lbl2
+-lbl3:
+-#line 165
+-push i:2
+-push @data
+-send [] 1
+-set c:3
+-pop
+-#line 166
+-push c:3
+-send isspace 0
+-dup
+-git lbl4
+-pop
+-push 0
+-push c:3
+-send == 1
+-lbl4:
+-gif lbl5
+-#line 167
+-push 1
+-push i:2
+-send - 1
+-set i:2
+-goto lbl6
+-lbl5:
+-#line 169
+-goto lbl2
+-lbl6:
+-pop
+-goto lbl1
+-lbl2:
+-push nil
+-pop
+-#line 172
+-push self
+-send dup 0
+-set str:4
+-pop
+-#line 173
+-push 1
+-push i:2
+-send + 1
+-push 0
+-push str:4
+-send substring 2
+-ret
+-check_argcount 0 0
+-#line 177
+-push self
+-send rstrip 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-#line 181
+-push self
+-send lstrip 0
+-set str:2
+-pop
+-#line 182
+-push str:2
+-send rstrip 0
+-ret
+-check_argcount 0 0
+-#line 186
+-push self
+-send strip 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 1 2
+-set pattern:2
+-pop
+-passed_arg 1
+-git set16
+-push nil
+-set16:
+-set rep:3
+-pop
+-#line 190
+-push self
+-send dup 0
+-set str:4
+-pop
+-#line 191
+-push_literal 0
+-string_dup
+-set out:5
+-pop
+-#line 192
+-push pattern:2
+-push String
+-send === 1
+-gif lbl1
+-push pattern:2
+-push Regexp
+-send new 1
+-set pattern:2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 194
+-push true
+-send_primitive block_given 0
+-gif lbl3
+-#line 195
+-lbl5:
+-push str:4
+-push pattern:2
+-send match 1
+-set m:6
+-gif lbl6
+-lbl7:
+-#line 196
+-push m:6
+-send pre_match 0
+-push out:5
+-send << 1
+-pop
+-#line 197
+-push 0
+-push m:6
+-send [] 1
+-push_block
+-send call 1
+-push out:5
+-send << 1
+-pop
+-#line 198
+-push m:6
+-send post_match 0
+-set str:4
+-pop
+-goto lbl5
+-lbl6:
+-push nil
+-goto lbl4
+-lbl3:
+-#line 201
+-push nil
+-push rep:3
+-send == 1
+-gif lbl8
+-push_literal 1
+-string_dup
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl9
+-lbl8:
+-push nil
+-lbl9:
+-pop
+-#line 202
+-lbl10:
+-push str:4
+-push pattern:2
+-send match 1
+-set m:6
+-gif lbl11
+-lbl12:
+-#line 203
+-push m:6
+-send pre_match 0
+-push out:5
+-send << 1
+-pop
+-#line 204
+-push 0
+-push_literal 2
+-push Regexp
+-send new 2
+-push &lbl13
+-push &lbl14
+-push_context
+-send_primitive create_block 2
+-goto lbl15
+-unshift_tuple
+-set x:7
+-pop
+-#line 204
+-push 48
+-push 0
+-push x:7
+-send [] 1
+-send - 1
+-push m:6
+-send [] 1
+-lbl14: soft_return
+-lbl15:
+-push rep:3
+-&send gsub 1
+-lbl13:
+-push out:5
+-send << 1
+-pop
+-#line 205
+-push m:6
+-send post_match 0
+-set str:4
+-pop
+-goto lbl10
+-lbl11:
+-push nil
+-lbl4:
+-pop
+-#line 208
+-push str:4
+-push out:5
+-send << 1
+-ret
+-ret
+-check_argcount 1 2
+-set pattern:2
+-pop
+-passed_arg 1
+-git set2
+-push nil
+-set2:
+-set rep:3
+-pop
+-push_block
+-push Proc
+-send from_environment 1
+-set block:4
+-pop
+-#line 212
+-push rep:3
+-push pattern:2
+-push block:4
+-push self
+-&send gsub 2
+-lbl1:
+-push self
+-send replace_if 1
+-ret
+-check_argcount 1 2
+-set pattern:2
+-pop
+-passed_arg 1
+-git set12
+-push nil
+-set12:
+-set rep:3
+-pop
+-#line 216
+-push self
+-send dup 0
+-set str:4
+-pop
+-#line 217
+-push_literal 0
+-string_dup
+-set out:5
+-pop
+-#line 218
+-push pattern:2
+-push String
+-send === 1
+-gif lbl1
+-push pattern:2
+-push Regexp
+-send new 1
+-set pattern:2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 219
+-push str:4
+-push pattern:2
+-send match 1
+-set m:6
+-pop
+-#line 220
+-push nil
+-push m:6
+-send == 1
+-gif lbl3
+-push self
+-send dup 0
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 221
+-push m:6
+-send pre_match 0
+-push out:5
+-send << 1
+-pop
+-#line 222
+-push true
+-send_primitive block_given 0
+-gif lbl5
+-#line 223
+-push 0
+-push m:6
+-send [] 1
+-push_block
+-send call 1
+-push out:5
+-send << 1
+-goto lbl6
+-lbl5:
+-#line 225
+-push nil
+-push rep:3
+-send == 1
+-gif lbl7
+-push_literal 1
+-string_dup
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 226
+-push 0
+-push_literal 2
+-push Regexp
+-send new 2
+-push &lbl9
+-push &lbl10
+-push_context
+-send_primitive create_block 2
+-goto lbl11
+-unshift_tuple
+-set x:7
+-pop
+-#line 226
+-push 48
+-push 0
+-push x:7
+-send [] 1
+-send - 1
+-push m:6
+-send [] 1
+-lbl10: soft_return
+-lbl11:
+-push rep:3
+-&send gsub 1
+-lbl9:
+-push out:5
+-send << 1
+-lbl6:
+-pop
+-#line 228
+-push m:6
+-send post_match 0
+-push out:5
+-send << 1
+-ret
+-ret
+-check_argcount 1 2
+-set pattern:2
+-pop
+-passed_arg 1
+-git set2
+-push nil
+-set2:
+-set rep:3
+-pop
+-push_block
+-push Proc
+-send from_environment 1
+-set block:4
+-pop
+-#line 232
+-push rep:3
+-push pattern:2
+-push block:4
+-push self
+-&send sub 2
+-lbl1:
+-push self
+-send replace_if 1
+-ret
+-check_argcount 2 2
+-set idx:2
+-pop
+-set str:3
+-pop
+-#line 236
+-push 0
+-push idx:2
+-send < 1
+-gif lbl1
+-#line 237
+-push 1
+-push self
+-send length 0
+-send + 1
+-push idx:2
+-send + 1
+-set idx:2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 239
+-push 0
+-push idx:2
+-send < 1
+-dup
+-git lbl3
+-pop
+-push self
+-send length 0
+-push idx:2
+-send > 1
+-lbl3:
+-gif lbl4
+-push_literal 0
+-string_dup
+-push idx:2
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push IndexError
+-push self
+-send raise 2
+-goto lbl5
+-lbl4:
+-push nil
+-lbl5:
+-pop
+-#line 240
+-push self
+-send length 0
+-push idx:2
+-send < 1
+-gif lbl6
+-#line 241
+-push str:3
+-push 0
+-push idx:2
+-push self
+-send []= 3
+-goto lbl7
+-lbl6:
+-#line 243
+-push str:3
+-push self
+-send << 1
+-lbl7:
+-pop
+-#line 245
+-push self
+-ret
+-check_argcount 0 0
+-#line 249
+-push 0
+-push self
+-send length 0
+-send == 1
+-gif lbl1
+-push_literal 0
+-string_dup
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 250
+-push self
+-send dup 0
+-set out:2
+-pop
+-#line 252
+-push 1
+-push self
+-send length 0
+-send - 1
+-set start:3
+-pop
+-#line 253
+-lbl3:
+-push 0
+-push start:3
+-send >= 1
+-gif lbl4
+-lbl5:
+-#line 254
+-push start:3
+-push out:2
+-send [] 1
+-send isalnum 0
+-gif lbl6
+-#line 255
+-goto lbl4
+-goto lbl7
+-lbl6:
+-#line 257
+-push 1
+-push start:3
+-send - 1
+-set start:3
+-lbl7:
+-pop
+-goto lbl3
+-lbl4:
+-push nil
+-pop
+-#line 260
+-push 0
+-push start:3
+-send < 1
+-gif lbl8
+-push 1
+-push self
+-send length 0
+-send - 1
+-set start:3
+-goto lbl9
+-lbl8:
+-push nil
+-lbl9:
+-pop
+-#line 262
+-push false
+-set carry:4
+-pop
+-#line 263
+-push 0
+-set c:5
+-pop
+-#line 264
+-push -1
+-push 0
+-push &lbl10
+-push &lbl11
+-push_context
+-send_primitive create_block 2
+-goto lbl12
+-unshift_tuple
+-set idx:6
+-pop
+-#line 265
+-push idx:6
+-push out:2
+-send [] 1
+-set c:5
+-pop
+-#line 266
+-push true
+-set carry:4
+-pop
+-#line 267
+-push 57
+-push c:5
+-send == 1
+-gif lbl13
+-#line 268
+-push 48
+-set c:5
+-goto lbl14
+-lbl13:
+-push 90
+-push c:5
+-send == 1
+-gif lbl15
+-#line 270
+-push 65
+-set c:5
+-goto lbl16
+-lbl15:
+-push 122
+-push c:5
+-send == 1
+-gif lbl17
+-#line 272
+-push 97
+-set c:5
+-goto lbl18
+-lbl17:
+-#line 274
+-push 256
+-#line 274
+-push 1
+-push c:5
+-send + 1
+-send % 1
+-set c:5
+-pop
+-#line 275
+-push 0
+-push c:5
+-send == 1
+-git lbl19
+-push false
+-set carry:4
+-goto lbl20
+-lbl19:
+-push nil
+-lbl20:
+-lbl18:
+-lbl16:
+-lbl14:
+-pop
+-#line 277
+-push c:5
+-push idx:6
+-push out:2
+-send []= 2
+-pop
+-#line 278
+-push carry:4
+-git lbl21
+-push out:2
+-ret
+-goto lbl22
+-lbl21:
+-push nil
+-lbl22:
+-lbl11: soft_return
+-lbl12:
+-push start:3
+-&send step 2
+-lbl10:
+-pop
+-#line 280
+-push 48
+-push c:5
+-send == 1
+-dup
+-git lbl23
+-pop
+-push 0
+-push c:5
+-send == 1
+-lbl23:
+-gif lbl24
+-push 1
+-push c:5
+-send + 1
+-set c:5
+-goto lbl25
+-lbl24:
+-push nil
+-lbl25:
+-pop
+-#line 282
+-push out:2
+-push_literal 1
+-string_dup
+-send << 1
+-set out:2
+-pop
+-#line 283
+-push c:5
+-push 0
+-push out:2
+-send []= 2
+-pop
+-#line 284
+-push out:2
+-ret
+-ret
+-check_argcount 0 0
+-#line 288
+-push self
+-send succ 0
+-push self
+-send replace_if 1
+-ret
+-check_argcount 1 1
+-set str:2
+-pop
+-#line 295
+-push_literal 0
+-string_dup
+-set out:3
+-pop
+-#line 296
+-push 0
+-push_literal 1
+-push Regexp
+-send new 2
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set r:4
+-pop
+-#line 296
+-push_literal 2
+-string_dup
+-set out:3
+-pop
+-#line 296
+-push 2
+-push r:4
+-send [] 1
+-push &lbl4
+-push &lbl5
+-push_context
+-send_primitive create_block 2
+-goto lbl6
+-unshift_tuple
+-set c:5
+-pop
+-#line 296
+-push c:5
+-push out:3
+-send << 1
+-lbl5: soft_return
+-lbl6:
+-push 0
+-push r:4
+-send [] 1
+-&send upto 1
+-lbl4:
+-pop
+-#line 296
+-push out:3
+-lbl2: soft_return
+-lbl3:
+-push str:2
+-&send gsub 1
+-lbl1:
+-ret
+-check_argcount 2 2
+-set from_str:2
+-pop
+-set to_str:3
+-pop
+-#line 300
+-push false
+-push to_str:3
+-push from_str:2
+-push self
+-send tr_string 3
+-ret
+-check_argcount 2 2
+-set from_str:2
+-pop
+-set to_str:3
+-pop
+-#line 304
+-push false
+-push to_str:3
+-push from_str:2
+-push self
+-send tr_string 3
+-push self
+-send replace_if 1
+-ret
+-check_argcount 2 2
+-set from_str:2
+-pop
+-set to_str:3
+-pop
+-#line 308
+-push true
+-push to_str:3
+-push from_str:2
+-push self
+-send tr_string 3
+-ret
+-check_argcount 2 2
+-set from_str:2
+-pop
+-set to_str:3
+-pop
+-#line 312
+-push true
+-push to_str:3
+-push from_str:2
+-push self
+-send tr_string 3
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set arg
+-pop
+-#line 317
+-push 0
+-push arg:2
+-send length 0
+-send == 1
+-gif lbl1
+-push_literal 0
+-string_dup
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 318
+-push 0
+-push arg:2
+-send [] 1
+-push String
+-send === 1
+-git lbl3
+-push_literal 1
+-string_dup
+-push 0
+-push arg:2
+-send [] 1
+-send class 0
+-send to_s
+-push_literal 2
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 319
+-push 0
+-push arg:2
+-send [] 1
+-push self
+-send expand_tr_str 1
+-set first:3
+-pop
+-#line 320
+-push 1
+-push arg:2
+-send size 0
+-send > 1
+-gif lbl5
+-#line 321
+-push &lbl7
+-push &lbl8
+-push_context
+-send_primitive create_block 2
+-goto lbl9
+-unshift_tuple
+-set arg_idx:4
+-pop
+-#line 322
+-push arg_idx:4
+-push arg:2
+-send [] 1
+-push String
+-send === 1
+-git lbl10
+-push_literal 3
+-string_dup
+-push arg_idx:4
+-push arg:2
+-send [] 1
+-send class 0
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl11
+-lbl10:
+-push nil
+-lbl11:
+-pop
+-#line 323
+-push arg_idx:4
+-push arg:2
+-send [] 1
+-push self
+-send expand_tr_str 1
+-set second:5
+-pop
+-#line 324
+-push_literal 5
+-string_dup
+-set str:6
+-pop
+-#line 325
+-push 94
+-push 0
+-push second:5
+-send data 0
+-send [] 1
+-send == 1
+-set remove_flag:7
+-pop
+-#line 326
+-push &lbl12
+-push &lbl13
+-push_context
+-send_primitive create_block 2
+-goto lbl14
+-unshift_tuple
+-set idx:8
+-pop
+-#line 327
+-push idx:8
+-push first:3
+-send data 0
+-send [] 1
+-push second:5
+-send index 1
+-set pos:9
+-pop
+-#line 328
+-push true
+-push remove_flag:7
+-send == 1
+-gif lbl15
+-#line 329
+-push nil
+-push pos:9
+-send == 1
+-gif lbl17
+-push idx:8
+-push first:3
+-send data 0
+-send [] 1
+-push str:6
+-send << 1
+-goto lbl18
+-lbl17:
+-push nil
+-lbl18:
+-goto lbl16
+-lbl15:
+-#line 331
+-push nil
+-push pos:9
+-send == 1
+-git lbl19
+-push idx:8
+-push first:3
+-send data 0
+-send [] 1
+-push str:6
+-send << 1
+-goto lbl20
+-lbl19:
+-push nil
+-lbl20:
+-lbl16:
+-lbl13: soft_return
+-lbl14:
+-#line 326
+-push true
+-push first:3
+-send length 0
+-push 0
+-push Range
+-send new 3
+-&send each 0
+-lbl12:
+-pop
+-#line 334
+-push str:6
+-set first:3
+-pop
+-#line 335
+-push 0
+-push first:3
+-send length 0
+-send == 1
+-gif lbl21
+-push nil
+-ret
+-goto lbl22
+-lbl21:
+-push nil
+-lbl22:
+-lbl8: soft_return
+-lbl9:
+-#line 321
+-push true
+-push arg:2
+-send size 0
+-push 1
+-push Range
+-send new 3
+-&send each 0
+-lbl7:
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 338
+-push first:3
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set arg
+-pop
+-#line 342
+-push arg:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send intersect_string_from_arg +
+-set str:3
+-pop
+-#line 343
+-push nil
+-push str:3
+-send == 1
+-gif lbl1
+-push self
+-send dup 0
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 344
+-push false
+-push_literal 0
+-string_dup
+-push str:3
+-push self
+-send tr_string 3
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set str
+-pop
+-#line 348
+-push str:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send delete +
+-push self
+-send replace_if 1
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set arg
+-pop
+-#line 352
+-push arg:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send intersect_string_from_arg +
+-set str:3
+-pop
+-#line 353
+-push nil
+-push str:3
+-send == 1
+-gif lbl1
+-push 0
+-ret
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 354
+-push 256
+-push 0
+-send chr 0
+-send * 1
+-set char_map:4
+-pop
+-#line 355
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set c:6
+-pop
+-#line 355
+-push 1
+-push c:6
+-push char_map:4
+-send []= 2
+-lbl4: soft_return
+-lbl5:
+-push str:3
+-&send each_byte 0
+-lbl3:
+-pop
+-#line 356
+-push 0
+-set cnt:5
+-pop
+-#line 357
+-push &lbl6
+-push &lbl7
+-push_context
+-send_primitive create_block 2
+-goto lbl8
+-unshift_tuple
+-set c:7
+-pop
+-#line 358
+-push 1
+-push c:7
+-push char_map:4
+-send [] 1
+-send == 1
+-gif lbl9
+-push 1
+-push cnt:5
+-send + 1
+-set cnt:5
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-lbl7: soft_return
+-lbl8:
+-push self
+-&send each_byte 0
+-lbl6:
+-pop
+-#line 360
+-push cnt:5
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set arg
+-pop
+-#line 365
+-push_literal 0
+-string_dup
+-set out:3
+-pop
+-#line 366
+-push -1
+-set last_char:4
+-pop
+-#line 368
+-push 0
+-push arg:2
+-send length 0
+-send > 1
+-gif lbl1
+-#line 370
+-push arg:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send intersect_string_from_arg +
+-set str:5
+-pop
+-#line 371
+-push nil
+-push str:5
+-send == 1
+-gif lbl3
+-push self
+-send dup 0
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 372
+-push 256
+-push 0
+-send chr 0
+-send * 1
+-set char_map:6
+-pop
+-#line 373
+-push &lbl5
+-push &lbl6
+-push_context
+-send_primitive create_block 2
+-goto lbl7
+-unshift_tuple
+-set c:7
+-pop
+-#line 373
+-push 1
+-push c:7
+-push char_map:6
+-send []= 2
+-lbl6: soft_return
+-lbl7:
+-push str:5
+-&send each_byte 0
+-lbl5:
+-pop
+-#line 375
+-push &lbl8
+-push &lbl9
+-push_context
+-send_primitive create_block 2
+-goto lbl10
+-unshift_tuple
+-set c:8
+-pop
+-#line 376
+-push 1
+-push c:8
+-push char_map:6
+-send [] 1
+-send == 1
+-gif lbl11
+-#line 377
+-push last_char:4
+-push c:8
+-send == 1
+-git lbl13
+-push c:8
+-push out:3
+-send << 1
+-goto lbl14
+-lbl13:
+-push nil
+-lbl14:
+-goto lbl12
+-lbl11:
+-#line 379
+-push c:8
+-push out:3
+-send << 1
+-lbl12:
+-pop
+-#line 381
+-push c:8
+-set last_char:4
+-lbl9: soft_return
+-lbl10:
+-push self
+-&send each_byte 0
+-lbl8:
+-goto lbl2
+-lbl1:
+-#line 384
+-push &lbl15
+-push &lbl16
+-push_context
+-send_primitive create_block 2
+-goto lbl17
+-unshift_tuple
+-set c:9
+-pop
+-#line 385
+-push last_char:4
+-push c:9
+-send == 1
+-git lbl18
+-push c:9
+-push out:3
+-send << 1
+-goto lbl19
+-lbl18:
+-push nil
+-lbl19:
+-pop
+-#line 386
+-push c:9
+-set last_char:4
+-lbl16: soft_return
+-lbl17:
+-push self
+-&send each_byte 0
+-lbl15:
+-lbl2:
+-pop
+-#line 389
+-push out:3
+-ret
+-check_argcount 0 0
+-make_rest 0
+-set arg
+-pop
+-#line 393
+-push arg:2
+-cast_array_for_args 0
+-push_array
+-get_args
+-push nil
+-swap
+-push self
+-swap
+-set_args
+-send squeeze +
+-push self
+-send replace_if 1
+-ret
+-check_argcount 2 3
+-set from_str:2
+-pop
+-set to_str:3
+-pop
+-passed_arg 2
+-git set43
+-push false
+-set43:
+-set no_dups:4
+-pop
+-#line 398
+-push from_str:2
+-push String
+-send === 1
+-git lbl1
+-push_literal 0
+-string_dup
+-push from_str:2
+-send class 0
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 399
+-push to_str:3
+-push String
+-send === 1
+-git lbl3
+-push_literal 2
+-string_dup
+-push to_str:3
+-send class 0
+-send to_s
+-push_literal 3
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 401
+-push_literal 4
+-string_dup
+-push from_str:2
+-send == 1
+-gif lbl5
+-push_literal 5
+-string_dup
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 403
+-push 0
+-push to_str:3
+-send length 0
+-send == 1
+-set del_chars:5
+-pop
+-#line 404
+-push from_str:2
+-push self
+-send expand_tr_str 1
+-set from_str:2
+-pop
+-#line 405
+-push to_str:3
+-push self
+-send expand_tr_str 1
+-set to_str:3
+-pop
+-#line 408
+-push from_str:2
+-send length 0
+-push to_str:3
+-send length 0
+-send < 1
+-gif lbl7
+-#line 409
+-#line 409
+-#line 409
+-push to_str:3
+-send length 0
+-push from_str:2
+-send length 0
+-send - 1
+-#line 409
+-push 0
+-push to_str:3
+-send length 0
+-send > 1
+-gif lbl9
+-push 1
+-push -1
+-push to_str:3
+-send [] 2
+-goto lbl10
+-lbl9:
+-push_literal 6
+-string_dup
+-lbl10:
+-send * 1
+-push to_str:3
+-send << 1
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 413
+-push 256
+-push 1
+-send chr 0
+-send * 1
+-set trans:6
+-pop
+-#line 414
+-push 0
+-set c:7
+-pop
+-#line 415
+-push 94
+-push 0
+-push from_str:2
+-send [] 1
+-send == 1
+-gif lbl11
+-#line 417
+-push 0
+-set cnt:8
+-pop
+-#line 418
+-push &lbl13
+-push &lbl14
+-push_context
+-send_primitive create_block 2
+-goto lbl15
+-unshift_tuple
+-set idx:10
+-pop
+-#line 419
+-push 0
+-push idx:10
+-push from_str:2
+-send data 0
+-send [] 1
+-push trans:6
+-send data 0
+-send []= 2
+-lbl14: soft_return
+-lbl15:
+-#line 418
+-push true
+-push from_str:2
+-send length 0
+-push 1
+-push Range
+-send new 3
+-&send each 0
+-lbl13:
+-pop
+-#line 421
+-push &lbl16
+-push &lbl17
+-push_context
+-send_primitive create_block 2
+-goto lbl18
+-unshift_tuple
+-set idx:10
+-pop
+-#line 422
+-push 1
+-push idx:10
+-push trans:6
+-send data 0
+-send [] 1
+-send == 1
+-gif lbl19
+-push cnt:8
+-push to_str:3
+-send data 0
+-send [] 1
+-goto lbl20
+-lbl19:
+-push idx:10
+-lbl20:
+-set c:7
+-pop
+-#line 423
+-push c:7
+-push idx:10
+-push trans:6
+-send data 0
+-send []= 2
+-pop
+-#line 424
+-#line 424
+-push 1
+-push to_str:3
+-send length 0
+-send - 1
+-push cnt:8
+-send < 1
+-gif lbl21
+-push 1
+-push cnt:8
+-send + 1
+-set cnt:8
+-goto lbl22
+-lbl21:
+-push nil
+-lbl22:
+-lbl17: soft_return
+-lbl18:
+-#line 421
+-push 255
+-push 0
+-push Range
+-send new 2
+-&send each 0
+-lbl16:
+-goto lbl12
+-lbl11:
+-#line 427
+-push &lbl23
+-push &lbl24
+-push_context
+-send_primitive create_block 2
+-goto lbl25
+-unshift_tuple
+-set idx:10
+-pop
+-#line 428
+-push idx:10
+-push idx:10
+-push trans:6
+-send []= 2
+-lbl24: soft_return
+-lbl25:
+-#line 427
+-push 255
+-push 0
+-push Range
+-send new 2
+-&send each 0
+-lbl23:
+-pop
+-#line 430
+-push &lbl26
+-push &lbl27
+-push_context
+-send_primitive create_block 2
+-goto lbl28
+-unshift_tuple
+-set idx:10
+-pop
+-#line 431
+-push idx:10
+-push to_str:3
+-send data 0
+-send [] 1
+-push idx:10
+-push from_str:2
+-send data 0
+-send [] 1
+-push trans:6
+-send data 0
+-send []= 2
+-lbl27: soft_return
+-lbl28:
+-#line 430
+-push true
+-push from_str:2
+-send length 0
+-push 0
+-push Range
+-send new 3
+-&send each 0
+-lbl26:
+-lbl12:
+-pop
+-#line 436
+-push self
+-send dup 0
+-set out:9
+-pop
+-#line 437
+-push 0
+-set idx:10
+-pop
+-#line 438
+-push 0
+-set w_idx:11
+-pop
+-#line 439
+-push -1
+-set last_char:12
+-pop
+-#line 440
+-lbl29:
+-push out:9
+-send length 0
+-push idx:10
+-send < 1
+-gif lbl30
+-lbl31:
+-#line 441
+-push idx:10
+-push out:9
+-send data 0
+-send [] 1
+-push trans:6
+-send [] 1
+-set c:7
+-pop
+-#line 442
+-push idx:10
+-push out:9
+-send data 0
+-send [] 1
+-push c:7
+-send == 1
+-set no_trans_flag:13
+-pop
+-#line 443
+-push false
+-push no_dups:4
+-send == 1
+-dup
+-git lbl32
+-pop
+-push true
+-push no_trans_flag:13
+-send == 1
+-dup
+-git lbl33
+-pop
+-push last_char:12
+-push c:7
+-send == 1
+-git lbl34
+-push true
+-goto lbl35
+-lbl34:
+-push false
+-lbl35:
+-lbl33:
+-lbl32:
+-gif lbl36
+-#line 448
+-push true
+-push no_trans_flag:13
+-send == 1
+-gif lbl38
+-push -1
+-goto lbl39
+-lbl38:
+-push c:7
+-lbl39:
+-set last_char:12
+-pop
+-#line 449
+-push false
+-push del_chars:5
+-send == 1
+-dup
+-git lbl40
+-pop
+-push true
+-push no_trans_flag:13
+-send == 1
+-lbl40:
+-gif lbl41
+-#line 450
+-push c:7
+-push w_idx:11
+-push out:9
+-send data 0
+-send []= 2
+-pop
+-#line 451
+-push 1
+-push w_idx:11
+-send + 1
+-set w_idx:11
+-goto lbl42
+-lbl41:
+-push nil
+-lbl42:
+-goto lbl37
+-lbl36:
+-push nil
+-lbl37:
+-pop
+-#line 454
+-push 1
+-push idx:10
+-send + 1
+-set idx:10
+-pop
+-goto lbl29
+-lbl30:
+-push nil
+-pop
+-#line 457
+-push w_idx:11
+-push 0
+-push out:9
+-send [] 2
+-ret
+-check_argcount 2 2
+-set from_str:2
+-pop
+-set to_str:3
+-pop
+-#line 461
+-push to_str:3
+-push from_str:2
+-push self
+-send tr 2
+-push self
+-send replace_if 1
+-ret
+-check_argcount 1 1
+-set pattern:2
+-pop
+-#line 465
+-push self
+-push pattern:2
+-send match 1
+-set m:3
+-pop
+-#line 466
+-push m:3
+-gif lbl1
+-push 0
+-push m:3
+-send full 0
+-send at 1
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-ret
+-check_argcount 1 1
+-set arg:2
+-pop
+-#line 470
+-push Fixnum
+-push arg:2
+-send is_a? 1
+-gif lbl1
+-#line 471
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set b:3
+-pop
+-#line 471
+-push arg:2
+-push b:3
+-send == 1
+-gif lbl6
+-push true
+-ret
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-lbl4: soft_return
+-lbl5:
+-push @data
+-&send each 0
+-lbl3:
+-pop
+-#line 472
+-push false
+-ret
+-goto lbl2
+-lbl1:
+-push String
+-push arg:2
+-send is_a? 1
+-gif lbl8
+-#line 474
+-#line 474
+-push arg:2
+-push self
+-send index 1
+-push nil
+-send == 1
+-git lbl10
+-push true
+-goto lbl11
+-lbl10:
+-push false
+-lbl11:
+-ret
+-goto lbl9
+-lbl8:
+-#line 476
+-push_literal 0
+-string_dup
+-push arg:2
+-send class 0
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-lbl9:
+-lbl2:
+-ret
+-check_argcount 1 2
+-set arg:2
+-pop
+-passed_arg 1
+-git set34
+-push nil
+-set34:
+-set offset:3
+-pop
+-#line 481
+-push Fixnum
+-push arg:2
+-send is_a? 1
+-gif lbl1
+-#line 482
+-push 0
+-set i:4
+-pop
+-#line 483
+-push &lbl3
+-push &lbl4
+-push_context
+-send_primitive create_block 2
+-goto lbl5
+-unshift_tuple
+-set b:10
+-pop
+-#line 483
+-push arg:2
+-push b:10
+-send == 1
+-gif lbl6
+-push i:4
+-ret
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 483
+-push 1
+-push i:4
+-send + 1
+-set i:4
+-lbl4: soft_return
+-lbl5:
+-push @data
+-&send each 0
+-lbl3:
+-goto lbl2
+-lbl1:
+-push String
+-push arg:2
+-send is_a? 1
+-gif lbl8
+-#line 485
+-push 0
+-set idx:5
+-pop
+-#line 486
+-push offset:3
+-gif lbl10
+-#line 487
+-push 0
+-push offset:3
+-send >= 1
+-gif lbl12
+-#line 488
+-push self
+-send size 0
+-push offset:3
+-send >= 1
+-gif lbl14
+-push nil
+-ret
+-goto lbl15
+-lbl14:
+-push nil
+-lbl15:
+-pop
+-#line 489
+-push offset:3
+-set idx:5
+-goto lbl13
+-lbl12:
+-#line 491
+-push self
+-send size 0
+-#line 491
+-push offset:3
+-push 1
+-send - 1
+-send >= 1
+-gif lbl16
+-push nil
+-ret
+-goto lbl17
+-lbl16:
+-push nil
+-lbl17:
+-pop
+-#line 492
+-push offset:3
+-push self
+-send size 0
+-send + 1
+-set idx:5
+-lbl13:
+-goto lbl11
+-lbl10:
+-push nil
+-lbl11:
+-pop
+-#line 495
+-push arg:2
+-send size 0
+-set argsize:6
+-pop
+-#line 496
+-push argsize:6
+-push self
+-send size 0
+-send - 1
+-set max:7
+-pop
+-#line 497
+-push 0
+-push max:7
+-send >= 1
+-dup
+-gif lbl18
+-pop
+-push 0
+-push argsize:6
+-send > 1
+-lbl18:
+-gif lbl19
+-#line 498
+-push max:7
+-push &lbl21
+-push &lbl22
+-push_context
+-send_primitive create_block 2
+-goto lbl23
+-unshift_tuple
+-set i:4
+-pop
+-#line 499
+-push 0
+-push arg:2
+-send data 0
+-send [] 1
+-push i:4
+-push @data
+-send [] 1
+-send == 1
+-gif lbl24
+-#line 500
+-push arg:2
+-push argsize:6
+-push i:4
+-push self
+-send substring 2
+-send == 1
+-gif lbl26
+-push i:4
+-ret
+-goto lbl27
+-lbl26:
+-push nil
+-lbl27:
+-goto lbl25
+-lbl24:
+-push nil
+-lbl25:
+-lbl22: soft_return
+-lbl23:
+-push idx:5
+-&send upto 1
+-lbl21:
+-goto lbl20
+-lbl19:
+-push nil
+-lbl20:
+-goto lbl9
+-lbl8:
+-push Regexp
+-push arg:2
+-send is_a? 1
+-gif lbl28
+-#line 505
+-push offset:3
+-gif lbl30
+-push offset:3
+-goto lbl31
+-lbl30:
+-push 0
+-lbl31:
+-set idx:5
+-pop
+-#line 506
+-push -1
+-push idx:5
+-push Range
+-send new 2
+-push self
+-send [] 1
+-set mstr:8
+-pop
+-#line 507
+-push mstr:8
+-send size 0
+-push self
+-send size 0
+-send - 1
+-set offset:3
+-pop
+-#line 508
+-push mstr:8
+-push arg:2
+-send match 1
+-set m:9
+-pop
+-#line 509
+-push m:9
+-gif lbl32
+-#line 510
+-push 0
+-push m:9
+-send begin 1
+-push offset:3
+-send + 1
+-ret
+-goto lbl33
+-lbl32:
+-push nil
+-lbl33:
+-pop
+-#line 512
+-push nil
+-ret
+-goto lbl29
+-lbl28:
+-#line 514
+-push_literal 0
+-string_dup
+-push arg:2
+-send class 0
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-lbl29:
+-lbl9:
+-lbl2:
+-pop
+-#line 516
+-push nil
+-ret
+-ret
+-check_argcount 1 2
+-set arg:2
+-pop
+-passed_arg 1
+-git set36
+-push nil
+-set36:
+-set finish:3
+-pop
+-#line 521
+-push finish:3
+-gif lbl1
+-#line 522
+-push Integer
+-push finish:3
+-send is_a? 1
+-git lbl3
+-push_literal 0
+-string_dup
+-push finish:3
+-send class 0
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 523
+-push 0
+-push finish:3
+-send < 1
+-gif lbl5
+-push @bytes
+-push finish:3
+-send + 1
+-set finish:3
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 524
+-push 0
+-push finish:3
+-send < 1
+-gif lbl7
+-push nil
+-ret
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 525
+-push @bytes
+-push finish:3
+-send >= 1
+-gif lbl9
+-push 1
+-push @bytes
+-send - 1
+-set finish:3
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-goto lbl2
+-lbl1:
+-#line 527
+-push 1
+-push @bytes
+-send - 1
+-set finish:3
+-lbl2:
+-pop
+-#line 530
+-push Fixnum
+-push arg:2
+-send is_a? 1
+-gif lbl11
+-#line 531
+-push -1
+-push 0
+-push &lbl13
+-push &lbl14
+-push_context
+-send_primitive create_block 2
+-goto lbl15
+-unshift_tuple
+-set idx:9
+-pop
+-#line 532
+-push arg:2
+-push idx:9
+-push @data
+-send [] 1
+-send == 1
+-gif lbl16
+-push idx:9
+-ret
+-goto lbl17
+-lbl16:
+-push nil
+-lbl17:
+-lbl14: soft_return
+-lbl15:
+-push finish:3
+-&send step 2
+-lbl13:
+-goto lbl12
+-lbl11:
+-push String
+-push arg:2
+-send is_a? 1
+-gif lbl18
+-#line 535
+-push finish:3
+-push arg:2
+-send length 0
+-send > 1
+-gif lbl20
+-push nil
+-ret
+-goto lbl21
+-lbl20:
+-push nil
+-lbl21:
+-pop
+-#line 536
+-push arg:2
+-send length 0
+-set len:4
+-pop
+-#line 537
+-push len:4
+-push finish:3
+-send - 1
+-set start:5
+-pop
+-#line 538
+-push -1
+-push 0
+-push &lbl22
+-push &lbl23
+-push_context
+-send_primitive create_block 2
+-goto lbl24
+-unshift_tuple
+-set idx:10
+-pop
+-#line 539
+-push 0
+-push arg:2
+-send data 0
+-send [] 1
+-push idx:10
+-push @data
+-send [] 1
+-send == 1
+-gif lbl25
+-#line 540
+-push arg:2
+-push len:4
+-push idx:10
+-push self
+-send substring 2
+-send == 1
+-gif lbl27
+-push idx:10
+-ret
+-goto lbl28
+-lbl27:
+-push nil
+-lbl28:
+-goto lbl26
+-lbl25:
+-push nil
+-lbl26:
+-lbl23: soft_return
+-lbl24:
+-push start:5
+-&send step 2
+-lbl22:
+-goto lbl19
+-lbl18:
+-push Regexp
+-push arg:2
+-send is_a? 1
+-gif lbl29
+-#line 544
+-push finish:3
+-push 0
+-push Range
+-send new 2
+-push self
+-send [] 1
+-set mstr:6
+-pop
+-#line 545
+-push nil
+-set offset:7
+-pop
+-#line 546
+-lbl31:
+-push mstr:6
+-push arg:2
+-send match 1
+-set m:8
+-gif lbl32
+-lbl33:
+-#line 547
+-push offset:7
+-gif lbl34
+-push len:4
+-push 0
+-push m:8
+-send begin 1
+-send + 1
+-push offset:7
+-send + 1
+-set offset:7
+-goto lbl35
+-lbl34:
+-push 0
+-push m:8
+-send begin 1
+-lbl35:
+-set offset:7
+-pop
+-#line 548
+-push 0
+-push m:8
+-send begin 1
+-push 0
+-push m:8
+-send end 1
+-send - 1
+-set len:4
+-pop
+-#line 549
+-push m:8
+-send post_match 0
+-set mstr:6
+-pop
+-goto lbl31
+-lbl32:
+-push nil
+-pop
+-#line 551
+-push offset:7
+-ret
+-goto lbl30
+-lbl29:
+-#line 553
+-push_literal 2
+-string_dup
+-push arg:2
+-send class 0
+-send to_s
+-push_literal 3
+-string_dup
+-string_append
+-string_append
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-lbl30:
+-lbl19:
+-lbl12:
+-pop
+-#line 555
+-push nil
+-ret
+-ret
+-check_argcount 3 3
+-set width:2
+-pop
+-set str:3
+-pop
+-set justify:4
+-pop
+-#line 560
+-push Integer
+-push width:2
+-send is_a? 1
+-git lbl1
+-push_literal 0
+-string_dup
+-push width:2
+-send class 0
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 561
+-push_literal 2
+-push str:3
+-send respond_to? 1
+-git lbl3
+-push_literal 3
+-string_dup
+-push str:3
+-send class 0
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-string_append
+-push TypeError
+-push self
+-send raise 2
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 562
+-push @bytes
+-push width:2
+-send <= 1
+-gif lbl5
+-push self
+-ret
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 563
+-push @bytes
+-push width:2
+-send - 1
+-set pad:5
+-pop
+-#line 564
+-#line 564
+-push str:3
+-send length 0
+-push pad:5
+-send / 1
+-push str:3
+-send to_str 0
+-send * 1
+-set out:6
+-pop
+-#line 565
+-push pad:5
+-push out:6
+-send length 0
+-send < 1
+-gif lbl7
+-push out:6
+-send length 0
+-push pad:5
+-send - 1
+-push 0
+-push str:3
+-send [] 2
+-push out:6
+-send << 1
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 567
+-push -1
+-push justify:4
+-send == 1
+-gif lbl9
+-push out:6
+-push self
+-send << 1
+-ret
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 569
+-push 1
+-push justify:4
+-send == 1
+-gif lbl11
+-push self
+-push out:6
+-send << 1
+-ret
+-goto lbl12
+-lbl11:
+-push nil
+-lbl12:
+-pop
+-#line 571
+-#line 571
+-push 2
+-push @bytes
+-send / 1
+-#line 571
+-push 2
+-push width:2
+-send / 1
+-send - 1
+-set split:7
+-pop
+-#line 572
+-push self
+-push split:7
+-push out:6
+-send insert 2
+-ret
+-ret
+-check_argcount 1 2
+-set width:2
+-pop
+-passed_arg 1
+-git set1
+-push_literal 0
+-string_dup
+-set1:
+-set str:3
+-pop
+-#line 576
+-push 1
+-push str:3
+-push width:2
+-push self
+-send justify_string 3
+-ret
+-check_argcount 1 2
+-set width:2
+-pop
+-passed_arg 1
+-git set1
+-push_literal 0
+-string_dup
+-set1:
+-set str:3
+-pop
+-#line 580
+-push -1
+-push str:3
+-push width:2
+-push self
+-send justify_string 3
+-ret
+-check_argcount 1 2
+-set width:2
+-pop
+-passed_arg 1
+-git set1
+-push_literal 0
+-string_dup
+-set1:
+-set str:3
+-pop
+-#line 584
+-push 0
+-push str:3
+-push width:2
+-push self
+-send justify_string 3
+-ret
+-check_argcount 1 2
+-set arg:2
+-pop
+-passed_arg 1
+-git set42
+-push nil
+-set42:
+-set len:3
+-pop
+-#line 588
+-push len:3
+-gif lbl1
+-#line 589
+-push len:3
+-send to_i 0
+-set len:3
+-pop
+-#line 590
+-push 0
+-push len:3
+-send < 1
+-gif lbl3
+-push nil
+-ret
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 593
+-push String
+-push arg:2
+-send is_a? 1
+-gif lbl5
+-#line 594
+-push len:3
+-send nil? 0
+-git lbl7
+-#line 595
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 597
+-#line 597
+-push arg:2
+-push self
+-send include? 1
+-gif lbl9
+-push arg:2
+-send dup 0
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-ret
+-goto lbl6
+-lbl5:
+-push_literal 1
+-push arg:2
+-send respond_to? 1
+-gif lbl11
+-#line 599
+-push self
+-push arg:2
+-send match 1
+-set m:4
+-pop
+-#line 600
+-push m:4
+-dup
+-gif lbl13
+-pop
+-push len:3
+-lbl13:
+-gif lbl14
+-push len:3
+-send to_i 0
+-push m:4
+-send [] 1
+-ret
+-goto lbl15
+-lbl14:
+-push nil
+-lbl15:
+-pop
+-#line 601
+-push m:4
+-gif lbl16
+-push 0
+-push m:4
+-send [] 1
+-ret
+-goto lbl17
+-lbl16:
+-push nil
+-lbl17:
+-pop
+-#line 602
+-push nil
+-ret
+-goto lbl12
+-lbl11:
+-push_literal 2
+-push arg:2
+-send respond_to? 1
+-dup
+-gif lbl18
+-pop
+-push_literal 3
+-push arg:2
+-send respond_to? 1
+-lbl18:
+-gif lbl19
+-#line 604
+-push arg:2
+-send first 0
+-set from:5
+-pop
+-#line 605
+-push arg:2
+-send last 0
+-set to:6
+-pop
+-#line 606
+-push_literal 4
+-push arg:2
+-send respond_to? 1
+-dup
+-gif lbl21
+-pop
+-push arg:2
+-send exclude_end? 0
+-lbl21:
+-gif lbl22
+-push 1
+-push to:6
+-send - 1
+-set to:6
+-goto lbl23
+-lbl22:
+-push nil
+-lbl23:
+-pop
+-#line 607
+-push self
+-send size 0
+-set size:7
+-pop
+-#line 608
+-push 0
+-push from:5
+-send < 1
+-gif lbl24
+-push size:7
+-push from:5
+-send + 1
+-set from:5
+-goto lbl25
+-lbl24:
+-push nil
+-lbl25:
+-pop
+-#line 609
+-push 0
+-push to:6
+-send < 1
+-gif lbl26
+-push size:7
+-push to:6
+-send + 1
+-set to:6
+-goto lbl27
+-lbl26:
+-push nil
+-lbl27:
+-pop
+-#line 610
+-push 1
+-push from:5
+-push to:6
+-send - 1
+-send + 1
+-set len:3
+-pop
+-#line 611
+-push len:3
+-push from:5
+-push self
+-send [] 2
+-goto lbl20
+-lbl19:
+-push arg:2
+-dup
+-gif lbl28
+-pop
+-push_literal 5
+-push arg:2
+-send respond_to? 1
+-lbl28:
+-gif lbl29
+-#line 614
+-push arg:2
+-send to_i 0
+-set arg:2
+-pop
+-#line 615
+-push self
+-send size 0
+-set size:7
+-pop
+-#line 616
+-push 0
+-push arg:2
+-send < 1
+-gif lbl31
+-push size:7
+-push arg:2
+-send + 1
+-set arg:2
+-goto lbl32
+-lbl31:
+-push nil
+-lbl32:
+-pop
+-#line 617
+-push arg:2
+-push 0
+-send <= 1
+-dup
+-gif lbl33
+-pop
+-push size:7
+-push arg:2
+-send < 1
+-lbl33:
+-gif lbl34
+-#line 618
+-push len:3
+-gif lbl36
+-#line 619
+-push size:7
+-push len:3
+-push arg:2
+-send + 1
+-send >= 1
+-gif lbl38
+-push arg:2
+-push size:7
+-send - 1
+-set len:3
+-goto lbl39
+-lbl38:
+-push nil
+-lbl39:
+-pop
+-#line 620
+-push len:3
+-push arg:2
+-push self
+-send substring 2
+-goto lbl37
+-lbl36:
+-#line 622
+-push arg:2
+-push @data
+-send [] 1
+-lbl37:
+-goto lbl35
+-lbl34:
+-#line 625
+-push len:3
+-gif lbl40
+-push_literal 6
+-string_dup
+-goto lbl41
+-lbl40:
+-push nil
+-lbl41:
+-lbl35:
+-goto lbl30
+-lbl29:
+-#line 628
+-push_literal 7
+-string_dup
+-push arg:2
+-send class 0
+-send to_s
+-push_literal 8
+-string_dup
+-string_append
+-string_append
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-lbl30:
+-lbl20:
+-lbl12:
+-lbl6:
+-ret
+-check_argcount 1 2
+-set arg:2
+-pop
+-passed_arg 1
+-git set1
+-push nil
+-set1:
+-set len:3
+-pop
+-#line 635
+-push len:3
+-push arg:2
+-push self
+-send slice 2
+-push self
+-send replace_if 1
+-ret
+-check_argcount 2 0
+-set idx:2
+-pop
+-set ent:3
+-pop
+-make_rest 2
+-set args
+-pop
+-#line 639
+-push nil
+-set cnt:5
+-pop
+-#line 640
+-push 0
+-push args:4
+-send size 0
+-send == 1
+-git lbl1
+-#line 641
+-push ent:3
+-set cnt:5
+-pop
+-#line 642
+-push 0
+-push args:4
+-send [] 1
+-set ent:3
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 645
+-push Range
+-push idx:2
+-send class 0
+-send == 1
+-gif lbl3
+-#line 646
+-push cnt:5
+-gif lbl5
+-#line 647
+-push_literal 0
+-string_dup
+-push ArgumentError
+-push self
+-send raise 2
+-goto lbl6
+-lbl5:
+-push nil
+-lbl6:
+-pop
+-#line 649
+-push idx:2
+-send last 0
+-set lst:6
+-pop
+-#line 650
+-push 0
+-push lst:6
+-send < 1
+-gif lbl7
+-#line 651
+-push @bytes
+-push lst:6
+-send + 1
+-set lst:6
+-goto lbl8
+-lbl7:
+-push nil
+-lbl8:
+-pop
+-#line 653
+-push idx:2
+-send exclude_end? 0
+-git lbl9
+-push 1
+-push lst:6
+-send + 1
+-set lst:6
+-goto lbl10
+-lbl9:
+-push nil
+-lbl10:
+-pop
+-#line 654
+-push idx:2
+-send first 0
+-set idx:2
+-goto lbl4
+-lbl3:
+-push idx:2
+-push Fixnum
+-send === 1
+-gif lbl11
+-#line 657
+-push cnt:5
+-dup
+-gif lbl13
+-pop
+-push 0
+-push cnt:5
+-send < 1
+-lbl13:
+-gif lbl14
+-push cnt:5
+-send to_s
+-push_literal 1
+-string_dup
+-string_append
+-push IndexError
+-push self
+-send raise 2
+-goto lbl15
+-lbl14:
+-push nil
+-lbl15:
+-goto lbl12
+-lbl11:
+-push idx:2
+-push Regexp
+-send === 1
+-gif lbl16
+-#line 659
+-push cnt:5
+-send nil? 0
+-gif lbl18
+-push 0
+-set cnt:5
+-goto lbl19
+-lbl18:
+-push nil
+-lbl19:
+-pop
+-#line 660
+-push self
+-push idx:2
+-send match 1
+-set m:7
+-pop
+-#line 661
+-push m:7
+-send nil? 0
+-gif lbl20
+-push_literal 2
+-string_dup
+-push IndexError
+-push self
+-send raise 2
+-goto lbl21
+-lbl20:
+-push nil
+-lbl21:
+-pop
+-#line 662
+-push m:7
+-send size 0
+-push cnt:5
+-send >= 1
+-gif lbl22
+-push_literal 3
+-string_dup
+-push cnt:5
+-send to_s
+-push_literal 4
+-string_dup
+-string_append
+-string_append
+-push IndexError
+-push self
+-send raise 2
+-goto lbl23
+-lbl22:
+-push nil
+-lbl23:
+-pop
+-#line 663
+-push cnt:5
+-push m:7
+-send begin 1
+-set idx:2
+-pop
+-#line 664
+-push idx:2
+-push cnt:5
+-push m:7
+-send end 1
+-send - 1
+-set cnt:5
+-goto lbl17
+-lbl16:
+-push idx:2
+-push String
+-send === 1
+-gif lbl24
+-#line 666
+-push idx:2
+-send length 0
+-set cnt:5
+-pop
+-#line 667
+-push idx:2
+-push self
+-send index 1
+-set idx:2
+-pop
+-#line 668
+-push idx:2
+-send nil? 0
+-gif lbl26
+-push_literal 5
+-string_dup
+-push IndexError
+-push self
+-send raise 2
+-goto lbl27
+-lbl26:
+-push nil
+-lbl27:
+-goto lbl25
+-lbl24:
+-push nil
+-lbl25:
+-lbl17:
+-lbl12:
+-lbl4:
+-pop
+-#line 671
+-push 0
+-push idx:2
+-send < 1
+-gif lbl28
+-#line 672
+-push @bytes
+-push idx:2
+-send + 1
+-set idx:2
+-goto lbl29
+-lbl28:
+-push nil
+-lbl29:
+-pop
+-#line 675
+-push 0
+-push idx:2
+-send < 1
+-dup
+-git lbl30
+-pop
+-push @bytes
+-push idx:2
+-send >= 1
+-lbl30:
+-gif lbl31
+-#line 676
+-push_literal 6
+-string_dup
+-push idx:2
+-send to_s
+-push_literal 7
+-string_dup
+-string_append
+-string_append
+-push IndexError
+-push self
+-send raise 2
+-goto lbl32
+-lbl31:
+-push nil
+-lbl32:
+-pop
+-#line 680
+-push lst:6
+-dup
+-gif lbl33
+-pop
+-push cnt:5
+-send nil? 0
+-lbl33:
+-gif lbl34
+-#line 681
+-push idx:2
+-push lst:6
+-send < 1
+-gif lbl36
+-push idx:2
+-set lst:6
+-goto lbl37
+-lbl36:
+-push nil
+-lbl37:
+-pop
+-#line 682
+-push idx:2
+-push lst:6
+-send - 1
+-set cnt:5
+-goto lbl35
+-lbl34:
+-push nil
+-lbl35:
+-pop
+-#line 685
+-push ent:3
+-push String
+-send === 1
+-gif lbl38
+-#line 686
+-push cnt:5
+-send nil? 0
+-gif lbl40
+-push 1
+-set cnt:5
+-goto lbl41
+-lbl40:
+-push nil
+-lbl41:
+-pop
+-#line 687
+-push_literal 8
+-string_dup
+-set out:8
+-pop
+-#line 688
+-push 0
+-push idx:2
+-send > 1
+-gif lbl42
+-push idx:2
+-push 0
+-push self
+-send substring 2
+-push out:8
+-send << 1
+-goto lbl43
+-lbl42:
+-push nil
+-lbl43:
+-pop
+-#line 689
+-push ent:3
+-push out:8
+-send << 1
+-pop
+-#line 690
+-push @bytes
+-push cnt:5
+-push idx:2
+-send + 1
+-send < 1
+-gif lbl44
+-#line 690
+-push cnt:5
+-push idx:2
+-send + 1
+-push @bytes
+-send - 1
+-push cnt:5
+-push idx:2
+-send + 1
+-push self
+-send substring 2
+-push out:8
+-send << 1
+-goto lbl45
+-lbl44:
+-push nil
+-lbl45:
+-pop
+-#line 691
+-push out:8
+-push self
+-send replace 1
+-goto lbl39
+-lbl38:
+-push ent:3
+-push Fixnum
+-send === 1
+-gif lbl46
+-#line 693
+-push ent:3
+-push idx:2
+-push @data
+-send []= 2
+-goto lbl47
+-lbl46:
+-push nil
+-lbl47:
+-lbl39:
+-pop
+-#line 695
+-push ent:3
+-ret
+-ret
+-check_argcount 0 0
+-#line 699
+-push 8
+-push self
+-send to_i 1
+-ret
+-check_argcount 0 0
+-#line 703
+-push 16
+-push self
+-send to_i 1
+-ret
+-check_argcount 0 0
+-push_literal 0
+-string_dup
+-push ArgumentError
+-send new 1
+-push self
+-send raise 1
+-ret
+-check_argcount 1 1
+-set pattern:2
+-pop
+-#line 711
+-push pattern:2
+-push Regexp
+-send === 1
+-git lbl1
+-push pattern:2
+-push Regexp
+-send new 1
+-set pattern:2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 712
+-push self
+-push pattern:2
+-send match 1
+-ret
+-check_argcount 0 1
+-passed_arg 0
+-git set4
+-push 16
+-set4:
+-set bits:2
+-pop
+-#line 716
+-push 0
+-set sum:3
+-pop
+-#line 717
+-push &lbl1
+-push &lbl2
+-push_context
+-send_primitive create_block 2
+-goto lbl3
+-unshift_tuple
+-set b:4
+-pop
+-#line 718
+-push b:4
+-push sum:3
+-send + 1
+-set sum:3
+-lbl2: soft_return
+-lbl3:
+-push @data
+-&send each 0
+-lbl1:
+-pop
+-#line 720
+-#line 720
+-push 1
+-#line 720
+-push bits:2
+-push 1
+-send << 1
+-send - 1
+-push sum:3
+-send & 1
+-ret
+-check_argcount 1 1
+-set stop:2
+-pop
+-#line 724
+-push self
+-send dup 0
+-set str:3
+-pop
+-#line 725
+-lbl2:
+-#line 726
+-push str:3
+-send dup 0
+-push_block
+-send call 1
+-pop
+-#line 727
+-push stop:2
+-push str:3
+-send < 1
+-git lbl3
+-goto lbl1
+-goto lbl4
+-lbl3:
+-push nil
+-lbl4:
+-pop
+-#line 728
+-push str:3
+-send succ! 0
+-pop
+-goto lbl2
+-lbl1:
+-push nil
+-pop
+-#line 730
+-push self
+-ret
+-check_argcount 1 1
+-set to:2
+-pop
+-#line 734
+-push to:2
+-send upcase 0
+-push self
+-send upcase 0
+-send <=> 1
+-ret
+-check_argcount 0 1
+-passed_arg 0
+-git set10
+-push_literal 1
+-push_cpath_top
+-find Globals
+-send [] 1
+-set10:
+-set separator:2
+-pop
+-#line 738
+-push true
+-send_primitive block_given 0
+-git lbl1
+-push_literal 0
+-string_dup
+-push LocalJumpError
+-push self
+-send raise 2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 739
+-push separator:2
+-send length 0
+-set index:3
+-pop
+-#line 740
+-push 0
+-set min_index:4
+-pop
+-#line 741
+-push 0
+-set last_index:5
+-pop
+-#line 743
+-lbl3:
+-push self
+-send length 0
+-push index:3
+-send < 1
+-gif lbl4
+-lbl5:
+-#line 744
+-push 1
+-push separator:2
+-send length 0
+-push index:3
+-send - 1
+-send + 1
+-set min_index:4
+-pop
+-#line 746
+-push separator:2
+-push index:3
+-push min_index:4
+-push Range
+-send new 2
+-push self
+-send [] 1
+-send == 1
+-gif lbl6
+-#line 747
+-push index:3
+-push last_index:5
+-push Range
+-send new 2
+-push self
+-send [] 1
+-push_block
+-send call 1
+-pop
+-#line 748
+-push 1
+-push index:3
+-send + 1
+-set last_index:5
+-goto lbl7
+-lbl6:
+-push nil
+-lbl7:
+-pop
+-#line 750
+-push 1
+-push index:3
+-send + 1
+-set index:3
+-pop
+-goto lbl3
+-lbl4:
+-push nil
+-pop
+-#line 753
+-push self
+-send length 0
+-push last_index:5
+-send == 1
+-git lbl8
+-#line 754
+-push index:3
+-push last_index:5
+-push Range
+-send new 2
+-push self
+-send [] 1
+-push_block
+-send call 1
+-goto lbl9
+-lbl8:
+-push nil
+-lbl9:
+-pop
+-#line 757
+-push self
+-ret
+-check_argcount 1 1
+-set pattern:2
+-pop
+-push_block
+-push Proc
+-send from_environment 1
+-set block:5
+-pop
+-#line 763
+-push pattern:2
+-push String
+-send === 1
+-gif lbl1
+-push pattern:2
+-push Regexp
+-send new 1
+-set pattern:2
+-goto lbl2
+-lbl1:
+-push nil
+-lbl2:
+-pop
+-#line 764
+-push 0
+-set index:3
+-pop
+-#line 765
+-push true
+-send_primitive block_given 0
+-gif lbl3
+-#line 766
+-push self
+-set ret:4
+-goto lbl4
+-lbl3:
+-#line 768
+-make_array 0
+-set ret:4
+-pop
+-#line 769
+-push &lbl5
+-push &lbl6
+-push_context
+-send_primitive create_block 2
+-goto lbl7
+-unshift_tuple
+-set x:7
+-pop
+-#line 769
+-push x:7
+-push ret:4
+-send << 1
+-lbl6: soft_return
+-lbl7:
+-push self
+-&send lambda 0
+-lbl5:
+-set block:5
+-lbl4:
+-pop
+-#line 772
+-lbl8:
+-push self
+-send length 0
+-push index:3
+-send < 1
+-dup
+-gif lbl11
+-pop
+-push -1
+-push index:3
+-push Range
+-send new 2
+-push self
+-send [] 1
+-push pattern:2
+-send match 1
+-set md:6
+-lbl11:
+-gif lbl9
+-lbl10:
+-#line 773
+-push 1
+-push md:6
+-send length 0
+-send > 1
+-gif lbl12
+-push md:6
+-send captures 0
+-goto lbl13
+-lbl12:
+-push 0
+-push md:6
+-send [] 1
+-lbl13:
+-push block:5
+-send call 1
+-pop
+-#line 774
+-push 1
+-push md:6
+-send length 0
+-send - 1
+-push md:6
+-send end 1
+-push index:3
+-send + 1
+-set index:3
+-pop
+-goto lbl8
+-lbl9:
+-push nil
+-pop
+-#line 776
+-push ret:4
+-ret
+-ret
++An exception has occured:
++
++Error: An unhandled exception has terminated this VM.
++ => No method 'message' on an instance of NilClass. (NoMethodError)
++Unable to run runtime/core.rba
+1
+kernel/core/throw_catch.rb
+=> r18
+=> rubinius
+0
+kernel/core/time.rb
+=> r18
+=> rubinius
+--- /tmp/compare.7889.0	2007-03-07 12:56:05.000000000 -0800
++++ /tmp/compare2.7889.0	2007-03-07 12:56:06.000000000 -0800
+@@ -20,40 +20,52 @@
+ send include 1
+ pop
+ #line 5
+-push -12
++push 12
++send -@
+ push_literal 0
+ string_dup
+-push -11
++push 11
++send -@
+ push_literal 1
+ string_dup
+-push -10
++push 10
++send -@
+ push_literal 2
+ string_dup
+-push -9
++push 9
++send -@
+ push_literal 3
+ string_dup
+-push -8
++push 8
++send -@
+ push_literal 4
+ string_dup
+-push -7
++push 7
++send -@
+ push_literal 5
+ string_dup
+-push -6
++push 6
++send -@
+ push_literal 6
+ string_dup
+-push -5
++push 5
++send -@
+ push_literal 7
+ string_dup
+-push -4
++push 4
++send -@
+ push_literal 8
+ string_dup
+-push -3
++push 3
++send -@
+ push_literal 9
+ string_dup
+-push -2
++push 2
++send -@
+ push_literal 10
+ string_dup
+-push -1
++push 1
++send -@
+ push_literal 11
+ string_dup
+ push 12
+@@ -92,28 +104,36 @@
+ push 1
+ push_literal 23
+ string_dup
+-push -7
++push 7
++send -@
+ push_literal 24
+ string_dup
+-push -8
++push 8
++send -@
+ push_literal 25
+ string_dup
+-push -6
++push 6
++send -@
+ push_literal 26
+ string_dup
+-push -7
++push 7
++send -@
+ push_literal 27
+ string_dup
+-push -5
++push 5
++send -@
+ push_literal 28
+ string_dup
+-push -6
++push 6
++send -@
+ push_literal 29
+ string_dup
+-push -4
++push 4
++send -@
+ push_literal 30
+ string_dup
+-push -5
++push 5
++send -@
+ push_literal 31
+ string_dup
+ push 0
+1
+kernel/core/vm.rb
+=> r18
+=> rubinius
+0
