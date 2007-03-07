@@ -384,14 +384,12 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
     cmethod_set_serial(cur, FIXNUM_TO_INT(cmethod_get_serial(cur)) + 1);
   }
   hash_set(state, meths, sym, method);
-  cpu_perform_hook(state, c, target, state->global->sym_method_added, sym);
 }
 
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meta;
   meta = object_metaclass(state, target);
   cpu_add_method(state, c, meta, sym, method);
-  cpu_perform_hook(state, c, target, state->global->sym_s_method_added, sym);
 }
 
 char *cpu_show_context(STATE, cpu c, OBJECT ctx) {

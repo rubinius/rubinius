@@ -24,6 +24,7 @@ void module_setup_with_namespace(STATE, OBJECT module, char *name, OBJECT ns) {
   module_setup_name(state, module, name, ns);
   module_setup_fields(state, object_metaclass(state, module));
 }
+
 void module_setup(STATE, OBJECT module, char *name) {
   module_setup_with_namespace(state, module, name, BASIC_CLASS(object));
 }

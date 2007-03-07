@@ -26,13 +26,16 @@
   OBJECT name; \
   OBJECT method_module; \
   unsigned long int num_locals; \
-  long is_fast;
+  long type; \
+  void *opaque_data;
 
 struct fast_context {
   CPU_REGISTERS
 };
 
-#define FASTCTX_FIELDS 20
+#define FASTCTX_FIELDS 21
+#define FASTCTX_NORMAL 0
+#define FASTCTX_NMC    1
 
 struct rubinius_cpu {
   CPU_REGISTERS
@@ -103,7 +106,11 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name);
 
+void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args);
+
+
 void cpu_run_script(STATE, cpu c, OBJECT meth);
+inline void cpu_save_registers(STATE, cpu c);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
 
@@ -157,11 +164,11 @@ static inline OBJECT cpu_stack_top(STATE, cpu c) {
 
 #define MAX_SYSTEM_PRIM 2048
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args);
+int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod);
 
-static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args) {
+static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args, OBJECT name, OBJECT mod) {
   if(prim < MAX_SYSTEM_PRIM) {
-    return cpu_perform_system_primitive(state, c, prim, mo, args);
+    return cpu_perform_system_primitive(state, c, prim, mo, args, name, mod);
   } else {
     printf("Error: Primitive index out of range for this VM\n");
     abort();

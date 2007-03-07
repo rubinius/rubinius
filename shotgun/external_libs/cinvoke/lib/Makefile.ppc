@@ -1,0 +1,25 @@
+TARGET = libcinvoke.a
+
+all: $(TARGET)
+
+clean:
+	rm -f *.o arch/*.o libcinvoke.a
+
+SRCS = cinvoke.c structure.c hashtable.c arch/gcc_ppc_osx.c
+
+OBJS = $(SRCS:.c=.o)
+
+$(TARGET): $(OBJS)
+	libtool -static -o $(TARGET) $(OBJS)
+
+.c.o:
+	gcc -g -Wall -Werror $(BUILDARCH) -DCINVOKE_BUILD -c $< -o $@
+
+cinvoke.o: cinvoke.c cinvoke.h cinvoke-arch.h arch/gcc_ppc_osx.h \
+  cinvoke-private.h hashtable.h
+structure.o: structure.c cinvoke.h cinvoke-arch.h arch/gcc_ppc_osx.h \
+  cinvoke-private.h hashtable.h
+hashtable.o: hashtable.c hashtable.h
+arch/gcc_ppc_osx.o: arch/gcc_ppc_osx.c arch/../cinvoke.h \
+  arch/../cinvoke-arch.h arch/../arch/gcc_ppc_osx.h \
+  arch/../cinvoke-private.h arch/../hashtable.h

@@ -32,7 +32,7 @@ module Bytecode
       :create_pipe,
       :gettimeofday,
       :strftime,
-      :load_file,
+      nil,
       :activate_as_script,
       :stat_file,
       :io_open,
@@ -72,7 +72,7 @@ module Bytecode
       :archive_add_object,
       :archive_delete_file,
       :fixnum_and,
-      :archive_get_object,
+      nil,
       :time_at,
       :float_to_s,
       :float_add,
@@ -123,7 +123,9 @@ module Bytecode
       :time_usec,
       :fixnum_right_shift,
       :fixnum_left_shift,
-      :vm_stats
+      :vm_stats,
+      :nmethod_call,
+      :load_library
     ]
 
     FirstRuntimePrimitive = 1024

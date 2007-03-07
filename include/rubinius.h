@@ -40,6 +40,8 @@ struct rubinius_object {
 #define GC_YOUNG_OBJECTS  1
 #define GC_LARGE_OBJECTS  2
 
+#define GC_MAKE_FOREVER_YOUNG(obj) (HEADER(obj)->gc |= 0x8000)
+
 #define REFSIZE (sizeof(size_t))
 
 #define CLASS_OBJECT(obj) (HEADER(obj)->klass)
@@ -137,6 +139,7 @@ OBJECT rbs_const_get(STATE, OBJECT module, char *name);
 OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT obj);
 char *rbs_symbol_to_cstring(STATE, OBJECT sym);
 char *rbs_inspect(STATE, OBJECT obj);
+OBJECT rbs_module_new(STATE, char *name, OBJECT ns);
 
 #endif
 

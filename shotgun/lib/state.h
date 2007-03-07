@@ -1,4 +1,5 @@
 #include "shotgun.h"
+#include <cinvoke.h>
 
 struct rubinius_globals {
   
@@ -8,7 +9,7 @@ struct rubinius_globals {
   OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
   OBJECT string, symbol, io, metaclass, symtbl;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
-  OBJECT floatpoint, fastctx;
+  OBJECT floatpoint, fastctx, data, nmethod, nmc;
   
   /* the primary symbol table */
   OBJECT symbols;
@@ -16,7 +17,7 @@ struct rubinius_globals {
   OBJECT sym_inherited;
   OBJECT sym_from_literal, sym_method_added, sym_s_method_added;
   
-  OBJECT exc_arg;
+  OBJECT exc_arg, exc_segfault;
   OBJECT exc_loe;
   OBJECT exc_stack_explosion;
   OBJECT exc_primitive_failure;
@@ -55,6 +56,7 @@ rstate rubinius_state_new();
 #define STATE rstate state
 
 #include "object_memory.h"
+#include "subtend/handle.h"
 
 struct rubinius_state {
   object_memory om;
@@ -77,6 +79,12 @@ struct rubinius_state {
   /* Used to pass information down to the garbage collectors */
   OBJECT *current_stack;
   OBJECT *current_sp;
+  
+  CInvContext *c_context;
+  
+  rni_handle_table *handle_tbl;
+  
+  unsigned long *stack_bottom;
 };
 
 #define BASIC_CLASS(kind) state->global->kind
@@ -86,6 +94,7 @@ struct rubinius_state {
   str = (kind * )BYTES_OF(obj)
   
 #define DATA_STRUCT(obj, kind) ((kind)BYTES_OF(obj))
+#define BYTES2FIELDS(bytes) (bytes % 4 == 0 ? bytes : ((bytes + 4) - ((bytes + 4) % 4)))
 
 #include "bignum.h"
 #include "float.h"
@@ -105,6 +114,8 @@ OBJECT rbs_symbol_to_string(STATE, OBJECT sym);
 char *rbs_inspect(STATE, OBJECT obj);
 char *rbs_inspect_verbose(STATE, OBJECT obj);
 char *_inspect(OBJECT obj);
+OBJECT rbs_module_new(STATE, char *name, OBJECT ns);
+
 #endif
 
 static inline long rbs_to_int(OBJECT obj) {

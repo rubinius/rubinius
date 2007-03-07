@@ -1,8 +1,8 @@
 CC=gcc
 UNAME=$(shell uname)
-CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags`
+CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs` -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a -lm
+LIBS=`pkg-config glib-2.0 --libs` -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/cinvoke/lib/libcinvoke.a -lm
 LDFLAGS=
 
 ifeq ($(UNAME),SunOS)
@@ -40,7 +40,10 @@ external_libs/onig/.libs/libonig.a:
 external_libs/libzip/lib/.libs/libzip.a:
 	cd external_libs/libzip; ./configure; $(MAKE)
 
-librubinius.a: external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a
+external_libs/cinvoke/lib/libcinvoke.a:
+	cd external_libs/cinvoke; ./configure; $(MAKE)
+
+librubinius.a: external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/cinvoke/lib/libcinvoke.a
 	cd lib; $(MAKE) librubinius.a
 
 .PHONY: librubinius.a

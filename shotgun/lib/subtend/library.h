@@ -1,0 +1,1 @@
+OBJECT rni_load_library(STATE, OBJECT path, OBJECT name);

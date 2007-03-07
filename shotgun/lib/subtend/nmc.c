@@ -1,0 +1,413 @@
+#include "shotgun.h"
+#include "nmc.h"
+#include "ruby.h"
+
+#include <string.h>
+#include <cinvoke.h>
+
+#include "string.h"
+#include "cpu.h"
+#include "flags.h"
+#include "methctx.h"
+#include "jmpbuf.h"
+
+/* TODO: replace this static with a pthread local */
+static rni_context* global_context = NULL;
+
+void subtend_setup_global() {
+  if(!global_context) {
+    global_context = calloc(1, sizeof(rni_context));
+  }
+}
+
+void subtend_set_context(STATE, cpu c, rni_nmc *nmc) {
+  global_context->state = state;
+  global_context->cpu = c;
+  global_context->nmc = nmc;
+}
+
+rni_context* subtend_retrieve_context() {
+  return global_context;
+}
+
+OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, int args) {
+  rni_nmc *n;
+  OBJECT ctx, sys;
+  int num_lcls;
+  struct fast_context *fc;
+  
+  ctx = object_memory_new_object(state->om, state->global->nmc, FASTCTX_FIELDS);
+  
+  FLAG_SET(ctx, CTXFastFlag);
+  FLAG_SET(ctx, StoresBytesFlag);
+  
+  fc = FASTCTX(ctx);
+  memset(fc, 0, sizeof(struct fast_context));
+  fc->sender = sender;
+  fc->ip = 0;
+  fc->sp = 0;
+  fc->block = Qnil;
+  fc->raiseable = Qfalse;
+  fc->method = nmethod;
+  fc->data = NULL;
+  fc->data_size = 0;
+  fc->literals = Qnil;
+  fc->self = recv;
+  fc->locals = Qfalse;
+  fc->argcount = args;
+  fc->name = name;
+  fc->method_module = Qnil;
+  fc->num_locals = num_lcls;
+  fc->type = FASTCTX_NMC;
+  
+  n = nmc_new_standalone();
+  sys = nmethod_get_data(nmethod);
+  n->method = DATA_STRUCT(sys, native_method*);
+  
+  fc->opaque_data = (void*)n;
+  
+  GC_MAKE_FOREVER_YOUNG(ctx);
+    
+  return ctx;
+}
+
+rni_nmc *nmc_new_standalone() {
+  rni_nmc *n;
+  
+  n = calloc(1, sizeof(rni_nmc));
+  
+  n->num_handles = 16;
+  n->used = 0;
+  n->handles = calloc(n->num_handles, sizeof(rni_handle*));
+  n->system_set = 0;
+  n->cont_set = 0;
+    
+  return n;
+}
+
+void nmc_enlarge(rni_nmc *n) {  
+  n->num_handles += 8;
+  n->handles = realloc(n->handles, sizeof(rni_handle*) * n->num_handles);
+}
+
+rni_handle *nmc_handle_new(rni_nmc *n, rni_handle_table *tbl, OBJECT obj) {
+  rni_handle *h;
+  
+  if(!REFERENCE_P(obj)) {
+    return (rni_handle*)obj;
+  }
+  
+  h = handle_new(tbl, obj);
+  n->handles[n->used++] = h;
+  if(n->used == n->num_handles) {
+    nmc_enlarge(n);
+  }
+  
+  return h;
+}
+
+void nmc_cleanup(rni_nmc *nmc, rni_handle_table *tbl) {
+  int i;
+  rni_handle *h;
+  for(i = 0; i < nmc->used; i++) {
+    h = nmc->handles[i];
+    if(!handle_is_global(h)) {
+      handle_remove(tbl, h);
+      handle_delete(h);
+    }
+  }
+  
+  if(nmc->stack) {
+    free(nmc->stack);
+    nmc->stack = NULL;
+  }
+  
+  if(nmc->local_data) {
+    free(nmc->local_data);
+  }
+  
+  nmc->used = 0;
+}
+
+void nmc_delete(rni_nmc *nmc) {
+  free(nmc->handles);
+  free(nmc);
+}
+
+void _nmc_start() {
+  rni_nmc *n;
+  struct fast_context *fc;
+  cpu c;
+  rni_handle *retval, *recv;  
+  int i, code;
+  void **args = NULL;
+  VALUE *va = NULL;
+  rni_handle **handles_used = NULL;
+  STATE;
+  
+  long *data;
+    
+  n =  global_context->nmc;
+  fc = global_context->fc;
+  c =  global_context->cpu;
+  state = global_context->state;
+
+  recv = nmc_handle_new(n, global_context->state->handle_tbl, fc->self);
+  
+  va = NULL;
+  args = NULL;
+  
+  /* Check for special cases.. */
+  if(n->method->args < 0) {
+    switch(n->method->args) {
+    /* functions wants (recv, argc, argv) */
+    case -1:
+      {
+        data = (long*)calloc(sizeof(rni_handle*), (fc->argcount + 6));
+        n->local_data = data;
+        
+        /* This seems convoluted, and it is, but it's done so that all
+           the storage needed comes from the one data array, so it's
+           the only thing to free later on. 
+           
+           data is layout out like this:
+           
+           [0: address of arg 0 (self + 4)]
+           [1: address of arg 1 (self + 3)]
+           [2: address of arg 2 (self + 5)]
+           [3: number of args as int]
+           [4: address of receiver]
+           [5: address of array of arguments (self + 6)]
+           [6 to end: the the array of arguments]
+           
+        */
+        
+        data[0] = (long)(data + 4);
+        data[1] = (long)(data + 3);
+        data[2] = (long)(data + 5);
+        data[3] = (long)(fc->argcount);
+        data[4] = (long)recv;
+        data[5] = (long)(data + 6);
+        
+        va = (VALUE*)(data + 6);
+                
+        /* The args is just the start of data. */
+        args = (void*)data;
+        
+        for(i = 0; i < fc->argcount; i++) {
+          va[i] = nmc_handle_new(n, global_context->state->handle_tbl, 
+                cpu_stack_pop(global_context->state, c));
+                
+        }
+        
+        break;
+      }
+    case -2:
+      {
+        OBJECT rargs;
+        rni_handle *rargs_h;
+        data = (long*)calloc(sizeof(rni_handle*), 4);
+        n->local_data = data;
+        
+        /* This seems convoluted, and it is, but it's done so that all
+           the storage needed comes from the one data array, so it's
+           the only thing to free later on. 
+           
+           data is layout out like this:
+           
+           [0: address of arg 0 (self + 2)]
+           [1: address of arg 1 (self + 3)]
+           [2: address of receiver]
+           [3: address of array of arguments]
+        */
+        
+        data[0] = (long)(data + 2);
+        data[1] = (long)(data + 3);
+        data[2] = (long)recv;
+        
+        rargs = array_new(state, fc->argcount);
+        rargs_h = nmc_handle_new(n, state->handle_tbl, rargs);
+        data[3] = (long)rargs_h;
+        
+        /* We do this not because they're the locals, but so rargs
+           is properly seen by the GC. */
+        fc->locals = rargs;
+                        
+        for(i = 0; i < fc->argcount; i++) {
+          array_set(state, rargs, i, cpu_stack_pop(state, c));
+        }
+        
+        args = (void*)data;
+        
+        break; 
+      }
+    default:
+      printf("ERROR: Unknown arg spec: %d\n", n->method->args);
+      exit(1);
+    }
+  } else {
+    
+    data = (void*)calloc(sizeof(rni_handle*), (n->method->args + 1) * 2);
+    n->local_data = data;
+    
+    handles_used = (rni_handle**)data;
+    args = (void**)handles_used + (n->method->args + 1);
+    
+    // handles_used = malloc(sizeof(rni_handle*) * (n->method->args + 1));
+    
+    /* Normal case. Arguments are passed directly to the function. */
+    // args = malloc(sizeof(void*) * (n->method->args + 1));
+    for(i = 1; i <= n->method->args + 1; i++) {
+      handles_used[i] = nmc_handle_new(n, global_context->state->handle_tbl, 
+            cpu_stack_pop(global_context->state, c));
+      args[i] = &handles_used[i];
+    }
+    
+    handles_used[0] = recv;
+    args[0] = &handles_used[0];
+  }
+  
+  if(!cinv_function_invoke(global_context->state->c_context, n->method->prototype, 
+          n->method->entry, &retval, args)) {    
+    /* Error! */
+    printf("TODO: couldn't invoke a function!\n");
+    code = CALL_ERROR;
+    retval = (rni_handle*)Qnil;
+  } else {
+    code = ALL_DONE;
+  }
+  
+  /*
+  if(args) free(args);
+  if(va) free(va);
+  if(handles_used) free(handles_used);
+  */
+  
+  n->cont_set--;
+  n->system_set--;
+  
+  n->value = retval;
+  
+  /* Switch back to the main stack, into nmc_activate so finish up. */
+  longjmp(n->system, ALL_DONE);
+}
+
+void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
+  int travel;
+  rni_nmc *n;
+  struct fast_context *fc;
+  
+  fc = FASTCTX(nmc);
+  
+  n = (rni_nmc*)fc->opaque_data;
+  
+  global_context->state = state;
+  global_context->cpu = c;
+  global_context->nmc = n;
+  global_context->fc = fc;
+      
+  /* Reraise indicates that this request to activate is actually
+     because an exception is trying to propagate up. Currently,
+     we just restore the system, cleanup, and raise the 
+     exception again. */
+  if(reraise && n->system_set) {
+    longjmp(n->system, CLEANUP);
+  }
+  
+  n->system_set++;
+  travel = setjmp(n->system);
+  
+  /* If we haven't traveled yet, call the method. */
+  if(!travel) {
+    /* Oh! It's already running, lets reactivate it. */
+    if(n->cont_set) {
+      /* Grab the return value and make a handle for it. */
+      n->value = nmc_handle_new(n, state->handle_tbl, cpu_stack_pop(state, c));
+      
+      /* Go go gadget stack! */
+      longjmp(n->cont, 1);
+      
+      /* You'll never get here because the stack has been restored
+         to where it was before. */
+    }
+    
+    n->cont_set++;
+    n->stack_size = 65536;
+    n->stack = (void*)calloc(1, n->stack_size + 16);
+    
+    nmc_setjmp(n->cont);
+
+    n->cont[JB_SP] = STACK_SIZE(n->stack, n->stack_size);
+    n->cont[JB_PC] = (int)_nmc_start;
+    
+    /* Go go gadget stack! This will cause us to run _nmc_start on the new stack. */
+    longjmp(n->cont, 1);
+        
+  /* Oh, we have traveled back here! Lets figure out why! */
+  } else {
+    OBJECT tmp;
+    
+    // printf("Welcome back! %d\n", travel);
+    switch(travel) {
+    case CLEANUP:
+      cpu_raise_exception(state, c, c->exception);
+      break;
+      
+    case RAISED_EXCEPTION:
+      tmp = handle_to_object(state, state->handle_tbl, n->value);
+      cpu_raise_exception(state, c, tmp);
+      break;
+
+    case CALL_METHOD:
+      c->active_context = nmc;
+      n->setup_context++;
+      /* With call method, the rb_funcall shim pushs the arguments
+         on the stack already, so we just have to perform the send. */
+      tmp = handle_to_object(state, state->handle_tbl, n->value);
+      cpu_send_method(state, c, tmp, n->symbol, n->args);
+      break;
+    case SEGFAULT_DETECTED:
+      {
+        char msg[1024];
+        OBJECT cur;
+        sprintf(msg, "Segfault detected in function %p (accessing %p)", 
+            n->method->entry, global_context->fault_address);
+            
+        /* We swap around the active_conetext so the exception thats created
+           references the NativeMethodContext, but raise_exception doesn't
+           see it so we go directly up. */
+        cur = c->active_context;
+        c->active_context = nmc;
+        tmp = cpu_new_exception(state, c, BASIC_CLASS(exc_segfault), msg);
+        nmc_cleanup(n, state->handle_tbl);
+        n->stack = NULL;
+        nmc_delete(n);
+        fc->opaque_data = NULL;
+        c->active_context = cur;
+        cpu_raise_exception(state, c, tmp);
+        return;
+      }
+      
+    case ALL_DONE:
+      /* Push the return value onto the stack. */
+      stack_push(handle_to_object(global_context->state, 
+                global_context->state->handle_tbl, n->value));
+      nmc_cleanup(n, state->handle_tbl);
+      n->stack = NULL;
+      if(n->setup_context) {
+        cpu_return_to_sender(state, c, 0);
+      }
+      nmc_delete(n);
+      fc->opaque_data = NULL;
+      return;
+      
+      
+    default:
+      printf("Unknown travel plans %d!\n", travel);
+      abort();
+    }
+  }
+  
+  global_context->nmc = NULL;
+  global_context->fc =  NULL;
+}

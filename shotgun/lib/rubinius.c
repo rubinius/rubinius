@@ -27,8 +27,16 @@ OBJECT rbs_const_get(STATE, OBJECT module, char *name) {
 OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT sup) {
   return class_new(state, name, fields, sup, BASIC_CLASS(object));
 }
+
 OBJECT rbs_class_new_with_namespace(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
   return class_new(state, name, fields, sup, ns);
+}
+
+OBJECT rbs_module_new(STATE, char *name, OBJECT ns) {
+  OBJECT mod;
+  mod = module_allocate_mature(state, 0);
+  module_setup_with_namespace(state, mod, name, ns);
+  return mod;
 }
 
 OBJECT rbs_symbol_to_string(STATE, OBJECT sym) {
@@ -84,13 +92,18 @@ char *rbs_inspect_verbose(STATE, OBJECT obj) {
     sprintf(buf, "<(NilClass!!):%p>", (void*)obj);
   } else if(kls == state->global->class) {
     sprintf(buf, "%s", rbs_symbol_to_cstring(state, module_get_name(obj)));
-  } else {
+  } else if(kls == state->global->symbol || kls == state->global->string) {
     char *s = 0;
-    sprintf(buf, "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
-    if (kls == state->global->symbol)
+    sprintf(buf, "<%s:%p '", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
+    
+    if (kls == state->global->symbol) {
       s = rbs_symbol_to_cstring(state, obj);
-    if (kls == state->global->string)
+    }
+    
+    if (kls == state->global->string) {
       s = string_as_string(state, obj);
+    }
+    
     if (s) {
       int l;
       if ((l = strlen(s)) > 40) {
@@ -100,6 +113,9 @@ char *rbs_inspect_verbose(STATE, OBJECT obj) {
       } else
           strncat(buf, s, 40);
     }
+    strcat(buf, "'>");
+  } else {
+    sprintf(buf, "<%s:%p>", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
   }
   return buf;
 }

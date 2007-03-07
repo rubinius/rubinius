@@ -146,6 +146,8 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
     
   HEADER(iobj)->klass = cls;
   
+  assert(HEADER(iobj)->flags != 0xff);
+  
   //printf("%d: Mutating references of %p\n", depth, iobj);
   
   if(!_object_stores_bytes(iobj)) {
@@ -300,6 +302,14 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
       *sp = baker_gc_mutate_from(g, *sp);
     }
     sp++;
+  }
+  
+  /* Now the handle table. */
+  for(i = 0; i < state->handle_tbl->total; i++) {
+    if(state->handle_tbl->entries[i]) {
+      state->handle_tbl->entries[i]->object = 
+            baker_gc_mutate_from(g, state->handle_tbl->entries[i]->object);
+    }
   }
   
   baker_gc_swap(g);

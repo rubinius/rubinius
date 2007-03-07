@@ -38,6 +38,8 @@ void cpu_bootstrap_exceptions(STATE) {
   
   state->global->exc_stack_explosion = sxp;
   state->global->exc_primitive_failure = dexc(PrimitiveFailure, exc);
+  
+  state->global->exc_segfault = dexc(MemorySegmentionError, exc);
 
   OBJECT ern = dexc(Errno, sce);
 

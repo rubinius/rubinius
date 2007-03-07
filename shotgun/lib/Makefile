@@ -1,7 +1,7 @@
 CC=gcc
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
-CPPFLAGS=-I../../include -iquote . -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
+CPPFLAGS=-I../../include -iquote . -I../external_libs/cinvoke/lib -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
 WARNINGS=-Wall -Winline
 
 ifdef DEV
@@ -10,7 +10,7 @@ ifdef DEV
 else
   INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=2000 --param inline-unit-growth=1000
   OPTIMIZATIONS=-O2 -ffast-math -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
-  WARNINGS=-Wall -Winline
+  WARNINGS=-Wall
 endif
 ifeq ($(CPU), powerpc)
   OPTIMIZATIONS+=-falign-loops=16
@@ -20,7 +20,7 @@ CFLAGS=$(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 
-SOURCES=$(wildcard *.c) grammar.c
+SOURCES=$(wildcard *.c) $(wildcard subtend/*.c) grammar.c
 OBJS=$(SOURCES:.c=.o)
 RUBY=ruby -I../../lib
 
@@ -69,13 +69,13 @@ auto.h auto.c: genheader.rb
 
 grammar.o: grammar.y
 	@echo "CC grammar.o"
-	@$(CC) -c -o grammar.o grammar.c $(WARNINGS) -O $(DEBUG) $(CPPFLAGS)
+	@$(CC) -c -o grammar.o grammar.c -Wall -O $(DEBUG) $(CPPFLAGS)
 
 grammar.c: grammar.y
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.gen *.a auto.c auto.h .*.d .*.d.* grammar.c
+	rm -f *.o subtend/*.o *.gen *.a auto.c auto.h .*.d .*.d.* grammar.c
 
 .PHONY: test
 

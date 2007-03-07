@@ -1,3 +1,21 @@
+class NativeMethod
+  def lines
+    nil
+  end
+  
+  def exceptions
+    nil
+  end
+  
+  def literals
+    nil
+  end
+  
+  def line_from_ip(i)
+    0
+  end
+end
+
 class CompiledMethod
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"

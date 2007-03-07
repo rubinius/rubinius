@@ -31,6 +31,9 @@
 #include <dlfcn.h>
 #endif
 
+#include "subtend.h"
+#include "subtend/nmc.h"
+
 machine current_machine;
 
 static int _recursive_reporting = 0;
@@ -297,8 +300,19 @@ void machine_print_registers(machine m) {
 }
 
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
-  
   char *signame;
+  rni_context *rni_ctx;
+  
+  /* See if the error happened during the running of a C function.
+     If so, we raise an exception about the error. */
+  rni_ctx = subtend_retrieve_context();
+  if(rni_ctx->nmc && rni_ctx->nmc->system_set) {
+    /* TODO: generate the C backtrace as a string array and pass it
+       via the nmc or global_context so that the exception can include
+       it. */
+    rni_ctx->fault_address = info->si_addr;
+    longjmp(rni_ctx->nmc->system, SEGFAULT_DETECTED); 
+  }
   
   if(_recursive_reporting) {
     exit(-2);
@@ -367,6 +381,7 @@ machine machine_new() {
   machine_setup_signals(m);
   cpu_initialize(m->s, m->c);
   cpu_bootstrap(m->s);
+  subtend_setup(m->s);
   cpu_setup_top_scope(m->s, m->c);
   cpu_initialize_context(m->s, m->c);
   

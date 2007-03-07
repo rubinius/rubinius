@@ -368,6 +368,13 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
     sp++;
   }
   
+  /* Now the handle table. */
+  for(i = 0; i < state->handle_tbl->total; i++) {
+    if(state->handle_tbl->entries[i]) {
+      mark_sweep_mark_object(ms, state->handle_tbl->entries[i]->object);
+    }
+  }
+  
   // printf("Marked Objects: %d\n", marked_objects);
 }
 

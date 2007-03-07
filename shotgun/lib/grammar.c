@@ -465,8 +465,8 @@ static int tokadd_string(int, int, int, int *, rb_parse_state*);
 //static void syd_compile_error(char *fmt, ...);
 #define rb_compile_error printf
 
-ID rb_intern(char *name);
-ID rb_id_attrset(ID);
+static ID rb_intern(char *name);
+static ID rb_id_attrset(ID);
 
 static NODE *
 extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars);
@@ -10393,7 +10393,7 @@ aryset(recv, idx, parse_state)
 }
 
 
-ID
+static ID
 rb_id_attrset(id)
     ID id;
 {
@@ -11365,7 +11365,7 @@ internal_id()
     return ID_INTERNAL | (++syd_last_id << ID_SCOPE_SHIFT);
 }
 
-ID
+static ID
 rb_intern(char *name)
 {
     const char *m = name;

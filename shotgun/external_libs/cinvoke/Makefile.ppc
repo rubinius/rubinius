@@ -1,0 +1,15 @@
+PREFIX = /usr/local
+
+all:
+	cd lib && $(MAKE) BUILDARCH=-DARCH_GCC_PPC_OSX
+	cp -f lib/arch/gcc_ppc_osx.h lib/cinvoke-archspec.h
+
+install:
+	install -d $(PREFIX)/include
+	install -d $(PREFIX)/lib
+	install lib/cinvoke.h lib/cinvoke-arch.h lib/cinvoke-archspec.h $(PREFIX)/include
+	install lib/libcinvoke.a $(PREFIX)/lib
+
+clean:
+	cd lib && $(MAKE) clean
+	cd test && $(MAKE) clean

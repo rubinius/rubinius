@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-#define EXCESSIVE_TRACING 0
+#define EXCESSIVE_TRACING  0
 #define USE_GLOBAL_CACHING 1
 #define USE_INLINE_CACHING 1
 
@@ -290,8 +290,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->name = name;
   fc->method_module = mod;
   fc->num_locals = num_lcls;
-  fc->is_fast = 1;
-  
+  fc->type = FASTCTX_NORMAL;
+    
 #else
 
   ctx = methctx_s_from_method(state, mo, sender, mod);
@@ -302,6 +302,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   methctx_set_block(ctx, block);
   methctx_set_argcount(ctx, I2N(args));
 #endif
+
+  GC_MAKE_FOREVER_YOUNG(ctx);
 
   return ctx;
 }
@@ -321,7 +323,7 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
   cpu_raise_exception(state, c, primitive_failure);
 }
 
-static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args) {
+static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args, OBJECT sym, OBJECT mod) {
   int prim, req, ret;
   
   prim = FIXNUM_TO_INT(cmethod_get_primitive(mo));
@@ -332,7 +334,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
     if(req < 0 || args == req) {
       stack_push(recv);
       // printf("Running primitive: %d\n", prim);
-      if(cpu_perform_primitive(state, c, prim, mo, args)) {
+      if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod)) {
         /* Worked! */
         return TRUE;
       }
@@ -351,7 +353,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
 
 /* Raw most functions for moving in a method. Adjusts register. */
 
-static inline void cpu_save_registers(STATE, cpu c) {
+inline void cpu_save_registers(STATE, cpu c) {
   if(!RTEST(c->active_context)) return;
   cpu_flush_ip(c);
   cpu_flush_sp(c);
@@ -367,6 +369,7 @@ static inline void cpu_save_registers(STATE, cpu c) {
 }
 
 #include <string.h>
+void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise);
 
 static inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   int ac;
@@ -400,6 +403,17 @@ static inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJEC
       } else {
         c->sp -= ac;
       }
+    }
+    
+    /* Ok, reason we'd be restoring a native context:
+       1) the native context used rb_funcall and we need to return
+          it the result of the call.
+    */
+    if(fc->type == FASTCTX_NMC) {
+      nmc_activate(state, c, home, FALSE);
+      /* We return because nmc_activate will setup the cpu to do whatever
+         it needs to next. */
+      return;
     }
     
   } else {
@@ -507,6 +521,10 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
       }
     }
 #endif
+
+#if EXCESSIVE_TRACING
+    printf("Returning to %s.\n", _inspect(sender));
+#endif
     cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
     cpu_stack_push(state, c, top, FALSE);
   }
@@ -520,7 +538,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name) {
   OBJECT ctx;
   
-  if(cpu_try_primitive(state, c, meth, recv, count)) { return; }
+  if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil)) { return; }
   ctx = cpu_create_context(state, c, recv, meth, name, 
         _real_class(state, recv), (unsigned long int)count, Qnil);
   cpu_activate_context(state, c, ctx, ctx);
@@ -561,7 +579,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     // printf("EEK! method_missing!\n");
     // abort();
   } else {
-    if(cpu_try_primitive(state, c, mo, recv, args)) {
+    if(cpu_try_primitive(state, c, mo, recv, args, sym, mod)) {
       #if EXCESSIVE_TRACING
       printf("%05d: Called prim %s => %s on %s.\n", c->depth,
        rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
@@ -651,6 +669,26 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, in
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }
 
+void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args) {
+  OBJECT mo, mod;
+  int missing;
+  
+  missing = 0;
+  
+  /* No cache location, sorry. */
+  c->cache_index = -1;
+  
+  mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
+  if(NIL_P(mo)) {
+    cpu_flush_ip(c);
+    printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
+    assert(RTEST(mo));
+  }
+    
+  _cpu_build_and_activate(state, c, mo, recv, sym, args, Qnil, missing, mod);
+}
+
 char *cpu_op_to_name(STATE, char op) {
   #include "instruction_names.gen"
   return instruction_names[(int)op];
@@ -706,8 +744,9 @@ void cpu_run(STATE, cpu c) {
       cpu_op_to_name(state, op), op, c->ip);
     #endif
     #include "instructions.gen"
+
     goto check_interupts;
-stack_error:
+//stack_error:
     /* enlarge the stack to handle the exception */
     c->stack_top = realloc(c->stack_top, c->stack_size += 128);
     

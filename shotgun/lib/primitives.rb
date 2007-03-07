@@ -13,6 +13,10 @@ class ShotgunPrimitives
     fd.puts "switch(#{op}) {"
     fd.puts "   // NOOP is 0 and signifies a method with no primitive"
     order.each do |ins|
+      unless ins
+        i += 1
+        next
+      end
       meth = method(ins)
       code = send(ins)
 
@@ -45,6 +49,19 @@ class ShotgunPrimitives
     end
     fd.puts "}"
     fd.puts
+    
+    File.open("primitive_indexes.h", "w") do |f|
+      i = 1
+      Bytecode::Compiler::Primitives.each do |name|
+        unless name
+          i += 1
+          next
+        end
+        f.puts "#define CPU_PRIMITIVE_#{name.to_s.upcase} #{i}"
+        i += 1
+      end
+    end
+    
   end
 
   def generate_declarations(fd)
@@ -1874,7 +1891,25 @@ class ShotgunPrimitives
 #endif
     CODE
   end
-
+  
+  def nmethod_call
+    <<-CODE
+    cpu_flush_ip(c);
+    cpu_flush_sp(c);
+    cpu_save_registers(state, c);
+    t1 = nmc_new(state, mo, c->active_context, stack_pop(), method_name, num_args);
+    nmc_activate(state, c, t1, FALSE);
+    CODE
+  end
+  
+  def load_library
+    <<-CODE
+    stack_pop(); /* self */
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(subtend_load_library(state, c, t1, t2));
+    CODE
+  end
 
 end
 

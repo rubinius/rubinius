@@ -1,0 +1,39 @@
+#!/bin/sh
+
+proc=$(uname -p)
+mach=$(uname -m)
+
+if test "$proc" = "powerpc"; then
+  kind="ppc"
+elif test "$mach" = "i686"; then
+  kind="x86"
+elif test "$mach" = "i586"; then
+  kind="x86"
+elif test "$mach" = "i386"; then
+  kind="x86"
+else
+  echo "C/Invoke couldn't figure out what machine you have!"
+  exit 1
+fi
+
+case "$kind" in
+	'x86')
+		ln -s Makefile.x86 Makefile
+		cd lib ; ln -s Makefile.x86 Makefile
+		;;
+	'x64')
+		ln -s Makefile.x64 Makefile
+		cd lib ; ln -s Makefile.x64 Makefile
+		;;
+	'ppc')
+		ln -s Makefile.ppc Makefile
+		cd lib ; ln -s Makefile.ppc Makefile
+		;;
+	'clean')
+		rm -f Makefile lib/Makefile
+		;;
+	*)
+		echo "Usage: configure.sh <target>"
+		echo "Available targets are: x86 x64 ppc clean"
+		;;
+esac

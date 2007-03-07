@@ -13,6 +13,8 @@
 #include "archive.h"
 #include "machine.h"
 #include "grammar.h"
+#include "subtend.h"
+#include "subtend/nmc.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -28,6 +30,8 @@
 #include <glib.h>
 #include <zlib.h>
 #include <math.h>
+
+OBJECT math_sqrt(STATE, OBJECT a);
 
 #define STATIC_SIZE 100
 
@@ -67,7 +71,7 @@ struct time_data {
 // i.e. if type is STRING then STRING_P must be specified
 #define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
 
-int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args) {
+int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod) {
   int _ret = TRUE;
   OBJECT self, t1, t2, t3;
   int j, k, m, _orig_sp;

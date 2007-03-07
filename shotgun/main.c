@@ -6,6 +6,8 @@
 #include <string.h>
 #include <setjmp.h>
 
+#include "subtend/ruby.h"
+
 void *__main_address;
 
 /* TODO incorporate system paths calculated at compile time. */
@@ -35,9 +37,13 @@ static char *search_for(char *evs, char *file) {
   return NULL;
 }
 
+static void load_libs() {
+  subtend_get_global(0);
+}
+
 int main(int argc, char **argv) {
-  char *archive;
   machine m;
+  char *archive;
   int offset = 0;
   int flag;
   
@@ -47,6 +53,8 @@ int main(int argc, char **argv) {
   __main_address = __builtin_frame_address(0);
   
   m = machine_new();
+  /* We sure to setup the bottom of the stack so it can be properly saved. */
+  m->s->stack_bottom = (unsigned long*)&m;
   machine_save_args(m, argc, argv);
   machine_setup_standard_io(m);
   machine_setup_ruby(m, argv[0]);

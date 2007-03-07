@@ -162,7 +162,7 @@ class ShotgunInstructions
     // performed on an object? Or should we state that the semantics of a primitive 
     // will always have an object or else it needs to be an opcode... ?
     // If the primitive fails raise an exception
-    if( ! cpu_perform_primitive(state, c, j, Qnil, k) )
+    if( ! cpu_perform_primitive(state, c, j, Qnil, k, Qnil, Qnil) )
     {
       cpu_raise_primitive_failure(state, c, j);
     }
@@ -433,6 +433,7 @@ class ShotgunInstructions
     t2 = stack_pop();
     cpu_attach_method(state, c, t1, _lit, t2);
     stack_push(t2);
+    cpu_perform_hook(state, c, t1, state->global->sym_s_method_added, _lit);
     CODE
   end
   
@@ -443,6 +444,7 @@ class ShotgunInstructions
     t2 = stack_pop();
     cpu_add_method(state, c, t1, _lit, t2);
     stack_push(t2);
+    cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);
     CODE
   end
   
@@ -459,6 +461,7 @@ class ShotgunInstructions
         c->locals = t3;
       }
     }
+    
     CODE
   end
   
