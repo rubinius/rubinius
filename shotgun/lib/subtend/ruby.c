@@ -4,6 +4,7 @@
 #include "ruby.h"
 #include "symbol.h"
 
+OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
 
 #define HNDL(obj) handle_to_object(ctx->state, ctx->state->handle_tbl, (rni_handle*)obj)

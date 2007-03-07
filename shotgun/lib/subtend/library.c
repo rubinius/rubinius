@@ -43,7 +43,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
      the library isn't there. */
   lib = cinv_library_create(state->c_context, sys_name);
   if(!lib) {
-    printf("Couldnt open '%s'\n", sys_name);
+    printf("Couldnt open '%s': %s\n", sys_name, cinv_context_geterrormsg(state->c_context));
     free(c_path);
     /* No need to raise an exception, it's not there. */
     return I2N(0);

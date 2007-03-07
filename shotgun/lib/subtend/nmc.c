@@ -337,9 +337,8 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
     
     nmc_setjmp(n->cont);
 
-    n->cont[JB_SP] = STACK_SIZE(n->stack, n->stack_size);
-    n->cont[JB_PC] = (int)_nmc_start;
-    
+    SETJMP_PATCH(n->cont, _nmc_start, STACK_ADDR(n->stack, n->stack_size));
+
     /* Go go gadget stack! This will cause us to run _nmc_start on the new stack. */
     longjmp(n->cont, 1);
         
