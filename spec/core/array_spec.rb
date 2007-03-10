@@ -789,9 +789,9 @@ context "Array instance method" do
   
   specify "sort with block should return a new array from sorting elements using block value" do
     example do
-      a = [1, 2, 3, 4, 5]
-      [a.sort { |x,y| y <=> (x - 1) }, a]
-    end.should == [[5, 4, 3, 2, 1], [1, 2, 3, 4, 5]]
+      a = [5, 1, 4, 3, 2]
+      [a.sort { |x,y| y <=> x }, a]
+    end.should == [[5, 4, 3, 2, 1], [5, 1, 4, 3, 2]]
   end
   
   specify "sort! should sort array in place using <=>" do
