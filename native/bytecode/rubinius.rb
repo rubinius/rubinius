@@ -1,6 +1,10 @@
 require 'bytecode/assembler'
 require 'bytecode/primitive_names'
 
+if File.exists?("kernel/hints")
+  Bytecode::Compiler.load_system_hints "kernel/hints"
+end
+
 module Bytecode
   class MethodDescription
     
@@ -30,17 +34,21 @@ module Bytecode
       cmeth = CompiledMethod.new.from_string bc.data, lcls, @required
       cmeth.exceptions = asm.exceptions_as_tuple
 
+      idx = nil
+
       if @primitive.kind_of? Symbol
-        idx = Bytecode::Compiler::Primitives.index(@primitive)
-        begin
-          cmeth.primitive = idx
-        rescue Object
+        idx = Bytecode::Compiler::Primitives.index(@primitive) + 1
+        unless idx
           raise ArgumentError, "Unknown primitive '#{@primitive}'"
         end
       elsif @primitive
-        cmeth.primitive = @primitive
+        idx = @primitive
       end
-
+      
+      if idx
+        cmeth.primitive = idx
+      end
+      
       cmeth.literals = encode_literals
       if $DEBUG_COMPILER
         puts "\nLiterals:"

@@ -4,6 +4,10 @@
 
 GC.start
 
+# Now, setup a few changes to the include path.
+
+$:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
+
 # Parse options here!
 RBS_USAGE = <<END
 Usage: rubinius [options] [file]
@@ -27,6 +31,8 @@ begin
     case arg
     when '-h'
       puts RBS_USAGE
+    when "-v"
+      puts "rubinius #{Rubinius::VERSION} (#{Rubinius::BUILDREV}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
     when '-dc'
       puts "[Compiler debugging enabled]"
       $DEBUG_COMPILER = true
@@ -46,8 +52,27 @@ begin
         end
       elsif arg.prefix? "-r"
         require(arg[2..-1])
+      elsif arg.prefix? "-"
+        puts "Invalid switch '#{arg}'"
+        exit! 1
       else
-        load(arg)
+        if File.exists?(arg)
+          load(arg)
+        else
+          if arg.suffix?(".rb")
+            puts "Unable to find '#{arg}'"
+            exit! 1
+          else
+            prog = "bin/#{arg}"
+            begin
+              require prog
+            rescue LoadError => e
+              puts "Unable to find program '#{arg}' ('#{prog}'): #{e.message} (#{e.class})"
+              exit! 1
+            end
+          end
+        end
+        exit 0
       end
     end
   end

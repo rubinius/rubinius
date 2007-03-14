@@ -140,3 +140,17 @@ class File < IO
     Ruby.primitive :file_unlink
   end
 end
+
+class Dir
+  def self.glob(pattern, flags)
+    Ruby.primitive :dir_glob
+  end
+  
+  def self.[](pattern)
+    glob(pattern, 0)
+  end
+  
+  def self.chdir(path)
+    Ruby.primitive :dir_chdir
+  end
+end

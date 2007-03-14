@@ -546,6 +546,13 @@ class ShotgunInstructions
     CODE
   end
   
+  def block_break
+    <<-CODE
+    cpu_return_to_block_creator(state, c);
+    CODE
+  end
+  
+  
   def unshift_tuple
     <<-CODE
     t1 = stack_pop();
@@ -636,6 +643,7 @@ class ShotgunInstructions
     c->cache_index = _int;
     CODE
   end
+  
 end
 
 si = ShotgunInstructions.new

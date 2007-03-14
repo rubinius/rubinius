@@ -30,6 +30,7 @@
 #include <glib.h>
 #include <zlib.h>
 #include <math.h>
+#include <glob.h>
 
 OBJECT math_sqrt(STATE, OBJECT a);
 

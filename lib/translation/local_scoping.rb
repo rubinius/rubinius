@@ -56,12 +56,12 @@ class RsLocalScoper < SimpleSexpProcessor
   
   def clear_args
     cur = @bargs.last
-    
+        
     # Don't delete them, just set them to nil so that their space
     # is still calculated but they can't be seen.
     cur.each do |a|
       i = @state.locals.index(a)
-      @state.locals[i] = nil
+      @state.locals[i] = [a, false]
     end
     @bargs.pop
   end
@@ -83,7 +83,7 @@ class RsLocalScoper < SimpleSexpProcessor
     f = x.shift
     a = x.shift
     b = x.shift
-    
+        
     @masgn.push true
     start_args
     a2 = process(a)
@@ -107,7 +107,7 @@ class RsLocalScoper < SimpleSexpProcessor
       [:lasgn, name, find_lvar(name)]
     else
       if not val
-        raise "Incorrect usage of dasgn_curr #{name}, needs a value. (#{val.inspect})"
+        raise "Incorrect usage of dasgn_curr '#{name}', needs a value. (#{val.inspect})"
       end
       
       [:lasgn, name, find_lvar(name), process(val)]
@@ -147,7 +147,7 @@ class RsLocalScoper < SimpleSexpProcessor
       [:vcall, name]
     end
   end
-  
+
   def process_defs(x)
     y = x.dup
     x.clear
@@ -175,4 +175,13 @@ class RsLocalScoper < SimpleSexpProcessor
     y.unshift :module
     return y
   end
+  
+  def process_case(x)
+    cond = x.shift
+    whns = x.shift.map { |w| process(w) }
+    els = process(x.shift)
+    
+    [:case, cond, whns, els]
+  end
+  
 end

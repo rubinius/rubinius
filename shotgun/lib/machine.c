@@ -11,6 +11,8 @@
 #include <sys/param.h>
 #include <signal.h>
 
+#include "config.h"
+
 /* Backtrace support */
 #ifdef  __linux__ 
 #include <execinfo.h>
@@ -447,11 +449,15 @@ int machine_run_file(machine m, char *path) {
   return machine_run(m);
 }
 
-void machine_set_const(machine m, char *str, OBJECT val) {
+void machine_set_const_under(machine m, char *str, OBJECT val, OBJECT under) {
   OBJECT con, sym;
-  con = module_get_constants(m->s->global->object);
+  con = module_get_constants(under);
   sym = string_to_sym(m->s, string_new(m->s, str));
   hash_set(m->s, con, sym, val);
+}
+
+void machine_set_const(machine m, char *str, OBJECT val) {
+  machine_set_const_under(m, str, val, m->s->global->object);
 }
 
 void machine_save_args(machine m, int argc, char **argv) {
@@ -508,6 +514,18 @@ void machine_setup_argv(machine m, int argc, char **argv) {
   }
   
   machine_set_const(m, "ARGV", ary);
+}
+
+void machine_setup_config(machine m) {
+  OBJECT mod;
+  mod = rbs_module_new(m->s, "Rubinius", m->s->global->object);
+  machine_set_const(m, "RUBY_PLATFORM", string_new(m->s, CONFIG_HOST));
+  machine_set_const(m, "RUBY_RELEASE_DATE", string_new(m->s, CONFIG_RELDATE));
+  machine_set_const_under(m, "VERSION", string_new(m->s, CONFIG_VERSION), mod);
+  machine_set_const_under(m, "BUILDREV", string_new(m->s, CONFIG_BUILDREV), mod);
+  machine_set_const_under(m, "CODE_PATH", string_new(m->s, CONFIG_CODEPATH), mod);
+  machine_set_const_under(m, "EXT_PATH", string_new(m->s, CONFIG_EXTPATH), mod);
+  machine_set_const_under(m, "RBA_PATH", string_new(m->s, CONFIG_RBAPATH), mod);
 }
 
 extern char **environ;

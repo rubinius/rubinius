@@ -17,15 +17,23 @@ else
 end
 
 comp = Bytecode::Compiler.new
+comp.load_hints "kernel/hints"
 meth = comp.compile_as_script(sexp, :__script__)
 
 def show_method(m)
+  puts "\n[[ #{m.name} ]]"
   puts m.assembly
+  p m.locals
   m.literals.each do |lit|
     if Bytecode::MethodDescription === lit
       show_method(lit)
     end
-  end 
+  end
+  
+  asm = Bytecode::Assembler.new(m.literals, m.name)
+  stream = asm.assemble m.assembly
+  stream.each { |s| print "  "; p s }
+  
 end
 
 show_method(meth)

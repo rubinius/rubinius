@@ -2820,7 +2820,7 @@ syd_compile_file(STATE, const char *f, GIOChannel *file, int start, int newlines
     int n;
     rb_parse_state *parse_state;
     parse_state = alloc_parse_state();
-
+    parse_state->state = state;
     parse_state->lex_io = file;
     parse_state->lex_gets = parse_io_gets;
     parse_state->lex_pbeg = 0;
@@ -6286,7 +6286,7 @@ static ID
 rb_intern(char *name)
 {
     const char *m = name;
-    ID id, pre;
+    ID id, pre, qrk, bef;
     int last;
     
     id = 0;    
@@ -6321,6 +6321,7 @@ rb_intern(char *name)
         }
 
         if (name[last] == '=') {
+            /*
             char *buf = (char*)malloc(sizeof(char) * (last+1));
 
             strncpy(buf, name, last);
@@ -6331,6 +6332,7 @@ rb_intern(char *name)
                 id = rb_id_attrset(id);
                 goto id_regist;
             }
+            */
             id = ID_ATTRSET;
         }
         else if (ISUPPER(name[0])) {
@@ -6345,15 +6347,21 @@ rb_intern(char *name)
         m += mbclen(*m);
     }
     if (*m) id = ID_JUNK;
-  id_regist:
-    pre = g_quark_from_string(name) + tLAST_TOKEN;
+    qrk = (ID)g_quark_from_string(name);
+    pre = qrk + tLAST_TOKEN;
+    bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
-    //printf("Registered '%s' as %d.\n", name, id);
+  id_regist:  
+    // printf("Registered '%s' as %d (%d, %d, %d).\n", name, id, qrk, tLAST_TOKEN, bef);
     return id;
 }
 
 GQuark id_to_quark(ID id) {
-  return((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
+  GQuark qrk;
+  
+  qrk = (GQuark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
+  // printf("ID %d == %d\n", id, qrk);
+  return qrk;
 }
 
 unsigned long

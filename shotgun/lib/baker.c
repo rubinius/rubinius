@@ -171,9 +171,12 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
       fc_mutate(method_module);
 #undef fc_mutate
 
-      /* We cache the bytecode in a char*, so adjust it. */
+      /* We cache the bytecode in a char*, so adjust it. 
+         We mutate the data first so we cache the newest address. */
       OBJECT ba;
       ba = cmethod_get_bytecodes(fc->method);
+      ba = baker_gc_maybe_mutate(g, ba);
+      
       fc->data = BYTEARRAY_ADDRESS(ba);
       fc->data_size = BYTEARRAY_SIZE(ba);
     }

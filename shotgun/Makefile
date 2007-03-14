@@ -1,4 +1,9 @@
-CC=gcc
+include config.mk
+
+CC=$(LIBTOOL) --mode=compile gcc
+LINKER=$(LIBTOOL) --mode=link gcc
+INSTALL=$(LIBTOOL) --mode=install install
+
 UNAME=$(shell uname)
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
 DEPS=../include/rubinius.h
@@ -24,12 +29,20 @@ ifeq ($(UNAME),Linux)
 endif
 
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
+LOBJS=$(patsubst %.c,%.lo,$(shell ls *.c))
 RBLIB=lib/librubinius.a
 
 all: rubinius
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+install:
+	$(INSTALL) -c lib/librubinius.la $(LIBPATH)
+	$(INSTALL) -c rubinius $(BINPATH)/rbx
+
+config.h:
+	./mkconfig.sh
+
+%.lo: %.c $(DEPS)
+	$(CC) $(CFLAGS) -c $< 
 
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
@@ -43,13 +56,13 @@ external_libs/libzip/lib/.libs/libzip.a:
 external_libs/cinvoke/lib/libcinvoke.a:
 	cd external_libs/cinvoke; ./configure; $(MAKE)
 
-librubinius.a: external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/cinvoke/lib/libcinvoke.a
-	cd lib; $(MAKE) librubinius.a
+librubinius.la: config.h external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/cinvoke/lib/libcinvoke.a
+	cd lib; $(MAKE) librubinius.la
 
 .PHONY: librubinius.a
 
-rubinius: librubinius.a main.o
-	$(CC) -o rubinius main.o lib/librubinius.a $(LDFLAGS) $(LIBS)
+rubinius: librubinius.la main.lo
+	$(LINKER) -o rubinius main.lo lib/librubinius.la
 
 test/test_state: test/test_state.c librubinius.a
 	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)
@@ -68,7 +81,8 @@ test: test/test_state test/test_instructions
 	./test/test_instructions
 
 clean:
-	rm -f *.o *.gen rubinius
+	rm -f *.o *.lo *.gen rubinius config.h config.mk
+	rm -rf .libs
 	cd lib; $(MAKE) clean
 	cd external_libs/libtommath; $(MAKE) clean
 	cd external_libs/onig; $(MAKE) clean

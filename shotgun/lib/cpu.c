@@ -152,6 +152,8 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   }
   //printf("Paths is %d\n", c->paths->len);
   #undef ar
+  
+  cpu_flush_ip(c);
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {

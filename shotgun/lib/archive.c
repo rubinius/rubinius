@@ -9,7 +9,7 @@ OBJECT archive_list_files(STATE, char *path) {
   struct zip *za;
   struct zip_stat st;
   int i, err, count;
-  OBJECT ary;
+  OBJECT ary, tup;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
     return Qnil;
@@ -19,7 +19,8 @@ OBJECT archive_list_files(STATE, char *path) {
   ary = array_new(state, count);
   for(i=0; i < count; i++) {
     zip_stat_index(za, i, 0, &st);
-    array_set(state, ary, i, string_new(state, (char *)st.name));
+    tup = tuple_new2(state, 3, string_new(state, (char *)st.name), I2N(st.mtime), I2N(st.size));
+    array_set(state, ary, i, tup);
   }
   
   zip_close(za);
@@ -145,7 +146,6 @@ OBJECT archive_add_file(STATE, char *path, char *name, char *file) {
   
   ret = add_or_replace(za, name, zs);
   
-  zip_source_free(zs);  
   zip_close(za);
   return ret;
 }
@@ -166,10 +166,9 @@ OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj) {
   zs = zip_source_buffer(za, buf->str, buf->len, 0);
 
   ret = add_or_replace(za, name, zs);
-    
-  g_string_free(buf, 1);
-  zip_source_free(zs);  
+  
   zip_close(za);
+  g_string_free(buf, 1);
   return ret;
 }
 

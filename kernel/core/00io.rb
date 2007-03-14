@@ -43,6 +43,19 @@ class IO
     true
   end
   
+  def gets
+    cur = read(1)
+    return nil unless cur
+    out = cur
+    until out[-1] == 10
+      cur = read(1)
+      return out unless cur
+      out << cur
+    end
+    
+    return out    
+  end
+  
   def self.create_pipe(lhs, rhs)
     Ruby.primitive :create_pipe
   end

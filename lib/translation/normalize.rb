@@ -32,6 +32,21 @@ class RsNormalizer < SimpleSexpProcessor
     out.unshift :defs
     return out
   end
+  
+  def process_block(x)
+    # This madness is that all the dvars allocated in a block are
+    # indicate as a 'linked-list' of dasgn_curr nodes at the beginning
+    # of the block.
+    fn = x.first
+    if fn.first == :dasgn_curr and (!fn[2] or fn[2].first == :dasgn_curr)
+      x.shift
+    end
+    out = [:block]
+    while e = x.shift
+      out << process(e)
+    end
+    out
+  end
 
   def process_defn(x)
     name = x.shift
@@ -54,10 +69,10 @@ class RsNormalizer < SimpleSexpProcessor
       args += [[], [], nil, nil]
     end
 
-    args[1].each do |a|
-      i = lvar_idx(a)
+    #args[1].each do |a|
+    #  i = lvar_idx(a)
       # puts "marking #{a} as a local: #{i}"
-    end
+    #end
 
     start = 2
     if block[2].first == :block_arg
@@ -69,7 +84,7 @@ class RsNormalizer < SimpleSexpProcessor
     if @full
       cur = @state.locals
       @state.reset
-      args[1].each { |i| @state.local(i) }
+      # args[1].each { |i| @state.local(i) }
       # pp body
       #begin
         body = process(body)
@@ -150,7 +165,7 @@ class RsNormalizer < SimpleSexpProcessor
     return out
   end
   
-  def process_vcall(x)
+  def noprocess_vcall(x)
     name = x.shift
     # Allow us to 'overrule' what the parser thought was a lvar.
     if @state.local?(name)
@@ -168,13 +183,13 @@ class RsNormalizer < SimpleSexpProcessor
     return idx
   end
   
-  def process_lvar(x)
+  def noprocess_lvar(x)
     name = x.shift
     idx = x.shift
     [:lvar, name, lvar_idx(name)]
   end
   
-  def process_lasgn(x)
+  def noprocess_lasgn(x)
     name = x.shift
     idx = x.shift
     val = x.shift

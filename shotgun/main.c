@@ -6,12 +6,17 @@
 #include <string.h>
 #include <setjmp.h>
 
+#include "config.h"
 #include "subtend/ruby.h"
 
 void *__main_address;
 
 /* TODO incorporate system paths calculated at compile time. */
+#ifdef CONFIG_RBAPATH
+char *search_path[] = {CONFIG_RBAPATH, "runtime", NULL};
+#else
 char *search_path[] = {"runtime", NULL};
+#endif
 
 static char *search_for(char *evs, char *file) {
   char *env;
@@ -58,6 +63,7 @@ int main(int argc, char **argv) {
   machine_save_args(m, argc, argv);
   machine_setup_standard_io(m);
   machine_setup_ruby(m, argv[0]);
+  machine_setup_config(m);
   /* move argc and argv around so that the kernel and rubinius
      don't show up. */
   machine_config_env(m);

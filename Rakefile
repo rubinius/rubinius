@@ -184,11 +184,13 @@ namespace :build do
     $:.unshift "lib"
     require 'types'
     fd = File.open("kernel/bootstrap/00auto_fields.rb", "w")
+    hfd = File.open("kernel/hints", "w")
     hints = {}
     Rubinius::Types.each do |name, mod|
       next if mod::TotalFields.size == 0
       sname = mod.name.split("::").last
       sub = {}
+      hfd.puts sname
       fd.puts "class #{sname}"
       idx = 0
       str = []
@@ -196,22 +198,24 @@ namespace :build do
         if fel == :instance_variables
           fel = :__ivars__
         end
+        hfd.puts fel
         sub["@#{fel}".to_sym] = idx
         str << [":#{fel} => #{idx}"]
         # fd.puts "index_accessor :#{fel}, #{idx}"
         fd.puts "  def #{fel}; Ruby.asm \"push self\\npush #{idx}\\nfetch_field\"; end"
         idx += 1
       end
+      hfd.puts "!"
       hints[sname] = sub
       fd.puts "  ivar_as_index #{str.join(", ")}"
       fd.puts "end"
     end
     fd.close
     
-    require 'yaml'
-    File.open("kernel/hints", "w") do |f|
-      f << hints.to_yaml
-    end
+    #require 'yaml'
+    #File.open("kernel/hints", "w") do |f|
+    #  f << hints.to_yaml
+    #end
   end
 
   desc "Build shotgun C components."

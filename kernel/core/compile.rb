@@ -1,19 +1,19 @@
 module Compile
   def self.compile_file(path)
     require 'bytecode/compiler'
+    require 'bytecode/rubinius'
     sexp = File.to_sexp(path, true)
     comp = Bytecode::Compiler.new
     desc = comp.compile_as_script(sexp, :__script__)
-    require 'bytecode/rubinius'
     return desc.to_cmethod
   end
   
   def self.compile_string(string)
     require 'bytecode/compiler'
+    require 'bytecode/rubinius'
     sexp = string.to_sexp
     comp = Bytecode::Compiler.new
     desc = comp.compile_as_method(sexp, :__eval_script__)
-    require 'bytecode/rubinius'
     return desc.to_cmethod
   end
   
@@ -25,11 +25,11 @@ end
 
 class String
   def compile_as_method(filename = "(eval)", line = 1, newlines = true)
-    sexp = self.to_sexp(filename, line, newlines)
     require 'bytecode/compiler'
+    require 'bytecode/rubinius'
+    sexp = self.to_sexp(filename, line, newlines)
     comp = Bytecode::Compiler.new
     desc = comp.compile_as_method(sexp, :__script__)
-    require 'bytecode/rubinius'
     return desc.to_cmethod
   end
 end
@@ -60,15 +60,16 @@ module Kernel
     end
   end
   
-  def compile(path)
-    out = "#{path}c"
+  def compile(path, out=nil)
+    out = "#{path}c" unless out
     cm = Compile.compile_file(path)
     Marshal.dump_to_file cm, out
     return out
   end
     
   def require(thing)
-    kinds = [thing + ".rbc", thing + ".rb"]
+    # puts "Requiring '#{thing}'"
+    kinds = [thing + ".rb", thing + ".rbc"]
     
     $:.each do |dir|
       kinds.each do |filename|

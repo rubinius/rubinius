@@ -1,119 +1,135 @@
---- 
-CompiledMethod: 
-  :@required: 2
-  :@cache: 14
-  :@serial: 3
-  :@locals: 7
-  :@file: 6
-  :@__ivars__: 0
-  :@scope: 10
-  :@arguments: 9
-  :@path: 13
-  :@exceptions: 11
-  :@bytecodes: 4
-  :@primitive: 1
-  :@lines: 12
-  :@literals: 8
-  :@name: 5
-MetaClass: 
-  :@parent: 5
-  :@superclass: 6
-  :@__ivars__: 0
-  :@instance_fields: 7
-  :@methods: 1
-  :@instance_flags: 8
-  :@method_cache: 2
-  :@attached_instance: 9
-  :@constants: 4
-  :@name: 3
-MethodTable: 
-  :@keys: 1
-  :@default: 5
-  :@values: 2
-  :@bins: 3
-  :@__ivars__: 0
-  :@entries: 4
-  :@default_proc: 6
-BlockContext: 
-  :@sender: 1
-  :@ip: 2
-  :@sp: 3
-  :@__ivars__: 0
-  :@raiseable: 5
-  :@block: 4
-  :@env: 6
-Regexp: 
-  :@source: 1
-  :@__ivars__: 0
-  :@names: 3
-  :@data: 2
-Hash: 
-  :@keys: 1
-  :@default: 5
-  :@values: 2
-  :@bins: 3
-  :@__ivars__: 0
-  :@entries: 4
-  :@default_proc: 6
-Array: 
-  :@total: 0
-  :@tuple: 1
-SymbolTable: 
-  :@symbols: 1
-  :@strings: 2
-  :@__ivars__: 0
-MatchData: 
-  :@source: 1
-  :@__ivars__: 0
-  :@regexp: 2
-  :@full: 3
-  :@region: 4
-Module: 
-  :@parent: 5
-  :@__ivars__: 0
-  :@methods: 1
-  :@method_cache: 2
-  :@constants: 4
-  :@name: 3
-BlockEnvironment: 
-  :@post_send: 4
-  :@__ivars__: 0
-  :@home: 1
-  :@initial_ip: 2
-  :@last_ip: 3
-Float: 
-  :@__ivars__: 0
-IO: 
-  :@descriptor: 0
-Class: 
-  :@parent: 5
-  :@superclass: 6
-  :@__ivars__: 0
-  :@instance_fields: 7
-  :@methods: 1
-  :@instance_flags: 8
-  :@method_cache: 2
-  :@constants: 4
-  :@name: 3
-MethodContext: 
-  :@sender: 1
-  :@receiver: 9
-  :@method: 6
-  :@ip: 2
-  :@locals: 10
-  :@sp: 3
-  :@__ivars__: 0
-  :@argcount: 11
-  :@raiseable: 5
-  :@block: 4
-  :@module: 13
-  :@bytecodes: 7
-  :@name: 12
-  :@literals: 8
-Object: 
-  :@__ivars__: 0
-String: 
-  :@characters: 1
-  :@encoding: 2
-  :@data: 3
-  :@bytes: 0
+MethodTable
+__ivars__
+keys
+values
+bins
+entries
+default
+default_proc
+!
+SymbolTable
+__ivars__
+symbols
+strings
+!
+Class
+__ivars__
+methods
+method_cache
+name
+constants
+parent
+superclass
+instance_fields
+instance_flags
+!
+Float
+__ivars__
+!
+BlockEnvironment
+__ivars__
+home
+initial_ip
+last_ip
+post_send
+!
+MetaClass
+__ivars__
+methods
+method_cache
+name
+constants
+parent
+superclass
+instance_fields
+instance_flags
+attached_instance
+!
+MethodContext
+__ivars__
+sender
+ip
+sp
+block
+raiseable
+method
+bytecodes
+literals
+receiver
+locals
+argcount
+name
+module
+!
+Regexp
+__ivars__
+source
+data
+names
+!
+CompiledMethod
+__ivars__
+primitive
+required
+serial
+bytecodes
+name
+file
+locals
+literals
+arguments
+scope
+exceptions
+lines
+path
+cache
+!
+Array
+total
+tuple
+!
+Hash
+__ivars__
+keys
+values
+bins
+entries
+default
+default_proc
+!
+Module
+__ivars__
+methods
+method_cache
+name
+constants
+parent
+!
+Object
+__ivars__
+!
+String
+bytes
+characters
+encoding
+data
+!
+BlockContext
+__ivars__
+sender
+ip
+sp
+block
+raiseable
+env
+!
+IO
+descriptor
+!
+MatchData
+__ivars__
+source
+regexp
+full
+region
+!

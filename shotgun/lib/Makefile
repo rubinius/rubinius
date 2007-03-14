@@ -1,8 +1,12 @@
-CC=gcc
+-include ../config.mk
+
+CC=$(LIBTOOL) --mode=compile gcc
+LINKER=$(LIBTOOL) --mode=link gcc
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
-CPPFLAGS=-I../../include -iquote . -I../external_libs/cinvoke/lib -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
+CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/cinvoke/lib -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
 WARNINGS=-Wall -Winline
+LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a ../external_libs/cinvoke/lib/libcinvoke.a -lm
 
 ifdef DEV
   OPTIMIZATIONS=
@@ -15,21 +19,18 @@ endif
 ifeq ($(CPU), powerpc)
   OPTIMIZATIONS+=-falign-loops=16
 endif
+
 DEBUG=-g
 CFLAGS=$(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
-LIBS=`pkg-config glib-2.0 --libs` ../external_libs/libtommath/libtommath.a
 
-SOURCES=$(wildcard *.c) $(wildcard subtend/*.c) grammar.c
+SOURCES=$(sort $(wildcard *.c) $(wildcard subtend/*.c) grammar.c)
 OBJS=$(SOURCES:.c=.o)
+LOBJS=$(SOURCES:.c=.lo)
 RUBY=ruby -I../../lib
 
 ifeq ($(UNAME),SunOS)
   CFLAGS+=-D__C99FEATURES__
-else
-  ifeq ($(UNAME),Darwin)
-    OBJS+=missing/backtrace.o
-  endif
 endif
 
 show_info:
@@ -37,20 +38,18 @@ show_info:
 	@echo "Optimizations: $(OPTIMIZATIONS)"
 	@echo "Debugging: $(DEBUG)"
 
-%.o: %.c
+%.lo: %.c
 	@echo "CC $@"
-	@$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 .%.d:  %.c  $(DEPS)
 	@set -e; rm -f $@; \
-	$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+	gcc -MM $(CPPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-librubinius.a: show_info $(DEPS) $(OBJS) 
-	rm -f librubinius.a
-	ar rc librubinius.a $(OBJS)
-	ranlib librubinius.a
+librubinius.la: show_info $(DEPS) $(LOBJS) 
+	MACOSX_DEPLOYMENT_TARGET=10.4 $(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) -ldl $(LIBS)
 
 cpu_instructions.o: instructions.gen instruction_names.gen
 cpu_primitives.o: system_primitives.gen
@@ -64,18 +63,19 @@ system_primitives.gen: primitives.rb
 
 auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
-	@echo "CC auto.o"
-	@$(CC) -c -o auto.o auto.c $(CFLAGS)
+	echo "CC auto.o"
+	$(CC) $(CFLAGS) -c auto.c
 
-grammar.o: grammar.y
+grammar.lo: grammar.y
 	@echo "CC grammar.o"
-	@$(CC) -c -o grammar.o grammar.c -Wall -O $(DEBUG) $(CPPFLAGS)
+	$(CC) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
 
 grammar.c: grammar.y
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o subtend/*.o *.gen *.a auto.c auto.h .*.d .*.d.* grammar.c
+	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* grammar.c
+	rm -rf .libs subtend/.libs
 
 .PHONY: test
 

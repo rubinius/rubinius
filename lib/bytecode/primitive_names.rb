@@ -125,7 +125,9 @@ module Bytecode
       :fixnum_left_shift,
       :vm_stats,
       :nmethod_call,
-      :load_library
+      :load_library,
+      :dir_glob,
+      :dir_chdir
     ]
 
     FirstRuntimePrimitive = 1024

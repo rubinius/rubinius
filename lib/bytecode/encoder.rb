@@ -72,7 +72,8 @@ class InstructionEncoder
     :push_my_field,
     :store_my_field,
     :open_metaclass,
-    :set_cache_index
+    :set_cache_index,
+    :block_break
   ]
   
   IntArg = [

@@ -1,13 +1,8 @@
-begin
-  require 'sexp/simple_processor'
-  require 'translation/normalize'
-  require 'translation/local_scoping'
-  require 'sexp/composite_processor'
-  require 'translation/states'
-rescue LoadError
-  STDERR.puts "Unable to load one or more required libraries. Make sure you have the 'sydparse', 'emp', and 'RubyInline' gems."
-  raise $!
-end
+require 'sexp/simple_processor'
+require 'translation/normalize'
+require 'translation/local_scoping'
+require 'sexp/composite_processor'
+require 'translation/states'
 
 module Bytecode
   
@@ -20,6 +15,7 @@ module Bytecode
       @file = nil
       @required = 0
       @path = []
+      @locals = nil
     end
     
     def add_literal(obj)
@@ -29,7 +25,7 @@ module Bytecode
     end
     
     attr_accessor :name, :assembly, :literals, :primitive, :file
-    attr_accessor :required, :path
+    attr_accessor :required, :path, :locals
   end
 
   class Compiler
@@ -40,6 +36,20 @@ module Bytecode
       @in_class_body = false
       @in_method_body = false
       @indexed_ivars = Hash.new { |h,k| h[k] = {} }
+      
+      if sys = Compiler.system_hints
+        @indexed_ivars.update sys
+      end
+    end
+    
+    @system_hints = nil
+    
+    def self.load_system_hints(path)
+      @system_hints = parse_hints(path)
+    end
+    
+    def self.system_hints
+      @system_hints
     end
     
     def add_indexed_ivar(name, idx)
@@ -58,10 +68,30 @@ module Bytecode
     end
     
     def load_hints(path)
-      require 'yaml'
-      puts "Loading hints from #{path}"
-      hsh = YAML.load(File.read(path))
-      @indexed_ivars.update hsh
+      @indexed_ivars.update Compiler.parse_hints(path)
+    end
+    
+    def self.parse_hints(path)
+      fd = File.open(path)
+      line = fd.gets
+      state = :init
+      out = {}
+      while line
+        if state == :init
+          name = line.strip
+          cur = {}
+          idx = 0
+          state = :body
+        elsif line == "!\n"
+          state = :init
+          out[name] = cur
+        else
+          cur["@#{line.strip}".to_sym] = idx
+          idx += 1
+        end
+        line = fd.gets
+      end
+      return out
     end
     
     attr_accessor :current_class, :in_class_body, :in_method_body
@@ -131,6 +161,7 @@ module Bytecode
 
       meth = MethodDescription.new(name)
       meth.path = @path.dup
+      meth.locals = state.locals
       
       pro = Processor.new(self, meth, state)
       pro.process nx
@@ -251,8 +282,13 @@ module Bytecode
       end
 
       def process_negate(x)
-        process x.shift # Pass the buck
-        add "send -@" # ..and then negate it
+        recv = x.shift
+        if recv.first == :lit and Fixnum === recv.last
+          add "push -#{recv.last}"
+        else
+          process recv # Pass the buck
+          add "send -@" # ..and then negate it
+        end
       end
       
       def process_fixnum(x)
@@ -473,7 +509,16 @@ module Bytecode
       
       def process_break(x)
         # FIXME: stack cleanup?
-        if @break
+        
+        if val = x.shift
+          process val
+        else
+          add "push nil"
+        end
+        
+        if @break == :block
+          add "block_break"
+        elsif @break
           goto @break
         else
           raise "Unable to handle this break."
@@ -482,6 +527,13 @@ module Bytecode
             
       def process_redo(x)
         # FIXME: stack cleanup?
+        
+        if val = x.shift
+          process val
+        else
+          add "push nil"
+        end
+        
         if @redo
           goto @redo
         else
@@ -628,6 +680,9 @@ module Bytecode
       def process_lvar(x)
         name = x.shift
         idx = x.shift
+        if idx == 0
+          idx = @state.local(name)
+        end
         add "push #{name}:#{idx}"
       end
       
@@ -902,6 +957,7 @@ module Bytecode
 
       def process_retry(x)
         raise "'retry' called outside of a begin/end block" unless @retry_label
+        raise "retry in blocks not supported" if @retry_label == :block
         goto @retry_label
       end
 
@@ -1226,7 +1282,7 @@ module Bytecode
             state.local var[1]
           end
         end
-        
+                
         meth = nil
         @compiler.as_method_body(name) do
           meth = @compiler.compile_as_method body, name, state
@@ -1312,6 +1368,10 @@ module Bytecode
         end
         return false
       end
+      
+      def process_vcall(x)
+        process [:call, [:self], x.shift, [:array]]
+      end
 
       def process_call(x, block=false)
         x.unshift :call
@@ -1325,7 +1385,7 @@ module Bytecode
         #p x
         x.shift
         #p x
-        
+                
         if @compiler.in_class_body
           out = detect_class_special(x.dup)
           if out
@@ -1387,7 +1447,9 @@ module Bytecode
           add "set_args"
         end
         add "#{op} #{meth} #{sz}"
-        add "#{ps}:" if block
+        if block
+          add "#{ps}:"
+        end
       end
       
       def process_super(x, block=false)
@@ -1451,6 +1513,8 @@ module Bytecode
         add "push &#{one}"
         add "push_context"
         add "send_primitive create_block 2"
+        brk = @break
+        @break = :block
         goto two
         if x[0] && x[0][1].size > 2 # multi-arg block
           puts "x[0][1]" + x[0][1].inspect if $DEBUG_COMPILER
@@ -1474,9 +1538,17 @@ module Bytecode
           add "#{noarrayexpand}:"
         end
         process x.shift
+        red = @redo
+        @redo = unique_lbl()
+        set_label @redo
+        ret = @retry_label
+        @retry = :block
         process x.shift
         add "#{one}: soft_return"
         set_label two
+        @redo = red
+        @break = brk
+        @retry_label = ret
       end
       
       def process_str(x)

@@ -340,7 +340,9 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
       }
       /* Didn't work, need to remove the recv we put on before. */
       stack_pop();
-      // printf("Primitive failed! -- %d\n", prim);
+#if EXCESSIVE_TRACING
+      printf("[[ Primitive failed! -- %d ]]\n", prim);
+#endif
     } else if(req >= 0 && object_kind_of_p(state, mo, state->global->cmethod)) {
       /* raise an exception about them not doing it right. */
       cpu_raise_arg_error(state, c, args, req);
@@ -530,6 +532,23 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
   }
 }
 
+/* Layer 2.6: Uses lower layers to return to the created context of the
+   current block (ie, break in a block) */
+static inline void cpu_return_to_block_creator(STATE, cpu c) {
+  OBJECT caller, home, top;
+  
+  top = cpu_stack_top(state, c);
+  caller = blokctx_home(state, c->active_context);
+  
+  if(blokctx_s_block_context_p(state, caller)) {
+    home = blokctx_home(state, caller);
+  } else {
+    home = caller;
+  }
+  
+  cpu_restore_context_with_home(state, c, caller, home, TRUE, TRUE);
+  cpu_stack_push(state, c, top, FALSE);
+}
 
 /* Layer 3: goto. Basically jumps directly into the specificed method. 
    no lookup required. */
@@ -769,13 +788,22 @@ check_interupts:
       
       /* Collect the first generation. */
       if(cm & 0x1) {
-        // printf("Collecting children..\n");
+#if EXCESSIVE_TRACING
+        printf("[[ Collecting young objects. ]]\n");
+        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+#endif
         state_collect(state, c);
+#if EXCESSIVE_TRACING
+        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+        printf("[[ Finished collect. ]]\n");
+#endif  
       }
       
       /* Collect the old generation. */
       if(cm & 0x2) {
-        // printf("Starting major collection.\n");
+#if EXCESSIVE_TRACING
+        printf("[[ Collecting old objects. ]\n");
+#endif
         state_major_collect(state, c);        
         // printf("Done with major collection.\n");
       }

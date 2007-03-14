@@ -181,12 +181,7 @@ module Bytecode
         else
           raise UnknownException, "Couldn't resolve #{ename}"
         end
-        
-        fin_name = (args.strip + "_end").to_sym
-        fin = @labels[fin_name]
-        @output << [:goto, fin]
-        @current_op += 5
-        
+                
         @exceptions[ename][2] = @current_op
         
       when :exc_end

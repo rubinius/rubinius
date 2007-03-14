@@ -3,6 +3,16 @@ class Tuple
     Ruby.primitive :allocate_count
   end
   
+  def [](idx)
+    Ruby.primitive :at
+    raise InvalidIndex, "Unable to access index '#{idx}' of #{self}"
+  end
+  
+  def []=(idx, val)
+    Ruby.primitive :put
+    raise InvalidIndex, "Unable to access index '#{idx}' of #{self}"
+  end
+  
   def dup
     tup = Tuple.new(self.fields)
     tup.copy_from(self, 0)
