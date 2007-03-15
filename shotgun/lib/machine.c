@@ -21,8 +21,6 @@
 #include <execinfo.h>
 #elif defined(__OpenBSD__) 
 #include <execinfo.h>
-#else
-#error "Platform not yet supported (missing backtrace functionality)"
 #endif
 
 /* *BSD dl support */
