@@ -479,8 +479,12 @@ class String
 
   def index(arg, offset = nil )
     if arg.is_a? Fixnum
-      i = 0
-      @data.each { |b| return i if b == arg; i += 1 }
+      offset = 0 if offset.nil?
+      offset = self.size + offset if offset < 0
+      return nil if offset < 0 || offset > self.size
+      (offset...self.size).each do |idx|
+        return idx if @data[idx] == arg
+      end
     elsif arg.is_a? String
       idx = 0
       if offset
