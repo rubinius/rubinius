@@ -1,7 +1,8 @@
 include config.mk
 
-CC=$(LIBTOOL) --mode=compile gcc
-LINKER=$(LIBTOOL) --mode=link gcc
+CC=gcc
+COMP=$(LIBTOOL) --mode=compile $(CC)
+LINKER=$(LIBTOOL) --mode=link $(CC)
 INSTALL=$(LIBTOOL) --mode=install install
 
 UNAME=$(shell uname)
@@ -42,7 +43,7 @@ config.h:
 	./mkconfig.sh
 
 %.lo: %.c $(DEPS)
-	$(CC) $(CFLAGS) -c $< 
+	$(COMP) $(CFLAGS) -c $< 
 
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
@@ -65,16 +66,16 @@ rubinius: librubinius.la main.lo
 	$(LINKER) -o rubinius main.lo lib/librubinius.la
 
 test/test_state: test/test_state.c librubinius.a
-	$(CC) -c -o test/test_state.o test/test_state.c $(CFLAGS)
-	$(CC) $(LIBS) -o test/test_state test/test_state.o $(RBLIB)
+	$(COMP) -c -o test/test_state.o test/test_state.c $(CFLAGS)
+	$(COMP) $(LIBS) -o test/test_state test/test_state.o $(RBLIB)
 
 test/test_gc: test/test_gc.c librubinius.a
-	$(CC) -c -o test/test_gc.o test/test_gc.c $(CFLAGS)
-	$(CC) $(LIBS) -o test/test_gc test/test_gc.o $(RBLIB)
+	$(COMP) -c -o test/test_gc.o test/test_gc.c $(CFLAGS)
+	$(COMP) $(LIBS) -o test/test_gc test/test_gc.o $(RBLIB)
 
 test/test_instructions: test/test_instructions.c librubinius.a 
-	$(CC) -c -o test/test_instructions.o test/test_instructions.c $(CFLAGS)
-	$(CC) $(LIBS) -o test/test_instructions test/test_instructions.o $(RBLIB)
+	$(COMP) -c -o test/test_instructions.o test/test_instructions.c $(CFLAGS)
+	$(COMP) $(LIBS) -o test/test_instructions test/test_instructions.o $(RBLIB)
 
 test: test/test_state test/test_instructions
 	./test/test_state

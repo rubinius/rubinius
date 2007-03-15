@@ -1,7 +1,8 @@
 -include ../config.mk
 
-CC=$(LIBTOOL) --mode=compile gcc
-LINKER=$(LIBTOOL) --mode=link gcc
+CC=gcc
+COMP=$(LIBTOOL) --mode=compile $(CC)
+LINKER=$(LIBTOOL) --mode=link $(CC)
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
 CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/cinvoke/lib -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
@@ -40,11 +41,11 @@ show_info:
 
 %.lo: %.c
 	@echo "CC $@"
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(COMP) $(CFLAGS) -c $< -o $@
 
 .%.d:  %.c  $(DEPS)
 	@set -e; rm -f $@; \
-	gcc -MM $(CPPFLAGS) $< > $@.$$$$; \
+	$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
@@ -64,11 +65,11 @@ system_primitives.gen: primitives.rb
 auto.h auto.c: genheader.rb
 	$(RUBY) genheader.rb > auto.c
 	echo "CC auto.o"
-	$(CC) $(CFLAGS) -c auto.c
+	$(COMP) $(CFLAGS) -c auto.c
 
 grammar.lo: grammar.y
 	@echo "CC grammar.o"
-	$(CC) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
+	$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
 
 grammar.c: grammar.y
 	bison -o grammar.c grammar.y
