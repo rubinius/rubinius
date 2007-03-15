@@ -21,8 +21,6 @@
 #include <execinfo.h>
 #elif defined(__OpenBSD__) 
 #include <execinfo.h>
-#elif defined(__APPLE__)
-#include "missing/backtrace.h"
 #else
 #error "Platform not yet supported (missing backtrace functionality)"
 #endif
@@ -354,12 +352,6 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
 #   endif
     machine_show_backtrace(frames, count);
   } while(0);
-#else
-  void *bt[128];
-  int bt_size;
-
-  bt_size = backtrace(bt, 3);
-  backtrace_symbols_fd(bt, bt_size, 1);
 #endif
   printf("\nRuby backtrace:\n");
   machine_print_callstack(current_machine);
