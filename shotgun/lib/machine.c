@@ -11,6 +11,7 @@
 #include <sys/param.h>
 #include <signal.h>
 
+#define __USE_GNU
 #include "config.h"
 
 /* Backtrace support */
@@ -181,7 +182,6 @@ void machine_show_ppc_backtrace(ucontext_t *ctx) {
 
 /* Only for 32bit x86 */
 #elif defined(X8632)
-#define __USE_GNU
 #include <dlfcn.h>
 #include <ucontext.h>
 #define BETTER_BT 1
@@ -313,7 +313,12 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
        via the nmc or global_context so that the exception can include
        it. */
     rni_ctx->fault_address = info->si_addr;
-    longjmp(rni_ctx->nmc->system, SEGFAULT_DETECTED); 
+#ifdef linux
+    rni_ctx->nmc->jump_val = SEGFAULT_DETECTED;
+    setcontext(&rni_ctx->nmc->system);
+#else
+    longjmp(rni_ctx->nmc->system, SEGFAULT_DETECTED);
+#endif
   }
   
   if(_recursive_reporting) {

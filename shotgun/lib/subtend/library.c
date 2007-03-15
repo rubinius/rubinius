@@ -77,10 +77,16 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   /* Cleanup. */
   cinv_function_delete(state->c_context, func);
-  
+ 
+  /*
+   * We can't close the library while there are references to the code
+   * in it. For now, we just leak the library reference, but we need
+   * to track it so we can clean them up at some point in the future.
+   * 
   if(!cinv_library_delete(state->c_context, lib)) {
     printf("Error deleting library.\n");
   }
+  */
   
   if(nmc) free(nmc);
   free(c_path);

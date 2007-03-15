@@ -31,7 +31,7 @@ OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int ar
   object_make_byte_storage(state, sys);
   
   sys_nm = (native_method*)BYTES_OF(sys);
-  
+ 
   sys_nm->prototype = cinv_function_create(state->c_context, 
         CINV_CC_DEFAULT, "p", params);
   sys_nm->entry = func;
@@ -47,3 +47,4 @@ OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int ar
   
   return nm;
 }
+

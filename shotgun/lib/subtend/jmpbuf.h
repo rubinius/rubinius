@@ -64,7 +64,9 @@ buf->__jmpbuf[JB_PC] = (int)(func);
 #endif
 
 #ifndef STACK_ADDR
-#define STACK_ADDR(stack, sz) ((int)((int*)stack + sz))
+#include <stdint.h>
+#define STACK_ADDR(stack, sz) ({ int *sp = stack + sz / 4; sp = (void*)((uintptr_t)sp - (uintptr_t)sp % 16); *--sp = 0; sp; })
+// #define STACK_ADDR(stack, sz) ((int)((int*)stack + sz))
 #endif
 
 #ifndef nmc_setjmp

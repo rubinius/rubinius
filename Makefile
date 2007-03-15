@@ -1,6 +1,4 @@
 
-$(shell cd shotgun\; ./mkconfig.sh)
-
 include shotgun/config.mk
 
 all:

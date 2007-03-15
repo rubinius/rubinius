@@ -59,11 +59,15 @@ static VALUE _push_and_call(VALUE recv, ID meth, int args, VALUE *ary) {
   n->value = recv;
   n->symbol = (OBJECT)meth;
   n->args = args;
-  
+
+#ifdef linux
+  n->jump_val = CALL_METHOD;
+  swapcontext(&n->cont, &n->system);
+#else
   if(!setjmp(n->cont)) {
     longjmp(n->system, CALL_METHOD);
   }
-    
+#endif
   /* When we return here, the call has been done. */
   return n->value;
 }

@@ -1,6 +1,6 @@
 VERSION=0.6.0
 PREFIX=/usr/local
-LIBTOOL=glibtool
+LIBTOOL=libtool
 LIBVER=1.0
 BUILDREV=svn
 

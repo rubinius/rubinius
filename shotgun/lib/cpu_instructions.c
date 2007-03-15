@@ -123,6 +123,9 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   struct method_cache *ent;
 
 #if USE_INLINE_CACHING
+  /* Skip if we aren't running a normal method. */
+  if(c->type == FASTCTX_NORMAL) {
+    
   cache = cmethod_get_cache(c->method);
   
   /* There is a cache index for this send, use it! */
@@ -143,6 +146,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
       }
     }
   }
+
+  }
 #endif
 
 #if USE_GLOBAL_CACHING
@@ -152,7 +157,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
     /* Update the inline cache. */
-    if(c->cache_index > 0) {
+    if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
       tuple_put(state, cache, c->cache_index, klass);
       tuple_put(state, cache, c->cache_index + 1, ent->module);
       tuple_put(state, cache, c->cache_index + 2, ent->method);
@@ -212,7 +217,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
     /* Update the inline cache. */
-    if(c->cache_index > 0) {
+    if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
       tuple_put(state, cache, c->cache_index, orig_klass);
       tuple_put(state, cache, c->cache_index + 1, ent->module);
       tuple_put(state, cache, c->cache_index + 2, ent->method);
