@@ -13,7 +13,7 @@ void *__main_address;
 
 /* TODO incorporate system paths calculated at compile time. */
 #ifdef CONFIG_RBAPATH
-char *search_path[] = {CONFIG_RBAPATH, "runtime", NULL};
+char *search_path[] = {"runtime", CONFIG_RBAPATH, NULL};
 #else
 char *search_path[] = {"runtime", NULL};
 #endif
