@@ -1,5 +1,6 @@
 OBJECT hash_new(STATE);
-void hash_setup(STATE, OBJECT hsh);
+OBJECT hash_new_sized(STATE, int size);
+void hash_setup(STATE, OBJECT hsh, int size);
 OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data);
 OBJECT hash_set(STATE, OBJECT hash, OBJECT key, OBJECT val);
 OBJECT hash_get(STATE, OBJECT hash, unsigned int hsh);

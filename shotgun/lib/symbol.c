@@ -26,7 +26,7 @@ OBJECT symtbl_new(STATE) {
   OBJECT tbl;
   tbl = symtbl_allocate(state);
   symtbl_set_symbols(tbl, tuple_new(state, StartSize));
-  symtbl_set_strings(tbl, hash_new(state));
+  symtbl_set_strings(tbl, hash_new_sized(state, StartSize));
   return tbl;
 }
 
