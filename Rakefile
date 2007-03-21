@@ -220,6 +220,7 @@ namespace :build do
 
   desc "Build shotgun C components."
   task :shotgun => ['build:setup', 'spec:setup:code_cache'] do
+    sh "./configure"
     system("make -e -C shotgun rubinius")
     raise 'Failed to build shotgun components' if $?.exitstatus != 0
   end
