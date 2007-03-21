@@ -336,6 +336,10 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     default:
       signame = "<UNKNOWN>";
   }
+  
+  if(getenv("DISABLE_CBT")) {
+    exit(-2);
+  }
     
   printf("\nAn error has occured: %s\n\n", signame);
   printf("C backtrace:\n");
