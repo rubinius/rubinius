@@ -121,6 +121,8 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
   OBJECT ok, hsh, cache, orig_klass, meth, ser;
   struct method_cache *ent;
+  
+  cache = Qnil;
 
 #if USE_INLINE_CACHING
   /* Skip if we aren't running a normal method. */
@@ -673,7 +675,7 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, in
   int missing;
   assert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
-  
+    
   missing = 0;
   
   // printf("Looking up from: %s\n", _inspect(c->method_module));

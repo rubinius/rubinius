@@ -1271,18 +1271,21 @@ module Bytecode
         state = RsLocalState.new
         
         defaults = args[4]
-
-        args[1].each { |e| state.local(e) }          
-        if args[3]
-          state.local args[3].first
+        args[1].each do |e|
+          state.args << [e, state.local(e)]
         end
+        
+        if args[3]
+          state.arg_splat = [args[3].first, state.local(args[3].first)]
+        end
+        
         if defaults
           defaults.shift
           defaults.each do |var|
-            state.local var[1]
+            state.args << [var[1], state.local(var[1])]
           end
         end
-                
+        
         meth = nil
         @compiler.as_method_body(name) do
           meth = @compiler.compile_as_method body, name, state
@@ -1452,12 +1455,31 @@ module Bytecode
         end
       end
       
+      def process_zsuper(x, block=false)
+        lvars = [:array]
+        @state.args.each { |info| lvars << [:lvar, info[0], info[1]] }
+        
+        if @state.arg_splat
+          code = [:argscat, lvars, [:lvar] + @state.arg_splat]
+        else
+          code = lvars
+        end
+        
+        process_super([code], block)
+      end
+      
       def process_super(x, block=false)
         args = x.shift
         if args
-          args.shift
-          args.reverse.each { |a| process(a) }
-          sz = args.size
+          if args.first == :argscat
+            process(args)
+            sz = "+"
+            grab_args = true
+          else
+            args.shift
+            args.reverse.each { |a| process(a) }
+            sz = args.size
+          end
         else
           sz = 0
         end
@@ -1466,10 +1488,17 @@ module Bytecode
           @post_send = ps = unique_lbl()
         end
         
+        add "get_args" if grab_args    
+        
         if block
           process block
         else
           add "push nil"
+        end
+        
+        if grab_args
+          add "swap"
+          add "set_args"
         end
         
         add "super #{@method.name} #{sz}"
@@ -1501,8 +1530,10 @@ module Bytecode
         iter = [:block_iter, args, body]
         if kind == :call
           process_call cl, iter
-        else
+        elsif kind == :super
           process_super cl, iter
+        else
+          process_zsuper cl, iter
         end
       end
       

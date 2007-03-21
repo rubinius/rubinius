@@ -475,9 +475,14 @@ module Bytecode
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         add_cache_index
-        @current_op += 9
         args = parts.shift
-        @output << [:send_super_stack_with_block, idx, args.to_i]
+        if args == "+"
+          @current_op += 5
+          @output << [:send_super_with_arg_register, idx]          
+        else  
+          @current_op += 9
+          @output << [:send_super_stack_with_block, idx, args.to_i]
+        end
         return
       elsif op == :send_primitive
         sym = parts.shift.to_sym

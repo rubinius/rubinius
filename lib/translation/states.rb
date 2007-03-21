@@ -6,13 +6,15 @@ class RsLocalState
   def reset
     @locals = [:_, :~]
     @unique = 0
+    @args = []
+    @arg_splat = nil
   end
   
   def unique_id
     @unique += 1
   end
   
-  attr_accessor :locals, :unique
+  attr_accessor :locals, :unique, :args, :arg_splat
   
   def local(name)
     cnt = @locals.index(name)

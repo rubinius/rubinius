@@ -73,7 +73,8 @@ class InstructionEncoder
     :store_my_field,
     :open_metaclass,
     :set_cache_index,
-    :block_break
+    :block_break,
+    :send_super_with_arg_register
   ]
   
   IntArg = [
@@ -108,7 +109,8 @@ class InstructionEncoder
     :send_super_stack_with_block,
     :push_my_field,
     :store_my_field,
-    :set_cache_index
+    :set_cache_index,
+    :send_super_with_arg_register
   ]
   
   TwoInt = [

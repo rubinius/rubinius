@@ -494,6 +494,7 @@ class ShotgunInstructions
     CODE
   end
   
+  
   def send_with_arg_register
     <<-CODE
     t1 = stack_pop();
