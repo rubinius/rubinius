@@ -4,6 +4,7 @@ CC=gcc
 COMP=$(LIBTOOL) --mode=compile $(CC)
 LINKER=$(LIBTOOL) --mode=link $(CC)
 INSTALL=$(LIBTOOL) --mode=install install
+MKDIR=install -d
 
 UNAME=$(shell uname)
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
@@ -36,7 +37,9 @@ RBLIB=lib/librubinius.a
 all: rubinius
 
 install:
+	$(MKDIR) $(LIBPATH)
 	$(INSTALL) -c lib/librubinius.la $(LIBPATH)
+	$(MKDIR) $(BINPATH)
 	$(INSTALL) -c rubinius $(BINPATH)/rbx
 
 config.h:
