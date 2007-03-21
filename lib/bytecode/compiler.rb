@@ -1665,6 +1665,34 @@ module Bytecode
         add "send new 3"
       end
       
+      # Class variable support.
+      def process_cvdecl(x)
+        name = x.shift
+        val = x.shift
+        process val
+        add "push :#{name}"
+        add "push self"
+        add "send class_variable_set 2"
+      end
+      
+      def process_cvasgn(x)
+        name = x.shift
+        val = x.shift
+        process val
+        add "push :#{name}"
+        add "push self"
+        add "send class 0"
+        add "send class_variable_set 2"
+      end
+      
+      def process_cvar(x)
+        name = x.shift
+        add "push :#{name}"
+        add "push self"
+        add "send class 0"
+        add "send class_variable_get 1"
+      end
+      
     end
   end
 end

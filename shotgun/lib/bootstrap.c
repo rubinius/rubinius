@@ -424,6 +424,8 @@ void cpu_bootstrap(STATE) {
   cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
   HEADER(cls)->klass = cls;
   class_set_instance_fields(cls, CLASS_FIELDS);
+  /* Ick. 0x02 says it has normal ivars. constants suck. */
+  class_set_instance_flags(cls, I2N(0x02));  
   BC(class) = cls;
   assert(cls == CLASS_OBJECT(cls));
   obj = _object_basic_class(state, Qnil);

@@ -11,6 +11,11 @@ HOST=$(./config.guess)
 if test "$BUILDREV" == "svn"; then
   BUILDREV=$(svn info | grep Revision  | cut -f2 -d" ")
 fi
+if which glibtool > /dev/null; then
+  echo "LIBTOOL=glibtool"
+else
+  echo "LIBTOOL=libtool"
+fi
 echo "BINPATH=$PREFIX/bin"
 echo "LIBPATH=$PREFIX/lib"
 echo "CODEPATH=$PREFIX/lib/rubinius/$LIBVER"
