@@ -283,12 +283,8 @@ module Bytecode
 
       def process_negate(x)
         recv = x.shift
-        if recv.first == :lit and Fixnum === recv.last
-          add "push -#{recv.last}"
-        else
-          process recv # Pass the buck
-          add "send -@" # ..and then negate it
-        end
+        process recv # Pass the buck
+        add "send -@" # ..and then negate it
       end
       
       def process_fixnum(x)
@@ -300,7 +296,12 @@ module Bytecode
         obj = x.shift
         case obj
         when Fixnum
-          add "push #{obj}"
+          if obj < 0
+            add "push #{obj.abs}"
+            add "send -@"
+          else
+            add "push #{obj}"
+          end
         when Symbol
           #add "push :#{obj}"
           idx = @method.add_literal obj

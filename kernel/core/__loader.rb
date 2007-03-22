@@ -47,11 +47,21 @@ begin
       Compile.execute ARGV.shift
     else
       if arg.prefix? "-I"
-        arg[2..-1].split(":").each do |path|
-          $:.unshift(path)
+        more = arg[2..-1]
+        if more.empty?
+          $:.unshift(ARGV.shift)
+        else
+          more.split(":").each do |path|
+            $:.unshift(path)
+          end
         end
       elsif arg.prefix? "-r"
-        require(arg[2..-1])
+        more = arg[2..-1]
+        if more.empty?
+          require ARGV.shift
+        else
+          require more
+        end
       elsif arg.prefix? "-"
         puts "Invalid switch '#{arg}'"
         exit! 1

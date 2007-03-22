@@ -18,10 +18,11 @@ module Rubinius
     end
     
     def self.from_string(str)
-      obj = new(str.size)
+      obj = new(str.size + 1)
       0.upto(str.size - 1) do |i|
         obj.store_byte i, str[i]
       end
+      obj.store_byte str.size, 0
       return obj
     end
     
