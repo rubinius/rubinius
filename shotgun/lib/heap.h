@@ -43,6 +43,9 @@ static inline address heap_allocate(rheap h, int size) {
   return addr;
 }
 
+#define heap_allocate_dirty(h, size) ({ \
+  address _a; _a = (address)h->current; h->current += size; _a; })
+
 static inline int heap_enough_space_p(rheap h, int size) {
   if(h->current + size > h->last) return FALSE;
   return TRUE;

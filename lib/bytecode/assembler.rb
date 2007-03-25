@@ -317,7 +317,24 @@ module Bytecode
         lit = find_literal(what.to_sym)
         @output << [:push_ivar, lit]
       elsif what.to_i.to_s == what
-        @output << [:push_int, what.to_i]
+        num = what.to_i
+        if num == -1
+          @current_op += 1
+          @output << :meta_push_neg_1
+        elsif num == 0
+          @current_op += 1
+          @output << :meta_push_0
+        elsif num == 1
+          @current_op += 1
+          @output << :meta_push_1
+        elsif num == 2
+          @current_op += 1
+          @output << :meta_push_2
+        else
+          @current_op += 5
+          @output << [:push_int, num]
+        end
+        return
       elsif idx = parse_aref(what)
         @output << [:push_int, idx]
         @output << :fetch_field
@@ -465,7 +482,8 @@ module Bytecode
           else
             raise "Unknown send argument type '#{args}'"
           end
-          @output << [meth, idx, args.to_i]
+          na = args.to_i
+          @output << [meth, idx, na]
           @current_op += 4
         else
           @output << [:send_method, idx]

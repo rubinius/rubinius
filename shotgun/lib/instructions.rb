@@ -17,6 +17,7 @@ class ShotgunInstructions
       end
       i += 1
     end
+    fd.puts "default: printf(\"Invalid bytecode: %d\\n\", (int)op); abort();\n"
     fd.puts "}"
     fd.puts
   end
@@ -43,6 +44,30 @@ class ShotgunInstructions
     <<-CODE
     next_int;
     stack_push(I2N(_int));
+    CODE
+  end
+  
+  def meta_push_neg_1
+    <<-CODE
+    stack_push(I2N(-1));
+    CODE
+  end
+  
+  def meta_push_0
+    <<-CODE
+    stack_push(I2N(0));
+    CODE
+  end
+  
+  def meta_push_1
+    <<-CODE
+    stack_push(I2N(1));
+    CODE
+  end
+  
+  def meta_push_2
+    <<-CODE
+    stack_push(I2N(2));
     CODE
   end
   
@@ -473,6 +498,34 @@ class ShotgunInstructions
     CODE
   end
   
+  def meta_send_stack_1
+    <<-CODE
+    next_int;
+    cpu_unified_send(state, c, stack_pop(), _int, 1, Qnil);
+    CODE
+  end
+  
+  def meta_send_stack_2
+    <<-CODE
+    next_int;
+    cpu_unified_send(state, c, stack_pop(), _int, 2, Qnil);
+    CODE
+  end
+  
+  def meta_send_stack_3
+    <<-CODE
+    next_int;
+    cpu_unified_send(state, c, stack_pop(), _int, 3, Qnil);
+    CODE
+  end
+  
+  def meta_send_stack_4
+    <<-CODE
+    next_int;
+    cpu_unified_send(state, c, stack_pop(), _int, 4, Qnil);
+    CODE
+  end
+  
   def send_stack
     <<-CODE
     next_int;
@@ -493,8 +546,7 @@ class ShotgunInstructions
     cpu_unified_send(state, c, t1, j, _int, t2);
     CODE
   end
-  
-  
+
   def send_with_arg_register
     <<-CODE
     t1 = stack_pop();
@@ -519,6 +571,91 @@ class ShotgunInstructions
     t1 = stack_pop();
     next_int;
     cpu_unified_send_super(state, c, c->self, _int, c->args, t1);
+    CODE
+  end
+  
+  def meta_send_op_plus
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      stack_push(fixnum_add(state, t1, t2));
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_plus, 1);
+    }
+    CODE
+  end
+  
+  def meta_send_op_minus
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      stack_push(fixnum_sub(state, t1, t2));
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_minus, 1);
+    }
+    CODE
+  end
+  
+  def meta_send_op_equal
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    /* If both are fixnums, or one is a symbol, compare the ops directly. */
+    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
+      stack_push((t1 == t2) ? Qtrue : Qfalse);
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_equal, 1);
+    }
+    CODE
+  end
+  
+  # Exactly like equal, except calls === if it can't handle it directly.
+  def meta_send_op_tequal
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    /* If both are fixnums, or one is a symbol, compare the ops directly. */
+    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
+      stack_push((t1 == t2) ? Qtrue : Qfalse);
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_tequal, 1);
+    }
+    CODE
+  end
+  
+  def meta_send_op_lt
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      j = FIXNUM_TO_INT(t1);
+      k = FIXNUM_TO_INT(t2);
+      stack_push((j < k) ? Qtrue : Qfalse);
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_lt, 1);
+    }
+    CODE
+  end
+  
+  def meta_send_op_gt
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      j = FIXNUM_TO_INT(t1);
+      k = FIXNUM_TO_INT(t2);
+      stack_push((j > k) ? Qtrue : Qfalse);
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_gt, 1);
+    }
     CODE
   end
   

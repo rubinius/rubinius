@@ -15,6 +15,7 @@
 #include "grammar.h"
 #include "subtend.h"
 #include "subtend/nmc.h"
+#include "fixnum.h"
 
 #include <stdio.h>
 #include <string.h>

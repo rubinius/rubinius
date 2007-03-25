@@ -11,6 +11,7 @@
 #include "machine.h"
 #include "flags.h"
 #include "bytearray.h"
+#include "fixnum.h"
 
 #include <string.h>
 
@@ -642,7 +643,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
   OBJECT sym, mo, mod;
   int missing;
-  assert(RTEST(c->literals));
+
   sym = tuple_at(state, c->literals, idx);
   
   if(0 && c->depth == 1000) {

@@ -74,7 +74,21 @@ class InstructionEncoder
     :open_metaclass,
     :set_cache_index,
     :block_break,
-    :send_super_with_arg_register
+    :send_super_with_arg_register,
+    :meta_push_neg_1,
+    :meta_push_0,
+    :meta_push_1,
+    :meta_push_2,
+    :meta_send_stack_1,
+    :meta_send_stack_2,
+    :meta_send_stack_3,
+    :meta_send_stack_4,
+    :meta_send_op_plus,
+    :meta_send_op_minus,
+    :meta_send_op_equal,
+    :meta_send_op_lt,
+    :meta_send_op_gt,
+    :meta_send_op_tequal
   ]
   
   IntArg = [
@@ -110,7 +124,11 @@ class InstructionEncoder
     :push_my_field,
     :store_my_field,
     :set_cache_index,
-    :send_super_with_arg_register
+    :send_super_with_arg_register,
+    :meta_send_stack_1,
+    :meta_send_stack_2,
+    :meta_send_stack_3,
+    :meta_send_stack_4
   ]
   
   TwoInt = [

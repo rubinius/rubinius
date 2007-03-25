@@ -41,7 +41,7 @@ show_info:
 
 %.lo: %.c
 	@echo "CC $@"
-	$(COMP) $(CFLAGS) -c $< -o $@
+	@$(COMP) $(CFLAGS) -c $< -o $@
 
 .%.d:  %.c  $(DEPS)
 	@set -e; rm -f $@; \
@@ -69,7 +69,7 @@ auto.h auto.c: genheader.rb
 
 grammar.lo: grammar.y
 	@echo "CC grammar.o"
-	$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
+	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
 
 grammar.c: grammar.y
 	bison -o grammar.c grammar.y

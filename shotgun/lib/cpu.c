@@ -21,8 +21,9 @@ cpu cpu_new(STATE) {
 }
 
 #define InitialStackSize 4096
+#define FC_STACK_SIZE    3000
 
-void cpu_initialize(STATE, cpu c) {
+void cpu_initialize(STATE, cpu c) {    
   state->global->tuple = Qnil;
   state->global->hash = Qnil;
   state->global->methtbl = Qnil;
@@ -85,6 +86,13 @@ void cpu_initialize_context(STATE, cpu c) {
         
   state->global->sym_s_method_added = string_to_sym(state,
         string_new(state, "singleton_method_added"));
+        
+  state->global->sym_plus =  symbol_from_cstr(state, "+");
+  state->global->sym_minus = symbol_from_cstr(state, "-");
+  state->global->sym_equal = symbol_from_cstr(state, "==");
+  state->global->sym_tequal = symbol_from_cstr(state, "===");
+  state->global->sym_lt =    symbol_from_cstr(state, "<");
+  state->global->sym_gt =    symbol_from_cstr(state, ">");  
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {

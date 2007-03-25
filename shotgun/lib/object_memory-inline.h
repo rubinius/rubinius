@@ -37,3 +37,18 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   header->hash = om->last_object_id++;
   return obj;
 }
+
+static inline OBJECT _om_new_ultra(object_memory om, int size) {
+  OBJECT obj;
+  /* I'd love to remove this check, but context allocation could flow over. */
+  if(!heap_enough_space_p(om->gc->current, size)) {
+    obj = (OBJECT)baker_gc_allocate_spilled_ultra(om->gc, size);
+    om->collect_now |= 1;
+  } else {
+    obj = (OBJECT)baker_gc_allocate_ultra(om->gc, size);
+  }
+
+  GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
+  
+  return obj; 
+}

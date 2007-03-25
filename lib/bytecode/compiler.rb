@@ -40,6 +40,10 @@ module Bytecode
       if sys = Compiler.system_hints
         @indexed_ivars.update sys
       end
+      
+      @flags = {
+        :fast_math => true
+      }
     end
     
     @system_hints = nil
@@ -105,9 +109,12 @@ module Bytecode
       @in_method_body = false
       @in_class_body = true
       
+      flags = @flags
+      
       begin
         yield
       ensure
+        @flags = flags
         @current_class = cur
         @in_class_body = cc
         @in_method_body = cm
@@ -119,9 +126,11 @@ module Bytecode
       @in_class_body = false
       cm = @in_method_body
       @in_method_body = false
+      flags = @flags
       begin
         yield
       ensure
+        @flags = flags
         @in_class_body = cur
         @in_method_body = cm
       end
@@ -133,16 +142,18 @@ module Bytecode
       @in_class_body = false
       cur = @in_method_body
       @in_method_body = true
+      flags = @flags
       begin
         yield
       ensure
+        @flags = flags
         @in_class_body = cls
         @in_method_body = cur
         @current_method = nil
       end
     end
     
-    attr_accessor :path
+    attr_accessor :path, :flags
     
     def compile(sx, name, state=RsLocalState.new)
       if $DEBUG_COMPILER
@@ -207,6 +218,10 @@ module Bytecode
         @state = state
         @next = nil
         @break = nil
+      end
+      
+      def flag?(name)
+        @compiler.flags[name]
       end
       
       attr_reader :method
@@ -283,25 +298,30 @@ module Bytecode
 
       def process_negate(x)
         recv = x.shift
-        process recv # Pass the buck
-        add "send -@" # ..and then negate it
+        if Fixnum === recv.last
+          process_fixnum([-recv.last])
+        else
+          process recv # Pass the buck
+          add "send -@" # ..and then negate it
+        end
       end
       
       def process_fixnum(x)
-        num = x.shift
-        add "push #{num}"
+        obj = x.shift
+        
+        if obj < -1
+          add "push #{obj.abs}"
+          add "send -@"
+        else
+          add "push #{obj}"
+        end
       end
 
       def process_lit(x)
         obj = x.shift
         case obj
         when Fixnum
-          if obj < 0
-            add "push #{obj.abs}"
-            add "send -@"
-          else
-            add "push #{obj}"
-          end
+          process_fixnum([obj])
         when Symbol
           #add "push :#{obj}"
           idx = @method.add_literal obj
@@ -1243,8 +1263,27 @@ module Bytecode
 
           if args.length == 1
             ary = args.first # should be [:str, "foo"] or [:lit, :bar]
-            if ary.kind_of? Array and [:str, :lit].include?(ary.first)
-              return ary[1]
+            if ary.kind_of? Array
+              if [:str, :lit].include?(ary.first)
+                return ary[1]
+              else ary.first == :ihash or ary.first == :hash
+                hsh = {}
+                ary.shift
+                while e = ary.shift
+                  val = ary.shift
+                  if val.first == :lit
+                    val = val.last
+                  elsif val.first == :true
+                    val = true
+                  elsif val.first == :false
+                    val = false
+                  elsif val.first == :nil
+                    val = nil
+                  end
+                  hsh[e.last] = val
+                end
+                return hsh
+              end
             end
           end
         end
@@ -1376,12 +1415,41 @@ module Bytecode
       def process_vcall(x)
         process [:call, [:self], x.shift, [:array]]
       end
+      
+      MetaMath = {
+        :+ =>   "meta_send_op_plus",
+        :- =>   "meta_send_op_minus", 
+        :== =>  "meta_send_op_equal",
+        :=== => "meta_send_op_tequal",
+        :< =>   "meta_send_op_lt", 
+        :> =>   "meta_send_op_gt"
+      }
+      
+      def use_meta_opcode(recv, meth, args)
+        if flag?(:fast_math)
+          name = MetaMath[meth]
+          if name and args and args.size == 2
+            process args.last
+            process recv
+            add name
+            return true
+          end
+        end
+        
+        return false
+      end
 
       def process_call(x, block=false)
         x.unshift :call
         asm = detect_special(:asm, x)
         if asm
           add asm
+          x.clear
+          return
+        end
+        
+        if flags = detect_special(:set_compiler_flags, x)
+          @compiler.flags.update flags
           x.clear
           return
         end
@@ -1408,6 +1476,8 @@ module Bytecode
           add "send_primitive block_given 0"
           return
         end
+        
+        return if use_meta_opcode(recv, meth, args)
         
         grab_args = false
         

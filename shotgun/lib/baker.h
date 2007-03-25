@@ -42,5 +42,8 @@ void baker_gc_describe(baker_gc g);
 #define baker_gc_allocate(g, size) (heap_allocate((g)->current, size))
 #define baker_gc_allocate_spilled(g, size) (heap_allocate((g)->next, size))
 
+#define baker_gc_allocate_ultra(g, size) heap_allocate_dirty((g)->current, size)
+#define baker_gc_allocate_spilled_ultra(g, size) heap_allocate_dirty((g)->next, size)
+
 #endif
 
