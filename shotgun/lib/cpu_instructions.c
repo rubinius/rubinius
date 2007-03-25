@@ -269,6 +269,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
 #if CTX_USE_FAST
 
+  /*
   ctx = c->context_cache;
   if(!ctx) {
     ctx = object_memory_new_object(state->om, state->global->fastctx, FASTCTX_FIELDS);
@@ -276,12 +277,16 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
     c->context_cache = HEADER(ctx)->klass;
     HEADER(ctx)->klass = state->global->fastctx;
   }
+  */
+  
+  ctx = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);
+  SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
   
   FLAG_SET(ctx, CTXFastFlag);
   FLAG_SET(ctx, StoresBytesFlag);
   
   fc = FASTCTX(ctx);
-  memset(fc, 0, sizeof(struct fast_context));
+  // memset(fc, 0, sizeof(struct fast_context));
   fc->sender = sender;
   fc->ip = 0;
   fc->sp = c->sp;
