@@ -1,4 +1,4 @@
-#!shotgun/rubinius
+#!/usr/bin/env rbx
 
 require 'bytecode/compiler'
 require 'bytecode/rubinius'

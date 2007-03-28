@@ -1,1 +1,1 @@
-../apps/irb/sirb.rb
+library/sirb.rb

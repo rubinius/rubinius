@@ -19,6 +19,10 @@ rescue LoadError
 EOM
 end
 
+# specify the compiler to use
+COMPILER="../bin/obsolete.rcompile"
+# COMPILER="../shotgun/rubinius -c"
+
 # require local rake libs
 # doesn't do anything gracefully on load error (yet)
 paths = Dir[ File.join(File.dirname(__FILE__), 'rake/*') ]
@@ -122,22 +126,28 @@ end
 desc "Build the whole project"
 task :build => 'build:all'
 
+desc "Rebuild all parts and archives from scratch."
+task :rebuild => ['build:clean', 'build:delete_rbc', 'build:delete_rba', 'build:setup:syd', 
+  'build:shotgun', 'build:bootstrap', 'build:core', 'build:library', 'build:compiler']
+
 namespace :build do
   
   desc "Build rubinius (shotgun)."
   task :all => ['build:clean', 'build:shotgun']
   
-  desc "Rebuild all parts and archives from scratch."
-  task :dev => ['build:clean', 'setup:syd', 'build:shotgun', 'build:bootstrap', 'build:core', 'build:compiler']
-
   desc "Cleanup build files."
   task :clean do
     FileUtils.rm_rf 'code-cache'
     FileUtils.rm Dir.glob('lib/kernel.rb*')
     sh "(find native -name '*.rbc' | xargs rm) || true"
-    Dir.chdir('shotgun')
-    `make -e clean`
-    Dir.chdir('..')
+    Dir.chdir('shotgun') do
+      sh 'make -e clean'
+    end
+  end
+  
+  task :configure do
+    system('./configure')
+    raise 'Failed to configure shotgun components' if $?.exitstatus != 0
   end
 
   task :setup do
@@ -156,28 +166,6 @@ namespace :build do
         raise "Gem 'sydparse' must be installed from externals/syd-parser/pkg directory. Then re-run 'rake build'."
       end
     end
-
-    # Combine the separate .rb files in lib into a single kernel.rb
-    task :kernel_old do
-      fd = File.open("lib/kernel.rb", "w")
-      Dir["kernel/*.rb"].sort.each do |path|
-        next if File.basename(path) == "__loader.rb"
-        puts path
-        cur = File.open(path)
-        fd << cur.read
-        cur.close
-        fd << "\n"
-      end
-
-      Dir["kernel/core/*.rb"].each do |path|
-        puts path
-        fd << File.read(path)
-        fd << "\n"
-      end
-
-      fd << File.read("kernel/__loader.rb")
-      fd.close
-    end    
   end
 
   task :fields => ['setup:syd'] do
@@ -219,10 +207,15 @@ namespace :build do
   end
 
   desc "Build shotgun C components."
-  task :shotgun => ['build:setup', 'spec:setup:code_cache'] do
-    sh "./configure"
+  task :shotgun => ['build:setup', 'spec:setup:code_cache', 'build:configure'] do
     system("make -e -C shotgun rubinius")
     raise 'Failed to build shotgun components' if $?.exitstatus != 0
+  end
+  
+  desc "Install rubinius"
+  task :install => 'build:shotgun' do
+    system("#{ENV['SUDO']} make install")
+    raise 'Failed to install rubinius' if $?.exitstatus != 0
   end
   
   FileList['lib/types/*.rb'].each do |src|
@@ -234,6 +227,10 @@ namespace :build do
     Rake::Task['build:fields'].invoke
   end
   
+  def newer?(file, cmp)
+    File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+  end
+  
   desc "Build the VM bootstrap archive."
   task :bootstrap => 'kernel/hints' do
     Dir.chdir "kernel" do
@@ -242,9 +239,9 @@ namespace :build do
       changed = []
       files.each do |file|
         cmp = "#{file}c"
-        unless File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+        unless newer?(file, cmp) # File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
           changed << cmp
-          system "../bin/obsolete.rcompile #{file}"
+          system "#{COMPILER} #{file}"
           raise "Failed to compile #{file}" if $?.exitstatus != 0
         end
         file << "c"
@@ -254,17 +251,16 @@ namespace :build do
         f.puts files.join("\n")
       end
     
-      kern = "../runtime/bootstrap.rba"
+      archive = "../runtime/bootstrap.rba"
 
-      # File.unlink("../kernel.rba") if File.exists?("../kernel.rba")
-      if File.exists? kern
+      if File.exists? archive
         if changed.empty?
-          puts "No files to update."
+          puts "No kernel/bootstrap files to update."
         else
-          system "zip -u #{kern} .load_order.txt #{changed.join(' ')}"
+          system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
         end
       else
-        system "zip #{kern} .load_order.txt #{files.join(' ')}"
+        system "zip #{archive} .load_order.txt #{files.join(' ')}"
       end
     end
   end
@@ -281,9 +277,9 @@ namespace :build do
       changed = []
       files.each do |file|
         cmp = "#{file}c"
-        unless File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+        unless newer?(file, cmp) # File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
           changed << cmp
-          system "../bin/obsolete.rcompile #{file}"
+          system "#{COMPILER} #{file}"
           raise "Failed to compile #{file}" if $?.exitstatus != 0
         end
         file << "c"
@@ -293,17 +289,45 @@ namespace :build do
         f.puts files.join("\n")
       end
       
-      kern = "../runtime/core.rba"
+      archive = "../runtime/core.rba"
 
-      # File.unlink("../kernel.rba") if File.exists?("../kernel.rba")
-      if File.exists? kern
+      if File.exists? archive
         if changed.empty?
-          puts "No files to update."
+          puts "No kernel/core files to update."
         else
-          system "zip -u #{kern} .load_order.txt #{changed.join(' ')}"
+          system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
         end
       else
-        system "zip #{kern} .load_order.txt #{files.join(' ')}"
+        system "zip #{archive} .load_order.txt #{files.join(' ')}"
+      end
+    end
+  end
+  
+  desc "Build the standard library."
+  task :library do
+    Dir.chdir('library') do
+      files = Dir['**/*.rb']
+      changed = []
+      files.each do |file|
+        cmp = "#{file}c"
+        unless newer?(file, cmp)
+          changed << cmp
+          system "#{COMPILER} #{file}"
+          raise "Failed to compile #{file}" if $?.exitstatus != 0
+        end
+        file << 'c'
+      end
+      
+      archive = "../runtime/library.rba"
+      
+      if File.exists? archive
+        if changed.empty?
+          puts "No library files to update."
+        else
+          system "zip -u #{archive} #{changed.join(' ')}"
+        end
+      else
+        system "zip #{archive} #{files.join(' ')}"
       end
     end
   end
@@ -334,7 +358,7 @@ namespace :build do
         FileUtils.mkdir_p dest_dir
         FileUtils.symlink path, dest rescue nil
         Dir.chdir "native" do
-          sh "../bin/obsolete.rcompile #{file}"
+          sh "#{COMPILER} #{file}"
         end
         raise "Failed to compile #{dest}" if $?.exitstatus != 0
       end
@@ -343,40 +367,7 @@ namespace :build do
       extra.each do |name|
         Dir.chdir "native" do
           file = name + '.rb'
-          sh "../bin/obsolete.rcompile #{name}.rb"
-        end
-        raise "Failed to compile native/#{name}" if $?.exitstatus != 0
-      end
-    end
-
-    desc "Bootstrap the compiler using shotgun/rubinius."
-    task :bootstrap_shotgun do
-      files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
-        sexp/simple_processor translation/normalize translation/local_scoping
-        sexp/composite_processor translation/states sexp/exceptions
-        bytecode/primitive_names!
-
-      files.each do |name|
-        file = "#{name}.rb"
-        dir = File.dirname(file)
-        dest_dir = File.join("native", dir)
-        path = File.expand_path File.join("lib", file)
-        dest = File.join("native", file)
-        FileUtils.mkdir_p dest_dir
-        FileUtils.symlink path, dest rescue nil
-        Dir.chdir "native" do
- #         sh "../bin/obsolete.rcompile #{file}"
-          sh "../shotgun/rubinius -c #{file}" 
-        end
-        raise "Failed to compile #{dest}" if $?.exitstatus != 0
-      end
-
-      extra = %w!bytecode/rubinius!
-      extra.each do |name|
-        Dir.chdir "native" do
-          file = name + '.rb'
-#          sh "../bin/obsolete.rcompile #{name}.rb"
-          sh "../shotgun/rubinius -c #{file}" 
+          sh "#{COMPILER} #{name}.rb"
         end
         raise "Failed to compile native/#{name}" if $?.exitstatus != 0
       end
@@ -394,20 +385,41 @@ namespace :build do
   desc "Bootstrap and package the compiler"
   task :compiler => ['build:compiler:bootstrap', 'build:compiler:package']
   
-  desc "Bootstrap and package the compiler using shotgun/rubinius"
-  task :compiler_shotgun => ['build:compiler:bootstrap_shotgun', 'build:compiler:package']
-  
   desc "Builds shotgun, kernel, and bootstraps the compiler"
-  task :rubinius => ['build:shotgun', 'build:bootstrap', 'build:core', 'build:compiler']
+  task :rubinius => ['build:shotgun', 'build:bootstrap', 'build:core', 'build:library' 'build:compiler']
 
   desc "Delete all cached .rbc files"
   task :delete_rbc do
     FileList['**/*.rbc', '*.rbc', '/tmp/*.rbc'].each do |fn|
-      FileUtils.rm fn
+      FileUtils.rm fn rescue nil
+    end
+  end
+  
+  desc "Delete all compiled ruby archives"
+  task :delete_rba do
+    FileList['runtime/*.rba'].each do |fn|
+      FileUtils.rm fn rescue nil
     end
   end
 end
 
+namespace :rbx do
+  desc "Clean build products and all compiled ruby files"
+  task :clean => ['build:clean', 'build:delete_rbc', 'build:delete_rba']
+  
+  desc "Build all components that need it, but don't clean first"
+  task :build do
+    ::COMPILER = 'rbx -c'
+    Rake::Task('build:all').invoke
+  end
+  
+  desc "Rebuilds everything after clean"
+  task :rebuild => ['rbx:clean', 'rbx:build', 'build:bootstrap', 
+    'build:core', 'build:library', 'build:compiler']
+  
+  task :install => ['rbx:build', 'build:install']
+end
+  
 desc "Remove runtime/*.rba then svn up"
 task :svn => 'svn:up'
 namespace :svn do
@@ -450,6 +462,13 @@ namespace :report do
     puts "ruby #{report} > #{dest}"
   end
 end
+
+desc "Run Ruby 1.9.x benchmark suite"
+task :bm do
+  sh "rbx benchmark/run.rb"
+end
+desc "Run Ruby 1.9.x benchmark suite"
+task :benchmark => :bm
 
 namespace :doc do
   desc "Learn how to contribute."

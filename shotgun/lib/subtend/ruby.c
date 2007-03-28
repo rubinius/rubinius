@@ -212,6 +212,22 @@ char *rb_id2name(ID sym) {
   return rbs_symbol_to_cstring(ctx->state, obj);
 }
 
+/* The same value as 1.8.x */
+#define ARRAY_DEFAULT_SIZE 16
+
+VALUE rb_ary_new(void) {
+	return rb_ary_new2(ARRAY_DEFAULT_SIZE);
+}
+
+VALUE rb_ary_new2(long length) {
+	OBJECT ary;
+  CTX;
+
+	ary = array_new(ctx->state, length);
+	
+  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, ary);
+}
+
 /*
 
 rb_define_singleton_method
@@ -238,7 +254,6 @@ rb_obj_alloc
 rb_obj_call_init
 rb_ary_dup
 rb_ary_unshift
-rb_ary_new
 rb_ary_push
 rb_ary_clear
 rb_float_new
