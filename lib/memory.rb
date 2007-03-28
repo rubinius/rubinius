@@ -217,4 +217,4 @@ class Memory
 end
 
 # Enable segfault protection.
-# Memory.enable_protection
+Memory.enable_protection
