@@ -216,15 +216,15 @@ char *rb_id2name(ID sym) {
 #define ARRAY_DEFAULT_SIZE 16
 
 VALUE rb_ary_new(void) {
-	return rb_ary_new2(ARRAY_DEFAULT_SIZE);
+  return rb_ary_new2(ARRAY_DEFAULT_SIZE);
 }
 
 VALUE rb_ary_new2(long length) {
-	OBJECT ary;
+  OBJECT ary;
   CTX;
 
-	ary = array_new(ctx->state, length);
-	
+  ary = array_new(ctx->state, length);
+  
   return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, ary);
 }
 
