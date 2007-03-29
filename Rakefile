@@ -386,7 +386,7 @@ namespace :build do
   task :compiler => ['build:compiler:bootstrap', 'build:compiler:package']
   
   desc "Builds shotgun, kernel, and bootstraps the compiler"
-  task :rubinius => ['build:shotgun', 'build:bootstrap', 'build:core', 'build:library' 'build:compiler']
+  task :rubinius => ['build:shotgun', 'build:bootstrap', 'build:core', 'build:library', 'build:compiler']
 
   desc "Delete all cached .rbc files"
   task :delete_rbc do

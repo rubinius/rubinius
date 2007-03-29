@@ -294,11 +294,11 @@ module Sprintf
           out << fill(s)
         else
           fmt = "%"
-          fmt << ?# if @flags & PAD_RADIX    == PAD_RADIX
-          fmt << ?+ if @flags & PAD_PLUS     == PAD_PLUS
-          fmt << ?- if @flags & PAD_LJUSTIFY == PAD_LJUSTIFY
-          fmt << ?0 if @flags & PAD_ZERO     == PAD_ZERO
-          fmt << 32 if @flags & PAD_SPACE    == PAD_SPACE
+          fmt << ' ' if @flags & PAD_SPACE    == PAD_SPACE
+          fmt << ?#  if @flags & PAD_RADIX    == PAD_RADIX
+          fmt << ?+  if @flags & PAD_PLUS     == PAD_PLUS
+          fmt << ?-  if @flags & PAD_LJUSTIFY == PAD_LJUSTIFY
+          fmt << ?0  if @flags & PAD_ZERO     == PAD_ZERO
           
           fmt << @width.to_s            if @width
           fmt << '.' << @precision.to_s if @precision
@@ -382,14 +382,14 @@ module Sprintf
     
     def twos_complement_value(v)
       #Bignum & Fixnum
-      #RubyPrimitive.bignum_twos_complement
-      #RubyPrimitive.fixnum_twos_complement
+      #Ruby.primitive :bignum_twos_complement
+      #Ruby.primitive :fixnum_twos_complement
       v
     end
     
     def __float_sprintf__(fmt, v)
-      #RubyPrimitive.float_sprintf
-      sprintf(fmt,v)
+      Ruby.primitive :float_sprintf
+      #sprintf(fmt,v)
     end
     
     def integer_value(base, signed)

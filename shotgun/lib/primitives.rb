@@ -1954,6 +1954,14 @@ class ShotgunPrimitives
     CODE
   end
 
+  def float_sprintf
+    <<-CODE
+    stack_pop(); /* self */
+    POP(t1, STRING);
+    POP(t2, FLOAT);
+    stack_push(float_sprintf(state, t1, t2));
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

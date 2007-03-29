@@ -127,7 +127,8 @@ module Bytecode
       :nmethod_call,
       :load_library,
       :dir_glob,
-      :dir_chdir
+      :dir_chdir,
+      :float_sprintf
     ]
 
     FirstRuntimePrimitive = 1024

@@ -455,7 +455,7 @@ context "Sprintf class method" do
       Sprintf::Parser.format("%05E",10),
       Sprintf::Parser.format("%*E",[10, 9])
      ]
-    end.should == [ "1.000000E+01", "1.000000E+01", "1.000000E+01", "1.000000E+01", "+1.000000E+01", "1.000000E+01", "1.000000E+01", "9.000000E+00" ]
+    end.should == [ "1.000000E+01", " 1.000000E+01", "1.000000E+01", "1.000000E+01", "+1.000000E+01", "1.000000E+01", "1.000000E+01", "9.000000E+00" ]
   end
 
   specify "format float (e) values should return a string resulting from applying the format" do  
@@ -470,7 +470,7 @@ context "Sprintf class method" do
       Sprintf::Parser.format("%05e",10),
       Sprintf::Parser.format("%*e",[10, 9])
      ]
-    end.should == [ "1.000000e+01", "1.000000e+01", "1.000000e+01", "1.000000e+01", "+1.000000e+01", "1.000000e+01", "1.000000e+01", "9.000000e+00" ]
+    end.should == [ "1.000000e+01", " 1.000000e+01", "1.000000e+01", "1.000000e+01", "+1.000000e+01", "1.000000e+01", "1.000000e+01", "9.000000e+00" ]
   end
   
   specify "format float (f) values should return a string resulting from applying the format" do

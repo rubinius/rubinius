@@ -18,5 +18,5 @@ OBJECT float_pow(STATE, OBJECT a, OBJECT b);
 OBJECT float_to_i(STATE, OBJECT self);
 OBJECT float_divmod(STATE, OBJECT a, OBJECT b);
 OBJECT float_round(STATE, OBJECT self);
-
+OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val); 
 #endif

@@ -780,11 +780,11 @@ class String
     return ret
   end
 
-=begin
-
-  def %(arg)
-    Kernel::sprintf(self, *arg)
+  def %(*arg)
+    Sprintf::Parser.format(self, *arg)
   end
+
+=begin
 
   # Should be added when Crypt is required
   def crypt(other_str)
