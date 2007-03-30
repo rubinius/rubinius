@@ -141,7 +141,7 @@ namespace :build do
     FileUtils.rm Dir.glob('lib/kernel.rb*')
     sh "(find native -name '*.rbc' | xargs rm) || true"
     Dir.chdir('shotgun') do
-      sh 'make -e clean'
+      sh 'make -e clean || true'
     end
   end
   
