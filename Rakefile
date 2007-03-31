@@ -410,7 +410,7 @@ namespace :rbx do
   desc "Build all components that need it, but don't clean first"
   task :build do
     ::COMPILER = 'rbx -c'
-    Rake::Task('build:all').invoke
+    Rake::Task['build:all'].invoke
   end
   
   desc "Rebuilds everything after clean"
