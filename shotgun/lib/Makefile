@@ -9,6 +9,8 @@ CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/cinvoke/lib -I../ext
 WARNINGS=-Wall -Winline
 LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a ../external_libs/cinvoke/lib/libcinvoke.a -lm
 
+DEV=1
+
 ifdef DEV
   OPTIMIZATIONS=
   WARNINGS=-Wall
@@ -46,7 +48,7 @@ show_info:
 .%.d:  %.c  $(DEPS)
 	@set -e; rm -f $@; \
 	$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	sed 's,\($*\)\.o[ :]*,\1.lo $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
 librubinius.la: show_info $(DEPS) $(LOBJS) 
@@ -67,7 +69,7 @@ auto.h auto.c: genheader.rb
 	echo "CC auto.o"
 	$(COMP) $(CFLAGS) -c auto.c
 
-grammar.lo: grammar.y
+grammar.lo:
 	@echo "CC grammar.o"
 	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
 
