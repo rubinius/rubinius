@@ -225,7 +225,22 @@ void mark_sweep_free(mark_sweep_gc ms, OBJECT obj) {
   HEADER(lst)->klass = obj;
 }
 
-void mark_sweep_free_fast(mark_sweep_gc ms, OBJECT obj) {
+void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj) {
+  
+  /*
+  if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
+    printf("OMG! %p is rememebered and dead!\n", obj);
+  }
+  */
+  
+  if(HAS_WEAK_REFS_P(obj)) {
+    object_cleanup_weak_refs(state, obj);  
+  }
+  
+  if(SHOULD_CLEANUP_P(obj)) {
+    state_run_cleanup(state, obj);
+  }
+  
   HEADER(obj)->flags = FREE_FLAG;
   HEADER(obj)->klass = ms->free_list;
   ms->free_list = obj;
@@ -280,6 +295,13 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
   
   // printf("Marking object %p\n", iobj);
   if(mark_sweep_contains_p(ms, iobj)) {
+    
+    /*
+    if(FLAG_SET_ON_P(iobj, gc, REMEMBER_FLAG)) {
+      printf("OMG! %p (%s) is rememebered and alive!\n", iobj, _inspect(iobj));
+    }
+    */
+    
     objects_marked++;
   }
   
@@ -290,6 +312,11 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
   if(REFERENCE_P(cls)) {
     mark_sweep_mark_object(ms, cls);
   }
+  
+  /*
+   Disabled until proper code to update weakrefs is added.
+  if(WEAK_REFERENCES_P(iobj)) return;
+  */
   
   if(!_object_stores_bytes(iobj)) {
     for(i = 0; i < NUM_FIELDS(iobj); i++) {
@@ -378,7 +405,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   // printf("Marked Objects: %d\n", marked_objects);
 }
 
-void mark_sweep_sweep_phase(mark_sweep_gc ms) {
+void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
   ms_chunk *cur;
   char *addr, *last;
   OBJECT obj;
@@ -403,7 +430,7 @@ void mark_sweep_sweep_phase(mark_sweep_gc ms) {
       if(HEADER(obj)->flags != FREE_FLAG) {
         /* Check if it's marked and recycle if not. */
         if(!MARKED_P(obj)) {
-          mark_sweep_free_fast(ms, obj);
+          mark_sweep_free_fast(state, ms, obj);
         } else {
           UNMARK_OBJ(obj);
           used++;
@@ -430,5 +457,42 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   objects_marked = 0;
   mark_sweep_mark_phase(state, ms, roots);
   // printf("%d objects marked.\n", objects_marked);
-  mark_sweep_sweep_phase(ms);  
+  mark_sweep_sweep_phase(state, ms);  
 }
+
+void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArray *refs) {
+  ms_chunk *cur;
+  char *addr, *last;
+  OBJECT obj;
+  int osz, used, i;
+  
+  cur = ms->chunks;
+  
+  freed_objects = 0;
+  
+  /* For each chunk... */
+  while(cur) {
+    
+    addr = (char*)(cur->address);
+    last = (addr + cur->size) - (HEADER_SIZE * REFSIZE);
+    
+    used = 0;
+    /* For each object.. */
+    while(addr < last) {
+      obj = (OBJECT)addr;
+      osz = SIZE_IN_BYTES(obj);
+      
+      if(HEADER(obj)->flags != FREE_FLAG && !_object_stores_bytes(obj)) {
+        for(i = 0; i < NUM_FIELDS(obj); i++) {
+          if(NTH_FIELD(obj, i) == mark) {
+            g_ptr_array_add(refs, (gpointer)obj);
+          }
+        }
+      }
+      addr += osz;
+    }
+    
+    cur = cur->next;
+  } 
+}
+

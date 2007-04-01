@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
+#include "flags.h"
 
 rstate rubinius_state_new() {
   rstate st;
@@ -9,6 +10,7 @@ rstate rubinius_state_new() {
   st->om = object_memory_new();
   st->free_contexts = g_ptr_array_new();
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
+  st->cleanup = g_hash_table_new(NULL, NULL);
   return st;
 }
 
@@ -43,6 +45,8 @@ void state_collect(STATE, cpu c) {
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
   g_ptr_array_free(roots, 0);
+  
+  baker_gc_find_lost_souls(state, state->om->gc);
 }
 
 void state_major_collect(STATE, cpu c) {
@@ -65,4 +69,24 @@ void state_major_collect(STATE, cpu c) {
   g_ptr_array_free(roots, 0); 
 }
 
+void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
+  unsigned int cur;
+  g_hash_table_insert(state->cleanup, 
+      (gpointer)module_get_name(cls),
+      (gpointer)func);
+            
+  cur = (unsigned int)FIXNUM_TO_INT(class_get_instance_flags(cls));
+  class_set_instance_flags(cls, I2N(cur | RequiresCleanupFlag));
+}
 
+void state_run_cleanup(STATE, OBJECT obj) {
+  OBJECT cls;
+  state_cleanup_func func;
+  
+  cls = object_class(state, obj);
+  
+  func = g_hash_table_lookup(state->cleanup, (gconstpointer)module_get_name(cls));
+  if(func) {
+    func(state, obj);
+  }
+}

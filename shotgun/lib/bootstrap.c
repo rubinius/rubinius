@@ -418,6 +418,8 @@ void cpu_bootstrap_exceptions(STATE) {
 
 }
 
+void bignum_init(STATE);
+
 void cpu_bootstrap(STATE) {
   OBJECT cls, obj, tmp, tmp2;
   
@@ -483,7 +485,10 @@ void cpu_bootstrap(STATE) {
   tmp = rbs_class_new(state, "Numeric", 0, obj);
   tmp2 = rbs_class_new(state, "Integer", 0, tmp);
   BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, tmp2);
+  
   BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
+  bignum_init(state);
+  
   BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
   BC(fastctx) = rbs_class_new(state, "FastMethodContext", 0, BC(methctx));

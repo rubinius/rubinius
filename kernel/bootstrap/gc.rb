@@ -11,4 +11,8 @@ class GC
   def self.run(tenure)
     Ruby.primitive :gc_start
   end
+  
+  def self.collect_references(obj)
+    Ruby.primitive :gc_collect_references
+  end
 end

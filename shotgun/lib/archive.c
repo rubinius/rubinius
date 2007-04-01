@@ -4,6 +4,7 @@
 #include "string.h"
 #include "cpu.h"
 #include "array.h"
+#include "tuple.h"
 
 OBJECT archive_list_files(STATE, char *path) {
   struct zip *za;

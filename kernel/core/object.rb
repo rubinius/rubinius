@@ -16,11 +16,8 @@ class Object
   #     k.instance_exec(5) {|x| @secret+x }   #=> 104
   def instance_exec(*args, &prc)
     raise ArgumentError, "Missing block" unless block_given?
-    env = prc.block.dup
-    env.put(1, env.home.dup) # home: MethodContext
-    env.home.put(9, self) # receiver: Object
-    proc = Proc.from_environment(env)
-    proc.call(*args)
+    env = prc.block.redirect_to self
+    env.call(*args)
   end
 
   #  call-seq:

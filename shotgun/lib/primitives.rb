@@ -609,8 +609,8 @@ class ShotgunPrimitives
   
   def hash_delete
     <<-CODE
-    POP(self, HASH)
-    POP(t1, FIXNUM)
+    POP(self, HASH);
+    POP(t1, FIXNUM);
 
     t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
     stack_push(t2);
@@ -619,7 +619,7 @@ class ShotgunPrimitives
 
   def symbol_index
     <<-CODE
-    POP(self, SYMBOL)
+    POP(self, SYMBOL);
 
     stack_push(I2N(symbol_to_index(state, self)));
     CODE
@@ -627,7 +627,7 @@ class ShotgunPrimitives
 
   def symbol_lookup
     <<-CODE
-    POP(self, STRING)
+    POP(self, STRING);
 
     stack_push(string_to_sym(state, self));
     CODE
@@ -635,21 +635,39 @@ class ShotgunPrimitives
 
   def dup_into
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1, REFERENCE)
-    POP(t2, FIXNUM)
+    POP(self, REFERENCE);
+    POP(t1, REFERENCE);
+    POP(t2, FIXNUM);
 
     j = FIXNUM_TO_INT(t2);
     object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
-    HEADER(t1)->flags = HEADER(self)->flags;
+    HEADER(self)->flags  = HEADER(t1)->flags;
+    HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
     stack_push(t1);
+    CODE
+  end
+  
+  def fastctx_dup
+    <<-CODE
+    struct fast_context *fc;
+    POP(self, REFERENCE);
+    GUARD(ISA(self, state->global->fastctx));
+    
+    t1 = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);
+    SET_NUM_FIELDS(t1, FASTCTX_FIELDS);
+
+    FLAG_SET(t1, CTXFastFlag);
+    FLAG_SET(t1, StoresBytesFlag);
+    
+    memcpy(FASTCTX(t1), FASTCTX(self), sizeof(struct fast_context));
+    stack_push(t1);    
     CODE
   end
 
   def tuple_shifted
     <<-CODE
-    POP(self, TUPLE)
-    POP(t1, FIXNUM)
+    POP(self, TUPLE);
+    POP(t1, FIXNUM);
 
     j = FIXNUM_TO_INT(t1);
     t2 = tuple_new(state, NUM_FIELDS(self) + j);
@@ -1880,6 +1898,67 @@ class ShotgunPrimitives
     CODE
   end
   
+  def fastctx_set_field
+    <<-CODE
+    int i;
+    struct fast_context *fc;
+    t1 = stack_pop();
+    i = FIXNUM_TO_INT(stack_pop());
+    t2 = stack_pop();
+    
+    if(RISA(t1, fastctx)) {
+      fc = FASTCTX(t1);
+      switch(i) {
+        case 0:
+          fc->sender = t2;
+          break;
+        case 1:
+          GUARD(FIXNUM_P(t2));
+          fc->ip = I2N(t2);
+          break;
+        case 2:
+          GUARD(FIXNUM_P(t2));
+          fc->sp = I2N(t2);          
+          break;
+        case 3:
+          fc->block = t2;
+          break;
+        case 4:
+          fc->raiseable = t2;
+          break;
+        case 5:
+          fc->method = t2;
+          break;
+        case 6:
+          fc->literals = t2;
+          break;
+        case 7:
+          fc->self = t2;
+          break;
+        case 8:
+          fc->locals = t2;
+          break;
+        case 9:
+          GUARD(FIXNUM_P(t2));
+          fc->argcount = I2N(t2);
+          break;
+        case 10:
+          fc->name = t2;
+          break;
+        case 11:
+          fc->method_module = t2;
+          break;
+        default:
+          _ret = FALSE;
+      }
+    } else {
+      _ret = FALSE;
+    }
+    stack_push(t2);
+    CODE
+  end
+  
+  
   def vm_stats
     <<-CODE
 #ifdef TRACK_STATS
@@ -1951,6 +2030,24 @@ class ShotgunPrimitives
     } else {
       stack_push(Qfalse);
     }
+    CODE
+  end
+  
+  def make_weak_ref
+    <<-CODE
+    stack_pop();
+    POP(t1, REFERENCE);
+    
+    stack_push(object_make_weak_ref(state, t1));
+    CODE
+  end
+  
+  def gc_collect_references
+    <<-CODE
+    stack_pop();
+    POP(self, REFERENCE);
+    
+    stack_push(object_memory_collect_references(state, state->om, self));
     CODE
   end
 

@@ -75,9 +75,16 @@ class CompiledMethod
   
   def activate(recv, args, locals=nil, &prc)
     sz = args.total
+    if prc
+      block = prc.block
+    else
+      block = nil
+    end
+    
     Ruby.asm <<-ASM
     push args
     push_array
+    push block
     push locals
     push sz
     push self

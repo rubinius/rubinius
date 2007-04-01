@@ -26,8 +26,6 @@ struct rubinius_globals {
   OBJECT external_ivars;
 };
 
-
-
 #define GLOBAL_cmethod
 
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
@@ -85,6 +83,8 @@ struct rubinius_state {
   rni_handle_table *handle_tbl;
   
   unsigned long *stack_bottom;
+  
+  GHashTable *cleanup;
 };
 
 #define BASIC_CLASS(kind) state->global->kind
@@ -223,3 +223,8 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 #endif
 
 #include "object_memory-inline.h"
+
+typedef void (*state_cleanup_func)(STATE, OBJECT);
+#define SHOULD_CLEANUP_P(obj) (FLAG_SET_P(obj, RequiresCleanupFlag))
+void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
+void state_run_cleanup(STATE, OBJECT obj);

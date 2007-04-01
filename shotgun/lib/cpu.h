@@ -104,7 +104,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
-                                     int count, OBJECT name);
+                                     int count, OBJECT name, OBJECT block);
 
 void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args);
 

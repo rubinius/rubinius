@@ -16,6 +16,7 @@ struct baker_gc_struct {
   OBJECT (*tenure)(void*, OBJECT obj);
   int tenure_now;
   void *om;
+  GPtrArray *seen_weak_refs;
 };
 
 typedef struct baker_gc_struct* baker_gc;
@@ -29,15 +30,16 @@ address baker_gc_allocate(baker_gc g, int size);
 int baker_gc_set_next(baker_gc g, rheap h);
 address baker_gc_allocate_spilled(baker_gc g, int size);
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest);
-int baker_gc_forwarded_p(OBJECT obj);
 OBJECT baker_gc_forwarded_object(OBJECT obj);
-OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj);
+OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj);
 int baker_gc_contains_p(baker_gc g, OBJECT obj);
 int baker_gc_contains_spill_p(baker_gc g, OBJECT obj);
-OBJECT baker_gc_mutate_from(baker_gc g, OBJECT iobj);
+OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT iobj);
 int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots);
 void baker_gc_clear_gc_flag(baker_gc g, int flag);
 void baker_gc_describe(baker_gc g);
+void baker_gc_find_lost_souls(STATE, baker_gc g);
+void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, GPtrArray *refs);
 
 #define baker_gc_allocate(g, size) (heap_allocate((g)->current, size))
 #define baker_gc_allocate_spilled(g, size) (heap_allocate((g)->next, size))

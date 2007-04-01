@@ -567,12 +567,12 @@ static inline void cpu_return_to_block_creator(STATE, cpu c) {
    no lookup required. */
 
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
-                                     int count, OBJECT name) {
+                                     int count, OBJECT name, OBJECT block) {
   OBJECT ctx;
   
   if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil)) { return; }
   ctx = cpu_create_context(state, c, recv, meth, name, 
-        _real_class(state, recv), (unsigned long int)count, Qnil);
+        _real_class(state, recv), (unsigned long int)count, block);
   cpu_activate_context(state, c, ctx, ctx);
 }
 
@@ -829,5 +829,5 @@ check_interupts:
 void cpu_run_script(STATE, cpu c, OBJECT meth) {
   OBJECT name;
   name = string_to_sym(state, string_new(state, "__script__"));
-  cpu_goto_method(state, c, c->main, meth, 0, name);
+  cpu_goto_method(state, c, c->main, meth, 0, name, Qnil);
 }

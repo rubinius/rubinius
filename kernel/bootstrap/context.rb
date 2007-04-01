@@ -64,6 +64,10 @@ class FastMethodContext
     Ruby.primitive :fastctx_get_field
   end
   
+  def _set_field(int, val)
+    Ruby.primitive :fastctx_set_field
+  end
+  
   def sender
     _get_field(0)
   end
@@ -87,10 +91,19 @@ class FastMethodContext
   def receiver
     _get_field(7)
   end
+  
+  def receiver=(val)
+    _set_field(7, val)
+  end
 
   def name
     _get_field(10)
   end
+  
+  def dup
+    Ruby.primitive :fastctx_dup
+  end
+  
 end
 
 class BlockContext
@@ -141,6 +154,21 @@ class BlockEnvironment
   
   def line
     self.home.method.line_from_ip(self.initial_ip)
+  end
+  
+  def home=(home)
+    @home = home
+  end
+  
+  def make_independent
+    @home = @home.dup
+  end
+  
+  def redirect_to(obj)
+    env = self.dup
+    env.make_independent
+    env.home.receiver = obj
+    return env
   end
 end
 

@@ -6,6 +6,7 @@
 #include "cpu.h"
 #include "bytearray.h"
 #include "baker.h"
+#include "tuple.h"
 
 static int promoted = 0;
 
@@ -16,6 +17,7 @@ baker_gc baker_gc_new(int size) {
   g = (baker_gc)malloc(sizeof(struct baker_gc_struct));
   memset(g, 0, sizeof(struct baker_gc_struct));
   g->remember_set = g_ptr_array_new();
+  g->seen_weak_refs = g_ptr_array_new();
   
   g->space_a = heap_new(size);
   g->space_b = heap_new(size);
@@ -85,7 +87,7 @@ void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
   HEADER(obj)->klass = dest;
 }
 
-int baker_gc_forwarded_p(OBJECT obj) {
+static inline int baker_gc_forwarded_p(OBJECT obj) {
   return HEADER(obj)->flags == FORWARDING_MAGIC;
 }
 
@@ -99,12 +101,12 @@ OBJECT baker_gc_forwarded_object(OBJECT obj) {
 #define CLEAR_AGE(obj) (HEADER(obj)->gc = 0)
 #define FOREVER_YOUNG(obj) (HEADER(obj)->gc & 0x8000)
 
-#define baker_gc_maybe_mutate(g, iobj) ({     \
+#define baker_gc_maybe_mutate(st, g, iobj) ({     \
   OBJECT ret;                                 \
   if(baker_gc_forwarded_p(iobj)) {            \
     ret = baker_gc_forwarded_object(iobj);    \
   } else if(baker_gc_contains_p(g, iobj)) {   \
-    ret = baker_gc_mutate_object(g, iobj);    \
+    ret = baker_gc_mutate_object(st, g, iobj);    \
   } else {                                    \
     ret = iobj;                               \
   }                                           \
@@ -133,7 +135,7 @@ static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
 int _object_stores_bytes(OBJECT self);
 static int depth = 0;
 
-static inline void _mutate_references(baker_gc g, OBJECT iobj) {
+static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   OBJECT cls, tmp, mut;
   int i;
   
@@ -141,12 +143,25 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
   
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
-    cls = baker_gc_maybe_mutate(g, cls);
+    cls = baker_gc_maybe_mutate(state, g, cls);
   }
     
   HEADER(iobj)->klass = cls;
   
   assert(HEADER(iobj)->flags != 0xff);
+  
+  if(WEAK_REFERENCES_P(iobj)) {
+    // printf("%p has weak refs.\n", (void*)iobj);
+    g_ptr_array_add(g->seen_weak_refs, (gpointer)iobj);
+    depth--;
+    return;
+  }
+  
+  /*
+  if(HAS_WEAK_REFS_P(iobj)) {
+    printf("%p with weak refs is still alive.\n", (void*)iobj);
+  }
+  */
   
   //printf("%d: Mutating references of %p\n", depth, iobj);
   
@@ -155,13 +170,13 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
       tmp = NTH_FIELD(iobj, i);
       if(!REFERENCE_P(tmp)) continue;
     
-      mut = baker_gc_maybe_mutate(g, tmp);
+      mut = baker_gc_maybe_mutate(state, g, tmp);
       rbs_set_field(g->om, iobj, i, mut);
     }
   } else {
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(g, fc->field)
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(state, g, fc->field)
       fc_mutate(sender);
       fc_mutate(block);
       fc_mutate(method);
@@ -175,16 +190,17 @@ static inline void _mutate_references(baker_gc g, OBJECT iobj) {
          We mutate the data first so we cache the newest address. */
       OBJECT ba;
       ba = cmethod_get_bytecodes(fc->method);
-      ba = baker_gc_maybe_mutate(g, ba);
+      ba = baker_gc_maybe_mutate(state, g, ba);
       
       fc->data = BYTEARRAY_ADDRESS(ba);
       fc->data_size = BYTEARRAY_SIZE(ba);
     }
   }
+  
   depth--;
 }
 
-OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj) {
+OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
   OBJECT dest;
   if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
     // int age = AGE(obj);
@@ -193,7 +209,7 @@ OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj) {
     dest = (*g->tenure)(g->tenure_data, obj);
     baker_gc_set_forwarding_address(obj, dest);
     //printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_now);
-    _mutate_references(g, dest);
+    _mutate_references(state, g, dest);
   } else {
     if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
       dest = heap_copy_object(g->next, obj);
@@ -204,7 +220,7 @@ OBJECT baker_gc_mutate_object(baker_gc g, OBJECT obj) {
       promoted++;
       dest = (*g->tenure)(g->tenure_data, obj);
       baker_gc_set_forwarding_address(obj, dest);
-      _mutate_references(g, dest);
+      _mutate_references(state, g, dest);
     }
   }
   return dest;
@@ -219,7 +235,7 @@ int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
 }
 
 
-OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
+OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT orig) {
   OBJECT ret, iobj;
   int count;
   
@@ -228,7 +244,7 @@ OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
   if(baker_gc_forwarded_p(orig)) {
     ret = baker_gc_forwarded_object(orig);
   } else if(baker_gc_contains_p(g, orig)) {
-    ret = baker_gc_mutate_object(g, orig);
+    ret = baker_gc_mutate_object(state, g, orig);
   } else {
     ret = orig;
   }
@@ -241,7 +257,7 @@ OBJECT baker_gc_mutate_from(baker_gc g, OBJECT orig) {
   
   while(iobj) {
     count++;
-    _mutate_references(g, iobj);
+    _mutate_references(state, g, iobj);
     iobj = heap_next_unscanned(g->next);
   }
   
@@ -257,6 +273,9 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   struct method_cache *end, *ent;
   promoted = 0;
   
+  /* empty it out. */
+  g->seen_weak_refs->len = 0;
+  
   //printf("Running garbage collector...\n");
           
   sz = roots->len;
@@ -266,7 +285,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     // printf("%p => %p\n", g->current->address, g->next->address);
     // printf("Start at RS (%d): %p\n", i, root);
     if(!REFERENCE_P(root)) { continue; }
-    tmp = baker_gc_mutate_from(g, root);
+    tmp = baker_gc_mutate_from(state, g, root);
     g_ptr_array_set_index(roots, i, tmp);
   }
   
@@ -276,7 +295,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     // printf("Collecting from root %d\n", i);
     // printf("Start at RS: %p\n", root);
     if(!REFERENCE_P(root)) { continue; }
-    tmp = baker_gc_mutate_from(g, root);
+    tmp = baker_gc_mutate_from(state, g, root);
     g_ptr_array_set_index(g->remember_set, i, tmp);
   }
   
@@ -285,13 +304,13 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   
   while(ent < end) {
     if(ent->klass)
-      ent->klass = baker_gc_mutate_from(g, ent->klass);
+      ent->klass = baker_gc_mutate_from(state, g, ent->klass);
       
     if(ent->module)
-      ent->module = baker_gc_mutate_from(g, ent->module);
+      ent->module = baker_gc_mutate_from(state, g, ent->module);
       
     if(ent->method)
-      ent->method = baker_gc_mutate_from(g, ent->method);
+      ent->method = baker_gc_mutate_from(state, g, ent->method);
 
     ent++;
   }
@@ -302,7 +321,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   sp = state->current_stack;
   while(sp <= state->current_sp) {
     if(REFERENCE_P(*sp)) {
-      *sp = baker_gc_mutate_from(g, *sp);
+      *sp = baker_gc_mutate_from(state, g, *sp);
     }
     sp++;
   }
@@ -311,7 +330,19 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   for(i = 0; i < state->handle_tbl->total; i++) {
     if(state->handle_tbl->entries[i]) {
       state->handle_tbl->entries[i]->object = 
-            baker_gc_mutate_from(g, state->handle_tbl->entries[i]->object);
+            baker_gc_mutate_from(state, g, state->handle_tbl->entries[i]->object);
+    }
+  }
+  
+  int j;
+  OBJECT t2;
+  for(i = 0; i < g->seen_weak_refs->len; i++) {
+    tmp = (OBJECT)g_ptr_array_index(g->seen_weak_refs, i);
+    for(j = 0; j < NUM_FIELDS(tmp); j++) {
+      t2 = tuple_at(state, tmp, j);
+      if(baker_gc_forwarded_p(t2)) {
+        tuple_put(state, tmp, j, baker_gc_forwarded_object(t2));
+      }
     }
   }
   
@@ -348,3 +379,56 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
     cur += osz;
   }  
 }
+
+void baker_gc_find_lost_souls(STATE, baker_gc g) {
+  int sz, osz;
+  char *end, *cur;
+  OBJECT obj;
+  
+  sz = baker_gc_used(g);
+  cur = (char*)g->next->address;
+  end = cur + sz;
+  
+  while(cur < end) {
+    obj = (OBJECT)cur;
+    osz = SIZE_IN_BYTES(cur);
+    
+    if(!baker_gc_forwarded_p(obj)) {
+      if(HAS_WEAK_REFS_P(obj)) {
+        object_cleanup_weak_refs(state, obj);  
+      }
+      
+      if(SHOULD_CLEANUP_P(obj)) {
+        state_run_cleanup(state, obj);
+      }
+    }
+
+    cur += osz;
+  }
+}
+
+void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, GPtrArray *refs) {
+  int sz, osz, i;
+  char *end, *cur;
+  OBJECT obj;
+  
+  sz = baker_gc_used(g);
+  cur = (char*)g->current->address;
+  end = cur + sz;
+    
+  while(cur < end) {
+    obj = (OBJECT)cur;
+    osz = SIZE_IN_BYTES(cur);
+    
+    if(!_object_stores_bytes(obj)) {
+      for(i = 0; i < NUM_FIELDS(obj); i++) {
+        if(NTH_FIELD(obj, i) == mark) {
+          g_ptr_array_add(refs, (gpointer)obj);
+        }
+      }
+    }
+    
+    cur += osz;
+  }
+}
+

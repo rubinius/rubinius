@@ -6,6 +6,7 @@
 #include "machine.h"
 #include "baker.h"
 #include "marksweep.h"
+#include "tuple.h"
 
 void *main_om;
 
@@ -132,6 +133,32 @@ int object_memory_is_reference_p(object_memory om, OBJECT tmp) {
   return baker_gc_contains_p(om->gc, tmp) || mark_sweep_contains_p(om->ms, tmp);
 }
 
+OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark) {
+  GPtrArray *refs;
+  int i;
+  OBJECT tup;
+  
+  /* Broken. Causes segfaults. Not sure why yet. */
+  return Qnil;
+  
+  
+  refs = g_ptr_array_new();
+  
+  baker_gc_collect_references(state, om->gc, mark, refs);
+  mark_sweep_collect_references(state, om->ms, mark, refs);
+  
+  
+  if(refs->len == 0) return Qnil;
+  
+  tup = tuple_new(state, refs->len);
+  for(i = 0; i < refs->len; i++) {
+    tuple_put(state, tup, i, (OBJECT)g_ptr_array_index(refs, i));
+  }
+    
+  return tup;
+  
+}
+
 int _object_stores_bytes(OBJECT self);
 
 /*
@@ -182,6 +209,7 @@ void object_memory_check_memory(object_memory om) {
   // printf("Checked %d objects.\n", num);
 }
 
+/*
 void object_memory_detect_cleanup(object_memory om) {
   int sz, osz, num;
   char *start, *end, *cur;
@@ -199,16 +227,14 @@ void object_memory_detect_cleanup(object_memory om) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(cur);
     
-    /* Stil live, must be garbage. */
     if(!baker_gc_forwarded_p(obj)) {
       printf("Found a %s that is garbage\n", _inspect(obj));
     }
         
     cur += osz;
-  }
-  
-  // printf("Checked %d objects.\n", num);
+  }  
 }
+*/
 
 void state_each_object(STATE, OBJECT kls, void (*cb)(STATE, OBJECT)) {
   int sz, osz, num;

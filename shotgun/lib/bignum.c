@@ -16,6 +16,14 @@
 #define BDIGIT_DBL long long
 #define DIGIT_RADIX (1 << DIGIT_BIT)
 
+void bignum_cleanup(STATE, OBJECT obj) {
+  mp_int *n = MP(obj);
+  mp_clear(n);
+}
+
+void bignum_init(STATE) {
+  state_add_cleanup(state, state->global->bignum, bignum_cleanup);
+}
 
 void twos_complement(mp_int *a)
 {

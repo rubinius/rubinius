@@ -32,10 +32,11 @@ struct rubinius_object {
 /* Macros to find out the zone of an object. */
 #define ZONE_BITS 2
 #define ZONE_OFFSET 6
+#define ZONE_MASK ((1 << ZONE_BITS) - 1)
 #define GC_ZONE(obj) (HEADER(obj)->flags2 >> ZONE_OFFSET)
 /* Mask the current flags2 to remove the current zone bits, then or
    them with the new desired ones. */
-#define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ((1 << ZONE_OFFSET) - 1)) | (((val) & ((1 << ZONE_BITS) - 1)) << ZONE_OFFSET)))
+#define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ZONE_MASK) | (((val) & ZONE_MASK) << ZONE_OFFSET)))
 #define GC_MATURE_OBJECTS 0
 #define GC_YOUNG_OBJECTS  1
 #define GC_LARGE_OBJECTS  2
@@ -119,6 +120,8 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #define FLAG_SET_ON(obj, fel, flag) (HEADER(obj)->fel |= flag)
 #define FLAG_SET_ON_P(obj, fel, flag) ((HEADER(obj)->fel & flag) == flag)
 
+#define FLAG2_SET(obj, flag) FLAG_SET_ON(obj, flags2, flag)
+#define FLAG2_SET_P(obj, flag) FLAG_SET_ON_P(obj, flags2, flag)
 
 #ifndef TRUE
 #define TRUE 1

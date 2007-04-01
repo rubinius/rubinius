@@ -21,5 +21,10 @@ int object_tainted_p(STATE, OBJECT self);
 void object_set_frozen(STATE, OBJECT self);
 int object_frozen_p(STATE, OBJECT self);
 
+OBJECT object_make_weak_ref(STATE, OBJECT self);
+void object_cleanup_weak_refs(STATE, OBJECT self);
+
 #define ISA(o, c) object_kind_of_p(state, o, c)
 
+#define WEAK_REFERENCES_P(obj) FLAG_SET_P(obj, RefsAreWeakFlag)
+#define HAS_WEAK_REFS_P(obj) FLAG_SET_P(obj, HasWeakRefsFlag)

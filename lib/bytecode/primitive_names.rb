@@ -128,7 +128,11 @@ module Bytecode
       :load_library,
       :dir_glob,
       :dir_chdir,
-      :float_sprintf
+      :float_sprintf,
+      :make_weak_ref,
+      :fastctx_set_field,
+      :fastctx_dup,
+      :gc_collect_references
     ]
 
     FirstRuntimePrimitive = 1024

@@ -5,17 +5,16 @@
 #include "hash.h"
 #include "string.h"
 #include "flags.h"
+#include "tuple.h"
 
 OBJECT object_new(STATE) {
   return object_allocate(state);
-  // return NEW_OBJECT(BASIC_CLASS(object), 1);
 }
 
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup) {
   OBJECT meta;
   if(!sup) {
     sup = HEADER(cls)->klass;
-    // sup = object_metaclass(state, class_get_superclass(cls));
   }
   
   meta = metaclass_s_attach(state, cls);
@@ -33,10 +32,8 @@ OBJECT object_metaclass(STATE, OBJECT obj) {
 
 OBJECT object_class(STATE, OBJECT self) {
   OBJECT cls = HEADER(self)->klass;
-  // printf("Looking for class of %x (%x).\n", self, cls);
   while(REFERENCE_P(cls) && metaclass_s_metaclass_p(state, cls)) {
     cls = class_get_superclass(cls);
-    //printf("Trying %x (%d).\n", cls);
   }
   
   return cls;
@@ -90,6 +87,41 @@ OBJECT object_logical_class(STATE, OBJECT self) {
   printf("Unable to figure out logical class.\n");
   abort();
   return Qnil;
+}
+
+OBJECT object_make_weak_ref(STATE, OBJECT self) {
+  OBJECT meta, tup, lst;
+  
+  tup = tuple_new2(state, 1, self);
+  FLAG_SET(tup, RefsAreWeakFlag);
+  FLAG_SET(self, HasWeakRefsFlag);
+
+  meta = object_metaclass(state, self);
+  
+  lst = class_get_instance_fields(meta);
+  if(NIL_P(lst)) {
+    lst = tuple_new2(state, 1, tup);
+  } else {
+    lst = tuple_enlarge(state, tup, 1);
+    tuple_put(state, lst, NUM_FIELDS(lst) - 1, tup);
+  }
+  
+  class_set_instance_fields(meta, lst);
+  
+  return tup;
+}
+
+void object_cleanup_weak_refs(STATE, OBJECT self) {
+  OBJECT meta, lst, tup;
+  int i;
+  
+  meta = object_metaclass(state, self);
+  lst = class_get_instance_fields(meta);
+  
+  for(i = 0; i < NUM_FIELDS(lst); i++) {
+    tup = tuple_at(state, lst, i);
+    tuple_put(state, 0, tup, Qnil);
+  }
 }
 
 int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
@@ -259,7 +291,7 @@ int object_stores_bytes_p(STATE, OBJECT self) {
 
 int _object_stores_bytes(OBJECT self) {
   if(FLAG_SET_P(self, StoresBytesFlag)) return TRUE;
-  return FALSE;  
+  return FALSE;
 }
 
 void object_make_byte_storage(STATE, OBJECT self) {
@@ -274,11 +306,11 @@ void object_initialize_bytes(STATE, OBJECT self) {
 
 void object_set_tainted(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-	FLAG_SET(self, IsTaintedFlag);
+	FLAG2_SET(self, IsTaintedFlag);
 }
 
 int object_tainted_p(STATE, OBJECT self) {
-  if(REFERENCE_P(self) && FLAG_SET_P(self, IsTaintedFlag)) {
+  if(REFERENCE_P(self) && FLAG2_SET_P(self, IsTaintedFlag)) {
     return TRUE;
   }
   return FALSE;
@@ -286,11 +318,11 @@ int object_tainted_p(STATE, OBJECT self) {
 
 void object_set_frozen(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-  FLAG_SET(self, IsFrozenFlag);
+  FLAG2_SET(self, IsFrozenFlag);
 }
 
 int object_frozen_p(STATE, OBJECT self) {
-  if(REFERENCE_P(self) && FLAG_SET_P(self, IsFrozenFlag)) {
+  if(REFERENCE_P(self) && FLAG2_SET_P(self, IsFrozenFlag)) {
     return TRUE;
   }
   return FALSE;
