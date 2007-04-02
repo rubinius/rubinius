@@ -9,8 +9,6 @@ CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/cinvoke/lib -I../ext
 WARNINGS=-Wall -Winline
 LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a ../external_libs/cinvoke/lib/libcinvoke.a -lm
 
-DEV=1
-
 ifdef DEV
   OPTIMIZATIONS=
   WARNINGS=-Wall
