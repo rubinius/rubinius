@@ -26,7 +26,9 @@ module Kernel
   end
   
   def raise(exc=$!, msg=nil)
-    if exc.kind_of?(String)
+    if !exc
+      exc = RuntimeError.new("An unknown exception occured")
+    elsif exc.kind_of?(String)
       exc = RuntimeError.new(exc)
     elsif msg
       cls = exc
