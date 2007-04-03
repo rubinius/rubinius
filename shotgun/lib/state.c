@@ -44,7 +44,7 @@ void state_collect(STATE, cpu c) {
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
-  g_ptr_array_free(roots, 0);
+  g_ptr_array_free(roots, TRUE);
   
   baker_gc_find_lost_souls(state, state->om->gc);
 }
@@ -66,7 +66,7 @@ void state_major_collect(STATE, cpu c) {
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
-  g_ptr_array_free(roots, 0); 
+  g_ptr_array_free(roots, TRUE); 
 }
 
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
