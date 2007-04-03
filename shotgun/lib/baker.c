@@ -271,12 +271,30 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   int i, sz;
   OBJECT tmp, root;
   struct method_cache *end, *ent;
+  GPtrArray *rs;
   promoted = 0;
   
   /* empty it out. */
   g->seen_weak_refs->len = 0;
   
   //printf("Running garbage collector...\n");
+  
+  /* To maintain the remember set, we setup a totally new
+     set before do any walking of objects, so that only objects
+     which truely still contain pointers to this generation
+     are added back to the new rs. */
+  
+  rs = g->remember_set;
+  g->remember_set = g_ptr_array_new();
+  
+  sz = rs->len;
+  for(i = 0; i < sz; i++) {
+    root = (OBJECT)(g_ptr_array_index(rs, i));
+    if(!REFERENCE_P(root)) { continue; }
+    FLAG_CLEAR_ON(root, gc, REMEMBER_FLAG);
+    tmp = baker_gc_mutate_from(state, g, root);
+    // g_ptr_array_set_index(g->remember_set, i, tmp);
+  }
           
   sz = roots->len;
   for(i = 0; i < sz; i++) {
@@ -289,15 +307,6 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     g_ptr_array_set_index(roots, i, tmp);
   }
   
-  sz = g->remember_set->len;
-  for(i = 0; i < sz; i++) {
-    root = (OBJECT)(g_ptr_array_index(g->remember_set, i));
-    // printf("Collecting from root %d\n", i);
-    // printf("Start at RS: %p\n", root);
-    if(!REFERENCE_P(root)) { continue; }
-    tmp = baker_gc_mutate_from(state, g, root);
-    g_ptr_array_set_index(g->remember_set, i, tmp);
-  }
   
   ent = state->method_cache;
   end = ent + CPU_CACHE_SIZE;
@@ -356,7 +365,8 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     DEBUG("Enlarging next!\n");
     baker_gc_enlarge_next(g, g->current->size * 1.5);
   }
-  
+    
+  g_ptr_array_free(rs, TRUE);
   // printf("%d objects promoted.\n", promoted);
   return TRUE;
 }

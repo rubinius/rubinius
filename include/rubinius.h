@@ -118,6 +118,7 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)
 
 #define FLAG_SET_ON(obj, fel, flag) (HEADER(obj)->fel |= flag)
+#define FLAG_CLEAR_ON(obj, fel, flag) (HEADER(obj)->fel ^= flag)
 #define FLAG_SET_ON_P(obj, fel, flag) ((HEADER(obj)->fel & flag) == flag)
 
 #define FLAG2_SET(obj, flag) FLAG_SET_ON(obj, flags2, flag)

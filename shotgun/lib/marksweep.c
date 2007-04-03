@@ -227,11 +227,9 @@ void mark_sweep_free(mark_sweep_gc ms, OBJECT obj) {
 
 void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj) {
   
-  /*
   if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
-    printf("OMG! %p is rememebered and dead!\n", obj);
+    g_ptr_array_remove(state->om->gc->remember_set, (gpointer)obj);
   }
-  */
   
   if(HAS_WEAK_REFS_P(obj)) {
     object_cleanup_weak_refs(state, obj);  
