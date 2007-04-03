@@ -642,7 +642,7 @@ class ShotgunPrimitives
     j = FIXNUM_TO_INT(t2);
     object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
     HEADER(self)->flags  = HEADER(t1)->flags;
-    HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
+    // HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
     stack_push(t1);
     CODE
   end
