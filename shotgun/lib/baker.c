@@ -174,9 +174,9 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       rbs_set_field(g->om, iobj, i, mut);
     }
   } else {
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(state, g, fc->field)
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(state, g, fc->field)
       fc_mutate(sender);
       fc_mutate(block);
       fc_mutate(method);
@@ -184,7 +184,6 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(self);
       fc_mutate(locals);
       fc_mutate(method_module);
-#undef fc_mutate
 
       /* We cache the bytecode in a char*, so adjust it. 
          We mutate the data first so we cache the newest address. */
@@ -194,7 +193,35 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       
       fc->data = BYTEARRAY_ADDRESS(ba);
       fc->data_size = BYTEARRAY_SIZE(ba);
+    } else if(ISA(iobj, BASIC_CLASS(task))) {
+      struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
+      fc_mutate(exception);
+      fc_mutate(new_class_of);
+      fc_mutate(enclosing_class);
+      fc_mutate(top_context);
+      fc_mutate(exceptions);
+      fc_mutate(active_context);
+      fc_mutate(home_context);
+      fc_mutate(main);
+      
+      OBJECT *sp;
+
+      sp = fc->stack_top;
+      while(sp <= fc->sp_ptr) {
+        if(REFERENCE_P(*sp)) {
+          *sp = baker_gc_mutate_from(state, g, *sp);
+        }
+        sp++;
+      }
+      
+      int i;
+      for(i = 0; i < fc->paths->len; i++) {
+        fc->paths->pdata[i] = 
+          (gpointer)baker_gc_maybe_mutate(state, g, (OBJECT)g_ptr_array_index(fc->paths, i));
+      }
     }
+    
+#undef fc_mutate
   }
   
   depth--;
@@ -277,7 +304,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   /* empty it out. */
   g->seen_weak_refs->len = 0;
   
-  //printf("Running garbage collector...\n");
+  // printf("Running garbage collector...\n");
   
   /* To maintain the remember set, we setup a totally new
      set before do any walking of objects, so that only objects

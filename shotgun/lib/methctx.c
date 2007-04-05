@@ -76,14 +76,15 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT 
   return obj;
 }
 
-OBJECT blokenv_create_context(STATE, OBJECT self) {
+OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   OBJECT obj;
   
   obj = blokctx_allocate(state);
   FLAG_SET(obj, IsBlockContextFlag);
   blokctx_set_raiseable(obj, Qtrue);
   blokctx_set_ip(obj, blokenv_get_initial_ip(self));
-  blokctx_set_sp(obj, I2N(0));
+  blokctx_set_sender(obj, sender);  
+  blokctx_set_sp(obj, I2N(sp));
   blokctx_set_env(obj, self);
   return obj;
 }

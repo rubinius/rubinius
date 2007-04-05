@@ -20,10 +20,9 @@ cpu cpu_new(STATE) {
   return c;
 }
 
-#define InitialStackSize 4096
 #define FC_STACK_SIZE    3000
 
-void cpu_initialize(STATE, cpu c) {    
+void cpu_initialize(STATE, cpu c) {
   state->global->tuple = Qnil;
   state->global->hash = Qnil;
   state->global->methtbl = Qnil;
@@ -45,6 +44,7 @@ void cpu_initialize(STATE, cpu c) {
   c->args = 0;
   c->depth = 0;
   c->cache_index = -1;
+  c->current_task = Qnil;
 
   /*
 #if CTX_USE_FAST
@@ -92,7 +92,10 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_equal = symbol_from_cstr(state, "==");
   state->global->sym_tequal = symbol_from_cstr(state, "===");
   state->global->sym_lt =    symbol_from_cstr(state, "<");
-  state->global->sym_gt =    symbol_from_cstr(state, ">");  
+  state->global->sym_gt =    symbol_from_cstr(state, ">");
+  
+  c->current_task = cpu_task_dup(state, c, Qnil);
+  c->main_task = c->current_task;
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
@@ -116,6 +119,8 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->exceptions);
   ar(c->top_context);
   ar(c->method_module);
+  ar(c->current_task);
+  ar(c->main_task);
   len = c->paths->len;
   g_ptr_array_add(roots, (gpointer)I2N(len));
   // printf("Paths: %d\n", len);
@@ -151,6 +156,8 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->exceptions);
   ar(c->top_context);
   ar(c->method_module);
+  ar(c->current_task);
+  ar(c->main_task);
   tmp = g_ptr_array_index(roots, start++);
   len = FIXNUM_TO_INT((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {

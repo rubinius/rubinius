@@ -279,12 +279,11 @@ class ShotgunPrimitives
   
   def block_call
     <<-CODE
-    self = stack_pop(); GUARD( RISA(self, blokenv) )
+    self = stack_pop(); 
+    GUARD( RISA(self, blokenv) );
 
-    t2 = blokenv_create_context(state, self);
-    blokctx_set_sender(t2, c->active_context);
     cpu_flush_sp(c);
-    blokctx_set_sp(t2, I2N(c->sp));
+    t2 = blokenv_create_context(state, self, c->active_context, c->sp);
     cpu_activate_context(state, c, t2, blokenv_get_home(self));
     CODE
   end
@@ -561,7 +560,7 @@ class ShotgunPrimitives
 
   def logical_class
     <<-CODE
-    // FIXME: can we put a guard here?
+    /* self is ANY object because object_logical_class knows all. */
     self = stack_pop();
     stack_push(object_logical_class(state, self));
     CODE
@@ -569,7 +568,6 @@ class ShotgunPrimitives
 
   def object_id
     <<-CODE
-    // FIXME: can we put a guard here?
     self = stack_pop();
     stack_push(UI2N(self));
     CODE
@@ -600,7 +598,7 @@ class ShotgunPrimitives
 
   def hash_object
     <<-CODE
-    // FIXME: what is self etc.. GUARD !
+    /* self is ANY object because object_logical_class knows all. */    
     self = stack_pop();
     t1 = I2N(object_hash_int(state, self));
     stack_push(t1);
@@ -2057,6 +2055,78 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FLOAT);
     stack_push(float_sprintf(state, t1, t2));
+    CODE
+  end
+  
+  def task_dup
+    <<-CODE
+    self = stack_pop();
+    if(RISA(self, task)) {
+      t1 = cpu_task_dup(state, c, self);
+    } else {
+      t1 = cpu_task_dup(state, c, Qnil);
+    }
+    
+    stack_push(t1);
+    CODE
+  end
+  
+  def task_swap
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    
+    GUARD( RISA(self, task) );
+    GUARD( RISA(t1,   task) );
+    
+    cpu_task_swap(state, c, self, t1);
+    stack_push(Qnil);
+    CODE
+  end
+  
+  def task_associate
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    
+    GUARD( RISA(self, task) );
+    GUARD( RISA(t1,   blokenv) );
+    
+    stack_push(cpu_task_associate(state, self, t1));
+    CODE
+  end
+  
+  def task_current
+    <<-CODE
+    stack_pop(); /* class */
+    stack_push(c->current_task);
+    CODE
+  end
+  
+  def task_at
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop();
+    t1 =   stack_pop();
+    
+    GUARD( RISA(self, task) );
+    GUARD( FIXNUM_P(t1) );
+    
+    task = (struct cpu_task*)BYTES_OF(self);
+    k = FIXNUM_TO_INT(t1);
+    
+    switch(k) {
+    case 0:
+      t2 = task->main;
+      break;
+    case 1:
+      t2 = task->active_context;
+      break;
+    default:
+      t2 = Qnil;
+    }
+    
+    stack_push(t2);
     CODE
   end
 end

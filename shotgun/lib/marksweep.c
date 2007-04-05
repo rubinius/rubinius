@@ -284,7 +284,7 @@ void mark_sweep_describe(mark_sweep_gc ms) {
 
 int _object_stores_bytes(OBJECT self);
 
-void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
+void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;
   
@@ -308,7 +308,7 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
   MARK_OBJ(iobj);
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
-    mark_sweep_mark_object(ms, cls);
+    mark_sweep_mark_object(state, ms, cls);
   }
   
   /*
@@ -321,12 +321,12 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
       tmp = NTH_FIELD(iobj, i);
       if(!REFERENCE_P(tmp)) continue;
       
-      mark_sweep_mark_object(ms, tmp);
+      mark_sweep_mark_object(state, ms, tmp);
     }
   } else {
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) mark_sweep_mark_object(state, ms, fc->field)
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) mark_sweep_mark_object(ms, fc->field)
       fc_mutate(sender);
       fc_mutate(block);
       fc_mutate(method);
@@ -334,14 +334,40 @@ void mark_sweep_mark_object(mark_sweep_gc ms, OBJECT iobj) {
       fc_mutate(self);
       fc_mutate(locals);
       fc_mutate(method_module);
-#undef fc_mutate
 
       /* We cache the bytecode in a char*, so adjust it. */
       OBJECT ba;
       ba = cmethod_get_bytecodes(fc->method);
       fc->data = BYTEARRAY_ADDRESS(ba);
       fc->data_size = BYTEARRAY_SIZE(ba);
+    } else if(ISA(iobj, BASIC_CLASS(task))) {
+      struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
+      
+      fc_mutate(exception);
+      fc_mutate(new_class_of);
+      fc_mutate(enclosing_class);
+      fc_mutate(top_context);
+      fc_mutate(exceptions);
+      fc_mutate(active_context);
+      fc_mutate(home_context);
+      fc_mutate(main);
+      
+      OBJECT *sp;
+
+      sp = fc->stack_top;
+      while(sp <= fc->sp_ptr) {
+        if(REFERENCE_P(*sp)) {
+          mark_sweep_mark_object(state, ms, *sp);
+        }
+        sp++;
+      }
+      
+      int i;
+      for(i = 0; i < fc->paths->len; i++) {
+        mark_sweep_mark_object(state, ms, (OBJECT)g_ptr_array_index(fc->paths, i));
+      }
     }
+#undef fc_mutate    
   }
 }
 
@@ -356,14 +382,14 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(roots, i));
     if(!REFERENCE_P(root)) { continue; }
-    mark_sweep_mark_object(ms, root);
+    mark_sweep_mark_object(state, ms, root);
   }
   
   sz = ms->remember_set->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(ms->remember_set, i));
     if(!REFERENCE_P(root)) { continue; }
-    mark_sweep_mark_object(ms, root);
+    mark_sweep_mark_object(state, ms, root);
   }
   
   ent = state->method_cache;
@@ -371,13 +397,13 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   
   while(ent < end) {
     if(ent->klass)
-      mark_sweep_mark_object(ms, ent->klass);
+      mark_sweep_mark_object(state, ms, ent->klass);
       
     if(ent->module)
-      mark_sweep_mark_object(ms, ent->module);
+      mark_sweep_mark_object(state, ms, ent->module);
       
     if(ent->method)
-      mark_sweep_mark_object(ms, ent->method);
+      mark_sweep_mark_object(state, ms, ent->method);
 
     ent++;
   }
@@ -388,7 +414,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   sp = state->current_stack;
   while(sp <= state->current_sp) {
     if(REFERENCE_P(*sp)) {
-      mark_sweep_mark_object(ms, *sp);
+      mark_sweep_mark_object(state, ms, *sp);
     }
     sp++;
   }
@@ -396,7 +422,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   /* Now the handle table. */
   for(i = 0; i < state->handle_tbl->total; i++) {
     if(state->handle_tbl->entries[i]) {
-      mark_sweep_mark_object(ms, state->handle_tbl->entries[i]->object);
+      mark_sweep_mark_object(state, ms, state->handle_tbl->entries[i]->object);
     }
   }
   

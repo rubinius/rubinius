@@ -132,7 +132,12 @@ module Bytecode
       :make_weak_ref,
       :fastctx_set_field,
       :fastctx_dup,
-      :gc_collect_references
+      :gc_collect_references,
+      :task_dup,
+      :task_swap,
+      :task_associate,
+      :task_current,
+      :task_at
     ]
 
     FirstRuntimePrimitive = 1024

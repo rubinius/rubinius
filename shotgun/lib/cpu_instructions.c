@@ -386,7 +386,7 @@ inline void cpu_save_registers(STATE, cpu c) {
 #include <string.h>
 void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise);
 
-static inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
+inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   int ac;
   
   ac = c->argcount;
@@ -501,6 +501,12 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
   
   if(sender == Qnil) {
     c->active_context = Qnil;
+    
+    /* Switch back to the main task... */
+    if(c->current_task != c->main_task) {
+      cpu_task_swap(state, c, c->current_task, c->main_task);
+    }
+    
   } else {
     if(cpu_stack_empty_p(state, c)) {
       top = Qnil;

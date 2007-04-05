@@ -33,39 +33,45 @@ struct fast_context {
   CPU_REGISTERS
 };
 
+#define InitialStackSize 4096
+
 #define FASTCTX_FIELDS 21
 #define FASTCTX_NORMAL 0
 #define FASTCTX_NMC    1
 
-struct rubinius_cpu {
-  CPU_REGISTERS
-  
-  char buffer[20];
-  
-  /* Below here, the cpu registers are not saved and restored
-     per call. */
-  
-  long int args;
-  long int cache_index;
-  
-  OBJECT *stack_top;
-  unsigned long int stack_size;
-  OBJECT exception;
-  OBJECT enclosing_class;
-  OBJECT new_class_of;
-  OBJECT exceptions;
-  OBJECT top_context;
+#define CPU_TASK_REGISTERS long int args; \
+  long int cache_index; \
+  OBJECT *stack_top; \
+  unsigned long int stack_size; \
+  OBJECT exception; \
+  OBJECT enclosing_class; \
+  OBJECT new_class_of; \
+  OBJECT exceptions; \
+  OBJECT top_context; \
+  OBJECT active_context, home_context, main; \
+  GPtrArray *paths; \
+  unsigned int depth; \
+  OBJECT context_cache; \
+  unsigned char *ip_ptr; \
+  OBJECT *sp_ptr; 
 
-  OBJECT active_context, home_context, main;
-  
-  GPtrArray *paths;
-  unsigned int depth;
-  
-  OBJECT context_cache;
-  
-  unsigned char *ip_ptr;
-  OBJECT *sp_ptr;
+#define TASK_FIELDS 20
+
+struct cpu_task {
+  CPU_TASK_REGISTERS;
 };
+
+struct rubinius_cpu {
+  /* Normal registers ande saved and restored per new method call . */
+  CPU_REGISTERS;
+  
+  OBJECT current_task, main_task;
+  
+  /* Task registers are saved and restored when tasks are switched. */
+  CPU_TASK_REGISTERS;
+};
+
+#define CPU_TASKS_LOCATION(cp) (((char*)cp) + offsetof(struct rubinius_cpu, args))
 
 typedef struct rubinius_cpu *cpu;
 
@@ -108,6 +114,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
 void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args);
 
+inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);
 inline void cpu_save_registers(STATE, cpu c);
@@ -128,6 +135,10 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
 void cpu_clear_cache(STATE, cpu c);
 void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth);
 void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
+
+OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
+void cpu_task_swap(STATE, cpu c, OBJECT cur, OBJECT nw);
+OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be);
 
 #if 1
 
