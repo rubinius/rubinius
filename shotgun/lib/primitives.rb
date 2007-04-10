@@ -2198,6 +2198,17 @@ class ShotgunPrimitives
   
   def object_become
     <<-CODE
+    void state_object_become(STATE, cpu c, OBJECT from, OBJECT to);
+    
+    POP(self, REFERENCE);
+    POP(t1,   REFERENCE);
+    state_object_become(state, c, self, t1);
+    stack_push(self);
+    CODE
+  end
+  
+  def old_object_become
+    <<-CODE
     /* A very poor mans become. Copies all the data of t1 into self, so that 
        self 'becomes' t1. This works perfectly for 'normal' objects that just
        use ivars because the copy of t1 shares the ivar's hash, so they have the

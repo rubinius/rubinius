@@ -36,6 +36,8 @@ OBJECT object_memory_new_opaque();
 OBJECT object_memory_tenure_object(void* data, OBJECT obj);
 void object_memory_major_collect(STATE, object_memory om, GPtrArray *roots);
 OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark);
+void object_memory_setup_become(STATE, object_memory om, OBJECT from, OBJECT to);
+void object_memory_clear_become(STATE, object_memory om);
 
 #define FAST_NEW 1
 

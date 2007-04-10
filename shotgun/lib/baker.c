@@ -229,6 +229,10 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
 
 OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
   OBJECT dest;
+  if(obj == g->become_from) {
+    return baker_gc_maybe_mutate(state, g, g->become_to);
+  }
+  
   if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
     // int age = AGE(obj);
     CLEAR_AGE(obj);

@@ -71,6 +71,20 @@ int object_memory_used(object_memory om) {
   return baker_gc_used(om->gc);
 }
 
+void object_memory_setup_become(STATE, object_memory om, OBJECT from, OBJECT to) {
+  om->gc->become_from = from;
+  om->gc->become_to = to;
+  om->ms->become_from = from;
+  om->ms->become_to = to;
+}
+
+void object_memory_clear_become(STATE, object_memory om) {
+  om->gc->become_from = 0;
+  om->gc->become_to = 0;
+  om->ms->become_from = 0;
+  om->ms->become_to = 0;
+}
+
 int object_memory_collect(STATE, object_memory om, GPtrArray *roots) {
   int i;
   // printf("%d objects since last collection.\n", allocated_objects);

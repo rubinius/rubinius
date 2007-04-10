@@ -69,6 +69,35 @@ void state_major_collect(STATE, cpu c) {
   g_ptr_array_free(roots, TRUE); 
 }
 
+void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
+  GPtrArray *roots;
+  c->context_cache = 0;
+  state->free_contexts->len = 0;
+        
+  state->current_stack = c->stack_top;
+  state->current_sp =    c->sp_ptr;
+
+  roots = _gather_roots(state, c);
+  
+  object_memory_setup_become(state, state->om, from, to);
+  
+  /* If from is young, then all the refs are from other young objects
+     or the remember set, so we just need to mutate in the young space. */
+  if(GC_ZONE(from) == GC_YOUNG_OBJECTS) {
+    object_memory_collect(state, state->om, roots);
+  } else {
+    object_memory_major_collect(state, state->om, roots);
+  }
+  
+  object_memory_clear_become(state, state->om);
+  
+  memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
+  cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
+
+  g_ptr_array_free(roots, TRUE); 
+  
+}
+
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
   unsigned int cur;
   g_hash_table_insert(state->cleanup, 

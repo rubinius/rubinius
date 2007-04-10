@@ -17,6 +17,7 @@ struct baker_gc_struct {
   int tenure_now;
   void *om;
   GPtrArray *seen_weak_refs;
+  OBJECT become_from, become_to;
 };
 
 typedef struct baker_gc_struct* baker_gc;

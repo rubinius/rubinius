@@ -282,6 +282,9 @@ void mark_sweep_describe(mark_sweep_gc ms) {
   printf("Last marked: %d\n", objects_marked);
 }
 
+#define BCM_P(obj) (ms->become_from == obj)
+#define BCM_TO (ms->become_to)
+
 int _object_stores_bytes(OBJECT self);
 
 void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
@@ -308,7 +311,11 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   MARK_OBJ(iobj);
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
-    mark_sweep_mark_object(state, ms, cls);
+    if(BCM_P(cls)) {
+      HEADER(iobj)->klass = BCM_TO;
+    } else {
+      mark_sweep_mark_object(state, ms, cls);
+    }
   }
   
   /*
@@ -321,10 +328,17 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       tmp = NTH_FIELD(iobj, i);
       if(!REFERENCE_P(tmp)) continue;
       
-      mark_sweep_mark_object(state, ms, tmp);
+      if(BCM_P(tmp)) {
+        SET_FIELD(iobj, i, BCM_TO);
+      } else {
+        mark_sweep_mark_object(state, ms, tmp);
+      }
     }
   } else {
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) mark_sweep_mark_object(state, ms, fc->field)
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) { \
+    if(BCM_P(fc->field)) { fc->field = BCM_TO; \
+    } else { mark_sweep_mark_object(state, ms, fc->field); } }
+    
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
@@ -357,14 +371,23 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       sp = fc->stack_top;
       while(sp <= fc->sp_ptr) {
         if(REFERENCE_P(*sp)) {
-          mark_sweep_mark_object(state, ms, *sp);
+          if(BCM_P(*sp)) {
+            *sp = BCM_TO;
+          } else {
+            mark_sweep_mark_object(state, ms, *sp);
+          }
         }
         sp++;
       }
       
       int i;
       for(i = 0; i < fc->paths->len; i++) {
-        mark_sweep_mark_object(state, ms, (OBJECT)g_ptr_array_index(fc->paths, i));
+        tmp = (OBJECT)g_ptr_array_index(fc->paths, i);
+        if(BCM_P(tmp)) {
+          fc->paths->pdata[i] = (gpointer)BCM_TO;
+        } else {
+          mark_sweep_mark_object(state, ms, tmp);
+        }
       }
     }
 #undef fc_mutate    
@@ -373,37 +396,68 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
 
 void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   int i, sz;
-  OBJECT root;
+  OBJECT root, tmp;
   struct method_cache *end, *ent;
   
   marked_objects = 0;
+  
+  if(ms->become_to) {
+    mark_sweep_mark_object(state, ms, ms->become_to);
+  }
+  
+  if(ms->become_from) {
+    mark_sweep_mark_object(state, ms, ms->become_from);
+  }
   
   sz = roots->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(roots, i));
     if(!REFERENCE_P(root)) { continue; }
-    mark_sweep_mark_object(state, ms, root);
+    if(BCM_P(root)) {
+      roots->pdata[i] = (gpointer)BCM_TO;
+    } else {
+      mark_sweep_mark_object(state, ms, root);
+    }
   }
   
   sz = ms->remember_set->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(ms->remember_set, i));
     if(!REFERENCE_P(root)) { continue; }
-    mark_sweep_mark_object(state, ms, root);
+    if(BCM_P(root)) {
+      ms->remember_set->pdata[i] = (gpointer)BCM_TO;
+    } else {
+      mark_sweep_mark_object(state, ms, root);
+    }
   }
   
   ent = state->method_cache;
   end = ent + CPU_CACHE_SIZE;
   
   while(ent < end) {
-    if(ent->klass)
-      mark_sweep_mark_object(state, ms, ent->klass);
+    if(ent->klass) {
+      if(BCM_P(ent->klass)) {
+        ent->klass = BCM_TO;
+      } else {
+        mark_sweep_mark_object(state, ms, ent->klass);
+      }
+    }
+     
+    if(ent->module) {
+      if(BCM_P(ent->module)) {
+        ent->module = BCM_TO;
+      } else {
+        mark_sweep_mark_object(state, ms, ent->module);
+      }
+    }
       
-    if(ent->module)
-      mark_sweep_mark_object(state, ms, ent->module);
-      
-    if(ent->method)
-      mark_sweep_mark_object(state, ms, ent->method);
+    if(ent->method) {
+      if(BCM_P(ent->method)) {
+        ent->method = BCM_TO;
+      } else {
+        mark_sweep_mark_object(state, ms, ent->method);
+      }
+    }
 
     ent++;
   }
@@ -414,7 +468,11 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   sp = state->current_stack;
   while(sp <= state->current_sp) {
     if(REFERENCE_P(*sp)) {
-      mark_sweep_mark_object(state, ms, *sp);
+      if(BCM_P(*sp)) {
+        *sp = BCM_TO;
+      } else {
+        mark_sweep_mark_object(state, ms, *sp);
+      }
     }
     sp++;
   }
@@ -422,7 +480,12 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   /* Now the handle table. */
   for(i = 0; i < state->handle_tbl->total; i++) {
     if(state->handle_tbl->entries[i]) {
-      mark_sweep_mark_object(state, ms, state->handle_tbl->entries[i]->object);
+      tmp = state->handle_tbl->entries[i]->object;
+      if(BCM_P(tmp)) {
+        state->handle_tbl->entries[i]->object = BCM_TO;
+      } else {
+        mark_sweep_mark_object(state, ms, tmp);
+      }
     }
   }
   
