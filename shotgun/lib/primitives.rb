@@ -2196,6 +2196,29 @@ class ShotgunPrimitives
     CODE
   end
   
+  def object_become
+    <<-CODE
+    /* A very poor mans become. Copies all the data of t1 into self, so that 
+       self 'becomes' t1. This works perfectly for 'normal' objects that just
+       use ivars because the copy of t1 shares the ivar's hash, so they have the
+       same ivars. If you use #become! on a object that uses slots, they're just
+       copied, so you should use the newly become'd object rather than the original.
+       In other words, there is strangness with this implementation. */
+       
+    POP(self, REFERENCE);
+    POP(t1,   REFERENCE);
+    GUARD(NUM_FIELDS(t1) <= NUM_FIELDS(self));
+    k = NUM_FIELDS(self);
+    memcpy((void*)self, (void*)t1, SIZE_IN_BYTES(t1));
+    if(NUM_FIELDS(self) < k) {
+      for(j = 0; j < (k - NUM_FIELDS(self)); j++) {
+        SET_FIELD(self, NUM_FIELDS(self) + j, Qnil);
+      }
+    }
+    stack_push(Qnil);
+    CODE
+  end
+  
 end
 
 prim = ShotgunPrimitives.new

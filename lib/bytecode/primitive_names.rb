@@ -145,7 +145,8 @@ module Bytecode
       :thread_run,
       :thread_current,
       :thread_schedule,
-      :thread_yield
+      :thread_yield,
+      :object_become
     ]
 
     FirstRuntimePrimitive = 1024

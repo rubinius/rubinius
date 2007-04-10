@@ -18,5 +18,9 @@ class Object
   def fields
     Ruby.primitive :fields
   end
+
+  def become!(obj)
+    Ruby.primitive :object_become
+  end
 end
 
