@@ -419,6 +419,8 @@ void cpu_bootstrap_exceptions(STATE) {
 }
 
 void bignum_init(STATE);
+void Init_cpu_task(STATE);
+void Init_list(STATE);
 
 void cpu_bootstrap(STATE) {
   OBJECT cls, obj, tmp, tmp2;
@@ -502,6 +504,9 @@ void cpu_bootstrap(STATE) {
   bcs(matchdata, obj, "MatchData");
   
   cpu_bootstrap_exceptions(state);
+  
+  Init_list(state);
+  Init_cpu_task(state);
   
   state->global->external_ivars = hash_new(state);  
 }

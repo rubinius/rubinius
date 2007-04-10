@@ -94,7 +94,9 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_lt =    symbol_from_cstr(state, "<");
   state->global->sym_gt =    symbol_from_cstr(state, ">");
   
-  c->current_task = cpu_task_dup(state, c, Qnil);
+  c->current_thread = cpu_thread_new(state, c);
+  c->main_thread = c->current_thread;
+  c->current_task = cpu_thread_get_task(state, c->current_thread);
   c->main_task = c->current_task;
 }
 
@@ -119,6 +121,8 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->exceptions);
   ar(c->top_context);
   ar(c->method_module);
+  ar(c->current_thread);
+  ar(c->main_thread);
   ar(c->current_task);
   ar(c->main_task);
   len = c->paths->len;
@@ -156,6 +160,8 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->exceptions);
   ar(c->top_context);
   ar(c->method_module);
+  ar(c->current_thread);
+  ar(c->main_thread);
   ar(c->current_task);
   ar(c->main_task);
   tmp = g_ptr_array_index(roots, start++);

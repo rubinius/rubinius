@@ -40,6 +40,7 @@ struct fast_context {
 #define FASTCTX_NMC    1
 
 #define CPU_TASK_REGISTERS long int args; \
+  unsigned long int stack_slave; \
   long int cache_index; \
   OBJECT *stack_top; \
   unsigned long int stack_size; \
@@ -55,7 +56,7 @@ struct fast_context {
   unsigned char *ip_ptr; \
   OBJECT *sp_ptr; 
 
-#define TASK_FIELDS 20
+#define TASK_FIELDS 21
 
 struct cpu_task {
   CPU_TASK_REGISTERS;
@@ -66,6 +67,7 @@ struct rubinius_cpu {
   CPU_REGISTERS;
   
   OBJECT current_task, main_task;
+  OBJECT current_thread, main_thread;
   
   /* Task registers are saved and restored when tasks are switched. */
   CPU_TASK_REGISTERS;
@@ -139,6 +141,15 @@ void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
 void cpu_task_swap(STATE, cpu c, OBJECT cur, OBJECT nw);
 OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be);
+OBJECT cpu_channel_new(STATE);
+OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj);
+void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_task);
+OBJECT cpu_thread_new(STATE, cpu c);
+void cpu_thread_switch(STATE, cpu c, OBJECT thr);
+OBJECT cpu_thread_get_task(STATE, OBJECT self);
+void cpu_thread_schedule(STATE, OBJECT self);
+void cpu_thread_run_best(STATE, cpu c);
+
 
 #if 1
 

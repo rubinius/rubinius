@@ -64,6 +64,12 @@ OBJECT rbs_raw_class(OBJECT obj) {
   return Qnil;
 }
 
+OBJECT rbs_class_new_instance(STATE, OBJECT cls) {
+  OBJECT t1;
+  t1 = class_get_instance_fields(cls);
+  return NEW_OBJECT(cls, FIXNUM_TO_INT(t1));
+}
+
 char *rbs_inspect(STATE, OBJECT obj) {
   OBJECT kls;
   static char buf[1024];

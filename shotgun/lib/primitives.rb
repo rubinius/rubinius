@@ -2129,6 +2129,73 @@ class ShotgunPrimitives
     stack_push(t2);
     CODE
   end
+  
+  def channel_new
+    <<-CODE
+    stack_pop();
+    stack_push(cpu_channel_new(state));
+    CODE
+  end
+  
+  def channel_send
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    stack_push(cpu_channel_send(state, c, self, t1));
+    CODE
+  end
+  
+  def channel_receive
+    <<-CODE
+    self = stack_pop();
+    cpu_channel_receive(state, c, self, c->current_thread);
+    /* Don't push anything on thes tack. The stack contents are handled
+       when the channel is restored. */
+    CODE
+  end
+  
+  def thread_new
+    <<-CODE
+    self = stack_pop();
+    stack_push(cpu_thread_new(state, c));
+    CODE
+  end
+  
+  def thread_run
+    <<-CODE
+    self = stack_pop();
+    /* So when we're restored, there is a ret val. */
+    stack_push(Qnil);
+    cpu_thread_schedule(state, c->current_thread);
+    cpu_thread_switch(state, c, self);
+    CODE
+  end
+  
+  def thread_schedule
+    <<-CODE
+    self = stack_pop();
+    cpu_thread_schedule(state, self);
+    stack_push(Qnil);
+    CODE
+  end
+  
+  def thread_yield
+    <<-CODE
+    stack_pop();
+    /* Same reason as thread_run */
+    stack_push(Qnil);
+    cpu_thread_schedule(state, c->current_thread);
+    cpu_thread_run_best(state, c);
+    CODE
+  end
+  
+  def thread_current
+    <<-CODE
+    stack_pop();
+    stack_push(c->current_thread);
+    CODE
+  end
+  
 end
 
 prim = ShotgunPrimitives.new

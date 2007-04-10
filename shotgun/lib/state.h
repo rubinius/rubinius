@@ -9,7 +9,8 @@ struct rubinius_globals {
   OBJECT blokenv, bignum, regexp, regexpdata, matchdata;
   OBJECT string, symbol, io, metaclass, symtbl;
   OBJECT nil_class, true_class, false_class, fixnum_class, undef_class;
-  OBJECT floatpoint, fastctx, data, nmethod, nmc, task;
+  OBJECT floatpoint, fastctx, data, nmethod, nmc, task, list, list_node;
+  OBJECT channel, thread;
   
   /* the primary symbol table */
   OBJECT symbols;
@@ -22,8 +23,7 @@ struct rubinius_globals {
   OBJECT exc_stack_explosion;
   OBJECT exc_primitive_failure;
   
-  /* The external ivars table. */
-  OBJECT external_ivars;
+  OBJECT external_ivars, scheduled_threads;
 };
 
 #define GLOBAL_cmethod
@@ -114,6 +114,7 @@ char *rbs_inspect(STATE, OBJECT obj);
 char *rbs_inspect_verbose(STATE, OBJECT obj);
 char *_inspect(OBJECT obj);
 OBJECT rbs_module_new(STATE, char *name, OBJECT ns);
+OBJECT rbs_class_new_instance(STATE, OBJECT cls);
 
 #endif
 

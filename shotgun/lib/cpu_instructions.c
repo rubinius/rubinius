@@ -502,8 +502,12 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
   if(sender == Qnil) {
     c->active_context = Qnil;
     
+    /* Thread exitting, reschedule.. */
+    if(c->current_thread != c->main_thread) {
+      cpu_thread_run_best(state, c);
+      
     /* Switch back to the main task... */
-    if(c->current_task != c->main_task) {
+    } else if(c->current_task != c->main_task) {
       cpu_task_swap(state, c, c->current_task, c->main_task);
     }
     

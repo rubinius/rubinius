@@ -137,7 +137,15 @@ module Bytecode
       :task_swap,
       :task_associate,
       :task_current,
-      :task_at
+      :task_at,
+      :channel_new,
+      :channel_send,
+      :channel_receive,
+      :thread_new,
+      :thread_run,
+      :thread_current,
+      :thread_schedule,
+      :thread_yield
     ]
 
     FirstRuntimePrimitive = 1024
