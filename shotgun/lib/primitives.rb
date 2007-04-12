@@ -2140,6 +2140,9 @@ class ShotgunPrimitives
   def channel_send
     <<-CODE
     self = stack_pop();
+    
+    GUARD(RISA(self, channel));
+    
     t1 = stack_pop();
     stack_push(cpu_channel_send(state, c, self, t1));
     CODE
@@ -2148,9 +2151,76 @@ class ShotgunPrimitives
   def channel_receive
     <<-CODE
     self = stack_pop();
+    
+    GUARD(RISA(self, channel));
+    
     cpu_channel_receive(state, c, self, c->current_thread);
     /* Don't push anything on thes tack. The stack contents are handled
        when the channel is restored. */
+    CODE
+  end
+  
+  def channel_send_in_microseconds
+    <<-CODE
+    struct timeval tv;
+    POP(self, REFERENCE);
+    POP(t1, INTEGER);
+    
+    GUARD(RISA(self, channel));
+    
+    if(FIXNUM_P(t1)) {
+      k = (long)FIXNUM_TO_INT(t1);
+    } else {
+      k = (long)bignum_to_int(state, t1);
+    }
+    
+    if(k > 1000000) {
+      tv.tv_sec = k / 1000000;
+      tv.tv_usec = k % 1000000;
+    } else {
+      tv.tv_sec = 0;
+      tv.tv_usec = k;
+    }
+    
+    cpu_event_wake_channel(state, c, self, &tv);
+    stack_push(Qtrue);
+    CODE
+  end
+  
+  def channel_send_on_readable
+    <<-CODE
+    POP(self, REFERENCE);
+    POP(t1,   IO);
+    
+    GUARD(RISA(self, channel));
+    
+    j = FIXNUM_TO_INT(io_get_descriptor(t1));
+    cpu_event_wait_readable(state, c, self, j);
+    stack_push(Qtrue);
+    CODE
+  end
+  
+  def channel_send_on_writable
+    <<-CODE
+    POP(self, REFERENCE);
+    POP(t1,   IO);
+    
+    GUARD(RISA(self, channel));
+    
+    j = FIXNUM_TO_INT(io_get_descriptor(t1));
+    cpu_event_wait_writable(state, c, self, j);
+    stack_push(Qtrue);
+    CODE
+  end
+  
+  def channel_send_on_signal
+    <<-CODE
+    POP(self, REFERENCE);
+    POP(t1,   FIXNUM);
+    GUARD(RISA(self, channel));
+    
+    cpu_event_wait_signal(state, c, self, FIXNUM_TO_INT(t1));
+    stack_push(Qtrue);
     CODE
   end
   

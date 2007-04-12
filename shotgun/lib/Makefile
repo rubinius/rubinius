@@ -5,9 +5,9 @@ COMP=$(LIBTOOL) --mode=compile $(CC)
 LINKER=$(LIBTOOL) --mode=link $(CC)
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
-CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/cinvoke/lib -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
+CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/libevent -I../external_libs/cinvoke/lib -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib `pkg-config glib-2.0 --cflags`
 WARNINGS=-Wall -Winline
-LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a ../external_libs/cinvoke/lib/libcinvoke.a -lm
+LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a ../external_libs/cinvoke/lib/libcinvoke.a -Wl,-single_module ../external_libs/libevent/.libs/libevent.a -lm
 
 ifdef DEV
   OPTIMIZATIONS=

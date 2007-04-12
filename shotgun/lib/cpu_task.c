@@ -38,6 +38,8 @@ void Init_cpu_task(STATE) {
   BASIC_CLASS(channel) = rbs_class_new(state, "Channel", 2, BASIC_CLASS(object));
   BASIC_CLASS(thread) =  rbs_class_new(state, "Thread", 4, BASIC_CLASS(object));
   class_set_instance_flags(BASIC_CLASS(thread), I2N(0x02)); /* ivars allowed. */
+  
+  cpu_event_init(state);
 }
 
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
@@ -174,21 +176,31 @@ void cpu_thread_schedule(STATE, OBJECT self) {
 OBJECT cpu_thread_find_highest(STATE) {
   int i, t;
   OBJECT lst, tup;
-  
-  tup = state->global->scheduled_threads;
-  t = NUM_FIELDS(tup);
-  for(i = t - 1; i >= 0; i--) {
-    lst = tuple_at(state, tup, i);
-    if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
-      return list_shift(state, lst);
+
+  while(1) {
+    tup = state->global->scheduled_threads;
+    t = NUM_FIELDS(tup);
+    for(i = t - 1; i >= 0; i--) {
+      lst = tuple_at(state, tup, i);
+      if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
+        return list_shift(state, lst);
+      }
     }
+    // printf("Nothing to do, waiting for events.\n");
+    cpu_event_run(state);
   }
+  
   printf("DEADLOCK!\n");
   abort();
 }
 
 void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
   OBJECT task;
+
+  /* Edge case. We could realize that we need to restore
+     the already running thread (via the current thread waiting
+     for an event), and we thus don't need to restore it. */
+  if(thr == c->current_thread) return;
   
   /* Save the current task back into the current thread, in case
      Task's were used inside the thread itself (not just for the thread). */
@@ -233,7 +245,15 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
   } else {
     thr = list_shift(state, lst);
     task = thread_get_task(thr);
-    cpu_task_set_top(state, task, obj);
+    /* Edge case. After going all around, we've decided that the current
+       task needs to be restored. Since it's not yet saved, we push it
+       to the current stack, since thats the current task's stack. */
+    if(task == c->current_task) {
+      stack_pop();
+      stack_push(obj);
+    } else {
+      cpu_task_set_top(state, task, obj);
+    }
     /* If we're resuming a thread thats of higher priority than we are, 
        we run it now, otherwise, we just schedule it to be run. */
     cur_prio = FIXNUM_TO_INT(thread_get_priority(c->current_thread));
@@ -259,7 +279,7 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   }
   
   /* We push nil on the stack to reserve a place to put the result. */
-  stack_push(Qnil);
+  stack_push(I2N(343434));
   
   lst = channel_get_waiting(self);
   list_append(state, lst, cur_thr);

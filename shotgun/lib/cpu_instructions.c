@@ -284,6 +284,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
   FLAG_SET(ctx, CTXFastFlag);
   FLAG_SET(ctx, StoresBytesFlag);
+    
+  CHECK_PTR(mo);
   
   fc = FASTCTX(ctx);
   // memset(fc, 0, sizeof(struct fast_context));
@@ -399,9 +401,10 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   if(methctx_is_fast_p(state, home)) {
     struct fast_context *fc;
     fc = (struct fast_context*)BYTES_OF(home);
+    CHECK_PTR(fc->self);
+    CHECK_PTR(fc->method);
     memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
     // printf("Restoring fast context %p\n", home);
-    
     /* Only happens if we're restoring a block. */
     if(ctx != home) {
       c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));

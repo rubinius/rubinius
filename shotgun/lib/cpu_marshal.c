@@ -111,8 +111,21 @@ static void marshal_sym(STATE, OBJECT obj, GString *buf) {
 
 static OBJECT unmarshal_sym(STATE, char *str, struct marshal_state *ms) {
   OBJECT obj;
-  obj = unmarshal_str(state, str, ms);
-  return string_to_sym(state, obj);
+  int sz;
+  char *name;
+  
+  sz = read_int(str + 1);
+  ms->consumed += 5;
+  ms->consumed += sz;
+  
+  name = calloc(sz + 1, sizeof(char));
+  memcpy(name, str + 5, sz);
+  name[sz] = 0;
+  
+  obj = symtbl_lookup_cstr(state, state->global->symbols, name);
+  free(name);
+  
+  return obj;
 }
 
 static void marshal_fields_as(STATE, OBJECT obj, GString *buf, char type, struct marshal_state *ms) {

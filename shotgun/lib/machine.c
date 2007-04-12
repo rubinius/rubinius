@@ -562,17 +562,23 @@ OBJECT machine_load_archive(machine m, char *path) {
   OBJECT order, cm;
   char *files, *nxt, *top;
   order = archive_get_file(m->s, path, ".load_order.txt");
-  if(!RTEST(order)) return Qfalse;
-  
+  if(!RTEST(order)) {
+    printf("Unable to find .load_order.txt\n");
+    return Qfalse;
+  }
   top = files = string_as_string(m->s, order);
   nxt = strchr(files, '\n');
   
   while(nxt) {
     *nxt++ = 0;
     cm = archive_get_object(m->s, path, files);
-    if(!RTEST(cm)) return Qfalse;
+    if(!RTEST(cm)) {
+      printf("Unable to find '%s'\n", files); 
+      return Qfalse;
+    }
     cpu_run_script(m->s, m->c, cm);
     if(!machine_run(m)) {
+      printf("Unable to run '%s'\n", files);
       return Qfalse;
     }
     files = nxt;

@@ -174,7 +174,8 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       rbs_set_field(g->om, iobj, i, mut);
     }
   } else {
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(state, g, fc->field)
+#define fc_mutate(field) if(REFERENCE_P(fc->field)) SET_STRUCT_FIELD(iobj, fc->field, baker_gc_maybe_mutate(state, g, fc->field))
+// #define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(state, g, fc->field)
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
@@ -233,8 +234,9 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
     return baker_gc_maybe_mutate(state, g, g->become_to);
   }
   
-  if(g->tenure_now || ((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj))) {
+  if((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj)) {
     // int age = AGE(obj);
+    assert(HEADER(obj)->klass != state->global->fastctx);
     CLEAR_AGE(obj);
     promoted++;
     dest = (*g->tenure)(g->tenure_data, obj);
@@ -247,6 +249,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       baker_gc_set_forwarding_address(obj, dest);
       HEADER(dest)->gc++;
     } else {
+      assert(HEADER(obj)->klass != state->global->fastctx);
       CLEAR_AGE(obj);
       promoted++;
       dest = (*g->tenure)(g->tenure_data, obj);
@@ -385,6 +388,8 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
       }
     }
   }
+  
+  cpu_event_each_channel(state, baker_gc_mutate_from, (void*)g);
   
   baker_gc_swap(g);
   

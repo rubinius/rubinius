@@ -35,7 +35,7 @@ struct fast_context {
 
 #define InitialStackSize 4096
 
-#define FASTCTX_FIELDS 21
+#define FASTCTX_FIELDS 23
 #define FASTCTX_NORMAL 0
 #define FASTCTX_NMC    1
 
@@ -150,10 +150,18 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
 
+void cpu_event_init(STATE);
+void cpu_event_run(STATE);
+void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv);
+void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data);
+void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd);
+void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
+void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
+
 
 #if 1
 
-#define cpu_stack_push(state, c, oop, check) ({ OBJECT _tmp = (oop); (c)->sp_ptr++; *((c)->sp_ptr) = _tmp; })
+#define cpu_stack_push(state, c, oop, check) ({ OBJECT _tmp = (oop); CHECK_PTR(_tmp); (c)->sp_ptr++; *((c)->sp_ptr) = _tmp; })
 #define cpu_stack_pop(state, c) (*(c)->sp_ptr--)
 #define cpu_stack_top(state, c) (*(c)->sp_ptr)
 

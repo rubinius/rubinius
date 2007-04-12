@@ -85,6 +85,9 @@ struct rubinius_state {
   unsigned long *stack_bottom;
   
   GHashTable *cleanup;
+  
+  void *event_base;
+  void *thread_infos;
 };
 
 #define BASIC_CLASS(kind) state->global->kind
@@ -92,7 +95,9 @@ struct rubinius_state {
 #define NEW_STRUCT(obj, str, kls, kind) \
   obj = object_memory_new_opaque(state, kls, sizeof(kind)); \
   str = (kind * )BYTES_OF(obj)
-  
+
+#define NEW_OBJECT_MATURE(kls, size) object_memory_new_object_mature(state->om, kls, size)  
+
 #define DATA_STRUCT(obj, kind) ((kind)BYTES_OF(obj))
 #define BYTES2FIELDS(bytes) (bytes % 4 == 0 ? bytes : ((bytes + 4) - ((bytes + 4) % 4)))
 
@@ -162,13 +167,16 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
-//#define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
-#define CHECK_PTR(obj)
+// #define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
+#define CHECK_PTR(obj) 
 
 #include "object_memory-barrier.h"
 
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
+
+#define IS_REF_P(val) (((val & 1) == 0) && (val > 12))
+#define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
 
 // #define ACCESS_MACROS 1
 
@@ -212,7 +220,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
 #ifdef INTERNAL_MACROS
   /* Check that it's even, ie a ref, and above the special range. */
-  if(((val & 1) == 0) && (val > 12)) {
+  if(IS_REF_P(val)) {
     object_memory_write_barrier(om, obj, val);
   }
   CHECK_PTR(val);
@@ -222,6 +230,8 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 }
 
 #endif
+
+#define SET_STRUCT_FIELD(obj, fel, val) ({ OBJECT _tmp = (val); RUN_WB(obj, _tmp); fel = _tmp; _tmp; })  
 
 #include "object_memory-inline.h"
 

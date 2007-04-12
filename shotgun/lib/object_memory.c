@@ -135,11 +135,8 @@ void object_memory_print_stats(object_memory om) {
 void object_memory_check_ptr(void *ptr, OBJECT obj) {
   object_memory om = (object_memory)ptr;
   if(REFERENCE_P(obj)) {
-    if(om->collect_now) {
-      assert(baker_gc_contains_spill_p(om->gc, obj));
-    } else {
-      assert(baker_gc_contains_p(om->gc, obj));
-    }
+    assert(baker_gc_contains_spill_p(om->gc, obj) ||
+           mark_sweep_contains_p(om->ms, obj));
   }
 }
 

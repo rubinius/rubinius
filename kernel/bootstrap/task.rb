@@ -67,4 +67,20 @@ class Channel
   def value
     at(1)
   end
+
+  def send_in_microseconds(count)
+    Ruby.primitive :channel_send_in_microseconds
+  end
+
+  def send_on_readable(io)
+    Ruby.primitive :channel_send_on_readable
+  end
+
+  def send_on_writable(io)
+    Ruby.primitive :channel_send_on_readable
+  end
+
+  def send_on_signal(number)
+    Ruby.primitive :channel_send_on_signal
+  end
 end
