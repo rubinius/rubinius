@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cp vars.mk config.mk
 
