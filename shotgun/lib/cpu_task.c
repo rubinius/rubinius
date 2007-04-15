@@ -11,6 +11,7 @@
 #include "hash.h"
 #include "symbol.h"
 #include "list.h"
+#include "array.h"
 #include <glib.h>
 
 #include "rubinius.h"
@@ -60,21 +61,25 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   return obj;
 }
 
-void cpu_task_swap(STATE, cpu c, OBJECT cur, OBJECT nw) {
+void cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
-  OBJECT home;
+  OBJECT home, cur;
   cpu_save_registers(state, c);
+  
+  cur = c->current_task;
   
   ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
   cur_task = (struct cpu_task*)BYTES_OF(cur);
   new_task = (struct cpu_task*)BYTES_OF(nw);
   
   memcpy(cur_task, ct, sizeof(struct cpu_task));
+  // printf(" Saving to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)cur, c->sp, c->ip, c->method, c->active_context, c->home_context);
   memcpy(ct, new_task, sizeof(struct cpu_task));
   
   home = NIL_P(c->home_context) ? c->active_context : c->home_context;
   
   cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
+  // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, c->method, c->active_context, c->home_context);
   
   c->current_task = nw;
 }
@@ -127,6 +132,20 @@ OBJECT cpu_task_top(STATE, OBJECT self) {
   return *task->sp_ptr;
 }
 
+void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary) {
+  struct cpu_task *task;
+  
+  task = (struct cpu_task*)BYTES_OF(self);
+  task->outstanding = ary;
+}
+
+OBJECT cpu_task_get_outstanding(STATE, OBJECT self) {
+  struct cpu_task *task;
+  
+  task = (struct cpu_task*)BYTES_OF(self);
+  return task->outstanding;
+}
+
 
 #define thread_set_priority(obj, val) SET_FIELD(obj, 1, val)
 #define thread_set_task(obj, val) SET_FIELD(obj, 2, val)
@@ -176,6 +195,8 @@ void cpu_thread_schedule(STATE, OBJECT self) {
 OBJECT cpu_thread_find_highest(STATE) {
   int i, t;
   OBJECT lst, tup;
+  
+  cpu_event_update(state);
 
   while(1) {
     tup = state->global->scheduled_threads;
@@ -187,11 +208,12 @@ OBJECT cpu_thread_find_highest(STATE) {
       }
     }
     // printf("Nothing to do, waiting for events.\n");
+    if(!cpu_event_outstanding_p(state)) {
+      printf("DEADLOCK!\n");
+      abort();
+    }
     cpu_event_run(state);
   }
-  
-  printf("DEADLOCK!\n");
-  abort();
 }
 
 void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
@@ -206,7 +228,7 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
      Task's were used inside the thread itself (not just for the thread). */
   thread_set_task(c->current_thread, c->current_task);
   task = thread_get_task(thr);
-  cpu_task_swap(state, c, c->current_task, task);
+  cpu_task_select(state, c, task);
   c->current_thread = thr;
 }
 
@@ -217,11 +239,6 @@ void cpu_thread_run_best(STATE, cpu c) {
   cpu_thread_switch(state, c, thr);
 }
 
-#define channel_set_waiting(obj, val) SET_FIELD(obj, 0, val)
-#define channel_get_waiting(obj) NTH_FIELD(obj, 0)
-#define channel_set_value(obj, val) SET_FIELD(obj, 1, val)
-#define channel_get_value(obj) NTH_FIELD(obj, 1)
-
 OBJECT cpu_channel_new(STATE) {
   OBJECT chan;
   chan = rbs_class_new_instance(state, BASIC_CLASS(channel));
@@ -229,8 +246,24 @@ OBJECT cpu_channel_new(STATE) {
   return chan;
 }
 
+void _cpu_channel_clear_outstanding(STATE, cpu c, OBJECT thr, OBJECT ary) {
+  OBJECT t1, t2, t3;
+  int k, j;
+  
+  t1 = array_get_tuple(ary);
+  k = FIXNUM_TO_INT(array_get_total(ary));
+  
+  for(j = 0; j < k; j++) {
+    t2 = tuple_at(state, t1, j);
+    
+    t3 = channel_get_waiting(t2);
+    list_delete(state, t3, thr);
+  }
+  
+}
+
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
-  OBJECT lst, thr, task;
+  OBJECT lst, lst2, thr, task, tup, out;
   long int cur_prio, new_prio;
   
   /* Sort of like setjmp, don't allow nil to be sent, because nil means there
@@ -241,8 +274,14 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
   lst = channel_get_waiting(self);
   
   if(list_empty_p(lst)) {
-    channel_set_value(self, obj);
+    lst2 = channel_get_value(self);
+    if(NIL_P(lst2)) {
+      lst2 = list_new(state);
+      channel_set_value(self, lst2);
+    }
+    list_append(state, lst2, obj);
   } else {
+    tup = tuple_new2(state, 2, self, obj);
     thr = list_shift(state, lst);
     task = thread_get_task(thr);
     /* Edge case. After going all around, we've decided that the current
@@ -250,9 +289,16 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
        to the current stack, since thats the current task's stack. */
     if(task == c->current_task) {
       stack_pop();
-      stack_push(obj);
+      stack_push(tup);
+      if(!NIL_P(c->outstanding)) {
+        _cpu_channel_clear_outstanding(state, c, thr, c->outstanding);
+      }
     } else {
-      cpu_task_set_top(state, task, obj);
+      cpu_task_set_top(state, task, tup);
+      out = cpu_task_get_outstanding(state, task);
+      if(!NIL_P(out)) {
+        _cpu_channel_clear_outstanding(state, c, thr, out);
+      }
     }
     /* If we're resuming a thread thats of higher priority than we are, 
        we run it now, otherwise, we just schedule it to be run. */
@@ -269,12 +315,20 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
   return obj;
 }
 
+void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
+  OBJECT lst;
+    
+  lst = channel_get_waiting(self);
+  list_append(state, lst, cur_thr);
+}
+
 void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
-  OBJECT val, lst;
+  OBJECT val, obj, lst;
   
   val = channel_get_value(self);
-  if(!NIL_P(val)) {
-    stack_push(val);
+  if(!NIL_P(val) && !list_empty_p(val)) {
+    obj = list_shift(state, val);
+    stack_push(tuple_new2(state, 2, self, obj));
     return;
   }
   
@@ -285,3 +339,4 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   list_append(state, lst, cur_thr);
   cpu_thread_run_best(state, c);
 }
+

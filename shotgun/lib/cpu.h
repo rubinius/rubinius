@@ -44,6 +44,7 @@ struct fast_context {
   long int cache_index; \
   OBJECT *stack_top; \
   unsigned long int stack_size; \
+  OBJECT outstanding; \
   OBJECT exception; \
   OBJECT enclosing_class; \
   OBJECT new_class_of; \
@@ -56,7 +57,7 @@ struct fast_context {
   unsigned char *ip_ptr; \
   OBJECT *sp_ptr; 
 
-#define TASK_FIELDS 21
+#define TASK_FIELDS 22
 
 struct cpu_task {
   CPU_TASK_REGISTERS;
@@ -139,7 +140,7 @@ void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth);
 void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
-void cpu_task_swap(STATE, cpu c, OBJECT cur, OBJECT nw);
+void cpu_task_select(STATE, cpu c, OBJECT self);
 OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be);
 OBJECT cpu_channel_new(STATE);
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj);
@@ -150,6 +151,9 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
 
+#define cpu_event_outstanding_p(state) (state->thread_infos != NULL)
+#define cpu_event_update(state) if(cpu_event_outstanding_p(state)) cpu_event_runonce(state)
+void cpu_event_runonce(STATE);
 void cpu_event_init(STATE);
 void cpu_event_run(STATE);
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv);
@@ -157,7 +161,13 @@ void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_
 void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd);
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
+void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr);
+void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary);
 
+#define channel_set_waiting(obj, val) SET_FIELD(obj, 0, val)
+#define channel_get_waiting(obj) NTH_FIELD(obj, 0)
+#define channel_set_value(obj, val) SET_FIELD(obj, 1, val)
+#define channel_get_value(obj) NTH_FIELD(obj, 1)
 
 #if 1
 

@@ -29,8 +29,8 @@ Kernel configured for a single processor only.
 Processor type: ppc7450 (PowerPC 7450)
 Processor active: 0
 Primary memory available: 1.50 gigabytes
-Default processor set: 103 tasks, 473 threads, 1 processors
-Load average: 5.12, Mach factor: 0.16
+Default processor set: 98 tasks, 440 threads, 1 processors
+Load average: 3.07, Mach factor: 0.24
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown

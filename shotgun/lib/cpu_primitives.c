@@ -16,6 +16,7 @@
 #include "subtend.h"
 #include "subtend/nmc.h"
 #include "fixnum.h"
+#include "list.h"
 
 #include <stdio.h>
 #include <string.h>

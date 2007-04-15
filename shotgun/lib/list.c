@@ -62,3 +62,28 @@ OBJECT list_shift(STATE, OBJECT self) {
   return list_node_get_object(node);
 }
 
+void list_delete(STATE, OBJECT self, OBJECT obj) {
+  OBJECT node, lst, nxt;
+  int count;
+  
+  count = 0;
+  lst = Qnil;
+  node = list_get_first(self);
+  while(!NIL_P(node)) {
+    nxt = list_node_get_next(node);
+    
+    if(list_node_get_object(node) == obj) {
+      if(NIL_P(lst)) {
+        list_set_first(self, nxt);
+      } else {
+        list_node_set_next(lst, nxt);
+      }
+    } else {
+      count++;
+    }
+    
+    node = nxt;
+  }
+  
+  list_set_count(self, I2N(count));
+}

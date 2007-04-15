@@ -35,6 +35,7 @@ void cpu_initialize(STATE, cpu c) {
   c->exception = Qnil;
   c->enclosing_class = Qnil;
   c->new_class_of = Qnil;
+  c->outstanding = Qnil;
   c->locals = Qnil;
   c->literals = Qnil;
   c->block = Qnil;
@@ -125,6 +126,7 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->main_thread);
   ar(c->current_task);
   ar(c->main_task);
+  ar(c->outstanding);
   len = c->paths->len;
   g_ptr_array_add(roots, (gpointer)I2N(len));
   // printf("Paths: %d\n", len);
@@ -164,6 +166,7 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->main_thread);
   ar(c->current_task);
   ar(c->main_task);
+  ar(c->outstanding);
   tmp = g_ptr_array_index(roots, start++);
   len = FIXNUM_TO_INT((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {

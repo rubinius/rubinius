@@ -42,6 +42,10 @@ void cpu_event_run(STATE) {
   event_base_loop(state->event_base, EVLOOP_ONCE);
 }
 
+void cpu_event_runonce(STATE) {
+  event_base_loop(state->event_base, EVLOOP_ONCE | EVLOOP_NONBLOCK);  
+}
+
 void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data) {
   struct thread_info *ti = (struct thread_info*)state->thread_infos;
   while(ti) {
@@ -60,15 +64,17 @@ void _cpu_event_register_info(STATE, struct thread_info *ti) {
     top->next = ti;
     ti->prev = top;
     ti->next = NULL;
-    state->thread_infos = (void*)ti;
   }
 }
 
-void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
-  struct thread_info *tmp;
-  
+void _cpu_event_unregister_info(STATE, struct thread_info *ti) {  
   if(!ti->prev) {
-    state->thread_infos = NULL;
+    if(ti->next) {
+      state->thread_infos = ti->next;
+      ti->next->prev = NULL;
+    } else {
+      state->thread_infos = NULL;
+    }
   } else {
     ti->prev->next = ti->next;
     if(ti->next) {
@@ -93,7 +99,7 @@ void _cpu_wake_channel_alot(int fd, short event, void *arg) {
   STATE;
   struct thread_info *ti = (struct thread_info*)arg;
   
-  state = ti->state;  
+  state = ti->state;
   cpu_channel_send(state, ti->c, ti->channel, I2N((int)event));
 }
 

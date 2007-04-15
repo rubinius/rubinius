@@ -4,6 +4,15 @@ class Thread
 
   def initialize(&prc)
     raise "Must pass in a block" unless prc
+    setup_task do
+      prc.call
+      @joins.each do |ch|
+        ch.send self
+      end
+    end
+  end
+
+  def setup_task(&prc)
     @task.associate prc.block
   end
   
@@ -32,5 +41,31 @@ class Thread
 
   def wakeup
     Ruby.primitive :thread_schedule
+  end
+
+  def join(time=nil)
+    if time
+      tc = Channel.new
+      tc.send_in_microseconds(time * 1_000_000)
+    end
+    
+    jc = Channel.new
+    @joins << jc
+
+    if time
+      tup = Channel.receive_many([tc, jc])
+      return nil if tup[0] == tc
+    else
+      jc.receive
+    end
+
+    return self
+  end
+
+  def self.sleep(secs)
+    chan = Channel.new
+    chan.send_in_microseconds(secs * 1_000_000)
+    chan.receive
+    return true
   end
 end

@@ -407,6 +407,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     // printf("Restoring fast context %p\n", home);
     /* Only happens if we're restoring a block. */
     if(ctx != home) {
+      assert(!ISA(ctx, state->global->fastctx));
       c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
       c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
             
@@ -459,7 +460,6 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     c->raiseable = RTEST(methctx_get_raiseable(home));
     c->sender = methctx_get_sender(ctx);
     c->self = methctx_get_receiver(home);
-    c->home_context = home;
     c->locals = methctx_get_locals(home);
     c->block = methctx_get_block(home);
     c->method = methctx_get_method(home);
@@ -476,7 +476,8 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   
   cpu_cache_ip(c);
   cpu_cache_sp(c);
-    
+  
+  c->home_context = home;
   c->active_context = ctx;
 }
 
@@ -511,7 +512,7 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
       
     /* Switch back to the main task... */
     } else if(c->current_task != c->main_task) {
-      cpu_task_swap(state, c, c->current_task, c->main_task);
+      cpu_task_select(state, c, c->main_task);
     }
     
   } else {

@@ -2071,16 +2071,15 @@ class ShotgunPrimitives
     CODE
   end
   
-  def task_swap
+  def task_set_current
     <<-CODE
+    stack_pop(); /* class */
     self = stack_pop();
-    t1 =   stack_pop();
     
     GUARD( RISA(self, task) );
-    GUARD( RISA(t1,   task) );
     
-    cpu_task_swap(state, c, self, t1);
-    stack_push(Qnil);
+    stack_push(Qnil);    
+    cpu_task_select(state, c, self);
     CODE
   end
   
@@ -2157,6 +2156,42 @@ class ShotgunPrimitives
     cpu_channel_receive(state, c, self, c->current_thread);
     /* Don't push anything on thes tack. The stack contents are handled
        when the channel is restored. */
+    CODE
+  end
+  
+  def channel_receive_many
+    <<-CODE
+    OBJECT ary;
+    stack_pop(); /* class */
+    ary = stack_pop();
+    
+    GUARD(RISA(ary, array));
+    t1 = array_get_tuple(ary);
+    k = FIXNUM_TO_INT(array_get_total(ary));
+    
+    for(j = 0; j < k; j++) {
+      t2 = tuple_at(state, t1, j);
+      
+      /* Oh, this channel is already ready! return it's value. */
+      t3 = channel_get_value(t2);
+      if(!NIL_P(t3) && !list_empty_p(t3)) {
+        channel_set_value(t2, Qnil);
+        stack_push(tuple_new2(state, 2, t2, list_shift(state, t3)));
+        return TRUE;
+      }
+    }
+    
+    for(j = 0; j < k; j++) {
+      t2 = tuple_at(state, t1, j);
+      cpu_channel_register(state, c, t2, c->current_thread);      
+    }
+    
+    c->outstanding = ary;
+    
+    /* We push something on the stack to reserve a place to put the result. */
+    stack_push(I2N(343434));
+    
+    cpu_thread_run_best(state, c);
     CODE
   end
   

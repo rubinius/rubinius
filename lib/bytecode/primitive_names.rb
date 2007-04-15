@@ -134,7 +134,7 @@ module Bytecode
       :fastctx_dup,
       :gc_collect_references,
       :task_dup,
-      :task_swap,
+      :task_set_current,
       :task_associate,
       :task_current,
       :task_at,
@@ -150,7 +150,8 @@ module Bytecode
       :channel_send_in_microseconds,
       :channel_send_on_readable,
       :channel_send_on_writable,
-      :channel_send_on_signal
+      :channel_send_on_signal,
+      :channel_receive_many
     ]
 
     FirstRuntimePrimitive = 1024

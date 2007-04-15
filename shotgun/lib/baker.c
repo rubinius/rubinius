@@ -204,6 +204,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(active_context);
       fc_mutate(home_context);
       fc_mutate(main);
+      fc_mutate(outstanding);
       
       OBJECT *sp;
 
@@ -401,7 +402,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     DEBUG("Enlarging next!\n");
     baker_gc_enlarge_next(g, g->current->size * 1.5);
   }
-    
+  
   g_ptr_array_free(rs, TRUE);
   // printf("%d objects promoted.\n", promoted);
   return TRUE;
