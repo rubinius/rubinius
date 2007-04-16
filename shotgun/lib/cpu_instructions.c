@@ -407,7 +407,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     // printf("Restoring fast context %p\n", home);
     /* Only happens if we're restoring a block. */
     if(ctx != home) {
-      assert(!ISA(ctx, state->global->fastctx));
+      // assert(!ISA(ctx, state->global->fastctx));
       c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
       c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
             
