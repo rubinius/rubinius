@@ -250,7 +250,6 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       baker_gc_set_forwarding_address(obj, dest);
       HEADER(dest)->gc++;
     } else {
-      assert(HEADER(obj)->klass != state->global->fastctx);
       CLEAR_AGE(obj);
       promoted++;
       dest = (*g->tenure)(g->tenure_data, obj);
