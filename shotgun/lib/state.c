@@ -114,6 +114,8 @@ void state_run_cleanup(STATE, OBJECT obj) {
   
   cls = object_class(state, obj);
   
+  if(!REFERENCE_P(cls)) return;
+  
   func = g_hash_table_lookup(state->cleanup, (gconstpointer)module_get_name(cls));
   if(func) {
     func(state, obj);

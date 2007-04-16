@@ -113,6 +113,8 @@ OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
   OBJECT dest;
   object_memory om = (object_memory)data;
   
+  // printf("Tenuring %p\n", (void*)obj);
+  
   dest = mark_sweep_allocate(om->ms, NUM_FIELDS(obj));
   /*
   HEADER(dest)->flags = HEADER(obj)->flags;

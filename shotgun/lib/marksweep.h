@@ -22,6 +22,7 @@ struct _mark_sweep_gc {
   int enlarged;
   int num_chunks;
   OBJECT become_from, become_to;
+  GPtrArray *seen_weak_refs;
 };
 
 typedef struct _mark_sweep_gc *mark_sweep_gc;

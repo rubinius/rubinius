@@ -21,6 +21,7 @@
 #include "methctx.h"
 #include "cpu.h"
 #include "bytearray.h"
+#include "tuple.h"
 
 #define FREE_OBJECT 0x10000
 #define BARRIER (2**REFSIZE)
@@ -37,6 +38,7 @@ mark_sweep_gc mark_sweep_new(int chunk_size) {
   ms->remember_set = g_ptr_array_new();
   mark_sweep_add_chunk(ms);
   ms->enlarged = 0;
+  ms->seen_weak_refs = g_ptr_array_new();
   return ms;
 }
 
@@ -230,11 +232,7 @@ void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj) {
   if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
     g_ptr_array_remove(state->om->gc->remember_set, (gpointer)obj);
   }
-  
-  if(HAS_WEAK_REFS_P(obj)) {
-    object_cleanup_weak_refs(state, obj);  
-  }
-  
+    
   if(SHOULD_CLEANUP_P(obj)) {
     state_run_cleanup(state, obj);
   }
@@ -245,6 +243,8 @@ void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj) {
   
   /* FIXME: adjust the remember set */
 }
+
+#define mark_sweep_free_object(obj) (HEADER(obj)->flags == FREE_FLAG)
 
 #define MARK_OBJ(obj) (HEADER(obj)->gc |= MS_MARK)
 #define UNMARK_OBJ(obj) (HEADER(obj)->gc ^= MS_MARK)
@@ -318,10 +318,11 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     }
   }
   
-  /*
-   Disabled until proper code to update weakrefs is added.
-  if(WEAK_REFERENCES_P(iobj)) return;
-  */
+  if(WEAK_REFERENCES_P(iobj)) {
+    // printf("%p has weak refs.\n", (void*)iobj);
+    g_ptr_array_add(ms->seen_weak_refs, (gpointer)iobj);
+    return;
+  }
   
   if(!_object_stores_bytes(iobj)) {
     for(i = 0; i < NUM_FIELDS(iobj); i++) {
@@ -545,9 +546,22 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
 void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   ms->enlarged = 0;
   objects_marked = 0;
+  ms->seen_weak_refs->len = 0;
   mark_sweep_mark_phase(state, ms, roots);
   // printf("%d objects marked.\n", objects_marked);
-  mark_sweep_sweep_phase(state, ms);  
+  mark_sweep_sweep_phase(state, ms);
+  
+  int j, i;
+  OBJECT tmp, t2;
+  for(i = 0; i < ms->seen_weak_refs->len; i++) {
+    tmp = (OBJECT)g_ptr_array_index(ms->seen_weak_refs, i);
+    for(j = 0; j < NUM_FIELDS(tmp); j++) {
+      t2 = tuple_at(state, tmp, j);
+      if(REFERENCE_P(t2) && GC_ZONE(t2) == GC_MATURE_OBJECTS && mark_sweep_free_object(t2)) {
+        tuple_put(state, tmp, j, Qnil);
+      }
+    }
+  }
 }
 
 void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArray *refs) {

@@ -32,7 +32,7 @@ int heap_allocate_memory(rheap h) {
   }
   h->scan = h->address;
   memset((void*)(h->address), 0, h->size);
-  h->last = h->address + h->size;
+  h->last = h->address + h->size - 1;
   return heap_reset(h);
 }
 

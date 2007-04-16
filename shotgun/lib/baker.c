@@ -134,10 +134,32 @@ static inline OBJECT baker_gc_maybe_mutate(baker_gc g, OBJECT iobj) {
 
 int _object_stores_bytes(OBJECT self);
 static int depth = 0;
+static GPtrArray *_track_refs = NULL;
+
+void track_ref(OBJECT obj) {
+  if(!_track_refs) {
+    _track_refs = g_ptr_array_new();
+  }
+  g_ptr_array_add(_track_refs, (gpointer)obj);
+}
+
+void untrack_ref(OBJECT obj) {
+  if(!_track_refs) return;
+  g_ptr_array_remove(_track_refs, (gpointer)obj);
+}
 
 static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   OBJECT cls, tmp, mut;
   int i;
+  
+  if(_track_refs) {
+    int i;
+    for(i = 0; i < _track_refs->len; i++) {
+      if(_track_refs->pdata[i] == (gpointer)iobj) {
+        printf("Found2 %p!\n", (void*)iobj);
+      }
+    }
+  }
   
   //printf("%d: Mutating class of %p\n", ++depth, iobj);
   
@@ -235,6 +257,15 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
     return baker_gc_maybe_mutate(state, g, g->become_to);
   }
   
+  if(_track_refs) {
+    int i;
+    for(i = 0; i < _track_refs->len; i++) {
+      if(_track_refs->pdata[i] == (gpointer)obj) {
+        printf("Found %p!\n", (void*)obj);
+      }
+    }
+  }
+  
   if((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj)) {
     // int age = AGE(obj);
     assert(HEADER(obj)->klass != state->global->fastctx);
@@ -257,6 +288,16 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       _mutate_references(state, g, dest);
     }
   }
+  
+  if(_track_refs) {
+    int i;
+    for(i = 0; i < _track_refs->len; i++) {
+      if(_track_refs->pdata[i] == (gpointer)dest) {
+        printf("Found3 %p!\n", (void*)dest);
+      }
+    }
+  }
+  
   return dest;
 }
 
@@ -377,19 +418,23 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     }
   }
   
+  cpu_event_each_channel(state, baker_gc_mutate_from, (void*)g);
+  
   int j;
   OBJECT t2;
   for(i = 0; i < g->seen_weak_refs->len; i++) {
     tmp = (OBJECT)g_ptr_array_index(g->seen_weak_refs, i);
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
       t2 = tuple_at(state, tmp, j);
-      if(baker_gc_forwarded_p(t2)) {
-        tuple_put(state, tmp, j, baker_gc_forwarded_object(t2));
+      if(GC_ZONE(t2) == GC_YOUNG_OBJECTS) {
+        if(baker_gc_forwarded_p(t2)) {
+          tuple_put(state, tmp, j, baker_gc_forwarded_object(t2));
+        } else {
+          tuple_put(state, tmp, j, Qnil);
+        }
       }
     }
   }
-  
-  cpu_event_each_channel(state, baker_gc_mutate_from, (void*)g);
   
   baker_gc_swap(g);
   
@@ -439,11 +484,7 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(cur);
     
-    if(!baker_gc_forwarded_p(obj)) {
-      if(HAS_WEAK_REFS_P(obj)) {
-        object_cleanup_weak_refs(state, obj);  
-      }
-      
+    if(!baker_gc_forwarded_p(obj)) {      
       if(SHOULD_CLEANUP_P(obj)) {
         state_run_cleanup(state, obj);
       }

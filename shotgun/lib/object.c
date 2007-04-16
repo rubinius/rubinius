@@ -94,34 +94,8 @@ OBJECT object_make_weak_ref(STATE, OBJECT self) {
   
   tup = tuple_new2(state, 1, self);
   FLAG_SET(tup, RefsAreWeakFlag);
-  FLAG_SET(self, HasWeakRefsFlag);
-
-  meta = object_metaclass(state, self);
-  
-  lst = class_get_instance_fields(meta);
-  if(NIL_P(lst)) {
-    lst = tuple_new2(state, 1, tup);
-  } else {
-    lst = tuple_enlarge(state, tup, 1);
-    tuple_put(state, lst, NUM_FIELDS(lst) - 1, tup);
-  }
-  
-  class_set_instance_fields(meta, lst);
   
   return tup;
-}
-
-void object_cleanup_weak_refs(STATE, OBJECT self) {
-  OBJECT meta, lst, tup;
-  int i;
-  
-  meta = object_metaclass(state, self);
-  lst = class_get_instance_fields(meta);
-  
-  for(i = 0; i < NUM_FIELDS(lst); i++) {
-    tup = tuple_at(state, lst, i);
-    tuple_put(state, 0, tup, Qnil);
-  }
 }
 
 int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
