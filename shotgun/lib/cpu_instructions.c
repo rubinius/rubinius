@@ -183,6 +183,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
   hsh = module_get_methods(klass);
   
+  assert(ISA(hsh, state->global->hash));
+  
   meth = hash_find(state, hsh, name);
   
   /*
@@ -205,7 +207,10 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
         class_get_name(klass)))
     );
     */
-    meth = hash_find(state, module_get_methods(klass), name);
+    hsh = module_get_methods(klass);
+    assert(ISA(hsh, state->global->hash));
+    
+    meth = hash_find(state, hsh, name);
   }
   
   *mod = klass;

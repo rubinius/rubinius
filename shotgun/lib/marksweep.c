@@ -23,8 +23,13 @@
 #include "bytearray.h"
 #include "tuple.h"
 
+#define to_header(obj) ((struct ms_header*)((obj) - sizeof(struct ms_header)))
+#define to_object(hed) ((OBJECT)(((int)(hed)) + sizeof(struct ms_header)))
+
 #define FREE_OBJECT 0x10000
 #define BARRIER (2**REFSIZE)
+
+#define TABLE_INCS 4096
 
 #define FREE_FLAG 0xff
 
@@ -42,192 +47,67 @@ mark_sweep_gc mark_sweep_new(int chunk_size) {
   return ms;
 }
 
-void mark_sweep_adjust_extremes(mark_sweep_gc ms, ms_chunk *new) {
-  if(!ms->extreme_min || new->address < ms->extreme_min) {
-    ms->extreme_min = new->address;
-  }
-  
-  if(!ms->extreme_max || new->last_address > ms->extreme_max) {
-    ms->extreme_max = new->last_address;
-  }
-}
-
 void mark_sweep_add_chunk(mark_sweep_gc ms) {
   ms_chunk *new;
-  OBJECT obj;
-  
-  ms->enlarged = 1;
-  ms->num_chunks++;
   
   new = calloc(1, sizeof(struct ms_chunk));
-  new->size = ms->chunk_size * REFSIZE;
-  new->address = calloc(1, new->size);
-  new->last_address = ((char*)new->address) + new->size - 1;
   
-  // printf("Added a new chunk: %p (%d)\n", new->address, ms->num_chunks);
+  ms->num_chunks++;
+  new->num_entries = TABLE_INCS;
+  new->entries = calloc(new->num_entries, sizeof(struct ms_entry));
+  new->next = NULL;
+  new->next_entry = 0;
   
-  mark_sweep_adjust_extremes(ms, new);
-  
-  if(!ms->chunks) {
-    ms->chunks = new;
+  if(!ms->current) {
+    ms->current = new;
   } else {
-    ms_chunk *cur;
-    cur = ms->chunks;
-    while(cur->next) { cur = cur->next; }
-    cur->next = new;
+    ms->current->next = new;
+    ms->current = new;
   }
-    
-  obj = (OBJECT)new->address;
-  HEADER(obj)->flags = FREE_FLAG;
-  HEADER(obj)->klass = 0;
-  SET_NUM_FIELDS(obj, ms->chunk_size - HEADER_SIZE);
-  
-  // TODO figure out how to use the barrier
-  /* Scribble the barrier value at the end of the object. */
-  // SET_FIELD(obj, ms->chunk_size-1, BARRIER);
-  
-  if(!ms->free_list) {
-    ms->free_list = obj;
-  } else {
-    HEADER(ms->free_list)->klass = obj;
-  }
-}
-
-void mark_sweep_free_chunk(mark_sweep_gc ms, ms_chunk *chunk) {
-  ms_chunk *cur, *lst;
-  
-  cur = ms->chunks;
-  lst = NULL;
-  
-  ms->extreme_min = ms->extreme_max = 0;
-  
-  while(cur) {
-    if(cur == chunk) {
-      if(!lst) {
-        ms->chunks = chunk->next;
-      } else {
-        lst->next = chunk->next;
-      }
-      cur = chunk->next;
-    } else {
-      mark_sweep_adjust_extremes(ms, cur);
-      lst = cur;
-      cur = cur->next;
-    }
-  }
-  
-  // printf("Free'd chunk: %p\n", chunk->address);
-  
-  free(chunk->address);
-  free(chunk);
-  
-  ms->num_chunks--;
 }
 
 OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
-  OBJECT obj, lst, rest;
-  int orig_fields, fields, bytes;
-    
-  /* Make sure we allocate enough room for the header of the
-     object too. */
-
-  fields = obj_fields + HEADER_SIZE;
-  bytes = fields * REFSIZE;
-    
-  lst = 0;
+  int bytes, i, idx;
+  struct ms_header *oh;
+  ms_chunk *chk;
+  OBJECT ro;
   
-  obj = ms->free_list;
-  while(obj && NUM_FIELDS(obj) < fields) {
-    lst = obj;
-    obj = HEADER(obj)->klass;
-  }
+  bytes = sizeof(struct ms_header) + ((obj_fields + HEADER_SIZE) * REFSIZE);
   
-  if(!obj) {
+  chk = ms->current;
+  idx = chk->next_entry;
+  
+  chk->next_entry++;
+  if(chk->next_entry == chk->num_entries) {
     mark_sweep_add_chunk(ms);
-    obj = ms->free_list;
-    lst = 0;
+    chk = ms->current;
+    chk->next_entry++;
+    idx = 0;
+  }
+  
+  oh = (struct ms_header*)calloc(1, bytes);
+  assert(oh != NULL);
+  chk->entries[idx].object = oh;
+  chk->entries[idx].fields = obj_fields;
+  chk->entries[idx].bytes = bytes;
+  chk->entries[idx].marked = 0;
+  
+  oh->entry = chk->entries + idx;
+  assert(oh->entry->object == chk->entries[idx].object);
+  assert(oh->entry->object == oh);
+  ro = to_object(oh);
+  // printf("Allocated %d\n", ro);
+  SET_NUM_FIELDS(ro, obj_fields);
     
-    while(obj && NUM_FIELDS(obj) < fields) {
-      lst = obj;
-      obj = HEADER(obj)->klass;
-    }
-  }
-  
-  /* We found exactly the right size. */
-  if(NUM_FIELDS(obj) == fields) {
-    rest = HEADER(obj)->klass;
-  } else {
-    orig_fields = NUM_FIELDS(obj);
-    SET_NUM_FIELDS(obj, obj_fields);
-  
-    rest = (OBJECT)(obj + bytes);
-    HEADER(rest)->flags = FREE_FLAG;
-    HEADER(rest)->klass = HEADER(obj)->klass;
-    SET_NUM_FIELDS(rest, orig_fields - fields);
-  }
-  
-  if(!lst) {
-    ms->free_list = rest;
-  } else {
-    HEADER(lst)->klass = rest;
-  }
-  
-  HEADER(obj)->flags = 0;
-    
-  return obj;
+  return ro;
 }
 
-static int freed_objects = 0;
-static int marked_objects = 0;
-
-void mark_sweep_free(mark_sweep_gc ms, OBJECT obj) {
-  OBJECT nxt, fl, lst;
-  int found;
+void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
+  OBJECT obj;
   
-  freed_objects++;
+  obj = to_object(ent->object);
   
-  // printf("freeing %p (%s)\n", obj, _inspect(obj));
-  
-  fl = ms->free_list;
-  /* Free list is empty, the fast case. */
-  if(!fl) {
-    ms->free_list = obj;
-    return;
-  }
-  
-  HEADER(obj)->klass = 0;
-  HEADER(obj)->flags = FREE_FLAG;
-  
-  /* Try and collapse this object into the one after it. */
-  /* TODO: find a better way than searching for a next object. */
-  
-  nxt = (OBJECT)(obj + SIZE_IN_BYTES(obj));
-  
-  found = 0;
-  
-  lst = 0;
-  while(fl) {
-    // printf(" looking through %p\n", fl);
-    if(fl == nxt) {
-      found = 1;
-      break;
-    }
-    lst = fl;
-    fl = HEADER(fl)->klass;
-  }
-  
-  if(found) {
-    SET_NUM_FIELDS(fl, (HEADER_SIZE + NUM_FIELDS(obj)));
-    return;
-  }
-  
-  if(lst == obj) {}
-  
-  /* Couldn't collapse it, append it to the end. */
-  HEADER(lst)->klass = obj;
-}
-
-void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj) {
+  // printf("Freeing %d\n", obj);
   
   if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
     g_ptr_array_remove(state->om->gc->remember_set, (gpointer)obj);
@@ -237,48 +117,20 @@ void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj) {
     state_run_cleanup(state, obj);
   }
   
-  HEADER(obj)->flags = FREE_FLAG;
-  HEADER(obj)->klass = ms->free_list;
-  ms->free_list = obj;
+  free(ent->object);
   
-  /* FIXME: adjust the remember set */
+  ent->object = NULL;
+  ent->bytes = 0;
+  ent->marked = 0;
+  ent->fields = 0;
 }
+
+static int freed_objects = 0;
+static int marked_objects = 0;
 
 #define mark_sweep_free_object(obj) (HEADER(obj)->flags == FREE_FLAG)
 
-#define MARK_OBJ(obj) (HEADER(obj)->gc |= MS_MARK)
-#define UNMARK_OBJ(obj) (HEADER(obj)->gc ^= MS_MARK)
-#define MARKED_P(obj) (HEADER(obj)->gc & MS_MARK)
-
-int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj) {
-  ms_chunk *cur;
-  if(obj < (OBJECT)ms->extreme_min || obj >= (OBJECT)ms->extreme_max) {
-    return FALSE;
-  }
-  
-  cur = ms->chunks;
-  while(cur) {
-    if(obj >= (OBJECT)cur->address && obj < (OBJECT)cur->last_address) {
-      return TRUE;
-    }
-    cur = cur->next;
-  }
-  
-  return FALSE;
-}
-
 void mark_sweep_describe(mark_sweep_gc ms) {
-  ms_chunk *cur;
-  int i;
-  
-  printf("Number of chunks: %d\n", ms->num_chunks);
-  
-  cur = ms->chunks;
-  i = 0;
-  while(cur) {
-    printf("   %d:  %p => %p\n", i++, cur->address, cur->last_address);
-    cur = cur->next;
-  }
   printf("Last marked: %d\n", objects_marked);
 }
 
@@ -287,28 +139,37 @@ void mark_sweep_describe(mark_sweep_gc ms) {
 
 int _object_stores_bytes(OBJECT self);
 
+int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj) {
+  return GC_ZONE(obj) == GC_MATURE_OBJECTS;
+}
+
+#define MARK_OBJ(obj) (HEADER(obj)->gc |= MS_MARK)
+#define UNMARK_OBJ(obj) (HEADER(obj)->gc ^= MS_MARK)
+#define MARKED_P(obj) (HEADER(obj)->gc & MS_MARK)
+
 void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;
+  struct ms_header *header;
   
-  /* Already marked! */
-  if(MARKED_P(iobj)) return;
-  
-  // printf("Marking object %p\n", iobj);
-  if(mark_sweep_contains_p(ms, iobj)) {
+  if(GC_ZONE(iobj) == GC_MATURE_OBJECTS) {
+    header = to_header(iobj);
     
-    /*
-    if(FLAG_SET_ON_P(iobj, gc, REMEMBER_FLAG)) {
-      printf("OMG! %p (%s) is rememebered and alive!\n", iobj, _inspect(iobj));
-    }
-    */
-    
-    objects_marked++;
+    assert(header->entry->object == header);
+        
+    /* Already marked! */
+    if(header->entry->marked) return;
+    header->entry->marked = 1;
+  } else {
+    if(MARKED_P(iobj)) return;
+    MARK_OBJ(iobj);
   }
   
+  // printf("Marked %d\n", iobj);
+  
+  objects_marked++;
   marked_objects++;
-    
-  MARK_OBJ(iobj);
+  
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
     if(BCM_P(cls)) {
@@ -497,50 +358,31 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
 }
 
 void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
-  ms_chunk *cur;
-  char *addr, *last;
+  int i;
   OBJECT obj;
-  int osz, used;
+  struct ms_entry *ent;
+  ms_chunk *cur;
   
   cur = ms->chunks;
   
-  freed_objects = 0;
-  
-  /* For each chunk... */
   while(cur) {
-    
-    addr = (char*)(cur->address);
-    last = (addr + cur->size) - (HEADER_SIZE * REFSIZE);
-    
-    used = 0;
-    /* For each object.. */
-    while(addr < last) {
-      obj = (OBJECT)addr;
-      osz = SIZE_IN_BYTES(obj);
-      
-      if(HEADER(obj)->flags != FREE_FLAG) {
-        /* Check if it's marked and recycle if not. */
-        if(!MARKED_P(obj)) {
-          mark_sweep_free_fast(state, ms, obj);
+  
+    for(i = 0; i < cur->num_entries; i++) {
+      ent = &(cur->entries[i]);
+      if(ent->object) {
+        obj = to_object(ent->object);
+        assert(ent->fields == NUM_FIELDS(obj));
+        if(!ent->marked) {
+          mark_sweep_free_entry(state, ms, ent);
         } else {
           UNMARK_OBJ(obj);
-          used++;
+          ent->marked = 0;
         }
       }
-      addr += osz;
     }
     
-    if(!used && ms->num_chunks > 1) {
-      ms_chunk *nxt;
-      nxt = cur->next;
-      mark_sweep_free_chunk(ms, cur);
-      cur = nxt;
-    } else {
-      cur = cur->next;
-    }
+    cur = cur->next;
   }
-  
-  // printf("Free'd Objects: %d\n", freed_objects);
 }
 
 void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
@@ -564,6 +406,8 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   }
 }
 
+/*
+
 void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArray *refs) {
   ms_chunk *cur;
   char *addr, *last;
@@ -574,14 +418,12 @@ void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArr
   
   freed_objects = 0;
   
-  /* For each chunk... */
   while(cur) {
     
     addr = (char*)(cur->address);
     last = (addr + cur->size) - (HEADER_SIZE * REFSIZE);
     
     used = 0;
-    /* For each object.. */
     while(addr < last) {
       obj = (OBJECT)addr;
       osz = SIZE_IN_BYTES(obj);
@@ -600,3 +442,4 @@ void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArr
   } 
 }
 
+*/

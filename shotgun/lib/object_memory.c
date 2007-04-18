@@ -17,7 +17,7 @@ void _describe(OBJECT ptr) {
   om = (object_memory)main_om;
   printf("Address:             %p (%lu)\n", (void*)ptr, (unsigned long int)ptr);
   printf("Contained in baker?: %d/%d\n", baker_gc_contains_p(om->gc, ptr), baker_gc_contains_spill_p(om->gc, ptr));
-  printf("Contained in m/s?:   %d\n", mark_sweep_contains_p(om->ms, ptr));
+  // printf("Contained in m/s?:   %d\n", GC_ZONE(ptr) == GC_MATURE_OBJECTS);
 }
 
 void _stats() {

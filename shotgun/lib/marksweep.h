@@ -1,12 +1,26 @@
 #ifndef __MARKSWEEP_H__
 #define __MARKSWEEP_H__
 
+struct ms_header;
+
+struct ms_entry {
+  int bytes;
+  int fields;
+  int marked;
+  struct ms_header *object;
+};
+
+struct ms_header {
+  struct ms_entry *entry;
+};
+
 struct ms_chunk;
 
 struct ms_chunk {
   int size;
-  void *address;
-  void *last_address;
+  int num_entries;
+  int next_entry;
+  struct ms_entry *entries;
   struct ms_chunk *next;
 };
 
@@ -23,6 +37,7 @@ struct _mark_sweep_gc {
   int num_chunks;
   OBJECT become_from, become_to;
   GPtrArray *seen_weak_refs;
+  ms_chunk *current;
 };
 
 typedef struct _mark_sweep_gc *mark_sweep_gc;
