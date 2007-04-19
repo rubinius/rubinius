@@ -40,15 +40,45 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     
   val = module_const_get(state, under, sym);
   if(!RTEST(val)) {
-    val = class_create(state);
     
     if(NIL_P(sup)) {
       sup = state->global->object;
+    } else if(sup == Qfalse) {
+      /* Support class detached from the normal class heirarchy. */
+      sup = Qnil;
+    } else if(!ISA(sup, state->global->class)) {
+      /* Validate sup is a valid superclass-like object. */
+      
+      sup_itr = sup;
+      while(!NIL_P(sup_itr)) {
+        if(NUM_FIELDS(sup_itr) <= CLASS_f_SUPERCLASS ||
+           !ISA(class_get_methods(sup_itr), state->global->hash)) {
+          /* Ok, this wont work as a superclass. */
+        
+          cpu_raise_exception(state, c, 
+            cpu_new_exception(state, c, state->global->exc_arg, "Invalid superclass"));
+          return Qnil;
+        } else {
+          sup_itr = class_get_superclass(sup_itr);
+        }
+      }
+      
+      /* Ok, we validated the hierarchy as being superclass-like, so it's
+         ok to use. */
     }
     
+    val = class_create(state);
+    
     /* Push superclass instance information down. */
-    class_set_instance_fields(val, class_get_instance_fields(sup));
-    class_set_instance_flags(val, class_get_instance_flags(sup));
+    if(NIL_P(sup) || NUM_FIELDS(sup) <= CLASS_f_INSTANCE_FIELDS) {
+      /* When this object is detatched from the normal class hierarchy, we give
+         it the normal fields and flags info by default. */
+      class_set_instance_fields(val, class_get_instance_fields(state->global->object));
+      class_set_instance_flags(val, class_get_instance_flags(state->global->object));
+    } else {
+      class_set_instance_fields(val, class_get_instance_fields(sup));
+      class_set_instance_flags(val, class_get_instance_flags(sup));
+    }
     
     // printf("Setting superclass of %p to: %p\n", val, sup);
     class_set_superclass(val, sup);
@@ -73,10 +103,10 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
     sup_itr = sup;
-    while(1) {
+    while(!NIL_P(sup_itr)) {
       cpu_perform_hook(state, c, sup_itr, state->global->sym_inherited, val);
       sup_itr = class_get_superclass(sup_itr);
-      if(NIL_P(sup_itr) || sup_itr == state->global->object) { break; }
+      if(sup_itr == state->global->object) { break; }
     }
   }
   return val;
@@ -181,9 +211,23 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 #endif
 #endif
 
+  /* Validate klass is valid even. */
+  if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
+    printf("Warning: encountered invalid class (not big enough).\n");
+    *mod = Qnil;
+    return Qnil;
+  }
+
   hsh = module_get_methods(klass);
   
-  assert(ISA(hsh, state->global->hash));
+  /* Ok, rather than assert, i'm going to just bail. Makes the error
+     a little strange, but handle-able in ruby land. */
+  
+  if(!ISA(hsh, state->global->hash)) {
+    printf("Warning: encountered invalid module (methods not a hash).\n");
+    *mod = Qnil;
+    return Qnil; 
+  }
   
   meth = hash_find(state, hsh, name);
   
@@ -198,6 +242,14 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   orig_klass = klass;
   while(NIL_P(meth)) {
     ok = klass;
+    
+    /* Validate klass is still valid. */
+    if(NUM_FIELDS(klass) <= CLASS_f_SUPERCLASS) {
+      printf("Warning: encountered invalid class (not big enough).\n");
+      *mod = Qnil;
+      return Qnil;
+    }
+    
     klass = class_get_superclass(klass);
     if(NIL_P(klass)) { break; }
     /*
@@ -208,8 +260,12 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     );
     */
     hsh = module_get_methods(klass);
-    assert(ISA(hsh, state->global->hash));
-    
+    if(!ISA(hsh, state->global->hash)) {
+      printf("Warning: encountered invalid module (methods not a hash).\n");
+      *mod = Qnil;
+      return Qnil; 
+    }
+        
     meth = hash_find(state, hsh, name);
   }
   

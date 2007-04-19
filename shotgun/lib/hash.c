@@ -223,7 +223,7 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
     keys = tuple_enlarge(state, keys, 10);
     hash_set_keys(h, keys);
   }
-  // tuple_put(state, keys, i-1, key);
+  //tuple_put(state, keys, i-1, key);
   return data;
 }
 
