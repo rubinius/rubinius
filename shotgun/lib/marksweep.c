@@ -42,8 +42,9 @@ mark_sweep_gc mark_sweep_new(int chunk_size) {
   ms->chunk_size = chunk_size;
   ms->remember_set = g_ptr_array_new();
   mark_sweep_add_chunk(ms);
+  ms->chunks = ms->current;
   ms->enlarged = 0;
-  ms->seen_weak_refs = g_ptr_array_new();
+  ms->seen_weak_refs = NULL;
   return ms;
 }
 
@@ -151,7 +152,7 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;
   struct ms_header *header;
-  
+    
   if(GC_ZONE(iobj) == GC_MATURE_OBJECTS) {
     header = to_header(iobj);
     
@@ -160,6 +161,7 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     /* Already marked! */
     if(header->entry->marked) return;
     header->entry->marked = 1;
+    
   } else {
     if(MARKED_P(iobj)) return;
     MARK_OBJ(iobj);
@@ -358,17 +360,19 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
 }
 
 void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
-  int i;
+  int i, count;
   OBJECT obj;
   struct ms_entry *ent;
   ms_chunk *cur;
   
   cur = ms->chunks;
+  count = 0;
   
   while(cur) {
-  
+      
     for(i = 0; i < cur->num_entries; i++) {
       ent = &(cur->entries[i]);
+      count++;
       if(ent->object) {
         obj = to_object(ent->object);
         assert(ent->fields == NUM_FIELDS(obj));
@@ -383,12 +387,13 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
     
     cur = cur->next;
   }
+  
 }
 
 void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   ms->enlarged = 0;
   objects_marked = 0;
-  ms->seen_weak_refs->len = 0;
+  ms->seen_weak_refs = g_ptr_array_new();  
   mark_sweep_mark_phase(state, ms, roots);
   // printf("%d objects marked.\n", objects_marked);
   mark_sweep_sweep_phase(state, ms);
@@ -399,11 +404,16 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
     tmp = (OBJECT)g_ptr_array_index(ms->seen_weak_refs, i);
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
       t2 = tuple_at(state, tmp, j);
-      if(REFERENCE_P(t2) && GC_ZONE(t2) == GC_MATURE_OBJECTS && mark_sweep_free_object(t2)) {
-        tuple_put(state, tmp, j, Qnil);
+      if(REFERENCE_P(t2) && GC_ZONE(t2) == GC_MATURE_OBJECTS) {
+        if(!to_header(t2)->entry->object) {
+          tuple_put(state, tmp, j, Qnil);
+        }
       }
     }
   }
+  
+  g_ptr_array_free(ms->seen_weak_refs, TRUE);
+  ms->seen_weak_refs = NULL;
 }
 
 /*
