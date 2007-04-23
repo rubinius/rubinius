@@ -151,7 +151,13 @@ module Bytecode
       :channel_send_on_readable,
       :channel_send_on_writable,
       :channel_send_on_signal,
-      :channel_receive_many
+      :channel_receive_many,
+      :sampler_activate,
+      :sampler_stop,
+      :replace_process,
+      :fork_process,
+      :channel_send_on_stopped,
+      :io_reopen
     ]
 
     FirstRuntimePrimitive = 1024

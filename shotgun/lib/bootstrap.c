@@ -41,9 +41,15 @@ void cpu_bootstrap_exceptions(STATE) {
   
   state->global->exc_segfault = dexc(MemorySegmentionError, exc);
 
+  state->global->errno_mapping = hash_new(state);
+
   OBJECT ern = dexc(Errno, sce);
 
-#define set_syserr(num, name) rbs_const_set(state, rbs_class_new_with_namespace(state, name, sz, ern, ern), "Errno", I2N(num));
+#define set_syserr(num, name) ({ \
+  OBJECT _cls = rbs_class_new_with_namespace(state, name, sz, ern, ern); \
+  rbs_const_set(state, _cls, "Errno", I2N(num)); \
+  hash_set(state, state->global->errno_mapping, I2N(num), _cls); \
+  })
 
 /*
  * Stolen from MRI

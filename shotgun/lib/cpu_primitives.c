@@ -63,6 +63,7 @@ struct time_data {
 #define IO_P(obj) RISA(obj, io)
 #define STRING_P(obj) RISA(obj, string)
 #define HASH_P(obj) RISA(obj, hash)
+#define ARRAY_P(obj) RISA(obj, array)
 
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it

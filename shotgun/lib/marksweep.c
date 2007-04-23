@@ -148,7 +148,7 @@ int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj) {
 #define UNMARK_OBJ(obj) (HEADER(obj)->gc ^= MS_MARK)
 #define MARKED_P(obj) (HEADER(obj)->gc & MS_MARK)
 
-void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
+OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;
   struct ms_header *header;
@@ -159,11 +159,11 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     assert(header->entry->object == header);
         
     /* Already marked! */
-    if(header->entry->marked) return;
+    if(header->entry->marked) return iobj;
     header->entry->marked = 1;
     
   } else {
-    if(MARKED_P(iobj)) return;
+    if(MARKED_P(iobj)) return iobj;
     MARK_OBJ(iobj);
   }
   
@@ -184,7 +184,7 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   if(WEAK_REFERENCES_P(iobj)) {
     // printf("%p has weak refs.\n", (void*)iobj);
     g_ptr_array_add(ms->seen_weak_refs, (gpointer)iobj);
-    return;
+    return iobj;
   }
   
   if(!_object_stores_bytes(iobj)) {
@@ -257,6 +257,8 @@ void mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     }
 #undef fc_mutate    
   }
+  
+  return iobj;
 }
 
 void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
@@ -355,6 +357,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   }
   
   cpu_event_each_channel(state, mark_sweep_mark_object, (void*)ms);
+  cpu_sampler_collect(state, mark_sweep_mark_object, (void*)ms);
   
   // printf("Marked Objects: %d\n", marked_objects);
 }

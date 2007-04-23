@@ -47,6 +47,7 @@ void cpu_initialize(STATE, cpu c) {
   c->cache_index = -1;
   c->current_task = Qnil;
 
+  cpu_sampler_init(state, c);
   /*
 #if CTX_USE_FAST
   printf("[ FastMethodContext objects enabled.]\n");
@@ -99,6 +100,8 @@ void cpu_initialize_context(STATE, cpu c) {
   c->main_thread = c->current_thread;
   c->current_task = cpu_thread_get_task(state, c->current_thread);
   c->main_task = c->current_task;
+  
+  cpu_event_setup_children(state, c);
 }
 
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {

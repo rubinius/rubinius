@@ -99,6 +99,10 @@ class FastMethodContext
   def name
     _get_field(10)
   end
+
+  def method_module
+    _get_field(11)
+  end
   
   def dup
     Ruby.primitive :fastctx_dup
@@ -132,6 +136,10 @@ class BlockContext
 
   def method
     env.home.method
+  end
+
+  def method_module
+    env.home.method_module
   end
 end
 

@@ -22,6 +22,9 @@ static inline void methctx_reference(STATE, OBJECT self) {
   
   ctx = self;
   while(RTEST(ctx)) {
+    /* If it's already marked, so are it's senders. */
+    if(FLAG_SET_P(ctx, WasReferencedFlag)) return;
+    
     FLAG_SET(ctx, WasReferencedFlag);
 #if CTX_USE_FAST
     ctx = FASTCTX(ctx)->sender;

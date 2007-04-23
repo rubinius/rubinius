@@ -419,6 +419,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   }
   
   cpu_event_each_channel(state, baker_gc_mutate_from, (void*)g);
+  cpu_sampler_collect(state, baker_gc_mutate_from, (void*)g);
   
   int j;
   OBJECT t2;

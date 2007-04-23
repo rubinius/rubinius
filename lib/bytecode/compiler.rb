@@ -1653,6 +1653,14 @@ module Bytecode
         @retry_label = ret
       end
       
+      def process_xstr(x)
+        str = x.shift
+        cnt = @method.add_literal str
+        add "push_literal #{cnt}"
+        add "push self"
+        add "send ` 1"
+      end
+      
       def process_str(x)
         str = x.shift
         cnt = @method.add_literal str
@@ -1673,6 +1681,21 @@ module Bytecode
       def process_evstr(x)
         process x.shift
         add "send to_s"
+      end
+      
+      def process_dxstr(x)
+        str = x.shift
+        cnt = 0
+        while y = x.pop
+          process y
+          cnt += 1
+        end
+        lit = @method.add_literal str
+        add "push_literal #{lit}"
+        add "string_dup"
+        cnt.times { add "string_append" }
+        add "push self"
+        add "send ` 1"
       end
       
       def process_dstr(x)

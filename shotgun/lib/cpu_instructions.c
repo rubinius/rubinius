@@ -384,6 +384,20 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   return ctx;
 }
 
+void cpu_raise_from_errno(STATE, cpu c, char *msg) {
+  OBJECT cls, exc;
+  char buf[1024];
+  
+  cls = hash_get(state, state->global->errno_mapping, I2N(errno));
+  if(NIL_P(cls)) {
+    cls = state->global->exc_arg;
+    sprintf(buf, "Unknown errno %d", errno);
+    msg = buf;
+  }
+    
+  cpu_raise_exception(state, c, cpu_new_exception(state, c, cls, msg));
+}
+
 void cpu_raise_arg_error(STATE, cpu c, int args, int req) {
   char msg[1024];
   snprintf(msg, 1024, "wrong number of arguments (got %d, required %d)", args, req);

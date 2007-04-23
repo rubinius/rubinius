@@ -326,16 +326,16 @@ class ShotgunPrimitives
   
   def create_pipe
     <<-CODE
-    // FIXME: if its not an IO .. just what the hell is it?
-    // POP(self, IO)
-    self = stack_pop();
+    self = stack_pop(); /* class */
     POP(t1, IO)
     POP(t2, IO)
     
     j = pipe(fds);
     if(!j) {
       SET_FIELD(t1, 0, I2N(fds[0]));
+      io_initialize(state, fds[0]);
       SET_FIELD(t2, 0, I2N(fds[1]));
+      io_initialize(state, fds[1]);
     }
     stack_push(I2N(j));
     CODE
@@ -345,19 +345,38 @@ class ShotgunPrimitives
     <<-CODE
     FILE *_fobj;
     char *_path, *_mode;
-    self = stack_pop();
+    self = stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, STRING);
 
     _path = string_as_string(state, t1);
     _mode = string_as_string(state, t2);
     _fobj = fopen(_path, _mode);
-    t3 = NEW_OBJECT(self, 2);
-    SET_FIELD(t3, 0, I2N(fileno(_fobj)));
+    t3 = io_new(state, fileno(_fobj));
     SET_FIELD(t3, 1, t1);
     free(_path);
     free(_mode);
     stack_push(t3);
+    CODE
+  end
+  
+  def io_reopen
+    <<-CODE
+    POP(self, IO);
+    POP(t1, IO);
+    
+    /* MRI does a ton more with reopen, but I don't yet understand why.
+       This seems perfectly acceptable currently. */
+    
+    k = FIXNUM_TO_INT(NTH_FIELD(self, 0));
+    j = FIXNUM_TO_INT(NTH_FIELD(t1, 0));
+    
+    if(dup2(j, k) == -1) {
+      cpu_raise_from_errno(state, c, "Unable to reopen IO object");
+    } else {
+      stack_push(Qtrue);
+    }
+    
     CODE
   end
   
@@ -378,7 +397,7 @@ class ShotgunPrimitives
   
   def file_unlink
     <<-CODE
-    stack_pop(); // FIXME: what is the type restriction?
+    stack_pop(); /* class */
     POP(t1, STRING)
 
     char *name;
@@ -2226,11 +2245,13 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, REFERENCE);
     POP(t1,   IO);
+    t2 = stack_pop();
     
     GUARD(RISA(self, channel));
+    GUARD(STRING_P(t2) || NIL_P(t2));
     
     j = FIXNUM_TO_INT(io_get_descriptor(t1));
-    cpu_event_wait_readable(state, c, self, j);
+    cpu_event_wait_readable(state, c, self, j, t2);
     stack_push(Qtrue);
     CODE
   end
@@ -2255,6 +2276,17 @@ class ShotgunPrimitives
     GUARD(RISA(self, channel));
     
     cpu_event_wait_signal(state, c, self, FIXNUM_TO_INT(t1));
+    stack_push(Qtrue);
+    CODE
+  end
+  
+  def channel_send_on_stopped
+    <<-CODE
+    POP(self, REFERENCE);
+    POP(t1, FIXNUM);
+    GUARD(RISA(self, channel));
+    
+    cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1));
     stack_push(Qtrue);
     CODE
   end
@@ -2332,6 +2364,73 @@ class ShotgunPrimitives
       }
     }
     stack_push(Qnil);
+    CODE
+  end
+  
+  def sampler_activate
+    <<-CODE
+    stack_pop();
+    POP(t1, FIXNUM);
+    cpu_sampler_activate(state, FIXNUM_TO_INT(t1));
+    stack_push(I2N((int)clock()));
+    CODE
+  end
+  
+  def sampler_stop
+    <<-CODE
+    stack_pop();
+    t1 = cpu_sampler_disable(state);
+    stack_push(t1);
+    CODE
+  end
+  
+  def fork_process
+    <<-CODE
+    stack_pop(); /* class */
+    k = fork();
+    if(k == -1) {
+      cpu_raise_from_errno(state, c, "Unable to fork");
+    } else {
+      stack_push(I2N(k));
+    }
+    CODE
+  end
+  
+  # aka execve().
+  def replace_process
+    <<-CODE
+    int i;
+    char *file;
+    char **argv;
+    
+    stack_pop(); /* class */
+    POP(t1, STRING);
+    POP(t2, ARRAY);
+    
+    file = string_as_string(state, t1);
+    k = FIXNUM_TO_INT(array_get_total(t2)) + 1;
+    argv = (char**)calloc(k + 1, sizeof(char*));
+    argv[0] = file;
+    for(j = 1; j < k; j++) {
+      t3 = array_get(state, t2, j - 1);
+      if(!ISA(t3, state->global->string)) {
+        for(i = 0; i < j; i++) {
+          free(argv[i]);
+        }
+        free(argv);
+        return FALSE;
+      }
+      
+      argv[j] = string_as_string(state, t3);
+    }
+    
+    argv[k] = NULL;
+    
+    k = execvp(file, argv);
+    
+    /* If you're here, there was an error. */
+    cpu_raise_from_errno(state, c, "Unable to execute");    
+    
     CODE
   end
   

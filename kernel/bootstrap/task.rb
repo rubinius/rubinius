@@ -103,7 +103,7 @@ class Channel
     Ruby.primitive :channel_send_in_microseconds
   end
 
-  def send_on_readable(io)
+  def send_on_readable(io, buffer)
     Ruby.primitive :channel_send_on_readable
   end
 
@@ -113,5 +113,9 @@ class Channel
 
   def send_on_signal(number)
     Ruby.primitive :channel_send_on_signal
+  end
+  
+  def send_on_stopped(pid)
+    Ruby.primitive :channel_send_on_stopped
   end
 end

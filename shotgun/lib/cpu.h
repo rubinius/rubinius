@@ -109,6 +109,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_raise_exception(STATE, cpu c, OBJECT exc);
 void cpu_raise_arg_error(STATE, cpu c, int args, int req);
+void cpu_raise_from_errno(STATE, cpu c, char *msg);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 
@@ -150,6 +151,7 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr);
 OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
+void cpu_sampler_collect(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data);
 
 #define cpu_event_outstanding_p(state) (state->thread_infos != NULL)
 #define cpu_event_update(state) if(cpu_event_outstanding_p(state)) cpu_event_runonce(state)
@@ -158,16 +160,22 @@ void cpu_event_init(STATE);
 void cpu_event_run(STATE);
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv);
 void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data);
-void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd);
+void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer);
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
 void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr);
 void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary);
+void cpu_event_setup_children(STATE, cpu c);
+void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid);
 
 #define channel_set_waiting(obj, val) SET_FIELD(obj, 0, val)
 #define channel_get_waiting(obj) NTH_FIELD(obj, 0)
 #define channel_set_value(obj, val) SET_FIELD(obj, 1, val)
 #define channel_get_value(obj) NTH_FIELD(obj, 1)
+
+void cpu_sampler_init(STATE, cpu c);
+void cpu_sampler_activate(STATE, int hz);
+OBJECT cpu_sampler_disable(STATE);
 
 #if 1
 

@@ -66,4 +66,9 @@ class IO
     out = create_pipe(lhs, rhs)
     return [lhs, rhs]
   end
+  
+  def reopen(other)
+    Ruby.primitive :io_reopen
+    raise ArgumentError, "only accepts an IO object"
+  end
 end

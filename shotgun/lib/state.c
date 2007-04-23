@@ -27,6 +27,9 @@ static GPtrArray *_gather_roots(STATE, cpu c) {
   return roots; 
 }
 
+void cpu_sampler_suspend(STATE);
+void cpu_sampler_resume(STATE);
+
 void state_collect(STATE, cpu c) {
   GPtrArray *roots;
   c->context_cache = 0;
@@ -38,7 +41,8 @@ void state_collect(STATE, cpu c) {
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
       can't keep objects alive. */
-
+  
+  cpu_sampler_suspend(state);
   roots = _gather_roots(state, c);
   object_memory_collect(state, state->om, roots);
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
@@ -47,6 +51,7 @@ void state_collect(STATE, cpu c) {
   g_ptr_array_free(roots, TRUE);
   
   baker_gc_find_lost_souls(state, state->om->gc);
+  cpu_sampler_resume(state);
 }
 
 void state_major_collect(STATE, cpu c) {
@@ -61,12 +66,14 @@ void state_major_collect(STATE, cpu c) {
   state->current_stack = c->stack_top;
   state->current_sp =    c->sp_ptr;
 
+  cpu_sampler_suspend(state);
   roots = _gather_roots(state, c);
   object_memory_major_collect(state, state->om, roots);
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
-  g_ptr_array_free(roots, TRUE); 
+  g_ptr_array_free(roots, TRUE);
+  cpu_sampler_suspend(state);
 }
 
 void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {

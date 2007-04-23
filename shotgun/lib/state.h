@@ -23,7 +23,8 @@ struct rubinius_globals {
   OBJECT exc_stack_explosion;
   OBJECT exc_primitive_failure;
   
-  OBJECT external_ivars, scheduled_threads;
+  OBJECT external_ivars, scheduled_threads, errno_mapping;
+  OBJECT recent_children;
 };
 
 #define GLOBAL_cmethod
@@ -88,6 +89,9 @@ struct rubinius_state {
   
   void *event_base;
   void *thread_infos;
+  
+  OBJECT *samples;
+  int max_samples, cur_sample;
 };
 
 #define BASIC_CLASS(kind) state->global->kind

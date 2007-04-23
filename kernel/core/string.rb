@@ -23,7 +23,18 @@ class String
     num.times { str << self }
     return str.join("")
   end
-  
+
+  def initialize(arg)
+    if Fixnum === arg
+      @data = ByteArray.new(arg)
+      @bytes = arg
+      @characters = arg
+      @encoding = nil
+    else
+      self << arg.to_s
+    end
+  end
+
   def replace(other)
     @data = other.dup.data
     @bytes = other.bytes
