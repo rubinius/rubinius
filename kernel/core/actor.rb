@@ -1,5 +1,8 @@
 class Actor
   class << self
+    alias :private_new :new
+    private :private_new
+
     def spawn(&prc)
       channel = Channel.new
       Thread.new do
@@ -11,7 +14,7 @@ class Actor
     alias :new :spawn
 
     def current
-      Thread.current[:__current_actor__] ||= Actor.new(current_mailbox)
+      Thread.current[:__current_actor__] ||= private_new(current_mailbox)
     end
 
     def current_mailbox
