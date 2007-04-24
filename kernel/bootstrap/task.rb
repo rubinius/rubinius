@@ -80,7 +80,7 @@ class Channel
 
   def self.receive(*ary)
     if ary.size == 1
-      return convert_to_channel(ary.shift.receive)
+      return convert_to_channel(ary.shift).receive
     else
       na = ary.map { |c| convert_to_channel(c) }
       receive_many(na)
