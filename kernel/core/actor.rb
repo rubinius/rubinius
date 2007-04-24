@@ -17,6 +17,7 @@ class Actor
     def current_mailbox
       Thread.current[:__current_mailbox__] ||= Mailbox.new
     end
+    private :current_mailbox
 
     def receive(&prc)
       current_mailbox.receive(&prc)
