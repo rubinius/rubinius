@@ -1,5 +1,4 @@
 class Thread
-  
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
 
   def initialize(&prc)
@@ -67,5 +66,13 @@ class Thread
     chan.send_in_microseconds(secs * 1_000_000)
     chan.receive
     return true
+  end
+
+  def [](key)
+    @__ivars__[key]
+  end
+
+  def []=(key, value)
+    @__ivars__[key] = value
   end
 end
