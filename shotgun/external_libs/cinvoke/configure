@@ -3,7 +3,7 @@
 proc=$(uname -p)
 mach=$(uname -m)
 
-if test "$proc" = "powerpc"; then
+if test "$proc" = "powerpc" -o "$mach" = "ppc" ; then
   kind="ppc"
 elif test "$mach" = "i686"; then
   kind="x86"
