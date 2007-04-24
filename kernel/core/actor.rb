@@ -1,24 +1,26 @@
 class Actor
-  def self.spawn(&prc)
-    channel = Channel.new
-    Thread.new do
-      channel << current
-      prc.call
+  class << self
+    def spawn(&prc)
+      channel = Channel.new
+      Thread.new do
+        channel << current
+        prc.call
+      end
+      channel.receive
     end
-    channel.receive
-  end
-  alias :new :spawn
+    alias :new :spawn
 
-  def self.current
-    Thread.current[:__current_actor__] ||= Actor.new(current_mailbox)
-  end
+    def current
+      Thread.current[:__current_actor__] ||= Actor.new(current_mailbox)
+    end
 
-  def self.current_mailbox
-    Thread.current[:__current_mailbox__] ||= Mailbox.new
-  end
+    def current_mailbox
+      Thread.current[:__current_mailbox__] ||= Mailbox.new
+    end
 
-  def self.receive(&prc)
-    current_mailbox.receive(&prc)
+    def receive(&prc)
+      current_mailbox.receive(&prc)
+    end
   end
 
   def initialize(mailbox)
