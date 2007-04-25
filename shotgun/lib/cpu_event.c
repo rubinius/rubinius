@@ -22,6 +22,7 @@
 #include "hash.h"
 #include "symbol.h"
 #include "list.h"
+#include "config.h"
 #include <glib.h>
 
 #include "rubinius.h"
@@ -37,6 +38,14 @@ struct thread_info {
 };
 
 void cpu_event_init(STATE) {
+
+/* kqueue is broken on darwin, so we have to disable it's use. */
+#if CONFIG_DISABLE_KQUEUE
+  #warning "kqueue is disabled. sorry."
+  setenv("EVENT_NOKQUEUE", "1", 1);
+  setenv("EVENT_NOPOLL", "1", 1);
+#endif
+
   state->event_base = event_init();
 }
 
@@ -119,7 +128,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
     while(1) {
       i = read(fd, bytearray_byte_address(state, ba), sz);
       if(i == 0) {
-        ret = Qfalse; 
+        ret = Qnil; 
       } else if(i == -1) {
         /* If we read and got nothing, go again. We must get something. 
            It might be better to re-schedule this in libevent and try again,

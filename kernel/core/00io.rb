@@ -15,7 +15,11 @@ class IO
   end
 
   def read(size)
-    Ruby.primitive :io_read
+    buf = String.new(size)
+    chan = Channel.new
+    chan.send_on_readable self, buf
+    out = chan.receive
+    return out[1]
   end
   
   def close

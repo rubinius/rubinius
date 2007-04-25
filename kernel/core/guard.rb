@@ -11,10 +11,12 @@ class Guard
     end
   end
 
-  alias :new! :new
+  class << self
+    alias :new! :new
 
-  def new(&action)
-    new! { |value| Thread.new { action.call value } }
+    def new(&action)
+      new! { |value| Thread.new { action.call value } }
+    end
   end
 
   def initialize(&action)

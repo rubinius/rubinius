@@ -698,6 +698,48 @@ module Bytecode
         set_label lbl
       end
       
+      def process_op_asgn1(x)
+        # sample sexp from executing:
+        # Thread.current[:__current_actor__] ||= Actor.new(current_mailbox)
+        # [:op_asgn1, 
+        #     [:call, [:const, :Thread], :current, [:array]], 
+        #     :or, 
+        #     [:array, [:call, [:const, :Actor], :new, 
+        #         [:array, [:vcall, :current_mailbox]]], 
+        #         [:lit, :__current_actor__], [:nil]
+        #     ]
+        # ]
+        #
+        obj = x.shift
+        lbl = unique_lbl()
+        operator = x.shift # :and or :or
+        arg = x.shift
+        arg.shift
+        val = arg.shift
+        idx = arg.shift
+        huh = arg.shift
+        process(obj)
+        add "dup"
+        process idx.dup
+        add "swap"
+        add "send [] 1"
+        add "dup"
+        (operator == :or) ? git(lbl) : gif(lbl)
+        add "pop"
+        process val
+        add "swap"
+        process idx
+        add "swap"
+        add "send []= 2"
+        nd = unique_lbl()
+        goto nd
+        set_label lbl
+        add "swap"
+        add "pop"
+        
+        set_label nd
+      end
+      
       def process_lvar(x)
         name = x.shift
         idx = x.shift

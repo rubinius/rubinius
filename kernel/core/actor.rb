@@ -1,7 +1,8 @@
 class Actor
   class << self
     alias :private_new :new
-    private :private_new
+    # This doesn't work yet...
+    # private :private_new
 
     def spawn(&prc)
       channel = Channel.new

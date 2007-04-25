@@ -18,6 +18,21 @@ class Class
     end
     return out
   end
+  
+  def alias_method(nw, cur)
+    mod = self
+    while mod
+      meth = mod.methods[cur]
+      if meth
+        @methods[nw] = meth
+        return meth
+      end
+      
+      mod = mod.direct_superclass()
+    end
+    
+    raise NoMethodError, "No method by name of '#{cur}' found"
+  end
 
   def <(other)
     return true if object_id == other.object_id

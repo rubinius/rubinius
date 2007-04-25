@@ -226,9 +226,14 @@ class ShotgunPrimitives
   def allocate_bytes
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
-    POP(t1, FIXNUM)
-
-    t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1) / 4);
+    POP(t1, FIXNUM);
+    k = FIXNUM_TO_INT(t1);
+    if(k % 4 == 0) {
+      k = k / REFSIZE;
+    } else {
+      k = (k + REFSIZE) / REFSIZE;
+    }
+    t2 = NEW_OBJECT(self, k);
     object_make_byte_storage(state, t2);
     stack_push(t2);
     CODE
@@ -986,6 +991,7 @@ class ShotgunPrimitives
         stack_push(Qfalse);
       } else {
         FILE *io;
+        struct termios ts;
         char sbuf[1024];
         
         io = popen("stty -g", "r");
@@ -993,7 +999,12 @@ class ShotgunPrimitives
         setenv("_TERM_SETTINGS", sbuf, 1);
         pclose(io);
         system("stty -icanon -isig -echo min 1");
-        stack_push(Qtrue);
+        tcgetattr(1, &ts);
+        t3 = tuple_new2(state, 4, 
+          I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
+          I2N(ts.c_cc[VQUIT]),  I2N(ts.c_cc[VINTR])
+        );
+        stack_push(t3);
       }
     }
     CODE

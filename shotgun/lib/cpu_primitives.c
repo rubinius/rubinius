@@ -33,6 +33,7 @@
 #include <zlib.h>
 #include <math.h>
 #include <glob.h>
+#include <termios.h>
 
 OBJECT math_sqrt(STATE, OBJECT a);
 

@@ -265,12 +265,7 @@ void _cpu_channel_clear_outstanding(STATE, cpu c, OBJECT thr, OBJECT ary) {
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
   OBJECT lst, lst2, thr, task, tup, out;
   long int cur_prio, new_prio;
-  
-  /* Sort of like setjmp, don't allow nil to be sent, because nil means there
-     is no value. I could use undef here, but I still don't like exposing
-     undef. */
-  
-  if(NIL_P(obj)) obj = Qtrue;
+    
   lst = channel_get_waiting(self);
   
   if(list_empty_p(lst)) {

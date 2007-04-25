@@ -71,7 +71,7 @@ class RsLocalScoper < SimpleSexpProcessor
       return idx
     end
     
-    if inside_masgn
+    if inside_masgn and @bargs.last
       @bargs.last << name
     end
     
@@ -83,7 +83,7 @@ class RsLocalScoper < SimpleSexpProcessor
     f = x.shift
     a = x.shift
     b = x.shift
-        
+            
     @masgn.push true
     start_args
     a2 = process(a)
@@ -93,11 +93,19 @@ class RsLocalScoper < SimpleSexpProcessor
     
     [:iter, process(f), a2, b2]
   end
+  
+  def p_or_n(val)
+    return nil if val.nil?
+    process(val)
+  end
 
-  def notprocess_masgn(x)
-    out = [:masgn, process(x.shift), process(x.shift), process(x.shift)]
+  def process_masgn(x)
+    @masgn.push true
+    m1 = p_or_n(x.shift)
     @masgn.pop
-    return out
+    m2 = p_or_n(x.shift)
+    m3 = p_or_n(x.shift)
+    return [:masgn, m1, m2, m3]
   end
   
   def process_dasgn_curr(x)

@@ -26,14 +26,14 @@ module Readline
     begin
       print prompt
       unless @raw_mode
-        _terminal_raw
+        @c_erase, @c_kill, @c_quit, @c_intr = _terminal_raw
         @raw_mode = true
       end
       while true
         cur = STDIN.read(1)
 
         code = cur[0]
-        code = ASCII::Erase if code == ASCII::Backspace
+        code = ASCII::Erase if code == @c_erase
 
         cur = code.chr
 
@@ -41,7 +41,7 @@ module Readline
         if code == ASCII::Return or code == ASCII::ControlD
           print "\n"
           break
-        elsif code == ASCII::ControlC
+        elsif code == @c_intr
           puts "", "<Control-C>"
           raise Interrupt, "User requested termination with Control-C"
         elsif code == ASCII::Erase

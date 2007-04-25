@@ -10,7 +10,7 @@ class Channel
     Ruby.primitive :channel_send
   end
 
-  alias :<< :send
+  # alias :<< :send
 
   def receive
     Ruby.primitive :channel_receive

@@ -4,6 +4,7 @@
 void io_initialize(STATE, int fd) {
   int flags;
   
+  return;  
   /* FIXME: do some error checking. */
   
   flags = fcntl(fd, F_GETFL, 0);
