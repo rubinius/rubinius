@@ -1,10 +1,10 @@
 # behaves like a channel read by a read-guarded replicating process
 class Guard
-  @@supervisor = Channel.new
+  SUPERVISOR = Channel.new
   Thread.new do
     loop do
       begin
-        value, action = @@supervisor.receive
+        value, action = SUPERVISOR.receive
         action.call value
       rescue Exception
       end
@@ -22,7 +22,7 @@ class Guard
   end
 
   def send(value)
-    @@supervisor.send [ value, @action ]
+    SUPERVISOR.send [ value, @action ]
   end
   alias :<< :send
 end
