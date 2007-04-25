@@ -4,8 +4,7 @@
 #include <string.h>
 
 rheap heap_new(int size) {
-  rheap h = (rheap)malloc(sizeof(struct heap));
-  memset((void*)h, 0, sizeof(struct heap));
+  rheap h = (rheap)calloc(1, sizeof(struct heap));
   h->size = size;
   heap_allocate_memory(h);
   return h;
@@ -26,12 +25,11 @@ int heap_deallocate(rheap h) {
 }
 
 int heap_allocate_memory(rheap h) {
-  h->address = (address)malloc(h->size);
+  h->address = (address)calloc(1, h->size);
   if(!h->address) {
     return FALSE;
   }
   h->scan = h->address;
-  memset((void*)(h->address), 0, h->size);
   h->last = h->address + h->size - 1;
   return heap_reset(h);
 }

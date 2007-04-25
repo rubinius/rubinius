@@ -9,8 +9,7 @@
 #include "grammar.h"
 
 rb_parse_state *alloc_parse_state() {
-    rb_parse_state *parse_state = (rb_parse_state*)malloc(sizeof(rb_parse_state));
-    memset(parse_state, 0, sizeof(struct rb_parse_state));
+    rb_parse_state *parse_state = (rb_parse_state*)calloc(1, sizeof(rb_parse_state));
 
     #undef command_start
     #undef class_nest

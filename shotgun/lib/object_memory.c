@@ -44,8 +44,7 @@ int object_memory_actual_omsize() {
 
 object_memory object_memory_new() {
   object_memory om;
-  om = (object_memory)malloc(sizeof(struct object_memory_struct));
-  memset((void*)om, 0, sizeof(struct object_memory_struct));
+  om = (object_memory)calloc(1, sizeof(struct object_memory_struct));
   om->gc = baker_gc_new(object_memory_actual_omsize());
   om->gc->tenure = (OBJECT (*)(void*,OBJECT))object_memory_tenure_object;
   om->gc->tenure_data = om;

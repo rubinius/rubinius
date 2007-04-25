@@ -14,8 +14,7 @@ static int promoted = 0;
 
 baker_gc baker_gc_new(int size) {
   baker_gc g;
-  g = (baker_gc)malloc(sizeof(struct baker_gc_struct));
-  memset(g, 0, sizeof(struct baker_gc_struct));
+  g = (baker_gc)calloc(1, sizeof(struct baker_gc_struct));
   g->remember_set = g_ptr_array_new();
   g->seen_weak_refs = g_ptr_array_new();
   
