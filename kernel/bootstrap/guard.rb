@@ -1,23 +1,28 @@
-class Guard < Channel
-  alias :new! :new
-
-  def new(&prc)
-    new! { |value| Thread.new { prc.call value } }
-  end
-
-  def initialize(&prc)
-    super
-    # this does not work nicely in practice since the Guard cannot be
-    # garbage collected while the thread runs
-    Thread.new do
-      loop do
-        begin
-          prc.call receive
-        rescue Exception
-        end
+# behaves like a channel read by a read-guarded replicating process
+class Guard
+  @@supervisor = Channel.new
+  Thread.new do
+    loop do
+      begin
+        value, action = @@supervisor.receive
+        action.call value
+      rescue Exception
       end
     end
   end
 
-  private :receive
+  alias :new! :new
+
+  def new(&action)
+    new! { |value| Thread.new { action.call value } }
+  end
+
+  def initialize(&action)
+    @action = action
+  end
+
+  def send(value)
+    @@supervisor.send [ value, @action ]
+  end
+  alias :<< :send
 end
