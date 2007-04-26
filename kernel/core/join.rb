@@ -27,9 +27,7 @@ class Join
     end
 
     c.class_eval &block
-    c.instance_eval do
-      @chords = @chords.sort_by { |mask, indices, action| -indices.size }
-    end
+    c.instance_eval { @chords.reverse! }
 
     class << c
       undef :chord
