@@ -31,7 +31,7 @@ class Join
 
     class << c
       undef :chord
-      def new
+      def new(*args, &block)
         obj = allocate
         chords = @chords
         max = @max
@@ -41,6 +41,7 @@ class Join
           @join_chords = chords
           @join_lock = Channel.new
           @join_lock.send nil
+          initialize(*args, &block)
         end
         obj
       end
