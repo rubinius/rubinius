@@ -376,7 +376,7 @@ void machine_setup_signals(machine m) {
 
 machine machine_new() {
   machine m;
-  m = malloc(sizeof(struct rubinius_machine));
+  m = calloc(1, sizeof(struct rubinius_machine));
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
   machine_setup_signals(m);
@@ -515,6 +515,69 @@ void machine_setup_argv(machine m, int argc, char **argv) {
   machine_set_const(m, "ARGV", ary);
 }
 
+static void _machine_add_config(gpointer key, gpointer value, gpointer user_data) {
+  machine m = (machine)user_data;
+  OBJECT ok, ov;
+  
+  ok = string_new(m->s, (char*)key);
+  ov = string_new(m->s, (char*)value);
+  hash_set(m->s, m->s->global->config, ok, ov);
+}
+
+void machine_parse_config_var(machine m, char *var) {
+  char *eq, *or;;
+  char buf[1024];
+  char *name;
+  name = buf;
+  int sz;
+  eq = strstr(var, "=");
+  if(eq) {
+    or = var;
+    sz = eq - var;
+    strncpy(name, var, sz);
+    name[sz] = 0;
+    var += (sz + 1);
+    while(*name == ' ') name++;
+    if(m->show_config) {
+      printf("[config] '%s' => '%s'\n", name, var);
+    }
+    g_hash_table_insert(m->s->config, (gpointer)strdup(name), (gpointer)strdup(var));
+  } else {
+    if(m->show_config) {
+      printf("[config] '%s' => '1'\n", var);
+    }
+    while(*var == ' ') var++;    
+    g_hash_table_insert(m->s->config, (gpointer)strdup(var), (gpointer)strdup("1"));
+  }
+}
+
+void machine_parse_configs(machine m, char *config) {
+  char *semi;
+  char tmp[1024];
+  int sz;
+  semi = strstr(config, ";");
+  while(semi) {
+    sz = semi - config;
+    strncpy(tmp, config, sz);
+    tmp[sz] = 0;
+    machine_parse_config_var(m, tmp);
+    config += (sz + 1);
+    semi = strstr(config, ";");
+  }
+  
+  machine_parse_config_var(m, config);
+  
+  m->s->global->config = hash_new(m->s);
+  g_hash_table_foreach(m->s->config, _machine_add_config, (gpointer)m);
+  machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
+}
+
+void machine_setup_from_config(machine m) {
+  if(g_hash_table_lookup(m->s->config, "rbx.debug.trace")) {
+    m->s->excessive_tracing = 1;
+  }
+}
+
 void machine_setup_config(machine m) {
   OBJECT mod;
   mod = rbs_module_new(m->s, "Rubinius", m->s->global->object);
@@ -530,8 +593,18 @@ void machine_setup_config(machine m) {
 extern char **environ;
 
 void machine_config_env(machine m) {
+  char *config;
   if(getenv("RDEBUG")) {
     debug_enable();
+  }
+  
+  if(getenv("RBX_CONFIG")) {
+    m->show_config = 1;
+  }
+  
+  config = getenv("RBX");
+  if(config) {
+    machine_parse_configs(m, config); 
   }
 }
 

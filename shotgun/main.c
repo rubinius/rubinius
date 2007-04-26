@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
   /* move argc and argv around so that the kernel and rubinius
      don't show up. */
   machine_config_env(m);
+  machine_setup_from_config(m);
   machine_setup_argv(m, argc-offset, argv+offset);
   machine_setup_env(m);
   

@@ -24,7 +24,7 @@ struct rubinius_globals {
   OBJECT exc_primitive_failure;
   
   OBJECT external_ivars, scheduled_threads, errno_mapping;
-  OBJECT recent_children;
+  OBJECT recent_children, config;
 };
 
 #define GLOBAL_cmethod
@@ -86,12 +86,15 @@ struct rubinius_state {
   unsigned long *stack_bottom;
   
   GHashTable *cleanup;
+  GHashTable *config;
   
   void *event_base;
   void *thread_infos;
   
   OBJECT *samples;
   int max_samples, cur_sample;
+  
+  int excessive_tracing;
 };
 
 #define BASIC_CLASS(kind) state->global->kind

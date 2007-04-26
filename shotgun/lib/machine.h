@@ -9,6 +9,7 @@ struct rubinius_machine {
   char *interpreter;
   int argc;
   char **argv;
+  int show_config;
 };
 
 typedef struct rubinius_machine *machine;

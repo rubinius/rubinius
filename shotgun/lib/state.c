@@ -11,6 +11,7 @@ rstate rubinius_state_new() {
   st->free_contexts = g_ptr_array_new();
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
   st->cleanup = g_hash_table_new(NULL, NULL);
+  st->config = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
   return st;
 }
 

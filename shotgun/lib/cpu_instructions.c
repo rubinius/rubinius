@@ -15,7 +15,7 @@
 
 #include <string.h>
 
-#define EXCESSIVE_TRACING  0
+#define EXCESSIVE_TRACING state->excessive_tracing
 #define USE_GLOBAL_CACHING 1
 #define USE_INLINE_CACHING 1
 
@@ -430,9 +430,9 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
       }
       /* Didn't work, need to remove the recv we put on before. */
       stack_pop();
-#if EXCESSIVE_TRACING
-      printf("[[ Primitive failed! -- %d ]]\n", prim);
-#endif
+      if(EXCESSIVE_TRACING) {
+        printf("[[ Primitive failed! -- %d ]]\n", prim);
+      }
     } else if(req >= 0 && object_kind_of_p(state, mo, state->global->cmethod)) {
       /* raise an exception about them not doing it right. */
       cpu_raise_arg_error(state, c, args, req);
@@ -626,9 +626,9 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
     }
 #endif
 
-#if EXCESSIVE_TRACING
-    printf("Returning to %s.\n", _inspect(sender));
-#endif
+    if(EXCESSIVE_TRACING) {
+      printf("Returning to %s.\n", _inspect(sender));
+    }
     cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
     cpu_stack_push(state, c, top, FALSE);
   }
@@ -701,26 +701,26 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     // abort();
   } else {
     if(cpu_try_primitive(state, c, mo, recv, args, sym, mod)) {
-      #if EXCESSIVE_TRACING
-      printf("%05d: Called prim %s => %s on %s.\n", c->depth,
-       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
-       rbs_symbol_to_cstring(state, sym), _inspect(recv));
-      #endif
+      if(EXCESSIVE_TRACING) {
+        printf("%05d: Called prim %s => %s on %s.\n", c->depth,
+          rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+          rbs_symbol_to_cstring(state, sym), _inspect(recv));
+      }
       return;
     }
     prim = 1;
   }
 
-  #if EXCESSIVE_TRACING
-  cpu_flush_ip(c);
-  printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
-    rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
-    rbs_symbol_to_cstring(state, module_get_name(mod)),
-    rbs_symbol_to_cstring(state, sym), 
-    _inspect(recv), c->method, c->ip,
-    prim ? "" : "PRIM FAILED"
-   );
-  #endif
+  if(EXCESSIVE_TRACING) {
+    cpu_flush_ip(c);
+    printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
+      rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+      rbs_symbol_to_cstring(state, module_get_name(mod)),
+      rbs_symbol_to_cstring(state, sym), 
+      _inspect(recv), c->method, c->ip,
+      prim ? "" : "PRIM FAILED"
+      );
+  }
   ctx = cpu_create_context(state, c, recv, mo, sym, mod, (unsigned long int)args, block);
   /*
   if(RTEST(block)) {
@@ -858,12 +858,12 @@ void cpu_run(STATE, cpu c) {
     // #undef stack_push
     // #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
-    #if EXCESSIVE_TRACING
+    if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
     printf("%-15s: OP: %s (%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip);
-    #endif
+    }
     #include "instructions.gen"
 
     goto check_interupts;
@@ -890,22 +890,22 @@ check_interupts:
       
       /* Collect the first generation. */
       if(cm & 0x1) {
-#if EXCESSIVE_TRACING
+        if(EXCESSIVE_TRACING) {
         printf("[[ Collecting young objects. ]]\n");
         printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
-#endif
+        }
         state_collect(state, c);
-#if EXCESSIVE_TRACING
+        if(EXCESSIVE_TRACING) {
         printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
         printf("[[ Finished collect. ]]\n");
-#endif  
+        }
       }
       
       /* Collect the old generation. */
       if(cm & 0x2) {
-#if EXCESSIVE_TRACING
+        if(EXCESSIVE_TRACING) {
         printf("[[ Collecting old objects. ]\n");
-#endif
+        }
         state_major_collect(state, c);        
         // printf("Done with major collection.\n");
       }
