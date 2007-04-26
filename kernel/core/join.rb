@@ -60,6 +60,7 @@ class Join
             pending = @join_pending[i]
             value = pending.shift
             @join_pending_mask ^= 1 << i if pending.empty?
+            value
           end
           Thread.new { instance_exec(*args, &action) }
           break
