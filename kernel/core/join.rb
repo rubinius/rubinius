@@ -1,9 +1,4 @@
 class Join
-  class << self
-    alias :private_new :new
-    private :private_new
-  end
-
   def self.new(&block)
     raise ArgumentError, "No block given" unless block
     c = Class.new self
@@ -39,19 +34,21 @@ class Join
     class << c
       undef :chord
       def new
-        private_new(@chords, @max)
+        obj = allocate
+        chords = @chords
+        max = @max
+        obj.instance_eval do
+          @join_pending = (0..max).map { Array.new }
+          @join_pending_mask = 0
+          @join_chords = chords
+          @join_lock = Channel.new
+          @join_lock.send nil
+        end
+        obj
       end
     end
 
     c
-  end
-
-  def initialize(chords, max)
-    @join_pending = (0..max).map { Array.new }
-    @join_pending_mask = 0
-    @join_chords = chords
-    @join_lock = Channel.new
-    @join_lock.send nil
   end
 
   def __channel_send__(index, value)
