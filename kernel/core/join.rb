@@ -10,23 +10,21 @@ class Join
         @max = -1
         @indices = {}
         @chords = []
-        class << self
-          def chord(*names, &action)
-            raise ArgumentError, "No channel names specified" if names.empty?
-            raise ArgumentError, "No block given" unless action
-            names.map! { |n| n.to_sym }
-            indices = names.map { |n| @indices[n] ||= ( @max += 1 ) }
-            mask = indices.inject(0) { |acc, i| acc | ( 1 << i ) }
-            @chords.push [ mask, indices, action ]
-            names.each_with_index do |n, i|
-              eval <<-EOS
-                def #{ n }(value=nil)
-                  __channel_send__( #{ indices[i] }, value )
-                end
-              EOS
-            end
-            self
+        def self.chord(*names, &action)
+          raise ArgumentError, "No channel names specified" if names.empty?
+          raise ArgumentError, "No block given" unless action
+          names.map! { |n| n.to_sym }
+          indices = names.map { |n| @indices[n] ||= ( @max += 1 ) }
+          mask = indices.inject(0) { |acc, i| acc | ( 1 << i ) }
+          @chords.push [ mask, indices, action ]
+          names.each_with_index do |n, i|
+            eval <<-EOS
+              def #{ n }(value=nil)
+                __channel_send__( #{ indices[i] }, value )
+              end
+            EOS
           end
+          self
         end
         class_eval &block
         @chords = @chords.sort_by { |mask, indices, action| -indices.size }
