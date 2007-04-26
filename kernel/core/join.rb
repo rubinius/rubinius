@@ -26,7 +26,7 @@ class Join
       self
     end
 
-    c.instance_eval &block
+    c.class_eval &block
     c.instance_eval do
       @chords = @chords.sort_by { |mask, indices, action| -indices.size }
     end
