@@ -1,3 +1,6 @@
+#ifndef RBS_METHCTX
+#define RBS_METHCTX 1
+
 OBJECT methctx_new(STATE, int cnt);
 void methctx_init_registers(STATE, OBJECT self);
 void methctx_init_locals(STATE, OBJECT self, int cnt);
@@ -37,3 +40,5 @@ static inline void methctx_reference(STATE, OBJECT self) {
 static inline int blokctx_s_block_context_p(STATE, OBJECT ctx) {
   return FLAG_SET_P(ctx, IsBlockContextFlag);
 }
+
+#endif
