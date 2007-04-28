@@ -101,9 +101,14 @@ class Array
     @tuple.at(0)
   end
   
-  def last
+  def last(n=1)
     return nil if @total == 0
-    @tuple.at(@total-1)
+    return @tuple.at(@total-1) if n == 1
+    ary = []
+    for i in (@total-n)..(@total-1)
+      ary.push @tuple.at(i)
+    end
+    return ary
   end
   
   def size
