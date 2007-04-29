@@ -161,6 +161,66 @@ context "Array instance method" do
     end.should == ["b", "c", "d"]
   end
   
+  specify "[m...n] should return an empty array when m == n" do
+    example do
+      [1, 2, 3, 4, 5][1...1]
+    end.should == []
+  end
+  
+  specify "[0...0] should return an empty array" do
+    example do
+      [1, 2, 3, 4, 5][0...0]
+    end.should == []
+  end
+  
+  specify "[m..n] should return an array containing the element at m when m == n" do
+    example do
+      [1, 2, 3, 4, 5][2..2]
+    end.should == [3]
+  end
+  
+  specify "[0..0] should return an array containing the first element" do
+    example do
+      [1, 2, 3, 4, 5][0..0]
+    end.should == [1]
+  end
+  
+  specify "[0..-1] should return the entire array" do
+    example do
+      [1, 2, 3, 4, 5][0..-1]
+    end.should == [1, 2, 3, 4, 5]
+  end
+  
+  specify "[0...-1] should return all but the last element" do
+    example do
+      [1, 2, 3, 4, 5][0...-1]
+    end.should == [1, 2, 3, 4]
+  end
+  
+  specify "[m..n] should return an empty array when m > n and m, n are positive" do
+    example do
+      [1, 2, 3, 4, 5][3..2]
+    end.should == []
+  end
+  
+  specify "[m..n] should return an empty array when m > n and m, n are negative" do
+    example do
+      [1, 2, 3, 4, 5][-2..-3]
+    end.should == []
+  end
+  
+  specify "[-1..0] should return an empty array" do
+    example do
+      [1, 2, 3, 4, 5][-1..0]
+    end.should == []
+  end
+  
+  specify "[-1...0] should return an empty array" do
+    example do
+      [1, 2, 3, 4, 5][-1...0]
+    end.should == []
+  end
+  
   specify "[] should not return nil if any elements in the requested range exist" do
     example do
       [ "a", "b", "c", "d", "e" ][4..7]
@@ -457,6 +517,18 @@ context "Array instance method" do
     end.should == [true, false]
   end
   
+  specify "first with count == 0 should return an empty array" do
+    example do
+      [1, 2, 3, 4, 5].first(0)
+    end.should == []
+  end
+  
+  specify "first with count == 1 should return an array containing the first element" do
+    example do
+      [1, 2, 3, 4, 5].first(1)
+    end.should == [1]
+  end
+  
   specify "flatten should return a one-dimensional flattening recursively" do
     example do
       [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]]].flatten
@@ -586,6 +658,18 @@ context "Array instance method" do
     example do
       [1, 2, 3, 4, 5, 9].last(3)
     end.should == [4, 5, 9]
+  end
+  
+  specify "last with count == 0 should return an empty array" do
+    example do
+      [1, 2, 3, 4, 5].last(0)
+    end.should == []
+  end
+  
+  specify "last with count == 1 should return an array containing the last element" do
+    example do
+      [1, 2, 3, 4, 5].last(1)
+    end.should == [5]
   end
   
   specify "length should return the number of elements" do

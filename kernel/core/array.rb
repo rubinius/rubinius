@@ -706,4 +706,18 @@ class Array
     end
     self
   end
+  
+  def first(n=nil)
+    return self[0] unless n
+    raise ArgumentError, "negative array size (or size too big)" if n < 0
+    self[0...n]
+  end
+  
+  def last(n=nil)
+    return self[-1] unless n
+    raise ArgumentError, "negative array size (or size too big)" if n < 0
+    return [] if n.zero?
+    n = size if n > size
+    self[-n..-1]
+  end
 end
