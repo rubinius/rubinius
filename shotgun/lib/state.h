@@ -1,5 +1,8 @@
 #include "shotgun.h"
+
+#ifdef USE_CINVOKE
 #include <cinvoke.h>
+#endif
 
 struct rubinius_globals {
   
@@ -78,9 +81,11 @@ struct rubinius_state {
   /* Used to pass information down to the garbage collectors */
   OBJECT *current_stack;
   OBJECT *current_sp;
-  
+
+#ifdef USE_CINVOKE
   CInvContext *c_context;
-  
+#endif
+
   rni_handle_table *handle_tbl;
   
   unsigned long *stack_bottom;

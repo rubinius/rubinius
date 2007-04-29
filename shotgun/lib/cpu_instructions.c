@@ -14,6 +14,7 @@
 #include "fixnum.h"
 
 #include <string.h>
+#include <errno.h>
 
 #define EXCESSIVE_TRACING state->excessive_tracing
 #define USE_GLOBAL_CACHING 1

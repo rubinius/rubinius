@@ -2,7 +2,8 @@
 #include "nmc.h"
 
 #include <string.h>
-#include <cinvoke.h>
+
+#include "ltdl.h"
 
 #include "string.h"
 
@@ -20,10 +21,9 @@
    it's init function. */
 
 OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
-  CInvLibrary *lib = NULL;
-  CInvFunction *func = NULL;
+  lt_dlhandle lib;
   char *c_path, *c_name;
-  void *ep;
+  void (*ep)(void);
   char init[128] = "Init_";
   char sys_name[128];
   rni_nmc *nmc;
@@ -41,9 +41,9 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   /* Open it up. If this fails, then we just pretend like
      the library isn't there. */
-  lib = cinv_library_create(state->c_context, sys_name);
+  lib = lt_dlopen(sys_name);
   if(!lib) {
-    printf("Couldnt open '%s': %s\n", sys_name, cinv_context_geterrormsg(state->c_context));
+    printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror());
     free(c_path);
     /* No need to raise an exception, it's not there. */
     return I2N(0);
@@ -54,38 +54,26 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   strncat(init, c_name, 122);
   
   /* Try and load the init function. */
-  ep = cinv_library_load_entrypoint(state->c_context, lib, init);
+  ep = (void (*)(void))lt_dlsym(lib, init);
   if(!ep) {
     /* TODO: raise an exception that the library is missing the function. */
     ret = I2N(1);
   } else {
-    /* Worked, ok, make a prototype. */
-    func = cinv_function_create(state->c_context, CINV_CC_DEFAULT, "", "");
-    
     nmc = nmc_new_standalone();
     
     /* Now we need to setup the 'global' context so that stuff like
        rb_define_method works. */
     subtend_set_context(state, c, nmc);
-    
-    /* Now perform the call. */    
-    if(!cinv_function_invoke(state->c_context, func, ep, NULL, NULL)) {
-      /* TODO: raise an exception that the library is broke. */
-      ret = I2N(2);
-    }
+
+    /* Now perform the call. */
+    (*ep)();
   }
-  
-  /* Cleanup. */
-  cinv_function_delete(state->c_context, func);
- 
+   
   /*
    * We can't close the library while there are references to the code
    * in it. For now, we just leak the library reference, but we need
    * to track it so we can clean them up at some point in the future.
    * 
-  if(!cinv_library_delete(state->c_context, lib)) {
-    printf("Error deleting library.\n");
-  }
   */
   
   if(nmc) free(nmc);

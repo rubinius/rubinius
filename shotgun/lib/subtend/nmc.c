@@ -3,7 +3,10 @@
 #include "ruby.h"
 
 #include <string.h>
+
+#ifdef USE_CINVOKE
 #include <cinvoke.h>
+#endif
 
 #include "string.h"
 #include "cpu.h"
@@ -156,6 +159,8 @@ void _nmc_start() {
   va = NULL;
   args = NULL;
   
+#ifdef USE_CINVOKE
+  
   /* Check for special cases.. */
   if(n->method->args < 0) {
     switch(n->method->args) {
@@ -246,7 +251,7 @@ void _nmc_start() {
     }
   } else {
     
-    data = (void*)calloc(sizeof(rni_handle*), (n->method->args + 1) * 2);
+    data = (void*)calloc((n->method->args + 1) * 2, sizeof(rni_handle*));
     n->local_data = data;
     
     handles_used = (rni_handle**)data;
@@ -275,6 +280,82 @@ void _nmc_start() {
   } else {
     code = ALL_DONE;
   }
+  
+#else
+  rni_handle* (*func)() = (rni_handle* (*)())(n->method->entry);
+  int hs, ch;
+  if(n->method->args == -2) {
+    hs = 2;
+  } else if(n->method->args == -1) {
+    hs = 3;
+  } else {
+    hs = n->method->args + 2;
+  }
+  
+  data = (void*)calloc(hs, sizeof(rni_handle*));
+  n->local_data = data;
+  handles_used = (rni_handle**)data;
+  
+  ch = 0;
+  handles_used[ch++] = recv;
+  
+#define nha() ({ rni_handle *_h = nmc_handle_new(n, global_context->state->handle_tbl, cpu_stack_pop(global_context->state, c)); handles_used[ch++] = _h; _h; })
+
+  retval = (rni_handle*)Qnil;
+  
+  switch(n->method->args) {
+    case -2: {
+      OBJECT rargs = array_new(state, fc->argcount);
+      rni_handle *ah;
+      
+      for(i = 0; i < fc->argcount; i++) {
+        array_set(state, rargs, i, cpu_stack_pop(state, c));
+      }
+      
+      ah = nmc_handle_new(n, global_context->state->handle_tbl, rargs);
+      handles_used[ch++] = ah;
+      
+      retval = (*func)(recv, ah);
+      break;
+    }
+    case -1: {
+      rni_handle **args;
+      
+      args = &handles_used[ch];
+      
+      for(i = 0; i < fc->argcount; i++) {
+        nha();
+      }
+      
+      retval = (*func)(recv, fc->argcount, args);
+      
+      break;
+    }
+    case 0:
+      retval = (*func)(recv);
+      break;
+    case 1:
+      retval = (*func)(recv, nha());
+      break;
+    case 2:
+      retval = (*func)(recv, nha(), nha());
+      break;
+    case 3:
+      retval = (*func)(recv, nha(), nha(), nha());
+      break;
+    case 4:
+      retval = (*func)(recv, nha(), nha(), nha(), nha());
+      break;
+    case 5:
+      retval = (*func)(recv, nha(), nha(), nha(), nha(), nha());
+      break;
+    case 6:
+      retval = (*func)(recv, nha(), nha(), nha(), nha(), nha(), nha());
+      break;
+    case 7:
+      abort();
+  }
+#endif
   
   /*
   if(args) free(args);

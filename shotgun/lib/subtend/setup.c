@@ -1,6 +1,11 @@
 #include "shotgun.h"
 #include "nmc.h"
+
+#ifdef USE_CINVOKE
 #include <cinvoke.h>
+#endif
+
+#include "ltdl.h"
 
 void subtend_setup_global();
 
@@ -13,7 +18,10 @@ void subtend_setup(STATE) {
   BASIC_CLASS(nmc) =  rbs_class_new(state, "NativeMethodContext", 0, BASIC_CLASS(fastctx));
   BASIC_CLASS(nmethod) = rbs_class_new(state, "NativeMethod", 0, BASIC_CLASS(cmethod));
   
+  lt_dlinit();
+#ifdef USE_CINVOKE
   state->c_context = cinv_context_create();
+#endif
   subtend_setup_global();
   
   state->handle_tbl = handle_table_new();

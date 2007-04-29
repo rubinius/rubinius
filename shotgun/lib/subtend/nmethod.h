@@ -1,5 +1,7 @@
 struct native_method {
+#ifdef USE_CINVOKE;
   CInvFunction *prototype;
+#endif
   void *entry;
   int args;
 };

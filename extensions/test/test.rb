@@ -27,7 +27,7 @@ puts "R* before segfault"
 begin
   t.test_segfault
   puts "Segfault did not occur!"
-  exit 1
+  #exit 1
 rescue Object => e
   puts "R* detected segfault '#{e.message}'"
 end
@@ -75,7 +75,7 @@ puts "\nTest 6 (call var args):"
 
 out = t.test_vargs(:blah, "you suck")
 if out != "you suck"
-  puts "Return value wrong!"
+  puts "Return value wrong! #{out.inspect}"
   exit 1
 end
 

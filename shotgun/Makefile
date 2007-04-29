@@ -9,8 +9,16 @@ MKDIR=install -d
 UNAME=$(shell uname)
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
 DEPS=../include/rubinius.h
-LIBS=`pkg-config glib-2.0 --libs` -lz external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/cinvoke/lib/libcinvoke.a -lm
+
+ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a 
+
+LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
 LDFLAGS=
+
+ifdef USE_CINVOKE
+LIBS+= external_libs/cinvoke/lib/libcinvoke.a
+ALIBS+= external_libs/cinvoke/lib/libcinvoke.a
+endif
 
 ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt
@@ -63,7 +71,10 @@ external_libs/cinvoke/lib/libcinvoke.a:
 external_libs/libevent/.libs/libevent.a:
 	cd external_libs/libevent; ./configure; $(MAKE) libevent.la
 
-librubinius.la: config.h external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/cinvoke/lib/libcinvoke.a external_libs/libevent/.libs/libevent.a
+external_libs/libltdl/.libs/libltdl.a:
+	cd external_libs/libltdl; ./configure; $(MAKE)
+
+librubinius.la: config.h $(ALIBS)
 	cd lib; $(MAKE) librubinius.la
 
 .PHONY: librubinius.a
