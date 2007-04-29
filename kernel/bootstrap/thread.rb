@@ -59,6 +59,14 @@ class Thread
     end
   end
 
+  def status
+    if alive?
+      "run"
+    else
+      false
+    end
+  end
+
   def run
     Ruby.primitive :thread_run
   end
