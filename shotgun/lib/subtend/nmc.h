@@ -4,9 +4,8 @@
 #include <setjmp.h>
 #include "cpu.h"
 
-#ifdef linux
 #include <ucontext.h>
-#endif
+#include "PortableUContext.h"
 
 struct rni_nmc {
   int num_handles;
@@ -18,14 +17,9 @@ struct rni_nmc {
   OBJECT symbol;
   int system_set;
   int cont_set;
-#ifdef linux
   int jump_val;
   ucontext_t system;
   ucontext_t cont;
-#else
-  jmp_buf system;
-  jmp_buf cont;
-#endif
   int setup_context;
   
   void *stack;

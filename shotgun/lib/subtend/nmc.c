@@ -9,7 +9,6 @@
 #include "cpu.h"
 #include "flags.h"
 #include "methctx.h"
-#include "jmpbuf.h"
 
 /* TODO: replace this static with a pthread local */
 static rni_context* global_context = NULL;
@@ -289,12 +288,8 @@ void _nmc_start() {
   n->value = retval;
   
   /* Switch back to the main stack, into nmc_activate so finish up. */
-#ifdef linux
   n->jump_val = ALL_DONE;
   setcontext(&n->system);
-#else
-  longjmp(n->system, ALL_DONE);
-#endif
 }
 
 void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
@@ -316,22 +311,14 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
      we just restore the system, cleanup, and raise the 
      exception again. */
   if(reraise && n->system_set) {
-#ifdef linux
     n->jump_val = CLEANUP;
     setcontext(&n->system);
-#else
-    longjmp(n->system, CLEANUP);
-#endif
   }
   
   n->system_set++;
-#ifdef linux
   getcontext(&n->system);
   travel = n->jump_val;
   n->jump_val = 0;
-#else
-  travel = setjmp(n->system);
-#endif
   
   /* If we haven't traveled yet, call the method. */
   if(!travel) {
@@ -341,12 +328,8 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
       n->value = nmc_handle_new(n, state->handle_tbl, cpu_stack_pop(state, c));
       
       /* Go go gadget stack! */
-#ifdef linux
       n->jump_val = 1;
       setcontext(&n->cont);
-#else
-      longjmp(n->cont, 1);
-#endif 
       /* You'll never get here because the stack has been restored
          to where it was before. */
     }
@@ -355,23 +338,16 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
     n->stack_size = 65536;
     n->stack = (void*)calloc(1, n->stack_size + 16);
 
-#ifdef linux
     getcontext(&n->cont);
     n->cont.uc_stack.ss_sp = n->stack;
     n->cont.uc_stack.ss_size = n->stack_size;
+#ifndef PORTABLEUCONTEXT_DEFINED
     n->cont.uc_stack.ss_flags = 0;
     n->cont.uc_link = NULL;
+#endif
 
     makecontext(&n->cont, _nmc_start, 0);
     setcontext(&n->cont);
-#else
-    nmc_setjmp(n->cont);
-
-    SETJMP_PATCH(n->cont, _nmc_start, STACK_ADDR(n->stack, n->stack_size));
-
-    /* Go go gadget stack! This will cause us to run _nmc_start on the new stack. */
-    longjmp(n->cont, 1);
-#endif
   /* Oh, we have traveled back here! Lets figure out why! */
   } else {
     OBJECT tmp;

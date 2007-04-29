@@ -33,8 +33,8 @@ CFLAGS=$(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.gen
 
 SOURCES=$(sort $(wildcard *.c) $(wildcard subtend/*.c) grammar.c)
-OBJS=$(SOURCES:.c=.o)
-LOBJS=$(SOURCES:.c=.lo)
+OBJS=$(SOURCES:.c=.o) subtend/PortableUContext_asm.o
+LOBJS=$(SOURCES:.c=.lo) subtend/PortableUContext_asm.lo
 RUBY=ruby -I../../lib
 
 ifeq ($(UNAME),SunOS)
@@ -49,6 +49,9 @@ show_info:
 %.lo: %.c
 	@echo "CC $@"
 	@$(COMP) $(CFLAGS) -c $< -o $@
+
+subtend/PortableUContext_asm.lo:
+	$(COMP) $(CFLAGS) -c subtend/PortableUContext_asm.S -o subtend/PortableUContext_asm.lo
 
 .%.d:  %.c  $(DEPS)
 	@set -e; rm -f $@; \

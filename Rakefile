@@ -145,6 +145,12 @@ namespace :build do
     end
   end
   
+  desc "Rebuild librubinius"
+  task :relib do
+    sh 'make -C shotgun/lib clean'
+    sh 'make'
+  end
+  
   task :configure do
     system('./configure')
     raise 'Failed to configure shotgun components' if $?.exitstatus != 0

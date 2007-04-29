@@ -125,7 +125,7 @@ void machine_gather_ppc_frames(ucontext_t *ctx, unsigned long *frames, int *coun
   
   /* Populate the initial value of the stack pointer from
      the context (probably generated from a signal) */
-  sp = ctx->uc_mcontext->ss.r1;
+  sp = ctx->mc.sp;
   for(i = 0; i < *count && sp; i++) {
     /* The address of the routine is stored 8 bytes past
        the stark pointer on PPC. */
@@ -149,7 +149,7 @@ void machine_show_ppc_backtrace(ucontext_t *ctx) {
   
   /* Populate the initial value of the stack pointer from
      the context (probably generated from a signal) */
-  sp = ctx->uc_mcontext->ss.r1;
+  sp = ctx->mc.sp;
   while(sp) {
     /* The address of the routine is stored 8 bytes past
        the stark pointer on PPC. */
@@ -192,7 +192,7 @@ void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *coun
   #ifdef __linux__
   sp = ctx->uc_mcontext.gregs[REG_EBP];
   #elif __APPLE__
-  sp = ctx->uc_mcontext.sc.sc_ebp;
+  sp = ctx->uc_mcontext.mc_ebp;
   #endif
   
   for(i = 0; i < *count && sp; i++) {
@@ -309,12 +309,8 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
        via the nmc or global_context so that the exception can include
        it. */
     rni_ctx->fault_address = info->si_addr;
-#ifdef linux
     rni_ctx->nmc->jump_val = SEGFAULT_DETECTED;
     setcontext(&rni_ctx->nmc->system);
-#else
-    longjmp(rni_ctx->nmc->system, SEGFAULT_DETECTED);
-#endif
   }
   
   if(_recursive_reporting) {
