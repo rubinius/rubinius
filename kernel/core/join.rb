@@ -46,6 +46,10 @@ class Join
       indices
     end
 
+    class << c
+      private :chord, :async, :sync, :__defchannels__
+    end 
+
     c.class_eval &block
     c.instance_eval { @chords.reverse! }
 
@@ -53,7 +57,7 @@ class Join
     @sync.freeze
 
     class << c
-      undef :chord
+      remove_method :chord, :async, :sync, :__defchannels__
       def new(*args, &block)
         obj = allocate
         chords = @chords
