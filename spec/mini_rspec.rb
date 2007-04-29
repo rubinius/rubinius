@@ -1,4 +1,4 @@
-# minispec
+# mini_rspec.rb
 #
 # Very minimal set of features to support specs like this:
 #
@@ -42,15 +42,20 @@ class Object
   end
 end
 
+def setup
+  yield
+end
+
 def specify(msg)
-  print '.'
   begin
     yield
+    STDERR.print '.'
   rescue Exception => e
-    print msg
-    print " FAILED\n"
-    print e.message
-    print "\n"
+    STDERR.print 'F'
+    STDOUT.print msg
+    STDOUT.print " FAILED\n"
+    STDOUT.print e.message
+    STDOUT.print "\n"
   end
 end
 
