@@ -3,10 +3,26 @@ class Thread
 
   def initialize(&prc)
     raise "Must pass in a block" unless prc
+    @alive = true
+    @result = nil
+    @exception = nil
+    @lock = Channel.new
     setup_task do
-      prc.call
-      @joins.each do |ch|
-        ch.send self
+      begin
+        @result = begin
+          @lock.send nil
+          prc.call
+        ensure
+          @lock.receive
+          @alive = false
+          @joins.each do |join|
+            join.send self
+          end
+        end
+      rescue Exception => e
+        @exception = e
+      ensure
+        @lock.send nil
       end
     end
   end
@@ -34,6 +50,15 @@ class Thread
     Ruby.primitive :thread_yield
   end
 
+  def alive?
+    @lock.receive
+    begin
+      @alive
+    ensure
+      @lock.send nil
+    end
+  end
+
   def run
     Ruby.primitive :thread_run
   end
@@ -43,22 +68,35 @@ class Thread
   end
 
   def join(time=nil)
-    if time
-      tc = Channel.new
-      tc.send_in_microseconds(time * 1_000_000)
-    end
-    
-    jc = Channel.new
-    @joins << jc
+    value(time)
+    self
+  end
 
-    if time
-      tup = Channel.receive_many([tc, jc])
-      return nil if tup[0] == tc
-    else
-      jc.receive
+  def value(time=nil)
+    @lock.receive
+    begin
+      if @alive
+        jc = Channel.new
+        @joins << jc
+        @lock.send nil
+        begin
+          if time
+            tc = Channel.new
+            tc.send_in_microseconds(time * 1_000_000)
+            tup = Channel.receive_many([tc, jc])
+            return nil if tup[0] == tc
+          else
+            jc.receive
+          end
+        ensure
+          @lock.receive
+        end
+      end
+      raise @exception if @exception
+      @result
+    ensure
+      @lock.send nil
     end
-
-    return self
   end
 
   def self.sleep(secs)
