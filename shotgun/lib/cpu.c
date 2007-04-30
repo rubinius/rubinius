@@ -184,8 +184,8 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
 }
 
 void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
-  OBJECT ctx, table, ent;
-  int cur, total, target, idx, l, r;
+  OBJECT ctx, table, ent, env;
+  int cur, total, target, idx, l, r, is_block;
   c->exception = exc;
   ctx = c->active_context;
   
@@ -197,13 +197,13 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   cpu_flush_ip(c);
   
   while(!NIL_P(ctx)) {
-    // printf("Searching for exception handler in %p / %p..\n", ctx, c->exceptions);
-    if(!c->raiseable) return;
+    is_block = blokctx_s_block_context_p(state, ctx);
+    if(!c->raiseable) { return; }
     
     table = cmethod_get_exceptions(c->method);
     
     if(!table || NIL_P(table)) {
-      cpu_return_to_sender(state, c, TRUE);
+      cpu_return_to_sender(state, c, FALSE);
       ctx = c->active_context;
       continue;
     }
@@ -216,6 +216,15 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
       l = FIXNUM_TO_INT(tuple_at(state, ent, 0));
       r = FIXNUM_TO_INT(tuple_at(state, ent, 1));
       if(cur >= l && cur <= r) {
+        /* Make sure the bounds are within the block, therwise, don't use
+           it. */
+        if(is_block) {
+          env = blokctx_get_env(ctx);
+          if(l < FIXNUM_TO_INT(blokenv_get_initial_ip(env))
+                  || r > FIXNUM_TO_INT(blokenv_get_last_ip(env))) {
+            continue;
+          }
+        }
         target = FIXNUM_TO_INT(tuple_at(state, ent, 2));
         c->ip = target;
         cpu_cache_ip(c);

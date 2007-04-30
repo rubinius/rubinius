@@ -288,7 +288,7 @@ class ShotgunPrimitives
     GUARD( RISA(self, blokenv) );
 
     cpu_flush_sp(c);
-    t2 = blokenv_create_context(state, self, c->active_context, c->sp);
+    t2 = blokenv_create_context(state, self, c->active_context, c->sp);    
     cpu_activate_context(state, c, t2, blokenv_get_home(self));
     CODE
   end
