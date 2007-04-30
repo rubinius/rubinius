@@ -3,32 +3,50 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-typedef unsigned long OBJECT;
+typedef uintptr_t OBJECT;
+
+#define REFSIZE (sizeof(uintptr_t))
+
+/* the sizeof(struct rubinius_object) must an increment of
+   REFSIZE, so that the bytes located directly after a
+   struct rubinius_object can hold a pointer which can be
+   dereferenced. (an 32 bit platforms, pointers must be aligned
+   on 32bit (word) boundaries. on 64 bit platforms, pointers probably
+   have to be aligned on 64bit (double word) boundaries) */
+
+/* On a 32 bit platform, I expect rubinius_object to take up
+   1 + 1 + 2 + 4 + 8 + 4 = 20 bytes.
+   on 64 bit platform,
+   1 + 1 + 2 + 4 + 8 + 8 = 24 bytes.
+*/
 
 struct rubinius_object {
-  unsigned char flags;
-  unsigned char flags2;
+  uint8_t flags;
+  uint8_t flags2;
   /* Used by the GC to store data about the object. */
-  unsigned short int gc;
-  unsigned long object_id;
+  uint16_t gc;
+  uint64_t object_id;
   
+  uint32_t fields;
   OBJECT klass;
-  unsigned long fields;  
 };
 
 #include <assert.h>
 
 #define HEADER(obj) ((struct rubinius_object*)obj)
 #define OBJECTS(obj) ((OBJECT*)obj)
+/*
 #define FLAGS_OFFSET 0
 #define FLAGS2_OFFSET 1
 #define OBJID_OFFSET 4
 #define CLASS_OFFSET 8
 #define FIELDS_OFFSET 12
-/* Header size is in longs */
-#define HEADER_SIZE 4
-
+*/
+/* Header size is in uintptr_t's */
+//#define HEADER_SIZE 4
+#define HEADER_SIZE (sizeof(struct rubinius_object) / REFSIZE)
 /* Macros to find out the zone of an object. */
 #define ZONE_BITS 2
 #define ZONE_OFFSET 6
@@ -43,13 +61,7 @@ struct rubinius_object {
 
 #define GC_MAKE_FOREVER_YOUNG(obj) (HEADER(obj)->gc |= 0x8000)
 
-#define REFSIZE (sizeof(size_t))
-
 #define CLASS_OBJECT(obj) (HEADER(obj)->klass)
-
-/* ->fields is shifted by 1 so that the least most bit is always
-    1. This protects the field from being interpretted as a reference
-    if it's blindly looked at. */
 
 #define NUM_FIELDS(obj) (HEADER(obj)->fields)
 #define SET_NUM_FIELDS(obj, fel) (HEADER(obj)->fields = fel)

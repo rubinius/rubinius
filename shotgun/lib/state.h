@@ -214,7 +214,11 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
 #if DISABLE_CHECKS
-  assert(fel < HEADER(in)->fields);
+  if(fel >= HEADER(in)->fields) {
+    printf("Attempted to access field %d in an object with %lu fields.\n", 
+      fel, (unsigned long)NUM_FIELDS(in));
+    assert(0);
+  }
 #endif
   obj = NTH_FIELD_DIRECT(in, fel);
 #ifdef INTERNAL_MACROS
@@ -227,7 +231,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 #if DISABLE_CHECKS
   if(fel >= HEADER(obj)->fields) {
     printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
-      fel, NUM_FIELDS(obj), _inspect(obj));
+      fel, (unsigned long)NUM_FIELDS(obj), _inspect(obj));
     assert(0);
   }
 #endif

@@ -1,7 +1,7 @@
 #ifndef __RUBINIUS_HEAP__
 #define __RUBINIUS_HEAP__ 1
 
-typedef unsigned long address;
+typedef uintptr_t address;
 
 struct heap {
   int size;
