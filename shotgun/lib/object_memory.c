@@ -341,8 +341,8 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   
   GC_ZONE_SET(obj, GC_MATURE_OBJECTS);
   
-  /* The hash is unique by default, just an auto incremented ID */
-  header->hash = om->last_object_id++;
+  /* Just an auto incremented ID */
+  header->object_id = om->last_object_id++;
   return obj;
 }
 
@@ -380,8 +380,8 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   
   GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
   
-  /* The hash is unique by default, just an auto incremented ID */
-  header->hash = om->last_object_id++;
+  /* Just an auto incremented ID */
+  header->object_id = om->last_object_id++;
   return obj;
 }
 

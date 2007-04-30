@@ -167,7 +167,7 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   } else if(REFERENCE_P(self) && HEADER(self)->klass == state->global->string) {
     hsh = string_hash_int(state, self);
   } else {
-    hsh = HEADER(self)->hash;
+    hsh = HEADER(self)->object_id;
   }
   
   return hsh;

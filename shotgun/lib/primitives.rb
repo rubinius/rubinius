@@ -593,7 +593,11 @@ class ShotgunPrimitives
   def object_id
     <<-CODE
     self = stack_pop();
-    stack_push(UI2N(self));
+    if(REFERENCE_P(self)) {
+      stack_push(UI2N(HEADER(self)->object_id));
+    } else {
+      stack_push(UI2N(self));
+    }
     CODE
   end
 

@@ -11,7 +11,7 @@ struct rubinius_object {
   unsigned char flags2;
   /* Used by the GC to store data about the object. */
   unsigned short int gc;
-  unsigned long hash;
+  unsigned long object_id;
   
   OBJECT klass;
   unsigned long fields;  
@@ -23,7 +23,7 @@ struct rubinius_object {
 #define OBJECTS(obj) ((OBJECT*)obj)
 #define FLAGS_OFFSET 0
 #define FLAGS2_OFFSET 1
-#define HASH_OFFSET 4
+#define OBJID_OFFSET 4
 #define CLASS_OFFSET 8
 #define FIELDS_OFFSET 12
 /* Header size is in longs */
