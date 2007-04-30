@@ -161,13 +161,17 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   unsigned int hsh;
   hsh = (unsigned int)self;
   
-  if(SYMBOL_P(self) || FIXNUM_P (self)) {
-      /* Get rid of the tag part (i.e. the part that indicate nature of self */
-      hsh = hsh >> 2;
-  } else if(REFERENCE_P(self) && HEADER(self)->klass == state->global->string) {
-    hsh = string_hash_int(state, self);
+  if(!REFERENCE_P(self)) {
+    /* Get rid of the tag part (i.e. the part that indicate nature of self */
+    hsh = hsh >> 2;
   } else {
-    hsh = HEADER(self)->object_id;
+    if(ISA(self, state->global->string)) {
+      hsh = string_hash_int(state, self);
+    } else if(HEADER(self)->hash != 0) {
+      hsh = HEADER(self)->hash;
+    } else {
+      hsh = object_get_id(state, self);
+    }
   }
   
   return hsh;

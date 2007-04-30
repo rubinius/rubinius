@@ -593,11 +593,7 @@ class ShotgunPrimitives
   def object_id
     <<-CODE
     self = stack_pop();
-    if(REFERENCE_P(self)) {
-      stack_push(UI2N(HEADER(self)->object_id));
-    } else {
-      stack_push(UI2N(self));
-    }
+    stack_push(UI2N(object_get_id(state, self)));
     CODE
   end
 
@@ -640,6 +636,19 @@ class ShotgunPrimitives
 
     t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
     stack_push(t2);
+    CODE
+  end
+  
+  def hash_value_set
+    <<-CODE
+    POP(self, REFERENCE);
+    POP(t1, NUMERIC);
+    if(FIXNUM_P(t1)) {
+      HEADER(self)->hash = (uint32_t)FIXNUM_TO_INT(t1);
+    } else {
+      HEADER(self)->hash = (uint32_t)bignum_to_int(state, t1);
+    }
+    stack_push(UI2N(HEADER(self)->hash));
     CODE
   end
 

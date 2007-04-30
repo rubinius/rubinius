@@ -157,7 +157,8 @@ module Bytecode
       :replace_process,
       :fork_process,
       :channel_send_on_stopped,
-      :io_reopen
+      :io_reopen,
+      :hash_value_set
     ]
 
     FirstRuntimePrimitive = 1024

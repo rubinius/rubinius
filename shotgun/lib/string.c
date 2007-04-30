@@ -158,13 +158,20 @@ static inline unsigned int _hash_str(unsigned char *bp, unsigned int sz) {
 
 unsigned int string_hash_int(STATE, OBJECT self) {
   unsigned char *bp;
-  unsigned int sz;
+  unsigned int sz, h;
+  OBJECT data;
   
   assert(STRING_P(self));
-  bp = (unsigned char*)bytearray_byte_address(state, string_get_data(self));
+  data = string_get_data(self);
+  if(HEADER(data)->hash != 0) {
+    return HEADER(data)->hash;
+  }
+  bp = (unsigned char*)bytearray_byte_address(state, data);
   sz = FIXNUM_TO_INT(string_get_bytes(self));
   
-  return _hash_str(bp, sz);
+  h = _hash_str(bp, sz);
+  HEADER(data)->hash = h;
+  return h;
 }
 
 unsigned int string_hash_cstr(STATE, char *bp) {

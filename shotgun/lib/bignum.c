@@ -67,6 +67,7 @@ OBJECT bignum_new_unsigned(STATE, unsigned int num) {
 }
 
 OBJECT bignum_normalize(STATE, OBJECT b) {
+  /* TODO: replace the 32 - 3 with something thats calculate, not constant. */
   if(mp_count_bits(MP(b)) <= (32 - 3)) {
     int val;
     val = (int)mp_get_int(MP(b));

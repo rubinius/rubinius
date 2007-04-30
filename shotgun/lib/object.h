@@ -28,3 +28,16 @@ void object_cleanup_weak_refs(STATE, OBJECT self);
 
 #define WEAK_REFERENCES_P(obj) FLAG_SET_P(obj, RefsAreWeakFlag)
 #define HAS_WEAK_REFS_P(obj) FLAG_SET_P(obj, HasWeakRefsFlag)
+
+static inline uint32_t object_get_id(STATE, OBJECT self) {
+  if(REFERENCE_P(self)) {
+    /* Lazy allocate object's ids, since most don't need them. */
+    if(HEADER(self)->object_id == 0) {
+      HEADER(self)->object_id = state->om->last_object_id++;
+    }
+    
+    return HEADER(self)->object_id;
+  } else {
+    return (uint32_t)(self);
+  }
+}

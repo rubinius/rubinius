@@ -339,10 +339,10 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
     rbs_set_field(om, obj, i, Qnil);
   }
   
+  header->object_id = 0;
+  
   GC_ZONE_SET(obj, GC_MATURE_OBJECTS);
   
-  /* Just an auto incremented ID */
-  header->object_id = om->last_object_id++;
   return obj;
 }
 
@@ -377,11 +377,9 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   for(i = 0; i < fields; i++) {
     rbs_set_field(om, obj, i, Qnil);
   }
+  header->object_id = 0;
   
   GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
-  
-  /* Just an auto incremented ID */
-  header->object_id = om->last_object_id++;
   return obj;
 }
 
