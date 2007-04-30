@@ -134,7 +134,7 @@ class ShotgunInstructions
     <<-CODE
     _lit = stack_pop();
     t1 = stack_pop();
-    HEADER(_lit)->klass = t1;
+    SET_CLASS(_lit, t1);
     stack_push(_lit);
     CODE
   end

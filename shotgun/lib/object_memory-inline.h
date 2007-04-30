@@ -16,7 +16,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   }
   
   header = (struct rubinius_object*)obj;
-  header->klass = cls;
+  rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
     /* #define CLASS_f_INSTANCE_FLAGS 8 */
@@ -48,7 +48,7 @@ static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
     obj = (OBJECT)baker_gc_allocate_ultra(om->gc, size);
   }
   
-  HEADER(obj)->klass = cls;
+  rbs_set_class(om, obj, cls);
   HEADER(obj)->flags = 0;
   HEADER(obj)->flags2 = 0;
   HEADER(obj)->gc = 0;

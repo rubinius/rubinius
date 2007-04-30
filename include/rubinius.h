@@ -82,6 +82,8 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
   return val;
 }
 
+#define SET_CLASS(obj, cls) (HEADER(obj)->klass = cls)
+
 #endif
 
 #ifdef Qfalse

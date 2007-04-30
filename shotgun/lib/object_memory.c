@@ -325,7 +325,7 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   
   
   header = (struct rubinius_object*)obj;
-  header->klass = cls;
+  rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
     flags = class_get_instance_flags(cls);
@@ -364,7 +364,7 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   }
   
   header = (struct rubinius_object*)obj;
-  header->klass = cls;
+  rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
     flags = class_get_instance_flags(cls);

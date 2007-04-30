@@ -5,7 +5,7 @@
 #version of library 
 VERSION=0.39
 
-CFLAGS  +=  -I./ -Wall -W -Wshadow -Wsign-compare
+CFLAGS  +=  -I./ -Wall -W -Wshadow -Wsign-compare -fPIC
 
 ifndef MAKE
    MAKE=make

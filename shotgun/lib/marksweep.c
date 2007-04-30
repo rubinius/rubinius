@@ -175,7 +175,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
     if(BCM_P(cls)) {
-      HEADER(iobj)->klass = BCM_TO;
+      SET_CLASS(iobj, BCM_TO);
     } else {
       mark_sweep_mark_object(state, ms, cls);
     }

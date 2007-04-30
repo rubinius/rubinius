@@ -190,6 +190,9 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define IS_REF_P(val) (((val & 1) == 0) && (val > 12))
 #define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
 
+#define rbs_set_class(om, obj, cls) ({ HEADER(obj)->klass = cls; if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); })
+#define SET_CLASS(obj, cls) ({ HEADER(obj)->klass = cls; RUN_WB(obj, cls); })
+
 // #define ACCESS_MACROS 1
 
 #ifdef ACCESS_MACROS

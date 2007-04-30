@@ -166,8 +166,8 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   if(REFERENCE_P(cls)) {
     cls = baker_gc_maybe_mutate(state, g, cls);
   }
-    
-  HEADER(iobj)->klass = cls;
+  
+  SET_CLASS(iobj, cls);
   
   assert(HEADER(iobj)->flags != 0xff);
   
