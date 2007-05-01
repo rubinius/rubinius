@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "methctx.h"
 #include <sys/time.h>
+#include <time.h>
 #include "machine.h"
 #include "tuple.h"
 #include "string.h"
