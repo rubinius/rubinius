@@ -4,45 +4,43 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "Symbol instance method" do
   specify "=== should return true if other is the same symbol" do
-    example do
-      @sym = :ruby
-      [@sym === :ruby, :foo === :bar, :one === 'one'.intern, :nope === 'nope', :yep === 'yep'.to_sym]
-    end.should == [true, false, true, false, true]
+    sym = :ruby
+    (sym === :ruby).should == true
+    (:foo === :bar).should == false
+    (:one === 'one'.intern).should == true
+    (:nope === 'nope').should == false
+    (:yep === 'yep'.to_sym).should == true
   end
   
   specify "id2name should return the string corresponding to self" do
-    example do
-      [:rubinius.id2name, :squash.id2name, 'string'.to_sym.id2name]
-    end.should == ["rubinius", "squash", "string"]
+    :rubinius.id2name.should == "rubinius"
+    :squash.id2name.should == "squash"
+    'string'.to_sym.id2name.should == "string"
   end
   
   specify "inspect should return the representation of self as a symbol literal" do
-    example do
-      [:ruby.inspect, :file.inspect]
-    end.should == [":ruby", ":file"]
+    :ruby.inspect.should == ":ruby"
+    :file.inspect.should == ":file"
   end
   
   specify "to_i should return an integer for a symbol" do
-    example do
-      [:ruby.to_i.kind_of?(Integer), 'rubinius'.to_sym.to_i.kind_of?(Integer)]
-    end.should == [true, true]
+    :ruby.to_i.kind_of?(Integer).should == true
+    'rubinius'.to_sym.to_i.kind_of?(Integer).should == true
   end
   
   specify "to_int should be a synonym for to_i" do
-    example do
-      [:ruby.to_i.kind_of?(Integer), 'rubinius'.to_sym.to_i.kind_of?(Integer)]
-    end.should == [true, true]
+    :ruby.to_i.kind_of?(Integer).should == true
+    'rubinius'.to_sym.to_i.kind_of?(Integer).should == true
   end
   
   specify "to_s should be a synonym for id2name" do
-    example do
-      [:rubinius.to_s, :squash.to_s, 'string'.to_sym.to_s]
-    end.should == ["rubinius", "squash", "string"]
+    :rubinius.to_s.should == "rubinius"
+    :squash.to_s.should == "squash"
+    'string'.to_sym.to_s.should == "string"
   end
   
   specify "to_sym should return self" do
-    example do
-      [:rubinius.to_sym, :ruby.to_sym]
-    end.should == [:rubinius, :ruby]
+    :rubinius.to_sym.should == :rubinius
+    :ruby.to_sym.should == :ruby
   end  
 end
