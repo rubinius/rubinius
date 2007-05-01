@@ -38,9 +38,12 @@ module Readline
         cur = code.chr
 
         #puts "Code: #{code}"
-        if code == ASCII::Return or code == ASCII::ControlD
+        if code == ASCII::Return
           print "\n"
           break
+        elsif code == ASCII::ControlD
+          print "\n"
+          return nil
         elsif code == @c_intr
           puts "", "<Control-C>"
           raise Interrupt, "User requested termination with Control-C"

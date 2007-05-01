@@ -78,10 +78,10 @@ while true
   else
     str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} ")
   end
+  break unless str
   context << str
   line += 1
   if str.size == 0
-    puts "\n=> Terminating input"
     context = ""
   elsif context.size > 1
     begin
