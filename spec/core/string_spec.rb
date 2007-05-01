@@ -14,1213 +14,1044 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "String instance method" do
   
   specify "% should return a string resulting from applying self as a format specification to other" do
-    example do
-      [ "%b" % 10,
-        "% b" % 10,
-        "%1$b" % [10, 20],
-        "%#b" % 10,
-        "%+b" % 10,
-        "%-9b" % 10,
-        "%05b" % 10,
-        "%*b" % [10, 6],
-
-        "%c" % 10,
-        "%2$c" % [10, 11, 14],
-        "%-4c" % 10,
-        "%*c" % [10, 3],
-
-        "%d" % 10,
-        "% d" % 10,
-        "%1$d" % [10, 20],
-        "%+d" % 10,
-        "%-7d" % 10,
-        "%04d" % 10,
-        "%*d" % [10, 4],
-
-        "%E" % 10,
-        "% E" % 10,
-        "%1$E" % 10,
-        "%#E" % 10,
-        "%+E" % 10,
-        "%-7E" % 10,
-        "%05E" % 10,
-        "%*E" % [10, 9],
-        
-        "%e" % 10,
-        "% e" % 10,
-        "%1$e" % 10,
-        "%#e" % 10,
-        "%+e" % 10,
-        "%-7e" % 10,
-        "%05e" % 10,
-        "%*e" % [10, 9],
-
-        "%f" % 10,
-        "% f" % 10,
-        "%1$f" % 10,
-        "%#f" % 10,
-        "%+f" % 10,
-        "%-7f" % 10,
-        "%05f" % 10,
-        "%*f" % [10, 9],
-
-        "%G" % 10,
-        "% G" % 10,
-        "%1$G" % 10,
-        "%#G" % 10,
-        "%+G" % 10,
-        "%-7G" % 10,
-        "%05G" % 10,
-        "%*G" % [10, 9],
-
-        "%g" % 10,
-        "% g" % 10,
-        "%1$g" % 10,
-        "%#g" % 10,
-        "%+g" % 10,
-        "%-7g" % 10,
-        "%05g" % 10,
-        "%*g" % [10, 9],
-
-        "%i" % 10,
-        "% i" % 10,
-        "%1$i" % [10, 20],
-        "%+i" % 10,
-        "%-7i" % 10,
-        "%04i" % 10,
-        "%*i" % [10, 4],
-
-        "%o" % 10,
-        "% o" % 10,
-        "%1$o" % [10, 20],
-        "%#o" % 10,
-        "%+o" % 10,
-        "%-9o" % 10,
-        "%05o" % 10,
-        "%*o" % [10, 6],
-        
-        "%p" % 10,
-        "%1$p" % [10, 5],
-        "%-22p" % 10,
-        "%*p" % [10, 10],
-
-        "%s" % 10,
-        "%1$s" % [10, 8],
-        "%-5s" % 10,
-        "%*s" % [10, 9],
-
-        "%u" % 10,
-        "% u" % 10,
-        "%1$u" % [10, 20],
-        "%+u" % 10,
-        "%-7u" % 10,
-        "%04u" % 10,
-        "%*u" % [10, 4],
-
-        "%X" % 10,
-        "% X" % 10,
-        "%1$X" % [10, 20],
-        "%#X" % 10,
-        "%+X" % 10,
-        "%-9X" % 10,
-        "%05X" % 10,
-        "%*X" % [10, 6],
-
-        "%x" % 10,
-        "% x" % 10,
-        "%1$x" % [10, 20],
-        "%#x" % 10,
-        "%+x" % 10,
-        "%-9x" % 10,
-        "%05x" % 10,
-        "%*x" % [10, 6] ]
-    end.should == ["1010", " 1010", "1010", "0b1010", "+1010", "1010     ", "01010", "       110", 
-          "\n", "\v", "\n   ", "         \003", "10", " 10", "10", "+10", "10     ", "0010", 
-          "         4", "1.000000E+01", " 1.000000E+01", "1.000000E+01", "1.000000E+01", 
-          "+1.000000E+01", "1.000000E+01", "1.000000E+01", "9.000000E+00", "1.000000e+01", 
-          " 1.000000e+01", "1.000000e+01", "1.000000e+01", "+1.000000e+01", "1.000000e+01", 
-          "1.000000e+01", "9.000000e+00", "10.000000", " 10.000000", "10.000000", "10.000000", 
-          "+10.000000", "10.000000", "10.000000", "  9.000000", "10", " 10", "10", "10.0000", 
-          "+10", "10     ", "00010", "         9", "10", " 10", "10", "10.0000", "+10", "10     ", 
-          "00010", "         9", "10", " 10", "10", "+10", "10     ", "0010", "         4", 
-          "12", " 12", "12", "012", "+12", "12       ", "00012", "         6", "10", "10", 
-          "10                    ", "        10", "10", "10", "10   ", "         9", "10", 
-          " 10", "10", "+10", "10     ", "0010", "         4", "A", " A", "A", "0XA", "+A", 
-          "A        ", "0000A", "         6", "a", " a", "a", "0xa", "+a", "a        ", "0000a", "         6" ]
+    # TODO: yeah, this should be broken up I dare say
+    # example do
+    #   [ "%b" % 10,
+    #     "% b" % 10,
+    #     "%1$b" % [10, 20],
+    #     "%#b" % 10,
+    #     "%+b" % 10,
+    #     "%-9b" % 10,
+    #     "%05b" % 10,
+    #     "%*b" % [10, 6],
+    # 
+    #     "%c" % 10,
+    #     "%2$c" % [10, 11, 14],
+    #     "%-4c" % 10,
+    #     "%*c" % [10, 3],
+    # 
+    #     "%d" % 10,
+    #     "% d" % 10,
+    #     "%1$d" % [10, 20],
+    #     "%+d" % 10,
+    #     "%-7d" % 10,
+    #     "%04d" % 10,
+    #     "%*d" % [10, 4],
+    # 
+    #     "%E" % 10,
+    #     "% E" % 10,
+    #     "%1$E" % 10,
+    #     "%#E" % 10,
+    #     "%+E" % 10,
+    #     "%-7E" % 10,
+    #     "%05E" % 10,
+    #     "%*E" % [10, 9],
+    #     
+    #     "%e" % 10,
+    #     "% e" % 10,
+    #     "%1$e" % 10,
+    #     "%#e" % 10,
+    #     "%+e" % 10,
+    #     "%-7e" % 10,
+    #     "%05e" % 10,
+    #     "%*e" % [10, 9],
+    # 
+    #     "%f" % 10,
+    #     "% f" % 10,
+    #     "%1$f" % 10,
+    #     "%#f" % 10,
+    #     "%+f" % 10,
+    #     "%-7f" % 10,
+    #     "%05f" % 10,
+    #     "%*f" % [10, 9],
+    # 
+    #     "%G" % 10,
+    #     "% G" % 10,
+    #     "%1$G" % 10,
+    #     "%#G" % 10,
+    #     "%+G" % 10,
+    #     "%-7G" % 10,
+    #     "%05G" % 10,
+    #     "%*G" % [10, 9],
+    # 
+    #     "%g" % 10,
+    #     "% g" % 10,
+    #     "%1$g" % 10,
+    #     "%#g" % 10,
+    #     "%+g" % 10,
+    #     "%-7g" % 10,
+    #     "%05g" % 10,
+    #     "%*g" % [10, 9],
+    # 
+    #     "%i" % 10,
+    #     "% i" % 10,
+    #     "%1$i" % [10, 20],
+    #     "%+i" % 10,
+    #     "%-7i" % 10,
+    #     "%04i" % 10,
+    #     "%*i" % [10, 4],
+    # 
+    #     "%o" % 10,
+    #     "% o" % 10,
+    #     "%1$o" % [10, 20],
+    #     "%#o" % 10,
+    #     "%+o" % 10,
+    #     "%-9o" % 10,
+    #     "%05o" % 10,
+    #     "%*o" % [10, 6],
+    #     
+    #     "%p" % 10,
+    #     "%1$p" % [10, 5],
+    #     "%-22p" % 10,
+    #     "%*p" % [10, 10],
+    # 
+    #     "%s" % 10,
+    #     "%1$s" % [10, 8],
+    #     "%-5s" % 10,
+    #     "%*s" % [10, 9],
+    # 
+    #     "%u" % 10,
+    #     "% u" % 10,
+    #     "%1$u" % [10, 20],
+    #     "%+u" % 10,
+    #     "%-7u" % 10,
+    #     "%04u" % 10,
+    #     "%*u" % [10, 4],
+    # 
+    #     "%X" % 10,
+    #     "% X" % 10,
+    #     "%1$X" % [10, 20],
+    #     "%#X" % 10,
+    #     "%+X" % 10,
+    #     "%-9X" % 10,
+    #     "%05X" % 10,
+    #     "%*X" % [10, 6],
+    # 
+    #     "%x" % 10,
+    #     "% x" % 10,
+    #     "%1$x" % [10, 20],
+    #     "%#x" % 10,
+    #     "%+x" % 10,
+    #     "%-9x" % 10,
+    #     "%05x" % 10,
+    #     "%*x" % [10, 6] ]
+    # end.should == ["1010", " 1010", "1010", "0b1010", "+1010", "1010     ", "01010", "       110", 
+    #       "\n", "\v", "\n   ", "         \003", "10", " 10", "10", "+10", "10     ", "0010", 
+    #       "         4", "1.000000E+01", " 1.000000E+01", "1.000000E+01", "1.000000E+01", 
+    #       "+1.000000E+01", "1.000000E+01", "1.000000E+01", "9.000000E+00", "1.000000e+01", 
+    #       " 1.000000e+01", "1.000000e+01", "1.000000e+01", "+1.000000e+01", "1.000000e+01", 
+    #       "1.000000e+01", "9.000000e+00", "10.000000", " 10.000000", "10.000000", "10.000000", 
+    #       "+10.000000", "10.000000", "10.000000", "  9.000000", "10", " 10", "10", "10.0000", 
+    #       "+10", "10     ", "00010", "         9", "10", " 10", "10", "10.0000", "+10", "10     ", 
+    #       "00010", "         9", "10", " 10", "10", "+10", "10     ", "0010", "         4", 
+    #       "12", " 12", "12", "012", "+12", "12       ", "00012", "         6", "10", "10", 
+    #       "10                    ", "        10", "10", "10", "10   ", "         9", "10", 
+    #       " 10", "10", "+10", "10     ", "0010", "         4", "A", " A", "A", "0XA", "+A", 
+    #       "A        ", "0000A", "         6", "a", " a", "a", "0xa", "+a", "a        ", "0000a", "         6" ]
   end
   
   specify "* should return a new string that is n copies of self" do
-    example do
-      "cool" * 3
-    end.should == "coolcoolcool"
+    ("cool" * 3).should == "coolcoolcool"
   end
   
   specify "+ should concatentate self with other" do
-    example do
-      "Ruby !" + "= Rubinius"
-    end.should == "Ruby != Rubinius"
+    ("Ruby !" + "= Rubinius").should == "Ruby != Rubinius"
   end
   
   specify "<< should concatenate the other object" do
-    example do
-      @a = 'hello '
-      @a << 'world'
-      @b = @a.dup
-      @b << 33
-      [@a, @b]
-    end.should == ["hello world", "hello world!"]
+    a = 'hello ' << 'world'
+    b = a.dup << 33
+    a.should == "hello world"
+    b.should == "hello world!"
   end
   
   specify "<=> should return -1, 0, 1 when self is less than, equal, or greater than other" do
-    example do
-      [ "this" <=> "those", "yep" <=> "yep", "yoddle" <=> "griddle" ]
-    end.should == [-1, 0, 1]
+    ("this" <=> "those").should == -1
+    ("yep" <=> "yep").should == 0
+    ("yoddle" <=> "griddle").should == 1
   end
   
   specify "== with other String should return true if <=> returns 0" do
-    example do
-      [ "equal" == "equal", "more" == "MORE", "less" == "greater" ]
-    end.should == [true, false, false]
+    ("equal" == "equal").should == true
+    ("more" == "MORE").should == false
+    ("less" == "greater").should == false
   end
   
   specify "== with other not String should return self == other.to_str if other responds to to_str" do
-    example do
-      class Foo
-        def to_str
-        end
-        def ==(other)
-          "foo" == other
-        end
+    class Foo
+      def to_str
       end
-      "foo" == Foo.new
-    end.should == true
+      def ==(other)
+        "foo" == other
+      end
+    end
+    ("foo" == Foo.new).should == true
   end
   
   specify "== with other not String should return false if other does not respond to to_str" do
-    example do
-      class Bar
-        def ==(other)
-          "foo" == other
-        end
+    class Bar
+      def ==(other)
+        "foo" == other
       end
-      "foo" == Bar.new
-    end.should == false
+    end
+    ("foo" == Bar.new).should == false
   end
   
   specify "=== should be a synonym for ==" do
-    example do
-      [ "equal" == "equal", "more" == "MORE", "less" == "greater" ]
-    end.should == [true, false, false]
+    ("equal" == "equal").should == true
+    ("more" == "MORE").should == false
+    ("less" == "greater").should == false
   end
   
   specify "=~ should return the position of match start" do
-    example do
-      ["rudder" =~ /udder/, "boat" =~ /[^fl]oat/]
-    end.should == [1, 0]
+    ("rudder" =~ /udder/).should == 1
+    ("boat" =~ /[^fl]oat/).should == 0
   end
   
   specify "=~ should return nil if there is no match" do
-    example do
-      ["bean" =~ /bag/, "true" =~ /false/ ]
-    end.should == [nil, nil]
+    ("bean" =~ /bag/).should == nil
+    ("true" =~ /false/).should == nil
   end
   
   specify "[] with index should return the code of the character at index" do
-    example do
-      "hello"[1]
-    end.should == 101
+    "hello"[1].should == 101
   end
   
   specify "[] with start, length should return the substring of length characters begin at start" do
-    example do
-      [ "hello"[1, 3],
-        "hello"[-3, 2],
-        "hello"[5, 7] ]
-    end.should == ["ell", "ll", ""]
+    "hello"[1, 3].should == "ell"
+    "hello"[-3, 2].should == "ll"
+    "hello"[5, 7].should == ""
   end
   
   specify "[] with range should return the substring specified by range" do
-    example do
-      [ "world"[0..2],
-        "world"[-4..-2],
-        "world"[1...3] ]
-    end.should == ["wor", "orl", "or"]
+    "world"[0..2].should == "wor"
+    "world"[-4..-2].should == "orl"
+    "world"[1...3].should == "or"
   end
   
   specify "[] with regexp should return the string matching pattern" do
-    example do
-      [ "hello there"[/[aeiou](.)\1/],
-        "hello there"[/ell/],
-        "hello there"[/o /],
-        "hello there"[/d/] ]
-    end.should == ["ell", "ell", "o ", nil]
+    "hello there"[/[aeiou](.)\1/].should == "ell"
+    "hello there"[/ell/].should == "ell"
+    "hello there"[/o /].should == "o "
+    "hello there"[/d/].should == nil
   end
   
   specify "[] with regexp, index should return the string specified by the nth component MatchData" do
-    example do
-      [ "hello there"[/[aeiou](.)\1/, 0],
-        "hello there"[/he/, 1],
-        "hello there"[/he/, 0],
-        "hello there"[/[aeiou](.)\1/, 2] ]
-    end.should == ["ell", nil, "he", nil]
+    "hello there"[/[aeiou](.)\1/, 0].should == "ell"
+    "hello there"[/he/, 1].should == nil
+    "hello there"[/he/, 0].should == "he"
+    "hello there"[/[aeiou](.)\1/, 2].should == nil
   end
   
   specify "[] with string should return other if it occurs in self, otherwise nil" do
-    example do
-      [ "hello"["el"],
-        "hello"["bye"],
-        "hello"["hello"] ]
-    end.should == ["el", nil, "hello"]
+    "hello"["el"].should == "el"
+    "hello"["bye"].should == nil
+    "hello"["hello"].should == "hello"
   end
   
   specify "[]= with index should replace the character at index with the character code" do
-    example do
-      @s = "barf"
-      [@s[3] = ?k, @s]
-    end.should == [107, "bark"]
+    s = "barf"
+    (s[3] = ?k).should == 107
+    s.should == "bark"
   end
   
   specify "[]= with index should replace the character at index with string" do
-    example do
-      @s = "Ruby"
-      [@s[3] = "inius", @s]
-    end.should == ["inius", "Rubinius"]
+    s = "Ruby"
+    (s[3] = "inius").should == "inius"
+    s.should == "Rubinius"
   end
   
   specify "[]= with start, length should replace length characters at start with string" do
-    example do
-      @r = 'once upon a time'
-      [ 
-      @r.send(:[]=,5,11,'a lifetime'), 
-      @r
-      ]
-    end.should == ["a lifetime", "once a lifetime"]
+    r = 'once upon a time'
+    r.send(:[]=,5,11,'a lifetime').should == "a lifetime"
+    r.should == "once a lifetime"
   end
   
   specify "[]= with range should replace characters in range with string" do
-    example do
-      @s = "drabble"
-      [@s[3..6] = "pe", @s]
-    end.should == ["pe", "drape"]
+    s = "drabble"
+    (s[3..6] = "pe").should == "pe"
+    s.should == "drape"
   end
   
   specify "[]= with regexp should replace the characters that match pattern with string" do
-    example do
-      @s = "caddie"
-      [@s[/d{2}/] = "bb", @s]
-    end.should == ["bb", "cabbie"]
+    s = "caddie"
+    (s[/d{2}/] = "bb").should == "bb"
+    s.should == "cabbie"
   end
 
   specify "[]= with regexp and index should replace the specified portion of the match with string" do
-    example do
-      @r = "abc123def411"
-      [@r.send(:[]=,/(\d+)([a-e]*)/, 1, "abcc"), @r]
-    end.should == ["abcc", "abcabccdef411"]
+    r = "abc123def411"
+    r.send(:[]=,/(\d+)([a-e]*)/, 1, "abcc").should == "abcc"
+    r.should == "abcabccdef411"
   end
 
   specify "[]= with string should replace the string with other string" do
-    example do
-      @s = "ten times"
-      [@s["ten"] = "twenty", @s]
-    end.should == ["twenty", "twenty times"]
+    s = "ten times"
+    (s["ten"] = "twenty").should == "twenty"
+    s.should == "twenty times"
   end
   
   specify "~ should be equivalent to $_ =~ self" do
-    example do
-      $_ = "bat"
-      ~ /c?at/
-    end.should == 1
+    $_ = "bat"
+    (~ /c?at/).should == 1
   end
 
   specify "capitalize should return a copy of string and convert the first character to uppercase and the rest to lowercase" do
-    example do
-      @a = "LOWER"
-      @b = "MenTaLguY"
-      [@a.capitalize, @a, @b.capitalize, @b]
-    end.should == ["Lower", "LOWER", "Mentalguy", "MenTaLguY"]
+    a = "LOWER"
+    b = "MenTaLguY"
+    a.capitalize.should == "Lower"
+    a.should == "LOWER"
+    b.capitalize.should == "Mentalguy"
+    b.should == "MenTaLguY"
   end
   
   specify "capitalize! should modify self to convert the first character to upper case and the rest to lowercase" do
-    example do
-      @a = "this"
-      @b = "THIS"
-      [@a.capitalize!, @a, @b, @b.capitalize!]
-    end.should == ["This", "This", "This", "This"]
+    a = "this"
+    b = "THIS"
+    a.capitalize!.should == "This"
+    a.should == "This"
+    b.should == "THIS"
+    b.capitalize!.should == "This"
   end
 
   specify "casecmp should be a case-insensitive version of <=>" do
-    example do
-      ["One".casecmp("one"), "Two".casecmp("too"), "MINE".casecmp("nINE")]
-    end.should == [0, 1, -1]
+    "One".casecmp("one").should == 0
+    "Two".casecmp("too").should == 1
+    "MINE".casecmp("nINE").should == -1
   end
 
   specify "center should return a string padded on both sides" do
-    example do
-      ["one".center(9,'.'), "two".center(5), "middle".center(13,'-')]
-    end.should == ["...one...", " two ", "---middle----"]
+    "one".center(9,'.').should == "...one..."
+    "two".center(5).should == " two "
+    "middle".center(13,'-').should == "---middle----"
   end
   
   specify "center should return a string when length of self is greater than argument" do
-    example do
-      ["this".center(3), "radiology".center(8, '-')]
-    end.should == ["this", "radiology"]
+    "this".center(3).should == "this"
+    "radiology".center(8, '-').should == "radiology"
   end
 
   specify "chomp should return a new string with the given record separator removed from the end" do
-    example do
-      @s = "one\n"
-      @t = "two\r\n"
-      @u = "three\r"
-      @v = "four"
-      [@s.chomp, @s, @t.chomp, @t, @u.chomp, @u, @v.chomp, @v]
-    end.should == ["one", "one\n", "two", "two\r\n", "three", "three\r", "four", "four"]
+    s = "one\n"
+    s.chomp.should == "one"
+    s.should == "one\n"
+    t = "two\r\n"
+    t.chomp.should == "two"
+    t.should == "two\r\n"
+    u = "three\r"
+    u.chomp.should == "three"
+    u.should == "three\r"
+    v = "four"
+    v.chomp.should == "four"
   end
 
   specify "chomp! should modify self to remove the given record separator from the end" do
-    example do
-      @s = "one\n"
-      @t = "two\r\n"
-      @u = "three\r"
-      @v = "four"
-      @w = "four\n\r"
-      [@s.chomp!, @t.chomp!, @u.chomp!, @v.chomp!, @w.chomp!]
-    end.should == ["one", "two", "three", nil, "four\n"]
+    s = "one\n"
+    s.chomp!
+    s.should == "one"
+    t = "two\r\n"
+    t.chomp!
+    t.should == "two"
+    u = "three\r"
+    u.chomp!
+    u.should == "three"
+    v = "four"
+    v.chomp!.should == nil
+    v.should == "four"
+    w = "four\n\r"
+    w.chomp!
+    w.should == "four\n"
   end
   
   specify "chomp! should return nil if no changes are made" do
-    example do
-      ["".chomp!, "line".chomp!]
-    end.should == [nil, nil]
+    "".chomp!.should == nil
+    "line".chomp!.should == nil
   end
 
   specify "chop should return a new string with the last character removed" do
-    example do
-      @s = "block"
-      [@s.chop, @s]
-    end.should == ["bloc", "block"]
+    s = "block"
+    s.chop.should == "bloc"
+    s.should == "block"
   end
 
   specify "chop! should modify self to remove the last character" do
-    example do
-      "ouch".chop!
-    end.should == "ouc"
+    "ouch".chop!.should == "ouc"
   end
   
   specify "chop! should return nil if no changes are made" do
-    example do
-      "".chop!
-    end.should == nil
+    "".chop!.should == nil
   end
 
   specify "concat should be a synonym for <<" do
-    example do
-      @a = 'hello '
-      @a.concat('world')
-      @b = @a.dup
-      @b.concat(33)
-      [@a, @b]
-    end.should == ["hello world", "hello world!"]
+    a = 'hello '
+    a.concat('world')
+    b = a.dup
+    b.concat(33)
+    a.should == "hello world"
+    b.should == "hello world!"
   end
 
   specify "count should return the count of characters specified by the union of the arguments" do
-    example do
-      @a = "hello world" 
-      [ @a.count("lo"),
-        @a.count("lo", "o"),
-        @a.count("hello", "^l"),
-        @a.count("ej-m") ]
-    end.should == [5, 2, 4, 4]
+    a = "hello world" 
+    a.count("lo").should == 5
+    a.count("lo", "o").should == 2
+    a.count("hello", "^l").should == 4
+    a.count("ej-m").should == 4
   end
 
   specify "crypt should return a one-way cryptographic hash of self using the standard libary function crypt" do
-    example do
-      "secret".crypt("mysterious")
-    end.should == "my6b6UoW5FeNw"
+    "secret".crypt("mysterious").should == "my6b6UoW5FeNw"
   end
 
   specify "delete should return a copy of self removing all characters in the intersection of its arguments" do
-    example do
-      "hello".delete("l","lo")
-    end.should == "heo"
-
-    example do
-      "hello".delete("lo")
-    end.should == "he"
-
-    example do
-      "hello".delete("aeiou", "^e")
-    end.should == "hell"
-
-    example do
-      "hello".delete("ej-m")
-    end.should == "ho"
+    "hello".delete("l","lo").should == "heo"
+    "hello".delete("lo").should == "he"
+    "hello".delete("aeiou", "^e").should == "hell"
+    "hello".delete("ej-m").should == "ho"
   end
 
   specify "delete! should perform method delete in place on self" do
-    example do
-      @s = "hello"
-      [@s.delete!("l", "lo"), @s]
-    end.should == ["heo", "heo"]
+    s = "hello"
+    s.delete!("l", "lo").should == "heo"
+    s.should == "heo"
 
-    example do
-      @t = "world"
-      [@t.delete!("aeiou", "^e"), @t]
-    end.should == ["wrld", "wrld"]
+    t = "world"
+    t.delete!("aeiou", "^e").should == "wrld"
+    t.should == "wrld"
   end
   
   specify "delete! should return nil if no changes are made" do
-    example do
-      "help".delete!("q", "r", "biff")
-    end.should == nil
+    "help".delete!("q", "r", "biff").should == nil
   end
 
   specify "downcase should return a copy of self with A-Z converted to a-z" do
-    example do
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ".downcase
-    end.should == "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".downcase.should == "abcdefghijklmnopqrstuvwxyz"
   end
 
   specify "downcase! should perform downcase in place on self" do
-    example do
-      @s = "MenTaLguY"
-      [@s.downcase!, @s]
-    end.should == ["mentalguy", "mentalguy"]
+    s = "MenTaLguY"
+    s.downcase!.should == "mentalguy"
+    s.should == "mentalguy"
   end
   
   specify "downcase! should return nil if no changes are made" do
-    example do
-      "lower case".downcase!
-    end.should == nil
+    "lower case".downcase!.should == nil
   end
 
   specify "dump should return a string with all non-printing characters replaced with \\nnn notation" do
-    example do
-      ("\000".."A").to_a.to_s.dump
-    end.should == "\"\\000\\001\\002\\003\\004\\005\\006\\a\\b\\t\\n\\v\\f\\r\\016\\017\\020\\021\\022\\023\\024\\025\\026\\027\\030\\031\\032\\e\\034\\035\\036\\037 !\\\"\\\#$%&'()*+,-./0123456789\""
+    ("\000".."A").to_a.to_s.dump.should == "\"\\000\\001\\002\\003\\004\\005\\006\\a\\b\\t\\n\\v\\f\\r\\016\\017\\020\\021\\022\\023\\024\\025\\026\\027\\030\\031\\032\\e\\034\\035\\036\\037 !\\\"\\\#$%&'()*+,-./0123456789\""
   end
 
   specify "each should split self on the argument ($/ default) and pass each substring to block" do
-    example do
-      @a = []
-      "once\nup\na\ntime\n".each { |s| @a << s }
-      @a
-    end.should == ["once\n", "up\n", "a\n", "time\n"]
+    a = []
+    "once\nup\na\ntime\n".each { |s| a << s }
+    a.should == ["once\n", "up\n", "a\n", "time\n"]
   end
   
   specify "each_byte should pass each byte to block" do
-    example do
-      @a = []
-      "Rubinius".each_byte { |b| @a << b }
-      @a
-    end.should == [82, 117, 98, 105, 110, 105, 117, 115]
+    a = []
+    "Rubinius".each_byte { |b| a << b }
+    a.should == [82, 117, 98, 105, 110, 105, 117, 115]
   end
 
   specify "each_line should be a synonym for each" do
-    example do
-      @a = []
-      "once\nup\na\ntime\n".each { |s| @a << s }
-      @a
-    end.should == ["once\n", "up\n", "a\n", "time\n"]
+    a = []
+    "once\nup\na\ntime\n".each { |s| a << s }
+    a.should == ["once\n", "up\n", "a\n", "time\n"]
   end
 
   specify "empty? should return true if self is sero-length" do
-    example do
-      ["".empty?, "Ruby".empty?]
-    end.should == [true, false]
+    "".empty?.should == true
+    "Ruby".empty?.should == false
   end
 
   specify "eql? should return true if other is a String with identical contents" do
-    example do
-      ["".eql?(""), "Rubinius".eql?(Fixnum), "1".eql?(1)]
-    end.should == [true, false, false]
+    "".eql?("").should == true
+    "Rubinius".eql?(Fixnum).should == false
+    "1".eql?(1).should == false
   end
   
   specify "gsub should return a string with all instances of pattern replaced by replacement" do
-    example do
-      "abracadabra".gsub("a", "xu")
-    end.should == "xubrxucxudxubrxu"
+    "abracadabra".gsub("a", "xu").should == "xubrxucxudxubrxu"
   end
   
   specify "gsub with block should return a string with all instances of pattern replaced by the value of block" do
-    example do
-      "every which way to grab one".gsub!(/[aeiou]/) { |s| s.succ }
-    end.should == "fvfry whjch wby tp grbb pnf"
+    "every which way to grab one".gsub!(/[aeiou]/) { |s| s.succ }.should == "fvfry whjch wby tp grbb pnf"
   end
 
   specify "gsub! should perform gsub in place on self" do
-    example do
-      @s = "Ruby Ruby Ruby"
-      [@s.gsub!(/Ru/, "cu"), @s]
-    end.should == ["cuby cuby cuby", "cuby cuby cuby"]
+    s = "Ruby Ruby Ruby"
+    s.gsub!(/Ru/, "cu").should == "cuby cuby cuby"
+    s.should == "cuby cuby cuby"
   end
   
   specify "gsub! should return nil if no changes are made" do
-    example do
-      "".gsub!(/./, 'R')
-    end.should == nil
+    "".gsub!(/./, 'R').should == nil
   end
 
   specify "hash should be provided" do
-    example do
-      "".respond_to?(:hash)
-    end.should == true
+    "".respond_to?(:hash).should == true
   end
 
   specify "hex should convert the leading characters (0x optional) to a number base 16" do
-    example do
-      ["0x1".hex, "0x".hex, "0x10".hex, "ffb3".hex ]
-    end.should == [1, 0, 16, 65459]
+    "0x1".hex.should == 1
+    "0x".hex.should == 0
+    "0x10".hex.should == 16
+    "ffb3".hex.should == 65459
   end
   
   specify "hex should return 0 when characters are not a hexadecimal representation" do
-    example do
-      ["x0".hex, "Jupiter".hex]
-    end.should == [0, 0]
+    "x0".hex.should == 0
+    "Jupiter".hex.should == 0
   end
 
   specify "include? should return true when self contains other string or character" do
-    example do
-      @s = "abracadabra"
-      [@s.include?('a'), @s.include?("ba"), @s.include?("dab"), @s.include?("bra")]
-    end.should == [true, false, true, true]
+    s = "abracadabra"
+    s.include?('a').should == true
+    s.include?("ba").should == false
+    s.include?("dab").should == true
+    s.include?("bra").should == true
   end
 
   specify "index with fixnum should return the index of the given character" do
-    example do
-      [ "hello".index(101),
-        "hello".index(52) ]
-    end.should == [1, nil]
+    "hello".index(101).should == 1
+    "hello".index(52).should == nil
   end
   
   specify "index with string should return the index of the beginning of string" do
-    # example do
-    #   [ "hello".index('e'),
-    #     "hello".index('lo', -3),
-    #     "hello".index('lo', -1),
-    #     "hello".index('a') ]
-    # end.should == [1, 3, nil, nil]
+    "hello".index('e').should == 1
+    "hello".index('lo', -3).should == 3
+    "hello".index('lo', -1).should == nil
+    "hello".index('a').should == nil
   end
   
   specify "index with regexp should return the index of the beginning of pattern" do
-    example do
-      [ "hello".index(/[aeiou]/, -3),
-        "hello".index(/he/, 2),
-        "hello".index(/el/) ]
-    end.should == [4, nil, 1]
+    "hello".index(/[aeiou]/, -3).should == 4
+    "hello".index(/he/, 2).should == nil
+    "hello".index(/el/).should == 1
   end
 
   specify "index with substring arg should return substring when it exists" do
-    example do
-      "hello".index('e')
-    end.should == 1
+    "hello".index('e').should == 1
   end
 
   specify "initialize_copy should return a new string initialized with other" do
-    example do
-      "".send(:initialize_copy, "Dolly")
-    end.should == "Dolly"
+    "".send(:initialize_copy, "Dolly").should == "Dolly"
   end
   
   specify "insert with positive index should insert other string before the character at index" do
-    example do
-      ["rinius".insert(1,"ub"), "p".insert(0,"lis")]
-    end.should == ["rubinius", "lisp"]
+    "rinius".insert(1,"ub").should == "rubinius"
+    "p".insert(0,"lis").should == "lisp"
   end
   
   specify "insert with negative index should insert other string after the charracter at index" do
-    example do
-      ["to".insert(-1,"day"), "hosal".insert(-3,"pit")]
-    end.should == ["today", "hospital"]
+    "to".insert(-1,"day").should == "today"
+    "hosal".insert(-3,"pit").should == "hospital"
   end
 
   specify "inspect should return a quoted string suitable to eval" do
-    example do
-      ["Rubinius".inspect, "Ruby".inspect]
-    end.should == ["\"Rubinius\"", "\"Ruby\""]
+    "Rubinius".inspect.should == "\"Rubinius\""
+    "Ruby".inspect.should == "\"Ruby\""
   end
 
   specify "intern should return the symbol corresponding to self" do
-    example do
-      ["intern".intern, "rubinius".intern]
-    end.should == [:intern, :rubinius]
+    "intern".intern.should == :intern
+    "rubinius".intern.should == :rubinius
   end
 
   specify "length should return the length of self" do
-    example do
-      ["".length, "one".length, "two".length, "three".length, "four".length]
-    end.should == [0, 3, 3, 5, 4]
+    "".length.should == 0
+    "one".length.should == 3
+    "two".length.should == 3
+    "three".length.should == 5
+    "four".length.should == 4
   end
 
   specify "ljust should return a string left justified in width characters padded on the right" do
-    example do
-      [ "one".ljust(4),
-        "two".ljust(5),
-        "three".ljust(6),
-        "four".ljust(7) ]
-    end.should == ["one ", "two  ", "three ", "four   "]
+    "one".ljust(4).should == "one "
+    "two".ljust(5).should == "two  "
+    "three".ljust(6).should == "three "
+    "four".ljust(7).should == "four   "
   end
   
   specify "ljust should return self if length of self is greater than width" do
-    example do
-      "five".ljust(3)
-    end.should == "five"
+    "five".ljust(3).should == "five"
   end
 
   specify "lstrip should return self with leading whitespace characters removed" do
-    example do
-      [ "".lstrip,
-        " hello ".lstrip,
-        "hello".lstrip ]
-    end.should == ["", "hello ", "hello"]
+    "".lstrip.should == ""
+    " hello ".lstrip.should == "hello "
+    "hello".lstrip.should == "hello"
   end
 
   specify "lstrip! should modify self removing leading whitespace characters" do
-    example do
-      @s = "\n\t This \000"
-      @t = " another one"
-      @u = "  two  "
-      [@s.lstrip!, @t.lstrip!, @u.lstrip!]
-    end.should == ["This \000", "another one", "two  "]
+    s = "\n\t This \000"
+    s.lstrip!.should == "This \000"
+    t = " another one"
+    t.lstrip!.should == "another one"
+    u = "  two  "
+    u.lstrip!.should == "two  "
   end
   
   specify "lstrip! should return nil if no changes were made" do
-    example do
-      "this".lstrip!
-    end.should == nil
+    "this".lstrip!.should == nil
   end
 
   specify "match should convert pattern to a Regexp and invoke its match method on self" do
-    example do
-      "backwards".match("ack").to_s
-    end.should == "ack"
+    "backwards".match("ack").to_s.should == "ack"
   end
 
   specify "next should be a synonym for succ" do
-    example do
-      [ "abcd".succ,
-        "THX1138".succ, 
-        "<<koala>>".succ,
-        "1999zzz".succ,
-        "ZZZ9999".succ,
-        "***".succ ]
-    end.should == ["abce", "THX1139", "<<koalb>>", "2000aaa", "AAAA0000", "**+"]
+    "abcd".succ.should == "abce"
+    "THX1138".succ.should == "THX1139"
+    "<<koala>>".succ.should == "<<koalb>>"
+    "1999zzz".succ.should == "2000aaa"
+    "ZZZ9999".succ.should == "AAAA0000"
+    "***".succ.should == "**+"
   end
 
   specify "next! should be a synonym for succ!" do
-    example do
-      @a = "abcd"
-      @b = "THX1138"
-      @c = "<<koala>>"
-      @d = "1999zzz"
-      @e = "ZZZ9999"
-      @f = "***"
-      [ @a.succ!, @a,
-        @b.succ!, @b,
-        @c.succ!, @c,
-        @d.succ!, @d,
-        @e.succ!, @e,
-        @f.succ!, @f ]
-    end.should == ["abce", "abce", "THX1139", "THX1139", "<<koalb>>", "<<koalb>>",
-        "2000aaa", "2000aaa", "AAAA0000", "AAAA0000", "**+", "**+"]
+    a = "abcd"
+    a.succ!.should == "abce"
+    a.should == "abce"
+    b = "THX1138"
+    b.succ!.should == "THX1139"
+    b.should == "THX1139"
+    c = "<<koala>>"
+    c.succ!.should == "<<koalb>>"
+    c.should == "<<koalb>>"
+    d = "1999zzz"
+    d.succ!.should == "2000aaa"
+    d.should == "2000aaa"
+    e = "ZZZ9999"
+    e.succ!.should == "AAAA0000"
+    e.should == "AAAA0000"
+    f = "***"
+    f.succ!.should == "**+"
+    f.should == "**+"
   end
 
   specify "oct should convert the leading characters (+/- optional) to a number base 8" do
-    example do
-      ["0845".oct, "7712".oct, "-012345678".oct]
-    end.should == [0, 4042, -342391]
+    "0845".oct.should == 0
+    "7712".oct.should == 4042
+    "-012345678".oct.should == -342391
   end
 
   specify "replace should replace the contents of self with other" do
-    example do
-      @a = "me"
-      @b = "you"
-      ["".replace(@a), @a.replace(@b), @b.replace("we")]
-    end.should == ["me", "you", "we"]
+    a = "me"
+    b = "you"
+    "".replace(a).should == "me"
+    a.replace(b).should == "you"
+    b.replace("we").should == "we"
   end
   
   specify "replace should copy the taintedness of other" do
-    example do
-      @a = "tainted"
-      @a.taint
-      @b = "pure"
-      @c = "replace"
-      @c.replace(@a)
-      [@a, @c, @c.tainted?, "".replace(@b), @b.tainted?]
-    end.should == ["tainted", "tainted", true, "pure", false]
+    a = "tainted"
+    a.taint
+    a.should == "tainted"
+    b = "pure"
+    c = "replace"
+    c.replace(a)
+    c.should == "tainted"
+    c.tainted?.should == true
+    "".replace(b).should == "pure"
+    b.tainted?.should == false
   end
 
   specify "reverse should reverse the order of the characters" do
-    example do
-      [ "0123456789".reverse,
-        "M".reverse,
-        "".reverse ]
-    end.should == ["9876543210", "M", ""]
+    "0123456789".reverse.should == "9876543210"
+    "M".reverse.should == "M"
+    "".reverse.should == ""
   end
   
   specify "reverse! should reverse the order of the characters and return self" do
-    example do
-      @a = "detsalb"
-      @b = @a.reverse!
-      [@a, @b, @a.equal?(@b)]
-    end.should == ["blasted", "blasted", true]
+    a = "detsalb"
+    b = a.reverse!
+    a.should == "blasted"
+    b.should == "blasted"
+    a.equal?(b).should == true
   end
   
   specify "rindex with integer should return the last index of the character" do
-    example do
-      "babble".rindex(?b)
-    end.should == 3
+    "babble".rindex(?b).should == 3
   end
   
   specify "rindex with string should return the last index of the substring" do
-    example do
-      "wobble".rindex("b")
-    end.should == 3
+    "wobble".rindex("b").should == 3
   end
 
   specify "rindex with regexp should return the last index of the substring" do
-    example do
-      "abbadabba".rindex(/ba/)
-    end.should == 7
+    "abbadabba".rindex(/ba/).should == 7
   end
   
   specify "rjust should return a string right justified in width characters padded on the left" do
-    example do
-      [ "more".rjust(10), "less".rjust(11, '+')]
-    end.should == ["      more", "+++++++less"]
+    "more".rjust(10).should == "      more"
+    "less".rjust(11, '+').should == "+++++++less"
   end
   
   specify "rjust should return self if length of self is greater than width" do
-    example do
-      "batter".rjust(4)
-    end.should == "batter"
+    "batter".rjust(4).should == "batter"
   end
 
   specify "rstrip should return a string first removing trailing \\000 characters and then removing trailing spaces" do
-    example do
-      [ " hello ".rstrip,
-        "\tgoodbye\r\n".rstrip ]
-    end.should == [" hello", "\tgoodbye"]
+    " hello ".rstrip.should == " hello"
+    "\tgoodbye\r\n".rstrip.should == "\tgoodbye"
   end
 
   specify "rstrip! should modify self by first removing trailing \\000 characters and then removing trailing spaces " do
-    example do
-      @s = " hello "
-      @t = "\tgoodbye\r\n"
-      @u = "goodbye\000"
-      [ @s.rstrip!,
-        @t.rstrip!,
-        @u.rstrip! ]
-    end.should == [" hello", "\tgoodbye", "goodbye"]
+    s = " hello "
+    t = "\tgoodbye\r\n"
+    u = "goodbye\000"
+    s.rstrip!.should == " hello"
+    t.rstrip!.should == "\tgoodbye"
+    u.rstrip!.should == "goodbye"
   end
   
   specify "rstrip! should return nil if no changes are made" do
-    example do
-      "rstrip".rstrip!
-    end.should == nil
+    "rstrip".rstrip!.should == nil
   end
-    
 
   specify "scan should return an array containing each substring matching pattern" do
-    example do
-      "hello, rubinius world".scan(/[aeo][ralf]/)
-    end.should == ["el", "or"]
+    "hello, rubinius world".scan(/[aeo][ralf]/).should == ["el", "or"]
   end
   
   specify "scan with block should pass each substring matching pattern to block" do
-    example do
-      @a = []
-      "abbadabbadoo".scan(/[db]./) { |s| @a << s }
-      @a
-    end.should == ["bb", "da", "bb", "do"]
+    a = []
+    "abbadabbadoo".scan(/[db]./) { |s| a << s }
+    a.should == ["bb", "da", "bb", "do"]
   end
 
   specify "size should be a synonym for length" do
-    example do
-      ["".size, "one".size, "two".size, "three".size, "four".size]
-    end.should == [0, 3, 3, 5, 4]
+    "".size.should == 0
+    "one".size.should == 3
+    "two".size.should == 3
+    "three".size.should == 5
+    "four".size.should == 4
   end
 
   specify "slice should be a synonym for []" do
-    example do
-      [ "hello".slice(1),
-        "hello".slice(-3, 2),
-        "world".slice(-4..-2),
-        "hello there".slice(/[aeiou](.)\1/),
-        "hello there".slice(/[aeiou](.)\1/, 0),
-        "hello".slice("bye"),
-        "baz.rb".slice(2, 4),
-        "z.rb".slice(1, 1) ]
-    end.should == [101, "ll", "orl", "ell", "ell", nil, "z.rb", "."]
+    "hello".slice(1).should == 101
+    "hello".slice(-3, 2).should == "ll"
+    "world".slice(-4..-2).should == "orl"
+    "hello there".slice(/[aeiou](.)\1/).should == "ell"
+    "hello there".slice(/[aeiou](.)\1/, 0).should == "ell"
+    "hello".slice("bye").should == nil
+    "baz.rb".slice(2, 4).should == "z.rb"
+    "z.rb".slice(1, 1).should == "."
   end
   
   specify "slice! should remove and return the specified portion from self" do
-    example do
-      @s = "hello"
-      @r = "hello"
-      @t = "world"
-      @u = "hello there"
-      @v = "hello there"
-      @w = "hello"
-      @x = "baz.rb"
-      @y = "z.rb"
-      [ @s.slice!(1), @r.slice!(-3, 2), @t.slice!(-4..-2), @u.slice!(/[aeiou](.)\1/),
-        @v.slice!(/[aeiou](.)\1/, 0), @w.slice!("bye"), @x.slice!(2, 4), @y.slice!(1, 1) ]
-    end.should == [101, "ll", "orl", "ell", "ell", nil, "z.rb", "."]
+    s = "hello"
+    s.slice!(1).should == 101
+    r = "hello"
+    r.slice!(-3, 2).should == "ll"
+    t = "world"
+    t.slice!(-4..-2).should == "orl"
+    u = "hello there"
+    u.slice!(/[aeiou](.)\1/).should == "ell"
+    v = "hello there"
+    v.slice!(/[aeiou](.)\1/, 0).should == "ell"
+    w = "hello"
+    w.slice!("bye").should == nil
+    x = "baz.rb"
+    x.slice!(2, 4).should == "z.rb"
+    y = "z.rb"
+    y.slice!(1, 1).should == "."
   end
   
   specify "slice! with index should return nil if the value is out of range" do
-    example do
-      "two".slice!(4)
-    end.should == nil
+    "two".slice!(4).should == nil
   end
   
   specify "slice! with range should return nil if the value is out of range" do
-    example do
-      # BUG?: how does 3..6 touch string? 
-      ["one".slice!(3..6), "one".slice!(4..6)]
-    end.should == ["", nil]
+    # BUG?: how does 3..6 touch string? 
+    "one".slice!(3..6).should == ""
+    "one".slice!(4..6).should == nil
   end
   
   specify "split with no argument should return an array of substrings separated by $;" do
-    example do
-      [ $;.nil?,
-        "hello world".split,
-        "hello\frubinius".split,
-        $; = 't',
-        "splitme".split ]
-    end.should == [true, ["hello", "world"], ["hello", "rubinius"], "t", ["spli", "me"]]
+    $;.nil?.should == true
+    "hello world".split.should == ["hello", "world"]
+    "hello\frubinius".split.should == ["hello", "rubinius"]
+    ($; = 't').should == "t"
+    "splitme".split.should == ["spli", "me"]
   end
   
   specify "split with string should return an array of substrings separated by string" do
-    example do
-      [ "hello".split('l'),
-        "hello".split('e'),
-        "hello".split('h'),
-        "hello".split('el'),
-        "hello".split('o'),
-        "hello".split('d') ]
-    end.should == [["he", "", "o"], ["h", "llo"], ["", "ello"], ["h", "lo"], ["hell"], ["hello"]]
+    "hello".split('l').should == ["he", "", "o"]
+    "hello".split('e').should == ["h", "llo"]
+    "hello".split('h').should == ["", "ello"]
+    "hello".split('el').should == ["h", "lo"]
+    "hello".split('o').should == ["hell"]
+    "hello".split('d').should == ["hello"]
   end
   
   specify "split with regexp should return an array of substrings separated by pattern" do
-    example do
-      [ "hello".split(/l/),
-        "hello".split(/[aeiou]/),
-        "hello".split(/h/),
-        "hello".split(/el/),
-        "hello".split(/[abcde]/),
-        "hello".split(/def/) ]
-    end.should == [["he", "", "o"], ["h", "ll"], ["", "ello"], ["h", "lo"], ["h", "llo"], ["hello"]]
+    "hello".split(/l/).should == ["he", "", "o"]
+    "hello".split(/[aeiou]/).should == ["h", "ll"]
+    "hello".split(/h/).should == ["", "ello"]
+    "hello".split(/el/).should == ["h", "lo"]
+    "hello".split(/[abcde]/).should == ["h", "llo"]
+    "hello".split(/def/).should == ["hello"]
   end
 
   specify "squeeze should return a string replacing runs of characters specified by the union of arguments with a single character" do
-    example do
-      [ "yellow moon".squeeze,
-        " now is the".squeeze(" "),
-        "putters putt balls".squeeze("m-z") ]
-    end.should == ["yelow mon", " now is the", "puters put balls"]
+    "yellow moon".squeeze.should == "yelow mon"
+    " now is the".squeeze(" ").should == " now is the"
+    "putters putt balls".squeeze("m-z").should == "puters put balls"
   end
 
   specify "squeeze! should modify self in place by performing squeeze" do
-    example do
-      @s = "yellow moon"
-      @t = "putters putt balls"
-      [ @s.squeeze!, @s, @t.squeeze!("m-z"), @t ]
-    end.should == ["yelow mon", "yelow mon", "puters put balls", "puters put balls"]
+    s = "yellow moon"
+    t = "putters putt balls"
+    s.squeeze!.should == "yelow mon"
+    s.should == "yelow mon"
+    t.squeeze!("m-z").should == "puters put balls"
+    t.should == "puters put balls"
   end
   
   specify "squeeze! should return nil if no changes are made" do
-    example do
-      "squeeze".squeeze!("u", "sq")
-    end.should == nil
+    "squeeze".squeeze!("u", "sq").should == nil
   end
 
   specify "strip should return a string with trailing \\000, leading and trailing spaces removed" do
-    example do
-      [ " hello ".strip,
-        "\tgoodbye\r\n".strip,
-        "goodbye \000".strip ]
-    end.should == ["hello", "goodbye", "goodbye"]
+    " hello ".strip.should == "hello"
+    "\tgoodbye\r\n".strip.should == "goodbye"
+    "goodbye \000".strip.should == "goodbye"
   end
 
   specify "strip! should modify self to remove trailing \\000, and leading and trailing spaces" do
-    example do
-      @s = "  strip  \000"
-      @r = "  rip \000\000"
-      [@s.strip!, @s, @r.strip!, @r]
-    end.should == ["strip", "strip", "rip", "rip"]
+    s = "  strip  \000"
+    r = "  rip \000\000"
+    s.strip!.should == "strip"
+    s.should == "strip"
+    r.strip!.should == "rip" 
+    r.should == "rip"
   end
 
   specify "sub should return a string with the first occurrence of pattern replaced with string" do
-    example do
-      "abcdbab".sub(/ab/, "qrs")
-    end.should == "qrscdbab"
+    "abcdbab".sub(/ab/, "qrs").should == "qrscdbab"
   end
   
   specify "sub with block should return a string replacing the first occurrence of pattern with the value of the block" do
-    example do
-      "test this".sub(/test/) { |i| "spec" }
-    end.should == "spec this"
+    "test this".sub(/test/) { |i| "spec" }.should == "spec this"
   end
 
   specify "sub! should modify self to replace the first occurrence of pattern with string" do
-    example do
-      @s = "abbaabba"
-      @r = "abbaabba"
-      [@s.sub!(/a/,"bab"), @s, @r.sub!(/ba+b/, "cab"), @r]
-    end.should == ["babbbaabba", "babbbaabba", "abcabba", "abcabba"]
+    s = "abbaabba"
+    r = "abbaabba"
+    s.sub!(/a/,"bab").should == "babbbaabba"
+    s.should == "babbbaabba"
+    r.sub!(/ba+b/, "cab").should == "abcabba"
+    r.should == "abcabba"
   end
   
   specify "sub! should return nil if no changes are made" do
-    example do
-      ["abby".sub!(/ca/,"ba"), "bad".sub!("c", "b")]
-    end.should == [nil, nil]
+    "abby".sub!(/ca/,"ba").should == nil
+    "bad".sub!("c", "b").should == nil
   end
 
   specify "succ should return the string that is the successor of self" do
-    example do
-      [ "abcd".succ,
-        "THX1138".succ, 
-        "<<koala>>".succ,
-        "1999zzz".succ,
-        "ZZZ9999".succ,
-        "***".succ ]
-    end.should == ["abce", "THX1139", "<<koalb>>", "2000aaa", "AAAA0000", "**+"]
+    "abcd".succ.should == "abce"
+    "THX1138".succ.should == "THX1139"
+    "<<koala>>".succ.should == "<<koalb>>"
+    "1999zzz".succ.should == "2000aaa"
+    "ZZZ9999".succ.should == "AAAA0000"
+    "***".succ.should == "**+"
   end
 
   specify "succ! should modify self to be its successor" do
-    example do
-      @a = "abcd"
-      @b = "THX1138"
-      @c = "<<koala>>"
-      @d = "1999zzz"
-      @e = "ZZZ9999"
-      @f = "***"
-      [ @a.succ!, @a,
-        @b.succ!, @b,
-        @c.succ!, @c,
-        @d.succ!, @d,
-        @e.succ!, @e,
-        @f.succ!, @f ]
-    end.should == ["abce", "abce", "THX1139", "THX1139", "<<koalb>>", "<<koalb>>",
-        "2000aaa", "2000aaa", "AAAA0000", "AAAA0000", "**+", "**+"]
+    a = "abcd"
+    a.succ!.should == "abce"
+    a.should == "abce"
+    b = "THX1138"
+    b.succ!.should == "THX1139"
+    b.should == "THX1139"
+    c = "<<koala>>"
+    c.succ!.should == "<<koalb>>"
+    c.should == "<<koalb>>"
+    d = "1999zzz"
+    d.succ!.should == "2000aaa"
+    d.should == "2000aaa"
+    e = "ZZZ9999"
+    e.succ!.should == "AAAA0000"
+    e.should == "AAAA0000"
+    f = "***"
+    f.succ!.should == "**+"
+    f.should == "**+"
   end
 
   specify "sum should return a basic n-bit checksum of self with default n = 16" do
-    example do
-      ["ruby".sum, "ruby".sum(10), "rubinius".sum(23)]
-    end.should == [450, 450, 881]
+    "ruby".sum.should == 450
+    "ruby".sum(10).should == 450
+    "rubinius".sum(23).should == 881
   end
 
   specify "swapcase should return a string with lowercase characters converted to uppercase and vice versa" do
-    example do
-      "MenTaLguY".swapcase
-    end.should == "mENtAlGUy"
+    "MenTaLguY".swapcase.should == "mENtAlGUy"
   end
 
   specify "swapcase! should modify self to convert lowercase characters to uppercase and vice versa" do
-    example do
-      @s = "MenTaLguY"
-      [@s.swapcase!, @s]
-    end.should == ["mENtAlGUy", "mENtAlGUy"]
+    s = "MenTaLguY"
+    s.swapcase!.should == "mENtAlGUy"
+    s.should == "mENtAlGUy"
   end
   
   specify "swapcase! should return nil if no changes were made" do
-    example do
-      "".swapcase!
-    end.should == nil
+    "".swapcase!.should == nil
   end
 
   specify "to_f should return convert the leading characters to a floating-point number" do
-    example do
-      ["0".to_f, "0.1".to_f, ".14159".to_f, "-3.14".to_f, "help".to_f, "1.upto".to_f]
-    end.should == [0.0, 0.1, 0.14159, -3.14, 0.0, 1.0]
+    "0".to_f.should == 0.0
+    "0.1".to_f.should == 0.1
+    ".14159".to_f.should == 0.14159
+    "-3.14".to_f.should == -3.14
+    "help".to_f.should == 0.0
+    "1.upto".to_f.should == 1.0
   end
 
   specify "to_i should convert the string to an integer base (2, 8, 10, or 16)" do
-    example do
-      [ "12345".to_i,
-        " 12345".to_i,
-        "+12345".to_i,
-        "-12345".to_i,
-        " ".to_i,
-        "hello".to_i,
-        "99 red balloons".to_i,
-        "0a".to_i,
-        "".to_i,
-        "0a".to_i(16),
-        "0b1100101".to_i(0),
-        "0B1100101".to_i(0),
-        "0o1100101".to_i(0),
-        "0O1100101".to_i(0),
-        "0x1100101".to_i(0),
-        "01100101".to_i(0),
-        "1100101".to_i(0),
-        "".to_i(0),
-        "hello".to_i,
-        "1100101".to_i(2),
-        "0b1100101".to_i(2),
-        "0B1000101".to_i(2),
-        "0b".to_i(2),
-        "1".to_i(2),
-        "0o1110101".to_i(8),
-        "0O1101101".to_i(8),
-        "0o".to_i(8),
-        "0".to_i(8),
-        "1".to_i(8),
-        "1100101".to_i(8),
-        "1100101".to_i(10),
-        "".to_i(10),
-        "1100101".to_i(16),
-        "0x1100101".to_i(16),
-        "0x1100101".to_i(16),
-        "0x".to_i(16),
-        "1".to_i(16) ]
-    end.should == [12345, 12345, 12345, -12345, 0, 0, 99, 0, 0, 10, 101, 101, 294977, 294977, 17826049, 294977, 1100101, 0, 0, 101, 101, 69, 0, 1, 299073, 295489, 0, 0, 1, 294977, 1100101, 0, 17826049, 17826049, 17826049, 0, 1]
+    [ "12345".to_i,
+      " 12345".to_i,
+      "+12345".to_i,
+      "-12345".to_i,
+      " ".to_i,
+      "hello".to_i,
+      "99 red balloons".to_i,
+      "0a".to_i,
+      "".to_i,
+      "0a".to_i(16),
+      "0b1100101".to_i(0),
+      "0B1100101".to_i(0),
+      "0o1100101".to_i(0),
+      "0O1100101".to_i(0),
+      "0x1100101".to_i(0),
+      "01100101".to_i(0),
+      "1100101".to_i(0),
+      "".to_i(0),
+      "hello".to_i,
+      "1100101".to_i(2),
+      "0b1100101".to_i(2),
+      "0B1000101".to_i(2),
+      "0b".to_i(2),
+      "1".to_i(2),
+      "0o1110101".to_i(8),
+      "0O1101101".to_i(8),
+      "0o".to_i(8),
+      "0".to_i(8),
+      "1".to_i(8),
+      "1100101".to_i(8),
+      "1100101".to_i(10),
+      "".to_i(10),
+      "1100101".to_i(16),
+      "0x1100101".to_i(16),
+      "0x1100101".to_i(16),
+      "0x".to_i(16),
+      "1".to_i(16) ].should == [12345, 12345, 12345, -12345, 0, 0, 99, 0, 0, 10, 101, 101, 294977, 294977, 17826049, 294977, 1100101, 0, 0, 101, 101, 69, 0, 1, 299073, 295489, 0, 0, 1, 294977, 1100101, 0, 17826049, 17826049, 17826049, 0, 1]
   end
   
   specify "to_s should return self" do
-    example do
-      @s = "self"
-      [@s, @s.to_s, @s.to_s.equal?(@s)]
-    end.should == ["self", "self", true]
+    s = "self"
+    s.to_s.should == "self"
+    s.to_s.equal?(s).should == true
   end
 
   specify "to_str should be a synonym for to_s" do
-    example do
-      @s = "self"
-      [@s, @s.to_s, @s.to_s.equal?(@s)]
-    end.should == ["self", "self", true]
+    s = "self"
+    s.should == "self"
+    s.to_s.should == "self"
+    s.to_s.equal?(s).should == true
   end
 
   specify "to_sym should return a symbol created from self" do
-    example do
-      ["ruby".to_sym, "rubinius".to_sym]
-    end.should == [:ruby, :rubinius]
+    "ruby".to_sym.should == :ruby
+    "rubinius".to_sym.should == :rubinius
   end
 
   specify "tr should replace characters in to_string with corresponding characters in from_string" do
-    example do
-      "Lisp".tr("Lisp", "Ruby")
-    end.should == "Ruby"
+    "Lisp".tr("Lisp", "Ruby").should == "Ruby"
   end
   
   specify "tr should accept c1-c2 notation to denote ranges of characters" do
-    example do
-      "123456789".tr("2-5","abcdefg")
-    end.should == "1abcd6789"
+    "123456789".tr("2-5","abcdefg").should == "1abcd6789"
   end
   
   specify "tr should accept from_string starting with ^ to denote all characters except those listed" do
-    example do
-      "123456789".tr("^345", "abc")
-    end.should == "cc345cccc"
-    example do
-      "abcdefghijk".tr("^d-g", "9131")
-    end.should == "111defg1111"
+    "123456789".tr("^345", "abc").should == "cc345cccc"
+    "abcdefghijk".tr("^d-g", "9131").should == "111defg1111"
   end
   
   specify "tr should pad to_string with its last character if it is short than from_string" do
-    example do
-      "this".tr("this","x")
-    end.should == "xxxx"
+    "this".tr("this","x").should == "xxxx"
   end
 
   specify "tr! should modify self in place by performing tr on it" do
-    example do
-      @s = "abcdefghijklmnopqR"
-      @s.tr!("cdefg", "12")
-      [@s]
-    end.should == ["ab12222hijklmnopqR"]
+    s = "abcdefghijklmnopqR"
+    s.tr!("cdefg", "12")
+    s.should == "ab12222hijklmnopqR"
   end
 
   specify "tr_s should return a string processed according to tr with duplicate characters removed" do
-    example do
-      "Lisp".tr_s("Lisp", "Ruby")
-    end.should == "Ruby"
-
-    example do
-      "123456789".tr_s("2-5","abcdefg")
-    end.should == "1abcd6789"
-
-    example do
-      "this".tr_s("this","x")
-    end.should == "x"
-
-    example do
-      "abcdefghijklmnopqR".tr_s("cdefg", "12")
-    end.should == "ab12hijklmnopqR"
+    "Lisp".tr_s("Lisp", "Ruby").should == "Ruby"
+    "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
+    "this".tr_s("this","x").should == "x"
+    "abcdefghijklmnopqR".tr_s("cdefg", "12").should == "ab12hijklmnopqR"
   end
 
   specify "tr_s! should modify self in place by applying tr_s" do
-    example do
-      @a = "54321"
-      [@a.tr_s!("432", "ab"), @a]
-    end.should == ["5ab1", "5ab1"]
+    a = "54321"
+    a.tr_s!("432", "ab").should == "5ab1"
+    a.should == "5ab1"
 
-    example do
-      @b = "Ruby"
-      [@b.tr_s!("R", "c"), @b]
-    end.should == ["cuby", "cuby"]
+    b = "Ruby"
+    b.tr_s!("R", "c").should == "cuby"
+    b.should == "cuby"
 
-    example do
-      @c = "chocolate"
-      [@c.tr_s!("oa", ""), @c]
-    end.should == ["chclte", "chclte"]
+    c = "chocolate"
+    c.tr_s!("oa", "").should == "chclte"
+    c.should == "chclte"
   end
 
   specify "unpack should return an array by decoding self according to the format string" do
-    example do
-    end.should == 'not implemented'
+    raise
   end
 
   specify "upcase should return a string with a-z characters replaced with A-Z" do
-    example do
-      "123Abc456dEf".upcase
-    end.should == "123ABC456DEF"
+    "123Abc456dEf".upcase.should == "123ABC456DEF"
   end
 
   specify "upcase! should modify self in place by applying upcase" do
-    example do
-      @a = "MenTaLguY"
-      @b = "ruby"
-      [@a.upcase!, @a, @b.upcase!, @b]
-    end.should == ["MENTALGUY", "MENTALGUY", "RUBY", "RUBY"]
+    a = "MenTaLguY"
+    b = "ruby"
+    a.upcase!.should == "MENTALGUY"
+    a.should == "MENTALGUY"
+    b.upcase!.should == "RUBY"
+    b.should == "RUBY"
   end
   
   specify "upcase! should return nil if no changes are made" do
-    example do
-      "UPCASE".upcase!
-    end.should == nil
+    "UPCASE".upcase!.should == nil
   end
 
   specify "upto should use String#succ to iterate from self to other passing each string to block" do
-    example do
-      @a = []
-      "*+".upto("*3") { |s| @a << s }
-      @a
-    end.should == ["*+", "*,", "*-", "*.", "*/", "*0", "*1", "*2", "*3"]
+    a = []
+    "*+".upto("*3") { |s| a << s }
+    a.should == ["*+", "*,", "*-", "*.", "*/", "*0", "*1", "*2", "*3"]
   end
 end
 
 context "String inherited instance method" do
   specify "instance_variable_get should return the value of the instance variable" do
-    example do
-      s = "this"
-      s.instance_variable_set(:@c, "that")
-      s.instance_variable_get(:@c)
-    end.should == "that"
+    s = "this"
+    s.instance_variable_set(:@c, "that")
+    s.instance_variable_get(:@c).should == "that"
   end
   
   specify "instance_variable_get should return nil if the instance variable does not exist" do
-    example do
-      "another".instance_variable_get(:@c)
-    end.should == nil
+    "another".instance_variable_get(:@c).should == nil
   end
   
   specify "instance_variable_get should raise NameError if the argument is not of form '@x'" do
-    example do
-      try(NameError) { "raise".instance_variable_get(:c) }
-    end.should == true
+    try(NameError) { "raise".instance_variable_get(:c) }.should == true
   end
 end

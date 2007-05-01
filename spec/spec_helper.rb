@@ -4,8 +4,8 @@ begin
   if ENV['USE_RSPEC'] == '1'
     require 'rspec_helper'
   else
-    require 'mini_rspec'
+    require 'mspec_helper'
   end
 rescue
-  require 'mini_rspec'
+  require 'mspec_helper'
 end
