@@ -67,6 +67,8 @@ class RsLocalScoper < SimpleSexpProcessor
   end
   
   def find_lvar(name)
+    return @state.find_local(name)
+=begin
     if idx = @state.locals.index(name)
       return idx
     end
@@ -77,19 +79,25 @@ class RsLocalScoper < SimpleSexpProcessor
     
     cnt = @state.local(name)
     return cnt
+=end
   end
   
   def process_iter(x)
     f = x.shift
     a = x.shift
     b = x.shift
-            
-    @masgn.push true
-    start_args
-    a2 = process(a)
-    @masgn.pop
-    b2 = process(b)
-    clear_args
+    
+    a2 = nil
+    b2 = nil
+    
+    @state.new_scope do
+      @masgn.push true
+      # start_args
+      a2 = process(a)
+      @masgn.pop
+      b2 = process(b)
+      # clear_args
+    end
     
     [:iter, process(f), a2, b2]
   end
@@ -148,7 +156,7 @@ class RsLocalScoper < SimpleSexpProcessor
   
   def process_vcall(x)
     name = x.shift
-    idx = @state.locals.index(name)
+    idx = @state.find_local(name, false)
     if idx
       [:lvar, name, idx]
     else

@@ -120,6 +120,14 @@ class CompiledMethod
   def bytecodes
     @bytecodes
   end
+  
+  def first_line
+    @lines.each do |ent|
+      return ent[2] if ent[2] > 0
+    end
+    
+    return -1
+  end
 end
 
 class Method
@@ -143,6 +151,10 @@ class Method
 
   def arity
     @method.arity
+  end
+  
+  def location
+    "#{@method.file}, near line #{@method.first_line}"
   end
 end
 

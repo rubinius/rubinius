@@ -6,7 +6,7 @@ module Bytecode
   class MethodDescription
     
     def to_cmethod
-      asm = Bytecode::Assembler.new(@literals, @name)
+      asm = Bytecode::Assembler.new(@literals, @name, @state)
       begin
         stream = asm.assemble @assembly
       rescue Object => e
@@ -15,7 +15,7 @@ module Bytecode
                   
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
-      lcls = @locals.size + 2
+      lcls = @state.number_of_locals
       cmeth = Rubinius::CompiledMethod.from_string bc, lcls
       cmeth.required = RObject.wrap(@required)
       cmeth.exceptions = asm.exceptions_as_tuple

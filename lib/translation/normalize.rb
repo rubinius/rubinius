@@ -82,8 +82,8 @@ class RsNormalizer < SimpleSexpProcessor
 
     block.replace block[start..-1].unshift(:block)
     if @full
-      cur = @state.locals
-      @state.reset
+      cur = @state
+      @state = RsLocalState.new
       # args[1].each { |i| @state.local(i) }
       # pp body
       #begin
@@ -93,7 +93,7 @@ class RsNormalizer < SimpleSexpProcessor
         # exc.set_backtrace e.backtrace
       #  raise exc
       #end
-      @state.locals = cur
+      @state = cur
     end
     out = [:defn, name, args, body]
     out
@@ -164,38 +164,7 @@ class RsNormalizer < SimpleSexpProcessor
     x.clear
     return out
   end
-  
-  def noprocess_vcall(x)
-    name = x.shift
-    # Allow us to 'overrule' what the parser thought was a lvar.
-    if @state.local?(name)
-      [:lvar, name, lvar_idx(name)]
-    else
-      [:call, [:self], name, [:array]]
-    end
-  end
-  
-  def lvar_idx(name)
-    unless idx = @state.locals.index(name)
-      idx = @state.local(name)
-      # puts "Added #{name.inspect} at #{idx}"
-    end
-    return idx
-  end
-  
-  def noprocess_lvar(x)
-    name = x.shift
-    idx = x.shift
-    [:lvar, name, lvar_idx(name)]
-  end
-  
-  def noprocess_lasgn(x)
-    name = x.shift
-    idx = x.shift
-    val = x.shift
-    [:lasgn, name, lvar_idx(name), process(val)]
-  end
-      
+        
   def process_zarray(x)
     x.clear
     return [:array]
@@ -206,10 +175,10 @@ class RsNormalizer < SimpleSexpProcessor
     sup = process(x.shift)
     body = x.shift
     if @full
-      cur = @state.locals
-      @state.reset
+      cur = @state
+      @state = RsLocalState.new
       body = process(body)
-      @state.locals = cur
+      @state = cur
     end
     [:class, name, sup, body]    
   end
@@ -218,10 +187,10 @@ class RsNormalizer < SimpleSexpProcessor
     name = x.shift
     body = x.shift
     if @full
-      cur = @state.locals
-      @state.reset
+      cur = @state
+      @state = RsLocalState.new
       body = process(body)
-      @state.locals = cur
+      @state = cur
     end
     [:module, name, body]    
   end

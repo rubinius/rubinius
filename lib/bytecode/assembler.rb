@@ -22,16 +22,15 @@ module Bytecode
       attr_accessor :location, :set
     end
     
-    def initialize(literals=[], name=nil)
+    def initialize(literals=[], name=nil, state=RsLocalState.new)
       @name = name
-      reset(literals)
+      reset(literals, state)
     end
     
-    def reset(literals=[])
+    def reset(literals=[], state=RsLocalState.new)
       @labels = Hash.new { |h,k| h[k] = Label.new(k) }
       @current_op = 0
       @output = []
-      @locals = Hash.new
       @literals = literals
       @source_lines = []
       @exceptions = Hash.new
@@ -39,6 +38,7 @@ module Bytecode
       @primitive = nil
       @arguments = []
       @cache_idx = 0
+      @state = state
     end
     
     CacheSlotsPerEntry = 4
@@ -61,7 +61,7 @@ module Bytecode
     end
     
     attr_reader :labels, :source_lines, :primitive, :literals
-    attr_accessor :locals, :exceptions, :arguments
+    attr_accessor :exceptions, :arguments
     
     def sorted_exceptions
       initial = @exceptions.values.sort do |a,b|
@@ -251,16 +251,11 @@ module Bytecode
     Simple = [:noop, :pop, :swap_stack, :dup_top]
     
     def number_of_locals
-      @locals.size + 2
+      @state.number_of_locals
     end
     
     def find_local(name)
-      cnt = @locals[name]
-      return cnt if cnt
-      
-      cnt = @locals.size + 2
-      @locals[name] = cnt
-      return cnt
+      @state.find_local(name)
     end
     
     def find_literal(val)
@@ -278,7 +273,6 @@ module Bytecode
       elsif m = /(^[a-z_][A-Za-z0-9_]*):(\d+)$/.match(what)
         name = m[1].to_sym
         cnt = m[2].to_i
-        @locals[name] = cnt
         return cnt
       end
       return nil

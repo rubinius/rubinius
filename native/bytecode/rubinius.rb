@@ -15,7 +15,7 @@ module Bytecode
         p @assembly
       end
       
-      asm = Bytecode::Assembler.new(@literals, @name)
+      asm = Bytecode::Assembler.new(@literals, @name, @state)
       begin
         stream = asm.assemble @assembly
       rescue Hash => e
@@ -29,7 +29,7 @@ module Bytecode
             
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
-      lcls = @locals.size + 2
+      lcls = @state.number_of_locals
             
       cmeth = CompiledMethod.new.from_string bc.data, lcls, @required
       cmeth.exceptions = asm.exceptions_as_tuple
