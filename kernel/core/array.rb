@@ -720,4 +720,15 @@ class Array
     n = size if n > size
     self[-n..-1]
   end
+
+  def hash
+    # IMPROVE: This is a really really poor implementation of hash for an array, but
+    # it does work. It should be replaced with something much better, but I'm not sure
+    # what level it belongs at.
+    str = ""
+    each do |item|
+      str << item.hash.to_s
+    end
+    return str.hash
+  end
 end
