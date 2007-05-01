@@ -140,6 +140,16 @@ class String
     count = 0
     str = self
     while match = pattern.match(str)
+      # When the Regexp matches a zero-length string, return an Array of characters
+      if match.begin(0) == match.end(0)
+        cp = self.codepoints
+        if limit
+          return cp[0,limit-1] + self[limit-1,@bytes]
+        else
+          return cp
+        end
+      end
+
       count += 1
       ret << match.pre_match
       str = match.post_match

@@ -795,6 +795,11 @@ context "String instance method" do
     "hello".split(/def/).should == ["hello"]
   end
 
+  specify "split with a zero-width regexp should return an array of characters" do
+    "blahblahblahblah".split(//).should == ["b", "l", "a", "h", "b", "l", "a", "h", "b", "l", "a", "h", "b", "l", "a", "h"]
+    "blahblahblahblah".split(//,7).should == ["b", "l", "a", "h", "b", "l", "ahblahblah"]
+  end
+
   specify "squeeze should return a string replacing runs of characters specified by the union of arguments with a single character" do
     "yellow moon".squeeze.should == "yelow mon"
     " now is the".squeeze(" ").should == " now is the"
