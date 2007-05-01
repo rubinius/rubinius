@@ -403,27 +403,27 @@ context "String instance method" do
     "secret".crypt("mysterious").should == "my6b6UoW5FeNw"
   end
 
-  specify "delete should return a copy of self removing all characters in the intersection of its arguments" do
-    "hello".delete("l","lo").should == "heo"
-    "hello".delete("lo").should == "he"
-    "hello".delete("aeiou", "^e").should == "hell"
-    "hello".delete("ej-m").should == "ho"
-  end
-
-  specify "delete! should perform method delete in place on self" do
-    s = "hello"
-    s.delete!("l", "lo").should == "heo"
-    s.should == "heo"
-
-    t = "world"
-    t.delete!("aeiou", "^e").should == "wrld"
-    t.should == "wrld"
-  end
-  
-  specify "delete! should return nil if no changes are made" do
-    "help".delete!("q", "r", "biff").should == nil
-  end
-
+  # specify "delete should return a copy of self removing all characters in the intersection of its arguments" do
+  #   "hello".delete("l","lo").should == "heo"
+  #   "hello".delete("lo").should == "he"
+  #   "hello".delete("aeiou", "^e").should == "hell"
+  #   "hello".delete("ej-m").should == "ho"
+  # end
+  # 
+  # specify "delete! should perform method delete in place on self" do
+  #   s = "hello"
+  #   s.delete!("l", "lo").should == "heo"
+  #   s.should == "heo"
+  # 
+  #   t = "world"
+  #   t.delete!("aeiou", "^e").should == "wrld"
+  #   t.should == "wrld"
+  # end
+  # 
+  # specify "delete! should return nil if no changes are made" do
+  #   "help".delete!("q", "r", "biff").should == nil
+  # end
+  # 
   specify "downcase should return a copy of self with A-Z converted to a-z" do
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ".downcase.should == "abcdefghijklmnopqrstuvwxyz"
   end
@@ -968,50 +968,50 @@ context "String instance method" do
     "rubinius".to_sym.should == :rubinius
   end
 
-  specify "tr should replace characters in to_string with corresponding characters in from_string" do
-    "Lisp".tr("Lisp", "Ruby").should == "Ruby"
-  end
+  # specify "tr should replace characters in to_string with corresponding characters in from_string" do
+  #   "Lisp".tr("Lisp", "Ruby").should == "Ruby"
+  # end
+  # 
+  # specify "tr should accept c1-c2 notation to denote ranges of characters" do
+  #   "123456789".tr("2-5","abcdefg").should == "1abcd6789"
+  # end
+  # 
+  # specify "tr should accept from_string starting with ^ to denote all characters except those listed" do
+  #   "123456789".tr("^345", "abc").should == "cc345cccc"
+  #   "abcdefghijk".tr("^d-g", "9131").should == "111defg1111"
+  # end
+  # 
+  # specify "tr should pad to_string with its last character if it is short than from_string" do
+  #   "this".tr("this","x").should == "xxxx"
+  # end
+  # 
+  # specify "tr! should modify self in place by performing tr on it" do
+  #   s = "abcdefghijklmnopqR"
+  #   s.tr!("cdefg", "12")
+  #   s.should == "ab12222hijklmnopqR"
+  # end
+  # 
+  # specify "tr_s should return a string processed according to tr with duplicate characters removed" do
+  #   "Lisp".tr_s("Lisp", "Ruby").should == "Ruby"
+  #   "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
+  #   "this".tr_s("this","x").should == "x"
+  #   "abcdefghijklmnopqR".tr_s("cdefg", "12").should == "ab12hijklmnopqR"
+  # end
+  # 
+  # specify "tr_s! should modify self in place by applying tr_s" do
+  #   a = "54321"
+  #   a.tr_s!("432", "ab").should == "5ab1"
+  #   a.should == "5ab1"
+  # 
+  #   b = "Ruby"
+  #   b.tr_s!("R", "c").should == "cuby"
+  #   b.should == "cuby"
+  # 
+  #   c = "chocolate"
+  #   c.tr_s!("oa", "").should == "chclte"
+  #   c.should == "chclte"
+  # end
   
-  specify "tr should accept c1-c2 notation to denote ranges of characters" do
-    "123456789".tr("2-5","abcdefg").should == "1abcd6789"
-  end
-  
-  specify "tr should accept from_string starting with ^ to denote all characters except those listed" do
-    "123456789".tr("^345", "abc").should == "cc345cccc"
-    "abcdefghijk".tr("^d-g", "9131").should == "111defg1111"
-  end
-  
-  specify "tr should pad to_string with its last character if it is short than from_string" do
-    "this".tr("this","x").should == "xxxx"
-  end
-
-  specify "tr! should modify self in place by performing tr on it" do
-    s = "abcdefghijklmnopqR"
-    s.tr!("cdefg", "12")
-    s.should == "ab12222hijklmnopqR"
-  end
-
-  specify "tr_s should return a string processed according to tr with duplicate characters removed" do
-    "Lisp".tr_s("Lisp", "Ruby").should == "Ruby"
-    "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
-    "this".tr_s("this","x").should == "x"
-    "abcdefghijklmnopqR".tr_s("cdefg", "12").should == "ab12hijklmnopqR"
-  end
-
-  specify "tr_s! should modify self in place by applying tr_s" do
-    a = "54321"
-    a.tr_s!("432", "ab").should == "5ab1"
-    a.should == "5ab1"
-
-    b = "Ruby"
-    b.tr_s!("R", "c").should == "cuby"
-    b.should == "cuby"
-
-    c = "chocolate"
-    c.tr_s!("oa", "").should == "chclte"
-    c.should == "chclte"
-  end
-
   specify "unpack should return an array by decoding self according to the format string" do
     raise
   end
