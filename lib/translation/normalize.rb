@@ -38,7 +38,7 @@ class RsNormalizer < SimpleSexpProcessor
     # indicate as a 'linked-list' of dasgn_curr nodes at the beginning
     # of the block.
     fn = x.first
-    if fn.first == :dasgn_curr and (!fn[2] or fn[2].first == :dasgn_curr)
+    if fn and (fn.first == :dasgn_curr) and (!fn[2] or fn[2].first == :dasgn_curr)
       x.shift
     end
     out = [:block]
