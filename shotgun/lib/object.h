@@ -1,3 +1,6 @@
+#ifndef SEEN_RUBINIUS_OBJECT_H
+#define SEEN_RUBINIUS_OBJECT_H
+
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup);
 OBJECT object_metaclass(STATE, OBJECT obj);
 OBJECT object_class(STATE, OBJECT self);
@@ -41,3 +44,5 @@ static inline uint32_t object_get_id(STATE, OBJECT self) {
     return (uint32_t)(self);
   }
 }
+
+#endif
