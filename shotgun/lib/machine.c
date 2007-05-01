@@ -333,26 +333,30 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
       signame = "<UNKNOWN>";
   }
   
-  if(getenv("DISABLE_CBT")) {
-    exit(-2);
-  }
-    
   printf("\nAn error has occured: %s\n\n", signame);
-  printf("C backtrace:\n");
+
+  /* This code is kind of dangerous, and general problematic (ie, it cases
+     more problems that in solves). So it's disabled unless you really want it. */
+  if(getenv("ENABLE_BT")) {
+  
+    printf("C backtrace:\n");
 #ifdef BETTER_BT
-  do {
-    unsigned long frames[128];
-    int count = 128;
+    do {
+      unsigned long frames[128];
+      int count = 128;
 #   if defined(__ppc__)
-      machine_gather_ppc_frames(ctx, frames, &count);
+        machine_gather_ppc_frames(ctx, frames, &count);
 #   elif defined(X8632)
-      machine_gather_x86_frames(ctx, frames, &count);
+        machine_gather_x86_frames(ctx, frames, &count);
 #   endif
-    machine_show_backtrace(frames, count);
-  } while(0);
+      machine_show_backtrace(frames, count);
+    } while(0);
 #endif
-  printf("\nRuby backtrace:\n");
-  machine_print_callstack(current_machine);
+    printf("\nRuby backtrace:\n");
+    machine_print_callstack(current_machine);
+  
+  }
+  
   printf("\nRuby stack:\n");
   machine_print_stack(current_machine);
   printf("\nVM Registers:\n");
