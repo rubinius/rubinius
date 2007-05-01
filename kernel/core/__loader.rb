@@ -7,6 +7,7 @@ GC.start
 # Now, setup a few changes to the include path.
 
 $:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
+$: << Rubinius::CODE_PATH
 
 # Parse options here!
 RBS_USAGE = <<END

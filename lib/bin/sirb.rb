@@ -18,7 +18,8 @@ def usage
   USAGE
 end
 
-  
+simple_prompt = false
+
 begin
   until ARGV.empty?
     arg = ARGV.shift
@@ -35,6 +36,8 @@ begin
       $show_bytes = true
     when '-t'
       $show_stats = true
+    when '-y'
+      simple_prompt = true
     else
       puts "Unrecognized option: #{arg}"
     end
@@ -63,7 +66,11 @@ locals = Tuple.new(10)
 pstate = ">"
 
 while true
-  str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} ")
+  if simple_prompt
+    str = Readline.readline(">> ")
+  else
+    str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} ")
+  end
   context << str
   line += 1
   if str.size == 0

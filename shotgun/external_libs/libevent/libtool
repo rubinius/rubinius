@@ -44,7 +44,7 @@ available_tags=" CXX"
 
 # ### BEGIN LIBTOOL CONFIG
 
-# Libtool was configured on host vatu.local:
+# Libtool was configured on host vatu:
 
 # Shell to use when invoking shell scripts.
 SHELL="/bin/sh"
@@ -7212,7 +7212,7 @@ disable_libs=static
 # End:
 # ### BEGIN LIBTOOL TAG CONFIG: CXX
 
-# Libtool was configured on host vatu.local:
+# Libtool was configured on host vatu:
 
 # Shell to use when invoking shell scripts.
 SHELL="/bin/sh"

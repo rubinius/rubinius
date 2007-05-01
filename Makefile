@@ -9,7 +9,8 @@ install:
 	mkdir -p $(RBAPATH)
 	mkdir -p $(CODEPATH)
 	cp runtime/*.rba $(RBAPATH)/
-	cp -r lib/bin $(CODEPATH)/
+	mkdir -p $(CODEPATH)/bin
+	cp lib/bin/*.rb $(CODEPATH)/bin
 
 clean:
 	cd shotgun; $(MAKE) clean
