@@ -177,7 +177,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( INDEXED(self) )
     t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
-    j = FIXNUM_TO_INT(t1); GUARD( j < NUM_FIELDS(self) )
+    j = FIXNUM_TO_INT(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
 
     stack_push(NTH_FIELD(self, j));
     CODE
@@ -188,7 +188,7 @@ class ShotgunPrimitives
     self = stack_pop(); GUARD( INDEXED(self) )
     t1 = stack_pop(); GUARD( FIXNUM_P(t1) )
     t2 = stack_pop(); // We do not care about the type
-    j = FIXNUM_TO_INT(t1); GUARD( j < NUM_FIELDS(self) )
+    j = FIXNUM_TO_INT(t1); GUARD( j >= 0 && j < NUM_FIELDS(self) )
 
     SET_FIELD(self, j, t2);
     stack_push(t2);

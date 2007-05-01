@@ -29,7 +29,7 @@ module Bytecode
             
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
-      lcls = asm.number_of_locals
+      lcls = @locals.size + 2
             
       cmeth = CompiledMethod.new.from_string bc.data, lcls, @required
       cmeth.exceptions = asm.exceptions_as_tuple

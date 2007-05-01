@@ -4,9 +4,6 @@
 #include <setjmp.h>
 #include "cpu.h"
 
-#include <ucontext.h>
-#include "PortableUContext.h"
-
 struct rni_nmc {
   int num_handles;
   int used;

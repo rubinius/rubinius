@@ -15,7 +15,7 @@ module Bytecode
                   
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
-      lcls = asm.number_of_locals
+      lcls = @locals.size + 2
       cmeth = Rubinius::CompiledMethod.from_string bc, lcls
       cmeth.required = RObject.wrap(@required)
       cmeth.exceptions = asm.exceptions_as_tuple

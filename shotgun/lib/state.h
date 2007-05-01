@@ -1,5 +1,8 @@
 #include "shotgun.h"
 
+#include <ucontext.h>
+#include "subtend/PortableUContext.h"
+
 #ifdef USE_CINVOKE
 #include <cinvoke.h>
 #endif
@@ -193,6 +196,12 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define rbs_set_class(om, obj, cls) ({ HEADER(obj)->klass = cls; if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); })
 #define SET_CLASS(obj, cls) ({ HEADER(obj)->klass = cls; RUN_WB(obj, cls); })
 
+extern ucontext_t g_firesuit;
+extern int g_use_firesuit;
+extern int g_access_violation;
+
+void machine_handle_fire();
+
 // #define ACCESS_MACROS 1
 
 #ifdef ACCESS_MACROS
@@ -217,6 +226,11 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   if(fel >= HEADER(in)->fields) {
     printf("Attempted to access field %d in an object with %lu fields.\n", 
       fel, (unsigned long)NUM_FIELDS(in));
+      
+    if(g_use_firesuit) {
+      machine_handle_fire();
+    }
+    
     assert(0);
   }
 #endif
@@ -232,6 +246,11 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   if(fel >= HEADER(obj)->fields) {
     printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
       fel, (unsigned long)NUM_FIELDS(obj), _inspect(obj));
+    
+    if(g_use_firesuit) {
+      machine_handle_fire();
+    }
+    
     assert(0);
   }
 #endif

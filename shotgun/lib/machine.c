@@ -35,6 +35,10 @@
 
 machine current_machine;
 
+ucontext_t g_firesuit;
+int g_use_firesuit;
+int g_access_violation;
+
 static int _recursive_reporting = 0;
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
@@ -376,6 +380,10 @@ void machine_setup_signals(machine m) {
 
 machine machine_new() {
   machine m;
+  
+  g_use_firesuit = 0;
+  g_access_violation = 0;
+  
   m = calloc(1, sizeof(struct rubinius_machine));
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
@@ -390,6 +398,11 @@ machine machine_new() {
   current_machine = m;
   
   return m;
+}
+
+void machine_handle_fire() {
+  g_access_violation = 1;
+  setcontext(&g_firesuit);
 }
 
 void state_collect(STATE, cpu c);

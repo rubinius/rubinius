@@ -840,6 +840,16 @@ void state_major_collect(STATE, cpu c);
 void cpu_run(STATE, cpu c) {
   unsigned char op;
   
+  g_use_firesuit = 1;
+  g_access_violation = 0;
+  getcontext(&g_firesuit);
+  
+  /* Ok, we jumped back here because something went south. */
+  if(g_access_violation) {
+    cpu_raise_exception(state, c, 
+      cpu_new_exception(state, c, state->global->exc_arg, "Accessed outside bounds of object"));
+  }
+  
   while(c->active_context != Qnil) {
     
     /* This check I've commented out is a safety blanket. I've tested

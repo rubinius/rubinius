@@ -25,7 +25,7 @@ module Bytecode
     end
     
     attr_accessor :name, :assembly, :literals, :primitive, :file
-    attr_accessor :required, :path, :locals
+    attr_accessor :required, :path, :locals, :state
   end
 
   class Compiler
@@ -173,6 +173,7 @@ module Bytecode
       meth = MethodDescription.new(name)
       meth.path = @path.dup
       meth.locals = state.locals
+      meth.state = state
       
       pro = Processor.new(self, meth, state)
       pro.process nx
