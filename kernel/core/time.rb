@@ -111,6 +111,10 @@ class Time
   def usec
     Ruby.primitive :time_usec
   end
+
+  def to_f
+    return seconds + (usec / 1000000.0)
+  end
   
   def gmt_offset
     ZoneOffset[strftime("%Z")] * 3600
