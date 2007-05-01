@@ -8,14 +8,14 @@
 #   end
 # end
 
-class PostiveSpec
+class PositiveSpec
   def initialize(obj)
     @obj = obj
   end
   
   def ==(other)
     if @obj != other
-      raise Exception.new("equality expected")
+      raise Exception.new("Equality expected for " + @obj.inspect + " and " + other.inspect)
     end
   end
 end
@@ -27,14 +27,14 @@ class NegativeSpec
   
   def ==(other)
     if @obj == other
-      raise Exception.new("inequality expected")
+      raise Exception.new("Inequality expected for " + @obj.inspect + " and " + other.inspect)
     end
   end
 end
 
 class Object
   def should
-    PostiveSpec.new(self)
+    PositiveSpec.new(self)
   end
   
   def should_not
@@ -46,19 +46,51 @@ def setup
   yield
 end
 
+## PLAIN VERSION
+#def specify(msg)
+#  begin
+#    yield
+#    STDERR.print '.'
+#  rescue Exception => e
+#    STDERR.print 'F'
+#    STDOUT.print msg
+#    STDOUT.print " FAILED\n"
+#    STDOUT.print e.message
+#    STDOUT.print "\n"
+#  end
+#end
+#
+#def context(msg)
+#  yield
+#end
+
+# VERBOSE SPEC-LIKE OUTPUT VERSION
 def specify(msg)
+  STDOUT.print " - "
+  STDOUT.print msg
+
   begin
     yield
-    STDERR.print '.'
   rescue Exception => e
-    STDERR.print 'F'
-    STDOUT.print msg
-    STDOUT.print " FAILED\n"
-    STDOUT.print e.message
-    STDOUT.print "\n"
+    STDOUT.print " FAILED:\n"
+
+    if e.message != ""
+      STDOUT.print e.message
+      STDOUT.print ": "
+      STDOUT.print e.backtrace
+    else
+      STDOUT.print "<No message>"
+    end
   end
+
+  STDOUT.print "\n"
 end
 
 def context(msg)
+  STDOUT.print msg
+  STDOUT.print "\n-------------------\n"
+
   yield
+
+  STDOUT.print "\n"
 end
