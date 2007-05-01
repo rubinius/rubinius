@@ -745,7 +745,7 @@ module Bytecode
         name = x.shift
         idx = x.shift
         if idx == 0
-          raise "Unprocessed lvar detected!"
+          raise "Unprocessed lvar '#{name}' detected!"
         end
         add "push #{name}:#{idx}"
       end

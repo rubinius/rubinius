@@ -193,7 +193,7 @@ class RsLocalScoper < SimpleSexpProcessor
   end
   
   def process_case(x)
-    cond = x.shift
+    cond = process(x.shift)
     whns = x.shift.map { |w| process(w) }
     els = process(x.shift)
     

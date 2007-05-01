@@ -13,6 +13,8 @@ else
   io = File.open(file)
   syd = SydneyParser.load_file io
   sexp = syd.sexp(false, true)
+  require 'pp'
+  # pp sexp
   io.close
 end
 
