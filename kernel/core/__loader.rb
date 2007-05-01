@@ -24,6 +24,8 @@ END
 
 # script = ARGV.shift
 
+$VERBOSE = false
+
 code = 0
 
 ran_something = false
@@ -35,8 +37,10 @@ begin
     case arg
     when '-h'
       puts RBS_USAGE
+      exit 1
     when "-v"
       puts "rubinius #{Rubinius::VERSION} (#{Rubinius::BUILDREV}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      $VERBOSE = true
     when '-dc'
       puts "[Compiler debugging enabled]"
       $DEBUG_COMPILER = true
@@ -47,6 +51,7 @@ begin
       file = ARGV.shift
       path = compile(file)
       puts "Compiled #{file} to #{path}"
+      exit 1
     when '-e'
       Compile.execute ARGV.shift
     else
@@ -98,8 +103,9 @@ begin
   
   unless ran_something
     if Rubinius::Terminal
-      puts "Loading sirb on #{Rubinius::Terminal}..."
-      require 'bin/sirb'
+      repr = ENV['RBX_REPR'] || "bin/sirb"
+      puts "Loading #{repr} on #{Rubinius::Terminal}..."
+      require repr
     else
       Compile.execute "p #{STDIN.read}"
     end
