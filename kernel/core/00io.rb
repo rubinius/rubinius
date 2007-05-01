@@ -14,12 +14,21 @@ class IO
     return self
   end
 
-  def read(size)
-    buf = String.new(size)
-    chan = Channel.new
-    chan.send_on_readable self, buf
-    out = chan.receive
-    return out[1]
+  def read(size=nil)
+    if size
+      buf = String.new(size)
+      chan = Channel.new
+      chan.send_on_readable self, buf
+      out = chan.receive
+      return out[1]
+    else
+      out = ""
+      loop do
+        chunk = read(32)
+        return out unless chunk
+        out << chunk
+      end      
+    end
   end
   
   def close

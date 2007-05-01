@@ -18,6 +18,13 @@ def usage
   USAGE
 end
 
+env = ENV['SIRB_ARGS']
+if env
+  env.split(" ").each do |part|
+    ARGV << part
+  end
+end
+
 simple_prompt = false
 
 begin

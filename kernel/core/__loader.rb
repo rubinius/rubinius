@@ -26,7 +26,10 @@ END
 
 code = 0
 
+ran_something = false
+
 begin
+    
   until ARGV.empty?
     arg = ARGV.shift
     case arg
@@ -63,11 +66,15 @@ begin
         else
           require more
         end
+      elsif arg == "-"
+        ran_something = true
+        Compile.execute STDIN.read
       elsif arg.prefix? "-"
         puts "Invalid switch '#{arg}'"
         exit! 1
       else
         if File.exists?(arg)
+          ran_something = true
           load(arg)
         else
           if arg.suffix?(".rb")
@@ -76,6 +83,7 @@ begin
           else
             prog = "bin/#{arg}"
             begin
+              ran_something = true
               require prog
             rescue LoadError => e
               puts "Unable to find program '#{arg}' ('#{prog}'): #{e.message} (#{e.class})"
@@ -87,6 +95,16 @@ begin
       end
     end
   end
+  
+  unless ran_something
+    if Rubinius::Terminal
+      puts "Loading sirb on #{Rubinius::Terminal}..."
+      require 'bin/sirb'
+    else
+      Compile.execute "p #{STDIN.read}"
+    end
+  end
+  
 rescue SystemExit => e
   code = e.code
 rescue Object => e

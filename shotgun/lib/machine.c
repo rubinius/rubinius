@@ -584,6 +584,12 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "CODE_PATH", string_new(m->s, CONFIG_CODEPATH), mod);
   machine_set_const_under(m, "EXT_PATH", string_new(m->s, CONFIG_EXTPATH), mod);
   machine_set_const_under(m, "RBA_PATH", string_new(m->s, CONFIG_RBAPATH), mod);
+  
+  if(isatty(0)) {
+    machine_set_const_under(m, "Terminal", string_new(m->s, ttyname(0)), mod);
+  } else {
+    machine_set_const_under(m, "Terminal", Qfalse, mod);    
+  }
 }
 
 extern char **environ;
