@@ -194,7 +194,8 @@ void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *coun
      Different OS's have different structures for ucontext,
      so we use #ifdef's here to figure out where to get sp from. */
   #ifdef __linux__
-  sp = ctx->uc_mcontext.gregs[REG_EBP];
+  /* sp = ctx->uc_mcontext.gregs[REG_EBP]; */
+  sp = 0;
   #elif __APPLE__
   sp = ctx->uc_mcontext.mc_ebp;
   #endif
