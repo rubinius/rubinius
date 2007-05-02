@@ -16,30 +16,26 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context 'Using Class.new to create a new class' do
   specify 'Returns a new anonymous Class instance' do
-    example do 
-      Class.new.class
-    end.should == Class
+    Class.new.class.should == Class
   end   
 
   specify 'May be given a Class argument to be used as superclass (Object by default)' do
-    example do 
-      a = Class.new
-      b = Class.new(Array)
-      c = Class.new(Enumerable) rescue :failure
-
-      [a.superclass, b.superclass, c]
-    end.should == [Object, Array, :failure]
+    Class.new.superclass.should == Object
+    Class.new(Array).superclass.should == Array
+    Class.new(Enumerable) rescue :failure
   end
 
   specify 'If a block is provided, it is evaluated in the context of the Class object' do
-    example do
-      c = Class.new {NO = :inside; const_set :YES, :inside
-                     @civ = :civ; @@cv = :cv; 
-                     def self.foo; :class_foo; end 
-                     define_method('foo') {:instance_foo}}
+    c = Class.new {NO = :inside; const_set :YES, :inside
+                   @civ = :civ; @@cv = :cv; 
+                   def self.foo; :class_foo; end 
+                   define_method('foo') {:instance_foo}}
 
-      [c.constants, c.instance_variables, c.class_variables, c.foo, c.new.foo]
-    end.should == [['YES'], ['@civ'], ['@@cv'], :class_foo, :instance_foo]
+    c.constants.should == ['YES']
+    c.instance_variables.should == ['@civ']
+    c.class_variables.should == ['@@cv']
+    c.foo.should == :class_foo
+    c.new.foo.should == :instance_foo
   end
 end
 
@@ -53,17 +49,15 @@ context 'Class object instantiation' do
   end
 
   specify '#allocate allocates space for the object but does not run the instance method #initialize' do
-    example do
-      cs = ClassSpec.allocate
-      [cs.instance_variables, cs.foobar]
-    end.should == [[], :foobar]
+    cs = ClassSpec.allocate
+    cs.instance_variables.should == []
+    cs.foobar.should == :foobar
   end
 
   specify '#new allocates space for the object and runs the instance method #initialize' do
-    example do
-      cs = ClassSpec.new
-      [cs.instance_variables, cs.foobar]
-    end.should == [['@a'], :foobar]
+    cs = ClassSpec.new
+    cs.instance_variables.should == ['@a']
+    cs.foobar.should == :foobar
   end
 end
 
@@ -91,16 +85,16 @@ end
 
 context 'Instantiated Class object' do
   specify 'Makes its superclass object available through #superclass' do
-    example do
-      class CS_SuperA; end
-      class CS_SuperB < Array; end
-      CS_SuperC = Class.new
-      CS_SuperD = Class.new Array
-      CS_SuperE = Class.new CS_SuperC
+    class CS_SuperA; end
+    class CS_SuperB < Array; end
+    CS_SuperC = Class.new
+    CS_SuperD = Class.new Array
+    CS_SuperE = Class.new CS_SuperC
 
-      [CS_SuperA.superclass, CS_SuperB.superclass, 
-       CS_SuperC.superclass, CS_SuperD.superclass,
-       CS_SuperE.superclass.superclass]
-    end.should == [Object, Array, Object, Array, Object]
+    CS_SuperA.superclass.should == Object 
+    CS_SuperB.superclass.should == Array 
+    CS_SuperC.superclass.should == Object 
+    CS_SuperD.superclass.should == Array
+    CS_SuperE.superclass.superclass.should == Object
   end
 end

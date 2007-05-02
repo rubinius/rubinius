@@ -14,47 +14,38 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context 'Creating a Continuation object' do
   specify 'Must be done through Kernel.callcc, no .new' do
-    example do
-      n = Continuation.new rescue :failed
+    should_raise {Continuation.new}
 
-      Kernel.callcc {|@cc|}
-      c = @cc
-
-      [n, c.class]
-    end.should == [:failed, Continuation]
+    Kernel.callcc {|@cc|}
+    c = @cc
+    c.class.should == Continuation
   end
 end
 
 
 context 'Executing a Continuation' do
   specify 'Using #call transfers execution to right after the Kernel.callcc block' do
-    example do
-      array = [:reached, :not_reached]
+    array = [:reached, :not_reached]
 
-      Kernel.callcc {|@cc|}
-      
-      unless array.first == :not_reached
-        array.shift
-        @cc.call
-      end
+    Kernel.callcc {|@cc|}
+    
+    unless array.first == :not_reached
+      array.shift
+      @cc.call
+    end
 
-      array
-    end.should == [:not_reached]
+    array.should == [:not_reached]
   end
 
   specify 'Arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)' do
-    example do
-      [Kernel.callcc {|cc| cc.call}, 
-       Kernel.callcc {|cc| cc.call 1}, 
-       Kernel.callcc {|cc| cc.call 1, 2, 3}] 
-    end.should == [nil, 1, [1, 2, 3]]
+    Kernel.callcc {|cc| cc.call}.should == nil 
+    Kernel.callcc {|cc| cc.call 1}.should == 1 
+    Kernel.callcc {|cc| cc.call 1, 2, 3}.should == [1, 2, 3] 
   end
 
   specify '#[] is an alias for #call' do
-    example do
-      [Kernel.callcc {|cc| cc.call} == Kernel.callcc {|cc| cc[]},
-       Kernel.callcc {|cc| cc.call 1} == Kernel.callcc {|cc| cc[1]},
-       Kernel.callcc {|cc| cc.call 1, 2, 3} == Kernel.callcc {|cc| cc[1, 2, 3]}] 
-    end.should == [true, true, true]
+    Kernel.callcc {|cc| cc.call}.should == Kernel.callcc {|cc| cc[]}
+    Kernel.callcc {|cc| cc.call 1}.should == Kernel.callcc {|cc| cc[1]}
+    Kernel.callcc {|cc| cc.call 1, 2, 3}.should == Kernel.callcc {|cc| cc[1, 2, 3]} 
   end
 end

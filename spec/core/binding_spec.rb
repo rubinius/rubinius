@@ -3,23 +3,12 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # Binding has no direct creation
 context 'Creating Bindings' do
   specify 'No .new provided' do
-    example do
-      begin
-        Binding.new
-      rescue => e
-        e.class
-      end
-    end.should == NoMethodError
+    should_raise(NoMethodError) {Binding.new}
   end  
 
   specify 'Kernel.binding creates a new Binding' do
-    example do
-      Kernel.binding.class  
-    end.should == Binding
-
-    example do
-      binding.class 
-    end.should == Binding
+    Kernel.binding.class.should == Binding  
+    binding.class.should == Binding 
   end
 end
 
@@ -34,33 +23,31 @@ context 'Initialised Binding' do
   end
 
   specify 'May be duplicated with #dup' do
-    example do
-      b = @o.get_binding
-      eval('value', b) == eval('value', b.dup)
-    end.should == true
+    b = @o.get_binding
+    eval('value', b).should == eval('value', b.dup)
   end  
 
   specify 'May be cloned with #clone' do
-    example do
-      b = @o.get_binding
-      eval('value', b) == eval('value', b.clone)
-    end.should == true
+    b = @o.get_binding
+    eval('value', b).should == eval('value', b.clone)
   end  
 
   
   specify 'Normal #dup and #clone semantics apply' do
-    example do
-      d, c = @o.get_binding, @o.get_binding
+    d, c = @o.get_binding, @o.get_binding
 
-      def d.single?(); true; end
-      def c.single?(); true; end
+    def d.single?(); true; end
+    def c.single?(); true; end
 
-      d.freeze
-      c.freeze
+    d.freeze
+    c.freeze
 
-      [d.dup.frozen? == false, d.dup.methods.include?('single?') == false,
-       c.clone.frozen? == true, c.clone.methods.include?('single?') == true,
-       eval('value', d) == eval('value', d.dup), eval('value', c) == eval('value', c.clone)] 
-    end.all? {|x| x == true}.should == true
+    d.dup.frozen?.should == false 
+    d.dup.methods.include?('single?').should == false
+    c.clone.frozen?.should == true 
+    c.clone.methods.include?('single?').should == true
+
+    eval('value', d).should == eval('value', d.dup) 
+    eval('value', c).should == eval('value', c.clone) 
   end  
 end
