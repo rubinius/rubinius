@@ -34,5 +34,10 @@ VALUE rb_ary_new2(long length);
 VALUE rb_ary_get(VALUE self, int index);
 VALUE rb_ary_set(VALUE self, int index, VALUE val);
 int rb_ary_size(VALUE self);
+VALUE rb_ary_push(VALUE array, VALUE val);
+VALUE rb_str_new(const char *ptr, long len);
+VALUE rb_str_dup(VALUE str);
+VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
+
 char *rb_id2name(ID sym);
 

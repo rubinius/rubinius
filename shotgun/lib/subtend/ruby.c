@@ -3,12 +3,14 @@
 #include "nmc.h"
 #include "ruby.h"
 #include "symbol.h"
+#include "string.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
 
 #define HNDL(obj) handle_to_object(ctx->state, ctx->state->handle_tbl, (rni_handle*)obj)
 #define CTX rni_context* ctx = subtend_retrieve_context()
+#define NEW_HANDLE(ctx, val) nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val)
 
 VALUE subtend_get_global(int which) {
   OBJECT val;
@@ -98,7 +100,7 @@ VALUE rb_define_class_under(VALUE parent, char *name, VALUE super) {
   
   cls = rbs_class_new_with_namespace(ctx->state, name, 1, HNDL(super), HNDL(parent));
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, cls);
+  return NEW_HANDLE(ctx, cls);
 }
 
 VALUE rb_define_class(char *name, VALUE super) {
@@ -106,7 +108,7 @@ VALUE rb_define_class(char *name, VALUE super) {
   OBJECT cls;
   cls = rbs_class_new_with_namespace(ctx->state, name, 1, HNDL(super), ctx->state->global->object);
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, cls);
+  return NEW_HANDLE(ctx, cls);
 }
 
 VALUE rb_define_module_under(VALUE parent, char *name) {
@@ -114,7 +116,7 @@ VALUE rb_define_module_under(VALUE parent, char *name) {
   OBJECT mod;
   mod = rbs_module_new(ctx->state, name, HNDL(parent));
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, mod);
+  return NEW_HANDLE(ctx, mod);
 }
 
 VALUE rb_define_module(char *name) {
@@ -122,7 +124,7 @@ VALUE rb_define_module(char *name) {
   OBJECT mod;
   mod = rbs_module_new(ctx->state, name, ctx->state->global->object);
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, mod);
+  return NEW_HANDLE(ctx, mod);
 }
 
 ID rb_intern(char *name) {
@@ -136,7 +138,7 @@ VALUE rb_ivar_get(VALUE obj, ID sym) {
   
   val = object_get_ivar(ctx->state, HNDL(obj), HNDL(sym));
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val);
+  return NEW_HANDLE(ctx, val);
 }
 
 VALUE rb_iv_get(VALUE obj, char *name) {
@@ -170,6 +172,15 @@ void rb_define_method_(char *file, VALUE vmod, char *name, void *func, int args,
   }
 }
 
+char *rb_id2name(ID sym) {
+  OBJECT obj;
+  CTX;
+  
+  obj = (OBJECT)sym;
+  if(!SYMBOL_P(obj)) return NULL;
+  return rbs_symbol_to_cstring(ctx->state, obj);
+}
+
 VALUE rb_ary_get(VALUE self, int index) {
   OBJECT ary, out;
   CTX;
@@ -177,7 +188,7 @@ VALUE rb_ary_get(VALUE self, int index) {
   ary = HNDL(self);
   out = array_get(ctx->state, ary, index);
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, out);
+  return NEW_HANDLE(ctx, out);
 }
 
 VALUE rb_ary_set(VALUE self, int index, VALUE val) {
@@ -197,15 +208,6 @@ int rb_ary_size(VALUE self) {
   return FIXNUM_TO_INT(array_get_total(ary));
 }
 
-char *rb_id2name(ID sym) {
-  OBJECT obj;
-  CTX;
-  
-  obj = (OBJECT)sym;
-  if(!SYMBOL_P(obj)) return NULL;
-  return rbs_symbol_to_cstring(ctx->state, obj);
-}
-
 /* The same value as 1.8.x */
 #define ARRAY_DEFAULT_SIZE 16
 
@@ -219,8 +221,48 @@ VALUE rb_ary_new2(long length) {
 
   ary = array_new(ctx->state, length);
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, ary);
+  return NEW_HANDLE(ctx, ary);
 }
+
+VALUE rb_ary_push(VALUE array, VALUE val) {
+	CTX;
+  OBJECT ary;
+  ary = HNDL(array);
+	array_append(ctx->state, ary, HNDL(val));
+  return ary;
+}
+
+VALUE rb_str_new(const char *ptr, long len) {
+	CTX;
+	return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
+}
+
+VALUE rb_str_dup(VALUE str) {
+	CTX;
+	return NEW_HANDLE(ctx, string_dup(ctx->state, HNDL(str)));
+}
+
+VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
+	CTX;
+	return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
+}
+
+/*
+
+Still needed for Mongrel - Kev
+
+rb_define_alloc_func
+rb_define_class_under
+rb_define_method
+rb_define_module
+rb_hash_aref
+rb_hash_aset
+rb_hash_delete
+rb_hash_new
+rb_raise
+rb_str_substr
+
+*/
 
 /*
 
@@ -248,7 +290,6 @@ rb_obj_alloc
 rb_obj_call_init
 rb_ary_dup
 rb_ary_unshift
-rb_ary_push
 rb_ary_clear
 rb_float_new
 Data_Wrap_Struct
