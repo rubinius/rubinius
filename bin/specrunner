@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Fear my elite bash skills
+
+TMPFILE="/tmp/mini_spec_specrunner.txt"
+
+# Files to run
+if [[ -d $1 ]]; then
+  SOURCE=`find $1 -name *_spec.rb`
+elif [[ -f $1 ]]; then
+  SOURCE=$1
+else
+  echo "Usage: [TARGET=<vm>] specrunner <file|directory>"
+  exit 1
+fi
+
+# Target VM
+if [[ $TARGET = "" ]]; then
+  TARGET=shotgun/rubinius
+fi
+
+for i in $SOURCE; do 
+  $TARGET -rspec/mini_rspec.rb $i 2>> $TMPFILE
+done 
+
+echo ""
+echo ""
+echo "Errors:"
+
+cat $TMPFILE
+rm $TMPFILE

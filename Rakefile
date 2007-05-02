@@ -31,12 +31,14 @@ require_files(paths)
 # By default, run all the specs and tests
 task :default => :spec
 
-desc "Run all specs and tests."
-task :spec do
-  Rake::Task['spec:all'].invoke rescue got_error = true
-
-  raise "Spec or test failures." if got_error
-end
+desc 'Run all specs'
+task :spec => 'spec:new'
+#desc "Run all specs and tests."
+#task :spec do
+#  Rake::Task['spec:all'].invoke rescue got_error = true
+#
+#  raise "Spec or test failures." if got_error
+#end
 
 namespace :spec do
   desc "Run all specs and tests."
@@ -82,6 +84,30 @@ namespace :spec do
 
     desc "Generate a coverage report for the core specs."
     GroupCoverageReport.new(:core)
+  end
+  
+  # New runner
+  desc 'Run all specs'
+  task :new do
+    system 'bin/specrunner spec' 
+  end
+
+  # Specdiffs to make it easier to see what your changes have affected :)
+  desc 'Run specs and produce a diff against current base'
+  task :diff => 'diff:run'
+
+  namespace :diff do
+    desc 'Run specs and produce a diff against current base'
+    task :run do
+      system 'bin/specrunner spec > /tmp/rbs_specdiff' 
+      system 'diff -u spec/diffs/base.txt /tmp/rbs_specdiff'
+      system 'rm /tmp/rbs_specdiff'
+    end
+
+    desc 'Replace the base spec file with a new one'
+    task :replace do
+      system 'bin/specrunner spec > spec/diffs/base.txt' 
+    end
   end
 end 
 

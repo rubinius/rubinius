@@ -50,13 +50,13 @@ end
 #def specify(msg)
 #  begin
 #    yield
-#    STDERR.print '.'
+#    STDOUT.print '.'
 #  rescue Exception => e
-#    STDERR.print 'F'
-#    STDOUT.print msg
-#    STDOUT.print " FAILED\n"
-#    STDOUT.print e.message
-#    STDOUT.print "\n"
+#    STDOUT.print 'F'
+#    STDERR.print msg
+#    STDERR.print " FAILED\n"
+#    STDERR.print e.message
+#    STDERR.print "\n\n"
 #  end
 #end
 #
@@ -94,3 +94,9 @@ def context(msg)
 
   STDOUT.print "\n"
 end
+
+
+# Alternatives
+alias describe context
+alias it specify
+
