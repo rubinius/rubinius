@@ -97,6 +97,8 @@ end
 
 
 # Alternatives
-alias describe context
-alias it specify
-
+class Object
+  alias describe context
+  alias it specify
+  alias before setup
+end
