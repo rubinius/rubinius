@@ -186,8 +186,17 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
   event_set(&ti->ev, fd, EV_READ, _cpu_wake_channel_and_read, (void*)ti);
   /* Check that we were able to add it correctly... */
   if(event_add(&ti->ev, NULL) != 0) {
-    /* If we couldn't.. hm... for now, lets just spin the channel directly. */
-    _cpu_wake_channel_and_read(fd, EV_READ, (void*)ti);
+    struct stat sb;
+    fstat(fd, &sb);
+    if(S_ISREG(sb.st_mode) || S_ISDIR(sb.st_mode) || S_ISLNK(sb.st_mode)) {
+      /* If we couldn't.. hm... for now, lets just spin the channel directly. */
+      _cpu_wake_channel_and_read(fd, EV_READ, (void*)ti);
+    } else {
+      /* So, we couldn't find out if it's readable, and it's probably
+       * not something we can read from. Send nil. */
+      cpu_channel_send(state, ti->c, ti->channel, Qnil);
+      free(ti);
+    }
   } else {
     _cpu_event_register_info(state, ti);
   }
@@ -205,8 +214,17 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   
   event_set(&ti->ev, fd, EV_WRITE, _cpu_wake_channel, (void*)ti);
   if(event_add(&ti->ev, NULL) != 0) {
-    /* If we couldn't.. hm... for now, lets just spin the channel directly. */
-    _cpu_wake_channel(fd, EV_WRITE, (void*)ti);
+    struct stat sb;
+    fstat(fd, &sb);
+    if(S_ISREG(sb.st_mode) || S_ISDIR(sb.st_mode) || S_ISLNK(sb.st_mode)) {
+      /* If we couldn't.. hm... for now, lets just spin the channel directly. */
+      _cpu_wake_channel(fd, EV_WRITE, (void*)ti);
+    } else {
+      /* So, we couldn't find out if it's readable, and it's probably
+       * not something we can read from. Send nil. */
+      cpu_channel_send(state, ti->c, ti->channel, Qnil);
+      free(ti);
+    }
   } else {
     _cpu_event_register_info(state, ti);
   }
