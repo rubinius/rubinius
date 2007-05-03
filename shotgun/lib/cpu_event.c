@@ -46,7 +46,8 @@ void cpu_event_init(STATE) {
   setenv("EVENT_NOKQUEUE", "1", 1);
   setenv("EVENT_NOPOLL", "1", 1);
 #endif
-
+  /* epoll() seems to make everything hang. strace confirms this. */
+  setenv("EVENT_NOEPOLL","1", 1);
   state->event_base = event_init();
 }
 
