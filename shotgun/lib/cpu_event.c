@@ -46,8 +46,6 @@ void cpu_event_init(STATE) {
   setenv("EVENT_NOKQUEUE", "1", 1);
   setenv("EVENT_NOPOLL", "1", 1);
 #endif
-  /* epoll() seems to make everything hang. strace confirms this. */
-  setenv("EVENT_NOEPOLL","1", 1);
   state->event_base = event_init();
 }
 
@@ -184,10 +182,15 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
   ti->c = c;
   ti->channel = channel;
   ti->buffer = buffer;
-  _cpu_event_register_info(state, ti);
   
   event_set(&ti->ev, fd, EV_READ, _cpu_wake_channel_and_read, (void*)ti);
-  event_add(&ti->ev, NULL);  
+  /* Check that we were able to add it correctly... */
+  if(event_add(&ti->ev, NULL) != 0) {
+    /* If we couldn't.. hm... for now, lets just spin the channel directly. */
+    _cpu_wake_channel_and_read(fd, EV_READ, (void*)ti);
+  } else {
+    _cpu_event_register_info(state, ti);
+  }
 }
 
 /* TODO: fd needs to be a typedef, set per platform. */
@@ -201,7 +204,12 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   _cpu_event_register_info(state, ti);
   
   event_set(&ti->ev, fd, EV_WRITE, _cpu_wake_channel, (void*)ti);
-  event_add(&ti->ev, NULL);
+  if(event_add(&ti->ev, NULL) != 0) {
+    /* If we couldn't.. hm... for now, lets just spin the channel directly. */
+    _cpu_wake_channel(fd, EV_WRITE, (void*)ti);
+  } else {
+    _cpu_event_register_info(state, ti);
+  }
 }
 
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
