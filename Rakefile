@@ -58,8 +58,14 @@ namespace :spec do
       Dir.mkdir "code-cache" unless File.exists?("code-cache")
       FileUtils.rm Dir.glob("code-cache/*")
     end
+    
+    task :subtend do
+      Dir[File.join(File.dirname(__FILE__),"spec/subtend/**/Rakefile")].each do |rakefile|
+        sh "rake -f #{rakefile}"
+      end
+    end
   end
-
+  
   desc "Run only specs but not any tests."
   spec_targets = %w(language shotgun library core targets primitives)
 

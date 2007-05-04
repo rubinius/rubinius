@@ -7,6 +7,10 @@ context "SubtendArray" do
   end
   
   specify "rb_ary_new should return an empty array" do
-    @s.rb_ary_new.should == []
+    @s.new_array.should == []
   end
+  
+  # specify "rb_ary_push should add an element to an array" do
+  #   @s.rb_ary_push([], 4).should == [4]
+  # end
 end
