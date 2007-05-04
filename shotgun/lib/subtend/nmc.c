@@ -303,57 +303,64 @@ void _nmc_start() {
 
   retval = (rni_handle*)Qnil;
   
-  switch(n->method->args) {
-    case -2: {
-      OBJECT rargs = array_new(state, fc->argcount);
-      rni_handle *ah;
-      
-      for(i = 0; i < fc->argcount; i++) {
-        array_set(state, rargs, i, cpu_stack_pop(state, c));
-      }
-      
-      ah = nmc_handle_new(n, global_context->state->handle_tbl, rargs);
-      handles_used[ch++] = ah;
-      
-      retval = (*func)(recv, ah);
-      break;
+  if(n->method->args == -2) {
+    OBJECT rargs = array_new(state, fc->argcount);
+    rni_handle *ah;
+    
+    for(i = 0; i < fc->argcount; i++) {
+      array_set(state, rargs, i, cpu_stack_pop(state, c));
     }
-    case -1: {
-      rni_handle **args;
-      
-      args = &handles_used[ch];
-      
-      for(i = 0; i < fc->argcount; i++) {
-        nha();
-      }
-      
-      retval = (*func)(recv, fc->argcount, args);
-      
-      break;
+    
+    ah = nmc_handle_new(n, global_context->state->handle_tbl, rargs);
+    handles_used[ch++] = ah;
+    
+    retval = (*func)(recv, ah);
+  } else if(n->method->args == -1) {
+    rni_handle **args;
+    
+    args = &handles_used[ch];
+    
+    for(i = 0; i < fc->argcount; i++) {
+      nha();
     }
+    
+    retval = (*func)(recv, fc->argcount, args);
+  } else {
+    int i, start;
+    
+    start = ch;
+#define rh(which) handles_used[which + start]
+    
+    for(i = 0; i < n->method->args; i++) { 
+      handles_used[ch++] = nmc_handle_new(n, global_context->state->handle_tbl,
+          cpu_stack_pop(global_context->state, c));
+    }
+            
+    switch(n->method->args) {
     case 0:
       retval = (*func)(recv);
       break;
     case 1:
-      retval = (*func)(recv, nha());
+      retval = (*func)(recv, rh(0));
       break;
     case 2:
-      retval = (*func)(recv, nha(), nha());
+      retval = (*func)(recv, rh(0), rh(1));
       break;
     case 3:
-      retval = (*func)(recv, nha(), nha(), nha());
+      retval = (*func)(recv, rh(0), rh(1), rh(2));
       break;
     case 4:
-      retval = (*func)(recv, nha(), nha(), nha(), nha());
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3));
       break;
     case 5:
-      retval = (*func)(recv, nha(), nha(), nha(), nha(), nha());
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4));
       break;
     case 6:
-      retval = (*func)(recv, nha(), nha(), nha(), nha(), nha(), nha());
+      retval = (*func)(recv, rh(0), rh(1), rh(2), rh(3), rh(4), rh(5));
       break;
     case 7:
       abort();
+    }
   }
 #endif
   

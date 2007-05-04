@@ -27,7 +27,7 @@ OBJECT array_set(STATE, OBJECT self, int idx, OBJECT val) {
   OBJECT nt;
   int cur = NUM_FIELDS(array_get_tuple(self));
   if(idx == cur) {
-    nt = tuple_new(state, cur * 2);
+    nt = tuple_new(state, cur + 10);
     object_copy_fields_from(state, array_get_tuple(self), nt, 0, cur);
     array_set_tuple(self, nt);
   }
