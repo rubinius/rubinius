@@ -77,7 +77,8 @@ def specify(msg)
     if e.message != ""
       STDOUT.print e.message
       STDOUT.print ": "
-      STDOUT.print e.backtrace
+      STDOUT.print "\n"
+      STDOUT.print e.backtrace.show
     else
       STDOUT.print "<No message>"
     end
