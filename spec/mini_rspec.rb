@@ -78,7 +78,7 @@ def specify(msg)
       STDOUT.print e.message
       STDOUT.print ": "
       STDOUT.print "\n"
-      STDOUT.print e.backtrace.show
+      STDOUT.print e.backtrace.show rescue STDOUT.print e.backtrace
     else
       STDOUT.print "<No message>"
     end
