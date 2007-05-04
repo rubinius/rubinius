@@ -90,8 +90,8 @@ class ShotgunPrimitives
   
   def bignum_sub
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, INTEGER)
+    POP(self, BIGNUM);
+    POP(t1, INTEGER);
 
     stack_push(bignum_sub(state, self, t1));
     CODE
@@ -111,8 +111,8 @@ class ShotgunPrimitives
 
   def bignum_mul
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, INTEGER)
+    POP(self, BIGNUM);
+    POP(t1, INTEGER);
 
     stack_push(bignum_mul(state, self, t1));
     CODE
@@ -197,7 +197,7 @@ class ShotgunPrimitives
   
   def fields
     <<-CODE
-    POP(self, REFERENCE)
+    POP(self, REFERENCE);
 
     stack_push(I2N(NUM_FIELDS(self)));
     CODE
@@ -216,7 +216,7 @@ class ShotgunPrimitives
   def allocate_count
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
-    POP(t1, FIXNUM)
+    POP(t1, FIXNUM);
 
     t2 = NEW_OBJECT(self, FIXNUM_TO_INT(t1));
     stack_push(t2);
@@ -226,7 +226,7 @@ class ShotgunPrimitives
   def allocate_bytes
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
-    POP(t1, FIXNUM)
+    POP(t1, FIXNUM);
     k = FIXNUM_TO_INT(t1);
     if(k % 4 == 0) {
       k = k / REFSIZE;
@@ -243,8 +243,8 @@ class ShotgunPrimitives
   def create_block
     <<-CODE
     self = stack_pop(); // Again no type assertions can be made (or can they!?)
-    POP(t1, FIXNUM)
-    POP(t2, FIXNUM)
+    POP(t1, FIXNUM);
+    POP(t2, FIXNUM);
 
     t3 =   Qnil;
     if( !RISA(self, methctx) && RISA(self, blokctx) )
@@ -295,8 +295,8 @@ class ShotgunPrimitives
   
   def io_write
     <<-CODE
-    POP(self, IO)
-    POP(t1, STRING)
+    POP(self, IO);
+    POP(t1, STRING);
 
     j = FIXNUM_TO_INT(io_get_descriptor(self));
     buf = string_byte_address(state, t1);
@@ -312,8 +312,8 @@ class ShotgunPrimitives
   
   def io_read
     <<-CODE
-    POP(self, IO)
-    POP(t1, FIXNUM)
+    POP(self, IO);
+    POP(t1, FIXNUM);
 
     t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
     j = FIXNUM_TO_INT(io_get_descriptor(self));
@@ -332,8 +332,8 @@ class ShotgunPrimitives
   def create_pipe
     <<-CODE
     self = stack_pop(); /* class */
-    POP(t1, IO)
-    POP(t2, IO)
+    POP(t1, IO);
+    POP(t2, IO);
     
     j = pipe(fds);
     if(!j) {
@@ -351,8 +351,8 @@ class ShotgunPrimitives
     FILE *_fobj;
     char *_path, *_mode;
     self = stack_pop(); /* class */
-    POP(t1, STRING)
-    POP(t2, STRING)
+    POP(t1, STRING);
+    POP(t2, STRING);
 
     _path = string_as_string(state, t1);
     _mode = string_as_string(state, t2);
@@ -367,8 +367,8 @@ class ShotgunPrimitives
   
   def io_reopen
     <<-CODE
-    POP(self, IO)
-    POP(t1, IO)
+    POP(self, IO);
+    POP(t1, IO);
     
     /* MRI does a ton more with reopen, but I don't yet understand why.
        This seems perfectly acceptable currently. */
@@ -387,7 +387,7 @@ class ShotgunPrimitives
   
   def io_close
     <<-CODE
-    POP(self, IO)
+    POP(self, IO);
     j = FIXNUM_TO_INT(io_get_descriptor(self));
     GUARD(j >= 0)
 
@@ -403,7 +403,7 @@ class ShotgunPrimitives
   def file_unlink
     <<-CODE
     stack_pop(); /* class */
-    POP(t1, STRING)
+    POP(t1, STRING);
 
     char *name;
     name = string_as_string(state, t1);
@@ -440,7 +440,7 @@ class ShotgunPrimitives
   
   def gettimeofday
     <<-CODE
-    POP(t1, CLASS)
+    POP(t1, CLASS);
 
     do { /* introduce a new scope */
       struct time_data td;
@@ -460,9 +460,9 @@ class ShotgunPrimitives
 
   def time_at
     <<-CODE
-    POP(t1, CLASS)
-    POP(t2, INTEGER) // seconds
-    POP(t3, INTEGER) // usecs
+    POP(t1, CLASS);
+    POP(t2, INTEGER); // seconds
+    POP(t3, INTEGER); // usecs
 
     do { /* introduce a new scope */
       long tv_sec;
@@ -499,7 +499,7 @@ class ShotgunPrimitives
   
   def time_seconds
     <<-CODE
-    POP(self, REFERENCE)
+    POP(self, REFERENCE);
 
     struct time_data *tdp;
     tdp = (struct time_data*)BYTES_OF(self);
@@ -509,7 +509,7 @@ class ShotgunPrimitives
   
   def time_usec
     <<-CODE
-    POP(self, REFERENCE)
+    POP(self, REFERENCE);
     
     struct time_data *tdp;
     tdp = (struct time_data*)BYTES_OF(self);
@@ -519,8 +519,8 @@ class ShotgunPrimitives
   
   def strftime
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1, STRING)
+    POP(self, REFERENCE);
+    POP(t1, STRING);
 
     struct tm *time;
     time_t secs;
@@ -575,8 +575,8 @@ class ShotgunPrimitives
 
   def bignum_to_s
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, FIXNUM)
+    POP(self, BIGNUM);
+    POP(t1, FIXNUM);
 
     stack_push(bignum_to_s(state, self, t1));
     CODE
@@ -599,8 +599,8 @@ class ShotgunPrimitives
 
   def hash_set
     <<-CODE
-    POP(self, HASH)
-    POP(t1, FIXNUM)
+    POP(self, HASH);
+    POP(t1, FIXNUM);
     t2 = stack_pop(); // some type of object
     t3 = stack_pop(); // some type of object can we do an object guard?
 
@@ -611,8 +611,8 @@ class ShotgunPrimitives
 
   def hash_get
     <<-CODE
-    POP(self, HASH)
-    POP(t1, FIXNUM)
+    POP(self, HASH);
+    POP(t1, FIXNUM);
     t2 = stack_pop();
 
     t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
@@ -631,8 +631,8 @@ class ShotgunPrimitives
   
   def hash_delete
     <<-CODE
-    POP(self, HASH)
-    POP(t1, FIXNUM)
+    POP(self, HASH);
+    POP(t1, FIXNUM);
 
     t2 = hash_delete(state, self, FIXNUM_TO_INT(t1));
     stack_push(t2);
@@ -641,8 +641,8 @@ class ShotgunPrimitives
   
   def hash_value_set
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1, NUMERIC)
+    POP(self, REFERENCE);
+    POP(t1, NUMERIC);
     if(FIXNUM_P(t1)) {
       HEADER(self)->hash = (uint32_t)FIXNUM_TO_INT(t1);
     } else {
@@ -654,7 +654,7 @@ class ShotgunPrimitives
 
   def symbol_index
     <<-CODE
-    POP(self, SYMBOL)
+    POP(self, SYMBOL);
 
     stack_push(I2N(symbol_to_index(state, self)));
     CODE
@@ -662,7 +662,7 @@ class ShotgunPrimitives
 
   def symbol_lookup
     <<-CODE
-    POP(self, STRING)
+    POP(self, STRING);
 
     stack_push(string_to_sym(state, self));
     CODE
@@ -670,9 +670,9 @@ class ShotgunPrimitives
 
   def dup_into
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1, REFERENCE)
-    POP(t2, FIXNUM)
+    POP(self, REFERENCE);
+    POP(t1, REFERENCE);
+    POP(t2, FIXNUM);
 
     j = FIXNUM_TO_INT(t2);
     object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
@@ -685,7 +685,7 @@ class ShotgunPrimitives
   def fastctx_dup
     <<-CODE
     struct fast_context *fc;
-    POP(self, REFERENCE)
+    POP(self, REFERENCE);
     GUARD(ISA(self, state->global->fastctx));
     
     t1 = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);
@@ -701,8 +701,8 @@ class ShotgunPrimitives
 
   def tuple_shifted
     <<-CODE
-    POP(self, TUPLE)
-    POP(t1, FIXNUM)
+    POP(self, TUPLE);
+    POP(t1, FIXNUM);
 
     j = FIXNUM_TO_INT(t1);
     t2 = tuple_new(state, NUM_FIELDS(self) + j);
@@ -714,7 +714,7 @@ class ShotgunPrimitives
   def get_byte
     <<-CODE
     self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
-    POP(t1, FIXNUM) /* index */
+    POP(t1, FIXNUM); /* index */
 
     unsigned char *indexed;
     j = FIXNUM_TO_INT(t1);
@@ -730,8 +730,8 @@ class ShotgunPrimitives
   def set_byte
     <<-CODE
     self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
-    POP(t1, FIXNUM) /* index */
-    POP(t2, FIXNUM) /* value */
+    POP(t1, FIXNUM); /* index */
+    POP(t2, FIXNUM); /* value */
 
     unsigned char *indexed;
     j = FIXNUM_TO_INT(t1);
@@ -748,8 +748,8 @@ class ShotgunPrimitives
   def fetch_bytes
     <<-CODE
     self = stack_pop(); GUARD( object_stores_bytes_p(state, self) )
-    POP(t1, FIXNUM)
-    POP(t2, FIXNUM)
+    POP(t1, FIXNUM);
+    POP(t2, FIXNUM);
 
     char *source, *dest;
     int num;
@@ -1369,9 +1369,9 @@ class ShotgunPrimitives
     <<-CODE
     char *path, *file, *data;
     stack_pop();
-    POP(t1, STRING)
-    POP(t2, STRING)
-    POP(t3, STRING)
+    POP(t1, STRING);
+    POP(t2, STRING);
+    POP(t3, STRING);
     
     path = string_as_string(state, t1);
     file = string_as_string(state, t2);
@@ -1389,8 +1389,8 @@ class ShotgunPrimitives
     <<-CODE
     char *path, *file;
     stack_pop();
-    POP(t1, STRING)
-    POP(t2, STRING)
+    POP(t1, STRING);
+    POP(t2, STRING);
     t3 = stack_pop();
     
     path = string_as_string(state, t1);
@@ -1583,7 +1583,7 @@ class ShotgunPrimitives
   def bignum_new
     <<-CODE
     stack_pop();
-    POP(t1, FIXNUM)
+    POP(t1, FIXNUM);
     stack_push(bignum_new(state, FIXNUM_TO_INT(t1)));
     CODE
   end
@@ -1677,8 +1677,8 @@ class ShotgunPrimitives
   
   def float_div
     <<-CODE
-    POP(self, FLOAT)
-    POP(t1, FLOAT)
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
 
     stack_push(float_div(state, self, t1));
     CODE
@@ -1784,8 +1784,8 @@ class ShotgunPrimitives
   
   def float_divmod
     <<-CODE
-    POP(self, FLOAT)
-    POP(t1, FLOAT)
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
     GUARD( FLOAT_TO_DOUBLE(t1) != 0.0 ) // no divide by zero
 
     stack_push(float_divmod(state, self, t1));
@@ -1801,7 +1801,7 @@ class ShotgunPrimitives
   
   def float_round
     <<-CODE
-    POP(self, FLOAT)
+    POP(self, FLOAT);
 
     stack_push(float_round(state, self));
     CODE
@@ -1809,8 +1809,8 @@ class ShotgunPrimitives
 
   def bignum_left_shift
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, FIXNUM)
+    POP(self, BIGNUM);
+    POP(t1, FIXNUM);
 
     stack_push(bignum_left_shift(state, self, t1));
     CODE
@@ -1818,8 +1818,8 @@ class ShotgunPrimitives
 
   def bignum_right_shift
     <<-CODE
-    POP(self, BIGNUM)
-    POP(t1, FIXNUM)
+    POP(self, BIGNUM);
+    POP(t1, FIXNUM);
 
     stack_push(bignum_right_shift(state, self, t1));
     CODE
@@ -2042,8 +2042,8 @@ class ShotgunPrimitives
     glob_t gd;
     char *pat;
     stack_pop();
-    POP(t1, STRING)
-    POP(t2, FIXNUM)
+    POP(t1, STRING);
+    POP(t2, FIXNUM);
     
     /* TODO: use t2. */
     
@@ -2063,7 +2063,7 @@ class ShotgunPrimitives
     <<-CODE
     char *path;
     stack_pop();
-    POP(t1, STRING)
+    POP(t1, STRING);
     
     path = string_as_string(state, t1);
     if(!chdir(path)) {
@@ -2077,7 +2077,7 @@ class ShotgunPrimitives
   def make_weak_ref
     <<-CODE
     stack_pop();
-    POP(t1, REFERENCE)
+    POP(t1, REFERENCE);
     
     stack_push(object_make_weak_ref(state, t1));
     CODE
@@ -2086,7 +2086,7 @@ class ShotgunPrimitives
   def gc_collect_references
     <<-CODE
     stack_pop();
-    POP(self, REFERENCE)
+    POP(self, REFERENCE);
     
     stack_push(object_memory_collect_references(state, state->om, self));
     CODE
@@ -2095,8 +2095,8 @@ class ShotgunPrimitives
   def float_sprintf
     <<-CODE
     stack_pop(); /* self */
-    POP(t1, STRING)
-    POP(t2, FLOAT)
+    POP(t1, STRING);
+    POP(t2, FLOAT);
     stack_push(float_sprintf(state, t1, t2));
     CODE
   end
@@ -2241,8 +2241,8 @@ class ShotgunPrimitives
   def channel_send_in_microseconds
     <<-CODE
     struct timeval tv;
-    POP(self, REFERENCE)
-    POP(t1, INTEGER)
+    POP(self, REFERENCE);
+    POP(t1, INTEGER);
     
     GUARD(RISA(self, channel));
     
@@ -2267,8 +2267,8 @@ class ShotgunPrimitives
   
   def channel_send_on_readable
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1,   IO)
+    POP(self, REFERENCE);
+    POP(t1,   IO);
     t2 = stack_pop();
     
     GUARD(RISA(self, channel));
@@ -2282,8 +2282,8 @@ class ShotgunPrimitives
   
   def channel_send_on_writable
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1,   IO)
+    POP(self, REFERENCE);
+    POP(t1,   IO);
     
     GUARD(RISA(self, channel));
     
@@ -2295,8 +2295,8 @@ class ShotgunPrimitives
   
   def channel_send_on_signal
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1,   FIXNUM)
+    POP(self, REFERENCE);
+    POP(t1,   FIXNUM);
     GUARD(RISA(self, channel));
     
     cpu_event_wait_signal(state, c, self, FIXNUM_TO_INT(t1));
@@ -2306,8 +2306,8 @@ class ShotgunPrimitives
   
   def channel_send_on_stopped
     <<-CODE
-    POP(self, REFERENCE)
-    POP(t1, FIXNUM)
+    POP(self, REFERENCE);
+    POP(t1, FIXNUM);
     GUARD(RISA(self, channel));
     
     cpu_event_wait_child(state, c, self, FIXNUM_TO_INT(t1));
@@ -2361,8 +2361,8 @@ class ShotgunPrimitives
     <<-CODE
     void state_object_become(STATE, cpu c, OBJECT from, OBJECT to);
     
-    POP(self, REFERENCE)
-    POP(t1,   REFERENCE)
+    POP(self, REFERENCE);
+    POP(t1,   REFERENCE);
     state_object_become(state, c, self, t1);
     stack_push(self);
     CODE
@@ -2377,8 +2377,8 @@ class ShotgunPrimitives
        copied, so you should use the newly become'd object rather than the original.
        In other words, there is strangness with this implementation. */
        
-    POP(self, REFERENCE)
-    POP(t1,   REFERENCE)
+    POP(self, REFERENCE);
+    POP(t1,   REFERENCE);
     GUARD(NUM_FIELDS(t1) <= NUM_FIELDS(self));
     k = NUM_FIELDS(self);
     memcpy((void*)self, (void*)t1, SIZE_IN_BYTES(t1));
@@ -2394,7 +2394,7 @@ class ShotgunPrimitives
   def sampler_activate
     <<-CODE
     stack_pop();
-    POP(t1, FIXNUM)
+    POP(t1, FIXNUM);
     cpu_sampler_activate(state, FIXNUM_TO_INT(t1));
     stack_push(I2N((int)clock()));
     CODE
@@ -2428,8 +2428,8 @@ class ShotgunPrimitives
     char **argv;
     
     stack_pop(); /* class */
-    POP(t1, STRING)
-    POP(t2, ARRAY)
+    POP(t1, STRING);
+    POP(t2, ARRAY);
     
     file = string_as_string(state, t1);
     k = FIXNUM_TO_INT(array_get_total(t2)) + 1;
