@@ -88,7 +88,8 @@ class InstructionEncoder
     :meta_send_op_equal,
     :meta_send_op_lt,
     :meta_send_op_gt,
-    :meta_send_op_tequal
+    :meta_send_op_tequal,
+    :meta_send_op_nequal
   ]
   
   IntArg = [

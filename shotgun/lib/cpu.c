@@ -92,6 +92,7 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_plus =  symbol_from_cstr(state, "+");
   state->global->sym_minus = symbol_from_cstr(state, "-");
   state->global->sym_equal = symbol_from_cstr(state, "==");
+  state->global->sym_nequal = symbol_from_cstr(state, "!=");
   state->global->sym_tequal = symbol_from_cstr(state, "===");
   state->global->sym_lt =    symbol_from_cstr(state, "<");
   state->global->sym_gt =    symbol_from_cstr(state, ">");

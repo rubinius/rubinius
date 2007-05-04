@@ -1463,6 +1463,7 @@ module Bytecode
         :+ =>   "meta_send_op_plus",
         :- =>   "meta_send_op_minus", 
         :== =>  "meta_send_op_equal",
+        :"!=" =>  "meta_send_op_nequal",
         :=== => "meta_send_op_tequal",
         :< =>   "meta_send_op_lt", 
         :> =>   "meta_send_op_gt"

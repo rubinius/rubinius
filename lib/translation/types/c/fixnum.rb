@@ -14,7 +14,7 @@ def operators(type, *a)
   a.each { |i| operator(i, type) }
 end
 
-operators Type.bool, :>, :>=, :<, :<=, :==
+operators Type.bool, :>, :>=, :<, :<=, :==, :"!="
 operators Type.Fixnum, :+, :-, :*, :/, :&, :|
 
 add(:upto) do |i|

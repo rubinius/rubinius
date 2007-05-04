@@ -23,7 +23,7 @@ struct rubinius_globals {
   OBJECT method_missing;
   OBJECT sym_inherited;
   OBJECT sym_from_literal, sym_method_added, sym_s_method_added;
-  OBJECT sym_plus, sym_minus, sym_equal, sym_tequal, sym_lt, sym_gt;
+  OBJECT sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
   OBJECT exc_arg, exc_segfault;
   OBJECT exc_loe;
   OBJECT exc_stack_explosion;

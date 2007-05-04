@@ -614,6 +614,20 @@ class ShotgunInstructions
     CODE
   end
   
+  def meta_send_op_nequal
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    /* If both are fixnums, or one is a symbol, compare the ops directly. */
+    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
+      stack_push((t1 == t2) ? Qfalse : Qtrue);
+    } else {
+      stack_push(t2);
+      cpu_send_method(state, c, t1, state->global->sym_nequal, 1);
+    }
+    CODE
+  end
+
   # Exactly like equal, except calls === if it can't handle it directly.
   def meta_send_op_tequal
     <<-CODE

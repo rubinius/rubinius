@@ -55,6 +55,15 @@ add(:==) do |i|
   end
 end
 
+add(:"!=") do |i|
+  i.type = Type.bool
+  i.args = [Type.RObject]
+  i.gen do |g, me, args|
+    lhs = args.shift
+    "#{me} != #{lhs}"
+  end
+end
+
 def immediate(name, val)
   add(name, Type.RObjectMeta) do |i|
     i.type = Type.RObject

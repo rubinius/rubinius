@@ -108,4 +108,13 @@ class Object
       [self]
     end
   end
+
+  def ==(other)
+    self.object_id == other.object_id
+  end
+
+  def __not_equal__(other)
+    !(self == other)
+  end
+  self.methods[:"!="] = self.methods[:__not_equal__]
 end
