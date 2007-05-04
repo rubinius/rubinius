@@ -211,6 +211,8 @@ int rb_ary_size(VALUE self) {
 /* The same value as 1.8.x */
 #define ARRAY_DEFAULT_SIZE 16
 
+/* Array */
+
 VALUE rb_ary_new(void) {
   return rb_ary_new2(ARRAY_DEFAULT_SIZE);
 }
@@ -225,26 +227,26 @@ VALUE rb_ary_new2(long length) {
 }
 
 VALUE rb_ary_push(VALUE array, VALUE val) {
-	CTX;
+  CTX;
   OBJECT ary;
   ary = HNDL(array);
-	array_append(ctx->state, ary, HNDL(val));
+  array_append(ctx->state, ary, HNDL(val));
   return ary;
 }
 
 VALUE rb_str_new(const char *ptr, long len) {
-	CTX;
-	return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
+  CTX;
+  return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
 }
 
 VALUE rb_str_dup(VALUE str) {
-	CTX;
-	return NEW_HANDLE(ctx, string_dup(ctx->state, HNDL(str)));
+  CTX;
+  return NEW_HANDLE(ctx, string_dup(ctx->state, HNDL(str)));
 }
 
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
-	CTX;
-	return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
+  CTX;
+  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
 }
 
 /*

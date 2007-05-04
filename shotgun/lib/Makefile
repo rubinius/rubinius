@@ -86,7 +86,7 @@ grammar.lo:
 	@echo "CC grammar.o"
 	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
 
-grammar.c: grammar.y
+grammar.c
 	bison -o grammar.c grammar.y
 
 clean:

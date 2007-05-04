@@ -69,7 +69,9 @@ module Kernel
     
   def require(thing)
     # puts "Requiring '#{thing}'"
-    kinds = [thing + ".rb", thing + ".rbc"]
+    # TODO: #{Config::CONFIG["DLEXT"]}
+    kinds = [thing + ".rb", thing + ".rbc", thing]
+    # Non extension thing added for C extension check
     
     $:.each do |dir|
       kinds.each do |filename|
@@ -83,9 +85,19 @@ module Kernel
             $" << path
             return cm.activate_as_script
           end
-        elsif File.exists?(path)
+          
+        # Don't accidentally load non-extension files
+        elsif File.exists?(path) && (path.suffix?(".rb") or path.suffix?(".rbc"))
           $" << path
           return load(path)
+        elsif (load_result = VM.load_library(path, File.basename(path)))
+          case load_result
+          when true
+            $" << path
+            return true
+          when 1
+            raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(path)}?"
+          end
         end
       end
     end

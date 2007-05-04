@@ -38,6 +38,5 @@ VALUE rb_ary_push(VALUE array, VALUE val);
 VALUE rb_str_new(const char *ptr, long len);
 VALUE rb_str_dup(VALUE str);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
-
 char *rb_id2name(ID sym);
 
