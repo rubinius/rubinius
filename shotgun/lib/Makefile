@@ -84,9 +84,9 @@ auto.h auto.c: genheader.rb
 
 grammar.lo:
 	@echo "CC grammar.o"
-	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c 
+	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c
 
-grammar.c
+grammar.c:
 	bison -o grammar.c grammar.y
 
 clean:
