@@ -545,7 +545,7 @@ module Bytecode
         end
         
         if @break == :block
-          add "block_break"
+          add "soft_return"
         elsif @break
           goto @break
         else
