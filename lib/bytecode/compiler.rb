@@ -1002,6 +1002,12 @@ module Bytecode
         set_label @retry_label
         body = x.shift
         res = x.shift
+
+        if body && body.first == :resbody
+          # there is no body, so no part of this will ever execute it. Just skip it.
+          add "push nil"
+          return
+        end
         
         add "#exc_start #{ex}"
         process body
