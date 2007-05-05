@@ -120,6 +120,10 @@ class CompiledMethod
   def bytecodes
     @bytecodes
   end
+
+  def bytecodes=(other)
+    @bytecodes = other
+  end
   
   def first_line
     @lines.each do |ent|

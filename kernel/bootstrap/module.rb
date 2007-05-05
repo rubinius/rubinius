@@ -65,9 +65,9 @@ class Module
       meth_ctx = block_env.home
       cm = meth_ctx.method.dup
       initial = block_env.initial_ip
-      last = block_env.last_ip
-      block_bytecodes = cm.bytecodes.fetch_bytes(initial, last - initial)
-      cm.put(3, block_bytecodes)
+      last = block_env.last_ip + 1
+      trimmed_bytecodes = cm.bytecodes.fetch_bytes(initial, last - initial)
+      cm.bytecodes = trimmed_bytecodes
     when Method, UnboundMethod
       cm = meth.instance_eval { @method }
       meth = meth.dup
