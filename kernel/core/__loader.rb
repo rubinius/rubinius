@@ -6,7 +6,14 @@ GC.start
 
 # Now, setup a few changes to the include path.
 
-$:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
+# If there is a closer compiler, use it. Otherwise, use the system one.
+if File.exists? "runtime/compiler.rba"
+  puts "[Using local compiler]"
+else
+  $:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
+end
+
+# The main stdlib location
 $: << Rubinius::CODE_PATH
 
 # Parse options here!
@@ -54,6 +61,7 @@ begin
       exit 1
     when '-e'
       Compile.execute ARGV.shift
+      ran_something = true
     else
       if arg.prefix? "-I"
         more = arg[2..-1]

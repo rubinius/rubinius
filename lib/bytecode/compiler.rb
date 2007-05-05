@@ -458,17 +458,23 @@ module Bytecode
       end
       
       def process_block(x)
-        if x.empty? || x == [[nil]]
+        if x.empty? or x == [[nil]]
           add "push nil"        # stack maintenance
+          return []
         end
-        puts "FIXME #{@nx}: block [[nil]]" if x == [[nil]] if $DEBUG_COMPILER
-        return [] if x == [[nil]]
+        
+        fin = x.pop
+        
+        # puts "FIXME #{@nx}: block [[nil]]" if x == [[nil]] if $DEBUG_COMPILER
         while i = x.shift
-          puts "FIXME # {@nx}: empty i: "+i if i.empty? # FIXME: When exactly does this happen?
+          # puts "FIXME # {@nx}: empty i: "+i if i.empty? # FIXME: When exactly does this happen?
           next if i.empty?
           process i
-          add "pop" unless x.empty?               # stack cleanup FIXME! condition is lame
+          add "pop"
         end
+        
+        # Do the last one seperate so it's value is left on the stack.
+        process fin
       end
       
       def process_scope(x)
@@ -1192,6 +1198,28 @@ module Bytecode
       end
       
       def process_ensure(x)
+        body = x.shift
+        ens =  x.shift
+        
+        unless body
+          # OMGWTFBBQ a totally empty ensure. stupid.
+          if ens == [:nil]
+            # The return value of this worthless ensure.
+            add "push nil" 
+            return
+          end
+          
+          process ens
+          return
+        end
+        
+        # For some reason, if the ensure is empty, it shows up like this
+        # instead of just a nil *shrug*.
+        if ens == [:nil]
+          process body
+          return
+        end
+        
         ex = unique_exc()
         add "#exc_start #{ex}"
         process x.shift
@@ -1199,6 +1227,9 @@ module Bytecode
         # with a rescue because this code needs to be run no matter
         # what.
         add "#exceptions #{ex}"
+        # We pop the value of the normal code because the return value
+        # is the return of the ensured code.
+        add "pop"
         process x.shift
         add "push_exception"
         lbl = unique_lbl()

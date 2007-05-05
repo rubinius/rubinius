@@ -373,9 +373,15 @@ again_no_block:
     break;
 	
   case NODE_ENSURE:
-    add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+    if(node->nd_head) {
+      add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+    } else {
+      array_push(current, Qnil);      
+    }
     if (node->nd_ensr) {
       add_to_parse_tree(current, node->nd_ensr, newlines, locals, line_numbers);
+    } else {
+      array_push(current, Qnil);
     }
     break;
 

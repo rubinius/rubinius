@@ -871,9 +871,10 @@ void cpu_run(STATE, cpu c) {
     
     if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
-    printf("%-15s: OP: %s (%d/%d)\n", 
+    cpu_flush_sp(c);
+    printf("%-15s: OP: %s (%d/%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
-      cpu_op_to_name(state, op), op, c->ip);
+      cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
     #include "instructions.gen"
 
