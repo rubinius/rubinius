@@ -16,8 +16,13 @@
 #define KCODE_UTF8        64
 #define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
 
+void regexp_cleanup(STATE, OBJECT regexp) {
+  onig_free(regexp_get_data(regexp));
+}
+
 void regexp_init(STATE) {
   onig_init();
+  state_add_cleanup(state, state->global->regexp, regexp_cleanup);
 }
 
 char *regexp_version(STATE) {
@@ -146,10 +151,6 @@ OBJECT regexp_options(STATE, OBJECT regexp)
   enc    = onig_get_encoding(reg);
 
   return I2N((int)(option & OPTION_MASK) | get_kcode_from_enc(enc));
-}
-
-void regexp_cleanup(STATE, OBJECT regexp) {
-  onig_free(REG(regexp_get_data(regexp)));
 }
 
 OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
