@@ -1222,7 +1222,7 @@ module Bytecode
         
         ex = unique_exc()
         add "#exc_start #{ex}"
-        process x.shift
+        process body
         # We don't jump past the exceptions code here like we did
         # with a rescue because this code needs to be run no matter
         # what.
@@ -1230,7 +1230,7 @@ module Bytecode
         # We pop the value of the normal code because the return value
         # is the return of the ensured code.
         add "pop"
-        process x.shift
+        process ens
         add "push_exception"
         lbl = unique_lbl()
         gif lbl

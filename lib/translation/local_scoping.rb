@@ -98,7 +98,7 @@ class RsLocalScoper < SimpleSexpProcessor
       b2 = process(b)
       # clear_args
     end
-    
+        
     [:iter, process(f), a2, b2]
   end
   

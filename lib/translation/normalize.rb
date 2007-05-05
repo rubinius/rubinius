@@ -114,9 +114,10 @@ class RsNormalizer < SimpleSexpProcessor
       return [:loop, process(body)]
     end
     
-    meth = process m
-    args = process args if args
     
+    meth = process m
+    oargs = process args if args
+        
     # Detect the dasgn_curr declaration list as the first element
     # of the block.
     dasgn = body[1]
@@ -125,7 +126,7 @@ class RsNormalizer < SimpleSexpProcessor
         body[1] = nil
         body = body.compact
     end
-    [:iter, meth, args, process(body)]
+    [:iter, meth, oargs, process(body)]
   end
   
   def process_call(x)
