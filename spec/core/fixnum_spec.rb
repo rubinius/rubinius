@@ -42,15 +42,17 @@ context "Fixnum instance method" do
   end
 
   specify "* should coerce fixnum and return self multiplied by other" do 
-    [256 * 0xffffffff, 6712 * 0.25].should == [1099511627520, 1678.0]
+    (256 * 0xffffffff).should == 1099511627520
+    (6712 * 0.25).to_s.should == '1678.0'
   end
 
   specify "** should return self raise to the other power" do
-    [2 ** 3].should == [8]
+    (2 ** 3).should == 8
   end
 
   specify "** should coerce fixnum and return self raise to the other power" do
-    [5 ** -1, 9 ** 0.5].should == [0.2, 3.0]
+    (5 ** -1).to_f.to_s.should == '0.2'
+    (9 ** 0.5).to_s.should == '3.0'
   end
 
   specify "** should seamlessly progress into the bignum range" do
@@ -66,27 +68,36 @@ context "Fixnum instance method" do
   end
 
   specify "+ should return self plus other" do
-    [491 + 2, 90210 + 10].should == [493, 90220]
+    (491 + 2).should == 493
+    (90210 + 10).should == 90220
   end
   
   specify "+ should coerce fixnum and return self plus other" do
-    [9 + 0xffffffff, 1001 + 5.219].should == [4294967304, 1006.219]
+    (9 + 0xffffffff).should == 4294967304
+    (1001 + 5.219).to_s.should == '1006.219'
   end
 
   specify "- should return self minus other fixnum" do
-    [5 - 10, 9237212 - 5_280].should == [-5, 9231932]
+    (5 - 10).should == -5
+    (9237212 - 5_280).should == 9231932
   end
   
   specify "- should coerce fixnum and return self minus other fixnum" do
-    [2_560_496 - 0xfffffffff, 781 - 0.5].should == [-68716916239, 780.5]
+    (2_560_496 - 0xfffffffff).should == -68716916239
+    (781 - 0.5).to_s.should == '780.5'
   end
 
   specify "-@ should negate self" do
-    [2.send(:-@), -2, -268435455, --5, -8.send(:-@)].should == [-2, -2, -268435455, 5, 8]
+    2.send(:-@).should == -2
+    -2.should == -2
+    -268435455.should == -268435455
+    (--5).should == 5
+    -8.send(:-@).should == 8
   end
 
   specify "/ should return self divided by other" do
-    [2 / 2, 3 / 2].should == [1, 1]
+    (2 / 2).should == 1
+    (3 / 2).should == 1
   end
   
   specify "/ should raise ZeroDivisionError if other is zero and not a Float" do
@@ -94,101 +105,133 @@ context "Fixnum instance method" do
   end
   
   specify "/ should NOT raise ZeroDivisionError if other is zero and is a Float" do
-    [1 / 0.0, -1 / 0.0].inspect.should == '[Infinity, -Infinity]'
+    (1 / 0.0).to_s.should == 'Infinity'
+    (-1 / 0.0).to_s.should == '-Infinity'
   end
 
   specify "/ should coerce fixnum and return self divided by other" do
-    [(-1 / 50.4).to_s, 1 / 0xffffffff].should == ["-0.0198412698412698", 0]
+    (-1 / 50.4).to_s.should == "-0.0198412698412698"
+    (1 / 0xffffffff).should == 0
   end
   
   specify "< should return true if self is less than other" do
-    [-1 < 0].should == [true]
+    (-1 < 0).should == true
   end
   
   specify "< should corece fixnum and return true if self is less than other" do
-    [3 < -5.2, 9 < 0xffffffff].should == [false, true]
+    (3 < -5.2).should == false
+    (9 < 0xffffffff).should == true
   end
 
   specify "<= should return true if self is less than or equal to other" do
-    [2 <= 2].should == [true]
+    (2 <= 2).should == true
   end
 
   specify "<= should coerce fixnum and return true if self is less than or equal to other" do
-    [7 <= 5.4, 11 <= 0xffffffff].should == [false, true]
+    (7 <= 5.4).should == false
+    (11 <= 0xffffffff).should == true
   end
   
   specify "<=> should return -1, 0, 1 when self is less than, equal, or greater than other" do
     # 3 comparisions causes rubinius to crash, 2 comparisions work fine 
     # and each comparision tested singularly is ok
-    [-3 <=> -1, 954 <=> 954, 496 <=> 5].should == [-1, 0, 1]
+    (-3 <=> -1).should == -1
+    (954 <=> 954).should == 0
+    (496 <=> 5).should == 1
   end
 
   specify "<=> should coerce fixnum and return -1, 0, 1 when self is less than, equal, or greater than other" do
-    [-1 <=> 0xffffffff, 954 <=> 954.0, 496 <=> 5].should == [-1, 0, 1]
+    (-1 <=> 0xffffffff).should == -1
+    (954 <=> 954.0).should == 0
+    (496 <=> 5).should == 1
   end
   
   specify "== should true if self has the same value as other" do
-    [1 == 1, 9 == 5].should == [true, false]
+    (1 == 1).should == true
+    (9 == 5).should == false
   end
   
   specify "== should coerce fixnum and return true if self has the same value as other" do
-    [1 == 1.0, 2 == 0xffffffff].should == [true, false]
+    (1 == 1.0).should == true
+    (2 == 0xffffffff).should == false
   end
 
   specify "> should return true if self is greater than other" do
-    [-500 > -600, 13 > 2, 1 > 5].should == [true, true, false]
+    (-500 > -600).should == true
+    (13 > 2).should == true
+    (1 > 5).should == false
   end
   
   specify ">= should return true if self is greater than or equal to other" do
-    [-50 >= -50, 14 >= 2, 900 >= 901].should == [true, true, false]
+    (-50 >= -50).should == true
+    (14 >= 2).should == true
+    (900 >= 901).should == false
   end
 
   specify ">= should coerce fixnum and return true if self is greater than or equal to other" do
-    [-50 >= -50, 14 >= 2.5, 900 >= 0xffffffff].should == [true, true, false]
+    (-50 >= -50).should == true
+    (14 >= 2.5).should == true
+    (900 >= 0xffffffff).should == false
   end
 
   specify "abs should return the absolute value" do
-    [0.abs, -2.abs, 5.abs].should == [0, 2, 5]
+    0.abs.should == 0
+    -2.abs.should == 2
+    5.abs.should == 5
   end
   
   specify "<< should return self shifted left other bits" do
-    [7 << 2, 9 << 4].should == [28, 144]
+    (7 << 2).should == 28
+    (9 << 4).should == 144
   end
   
   specify "<< should coerce result on overflow and return self shifted left other bits" do
-    [9 << 4.2, 6 << 0xff].should == [144, 347376267711948586270712955026063723559809953996921692118372752023739388919808]
+    (9 << 4.2).should == 144
+    (6 << 0xff).should == 347376267711948586270712955026063723559809953996921692118372752023739388919808
   end
 
   specify ">> should return self shifted right other bits" do
-    [(7 >> 1), (4095 >> 3), (9245278 >> 1)].should == [3, 511, 4622639]
+    (7 >> 1).should == 3
+    (4095 >> 3).should == 511
+    (9245278 >> 1).should == 4622639
   end
   
   specify ">> should coerce other to fixnum and return self shifted right other bits" do
-    [7 >> 1.5, 0xfff >> 3, 9_245_278 >> 1].should == [3, 511, 4622639]
+    (7 >> 1.5).should == 3
+    (0xfff >> 3).should == 511
+    (9_245_278 >> 1).should == 4622639
   end
 
   specify "[] should return the nth bit in the binary representation of self" do
-    [2[3], 15[1]].should == [0, 1]
+    2[3].should == 0
+    15[1].should == 1
   end
   
   specify "[] should coerce the bit and return the nth bit in the binary representation of self" do
-    [2[3], 15[1.3], 3[0xffffffff]].should == [0, 1, 0]
+    2[3].should == 0
+    15[1.3].should == 1
+    3[0xffffffff].should == 0
   end
 
   specify "^ should return self bitwise EXCLUSIVE OR other" do
-    [(3 ^ 5), (-2 ^ -255)].should == [6, 255]
+    (3 ^ 5).should == 6
+    (-2 ^ -255).should == 255
   end
   
   specify "^ should coerce fixnum and return self bitwise EXCLUSIVE OR other" do
-    [-7 ^ 15.2, 5 ^ 0xffffffff].should == [-10, 4294967290]
+    (-7 ^ 15.2).should == -10
+    (5 ^ 0xffffffff).should == 4294967290
   end
 
   specify "div should return self divided by other as an Integer" do
-    [2.div(2), 1.div(2)].should == [1, 0]
+    2.div(2).should == 1
+    1.div(2).should == 0
   end
   
   specify "div should coerce fixnum and return self divided by other as an Integer" do
-    [1.div(0.2), -1.div(50.4), 1.div(0xffffffff)].should == [5, -1, 0]
+    1.div(0.2).should == 5
+    -1.div(50.4).should == -1
+    1.div(0xffffffff).should == 0
   end
   
   specify "div should raise ZeroDivisionError if other is zero and not a Float" do
@@ -200,11 +243,13 @@ context "Fixnum instance method" do
   end
 
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
-    [1.divmod(2), -5.divmod(3)].should == [[0, 1], [-2, 1]]
+    1.divmod(2).should == [0, 1]
+    -5.divmod(3).should == [-2, 1]
   end
   
   specify "divmod should coerce fixnum (if required) and return an [quotient, modulus] from dividing self by other" do
-    [1.divmod(2.0), 200.divmod(0xffffffff)].should == [[0, 1.0], [0, 200]]
+    1.divmod(2.0).should == [0, 1.0]
+    200.divmod(0xffffffff).should == [0, 200]
   end
   
   specify "divmod should raise ZeroDivisionError if other is zero and not a Float" do
@@ -219,11 +264,15 @@ context "Fixnum instance method" do
     a = :@sym
     b = :@ruby
     c = :@rubinius
-    [a.to_i.id2name, b.to_i.id2name, c.to_i.id2name].should == ["@sym", "@ruby", "@rubinius"]
+    a.to_i.id2name.should == '@sym'
+    b.to_i.id2name.should == '@ruby'
+    c.to_i.id2name.should == '@rubinius'
   end
   
   specify "modulo should be a synonym for %" do
-    [451.modulo(2), 93.modulo(3.2), 120.modulo(-4.5)].inspect.should == '[1, 0.199999999999995, -1.5]'
+    451.modulo(2).should == 1
+    93.modulo(3.2).to_s.should == '0.199999999999995'
+    120.modulo(-4.5).to_s.should == '-1.5'
   end
   
   specify "modulo should raise ZeroDivisionError if other is zero and not a Float" do
@@ -231,12 +280,15 @@ context "Fixnum instance method" do
   end
   
   specify "modulo should NOT raise ZeroDivisionError if other is zero and is a Float" do
-    [1.modulo(0.0), 1.modulo(-0.0)].inspect.should == '[NaN, NaN]'
+    1.modulo(0.0).to_s.should == 'NaN'
+    1.modulo(-0.0).to_s.should == 'NaN'
   end
   
   specify "quo should return the floating-point result of self divided by other" do
     # the to_f is required because RSpec (I'm assuming) requires 'rational'
-    [2.quo(2.5), 5.quo(2).to_f, 45.quo(0xffffffff).to_f].inspect.should == '[0.8, 2.5, 1.04773789668636e-08]'
+    2.quo(2.5).to_s.should == '0.8'
+    5.quo(2).to_f.to_s.should == '2.5'
+    45.quo(0xffffffff).to_f.to_s.should == '1.04773789668636e-08'
   end
   
   specify "quo should NOT raise an exception when other is zero" do
@@ -273,11 +325,16 @@ context "Fixnum instance method" do
   end
   
   specify "zero? should return true if self is 0" do
-    [0.zero?, -1.zero?, 1.zero?].should == [true, false, false]
+    0.zero?.should == true
+    -1.zero?.should == false
+    1.zero?.should == false
   end
   
   specify "| should return self bitwise OR other" do
-    [1 | 0, 5 | 4, 5 | 6, 248 | 4096].should == [1, 5, 7, 4344]
+    (1 | 0).should == 1
+    (5 | 4).should == 5
+    (5 | 6).should == 7
+    (248 | 4096).should == 4344
   end
   
   specify "~ should return self bitwise inverted" do
