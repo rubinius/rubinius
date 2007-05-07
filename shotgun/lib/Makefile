@@ -28,14 +28,9 @@ LIBS+= ../external_libs/cinvoke/lib/libcinvoke.a
 endif
 
 # BSD do not require a separate libdl
-ifeq ($(UNAME),FreeBSD)
-	# Pass
-else ifeq ($(UNAME),OpenBSD)
-	# Pass
-else
-	LIBS+="-ldl"
+ifneq ($(findstring BSD,$(UNAME)),BSD)
+  LIBS+="-ldl"
 endif
-
 
 ifdef DEV
   OPTIMIZATIONS=
