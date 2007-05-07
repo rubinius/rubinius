@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 GC.disable
-$:.unshift File.dirname(__FILE__) + "/../lib"
+$:.unshift(File.dirname(__FILE__) + "/../lib")
 require 'machine'
 
 mach = Machine.new
