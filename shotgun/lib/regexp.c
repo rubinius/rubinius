@@ -16,8 +16,10 @@
 #define KCODE_UTF8        64
 #define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
 
+#define REG(k) (*DATA_STRUCT(k, regex_t**))
+
 void regexp_cleanup(STATE, OBJECT regexp) {
-  onig_free(regexp_get_data(regexp));
+  onig_free(REG(regexp_get_data(regexp)));
 }
 
 void regexp_init(STATE) {
@@ -28,8 +30,6 @@ void regexp_init(STATE) {
 char *regexp_version(STATE) {
   return (char*)onig_version();
 }
-
-#define REG(k) (*DATA_STRUCT(k, regex_t**))
 
 struct _gather_data {
   STATE;
