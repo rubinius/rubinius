@@ -7,9 +7,7 @@ GC.start
 # Now, setup a few changes to the include path.
 
 # If there is a closer compiler, use it. Otherwise, use the system one.
-if File.exists? "runtime/compiler.rba"
-  puts "[Using local compiler]"
-else
+unless File.exists? "runtime/compiler.rba"
   $:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
 end
 

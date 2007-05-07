@@ -1292,21 +1292,31 @@ module Bytecode
         rhs.shift
         source.shift
         
-        if rhs.size > source.size
-          raise "Too many vars on rhs."
-        elsif source.size > rhs.size
-          raise "Too many vars in source."
-        elsif splat
+        if splat
           raise "splat is stupid."
         end
         
-        source.zip(rhs).each do |k, v|
-          puts "k = " + k.inspect if $DEBUG_COMPILER
-          puts "v = " + v.inspect if $DEBUG_COMPILER
-          process k
-          process v
+        if rhs.size > source.size
+          (rhs.size - source.size).times do
+            add "push nil"
+          end
+        end
+        
+        source.reverse.each do |e|
+          process e
+        end
+        
+        rhs.each do |e|
+          process e
           add "pop"
         end
+        
+        if source.size > rhs.size
+          (source.size - rhs.size).times do
+            add "pop"
+          end
+        end
+                
       end
       
       def detect_primitive(body)

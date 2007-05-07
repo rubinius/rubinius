@@ -1,0 +1,54 @@
+Case: block takes 0, called with 0
+[]
+Case: block takes 0, called with 1
+[]
+Case: block takes 0, called with 2
+[]
+Case: block takes 0, called with 3
+[]
+(eval):1: warning: multiple values for a block parameter (0 for 1)
+	from doc/block_arg_spec.rb:6
+Case: block takes 1, called with 0
+[nil]
+Case: block takes 1, called with 1
+[1]
+(eval):1: warning: multiple values for a block parameter (2 for 1)
+	from doc/block_arg_spec.rb:10
+Case: block takes 1, called with 2
+[[1, 2]]
+(eval):1: warning: multiple values for a block parameter (3 for 1)
+	from doc/block_arg_spec.rb:12
+Case: block takes 1, called with 3
+[[1, 2, 3]]
+Case: block takes 2, called with 0
+[nil, nil]
+Case: block takes 2, called with 1
+[1, nil]
+Case: block takes 2, called with 2
+[1, 2]
+Case: block takes 2, called with 3
+[1, 2]
+Case: block takes 3, called with 0
+[nil, nil, nil]
+Case: block takes 3, called with 1
+[1, nil, nil]
+Case: block takes 3, called with 2
+[1, 2, nil]
+Case: block takes 3, called with 3
+[1, 2, 3]
+Case: block takes one and splat, passed 0
+[nil, []]
+Case: block takes one and splat, passed 1
+[1, []]
+Case: block takes one and splat, passed 2
+[1, [2]]
+Case: block takes one and splat, passed 3
+[1, [2, 3]]
+Case: block takes 1, passed array of 3
+[[1, 2, 3]]
+Case: block takes 2, passed array of 3
+[1, 2]
+Case: block takes 1, passed array of 3 (&block)
+[[1, 2, 3]]
+Case: block takes 2, passed array of 3 (&block)
+[1, 2]
