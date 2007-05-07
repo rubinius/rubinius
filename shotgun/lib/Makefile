@@ -1,6 +1,10 @@
 -include ../config.mk
 
-CC=gcc
+# Respect ENV
+ifeq ($(CC),)
+	CC=gcc
+endif
+
 COMP=$(LIBTOOL) --mode=compile $(CC)
 LINKER=$(LIBTOOL) --mode=link $(CC)
 UNAME=$(shell uname)
@@ -13,13 +17,25 @@ else
 endif
 
 CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl `pkg-config glib-2.0 --cflags`
+
 WARNINGS=-Wall -Winline
+
 LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
 
 ifdef USE_CINVOKE
 CPPFLAGS+= -I../external_libs/cinvoke/lib
 LIBS+= ../external_libs/cinvoke/lib/libcinvoke.a
 endif
+
+# BSD do not require a separate libdl
+ifeq ($(UNAME),FreeBSD)
+	# Pass
+else ifeq ($(UNAME),OpenBSD)
+	# Pass
+else
+	LIBS+="-ldl"
+endif
+
 
 ifdef DEV
   OPTIMIZATIONS=
@@ -65,7 +81,7 @@ subtend/PortableUContext_asm.lo:
 	rm -f $@.$$$$
 
 librubinius.la: show_info $(DEPS) $(LOBJS) 
-	MACOSX_DEPLOYMENT_TARGET=10.4 $(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) -ldl $(LIBS)
+	MACOSX_DEPLOYMENT_TARGET=10.4 $(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) $(LIBS)
 
 cpu_instructions.o: instructions.gen instruction_names.gen
 cpu_primitives.o: system_primitives.gen

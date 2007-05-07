@@ -1,6 +1,10 @@
 include config.mk
 
+# Respect the environment
+ifeq ($(CC),)
 CC=gcc
+endif
+
 COMP=$(LIBTOOL) --mode=compile $(CC)
 LINKER=$(LIBTOOL) --mode=link $(CC)
 INSTALL=$(LIBTOOL) --mode=install install
@@ -13,7 +17,15 @@ else
 endif
 
 UNAME=$(shell uname)
+MARCH=$(shell uname -m)
+
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
+
+# amd64 must have fPIC shared
+ifeq ($(MARCH),amd64)
+	CFLAGS+=-fPIC
+endif
+
 DEPS=../include/rubinius.h
 
 ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
@@ -66,19 +78,19 @@ external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
 
 external_libs/onig/.libs/libonig.a:
-	cd external_libs/onig; ./configure; $(MAKE)
+	cd external_libs/onig; CFLAGS=-fPIC ./configure; $(MAKE)
 
 external_libs/libzip/lib/.libs/libzip.a:
-	cd external_libs/libzip; ./configure; $(MAKE)
+	cd external_libs/libzip; CFLAGS=-fPIC ./configure; $(MAKE)
 
 external_libs/cinvoke/lib/libcinvoke.a:
-	cd external_libs/cinvoke; ./configure; $(MAKE)
+	cd external_libs/cinvoke; CFLAGS=-fPIC ./configure; $(MAKE)
 
 external_libs/libevent/.libs/libevent.a:
-	cd external_libs/libevent; ./configure; $(MAKE) libevent.la
+	cd external_libs/libevent; CFLAGS=-fPIC ./configure; $(MAKE) libevent.la
 
 external_libs/libltdl/.libs/libltdl.a:
-	cd external_libs/libltdl; ./configure; $(MAKE)
+	cd external_libs/libltdl; CFLAGS=-fPIC ./configure; $(MAKE)
 
 librubinius.la: config.h $(ALIBS)
 	cd lib; $(MAKE) librubinius.la

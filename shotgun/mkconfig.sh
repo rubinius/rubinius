@@ -20,6 +20,8 @@ else
   DISABLE_KQUEUE=0
 fi
 
+echo "CC=$CC"
+
 if which glibtool > /dev/null; then
   echo "LIBTOOL=glibtool"
 else
