@@ -8,7 +8,7 @@
 #   end
 # end
 
-class PositiveSpec
+class PositiveExpectation
   def initialize(obj)
     @obj = obj
   end
@@ -20,7 +20,7 @@ class PositiveSpec
   end
 end
 
-class NegativeSpec
+class NegativeExpectation
   def initialize(obj)
     @obj = obj
   end
@@ -34,43 +34,45 @@ end
 
 class Object
   def should
-    PositiveSpec.new(self)
+    PositiveExpectation.new(self)
   end
   
   def should_not
-    NegativeSpec.new(self)
+    NegativeExpectation.new(self)
   end
 end
 
-def setup
-  yield
+@__before__ = []
+@__after__ = []
+
+def before(at=:each,&block)
+  if at == :each
+    @__before__.push block
+  elsif at == :all
+    STDOUT.print "mini_rspec does not support before(:all)"
+  else
+    raise ArgumentError, "I do not know when you want me to call your block"
+  end
 end
 
-## PLAIN VERSION
-#def specify(msg)
-#  begin
-#    yield
-#    STDOUT.print '.'
-#  rescue Exception => e
-#    STDOUT.print 'F'
-#    STDERR.print msg
-#    STDERR.print " FAILED\n"
-#    STDERR.print e.message
-#    STDERR.print "\n\n"
-#  end
-#end
-#
-#def context(msg)
-#  yield
-#end
+def after(at=:each,&block)
+  if at == :each
+    @__after__.push block
+  elsif at == :all
+    STDOUT.print "mini_rspec does not support after(:all)"
+  else
+    raise ArgumentError, "I do not know when you want me to call your block"
+  end
+end
 
-# VERBOSE SPEC-LIKE OUTPUT VERSION
-def specify(msg)
+def it(msg)
   STDOUT.print " - "
   STDOUT.print msg
 
   begin
+    @__before__.each { |b| b.call }
     yield
+    @__after__.each { |b| b.call }
   rescue Exception => e
     STDOUT.print " FAILED:\n"
 
@@ -87,7 +89,7 @@ def specify(msg)
   STDOUT.print "\n"
 end
 
-def context(msg)
+def describe(msg)
   STDOUT.print msg
   STDOUT.print "\n-------------------\n"
 
@@ -96,10 +98,10 @@ def context(msg)
   STDOUT.print "\n"
 end
 
-
 # Alternatives
 class Object
-  alias describe context
-  alias it specify
-  alias before setup
+  alias context describe
+  alias specify it
+  alias setup before
+  alias teardown after
 end
