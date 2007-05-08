@@ -1286,6 +1286,8 @@ module Bytecode
           process splat
           add "pop"
         end
+        add "pop" # there's an empty tuple left on the stack, clear it and replace it with...
+        add "push true" # This is absolutely not correct, it needs to return an array of the lhs, but this at least keeps it from crashing
       end
       
       def handle_array_masgn(rhs, splat, source)        
@@ -1316,7 +1318,8 @@ module Bytecode
             add "pop"
           end
         end
-                
+
+        add "push true" # This is absolutely not correct, it needs to return an array of the lhs, but this at least keeps it from crashing.
       end
       
       def detect_primitive(body)
