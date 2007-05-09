@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # Fear my elite bash skills
 
-SR_GOODFILE="/tmp/mini_spec_specrunner.txt"
-SR_ERRFILE="/tmp/mini_spec_specrunner_error.txt"
+__SR_GOODFILE="/tmp/mini_spec_specrunner.txt"
+__SR_ERRFILE="/tmp/mini_spec_specrunner_error.txt"
+
+__SR_GOODFIFO="/tmp/mini_spec_good_fifo"
 
 # Files to run
 if [[ -d $1 ]]; then
-  SR_SOURCE=`find $1 -name *_spec.rb`
+  __SR_SOURCE=`find $1 -name *_spec.rb`
 elif [[ -f $1 ]]; then
-  SR_SOURCE=$1
+  __SR_SOURCE=$1
 else
-  echo "Usage: [SR_TARGET=<vm>] specrunner <file|directory>"
+  echo "Usage: [__SR_TARGET=<vm>] specrunner <file|directory>"
   exit 1
 fi
 
@@ -19,21 +21,45 @@ if [[ $SR_TARGET = "" ]]; then
   SR_TARGET=shotgun/rubinius
 fi
 
-for i in $SR_SOURCE; do 
-#  $SR_TARGET -rspec/mini_rspec.rb $i | tee -a > $SR_GOODFILE 2> $SR_ERRFILE
-  $SR_TARGET -rspec/mini_rspec.rb $i  >> $SR_GOODFILE 2>> $SR_ERRFILE
+__SR_TOTAL_SPECS="0"
+__SR_TOTAL_FAILS="0"
+
+# Dup some fds
+exec 3>&1 4>&2
+
+# Need some fifos too, hooray
+mkfifo $__SR_GOODFIFO
+
+
+# Run the specs
+for i in $__SR_SOURCE; do 
+  # tee helps keep the screen updating snappily
+  tee $__SR_GOODFILE < $__SR_GOODFIFO >&3 &
+
+  $SR_TARGET -rspec/mini_rspec.rb $i  > $__SR_GOODFIFO 2> $__SR_ERRFILE
+
+  if [[ -s $__SR_ERRFILE ]]; then
+    echo "Errors:"
+    cat $__SR_ERRFILE
+    echo ""
+    echo ""
+  fi
+
+  __SR_TOTAL_SPECS=$(($__SR_TOTAL_SPECS + $(cat $__SR_GOODFILE | grep "^ -" | wc -l)))
+  __SR_TOTAL_FAILS=$(($__SR_TOTAL_FAILS + $(cat $__SR_GOODFILE | grep "FAILED" | wc -l)))
+
+  if [[ -e $__SR_GOODFILE ]]; then
+    rm $__SR_GOODFILE
+  elif [[ -e $__SR_ERRFILE ]]; then
+    rm $__SR_ERRFILE
+  fi
 done 
 
-cat $SR_GOODFILE
 echo ""
-echo ""
-echo "Errors:"
-cat $SR_ERRFILE
-echo ""
-echo ""
-echo ""
-echo "$(cat $SR_GOODFILE | grep "^ -" | wc -l) specifications, $(cat $SR_GOODFILE | grep FAILED | wc -l) failures"
+echo "$__SR_TOTAL_SPECS specifications, $__SR_TOTAL_FAILS failures"
 echo ""
 
-rm $SR_GOODFILE
-rm $SR_ERRFILE
+# Clean up
+if [[ -e $__SR_GOODFIFO ]]; then
+  rm $__SR_GOODFIFO
+fi
