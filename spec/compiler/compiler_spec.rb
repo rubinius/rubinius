@@ -53,13 +53,13 @@ describe Bytecode::Compiler do
   
   it "should compile a symbol literal" do
     compile [:lit, :blah]
-    @method.assembly.should == "push :blah\nret\n"
+    @method.assembly.should == "push_literal 0\nret\n"
   end
   
   it "should compile a regexp literal" do
     compile [:lit, /hello/]
     @method.assembly.should == 
-      "push false\npush_literal 0\npush Regexp\nsend new 2\nret\n"
+      "push 16\npush_literal 0\npush Regexp\nsend new 2\nret\n"
   end
   
   it "should compile if" do
@@ -82,7 +82,7 @@ describe Bytecode::Compiler do
 
   it "should compile a block" do
     compile [:block, [:true], [:lit, 11]]
-    @method.assembly.should == "push true\npush 11\nret\n"
+    @method.assembly.should == "push true\npop\npush 11\nret\n"
   end
   
   it "should compile scope" do
@@ -93,13 +93,13 @@ describe Bytecode::Compiler do
   it "should compile while" do
     compile [:while, [:true], [:lit, 10]]
     @method.assembly.should == 
-      "lbl1:\npush true\ngif lbl2\nlbl3:\npush 10\ngoto lbl1\nlbl2:\nret\n"
+       "lbl1:\npush true\ngif lbl2\nlbl3:\npush 10\npop\ngoto lbl1\nlbl2:\npush nil\nret\n"
   end
   
   it "should compile until" do
     compile [:until, [:true], [:lit, 10]]
     @method.assembly.should == 
-      "lbl1:\npush true\ngit lbl2\nlbl3:\npush 10\ngoto lbl1\nlbl2:\nret\n"
+      "lbl1:\npush true\ngit lbl2\nlbl3:\npush 10\npop\ngoto lbl1\nlbl2:\npush nil\nret\n"
   end
   
   it "should compile lasgn" do
@@ -163,15 +163,14 @@ describe Bytecode::Compiler do
   
   it "should compile argscat" do
     compile [:argscat, [:array, [:lit, 1], [:lit, 2]], [:lit, 99]]
-    @method.assembly.should == 
-      "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nret\n"
+    @method.assembly.should == "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nret\n"
   end
   
   it "should compile call with argscat" do
     compile [:call, [:self], :b, [:argscat, [:array, [:lit, 1], [:lit, 2]], [:lit, 99]]]
     @method.assembly.should == 
-      "push 99\ncast_array_for_args 2\npush_array\n" \
-      "push 2\npush 1\npush nil\npush self\nsend b +\nret\n"
+      "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nget_args\npush nil\n" \
+      "swap\npush self\nswap\nset_args\nsend b +\nret\n"
   end
   
   it "should compile yield" do
@@ -206,11 +205,10 @@ describe Bytecode::Compiler do
     # Check the __class_init__
     m = @method.literals.first
     m.kind_of?(Bytecode::MethodDescription).should == true
-    m.assembly.should == "push self\nset_encloser\npush_literal 0\n" \
+    m.assembly.should == "push self\nset_encloser\npush nil\npop\npush_literal 0\n" \
       "push_self\nadd_method blah\nret\n"
-  
     m.literals.first.assembly.should == 
-      "check_argcount 0 0\npush_my_field 1\npush 11\nstore_my_field 1\nret\n"
+       "check_argcount 0 0\npush_my_field 1\npop\npush 11\nstore_my_field 1\nret\n"
   end
   
   it "should compile a hash literal" do
@@ -248,7 +246,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == 
       "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n" \
       "attach __class_init__\npop\nsend __class_init__\n" \
-      "pop\npush_encloser\nret\n"
+      "pop\npush_encloser\npush nil\nret\n"
     m = @method.literals.first
     m.kind_of?(Bytecode::MethodDescription).should == true
     m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -259,7 +257,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == "push A\nfind B\n" \
       "open_class Blah\ndup\npush_literal 0\nswap\n" \
       "attach __class_init__\npop\nsend __class_init__\n" \
-      "pop\npush_encloser\nret\n"
+      "pop\npush_encloser\npush nil\nret\n"
     m = @method.literals.first
     m.kind_of?(Bytecode::MethodDescription).should == true
     m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -270,7 +268,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == 
       "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n" \
       "attach __class_init__\npop\nsend __class_init__\n" \
-      "pop\npush_encloser\nret\n"
+      "pop\npush_encloser\npush nil\nret\n"
     m = @method.literals.first
     m.kind_of?(Bytecode::MethodDescription).should == true
     m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -278,9 +276,10 @@ describe Bytecode::Compiler do
   
   it "should compile module" do
     compile [:module, [:colon2, :A], [:scope, [:true]]]
-    @method.assembly.should == "open_module A\ndup\npush_literal 0\nswap\n" \
+    @method.assembly.should == 
+      "open_module A\ndup\npush_literal 0\nswap\n" \
       "attach __module_init__\npop\nsend __module_init__\n" \
-      "pop\npush_encloser\nret\n"
+      "pop\npush_encloser\npush nil\nret\n"
     m = @method.literals.first
     m.kind_of?(Bytecode::MethodDescription).should == true
     m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -291,10 +290,10 @@ describe Bytecode::Compiler do
     @method.assembly.should == 
       "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n" \
       "attach __module_init__\npop\nsend __module_init__\n" \
-      "pop\npush_encloser\nret\n"
+      "pop\npush_encloser\npush nil\nret\n"
     m = @method.literals.first
     m.kind_of?(Bytecode::MethodDescription).should == true
-    @method.assembly.should == "push self\nset_encloser\npush true\nret\n"
+    m.assembly.should == "push self\nset_encloser\npush true\nret\n"
   end
   
   it "should compile return" do
@@ -305,7 +304,7 @@ describe Bytecode::Compiler do
   it "should compile ensure" do
     compile [:ensure, [:lit, 10], [:lit, 11]]
     @method.assembly.should == "#exc_start exc1\npush 10\n" \
-      "#exceptions exc1\npush 11\n" \
+      "#exceptions exc1\npop\npush 11\n" \
       "push_exception\ngif lbl2\npush_exception\nraise_exc\n" \
       "lbl2:\n#exc_end exc1\nret\n"
   end
@@ -350,7 +349,7 @@ describe Bytecode::Compiler do
     defn.kind_of?(Bytecode::MethodDescription).should == true
     defn.assembly.should == "check_argcount 1 2\n" \
       "set a:2\npop\npassed_arg 1\ngit set1\npush 9\n" \
-      "set1:\nset b:3\npop\npush false\npush true\nret\n"
+      "set1:\nset b:3\npop\npush false\npop\npush true\nret\n"
   end
   
   it "should compile defn with block arg" do
@@ -394,7 +393,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nret\n"
     defn = @method.literals.first
     defn.kind_of?(Bytecode::MethodDescription).should == true
-    defn.assembly.should == "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\npush self\nret\n"
+    defn.assembly.should == "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\npop\npush self\nret\n"
   end
   
   it "should compile defs" do
@@ -406,7 +405,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == "push_literal 0\npush Object\nattach_method blah\nret\n"
     defn = @method.literals.first
     defn.kind_of?(Bytecode::MethodDescription).should == true
-    @method.assembly.should == "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
+    @method.assembly.should == "push_literal 0\npush Object\nattach_method blah\nret\n"
   end
   
   it "should compile masgn with no splat" do
@@ -417,8 +416,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == "push 8\ncast_tuple\n" \
       "unshift_tuple\nset a:2\npop\n" \
       "unshift_tuple\nset b:3\npop\n" \
-      "unshift_tuple\nset c:4\npop\n" \
-      "ret\n"
+      "unshift_tuple\nset c:4\npop\npop\npush true\nret\n"
   end
   
   it "should compile masgn with splat" do
@@ -429,8 +427,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == "push 8\ncast_tuple\n" \
       "unshift_tuple\nset a:2\npop\n" \
       "unshift_tuple\nset b:3\npop\n" \
-      "cast_array\nset c:4\npop\n" \
-      "ret\n"
+      "cast_array\nset c:4\npop\npop\npush true\nret\n"
   end
   
   it "should compile masgn with array as the source" do
@@ -439,7 +436,7 @@ describe Bytecode::Compiler do
      nil,
      [:array, [:lit, 99], [:lit, 8]]]
      
-    @method.assembly.should == "push 99\nset a:2\npop\npush 8\nset b:3\npop\nret\n"
+    @method.assembly.should == "push 8\npush 99\nset a:2\npop\nset b:3\npop\npush true\nret\n"
   end
   
   it "should compile masgn with array as the source and too many lhs" do
@@ -486,10 +483,9 @@ describe Bytecode::Compiler do
       [:block, [:true], [:fcall, :p, [:array, [:lit, 2]]]]
     ]
     @method.assembly.should == "push &lbl1\npush &lbl2\n" \
-      "push_context\nsend_primitive create_block\n" \
-      "goto lbl3\nset a:2\npush true\npush 2\n" \
-      "push self\nsend p 1\n" \
-      "lbl2: soft_return\nlbl3:\n" \
+      "push_context\nsend_primitive create_block 2\n" \
+      "goto lbl3\nunshift_tuple\nset a:2\npop\npop\npush true\nlbl4:\npush true\npop\npush 2\n" \
+      "push self\nsend p 1\nlbl2: soft_return\nlbl3:\n" \
       "push self\n&send m 0\nlbl1:\nret\n"
   end
   
@@ -581,11 +577,11 @@ describe Bytecode::Compiler do
   
   it "should compile dot2" do
     compile [:dot2, [:lit, 100], [:lit, 1]]
-    @method.assembly.should == "push 1\npush 100\npush Range\nsend new 2"
+    @method.assembly.should == "push 1\npush 100\npush Range\nsend new 2\nret\n"
   end
   
   it "should compile dot3" do
     compile [:dot3, [:lit, 100], [:lit, 1]]
-    @method.assembly.should == "push false\npush 1\npush 100\npush Range\nsend new 3"
+    @method.assembly.should == "push true\npush 1\npush 100\npush Range\nsend new 3\nret\n"
   end
 end
