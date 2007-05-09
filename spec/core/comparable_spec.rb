@@ -3,142 +3,127 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # <, <=, ==, >, >=, between?
 
 context "A class with Comparable mixin, method" do
-  setup do
-    @src = code do
-      class Weird
-        include Comparable
-        
-        def initialize(int)
-          @int = int
-        end
-        
-        def negative?
-          @int < 0
-        end
-        
-        def <=>(other)
-          return 0 if self.negative? == other.negative?
-          return 1 if self.negative?
-          -1
-        end
-      end
+  class Weird
+    include Comparable
+    
+    def initialize(int)
+      @int = int
+    end
+    
+    def negative?
+      @int < 0
+    end
+    
+    def <=>(other)
+      return 0 if self.negative? == other.negative?
+      return 1 if self.negative?
+      -1
     end
   end
   
   specify "<=> should be provided" do
-    example(@src) do
-      Weird.new(0).respond_to?(:<=>)
-    end.should == true
+    Weird.new(0).respond_to?(:<=>).should == true
   end
   
   specify "<=> should return 0 if other is equal" do
-    example(@src) do
-      Weird.new(-1) <=> Weird.new(-2)
-    end.should == 0
+    (Weird.new(-1) <=> Weird.new(-2)).should == 0
   end
   
   specify "<=> should return 1 if other is greater" do
-    example(@src) do
-      Weird.new(-1) <=> Weird.new(0)
-    end.should == 1
+    (Weird.new(-1) <=> Weird.new(0)).should == 1
   end
   
   specify "<=> should return -1 if other is lesser" do
-    example(@src) do
-      Weird.new(1) <=> Weird.new(-1)
-    end.should == -1
+    (Weird.new(1) <=> Weird.new(-1)).should == -1
   end
   
   specify "< should return true if other is greater" do
-    example(@src) do
-      Weird.new(1) < Weird.new(-1)
-    end.should == true
+    (Weird.new(1) < Weird.new(-1)).should == true
   end
   
   specify "< should return false if other is lesser than or equal" do
-    example(@src) do
-      @a = Weird.new(-1)
-      @b = Weird.new(0)
-      [@a < @b, @a < @a, @b < @b]
-    end.should == [false, false, false]
+    a = Weird.new(-1)
+    b = Weird.new(0)
+
+    (a < b).should == false
+    (a < a).should == false
+    (b < b).should == false
   end
   
   specify "<= should return true if other is greater than or equal" do
-    example(@src) do
-      @a = Weird.new(0)
-      @b = Weird.new(-1)
-      [@a <= @b, @a <= @a, @b <= @b]
-    end.should == [true, true, true]
+    a = Weird.new(0)
+    b = Weird.new(-1)
+
+    (a <= b).should == true
+    (a <= a).should == true
+    (b <= b).should == true
   end
   
   specify "<= should return false if other is lesser" do
-    example(@src) do
-      Weird.new(-1) <= Weird.new(0)
-    end.should == false
+    (Weird.new(-1) <= Weird.new(0)).should == false
   end
 
   specify "== should return true if other is equal" do
-    example(@src) do
-      @a = Weird.new(0)
-      @b = Weird.new(-1)
-      @c = Weird.new(1)
-      [@a == @c, @a == @a, @b == @b, @c == @c]
-    end.should == [true, true, true, true]
+    a = Weird.new(0)
+    b = Weird.new(-1)
+    c = Weird.new(1)
+
+    (a == c).should == true
+    (a == a).should == true
+    (b == b).should == true
+    (c == c).should == true
   end
 
   specify "== should return false if other is not equal" do
-    example(@src) do
-      @a = Weird.new(0)
-      @b = Weird.new(-1)
-      @c = Weird.new(1)
-      [@a == @b, @b == @c]
-    end.should == [false, false]
+    a = Weird.new(0)
+    b = Weird.new(-1)
+    c = Weird.new(1)
+
+    (a == b).should == false
+    (b == c).should == false
   end
 
   specify "> should return true if other is lesser" do
-    example(@src) do
-      Weird.new(-1) > Weird.new(0)
-    end.should == true
+    (Weird.new(-1) > Weird.new(0)).should == true
   end
 
   specify "> should return false if other is greater than or equal" do
-    example(@src) do
-      @a = Weird.new(-1)
-      @b = Weird.new(0)
-      [@b > @a, @a > @a, @b > @b]
-    end.should == [false, false, false]
+    a = Weird.new(-1)
+    b = Weird.new(0)
+
+    (b > a).should == false
+    (a > a).should == false
+    (b > b).should == false
   end
 
   specify ">= should return true if other is lesser than or equal" do
-    example(@src) do
-      @a = Weird.new(-1)
-      @b = Weird.new(0)
-      @c = Weird.new(1)
-      [@b <= @a, @b <= @c]
-    end.should == [true, true]
+    a = Weird.new(-1)
+    b = Weird.new(0)
+    c = Weird.new(1)
+
+    (b <= a).should == true
+    (b <= c).should == true
   end
 
   specify ">= should return false if other is greater" do
-    example(@src) do
-      Weird.new(1) >= Weird.new(-1)
-    end.should == false
+    (Weird.new(1) >= Weird.new(-1)).should == false
   end
 
   specify "betweem? should return true if min <= self <= max" do
-    example(@src) do
-      @a = Weird.new(-1)
-      @b = Weird.new(0)
-      @c = Weird.new(1)
-      [@b.between?(@c, @a), @c.between?(@b, @a)]
-    end.should == [true, true]
+    a = Weird.new(-1)
+    b = Weird.new(0)
+    c = Weird.new(1)
+
+    b.between?(c, a).should == true
+    c.between?(b, a).should == true
   end
   
   specify "between? should return false if self < min or self > max" do
-    example(@src) do
-      @a = Weird.new(-1)
-      @b = Weird.new(0)
-      @c = Weird.new(1)
-      [@a.between?(@b, @c), @a.between?(@c, @b)]
-    end.should == [false, false]
+    a = Weird.new(-1)
+    b = Weird.new(0)
+    c = Weird.new(1)
+
+    a.between?(b, c).should == false
+    a.between?(c, b).should == false
   end
 end

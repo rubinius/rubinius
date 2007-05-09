@@ -630,3 +630,7 @@ context dir_spec_object_text do
 
   @dir.close rescue nil
 end
+
+
+# Try to clean up
+system "rm -r #{$mockdir}"

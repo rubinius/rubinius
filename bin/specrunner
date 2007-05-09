@@ -6,19 +6,28 @@ __SR_ERRFILE="/tmp/mini_spec_specrunner_error.txt"
 
 __SR_GOODFIFO="/tmp/mini_spec_good_fifo"
 
+# Pre-cleanup
+rm $__SR_GOODFILE $__SR_ERRFILE $__SR_GOODFIFO 2>/dev/null
+
+
+# Target VM
+if [[ $SR_TARGET = "" ]]; then
+  SR_TARGET=shotgun/rubinius
+fi
+
 # Files to run
 if [[ -d $1 ]]; then
-  __SR_SOURCE=`find $1 -name *_spec.rb`
+  # Incompatible specs can only run under rubinius
+  if [[ $SR_TARGET = "shotgun/rubinius" ]]; then
+    __SR_SOURCE=`find $1 -name *_spec.rb`
+  else
+    __SR_SOURCE=`find $1 -name *_spec.rb | grep -v 'incompatible' | sort`
+  fi
 elif [[ -f $1 ]]; then
   __SR_SOURCE=$1
 else
   echo "Usage: [__SR_TARGET=<vm>] specrunner <file|directory>"
   exit 1
-fi
-
-# Target VM
-if [[ $SR_TARGET = "" ]]; then
-  SR_TARGET=shotgun/rubinius
 fi
 
 __SR_TOTAL_SPECS="0"
@@ -35,9 +44,10 @@ mkfifo $__SR_GOODFIFO
 for i in $__SR_SOURCE; do 
   # tee helps keep the screen updating snappily
   tee $__SR_GOODFILE < $__SR_GOODFIFO >&3 &
+  __SR_TEE_PID=$?
 
   $SR_TARGET -rspec/mini_rspec.rb $i  > $__SR_GOODFIFO 2> $__SR_ERRFILE
-
+  
   if [[ -s $__SR_ERRFILE ]]; then
     echo "Errors:"
     cat $__SR_ERRFILE
@@ -48,18 +58,13 @@ for i in $__SR_SOURCE; do
   __SR_TOTAL_SPECS=$(($__SR_TOTAL_SPECS + $(cat $__SR_GOODFILE | grep "^ -" | wc -l)))
   __SR_TOTAL_FAILS=$(($__SR_TOTAL_FAILS + $(cat $__SR_GOODFILE | grep "FAILED" | wc -l)))
 
-  if [[ -e $__SR_GOODFILE ]]; then
-    rm $__SR_GOODFILE
-  elif [[ -e $__SR_ERRFILE ]]; then
-    rm $__SR_ERRFILE
-  fi
+  rm $__SR_GOODFILE $__SR_ERRFILE 2>/dev/null
+  kill -3 $__SR_TEE_PID 
 done 
 
 echo ""
 echo "$__SR_TOTAL_SPECS specifications, $__SR_TOTAL_FAILS failures"
 echo ""
 
-# Clean up
-if [[ -e $__SR_GOODFIFO ]]; then
-  rm $__SR_GOODFIFO
-fi
+# Post-cleanup
+rm $__SR_GOODFILE $__SR_ERRFILE $__SR_GOODFIFO 2>/dev/null
