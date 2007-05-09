@@ -4,6 +4,7 @@
 #include "ruby.h"
 #include "symbol.h"
 #include "string.h"
+#include "hash.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
@@ -228,10 +229,9 @@ VALUE rb_ary_new2(long length) {
 
 VALUE rb_ary_push(VALUE array, VALUE val) {
   CTX;
-  OBJECT ary;
-  ary = HNDL(array);
+  OBJECT ary = HNDL(array);
   array_append(ctx->state, ary, HNDL(val));
-  return ary;
+  return NEW_HANDLE(ctx, ary);
 }
 
 VALUE rb_str_new(const char *ptr, long len) {
@@ -248,6 +248,19 @@ VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
   CTX;
   return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
 }
+
+VALUE rb_hash_new(void) {
+  CTX;
+  return NEW_HANDLE(ctx, hash_new(ctx->state));
+}
+
+/* Nope, this doesn't work either */
+/*VALUE rb_hash_aref(VALUE hash, VALUE key) {
+  CTX;
+  OBJECT val = hash_get(ctx->state, HNDL(hash), object_hash_int(ctx->state, HNDL(hash)));
+  return NEW_HANDLE(ctx, val);
+}
+*/
 
 /*
 
