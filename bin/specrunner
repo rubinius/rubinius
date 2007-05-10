@@ -19,7 +19,7 @@ fi
 if [[ -d $1 ]]; then
   # Incompatible specs can only run under rubinius
   if [[ $SR_TARGET = "shotgun/rubinius" ]]; then
-    __SR_SOURCE=`find $1 -name *_spec.rb`
+    __SR_SOURCE=`find $1 -name *_spec.rb | sort`
   else
     __SR_SOURCE=`find $1 -name *_spec.rb | grep -v 'incompatible' | sort`
   fi
