@@ -1057,6 +1057,6 @@ context "String inherited instance method" do
   end
   
   specify "instance_variable_get should raise NameError if the argument is not of form '@x'" do
-    try(NameError) { "raise".instance_variable_get(:c) }.should == true
+    should_raise(NameError) { "raise".instance_variable_get(:c) }
   end
 end

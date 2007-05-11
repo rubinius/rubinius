@@ -64,25 +64,22 @@ class Object
     return res
   end
   
+  def instance_variable_argument_valid?(arg)
+    raise TypeError.new("#{arg.inspect} is not a symbol") unless Symbol === arg or String === arg
+    raise NameError.new("`#{arg}' is not allowed as an instance variable name") unless arg.to_s[0] == ?@
+  end
+  private :instance_variable_argument_valid?
+  
   def instance_variable_get(sym)
-    unless sym.to_s[0] == ?@
-      raise NameError.new("`#{sym}' is not allowed as an instance variable name")
-    end
-    if instance_variables?
-      sym = sym.to_sym unless Symbol === sym
-      @__ivars__.each do |k,v|
-        return v if k == sym 
-      end
-    end
-    return nil
+    Ruby.primitive :ivar_get
+    instance_variable_argument_valid?(sym)
+    raise TypeError.new("Unable to get instance variable #{sym} on #{self.inspect}")
   end
 
   def instance_variable_set(sym, value)
-    unless sym.to_s[0] == ?@
-      raise NameError.new("`#{sym}' is not allowed as an instance variable name")
-    end
-    @__ivars__ = Hash.new unless instance_variables?
-    @__ivars__[sym.to_sym] = value
+    Ruby.primitive :ivar_set
+    instance_variable_argument_valid?(sym)
+    raise TypeError.new("Unable to set instance variable #{sym} on #{self.inspect}")
   end
   
   def taint
