@@ -70,6 +70,15 @@ class Object
     set_instance_variable(sym, value)
   end
   
+  # Class variable support
+  def class_variable_set(sym, value)
+    self.class.class_variable_set sym, value
+  end
+
+  def class_variable_get(sym)
+    self.class.class_variable_get sym
+  end
+
   def instance_variable_validate(arg)
     # adapted from rb_to_id
     return arg if arg.is_a?(Symbol)

@@ -1900,7 +1900,6 @@ module Bytecode
         process val
         add "push :#{name}"
         add "push self"
-        add "send class 0"
         add "send class_variable_set 2"
       end
       
@@ -1908,7 +1907,6 @@ module Bytecode
         name = x.shift
         add "push :#{name}"
         add "push self"
-        add "send class 0"
         add "send class_variable_get 1"
       end
       

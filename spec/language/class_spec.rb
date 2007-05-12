@@ -31,17 +31,33 @@ context "A class definition" do
     end.should == ["@@bar"]
   end
 
-  specify "should allow the declaration of class variables in a method" do
+  specify "should allow the declaration of class variables in a class method" do
     example do
       class ClassSyntaxSpec
-        def setup_cv
+        def self.setup_cv
           @@bar = 'foo'
         end
       end
 
       @before = ClassSyntaxSpec.class_variables
-      ClassSyntaxSpec.new.setup_cv
+      ClassSyntaxSpec.setup_cv
       @after = ClassSyntaxSpec.class_variables 
+
+      [@before, @after]
+    end.should == [[], ["@@bar"]]
+  end
+  
+  specify "should allow the declaration of class variables in an instance method" do
+    example do
+      class ClassSyntaxSpec2
+        def setup_cv
+          @@bar = 'foo'
+        end
+      end
+
+      @before = ClassSyntaxSpec2.class_variables
+      ClassSyntaxSpec2.new.setup_cv
+      @after = ClassSyntaxSpec2.class_variables 
 
       [@before, @after]
     end.should == [[], ["@@bar"]]
