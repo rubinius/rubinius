@@ -77,4 +77,7 @@ class Tuple
     t.copy_from self, 1
     return t
   end
+  
+  alias :size :fields
+  alias :length :fields
 end
