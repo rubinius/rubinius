@@ -10,6 +10,7 @@ int object_has_ivars(STATE, OBJECT self);
 void object_set_has_ivars(STATE, OBJECT self);
 OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym);
 OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val);
+OBJECT object_get_ivars(STATE, OBJECT self);
 OBJECT object_new(STATE);
 char *object_byte_start(STATE, OBJECT self);
 int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int count);

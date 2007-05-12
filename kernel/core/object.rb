@@ -49,38 +49,52 @@ class Object
     end
   end
   
-  def instance_variables?
-    @__ivars__ and @__ivars__.size > 0
-  end
-  private :instance_variables?
-  
   def instance_variables
-    res = []
-    if instance_variables?
-      @__ivars__.each do |k,v|
-        res << k.to_s
-      end
-    end
-    return res
+    vars = get_instance_variables
+    return [] if vars.nil?
+    return vars.keys.collect { |v| v.to_s }
   end
   
-  def instance_variable_argument_valid?(arg)
-    raise TypeError.new("#{arg.inspect} is not a symbol") unless Symbol === arg or String === arg
-    raise NameError.new("`#{arg}' is not allowed as an instance variable name") unless arg.to_s[0] == ?@
+  def get_instance_variables
+    Ruby.primitive :ivars_get
   end
-  private :instance_variable_argument_valid?
+  private :get_instance_variables
   
   def instance_variable_get(sym)
-    Ruby.primitive :ivar_get
-    instance_variable_argument_valid?(sym)
-    raise TypeError.new("Unable to get instance variable #{sym} on #{self.inspect}")
+    sym = instance_variable_validate(sym)
+    get_instance_variable(sym)
   end
 
   def instance_variable_set(sym, value)
-    Ruby.primitive :ivar_set
-    instance_variable_argument_valid?(sym)
-    raise TypeError.new("Unable to set instance variable #{sym} on #{self.inspect}")
+    sym = instance_variable_validate(sym)
+    set_instance_variable(sym, value)
   end
+  
+  def instance_variable_validate(arg)
+    return arg if arg.is_a?(Symbol)
+    if arg.is_a?(String)
+      name = arg
+    elsif arg.is_a?(Fixnum)
+      name = arg.id2name
+      raise ArgumentError.new("#{arg.inspect} is not a symbol") if arg.nil?
+    else
+      raise TypeError.new("#{arg.inspect} is not a symbol") unless arg.respond_to?(:to_str)
+      name = arg.to_str
+    end
+    raise NameError.new("`#{arg}' is not allowed as an instance variable name") unless name.to_s[0] == ?@
+    name.to_sym
+  end
+  private :instance_variable_validate
+  
+  def get_instance_variable(sym)
+    Ruby.primitive :ivar_get
+  end
+  private :get_instance_variable
+  
+  def set_instance_variable(sym, value)
+    Ruby.primitive :ivar_set
+  end
+  private :set_instance_variable
   
   def taint
     Ruby.primitive :object_taint

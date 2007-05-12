@@ -169,3 +169,75 @@ context "Object instance method" do
     should_raise(NameError) { NoDog.new.instance_variable_set(:c, "cat") }
   end
 end
+
+describe "Object#instance_variable_get" do
+  it "should raise ArgumentError if the instance variable name is a Fixnum" do
+    should_raise(ArgumentError) { "".instance_variable_get(1) }
+  end
+  
+  it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
+    class A; end
+    should_raise(TypeError) { "".instance_variable_get(A.new) }
+  end
+  
+  it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
+    class B
+      def to_str
+        ":c"
+      end
+    end
+    should_raise(NameError) { "".instance_variable_get(B.new) }
+  end
+  
+  it "should raise NameError if pass an object that cannot be a symbol" do
+    should_raise(NameError) { "".instance_variable_get(:c) }
+  end
+  
+  it "should accept as instance variable name any instance of a class that responds to to_str" do
+    class C
+      def initialize
+        @a = 1
+      end
+      def to_str
+        "@a"
+      end
+    end
+    C.new.instance_variable_get(C.new).should == 1
+  end
+end
+
+describe "Object#instance_variable_set" do
+  it "should raise ArgumentError if the instance variable name is a Fixnum" do
+    should_raise(ArgumentError) { "".instance_variable_set(1, 2) }
+  end
+  
+  it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
+    class A; end
+    should_raise(TypeError) { "".instance_variable_set(A.new, 3) }
+  end
+  
+  it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
+    class B
+      def to_str
+        ":c"
+      end
+    end
+    should_raise(NameError) { "".instance_variable_set(B.new, 4) }
+  end
+  
+  it "should raise NameError if pass an object that cannot be a symbol" do
+    should_raise(NameError) { "".instance_variable_set(:c, 1) }
+  end
+  
+  it "should accept as instance variable name any instance of a class that responds to to_str" do
+    class C
+      def initialize
+        @a = 1
+      end
+      def to_str
+        "@a"
+      end
+    end
+    C.new.instance_variable_set(C.new, 2).should == 2
+  end
+end

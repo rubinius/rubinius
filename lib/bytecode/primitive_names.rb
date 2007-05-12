@@ -160,7 +160,8 @@ module Bytecode
       :io_reopen,
       :hash_value_set,
       :ivar_set,
-      :ivar_get
+      :ivar_get,
+      :ivars_get
     ]
 
     FirstRuntimePrimitive = 1024

@@ -197,7 +197,7 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
 
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
-  if(!object_has_ivars(state, self)) {
+  if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
     tbl = hash_find(state, state->global->external_ivars, self);
     if(RTEST(tbl)) {
       return hash_find(state, tbl, sym);
@@ -227,7 +227,7 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
-  if(!object_has_ivars(state, self)) {
+  if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
     tbl = hash_find(state, state->global->external_ivars, self);
     
     /* Lazy creation of the hash table for the object. */
@@ -259,6 +259,24 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   
   hash_set(state, tbl, sym, val);
   return val;
+}
+
+OBJECT object_get_ivars(STATE, OBJECT self) {
+	OBJECT tbl;
+	
+	if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
+		tbl = hash_find(state, state->global->external_ivars, self);
+		if(!RTEST(tbl)) {
+			return Qnil;
+		}
+		return tbl;
+	}
+	
+	tbl = object_get_instance_variables(self);
+	if(!RTEST(tbl)) {
+		return Qnil;
+	}
+	return tbl;
 }
 
 int object_stores_bytes_p(STATE, OBJECT self) {

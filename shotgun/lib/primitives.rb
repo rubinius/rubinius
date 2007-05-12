@@ -2460,45 +2460,26 @@ class ShotgunPrimitives
 
   def ivar_get
     <<-CODE
-    char *str;
-    
     self = stack_pop();
     t1 = stack_pop();
-    if (SYMBOL_P(t1)) {
-      t1 = symbol_to_string(state, t1);
-    } else if (!STRING_P(t1)) {
-      _ret = FALSE;
-      break;
-    }
-    str = string_byte_address(state, t1);
-    if (*str != '@') {
-      _ret = FALSE;
-      break;
-    }
-    stack_push(object_get_ivar(state, self, string_to_sym(state, t1)));
+    stack_push(object_get_ivar(state, self, t1));
     CODE
   end
   
   def ivar_set
     <<-CODE
-    char *str;
-    
     self = stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
-    if (SYMBOL_P(t1)) {
-      t1 = symbol_to_string(state, t1);
-    } else if (!STRING_P(t1)) {
-      _ret = FALSE;
-      break;
-    }
-    str = string_byte_address(state, t1);
-    if (*str != '@') {
-      _ret = FALSE;
-      break;
-    }
-    object_set_ivar(state, self, string_to_sym(state, t1), t2);
+    object_set_ivar(state, self, t1, t2);
     stack_push(t2);
+    CODE
+  end
+  
+  def ivars_get
+    <<-CODE
+    self = stack_pop();
+    stack_push(object_get_ivars(state, self));
     CODE
   end
   
