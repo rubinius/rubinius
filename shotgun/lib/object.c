@@ -262,21 +262,21 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
 }
 
 OBJECT object_get_ivars(STATE, OBJECT self) {
-	OBJECT tbl;
-	
-	if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
-		tbl = hash_find(state, state->global->external_ivars, self);
-		if(!RTEST(tbl)) {
-			return Qnil;
-		}
-		return tbl;
-	}
-	
-	tbl = object_get_instance_variables(self);
-	if(!RTEST(tbl)) {
-		return Qnil;
-	}
-	return tbl;
+  OBJECT tbl;
+  
+  if(!REFERENCE_P(self) || !object_has_ivars(state, self)) {
+    tbl = hash_find(state, state->global->external_ivars, self);
+    if(!RTEST(tbl)) {
+      return Qnil;
+    }
+    return tbl;
+  }
+  
+  tbl = object_get_instance_variables(self);
+  if(!RTEST(tbl)) {
+    return Qnil;
+  }
+  return tbl;
 }
 
 int object_stores_bytes_p(STATE, OBJECT self) {
@@ -302,7 +302,7 @@ void object_initialize_bytes(STATE, OBJECT self) {
 
 void object_set_tainted(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-	FLAG2_SET(self, IsTaintedFlag);
+  FLAG2_SET(self, IsTaintedFlag);
 }
 
 int object_tainted_p(STATE, OBJECT self) {

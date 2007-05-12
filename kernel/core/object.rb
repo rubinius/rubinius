@@ -71,6 +71,7 @@ class Object
   end
   
   def instance_variable_validate(arg)
+    # adapted from rb_to_id
     return arg if arg.is_a?(Symbol)
     if arg.is_a?(String)
       name = arg
