@@ -269,6 +269,11 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val) {
   return NEW_HANDLE(ctx, hash_set(ctx->state, hsh, k, v));
 }
 
+VALUE rb_hash_delete(VALUE hash, VALUE key) {
+  CTX;
+  OBJECT hsh = HNDL(hash);
+  return NEW_HANDLE(ctx, hash_delete(ctx, hsh, object_hash_int(ctx->state, HNDL(key))));
+}
 
 /*
 
@@ -278,7 +283,6 @@ rb_define_alloc_func
 rb_define_class_under
 rb_define_method
 rb_define_module
-rb_hash_delete
 rb_raise
 rb_str_substr
 
