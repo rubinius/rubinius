@@ -2,126 +2,111 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "Exceptions" do
   specify "raise should abort execution" do
-    example do
-      @a = []
+    should_raise(ArgumentError) do
       begin
-        raise ArgumentError, "exception"
-        @a << "raise failed"
-      rescue Exception => @e
-        @a << @e.message
+        raise ArgumentError, "you don't know what you're talking about"
+      rescue ArgumentError => e
+        e.message.should == "you don't know what you're talking about"
+        raise
       end
-      @a
-    end.should == ["exception"]
+    end
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
   specify "ensure should execute when exception is raised" do
-    example do
-      class Foo
-        def exception
-          begin
-            raise ArgumentError, "exception"
-          rescue Exception => @e
-            @e.message
-          ensure
-            @a = 'ensure ' << @e
-          end
-          @a
+    class A
+      def exception
+        begin
+          raise ArgumentError, "exception"
+        rescue Exception => @e
+          # pass
+        ensure
+          @a = 'ensure ' << @e
         end
+        @a
       end
+    end
 
-      Foo.new.exception
-    end.should == "ensure exception"
+    A.new.exception.should == "ensure exception"
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
   specify "ensure should execute when exception is not raised" do
-    example do
-      class Foo
-        def exception
-          begin
-            @e = 'I never got to be an exception'
-          rescue Exception => @e
-            @e.message
-          ensure
-            @a = 'ensure ' << @e
-          end
-          return @a
+    class B
+      def exception
+        begin
+          @e = 'I never got to be an exception'
+        rescue Exception => @e
+          @e.message
+        ensure
+          @a = 'ensure ' << @e
         end
+        return @a
       end
+    end
 
-      Foo.new.exception
-    end.should == "ensure I never got to be an exception"
+    B.new.exception.should == "ensure I never got to be an exception"
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
   specify "retry should restart execution at begin" do
-    example do
-      class Foo
-        def exception
-          @ret = []
-          @count = 1
-          begin
-            @ret << @count
-            raise ArgumentError, 'just kidding' unless @count > 3
-          rescue Exception => @e
-            @count += 1
-            retry
-          else
-            @ret << 7
-          ensure
-            @ret << @count
-          end
-          @ret
+    class C
+      def exception
+        @ret = []
+        @count = 1
+        begin
+          @ret << @count
+          raise ArgumentError, 'just kidding' unless @count > 3
+        rescue Exception => @e
+          @count += 1
+          retry
+        else
+          @ret << 7
+        ensure
+          @ret << @count
         end
+        @ret
       end
+    end
 
-      Foo.new.exception
-    end.should == [1, 2, 3, 4, 7, 4]
+    C.new.exception.should == [1, 2, 3, 4, 7, 4]
   end
 
   specify "on a single line, a default can be assigned on exception" do
-    example do
-      variable = [1,2,3].frist rescue 'exception'
-    end.should == 'exception'
+    variable = [1,2,3].frist rescue 'exception'
+    variable.should == 'exception'
   end
 
   specify "that StandardError is the default rescue class" do
-    example do
+    begin
       @ret = ''
       begin
-        begin
-          raise Exception, 'hey hey hey !'
-        rescue => ex
-          @ret = 'intercepted'
-        end
-      rescue Exception => ex
-        @ret = 'not intercepted'
+        raise Exception, 'hey hey hey !'
+      rescue => ex
+        @ret = 'intercepted'
       end
+    rescue Exception => ex
+      @ret = 'not intercepted'
     end.should == 'not intercepted'
-    example do
+
+    begin
       @ret = ''
       begin
-        begin
-          raise StandardError, 'hey hey hey !'
-        rescue => ex
-          @ret = 'intercepted'
-        end
-      rescue Exception => ex
-        @ret = 'not intercepted'
+        raise StandardError, 'hey hey hey !'
+      rescue => ex
+        @ret = 'intercepted'
       end
+    rescue Exception => ex
+      @ret = 'not intercepted'
     end.should == 'intercepted'
   end
 
   specify "that RuntimeError is the default raise class" do
-    example do
+    begin
       @ret = ''
-      begin
-        raise
-      rescue => ex
-        @ret = ex.class.to_s
-      end
-      @ret
+      raise
+    rescue => ex
+      @ret = ex.class.to_s
     end.should == 'RuntimeError'
   end
 
@@ -166,18 +151,14 @@ context "Exceptions" do
 
   generate_exception_existance_spec = lambda do |exception_name|
     specify "exception #{exception_name} is in the core" do
-      example do
-        Object.const_defined?(exception_name)
-      end.should === true
+      Object.const_defined?(exception_name).should === true
     end
   end
 
   generate_exception_ancestor_spec = lambda do |exception_name, parent_name|
     specify "#{exception_name} has #{parent_name} as ancestor" do
-      example do
-        exception = Object.const_get(exception_name)
-        exception.ancestors.map{|x| x.to_s}.include?(parent_name.to_s)
-      end.should === true
+      exception = Object.const_get(exception_name)
+      exception.ancestors.map{|x| x.to_s}.include?(parent_name.to_s).should === true
     end
   end
 

@@ -1,119 +1,96 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context "if expression" do
-  specify "should evaluate body when the if expression is true" do
-    example do
-      @a = if true: true; end
-      @b = if true then true; end
-      @c = if true
-        true
-      end
-      [@a, @b, @c]
-    end.should == [true, true, true]
+describe "The if expression" do
+  it "evaluates body when the if expression is true" do
+    if true: true; end.should == true
+    if true then true; end.should == true
+    if true
+      true
+    end.should == true
   end
   
-  specify "should not evaluate body when the if expression is false" do
-    example do
-      @a = if false: true; end
-      @b = if false then true; end
-      @c = if false
-        true
-      end
-      [@a, @b, @c]
-    end.should == [nil, nil, nil]
+  it "does not evaluate body when the if expression is false" do
+    if false: true; end.should == nil
+    if false then true; end.should == nil
+    if false
+      true
+    end.should == nil
   end
   
-  specify "should not evaluate the else body when the if expression is true" do
-    example do
-      @a = if true: true; else false; end
-      @b = if true then true; else false; end
-      @c = if true: true
-      else
-        false
-      end
-      @d = if true
-        true
-      else
-        false
-      end
-      [@a, @b, @c, @d]
-    end.should == [true, true, true, true]
+  it "does not evaluate the else body when the if expression is true" do
+    if true: true; else false; end.should == true
+    if true then true; else false; end.should == true
+    if true: true
+    else
+      false
+    end.should == true
+    if true
+      true
+    else
+      false
+    end.should == true
   end
   
-  specify "should evaluate the else body when the if expression is false" do
-    example do
-      @a = if false: true; else false; end
-      @b = if false then true; else false; end
-      @c = if false: true
-      else
-        false
-      end
-      @d = if false
-        true
-      else
-        false
-      end
-      [@a, @b, @c, @d]
-    end.should == [false, false, false, false]
+  it "evaluates the else body when the if expression is false" do
+    if false: true; else false; end.should == false
+    if false then true; else false; end.should == false
+    if false: true
+    else
+      false
+    end.should == false
+    if false
+      true
+    else
+      false
+    end.should == false
   end
 end
 
-context "unless expression" do
-  specify "unless should evaluate the else body when the unless expression is false" do
-    example do
-      @a = unless false: true; else false; end
-      @b = unless false then true; else false; end
-      @c = unless false: true
-      else 
-        false
-      end
-      @d = unless false
-        true
-      else
-        false
-      end
-      [@a, @b, @c, @d]
-    end.should == [true, true, true, true]
+describe "The unless expression" do
+  it "evaluates the else body when the unless expression is false" do
+    unless false: true; else false; end.should == true
+    unless false then true; else false; end.should == true
+    unless false: true
+    else 
+      false
+    end.should == true
+    unless false
+      true
+    else
+      false
+    end.should == true
   end
-  
 end
-context "case expression" do
-  specify "should evaluate the body of the when clause whose expression matches the case target expression" do
-    example do
-      case 1
-        when 1: true
-      end
+
+describe "The case expression" do
+  it "evaluates the body of the when clause whose expression matches the case target expression" do
+    case 1
+    when 1: true
     end.should == true
   end
 
-  specify "should evaluate the body of the when clause whose array expression includes the case target expression" do
-    example do
-      case 2
-        when 1,2: true
-      end
+  it "evaluates the body of the when clause whose array expression includes the case target expression" do
+    case 2
+    when 1,2: true
     end.should == true
   end
 
-  specify "should evaluate the body of the when clause whose range expression includes the case target expression" do
-    example do
-      case 5
-      when 1..20: true
-      end
+  it "evaluates the body of the when clause whose range expression includes the case target expression" do
+    case 5
+    when 1..20: true
     end.should == true
   end
 
-  specify "should evaluate the body of the else clause if no when expressions match the case target expression" do
-    example do
-      case 3
-      when 6: false
-      else
-        true
-      end
+  it "evaluates the body of the else clause if no when expressions match the case target expression" do
+    case 3
+    when 6: false
+    else
+      true
     end.should == true
   end
 
 =begin FIXME: The Exception is not handled well
-  specify "but you can't use else without the when construct" do
+  it "but you can't use else without the when construct" do
     example do
       case 4
       else
@@ -123,32 +100,25 @@ context "case expression" do
   end
 =end
   
-  specify "should evaluate the body of the first when clause that is true when no case target expression is given" do
-    example do
-      case
-      when 3==3: true
-      when 4==4: false
-      end
+  it "evaluates the body of the first when clause that is true when no case target expression is given" do
+    case
+    when 3==3: true
+    when 4==4: false
     end.should == true
   end
 
   # NOTE : This should not work yet, since Onig is not integrated.
-  specify "should evaluate the body of the when clause whose expression is a regex that matches the case target expression" do
-    example do
-      case 'hello'
-      when /^hell/: true # mouahahaha
-      end
+  it "evaluates the body of the when clause whose expression is a regex that matches the case target expression" do
+    case 'hello'
+    when /^hell/: true # mouahahaha
     end.should == true
   end
 
-  specify "should evaluate the body of the when clause whose expression is a class using class === case target expression" do
-    example do
-      case 'x'
-      when String: true
-      end
+  it "should evaluate the body of the when clause whose expression is a class using class === case target expression" do
+    case 'x'
+    when String: true
     end.should == true
   end
-
 end
 
 # * break terminates loop immediately.
@@ -156,13 +126,13 @@ end
 # * next starts the next iteration through the loop.
 # * retry restarts the loop, rerunning the condition.
 
-context "loop" do
+describe "The loop" do
   # loop do
   #   body
   # end
 end
 
-context "while expression" do
+describe "The while expression" do
   
   # while bool-expr [do]
   #  body
@@ -176,7 +146,7 @@ context "while expression" do
 
 end
 
-context "until expression" do
+describe "The until expression" do
   # until bool-expr [do]
   #  body
   # end
@@ -189,17 +159,15 @@ context "until expression" do
 
 end
 
-context "for expression" do
+describe "The for expression" do
   # for name[, name]... in expr [do]
   #   body
   # end
-  specify "should iterate over the collection passing each element to the block" do
-    example do
-      @j = 0
-      for @i in 1..3
-        @j += @i
-      end
-      @j
-    end.should == 6
+  it "iterates over the collection passing each element to the block" do
+    j = 0
+    for i in 1..3
+      j += i
+    end
+    j.should == 6
   end
 end

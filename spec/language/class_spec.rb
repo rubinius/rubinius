@@ -14,67 +14,54 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "A class definition" do
   specify "should create a new class" do
-    example do
-      class Foo; end
-
-      Foo.new.class.to_s
-    end.should == "Foo"
+    class A; end
+    A.new.class.should == A
   end
 
   specify "should allow the declaration of class variables in the body" do
-    example do
-      class Foo
-        @@bar = 'foo'
-      end
-
-      Foo.class_variables
-    end.should == ["@@bar"]
+    class B
+      @@bar = 'foo'
+    end
+    B.class_variables.should == ["@@bar"]
   end
 
   specify "should allow the declaration of class variables in a class method" do
-    example do
-      class ClassSyntaxSpec
-        def self.setup_cv
-          @@bar = 'foo'
-        end
+    class C
+      def self.setup_cv
+        @@bar = 'foo'
       end
+    end
 
-      @before = ClassSyntaxSpec.class_variables
-      ClassSyntaxSpec.setup_cv
-      @after = ClassSyntaxSpec.class_variables 
-
-      [@before, @after]
-    end.should == [[], ["@@bar"]]
+    before = C.class_variables
+    C.setup_cv
+    after = C.class_variables 
+    before.should == []
+    after.should == ["@@bar"]
   end
   
   specify "should allow the declaration of class variables in an instance method" do
-    example do
-      class ClassSyntaxSpec2
-        def setup_cv
-          @@bar = 'foo'
-        end
+    class D
+      def setup_cv
+        @@bar = 'foo'
       end
+    end
 
-      @before = ClassSyntaxSpec2.class_variables
-      ClassSyntaxSpec2.new.setup_cv
-      @after = ClassSyntaxSpec2.class_variables 
-
-      [@before, @after]
-    end.should == [[], ["@@bar"]]
+    before = D.class_variables
+    D.new.setup_cv
+    after = D.class_variables 
+    before.should == []
+    after.should == ["@@bar"]
   end
 end
 
 context "In a class definition" do
   specify "def should create a new method" do
-    example do
-      class Foo
-        def foo
-          'foo'
-        end
+    class E
+      def foo
+        'foo'
       end
-
-      Foo.new.foo
-    end.should == 'foo'
+    end
+    E.new.foo.should == 'foo'
   end
 end
 
