@@ -255,12 +255,12 @@ VALUE rb_hash_new(void) {
 }
 
 /* Nope, this doesn't work either */
-/*VALUE rb_hash_aref(VALUE hash, VALUE key) {
+VALUE rb_hash_aref(VALUE hash, VALUE key) {
   CTX;
-  OBJECT val = hash_get(ctx->state, HNDL(hash), object_hash_int(ctx->state, HNDL(hash)));
+  OBJECT val = hash_get(ctx->state, HNDL(hash), object_hash_int(ctx->state, HNDL(key)));
   return NEW_HANDLE(ctx, val);
 }
-*/
+
 
 /*
 
@@ -270,7 +270,6 @@ rb_define_alloc_func
 rb_define_class_under
 rb_define_method
 rb_define_module
-rb_hash_aref
 rb_hash_aset
 rb_hash_delete
 rb_hash_new
