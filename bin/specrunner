@@ -63,7 +63,7 @@ for i in $__SR_SOURCE; do
 done 
 
 echo ""
-echo "$__SR_TOTAL_SPECS specifications, $__SR_TOTAL_FAILS failures"
+echo "$__SR_TOTAL_SPECS examples, $__SR_TOTAL_FAILS failures"
 echo ""
 
 # Post-cleanup

@@ -10,63 +10,39 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 #
 context "Ruby character strings in various ways" do
 
-  setup do
+  before(:each) do
     @ip = 'xxx' # used for interpolation
   end
 
   specify "with no interpolation" do
-    example do
-      '#{@ip}'
-    end.should == '#{@ip}'
+    '#{@ip}'.should == '#{@ip}'
   end
 
   specify 'interpolation is used with #{your_var}' do
-    example do
-      "#{@ip}"
-    end.should == 'xxx'
+    "#{@ip}".should == 'xxx'
   end
 
   # TODO : Add specs that determine the end of the variable
   specify 'instance variables can also be interpolated just with the # character' do
-    example do
-      "#@ip"
-    end.should == 'xxx'
+    "#@ip".should == 'xxx'
   end
 
   # NOTE : What chars are allowed to delimit a string ?
   specify "using percent and different characters to delimit a string" do
-    example do
-      %(hey hey)
-    end.should == "hey hey"
-
-    example do
-      %[hey hey]
-    end.should == "hey hey"
-
-    example do
-      %{hey hey}
-    end.should == "hey hey"
-
-    example do
-      %@hey hey@
-    end.should == "hey hey"
-
-    example do
-      %!hey hey!
-    end.should == "hey hey"
+    %(hey hey).should == "hey hey"
+    %[hey hey].should == "hey hey"
+    %{hey hey}.should == "hey hey"
+    %@hey hey@.should == "hey hey"
+    %!hey hey!.should == "hey hey"
   end
 
   specify "using percent with 'q' should stop interpolation" do
-    example do
-      %q(#{@ip})
-    end.should == '#{@ip}'
+    %q(#{@ip}).should == '#{@ip}'
   end
 
   # NOTE : I'm not sure why this is needed. IMHO it's redundant with %().
   specify "using percent with 'Q' should force interpolation" do
-    example do
-      %Q(#{@ip})
-    end.should == 'xxx'
+    %Q(#{@ip}).should == 'xxx'
   end
 
   # The backslashes :
@@ -77,12 +53,8 @@ context "Ruby character strings in various ways" do
   # \M-\C-x (meta control x)
   
   specify "backslashes follow the same rules as interpolation" do
-    example do
-      "\t\n\r\f\b\a\e\s\075\x62\cx"
-    end.should == "\t\n\r\f\b\a\e =b\030"
-    example do
-      '\t\n\r\f\b\a\e =b\030'
-    end.should == "\\t\\n\\r\\f\\b\\a\\e =b\\030"
+    "\t\n\r\f\b\a\e\s\075\x62\cx".should == "\t\n\r\f\b\a\e =b\030"
+    '\t\n\r\f\b\a\e =b\030'.should == "\\t\\n\\r\\f\\b\\a\\e =b\\030"
   end
 
 end
