@@ -44,7 +44,8 @@ VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
 
 /* Hash */
 VALUE rb_hash_new(void);
-// VALUE rb_hash_aref(VALUE hash, VALUE key);
+VALUE rb_hash_aref(VALUE hash, VALUE key);
+VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val);
 
 char *rb_id2name(ID sym);
 

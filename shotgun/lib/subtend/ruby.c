@@ -254,11 +254,19 @@ VALUE rb_hash_new(void) {
   return NEW_HANDLE(ctx, hash_new(ctx->state));
 }
 
-/* Nope, this doesn't work either */
 VALUE rb_hash_aref(VALUE hash, VALUE key) {
   CTX;
   OBJECT val = hash_get(ctx->state, HNDL(hash), object_hash_int(ctx->state, HNDL(key)));
   return NEW_HANDLE(ctx, val);
+}
+
+VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val) {
+  CTX;
+  OBJECT hsh, k, v;
+  hsh = HNDL(hash);
+  k = HNDL(key);
+  v = HNDL(val);
+  return NEW_HANDLE(ctx, hash_set(ctx->state, hsh, k, v));
 }
 
 
@@ -270,9 +278,7 @@ rb_define_alloc_func
 rb_define_class_under
 rb_define_method
 rb_define_module
-rb_hash_aset
 rb_hash_delete
-rb_hash_new
 rb_raise
 rb_str_substr
 
@@ -307,9 +313,6 @@ rb_ary_unshift
 rb_ary_clear
 rb_float_new
 Data_Wrap_Struct
-
-rb_hash_new
-rb_hash_aset
 
 rb_num2ull
 rb_ull2inum
