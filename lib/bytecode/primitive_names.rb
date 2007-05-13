@@ -161,7 +161,8 @@ module Bytecode
       :hash_value_set,
       :ivar_set,
       :ivar_get,
-      :ivars_get
+      :ivars_get,
+      :str_crypt
     ]
 
     FirstRuntimePrimitive = 1024

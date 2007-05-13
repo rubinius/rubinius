@@ -2483,6 +2483,15 @@ class ShotgunPrimitives
     CODE
   end
   
+  def str_crypt
+    <<-CODE
+    POP(self, STRING);
+    POP(t1, STRING);
+    stack_push(string_new(state, crypt(string_byte_address(state, self),
+        string_byte_address(state, t1))));
+    CODE
+  end
+  
 end
 
 prim = ShotgunPrimitives.new

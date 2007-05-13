@@ -42,6 +42,7 @@ class String
     @encoding = other.encoding
     self
   end
+  alias :initialize_copy :replace
   
   def replace_if(other)
     self == other ? nil : replace(other)
@@ -794,6 +795,14 @@ class String
   def %(*arg)
     Sprintf::Parser.format(self, *arg)
   end
+  
+  def crypt(other_str)
+    Ruby.primitive :str_crypt
+    crypt(other_str.coerce_string) unless String === other_str
+    raise ArgumentError.new("salt must be at least 2 characters") if other_str.size < 2
+  end
+  
+  alias :eql? :==
 
 =begin
 
