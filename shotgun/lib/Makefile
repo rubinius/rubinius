@@ -21,7 +21,7 @@ CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../exter
 
 WARNINGS=-Wall -Winline
 
-LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
+LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm -lcrypt
 
 ifdef USE_CINVOKE
 CPPFLAGS+= -I../external_libs/cinvoke/lib
