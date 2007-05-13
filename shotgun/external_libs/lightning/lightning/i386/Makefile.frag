@@ -1,0 +1,1 @@
+LIGHTNING_TARGET_FILES += i386/asm-i386.h i386/core-i386.h

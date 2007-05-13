@@ -1,0 +1,578 @@
+2007-01-26  Thomas Girard  <thomas.g.girard@free.fr>
+
+	* lightning/Makefile.am: Add clean-local target.
+
+2006-12-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Add CVTTS?2SIL.
+	* lightning/i386/asm-64.h: Add CVTTS?2SIQ.
+	* lightning/i386/fp-64.h: Use it.
+
+	* lightning/Makefile.am: Place files in nodist_lightning_HEADERS.
+
+2006-11-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/core-common.h: Add casts in "*i_p" variants.
+	* lightning/i386/asm-32.h: Add _r1.
+	* lightning/i386/asm-64.h: Likewise, and add SSE instructions.
+	* lightning/i386/asm-i386.h: Merge SSE instructions from Gwenole.
+	Use short form for 16-bit AX instructions.  Remove _r1
+	* lightning/i386/core-64.h: Add FP ABI support in its infancy.
+	* lightning/i386/core-i386.h: Move jit_arg_f and jit_arg_d...
+	* lightning/i386/core-32.h: ... and jit_prepare_f and jit_prepare_d...
+	* lightning/i386/fp-32.h: ... here.
+	* lightning/i386/fp-64.h: Write the code.
+	* lightning/sparc/fp.h: Fix jit_extr_{f_d,d_f} register order.
+	
+2006-11-22  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Move x86-64 instructions...
+	* lightning/i386/asm-64.h: ... here.
+	* lightning/i386/fp-32.h: Fix bugfixes worked around in froofyJIT.
+	Add JIT_FPRET.
+	* lightning/sparc/fp.h: Likewise.
+	* lightning/ppc/fp.h: Likewise.
+	* lightning/fp-common.h: Adjust for JIT_FPRET.
+	* tests/funcfp.c: Adjust for JIT_FPRET.
+	* tests/rpnfp.c: Adjust for JIT_FPRET.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h:  Add an underscore to macros without
+	a parameter.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core-i386.h: Move jit_movip, jit_check8, jit_reg8,
+	jit_reg16, jit_movbrm...
+	* lightning/i386/core-32.h: ... here.
+	* lightning/i386/core-64.h: Redefine them.  Fix other bugs.
+
+	* tests/printf.c: Do not do a varargs call.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Check in rewrite from aranym.
+	* lightning/i386/asm-32.h: Adjust.
+	* lightning/i386/asm-64.h: Adjust.
+	* lightning/i386/fp-32.h: Adjust.
+
+	* lightning/i386/core-32.h: Adjust.  Add jit_{ld,ldx,st,stx}i*.
+	* lightning/i386/core-64.h: Adjust.  Add jit_{ld,ldx,st,stx}i*.
+	* lightning/i386/core-i386.h: Adjust. Remove these patterns.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm-i386.h: Merge 64-bit cleanliness changes from mzscheme.
+	Add SSE.
+	* lightning/i386/asm-64.h: Likewise.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludo@chbouib.org>
+
+	* lightning/i386/core-32.h: Disable jit_push and jit_pop if stack not needed.
+	* lightning/i386/core-64.h: Disable jit_push and jit_pop if stack not needed.
+	* lightning/sparc/core.h: Merge final implementation of jit_pushr and jit_popr.
+	* lightning/ppc/core.h: Fix implementation of jit_pushr and jit_popr to
+	work (more or less) across function calls.
+
+	* tests/push-pop.c, tests/push-pop.ok: New test.
+	* tests/Makefile.am: Run it.
+
+2006-11-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/asm-common.h: Make 64-bit safe.
+	* lightning/i386/funcs.h: Make 64-bit safe.
+
+	* lightning/i386/asm-64.h: More merge from mzscheme.
+	* lightning/i386/asm-i386.h: More merge from mzscheme.
+	* lightning/i386/core-32.h: More merge from mzscheme.
+	* lightning/i386/core-64.h: More merge from mzscheme.
+	* lightning/i386/core-i386.h: More merge from mzscheme.
+
+	* tests/rpnfp.c, tests/testfp.c, tests/funcfp.c: Skip if no floating-point
+	support.
+
+2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/rpn.c: Remove pushr/popr.
+
+2006-11-04  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Implement jit_allocai, define JIT_FP to be R1.
+	* lightning/ppc/funcs.h: Store frame size into _jitl.  Store R1 before
+	the STMW, so that the offset is unchanged when we patch the STMW.
+	* lightning/i386/core.h: Define JIT_FP to be EBP.
+	* lightning/i386/core-32.h: Implement jit_allocai, put LEAVE in the
+	epilog if jit_allocai was used.
+	* lightning/i386/core-64.h: Implement jit_allocai, put LEAVE in the
+	epilog if jit_allocai was used.
+
+2006-11-04  Ludovic Courtes  <ludo@chbouib.org>
+
+	* lightning/sparc/core.h: Implement jit_allocai.
+	* tests/allocai.c: New.
+	* tests/Makefile.am: Point to new tests.
+
+2006-11-03  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Fix jit_bms using BNE rather than BGT.
+	"AND." does signed comparisons.
+
+2006-10-31  Paolo Bonzini  <bonzini@gnu.org>
+
+	* doc/porting.texi: Rename JIT_FP to JIT_AP.
+	* lightning/core-common.h: Likewise.
+	* lightning/i386/core-i386.h: Likewise.
+	* lightning/fp-common.h: Provide default versions of jit_getarg_[fd].
+	* lightning/i386/fp-32.h: Don't provide jit_getarg_[fd].
+	* lightning/ppc/fp.h: Likewise.
+
+2006-10-31  Ludovic Courtes  <ludo@chbouib.org>
+
+        * doc/using.texi (The instruction set): Clarified the use of `JIT_RET' and
+        documented `jit_retval'.
+        * tests/ret.c (generate_function_proxy): After `jit_finish', use
+        `jit_retval_i' to move FUNC's return value into the correct register.
+
+2006-10-31  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludo@chbouib.org>
+
+	* tests/divi.c, tests/divi.ok, tests/movi.c, tests/movi.ok: New.
+	* tests/ldxi.c: Ensure large pointer is generated.
+	* tests/Makefile.am: Point to new tests.
+	* lightning.h: Include funcs-common.h before funcs.h.
+	* lightning/sparc/core.h: Fix bugs in modi/divi.
+
+2006-10-30  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/Makefile.am: Use "ln -sf".
+	* lightning/core-common.h: Define jit_negr_l if necessary.
+
+2006-10-30  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm.h (MOVS*, MOVZ*): Use correct _r[124] macros.
+
+2006-10-29  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Use lightning.m4 macros.
+	* lightning.m4: Refactor to use common code in configure.ac.  Move...
+	* build-aux/lightning.m4: ... here.
+	* lightningize.in: Support suffixes.
+	* opcode/disass.in: Adapt to changes in configure.ac.
+
+	* lightning/ppc/funcs.h: Use __APPLE__ instead of _CALL_DARWIN.
+	* lightning/i386/core-32.h: Likewise.
+
+2006-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Fix compilation test.
+	* lightning/Makefile.am: Symlink LIGHTNING_TARGET_FILES in
+	non-distribution mode.
+	* lightning/i386/Makefile.frag: Use LIGHTNING_TARGET_FILES.
+
+2006-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Subst cpu.
+	* lightning/core-common.h: Make tests pass on i386.
+	* lightning/i386/asm-32.h: Make tests pass on i386.
+	* lightning/i386/asm-64.h: Make tests pass on i386.
+	* lightning/i386/asm-i386.h: Make tests pass on i386.
+	* lightning/i386/core-32.h: Make tests pass on i386.
+	* lightning/i386/core-64.h: Make tests pass on i386.
+	* lightning/i386/core-i386.h: Make tests pass on i386.
+	* tests/Makefile.am: Include files from cpu directory.
+
+2006-10-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm.h: Move to asm-i386.h
+	* lightning/i386/asm-32.h: New, from Matthew Flatt.
+	* lightning/i386/asm-64.h: New, from Matthew Flatt.
+	* lightning/i386/core.h: Move to core-i386.h
+	* lightning/i386/core-32.h: New, from Matthew Flatt.
+	* lightning/i386/core-64.h: New, from Matthew Flatt.
+	* lightning/i386/fp.h: Move to fp-32.h
+	* lightning/i386/fp-64.h: New, dummy.
+	* lightning/i386/Makefile.frag: New.
+	* lightning/Makefile.am: Support per-target Makefile fragments.
+	* configure.ac: Support per-target Makefile fragments and CPU suffixes.
+
+2006-10-16  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/i386.h (jit_flush_code): Fix syntax error. :-(
+
+2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludovic.courtes@laas.fr>
+
+	* doc/using.texi: Clarify "Using autoconf" section
+	and rename it to "Bundling lightning"
+	* lightning.m4: Work also if lightning is not bundled.
+
+2006-07-06  Paolo Bonzini  <bonzini@gnu.org>
+	    Ludovic Courtes  <ludovic.courtes@laas.fr>
+
+	* lightning/ppc/core.h (_jit_mod): Replace with...
+	(_jit_mod_big, _jit_mod_small): ... these.
+	(jit_modi_i, jit_modi_ui): Rewrite.
+	* tests/modi.c, tests/modi.ok: New tests.
+
+2006-05-18  Matthew Flatt  <mflatt@cs.utah.edu>
+
+	* lightning/i386/asm.h: Fix test for extending the mprotect area
+	towards lower addresses.
+
+2006-05-16  Bruno Haible  <bruno@clisp.org>
+
+	* lightning/asm-common.h: Don't use __func__ nor __FUNCTION__ if
+	not compiling with GNU C.
+
+2006-02-16  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Fix jit_ldxi_* with big displacement.
+
+2006-01-23  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.ac: Fix comments in config.h.in.
+	
+2005-11-25  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Fix header comment.
+	* lightning/ppc/fp.h: Fix header comment.
+
+2005-04-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/asm.h (JCm, JCSm, JNCm, JNCSm): New.
+
+2004-11-26  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h (_jit_epilog): Remove unused variable.
+
+2004-11-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/funcs.h [__linux__]: Include sys/mman.h.
+
+2004-11-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Fix fp-to-integer conversions.
+	* lightning/ppc/testfp.c: Test fp-to-integer conversions
+	of integer numbers.
+	* lightning/ppc/testfp.ok: Adjust for the above.
+
+2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/testfp.c: Always flush code before
+	testing it.
+
+2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/fp.h: Do not clobber f31.
+
+2004-11-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning.h: New name of...
+	* lightning-inst.h: ... this file.
+	* lightning.h.in: Removed.
+
+	* opcodes/disass.c: Include config.h.
+	* tests/add.c: Include config.h.
+	* tests/bp.c: Include config.h.
+	* tests/fib.c: Include config.h.
+	* tests/fibdelay.c: Include config.h.
+	* tests/fibit.c: Include config.h.
+	* tests/funcfp.c: Include config.h.
+	* tests/incr.c: Include config.h.
+	* tests/printf.c: Include config.h.
+	* tests/printf2.c: Include config.h.
+	* tests/rpn.c: Include config.h.
+	* tests/rpnfp.c: Include config.h.
+	* tests/testfp.c: Include config.h.
+
+2004-10-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp.h: Fix bugs in conditional branches.
+
+2004-10-10  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/funcs.h: Fix pasto in jit_flush_code.
+
+2004-10-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/fp.h: Optimized conditional branches.
+
+2004-09-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/asm.h: Fix more typos.
+
+2004-09-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/asm.h: Fix typos, replace `26' with JIT_AUX.
+
+2004-09-20  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/fp.h: Added conditional branches.
+
+2004-09-18  Laurent Michel  <ldm@thorgal.homelinux.org>
+
+	* lightning/ppc/fp.h (jit_unler_d, jit_unltr_d, jit_unger_d,
+	jit_ungtr_d, jit_ltgt_d, jit_uneq_d): Implemented missing tests
+	to fully support testfp.
+	(jit_floorr_d_i, jit_ceilr_d_i, jit_roundr_d_i, jit_truncr_d_i):
+	New macros.
+	* lightning/ppc/asm.h: Added missing opcodes FCTIWZ and MTFSFI.
+	* lightning/ppc/funcs.h (_jit_prolog): Fixed minor mistake in
+	the initialization of _jitl.nextarg_geti, relying on the
+	JIT_AUX macro as well to get the register offset.
+
+2004-09-07  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Fix typo.
+
+2004-09-06  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/funcfp.c: Use %g.  Remove C99 variable declarations.
+	* tests/testfp.c: Don't use __builtin_nan.
+
+	* lightning/ppc/core.h: Add three V registers.
+	* lightning/ppc/funcs.h: Adjust.
+
+	* lightning/sparc/core.h: Some fixes related to FP argument passing.
+	Move R0 to %g2, use %o7 for JIT_BIG2.
+	* lightning/sparc/fp.h: Some fixes related to FP argument passing.
+
+2004-09-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/core.h: Add another V register,
+	move R0 to %o7.
+
+2004-07-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/funcs.h: Implement jit_flush_code,
+	in order to support Fedora's exec-shield.
+
+2004-07-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/core-common.h: Add more jit_extr_*_* macros.
+	* lightning/doc/using.texi: Be clearer about the order
+	of arguments in jit_extr_*_*.
+	* lightning/doc/porting.texi: Add more jit_extr_*_* macros.
+	* lightning/i386/fp.h: Fix typo in jit_extr_i_d.
+
+2004-07-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Adjust offset of LR into
+	stack frame if running under the Darwin ABI.
+
+2004-07-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp.h: Rename jit_exti_d to jit_extr_i_d.
+
+2004-07-13  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/core.h: Fix thinko.
+
+	* lightning/i386/core.h: Fix jit_lti_ui.
+	* lightning/core-common.h: Add missing macros.
+
+	* lightning/ppc/fp.h: Rename jit_neg_* to jit_negr_*.
+	* lightning/i386/fp.h: Rename jit_neg_* to jit_negr_*.
+	* lightning/sparc/fp.h: Rename jit_neg_* to jit_negr_*.
+	* lightning/fp-common.h: Rename jit_neg_* to jit_negr_*.
+	* doc/porting.texi: Add undocumented macros.
+
+2004-07-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* doc/porting.texi: Add missing macros.
+
+2004-07-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Don't generate trampolines.
+	Separate prolog and epilog generation.
+	* lightning/ppc/core.h: Generate epilog explicitly.
+	Don't reserve r31 anymore.
+	* lightning/core-common.h: Remove call to jit_setup_code.
+
+2004-07-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/lightning.h.in: Avoid preprocessor warnings.
+	* lightning/lightning-inst.h: Likewise.
+
+	* lightning/i386/core.h: Define JIT_R, JIT_R_NUM, JIT_V,
+	JIT_V_NUM.
+	* lightning/ppc/core.h: Likewise.
+	* lightning/sparc/core.h: Likewise.
+	* lightning/i386/fp.h: Define JIT_FPR, JIT_FPR_NUM.
+	* lightning/ppc/fp.h: Likewise.
+	* lightning/sparc/fp.h: Likewise.
+	* lightning/core-common.h: Define fixed register names.
+	* lightning/fp-common.h: Likewise for FP regs.
+
+2004-07-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/ppc/funcs.h: Fix location where return address
+	is stored.
+	* lightning/i386/asm.h: Add a trailing _ to opcodes without
+	any parameter.
+	* lightning/i386/core.h: Adjust for the above.
+
+2004-04-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/fp.h: Change "and" to "_and"
+	to satisfy C++ compilers.
+
+2004-04-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Use memcpy to implement jit_movi.
+	* lightning/ppc/fp.h: Use memcpy to implement jit_movi.
+	Move floating-point opcodes...
+	* lightning/ppc/asm.h: ... here.
+
+2004-04-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/core-common.h: Add jit_finishr.
+	* lightning/ppc/core.h: Add jit_callr and jit_finishr.
+	* lightning/i386/core.h: Add jit_callr.
+	* lightning/sparc/core.h: Add jit_callr.  Fix typo.
+
+2004-04-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: Fix pasto in jit_b*_ui.
+
+2004-03-30  Laurent Michel
+
+	* lightning/ppc: Implement PowerPC floating point
+	(ChangeLog entry missing).
+
+2004-03-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/fp-common.h: Load/store macros are not the
+	same for floats and doubles anywhere, but jit_retval may be.
+	* lightning/i386/asm.h: Fix = mistaken for == in ESCrri.
+	* lightning/i386/core.h: Fix typo in jit_prepare_[fd].
+	* lightning/i386/fp.h: Rewritten.
+	* tests/testfp.c: Add tests for unordered comparisons.
+	* tests/testfp.ok: Add results.
+
+2004-03-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	Merge changes from Laurent Michel.
+
+	* lightning/asm-common.h: Add _jit_I_noinc.
+	* lightning/core-common.h: Support jit_init,
+	jit_setup_code, jit_patch_at.  Return patchable IP from
+	jit_movi_p.
+	* lightning/funcs-common.h: Provide defaults
+	for jit_setup_code, jit_start_pfx, jit_end_pfx
+	* lightning/i386/core.h: Add jit_patch_at, jit_patch_movi.
+	* lightning/ppc/core.h: Likewise.
+	* lightning/sparc/core.h: Likewise.
+	* lightning/ppc/asm.h: Fix generation of branch destination
+	displacements in _FB and _BB
+	* lightning/ppc/core.h: Generate trampolines in the user
+	area.
+	* lightning/ppc/funcs.h: Add a few casts.
+	* tests/bc.c: New testcase.
+
+	* lightning/i386/asm.h: Wrap into #ifndef LIGHTNING_DEBUG.
+	* lightning/ppc/asm.h: Wrap into #ifndef LIGHTNING_DEBUG.
+	* lightning/sparc/asm.h: Wrap into #ifndef LIGHTNING_DEBUG.
+
+
+2004-03-09  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/sparc/fp.h: Rewrite.  Move macros for
+	FP code generation...
+	* lightning/sparc/asm.h: ... here.
+	* lightning/sparc/core.h: Rename jit_prepare to
+	jit_prepare_i, jit_retval to jit_retval_i.
+	* lightning/ppc/core.h: Rename jit_prepare to
+	jit_prepare_i, jit_retval to jit_retval_i.
+	* lightning/i386/core.h: Rename jit_prepare to
+	jit_prepare_i, jit_retval to jit_retval_i.
+	* lightning/core-common.h: Provide backwards
+	compatible synonyms for the above.
+	* lightning/fp-common.h: Rewrite.
+	* lightning-inst.h: Include fp unconditionally.
+	* lightning.h.in: Include fp unconditionally.
+	* tests/Makefile.am: Enable fp tests.
+	* tests/fib.c: Use jit_retval_i.
+	* tests/fibit.c: Cast codeBuffer to char *.
+	* tests/funcfp.c: Use new fp macros.
+	* tests/printf.c: Use jit_retval_i.
+	* tests/rpnfp.c: Use new fp macros.
+	* tests/testfp.c: Use new fp macros.
+
+2004-03-02  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: generate correct code when
+	doing lt/le/ge/etc. on ESI and EDI.  Use MOVZX/MOVSX
+	where possible.
+	* lightning/i386/asm.h: Add macros for MOVZX/MOVSX.
+	Move macros for x87 here, and add many of them.
+	* lightning/i386/fp.h: Use new macros for x87.
+
+2004-02-06  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: avoid generating MOV reg, reg.
+	* lightning/sparc/core.h: fix several bugs.
+	* lightning/ppc/core.h: fix several bugs.
+	* tests/rpn.c: rewritten.
+
+2004-01-08  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/rpnfp.c: new example, suggested by Basile
+	Starynkevitch.
+	* tests/rpnfp.ok: new example.
+
+2003-12-12  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/add.c: new test, suggested by Steve Dekorte.
+	* tests/add.c: new test.
+
+2003-11-14  Paolo Bonzini  <bonzini@gnu.org>
+	    John Redford <eirenik@hotmail.com>
+
+	* lightning/asm-common.h: change the 'pc' field of _jit to
+	be a union of various data types, because ISO C99 doesn't
+	permit using ++ on a = cast.  Change the incremented casts of
+	_jit.pc to be _jit.x.uc_pc, _jit.x.us_pc, etc.
+	* all files: change all non-cast instances of _jit.pc to be
+	_jit.x.pc.
+	* lightning/i386/core.h: remove casts from jit_might.
+
+2003-05-25  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: use JITSORRY in jit_replace
+	* lightning/asm-common.h: define JITSORRY
+
+2003-05-14  Paolo Bonzini  <bonzini@gnu.org>
+
+	* lightning/i386/core.h: fix missing comma in several
+	load/store macros.
+	* lightning/core-common.h: fix long/unsigned long/pointer
+	jit_pushr/jit_popr.
+	* lightning/ppc/funcs.h: correctly align stack pointer
+
+No changelogs for the assemblers (lightning directory) until 1.0
+	
+2003-03-27  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/printf2.c: new test
+
+2001-05-03  Paolo Bonzini  <bonzini@gnu.org>
+
+	* tests/printf.c: made the message platform independent
+
+2001-01-19  Paolo Bonzini  <bonzini@gnu.org>
+
+	* configure.in: support cross-assembling
+	
+	* disass/bfd.h, disass/dis-asm.h, disass/dis-buf.c,
+	disass/i386-dis.c, disass/i386.h, disass/ppc-dis.c,
+	disass/ppc.h, disass/ppc-opc.c, disass/sparc-dis.c,
+	disass/sparc.h, disass/sparc-opc.c: new files, from GDB
+
+	* disass/disass.c, disass/Makefile.am: new files
+
+	* tests/fib.c, tests/fibit.c, tests/incr.c, tests/printf.c,
+	tests/rpn.c, tests/testfp.c, tests/Makefile.am: support
+	disassembling

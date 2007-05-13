@@ -282,6 +282,12 @@ void _nmc_start() {
   }
   
 #else
+
+  if(n->method->stub) {
+    retval = n->method->stub(recv);
+    goto done;
+  }
+
   rni_handle* (*func)() = (rni_handle* (*)())(n->method->entry);
   int hs, ch;
   if(n->method->args == -2) {
@@ -363,6 +369,8 @@ void _nmc_start() {
     }
   }
 #endif
+  
+done:
   
   /*
   if(args) free(args);
@@ -483,8 +491,8 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
       
     case ALL_DONE:
       /* Push the return value onto the stack. */
-      stack_push(handle_to_object(global_context->state, 
-                global_context->state->handle_tbl, n->value));
+      tmp = handle_to_object(global_context->state, global_context->state->handle_tbl, n->value);
+      stack_push(tmp);
       nmc_cleanup(n, state->handle_tbl);
       n->stack = NULL;
       if(n->setup_context) {

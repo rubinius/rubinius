@@ -1,0 +1,306 @@
+@ifinfo
+@dircategory @lightning{}, a library for dynamic code generation
+@direntry
+     * @value{TITLE}: (lightning).
+@end direntry
+
+This file documents GNU lightning, Version @value{VERSION}.
+It was last updated on @value{UPDATED}.
+
+Copyright @copyright{} 2000 Free Software Foundation, Inc.
+Authored by Paolo Bonzini.
+
+This document is released under the terms of the GNU Free Documentation
+License as published by the Free Software Foundation; either version 1.1, or
+(at your option) any later version.
+
+You should have received a copy of the GNU Free Documentation License along
+with GNU lightning; see the file @file{COPYING.DOC}.  If not, write to the Free
+Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
+
+There are no Secondary Sections, no Cover Texts and no Invariant Sections
+(as defined in the license); this text, along with its equivalent in the
+printed manual, constitutes the Title Page.
+@end ifinfo
+
+@setchapternewpage odd
+
+@titlepage
+@title @value{TITLE}
+@subtitle Version @value{VERSION}
+@subtitle @value{UPDATE-MONTH}
+
+@author by Paolo Bonzini
+
+@c  The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+Copyright 1988-92, 1994-95, 1999, 2000 Free Software Foundation, Inc.
+
+This document is released under the terms of the @sc{gnu} Free Documentation
+License as published by the Free Software Foundation; either version 1.1, or
+(at your option) any later version.
+
+You should have received a copy of the @sc{gnu} Free Documentation License
+along with @sc{gnu} @i{lightning}; see the file @file{COPYING.DOC}.  If not,
+write to the Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.  
+
+There are no Secondary Sections, no Cover Texts and no Invariant Sections
+(as defined in the license); this text, along with its equivalent in the
+Info documentation, constitutes the Title Page.
+@end titlepage
+
+@ifnottex
+@node Top
+@top @lightning{}
+
+This document describes @value{TOPIC} the @lightning{} library for
+dynamic code generation.  Unlike other dynamic code generation systems,
+which are usually either inefficient or non-portable, @lightning{} is
+both retargetable and very fast.
+
+@include toc.texi
+@end ifnottex
+
+@node Overview
+@chapter Introduction to @lightning{}
+
+@iftex
+This document describes @value{TOPIC} the @lightning{} library for
+dynamic code generation.  Unlike other dynamic code generation systems,
+which are usually either inefficient or non-portable, @lightning{} is
+both retargetable and very fast.
+@end iftex
+
+@ifclear USING
+This manual assumes that you are pretty comfortable with the usage of
+@lightning{} for dynamic code generation, as described in
+@usingref{The instruction set, @lightning{}'s instruction set}, and
+instead focuses on the retargeting process.  What follows is nothing
+more then a brief overview of the system.
+@end ifclear
+
+Dynamic code generation is the generation of machine code 
+at runtime. It is typically used to strip a layer of interpretation 
+by allowing compilation to occur at runtime.  One of the most
+well-known applications of dynamic code generation is perhaps that
+of interpreters that compile source code to an intermediate bytecode
+form, which is then recompiled to machine code at run-time: this
+approach effectively combines the portability of bytecode
+representations with the speed of machine code.  Another common
+application of dynamic code generation is in the field of hardware
+simulators and binary emulators, which can use the same techniques
+to translate simulated instructions to the instructions of the 
+underlying machine.
+
+Yet other applications come to mind: for example, windowing
+@dfn{bitblt} operations, matrix manipulations, and network packet
+filters.  Albeit very powerful and relatively well known within the
+compiler community, dynamic code generation techniques are rarely
+exploited to their full potential and, with the exception of the
+two applications described above, have remained curiosities because
+of their portability and functionality barriers: binary instructions
+are generated, so programs using dynamic code generation must be
+retargeted for each machine; in addition, coding a run-time code
+generator is a tedious and error-prone task more than a difficult one.
+
+@ifset USING
+This manual describes the @lightning{} dynamic code generation library.
+@lightning{} provides a portable, fast and easily retargetable dynamic
+code generation system. 
+@end ifset
+@ifclear USING
+@lightning{} provides a portable, fast and easily retargetable dynamic
+code generation system. 
+@end ifclear
+
+To be fast, @lightning{} emits machine code without first creating
+intermediate data structures such as RTL representations traditionally
+used by optimizing compilers (@pxref{RTL representation, , , gcc, Using
+and porting GNU CC}).  @lightning{} translates code directly from a
+machine independent interface to that of the underlying architecture.
+This makes code generation more efficient, since no intermediate data
+structures have to be constructed and consumed.  A collateral benefit
+it that @lightning{} consumes little space: other than the memory
+needed to store generated instructions and data structures such as
+parse trees, the only data structure that client will usually need
+is an array of pointers to labels and unresolved jumps, which you
+can often allocate directly on the system stack.
+
+To be portable, @lightning{} abstracts over current architectures'
+quirks and unorthogonalities.  The interface that it exposes to is that
+of a standardized RISC architecture loosely based on the SPARC and MIPS
+chips.  There are a few general-purpose registers (six, not including
+those used to receive and pass parameters between subroutines), and
+arithmetic operations involve three operands---either three registers
+or two registers and an arbitrarily sized immediate value.
+
+On one hand, this architecture is general enough that it is possible to
+generate pretty efficient code even on CISC architectures such as the
+Intel x86 or the Motorola 68k families.  On the other hand, it matches
+real architectures closely enough that, most of the time, the
+compiler's constant folding pass ends up generating code which
+assembles machine instructions without further tests.
+
+@section Drawbacks
+
+@lightning{} has been useful in practice; however, it does have
+at least four drawbacks: it has limited registers, no peephole
+optimizer, no instruction scheduler and no symbolic debugger. Of
+these, the last is the most critical even though it does not
+affect the quality of generated code: the only way to debug code
+generated at run-time  is to step through it at the level of
+host specific machine code.  A decent knowledge of the underlying
+instruction set is thus needed to make sense of the debugger's
+output.
+
+The low number of available registers (six) is also an important
+limitation.  However, let's take the primary application of dynamic
+code generation, that is, bytecode translators.  The underlying
+virtual machines tend to have very few general purpose registers
+(usually 0 to 2) and the translators seldom rely on sophisticated
+graph-coloring algorithms to allocate registers to temporary
+variables.  Rather, these translators usually obtain performance
+increases because: a) they remove indirect jumps, which are usually
+poorly predicted, and thus often form a bottleneck, b) they
+parameterize the generated code and go through the process of decoding
+the bytecodes just once.  So, their usage of registers is rather
+sparse---in fact, in practice, six registers were found to be
+enough for most purposes.
+
+The lack of a peephole optimizer is most important on machines where a 
+single instruction can map to multiple native instructions.  For
+instance, Intel chips' division instruction hard-codes the dividend
+to be in EAX and the quotient and remainder to be output, respectively,
+in EAX and EDX: on such chips, @lightning{} does lots of pushing and
+popping of EAX and EDX to save those registers that are not used.  
+Unnecessary stack operations could be removed by looking at whether
+preserved registers are destroyed soon.  Unfortunately, the current 
+implementation of @lightning{} is so fast because it only knows about
+the single instruction that is being generated; performing these
+optimizations would require a flow analysis pass that would probably
+hinder @lightning{}'s speed.
+
+The lack of an instruction scheduler is not very important---pretty
+good instruction scheduling can actually be obtained by separating
+register writes from register reads.  The only architectures on which
+a scheduler would be useful are those on which arithmetic instructions
+have two operands; an example is, again, the x86, on which the single
+instruction
+@example
+    subr_i  R0, R1, R2       @rem{!Compute R0 = R1 - R2}
+@end example
+@noindent
+is translated to two instruction, of which the second depends on the
+result of the first:
+@example
+    movl    %ebx, %eax       @rem{! Move R1 into R0}
+    subl    %edx, %eax       @rem{! Subtract R2 from R0}
+@end example
+
+@ifset BOTH
+@node Using GNU lightning
+@chapter Using @lightning{}
+
+This chapter describes installing and using @lightning{}.
+
+@menu
+@usingmenu{}
+@end menu
+
+@lowersections
+@end ifset
+
+@ifset USING
+@include using.texi
+@end ifset
+
+@ifset BOTH
+@raisesections
+
+@node Porting GNU lightning
+@chapter Porting @lightning{}
+
+This chapter describes the process of porting @lightning{}.
+It assumes that you are pretty comfortable with the usage of
+@lightning{} for dynamic code generation, as described in
+@ref{Using GNU lightning}.
+
+@menu
+@portingmenu{}
+@end menu
+
+@lowersections
+@end ifset
+
+@ifset PORTING
+@include porting.texi
+@end ifset
+
+@ifset BOTH
+@raisesections
+@end ifset
+
+@node Future
+@chapter The future of @lightning{}
+
+Presented below is the set of tasks that I feel need to be performed
+to make @lightning{} a more fully functional, viable system.  They are
+presented in no particular order.  I would @emph{very much} welcome any
+volunteers who would like to help with the implementation of one or
+more of these tasks.  Please write to me, Paolo Bonzini, at
+@email{bonzini@@gnu.org} if you are interested in adding your efforts
+to the @lightning{} project.
+
+Tasks:
+@itemize @bullet
+@item
+The most important task to make @lightning{} more widely usable
+is to retarget it.  Although currently supported architectures
+(x86, SPARC, PowerPC) are certainly some of the most widely used,
+@lightning{} could be ported to others---namely, the Alpha and
+MIPS architectures.
+
+@item
+Another interesting task is to allow the instruction stream to grow
+dynamically.  This is a problem because not all architectures allow
+to write position independent code.@footnote{The x86's absolute
+jumps, for example, are actually slow indirect jumps, and need a
+register.}
+
+@item
+Optimize leaf procedures on the SPARC.  This involves using the
+output registers (@code{%o@i{X}}) instead of the local registers
+(@code{%l@i{X}}) when writing leaf procedures;  the problem is,
+leaf procedures also receive parameters in the output registers,
+so they would be overwritten by write accesses to general-purpose
+registers.
+@end itemize
+
+
+@node Acknowledgements
+@chapter Acknowledgements
+
+As far as I know, the first general-purpose portable dynamic code
+generator is @sc{dcg}, by Dawson R.@: Engler and T.@: A.@: Proebsting.
+Further work by Dawson R. Engler resulted in the @sc{vcode} system;
+unlike @sc{dcg}, @sc{vcode} used no intermediate representation and
+directly inspired @lightning{}.
+
+Thanks go to Ian Piumarta, who kindly accepted to release his own
+program @sc{ccg} under the GNU General Public License, thereby allowing
+@lightning{} to use the run-time assemblers he had wrote for @sc{ccg}.
+@sc{ccg} provides a way of dynamically assemble programs written in the
+underlying architecture's assembly language.  So it is not portable,
+yet very interesting.
+
+I also thank Steve Byrne for writing GNU Smalltalk, since @lightning{}
+was first developed as a tool to be used in GNU Smalltalk's dynamic
+translator from bytecodes to native code.
+
+@iftex
+@contents
+@end iftex
+
+@bye

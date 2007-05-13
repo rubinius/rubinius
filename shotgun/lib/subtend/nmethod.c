@@ -2,6 +2,7 @@
 #include "nmethod.h"
 #include "symbol.h"
 #include "object.h"
+#include "ffi.h"
 
 #ifdef USE_CINVOKE
 #include <cinvoke.h>
@@ -41,6 +42,8 @@ OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int ar
 
   sys_nm->entry = func;
   sys_nm->args = args;
+    
+  sys_nm->stub = ffi_generate_c_stub(state, args, func);
   
   nm = nmethod_allocate(state);
   cmethod_set_primitive(nm, I2N(CPU_PRIMITIVE_NMETHOD_CALL));

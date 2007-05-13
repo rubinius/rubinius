@@ -13,4 +13,9 @@ context "SubtendArray" do
   specify "rb_ary_push should add an element to an array" do
     @s.rb_ary_push([], 4).should == [4]
   end
+  
+  specify "rb_ary_push2 should add elements to an array" do
+    o = Object.new
+    @s.rb_ary_push2([], 4, o).should == [4,o]
+  end
 end

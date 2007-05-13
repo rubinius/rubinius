@@ -28,7 +28,7 @@ endif
 
 DEPS=../include/rubinius.h
 
-ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
+ALIBS=external_libs/lightning/opcode/libdisass.a external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
 
 LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
 LDFLAGS=
@@ -74,6 +74,9 @@ config.h:
 %.lo: %.c $(DEPS)
 	$(COMP) $(CFLAGS) -c $< 
 
+external_libs/lightning/opcode/libdisass.a:
+	cd external_libs/lightning; ./configure --enable-disassembling; $(MAKE)
+
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
 
@@ -92,7 +95,7 @@ external_libs/libevent/.libs/libevent.a:
 external_libs/libltdl/.libs/libltdl.a:
 	cd external_libs/libltdl; CFLAGS=-fPIC ./configure; $(MAKE)
 
-librubinius.la: config.h $(ALIBS)
+librubinius.la: config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) librubinius.la
 
 .PHONY: librubinius.a

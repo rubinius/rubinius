@@ -2,8 +2,9 @@
 
 # Respect ENV
 ifeq ($(CC),)
-	CC=gcc
+   CC=gcc
 endif
+
 
 COMP=$(LIBTOOL) --mode=compile $(CC)
 LINKER=$(LIBTOOL) --mode=link $(CC)
@@ -16,11 +17,11 @@ else
   SINGLE_MODULE=
 endif
 
-CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl `pkg-config glib-2.0 --cflags`
+CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl `pkg-config glib-2.0 --cflags`
 
 WARNINGS=-Wall -Winline
 
-LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
+LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
 
 ifdef USE_CINVOKE
 CPPFLAGS+= -I../external_libs/cinvoke/lib
@@ -64,7 +65,7 @@ show_info:
 
 %.lo: %.c
 	@echo "CC $@"
-	@$(COMP) $(CFLAGS) -c $< -o $@
+	$(COMP) $(CFLAGS) -c $< -o $@
 
 subtend/PortableUContext_asm.lo:
 	$(COMP) $(CFLAGS) -c subtend/PortableUContext_asm.S -o subtend/PortableUContext_asm.lo
@@ -96,6 +97,10 @@ auto.h auto.c: genheader.rb
 grammar.lo:
 	@echo "CC grammar.o"
 	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c
+
+subtend/ffi.lo: subtend/ffi.c
+	@echo "CC subtend/ffi.o"
+	$(COMP) $(CFLAGS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
 
 grammar.c:
 	bison -o grammar.c grammar.y

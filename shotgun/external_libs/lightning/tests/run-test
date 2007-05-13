@@ -1,0 +1,13 @@
+#! /bin/sh
+
+./$1 > $1.log
+if test $? = 77; then
+  exit 77
+fi
+
+if cmp -s $srcdir/$1.ok $1.log; then
+  rm $1.log
+else
+  diff $srcdir/$1.ok $1.log
+  exit 1
+fi

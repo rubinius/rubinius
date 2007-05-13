@@ -1,0 +1,1600 @@
+@node Structure of a port
+@chapter An overview of the porting process
+
+A particular port of @lightning{} is composed of four files. These
+have a common suffix which identifies the port (for example,
+@code{i386} or @code{ppc}), and a prefix that identifies their
+function; they are:
+
+@itemize @bullet
+@item
+@file{asm-@var{suffix}.h}, which contains the description of the
+target machine's instruction format.  The creation of this file
+is discussed in @ref{Run-time assemblers, , Creating the run-time
+assembler}.
+
+@item
+@file{core-@var{suffix}.h}, which contains the mappings from
+@lightning{}'s instruction set to the target machine's assembly
+language format.  The creation of this file is discussed in
+@ref{Standard macros, , Creating the platform-independent layer}.
+
+@item
+@file{funcs-@var{suffix}.h}, for now, only contains the definition
+of @code{jit_flush_code}. The creation of this file is briefly
+discussed in @ref{Standard functions, , More complex tasks in
+the platform-independent layer}.
+
+@item
+@file{fp-@var{suffix}.h}, which contains the description of the
+target machine's instruction format and the internal macros for doing
+floating point computation. The creation of this file is discussed
+in @ref{Floating-point macros, , Implementing macros for floating
+point}.
+@end itemize
+
+Before doing anything, you have to add the ability to recognize the
+new port during the configuration process.  This is explained in
+@ref{Adjusting configure, , Automatically recognizing the new platform}.
+
+@node Adjusting configure
+@chapter Automatically recognizing the new platform
+
+Before starting your port, you have to add the ability to recognize the
+new port during the configure process.  You only have to run
+@file{config.guess}, which you'll find in the main distribution
+directory, and note down the first part of the output (up to the first
+dash).
+
+Then, in the two files @file{configure.in} and @file{lightning.m4},
+lookup the line
+@example
+    case "$host_cpu" in
+@end example
+
+@noindent
+and, right after it, add the line:
+@example
+    @var{cpu-name})  cpu=@var{file-suffix}           ;;
+@end example
+
+@noindent
+where @var{cpu-name} is the cpu as output by @file{config.guess}, and
+@var{file-suffix} is the suffix that you are going to use for your files
+(@pxref{Structure of a port, , An overview of the porting process}).
+
+Now create empty files for your new port:
+@example
+    touch lightning/asm-xxx.h
+    touch lightning/fp-xxx.h
+    touch lightning/core-xxx.h
+    touch lightning/funcs-xxx.h
+@end example
+
+@noindent
+and run @file{configure}, which should create the symlinks that are
+needed by @code{lightning.h}.  This is important because it will allow
+you to use @lightning{} (albeit in a limited way) for testing even
+before the port is completed.
+
+@node Run-time assemblers
+@chapter Creating the run-time assembler
+
+The run-time assembler is a set of macros whose purpose is to assemble
+instructions for the target machine's assembly language, translating
+mnemonics to machine language together with their operands.  While a
+run-time assembler is not, strictly speaking, part of @lightning{}
+(it is a private layer to be used while implementing the standard
+macros that are ultimately used by clients), designing a run-time
+assembler first allows you to think in terms of assembly language
+rather than binary code (ouch!@dots{}), making it considerably easier
+to write the standard macros.
+
+Creating a run-time assembler is a tedious process rather than a
+difficult one, because most of the time will be spent collecting and
+copying information from the architecture's manual.
+
+Macros defined by a run-time assembler are conventionally named after
+the mnemonic and the type of its operands.  Examples took from the
+SPARC's run-time assembler are @code{ADDrrr}, a macro that assembles
+an @code{ADD} instruction with three register operands, and
+@code{SUBCCrir}, which assembles a @code{SUBCC} instruction whose second
+operand is an immediate and the remaining two are registers.
+
+The first step in creating the assembler is to pick a convention for
+operand specifiers (@code{r} and @code{i} in the example above) and for
+register names.  On the SPARC, this convention is as follows
+
+@table @code
+@item @b{r}
+A register name.  For every @code{r} in the macro name, a numeric
+parameter @code{RR} is passed to the macro, and the operand is assembled
+as @code{%r@var{RR}}.
+
+@item @b{i}
+An immediate, usually a 13-bit signed integer (with exception for
+instructions such as @code{SETHI} and branches).  The macros check
+the size of the passed parameter if @lightning{} is configured with
+@code{--enable-assertions}.
+
+@item @b{x}
+A combination of two @code{r} parameters, which are summed to determine
+the effective address in a memory load/store operation.
+
+@item @b{m}
+A combination of an @code{r} and @code{i} parameter, which are summed to
+determine the effective address in a memory load/store operation.
+@end table
+
+Additional macros can be defined that provide easier access to register
+names.  For example, on the SPARC, @code{_Ro(3)} and @code{_Rg(5)} map
+respectively to @code{%o3} and @code{%g5}; on the x86, instead, symbolic
+representations of the register names are provided (for example,
+@code{_EAX} and @code{_EBX}).
+
+CISC architectures sometimes have registers of different sizes--this is
+the case on the x86 where @code{%ax} is a 16-bit register while
+@code{%esp} is a 32-bit one.  In this case, it can be useful to embed
+information on the size in the definition of register names.  The x86
+machine language, for example, represents all three of @code{%bh},
+@code{%di} and @code{%edi} as 7; but the x86 run-time assemblers defines
+them with different numbers, putting the register's size in the upper
+nybble (for example, @samp{17h} for @code{%bh} and @samp{27h} for
+@code{%di}) so that consistency checks can be made on the operands'
+sizes when @code{--enable-assertions} is used.
+
+The next important part defines the native architecture's instruction
+formats.  These can be as few as ten on RISC architectures, and as many
+as fifty on CISC architectures.  In the latter case it can be useful
+to define more macros for sub-formats (such as macros for different
+addressing modes) or even for sub-fields in an instruction.  Let's see
+an example of these macros.
+
+@example
+#define _2i( OP, RD, OP2, IMM)
+        _I((_u2 (OP )<<30)  |  (_u5(RD)<<25)  |  (_u3(OP2)<<22)  |
+            _u22(IMM)                                            )
+@end example
+
+The name of the macro, @code{_2i}, indicates a two-operand instruction
+comprising an immediate operand.  The instruction format is:
+
+@example
+ .------.---------.------.-------------------------------------------.
+ |  OP  |   RD    | OP2  |               IMM                         |
+ |------+---------+------+-------------------------------------------|
+ |2 bits|  5 bits |3 bits|             22 bits                       |
+ |31-30 |  29-25  | 22-24|              0-21                         |
+ '------'---------'------'-------------------------------------------'
+@end example
+
+@lightning{} provides macros named @code{_sXX(OP)} and @code{_uXX(OP)},
+where XX is a number between 1 and 31, which test@footnote{Only when
+@code{--enable-assertions} is used.} whether @code{OP} can be
+represented as (respectively) a signed or unsigned integer of the
+given size.  What the macro above does, then, is to shift and @sc{or}
+together the different fields, ensuring that each of them fits the field.
+
+Here is another definition, this time for the PowerPC architecture.
+
+@example
+#define _X(OP,RD,RA,RB,XO,RC)
+        _I((_u6 (OP)<<26)  |  (_u5(RD)<<21)  |  (_u5(RA)<<16)  |
+           ( _u5(RB)<<11)  |  (_u10(XO)<<1)  |   _u1(RC)       )
+@end example
+
+Here is the bit layout corresponding to this instruction format:
+
+@example
+ .--------.--------.--------.--------.---------------------.-------.
+ |    OP  |   RD   |   RA   |   RB   |           X0        |   RC  |
+ |--------+--------+--------+--------+-----------------------------|
+ | 6 bits | 5 bits | 5 bits | 5 bits |         10 bits     | 1 bit |
+ | 31-26  | 25-21  | 16-20  | 11-15  |         1-10        |   0   |
+ '--------'---------'-------'--------'-----------------------------'
+@end example
+
+How do these macros actually generate code? The secret lies in the
+@code{_I} macro, which is one of four predefined macros which actually
+store machine language instructions in memory.  They are @code{_B},
+@code{_W}, @code{_I} and @code{_L}, respectively for 8-bit, 16-bit,
+32-bit, and @code{long} (either 32-bit or 64-bit, depending on the
+architecture) values.
+
+Next comes another set of macros (usually the biggest) which represents
+the actual mnemonics---macros such as @code{ADDrrr} and @code{SUBCCrir},
+which were cited earlier in this chapter, belong to this set.  Most of
+the times, all these macros will do is to use the ``instruction format''
+macros, specifying the values of the fields in the different instruction
+formats.  Let's see a few of these definitions, again taken from the
+SPARC assembler:
+
+@example
+#define BAi(DISP)                       _2   (0, 0,  8, 2, DISP)
+#define BA_Ai(DISP)                     _2   (0, 1,  8, 2, DISP)
+
+#define SETHIir(IMM, RD)                _2i  (0, RD, 4, IMM)
+
+#define ADDrrr(RS1, RS2, RD)            _3   (2, RD,  0, RS1, 0, 0, RS2)
+#define ADDrir(RS1, IMM, RD)            _3i  (2, RD,  0, RS1, 1,    IMM)
+#define ADDCCrrr(RS1, RS2, RD)          _3   (2, RD, 16, RS1, 0, 0, RS2)
+#define ADDCCrir(RS1, IMM, RD)          _3i  (2, RD, 16, RS1, 1,    IMM)
+#define ANDrrr(RS1, RS2, RD)            _3   (2, RD,  1, RS1, 0, 0, RS2)
+#define ANDrir(RS1, IMM, RD)            _3i  (2, RD,  1, RS1, 1,    IMM)
+#define ANDCCrrr(RS1, RS2, RD)          _3   (2, RD, 17, RS1, 0, 0, RS2)
+#define ANDCCrir(RS1, IMM, RD)          _3i  (2, RD, 17, RS1, 1,    IMM)
+@end example
+
+A few things have to be noted.  For example:
+@itemize @bullet
+@item
+The SPARC assembly language sometimes uses a comma inside a mnemonic
+(for example, @code{ba,a}).  This symbol is not allowed inside a
+@sc{cpp} macro name, so it is replaced with an underscore; the same
+is done with the dots found in the PowerPC assembly language (for
+example, @code{andi.} is defined as @code{ANDI_rri}).
+
+@item
+It can be useful to group together instructions with the same
+instruction format, as doing this tends to make the source code
+more readable (numbers are put in the same columns).
+
+@item
+Using an editor without automatic wrap at end of line can be useful,
+since run-time assemblers tend to have very long lines.
+@end itemize
+
+A final touch is to define the synthetic instructions, which are
+usually found on RISC machines.  For example, on the SPARC, the
+@code{LD} instruction has two synonyms (@code{LDUW} and @code{LDSW})
+which are defined thus:
+
+@example
+#define LDUWxr(RS1, RS2, RD)            LDxr(RS1, RS2, RD)
+#define LDUWmr(RS1, IMM, RD)            LDmr(RS1, IMM, RD)
+#define LDSWxr(RS1, RS2, RD)            LDxr(RS1, RS2, RD)
+#define LDSWmr(RS1, IMM, RD)            LDmr(RS1, IMM, RD)
+@end example
+
+Other common case are instructions which take advantage of registers
+whose value is hard-wired to zero, and short-cut instructions which
+hard-code some or all of the operands:
+
+@example
+@rem{/* Destination is %g0\, which the processor never overwrites. */}
+#define CMPrr(R1, R2)   SUBCCrrr(R1, R2, 0) @rem{/* subcc %r1\, %r2\, %g0 */}
+
+@rem{/* One of the source registers is hard-coded to be %g0. */}
+#define NEGrr(R,S)      SUBrrr(0, R, S)     @rem{/* sub %g0\, %rR\, %rS */}
+
+@rem{/* All of the operands are hard-coded. */}
+#define RET()           JMPLmr(31,8 ,0)     @rem{/* jmpl [%r31+8]\, %g0  */}
+
+@rem{/* One of the operands acts as both source and destination */}
+#define BSETrr(R,S)     ORrrr(R, S, S)      @rem{/* or %rR\, %rS\, %rS */}
+@end example
+
+Specific to RISC computers, finally, is the instruction to load an
+arbitrarily sized immediate into a register.  This instruction is
+usually implemented as one or two basic instructions:
+
+@enumerate
+@item
+If the number is small enough, an instruction is sufficient
+(@code{LI} or @code{ORI} on the PowerPC, @code{MOV} on the SPARC).
+
+@item
+If the lowest bits are all zeroed, an instruction is sufficient
+(@code{LIS} on the PowerPC, @code{SETHI} on the SPARC).
+
+@item
+Otherwise, the high bits are set first (with @code{LIS} or
+@code{SETHI}), and the result is then @sc{or}ed with the low
+bits
+@end enumerate
+
+Here is the definition of such an instruction for the PowerPC:
+
+@example
+#define MOVEIri(R,I)      (_siP(16,I) ? LIri(R,I) :     \ @rem{/* case 1    */}
+                          (_uiP(16,I) ? ORIrri(R,0,I) : \ @rem{/* case 1    */}
+                          _MOVEIri(R, _HI(I), _LO(I)) ))  @rem{/* case 2/3  */}
+
+#define _MOVEIri(H,L,R)  (LISri(R,H), (L ? ORIrri(R,R,L) : 0))
+@end example
+
+@noindent
+and for the SPARC:
+
+@example
+#define SETir(I,R)      (_siP(13,I) ? MOVir(I,R) : \
+			 _SETir(_HI(I), _LO(I), R))
+
+#define _SETir(H,L,R)   (SETHIir(H,R), (L ? ORrir(R,L,R) : 0))
+@end example
+
+In both cases, @code{_HI} and @code{_LO} are macros for internal use
+that extract different parts of the immediate operand.
+
+You should take a look at the run-time assemblers distributed with
+@lightning{} before trying to craft your own.  In particular, make
+sure you understand the RISC run-time assemblers (the SPARC's is
+the simplest) before trying to decypher the x86 run-time assembler,
+which is significantly more complex.
+
+
+@node Standard macros
+@chapter Creating the platform-independent layer
+
+The platform-independent layer is the one that is ultimately used
+by @lightning{} clients.  Creating this layer is a matter of creating
+a hundred or so macros that comprise part of the interface used by
+the clients, as described in
+@usingref{The instruction set, @lightning{}'s instruction set}.
+
+Fortunately, a number of these definitions are common to the different
+platforms and are defined just once in one of the header files that
+make up @lightning{}, that is, @file{core-common.h}.
+
+Most of the macros are relatively straight-forward to implement (with
+a few caveats for architectures whose assembly language only offers
+two-operand arithmetic instructions).  This section will cover the
+tricky points, before presenting the complete listing of the macros
+that make up the platform-independent interface provided by
+@lightning{}.
+
+@menu
+@standardmacrosmenu{}
+@end menu
+
+@node Forward references
+@section Implementing forward references
+
+Implementation of forward references takes place in:
+
+@itemize @bullet
+@item
+The branch macros
+
+@item
+The @code{jit_patch_at} macros
+@end itemize
+
+Roughly speaking, the branch macros, as seen in @usingref{GNU lightning
+macros, Generating code at run-time}, return a value that later calls
+to @code{jit_patch} or @code{jit_patch_at} use to complete the assembly
+of the forward reference.  This value is usually the contents of the
+program counter after the branch instruction is compiled (which is
+accessible in the @code{_jit.pc} variable).  Let's see an example from
+the x86 back-end:
+
+@example
+#define jit_bmsr_i(label, s1, s2)                            \
+   (TESTLrr((s1), (s2)), JNZm(label,0,0,0), _jit.pc)
+@end example
+
+The @code{bms} (@dfn{branch if mask set}) instruction is assembled as
+the combination of a @code{TEST} instruction (bit-wise @sc{and} between
+the two operands) and a @code{JNZ} instruction (jump if non-zero).  The
+macro then returns the final value of the program counter.
+
+@code{jit_patch_at} is one of the few macros that need to possess a
+knowledge of the machine's instruction formats.  Its purpose is to
+patch a branch instruction (identified by the value returned at the
+moment the branch was compiled) to jump to the current position (that
+is, to the address identified by @code{_jit.pc}).
+
+On the x86, the displacement between the jump and the landing point is
+expressed as a 32-bit signed integer lying in the last four bytes of the
+jump instruction.  The definition of @code{_jit_patch_at} is:
+
+@example
+#define jit_patch(jump_pc, pv)    (*_PSL((jump_pc) - 4) = \
+				   (pv) - (jump_pc))
+@end example
+
+The @code{_PSL} macro is nothing more than a cast to @code{long *},
+and is used here to shorten the definition and avoid cluttering it with
+excessive parentheses.  These type-cast macros are:
+
+@itemize @bullet
+@item
+@code{_PUC(X)} to cast to a @code{unsigned char *}.
+
+@item
+@code{_PUS(X)} to cast to a @code{unsigned short *}.
+
+@item
+@code{_PUI(X)} to cast to a @code{unsigned int *}.
+
+@item
+@code{_PSL(X)} to cast to a @code{long *}.
+
+@item
+@code{_PUL(X)} to cast to a @code{unsigned long *}.
+@end itemize
+
+On other platforms, notably RISC ones, the displacement is embedded into
+the instruction itself.  In this case, @code{jit_patch_at} must first zero
+out the field, and then @sc{or} in the correct displacement.  The SPARC,
+for example, encodes the displacement in the bottom 22 bits; in addition
+the right-most two bits are suppressed, which are always zero because
+instruction have to be word-aligned.
+
+@example
+#define jit_patch_at(delay_pc, pv)   jit_patch_ (((delay_pc) - 1), (pv))
+
+@rem{/* branch instructions return the address of the @emph{delay}
+ * instruction---this is just a helper macro that makes the code more
+ * readable.
+ */}
+#define jit_patch_(jump_pc, pv)   (*jump_pc =		    \
+	 (*jump_pc & ~_MASK(22)) |			    \
+         ((_UL(pv) - _UL(jump_pc)) >> 2) & _MASK(22))
+@end example
+
+This introduces more predefined shortcut macros:
+@itemize @bullet
+@item
+@code{_UC(X)} to cast to a @code{unsigned char}.
+
+@item
+@code{_US(X)} to cast to a @code{unsigned short}.
+
+@item
+@code{_UI(X)} to cast to a @code{unsigned int}.
+
+@item
+@code{_SL(X)} to cast to a @code{long}.
+
+@item
+@code{_UL(X)} to cast to a @code{unsigned long}.
+
+@item
+@code{_MASK(N)} gives a binary number made of N ones.
+@end itemize
+
+Dual to branches and @code{jit_patch_at} are @code{jit_movi_p}
+and @code{jit_patch_movi}, since they can also be used to implement
+forward references.  @code{jit_movi_p} should be carefully implemented
+to use an encoding that is as long as possible, and it should return
+an address which is then passed to @code{jit_patch_movi}.  The
+implementation of @code{jit_patch_movi} is similar to
+@code{jit_patch_at}.
+
+@node Common features
+@section Common features supported by @file{core-common.h}
+
+The @file{core-common.h} file contains hundreds of macro definitions
+which will spare you defining a lot of things in the files the are
+specific to your port.  Here is a list of the features that 
+@file{core-common.h} provides.
+
+@table @b
+@item Support for common synthetic instructions
+These are instructions that can be represented as a simple operation,
+for example a bit-wise @sc{and} or a subtraction.  @file{core-common.h}
+recognizes when the port-specific header file defines these macros and
+avoids compiler warnings about redefined macros, but there should be
+no need to define them.  They are:
+@example
+#define jit_extr_c_ui(d, rs)
+#define jit_extr_s_ui(d, rs)
+#define jit_extr_c_ul(d, rs)
+#define jit_extr_s_ul(d, rs)
+#define jit_extr_i_ul(d, rs)
+#define jit_negr_i(d, rs)
+#define jit_negr_l(d, rs)
+@end example
+
+@item Support for the @sc{abi}
+All of @code{jit_prolog}, @code{jit_leaf} and @code{jit_finish} are not
+mandatory.  If not defined, they will be defined respectively as an
+empty macro, as a synonym for @code{jit_prolog}, and as a synonym for
+@code{jit_calli}.  Whether to define them or not in the port-specific
+header file, it depends on the underlying architecture's @sc{abi}---in
+general, however, you'll need to define at least @code{jit_prolog}.
+
+@item Support for uncommon instructions
+These are instructions that many widespread architectures lack.
+@file{core-common.h} is able to provide default definitions, but they
+are usually inefficient if the hardware provides a way to do these
+operations with a single instruction.  They are extension with sign
+and ``reverse subtraction'' (that is, REG2@math{=}IMM@math{-}REG1):
+@example
+#define jit_extr_c_i(d, rs)
+#define jit_extr_s_i(d, rs)
+#define jit_extr_c_l(d, rs)
+#define jit_extr_s_l(d, rs)
+#define jit_extr_i_l(d, rs)
+#define jit_rsbi_i(d, rs, is)
+#define jit_rsbi_l(d, rs, is)
+#define jit_rsbi_p(d, rs, is)
+@end example
+
+@item Conversion between network and host byte ordering
+These macros are no-ops on big endian systems.  Don't define them on
+such systems; on the other hand, they are mandatory on little endian
+systems.  They are:
+@example
+#define jit_ntoh_ui(d, rs)
+#define jit_ntoh_us(d, rs)
+@end example
+
+@item Support for a ``zero'' register
+Many RISC architectures provide a read-only register whose value is
+hard-coded to be zero; this register is then used implicitly when
+referring to a memory location using a single register.  For example,
+on the SPARC, an operand like @code{[%l6]} is actually assembled as
+@code{[%l6+%g0]}.  If this is the case, you should define
+@code{JIT_RZERO} to be the number of this register; @file{core-common.h}
+will use it to implement all variations of the @code{ld} and @code{st}
+instructions.  For example:
+@example
+#define jit_ldi_c(d, is)         jit_ldxi_c(d, JIT_RZERO, is)
+#define jit_ldr_i(d, rs)         jit_ldxr_c(d, JIT_RZERO, rs)
+@end example
+
+If available, JIT_RZERO is also used to provide more efficient
+definitions of the @code{neg} instruction (see ``Support for common
+synthetic instructions'', above).
+
+@item Synonyms
+@file{core-common.h} provides a lot of trivial definitions which make
+the instruction set as orthogonal as possible.  For example, adding two
+unsigned integers is exactly the same as adding two signed integers
+(assuming a two's complement representation of negative numbers); yet,
+@lightning{} provides both @code{jit_addr_i} and @code{jit_addr_ui}
+macros.  Similarly, pointers and unsigned long integers behave in the
+same way, but @lightning{} has separate instruction for the two data
+types---those that operate on pointers usually include a typecast
+that makes programs clearer.
+
+@item Shortcuts
+These define ``synthetic'' instructions whose definition is not as
+trivial as in the case of synonyms, but is anyway standard.  This
+is the case for bitwise @sc{not} (which is implemented by XORing a
+string of ones), ``reverse subtraction'' between registers (which is
+converted to a normal subtraction with the two source operands
+inverted), and subtraction of an immediate from a register (which is
+converted to an addition).  Unlike @code{neg} and @code{ext} (see
+``Support for common synthetic instructions'', above), which are
+simply non-mandatory, you must not define these functions.
+
+@item Support for @code{long}s
+On most systems, @code{long}s and @code{unsigned long}s are the same
+as, respectively, @code{int}s and @code{unsigned int}s.  In this case,
+@file{core-common.h} defines operations on these types to be synonyms.
+
+@item @code{jit_state}
+Last but not least, @file{core-common.h} defines the @code{jit_state}
+type.  Part of this @code{struct} is machine-dependent and includes
+all kinds of state needed by the back-end; this part is always
+accessible in a re-entrant way as @code{_jitl}.  @code{_jitl} will be
+of type @code{struct jit_local_state}; this struct must be defined
+even if no state is required.
+
+@end table
+
+@node Delay slots
+@section Supporting scheduling of delay slots
+
+Delay slot scheduling is obtained by clients through the
+@code{jit_delay} macro.  However this macro is not to be defined
+in the platform-independent layer, because @lightning{} provides
+a common definition in @file{core-common.h}.
+
+Instead, the platform-independent layer must define another macro,
+called @code{jit_fill_delay_after}, which has to exchange the
+instruction to be scheduled in the delay slot with the branch
+instruction.  The only parameter accepted by the macro is a call
+to a branch macro, which must be expanded @strong{exactly once} by
+@code{jit_fill_delay_after}.  The client must be able to pass the
+return value of @code{jit_fill_delay_after} to @code{jit_patch_at}.
+
+There are two possible approaches that can be used in
+@code{jit_fill_delay_after}.  They are summarized in the following
+pictures:
+
+@itemize @bullet
+@item
+The branch instructions assemble a @sc{nop} instruction which is
+then removed by @code{jit_fill_delay_after}.
+
+@example
+     before                         |   after
+   ---------------------------------+-----------------------------
+     ...                            |
+     <would-be delay instruction>   |    <branch instruction>
+     <branch instruction>           |    <delay instruction>
+     NOP                            |           <--- _jit.pc
+              <--- _jit.pc          |
+@end example
+
+@item
+The branch instruction assembles the branch so that the delay
+slot is annulled, @code{jit_fill_delay_after} toggles the bit:
+
+@example
+     before                         |   after
+   ---------------------------------+-----------------------------
+     ...                            |
+     <would-be delay instruction>   |    <branch instruction>
+     <branch with annulled delay>   |    <delay instruction>
+              <--- _jit.pc          |           <--- _jit.pc
+@end example
+@end itemize
+
+Don't forget that you can take advantage of delay slots in the
+implementation of boolean instructions such as @code{le} or @code{gt}.
+
+@node Immediate values
+@section Supporting arbitrarily sized immediate values
+
+This is a problem that is endemic to RISC machines.  The basic idea
+is to reserve one or two register to represent large immediate values.
+Let's see an example from the SPARC:
+
+@example
+   addi_i R0, V2, 45         |  addi_i R0, V2, 10000
+  ---------------------------+---------------------------
+   add    %l5, 45, %l0       |  set    10000, %l6
+                             |  add    %l5, %l6, %l0
+@end example
+
+In this case, @code{%l6} is reserved to be used for large immediates.
+An elegant solution is to use an internal macro which automatically
+decides which version is to be compiled.
+
+Beware of register conflicts on machines with delay slots.  This is
+the case for the SPARC, where @code{%l7} is used instead for large
+immediates in compare-and-branch instructions.  So the sequence
+
+@example
+   jit_delay(
+      jit_addi_i(JIT_R0, JIT_V2, 10000),
+      jit_blei_i(label, JIT_R1, 20000)
+   );
+@end example
+
+@noindent
+is assembled this way:
+
+@example
+   set 10000, %l6       @rem{! prepare immediate for add}
+   set 20000, %l7       @rem{! prepare immediate for cmp}
+   cmp %l1, %l7
+   ble label
+   add %l5, %l6, %l0    @rem{! delay slot}
+	@end example
+
+Note that using @code{%l6} in the branch instruction would have given
+an incorrect result---@code{R0} would have been filled with the value of
+@code{V2+@i{20000}} rather than @code{V2+@i{10000}}.
+
+@node Implementing the ABI
+@section Implementing the ABI
+
+Implementing the underlying architecture's @sc{abi} is done in the
+macros that handle function prologs and epilogs and argument passing.
+
+Let's look at the prologs and epilogs first.  These are usually pretty
+simple and, what's more important, with constant content---that is,
+they always generate exactly the same instruction sequence.  Here is
+an example:
+
+@example
+          SPARC                        x86
+          save %sp, -96, %sp           push %ebp
+                                       push %ebx
+                                       push %esi
+                                       push %edi
+                                       movl %esp, %ebp
+          ...                          ...
+          ret                          popl %edi
+          restore                      popl %esi
+                                       popl %ebx
+                                       popl %ebp
+                                       ret
+@end example
+
+The registers that are saved (@code{%ebx}, @code{%esi}, @code{%edi}) are
+mapped to the @code{V0} through @code{V2} registers in the @lightning{}
+instruction set.
+
+Argument passing is more tricky.  There are basically three
+cases@footnote{For speed and ease of implementation, @lightning{} does not
+currently support passing some of the parameters on the stack and some
+in registers.}:
+@table @b
+@item Register windows
+Output registers are different from input registers---the prolog takes
+care of moving the caller's output registers to the callee's input
+registers.  This is the case with the SPARC.
+
+@item Passing parameters via registers
+In this case, output registers are the same as input registers.  The
+program must take care of saving input parameters somewhere (on the
+stack, or in non-argument registers).  This is the case with the
+PowerPC.
+
+@item All the parameters are passed on the stack
+This case is by far the simplest and is the most common in CISC
+architectures, like the x86 and Motorola 68000.
+@end table
+
+In all cases, the port-specific header file will define two variable
+for private use---one to be used by the caller during the
+@code{prepare}/@code{pusharg}/@code{finish} sequence, one to be used
+by the callee, specifically in the @code{jit_prolog} and @code{jit_arg}
+macros.
+
+Let's look again, this time with more detail, at each of the cases.
+
+@table @b
+@item Register windows
+@code{jit_finish} is the same as @code{jit_calli}, and is defined
+in @file{core-common.h} (@pxref{Common features, , Common features
+supported by @file{core-common.h}}).
+
+@example
+#define jit_prepare_i(numargs)  (_jitl.pusharg = _Ro(numargs))
+#define jit_pusharg_i(rs)       (--_jitl.pusharg,         \
+                                 MOVrr((rs), _jitl.pusharg))
+@end example
+
+Remember that arguments pushing takes place in reverse order, thus
+giving a pre-decrement (rather than post-increment) in
+@code{jit_pusharg_i}.
+
+Here is what happens on the callee's side:
+
+@example
+#define jit_arg_c()           (_jitl.getarg++)
+#define jit_getarg_c(rd, ofs) jit_extr_c_i  ((rd), (ofs))
+#define jit_prolog(numargs)   (SAVErir(JIT_SP, -96, JIT_SP), \
+                               _jitl.getarg = _Ri(0))
+@end example
+
+The @code{jit_arg} macros return nothing more than a register index,
+which is then used by the @code{jit_getarg} macros.  @code{jit_prolog}
+resets the counter used by @code{jit_arg} to zero; the @code{numargs}
+parameter is not used. It is sufficient for @code{jit_leaf} to be a
+synonym for @code{jit_prolog}.
+
+@item Passing parameter via registers
+The code is almost the same as that for the register windows case, but
+with an additional complexity---@code{jit_arg} will transfer the
+argument from the input register to a non-argument register so that
+function calls will not clobber it.  The prolog and epilog code can then
+become unbearably long, up to 20 instructions on the PPC; a common
+solution in this case is that of @dfn{trampolines}.
+
+The prolog does nothing more than put the function's actual address in a
+caller-preserved register and then call the trampoline:
+@example
+       mflr    r0                 @rem{! grab return address}
+       movei   r10, trampo_2args  @rem{! jump to trampoline}
+       mtlr    r10
+       blrl
+here:  mflr    r31                @rem{! r31 = address of epilog}
+       @rem{...actual code...}
+       mtlr    r31                @rem{! return to the trampoline}
+       blr
+@end example
+
+In this case, @code{jit_prolog} does use its argument containing the
+number of parameters to pick the appropriate trampoline. Here,
+@code{trampo_2args} is the address of a trampoline designed for
+2-argument functions.
+
+The trampoline executes the prolog code, jumps to the contents of
+@code{r10}, and upon return from the subroutine it executes the
+epilog code.
+
+@item All the parameters are passed on the stack
+@code{jit_pusharg} uses a hardware push operation, which is commonly
+available on CISC machines (where this approach is most likely
+followed).  Since the stack has to be cleaned up after the call,
+@code{jit_prepare_i} remembers how many parameters have been put there,
+and @code{jit_finish} adjusts the stack pointer after the call.
+
+@example
+#define jit_prepare_i(numargs) (_jitl.args += (numargs))
+#define jit_pusharg_i(rs)      PUSHLr(rs)
+#define jit_finish(sub)        (jit_calli((sub)),              \
+                               ADDLir(4 * _jitl.args, JIT_SP), \
+                               _jitl.numargs = 0)
+@end example
+
+Note the usage of @code{+=} in @code{jit_prepare_i}.  This is done
+so that one can defer the popping of the arguments that were saved
+on the stack (@dfn{stack pollution}).  To do so, it is sufficient to
+use @code{jit_calli} instead of @code{jit_finish} in all but the
+last call.
+
+On the caller's side, @code{arg} returns an offset relative to the
+frame pointer, and @code{getarg} loads the argument from the stack:
+
+@example
+#define jit_getarg_c(rd, ofs) jit_ldxi_c((rd), _EBP, (ofs));
+#define jit_arg_c()           ((_jitl.frame += sizeof(int) \
+                                            -  sizeof(int))
+@end example
+
+The @code{_jitl.frame} variable is initialized by @code{jit_prolog}
+with the displacement between the value of the frame pointer
+(@code{%ebp}) and the address of the first parameter.
+@end table
+
+These schemes are the most used, so @file{core-common.h} provides a way
+to employ them automatically.  If you do not define the
+@code{jit_getarg_c} macro and its companions, @file{core-common.h} will
+presume that you intend to pass parameters through either the registers
+or the stack.
+
+If you define @code{JIT_AP}, stack-based parameter passing will be
+employed and the @code{jit_getarg} macros will be defined like this:
+
+@example
+#define jit_getarg_c(reg, ofs)  jit_ldxi_c((reg), JIT_AP, (ofs));
+@end example
+
+In other words, the @code{jit_arg} macros (which are still to be defined
+by the platform-specific back-end) shall return an offset into the stack
+frame.  On the other hand, if you don't define @code{JIT_AP},
+register-based parameter passing will be employed and the @code{jit_arg}
+macros shall return a register number; in this case, @code{jit_getarg}
+will be implemented in terms of @code{jit_extr} and @code{jit_movr}
+operations:
+
+@example
+#define jit_getarg_c(reg, ofs)		jit_extr_c_i  ((reg), (ofs))
+#define jit_getarg_i(reg, ofs)		jit_movr_i    ((reg), (ofs))
+@end example
+
+
+@node Macro list
+@section Macros composing the platform-independent layer
+
+@table @b
+@item Register names (all mandatory but the last three)
+@example
+#define JIT_R
+#define JIT_R_NUM
+#define JIT_V
+#define JIT_V_NUM
+#define JIT_FPR
+#define JIT_FPR_NUM
+#define JIT_FP
+#define JIT_SP
+#define JIT_AP
+#define JIT_RZERO
+@end example
+
+@item Helper macros (non-mandatory):
+@example
+#define jit_fill_delay_after(branch)
+@end example
+
+@item Mandatory:
+@example
+#define jit_allocai()
+#define jit_arg_c()
+#define jit_arg_i()
+#define jit_arg_l()
+#define jit_arg_p()
+#define jit_arg_s()
+#define jit_arg_uc()
+#define jit_arg_ui()
+#define jit_arg_ul()
+#define jit_arg_us()
+#define jit_abs_d(rd,rs)
+#define jit_addi_i(d, rs, is)
+#define jit_addr_d(rd,s1,s2)
+#define jit_addr_i(d, s1, s2)
+#define jit_addxi_i(d, rs, is)
+#define jit_addxr_i(d, s1, s2)
+#define jit_andi_i(d, rs, is)
+#define jit_andr_i(d, s1, s2)
+#define jit_beqi_i(label, rs, is)
+#define jit_beqr_d(label, s1, s2)
+#define jit_beqr_i(label, s1, s2)
+#define jit_bgei_i(label, rs, is)
+#define jit_bgei_ui(label, rs, is)
+#define jit_bger_d(label, s1, s2)
+#define jit_bger_i(label, s1, s2)
+#define jit_bger_ui(label, s1, s2)
+#define jit_bgti_i(label, rs, is)
+#define jit_bgti_ui(label, rs, is)
+#define jit_bgtr_d(label, s1, s2)
+#define jit_bgtr_i(label, s1, s2)
+#define jit_bgtr_ui(label, s1, s2)
+#define jit_blei_i(label, rs, is)
+#define jit_blei_ui(label, rs, is)
+#define jit_bler_d(label, s1, s2)
+#define jit_bler_i(label, s1, s2)
+#define jit_bler_ui(label, s1, s2)
+#define jit_bltgtr_d(label, s1, s2)
+#define jit_blti_i(label, rs, is)
+#define jit_blti_ui(label, rs, is)
+#define jit_bltr_d(label, s1, s2)
+#define jit_bltr_i(label, s1, s2)
+#define jit_bltr_ui(label, s1, s2)
+#define jit_bmci_i(label, rs, is)
+#define jit_bmcr_i(label, s1, s2)
+#define jit_bmsi_i(label, rs, is)
+#define jit_bmsr_i(label, s1, s2)
+#define jit_bnei_i(label, rs, is)
+#define jit_bner_d(label, s1, s2)
+#define jit_bner_i(label, s1, s2)
+#define jit_boaddi_i(label, rs, is)
+#define jit_boaddi_ui(label, rs, is)
+#define jit_boaddr_i(label, s1, s2)
+#define jit_boaddr_ui(label, s1, s2)
+#define jit_bordr_d(label, s1, s2)
+#define jit_bosubi_i(label, rs, is)
+#define jit_bosubi_ui(label, rs, is)
+#define jit_bosubr_i(label, s1, s2)
+#define jit_bosubr_ui(label, s1, s2)
+#define jit_buneqr_d(label, s1, s2)
+#define jit_bunger_d(label, s1, s2)
+#define jit_bungtr_d(label, s1, s2)
+#define jit_bunler_d(label, s1, s2)
+#define jit_bunltr_d(label, s1, s2)
+#define jit_bunordr_d(label, s1, s2)
+#define jit_calli(label)
+#define jit_callr(label)
+#define jit_ceilr_d_i(rd, rs)
+#define jit_divi_i(d, rs, is)
+#define jit_divi_ui(d, rs, is)
+#define jit_divr_d(rd,s1,s2)
+#define jit_divr_i(d, s1, s2)
+#define jit_divr_ui(d, s1, s2)
+#define jit_eqi_i(d, rs, is)
+#define jit_eqr_d(d, s1, s2)
+#define jit_eqr_i(d, s1, s2)
+#define jit_extr_i_d(rd, rs)
+#define jit_floorr_d_i(rd, rs)
+#define jit_gei_i(d, rs, is)
+#define jit_gei_ui(d, s1, s2)
+#define jit_ger_d(d, s1, s2)
+#define jit_ger_i(d, s1, s2)
+#define jit_ger_ui(d, s1, s2)
+#define jit_gti_i(d, rs, is)
+#define jit_gti_ui(d, s1, s2)
+#define jit_gtr_d(d, s1, s2)
+#define jit_gtr_i(d, s1, s2)
+#define jit_gtr_ui(d, s1, s2)
+#define jit_hmuli_i(d, rs, is)
+#define jit_hmuli_ui(d, rs, is)
+#define jit_hmulr_i(d, s1, s2)
+#define jit_hmulr_ui(d, s1, s2)
+#define jit_jmpi(label)
+#define jit_jmpr(reg)
+#define jit_ldxi_f(rd, rs, is)
+#define jit_ldxr_f(rd, s1, s2)
+#define jit_ldxi_c(d, rs, is)
+#define jit_ldxi_d(rd, rs, is)
+#define jit_ldxi_i(d, rs, is)
+#define jit_ldxi_s(d, rs, is)
+#define jit_ldxi_uc(d, rs, is)
+#define jit_ldxi_us(d, rs, is)
+#define jit_ldxr_c(d, s1, s2)
+#define jit_ldxr_d(rd, s1, s2)
+#define jit_ldxr_i(d, s1, s2)
+#define jit_ldxr_s(d, s1, s2)
+#define jit_ldxr_uc(d, s1, s2)
+#define jit_ldxr_us(d, s1, s2)
+#define jit_lei_i(d, rs, is)
+#define jit_lei_ui(d, s1, s2)
+#define jit_ler_d(d, s1, s2)
+#define jit_ler_i(d, s1, s2)
+#define jit_ler_ui(d, s1, s2)
+#define jit_lshi_i(d, rs, is)
+#define jit_lshr_i(d, r1, r2)
+#define jit_ltgtr_d(d, s1, s2)
+#define jit_lti_i(d, rs, is)
+#define jit_lti_ui(d, s1, s2)
+#define jit_ltr_d(d, s1, s2)
+#define jit_ltr_i(d, s1, s2)
+#define jit_ltr_ui(d, s1, s2)
+#define jit_modi_i(d, rs, is)
+#define jit_modi_ui(d, rs, is)
+#define jit_modr_i(d, s1, s2)
+#define jit_modr_ui(d, s1, s2)
+#define jit_movi_d(rd,immd)
+#define jit_movi_f(rd,immf)
+#define jit_movi_i(d, is)
+#define jit_movi_p(d, is)
+#define jit_movr_d(rd,rs)
+#define jit_movr_i(d, rs)
+#define jit_muli_i(d, rs, is)
+#define jit_muli_ui(d, rs, is)
+#define jit_mulr_d(rd,s1,s2)
+#define jit_mulr_i(d, s1, s2)
+#define jit_mulr_ui(d, s1, s2)
+#define jit_negr_d(rd,rs)
+#define jit_nei_i(d, rs, is)
+#define jit_ner_d(d, s1, s2)
+#define jit_ner_i(d, s1, s2)
+#define jit_nop()
+#define jit_ordr_d(d, s1, s2)
+#define jit_ori_i(d, rs, is)
+#define jit_orr_i(d, s1, s2)
+#define jit_patch_at(jump_pc, value)
+#define jit_patch_movi(jump_pc, value)
+#define jit_prepare_d(numargs)
+#define jit_prepare_f(numargs)
+#define jit_prepare_i(numargs)
+#define jit_pusharg_i(rs)
+#define jit_ret()
+#define jit_retval_i(rd)
+#define jit_roundr_d_i(rd, rs)
+#define jit_rshi_i(d, rs, is)
+#define jit_rshi_ui(d, rs, is)
+#define jit_rshr_i(d, r1, r2)
+#define jit_rshr_ui(d, r1, r2)
+#define jit_sqrt_d(rd,rs)
+#define jit_stxi_c(rd, id, rs)
+#define jit_stxi_d(id, rd, rs)
+#define jit_stxi_f(id, rd, rs)
+#define jit_stxi_i(rd, id, rs)
+#define jit_stxi_s(rd, id, rs)
+#define jit_stxr_c(d1, d2, rs)
+#define jit_stxr_d(d1, d2, rs)
+#define jit_stxr_f(d1, d2, rs)
+#define jit_stxr_i(d1, d2, rs)
+#define jit_stxr_s(d1, d2, rs)
+#define jit_subr_d(rd,s1,s2)
+#define jit_subr_i(d, s1, s2)
+#define jit_subxi_i(d, rs, is)
+#define jit_subxr_i(d, s1, s2)
+#define jit_truncr_d_i(rd, rs)
+#define jit_uneqr_d(d, s1, s2)
+#define jit_unger_d(d, s1, s2)
+#define jit_ungtr_d(d, s1, s2)
+#define jit_unler_d(d, s1, s2)
+#define jit_unltr_d(d, s1, s2)
+#define jit_unordr_d(d, s1, s2)
+#define jit_xori_i(d, rs, is)
+#define jit_xorr_i(d, s1, s2)
+@end example
+
+@item Non mandatory---there should be no need to define them:
+@example
+#define jit_extr_c_ui(d, rs)
+#define jit_extr_s_ui(d, rs)
+#define jit_extr_c_ul(d, rs)
+#define jit_extr_s_ul(d, rs)
+#define jit_extr_i_ul(d, rs)
+#define jit_negr_i(d, rs)
+#define jit_negr_l(d, rs)
+@end example
+
+@item Non mandatory---whether to define them depends on the @sc{abi}:
+@example
+#define jit_prolog(n)
+#define jit_finish(sub)
+#define jit_finishr(reg)
+#define jit_leaf(n)
+#define jit_getarg_c(reg, ofs)
+#define jit_getarg_i(reg, ofs)
+#define jit_getarg_l(reg, ofs)
+#define jit_getarg_p(reg, ofs)
+#define jit_getarg_s(reg, ofs)
+#define jit_getarg_uc(reg, ofs)
+#define jit_getarg_ui(reg, ofs)
+#define jit_getarg_ul(reg, ofs)
+#define jit_getarg_us(reg, ofs)
+#define jit_getarg_f(reg, ofs)
+#define jit_getarg_d(reg, ofs)
+@end example
+
+@item Non mandatory---define them if instructions that do this exist:
+@example
+#define jit_extr_c_i(d, rs)
+#define jit_extr_s_i(d, rs)
+#define jit_extr_c_l(d, rs)
+#define jit_extr_s_l(d, rs)
+#define jit_extr_i_l(d, rs)
+#define jit_rsbi_i(d, rs, is)
+#define jit_rsbi_l(d, rs, is)
+@end example
+
+@item Non mandatory if condition code are always set by add/sub, needed on other systems:
+@example
+#define jit_addci_i(d, rs, is)
+#define jit_addci_l(d, rs, is)
+#define jit_subci_i(d, rs, is)
+#define jit_subci_l(d, rs, is)
+@end example
+
+@item Mandatory on little endian systems---don't define them on other systems:
+@example
+#define jit_ntoh_ui(d, rs)
+#define jit_ntoh_us(d, rs)
+@end example
+
+@item Mandatory if JIT_RZERO not defined---don't define them if it is defined:
+@example
+#define jit_ldi_c(d, is)
+#define jit_ldi_i(d, is)
+#define jit_ldi_s(d, is)
+#define jit_ldr_c(d, rs)
+#define jit_ldr_i(d, rs)
+#define jit_ldr_s(d, rs)
+#define jit_ldi_uc(d, is)
+#define jit_ldi_ui(d, is)
+#define jit_ldi_ul(d, is)
+#define jit_ldi_us(d, is)
+#define jit_ldr_uc(d, rs)
+#define jit_ldr_ui(d, rs)
+#define jit_ldr_ul(d, rs)
+#define jit_ldr_us(d, rs)
+#define jit_sti_c(id, rs)
+#define jit_sti_i(id, rs)
+#define jit_sti_s(id, rs)
+#define jit_str_c(rd, rs)
+#define jit_str_i(rd, rs)
+#define jit_str_s(rd, rs)
+#define jit_ldi_f(rd, is)
+#define jit_sti_f(id, rs)
+#define jit_ldi_d(rd, is)
+#define jit_sti_d(id, rs)
+#define jit_ldr_f(rd, rs)
+#define jit_str_f(rd, rs)
+#define jit_ldr_d(rd, rs)
+#define jit_str_d(rd, rs)
+@end example
+
+@item Synonyms---don't define them:
+@example
+#define jit_addi_p(d, rs, is)
+#define jit_addi_ui(d, rs, is)
+#define jit_addi_ul(d, rs, is)
+#define jit_addr_p(d, s1, s2)
+#define jit_addr_ui(d, s1, s2)
+#define jit_addr_ul(d, s1, s2)
+#define jit_andi_ui(d, rs, is)
+#define jit_andi_ul(d, rs, is)
+#define jit_andr_ui(d, s1, s2)
+#define jit_andr_ul(d, s1, s2)
+#define jit_beqi_p(label, rs, is)
+#define jit_beqi_ui(label, rs, is)
+#define jit_beqi_ul(label, rs, is)
+#define jit_beqr_p(label, s1, s2)
+#define jit_beqr_ui(label, s1, s2)
+#define jit_beqr_ul(label, s1, s2)
+#define jit_bmci_ui(label, rs, is)
+#define jit_bmci_ul(label, rs, is)
+#define jit_bmcr_ui(label, s1, s2)
+#define jit_bmcr_ul(label, s1, s2)
+#define jit_bmsi_ui(label, rs, is)
+#define jit_bmsi_ul(label, rs, is)
+#define jit_bmsr_ui(label, s1, s2)
+#define jit_bmsr_ul(label, s1, s2)
+#define jit_bgei_p(label, rs, is)
+#define jit_bger_p(label, s1, s2)
+#define jit_bgti_p(label, rs, is)
+#define jit_bgtr_p(label, s1, s2)
+#define jit_blei_p(label, rs, is)
+#define jit_bler_p(label, s1, s2)
+#define jit_blti_p(label, rs, is)
+#define jit_bltr_p(label, s1, s2)
+#define jit_bnei_p(label, rs, is)
+#define jit_bnei_ui(label, rs, is)
+#define jit_bnei_ul(label, rs, is)
+#define jit_bner_p(label, s1, s2)
+#define jit_bner_ui(label, s1, s2)
+#define jit_bner_ul(label, s1, s2)
+#define jit_eqi_p(d, rs, is)
+#define jit_eqi_ui(d, rs, is)
+#define jit_eqi_ul(d, rs, is)
+#define jit_eqr_p(d, s1, s2)
+#define jit_eqr_ui(d, s1, s2)
+#define jit_eqr_ul(d, s1, s2)
+#define jit_extr_c_s(d, rs)
+#define jit_extr_c_us(d, rs)
+#define jit_extr_uc_s(d, rs)
+#define jit_extr_uc_us(d, rs)
+#define jit_extr_uc_i(d, rs)
+#define jit_extr_uc_ui(d, rs)
+#define jit_extr_us_i(d, rs)
+#define jit_extr_us_ui(d, rs)
+#define jit_extr_uc_l(d, rs)
+#define jit_extr_uc_ul(d, rs)
+#define jit_extr_us_l(d, rs)
+#define jit_extr_us_ul(d, rs)
+#define jit_extr_ui_l(d, rs)
+#define jit_extr_ui_ul(d, rs)
+#define jit_gei_p(d, rs, is)
+#define jit_ger_p(d, s1, s2)
+#define jit_gti_p(d, rs, is)
+#define jit_gtr_p(d, s1, s2)
+#define jit_ldr_p(d, rs)
+#define jit_ldi_p(d, is)
+#define jit_ldxi_p(d, rs, is)
+#define jit_ldxr_p(d, s1, s2)
+#define jit_lei_p(d, rs, is)
+#define jit_ler_p(d, s1, s2)
+#define jit_lshi_ui(d, rs, is)
+#define jit_lshi_ul(d, rs, is)
+#define jit_lshr_ui(d, s1, s2)
+#define jit_lshr_ul(d, s1, s2)
+#define jit_lti_p(d, rs, is)
+#define jit_ltr_p(d, s1, s2)
+#define jit_movi_p(d, is)
+#define jit_movi_ui(d, rs)
+#define jit_movi_ul(d, rs)
+#define jit_movr_p(d, rs)
+#define jit_movr_ui(d, rs)
+#define jit_movr_ul(d, rs)
+#define jit_nei_p(d, rs, is)
+#define jit_nei_ui(d, rs, is)
+#define jit_nei_ul(d, rs, is)
+#define jit_ner_p(d, s1, s2)
+#define jit_ner_ui(d, s1, s2)
+#define jit_ner_ul(d, s1, s2)
+#define jit_hton_ui(d, rs)
+#define jit_hton_us(d, rs)
+#define jit_ori_ui(d, rs, is)
+#define jit_ori_ul(d, rs, is)
+#define jit_orr_ui(d, s1, s2)
+#define jit_orr_ul(d, s1, s2)
+#define jit_pusharg_c(rs)
+#define jit_pusharg_p(rs)
+#define jit_pusharg_s(rs)
+#define jit_pusharg_uc(rs)
+#define jit_pusharg_ui(rs)
+#define jit_pusharg_ul(rs)
+#define jit_pusharg_us(rs)
+#define jit_retval_c(rd)
+#define jit_retval_p(rd)
+#define jit_retval_s(rd)
+#define jit_retval_uc(rd)
+#define jit_retval_ui(rd)
+#define jit_retval_ul(rd)
+#define jit_retval_us(rd)
+#define jit_rsbi_p(d, rs, is)
+#define jit_rsbi_ui(d, rs, is)
+#define jit_rsbi_ul(d, rs, is)
+#define jit_rsbr_p(d, rs, is)
+#define jit_rsbr_ui(d, s1, s2)
+#define jit_rsbr_ul(d, s1, s2)
+#define jit_sti_p(d, is)
+#define jit_sti_uc(d, is)
+#define jit_sti_ui(d, is)
+#define jit_sti_ul(d, is)
+#define jit_sti_us(d, is)
+#define jit_str_p(d, rs)
+#define jit_str_uc(d, rs)
+#define jit_str_ui(d, rs)
+#define jit_str_ul(d, rs)
+#define jit_str_us(d, rs)
+#define jit_stxi_p(d, rs, is)
+#define jit_stxi_uc(d, rs, is)
+#define jit_stxi_ui(d, rs, is)
+#define jit_stxi_ul(d, rs, is)
+#define jit_stxi_us(d, rs, is)
+#define jit_stxr_p(d, s1, s2)
+#define jit_stxr_uc(d, s1, s2)
+#define jit_stxr_ui(d, s1, s2)
+#define jit_stxr_ul(d, s1, s2)
+#define jit_stxr_us(d, s1, s2)
+#define jit_subi_p(d, rs, is)
+#define jit_subi_ui(d, rs, is)
+#define jit_subi_ul(d, rs, is)
+#define jit_subr_p(d, s1, s2)
+#define jit_subr_ui(d, s1, s2)
+#define jit_subr_ul(d, s1, s2)
+#define jit_subxi_p(d, rs, is)
+#define jit_subxi_ui(d, rs, is)
+#define jit_subxi_ul(d, rs, is)
+#define jit_subxr_p(d, s1, s2)
+#define jit_subxr_ui(d, s1, s2)
+#define jit_subxr_ul(d, s1, s2)
+#define jit_xori_ui(d, rs, is)
+#define jit_xori_ul(d, rs, is)
+#define jit_xorr_ui(d, s1, s2)
+#define jit_xorr_ul(d, s1, s2)
+@end example
+
+@item Shortcuts---don't define them:
+@example
+#define JIT_R0
+#define JIT_R1
+#define JIT_R2
+#define JIT_V0
+#define JIT_V1
+#define JIT_V2
+#define JIT_FPR0
+#define JIT_FPR1
+#define JIT_FPR2
+#define JIT_FPR3
+#define JIT_FPR4
+#define JIT_FPR5
+#define jit_patch(jump_pc)
+#define jit_notr_c(d, rs)
+#define jit_notr_i(d, rs)
+#define jit_notr_l(d, rs)
+#define jit_notr_s(d, rs)
+#define jit_notr_uc(d, rs)
+#define jit_notr_ui(d, rs)
+#define jit_notr_ul(d, rs)
+#define jit_notr_us(d, rs)
+#define jit_rsbr_d(d, s1, s2)
+#define jit_rsbr_i(d, s1, s2)
+#define jit_rsbr_l(d, s1, s2)
+#define jit_subi_i(d, rs, is)
+#define jit_subi_l(d, rs, is)
+@end example
+
+@item Mandatory unless target arithmetic is always done in the same precision:
+@example
+#define jit_abs_f(rd,rs)
+#define jit_addr_f(rd,s1,s2)
+#define jit_beqr_f(label, s1, s2)
+#define jit_bger_f(label, s1, s2)
+#define jit_bgtr_f(label, s1, s2)
+#define jit_bler_f(label, s1, s2)
+#define jit_bltgtr_f(label, s1, s2)
+#define jit_bltr_f(label, s1, s2)
+#define jit_bner_f(label, s1, s2)
+#define jit_bordr_f(label, s1, s2)
+#define jit_buneqr_f(label, s1, s2)
+#define jit_bunger_f(label, s1, s2)
+#define jit_bungtr_f(label, s1, s2)
+#define jit_bunler_f(label, s1, s2)
+#define jit_bunltr_f(label, s1, s2)
+#define jit_bunordr_f(label, s1, s2)
+#define jit_ceilr_f_i(rd, rs)
+#define jit_divr_f(rd,s1,s2)
+#define jit_eqr_f(d, s1, s2)
+#define jit_extr_d_f(rs, rd)
+#define jit_extr_f_d(rs, rd)
+#define jit_extr_i_f(rd, rs)
+#define jit_floorr_f_i(rd, rs)
+#define jit_ger_f(d, s1, s2)
+#define jit_gtr_f(d, s1, s2)
+#define jit_ler_f(d, s1, s2)
+#define jit_ltgtr_f(d, s1, s2)
+#define jit_ltr_f(d, s1, s2)
+#define jit_movr_f(rd,rs)
+#define jit_mulr_f(rd,s1,s2)
+#define jit_negr_f(rd,rs)
+#define jit_ner_f(d, s1, s2)
+#define jit_ordr_f(d, s1, s2)
+#define jit_roundr_f_i(rd, rs)
+#define jit_rsbr_f(d, s1, s2)
+#define jit_sqrt_f(rd,rs)
+#define jit_subr_f(rd,s1,s2)
+#define jit_truncr_f_i(rd, rs)
+#define jit_uneqr_f(d, s1, s2)
+#define jit_unger_f(d, s1, s2)
+#define jit_ungtr_f(d, s1, s2)
+#define jit_unler_f(d, s1, s2)
+#define jit_unltr_f(d, s1, s2)
+#define jit_unordr_f(d, s1, s2)
+@end example
+
+@item Mandatory if sizeof(long) != sizeof(int)---don't define them on other systems:
+@example
+#define jit_addi_l(d, rs, is)
+#define jit_addr_l(d, s1, s2)
+#define jit_andi_l(d, rs, is)
+#define jit_andr_l(d, s1, s2)
+#define jit_beqi_l(label, rs, is)
+#define jit_beqr_l(label, s1, s2)
+#define jit_bgei_l(label, rs, is)
+#define jit_bgei_ul(label, rs, is)
+#define jit_bger_l(label, s1, s2)
+#define jit_bger_ul(label, s1, s2)
+#define jit_bgti_l(label, rs, is)
+#define jit_bgti_ul(label, rs, is)
+#define jit_bgtr_l(label, s1, s2)
+#define jit_bgtr_ul(label, s1, s2)
+#define jit_blei_l(label, rs, is)
+#define jit_blei_ul(label, rs, is)
+#define jit_bler_l(label, s1, s2)
+#define jit_bler_ul(label, s1, s2)
+#define jit_blti_l(label, rs, is)
+#define jit_blti_ul(label, rs, is)
+#define jit_bltr_l(label, s1, s2)
+#define jit_bltr_ul(label, s1, s2)
+#define jit_bosubi_l(label, rs, is)
+#define jit_bosubi_ul(label, rs, is)
+#define jit_bosubr_l(label, s1, s2)
+#define jit_bosubr_ul(label, s1, s2)
+#define jit_boaddi_l(label, rs, is)
+#define jit_boaddi_ul(label, rs, is)
+#define jit_boaddr_l(label, s1, s2)
+#define jit_boaddr_ul(label, s1, s2)
+#define jit_bmci_l(label, rs, is)
+#define jit_bmcr_l(label, s1, s2)
+#define jit_bmsi_l(label, rs, is)
+#define jit_bmsr_l(label, s1, s2)
+#define jit_bnei_l(label, rs, is)
+#define jit_bner_l(label, s1, s2)
+#define jit_divi_l(d, rs, is)
+#define jit_divi_ul(d, rs, is)
+#define jit_divr_l(d, s1, s2)
+#define jit_divr_ul(d, s1, s2)
+#define jit_eqi_l(d, rs, is)
+#define jit_eqr_l(d, s1, s2)
+#define jit_extr_c_l(d, rs)
+#define jit_extr_c_ul(d, rs)
+#define jit_extr_s_l(d, rs)
+#define jit_extr_s_ul(d, rs)
+#define jit_extr_i_l(d, rs)
+#define jit_extr_i_ul(d, rs)
+#define jit_gei_l(d, rs, is)
+#define jit_gei_ul(d, rs, is)
+#define jit_ger_l(d, s1, s2)
+#define jit_ger_ul(d, s1, s2)
+#define jit_gti_l(d, rs, is)
+#define jit_gti_ul(d, rs, is)
+#define jit_gtr_l(d, s1, s2)
+#define jit_gtr_ul(d, s1, s2)
+#define jit_hmuli_l(d, rs, is)
+#define jit_hmuli_ul(d, rs, is)
+#define jit_hmulr_l(d, s1, s2)
+#define jit_hmulr_ul(d, s1, s2)
+#define jit_ldi_l(d, is)
+#define jit_ldi_ui(d, is)
+#define jit_ldr_l(d, rs)
+#define jit_ldr_ui(d, rs)
+#define jit_ldxi_l(d, rs, is)
+#define jit_ldxi_ui(d, rs, is)
+#define jit_ldxi_ul(d, rs, is)
+#define jit_ldxr_l(d, s1, s2)
+#define jit_ldxr_ui(d, s1, s2)
+#define jit_ldxr_ul(d, s1, s2)
+#define jit_lei_l(d, rs, is)
+#define jit_lei_ul(d, rs, is)
+#define jit_ler_l(d, s1, s2)
+#define jit_ler_ul(d, s1, s2)
+#define jit_lshi_l(d, rs, is)
+#define jit_lshr_l(d, s1, s2)
+#define jit_lti_l(d, rs, is)
+#define jit_lti_ul(d, rs, is)
+#define jit_ltr_l(d, s1, s2)
+#define jit_ltr_ul(d, s1, s2)
+#define jit_modi_l(d, rs, is)
+#define jit_modi_ul(d, rs, is)
+#define jit_modr_l(d, s1, s2)
+#define jit_modr_ul(d, s1, s2)
+#define jit_movi_l(d, rs)
+#define jit_movr_l(d, rs)
+#define jit_muli_l(d, rs, is)
+#define jit_muli_ul(d, rs, is)
+#define jit_mulr_l(d, s1, s2)
+#define jit_mulr_ul(d, s1, s2)
+#define jit_nei_l(d, rs, is)
+#define jit_ner_l(d, s1, s2)
+#define jit_ori_l(d, rs, is)
+#define jit_orr_l(d, s1, s2)
+#define jit_pusharg_l(rs)
+#define jit_retval_l(rd)
+#define jit_rshi_l(d, rs, is)
+#define jit_rshi_ul(d, rs, is)
+#define jit_rshr_l(d, s1, s2)
+#define jit_rshr_ul(d, s1, s2)
+#define jit_sti_l(d, is)
+#define jit_str_l(d, rs)
+#define jit_stxi_l(d, rs, is)
+#define jit_stxr_l(d, s1, s2)
+#define jit_subr_l(d, s1, s2)
+#define jit_xori_l(d, rs, is)
+#define jit_xorr_l(d, s1, s2)
+@end example
+@end table
+
+@node Standard functions
+@chapter More complex tasks in the platform-independent layer
+
+There is actually a single function that you @strong{must} define
+in the @file{funcs-@var{suffix}.h} file, that is, @code{jit_flush_code}.
+
+As explained in @usingref{GNU lightning macros, Generating code at
+run-time}, its purpose is to flush part of the processor's
+instruction cache (usually the part of memory that contains the
+generated code), avoiding the processor executing bogus data
+that it happens to find in the cache.  The @code{jit_flush_code}
+function takes the first and the last address to flush.
+
+On many processors (for example, the x86 and the all the processors
+in the 68k family up to the 68030), it is not even necessary to flush
+the cache.  In this case, the contents of the file will simply be
+
+@example
+#ifndef __lightning_funcs_h
+#define __lightning_funcs_h
+
+#define jit_flush_code(dest, end)
+
+#endif @rem{/* __lightning_core_h */}
+@end example
+
+On other processors, flushing the cache is necessary for
+proper behavior of the program; in this case, the file will contain
+a proper definition of the function.  However, we must make yet
+another distinction.
+
+On some processors, flushing the cache is obtained through a call
+to the operating system or to the C run-time library.  In this case,
+the definition of @code{jit_flush_code} will be very simple: two
+examples are the Alpha and the 68040. For the Alpha the code will
+be:
+@example
+#define jit_flush_code(dest, end) \
+        __asm__ __volatile__("call_pal 0x86");
+@end example
+
+@noindent
+and, for the Motorola
+@example
+#define jit_flush_code(start, end) \
+        __clear_cache((start), (end))
+@end example
+
+As you can see, the Alpha does not even need to pass the start and
+end address to the function.  It is good practice to protect usage of
+the @acronym{GNU CC}-specific @code{__asm__} directive by relying
+on the preprocessor.  For example:
+
+@example
+#if !defined(__GNUC__) && !defined(__GNUG__)
+#error Go get GNU C, I do not know how to flush the cache
+#error with this compiler.
+#else
+#define jit_flush_code(dest, end) \
+        __asm__ __volatile__("call_pal 0x86");
+#endif
+@end example
+
+@lightning{}'s configuration process tries to compile a dummy file that
+includes @code{lightning.h}, and gives a warning if there are problem
+with the compiler that is installed on the system.
+
+In more complex cases, you'll need to write a full-fledged function.
+Don't forget to make it @code{static}, otherwise you'll have problems
+linking programs that include @code{lightning.h} multiple times. An
+example, taken from the @file{funcs-ppc.h} file, is:
+
+@example
+#ifndef __lightning_funcs_h
+#define __lightning_funcs_h
+
+#if !defined(__GNUC__) && !defined(__GNUG__)
+#error Go get GNU C, I do not know how to flush the cache
+#error with this compiler.
+#else
+static void
+jit_flush_code(start, end)
+     void       *start;
+     void       *end;
+@{
+  register char *dest = start;
+
+  for (; dest <= end; dest += SIZEOF_CHAR_P)
+    __asm__ __volatile__ 
+      ("dcbst 0,%0; sync; icbi 0,%0; isync"::"r"(dest));
+@}
+#endif
+
+#endif /* __lightning_funcs_h */
+@end example
+
+The @file{funcs-@var{suffix}.h} file is also the right place to put
+helper functions that do complex tasks for the
+@file{core-@var{suffix}.h} file.  For example, the PowerPC assembler
+defines @code{jit_prolog} as a function and puts it in that file (for more
+information, @pxref{Implementing the ABI}).  Take special care when
+defining such a function, as explained in @usingref{Reentrancy,
+Reentrant usage of @lightning{}}.
+
+
+@node Floating-point macros
+@chapter Implementing macros for floating point
+
