@@ -33,6 +33,12 @@ if test -n "$cpu" && test -d "$srcdir/lightning/$cpu"; then
   funcs_src=lightning/$cpu/funcs.h
   test -f $srcdir/lightning/$cpu/funcs$suffix.h && funcs_src=lightning/$cpu/funcs$suffix.h
   AC_CONFIG_LINKS(lightning/funcs.h:$funcs_src, [], [funcs_src=$funcs_src])
+  if test "$cpu" = "i386"; then
+    a386_src=lightning/i386/asm-i386.h
+    c386_src=lightning/i386/core-i386.h
+    AC_CONFIG_LINKS(lightning/asm-i386.h:$a386_src, [], [a386_src=$a386_src])
+    AC_CONFIG_LINKS(lightning/core-i386.h:$c386_src, [], [c386_src=$c386_src])
+  fi
 else
   $2
   lightning_frag=/dev/null
