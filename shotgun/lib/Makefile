@@ -10,6 +10,7 @@ COMP=$(LIBTOOL) --mode=compile $(CC)
 LINKER=$(LIBTOOL) --mode=link $(CC)
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
+MARCH=$(shell uname -m)
 
 ifeq ($(UNAME),Darwin)
   SINGLE_MODULE=-Wl,-single_module
@@ -21,7 +22,15 @@ CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../exter
 
 WARNINGS=-Wall -Winline
 
-LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm -lcrypt
+# No disass support for 64
+ifeq ($(MARCH),amd64)	
+	LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm -lcrypt
+
+else
+  CFLAGS+="-DRBS_DISASS=1"
+
+	LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm -lcrypt
+endif 
 
 ifdef USE_CINVOKE
 CPPFLAGS+= -I../external_libs/cinvoke/lib

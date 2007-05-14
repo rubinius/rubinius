@@ -17,7 +17,33 @@ else
   # pp sexp
   io.close
 end
-
+#
+#def indent_print(array, indent = 0)
+#  print "#{' ' * indent}[" 
+#
+#  array.each_with_index {|elem, i|
+#    if elem.kind_of? Array
+#      indent_print elem, indent + 2
+#      print ",\n"
+#      next
+#    end
+#
+#    if i == 0 
+#      print ' '
+#    else
+#      print '  '
+#      print ' ' * indent
+#    end  
+#
+#    print elem.inspect
+#    print ",\n"
+#  }
+#
+##  print "\n"
+#  print "#{' ' * indent}]"
+#end
+#
+#indent_print sexp
 comp = Bytecode::Compiler.new
 comp.load_hints "kernel/hints"
 meth = comp.compile_as_script(sexp, :__script__)

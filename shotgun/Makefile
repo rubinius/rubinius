@@ -28,7 +28,18 @@ endif
 
 DEPS=../include/rubinius.h
 
-ALIBS=external_libs/lightning/opcode/libdisass.a external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
+
+# No disass support for 64
+ifeq ($(MARCH),amd64)	
+  __RBS_LIGHTNING_DISASS=''
+
+	ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
+
+else
+  __RBS_LIGHTNING_DISASS='--enable-disassembling'
+
+	ALIBS=external_libs/lightning/opcode/libdisass.a external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
+endif	
 
 LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
 LDFLAGS=
@@ -43,14 +54,9 @@ ifeq ($(UNAME),SunOS)
 endif
 
 # Support *BSD libexecinfo for backtrace etc.
-ifeq ($(UNAME),FreeBSD)
+ifeq ($(findstring BSD,$(UNAME)),BSD)
   LIBS+=-lexecinfo
 endif
-
-ifeq ($(UNAME),OpenBSD)
-  LIBS+=-lexecinfo
-endif
-
 
 ifeq ($(UNAME),Linux)
 	LIBS+=-ldl
@@ -75,7 +81,7 @@ config.h:
 	$(COMP) $(CFLAGS) -c $< 
 
 external_libs/lightning/opcode/libdisass.a:
-	cd external_libs/lightning; ./configure --enable-disassembling; $(MAKE)
+	cd external_libs/lightning; CFLAGS=-fPIC ./configure $(__RBS_LIGHTNING_DISASS); $(MAKE)
 
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)

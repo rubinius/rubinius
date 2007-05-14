@@ -8,7 +8,10 @@
 
 #include <lightning.h>
 
+#ifdef RBS_DISASS
+#error 'disass'
 void disassemble(FILE*, char*, char*);
+#endif
 
 static rni_handle* _ffi_pop() {
   rni_handle *h;
@@ -89,7 +92,10 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
   
   if(getenv("RBX_SHOW_STUBS")) {
     printf("Assembly stub for: %p (%d)\n", func, args);
+
+    #ifdef RBS_DISASS
     disassemble(stderr, start, jit_get_ip().ptr);
+    #endif
   }
   
   jit_flush_code(start, jit_get_ip().ptr);

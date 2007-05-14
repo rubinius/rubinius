@@ -272,7 +272,7 @@ namespace :build do
   desc "Build the VM bootstrap archive."
   task :bootstrap => 'kernel/hints' do
     Dir.chdir "kernel" do
-      files = Dir["bootstrap/*.rb"].sort
+      files = Dir["kernel/bootstrap/*.rb"].sort
 
       changed = []
       files.each do |file|
@@ -289,7 +289,7 @@ namespace :build do
         f.puts files.join("\n")
       end
     
-      archive = "../runtime/bootstrap.rba"
+      archive = "runtime/bootstrap.rba"
 
       if File.exists? archive
         if changed.empty?
@@ -301,6 +301,37 @@ namespace :build do
         system "zip #{archive} .load_order.txt #{files.join(' ')}"
       end
     end
+  end
+  
+  desc "Build the VM bootstrap archive with rubinius."
+  task :rbs_bootstrap => 'kernel/hints' do
+      files = Dir["kernel/bootstrap/*.rb"].sort
+
+      changed = []
+      files.each do |file|
+        cmp = "#{file}c"
+        unless newer?(file, cmp) # File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+          changed << cmp
+          system "shotgun/rubinius -c #{file}"
+        end
+        file << "c"
+      end
+
+      File.open(".load_order.txt","w") do |f|
+        f.puts files.join("\n")
+      end
+    
+      archive = "runtime/bootstrap.rba"
+
+      if File.exists? archive
+        if changed.empty?
+          puts "No kernel/bootstrap files to update."
+        else
+          system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
+        end
+      else
+        system "zip #{archive} .load_order.txt #{files.join(' ')}"
+      end
   end
 
   desc "Build the core classes and methods archive."
@@ -338,6 +369,43 @@ namespace :build do
       else
         system "zip #{archive} .load_order.txt #{files.join(' ')}"
       end
+    end
+  end
+
+  desc "Build the core classes and methods archive."
+  task :rbs_core => 'kernel/hints' do
+    files = nil
+    files = Dir["kernel/core/*.rb"].sort
+    files.delete "kernel/core/__loader.rb"
+
+    files << "kernel/core/__loader.rb"
+    
+    changed = []
+    files.each do |file|
+      cmp = "#{file}c"
+      unless newer?(file, cmp) # File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+        changed << cmp
+        system "shotgun/rubinius -c #{file}"
+#        system "#{COMPILER} #{file}"
+#        raise "Failed to compile #{file}" if $?.exitstatus != 0
+      end
+      file << "c"
+    end
+
+    File.open(".load_order.txt","w") do |f|
+      f.puts files.join("\n")
+    end
+    
+    archive = "runtime/core.rba"
+
+    if File.exists? archive
+      if changed.empty?
+        puts "No kernel/core files to update."
+      else
+        system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
+      end
+    else
+      system "zip #{archive} .load_order.txt #{files.join(' ')}"
     end
   end
   
