@@ -51,7 +51,8 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     jit_prepare_i(1);
     jit_pusharg_p(JIT_V0);
     
-  } else if(args == 1) {
+  }
+ /* else if(args == 1) {
     ffi_pop(JIT_V1);
     jit_prepare_i(2);
     jit_pusharg_p(JIT_V1);
@@ -65,7 +66,8 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     jit_pusharg_p(JIT_V1);
     jit_pusharg_p(JIT_V0);
     
-  } else {
+  } */ 
+  else {
     
     ids = calloc(args, sizeof(int));
     

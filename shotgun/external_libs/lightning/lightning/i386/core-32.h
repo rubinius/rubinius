@@ -43,11 +43,19 @@ struct jit_local_state {
   int	framesize;
   int	argssize;
   int	alloca_offset;
+  int alloca_space;
   int	alloca_slack;
+  int unbound_stack;
 };
 
-#define jit_base_prolog() (PUSHLr(_EBX), PUSHLr(_ESI), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))
-#define jit_prolog(n) (_jitl.framesize = 20, _jitl.alloca_offset = 0, jit_base_prolog())
+
+// #define jit_base_prolog() (PUSHLr(_EBX), PUSHLr(_EDI), PUSHLr(_EBP), MOVLrr(_ESP, _EBP))
+#define jit_base_prolog() (PUSHLr(_EBP), MOVLrr(_ESP, _EBP), PUSHLr(_EDI), PUSHLr(_EBX), PUSHLr(_ESI), SUBLir(12, _ESP))
+//#define jit_base_prolog() (PUSHLr(_EBP), MOVLrr(_ESP, _EBP), PUSHLr(_EBX))
+#define jit_prolog(n) (_jitl.framesize = 8, _jitl.alloca_offset = 0, _jitl.alloca_space = _jitl.alloca_slack = 12, _jitl.unbound_stack = 0, jit_base_prolog())
+
+/* The number of bytes past EBP where the alloca's start. */
+#define EBP_OFFSET 12
 
 /* Used internally.  SLACK is used by the Darwin ABI which keeps the stack
    aligned to 16-bytes.  */
@@ -63,20 +71,49 @@ struct jit_local_state {
    _jitl.alloca_offset -= (amount))
    
 /* Stack */
-#define jit_pushr_i(rs)		PUSHLr(rs)
-#define jit_popr_i(rs)		POPLr(rs)
+#define jit_pushr_i(rs)		(PUSHLr(rs), _jitl.unbound_stack++)
+#define jit_popr_i(rs)		(_jitl.unbound_stack--, POPLr(rs))
 
 /* The += in argssize allows for stack pollution */
 
 #ifdef __APPLE__
 /* Stack must stay 16-byte aligned: */
+# define jit_prepare_i(ni)	({ \
+  int _ni = (ni); \
+  int _sb = _ni + _jitl.unbound_stack; \
+  int _next4 = (_sb + 3) & ~3; \
+  int _padding; \
+  if(_sb != _next4 ) { \
+    _padding = 4 * (_next4 - _sb); \
+    SUBLir(_padding, JIT_SP); \
+  } \
+  _jitl.argssize += ((_next4 - _sb) + _ni); \
+})
+  // _jitl.argssize += ((_ni + 3) & ~(0x3)); \
+
+/*
 # define jit_prepare_i(ni)	(((ni & 0x3) \
                                   ? SUBLir(4 * ((((ni) + 3) & ~(0x3)) - (ni)), JIT_SP) \
                                   : (void)0), \
                                  _jitl.argssize += (((ni) + 3) & ~(0x3)))
+*/
+//#define jit_allocai(n)						\
+//  jit_allocai_internal ((n), (_jitl.alloca_slack - (n)) & 15)
 
-#define jit_allocai(n)						\
-  jit_allocai_internal ((n), (_jitl.alloca_slack - (n)) & 15)
+#define jit_allocai(n) ({ \
+    int _pos; \
+    int _n = (n); \
+    int _x = (_n + 3) & ~3;\
+    _pos = EBP_OFFSET + _jitl.alloca_slack; \
+    if(_x <= _jitl.alloca_slack) { \
+      _jitl.alloca_slack -= _x; \
+    } else { \
+      _x = (_n + 15) & ~15; \
+      _jitl.alloca_space += _x; \
+      _jitl.alloca_slack += _x; \
+      SUBLir(_x, _ESP); \
+    }; _pos; \
+})
 
 #else
 # define jit_prepare_i(ni)	(_jitl.argssize += (ni))
@@ -102,7 +139,9 @@ struct jit_local_state {
 #define jit_movi_p(d, is)       (jit_movi_l(d, ((long)(is))), _jit.x.pc)
 #define jit_patch_long_at(jump_pc,v)  (*_PSL((jump_pc) - sizeof(long)) = _jit_SL((jit_insn *)(v) - (jump_pc)))
 #define jit_patch_at(jump_pc,v)  jit_patch_long_at(jump_pc, v)
-#define jit_ret()		((_jitl.alloca_offset < 0 ? LEAVE_() : POPLr(_EBP)), POPLr(_EDI), POPLr(_ESI), POPLr(_EBX), RET_())
+// #define jit_ret()		((_jitl.alloca_offset < 0 ? LEAVE_() : ADDLir(12, _ESP), POPLr(_ESI), POPLr(_EBX)), POPLr(_EDI), POPLr(_EBP), RET_())
+#define jit_ret()		(ADDLir(_jitl.alloca_space, _ESP), POPLr(_ESI), POPLr(_EBX), POPLr(_EDI), POPLr(_EBP), RET_())
+// #define jit_ret()		(POPLr(_EBX), POPLr(_EBP), RET_())
 
 /* Memory */
 
