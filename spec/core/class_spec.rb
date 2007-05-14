@@ -64,22 +64,20 @@ end
 
 context 'Class event hook methods' do
   specify '#inherited, if implemented, is called when a Class object is inherited. Subclass object given as parameter.' do
-    example do
-      class ClassSpecNotInherited
-        @@i = nil
-      end
-      
-      class ClassSpecInherited
-        @@i = nil
-        def self.inherited(by); @@i = by; end
-      end
-       
-      Class.new ClassSpecNotInherited
-      i = Class.new ClassSpecInherited
+    class ClassSpecNotInherited
+      @@i = nil
+    end
+    
+    class ClassSpecInherited
+      @@i = nil
+      def self.inherited(by); @@i = by; end
+    end
+     
+    Class.new ClassSpecNotInherited
+    i = Class.new ClassSpecInherited
 
-      [ClassSpecNotInherited.send('class_variable_get', '@@i') == nil, 
-       ClassSpecInherited.send('class_variable_get', '@@i') == i]
-    end.should == [true, true]
+    ClassSpecNotInherited.send('class_variable_get', '@@i').should == nil
+    ClassSpecInherited.send('class_variable_get', '@@i').should == i
   end
 end
 
@@ -104,54 +102,54 @@ context 'Accessing class variables of a Class' do
   specify 'class variables may be read using .class_variable_get which takes a Symbol or a String' do
     class CS_CV2; @@a = 1; end
     
-    CS_CV3.class_variable_get(:@@a).should == 1
-    CS_CV3.class_variable_get('@@a').should == 1
+    CS_CV2.send(:class_variable_get, :@@a).should == 1
+    CS_CV2.send(:class_variable_get, '@@a').should == 1
   end
 
   specify 'the name given to class_variable_get must begin with @@' do
     class CS_CV3; @@a = 1; end
 
-    should_raise(ArgumentError) { CS_CV4.class_variable_get :a }
-    should_raise(ArgumentError) { CS_CV4.class_variable_get 'a' }
+    should_raise(NameError) { CS_CV3.send(:class_variable_get, :a) }
+    should_raise(NameError) { CS_CV3.send(:class_variable_get, 'a') }
   end
 
   specify 'class variables may be set using .class_variable_set which takes a Symbol or a String' do
     class CS_CV4; @@a = 1; end
     
-    CS_CV4.class_variable_set :@@b, 2
-    CS_CV4.class_variable_get(:@@b).should == 2
-    CS_CV4.class_variable_get(:@@a).should == 1
+    CS_CV4.send(:class_variable_set, :@@b, 2)
+    CS_CV4.send(:class_variable_get, :@@b).should == 2
+    CS_CV4.send(:class_variable_get, :@@a).should == 1
 
-    CS_CV4.class_variable_set :@@c, 3
-    CS_CV3.class_variable_get('@@c').should == 3
-    CS_CV3.class_variable_get('@@a').should == 1
+    CS_CV4.send(:class_variable_set, :@@c, 3)
+    CS_CV4.send(:class_variable_get, '@@c').should == 3
+    CS_CV4.send(:class_variable_get, '@@a').should == 1
   end
   
   specify 'class_variable_set will overwrite the previous value' do
     class CS_CV5; @@a = 1; end
     
-    CS_CV5.class_variable_set :@@a, 2
-    CS_CV5.class_variable_get(:@@a).should == 2
-    CS_CV5.class_variable_get('@@a').should == 2
+    CS_CV5.send(:class_variable_set, :@@a, 2)
+    CS_CV5.send(:class_variable_get, :@@a).should == 2
+    CS_CV5.send(:class_variable_get, '@@a').should == 2
   end
 
   specify 'class_variable_set returns the new value' do
     class CS_CV6; @@a = 1; end
     
-    CS_CV6.class_variable_set(:@@b, 2).should == 2
+    CS_CV6.send(:class_variable_set, :@@b, 2).should == 2
   end
 
   specify 'the name given to class_variable_set must begin with @@' do
     class CS_CV7; ; end
 
-    should_raise(ArgumentError) { CS_CV7.class_variable_set :a, 1 }
-    should_raise(ArgumentError) { CS_CV7.class_variable_set 'a', 1 }
+    should_raise(NameError) { CS_CV7.send(:class_variable_set, :a, 1) }
+    should_raise(NameError) { CS_CV7.send(:class_variable_set, 'a', 1) }
   end
 
   specify 'class variables set using class_variable_set are available as @@ vars' do
-    class CS_CV8; @@a.should == nil; end
+    class CS_CV8; @@a = nil; end
 
-    CS_CV8.class_variable_set :@@a, 1
+    CS_CV8.send(:class_variable_set, :@@a, 1)
 
     class CS_CV8; @@a.should == 1; end
   end
