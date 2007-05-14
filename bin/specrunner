@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 
 # Switch to default rubinius
 if [[ $SR_TARGET = "" ]]; then

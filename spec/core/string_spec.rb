@@ -13,7 +13,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "String instance method" do
   
-  specify "% should return a string resulting from applying self as a format specification to other" do
+  # specify "% should return a string resulting from applying self as a format specification to other" do
     # TODO: yeah, this should be broken up I dare say
     # example do
     #   [ "%b" % 10,
@@ -148,8 +148,8 @@ context "String instance method" do
     #       "10                    ", "        10", "10", "10", "10   ", "         9", "10", 
     #       " 10", "10", "+10", "10     ", "0010", "         4", "A", " A", "A", "0XA", "+A", 
     #       "A        ", "0000A", "         6", "a", " a", "a", "0xa", "+a", "a        ", "0000a", "         6" ]
-  end
-  
+  # end
+
   specify "* should return a new string that is n copies of self" do
     ("cool" * 3).should == "coolcoolcool"
   end
@@ -1058,5 +1058,172 @@ context "String inherited instance method" do
   
   specify "instance_variable_get should raise NameError if the argument is not of form '@x'" do
     should_raise(NameError) { "raise".instance_variable_get(:c) }
+  end
+end
+
+describe "String instance method %" do
+  
+  it "format with multiple expressions" do
+    ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
+    # Sprintf::Parser.format("%b %x %d %s", [10, 10, 10, 10]).should == "1010 a 10 10"
+  end
+  
+  it "format with expressions mid string" do
+    ("hello %s!" % "world").should == "hello world!"
+  end
+  
+  it "format correctly parses %%" do
+    ("%d%% %s" % [10, "of chickens!"]).should == "10% of chickens!"
+  end
+  
+  it "format binary values should return a string resulting from applying the format" do
+    ("%b" % 10).should == "1010"
+    ("% b" % 10).should == " 1010"
+    ("%1$b" % [10, 20]).should == "1010"
+    ("%#b" % 10).should == "0b1010"
+    ("%+b" % 10).should == "+1010"
+    ("%-9b" % 10).should == "1010     "
+    ("%05b" % 10).should == "01010"
+    ("%*b" % [10, 6]).should == "       110"
+  end
+  
+  it "format character values should return a string resulting from applying the format" do
+    ("%c" % 10).should == "\n"
+    ("%2$c" % [10, 11, 14]).should == "\v"
+    ("%-4c" % 10).should == "\n   "
+    ("%*c" % [10, 3]).should == "         \003"
+  end
+  
+  it "format decimal values should return a string resulting from applying the format" do
+    ("%d" % 10).should == "10"
+    ("% d" % 10).should == " 10"
+    ("%1$d" % [10, 20]).should == "10"
+    ("%+d" % 10).should == "+10"
+    ("%-7d" % 10).should == "10     "
+    ("%04d" % 10).should == "0010"
+    ("%*d" % [10, 4]).should == "         4"
+  end
+  
+  it "format float (E) values should return a string resulting from applying the format" do
+    ("%E" % 10).should == "1.000000E+01"
+    ("% E" % 10).should == " 1.000000E+01"
+    ("%1$E" % 10).should == "1.000000E+01"
+    ("%#E" % 10).should == "1.000000E+01"
+    ("%+E" % 10).should == "+1.000000E+01"
+    ("%-7E" % 10).should == "1.000000E+01"
+    ("%05E" % 10).should == "1.000000E+01"
+    ("%*E" % [10, 9]).should == "9.000000E+00"
+  end
+
+  it "format float (e) values should return a string resulting from applying the format" do  
+    ("%e" % 10).should == "1.000000e+01"
+    ("% e" % 10).should == " 1.000000e+01"
+    ("%1$e" % 10).should == "1.000000e+01"
+    ("%#e" % 10).should == "1.000000e+01"
+    ("%+e" % 10).should == "+1.000000e+01"
+    ("%-7e" % 10).should == "1.000000e+01"
+    ("%05e" % 10).should == "1.000000e+01"
+    ("%*e" % [10, 9]).should == "9.000000e+00"
+    ("%e" % (0.0/0)).should == "nan"
+  end
+  
+  it "format float (f) values should return a string resulting from applying the format" do
+    ("%f" % 10).should == "10.000000"
+    ("% f" % 10).should == " 10.000000"
+    ("%1$f" % 10).should == "10.000000"
+    ("%#f" % 10).should == "10.000000"
+    ("%+f" % 10).should == "+10.000000"
+    ("%-7f" % 10).should == "10.000000"
+    ("%05f" % 10).should == "10.000000"
+    ("%*f" % [10, 9]).should == "  9.000000"
+  end
+  
+  it "format float (G) values should return a string resulting from applying the format" do
+    ("%G" % 10).should == "10"
+    ("% G" % 10).should == " 10"
+    ("%1$G" % 10).should == "10"
+    ("%#G" % 10).should == "10.0000"
+    ("%+G" % 10).should == "+10"
+    ("%-7G" % 10).should == "10     "
+    ("%05G" % 10).should == "00010"
+    ("%*G" % [10, 9]).should == "         9"
+  end
+  
+  it "format float (g) values should return a string resulting from applying the format" do
+    ("%g" % 10).should == "10"
+    ("% g" % 10).should == " 10"
+    ("%1$g" % 10).should == "10"
+    ("%#g" % 10).should == "10.0000"
+    ("%+g" % 10).should == "+10"
+    ("%-7g" % 10).should == "10     "
+    ("%05g" % 10).should == "00010"
+    ("%*g" % [10, 9]).should == "         9"
+  end
+  
+  it "format integer values should return a string resulting from applying the format" do
+    ("%i" % 10).should == "10"
+    ("% i" % 10).should == " 10"
+    ("%1$i" % [10, 20]).should == "10"
+    ("%+i" % 10).should == "+10"
+    ("%-7i" % 10).should == "10     "
+    ("%04i" % 10).should == "0010"
+    ("%*i" % [10, 4]).should == "         4"
+  end
+  
+  it "format octal values should return a string resulting from applying the format" do
+    ("%o" % 10).should == "12"
+    ("% o" % 10).should == " 12"
+    ("%1$o" % [10, 20]).should == "12"
+    ("%#o" % 10).should == "012"
+    ("%+o" % 10).should == "+12"
+    ("%-9o" % 10).should == "12       "
+    ("%05o" % 10).should == "00012"
+    ("%*o" % [10, 6]).should == "         6"
+  end
+  
+  it "format inspect values should return a string resulting from applying the format" do
+    ("%p" % 10).should == "10"
+    ("%1$p" % [10, 5]).should == "10"
+    ("%-22p" % 10).should == "10                    "
+    ("%*p" % [10, 10]).should == "        10"
+  end
+  
+  it "format string values should return a string resulting from applying the format" do
+    ("%s" % 10).should == "10"
+    ("%1$s" % [10, 8]).should == "10"
+    ("%-5s" % 10).should == "10   "
+    ("%*s" % [10, 9]).should == "         9"
+  end
+  
+  it "format unsigned values should return a string resulting from applying the format" do
+    ("%u" % 10).should == "10"
+    ("% u" % 10).should == " 10"
+    ("%1$u" % [10, 20]).should == "10"
+    ("%+u" % 10).should == "+10"
+    ("%-7u" % 10).should == "10     "
+    ("%04u" % 10).should == "0010"
+    ("%*u" % [10, 4]).should == "         4"
+  end
+  
+  it "format hex (X) values should return a string resulting from applying the format" do
+    ("%X" % 10).should == "A"
+    ("% X" % 10).should == " A"
+    ("%1$X" % [10, 20]).should == "A"
+    ("%#X" % 10).should == "0XA"
+    ("%+X" % 10).should == "+A"
+    ("%-9X" % 10).should == "A        "
+    ("%05X" % 10).should == "0000A"
+    ("%*X" % [10, 6]).should == "         6"
+  end
+  
+  it "format hex (x) values should return a string resulting from applying the format" do
+    ("%x" % 10).should == "a"
+    ("% x" % 10).should == " a"
+    ("%1$x" % [10, 20]).should == "a"
+    ("%#x" % 10).should == "0xa"
+    ("%+x" % 10).should == "+a"
+    ("%-9x" % 10).should == "a        "
+    ("%05x" % 10).should == "0000a"
+    ("%*x" % [10, 6]).should == "         6"
   end
 end

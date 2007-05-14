@@ -1,4 +1,12 @@
 class Object
+  
+  VERSION = Rubinius::VERSION
+  # VERSION is deprecated in MRI 1.9
+  RUBY_VERSION = Rubinius::VERSION
+  RUBY_PLATFORM = Rubinius::RUBY_PLATFORM
+  RUBY_RELEASE_DATE = Rubinius::RUBY_RELEASE_DATE
+  RUBY_ENGINE = Rubinius::RUBY_ENGINE
+  
   #  call-seq:
   #     obj.instance_exec(arg...) {|var...| block }                       => obj
   #  

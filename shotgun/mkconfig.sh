@@ -51,6 +51,7 @@ echo "#define CONFIG_CODEPATH \"$CODEPATH\""
 echo "#define CONFIG_RBAPATH \"$RBAPATH\""
 echo "#define CONFIG_EXTPATH \"$EXTPATH\""
 echo "#define CONFIG_BUILDREV \"$BUILDREV\""
+echo "#define CONFIG_ENGINE \"$ENGINE\""
 
 ) > config.h
 

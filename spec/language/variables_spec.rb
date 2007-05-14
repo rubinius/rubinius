@@ -1,3 +1,4 @@
+require File.dirname(__FILE__) + '/../spec_helper'
 
 # TODO : Variable scopes
 #
@@ -71,3 +72,64 @@
 # RUBY_RELEASE_DATE The release date string.
 # RUBY_PLATFORM     The platform identifier.
 #
+
+describe "The set of pre-defined global constants" do
+  it "includes TRUE" do
+    Object.const_defined?(:TRUE).should == true
+  end
+  
+  it "includes FALSE" do
+    Object.const_defined?(:FALSE).should == true
+  end
+  
+  it "include NIL" do
+    Object.const_defined?(:NIL).should == true
+  end
+  
+  it "includes STDIN" do
+    Object.const_defined?(:STDIN).should == true
+  end
+  
+  it "includes STDOUT" do
+    Object.const_defined?(:STDOUT).should == true
+  end
+  
+  it "includes STDERR" do
+    Object.const_defined?(:STDERR).should == true
+  end
+  
+  it "includes ENV" do
+    Object.const_defined?(:ENV).should == true
+  end
+  
+  it "includes ARGF" do
+    Object.const_defined?(:ARGF).should == true
+  end
+  
+  it "includes ARGV" do
+    Object.const_defined?(:ARGV).should == true
+  end
+  
+  it "includes DATA" do
+    Object.const_defined?(:DATA).should == true
+  end
+  
+  it "includes RUBY_VERSION" do
+    Object.const_defined?(:RUBY_VERSION).should == true
+  end
+  
+  it "includes RUBY_RELEASE_DATE" do
+    Object.const_defined?(:RUBY_RELEASE_DATE).should == true
+  end
+  
+  it "includes RUBY_PLATFORM" do
+    Object.const_defined?(:RUBY_PLATFORM).should == true
+  end
+  
+  it "includes RUBY_ENGINE" do
+    Object.const_defined?(:RUBY_ENGINE).should == true
+  end
+end
+
+__END__
+We're some data. Please don't delete us.
