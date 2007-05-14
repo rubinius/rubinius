@@ -24,12 +24,12 @@ WARNINGS=-Wall -Winline
 
 # No disass support for 64
 ifeq ($(MARCH),amd64)	
-	LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm -lcrypt
+	LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
 
 else
   CFLAGS+="-DRBS_DISASS=1"
 
-	LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm -lcrypt
+	LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/lightning/opcode/libdisass.a ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
 endif 
 
 ifdef USE_CINVOKE
@@ -40,6 +40,11 @@ endif
 # BSD do not require a separate libdl
 ifneq ($(findstring BSD,$(UNAME)),BSD)
   LIBS+="-ldl"
+endif
+
+# Darwin doesn't need -lcrypt
+ifneq ($(UNAME),Darwin)
+  LIBS+="-lcrypt"
 endif
 
 ifdef DEV
