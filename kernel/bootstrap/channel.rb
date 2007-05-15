@@ -58,7 +58,7 @@ class Channel
     Ruby.primitive :channel_send_in_microseconds
   end
 
-  def send_on_readable(io, buffer)
+  def send_on_readable(io, buffer, count)
     Ruby.primitive :channel_send_on_readable
   end
 

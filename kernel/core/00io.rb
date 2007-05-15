@@ -18,7 +18,7 @@ class IO
     if size
       buf = String.new(size)
       chan = Channel.new
-      chan.send_on_readable self, buf
+      chan.send_on_readable self, buf, size
       out = chan.receive
       return out[1]
     else

@@ -89,7 +89,31 @@ class String
 
   def ==(other)
     if String === other
-      return (@data <=> other.data) == 0
+      return false unless @bytes == other.size
+      
+      # This clamps the data to the right size, then we compare
+      # FIXME: This is very inefficient, creating a new ByteArray just
+      # to compare. 
+      ld = @data.fetch_bytes(0, @bytes)
+      rd = other.data.fetch_bytes(0, @bytes)
+      
+      return (ld <=> rd) == 0
+      
+      # It would be nice if the rest of this worked, but it had problems
+      # last I (evan) tried. We need to go through and make sure null termination
+      # of ByteArray's is universal.
+      od = other.data
+      if @data.size == od.size
+        return (@data <=> od) == 0
+      elsif @data.size < od.size
+        puts "od is bigger"
+        return (od.fetch_bytes(0, @data.size) <=> @data) == 0
+      else
+        puts "data is bigger"
+        out = (@data.fetch_bytes(0, od.size) <=> od)
+        p out
+        return out == 0
+      end
     elsif other.respond_to?(:to_str)
       return other == self
     end

@@ -624,7 +624,7 @@ class ShotgunPrimitives
     <<-CODE
     /* self is ANY object because object_logical_class knows all. */    
     self = stack_pop();
-    t1 = I2N(object_hash_int(state, self));
+    t1 = UI2N(object_hash_int(state, self));
     stack_push(t1);
     CODE
   end
@@ -2304,12 +2304,14 @@ class ShotgunPrimitives
     POP(self, REFERENCE);
     POP(t1,   IO);
     t2 = stack_pop();
+    t3 = stack_pop();
     
     GUARD(RISA(self, channel));
     GUARD(STRING_P(t2) || NIL_P(t2));
+    GUARD(FIXNUM_P(t3) || NIL_P(t3));
     
     j = FIXNUM_TO_INT(io_get_descriptor(t1));
-    cpu_event_wait_readable(state, c, self, j, t2);
+    cpu_event_wait_readable(state, c, self, j, t2, FIXNUM_TO_INT(t3));
     stack_push(Qtrue);
     CODE
   end

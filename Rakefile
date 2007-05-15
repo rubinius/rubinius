@@ -270,7 +270,7 @@ namespace :build do
   end
   
   desc "Build the VM bootstrap archive."
-  task :bootstrap => 'kernel/hints' do
+  task :rcompile_bootstrap => 'kernel/hints' do
     Dir.chdir "kernel" do
       files = Dir["bootstrap/*.rb"].sort
 
@@ -304,15 +304,17 @@ namespace :build do
   end
   
   desc "Build the VM bootstrap archive with rubinius."
-  task :rbs_bootstrap => 'kernel/hints' do
+  task :bootstrap => 'kernel/hints' do
       files = Dir["kernel/bootstrap/*.rb"].sort
-
+      temp_bs = "runtime/bootstrap.rba.old"
+      system "cp runtime/bootstrap.rba #{temp_bs}"
+      ENV['BOOTSTRAP'] = temp_bs
       changed = []
       files.each do |file|
         cmp = "#{file}c"
-        unless newer?(file, cmp) # File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+        unless newer?(file, cmp)
           changed << cmp
-          system "shotgun/rubinius -c #{file}"
+          system "shotgun/rubinius compile #{file}"
         end
         file << "c"
       end
@@ -332,10 +334,12 @@ namespace :build do
       else
         system "zip #{archive} .load_order.txt #{files.join(' ')}"
       end
+
+      system "rm #{temp_bs}"
   end
 
   desc "Build the core classes and methods archive."
-  task :core => 'kernel/hints' do
+  task :rcompile_core => 'kernel/hints' do
     files = nil
     Dir.chdir("kernel") do
       files = Dir["core/*.rb"].sort
@@ -373,19 +377,23 @@ namespace :build do
   end
 
   desc "Build the core classes and methods archive."
-  task :rbs_core => 'kernel/hints' do
+  task :core => 'kernel/hints' do
     files = nil
     files = Dir["kernel/core/*.rb"].sort
     files.delete "kernel/core/__loader.rb"
 
     files << "kernel/core/__loader.rb"
+      
+    temp_bs = "runtime/core.rba.old"
+    system "cp runtime/core.rba #{temp_bs}"
+    ENV['CORE'] = temp_bs
     
     changed = []
     files.each do |file|
       cmp = "#{file}c"
-      unless newer?(file, cmp) # File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+      unless newer?(file, cmp)
         changed << cmp
-        system "shotgun/rubinius -c #{file}"
+        system "shotgun/rubinius compile #{file}"
 #        system "#{COMPILER} #{file}"
 #        raise "Failed to compile #{file}" if $?.exitstatus != 0
       end
@@ -407,6 +415,8 @@ namespace :build do
     else
       system "zip #{archive} .load_order.txt #{files.join(' ')}"
     end
+
+    system "rm #{temp_bs}"
   end
   
   desc "Build the standard library."

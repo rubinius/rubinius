@@ -34,6 +34,7 @@ struct thread_info {
   struct event ev;
   OBJECT channel;
   OBJECT buffer;
+  int count;
   pid_t pid;
   struct thread_info *prev, *next;
 };
@@ -114,6 +115,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   STATE;
   size_t sz;
   ssize_t i;
+  char *buf;
   OBJECT ret, ba;
   struct thread_info *ti = (struct thread_info*)arg;
   
@@ -123,10 +125,11 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
     ret = Qtrue;
   } else {
     ba = string_get_data(ti->buffer);
-    sz = (size_t)SIZE_OF_BODY(ba);
+    sz = (size_t)ti->count;
     
+    buf = bytearray_byte_address(state, ba);
     while(1) {
-      i = read(fd, bytearray_byte_address(state, ba), sz);
+      i = read(fd, buf, sz);
       if(i == 0) {
         ret = Qnil; 
       } else if(i == -1) {
@@ -136,7 +139,9 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
         if(errno == EINTR) continue;
         ret = I2N(errno);
       } else {
+        buf[i] = 0;
         string_set_bytes(ti->buffer, I2N(i));
+        
         ret = ti->buffer;
       }
       
@@ -174,7 +179,7 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
 }
 
 /* TODO: fd needs to be a typedef, set per platform. */
-void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer) {
+void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer, int count) {
   struct thread_info *ti;
 
   ti = calloc(1, sizeof(struct thread_info));
@@ -182,6 +187,7 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
   ti->c = c;
   ti->channel = channel;
   ti->buffer = buffer;
+  ti->count = count;
   
   event_set(&ti->ev, fd, EV_READ, _cpu_wake_channel_and_read, (void*)ti);
   /* Check that we were able to add it correctly... */

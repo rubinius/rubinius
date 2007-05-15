@@ -160,7 +160,7 @@ void cpu_event_init(STATE);
 void cpu_event_run(STATE);
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv);
 void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data);
-void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer);
+void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer, int count);
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
 void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr);
