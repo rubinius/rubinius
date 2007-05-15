@@ -2030,11 +2030,24 @@ class ShotgunPrimitives
 
   def nfunc_call
     <<-CODE
+    /* Get rid of the module */
+    stack_pop();
+    
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
        to be done. The stub contains all the serialization code. 
        
        That being said, this might get more complicated when callbacks are supported. */
     ffi_call(state, c, nfunc_get_data(mo));
+    CODE
+  end
+  
+  def nfunc_call_object
+    <<-CODE
+    /* The definition of beauty. Simplicity. To call a native function, there is no work 
+       to be done. The stub contains all the serialization code. 
+       
+       That being said, this might get more complicated when callbacks are supported. */
+    ffi_call(state, c, nfunc_get_data(stack_pop()));
     CODE
   end
   

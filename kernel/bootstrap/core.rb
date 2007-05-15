@@ -61,7 +61,7 @@ class Object
   end
   
   def inspect
-    if !@__ivars__ || !@__ivars__.is_a?(Array) || @__ivars__.empty?
+    if !@__ivars__ || !@__ivars__.is_a?(Hash) || @__ivars__.empty?
       return self.to_s
     end
     

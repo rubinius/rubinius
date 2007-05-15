@@ -42,7 +42,6 @@ module FFI
       
       create_backend(library, name, cargs, cret)
     end
-    
   end  
   
   add_typedef TYPE_OBJECT,  :object
@@ -151,3 +150,48 @@ module FFI
   
 end
 
+class NativeFunction
+  
+  # The *args means the primitive handles it own argument count checks.
+  def call(*args)
+    Ruby.primitive :nfunc_call_object
+  end
+  
+  class Variable
+    def initialize(library, name, a2, a3=nil)
+      if a3
+        @ret = a3
+        @static_args = a2
+      else
+        @ret = a2
+        @static_args = nil
+      end
+
+      @library = library
+      @name = name
+      @functions = {}
+    end
+    
+    def find_function(at)
+      if @static_args
+        at = @static_args + at
+      end
+      
+      if func = @functions[at]
+        return func
+      end
+      
+      func = FFI.create_function @library, @name, at, @ret
+      @functions[at] = func
+      return func
+    end
+    
+    def [](*args)
+      find_function(args)
+    end
+        
+    def call(at, *args)
+      find_function(at).call(*args)
+    end
+  end
+end

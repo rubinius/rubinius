@@ -164,7 +164,8 @@ module Bytecode
       :ivars_get,
       :str_crypt,
       :nfunc_call,
-      :nfunc_add
+      :nfunc_add,
+      :nfunc_call_object
     ]
 
     FirstRuntimePrimitive = 1024

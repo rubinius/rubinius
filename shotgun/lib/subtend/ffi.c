@@ -815,10 +815,7 @@ void ffi_call(STATE, cpu c, OBJECT ptr) {
   ctx = subtend_retrieve_context();
   ctx->state = state;
   ctx->cpu = c;
-  
-  /* Get rid of the module */
-  stack_pop();
-  
+    
   func = (nf_stub_ffi)(*DATA_STRUCT(ptr, void**));
   func();
 }
