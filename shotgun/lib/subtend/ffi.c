@@ -785,7 +785,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   
   tot = FIXNUM_TO_INT(array_get_total(args));
   if(tot > 0) {
-    arg_types = calloc(args, sizeof(int));
+    arg_types = calloc(tot, sizeof(int));
   
     for(i = 0; i < tot; i++) {
       if(!FIXNUM_P(array_get(state, args, i))) return Qnil;
