@@ -90,7 +90,7 @@ OBJECT object_logical_class(STATE, OBJECT self) {
 }
 
 OBJECT object_make_weak_ref(STATE, OBJECT self) {
-  OBJECT meta, tup, lst;
+  OBJECT tup;
   
   tup = tuple_new2(state, 1, self);
   FLAG_SET(tup, RefsAreWeakFlag);
@@ -163,6 +163,13 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   
   if(!REFERENCE_P(self)) {
     /* Get rid of the tag part (i.e. the part that indicate nature of self */
+    if(FIXNUM_P(self)) {
+      int val = FIXNUM_TO_INT(self);
+      /* We do this so the 2's complement will fit into 29 bits properly. */
+      if(val < 0) {
+        hsh = hsh >> 1;
+      }
+    }
     hsh = hsh >> 2;
   } else {
     if(ISA(self, state->global->string)) {
