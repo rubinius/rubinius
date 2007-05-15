@@ -7,3 +7,4 @@ OBJECT symtbl_find_string(STATE, OBJECT self, OBJECT sym);
 OBJECT symbol_to_string(STATE, OBJECT self);
 
 #define symbol_from_cstr(st, str) symtbl_lookup_cstr(st, st->global->symbols, str)
+#define SYM(str) symtbl_lookup_cstr(state, state->global->symbols, str)

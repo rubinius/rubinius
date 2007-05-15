@@ -2027,6 +2027,27 @@ class ShotgunPrimitives
     nmc_activate(state, c, t1, FALSE);
     CODE
   end
+
+  def nfunc_call
+    <<-CODE
+    /* The definition of beauty. Simplicity. To call a native function, there is no work 
+       to be done. The stub contains all the serialization code. 
+       
+       That being said, this might get more complicated when callbacks are supported. */
+    ffi_call(state, c, nfunc_get_data(mo));
+    CODE
+  end
+  
+  def nfunc_add
+    <<-CODE
+    stack_pop();
+    POP(t1, STRING_OR_NIL);
+    POP(t2, STRING);
+    POP(t3, ARRAY);
+    POP(t4, FIXNUM);
+    stack_push(ffi_function_create(state, t1, t2, t3, t4));
+    CODE
+  end
   
   def load_library
     <<-CODE
@@ -2491,7 +2512,7 @@ class ShotgunPrimitives
         string_byte_address(state, t1))));
     CODE
   end
-  
+    
 end
 
 prim = ShotgunPrimitives.new

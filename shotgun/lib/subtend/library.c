@@ -17,6 +17,44 @@
 #endif
 #endif
 
+void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
+  lt_dlhandle lib;
+  char *c_path, *c_name, *np;
+  void *ep;
+  char sys_name[128];
+
+  if(!NIL_P(path)) {
+
+    bzero(sys_name, 128);
+
+    /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
+       or whatever the library suffix is. */
+    c_path = string_as_string(state, path);
+    strncat(sys_name, c_path, 120);
+    strncat(sys_name, LIBSUFFIX, 120);
+    np = sys_name;
+  } else {
+    np = NULL;
+    c_path = NULL;
+  }
+  /* Open it up. If this fails, then we just pretend like
+     the library isn't there. */
+  lib = lt_dlopen(np);
+  if(!lib) {
+    if(c_path) free(c_path);
+    return NULL;
+  }
+  
+  c_name = string_as_string(state, name);
+
+  ep = lt_dlsym(lib, c_name);
+  
+  if(c_path) free(c_path);
+  free(c_name);
+  
+  return ep;
+}
+
 /* Call this function to load in a shared library and call
    it's init function. */
 

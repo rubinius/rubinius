@@ -391,6 +391,54 @@ unsigned long bignum_to_int(STATE, OBJECT self) {
   return mp_get_int(MP(self));
 }
 
+long long bignum_to_ll(STATE, OBJECT self) {
+  mp_int t;
+  mp_int *s = MP(self);
+  long long out;
+  
+  out = (long long)mp_get_int(s);
+  
+  mp_init(&t);
+  mp_copy(s, &t);
+  mp_rshd(&t, sizeof(int));
+  out = out | (mp_get_int(&t) << sizeof(int));
+  mp_clear(&t);
+  return out;
+}
+
+OBJECT bignum_from_ull(STATE, unsigned long long val) {
+  OBJECT ret;
+  mp_int a;
+  mp_int b;
+  mp_int *c;
+  
+  mp_init(&a);
+  mp_set_int(&a, (unsigned int)(val & 0xffffffff));
+  
+  mp_lshd(&a, sizeof(int));
+  mp_init(&b);
+  mp_set_int(&b, (val >> sizeof(int)));
+  
+  ret = bignum_new_unsigned(state, 0);
+  
+  c = MP(ret);
+  mp_or(&a, &b, c);
+  
+  return ret;
+}
+
+OBJECT bignum_from_ll(STATE, long long val) {
+  OBJECT ret;
+  
+  ret = bignum_from_ull(state, (unsigned long long)val);
+  
+  if(val < 0) {
+    MP(ret)->sign = MP_NEG;
+  }
+  
+  return ret;
+}
+
 OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   char buffer[1024];
   int k;

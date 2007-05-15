@@ -84,6 +84,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
     // printf("Setting superclass of %p to: %p\n", val, sup);
     class_set_superclass(val, sup);
     module_setup_fields(state, val);
+    object_create_metaclass(state, val, object_metaclass(state, sup));
     module_set_parent(val, under);
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(c->enclosing_class));

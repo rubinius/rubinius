@@ -7,6 +7,7 @@
 #include <errno.h>
 
 #include "rubinius.h"
+#include "subtend/ffi.h"
 
 #define BC(o) BASIC_CLASS(o)
 
@@ -513,6 +514,7 @@ void cpu_bootstrap(STATE) {
   
   Init_list(state);
   Init_cpu_task(state);
+  Init_ffi(state);
   
   state->global->external_ivars = hash_new(state);  
 }

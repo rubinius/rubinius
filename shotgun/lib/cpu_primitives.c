@@ -18,6 +18,7 @@
 #include "fixnum.h"
 #include "list.h"
 #include "io.h"
+#include "subtend/ffi.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -67,6 +68,8 @@ struct time_data {
 #define HASH_P(obj) RISA(obj, hash)
 #define ARRAY_P(obj) RISA(obj, array)
 
+#define STRING_OR_NIL_P(obj) (STRING_P(obj) || NIL_P(obj))
+
 // defines a required arity for a primitive
 // return true because we want other handler code to ignore it
 // this is because it is raised directly in the primitive as an exception
@@ -77,9 +80,11 @@ struct time_data {
 // i.e. if type is STRING then STRING_P must be specified
 #define POP(var, type) var = stack_pop(); GUARD( type##_P(var) )
 
+void ffi_call(STATE, cpu c, OBJECT ptr);
+
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod) {
   int _ret = TRUE;
-  OBJECT self, t1, t2, t3;
+  OBJECT self, t1, t2, t3, t4;
   int j, k, m, _orig_sp;
   OBJECT *_orig_sp_ptr;
   int fds[2];

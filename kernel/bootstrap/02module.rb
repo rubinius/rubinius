@@ -24,7 +24,6 @@ class Module
     @methods[nw] = meth
     return meth
   end
-
 end
 
 class IncludedModule < Module

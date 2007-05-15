@@ -30,7 +30,7 @@ struct rubinius_globals {
   OBJECT exc_primitive_failure;
   
   OBJECT external_ivars, scheduled_threads, errno_mapping;
-  OBJECT recent_children, config;
+  OBJECT recent_children, config, ffi_ptr, ffi_func;
 };
 
 #define GLOBAL_cmethod
