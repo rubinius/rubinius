@@ -58,6 +58,7 @@ module FFI
   add_typedef TYPE_DOUBLE,  :double
   add_typedef TYPE_PTR,     :pointer
   add_typedef TYPE_VOID,    :void
+  add_typedef TYPE_STRING,  :string
   
 end
 

@@ -31,6 +31,8 @@ void Init_ffi(STATE) {
   rbs_const_set(state, mod, "TYPE_DOUBLE",  I2N(FFI_TYPE_DOUBLE));
   rbs_const_set(state, mod, "TYPE_PTR",     I2N(FFI_TYPE_PTR));
   rbs_const_set(state, mod, "TYPE_VOID",    I2N(FFI_TYPE_VOID));
+  rbs_const_set(state, mod, "TYPE_STRING",  I2N(FFI_TYPE_STRING));
+  
 }
 
 OBJECT ffi_new_pointer(STATE, void *ptr) {
@@ -165,6 +167,7 @@ int ffi_type_size(int type) {
     return sizeof(double);
     
     case FFI_TYPE_PTR:
+    case FFI_TYPE_STRING:
     return sizeof(void*);
     
     default:
@@ -432,6 +435,23 @@ void ffi_from_void(int dummy) {
   cpu_stack_push(ctx->state, ctx->cpu, Qnil, FALSE);
 }
 
+/* string */
+
+char *ffi_to_string() {
+  OBJECT obj;
+  rni_context *ctx = subtend_retrieve_context();
+  obj = cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  return string_byte_address(ctx->state, obj);
+}
+
+void ffi_from_string(char *str) {
+  OBJECT ret;
+  rni_context *ctx = subtend_retrieve_context();
+  ret = string_new(ctx->state, str);
+  cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
+}
+
 void* ffi_get_to_converter(int type) {
   switch(type) {
     case FFI_TYPE_OBJECT:
@@ -476,6 +496,9 @@ void* ffi_get_to_converter(int type) {
     
     case FFI_TYPE_PTR:
     return ffi_to_ptr;
+    
+    case FFI_TYPE_STRING:
+    return ffi_to_string;
     
     default:
     
@@ -530,6 +553,9 @@ void* ffi_get_from_converter(int type) {
     
     case FFI_TYPE_VOID:
     return ffi_from_void;
+    
+    case FFI_TYPE_STRING:
+    return ffi_from_string;
     
     default:
     
@@ -599,6 +625,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         break;
       case FFI_TYPE_OBJECT:
       case FFI_TYPE_PTR:
+      case FFI_TYPE_STRING:
         jit_stxi_p(ids[i], JIT_FP, reg);
       }
     }
@@ -643,6 +670,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       
       case FFI_TYPE_OBJECT:
       case FFI_TYPE_PTR:
+      case FFI_TYPE_STRING:
       default:
         jit_ldxi_p(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_p(JIT_R2);
@@ -700,6 +728,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     
   case FFI_TYPE_OBJECT:
   case FFI_TYPE_PTR:
+  case FFI_TYPE_STRING:
   default:
     jit_pusharg_p(reg);
   }
