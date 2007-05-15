@@ -272,7 +272,7 @@ namespace :build do
   desc "Build the VM bootstrap archive."
   task :bootstrap => 'kernel/hints' do
     Dir.chdir "kernel" do
-      files = Dir["kernel/bootstrap/*.rb"].sort
+      files = Dir["bootstrap/*.rb"].sort
 
       changed = []
       files.each do |file|
@@ -289,7 +289,7 @@ namespace :build do
         f.puts files.join("\n")
       end
     
-      archive = "runtime/bootstrap.rba"
+      archive = "../runtime/bootstrap.rba"
 
       if File.exists? archive
         if changed.empty?
