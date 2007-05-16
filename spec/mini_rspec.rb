@@ -14,7 +14,7 @@ class PositiveExpectation
   end
   
   def ==(other)
-    if @obj != other
+    unless @obj == other
       raise Exception.new("Equality expected for " + @obj.inspect + " and " + other.inspect)
     end
   end
