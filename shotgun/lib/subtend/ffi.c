@@ -11,7 +11,6 @@
 
 #include <lightning.h>
 
-#define RBS_DISASS 1
 
 void Init_ffi(STATE) {
   OBJECT mod;

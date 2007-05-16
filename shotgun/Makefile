@@ -28,17 +28,12 @@ endif
 
 DEPS=../include/rubinius.h
 
+ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
 
 # No disass support for 64
-ifeq ($(MARCH),amd64)	
-  __RBS_LIGHTNING_DISASS=''
-
-	ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
-
-else
-  __RBS_LIGHTNING_DISASS='--enable-disassembling'
-
-	ALIBS=external_libs/lightning/opcode/libdisass.a external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
+ifneq ($(MARCH),amd64)	
+	RBS_LIGHTNING_DISASS='--enable-disassembling'
+	ALIBS+=external_libs/lightning/opcode/libdisass.a
 endif	
 
 LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
@@ -80,8 +75,10 @@ config.h:
 %.lo: %.c $(DEPS)
 	$(COMP) $(CFLAGS) -c $< 
 
-external_libs/lightning/opcode/libdisass.a:
-	cd external_libs/lightning; CFLAGS=-fPIC ./configure $(__RBS_LIGHTNING_DISASS); $(MAKE)
+external_libs/lightning/config.h:
+	cd external_libs/lightning; CFLAGS=-fPIC ./configure $(RBS_LIGHTNING_DISASS); $(MAKE)
+
+external_libs/lightning/opcode/libdisass.a: external_libs/lightning/config.h
 
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
@@ -102,7 +99,7 @@ external_libs/libltdl/.libs/libltdl.a:
 	cd external_libs/libltdl; CFLAGS=-fPIC ./configure; $(MAKE)
 
 librubinius.la: config.h $(ALIBS) external_libs/lightning/config.h 
-	cd lib; $(MAKE) librubinius.la
+	cd lib; $(MAKE) librubinius.la; 
 
 .PHONY: librubinius.a
 
@@ -129,6 +126,7 @@ clean:
 	rm -f *.o *.lo *.gen rubinius config.h config.mk
 	rm -rf .libs
 	cd lib; $(MAKE) clean
+	cd external_libs/lightning; rm -f config.h
 	cd external_libs/libtommath; $(MAKE) clean
 	cd external_libs/onig; $(MAKE) clean
 	cd external_libs/libevent; $(MAKE) clean
