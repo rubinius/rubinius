@@ -16,4 +16,20 @@ context "Module" do
     Object.const_defined?("Blah::Zargle").should == false
   end
 
+  specify "instance_methods with false should exclude super class instance methods" do
+    class A
+      def foo
+      end
+    end
+    A.instance_methods(false).should == [:foo]
+  end
+
+  specify "instance_methods should return all instance methods of a module" do
+    module B
+      def foo
+      end
+    end
+    B.instance_methods.should == [:foo]
+  end
+
 end
