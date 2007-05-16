@@ -118,9 +118,9 @@ context "Kernel.at_exit()" do
     result.should == "65"
   end
 
-  specify "should fire in order" do
+  specify "should fire in reverse order of registration" do
     result = `rbx -e "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"`
-    result.should == '6457'
+    result.should == '6754'
   end
 end
 

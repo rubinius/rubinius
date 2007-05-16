@@ -38,6 +38,6 @@ module Kernel
   end
     
   def at_exit(&block)
-    Rubinius::AtExit << block
+    Rubinius::AtExit.unshift(block)
   end
 end
