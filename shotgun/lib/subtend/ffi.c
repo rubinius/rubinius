@@ -14,7 +14,7 @@
 
 void Init_ffi(STATE) {
   OBJECT mod;
-  BASIC_CLASS(ffi_ptr) = rbs_class_new(state, "MemoryPointer", 0, BASIC_CLASS(object));
+  BASIC_CLASS(ffi_ptr) = rbs_class_new(state, "MemoryPointer", 0, BASIC_CLASS(bytearray));
   BASIC_CLASS(ffi_func) = rbs_class_new(state, "NativeFunction", 0, BASIC_CLASS(object));
   mod = rbs_module_new(state, "FFI", BASIC_CLASS(object));
   rbs_const_set(state, mod, "TYPE_OBJECT",  I2N(FFI_TYPE_OBJECT));
@@ -31,7 +31,8 @@ void Init_ffi(STATE) {
   rbs_const_set(state, mod, "TYPE_PTR",     I2N(FFI_TYPE_PTR));
   rbs_const_set(state, mod, "TYPE_VOID",    I2N(FFI_TYPE_VOID));
   rbs_const_set(state, mod, "TYPE_STRING",  I2N(FFI_TYPE_STRING));
-  
+  rbs_const_set(state, mod, "TYPE_STATE",   I2N(FFI_TYPE_STATE));
+  rbs_const_set(state, mod, "TYPE_STRPTR",  I2N(FFI_TYPE_STRPTR));
 }
 
 OBJECT ffi_new_pointer(STATE, void *ptr) {
@@ -57,8 +58,8 @@ static rni_handle* _ffi_pop() {
 
 char *ffi_generate_c_stub(STATE, int args, void *func) {
   char *start, *end;
-  char *codebuf;
-  int in, vars, i, aligned;
+  char *codebuf, *res;
+  int in, vars, i, aligned, size;
   int *ids;
     
   /* The stub is called with the receiver, so if there are no args, we
@@ -69,7 +70,7 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
      for 5 args (0 is the receiver). */
   if(args > 5) return NULL;
   
-  codebuf = (char*)malloc(512);
+  codebuf = (char*)malloc(4096);
   start = codebuf;
   
   (void)jit_set_ip((jit_insn*)codebuf);
@@ -132,9 +133,14 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     #endif
   }
   
-  jit_flush_code(start, jit_get_ip().ptr);
+  size = jit_get_ip().ptr - start;
+  res = calloc(size, sizeof(char));
+  memcpy(res, start, size);
+  free(codebuf);
   
-  return start;
+  jit_flush_code(res, res - size);
+  
+  return res;
 }
 
 int ffi_type_size(int type) {
@@ -167,6 +173,8 @@ int ffi_type_size(int type) {
     
     case FFI_TYPE_PTR:
     case FFI_TYPE_STRING:
+    case FFI_TYPE_STATE:
+    case FFI_TYPE_STRPTR:
     return sizeof(void*);
     
     default:
@@ -451,6 +459,37 @@ void ffi_from_string(char *str) {
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
 
+/* state */
+void* ffi_to_state() {
+  rni_context *ctx = subtend_retrieve_context();
+  /* We pop and discard the value, it's just a place holder in the args
+     list for the state. */
+  cpu_stack_pop(ctx->state, ctx->cpu);
+  
+  return (void*)ctx->state;
+}
+
+/* strptr */
+void ffi_from_strptr(char *str) {
+  OBJECT obj, ptr, ret;
+  STATE;
+  
+  void **code_start;
+  
+  rni_context *ctx = subtend_retrieve_context();
+  obj = string_new(ctx->state, str);
+  
+  state = ctx->state;
+  NEW_STRUCT(ptr, code_start, BASIC_CLASS(ffi_ptr), void*);
+  *code_start = (void*)str;
+  
+  ret = array_new(ctx->state, 2);
+  array_set(ctx->state, ret, 0, obj);
+  array_set(ctx->state, ret, 1, ptr);
+
+  cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
+}
+
 void* ffi_get_to_converter(int type) {
   switch(type) {
     case FFI_TYPE_OBJECT:
@@ -498,6 +537,9 @@ void* ffi_get_to_converter(int type) {
     
     case FFI_TYPE_STRING:
     return ffi_to_string;
+    
+    case FFI_TYPE_STATE:
+    return ffi_to_state;
     
     default:
     
@@ -556,6 +598,9 @@ void* ffi_get_from_converter(int type) {
     case FFI_TYPE_STRING:
     return ffi_from_string;
     
+    case FFI_TYPE_STRPTR:
+    return ffi_from_strptr;
+    
     default:
     
     return NULL;
@@ -565,8 +610,8 @@ void* ffi_get_from_converter(int type) {
 OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, void *func) {
   char *start, *end;
   void **code_start;
-  char *codebuf;
-  int in, vars, i, aligned, reg;
+  char *codebuf, *res;
+  int in, vars, i, aligned, reg, size;
   int *ids;
   void *conv;
   OBJECT obj;
@@ -575,7 +620,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
      for 5 args (0 is the receiver). */
   if(args > 5) return Qnil;
   
-  codebuf = (char*)malloc(512);
+  codebuf = (char*)malloc(4096);
   start = codebuf;
   
   (void)jit_set_ip((jit_insn*)codebuf);
@@ -625,6 +670,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       case FFI_TYPE_OBJECT:
       case FFI_TYPE_PTR:
       case FFI_TYPE_STRING:
+      case FFI_TYPE_STATE:
         jit_stxi_p(ids[i], JIT_FP, reg);
       }
     }
@@ -670,6 +716,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       case FFI_TYPE_OBJECT:
       case FFI_TYPE_PTR:
       case FFI_TYPE_STRING:
+      case FFI_TYPE_STATE:
       default:
         jit_ldxi_p(JIT_R2, JIT_FP, ids[i]);
         jit_pusharg_p(JIT_R2);
@@ -728,6 +775,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   case FFI_TYPE_OBJECT:
   case FFI_TYPE_PTR:
   case FFI_TYPE_STRING:
+  case FFI_TYPE_STRPTR:
   default:
     jit_pusharg_p(reg);
   }
@@ -747,11 +795,17 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     #endif
   }
   
-  jit_flush_code(start, jit_get_ip().ptr);
+  size = jit_get_ip().ptr - start;
+    
+  res = calloc(size, sizeof(char));
+  memcpy(res, start, size);
+  free(codebuf);
+  
+  jit_flush_code(res, res + size);
   
   // obj = object_memory_new_opaque(state, BASIC_CLASS(ffi_ptr), sizeof(void*));
   NEW_STRUCT(obj, code_start, BASIC_CLASS(ffi_ptr), void*);
-  *code_start = (void*)start;
+  *code_start = (void*)res;
   
   //memcpy(BYTES_OF(obj), &start, sizeof(void*));
   return obj;

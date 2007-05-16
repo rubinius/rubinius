@@ -58,12 +58,23 @@ module FFI
   add_typedef TYPE_PTR,     :pointer
   add_typedef TYPE_VOID,    :void
   add_typedef TYPE_STRING,  :string
+  add_typedef TYPE_STATE,   :state
+  add_typedef TYPE_STRPTR,  :string_and_pointer
+  add_typedef TYPE_STRPTR,  :strptr
   
 end
 
 class MemoryPointer
   def inspect
-    "#<MemoryPointer:0x#{object_id.to_s(16)}>"
+    "#<MemoryPointer address=0x#{address.to_s(16)}>"
+  end
+  
+  def address
+    i = get_byte(3)
+    i += (get_byte(2) << 8)
+    i += (get_byte(1) << 16)
+    i += (get_byte(0) << 24)
+    return i
   end
 end
 

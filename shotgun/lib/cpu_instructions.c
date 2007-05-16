@@ -435,7 +435,7 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
       if(EXCESSIVE_TRACING) {
         printf("[[ Primitive failed! -- %d ]]\n", prim);
       }
-    } else if(req >= 0 && object_kind_of_p(state, mo, state->global->cmethod)) {
+    } else if(req >= 0) { // not sure why this was here... } && object_kind_of_p(state, mo, state->global->cmethod)) {
       /* raise an exception about them not doing it right. */
       cpu_raise_arg_error(state, c, args, req);
       ret = TRUE;

@@ -22,6 +22,8 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 #define FFI_TYPE_PTR    13
 #define FFI_TYPE_VOID   14
 #define FFI_TYPE_STRING 15
+#define FFI_TYPE_STATE  16
+#define FFI_TYPE_STRPTR 17
 
 typedef void (*nf_stub_ffi)(void);
 typedef int (*nf_converter)();
