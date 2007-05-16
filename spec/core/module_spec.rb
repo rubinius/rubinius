@@ -2,45 +2,53 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "Module" do
   specify "instance_methods with false should exclude super class instance methods" do
-    class Foo
+    class A
       def foo
       end
     end
-    Foo.instance_methods(false).should == ["foo"]
+    A.instance_methods(false).should == ["foo"]
   end
-  
+
+  specify "instance_methods should return all instance methods of a module" do
+    module B
+      def foo
+      end
+    end
+    B.instance_methods.should == ["foo"]
+  end
+
   specify "const_defined? should return false if the name is not defined" do
     Object.const_defined?("Whee").should == false
   end
   
   specify "const_defined? should return true if the name is defined" do
-    class Blah
-      class Whee
+    class C
+      class D
       end
     end
 
     Object.const_defined?(:Object).should == true
-    Blah.const_defined?("Whee").should == true
-    Object.const_defined?("Blah").should == true
+    C.const_defined?("D").should == true
+    Object.const_defined?("C").should == true
     Object.const_defined?("Zargle").should == false
   end
   
   specify "include should accept multiple arguments" do
-    class Foo
+    class E
       include Comparable, Enumerable
     end
-    Foo.new.class.to_s.should == 'Foo'
+    E.new.class.to_s.should == 'E'
   end
   
   specify "should provide append_features" do
-    module Pod
+    module F
       def self.append_features(mod)
         super(mod)
         mod.some_class_method
       end
     end
 
-    class Foo
+    class G
       def self.some_class_method
         @included = true
       end
@@ -49,19 +57,19 @@ context "Module" do
         @included
       end
       
-      include Pod
+      include F
     end
     
-    Foo.included?.should == true
+    G.included?.should == true
   end
         
   specify "append_features should include self in other module unless it is already included" do
-    module Sod; end
-    module Mod; end
-    class Bar
-      include Sod, Mod
+    module H; end
+    module I; end
+    class J
+      include H, I
     end
-    Bar.ancestors.reject { |m| m.to_s.include?(':') }.inspect.should == '[Bar, Sod, Mod, Object, Kernel]'
+    Bar.ancestors.reject { |m| m.to_s.include?(':') }.inspect.should == '[J, H, I, Object, Kernel]'
   end
 end
 
@@ -78,51 +86,51 @@ context "Module.new method" do
 end
 
 context "Module#module_eval given a block" do
-  module Hello
+  module K
     def en
       "hello"
     end
   end
 
   specify "should execute on the receiver context" do
-    Hello.module_eval { name }.should == 'Hello'
+    K.module_eval { name }.should == 'Hello'
   end
 
   specify "should bind self to the receiver module" do
-    (Hello.object_id == Hello.module_eval { self.object_id }).should == true
+    (K.object_id == K.module_eval { self.object_id }).should == true
   end
 
 end
 
 context "Module.define_method" do
 
-  class Foo
+  class L
     def foo
       "ok"
     end
   end
-  @foo = Foo.new
+  @foo = L.new
   
   specify "should be private" do
-    should_raise(NoMethodError) { Foo.define_method(:a) {  } }
+    should_raise(NoMethodError) { L.define_method(:a) {  } }
   end
 
   specify "should receive an UnboundMethod" do
-    Foo.module_eval do 
+    L.module_eval do 
       define_method(:bar, instance_method(:foo))
     end
     @foo.bar.should == "ok"
   end
 
   specify "should receive a Method" do
-    Foo.module_eval do
+    L.module_eval do
       define_method(:bar, Foo.new.method(:foo))
     end
     @foo.bar.should == "ok"
   end
 
   specify "should take a block with arguments" do
-    Foo.module_eval do 
+    L.module_eval do 
       define_method(:bar) { |what| "I love #{what}" }
     end
     @foo.bar("rubinius").should == "I love rubinius"
@@ -130,7 +138,7 @@ context "Module.define_method" do
 
   specify "should raise TypeError if not given a Proc/Method" do
     should_raise(TypeError) do
-      Foo.module_eval do
+      L.module_eval do
         define_method(:bar, 1)
       end
     end
@@ -139,54 +147,54 @@ context "Module.define_method" do
 end
 
 context "Module" do
-  module Moo
+  module M
     def a; end
     def b; end
     def c; end
   end
 
   specify "should provide a method private that takes no arguments" do
-    module Yauk
+    module N
       private
       def a; end
     end
-    Yauk.private_instance_methods.should == ["a"]
+    N.private_instance_methods.should == ["a"]
   end
   
   specify "should provide a method private that takes multiple arguments" do
-    module Moo
+    module M
       private :a, :b, :c
     end
     Moo.private_instance_methods.sort.should == ["a", "b", "c"]
   end
   
   specify "should provide a method protected that takes no arguments" do
-    module Zar
+    module O
       protected
       def a; end
     end
-    Zar.protected_instance_methods.should == ["a"]
+    O.protected_instance_methods.should == ["a"]
   end
   
   specify "should provide a method protected that takes multiple arguments" do
-    module Moo
+    module M
       protected :a, :b, :c
     end
-    Moo.protected_instance_methods.sort.should == ["a", "b", "c"]
+    M.protected_instance_methods.sort.should == ["a", "b", "c"]
   end
   
   specify "should provide a method public that takes no arguments" do
-    module Rilsk
+    module P
       public
       def a; end
     end
-    Rilsk.public_instance_methods.should == ["a"]
+    P.public_instance_methods.should == ["a"]
   end
   
   specify "should provide a method public that takes multiple arguments" do
-    module Moo
+    module M
       public :a, :b, :c
     end
-    Moo.public_instance_methods.sort.should == ["a", "b", "c"]
+    M.public_instance_methods.sort.should == ["a", "b", "c"]
   end
 end

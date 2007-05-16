@@ -43,6 +43,10 @@ class Module
     raise NameError, "undefined method `#{name}' for #{thing} #{self}"
   end
 
+  def instance_methods(all=true)
+    methods.names(false)
+  end
+  
   def const_defined?(name)
     name = name.to_s
     hierarchy = name.split('::')
