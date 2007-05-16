@@ -65,10 +65,10 @@ class Class
   end
   
   def superclass
-    cls = direct_superclass()
+    cls = direct_superclass
     return nil unless cls
     while cls and cls.class == IncludedModule
-      cls = cls.direct_superclass()
+      cls = cls.direct_superclass
     end
     return cls
   end
@@ -128,7 +128,7 @@ class Class
   end
   
   def direct_superclass
-    Ruby.asm "push self\npush 6\nfetch_field"
+    @superclass
   end
   
 end
