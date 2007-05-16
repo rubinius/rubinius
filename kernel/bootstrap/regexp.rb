@@ -1,4 +1,9 @@
 class Regexp
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def data; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def names; Ruby.asm "push self\npush 3\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :source => 1, :data => 2, :names => 3
 
   ValidKcode = [?n,?e,?s,?u]
   KcodeValue = [16,32,48,64]
@@ -76,6 +81,12 @@ class Regexp
 end
 
 class MatchData
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def source; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def regexp; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def full; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def region; Ruby.asm "push self\npush 4\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
   
   def string
     @source

@@ -197,7 +197,7 @@ namespace :build do
     task :syd do
       require 'rubygems'
       begin
-        require_gem 'sydparse', '>= 1.2.1'
+        gem 'sydparse', '>= 1.2.1'
       rescue Gem::LoadError
         puts "\nYour system does not have the required sysparse gem installed...\n"
         Rake::Task['syd'].invoke
@@ -206,44 +206,29 @@ namespace :build do
     end
   end
 
+  desc "Build the kernel/hints file that is used to generate auto.c and auto.h"
   task :fields => ['setup:syd'] do
     $:.unshift "lib"
     require 'types'
-    fd = File.open("kernel/bootstrap/00auto_fields.rb", "w")
     hfd = File.open("kernel/hints", "w")
-    hints = {}
-    Rubinius::Types.each do |name, mod|
+    # Process types in alphabetical order to avoid file modifications
+    types = Rubinius::Types.keys.sort_by {|k| k.to_s}
+    types.each do |name|
+      mod = Rubinius::Types[name]
       next if mod::TotalFields.size == 0
       sname = mod.name.split("::").last
-      sub = {}
       hfd.puts sname
-      fd.puts "class #{sname}"
-      idx = 0
-      str = []
       mod::TotalFields.each do |fel|
         if fel == :instance_variables
           fel = :__ivars__
         end
         hfd.puts fel
-        sub["@#{fel}".to_sym] = idx
-        str << [":#{fel} => #{idx}"]
-        # fd.puts "index_accessor :#{fel}, #{idx}"
-        fd.puts "  def #{fel}; Ruby.asm \"push self\\npush #{idx}\\nfetch_field\"; end"
-        idx += 1
       end
       hfd.puts "!"
-      hints[sname] = sub
-      fd.puts "  ivar_as_index #{str.join(", ")}"
-      fd.puts "end"
     end
-    fd.close
-    
-    #require 'yaml'
-    #File.open("kernel/hints", "w") do |f|
-    #  f << hints.to_yaml
-    #end
+    hfd.close
   end
-
+  
   desc "Build shotgun C components."
   task :shotgun => ['build:setup', 'spec:setup:code_cache', 'build:configure'] do
     system("make -e -C shotgun rubinius")

@@ -1,7 +1,23 @@
 
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
-# you can get recursive exceptions being raise (THATS BAD, BTW).
+# you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def sender; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def ip; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def sp; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def block; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def method; Ruby.asm "push self\npush 6\nfetch_field"; end
+  def bytecodes; Ruby.asm "push self\npush 7\nfetch_field"; end
+  def literals; Ruby.asm "push self\npush 8\nfetch_field"; end
+  def receiver; Ruby.asm "push self\npush 9\nfetch_field"; end
+  def locals; Ruby.asm "push self\npush 10\nfetch_field"; end
+  def argcount; Ruby.asm "push self\npush 11\nfetch_field"; end
+  def name; Ruby.asm "push self\npush 12\nfetch_field"; end
+  def module; Ruby.asm "push self\npush 13\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :method => 6, :bytecodes => 7, :literals => 8, :receiver => 9, :locals => 10, :argcount => 11, :name => 12, :module => 13
+  
   def self.current
     cur = nil
     Ruby.asm "push_context\nset cur\n"
@@ -111,6 +127,15 @@ class FastMethodContext
 end
 
 class BlockContext
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def sender; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def ip; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def sp; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def block; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
+  def env; Ruby.asm "push self\npush 6\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :env => 6
+
   def activate(val)
     Ruby.primitive :activate_context    
   end
@@ -144,6 +169,13 @@ class BlockContext
 end
 
 class BlockEnvironment
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def home; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def initial_ip; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def last_ip; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def post_send; Ruby.asm "push self\npush 4\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, :post_send => 4
+  
   def call(*args)
     execute args.tuple
   end

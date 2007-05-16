@@ -1,5 +1,10 @@
 class String
+  def bytes; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def characters; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def encoding; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def data; Ruby.asm "push self\npush 3\nfetch_field"; end
   def __ivars__; nil; end
+  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
 
   def to_s
     self

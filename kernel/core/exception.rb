@@ -1,15 +1,13 @@
 class Exception
   def self.exception(message=nil)
-    new(message)
+    self.new(message)
   end
   def exception(message=nil)
     if message
       self.class.new(message)
-    else self
+    else 
+      self
     end
-  end
-  def set_backtrace(bt)
-    put 1, bt
   end
 end
 
@@ -83,10 +81,6 @@ end
 
 class NotImplementedError < ScriptError
 end
-
-### FIXME: This is defined in bootstrap/exception.rb -- bad inheritance
-# class SyntaxError < ScriptError
-# end
 
 class SignalException < Exception
 end

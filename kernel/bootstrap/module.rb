@@ -1,5 +1,4 @@
 class Module
-  
   def self.new(&prc)
     mod = allocate
     mod.module_eval(&prc) if block_given?

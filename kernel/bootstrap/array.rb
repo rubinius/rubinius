@@ -10,7 +10,10 @@
 # uniq, uniq!, unshift, values_at, yaml_initialize, zip, |
 
 class Array
+  def total; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def tuple; Ruby.asm "push self\npush 1\nfetch_field"; end
   def __ivars__; nil; end
+  ivar_as_index :total => 0, :tuple => 1
 
   def to_s
     "#<Array:0x#{object_id.to_s(16)} #{@total} elements>"

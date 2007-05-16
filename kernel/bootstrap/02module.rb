@@ -1,4 +1,12 @@
 class Module
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def name; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
+  
   def name
     @name
   end
@@ -51,7 +59,7 @@ class IncludedModule < Module
 
   def attach_to(cls)
     @superclass = cls.superclass
-    cls.put 6, self    
+    cls.superclass = self
   end
 
   def superclass

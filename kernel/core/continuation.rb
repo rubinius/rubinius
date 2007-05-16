@@ -5,7 +5,7 @@ class Continuation
   
   def call(value=nil)
     task = @task.dup
-    task.instance_variable_set :@__value__, value
+    task.instance_variable_set(:@__value__, value)
     Task.current = task
   end
 
@@ -18,11 +18,11 @@ module Kernel
     task = Task.current.dup
     if first
       first = false
-      cont = Continuation.new task
+      cont = Continuation.new(task)
       block.call(cont)
       return nil
     else
-      return task.instance_variable_get :@__value__
+      return task.instance_variable_get(:@__value__)
     end
   end
 end

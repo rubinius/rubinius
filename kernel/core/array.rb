@@ -1,7 +1,7 @@
 class Array
   include Enumerable
 
-  def initialize (sz=0, obj=nil)
+  def initialize(sz=0, obj=nil)
 #    super
     if Array === sz #.class == Array        # can we really use === here?
       # dup from sz, which is really an Array
@@ -287,7 +287,7 @@ class Array
     }
   end
 
-  def - (ary)
+  def -(ary)
     set_exclude = { }
     out = []
     ary.each {  |x|
@@ -302,7 +302,7 @@ class Array
     out
   end
 
-  def | (ary)
+  def |(ary)
     set_exclude = { }
     out = []
     each {  |x|
@@ -320,7 +320,7 @@ class Array
     out
   end
 
-  def & (ary)
+  def &(ary)
     set_include = { }
     out = []
     ary.each {  |x|
@@ -351,15 +351,15 @@ class Array
 #    self[*args] = nil
 #    out
 #  end
-  def slice! (*args)
+  def slice!(*args)
     a1 = args.shift
     out = self[a1, *args]       # FIXME: a1 is needed to avoid compiler crash
     args.unshift a1
 
     args << 1 if args.size == 1 && !(Range === args[0])
     args << []
-    self.[]=(*args)
-#    self[*args] = []       # FIXME: this has mysterious bugs
+    self.send(:"[]=", *args)
+    #self[*args] = []       # FIXME: this has mysterious bugs
     out
   end
 
@@ -390,11 +390,11 @@ class Array
     ret
   end
 
-  def self.[] (*args)
+  def self.[](*args)
     args
   end
 
-  def values_at (*args)
+  def values_at(*args)
     out = []
     args.each { |x|
       if Range === x
@@ -419,7 +419,7 @@ class Array
     out
   end
 
-  def indexes (*args)
+  def indexes(*args)
     out = []
     args.each { |x|
       out << self[x]
@@ -436,7 +436,7 @@ class Array
     out
   end
 
-  def sort (&block)
+  def sort(&block)
     if size <= 1
       self.dup
     else
@@ -580,7 +580,7 @@ class Array
     else
       out=[]
       val.times do
-        out.push *self
+        out.push(*self)
       end
       return out
     end

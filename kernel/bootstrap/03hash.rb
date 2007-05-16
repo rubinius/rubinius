@@ -1,10 +1,17 @@
 class Hash
+  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
+  def keys; Ruby.asm "push self\npush 1\nfetch_field"; end
+  def values; Ruby.asm "push self\npush 2\nfetch_field"; end
+  def bins; Ruby.asm "push self\npush 3\nfetch_field"; end
+  def entries; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def default_proc; Ruby.asm "push self\npush 6\nfetch_field"; end
+  ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
   
-  def self.new(default=nil,&block)
+  def self.new(default_value=nil,&block)
     hsh = {}
-    raise ArgumentError, 'wrong number of arguments' if default && block
-    hsh.put 5, (default or block)
-    hsh.put 6, (block != nil)
+    raise ArgumentError, 'wrong number of arguments' if default_value && block
+    hsh.put(5, (default_value || block))
+    hsh.put(6, (block != nil))
     return hsh
   end
   
