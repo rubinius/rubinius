@@ -120,7 +120,7 @@ begin
 rescue SystemExit => e
   code = e.code
 rescue Object => e
-  puts "An exception has occured:"
+  puts "An exception has occurred:"
   puts "    #{e.message} (#{e.class})"
   puts "\nBacktrace:"
   puts e.backtrace.show
@@ -128,9 +128,9 @@ rescue Object => e
 end
 
 begin
-  Ruby::AtExit.each {|handler| handler.call}
+  Rubinius::AtExit.each {|handler| handler.call}
 rescue Object => e
-  puts "An exception occured inside an at_exit handler:"
+  puts "An exception occurred inside an at_exit handler:"
   puts "    #{e.message} (#{e.class})"
   puts "\nBacktrace:"
   puts e.backtrace.show

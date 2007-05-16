@@ -126,7 +126,7 @@ while true
       # Processing may continue with incomplete expressions
       unless SyntaxError === e and e.message =~ /unexpected \$end|unterminated string/
         puts ""
-        puts "An exception has occured:\n    #{e.message} (#{e.class})"
+        puts "An exception has occurred:\n    #{e.message} (#{e.class})"
         puts "Backtrace:"
         puts e.backtrace.show
         context = ""

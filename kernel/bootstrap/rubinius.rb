@@ -1,4 +1,3 @@
-
-module Ruby
+module Rubinius
   AtExit = []
 end

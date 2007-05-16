@@ -24,9 +24,14 @@ module Kernel
   end
 
   def Array(obj)
-    obj.to_ary
+    ret = obj.respond_to?(:to_ary) ? obj.to_ary : obj.to_a
+    if Array === ret
+      ret
+    else
+      raise TypeError, "#{obj.class}#to_a did not return Array"
+    end
   rescue NoMethodError
-    obj.to_a
+    raise TypeError, "can't convert #{obj.class} into Array"
   end
 
   def String(obj)

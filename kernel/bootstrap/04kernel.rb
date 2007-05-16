@@ -27,7 +27,7 @@ module Kernel
   
   def raise(exc=$!, msg=nil)
     if !exc
-      exc = RuntimeError.new("An unknown exception occured")
+      exc = RuntimeError.new("An unknown exception occurred")
     elsif exc.kind_of?(String)
       exc = RuntimeError.new(exc)
     elsif msg
@@ -38,6 +38,6 @@ module Kernel
   end
     
   def at_exit(&block)
-    Ruby::AtExit << block
+    Rubinius::AtExit << block
   end
 end

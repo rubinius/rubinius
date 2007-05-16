@@ -1025,7 +1025,7 @@ module Bytecode
         add "raise_exc"
         add "#{fin}:"
         # Since this is always the end if the exception has either
-        # not occured or has been correctly handled, we clear the current
+        # not occurred or has been correctly handled, we clear the current
         # exception. There is an optimization that could be done here,
         # by setting up the jumps so that we only execute the clear
         # when we actually ran any exception handling code. But it doesn't

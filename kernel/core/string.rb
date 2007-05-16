@@ -453,7 +453,7 @@ class String
       c = trans[out.data[idx]]
       no_trans_flag = c == out.data[idx]
       if no_dups == false || no_trans_flag == true || c != last_char
-        # If a translation occured remember the last char to remove
+        # If a translation occurred remember the last char to remove
         # duplicate translations with the no_dup flag (if required).
         # Ordering is important here don't move this test below the
         # substitution.

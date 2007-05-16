@@ -49,7 +49,7 @@ module Kernel
       output = ""
       buf = String.new(50)
       while true
-        chan.send_on_readable read, buf
+        chan.send_on_readable read, buf, 50
         c, res = chan.receive
         if String === res
           output << res
