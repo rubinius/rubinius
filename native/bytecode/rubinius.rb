@@ -1,7 +1,7 @@
 require 'bytecode/assembler'
 require 'bytecode/primitive_names'
 require 'bytecode/system_hints'
-Bytecode::Compiler.load_system_hints(Rubinius::BOOTSTRAP_HINTS)
+Bytecode::Compiler.load_system_hints(Rubinius::Bootstrap::HINTS)
 
 module Bytecode
   class MethodDescription

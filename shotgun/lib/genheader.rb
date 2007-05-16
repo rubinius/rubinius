@@ -6,10 +6,10 @@ fd = File.open("auto.h", "w")
 
 puts "#include \"shotgun.h\""
 
-Rubinius::BOOTSTRAP_TYPES.each do |name, klass|
+Rubinius::Bootstrap::TYPES.each do |name, klass|
   prefix = "#{name}_"
   
-  fields = Rubinius::BOOTSTRAP_HINTS[klass] || Hash.new
+  fields = Rubinius::Bootstrap::HINTS[klass] || Hash.new
   fields.each do |field_as_ivar, field_index|
     if field_as_ivar == :@__ivars__
       field_name = "instance_variables" 
