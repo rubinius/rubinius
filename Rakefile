@@ -241,9 +241,9 @@ namespace :build do
     raise 'Failed to install rubinius' if $?.exitstatus != 0
   end
   
-  FileList['lib/types/*.rb'].each do |src|
-  	file 'kernel/hints' => src
-  end
+  #FileList['lib/types/*.rb'].each do |src|
+  #	file 'kernel/hints' => src
+  #end
     
   file 'kernel/hints' do
     puts "Building hints and fields..."
@@ -288,38 +288,52 @@ namespace :build do
     end
   end
   
+  def update_archive(files, archive, dir=nil, path_truc=false)
+    archive = File.expand_path archive
+    
+    changed = []
+    files.each do |file|
+      cmp = "#{file}c"
+      unless newer?(file, cmp)
+        changed << cmp
+        system "shotgun/rubinius compile #{file}"
+      end
+      file << "c"
+    end
+    
+    curdir = Dir.getwd
+    if dir
+      Dir.chdir(dir)
+      changed.map! { |f| f.gsub!(%r!^#{dir}/!, "") } if path_truc
+    end
+    
+    File.open(".load_order.txt","w") do |f|
+      f.puts files.join("\n")
+    end
+
+    if File.exists? archive
+      if changed.empty?
+        puts "No files to update."
+      else
+        system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
+      end
+    else
+      system "zip #{archive} .load_order.txt #{files.join(' ')}"
+    end
+    
+    Dir.chdir(curdir) if dir
+  end
+
+  task :rba => [:bootstrap, :core, :compiler]
+  
   desc "Build the VM bootstrap archive with rubinius."
-  task :bootstrap => 'kernel/hints' do
+  task :bootstrap do
+      archive = ENV['OUTPUT'] || "runtime/bootstrap.rba"
       files = Dir["kernel/bootstrap/*.rb"].sort
       temp_bs = "runtime/bootstrap.rba.old"
       system "cp runtime/bootstrap.rba #{temp_bs}"
       ENV['BOOTSTRAP'] = temp_bs
-      changed = []
-      files.each do |file|
-        cmp = "#{file}c"
-        unless newer?(file, cmp)
-          changed << cmp
-          system "shotgun/rubinius compile #{file}"
-        end
-        file << "c"
-      end
-
-      File.open(".load_order.txt","w") do |f|
-        f.puts files.join("\n")
-      end
-    
-      archive = "runtime/bootstrap.rba"
-
-      if File.exists? archive
-        if changed.empty?
-          puts "No kernel/bootstrap files to update."
-        else
-          system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
-        end
-      else
-        system "zip #{archive} .load_order.txt #{files.join(' ')}"
-      end
-
+      update_archive files, archive # ,  "kernel"
       system "rm #{temp_bs}"
   end
 
@@ -362,7 +376,7 @@ namespace :build do
   end
 
   desc "Build the core classes and methods archive."
-  task :core => 'kernel/hints' do
+  task :core do
     files = nil
     files = Dir["kernel/core/*.rb"].sort
     files.delete "kernel/core/__loader.rb"
@@ -373,34 +387,10 @@ namespace :build do
     system "cp runtime/core.rba #{temp_bs}"
     ENV['CORE'] = temp_bs
     
-    changed = []
-    files.each do |file|
-      cmp = "#{file}c"
-      unless newer?(file, cmp)
-        changed << cmp
-        system "shotgun/rubinius compile #{file}"
-#        system "#{COMPILER} #{file}"
-#        raise "Failed to compile #{file}" if $?.exitstatus != 0
-      end
-      file << "c"
-    end
-
-    File.open(".load_order.txt","w") do |f|
-      f.puts files.join("\n")
-    end
+    archive = ENV['OUTPUT'] || "runtime/core.rba"
     
-    archive = "runtime/core.rba"
-
-    if File.exists? archive
-      if changed.empty?
-        puts "No kernel/core files to update."
-      else
-        system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
-      end
-    else
-      system "zip #{archive} .load_order.txt #{files.join(' ')}"
-    end
-
+    update_archive files, archive # , "kernel"
+    
     system "rm #{temp_bs}"
   end
   
@@ -442,50 +432,32 @@ namespace :build do
     puts "\nNow do 'gem install externals/syd-parser/pkg/*.gem' as your gem superuser.\n\n"
   end
 
-  namespace :compiler do
-    desc "Bootstrap the compiler."
-    task :bootstrap do
-      files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
-        sexp/simple_processor translation/normalize translation/local_scoping
-        sexp/composite_processor translation/states sexp/exceptions
-        bytecode/primitive_names!
+  desc "Package up the compiler"
+  task :compiler do
+    files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
+      sexp/simple_processor translation/normalize translation/local_scoping
+      sexp/composite_processor translation/states sexp/exceptions
+      bytecode/primitive_names !
 
-      files.each do |name|
-        file = "#{name}.rb"
-        dir = File.dirname(file)
-        dest_dir = File.join("native", dir)
-        path = File.expand_path File.join("lib", file)
-        dest = File.join("native", file)
-        FileUtils.mkdir_p dest_dir
-        FileUtils.symlink path, dest rescue nil
-        Dir.chdir "native" do
-          sh "#{COMPILER} #{file}"
-        end
-        raise "Failed to compile #{dest}" if $?.exitstatus != 0
-      end
+    paths = []
 
-      extra = %w!bytecode/rubinius!
-      extra.each do |name|
-        Dir.chdir "native" do
-          file = name + '.rb'
-          sh "#{COMPILER} #{name}.rb"
-        end
-        raise "Failed to compile native/#{name}" if $?.exitstatus != 0
-      end
+    files.each do |name|
+      file = "#{name}.rb"
+      dir = File.dirname(file)
+      dest_dir = File.join("native", dir)
+      path = File.expand_path File.join("lib", file)
+      dest = File.join("native", file)
+      FileUtils.mkdir_p dest_dir
+      FileUtils.symlink path, dest rescue nil
+      
+      paths << dest
     end
-  
-    desc "Package up the compiler"
-    task :package do
-      File.unlink "compiler.rba" rescue nil
-      Dir.chdir "native" do
-        sh "zip ../runtime/compiler.rba **/*.rbc"
-      end
-    end
+
+    paths += %w!native/bytecode/rubinius.rb native/bytecode/system_hints.rb!
+    
+    update_archive paths, "runtime/compiler.rba", "native", true
   end
-  
-  desc "Bootstrap and package the compiler"
-  task :compiler => ['build:compiler:bootstrap', 'build:compiler:package']
-  
+    
   desc "Builds shotgun, kernel, and bootstraps the compiler"
   task :rubinius => ['build:shotgun', 'build:bootstrap', 'build:core', 'build:library', 'build:compiler']
 

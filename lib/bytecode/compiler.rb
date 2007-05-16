@@ -49,7 +49,11 @@ module Bytecode
     @system_hints = nil
     
     def self.load_system_hints(path)
-      @system_hints = parse_hints(path)
+      if Hash === path
+        @system_hints = path
+      else
+        @system_hints = parse_hints(path)
+      end
     end
     
     def self.system_hints

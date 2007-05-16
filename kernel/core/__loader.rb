@@ -53,6 +53,7 @@ begin
       $DEBUG_LOADING = true
       puts "[Code loading debugging enabled]"
     when '-c'
+      puts "Deprecated. Use 'rbx compile' instead."
       file = ARGV.shift
       path = compile(file)
       puts "Compiled #{file} to #{path}"
@@ -110,7 +111,6 @@ begin
   unless ran_something
     if Rubinius::Terminal
       repr = ENV['RBX_REPR'] || "bin/sirb"
-      puts "Loading #{repr} on #{Rubinius::Terminal}..."
       require repr
     else
       Compile.execute "p #{STDIN.read}"

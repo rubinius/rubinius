@@ -1,9 +1,6 @@
 require 'bytecode/assembler'
 require 'bytecode/primitive_names'
-
-if File.exists?("kernel/hints")
-  Bytecode::Compiler.load_system_hints "kernel/hints"
-end
+require 'bytecode/system_hints'
 
 module Bytecode
   class MethodDescription
