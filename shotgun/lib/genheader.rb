@@ -1,4 +1,4 @@
-require 'types'
+require '../../native/bytecode/system_hints'
 
 klasses = []
 
@@ -6,19 +6,23 @@ fd = File.open("auto.h", "w")
 
 puts "#include \"shotgun.h\""
 
-Rubinius::Types.each do |name, obj|
+Rubinius::BOOTSTRAP_TYPES.each do |name, klass|
   prefix = "#{name}_"
-  i = 0
   
-  obj::TotalFields.each do |fel|
-    fname = prefix.upcase + "f_" + fel.to_s.upcase
-    fd.puts "#define #{fname} #{i}"
-    i += 1
-    fd.puts "#define #{prefix}get_#{fel}(obj) NTH_FIELD(obj, #{fname})"
-    fd.puts "#define #{prefix}set_#{fel}(obj, val) SET_FIELD(obj, #{fname}, val)"
+  fields = Rubinius::BOOTSTRAP_HINTS[klass] || Hash.new
+  fields.each do |field_as_ivar, field_index|
+    if field_as_ivar == :@__ivars__
+      field_name = "instance_variables" 
+    else
+      field_name = field_as_ivar.to_s.gsub(/^@/,'') 
+    end
+    func_name = "#{prefix.upcase}f_#{field_name.upcase}"
+    fd.puts "#define #{func_name} #{field_index}"
+    fd.puts "#define #{prefix}get_#{field_name}(obj) NTH_FIELD(obj, #{func_name})"
+    fd.puts "#define #{prefix}set_#{field_name}(obj, val) SET_FIELD(obj, #{func_name}, val)"
   end
 
-  sz = obj::TotalFields.size  
+  sz = fields.size
   puts "OBJECT #{prefix}allocate_with_extra(STATE, int extra) {"
   puts "  return NEW_OBJECT(BASIC_CLASS(#{name}), #{sz} + extra);"
   puts "}"
@@ -35,7 +39,8 @@ Rubinius::Types.each do |name, obj|
   fd.puts "OBJECT #{prefix}allocate_with_extra(STATE, int extra);"
   fd.puts "OBJECT #{prefix}allocate_mature(STATE, int extra);"
   
-  klasses << [name, sz, obj::TotalFields.first == :instance_variables]
+  has_ivars = !fields[:@__ivars__].nil?
+  klasses << [name, sz, has_ivars]
 end
 
 puts "\n/* Code to create the types into classes */\n\n"

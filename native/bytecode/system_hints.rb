@@ -1,4 +1,5 @@
-hsh = {
+module Rubinius
+  BOOTSTRAP_HINTS = {
   "MatchData"=>{:@source=>1, :@regexp=>2, :@full=>3, :@region=>4, :@__ivars__=>0},
   "Regexp"=>{:@source=>1, :@names=>3, :@data=>2, :@__ivars__=>0},
   "MethodTable"=>{:@entries=>4, :@default=>5, :@default_proc=>6, :@keys=>1, :@values=>2, :@__ivars__=>0, :@bins=>3},
@@ -17,5 +18,5 @@ hsh = {
   "Hash"=>{:@entries=>4, :@default=>5, :@default_proc=>6, :@keys=>1, :@values=>2, :@__ivars__=>0, :@bins=>3},
   "BlockEnvironment"=>{:@last_ip=>3, :@post_send=>4, :@home=>1, :@__ivars__=>0, :@initial_ip=>2}
 }
-
-Bytecode::Compiler.load_system_hints hsh
+  BOOTSTRAP_TYPES = {:symtbl=>"SymbolTable", :blank=>"BlankObject", :matchdata=>"MatchData", :array=>"Array", :class=>"Class", :bignum=>"Bignum", :methtbl=>"MethodTable", :floatpoint=>"Float", :blokctx=>"BlockContext", :object=>"Object", :io=>"IO", :module=>"Module", :cmethod=>"CompiledMethod", :metaclass=>"MetaClass", :regexpdata=>"RegexpData", :regexp=>"Regexp", :bytearray=>"ByteArray", :hash=>"Hash", :string=>"String", :tuple=>"Tuple", :blokenv=>"BlockEnvironment", :symbol=>"Symbol", :methctx=>"MethodContext"}
+end

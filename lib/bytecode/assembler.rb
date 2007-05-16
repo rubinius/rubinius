@@ -234,7 +234,7 @@ module Bytecode
       parts = line.split(/\s+/)
       parts[0] = parts[0].to_sym
       # puts "#{@current_op}: #{parts.inspect}"
-      parse_operation *parts
+      parse_operation(*parts)
     end
     
     Translations = {
