@@ -1,12 +1,17 @@
 class Thread
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
 
-  def initialize(&prc)
-    raise "Must pass in a block" unless prc
+  def setup
+    @__ivars__ = {}
     @alive = true
     @result = nil
     @exception = nil
     @lock = Channel.new
+  end
+
+  def initialize(&prc)
+    raise "Must pass in a block" unless prc
+    setup
     setup_task do
       begin
         @result = begin
@@ -122,3 +127,6 @@ class Thread
     @__ivars__[key] = value
   end
 end
+
+Thread.current.setup
+
