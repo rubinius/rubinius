@@ -79,6 +79,7 @@ while true
     str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} ")
   end
   break unless str
+  context << "\n" unless context.empty?
   context << str
   line += 1
   if str.size == 0
