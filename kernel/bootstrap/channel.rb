@@ -10,8 +10,12 @@ class Channel
     Ruby.primitive :channel_send
   end
 
-  def receive
+  def receive_raw
     Ruby.primitive :channel_receive
+  end
+
+  def receive
+    receive_raw[1]
   end
 
   def self.receive_many(ary)

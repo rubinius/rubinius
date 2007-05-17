@@ -2231,9 +2231,9 @@ class ShotgunPrimitives
     GUARD(RISA(self, channel));
     
     cpu_channel_receive(state, c, self, c->current_thread);
-    /* Don't push anything on thes tack. The stack contents are handled
-       when the channel is restored. */
-    stack_push(tuple_at(state, stack_pop(), 1));
+    /* Don't touch the stack as we may be in a different task at this
+       point. The original task's stack is updated when the channel
+       is written to and the task restored. */
     CODE
   end
   
