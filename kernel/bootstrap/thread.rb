@@ -14,9 +14,9 @@ class Thread
     setup
     setup_task do
       begin
-        @result = begin
+        begin
           @lock.send nil
-          prc.call
+          @result = prc.call
         ensure
           @lock.receive
           @alive = false
