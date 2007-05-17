@@ -80,12 +80,19 @@ class Thread
     Ruby.primitive :thread_schedule
   end
 
-  def join(time=nil)
-    value(time)
-    self
+  def join(timeout=nil)
+    join_inner(timeout) do
+      break nil if @alive
+      self
+    end
   end
 
-  def value(time=nil)
+  def value
+    join_inner(nil) { @result }
+  end
+
+  def join_inner(timeout)
+    result = nil
     @lock.receive
     begin
       if @alive
@@ -93,23 +100,18 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          if time
-            tc = Channel.new
-            tc.send_in_microseconds(time * 1_000_000)
-            tup = Channel.receive_many([tc, jc])
-            return nil if tup[0] == tc
-          else
-            jc.receive
-          end
+          jc.send_in_microseconds(timeout * 1_000_000) if timeout
+          jc.receive
         ensure
           @lock.receive
         end
       end
       raise @exception if @exception
-      @result
+      result = yield
     ensure
       @lock.send nil
     end
+    result
   end
 
   def self.sleep(secs)
