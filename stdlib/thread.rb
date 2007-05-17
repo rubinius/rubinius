@@ -22,11 +22,28 @@ if $DEBUG
 end
 
 class Mutex
+  def initialize
+    @lock = Channel.new
+    @lock << self
+  end
+
+  def try_lock
+    raise NotImplementedError, "#{ self.class }#try_lock not implemented"
+  end
+
+  def lock
+    @lock.receive
+  end
+
+  def unlock
+    @lock << self
+  end
+
   def synchronize
-    self.lock
+    @lock.receive
     yield
   ensure
-    self.unlock
+    @lock << self
   end
 end
 
