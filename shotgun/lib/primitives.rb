@@ -2233,6 +2233,7 @@ class ShotgunPrimitives
     cpu_channel_receive(state, c, self, c->current_thread);
     /* Don't push anything on thes tack. The stack contents are handled
        when the channel is restored. */
+    stack_push(tuple_at(state, stack_pop(), 1));
     CODE
   end
   

@@ -31,7 +31,7 @@ module Kernel
     if pid != 0
       chan = Channel.new
       chan.send_on_stopped pid
-      c, status = chan.receive
+      status = chan.receive
       return false if status != 0
       
       return true
@@ -50,12 +50,12 @@ module Kernel
       buf = String.new(50)
       while true
         chan.send_on_readable read, buf, 50
-        c, res = chan.receive
+        res = chan.receive
         if String === res
           output << res
         elsif !res
           chan.send_on_stopped pid
-          c, res = chan.receive
+          res = chan.receive
           return output
         end
       end
