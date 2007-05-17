@@ -46,7 +46,7 @@ for i in $__SR_SOURCE; do
   tee $__SR_GOODFILE < $__SR_GOODFIFO >&3 &
   __SR_TEE_PID=$?
 
-  $SR_TARGET -rspec/mini_rspec.rb $i  > $__SR_GOODFIFO 2> $__SR_ERRFILE
+  $SR_TARGET -Ispec -rspec/mini_rspec.rb $i  > $__SR_GOODFIFO 2> $__SR_ERRFILE
   
   if [[ -s $__SR_ERRFILE ]]; then
     echo "Errors:"

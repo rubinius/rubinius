@@ -72,7 +72,8 @@ def it(msg)
   begin
     @__before__.each { |b| b.call }
     yield
-    @__after__.each { |b| b.call }
+    Mock.verify  
+
   rescue Exception => e
     STDOUT.print " FAILED:\n"
 
@@ -84,6 +85,12 @@ def it(msg)
     else
       STDOUT.print "<No message>"
     end
+
+  # Cleanup
+  ensure
+    Mock.cleanup
+    Mock.reset
+    @__after__.each { |b| b.call }
   end
 
   STDOUT.print "\n"

@@ -1,4 +1,5 @@
 require 'mini_rspec'
+require 'mini_mock'
 
 def try(a, b=true)
   yield
