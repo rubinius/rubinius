@@ -84,7 +84,7 @@ while true
   line += 1
   if str.size == 0
     context = ""
-  elsif context.size > 1
+  elsif context.size > 0
     begin
       # Enlarge locals as needed.
       if compiler_state.locals.size >= locals.fields
