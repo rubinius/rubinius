@@ -1213,13 +1213,16 @@ module Bytecode
         
         unless body
           # OMGWTFBBQ a totally empty ensure. stupid.
-          if ens == [:nil]
-            # The return value of this worthless ensure.
-            add "push nil" 
-            return
+
+          unless ens == [:nil]
+            process ens
+            # Throw away the result of the ensure block
+            add "pop"
           end
           
-          process ens
+          # The pathetic return value of this utterly worthless ensure.
+          add "push nil"
+
           return
         end
         
@@ -1229,6 +1232,8 @@ module Bytecode
           process body
           return
         end
+
+        # Per MRI, we use body's result value/exception unless ens raises.
         
         ex = unique_exc()
         add "#exc_start #{ex}"
@@ -1237,16 +1242,46 @@ module Bytecode
         # with a rescue because this code needs to be run no matter
         # what.
         add "#exceptions #{ex}"
-        # We pop the value of the normal code because the return value
-        # is the return of the ensured code.
-        add "pop"
+        add "push_exception"
+ 
+        # at this point on the stack we've got either:
+        #   ( result nil )  or
+        #   ( exception )
+
+        ex2 = unique_exc()
+        add "#exc_start #{ex2}"
         process ens
+        # discard new result
+        add "pop"
+        l_noex2 = unique_lbl()
+        goto l_noex2
+
+        add "#exceptions #{ex2}"
+        # replace old result/exception on stack with new exception
+        l_ex = unique_lbl()
+        # old exception?
+        git l_ex
+        # discard result, if not
+        add "pop"
+        set_label l_ex
         add "push_exception"
-        lbl = unique_lbl()
-        gif lbl
-        add "push_exception"
+
+        set_label l_noex2
+        add "#exc_end #{ex2}"
+
+        # now still either:
+        #   ( result nil )  or
+        #   ( exception )
+        
+        l_noex = unique_lbl()
+        add "dup"
+        gif l_noex
+        # FIXME: re-raising from here messes with line numbers in the
+        #        backtrace of body exceptions
         add "raise_exc"
-        set_label lbl
+        set_label l_noex
+        # discard nil
+        add "pop"
         add "#exc_end #{ex}"
       end
       
