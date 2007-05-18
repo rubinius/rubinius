@@ -1,6 +1,6 @@
 = Installation guide for Rubinius as of 05/2007
 
-Please always visit http://rubini.us to view the most current installation
+Please visit http://rubini.us to view the most current installation
 information. Additionally, the #rubinius IRC channel on Freenode will help.
 
 
@@ -23,7 +23,6 @@ any platform-specific requirements.
 * "RubyGems (Ruby package manager)":http://www.rubygems.org/
 * "Subversion/SVN with WebDAV support (source control used by rubinius)":http://subversion.tigris.org/
 * "zip and unzip commands (archiving)":http://www.info-zip.org
-* sydparse is provided as a part of rubinius, see below.
 
 Each package may have requirements of its own, of course.
 
@@ -33,18 +32,12 @@ the programs accordingly (you probably want to ensure gmake is called gmake in o
 not to override the default make.) You can then adjust the environment with often a 
 simple PATH revision as needed.
 
-Rubinius also requires sydparse, a parser from the preceding Sydney project. This is 
-available through RubyGems but for Rubinius, the version required is actually included
-in the repository. If you already have a version through Gems, you should remove it 
-before bootstrapping Rubinius so that the provided one can be substituted. We will 
-add the correct version right after getting Rubinius itself a bit further down.
-
 
 === Requirements through RubyGems
 
 * rake
 
-All gems may be obtained with the gem install command. See http://www.rubygems.org for more information.
+Rake may be obtained with the gem install command. See http://www.rubygems.org for more information.
 
 
 === System-dependent requirements
@@ -60,16 +53,6 @@ You need to check Rubinius out through SVN (which we just installed.) The invoca
 
   svn co http://code.fallingsnow.net/svn/rubinius/trunk rubinius
 
-And we must not forget sydparse. Once SVN has finished getting Rubinius, do this:
-
-  cd /path/to/rubinius
-  cd externals/sydparse
-  rake gem
-  sudo gem uninstall sydparse
-  sudo gem install pkg/sydparse-1.2.2.gem
-
-
-
 == Compiling etc.
 
 In the simplest case and assuming that you have all the prerequisites, actually 
@@ -80,9 +63,10 @@ getting a working Rubinius binary should be as simple as this:
   make
 
 This will give you a binary, @./shotgun/rubinius@ which can then be invoked to 
-run scripts. If your system compiler is not a GCC 4.x, you can use the CC env
+run scripts. If your system compiler is not GCC 4.x, you can use the CC env
 to the *configure* script. If you want a development version (no optimisations, 
 extra debug info), use DEV=1 again at the configuration phase, not to make. 
+
 If you want, you can also do a @make install@. This will install @rbx@ as a 
 shortcut for @./shotgun/rubinius@.
 
@@ -114,7 +98,7 @@ to use the one at /usr/bin/glibtool (1.5) instead. If you are radical you can ju
 
 === Ubuntu
 
-For the build to succeed I installed these additional packages:
+For the build to succeed you will need these packages:
  
 * libglib2.0-dev
 * zlib1g-dev
