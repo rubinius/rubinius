@@ -55,24 +55,27 @@ class Channel
   def to_channel
     self
   end
+end
 
-  def send_in_microseconds(count)
+class Scheduler
+
+  def self.send_in_microseconds(chan, count)
     Ruby.primitive :channel_send_in_microseconds
   end
 
-  def send_on_readable(io, buffer, count)
+  def self.send_on_readable(chan, io, buffer, count)
     Ruby.primitive :channel_send_on_readable
   end
 
-  def send_on_writable(io)
+  def self.send_on_writable(chan, io)
     Ruby.primitive :channel_send_on_readable
   end
 
-  def send_on_signal(number)
+  def self.send_on_signal(chan, number)
     Ruby.primitive :channel_send_on_signal
   end
   
-  def send_on_stopped(pid)
+  def self.send_on_stopped(chan, pid)
     Ruby.primitive :channel_send_on_stopped
   end
 end

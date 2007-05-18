@@ -2276,6 +2276,7 @@ class ShotgunPrimitives
   def channel_send_in_microseconds
     <<-CODE
     struct timeval tv;
+    stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, INTEGER);
     
@@ -2302,6 +2303,7 @@ class ShotgunPrimitives
   
   def channel_send_on_readable
     <<-CODE
+    stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1,   IO);
     t2 = stack_pop();
@@ -2319,6 +2321,7 @@ class ShotgunPrimitives
   
   def channel_send_on_writable
     <<-CODE
+    stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1,   IO);
     
@@ -2332,6 +2335,7 @@ class ShotgunPrimitives
   
   def channel_send_on_signal
     <<-CODE
+    stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1,   FIXNUM);
     GUARD(RISA(self, channel));
@@ -2343,6 +2347,7 @@ class ShotgunPrimitives
   
   def channel_send_on_stopped
     <<-CODE
+    stack_pop(); /* scheduler */
     POP(self, REFERENCE);
     POP(t1, FIXNUM);
     GUARD(RISA(self, channel));

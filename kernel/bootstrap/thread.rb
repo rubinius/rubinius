@@ -100,7 +100,7 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          jc.send_in_microseconds(timeout * 1_000_000) if timeout
+          Scheduler.send_in_microseconds(jc, timeout * 1_000_000) if timeout
           jc.receive
         ensure
           @lock.receive
@@ -116,7 +116,7 @@ class Thread
 
   def self.sleep(secs)
     chan = Channel.new
-    chan.send_in_microseconds(secs * 1_000_000)
+    Scheduler.send_in_microseconds(chan, secs * 1_000_000)
     chan.receive
     return true
   end

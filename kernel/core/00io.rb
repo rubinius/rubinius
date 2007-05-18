@@ -18,7 +18,7 @@ class IO
     if size
       buf = String.new(size)
       chan = Channel.new
-      chan.send_on_readable self, buf, size
+      Scheduler.send_on_readable chan, self, buf, size
       chan.receive
     else
       out = ""

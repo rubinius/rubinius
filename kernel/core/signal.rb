@@ -47,7 +47,7 @@ module Signal
       end
     end
 
-    chan.send_on_signal number
+    Scheduler.send_on_signal chan, number
 
     old = @handlers[number]
     @handlers[number] = thr

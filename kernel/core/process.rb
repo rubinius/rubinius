@@ -30,7 +30,7 @@ module Kernel
     pid = Process.fork
     if pid != 0
       chan = Channel.new
-      chan.send_on_stopped pid
+      Scheduler.send_on_stopped chan, pid
       status = chan.receive
       return false if status != 0
       
@@ -49,12 +49,12 @@ module Kernel
       output = ""
       buf = String.new(50)
       while true
-        chan.send_on_readable read, buf, 50
+        Scheduler.send_on_readable chan, read, buf, 50
         res = chan.receive
         if String === res
           output << res
         elsif !res
-          chan.send_on_stopped pid
+          Scheduler.send_on_stopped chan, pid
           res = chan.receive
           return output
         end
