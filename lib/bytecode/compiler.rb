@@ -1295,8 +1295,16 @@ module Bytecode
         add "ret"
       end
       
+      # a,b,c = *[5,6,7]
+      # [[:array, [:lasgn, :a, 7], [:lasgn, :b, 8], [:lasgn, :c, 9]], nil, [:splat, [:array, [:lit, 5], [:lit, 6], [:lit, 7]]]]
+      # *z = [5,6,7]
+      # [[:lasgn, :z, 6], [:array, [:array, [:lit, 5], [:lit, 6], [:lit, 7]]], nil]
       def process_masgn(x)
-        rhs = x.shift
+        if x[0][0] == :array
+          rhs = x.shift
+        else
+          rhs = []
+        end
         splat = x.shift
         source = x.shift
 
@@ -1304,6 +1312,8 @@ module Bytecode
           # The sexp has 2 nodes that do the same thing. It's annoying.
           if source[0] == :to_ary or source[0] == :splat
             process source.last
+            add "dup"
+            add "cast_tuple"
             add "cast_tuple"
           elsif source[0] == :array
             handle_array_masgn rhs, splat, source
@@ -1312,12 +1322,14 @@ module Bytecode
             process source
           end
         end
-        
-        rhs.shift # get rid of :array
-        rhs.each do |part|
-          add "unshift_tuple"
-          process part
-          add "pop"
+
+        if rhs[0] == :array # masgn to multple lhs
+          rhs.shift # get rid of :array
+          rhs.each do |part|
+            add "unshift_tuple"
+            process part
+            add "pop"
+          end
         end
         
         if splat
@@ -1325,17 +1337,11 @@ module Bytecode
           process splat
           add "pop"
         end
-        add "pop" # there's an empty tuple left on the stack, clear it and replace it with...
-        add "push true" # This is absolutely not correct, it needs to return an array of the lhs, but this at least keeps it from crashing
       end
       
       def handle_array_masgn(rhs, splat, source)        
         rhs.shift
         source.shift
-        
-        if splat
-          raise "splat is stupid."
-        end
         
         if rhs.size > source.size
           (rhs.size - source.size).times do
@@ -1351,14 +1357,18 @@ module Bytecode
           process e
           add "pop"
         end
-        
+
         if source.size > rhs.size
-          (source.size - rhs.size).times do
+          count = source.size - rhs.size
+          count.times do
             add "pop"
-          end
+          end unless splat
         end
 
-        add "push true" # This is absolutely not correct, it needs to return an array of the lhs, but this at least keeps it from crashing.
+        if splat
+          add 'make_array 1'
+          process splat
+        end
       end
       
       def detect_primitive(body)

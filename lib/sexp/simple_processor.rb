@@ -32,6 +32,10 @@ class SimpleSexpProcessor
   def process(x)
     return nil if x.nil?
     
+    unless Array === x
+      raise RuntimeError, "BUG: Invalid sexp: #{x.inspect}"
+    end
+
     sel = "process_#{x.first}".to_sym
     if @auto_shift_type
       name = x.shift
