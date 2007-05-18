@@ -1,17 +1,18 @@
 class Thread
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
 
-  def setup
+  def setup(prime_lock)
     @__ivars__ = {}
     @alive = true
     @result = nil
     @exception = nil
     @lock = Channel.new
+    @lock.send nil if prime_lock
   end
 
   def initialize(&prc)
     raise "Must pass in a block" unless prc
-    setup
+    setup(false)
     setup_task do
       begin
         begin
@@ -130,5 +131,5 @@ class Thread
   end
 end
 
-Thread.current.setup
+Thread.current.setup(true)
 
