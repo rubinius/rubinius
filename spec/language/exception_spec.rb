@@ -47,6 +47,14 @@ context "Exceptions" do
 
     B.new.exception.should == "ensure I never got to be an exception"
   end
+
+  specify "the result of ensure should be elided" do
+    begin
+      true
+    ensure
+      false
+    end.should == true
+  end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
   specify "retry should restart execution at begin" do
