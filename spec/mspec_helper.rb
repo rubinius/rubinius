@@ -26,7 +26,7 @@ def should_raise(exception_class = Exception)
   begin
     yield
   rescue Exception => e
-    if e.is_a? exception_class
+    if exception_class === e
       return true
     end
   end

@@ -20,9 +20,10 @@ module ExceptionHelper
 end
 
 class Object
-  # all this does is assumes that the string rep of self _is_ the exception name
   def should_raise(exc)
-    self.to_s.should == exc.to_s
+    yield
+  rescue Object => ex
+    exc.should === ex
   end
 end
   

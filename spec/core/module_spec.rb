@@ -53,7 +53,7 @@ context "Module" do
     class J
       include H, I
     end
-    Bar.ancestors.reject { |m| m.to_s.include?(':') }.inspect.should == '[J, H, I, Object, Kernel]'
+    J.ancestors.reject { |m| m.to_s.include?(':') }.inspect.should == '[J, H, I, Object, Kernel]'
   end
 end
 
@@ -77,7 +77,7 @@ context "Module#module_eval given a block" do
   end
 
   specify "should execute on the receiver context" do
-    K.module_eval { name }.should == 'Hello'
+    K.module_eval { name }.should == 'K'
   end
 
   specify "should bind self to the receiver module" do
@@ -87,13 +87,11 @@ context "Module#module_eval given a block" do
 end
 
 context "Module.define_method" do
-
   class L
     def foo
       "ok"
     end
   end
-  @foo = L.new
   
   specify "should be private" do
     should_raise(NoMethodError) { L.define_method(:a) {  } }
@@ -103,21 +101,35 @@ context "Module.define_method" do
     L.module_eval do 
       define_method(:bar, instance_method(:foo))
     end
-    @foo.bar.should == "ok"
+    L.new.bar.should == 'ok'
   end
 
   specify "should receive a Method" do
     L.module_eval do
-      define_method(:bar, Foo.new.method(:foo))
+      define_method(:bar, L.new.method(:foo))
     end
-    @foo.bar.should == "ok"
+    L.new.bar.should == 'ok'
   end
 
-  specify "should take a block with arguments" do
+  specify "should take a block with an argument" do
     L.module_eval do 
-      define_method(:bar) { |what| "I love #{what}" }
+      define_method(:bak) { |what| "I love #{what}" }
     end
-    @foo.bar("rubinius").should == "I love rubinius"
+    L.new.bak("rubinius").should == "I love rubinius"
+  end
+
+  specify "should take a block with multiple arguments" do
+    L.module_eval do 
+      define_method(:baz) { |what, how_much| "I love #{what} #{how_much}" }
+    end
+    L.new.baz("rubinius", 'a whole lot').should == "I love rubinius a whole lot"
+  end
+
+  specify "should take a variadic block" do
+    L.module_eval do 
+      define_method(:dots) { |*args| args.join('.') }
+    end
+    L.new.dots(1,2,3,4,5,6).should == "1.2.3.4.5.6"
   end
 
   specify "should raise TypeError if not given a Proc/Method" do
@@ -149,7 +161,7 @@ context "Module" do
     module M
       private :a, :b, :c
     end
-    Moo.private_instance_methods.sort.should == ["a", "b", "c"]
+    M.private_instance_methods.sort.should == ["a", "b", "c"]
   end
   
   specify "should provide a method protected that takes no arguments" do
