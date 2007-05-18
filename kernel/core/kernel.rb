@@ -38,6 +38,9 @@ module Kernel
     obj.to_s
   end
   
+  def warn(warning)
+    $stderr.write warning
+  end
 
   def exit(code=0)
     raise SystemExit.new(code)

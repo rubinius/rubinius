@@ -124,3 +124,16 @@ context "Kernel.at_exit()" do
   end
 end
 
+context "Kernel.warn()" do
+  specify "should call #write on $stderr" do
+    class FakeErr
+      def written_to?; @written; end
+      def write(warning); @written = true; end;
+    end
+    s = $stderr
+    $stderr = FakeErr.new
+    warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
+    $stderr.written_to?.should == true
+    $stderr = s
+  end
+end
