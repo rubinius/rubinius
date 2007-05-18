@@ -323,7 +323,7 @@ module Enumerable
         first_item = false
 
         if memo.nil?
-          o = memo
+          memo = o
           next
         end
       end
