@@ -973,52 +973,59 @@ context "String instance method" do
     "rubinius".to_sym.should == :rubinius
   end
 
-  # specify "tr should replace characters in to_string with corresponding characters in from_string" do
-  #   "Lisp".tr("Lisp", "Ruby").should == "Ruby"
-  # end
-  # 
-  # specify "tr should accept c1-c2 notation to denote ranges of characters" do
-  #   "123456789".tr("2-5","abcdefg").should == "1abcd6789"
-  # end
-  # 
-  # specify "tr should accept from_string starting with ^ to denote all characters except those listed" do
-  #   "123456789".tr("^345", "abc").should == "cc345cccc"
-  #   "abcdefghijk".tr("^d-g", "9131").should == "111defg1111"
-  # end
-  # 
-  # specify "tr should pad to_string with its last character if it is short than from_string" do
-  #   "this".tr("this","x").should == "xxxx"
-  # end
-  # 
-  # specify "tr! should modify self in place by performing tr on it" do
-  #   s = "abcdefghijklmnopqR"
-  #   s.tr!("cdefg", "12")
-  #   s.should == "ab12222hijklmnopqR"
-  # end
-  # 
-  # specify "tr_s should return a string processed according to tr with duplicate characters removed" do
-  #   "Lisp".tr_s("Lisp", "Ruby").should == "Ruby"
-  #   "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
-  #   "this".tr_s("this","x").should == "x"
-  #   "abcdefghijklmnopqR".tr_s("cdefg", "12").should == "ab12hijklmnopqR"
-  # end
-  # 
-  # specify "tr_s! should modify self in place by applying tr_s" do
-  #   a = "54321"
-  #   a.tr_s!("432", "ab").should == "5ab1"
-  #   a.should == "5ab1"
-  # 
-  #   b = "Ruby"
-  #   b.tr_s!("R", "c").should == "cuby"
-  #   b.should == "cuby"
-  # 
-  #   c = "chocolate"
-  #   c.tr_s!("oa", "").should == "chclte"
-  #   c.should == "chclte"
-  # end
+  specify "tr should replace characters in to_string with corresponding characters in from_string" do
+    "Lisp".tr("Lisp", "Ruby").should == "Ruby"
+  end
+  
+  specify "tr should accept c1-c2 notation to denote ranges of characters" do
+    "123456789".tr("2-5","abcdefg").should == "1abcd6789"
+  end
+  
+  specify "tr should accept from_string starting with ^ to denote all characters except those listed" do
+    "123456789".tr("^345", "abc").should == "cc345cccc"
+    "abcdefghijk".tr("^d-g", "9131").should == "111defg1111"
+  end
+  
+  specify "tr should pad to_string with its last character if it is short than from_string" do
+    "this".tr("this","x").should == "xxxx"
+  end
+  
+  specify "tr! should modify self in place by performing tr on it" do
+    s = "abcdefghijklmnopqR"
+    s.tr!("cdefg", "12")
+    s.should == "ab12222hijklmnopqR"
+  end
+  
+  specify "tr_s should return a string processed according to tr with duplicate characters removed" do
+    "Lisp".tr_s("Lisp", "Ruby").should == "Ruby"
+    "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
+    "this".tr_s("this","x").should == "x"
+    "abcdefghijklmnopqR".tr_s("cdefg", "12").should == "ab12hijklmnopqR"
+  end
+  
+  specify "tr_s! should modify self in place by applying tr_s" do
+    a = "54321"
+    a.tr_s!("432", "ab").should == "5ab1"
+    a.should == "5ab1"
+  
+    b = "Ruby"
+    b.tr_s!("R", "c").should == "cuby"
+    b.should == "cuby"
+  
+    c = "chocolate"
+    c.tr_s!("oa", "").should == "chclte"
+    c.should == "chclte"
+  end
   
   specify "unpack should return an array by decoding self according to the format string" do
-    raise
+    "abc \0\0abc \0\0".unpack('A6Z6').should == ["abc", "abc "]
+    "abc \0\0".unpack('a3a3').should == ["abc", " \000\000"]
+    "abc \0abc \0".unpack('Z*Z*').should == ["abc ", "abc "]
+    "aa".unpack('b8B8').should == ["10000110", "01100001"]
+    "aaa".unpack('h2H2c').should == ["16", "61", 97]
+    "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
+    "now=20is".unpack('M*').should == ["now is"]
+    "whole".unpack('xax2aX2aX1aX2a').should == ["h", "e", "l", "l", "o"]
   end
 
   specify "upcase should return a string with a-z characters replaced with A-Z" do

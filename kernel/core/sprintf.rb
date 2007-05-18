@@ -288,7 +288,7 @@ module Sprintf
       when ?e, ?E, ?f, ?g, ?G
         v = Float(@value)
         if v.nan? == true || v.infinite?
-          s = (v.infinite? == -1 ? '-' : '') << (v.nan? ? "Nan" : "Inf")
+          s = (v.infinite? == -1 ? '-' : '') << (v.nan? ? "nan" : "Inf")
           s = zeropad(s, @width) if @width && (@flags & PAD_LJUSTIFY) == 0
           s = sign(s, v)
           out << fill(s)
