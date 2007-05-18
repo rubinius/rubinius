@@ -1,5 +1,4 @@
-#require File.dirname(__FILE__) + '/../../lib/bytecode/primitive_names'
-require File.dirname(__FILE__) + '/../../lib/cpu/primitives'
+require File.dirname(__FILE__) + '/../../lib/bytecode/primitive_names'
 require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
