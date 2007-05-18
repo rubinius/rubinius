@@ -400,10 +400,12 @@ void ffi_from_float(float val) {
 /* double */
 double ffi_to_double() {
   OBJECT obj;
+  double ret;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
-  return FLOAT_TO_DOUBLE(obj);
+  ret = FLOAT_TO_DOUBLE(obj);
+  return ret;
 }
 
 void ffi_from_double(double val) {
@@ -614,12 +616,17 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   int in, vars, i, aligned, reg, size;
   int *ids;
   void *conv;
+  int int_count, float_count, double_count;
   OBJECT obj;
       
   /* Until lightning supports more than 6 args, we can only generate a stub
      for 5 args (0 is the receiver). */
   if(args > 5) return Qnil;
   
+  int_count = 0;
+  float_count = 0;
+  double_count = 0;
+    
   codebuf = (char*)malloc(4096);
   start = codebuf;
   
@@ -634,49 +641,63 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       conv = ffi_get_to_converter(arg_types[i]);
       switch(arg_types[i]) {
       case FFI_TYPE_FLOAT:
+        reg = JIT_FPR5;
+        float_count++;
+        break;
       case FFI_TYPE_DOUBLE:
-        reg = JIT_FPR0;
+        reg = JIT_FPR5;
+        double_count++;
       default:
         reg = JIT_V1;
+        int_count++;
+        break;
       }
-    
-      jit_prepare(0); jit_calli(conv); jit_retval_p(reg);
-      ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
+      
+#define call_conv(kind) jit_prepare(0); jit_calli(conv); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
     
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
       case FFI_TYPE_UCHAR:
+        call_conv(c);
         jit_stxi_c(ids[i], JIT_FP, reg);
         break;
       case FFI_TYPE_SHORT:
       case FFI_TYPE_USHORT:
+        call_conv(s);
         jit_stxi_s(ids[i], JIT_FP, reg);
         break;
       case FFI_TYPE_INT:
       case FFI_TYPE_UINT:
+        call_conv(i);
         jit_stxi_i(ids[i], JIT_FP, reg);
         break;
       case FFI_TYPE_LONG:
       case FFI_TYPE_ULONG:
+        call_conv(l);
         jit_stxi_l(ids[i], JIT_FP, reg);
         break;
     
       case FFI_TYPE_FLOAT:
+        call_conv(f);
         jit_stxi_f(ids[i], JIT_FP, reg);
         break;
       case FFI_TYPE_DOUBLE:
+        call_conv(d);
         jit_stxi_d(ids[i], JIT_FP, reg);
         break;
       case FFI_TYPE_OBJECT:
       case FFI_TYPE_PTR:
       case FFI_TYPE_STRING:
       case FFI_TYPE_STATE:
+        call_conv(p);
         jit_stxi_p(ids[i], JIT_FP, reg);
       }
     }
-      
-    jit_prepare_i(args);
-  
+    
+    jit_prepare_i(int_count);
+    jit_prepare_d(double_count);
+    jit_prepare_f(float_count);
+    
     for(i = args - 1; i >= 0; i--) {
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
