@@ -26,17 +26,18 @@ module Enumerable
     def sort_by(xs, &prc)
       # The ary and its elements sould be inmutable while sorting
       sort(xs.collect { |x| 
-             [prc.call(x), x] 
+             [yield(x), x] 
            }).collect { |a| a[1] }
     end
     
     # Sort an Enumerable using simple quicksort (not optimized)
     def quicksort(xs, &prc)
       return [] unless xs
-      return xs if xs.size <= 1
-      pivot = xs[0]
-      lmr = xs.group_by { |o| prc.call(o, pivot) }
-      quicksort(lmr[-1]) + lmr[0] + quicksort(lmr[1])
+      #return xs if xs.size <= 1
+      pivot = nil
+      xs.each { |o| pivot = o; break }
+      lmr = xs.group_by { |o| yield(o, pivot) }
+      quicksort(lmr[-1], &prc) + lmr[0] + quicksort(lmr[1], &prc)
     end
 
   end
@@ -71,11 +72,11 @@ module Enumerable
   #     c.grep(/SEEK/)         #=> ["SEEK_END", "SEEK_SET", "SEEK_CUR"]
   #     res = c.grep(/SEEK/) {|v| IO.const_get(v) }
   #     res                    #=> [2, 0, 1]
-  def grep(pattern, &prc)
+  def grep(pattern)
     ary = []
     each do |o|
       if pattern === o
-        ary << prc ? prc.call(o) : o
+        ary << (block_given? ? yield(o) : o)
       end
     end
     ary
@@ -315,9 +316,23 @@ module Enumerable
   #     end
   #     longest                                         #=> 5
   def inject(memo = nil)
-    each { |o| memo = yield(memo, o) }
+    first_item = true
+
+    each { |o|
+      if first_item 
+        first_item = false
+
+        if memo.nil?
+          o = memo
+          next
+        end
+      end
+
+      memo = yield(memo, o)
+    }
+
     memo
-  end
+  end 
 
   # :call-seq:
   #     enum.partition {| obj | block }  => [ true_array, false_array ]
@@ -492,7 +507,7 @@ module Enumerable
     prc = lambda { |a, b| a <=> b } unless block_given?
     max = nil
     each do |o| 
-      max = o if max.nil? || prc.call(min, o) < 0
+      max = o if max.nil? || prc.call(max, o) < 0
     end
     max
   end
