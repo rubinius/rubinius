@@ -155,10 +155,12 @@ void _nmc_start() {
   va = NULL;
   args = NULL;
   
+  #ifndef __i386__
   if(n->method->stub) {
     retval = n->method->stub(recv);
     goto done;
   }
+  #endif
 
   rni_handle* (*func)() = (rni_handle* (*)())(n->method->entry);
   int hs, ch;
