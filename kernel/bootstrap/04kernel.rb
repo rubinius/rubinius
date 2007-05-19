@@ -33,6 +33,8 @@ module Kernel
     elsif msg
       cls = exc
       exc = cls.new(msg)
+    elsif !(Class === exc)
+      raise TypeError, 'exception class/object expected'
     end
     Ruby.asm "push exc\nraise_exc"
   end
