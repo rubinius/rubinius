@@ -30,11 +30,11 @@ module Kernel
       exc = RuntimeError.new("An unknown exception occurred")
     elsif exc.kind_of?(String)
       exc = RuntimeError.new(exc)
+    elsif !(Class === exc || Exception === exc)
+      raise TypeError, 'exception class/object expected'
     elsif msg
       cls = exc
       exc = cls.new(msg)
-    elsif !(Class === exc)
-      raise TypeError, 'exception class/object expected'
     end
     Ruby.asm "push exc\nraise_exc"
   end
