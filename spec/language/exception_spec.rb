@@ -56,7 +56,6 @@ context "Exceptions" do
     end.should == true
   end
   
-  # FIXME: code string is only necessary because ensure crashes shotgun
   specify "retry should restart execution at begin" do
     class C
       def exception

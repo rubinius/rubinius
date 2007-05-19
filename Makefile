@@ -11,6 +11,7 @@ install:
 	cp runtime/*.rba $(RBAPATH)/
 	mkdir -p $(CODEPATH)/bin
 	cp lib/bin/*.rb $(CODEPATH)/bin
+	for rb in $(CODEPATH)/bin/*.rb ; do $(BINPATH)/rbx compile $$rb; done	
 
 clean:
 	cd shotgun; $(MAKE) clean
