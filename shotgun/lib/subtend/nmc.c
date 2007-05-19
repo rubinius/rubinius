@@ -4,10 +4,6 @@
 
 #include <string.h>
 
-#ifdef USE_CINVOKE
-#include <cinvoke.h>
-#endif
-
 #include "string.h"
 #include "cpu.h"
 #include "flags.h"
@@ -159,130 +155,6 @@ void _nmc_start() {
   va = NULL;
   args = NULL;
   
-#ifdef USE_CINVOKE
-  
-  /* Check for special cases.. */
-  if(n->method->args < 0) {
-    switch(n->method->args) {
-    /* functions wants (recv, argc, argv) */
-    case -1:
-      {
-        data = (long*)calloc(sizeof(rni_handle*), (fc->argcount + 6));
-        n->local_data = data;
-        
-        /* This seems convoluted, and it is, but it's done so that all
-           the storage needed comes from the one data array, so it's
-           the only thing to free later on. 
-           
-           data is layout out like this:
-           
-           [0: address of arg 0 (self + 4)]
-           [1: address of arg 1 (self + 3)]
-           [2: address of arg 2 (self + 5)]
-           [3: number of args as int]
-           [4: address of receiver]
-           [5: address of array of arguments (self + 6)]
-           [6 to end: the the array of arguments]
-           
-        */
-        
-        data[0] = (long)(data + 4);
-        data[1] = (long)(data + 3);
-        data[2] = (long)(data + 5);
-        data[3] = (long)(fc->argcount);
-        data[4] = (long)recv;
-        data[5] = (long)(data + 6);
-        
-        va = (VALUE*)(data + 6);
-                
-        /* The args is just the start of data. */
-        args = (void*)data;
-        
-        for(i = 0; i < fc->argcount; i++) {
-          va[i] = nmc_handle_new(n, global_context->state->handle_tbl, 
-                cpu_stack_pop(global_context->state, c));
-                
-        }
-        
-        break;
-      }
-    case -2:
-      {
-        OBJECT rargs;
-        rni_handle *rargs_h;
-        data = (long*)calloc(sizeof(rni_handle*), 4);
-        n->local_data = data;
-        
-        /* This seems convoluted, and it is, but it's done so that all
-           the storage needed comes from the one data array, so it's
-           the only thing to free later on. 
-           
-           data is layout out like this:
-           
-           [0: address of arg 0 (self + 2)]
-           [1: address of arg 1 (self + 3)]
-           [2: address of receiver]
-           [3: address of array of arguments]
-        */
-        
-        data[0] = (long)(data + 2);
-        data[1] = (long)(data + 3);
-        data[2] = (long)recv;
-        
-        rargs = array_new(state, fc->argcount);
-        rargs_h = nmc_handle_new(n, state->handle_tbl, rargs);
-        data[3] = (long)rargs_h;
-        
-        /* We do this not because they're the locals, but so rargs
-           is properly seen by the GC. */
-        fc->locals = rargs;
-                        
-        for(i = 0; i < fc->argcount; i++) {
-          array_set(state, rargs, i, cpu_stack_pop(state, c));
-        }
-        
-        args = (void*)data;
-        
-        break; 
-      }
-    default:
-      printf("ERROR: Unknown arg spec: %d\n", n->method->args);
-      exit(1);
-    }
-  } else {
-    
-    data = (void*)calloc((n->method->args + 1) * 2, sizeof(rni_handle*));
-    n->local_data = data;
-    
-    handles_used = (rni_handle**)data;
-    args = (void**)handles_used + (n->method->args + 1);
-    
-    // handles_used = malloc(sizeof(rni_handle*) * (n->method->args + 1));
-    
-    /* Normal case. Arguments are passed directly to the function. */
-    // args = malloc(sizeof(void*) * (n->method->args + 1));
-    for(i = 1; i <= n->method->args + 1; i++) {
-      handles_used[i] = nmc_handle_new(n, global_context->state->handle_tbl, 
-            cpu_stack_pop(global_context->state, c));
-      args[i] = &handles_used[i];
-    }
-    
-    handles_used[0] = recv;
-    args[0] = &handles_used[0];
-  }
-  
-  if(!cinv_function_invoke(global_context->state->c_context, n->method->prototype, 
-          n->method->entry, &retval, args)) {    
-    /* Error! */
-    printf("TODO: couldn't invoke a function!\n");
-    code = CALL_ERROR;
-    retval = (rni_handle*)Qnil;
-  } else {
-    code = ALL_DONE;
-  }
-  
-#else
-
   if(n->method->stub) {
     retval = n->method->stub(recv);
     goto done;
@@ -368,7 +240,6 @@ void _nmc_start() {
       abort();
     }
   }
-#endif
   
 done:
   

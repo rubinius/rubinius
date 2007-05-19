@@ -4,10 +4,6 @@
 #include "object.h"
 #include "ffi.h"
 
-#ifdef USE_CINVOKE
-#include <cinvoke.h>
-#endif
-
 #include "primitive_indexes.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int args) {
@@ -26,19 +22,6 @@ OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int ar
   object_make_byte_storage(state, sys);
   
   sys_nm = (native_method*)BYTES_OF(sys);
-
-#ifdef USE_CINVOKE
-  if(args >= 0) {
-    /* Truncate the list so the left hand side is the current number of ps */
-    strncpy(params,"ppppppppppppppppppppppppppppppppppppppp", args + 1);
-    params[args + 1] = 0;
-  } else if(args == -1 || args == -2) {
-    strcpy(params, "pip");
-  }
-  
-  sys_nm->prototype = cinv_function_create(state->c_context, 
-        CINV_CC_DEFAULT, "p", params);
-#endif
 
   sys_nm->entry = func;
   sys_nm->args = args;
