@@ -50,6 +50,7 @@ module Kernel
     Process.exit(code)
   end
   
+  alias fail raise
 end
 
 class SystemExit < Exception

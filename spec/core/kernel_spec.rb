@@ -124,6 +124,31 @@ context "Kernel.at_exit()" do
   end
 end
 
+# would be better to mock out raise, but that'd have to be done at rubinius compile time
+context "Kernel.fail()" do
+  specify "should raise an exception" do
+    should_raise(RuntimeError) { fail }
+  end
+
+  specify "should instantiate specified exception class" do
+    class LittleBunnyFooFoo < RuntimeError; end
+    should_raise(LittleBunnyFooFoo) { fail LittleBunnyFooFoo.new }
+  end
+
+  specify "should use specified message" do
+    should_raise(RuntimeError) { 
+      begin
+        fail "the duck is not irish."
+      rescue => e
+        e.message.should == "the duck is not irish."
+        raise
+      else
+        raise Exception
+      end
+    }
+  end
+end
+
 context "Kernel.warn()" do
   specify "should call #write on $stderr" do
     class FakeErr
