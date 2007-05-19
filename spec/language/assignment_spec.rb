@@ -54,6 +54,33 @@ context 'Multiple assignment without grouping or splatting' do
   end
 end
 
+context 'Multiple assignments with splats' do
+  specify '* on the lhs has to be applied to the last parameter' do
+    should_raise(SyntaxError) { eval 'a, *b, c = 1, 2, 3' }
+  end
+
+  specify '* on the lhs collects all parameters from its position onwards as an Array or an empty Array' do
+    a, *b = 1, 2
+    c, *d = 1
+    e, *f = 1, 2, 3
+    g, *h = 1, [2, 3]
+    *i = 1, [2,3]
+    *j = [1,2,3]
+    *k = 1,2,3
+
+    a.should == 1
+    b.should == [2]
+    c.should == 1
+    d.should == []
+    e.should == 1
+    f.should == [2, 3]
+    g.should == 1
+    h.should == [[2, 3]]
+    i.should == [1, [2, 3]]
+    j.should == [[1,2,3]]
+    k.should == [1,2,3]
+  end
+end
 
 context 'Multiple assignments with grouping' do
   specify 'A group on the lhs is considered one position and treats its corresponding rhs position like an Array' do
@@ -80,24 +107,3 @@ context 'Multiple assignments with grouping' do
 end
 
 
-context 'Multiple assignments with splats' do
-  specify '* on the lhs has to be applied to the last parameter' do
-    should_raise(SyntaxError) { eval 'a, *b, c = 1, 2, 3' }
-  end
-
-  specify '* on the lhs collects all parameters from its position onwards as an Array or an empty Array' do
-    a, *b = 1, 2
-    c, *d = 1
-    e, *f = 1, 2, 3
-    g, *h = 1, [2, 3]
-
-    a.should == 1
-    b.should == [2]
-    c.should == 1
-    d.should == []
-    e.should == 1
-    f.should == [2, 3]
-    g.should == 1
-    h.should == [[2, 3]]
-  end
-end

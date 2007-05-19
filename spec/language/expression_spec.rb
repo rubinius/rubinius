@@ -89,16 +89,15 @@ describe "The case expression" do
     end.should == true
   end
 
-=begin FIXME: The Exception is not handled well
-  it "but you can't use else without the when construct" do
-    example do
-      case 4
-      else
-        true
-      end
-    end.should_raise SyntaxError # (unexpected kELSE, expecting kWHEN)
-  end
-=end
+  # FIXME - The SyntaxError raises as soon as the block is compiled
+  #it "but you can't use else without the when construct" do
+  #  should_raise(SyntaxError) do
+  #    case 4
+  #    else
+  #      true
+  #    end
+  #  end
+  #end
   
   it "evaluates the body of the first when clause that is true when no case target expression is given" do
     case
