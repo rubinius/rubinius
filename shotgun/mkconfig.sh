@@ -22,7 +22,7 @@ fi
 
 echo "CC=$CC"
 
-if which glibtool > /dev/null; then
+if which glibtool 1> /dev/null 2>&1; then
   echo "LIBTOOL=glibtool"
 else
   echo "LIBTOOL=libtool"
