@@ -7,7 +7,9 @@ class Class
   def instance_fields=(num)
     @instance_fields = num
   end
-    
+
+  self.instance_fields = 9
+
   def class_variable_set(name, val)
     raise ArgumentError, "#{name} is not an allowed class variable name" unless name.to_s[0..1] == '@@'
 
