@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+#
+# adapted from http://www.shelldorado.com/scripts/cmds/timeout
+
+NAME=`basename "$0"`			# Program name
+VERSION='1.3'
+
+TIMEOUT=10				# Default [seconds]
+
+usage () {
+    echo >&2 "$NAME - set timeout for a command, $VERSION
+usage: $NAME [-t timeout] command [argument ...]
+     -t: timeout (in seconds, default is $TIMEOUT)"
+    exit 1
+}
+
+message () {
+    for msg_line
+    do echo "$NAME: $msg_line" >&2
+    done
+}
+
+fatal () { message "$@"; exit 1; }
+
+while [ $# -gt 0 ]
+do
+    case "$1" in
+	-p)	parent_pid=$2; shift;;	# Used internally!
+	-t)	time_out="$2"; shift;;
+	--)	shift; break;;
+	-h)	usage;;
+	-*)	usage;;
+	*)	break;;			# First file name
+    esac
+    shift
+done
+
+: ${time_out:=$TIMEOUT}			# Set default [seconds]
+
+if [ -z "$parent_pid" ]
+then
+    # This is the first invokation of this script.
+    # Start "watchdog" process, and then run the command.
+    [ $# -lt 1 ] && fatal "please specify a command to execute"
+    "$0" -p $$ -t $time_out &		# Start watchdog
+    #echo >&2 "DEBUG: process id is $$"
+    exec "$@"				# Run command
+    exit 2				# NOT REACHED
+else
+    # We run in "watchdog" mode, $parent_pid contains the PID
+    # of the process we should terminate after $time_out seconds.
+    [ $# -ne 0 ] && fatal "please do not use -p option interactively"
+
+    #echo >&2 "DEBUG: $$: parent PID to terminate is $parent_pid"
+
+    exec >/dev/null 0<&1 2>&1	# Suppress error messages
+    sleep $time_out
+    kill $parent_pid &&			# Give process time to terminate
+    	(sleep 2; kill -1 $parent_pid) && (sleep 2; kill -9 $parent_pid)
+    exit 0
+fi
