@@ -3,9 +3,11 @@ class Class
     Ruby.primitive :allocate
   end
   
-  def new(*arg) # FIXME: , &block) -> crash
+  # A version taking a block is available in core; it's too early to
+  # support one during bootstrap
+  def new(*arg)
     obj = self.allocate()
-    obj.initialize(*arg) # FIXME: , &block)
+    obj.initialize(*arg)
     return obj
   end
   
