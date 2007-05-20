@@ -19,6 +19,7 @@ extern VALUE rb_funcall(VALUE, ID, int cnt, ...);
 extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
 
 extern VALUE subtend_get_global(int which);
+extern VALUE subtend_get_exception(int which);
 
 void rb_define_method_(char *file, VALUE vmod, char *name, void *func, int args, int kind);
 
@@ -27,7 +28,35 @@ void rb_define_method_(char *file, VALUE vmod, char *name, void *func, int args,
 
 VALUE rb_define_class(char *name, VALUE super);
 
+VALUE rb_const_get(VALUE klass, ID id);
+
 #define rb_cObject (subtend_get_global(0))
+
+/* TODO: Pull these into an enum */
+#define rb_eException          subtend_get_exception(0)
+#define rb_eSystemExit         subtend_get_exception(1)
+#define rb_eInterrupt          subtend_get_exception(2)
+#define rb_eSignal             subtend_get_exception(3)
+#define rb_eFatal              subtend_get_exception(4) /* WTF is this? */
+#define rb_eStandardError      subtend_get_exception(5)
+#define rb_eRuntimeError       subtend_get_exception(6)
+#define rb_eTypeError          subtend_get_exception(7)
+#define rb_eArgError           subtend_get_exception(8)
+#define rb_eIndexError         subtend_get_exception(9)
+#define rb_eRangeError         subtend_get_exception(10)
+#define rb_eNameError          subtend_get_exception(11)
+#define rb_eNoMethodError      subtend_get_exception(12)
+#define rb_eSecurityError      subtend_get_exception(13)
+#define rb_eNotImpError        subtend_get_exception(14)
+#define rb_eNoMemError         subtend_get_exception(15)
+
+#define rb_eScriptError        subtend_get_exception(16)
+#define rb_eSyntaxError        subtend_get_exception(17)
+#define rb_eLoadError          subtend_get_exception(18)
+
+#define rb_eSystemCallError    subtend_get_exception(19)
+#define rb_mErrno              subtend_get_exception(20)
+
 
 /* Array */
 VALUE rb_ary_new(void);

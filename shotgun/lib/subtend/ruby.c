@@ -13,6 +13,98 @@ OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int ar
 #define CTX rni_context* ctx = subtend_retrieve_context()
 #define NEW_HANDLE(ctx, val) nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val)
 
+VALUE subtend_get_exception(int which) {
+  VALUE val;
+  CTX;
+  
+  switch(which) {
+    case 0:
+    val = rb_const_get(rb_cObject, rb_intern("Exception"));
+    break;
+
+    case 1:
+    val = rb_const_get(rb_cObject, rb_intern("SystemExit"));
+    break;
+
+    case 2:
+    val = rb_const_get(rb_cObject, rb_intern("Interrupt"));
+    break;
+
+    case 3:
+    val = rb_const_get(rb_cObject, rb_intern("SignalException"));
+    break;
+
+    case 4: /* wtf is fatal? */
+    break;
+
+    case 5:
+    val = rb_const_get(rb_cObject, rb_intern("StandardError"));
+    break;
+
+    case 6:
+    val = rb_const_get(rb_cObject, rb_intern("RuntimeError"));
+    break;
+
+    case 7:
+    val = rb_const_get(rb_cObject, rb_intern("TypeError"));
+    break;
+
+    case 8:
+    val = rb_const_get(rb_cObject, rb_intern("ArgumentError"));
+    break;
+
+    case 9:
+    val = rb_const_get(rb_cObject, rb_intern("IndexError"));
+    break;
+
+    case 10:
+    val = rb_const_get(rb_cObject, rb_intern("RangeError"));
+    break;
+    
+    case 11:
+    val = rb_const_get(rb_cObject, rb_intern("NameError"));
+    break;
+    
+    case 12:
+    val = rb_const_get(rb_cObject, rb_intern("NoMethodError"));
+    break;
+    
+    case 13:
+    val = rb_const_get(rb_cObject, rb_intern("SecurityError"));
+    break;
+    
+    case 14:
+    val = rb_const_get(rb_cObject, rb_intern("NotImplementedError"));
+    break;
+    
+    case 15:
+    val = rb_const_get(rb_cObject, rb_intern("NoMemoryError"));
+    break;
+
+    case 16:
+    val = rb_const_get(rb_cObject, rb_intern("ScriptError"));
+    break;
+
+    case 17:
+    val = rb_const_get(rb_cObject, rb_intern("SyntaxError"));
+    break;
+    
+    case 18:
+    val = rb_const_get(rb_cObject, rb_intern("LoadError"));
+    break;
+    
+    case 19:
+    val = rb_const_get(rb_cObject, rb_intern("SystemCallError"));
+    break;
+
+    case 20:
+    val = rb_const_get(rb_cObject, rb_intern("Errno"));
+    break;
+  }
+  
+  return NEW_HANDLE(ctx, HNDL(val));
+}
+
 VALUE subtend_get_global(int which) {
   OBJECT val;
   CTX;
@@ -21,12 +113,12 @@ VALUE subtend_get_global(int which) {
     case 0:
     val = ctx->state->global->object;
     break;
-    
+        
     default:
     val = Qnil;
   }
   
-  return nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val);
+  return NEW_HANDLE(ctx, val);
 }
 
 void rb_global_object(VALUE val) {
@@ -131,6 +223,11 @@ VALUE rb_define_module(char *name) {
 ID rb_intern(char *name) {
   CTX;
   return (ID)symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
+}
+
+VALUE rb_const_get(VALUE klass, ID id) {
+  CTX;
+  return NEW_HANDLE(ctx, cpu_const_get(ctx->state, ctx->cpu, (OBJECT)id, HNDL(klass)));
 }
 
 VALUE rb_ivar_get(VALUE obj, ID sym) {
@@ -275,6 +372,20 @@ VALUE rb_hash_delete(VALUE hash, VALUE key) {
   return NEW_HANDLE(ctx, hash_delete(ctx, hsh, object_hash_int(ctx->state, HNDL(key))));
 }
 
+/* Exceptions */
+
+void rb_raise(VALUE exc, const char *fmt, ...) {
+  CTX;
+  va_list args;
+  char buf[BUFSIZ];
+  
+  va_start(args, fmt);
+  vsnprintf(buf, BUFSIZ, fmt, args);
+  va_end(args);
+  cpu_raise_exception(ctx->state, ctx->cpu,
+    cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf));
+}
+
 /*
 
 Still needed for Mongrel - Kev
@@ -283,7 +394,6 @@ rb_define_alloc_func
 rb_define_class_under
 rb_define_method
 rb_define_module
-rb_raise
 rb_str_substr
 
 */
@@ -299,7 +409,6 @@ rb_obj_classname
 
 rb_call_super
 rb_respond_to
-rb_raise
 
 rb_str_new2
 rb_str_catf
