@@ -133,7 +133,10 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     #endif
   }
   
-  size = jit_get_ip().ptr - start;
+  jit_flush_code(start, jit_get_ip().ptr);
+  return start;
+  
+/*  size = jit_get_ip().ptr - start;
   res = calloc(size, sizeof(char));
   memcpy(res, start, size);
   free(codebuf);
@@ -141,6 +144,7 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
   jit_flush_code(res, res - size);
   
   return res;
+*/
 }
 
 int ffi_type_size(int type) {
@@ -816,17 +820,19 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     #endif
   }
   
-  size = jit_get_ip().ptr - start;
+  jit_flush_code(start, jit_get_ip().ptr); 
+/*  size = jit_get_ip().ptr - start;
     
   res = calloc(size, sizeof(char));
   memcpy(res, start, size);
   free(codebuf);
   
   jit_flush_code(res, res + size);
-  
+*/  
   // obj = object_memory_new_opaque(state, BASIC_CLASS(ffi_ptr), sizeof(void*));
   NEW_STRUCT(obj, code_start, BASIC_CLASS(ffi_ptr), void*);
-  *code_start = (void*)res;
+  *code_start = (void*)start;
+/*  *code_start = (void*)res;*/
   
   //memcpy(BYTES_OF(obj), &start, sizeof(void*));
   return obj;
