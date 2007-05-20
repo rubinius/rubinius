@@ -8,6 +8,10 @@ class Array
       @tuple = Tuple.new(sz.size + 10)
       @tuple.copy_from sz.tuple, 0
       @total = sz.size
+    elsif sz.respond_to? :to_ary
+      @tuple = Tuple.new(sz.to_ary.size + 10)
+      @tuple.copy_from sz.to_ary.tuple, 0
+      @total = sz.to_ary.size
     elsif block_given?          # FIXME in class.rb: This apparently never is true!
       # fill sz times from yield
       @tuple = Tuple.new(sz + 10)
