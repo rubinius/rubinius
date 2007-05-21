@@ -11,4 +11,13 @@ context "SubtendRaiser" do
       @s.raise!
     end
   end
+  
+  specify "rb_raise terminates the function early" do
+    h = {}
+    should_raise(TypeError) do
+      @s.raise_early(h)
+    end
+
+    h[:screwed].should == false
+  end
 end
