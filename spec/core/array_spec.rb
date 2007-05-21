@@ -129,6 +129,10 @@ context "Array instance methods" do
     ([1, 2, 3, 4, 5][0...0]).should == []
   end
   
+  specify "[m..n] should provide a subarray where m, n negatives and m < n" do
+    ([ "a", "b", "c", "d", "e" ][-3..-2]).should == ["c", "d"]
+  end
+  
   specify "[m..n] should return an array containing the element at m when m == n" do
     ([1, 2, 3, 4, 5][2..2]).should == [3]
   end
@@ -161,7 +165,7 @@ context "Array instance methods" do
     ([1, 2, 3, 4, 5][-1...0]).should == []
   end
   
-  specify "[] should not return nil if any elements in the requested range exist" do
+  specify "[] should return existing requested items if range start is in the array but range end is not" do
     ([ "a", "b", "c", "d", "e" ][4..7]).should == ["e"]
   end
   
@@ -171,6 +175,10 @@ context "Array instance methods" do
   
   specify "[] should return nil if no requested index is in the array" do
     ([ "a", "b", "c", "d", "e" ][6..10]).should == nil
+  end
+  
+  specify "[] should return nil if range start is not in the array" do
+    ([ "a", "b", "c", "d", "e" ][-10..2]).should == nil
   end
   
   specify "[]= should set the value of the element at index" do

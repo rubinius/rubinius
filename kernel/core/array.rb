@@ -29,39 +29,33 @@ class Array
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will desend and spiral out to infinity!
     if idx.class == Range
-      if cnt
-        raise ArgumentError, "Second argument invalid with a range"
-      end
-      lst = idx.last
-      if lst < 0
-        lst += @total
-      end
-      lst += 1 unless idx.exclude_end?
-      idx = idx.first  
-      cnt = lst - idx
+      raise ArgumentError, "Second argument invalid with a range" if cnt
+
+      n = idx.last
+      n += @total if n < 0
+      n -= 1 if idx.exclude_end?
+
+      m = idx.first
+      m += @total if m < 0
+    else
+      m = idx
+      m += @total if m < 0
+
+      n = nil
+      n = m + cnt if cnt
     end
-    
-    if cnt
-      out = []
-      max = idx + cnt - 1
-      max = @total - 1 if max >= @total
-      idx.upto(max) do |i|
-        out << @tuple.at(i)
-      end
-      
-      return nil if idx > @total || max < 0
-      return out
+
+    return nil if m < 0 || m >= @total
+    return @tuple.at(m) unless n
+
+    n = @total - 1 if n >= @total
+
+    out = []
+    m.upto(n) do |i|
+      out << @tuple.at(i)
     end
-    
-    if idx < 0
-      idx = @total + idx
-    end
-    
-    if idx < 0 || idx >= @total
-      return nil
-    end
-    
-    @tuple.at(idx)
+
+    out
   end
 
   def at(idx)
