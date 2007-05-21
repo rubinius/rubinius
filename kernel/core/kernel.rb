@@ -39,7 +39,11 @@ module Kernel
   end
   
   def warn(warning)
-    $stderr.write warning
+    unless $VERBOSE.nil?
+      $stderr.write warning
+      $stderr.write "\n"
+    end
+    nil
   end
 
   def exit(code=0)

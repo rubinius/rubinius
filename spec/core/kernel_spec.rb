@@ -114,12 +114,14 @@ end
 
 context "Kernel.at_exit()" do
   specify "should fire after all other code" do
-    result = `rbx -e "at_exit {print 5}; print 6"`
+    vm = (ENV['SR_TARGET']||ENV['_'])
+    result = `#{vm} -e "at_exit {print 5}; print 6"`
     result.should == "65"
   end
 
   specify "should fire in reverse order of registration" do
-    result = `rbx -e "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"`
+    vm = (ENV['SR_TARGET']||ENV['_'])
+    result = `#{vm} -e "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"`
     result.should == '6754'
   end
 end
@@ -150,15 +152,39 @@ context "Kernel.fail()" do
 end
 
 context "Kernel.warn()" do
+  class FakeErr
+    def initialize; @written = ''; end
+    def written; @written; end
+    def write(warning); @written << warning; end;
+   end
+
   specify "should call #write on $stderr" do
-    class FakeErr
-      def written_to?; @written; end
-      def write(warning); @written = true; end;
-    end
     s = $stderr
     $stderr = FakeErr.new
     warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-    $stderr.written_to?.should == true
+    $stderr.written.should == "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n"
     $stderr = s
+  end
+
+  specify "should write the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
+    s = $stderr
+    rs = $/
+    $/ = 'rs'
+    $stderr = FakeErr.new
+    warn("")
+    $stderr.written.should == "\n"
+    $stderr = s
+    $/ = rs
+  end
+
+  specify "should not call #write on $stderr if $VERBOSE is nil" do
+    v = $VERBOSE
+    $VERBOSE = nil
+    s = $stderr
+    $stderr = FakeErr.new
+    warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
+    $stderr.written.should == ""
+    $stderr = s
+    $VERBOSE = v
   end
 end
