@@ -5,29 +5,32 @@ task :default => :spec
 def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
+
 def update_archive(files, archive, dir=nil)
-  archive = File.expand_path archive
+  archive = File.expand_path(ENV['OUTPUT'] || archive)
   
   changed = []
   files.each do |file|
     cmp = "#{file}c"
-    unless newer?(file, cmp)
+    if !newer?(file, cmp)
       changed << cmp
       system "shotgun/rubinius compile #{file}"
+    elsif !File.exists?(archive)
+      changed << cmp
     end
     file << "c"
   end
   
   curdir = Dir.getwd
   if dir
-    Dir.chdir(dir)
-    changed.map! { |f| f.gsub!(%r!^#{dir}/!, "") }
+    Dir.chdir(dir)    
+    changed.map! { |f| f.gsub(%r!^#{dir}/!, "") }
   end
   
   File.open(".load_order.txt","w") do |f|
     f.puts files.join("\n")
   end
-
+  
   if File.exists? archive
     if changed.empty?
       puts "No files to update."
@@ -35,7 +38,7 @@ def update_archive(files, archive, dir=nil)
       system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
     end
   else
-    system "zip #{archive} .load_order.txt #{files.join(' ')}"
+    system "zip #{archive} .load_order.txt #{changed.join(' ')}"
   end
   
   Dir.chdir(curdir) if dir
@@ -140,8 +143,8 @@ namespace :build do
     end
 
     paths += %w!native/bytecode/rubinius.rb native/bytecode/system_hints.rb!
-    
-    update_archive paths, "runtime/compiler.rba", "native"
+   
+    update_archive paths, 'runtime/compiler.rba', "native"
   end
 end
 
