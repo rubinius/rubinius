@@ -113,12 +113,37 @@ context "Array instance methods" do
     ([ "a", "b", "c", "d", "e" ][-2]).should == "d"
   end
   
+  specify "[] should provide a subarray from the end containing length elements" do
+    [ "a", "b", "c", "d", "e" ][-2, 2].should == ["d", "e"]
+  end
+  
   specify "[] should provide a subarray from start containing length elements" do
     ([ "a", "b", "c", "d", "e" ][2, 3]).should == ["c", "d", "e"]
   end
   
   specify "[] should provide a subarray specified by range" do
     ([ "a", "b", "c", "d", "e" ][1..3]).should == ["b", "c", "d"]
+  end
+  
+  specify "[] should return existing requested items if range start is in the array but range end is not" do
+    ([ "a", "b", "c", "d", "e" ][4..7]).should == ["e"]
+  end
+  
+  specify "[] should provide nil for a requested index not in the array" do
+    ([ "a", "b", "c", "d", "e" ][5]).should == nil
+  end
+  
+  specify "[] should return [] if the index is valid but count is zero" do
+    [ "a", "b", "c", "d", "e" ][0, 0].should == []
+    [ "a", "b", "c", "d", "e" ][2, 0].should == []
+  end
+  
+  specify "[] should return nil if no requested index is in the array" do
+    ([ "a", "b", "c", "d", "e" ][6..10]).should == nil
+  end
+  
+  specify "[] should return nil if range start is not in the array" do
+    ([ "a", "b", "c", "d", "e" ][-10..2]).should == nil
   end
   
   specify "[m...n] should return an empty array when m == n" do
@@ -163,22 +188,6 @@ context "Array instance methods" do
   
   specify "[-1...0] should return an empty array" do
     ([1, 2, 3, 4, 5][-1...0]).should == []
-  end
-  
-  specify "[] should return existing requested items if range start is in the array but range end is not" do
-    ([ "a", "b", "c", "d", "e" ][4..7]).should == ["e"]
-  end
-  
-  specify "[] should provide nil for a requested index not in the array" do
-    ([ "a", "b", "c", "d", "e" ][5]).should == nil
-  end
-  
-  specify "[] should return nil if no requested index is in the array" do
-    ([ "a", "b", "c", "d", "e" ][6..10]).should == nil
-  end
-  
-  specify "[] should return nil if range start is not in the array" do
-    ([ "a", "b", "c", "d", "e" ][-10..2]).should == nil
   end
   
   specify "[]= should set the value of the element at index" do
@@ -409,6 +418,14 @@ context "Array instance methods" do
     [1, 2, 3, 4, 5].first(1).should == [1]
   end
   
+  specify "first should raise ArgumentError when count is negative" do
+    should_raise(ArgumentError) { [1, 2].first(-1) }
+  end
+  
+  specify "first should return the entire array when count > length " do
+    [1, 2, 3, 4, 5, 9].first(10).should == [1, 2, 3, 4, 5, 9]
+  end
+  
   specify "flatten should return a one-dimensional flattening recursively" do
     [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]]].flatten.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
   end
@@ -513,29 +530,30 @@ context "Array instance methods" do
     $, = ''
   end
   
-  specify "last should return the last element" do
+  specify "last returns the last element" do
     [1, 1, 1, 1, 2].last.should == 2
   end
   
-  specify "last should return nil if self is empty" do
+  specify "last returns nil if self is empty" do
     [].last.should == nil
   end
   
-  specify "last with count should return the last count elements" do
+  specify "last returns the last count elements" do
     [1, 2, 3, 4, 5, 9].last(3).should == [4, 5, 9]
   end
   
-  specify "last with count == 0 should return an empty array" do
+  specify "last returns an empty array when count == 0" do
     [1, 2, 3, 4, 5].last(0).should == []
   end
-
-#  Redundant --rue
-#  specify "last with count == 1 should return an array containing the last element" do
-#    example do
-#      [1, 2, 3, 4, 5].last(1)
-#    end.should == [5]
-#  end
   
+  specify "last raises ArgumentError when count is negative" do
+    should_raise(ArgumentError) { [1, 2].last(-1) }
+  end
+  
+  specify "last returns the entire array when count > length" do
+    [1, 2, 3, 4, 5, 9].last(10).should == [1, 2, 3, 4, 5, 9]
+  end
+
   specify "length should return the number of elements" do
     [1, 2, 3].length.should == 3
   end

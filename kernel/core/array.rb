@@ -28,6 +28,7 @@ class Array
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will desend and spiral out to infinity!
+    return [] if cnt == 0
     if idx.class == Range
       raise ArgumentError, "Second argument invalid with a range" if cnt
 
