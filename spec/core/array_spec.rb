@@ -121,6 +121,10 @@ context "Array instance methods" do
     ([ "a", "b", "c", "d", "e" ][2, 3]).should == ["c", "d", "e"]
   end
   
+  specify "[] should provide a subarray from start containing length elements (from 0)" do
+    ([ "a", "b", "c", "d", "e" ][0, 3]).should == ["a", "b", "c"]
+  end
+  
   specify "[] should provide a subarray specified by range" do
     ([ "a", "b", "c", "d", "e" ][1..3]).should == ["b", "c", "d"]
   end
