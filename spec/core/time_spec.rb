@@ -12,11 +12,9 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # to_f, to_i, to_s, tv_sec, tv_usec, usec, utc, utc?, utc_offset,
 # wday, xmlschema, yday, year, zone
 
-warn 'Time specs do not work'
-
 context "Time class method" do
   specify "at should convert to time object" do
-    Time.at( 1168475924 ).inspect.should == 'Thu Jan 11 00:38:44 +0000 2007'
+    Time.at( 1168475924 ).inspect.should == `date -j -f "%s" 1168475924 "+%a %b %d %H:%M:%S %z %Y"`.chomp
   end
   
   specify "at should create a new time object with the value given by time" do
@@ -24,19 +22,19 @@ context "Time class method" do
   end
   
   specify "gm should create a time based on given values, interpreted as UTC (GMT)" do
-    Time.gm(2000,"jan",1,20,15,1).inspect.should == 'Sat Jan 01 20:15:01 UTC 2000'
+    Time.gm(2000,"jan",1,20,15,1).inspect.should == `date -u -j -f "%Y %b %d %H:%M:%S" "2000 jan 1 20:15:1" "+%a %b %d %H:%M:%S %Z %Y"`.chomp
   end
   
   specify "utc is a synonym for Time.gm" do
-    Time.utc(2000,"jan",1,20,15,1).inspect.should == 'Sat Jan 01 20:15:01 UTC 2000'
+    Time.utc(2000,"jan",1,20,15,1).inspect.should == `date -u -j -f "%Y %b %d %H:%M:%S" "2000 jan 1 20:15:1" "+%a %b %d %H:%M:%S %Z %Y"`.chomp
   end
   
   specify "local should create a time based on given values, interpreted in the local time zone" do
-    Time.local(2000,"jan",1,20,15,1).inspect.should == 'Sat Jan 01 20:15:01 -0600 2000'
+    Time.local(2000,"jan",1,20,15,1).inspect.should == `date -j -f "%Y %b %d %H:%M:%S" "2000 jan 1 20:15:1" "+%a %b %d %H:%M:%S %z %Y"`.chomp
   end
   
   specify "mktime is a synonym for Time.local" do
-    Time.mktime(2000,"jan",1,20,15,1).inspect.should == 'Sat Jan 01 20:15:01 -0600 2000'
+    Time.mktime(2000,"jan",1,20,15,1).inspect.should == `date -j -f "%Y %b %d %H:%M:%S" "2000 jan 1 20:15:1" "+%a %b %d %H:%M:%S %z %Y"`.chomp
   end
   
 end
@@ -63,15 +61,15 @@ context "Time instance method" do
   end
   
   specify "hour should return the hour of the day (0..23) for time" do
-    Time.at(0).hour.should == 18
+    Time.at(0).hour.should == Integer(`date -j -f %s 0 "+%H"`.chomp)
   end
   
   specify "min should return the minute of the hour (0..59) for time" do
-    Time.at(0).min.should == 0
+    Time.at(0).min.should == Integer(`date -j -f %s 0 "+%M"`.chomp)
   end
   
   specify "day should return the day of the month (1..n) for time" do
-    Time.at(0).day.should == 31
+    Time.at(0).day.should == Integer(`date -j -f %s 0 "+%d"`.chomp)
   end
   
   specify "mday is a synonym for Time#day" do
@@ -91,7 +89,7 @@ context "Time instance method" do
   end
   
   specify "year should return the name year for time" do
-    Time.at(0).year.should == 1969
+    Time.at(0).year.should == Integer(`date -j -f %s 0 "+%Y"`.chomp)
   end
   
   specify "strftime should format time according to the directives in the given format string" do
@@ -99,7 +97,7 @@ context "Time instance method" do
   end
   
   specify "wday should return an integer representing the day of the week, 0..6, with Sunday being 0" do
-    Time.at(0).wday.should == 3
+    Time.at(0).wday.should == Integer(`date -j -f %s 0 "+%w"`.chomp)
   end
   
   specify "yday should return an integer representing the day of the year, 1..366" do
@@ -107,7 +105,7 @@ context "Time instance method" do
   end
   
   specify "zone should return the time zone used for time" do
-    Time.now.zone.should == "CST"
+    Time.now.zone.should == `date "+%Z"`.chomp
   end
   
   specify "mon should return the month of the year" do
@@ -127,8 +125,11 @@ context "Time instance method" do
   end
   
   specify "gmt_offset should return the offset in seconds between the timezone of time and UTC" do
-    Time.new.gmt_offset.should == -21600
+    offset = `date "+%z"`.chomp
+    md = /([+-]{0,1})0+([0-9]+)/.match offset
+    hours = md[2].to_i
+    hours *= -1 if md[1] == '-'
+    Time.new.gmt_offset.should == hours/100 * 3600
   end
 end
-
 

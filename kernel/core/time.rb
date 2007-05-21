@@ -49,7 +49,7 @@ class Time
   end
   
   def inspect
-    strftime("%a %b %d %H:%M:%S %Z %Y")
+    strftime("%a %b %d %H:%M:%S %z %Y")
   end
   
   def seconds
