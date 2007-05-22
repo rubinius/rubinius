@@ -129,6 +129,9 @@ class RsNormalizer < SimpleSexpProcessor
     [:iter, meth, oargs, process(body)]
   end
   
+  # For some reason this can be asked to handle :newline nodes. 
+  # TODO - Sanity check
+  #[:call, [:const, :Hash], :[], [:newline, 1, "(eval)", [:splat, [:lvar, :x, 0]]]]
   def process_call(x)
     if x.size == 2
       recv = x.shift
@@ -141,6 +144,11 @@ class RsNormalizer < SimpleSexpProcessor
       recv = x.shift
       meth = x.shift
       args = x.shift
+      if args.first == :newline
+        STDERR.puts "Unhandled newline node: #{args.inspect}" unless args.size == 4
+        args = args[3]
+      end
+
       if args.first == :argscat
         out = process(args)
       elsif args.first == :splat

@@ -172,6 +172,11 @@ describe Bytecode::Compiler do
       "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nget_args\npush nil\n" \
       "swap\npush self\nswap\nset_args\nsend b +\nret\n"
   end
+
+  it "should compile call with argscat and newline" do
+    compile [:call, [:const, :Hash], :[], [:newline, 1, "(eval)", [:argscat, [:array, [:lit, 1], [:lit, 2]]]]]
+    @method.assembly.should == "cast_array_for_args 2\npush_array\npush 2\npush 1\nget_args\npush nil\nswap\npush Hash\nswap\nset_args\nsend [] +\nret\n"
+  end
   
   it "should compile yield" do
     compile [:yield, [:array, [:lit, 1], [:lit, 2]]]
