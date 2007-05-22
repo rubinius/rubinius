@@ -32,6 +32,24 @@ context "Object instance method" do
     end
     Foo.new.send(:bar).should == 'done'
   end
+
+  specify "send should invoke a class method if called on a class" do
+    class Foo
+      def self.bar
+        'done'
+      end
+    end
+    Foo.send(:bar).should == 'done'
+  end
+
+  specify "send should raise NoMethodError if the corresponding method can't be found" do
+    class Foo
+      def bar
+        'done'
+      end
+    end
+    should_raise(NoMethodError) { Foo.new.send(:baz) }
+  end
   
   specify "freeze should prevent self from being further modified" do
     module Mod; end
@@ -167,6 +185,38 @@ context "Object instance method" do
   specify "instance_variable_set should raise NameError exception if the argument is not of form '@x'" do
     class NoDog; end
     should_raise(NameError) { NoDog.new.instance_variable_set(:c, "cat") }
+  end
+
+  specify "method should return a method object for a valid method" do
+    class Foo; def bar; 'done'; end; end
+    Foo.new.method(:bar).class.should == Method
+  end
+
+  specify "method should return a method object for a valid singleton method" do
+    class Foo; def self.bar; 'done'; end; end
+    Foo.method(:bar).class.should == Method
+  end
+ 
+  specify "method should raise a NameError for an invalid method name" do
+    class Foo; def bar; 'done'; end; end
+    should_raise(NameError) { Foo.new.method(:baz) }
+  end
+
+  specify "method should raise a NameError for an invalid singleton method name" do
+    class Foo; def self.bar; 'done'; end; end
+    should_raise(NameError) { Foo.method(:baz) }
+  end
+
+  specify "respond_to? should indicate if an object responds to a particular message" do
+    class Foo; def bar; 'done'; end; end
+    Foo.new.respond_to?(:bar).should == true
+    Foo.new.respond_to?(:baz).should == false
+  end
+
+  specify "respond_to? should indicate if a singleton object responds to a particular message" do
+    class Foo; def self.bar; 'done'; end; end
+    Foo.respond_to?(:bar).should == true
+    Foo.respond_to?(:baz).should == false
   end
 end
 
