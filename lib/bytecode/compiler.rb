@@ -1479,6 +1479,13 @@ module Bytecode
           end
         end
         
+        ba_name = nil
+        if args.last and args.last.first == :block_arg
+          ba = args.last
+          ba_name = ba[1]
+          ba_idx = state.local(ba_name)
+        end
+        
         meth = nil
         @compiler.as_method_body(name) do
           meth = @compiler.compile_as_method body, name, state
@@ -1496,14 +1503,7 @@ module Bytecode
         end
         
         max = min = args[1].size
-        
-        ba_name = nil
-        if args.last and args.last.first == :block_arg
-          ba = args.last
-          ba_name = ba[1]
-          ba_idx = state.local(ba_name)
-        end
-        
+                
         if defaults
           idx = min
           defaults.each do |var|
