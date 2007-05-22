@@ -13,7 +13,9 @@ context "Shotgun" do
   end
   
   specify "should convert a regexp to an sexp" do
-    "/blah/".to_sexp.should == [:regex, "blah"]
+    "/blah/".to_sexp.should == [:regex, "blah", 0]
+    "/blah/i".to_sexp.should == [:regex, "blah", 1]
+    "/blah/u".to_sexp.should == [:regex, "blah", 64]
   end
   
   specify "should convert a string to an sexp" do

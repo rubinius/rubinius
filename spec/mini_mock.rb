@@ -85,7 +85,7 @@ module Mock
               
         when :single_overridden
           meta = class << obj; self; end
-          meta.send :alias_method, sym.to_sym, hidden_name.to_sym
+          meta.class_eval "alias #{sym} #{hidden_name}"
       end
     }
   end  
