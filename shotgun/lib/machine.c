@@ -401,8 +401,8 @@ machine machine_new() {
   return m;
 }
 
-void machine_handle_fire() {
-  g_access_violation = 1;
+void machine_handle_fire(int kind) {
+  g_access_violation = kind;
   setcontext(&g_firesuit);
 }
 

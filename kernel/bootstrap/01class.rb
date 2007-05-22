@@ -1,5 +1,4 @@
 class Class
-  def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
   def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end
   def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
   ivar_as_index :superclass => 6, :instance_fields => 7, :instance_flags => 8
@@ -27,4 +26,10 @@ class Class
   def superclass=(other)
     @superclass = other
   end
+  
+  
+  def direct_superclass
+    @superclass
+  end
+  
 end

@@ -24,7 +24,7 @@ class ShotgunInstructions
   
   def generate_declarations(fd)
     fd.puts "int _int, j, k;"
-    fd.puts "OBJECT _lit, t1, t2, t3;"
+    fd.puts "OBJECT _lit, t1, t2, t3, t4;"
   end
   
   def generate_names
@@ -101,6 +101,21 @@ class ShotgunInstructions
   def push_local
     "next_int; stack_push(tuple_at(state, c->locals, _int));"
   end
+  
+  def push_local_depth
+    <<-CODE
+    next_int;
+    k = _int;
+    next_int;
+    t1 = c->active_context;
+    for(j = 0; j < k; j++) {
+      t2 = blokctx_get_env(t1);
+      t1 = blokenv_get_home_block(t2);
+    }
+    stack_push(tuple_at(state, blokctx_get_locals(t1), _int));
+    CODE
+  end
+  
   
   def push_exception
     "stack_push(c->exception);"
@@ -261,6 +276,24 @@ class ShotgunInstructions
     // printf("Set local %d to %s\\n", _int, _inspect(t1));
     tuple_put(state, c->locals, _int, t1);
     stack_push(t1);
+    CODE
+  end
+  
+  def set_local_depth
+    <<-CODE
+    next_int;
+    k = _int;
+    next_int;
+    t3 = stack_pop();
+    t1 = c->active_context;
+        
+    for(j = 0; j < k; j++) {
+      t2 = blokctx_get_env(t1);
+      t1 = blokenv_get_home_block(t2);
+    }
+    tuple_put(state, blokctx_get_locals(t1), _int, t3);
+    stack_push(t3);
+    
     CODE
   end
   
@@ -604,6 +637,7 @@ class ShotgunInstructions
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
+    // printf("opeqal %s == %s\\n", _inspect(t1), _inspect(t2));
     /* If both are fixnums, or one is a symbol, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
       stack_push((t1 == t2) ? Qtrue : Qfalse);
@@ -795,6 +829,37 @@ class ShotgunInstructions
     c->cache_index = _int;
     CODE
   end
+  
+  def create_block
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    next_int;
+    
+    t4 = c->active_context;
+
+    t3 =   Qnil;
+    if(blokctx_s_block_context_p(state, t4)) {
+      t3 = blokenv_get_home(blokctx_get_env(t4));
+    } else {
+      t3 = t4;
+    }
+    
+    // GUARD(t3 == Qnil) would like to use this...
+    if(t3 == Qnil) {
+      // can this be put somewhere else?
+      printf("Create block failed, %s!!\\n", _inspect(t4));
+      abort();
+    } else {
+      cpu_flush_sp(c);
+      cpu_flush_ip(c);
+      j = c->ip + 5;
+      t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, _int);
+      stack_push(t2);
+    }
+    CODE
+  end
+  
   
 end
 

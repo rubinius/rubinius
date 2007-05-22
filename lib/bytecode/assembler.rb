@@ -274,6 +274,11 @@ module Bytecode
         name = m[1].to_sym
         cnt = m[2].to_i
         return cnt
+      elsif m = /(^[a-z_][A-Za-z0-9_]*):(\d+):(\d+)$/.match(what)
+        name = m[1].to_sym
+        dep = m[2].to_i
+        cnt = m[3].to_i
+        return [dep, cnt]
       end
       return nil
     end
@@ -355,8 +360,13 @@ module Bytecode
           @current_op += 1
         else
           if cnt = parse_lvar(what)
-            @output << [:push_local, cnt]
-            @current_op += 5
+            if Array === cnt
+              @output << [:push_local_depth, cnt[0], cnt[1]]
+              @current_op += 9
+            else
+              @output << [:push_local, cnt]
+              @current_op += 5
+            end
           elsif info = parse_ivar(what)
             @output << [:push_local, info.first]
             @output << [:push_ivar, info.last]
@@ -376,8 +386,13 @@ module Bytecode
     
     def parse_set(what)
       if cnt = parse_lvar(what)
-        @output << [:set_local, cnt]
-        @current_op += 5
+        if Array === cnt
+          @output << [:set_local_depth, cnt[0], cnt[1]]
+          @current_op += 9
+        else
+          @output << [:set_local, cnt]
+          @current_op += 5
+        end
       elsif info = parse_ivar(what)
         @output << [:push_local, info.first]
         @output << [:set_ivar, info.last]

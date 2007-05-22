@@ -831,7 +831,7 @@ int cpu_dispatch(STATE, cpu c) {
 
   op = *c->ip_ptr++;
   // printf("IP: %d, SP: %d, OP: %s (%d)\n", c->ip, c->sp, cpu_op_to_name(state, op), op);
-  #include "instructions.gen"
+  // #include "instructions.gen"
   return TRUE;
 }
 
@@ -847,8 +847,15 @@ void cpu_run(STATE, cpu c) {
   
   /* Ok, we jumped back here because something went south. */
   if(g_access_violation) {
-    cpu_raise_exception(state, c, 
-      cpu_new_exception(state, c, state->global->exc_arg, "Accessed outside bounds of object"));
+    if(g_access_violation == 1) {
+      cpu_raise_exception(state, c, 
+        cpu_new_exception(state, c, state->global->exc_arg, 
+            "Accessed outside bounds of object"));
+    } else if(g_access_violation == 2) {
+      cpu_raise_exception(state, c, 
+        cpu_new_exception(state, c, state->global->exc_arg, 
+            "Attempted to access field of non-reference (null pointer)")); 
+    }
   }
   
   while(c->active_context != Qnil) {

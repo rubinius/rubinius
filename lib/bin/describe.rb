@@ -19,3 +19,17 @@ nx = compiler.fully_normalize(sexp, state)
 puts "\nNormalized Sexp:\n  #{nx.pretty_inspect}"
 desc = compiler.compile_as_method(nx, :__eval_script__, state)
 puts "\nAssembly:\n#{desc.assembly}"
+
+puts "Sub methods:"
+
+def show_method(parent)
+  parent.literals.each do |lit|
+    if Bytecode::MethodDescription === lit
+      puts "\n[[ #{parent.name} >> #{lit.name} ]]"
+      puts lit.assembly
+      show_method(lit)
+    end
+  end
+end
+
+show_method(desc)

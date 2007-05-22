@@ -655,7 +655,12 @@ module Bytecode
           val = val[1] if val.first == :svalue # Adjust svalues away
           process val
         end
-        add "set #{name}:#{idx}"
+        
+        if Array === idx
+          add "set #{name}:#{idx[0]}:#{idx[1]}"
+        else
+          add "set #{name}:#{idx}"
+        end
       end
 
       def process_op_asgn_or(x)
@@ -754,10 +759,16 @@ module Bytecode
       def process_lvar(x)
         name = x.shift
         idx = x.shift
+        
         if idx == 0
           raise "Unprocessed lvar '#{name}' detected!"
         end
-        add "push #{name}:#{idx}"
+        
+        if Array === idx
+          add "push #{name}:#{idx[0]}:#{idx[1]}"
+        else
+          add "push #{name}:#{idx}"
+        end
       end
       
       def process_array(x)
@@ -1739,9 +1750,10 @@ module Bytecode
         cl = x.shift
         args = x.shift
         body = x.shift
+        count = x.shift
         kind = cl.shift
         args = [:masgn, [:array, args]] unless !args or args[0] == :masgn # temporary fix
-        iter = [:block_iter, args, body]
+        iter = [:block_iter, args, body, count]
         if kind == :call
           process_call cl, iter
         elsif kind == :super
@@ -1752,12 +1764,16 @@ module Bytecode
       end
       
       def process_block_iter(x)
+        args = x.shift
+        body = x.shift
+        count = x.shift
         one = unique_lbl()
         two = unique_lbl()
         add "push &#{@post_send}"
         add "push &#{one}"
-        add "push_context"
-        add "send_primitive create_block 2"
+        add "create_block #{count}"
+        # add "push_context"
+        # add "send_primitive create_block 2"
         brk = @break
         @break = :block
         goto two
@@ -1782,13 +1798,13 @@ module Bytecode
           add "fetch_field"
           add "#{noarrayexpand}:"
         end
-        process x.shift
+        process args
         red = @redo
         @redo = unique_lbl()
         set_label @redo
         ret = @retry_label
         @retry = :block
-        process x.shift
+        process body
         add "#{one}: soft_return"
         set_label two
         @redo = red

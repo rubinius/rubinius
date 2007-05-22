@@ -89,7 +89,10 @@ class InstructionEncoder
     :meta_send_op_lt,
     :meta_send_op_gt,
     :meta_send_op_tequal,
-    :meta_send_op_nequal
+    :meta_send_op_nequal,
+    :push_local_depth,
+    :set_local_depth,
+    :create_block
   ]
   
   IntArg = [
@@ -129,14 +132,19 @@ class InstructionEncoder
     :meta_send_stack_1,
     :meta_send_stack_2,
     :meta_send_stack_3,
-    :meta_send_stack_4
+    :meta_send_stack_4,
+    :push_local_depth,
+    :set_local_depth,
+    :create_block
   ]
   
   TwoInt = [
     :send_stack, :send_stack_with_block,
     :check_argcount,
     :send_super_stack_with_block,
-    :send_primitive
+    :send_primitive,
+    :push_local_depth,
+    :set_local_depth
   ]
   
   def encode_stream(stream)

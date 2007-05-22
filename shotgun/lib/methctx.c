@@ -63,7 +63,7 @@ void methctx_describe(STATE, OBJECT ctx, int count) {
   }
 }
 
-OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT vlst) {
+OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, int locals) {
   OBJECT obj;
   
   obj = blokenv_allocate(state);
@@ -72,7 +72,8 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, int start, OBJECT lst, OBJECT 
   // blokenv_set_initial_ip(obj, I2N(FIXNUM_TO_INT(methctx_get_ip(ctx)) + 5 ));
   blokenv_set_last_ip(obj, lst);
   blokenv_set_post_send(obj, vlst);
-  
+  blokenv_set_home_block(obj, ctx_block);
+  blokenv_set_local_count(obj, I2N(locals));
   return obj;
 }
 
@@ -86,6 +87,7 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   blokctx_set_sender(obj, sender);  
   blokctx_set_sp(obj, I2N(sp));
   blokctx_set_env(obj, self);
+  blokctx_set_locals(obj, tuple_new(state, blokenv_get_local_count(self)));
   return obj;
 }
 

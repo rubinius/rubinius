@@ -90,7 +90,7 @@ class RsLocalScoper < SimpleSexpProcessor
     a2 = nil
     b2 = nil
     
-    @state.new_scope do
+    count = @state.new_scope do
       @masgn.push true
       # start_args
       a2 = process(a)
@@ -99,7 +99,7 @@ class RsLocalScoper < SimpleSexpProcessor
       # clear_args
     end
         
-    [:iter, process(f), a2, b2]
+    [:iter, process(f), a2, b2, count]
   end
   
   def p_or_n(val)

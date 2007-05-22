@@ -246,10 +246,11 @@ class ShotgunPrimitives
     POP(t2, FIXNUM);
 
     t3 =   Qnil;
-    if( !RISA(self, methctx) && RISA(self, blokctx) )
+    if( !RISA(self, methctx) && RISA(self, blokctx) ) {
       t3 = blokenv_get_home(blokctx_get_env(self));
-    else
+    } else {
       t3 = self;
+    }
     
     // GUARD(t3 == Qnil) would like to use this...
     if(t3 == Qnil) {
@@ -259,9 +260,8 @@ class ShotgunPrimitives
     } else {
       cpu_flush_sp(c);
       cpu_flush_ip(c);
-      methctx_set_ip(self, I2N(c->ip));
-      j = FIXNUM_TO_INT(methctx_get_ip(self)) + 5;
-      t2 = blokenv_s_under_context(state, t3, j, t1, t2);
+      j = c->ip + 5;
+      t2 = blokenv_s_under_context(state, t3, c->block, j, t1, t2, 0);
       stack_push(t2);
     }
     CODE

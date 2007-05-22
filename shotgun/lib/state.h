@@ -200,7 +200,7 @@ extern ucontext_t g_firesuit;
 extern int g_use_firesuit;
 extern int g_access_violation;
 
-void machine_handle_fire();
+void machine_handle_fire(int);
 
 // #define ACCESS_MACROS 1
 
@@ -223,12 +223,19 @@ void machine_handle_fire();
 static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
 #if DISABLE_CHECKS
+  if(!REFERENCE_P(in)) {
+    printf("Attempted to access field of non reference.\n");
+    if(g_use_firesuit) {
+      machine_handle_fire(2);
+    }
+  }
+  
   if(fel >= HEADER(in)->fields) {
     printf("Attempted to access field %d in an object with %lu fields.\n", 
       fel, (unsigned long)NUM_FIELDS(in));
       
     if(g_use_firesuit) {
-      machine_handle_fire();
+      machine_handle_fire(1);
     }
     
     assert(0);
@@ -248,7 +255,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
       fel, (unsigned long)NUM_FIELDS(obj), _inspect(obj));
     
     if(g_use_firesuit) {
-      machine_handle_fire();
+      machine_handle_fire(1);
     }
     
     assert(0);

@@ -1,22 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-
-require 'bytecode/compiler'
-require 'bytecode/rubinius'
-
-class CompilerHarness
-
-  def initialize
-    @compiler = Bytecode::Compiler.new
-  end
-  
-  def encode(str)
-    state = RsLocalState.new
-    sexp = str.to_sexp
-    desc = @compiler.compile_as_method(sexp, :__spec_script__, state)
-    return desc.assembly
-  end
-
-end
+require File.dirname(__FILE__) + '/compiler_helper'
 
 c = CompilerHarness.new
 

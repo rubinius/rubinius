@@ -129,8 +129,4 @@ class Class
     self.instance_fields = i
   end
   
-  def direct_superclass
-    @superclass
-  end
-  
 end

@@ -54,7 +54,7 @@ class IncludedModule < Module
   end
 
   def attach_to(cls)
-    @superclass = cls.superclass
+    @superclass = cls.direct_superclass
     cls.superclass = self
   end
 

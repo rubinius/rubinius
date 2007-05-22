@@ -13,9 +13,16 @@ OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int ar
 #define CTX rni_context* ctx = subtend_retrieve_context()
 #define NEW_HANDLE(ctx, val) nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val)
 
+ID rb_intern(char *name) {
+  CTX;
+  return (ID)symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
+}
+
 VALUE subtend_get_exception(int which) {
   VALUE val;
   CTX;
+
+  val = Qnil;
   
   switch(which) {
     case 0:
@@ -220,11 +227,6 @@ VALUE rb_define_module(char *name) {
   return NEW_HANDLE(ctx, mod);
 }
 
-ID rb_intern(char *name) {
-  CTX;
-  return (ID)symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
-}
-
 VALUE rb_const_get(VALUE klass, ID id) {
   CTX;
   return NEW_HANDLE(ctx, cpu_const_get(ctx->state, ctx->cpu, (OBJECT)id, HNDL(klass)));
@@ -369,7 +371,7 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val) {
 VALUE rb_hash_delete(VALUE hash, VALUE key) {
   CTX;
   OBJECT hsh = HNDL(hash);
-  return NEW_HANDLE(ctx, hash_delete(ctx, hsh, object_hash_int(ctx->state, HNDL(key))));
+  return NEW_HANDLE(ctx, hash_delete(ctx->state, hsh, object_hash_int(ctx->state, HNDL(key))));
 }
 
 /* Exceptions */
@@ -391,9 +393,6 @@ void rb_raise(VALUE exc, const char *fmt, ...) {
 Still needed for Mongrel - Kev
 
 rb_define_alloc_func
-rb_define_class_under
-rb_define_method
-rb_define_module
 rb_str_substr
 
 */
