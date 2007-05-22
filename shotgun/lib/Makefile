@@ -101,7 +101,7 @@ instruction_names.gen instructions.gen: instructions.rb
 system_primitives.gen: primitives.rb
 	$(RUBY) primitives.rb > system_primitives.gen
 
-auto.h auto.c: genheader.rb
+auto.h auto.c: genheader.rb ../../native/bytecode/system_hints.rb
 	$(RUBY) genheader.rb > auto.c
 	echo "CC auto.o"
 	$(COMP) $(CFLAGS) -c auto.c
