@@ -22,6 +22,15 @@ class Class
     @variables ||= Hash.new
     @variables[name.to_sym]
   end
+
+  def class_variables(symbols = false)
+    @variables ||= Hash.new
+    if symbols
+      @variables.keys
+    else
+      @variables.keys.map {|k| k.to_s}
+    end
+  end
   
   def superclass=(other)
     @superclass = other

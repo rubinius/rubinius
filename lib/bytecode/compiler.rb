@@ -1087,6 +1087,11 @@ module Bytecode
           return
         end
 
+        if node == :vcall # normalize vcalls into calls, a la process_vcall
+          node = :call
+          expr = [[:self], expr.shift, [:array]]
+        end
+
         case node
           when :call
             node_type = expr[0].first
@@ -1114,17 +1119,22 @@ module Bytecode
               set_label(lbl)
             end
           when :cvar
-            STDERR.puts "WARNING: 'define?' does not yet handle class variables."
-            add "push false"
+            cvar = expr.shift
+            add "push :#{cvar}"
+            add "push true" # class vars as symbols, not strings
+            add "push self"
+            add "send class_variables 1"
+            add "send include? 1"
           when :gvar
             add "push :#{expr.shift}"
             add "push Globals"
             add "send key? 1"
           when :ivar
-            lit = @method.add_literal(expr.shift.to_s)
-            add "push_literal #{lit}"
+            ivar = expr.shift
+            add "push :#{ivar}"
+            add "push true" # instance vars as symbols, not strings
             add "push self"
-            add "send instance_variables"
+            add "send instance_variables 1"
             add "send include? 1"
           when :yield
             add "push true" # conform to "all primitives have a self" rule

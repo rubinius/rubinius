@@ -17,8 +17,8 @@ context "A ruby environment" do
     end
   end
   
-  specify "should return true when defined?(puts) is sent" do
-    !!defined?(puts).should == true
+  specify "should return true when defined?(exit) is sent" do
+    !!defined?(exit).should == true
   end
 
   specify "should return true when defined?(Kernel.puts) is sent (attribute)" do
@@ -59,7 +59,7 @@ context "A ruby environment" do
 
   specify "should return true when defined? is called on a block var" do
     block = Proc.new { |x| defined?(x) }
-    !!block.call(1).should == true
+    !!(block.call(1)).should == true
   end
 
   specify "should return true when defined?('foo = bar') is sent" do
@@ -75,11 +75,11 @@ context "A ruby environment" do
   end
 
   specify "should return true when defined?(true) is sent" do
-    defined?(true).should == "true"
+    !!defined?(true).should == true
   end
 
   specify "should return true when defined?(false) is sent" do
-    defined?(false).should == "false"
+    !!defined?(false).should == true
   end
 
   specify "should return false when defined?(x) is sent" do
@@ -87,11 +87,11 @@ context "A ruby environment" do
   end
 
   specify "should return true when Bar#no_args uses defined?" do
-    !!Bar.new.no_args.should == true
+    (!!Bar.new.no_args).should == true
   end
 
   specify "should return true when Bar#args uses defined?" do
-    !!Bar.new.args.should == true
+    (!!Bar.new.args).should == true
   end
 end
 

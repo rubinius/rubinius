@@ -60,9 +60,10 @@ class Object
     end
   end
   
-  def instance_variables
+  def instance_variables(symbols = false)
     vars = get_instance_variables
     return [] if vars.nil?
+    return vars.keys if symbols
     return vars.keys.collect { |v| v.to_s }
   end
   
@@ -88,6 +89,10 @@ class Object
 
   def class_variable_get(sym)
     self.class.class_variable_get sym
+  end
+
+  def class_variables(symbols = false)
+    self.class.class_variables(symbols)
   end
 
   def instance_variable_validate(arg)
