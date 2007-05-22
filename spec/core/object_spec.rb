@@ -50,6 +50,15 @@ context "Object instance method" do
     end
     should_raise(NoMethodError) { Foo.new.send(:baz) }
   end
+
+  specify "send should raise NoMethodError if the corresponding singleton method can't be found" do
+    class Foo
+      def self.bar
+        'done'
+      end
+    end
+    should_raise(NoMethodError) { Foo.send(:baz) }
+  end
   
   specify "freeze should prevent self from being further modified" do
     module Mod; end

@@ -50,10 +50,13 @@ class Object
   #     k.instance_eval { @secret }   #=> 99
   def instance_eval(string = nil, filename = "(eval)", line = 1, &prc)
     if block_given?
-      instance_exec(&prc)
-    else
+      raise ArgumentError, 'cannot pass both a block and a string to evaluate' if string
+      instance_exec(self, &prc)
+    elsif string
       cm = string.compile_as_method
       cm.activate(self, [])
+    else
+      raise ArgumentError, 'block not supplied'
     end
   end
   
@@ -94,8 +97,7 @@ class Object
     elsif arg.is_a?(String)
       name = arg
     elsif arg.is_a?(Fixnum)
-      name = arg.id2name
-      raise ArgumentError.new("#{arg.inspect} is not a symbol") if arg.nil?
+      raise ArgumentError.new("#{arg.inspect} is not a symbol")
     else
       raise TypeError.new("#{arg.inspect} is not a symbol") unless arg.respond_to?(:to_str)
       name = arg.to_str
