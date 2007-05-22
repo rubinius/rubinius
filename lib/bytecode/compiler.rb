@@ -1017,17 +1017,28 @@ module Bytecode
         set_label @retry_label
         body = x.shift
         res = x.shift
+        els = x.shift
 
         if body && body.first == :resbody
-          # there is no body, so no part of this will ever execute it. Just skip it.
-          add "push nil"
-          return
+          if !res # no 'else' clause
+            # No body, nothing to execute, so just skip it.
+            add "push nil"
+            return
+          else
+            # Empty begin clause, but there is an 'else' to execute
+            process res # actually the 'else'
+            return
+          end
         end
         
         add "#exc_start #{ex}"
         process body
         # If we reach here, then no exception has been thrown, so
         # we skip all the code that checks exceptions, etc.
+        if els
+          add "pop"
+          process els
+        end
         goto fin
         add "#exceptions #{ex}"
         do_resbody res, rr, fin
@@ -1180,7 +1191,7 @@ module Bytecode
         other = x.shift
         
         if cond.nil?
-          cond = [[:const, :RuntimeError]]
+          cond = [[:const, :StandardError]]
         else
           cond.shift
         end

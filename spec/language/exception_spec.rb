@@ -55,7 +55,38 @@ context "Exceptions" do
       false
     end.should == true
   end
+
+  specify "the result of else should be returned when no exception is raised" do
+    begin
+      true
+    rescue
+      5
+    else
+      6
+    end.should == 6
+  end
   
+  specify "the result of else should be returned when no exception is raised, even with an ensure" do
+    begin
+      true
+    rescue
+      5
+    else
+      6
+    ensure
+      7
+    end.should == 6
+  end
+
+  specify "the result of else should be returned even if the body is empty" do
+    begin
+    rescue
+      1
+    else
+      2
+    end.should == 2
+  end
+
   specify "retry should restart execution at begin" do
     class C
       def exception
@@ -164,7 +195,7 @@ context "Exceptions" do
 
   generate_exception_ancestor_spec = lambda do |exception_name, parent_name|
     specify "#{exception_name} has #{parent_name} as ancestor" do
-      exception = Object.const_get(exception_name)
+      exception = Object.constants[exception_name.to_sym]
       exception.ancestors.map{|x| x.to_s}.include?(parent_name.to_s).should === true
     end
   end
