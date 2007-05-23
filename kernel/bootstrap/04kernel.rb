@@ -1,4 +1,4 @@
-module Kernel
+module Functions
   def puts(*a)
     a = [""] if a.empty?
     a.each do |obj| 
@@ -42,4 +42,7 @@ module Kernel
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
   end
+end
+
+module Kernel
 end

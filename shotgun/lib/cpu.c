@@ -44,6 +44,7 @@ void cpu_initialize(STATE, cpu c) {
   c->argcount = 0;
   c->args = 0;
   c->depth = 0;
+  c->call_flags = 0;
   c->cache_index = -1;
   c->current_task = Qnil;
 
@@ -96,6 +97,7 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_tequal = symbol_from_cstr(state, "===");
   state->global->sym_lt =    symbol_from_cstr(state, "<");
   state->global->sym_gt =    symbol_from_cstr(state, ">");
+  state->global->sym_send =    symbol_from_cstr(state, "__send__");
   
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;

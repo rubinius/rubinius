@@ -1432,7 +1432,7 @@ module Bytecode
       def detect_special(kind, cl)
         #[:call, [:const, :Ruby], :asm, [:array, [:str, "push 1\nsend puts 1", 0]]]]
         if cl.kind_of?(Array) and cl[0,3] == [:call, [:const, :Ruby], kind]
-          args = cl.last
+          args = cl[3]
           args.shift
 
           if args.length == 1
@@ -1587,7 +1587,7 @@ module Bytecode
       end
       
       def process_vcall(x)
-        process [:call, [:self], x.shift, [:array]]
+        process [:call, [:self], x.shift, [:array], {:function => true}]
       end
       
       MetaMath = {
@@ -1643,6 +1643,7 @@ module Bytecode
         recv = x.shift
         meth = x.shift
         args = x.shift
+        options = x.shift
         
         if meth == :block_given?
           add "push true"
@@ -1693,6 +1694,11 @@ module Bytecode
           add "swap"
           add "set_args"
         end
+        
+        if options and options[:function]
+          add "set_call_flags 1"
+        end
+        
         add "#{op} #{meth} #{sz}"
         if block
           add "#{ps}:"
@@ -1836,6 +1842,7 @@ module Bytecode
         cnt = @method.add_literal str
         add "push_literal #{cnt}"
         add "push self"
+        add "set_call_flags 1"
         add "send ` 1"
       end
       
@@ -1873,6 +1880,7 @@ module Bytecode
         add "string_dup"
         cnt.times { add "string_append" }
         add "push self"
+        add "set_call_flags 1"
         add "send ` 1"
       end
       

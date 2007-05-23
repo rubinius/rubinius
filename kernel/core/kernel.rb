@@ -1,4 +1,4 @@
-module Kernel
+module Functions
   def Float(obj)
     obj = obj.to_f
     if Float === obj

@@ -20,6 +20,8 @@
 #define USE_GLOBAL_CACHING 1
 #define USE_INLINE_CACHING 1
 
+#define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
+
 #define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
 #define next_int set_int(_int,(c->ip_ptr)); c->ip_ptr += 4
 // #define next_int set_int(_int,(c->data + c->ip)); c->ip += 4; c->ip_ptr += 4
@@ -300,6 +302,16 @@ OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT 
     return cpu_find_method(state, c, klass, name, mod);
 }
 
+OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym) {
+  OBJECT mod, meth;
+  
+  meth = cpu_find_method(state, c, _real_class(state, obj), sym, &mod);
+  if(RTEST(meth)) {
+    return tuple_new2(state, 2, meth, mod);
+  }
+  return Qnil;
+}
+
 static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym, 
           OBJECT *mod, int *missing) {
   OBJECT mo;
@@ -307,11 +319,19 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
   *missing = FALSE;
   
   mo = cpu_find_method(state, c, obj, sym, mod);
-  if(NIL_P(mo)) {
-    // printf("method missing: %p\n", state->global->method_missing);
-    mo = cpu_find_method(state, c, obj, state->global->method_missing, mod);
-    *missing = TRUE;
+  if(!NIL_P(mo)) { return mo; }
+
+  if(c->call_flags == 1) {
+    mo = hash_find(state, module_get_methods(state->global->functions), sym);
+    if(!NIL_P(mo)) {
+      *mod = state->global->functions;
+      return mo;
+    }
   }
+    
+  // printf("method missing: %p\n", state->global->method_missing);
+  mo = cpu_find_method(state, c, obj, state->global->method_missing, mod);
+  *missing = TRUE;
   
   // printf("Found method: %p\n", mo);
   
@@ -689,6 +709,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
   OBJECT ctx;
   int prim = 0;
+  c->call_flags = 0;
   if(missing) {
     cpu_flush_ip(c);
     DEBUG("%05d: Missed Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
@@ -810,6 +831,26 @@ void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args) {
   }
     
   _cpu_build_and_activate(state, c, mo, recv, sym, args, Qnil, missing, mod);
+}
+
+void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+  OBJECT mo, mod;
+  int missing;
+  
+  missing = 0;
+  
+  /* No cache location, sorry. */
+  c->cache_index = -1;
+  
+  mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
+  if(NIL_P(mo)) {
+    cpu_flush_ip(c);
+    printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
+    assert(RTEST(mo));
+  }
+    
+  _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }
 
 char *cpu_op_to_name(STATE, char op) {

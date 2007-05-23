@@ -29,7 +29,11 @@ class Object
   end
   
   def kind_of?(cls)
-    self.class < cls
+    Ruby.asm <<-ASM
+    push cls
+    push self
+    kind_of
+    ASM
   end
   
   def instance_of?(cls)
@@ -81,20 +85,48 @@ class Object
   
   def respond_to?(meth)
     meth = meth.to_sym
-    cur, cm = self.class.__find_method(meth)
+    cm = nil
+    Ruby.asm <<-ASM
+    push self
+    push meth
+    locate_method
+    set cm
+    ASM
     !cm.nil?
   end
   
   def __send__(name, *args, &prc)
-    meth = self.class.instance_method(name)
-    meth = meth.bind(self)
-    meth.call(*args, &prc)
+    meth = name.to_sym
+    count = args.size.to_i
+    Ruby.asm <<-ASM
+    push args
+    push_array
+    push self
+    push prc
+    push meth
+    push count
+    set_args
+    send_off_stack
+    ASM
   end
   
   alias :send :__send__
   
   def method(name)
-    self.class.instance_method(name).bind(self)
+    meth = name.to_sym
+    cm = nil
+    Ruby.asm <<-ASM
+    push self
+    push meth
+    locate_method
+    set cm
+    ASM
+    
+    if cm
+      return Method.new(self, cm[1], cm[0])
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
   end
   
   def lambda

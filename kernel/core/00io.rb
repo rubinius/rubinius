@@ -13,6 +13,8 @@ class IO
     write(obj.to_s)
     return self
   end
+  
+  alias :print :<<
 
   def read(size=nil)
     if size

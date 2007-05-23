@@ -607,6 +607,35 @@ class ShotgunInstructions
     CODE
   end
   
+  def send_off_stack
+    <<-CODE
+    t3 = stack_pop();
+    if(!SYMBOL_P(t3)) {
+      if(RISA(t3, string)) {
+        t3 = string_to_sym(state, t3);
+      } else {
+        t2 = stack_pop();
+        t1 = stack_pop();
+        stack_push(t3);
+        cpu_send_method2(state, c, t1, state->global->sym_send, c->args + 1, t2);
+        goto sos_done;
+      }
+    }
+    t2 = stack_pop();
+    t1 = stack_pop();
+    cpu_send_method2(state, c, t1, t3, c->args, t2);
+    sos_done:
+    CODE
+  end
+  
+  def locate_method
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(cpu_locate_method_on(state, c, t2, t1));
+    CODE
+  end
+  
   def meta_send_op_plus
     <<-CODE
     t1 = stack_pop();
@@ -823,6 +852,13 @@ class ShotgunInstructions
     CODE
   end
   
+  def set_call_flags
+    <<-CODE
+    next_int;
+    c->call_flags = _int;
+    CODE
+  end
+  
   def set_cache_index
     <<-CODE
     next_int;
@@ -860,6 +896,29 @@ class ShotgunInstructions
     CODE
   end
   
+  def kind_of
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(ISA(t1, t2)) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
+    CODE
+  end
+  
+  def instance_of
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(object_logical_class(state, t1) == t2) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
+    CODE
+  end
   
 end
 

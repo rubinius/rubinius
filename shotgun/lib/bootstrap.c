@@ -510,6 +510,8 @@ void cpu_bootstrap(STATE) {
   bcs(regexpdata, obj, "RegexpData");
   bcs(matchdata, obj, "MatchData");
   
+  state->global->functions = rbs_module_new(state, "Functions", BC(object));
+    
   cpu_bootstrap_exceptions(state);
   
   Init_list(state);

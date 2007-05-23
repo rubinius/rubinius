@@ -139,11 +139,14 @@ class RsNormalizer < SimpleSexpProcessor
       if meth == :static and recv.kind_of?(Array) and recv.first == :str
         return [:static_str, recv.last]
       end
-      return [:call, process(recv), meth, [:array]]
+      return [:call, process(recv), meth, [:array], {}]
     else
       recv = x.shift
       meth = x.shift
       args = x.shift
+      opts = x.shift
+      opts = {} unless opts
+      
       if args.first == :newline
         STDERR.puts "Unhandled newline node: #{args.inspect}" unless args.size == 4
         args = args[3]
@@ -161,7 +164,7 @@ class RsNormalizer < SimpleSexpProcessor
           out << process(a)
         end
       end
-      return [:call, process(recv), meth, out]
+      return [:call, process(recv), meth, out, opts]
     end
   end
     
@@ -170,6 +173,7 @@ class RsNormalizer < SimpleSexpProcessor
     args = x.shift
     sx << args if args
     out = process(sx)
+    out.last[:function] = true
     x.clear
     return out
   end

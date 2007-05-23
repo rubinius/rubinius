@@ -92,7 +92,12 @@ class InstructionEncoder
     :meta_send_op_nequal,
     :push_local_depth,
     :set_local_depth,
-    :create_block
+    :create_block,
+    :send_off_stack,
+    :locate_method,
+    :kind_of,
+    :instance_of,
+    :set_call_flags
   ]
   
   IntArg = [
@@ -135,7 +140,8 @@ class InstructionEncoder
     :meta_send_stack_4,
     :push_local_depth,
     :set_local_depth,
-    :create_block
+    :create_block,
+    :set_call_flags
   ]
   
   TwoInt = [

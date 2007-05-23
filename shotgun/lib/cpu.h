@@ -55,9 +55,10 @@ struct fast_context {
   unsigned int depth; \
   OBJECT context_cache; \
   unsigned char *ip_ptr; \
-  OBJECT *sp_ptr; 
+  OBJECT *sp_ptr; \
+  int call_flags;
 
-#define TASK_FIELDS 22
+#define TASK_FIELDS 23
 
 struct cpu_task {
   CPU_TASK_REGISTERS;
@@ -117,6 +118,8 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block);
 
 void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args);
+void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
+OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym);
 
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 

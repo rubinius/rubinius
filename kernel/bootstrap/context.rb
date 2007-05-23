@@ -350,11 +350,14 @@ class Backtrace
       if ctx.method
         if MAIN == ctx.receiver
           str = "#{ctx.receiver.to_s}."
-        elsif Module === ctx.receiver
+        elsif MetaClass === ctx.method_module
           str = "#{ctx.receiver}."
+        elsif ctx.method_module != ctx.receiver.class
+          str = "#{ctx.method_module}(#{ctx.receiver.class})#"
         else
           str = "#{ctx.receiver.class}#"
         end
+        
         if ctx.name == ctx.method.name
           str << "#{ctx.name}"
         else

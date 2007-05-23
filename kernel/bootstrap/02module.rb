@@ -14,7 +14,7 @@ class Module
   
   def included(mod); end
   
-  def include(mod)
+  def include(mod)    
     mod.append_features(self)
     mod.included(self)
   end
