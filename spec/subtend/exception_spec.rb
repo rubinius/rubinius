@@ -6,7 +6,7 @@ context "SubtendRaiser" do
     @s = SubtendRaiser.new
   end
   
-  specify "raise! should raise a TypeError" do
+  specify "rb_raise should raise an exception" do
     should_raise(TypeError) do
       @s.raise!
     end
