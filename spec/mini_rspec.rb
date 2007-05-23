@@ -15,7 +15,7 @@ class PositiveExpectation
   
   def ==(other)
     unless @obj == other
-      raise Exception.new("Equality expected for " + @obj.inspect + " and " + other.inspect)
+      raise Exception.new("Equality expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
 end
@@ -27,7 +27,7 @@ class NegativeExpectation
   
   def ==(other)
     if @obj == other
-      raise Exception.new("Inequality expected for " + @obj.inspect + " and " + other.inspect)
+      raise Exception.new("Inequality expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
 end

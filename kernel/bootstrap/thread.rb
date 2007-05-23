@@ -129,7 +129,17 @@ class Thread
   def []=(key, value)
     @__ivars__[key] = value
   end
+
+  def self.main
+    @main_thread
+  end
+
+  def self.initialize_main_thread(thread)
+    @main_thread = thread
+  end
 end
 
 Thread.current.setup(true)
+Thread.initialize_main_thread(Thread.current)
+
 

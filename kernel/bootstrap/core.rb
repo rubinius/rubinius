@@ -68,7 +68,11 @@ class Object
     res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
     parts = []
     @__ivars__.each do |k,v|
-      parts << "#{k}=#{v.inspect}"
+      if v.object_id == self.object_id # This would be an infinite loop
+        parts << "#{k}=self"
+      else
+        parts << "#{k}=#{v.inspect}"
+      end
     end
     res << parts.join(" ")
     res << ">"

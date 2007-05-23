@@ -24,6 +24,11 @@ context "For Thread" do
     t = Thread.new { Thread.current }
     t.value.should.equal? t
   end
+
+  specify "main should return the main thread" do
+    Thread.new { @main = Thread.main ; @current = Thread.current}.join
+    @main.should_not == @current
+  end
 end
 
 context "For a Thread instance" do
