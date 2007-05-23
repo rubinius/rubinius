@@ -10,14 +10,15 @@ class Thread
     @lock.send nil if prime_lock
   end
 
-  def initialize(&prc)
-    raise "Must pass in a block" unless prc
+  def initialize(*args)
+    raise ThreadError.new("must be called with a block") unless block_given?
+    raise ThreadError.new("thread block arguments not yet supported") unless args.empty?
     setup(false)
     setup_task do
       begin
         begin
           @lock.send nil
-          @result = prc.call
+          @result = yield
         ensure
           @lock.receive
           @alive = false

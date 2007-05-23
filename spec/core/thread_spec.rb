@@ -72,4 +72,9 @@ context "For a Thread instance" do
       c << true
     end
   end
+
+  specify "joining should raise any exceptions encountered in the thread body" do
+    t = Thread.new { raise NotImplementedError.new("Just kidding") }
+    should_raise(NotImplementedError) { t.join }
+  end
 end
