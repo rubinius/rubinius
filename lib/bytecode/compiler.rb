@@ -1058,7 +1058,7 @@ module Bytecode
       end
 
       def process_retry(x)
-        raise "'retry' called outside of a begin/end block" unless @retry_label
+        raise LocalJumpError.new("'retry' called outside of a rescue clause") unless @retry_label
         raise "retry in blocks not supported" if @retry_label == :block
         goto @retry_label
       end
@@ -1629,9 +1629,7 @@ module Bytecode
           return
         end
         
-        #p x
         x.shift
-        #p x
                 
         if @compiler.in_class_body
           out = detect_class_special(x.dup)
@@ -1906,6 +1904,13 @@ module Bytecode
             args.shift
             args.reverse.each { |a| process(a) }
             sz = args.size
+          elsif kind == :splat
+            args.shift
+            args.unshift [:array] # TODO - Fix unshift so that this can be a single call
+            args.unshift :argscat
+            process(args)
+            add "get_args"
+            sz = "+"
           else
             process(args)
             sz = 1

@@ -131,7 +131,7 @@ describe Bytecode::Compiler do
     compile [:rescue, [:true], [:resbody, nil, [:lit, 2], nil]]
     @method.assembly.should == 
       "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
-      "push_exception\npush RuntimeError\nsend === 1\n" \
+      "push_exception\npush StandardError\nsend === 1\n" \
       "gif lbl3\npush 2\ngoto lbl2\nlbl3:\npush_exception\nraise_exc\n" \
       "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
   end
@@ -140,9 +140,9 @@ describe Bytecode::Compiler do
     compile [:rescue, [:true], [:resbody, nil, [:lit, 2], [:resbody, nil, [:lit, 3]]]]
     @method.assembly.should == 
       "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
-      "push_exception\npush RuntimeError\nsend === 1\n" \
+      "push_exception\npush StandardError\nsend === 1\n" \
       "gif lbl5\npush 2\ngoto lbl2\n" \
-      "lbl5:\npush_exception\npush RuntimeError\nsend === 1\n" \
+      "lbl5:\npush_exception\npush StandardError\nsend === 1\n" \
       "gif lbl3\npush 3\ngoto lbl2\n" \
       "lbl3:\npush_exception\nraise_exc\n" \
       "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
@@ -179,9 +179,14 @@ describe Bytecode::Compiler do
   end
   
   it "should compile yield" do
-    compile [:yield, [:array, [:lit, 1], [:lit, 2]]]
+    compile [:yield, [:array, [:lit, 1], [:lit, 2]], false]
     @method.assembly.should == 
       "push 2\npush 1\npush_block\nsend call 2\nret\n"
+  end
+
+  it "should compile yield with a splat" do
+    compile [:yield, [:splat, [:array, [:lit, 5], [:lit, 6]]], true]
+    @method.assembly.should == "push 5\npush 6\nmake_array 2\ncast_array_for_args 0\npush_array\nget_args\npush_block\nsend call +\nret\n"
   end
   
   it "should compile ivar" do
@@ -308,10 +313,7 @@ describe Bytecode::Compiler do
   
   it "should compile ensure" do
     compile [:ensure, [:lit, 10], [:lit, 11]]
-    @method.assembly.should == "#exc_start exc1\npush 10\n" \
-      "#exceptions exc1\npop\npush 11\n" \
-      "push_exception\ngif lbl2\npush_exception\nraise_exc\n" \
-      "lbl2:\n#exc_end exc1\nret\n"
+    @method.assembly.should == "#exc_start exc1\npush 10\n#exceptions exc1\npush_exception\n#exc_start exc2\npush 11\npop\ngoto lbl3\n#exceptions exc2\ngit lbl4\npop\nlbl4:\npush_exception\nlbl3:\n#exc_end exc2\ndup\ngif lbl5\nraise_exc\nlbl5:\npop\n#exc_end exc1\nret\n"
   end
   
   it "should compile defn" do
