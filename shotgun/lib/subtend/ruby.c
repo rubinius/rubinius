@@ -384,8 +384,10 @@ void rb_raise(VALUE exc, const char *fmt, ...) {
   va_start(args, fmt);
   vsnprintf(buf, BUFSIZ, fmt, args);
   va_end(args);
-  cpu_raise_exception(ctx->state, ctx->cpu,
-    cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf));
+  
+  ctx->nmc->value = NEW_HANDLE(ctx, cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf));
+  ctx->nmc->jump_val = RAISED_EXCEPTION;
+  setcontext(&ctx->nmc->system);
 }
 
 /*
