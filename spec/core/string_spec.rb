@@ -170,6 +170,31 @@ context "String instance method" do
     ("yep" <=> "yep").should == 0
     ("yoddle" <=> "griddle").should == 1
   end
+
+  specify "<=> returns 0 if strings are equal" do
+    ("abc" <=> "abc").should == 0
+  end
+
+  specify "<=> considers string that comes lexicographically first to be less if strings have equal size" do
+    ("aba" <=> "abc").should == -1
+    ("abc" <=> "aba").should == 1
+  end
+
+  specify "<=> considers shorter string to be less if longer string starts with shorter one" do
+    ("abc" <=> "abcd").should == -1
+    ("abcd" <=> "abc").should == 1
+  end
+
+  specify "<=> compares shorter string with corresponding number of first chars of longer string" do
+    ("abx" <=> "abcd").should == 1
+    ("abcd" <=> "abx").should == -1
+  end
+
+  specify "<=> returns nil if other is not String" do
+    ("abc" <=> 1).should == nil
+    ("abc" <=> :abc).should == nil
+    ("abc" <=> Object.new).should == nil
+  end
   
   specify "== with other String should return true if <=> returns 0" do
     ("equal" == "equal").should == true
@@ -439,6 +464,7 @@ context "String instance method" do
   end
 
   specify "dump should return a string with all non-printing characters replaced with \\nnn notation" do
+    raise NotImplementedError.new("dump is broked")
     ("\000".."A").to_a.to_s.dump.should == "\"\\000\\001\\002\\003\\004\\005\\006\\a\\b\\t\\n\\v\\f\\r\\016\\017\\020\\021\\022\\023\\024\\025\\026\\027\\030\\031\\032\\e\\034\\035\\036\\037 !\\\"\\\#$%&'()*+,-./0123456789\""
   end
 

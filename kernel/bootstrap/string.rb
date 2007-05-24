@@ -128,17 +128,25 @@ class String
   alias :=== :==
 
   def <=>(other)
-    if @bytes < other.size
-      return -1
-    elsif @bytes > other.size
-      return 1
+    if String === other
+      len = other.size
+      len = size if size < len
+
+      od = other.data
+      len.times do |i|
+        result = (@data.get_byte(i) <=> od.get_byte(i))
+        return result if result != 0
+      end
+
+      if size < other.size
+        return -1
+      elsif size > other.size
+        return 1
+      else
+        return 0
+      end
     else
-      
-      # Again, same as above. Clamp via copy sucks, oh well.
-      ld = @data.fetch_bytes(0, @bytes)
-      rd = other.data.fetch_bytes(0, @bytes)
-      
-      return (ld <=> rd)
+      nil
     end
   end
 
