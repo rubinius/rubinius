@@ -128,7 +128,18 @@ class String
   alias :=== :==
 
   def <=>(other)
-    @data <=> other.data
+    if @bytes < other.size
+      return -1
+    elsif @bytes > other.size
+      return 1
+    else
+      
+      # Again, same as above. Clamp via copy sucks, oh well.
+      ld = @data.fetch_bytes(0, @bytes)
+      rd = other.data.fetch_bytes(0, @bytes)
+      
+      return (ld <=> rd)
+    end
   end
 
   def prefix?(pre)

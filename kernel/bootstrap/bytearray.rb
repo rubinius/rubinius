@@ -15,7 +15,6 @@ class ByteArray
     Ruby.primitive :set_byte
   end
 
-  # TODO - This is the wrong primitive to call
   def <=>(other)
     Ruby.primitive :compare_bytes
   end  

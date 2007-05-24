@@ -480,7 +480,7 @@ class String
   
   def include?(arg)
     if arg.is_a? Fixnum
-      @data.each { |b|  return true if b == arg }
+      each_byte { |b|  return true if b == arg }
       return false
     elsif arg.is_a? String
       return (nil != self.index(arg)) 
@@ -730,7 +730,7 @@ class String
   
   def sum(bits=16)
     sum = 0
-    @data.each do |b|
+    each_byte do |b|
       sum += b
     end
     sum & ((1 << bits) - 1)

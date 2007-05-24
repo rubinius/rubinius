@@ -30,9 +30,9 @@ class Channel
         raise ArgumentError, "to_channel on #{obj.inspect} did not return a Channel"
       end
       return o2
-     rescue NoMethodError
+    rescue NoMethodError
        raise ArgumentError, "Unable to convert #{obj.inspect} into a channel"
-     end
+    end
   end
 
   def self.receive(*ary)

@@ -778,10 +778,12 @@ class ShotgunPrimitives
 
     j = bytearray_bytes(state, self);
     k = bytearray_bytes(state, t1);
-    if(j != k) {
-      stack_push(Qfalse);
+    if(j < k) {
+      stack_push(I2N(-1));
+    } else if(j > k) {
+      stack_push(I2N(1));
     } else if(j == 0) {
-      stack_push(Qtrue);
+      stack_push(I2N(0));
     } else {
       k = memcmp(bytearray_byte_address(state, self), bytearray_byte_address(state, t1), j);
       if(k > 1) {k = 1;} // Normalize return
