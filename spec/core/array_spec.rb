@@ -581,7 +581,7 @@ context "Array instance methods" do
   
   # FIX: fill in a proper spec
   specify "pack should return a binary representation of the elements according to template" do
-    raise NotImplementedError
+    true.should == false
   end
   
   specify "partition should return two arrays" do
@@ -677,7 +677,7 @@ context "Array instance methods" do
   
   # FIX: proper spec implementation
   specify "slice should be a synonym for []" do
-    raise NotImplementedError
+    true.should == false
   end
   
   # FIX: test in terms of #slice or #[]

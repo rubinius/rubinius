@@ -440,44 +440,50 @@ class Array
     out
   end
 
+  # sort_without_block has a separate implementation because block args (&block)
+  # have additional overhead, and this quicksort algorithm uses them recursively.
+  # sort_without_block could be: sort_with_block {|a,z| a <=> z}, but this is faster
   def sort(&block)
-    if size <= 1
-      self.dup
+    return self.dup if self.size <= 1
+    array = self.dup
+    if block_given?
+      array.sort_with_block(&block)
     else
-      mid = size/2
-      midval = self[mid]
-      al, am, ar = [], [midval], []
-      if block_given?
-        each_with_index { |o, i|
-          if i != mid
-            cmp = yield(o, midval)
-            if cmp < 0; al << o
-            elsif cmp == 0; am << o
-            else; ar << o
-            end
-          end
-        }
-        out = al.sort(&block)
-        out.concat am
-        out.concat(ar.sort(&block))
-      else
-        each_with_index { |o1, i1|
-          if i1 != mid
-            cmp = o1 <=> midval
-            if cmp < 0; al << o1
-            elsif cmp == 0; am << o1
-            else; ar << o1
-            end
-          end
-        }
-        out = al.sort
-        out.concat am
-        out.concat(ar.sort)
-      end
-      out
+      array.sort_without_block
     end
   end
 
+  def sort_without_block
+    return self if empty?
+    # By default, sort uses the first element of an array to perform the sort
+    # In particular, Hash#sort uses this behavior
+    pivot = (Array === first ? first[0] : first)
+    left = select   { |x| (Array === x ? x[0] : x) < pivot }.sort_without_block 
+    middle = select { |x| (Array === x ? x[0] : x) == pivot }
+    right = select  { |x| (Array === x ? x[0] : x) > pivot }.sort_without_block
+    left + middle + right
+  end
+
+  def sort_with_block(&block)
+    return self if empty?
+
+    left = select do |x|
+      comparison = yield(x,first) || 0
+      comparison < 0
+    end.sort_with_block(&block)
+
+    middle = select do |x|
+      comparison = yield(x,first) || 0
+      comparison == 0
+    end
+
+    right = select do |x|
+      comparison = yield(x,first) || 0
+      comparison > 0
+    end.sort_with_block(&block)
+
+    left + middle + right
+  end
 
   def sort!(&block)
     replace(sort(&block))
