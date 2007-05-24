@@ -454,10 +454,11 @@ class Array
   end
 
   def sort_without_block
-    return self if empty?
-    # By default, sort uses the first element of an array to perform the sort
+    return self if size <= 1
+    pivot = self[(size / 2)]
+    # Array#sort uses the first element of an array to perform the sort
     # In particular, Hash#sort uses this behavior
-    pivot = (Array === first ? first[0] : first)
+    pivot = pivot[0] if Array === pivot
     left = select   { |x| (Array === x ? x[0] : x) < pivot }.sort_without_block 
     middle = select { |x| (Array === x ? x[0] : x) == pivot }
     right = select  { |x| (Array === x ? x[0] : x) > pivot }.sort_without_block
@@ -465,23 +466,26 @@ class Array
   end
 
   def sort_with_block(&block)
-    return self if empty?
-
+    return self if size <= 1
+    pivot = self[(size / 2)] # replace with self[rand(size)] once we have Kernel#rand
     left = select do |x|
-      comparison = yield(x,first) || 0
-      comparison < 0
-    end.sort_with_block(&block)
+      (yield(x,pivot) || 0) < 0
+    end
 
     middle = select do |x|
-      comparison = yield(x,first) || 0
-      comparison == 0
+      (yield(x,pivot) || 0) == 0 # Treat nil block results as pre-sorted
     end
 
     right = select do |x|
-      comparison = yield(x,first) || 0
-      comparison > 0
-    end.sort_with_block(&block)
-
+      (yield(x,pivot) || 0) > 0
+    end
+ 
+    if left == self || right == self 
+      # The block claims that none of the elements are the pivot, so ignore it
+      return self.sort
+    end
+    left  = left.sort_with_block(&block)
+    right = right.sort_with_block(&block)
     left + middle + right
   end
 
