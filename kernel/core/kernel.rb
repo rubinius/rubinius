@@ -66,8 +66,19 @@ module Functions
     Foreign.srand(seed.to_i)
   end
 
-  def rand
-    Foreign.rand
+  def rand(max=nil)
+    x = Foreign.rand
+    # scale result of rand to a domain between 0 and max
+    if max.nil? or max.zero?
+      x / 0x7fffffff.to_f
+    else
+      max = max.abs
+      if max < 0x7fffffff
+        x / (0x7fffffff / max)
+      else
+         x * (max / 0x7fffffff)
+      end
+    end
   end
   
   alias fail raise
