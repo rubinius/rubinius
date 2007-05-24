@@ -446,6 +446,7 @@ describe Bytecode::Compiler do
     @method.assembly.should == "push 8\npush 99\nset a:2\npop\nset b:3\npop\npush true\nret\n"
   end
   
+  # TODO - Add correct asm expectation, remove should_raise
   it "should compile masgn with array as the source and too many lhs" do
     should_raise(RuntimeError) {
       compile [:masgn,
@@ -455,6 +456,7 @@ describe Bytecode::Compiler do
     }
   end
   
+  # TODO - Add correct asm expectation, remove should_raise
   it "should compile masgn with array as the source and too many rhs" do
     should_raise(RuntimeError) {
       compile [:masgn,
@@ -464,6 +466,7 @@ describe Bytecode::Compiler do
     }
   end
   
+  # TODO - Add correct asm expectation, remove should_raise
   it "should compile masgn with array as source splat is stupid" do
     should_raise(RuntimeError) {
       compile [:masgn,
@@ -484,16 +487,13 @@ describe Bytecode::Compiler do
   end
   
   it "should compile iter" do
-    compile [:iter, 
-      [:fcall, :m],
-      [:dasgn_curr, :a],
-      [:block, [:true], [:fcall, :p, [:array, [:lit, 2]]]]
-    ]
-    @method.assembly.should == "push &lbl1\npush &lbl2\n" \
-      "push_context\nsend_primitive create_block 2\n" \
-      "goto lbl3\nunshift_tuple\nset a:2\npop\npop\npush true\nlbl4:\npush true\npop\npush 2\n" \
-      "push self\nsend p 1\nlbl2: soft_return\nlbl3:\n" \
-      "push self\n&send m 0\nlbl1:\nret\n"
+    compile [:iter, [:fcall, :m], [:lasgn, :a, 0], [:block, [:dasgn_curr, :a], 
+      [:true], [:fcall, :p, [:array, [:lit, 2]] ] ] ]
+    @method.assembly.should == "push &lbl1\npush &lbl2\ncreate_block 1\ngoto lbl3\n" \
+    "unshift_tuple\nset a:0:0\npop\nlbl4:\npush true\npop\npush 2\n" \
+    "push self\nset_call_flags 1\n" \
+    "send p 1\nlbl2: soft_return\nlbl3:\npush self\n" \
+    "set_call_flags 1\n&send m 0\nlbl1:\nret\n"
   end
   
   it "should compile a string literal" do

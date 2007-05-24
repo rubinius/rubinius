@@ -663,6 +663,10 @@ module Bytecode
         end
       end
 
+      def process_splat(x)
+        process(x.shift)
+      end
+
       def process_op_asgn_or(x)
         process x.shift #lvar
         lbl = unique_lbl()
@@ -1333,31 +1337,36 @@ module Bytecode
       # [[:lasgn, :z, 6], [:array, [:array, [:lit, 5], [:lit, 6], [:lit, 7]]], nil]
       def process_masgn(x)
         if x[0][0] == :array
-          rhs = x.shift
+          lhs = x.shift
         else
-          rhs = []
+          lhs = []
         end
         splat = x.shift
         source = x.shift
+        # Track sizes for later stack management
+        source_size = nil
+        lhs_size = nil
 
         if source
           # The sexp has 2 nodes that do the same thing. It's annoying.
           if source[0] == :to_ary or source[0] == :splat
-            process source.last
+            source.shift # get rid of to_ary or splat
+            source_size = source.first.size - 1 # Ignore the :array at the head
+            process source.shift
             add "dup"
             add "cast_tuple"
-            add "cast_tuple"
           elsif source[0] == :array
-            handle_array_masgn rhs, splat, source
+            handle_array_masgn lhs, splat, source
             return
           else
             process source
           end
         end
 
-        if rhs[0] == :array # masgn to multple lhs
-          rhs.shift # get rid of :array
-          rhs.each do |part|
+        if lhs[0] == :array # masgn to multple lhs
+          lhs.shift # get rid of :array
+          lhs_size = lhs.size
+          lhs.each do |part|
             add "unshift_tuple"
             process part
             add "pop"
@@ -1368,39 +1377,58 @@ module Bytecode
           add "cast_array"
           process splat
           add "pop"
+        elsif source_size # source can be nil, in which case we don't need to pop
+          # Clean up the stack if there are more lhs entries than source entries
+          (source_size - lhs_size).times do
+            add "pop"
+          end
         end
       end
       
-      def handle_array_masgn(rhs, splat, source)        
-        rhs.shift
+      def handle_array_masgn(lhs, splat, source)        
+        lhs.shift
         source.shift
-        
-        if rhs.size > source.size
-          (rhs.size - source.size).times do
-            add "push nil"
-          end
-        end
-        
-        source.reverse.each do |e|
-          process e
-        end
-        
-        rhs.each do |e|
-          process e
-          add "pop"
-        end
-
-        if source.size > rhs.size
-          count = source.size - rhs.size
-          count.times do
-            add "pop"
-          end unless splat
-        end
+        source_size = source.size
+        lhs_size = lhs.size
 
         if splat
-          add 'make_array 1'
+          source.each do |e|
+            process e
+          end
+          # for example: a,b,*c = 99,8
+          (lhs_size - source_size).times do
+            add "push nil"
+          end
+
+          # Convert un-popped entries to an array
+          sz = source_size - lhs_size
+          sz = 0 if sz < 0 # Empty splats become [] instead of nil
+          add "make_array #{sz}" 
           process splat
+          add "pop"
+          lhs.reverse.each do |e|
+            process e
+            add "pop"
+          end
+        else
+          # for example: a,b,c = 99,8
+          (lhs_size - source_size).times do
+            add "push nil"
+          end
+
+          source.reverse.each do |e|
+            process e
+          end
+        
+          lhs.each do |e|
+            process e
+            add "pop"
+          end
+          delta = source_size - lhs_size
+          delta.times { add "pop" } # Never happens unless delta > 0
         end
+
+        add "push true" # masgns return true for now
       end
       
       def detect_primitive(body)

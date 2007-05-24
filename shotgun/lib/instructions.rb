@@ -768,6 +768,7 @@ class ShotgunInstructions
   end
   
   
+  # This actually shifts, not unshifts.
   def unshift_tuple
     <<-CODE
     t1 = stack_pop();
