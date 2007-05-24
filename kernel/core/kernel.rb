@@ -1,4 +1,9 @@
 module Functions
+  module Foreign
+    attach_function nil, 'srand', [:uint], :void
+    attach_function nil, 'rand', [], :int
+  end
+
   def Float(obj)
     obj = obj.to_f
     if Float === obj
@@ -52,6 +57,17 @@ module Functions
 
   def exit!(code=0)
     Process.exit(code)
+  end
+  
+  # NOTE - this isn't quite MRI compatible, we don't store return the previous
+  # seed value from srand and we don't seed the RNG by default with a combination
+  # of time, pid and sequence number
+  def srand(seed)
+    Foreign.srand(seed.to_i)
+  end
+
+  def rand
+    Foreign.rand
   end
   
   alias fail raise
