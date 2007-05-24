@@ -652,7 +652,6 @@ module Bytecode
         name = x.shift
         idx = x.shift
         if val = x.shift
-          val = val[1] if val.first == :svalue # Adjust svalues away
           process val
         end
         
@@ -661,6 +660,10 @@ module Bytecode
         else
           add "set #{name}:#{idx}"
         end
+      end
+
+      def process_svalue(x)
+        process(x.shift)
       end
 
       def process_splat(x)
@@ -802,6 +805,7 @@ module Bytecode
       # Implicit hashes from method calls
       alias process_ihash process_hash
       
+      # TODO - x = 1,2,*[5,6]
       def process_argscat(x)
         ary = x.shift        
         itm = x.shift
@@ -1672,6 +1676,10 @@ module Bytecode
         meth = x.shift
         args = x.shift
         options = x.shift
+        # recv [:lvar, :f, 3]
+        # meth :[]=
+        # args [:argspush, [:newline, 20, "argscat.rb", [:splat, [:lvar, :x, 2]]], [:lit, 1]]
+        # options nil
         
         if meth == :block_given?
           add "push true"
@@ -1687,6 +1695,14 @@ module Bytecode
           if args.first == :argscat
             process(args)
             sz = "+"
+            grab_args = true
+          elsif args.first == :argspush # e.g. f[*x] = 1
+            args.shift
+            process(args.pop)
+            sz = "+"
+            args.reverse.each { |a| process(a) }
+            add "cast_array_for_args #{args.size}"
+            add "push_array"
             grab_args = true
           else
             args.shift
@@ -1979,7 +1995,10 @@ module Bytecode
       def process_newline(x)
         line = x.shift
         @method.file = x.shift
-        add "\#line #{line}"
+        if @last_line.nil? or line != @last_line
+          add "\#line #{line}"
+        end
+        @last_line = line
         process(x.shift)
       end
       

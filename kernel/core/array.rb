@@ -467,6 +467,7 @@ class Array
 
   def sort_with_block(&block)
     return self if size <= 1
+
     pivot = self[(size / 2)] # replace with self[rand(size)] once we have Kernel#rand
     left = select do |x|
       (yield(x,pivot) || 0) < 0
@@ -476,17 +477,14 @@ class Array
       (yield(x,pivot) || 0) == 0 # Treat nil block results as pre-sorted
     end
 
-    right = select do |x|
-      (yield(x,pivot) || 0) > 0
+    right = select do |x| 
+      (yield(x,pivot) || 0) > 0 
     end
- 
-    if left == self || right == self 
-      # The block claims that none of the elements are the pivot, so ignore it
-      return self.sort
-    end
-    left  = left.sort_with_block(&block)
-    right = right.sort_with_block(&block)
-    left + middle + right
+
+    # If the block claims that none of the elements are the pivot, ignore it
+    return self.sort if middle.empty?
+      
+    left.sort_with_block(&block) + middle + right.sort_with_block(&block)
   end
 
   def sort!(&block)
