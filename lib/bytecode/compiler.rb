@@ -1347,45 +1347,47 @@ module Bytecode
         end
         splat = x.shift
         source = x.shift
-        # Track sizes for later stack management
-        source_size = nil
-        lhs_size = nil
 
         if source
           # The sexp has 2 nodes that do the same thing. It's annoying.
           if source[0] == :to_ary or source[0] == :splat
             source.shift # get rid of to_ary or splat
-            source_size = source.first.size - 1 # Ignore the :array at the head
             process source.shift
-            add "dup"
             add "cast_tuple"
+            add "dup"
           elsif source[0] == :array
             handle_array_masgn lhs, splat, source
             return
           else
+            puts "Please open a ticket with the source code that printed this! " \
+            "masgn 'source' was not to_ary, splat, or array: #{source.inspect}"
             process source
           end
         end
 
         if lhs[0] == :array # masgn to multple lhs
           lhs.shift # get rid of :array
-          lhs_size = lhs.size
           lhs.each do |part|
             add "unshift_tuple"
             process part
             add "pop"
           end
+        else
+          puts "Please open a ticket with the source code that printed this! " \
+          "lhs was not an ':array': #{lhs.inspect}"
         end
         
         if splat
+          # Code such as: x,*y = *[5,6,7]
+          # passes through the lhs[0] == :array conditional above
+          # as well as this section
           add "cast_array"
           process splat
           add "pop"
-        elsif source_size # source can be nil, in which case we don't need to pop
-          # Clean up the stack if there are more lhs entries than source entries
-          (source_size - lhs_size).times do
-            add "pop"
-          end
+          add "cast_array"
+        elsif source # We get here with code like: x,y = foo_method(1,2)
+          add "pop"
+          add "cast_array"
         end
       end
       
