@@ -101,7 +101,25 @@ class RsLocalScoper < SimpleSexpProcessor
         
     [:iter, process(f), a2, b2, count]
   end
-  
+
+  # Converts a for loop into an 'iter' that calls each
+  # However, for loops have different scoping than blocks,
+  # so we do not introduce a new scope
+  def process_for(x)
+    enum = x.shift
+    lasgn = x.shift
+    body = x.shift
+    @masgn.push true
+    lasgn = process(lasgn)
+    @masgn.pop
+    body = process(body)
+
+    body = [:block, body] if body.nil? || body.first != :block
+    # TODO - This use of @state may or may not be correct
+    x = [[:call, process(enum), :each, [:array]], lasgn, body, @state.last_scope.size]
+    x.unshift(:iter)
+  end
+
   def p_or_n(val)
     return nil if val.nil?
     process(val)
@@ -199,5 +217,4 @@ class RsLocalScoper < SimpleSexpProcessor
     
     [:case, cond, whns, els]
   end
-  
 end

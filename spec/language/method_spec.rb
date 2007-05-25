@@ -33,3 +33,25 @@ describe 'Defining methods with *' do
     should_raise(ArgumentError) { foo 1 }
   end
 end
+
+describe "Terror from the ancient world" do
+  it "should let you define a method inside a default argument" do
+    def foo(x = (def foo; "hello"; end;1));x;end
+    foo(42).should == 42
+    foo.should == 1
+    foo.should == 'hello'
+  end
+
+  it "should let you use an fcall as a default argument" do
+    def foo(x = caller())
+      x
+    end
+    foo.shift.class.should == String
+  end
+
+  it "should evaluate default arguments in the proper scope" do
+    def foo(x = ($foo_self = self; nil)); end
+    foo
+    $foo_self.should == self
+  end
+end

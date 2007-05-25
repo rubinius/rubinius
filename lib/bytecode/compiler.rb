@@ -1097,6 +1097,7 @@ module Bytecode
           return
         end
 
+        # TODO - Move this to the normalizer
         if node == :vcall # normalize vcalls into calls, a la process_vcall
           node = :call
           expr = [[:self], expr.shift, [:array]]
@@ -1196,14 +1197,6 @@ module Bytecode
         end
       end
 
-      def process_for(x)
-        enum = x.shift
-       lasgn = x.shift
-       block = x.shift
-        block = [:block, block] if block.first != :block
-       process_iter [[:call, enum, :each, [:array]], lasgn, block]
-      end
-      
       def do_resbody(x, rr, fin)
         x.shift
         cond = x.shift
@@ -1627,11 +1620,6 @@ module Bytecode
         end
         return false
       end
-      
-      def process_vcall(x)
-        process [:call, [:self], x.shift, [:array], {:function => true}]
-      end
-      alias process_fcall process_vcall
 
       MetaMath = {
         :+ =>   "meta_send_op_plus",
@@ -1826,7 +1814,7 @@ module Bytecode
         cl.shift
         process_call cl, blk
       end
-      
+
       # Method calls that take a block are wrapped in this node
       # Fairly heavily normalized before we get here
       def process_iter(x)
@@ -1834,6 +1822,7 @@ module Bytecode
         args = x.shift
         body = x.shift
         count = x.shift
+     
         kind = cl.shift
 
         # Prevent single block arguments from using the more-complex masgn code
@@ -1845,7 +1834,6 @@ module Bytecode
         end
 
         iter = [:block_iter, args, body, count]
-
         if kind == :call
           process_call cl, iter
         elsif kind == :super
@@ -1856,6 +1844,11 @@ module Bytecode
       end
       
       def process_block_iter(x)
+        if x[2].nil?
+          puts "OPEN A TICKET: block iter without count: #{x.inspect}"
+          raise "Unexpected sexp"
+        end
+
         args = x.shift
         body = x.shift
         count = x.shift

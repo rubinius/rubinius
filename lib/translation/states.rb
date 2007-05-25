@@ -109,4 +109,9 @@ class RsLocalState
     
     return old.size
   end
+
+  # 'for' uses this, since it needs to call :iter, but doesn't introduce a new scope
+  def last_scope
+    @all_scopes.last
+  end
 end

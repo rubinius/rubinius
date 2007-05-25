@@ -69,6 +69,13 @@ class RsNormalizer < SimpleSexpProcessor
       args += [[], [], nil, nil]
     end
 
+    #args[1] are required args
+    #args[2] are optional args
+    #args[3] is a splat, or nil
+    #args[4] is a :block node that initializes the optional args
+    # The :block is processed because it may contain vcall and fcall nodes
+    args[4] = process(args[4]) if args[4]
+
     #args[1].each do |a|
     #  i = lvar_idx(a)
       # puts "marking #{a} as a local: #{i}"
@@ -95,8 +102,7 @@ class RsNormalizer < SimpleSexpProcessor
       #end
       @state = cur
     end
-    out = [:defn, name, args, body]
-    out
+    [:defn, name, args, body]
   end
   
   def process_iter(x)
@@ -177,7 +183,14 @@ class RsNormalizer < SimpleSexpProcessor
     x.clear
     return out
   end
-        
+
+  def process_vcall(x)
+    args = x.shift
+    out = [:call, [:self], args, [:array], {:function => true}]
+    x.clear
+    return out
+  end
+  
   def process_zarray(x)
     x.clear
     return [:array]
