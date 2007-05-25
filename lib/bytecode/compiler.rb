@@ -1631,7 +1631,8 @@ module Bytecode
       def process_vcall(x)
         process [:call, [:self], x.shift, [:array], {:function => true}]
       end
-      
+      alias process_fcall process_vcall
+
       MetaMath = {
         :+ =>   "meta_send_op_plus",
         :- =>   "meta_send_op_minus", 
