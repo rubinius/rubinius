@@ -461,6 +461,8 @@ module Bytecode
         end
       end
       
+      # Typically surrounded by something like an :iter or :loop
+      # but more generally, just introduces a scope that returns a value
       def process_block(x)
         if x.empty? or x == [[nil]]
           add "push nil"        # stack maintenance
@@ -1335,14 +1337,12 @@ module Bytecode
         add "ret"
       end
       
-      # a,b,c = *[5,6,7]
-      # [[:array, [:lasgn, :a, 7], [:lasgn, :b, 8], [:lasgn, :c, 9]], nil, [:splat, [:array, [:lit, 5], [:lit, 6], [:lit, 7]]]]
-      # *z = [5,6,7]
-      # [[:lasgn, :z, 6], [:array, [:array, [:lit, 5], [:lit, 6], [:lit, 7]]], nil]
+      # Handles various types of multiple assignment, including do |*args| .. end
+      # argscat and argspush are handled elsewhere
       def process_masgn(x)
         if x[0][0] == :array
           lhs = x.shift
-        else
+        else # splatted block arguments have no lhs
           lhs = []
         end
         splat = x.shift
@@ -1355,7 +1355,7 @@ module Bytecode
             process source.shift
             add "cast_tuple"
             add "dup"
-          elsif source[0] == :array
+          elsif source[0] == :array # e.g. x,y = 5,6
             handle_array_masgn lhs, splat, source
             return
           else
@@ -1365,22 +1365,19 @@ module Bytecode
           end
         end
 
-        if lhs[0] == :array # masgn to multple lhs
+        # This is bypassed for code like: def foo;yield(1,2,3);end  foo {|*args| ...}
+        unless lhs.empty? # masgn to multple lhs
           lhs.shift # get rid of :array
           lhs.each do |part|
             add "unshift_tuple"
             process part
             add "pop"
           end
-        else
-          puts "Please open a ticket with the source code that printed this! " \
-          "lhs was not an ':array': #{lhs.inspect}"
         end
         
         if splat
           # Code such as: x,*y = *[5,6,7]
-          # passes through the lhs[0] == :array conditional above
-          # as well as this section
+          # executes the lhs.empty? conditional above as well as this section
           add "cast_array"
           process splat
           add "pop"
@@ -1388,6 +1385,17 @@ module Bytecode
         elsif source # We get here with code like: x,y = foo_method(1,2)
           add "pop"
           add "cast_array"
+        end
+      end
+
+      def process_single_block_var(x)
+        puts "NOT GOOD - OPEN A TICKET: #{x.inspect}" if x.size > 1
+        lhs = x.shift
+        lhs.shift # get rid of :array
+        lhs.each do |part|
+          add "unshift_tuple"
+          process part
+          add "pop"
         end
       end
       
@@ -1810,6 +1818,7 @@ module Bytecode
         process_call x
       end
       
+      # Encountered when calling:  foo_method(&block), or foo_method(*args, &block)
       def process_block_pass(x)
         blk = x.shift
         cl = x.shift
@@ -1817,14 +1826,25 @@ module Bytecode
         process_call cl, blk
       end
       
+      # Method calls that take a block are wrapped in this node
+      # Fairly heavily normalized before we get here
       def process_iter(x)
         cl = x.shift
         args = x.shift
         body = x.shift
         count = x.shift
         kind = cl.shift
-        args = [:masgn, [:array, args]] unless !args or args[0] == :masgn # temporary fix
+
+        # Prevent single block arguments from using the more-complex masgn code
+        # TODO - Move this to the normalizer
+        if args and args[0] == :lasgn
+          args = [:single_block_var, [:array, args]] 
+        elsif args and args[0] != :masgn
+          puts "OPEN A TICKET: Unexpected iter args: #{args.inspect}"
+        end
+
         iter = [:block_iter, args, body, count]
+
         if kind == :call
           process_call cl, iter
         elsif kind == :super
