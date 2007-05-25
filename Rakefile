@@ -148,6 +148,13 @@ namespace :build do
   end
 end
 
+desc "Remove all .rbc files from the project"
+task :pristine do
+  FileList['**/*.rbc'].each do |fn|
+    FileUtils.rm fn rescue nil
+  end
+end
+
 desc "Remove runtime/*.rba then svn up"
 task :svn => 'svn:up'
 namespace :svn do

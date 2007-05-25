@@ -455,7 +455,7 @@ class Array
 
   def sort_without_block
     return self if size <= 1
-    pivot = self[(size / 2)]
+    pivot = self[rand(size)] # Random pivot point
     # Array#sort uses the first element of an array to perform the sort
     # In particular, Hash#sort uses this behavior
     pivot = pivot[0] if Array === pivot
@@ -468,7 +468,7 @@ class Array
   def sort_with_block(&block)
     return self if size <= 1
 
-    pivot = self[(size / 2)] # replace with self[rand(size)] once we have Kernel#rand
+    pivot = self[rand(size)] # Random pivot point
     left = select do |x|
       (yield(x,pivot) || 0) < 0
     end
