@@ -93,3 +93,22 @@ class SystemExit < Exception
     "System is exiting with code '#{code}'"
   end
 end
+
+module Kernel
+  def caller
+    ret = []
+    # Since calling this will change the sender, we have to go up twice
+    ctx = MethodContext.current.sender.sender
+    until ctx.nil?
+      if ctx.method.name == :__script__ # This is where MRI stops
+        ret << "#{ctx.file}:#{ctx.line}"
+        break
+      else
+        ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
+      end
+      ctx = ctx.sender
+    end
+    ret
+  end
+end
+  
