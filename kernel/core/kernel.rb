@@ -67,12 +67,12 @@ module Functions
   end
 
   def rand(max=nil)
+    max = max.to_i.abs
     x = Foreign.rand
     # scale result of rand to a domain between 0 and max
-    if max.nil? or max.zero?
+    if max.zero?
       x / 0x7fffffff.to_f
     else
-      max = max.abs
       if max < 0x7fffffff
         x / (0x7fffffff / max)
       else
