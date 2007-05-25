@@ -737,11 +737,25 @@ class String
   end
   
   def upto(stop)
+    unless String === stop
+      if stop.respond_to?(:to_str)
+        stop = stop.to_str
+      else
+        raise TypeError, "can't convert #{stop.class} to String"
+      end
+    end
+
+    raise LocalJumpError, "no block given" unless block_given?
+
+    if self > stop
+      return self
+    end
+
     str = self.dup
     loop do
       yield str.dup
-      break unless str < stop
       str.succ!
+      break if str.size > stop.size || str > stop
     end
     self
   end

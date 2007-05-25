@@ -10,8 +10,8 @@ class String
     self
   end
   
-  ControlCharacters = [?\n, ?\t, ?\a, ?\b, ?\v, ?\f, ?\r, ?\e]
-  ControlPrintValue = ["\\n", "\\t", "\\a", "\\b", "\\v", "\\f", "\\r", "\\e"]
+  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e]
+  ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e"]
   def inspect
     res =  "\""
     0.upto(@bytes - 1) do |idx|
@@ -22,6 +22,8 @@ class String
         res << "\\\""
       elsif char == ?\\
         res << "\\\\"
+      elsif char == ?#
+        res << "\\\#"
       elsif char < 32 or char > 126
         v = char.to_s(8)
         if v.size == 1
