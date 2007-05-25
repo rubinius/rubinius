@@ -124,7 +124,7 @@ inline OBJECT float_infinite_p(STATE, OBJECT self) {
   if (isinf(value))
     return I2N(value < 0 ? -1 : 1);
     
-  return Qnil;
+  return Qfalse;
 }
 
 OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
