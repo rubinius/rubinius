@@ -25,6 +25,10 @@ class Array
     end
   end
 
+  # Synonymous to #replace
+  alias initialize_copy replace
+
+
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will descend and spiral out to infinity!

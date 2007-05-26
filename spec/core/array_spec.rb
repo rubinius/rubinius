@@ -326,11 +326,13 @@ context "Array instance methods" do
     a.freeze
     a.frozen?.should == true
   end
-  
-  specify "frozen? should return true if array is temporarily frozen while being sorted" do
-    a = [1, 2, 3]
-    a.sort! { |x,y| a.frozen?.should == true; x <=> y }
-  end
+
+#  FIX: I have no idea why this should be the case. 
+#       Move to incompatible/ if we want this --rue
+#  specify "frozen? should return true if array is temporarily frozen while being sorted" do
+#    a = [1, 2, 3]
+#    a.sort! { |x,y| a.frozen?.should == true; x <=> y }
+#  end
   
   specify "provides #hash" do
     [].respond_to?(:hash).should == true
