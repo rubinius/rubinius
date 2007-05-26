@@ -114,11 +114,12 @@ subtend/ffi.lo: subtend/ffi.c
 	@echo "CC subtend/ffi.o"
 	$(COMP) $(CFLAGS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
 
-grammar.c:
+# only rebuild grammar.c if grammar.y changed
+grammar.c: grammar.y
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* grammar.c
+	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.*
 	rm -rf .libs subtend/.libs
 
 .PHONY: test
