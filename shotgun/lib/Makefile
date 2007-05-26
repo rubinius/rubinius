@@ -122,7 +122,7 @@ clean:
 	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.*
 	rm -rf .libs subtend/.libs
 
-.PHONY: test
+.PHONY: clean
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(SOURCES:%.c=.%.d)

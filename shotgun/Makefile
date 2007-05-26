@@ -83,25 +83,41 @@ external_libs/lightning/opcode/libdisass.a: external_libs/lightning/config.h
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
 
-external_libs/onig/.libs/libonig.a:
-	cd external_libs/onig; CFLAGS=-fPIC ./configure; $(MAKE)
+external_libs/onig/config.h:
+	cd external_libs/onig; CFLAGS=-fPIC ./configure
 
-external_libs/libzip/lib/.libs/libzip.a:
-	cd external_libs/libzip; CFLAGS=-fPIC ./configure; $(MAKE)
+external_libs/onig/.libs/libonig.a:	external_libs/onig/config.h
+	cd external_libs/onig; $(MAKE)
 
+external_libs/libzip/config.h:
+	cd external_libs/libzip; CFLAGS=-fPIC ./configure
+
+external_libs/libzip/lib/.libs/libzip.a:	external_libs/libzip/config.h
+	cd external_libs/libzip; $(MAKE)
+
+# cinvoke doesn't produce a config.h
 external_libs/cinvoke/lib/libcinvoke.a:
 	cd external_libs/cinvoke; CFLAGS=-fPIC ./configure; $(MAKE)
 
-external_libs/libevent/.libs/libevent.a:
-	cd external_libs/libevent; CFLAGS=-fPIC ./configure; $(MAKE) libevent.la
+external_libs/libevent/config.h:
+	cd external_libs/libevent; CFLAGS=-fPIC ./configure
 
-external_libs/libltdl/.libs/libltdl.a:
-	cd external_libs/libltdl; CFLAGS=-fPIC ./configure; $(MAKE)
+external_libs/libevent/.libs/libevent.a: external_libs/libevent/config.h
+	cd external_libs/libevent; $(MAKE) libevent.la
+
+external_libs/libltdl/config.h:
+	cd external_libs/libltdl; CFLAGS=-fPIC ./configure
+
+external_libs/libltdl/.libs/libltdl.a: external_libs/libltdl/config.h
+	cd external_libs/libltdl; $(MAKE)
 
 librubinius.la: config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) librubinius.la; 
 
-.PHONY: librubinius.a
+.PHONY: librubinius.la
+
+# Don't try to build main until librubinius exists
+main.c: librubinius.la
 
 rubinius: librubinius.la main.lo
 	$(LINKER) -o rubinius main.lo lib/librubinius.la
@@ -122,13 +138,23 @@ test: test/test_state test/test_instructions
 	./test/test_state
 	./test/test_instructions
 
+.PHONY: test
+
 clean:
 	rm -f *.o *.lo *.gen rubinius config.h config.mk
 	rm -rf .libs
 	cd lib; $(MAKE) clean
-	cd external_libs/lightning; rm -f config.h
 	cd external_libs/libtommath; $(MAKE) clean
 	cd external_libs/onig; $(MAKE) clean
 	cd external_libs/libevent; $(MAKE) clean
 
-.PHONY: test
+.PHONY: clean
+
+# Clean, but also nuke configs
+distclean: clean
+	cd external_libs/lightning; rm -f config.h
+	cd external_libs/onig; rm -f config.h
+	cd external_libs/libzip; rm -f config.h
+	cd external_libs/libevent; rm -f config.h
+	cd external_libs/libltdl; rm -f config.h
+.PHONY: distclean
