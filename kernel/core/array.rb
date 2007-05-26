@@ -2,7 +2,7 @@ class Array
   include Enumerable
 
   def initialize(sz=0, obj=nil)
-#    super
+    #    super
     if Array === sz #.class == Array        # can we really use === here?
       # dup from sz, which is really an Array
       @tuple = Tuple.new(sz.size + 10)
@@ -15,7 +15,7 @@ class Array
     elsif block_given?          # FIXME in class.rb: This apparently never is true!
       # fill sz times from yield
       @tuple = Tuple.new(sz + 10)
-      sz.times { |i| @tuple.put i, yield }
+      sz.times { |i| @tuple.put i, yield(i) }
       @total = sz
     else
       # fill sz times from obj
@@ -28,39 +28,56 @@ class Array
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will descend and spiral out to infinity!
+
+    # Normalise Range arguments
     if idx.class == Range
       if cnt
         raise ArgumentError, "Second argument invalid with a range"
       end
+
+      # Extract the count
       lst = idx.last
-      if lst < 0
-        lst += @total
-      end
+      lst += @total if lst < 0
+      return nil if lst < 0
+
       lst += 1 unless idx.exclude_end?
-      idx = idx.first  
+
+      idx = idx.first
+      idx += @total if idx < 0
+      return nil if idx < 0
+
+      return [] if lst == 0
+
       cnt = lst - idx
     end
-    
+
+    if idx < 0
+      idx += @total
+    end
+
+    if idx < 0
+      return nil
+    end
+
     if cnt
+      return nil if cnt < 0
+      return [] if cnt == 0
+
       out = []
       max = idx + cnt - 1
       max = @total - 1 if max >= @total
       idx.upto(max) do |i|
         out << @tuple.at(i)
       end
-      
+
       return nil if idx > @total || max < 0
       return out
     end
-    
-    if idx < 0
-      idx = @total + idx
-    end
-    
+
     if idx < 0 || idx >= @total
       return nil
     end
-    
+
     @tuple.at(idx)
   end
 
@@ -84,6 +101,7 @@ class Array
       ent = args[0]             # 2nd arg (cnt) is the optional one!
     end
 
+    # Normalise Ranges
     if idx.class == Range
       if cnt
         raise ArgumentError, "Second argument invalid with a range"
@@ -93,15 +111,28 @@ class Array
         lst += @total
       end
       lst += 1 unless idx.exclude_end?
+
       idx = idx.first
       if idx < 0
         idx += @total
         raise IndexError if idx < 0
       end
+
+      # m..n, m > n allowed
+      lst = idx if idx > lst
+
       cnt = lst - idx
     end
 
+    if idx < 0
+      idx += @total
+      raise IndexError.new("Index #{idx -= @total} out of bounds") if idx < 0
+    end
+
     if cnt
+      # count < 0 not allowed
+      raise IndexError.new("Negative length #{cnt}") if cnt < 0
+
       cnt = @total - idx if cnt > @total - idx # MRI seems to be forgiving here!
       replacement = ent
       if ent == nil
@@ -143,11 +174,6 @@ class Array
       return ent
     end
 
-    if idx < 0
-      idx += @total
-      raise IndexError if idx < 0
-    end
-
     if idx >= @tuple.fields
       nt = Tuple.new(idx + 10)
       nt.copy_from @tuple, 0
@@ -159,6 +185,13 @@ class Array
       @total = idx + 1
     end
     return ent
+  end
+  
+  def join(sep = nil, meth=:to_s)
+    str = ""
+    return str if @total == 0
+    sep = $, unless sep
+    tuple.join_upto(sep, @total, meth)
   end
 
   def each_index
@@ -180,14 +213,14 @@ class Array
     return true
   end
 
-#  def collect!                  # FIXME: should use alias
-#    i = 0
-#    each do |a|
-#      self[i] = yield(a)
-#      i += 1
-#    end
-#    return self
-#  end
+  #  def collect!                  # FIXME: should use alias
+  #    i = 0
+  #    each do |a|
+  #      self[i] = yield(a)
+  #      i += 1
+  #    end
+  #    return self
+  #  end
 
   alias :collect! :map!
 
@@ -343,18 +376,26 @@ class Array
     self
   end
 
+  def to_a
+    if self.class == Array
+      self
+    else
+      self[0..-1]
+    end
+  end
+
   def to_s
     self.join
   end
 
   alias slice []
 
-# crashes compiler:
-#  def slice! (*args)
-#    out = self[*args]
-#    self[*args] = nil
-#    out
-#  end
+  # crashes compiler:
+  #  def slice! (*args)
+  #    out = self[*args]
+  #    self[*args] = nil
+  #    out
+  #  end
   def slice!(*args)
     a1 = args.shift
     out = self[a1, *args]       # FIXME: a1 is needed to avoid compiler crash
@@ -433,11 +474,34 @@ class Array
 
   alias indices indexes
 
-  def transpose
-    out = []
-    a1 = shift
-    a1.zip(*self) { |x| out << x }
-    out
+  def transpose()
+    result = []
+    elems = map { |a| 
+      begin
+        a.to_ary 
+      rescue 
+        raise TypeError, "Unable to convert #{a.class.name} to Array" 
+      end
+    }
+    a = elems.shift
+
+    a.each_with_index { |a, i|
+      result << elems.inject([a]) { |memo, o| memo << o.fetch(i) } 
+    }
+
+    result
+  end
+
+  def zip(*others)
+    result = []        
+    others = others.map { |a| a.to_ary }
+
+    each_with_index { |a, i|
+      result << others.inject([a]) { |memo, o| memo << o.fetch(i, nil) } 
+      yield result.last if block_given?
+    }
+
+    result unless block_given?
   end
 
   # sort_without_block has a separate implementation because block args (&block)
@@ -455,7 +519,10 @@ class Array
 
   def sort_without_block
     return self if size <= 1
-    pivot = self[rand(size)] # Random pivot point
+    # Breaks amd64, FFI?
+#    pivot = self[rand(size)] # Random pivot point
+    pivot = self.first
+
     # Array#sort uses the first element of an array to perform the sort
     # In particular, Hash#sort uses this behavior
     pivot = pivot[0] if Array === pivot
@@ -468,7 +535,10 @@ class Array
   def sort_with_block(&block)
     return self if size <= 1
 
-    pivot = self[rand(size)] # Random pivot point
+    # Breaks amd64, FFI?
+#    pivot = self[rand(size)] # Random pivot point
+    pivot = self.first
+
     left = select do |x|
       (yield(x,pivot) || 0) < 0
     end
