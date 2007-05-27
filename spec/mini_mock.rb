@@ -12,7 +12,7 @@ class Object
   def should_receive(sym, info = {:with => :any, :block => :any, :count => 1})
     meta = class << self; self; end
     
-    if meta.instance_methods.include?(sym)
+    if self.respond_to? sym
       meta.send :alias_method, :"__ms_#{sym}", sym.to_sym
       Mock.set_objects self, sym, :single_overridden 
     else 
@@ -42,21 +42,21 @@ end
 
 module Mock
   def self.reset()
-    $__ms_expects = {}
-    $__ms_objects = []
+    @expects = {}
+    @objects = []
   end
 
   def self.set_expect(obj, sym, info)
-    $__ms_expects[[obj, sym]] = info
+    @expects[[obj, sym]] = info
   end
 
   def self.set_objects(obj, sym, type = nil)
-    $__ms_objects << [obj, sym, type]
+    @objects << [obj, sym, type]
   end
 
   # Verify to correct number of calls
   def self.verify()
-    $__ms_expects.each {|k, info|
+    @expects.each {|k, info|
       obj, sym = k[0], k[1]
 
       if info[:count] != :never 
@@ -69,7 +69,7 @@ module Mock
 
   # Clean up any methods we set up
   def self.cleanup()
-    $__ms_objects.each {|info|
+    @objects.each {|info|
       obj, sym, type = info[0], info[1], info[2]
 
       hidden_name = "__ms_" + sym.to_s
@@ -96,7 +96,7 @@ module Mock
   # is not detected until #verify_expects! gets called
   # which by default happens at the end of a #specify
   def self.report(obj, sym, *args, &block)
-    info = $__ms_expects[[obj, sym]]
+    info = @expects[[obj, sym]]
 
     unless info[:with] == :any
       unless info[:with] == args
