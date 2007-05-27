@@ -554,13 +554,13 @@ module Enumerable
   #     enum.member?(obj)      => true or false
   #  
   #  Returns <code>true</code> if any member of <i>enum</i> equals
-  #  <i>obj</i>. Equality is tested using <code>==</code>.
+  #  <i>obj</i>. Equality is tested using <code>obj.==</code>.
   #     
   #     IO.constants.include? "SEEK_SET"          #=> true
   #     IO.constants.include? "SEEK_NO_FURTHER"   #=> false
   #     
   def include?(obj)
-    each { |o| return true if o ==  obj }
+    each { |o| return true if obj == o }
     false
   end
 
