@@ -37,8 +37,8 @@ describe "Multiple assignment, array-style" do
 
     (f,g,h = 99,8).should == [99,8]
     f.should == 99
-    d.should == 8
-    e.should == nil
+    g.should == 8
+    h.should == nil
   end
 end
 
