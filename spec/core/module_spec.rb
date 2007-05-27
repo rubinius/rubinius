@@ -16,6 +16,38 @@ context "Module" do
     Object.const_defined?("C").should == true
     Object.const_defined?("Zargle").should == false
   end
+
+  specify "const_set should create a constant" do
+    Object.const_defined?("Cozzy").should == false
+    Object.const_set("Cozzy", 'a constant!')
+    Object.const_defined?("Cozzy").should == true
+    Cozzy.should == 'a constant!'
+
+    class Tenacious; end
+
+    Tenacious.const_defined?(:D).should == false
+    Tenacious.const_set(:D, 'The D')
+    Tenacious.const_defined?(:D).should == true
+    Tenacious::D.should == 'The D'
+  end
+
+  specify "const_set should fail on a bad constant name" do
+    should_raise(NameError) { Object.const_set("cozzy", true) }
+    should_raise(ArgumentError) { Object.const_set(2, true) }
+    should_raise(TypeError) { Object.const_set(Time.now, true) }
+  end
+
+  specify "const_get should return a constant's value" do
+    Object.const_get(:Object).should == Object
+    Object.const_set(:Cozzer, 'cozzer!')
+    Object.const_get(:Cozzer).should == 'cozzer!'
+  end
+
+  specify "const_get should fail on a bad constant name" do
+    should_raise(NameError) { Object.const_get("cozzy") }
+    should_raise(ArgumentError) { Object.const_get(2) }
+    should_raise(TypeError) { Object.const_get(Time.now) }
+  end
   
   specify "include should accept multiple arguments" do
     class E
