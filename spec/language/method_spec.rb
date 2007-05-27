@@ -35,6 +35,38 @@ describe 'Defining methods with *' do
 end
 
 describe "Terror from the ancient world" do
+  it "should let you define a singleton method on an lvar" do
+    a = "hi"
+    def a.foo
+      5
+    end
+    a.foo.should == 5
+  end
+
+  it "should let you define a singleton method on an ivar" do
+    @a = "hi"
+    def @a.foo
+      6
+    end
+    @a.foo.should == 6
+  end
+
+  it "should let you define a singleton method on a gvar" do
+    $__a__ = "hi"
+    def $__a__.foo
+      7
+    end
+    $__a__.foo.should == 7
+  end
+
+  it "should let you define a singleton method on a cvar" do
+    @@a = "hi"
+    def @@a.foo
+      8
+    end
+    @@a.foo.should == 8
+  end
+
   it "should let you define a method inside a default argument" do
     def foo(x = (def foo; "hello"; end;1));x;end
     foo(42).should == 42

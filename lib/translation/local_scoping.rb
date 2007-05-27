@@ -185,6 +185,7 @@ class RsLocalScoper < SimpleSexpProcessor
   def process_defs(x)
     y = x.dup
     x.clear
+    y[0] = process(y[0]) # the receiver of defs might be an lvar
     y.unshift :defs
     return y
   end
