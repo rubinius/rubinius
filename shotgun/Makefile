@@ -31,7 +31,7 @@ DEPS=../include/rubinius.h
 ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
 
 # No disass support for 64
-ifneq ($(MARCH),amd64)	
+ifneq ($(findstring 64,$(MARCH)),64)
 	RBS_LIGHTNING_DISASS='--enable-disassembling'
 	ALIBS+=external_libs/lightning/opcode/libdisass.a
 endif	

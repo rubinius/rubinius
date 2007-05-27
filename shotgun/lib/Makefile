@@ -25,7 +25,7 @@ WARNINGS=-Wall -Winline
 LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
 
 # No disass support for 64
-ifneq ($(MARCH),amd64)	
+ifneq ($(findstring 64,$(MARCH)),64)
 	CPPFLAGS+="-DRBS_DISASS=1"
 	LIBS+=../external_libs/lightning/opcode/libdisass.a
 endif 
