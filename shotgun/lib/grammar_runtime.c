@@ -101,7 +101,7 @@ void create_error(rb_parse_state *parse_state, char *msg) {
  *
  * It was mearly imported into this space by Evan Webb.
  */
-static char node_type_string[][60] = {
+static const char node_type_string[][60] = {
     /*  00 */
     "method", "fbody", "cfunc", "scope", "block",
     "if", "case", "when", "opt_n", "while",

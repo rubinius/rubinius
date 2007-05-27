@@ -30,7 +30,7 @@ OBJECT symtbl_new(STATE) {
   return tbl;
 }
 
-OBJECT symtbl_lookup_cstr(STATE, OBJECT self, char *str) {
+OBJECT symtbl_lookup_cstr(STATE, OBJECT self, const char *str) {
   unsigned int hash;
   OBJECT strs, idx, syms;
 

@@ -4,7 +4,7 @@
 typedef rni_handle* (*nm_stub_ffi)(rni_handle*);
 
 struct native_method {
-#ifdef USE_CINVOKE;
+#ifdef USE_CINVOKE
   CInvFunction *prototype;
 #endif
   void *entry;

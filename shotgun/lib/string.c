@@ -11,7 +11,7 @@ int debugging = 0;
 
 #define STRING_P(obj) (REFERENCE_P(obj) && HEADER(obj)->klass == state->global->string)
 
-OBJECT string_new2(STATE, char *str, int sz) {
+OBJECT string_new2(STATE, const char *str, int sz) {
   OBJECT obj, data;
   char *ba;
   
@@ -33,7 +33,7 @@ OBJECT string_new2(STATE, char *str, int sz) {
   return obj;
 }
 
-OBJECT string_new(STATE, char *str) {
+OBJECT string_new(STATE, const char *str) {
   int sz;  
   sz = strlen(str);
   return string_new2(state, str, sz);
@@ -174,7 +174,7 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   return h;
 }
 
-unsigned int string_hash_cstr(STATE, char *bp) {
+unsigned int string_hash_cstr(STATE, const char *bp) {
   unsigned int sz = strlen(bp);
   return _hash_str((unsigned char*)bp, sz);
 }
