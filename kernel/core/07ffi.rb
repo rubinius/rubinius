@@ -91,13 +91,11 @@ class Module
       ret = a4
     end
     
-    meta = (class << self; self; end)
-    
     func = FFI.create_function lib, name, args, ret
     
     raise "Unable to create function #{name}" unless func
     
-    meta.methods[mname] = func
+    metaclass.methods[mname] = func
     return func
   end
 end

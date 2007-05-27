@@ -9,6 +9,20 @@ class Module
   end
   alias_method :class_eval, :module_eval
 
+  # TODO - Handle module_function without args, as per 'private' and 'public'
+  def module_function(*method_names)
+    if method_names.empty?
+      raise ArgumentError, "module_function without an argument is not supported"
+    else
+      mod_methods = methods
+      inst_methods = metaclass.methods
+      method_names.each do |method_name|
+        inst_methods[method_name] = mod_methods[method_name]
+      end
+    end
+    nil
+  end
+
   def const_set(name, value)
     constants[const_name_validate(name)] = value
   end

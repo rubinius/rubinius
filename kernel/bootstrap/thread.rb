@@ -53,7 +53,7 @@ class Thread
     Ruby.primitive :thread_new
   end
 
-  def self.yield
+  def self.pass
     Ruby.primitive :thread_yield
   end
 
