@@ -25,6 +25,10 @@ class Object
   rescue Object => ex
     exc.should === ex
   end
+
+  def should_include(*other)
+    should Spec::Matchers::Include.new(*other)
+  end
 end
   
 # Example courtesy of nicksieger, many thanks!
