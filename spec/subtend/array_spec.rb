@@ -53,4 +53,14 @@ context "SubtendArray" do
     a.unshift("a").should == ["a", 1, 2, 3]
     a.should == ['a', 1, 2, 3]
   end
+
+  specify "rb_ary_shift should remove and return the first element" do
+    a = [5, 1, 1, 5, 4]
+    @s.rb_ary_shift(a).should == 5
+    a.should == [1, 1, 5, 4]
+  end
+
+  specify "rb_ary_shift should return nil when the array is empty" do
+    @s.rb_ary_shift([]).should == nil
+  end
 end
