@@ -235,8 +235,8 @@ module Bytecode
         @state.unique_id
       end
       
-      def unique_lbl
-        "lbl#{unique_id}"
+      def unique_lbl(prefix = '')
+        "#{prefix}lbl#{unique_id}"
       end
       
       def unique_exc
@@ -271,28 +271,28 @@ module Bytecode
       
       def process_and(x)
         process x.shift
-        lbl = unique_lbl()
+        lbl = unique_lbl('and_')
         add "dup"
-        add "gif #{lbl}"
+        gif lbl
         add "pop"
         process x.shift
-        add "#{lbl}:"
+        set_label lbl
       end
       
       def process_or(x)
         process x.shift
-        lbl = unique_lbl()
+        lbl = unique_lbl('or_')
         add "dup"
-        add "git #{lbl}"
+        git lbl
         add "pop"
         process x.shift
-        add "#{lbl}:"
+        set_label lbl
       end
       
       def process_not(x)
         process x.shift
-        tr = unique_lbl() 
-        ed = unique_lbl()
+        tr = unique_lbl('not_') 
+        ed = unique_lbl('not_')
         git tr
         add "push true"
         goto ed
@@ -377,12 +377,12 @@ module Bytecode
 
       # Only call regexp special var method if $~ is_a? MatchData
       def valid_last_match(op, nth_ref=nil)
-        el = unique_lbl()
-        ed = unique_lbl()
+        el = unique_lbl('match_')
+        ed = unique_lbl('match_')
         add "push MatchData"
         process_gvar([:$~])
         add "send is_a? 1"
-        gif(el)
+        gif el
         add "push #{nth_ref}" if nth_ref
         process_gvar([:$~])
         add op
@@ -434,8 +434,8 @@ module Bytecode
         els = x.shift
         process cond
         
-        el = unique_lbl()
-        ed = unique_lbl()
+        el = unique_lbl('if_')
+        ed = unique_lbl('if_')
         
         if thn and els
           gif el
@@ -506,9 +506,9 @@ module Bytecode
       
       def process_while(x, cond="gif")
         cm = save_condmod()
-        @next = top = unique_lbl()
-        @break = bot = unique_lbl()
-        @redo = unique_lbl()
+        @next = top = unique_lbl('next_')
+        @break = bot = unique_lbl('break_')
+        @redo = unique_lbl('redo_')
         set_label top
         process x.shift
         add "#{cond} #{bot}"
@@ -529,8 +529,8 @@ module Bytecode
       
       def process_loop(x)
         b = @break
-        @break = unique_lbl()
-        top = unique_lbl()
+        @break = unique_lbl('break_')
+        top = unique_lbl('loop_')
         set_label top
         dontpop = x[0].nil?     # fixme -- why is a nil there?
         process(x.shift)
@@ -580,7 +580,7 @@ module Bytecode
         lst = w[1].pop
         body = nil
         unless w[1].empty?
-          body = unique_lbl()
+          body = unique_lbl('when_')
           w[1].each do |cond|
             add "dup"
             process cond
@@ -592,7 +592,7 @@ module Bytecode
         process lst
         add "send === 1"
         gif nxt
-        add "#{body}:" if body
+        set_label(body) if body
         process w[2]
         add "goto #{post}" if post
       end
@@ -603,14 +603,14 @@ module Bytecode
         els = x.shift
         
         lbls = []
-        (whns.size - 1).times { lbls << unique_lbl() }
+        (whns.size - 1).times { lbls << unique_lbl('case_') }
         if els
-          els_lbl = unique_lbl()
+          els_lbl = unique_lbl('case_')
           lbls << els_lbl
         else
           els_lbl = nil
         end
-        post = unique_lbl()
+        post = unique_lbl('case_')
         lbls << post
         
         single = (whns.size == 1 and !els)
@@ -627,12 +627,12 @@ module Bytecode
         
         whns.each do |w|
           cur = lbls.shift
-          add "#{cur}:"
+          set_label cur
           generate_when w, lbls[0], post
         end
         
         if lst
-          add "#{lbls.shift}:"
+          set_label(lbls.shift)
           if els_lbl
             generate_when lst, els_lbl, post
           else
@@ -641,11 +641,11 @@ module Bytecode
         end
                 
         if els
-          add "#{lbls.shift}:"
+          set_label(lbls.shift)
           process(els)
         end
         
-        add "#{post}:"
+        set_label(post)
         add "swap"
         add "pop"
       end
@@ -674,7 +674,7 @@ module Bytecode
 
       def process_op_asgn_or(x)
         process x.shift #lvar
-        lbl = unique_lbl()
+        lbl = unique_lbl('asgn_or_')
         add "dup"
         git lbl
         add "pop"
@@ -687,7 +687,7 @@ module Bytecode
         # yields:
         # [:op_asgn_and, [:lvar, :x, 2], [:lasgn, :x, 2, [:lit, 7]]]]
         process x.shift #lvar
-        lbl = unique_lbl()
+        lbl = unique_lbl('asgn_and_')
         add "dup"
         gif lbl
         add "pop"
@@ -705,7 +705,7 @@ module Bytecode
         # [:attrasgn, [:lvar, :x, 2], :val=, [:array, [:lit, 6]]],
         #
         lvar = x.shift #lvar
-        lbl = unique_lbl()
+        lbl = unique_lbl('asgn2_')
         msg = x.shift
         operator = x.shift # :and or :or
         msg2 = x.shift #assignment
@@ -736,7 +736,7 @@ module Bytecode
         # ]
         #
         obj = x.shift
-        lbl = unique_lbl()
+        lbl = unique_lbl('asgn1_')
         operator = x.shift # :and or :or
         arg = x.shift
         arg.shift
@@ -756,7 +756,7 @@ module Bytecode
         process idx
         add "swap"
         add "send []= 2"
-        nd = unique_lbl()
+        nd = unique_lbl('asgn1_')
         goto nd
         set_label lbl
         add "swap"
@@ -1012,7 +1012,7 @@ module Bytecode
       
       def process_begin(x)
         b = @break
-        @break = unique_lbl()
+        @break = unique_lbl('begin_')
         process x.shift
         set_label @break
         @break = b
@@ -1020,10 +1020,10 @@ module Bytecode
 
       def process_rescue(x)
         ex = unique_exc()
-        fin = unique_lbl()
-        rr = unique_lbl()
+        fin = unique_lbl('rescue_')
+        rr = unique_lbl('rescue_')
         old_retry = @retry_label
-        @retry_label = unique_lbl()
+        @retry_label = unique_lbl('rescue_')
         set_label @retry_label
         body = x.shift
         res = x.shift
@@ -1052,10 +1052,11 @@ module Bytecode
         goto fin
         add "#exceptions #{ex}"
         do_resbody res, rr, fin
-        add "#{rr}:"
+        set_label rr
         add "push_exception"
         add "raise_exc"
-        add "#{fin}:"
+        set_label fin
+
         # Since this is always the end if the exception has either
         # not occurred or has been correctly handled, we clear the current
         # exception. There is an optimization that could be done here,
@@ -1117,7 +1118,7 @@ module Bytecode
               add "push self"
               add "send respond_to? 1"
             else
-              lbl = unique_lbl()
+              lbl = unique_lbl('defined_')
               const = receiver[1]
               add "push :#{const}"
               add "push Object"
@@ -1212,12 +1213,12 @@ module Bytecode
         if other.nil?
           nxt = rr
         else
-          nxt = unique_lbl()
+          nxt = unique_lbl('resbody_')
         end
         
         one_cond = (cond.size == 1)
         
-        bl = unique_lbl()
+        bl = unique_lbl('resbody_')
         while cur = cond.shift
           add "push_exception"
           process cur
@@ -1288,12 +1289,12 @@ module Bytecode
         process ens
         # discard new result
         add "pop"
-        l_noex2 = unique_lbl()
+        l_noex2 = unique_lbl('ensure_')
         goto l_noex2
 
         add "#exceptions #{ex2}"
         # replace old result/exception on stack with new exception
-        l_ex = unique_lbl()
+        l_ex = unique_lbl('ensure_')
         # old exception?
         git l_ex
         # discard result, if not
@@ -1308,7 +1309,7 @@ module Bytecode
         #   ( result nil )  or
         #   ( exception )
         
-        l_noex = unique_lbl()
+        l_noex = unique_lbl('ensure_')
         add "dup"
         gif l_noex
         # FIXME: re-raising from here messes with line numbers in the
@@ -1514,11 +1515,9 @@ module Bytecode
         args = x.shift
         body = x.shift
         
-        # Log.debug " ==> Compiling '#{name}'"
-        
         prim = detect_primitive(body)
         state = RsLocalState.new
-        
+
         defaults = args[4]
         args[1].each do |e|
           state.args << [e, state.local(e)]
@@ -1563,7 +1562,8 @@ module Bytecode
         if defaults
           idx = min
           defaults.each do |var|
-            lbl = "set#{state.unique_id}"
+            lbl = unique_lbl('set_')
+            #lbl = "set#{state.unique_id}"
             str << "passed_arg #{idx}\ngit #{lbl}\n"
             save = @output
             @output = ""
@@ -1713,7 +1713,7 @@ module Bytecode
         end
         
         if block
-          @post_send = ps = unique_lbl()
+          @post_send = ps = unique_lbl('ps_')
         end
         
         if grab_args
@@ -1778,7 +1778,7 @@ module Bytecode
         end
         
         if block
-          @post_send = ps = unique_lbl()
+          @post_send = ps = unique_lbl('super_')
         end
         
         add "get_args" if grab_args    
@@ -1852,8 +1852,8 @@ module Bytecode
         args = x.shift
         body = x.shift
         count = x.shift
-        one = unique_lbl()
-        two = unique_lbl()
+        one = unique_lbl('iter_') # TODO - Brutal hack
+        two = unique_lbl('iter_')
         add "push &#{@post_send}"
         add "push &#{one}"
         add "create_block #{count}"
@@ -1864,7 +1864,7 @@ module Bytecode
         goto two
         if x[0] && x[0][1].size > 2 # multi-arg block
           puts "x[0][1]" + x[0][1].inspect if $DEBUG_COMPILER
-          noarrayexpand = unique_lbl()
+          noarrayexpand = unique_lbl('iter_')
           add "dup"
           add "send fields 0"   # XXX better insn?
           add "push 1"
@@ -1885,7 +1885,7 @@ module Bytecode
         end
         process args
         red = @redo
-        @redo = unique_lbl()
+        @redo = unique_lbl('redo_')
         set_label @redo
         ret = @retry_label
         @retry = :block

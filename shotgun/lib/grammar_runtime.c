@@ -713,6 +713,9 @@ again_no_block:
       } else if (arg_count == -2) {
         array_push(current, Qnil);
         /* nothing to do in this case, no name == no use */
+      } else if (arg_count == 0) {
+        array_push(current, Qnil);
+        /* This happens when you have: def blah(*);end.  */
       } else {
         printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
         break;

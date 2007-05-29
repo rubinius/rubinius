@@ -59,11 +59,15 @@ class RsNormalizer < SimpleSexpProcessor
     end
 
     block = body[1]
-    args = block[1]
-
-    if args.first != :args
+    if block[0] == :args 
+      # Insane defs like this:
+      # def some_local_var.foo(x = ($foo_self = self; nil)); end
+      body[1] = [:block, block]
+      process_defn([name, body])
+    elsif block[1][0] != :args
       raise "Unknown defn layout."
     end
+    args = block[1]
 
     if args.size == 1
       args += [[], [], nil, nil]
@@ -76,13 +80,10 @@ class RsNormalizer < SimpleSexpProcessor
     # The :block is processed because it may contain vcall and fcall nodes
     args[4] = process(args[4]) if args[4]
 
-    #args[1].each do |a|
-    #  i = lvar_idx(a)
-      # puts "marking #{a} as a local: #{i}"
-    #end
-
     start = 2
-    if block[2].first == :block_arg
+
+    # block[2] could be nil if the method has no body
+    if block[2] && block[2][0] == :block_arg
       start = 3
       args << block[2]
     end
@@ -91,15 +92,7 @@ class RsNormalizer < SimpleSexpProcessor
     if @full
       cur = @state
       @state = RsLocalState.new
-      # args[1].each { |i| @state.local(i) }
-      # pp body
-      #begin
-        body = process(body)
-      #rescue Object => e
-      #  exc = RuntimeError.new("Unable to process body of '#{name}'. #{e.message} (#{e.class})")
-        # exc.set_backtrace e.backtrace
-      #  raise exc
-      #end
+      body = process(body)
       @state = cur
     end
     [:defn, name, args, body]

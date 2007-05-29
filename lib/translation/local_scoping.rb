@@ -186,15 +186,39 @@ class RsLocalScoper < SimpleSexpProcessor
     y = x.dup
     x.clear
     y[0] = process(y[0]) # the receiver of defs might be an lvar
+    if y[2] && y[2][4] # a :block node of default arguments
+      y[2][4] = handle_default_args_block(y[2][4])
+    end
     y.unshift :defs
     return y
   end
-  
+
   def process_defn(x)
     y = x.dup
     x.clear
+    if y[1] && y[1][4] # a :block node of default arguments
+      y[1][4] = handle_default_args_block(y[1][4])
+    end
     y.unshift :defn
     return y
+  end
+  
+  # TODO - Sanity check?
+  def handle_default_args_block(x)
+    current_state = @state
+    # Default arguments need to be evaluated in the same context as the
+    # class definition itself. Since both of those scopes start out 'blank',
+    # we can just create a new LocalState here to approximate sharing
+    @state = RsLocalState.new
+    block = x.dup
+    x.clear
+    block.each_with_index do |node, i|
+      if Array === node 
+        block[i] = process(node)
+      end
+    end
+    @state = current_state
+    block
   end
   
   def process_class(x)

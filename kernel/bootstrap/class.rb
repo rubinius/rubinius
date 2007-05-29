@@ -1,6 +1,7 @@
 class Class
   def allocate
     Ruby.primitive :allocate
+    raise RuntimeError, "primitive 'allocate' failed on #{self.inspect}"
   end
   
   # A version taking a block is available in core; it's too early to

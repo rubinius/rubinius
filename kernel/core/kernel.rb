@@ -81,20 +81,12 @@ module Functions
     end
   end
   
-  alias fail raise
-end
-
-class SystemExit < Exception
-  def code
-    at(0)
+  def eval(string, binding = self, filename = '(eval)', lineno = 1)
+    compiled_method = string.compile_as_method(filename, lineno)
+    method = Method.new(binding, nil, compiled_method)
+    method.call
   end
 
-  def message
-    "System is exiting with code '#{code}'"
-  end
-end
-
-module Kernel
   def caller
     ret = []
     # Since calling this will change the sender, we have to go up twice
@@ -109,6 +101,18 @@ module Kernel
       ctx = ctx.sender
     end
     ret
+  end
+
+  alias fail raise
+end
+
+class SystemExit < Exception
+  def code
+    at(0)
+  end
+
+  def message
+    "System is exiting with code '#{code}'"
   end
 end
   
