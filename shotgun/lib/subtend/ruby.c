@@ -454,7 +454,6 @@ rb_obj_alloc
 rb_obj_call_init
 rb_ary_dup
 rb_ary_unshift
-rb_ary_clear
 rb_float_new
 Data_Wrap_Struct
 
