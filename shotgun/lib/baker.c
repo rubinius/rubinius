@@ -314,13 +314,7 @@ OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT orig) {
   
   //printf("!!!\n   => From %p\n!!!\n", iobj);
   
-  if(baker_gc_forwarded_p(orig)) {
-    ret = baker_gc_forwarded_object(orig);
-  } else if(baker_gc_contains_p(g, orig)) {
-    ret = baker_gc_mutate_object(state, g, orig);
-  } else {
-    ret = orig;
-  }
+  ret = baker_gc_maybe_mutate(state, g, orig);
   
   // assert(baker_gc_contains_spill_p(g, ret));
 
