@@ -47,4 +47,10 @@ context "SubtendArray" do
     b.should == a
     b.should_not equal?(a)
   end
+
+  specify "rb_ary_unshift should prepend the element to the array" do
+    a = [1, 2, 3]
+    a.unshift("a").should == ["a", 1, 2, 3]
+    a.should == ['a', 1, 2, 3]
+  end
 end
