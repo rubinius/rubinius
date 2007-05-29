@@ -22,20 +22,24 @@ class Module
     end
     nil
   end
+  
+  def constants
+    constants_table.keys.map { |v| v.to_s }
+  end
 
   def const_set(name, value)
-    constants[const_name_validate(name)] = value
+    constants_table[const_name_validate(name)] = value
   end
 
   def const_get(name)
-    constants[const_name_validate(name)]
+    constants_table[const_name_validate(name)]
   end
 
   def const_name_validate(name)
     raise ArgumentError, "#{name} is not a symbol" if Fixnum === name
 
     unless name.respond_to?(:to_sym)
-      raise TypeError, "#{name} is not a symbol" 
+      raise TypeError, "#{name} is not a symbol"
     end
 
     unless name.to_s =~ /^[A-Z]\w*$/

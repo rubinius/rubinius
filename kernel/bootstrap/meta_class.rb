@@ -3,7 +3,7 @@ class MetaClass
   def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
   def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
   def name; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def constants; Ruby.asm "push self\npush 4\nfetch_field"; end
+  def constants_table; Ruby.asm "push self\npush 4\nfetch_field"; end
   def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
   def superclass; Ruby.asm "push self\npush 6\nfetch_field"; end
   def instance_fields; Ruby.asm "push self\npush 7\nfetch_field"; end

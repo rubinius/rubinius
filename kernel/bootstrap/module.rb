@@ -43,7 +43,7 @@ class Module
     hierarchy.shift if hierarchy.first == "Object"
     const = self
     until hierarchy.empty?
-      const = const.constants[hierarchy.shift.to_sym]
+      const = const.constants_table[hierarchy.shift.to_sym]
       return false unless const
     end
     return true
