@@ -1,17 +1,23 @@
 require 'rake'
-require 'rake/testtask'
+require 'rake/clean'
 
-task :default => [:clean, "#{$ext_name}.bundle"]
+input = "#{$cwd}/#{$ext_name}.c"
+common = "-I shotgun/lib/subtend -g #{input}"
 
-
-task :clean do
-  cd $cwd do
-    rm_rf "#{$ext_name}.bundle"
-  end
+case PLATFORM
+when /darwin/
+  output = "#{$cwd}/#{$ext_name}.bundle"
+  build_cmd = "cc -dynamic -bundle -undefined suppress -flat_namespace #{common} -o #{output}"
+else
+  output = "#{$cwd}/#{$ext_name}.so"
+  build_cmd = "cc -shared #{common} -o #{output}"
 end
 
-file "#{$ext_name}.bundle" do
-  cd $cwd do
-    sh "cc -dynamic -bundle -undefined suppress -flat_namespace -I ../../../shotgun/lib/subtend -g -o #{$ext_name}.bundle #{$ext_name}.c"
-  end
+CLOBBER.include(output)
+
+task :default => [output]
+
+file output => [input] do
+  sh build_cmd
 end
+
