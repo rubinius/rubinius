@@ -354,6 +354,10 @@ VALUE rb_ary_entry(VALUE array, int offset) {
   return NEW_HANDLE(ctx, val);
 }
 
+VALUE rb_ary_clear(VALUE array) {
+  return rb_funcall2(array, rb_intern("clear"), 0, NULL);
+}
+
 VALUE rb_str_new(const char *ptr, long len) {
   CTX;
   return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));

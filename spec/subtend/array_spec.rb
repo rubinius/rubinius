@@ -32,4 +32,9 @@ context "SubtendArray" do
     @s.rb_ary_entry([1, 2, 3], 3).should == nil
     @s.rb_ary_entry([1, 2, 3], -10).should == nil
   end
+
+  specify "rb_ary_clear should remove all elements from the array" do
+    @s.rb_ary_clear([]).should == []
+    @s.rb_ary_clear([1, 2, 3]).should == []
+  end
 end
