@@ -31,7 +31,7 @@ class String
       @characters = arg
       @encoding = nil
     else
-      self << arg.to_s
+      replace(arg.to_s)
     end
   end
 
