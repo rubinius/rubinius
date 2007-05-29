@@ -1505,7 +1505,7 @@ module Bytecode
         s = @output
         str = ""
         @output = str
-        process(x.shift)
+        process(x.shift) # receiver
         @output = s
         process_defn x, "attach_method", str
       end
@@ -1517,19 +1517,27 @@ module Bytecode
         
         prim = detect_primitive(body)
         state = RsLocalState.new
+        scoper = RsLocalScoper.new(state)
 
-        defaults = args[4]
+        # Required arguments
         args[1].each do |e|
-          state.args << [e, state.local(e)]
+          state.args << [e, state.find_local(e)]
         end
         
+        # Splat argument
         if args[3]
           state.arg_splat = [args[3].first, state.local(args[3].first)]
         end
         
+        defaults = args[4]
+        # The initializers for default argument values may contain
+        # references to other arguments, and/or unprocessed lvars.
+        # Also, it needs to share a scope with this method definition
         if defaults
           defaults.shift
-          defaults.each do |var|
+          defaults.each_with_index do |node,i|
+            defaults[i] = scoper.process(node)
+            var = defaults[i]
             state.args << [var[1], state.local(var[1])]
           end
         end

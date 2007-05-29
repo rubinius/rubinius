@@ -88,12 +88,11 @@ describe "Defining a method with complex default args" do
     $foo_self.should == self
   end
 
-  it "should not blow up" do
-    def foo(output = 'a', count = 5)
-      prc = lambda {|n| output * n}
-      prc.call(count)
+  it "should support method calls on other arguments as defaults" do
+    def foo(obj, width=obj.length)
+      width
     end
-    foo.should == 'aaaaa'
+    foo('abcde').should == 5
   end
 
   it "should support procs as defaults" do
@@ -128,6 +127,14 @@ describe "Defining a singleton method with complex default args" do
     $foo_self.should == a
   end
 
+  it "should support method calls on other arguments as defaults" do
+    a = 'hi'
+    def a.foo(obj, width=obj.length)
+      width
+    end
+    a.foo('abcde').should == 5
+  end
+  
   it "should support procs as defaults" do
     a = 'hi'
     def a.foo(output = 'a', prc = lambda {|n| output * n})
