@@ -1,28 +1,28 @@
 #include <ruby.h>
 #include <stdio.h>
 
-VALUE sa_new_array(VALUE self) {
+static VALUE sa_new_array(VALUE self) {
   VALUE ret;
   ret = rb_ary_new();
   return ret;
 }
 
-VALUE sa_array_push(VALUE self, VALUE array, VALUE item) {
+static VALUE sa_array_push(VALUE self, VALUE array, VALUE item) {
   rb_ary_push(array, item);
   return array;
 }
 
-VALUE sa_array_push2(VALUE self, VALUE array, VALUE item, VALUE i2) {
+static VALUE sa_array_push2(VALUE self, VALUE array, VALUE item, VALUE i2) {
   rb_ary_push(array, item);
   rb_ary_push(array, i2);
   return array;
 }
 
-VALUE sa_array_entry(VALUE self, VALUE array, VALUE offset) {
+static VALUE sa_array_entry(VALUE self, VALUE array, VALUE offset) {
   return rb_ary_entry(array, FIX2INT(offset));
 }
 
-VALUE sa_array_clear(VALUE self, VALUE array) {
+static VALUE sa_array_clear(VALUE self, VALUE array) {
   return rb_ary_clear(array);
 }
 
