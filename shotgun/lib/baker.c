@@ -311,7 +311,6 @@ int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
 
 OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT orig) {
   OBJECT ret, iobj;
-  int count;
   
   //printf("!!!\n   => From %p\n!!!\n", iobj);
   
@@ -327,10 +326,7 @@ OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT orig) {
 
   iobj = ret;
   
-  count = 0;
-  
   while(iobj) {
-    count++;
     _mutate_references(state, g, iobj);
     iobj = heap_next_unscanned(g->next);
   }
