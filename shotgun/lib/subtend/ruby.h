@@ -58,6 +58,9 @@ VALUE rb_const_get(VALUE klass, ID id);
 #define rb_mErrno              subtend_get_exception(20)
 
 
+/* Conversions */
+int FIX2INT(VALUE val);
+
 /* Array */
 VALUE rb_ary_new(void);
 VALUE rb_ary_new2(long length);

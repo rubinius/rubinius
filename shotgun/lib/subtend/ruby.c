@@ -390,6 +390,12 @@ void rb_raise(VALUE exc, const char *fmt, ...) {
   setcontext(&ctx->nmc->system);
 }
 
+int FIX2INT(VALUE val) {
+  CTX;
+  OBJECT arg = HNDL(val);
+  return FIXNUM_TO_INT(arg);
+}
+
 /*
 
 Still needed for Mongrel - Kev
