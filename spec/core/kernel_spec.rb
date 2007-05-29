@@ -132,9 +132,18 @@ context "Kernel.fail()" do
     should_raise(RuntimeError) { fail }
   end
 
+  specify "should accept an Object with an exception method returning an Exception" do
+    class Boring
+      def self.exception(msg)
+        StandardError.new msg
+      end
+    end
+    should_raise(StandardError) { fail Boring, "..." }
+  end
+
   specify "should instantiate specified exception class" do
     class LittleBunnyFooFoo < RuntimeError; end
-    should_raise(LittleBunnyFooFoo) { fail LittleBunnyFooFoo.new }
+    should_raise(LittleBunnyFooFoo) { fail LittleBunnyFooFoo }
   end
 
   specify "should use specified message" do

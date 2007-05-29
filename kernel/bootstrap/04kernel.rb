@@ -24,21 +24,27 @@ module Functions
     end
     nil
   end
-  
+
   def raise(exc=$!, msg=nil)
-    if !exc
-      exc = RuntimeError.new("An unknown exception occurred")
+    if Exception === exc
+      # Do nothing, just fast-track it to raising.
     elsif exc.kind_of?(String)
       exc = RuntimeError.new(exc)
-    elsif !(Class === exc || Exception === exc)
-      raise TypeError, 'exception class/object expected'
-    elsif msg
-      cls = exc
-      exc = cls.new(msg)
+    elsif exc.respond_to? :exception
+      exc = exc.exception msg
+    elsif exc.respond_to? :ancestors
+      # This isn't necessary in MRI; Should be fixed in rubinius.
+      # All Exceptions _should_ expose an exception method.
+      exc = exc.new msg if exc.ancestors.include? Exception
+    elsif !exc
+      exc = RuntimeError.new("An unknown exception occurred")
+    end
+    unless Exception === exc
+      raise TypeError.new('exception class/object expected')
     end
     Ruby.asm "push exc\nraise_exc"
   end
-    
+
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
   end
