@@ -10,6 +10,17 @@ context "SubtendString" do
     # Hardcoded to pass const char * = "hello"
     @s.say_hello.should == "hello"
   end
+
+  specify "rb_str_new2 should return a new string object, figuring out the length itself" do
+    # Hardcoded to pass const char * = "hello\0invisible"
+    @s.say_hello2.should == "hello"
+  end
+
+  specify "rb_str_new2 should raise ArgumentError if passed NULL" do
+    should_raise(ArgumentError) do
+      @s.rb_str_new2_with_null
+    end
+  end
   
   specify "rb_str_dup should return a copy of the string" do
     str1 = "hi"

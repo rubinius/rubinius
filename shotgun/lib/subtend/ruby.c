@@ -375,6 +375,13 @@ VALUE rb_str_new(const char *ptr, long len) {
   return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
 }
 
+VALUE rb_str_new2(const char *ptr) {
+  if (!ptr)
+    rb_raise(rb_eArgError, "NULL pointer given");
+
+  return rb_str_new(ptr, strlen(ptr));
+}
+
 VALUE rb_str_dup(VALUE str) {
   CTX;
   return NEW_HANDLE(ctx, string_dup(ctx->state, HNDL(str)));

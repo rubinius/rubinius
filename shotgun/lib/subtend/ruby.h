@@ -76,6 +76,7 @@ VALUE rb_ary_shift(VALUE array);
 
 /* String */
 VALUE rb_str_new(const char *ptr, long len);
+VALUE rb_str_new2(const char *ptr);
 VALUE rb_str_dup(VALUE str);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
 
