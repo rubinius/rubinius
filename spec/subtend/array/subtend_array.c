@@ -26,6 +26,10 @@ static VALUE sa_array_clear(VALUE self, VALUE array) {
   return rb_ary_clear(array);
 }
 
+static VALUE sa_array_dup(VALUE self, VALUE array) {
+  return rb_ary_dup(array);
+}
+
 void Init_subtend_array() {
   VALUE cls;
   cls = rb_define_class("SubtendArray", rb_cObject);
@@ -34,4 +38,5 @@ void Init_subtend_array() {
   rb_define_method(cls, "rb_ary_push2", sa_array_push2, 3);
   rb_define_method(cls, "rb_ary_entry", sa_array_entry, 2);
   rb_define_method(cls, "rb_ary_clear", sa_array_clear, 1);
+  rb_define_method(cls, "rb_ary_dup", sa_array_dup, 1);
 }

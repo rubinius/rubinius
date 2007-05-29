@@ -358,6 +358,10 @@ VALUE rb_ary_clear(VALUE array) {
   return rb_funcall2(array, rb_intern("clear"), 0, NULL);
 }
 
+VALUE rb_ary_dup(VALUE array) {
+  return rb_funcall2(array, rb_intern("dup"), 0, NULL);
+}
+
 VALUE rb_str_new(const char *ptr, long len) {
   CTX;
   return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
@@ -452,7 +456,6 @@ rb_block_proc
 rb_throw
 rb_obj_alloc
 rb_obj_call_init
-rb_ary_dup
 rb_ary_unshift
 rb_float_new
 Data_Wrap_Struct

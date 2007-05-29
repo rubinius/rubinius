@@ -37,4 +37,14 @@ context "SubtendArray" do
     @s.rb_ary_clear([]).should == []
     @s.rb_ary_clear([1, 2, 3]).should == []
   end
+
+  specify "rb_ary_dup should duplicate the array" do
+    @s.rb_ary_dup([]).should == []
+
+    a = [1, 2, 3]
+    b = @s.rb_ary_dup(a)
+
+    b.should == a
+    b.should_not equal?(a)
+  end
 end

@@ -70,6 +70,7 @@ int rb_ary_size(VALUE self);
 VALUE rb_ary_push(VALUE array, VALUE val);
 VALUE rb_ary_entry(VALUE array, int offset);
 VALUE rb_ary_clear(VALUE array);
+VALUE rb_ary_dup(VALUE array);
 
 /* String */
 VALUE rb_str_new(const char *ptr, long len);
