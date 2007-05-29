@@ -621,11 +621,11 @@ context "Array instance methods" do
   
   specify "to_a called on a subclass of Array should return an instance of Array" do
     class E < Array; end
+    E.new.to_a.class.should == Array
     
     e = E.new
     e << 1
-    p e, e[0..-1]
-#    should_raise { F.new.to_a.class.should == Array }
+    e.to_a.should == [1]
   end
   
   specify "to_ary returns self" do

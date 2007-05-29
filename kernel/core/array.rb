@@ -384,7 +384,7 @@ class Array
     if self.class == Array
       self
     else
-      self[0..-1]
+      self[0..-1] or []
     end
   end
 
