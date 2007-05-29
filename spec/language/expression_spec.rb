@@ -62,64 +62,6 @@ describe "The unless expression" do
   end
 end
 
-describe "The case expression" do
-  it "evaluates the body of the when clause whose expression matches the case target expression" do
-    case 1
-    when 1: true
-    end.should == true
-  end
-
-  it "evaluates the body of the when clause whose array expression includes the case target expression" do
-    case 2
-    when 1,2: true
-    end.should == true
-  end
-
-  it "evaluates the body of the when clause whose range expression includes the case target expression" do
-    case 5
-    when 1..20: true
-    end.should == true
-  end
-
-  it "evaluates the body of the else clause if no when expressions match the case target expression" do
-    case 3
-    when 6: false
-    else
-      true
-    end.should == true
-  end
-
-  # FIXME - The SyntaxError raises as soon as the block is compiled
-  #it "but you can't use else without the when construct" do
-  #  should_raise(SyntaxError) do
-  #    case 4
-  #    else
-  #      true
-  #    end
-  #  end
-  #end
-  
-  it "evaluates the body of the first when clause that is true when no case target expression is given" do
-    case
-    when 3==3: true
-    when 4==4: false
-    end.should == true
-  end
-
-  # NOTE : This should not work yet, since Onig is not integrated.
-  it "evaluates the body of the when clause whose expression is a regex that matches the case target expression" do
-    case 'hello'
-    when /^hell/: true # mouahahaha
-    end.should == true
-  end
-
-  it "should evaluate the body of the when clause whose expression is a class using class === case target expression" do
-    case 'x'
-    when String: true
-    end.should == true
-  end
-end
-
 # * break terminates loop immediately.
 # * redo immediately repeats w/o rerunning the condition.
 # * next starts the next iteration through the loop.
@@ -162,11 +104,26 @@ describe "The for expression" do
   # for name[, name]... in expr [do]
   #   body
   # end
-  it "iterates over the collection passing each element to the block" do
+  it "should iterate over an Enumerable passing each element to the block" do
     j = 0
     for i in 1..3
       j += i
     end
     j.should == 6
+  end
+
+  it "should iterate over an Hash passing each key-value pair to the block" do
+    hash = { 1 => 10, 2 => 20 }
+    
+    k = 0
+    l = 0
+    
+    for i, j in hash
+      k += i
+      l += j
+    end
+    
+    k.should == 3
+    l.should == 30
   end
 end
