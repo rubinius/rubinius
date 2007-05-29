@@ -50,7 +50,7 @@ context "SubtendArray" do
 
   specify "rb_ary_unshift should prepend the element to the array" do
     a = [1, 2, 3]
-    a.unshift("a").should == ["a", 1, 2, 3]
+    @s.rb_ary_unshift(a, "a").should == ["a", 1, 2, 3]
     a.should == ['a', 1, 2, 3]
   end
 
