@@ -23,7 +23,6 @@ void cpu_clear_cache(STATE, cpu c) {
   end = ent + CPU_CACHE_SIZE;
   
   while(ent < end) {
-#define list_empty_p(lst) (list_get_count(lst) == I2N(0))
     ent++;
   }
 }
