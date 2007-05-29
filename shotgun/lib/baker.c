@@ -169,7 +169,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   
   SET_CLASS(iobj, cls);
   
-  assert(HEADER(iobj)->flags != 0xff);
+  assert(HEADER(iobj)->flags != FORWARDING_MAGIC);
   
   if(WEAK_REFERENCES_P(iobj)) {
     // printf("%p has weak refs.\n", (void*)iobj);
