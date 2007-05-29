@@ -153,12 +153,22 @@ class Object
   def __not_equal__(other)
     !(self == other)
   end
-  self.methods[:"!="] = self.methods[:__not_equal__]
+  self.method_table[:"!="] = self.method_table[:__not_equal__]
   
   def coerce_string
     raise TypeError.new("can't convert #{self.inspect} into String") unless respond_to?(:to_str)
     str = self.to_str
     raise TypeError.new("#{self.class}#to_str should return String") unless str.is_a?(String)
     str
+  end
+  
+  def singleton_methods
+    class << self
+      method_table.names
+    end
+  end
+  
+  def methods
+    singleton_methods | self.class.instance_methods(true)
   end
 end

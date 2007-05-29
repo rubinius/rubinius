@@ -128,11 +128,11 @@ inline void cpu_save_registers(STATE, cpu c);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
 
-OBJECT cpu_unmarshal(STATE, char *str);
-OBJECT cpu_marshal(STATE, OBJECT obj);
-OBJECT cpu_unmarshal_file(STATE, char *path);
-GString *cpu_marshal_to_gstring(STATE, OBJECT obj);
-OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path);
+OBJECT cpu_unmarshal(STATE, char *str, int version);
+OBJECT cpu_marshal(STATE, OBJECT obj, int version);
+OBJECT cpu_unmarshal_file(STATE, char *path, int version);
+GString *cpu_marshal_to_gstring(STATE, OBJECT obj, int version);
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version);
 
 void cpu_bootstrap(STATE);
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots);

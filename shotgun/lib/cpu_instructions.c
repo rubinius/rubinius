@@ -153,8 +153,34 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
      
  */
  
+#define TUPLE_P(obj) (CLASS_OBJECT(obj) == BASIC_CLASS(tuple))
+ 
+static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name) {
+  OBJECT meth;
+  
+  meth = hash_find(state, hsh, name);
+  
+  if(NIL_P(meth)) { return Qnil; }
+  
+  if(c->call_flags == 1) { return meth; }
+  
+  /* Check that unless we can look for private methods that method isn't private. */
+  if(TUPLE_P(meth) && (tuple_at(state, meth, 0) == state->global->sym_private)) {
+    /* We skip private methods. */
+    return Qnil;
+  }
+  
+  return meth;
+}
+
+#define PUBLIC_P(meth) (tuple_at(state, meth, 0) == state->global->sym_public)
+#define VISIBLE_P(cp, mo, tu) ((c->call_flags == 1) || (!tup) || PUBLIC_P(meth))
+#define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
+#define UNVIS_METHOD2(var) if(tup) { var = tuple_at(state, var, 1); }
+
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
-  OBJECT ok, hsh, cache, orig_klass, meth, ser;
+  OBJECT ok, hsh, cache, orig_klass, meth, ser, tmp;
+  int tup;
   struct method_cache *ent;
   
   cache = Qnil;
@@ -170,6 +196,9 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     if(tuple_at(state, cache, c->cache_index) == klass) {
       meth = tuple_at(state, cache, c->cache_index + 2);
       ser =  tuple_at(state, cache, c->cache_index + 3);
+      /* We don't check the visibility here because the inline cache has
+         fixed visibility, meaning it will always be the same after it's
+         populated. */
       if(cmethod_get_serial(meth) == ser) {
 #if TRACK_STATS
         state->cache_inline_hit++;
@@ -191,21 +220,27 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   ent = state->method_cache + CPU_CACHE_HASH(klass, name);
   if(ent->name == name && ent->klass == klass) {
     *mod = ent->module;
+    meth = ent->method;
+    tup = TUPLE_P(meth);
+    
+    if(VISIBLE_P(c, meth, tup)) {
+      UNVIS_METHOD2(meth);
 
 #if USE_INLINE_CACHING
-    /* Update the inline cache. */
-    if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
-      tuple_put(state, cache, c->cache_index, klass);
-      tuple_put(state, cache, c->cache_index + 1, ent->module);
-      tuple_put(state, cache, c->cache_index + 2, ent->method);
-      tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(ent->method));
-    }
+      /* Update the inline cache. */
+      if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
+        tuple_put(state, cache, c->cache_index, klass);
+        tuple_put(state, cache, c->cache_index + 1, ent->module);
+        tuple_put(state, cache, c->cache_index + 2, meth);
+        tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(meth));
+      }
 #endif
     
 #if TRACK_STATS
-    state->cache_hits++;
+      state->cache_hits++;
 #endif
-    return ent->method;
+      return meth;
+    }
   }
 #if TRACK_STATS
   if(ent->name) {
@@ -233,7 +268,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     return Qnil; 
   }
   
-  meth = hash_find(state, hsh, name);
+  meth = cpu_check_for_method(state, c, hsh, name);
   
   /*
   printf("Looking for method: %s in %p (%s)\n", 
@@ -270,7 +305,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
       return Qnil; 
     }
         
-    meth = hash_find(state, hsh, name);
+    meth = cpu_check_for_method(state, c, hsh, name);
   }
   
   *mod = klass;
@@ -282,16 +317,22 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     ent->name = name;
     ent->module = klass;
     ent->method = meth;
+    
+    UNVIS_METHOD(meth);
 
 #if USE_INLINE_CACHING
     /* Update the inline cache. */
     if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
       tuple_put(state, cache, c->cache_index, orig_klass);
       tuple_put(state, cache, c->cache_index + 1, ent->module);
-      tuple_put(state, cache, c->cache_index + 2, ent->method);
-      tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(ent->method));
+      tuple_put(state, cache, c->cache_index + 2, meth);
+      tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(meth));
     }
 #endif    
+  }
+#else
+  if(RTEST(meth)) {
+    UNVIS_METHOD(meth);
   }
 #endif
   
@@ -325,6 +366,7 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
     mo = hash_find(state, module_get_methods(state->global->functions), sym);
     if(!NIL_P(mo)) {
       *mod = state->global->functions;
+      UNVIS_METHOD(mo);
       return mo;
     }
   }
@@ -776,6 +818,10 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
     printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
+  }
+  
+  if(TUPLE_P(mo)) {
+    mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   }
   
   /* Make sure no one else sees the a recently set cache_index, it was

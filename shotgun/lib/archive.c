@@ -67,7 +67,7 @@ OBJECT archive_get_file(STATE, char *path, char* name) {
   return str;
 }
 
-OBJECT archive_get_object(STATE, char *path, char* name) {
+OBJECT archive_get_object(STATE, char *path, char* name, int version) {
   struct zip *za;
   struct zip_stat st;
   struct zip_file *zf;
@@ -105,7 +105,7 @@ OBJECT archive_get_object(STATE, char *path, char* name) {
   zip_fclose(zf);
   zip_close(za);
   
-  ret = cpu_unmarshal(state, str);
+  ret = cpu_unmarshal(state, str, version);
   free(str);
   return ret;
 }
@@ -151,7 +151,7 @@ OBJECT archive_add_file(STATE, char *path, char *name, char *file) {
   return ret;
 }
 
-OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj) {
+OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj, int version) {
   struct zip *za;
   struct zip_source *zs;
   GString *buf;
@@ -162,7 +162,7 @@ OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj) {
     return Qnil;
   }
   
-  buf = cpu_marshal_to_gstring(state, obj);
+  buf = cpu_marshal_to_gstring(state, obj, version);
   
   zs = zip_source_buffer(za, buf->str, buf->len, 0);
 

@@ -3,6 +3,18 @@ class Tuple
     Ruby.primitive :allocate_count
   end
   
+  def self.[](*args)
+    sz = args.size
+    tup = new(sz)
+    i = 0
+    while i < sz
+      tup.put i, args[i]
+      i += 1
+    end
+    
+    return tup
+  end
+  
   def [](idx)
     Ruby.primitive :at
     raise InvalidIndex, "Unable to access index '#{idx}' of #{self}"

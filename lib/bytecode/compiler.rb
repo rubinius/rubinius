@@ -1558,6 +1558,12 @@ module Bytecode
         idx = @method.add_literal meth
         add "push_literal #{idx}"
         add recv
+        
+        # Indicate to add_method that this is a private method.
+        if kind == "add_method" and @compiler.flags[:visibility] == :private
+          add "set_call_flags 1"
+        end
+        
         add "#{kind} #{name}"
         str = ""
         required = args[1].size
@@ -1610,9 +1616,12 @@ module Bytecode
       def detect_class_special(x)
         recv = x.shift
         meth = x.shift
-        args = x.shift
+        args = x.shift.dup
+        
+        # Get rid of :array
+        args.shift
+        
         if recv == [:self] and meth == :ivar_as_index
-          args.shift
           hsh = args.shift
           hsh.shift
           until hsh.empty?
@@ -1625,6 +1634,10 @@ module Bytecode
           end
           
           return true
+        elsif recv = [:self] and meth == :private and args.empty?
+          @compiler.flags[:visibility] = :private
+        elsif recv = [:self] and meth == :public and args.empty?
+          @compiler.flags[:visibility] = :public
         end
         return false
       end

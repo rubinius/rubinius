@@ -98,6 +98,9 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_lt =    symbol_from_cstr(state, "<");
   state->global->sym_gt =    symbol_from_cstr(state, ">");
   state->global->sym_send =    symbol_from_cstr(state, "__send__");
+  state->global->sym_public = symbol_from_cstr(state, "public");
+  state->global->sym_private = symbol_from_cstr(state, "private");
+  state->global->sym_protected = symbol_from_cstr(state, "protected");
   
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;
@@ -406,7 +409,7 @@ void cpu_push_encloser(STATE, cpu c) {
 }
 
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
-  OBJECT meths, cur;
+  OBJECT meths, cur, tup, vis;
   // Handle a special case where we try and add a method to main
   if(target == c->main) {
     target = c->enclosing_class;
@@ -422,9 +425,25 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
      to invalidate it in any caches. */
      
   if(RTEST(cur)) {
+    if(CLASS_OBJECT(cur) == BASIC_CLASS(tuple)) {
+      cur = tuple_at(state, cur, 1);
+    }
     cmethod_set_serial(cur, FIXNUM_TO_INT(cmethod_get_serial(cur)) + 1);
   }
-  hash_set(state, meths, sym, method);
+  
+  switch(c->call_flags) {
+  default:
+  case 0:
+    vis = state->global->sym_public;
+    break;
+  case 1:
+    vis = state->global->sym_private;
+    break;
+  }
+  
+  hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));
+  // hash_set(state, meths, sym, method);
+  c->call_flags = 0;
 }
 
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {

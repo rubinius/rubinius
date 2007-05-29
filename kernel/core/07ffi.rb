@@ -95,7 +95,7 @@ class Module
     
     raise "Unable to create function #{name}" unless func
     
-    metaclass.methods[mname] = func
+    metaclass.method_table[mname] = func
     return func
   end
 end

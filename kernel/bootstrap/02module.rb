@@ -7,6 +7,10 @@ class Module
   def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
   
+  def method_table
+    @methods
+  end
+  
   def append_features(mod)
     im = IncludedModule.new(self)
     im.attach_to mod
@@ -37,7 +41,7 @@ class IncludedModule < Module
 
   def initialize(mod)
     @__ivars__ = mod.__ivars__
-    @methods = mod.methods
+    @methods = mod.method_table
     @method_cache = nil
     @name = mod.name
     @constants = {}

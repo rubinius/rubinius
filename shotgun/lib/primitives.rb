@@ -806,11 +806,12 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     t1 = stack_pop();
+    POP(t2, FIXNUM);
     if(!STRING_P(t1)) {
       _ret = FALSE;
     } else {
       char *path = string_as_string(state, t1);
-      t2 = cpu_unmarshal_file(state, path);
+      t2 = cpu_unmarshal_file(state, path, FIXNUM_TO_INT(t2));
       free(path); 
       stack_push(t2);
     }
@@ -1268,7 +1269,8 @@ class ShotgunPrimitives
     <<-CODE
     stack_pop(); /* class */
     t1 = stack_pop();
-    stack_push(cpu_marshal(state, t1));
+    POP(t2, FIXNUM);
+    stack_push(cpu_marshal(state, t1, FIXNUM_TO_INT(t2)));
     CODE
   end
   
@@ -1276,10 +1278,11 @@ class ShotgunPrimitives
     <<-CODE
     stack_pop(); /* class */
     t1 = stack_pop();
+    POP(t2, FIXNUM);
     if(!STRING_P(t1)) {
       _ret = FALSE;
     } else {
-      stack_push(cpu_unmarshal(state, string_byte_address(state, t1)));
+      stack_push(cpu_unmarshal(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
     }
     CODE
   end
@@ -1290,11 +1293,12 @@ class ShotgunPrimitives
     stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
+    POP(t3, FIXNUM);
     if(!STRING_P(t2)) {
       _ret = FALSE;
     } else {
       _path = string_as_string(state, t2);
-      stack_push(cpu_marshal_to_file(state, t1, _path));
+      stack_push(cpu_marshal_to_file(state, t1, _path, FIXNUM_TO_INT(t3)));
       free(_path);
     }
     CODE
@@ -1305,11 +1309,12 @@ class ShotgunPrimitives
     char *_path;
     stack_pop(); /* class */
     t1 = stack_pop();
+    POP(t2, FIXNUM);
     if(!STRING_P(t1)) {
       _ret = FALSE;
     } else {
       _path = string_as_string(state, t1);
-      stack_push(cpu_unmarshal_file(state, _path));
+      stack_push(cpu_unmarshal_file(state, _path, FIXNUM_TO_INT(t2)));
       free(_path);
     }
     CODE
@@ -1354,12 +1359,13 @@ class ShotgunPrimitives
     stack_pop();
     t1 = stack_pop();
     t2 = stack_pop();
+    POP(t3, FIXNUM);
     if(!STRING_P(t1) || !STRING_P(t2)) {
       _ret = FALSE;
     } else {
       path = string_as_string(state, t1);
       file = string_as_string(state, t2);
-      stack_push(archive_get_object(state, path, file));
+      stack_push(archive_get_object(state, path, file, FIXNUM_TO_INT(t3)));
       free(path);
       free(file);
     }
@@ -1393,11 +1399,12 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, STRING);
     t3 = stack_pop();
+    POP(t4, FIXNUM);
     
     path = string_as_string(state, t1);
     file = string_as_string(state, t2);
     
-    t1 = archive_add_object(state, path, file, t3);
+    t1 = archive_add_object(state, path, file, t3, FIXNUM_TO_INT(t4));
     
     free(path);
     free(file);

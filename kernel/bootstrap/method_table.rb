@@ -1,11 +1,19 @@
 class MethodTable
-  def names(strings=true)
-    return keys.to_a unless strings
+  
+  def names
     ary = []
-    keys.each do |ent|
-      ary << ent.to_s unless ent.nil?
+    keys.each do |meth|
+      vis, obj = self[meth]
+      if vis == :public
+        ary << meth
+      end
     end
+    
     return ary
+  end
+  
+  def all_names
+    return keys.to_a unless strings
   end
   
   alias :to_a :names

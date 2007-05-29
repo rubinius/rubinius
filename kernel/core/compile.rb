@@ -1,3 +1,10 @@
+module Rubinius
+  # This const controls what the lowest version of compiled methods we can
+  # allow is. This allows us to cut off compability at some point, or just
+  # increment when major changes are made to the compiler.
+  CompiledMethodVersion = 2
+end
+
 module Compile
   def self.compile_file(path)
     require 'bytecode/compiler'
@@ -37,7 +44,7 @@ end
 module Functions
   def load(path)
     if path.suffix? ".rbc"
-      cm = CompiledMethod.load_from_file(path)
+      cm = CompiledMethod.load_from_file(path, Rubinius::CompiledMethodVersion)
       raise LoadError, "Unable to load file at path: #{path}" unless cm
       puts "[Loading #{path}]" if $DEBUG_LOADING
       return cm.activate_as_script
@@ -45,12 +52,17 @@ module Functions
       comp = "#{path}c"
       if File.exists?(comp) && File.mtime(comp) >= File.mtime(path)
         puts "[Loading #{comp} for #{path}]" if $DEBUG_LOADING
-        cm = CompiledMethod.load_from_file(comp)
-        raise LoadError, "Unable to load file at path: #{path}" unless cm
-      else
+        cm = CompiledMethod.load_from_file(comp, Rubinius::CompiledMethodVersion)
+
+        unless cm
+          puts "[Skipping #{comp}, was invalid.]" if $DEBUG_LOADING
+        end
+      end
+      
+      unless cm
         puts "[Compiling and loading #{path}]" if $DEBUG_LOADING
         cm = Compile.compile_file(path)
-        Marshal.dump_to_file cm, "#{path}c"
+        Marshal.dump_to_file cm, "#{path}c", Rubinius::CompiledMethodVersion
       end
       
       return cm.activate_as_script
@@ -63,7 +75,7 @@ module Functions
   def compile(path, out=nil)
     out = "#{path}c" unless out
     cm = Compile.compile_file(path)
-    Marshal.dump_to_file cm, out
+    Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end
     
@@ -79,7 +91,7 @@ module Functions
         return false if $".include?(path)
         if dir.suffix?(".rba") and File.exists?(dir)
           # puts "looking for #{filename} in #{dir}" #(#{Archive.list_files(dir).inspect})"
-          cm = Archive.get_object(dir, filename)
+          cm = Archive.get_object(dir, filename, Rubinius::CompiledMethodVersion)
           if cm
             # puts "Found #{filename} in #{dir}"
             $" << path

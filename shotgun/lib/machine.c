@@ -432,7 +432,7 @@ void machine_emit_memory(machine m) {
 */
 
 OBJECT machine_load_file(machine m, char *path) {
-  return cpu_unmarshal_file(m->s, path);
+  return cpu_unmarshal_file(m->s, path, 0);
 }
 
 void machine_show_exception(machine m, OBJECT exc) {
@@ -665,7 +665,7 @@ OBJECT machine_load_archive(machine m, char *path) {
   
   while(nxt) {
     *nxt++ = 0;
-    cm = archive_get_object(m->s, path, files);
+    cm = archive_get_object(m->s, path, files, 0);
     if(!RTEST(cm)) {
       printf("Unable to find '%s'\n", files); 
       return Qfalse;

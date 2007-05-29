@@ -10,5 +10,9 @@ class MetaClass
   def instance_flags; Ruby.asm "push self\npush 8\nfetch_field"; end
   def attached_instance; Ruby.asm "push self\npush 9\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6, :instance_fields => 7, :instance_flags => 8, :attached_instance => 9
+  
+  def method_table
+    @methods
+  end
 end
 

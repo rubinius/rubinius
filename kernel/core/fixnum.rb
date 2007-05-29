@@ -50,18 +50,6 @@ class Fixnum < Integer
 
     __fixnum_right_shift__(c)
   end
-
-  def __fixnum_left_shift__(c)
-    Ruby.primitive :fixnum_left_shift
-  end
-
-  def __fixnum_right_shift__(c)
-    Ruby.primitive :fixnum_right_shift
-  end
-
-  def __bignum_new__(value)
-    Ruby.primitive :bignum_new
-  end
   
   def to_f
     Ruby.primitive :fixnum_to_f
@@ -95,6 +83,19 @@ class Fixnum < Integer
     raise TypeError, "can't convert #{obj.class} into Integer"
   end
   
+  private
+  
+  def __fixnum_left_shift__(c)
+    Ruby.primitive :fixnum_left_shift
+  end
+
+  def __fixnum_right_shift__(c)
+    Ruby.primitive :fixnum_right_shift
+  end
+
+  def __bignum_new__(value)
+    Ruby.primitive :bignum_new
+  end  
 
 end
 

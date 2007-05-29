@@ -33,7 +33,7 @@ class Module
   end
 
   def instance_methods(all=true)
-    methods.names(false)
+    method_table.names
   end
   
   def const_defined?(name)
@@ -69,17 +69,38 @@ class Module
     else
       raise TypeError, "invalid argument type #{meth.class} (expected Proc/Method)"
     end
-    self.methods[name.to_sym] = cm
+    self.method_table[name.to_sym] = cm
     meth
   end
   
+  def set_visibility(meth, vis)
+    name = meth.to_sym
+    tup = method_table[name]
+    vis = vis.to_sym
+    
+    unless tup
+      raise NoMethodError, "Unknow method '#{name}' to make private"
+    end
+    
+    if Tuple === tup
+      tup[0] = vis
+    else
+      method_table[name] = Tuple[vis, tup]
+    end
+    
+    return name
+  end
+  
   def private(*args)
+    args.each { |meth| set_visibility(meth, :private) }
   end
   
   def protected(*args)
+    args.each { |meth| set_visibility(meth, :protected) }
   end
   
   def public(*args)
+    args.each { |meth| set_visibility(meth, :public) }
   end
 
 end

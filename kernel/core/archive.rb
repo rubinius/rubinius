@@ -8,7 +8,7 @@ module Archive
     Ruby.primitive :archive_get_file
   end
   
-  def self.get_object(path, name)
+  def self.get_object(path, name, version)
     Ruby.primitive :archive_get_object
   end
   
@@ -16,7 +16,7 @@ module Archive
     Ruby.primitive :archive_add_file
   end
   
-  def self.add_object(path, name, object)
+  def self.add_object(path, name, object, version)
     Ruby.primitive :archive_add_object
   end
   

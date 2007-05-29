@@ -390,7 +390,7 @@ static void marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
   }
 }
 
-OBJECT cpu_marshal(STATE, OBJECT obj) {
+OBJECT cpu_marshal(STATE, OBJECT obj, int version) {
   GString *buf;
   OBJECT ret;
   struct marshal_state ms;
@@ -398,7 +398,9 @@ OBJECT cpu_marshal(STATE, OBJECT obj) {
   ms.objects = g_ptr_array_new();
   
   buf = g_string_new(NULL);
-  g_string_append(buf, "RBIS");
+  g_string_append(buf, "RBIX");
+  _append_sz(buf, version);
+  
   marshal(state, obj, buf, &ms);
   ret = string_new2(state, buf->str, buf->len);
   g_string_free(buf, 1);
@@ -406,7 +408,7 @@ OBJECT cpu_marshal(STATE, OBJECT obj) {
   return ret;
 }
 
-GString *cpu_marshal_to_gstring(STATE, OBJECT obj) {
+GString *cpu_marshal_to_gstring(STATE, OBJECT obj, int version) {
   GString *buf;
   struct marshal_state ms;
   
@@ -414,13 +416,14 @@ GString *cpu_marshal_to_gstring(STATE, OBJECT obj) {
   ms.objects = g_ptr_array_new();
   
   buf = g_string_new(NULL);
-  g_string_append(buf, "RBIS");
+  g_string_append(buf, "RBIX");
+  _append_sz(buf, version);
   marshal(state, obj, buf, &ms);
   g_ptr_array_free(ms.objects, 1);
   return buf;
 }
 
-OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path) {
+OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   GString *buf;
   GIOChannel *io;
   GError *err;
@@ -436,11 +439,12 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path) {
   ms.objects = g_ptr_array_new();
   
   buf = g_string_new(NULL);
+  _append_sz(buf, version);
   marshal(state, obj, buf, &ms);
   
   g_io_channel_set_encoding(io, NULL, &err);
   /* TODO do error chceking here */
-  g_io_channel_write_chars(io, "RBIS", -1, NULL, &err);
+  g_io_channel_write_chars(io, "RBIX", -1, NULL, &err);
   g_io_channel_write_chars(io, buf->str, buf->len, &sz, &err);
   g_io_channel_shutdown(io, TRUE, &err);
   g_io_channel_unref(io);
@@ -449,28 +453,37 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path) {
   return Qtrue;
 }
 
-OBJECT cpu_unmarshal(STATE, char *str) {
+OBJECT cpu_unmarshal(STATE, char *str, int version) {
   struct marshal_state ms;
   OBJECT ret;
-  if(strncmp(str, "RBIS", 4)) {
+  int offset = 4;
+  if(!strncmp(str, "RBIS", 4)) {
+    version = -1;
+  } else if(!strncmp(str, "RBIX", 3)) {
+    if(read_int(str + 3) < version) {
+      /* file is out of date. */
+      return Qnil;
+    }
+    offset += 4;
+  } else {
     printf("Invalid compiled file.\n");
     return Qnil;
   }
   ms.consumed = 0;
   ms.objects = g_ptr_array_new();
-  str += 4;
+  str += offset;
   ret = unmarshal(state, str, &ms);
   g_ptr_array_free(ms.objects, 1);
   return ret;
 }
 
-OBJECT cpu_unmarshal_file(STATE, char *path) {
+OBJECT cpu_unmarshal_file(STATE, char *path, int version) {
   gchar *data;
   GIOChannel *io;
   GError *err;
   gsize sz, count = 4;
   gchar buf[4];
-  OBJECT obj;
+  OBJECT obj = Qnil;
   struct marshal_state ms;
   ms.consumed = 0;
   
@@ -481,13 +494,22 @@ OBJECT cpu_unmarshal_file(STATE, char *path) {
   g_io_channel_set_encoding(io, NULL, &err);
   g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
   ms.objects = g_ptr_array_new();
-  if(strncmp(buf, "RBIS", 4)) {
-    printf("Invalid compiled file.\n");
-    obj = Qnil;
+  if(!strncmp(buf, "RBIS", 4)) {
+    version = -1;
+  } else if(!strncmp(buf, "RBIX", 4)) {
+    g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
+    if(read_int(buf) < version) {
+      /* out of date. */
+      goto cleanup;
+    }
   } else {
-    g_io_channel_read_to_end(io, &data, &sz, &err);
-    obj = unmarshal(state, data, &ms);
+    printf("Invalid compiled file.\n");
+    goto cleanup;
   }
+  
+  g_io_channel_read_to_end(io, &data, &sz, &err);
+  obj = unmarshal(state, data, &ms);
+cleanup:
   g_io_channel_shutdown(io, TRUE, &err);
   g_io_channel_unref(io);
   g_free(data);

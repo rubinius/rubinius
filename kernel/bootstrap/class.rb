@@ -25,7 +25,7 @@ class Class
   def alias_method(nw, cur)
     mod = self
     while mod
-      meth = mod.methods[cur]
+      meth = mod.method_table[cur]
       if meth
         @methods[nw] = meth
         return meth
@@ -50,17 +50,16 @@ class Class
   def ===(inst)
     # Could call kind_of?, but the body of kind_of does this exact
     # thing.
-    inst.class < self
+    inst.kind_of? self
   end
     
   def instance_methods(all=true)
-    mine = methods.names(false)
+    mine = method_table.names
     return mine unless all
+    
     sup = direct_superclass()
     while sup
-      sup.methods.keys.each do |e|
-        mine << e
-      end
+      mine |= sup.method_table.names
       sup = sup.direct_superclass()
     end
     
@@ -80,7 +79,7 @@ class Class
     args.each do |name|
       sym = "@#{name}".to_sym
       meth = AccessVarMethod.get_ivar(sym)
-      self.methods[name.to_sym] = meth
+      self.method_table[name.to_sym] = meth
     end
     return nil
   end
@@ -90,7 +89,7 @@ class Class
       sym = "@#{name}".to_sym
       meth = AccessVarMethod.set_ivar(sym)
       mname = "#{name}=".to_sym
-      self.methods[mname] = meth
+      self.method_table[mname] = meth
     end
     return nil
   end
@@ -105,14 +104,14 @@ class Class
   
   def index_reader(name, idx)
     meth = AccessVarMethod.get_index(idx)
-    self.methods[name.to_sym] = meth
+    self.method_table[name.to_sym] = meth
     return name
   end
   
   def index_writer(name, idx)
     meth = AccessVarMethod.set_index(idx)
     mname = "#{name}="
-    self.methods[mname.to_sym] = meth
+    self.method_table[mname.to_sym] = meth
     return name
   end
   

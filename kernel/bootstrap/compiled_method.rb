@@ -110,7 +110,7 @@ class CompiledMethod
     ASM
   end
   
-  def self.load_from_file(path)
+  def self.load_from_file(path, version)
     Ruby.primitive :load_file
   end
   
