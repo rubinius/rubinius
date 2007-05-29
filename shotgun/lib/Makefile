@@ -114,8 +114,10 @@ subtend/ffi.lo: subtend/ffi.c
 	@echo "CC subtend/ffi.o"
 	$(COMP) $(CFLAGS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
 
-# only rebuild grammar.c if grammar.y changed
-grammar.c: grammar.y
+# In a perfect world, we'd only rebuild grammar.c if grammar.y changed.
+# However, SVN likes to play with the file mtime, which will just mess
+# this up. So don't depend on grammar.y here.
+grammar.c:
 	bison -o grammar.c grammar.y
 
 clean:
