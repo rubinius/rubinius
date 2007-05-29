@@ -37,6 +37,14 @@ describe "The 'case'-construct" do
     end.should == 'zzz'
   end
   
+  it "should return nil when no expression matched and 'else'-body is empty" do
+    case "c"
+      when "a": "a"
+      when "b": "b"
+      else
+    end.should == nil
+  end
+  
   it "should evaluate the body of the first when clause that is not false/nil when no case target expression is given" do
     case
       when false: 'foo'
