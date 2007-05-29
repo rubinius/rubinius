@@ -57,6 +57,7 @@ VALUE rb_const_get(VALUE klass, ID id);
 #define rb_eSystemCallError    subtend_get_exception(19)
 #define rb_mErrno              subtend_get_exception(20)
 
+void rb_raise(VALUE exc, const char *fmt, ...);
 
 /* Conversions */
 int FIX2INT(VALUE val);
