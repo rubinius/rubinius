@@ -86,4 +86,4 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val);
 VALUE rb_hash_delete(VALUE hash, VALUE key);
 
 char *rb_id2name(ID sym);
-
+ID rb_intern(char *name);
