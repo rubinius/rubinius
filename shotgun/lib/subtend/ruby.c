@@ -333,6 +333,27 @@ VALUE rb_ary_push(VALUE array, VALUE val) {
   return NEW_HANDLE(ctx, ary);
 }
 
+VALUE rb_ary_entry(VALUE array, int offset) {
+  CTX;
+  OBJECT val, ary = HNDL(array);
+
+  int total = FIXNUM_TO_INT(array_get_total(ary));
+
+  /* support wrap-around */
+  if(offset < 0) {
+    offset += total;
+  }
+
+  /* we silently ignore out-of-range errors */
+  if(offset < 0 || offset >= total) {
+    return Qnil;
+  }
+
+  val = array_get(ctx->state, ary, offset);
+
+  return NEW_HANDLE(ctx, val);
+}
+
 VALUE rb_str_new(const char *ptr, long len) {
   CTX;
   return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
@@ -421,7 +442,6 @@ rb_str_new2
 rb_str_catf
 rb_str_resize
 rb_str_cat2
-rb_ary_entry
 
 rb_block_given_p
 rb_block_proc

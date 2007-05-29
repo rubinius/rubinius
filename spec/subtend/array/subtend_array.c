@@ -18,10 +18,15 @@ VALUE sa_array_push2(VALUE self, VALUE array, VALUE item, VALUE i2) {
   return array;
 }
 
+VALUE sa_array_entry(VALUE self, VALUE array, VALUE offset) {
+  return rb_ary_entry(array, FIX2INT(offset));
+}
+
 void Init_subtend_array() {
   VALUE cls;
   cls = rb_define_class("SubtendArray", rb_cObject);
   rb_define_method(cls, "new_array", sa_new_array, 0);
   rb_define_method(cls, "rb_ary_push", sa_array_push, 2);
   rb_define_method(cls, "rb_ary_push2", sa_array_push2, 3);
+  rb_define_method(cls, "rb_ary_entry", sa_array_entry, 2);
 }

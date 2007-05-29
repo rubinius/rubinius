@@ -18,4 +18,18 @@ context "SubtendArray" do
     o = Object.new
     @s.rb_ary_push2([], 4, o).should == [4,o]
   end
+
+  specify "rb_ary_entry should return nil when called with an empty array" do
+    @s.rb_ary_entry([], 0).should == nil
+  end
+
+  specify "rb_ary_entry should wrap around the offset if it's negative" do
+    @s.rb_ary_entry([1, 2, 3], -1).should == 3
+    @s.rb_ary_entry([1, 2, 3], -2).should == 2
+  end
+
+  specify "rb_ary_entry should return nil if the index is out of range" do
+    @s.rb_ary_entry([1, 2, 3], 3).should == nil
+    @s.rb_ary_entry([1, 2, 3], -10).should == nil
+  end
 end
