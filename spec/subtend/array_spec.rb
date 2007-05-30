@@ -63,4 +63,36 @@ context "SubtendArray" do
   specify "rb_ary_shift should return nil when the array is empty" do
     @s.rb_ary_shift([]).should == nil
   end
+
+  specify "rb_ary_store should overwrite the element at the given position" do
+    a = [1, 2, 3]
+
+    @s.rb_ary_store(a, 1, 5)
+
+    a.should == [1, 5, 3]
+  end
+
+  specify "rb_ary_store should wrap around the offset if it's negative" do
+    a = [1, 2, 3]
+
+    @s.rb_ary_store(a, -1, 5)
+
+    a.should == [1, 2, 5]
+  end
+
+  specify "rb_ary_store should raise IndexError if the offset is still negative after wrap around " do
+    a = [1, 2, 3]
+
+    should_raise IndexError do
+      @s.rb_ary_store(a, -10, 5)
+    end
+  end
+
+  specify "rb_ary_store should enlarge the array if necessary" do
+    a = []
+
+    @s.rb_ary_store(a, 2, 7)
+
+    a.should == [nil, nil, 7]
+  end
 end

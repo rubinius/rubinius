@@ -38,6 +38,12 @@ static VALUE sa_array_shift(VALUE self, VALUE array) {
   return rb_ary_shift(array);
 }
 
+static VALUE sa_array_store(VALUE self, VALUE array, VALUE offset, VALUE value) {
+  rb_ary_store(array, FIX2INT(offset), value);
+
+  return Qnil;
+}
+
 void Init_subtend_array() {
   VALUE cls;
   cls = rb_define_class("SubtendArray", rb_cObject);
@@ -49,4 +55,5 @@ void Init_subtend_array() {
   rb_define_method(cls, "rb_ary_dup", sa_array_dup, 1);
   rb_define_method(cls, "rb_ary_unshift", sa_array_unshift, 2);
   rb_define_method(cls, "rb_ary_shift", sa_array_shift, 1);
+  rb_define_method(cls, "rb_ary_store", sa_array_store, 3);
 }

@@ -74,6 +74,7 @@ VALUE rb_ary_clear(VALUE array);
 VALUE rb_ary_dup(VALUE array);
 VALUE rb_ary_unshift(VALUE array, VALUE val);
 VALUE rb_ary_shift(VALUE array);
+void rb_ary_store(VALUE array, int offset, VALUE val);
 
 /* String */
 VALUE rb_str_new(const char *ptr, long len);

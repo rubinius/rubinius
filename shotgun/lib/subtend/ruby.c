@@ -370,6 +370,25 @@ VALUE rb_ary_shift(VALUE array) {
   return rb_funcall2(array, rb_intern("shift"), 0, NULL);
 }
 
+void rb_ary_store(VALUE array, int offset, VALUE val) {
+  CTX;
+  OBJECT ary = HNDL(array);
+
+  int total = FIXNUM_TO_INT(array_get_total(ary));
+
+  /* support wrap-around */
+  if(offset < 0) {
+    offset += total;
+  }
+
+  /* if the offset is still negative, we need to raise IndexError */
+  if(offset < 0) {
+    rb_raise(rb_eIndexError, "index %i out of range", offset);
+  }
+
+  array_set(ctx->state, ary, offset, HNDL(val));
+}
+
 VALUE rb_str_new(const char *ptr, long len) {
   CTX;
   return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
