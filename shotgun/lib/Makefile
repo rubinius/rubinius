@@ -18,7 +18,7 @@ else
   SINGLE_MODULE=
 endif
 
-CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl `pkg-config glib-2.0 --cflags`
+CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl `pkg-config glib-2.0 --cflags` -D_GNU_SOURCE
 
 WARNINGS=-Wall -Winline
 
