@@ -110,19 +110,18 @@ class RsLocalScoper < SimpleSexpProcessor
     lasgn = x.shift
     body = x.shift
 
-    @state.in_top_scope do
-      @masgn.push true
-      lasgn = process(lasgn)
-      @masgn.pop
-    end
-
-    @state.new_scope do
-      body = process(body)
-    end
+    @masgn.push true
+    @for_argument = true
+    lasgn = process(lasgn)
+    @for_argument = false
+    @masgn.pop
 
     # create_block needs the number of locals in the block's scope
     # The size of a scope is the number of locals
     count = @state.surrounding_scope.size
+    @state.new_scope do
+      body = process(body)
+    end
 
     body = [:block, body] if body.nil? || body.first != :block
     x = [[:call, process(enum), :each, [:array]], lasgn, body, count]
@@ -173,11 +172,17 @@ class RsLocalScoper < SimpleSexpProcessor
   def process_lasgn(x)
     name = x.shift
     old = x.shift
+    lv = find_lvar(name)
     if inside_masgn
       x.clear
-      [:lasgn, name, find_lvar(name)]
+      # This is unpleasant, but 'for' loops need to make use of 'create_block' 
+      # without actually creating a nested scope for their arguments
+      if @for_argument && Array === lv
+        lv = [lv[0]+1, lv[1]] 
+      end
+      [:lasgn, name, lv]
     else
-      [:lasgn, name, find_lvar(name), process(x.shift)]
+      [:lasgn, name, lv, process(x.shift)]
     end
   end
   

@@ -57,7 +57,7 @@ class RsLocalState
     if @depth == 0 and @scopes.size == 1
       # We calculated it in a previous run.
       if slt = @current_scope[name]
-        #puts "Found #{name} in slot #{slt}"
+        # puts "Found #{name} in slot #{slt}"
         return slt
       end
       
@@ -111,21 +111,8 @@ class RsLocalState
     return this_scope.size
   end
 
-  def in_top_scope
-    existing_scopes = @scopes
-    previous_scope = @current_scope
-    @current_scope = @top_scope
-    @scopes = [@top_scope]
-    begin
-      yield
-    ensure
-      @current_scope = previous_scope
-      @scopes = existing_scopes
-    end
-    return @top_scope.size
-  end
-
-  # 'for' uses this, since it needs to call :iter, but doesn't introduce a new scope
+  # 'for' uses this, since it needs to call :iter, 
+  # but doesn't introduce a new scope for its 'block variable'
   def surrounding_scope
     @scopes.first
   end
