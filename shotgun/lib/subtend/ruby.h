@@ -1,4 +1,5 @@
-
+#ifndef __RUBY_H
+#define __RUBY_H
 
 /* Pointers are seen as totally opaque */
 #define VALUE void*
@@ -94,3 +95,5 @@ VALUE rb_hash_delete(VALUE hash, VALUE key);
 
 char *rb_id2name(ID sym);
 ID rb_intern(const char *name);
+
+#endif
