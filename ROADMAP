@@ -30,10 +30,6 @@ This is a Ruby parser based on MRI.  Somewhat buggy.  There is little
 incentive to fix sydparse, as the current version of rubinius uses its
 own parser in grammar.y (see below, also derived from MRI).
 
-* STALE:
-
-./bin/shotgun
-
 * CURRENT:
 
 ./code-cache
