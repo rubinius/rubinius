@@ -6,7 +6,7 @@
 
 #include "primitive_indexes.h"
 
-OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int args) {
+OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args) {
   /* 40 argumennts is a lot, and the max (1.8 has a max of 13) */
   char params[40];
   OBJECT sys, nm;

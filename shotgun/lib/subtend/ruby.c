@@ -6,14 +6,14 @@
 #include "string.h"
 #include "hash.h"
 
-OBJECT nmethod_new(STATE, OBJECT mod, char *file, char *name, void *func, int args);
+OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
 
 #define HNDL(obj) handle_to_object(ctx->state, ctx->state->handle_tbl, (rni_handle*)obj)
 #define CTX rni_context* ctx = subtend_retrieve_context()
 #define NEW_HANDLE(ctx, val) nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val)
 
-ID rb_intern(char *name) {
+ID rb_intern(const char *name) {
   CTX;
   return (ID)symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
 }
@@ -257,7 +257,7 @@ VALUE rb_iv_set(VALUE obj, char *name, VALUE val) {
   return rb_ivar_set(obj, rb_intern(name), val);
 }
 
-void rb_define_method_(char *file, VALUE vmod, char *name, void *func, int args, int kind) {
+void rb_define_method_(const char *file, VALUE vmod, const char *name, void *func, int args, int kind) {
   OBJECT meth, sym, mod;
   CTX;
   

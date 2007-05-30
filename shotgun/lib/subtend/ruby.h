@@ -21,7 +21,7 @@ extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
 extern VALUE subtend_get_global(int which);
 extern VALUE subtend_get_exception(int which);
 
-void rb_define_method_(char *file, VALUE vmod, char *name, void *func, int args, int kind);
+void rb_define_method_(const char *file, VALUE vmod, const char *name, void *func, int args, int kind);
 
 #define rb_define_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 0)
 #define rb_define_singleton_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
@@ -89,4 +89,4 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val);
 VALUE rb_hash_delete(VALUE hash, VALUE key);
 
 char *rb_id2name(ID sym);
-ID rb_intern(char *name);
+ID rb_intern(const char *name);
