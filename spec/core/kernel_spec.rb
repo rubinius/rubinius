@@ -199,6 +199,32 @@ context "Kernel.warn()" do
 end
 
 describe "A class with the Functions mixin" do
+  specify "loop calls block until it is terminated by a break" do
+    i = 0
+    loop do
+      i += 1
+      break if i == 10
+    end
+
+    i.should == 10
+  end
+
+  specify "loop returns value passed to break" do
+    loop do
+      break 123
+    end.should == 123
+  end
+
+  specify "loop returns nil if no value passed to break" do
+    loop do
+      break
+    end.should == nil
+  end
+
+  specify "loop raises LocalJumpError if no block given" do
+    should_raise(LocalJumpError) { loop }
+  end
+
   it "srand should return the previous seed value" do
     srand(10)
     srand(20).should == 10
