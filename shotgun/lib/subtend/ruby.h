@@ -72,8 +72,6 @@ int FIX2INT(VALUE val);
 /* Array */
 VALUE rb_ary_new(void);
 VALUE rb_ary_new2(long length);
-VALUE rb_ary_get(VALUE self, int index);
-VALUE rb_ary_set(VALUE self, int index, VALUE val);
 int rb_ary_size(VALUE self);
 VALUE rb_ary_push(VALUE array, VALUE val);
 VALUE rb_ary_entry(VALUE array, int offset);

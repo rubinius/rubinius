@@ -51,7 +51,7 @@ VALUE test_vargs(VALUE self, int argc, VALUE *argv) {
 
 VALUE test_vargs2(VALUE self, VALUE ary) {
   printf("C* %d args\n", rb_ary_size(ary));  
-  return rb_ary_get(ary, 0);
+  return rb_ary_entry(ary, 0);
 }
 
 void Init_test() {

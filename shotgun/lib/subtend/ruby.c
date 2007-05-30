@@ -281,24 +281,6 @@ char *rb_id2name(ID sym) {
   return rbs_symbol_to_cstring(ctx->state, obj);
 }
 
-VALUE rb_ary_get(VALUE self, int index) {
-  OBJECT ary, out;
-  CTX;
-  
-  ary = HNDL(self);
-  out = array_get(ctx->state, ary, index);
-  
-  return NEW_HANDLE(ctx, out);
-}
-
-VALUE rb_ary_set(VALUE self, int index, VALUE val) {
-  CTX;
-  
-  array_set(ctx->state, HNDL(self), index, HNDL(val));
-  
-  return val;  
-}
-
 int rb_ary_size(VALUE self) {
   OBJECT ary;
   CTX;
