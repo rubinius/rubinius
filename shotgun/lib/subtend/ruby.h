@@ -2,7 +2,7 @@
 #define __RUBY_H
 
 /* Pointers are seen as totally opaque */
-#define VALUE void*
+typedef void * VALUE;
 #define ID int
 
 #ifndef Qfalse
