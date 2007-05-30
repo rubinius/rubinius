@@ -1,6 +1,7 @@
 class Channel
-
   ivar_as_index :waiting => 0, :value => 1
+  def waiting; @waiting ; end
+  def value  ; @value   ; end
   
   def self.new
     Ruby.primitive :channel_new
@@ -44,21 +45,12 @@ class Channel
     end
   end
 
-  def waiting
-    @waiting
-  end
-
-  def value
-    @value
-  end
-
   def to_channel
     self
   end
 end
 
 class Scheduler
-
   def self.send_in_microseconds(chan, count)
     Ruby.primitive :channel_send_in_microseconds
   end
@@ -79,3 +71,4 @@ class Scheduler
     Ruby.primitive :channel_send_on_stopped
   end
 end
+

@@ -1,28 +1,30 @@
-# This class is not yet referenced in kernel/hints, so it must use put/at, rather than ivars
 class Exception
-  #ivar_as_index :message => 0, :context => 1
+  ivar_as_index :message => 0, :context => 1
+  def message; @message ; end
+  def context; @context ; end
+
   def initialize(message = nil)
-    self.put(0, message) # @message
+    @message = message
     ctx = MethodContext.current.sender.sender
-    self.put(1, ctx) # @context
+    @context = ctx
   end
 
   def backtrace
-    bt = self.at(1)
+    bt = @context
     if FastMethodContext === bt
       bt = Backtrace.backtrace(bt)
-      self.put(1, bt)
+      @context = bt
     end
 
     return bt
   end
 
   def set_backtrace(bt)
-    self.put(1, bt)
+    @context = bt
   end
   
   def to_s
-    self.at(0) || self.class.to_s
+    @message || self.class.to_s
   end
   
   def inspect
@@ -45,34 +47,24 @@ end
 class SyntaxError < ScriptError
   self.instance_fields = 4
 
-  #ivar_as_index :column => 2, :line => 3
-
-  def column
-    self.at(2)
-  end
-
-  def line
-    self.at(3)
-  end
+  ivar_as_index :column => 2, :line => 3
+  def column; @column ; end
+  def line  ; @line   ; end
 
   def import_position(c,l)
-    self.put(2, c)
-    self.put(3, l)
+    @column = c
+    @line = l
   end
 end
 
 class SystemCallError < StandardError
   self.instance_fields = 3
-  #ivar_as_index :errno => 2
+  ivar_as_index :errno => 2
+  def errno; @errno ; end
 
   def initialize(message, errno = nil)
     super(message)
-    self.put(2, errno)
-  end
-  
-  def errno
-    self.at(2)
+    @errno = errno
   end
 end
-
 

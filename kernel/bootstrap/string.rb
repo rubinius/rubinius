@@ -1,10 +1,10 @@
 class String
-  def bytes; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def characters; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def encoding; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def data; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def __ivars__; nil; end
   ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
+  def bytes     ; @bytes      ; end
+  def characters; @characters ; end
+  def encoding  ; @encoding   ; end
+  def data      ; @data       ; end
+  def __ivars__ ; nil         ; end
 
   def to_s
     self
@@ -209,7 +209,6 @@ class String
     ret << str unless str.empty?
     return ret
   end
-  
 
   # TODO: check that the string will never go over the maximum range
   #       as the function is not supposed to raise an exception.
@@ -289,3 +288,4 @@ class String
     return neg ? -ret : ret
   end
 end
+

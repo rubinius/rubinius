@@ -1,7 +1,7 @@
 class IO
-  def descriptor; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def __ivars__; nil; end
   ivar_as_index :descriptor => 0
+  def descriptor; @descriptor ; end
+  def __ivars__ ; nil         ; end
 
   def write(str)
     Ruby.primitive :io_write

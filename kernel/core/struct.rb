@@ -66,7 +66,7 @@ class Struct
 
   # Expects an array of symbols.  Order matters.
   def self.define_attributes(attributes)
-    member_accessor *attributes
+    member_accessor(*attributes)
     @index = attributes
   end
 

@@ -1,8 +1,8 @@
 class SymbolTable
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def symbols; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def strings; Ruby.asm "push self\npush 2\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :symbols => 1, :strings => 2
+  def __ivars__; @__ivars__ ; end
+  def symbols  ; @symbols   ; end
+  def strings  ; @strings   ; end
   
   def symbol_to_string(sym)
     @symbols.at(sym.index).dup
@@ -35,5 +35,5 @@ class Symbol
   def to_sym
     self
   end
-
 end
+

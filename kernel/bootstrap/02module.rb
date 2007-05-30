@@ -1,11 +1,11 @@
 class Module
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def methods; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def method_cache; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def name; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def constants_table; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def parent; Ruby.asm "push self\npush 5\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
+  def __ivars__      ; @__ivars__    ; end
+  def methods        ; @methods      ; end
+  def method_cache   ; @method_cache ; end
+  def name           ; @name         ; end
+  def constants_table; @constants    ; end
+  def parent         ; @parent       ; end
   
   def method_table
     @methods
@@ -38,6 +38,8 @@ class IncludedModule < Module
   self.instance_fields = 8
 
   ivar_as_index :superclass => 6, :module => 7
+  def superclass; @superclass ; end
+  def module    ; @module     ; end
 
   def initialize(mod)
     @__ivars__ = mod.__ivars__
@@ -53,22 +55,13 @@ class IncludedModule < Module
     "#<IM>"
   end
 
-  def module
-    @module
-  end
-
   def attach_to(cls)
     @superclass = cls.direct_superclass
     cls.superclass = self
   end
 
-  def superclass
-    @superclass
-  end
-  
   def direct_superclass
     @superclass
   end
-  
 end
   

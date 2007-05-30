@@ -2,21 +2,21 @@
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def sender; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def ip; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def sp; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def block; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def method; Ruby.asm "push self\npush 6\nfetch_field"; end
-  def bytecodes; Ruby.asm "push self\npush 7\nfetch_field"; end
-  def literals; Ruby.asm "push self\npush 8\nfetch_field"; end
-  def receiver; Ruby.asm "push self\npush 9\nfetch_field"; end
-  def locals; Ruby.asm "push self\npush 10\nfetch_field"; end
-  def argcount; Ruby.asm "push self\npush 11\nfetch_field"; end
-  def name; Ruby.asm "push self\npush 12\nfetch_field"; end
-  def module; Ruby.asm "push self\npush 13\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :method => 6, :bytecodes => 7, :literals => 8, :receiver => 9, :locals => 10, :argcount => 11, :name => 12, :module => 13
+  def __ivars__; @__ivars__ ; end
+  def sender   ; @sender    ; end
+  def ip       ; @ip        ; end
+  def sp       ; @sp        ; end
+  def block    ; @block     ; end
+  def raiseable; @raiseable ; end
+  def method   ; @method    ; end
+  def bytecodes; @bytecodes ; end
+  def literals ; @literals  ; end
+  def receiver ; @receiver  ; end
+  def locals   ; @locals    ; end
+  def argcount ; @argcount  ; end
+  def name     ; @name      ; end
+  def module   ; @module    ; end
   
   def self.current
     cur = nil
@@ -127,14 +127,14 @@ class FastMethodContext
 end
 
 class BlockContext
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def sender; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def ip; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def sp; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def block; Ruby.asm "push self\npush 4\nfetch_field"; end
-  def raiseable; Ruby.asm "push self\npush 5\nfetch_field"; end
-  def env; Ruby.asm "push self\npush 6\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :env => 6
+  def __ivars__; @__ivars__ ; end
+  def sender   ; @sender    ; end
+  def ip       ; @ip        ; end
+  def sp       ; @sp        ; end
+  def block    ; @block     ; end
+  def raiseable; @raiseable ; end
+  def env      ; @env       ; end
 
   def activate(val)
     Ruby.primitive :activate_context    
@@ -169,12 +169,12 @@ class BlockContext
 end
 
 class BlockEnvironment
-  def __ivars__; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def home; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def initial_ip; Ruby.asm "push self\npush 2\nfetch_field"; end
-  def last_ip; Ruby.asm "push self\npush 3\nfetch_field"; end
-  def post_send; Ruby.asm "push self\npush 4\nfetch_field"; end
   ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, :post_send => 4
+  def __ivars__ ; @__ivars__  ; end
+  def home      ; @home       ; end
+  def initial_ip; @initial_ip ; end
+  def last_ip   ; @last_ip    ; end
+  def post_send ; @post_send  ; end
   
   def call(*args)
     execute args.tuple
@@ -213,9 +213,17 @@ class BlockEnvironment
 end
 
 class Proc
-  
   self.instance_fields = 3
   ivar_as_index :__ivars__ => 0, :block => 1, :check_args => 2
+  def block; @block ; end
+
+  def block=(other)
+    @block = other
+  end
+
+  def check_args=(other)
+    @check_args = other
+  end
 
   class << self
     def from_environment(env, check_args=false)
@@ -225,8 +233,8 @@ class Proc
         env.to_proc
       elsif env.kind_of?(BlockEnvironment)
         obj = allocate()
-        obj.put 1, env
-        obj.put 2, check_args
+        obj.block = env
+        obj.check_args = check_args
         obj
       else
         raise ArgumentError.new("Unable to turn a #{env.inspect} into a Proc")
@@ -303,13 +311,7 @@ class Proc
       end
       from_environment(ctx)
     end
-  
   end
-  
-  def block
-    @block
-  end
-  
   
   def inspect
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
@@ -319,13 +321,11 @@ class Proc
     self
   end
 
-  
   def call(*args)
     obj = at(1)
     raise "Corrupt proc detected!" unless obj
     obj.call(*args)
   end
-
 end
 
 class Backtrace

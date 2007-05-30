@@ -1,19 +1,8 @@
-# &, *, +, -, <<, <=>, ==, [], []=, abbrev, assoc, at, average,
-# clear, collect, collect!, compact, compact!, concat, dclone,
-# delete, delete_at, delete_if, each, each_index, empty?, eql?,
-# fetch, fill, first, flatten, flatten!, frozen?, hash, include?,
-# index, indexes, indices, initialize_copy, insert, inspect, join,
-# last, length, map, map!, nitems, pack, pop, pretty_print,
-# pretty_print_cycle, push, quote, rassoc, reject, reject!, replace,
-# reverse, reverse!, reverse_each, rindex, select, shift, size,
-# slice, slice!, sort, sort!, to_a, to_ary, to_s, to_yaml, transpose,
-# uniq, uniq!, unshift, values_at, yaml_initialize, zip, |
-
 class Array
-  def total; Ruby.asm "push self\npush 0\nfetch_field"; end
-  def tuple; Ruby.asm "push self\npush 1\nfetch_field"; end
-  def __ivars__; nil; end
   ivar_as_index :total => 0, :tuple => 1
+  def total    ; @total ; end
+  def tuple    ; @tuple ; end
+  def __ivars__; nil    ; end
 
   def to_s
     "#<Array:0x#{object_id.to_s(16)} #{@total} elements>"
