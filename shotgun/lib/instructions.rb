@@ -508,11 +508,11 @@ class ShotgunInstructions
   
   def activate_method
     <<-CODE
-    t1 = stack_pop();
-    t2 = stack_pop();
-    j = FIXNUM_TO_INT(stack_pop());
-    t3 = stack_pop();
-    cpu_goto_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop());
+    t1 = stack_pop(); /* recv */
+    t2 = stack_pop(); /* self */ 
+    j = FIXNUM_TO_INT(stack_pop()); /* sz */
+    t3 = stack_pop(); /* locals */
+    cpu_goto_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop()); /* block */
     if(RTEST(t3)) {
       if(NUM_FIELDS(t3) >= NUM_FIELDS(c->locals)) {
         methctx_set_locals(c->active_context, t3);

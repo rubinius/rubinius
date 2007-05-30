@@ -1873,7 +1873,7 @@ module Bytecode
         args = x.shift
         body = x.shift
         count = x.shift
-        one = unique_lbl('iter_') # TODO - Brutal hack
+        one = unique_lbl('iter_')
         two = unique_lbl('iter_')
         add "push &#{@post_send}"
         add "push &#{one}"

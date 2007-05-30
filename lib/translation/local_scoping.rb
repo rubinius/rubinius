@@ -98,7 +98,7 @@ class RsLocalScoper < SimpleSexpProcessor
       b2 = process(b)
       # clear_args
     end
-        
+
     [:iter, process(f), a2, b2, count]
   end
 
@@ -109,14 +109,23 @@ class RsLocalScoper < SimpleSexpProcessor
     enum = x.shift
     lasgn = x.shift
     body = x.shift
-    @masgn.push true
-    lasgn = process(lasgn)
-    @masgn.pop
-    body = process(body)
+
+    @state.in_top_scope do
+      @masgn.push true
+      lasgn = process(lasgn)
+      @masgn.pop
+    end
+
+    @state.new_scope do
+      body = process(body)
+    end
+
+    # create_block needs the number of locals in the block's scope
+    # The size of a scope is the number of locals
+    count = @state.surrounding_scope.size
 
     body = [:block, body] if body.nil? || body.first != :block
-    # TODO - This use of @state may or may not be correct
-    x = [[:call, process(enum), :each, [:array]], lasgn, body, @state.last_scope.size]
+    x = [[:call, process(enum), :each, [:array]], lasgn, body, count]
     x.unshift(:iter)
   end
 
