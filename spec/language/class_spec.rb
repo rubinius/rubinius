@@ -92,7 +92,7 @@ describe "A new class definition" do
     I.foo.should == 'foo'
   end
   
-  it "should allow the definitions of class methods using class << self" do
+  it "should allow the definition of class methods using class << self" do
     class J
       class << self
         def foo
@@ -102,6 +102,14 @@ describe "A new class definition" do
     end
     
     J.foo.should == 'foo'
+  end
+  
+  it "should allow the definition of Constants" do
+    class O; CONST = 'foo!'; end
+    
+    defined?(CONST).should == nil
+    defined?(O::CONST).should == "constant"
+    O::CONST.should == 'foo!'
   end
   
   it "should return the value of the last statement in the body" do
@@ -116,5 +124,67 @@ describe "A new class definition" do
     
     value = class N; class << self; 'foo'; end; end
     value.should == 'foo'
+  end
+end
+
+describe "Nested class definitions" do
+  it "should make the outer class contain the inner classes" do
+    class Z
+      class A1; end
+      class A2; end
+    end
+    
+    Z.constants.include?('A1').should == true
+    Z.constants.include?('A2').should == true
+  end
+end
+
+describe "A Class Definitions extending an object" do
+  it "should allow adding methods" do
+    a = "a string"
+    class << a
+      def xyz
+        self
+      end
+    end
+    
+    a.xyz.should == "a string"
+  end
+  
+  it "should raise a TypeError when trying to extend numbers" do
+    should_raise(TypeError) do
+      eval <<-CODE
+        class << 1
+          def xyz
+            self
+          end
+        end
+      CODE
+    end
+  end
+end
+
+describe "Multiple Definitions of the same Class" do
+  it "should extend previous definitions" do
+    class X; def abc(); 'foo' end; end
+    class X; def xyz(); 'bar' end; end
+    
+    x = X.new
+    x.abc.should == 'foo'
+    x.xyz.should == 'bar'
+  end
+  
+  it "should overwrite existing methods" do
+    class W; def abc() 'bar' end; end
+    class W; def abc() 'foo' end; end
+    
+    W.new.abc.should == 'foo'
+  end
+  
+  it "should raise a TypeError when superclasses mismatch" do
+    should_raise(TypeError) do
+      class V < Array; end
+      class V < Fixnum; end
+    end    
   end
 end
