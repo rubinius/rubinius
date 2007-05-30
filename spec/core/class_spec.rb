@@ -33,9 +33,7 @@ context 'Using Class.new to create a new class' do
 
     c.constants.should == ['YES']
     c.instance_variables.should == ['@civ']
-    c.instance_variables(true).should == [:@civ]
     c.class_variables.should == ['@@cv']
-    c.class_variables(true).should == [:@@cv]
     c.foo.should == :class_foo
     c.new.foo.should == :instance_foo
   end
