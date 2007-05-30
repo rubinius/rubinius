@@ -11,7 +11,6 @@
 #include <sys/param.h>
 #include <signal.h>
 
-#define __USE_GNU
 #include "config.h"
 
 /* Backtrace support */
