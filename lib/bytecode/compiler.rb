@@ -446,7 +446,11 @@ module Bytecode
           set_label ed
         elsif !els
           gif el
-          process thn
+          if thn
+            process thn
+          else
+            add "push nil"
+          end
           goto ed
           set_label el
           add "push nil"
