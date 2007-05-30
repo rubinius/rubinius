@@ -280,3 +280,33 @@ describe "The if expression" do
     if false: 123; elsif false then 234; elsif true: 345; elsif true then 456; end.should == 345
   end
 end
+
+describe "The postfix if form" do
+  it "should evaluate statement if expression is true" do
+    a = []
+    a << 123 if true
+    a.should == [123]
+  end
+
+  it "should not evaluate statement if expression is false" do
+    a = []
+    a << 123 if false
+    a.should == []
+  end
+
+  it "should return result of expression if value is true" do
+    (123 if true).should == 123
+  end
+
+  it "should return nil if expression is false" do
+    (123 if false).should == nil
+  end
+
+  it "should consider nil expression as false" do
+    (123 if nil).should == nil
+  end
+
+  it "should consider non-nil object as true" do
+    (123 if Object.new).should == 123
+  end
+end
