@@ -1848,7 +1848,7 @@ module Bytecode
 
         # Prevent single block arguments from using the more-complex masgn code
         # TODO - Move this to the normalizer
-        if args and args[0] == :lasgn
+        if args and (args[0] == :lasgn || args[0] == :iasgn)
           args = [:single_block_var, [:array, args]] 
         elsif args and args[0] != :masgn
           puts "OPEN A TICKET: Unexpected iter args: #{args.inspect}"
