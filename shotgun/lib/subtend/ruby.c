@@ -194,7 +194,7 @@ VALUE rb_funcall2(VALUE recv, ID meth, int args, VALUE* array) {
 
 /* Functions for adding behaviors (ie, classes/modules and methods) */
 
-VALUE rb_define_class_under(VALUE parent, char *name, VALUE super) {
+VALUE rb_define_class_under(VALUE parent, const char *name, VALUE super) {
   CTX;
   OBJECT cls;
   
@@ -203,7 +203,7 @@ VALUE rb_define_class_under(VALUE parent, char *name, VALUE super) {
   return NEW_HANDLE(ctx, cls);
 }
 
-VALUE rb_define_class(char *name, VALUE super) {
+VALUE rb_define_class(const char *name, VALUE super) {
   CTX;
   OBJECT cls;
   cls = rbs_class_new_with_namespace(ctx->state, name, 1, HNDL(super), ctx->state->global->object);
@@ -211,7 +211,7 @@ VALUE rb_define_class(char *name, VALUE super) {
   return NEW_HANDLE(ctx, cls);
 }
 
-VALUE rb_define_module_under(VALUE parent, char *name) {
+VALUE rb_define_module_under(VALUE parent, const char *name) {
   CTX;
   OBJECT mod;
   mod = rbs_module_new(ctx->state, name, HNDL(parent));
@@ -219,7 +219,7 @@ VALUE rb_define_module_under(VALUE parent, char *name) {
   return NEW_HANDLE(ctx, mod);
 }
 
-VALUE rb_define_module(char *name) {
+VALUE rb_define_module(const char *name) {
   CTX;
   OBJECT mod;
   mod = rbs_module_new(ctx->state, name, ctx->state->global->object);

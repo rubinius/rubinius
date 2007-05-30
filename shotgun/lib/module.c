@@ -9,7 +9,7 @@ void module_setup_fields(STATE, OBJECT module) {
   module_set_methods(module, methtbl_new(state));
 }
 
-void module_setup_name(STATE, OBJECT module, char *name, OBJECT ns) {
+void module_setup_name(STATE, OBJECT module, const char *name, OBJECT ns) {
   OBJECT str, sym;
   
   str = string_new(state, name);
@@ -19,13 +19,13 @@ void module_setup_name(STATE, OBJECT module, char *name, OBJECT ns) {
   return;
 }
 
-void module_setup_with_namespace(STATE, OBJECT module, char *name, OBJECT ns) {
+void module_setup_with_namespace(STATE, OBJECT module, const char *name, OBJECT ns) {
   module_setup_fields(state, module);
   module_setup_name(state, module, name, ns);
   module_setup_fields(state, object_metaclass(state, module));
 }
 
-void module_setup(STATE, OBJECT module, char *name) {
+void module_setup(STATE, OBJECT module, const char *name) {
   module_setup_with_namespace(state, module, name, BASIC_CLASS(object));
 }
 

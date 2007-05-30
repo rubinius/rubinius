@@ -2,7 +2,7 @@
 #include "module.h"
 #include "class.h"
 
-OBJECT class_new(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
+OBJECT class_new(STATE, const char *name, int fields, OBJECT sup, OBJECT ns) {
   OBJECT cls;
   
   cls = class_create(state);

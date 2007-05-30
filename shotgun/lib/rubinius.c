@@ -24,15 +24,15 @@ OBJECT rbs_const_get(STATE, OBJECT module, char *name) {
   return module_const_get(state, module, sym);
 }
 
-OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT sup) {
+OBJECT rbs_class_new(STATE, const char *name, int fields, OBJECT sup) {
   return class_new(state, name, fields, sup, BASIC_CLASS(object));
 }
 
-OBJECT rbs_class_new_with_namespace(STATE, char *name, int fields, OBJECT sup, OBJECT ns) {
+OBJECT rbs_class_new_with_namespace(STATE, const char *name, int fields, OBJECT sup, OBJECT ns) {
   return class_new(state, name, fields, sup, ns);
 }
 
-OBJECT rbs_module_new(STATE, char *name, OBJECT ns) {
+OBJECT rbs_module_new(STATE, const char *name, OBJECT ns) {
   OBJECT mod;
   mod = module_allocate_mature(state, 0);
   module_setup_with_namespace(state, mod, name, ns);
