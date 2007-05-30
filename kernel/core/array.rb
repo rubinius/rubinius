@@ -29,6 +29,19 @@ class Array
   alias initialize_copy replace
 
 
+  def at(idx)
+    if idx < 0
+      idx += @total
+      return nil if idx < 0
+    end
+
+    if idx >= @total
+      return nil
+    end
+
+    @tuple.at(idx)
+  end
+
   def [](idx, cnt=nil)
     # Don't use kind_of? or === here! Both of those use Array#[] and
     # it will descend and spiral out to infinity!
@@ -79,19 +92,6 @@ class Array
     end
 
     if idx < 0 || idx >= @total
-      return nil
-    end
-
-    @tuple.at(idx)
-  end
-
-  def at(idx)
-    if idx < 0
-      idx += @total
-      return nil if idx < 0
-    end
-
-    if idx >= @total
       return nil
     end
 
@@ -525,14 +525,43 @@ class Array
     return self if size <= 1
     # Breaks amd64, FFI?
 #    pivot = self[rand(size)] # Random pivot point
-    pivot = self.first
+    pivot   = self.first
+    left    = []
+    middle  = []
+    right   = []
 
-    # Array#sort uses the first element of an array to perform the sort
-    # In particular, Hash#sort uses this behavior
-    pivot = pivot[0] if Array === pivot
-    left = select   { |x| (Array === x ? x[0] : x) < pivot }.sort_without_block 
-    middle = select { |x| (Array === x ? x[0] : x) == pivot }
-    right = select  { |x| (Array === x ? x[0] : x) > pivot }.sort_without_block
+    each { |elem| 
+      # Sort by first element in a subarray
+      if elem.class == Array
+        cand = elem[0]
+      else
+        cand = elem
+      end
+    
+      # Done the 'wrong' way around to keep comp with MRI
+      begin
+        result = pivot <=> cand
+
+        if result == -1
+          right << cand
+        elsif result == 0
+          middle << cand
+        elsif result == 1
+          left << cand
+        else
+          raise ArgumentError, "Unable to <=> on candidate #{cand.inspect}"
+        end
+
+      rescue TypeError
+        raise ArgumentError, "Unable to compare #{pivot.class} with #{cand.class}"
+      rescue
+        raise
+      end
+    }
+
+    left = left.sort_without_block
+    right = right.sort_without_block
+
     left + middle + right
   end
 
@@ -541,24 +570,30 @@ class Array
 
     # Breaks amd64, FFI?
 #    pivot = self[rand(size)] # Random pivot point
-    pivot = self.first
+    pivot   = self.first
+    left    = []
+    middle  = []
+    right   = []
 
-    left = select do |x|
-      (yield(x,pivot) || 0) < 0
-    end
+    each { |elem| 
+      # nil block results are assumed pre-sorted
+      result = yield(elem, pivot) || 0
 
-    middle = select do |x|
-      (yield(x,pivot) || 0) == 0 # Treat nil block results as pre-sorted
-    end
+      if result == -1
+        left << elem
+      elsif result == 0
+        middle << elem
+      elsif result == 1
+        right << elem
+      else
+        raise ArgumentError, "Unknown result #{result} from block"
+      end
+    }
 
-    right = select do |x| 
-      (yield(x,pivot) || 0) > 0 
-    end
+    left = left.sort_with_block(&block)
+    right = right.sort_with_block(&block)
 
-    # If the block claims that none of the elements are the pivot, ignore it
-    return self.sort if middle.empty?
-      
-    left.sort_with_block(&block) + middle + right.sort_with_block(&block)
+    left + middle + right
   end
 
   def sort!(&block)

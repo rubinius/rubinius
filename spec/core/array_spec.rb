@@ -587,12 +587,26 @@ context "Array instance methods" do
     a.should == [1, 6, 7]
   end
 
-  specify "sort should return a new array from sorting elements using first their class and then <=>" do
-    class D; def <=>(obj); 4 <=> obj; end; end
-    ass = D.new
+  
+  class D 
+    def <=>(obj) 
+      return 4 <=> obj unless obj.class == D
+      0
+    end
+  end
+
+  specify "sort should return a new array from sorting elements using <=> on the pivot" do
+    d = D.new
 
     [1, 1, 5, -5, 2, -10, 14, 6].sort.should == [-10, -5, 1, 1, 2, 5, 6, 14]
-    should_raise {[1, 1, 5, -5, 2, -10, 14, 6, ass].sort.should == [-10, -5, 1, 1, 2, ass, 5, 6, 14]}
+    [d, 1].sort.should == [1, d]
+  end
+
+  it 'will raise an ArgumentError if the comparison cannot be completed' do
+    d = D.new
+
+    # Fails essentially because of d.<=>(e) whereas d.<=>(1) would work
+    should_raise(ArgumentError) { [1, d].sort.should == [1, d] }
   end
   
   specify "sort may take a block which is used to determine the order of objects a and b described as -1, 0 or +1" do
@@ -649,7 +663,7 @@ context "Array instance methods" do
     class G; def to_a(); [1, 2]; end; end
     class H; def to_ary(); [1, 2]; end; end
 
-    should_raise { [G.new, [:a, :b]].transpose } 
+    should_raise(TypeError) { [G.new, [:a, :b]].transpose } 
     [H.new, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
   end
 

@@ -22,16 +22,20 @@ class Object
   end
 end
 
-def should_raise(exception_class = Exception)
+def should_raise(exception_class = nil)
+  raise ArgumentError, "No exception class given" unless exception_class
+
   begin
     yield
   rescue Exception => e
     if exception_class === e
       return true
+    else
+      raise ArgumentError, "Expected #{exception_class}, got #{e.class}"
     end
   end
 
-  raise ArgumentError.new("Did not raise specified exception")
+  raise ArgumentError.new("Expected #{exception_class}, nothing raised")
 end
 
 
