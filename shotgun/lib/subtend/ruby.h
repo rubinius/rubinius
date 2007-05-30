@@ -27,6 +27,10 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
 #define rb_define_singleton_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
 
 VALUE rb_define_class(char *name, VALUE super);
+VALUE rb_define_class_under(VALUE parent, char *name, VALUE super);
+
+VALUE rb_define_module(char *name);
+VALUE rb_define_module_under(VALUE parent, char *name);
 
 VALUE rb_const_get(VALUE klass, ID id);
 
