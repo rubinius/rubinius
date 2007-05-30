@@ -5,14 +5,16 @@
 typedef void * VALUE;
 #define ID int
 
-#ifndef Qfalse
+/* We need to redefine those to casts to VALUE */
+#undef Qfalse
+#undef Qtrue
+#undef Qnil
+#undef Qundef
 
 #define Qfalse ((VALUE)0L)
 #define Qtrue  ((VALUE)2L)
 #define Qnil   ((VALUE)4L)
 #define Qundef ((VALUE)6L)
-
-#endif
 
 #define SYM2ID(sym) ((ID)(sym))
 
