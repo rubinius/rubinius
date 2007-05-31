@@ -309,4 +309,36 @@ describe "The postfix if form" do
   it "should consider non-nil object as true" do
     (123 if Object.new).should == 123
   end
+
+  it "should evaluate then-body in containing scope" do
+    a = 123
+    if true
+      b = a+1
+    end
+    b.should == 124
+  end
+
+  it "should evaluate else-body in containing scope" do
+    a = 123
+    if false
+      b = a+1
+    else
+      b = a+2
+    end
+    b.should == 125
+  end
+
+  it "should evaluate elsif-body in containing scope" do
+    a = 123
+    if false
+      b = a+1
+    elsif false
+      b = a+2
+    elsif true
+      b = a+3
+    else
+      b = a+4
+    end
+    b.should == 126
+  end
 end
