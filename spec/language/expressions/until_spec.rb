@@ -86,13 +86,41 @@ describe "The until expression" do
     end.should == nil
   end
 
+  it "should skip to end of body with next" do
+    a = []
+    i = 0
+    until (i+=1)>=5
+      next if i==3
+      a << i
+    end
+    a.should == [1, 2, 4]
+  end
+
+  it "should restart current iteration without reevaluating condition with redo" do
+    a = []
+    i = 0
+    j = 0
+    until (i+=1)>=3
+      a << i
+      j+=1
+      redo if j<3
+    end
+    a.should == [1, 1, 1, 2]
+  end
 end
   
-describe "The postfix until expression" do
+describe "The until modifier" do
   it "should run preceding statement while the condition is false" do
     i = 0
     i += 1 until i > 9
     i.should == 10
+  end
+  
+  it "should evaluate condition before statement execution" do
+    a = []
+    i = 0
+    a << i until (i+=1) >= 3
+    a.should == [1, 2]
   end
   
   it "should not run preceding statement if the condition is true" do
@@ -114,10 +142,24 @@ describe "The postfix until expression" do
     (break until false).should == nil
   end
 
+  it "should skip to end of body with next" do
+    a = []
+    i = 0
+    lambda { next if i==3; a << i }.call until (i+=1)>=5
+    a.should == [1, 2, 4]
+  end
+
+  it "should restart current iteration without reevaluating condition with redo" do
+    a = []
+    i = 0
+    j = 0
+    lambda { a << i; j+=1; redo if j<3 }.call until (i+=1)>=3
+    a.should == [1, 1, 1, 2]
+  end
 end
 
 
-describe "The postfix until expression with preceding begin .. end" do
+describe "The until modifier with begin .. end block" do
   
   it "should run block while the expression is false" do
     i = 0
@@ -153,5 +195,36 @@ describe "The postfix until expression with preceding begin .. end" do
     end until true
     
     i.should == 1
+  end
+
+  it "should evaluate condition after block execution" do
+    a = []
+    i = 0
+    begin
+      a << i
+    end until (i+=1)>=5
+    a.should == [0, 1, 2, 3, 4]
+  end
+
+  it "should skip to end of body with next" do
+    a = []
+    i = 0
+    begin
+      next if i==3
+      a << i
+    end until (i+=1)>=5
+    a.should == [0, 1, 2, 4]
+  end
+
+  it "should restart current iteration without reevaluting condition with redo" do
+    a = []
+    i = 0
+    j = 0
+    begin
+      a << i
+      j+=1
+      redo if j<3
+    end until (i+=1)>=3
+    a.should == [0, 0, 0, 1, 2]
   end
 end
