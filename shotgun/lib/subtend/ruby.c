@@ -281,6 +281,27 @@ char *rb_id2name(ID sym) {
   return rbs_symbol_to_cstring(ctx->state, obj);
 }
 
+VALUE rb_obj_alloc(VALUE klass) {
+  CTX;
+  OBJECT o;
+
+  o = class_new_instance(ctx->state, HNDL(klass));
+  return NEW_HANDLE(ctx, o);
+}
+
+void rb_obj_call_init(VALUE obj, int nargs, VALUE *args) {
+  rb_funcall2(obj, rb_intern("initialize"), nargs, args);
+}
+
+VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
+  VALUE obj;
+
+  obj = rb_obj_alloc(klass);
+  rb_obj_call_init(obj, nargs, args);
+
+  return obj;
+}
+
 int rb_ary_size(VALUE self) {
   OBJECT ary;
   CTX;
@@ -470,8 +491,6 @@ rb_str_cat2
 rb_block_given_p
 rb_block_proc
 rb_throw
-rb_obj_alloc
-rb_obj_call_init
 rb_float_new
 Data_Wrap_Struct
 

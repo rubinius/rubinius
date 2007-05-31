@@ -66,6 +66,10 @@ VALUE rb_const_get(VALUE klass, ID id);
 
 void rb_raise(VALUE exc, const char *fmt, ...);
 
+VALUE rb_obj_alloc(VALUE klass);
+void rb_obj_call_init(VALUE obj, int nargs, VALUE *args);
+VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
+
 /* Conversions */
 int FIX2INT(VALUE val);
 
