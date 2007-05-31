@@ -9,8 +9,6 @@ Here is a quick overview over the most important files.
 
 ./bin/old.rubinius
 
-* OLD, but needed:
-
 ./bin/obsolete.rcompile
 
 This is the script for starting the compiler used during
