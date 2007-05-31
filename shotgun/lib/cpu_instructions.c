@@ -778,11 +778,11 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
 
   if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
+    printf("%05d: Calling %s => %s#%s on %s (%p/%lu) (%s).\n", c->depth,
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
       rbs_symbol_to_cstring(state, module_get_name(mod)),
       rbs_symbol_to_cstring(state, sym), 
-      _inspect(recv), c->method, c->ip,
+      _inspect(recv), (void*)c->method, c->ip,
       prim ? "" : "PRIM FAILED"
       );
   }
@@ -967,7 +967,7 @@ void cpu_run(STATE, cpu c) {
     if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
     cpu_flush_sp(c);
-    printf("%-15s: OP: %s (%d/%d/%d)\n", 
+    printf("%-15s: OP: %s (%d/%lu/%lu)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
@@ -999,11 +999,11 @@ check_interupts:
       if(cm & 0x1) {
         if(EXCESSIVE_TRACING) {
         printf("[[ Collecting young objects. ]]\n");
-        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
         }
         state_collect(state, c);
         if(EXCESSIVE_TRACING) {
-        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
         printf("[[ Finished collect. ]]\n");
         }
       }

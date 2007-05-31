@@ -44,14 +44,14 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->sender = sender;
   fc->ip = 0;
   fc->sp = 0;
-  fc->block = Qnil;
-  fc->raiseable = Qfalse;
+  fc->block = (OBJECT)Qnil;
+  fc->raiseable = (unsigned long)Qfalse;
   fc->method = nmethod;
   fc->data = NULL;
   fc->data_size = 0;
-  fc->literals = Qnil;
+  fc->literals = (OBJECT)Qnil;
   fc->self = recv;
-  fc->locals = Qfalse;
+  fc->locals = (OBJECT)Qfalse;
   fc->argcount = args;
   fc->name = name;
   fc->method_module = Qnil;
@@ -137,7 +137,7 @@ void _nmc_start() {
   struct fast_context *fc;
   cpu c;
   rni_handle *retval, *recv;  
-  int i, code;
+  int i;
   void **args = NULL;
   VALUE *va = NULL;
   rni_handle **handles_used = NULL;

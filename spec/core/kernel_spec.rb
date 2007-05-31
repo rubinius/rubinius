@@ -199,10 +199,6 @@ context "Kernel.warn()" do
 end
 
 
-context "Kernel.caller()" do
-end
-
-
 describe "A class with the Functions mixin" do
   specify "loop calls block until it is terminated by a break" do
     i = 0

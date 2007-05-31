@@ -105,8 +105,7 @@ context "Array instance methods" do
   specify "== should be false if any element is not == to the corresponding element in the other the array" do
     ([ "a", "c" ] == [ "a", "c", 7 ]).should == false
   end
-  
-  
+
   specify "assoc should return the first contained array the first element of which is obj" do
     s1 = [ "colors", "red", "blue", "green" ] 
     s2 = [ "letters", "a", "b", "c" ] 
@@ -1411,6 +1410,18 @@ describe 'Array packing' do
 #          v     |  Short, little-endian byte order
 #          w     |  BER-compressed integer\fnm
 
+end
+
+describe 'Empty Array' do
+end
+
+describe 'Array with one item' do
+end
+
+describe 'Array with multiple items' do
+end
+
+describe 'Array with multiple similar items' do
 end
 
 # Redundant, should be in Object --rue
