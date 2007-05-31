@@ -198,6 +198,11 @@ context "Kernel.warn()" do
   end
 end
 
+
+context "Kernel.caller()" do
+end
+
+
 describe "A class with the Functions mixin" do
   specify "loop calls block until it is terminated by a break" do
     i = 0
@@ -268,6 +273,21 @@ describe "A class with the Functions mixin" do
     1000.times do
       (rand(100) < 100).should == true
     end
+  end
+
+  it "caller returns current execution stack" do
+    def a(skip)
+      caller(skip)
+    end
+    def b(skip)
+      a(skip)
+    end
+    def c(skip)
+      b(skip)
+    end
+    c(0)[0].should == "./spec/core/kernel_spec.rb:279:in `a'"
+    c(0)[1].should == "./spec/core/kernel_spec.rb:282:in `b'"
+    c(0)[2].should == "./spec/core/kernel_spec.rb:285:in `c'"
   end
 end
 
