@@ -26,12 +26,13 @@ OBJECT array_from_tuple(STATE, OBJECT tuple) {
 OBJECT array_set(STATE, OBJECT self, int idx, OBJECT val) {
   OBJECT nt;
   int cur = NUM_FIELDS(array_get_tuple(self));
-  if(idx == cur) {
-    if(0 == cur) {
-      nt = tuple_new(state, 10);
-    } else {
-      nt = tuple_new(state, cur * 2);
-    }
+  if(idx >= cur) {
+    int new_size = (cur == 0) ? 10 : cur;
+
+    while (new_size <= idx)
+      new_size *= 2;
+
+    nt = tuple_new(state, new_size);
     object_copy_fields_from(state, array_get_tuple(self), nt, 0, cur);
     array_set_tuple(self, nt);
   }
