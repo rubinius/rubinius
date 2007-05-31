@@ -483,7 +483,6 @@ rb_obj_classname
 rb_call_super
 rb_respond_to
 
-rb_str_new2
 rb_str_catf
 rb_str_resize
 rb_str_cat2
