@@ -36,6 +36,9 @@ class String
   end
 
   def replace(other)
+    # If we're replacing with ourselves, then we have nothing to do
+    return self if self.equal?(other)
+
     @data = other.dup.data
     @bytes = other.bytes
     @characters = other.characters
