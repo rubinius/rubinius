@@ -157,23 +157,23 @@ static const char node_type_string[][60] = {
 #define ID2SYM(v) quark_to_symbol(state, v)
 #define SYMBOL(str) cstring_to_symbol(state, str)
 
-static OBJECT cstring_to_symbol(STATE, char *str) {
+static OBJECT cstring_to_symbol(STATE, const char *str) {
   return symtbl_lookup_cstr(state, state->global->symbols, str);
 }
 
-char *op_to_name(ID id);
+const char *op_to_name(ID id);
 
-static char* print_quark(GQuark quark) {
-  return (char*)g_quark_to_string(id_to_quark(quark));
+static const char* print_quark(GQuark quark) {
+  return g_quark_to_string(id_to_quark(quark));
 }
 
 static OBJECT quark_to_symbol(STATE, GQuark quark) {
-  char *op;
+  const char *op;
   op = op_to_name(quark);
   if(op) {
     return cstring_to_symbol(state, op);
   }
-  return cstring_to_symbol(state, (char*)g_quark_to_string(id_to_quark(quark)));
+  return cstring_to_symbol(state, g_quark_to_string(id_to_quark(quark)));
 }
 
 

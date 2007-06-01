@@ -192,7 +192,7 @@ static int tokadd_string(int, int, int, int *, rb_parse_state*);
 //static void syd_compile_error(char *fmt, ...);
 #define rb_compile_error printf
 
-static ID rb_intern(char *name);
+static ID rb_intern(const char *name);
 static ID rb_id_attrset(ID);
 
 static NODE *
@@ -5016,7 +5016,7 @@ new_evstr(parse_state, node)
 
 static struct {
     ID token;
-    char *name;
+    const char *name;
 } op_tbl[] = {
     {tDOT2,     ".."},
     {tDOT3,     "..."},
@@ -6249,7 +6249,7 @@ internal_id()
 }
 
 static ID
-rb_intern(char *name)
+rb_intern(const char *name)
 {
     const char *m = name;
     ID id, pre, qrk, bef;
@@ -6367,7 +6367,7 @@ scan_hex(start, len, retlen)
     return retval;
 }
 
-char *op_to_name(ID id) {
+const char *op_to_name(ID id) {
   if(id < tLAST_TOKEN) {
     int i = 0;
 
