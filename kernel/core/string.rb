@@ -602,10 +602,13 @@ class String
         return match ? match[args.last] : nil
       else
         start, count = *args
+
         start = @bytes + start if start < 0
         count = @bytes - start if start + count > @bytes
 
         return "" if count == 0
+        return nil if start < 0 || start > @bytes
+        
         return substring(start, count)
       end
     elsif args.size == 1
@@ -638,7 +641,7 @@ class String
         length = length - start
         length = 0 if length < 0
         
-        return substring(start, length)
+        return self[start, length]
       end
     else
       raise ArgumentError, "wrong number of arguments (#{args.size} for 1)"
@@ -646,7 +649,6 @@ class String
     
     return nil
   end
-
   alias_method :slice, :[]
 
   def slice!(*args)

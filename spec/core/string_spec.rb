@@ -246,12 +246,18 @@ context "String instance method" do
     "hello"[1, 3].should == "ell"
     "hello"[-3, 2].should == "ll"
     "hello"[5, 7].should == ""
+    
+    ""[-2,2].should == nil
+    ""[2,2].should == nil
   end
   
   specify "[] with range should return the substring specified by range" do
     "world"[0..2].should == "wor"
     "world"[-4..-2].should == "orl"
     "world"[1...3].should == "or"
+    
+    ""[-2..2].should == nil
+    ""[2..3].should == nil
   end
   
   specify "[] with regexp should return the string matching pattern" do
@@ -259,6 +265,8 @@ context "String instance method" do
     "hello there"[/ell/].should == "ell"
     "hello there"[/o /].should == "o "
     "hello there"[/d/].should == nil
+    
+    ""[/asd/].should == nil
   end
   
   specify "[] with regexp, index should return the string specified by the nth component MatchData" do
@@ -266,6 +274,8 @@ context "String instance method" do
     "hello there"[/he/, 1].should == nil
     "hello there"[/he/, 0].should == "he"
     "hello there"[/[aeiou](.)\1/, 2].should == nil
+    
+    ""[/he/, 1].should == nil
   end
   
   specify "[] with string should return other if it occurs in self, otherwise nil" do
