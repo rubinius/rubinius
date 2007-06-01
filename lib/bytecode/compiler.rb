@@ -1516,7 +1516,7 @@ module Bytecode
         args = x.shift
         body = x.shift
         
-        prim = detect_primitive(body)
+        prim = detect_primitive(body) if body
         state = RsLocalState.new
         scoper = RsLocalScoper.new(state)
 
@@ -1979,6 +1979,13 @@ module Bytecode
         cnt.times { add "string_append" }
       end
 
+      def process_dregx(x)
+        process_dstr(x)
+        #add "push 0" # TODO - Fix grammar_runtime so we get the actual options for dregex nodes
+        add "push Regexp"
+        add "send new 1"
+      end
+      
       def process_dsym(x) # Symbols with String interpolation
         # Unpack, process contained String and have it symbolise itself
         process x.shift

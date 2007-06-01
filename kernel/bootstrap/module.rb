@@ -75,15 +75,16 @@ class Module
   
   def set_visibility(meth, vis)
     name = meth.to_sym
-    tup = method_table[name]
+    tup = find_method_in_hierarchy(name)
     vis = vis.to_sym
     
     unless tup
-      raise NoMethodError, "Unknow method '#{name}' to make private"
+      raise NoMethodError, "Unknown method '#{name}' to make private"
     end
-    
+
+    method_table[name] = tup.dup
     if Tuple === tup
-      tup[0] = vis
+      method_table[name][0] = vis
     else
       method_table[name] = Tuple[vis, tup]
     end

@@ -22,19 +22,30 @@ class Class
     return out
   end
   
-  def alias_method(nw, cur)
+  def find_method_in_hierarchy(sym)
     mod = self
     while mod
-      meth = mod.method_table[cur]
+      meth = mod.method_table[sym]
       if meth
-        @methods[nw] = meth
         return meth
       end
       
-      mod = mod.direct_superclass()
+      if mod == Functions
+        mod = nil
+      else
+        mod = mod.direct_superclass || Functions
+      end
     end
-    
-    raise NoMethodError, "No method by name of '#{cur}' found"
+    nil
+  end
+  
+  def alias_method(new_name, current_name)
+    meth = find_method_in_hierarchy(current_name)
+    if meth
+      method_table[new_name] = meth
+    else
+      raise NameError, "undefined method `#{current_name}' for class `#{self.name}'"
+    end
   end
 
   def <(other)
