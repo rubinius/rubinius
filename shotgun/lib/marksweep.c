@@ -356,8 +356,12 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
     }
   }
   
-  cpu_event_each_channel(state, mark_sweep_mark_object, (void*)ms);
-  cpu_sampler_collect(state, mark_sweep_mark_object, (void*)ms);
+  cpu_event_each_channel(state,
+                         (cpu_event_each_channel_cb) mark_sweep_mark_object,
+                         ms);
+  cpu_sampler_collect(state,
+                      (cpu_sampler_collect_cb) mark_sweep_mark_object,
+                      ms);
   
   // printf("Marked Objects: %d\n", marked_objects);
 }

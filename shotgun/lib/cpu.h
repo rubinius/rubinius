@@ -78,6 +78,8 @@ struct rubinius_cpu {
 #define CPU_TASKS_LOCATION(cp) (((char*)cp) + offsetof(struct rubinius_cpu, args))
 
 typedef struct rubinius_cpu *cpu;
+typedef OBJECT (*cpu_sampler_collect_cb)(STATE, void*, OBJECT);
+typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 
 #define cpu_stack_empty_p(state, cpu) (cpu->sp_ptr <= cpu->stack_top)
 #define cpu_local_get(state, cpu, idx) (NTH_FIELD(cpu->locals, idx))
@@ -154,7 +156,7 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr);
 OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
-void cpu_sampler_collect(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data);
+void cpu_sampler_collect(STATE, cpu_sampler_collect_cb, void *cb_data);
 
 #define cpu_event_outstanding_p(state) (state->thread_infos != NULL)
 #define cpu_event_update(state) if(cpu_event_outstanding_p(state)) cpu_event_runonce(state)
@@ -162,7 +164,7 @@ void cpu_event_runonce(STATE);
 void cpu_event_init(STATE);
 void cpu_event_run(STATE);
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv);
-void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data);
+void cpu_event_each_channel(STATE, cpu_event_each_channel_cb, void *cb_data);
 void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer, int count);
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd);
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig);
