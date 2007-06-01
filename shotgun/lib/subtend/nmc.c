@@ -31,7 +31,6 @@ rni_context* subtend_retrieve_context() {
 OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, int args) {
   rni_nmc *n;
   OBJECT ctx, sys;
-  int num_lcls;
   struct fast_context *fc;
   
   ctx = object_memory_new_object(state->om, state->global->nmc, FASTCTX_FIELDS);
@@ -55,7 +54,6 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->argcount = args;
   fc->name = name;
   fc->method_module = Qnil;
-  fc->num_locals = num_lcls;
   fc->type = FASTCTX_NMC;
   
   n = nmc_new_standalone();

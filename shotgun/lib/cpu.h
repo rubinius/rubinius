@@ -25,7 +25,6 @@
   unsigned long int argcount; \
   OBJECT name; \
   OBJECT method_module; \
-  unsigned long int num_locals; \
   long type; \
   void *opaque_data;
 

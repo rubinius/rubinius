@@ -429,7 +429,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->argcount = args;
   fc->name = name;
   fc->method_module = mod;
-  fc->num_locals = num_lcls;
   fc->type = FASTCTX_NORMAL;
     
 #else
