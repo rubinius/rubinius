@@ -24,18 +24,9 @@ class Module
   end
   
   def find_method_in_hierarchy(sym)
-    mod = self
-    while mod
+    [self, Functions].each do |mod|
       meth = mod.method_table[sym]
-      if meth
-        return meth
-      end
-      
-      if mod == Functions
-        mod = nil
-      else
-        mod = mod.parent || Functions
-      end
+      return meth if meth
     end
     nil
   end
