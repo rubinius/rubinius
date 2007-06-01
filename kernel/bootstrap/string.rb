@@ -10,12 +10,11 @@ class String
     self
   end
   
-  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e]
-  ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e"]
+  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
+  ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
   def inspect
     res =  "\""
-    0.upto(@bytes - 1) do |idx|
-      char = @data.get_byte(idx)
+    self.each_byte do |char|
       if ci = ControlCharacters.index(char)
         res << ControlPrintValue[ci]
       elsif char == ?"
