@@ -649,68 +649,85 @@ class String
 
   alias_method :slice, :[]
 
-  def slice!(arg, len=nil)
-    replace_if(slice(arg, len))
+  def slice!(*args)
+    result = slice(*args)
+    self[*args] = '' unless result.nil?
+    result
   end
 
-  def []=(idx, ent, *args)
-    cnt = nil
-    if args.size != 0
-      cnt = ent
-      ent = args[0]             # 2nd arg (cnt) is the optional one!
-    end
+  def []=(*args)
+    if args.size == 3
+    
+      case args.first
+      when Regexp
+        # Regexp match with given index
+        index = args[1]
+        match = args.first.match(self)
+        
+        raise IndexError, "regexp not matched" unless match
+        raise IndexError, "index #{index} out of regexp" if index.abs >= match.size
+        
+        # Negative index?
+        index += match.size if index < 0
 
-    if idx.class == Range
-      if cnt
-        raise ArgumentError, "Second argument invalid with a range"
+        # Let's hope this is not evil...
+        start  = match.begin(index)
+        length = match.end(index) - start 
+        self[start, length] = args.last
+      when Fixnum
+        start, count, content = *args
+        start = @bytes + start if start < 0
+        
+        if content.is_a?(Fixnum)
+          @data[start] = content
+        else
+          raise IndexError, "negative length #{count}" if count < 0
+
+          output = ""
+          output << substring(0, start) if start != 0
+          output << content
+          output << substring(start + count, @bytes - (start + count)) if start + count < @bytes
+          
+          replace(output)
+        end
+
+        return content
       end
-      lst = idx.last
-      if lst < 0
-        lst += @bytes
+      
+    elsif args.size == 2
+
+      case args.first
+      when Regexp
+        self[args.first, 0] = args.last
+      when Fixnum
+        self[args.first, 1] = args.last
+      when Range
+        range  = args.first
+        
+        start   = range.first
+        length  = range.last
+
+        start += @bytes if start < 0
+
+        length = @bytes if length > @bytes
+        length += @bytes if length < 0
+        length += 1 unless range.exclude_end?
+        
+        length = length - start
+        length = 0 if length < 0
+        
+        self[start, length] = args.last
+      when String
+        length = args.first.length
+        start  = index(args.first)
+        
+        raise IndexError, "string not matched" unless start
+        self[start, length] = args.last
       end
-      lst += 1 unless idx.exclude_end?
-      idx = idx.first
-    elsif Fixnum === idx
-      # Check type of cnt here and raise TypeError if can't coerce to int
-      raise IndexError, "negative length #{cnt}" if cnt && cnt < 0
-    elsif Regexp === idx
-      cnt = 0 if cnt.nil?  # if capture group not specified default to 0
-      m = idx.match(self)
-      raise IndexError, "regexp not matched" if m.nil?
-      raise IndexError, "index #{cnt} out of regexp" if cnt >= m.size
-      idx = m.begin(cnt) 
-      cnt = m.end(cnt) - idx
-    elsif String === idx
-      cnt = idx.length
-      idx = index(idx)
-      raise IndexError, "string not matched" if idx.nil?
+    
+    else
+      raise ArgumentError, "wrong number of arguments (#{args.size} for 2)" 
     end
-
-    if idx < 0
-      idx += @bytes
-    end
-
-    if idx < 0 || idx >= @bytes
-      raise IndexError, "index #{idx} out of string"
-    end
-
-    # Tidy-up the Range parameters
-    if lst && cnt.nil?
-      lst = idx if lst < idx
-      cnt = lst - idx
-    end
-
-    if String === ent
-      cnt = 1 if cnt.nil? # for index arg. only replace the indexed char
-      out = ""
-      out << substring(0, idx) if idx > 0
-      out << ent
-      out << substring(idx + cnt, @bytes - (idx + cnt)) if idx + cnt < @bytes
-      replace out
-    elsif Fixnum === ent
-      @data[idx] = ent
-    end
-    return ent
   end
   
   def oct
