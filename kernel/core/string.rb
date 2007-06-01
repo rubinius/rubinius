@@ -594,49 +594,57 @@ class String
     justify_string(width, str, 0) 
   end
 
-  def [](arg, len = nil)
-    if len
-      len = len.to_i
-      return nil if len < 0
-    end
+  def [](*args)
+    if args.size == 2
+      case args.first
+      when Regexp
+        match = args.first.match(self)
+        return match ? match[args.last] : nil
+      else
+        start, count = *args
+        start = @bytes + start if start < 0
+        count = @bytes - start if start + count > @bytes
 
-    if arg.is_a? String
-      unless len.nil?
-        raise ArgumentError.new("String#[] cannot accept a second argument with a String.")
+        return "" if count == 0
+        return substring(start, count)
       end
-      return (self.include?(arg) ? arg.dup : nil)
-    elsif arg.respond_to? :match
-      m = arg.match(self)
-      return m[len.to_i] if m && len
-      return m[0] if m
-      return nil
-    elsif arg.respond_to?(:first) and arg.respond_to?(:last)
-      from = arg.first
-      to = arg.last
-      to -= 1 if arg.respond_to?(:exclude_end?) && arg.exclude_end?
-      size = self.size
-      from = from + size if from < 0
-      to += size if to < 0
-      len = to - from + 1
-      self[from, len]
-      
-    elsif arg and arg.respond_to?(:to_i)
-      arg = arg.to_i
-      size = self.size
-      arg = arg + size if arg < 0
-      if 0 <= arg && arg < size
-        if len
-          len = size - arg if arg + len >= size
-          substring(arg, len)
-        else
-          @data[arg]
+    elsif args.size == 1
+      case args.first
+      when Fixnum
+        index = args.first
+        index += @bytes if index < 0
+        if 0 <= index && index < @bytes
+          return @data[index]
         end
-      else # invalid start index
-        len ? "" : nil
+      when Regexp
+        return self[args.first, 0]
+      when String
+        return self.include?(args.first) ? args.first.dup : nil
+      when Range
+        range  = args.first
+        
+        start   = range.first
+        length  = range.last
+
+        start += @bytes if start < 0
+
+        length += @bytes if length < 0
+        length += 1 unless range.exclude_end?
+        
+        return "" if start == @bytes
+        return nil if start > @bytes
+        
+        length = @bytes if length > @bytes
+        length = length - start
+        length = 0 if length < 0
+        
+        return substring(start, length)
       end
     else
-      raise ArgumentError.new("String#[] cannot accept #{arg.class} objects")
+      raise ArgumentError, "wrong number of arguments (#{args.size} for 1)"
     end
+    
+    return nil
   end
 
   alias_method :slice, :[]
