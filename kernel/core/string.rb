@@ -494,49 +494,38 @@ class String
     end
   end
 
-  def index(arg, offset = nil )
-    if arg.is_a? Fixnum
-      offset = 0 if offset.nil?
-      offset = self.size + offset if offset < 0
-      return nil if offset < 0 || offset > self.size
-      (offset...self.size).each do |idx|
-        return idx if @data[idx] == arg
-      end
-    elsif arg.is_a? String
-      idx = 0
-      if offset
-        if offset >= 0
-          return nil if offset >= self.size
-          idx = offset
-        else
-          return nil if (1-offset) >= self.size
-          idx = self.size + offset
-        end
-      end
-      argsize = arg.size
-      max = self.size - argsize
-      if max >= 0 and argsize > 0
-        idx.upto(max) do |i|
-          if @data[i] == arg.data[0]
-            return i if substring(i,argsize) == arg
-          end
-        end
-      end
-    elsif arg.is_a? Regexp
-      idx = offset ? offset : 0
-      mstr = self[idx..-1]
-      offset = self.size - mstr.size
-      m = arg.match(mstr)
-      if m
-        return offset + m.begin(0)
-      end
-      return nil
-    else
-      raise ArgumentError.new("String#index cannot accept #{arg.class} objects")
-    end
-    return nil 
-  end
+  def index(needle, offset = 0)
+    offset = @bytes + offset if offset < 0
+    return nil if offset < 0 || offset > @bytes
 
+    # What are we searching for?
+    case needle
+    when Fixnum
+      (offset...self.size).each do |i|
+        return i if @data[i] == needle
+      end
+    when String
+      needle_size = needle.size
+      return if needle_size <= 0
+      
+      max = @bytes - needle_size
+      return if max < 0 # <= 0 maybe?
+      
+      offset.upto(max) do |i|
+        if @data[i] == needle.data[0]
+          return i if substring(i, needle_size) == needle
+        end
+      end
+    when Regexp
+      if match = needle.match(self[offset..-1])
+        return (offset + match.begin(0))
+      end
+    else
+      raise TypeError, "type mismatch: #{needle.class} given"
+    end
+
+    return nil
+  end
 
   def rindex(arg, finish = nil )
     if finish
