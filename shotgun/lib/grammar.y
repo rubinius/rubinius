@@ -329,7 +329,6 @@ static void syd_dvar_push();
 %token <node> tINTEGER tFLOAT tSTRING_CONTENT
 %token <node> tNTH_REF tBACK_REF
 %token <num>  tREGEXP_END 
-%token <id>   tKEYSYM
 %type <node> singleton strings string string1 xstring regexp
 %type <node> string_contents xstring_contents string_content
 %type <node> words qwords word_list qword_list word
@@ -341,7 +340,7 @@ static void syd_dvar_push();
 %type <node> command_args aref_args opt_block_arg block_arg var_ref var_lhs
 %type <node> mrhs superclass block_call block_command
 %type <node> f_arglist f_args f_optarg f_opt f_block_arg opt_f_block_arg
-%type <node> assoc_list assocs assoc assoc1 assoc2 undef_list backref string_dvar
+%type <node> assoc_list assocs assoc undef_list backref string_dvar
 %type <node> block_var opt_block_var brace_block cmd_brace_block do_block lhs none
 %type <node> mlhs mlhs_head mlhs_basic mlhs_entry mlhs_item mlhs_node
 %type <id>   fitem variable sym symbol operation operation2 operation3
@@ -2500,21 +2499,9 @@ assocs          : assoc
                     }
                 ;
 
-assoc           : assoc1 
-                    { $$ = $1; }
-                | assoc2
-                    { $$  = $1; }
-                ;
-
-assoc1          : arg_value tASSOC arg_value
+assoc           : arg_value tASSOC arg_value
                     {
                         $$ = list_append(parse_state, NEW_LIST($1), $3);
-                    }
-                ;
-
-assoc2          : tKEYSYM arg_value
-                    {
-                        $$ = list_append(parse_state, NEW_LIST(NEW_LIT(ID2SYM($1))), $2);
                     }
                 ;
 
@@ -4684,29 +4671,7 @@ yylex(YYSTYPE *yylval, void *vstate)
                     result = tCONSTANT;
                 }
                 else {
-                    if(parse_state->ternary_colon) {
-                        result = tIDENTIFIER;
-                    } else if((c = nextc()) == ':' && !peek(':')) {
-                        /*
-                        c = nextc();
-                        printf("keysym: %s, %c\n", tok(), c);
-                        pushback(c, parse_state);
-                        */
-                        //printf("lex_state %d, %d, %d\n", parse_state->lex_state, 
-                        //    EXPR_END, EXPR_BEG);
-                        switch (parse_state->lex_state) {
-                          case EXPR_FNAME: case EXPR_DOT:
-                            parse_state->lex_state = EXPR_ARG; break;
-                          default:
-                            parse_state->lex_state = EXPR_BEG; break;
-                        }
-                        pslval->id = rb_intern(tok());
-                        return tKEYSYM;
-
-                    } else {
-                        pushback(c, parse_state);
-                        result = tIDENTIFIER;
-                    }
+                    result = tIDENTIFIER;
                 }
             }
 

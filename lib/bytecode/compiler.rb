@@ -608,12 +608,10 @@ module Bytecode
         
         lbls = []
         (whns.size - 1).times { lbls << unique_lbl('case_') }
-        if els
-          els_lbl = unique_lbl('case_')
-          lbls << els_lbl
-        else
-          els_lbl = nil
-        end
+        # Even if there is no 'else', we still need to manage the stack later
+        els_lbl = unique_lbl('case_')
+        lbls << els_lbl
+
         post = unique_lbl('case_')
         lbls << post
         
@@ -637,16 +635,15 @@ module Bytecode
         
         if lst
           set_label(lbls.shift)
-          if els_lbl
-            generate_when lst, els_lbl, post
-          else
-            generate_when lst, post, nil
-          end
+          generate_when lst, els_lbl, post
         end
                 
         if els
           set_label(lbls.shift)
           process(els)
+        else # empty or missing 'else' clause is treated as a nil
+          set_label(lbls.shift)
+          add "push nil"
         end
         
         set_label(post)

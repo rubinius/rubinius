@@ -290,11 +290,41 @@ class RsNormalizer < SimpleSexpProcessor
     cond = x.shift
     body = x.shift
     
-    if body[0] != :block
+    if body.nil? || body[0] != :block
       body = [:block, body]
     end
     
     [:when, process(cond), process(body)]
   end
-  
+
+  # case statements without an argument. Normalized into if/elsif.
+  def process_many_if(x)
+    ifs = []
+    branches = x.shift
+    else_body = x.shift
+
+    branches.each do |branch|
+      cond = branch.shift.last # ignore the :array node
+      body = process(branch.shift)
+      body = [:block, body] if body.nil? || body[0] != :block
+      ifs << [:if, process(cond), body]
+    end
+
+    index = ifs.size - 1
+    ifs[index] << process(else_body) # last 'if' clause gets the else
+
+    out = nil
+    while(index >= 0)
+      clause = ifs[index]
+      if out
+        out = [:block, clause, out]
+      else
+        out = clause
+      end
+      index -= 1
+    end
+
+    out
+  end
 end
+
