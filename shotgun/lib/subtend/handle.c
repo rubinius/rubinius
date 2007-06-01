@@ -25,7 +25,6 @@ rni_handle *handle_allocate() {
 rni_handle *handle_new(rni_handle_table *tbl, OBJECT obj) {
   rni_handle *h;
   rni_ht_entry *e;
-  int idx;
     
   /* Create the handle. By default, handles are local only. */
   h = handle_allocate();
