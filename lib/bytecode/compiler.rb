@@ -1380,6 +1380,9 @@ module Bytecode
         elsif source # We get here with code like: x,y = foo_method(1,2)
           add "pop"
           add "cast_array"
+        else
+          # Pull the tuple with the implicit source off the stack
+          add "pop"
         end
       end
 
@@ -1392,6 +1395,7 @@ module Bytecode
           process part
           add "pop"
         end
+        add "pop"
       end
       
       def handle_array_masgn(lhs, splat, source)        
@@ -1884,28 +1888,15 @@ module Bytecode
         brk = @break
         @break = :block
         goto two
-        if x[0] && x[0][1].size > 2 # multi-arg block
-          puts "x[0][1]" + x[0][1].inspect if $DEBUG_COMPILER
-          noarrayexpand = unique_lbl('iter_')
-          add "dup"
-          add "send fields 0"   # XXX better insn?
-          add "push 1"
-          add "send equal? 1"
-          add "gif #{noarrayexpand}"
-          add "dup"
-          add "push 0"
-          add "fetch_field"
-          add "send class 0"
-          add "push Array"
-          add "send equal? 1"
-          add "gif #{noarrayexpand}"
-          add "push 0"
-          add "fetch_field"
-          add "push 1"
-          add "fetch_field"
-          add "#{noarrayexpand}:"
+
+        if args
+          process args
+        else
+          # No args, but we still have to remove the block args tuple from
+          # the stack.
+          add "pop"
         end
-        process args
+        
         red = @redo
         @redo = unique_lbl('redo_')
         set_label @redo
