@@ -272,17 +272,27 @@ again_no_block:
 
   case NODE_CASE:
     {
-      VALUE tmp;
+      VALUE tmp, t2;
       add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers); /* expr */
       node = node->nd_body;
       tmp = array_new(state, 4);
       array_push(current, tmp);
       while (node) {
-        add_to_parse_tree(tmp, node, newlines, locals, line_numbers);
         if (nd_type(node) == NODE_WHEN) {                 /* when */
+          t2 = array_new(state, 3);
+          array_push(t2, SYMBOL(node_type_string[nd_type(node)]));
+          array_push(tmp, t2);
+          
+          add_to_parse_tree(t2, node->nd_head, newlines, locals, line_numbers); /* args */
+          if (node->nd_body) {
+            add_to_parse_tree(t2, node->nd_body, newlines, locals, line_numbers); /* body */
+          } else {
+            array_push(current, Qnil);
+          }
+          
           node = node->nd_next; 
         } else {
-          array_push(current, array_pop(state, tmp));
+          add_to_parse_tree(current, node, newlines, locals, line_numbers);          
           break;                                          /* else */
         }
         if (! node) {
@@ -291,15 +301,33 @@ again_no_block:
       }
       break;
     }
-  case NODE_WHEN:
-    add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers); /* args */
-    if (node->nd_body) {
-      add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers); /* body */
-    } else {
+  case NODE_WHEN: {
+    VALUE tmp, t2;
+    array_set(state, current, 0, cstring_to_symbol(state, "many_if"));
+    tmp = array_new(state, 4);
+    array_push(current, tmp);
+    while(node) {
+      if(nd_type(node) == NODE_WHEN) {
+        t2 = array_new(state, 4);
+        array_push(tmp, t2);
+        add_to_parse_tree(t2, node->nd_head, newlines, locals, line_numbers); /* args */
+        if (node->nd_body) {
+          add_to_parse_tree(t2, node->nd_body, newlines, locals, line_numbers); /* body */
+        } else {
+          array_push(t2, Qnil);
+        }
+        node = node->nd_next;
+      } else {
+        add_to_parse_tree(current, node, newlines, locals, line_numbers);
+        break;
+      }
+    }
+    
+    if(!node) {
       array_push(current, Qnil);
     }
     break;
-
+  }
   case NODE_WHILE:
   case NODE_UNTIL:
     add_to_parse_tree(current,  node->nd_cond, newlines, locals, line_numbers);
