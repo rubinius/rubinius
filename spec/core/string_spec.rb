@@ -768,20 +768,35 @@ context "String instance method" do
   specify "slice! should remove and return the specified portion from self" do
     s = "hello"
     s.slice!(1).should == 101
-    r = "hello"
+    s.should == "hllo"
+    
+    r = "hello" 
     r.slice!(-3, 2).should == "ll"
+    r.should == "heo"
+    
     t = "world"
     t.slice!(-4..-2).should == "orl"
+    t.should == "wd"
+    
     u = "hello there"
     u.slice!(/[aeiou](.)\1/).should == "ell"
+    u.should == "ho there"
+    
     v = "hello there"
     v.slice!(/[aeiou](.)\1/, 0).should == "ell"
+    v.should == "ho there"
+    
     w = "hello"
     w.slice!("bye").should == nil
+    w.should == "hello"
+    
     x = "baz.rb"
     x.slice!(2, 4).should == "z.rb"
+    x.should == "ba"
+    
     y = "z.rb"
     y.slice!(1, 1).should == "."
+    y.should == "zrb"
   end
   
   specify "slice! with index should return nil if the value is out of range" do
