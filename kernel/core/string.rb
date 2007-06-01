@@ -481,14 +481,16 @@ class String
     m ? m.full.at(0) : nil 
   end
   
-  def include?(arg)
-    if arg.is_a? Fixnum
-      each_byte { |b|  return true if b == arg }
+  def include?(needle)
+    if needle.is_a? Fixnum
+      each_byte { |b| return true if b == arg }
       return false
-    elsif arg.is_a? String
-      return (nil != self.index(arg)) 
+    end
+
+    if needle.respond_to? :to_str
+      return !self.index(needle.to_str).nil?
     else
-      raise ArgumentError.new("String#include? cannot accept #{arg.class} objects")
+      raise TypeError, "can't convert #{needle.class} into String"
     end
   end
 
