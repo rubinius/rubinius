@@ -963,9 +963,7 @@ module Bytecode
         add "attach __class_init__"
         add "pop"
         add "send __class_init__"
-        add "pop"
         add "push_encloser"
-        add "push nil"          # stack management
         # add "set_encloser"
       end
       
@@ -1005,9 +1003,7 @@ module Bytecode
         add "attach __module_init__"
         add "pop"
         add "send __module_init__"
-        add "pop"
         add "push_encloser"
-        add "push nil"          # stack management
         # add "set_encloser"
       end
       
@@ -1183,7 +1179,8 @@ module Bytecode
       # TODO - There is probably a better way, but it is late. Really late.
       def const_to_string(tree, str)
         return str if tree.empty?
-        piece = tree.shift 
+        piece = tree.shift
+        p str
         unless str[-2,2] == "::" || str == ""
           str << "::"
         end
