@@ -9,7 +9,6 @@ describe "Basic assignment" do
     a = [1];       a.should == [1]
     a = [nil];     a.should == [nil]
     a = [[]];      a.should == [[]]
-    a = [1,2];     a.should == [1,2]
     a = [*[]];     a.should == []
     a = [*[1]];    a.should == [1]
     a = [*[1,2]];  a.should == [1, 2]
@@ -18,42 +17,40 @@ describe "Basic assignment" do
   it "should allow the assignment of the rhs to the lhs using the rhs splat operator" do
     a = *nil;      a.should == nil
     a = *1;        a.should == 1
+   *a = nil;       a.should == [nil]
     a = *[];       a.should == nil
     a = *[1];      a.should == 1
     a = *[nil];    a.should == nil
     a = *[[]];     a.should == []
-    a = *[1,2];    a.should == [1,2]
     a = *[*[]];    a.should == nil
     a = *[*[1]];   a.should == 1
     a = *[*[1,2]]; a.should == [1,2]
   end
 
   it "should allow the assignment of the rhs to the lhs using the lhs splat operator" do
-    *a = nil;      a.should == [nil]
     *a = 1;        a.should == [1]
     *a = [];       a.should == [[]]
+
     *a = [1];      a.should == [[1]]
     *a = [nil];    a.should == [[nil]]
     *a = [[]];     a.should == [[[]]]
-    *a = [1,2];    a.should == [[1,2]]
     *a = [*[]];    a.should == [[]]
     *a = [*[1]];   a.should == [[1]]
     *a = [*[1,2]]; a.should == [[1,2]]
   end
-  
-  it "should allow the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously" do
+
+  it "should allow the assignment of the rhs to the lhs using the lhs and rhs splat operator simultaneously" do
     *a = *nil;      a.should == [nil]
+    *a = *[nil];    a.should == [nil]
+    *a = *[[]];     a.should == [[]]
     *a = *1;        a.should == [1]
     *a = *[];       a.should == []
     *a = *[1];      a.should == [1]
-    *a = *[nil];    a.should == [nil]
-    *a = *[[]];     a.should == [[]]
-    *a = *[1,2];    a.should == [1,2]
     *a = *[*[]];    a.should == []
     *a = *[*[1]];   a.should == [1]
     *a = *[*[1,2]]; a.should == [1,2]
   end
-
+  
   it "should allow multiple values to be assigned" do
     a,b,*c = nil;       [a,b,c].should == [nil, nil, []]
     a,b,*c = 1;         [a,b,c].should == [1, nil, []]
@@ -61,7 +58,6 @@ describe "Basic assignment" do
     a,b,*c = [1];       [a,b,c].should == [1, nil, []]
     a,b,*c = [nil];     [a,b,c].should == [nil, nil, []]
     a,b,*c = [[]];      [a,b,c].should == [[], nil, []]
-    a,b,*c = [1,2];     [a,b,c].should == [1,2,[]]
     a,b,*c = [*[]];     [a,b,c].should == [nil, nil, []]
     a,b,*c = [*[1]];    [a,b,c].should == [1, nil, []]
     a,b,*c = [*[1,2]];  [a,b,c].should == [1, 2, []]
@@ -71,38 +67,12 @@ describe "Basic assignment" do
     a,b,*c = *[];       [a,b,c].should == [nil, nil, []]
     a,b,*c = *[1];      [a,b,c].should == [1, nil, []]
     a,b,*c = *[nil];    [a,b,c].should == [nil, nil, []]
+
     a,b,*c = *[[]];     [a,b,c].should == [[], nil, []]
-    a,b,*c = *[1,2];    [a,b,c].should == [1,2,[]]
+
     a,b,*c = *[*[]];    [a,b,c].should == [nil, nil, []]
     a,b,*c = *[*[1]];   [a,b,c].should == [1, nil, []]
     a,b,*c = *[*[1,2]]; [a,b,c].should == [1, 2, []]
-  end
-  
-  it "should allow assignment through lambda" do
-    f = lambda {|r,| r.should == []}
-    f.call([], *[])
-
-    f = lambda {|r,*l| r.should == []; l.should == [1]}
-    f.call([], *[1])
-
-    f = lambda{|x| x}
-    f.call(42).should == 42
-    f.call([42]).should == [42]
-    f.call([[42]]).should == [[42]]
-    f.call([42,55]).should == [42,55]
-
-    f = lambda{|x,| x}
-    f.call(42).should == 42
-    f.call([42]).should == [42]
-    f.call([[42]]).should == [[42]]
-    f.call([42,55]).should == [42,55]
-
-    f = lambda{|*x| x}
-    f.call(42).should == [42]
-    f.call([42]).should == [[42]]
-    f.call([[42]]).should == [[[42]]]
-    f.call([42,55]).should == [[42,55]]
-    f.call(42,55).should == [42,55]
   end
   
 end
@@ -147,13 +117,6 @@ describe "Assigning multiple values" do
     
     *a = nil
     a.should == [nil]
-    
-    a,=*[1]
-    a.should == 1
-    a,=*[[1]]
-    a.should == [1]
-    a,=*[[[1]]]
-    a.should == [[1]]
   end
     
   it "should allow complex parallel assignment" do
@@ -162,13 +125,6 @@ describe "Assigning multiple values" do
     b.should == 2
     c.should == 3
     d.should == 4
-    
-    x, (y, z) = 1, 2, 3
-    [x,y,z].should == [1,2,nil]
-    x, (y, z) = 1, [2,3]
-    [x,y,z].should == [1,2,3]
-    x, (y, z) = 1, [2]
-    [x,y,z].should == [1,2,nil]
   end
   
 end

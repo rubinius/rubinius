@@ -206,8 +206,15 @@ class MatchData
     return get_match_array(1)
   end
 
+  def to_s
+    inspect
+  end
+
   def inspect
-    self[0]
+    match = get_match_array(0).first
+    match = match[0...7] + '...' if match.size > 10
+
+    "#<MatchData:0x#{object_id.to_s(16)} \"#{match}\">"
   end
 
   def select
@@ -224,10 +231,6 @@ class MatchData
 
   def to_a
     return get_match_array(0)
-  end
-
-  def to_s
-    self[0]
   end
 
   def values_at(*index)

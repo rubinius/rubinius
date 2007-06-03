@@ -47,7 +47,7 @@ module Bytecode
         cmeth.primitive = idx
       end
       
-      cmeth.literals = encode_literals
+      cmeth.literals = encode_literals   # Also recursively processes contained methods
       if $DEBUG_COMPILER
         puts "\nLiterals:"
         p cmeth.literals

@@ -162,6 +162,9 @@ module Bytecode
     def compile(sx, name, state=RsLocalState.new)
       if $DEBUG_COMPILER
         puts "==================================="
+        puts "  Compiling #{name}"
+        puts "==================================="
+
         puts "Sexp:"
         p sx
       end
