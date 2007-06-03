@@ -58,6 +58,27 @@ module Functions
   def exit!(code=0)
     Process.exit(code)
   end
+
+  def abort(msg=nil)
+    $stderr.puts(msg) if(msg)
+    exit 1
+  end
+
+  def printf(*args)
+    if args[0].class == IO
+      args[0].write(Sprintf::Parser.format(args[1], args[2..-1]))
+    elsif args[0].class == String
+      $stdout.write(Sprintf::Parser.format(args[0], args[1..-1]))
+    else
+      raise TypeError, "The first arg to printf should be an IO or a String"
+    end
+    nil
+  end
+
+  def sprintf(str, *args)
+    Sprintf::Parser.format(str, args)
+  end
+  alias :format :sprintf
   
   # NOTE - this isn't quite MRI compatible, we don't store return the previous
   # seed value from srand and we don't seed the RNG by default with a combination

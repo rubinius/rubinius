@@ -199,6 +199,32 @@ context "Kernel.warn()" do
 end
 
 
+# The heavier duty specs are on Sprintf.
+context 'Functions::printf' do
+  specify 'should print to $stdout if the first argument is a string' do
+    $stdout.should_receive :write, {:with => ['foo bar baz']}
+    printf '%s %s %s', 'foo', 'bar', 'baz'
+  end
+  specify 'should print to an io if it is the first argument' do
+    $stderr.should_receive :write, {:with => ['hello rubinius']}
+    printf $stderr, '%s %s', 'hello', 'rubinius'
+  end
+end
+
+context 'Functions::abort' do
+  specify 'should call exit(1)' do
+    self.should_receive :exit, {:with => [1]}
+    abort
+  end
+  specify 'should call puts to $stderr if an argument is given' do
+    $stderr.should_receive :puts, {:with => ['bye']}
+    begin
+      abort 'bye'
+    rescue SystemExit
+    end
+  end
+end
+
 describe "A class with the Functions mixin" do
   specify "loop calls block until it is terminated by a break" do
     i = 0
