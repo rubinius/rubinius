@@ -441,19 +441,16 @@ class ShotgunPrimitives
     <<-CODE
     POP(t1, CLASS);
 
-    do { /* introduce a new scope */
-      struct time_data td;
-      struct time_data *tdp;
+    struct time_data td;
+    gettimeofday(&td.tv, &td.tz);
     
-      j = sizeof(struct time_data) / 4;
-      self = NEW_OBJECT(t1, j+1);
-      object_make_byte_storage(state, self);
-      k = gettimeofday(&td.tv, &td.tz);
-      tdp = (struct time_data*)BYTES_OF(self);
+    k = array_new(state, 4);
+    array_set(state, k, 0, I2N(td.tv.tv_sec));
+    array_set(state, k, 1, I2N(td.tv.tv_usec));
+    array_set(state, k, 2, I2N(td.tz.tz_minuteswest));
+    array_set(state, k, 3, I2N(td.tz.tz_dsttime));
     
-      *tdp = td;
-    } while(0);
-    stack_push(self);
+    stack_push(k);
     CODE
   end
 
@@ -519,24 +516,37 @@ class ShotgunPrimitives
   def strftime
     <<-CODE
     POP(self, REFERENCE);
-    POP(t1, STRING);
+    POP(t1, INTEGER);
+    POP(t2, STRING);
+    POP(t3, INTEGER);
 
     struct tm *time;
-    time_t secs;
     char *format = NULL;
     char str[MAX_STRFTIME_OUTPUT+1];
     size_t out;
-    struct time_data *tdp;
 
-    format = string_as_string(state, t1);
-    tdp = (struct time_data*)BYTES_OF(self);
-    secs = tdp->tv.tv_sec;
+    format = string_as_string(state, t2);
 
-    time = localtime(&secs);
+    long tt;
+    if(FIXNUM_P(t1)) {
+      tt = (long)FIXNUM_TO_INT(t1);
+    } else {
+      tt = (long)bignum_to_int(state, t1);
+    }
+    
+    long zone;
+    zone = (long)FIXNUM_TO_INT(t3);
+    
+    if(zone != 0) {
+      time = localtime(&tt);
+    } else {
+      time = gmtime(&tt); 
+    }
+    
     out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, time);
     str[MAX_STRFTIME_OUTPUT] = '\\0';
-    t2 = string_new2(state, str, out);
-    stack_push(t2);
+    t3 = string_new2(state, str, out);
+    stack_push(t3);
     if(format) {free(format);}
     CODE
   end
