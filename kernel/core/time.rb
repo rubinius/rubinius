@@ -12,6 +12,7 @@ class Time
   # Time Constants
   ZoneOffset  	=  	{ 'UTC' => 0, 'Z' => 0,  'UT' => 0, 'GMT' => 0, 
                       'EST' => -5, 'EDT' => -4, 'CST' => -6, 'CDT' => -5, 
+                      'CET' => 1, 'CEST' => 2,
                       'MST' => -7, 'MDT' => -6, 'PST' => -8, 'PDT' => -7, 
                       'A' => +1, 'B' => +2, 'C' => +3, 'D' => +4, 'E' => +5, 
                       'F' => +6, 'G' => +7, 'H' => +8, 'I' => +9, 'K' => +10, 
