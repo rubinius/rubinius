@@ -28,7 +28,7 @@ class << ENV
       raise TypeError
     end
 
-    env_delete(key.to_str)
+    env_set(key.to_str, nil)
   end
 
   def to_hash
@@ -46,10 +46,6 @@ class << ENV
 
   def env_set(key, value)
     Ruby.primitive :env_set
-  end
-
-  def env_delete(key)
-    Ruby.primitive :env_delete
   end
 end
 

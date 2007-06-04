@@ -2582,42 +2582,33 @@ class ShotgunPrimitives
 
     stack_pop();
     POP(t1, STRING);
-    POP(t2, STRING);
+    t2 = stack_pop();
 
     key = string_as_string(state, t1);
-    value = string_as_string(state, t2);
-
-    setenv(key, value, 1);
-
-    if (key) {
-      free(key);
-    }
-
-    if (value) {
-      free(value);
-    }
-
-    stack_push(t2);
-    CODE
-  end
-
-  def env_delete
-    <<-CODE
-    char *key, *value;
-
-    stack_pop();
-    POP(t1, STRING);
-
-    key = string_as_string(state, t1);
-    if (key) {
-      value = getenv(key);
-      if (value) {
-        stack_push(string_new(state, value));
+    if(key) {
+      /* if t2 is nil, we need to delete the variable
+       * and return its value.
+       */
+      if(NIL_P(t2)) {
+        value = getenv(key);
+        if(value) {
+          stack_push(string_new(state, value));
+          unsetenv(key);
+        } else {
+          stack_push(Qnil);
+        }
       } else {
-        stack_push(Qnil);
+        GUARD(STRING_P(t2));
+        value = string_as_string(state, t2);
+        if(value) {
+          setenv(key, value, 1);
+          stack_push(t2);
+          free(value);
+        } else {
+          stack_push(Qnil);
+        }
       }
- 
-      unsetenv(key);
+
       free(key);
     }
     CODE

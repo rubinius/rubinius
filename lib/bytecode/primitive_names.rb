@@ -168,7 +168,7 @@ module Bytecode
       :nfunc_call_object,
       :env_get,
       :env_set,
-      :env_delete,
+      nil,
       :env_as_hash,
     ]
 
