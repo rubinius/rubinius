@@ -628,29 +628,6 @@ void machine_config_env(machine m) {
   }
 }
 
-void machine_setup_env(machine m) {
-  char *cur, *name, **total;
-  OBJECT val, key, hash;
-  
-  hash = hash_new(m->s);
-  int i;
-  total = environ;
-  do {
-    cur = *total++;
-    if(!cur) break;
-    name = cur;
-    i = 0;
-    while(*cur && *cur != '=') {
-      i++; cur++;
-    }
-    key = string_new2(m->s, name, i);
-    val = string_new(m->s, cur+1);
-    hash_set(m->s, hash, key, val);
-  } while(cur);
-  
-  machine_set_const(m, "ENV", hash);
-}
-
 OBJECT machine_load_archive(machine m, char *path) {
   OBJECT order, cm;
   char *files, *nxt, *top;

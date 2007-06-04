@@ -69,7 +69,6 @@ int main(int argc, char **argv) {
   machine_config_env(m);
   machine_setup_from_config(m);
   machine_setup_argv(m, argc-offset, argv+offset);
-  machine_setup_env(m);
   
   /* Load the bootstrap. */
   

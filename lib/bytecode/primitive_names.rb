@@ -165,7 +165,11 @@ module Bytecode
       :str_crypt,
       :nfunc_call,
       :nfunc_add,
-      :nfunc_call_object
+      :nfunc_call_object,
+      :env_get,
+      :env_set,
+      :env_delete,
+      :env_as_hash,
     ]
 
     FirstRuntimePrimitive = 1024

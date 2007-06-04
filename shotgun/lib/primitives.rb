@@ -2552,6 +2552,103 @@ class ShotgunPrimitives
     CODE
   end
     
+  def env_get
+    <<-CODE
+    char *key;
+
+    stack_pop();
+    POP(t1, STRING);
+
+    t2 = Qnil;
+
+    key = string_as_string(state, t1);
+    if (key) {
+      char *value = getenv(key);
+
+      if (value) {
+        t2 = string_new(state, value);
+      }
+
+      free(key);
+    }
+
+    stack_push(t2);
+    CODE
+  end
+
+  def env_set
+    <<-CODE
+    char *key, *value;
+
+    stack_pop();
+    POP(t1, STRING);
+    POP(t2, STRING);
+
+    key = string_as_string(state, t1);
+    value = string_as_string(state, t2);
+
+    setenv(key, value, 1);
+
+    if (key) {
+      free(key);
+    }
+
+    if (value) {
+      free(value);
+    }
+
+    stack_push(t2);
+    CODE
+  end
+
+  def env_delete
+    <<-CODE
+    char *key, *value;
+
+    stack_pop();
+    POP(t1, STRING);
+
+    key = string_as_string(state, t1);
+    if (key) {
+      value = getenv(key);
+      if (value) {
+        stack_push(string_new(state, value));
+      } else {
+        stack_push(Qnil);
+      }
+ 
+      unsetenv(key);
+      free(key);
+    }
+    CODE
+  end
+
+  def env_as_hash
+    <<-CODE
+    char *cur, **total = environ;
+  
+    OBJECT hash = hash_new(state);
+
+    do {
+      cur = *total++;
+      if(!cur) break;
+
+      char *name = cur;
+      int i = 0;
+
+      while(*cur && *cur != '=') {
+        i++; cur++;
+      }
+
+      OBJECT key = string_new2(state, name, i);
+      OBJECT val = string_new(state, cur+1);
+
+      hash_set(state, hash, key, val);
+    } while(cur);
+
+    stack_push(hash);
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

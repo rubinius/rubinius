@@ -23,7 +23,6 @@ void machine_setup_standard_io(machine m);
 void machine_collect(machine m);
 void machine_setup_ruby(machine m, char *name);
 void machine_setup_argv(machine m, int argc, char **argv);
-void machine_setup_env(machine m);
 void machine_config_env(machine m);
 void machine_emit_memory(machine m);
 void machine_save_args(machine m, int argc, char **argv);
