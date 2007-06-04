@@ -185,16 +185,6 @@ class RsLocalScoper < SimpleSexpProcessor
       [:lasgn, name, lv, process(x.shift)]
     end
   end
-  
-  def process_vcall(x)
-    name = x.shift
-    idx = @state.find_local(name, false)
-    if idx
-      [:lvar, name, idx]
-    else
-      [:vcall, name]
-    end
-  end
 
   def process_defs(x)
     y = x.dup
