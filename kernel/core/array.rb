@@ -508,92 +508,47 @@ class Array
     result unless block_given?
   end
 
-  # sort_without_block has a separate implementation because block args (&block)
-  # have additional overhead, and this quicksort algorithm uses them recursively.
-  # sort_without_block could be: sort_with_block {|a,z| a <=> z}, but this is faster
   def sort(&block)
     return self.dup if self.size <= 1
     array = self.dup
-    if block_given?
-      array.sort_with_block(&block)
-    else
-      array.sort_without_block
-    end
-  end
-
-  def sort_without_block
-    return self if size <= 1
-    # Breaks amd64, FFI?
-#    pivot = self[rand(size)] # Random pivot point
-    pivot   = self.first
+    
+    pivot   = array.first
     left    = []
     middle  = []
-    right   = []
-
-    each { |elem| 
-      # Sort by first element in a subarray
-      if elem.class == Array
-        cand = elem[0]
-      else
-        cand = elem
-      end
+    right   = []    
     
-      # Done the 'wrong' way around to keep comp with MRI
+    each { |elem| 
       begin
-        result = pivot <=> cand
-
-        if result == -1
-          right << cand
-        elsif result == 0
-          middle << cand
-        elsif result == 1
-          left << cand
+        if block_given?
+          result = yield(elem, pivot) || 0          
         else
-          raise ArgumentError, "Unable to <=> on candidate #{cand.inspect}"
+          # Done the 'wrong' way around to keep comp with MRI        
+          result = pivot <=> elem
+        end
+        
+        # Done backward to keep comp with MRI when no block is given
+        if result == -1
+          (block_given? ? left : right) << elem
+        elsif result == 0
+          middle << elem
+        elsif result == 1
+          (block_given? ? right : left) << elem
+        else
+          raise ArgumentError, block_given ? "Unknown result #{result} from block" : 
+            "Unable to <=> on candidate #{elem.inspect}"
         end
 
       rescue TypeError
-        raise ArgumentError, "Unable to compare #{pivot.class} with #{cand.class}"
+        raise ArgumentError, "Unable to compare #{pivot.class} with #{elem.class}"
       rescue
         raise
       end
     }
 
-    left = left.sort_without_block
-    right = right.sort_without_block
+    left = left.sort(&block)
+    right = right.sort(&block)
 
-    left + middle + right
-  end
-
-  def sort_with_block(&block)
-    return self if size <= 1
-
-    # Breaks amd64, FFI?
-#    pivot = self[rand(size)] # Random pivot point
-    pivot   = self.first
-    left    = []
-    middle  = []
-    right   = []
-
-    each { |elem| 
-      # nil block results are assumed pre-sorted
-      result = yield(elem, pivot) || 0
-
-      if result == -1
-        left << elem
-      elsif result == 0
-        middle << elem
-      elsif result == 1
-        right << elem
-      else
-        raise ArgumentError, "Unknown result #{result} from block"
-      end
-    }
-
-    left = left.sort_with_block(&block)
-    right = right.sort_with_block(&block)
-
-    left + middle + right
+    left + middle + right    
   end
 
   def sort!(&block)
