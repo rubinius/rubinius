@@ -37,6 +37,8 @@
 #include <glob.h>
 #include <termios.h>
 
+extern char **environ;
+
 OBJECT math_sqrt(STATE, OBJECT a);
 
 #define STATIC_SIZE 100

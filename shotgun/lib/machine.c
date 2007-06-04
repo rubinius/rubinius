@@ -610,8 +610,6 @@ void machine_setup_config(machine m) {
   }
 }
 
-extern char **environ;
-
 void machine_config_env(machine m) {
   char *config;
   if(getenv("RDEBUG")) {
