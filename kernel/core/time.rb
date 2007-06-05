@@ -39,6 +39,10 @@ class Time
   
   def initialize
     @tv_sec, @tv_usec, @tz_minuteswest, @tz_dsttime = Time.gettimeofday
+
+    # this flag specifies whether this Time instance represents
+    # local time or GMT. it is independent of the actual time zone.
+    @is_gmt = false
   end
   
   def self.local(first, *args)
@@ -190,7 +194,7 @@ class Time
   end
   
   def gmt?
-    self.zone == "GMT" || self.zone == "UTC"
+    @is_gmt
   end
   
   def usec
