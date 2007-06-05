@@ -7,10 +7,6 @@ rescue LoadError
 EOM
 end
 
-require File.join(File.dirname(__FILE__),'group_coverage_report')
-require File.join(File.dirname(__FILE__),'group_spec_task')
-require File.join(File.dirname(__FILE__),'specific_group_spec_task')
-
 ROOT = File.expand_path(File.join(File.dirname(__FILE__),'..'))
 def from_root_dir
   dir = Dir.pwd
@@ -20,26 +16,7 @@ def from_root_dir
 end
 
 namespace :spec do
-  desc "Run all specs and tests."
-  task :all do
-    Rake::Task['spec:only'].invoke  rescue got_error = true
-    Rake::Task['test:all'].invoke   rescue got_error = true
-
-    raise "Spec or test failures." if got_error
-  end
-  
-  desc "Setup code-cache directory"
-  task :setup => 'setup:code_cache'
-  
   namespace :setup do
-    desc "Setup code-cache directory"
-    task :code_cache do
-      from_root_dir do
-        Dir.mkdir "code-cache" unless File.exists?("code-cache")
-        FileUtils.rm Dir.glob("code-cache/*")
-      end
-    end
-    
     task :subtend do
       Dir[File.join(ROOT,"spec/subtend/**/Rakefile")].each do |rakefile|
         sh "rake -f #{rakefile}"
@@ -47,37 +24,22 @@ namespace :spec do
     end
   end
   
-  desc "Run only specs but not any tests."
-  spec_targets = %w(language shotgun library core targets primitives)
-
-  # Convenience method to run a single spec test
+  spec_targets = %w(compiler core incompatible language library parser rubinius)
+  # Build a spec:<task_name> for each group of Rubinius specs
   spec_targets.each do |group|
-    spec_files = Dir[ File.join(ROOT,"spec/#{group}/*_spec.rb") ]
-    GroupSpecTask.new(group)
-    namespace group do
-      spec_files.each do |file|
-        SpecificGroupSpecTask.new(File.basename(file, '_spec.rb'), :core)
+    desc "Run '#{group}' specifications"
+    task group do
+      from_root_dir do
+        sh "bin/specrunner spec/#{group}"
       end
     end
   end
 
-  task :only => spec_targets.collect! { |g| 'spec:' << g }
-
-  # experimental -- need to adjust exclusions depending on what your testing
-  namespace :coverage do
-    desc "Generate a coverage report for the library specs."
-    GroupCoverageReport.new(:library)
-
-    desc "Generate a coverage report for the core specs."
-    GroupCoverageReport.new(:core)
-  end
-  
-  # New runner
-  desc 'Run all specs'
-  task :new do
+  desc "Run 'subtend' specifications"
+  task :subtend => "spec:setup:subtend" do
     from_root_dir do
-      system 'bin/specrunner spec' 
-    end 
+      sh "bin/specrunner spec/subtend"
+    end
   end
 
   # Specdiffs to make it easier to see what your changes have affected :)
@@ -103,15 +65,15 @@ namespace :spec do
   end
 end 
 
-task :report => 'report:all' # default
+#task :report => 'report:all' # default
 namespace :report do
-  desc "Build all reports"
-  task :all => [:completeness, :rspec_errors]
+  #desc "Build all reports"
+  #task :all => [:completeness, :rspec_errors]
 
-  desc "Build completeness report"
-  task :completeness do
-    run_report(:completeness)
-  end
+  #desc "Build completeness report"
+  #task :completeness do
+  #  run_report(:completeness)
+  #end
 
   desc "Build rspec errors report"
   task :rspec_errors do

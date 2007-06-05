@@ -27,4 +27,5 @@ void machine_config_env(machine m);
 void machine_emit_memory(machine m);
 void machine_save_args(machine m, int argc, char **argv);
 void machine_setup_config(machine m);
+void machine_setup_from_config(machine m);
 char *_inspect(OBJECT obj);

@@ -6,6 +6,7 @@ BOOTSTRAP = File.expand_path(File.dirname(__FILE__) + '/../../kernel/bootstrap')
 files  = Dir[BYTECODE + '/*.rb']
 files += Dir[BOOTSTRAP + '/*.rb']
 files += Dir[CORE + '/*.rb']
+files.delete_if {|fn| fn =~ /__loader/}
 
 results = files.map do |path|
   begin

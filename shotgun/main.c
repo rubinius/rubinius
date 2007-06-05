@@ -42,10 +42,6 @@ static char *search_for(char *evs, char *file) {
   return NULL;
 }
 
-static void load_libs() {
-  subtend_get_global(0);
-}
-
 int main(int argc, char **argv) {
   machine m;
   char *archive;
