@@ -354,7 +354,7 @@ context "Time instance method" do
     Time.at(99999).month.should == Time.at(99999).mon
   end
   
-  specify "gmt? should return true is time represents a time in UTC (GMT)" do
+  specify "gmt? should return true if time represents a time in UTC (GMT)" do
     Time.now.gmt?.should == false
     Time.now.gmtime.gmt?.should == true
   end
