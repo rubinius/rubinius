@@ -363,15 +363,21 @@ context "Time instance method" do
   end
   
   specify "gmt_offset should return the offset in seconds between the timezone of time and UTC" do
-    Time.new.gmt_offset.should == -25200
+    with_timezone("PDT") do
+      Time.new.gmt_offset.should == -25200
+    end
   end
   
   specify "utc_offset should be an alias for gmt_offset" do
-    Time.new.utc_offset.should == -25200
+    with_timezone("PDT") do
+      Time.new.utc_offset.should == -25200
+    end
   end
   
   specify "gmtoff should be an alias for gmt_offset" do
-    Time.new.gmtoff.should == -25200
+    with_timezone("PDT") do
+      Time.new.gmtoff.should == -25200
+    end
   end
   
   specify "localtime should return the local representation of time" do
