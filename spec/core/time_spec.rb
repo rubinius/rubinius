@@ -33,6 +33,15 @@ context "Time class method" do
       `date -u -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
     end
   end
+
+  def with_timezone(zone)
+    old = ENV["TZ"]
+    ENV["TZ"] = zone
+
+    yield
+
+    ENV["TZ"] = old
+  end
   
   # at
   
@@ -332,7 +341,9 @@ context "Time instance method" do
   end
   
   specify "zone should return the time zone used for time" do
-    Time.now.zone.should == "PDT"
+    with_timezone("PDT") do
+      Time.now.zone.should == "PDT"
+    end
   end
   
   specify "mon should return the month of the year" do
