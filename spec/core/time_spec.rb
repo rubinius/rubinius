@@ -356,6 +356,7 @@ context "Time instance method" do
   
   specify "gmt? should return true is time represents a time in UTC (GMT)" do
     Time.now.gmt?.should == false
+    Time.now.gmtime.gmt?.should == true
   end
   
   specify "usec should return the microseconds for time" do
