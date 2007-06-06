@@ -90,11 +90,14 @@ OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be) {
   
   task = (struct cpu_task*)BYTES_OF(self);
   
-  bc = blokenv_create_context(state, be, Qnil, 0);
+  bc = blokenv_create_context(state, be, Qnil, 1);
   task->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
   task->sp_ptr = task->stack_top;
   task->stack_size = InitialStackSize;
   task->stack_slave = 0;
+  
+  /* The args to the block (none). */
+  cpu_task_push(state, self, tuple_new(state, 0));
   
   task->main = bc;
   task->active_context = bc;
@@ -244,7 +247,7 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
      the already running thread (via the current thread waiting
      for an event), and we thus don't need to restore it. */
   if(thr == c->current_thread) return;
-  
+    
   /* Save the current task back into the current thread, in case
      Task's were used inside the thread itself (not just for the thread). */
   thread_set_task(c->current_thread, c->current_task);

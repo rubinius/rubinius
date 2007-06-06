@@ -65,7 +65,7 @@ struct fast_context {
   OBJECT control_channel; \
   unsigned long int flags;
 
-#define TASK_FIELDS 23
+#define TASK_FIELDS 25
 
 struct cpu_task {
   CPU_TASK_REGISTERS;

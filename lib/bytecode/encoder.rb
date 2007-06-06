@@ -154,6 +154,21 @@ class InstructionEncoder
     :set_local_depth
   ]
   
+  def instruction_width(op)
+    if Fixnum === op
+      op = OpCodes[op]
+    end
+    
+    width = 1
+    if IntArg.include?(op)
+      width += 4
+    elsif TwoInt.include?(op)
+      width += 8
+    end
+    
+    return width
+  end
+  
   def encode_stream(stream)
     out = ""
     stream.each do |ent|

@@ -33,9 +33,15 @@ class BreakpointTracker
     thr.set_debugging @debug_channel, @control_channel
   end
   
-  def on(method, line, &prc)
+  def on(method, opts, &prc)
     cm = method.compiled_method
-    tip = cm.first_ip_on_line(line)
+    if line = opts[:line]
+      tip = cm.first_ip_on_line(line)
+    elsif op = opts[:ip]
+      tip = op
+    else
+      raise ArgumentError, "Unknown selector: #{opts.inspect}"
+    end
     
     handler = Handler.new(cm, tip, line, prc)
     @handlers[cm][tip] = handler
