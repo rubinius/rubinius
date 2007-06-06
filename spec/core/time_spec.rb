@@ -279,15 +279,21 @@ context "Time instance method" do
   end
   
   specify "hour should return the hour of the day (0..23) for time" do
-    Time.at(0).hour.should == 16
+    with_timezone("CET") do
+      Time.at(0).hour.should == 16
+    end
   end
   
   specify "min should return the minute of the hour (0..59) for time" do
-    Time.at(0).min.should == 0
+    with_timezone("CET") do
+      Time.at(0).min.should == 0
+    end
   end
   
   specify "day should return the day of the month (1..n) for time" do
-    Time.at(0).day.should == 31
+    with_timezone("CET") do
+      Time.at(0).day.should == 1
+    end
   end
   
   specify "mday is a synonym for Time#day" do
