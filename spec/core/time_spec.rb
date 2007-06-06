@@ -280,7 +280,7 @@ context "Time instance method" do
   
   specify "hour should return the hour of the day (0..23) for time" do
     with_timezone("CET") do
-      Time.at(0).hour.should == 16
+      Time.at(0).hour.should == 1
     end
   end
   
