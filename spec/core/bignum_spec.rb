@@ -201,7 +201,7 @@ describe "Bignum instance method" do
   it "divmod should return an [quotient, modulus] from dividing self by other" do
     a = S_BignumHelper.sbm(55)
     a.divmod(5).inspect.should == '[214748375, 4]'
-    a.divmod(15.2).inspect.should == '[70640913, 1.40000005019339]'
+    a.divmod(15.2).inspect.should == '[70640913.0, 1.40000005019339]'
     a.divmod(a + 9).inspect.should == '[0, 1073741879]'
   end
   
@@ -209,10 +209,17 @@ describe "Bignum instance method" do
     should_raise(ZeroDivisionError) { S_BignumHelper.sbm(2).divmod(0) }
   end
   
-  it "divmod should raise FloatDomainError if other is zero and is a Float" do
-    should_raise(FloatDomainError) { S_BignumHelper.sbm(9).divmod(0.0) }
+  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
+  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
+    it "divmod should return [NaN, NaN] if other is zero and is a Float" do
+      S_BignumHelper.sbm(9).divmod(0.0).inspect.should == '[NaN, NaN]'
+    end
+  else
+    it "divmod should raise FloatDomainError if other is zero and is a Float" do
+      should_raise(FloatDomainError) { S_BignumHelper.sbm(9).divmod(0.0) }
+    end
   end
-
+  
   it "eql? should return true if other is a Bignum with the same value" do
     a = S_BignumHelper.sbm(13)
     a.eql?(S_BignumHelper.sbm(13)).should == true

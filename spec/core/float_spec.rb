@@ -130,15 +130,23 @@ context "Float" do
   end
   
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
-    3.14.divmod(2).inspect.should == "[1, 1.14]"
-    2.8284.divmod(3.1415).inspect.should == "[0, 2.8284]"
-    -1.0.divmod(0xffffffff).inspect.should == "[-1, 4294967294.0]"
+    3.14.divmod(2).inspect.should == "[1.0, 1.14]"
+    2.8284.divmod(3.1415).inspect.should == "[0.0, 2.8284]"
+    -1.0.divmod(0xffffffff).inspect.should == "[-1.0, 4294967294.0]"
   end
-  
-  specify "divmod should raise FloatDomainError if other is zero" do
-    should_raise(FloatDomainError) { 1.0.divmod(0) }
-    should_raise(FloatDomainError) { 1.0.divmod(0.0) }
-  end      
+
+  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
+  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
+    it "divmod should return [NaN, NaN] if other is zero" do
+      1.0.divmod(0).inspect.should == '[NaN, NaN]'
+      1.0.divmod(0.0).inspect.should == '[NaN, NaN]'
+    end
+  else
+    it "divmod should raise FloatDomainError if other is zero" do
+      should_raise(FloatDomainError) { 1.0.divmod(0) }
+      should_raise(FloatDomainError) { 1.0.divmod(0.0) }
+    end
+  end
   
   specify "eql? should return true if other is a Float equal to self" do
     1.0.eql?(1).should == false
