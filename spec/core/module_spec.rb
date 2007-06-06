@@ -142,7 +142,7 @@ context "Module.module_function with arguments" do
     def zool; :looz end
   end
 
-  specify "should create the instance functions as clones" do
+  specify "should create the module functions as clones" do
     M.foo.should == :foo
     M.zool.should == :zool
   end
@@ -152,11 +152,20 @@ context "Module.module_function with arguments" do
   end
   o = TestClass.new
 
+  specify "should make module function instance methods private" do
+    should_raise(NoMethodError) { o.bar }
+  end
+
   specify "should leave other methods as module methods" do
-    o.foo.should == :oof
-    o.bar.should == :bar
+    # Private
+    o.instance_eval do
+      bar.should == :bar
+    end
+
     o.baz.should == :baz
     o.quux.should == :quux
+    
+    o.foo.should == :oof
     o.zool.should == :looz
   end
 end
