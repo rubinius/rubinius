@@ -48,28 +48,36 @@ module Functions
       raise LoadError, "Unable to load file at path: #{path}" unless cm
       puts "[Loading #{path}]" if $DEBUG_LOADING
       return cm.activate_as_script
-    elsif path.suffix? ".rb"
-      comp = "#{path}c"
-      if File.exists?(comp) && File.mtime(comp) >= File.mtime(path)
-        puts "[Loading #{comp} for #{path}]" if $DEBUG_LOADING
-        cm = CompiledMethod.load_from_file(comp, Rubinius::CompiledMethodVersion)
-
-        unless cm
-          puts "[Skipping #{comp}, was invalid.]" if $DEBUG_LOADING
-        end
-      end
-      
-      unless cm
-        puts "[Compiling and loading #{path}]" if $DEBUG_LOADING
-        cm = Compile.compile_file(path)
-        Marshal.dump_to_file cm, "#{path}c", Rubinius::CompiledMethodVersion
-      end
-      
-      return cm.activate_as_script
-      
-    else
-      raise LoadError, "Can't figure out how to load '#{path}'"
     end
+
+    if path.suffix? ".rb"
+      comp = "#{path}c"
+    else
+      comp = "#{path}.rbc"
+    end
+
+    # do we have a compiled file that's not older than the source?
+    if File.exists?(comp) && File.mtime(comp) >= File.mtime(path)
+      puts "[Loading #{comp} for #{path}]" if $DEBUG_LOADING
+      cm = CompiledMethod.load_from_file(comp, Rubinius::CompiledMethodVersion)
+
+      unless cm
+        puts "[Skipping #{comp}, was invalid.]" if $DEBUG_LOADING
+      else
+        return cm.activate_as_script
+      end
+    end
+
+    # compile the source
+    puts "[Compiling and loading #{path}]" if $DEBUG_LOADING
+    cm = Compile.compile_file(path)
+
+    raise LoadError, "Unable to compile file at path: #{comp}" unless cm
+
+    # and store it
+    Marshal.dump_to_file cm, comp, Rubinius::CompiledMethodVersion
+
+    return cm.activate_as_script
   end
   
   def compile(path, out=nil)
