@@ -226,7 +226,8 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(home_context);
       fc_mutate(main);
       fc_mutate(outstanding);
-      
+      fc_mutate(debug_channel);
+      fc_mutate(control_channel);
       OBJECT *sp;
 
       sp = fc->stack_top;

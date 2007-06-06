@@ -1973,11 +1973,11 @@ class ShotgunPrimitives
           break;
         case 1:
           GUARD(FIXNUM_P(t2));
-          fc->ip = I2N(t2);
+          fc->ip = FIXNUM_TO_INT(t2);
           break;
         case 2:
           GUARD(FIXNUM_P(t2));
-          fc->sp = I2N(t2);          
+          fc->sp = FIXNUM_TO_INT(t2);
           break;
         case 3:
           fc->block = t2;
@@ -2223,6 +2223,27 @@ class ShotgunPrimitives
     stack_push(t2);
     CODE
   end
+  
+  def task_set_debugging
+    <<-CODE
+    self = stack_pop();
+    t1 = stack_pop();
+    t2 = stack_pop();
+    
+    GUARD(RISA(t1, channel));
+    GUARD(RISA(t2, channel));
+    GUARD(RISA(self, task));
+    
+    if(self == c->current_task) {
+      c->debug_channel = t1;
+      c->control_channel = t2;
+    } else {
+      cpu_task_set_debugging(state, self, t1, t2);
+    }
+    stack_push(Qtrue);
+    CODE
+  end
+  
   
   def channel_new
     <<-CODE

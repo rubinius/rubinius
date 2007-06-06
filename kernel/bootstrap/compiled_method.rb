@@ -129,6 +129,16 @@ class CompiledMethod
     end
     return 0
   end
+  
+  def first_ip_on_line(line)
+    @lines.each do |t|
+      if t.at(2) >= line
+        return t.at(0)
+      end
+    end
+    
+    return -1
+  end
 
   def arity
     @required
@@ -172,6 +182,10 @@ class Method
   
   def location
     "#{@method.file}, near line #{@method.first_line}"
+  end
+  
+  def compiled_method
+    @method
   end
 end
 

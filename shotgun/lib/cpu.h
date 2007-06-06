@@ -38,6 +38,11 @@ struct fast_context {
 #define FASTCTX_NORMAL 0
 #define FASTCTX_NMC    1
 
+#define TASK_NO_STACK 1
+#define TASK_FLAG_P(task, flag) ((task->flags & flag) == flag)
+#define TASK_SET_FLAG(task, flag) (task->flags |= flag)
+#define TASK_CLEAR_FLAG(task, flag) (task->flags ^= flag)
+
 #define CPU_TASK_REGISTERS long int args; \
   unsigned long int stack_slave; \
   long int cache_index; \
@@ -55,7 +60,10 @@ struct fast_context {
   OBJECT context_cache; \
   unsigned char *ip_ptr; \
   OBJECT *sp_ptr; \
-  int call_flags;
+  int call_flags; \
+  OBJECT debug_channel; \
+  OBJECT control_channel; \
+  unsigned long int flags;
 
 #define TASK_FIELDS 23
 
@@ -111,6 +119,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_raise_exception(STATE, cpu c, OBJECT exc);
 void cpu_raise_arg_error(STATE, cpu c, int args, int req);
+void cpu_raise_arg_error_generic(STATE, cpu c, char *msg);
 void cpu_raise_from_errno(STATE, cpu c, char *msg);
 OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
@@ -147,6 +156,7 @@ void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
 void cpu_task_select(STATE, cpu c, OBJECT self);
 OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be);
+void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc);
 OBJECT cpu_channel_new(STATE);
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj);
 void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_task);

@@ -111,6 +111,20 @@ void cpu_task_push(STATE, OBJECT self, OBJECT val) {
   *(task->sp_ptr) = val;
 }
 
+static int cpu_task_no_stack_p(STATE, OBJECT self) {
+  struct cpu_task *task;
+  
+  task = (struct cpu_task*)BYTES_OF(self);
+  return TASK_FLAG_P(task, TASK_NO_STACK);
+}
+
+static void cpu_task_clear_flag(STATE, OBJECT self, int flag) {
+  struct cpu_task *task;
+  
+  task = (struct cpu_task*)BYTES_OF(self);
+  TASK_CLEAR_FLAG(task, flag);  
+}
+
 void cpu_task_set_top(STATE, OBJECT self, OBJECT val) {
   struct cpu_task *task;
   
@@ -146,6 +160,13 @@ OBJECT cpu_task_get_outstanding(STATE, OBJECT self) {
   return task->outstanding;
 }
 
+void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc) {
+  struct cpu_task *task;
+  
+  task = (struct cpu_task*)BYTES_OF(self);
+  task->debug_channel = dc;
+  task->control_channel = cc;
+}
 
 #define thread_set_priority(obj, val) SET_FIELD(obj, 1, val)
 #define thread_set_task(obj, val) SET_FIELD(obj, 2, val)
@@ -284,12 +305,21 @@ OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
        to the current stack, since thats the current task's stack. */
     if(task == c->current_task) {
       stack_pop();
-      stack_push(tup);
+      if(!TASK_FLAG_P(c, TASK_NO_STACK)) {
+        stack_push(tup);
+      } else {
+        TASK_CLEAR_FLAG(c, TASK_NO_STACK);
+      }
       if(!NIL_P(c->outstanding)) {
         _cpu_channel_clear_outstanding(state, c, thr, c->outstanding);
       }
     } else {
-      cpu_task_set_top(state, task, tup);
+      if(cpu_task_no_stack_p(state, task)) {
+        cpu_task_pop(state, task);
+        cpu_task_clear_flag(state, task, TASK_NO_STACK);
+      } else {
+        cpu_task_set_top(state, task, tup);
+      }
       out = cpu_task_get_outstanding(state, task);
       if(!NIL_P(out)) {
         _cpu_channel_clear_outstanding(state, c, thr, out);

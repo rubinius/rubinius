@@ -41,4 +41,8 @@ class Task
   def associate(be)
     Ruby.primitive :task_associate
   end
+
+  def set_debugging(dc, cc)
+    Ruby.primitive :task_set_debugging
+  end
 end

@@ -76,13 +76,6 @@ class MethodContext
 end
 
 class FastMethodContext
-  def _get_field(int)
-    Ruby.primitive :fastctx_get_field
-  end
-  
-  def _set_field(int, val)
-    Ruby.primitive :fastctx_set_field
-  end
   
   def sender
     _get_field(0)
@@ -90,6 +83,10 @@ class FastMethodContext
 
   def ip
     _get_field(1)
+  end
+  
+  def ip=(num)
+    _set_field(1, num.to_i)
   end
 
   def sp
@@ -123,6 +120,15 @@ class FastMethodContext
   def dup
     Ruby.primitive :fastctx_dup
   end
+    
+  def _get_field(int)
+    Ruby.primitive :fastctx_get_field
+  end
+  
+  def _set_field(int, val)
+    Ruby.primitive :fastctx_set_field
+  end
+  
   
 end
 

@@ -130,6 +130,10 @@ class Thread
   def []=(key, value)
     @__ivars__[key] = value
   end
+  
+  def set_debugging(dc, cc)
+    @task.set_debugging(dc, cc)
+  end
 
   def self.main
     @main_thread

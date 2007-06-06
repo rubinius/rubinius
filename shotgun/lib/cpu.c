@@ -47,6 +47,8 @@ void cpu_initialize(STATE, cpu c) {
   c->call_flags = 0;
   c->cache_index = -1;
   c->current_task = Qnil;
+  c->debug_channel = Qnil;
+  c->control_channel = Qnil;
 
   cpu_sampler_init(state, c);
   /*
@@ -136,6 +138,8 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->current_task);
   ar(c->main_task);
   ar(c->outstanding);
+  ar(c->debug_channel);
+  ar(c->control_channel);
   len = c->paths->len;
   g_ptr_array_add(roots, (gpointer)I2N(len));
   // printf("Paths: %d\n", len);
@@ -176,6 +180,8 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->current_task);
   ar(c->main_task);
   ar(c->outstanding);
+  ar(c->debug_channel);
+  ar(c->control_channel);
   tmp = g_ptr_array_index(roots, start++);
   len = FIXNUM_TO_INT((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {

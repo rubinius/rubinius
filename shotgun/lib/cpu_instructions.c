@@ -179,7 +179,7 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name)
 #define UNVIS_METHOD2(var) if(tup) { var = tuple_at(state, var, 1); }
 
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
-  OBJECT ok, hsh, cache, orig_klass, meth, ser, tmp;
+  OBJECT ok, hsh, cache, orig_klass, meth, ser;
   int tup;
   struct method_cache *ent;
   
@@ -448,7 +448,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
 }
 
 void cpu_raise_from_errno(STATE, cpu c, char *msg) {
-  OBJECT cls, exc;
+  OBJECT cls;
   char buf[1024];
   
   cls = hash_get(state, state->global->errno_mapping, I2N(errno));
@@ -459,6 +459,10 @@ void cpu_raise_from_errno(STATE, cpu c, char *msg) {
   }
     
   cpu_raise_exception(state, c, cpu_new_exception(state, c, cls, msg));
+}
+
+void cpu_raise_arg_error_generic(STATE, cpu c, char *msg) {
+  cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_arg, msg));
 }
 
 void cpu_raise_arg_error(STATE, cpu c, int args, int req) {

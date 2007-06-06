@@ -97,7 +97,8 @@ class InstructionEncoder
     :locate_method,
     :kind_of,
     :instance_of,
-    :set_call_flags
+    :set_call_flags,
+    :yield_debugger
   ]
   
   IntArg = [

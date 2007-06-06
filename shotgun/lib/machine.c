@@ -32,6 +32,8 @@
 #include "subtend.h"
 #include "subtend/nmc.h"
 
+#include "instruction_names.gen"
+
 machine current_machine;
 
 ucontext_t g_firesuit;
@@ -593,6 +595,10 @@ void machine_setup_from_config(machine m) {
 
 void machine_setup_config(machine m) {
   OBJECT mod;
+  STATE;
+  
+  state = m->s;
+  
   mod = rbs_module_new(m->s, "Rubinius", m->s->global->object);
   machine_set_const(m, "RUBY_PLATFORM", string_new(m->s, CONFIG_HOST));
   machine_set_const(m, "RUBY_RELEASE_DATE", string_new(m->s, CONFIG_RELDATE));
@@ -608,6 +614,8 @@ void machine_setup_config(machine m) {
   } else {
     machine_set_const_under(m, "Terminal", Qfalse, mod);    
   }
+  
+  machine_set_const_under(m, "DEBUG_INST", I2N(CPU_INSTRUCTION_YIELD_DEBUGGER), mod);
 }
 
 void machine_config_env(machine m) {

@@ -170,6 +170,7 @@ module Bytecode
       :env_set,
       nil,
       :env_as_hash,
+      :task_set_debugging
     ]
 
     FirstRuntimePrimitive = 1024

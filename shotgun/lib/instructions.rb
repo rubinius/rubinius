@@ -29,11 +29,19 @@ class ShotgunInstructions
   
   def generate_names
     order = Bytecode::InstructionEncoder::OpCodes;
-    str = "char *instruction_names[] = {\n"
+    str = "static char *instruction_names[] = {\n"
     order.each do |ins|
       str << "  #{ins.to_s.dump},"      
     end
-    str << "};"
+    str << "};\n"
+    
+    i = 0
+    order.each do |ins|
+      str << "#define CPU_INSTRUCTION_#{ins.to_s.upcase} #{i}\n"
+      i += 1
+    end
+    
+    str
   end
   
   def noop
@@ -917,6 +925,22 @@ class ShotgunInstructions
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
+    }
+    CODE
+  end
+  
+  def yield_debugger
+    <<-CODE
+    cpu_flush_sp(c);
+    cpu_flush_ip(c);
+    if(c->debug_channel != Qnil) {
+      cpu_channel_send(state, c, c->debug_channel, c->active_context);
+      /* This is so when this task is reactivated, the sent value wont be placed
+         on the stack, keeping the stack clean. */
+      TASK_SET_FLAG(c, TASK_NO_STACK);
+      cpu_channel_receive(state, c, c->control_channel, c->current_thread);
+    } else {
+      cpu_raise_arg_error_generic(state, c, "Attempted to switch to debugger, no debugger installed");
     }
     CODE
   end

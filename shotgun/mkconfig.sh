@@ -9,7 +9,11 @@ cp vars.mk config.mk
 echo "HOST=$(./config.guess)"
 HOST=$(./config.guess)
 if test "$BUILDREV" == "svn"; then
-  BUILDREV=$(svn info | grep Revision  | cut -f2 -d" ")
+  if test -e '../.git'; then
+    BUILDREV=$(git rev-list --all | head -n1)
+  else
+    BUILDREV=r$(svn info | grep Revision  | cut -f2 -d" ")
+  fi
 fi
 
 if echo "$HOST" | grep -q darwin; then
@@ -20,7 +24,11 @@ else
   DISABLE_KQUEUE=0
 fi
 
-echo "CC=$CC"
+if test -z "$CC"; then
+  echo "CC=gcc"
+else
+  echo "CC=$CC"
+fi
 
 if which glibtool 1> /dev/null 2>&1; then
   echo "LIBTOOL=glibtool"
@@ -34,7 +42,7 @@ echo "LIBPATH=$PREFIX/lib"
 echo "CODEPATH=$PREFIX/lib/rubinius/$LIBVER"
 echo "RBAPATH=$PREFIX/lib/rubinius/$LIBVER/runtime"
 echo "EXTPATH=$PREFIX/lib/rubinius/$LIBVER/$HOST"
-echo "BUILDREV=r$BUILDREV"
+echo "BUILDREV=$BUILDREV"
 ) >> config.mk
 
 (
