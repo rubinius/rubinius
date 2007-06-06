@@ -38,9 +38,11 @@ context "Time class method" do
     old = ENV["TZ"]
     ENV["TZ"] = zone
 
-    yield
-
-    ENV["TZ"] = old
+    begin
+      yield
+    ensure
+      ENV["TZ"] = old
+    end
   end
   
   # at
