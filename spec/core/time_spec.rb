@@ -327,7 +327,9 @@ context "Time instance method" do
   end
   
   specify "year should return the four digit year for time as an integer" do
-    Time.at(0).year.should == 1969
+    with_timezone("CET") do
+      Time.at(0).year.should == 1970
+    end
   end
   
   specify "strftime should format time according to the directives in the given format string" do
