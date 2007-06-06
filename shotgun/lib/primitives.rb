@@ -848,7 +848,10 @@ class ShotgunPrimitives
     if(!STRING_P(t1)) {
       _ret = FALSE;
     } else {
-      j = stat(string_as_string(state, t1), &sb);
+      char *path = string_as_string(state, t1);
+      j = stat(path, &sb);
+      free(path);
+
       if(j != 0) {
         if(errno == ENOENT) {
           stack_push(I2N(1));
@@ -2123,6 +2126,7 @@ class ShotgunPrimitives
     } else {
       stack_push(Qfalse);
     }
+    free(path);
     CODE
   end
   
