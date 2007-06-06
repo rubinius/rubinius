@@ -347,8 +347,9 @@ context "Time instance method" do
   end
   
   specify "zone should return the time zone used for time" do
-    with_timezone("PDT") do
-      Time.now.zone.should == "PDT"
+    # Testing with Asia/Kuwait here because it doesn't have DST.
+    with_timezone("Asia/Kuwait") do
+      Time.now.zone.should == "AST"
     end
   end
   
@@ -370,20 +371,20 @@ context "Time instance method" do
   end
   
   specify "gmt_offset should return the offset in seconds between the timezone of time and UTC" do
-    with_timezone("PDT") do
-      Time.new.gmt_offset.should == -25200
+    with_timezone("Asia/Kuwait") do
+      Time.new.gmt_offset.should == 10800
     end
   end
   
   specify "utc_offset should be an alias for gmt_offset" do
-    with_timezone("PDT") do
-      Time.new.utc_offset.should == -25200
+    with_timezone("Asia/Kuwait") do
+      Time.new.utc_offset.should == 10800
     end
   end
   
   specify "gmtoff should be an alias for gmt_offset" do
-    with_timezone("PDT") do
-      Time.new.gmtoff.should == -25200
+    with_timezone("Asia/Kuwait") do
+      Time.new.gmtoff.should == 10800
     end
   end
   
