@@ -333,7 +333,9 @@ context "Time instance method" do
   end
   
   specify "wday should return an integer representing the day of the week, 0..6, with Sunday being 0" do
-    Time.at(0).wday.should == 3
+    with_timezone("GMT") do
+      Time.at(0).wday.should == 4
+    end
   end
   
   specify "yday should return an integer representing the day of the year, 1..366" do
