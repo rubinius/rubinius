@@ -241,11 +241,11 @@ end
 
 context "Time instance method" do
   specify "+ should increment the time by the specified amount" do
-    (Time.at(0) + 100).seconds.should == Time.at(100).seconds
+    (Time.at(0) + 100).should == Time.at(100)
   end
   
   specify "- should decrement the time by the specified amount" do
-    (Time.at(100) - 100).seconds.should == Time.at(0).seconds
+    (Time.at(100) - 100).should == Time.at(0)
   end
   
   specify "succ should return a new time one second later than time" do
