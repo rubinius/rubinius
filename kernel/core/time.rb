@@ -154,7 +154,7 @@ class Time
   end
   
   def asctime
-    strftime("%a %b %d %H:%M:%S %Y")
+    strftime("%a %b %e %H:%M:%S %Y")
   end
   
   def hour
