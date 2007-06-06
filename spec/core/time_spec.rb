@@ -78,11 +78,15 @@ context "Time class method" do
   #local/mktime
   
   specify "local should create a time based on given values, interpreted in the local time zone" do
-    Time.local(2000,"jan",1,20,15,1).inspect.should == localtime(946786501)
+    with_timezone("US/Pacific") do
+      Time.local(2000,"jan",1,20,15,1).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
+    end
   end
   
   specify "local should create a time based on given C-style gmtime arguments, interpreted in the local time zone" do
-    Time.local(1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == localtime(946782901)
+    with_timezone("US/Pacific") do
+      Time.local(1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 19:15:01 -0800 2000"
+    end
   end
 
   specify "mktime is a synonym for Time.local" do
