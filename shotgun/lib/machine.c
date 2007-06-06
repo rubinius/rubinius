@@ -513,7 +513,7 @@ void machine_setup_ruby(machine m, char *name) {
     name = buf;
   }
   machine_set_const(m, "RUBY_BIN_PATH", string_new(m->s, name));
-  m->interpreter = strdup(buf);
+  m->interpreter = strdup(name);
 }
 
 void machine_setup_argv(machine m, int argc, char **argv) {
