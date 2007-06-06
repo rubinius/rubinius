@@ -464,7 +464,10 @@ context "Time instance method" do
   end
   
   specify "to_a should return a 10 element array representing the deconstructed time" do
-    Time.at(0).to_a.should == [0, 0, 16, 31, 12, 1969, 3, 365, false, "PST"]
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      Time.at(0).to_a.should == [0, 0, 18, 31, 12, 1969, 3, 365, false, "CST"]
+    end
   end
 end
 
