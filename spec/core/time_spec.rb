@@ -389,36 +389,54 @@ context "Time instance method" do
   end
   
   specify "localtime should return the local representation of time" do
-    t = Time.gm(2007, 1, 9, 12, 0, 0)
-    t.localtime
-    t.should == Time.local(2007, 1, 9, 4, 0, 0)
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      t = Time.gm(2007, 1, 9, 12, 0, 0)
+      t.localtime
+      t.should == Time.local(2007, 1, 9, 6, 0, 0)
+    end
   end
   
   specify "gmtime should return the utc representation of time" do
-    t = Time.local(2007, 1, 9, 4, 0, 0)
-    t.gmtime
-    t.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      t = Time.local(2007, 1, 9, 6, 0, 0)
+      t.gmtime
+      t.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    end
   end
   
   specify "getlocal should return a new time which is the local representation of time" do
-    t = Time.gm(2007, 1, 9, 12, 0, 0)
-    t.localtime.should == Time.local(2007, 1, 9, 4, 0, 0)
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      t = Time.gm(2007, 1, 9, 12, 0, 0)
+      t.localtime.should == Time.local(2007, 1, 9, 6, 0, 0)
+    end
   end
   
   specify "getgm should return a new time which is the utc representation of time" do
-    t = Time.local(2007, 1, 9, 4, 0, 0)
-    t.getgm.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      t = Time.local(2007, 1, 9, 6, 0, 0)
+      t.getgm.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    end
   end
   
   specify "getutc should be an alias for getgm" do
-    t = Time.local(2007, 1, 9, 4, 0, 0)
-    t.getutc.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      t = Time.local(2007, 1, 9, 6, 0, 0)
+      t.getutc.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    end
   end
   
   specify "utc should be an alias of gmtime" do
-    t = Time.local(2007, 1, 9, 4, 0, 0)
-    t.utc
-    t.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    # Testing with America/Regina here because it doesn't have DST.
+    with_timezone("America/Regina") do
+      t = Time.local(2007, 1, 9, 6, 0, 0)
+      t.utc
+      t.should == Time.gm(2007, 1, 9, 12, 0, 0)
+    end
   end
   
   specify "dst? should return whether time is during daylight saving time" do
