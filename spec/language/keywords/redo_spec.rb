@@ -6,7 +6,7 @@ describe "The redo statement" do
     should_raise(LocalJumpError) { x }
   end
 
-  it "restarts block execution if used whithin block" do
+  it "restarts block execution if used within block" do
     a = []
     lambda {
       a << 1

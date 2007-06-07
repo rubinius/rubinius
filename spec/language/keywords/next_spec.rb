@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "The redo statement" do
+describe "The next statement" do
   it "raises LocalJumpError if used not within block or while/for loop" do
     def x; next; end
     should_raise(LocalJumpError) { x }
   end
 
-  it "ends block execution if used whithin block" do
+  it "ends block execution if used within block" do
     a = []
     lambda {
       a << 1
@@ -20,7 +20,7 @@ describe "The redo statement" do
     lambda { 123; next; 456 }.call.should == nil
   end
 
-  it "accepts argument but does nothing with it in blocks" do
-    lambda { 123; next 234; 345 }.call.should == nil
+  it "accepts argument and returns it from blocks" do
+    lambda { 123; next 234; 345 }.call.should == 234
   end
 end
