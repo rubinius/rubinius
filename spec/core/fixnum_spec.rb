@@ -244,18 +244,7 @@ context "Fixnum instance method" do
   specify "div should raise ZeroDivisionError if other is zero and not a Float" do
     should_raise(ZeroDivisionError) { 1.div(0) }
   end
-  
-  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
-  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
-    it "divmod should return [NaN, NaN] if other is zero and is a Float" do
-      1.divmod(0.0).inspect.should == '[NaN, NaN]'
-    end
-  else
-    it "divmod should raise FloatDomainError if other is zero and is a Float" do
-      should_raise(FloatDomainError) { 1.divmod(0.0) }
-    end
-  end
-  
+    
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
     1.divmod(2).should == [0, 1]
     -5.divmod(3).should == [-2, 1]
@@ -269,9 +258,16 @@ context "Fixnum instance method" do
   specify "divmod should raise ZeroDivisionError if other is zero and not a Float" do
     should_raise(ZeroDivisionError) { 1.divmod(0) }
   end
-  
-  specify "divmod should raise FloatDomainError if other is zero and is a Float" do
-    should_raise(FloatDomainError) { 1.divmod(0.0) }
+
+  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
+  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
+    it "divmod should return [NaN, NaN] if other is zero and is a Float" do
+      1.divmod(0.0).inspect.should == '[NaN, NaN]'
+    end
+  else
+    it "divmod should raise FloatDomainError if other is zero and is a Float" do
+      should_raise(FloatDomainError) { 1.divmod(0.0) }
+    end
   end
 
   specify "id2name should return the string name of the object whose symbol ID is self" do
