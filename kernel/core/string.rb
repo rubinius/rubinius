@@ -506,9 +506,24 @@ class String
     replace_if(tr(from_str, to_str))
   end
 
+  # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
+  # against <i>self</i>, and return the position the match starts, or 
+  # <code>nil</code> if there is no match. Otherwise, invoke
+  # <i>pattern.=~</i>, passing <i>self</i> as an argument.
+  # 
+  # The default <code>=~</code> in <code>Object</code> returns <code>false</code>.
+  #    
+  #   "cat o' 9 tails" =~ /\d/ #=> 7
+  #   "cat o' 9 tails" =~ 9    #=> false
   def =~(pattern)
-    m = pattern.match(self)
-    m ? m.full.at(0) : nil 
+    case pattern
+    when Regexp
+      pattern.match(self)
+    when String
+      raise TypeError, "type mismatch: String given"
+    else
+      pattern =~ self
+    end
   end
   
   def include?(needle)
