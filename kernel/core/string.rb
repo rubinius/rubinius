@@ -102,68 +102,109 @@ class String
     replace_if(chop)
   end
   
+  # Returns a copy of <i>self</i> with the first character converted to uppercase
+  # and the remainder to lowercase.
+  # Note: case conversion is effective only in ASCII region.
+  #    
+  #   "hello".capitalize    #=> "Hello"
+  #   "HELLO".capitalize    #=> "Hello"
+  #   "123ABC".capitalize   #=> "123abc"
   def capitalize
-    str = self.dup
-    c = str.data[0]
-    str.data[0] = c.toupper
-    i = 1
-    while i < str.bytes
-      c = str.data[i]
-      str.data[i] = c.tolower
-      i += 1
-    end
-    str
+    (str = self.dup).capitalize! || str
   end
-  
+
+  # Modifies <i>self</i> by converting the first character to uppercase and the
+  # remainder to lowercase. Returns <code>nil</code> if no changes are made.
+  # Note: case conversion is effective only in ASCII region.
+  #    
+  #   a = "hello"
+  #   a.capitalize!   #=> "Hello"
+  #   a               #=> "Hello"
+  #   a.capitalize!   #=> nil
   def capitalize!
-    replace_if(capitalize)
+    return if @bytes == 0
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    
+    modified = false
+    
+    if @data[0].islower
+      @data[0] = @data[0].toupper
+      modified = true
+    end
+    
+    1.upto(@bytes - 1) do |i|
+      if @data[i].isupper
+        @data[i] = @data[i].tolower
+        modified = true
+      end
+    end
+  
+    modified ? self : nil
   end
   
   def swapcase
-    str = self.dup
-    i = 0
-    d = str.data
-    while i < str.bytes
-      c = d[i]
-      d[i] = c.toupper if c.islower
-      d[i] = c.tolower if c.isupper
-      i += 1
-    end
-    str
+    (str = self.dup).swapcase! || str
   end
   
   def swapcase!
-    replace_if(swapcase)
+    return if @bytes == 0
+    raise TypeError, "can't modify frozen string" if self.frozen?
+  
+    modified = false
+  
+    @bytes.times do |i|
+      if @data[i].islower
+        @data[i] = @data[i].toupper
+        modified = true
+      elsif @data[i].isupper
+        @data[i] = @data[i].tolower
+        modified = true
+      end
+    end
+  
+    modified ? self : nil
   end
   
   def upcase
-    str = self.dup
-    i = 0
-    while i < str.bytes
-      c = str.data[i]
-      str.data[i] = c.toupper
-      i += 1
-    end
-    str
+    (str = self.dup).upcase! || str
   end
   
   def upcase!
-    replace_if(upcase)
+    return if @bytes == 0
+    raise TypeError, "can't modify frozen string" if self.frozen?
+  
+    modified = false
+  
+    @bytes.times do |i|
+      if @data[i].islower
+        @data[i] = @data[i].toupper
+        modified = true
+      end
+    end
+
+    modified ? self : nil
   end
   
   def downcase
-    str = self.dup
-    i = 0
-    while i < str.bytes
-      c = str.data[i]
-      str.data[i] = c.tolower
-      i += 1
-    end
-    str
+    (str = self.dup).downcase! || str
   end
   
   def downcase!
-    replace_if(downcase)
+    return if @bytes == 0
+    raise TypeError, "can't modify frozen string" if self.frozen?
+  
+    raise Type
+  
+    modified = false
+  
+    @bytes.times do |i|
+      if @data[i].isupper
+        @data[i] = @data[i].tolower
+        modified = true
+      end
+    end
+
+    modified ? self : nil
   end
 
   def reverse
