@@ -189,14 +189,15 @@ context "Exceptions" do
 
   generate_exception_existance_spec = lambda do |exception_name|
     specify "exception #{exception_name} is in the core" do
-      Object.const_defined?(exception_name).should === true
+      Object.const_defined?(exception_name).should == true
     end
   end
 
   generate_exception_ancestor_spec = lambda do |exception_name, parent_name|
     specify "#{exception_name} has #{parent_name} as ancestor" do
-      exception = Object.constants[exception_name.to_sym]
-      exception.ancestors.map{|x| x.to_s}.include?(parent_name.to_s).should === true
+      exception = Object.const_get(exception_name.to_sym)
+      ancestors = exception.ancestors.map { |x| x.to_s }
+      ancestors.include?(parent_name.to_s).should == true
     end
   end
 
