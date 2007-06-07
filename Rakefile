@@ -58,7 +58,7 @@ namespace :build do
   namespace :clean do
     desc "Removes build by-products for shotgun"
     task :shotgun do
-      sh "make -e -C shotgun clean || true"
+      sh "make -C shotgun clean || true"
     end
     
     desc "Removes build by-products for compiler"
@@ -97,7 +97,7 @@ namespace :build do
   
   desc "Compiles shotgun (the C-code VM)"
   task :shotgun => :configure do
-    sh "make -e"
+    sh "make"
     raise 'Failed to build shotgun' unless $?.success?
   end
   
