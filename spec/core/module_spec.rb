@@ -119,7 +119,7 @@ context "Module#module_eval given a block" do
 end
 
 context "Module.module_function with arguments" do
-  module M
+  module TestModule_ModuleFuncWithArgs
     def foo;  :foo  end
     def bar;  :bar  end
     def baz;  :baz  end
@@ -128,50 +128,52 @@ context "Module.module_function with arguments" do
     module_function :foo, :bar, :zool
   end
 
+  mod = TestModule_ModuleFuncWithArgs
+
   specify "should allow calling module functions as instance functions" do
-    M.should_receive :method_missing, {:count => 2}
-    M.foo.should == :foo
-    M.bar.should == :bar
-    M.zool.should == :zool
-    M.baz
-    M.quux
+    mod.should_receive :method_missing, {:count => 2}
+    mod.foo.should == :foo
+    mod.bar.should == :bar
+    mod.zool.should == :zool
+    mod.baz
+    mod.quux
   end
 
-  module M
+  module TestModule_ModuleFuncWithArgs
     def foo;  :oof  end
     def zool; :looz end
   end
 
   specify "should create the module functions as clones" do
-    M.foo.should == :foo
-    M.zool.should == :zool
+    mod.foo.should == :foo
+    mod.zool.should == :zool
   end
 
-  class TestClass
-    include M
+  class TestClass_ModuleFuncWithArgs
+    include TestModule_ModuleFuncWithArgs
   end
-  o = TestClass.new
+  obj = TestClass_ModuleFuncWithArgs.new
 
   specify "should make module function instance methods private" do
-    should_raise(NoMethodError) { o.bar }
+    should_raise(NoMethodError) { obj.bar }
   end
 
   specify "should leave other methods as module methods" do
     # Private
-    o.instance_eval do
+    obj.instance_eval do
       bar.should == :bar
     end
 
-    o.baz.should == :baz
-    o.quux.should == :quux
+    obj.baz.should == :baz
+    obj.quux.should == :quux
     
-    o.foo.should == :oof
-    o.zool.should == :looz
+    obj.foo.should == :oof
+    obj.zool.should == :looz
   end
 end
 
 context "Module.module_function without arguments" do
-  module N
+  module TestModule_ModuleFuncNoArgs
     def baz;  :baz  end
     def quux; :quux end
 
@@ -180,51 +182,60 @@ context "Module.module_function without arguments" do
     def bar;  :bar  end
     def zool; :zool end
   end
+  
+  mod = TestModule_ModuleFuncNoArgs
 
   specify "should allow calling module functions as instance functions" do
-    N.should_receive :method_missing, {:count => 2}
-    N.foo.should == :foo
-    N.bar.should == :bar
-    N.zool.should == :zool
-    N.baz
-    N.quux
+    mod.should_receive :method_missing, {:count => 2}
+    mod.foo.should == :foo
+    mod.bar.should == :bar
+    mod.zool.should == :zool
+    mod.baz
+    mod.quux
   end
 
-  module N
+  module TestModule_ModuleFuncNoArgs
     def foo;  :oof  end
     def zool; :looz end
   end
 
   specify "should create the instance functions as clones" do
-    N.foo.should == :foo
-    N.zool.should == :zool
+    mod.foo.should == :foo
+    mod.zool.should == :zool
   end
 
-  class TestClass
-    include M
+  class TestClass_ModuleFuncNoArgs
+    include TestModule_ModuleFuncNoArgs
   end
-  o = TestClass.new
+  obj = TestClass_ModuleFuncNoArgs.new
+
+  specify "should make module function instance methods private" do
+    should_raise(NoMethodError) { obj.bar }
+  end
 
   specify "should leave other methods as module methods" do
-    o.foo.should == :oof
-    o.bar.should == :bar
-    o.baz.should == :baz
-    o.quux.should == :quux
-    o.zool.should == :looz
+    # Private
+    obj.instance_eval do
+      bar.should == :bar
+    end
+
+    obj.baz.should == :baz
+    obj.quux.should == :quux    
+    
+    obj.foo.should == :oof
+    obj.zool.should == :looz
   end
 
-  module N
+  module TestModule_ModuleFuncNoArgs
     def mri;  :mri end
     module_function :mri
     def odd;  :odd end
   end
 
   specify "should finish the default aliasing after passing an arg" do
-    N.should_receive :method_missing
-    N.mri.should == :mri
-    N.odd
-    o.odd.should == :odd
-    o.mri.should == :mri
+    mod.should_receive :method_missing
+    mod.mri.should == :mri
+    mod.odd
   end
 end
 
@@ -284,55 +295,46 @@ context "Module.define_method" do
   
 end
 
-context "Module" do
-  module M
-    def a; end
-    def b; end
-    def c; end
-  end
-
-  specify "should provide a method private that takes no arguments" do
-    module N
+context "Module visibility methods (private, protected, public)" do
+  specify "should work without args" do
+    module TestModule_VisibilityNoArgs
       private
-      def a; end
-    end
-    N.private_instance_methods.should == ["a"]
-  end
-  
-  specify "should provide a method private that takes multiple arguments" do
-    module M
-      private :a, :b, :c
-    end
-    M.private_instance_methods.sort.should == ["a", "b", "c"]
-  end
-  
-  specify "should provide a method protected that takes no arguments" do
-    module O
+      def private1; end
+      def private2; end
+      
       protected
-      def a; end
-    end
-    O.protected_instance_methods.should == ["a"]
-  end
-  
-  specify "should provide a method protected that takes multiple arguments" do
-    module M
-      protected :a, :b, :c
-    end
-    M.protected_instance_methods.sort.should == ["a", "b", "c"]
-  end
-  
-  specify "should provide a method public that takes no arguments" do
-    module P
+      def protected1; end
+      def protected2; end
+      
       public
-      def a; end
+      def public1; end
+      def public2; end
+
+      private_instance_methods.sort.should == ["private1", "private2"]
+      protected_instance_methods.sort.should == ["protected1", "protected2"]
+      public_instance_methods.sort.should == ["public1", "public2"]
     end
-    P.public_instance_methods.should == ["a"]
   end
   
-  specify "should provide a method public that takes multiple arguments" do
-    module M
-      public :a, :b, :c
+  specify "should work with args" do
+    module TestModule_VisibilityNoArgs
+      def private1; end
+      def private2; end
+      private :private1, :private2
+      
+      def protected1; end
+      def protected2; end
+      protected :protected1, :protected2
+      
+      def public1; end
+      def public2; end
+      public :public1, :public2
+
+      private_instance_methods.sort.should == ["private1", "private2"]
+      protected_instance_methods.sort.should == ["protected1", "protected2"]
+      public_instance_methods.sort.should == ["public1", "public2"]
     end
-    M.public_instance_methods.sort.should == ["a", "b", "c"]
   end
+  
+  # TODO: What about mixing the two styles?
 end
