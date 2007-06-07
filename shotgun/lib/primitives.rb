@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
   include PrimitiveGenerator
-  Header = ""
  
   def generate_select(fd, op="prim")
     i = 1
@@ -357,7 +356,7 @@ class ShotgunPrimitives
     _mode = string_as_string(state, t2);
     _fobj = fopen(_path, _mode);
     t3 = io_new(state, fileno(_fobj));
-    SET_FIELD(t3, 1, t1);
+    io_set_descriptor(t3, t1);
     free(_path);
     free(_mode);
     stack_push(t3);
@@ -415,27 +414,6 @@ class ShotgunPrimitives
     free(name);
     CODE
   end
-  
-=begin
-  def socket_open
-    <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    t2 = stack_pop();
-    t3 = stack_pop();
-    j = socket(FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2), FIXNUM_TO_INT(t3));
-    if(j == -1) {
-      stack_push(Qfalse);
-    } else {
-      t4 = NEW_OBJECT(self, 2);
-      SET_FIELD(t3, 0, I2N(j));
-    }
-    CODE
-  end  
-=end
-
-  Header << <<-CODE
-  CODE
   
   def gettimeofday
     <<-CODE
@@ -1146,7 +1124,6 @@ class ShotgunPrimitives
 
   def zlib_inflate
     <<-CODE
-
     stack_pop(); //class method, ignore self
     t1 = stack_pop(); //string to inflate
     if (!STRING_P(t1)) { //parameter must be a string
@@ -1620,7 +1597,6 @@ class ShotgunPrimitives
     CODE
   end
 
-
   def bignum_and(_ = bignum, t1 = bignum)
     <<-CODE
     stack_push(bignum_and(state, self, t1));
@@ -1661,7 +1637,6 @@ class ShotgunPrimitives
     }
     CODE
   end
-
 
   def bignum_invert
     <<-CODE
