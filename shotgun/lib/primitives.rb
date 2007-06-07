@@ -336,9 +336,9 @@ class ShotgunPrimitives
     
     j = pipe(fds);
     if(!j) {
-      SET_FIELD(t1, 0, I2N(fds[0]));
+      io_set_descriptor(t1, I2N(fds[0]));
       io_initialize(state, fds[0]);
-      SET_FIELD(t2, 0, I2N(fds[1]));
+      io_set_descriptor(t2, I2N(fds[1]));      
       io_initialize(state, fds[1]);
     }
     stack_push(I2N(j));
@@ -372,8 +372,8 @@ class ShotgunPrimitives
     /* MRI does a ton more with reopen, but I don't yet understand why.
        This seems perfectly acceptable currently. */
     
-    k = FIXNUM_TO_INT(NTH_FIELD(self, 0));
-    j = FIXNUM_TO_INT(NTH_FIELD(t1, 0));
+    k = FIXNUM_TO_INT(io_get_descriptor(self));
+    j = FIXNUM_TO_INT(io_get_descriptor(t1));
     
     if(dup2(j, k) == -1) {
       cpu_raise_from_errno(state, c, "Unable to reopen IO object");
