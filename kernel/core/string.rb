@@ -65,18 +65,38 @@ class String
     end
   end
 
+  # Replaces the contents and taintedness of <i>string</i> with the corresponding
+  # values in <i>other</i>.
+  # 
+  #   s = "hello"         #=> "hello"
+  #   s.replace "world"   #=> "world"
   def replace(other)
     # If we're replacing with ourselves, then we have nothing to do
     return self if self.equal?(other)
+
+    other = other.coerce_string unless other.is_a? String
+
+    raise TypeError, "can't modify frozen string" if self.frozen?
 
     @data = other.dup.data
     @bytes = other.bytes
     @characters = other.characters
     @encoding = other.encoding
+    
+    self.taint if other.tainted?
+    
     self
   end
   alias :initialize_copy :replace
   
+  # Replaces the contents and taintedness of <i>string</i> with the corresponding
+  # values in <i>other</i> if they differ.
+  # 
+  #   s = "hello"           #=> "hello"
+  #   s.replace_if "hello"  #=> nil
+  #   s                     #=> "hello"
+  #   s.replace_if "world"  #=> "world"
+  #   s                     #=> "world"
   def replace_if(other)
     self == other ? nil : replace(other)
   end
@@ -93,13 +113,28 @@ class String
     replace_if(chomp)
   end
   
+  # Returns a new <code>String</code> with the last character removed.  If the
+  # string ends with <code>\r\n</code>, both characters are removed. Applying
+  # <code>chop</code> to an empty string returns an empty
+  # string. <code>String#chomp</code> is often a safer alternative, as it leaves
+  # the string unchanged if it doesn't end in a record separator.
+  #    
+  #   "string\r\n".chop   #=> "string"
+  #   "string\n\r".chop   #=> "string\n"
+  #   "string\n".chop     #=> "string"
+  #   "string".chop       #=> "strin"
+  #   "x".chop.chop       #=> ""
   def chop
-    count = @bytes > 0 ? @bytes-1 : 0
-    substring(0, count)
+    (str = self.dup).chop! || str
   end
   
   def chop!
-    replace_if(chop)
+    return if @bytes == 0
+    
+    length = @bytes - 1
+    length -= 1 if @data[length] == ?\n && @data[length - 1] == ?\r
+    
+    replace(substring(0, length))
   end
   
   # Returns a copy of <i>self</i> with the first character converted to uppercase
