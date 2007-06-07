@@ -35,14 +35,6 @@ void Init_ffi(STATE) {
   rbs_const_set(state, mod, "TYPE_STRPTR",  I2N(FFI_TYPE_STRPTR));
 }
 
-OBJECT ffi_new_pointer(STATE, void *ptr) {
-  OBJECT o;
-  
-  o = object_memory_new_opaque(state, BASIC_CLASS(ffi_ptr), sizeof(void*));
-  memcpy(BYTES_OF(o), &ptr, sizeof(ptr));
-  return o;
-}
-
 #ifdef RBS_DISASS
 void disassemble(FILE*, char*, char*);
 #endif

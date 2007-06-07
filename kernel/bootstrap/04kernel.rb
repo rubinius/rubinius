@@ -4,9 +4,9 @@ module Functions
     a.each do |obj| 
       str = obj.to_s
       if str[-1] == 10
-        STDOUT.print str
+        $CONSOLE.print str
       else
-        STDOUT.puts str
+        $CONSOLE.puts str
       end
     end
     nil
@@ -14,13 +14,13 @@ module Functions
   
   def p(*a)
     a = [nil] if a.empty?
-    a.each { |obj| STDOUT.puts obj.inspect }
+    a.each { |obj| $CONSOLE.puts obj.inspect }
     nil
   end
 
   def print(*args)
     args.each do |obj|
-      STDOUT.write obj.to_s
+      $CONSOLE.write obj.to_s
     end
     nil
   end

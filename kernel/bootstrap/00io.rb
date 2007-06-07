@@ -1,7 +1,7 @@
 class IO
-  ivar_as_index :descriptor => 0
+  ivar_as_index :__ivars__ => 0, :descriptor => 1
   def descriptor; @descriptor ; end
-  def __ivars__ ; nil         ; end
+  def __ivars__ ; @__ivars__  ; end
 
   def write(str)
     Ruby.primitive :io_write

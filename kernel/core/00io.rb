@@ -5,6 +5,15 @@ class IOError < StandardError
 end
 
 class IO
+  
+  def initialize(fd)
+    @descriptor = fd
+  end
+  
+  def inspect
+    "#<#{self.class}:#{object_id.to_s(16)} fd=#{@descriptor}>"
+  end
+  
   def puts(str)
     write "#{str}\n"
   end
@@ -42,7 +51,7 @@ class IO
     end
   end
   
-  index_reader :descriptor, 0
+  index_reader :descriptor, 1
   
   def closed?
     @descriptor == -1

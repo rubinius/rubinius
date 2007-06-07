@@ -7,5 +7,6 @@ Globals = {
   :$" => [], 
   :$, => '',                  # Output field separator
   :$stderr => STDERR, 
-  :$stdout => STDOUT
+  :$stdout => STDOUT,
+  :$CONSOLE => STDOUT
 }

@@ -42,10 +42,14 @@ void cpu_bootstrap_exceptions(STATE) {
   
   state->global->exc_segfault = dexc(MemorySegmentionError, exc);
 
-  state->global->errno_mapping = hash_new(state);
-
   OBJECT ern = dexc(Errno, sce);
 
+  state->global->errno_mapping = hash_new(state);
+
+  rbs_const_set(state, ern, "Mapping", state->global->errno_mapping);
+  
+  sz = 3;
+  
 #define set_syserr(num, name) ({ \
   OBJECT _cls = rbs_class_new_with_namespace(state, name, sz, ern, ern); \
   rbs_const_set(state, _cls, "Errno", I2N(num)); \
