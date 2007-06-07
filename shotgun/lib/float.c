@@ -140,7 +140,7 @@ OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
   	div -= 1.0;
   }
   ary = array_new(state, 2);
-  array_set(state, ary, 0, bignum_from_double(state, div));
+  array_set(state, ary, 0, float_new(state, div)); // MRI 1.9 uses an int here
   array_set(state, ary, 1, float_new(state, mod));
   return ary;
 }
