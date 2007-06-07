@@ -326,33 +326,6 @@ class Time
     return year, mon, day, hour, min, sec
   end
   
-  def self.zone_offset(zone, year=Time.now.year)
-    off = nil
-    zone = zone.upcase
-    if /\A([+-])(\d\d):?(\d\d)\z/ =~ zone
-      off = ($1 == '-' ? -1 : 1) * ($2.to_i * 60 + $3.to_i) * 60
-    elsif /\A[+-]\d\d\z/ =~ zone
-      off = zone.to_i * 3600
-    elsif ZoneOffset.include?(zone)
-      off = ZoneOffset[zone] * 3600
-    elsif ((t = Time.local(year, 1, 1)).zone.upcase == zone rescue false)
-      off = t.utc_offset
-    elsif ((t = Time.local(year, 7, 1)).zone.upcase == zone rescue false)
-      off = t.utc_offset
-    end
-    off
-  end
-  
-  def self.zone_utc?(zone)
-    # * +0000 means localtime. [RFC 2822]
-    # * GMT is a localtime abbreviation in Europe/London, etc.
-    if /\A(?:-00:00|-0000|-00|UTC|Z|UT)\z/i =~ zone
-      true
-    else
-      false
-    end
-  end
-  
   # aliases
   
   public

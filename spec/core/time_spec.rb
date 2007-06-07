@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # class methods
 # _load, apply_offset, at, gm, local, make_time, mktime,
 # month_days, new, now, parse, times, utc,
-# zone_offset, zone_utc?
 
 # +, -, <=>, _dump, asctime, ctime, day, dst?, eql?, getgm, getlocal,
 # getutc, gmt?, gmt_offset, gmtime, gmtoff, hash, hour,
