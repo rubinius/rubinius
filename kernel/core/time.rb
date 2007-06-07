@@ -4,7 +4,6 @@
 # _dump
 # marshal_dump
 # marshal_load
-# xmlschema
 
 class Time
   include Comparable
@@ -247,118 +246,6 @@ class Time
     @tv_sec ^ @tv_usec
   end
   
-  # Parses +date+ as date-time defined by RFC 2822 and converts it to a Time
-  # object.  The format is identical to the date format defined by RFC 822 and
-  # updated by RFC 1123.
-  #
-  # ArgumentError is raised if +date+ is not compliant with RFC 2822
-  # or Time class cannot represent specified date.
-  #
-  # See #rfc2822 for more information on this format.
-  def self.rfc2822(date)
-    if /\A\s*
-        (?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s*,\s*)?
-        (\d{1,2})\s+
-        (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+
-        (\d{2,})\s+
-        (\d{2})\s*
-        :\s*(\d{2})\s*
-        (?::\s*(\d{2}))?\s+
-        ([+-]\d{4}|
-         UT|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|[A-IK-Z])/ix =~ date
-      # Since RFC 2822 permit comments, the regexp has no right anchor.
-      day = $1.to_i
-      mon = MonthValue[$2.upcase]
-      year = $3.to_i
-      hour = $4.to_i
-      min = $5.to_i
-      sec = $6 ? $6.to_i : 0
-      zone = $7
-
-      # following year completion is compliant with RFC 2822.
-      year = if year < 50
-        2000 + year
-      elsif year < 1000
-        1900 + year
-      else
-        year
-      end
-
-      year, mon, day, hour, min, sec = apply_offset(year, mon, day, hour, min, sec, zone_offset(zone))
-      t = self.utc(year, mon, day, hour, min, sec)
-      t.localtime if !zone_utc?(zone)
-      t
-    else
-      raise ArgumentError.new("not RFC 2822 compliant date: #{date.inspect}")
-    end
-  end
-  
-  # Parses +date+ as HTTP-date defined by RFC 2616 and converts it to a Time
-  # object.
-  #
-  # ArgumentError is raised if +date+ is not compliant with RFC 2616 or Time
-  # class cannot represent specified date.
-  #
-  # See #httpdate for more information on this format.
-  def self.httpdate(date)
-    if /\A\s*
-        (?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),\x20
-        (\d{2})\x20
-        (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\x20
-        (\d{4})\x20
-        (\d{2}):(\d{2}):(\d{2})\x20
-        GMT
-        \s*\z/ix =~ date
-      self.rfc2822(date)
-    elsif /\A\s*
-           (?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\x20
-           (\d\d)-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-(\d\d)\x20
-           (\d\d):(\d\d):(\d\d)\x20
-           GMT
-           \s*\z/ix =~ date
-      self.parse(date)
-    elsif /\A\s*
-           (?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\x20
-           (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\x20
-           (\d\d|\x20\d)\x20
-           (\d\d):(\d\d):(\d\d)\x20
-           (\d{4})
-           \s*\z/ix =~ date
-      self.utc($6.to_i, MonthValue[$1.upcase], $2.to_i, $3.to_i, $4.to_i, $5.to_i)
-    else
-      raise ArgumentError.new("not RFC 2616 compliant date: #{date.inspect}")
-    end
-  end
-  
-  def self.xmlschema(date)
-      if /\A\s*
-          (-?\d+)-(\d\d)-(\d\d)
-          T
-          (\d\d):(\d\d):(\d\d)
-          (\.\d*)?
-          (Z|[+-]\d\d:\d\d)?
-          \s*\z/ix =~ date
-        year = $1.to_i
-        mon = $2.to_i
-        day = $3.to_i
-        hour = $4.to_i
-        min = $5.to_i
-        sec = $6.to_i
-        usec = 0
-        usec = $7.to_f * 1000000 if $7
-        if $8
-          zone = $8
-          year, mon, day, hour, min, sec =
-            apply_offset(year, mon, day, hour, min, sec, zone_offset(zone))
-          Time.utc(year, mon, day, hour, min, sec, usec)
-        else
-          Time.local(year, mon, day, hour, min, sec, usec)
-        end
-      else
-        raise ArgumentError.new("invalid date: #{date.inspect}")
-      end
-    end
-  
   # internal
   
   # private
@@ -439,43 +326,6 @@ class Time
     return year, mon, day, hour, min, sec
   end
   
-  # Parses +date+ as dateTime defined by XML Schema and converts it to a Time
-  # object.  The format is restricted version of the format defined by ISO
-  # 8601.
-  #
-  # ArgumentError is raised if +date+ is not compliant with the format or Time
-  # class cannot represent specified date.
-  #
-  # See #xmlschema for more information on this format.
-  def self.xmlschema(date)
-    if /\A\s*
-        (-?\d+)-(\d\d)-(\d\d)
-        T
-        (\d\d):(\d\d):(\d\d)
-        (\.\d*)?
-        (Z|[+-]\d\d:\d\d)?
-        \s*\z/ix =~ date
-      year = $1.to_i
-      mon = $2.to_i
-      day = $3.to_i
-      hour = $4.to_i
-      min = $5.to_i
-      sec = $6.to_i
-      usec = 0
-      usec = $7.to_f * 1000000 if $7
-      if $8
-        zone = $8
-        year, mon, day, hour, min, sec =
-          apply_offset(year, mon, day, hour, min, sec, zone_offset(zone))
-        Time.utc(year, mon, day, hour, min, sec, usec)
-      else
-        Time.local(year, mon, day, hour, min, sec, usec)
-      end
-    else
-      raise ArgumentError.new("invalid date: #{date.inspect}")
-    end
-  end
-  
   def self.zone_offset(zone, year=Time.now.year)
     off = nil
     zone = zone.upcase
@@ -511,8 +361,6 @@ class Time
     alias :now :new
     alias :mktime :local
     alias :utc :gm
-    alias :rfc822 :rfc2822
-    alias :iso8601 :xmlschema
   end
     
   alias :utc? :gmt?
