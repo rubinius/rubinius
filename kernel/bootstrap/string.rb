@@ -12,6 +12,13 @@ class String
   
   ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
+
+  # Returns a printable version of _str_, with special characters
+  # escaped.
+  #
+  #   str = "hello"
+  #   str[3] = 8
+  #   str.inspect       #=> "hel\010o"
   def inspect
     res =  "\""
     self.each_byte do |char|
@@ -69,10 +76,12 @@ class String
   end
   alias :concat :<<
 
+  # Concatenation --- Returns a new <code>String</code> containing
+  # <i>other</i> concatenated to <i>string</i>.
+  # 
+  #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    o = self.dup
-    o << other
-    return o
+    self.dup << other
   end
 
   def dup
@@ -153,7 +162,13 @@ class String
         return 0
       end
     else
-      nil
+      return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
+      
+      tmp = other <=> self
+      return unless tmp
+      
+      tmp = Integer(tmp) unless tmp.is_a?(Integer)
+      return -(tmp)
     end
   end
 
@@ -169,8 +184,13 @@ class String
     pre == sub
   end
 
-  def to_sym
+  def __symbol_lookup__
     Ruby.primitive :symbol_lookup
+  end
+
+  def to_sym
+    raise ArgumentError, "interning empty string" if self.empty?
+    __symbol_lookup__
   end
   alias :intern :to_sym
 
@@ -184,12 +204,11 @@ class String
     @bytes == 0
   end
   
-  def split(pattern=nil, limit=nil)
+  def split(pattern = $;, limit = nil)
     return [] if @bytes == 0
     return [self] if limit == 0
-    pattern = $; if pattern.nil?
     pattern = /\s+/ if pattern.nil?
-    pattern = Regexp.new Regexp.quote(pattern) unless Regexp === pattern
+    pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
     
     ret = []
     count = 0
@@ -218,6 +237,12 @@ class String
   # TODO: check that the string will never go over the maximum range
   #       as the function is not supposed to raise an exception.
   def to_i(radix=10)
+    unless radix.is_a? Integer
+      raise TypeError, "can't convert #{radix.class} into Integer" unless radix.respond_to? :to_int
+      radix = radix.to_int
+    end
+    
+    raise ArgumentError, "illegal radix #{radix}" if radix < 0
     return 0 unless @bytes > 0
     
     # leading whitespace removal
