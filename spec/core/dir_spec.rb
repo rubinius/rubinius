@@ -34,6 +34,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 # Helpers
 $mockdir = '/tmp/rubinius_mock_fs'
+$mockdir.sub!('/tmp', '/private/tmp') if RUBY_PLATFORM["darwin"]
+
 $nonexisting = "/rubinius_nonexist_#{$$}_00"
 $mockdir.freeze
 $nonexisting.freeze
