@@ -40,20 +40,26 @@ class String
     return res
   end
 
-  def size
-    @bytes
-  end
-
   def length
     @bytes
   end
+  alias :size :length
 
+  # Append --- Concatenates the given object to <i>self</i>. If the object is a
+  # <code>Fixnum</code> between 0 and 255, it is converted to a character before
+  # concatenation.
+  #    
+  #   a = "hello "
+  #   a << "world"   #=> "hello world"
+  #   a.concat(33)   #=> "hello world!"
   def <<(other)
     unless other.kind_of? String
-      if other.is_a?(Integer)
+      if other.is_a?(Integer) && other >= 0 && other <= 255
         other = other.chr
-      else
+      elsif other.respond_to? :to_str
         other = other.to_str
+      else
+        raise TypeError, "can't convert #{other.class} into String"
       end
     end
     
