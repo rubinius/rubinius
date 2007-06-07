@@ -996,6 +996,18 @@ describe 'Array splicing using #[]=' do
 end
 
 describe 'Array packing' do
+  specify "pack('%') raises ArgumentError" do
+    should_raise(ArgumentError) { [].pack("%") }
+  end
+
+  specify "pack('#') skips everything till the end of schema string" do
+    ["abc", "def"].pack("A*#A10%").should == "abc"
+  end
+
+  specify "pack('#') skips everything till the end of schema line" do
+    ["abc", "def"].pack("A*#A10%\nA*").should == "abcdef"
+  end
+
   specify "pack('A') returns space padded string" do
     ['abcde'].pack('A7').should == 'abcde  '
   end
@@ -1046,6 +1058,142 @@ describe 'Array packing' do
     should_raise(TypeError) { [123].pack('a5') }
     should_raise(TypeError) { [:hello].pack('a5') }
     should_raise(TypeError) { [Object.new].pack('a5') }
+  end
+
+  specify "pack('B') returns packed bit-string descending order" do
+    ["011000010110001001100011"].pack('B24').should == 'abc'
+  end
+
+  specify "pack('B') uses char codes to determine if bit is set or not" do
+    ["bccddddefgghhhijjkklllmm"].pack('B24').should == ["011000010110001001100011"].pack('B24')
+  end
+
+  specify "pack('B') conversion edge case: all zeros" do
+    ["00000000"].pack('B8').should == "\000"
+  end
+
+  specify "pack('B') conversion edge case: all ones" do
+    ["11111111"].pack('B8').should == "\377"
+  end
+
+  specify "pack('B') conversion edge case: left one" do
+    ["10000000"].pack('B8').should == "\200"
+  end
+
+  specify "pack('B') conversion edge case: left one" do
+    ["00000001"].pack('B8').should == "\001"
+  end
+
+  specify "pack('B') conversion edge case: edge sequences not in first char" do
+    ["0000000010000000000000011111111100000000"].pack('B40').should == "\000\200\001\377\000"
+  end
+
+  specify "pack('B') uses zeros if count is not multiple of 8" do
+    ["00111111"].pack('B4').should == ["00110000"].pack('B8')
+  end
+
+  specify "pack('B') returns zero-char for each 2 of count that greater than string length" do
+    [""].pack('B6').should == "\000\000\000"
+  end
+
+  specify "pack('B') returns extra zero char if count is odd and greater than string length" do
+    [""].pack('B7').should == "\000\000\000\000"
+  end
+
+  specify "pack('B') starts new char if string is ended before char's 8 bits" do
+    ["0011"].pack('B8').should == "0\000\000"
+  end
+
+  specify "pack('B') considers count = 1 if no explicit count it given" do
+    ["10000000"].pack('B').should == ["10000000"].pack('B1')
+    ["01000000"].pack('B').should == ["01000000"].pack('B1')
+  end
+
+  specify "pack('B') returns empty string if count = 0" do
+    ["10101010"].pack('B0').should == ""
+  end
+
+  specify "pack('B') uses argument string length as count if count = *" do
+    ["00111111010"].pack('B*').should == ["00111111010"].pack('B11')
+  end
+
+  specify "pack('B') consumes only one array item" do
+    ["0011", "1111"].pack('B*').should == ["0011"].pack('B4')
+    ["0011", "1011"].pack('B*B*').should == ["0011"].pack('B4') + ["1011"].pack('B4')
+  end
+
+  specify "pack('B') raises TypeError if corresponding array item is not String" do
+    should_raise(TypeError) { [123].pack('B8') }
+    should_raise(TypeError) { [:data].pack('B8') }
+    should_raise(TypeError) { [Object.new].pack('B8') }
+  end
+
+  specify "pack('b') returns packed bit-string descending order" do
+    ["100001100100011011000110"].pack('b24').should == 'abc'
+  end
+
+  specify "pack('b') conversion edge case: all zeros" do
+    ["00000000"].pack('b8').should == "\000"
+  end
+
+  specify "pack('b') conversion edge case: all ones" do
+    ["11111111"].pack('b8').should == "\377"
+  end
+
+  specify "pack('b') conversion edge case: left one" do
+    ["10000000"].pack('b8').should == "\001"
+  end
+
+  specify "pack('b') conversion edge case: left one" do
+    ["00000001"].pack('b8').should == "\200"
+  end
+
+  specify "pack('b') conversion edge case: edge sequences not in first char" do
+    ["0000000010000000000000011111111100000000"].pack('b40').should == "\000\001\200\377\000"
+  end
+
+  specify "pack('b') uses char codes to determine if bit is set or not" do
+    ["abbbbccddefffgghiijjjkkl"].pack('b24').should == ["100001100100011011000110"].pack('b24')
+  end
+
+  specify "pack('b') uses zeros if count is not multiple of 8" do
+    ["00111111"].pack('b4').should == ["00110000"].pack('b8')
+  end
+
+  specify "pack('b') returns zero-char for each 2 of count that greater than string length" do
+    [""].pack('b6').should == "\000\000\000"
+  end
+
+  specify "pack('b') returns extra zero char if count is odd and greater than string length" do
+    [""].pack('b7').should == "\000\000\000\000"
+  end
+
+  specify "pack('b') starts new char if argument string is ended before char's 8 bits" do
+    ["0011"].pack('b8').should == "\f\000\000"
+  end
+
+  specify "pack('b') considers count = 1 if no explicit count it given" do
+    ["10000000"].pack('b').should == ["10000000"].pack('b1')
+    ["01000000"].pack('b').should == ["01000000"].pack('b1')
+  end
+
+  specify "pack('b') returns empty string if count = 0" do
+    ["10101010"].pack('b0').should == ""
+  end
+
+  specify "pack('b') uses argument string length as count if count = *" do
+    ["00111111010"].pack('b*').should == ["00111111010"].pack('b11')
+  end
+
+  specify "pack('b') consumes only one array item" do
+    ["0011", "1111"].pack('b*').should == ["0011"].pack('b4')
+    ["0011", "1011"].pack('b*b*').should == ["0011"].pack('b4') + ["1011"].pack('b4')
+  end
+
+  specify "pack('b') raises TypeError if corresponding array item is not String" do
+    should_raise(TypeError) { [123].pack('b8') }
+    should_raise(TypeError) { [:data].pack('b8') }
+    should_raise(TypeError) { [Object.new].pack('b8') }
   end
 
   specify "pack('C') returns string with char of appropriate number" do
