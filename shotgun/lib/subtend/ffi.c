@@ -903,12 +903,29 @@ void ffi_call(STATE, cpu c, OBJECT ptr) {
 OBJECT ffi_get_field(char *ptr, int offset, int type) {
   nf_converter conv = (nf_converter)ffi_get_from_converter(type);
   STATE;
-  int *loc;
+  int sz;
   rni_context *ctx = subtend_retrieve_context();
   
-  loc = (int*)(ptr + offset);
+  ptr += offset;
   state = ctx->state;
-  conv(*loc);
+  
+  sz = ffi_type_size(type);
+  
+  switch(sz) {
+  case 1:
+    conv(*((uint8_t*)ptr));
+    break;
+  case 2:
+    conv(*((uint16_t*)ptr));
+    break;
+  default:
+  case 4:
+    conv(*((uint32_t*)ptr));
+    break;
+  case 8:
+    conv(*((uint64_t*)ptr));
+    break;
+  }
   
   return cpu_stack_pop(ctx->state, ctx->cpu);
 }
@@ -916,16 +933,38 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
 void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
   int sz;
   STATE;
+  uint8_t u8;
+  uint16_t u16;
+  uint32_t u32;
+  uint64_t u64;
+  
   int data;
-  int *loc;
   rni_context *ctx = subtend_retrieve_context();
   nf_converter conv = (nf_converter)ffi_get_to_converter(type);
-  sz = ffi_get_alloc_size(type);
+  sz = ffi_type_size(type);
 
   cpu_stack_push(ctx->state, ctx->cpu, val, FALSE);
+  
+  ptr += offset;
 
-  /* Fix to work with datatypes that aren't 4 bytes. */
-  data = conv();
-  loc = (int*)(ptr + offset);
-  *loc = data;
+  switch(sz) {
+  case 1:
+    u8 = (uint8_t)conv();
+    memcpy(ptr, &u8, sz);
+    break;
+  case 2:
+    u8 = (uint16_t)conv();
+    memcpy(ptr, &u16, sz);
+    break;
+  default:
+  case 4:
+    u8 = (uint32_t)conv();
+    memcpy(ptr, &u32, sz);
+    break;
+  case 8:
+    u8 = (uint64_t)conv();
+    memcpy(ptr, &u64, sz);
+    break;
+  
+  }
 }
