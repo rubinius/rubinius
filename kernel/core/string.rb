@@ -346,48 +346,54 @@ class String
   end
   
   def lstrip
-    i = 0
-    while i < @bytes
-      c = @data[i]
-      if c.isspace or c == 0
-        i += 1
-      else
-        break
-      end
-    end
-    str = self.dup
-    str.substring(i, @bytes - i)
+    (str = self.dup).lstrip! || str
   end
   
   def lstrip!
-    replace_if(lstrip)
-  end
+    return if @bytes == 0
   
-  def rstrip
-    i = @bytes - 1
-    while i >= 0
-      c = @data[i]
+    start = 0
+    each_byte do |c|
       if c.isspace or c == 0
-        i -= 1
+        start += 1
       else
         break
       end
     end
-    str = self.dup
-    str.substring(0, i+1)
+  
+    return if start == 0
+    replace(substring(start, @bytes - start))
+  end
+  
+  def rstrip
+    (str = self.dup).rstrip! || str
   end
   
   def rstrip!
-    replace_if(rstrip)
+    return if @bytes == 0
+    
+    stop = @bytes - 1
+    while stop >= 0
+      c = @data[stop]
+      if c.isspace || c == 0
+        stop -= 1
+      else
+        break
+      end
+    end
+
+    return if stop + 1 == @bytes
+    replace(substring(0, stop + 1))
   end
 
   def strip
-    str = lstrip
-    str.rstrip
+    (str = self.dup).strip! || str
   end
   
   def strip!
-    replace_if(strip)
+    left = lstrip!
+    right = rstrip!
+    left.nil? && right.nil? ? nil : self
   end
 
   def gsub(pattern, rep=nil)
