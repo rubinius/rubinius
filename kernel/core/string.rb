@@ -60,12 +60,6 @@ class String
     return out
   end
 
-  def *(num)
-    str = []
-    num.times { str << self }
-    return str.join("")
-  end
-
   def initialize(arg)
     if Fixnum === arg
       @data = ByteArray.new(arg)
@@ -77,6 +71,34 @@ class String
     end
   end
 
+  # call-seq:
+  #   str % arg   => new_str
+  #  
+  # Format---Uses <i>str</i> as a format specification, and returns the result
+  # of applying it to <i>arg</i>. If the format specification contains more than
+  # one substitution, then <i>arg</i> must be an <code>Array</code> containing
+  # the values to be substituted. See <code>Kernel::sprintf</code> for details
+  # of the format string.
+  # 
+  #   "%05d" % 123                       #=> "00123"
+  #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
+  def %(arg)
+    Sprintf::Parser.format(self, arg)
+  end
+  
+  # call-seq:
+  #   str * integer   => new_str
+  #
+  # Copy --- Returns a new <code>String</code> containing <i>integer</i> copies of
+  # the receiver.
+  #   
+  #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
+  def *(num)
+    str = []
+    num.times { str << self }
+    return str.join("")
+  end
+  
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i>.
   # 
@@ -960,10 +982,6 @@ class String
     return ret
   end
 
-  def %(*arg)
-    Sprintf::Parser.format(self, *arg)
-  end
-  
   def crypt(other_str)
     Ruby.primitive :str_crypt
     crypt(other_str.coerce_string) unless String === other_str
