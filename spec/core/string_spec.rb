@@ -158,11 +158,69 @@ context "String instance method" do
     ("Ruby !" + "= Rubinius").should == "Ruby != Rubinius"
   end
   
-  specify "<< should concatenate the other object" do
+  specify "<< returns a new string containing other concatenated to self" do
     a = 'hello ' << 'world'
-    b = a.dup << 33
     a.should == "hello world"
+  end
+  
+  specify "<< converts other to a string using to_str before concatenating" do
+    module StringSpec
+      class TestObject
+        def to_str
+          "world!"
+        end
+      end
+    end
+    
+    a = 'hello ' << StringSpec::TestObject.new
+    a.should == 'hello world!'
+  end
+  
+  specify "<< raises a TypeError if obj can't be converted to a String" do
+    module StringSpec
+      class TestObject2
+        # Does not implement to_str
+      end
+    end
+
+    should_raise(TypeError) do
+      a = 'hello ' << :world
+    end
+
+    should_raise(TypeError) do
+      a = 'hello ' << Object.new
+    end
+    
+    should_raise(TypeError) do
+      a = 'hello ' << StringSpec::TestObject2.new
+    end
+  end
+
+  specify "<< raises a TypeError when self is frozen" do
+    should_raise(TypeError) do
+      a = "hello"
+      a.freeze
+      a << "test"
+    end
+  end
+  
+  specify "<< converts a fixnum to a char before concatenating" do
+    b = 'hello ' << 'world' << 33
     b.should == "hello world!"
+  end
+  
+  specify "<< raises a TypeError when fixnum is not between 0 and 255" do
+    should_raise(TypeError) do
+      "hello world" << 333
+    end
+  end
+
+  specify "<< raises a TypeError when self is frozen" do
+    should_raise(TypeError) do
+      a = "hello"
+      a.freeze
+      a << 33
+    end
   end
   
   specify "<=> should return -1, 0, 1 when self is less than, equal, or greater than other" do
@@ -190,16 +248,51 @@ context "String instance method" do
     ("abcd" <=> "abx").should == -1
   end
 
-  specify "<=> returns nil if other is not String" do
+  specify "<=> returns nil if other does not respond to to_str" do
     ("abc" <=> 1).should == nil
     ("abc" <=> :abc).should == nil
     ("abc" <=> Object.new).should == nil
   end
   
-  specify "== with other String should return true if <=> returns 0" do
+  specify "<=> returns nil if obj does not respond to <=>" do
+    module StringSpec
+      class TestObject
+        def to_str
+          ""
+        end
+      end
+    end
+    
+    ("abc" <=> StringSpec::TestObject.new).should == nil
+  end
+  
+  specify "<=> compares the obj and self by calling <=> on obj and turning the result around" do
+    module StringSpec
+      class TestObject3
+        def to_str
+          ""
+        end
+        
+        def <=>(arg)
+          1 # This is here only for the sake of testing!
+        end
+      end
+    end
+    
+    ("abc" <=> StringSpec::TestObject3.new).should == -1
+    ("xyz" <=> StringSpec::TestObject3.new).should == -1
+  end
+  
+  specify "== returns true if self <=> string returns 0" do
     ("equal" == "equal").should == true
+    ("equal" <=> "equal").should == 0
+  end
+  
+  specify "== returns false if self <=> string does not return 0" do
     ("more" == "MORE").should == false
+    ("more" <=> "MORE").should_not == 0
     ("less" == "greater").should == false
+    ("less" <=> "greater").should_not == 0
   end
   
   specify "== with other not String should return self == other.to_str if other responds to to_str" do
@@ -212,6 +305,29 @@ context "String instance method" do
     end
     ("foo" == Foo.new).should == true
   end
+
+  specify "== returns false if obj does not respond to to_str" do
+    ('hello' == 5).should == false
+    ('hello' == :hello).should == false
+    ('hello' == Object.new).should == false
+  end
+  
+  specify "== returns obj == self if obj responds to to_str" do
+    module StringSpec
+      class TestObject
+        def to_str
+          "world!"
+        end
+        
+        def ==(other)
+          true
+        end
+      end
+    end
+    
+    ('hello' == StringSpec::TestObject.new).should == true 
+    ('world!' == StringSpec::TestObject.new).should == true 
+  end
   
   specify "== with other not String should return false if other does not respond to to_str" do
     class Bar
@@ -223,9 +339,9 @@ context "String instance method" do
   end
   
   specify "=== should be a synonym for ==" do
-    ("equal" == "equal").should == true
-    ("more" == "MORE").should == false
-    ("less" == "greater").should == false
+    ("equal" == "equal").should == ("equal" === "equal")
+    ("more" == "MORE").should == ("more" === "MORE")
+    ("less" == "greater").should == ("less" === "greater")
   end
   
   specify "=~ should return the position of match start" do
@@ -238,6 +354,24 @@ context "String instance method" do
     ("true" =~ /false/).should == nil
   end
   
+  specify "=~ raises a TypeError if other is a string" do
+    should_raise(TypeError) do
+      "some string" =~ "another string"
+    end
+  end
+  
+  specify "=~ invokes other.=~ with self" do
+    module StringSpec
+      class TestObject4
+        def =~(object)
+          true
+        end
+      end
+    end
+    
+    ("w00t" =~ StringSpec::TestObject4.new).should == true
+  end
+
   specify "[] with index should return the code of the character at index" do
     "hello"[1].should == 101
   end
@@ -348,6 +482,14 @@ context "String instance method" do
     b.should == "THIS"
     b.capitalize!.should == "This"
   end
+  
+  specify "capitalize! raises a TypeError when self is frozen" do
+    should_raise(TypeError) do
+      a = "Hello"
+      a.freeze
+      a.capitalize!
+    end
+  end
 
   specify "casecmp should be a case-insensitive version of <=>" do
     "One".casecmp("one").should == 0
@@ -403,18 +545,44 @@ context "String instance method" do
     "line".chomp!.should == nil
   end
 
-  specify "chop should return a new string with the last character removed" do
-    s = "block"
-    s.chop.should == "bloc"
-    s.should == "block"
+  specify "chop returns a new string with the last char removed" do
+    "string\n\r".chop.should == "string\n"
+    "string\n".chop.should == "string"
+    "string".chop.should == "strin"
+  end
+  
+  specify "chop removes the last two chars it self ends with \\r\\n" do
+    "string\r\n".chop.should == "string"
+  end
+  
+  specify "chop returns an empty string if self is empty" do
+    "".chop.should == ""
   end
 
   specify "chop! should modify self to remove the last character" do
-    "ouch".chop!.should == "ouc"
+    a = "string\n\r"
+    a.chop!.should == "string\n"
+    a.should == "string\n"
+  end
+  
+  specify "chop! should modify self to remove the last two characters if string ends in \\r\\n" do
+    b = "string\r\n"
+    b.chop!.should == "string"
+    b.should == "string"
   end
   
   specify "chop! should return nil if no changes are made" do
-    "".chop!.should == nil
+    a = ""
+    a.chop!.should == nil
+    a.should == ""
+  end
+
+  specify "chop! raises a TypeError when self is frozen" do
+    should_raise(TypeError) do
+      a = "string\n\r"
+      a.freeze
+      a.chop!
+    end
   end
 
   specify "concat should be a synonym for <<" do
@@ -461,6 +629,18 @@ context "String instance method" do
   # 
   specify "downcase should return a copy of self with A-Z converted to a-z" do
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ".downcase.should == "abcdefghijklmnopqrstuvwxyz"
+  end
+  
+  specify "downcase is locale insensitive (only replacing A-Z)" do
+    "ÄÖÜ".downcase.should == "ÄÖÜ"
+  end
+  
+  specify "downcase raises a TypeError when self is frozen" do
+    should_raise(TypeError) do
+      a = "HeLlO"
+      a.freeze
+      a.downcase!
+    end
   end
 
   specify "downcase! should perform downcase in place on self" do
@@ -588,6 +768,18 @@ context "String instance method" do
     "Rubinius".inspect.should == "\"Rubinius\""
     "Ruby".inspect.should == "\"Ruby\""
   end
+  
+  specify "inspect produces different output based on $KCODE" do
+    old_kcode = $KCODE
+
+    $KCODE = "NONE"
+    "äöü".inspect.should == "\"\\303\\244\\303\\266\\303\\274\""
+
+    $KCODE = "UTF-8"
+    "äöü".inspect.should == "\"äöü\""
+    
+    $KCODE = old_kcode
+  end
 
   specify "intern should return the symbol corresponding to self" do
     "intern".intern.should == :intern
@@ -670,6 +862,40 @@ context "String instance method" do
     "0845".oct.should == 0
     "7712".oct.should == 4042
     "-012345678".oct.should == -342391
+  end
+
+  specify "replace tries to convert other to string using to_str" do
+    module StringSpec
+      class ReplaceObject
+        def to_str
+          "an object converted to a string"
+        end
+      end
+    end
+    
+    "hello".replace(StringSpec::ReplaceObject.new).should == "an object converted to a string"
+  end
+  
+  specify "replace raises a TypeError if other can't be converted to string" do
+    should_raise(TypeError) do
+      "hello".replace(123)
+    end
+    
+    should_raise(TypeError) do
+      "hello".replace(:test)
+    end
+    
+    should_raise(TypeError) do
+      "hello".replace(Object.new)
+    end
+  end
+  
+  specify "replace raises a TypeError if self is frozen" do
+    should_raise(TypeError) do
+      a = "hello"
+      a.freeze
+      a.replace("world")
+    end
   end
 
   specify "replace should replace the contents of self with other" do
@@ -757,11 +983,11 @@ context "String instance method" do
   end
 
   specify "size should be a synonym for length" do
-    "".size.should == 0
-    "one".size.should == 3
-    "two".size.should == 3
-    "three".size.should == 5
-    "four".size.should == 4
+    "".size.should == "".length
+    "one".size.should == "one".length
+    "two".size.should == "two".length
+    "three".size.should == "three".length
+    "four".size.should == "four".length
   end
 
   specify "slice should be a synonym for []" do
@@ -965,44 +1191,54 @@ context "String instance method" do
     "1.upto".to_f.should == 1.0
   end
 
-  specify "to_i should convert the string to an integer base (2, 8, 10, or 16)" do
-    [ "12345".to_i,
-      " 12345".to_i,
-      "+12345".to_i,
-      "-12345".to_i,
-      " ".to_i,
-      "hello".to_i,
-      "99 red balloons".to_i,
-      "0a".to_i,
-      "".to_i,
-      "0a".to_i(16),
-      "0b1100101".to_i(0),
-      "0B1100101".to_i(0),
-      "0o1100101".to_i(0),
-      "0O1100101".to_i(0),
-      "0x1100101".to_i(0),
-      "01100101".to_i(0),
-      "1100101".to_i(0),
-      "".to_i(0),
-      "hello".to_i,
-      "1100101".to_i(2),
-      "0b1100101".to_i(2),
-      "0B1000101".to_i(2),
-      "0b".to_i(2),
-      "1".to_i(2),
-      "0o1110101".to_i(8),
-      "0O1101101".to_i(8),
-      "0o".to_i(8),
-      "0".to_i(8),
-      "1".to_i(8),
-      "1100101".to_i(8),
-      "1100101".to_i(10),
-      "".to_i(10),
-      "1100101".to_i(16),
-      "0x1100101".to_i(16),
-      "0x1100101".to_i(16),
-      "0x".to_i(16),
-      "1".to_i(16) ].should == [12345, 12345, 12345, -12345, 0, 0, 99, 0, 0, 10, 101, 101, 294977, 294977, 17826049, 294977, 1100101, 0, 0, 101, 101, 69, 0, 1, 299073, 295489, 0, 0, 1, 294977, 1100101, 0, 17826049, 17826049, 17826049, 0, 1]
+  specify "to_i treats leading characters of self as a integer with base base (2, 8, 10, 16)" do
+    "12345".to_i.should == 12345
+    "99 red balloons".to_i.should == 99
+    "0a".to_i.should == 0
+    "0a".to_i(16).should == 10
+    "1100101".to_i(2).should == 101
+    "1100101".to_i(8).should == 294977
+    "1100101".to_i(10).should == 1100101
+    "1100101".to_i(16).should == 17826049
+
+    " 12345".to_i.should == 12345
+    "0b1100101".to_i(0).should == 101
+    "0B1100101".to_i(0).should == 101
+    "0o1100101".to_i(0).should == 294977
+    "0O1100101".to_i(0).should == 294977
+    "0x1100101".to_i(0).should == 17826049
+    "01100101".to_i(0).should == 294977
+    "1100101".to_i(0).should == 1100101
+    "1100101".to_i(2).should == 101
+    "0b1100101".to_i(2).should == 101
+    "0B1000101".to_i(2).should == 69
+    "0b".to_i(2).should == 0
+    "1".to_i(2).should == 1
+    "0o1110101".to_i(8).should == 299073
+    "0O1101101".to_i(8).should == 295489
+    "0o".to_i(8).should == 0
+    "0".to_i(8).should == 0
+    "1".to_i(8).should == 1
+    "0x1100101".to_i(16).should == 17826049
+    "0x1100101".to_i(16).should == 17826049
+    "0x".to_i(16).should == 0
+    "1".to_i(16).should == 1
+  end
+
+  specify "to_i takes an optional sign" do
+    "-45.67 degrees".to_i.should == -45
+    "+45.67 degrees".to_i.should == 45
+  end
+  
+  specify "to_i returns 0 if the conversion fails" do
+    "hello".to_i.should == 0
+    "".to_i.should == 0
+    "".to_i(0).should == 0
+    "".to_i(10).should == 0
+  end
+  
+  specify "to_i raises an ArgumentError if base is smaller than 0" do
+    should_raise(ArgumentError) { "101".to_i(-5) }
   end
   
   specify "to_s should return self" do
@@ -1082,6 +1318,14 @@ context "String instance method" do
     "123Abc456dEf".upcase.should == "123ABC456DEF"
   end
 
+  specify "upcase returns a string with A-Z characters unchanged" do
+    "HELLO".upcase.should == "HELLO"
+  end
+  
+  specify "upcase is locale insensitive (only replacing A-Z)" do
+    "äöü".upcase.should == "äöü"
+  end
+
   specify "upcase! should modify self in place by applying upcase" do
     a = "MenTaLguY"
     b = "ruby"
@@ -1093,6 +1337,14 @@ context "String instance method" do
   
   specify "upcase! should return nil if no changes are made" do
     "UPCASE".upcase!.should == nil
+  end
+
+  specify "raises a TypeError when self is frozen" do
+    should_raise(TypeError) do
+      a = "HeLlO"
+      a.freeze
+      a.upcase!
+    end
   end
 
   specify "upto should use String#succ to iterate from self to other passing each string to block" do
