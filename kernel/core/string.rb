@@ -809,7 +809,7 @@ class String
         count = @bytes - start if start + count > @bytes
 
         return "" if count == 0
-        return nil if start < 0 || start > @bytes
+        return nil if start < 0 || start > @bytes || count < 0
         
         return substring(start, count)
       end
@@ -837,7 +837,7 @@ class String
         length += 1 unless range.exclude_end?
         
         return "" if start == @bytes
-        return nil if start > @bytes
+        return nil if start < 0 || start > @bytes
         
         length = @bytes if length > @bytes
         length = length - start
@@ -882,6 +882,8 @@ class String
         start, count, content = *args
         start = @bytes + start if start < 0
         
+        raise IndexError, "index #{start} out of string" if start < 0 || start > @bytes
+        
         if content.is_a?(Fixnum)
           @data[start] = content
         else
@@ -912,6 +914,8 @@ class String
         length  = range.last
 
         start += @bytes if start < 0
+        
+        return nil if start < 0 || start > @bytes
 
         length = @bytes if length > @bytes
         length += @bytes if length < 0
