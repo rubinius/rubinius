@@ -346,54 +346,48 @@ class String
   end
   
   def lstrip
-    (str = self.dup).lstrip! || str
+    i = 0
+    while i < @bytes
+      c = @data[i]
+      if c.isspace or c == 0
+        i += 1
+      else
+        break
+      end
+    end
+    str = self.dup
+    str.substring(i, @bytes - i)
   end
   
   def lstrip!
-    return if @bytes == 0
-  
-    start = 0
-    each_byte do |c|
-      if c.isspace or c == 0
-        start += 1
-      else
-        break
-      end
-    end
-  
-    return if start == 0
-    replace(substring(start, @bytes - start))
+    replace_if(lstrip)
   end
   
   def rstrip
-    (str = self.dup).rstrip! || str
-  end
-  
-  def rstrip!
-    return if @bytes == 0
-    
-    stop = @bytes - 1
-    while stop >= 0
-      c = @data[stop]
-      if c.isspace || c == 0
-        stop -= 1
+    i = @bytes - 1
+    while i >= 0
+      c = @data[i]
+      if c.isspace or c == 0
+        i -= 1
       else
         break
       end
     end
-
-    return if stop + 1 == @bytes
-    replace(substring(0, stop + 1))
+    str = self.dup
+    str.substring(0, i+1)
+  end
+  
+  def rstrip!
+    replace_if(rstrip)
   end
 
   def strip
-    (str = self.dup).strip! || str
+    str = lstrip
+    str.rstrip
   end
   
   def strip!
-    left = lstrip!
-    right = rstrip!
-    left.nil? && right.nil? ? nil : self
+    replace_if(strip)
   end
 
   def gsub(pattern, rep=nil)
@@ -1037,10 +1031,21 @@ class String
     return ret
   end
 
+  # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
+  # library function <code>crypt</code>. The argument is the salt string, which
+  # should be two characters long, each character drawn from
+  # <code>[a-zA-Z0-9./]</code>.
   def crypt(other_str)
-    Ruby.primitive :str_crypt
-    crypt(other_str.coerce_string) unless String === other_str
+    other_str = other_str.coerce_string unless other_str.is_a? String
     raise ArgumentError.new("salt must be at least 2 characters") if other_str.size < 2
+
+    hash = __crypt__(other_str)
+    hash.taint if self.tainted? || other_str.tainted?
+    hash
+  end
+  
+  def __crypt__(other_str)
+    Ruby.primitive :str_crypt
   end
   
   alias :eql? :==
