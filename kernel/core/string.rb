@@ -344,48 +344,55 @@ class String
   end
   
   def lstrip
-    i = 0
-    while i < @bytes
-      c = @data[i]
-      if c.isspace or c == 0
-        i += 1
-      else
-        break
-      end
-    end
-    str = self.dup
-    str.substring(i, @bytes - i)
+    (str = self.dup).lstrip! || str
   end
   
   def lstrip!
-    replace_if(lstrip)
-  end
+    return if @bytes == 0
   
-  def rstrip
-    i = @bytes - 1
-    while i >= 0
-      c = @data[i]
+    start = 0
+    while start < @bytes
+      c = @data[start]
       if c.isspace or c == 0
-        i -= 1
+        start += 1
       else
         break
       end
     end
-    str = self.dup
-    str.substring(0, i+1)
+  
+    return if start == 0
+    replace(substring(start, @bytes - start))
+  end
+  
+  def rstrip
+    (str = self.dup).rstrip! || str
   end
   
   def rstrip!
-    replace_if(rstrip)
+    return if @bytes == 0
+    
+    stop = @bytes - 1
+    while stop >= 0
+      c = @data[stop]
+      if c.isspace || c == 0
+        stop -= 1
+      else
+        break
+      end
+    end
+
+    return if stop + 1 == @bytes
+    replace(substring(0, stop + 1))
   end
 
   def strip
-    str = lstrip
-    str.rstrip
+    (str = self.dup).strip! || str
   end
   
   def strip!
-    replace_if(strip)
+    left = lstrip!
+    right = rstrip!
+    left.nil? && right.nil? ? nil : self
   end
 
   def gsub(pattern, replacement = nil, &block)
@@ -505,9 +512,8 @@ class String
   alias_method :next, :succ
   alias_method :next!, :succ!
 
-  def expand_tr_str(str)
-    out = ""
-    str.gsub(/[^-]-[^-]/) { |r| out = "" ; r[0].upto(r[2]) { |c| out << c }; out }
+  def expand_tr_string(string)
+    string.gsub(/[^-]-[^-]/) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
   end
 
   def tr(from_str, to_str)
@@ -526,52 +532,57 @@ class String
     replace_if(tr_string(from_str, to_str, true))
   end
 
+  # Returns a copy of <i>self</i> with all characters in the intersection of its
+  # arguments deleted. Uses the same rules for building the set of characters as
+  # <code>String#count</code>.
+  #    
+  #   "hello".delete "l","lo"        #=> "heo"
+  #   "hello".delete "lo"            #=> "he"
+  #   "hello".delete "aeiou", "^e"   #=> "hell"
+  #   "hello".delete "ej-m"          #=> "ho"
+  def delete(*args)
+    (str = self.dup).delete!(*args) || str
+  end
+
+  # Performs a <code>delete</code> operation in place, returning <i>self</i>, or
+  # <code>nil</code> if <i>self</i> was not modified.
+  def delete!(*args)
+    raise ArgumentError, "wrong number of arguments" if args.empty?
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    return if self.empty?
+    tr_string(intersect_string_from_args(args), '', false) # TODO
+  end
+
   # used by count, delete, squeeze
-  def intersect_string_from_arg(*arg)
-    raise ArgumentError, "wrong number of arguments" if arg.length == 0
-    raise TypeError, "can't convert #{arg[0].class} to String" unless String === arg[0]
-    first = expand_tr_str(arg[0])
-    if arg.size > 1
-      (1...arg.size).each do |arg_idx|
-        raise TypeError, "can't convert #{arg[arg_idx].class} to String" unless String === arg[arg_idx]
-        second = expand_tr_str(arg[arg_idx])
-        str = ""
-        remove_flag = second.data[0] == ?^
-        (0...first.length).each do |idx|
-          pos = second.index(first.data[idx])
-          if remove_flag == true
-            str << first.data[idx] if pos == nil
-          else
-            str << first.data[idx] if pos != nil
-          end
-        end
-        first = str
-        return nil if first.length == 0
-      end
+  def intersect_string_from_args(*args)
+    args.map! do |chars|
+      chars = chars.coerce_string unless chars.is_a? String
+      expand_tr_string(chars)
     end
-    first 
-  end
 
-  def delete(*arg)
-    str = intersect_string_from_arg(*arg)
-    return self.dup if str == nil
-    tr_string(str,"",false)
-  end
-
-  def delete!(*str)
-    replace_if(delete(*str))
-  end
-
-  def count(*arg)
-    str = intersect_string_from_arg(*arg)
-    return 0 if str == nil
-    char_map = 0.chr * 256
-    str.each_byte { |c| char_map[c] = 1 }
-    cnt = 0
-    each_byte do |c|
-      cnt +=1 if char_map[c] == 1
+    intersection = args.shift
+    args.each do |chars|
+      intersection = intersection.split(//).map { |c|
+        c if chars[0] == ?^ ? !chars.include?(c) : chars.include?(c)
+      }.join
+      return if intersection.empty?
     end
-    cnt
+    intersection
+  end
+
+  # Each <i>other_string</i> parameter defines a set of characters to count.  The
+  # intersection of these sets defines the characters to count in
+  # <i>self</i>. Any <i>other_str</i> that starts with a caret (^) is
+  # negated. The sequence c1--c2 means all characters between c1 and c2.
+  #    
+  #   a = "hello world"
+  #   a.count "lo"            #=> 5
+  #   a.count "lo", "o"       #=> 2
+  #   a.count "hello", "^l"   #=> 4
+  #   a.count "ej-m"          #=> 4
+  def count(*other_strings)
+    raise ArgumentError, "wrong number of arguments" if other_strings.empty?
+    intersect_string_from_args(self, *other_strings).length
   end
 
   def squeeze(*arg)
@@ -581,7 +592,7 @@ class String
 
     if arg.length > 0
       # Build the target character map
-      str = intersect_string_from_arg(*arg)
+      str = intersect_string_from_args(*arg)
       return self.dup if str == nil
       char_map = 0.chr * 256
       str.each_byte { |c| char_map[c] = 1 }
@@ -1038,20 +1049,40 @@ class String
   alias_method :each_line, :each
 
   def scan(pattern, &block)
-    pattern = Regexp.new(pattern) if String === pattern
+    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
+      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
+    end
+    
+    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
     index = 0
-    if block_given?
-      ret = self
-    else
-      ret = []
-      block = lambda{|x| ret << x}
-    end
 
-    while index < self.length and md = pattern.match(self[index..-1])
-      block.call(md.length > 1 ? md.captures : md[0])
-      index = index + md.end(md.length-1)
+    unless block_given?
+      ret = []
+      while index <= self.length and match = pattern.match(self[index..-1])
+        if match.begin(0) == match.end(0)
+          index += 1
+        else
+          index += match.end(0)
+        end
+        
+        ret << (match.length > 1 ? match.captures : match[0])
+      end
+      return ret
+    else
+      while index <= self.length and match = pattern.match(self[index..-1])
+        if match.begin(0) == match.end(0)
+          index += 1
+        else
+          index += match.end(0)
+        end
+        
+        if match.size == 1
+          block.call(match[0])
+        else
+          block.call(*match.captures)
+        end
+      end
     end
-    return ret
   end
 
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
