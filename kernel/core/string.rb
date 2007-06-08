@@ -990,29 +990,44 @@ class String
   end
 
   def each(separator=$/)
-    raise LocalJumpError, "no block given" unless block_given?
-    index      = separator.length
-    min_index  = 0
-    last_index = 0
-    
-    while index < self.length
-      min_index = index - separator.length + 1
-
-      if self[min_index..index] == separator
-        yield self[last_index..index]
-        last_index = index + 1
-      end
-      index += 1
+    if separator.nil?
+      yield self
+      return self
     end
 
+    separator = separator.coerce_string unless separator.is_a? String
+    
+    raise LocalJumpError, "no block given" unless block_given?
+    
+    newline = separator.empty? ? ?\n : separator[separator.length - 1]
+    
+    last_index = 0
+    index = separator.length
+    
+    while index < self.length
+      if separator.empty?
+        index += 1 while self[index + 1] == ?\n
+      end
+    
+      if self[index] == newline && self[-separator.length, separator.length]
+        line = self[last_index..index]
+        line.taint if self.tainted?
+        yield line
+        last_index = index + 1
+      end
+      
+      index += 1
+    end
+    
     unless last_index == self.length
-      yield self[last_index..index]
+      line = self[last_index..self.length]
+      line.taint if self.tainted?
+      yield line
     end
 
     self
   end
   alias_method :each_line, :each
-
 
   def scan(pattern, &block)
     pattern = Regexp.new(pattern) if String === pattern
