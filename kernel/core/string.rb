@@ -388,50 +388,62 @@ class String
     replace_if(strip)
   end
 
-  def gsub(pattern, rep=nil)
-    str = self.dup
-    out = ""
-    pattern = Regexp.new(pattern) if String === pattern
+  def gsub(pattern, replacement = nil, &block)
+    (str = self.dup).gsub!(pattern, replacement, &block) || str
+  end
 
-    if block_given?
-      while m = pattern.match(str)
-        out << m.pre_match #str[0...m.begin(0)] if m.begin(0) > 0
-        out << yield(m[0])
-        str = m.post_match #str[m.end(0)..-1]
+  def gsub!(pattern, replacement = nil)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    
+    replacement = replacement.coerce_string if replacement && !replacement.is_a?(String)
+    
+    pattern = Regexp.quote(pattern) if pattern.is_a?(String)
+    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+
+    out = [self]
+    while (match = pattern.match(out.last)) && out.pop
+      out << match.pre_match
+      if block_given?
+        out << yield(match[0])
+      else
+        replacement = replacement.to_str
+        out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
       end
-    else
-      raise ArgumentError, "wrong number of arguments (1 for 2)" if rep == nil
-      while m = pattern.match(str)
-        out << m.pre_match #str[0...m.begin(0)] if m.begin(0) > 0
-        out << rep.gsub(/\\\d/) { |x| m[x[0] - ?0] }
-        str = m.post_match #str[m.end(0)..-1]
-      end
+      out << match.post_match
     end
-    return out << str
+
+    out = out.join
+    out.taint if self.tainted? || (replacement && replacement.tainted?)
+    out.empty? || out == self ? nil : replace(out)
   end
 
-  def gsub!(pattern, rep=nil, &block)
-    replace_if(gsub(pattern, rep, &block))
+  def sub(pattern, replacement = nil, &block)
+    (str = self.dup).sub!(pattern, replacement, &block) || str
   end
 
-  def sub(pattern, rep=nil)
-    str = self.dup
-    out = ""
-    pattern = Regexp.new(pattern) if String === pattern
-    m = pattern.match(str)
-    return self.dup if m == nil
-    out << m.pre_match
+  def sub!(pattern, replacement = nil)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    
+    replacement = replacement.coerce_string if replacement && !replacement.is_a?(String)
+    
+    pattern = Regexp.quote(pattern) if pattern.is_a?(String)
+    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+    
+    return unless match = pattern.match(self)
+
+    out = [ match.pre_match ]
     if block_given?
-      out << yield(m[0])
+      out << yield(match[0])
     else
-      raise ArgumentError, "wrong number of arguments (1 for 2)" if rep == nil
-      out << rep.gsub(/\\\d/) { |x| m[x[0] - ?0] }
+      replacement = replacement.to_str
+      out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
     end
-    return out << m.post_match
-  end
-
-  def sub!(pattern, rep=nil, &block)
-    replace_if(sub(pattern, rep, &block))
+    out << match.post_match
+    
+    ret = out.join
+    ret.taint if self.tainted? || replacement.tainted?
+    
+    replace(ret)
   end
 
   def insert(index, other_string)
