@@ -310,8 +310,6 @@ class String
     return if @bytes == 0
     raise TypeError, "can't modify frozen string" if self.frozen?
   
-    raise Type
-  
     modified = false
   
     @bytes.times do |i|
@@ -949,32 +947,24 @@ class String
   end
   
   def match(pattern)
+    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
+      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
+    end
     pattern = Regexp.new(pattern) unless Regexp === pattern
     pattern.match(self)
   end
   
   def sum(bits=16)
     sum = 0
-    each_byte do |b|
-      sum += b
-    end
+    each_byte { |b| sum += b }
     sum & ((1 << bits) - 1)
   end
   
   def upto(stop)
-    unless String === stop
-      if stop.respond_to?(:to_str)
-        stop = stop.to_str
-      else
-        raise TypeError, "can't convert #{stop.class} to String"
-      end
-    end
-
+    stop = stop.coerce_string unless stop.is_a? String
     raise LocalJumpError, "no block given" unless block_given?
 
-    if self > stop
-      return self
-    end
+    return self if self > stop
 
     str = self.dup
     loop do
