@@ -434,16 +434,16 @@ class String
     replace_if(sub(pattern, rep, &block))
   end
 
-  def insert(idx, str)
-    if idx < 0
-      idx += length + 1
+  def insert(index, other_string)
+    other_string = other_string.coerce_string unless other_string.is_a?(String)
+    
+    if index == -1
+      return self << other_string
+    elsif index < 0
+      index += 1
     end
-    raise IndexError, "index #{idx} out of string" if idx < 0 || idx > length
-    if idx < length
-      self[idx,0] = str
-    else
-      self << str
-    end
+    
+    self[index, 0] = other_string
     self
   end
 
@@ -682,18 +682,20 @@ class String
       pattern =~ self
     end
   end
-  
+
+  # Returns <code>true</code> if <i>self</i> contains the given string or
+  # character.
+  #    
+  #   "hello".include? "lo"   #=> true
+  #   "hello".include? "ol"   #=> false
+  #   "hello".include? ?h     #=> true
   def include?(needle)
     if needle.is_a? Fixnum
-      each_byte { |b| return true if b == arg }
+      each_byte { |b| return true if b == needle }
       return false
     end
 
-    if needle.respond_to? :to_str
-      return !self.index(needle.to_str).nil?
-    else
-      raise TypeError, "can't convert #{needle.class} into String"
-    end
+    !self.index(needle.coerce_string).nil?
   end
 
   def index(needle, offset = 0)
