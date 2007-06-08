@@ -32,6 +32,18 @@ class String
   end
   alias :concat :<<
 
+  #---
+  # NOTE: This overwrites String#dup defined in bootstrap
+  #+++
+  def dup
+    out = nil
+    Ruby.asm "push self\nstring_dup\nset out"
+    out.taint if self.tainted?
+    out.freeze if self.frozen?
+    return out
+  end
+
+  # TODO: inspect is NOT dump!
   alias_method :dump, :inspect
 
   def to_sexp_full(name, line, newlines)
