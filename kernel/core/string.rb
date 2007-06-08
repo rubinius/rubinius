@@ -325,23 +325,24 @@ class String
   end
 
   def reverse
-    str = self.dup
-    i = 0
-    j = str.bytes - 1
-    d = str.data
-    while i < j
-      a = d[i]
-      b = d[j]
-      d[j] = a
-      d[i] = b
-      i += 1
-      j -= 1
-    end
-    str
+    self.dup.reverse!
   end
 
   def reverse!
-    replace_if(reverse)
+    return self if @bytes <= 1
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    
+    i = 0
+    j = @bytes - 1
+    while i < j
+      a = @data[i]
+      b = @data[j]
+      @data[j] = a
+      @data[i] = b
+      i += 1
+      j -= 1
+    end
+    self
   end
   
   def lstrip
