@@ -1,4 +1,24 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../mini_mock'
+
+# DO NOT PUT ANYTHING ABOVE THIS
+context 'Examining the call stack' do
+  it "may be viewed through .caller" do
+    def a(skip)
+      caller(skip)
+    end
+    def b(skip)
+      a(skip)
+    end
+    def c(skip)
+      b(skip)
+    end
+
+    c(0)[0].should == "spec/core/kernel_spec.rb:7:in `a'"
+    c(0)[1].should == "spec/core/kernel_spec.rb:10:in `b'"
+    c(0)[2].should == "spec/core/kernel_spec.rb:13:in `c'"
+  end
+end
 
 context "Kernel.Float()" do
   specify "should call to_f to convert any arbitrary argument to a Float" do
@@ -295,21 +315,6 @@ describe "A class with the Functions mixin" do
     1000.times do
       (rand(100) < 100).should == true
     end
-  end
-
-  it "caller returns current execution stack" do
-    def a(skip)
-      caller(skip)
-    end
-    def b(skip)
-      a(skip)
-    end
-    def c(skip)
-      b(skip)
-    end
-    c(0)[0].should == "./spec/core/kernel_spec.rb:279:in `a'"
-    c(0)[1].should == "./spec/core/kernel_spec.rb:282:in `b'"
-    c(0)[2].should == "./spec/core/kernel_spec.rb:285:in `c'"
   end
 end
 

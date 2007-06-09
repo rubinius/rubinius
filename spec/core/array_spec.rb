@@ -1033,6 +1033,10 @@ describe 'Array packing' do
     should_raise(TypeError) { [:hello].pack('A5') }
     should_raise(TypeError) { [Object.new].pack('A5') }
   end
+  
+  specify "pack('A') should work with multi-digit padding sizes" do
+    ['abcdef'].pack('A10').should == "abcdef    "
+  end
 
   specify "pack('a') returns null padded string" do
     ['abcdef'].pack('a7').should == "abcdef\x0"
