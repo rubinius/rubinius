@@ -1,13 +1,15 @@
 module Readline
 
   module ASCII
-    Return = 10
+    Home = 1
     ControlC = 3
     ControlD = 4
+    End = 5
     Erase = 8
     Tab = 9
-    Backspace = 127
+    Return = 10
     Escape = 27
+    Backspace = 127
   end
 
   @history = []
@@ -98,6 +100,12 @@ module Readline
           else
             print input
           end
+        elsif code == ASCII::Home
+          print "\b" * idx
+          idx = 0
+        elsif code == ASCII::End
+          print "\b" * idx, str.join("")
+          idx = str.size
         else
           str.insert(idx, cur)
           print "\b" * idx, str.join(""), "\b" * (str.size - idx - 1)
