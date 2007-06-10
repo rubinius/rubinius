@@ -3,6 +3,7 @@
 #include "tuple.h"
 #include "string.h"
 #include "symbol.h"
+#include "hash.h"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED   ONIG_OPTION_EXTEND
@@ -39,7 +40,7 @@ struct _gather_data {
 static int _gather_names(const UChar *name, const UChar *name_end,
     int ngroup_num, int *group_nums, regex_t *reg, struct _gather_data *gd) {
   
-  int i, gn, ref;
+  int gn;
   STATE;
   OBJECT tup;
   

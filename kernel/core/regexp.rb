@@ -245,7 +245,7 @@ class MatchData
   
   def get_capture(num)
     x, y = @region[num]
-    return nil unless y
+    return nil if !y or x == -1
     
     return @source[x...y]
   end
