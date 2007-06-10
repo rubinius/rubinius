@@ -1,70 +1,79 @@
-#!/usr/bin/env bash
-# Fear my elite bash skills
+#! /usr/bin/env ruby
+#
+# mspec - a spec runner for mini_rspec
+#
 
-__SR_GOODFILE="/tmp/mini_spec_specrunner.txt"
-__SR_ERRFILE="/tmp/mini_spec_specrunner_error.txt"
+require 'optparse'
 
-__SR_GOODFIFO="/tmp/mini_spec_good_fifo"
+module MSpec
+  VERSION = '0.6.0'
+end
 
-# Pre-cleanup
-rm $__SR_GOODFILE $__SR_ERRFILE $__SR_GOODFIFO 2>/dev/null
+# defaults
+patterns = []
+target = 'shotgun/rubinius'
+format = 'DottedReporter'
 
+opts = OptionParser.new("", 24, '   ') do |opts|
+  opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
+  opts.separator ""
 
-# Target VM is MRI by default
-if [[ $SR_TARGET = "" ]]; then
-  SR_TARGET=ruby
-fi
-
-# Files to run
-if [[ -d $1 ]]; then
-  # Incompatible specs can only run under rubinius
-  if [[ $SR_TARGET = "shotgun/rubinius" ]]; then
-    __SR_SOURCE=`find $1 -name *_spec.rb | sort`
-  else
-    __SR_SOURCE=`find $1 -name *_spec.rb | grep -v 'incompatible' | sort`
-  fi
-elif [[ -f $1 ]]; then
-  __SR_SOURCE=$1
-else
-  echo "Usage: [__SR_TARGET=<vm>] specrunner <file|directory>"
-  exit 1
-fi
-
-__SR_TOTAL_SPECS="0"
-__SR_TOTAL_FAILS="0"
-
-# Dup some fds
-exec 3>&1 4>&2
-
-# Need some fifos too, hooray
-mkfifo $__SR_GOODFIFO
-
-
-# Run the specs
-for i in $__SR_SOURCE; do 
-  # tee helps keep the screen updating snappily
-  tee $__SR_GOODFILE < $__SR_GOODFIFO >&3 &
-  __SR_TEE_PID=$?
-
-  $SR_TARGET -Ispec -rspec/mini_rspec.rb $i  > $__SR_GOODFIFO 2> $__SR_ERRFILE
+  opts.on("-f", "--format FORMAT", String, 
+          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html") { |f|
+    case f
+    when 's', 'specdox', 'specdoc'
+      format = 'SpecDoxReporter'
+    when 'h', 'html'
+      format = 'HtmlReporter'
+    when 'd', 'dot', 'dotted'
+      format = 'DottedReporter'
+    when 'c', 'ci', 'integration'
+      format = 'CIReporter'
+    else
+      puts "Unknown format: #{f}"
+      puts opts
+      exit
+    end
+  }
+  opts.on("-t", "--target TARGET", String, 
+          "Implementation that will run the specs: r:ruby|x:rbx|j:jruby") { |t|
+    case t
+    when 'r', 'ruby'
+      target = 'ruby'
+    when 'x', 'rbx', 'rubinius'
+      target = 'shotgun/rubinius'
+    when 'j', 'jruby'
+      target = 'jruby'
+    else
+      puts "Unknown target: #{t}"
+      puts opts
+      exit
+    end
+  }
+  opts.on("-v", "--version", "Show version") {
+    puts "Mini RSpec #{MSpec::VERSION}"
+    exit
+  }
+  opts.on("-h", "--help", "Show this message") {
+    puts opts
+    exit
+  }
   
-  if [[ -s $__SR_ERRFILE ]]; then
-    echo "Errors:"
-    cat $__SR_ERRFILE
-    echo ""
-    echo ""
-  fi
+  patterns = opts.parse ARGV
+end
 
-  __SR_TOTAL_SPECS=$(($__SR_TOTAL_SPECS + $(cat $__SR_GOODFILE | grep "^ -" | wc -l)))
-  __SR_TOTAL_FAILS=$(($__SR_TOTAL_FAILS + $(cat $__SR_GOODFILE | grep "FAILED" | wc -l)))
+if patterns.empty?
+  puts "No files specified."
+  puts opts
+  exit
+end
 
-  rm $__SR_GOODFILE $__SR_ERRFILE 2>/dev/null
-  kill -3 $__SR_TEE_PID 
-done 
+files = []
+dirs = []
+patterns.each do |item|
+  stat = File.stat(File.expand_path(item))
+  files << item if stat.file?
+  dirs << item if stat.directory?
+end
 
-echo ""
-echo "$__SR_TOTAL_SPECS specifications, $__SR_TOTAL_FAILS failures"
-echo ""
-
-# Post-cleanup
-rm $__SR_GOODFILE $__SR_ERRFILE $__SR_GOODFIFO 2>/dev/null
+system %(#{target} -Ispec -rmini_rspec.rb -e '@reporter = #{format}.new; #{dirs.inspect}.each { |d| Dir[d+"/*_spec.rb"].each { |f| load f }}; #{files.inspect}.each { |f| load f }')

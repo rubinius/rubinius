@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-# Switch to default rubinius
-if [[ $SR_TARGET = "" ]]; then
-  SR_TARGET=./shotgun/rubinius exec ./bin/mspec $@
-else
-  exec ./bin/mspec $@
-fi

@@ -1,12 +1,142 @@
 # mini_rspec.rb
 #
-# Very minimal set of features to support specs like this:
+# Very minimal set of features to support RSpec specs like this:
 #
-# context "Array" do
-#   specify "should respond to new" do
+# describe "Array" do
+#   it "responds to new" do
 #     Array.new.should == []
 #   end
 # end
+
+@time_start = Time.now
+
+class SpecReporter
+  class ExpectationReport
+    def exception=(e)
+      @exception = e
+    end
+    
+    def exception
+      @exception
+    end
+    
+    def describe=(d)
+      @describe = d
+    end
+    
+    def describe
+      @describe
+    end
+    
+    def it=(i)
+      @it = i
+    end
+    
+    def it
+      @it
+    end
+  end
+  
+  def initialize(out=STDOUT)
+    @out = out
+    @examples = 0
+    @failures = 0
+    @exceptions = []
+  end
+  
+  def before_describe(msg)
+    @describe = msg
+  end
+  
+  def after_describe(msg); end
+  
+  def before_it(msg)
+    @report = ExpectationReport.new
+    @report.describe = @describe
+    @report.it = msg
+    @examples += 1
+  end
+  
+  def after_it(msg); end
+  
+  def exception(e)
+    @failures += 1
+    @report.exception = e
+    @exceptions.push(@report)
+  end
+  
+  def summary
+    @out.print "\n\n"
+    @exceptions.each_with_index do |r,i|
+      print_failure(i+1,r)
+      print_backtrace(r.exception)
+    end
+    print_summary
+  end
+
+  def print_summary
+    @out.print "\n\n" + @examples.to_s + " examples, " + @failures.to_s + " failures\n"
+  end
+  
+  def print_failure(i,r)
+    @out.print i.to_s + ") " + r.describe + " " + r.it + " FAILED\n"
+  end
+  
+  def print_backtrace(e)
+    if e.message != ""
+      @out.print e.message + ": \n"
+      @out.print e.backtrace.show rescue @out.print e.backtrace
+      @out.print "\n"
+    else
+      @out.print "<No message>"
+    end
+  end
+end
+
+class SpecDoxReporter < SpecReporter
+  def before_describe(msg)
+    super
+    @out.print msg
+    @out.print "\n-------------------\n"
+  end
+  
+  def after_describe(msg)
+    @out.print "\n"
+  end
+  
+  def before_it(msg)
+    super
+    @out.print " - "
+    @out.print msg
+  end
+  
+  def after_it(msg)
+    @out.print "\n"
+  end
+  
+  def exception(e)
+    super
+    @out.print " FAILED"
+  end
+end
+
+class DottedReporter < SpecReporter
+  def after_it(msg)
+    if @report.exception
+      @out.print 'F'
+    else
+      @out.print '.'
+    end
+  end
+end
+
+class HtmlReporter < SpecReporter
+end
+
+class CIReporter < SpecReporter
+  def print_backtrace(e)
+  end
+end
 
 class PositiveExpectation
   def initialize(obj)
@@ -78,8 +208,7 @@ def after(at=:each,&block)
 end
 
 def it(msg)
-  STDOUT.print " - "
-  STDOUT.print msg
+  @reporter.before_it(msg)
 
   begin
     @__before__.each { |b| b.call }
@@ -87,16 +216,7 @@ def it(msg)
     Mock.verify  
 
   rescue Exception => e
-    STDOUT.print " FAILED:\n"
-
-    if e.message != ""
-      STDOUT.print e.message
-      STDOUT.print ": "
-      STDOUT.print "\n"
-      STDOUT.print e.backtrace.show rescue STDOUT.print e.backtrace
-    else
-      STDOUT.print "<No message>"
-    end
+    @reporter.exception(e)
 
   # Cleanup
   ensure
@@ -104,17 +224,14 @@ def it(msg)
     Mock.reset
     @__after__.each { |b| b.call }
   end
-
-  STDOUT.print "\n"
+  
+  @reporter.after_it(msg)
 end
 
 def describe(msg)
-  STDOUT.print msg
-  STDOUT.print "\n-------------------\n"
-
+  @reporter.before_describe(msg)
   yield
-
-  STDOUT.print "\n"
+  @reporter.after_describe(msg)
 end
 
 # Alternatives
@@ -123,4 +240,12 @@ class Object
   alias specify it
   alias setup before
   alias teardown after
+end
+
+if @reporter == nil
+  @reporter = DottedReporter.new
+end
+
+at_exit do
+  @reporter.summary
 end
