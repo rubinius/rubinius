@@ -129,7 +129,7 @@ class MatchData
       y = full.at(1) - 1
       @source[x..y]
     else
-      captures[idx - 1]
+      captures[idx.to_i - 1]
     end
   end
   

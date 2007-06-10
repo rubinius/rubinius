@@ -29,6 +29,8 @@ class BreakpointTracker
     @control_channel = Channel.new
   end
   
+  attr_accessor :debug_channel, :control_channel
+  
   def add_thread(thr)
     thr.set_debugging @debug_channel, @control_channel
   end
@@ -63,6 +65,10 @@ class BreakpointTracker
     end
     pnt.call(ctx)
     pnt.restore_into(ctx)
+  end
+  
+  def wake_target
     @control_channel.send nil
   end
+  
 end

@@ -64,7 +64,7 @@ context "MatchData instance methods" do
     /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0, 2, -2).should == ["HX1138", "X", "113"]
   end
 
-  specify "select (depreciated) should yield the contents of the match array to a block" do
+  specify "select (deprecated) should yield the contents of the match array to a block" do
      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").select { |x| x }.should == ["HX1138", "H", "X", "113", "8"]
   end
 
@@ -74,6 +74,13 @@ context "MatchData instance methods" do
 
   specify "to_a returns an array of matches" do
     /(.)(.)(\d+)(\d)/.match("THX1138.").to_a.should == ["HX1138", "H", "X", "113", "8"]
+  end
+  
+  specify "[] provides access to named groups" do
+    r = %r!(?<section>...)(?<code>\d+)!
+    m = r.match("THX1138")
+    m[:section] == "THX"
+    m[:code] == "1138"
   end
 end
 

@@ -178,81 +178,83 @@ end
 
 class MatchData
 
-  def [](idx, len = nil)
-    if idx.is_a?(Integer)
-      idx += self.length if idx < 0
-      if len.nil?
-        if idx >= 0 && idx < self.length
-          x = self.begin(idx)
-          y = self.end(idx)
-          return @source[x...y]
-        else
-          return nil
-        end
-      else
-        if idx >=0 && idx < self.length
-          return get_match_array(0)[idx, len]
-        else
-          return nil
-        end
-      end
-    elsif idx.respond_to?(:first) && idx.respond_to?(:last)
-      return get_match_array(0)[idx]
-    end
-    return nil
-  end
+  ivar_as_index :__ivars__ => 0, :source => 1, :regexp => 2, :full => 3, :region => 4
 
-  def captures
-    return get_match_array(1)
+  def [](idx, len = nil)
+    if len
+      return to_a[idx, len]
+    elsif idx.is_a?(Symbol)
+      num = @regexp.names[idx]
+      raise ArgumentError, "Unknown named group '#{idx}'" unless num
+      return get_capture(num)
+    elsif !idx.is_a?(Integer) or idx < 0
+      return to_a[idx]
+    end
+    
+    if idx == 0
+      return matched_area()
+    else
+      return get_capture(idx - 1)
+    end    
   end
 
   def to_s
-    inspect
+    matched_area()
   end
 
   def inspect
-    match = get_match_array(0).first
-    match = match[0...7] + '...' if match.size > 10
-
-    "#<MatchData:0x#{object_id.to_s(16)} \"#{match}\">"
+    "#<MatchData:0x#{object_id.to_s(16)} \"#{matched_area}\">"
   end
 
   def select
-    if block_given?
-      get_match_array(0).each do |m|
-        yield(m)
-      end
-    else
-      # TODO This method requires a block raise exception
+    unless block_given?
+      raise LocalJumpError, "no block given"
     end
+    
+    out = []
+    ma = matched_area()
+    out << ma if yield ma
+    
+    each_capture do |str|
+      if yield(str)
+        out << str
+      end
+    end
+    return out
   end
 
   alias_method :size, :length
 
   def to_a
-    return get_match_array(0)
+    ary = captures()
+    ary.unshift matched_area()
+    return ary
   end
 
-  def values_at(*index)
-    out = Array.new
-    if index.is_a?(Array)
-      index.each do |idx|
-        out << self[idx]
-      end
-    end
-    return out
+  def values_at(*indexes)
+    indexes.map { |i| self[i] }
   end
-
-  # private functions
-  def get_match_array(start)
-    out  = Array.new
-    last = self.length
-    (start...last).each do |i|
-      x = self.begin(i)
-      y = self.end(i)
-      out << @source[x...y]
+  
+  private
+  
+  def matched_area
+    x = full[0]
+    y = full[1]
+    @source[x...y]
+  end
+  
+  def get_capture(num)
+    x, y = @region[num]
+    return nil unless y
+    
+    return @source[x...y]
+  end
+  
+  def each_capture
+    @region.each do |tup|
+      x, y = *tup
+      yield @source[x...y]
     end
-    return out
   end
 
 end

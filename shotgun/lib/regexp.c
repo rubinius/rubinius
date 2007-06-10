@@ -2,7 +2,7 @@
 #include "shotgun.h"
 #include "tuple.h"
 #include "string.h"
-
+#include "symbol.h"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED   ONIG_OPTION_EXTEND
@@ -39,18 +39,15 @@ struct _gather_data {
 static int _gather_names(const UChar *name, const UChar *name_end,
     int ngroup_num, int *group_nums, regex_t *reg, struct _gather_data *gd) {
   
-  int i, gn;
+  int i, gn, ref;
   STATE;
   OBJECT tup;
   
   state = gd->state;
   tup = gd->tup;
   
-  for(i = 0; i < ngroup_num; i++) {
-    gn = group_nums[i];
-    tuple_put(state, tup, i, 
-      tuple_new2(state, 2, I2N(gn), string_new(state, (char*)name)));
-  }
+  gn = group_nums[0];
+  hash_set(state, tup, symbol_from_cstr(state, (char*)name), I2N(gn - 1));
   return 0;
 }
 
@@ -132,7 +129,7 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
   } else {
     struct _gather_data gd;
     gd.state = state;
-    o_names = tuple_new(state, num_names);
+    o_names = hash_new(state);
     gd.tup = o_names;
     onig_foreach_name(*reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
     regexp_set_names(o_reg, o_names);
