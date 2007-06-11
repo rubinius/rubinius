@@ -8,8 +8,6 @@
 #   end
 # end
 
-@time_start = Time.now
-
 class SpecReporter
   class ExpectationReport
     def exception=(e)
@@ -66,16 +64,19 @@ class SpecReporter
   end
   
   def summary
-    @out.print "\n\n"
-    @exceptions.each_with_index do |r,i|
-      print_failure(i+1,r)
-      print_backtrace(r.exception)
+    unless @summarized
+      @out.print "\n\n"
+      @exceptions.each_with_index do |r,i|
+        print_failure(i+1,r)
+        print_backtrace(r.exception)
+      end
+      print_summary
+      @summarized = true
     end
-    print_summary
   end
 
   def print_summary
-    @out.print "\n" + @examples.to_s + " examples, " + @failures.to_s + " failures\n"
+    @out.print @examples.to_s + " examples, " + @failures.to_s + " failures\n"
   end
   
   def print_failure(i,r)
@@ -90,6 +91,7 @@ class SpecReporter
     else
       @out.print "<No message>"
     end
+    @out.print "\n"
   end
 end
 

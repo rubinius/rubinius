@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+if rubinius_examples
+
 context "Module" do
 
   specify "const_defined? should return true if the name is defined" do
@@ -31,5 +33,7 @@ context "Module" do
     end
     B.instance_methods.should == [:foo]
   end
+
+end
 
 end

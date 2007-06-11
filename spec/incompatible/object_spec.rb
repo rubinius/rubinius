@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+if rubinius_examples
+
 describe "Object instance method coerce_string" do
   specify "raises TypeError if the instance does not respond to to_str" do
     class A; end
@@ -31,4 +33,6 @@ describe "Object instance method coerce_string" do
     end
     C.new.coerce_string.should == "zam"
   end
+end
+
 end

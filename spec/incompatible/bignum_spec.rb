@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+if rubinius_examples
+  
 context "Bignum instance method" do
   specify "coerce should return [Bignum, Bignum] if other is a Fixnum" do
       a = 0xffffffff.coerce(1)
@@ -15,4 +17,6 @@ context "Bignum instance method" do
     b.inspect.should == "[1.5, 4294967295.0]"
     b.collect { |i| i.class }.should == [Float, Float]
   end
+end
+
 end

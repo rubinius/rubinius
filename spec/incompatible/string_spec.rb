@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
+if rubinius_examples
+
 context "String instance method" do
   specify "lstrip should return a string with all leading \\000 and whitespace characters removed" do
     "".lstrip.should == ""
@@ -52,4 +54,6 @@ describe "String instance method %" do
     ("%e" % 1e1020).should == "inf"
     ("%e" % -1e1020).should == "-inf"
   end
+end
+
 end

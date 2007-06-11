@@ -9,3 +9,7 @@ begin
 rescue
   require 'mspec_helper'
 end
+
+def rubinius_examples
+  Object.const_defined?(:RUBY_ENGINE) and RUBY_ENGINE == 'rbx'
+end

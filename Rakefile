@@ -1,5 +1,5 @@
-require 'rake/rubinius_spec_tasks'
 require 'rake/legacy_tasks'
+
 task :default => :spec
 
 def newer?(file, cmp)
@@ -44,13 +44,18 @@ def update_archive(files, archive, dir=nil)
   Dir.chdir(curdir) if dir
 end
 
-desc "Completely rebuild everything"
-task :rebuild => ['build:clean', 'build:shotgun', 'build:compiler', 'build:bootstrap', 'build:core', 'build:library']
-
-desc "Build shotgun (the C-code VM)"
-task :build => ['build:shotgun']
-
+# spec tasks
 namespace :spec do
+  namespace :setup do
+    desc "Setup for subtend examples"
+    task :subtend do
+      Dir[File.join(ROOT,"spec/subtend/**/Rakefile")].each do |rakefile|
+        sh "rake -f #{rakefile}"
+      end
+    end
+  end
+  
+  desc "Run continuous integration examples"
   task :ci do
     begin
       stat = File.stat("CI-specs")
@@ -64,7 +69,46 @@ namespace :spec do
     end
     sh "bin/mspec CI-specs"
   end
+
+  spec_targets = %w(compiler core incompatible language library parser rubinius)
+  # Build a spec:<task_name> for each group of Rubinius specs
+  spec_targets.each do |group|
+    desc "Run #{group} examples"
+    task group => do
+      sh "bin/mspec spec/#{group}"
+    end
+  end
+
+  desc "Run subtend examples"
+  task :subtend => "spec:setup:subtend" do
+    sh "bin/mspec spec/subtend"
+  end
+
+  # Specdiffs to make it easier to see what your changes have affected :)
+  desc 'Run specs and produce a diff against current base'
+  task :diff => 'diff:run'
+
+  namespace :diff do
+    desc 'Run specs and produce a diff against current base'
+    task :run do
+      system 'bin/mspec spec > /tmp/rbs_specdiff' 
+      system 'diff -u spec/diffs/base.txt /tmp/rbs_specdiff'
+      system 'rm /tmp/rbs_specdiff'
+    end
+
+    desc 'Replace the base spec file with a new one'
+    task :replace do
+      system 'bin/mspec spec > spec/diffs/base.txt' 
+    end
+  end
 end
+
+# build tasks
+desc "Completely rebuild everything"
+task :rebuild => ['build:clean', 'build:shotgun', 'build:compiler', 'build:bootstrap', 'build:core', 'build:library']
+
+desc "Build shotgun (the C-code VM)"
+task :build => ['build:shotgun']
 
 namespace :build do
   
@@ -171,6 +215,7 @@ task :pristine do
   end
 end
 
+# svn tasks
 desc "Remove runtime/*.rba then svn up"
 task :svn => 'svn:up'
 namespace :svn do
