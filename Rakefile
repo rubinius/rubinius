@@ -74,7 +74,7 @@ namespace :spec do
   # Build a spec:<task_name> for each group of Rubinius specs
   spec_targets.each do |group|
     desc "Run #{group} examples"
-    task group => do
+    task group do
       sh "bin/mspec spec/#{group}"
     end
   end
