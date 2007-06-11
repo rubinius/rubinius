@@ -75,7 +75,7 @@ class SpecReporter
   end
 
   def print_summary
-    @out.print "\n\n" + @examples.to_s + " examples, " + @failures.to_s + " failures\n"
+    @out.print "\n" + @examples.to_s + " examples, " + @failures.to_s + " failures\n"
   end
   
   def print_failure(i,r)

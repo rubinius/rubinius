@@ -76,4 +76,9 @@ patterns.each do |item|
   dirs << item if stat.directory?
 end
 
-system %(#{target} -Ispec -rmini_rspec.rb -e '@reporter = #{format}.new; #{dirs.inspect}.each { |d| Dir[d+"/*_spec.rb"].each { |f| load f }}; #{files.inspect}.each { |f| load f }')
+cmd = <<-EOC
+#{target} -Ispec -rmini_rspec.rb -rmini_mock.rb -e '@reporter = #{format}.new;
+#{dirs.inspect}.each { |d| Dir[d+"/**/*_spec.rb"].each { |f| load f }}; 
+#{files.inspect}.each { |f| load f }'
+EOC
+system cmd

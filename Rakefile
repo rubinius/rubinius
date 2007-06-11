@@ -50,6 +50,22 @@ task :rebuild => ['build:clean', 'build:shotgun', 'build:compiler', 'build:boots
 desc "Build shotgun (the C-code VM)"
 task :build => ['build:shotgun']
 
+namespace :spec do
+  task :ci do
+    begin
+      stat = File.stat("CI-specs")
+      if stat.file?
+        raise "CI-specs is a file. Remove it to run CI specs"
+      elsif stat.directory?
+        sh "svn up CI-specs"
+      end
+    rescue
+      sh("svn co http://code.fallingsnow.net/svn/rubinius/branches/CI-specs")
+    end
+    sh "bin/mspec CI-specs"
+  end
+end
+
 namespace :build do
   
   desc "Removes build by-products for shotgun, compiler, and library"
