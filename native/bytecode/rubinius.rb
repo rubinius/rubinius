@@ -35,10 +35,11 @@ module Bytecode
       idx = nil
 
       if @primitive.kind_of? Symbol
-        idx = Bytecode::Compiler::Primitives.index(@primitive) + 1
+        idx = Bytecode::Compiler::Primitives.index(@primitive)
         unless idx
           raise ArgumentError, "Unknown primitive '#{@primitive}'"
         end
+        idx += 1
       elsif @primitive
         idx = @primitive
       end
