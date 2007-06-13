@@ -81,7 +81,7 @@ class Mailbox
       @pairs = []
     end
 
-    def on(pattern, &action)
+    def when(pattern, &action)
       raise ArgumentError, "no block given" unless action
       @pairs.push [pattern, action]
     end
