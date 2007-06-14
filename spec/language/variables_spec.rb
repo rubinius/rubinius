@@ -67,23 +67,27 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # ENV               The hash contains current environment variables.
 # ARGF              The alias to the $<.
 # ARGV              The alias to the $*.
-# DATA              The file object of the script, pointing just after __END__.
+# DATA              The file object of $0, pointing just after __END__.
 # RUBY_VERSION      The ruby version string (VERSION was deprecated).
 # RUBY_RELEASE_DATE The release date string.
 # RUBY_PLATFORM     The platform identifier.
+# TOPLEVEL_BINDING  The binding object of the top level scope.
 #
 
 describe "The set of pre-defined global constants" do
   it "includes TRUE" do
     Object.const_defined?(:TRUE).should == true
+    TRUE.equal?(true).should == true
   end
   
   it "includes FALSE" do
     Object.const_defined?(:FALSE).should == true
+    FALSE.equal?(false).should == true
   end
   
   it "includes NIL" do
     Object.const_defined?(:NIL).should == true
+    NIL.equal?(nil).should == true
   end
   
   it "includes STDIN" do
@@ -110,8 +114,21 @@ describe "The set of pre-defined global constants" do
     Object.const_defined?(:ARGV).should == true
   end
   
-  it "includes DATA" do
-    Object.const_defined?(:DATA).should == true
+  it "includes DATA when main script contains __END__" do
+    ruby = IO.popen(RUBY_NAME, "w+")
+    ruby.puts(
+      "puts Object.const_defined?(:DATA)",
+      "__END__"
+    )
+    ruby.close_write
+    ruby.gets.chomp.should == 'true'
+  end
+
+  it "does not include DATA when main script contains no __END__" do
+    ruby = IO.popen(RUBY_NAME, "w+")
+    ruby.puts("puts Object.const_defined?(:DATA)")
+    ruby.close_write
+    ruby.gets.chomp.should == 'false'
   end
   
   it "includes RUBY_VERSION" do
@@ -125,7 +142,8 @@ describe "The set of pre-defined global constants" do
   it "includes RUBY_PLATFORM" do
     Object.const_defined?(:RUBY_PLATFORM).should == true
   end
-end
 
-__END__
-We're some data. Please don't delete us.
+  it "includes TOPLEVEL_BINDING" do
+    Object.const_defined?(:TOPLEVEL_BINDING).should == true
+  end
+end
