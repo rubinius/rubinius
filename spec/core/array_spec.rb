@@ -24,6 +24,12 @@ context "Array class methods" do
   
   specify "new with size and default object should return a new array of size objects" do
     Array.new(4, true).should == [true, true, true, true]
+
+    # Shouldn't copy object
+    str = "x"
+    ary = Array.new(4, str)
+    str << "y"
+    ary.should == [str, str, str, str]
   end
   
   specify "new with array-like argument should return a new array by calling to_ary on argument" do
@@ -35,13 +41,6 @@ context "Array class methods" do
   specify "new with size and block should return an array of size elements from the result of passing each index to block" do
     Array.new(5) { |i| i + 1 }.should == [1, 2, 3, 4, 5]
   end
-
-# Unnecessary, block spec stuff. --rue
-#  specify "new with size and block should have proper side effects from passing each index to block" do
-#      a = []
-#      Array.new(5) { |i| a << i + 1 }
-#      a.should == [1, 2, 3, 4, 5]
-#  end
   
   specify ".[] should return a new array populated with the given elements" do
     Array.[](5, true, nil, 'a', "Ruby").should == [5, true, nil, "a", "Ruby"]
@@ -55,64 +54,183 @@ end
 context "Array instance methods" do
   
   specify "& should create an array with elements common to both arrays (intersection)" do
+    ([] & []).should == []
+    ([1, 2] & []).should == []
+    ([] & [1, 2]).should == []
     ([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).should == [1, 3]
   end
   
   specify "& should create an array with no duplicates" do
+    ([] | []).should == []
+    ([1, 2] | []).should == [1, 2]
+    ([] | [1, 2]).should == [1, 2]
     ([ 1, 1, 3, 5 ] & [ 1, 2, 3 ]).uniq!.should == nil
   end
 
+  specify "& should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() [1, 2, 3] end
+    ([1, 2] & obj).should == ([1, 2] & obj.to_ary)
+  end
+
+  # MRI doesn't actually call eql?() however. So you can't reimplement it.
+  specify "& should act as if using eql?" do
+    ([5.0, 4.0] & [5, 4]).should == []
+    str = "x"
+    ([str] & [str.dup]).should == [str]
+  end
+  
   specify "| should return an array of elements that appear in either array (union) without duplicates" do
     ([1, 2, 3] | [1, 2, 3, 4, 5]).should == [1, 2, 3, 4, 5]
+  end
+
+  specify "| should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() [1, 2, 3] end
+    ([0] | obj).should == ([0] | obj.to_ary)
+  end
+
+  # MRI doesn't actually call eql?() however. So you can't reimplement it.
+  specify "| should act as if using eql?" do
+    ([5.0, 4.0] | [5, 4]).should == [5.0, 4.0, 5, 4]
+    str = "x"
+    ([str] | [str.dup]).should == [str]
   end
   
   specify "* with a string should be equivalent to self.join(str)" do
     ([ 1, 2, 3 ] * ",").should == [1, 2, 3].join(",")
   end
+
+  specify "* should call to_str on its argument" do
+    obj = Object.new
+    def obj.to_str() "x" end
+    ([ 1, 2, 3 ] * obj).should == "1x2x3"
+  end
   
   specify "* with an int should concatenate n copies of the array" do
+    ([ 1, 2, 3 ] * 0).should == []
     ([ 1, 2, 3 ] * 3).should == [1, 2, 3, 1, 2, 3, 1, 2, 3]
+    ([] * 10).should == []
+  end
+  
+  specify "* with a negative int should raise an ArgumentError" do
+    should_raise(ArgumentError) { [ 1, 2, 3 ] * -1 }
+    should_raise(ArgumentError) { [] * -1 }
+  end
+  
+  specify "* should call to_int on its argument" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_int
+  end
+
+  specify "* should call to_str on its argument before to_int" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    def obj.to_str() "x" end
+    ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_str
   end
   
   specify "+ should concatenate two arrays" do
-    ([ 1, 2, 3 ] + [ 4, 5 ]).should == [1, 2, 3, 4, 5]
+    ([ 1, 2, 3 ] + [ 3, 4, 5 ]).should == [1, 2, 3, 3, 4, 5]
+    ([ 1, 2, 3 ] + []).should == [1, 2, 3]
+    ([] + [ 1, 2, 3 ]).should == [1, 2, 3]
+    ([] + []).should == []
+  end
+
+  specify "+ should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() ["x", "y"] end
+    ([1, 2, 3] + obj).should == [1, 2, 3] + obj.to_ary
   end
 
   specify "- should create an array minus any items from other array" do
+    ([] - [ 1, 2, 4 ]).should == []
+    ([1, 2, 4] - []).should == [1, 2, 4]
     ([ 1, 1, 2, 2, 3, 3, 4, 5 ] - [ 1, 2, 4 ]).should == [3, 3, 5]
+  end
+
+  specify "- should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() [2, 3, 3, 4] end
+    ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
   end
   
   specify "<< should push the object onto the end of the array" do
     ([ 1, 2 ] << "c" << "d" << [ 3, 4 ]).should == [1, 2, "c", "d", [3, 4]]
   end
   
-  specify "<=> should be 1 if the array is greater than the other array" do
-    ([ 1, 2, 3, 4, 5, 6 ] <=> [ 1, 2 ]).should == 1
+  specify "<=> should call <=> left to right and return first non-0 result" do
+    [-1, +1, nil].each do |result|
+      lhs = Array.new(3) { Object.new }
+      rhs = Array.new(3) { Object.new }
+    
+      lhs[0].should_receive(:<=>, :with => [rhs[0]], :returning => 0)
+      lhs[1].should_receive(:<=>, :with => [rhs[1]], :returning => result)
+      lhs[2].should_not_receive(:<=>)
+
+      (lhs <=> rhs).should == result
+    end
   end
   
   specify "<=> should be 0 if the arrays are equal" do
     ([] <=> []).should == 0
+    ([1, 2, 3, 4, 5, 6] <=> [1, 2, 3, 4, 5.0, 6.0]).should == 0
   end
   
-  specify "<=> should be -1 if the array is less than the other array" do
-    ([ "a", "a", "c" ] <=> [ "a", "b", "c" ]).should == -1
+  specify "<=> should be -1 if the array is shorter than the other array" do
+    ([] <=> [1]).should == -1
+    ([1, 1] <=> [1, 1, 1]).should == -1
+  end
+
+  specify "<=> should be +1 if the array is longer than the other array" do
+    ([1] <=> []).should == +1
+    ([1, 1, 1] <=> [1, 1]).should == +1
+  end
+
+  specify "<=> should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() [1, 2, 3] end
+    ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
   end
   
   specify "== should be true if each element is == to the corresponding element in the other array" do
-    ([ "a", "c", 7 ] == [ "a", "c", 7 ]).should == true
+    [].should == []
+    ["a", "c", 7].should == ["a", "c", 7]
+
+    obj = Object.new
+    def obj.==(other) true end
+    [obj].should == [5]
   end
   
   specify "== should be false if any element is not == to the corresponding element in the other the array" do
     ([ "a", "c" ] == [ "a", "c", 7 ]).should == false
   end
+  
+  specify "== should be instantly false when sizes of the arrays differ" do
+    obj = Object.new
+    obj.should_not_receive(:==)
+    
+    [].should_not == [obj]
+    [obj].should_not == []
+  end
 
   specify "assoc should return the first contained array the first element of which is obj" do
     s1 = [ "colors", "red", "blue", "green" ] 
     s2 = [ "letters", "a", "b", "c" ] 
-    s3 = "foo" 
-    a = [ s1, s2, s3 ] 
+    a = [ s1, s2, "foo", [], [4] ] 
     a.assoc("letters").should == %w{letters a b c}
+    a.assoc(4).should == [4]
     a.assoc("foo").should == nil
+  end
+
+  specify "assoc should call == on argument" do
+    key = Object.new
+    items = Array.new(3) { [Object.new, "foo"] }
+    items[0][0].should_receive(:==, :with => [key], :returning => false)
+    items[1][0].should_receive(:==, :with => [key], :returning => true)
+    items[2][0].should_not_receive(:==, :with => [key])
+    items.assoc(key).should == items[1]
   end
   
   specify "at should return the element at index" do
@@ -121,10 +239,19 @@ context "Array instance methods" do
     a.at(-2).should == 5
     a.at(10).should == nil
   end
+
+  specify "at should call to_int on its argument" do
+    a = ["a", "b", "c"]
+    a.at(0.5).should == "a"
+    
+    obj = Object.new
+    obj.should_receive(:to_int, :returning => 2)
+    a.at(obj).should == "c"
+  end
   
   specify "clear should remove all elements" do
     a = [1, 2, 3, 4]
-    a.clear
+    a.clear.equal?(a).should == true
     a.should == []
   end
   
@@ -136,7 +263,7 @@ context "Array instance methods" do
   
   specify "collect! should replace each element with the value returned by block" do
     a = [7, 9, 3, 5]
-    a.collect! { |i| i - 1 }
+    a.collect! { |i| i - 1 }.equal?(a).should == true
     a.should == [6, 8, 2, 4]
   end
   
@@ -147,25 +274,35 @@ context "Array instance methods" do
   
   specify "compact! should remove all nil elements" do
     a = ['a', nil, 'b', nil, nil, 'c']
-    a.compact!.should == ["a", "b", "c"]
+    a.compact!.equal?(a).should == true
+    a.should == ["a", "b", "c"]
   end
   
-  # FIX: Should fix and go to incompatible/ as [result, status]? --rue
   specify "compact! should return nil if there are no nil elements to remove" do
     [1, 2, 3].compact!.should == nil
   end
   
   specify "concat should append the elements in the other array" do
+    [1, 2, 3].concat([]).should == [1, 2, 3]
     [1, 2, 3].concat([9, 10, 11]).should == [1, 2, 3, 9, 10, 11]
   end
   
-  specify "delete removes elements that are #== to object" do
-    class B; def ==(other); (3 == other) || super; end; end
+  specify "concat shouldn't loop endlessly when argument is self" do
+    ary = ["x", "y"]
+    ary.concat(ary).should == ["x", "y", "x", "y"]
+  end  
 
-    x = B.new
+  specify "concat should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() ["x", "y"] end
+    [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
+  end
+  
+  specify "delete removes elements that are #== to object" do
+    x = Object.new
+    def x.==(other) 3 == other end
 
     a = [1, 2, 3, x, 4, 3, 5, x]
-
     a.delete Object.new
     a.should == [1, 2, 3, x, 4, 3, 5, x]
 
@@ -186,33 +323,44 @@ context "Array instance methods" do
     a = [1, 2, 3, 4]
     a.delete_at(2)
     a.should == [1, 2, 4]
+    a.delete_at(-1)
+    a.should == [1, 2]
   end
 
   specify "delete_at should return the removed element at the specified index" do
     a = [1, 2, 3, 4]
     a.delete_at(2).should == 3
+    a.delete_at(-1).should == 4
   end
   
   specify "delete_at should return nil if the index is out of range" do
     a = [1, 2]
     a.delete_at(3).should == nil
   end
+
+  specify "delete_at should call to_int on its argument" do
+    obj = Object.new
+    def obj.to_int() -1 end
+    [1, 2].delete_at(obj).should == 2
+  end
   
   specify "delete_if should remove each element for which block returns true" do
     a = [ "a", "b", "c" ] 
-    a.delete_if { |x| x >= "b" }
+    a.delete_if { |x| x >= "b" }.equal?(a).should == true
     a.should == ["a"]
   end
   
   specify "each should yield each element to the block" do
     a = []
-    [1, 2, 3].each { |item| a << item }
+    x = [1, 2, 3]
+    x.each { |item| a << item }.equal?(x).should == true
     a.should == [1, 2, 3]
   end
   
   specify "each_index should pass the index of each element to the block" do
     a = []
-    ['a', 'b', 'c', 'd'].each_index { |i| a << i }
+    x = ['a', 'b', 'c', 'd']
+    x.each_index { |i| a << i }.equal?(x).should == true
     a.should == [0, 1, 2, 3]
   end
   
@@ -229,7 +377,7 @@ context "Array instance methods" do
     a.eql?(a).should == true
   end
   
-  specify "eql? should return true if other has the same length and elements (except empty)" do
+  specify "eql? should return true if other has the same length and elements" do
     a = [1, 2, 3, 4]
     b = [1, 2, 3, 4]
     c = [1, 2]
@@ -246,26 +394,70 @@ context "Array instance methods" do
   
   specify "fetch should raise if there is no element at index" do
     should_raise(IndexError) { [1, 2, 3].fetch(3) }
+    should_raise(IndexError) { [1, 2, 3].fetch(-4) }
   end
   
   specify "fetch with default should return default if there is no element at index" do
     [1, 2, 3].fetch(5, :not_found).should == :not_found
+    [1, 2, 3].fetch(5, nil).should == nil
+    [nil].fetch(0, :not_found).should == nil
   end
 
   specify "fetch with block should return the value of block if there is no element at index" do
     [1, 2, 3].fetch(9) { |i| i * i }.should == 81
   end
+
+  specify "fetch's default block takes precedence over its default argument" do
+    [1, 2, 3].fetch(9, :foo) { |i| i * i }.should == 81
+  end
+
+  specify "fetch should call to_int on its argument" do
+    x = Object.new
+    def x.to_int() 0 end
+    [1, 2, 3].fetch(x).should == 1
+  end
   
   specify "fill should replace all elements in the array with object" do
-    ['a', 'b', 'c', 'duh'].fill(8).should == [8, 8, 8, 8]
+    ary = ['a', 'b', 'c', 'duh']
+    ary.fill(8).should == [8, 8, 8, 8]
+
+    str = "x"
+    ary.fill(str).should == [str, str, str, str]
+    str << "y"
+    ary.should == [str, str, str, str]
   end
   
   specify "fill with start, length should replace length elements beginning with start with object" do
     [1, 2, 3, 4, 5].fill('a', 2, 2).should == [1, 2, "a", "a", 5]
+    [1, 2, 3, 4, 5].fill('a', 2, 5).should == [1, 2, "a", "a", "a", "a", "a"]
+    [1, 2, 3, 4, 5].fill('a', 2, -2).should == [1, 2, 3, 4, 5]
+    [1, 2, 3, 4, 5].fill('a', 2, 0).should == [1, 2, 3, 4, 5]
+
+    [1, 2, 3, 4, 5].fill('a', -2, 2).should == [1, 2, 3, "a", "a"]    
+    [1, 2, 3, 4, 5].fill('a', -2, 4).should == [1, 2, 3, "a", "a", "a", "a"]    
+    [1, 2, 3, 4, 5].fill('a', -2, -2).should == [1, 2, 3, 4, 5]
+    [1, 2, 3, 4, 5].fill('a', -2, 0).should == [1, 2, 3, 4, 5]
+  end
+  
+  specify "fill should call to_int on start and length" do
+    x = Object.new
+    def x.to_int() 2 end
+    
+    [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
   end
   
   specify "fill with range should replace elements in range with object" do
     [1, 2, 3, 4, 5, 6].fill(8, 0..3).should == [8, 8, 8, 8, 5, 6]
+    [1, 2, 3, 4, 5, 6].fill(8, 0...3).should == [8, 8, 8, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6].fill('x', 4..6).should == [1, 2, 3, 4, 'x', 'x', 'x']
+    [1, 2, 3, 4, 5, 6].fill('x', 4...6).should == [1, 2, 3, 4, 'x', 'x']
+    [1, 2, 3, 4, 5, 6].fill('x', -2..-1).should == [1, 2, 3, 4, 'x', 'x']
+    [1, 2, 3, 4, 5, 6].fill('x', -2...-1).should == [1, 2, 3, 4, 'x', 6]
+    [1, 2, 3, 4, 5, 6].fill('x', -2...-2).should == [1, 2, 3, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6].fill('x', -2..-2).should == [1, 2, 3, 4, 'x', 6]
+    [1, 2, 3, 4, 5, 6].fill('x', -2..0).should == [1, 2, 3, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6].fill('x', 0...0).should == [1, 2, 3, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6].fill('x', 1..1).should == [1, 'x', 3, 4, 5, 6]
   end
   
   specify "fill with block should replace all elements with the value of block (index given to block)" do
@@ -308,15 +500,60 @@ context "Array instance methods" do
   specify "first should return the entire array when count > length " do
     [1, 2, 3, 4, 5, 9].first(10).should == [1, 2, 3, 4, 5, 9]
   end
+
+  specify "first should call to_int on count" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    [1, 2, 3, 4, 5].first(obj).should == [1, 2]
+  end
   
   specify "flatten should return a one-dimensional flattening recursively" do
-    [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]]].flatten.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
+    [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []].flatten.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
+  end
+
+  specify "flatten shouldn't call flatten on elements" do
+    obj = Object.new
+    def obj.flatten() [1, 2] end
+    [obj, obj].flatten.should == [obj, obj]
+
+    obj = [5, 4]
+    def obj.flatten() [1, 2] end
+    [obj, obj].flatten.should == [5, 4, 5, 4]
+  end
+  
+  specify "flatten should complain about recursive arrays" do
+    x = []
+    x << x
+    should_raise(ArgumentError) { x.flatten }
+    
+    x = []
+    y = []
+    x << y
+    y << x
+    should_raise(ArgumentError) { x.flatten }
   end
   
   specify "flatten! should modify array to produce a one-dimensional flattening recursively" do
-    a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]]]
-    a.flatten!
+    a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []]
+    a.flatten!.equal?(a).should == true
     a.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
+  end
+  
+  specify "flatten! should return nil if no modifications took place" do
+    a = [1, 2, 3]
+    a.flatten!.should == nil
+  end
+
+  specify "flatten! should complain about recursive arrays" do
+    x = []
+    x << x
+    should_raise(ArgumentError) { x.flatten! }
+    
+    x = []
+    y = []
+    x << y
+    y << x
+    should_raise(ArgumentError) { x.flatten! }
   end
   
   specify "frozen? should return true if array is frozen" do
