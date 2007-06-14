@@ -41,7 +41,8 @@ context "Time class method" do
   end
   
   specify "at should create a new time object with the value given by time" do
-    Time.at(Time.now).inspect.should == Time.now.inspect
+    t = Time.now
+    Time.at(t).inspect.should == t.inspect
   end
   
   specify "at should create a dup time object with the value given by time" do
@@ -103,11 +104,13 @@ context "Time instance method" do
   end
   
   specify "asctime should return a canonical string representation of time" do
-    Time.now.asctime.should == Time.now.strftime("%a %b %e %H:%M:%S %Y")
+    t = Time.now
+    t.asctime.should == t.strftime("%a %b %e %H:%M:%S %Y")
   end
   
   specify "ctime is a synonym for Time#asctime" do
-    Time.now.ctime.should == Time.now.asctime
+    t = Time.now
+    t.ctime.should == t.asctime
   end
   
   specify "sec should return the second of the minute(0..60) for time" do
