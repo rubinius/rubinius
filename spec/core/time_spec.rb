@@ -106,7 +106,7 @@ context "Time instance method" do
     Time.now.asctime.should == Time.now.strftime("%a %b %e %H:%M:%S %Y")
   end
   
-  specify "ctime is a synonym for Time#acstime " do
+  specify "ctime is a synonym for Time#asctime" do
     Time.now.ctime.should == Time.now.asctime
   end
   
