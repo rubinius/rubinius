@@ -570,19 +570,48 @@ context "Array instance methods" do
 #    a.sort! { |x,y| a.frozen?.should == true; x <=> y }
 #  end
   
-  specify "provides #hash" do
+  specify "hash returns the same fixnum for arrays with the same content" do
     [].respond_to?(:hash).should == true
+    
+    [[], [1, 2, 3]].each do |ary|
+      ary.hash.should == ary.dup.hash
+      ary.hash.class.should == Fixnum
+    end
+  end
+  
+  specify "hash calls to_int on result of calling hash on each element" do
+    ary = Array.new(5) do
+      # Can't use should_receive here because it calls hash()
+      obj = Object.new
+      def obj.hash()
+        def self.to_int() freeze; 0 end
+        return self
+      end
+      obj
+    end
+    
+    ary.hash
+    ary.each { |obj| obj.frozen?.should == true }
   end
   
   specify "include? should return true if object is present, false otherwise" do
     [1, 2, "a", "b"].include?("c").should == false
     [1, 2, "a", "b"].include?("a").should == true
   end
+
+  specify "include? calls == on elements from left to right until success" do
+    key = "x"
+    ary = Array.new(3) { Object.new }
+    ary[0].should_receive(:==, :with => [key], :returning => false)
+    ary[1].should_receive(:==, :with => [key], :returning => true)
+    ary[2].should_not_receive(:==)
+    
+    ary.include?(key).should == true
+  end
   
   specify "index returns the index of the first element == to object" do
-    class X; def ==(obj); 3 == obj; end; end
-
-    x = X.new
+    x = Object.new
+    def x.==(obj) 3 == obj; end
 
     [2, x, 3, 1, 3, 1].index(3).should == 1
   end
@@ -603,7 +632,10 @@ context "Array instance methods" do
   specify "indexes and #indices with integer indices are DEPRECATED synonyms for values_at" do
     array = [1, 2, 3, 4, 5]
 
-    params = [1, 0, 5, -1, -8, 10]
+    x = Object.new
+    def x.to_int() 4 end
+      
+    params = [1, 0, 5, -1, -8, 10, x]
     array.indexes(*params).should == array.values_at(*params)
     array.indices(*params).should == array.values_at(*params)
   end
@@ -619,7 +651,12 @@ context "Array instance methods" do
   end
   
   specify "initialize_copy should be a synonym for replace" do
-    [1, 2, 3, 4, 5].send(:initialize_copy, ['a', 'b', 'c']).should == [1, 2, 3, 4, 5].replace(%w{a b c})
+    init_ary = [1, 2, 3, 4, 5]
+    repl_ary = [1, 2, 3, 4, 5]
+    arg = %w(a b c)
+    
+    init_ary.send(:initialize_copy, arg).should == repl_ary.replace(arg)
+    init_ary.should == repl_ary
   end
   
   specify "insert with non-negative index should insert object before the element at index" do
@@ -635,12 +672,7 @@ context "Array instance methods" do
     [1, 2, 3].insert(-1, -3).should == [1, 2, 3, -3]
   end
   
-  specify "inspect should create a printable representation of some kind" do
-    [1, 2, 3].inspect.class.should == String
-  end
-
-  # FIX: compatibility? --rue
-  specify 'currently insert should produce a string equivalent to evaluated source code representation' do
+  specify 'inspect should return a string equivalent to evaluated source code representation' do
     [1, 2, 3].inspect.should == '[1, 2, 3]'
     [1, 2, 3 + 4].inspect.should == '[1, 2, 7]'
   end
