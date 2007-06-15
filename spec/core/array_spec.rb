@@ -12,14 +12,27 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # slice, slice!, sort, sort!, to_a, to_ary, to_s, transpose, uniq,
 # uniq!, unshift, values_at, zip, |
 
+class MyArray < Array; end
+
 context "Array class method" do
   specify "new without arguments should return a new array" do
     a = Array.new
     a.class.should == Array
+    b = MyArray.new
+    b.class.should == MyArray
   end
   
   specify "new with size should return a new array of size with nil elements" do
     Array.new(5).should == [nil, nil, nil, nil, nil]
+    a = MyArray.new(5)
+    a.class.should == MyArray
+    a.inspect.should == [nil, nil, nil, nil, nil].inspect
+  end
+
+  specify "new should call to_int on size" do
+    obj = Object.new
+    def obj.to_int() 3 end
+    Array.new(obj).should == [nil, nil, nil]
   end
   
   specify "new with size and default object should return a new array of size objects" do
@@ -30,24 +43,52 @@ context "Array class method" do
     ary = Array.new(4, str)
     str << "y"
     ary.should == [str, str, str, str]
+
+    a = MyArray.new(4, true)
+    a.class.should == MyArray
+    a.inspect.should == [true, true, true, true].inspect
   end
   
   specify "new with array-like argument should return a new array by calling to_ary on argument" do
-    class A; def to_ary(); [:foo]; end; end
+    obj = Object.new
+    def obj.to_ary() [:foo] end
+    Array.new(obj).should == [:foo]
+    
+    a = MyArray.new(obj)
+    a.class.should == MyArray
+    a.inspect.should == [:foo].inspect
+  end
+  
+  specify "new should call to_ary before to_int" do
+    obj = Object.new
+    def obj.to_ary() [1, 2, 3] end
+    def obj.to_int() 3 end
 
-    Array.new(A.new).should == [:foo]
+    Array.new(obj).should == [1, 2, 3]
   end
   
   specify "new with size and block should return an array of size elements from the result of passing each index to block" do
     Array.new(5) { |i| i + 1 }.should == [1, 2, 3, 4, 5]
+    
+    a = MyArray.new(5) { |i| i + 1 }
+    a.class.should == MyArray
+    a.inspect.should == [1, 2, 3, 4, 5].inspect
   end
   
   specify ".[] should return a new array populated with the given elements" do
     Array.[](5, true, nil, 'a', "Ruby").should == [5, true, nil, "a", "Ruby"]
+
+    a = MyArray.[](5, true, nil, 'a', "Ruby")
+    a.class.should == MyArray
+    a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
   end
 
   specify "[] should be a synonym for .[]" do
     Array[5, true, nil, 'a', "Ruby"].should == [5, true, nil, "a", "Ruby"]
+
+    a = MyArray[5, true, nil, 'a', "Ruby"]
+    a.class.should == MyArray
+    a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
   end
 end
 
@@ -79,6 +120,12 @@ context "Array instance method" do
     ([str] & [str.dup]).should == [str]
   end
   
+  specify "& with array subclasses shouldn't return subclass instance" do
+    (MyArray[1, 2, 3] & []).class.should == Array
+    (MyArray[1, 2, 3] & MyArray[1, 2, 3]).class.should == Array
+    ([] & MyArray[1, 2, 3]).class.should == Array
+  end
+  
   specify "| should return an array of elements that appear in either array (union) without duplicates" do
     ([1, 2, 3] | [1, 2, 3, 4, 5]).should == [1, 2, 3, 4, 5]
   end
@@ -94,6 +141,12 @@ context "Array instance method" do
     ([5.0, 4.0] | [5, 4]).should == [5.0, 4.0, 5, 4]
     str = "x"
     ([str] | [str.dup]).should == [str]
+  end
+  
+  specify "| with array subclasses shouldn't return subclass instance" do
+    (MyArray[1, 2, 3] | []).class.should == Array
+    (MyArray[1, 2, 3] | MyArray[1, 2, 3]).class.should == Array
+    ([] | MyArray[1, 2, 3]).class.should == Array
   end
   
   specify "* with a string should be equivalent to self.join(str)" do
@@ -129,6 +182,12 @@ context "Array instance method" do
     def obj.to_str() "x" end
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_str
   end
+
+  specify "* on array subclass should return subclass instance" do
+    (MyArray[1, 2, 3] * 0).class.should == MyArray
+    (MyArray[1, 2, 3] * 1).class.should == MyArray
+    (MyArray[1, 2, 3] * 2).class.should == MyArray
+  end
   
   specify "+ should concatenate two arrays" do
     ([ 1, 2, 3 ] + [ 3, 4, 5 ]).should == [1, 2, 3, 3, 4, 5]
@@ -143,6 +202,12 @@ context "Array instance method" do
     ([1, 2, 3] + obj).should == [1, 2, 3] + obj.to_ary
   end
 
+  specify "+ with array subclasses shouldn't return subclass instance" do
+    (MyArray[1, 2, 3] + []).class.should == Array
+    (MyArray[1, 2, 3] + MyArray[]).class.should == Array
+    ([1, 2, 3] + MyArray[]).class.should == Array
+  end
+
   specify "- should create an array minus any items from other array" do
     ([] - [ 1, 2, 4 ]).should == []
     ([1, 2, 4] - []).should == [1, 2, 4]
@@ -153,6 +218,12 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() [2, 3, 3, 4] end
     ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
+  end
+
+  specify "- with array subclasses shouldn't return subclass instance" do
+    (MyArray[1, 2, 3] - []).class.should == Array
+    (MyArray[1, 2, 3] - MyArray[]).class.should == Array
+    ([1, 2, 3] - MyArray[]).class.should == Array
   end
   
   specify "<< should push the object onto the end of the array" do
@@ -223,6 +294,12 @@ context "Array instance method" do
     [1, 2, 3].should == obj
   end
 
+  specify "== should ignore array class differences" do
+    MyArray[1, 2, 3].should == [1, 2, 3]
+    MyArray[1, 2, 3].should == MyArray[1, 2, 3]
+    [1, 2, 3].should == MyArray[1, 2, 3]
+  end
+
   specify "assoc should return the first contained array the first element of which is obj" do
     s1 = [ "colors", "red", "blue", "green" ] 
     s2 = [ "letters", "a", "b", "c" ] 
@@ -269,6 +346,10 @@ context "Array instance method" do
     b.should == ["a!", "b!", "c!", "d!"]
   end
   
+  specify "collect on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].collect { |x| x + 1 }.class.should == Array
+  end
+  
   specify "collect! should replace each element with the value returned by block" do
     a = [7, 9, 3, 5]
     a.collect! { |i| i - 1 }.equal?(a).should == true
@@ -278,6 +359,10 @@ context "Array instance method" do
   specify "compact should return a copy of array with all nil elements removed" do
     a = [1, nil, 2, nil, 4, nil]
     a.compact.should == [1, 2, 4]
+  end
+
+  specify "compact on array subclasses should return subclass instance" do
+    MyArray[1, 2, 3, nil].compact.class.should == MyArray
   end
   
   specify "compact! should remove all nil elements" do
@@ -291,8 +376,11 @@ context "Array instance method" do
   end
   
   specify "concat should append the elements in the other array" do
-    [1, 2, 3].concat([]).should == [1, 2, 3]
-    [1, 2, 3].concat([9, 10, 11]).should == [1, 2, 3, 9, 10, 11]
+    ary = [1, 2, 3]
+    ary.concat([9, 10, 11]).equal?(ary).should == true
+    ary.should == [1, 2, 3, 9, 10, 11]
+    ary.concat([])
+    ary.should == [1, 2, 3, 9, 10, 11]
   end
   
   specify "concat shouldn't loop endlessly when argument is self" do
@@ -394,6 +482,12 @@ context "Array instance method" do
     a.eql?(b).should == true
     a.eql?(c).should == false
     a.eql?(d).should == false
+  end
+
+  specify "eql? should ignore array class differences" do
+    MyArray[1, 2, 3].eql?([1, 2, 3]).should == true
+    MyArray[1, 2, 3].eql?(MyArray[1, 2, 3]).should == true
+    [1, 2, 3].eql?(MyArray[1, 2, 3]).should == true
   end
 
   specify "fetch should return the element at index" do
@@ -505,7 +599,7 @@ context "Array instance method" do
     should_raise(ArgumentError) { [1, 2].first(-1) }
   end
   
-  specify "first should return the entire array when count > length " do
+  specify "first should return the entire array when count > length" do
     [1, 2, 3, 4, 5, 9].first(10).should == [1, 2, 3, 4, 5, 9]
   end
 
@@ -513,6 +607,12 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_int() 2 end
     [1, 2, 3, 4, 5].first(obj).should == [1, 2]
+  end
+  
+  specify "first with count on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].first(0).class.should == Array
+    MyArray[1, 2, 3].first(1).class.should == Array
+    MyArray[1, 2, 3].first(2).class.should == Array
   end
   
   specify "flatten should return a one-dimensional flattening recursively" do
@@ -539,6 +639,12 @@ context "Array instance method" do
     x << y
     y << x
     should_raise(ArgumentError) { x.flatten }
+  end
+
+  specify "flatten on array subclasses should return subclass instance" do
+    MyArray[].flatten.class.should == MyArray
+    MyArray[1, 2, 3].flatten.class.should == MyArray
+    MyArray[1, [2], 3].flatten.class.should == MyArray
   end
   
   specify "flatten! should modify array to produce a one-dimensional flattening recursively" do
@@ -600,6 +706,11 @@ context "Array instance method" do
     
     ary.hash
     ary.each { |obj| obj.frozen?.should == true }
+  end
+  
+  specify "hash should ignore array class differences" do
+    MyArray[].hash.should == [].hash
+    MyArray[1, 2].hash.should == [1, 2].hash
   end
   
   specify "include? should return true if object is present, false otherwise" do
@@ -790,12 +901,12 @@ context "Array instance method" do
     [1, 2, 3, 4, 5, 9].last(10).should == [1, 2, 3, 4, 5, 9]
   end
 
-  specify "last should call to_int on count" do
-    obj = Object.new
-    def obj.to_int() 2 end
-    [1, 2, 3, 4].last(obj).should == [3, 4]
+  specify "last with count on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].last(0).class.should == Array
+    MyArray[1, 2, 3].last(1).class.should == Array
+    MyArray[1, 2, 3].last(2).class.should == Array
   end
-
+  
   specify "length should return the number of elements" do
     [].length.should == 0
     [1, 2, 3].length.should == 3
@@ -804,6 +915,10 @@ context "Array instance method" do
   specify "map should be a synonym for collect" do
     a = ['a', 'b', 'c', 'd']
     a.map { |i| i + '!'}.should == a.collect { |i| i + '!' }
+  end
+
+  specify "map on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].map { |x| x }.class.should == Array
   end
   
   specify "map! should be a synonym for collect!" do
@@ -833,6 +948,13 @@ context "Array instance method" do
     ary.partition { |i| nil }.should == [[], ary]
     ary.partition { |i| i % 2 == 0 }.should == [[0, 2, 4], [1, 3, 5]]
     ary.partition { |i| i / 3 == 0 }.should == [[0, 1, 2], [3, 4, 5]]
+  end
+  
+  specify "partition on array subclasses shouldn't return subclass instances" do
+    result = MyArray[1, 2, 3].partition { |x| x % 2 == 0 }
+    result.class.should == Array
+    result[0].class.should == Array
+    result[1].class.should == Array
   end
   
   specify "pop should remove and return the last element of the array" do
@@ -890,6 +1012,12 @@ context "Array instance method" do
     ary.reject { |i| i % 2 == 0 }.should == [1, 3, 5]
   end
   
+  # Returns MyArray on MRI 1.8 which is inconsistent with select.
+  # It has been changed on 1.9 however.
+  specify "reject on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == Array
+  end
+  
   specify "reject! should remove elements for which block is true" do
     a = [3, 4, 5, 6, 7, 8, 9, 10, 11]
     a.reject! { |i| i % 2 == 0 }.equal?(a).should == true
@@ -942,6 +1070,10 @@ context "Array instance method" do
     [].reverse.should == []
     [1, 3, 5, 2].reverse.should == [2, 5, 3, 1]
   end
+
+  specify "reverse on array subclasses should return subclass instance" do
+    MyArray[1, 2, 3].reverse.class.should == MyArray
+  end  
   
   specify "reverse! should reverse the elements in place" do
     a = [6, 3, 4, 2, 1]
@@ -980,6 +1112,10 @@ context "Array instance method" do
   
   specify "select should return a new array of elements for which block is true" do
     [1, 3, 4, 5, 6, 9].select { |i| i % ((i + 1) / 2) == 0}.should == [1, 4, 6]
+  end
+
+  specify "select on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].select { true }.class.should == Array
   end
   
   specify "shift should remove and return the first element" do
@@ -1217,6 +1353,13 @@ context "Array instance method" do
     a.should == [1, 2]
   end
   
+  specify "slice on array subclasses should return subclass instance" do
+    ary = MyArray[1, 2, 3]
+    ary.slice(0, 0).class.should == MyArray
+    ary.slice(0, 2).class.should == MyArray
+    ary.slice(0..10).class.should == MyArray
+  end
+  
   specify "[] should behave the same as slice" do
     ary = [1, 2, 3, 4]
     (-6 .. +6).each do |a|
@@ -1228,6 +1371,13 @@ context "Array instance method" do
         ary[a...b].should == ary.slice(a...b)
       end
     end
+  end
+  
+  specify "[] on array subclasses should return subclass instance" do
+    ary = MyArray[1, 2, 3]
+    ary[0, 0].class.should == MyArray
+    ary[0, 2].class.should == MyArray
+    ary[0..10].class.should == MyArray
   end
   
   specify "[]= with index should set single elements" do
@@ -1586,7 +1736,7 @@ context "Array instance method" do
     [d, 1].sort.should == [1, d]
   end
 
-  it 'will raise an ArgumentError if the comparison cannot be completed' do
+  specify "sort raises an ArgumentError if the comparison cannot be completed" do
     d = D.new
 
     # Fails essentially because of d.<=>(e) whereas d.<=>(1) would work
@@ -1597,6 +1747,11 @@ context "Array instance method" do
     a = [5, 1, 4, 3, 2]
     a.sort.should == [1, 2, 3, 4, 5]
     a.sort {|x, y| y <=> x}.should == [5, 4, 3, 2, 1]
+  end
+  
+  specify "sort on array subclasses should return subclass instance" do
+    ary = MyArray[1, 2, 3]
+    ary.sort.class.should == MyArray
   end
   
   specify "sort! should sort array in place using <=>" do
@@ -1617,17 +1772,17 @@ context "Array instance method" do
     a.equal?(a.to_a).should == true 
   end
   
-  specify "to_a called on a subclass of Array should return an instance of Array" do
-    class E < Array; end
-    E.new.to_a.class.should == Array
-    
-    e = E.new
+  specify "to_a on array subclasses shouldn't return subclass instance" do
+    e = MyArray.new
     e << 1
+    e.to_a.class.should == Array
     e.to_a.should == [1]
   end
   
   specify "to_ary returns self" do
     a = [1, 2, 3]
+    a.equal?(a.to_ary).should == true
+    a = MyArray[1, 2, 3]
     a.equal?(a.to_ary).should == true
   end
   
@@ -1638,25 +1793,39 @@ context "Array instance method" do
     a.to_s.should == a.join
     $, = ''
   end
-  
+
   specify "transpose assumes an array of arrays and should return the result of transposing rows and columns" do
     [[1, 'a'], [2, 'b'], [3, 'c']].transpose.should == [[1, 2, 3], ["a", "b", "c"]]
   end
 
   specify 'transpose raises if the elements of the array are not Arrays or respond to to_ary' do
-    class G; def to_a(); [1, 2]; end; end
-    class H; def to_ary(); [1, 2]; end; end
+    g = Object.new
+    def g.to_a() [1, 2] end
+    h = Object.new
+    def h.to_ary() [1, 2] end
 
-    should_raise(TypeError) { [G.new, [:a, :b]].transpose } 
-    [H.new, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
+    should_raise(TypeError) { [g, [:a, :b]].transpose } 
+    [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
   end
 
-  specify 'transpose raises if the arrays are not of the same length' do
+  specify "transpose should raise if the arrays are not of the same length" do
     should_raise(IndexError) { [[1, 2], [:a]].transpose }
   end
   
+  specify "transpose on array subclasses shouldn't return subclass instance" do
+    result = MyArray[MyArray[1, 2, 3], MyArray[4, 5, 6]].transpose
+    result.class.should == Array
+    result[0].class.should == Array
+    result[1].class.should == Array
+  end
+  
   specify "uniq should return an array with no duplicates" do
-    [ "a", "a", "b", "b", "c" ].uniq.should == ["a", "b", "c"]
+    ["a", "a", "b", "b", "c"].uniq.should == ["a", "b", "c"]
+    [1.0, 1].uniq.should == [1.0, 1]
+  end
+  
+  specify "uniq on array subclasses should return subclass instance" do
+    MyArray[1, 2, 3].uniq.class.should == MyArray
   end
   
   specify "uniq! modifies the array in place" do
@@ -1676,28 +1845,80 @@ context "Array instance method" do
   
   specify "unshift should prepend object to the original array" do
     a = [1, 2, 3]
-    a.unshift("a").should == ["a", 1, 2, 3]
+    a.unshift("a").equal?(a).should == true
     a.should == ['a', 1, 2, 3]
+    a.unshift().equal?(a).should == true
+    a.should == ['a', 1, 2, 3]
+    a.unshift(5, 4, 3)
+    a.should == [5, 4, 3, 'a', 1, 2, 3]
   end
   
-  specify "values_at with indexes should return an array of elements at the indexes" do
+  specify "values_at with indices should return an array of elements at the indexes" do
+    [1, 2, 3, 4, 5].values_at().should == []
     [1, 2, 3, 4, 5].values_at(1, 0, 5, -1, -8, 10).should == [2, 1, nil, 5, nil, nil]
+  end
+
+  specify "values_at should call to_int on its indices" do
+    obj = Object.new
+    def obj.to_int() 1 end
+    [1, 2].values_at(obj, obj, obj).should == [2, 2, 2]
   end
   
   specify "values_at with ranges should return an array of elements in the ranges" do
     [1, 2, 3, 4, 5].values_at(0..2, 1...3, 4..6).should == [1, 2, 3, 2, 3, 5, nil]
+    [1, 2, 3, 4, 5].values_at(6..4).should == []
+  end
+
+  specify "values_at with ranges should call to_int on arguments of ranges" do
+    from = Object.new
+    to = Object.new
+
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+
+    def from.to_int() 1 end
+    def to.to_int() -2 end
+      
+    ary = [1, 2, 3, 4, 5]
+    ary.values_at(from .. to, from ... to, to .. from).should == [2, 3, 4, 2, 3]
   end
   
-  specify "zip should return an array of arrays containing cooresponding elements of each array" do
-    [1, 2, 3, 4].zip(["a", "b", "c", "d"]).should == [[1, "a"], [2, "b"], [3, "c"], [4, "d"]]
+  specify "values_at on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].values_at(0, 1..2, 1).class.should == Array
+  end
+  
+  specify "zip should return an array of arrays containing corresponding elements of each array" do
+    [1, 2, 3, 4].zip(["a", "b", "c", "d", "e"]).should ==
+      [[1, "a"], [2, "b"], [3, "c"], [4, "d"]]
   end
   
   specify 'zip fills in missing values with nil' do
-    [1, 2, 3, 4, 5].zip(["a", "b", "c", "d"]).should == [[1, "a"], [2, "b"], [3, "c"], [4, "d"], [5, nil]]
+    [1, 2, 3, 4, 5].zip(["a", "b", "c", "d"]).should ==
+      [[1, "a"], [2, "b"], [3, "c"], [4, "d"], [5, nil]]
+  end
+  
+  # MRI 1.8.4 uses to_ary, but it's been fixed in 1.9, perhaps also in 1.8.5
+  specify "zip should call to_a on its arguments" do
+    [1, 2, 3].zip("f" .. "z", 1 .. 9).should ==
+      [[1, "f", 1], [2, "g", 2], [3, "h", 3]]
+  end  
+
+  specify "zip should call block if supplied" do
+    values = []
+    [1, 2, 3, 4].zip(["a", "b", "c", "d", "e"]) { |value|
+      values << value
+    }.should == nil
+    
+    values.should == [[1, "a"], [2, "b"], [3, "c"], [4, "d"]]
+  end
+  
+  specify "zip on array subclasses shouldn't return subclass instance" do
+    MyArray[1, 2, 3].zip(["a", "b"]).class.should == Array
   end
 end
 
-describe 'Array substringing using #[] and #slice' do
+describe 'Array access using #[] and #slice' do
   # These two must be synonymous
   %w|[] slice|.each do |cmd|
 
@@ -2547,18 +2768,6 @@ describe 'Array packing' do
 #          v     |  Short, little-endian byte order
 #          w     |  BER-compressed integer\fnm
 
-end
-
-describe 'Empty Array' do
-end
-
-describe 'Array with one item' do
-end
-
-describe 'Array with multiple items' do
-end
-
-describe 'Array with multiple similar items' do
 end
 
 # Redundant, should be in Object --rue
