@@ -12,7 +12,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # slice, slice!, sort, sort!, to_a, to_ary, to_s, transpose, uniq,
 # uniq!, unshift, values_at, zip, |
 
-context "Array class methods" do
+context "Array class method" do
   specify "new without arguments should return a new array" do
     a = Array.new
     a.class.should == Array
@@ -51,8 +51,7 @@ context "Array class methods" do
   end
 end
 
-context "Array instance methods" do
-  
+context "Array instance method" do
   specify "& should create an array with elements common to both arrays (intersection)" do
     ([] & []).should == []
     ([1, 2] & []).should == []
@@ -213,6 +212,15 @@ context "Array instance methods" do
     
     [].should_not == [obj]
     [obj].should_not == []
+  end
+
+  # Broken in MRI as well. See MRI bug #11585:
+  # http://rubyforge.org/tracker/index.php?func=detail&aid=11585&group_id=426&atid=1698
+  specify "== should call to_ary on its argument" do
+    obj = Object.new
+    obj.should_receive(:to_ary, :returning => [1, 2, 3])
+    
+    [1, 2, 3].should == obj
   end
 
   specify "assoc should return the first contained array the first element of which is obj" do
@@ -659,35 +667,103 @@ context "Array instance methods" do
     init_ary.should == repl_ary
   end
   
-  specify "insert with non-negative index should insert object before the element at index" do
-    [1, 2, 3].insert(1, 'a').should == [1, "a", 2, 3]
+  specify "insert with non-negative index should insert objects before the element at index" do
+    ary = []
+    ary.insert(0, 3).equal?(ary).should == true
+    ary.should == [3]
+
+    ary.insert(0, 1, 2).equal?(ary).should == true
+    ary.should == [1, 2, 3]
+    
+    # Let's just assume insert() always modifies the array from now on.
+    ary.insert(1, 'a').should == [1, 'a', 2, 3]
+    ary.insert(0, 'b').should == ['b', 1, 'a', 2, 3]
+    ary.insert(5, 'c').should == ['b', 1, 'a', 2, 3, 'c']
+    ary.insert(7, 'd').should == ['b', 1, 'a', 2, 3, 'c', nil, 'd']
+    ary.insert(10, 5, 4).should == ['b', 1, 'a', 2, 3, 'c', nil, 'd', nil, nil, 5, 4]
   end
 
-  specify "insert with index -1 should append object to the end" do
-    [1, 3, 3].insert(-1, 2).should == [1, 3, 3, 2]
+  specify "insert with index -1 should append objects to the end" do
+    [1, 3, 3].insert(-1, 2, 'x', 0.5).should == [1, 3, 3, 2, 'x', 0.5]
   end
 
-  specify "insert with negative index should insert object after the element at index" do
-    [1, 2, 3].insert(-2, -3).should == [1, 2, -3, 3]
-    [1, 2, 3].insert(-1, -3).should == [1, 2, 3, -3]
+  specify "insert with negative index should insert objects after the element at index" do
+    ary = []
+    ary.insert(-1, 3).should == [3]
+    ary.insert(-2, 2).should == [2, 3]
+    ary.insert(-3, 1).should == [1, 2, 3]
+    ary.insert(-2, -3).should == [1, 2, -3, 3]
+    ary.insert(-1, []).should == [1, 2, -3, 3, []]
+    ary.insert(-2, 'x', 'y').should == [1, 2, -3, 3, 'x', 'y', []]
+    ary = [1, 2, 3]
   end
   
-  specify 'inspect should return a string equivalent to evaluated source code representation' do
+  specify "insert with negative index beyond array should raise" do
+    should_raise(IndexError) { [].insert(-2, 1) }
+    should_raise(IndexError) { [1].insert(-3, 2) }
+  end
+
+  specify "insert without objects should do nothing" do
+    [].insert(0).should == []
+    [].insert(-1).should == []
+    [].insert(10).should == []
+    [].insert(-2).should == []
+  end
+
+  specify "insert should call to_int on position argument" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    [].insert(obj, 'x').should == [nil, nil, 'x']
+  end
+  
+  specify "inspect should return a string equivalent to evaluated source code representation" do
     [1, 2, 3].inspect.should == '[1, 2, 3]'
     [1, 2, 3 + 4].inspect.should == '[1, 2, 7]'
+    [1, ['a', nil, [], 5.0], [[]], -4].inspect.should ==
+      '[1, ["a", nil, [], 5.0], [[]], -4]'
+  end
+
+  specify "inspect should call inspect on its arguments" do
+    items = Array.new(3) do |i|
+      obj = Object.new
+      obj.should_receive(:inspect, :returning => "items[#{i}]")
+      obj
+    end
+    
+    items.inspect.should == '[items[0], items[1], items[2]]'
   end
   
-  specify "join should return a string formed by concatentating each element.to_s separated by separator without trailing separator" do
-    class C; def to_s; 'foo'; end; end
+  specify "inspect should handle recursive arrays" do
+    x = [1, 2]
+    x << x << 4
+    x.inspect.should == '[1, 2, [...], 4]'
 
-    [1, 2, 3, 4, C.new].join(' | ').should == '1 | 2 | 3 | 4 | foo'
+    x = [1, 2]
+    y = [3, 4]
+    x << y
+    y << x
+    x.inspect.should == '[1, 2, [3, 4, [...]]]'
+    y.inspect.should == '[3, 4, [1, 2, [...]]]'
+  end
+  
+  specify "join should return a string formed by concatenating each element.to_s separated by separator without trailing separator" do
+    obj = Object.new
+    def obj.to_s() 'foo' end
+
+    [1, 2, 3, 4, obj].join(' | ').should == '1 | 2 | 3 | 4 | foo'
   end
 
-  specify 'The separator to #join defaults to $, (which defaults to empty)' do
+  specify "join's separator defaults to $, (which defaults to empty)" do
     [1, 2, 3].join.should == '123'
     old, $, = $,, '-'
     [1, 2, 3].join.should == '1-2-3'
     $, = old
+  end
+  
+  specify "join should call to_str on its separator argument" do
+    obj = Object.new
+    def obj.to_str() '::' end    
+    [1, 2, 3, 4].join(obj).should == '1::2::3::4'
   end
   
   specify "last returns the last element" do
@@ -714,7 +790,14 @@ context "Array instance methods" do
     [1, 2, 3, 4, 5, 9].last(10).should == [1, 2, 3, 4, 5, 9]
   end
 
+  specify "last should call to_int on count" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    [1, 2, 3, 4].last(obj).should == [3, 4]
+  end
+
   specify "length should return the number of elements" do
+    [].length.should == 0
     [1, 2, 3].length.should == 3
   end
   
@@ -725,30 +808,47 @@ context "Array instance methods" do
   
   specify "map! should be a synonym for collect!" do
     a, b = [7, 9, 3, 5], [7, 9, 3, 5]
-    a.map! { |i| i - 1 }
-    b.collect! { |i| i - 1 }
-
+    a.map! { |i| i - 1 }.should == b.collect! { |i| i - 1 }
     a.should == b
   end
   
   specify "nitems should return the number of non-nil elements" do
+    [nil].nitems.should == 0
+    [].nitems.should == 0    
+    [1, 2, 3, nil].nitems.should == 3
+    [1, 2, 3].nitems.should == 3
     [1, nil, 2, 3, nil, nil, 4].nitems.should == 4
   end
   
   specify "partition should return two arrays" do
-    [].partition.should == [[], []]
+    [].partition {}.should == [[], []]
   end
   
   specify "partition should return in the left array values for which the block evaluates to true" do
-    [ 0,1,2,3,4,5 ].partition { |i| i % 2 == 0 }.should == [[0, 2, 4], [1, 3, 5]]
+    ary = [0, 1, 2, 3, 4, 5]
+
+    ary.partition { |i| true }.should == [ary, []]
+    ary.partition { |i| 5 }.should == [ary, []]
+    ary.partition { |i| false }.should == [[], ary]
+    ary.partition { |i| nil }.should == [[], ary]
+    ary.partition { |i| i % 2 == 0 }.should == [[0, 2, 4], [1, 3, 5]]
+    ary.partition { |i| i / 3 == 0 }.should == [[0, 1, 2], [3, 4, 5]]
   end
   
   specify "pop should remove and return the last element of the array" do
     a = ["a", 1, nil, true]
-    i = a.pop
+    
+    a.pop.should == true
+    a.should == ["a", 1, nil]
 
-    i.should == true
-    a.should == ['a', 1, nil]
+    a.pop.should == nil
+    a.should == ["a", 1]
+
+    a.pop.should == 1
+    a.should == ["a"]
+
+    a.pop.should == "a"
+    a.should == []
   end
   
   specify "pop should return nil if there are no more elements" do
@@ -757,40 +857,97 @@ context "Array instance methods" do
   
   specify "push should append the arguments to the array" do
     a = [ "a", "b", "c" ]
-    a.push("d", "e", "f")
-    a.should == ["a", "b", "c", "d", "e", "f"]
+    a.push("d", "e", "f").equal?(a).should == true
+    a.push().should == ["a", "b", "c", "d", "e", "f"]
+    a.push(5)
+    a.should == ["a", "b", "c", "d", "e", "f", 5]
   end
   
   specify "rassoc should return the first contained array whose second element is == object" do
-    [[1, "a"], [2, "b"], [3, "b"], [4, "c"]].rassoc("b").should == [2, "b"]
+    ary = [[1, "a", 0.5], [2, "b"], [3, "b"], [4, "c"], [], [5], [6, "d"]]
+    ary.rassoc("a").should == [1, "a", 0.5]
+    ary.rassoc("b").should == [2, "b"]
+    ary.rassoc("d").should == [6, "d"]
+    ary.rassoc("z").should == nil
+  end
+  
+  specify "rassoc should call == on argument" do
+    key = Object.new
+    items = Array.new(3) { ["foo", Object.new, "bar"] }
+    items[0][1].should_receive(:==, :with => [key], :returning => false)
+    items[1][1].should_receive(:==, :with => [key], :returning => true)
+    items[2][1].should_not_receive(:==, :with => [key])
+    items.rassoc(key).should == items[1]
   end
   
   specify "reject should return a new array without elements for which block is true" do
-    [1, 2, 3, 4, 5].reject { |i| i < 3 }.should == [3, 4, 5]
+    ary = [1, 2, 3, 4, 5]
+    ary.reject { true }.should == []
+    ary.reject { false }.should == ary
+    ary.reject { nil }.should == ary
+    ary.reject { 5 }.should == []
+    ary.reject { |i| i < 3 }.should == [3, 4, 5]
+    ary.reject { |i| i % 2 == 0 }.should == [1, 3, 5]
   end
   
   specify "reject! should remove elements for which block is true" do
     a = [3, 4, 5, 6, 7, 8, 9, 10, 11]
-    a.reject! { |i| i % 2 == 0 }
+    a.reject! { |i| i % 2 == 0 }.equal?(a).should == true
     a.should == [3, 5, 7, 9, 11]
+    a.reject! { |i| i > 8 }
+    a.should == [3, 5, 7]
+    a.reject! { |i| i < 4 }
+    a.should == [5, 7]
+    a.reject! { |i| i == 5 }
+    a.should == [7]
+    a.reject! { true }
+    a.should == []
+    a.reject! { true }
+    a.should == []
   end
   
   specify "reject! should return nil if no changes are made" do
-    [1, 2, 3].reject! { |i| i < 0 }.should == nil
+    a = [1, 2, 3]
+    
+    a.reject! { |i| i < 0 }.should == nil
+    
+    a.reject! { true }
+    a.reject! { true }.should == nil
   end
   
   specify "replace should replace the elements with elements from other array" do
-    [1, 2, 3, 4, 5].replace(['a', 'b', 'c']).should == ["a", "b", "c"]
+    a = [1, 2, 3, 4, 5]
+    b = ['a', 'b', 'c']
+    a.replace(b).equal?(a).should == true
+    a.should == b
+    a.equal?(b).should == false
+
+    a.replace([4] * 10)
+    a.should == [4] * 10
+    
+    a.replace([])
+    a.should == []
+  end
+  
+  specify "replace should call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() [1, 2, 3] end
+      
+    ary = []
+    ary.replace(obj)
+    ary.should == [1, 2, 3]
   end
   
   specify "reverse should return a new array with the elements in reverse order" do
+    [].reverse.should == []
     [1, 3, 5, 2].reverse.should == [2, 5, 3, 1]
   end
   
   specify "reverse! should reverse the elements in place" do
     a = [6, 3, 4, 2, 1]
-    a.reverse!
+    a.reverse!.equal?(a).should == true
     a.should == [1, 2, 4, 3, 6]
+    [].reverse!.should == []
   end
   
   specify "reverse_each should traverse array in reverse order and pass each element to block" do
@@ -800,9 +957,13 @@ context "Array instance methods" do
   end
   
   specify "rindex returns the first index backwards from the end where element == to object" do
-    class X; def ==(obj); 3 == obj; end; end
+    key = 3    
+    ary = Array.new(3) { Object.new }
+    ary[2].should_receive(:==, :with => [key], :returning => false)
+    ary[1].should_receive(:==, :with => [key], :returning => true)
+    ary[0].should_not_receive(:==)
 
-    [2, 3, 3, 1, X.new, 1].rindex(3).should == 4
+    ary.rindex(key).should == 1
   end
 
   specify "rindex returns size-1 if last element == to object" do
@@ -825,6 +986,14 @@ context "Array instance methods" do
     a = [5, 1, 1, 5, 4]
     a.shift.should == 5
     a.should == [1, 1, 5, 4]
+    a.shift.should == 1
+    a.should == [1, 5, 4]
+    a.shift.should == 1
+    a.should == [5, 4]
+    a.shift.should == 5
+    a.should == [4]
+    a.shift.should == 4
+    a.should == []
   end
   
   specify "shift should return nil when the array is empty" do
@@ -835,26 +1004,573 @@ context "Array instance methods" do
     [1, 2, 3].size.should == [1, 2, 3].length
   end
   
-  # FIX: test in terms of #slice or #[]
+  specify "slice with index should return the element at index" do
+    a = [1, 2, 3, 4]
+    
+    a.slice(0).should == 1
+    a.slice(1).should == 2
+    a.slice(2).should == 3
+    a.slice(3).should == 4
+    a.slice(4).should == nil
+    a.slice(10).should == nil
+
+    a.slice(-1).should == 4
+    a.slice(-2).should == 3
+    a.slice(-3).should == 2
+    a.slice(-4).should == 1
+    a.slice(-5).should == nil
+    a.slice(-10).should == nil
+
+    a.should == [1, 2, 3, 4]
+  end
+  
+  specify "slice with start, length should return length elements beginning at start" do
+    a = [1, 2, 3, 4]
+    a.slice(0, 0).should == []
+    a.slice(0, 1).should == [1]
+    a.slice(0, 2).should == [1, 2]
+    a.slice(0, 4).should == [1, 2, 3, 4]
+    a.slice(0, 6).should == [1, 2, 3, 4]
+    a.slice(0, -1).should == nil
+    a.slice(0, -2).should == nil
+    a.slice(0, -4).should == nil
+
+    a.slice(2, 0).should == []
+    a.slice(2, 1).should == [3]
+    a.slice(2, 2).should == [3, 4]
+    a.slice(2, 4).should == [3, 4]
+    a.slice(2, -1).should == nil
+
+    a.slice(4, 0).should == []
+    a.slice(4, 2).should == []
+    a.slice(4, -1).should == nil
+
+    a.slice(5, 0).should == nil
+    a.slice(5, 2).should == nil
+    a.slice(5, -1).should == nil
+
+    a.slice(6, 0).should == nil
+    a.slice(6, 2).should == nil
+    a.slice(6, -1).should == nil
+    
+    a.slice(-1, 0).should == []
+    a.slice(-1, 1).should == [4]
+    a.slice(-1, 2).should == [4]
+    a.slice(-1, -1).should == nil
+
+    a.slice(-2, 0).should == []
+    a.slice(-2, 1).should == [3]
+    a.slice(-2, 2).should == [3, 4]
+    a.slice(-2, 4).should == [3, 4]
+    a.slice(-2, -1).should == nil
+
+    a.slice(-4, 0).should == []
+    a.slice(-4, 1).should == [1]
+    a.slice(-4, 2).should == [1, 2]
+    a.slice(-4, 4).should == [1, 2, 3, 4]
+    a.slice(-4, 6).should == [1, 2, 3, 4]
+    a.slice(-4, -1).should == nil
+
+    a.slice(-5, 0).should == nil
+    a.slice(-5, 1).should == nil
+    a.slice(-5, 10).should == nil
+    a.slice(-5, -1).should == nil
+
+    a.should == [1, 2, 3, 4]
+  end
+
+  specify "slice should call to_int on start and length arguments" do
+    obj = Object.new
+    def obj.to_int() 2 end
+      
+    a = [1, 2, 3, 4]
+    a.slice(obj).should == 3
+    a.slice(obj, 1).should == [3]
+    a.slice(obj, obj).should == [3, 4]
+    a.slice(0, obj).should == [1, 2]
+  end
+
+  specify "slice with range should return elements in range" do
+    a = [1, 2, 3, 4]
+    a.slice(0..-10).should == []
+    a.slice(0...-10).should == []
+    a.slice(0..0).should == [1]
+    a.slice(0...0).should == []
+    a.slice(0..1).should == [1, 2]
+    a.slice(0...1).should == [1]
+    a.slice(0..2).should == [1, 2, 3]
+    a.slice(0...2).should == [1, 2]
+    a.slice(0..3).should == [1, 2, 3, 4]
+    a.slice(0...3).should == [1, 2, 3]
+    a.slice(0..4).should == [1, 2, 3, 4]
+    a.slice(0...4).should == [1, 2, 3, 4]
+    a.slice(0..10).should == [1, 2, 3, 4]
+    a.slice(0...10).should == [1, 2, 3, 4]
+    
+    a.slice(2..-10).should == []
+    a.slice(2...-10).should == []
+    a.slice(2..0).should == []
+    a.slice(2...0).should == []
+    a.slice(2..2).should == [3]
+    a.slice(2...2).should == []
+    a.slice(2..3).should == [3, 4]
+    a.slice(2...3).should == [3]
+    a.slice(2..4).should == [3, 4]
+    a.slice(2...4).should == [3, 4]
+
+    a.slice(3..0).should == []
+    a.slice(3...0).should == []
+    a.slice(3..3).should == [4]
+    a.slice(3...3).should == []
+    a.slice(3..4).should == [4]
+    a.slice(3...4).should == [4]
+    
+    a.slice(4..0).should == []
+    a.slice(4...0).should == []
+    a.slice(4..4).should == []
+    a.slice(4...4).should == []
+    a.slice(4..5).should == []
+    a.slice(4...5).should == []
+
+    a.slice(5..0).should == nil
+    a.slice(5...0).should == nil
+    a.slice(5..5).should == nil
+    a.slice(5...5).should == nil
+    a.slice(5..6).should == nil
+    a.slice(5...6).should == nil
+    
+    a.slice(-1..-1).should == [4]
+    a.slice(-1...-1).should == []
+    a.slice(-1..3).should == [4]
+    a.slice(-1...3).should == []
+    a.slice(-1..4).should == [4]
+    a.slice(-1...4).should == [4]
+    a.slice(-1..10).should == [4]
+    a.slice(-1...10).should == [4]
+    a.slice(-1..0).should == []
+    a.slice(-1..-4).should == []
+    a.slice(-1...-4).should == []
+    a.slice(-1..-6).should == []
+    a.slice(-1...-6).should == []
+
+    a.slice(-2..-2).should == [3]
+    a.slice(-2...-2).should == []
+    a.slice(-2..-1).should == [3, 4]
+    a.slice(-2...-1).should == [3]
+    a.slice(-2..10).should == [3, 4]
+    a.slice(-2...10).should == [3, 4]
+
+    a.slice(-4..-4).should == [1]
+    a.slice(-4..-2).should == [1, 2, 3]
+    a.slice(-4...-2).should == [1, 2]
+    a.slice(-4..-1).should == [1, 2, 3, 4]
+    a.slice(-4...-1).should == [1, 2, 3]
+    a.slice(-4..3).should == [1, 2, 3, 4]
+    a.slice(-4...3).should == [1, 2, 3]
+    a.slice(-4..4).should == [1, 2, 3, 4]
+    a.slice(-4...4).should == [1, 2, 3, 4]
+    a.slice(-4...4).should == [1, 2, 3, 4]
+    a.slice(-4..0).should == [1]
+    a.slice(-4...0).should == []
+    a.slice(-4..1).should == [1, 2]
+    a.slice(-4...1).should == [1]
+
+    a.slice(-5..-5).should == nil
+    a.slice(-5...-5).should == nil
+    a.slice(-5..-4).should == nil
+    a.slice(-5..-1).should == nil
+    a.slice(-5..10).should == nil
+    
+    a.should == [1, 2, 3, 4]
+  end
+  
+  specify "slice with range should call to_int on range arguments" do
+    from = Object.new
+    to = Object.new
+
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+
+    def from.to_int() 1 end
+    def to.to_int() -2 end
+      
+    a = [1, 2, 3, 4]
+      
+    a.slice(from .. to).should == [2, 3]
+    a.slice(1..0).should == []
+    should_raise(TypeError) { a.slice("a" .. "b") }
+    should_raise(TypeError) { a.slice(from .. "b") }
+  end
+  
+  specify "slice with indices outside of array should not expand array" do
+    a = [1, 2]
+    a.slice(4).should == nil
+    a.should == [1, 2]
+    a.slice(4, 0).should == nil
+    a.should == [1, 2]
+    a.slice(6, 1).should == nil
+    a.should == [1, 2]
+    a.slice(8...8).should == nil
+    a.should == [1, 2]
+    a.slice(10..10).should == nil
+    a.should == [1, 2]
+  end
+  
+  specify "[] should behave the same as slice" do
+    ary = [1, 2, 3, 4]
+    (-6 .. +6).each do |a|
+      ary[a].should == ary.slice(a)
+      
+      (-6 .. +6).each do |b|
+        ary[a, b].should == ary.slice(a, b)
+        ary[a..b].should == ary.slice(a..b)
+        ary[a...b].should == ary.slice(a...b)
+      end
+    end
+  end
+  
+  specify "[]= with index should set single elements" do
+    a = []
+    a[4] = "e"
+    a.should == [nil, nil, nil, nil, "e"]
+    a[3] = "d"
+    a.should == [nil, nil, nil, "d", "e"]
+    a[0] = "a"
+    a.should == ["a", nil, nil, "d", "e"]
+    a[-3] = "C"
+    a.should == ["a", nil, "C", "d", "e"]
+    a[-1] = "E"
+    a.should == ["a", nil, "C", "d", "E"]
+    a[-5] = "A"
+    a.should == ["A", nil, "C", "d", "E"]
+    a[5] = "f"
+    a.should == ["A", nil, "C", "d", "E", "f"]
+    a[1] = []
+    a.should == ["A", [], "C", "d", "E", "f"]
+    a[-1] = nil
+    a.should == ["A", [], "C", "d", "E", nil]
+  end
+  
+  specify "[]= with start and negative length should raise" do
+    a = [1, 2, 3, 4]
+    should_raise(IndexError) { a[-2, -1] = "" }
+    should_raise(IndexError) { a[0, -1] = "" }
+    should_raise(IndexError) { a[2, -1] = "" }
+    should_raise(IndexError) { a[4, -1] = "" }
+    should_raise(IndexError) { a[10, -1] = "" }
+  end
+
+  specify "[]= with start, length should set elements" do
+    a = [];   a[0, 0] = nil;            a.should == []
+    a = [];   a[2, 0] = nil;            a.should == [nil, nil]
+    a = [];   a[0, 2] = nil;            a.should == []
+    a = [];   a[2, 2] = nil;            a.should == [nil, nil]
+
+    a = [];   a[0, 0] = [];             a.should == []
+    a = [];   a[2, 0] = [];             a.should == [nil, nil]
+    a = [];   a[0, 2] = [];             a.should == []
+    a = [];   a[2, 2] = [];             a.should == [nil, nil]
+
+    a = [];   a[0, 0] = ["a"];          a.should == ["a"]
+    a = [];   a[2, 0] = ["a"];          a.should == [nil, nil, "a"]
+    a = [];   a[0, 2] = ["a"];          a.should == ["a"]
+    a = [];   a[2, 2] = ["a"];          a.should == [nil, nil, "a"]
+    
+    a = [];   a[0, 0] = ["a","b"];      a.should == ["a", "b"]
+    a = [];   a[2, 0] = ["a","b"];      a.should == [nil, nil, "a", "b"]
+    a = [];   a[0, 2] = ["a","b"];      a.should == ["a", "b"]
+    a = [];   a[2, 2] = ["a","b"];      a.should == [nil, nil, "a", "b"]
+
+    a = [];   a[0, 0] = ["a","b","c"];  a.should == ["a", "b", "c"]
+    a = [];   a[2, 0] = ["a","b","c"];  a.should == [nil, nil, "a", "b", "c"]
+    a = [];   a[0, 2] = ["a","b","c"];  a.should == ["a", "b", "c"]
+    a = [];   a[2, 2] = ["a","b","c"];  a.should == [nil, nil, "a", "b", "c"]
+    
+    a = [1, 2, 3, 4]
+    a[0, 0] = [];         a.should == [1, 2, 3, 4]
+    a[1, 0] = [];         a.should == [1, 2, 3, 4]
+    a[-1,0] = [];         a.should == [1, 2, 3, 4]
+
+    a = [1, 2, 3, 4]
+    a[0, 0] = [8, 9, 9];  a.should == [8, 9, 9, 1, 2, 3, 4]
+    a = [1, 2, 3, 4]
+    a[1, 0] = [8, 9, 9];  a.should == [1, 8, 9, 9, 2, 3, 4]
+    a = [1, 2, 3, 4]
+    a[-1,0] = [8, 9, 9];  a.should == [1, 2, 3, 8, 9, 9, 4]
+    a = [1, 2, 3, 4]
+    a[4, 0] = [8, 9, 9];  a.should == [1, 2, 3, 4, 8, 9, 9]
+
+    a = [1, 2, 3, 4]
+    a[0, 1] = [9];        a.should == [9, 2, 3, 4]
+    a[1, 1] = [8];        a.should == [9, 8, 3, 4]
+    a[-1,1] = [7];        a.should == [9, 8, 3, 7]
+    a[4, 1] = [9];        a.should == [9, 8, 3, 7, 9]
+
+    a = [1, 2, 3, 4]
+    a[0, 1] = [8, 9];     a.should == [8, 9, 2, 3, 4]
+    a = [1, 2, 3, 4]
+    a[1, 1] = [8, 9];     a.should == [1, 8, 9, 3, 4]
+    a = [1, 2, 3, 4]
+    a[-1,1] = [8, 9];     a.should == [1, 2, 3, 8, 9]
+    a = [1, 2, 3, 4]
+    a[4, 1] = [8, 9];     a.should == [1, 2, 3, 4, 8, 9]
+    
+    a = [1, 2, 3, 4]
+    a[0, 2] = [8, 9];     a.should == [8, 9, 3, 4]
+    a = [1, 2, 3, 4]
+    a[1, 2] = [8, 9];     a.should == [1, 8, 9, 4]
+    a = [1, 2, 3, 4]
+    a[-2,2] = [8, 9];     a.should == [1, 2, 8, 9]
+    a = [1, 2, 3, 4]
+    a[-1,2] = [8, 9];     a.should == [1, 2, 3, 8, 9]
+    a = [1, 2, 3, 4]
+    a[4, 2] = [8, 9];     a.should == [1, 2, 3, 4, 8, 9]
+
+    a = [1, 2, 3, 4]
+    a[0, 2] = [7, 8, 9];  a.should == [7, 8, 9, 3, 4]
+    a = [1, 2, 3, 4]
+    a[1, 2] = [7, 8, 9];  a.should == [1, 7, 8, 9, 4]
+    a = [1, 2, 3, 4]
+    a[-2,2] = [7, 8, 9];  a.should == [1, 2, 7, 8, 9]
+    a = [1, 2, 3, 4]
+    a[-1,2] = [7, 8, 9];  a.should == [1, 2, 3, 7, 8, 9]
+    a = [1, 2, 3, 4]
+    a[4, 2] = [7, 8, 9];  a.should == [1, 2, 3, 4, 7, 8, 9]
+    
+    a = [1, 2, 3, 4]
+    a[0, 2] = [1, 1.25, 1.5, 1.75, 2]
+    a.should == [1, 1.25, 1.5, 1.75, 2, 3, 4]
+    a[1, 1] = a[3, 1] = []
+    a.should == [1, 1.5, 2, 3, 4]
+    a[0, 2] = [1]
+    a.should == [1, 2, 3, 4]
+    a[5, 0] = [4, 3, 2, 1]
+    a.should == [1, 2, 3, 4, nil, 4, 3, 2, 1]
+    a[-2, 5] = nil
+    a.should == [1, 2, 3, 4, nil, 4, 3]
+    a[-2, 5] = []
+    a.should == [1, 2, 3, 4, nil]
+    a[0, 2] = nil
+    a.should == [3, 4, nil]
+    a[0, 100] = [1, 2, 3]
+    a.should == [1, 2, 3]
+    a[0, 2] *= 2
+    a.should == [1, 2, 1, 2, 3]
+    a[0, 2] |= [2, 3, 4]
+    a.should == [1, 2, 3, 4, 1, 2, 3]
+    a[2, 0] += [3, 2, 2]
+    a.should == [1, 2, 3, 2, 2, 3, 4, 1, 2, 3]
+    a[0, 4] -= [2, 3]
+    a.should == [1, 2, 3, 4, 1, 2, 3]
+    a[0, 6] &= [4]
+    a.should == [4, 3]
+  end
+  
+  specify "[]= should call to_int on its start and length arguments" do
+    obj = Object.new
+    def obj.to_int() 2 end
+      
+    a = [1, 2, 3, 4]
+    a[obj, 0] = [9]
+    a.should == [1, 2, 9, 3, 4]
+    a[obj, obj] = []
+    a.should == [1, 2, 4]
+    a[obj] = -1
+    a.should == [1, 2, -1]
+  end
+  
+  specify "[]= with range argument should set elements" do
+    ary = [1, 2, 3]
+    rhs = [nil, [], ["x"], ["x", "y"]]
+    (0 .. ary.size + 2).each do |a|
+      (a .. ary.size + 3).each do |b|
+        rhs.each do |c|
+          ary1 = ary.dup
+          ary1[a .. b] = c
+          ary2 = ary.dup
+          ary2[a, 1 + b-a] = c
+          ary1.should == ary2
+          
+          ary1 = ary.dup
+          ary1[a ... b] = c
+          ary2 = ary.dup
+          ary2[a, b-a] = c
+          ary1.should == ary2
+        end
+      end
+    end
+    
+    # Now we only have to test cases where the start, length interface would
+    # have raise an exception because of negative size
+    ary[1...1] = [5]
+    ary.should == [1, 5, 2, 3]
+    ary[1..0] = [4, 3]
+    ary.should == [1, 4, 3, 5, 2, 3]
+    ary[-1..0] = nil
+    ary.should == [1, 4, 3, 5, 2, 3]
+    ary[-3..2] = []
+    ary.should == [1, 4, 3, 5, 2, 3]
+    ary[4..2] = []
+    ary.should == [1, 4, 3, 5, 2, 3]
+  end
+
+  specify "[]= with range should call to_int on range arguments" do
+    from = Object.new
+    to = Object.new
+
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+
+    def from.to_int() 1 end
+    def to.to_int() -2 end
+      
+    a = [1, 2, 3, 4]
+      
+    a[from .. to] = ["a", "b", "c"]
+    a.should == [1, "a", "b", "c", 4]
+
+    a[1..0] = ["x"]
+    a.should == [1, "x", "a", "b", "c", 4]
+    should_raise(TypeError) { a["a" .. "b"] = [] }
+    should_raise(TypeError) { a[from .. "b"] = [] }
+  end
+  
+  specify "[]= with negative index beyond array should raise" do
+    a = [1, 2, 3, 4]
+    should_raise(IndexError) { a[-5] = "" }
+    should_raise(IndexError) { a[-5, -1] = "" }
+    should_raise(IndexError) { a[-5, 0] = "" }
+    should_raise(IndexError) { a[-5, 1] = "" }
+    should_raise(IndexError) { a[-5, 2] = "" }
+    should_raise(IndexError) { a[-5, 10] = "" }
+    
+    should_raise(RangeError) { a[-5..-5] = "" }
+    should_raise(RangeError) { a[-5...-5] = "" }
+    should_raise(RangeError) { a[-5..-4] = "" }
+    should_raise(RangeError) { a[-5...-4] = "" }
+    should_raise(RangeError) { a[-5..10] = "" }
+    should_raise(RangeError) { a[-5...10] = "" }
+    
+    # ok
+    a[0..-9] = [1]
+    a.should == [1, 1, 2, 3, 4]
+  end
+  
+  specify "[]= should call to_ary on its rhs argument for multi-element sets" do
+    obj = Object.new
+    def obj.to_ary() [1, 2, 3] end
+    ary = [1, 2]
+    ary[0, 0] = obj
+    ary.should == [1, 2, 3, 1, 2]
+    ary[1, 10] = obj
+    ary.should == [1, 1, 2, 3]
+  end
+  
   specify "slice! with index should remove and return the element at index" do
     a = [1, 2, 3, 4]
-
+    a.slice!(10).should == nil
+    a.should == [1, 2, 3, 4]
+    a.slice!(-10).should == nil
+    a.should == [1, 2, 3, 4]
     a.slice!(2).should == 3
     a.should == [1, 2, 4]
+    a.slice!(-1).should == 4
+    a.should == [1, 2]
+    a.slice!(1).should == 2
+    a.should == [1]
+    a.slice!(-1).should == 1
+    a.should == []
+    a.slice!(-1).should == nil
+    a.should == []
+    a.slice!(0).should == nil
+    a.should == []
   end
   
   specify "slice! with start, length should remove and return length elements beginning at start" do
     a = [1, 2, 3, 4, 5, 6]
     a.slice!(2, 3).should == [3, 4, 5]
     a.should == [1, 2, 6]
+    a.slice!(1, 1).should == [2]
+    a.should == [1, 6]
+    a.slice!(1, 0).should == []
+    a.should == [1, 6]
+    a.slice!(2, 0).should == []
+    a.should == [1, 6]
+    a.slice!(0, 4).should == [1, 6]
+    a.should == []
+    a.slice!(0, 4).should == []
+    a.should == []
+  end
+
+  specify "slice! should call to_int on start and length arguments" do
+    obj = Object.new
+    def obj.to_int() 2 end
+      
+    a = [1, 2, 3, 4, 5]
+    a.slice!(obj).should == 3
+    a.should == [1, 2, 4, 5]
+    a.slice!(obj, obj).should == [4, 5]
+    a.should == [1, 2]
+    a.slice!(0, obj).should == [1, 2]
+    a.should == []
   end
 
   specify "slice! with range should remove and return elements in range" do
-    a = [1, 2, 3, 4, 5, 6, 7]
+    a = [1, 2, 3, 4, 5, 6, 7, 8]
     a.slice!(1..4).should == [2, 3, 4, 5]
-    a.should == [1, 6, 7]
+    a.should == [1, 6, 7, 8]
+    a.slice!(1...3).should == [6, 7]
+    a.should == [1, 8]
+    a.slice!(-1..-1).should == [8]
+    a.should == [1]
+    a.slice!(0...0).should == []
+    a.should == [1]
+    a.slice!(0..0).should == [1]
+    a.should == []
   end
+  
+  specify "slice! with range should call to_int on range arguments" do
+    from = Object.new
+    to = Object.new
+    
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
 
+    def from.to_int() 1 end
+    def to.to_int() -2 end
+      
+    a = [1, 2, 3, 4, 5]
+      
+    a.slice!(from .. to).should == [2, 3, 4]
+    a.should == [1, 5]
+
+    a.slice!(1..0).should == []
+    a.should == [1, 5]
+  
+    should_raise(TypeError) { a.slice!("a" .. "b") }
+    should_raise(TypeError) { a.slice!(from .. "b") }
+  end
+  
+  # TODO: MRI behaves inconsistently here. I'm trying to find out what it should
+  # do at ruby-core right now. -- flgr
+  # See http://groups.google.com/group/ruby-core-google/t/af70e3d0e9b82f39
+  specify "slice! with indices outside of array should (not?) expand array" do
+    # This is the way MRI behaves -- subject to change
+    a = [1, 2]
+    a.slice!(4).should == nil
+    a.should == [1, 2]
+    a.slice!(4, 0).should == nil
+    a.should == [1, 2, nil, nil]
+    a.slice!(6, 1).should == nil
+    a.should == [1, 2, nil, nil, nil, nil]
+    a.slice!(8...8).should == nil
+    a.should == [1, 2, nil, nil, nil, nil, nil, nil]
+    a.slice!(10..10).should == nil
+    a.should == [1, 2, nil, nil, nil, nil, nil, nil, nil, nil]
+  end
   
   class D 
     def <=>(obj) 
