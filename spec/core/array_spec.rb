@@ -231,7 +231,7 @@ context "Array instance method" do
   end
   
   specify "<=> should call <=> left to right and return first non-0 result" do
-    [-1, +1, nil].each do |result|
+    [-1, +1, nil, "foobar"].each do |result|
       lhs = Array.new(3) { Object.new }
       rhs = Array.new(3) { Object.new }
     
