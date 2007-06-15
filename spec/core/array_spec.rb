@@ -785,6 +785,8 @@ context "Array instance method" do
 
     ary.insert(0, 1, 2).equal?(ary).should == true
     ary.should == [1, 2, 3]
+    ary.insert(0)
+    ary.should == [1, 2, 3]
     
     # Let's just assume insert() always modifies the array from now on.
     ary.insert(1, 'a').should == [1, 'a', 2, 3]
@@ -2027,6 +2029,110 @@ describe 'Array access using #[] and #slice' do
     end
 
   end                      
+end
+
+context "On a frozen array" do
+  ary = [1, 2, 3]
+  ary.freeze
+  
+  specify "<< should raise" do
+    should_raise(TypeError) { ary << 5 }
+  end
+
+  specify "clear should raise" do
+    should_raise(TypeError) { ary.clear }
+  end
+
+  specify "collect! should raise" do
+    should_raise(TypeError) { ary.collect! {} }
+  end
+
+  specify "compact! should raise" do
+    should_raise(TypeError) { ary.compact! }
+  end
+
+  specify "concat should raise" do
+    ary.concat([]) # ok
+    should_raise(TypeError) { ary.concat([1]) }
+  end
+
+  specify "delete should raise" do
+    ary.delete(0) # ok, not in array
+    should_raise(TypeError) { ary.delete(1) }
+  end
+
+  specify "delete_at should raise" do
+    should_raise(TypeError) { ary.delete_at(0) }
+  end
+
+  specify "delete_if should raise" do
+    should_raise(TypeError) { ary.delete_if {} }
+  end
+
+  specify "fill should raise" do
+    should_raise(TypeError) { ary.fill('x') }
+  end
+
+  specify "flatten! should raise" do
+    ary.flatten! # ok, already flat
+    nested_ary = [1, 2, []]
+    nested_ary.freeze
+    should_raise(TypeError) { nested_ary.flatten! }
+  end
+
+  specify "insert should raise" do
+    ary.insert(0) # ok
+    should_raise(TypeError) { ary.insert(0, 'x') }
+  end
+
+  specify "map! should raise" do
+    should_raise(TypeError) { ary.map! {} }
+  end
+
+  specify "pop should raise" do
+    should_raise(TypeError) { ary.pop }
+  end
+
+  specify "push should raise" do
+    ary.push() # ok
+    should_raise(TypeError) { ary.push(1) }
+  end
+
+  specify "reject! should raise" do
+    should_raise(TypeError) { ary.reject! {} }
+  end
+
+  specify "replace should raise" do
+    should_raise(TypeError) { ary.replace(ary) }
+  end
+
+  specify "reverse! should raise" do
+    should_raise(TypeError) { ary.reverse! }
+  end
+
+  specify "shift should raise" do
+    should_raise(TypeError) { ary.shift }
+  end
+
+  specify "slice! should raise" do
+    should_raise(TypeError) { ary.slice!(0, 0) }
+  end
+
+  specify "sort! should raise" do
+    should_raise(TypeError) { ary.sort! }
+  end
+
+  specify "uniq! should raise" do
+    ary.uniq! # ok, already uniq
+    dup_ary = [1, 1, 2]
+    dup_ary.freeze
+    should_raise(TypeError) { dup_ary.uniq! }
+  end
+
+  specify "unshift should raise" do
+    ary.unshift() # ok
+    should_raise(TypeError) { ary.unshift(1) }
+  end
 end
 
 describe 'Array splicing using #[]=' do
