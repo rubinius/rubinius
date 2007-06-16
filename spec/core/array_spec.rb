@@ -15,6 +15,12 @@ require File.dirname(__FILE__) + '/../spec_helper'
 class MyArray < Array; end
 
 context "Array class method" do
+  only :rbx do
+    specify "allocate creates an instance with the correct number of fields" do
+      Array.allocate.fields.should == Array.instance_fields
+    end
+  end
+  
   specify "new without arguments should return a new array" do
     a = Array.new
     a.class.should == Array

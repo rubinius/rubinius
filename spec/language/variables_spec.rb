@@ -146,4 +146,10 @@ describe "The set of pre-defined global constants" do
   it "includes TOPLEVEL_BINDING" do
     Object.const_defined?(:TOPLEVEL_BINDING).should == true
   end
+  
+  only :rbx do
+    it "includes RUBY_ENGINE" do
+      Object.const_defined?(:RUBY_ENGINE).should == true
+    end
+  end
 end

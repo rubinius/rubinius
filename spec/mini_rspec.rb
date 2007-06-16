@@ -236,6 +236,12 @@ def describe(msg)
   @reporter.after_describe(msg)
 end
 
+def only(*args)
+  if Object.const_defined?(:RUBY_ENGINE) and args.include?(RUBY_ENGINE.to_sym)
+    yield
+  end
+end
+
 # Alternatives
 class Object
   alias context describe
