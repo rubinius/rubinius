@@ -23,7 +23,14 @@ context "Time class method" do
     end
   end
 
-  def with_timezone(zone)
+  def with_timezone(name, offset)
+    # TZ convention is backwards
+    offset = -offset
+
+    zone = name.dup
+    zone << offset.to_s
+    zone << ":00:00"
+
     old = ENV["TZ"]
     ENV["TZ"] = zone
 
@@ -68,14 +75,14 @@ context "Time class method" do
   #local/mktime
   
   specify "local should create a time based on given values, interpreted in the local time zone" do
-    with_timezone("US/Pacific") do
+    with_timezone("PST", -8) do
       Time.local(2000,"jan",1,20,15,1).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
     end
   end
   
   specify "local should create a time based on given C-style gmtime arguments, interpreted in the local time zone" do
-    with_timezone("US/Pacific") do
-      Time.local(1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 19:15:01 -0800 2000"
+    with_timezone("PST", -8) do
+      Time.local(1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
     end
   end
 
@@ -126,19 +133,19 @@ context "Time instance method" do
   end
   
   specify "hour should return the hour of the day (0..23) for time" do
-    with_timezone("CET") do
+    with_timezone("CET", 1) do
       Time.at(0).hour.should == 1
     end
   end
   
   specify "min should return the minute of the hour (0..59) for time" do
-    with_timezone("CET") do
+    with_timezone("CET", 1) do
       Time.at(0).min.should == 0
     end
   end
   
   specify "day should return the day of the month (1..n) for time" do
-    with_timezone("CET") do
+    with_timezone("CET", 1) do
       Time.at(0).day.should == 1
     end
   end
@@ -174,7 +181,7 @@ context "Time instance method" do
   end
   
   specify "year should return the four digit year for time as an integer" do
-    with_timezone("CET") do
+    with_timezone("CET", 1) do
       Time.at(0).year.should == 1970
     end
   end
@@ -184,7 +191,7 @@ context "Time instance method" do
   end
   
   specify "wday should return an integer representing the day of the week, 0..6, with Sunday being 0" do
-    with_timezone("GMT") do
+    with_timezone("GMT", 0) do
       Time.at(0).wday.should == 4
     end
   end
@@ -195,7 +202,7 @@ context "Time instance method" do
   
   specify "zone should return the time zone used for time" do
     # Testing with Asia/Kuwait here because it doesn't have DST.
-    with_timezone("Asia/Kuwait") do
+    with_timezone("AST", 3) do
       Time.now.zone.should == "AST"
     end
   end
@@ -218,26 +225,26 @@ context "Time instance method" do
   end
   
   specify "gmt_offset should return the offset in seconds between the timezone of time and UTC" do
-    with_timezone("Asia/Kuwait") do
+    with_timezone("AST", 3) do
       Time.new.gmt_offset.should == 10800
     end
   end
   
   specify "utc_offset should be an alias for gmt_offset" do
-    with_timezone("Asia/Kuwait") do
+    with_timezone("AST", 3) do
       Time.new.utc_offset.should == 10800
     end
   end
   
   specify "gmtoff should be an alias for gmt_offset" do
-    with_timezone("Asia/Kuwait") do
+    with_timezone("AST", 3) do
       Time.new.gmtoff.should == 10800
     end
   end
   
   specify "localtime should return the local representation of time" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       t = Time.gm(2007, 1, 9, 12, 0, 0)
       t.localtime
       t.should == Time.local(2007, 1, 9, 6, 0, 0)
@@ -246,7 +253,7 @@ context "Time instance method" do
   
   specify "gmtime should return the utc representation of time" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       t = Time.local(2007, 1, 9, 6, 0, 0)
       t.gmtime
       t.should == Time.gm(2007, 1, 9, 12, 0, 0)
@@ -255,7 +262,7 @@ context "Time instance method" do
   
   specify "getlocal should return a new time which is the local representation of time" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       t = Time.gm(2007, 1, 9, 12, 0, 0)
       t.localtime.should == Time.local(2007, 1, 9, 6, 0, 0)
     end
@@ -263,7 +270,7 @@ context "Time instance method" do
   
   specify "getgm should return a new time which is the utc representation of time" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       t = Time.local(2007, 1, 9, 6, 0, 0)
       t.getgm.should == Time.gm(2007, 1, 9, 12, 0, 0)
     end
@@ -271,7 +278,7 @@ context "Time instance method" do
   
   specify "getutc should be an alias for getgm" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       t = Time.local(2007, 1, 9, 6, 0, 0)
       t.getutc.should == Time.gm(2007, 1, 9, 12, 0, 0)
     end
@@ -279,7 +286,7 @@ context "Time instance method" do
   
   specify "utc should be an alias of gmtime" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       t = Time.local(2007, 1, 9, 6, 0, 0)
       t.utc
       t.should == Time.gm(2007, 1, 9, 12, 0, 0)
@@ -312,7 +319,7 @@ context "Time instance method" do
   
   specify "to_a should return a 10 element array representing the deconstructed time" do
     # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("America/Regina") do
+    with_timezone("CST", -6) do
       Time.at(0).to_a.should == [0, 0, 18, 31, 12, 1969, 3, 365, false, "CST"]
     end
   end
