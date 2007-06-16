@@ -1,6 +1,4 @@
 require File.dirname(__FILE__) + '/../spec_helper'
-#require File.dirname(__FILE__) + '/../../kernel/bootstrap/array'
-#require File.dirname(__FILE__) + '/../../kernel/core/array'
 
 # &, *, +, -, <<, <=>, ==, [], []=, assoc, at, clear,
 # collect, collect!, compact, compact!, concat, delete, delete_at,
@@ -13,14 +11,11 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # uniq!, unshift, values_at, zip, |
 
 class MyArray < Array; end
+class ToAryArray < Array
+  def to_ary() ["to_ary", "was", "called!"] end
+end
 
-context "Array class method" do
-  only :rbx do
-    specify "allocate creates an instance with the correct number of fields" do
-      Array.allocate.fields.should == Array.instance_fields
-    end
-  end
-  
+context "Array class method" do  
   specify "new without arguments should return a new array" do
     a = Array.new
     a.class.should == Array
@@ -65,6 +60,10 @@ context "Array class method" do
     a.inspect.should == [:foo].inspect
   end
   
+  specify "new with array-like argument shouldn't call to_ary on array subclasses" do
+    Array.new(ToAryArray[5, 6, 7]).should == [5, 6, 7]
+  end
+  
   specify "new should call to_ary before to_int" do
     obj = Object.new
     def obj.to_ary() [1, 2, 3] end
@@ -95,6 +94,12 @@ context "Array class method" do
     a = MyArray[5, true, nil, 'a', "Ruby"]
     a.class.should == MyArray
     a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
+  end
+  
+  only :rbx do
+    specify "allocate creates an instance with the correct number of fields" do
+      Array.allocate.fields.should == Array.instance_fields
+    end
   end
 end
 
@@ -131,6 +136,10 @@ context "Array instance method" do
     (MyArray[1, 2, 3] & MyArray[1, 2, 3]).class.should == Array
     ([] & MyArray[1, 2, 3]).class.should == Array
   end
+
+  specify "& shouldn't call to_ary on array subclasses" do
+    ([5, 6] & ToAryArray[1, 2, 5, 6]).should == [5, 6]
+  end
   
   specify "| should return an array of elements that appear in either array (union) without duplicates" do
     ([1, 2, 3] | [1, 2, 3, 4, 5]).should == [1, 2, 3, 4, 5]
@@ -155,6 +164,10 @@ context "Array instance method" do
     ([] | MyArray[1, 2, 3]).class.should == Array
   end
   
+  specify "| shouldn't call to_ary on array subclasses" do
+    ([1, 2] | ToAryArray[5, 6]).should == [1, 2, 5, 6]
+  end
+  
   specify "* with a string should be equivalent to self.join(str)" do
     ([ 1, 2, 3 ] * ",").should == [1, 2, 3].join(",")
   end
@@ -167,6 +180,7 @@ context "Array instance method" do
   
   specify "* with an int should concatenate n copies of the array" do
     ([ 1, 2, 3 ] * 0).should == []
+    ([ 1, 2, 3 ] * 1).should == [1, 2, 3]
     ([ 1, 2, 3 ] * 3).should == [1, 2, 3, 1, 2, 3, 1, 2, 3]
     ([] * 10).should == []
   end
@@ -194,7 +208,7 @@ context "Array instance method" do
     (MyArray[1, 2, 3] * 1).class.should == MyArray
     (MyArray[1, 2, 3] * 2).class.should == MyArray
   end
-  
+    
   specify "+ should concatenate two arrays" do
     ([ 1, 2, 3 ] + [ 3, 4, 5 ]).should == [1, 2, 3, 3, 4, 5]
     ([ 1, 2, 3 ] + []).should == [1, 2, 3]
@@ -214,6 +228,10 @@ context "Array instance method" do
     ([1, 2, 3] + MyArray[]).class.should == Array
   end
 
+  specify "+ shouldn't call to_ary on array subclasses" do
+    ([5, 6] + ToAryArray[1, 2]).should == [5, 6, 1, 2]
+  end
+
   specify "- should create an array minus any items from other array" do
     ([] - [ 1, 2, 4 ]).should == []
     ([1, 2, 4] - []).should == [1, 2, 4]
@@ -230,6 +248,10 @@ context "Array instance method" do
     (MyArray[1, 2, 3] - []).class.should == Array
     (MyArray[1, 2, 3] - MyArray[]).class.should == Array
     ([1, 2, 3] - MyArray[]).class.should == Array
+  end
+
+  specify "- shouldn't call to_ary on array subclasses" do
+    ([5, 6, 7] - ToAryArray[7]).should == [5, 6]
   end
   
   specify "<< should push the object onto the end of the array" do
@@ -269,6 +291,10 @@ context "Array instance method" do
     def obj.to_ary() [1, 2, 3] end
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
   end
+
+  specify "<=> shouldn't call to_ary on array subclasses" do
+    ([5, 6, 7] <=> ToAryArray[5, 6, 7]).should == 0
+  end
   
   specify "== should be true if each element is == to the corresponding element in the other array" do
     [].should == []
@@ -298,6 +324,10 @@ context "Array instance method" do
     obj.should_receive(:to_ary, :returning => [1, 2, 3])
     
     [1, 2, 3].should == obj
+  end
+  
+  specify "== shouldn't call to_ary on array subclasses" do
+    ([5, 6, 7] == ToAryArray[5, 6, 7]).should == true
   end
 
   specify "== should ignore array class differences" do
@@ -402,6 +432,10 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() ["x", "y"] end
     [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
+  end
+  
+  specify "concat shouldn't call to_ary on array subclasses" do
+    [].concat(ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
   specify "delete removes elements that are #== to object" do
@@ -1078,6 +1112,12 @@ context "Array instance method" do
     ary.should == [1, 2, 3]
   end
   
+  specify "replace shouldn't call to_ary on array subclasses" do
+    ary = []
+    ary.replace(ToAryArray[5, 6, 7])
+    ary.should == [5, 6, 7]
+  end
+  
   specify "reverse should return a new array with the elements in reverse order" do
     [].reverse.should == []
     [1, 3, 5, 2].reverse.should == [2, 5, 3, 1]
@@ -1629,6 +1669,12 @@ context "Array instance method" do
     ary[1, 10] = obj
     ary.should == [1, 1, 2, 3]
   end
+
+  specify "[]= shouldn't call to_ary on rhs array subclasses for multi-element sets" do
+    ary = []
+    ary[0, 0] = ToAryArray[5, 6, 7]
+    ary.should == [5, 6, 7]
+  end
   
   specify "slice! with index should remove and return the element at index" do
     a = [1, 2, 3, 4]
@@ -1808,6 +1854,12 @@ context "Array instance method" do
 
   specify "transpose assumes an array of arrays and should return the result of transposing rows and columns" do
     [[1, 'a'], [2, 'b'], [3, 'c']].transpose.should == [[1, 2, 3], ["a", "b", "c"]]
+    [[1, 2, 3], ["a", "b", "c"]].transpose.should == [[1, 'a'], [2, 'b'], [3, 'c']]
+    [].transpose.should == []
+    [[]].transpose.should == []
+    [[], []].transpose.should == []
+    [[0]].transpose.should == [[0]]
+    [[0], [1]].transpose.should == [[0, 1]]
   end
 
   specify 'transpose raises if the elements of the array are not Arrays or respond to to_ary' do
@@ -1818,6 +1870,11 @@ context "Array instance method" do
 
     should_raise(TypeError) { [g, [:a, :b]].transpose } 
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
+  end
+  
+  specify "transpose shouldn't call to_ary array subclass elements" do
+    ary = [ToAryArray[1, 2], ToAryArray[4, 6]]
+    ary.transpose.should == [[1, 4], [2, 6]]
   end
 
   specify "transpose should raise if the arrays are not of the same length" do
