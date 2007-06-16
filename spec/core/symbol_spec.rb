@@ -12,6 +12,10 @@ context "Symbol instance method" do
     (:yep === 'yep'.to_sym).should == true
   end
   
+  specify "class return Symbol" do
+    :rbx.class.should == Symbol
+  end
+  
   specify "id2name should return the string corresponding to self" do
     :rubinius.id2name.should == "rubinius"
     :squash.id2name.should == "squash"

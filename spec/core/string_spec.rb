@@ -726,11 +726,16 @@ context "String instance method" do
     s.include?("ba").should == false
     s.include?("dab").should == true
     s.include?("bra").should == true
+    s.include?(?c).should == true
+    s.include?(?z).should == false
   end
 
   specify "index with fixnum should return the index of the given character" do
     "hello".index(101).should == 1
     "hello".index(52).should == nil
+    "hello".index(?e).should == 1
+    "hello".index(?w).should == nil
+    "hello".index(?l).should == 2
   end
   
   specify "index with string should return the index of the beginning of string" do
@@ -1060,6 +1065,7 @@ context "String instance method" do
     "hello".split('el').should == ["h", "lo"]
     "hello".split('o').should == ["hell"]
     "hello".split('d').should == ["hello"]
+    "a-b-c".split("-").should == ["a", "b", "c"]
   end
   
   specify "split with regexp should return an array of substrings separated by pattern" do
@@ -1069,6 +1075,7 @@ context "String instance method" do
     "hello".split(/el/).should == ["h", "lo"]
     "hello".split(/[abcde]/).should == ["h", "llo"]
     "hello".split(/def/).should == ["hello"]
+    "a   b c  ".split(/\s+/).should == ["a", "b", "c"]
   end
 
   specify "split with a zero-width regexp should return an array of characters" do

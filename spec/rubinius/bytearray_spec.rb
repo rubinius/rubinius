@@ -1,6 +1,12 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context "ByteArray instance method" do
+describe "ByteArray class method" do
+  specify "new creates an instance with the correct number of fields" do
+    ByteArray.new(16).fields.should == 4
+  end
+end
+
+describe "ByteArray instance method" do
   specify "[] should return the byte at index" do
     s= "A92f"
     b = s.data

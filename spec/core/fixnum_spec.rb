@@ -229,6 +229,10 @@ context "Fixnum instance method" do
     (-7 ^ 15.2).should == -10
     (5 ^ 0xffffffff).should == 4294967290
   end
+  
+  specify "class returns Fixnum" do
+    10.class.should == Fixnum
+  end
 
   specify "div should return self divided by other as an Integer" do
     2.div(2).should == 1
@@ -292,6 +296,10 @@ context "Fixnum instance method" do
   specify "modulo should NOT raise ZeroDivisionError if other is zero and is a Float" do
     1.modulo(0.0).to_s.should == 'NaN'
     1.modulo(-0.0).to_s.should == 'NaN'
+  end
+  
+  specify "object_id is greater than zero" do
+    (10.object_id > 0).should == true
   end
   
   specify "quo should return the floating-point result of self divided by other" do

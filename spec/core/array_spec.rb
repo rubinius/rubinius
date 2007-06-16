@@ -334,6 +334,10 @@ context "Array instance method" do
     a.at(obj).should == "c"
   end
   
+  specify "class should return Array" do
+    [].class.should == Array
+  end
+  
   specify "clear should remove all elements" do
     a = [1, 2, 3, 4]
     a.clear.equal?(a).should == true
