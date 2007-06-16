@@ -149,10 +149,13 @@ namespace :build do
       end
     end
   end
-  
-  task :configure do
+
+  file "shotgun/config.h" do
     sh "./configure"
     raise 'Failed to configure Rubinius' unless $?.success?
+  end
+  
+  task :configure => ["shotgun/config.h"] do
   end
   
   desc "Compiles shotgun (the C-code VM)"
