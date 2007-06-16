@@ -37,16 +37,23 @@ class Time
   # Time methods
   
   def initialize
-    @tv_sec, @tv_usec, @tz_minuteswest, @tz_dsttime = Time.gettimeofday
+    @timeval = Time.gettimeofday
 
     # this flag specifies whether this Time instance represents
     # local time or GMT. it is independent of the actual time zone.
     @is_gmt = false
+
+    @tm = time_switch(@timeval.first, false)
+  end
+
+  def dup
+    t = Time.new
+    t.instance_variable_set(:@timeval, @timeval)
+    t.instance_variable_set(:@tm, @tm)
+    t
   end
   
   def self.local(first, *args)
-    parts = self.now.parts
-    
     if args.size == 9
       second = first
       minute = args[0]
@@ -55,6 +62,7 @@ class Time
       month = args[3]
       year = args[4]
       usec = 0
+      isdst = args[7] ? 1 : 0
     else
       # resolve month names to numbers
       if args[0] && args[0].kind_of?(String)
@@ -68,20 +76,15 @@ class Time
       minute = args[3] || 0
       second = args[4] || 0
       usec = args[5] || 0
+      isdst = -1
     end
-            
-    tv_sec = ((self.epoch_day(year, month, day) - PRE_EPOCH_DAYS) * 86400) + (parts[2] * 60)
-    
-    dst = self.at(tv_sec, usec).hour == 1
-    
-    tv_sec -= 3600 if dst
-    tv_sec += (hour * 3600) + (minute * 60) + second
-    Time.new.set(tv_sec, usec, nil, !dst)
+
+    t = Time.new
+    t.mktime(second, minute, hour, day, month, year, usec, isdst, false)
+    t.force_localtime
   end
   
   def self.gm(first, *args)
-    parts = self.now.parts
-    
     if args.size == 9
       second = first
       minute = args[0]
@@ -105,39 +108,43 @@ class Time
       second = args[4] || 0
       usec = args[5] || 0
     end
-            
-    tv_sec = ((self.epoch_day(year, month, day) - PRE_EPOCH_DAYS) * 86400)
-    tv_sec += (hour * 3600) + (minute * 60) + second
-    Time.new.set(tv_sec, usec, 0, 0)
+
+    t = Time.new
+    t.mktime(second, minute, hour, day, month, year, usec, -1, true)
+    t.force_gmtime
   end
 
   def self.at(secs_or_time, msecs = 0)
     if secs_or_time.kind_of?(Integer)
-      t = Time.new.set(secs_or_time, msecs)
-      # t.set(nil, nil, nil, Time.local(*t.to_a).dst?)
+      t = Time.new
+      t.at_gmt(secs_or_time, msecs, false)
     else
       secs_or_time.dup
     end
   end
   
   def strftime(format)
-    __strftime(@tv_sec, format, @tz_minuteswest)
+    __strftime(@tm, format.to_str)
   end
   
   def inspect
-    strftime("%a %b %d %H:%M:%S %z %Y")
+    if @is_gmt
+      strftime("%a %b %d %H:%M:%S UTC %Y")
+    else
+      strftime("%a %b %d %H:%M:%S %z %Y")
+    end
   end
-  
+
   def seconds
-    @tv_sec
+    @timeval.first
   end
-  
+
   def +(other)
-    self.dup.set(self.seconds + other)
+    dup.at_gmt(seconds + other, usec, @is_gmt)
   end
   
   def -(other)
-    self.dup.set(self.seconds - other)
+    dup.at_gmt(seconds - other, usec, @is_gmt)
   end
   
   def succ
@@ -197,7 +204,7 @@ class Time
   end
   
   def usec
-    @tv_usec
+    @timeval.last
   end
   
   def to_i
@@ -215,35 +222,56 @@ class Time
   end
   
   def gmt_offset
-    ZoneOffset[strftime("%Z")] * 3600
+    return 0 if @is_gmt
+
+    other = dup.gmtime
+
+    if year != other.year
+      offset = year < other.year ? -1 : 1
+    elsif month != other.month
+      offset = month < other.month ? -1 : 1
+    elsif mday != other.mday
+      offset = mday < other.mday ? -1 : 1
+    else
+      offset = 0
+    end
+
+    offset *= 24
+    offset += hour - other.hour
+
+    offset *= 60
+    offset += min - other.min
+
+    offset *= 60
+    offset += sec - other.sec
   end
   
   def localtime
-    t = Time.at(self.seconds)
-    self.set(*t.parts)
+    force_localtime if @is_gmt
+
     self
   end
   
   def gmtime
-    self.set(nil, nil, 0, 0)
+    force_gmtime unless @is_gmt
+
     self
   end
   
   def dst?
-    @tz_dsttime == 1
+    !@tm[8].zero?
   end
   
   def getlocal
-    t = Time.at(self.seconds)
-    self.dup.set(*t.parts)
+    dup.localtime
   end
   
   def getgm
-    self.dup.set(nil, nil, 0, 0)
+    dup.gmtime
   end
   
   def hash
-    @tv_sec ^ @tv_usec
+    seconds ^ usec
   end
   
   # internal
@@ -253,29 +281,51 @@ class Time
   def self.gettimeofday
     Ruby.primitive :gettimeofday
   end
-  
-  def parts
-    [@tv_sec, @tv_usec, @tz_minuteswest, @tz_dsttime]
-  end
-  
-  def self.epoch_day(y, m, d)
-    m = (m + 9) % 12
-    y -= m / 10
-    365 * y + y / 4 - y / 100 + y / 400 + (m * 306 + 5) / 10 + d - 1
-  end
-  
-  def set(tv_sec = nil, tv_usec = nil, tz_minuteswest = nil, tz_dsttime = nil)
-    @tv_sec = tv_sec if tv_sec
-    @tv_usec = tv_usec if tv_usec
-    @tz_minuteswest = tz_minuteswest if tz_minuteswest
-    @tz_dsttime = tz_dsttime if tz_dsttime
+
+  def force_localtime
+    @tm = time_switch(@timeval.first, false)
+    @is_gmt = false
+
     self
   end
-  
-  def __strftime(tv_sec, format, zone)
-    Ruby.primitive :strftime
+
+  def force_gmtime
+    @tm = time_switch(@timeval.first, true)
+    @is_gmt = true
+
+    self
+  end
+
+  def time_switch(sec, to_gmt)
+    Ruby.primitive :time_switch
+  end
+
+  def mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    self
+  end
+
+  def time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
+    Ruby.primitive :mktime
   end
   
+  def __strftime(tm, format)
+    Ruby.primitive :strftime
+  end
+
+  # sec and usec are always given in gmt here.
+  # want_gmt says whether the caller wants a gmtime or
+  # local time object.
+  def at_gmt(sec, usec, want_gmt)
+    @timeval = [sec, usec]
+
+    if want_gmt
+      force_gmtime
+    else
+      force_localtime
+    end
+  end
+
   def self.month_days(y, m)
     if ((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0)
       LeapYearMonthDays[m-1]

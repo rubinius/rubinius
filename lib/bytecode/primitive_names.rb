@@ -38,7 +38,7 @@ module Bytecode
       :io_open,
       :process_exit,
       :io_close,
-      :time_seconds,
+      nil,
       :activate_context,
       :context_sender,
       :micro_sleep,
@@ -73,7 +73,7 @@ module Bytecode
       :archive_delete_file,
       :fixnum_and,
       nil,
-      :time_at,
+      nil,
       :float_to_s,
       :float_add,
       :float_sub,
@@ -120,7 +120,7 @@ module Bytecode
       :object_freeze,
       :object_frozen_p,
       :fastctx_get_field,
-      :time_usec,
+      nil,
       :fixnum_right_shift,
       :fixnum_left_shift,
       :vm_stats,
@@ -170,7 +170,9 @@ module Bytecode
       :env_set,
       nil,
       :env_as_hash,
-      :task_set_debugging
+      :task_set_debugging,
+      :mktime,
+      :time_switch,
     ]
 
     FirstRuntimePrimitive = 1024

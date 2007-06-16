@@ -37,16 +37,16 @@
 #include <glob.h>
 #include <termios.h>
 
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
+# define HAVE_STRUCT_TM_TM_GMTOFF
+# define HAVE_STRUCT_TM_TM_ZONE
+#endif
+
 extern char **environ;
 
 OBJECT math_sqrt(STATE, OBJECT a);
 
 #define STATIC_SIZE 100
-
-struct time_data {
-  struct timeval tv;
-  struct timezone tz;
-};
 
 #define MAX_STRFTIME_OUTPUT 1024
 

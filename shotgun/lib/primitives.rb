@@ -417,115 +417,178 @@ class ShotgunPrimitives
   
   def gettimeofday
     <<-CODE
-    POP(t1, CLASS);
+    struct timeval tv;
 
-    struct time_data td;
-    gettimeofday(&td.tv, &td.tz);
-    
-    k = array_new(state, 4);
-    array_set(state, k, 0, I2N(td.tv.tv_sec));
-    array_set(state, k, 1, I2N(td.tv.tv_usec));
-    array_set(state, k, 2, I2N(td.tz.tz_minuteswest));
-    array_set(state, k, 3, I2N(td.tz.tz_dsttime));
-    
+    stack_pop();
+
+    /* don't fill in the 2nd argument here. getting the timezone here
+     * this way is not portable and broken anyway.
+     */
+    gettimeofday(&tv, NULL);
+
+    k = array_new(state, 2);
+    array_set(state, k, 0, I2N(tv.tv_sec));
+    array_set(state, k, 1, I2N(tv.tv_usec));
+
     stack_push(k);
     CODE
   end
 
-  def time_at
-    <<-CODE
-    POP(t1, CLASS);
-    POP(t2, INTEGER); // seconds
-    POP(t3, INTEGER); // usecs
-
-    do { /* introduce a new scope */
-      long tv_sec;
-      long tv_usec;
-      // FIXME: we shouldn't need to worry about this awareness
-      // how can we get rid of this dual type checking in C?
-      if(FIXNUM_P(t2)) {
-        tv_sec = (long)FIXNUM_TO_INT(t2);
-      } else {
-        tv_sec = (long)bignum_to_int(state, t2);
-      }
-
-      if(FIXNUM_P(t3)) {
-        tv_usec = (long)FIXNUM_TO_INT(t3);
-      } else {
-        tv_usec = (long)bignum_to_int(state, t3);
-      }
-
-      struct time_data td;
-      struct time_data *tdp;
-
-      j = sizeof(struct time_data) / 4;
-      self = NEW_OBJECT(t1, j+1);
-      object_make_byte_storage(state, self);
-      k = gettimeofday(&td.tv, &td.tz); // fetch the local timezone
-      td.tv.tv_sec = tv_sec; // assign specified seconds
-      td.tv.tv_usec = tv_usec; // assign specified microseconds          
-      tdp = (struct time_data*)BYTES_OF(self);    
-      *tdp = td;
-    } while(0);
-    stack_push(self);
-    CODE
-  end
-  
-  def time_seconds
-    <<-CODE
-    POP(self, REFERENCE);
-
-    struct time_data *tdp;
-    tdp = (struct time_data*)BYTES_OF(self);
-    stack_push(I2N(tdp->tv.tv_sec));
-    CODE
-  end
-  
-  def time_usec
-    <<-CODE
-    POP(self, REFERENCE);
-    
-    struct time_data *tdp;
-    tdp = (struct time_data*)BYTES_OF(self);
-    stack_push(I2N(tdp->tv.tv_usec));
-    CODE
-  end
-  
   def strftime
     <<-CODE
     POP(self, REFERENCE);
-    POP(t1, INTEGER);
+    POP(t1, ARRAY);
     POP(t2, STRING);
-    POP(t3, INTEGER);
 
-    struct tm *time;
+    struct tm tm;
     char *format = NULL;
     char str[MAX_STRFTIME_OUTPUT+1];
     size_t out;
 
+    tm.tm_sec = FIXNUM_TO_INT(array_get(state, t1, 0));
+    tm.tm_min = FIXNUM_TO_INT(array_get(state, t1, 1));
+    tm.tm_hour = FIXNUM_TO_INT(array_get(state, t1, 2));
+    tm.tm_mday = FIXNUM_TO_INT(array_get(state, t1, 3));
+    tm.tm_mon = FIXNUM_TO_INT(array_get(state, t1, 4));
+    tm.tm_year = FIXNUM_TO_INT(array_get(state, t1, 5));
+    tm.tm_wday = FIXNUM_TO_INT(array_get(state, t1, 6));
+    tm.tm_yday = FIXNUM_TO_INT(array_get(state, t1, 7));
+    tm.tm_isdst = FIXNUM_TO_INT(array_get(state, t1, 8));
+
+#ifdef HAVE_STRUCT_TM_TM_GMTOFF
+    tm.tm_gmtoff = FIXNUM_TO_INT(array_get(state, t1, 9));
+#endif
+
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+    tm.tm_zone = string_as_string(state, array_get(state, t1, 10));
+#endif
+
     format = string_as_string(state, t2);
 
-    long tt;
-    if(FIXNUM_P(t1)) {
-      tt = (long)FIXNUM_TO_INT(t1);
-    } else {
-      tt = (long)bignum_to_int(state, t1);
-    }
-    
-    long zone;
-    zone = (long)FIXNUM_TO_INT(t3);
-    
-    if(zone != 0) {
-      time = localtime(&tt);
-    } else {
-      time = gmtime(&tt); 
-    }
-    
-    out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, time);
+    out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, &tm);
+
     str[MAX_STRFTIME_OUTPUT] = '\\0';
     t3 = string_new2(state, str, out);
     stack_push(t3);
+
     if(format) {free(format);}
+
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+    if(tm.tm_zone) free(tm.tm_zone);
+#endif
+    CODE
+  end
+
+  def time_switch
+    <<-CODE
+    time_t seconds;
+    struct tm *tm;
+
+    POP(self, REFERENCE);
+    POP(t1, NUMERIC);
+    t2 = stack_pop();
+
+    if(FIXNUM_P(t1)) {
+      seconds = FIXNUM_TO_INT(t1);
+    } else {
+      seconds = bignum_to_int(state, t1);
+    }
+
+    if(t2 == Qtrue) {
+      tm = gmtime(&seconds);
+    } else {
+      tm = localtime(&seconds);
+    }
+
+    k = array_new(state, 2);
+    array_set(state, k, 0, I2N(tm->tm_sec));
+    array_set(state, k, 1, I2N(tm->tm_min));
+    array_set(state, k, 2, I2N(tm->tm_hour));
+    array_set(state, k, 3, I2N(tm->tm_mday));
+    array_set(state, k, 4, I2N(tm->tm_mon));
+    array_set(state, k, 5, I2N(tm->tm_year));
+    array_set(state, k, 6, I2N(tm->tm_wday));
+    array_set(state, k, 7, I2N(tm->tm_yday));
+    array_set(state, k, 8, I2N(tm->tm_isdst));
+
+#ifdef HAVE_STRUCT_TM_TM_GMTOFF
+    array_set(state, k, 9, I2N(tm->tm_gmtoff));
+#else
+    array_set(state, k, 9, Qnil);
+#endif
+
+#ifdef HAVE_STRUCT_TM_TM_ZONE
+    array_set(state, k, 10, string_new(state, tm->tm_zone));
+#else
+    array_set(state, k, 10, Qnil);
+#endif
+
+    stack_push(k);
+    CODE
+  end
+
+  def mktime
+    <<-CODE
+    time_t seconds;
+    struct tm tm;
+    char *old_tz, old_tz_buf[128];
+    OBJECT t5, t6, t7, t8, t9, ret;
+
+    POP(self, REFERENCE);
+    POP(t1, FIXNUM);
+    POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
+    POP(t4, FIXNUM);
+    POP(t5, FIXNUM);
+    POP(t6, FIXNUM);
+    POP(t7, FIXNUM);
+    POP(t8, FIXNUM);
+    t9 = stack_pop();
+
+    tm.tm_sec = FIXNUM_TO_INT(t1);
+    tm.tm_min = FIXNUM_TO_INT(t2);
+    tm.tm_hour = FIXNUM_TO_INT(t3);
+    tm.tm_mday = FIXNUM_TO_INT(t4);
+    tm.tm_mon = FIXNUM_TO_INT(t5) - 1;
+    tm.tm_year = FIXNUM_TO_INT(t6) - 1900;
+
+    /* In theory, we'd set the tm_isdst field to FIXNUM_TO_INT(t8).
+     * But since that will break on at least FreeBSD,
+     * and I don't see the point of filling in that flag at all,
+     * we're telling the system here to figure the DST stuff
+     * out itself.
+     */
+    tm.tm_isdst = -1;
+
+    if(t9 == Qtrue) {
+      old_tz = getenv("TZ");
+
+      /* We need to save old_tz to our own buffer here, because e.g.
+       * FreeBSD's setenv() will manipulate that string directly.
+       */
+      if(old_tz) {
+        strncpy(old_tz_buf, old_tz, sizeof(old_tz_buf));
+        old_tz_buf[sizeof(old_tz_buf) - 1] = 0;
+      }
+
+      setenv("TZ", "", 1);
+    }
+
+    seconds = mktime(&tm);
+
+    if(t9 == Qtrue) {
+      if(old_tz) {
+        setenv("TZ", old_tz_buf, 1);
+      } else {
+        unsetenv("TZ");
+      }
+    }
+
+    ret = array_new(state, 2);
+    array_set(state, ret, 0, I2N(seconds));
+    array_set(state, ret, 1, t7);
+
+    stack_push(ret);
     CODE
   end
 
