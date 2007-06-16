@@ -170,6 +170,20 @@ context "Array instance method" do
   
   specify "* with a string should be equivalent to self.join(str)" do
     ([ 1, 2, 3 ] * ",").should == [1, 2, 3].join(",")
+
+    x = []
+    x << x
+    (x * ":").should == x.join(":")
+
+    x = []
+    y = []
+    y << 9 << x << 8 << y << 7
+    x << 1 << x << 2 << y << 3
+    (x * ":").should == x.join(":")
+  end
+
+  specify "* with a string should handle recursive arrays" do
+    
   end
 
   specify "* should call to_str on its argument" do
@@ -921,6 +935,22 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_str() '::' end    
     [1, 2, 3, 4].join(obj).should == '1::2::3::4'
+  end
+
+  specify "join should handle recursive arrays" do
+    x = []
+    x << x
+    x.join(":").should == '[...]'
+    
+    x = []
+    y = []
+    y << 9 << x << 8 << y << 7
+    x << 1 << x << 2 << y << 3
+    # representations when recursing from x
+    # these are here to make it easier to understand what is happening
+    y_rec = '9:[...]:8:9:[...]:8:[...]:7:7'
+    x_rec = '1:[...]:2:' + y_rec + ':3'
+    x.join(":").should == '1:' + x_rec + ':2:' + y_rec + ':3'
   end
   
   specify "last returns the last element" do
@@ -1850,6 +1880,16 @@ context "Array instance method" do
     $, = '-'
     a.to_s.should == a.join
     $, = ''
+
+    x = []
+    x << x
+    x.to_s.should == x.join
+
+    x = []
+    y = []
+    y << 9 << x << 8 << y << 7
+    x << 1 << x << 2 << y << 3
+    x.to_s.should == x.join    
   end
 
   specify "transpose assumes an array of arrays and should return the result of transposing rows and columns" do
