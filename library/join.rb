@@ -50,7 +50,7 @@ class Join
       private :chord, :async, :sync, :__defchannels__
     end 
 
-    c.class_eval &block
+    c.class_eval(&block)
     c.instance_eval { @chords.reverse! }
 
     @chords.freeze
