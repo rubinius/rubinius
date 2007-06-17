@@ -11388,10 +11388,7 @@ GQuark id_to_quark(ID id) {
 }
 
 static unsigned long
-scan_oct(start, len, retlen)
-    const char *start;
-    int len;
-    int *retlen;
+scan_oct(const char *start, int len, int *retlen)
 {
     register const char *s = start;
     register unsigned long retval = 0;
@@ -11405,10 +11402,7 @@ scan_oct(start, len, retlen)
 }
 
 static unsigned long
-scan_hex(start, len, retlen)
-    const char *start;
-    int len;
-    int *retlen;
+scan_hex(const char *start, int len, int *retlen)
 {
     static char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
     register const char *s = start;
