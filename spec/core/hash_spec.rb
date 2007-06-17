@@ -8,38 +8,56 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # size, sort, store, to_a, to_hash, to_s, update, value?, values,
 # values_at
 
-context 'Creating a Hash' do
-  specify 'Hash[] is a shorthand for creating a Hash, values can be provided as  key => value, .. OR key, value, ...' do
-    Hash[:a => 1, :b => 2].should == {:a => 1, :b => 2} 
+class MyHash < Hash; end
+
+context "Hash class method" do
+  specify "[] creates a Hash; values can be provided as the argument list" do
     Hash[:a, 1, :b, 2].should == {:a => 1, :b => 2}
+    Hash[].should == {}
   end
- 
-  specify 'Using the parameter list format for Hash[], an even number of arguments must be provided' do
+
+  specify "[] creates a Hash; values can be provided as one single hash" do
+    Hash[:a => 1, :b => 2].should == {:a => 1, :b => 2} 
+    Hash[{1 => 2, 3 => 4}].should == {1 => 2, 3 => 4}
+    Hash[{}].should == {}
+  end
+
+  specify "[] raises on odd parameter list count" do
     should_raise(ArgumentError) { Hash[1, 2, 3] }
   end
  
-  specify 'The two argument styles to Hash[] cannot be mixed' do
+  specify "[] raises when mixing argument styles" do
     should_raise(ArgumentError) { Hash[1, 2, {3 => 4}] }
-  end
-end
-
-context "Hash class methods" do
-  specify "new with object creates a new Hash with default object" do
-    Hash.new(5)[:a].should == 5
-  end
-
-  specify 'new with object will return the *same* object' do
-    class HashSpecNew; end
-
-    h = Hash.new(HashSpecNew.new)
-    h[:foo].object_id.should == h[:bar].object_id
+    Hash[1, 2, 3, {3 => 4}].should == {1 => 2, 3 => {3 => 4}}
   end
   
-  specify "new with block creates a new Hash calling block with key for the default object" do
-    h = Hash.new { |hash, k| k.kind_of?(Numeric) ? hash[k] = k + 2 : hash[k] = k }
-    h[1].should == 3
-    h['this'].should == 'this'
-    h.should == {1 => 3, 'this' => 'this'}
+  specify "[] shouldn't call to_hash" do
+    obj = Object.new
+    def obj.to_hash() { 1 => 2, 3 => 4 } end
+    should_raise(ArgumentError) { Hash[obj] }
+  end
+
+  specify "[] should always return an instance of the class it's called on" do
+    Hash[MyHash[1, 2]].class.should == Hash
+    MyHash[Hash[1, 2]].class.should == MyHash
+  end
+
+  specify "new with default argument creates a new Hash with default object" do
+    Hash.new(5).default.should == 5
+    Hash.new({}).default.should == {}
+  end
+
+  specify "new with default argument shouldn't create a copy of the default" do
+    str = "foo"
+    Hash.new(str).default.equal?(str).should == true
+  end
+  
+  specify "new with block creates a Hash with a default_proc" do
+    Hash.new.default_proc.should == nil
+    
+    hash = Hash.new { |x| "Answer to #{x}" }
+    hash.default_proc.call(5).should == "Answer to 5"
+    hash.default_proc.call("x").should == "Answer to x"
   end
 end
 
@@ -66,11 +84,36 @@ context "Hash instance methods" do
   end
   
   specify "[] should return the default (immediate) value" do
-    Hash.new(7)[1234].should == 7
+    h = Hash.new(5)
+    h[:a].should == 5
+    h[:a] = 0
+    h[:a].should == 0
+    h[:b].should == 5
+  end
+
+  specify "[] shouldn't create copies of the immediate default value" do
+    str = "foo"
+    h = Hash.new(str)
+    a = h[:a]
+    b = h[:b]
+    a << "bar"
+
+    a.equal?(b).should == true
+    a.should == "foobar"
+    b.should == "foobar"
   end
 
   specify "[] should return the default (dynamic) value" do
-    Hash.new {|hsh, key| hsh[key] = (key.to_s + 'awesome')}[1234].should == '1234awesome'
+    h = Hash.new { |hash, k| k.kind_of?(Numeric) ? hash[k] = k + 2 : hash[k] = k }
+    h[1].should == 3
+    h['this'].should == 'this'
+    h.should == {1 => 3, 'this' => 'this'}
+    
+    i = 0
+    h = Hash.new { |hash, key| i += 1 }
+    h[:foo].should == 1
+    h[:foo].should == 2
+    h[:bar].should == 3
   end
   
   specify "[]= should associate the key with the value and return the value" do
