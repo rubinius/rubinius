@@ -95,12 +95,6 @@ context "Array class method" do
     a.class.should == MyArray
     a.inspect.should == [5, true, nil, "a", "Ruby"].inspect
   end
-  
-  only :rbx do
-    specify "allocate creates an instance with the correct number of fields" do
-      Array.allocate.fields.should == Array.instance_fields
-    end
-  end
 end
 
 context "Array instance method" do
