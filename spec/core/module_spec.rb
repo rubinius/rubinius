@@ -295,6 +295,83 @@ context "Module.define_method" do
   
 end
 
+context "Module.undef_method" do
+  class L
+    def foo
+      "ok"
+    end
+  end
+
+  specify "should undefine method :foo" do 
+    l = L.new
+    l.foo.should == "ok"
+    class L
+      undef_method :foo
+    end
+    should_raise(NoMethodError) { l = L.new; l.foo }
+  end
+end
+
+# reference: http://blade.nagaokaut.ac.jp/cgi-bin/scat.rb/ruby/ruby-talk/223092
+context "Module.undef_method and the difference between define_method and def method; end when redefining the previously undefined method and invoking super" do
+  class Parent
+    def foo
+      "P: ok"
+    end
+  end
+
+  class Child < Parent
+    def foo
+      "C: ok"
+    end    
+  end
+
+  class Child < Parent
+    undef_method :foo
+  end
+  
+  specify "should raise superclass method `foo' disabled (NameError) when redefining method using def method; end and invoking super" do  
+    should_raise(NameError) do
+      class Child < Parent
+        def foo 
+          super 
+        end
+      end
+      c = Child.new; c.foo
+    end
+  end
+
+  specify "should call super method properly when redefining method using define_method" do 
+    class Child < Parent
+      define_method(:foo) {super}
+    end
+    c = Child.new; c.foo.should == "P: ok"
+  end
+end
+
+context "Module.remove_method" do
+  class Parent
+    def foo
+      "P: ok"
+    end
+  end
+
+  class Child < Parent
+    def foo
+      "C: ok"
+    end    
+  end
+
+  specify "should remove the method :foo from Child, yet search the superclass Parent and find the method" do 
+    p = Parent.new; p.foo.should == "P: ok"
+    c = Child.new; c.foo.should == "C: ok"
+    class Child < Parent
+      remove_method :foo
+    end
+    c.foo.should == "P: ok"
+  end
+end
+
 context "Module visibility methods (private, protected, public)" do
   specify "should work without args" do
     module TestModule_VisibilityNoArgs
