@@ -59,7 +59,7 @@ endif
 
 DEBUG=-g
 CFLAGS=-fPIC $(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
-DEPS=auto.h system_primitives.gen instruction_names.gen
+DEPS=auto.h system_primitives.gen instruction_names.c instruction_names.h
 
 SOURCES=$(sort $(wildcard *.c) $(wildcard subtend/*.c) grammar.c)
 OBJS=$(SOURCES:.c=.o) subtend/PortableUContext_asm.o
@@ -91,11 +91,11 @@ subtend/PortableUContext_asm.lo:
 librubinius.la: show_info $(DEPS) $(LOBJS) 
 	MACOSX_DEPLOYMENT_TARGET=10.4 $(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) $(LIBS)
 
-cpu_instructions.o: instructions.gen instruction_names.gen
+cpu_instructions.o: instructions.gen instruction_names.c instruction_names.h
 cpu_primitives.o: system_primitives.gen
 object_memory.o: object_memory.h
 
-instruction_names.gen instructions.gen: instructions.rb
+instruction_names.c instruction_names.h instructions.gen: instructions.rb
 	$(RUBY) instructions.rb > instructions.gen
 
 system_primitives.gen: primitives.rb
@@ -121,7 +121,7 @@ grammar.c:
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.*
+	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* instruction_names.c instruction_names.h
 	rm -rf .libs subtend/.libs
 
 .PHONY: clean

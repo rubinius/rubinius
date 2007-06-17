@@ -32,7 +32,7 @@
 #include "subtend.h"
 #include "subtend/nmc.h"
 
-#include "instruction_names.gen"
+#include "instruction_names.h"
 
 machine current_machine;
 

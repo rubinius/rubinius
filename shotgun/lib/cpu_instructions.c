@@ -902,9 +902,9 @@ void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT bl
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }
 
-char *cpu_op_to_name(STATE, char op) {
-  #include "instruction_names.gen"
-  return instruction_names[(int)op];
+const char *cpu_op_to_name(STATE, char op) {
+#include "instruction_names.h"
+  return get_instruction_name(op);
 }
 
 void cpu_run_old(STATE, cpu c) {

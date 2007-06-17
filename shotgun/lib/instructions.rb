@@ -29,12 +29,30 @@ class ShotgunInstructions
   
   def generate_names
     order = Bytecode::InstructionEncoder::OpCodes;
-    str = "static char *instruction_names[] = {\n"
+    str = "static const char instruction_names[] = {\n"
     order.each do |ins|
-      str << "  #{ins.to_s.dump},"      
+      str << "  \"#{ins.to_s}\\0\"\n"
     end
-    str << "};\n"
-    
+    str << "};\n\n"
+    offset = 0
+    str << "static const unsigned short instruction_name_offsets[] = {\n"
+    order.each_with_index do |ins, index|
+      str << ",\n" if index > 0
+      str << "  #{offset}"
+      offset += ins.to_s.length + 1
+    end
+    str << "\n};\n\n"
+    str << <<CODE
+const char *get_instruction_name(int op) {
+  return instruction_names + instruction_name_offsets[op];
+}
+CODE
+  end
+
+  def generate_names_header
+    str = "const char *get_instruction_name(int op);\n"
+
+    order = Bytecode::InstructionEncoder::OpCodes;
     i = 0
     order.each do |ins|
       str << "#define CPU_INSTRUCTION_#{ins.to_s.upcase} #{i}\n"
@@ -951,6 +969,10 @@ si = ShotgunInstructions.new
 si.generate_declarations(STDOUT)
 si.generate_switch(STDOUT)
 
-File.open("instruction_names.gen","w") do |f|
+File.open("instruction_names.c","w") do |f|
   f.puts si.generate_names
+end
+
+File.open("instruction_names.h","w") do |f|
+  f.puts si.generate_names_header
 end
