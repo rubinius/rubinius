@@ -11404,7 +11404,7 @@ scan_oct(const char *start, int len, int *retlen)
 static unsigned long
 scan_hex(const char *start, int len, int *retlen)
 {
-    static char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
+    static const char hexdigit[] = "0123456789abcdef0123456789ABCDEF";
     register const char *s = start;
     register unsigned long retval = 0;
     char *tmp;
