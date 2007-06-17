@@ -198,8 +198,8 @@ static ID rb_id_attrset(ID);
 static NODE *
 extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars);
 rb_parse_state *alloc_parse_state();
-unsigned long scan_oct(const char *start, int len, int *retlen);
-unsigned long scan_hex(const char *start, int len, int *retlen);
+static unsigned long scan_oct(const char *start, int len, int *retlen);
+static unsigned long scan_hex(const char *start, int len, int *retlen);
 
 static void reset_block(rb_parse_state *parse_state);
 static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars);
@@ -6330,7 +6330,7 @@ GQuark id_to_quark(ID id) {
   return qrk;
 }
 
-unsigned long
+static unsigned long
 scan_oct(start, len, retlen)
     const char *start;
     int len;
@@ -6347,7 +6347,7 @@ scan_oct(start, len, retlen)
     return retval;
 }
 
-unsigned long
+static unsigned long
 scan_hex(start, len, retlen)
     const char *start;
     int len;
