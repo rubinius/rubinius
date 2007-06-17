@@ -5014,9 +5014,9 @@ new_evstr(parse_state, node)
     return NEW_EVSTR(head);
 }
 
-static struct {
+static const struct {
     ID token;
-    const char *name;
+    const char name[12];
 } op_tbl[] = {
     {tDOT2,     ".."},
     {tDOT3,     "..."},
@@ -5057,7 +5057,7 @@ static struct {
     {tRSHFT,    ">>"},
     {tCOLON2,   "::"},
     {'`',       "`"},
-    {0, 0}
+    {0, ""}
 };
 
 static ID convert_op(ID id) {
