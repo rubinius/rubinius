@@ -17,9 +17,7 @@ inline
 #endif
 #endif
 static unsigned int
-hash (str, len)
-     register const char *str;
-     register unsigned int len;
+hash (register const char *str, register unsigned int len)
 {
   static unsigned char asso_values[] =
     {
@@ -69,9 +67,7 @@ hash (str, len)
 __inline
 #endif
 struct kwtable *
-syd_reserved_word (str, len)
-     register const char *str;
-     register unsigned int len;
+syd_reserved_word (register const char *str, register unsigned int len)
 {
   static struct kwtable wordlist[] =
     {
