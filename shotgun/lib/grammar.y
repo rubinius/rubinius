@@ -6182,16 +6182,6 @@ syd_dyna_vars(rb_parse_state *st) {
 }
 */
 
-int
-syd_parser_stack_on_heap()
-{
-#if defined(YYBISON) && !defined(C_ALLOCA)
-    return Qfalse;
-#else
-    return Qtrue;
-#endif
-}
-
 /*
 void
 rb_parser_append_print()
