@@ -182,9 +182,6 @@ static ID   convert_op();
 static void tokadd(char c, rb_parse_state *parse_state);
 static int tokadd_string(int, int, int, int *, rb_parse_state*);
  
-    int func, term, paren, *nest;
-    rb_parse_state *parse_state;
- 
 //static void syd_rb_warn(char *fmt, ...);
 #define rb_warn printf
 #define rb_warning printf
