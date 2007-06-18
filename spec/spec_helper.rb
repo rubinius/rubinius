@@ -18,3 +18,15 @@ if !defined?(RUBY_NAME) then
     RUBY_NAME = RUBY_ENGINE
   end
 end
+
+def only(*args)
+  if Object.const_defined?(:RUBY_ENGINE) and args.include?(RUBY_ENGINE.to_sym)
+    yield
+  end
+end
+
+def except(*args)
+  unless Object.const_defined?(:RUBY_ENGINE) and args.include?(RUBY_ENGINE.to_sym)
+    yield
+  end
+end
