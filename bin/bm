@@ -1,6 +1,6 @@
-#!/usr/bin/env rbx
+#!/usr/bin/env ruby
 
-TIMEOUT=10
+TIMEOUT=30
 
 Dir['./benchmark/**/bm*.rb'].each do |f|
   puts "Running #{f}..."
