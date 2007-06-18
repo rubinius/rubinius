@@ -1,5 +1,55 @@
-# Ryan Davis and Eric Hodel wrote this. They rock.
+##
+# Comments borrowed from MRI Implementation
 #
+# A <code>Range</code> represents an interval---a set of values with a
+# start and an end. Ranges may be constructed using the
+#  <em>s</em><code>..</code><em>e</em> and
+#  <em>s</em><code>...</code><em>e</em> literals, or with
+#  <code>Range::new</code>. Ranges constructed using <code>..</code>
+#  run from the start to the end inclusively. Those created using
+#  <code>...</code> exclude the end value. When used as an iterator,
+#  ranges return each value in the sequence.
+#     
+#     (-1..-5).to_a      #=> []
+#     (-5..-1).to_a      #=> [-5, -4, -3, -2, -1]
+#     ('a'..'e').to_a    #=> ["a", "b", "c", "d", "e"]
+#     ('a'...'e').to_a   #=> ["a", "b", "c", "d"]
+#     
+#  Ranges can be constructed using objects of any type, as long as the
+#  objects can be compared using their <code><=></code> operator and
+#  they support the <code>succ</code> method to return the next object
+#  in sequence.
+#     
+#     class Xs                # represent a string of 'x's
+#       include Comparable
+#       attr :length
+#       def initialize(n)
+#         @length = n
+#       end
+#       def succ
+#         Xs.new(@length + 1)
+#       end
+#       def <=>(other)
+#         @length <=> other.length
+#       end
+#       def to_s
+#         sprintf "%2d #{inspect}", @length
+#       end
+#       def inspect
+#         'x'# @length
+#       end
+#     end
+#     
+#     r = Xs.new(3)..Xs.new(6)   #=> xxx..xxxxxx
+#     r.to_a                     #=> [xxx, xxxx, xxxxx, xxxxxx]
+#     r.member?(Xs.new(5))       #=> true
+#     
+#  In the previous code example, class <code>Xs</code> includes the
+#  <code>Comparable</code> module. This is because
+#  <code>Enumerable#member?</code> checks for equality using
+#  <code>==</code>. Including <code>Comparable</code> ensures that the
+#  <code>==</code> method is defined in terms of the <code><=></code>
+#  method implemented in <code>Xs</code>.
 class Range
 
   include Enumerable
@@ -91,6 +141,10 @@ class Range
   def each
     first = self.first # dup?
     last = self.last
+    
+    unless first.respond_to? :succ
+      raise TypeError.new("can't iterate from #{first.class}")
+    end
 
     if Fixnum === first && Fixnum === last then
       last -= 1 if self.exclude_end?
@@ -231,8 +285,28 @@ class Range
   #    10 xxxxxxxxxx
 
   def step(n=1)
-    if n == 1 then
+    first = self.first
+    last = self.last
+    n = n.to_f #people might not pass numbers in. This stops them.
+
+    if n < 0
+      raise ArgumentError.new("step can't be negative.")
+    elsif n == 0
+      raise ArgumentError.new("step can't be 0.")
+    elsif n == 1 then
       each { |o| yield(o) }
+    elsif Numeric === first
+      if self.exclude_end?
+        while (first < last)
+          yield(first)
+          first += n
+        end
+      else
+        while (first <= last)
+          yield(first)
+          first += n
+        end
+      end
     else
       counter = 0
       each do |o|

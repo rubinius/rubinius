@@ -207,4 +207,25 @@ describe "Range" do
     a.should == [0.5, 1, 1.5,2]
   end
 
+  specify "step should not allow negative numbers in stepsize" do
+    should_raise(ArgumentError) do
+      a = []
+      (-5..5).step(-2) { |x| a << x }
+    end
+  end
+
+  specify "step should not allow zero in stepsize" do
+
+    should_raise(ArgumentError) do
+      a = []
+      (-5..5).step(0) { |x| a << x }
+    end
+
+    should_raise(ArgumentError) do
+      a = []
+      (-5.5..5.7).step(0.0) { |x| a << x }
+    end
+
+  end
+
 end
