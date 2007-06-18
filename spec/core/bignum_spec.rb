@@ -286,7 +286,19 @@ describe "Bignum instance method" do
   it "size should be provided" do
     S_BignumHelper.sbm.respond_to?(:size).should == true
   end
-  
+
+  it "size should return number of bytes in self" do
+    (256**7).size.should == 8
+    (256**8).size.should == 12
+    (256**9).size.should == 12
+    (256**10).size.should == 12
+    (256**10-1).size.should == 12
+    (256**11).size.should == 12
+    (256**12).size.should == 16
+    (256**20-1).size.should == 20
+    (256**40-1).size.should == 40
+  end
+
   it "to_f should return self converted to Float" do
     S_BignumHelper.sbm(2).to_f.should == 1073741826.0
     (-S_BignumHelper.sbm(99)).to_f.should == -1073741923.0

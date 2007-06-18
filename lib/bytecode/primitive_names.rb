@@ -54,8 +54,8 @@ module Bytecode
       :gc_start,
       :file_to_sexp,
       :get_byte,
-      :zlib_inflate,
-      :zlib_deflate,
+      nil, # :zlib_inflate,
+      nil, # :zlib_deflate,
       :fixnum_modulo,
       :bytearray_size,
       :terminal_raw,
@@ -173,6 +173,7 @@ module Bytecode
       :task_set_debugging,
       :mktime,
       :time_switch,
+      :bignum_size
     ]
 
     FirstRuntimePrimitive = 1024

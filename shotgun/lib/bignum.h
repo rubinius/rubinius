@@ -28,5 +28,6 @@ OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b);
 long long bignum_to_ll(STATE, OBJECT self);
 OBJECT bignum_from_ull(STATE, unsigned long long val);
 OBJECT bignum_from_ll(STATE, long long val);
+OBJECT bignum_size(STATE, OBJECT self);
 
 #endif

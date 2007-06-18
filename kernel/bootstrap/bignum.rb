@@ -90,4 +90,8 @@ class Bignum < Integer
     Ruby.primitive :bignum_divmod
     super(other)
   end
+
+  def size
+    Ruby.primitive :bignum_size
+  end
 end

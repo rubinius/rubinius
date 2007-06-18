@@ -2703,6 +2703,12 @@ class ShotgunPrimitives
     stack_push(hash);
     CODE
   end
+
+  def bignum_size(_ = bignum)
+    <<-CODE
+    stack_push(bignum_size(state, self));
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

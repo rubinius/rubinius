@@ -575,3 +575,23 @@ OBJECT bignum_from_double(STATE, double d)
 
   return bignum_normalize(state, n_obj);
 }
+
+OBJECT bignum_size(STATE, OBJECT self)
+{
+  mp_int *value = MP(self);
+  
+  int size_in_bits = mp_count_bits(value);
+  int size_in_bytes = size_in_bits / 8;
+  
+  if(size_in_bits % 8 > 0) {
+    ++size_in_bytes;
+  }
+
+  int word_alignment_remainder = size_in_bytes % sizeof(int); 
+  if(word_alignment_remainder > 0) {
+    size_in_bytes -= word_alignment_remainder;
+    size_in_bytes += sizeof(int);
+  }
+
+  return INT_TO_FIXNUM(size_in_bytes);
+}
