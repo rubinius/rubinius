@@ -1,6 +1,7 @@
 require 'timeout'
-RSPEC_PATH = File.expand_path(File.dirname(__FILE__) + '/../../externals/rspec-0.8.2/lib')
-files = `find #{RSPEC_PATH} -type f`.scan(/^[^.].+?\.rb$/).map {|f| f.split('rspec-0.8.2/lib/')[1].split('.rb')[0] }
+RSPEC_PATH = File.expand_path(File.dirname(__FILE__) + '/../../externals/rspec-1.0.5/lib')
+files = 
+`find #{RSPEC_PATH} -type f`.scan(/^[^.].+?\.rb$/).map {|f| f.split('rspec-1.0.5/lib/')[1].split('.rb')[0] }
 
 results = files.map do |path|
   begin
@@ -10,7 +11,7 @@ results = files.map do |path|
     end
     [path, output]
   rescue Timeout::Error
-    [path, 'Timed out (infinite loop?)']
+    [path, 'Timed out.']
   end
 end
 

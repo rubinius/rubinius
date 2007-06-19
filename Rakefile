@@ -1,6 +1,11 @@
 require 'rake/legacy_tasks'
+require 'rake/rubinius_spec_tasks'
 
-task :default => :spec
+task :default => :tasks
+
+task :tasks do
+  puts `rake -T`
+end
 
 def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
@@ -100,6 +105,10 @@ namespace :spec do
     task :replace do
       system 'bin/mspec spec > spec/diffs/base.txt' 
     end
+  end
+
+  task :r2r do
+    puts ARGV.inspect
   end
 end
 
@@ -224,6 +233,7 @@ task :svn => 'svn:up'
 namespace :svn do
   desc "Revert runtime/*.rba then svn up"
   task :up do
+    sh "svn revert reports/*.html"
     sh "svn revert runtime/*.rba"
     puts `svn up`
   end

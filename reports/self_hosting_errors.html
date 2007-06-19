@@ -6,21 +6,21 @@
   </head>
   <body>
     <h1>Self Hosting Errors (Make Rubinius Completely Self-Hosted) Report</h1>
-    <div>Generated on Sun Feb 04 10:20:33 -0800 2007.</div>
+    <div>Generated on Mon Jun 18 20:45:42 -0500 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Working Files</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 184px; text-align: right; color: #000000; background: #00f000">
-      92%&nbsp;&nbsp;</td>
-    <td style="width: 16px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 198px; text-align: right; color: #000000; background: #00f000">
+      99%&nbsp;&nbsp;</td>
+    <td style="width: 2px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(56 out of 61)</p>
+    <p>(82 out of 83)</p>
 
     <h2>Non-Working Files</h2>
     <table border="1">
@@ -30,104 +30,16 @@
       </tr>
       
       <tr>
-        <td>/home/mae/projects/rubinius/lib/bytecode/encoder.rb</td>
-        <td><pre>An exception has occured:
-    Unknown set argument '~' (RuntimeError)
+        <td>/home/rmulliga/rb/rubinius/lib/bytecode/disassembler.rb</td>
+        <td><pre>An exception has occurred:
+    Unable to find 'digest/sha1' to load (LoadError)
 
 Backtrace:
-                   Bytecode::Assembler#raise at bootstrap/04kernel.rb:20
-               Bytecode::Assembler#parse_set at bytecode/assembler.rb:391
-         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:408
-              Bytecode::Assembler#parse_line at bytecode/assembler.rb:222
-                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
-                       BlockEnvironment#call at bootstrap/context.rb:93
-                                  Array#each at bootstrap/array.rb:24
-                Bytecode::Assembler#assemble at bytecode/assembler.rb:94
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:16
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:93
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:93
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:87
-                       BlockEnvironment#call at bootstrap/context.rb:93
-                                  Array#each at bootstrap/array.rb:24
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:90
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:44
-                        Compile.compile_file at core/compile.rb:8
-                                   main.load at core/compile.rb:52
-                             main.__script__ at core/__loader.rb:58
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>/home/mae/projects/rubinius/lib/bytecode/assembler.rb</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>/home/mae/projects/rubinius/lib/bytecode/compiler.rb</td>
-        <td><pre>rubinius: string.c:45: string_dup: Assertion `(({ unsigned long _i = (unsigned long)self; _i &gt; 10 &amp;&amp; ((_i &amp; 1L) == 0L); }) &amp;&amp; ((struct rubinius_object*)self)-&gt;klass == state-&gt;global-&gt;string)' failed.
-rubinius: rubinius.c:83: rbs_inspect_verbose: Assertion `(((OBJECT)(kls) &amp; ~((OBJECT)4L)) != 0) &amp;&amp; &quot;class is nil&quot;' failed.
-
-An error has occured: Software abort (SIGABRT)
-
-C backtrace:
-0xb7d04eef &lt;??&gt; at ??:0
-0xb7cfcdb7 &lt;??&gt; at ??:0
- 0x804be2a &lt;string_dup&gt; at /home/mae/projects/rubinius/shotgun/lib/string.c:45
- 0x805bea3 &lt;cpu_run&gt; at /home/mae/projects/rubinius/shotgun/lib/instructions.gen:395
- 0x804ad66 &lt;machine_run&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:412
- 0x804b36d &lt;machine_load_archive&gt; at /home/mae/projects/rubinius/shotgun/lib/machine.c:541
- 0x804a30a &lt;main&gt; at /home/mae/projects/rubinius/shotgun/main.c:82
-0xb7cef8c8 &lt;??&gt; at ??:0
- 0x8049ffd &lt;_start&gt; at ??:0
- 0x80c80e0 &lt;??&gt; at ??:0
-
-Ruby backtrace:
-0xb797ba74 SimpleSexpProcessor#process+62 in sexp/simple_processor.rb
-0xb797ba00 RsNormalizer#process+112 in translation/normalize.rb
-Skipping Block Context
-0xb797b8c4 BlockEnvironment#call+44 in bootstrap/context.rb
-0xb797b7ec Array#each+73 in bootstrap/array.rb
-0xb797b758 CompositeSexpProcessor#process+86 in sexp/composite_processor.rb
-0xb797a428 Bytecode::Compiler#fully_normalize+149 in bytecode/compiler.rb
-0xb797a018 Bytecode::Compiler#compile+148 in bytecode/compiler.rb
-0xb7979fa4 Bytecode::Compiler#compile_as_script+41 in bytecode/compiler.rb
-0xb7a7c7d4 Class#compile_file+107 in core/compile.rb
-0xb7a7c81c Kernel#load+580 in core/compile.rb
-0xb7a7c864 Class#__script__+674 in core/__loader.rb
-
-Ruby stack:
- 104    &lt;TrueClass:0x2&gt;
- 105    &lt;NilClass:0x4&gt;
- 106    &lt;TrueClass:0x2&gt;
- 107    </pre></td>
-      </tr>
-      
-      <tr>
-        <td>/home/mae/projects/rubinius/lib/bytecode/r18.rb</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>/home/mae/projects/rubinius/lib/bytecode/constructor.rb</td>
-        <td><pre>An exception has occured:
-    Unable to find 'sydparse' to load (LoadError)
-
-Backtrace:
-         main.raise at bootstrap/04kernel.rb:23
-       main.require at core/compile.rb:91
-    main.__script__ at /home/mae/projects/rubinius/lib/bytecode/constructor.rb:3
-          main.load at core/compile.rb:56
-    main.__script__ at core/__loader.rb:58
-Couldn't find sydparse.rbc in runtime/compiler.rba (No such file/-1)
-Couldn't find sydparse.rb in runtime/compiler.rba (No such file/-1)
+         main.raise at kernel/bootstrap/04kernel.rb:42
+       main.require at kernel/core/compile.rb:124
+    main.__script__ at /home/rmulliga/rb/rubinius/lib/bytecode/disassembler.rb:2
+          main.load at kernel/core/compile.rb:67
+    main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
       </tr>
       
@@ -136,117 +48,169 @@ Couldn't find sydparse.rb in runtime/compiler.rba (No such file/-1)
     <h2>Working Files</h2>
     <ul>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/lib/bytecode/primitive_names.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/lib/bytecode/assembler.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/compiled_method.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/lib/bytecode/encoder.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/core.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/lib/bytecode/compiler.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/string.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/lib/bytecode/primitive_names.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/gc.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/bignum.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/bignum.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/nil.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/01class.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/04kernel.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/symbol.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/context.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/ruby.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/03hash.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/02module.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/02module.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/context.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/tuple.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/00b_primitive_init.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/regexp.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/method_missing.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/bytearray.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/nil.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/string.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/tuple.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/01class.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/04kernel.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/fixnum.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/module.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/thread.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/method_table.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/00io.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/exception.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/channel.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/00io.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/array.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/array.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/module.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/global.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/method_table.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/00object.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/core.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/regexp.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/gc.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/00auto_fields.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/compiled_method.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/class.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/immediate.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/03hash.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/exception.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/bootstrap/fixnum.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/rubinius.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/continuation.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/global.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/throw_catch.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/task.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/string.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/symbol.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/bignum.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/float.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/compile.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/class.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/05integer.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/00object.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/marshal.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/method_missing.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/02range.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/bootstrap/meta_class.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/file.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/08channel.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/compression.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/bignum.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/time.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/vm.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/03comparable.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/hash.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/archive.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/struct.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/kernel.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/marshal.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/01enumerable.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/math.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/hash.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/regexp.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/process.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/01range.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/object.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/bytearray.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/exception.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/06integer.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/04numeric.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/throw_catch.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/00io.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/object.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/array.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/string.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/01range.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/fixnum.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/__loader.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/04numeric.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/float.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/00io.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/regexp.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/03comparable.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/fixnum.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/list.rb</li>
       
-      <li style="font-weight: bold; color: green">/home/mae/projects/rubinius/kernel/core/readline.rb</li>
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/codearchive.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/signal.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/09class.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/array.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/process.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/file.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/kernel.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/01enumerable.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/archive.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/readline.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/debugger.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/weakref.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/module.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/sprintf.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/env.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/compile.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/05ctype.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/mailbox.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/options.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/exception.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/time.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/compression.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/sampler.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/float.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/actor.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/continuation.rb</li>
+      
+      <li style="font-weight: bold; color: green">/home/rmulliga/rb/rubinius/kernel/core/07ffi.rb</li>
       
     </ul>
 

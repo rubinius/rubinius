@@ -6,21 +6,21 @@
   </head>
   <body>
     <h1>Make RSpec work on Rubinius Report</h1>
-    <div>Generated on Wed Mar 21 15:41:36 -0700 2007.</div>
+    <div>Generated on Mon Jun 18 20:45:25 -0500 2007.</div>
 
     <h2>Overview</h2>
 
     <h3>Working Files</h3>
     <table style="height: 25px; width: 200px" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="width: 107px; text-align: right; color: #000000; background: #00f000">
-      53%&nbsp;&nbsp;</td>
-    <td style="width: 93px; text-align: left; color: #ffffff; background: #e00000">
+    <td style="width: 147px; text-align: right; color: #000000; background: #00f000">
+      73%&nbsp;&nbsp;</td>
+    <td style="width: 53px; text-align: left; color: #ffffff; background: #e00000">
       </td>
   </tr>
 </table>
 
-    <p>(39 out of 73)</p>
+    <p>(58 out of 79)</p>
 
     <h2>Non-Working Files</h2>
     <table border="1">
@@ -30,953 +30,999 @@
       </tr>
       
       <tr>
+        <td>autotest/discover</td>
+        <td><pre>An exception has occurred:
+    No method 'add_discovery' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(NilClass)#add_discovery (method_missing) at kernel/bootstrap/method_missing.rb:8
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/autotest/discover.rb:2
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>autotest/rspec</td>
+        <td><pre>An exception has occurred:
+    Unable to find 'autotest' to load (LoadError)
+
+Backtrace:
+                 main.raise at kernel/bootstrap/04kernel.rb:42
+               main.require at kernel/core/compile.rb:124
+            main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/autotest/rspec.rb:1
+                  main.load at kernel/core/compile.rb:67
+               main.require at kernel/core/compile.rb:112
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+            Compile.execute at kernel/core/compile.rb:29
+            main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/dsl/behaviour</td>
+        <td><pre>An exception has occurred:
+    No method 'append_features' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(NilClass)#append_features (method_missing) at kernel/bootstrap/method_missing.rb:8
+                   Module(MetaClass)#include at kernel/bootstrap/module.rb:10
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                          Array#reverse_each at kernel/bootstrap/array.rb:28
+                   Module(MetaClass)#include at kernel/bootstrap/module.rb:11
+                        Object(Class)#extend at kernel/bootstrap/00object.rb:10
+               DSL::Behaviour.__class_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour.rb:5
+                         DSL.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour.rb:4
+                        Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour.rb:2
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/dsl/behaviour_eval</td>
+        <td><pre>An exception has occurred:
+    No method 'append_features' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(NilClass)#append_features (method_missing) at kernel/bootstrap/method_missing.rb:8
+                              Module#include at kernel/bootstrap/module.rb:10
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                          Array#reverse_each at kernel/bootstrap/array.rb:28
+                              Module#include at kernel/bootstrap/module.rb:11
+               ModuleMethods.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:5
+               BehaviourEval.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:4
+                         DSL.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:3
+                        Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:2
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/dsl</td>
+        <td><pre>An exception has occurred:
+    No method 'direct_superclass' on an instance of Module. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(Module)#direct_superclass (method_missing) at kernel/bootstrap/method_missing.rb:8
+                    IncludedModule#attach_to at kernel/bootstrap/02module.rb:66
+                      Module#append_features at kernel/bootstrap/02module.rb:16
+                              Module#include at kernel/bootstrap/module.rb:10
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                          Array#reverse_each at kernel/bootstrap/array.rb:28
+                              Module#include at kernel/bootstrap/module.rb:11
+               ModuleMethods.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:5
+               BehaviourEval.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:4
+                         DSL.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:3
+                        Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:2
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl/behaviour_eval.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/dsl.rb:5
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
+      </tr>
+      
+      <tr>
         <td>spec/expectations/differs/default</td>
-        <td><pre>An exception has occured:
+        <td><pre>An exception has occurred:
     You must gem install diff-lcs to use diffing (RuntimeError)
 
 Backtrace:
-                 main.raise at bootstrap/04kernel.rb:30
-            main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/differs/default.rb:5
-                  main.load at core/compile.rb:56
-               main.require at core/compile.rb:88
-      BlockEnvironment#call at bootstrap/context.rb:127
-                 Array#each at bootstrap/array.rb:26
-               main.require at core/compile.rb:88
-      BlockEnvironment#call at bootstrap/context.rb:127
-                 Array#each at bootstrap/array.rb:26
-               main.require at core/compile.rb:88
+                 main.raise at kernel/bootstrap/04kernel.rb:42
+            main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/expectations/differs/default.rb:5
+                  main.load at kernel/core/compile.rb:67
+               main.require at kernel/core/compile.rb:112
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
        main.__eval_script__ at (eval):1
-    CompiledMethod#activate at bootstrap/compiled_method.rb:78
-            Compile.execute at core/compile.rb:22
-            main.__script__ at core/__loader.rb:85
+    CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+            Compile.execute at kernel/core/compile.rb:29
+            main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/extensions/object</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Module. (NoMethodError)
-
-Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    ObjectExpectations.deprecated (method_missing) at bootstrap/method_missing.rb:8
-          ObjectExpectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:92
-                Expectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:5
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/extensions</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Module. (NoMethodError)
-
-Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    ObjectExpectations.deprecated (method_missing) at bootstrap/method_missing.rb:8
-          ObjectExpectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:92
-                Expectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:5
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions/object.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/extensions.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should/base</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Class. (NoMethodError)
-
-Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    Should::Base.deprecated (method_missing) at bootstrap/method_missing.rb:8
-                 Should::Base.__class_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:30
-                      Should.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:4
-                Expectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:3
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should/not</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Class. (NoMethodError)
-
-Backtrace:
-                   NoMethodError#initialize at core/exception.rb:47
-                          NoMethodError.new at bootstrap/class.rb:8
-    Should::Not.deprecated (method_missing) at bootstrap/method_missing.rb:8
-                 Should::Not.__class_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/not.rb:64
-                     Should.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/not.rb:5
-               Expectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/not.rb:3
-                       Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/not.rb:2
-                            main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/not.rb:1
-                                  main.load at core/compile.rb:56
-                               main.require at core/compile.rb:88
-                      BlockEnvironment#call at bootstrap/context.rb:127
-                                 Array#each at bootstrap/array.rb:26
-                               main.require at core/compile.rb:88
-                      BlockEnvironment#call at bootstrap/context.rb:127
-                                 Array#each at bootstrap/array.rb:26
-                               main.require at core/compile.rb:88
-                       main.__eval_script__ at (eval):1
-                    CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                            Compile.execute at core/compile.rb:22
-                            main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should/should</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Class. (NoMethodError)
-
-Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    Should::Should.deprecated (method_missing) at bootstrap/method_missing.rb:8
-               Should::Should.__class_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/should.rb:59
-                      Should.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/should.rb:5
-                Expectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/should.rb:3
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/should.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/should.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/should</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Class. (NoMethodError)
-
-Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    Should::Base.deprecated (method_missing) at bootstrap/method_missing.rb:8
-                 Should::Base.__class_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:30
-                      Should.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:4
-                Expectations.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:3
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should/base.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/should.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations/sugar</td>
-        <td><pre>An exception has occured:
-    No method 'deprecated' on an instance of Object. (NoMethodError)
-
-Backtrace:
-            NoMethodError#initialize at core/exception.rb:47
-                   NoMethodError.new at bootstrap/class.rb:8
-    main.deprecated (method_missing) at bootstrap/method_missing.rb:8
-                     main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/expectations/sugar.rb:2
-                           main.load at core/compile.rb:56
-                        main.require at core/compile.rb:88
-               BlockEnvironment#call at bootstrap/context.rb:127
-                          Array#each at bootstrap/array.rb:26
-                        main.require at core/compile.rb:88
-               BlockEnvironment#call at bootstrap/context.rb:127
-                          Array#each at bootstrap/array.rb:26
-                        main.require at core/compile.rb:88
-                main.__eval_script__ at (eval):1
-             CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                     Compile.execute at core/compile.rb:22
-                     main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/expectations</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/matchers</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/argument_expectation</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
       </tr>
       
       <tr>
         <td>spec/mocks/extensions/object</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/message_expectation</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/mocks/methods</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    Attempted to access field of non-reference (null pointer) (ArgumentError)
+
+Backtrace:
+      Object.__class_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/extensions/object.rb:0
+            main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/extensions/object.rb:1
+                  main.load at kernel/core/compile.rb:67
+               main.require at kernel/core/compile.rb:112
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+            Compile.execute at kernel/core/compile.rb:29
+            main.__script__ at kernel/core/__loader.rb:126
+Attempted to access field of non reference.
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/mocks/mock</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    No method 'to_sym' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(NilClass)#to_sym (method_missing) at kernel/bootstrap/method_missing.rb:8
+         Bytecode::Assembler#parse_operation at native/bytecode/assembler.rb:480
+              Bytecode::Assembler#parse_line at native/bytecode/assembler.rb:237
+                Bytecode::Assembler#assemble at native/bytecode/assembler.rb:114
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                Bytecode::Assembler#assemble at native/bytecode/assembler.rb:114
+      Bytecode::MethodDescription#to_cmethod at native/bytecode/rubinius.rb:18
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:96
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:99
+      Bytecode::MethodDescription#to_cmethod at native/bytecode/rubinius.rb:51
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:96
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:99
+      Bytecode::MethodDescription#to_cmethod at native/bytecode/rubinius.rb:51
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:96
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:99
+      Bytecode::MethodDescription#to_cmethod at native/bytecode/rubinius.rb:51
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:96
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+    Bytecode::MethodDescription#encode_literals at native/bytecode/rubinius.rb:99
+      Bytecode::MethodDescription#to_cmethod at native/bytecode/rubinius.rb:51
+                        Compile.compile_file at kernel/core/compile.rb:15
+                                   main.load at kernel/core/compile.rb:73
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
+      </tr>
+      
+      <tr>
+        <td>spec/mocks/spec_methods</td>
+        <td><pre>An exception has occurred:
+    No method 'append_features' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(NilClass)#append_features (method_missing) at kernel/bootstrap/method_missing.rb:8
+                              Module#include at kernel/bootstrap/module.rb:10
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                          Array#reverse_each at kernel/bootstrap/array.rb:28
+                              Module#include at kernel/bootstrap/module.rb:11
+                 SpecMethods.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:4
+                       Mocks.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:3
+                        Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:2
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/mocks</td>
-        <td><pre>An exception has occured:
-    No method 'to_sym' on an instance of NilClass. (NoMethodError)
+        <td><pre>An exception has occurred:
+    No method 'direct_superclass' on an instance of Module. (NoMethodError)
 
 Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-            NilClass#to_sym (method_missing) at bootstrap/method_missing.rb:8
-         Bytecode::Assembler#parse_operation at bytecode/assembler.rb:454
-              Bytecode::Assembler#parse_line at bytecode/assembler.rb:237
-                Bytecode::Assembler#assemble at bytecode/assembler.rb:114
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                Bytecode::Assembler#assemble at bytecode/assembler.rb:114
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:20
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:97
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:100
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:52
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:97
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:100
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:52
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:97
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:100
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:52
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:97
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-    Bytecode::MethodDescription#encode_literals at bytecode/rubinius.rb:100
-      Bytecode::MethodDescription#to_cmethod at bytecode/rubinius.rb:52
-                        Compile.compile_file at core/compile.rb:8
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/mocks.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(Module)#direct_superclass (method_missing) at kernel/bootstrap/method_missing.rb:8
+                    IncludedModule#attach_to at kernel/bootstrap/02module.rb:66
+                      Module#append_features at kernel/bootstrap/02module.rb:16
+                              Module#include at kernel/bootstrap/module.rb:10
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                          Array#reverse_each at kernel/bootstrap/array.rb:28
+                              Module#include at kernel/bootstrap/module.rb:11
+                 SpecMethods.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:4
+                       Mocks.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:3
+                        Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:2
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks/spec_methods.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/mocks.rb:3
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
                         main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
       </tr>
       
       <tr>
         <td>spec/rake/spectask</td>
-        <td><pre>An exception has occured:
+        <td><pre>An exception has occurred:
     Unable to find 'rake' to load (LoadError)
 
 Backtrace:
-                 main.raise at bootstrap/04kernel.rb:33
-               main.require at core/compile.rb:92
-            main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/rake/spectask.rb:5
-                  main.load at core/compile.rb:56
-               main.require at core/compile.rb:88
-      BlockEnvironment#call at bootstrap/context.rb:127
-                 Array#each at bootstrap/array.rb:26
-               main.require at core/compile.rb:88
-      BlockEnvironment#call at bootstrap/context.rb:127
-                 Array#each at bootstrap/array.rb:26
-               main.require at core/compile.rb:88
+                 main.raise at kernel/bootstrap/04kernel.rb:42
+               main.require at kernel/core/compile.rb:124
+            main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/rake/spectask.rb:5
+                  main.load at kernel/core/compile.rb:67
+               main.require at kernel/core/compile.rb:112
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
        main.__eval_script__ at (eval):1
-    CompiledMethod#activate at bootstrap/compiled_method.rb:78
-            Compile.execute at core/compile.rb:22
-            main.__script__ at core/__loader.rb:85
+    CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+            Compile.execute at kernel/core/compile.rb:29
+            main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
       </tr>
       
       <tr>
         <td>spec/rake/verify_rcov</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    Attempted to access field of non-reference (null pointer) (ArgumentError)
+
+Backtrace:
+       RCov.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/rake/verify_rcov.rb:0
+            main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/rake/verify_rcov.rb:1
+                  main.load at kernel/core/compile.rb:67
+               main.require at kernel/core/compile.rb:112
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+            Compile.execute at kernel/core/compile.rb:29
+            main.__script__ at kernel/core/__loader.rb:126
+Attempted to access field of non reference.
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/runner/backtrace_tweaker</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    No method 'join' on an instance of Class. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+         Object(Class)#join (method_missing) at kernel/bootstrap/method_missing.rb:8
+    Runner::QuietBacktraceTweaker.__class_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/backtrace_tweaker.rb:21
+                      Runner.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/backtrace_tweaker.rb:19
+                        Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/backtrace_tweaker.rb:2
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/backtrace_tweaker.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/runner/command_line</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/context_eval</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/context_runner</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    BUG: Invalid sexp: :keys (RuntimeError)
+
+Backtrace:
+               Functions(RsNormalizer)#raise at kernel/bootstrap/04kernel.rb:42
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:36
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_many_if at native/translation/normalize.rb:313
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                RsNormalizer#process_many_if at native/translation/normalize.rb:313
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+    SimpleSexpProcessor(RsNormalizer)#concat_all at native/sexp/simple_processor.rb:70
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                       Integer(Fixnum)#times at kernel/core/06integer.rb:17
+    SimpleSexpProcessor(RsNormalizer)#concat_all at native/sexp/simple_processor.rb:72
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:57
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_when at native/translation/normalize.rb:300
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_case at native/translation/normalize.rb:286
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+             Enumerable(Array)#map (collect) at kernel/core/01enumerable.rb:285
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+             Enumerable(Array)#map (collect) at kernel/core/01enumerable.rb:285
+                   RsNormalizer#process_case at native/translation/normalize.rb:286
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_iter at native/translation/normalize.rb:128
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_scope at native/translation/normalize.rb:254
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_defn at native/translation/normalize.rb:95
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_scope at native/translation/normalize.rb:254
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_class at native/translation/normalize.rb:202
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+              CompositeSexpProcessor#process at native/sexp/composite_processor.rb:34
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+              CompositeSexpProcessor#process at native/sexp/composite_processor.rb:34
+          Bytecode::Compiler#fully_normalize at native/bytecode/compiler.rb:195
+                  Bytecode::Compiler#compile at native/bytecode/compiler.rb:172
+        Bytecode::Compiler#compile_as_script at native/bytecode/compiler.rb:211
+                        Compile.compile_file at kernel/core/compile.rb:14
+                                   main.load at kernel/core/compile.rb:73
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/option_parser.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/command_line.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/runner/drb_command_line</td>
-        <td><pre>An exception has occured:
+        <td><pre>&quot;&quot;
+&quot;&quot;
+&quot;&quot;
+&quot;Fcntl&quot;
+An exception has occurred:
     Unknown type ':undef', [:to_s] (RuntimeError)
 
 Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:33
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:859
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:109
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:859
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:901
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:123
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:901
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:192
-                        Compile.compile_file at core/compile.rb:7
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/drb_command_line.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
+    Functions(Bytecode::Compiler::Processor)#raise at kernel/bootstrap/04kernel.rb:42
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:62
+    Bytecode::Compiler::Processor#process_newline at native/bytecode/compiler.rb:2038
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_block at native/bytecode/compiler.rb:485
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_scope at native/bytecode/compiler.rb:499
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+                  Bytecode::Compiler#compile at native/bytecode/compiler.rb:186
+        Bytecode::Compiler#compile_as_method at native/bytecode/compiler.rb:200
+    Bytecode::Compiler::Processor#process_class at native/bytecode/compiler.rb:958
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+            Bytecode::Compiler#as_class_body at native/bytecode/compiler.rb:119
+    Bytecode::Compiler::Processor#process_class at native/bytecode/compiler.rb:958
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_newline at native/bytecode/compiler.rb:2038
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_block at native/bytecode/compiler.rb:485
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_scope at native/bytecode/compiler.rb:499
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+                  Bytecode::Compiler#compile at native/bytecode/compiler.rb:186
+        Bytecode::Compiler#compile_as_method at native/bytecode/compiler.rb:200
+    Bytecode::Compiler::Processor#process_module at native/bytecode/compiler.rb:998
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+           Bytecode::Compiler#as_module_body at native/bytecode/compiler.rb:135
+    Bytecode::Compiler::Processor#process_module at native/bytecode/compiler.rb:998
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_newline at native/bytecode/compiler.rb:2038
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+    Bytecode::Compiler::Processor#process_block at native/bytecode/compiler.rb:485
+    Object(Bytecode::Compiler::Processor)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(Bytecode::Compiler::Processor)#process at native/sexp/simple_processor.rb:60
+                  Bytecode::Compiler#compile at native/bytecode/compiler.rb:186
+        Bytecode::Compiler#compile_as_script at native/bytecode/compiler.rb:211
+                        Compile.compile_file at kernel/core/compile.rb:14
+                                   main.load at kernel/core/compile.rb:73
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/drb_command_line.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
                         main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/extensions/object</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/formatter/rdoc_formatter</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/formatter/specdoc_formatter</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/formatter</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
       </tr>
       
       <tr>
         <td>spec/runner/heckle_runner</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    You must gem install heckle to use --heckle (RuntimeError)
+
+Backtrace:
+                 main.raise at kernel/bootstrap/04kernel.rb:42
+            main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/heckle_runner.rb:4
+                  main.load at kernel/core/compile.rb:67
+               main.require at kernel/core/compile.rb:112
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+      BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                 Array#each at kernel/bootstrap/array.rb:18
+               main.require at kernel/core/compile.rb:119
+       main.__eval_script__ at (eval):1
+    CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+            Compile.execute at kernel/core/compile.rb:29
+            main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
       </tr>
       
       <tr>
         <td>spec/runner/option_parser</td>
-        <td><pre>An exception has occured:
-    Unknown type ':op_asgn1', [[:call, [:const, :Thread], :current, [:array]], :or, [:array, [:array], [:const, :InspectKey], [:nil]]] (RuntimeError)
+        <td><pre>An exception has occurred:
+    BUG: Invalid sexp: :keys (RuntimeError)
 
 Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:33
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1291
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:137
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1291
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:859
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:109
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:859
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:192
-                        Compile.compile_file at core/compile.rb:7
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/option_parser.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
+               Functions(RsNormalizer)#raise at kernel/bootstrap/04kernel.rb:42
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:36
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_many_if at native/translation/normalize.rb:313
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                RsNormalizer#process_many_if at native/translation/normalize.rb:313
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+    SimpleSexpProcessor(RsNormalizer)#concat_all at native/sexp/simple_processor.rb:70
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                       Integer(Fixnum)#times at kernel/core/06integer.rb:17
+    SimpleSexpProcessor(RsNormalizer)#concat_all at native/sexp/simple_processor.rb:72
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:57
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_when at native/translation/normalize.rb:300
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_case at native/translation/normalize.rb:286
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+             Enumerable(Array)#map (collect) at kernel/core/01enumerable.rb:285
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+             Enumerable(Array)#map (collect) at kernel/core/01enumerable.rb:285
+                   RsNormalizer#process_case at native/translation/normalize.rb:286
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_iter at native/translation/normalize.rb:128
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_scope at native/translation/normalize.rb:254
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_defn at native/translation/normalize.rb:95
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_scope at native/translation/normalize.rb:254
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_class at native/translation/normalize.rb:202
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+              CompositeSexpProcessor#process at native/sexp/composite_processor.rb:34
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+              CompositeSexpProcessor#process at native/sexp/composite_processor.rb:34
+          Bytecode::Compiler#fully_normalize at native/bytecode/compiler.rb:195
+                  Bytecode::Compiler#compile at native/bytecode/compiler.rb:172
+        Bytecode::Compiler#compile_as_script at native/bytecode/compiler.rb:211
+                        Compile.compile_file at kernel/core/compile.rb:14
+                                   main.load at kernel/core/compile.rb:73
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/option_parser.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
                         main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
       </tr>
       
       <tr>
-        <td>spec/runner/spec_matcher</td>
-        <td><pre>An exception has occured:
-    Unknown type ':dregx', [&quot;(^&quot;, [:evstr, [:vcall, :context_regexp]], [:str, &quot; &quot;], [:evstr, [:vcall, :spec_regexp]], [:str, &quot;$|^&quot;], [:evstr, [:vcall, :context_regexp]], [:str, &quot;$|^&quot;], [:evstr, [:vcall, :spec_regexp]], [:str, &quot;$)&quot;]] (RuntimeError)
+        <td>spec/runner/options</td>
+        <td><pre>An exception has occurred:
+    Attempted to access field of non-reference (null pointer) (ArgumentError)
 
 Backtrace:
-         Bytecode::Compiler::Processor#raise at bootstrap/04kernel.rb:33
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:58
-    Bytecode::Compiler::Processor#process_match3 at bytecode/compiler.rb:348
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1291
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_method_body at bytecode/compiler.rb:137
-    Bytecode::Compiler::Processor#process_defn at bytecode/compiler.rb:1291
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:859
-                       BlockEnvironment#call at bootstrap/context.rb:127
-            Bytecode::Compiler#as_class_body at bytecode/compiler.rb:109
-    Bytecode::Compiler::Processor#process_class at bytecode/compiler.rb:859
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:901
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:123
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:901
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_block at bytecode/compiler.rb:447
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_scope at bytecode/compiler.rb:458
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_method at bytecode/compiler.rb:181
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:901
-                       BlockEnvironment#call at bootstrap/context.rb:127
-           Bytecode::Compiler#as_module_body at bytecode/compiler.rb:123
-    Bytecode::Compiler::Processor#process_module at bytecode/compiler.rb:901
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-    Bytecode::Compiler::Processor#process_newline at bytecode/compiler.rb:1668
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                                 Method#call at bootstrap/compiled_method.rb:130
-    Bytecode::Compiler::Processor#send (__send__) at bootstrap/core.rb:87
-       Bytecode::Compiler::Processor#process at sexp/simple_processor.rb:56
-                  Bytecode::Compiler#compile at bytecode/compiler.rb:167
-        Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:192
-                        Compile.compile_file at core/compile.rb:7
-                                   main.load at core/compile.rb:52
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
-</pre></td>
-      </tr>
-      
-      <tr>
-        <td>spec/runner/specification</td>
-        <td><pre>An exception has occured:
-    No method 'callback_events' on an instance of MetaClass. (NoMethodError)
-
-Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    #&lt;MetaClass:0x6f8a50&gt;.callback_events (method_missing) at bootstrap/method_missing.rb:8
-    #&lt;MetaClass:0x6f8a50&gt;.__metaclass_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:9
-        Runner::Specification.__class_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:5
-                      Runner.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:3
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                        main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
+    Runner::Options.__class_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/options.rb:0
+            Runner.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/options.rb:3
+              Spec.__module_init__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/options.rb:2
+                   main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/options.rb:1
+                         main.load at kernel/core/compile.rb:67
+                      main.require at kernel/core/compile.rb:112
+             BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                        Array#each at kernel/bootstrap/array.rb:18
+                      main.require at kernel/core/compile.rb:119
+             BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                        Array#each at kernel/bootstrap/array.rb:18
+                      main.require at kernel/core/compile.rb:119
+              main.__eval_script__ at (eval):1
+           CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                   Compile.execute at kernel/core/compile.rb:29
+                   main.__script__ at kernel/core/__loader.rb:126
+Attempted to access field of non reference.
 </pre></td>
       </tr>
       
       <tr>
         <td>spec/runner</td>
-        <td><pre>An exception has occured:
-    No method 'callback_events' on an instance of MetaClass. (NoMethodError)
+        <td><pre>An exception has occurred:
+    BUG: Invalid sexp: :keys (RuntimeError)
 
 Backtrace:
-                    NoMethodError#initialize at core/exception.rb:47
-                           NoMethodError.new at bootstrap/class.rb:8
-    #&lt;MetaClass:0x6f8f24&gt;.callback_events (method_missing) at bootstrap/method_missing.rb:8
-    #&lt;MetaClass:0x6f8f24&gt;.__metaclass_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:9
-        Runner::Specification.__class_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:5
-                      Runner.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:3
-                        Spec.__module_init__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:2
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner/specification.rb:1
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                             main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/runner.rb:4
-                                   main.load at core/compile.rb:56
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
-                       BlockEnvironment#call at bootstrap/context.rb:127
-                                  Array#each at bootstrap/array.rb:26
-                                main.require at core/compile.rb:88
+               Functions(RsNormalizer)#raise at kernel/bootstrap/04kernel.rb:42
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:36
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_many_if at native/translation/normalize.rb:313
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                RsNormalizer#process_many_if at native/translation/normalize.rb:313
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+    SimpleSexpProcessor(RsNormalizer)#concat_all at native/sexp/simple_processor.rb:70
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                       Integer(Fixnum)#times at kernel/core/06integer.rb:17
+    SimpleSexpProcessor(RsNormalizer)#concat_all at native/sexp/simple_processor.rb:72
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:57
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_when at native/translation/normalize.rb:300
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_case at native/translation/normalize.rb:286
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+             Enumerable(Array)#map (collect) at kernel/core/01enumerable.rb:285
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+             Enumerable(Array)#map (collect) at kernel/core/01enumerable.rb:285
+                   RsNormalizer#process_case at native/translation/normalize.rb:286
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_iter at native/translation/normalize.rb:128
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_scope at native/translation/normalize.rb:254
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                   RsNormalizer#process_defn at native/translation/normalize.rb:95
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_scope at native/translation/normalize.rb:254
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_class at native/translation/normalize.rb:202
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                RsNormalizer#process_newline at native/translation/normalize.rb:280
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+                  RsNormalizer#process_block at native/translation/normalize.rb:46
+        Object(RsNormalizer)#send (__send__) at kernel/bootstrap/core.rb:101
+    SimpleSexpProcessor(RsNormalizer)#process at native/sexp/simple_processor.rb:48
+                        RsNormalizer#process at native/translation/normalize.rb:23
+              CompositeSexpProcessor#process at native/sexp/composite_processor.rb:34
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+              CompositeSexpProcessor#process at native/sexp/composite_processor.rb:34
+          Bytecode::Compiler#fully_normalize at native/bytecode/compiler.rb:195
+                  Bytecode::Compiler#compile at native/bytecode/compiler.rb:172
+        Bytecode::Compiler#compile_as_script at native/bytecode/compiler.rb:211
+                        Compile.compile_file at kernel/core/compile.rb:14
+                                   main.load at kernel/core/compile.rb:73
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner/option_parser.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/runner.rb:4
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
                         main.__eval_script__ at (eval):1
-                     CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Compile.execute at core/compile.rb:22
-                             main.__script__ at core/__loader.rb:85
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
       </tr>
       
       <tr>
         <td>spec/translator</td>
-        <td><pre>An exception has occured:
-    No method 'first' on an instance of NilClass. (NoMethodError)
+        <td><pre>An exception has occurred:
+    No method 'private_class_method' on an instance of Module. (NoMethodError)
 
 Backtrace:
-                NoMethodError#initialize at core/exception.rb:47
-                       NoMethodError.new at bootstrap/class.rb:8
-         NilClass#first (method_missing) at bootstrap/method_missing.rb:8
-              RsNormalizer#process_block at translation/normalize.rb:41
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-               RsNormalizer#process_iter at translation/normalize.rb:128
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-            RsNormalizer#process_newline at translation/normalize.rb:289
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-                 RsNormalizer#concat_all at sexp/simple_processor.rb:66
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                            Fixnum#times at core/06integer.rb:17
-                 RsNormalizer#concat_all at sexp/simple_processor.rb:68
-                    RsNormalizer#process at sexp/simple_processor.rb:53
-                    RsNormalizer#process at translation/normalize.rb:23
-                 RsNormalizer#concat_all at sexp/simple_processor.rb:66
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                            Fixnum#times at core/06integer.rb:17
-                 RsNormalizer#concat_all at sexp/simple_processor.rb:68
-                    RsNormalizer#process at sexp/simple_processor.rb:53
-                    RsNormalizer#process at translation/normalize.rb:23
-                 RsNormalizer#concat_all at sexp/simple_processor.rb:66
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                            Fixnum#times at core/06integer.rb:17
-                 RsNormalizer#concat_all at sexp/simple_processor.rb:68
-                    RsNormalizer#process at sexp/simple_processor.rb:53
-                    RsNormalizer#process at translation/normalize.rb:23
-            RsNormalizer#process_newline at translation/normalize.rb:289
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-              RsNormalizer#process_block at translation/normalize.rb:46
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-               RsNormalizer#process_iter at translation/normalize.rb:128
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-            RsNormalizer#process_newline at translation/normalize.rb:289
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-              RsNormalizer#process_block at translation/normalize.rb:46
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-              RsNormalizer#process_scope at translation/normalize.rb:263
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-               RsNormalizer#process_defn at translation/normalize.rb:90
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-            RsNormalizer#process_newline at translation/normalize.rb:289
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-              RsNormalizer#process_block at translation/normalize.rb:46
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-              RsNormalizer#process_scope at translation/normalize.rb:263
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-             RsNormalizer#process_module at translation/normalize.rb:223
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-            RsNormalizer#process_newline at translation/normalize.rb:289
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                             Method#call at bootstrap/compiled_method.rb:130
-            RsNormalizer#send (__send__) at bootstrap/core.rb:87
-                    RsNormalizer#process at sexp/simple_processor.rb:44
-                    RsNormalizer#process at translation/normalize.rb:23
-          CompositeSexpProcessor#process at sexp/composite_processor.rb:34
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                              Array#each at bootstrap/array.rb:26
-          CompositeSexpProcessor#process at sexp/composite_processor.rb:34
-      Bytecode::Compiler#fully_normalize at bytecode/compiler.rb:176
-              Bytecode::Compiler#compile at bytecode/compiler.rb:154
-    Bytecode::Compiler#compile_as_script at bytecode/compiler.rb:192
-                    Compile.compile_file at core/compile.rb:7
-                               main.load at core/compile.rb:52
-                            main.require at core/compile.rb:88
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                              Array#each at bootstrap/array.rb:26
-                            main.require at core/compile.rb:88
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                              Array#each at bootstrap/array.rb:26
-                            main.require at core/compile.rb:88
-                         main.__script__ at /Users/brian/devel/rubinius/externals/rspec-0.8.2/lib/spec/translator.rb:1
-                               main.load at core/compile.rb:56
-                            main.require at core/compile.rb:88
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                              Array#each at bootstrap/array.rb:26
-                            main.require at core/compile.rb:88
-                   BlockEnvironment#call at bootstrap/context.rb:127
-                              Array#each at bootstrap/array.rb:26
-                            main.require at core/compile.rb:88
-                    main.__eval_script__ at (eval):1
-                 CompiledMethod#activate at bootstrap/compiled_method.rb:78
-                         Compile.execute at core/compile.rb:22
-                         main.__script__ at core/__loader.rb:85
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(Module)#private_class_method (method_missing) at kernel/bootstrap/method_missing.rb:8
+           FileUtils.private_module_function at stdlib/fileutils.rb:89
+                   FileUtils.__module_init__ at stdlib/fileutils.rb:246
+                             main.__script__ at stdlib/fileutils.rb:85
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/translator.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
 </pre></td>
       </tr>
       
       <tr>
         <td>spec</td>
-        <td><pre>Timed out (infinite loop?)</pre></td>
+        <td><pre>An exception has occurred:
+    No method 'private_class_method' on an instance of Module. (NoMethodError)
+
+Backtrace:
+                    NoMethodError#initialize at kernel/core/exception.rb:45
+                                   Class#new at kernel/core/09class.rb:4
+    Object(Module)#private_class_method (method_missing) at kernel/bootstrap/method_missing.rb:8
+           FileUtils.private_module_function at stdlib/fileutils.rb:89
+                   FileUtils.__module_init__ at stdlib/fileutils.rb:246
+                             main.__script__ at stdlib/fileutils.rb:85
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec/translator.rb:1
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                             main.__script__ at /home/rmulliga/rb/rubinius/externals/rspec-1.0.5/lib/spec.rb:5
+                                   main.load at kernel/core/compile.rb:67
+                                main.require at kernel/core/compile.rb:112
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                       BlockEnvironment#call at kernel/bootstrap/context.rb:186
+                                  Array#each at kernel/bootstrap/array.rb:18
+                                main.require at kernel/core/compile.rb:119
+                        main.__eval_script__ at (eval):1
+                     CompiledMethod#activate at kernel/bootstrap/compiled_method.rb:101
+                             Compile.execute at kernel/core/compile.rb:29
+                             main.__script__ at kernel/core/__loader.rb:126
+</pre></td>
       </tr>
       
     </table>
@@ -984,27 +1030,37 @@ Backtrace:
     <h2>Working Files</h2>
     <ul>
       
-      <li style="font-weight: bold; color: green">spec/callback/callback_container</li>
+      <li style="font-weight: bold; color: green">spec/dsl/behaviour_callbacks</li>
       
-      <li style="font-weight: bold; color: green">spec/callback/extensions/module</li>
+      <li style="font-weight: bold; color: green">spec/dsl/behaviour_factory</li>
       
-      <li style="font-weight: bold; color: green">spec/callback/extensions/object</li>
+      <li style="font-weight: bold; color: green">spec/dsl/composite_proc_builder</li>
       
-      <li style="font-weight: bold; color: green">spec/callback</li>
+      <li style="font-weight: bold; color: green">spec/dsl/configuration</li>
       
-      <li style="font-weight: bold; color: green">spec/deprecated</li>
+      <li style="font-weight: bold; color: green">spec/dsl/description</li>
+      
+      <li style="font-weight: bold; color: green">spec/dsl/example</li>
+      
+      <li style="font-weight: bold; color: green">spec/dsl/example_matcher</li>
+      
+      <li style="font-weight: bold; color: green">spec/dsl/example_should_raise_handler</li>
       
       <li style="font-weight: bold; color: green">spec/expectations/errors</li>
       
-      <li style="font-weight: bold; color: green">spec/expectations/extensions/proc</li>
+      <li style="font-weight: bold; color: green">spec/expectations/extensions/object</li>
       
       <li style="font-weight: bold; color: green">spec/expectations/extensions/string_and_symbol</li>
       
+      <li style="font-weight: bold; color: green">spec/expectations/extensions</li>
+      
       <li style="font-weight: bold; color: green">spec/expectations/handler</li>
       
-      <li style="font-weight: bold; color: green">spec/expectations/should/change</li>
+      <li style="font-weight: bold; color: green">spec/expectations</li>
       
-      <li style="font-weight: bold; color: green">spec/expectations/should/have</li>
+      <li style="font-weight: bold; color: green">spec/extensions/object</li>
+      
+      <li style="font-weight: bold; color: green">spec/extensions</li>
       
       <li style="font-weight: bold; color: green">spec/matchers/be</li>
       
@@ -1024,6 +1080,8 @@ Backtrace:
       
       <li style="font-weight: bold; color: green">spec/matchers/match</li>
       
+      <li style="font-weight: bold; color: green">spec/matchers/operator_matcher</li>
+      
       <li style="font-weight: bold; color: green">spec/matchers/raise_error</li>
       
       <li style="font-weight: bold; color: green">spec/matchers/respond_to</li>
@@ -1032,33 +1090,59 @@ Backtrace:
       
       <li style="font-weight: bold; color: green">spec/matchers/throw_symbol</li>
       
+      <li style="font-weight: bold; color: green">spec/matchers</li>
+      
+      <li style="font-weight: bold; color: green">spec/mocks/argument_constraint_matchers</li>
+      
+      <li style="font-weight: bold; color: green">spec/mocks/argument_expectation</li>
+      
       <li style="font-weight: bold; color: green">spec/mocks/error_generator</li>
       
       <li style="font-weight: bold; color: green">spec/mocks/errors</li>
       
-      <li style="font-weight: bold; color: green">spec/mocks/mock_handler</li>
+      <li style="font-weight: bold; color: green">spec/mocks/message_expectation</li>
+      
+      <li style="font-weight: bold; color: green">spec/mocks/methods</li>
       
       <li style="font-weight: bold; color: green">spec/mocks/order_group</li>
       
-      <li style="font-weight: bold; color: green">spec/runner/context</li>
+      <li style="font-weight: bold; color: green">spec/mocks/proxy</li>
       
-      <li style="font-weight: bold; color: green">spec/runner/execution_context</li>
+      <li style="font-weight: bold; color: green">spec/mocks/space</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/behaviour_runner</li>
       
       <li style="font-weight: bold; color: green">spec/runner/extensions/kernel</li>
       
+      <li style="font-weight: bold; color: green">spec/runner/extensions/object</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter/base_formatter</li>
+      
       <li style="font-weight: bold; color: green">spec/runner/formatter/base_text_formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter/failing_behaviours_formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter/failing_examples_formatter</li>
       
       <li style="font-weight: bold; color: green">spec/runner/formatter/html_formatter</li>
       
       <li style="font-weight: bold; color: green">spec/runner/formatter/progress_bar_formatter</li>
       
-      <li style="font-weight: bold; color: green">spec/runner/heckle_runner_win</li>
+      <li style="font-weight: bold; color: green">spec/runner/formatter/rdoc_formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter/snippet_extractor</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter/specdoc_formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/formatter</li>
+      
+      <li style="font-weight: bold; color: green">spec/runner/heckle_runner_unsupported</li>
       
       <li style="font-weight: bold; color: green">spec/runner/reporter</li>
       
       <li style="font-weight: bold; color: green">spec/runner/spec_parser</li>
       
-      <li style="font-weight: bold; color: green">spec/runner/spec_should_raise_handler</li>
+      <li style="font-weight: bold; color: green">spec/test_case_adapter</li>
       
       <li style="font-weight: bold; color: green">spec/version</li>
       
