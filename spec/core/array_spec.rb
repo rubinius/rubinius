@@ -1005,18 +1005,20 @@ context "Array instance method" do
   end
   
   # FIX: as of r1357 this causes a VM SIGBUS
-  # specify "inspect should handle recursive arrays" do
-  #   x = [1, 2]
-  #   x << x << 4
-  #   x.inspect.should == '[1, 2, [...], 4]'
-  # 
-  #   x = [1, 2]
-  #   y = [3, 4]
-  #   x << y
-  #   y << x
-  #   x.inspect.should == '[1, 2, [3, 4, [...]]]'
-  #   y.inspect.should == '[3, 4, [1, 2, [...]]]'
-  # end
+  except :rbx do
+    specify "inspect should handle recursive arrays" do
+      x = [1, 2]
+      x << x << 4
+      x.inspect.should == '[1, 2, [...], 4]'
+  
+      x = [1, 2]
+      y = [3, 4]
+      x << y
+      y << x
+      x.inspect.should == '[1, 2, [3, 4, [...]]]'
+      y.inspect.should == '[3, 4, [1, 2, [...]]]'
+    end
+  end
   
   specify "join should return a string formed by concatenating each element.to_s separated by separator without trailing separator" do
     obj = Object.new
