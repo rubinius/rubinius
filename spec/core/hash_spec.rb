@@ -429,7 +429,7 @@ context "Hash instance methods" do
   
   specify "delete_if should remove every entry for which block is true and returns self" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
-    h.delete_if { |k,v| v % 2 == 1 }.should == {:b => 2, :d => 4} 
+    h.delete_if { |k,v| v % 2 == 1 }.equal?(h).should == true
     h.should == {:b => 2, :d => 4}
   end
   
@@ -680,6 +680,11 @@ context "Hash instance methods" do
     i[1].should == :b
   end
   
+  specify "invert on hash subclasses shouldn't return subclass instances" do
+    MyHash[1 => 2, 3 => 4].invert.class.should == Hash
+    MyHash[].invert.class.should == Hash
+  end
+  
   specify "key? should return true if argument is a key" do
     h = { :a => 1, :b => 2, :c => 3, 4 => 0 }
     h.key?(:a).should == true
@@ -764,6 +769,14 @@ context "Hash instance methods" do
   specify "merge shouldn't call to_hash on hash subclasses" do    
     {3 => 4}.merge(ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
   end
+
+  specify "merge on hash subclasses should return subclass instance" do
+    MyHash[1 => 2, 3 => 4].merge({1 => 2}).class.should == MyHash
+    MyHash[].merge({1 => 2}).class.should == MyHash
+
+    {1 => 2, 3 => 4}.merge(MyHash[1 => 2]).class.should == Hash
+    {}.merge(MyHash[1 => 2]).class.should == Hash
+  end
   
   specify "merge! should add the entries from other, overwriting duplicate keys. Returns self" do
     h = { :_1 => 'a', :_2 => '3' }
@@ -803,7 +816,7 @@ context "Hash instance methods" do
     h.key?(k1).should == false
     h.keys.include?(k1).should == true
     
-    h.rehash
+    h.rehash.equal?(h).should == true
     h.key?(k1).should == true
     h[k1].should == 0
     
@@ -851,6 +864,11 @@ context "Hash instance methods" do
     h.reject { false }.to_a.should == [[1, 2]]
   end
   
+  specify "reject on hash subclasses should return subclass instance" do
+    MyHash[1 => 2, 3 => 4].reject { false }.class.should == MyHash
+    MyHash[1 => 2, 3 => 4].reject { true }.class.should == MyHash
+  end
+    
   specify "reject! is equivalent to delete_if if changes are made" do
     {:a => 2}.reject! { |k,v| v > 1 }.should == ({:a => 2}.delete_if { |k, v| v > 1 })
   end
@@ -885,10 +903,19 @@ context "Hash instance methods" do
     a.sort { |a,b| a.to_s <=> b.to_s }.should == [[:c, 4], [:d, 2]]
   end
   
-  specify "shift should remove an entry from hash and return it in a two-element array" do
-    h = { :a => 2 }
-    h.shift.should == [:a, 2]
-    h.should == {}
+  specify "shift should remove a pair from hash and return it (same order as to_a)" do
+    hash = { :a => 1, :b => 2, "c" => 3, nil => 4, [] => 5 }
+    pairs = hash.to_a
+    
+    hash.size.times do
+      r = hash.shift
+      r.class.should == Array
+      r.should == pairs.shift
+      hash.size.should == pairs.size
+    end
+    
+    hash.should == {}
+    hash.shift.should == nil
   end
   
   specify "size should be a synonym for length" do
@@ -922,16 +949,20 @@ context "Hash instance methods" do
       pairs << pair
     end
     
+    h.to_a.class.should == Array
     h.to_a.should == pairs
   end
   
-  specify "to_hash should should return self" do
+  specify "to_hash should return self" do
     h = {}
     h.to_hash.equal?(h).should == true
   end
   
   specify "to_s should return a string by calling Hash#to_a and using Array#join with default separator" do
-    { :fun => 'fun', 'fun' => :fun }.to_s.should == 'funfunfunfun'
+    h = { :fun => 'x', 1 => 3, nil => "ok", [] => :y }
+    h.to_a.to_s.should == h.to_s
+    $, = ':'
+    h.to_a.to_s.should == h.to_s
   end
   
   specify "update should be a synonym for merge!" do
@@ -974,10 +1005,82 @@ context "Hash instance methods" do
   end
   
   specify "values should return an array of values" do
-    { 1 => :a, 'a' => :a, 'the' => 'lang'}.values.sort {|a, b| a.to_s <=> b.to_s}.should == [:a, :a, 'lang']
+    h = { 1 => :a, 'a' => :a, 'the' => 'lang'}
+    h.values.class.should == Array
+    h.values.sort {|a, b| a.to_s <=> b.to_s}.should == [:a, :a, 'lang']
   end
   
   specify "values_at should return an array of values for the given keys" do
-    {:a => 9, :b => 'a', :c => -10, :d => nil}.values_at(:a, :d, :b).should == [9, nil, 'a']
+    h = {:a => 9, :b => 'a', :c => -10, :d => nil}
+    h.values_at().class.should == Array
+    h.values_at().should == []
+    h.values_at(:a, :d, :b).class.should == Array
+    h.values_at(:a, :d, :b).should == [9, nil, 'a']
+  end
+end
+
+context "On a frozen hash" do
+  empty = {}
+  empty.freeze
+
+  hash = {1 => 2, 3 => 4}
+  hash.freeze
+  
+  specify "[]= should raise" do
+    should_raise(TypeError) { hash[1] = 2 }
+  end
+
+  specify "clear should raise" do
+    should_raise(TypeError) { hash.clear }
+    should_raise(TypeError) { empty.clear }
+  end
+
+  specify "default= should raise" do
+    should_raise(TypeError) { hash.default = nil }
+  end
+
+  specify "delete should raise" do
+    should_raise(TypeError) { hash.delete("foo") }
+    should_raise(TypeError) { empty.delete("foo") }
+  end
+
+  specify "delete_if should raise" do
+    should_raise(TypeError) { hash.delete_if { false } }
+    should_raise(TypeError) { empty.delete_if { true } }
+  end  
+
+  specify "merge! should raise" do
+    hash.merge!(empty) # ok, empty
+    should_raise(TypeError) { hash.merge!(1 => 2) }
+  end
+
+  specify "rehash should raise" do
+    should_raise(TypeError) { hash.rehash }
+    should_raise(TypeError) { empty.rehash }
+  end
+  
+  specify "reject! should raise" do
+    should_raise(TypeError) { hash.reject! { false } }
+    should_raise(TypeError) { empty.reject! { true } }
+  end  
+
+  specify "replace should raise" do
+    hash.replace(hash) # ok, nothing changed
+    should_raise(TypeError) { hash.replace(empty) }
+  end  
+
+  specify "shift should raise" do
+    should_raise(TypeError) { hash.shift }
+    should_raise(TypeError) { empty.shift }
+  end
+
+  specify "store should raise" do
+    should_raise(TypeError) { hash.store(1, 2) }
+    should_raise(TypeError) { empty.shift }
+  end
+
+  specify "update should raise" do
+    hash.update(empty) # ok, empty
+    should_raise(TypeError) { hash.update(1 => 2) }
   end
 end

@@ -1447,7 +1447,7 @@ context "Array instance method" do
   specify "sort raises an ArgumentError if the comparison cannot be completed" do
     d = D.new
 
-    # Fails essentially because of d.<=>(e) whereas d.<=>(1) would work
+    # Fails essentially because of 1.<=>(d) whereas d.<=>(1) would work
     should_raise(ArgumentError) { [1, d].sort.should == [1, d] }
   end
   
@@ -2681,6 +2681,10 @@ end
 context "On a frozen array" do
   ary = [1, 2, 3]
   ary.freeze
+  
+  specify "[]= should raise" do
+    should_raise(TypeError) { ary[0, 0] = [] }
+  end
   
   specify "<< should raise" do
     should_raise(TypeError) { ary << 5 }
