@@ -473,7 +473,7 @@ context "Array instance method" do
     [].concat(ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
-  specify "delete removes elements that are #== to object" do
+  specify "delete should remove elements that are #== to object" do
     x = Object.new
     def x.==(other) 3 == other end
 
@@ -580,7 +580,7 @@ context "Array instance method" do
     [nil].fetch(0).should == nil
   end
 
-  specify "fetch counts negative indices backwards from end" do
+  specify "fetch should count negative indices backwards from end" do
     [1, 2, 3, 4].fetch(-1).should == 4
   end
   
@@ -601,7 +601,7 @@ context "Array instance method" do
     [1, 2, 3].fetch(9) { |i| i * i }.should == 81
   end
 
-  specify "fetch's default block takes precedence over its default argument" do
+  specify "fetch's default block should take precedence over its default argument" do
     [1, 2, 3].fetch(9, :foo) { |i| i * i }.should == 81
   end
 
@@ -640,12 +640,12 @@ context "Array instance method" do
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
   end
 
-  specify "fill with negative index past the beginning of Array starts at 0" do
+  specify "fill with negative index past the beginning of Array should start at 0" do
     [1, 2, 3, 4, 5].fill('a', -25, 3).should == ['a', 'a', 'a', 4, 5]
     [1, 2, 3, 4, 5].fill('a', -10, 10).should == %w|a a a a a a a a a a|
   end
   
-  specify "fill with an index and a count of < 1 doesn't change the Array" do
+  specify "fill with an index and a count of < 1 shouldn't change the Array" do
     [1, 2, 3].fill('a', 1, -3).should == [1, 2, 3]
     [1, 2, 3].fill('a', 1, 0).should == [1, 2, 3]
   end
@@ -676,27 +676,27 @@ context "Array instance method" do
     [1, 1, 1, 1, 1, 1].fill(1..6) { |i| i + 1 }.should == [1, 2, 3, 4, 5, 6, 7]
   end
 
-  specify "fill increases the Array size when necessary" do
+  specify "fill should increase the Array size when necessary" do
     a = [1, 2, 3]
     a.size.should == 3
     a.fill 'a', 0, 10
     a.size.should == 10 
   end
 
-  specify "fill raises ArgumentError if the wrong number of arguments is given" do
+  specify "fill should raise if the wrong number of arguments is given" do
     should_raise(ArgumentError) { [].fill('a', 1, 2, true) }
     should_raise(ArgumentError) { [].fill('a', 1, true) {|i|} }
   end
 
-  specify "fill raises TypeError if the index is not numeric" do
+  specify "fill should raise TypeError if the index is not numeric" do
     should_raise(TypeError) { [].fill 'a', true }
   end
 
-  specify "fill with range and length argument raises TypeError" do
+  specify "fill with range and length argument should raise TypeError" do
     should_raise(TypeError) { [].fill('x', 0 .. 2, 5) }
   end
 
-  specify "fill with nil length acts as if length argument isn't supplied" do
+  specify "fill with nil length should act as if length argument isn't supplied" do
     a = [1, 2, 3]
     a.fill('x', 1, nil)
     a.should == [1, 'x', 'x']
@@ -819,7 +819,7 @@ context "Array instance method" do
     a.sort { |x,y| a.frozen?.should == false; x <=> y }
   end
   
-  specify "hash returns the same fixnum for arrays with the same content" do
+  specify "hash should return the same fixnum for arrays with the same content" do
     [].respond_to?(:hash).should == true
     
     [[], [1, 2, 3]].each do |ary|
@@ -828,7 +828,7 @@ context "Array instance method" do
     end
   end
   
-  specify "hash calls to_int on result of calling hash on each element" do
+  specify "hash should call to_int on result of calling hash on each element" do
     ary = Array.new(5) do
       # Can't use should_receive here because it calls hash()
       obj = Object.new
@@ -848,7 +848,7 @@ context "Array instance method" do
     MyArray[1, 2].hash.should == [1, 2].hash
   end
 
-  specify "hash provides the same hash code for any two Arrays with the same content" do
+  specify "hash should return same hash code for arrays with the same content" do
     a = [1, 2, 3, 4]
     a.fill 'a', 0..3
     b = %w|a a a a|
@@ -1737,16 +1737,79 @@ context "Array instance method" do
     ["a", "a", "b", "b", "c"].uniq.should == ["a", "b", "c"]
   end
 
-  # But MRI doesn't actually call eql?()
-  specify "uniq compares elements with eql? semantics for numbers" do
+  specify "uniq should use eql? semantics" do
     [1.0, 1].uniq.should == [1.0, 1]
+  end
+
+  specify "uniq should first compare elements via hash" do
+    # Can't use should_receive because it uses hash internally
+    x = Object.new
+    def x.hash() freeze; 0 end
+    y = Object.new
+    def y.hash() freeze; 0 end
+    
+    [x, y].uniq
+    x.frozen?.should == true
+    y.frozen?.should == true
+  end
+  
+  specify "uniq shouldn't compare elements with different hash codes via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    x = Object.new
+    def x.eql?(o) raise("Shouldn't receive eql?") end
+    y = Object.new
+    def y.eql?(o) raise("Shouldn't receive eql?") end
+
+    def x.hash() freeze; 0 end
+    def y.hash() freeze; 1 end
+
+    [x, y].uniq.should == [x, y]
+    x.frozen?.should == true
+    y.frozen?.should == true
+  end
+  
+  specify "uniq should compare elements with matching hash codes via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    a = Array.new(2) do 
+      obj = Object.new
+
+      def obj.hash()
+        # It's undefined whether the impl does a[0].eql?(a[1]) or
+        # a[1].eql?(a[0]) so we taint both.
+        def self.eql?(o) taint; o.taint; false; end
+        return 0
+      end
+
+      obj
+    end
+
+    a.uniq.should == a
+    a[0].tainted?.should == true
+    a[1].tainted?.should == true
+
+    a = Array.new(2) do 
+      obj = Object.new
+
+      def obj.hash()
+        # It's undefined whether the impl does a[0].eql?(a[1]) or
+        # a[1].eql?(a[0]) so we taint both.
+        def self.eql?(o) taint; o.taint; true; end
+        return 0
+      end
+
+      obj
+    end
+
+    a.uniq.size == 1
+    a[0].tainted?.should == true
+    a[1].tainted?.should == true
   end
   
   specify "uniq on array subclasses should return subclass instance" do
     MyArray[1, 2, 3].uniq.class.should == MyArray
   end
   
-  specify "uniq! modifies the array in place" do
+  specify "uniq! should modify the array in place" do
     a = [ "a", "a", "b", "b", "c" ]
     a.uniq!
     a.should == ["a", "b", "c"]
