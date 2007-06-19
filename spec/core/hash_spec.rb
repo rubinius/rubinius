@@ -419,29 +419,61 @@ context "Hash instance methods" do
   end
   
   specify "each should call block once for each entry, passing key, value" do
-    h = {}
-    {:a, 1, :b, 2, :c, 3, :d, 5}.each { |k,v| h[k.to_s] = v.to_s }
-    h.should == {"a" => "1", "b" => "2", "c" => "3", "d" => "5" }
+    r = {}
+    h = {:a, 1, :b, 2, :c, 3, :d, 5}
+    h.each { |k,v| r[k.to_s] = v.to_s }.equal?(h).should == true
+    r.should == {"a" => "1", "b" => "2", "c" => "3", "d" => "5" }
+  end
+
+  specify "each should use the same order as keys() and values()" do
+    h = {:a, 1, :b, 2, :c, 3, :d, 5}
+    keys = []
+    values = []
+
+    h.each do |k, v|
+      keys << k
+      values << v
+    end
+    
+    keys.should == h.keys
+    values.should == h.values
   end
   
   specify "each_key should call block once for each key, passing key" do
-    h = {}
-    {1 => -1, 2 => -2, 3 => -3, 4 => -4 }.each_key { |k| h[k] = k }
-    h.should == { 1 => 1, 2 => 2, 3 => 3, 4 => 4 }
+    r = {}
+    h = {1 => -1, 2 => -2, 3 => -3, 4 => -4 }
+    h.each_key { |k| r[k] = k }.equal?(h).should == true
+    r.should == { 1 => 1, 2 => 2, 3 => 3, 4 => 4 }
+  end
+
+  specify "each_key should process keys in the same order as keys()" do
+    keys = []
+    h = {1 => -1, 2 => -2, 3 => -3, 4 => -4 }
+    h.each_key { |k| keys << k }
+    keys.should == h.keys
   end
   
   specify "each_pair should be a synonym for each" do
     a, b = [], []
-    {:a, 1, :b, 2, :c, 3, :d, 5}.each_pair { |k,v| a << "#{k} => #{v}" }
-    {:a, 1, :b, 2, :c, 3, :d, 5}.each { |k,v| b << "#{k} => #{v}" }
+    h = {:a, 1, :b, 2, :c, 3, :d, 5}
+    h.each_pair { |k,v| a << "#{k} => #{v}" }.equal?(h).should == true
+    h.each { |k,v| b << "#{k} => #{v}" }
 
     a.should == b
   end
   
-  specify "each_value should should call block once for each key, passing value" do
-    h = {}
-    { :a => -5, :b => -3, :c => -2, :d => -1 }.each_value { |v| h[v.abs] = v }
-    h.should == { 5 => -5, 1 => -1, 2 => -2, 3 => -3 }
+  specify "each_value should call block once for each key, passing value" do
+    r = []
+    h = { :a => -5, :b => -3, :c => -2, :d => -1, :e => -1 }
+    h.each_value { |v| r << v }.equal?(h).should == true
+    r.sort.should == [-5, -3, -2, -1, -1]
+  end
+
+  specify "each_value should process values in the same order as values()" do
+    values = []
+    h = { :a => -5, :b => -3, :c => -2, :d => -1, :e => -1 }
+    h.each_value { |v| values << v }
+    values.should == h.values
   end
   
   specify "empty? should return true if the hash has no entries" do
@@ -457,14 +489,21 @@ context "Hash instance methods" do
   
   specify "fetch should raise IndexError if key is not found" do
     should_raise(IndexError) { {}.fetch(:a) }
+    should_raise(IndexError) { Hash.new(5).fetch(:a) }
+    should_raise(IndexError) { Hash.new { 5 }.fetch(:a) }
   end
   
   specify "fetch with default should return default if key is not found" do
     {}.fetch(:a, 'not here!').should == "not here!"
+    { :a => nil }.fetch(:a, 'not here!').should == nil
   end
   
   specify "fetch with block should return value of block if key is not found" do
     {}.fetch('a') { |k| k + '!' }.should == "a!"
+  end
+
+  specify "fetch's default block should take precedence over its default argument" do
+    {}.fetch(9, :foo) { |i| i * i }.should == 81
   end
   
   specify "has_key? should be a synonym for key?" do
@@ -478,6 +517,10 @@ context "Hash instance methods" do
   specify "has_value? should be a synonym for value?" do
     {:a => :b}.has_value?(:a).should == {:a => :b}.value?(:a)
     {1 => 2}.has_value?(2).should == {1 => 2}.value?(2)
+    h = Hash.new(5)
+    h.has_value?(5).should == h.value?(5)
+    h = Hash.new { 5 }
+    h.has_value?(5).should == h.value?(5)
   end
   
   specify "include? should be a synonym for key?" do
@@ -494,36 +537,129 @@ context "Hash instance methods" do
   
   specify "index should return nil if the value is not found" do
     {:a => -1, :b => 3.14, :c => 2.718}.index(1).should == nil
+    Hash.new(5).index(5).should == nil
+  end
+
+  specify "index should compare values using ==" do
+    {1 => 0}.index(0.0).should == 1
+    {1 => 0.0}.index(0).should == 1
+    
+    needle = Object.new
+    inhash = Object.new
+    inhash.should_receive(:==, :with => [needle], :returning => true)
+    
+    {1 => inhash}.index(needle).should == 1
+  end
+
+  specify "index should compare values with same order as keys() and values()" do
+    h = {1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0}
+    h.index(0).should == h.keys.first
+    
+    needle = Object.new
+    h = {1 => Object.new, 3 => Object.new, 4 => Object.new, 42 => Object.new }
+    h.values[0].should_receive(:==, :with => [needle], :returning => false)
+    h.values[1].should_receive(:==, :with => [needle], :returning => false)
+    h.values[2].should_receive(:==, :with => [needle], :returning => true)
+    h.values[3].should_not_receive(:==)
+    
+    h.index(needle).should == h.keys[2]
   end
   
   specify "indexes and indices should be DEPRECATED synonyms for values_at" do
     h = {:a => 9, :b => 'a', :c => -10, :d => nil}
     h.indexes(:a, :d, :b).should == h.values_at(:a, :d, :b)
+    h.indexes().should == h.values_at()
     h.indices(:a, :d, :b).should == h.values_at(:a, :d, :b)
+    h.indices().should == h.values_at()
   end
   
   specify "initialize_copy should be a synonym for replace" do
-    Hash.new.send(:initialize_copy, { :a => 1, :b => 2 }).should == Hash.new.send(:replace, { :a => 1, :b => 2 })
+    init_hash = Hash.new
+    repl_hash = Hash.new
+    arg = { :a => 1, :b => 2 }
+    
+    init_hash.send(:initialize_copy, arg).should == repl_hash.replace(arg)
+    init_hash.should == repl_hash
   end
   
-  specify "inspect should return a string representation of some kind" do
-    {:a => 0, :b => -2, :c => 4, :d => -6}.inspect.class.should == String
+  specify "inspect should return a string representation with same order as each()" do
+    h = {:a => [1, 2], :b => -2, :d => -6, nil => nil}
+    
+    pairs = []
+    h.each do |key, value|
+      pairs << key.inspect + "=>" + value.inspect
+    end
+    
+    str = '{' + pairs.join(', ') + '}'
+    h.inspect.should == str
+  end
+
+  specify "inspect should call inspect keys and values" do
+    key = Object.new
+    val = Object.new
+    key.should_receive(:inspect, :returning => 'key')
+    val.should_receive(:inspect, :returning => 'val')
+    
+    { key => val }.inspect.should == '{key=>val}'
+  end
+
+  specify "inspect should handle recursive hashes" do
+    x = {}
+    x[0] = x
+    x.inspect.should == '{0=>{...}}'
+
+    x = {}
+    x[x] = 0
+    x.inspect.should == '{{...}=>0}'
+
+    x[x] = x
+    x.inspect.should == '{{...}=>{...}}'
+
+    x = {}
+    y = {}
+    x[0] = y
+    y[1] = x
+    x.inspect.should == "{0=>{1=>{...}}}"
+    y.inspect.should == "{1=>{0=>{...}}}"
+
+    x = {}
+    y = {}
+    x[y] = 0
+    y[x] = 1
+    x.inspect.should == "{{{...}=>1}=>0}"
+    y.inspect.should == "{{{...}=>0}=>1}"
+    
+    x[y] = x
+    y[x] = y
+    x.inspect.should == "{{{...}=>{...}}=>{...}}"
+    y.inspect.should == "{{{...}=>{...}}=>{...}}"
   end
   
   specify "invert should return a new hash where keys are values and vice versa" do
     { 1 => 'a', 2 => 'b', 3 => 'c' }.invert.should == { 'a' => 1, 'b' => 2, 'c' => 3 }
   end
   
+  specify "invert should handle collisions by overriding with the key coming later in keys()" do
+    h = { :a => 1, :b => 1 }
+    override_key = h.keys.last
+    h.invert[1].should == override_key
+  end
+
+  specify "invert should compare new keys with eql? semantics" do
+    h = { :a => 1.0, :b => 1 }
+    i = h.invert
+    i[1.0].should == :a
+    i[1].should == :b
+  end
+  
   specify "key? should return true if argument is a key" do
-    h = { :a => 1, :b => 2, :c => 3 }
+    h = { :a => 1, :b => 2, :c => 3, 4 => 0 }
     h.key?(:a).should == true
     h.key?(:b).should == true
     h.key?('b').should == false
     h.key?(2).should == false
-  end
-  
-  specify "key? should return false if the key was not found" do
-    { 5 => 7 }.key?(7).should == false
+    h.key?(4).should == true
+    h.key?(4.0).should == false
   end
 
   specify "key? should return true if the key's matching value was nil" do
@@ -534,17 +670,31 @@ context "Hash instance methods" do
     { :xyz => false }.key?(:xyz).should == true
   end
 
-  specify "key? should return true if the key was found" do
-    { :xyz => 9 }.key?(:xyz).should == true
+  specify "keys should return an array populated with keys" do
+    {}.keys.should == []
+    {}.keys.class.should == Array
+    Hash.new(5).keys.should == []
+    Hash.new { 5 }.keys.should == []
+    { 1 => 2, 2 => 4, 4 => 8 }.keys.should == [1, 2, 4]
+    { 1 => 2, 2 => 4, 4 => 8 }.keys.class.should == Array
+    { nil => nil }.keys.should == [nil]
   end
 
-  specify "keys should return an array populated with keys" do
-    { 1 => 2, 2 => 4, 4 => 8 }.keys.should == [1, 2, 4]
+  specify "keys and values should use the same order" do
+    h = { 1 => "1", 2 => "2", 3 => "3", 4 => "4" }
+    
+    h.size.times do |i|
+      h[h.keys[i]].should == h.values[i]
+    end
   end
 
   specify "length should return the number of entries" do
     {:a => 1, :b => 'c'}.length.should == 2
+    {:a => 1, :b => 2, :a => 2}.length.should == 2
+    {:a => 1, :b => 1, :c => 1}.length.should == 3
     {}.length.should == 0
+    Hash.new(5).length.should == 0
+    Hash.new { 5 }.length.should == 0
   end
   
   specify "member? should be a synonym for key?" do
@@ -560,23 +710,65 @@ context "Hash instance methods" do
   end
   
   specify "merge with block sets any duplicate key to the value of block" do
-    { :a => 2, :b => 1 }.merge(:a => -2, :c => -3) { |k,v| -9 }.should == { :c => -3, :b => 1, :a => -9 }
+    h1 = { :a => 2, :b => 1, :d => 5}
+    h2 = { :a => -2, :b => 4, :c => -3 }
+    r = h1.merge(h2) { |k,x,y| nil }
+    r.should == { :a => nil, :b => nil, :c => -3, :d => 5 }
+      
+    r = h1.merge(h2) { |k,x,y| "#{k}:#{x+2*y}" }
+    r.should == { :a => "a:-2", :b => "b:9", :c => -3, :d => 5 }
+
+    should_raise(IndexError) do
+      h1.merge(h2) { |k, x, y| raise(IndexError) }
+    end
+
+    r = h1.merge(h1) { |k,x,y| :x }
+    r.should == { :a => :x, :b => :x, :d => :x }
   end
   
-  specify "merge! should adds the entries from other, overwriting duplicate keys. Returns self" do
+  specify "merge! should add the entries from other, overwriting duplicate keys. Returns self" do
     h = { :_1 => 'a', :_2 => '3' }
-    h.merge!(:_1 => '9', :_9 => 2).should == { :_1 => "9", :_2 => "3", :_9 => 2 }
+    h.merge!(:_1 => '9', :_9 => 2).equal?(h).should == true
     h.should == {:_1 => "9", :_2 => "3", :_9 => 2}
   end
   
   specify "merge! with block sets any duplicate key to the value of block" do
-    h = { :a => 2, :b => -1 }
-    h.merge!(:a => -2, :c => 1) { |k,v| 3.14 }.should == {:c => 1, :b => -1, :a => 3.14}
-    h.should == {:c => 1, :b => -1, :a => 3.14}
+    h1 = { :a => 2, :b => -1 }
+    h2 = { :a => -2, :c => 1 }
+    h1.merge!(h2) { |k,x,y| 3.14 }.equal?(h1).should == true
+    h1.should == {:c => 1, :b => -1, :a => 3.14}
+    
+    h1.merge!(h1) { nil }
+    h1.should == { :a => nil, :b => nil, :c => nil }
   end
   
-  specify "rehash should be provided" do
-    Hash.new.respond_to?(:rehash).should == true
+  specify "rehash should reorganize the hash by recomputing all key hash codes" do
+    k1 = [1]
+    k2 = [2]
+    h = {}
+    h[k1] = 0
+    h[k2] = 1
+
+    k1 << 2
+    h.key?(k1).should == false
+    h.keys.include?(k1).should == true
+    
+    h.rehash
+    h.key?(k1).should == true
+    h[k1].should == 0
+  end
+  
+  specify "rehash gives precedence to keys coming later in keys() on collisions" do
+    k1 = [1]
+    k2 = [2]
+    h = {}
+    h[k1] = 0
+    h[k2] = 1
+
+    k1.replace(k2)
+    override_val = h[h.keys.last]
+    h.rehash
+    h[k1].should == override_val
   end
   
   specify "reject should be equivalent to hsh.dup.delete_if" do
@@ -615,12 +807,12 @@ context "Hash instance methods" do
   
   specify "sort should convert self to a nested array of [key, value] arrays and sort with Array#sort" do
     { 'a' => 'b', '1' => '2', 'b' => 'a' }.sort.should == [["1", "2"], ["a", "b"], ["b", "a"]]
+  end
   
   specify "sort should work when some of the keys are themselves arrays" do
     { [1,2] => 5, [1,1] => 5 }.sort.should == [[[1,1],5], [[1,2],5]]
   end
   
-  end
   specify "sort with block should use block to sort array" do
     { 1 => 2, 2 => 9, 3 => 4 }.sort { |a,b| b <=> a }.should == [[3, 4], [2, 9], [1, 2]]
   end
@@ -631,8 +823,15 @@ context "Hash instance methods" do
     h1.should == h2
   end
   
-  specify "to_a should return a nested array of [key, value] arrays" do
-    {:a => 1, 1 => :a, 3 => :b, :b => 5}.to_a.sort { |a,b| a.to_s <=> b.to_s }.should == [[1, :a], [3, :b], [:a, 1], [:b, 5]]
+  specify "to_a should return a list of [key, value] pairs with same order as each()" do
+    h = {:a => 1, 1 => :a, 3 => :b, :b => 5}
+    pairs = []
+
+    h.each do |pair|
+      pairs << pair
+    end
+    
+    h.to_a.should == pairs
   end
   
   specify "to_hash should should return self" do
@@ -663,6 +862,10 @@ context "Hash instance methods" do
   specify "value? returns true if the value exists in the hash" do
     {:a => :b}.value?(:a).should == false
     {1 => 2}.value?(2).should == true
+    h = Hash.new(5)
+    h.value?(5).should == false
+    h = Hash.new { 5 }
+    h.value?(5).should == false
   end
   
   specify "values should return an array of values" do
