@@ -587,13 +587,17 @@ context "Hash instance methods" do
     h.indices(:a, :d, :b).should == h.values_at(:a, :d, :b)
     h.indices().should == h.values_at()
   end
+
+  specify "initialize_copy should be private" do
+    {}.private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
+  end
   
   specify "initialize_copy should be a synonym for replace" do
     init_hash = Hash.new
     repl_hash = Hash.new
     arg = { :a => 1, :b => 2 }
     
-    init_hash.send(:initialize_copy, arg).should == repl_hash.replace(arg)
+    init_hash.instance_eval { initialize_copy(arg) }.should == repl_hash.replace(arg)
     init_hash.should == repl_hash
   end
   
@@ -605,7 +609,7 @@ context "Hash instance methods" do
     arg2 = ToHashHash[1 => 2]
     
     [arg1, arg2].each do |arg|      
-      init_hash.send(:initialize_copy, arg).should == repl_hash.replace(arg)
+      init_hash.instance_eval { initialize_copy(arg) }.should == repl_hash.replace(arg)
       init_hash.should == repl_hash
     end
   end
@@ -640,6 +644,7 @@ context "Hash instance methods" do
     x[x] = 0
     x.inspect.should == '{{...}=>0}'
 
+    x = {}
     x[x] = x
     x.inspect.should == '{{...}=>{...}}'
 
@@ -657,6 +662,8 @@ context "Hash instance methods" do
     x.inspect.should == "{{{...}=>1}=>0}"
     y.inspect.should == "{{{...}=>0}=>1}"
     
+    x = {}
+    y = {}
     x[y] = x
     y[x] = y
     x.inspect.should == "{{{...}=>{...}}=>{...}}"

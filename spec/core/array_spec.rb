@@ -918,13 +918,17 @@ context "Array instance method" do
     array.indexes(*params).should == [[1, 2, 3], [2, 3], [5]]
     array.indices(*params).should == [[1, 2, 3], [2, 3], [5]]
   end
+
+  specify "initialize_copy should be private" do
+    [].private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
+  end
   
   specify "initialize_copy should be a synonym for replace" do
     init_ary = [1, 2, 3, 4, 5]
     repl_ary = [1, 2, 3, 4, 5]
     arg = %w(a b c)
     
-    init_ary.send(:initialize_copy, arg).should == repl_ary.replace(arg)
+    init_ary.instance_eval { initialize_copy(arg) }.should == repl_ary.replace(arg)
     init_ary.should == repl_ary
   end
   

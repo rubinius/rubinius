@@ -40,14 +40,14 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     case t
     when 'r', 'ruby'
       target = 'ruby'
+    when 'r19', 'ruby19'
+      target = 'ruby19'
     when 'x', 'rbx', 'rubinius'
       target = 'shotgun/rubinius'
     when 'j', 'jruby'
       target = 'jruby'
     else
-      puts "Unknown target: #{t}"
-      puts opts
-      exit
+      target = t
     end
   }
   opts.on("-v", "--version", "Show version") {
