@@ -9,6 +9,9 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # values_at
 
 class MyHash < Hash; end
+class ToHashHash < Hash
+  def to_hash() { "to_hash" => "was", "called!" => "duh." } end
+end
 
 context "Hash class method" do
   specify "[] creates a Hash; values can be provided as the argument list" do
@@ -86,6 +89,17 @@ context "Hash instance methods" do
     c[1] = 2
     d[1] = 2
     c.should == d
+  end
+  
+  specify "== should call to_hash on its argument" do
+    obj = Object.new
+    obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
+    
+    {1 => 2, 3 => 4}.should == obj
+  end
+  
+  specify "== shouldn't call to_hash on hash subclasses" do
+    {5 => 6}.should == ToHashHash[5 => 6]
   end
   
   specify "== should be instantly false when the numbers of keys differ" do
@@ -386,7 +400,7 @@ context "Hash instance methods" do
     Hash.new.default_proc.should == nil
   end
   
-  specify "delete should delete one entry whose key is == key and return the deleted value" do
+  specify "delete should first entry (#keys order) whose key is == key and return the deleted value" do
     h = {:a => 5, :b => 2}
     h.delete(:b).should == 2
     h.should == {:a => 5}
@@ -401,8 +415,9 @@ context "Hash instance methods" do
     h[k1] = 1
     h[k2] = 2
     k1.replace(k2)
-    # MRI deletes the one last inserted, but we won't spec that
-    h.delete(k2)
+    
+    first_value = h.values.first
+    h.delete(k2).should == first_value
     h.size.should == 1
   end
   
@@ -582,6 +597,19 @@ context "Hash instance methods" do
     init_hash.should == repl_hash
   end
   
+  specify "initialize_copy should have the same to_hash behaviour as replace" do
+    init_hash = Hash.new
+    repl_hash = Hash.new
+    arg1 = Object.new
+    def arg1.to_hash() {1 => 2} end
+    arg2 = ToHashHash[1 => 2]
+    
+    [arg1, arg2].each do |arg|      
+      init_hash.send(:initialize_copy, arg).should == repl_hash.replace(arg)
+      init_hash.should == repl_hash
+    end
+  end
+  
   specify "inspect should return a string representation with same order as each()" do
     h = {:a => [1, 2], :b => -2, :d => -6, nil => nil}
     
@@ -594,7 +622,7 @@ context "Hash instance methods" do
     h.inspect.should == str
   end
 
-  specify "inspect should call inspect keys and values" do
+  specify "inspect should call inspect on keys and values" do
     key = Object.new
     val = Object.new
     key.should_receive(:inspect, :returning => 'key')
@@ -726,6 +754,17 @@ context "Hash instance methods" do
     r.should == { :a => :x, :b => :x, :d => :x }
   end
   
+  specify "merge should call to_hash on its argument" do
+    obj = Object.new
+    obj.should_receive(:to_hash, :returning => {1 => 2})
+    
+    {3 => 4}.merge(obj).should == {1 => 2, 3 => 4}
+  end
+
+  specify "merge shouldn't call to_hash on hash subclasses" do    
+    {3 => 4}.merge(ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
+  end
+  
   specify "merge! should add the entries from other, overwriting duplicate keys. Returns self" do
     h = { :_1 => 'a', :_2 => '3' }
     h.merge!(:_1 => '9', :_9 => 2).equal?(h).should == true
@@ -742,6 +781,17 @@ context "Hash instance methods" do
     h1.should == { :a => nil, :b => nil, :c => nil }
   end
   
+  specify "merge! should call to_hash on its argument" do
+    obj = Object.new
+    obj.should_receive(:to_hash, :returning => {1 => 2})
+    
+    {3 => 4}.merge!(obj).should == {1 => 2, 3 => 4}
+  end
+
+  specify "merge! shouldn't call to_hash on hash subclasses" do    
+    {3 => 4}.merge!(ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
+  end
+  
   specify "rehash should reorganize the hash by recomputing all key hash codes" do
     k1 = [1]
     k2 = [2]
@@ -756,6 +806,26 @@ context "Hash instance methods" do
     h.rehash
     h.key?(k1).should == true
     h[k1].should == 0
+    
+    k1 = Object.new
+    k2 = Object.new
+    v1 = Object.new
+    v2 = Object.new
+    
+    # Can't use should_receive here because it uses hash() internally
+    def v1.hash() raise("values shouldn't be rehashed"); end
+    def v2.hash() raise("values shouldn't be rehashed"); end
+
+    h = { k1 => v1, k2 => v2 }
+    k1.frozen?.should == false
+    k2.frozen?.should == false
+
+    def k1.hash() freeze; 0 end
+    def k2.hash() freeze; 0 end
+    
+    h.rehash
+    k1.frozen?.should == true
+    k2.frozen?.should == true    
   end
   
   specify "rehash gives precedence to keys coming later in keys() on collisions" do
@@ -774,6 +844,11 @@ context "Hash instance methods" do
   specify "reject should be equivalent to hsh.dup.delete_if" do
     h = { :a => 'a', :b => 'b', :c => 'd' }
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
+    
+    h = { 1 => 2 }
+    # dup doesn't copy singleton methods
+    def h.to_a() end
+    h.reject { false }.to_a.should == [[1, 2]]
   end
   
   specify "reject! is equivalent to delete_if if changes are made" do
@@ -786,7 +861,23 @@ context "Hash instance methods" do
   
   specify "replace should replace the contents of self with other" do
     h = { :a => 1, :b => 2 }
-    h.replace(:c => -1, :d => -2).should == { :c => -1, :d => -2 }
+    h.replace(:c => -1, :d => -2).equal?(h).should == true
+    h.should == { :c => -1, :d => -2 }
+  end
+
+  specify "replace should call to_hash on its argument" do
+    obj = Object.new
+    obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
+    
+    h = {}
+    h.replace(obj)
+    h.should == {1 => 2, 3 => 4}
+  end
+
+  specify "replace shouldn't call to_hash on hash subclasses" do
+    h = {}
+    h.replace(ToHashHash[1 => 2])
+    h.should == {1 => 2}
   end
   
   specify "select should return an array of entries for which block is true" do
@@ -857,6 +948,20 @@ context "Hash instance methods" do
 
     h1.update(:a => -2, :c => 1) { |k,v| 3.14 }.should == h2.update(:a => -2, :c => 1) { |k,v| 3.14 }
     h1.should == h2
+  end
+  
+  specify "update should have the same to_hash behaviour as merge!" do
+    update_hash = Hash.new
+    merge_hash = Hash.new
+
+    arg1 = Object.new
+    def arg1.to_hash() {1 => 2} end
+    arg2 = ToHashHash[1 => 2]
+    
+    [arg1, arg2].each do |arg|      
+      update_hash.update(arg).should == merge_hash.merge!(arg)
+      update_hash.should == merge_hash
+    end    
   end
   
   specify "value? returns true if the value exists in the hash" do

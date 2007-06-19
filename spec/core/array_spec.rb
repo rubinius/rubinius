@@ -348,7 +348,7 @@ context "Array instance method" do
   end
   
   specify "== shouldn't call to_ary on array subclasses" do
-    ([5, 6, 7] == ToAryArray[5, 6, 7]).should == true
+    [5, 6, 7].should == ToAryArray[5, 6, 7]
   end
 
   specify "== should ignore array class differences" do
