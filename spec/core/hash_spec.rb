@@ -59,6 +59,11 @@ context "Hash class method" do
     hash.default_proc.call(5).should == "Answer to 5"
     hash.default_proc.call("x").should == "Answer to x"
   end
+  
+  specify "new with default argument and default block should raise" do
+    should_raise(ArgumentError) { Hash.new(5) { 0 } }
+    should_raise(ArgumentError) { Hash.new(nil) { 0 } }
+  end
 end
 
 context "Hash instance methods" do
@@ -83,12 +88,138 @@ context "Hash instance methods" do
     c.should == d
   end
   
-  specify "[] should return the default (immediate) value" do
+  specify "== should be instantly false when the numbers of keys differ" do
+    obj = Object.new
+    obj.should_not_receive(:==)
+    obj.should_not_receive(:eql?)
+
+    {}.should_not == { obj => obj }
+    { obj => obj }.should_not == {}
+  end
+  
+  specify "== should compare keys with eql? semantics" do
+    { 1.0 => "x" }.should == { 1.0 => "x" }
+    { 1 => "x" }.should_not == { 1.0 => "x" }
+    { 1.0 => "x" }.should_not == { 1 => "x" }
+  end
+
+  specify "== should first compare keys via hash" do
+    # Can't use should_receive because it uses hash internally
+    x = Object.new
+    def x.hash() freeze; 0 end
+    y = Object.new
+    def y.hash() freeze; 0 end
+
+    { x => 1 } == { y => 1 }
+    x.frozen?.should == true
+    y.frozen?.should == true
+  end
+    
+  specify "== shouldn't compare keys with different hash codes via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    x = Object.new
+    def x.eql?(o) raise("Shouldn't receive eql?") end
+    y = Object.new
+    def y.eql?(o) raise("Shouldn't receive eql?") end
+
+    def x.hash() freeze; 0 end
+    def y.hash() freeze; 1 end
+
+    { x => 1 }.should_not == { y => 1 }
+    x.frozen?.should == true
+    y.frozen?.should == true
+  end    
+    
+  specify "== should compare keys with matching hash codes via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    a = Array.new(2) do 
+      obj = Object.new
+
+      def obj.hash()
+        # It's undefined whether the impl does a[0].eql?(a[1]) or
+        # a[1].eql?(a[0]) so we taint both.
+        def self.eql?(o) taint; o.taint; false; end
+        return 0
+      end
+
+      obj
+    end
+
+    { a[0] => 1 }.should_not == { a[1] => 1 }
+    a[0].tainted?.should == true
+    a[1].tainted?.should == true
+
+    a = Array.new(2) do 
+      obj = Object.new
+
+      def obj.hash()
+        # It's undefined whether the impl does a[0].eql?(a[1]) or
+        # a[1].eql?(a[0]) so we taint both.
+        def self.eql?(o) taint; o.taint; true; end
+        return 0
+      end
+
+      obj
+    end
+
+    { a[0] => 1 }.should == { a[1] => 1 }
+    a[0].tainted?.should == true
+    a[1].tainted?.should == true
+  end
+  
+  specify "== should compare values with == semantics" do
+    { "x" => 1.0 }.should == { "x" => 1 }
+  end
+  
+  specify "== shouldn't compare values when keys don't match" do
+    value = Object.new
+    value.should_not_receive(:==)
+    { 1 => value }.should_not == { 2 => value }
+  end
+  
+  specify "== should compare values when keys match" do
+    x = Object.new
+    y = Object.new
+    def x.==(o) freeze; false; end
+    def y.==(o) freeze; false; end
+    { 1 => x }.should_not == { 1 => y }
+    # There is no order
+    (x.frozen? | y.frozen?).should == true
+
+    x = Object.new
+    y = Object.new
+    def x.==(o) freeze; true; end
+    def y.==(o) freeze; true; end
+    { 1 => x }.should == { 1 => y }
+    # There is no order
+    (x.frozen? | y.frozen?).should == true
+  end
+
+  specify "== should ignore hash class differences" do
+    h = { 1 => 2, 3 => 4 }
+    MyHash[h].should == h
+    MyHash[h].should == MyHash[h]
+    h.should == MyHash[h]
+  end
+  
+  specify "[] should return the value for key" do
+    obj = Object.new
+    h = { 1 => 2, 3 => 4, "foo" => "bar", obj => obj }
+    h[1].should == 2
+    h[3].should == 4
+    h["foo"].should == "bar"
+    h[obj].should == obj
+  end
+  
+  specify "[] should return the default (immediate) value for missing keys" do
     h = Hash.new(5)
     h[:a].should == 5
     h[:a] = 0
     h[:a].should == 0
     h[:b].should == 5
+    
+    # The default default is nil
+    { 0 => 0 }[5].should == nil
   end
 
   specify "[] shouldn't create copies of the immediate default value" do
@@ -103,7 +234,7 @@ context "Hash instance methods" do
     b.should == "foobar"
   end
 
-  specify "[] should return the default (dynamic) value" do
+  specify "[] should return the default (dynamic) value for missing keys" do
     h = Hash.new { |hash, k| k.kind_of?(Numeric) ? hash[k] = k + 2 : hash[k] = k }
     h[1].should == 3
     h['this'].should == 'this'
@@ -115,6 +246,69 @@ context "Hash instance methods" do
     h[:foo].should == 2
     h[:bar].should == 3
   end
+
+  specify "[] shouldn't return default values for keys with nil values" do
+    h = Hash.new(5)
+    h[:a] = nil
+    h[:a].should == nil
+    
+    h = Hash.new() { 5 }
+    h[:a] = nil
+    h[:a].should == nil
+  end
+  
+  specify "[] should compare keys with eql? semantics" do
+    { 1.0 => "x" }[1].should == nil
+    { 1.0 => "x" }[1.0].should == "x"
+    { 1 => "x" }[1.0].should == nil
+    { 1 => "x" }[1].should == "x"
+  end
+
+  specify "[] should compare key via hash" do
+    # Can't use should_receive because it uses hash internally
+    x = Object.new
+    def x.hash() freeze; 0 end
+
+    { }[x].should == nil
+    x.frozen?.should == true
+  end
+    
+  specify "[] shouldn't compare key with unknown hash codes via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    x = Object.new
+    y = Object.new
+    def x.eql?(o) raise("Shouldn't receive eql?") end
+
+    def x.hash() freeze; 0 end
+    def y.hash() 1 end
+
+    { y => 1 }[x].should == nil
+    x.frozen?.should == true
+  end    
+    
+  specify "[] should compare key with found hash code via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    y = Object.new
+    def y.hash() 0 end
+
+    x = Object.new
+    def x.hash()
+      def self.eql?(o) taint; false; end
+      return 0
+    end
+    
+    { y => 1 }[x].should == nil
+    x.tainted?.should == true
+    
+    x = Object.new
+    def x.hash()
+      def self.eql?(o) taint; true; end
+      return 0
+    end
+    
+    { y => 1 }[x].should == 1
+    x.tainted?.should == true
+  end  
   
   specify "[]= should associate the key with the value and return the value" do
     h = { :a => 1 }
@@ -122,8 +316,40 @@ context "Hash instance methods" do
     h.should == {:b=>2, :a=>1}
   end
   
+  specify "[]= should duplicate and freeze string keys" do
+    key = "foo"
+    h = {}
+    h[key] = 0
+    key << "bar"
+
+    h.should == { "foo" => 0 }
+    h.keys[0].frozen?.should == true
+  end
+
+  specify "[]= should duplicate string keys using dup semantics" do
+    # dup doesn't copy singleton methods
+    key = "foo"
+    def key.reverse() "bar" end
+    h = {}
+    h[key] = 0
+
+    h.keys[0].reverse.should == "oof"
+  end
+  
   specify "clear should remove all key, value pairs" do
-    {:a=>2,:b=>1,:c=>1}.clear.should == {}
+    h = { 1 => 2, 3 => 4 }
+    h.clear.equal?(h).should == true
+    h.should == {}
+  end
+
+  specify "clear shouldn't remove default values and procs" do
+    h = Hash.new(5)
+    h.clear
+    h.default.should == 5
+
+    h = Hash.new { 5 }
+    h.clear
+    h.default_proc.should_not == nil
   end
 
   specify "default should return the default value" do
@@ -137,6 +363,18 @@ context "Hash instance methods" do
     h.default = 99
     h.default.should == 99
   end
+
+  specify "default= should unset the default proc" do
+    h = Hash.new { 5 }
+    h.default_proc.should_not == nil
+    h.default = 99
+    h.default_proc.should == nil
+    
+    h = Hash.new { 5 }
+    h.default_proc.should_not == nil
+    h.default = nil
+    h.default_proc.should == nil
+  end
   
   specify "default_proc should return the block passed to Hash.new" do
     h = Hash.new { |i| 'Paris' }
@@ -148,14 +386,30 @@ context "Hash instance methods" do
     Hash.new.default_proc.should == nil
   end
   
-  specify "delete should delete the entry whose key is == key and return the deleted value" do
+  specify "delete should delete one entry whose key is == key and return the deleted value" do
     h = {:a => 5, :b => 2}
     h.delete(:b).should == 2
     h.should == {:a => 5}
+
+    h = Hash.new
+    k1 = ["x"]
+    k2 = ["y"]
+    # So they end up in the same bucket
+    def k1.hash() 0 end
+    def k2.hash() 0 end
+
+    h[k1] = 1
+    h[k2] = 2
+    k1.replace(k2)
+    # MRI deletes the one last inserted, but we won't spec that
+    h.delete(k2)
+    h.size.should == 1
   end
   
   specify "delete should return nil if the key is not found" do
     {:a => 1, :b => 10, :c => 100 }.delete(:d).should == nil
+    Hash.new(:default).delete(:d).should == nil
+    Hash.new() { :defualt }.delete(:d).should == nil
   end
   
   specify "delete_if should remove every entry for which block is true and returns self" do
@@ -190,9 +444,11 @@ context "Hash instance methods" do
     h.should == { 5 => -5, 1 => -1, 2 => -2, 3 => -3 }
   end
   
-  specify "empty? should return true if block has not entries" do
+  specify "empty? should return true if the hash has no entries" do
     {}.empty?.should == true
     {1 => 1}.empty?.should == false
+    Hash.new(5).empty?.should == true
+    Hash.new { 5 }.empty?.should == true
   end
   
   specify "fetch should return the value for key" do
