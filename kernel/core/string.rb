@@ -45,7 +45,7 @@ class String
 
   # TODO: inspect is NOT dump!
   alias_method :dump, :inspect
-
+  
   def to_sexp_full(name, line, newlines)
     Ruby.primitive :string_to_sexp
   end
@@ -550,7 +550,9 @@ class String
     raise ArgumentError, "wrong number of arguments" if args.empty?
     raise TypeError, "can't modify frozen string" if self.frozen?
     return if self.empty?
-    tr_string(intersect_string_from_args(args), '', false) # TODO
+    
+    new = tr_string(intersect_string_from_args(*args), '', false)
+    new != self ? replace(new) : nil # TODO
   end
 
   # used by count, delete, squeeze
@@ -626,8 +628,8 @@ class String
     return "" if from_str == ""
 
     del_chars = to_str.length == 0
-    from_str  = expand_tr_str(from_str)
-    to_str    = expand_tr_str(to_str)
+    from_str  = expand_tr_string(from_str)
+    to_str    = expand_tr_string(to_str)
 
     # Build out the to_str translations to the same length as from_str
     if to_str.length < from_str.length
