@@ -13,6 +13,11 @@ context "Ruby numbers in various ways" do
   specify "with some decimals" do
     4.35.should == 4.35
   end
+  
+  specify "with decimals but no integer part should be a SyntaxError" do
+    should_raise(SyntaxError) { eval(".75") }
+    should_raise(SyntaxError) { eval("-.75") }
+  end
 
   # TODO : find a better description
   specify "using the e expression" do

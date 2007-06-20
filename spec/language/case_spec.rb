@@ -74,7 +74,7 @@ describe "The 'case'-construct" do
     end.should == 'bar'
   end
     
-  it "should test with class equality" do
+  it "should test classes with case equality" do
     case "a"
       when String
         'foo'
@@ -138,6 +138,13 @@ describe "The 'case'-construct" do
       when *['x', 'y', 'z']
         "bar" 
     end.should == "foo"
+  end
+  
+  it "should never match when clauses with no values" do
+    case nil
+      when *[]
+        "foo"
+    end.should == nil
   end
   
   it "should let you define a method after the case statement" do

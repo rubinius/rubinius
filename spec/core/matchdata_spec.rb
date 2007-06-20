@@ -69,7 +69,9 @@ context "MatchData instance methods" do
   end
 
   specify "string should return a frozen copy of the match string" do
-    /(.)(.)(\d+)(\d)/.match("THX1138.").string.should == "THX1138."
+    str = /(.)(.)(\d+)(\d)/.match("THX1138.").string
+    str.should == "THX1138."
+    str.frozen?.should == true
   end
 
   specify "to_a returns an array of matches" do
@@ -77,7 +79,7 @@ context "MatchData instance methods" do
   end
   
   specify "[] provides access to named groups" do
-    r = %r!(?<section>...)(?<code>\d+)!
+    r = Regexp.new("(?<section>...)(?<code>\d+)")
     m = r.match("THX1138")
     m[:section] == "THX"
     m[:code] == "1138"

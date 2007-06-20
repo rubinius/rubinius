@@ -105,6 +105,13 @@ describe "Basic assignment" do
     f.call(42,55).should == [42,55]
   end
   
+  it 'should allow chained assignment' do
+    (a = 1 + b = 2 + c = 4 + d = 8).should == 15
+    d.should == 8
+    c.should == 12
+    b.should == 14
+    a.should == 15
+  end
 end
 
 describe "Assignment using expansion" do
@@ -305,5 +312,3 @@ describe 'Multiple assignments with grouping' do
     should_raise(SyntaxError) { eval '(a, b) = (1, 2)' }
   end
 end
-
-

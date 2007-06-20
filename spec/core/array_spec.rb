@@ -71,7 +71,7 @@ context "Array class method" do
 
     Array.new(obj).should == [1, 2, 3]
   end
-  
+    
   specify "new with size and block should return an array of size elements from the result of passing each index to block" do
     Array.new(5) { |i| i + 1 }.should == [1, 2, 3, 4, 5]
     
@@ -917,6 +917,16 @@ context "Array instance method" do
     params = [0..2, 1...3, 4..6]
     array.indexes(*params).should == [[1, 2, 3], [2, 3], [5]]
     array.indices(*params).should == [[1, 2, 3], [2, 3], [5]]
+  end
+
+  specify "initialize should be private" do
+    [].private_methods.map { |m| m.to_s }.include?("initialize").should == true
+  end
+
+  specify "initialize with self as array argument should do nothing" do
+    ary = [1, 2, 3]
+    ary.instance_eval { initialize(ary) }
+    ary.should == [1, 2, 3]
   end
 
   specify "initialize_copy should be private" do
@@ -2789,7 +2799,6 @@ context "On a frozen array" do
     should_raise(TypeError) { ary.unshift(1) }
   end
 end
-
 
 # Redundant, should be in Object --rue
 context "Array inherited instance method" do

@@ -588,6 +588,18 @@ context "Hash instance methods" do
     h.indices().should == h.values_at()
   end
 
+  specify "initialize should be private" do
+    {}.private_methods.map { |m| m.to_s }.include?("initialize").should == true
+  end
+
+  specify "initialize can be used to reset default_proc" do
+    h = { "foo" => 1, "bar" => 2 }
+    h.default_proc.should == nil
+    h.instance_eval { initialize { |h, k| k * 2 } }
+    h.default_proc.should_not == nil
+    h["a"].should == "aa"
+  end
+
   specify "initialize_copy should be private" do
     {}.private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
   end
