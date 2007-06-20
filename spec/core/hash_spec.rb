@@ -433,6 +433,17 @@ context "Hash instance methods" do
     h.should == {:b => 2, :d => 4}
   end
   
+  specify "delete_if should process entries with the same order as each()" do
+    h = {:a => 1, :b => 2, :c => 3, :d => 4}
+
+    each_pairs = []
+    delete_pairs = []
+    h.each { |pair| each_pairs << pair }
+    h.delete_if { |pair| delete_pairs << pair }
+
+    each_pairs.should == delete_pairs
+  end
+  
   specify "each should call block once for each entry, passing key, value" do
     r = {}
     h = {:a, 1, :b, 2, :c, 3, :d, 5}
@@ -509,6 +520,7 @@ context "Hash instance methods" do
   end
   
   specify "fetch with default should return default if key is not found" do
+    {}.fetch(:a, nil).should == nil
     {}.fetch(:a, 'not here!').should == "not here!"
     { :a => nil }.fetch(:a, 'not here!').should == nil
   end
@@ -797,6 +809,15 @@ context "Hash instance methods" do
     {}.merge(MyHash[1 => 2]).class.should == Hash
   end
   
+  specify "merge should process entries with same order as each()" do
+    h = {1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => []}
+    merge_pairs = []
+    each_pairs = []
+    h.each { |pair| each_pairs << pair }
+    h.merge(h) { |k, v1, v2| merge_pairs << [k, v1] }
+    merge_pairs.should == each_pairs
+  end
+  
   specify "merge! should add the entries from other, overwriting duplicate keys. Returns self" do
     h = { :_1 => 'a', :_2 => '3' }
     h.merge!(:_1 => '9', :_9 => 2).equal?(h).should == true
@@ -822,6 +843,15 @@ context "Hash instance methods" do
 
   specify "merge! shouldn't call to_hash on hash subclasses" do    
     {3 => 4}.merge!(ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
+  end
+  
+  specify "merge! should process entries with same order as merge()" do
+    h = {1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => []}
+    merge_bang_pairs = []
+    merge_pairs = []
+    h.merge(h) { |arg| merge_pairs << arg }
+    h.merge!(h) { |arg| merge_bang_pairs << arg }
+    merge_bang_pairs.should == merge_pairs
   end
   
   specify "rehash should reorganize the hash by recomputing all key hash codes" do
@@ -887,6 +917,18 @@ context "Hash instance methods" do
     MyHash[1 => 2, 3 => 4].reject { false }.class.should == MyHash
     MyHash[1 => 2, 3 => 4].reject { true }.class.should == MyHash
   end
+  
+  specify "reject should process entries with the same order as reject!" do
+    h = {:a => 1, :b => 2, :c => 3, :d => 4}
+
+    reject_pairs = []
+    reject_bang_pairs = []
+    h.reject { |pair| reject_pairs << pair }
+    h.reject! { |pair| reject_bang_pairs << pair }
+    h.dup.delete_if { |pair| delete_if_pairs << pair }
+
+    reject_pairs.should == reject_bang_pairs
+  end
     
   specify "reject! is equivalent to delete_if if changes are made" do
     {:a => 2}.reject! { |k,v| v > 1 }.should == ({:a => 2}.delete_if { |k, v| v > 1 })
@@ -894,6 +936,17 @@ context "Hash instance methods" do
   
   specify "reject! should return nil if no changes were made" do
     { :a => 1 }.reject! { |k,v| v > 1 }.should == nil
+  end
+  
+  specify "reject! should process entries with the same order as delete_if" do
+    h = {:a => 1, :b => 2, :c => 3, :d => 4}
+
+    reject_bang_pairs = []
+    delete_if_pairs = []
+    h.dup.reject! { |pair| reject_bang_pairs << pair }
+    h.dup.delete_if { |pair| delete_if_pairs << pair }
+
+    reject_bang_pairs.should == delete_if_pairs
   end
   
   specify "replace should replace the contents of self with other" do
@@ -920,6 +973,17 @@ context "Hash instance methods" do
   specify "select should return an array of entries for which block is true" do
     a = { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
     a.sort { |a,b| a.to_s <=> b.to_s }.should == [[:c, 4], [:d, 2]]
+  end
+
+  specify "select should process entries with the same order as reject" do
+    h = { :a => 9, :c => 4, :b => 5, :d => 2 }
+    
+    select_pairs = []
+    reject_pairs = []
+    h.select { |pair| select_pairs << pair }
+    h.reject { |pair| reject_pairs << pair }
+    
+    select_pairs.should == reject_pairs
   end
   
   specify "shift should remove a pair from hash and return it (same order as to_a)" do
