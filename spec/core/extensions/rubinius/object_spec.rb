@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "Object instance method coerce_string" do
     specify "raises TypeError if the instance does not respond to to_str" do
       class A; end

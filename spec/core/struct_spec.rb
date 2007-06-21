@@ -9,7 +9,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 #   inspect, ==
 
 describe "Struct class methods" do
-  except :rbx do
+  failure :rubinius do
     specify "new with string as first argument should create a constant in Struct namespace" do
       # TODO: should pass, rbx bug
       Struct.new('Animal', :name, :legs, :eyeballs).should == Struct::Animal

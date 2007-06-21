@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "Bignum" do
     specify "should have max value 2 ** 29" do
       max = 2 ** 29

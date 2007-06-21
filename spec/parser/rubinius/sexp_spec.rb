@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../sexp_expectations'
 
-only :rbx do
+extension :rubinius do
   class String
     alias :old_to_sexp :to_sexp
     def to_sexp

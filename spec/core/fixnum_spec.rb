@@ -248,7 +248,7 @@ context "Fixnum instance method" do
     b.collect { |i| i.class }.should == [Float, Float]
   end
   
-  only :rbx do
+  noncompliant :rubinius do
     specify "coerce should return [Bignum, Bignum] if other is a Bignum" do
       a = 1.coerce(0xffffffff)
       a.should == [4294967295, 1]
@@ -342,7 +342,7 @@ context "Fixnum instance method" do
     1.respond_to?(:size).should == true
   end
   
-  only :rbx do
+  noncompliant :rubinius do
     specify "size should return the number of bytes in the machine representation of self" do
       -1.size.should == 4
       0.size.should == 4

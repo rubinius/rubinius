@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "String instance method" do
     specify "lstrip should return a string with all leading \\000 and whitespace characters removed" do
       "".lstrip.should == ""

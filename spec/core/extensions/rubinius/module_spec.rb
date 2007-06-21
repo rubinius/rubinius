@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "Module" do
     specify "const_defined? should return true if the name is defined" do
       class Blah

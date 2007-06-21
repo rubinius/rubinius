@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "ByteArray class method" do
     specify "new creates an instance with the correct number of fields" do
       ByteArray.new(16).fields.should == 4

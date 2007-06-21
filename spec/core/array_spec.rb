@@ -744,7 +744,7 @@ context "Array instance method" do
   end
   
   # FIX: as of r1357, #flatten[!] causes Rubinius to allocate memory without bound
-  except :rbx do
+  failure :rubinius do
     specify "flatten should return a one-dimensional flattening recursively" do
       [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []].flatten.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
     end
@@ -1019,7 +1019,7 @@ context "Array instance method" do
   end
   
   # FIX: as of r1357 this causes a VM SIGBUS
-  except :rbx do
+  failure :rubinius do
     specify "inspect should handle recursive arrays" do
       x = [1, 2]
       x << x << 4

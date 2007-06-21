@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   context "Compression::ZLib" do
     specify "inflate should uncompress data" do
       data = Compression::ZLib.deflate("blah")

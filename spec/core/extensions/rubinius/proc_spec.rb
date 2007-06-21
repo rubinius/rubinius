@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   context "A Proc instance created using Proc.given" do
     specify "should be nil if no block given" do
       def answer

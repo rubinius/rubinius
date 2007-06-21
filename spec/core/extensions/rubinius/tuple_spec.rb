@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "Tuple instance method" do
     specify "new should create a Tuple of specified size" do
       Tuple.new(2).fields.should == 2

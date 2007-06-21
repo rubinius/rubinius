@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe "Array class method" do
     specify "allocate creates an instance with the correct number of fields" do
       Array.allocate.fields.should == Array.instance_fields

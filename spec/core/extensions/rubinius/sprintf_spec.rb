@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../../spec_helper'
 
 # tr_s, tr_s!, unpack, upcase, upcase!, upto
 
-only :rbx do
+extension :rubinius do
   describe "Sprintf::Parser instance method" do
 
     before(:each) do

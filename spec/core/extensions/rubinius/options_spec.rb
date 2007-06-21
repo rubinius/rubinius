@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../../spec_helper'
 
-only :rbx do
+extension :rubinius do
   describe 'Creating the option parser' do
     it 'provides a .new to generate a blank set of options' do
       Options.new
