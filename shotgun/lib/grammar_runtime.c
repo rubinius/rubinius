@@ -133,11 +133,8 @@ static const char node_type_string[][60] = {
     "self", "nil", "true", "false", "defined",
     /*  95 */
     "newline", "postexe",
-#ifdef C_ALLOCA
-    "alloca",
-#endif
     "dmethod", "bmethod",
-    /* 100 / 99 */
+    /*  99 */
     "memo", "ifunc", "dsym", "attrasgn",
     "regex", "fixnum", "number", "hexnum", "binnum",
     "octnum", "float", "negate",
