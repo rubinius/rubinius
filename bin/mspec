@@ -29,6 +29,8 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       format = 'DottedReporter'
     when 'c', 'ci', 'integration'
       format = 'CIReporter'
+    when 'i', 'immediate'
+      format = 'ImmediateReporter'
     else
       puts "Unknown format: #{f}"
       puts opts

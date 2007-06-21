@@ -146,6 +146,26 @@ class CIReporter < SpecReporter
   end
 end
 
+class ImmediateReporter < SpecReporter
+  def after_it(msg)
+    if @report.exception
+      @out.print 'F'
+      @out.print "\n" + @describe + " " + @report.it + " FAILED\n"
+      print_backtrace(@report.exception)
+    else
+      @out.print '.'
+    end
+  end
+  
+  def summary
+    unless @summarized
+      @out.print "\n\n"
+      print_summary
+      @summarized = true
+    end
+  end
+end
+
 class PositiveExpectation
   def initialize(obj)
     @obj = obj
