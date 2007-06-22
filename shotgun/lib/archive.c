@@ -29,7 +29,7 @@ OBJECT archive_list_files(STATE, char *path) {
   return ary;
 }
 
-OBJECT archive_get_file(STATE, char *path, char* name) {
+OBJECT archive_get_file(STATE, const char *path, const char* name) {
   struct zip *za;
   struct zip_stat st;
   struct zip_file *zf;
@@ -67,7 +67,7 @@ OBJECT archive_get_file(STATE, char *path, char* name) {
   return str;
 }
 
-OBJECT archive_get_object(STATE, char *path, char* name, int version) {
+OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   struct zip *za;
   struct zip_stat st;
   struct zip_file *zf;

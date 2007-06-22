@@ -15,10 +15,10 @@ struct rubinius_machine {
 typedef struct rubinius_machine *machine;
 
 machine machine_new();
-OBJECT machine_load_file(machine m, char *path);
-int machine_run_file(machine m, char *path);
-OBJECT machine_load_archive(machine m, char *path);
-void machine_set_const(machine m, char *str, OBJECT val);
+OBJECT machine_load_file(machine m, const char *path);
+int machine_run_file(machine m, const char *path);
+OBJECT machine_load_archive(machine m, const char *path);
+void machine_set_const(machine m, const char *str, OBJECT val);
 void machine_setup_standard_io(machine m);
 void machine_collect(machine m);
 void machine_setup_ruby(machine m, char *name);

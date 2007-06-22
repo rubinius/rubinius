@@ -477,7 +477,7 @@ OBJECT cpu_unmarshal(STATE, char *str, int version) {
   return ret;
 }
 
-OBJECT cpu_unmarshal_file(STATE, char *path, int version) {
+OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
   gchar *data;
   GIOChannel *io;
   GError *err;

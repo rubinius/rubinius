@@ -432,7 +432,7 @@ void machine_emit_memory(machine m) {
 }
 */
 
-OBJECT machine_load_file(machine m, char *path) {
+OBJECT machine_load_file(machine m, const char *path) {
   return cpu_unmarshal_file(m->s, path, 0);
 }
 
@@ -450,7 +450,7 @@ int machine_run(machine m) {
   return TRUE;
 }
 
-int machine_run_file(machine m, char *path) {
+int machine_run_file(machine m, const char *path) {
   OBJECT meth;
   
   meth = machine_load_file(m, path);
@@ -463,14 +463,14 @@ int machine_run_file(machine m, char *path) {
   return machine_run(m);
 }
 
-void machine_set_const_under(machine m, char *str, OBJECT val, OBJECT under) {
+void machine_set_const_under(machine m, const char *str, OBJECT val, OBJECT under) {
   OBJECT con, sym;
   con = module_get_constants(under);
   sym = string_to_sym(m->s, string_new(m->s, str));
   hash_set(m->s, con, sym, val);
 }
 
-void machine_set_const(machine m, char *str, OBJECT val) {
+void machine_set_const(machine m, const char *str, OBJECT val) {
   machine_set_const_under(m, str, val, m->s->global->object);
 }
 
@@ -634,7 +634,7 @@ void machine_config_env(machine m) {
   }
 }
 
-OBJECT machine_load_archive(machine m, char *path) {
+OBJECT machine_load_archive(machine m, const char *path) {
   OBJECT order, cm;
   char *files, *nxt, *top;
   order = archive_get_file(m->s, path, ".load_order.txt");
