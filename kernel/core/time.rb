@@ -47,7 +47,7 @@ class Time
   end
 
   def dup
-    t = Time.new
+    t = Time.allocate
     t.instance_variable_set(:@timeval, @timeval)
     t.instance_variable_set(:@tm, @tm)
     t.instance_variable_set(:@is_gmt, @is_gmt)
@@ -80,7 +80,7 @@ class Time
       isdst = -1
     end
 
-    t = Time.new
+    t = Time.allocate
     t.mktime(second, minute, hour, day, month, year, usec, isdst, false)
     t.force_localtime
   end
@@ -110,15 +110,14 @@ class Time
       usec = args[5] || 0
     end
 
-    t = Time.new
+    t = Time.allocate
     t.mktime(second, minute, hour, day, month, year, usec, -1, true)
     t.force_gmtime
   end
 
   def self.at(secs_or_time, msecs = 0)
     if secs_or_time.kind_of?(Integer)
-      t = Time.new
-      t.at_gmt(secs_or_time, msecs, false)
+      Time.allocate.at_gmt(secs_or_time, msecs, false)
     else
       secs_or_time.dup
     end
