@@ -323,4 +323,21 @@ context "Time instance method" do
       Time.at(0).to_a.should == [0, 0, 18, 31, 12, 1969, 3, 365, false, "CST"]
     end
   end
+
+  specify "dup should return a Time object that represents the same time" do
+	  t = Time.at(100)
+	  t.dup.tv_sec.should == t.tv_sec
+  end
+
+  specify "dup should copy the gmt state flag" do
+	  Time.now.gmtime.dup.gmt?.should == true
+  end
+
+  specify "dup should return an independent Time object" do
+	  t = Time.now
+	  t2 = t.dup
+	  t.gmtime
+
+	  t2.gmt?.should == false
+  end
 end
