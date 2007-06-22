@@ -50,6 +50,7 @@ class Time
     t = Time.new
     t.instance_variable_set(:@timeval, @timeval)
     t.instance_variable_set(:@tm, @tm)
+    t.instance_variable_set(:@is_gmt, @is_gmt)
     t
   end
   
