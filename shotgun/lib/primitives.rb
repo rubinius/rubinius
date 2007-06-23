@@ -734,7 +734,6 @@ class ShotgunPrimitives
   
   def fastctx_dup
     <<-CODE
-    struct fast_context *fc;
     POP(self, REFERENCE);
     GUARD(ISA(self, state->global->fastctx));
     
