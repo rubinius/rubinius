@@ -94,9 +94,19 @@ class String
   #   
   #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
   def *(num)
+    unless num.is_a? Integer
+      raise "Can't convert #{num.class} to Integer" unless num.respond_to? :to_int
+      num = num.to_int
+    end
+    
+    raise RangeError, "bignum too big to convert into `long'" if num.is_a? Bignum
+    raise ArgumentError, "negative argument" if num < 0
+
     str = []
     num.times { str << self }
-    return str.join("")
+    str = str.join
+    str.taint if self.tainted?
+    return str
   end
   
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
@@ -828,7 +838,8 @@ class String
       case args.first
       when Regexp
         match = args.first.match(self)
-        return match ? match[args.last] : nil
+        capture_num = args.last
+        return match && capture_num <= match.size ? match[args.last] : nil
       else
         start, count = *args
 
