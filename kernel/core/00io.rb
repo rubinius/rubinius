@@ -22,7 +22,7 @@ class IO
         str = arg.to_s
 
         write str
-        write $/ unless str[-2..-1] == $/
+        write $/ unless str.suffix?($/)
       end
     end
 
