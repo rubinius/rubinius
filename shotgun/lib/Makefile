@@ -62,7 +62,14 @@ CFLAGS=-fPIC $(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.c instruction_names.h \
      node_types.c node_types.h
 
-SOURCES=$(sort $(wildcard *.c) $(wildcard subtend/*.c) grammar.c)
+SOURCES=$(sort \
+        $(wildcard *.c) \
+        $(wildcard subtend/*.c) \
+        grammar.c \
+        auto.c \
+        instruction_names.c \
+        node_types.c \
+        )
 OBJS=$(SOURCES:.c=.o) subtend/PortableUContext_asm.o
 LOBJS=$(SOURCES:.c=.lo) subtend/PortableUContext_asm.lo
 RUBY=ruby -I../../lib
@@ -104,8 +111,6 @@ system_primitives.gen: primitives.rb
 
 auto.h auto.c: genheader.rb ../../native/bytecode/system_hints.rb
 	$(RUBY) genheader.rb > auto.c
-	echo "CC auto.o"
-	$(COMP) $(CFLAGS) -c auto.c
 
 node_types.c node_types.h: node_types.rb
 	$(RUBY) node_types.rb
