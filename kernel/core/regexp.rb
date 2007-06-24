@@ -193,9 +193,9 @@ class MatchData
     
     if idx == 0
       return matched_area()
-    else
+    elsif idx < size
       return get_capture(idx - 1)
-    end    
+    end
   end
 
   def to_s
@@ -249,7 +249,7 @@ class MatchData
     
     return @source[x...y]
   end
-  
+
   def each_capture
     @region.each do |tup|
       x, y = *tup
