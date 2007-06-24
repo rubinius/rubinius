@@ -356,7 +356,6 @@ class ShotgunPrimitives
     _mode = string_as_string(state, t2);
     _fobj = fopen(_path, _mode);
     t3 = io_new(state, fileno(_fobj));
-    io_set_descriptor(t3, t1);
     free(_path);
     free(_mode);
     stack_push(t3);
