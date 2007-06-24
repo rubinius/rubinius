@@ -139,6 +139,10 @@ class File < IO
     end
   end
 
+  def self.join(*args)
+    args.map { |arg| arg.to_str }.join(SEPARATOR)
+  end
+
   class Stat
     
     define_fields :inode, :mode, :kind, :owner, :group, :size, :block, :atime, :mtime, :ctime, :path
