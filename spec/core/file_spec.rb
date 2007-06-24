@@ -85,7 +85,7 @@ context "File class method" do
     end
   end
 
-  specify "expath_path should give a full path" do
+  specify "expand_path should give a full path" do
     File.expand_path('/tmp/').should =='/tmp'
     File.expand_path('/tmp/../../../tmp').should == '/tmp'
     File.expand_path('').should == Dir.pwd
