@@ -2803,6 +2803,7 @@ OBJECT
 syd_compile_file(STATE, const char *f, GIOChannel *file, int start, int newlines)
 {
     int n;
+    OBJECT ret;
     rb_parse_state *parse_state;
     parse_state = alloc_parse_state();
     parse_state->state = state;
@@ -2811,17 +2812,22 @@ syd_compile_file(STATE, const char *f, GIOChannel *file, int start, int newlines
     parse_state->lex_pbeg = 0;
     parse_state->lex_p = 0;
     parse_state->lex_pend = 0;
+    parse_state->error = Qfalse;
     ruby_sourceline = start - 1;
 
     n = yycompile(parse_state, f, start);
     
     if(!n) {
         // ruby_eval_tree = parse_state->top;
-        return convert_to_sexp(state, parse_state->top, newlines);
+        ret = convert_to_sexp(state, parse_state->top, newlines);
     } else {
         // ruby_eval_tree_begin = 0;
-        return Qfalse;
+        ret = parse_state->error;
     }
+    
+    pt_free(parse_state);
+    free(parse_state);
+    return ret;
 }
 
 #define nextc() ps_nextc(parse_state)

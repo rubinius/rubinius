@@ -179,13 +179,24 @@ class File < IO
     end
   end
   
-  def self.to_sexp(path, newlines)
-    Ruby.primitive :file_to_sexp
-  end
-  
   def self.unlink(path)
     Ruby.primitive :file_unlink
   end
+  
+  def self.to_sexp(name, newlines=true)
+    out = to_sexp_full(name, newlines)
+    if out.kind_of? Tuple
+      exc = SyntaxError.new out.at(0)
+      exc.import_position out.at(1), out.at(2)
+      raise exc
+    end
+    return out
+  end
+    
+  def self.to_sexp_full(path, newlines)
+    Ruby.primitive :file_to_sexp
+  end
+  
 end
 
 class Dir
