@@ -134,6 +134,10 @@ static OBJECT quark_to_symbol(STATE, GQuark quark) {
   return cstring_to_symbol(state, g_quark_to_string(id_to_quark(quark)));
 }
 
+static char *show_node(NODE *node) {
+  return get_node_type_string(nd_type(node));
+}
+
 
 static OBJECT gstring2rubinius(STATE, GString *str) {
   return string_new2(state, str->str, str->len);
@@ -149,6 +153,10 @@ void syd_add_to_parse_tree(STATE, OBJECT ary,
   VALUE old_ary = Qnil;
   VALUE current;
   VALUE node_name;
+  
+  /* This is a dirty hack. This indicates if we're currently processing
+     a real case statement, so when can act properly. */
+  static int in_case = 0;
 
   if (!node) return;
 
@@ -231,11 +239,16 @@ again_no_block:
   case NODE_CASE:
     {
       VALUE tmp, t2;
+      in_case = 1;
       add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers); /* expr */
       node = node->nd_body;
       tmp = array_new(state, 4);
       array_push(current, tmp);
       while (node) {
+        if (nd_type(node) == NODE_NEWLINE) {
+          node = node->nd_next;
+        }
+        
         if (nd_type(node) == NODE_WHEN) {                 /* when */
           t2 = array_new(state, 3);
           array_push(t2, SYMBOL(get_node_type_string(nd_type(node))));
@@ -257,10 +270,20 @@ again_no_block:
           array_push(current, Qnil);                     /* no else */
         }
       }
+      in_case = 0;
       break;
     }
   case NODE_WHEN: {
     VALUE tmp, t2;
+    if(in_case) {
+      add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
+      if(node->nd_body) {
+        add_to_parse_tree(current, node->nd_body, newlines, locals, line_numbers);
+      } else {
+        array_push(current, Qnil);
+      }
+      break;
+    }
     array_set(state, current, 0, cstring_to_symbol(state, "many_if"));
     tmp = array_new(state, 4);
     array_push(current, tmp);
