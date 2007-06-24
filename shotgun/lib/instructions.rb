@@ -427,7 +427,8 @@ CODE
     <<-CODE
     next_int;
     t1 = tuple_at(state, c->literals, _int);
-    stack_push(cpu_const_get(state, c, t1, c->enclosing_class));
+    t2 = cpu_const_get(state, c, t1, c->enclosing_class);
+    if(t2 != Qundef) stack_push(t2);
     c->cache_index = -1;
     CODE
   end
@@ -437,7 +438,8 @@ CODE
     t1 = stack_pop();
     next_int;
     t2 = tuple_at(state, c->literals, _int);
-    stack_push(cpu_const_get(state, c, t2, t1));
+    t2 = cpu_const_get(state, c, t2, t1);
+    if(t2 != Qundef) stack_push(t2);
     c->cache_index = -1;
     CODE
   end

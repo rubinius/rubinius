@@ -31,7 +31,7 @@ struct rubinius_globals {
   
   OBJECT external_ivars, scheduled_threads, errno_mapping;
   OBJECT recent_children, config, ffi_ptr, ffi_func, sym_send;
-  OBJECT functions, sym_public, sym_private, sym_protected;
+  OBJECT functions, sym_public, sym_private, sym_protected, sym_const_missing;
 };
 
 #define GLOBAL_cmethod

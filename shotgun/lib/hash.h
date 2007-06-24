@@ -10,3 +10,5 @@ OBJECT hash_s_from_tuple(STATE, OBJECT tup);
 OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh);
 
 #define hash_find(state, hash, key) (hash_get(state, hash, object_hash_int(state, key)))
+
+#define hash_find_undef(state, hash, key) (hash_get_undef(state, hash, object_hash_int(state, key)))

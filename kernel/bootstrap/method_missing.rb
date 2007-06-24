@@ -8,3 +8,9 @@ class Object
     raise exc
   end
 end
+
+class Module
+  def const_missing(name)
+    raise NameError, "Unable to find constant #{name}" 
+  end
+end

@@ -103,7 +103,7 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_public = symbol_from_cstr(state, "public");
   state->global->sym_private = symbol_from_cstr(state, "private");
   state->global->sym_protected = symbol_from_cstr(state, "protected");
-  
+  state->global->sym_const_missing = SYM("const_missing");
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;
   c->current_task = cpu_thread_get_task(state, c->current_thread);
@@ -271,7 +271,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
 #define update_cache(val) if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(c->method), c->cache_index, val)
 
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT hsh, val, kls;
+  OBJECT hsh, val, kls, parent;
   int i;
   
   if(c->cache_index >= 0) {
@@ -282,16 +282,32 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     if(val != Qnil) return val;
   }
   
-  val = Qnil;
+  val = Qundef;
+  
+  /* A boundry case. */
+  if(NIL_P(under)) {
+    return Qnil;
+  }
+  
+  /* We can only look for constants under modules */
+  if(!ISA(under, state->global->module)) {
+    cpu_raise_exception(state, c, 
+      cpu_new_exception(state, c, 
+        rbs_const_get(state, state->global->object, "TypeError"),
+        "Can only access constants under a class/module"));
+    return Qundef;
+  }
+  
+  parent = under;
   
   hsh = module_get_constants(under);
-  val = hash_find(state, hsh, sym);
+  val = hash_find_undef(state, hsh, sym);
   
   /*
   printf("Looking for %s starting from %s (%d) (self=%s)\n", rbs_symbol_to_cstring(state, sym),
     _inspect(under), c->paths->len, _inspect(c->self));
   */
-  if(RTEST(val)) {
+  if(val != Qundef) {
     update_cache(val);
     return val;
   }
@@ -305,8 +321,8 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
      kls == state->global->module ||
      kls == state->global->class)) {
        hsh = module_get_constants(c->self);
-       val = hash_find(state, hsh, sym);
-       if(RTEST(val)) {
+       val = hash_find_undef(state, hsh, sym);
+       if(val != Qundef) {
          update_cache(val);
          // printf("Found under %s.\n", _inspect(c->self));
          return val;
@@ -315,8 +331,8 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   /* Case 2: Check in the module that defined the method. */
   hsh = module_get_constants(c->method_module);
-  val = hash_find(state, hsh, sym);
-  if(RTEST(val)) {
+  val = hash_find_undef(state, hsh, sym);
+  if(val != Qundef) {
     update_cache(val);
     return val; 
   }
@@ -327,8 +343,8 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   under = module_get_parent(c->method_module);
   while(RTEST(under)) {
     hsh = module_get_constants(under);
-    val = hash_find(state, hsh, sym);
-    if(RTEST(val)) {
+    val = hash_find_undef(state, hsh, sym);
+    if(val != Qundef) {
       update_cache(val);
       return val;
     }
@@ -342,22 +358,21 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     for(i = 0; i < c->paths->len; i++) {
       under = (OBJECT)g_ptr_array_index(c->paths, i);
       hsh = module_get_constants(under);
-      val = hash_find(state, hsh, sym);
+      val = hash_find_undef(state, hsh, sym);
       
       /*
       printf("Looking for %s starting from %s in path\n", rbs_symbol_to_cstring(state, sym),
         _inspect(under));
       */
       // printf(" => %d\n", val);
-      if(RTEST(val) && val != Qundef) { break; }
+      if(val != Qundef) { break; }
     }
-    
-    if(NIL_P(val)) {  
-      // FIXME: raise some type of constant not found error or something here?
-      // had to remove printf side effect because its annoying
-      //printf("Couldn't find constant %s.\n", 
-      //  string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)));
-      val = Qnil;
+
+    /* Totally unable to find the constant, call const_missing */
+    if(val == Qundef) {  
+      stack_push(sym);
+      cpu_send_method(state, c, parent, state->global->sym_const_missing, 1);
+      return Qundef;      
     } /*
     else {
       printf("Found constant %s under %p => %p (%d).\n", 
@@ -367,7 +382,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     
   }
   
-  if(val != Qnil) {
+  if(val != Qundef) {
     update_cache(val);
   }
   
