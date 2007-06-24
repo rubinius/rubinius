@@ -42,11 +42,7 @@ class IO
   end
   
   def close
-    Ruby.primitive :io_close
-    
-    if @descriptor == -1
-      raise IOError.new("IO instance already closed")
-    else
+    unless io_close
       raise IOError.new("Unable to close instance of IO")
     end
   end
@@ -93,5 +89,10 @@ class IO
   def reopen(other)
     Ruby.primitive :io_reopen
     raise ArgumentError, "only accepts an IO object"
+  end
+
+  private
+  def io_close
+    Ruby.primitive :io_close
   end
 end
