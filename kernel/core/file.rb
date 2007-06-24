@@ -19,8 +19,14 @@ class File < IO
   end
   
   def self.open(path, mode="r")
-    raise Exception, "File.open with block is not implemented" if block_given?
-    return open_with_mode(path, mode)
+    f = open_with_mode(path, mode)
+    return f unless block_given?
+
+    begin
+      yield f
+    ensure
+      f.close unless f.closed?
+    end
   end
   
   def self.raw_stat(path)
