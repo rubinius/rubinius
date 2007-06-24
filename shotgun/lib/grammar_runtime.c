@@ -101,45 +101,6 @@ void create_error(rb_parse_state *parse_state, char *msg) {
  *
  * It was mearly imported into this space by Evan Webb.
  */
-static const char node_type_string[][60] = {
-    /*  00 */
-    "method", "fbody", "cfunc", "scope", "block",
-    "if", "case", "when", "opt_n", "while",
-    /*  10 */
-    "until", "iter", "for", "break", "next",
-    "redo", "retry", "begin", "rescue", "resbody",
-    /*  20 */
-    "ensure", "and", "or", "not", "masgn",
-    "lasgn", "dasgn", "dasgn_curr", "gasgn", "iasgn",
-    /*  30 */
-    "cdecl", "cvasgn", "cvdecl", "op_asgn1", "op_asgn2",
-    "op_asgn_and", "op_asgn_or", "call", "fcall", "vcall",
-    /*  40 */
-    "super", "zsuper", "array", "zarray", "hash",
-    "return", "yield", "lvar", "dvar", "gvar",
-    /*  50 */
-    "ivar", "const", "cvar", "nth_ref", "back_ref",
-    "match", "match2", "match3", "lit", "str",
-    /*  60 */
-    "dstr", "xstr", "dxstr", "evstr", "dregx",
-    "dregx_once", "args", "argscat", "argspush", "splat",
-    /*  70 */
-    "to_ary", "svalue", "block_arg", "block_pass", "defn",
-    "defs", "alias", "valias", "undef", "class",
-    /*  80 */
-    "module", "sclass", "colon2", "colon3", "cref",
-    "dot2", "dot3", "flip2", "flip3", "attrset",
-    /*  90 */
-    "self", "nil", "true", "false", "defined",
-    /*  95 */
-    "newline", "postexe",
-    "dmethod", "bmethod",
-    /*  99 */
-    "memo", "ifunc", "dsym", "attrasgn",
-    "regex", "fixnum", "number", "hexnum", "binnum",
-    "octnum", "float", "negate",
-    "last" 
-};
 
 #define nd_3rd   u3.node
 
@@ -194,11 +155,11 @@ void syd_add_to_parse_tree(STATE, OBJECT ary,
 again:
 
   if (node) {
-    node_name = SYMBOL(node_type_string[nd_type(node)]);
+    node_name = SYMBOL(get_node_type_string(nd_type(node)));
     /*
     if (RTEST(ruby_debug)) {
       fprintf(stderr, "%15s: %s%s%s\n",
-        node_type_string[nd_type(node)],
+        get_node_type_string(nd_type(node)),
         (RNODE(node)->u1.node != NULL ? "u1 " : "   "),
         (RNODE(node)->u2.node != NULL ? "u2 " : "   "),
         (RNODE(node)->u3.node != NULL ? "u3 " : "   "));
@@ -277,7 +238,7 @@ again_no_block:
       while (node) {
         if (nd_type(node) == NODE_WHEN) {                 /* when */
           t2 = array_new(state, 3);
-          array_push(t2, SYMBOL(node_type_string[nd_type(node)]));
+          array_push(t2, SYMBOL(get_node_type_string(nd_type(node))));
           array_push(tmp, t2);
           
           add_to_parse_tree(t2, node->nd_head, newlines, locals, line_numbers); /* args */
@@ -876,7 +837,7 @@ again_no_block:
   case NODE_DSYM:               /* :"#{foo}" u1 u2 u3 */
     /*
     printf("DSYM: %s", node->nd_str->str);
-    printf("DSYM: %s", node_type_string[nd_type(node->nd_head)]);
+    printf("DSYM: %s", get_node_type_string(nd_type(node->nd_head)));
     */
 
     add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
@@ -931,7 +892,7 @@ again_no_block:
      case NODE_LMASK:
      case NODE_LSHIFT: */
   default:
-    printf("Unhandled node #%d type '%s'", nd_type(node), node_type_string[nd_type(node)]);
+    printf("Unhandled node #%d type '%s'", nd_type(node), get_node_type_string(nd_type(node)));
     if (RNODE(node)->u1.node != NULL) printf("unhandled u1 value");
     if (RNODE(node)->u2.node != NULL) printf("unhandled u2 value");
     if (RNODE(node)->u3.node != NULL) printf("unhandled u3 value");

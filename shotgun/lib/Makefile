@@ -59,7 +59,8 @@ endif
 
 DEBUG=-g
 CFLAGS=-fPIC $(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
-DEPS=auto.h system_primitives.gen instruction_names.c instruction_names.h
+DEPS=auto.h system_primitives.gen instruction_names.c instruction_names.h \
+     node_types.c node_types.h
 
 SOURCES=$(sort $(wildcard *.c) $(wildcard subtend/*.c) grammar.c)
 OBJS=$(SOURCES:.c=.o) subtend/PortableUContext_asm.o
@@ -106,6 +107,9 @@ auto.h auto.c: genheader.rb ../../native/bytecode/system_hints.rb
 	echo "CC auto.o"
 	$(COMP) $(CFLAGS) -c auto.c
 
+node_types.c node_types.h: node_types.rb
+	$(RUBY) node_types.rb
+
 grammar.lo:
 	@echo "CC grammar.o"
 	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c
@@ -121,7 +125,7 @@ grammar.c:
 	bison -o grammar.c grammar.y
 
 clean:
-	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* instruction_names.c instruction_names.h
+	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* instruction_names.c instruction_names.h node_types.c node_types.h
 	rm -rf .libs subtend/.libs
 
 .PHONY: clean
