@@ -35,11 +35,10 @@
 
 static int objects_marked = 0;
 
-mark_sweep_gc mark_sweep_new(int chunk_size) {
+mark_sweep_gc mark_sweep_new() {
   mark_sweep_gc ms;
   
   ms = calloc(1, sizeof(struct _mark_sweep_gc));
-  ms->chunk_size = chunk_size;
   ms->remember_set = g_ptr_array_new();
   mark_sweep_add_chunk(ms);
   ms->chunks = ms->current;

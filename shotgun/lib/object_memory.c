@@ -50,7 +50,7 @@ object_memory object_memory_new() {
   om->gc->tenure_data = om;
   om->gc->om = om;
   
-  om->ms = mark_sweep_new(MS_CHUNKSIZE);
+  om->ms = mark_sweep_new();
   
   main_om = (void*)om;
   // Start the values up a bit higher so they don't collide

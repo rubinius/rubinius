@@ -27,7 +27,6 @@ struct ms_chunk {
 typedef struct ms_chunk ms_chunk;
 
 struct _mark_sweep_gc {
-  int chunk_size;
   struct ms_chunk *chunks;
   OBJECT free_list;
   void *extreme_min;
@@ -45,7 +44,7 @@ typedef struct _mark_sweep_gc *mark_sweep_gc;
 #define MS_MARK 0x80
 #define MS_CHUNKSIZE 0x20000
 
-mark_sweep_gc mark_sweep_new(int chunk_size);
+mark_sweep_gc mark_sweep_new();
 void mark_sweep_adjust_extremes(mark_sweep_gc ms, ms_chunk *new);
 void mark_sweep_add_chunk(mark_sweep_gc ms);
 void mark_sweep_free_chunk(mark_sweep_gc ms, ms_chunk *chunk);
