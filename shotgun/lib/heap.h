@@ -47,7 +47,7 @@ static inline address heap_allocate(rheap h, int size) {
   address _a; _a = (address)h->current; h->current += size; _a; })
 
 static inline int heap_enough_space_p(rheap h, int size) {
-  if(h->current + size > h->last) return FALSE;
+  if(h->current + size > h->last + 1) return FALSE;
   return TRUE;
 }
 

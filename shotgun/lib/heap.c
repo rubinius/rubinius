@@ -58,7 +58,6 @@ address heap_allocate(rheap h, int size) {
   /* maybe raise exception here? */
   assert(heap_enough_space_p(h, size));
   addr = (address)h->current;
-  assert(addr < h->last);
   memset((void*)addr, 0, size);
   h->current += size;
   
@@ -67,7 +66,7 @@ address heap_allocate(rheap h, int size) {
 
 int heap_enough_space_p(rheap h, int size) {
   if (size < 0) abort();
-  if(h->current + size > h->last) return FALSE;
+  if(h->current + size > h->last + 1) return FALSE;
   return TRUE;
 }
 
@@ -78,7 +77,7 @@ int heap_enough_fields_p(rheap h, int fields) {
   
   size = (HEADER_SIZE + fields) * REFSIZE;
   
-  if(h->current + size > h->last) return FALSE;
+  if(h->current + size > h->last + 1) return FALSE;
   return TRUE;
 }
 
