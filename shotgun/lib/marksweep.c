@@ -24,7 +24,7 @@
 #include "tuple.h"
 
 #define to_header(obj) ((struct ms_header*)((obj) - sizeof(struct ms_header)))
-#define to_object(hed) ((OBJECT)(((int)(hed)) + sizeof(struct ms_header)))
+#define to_object(hed) ((OBJECT)(((OBJECT)(hed)) + sizeof(struct ms_header)))
 
 #define FREE_OBJECT 0x10000
 #define BARRIER (2**REFSIZE)
@@ -68,7 +68,7 @@ void mark_sweep_add_chunk(mark_sweep_gc ms) {
 }
 
 OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
-  int bytes, i, idx;
+  int bytes, idx;
   struct ms_header *oh;
   ms_chunk *chk;
   OBJECT ro;
@@ -76,15 +76,14 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
   bytes = sizeof(struct ms_header) + ((obj_fields + HEADER_SIZE) * REFSIZE);
   
   chk = ms->current;
-  idx = chk->next_entry;
   
-  chk->next_entry++;
   if(chk->next_entry == chk->num_entries) {
     mark_sweep_add_chunk(ms);
     chk = ms->current;
-    chk->next_entry++;
-    idx = 0;
   }
+  
+  idx = chk->next_entry;
+  chk->next_entry++;
   
   oh = (struct ms_header*)calloc(1, bytes);
   assert(oh != NULL);
@@ -94,8 +93,6 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
   chk->entries[idx].marked = 0;
   
   oh->entry = chk->entries + idx;
-  assert(oh->entry->object == chk->entries[idx].object);
-  assert(oh->entry->object == oh);
   ro = to_object(oh);
   // printf("Allocated %d\n", ro);
   SET_NUM_FIELDS(ro, obj_fields);
