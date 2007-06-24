@@ -10,6 +10,7 @@
 #include "archive.h"
 #include <sys/param.h>
 #include <signal.h>
+#include "symbol.h"
 
 #include "config.h"
 
@@ -608,6 +609,107 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "CODE_PATH", string_new(m->s, CONFIG_CODEPATH), mod);
   machine_set_const_under(m, "EXT_PATH", string_new(m->s, CONFIG_EXTPATH), mod);
   machine_set_const_under(m, "RBA_PATH", string_new(m->s, CONFIG_RBAPATH), mod);
+  
+#if defined(__ppc__) || defined(__POWERPC__) || defined(_POWER)
+  machine_set_const_under(m, "PLATFORM", SYM("ppc"), mod);
+#elif defined(__amd64__)
+  machine_set_const_under(m, "PLATFORM", SYM("amd64"), mod);
+#elif defined(i386) || defined(__i386__)
+  machine_set_const_under(m, "PLATFORM", SYM("x86"), mod);
+#elif defined(__alpha) || defined(__alpha__)
+  machine_set_const_under(m, "PLATFORM", SYM("alpha"), mod);
+#elif defined(VAX) || defined(__VAX)
+  machine_set_const_under(m, "PLATFORM", SYM("vax"), mod);
+#elif defined(__hppa__)
+  machine_set_const_under(m, "PLATFORM", SYM("hppa"), mod);
+#elif defined(__sparc__)
+  machine_set_const_under(m, "PLATFORM", SYM("sparc"), mod);
+#elif defined(__s390__)
+  machine_set_const_under(m, "PLATFORM", SYM("s390"), mod);
+#elif (defined(TARGET_CPU_68K) || defined(__CFM68K__) || defined(m68k) || defined(_M_M68K))
+  machine_set_const_under(m, "PLATFORM", SYM("m68k"), mod);
+#else
+  machine_set_const_under(m, "PLATFORM", SYM("unknown"), mod);
+#endif
+  
+#if defined(__APPLE__) || defined(__MACH__)
+  machine_set_const_under(m, "OS", SYM("darwin"), mod);
+#elif defined(__linux__) || defined(linux) || defined(__linux)
+  machine_set_const_under(m, "OS", SYM("linux"), mod);
+#elif defined(__FreeBSD__)
+  machine_set_const_under(m, "OS", SYM("freebsd"), mod);
+#elif defined(__CYGWIN__)
+  machine_set_const_under(m, "OS", SYM("cygwin"), mod);
+#elif defined(__OS2__)
+  machine_set_const_under(m, "OS", SYM("os2"), mod);
+#elif defined(__NT__) || defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
+  machine_set_const_under(m, "OS", SYM("win32"), mod);
+#elif defined(__WINDOWS__)
+  machine_set_const_under(m, "OS", SYM("windows_3x"), mod);
+#elif defined(__NETWARE_386__)
+  machine_set_const_under(m, "OS", SYM("netware"), mod);
+#elif defined(__MSDOS__)
+  machine_set_const_under(m, "OS", SYM("dos"), mod);
+#elif defined(VMS) || defined(__VMS__)
+  machine_set_const_under(m, "OS", SYM("vms"), mod);
+#elif defined(__hpux__)
+  machine_set_const_under(m, "OS", SYM("hpux"), mod);
+#elif defined(__sun__) || defined(__sun)
+  machine_set_const_under(m, "OS", SYM("solarce"), mod);
+#elif defined(__svr4__)
+  machine_set_const_under(m, "OS", SYM("unixware"), mod);
+#elif defined(_AIX)
+  machine_set_const_under(m, "OS", SYM("aix"), mod);
+#elif (defined(_SCO_DS) && defined(_SCO_ELF) && defined(_SCO_XPG_VERS) && defined(_SCO_C_DIALECT))
+  machine_set_const_under(m, "OS", SYM("openserver"), mod);
+#elif defined(__unix__)
+  machine_set_const_under(m, "OS", SYM("decunix"), mod);
+#else
+  machine_set_const_under(m, "OS", SYM("unknown"), mod);
+#endif
+
+#if defined(__VERSION__)
+  machine_set_const_under(m, "COMPILER_VERSION", string_new(m->s, __VERSION__), mod);
+#else
+  machine_set_const_under(m, "COMPILER_VERSION", Qnil, mod);
+#endif
+
+#if defined(_MSC_VER)
+  machine_set_const_under(m, "COMPILER", SYM("microsoft"), mod);  
+#elif defined(__DECC) || defined(VAXC)
+  machine_set_const_under(m, "COMPILER", SYM("digital"), mod);  
+#elif defined(__BORLANDC__)
+  machine_set_const_under(m, "COMPILER", SYM("borland"), mod);
+#elif defined(__WATCOMC__)
+  machine_set_const_under(m, "COMPILER", SYM("watcom"), mod);
+#elif defined(__GNUC__)
+  machine_set_const_under(m, "COMPILER", SYM("gcc"), mod);
+#elif defined(__MWERKS__)
+  machine_set_const_under(m, "COMPILER", SYM("metrowerks"), mod);
+#elif defined(__IBMC__) || defined(__IBMCPP__)
+  machine_set_const_under(m, "COMPILER", SYM("ibm"), mod);
+#elif defined(__SUNPRO_C)
+  machine_set_const_under(m, "COMPILER", SYM("sunpro"), mod);
+#else
+  machine_set_const_under(m, "COMPILER", SYM("unknown"), mod);
+#endif
+
+#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+  machine_set_const_under(m, "ENDIAN", SYM("big"), mod);
+#else
+  machine_set_const_under(m, "ENDIAN", SYM("little"), mod);
+#endif
+
+#if defined(_WIN32) || defined(__NT__) || defined(WIN32) || defined(__WIN32__)
+#define LIBSUFFIX "dll"
+#elif defined(__APPLE__)
+#define LIBSUFFIX "bundle"
+#else
+#define LIBSUFFIX "so"
+#endif
+
+  machine_set_const_under(m, "LIBSUFFIX", string_new(m->s, LIBSUFFIX), mod);
+  machine_set_const_under(m, "COMPILER_PATH", string_new(m->s, CONFIG_CC), mod);
   
   if(isatty(0)) {
     machine_set_const_under(m, "Terminal", string_new(m->s, ttyname(0)), mod);
