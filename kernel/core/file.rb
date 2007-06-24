@@ -3,6 +3,12 @@ class File < IO
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
   class PermissionError < FileError; end
+
+  if Rubinius::OS == :win32
+    SEPARATOR = "\\"
+  else
+    SEPARATOR = "/"
+  end
   
   def self.new(path, mode)
     return open_with_mode(path, mode)
