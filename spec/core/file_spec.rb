@@ -182,6 +182,12 @@ context "File class method" do
   
   specify "join should return new string formed by joining the strings using File::SEPARATOR" do
     File.join("smalltalk","ruby","rubinius").should == "smalltalk/ruby/rubinius"
+    File.join.should == ""
+
+    # arguments must respond to to_str
+    should_raise(TypeError) do
+      File.join(Object.new)
+    end
   end
 end
 
