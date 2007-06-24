@@ -18,7 +18,9 @@ class IO
     if args.empty?
       write $/
     else
-      args.each do |str|
+      args.each do |arg|
+        str = arg.to_s
+
         write str
         write $/ unless str[-2..-1] == $/
       end
