@@ -173,6 +173,10 @@ class File < IO
 end
 
 class Dir
+  module Foreign
+    attach_function nil, "getcwd", [:string, :int], :string
+  end
+
   def self.glob(pattern, flags)
     Ruby.primitive :dir_glob
   end
@@ -183,5 +187,14 @@ class Dir
   
   def self.chdir(path)
     Ruby.primitive :dir_chdir
+  end
+
+  def self.getwd
+    buf = " " * 1024
+    Foreign.getcwd(buf, buf.length)
+  end
+
+  class << self
+    alias :pwd :getwd
   end
 end
