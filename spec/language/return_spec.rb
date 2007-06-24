@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "Assignment via return" do
-  
   it "should assign objects to block variables" do
     def r; return nil; end;      a = r(); a.should == nil
     def r; return 1; end;        a = r(); a.should == 1
@@ -87,5 +86,4 @@ describe "Assignment via return" do
     def r; return *[*[1]]; end;   a,b,*c = r(); [a,b,c].should == [1,nil,[]]
     def r; return *[*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]    
   end
-  
 end

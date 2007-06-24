@@ -1,6 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
-
-# TODO: break, redo, next, retry
+require File.dirname(__FILE__) + '/../spec_helper'
 
 # while bool-expr [do]
 #   body

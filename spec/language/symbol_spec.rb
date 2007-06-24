@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../spec_helper'
 
 context 'Using the literal form to create Symbols' do
   specify 'Colon followed by a valid series of characters creates a Symbol' do

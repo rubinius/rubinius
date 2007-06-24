@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/../spec_helper'
 
 context "Hash literal" do
   specify "{} should return a new hash populated with the given elements" do

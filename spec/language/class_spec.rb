@@ -1,3 +1,5 @@
+require File.dirname(__FILE__) + '/../spec_helper'
+
 # Specifications:
 #
 # Keywords:
@@ -10,7 +12,6 @@
 #   Class instance variables
 #   Instance variables
 #
-require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A new class definition" do
   it "should create a new class" do
