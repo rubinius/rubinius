@@ -101,6 +101,37 @@ class File < IO
     end
     return bn 
   end
+  
+  def self.expand_path(path)
+    path = path.to_s.strip
+    dirs = path.split('/')
+    if path == '' || (dirs.empty? && path[0].chr != '/')
+      Dir.pwd
+    else
+      first = case dirs.first
+      when '..' : Dir.pwd.split('/')[0...-1].join('/')
+      when '~' : ENV['HOME']
+      when '.' : Dir.pwd
+      when '' : '/'
+      else
+        if dirs.first.nil?
+          match = /(\/+)/.match(path) 
+          prefix = match[0] if match
+          ''
+        else
+          Dir.pwd + '/' + dirs.first
+        end
+      end
+      dirs.shift
+      paths = first.split('/')
+      dirs.each do |dir|
+        next if dir == '.' || dir == ''
+        dir == '..' ? paths.pop : paths.push(dir)
+      end
+      string = paths.empty? ? '' : paths.join("/")
+      !string.empty? && string[0].chr == '/' ? string : prefix || '/' +string
+    end
+  end
 
   class Stat
     
