@@ -14,8 +14,17 @@ class IO
     "#<#{self.class}:#{object_id.to_s(16)} fd=#{@descriptor}>"
   end
   
-  def puts(str)
-    write "#{str}\n"
+  def puts(*args)
+    if args.empty?
+      write $/
+    else
+      args.each do |str|
+        write str
+        write $/ unless str[-2..-1] == $/
+      end
+    end
+
+    nil
   end
   
   def <<(obj)
