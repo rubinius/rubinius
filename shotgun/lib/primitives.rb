@@ -459,7 +459,7 @@ class ShotgunPrimitives
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
-    tm.tm_zone = string_as_string(state, array_get(state, t1, 10));
+    tm.tm_zone = string_byte_address(state, array_get(state, t1, 10));
 #endif
 
     format = string_as_string(state, t2);
@@ -471,10 +471,6 @@ class ShotgunPrimitives
     stack_push(t3);
 
     if(format) {free(format);}
-
-#ifdef HAVE_STRUCT_TM_TM_ZONE
-    if(tm.tm_zone) free(tm.tm_zone);
-#endif
     CODE
   end
 
