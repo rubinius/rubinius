@@ -1,3 +1,0 @@
-$ext_name = "subtend_hash"
-$cwd = File.dirname(__FILE__)
-load File.join(File.dirname(__FILE__), *%w[.. rake_helper.rb])
