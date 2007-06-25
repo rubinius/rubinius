@@ -15,86 +15,86 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "A new class definition" do
   it "should create a new class" do
-    class A; end
+    class LanguageClassA; end
 
-    A.class.should == Class
-    A.new.class.should == A
+    LanguageClassA.class.should == Class
+    LanguageClassA.new.class.should == LanguageClassA
   end
   
   it "should have no class variables" do
-    class B; end;
+    class LanguageClassB; end;
     
-    B.class_variables.should == []
+    LanguageClassB.class_variables.should == []
   end
   
   it "should have no class-level instance variables" do
-    class C; end
+    class LanguageClassC; end
     
-    C.instance_variables.should == []
+    LanguageClassC.instance_variables.should == []
   end
 
   it "should allow the declaration of class variables in the body" do
-    class D
+    class LanguageClassD
       @@bar = 'foo'
     end
     
-    D.class_variables.should == ["@@bar"]
+    LanguageClassD.class_variables.should == ["@@bar"]
   end
   
   it "should allow the declaration of class-level instance variables in the body" do
-    class E
+    class LanguageClassE
       @bar = 'foo'
     end
     
-    E.instance_variables.should == ["@bar"]
+    LanguageClassE.instance_variables.should == ["@bar"]
   end
 
   it "should allow the declaration of class variables in a class method" do
-    class F
+    class LanguageClassF
       def self.setup_cv
         @@bar = 'foo'
       end
     end
 
-    F.class_variables.should == []
-    F.setup_cv
-    F.class_variables.should == ["@@bar"]
+    LanguageClassF.class_variables.should == []
+    LanguageClassF.setup_cv
+    LanguageClassF.class_variables.should == ["@@bar"]
   end
   
   it "should allow the declaration of class variables in an instance method" do
-    class G
+    class LanguageClassG
       def setup_cv
         @@bar = 'foo'
       end
     end
 
-    G.class_variables.should == []
-    G.new.setup_cv
-    G.class_variables.should == ["@@bar"]
+    LanguageClassG.class_variables.should == []
+    LanguageClassG.new.setup_cv
+    LanguageClassG.class_variables.should == ["@@bar"]
   end
   
   it "should allow the definition of methods" do
-    class H
+    class LanguageClassH
       def foo
         'foo'
       end
     end
     
-    H.new.foo.should == 'foo'
+    LanguageClassH.new.foo.should == 'foo'
   end
   
   it "should allow the definition of class methods" do
-    class I
+    class LanguageClassI
       def self.foo
         'foo'
       end
     end
     
-    I.foo.should == 'foo'
+    LanguageClassI.foo.should == 'foo'
   end
   
   it "should allow the definition of class methods using class << self" do
-    class J
+    class LanguageClassJ
       class << self
         def foo
           'foo'
@@ -102,41 +102,41 @@ describe "A new class definition" do
       end
     end
     
-    J.foo.should == 'foo'
+    LanguageClassJ.foo.should == 'foo'
   end
   
   it "should allow the definition of Constants" do
-    class O; CONST = 'foo!'; end
+    class LanguageClassO; CONST = 'foo!'; end
     
     defined?(CONST).should == nil
-    defined?(O::CONST).should == "constant"
-    O::CONST.should == 'foo!'
+    defined?(LanguageClassO::CONST).should == "constant"
+    LanguageClassO::CONST.should == 'foo!'
   end
   
   it "should return the value of the last statement in the body" do
-    value = class K; end
+    value = class LanguageClassK; end
     value.should == nil
     
-    value = class L; 20; end
+    value = class LanguageClassL; 20; end
     value.should == 20
     
-    value = class M; 20 + 10; end
+    value = class LanguageClassM; 20 + 10; end
     value.should == 30
     
-    value = class N; class << self; 'foo'; end; end
+    value = class LanguageClassN; class << self; 'foo'; end; end
     value.should == 'foo'
   end
 end
 
 describe "Nested class definitions" do
   it "should make the outer class contain the inner classes" do
-    class Z
-      class A1; end
-      class A2; end
+    class LanguageClassZ
+      class LanguageClassA1; end
+      class LanguageClassA2; end
     end
     
-    Z.constants.include?('A1').should == true
-    Z.constants.include?('A2').should == true
+    LanguageClassZ.constants.include?('LanguageClassA1').should == true
+    LanguageClassZ.constants.include?('LanguageClassA2').should == true
   end
 end
 
@@ -167,25 +167,25 @@ end
 
 describe "Multiple Definitions of the same Class" do
   it "should extend previous definitions" do
-    class X; def abc(); 'foo' end; end
-    class X; def xyz(); 'bar' end; end
+    class LanguageClassX; def abc(); 'foo' end; end
+    class LanguageClassX; def xyz(); 'bar' end; end
     
-    x = X.new
+    x = LanguageClassX.new
     x.abc.should == 'foo'
     x.xyz.should == 'bar'
   end
   
   it "should overwrite existing methods" do
-    class W; def abc() 'bar' end; end
-    class W; def abc() 'foo' end; end
+    class LanguageClassW; def abc() 'bar' end; end
+    class LanguageClassW; def abc() 'foo' end; end
     
-    W.new.abc.should == 'foo'
+    LanguageClassW.new.abc.should == 'foo'
   end
   
   it "should raise a TypeError when superclasses mismatch" do
     should_raise(TypeError) do
-      class V < Array; end
-      class V < Fixnum; end
+      class LanguageClassV < Array; end
+      class LanguageClassV < Fixnum; end
     end    
   end
 end

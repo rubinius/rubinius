@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/compiler_helper'
 
+extension :rubinius do
 c = CompilerHarness.new
 
 context 'Single assignment' do
@@ -93,6 +94,7 @@ ret
     out = c.encode(code)
     out.should == asm
   end
+end
 end
 
 =begin

@@ -15,15 +15,15 @@ context 'Setting up mock methods in a #specify/#it block' do
 end
 
 context 'Lifetime of the mocked methods' do
-  @o = [1]
+  @mini_mock_a = [1]
 
   specify 'methods are released...' do
-    @o.should_receive :first
-    @o.first.should == nil
+    @mini_mock_a.should_receive :first
+    @mini_mock_a.first.should == nil
   end
 
   specify '...at the end of the #it block' do
-    @o.first.should == 1
+    @mini_mock_a.first.should == 1
   end
 end
 

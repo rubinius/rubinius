@@ -26,16 +26,20 @@ context 'Using Class.new to create a new class' do
   end
 
   specify 'If a block is provided, it is evaluated in the context of the Class object' do
-    c = Class.new {NO = :inside; const_set :YES, :inside
-                   @civ = :civ; @@cv = :cv; 
-                   def self.foo; :class_foo; end 
-                   define_method('foo') {:instance_foo}}
+    begin
+      c = Class.new {NO = :inside; const_set :YES, :inside
+                     @civ = :civ; @@cv = :cv; 
+                     def self.foo; :class_foo; end 
+                     define_method('foo') {:instance_foo}}
 
-    c.constants.should == ['YES']
-    c.instance_variables.should == ['@civ']
-    c.class_variables.should == ['@@cv']
-    c.foo.should == :class_foo
-    c.new.foo.should == :instance_foo
+      c.constants.should == ['YES']
+      c.instance_variables.should == ['@civ']
+      c.class_variables.should == ['@@cv']
+      c.foo.should == :class_foo
+      c.new.foo.should == :instance_foo
+    ensure
+      Object.send(:remove_class_variable, :@@cv)
+    end
   end
 
   specify "The generated class can be instantiated" do

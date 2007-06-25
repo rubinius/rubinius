@@ -1,6 +1,7 @@
-require(File.dirname(__FILE__) + '/compiler_helper')
+require File.dirname(__FILE__) + '/compiler_helper'
 
-c = CompilerHarness.new()
+extension :rubinius do
+c = CompilerHarness.new
 
 context "Local variable access" do
   specify "lvar in method body uses specific syntax" do
@@ -8,7 +9,7 @@ context "Local variable access" do
     a = 3
     p a
     CODE
-    
+  
     asm = <<-CODE
 #line 1
 push 3
@@ -20,10 +21,10 @@ push self
 send p 1
 ret
     CODE
-    
+  
     c.encode(code).should == asm
   end
-  
+
   specify "lvar defined in method, accessed in block" do
     code = <<-CODE
     a = 3
@@ -32,7 +33,7 @@ ret
       p(a, b)
     end
     CODE
-    
+  
     asm = <<-CODE
 #line 1
 push 3
@@ -63,7 +64,8 @@ make_array 0
 lbl1:
 ret
     CODE
-    
+  
     c.encode(code).should == asm
   end  
+end
 end
