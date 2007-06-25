@@ -1,0 +1,5 @@
+Subtend is the Rubinius subsystem that provides a C API layer that conforms to
+that provided by Matz's Ruby Interpreter (MRI). To write specs for subtend,
+refer to array_spec.rb and ext/subtend_array.c. The naming convention for the
+spec file is '<class>_spec.rb'. The naming convention for the extension is
+'subtend_<class>.c'.
