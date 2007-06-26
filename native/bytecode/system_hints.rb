@@ -17,7 +17,8 @@ module Rubinius
     "Module"=>{:@methods=>1, :@method_cache=>2, :@constants=>4, :@parent=>5, :@name=>3, :@__ivars__=>0},
     "MethodContext"=>{:@raiseable=>5, :@bytecodes=>7, :@locals=>10, :@argcount=>11, :@receiver=>9, :@method=>6, :@sender=>1, :@module=>13, :@ip=>2, :@name=>12, :@sp=>3, :@literals=>8, :@__ivars__=>0, :@block=>4},
     "Hash"=>{:@entries=>4, :@default=>5, :@default_proc=>6, :@keys=>1, :@values=>2, :@__ivars__=>0, :@bins=>3},
-    "BlockEnvironment"=>{:@last_ip=>3, :@post_send=>4, :@home=>1, :@__ivars__=>0, :@initial_ip=>2, :@home_block => 5, :@local_count => 6}
+    "BlockEnvironment"=>{:@last_ip=>3, :@post_send=>4, :@home=>1, :@__ivars__=>0, :@initial_ip=>2, :@home_block => 5, :@local_count => 6},
+    "Exception" => {:@__ivars__ => 0, :@message => 1, :@context => 2 }
     }
 
     TYPES = {:symtbl=>"SymbolTable", :blank=>"BlankObject", :matchdata=>"MatchData", 
@@ -26,7 +27,7 @@ module Rubinius
       :module=>"Module", :cmethod=>"CompiledMethod", :metaclass=>"MetaClass", 
       :regexpdata=>"RegexpData", :regexp=>"Regexp", :bytearray=>"ByteArray", 
       :hash=>"Hash", :string=>"String", :tuple=>"Tuple", :blokenv=>"BlockEnvironment", 
-      :symbol=>"Symbol", :methctx=>"MethodContext"
+      :symbol=>"Symbol", :methctx=>"MethodContext", :exception => "Exception"
     }
   end
 end

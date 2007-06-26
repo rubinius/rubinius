@@ -126,7 +126,7 @@ class ShotgunPrimitives
   def bignum_div(_ = bignum, t1 = bignum)
     <<-CODE
     // Can this ever happen since bignum will always be > zero?
-    GUARD( ! bignum_equal(state, t1, bignum_new(state, 0)) )
+    GUARD(!bignum_is_zero(state, t1));    
     stack_push(bignum_div(state, self, t1));
     CODE
   end
@@ -1890,10 +1890,16 @@ class ShotgunPrimitives
     CODE
   end
   
-  def bignum_divmod(_ = bignum, t1 = bignum)
+  def bignum_divmod
     <<-CODE
+    self = stack_pop();
+    GUARD(RISA(self, bignum));
+    
+    t1  =  stack_pop();
+    GUARD(RISA(t1,   bignum));    
+    
     // no divide by zero
-    GUARD( ! bignum_equal(state, t1, bignum_new(state, 0)) )
+    GUARD(!bignum_is_zero(state, t1));
 
     stack_push(bignum_divmod(state, self, t1));
     CODE

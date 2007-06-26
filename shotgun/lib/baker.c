@@ -195,7 +195,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       rbs_set_field(g->om, iobj, i, mut);
     }
   } else {
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) SET_STRUCT_FIELD(iobj, fc->field, baker_gc_maybe_mutate(state, g, fc->field))
+#define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) SET_STRUCT_FIELD(iobj, fc->field, baker_gc_maybe_mutate(state, g, fc->field))
 // #define fc_mutate(field) if(REFERENCE_P(fc->field)) fc->field = baker_gc_maybe_mutate(state, g, fc->field)
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
@@ -232,7 +232,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
 
       sp = fc->stack_top;
       while(sp <= fc->sp_ptr) {
-        if(REFERENCE_P(*sp)) {
+        if(*sp && REFERENCE_P(*sp)) {
           *sp = baker_gc_mutate_from(state, g, *sp);
         }
         sp++;
@@ -355,7 +355,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   sz = rs->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(rs, i));
-    if(!REFERENCE_P(root)) { continue; }
+    if(!REFERENCE2_P(root)) { continue; }
     FLAG_CLEAR_ON(root, gc, REMEMBER_FLAG);
     tmp = baker_gc_mutate_from(state, g, root);
     // g_ptr_array_set_index(g->remember_set, i, tmp);
@@ -367,7 +367,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     // printf("Collecting from root %d\n", i);
     // printf("%p => %p\n", g->current->address, g->next->address);
     // printf("Start at RS (%d): %p\n", i, root);
-    if(!REFERENCE_P(root)) { continue; }
+    if(!REFERENCE2_P(root)) { continue; }
     tmp = baker_gc_mutate_from(state, g, root);
     g_ptr_array_set_index(roots, i, tmp);
   }
@@ -394,7 +394,7 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   
   sp = state->current_stack;
   while(sp <= state->current_sp) {
-    if(REFERENCE_P(*sp)) {
+    if(REFERENCE2_P(*sp)) {
       *sp = baker_gc_mutate_from(state, g, *sp);
     }
     sp++;
@@ -409,11 +409,9 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   }
   
   cpu_event_each_channel(state,
-                         (cpu_event_each_channel_cb) baker_gc_mutate_from,
-                         g);
+      (cpu_event_each_channel_cb) baker_gc_mutate_from, g);
   cpu_sampler_collect(state,
-                      (cpu_sampler_collect_cb) baker_gc_mutate_from,
-                      g);
+      (cpu_sampler_collect_cb) baker_gc_mutate_from, g);
   
   int j;
   OBJECT t2;

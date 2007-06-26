@@ -65,7 +65,6 @@ void cpu_setup_top_scope(STATE, cpu c) {
   c->enclosing_class = state->global->object;
   c->method_module = state->global->object;
   c->new_class_of = state->global->class;
-  rbs_const_set(state, state->global->object, "MAIN", c->main);
 }
 
 void cpu_initialize_context(STATE, cpu c) {
@@ -76,6 +75,7 @@ void cpu_initialize_context(STATE, cpu c) {
   c->new_class_of = state->global->class;
   c->exception = Qnil;
   c->main = object_new(state);
+  rbs_const_set(state, state->global->object, "MAIN", c->main);
   
   state->global->method_missing = string_to_sym(state, 
         string_new(state, "method_missing"));
@@ -260,9 +260,9 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
   
   obj = class_new_instance(state, klass);
   str = string_new(state, msg);
-  SET_FIELD(obj, 0, str);
+  exception_set_message(obj, str);
   methctx_reference(state, c->active_context);
-  SET_FIELD(obj, 1, c->active_context);
+  exception_set_context(obj, c->active_context);
   return obj;
 }
 

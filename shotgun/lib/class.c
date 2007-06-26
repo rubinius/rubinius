@@ -8,7 +8,9 @@ OBJECT class_new(STATE, const char *name, int fields, OBJECT sup, OBJECT ns) {
   cls = class_create(state);
   class_set_instance_fields(cls, I2N(fields));
   class_set_superclass(cls, sup);
-  module_setup_with_namespace(state, cls, name, ns);
+  module_setup_fields(state, cls);
+  object_create_metaclass(state, cls, object_metaclass(state, sup));
+  module_setup_name(state, cls, name, ns);
   return cls;
 }
 

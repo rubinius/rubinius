@@ -8,18 +8,11 @@
 #define Increments 32
 
 OBJECT symbol_from_index(STATE, int idx) {
-  int self;
-  
-  self = idx << SYMBOL_SHIFT;
-  self |= SYMBOL_MARKER;
-  return (OBJECT)self;
+  return APPLY_TAG(idx, TAG_SYMBOL);
 }
 
 int symbol_to_index(STATE, OBJECT self) {
-  int idx;
-  idx = (int)self;
-  idx = idx >> SYMBOL_SHIFT;
-  return idx;
+  return STRIP_TAG((int)self);
 }
 
 OBJECT symtbl_new(STATE) {

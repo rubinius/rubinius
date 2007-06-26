@@ -11,10 +11,10 @@ typedef void * VALUE;
 #undef Qnil
 #undef Qundef
 
-#define Qfalse ((VALUE)0L)
-#define Qtrue  ((VALUE)2L)
-#define Qnil   ((VALUE)4L)
-#define Qundef ((VALUE)6L)
+#define Qfalse ((VALUE)6L)
+#define Qtrue  ((VALUE)10L)
+#define Qnil   ((VALUE)14L)
+#define Qundef ((VALUE)18L)
 
 #define SYM2ID(sym) ((ID)(sym))
 

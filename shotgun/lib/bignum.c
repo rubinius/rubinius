@@ -139,6 +139,10 @@ OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
   return ary;
 }
 
+int bignum_is_zero(STATE, OBJECT a) {
+  return mp_iszero(MP(a)) ? TRUE : FALSE;
+}
+
 #define BITWISE_OP_AND 1
 #define BITWISE_OP_OR  2
 #define BITWISE_OP_XOR 3

@@ -369,7 +369,7 @@ void ffi_from_ll(long long val) {
   OBJECT ret;
   rni_context *ctx = subtend_retrieve_context();
   
-  ret = (val << FIXNUM_SHIFT) | FIXNUM_MARKER;
+  ret = APPLY_TAG(val, TAG_FIXNUM);
   if((int)val != rbs_to_int(ret)) {
     ret = bignum_from_ll(ctx->state, val);    
   }

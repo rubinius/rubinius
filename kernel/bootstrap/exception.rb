@@ -1,5 +1,5 @@
 class Exception
-  ivar_as_index :message => 0, :context => 1
+  ivar_as_index :__ivars => 0, :message => 1, :context => 2
   def message; @message ; end
   def context; @context ; end
 
@@ -45,9 +45,6 @@ class NotImplementedError < ScriptError
 end
 
 class SyntaxError < ScriptError
-  self.instance_fields = 4
-
-  ivar_as_index :column => 2, :line => 3
   def column; @column ; end
   def line  ; @line   ; end
 
@@ -58,8 +55,6 @@ class SyntaxError < ScriptError
 end
 
 class SystemCallError < StandardError
-  self.instance_fields = 3
-  ivar_as_index :errno => 2
   def errno; @errno ; end
 
   def initialize(message, errno = nil)

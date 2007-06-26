@@ -74,31 +74,6 @@ struct rubinius_object {
 #define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
 #define FIXNUM_NEG(obj) (((int)(obj)) < 0)
 
-#ifndef INTERNAL_MACROS
-
-#define SET_FIELD(obj, fel, val) rbs_set_field(obj, fel, val)
-
-static inline OBJECT rbs_get_field(OBJECT in, int fel) {
-  OBJECT obj;
-  assert(fel < HEADER(in)->fields);
-  obj = NTH_FIELD_DIRECT(in, fel);
-  return obj;
-}
-
-#define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
-
-static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
-  assert(fel < HEADER(obj)->fields);
-  OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
-  assert(val != 12);
-  *slot = val;
-  return val;
-}
-
-#define SET_CLASS(obj, cls) (HEADER(obj)->klass = cls)
-
-#endif
-
 #ifdef Qfalse
 #undef Qfalse
 #undef Qtrue
@@ -110,25 +85,46 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 #undef FIXNUM_P
 #endif
 
+/* OOP layout:
+ * [30 bits of data | 2 bits of tag]
+ * if tag == 00, the whole thing is a pointer to a memory location.
+ * if tag == 11, the data is a symbol index
+ * if tag == 01, the data is a fixnum
+ * if tag == 10, the data is a literal
+ */
 
-#define SYMBOL_P(v) (((OBJECT)(v) & ((1L<<SYMBOL_SHIFT)-1)) == SYMBOL_MARKER)
-#define FIXNUM_P(v) (((OBJECT)(v) & ((1L<<FIXNUM_SHIFT)-1)) == FIXNUM_MARKER)
+#define TAG_MASK    0x3
+#define TAG_SHIFT   2
+
+#define TAG_REF     0x0
+#define TAG_SYMBOL  0x3
+#define TAG_FIXNUM  0x1
+#define TAG_LITERAL 0x2
+
+#define TAG(v) ((OBJECT)v & TAG_MASK)
+#define APPLY_TAG(v, tag) ((v << TAG_SHIFT) | tag)
+#define STRIP_TAG(v) (v >> TAG_SHIFT)
+
+#define SYMBOL_SHIFT TAG_SHIFT
+#define FIXNUM_SHIFT TAG_SHIFT
+
+#define SYMBOL_P(v) (TAG(v) == TAG_SYMBOL)
+#define FIXNUM_P(v) (TAG(v) == TAG_FIXNUM)
 
 /* Standard Rubinius Representation */
-#define Qfalse ((OBJECT)0L)
-#define Qtrue  ((OBJECT)2L)
-#define Qnil   ((OBJECT)4L)
-#define Qundef ((OBJECT)6L)
-#define RTEST(v) (((OBJECT)(v) & ~(OBJECT)Qnil) != 0)
+#define Qfalse ((OBJECT)6L)
+#define Qtrue  ((OBJECT)10L)
+#define Qnil   ((OBJECT)14L)
+#define Qundef ((OBJECT)18L)
 #define FALSE_P(v) ((OBJECT)(v) == (OBJECT)Qfalse)
 #define TRUE_P(v) ((OBJECT)(v) == (OBJECT)Qtrue)
 #define NIL_P(v) ((OBJECT)(v) == (OBJECT)Qnil)
-#define REFERENCE_P(v) ({ unsigned long _i = (unsigned long)v; _i > 10 && ((_i & 1L) == 0L); })
-#define SYMBOL_MARKER 3
-#define SYMBOL_SHIFT 2
-#define FIXNUM_MARKER 1
-#define FIXNUM_SHIFT 2
+#define UNDEF_P(v) ((OBJECT)(v) == (OBJECT)Qundef)
+#define RTEST(v) (!(FALSE_P(v) || NIL_P(v)))
 
+#define REFERENCE_P(v) (TAG(v) == TAG_REF)
+
+#define REFERENCE2_P(v) (v && REFERENCE_P(v))
 #define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)
 
@@ -145,41 +141,6 @@ static inline OBJECT rbs_set_field(OBJECT obj, int fel, OBJECT val) {
 
 #ifndef FALSE
 #define FALSE 0
-#endif
-
-#ifndef STATE
-#define STATE void* state
-#endif
-
-#ifndef __SHOTGUN__
-
-OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj);
-OBJECT rbs_const_get(STATE, OBJECT module, char *name);
-OBJECT rbs_class_new(STATE, char *name, int fields, OBJECT obj);
-char *rbs_symbol_to_cstring(STATE, OBJECT sym);
-char *rbs_inspect(STATE, OBJECT obj);
-OBJECT rbs_module_new(STATE, char *name, OBJECT ns);
-
-#endif
-
-#ifndef INTERNAL_MACROS
-static inline long rbs_to_int(OBJECT obj) {
-  int val = ((int)obj) >> FIXNUM_SHIFT;
-  return val;
-}
-
-static inline OBJECT rbs_int_to_fixnum(int num) {
-  OBJECT ret;
-  ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
-  
-  return ret;
-}
-
-
-#define FIXNUM_TO_INT(obj) rbs_to_int(obj)
-#define INT_TO_FIXNUM(int) rbs_int_to_fixnum(int)
-#define I2N(i) INT_TO_FIXNUM(i)
-
 #endif
 
 #endif

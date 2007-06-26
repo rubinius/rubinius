@@ -800,7 +800,7 @@ again_no_block:
   case NODE_NEWLINE:
     ADD_LINE;
   
-    if(RTEST(newlines)) {
+    if(newlines) {
       array_push(current, I2N(nd_line(node)));
       array_push(current, string_new(state, node->nd_file));
       add_to_parse_tree(current, node->nd_next, newlines, locals, line_numbers);

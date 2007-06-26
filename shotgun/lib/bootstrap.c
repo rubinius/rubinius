@@ -13,13 +13,14 @@
 
 void cpu_bootstrap_exceptions(STATE) {
   int sz;
-  sz = 2;
+  sz = 3;
   
   OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
   exc = dexc(Exception, BC(object));
+  state->global->exception = exc;
   dexc(fatal, exc);
   scp = dexc(ScriptError, exc);
   std = dexc(StandardError, exc);
@@ -48,7 +49,7 @@ void cpu_bootstrap_exceptions(STATE) {
 
   rbs_const_set(state, ern, "Mapping", state->global->errno_mapping);
   
-  sz = 3;
+  sz = 4;
   
 #define set_syserr(num, name) ({ \
   OBJECT _cls = rbs_class_new_with_namespace(state, name, sz, ern, ern); \

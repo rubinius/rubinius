@@ -439,7 +439,7 @@ OBJECT machine_load_file(machine m, const char *path) {
 
 void machine_show_exception(machine m, OBJECT exc) {
   printf("\nError: An unhandled exception has terminated this VM.\n");
-  printf(" => %s (%s)\n", string_as_string(m->s, NTH_FIELD(exc, 0)), rbs_inspect(m->s, HEADER(exc)->klass));
+  printf(" => %s (%s)\n", string_as_string(m->s, exception_get_message(exc)), rbs_inspect(m->s, HEADER(exc)->klass));
 }
 
 int machine_run(machine m) {
@@ -766,6 +766,33 @@ OBJECT machine_load_archive(machine m, const char *path) {
   free(top);
   
   return Qtrue;
+}
+
+
+/* Debugging functions */
+void _print_stack(int cnt, int start) {
+  OBJECT *stk;
+  int i;
+  
+  stk = current_machine->c->sp_ptr;
+  printf("Current Stack: %p\n", stk);
+  
+  if(start < 0) {
+    stk -= start;    
+    for(i = start; i < 0; i++) {
+      printf("  %3d:\t%s\t\t\t%p\n", i, _inspect(*stk), stk);
+      stk--;
+    }
+  }
+  
+  stk = current_machine->c->sp_ptr;
+  
+  printf(">   0:\t%s\n", _inspect(*stk--));  
+  
+  for(i = 1; i <= cnt; i++) {
+    printf("  %3d:\t%s\n", i, _inspect(*stk));
+    stk--;
+  }
 }
 
 char *_inspect(OBJECT obj) {

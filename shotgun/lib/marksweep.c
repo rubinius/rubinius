@@ -195,7 +195,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       }
     }
   } else {
-#define fc_mutate(field) if(REFERENCE_P(fc->field)) { \
+#define fc_mutate(field) if(REFERENCE2_P(fc->field)) { \
     if(BCM_P(fc->field)) { fc->field = BCM_TO; \
     } else { mark_sweep_mark_object(state, ms, fc->field); } }
     
@@ -233,7 +233,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
 
       sp = fc->stack_top;
       while(sp <= fc->sp_ptr) {
-        if(REFERENCE_P(*sp)) {
+        if(REFERENCE2_P(*sp)) {
           if(BCM_P(*sp)) {
             *sp = BCM_TO;
           } else {
@@ -277,7 +277,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   sz = roots->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(roots, i));
-    if(!REFERENCE_P(root)) { continue; }
+    if(!REFERENCE2_P(root)) { continue; }
     if(BCM_P(root)) {
       roots->pdata[i] = (gpointer)BCM_TO;
     } else {
@@ -288,7 +288,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   sz = ms->remember_set->len;
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(g_ptr_array_index(ms->remember_set, i));
-    if(!REFERENCE_P(root)) { continue; }
+    if(!REFERENCE2_P(root)) { continue; }
     if(BCM_P(root)) {
       ms->remember_set->pdata[i] = (gpointer)BCM_TO;
     } else {
@@ -332,7 +332,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   
   sp = state->current_stack;
   while(sp <= state->current_sp) {
-    if(REFERENCE_P(*sp)) {
+    if(REFERENCE2_P(*sp)) {
       if(BCM_P(*sp)) {
         *sp = BCM_TO;
       } else {

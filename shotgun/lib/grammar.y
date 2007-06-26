@@ -182,12 +182,21 @@ static ID   convert_op();
 static void tokadd(char c, rb_parse_state *parse_state);
 static int tokadd_string(int, int, int, int *, rb_parse_state*);
  
+#define SHOW_PARSER_WARNS 0
+ 
+static void _debug_print(char *fmt, ...) {
+  va_list ar;
+  if(SHOW_PARSER_WARNS) {
+    vprintf(fmt, ar);
+  }
+}
+ 
 //static void syd_rb_warn(char *fmt, ...);
-#define rb_warn printf
-#define rb_warning printf
+#define rb_warn _debug_print
+#define rb_warning _debug_print
 
 //static void syd_compile_error(char *fmt, ...);
-#define rb_compile_error printf
+#define rb_compile_error _debug_print
 
 static ID rb_intern(const char *name);
 static ID rb_id_attrset(ID);

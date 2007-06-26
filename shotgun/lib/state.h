@@ -32,6 +32,7 @@ struct rubinius_globals {
   OBJECT external_ivars, scheduled_threads, errno_mapping;
   OBJECT recent_children, config, ffi_ptr, ffi_func, sym_send;
   OBJECT functions, sym_public, sym_private, sym_protected, sym_const_missing;
+  OBJECT exception;
 };
 
 #define GLOBAL_cmethod
@@ -140,13 +141,12 @@ OBJECT rbs_class_new_instance(STATE, OBJECT cls);
 #endif
 
 static inline long rbs_to_int(OBJECT obj) {
-  int val = ((int)obj) >> FIXNUM_SHIFT;
-  return val;
+  return STRIP_TAG((long)obj);
 }
 
 static inline OBJECT rbs_int_to_fixnum(STATE, int num) {
   OBJECT ret;
-  ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
+  ret = APPLY_TAG(num, TAG_FIXNUM);
   
   /* Number is too big for fixnum. Use bignum. */
   if(rbs_to_int(ret) != num) {
@@ -163,7 +163,7 @@ static inline double rbs_fixnum_to_double(OBJECT obj) {
 static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
   OBJECT ret;
   
-  ret = (num << FIXNUM_SHIFT) | FIXNUM_MARKER;
+  ret = APPLY_TAG(num, TAG_FIXNUM);
   
   if(rbs_to_int(ret) != num) {
     return bignum_new_unsigned(state, num);
@@ -191,7 +191,7 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define SET_FIELD(obj, fel, val) rbs_set_field(state->om, obj, fel, val)
 #define NTH_FIELD(obj, fel) rbs_get_field(obj, fel)
 
-#define IS_REF_P(val) (((val & 1) == 0) && (val > 12))
+#define IS_REF_P(val) REFERENCE_P(val)
 #define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
 
 #define rbs_set_class(om, obj, cls) ({ HEADER(obj)->klass = cls; if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); })
@@ -210,7 +210,7 @@ void machine_handle_fire(int);
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v, _o; \
   _v = (val); _o = (obj);\
-  if(((_v & 1) == 0) && (_v > 12)) { \
+  if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(_o, fel);\

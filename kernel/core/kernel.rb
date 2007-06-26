@@ -128,10 +128,12 @@ module Functions
 end
 
 class SystemExit < Exception
-  def code
-    at(0)
+  def initialize(code)
+    @code = code
   end
-
+  
+  attr_reader :code
+  
   def message
     "System is exiting with code '#{code}'"
   end

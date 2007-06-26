@@ -120,11 +120,16 @@ begin
 rescue SystemExit => e
   code = e.code
 rescue Object => e
-  puts "An exception has occurred:"
-  puts "    #{e.message} (#{e.class})"
-  puts "\nBacktrace:"
-  puts e.backtrace.show
-  code = 1
+  begin
+    puts "An exception has occurred:"
+    puts "    #{e.message} (#{e.class})"
+    puts "\nBacktrace:"
+    puts e.backtrace.show
+    code = 1
+  rescue Object => e
+    puts "VERY BROKEN."
+    code = 128
+  end
 end
 
 begin
@@ -137,5 +142,5 @@ rescue Object => e
   code = 1
 end
 
-Process.exit(code)
+Process.exit(code || 0)
 
