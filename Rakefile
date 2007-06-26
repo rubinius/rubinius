@@ -72,7 +72,9 @@ namespace :spec do
     rescue
       sh("svn co http://code.fallingsnow.net/svn/rubinius/branches/CI-specs")
     end
-    sh "bin/mspec CI-specs"
+    target = ENV['SPEC_TARGET'] || 'rbx'
+    system %(shotgun/rubinius -e 'puts "rbx build: \#{Rubinius::BUILDREV}"') if target == 'rbx'
+    sh "bin/mspec -t #{target} -f ci CI-specs"
   end
 
   spec_targets = %w(compiler core incompatible language library parser rubinius)
