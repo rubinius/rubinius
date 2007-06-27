@@ -164,31 +164,31 @@ class Time
   end
   
   def hour
-    strftime("%H").to_i
+    @tm[2]
   end
   
   def min
-    strftime("%M").to_i
+    @tm[1]
   end
   
   def sec
-    strftime('%S').to_i
+    @tm[0]
   end
   
   def day
-    strftime("%d").to_i
+    @tm[3]
   end
   
   def year
-    strftime("%Y").to_i
+    @tm[5] + 1900
   end
   
   def yday
-    strftime("%j").to_i
+    @tm[7] + 1
   end
   
   def wday
-    strftime("%w").to_i
+    @tm[6]
   end
   
   def zone 
@@ -196,7 +196,7 @@ class Time
   end
   
   def mon
-    strftime("%m").to_i
+    @tm[4] + 1
   end
   
   def gmt?
@@ -217,8 +217,7 @@ class Time
   
   # [ sec, min, hour, day, month, year, wday, yday, isdst, zone ]
   def to_a
-    a = strftime("%S %M %H %d %m %Y %w %j").split(' ').map { |x| x.to_i }
-    a + [self.dst?, zone]
+    [sec, min, hour, day, month, year, wday, yday, isdst, zone]
   end
   
   def gmt_offset
