@@ -9745,7 +9745,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             }
 
             if (parse_state->lex_state != EXPR_DOT) {
-                struct kwtable *kw;
+                const struct kwtable *kw;
 
                 /* See if it is a reserved word.  */
                 kw = syd_reserved_word(tok(), toklen());

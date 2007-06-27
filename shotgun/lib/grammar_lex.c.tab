@@ -66,10 +66,10 @@ hash (register const char *str, register unsigned int len)
 #ifdef __GNUC__
 __inline
 #endif
-struct kwtable *
+const struct kwtable *
 syd_reserved_word (register const char *str, register unsigned int len)
 {
-  static struct kwtable wordlist[] =
+  static const struct kwtable wordlist[] =
     {
       {""}, {""}, {""}, {""}, {""}, {""},
       {"end", {kEND, kEND}, EXPR_END},
