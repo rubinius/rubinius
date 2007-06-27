@@ -185,10 +185,13 @@ static int tokadd_string(int, int, int, int *, rb_parse_state*);
 #define SHOW_PARSER_WARNS 0
  
 static void _debug_print(char *fmt, ...) {
+#if SHOW_PARSER_WARNS
   va_list ar;
-  if(SHOW_PARSER_WARNS) {
-    vprintf(fmt, ar);
-  }
+
+  va_start(ar, fmt);
+  vprintf(fmt, ar);
+  va_end(ar);
+#endif
 }
  
 //static void syd_rb_warn(char *fmt, ...);
