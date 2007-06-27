@@ -122,6 +122,10 @@ struct rubinius_state {
 #include "float.h"
 #include "array.h"
 
+#define FIRE_ACCESS 1
+#define FIRE_NULL   2
+#define FIRE_STACK  3
+
 // rubinius.h defines STATE as void*, which means these prototypes fail to match.
 // This is pretty confusing, since they look identical before the pre-processor runs.
 // HACK
@@ -227,7 +231,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   if(!REFERENCE_P(in)) {
     printf("Attempted to access field of non reference.\n");
     if(g_use_firesuit) {
-      machine_handle_fire(2);
+      machine_handle_fire(FIRE_NULL);
     }
   }
   
@@ -236,7 +240,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
       fel, (unsigned long)NUM_FIELDS(in));
       
     if(g_use_firesuit) {
-      machine_handle_fire(1);
+      machine_handle_fire(FIRE_ACCESS);
     }
     
     assert(0);

@@ -3,6 +3,11 @@ class InvalidIndex < Exception
 end
 
 class Object
+  
+  def eql?(other)
+    object_id == other.object_id
+  end
+  
   include Kernel
   
   def initialize
@@ -65,19 +70,36 @@ class Object
   end
   
   def inspect
-    if !@__ivars__ || !@__ivars__.is_a?(Hash) || @__ivars__.empty?
+    return self.to_s unless @__ivars__
+    
+    if (@__ivars__.is_a?(Hash) or @__ivars__.is_a?(Tuple)) and @__ivars__.empty?
       return self.to_s
     end
     
     res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
     parts = []
-    @__ivars__.each do |k,v|
-      if v.object_id == self.object_id # This would be an infinite loop
-        parts << "#{k}=self"
-      else
-        parts << "#{k}=#{v.inspect}"
+    
+    if @__ivars__.is_a?(Hash)    
+      @__ivars__.each do |k,v|
+        if v.object_id == self.object_id # This would be an infinite loop
+          parts << "#{k}=self"
+        else
+          parts << "#{k}=#{v.inspect}"
+        end
+      end
+    else
+      0.step(@__ivars__.size, 2) do |i|
+        if k = @__ivars__[i]
+          v = @__ivars__[i+1]
+          if v.object_id == self.object_id # This would be an infinite loop
+            parts << "#{k}=self"
+          else
+            parts << "#{k}=#{v.inspect}"
+          end
+        end
       end
     end
+    
     res << parts.join(" ")
     res << ">"
     return res

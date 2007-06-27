@@ -176,7 +176,7 @@ static OBJECT add_entry(STATE, OBJECT h, unsigned int hsh, OBJECT ent) {
   return ent;
 }
 
-static OBJECT find_entry(STATE, OBJECT h, unsigned int hsh) {
+OBJECT hash_find_entry(STATE, OBJECT h, unsigned int hsh) {
   unsigned int bin, bins;
   OBJECT entry, th;
   
@@ -202,7 +202,7 @@ OBJECT hash_add(STATE, OBJECT h, unsigned int hsh, OBJECT key, OBJECT data) {
   int i, b;
   
   // printf("hash_add: adding %od\n",hsh);
-  entry = find_entry(state, h, hsh);
+  entry = hash_find_entry(state, h, hsh);
   
   if(RTEST(entry)) {
     tuple_put(state, entry, 2, data);
@@ -234,7 +234,7 @@ OBJECT hash_set(STATE, OBJECT hash, OBJECT key, OBJECT val) {
 OBJECT hash_get(STATE, OBJECT hash, unsigned int hsh) {
   OBJECT entry;
   
-  entry = find_entry(state, hash, hsh);
+  entry = hash_find_entry(state, hash, hsh);
   if(RTEST(entry)) {
     return tuple_at(state, entry, 2);
   }
@@ -250,7 +250,7 @@ OBJECT hash_get(STATE, OBJECT hash, unsigned int hsh) {
 OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh) {
   OBJECT entry;
   
-  entry = find_entry(state, hash, hsh);
+  entry = hash_find_entry(state, hash, hsh);
   if(RTEST(entry)) {
     return tuple_at(state, entry, 2);
   } else {
@@ -294,6 +294,58 @@ OBJECT hash_s_from_tuple(STATE, OBJECT tup) {
     val = tuple_at(state, tup, i + 1);
     i += 2;
     hash_set(state, hsh, key, val);
+  }
+  
+  return hsh;
+}
+
+OBJECT csm_find(STATE, OBJECT csm, OBJECT key) {
+  OBJECT t, val;
+  int i;
+  
+  for(i = 0; i < CSM_SIZE; i += 2) {
+    t = tuple_at(state, csm, i);
+    
+    if(t == key) {
+      val = tuple_at(state, csm, i + 1);
+      // printf("Found %s: %s\n", _inspect(key), _inspect(val));
+      return val;
+    }
+  }
+  
+  //printf("Unable to find ivar %s\n", _inspect(key));
+  
+  return Qnil;
+}
+
+OBJECT csm_add(STATE, OBJECT csm, OBJECT key, OBJECT val) {
+  int i;
+  OBJECT tmp;
+  
+  for(i = 0; i < CSM_SIZE; i += 2) {
+    tmp = tuple_at(state, csm, i);
+    if(tmp == key || NIL_P(tmp)) {
+      // printf("Added ivar %s at %d\n", _inspect(key), i);
+      tuple_put(state, csm, i, key);
+      tuple_put(state, csm, i + 1, val);
+      return Qtrue;
+    }
+  }
+  
+  return Qfalse;
+}
+
+OBJECT csm_into_hash(STATE, OBJECT csm) {
+  int i;
+  OBJECT k, hsh;
+  
+  hsh = hash_new(state);
+  
+  for(i = 0; i < CSM_SIZE; i += 2) {
+    k = tuple_at(state, csm, i);
+    if(!NIL_P(k)) {
+      hash_set(state, hsh, k, tuple_at(state, csm, i + 1));
+    }
   }
   
   return hsh;

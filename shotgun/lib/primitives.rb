@@ -659,8 +659,8 @@ class ShotgunPrimitives
     POP(self, HASH);
     POP(t1, FIXNUM);
     t2 = stack_pop();
-
-    t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
+    t3 = hash_find_entry(state, self, FIXNUM_TO_INT(t1));
+    // t3 = hash_get_undef(state, self, FIXNUM_TO_INT(t1));
     stack_push(t3);
     CODE
   end

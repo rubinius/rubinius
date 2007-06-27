@@ -100,7 +100,7 @@ class String
     end
     
     raise RangeError, "bignum too big to convert into `long'" if num.is_a? Bignum
-    raise ArgumentError, "negative argument" if num < 0
+    raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
 
     str = []
     num.times { str << self }

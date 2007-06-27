@@ -343,7 +343,9 @@ class Backtrace
     fr2 = @frames.map do |ent|
       recv = ent[0]
       loc = ent[1]
-      "    #{' ' * (@max - recv.size)}#{recv} at #{loc}"
+      times = @max - recv.size
+      times = 0 if times < 0
+      "    #{' ' * times}#{recv} at #{loc}"
     end
     return fr2.join("\n")
   end

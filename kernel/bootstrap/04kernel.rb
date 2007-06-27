@@ -42,6 +42,11 @@ module Functions
     unless Exception === exc
       raise TypeError.new('exception class/object expected')
     end
+    
+    if $DEBUG
+      STDERR.puts "Exception: #{exc.message} (#{exc.class})"
+    end
+    
     Ruby.asm "push exc\nraise_exc"
   end
 

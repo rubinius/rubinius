@@ -92,4 +92,8 @@ class Tuple
   
   alias :size :fields
   alias :length :fields
+  
+  def empty?
+    size == 0
+  end
 end

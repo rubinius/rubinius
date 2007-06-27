@@ -63,6 +63,20 @@ class Object
   def instance_variables(symbols = false)
     vars = get_instance_variables
     return [] if vars.nil?
+    # CSM awareness
+    if Tuple === vars
+      out = []
+      0.step(vars.size, 2) do |i|
+        k = vars[i]
+        if k
+          k = k.to_s unless symbols
+          out << k
+        else
+          return out
+        end
+      end
+      return out
+    end
     return vars.keys if symbols
     return vars.keys.collect { |v| v.to_s }
   end

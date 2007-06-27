@@ -36,24 +36,25 @@ class Hash
     values.include?(val)
   end
   alias :has_value? :value?
-  
-  def delete_by_hash(hsh, key)
-    Ruby.primitive :hash_delete
-  end
-  
+    
   def delete(key)
     retval = nil
-    out = get_by_hash key.hash, key
-    if out.undef?
-      retval = yield(key) if block_given?
-    else
+    found, val = find_unambigious(key)
+    if found
       retval = delete_by_hash key.hash, key
+    else
+      retval = yield(key) if block_given?
     end
     retval    
   end
   
   def delete_if
-    each {|k, v| delete(k) if yield(k, v)}
+    # Do this in 2 steps, so we're not altering the structure
+    # while we walk it.
+    to_delete = []
+    each { |k, v| to_delete << k if yield(k, v) }
+    to_delete.each { |k| delete(k) }
+    return self
   end
   
   def clear
@@ -159,7 +160,9 @@ class Hash
     return false unless other.size == size
     #pickaxe claims that defaults are compared, but MRI 1.8.4 doesn't actually do that
     #return false unless other.default == default
-    each {|k, v| return false unless other.get_by_hash(k.hash, k) == get_by_hash(k.hash, k)}
+    each do |k, v| 
+      return false unless other[k] == self[k]
+    end
     true
   end
   
@@ -168,8 +171,8 @@ class Hash
   end
   def fetch(key, *rest)
     raise ArgumentError, "wrong number of arguments (#{rest.size + 1} for 2)" if rest.size > 1
-    val = get_by_hash(key.hash, key)
-    if val.undef?
+    found, val = find_unambigious(key)
+    unless found
       if rest.size == 0 && !block_given?
         raise IndexError, 'key not found'
       elsif block_given?
@@ -178,6 +181,7 @@ class Hash
         val = rest.first
       end
     end
+    
     val
   end
   

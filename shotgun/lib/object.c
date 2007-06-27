@@ -213,24 +213,28 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
   }
   
   tbl = object_get_instance_variables(self);
-  
-  /* Lazy creation of hash to store instance variables. */
-  if(!RTEST(tbl)) {
-    tbl = hash_new(state);
-    object_set_instance_variables(self, tbl);
-  }
+
+  /* No table, no ivar! */
+  if(!RTEST(tbl)) return Qnil;
   
   /*
   printf("Grab ivar '%s' (%d)\n", rbs_symbol_to_cstring(state, sym), 
     object_hash_int(state, sym));
   */
   
+  /* It's a tuple, use csm */
+  if(ISA(tbl, state->global->tuple)) {
+    return csm_find(state, tbl, sym);
+  }
+  
+  /* It's a normal hash, no problem. */
   val = hash_find(state, tbl, sym);
   return val;
 }
 
 OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   OBJECT tbl, t2;
+  int i, j;
   
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */
@@ -254,16 +258,26 @@ OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   tbl = object_get_instance_variables(self);
   
   /* Lazy creation of hash to store instance variables. */
-  if(!RTEST(tbl)) {
-    tbl = hash_new(state);
+  if(NIL_P(tbl)) {
+    tbl = csm_new(state);
     object_set_instance_variables(self, tbl);
+    csm_add(state, tbl, sym, val);
+    return val;
   }
   
   /*
   printf("Setting ivar '%s' to %p (%d)\n", rbs_symbol_to_cstring(state, sym), val,
     object_hash_int(state, sym));
   */
-  
+  if(ISA(tbl, state->global->tuple)) {
+    if(TRUE_P(csm_add(state, tbl, sym, val))) {
+      return val;
+    }
+    /* csm_add said false, meaning there is no room. We convert
+       the csm into a normal hash and use it from now on. */
+    tbl = csm_into_hash(state, tbl);
+    object_set_instance_variables(self, tbl);
+  }
   hash_set(state, tbl, sym, val);
   return val;
 }

@@ -25,21 +25,40 @@ class Hash
     Ruby.primitive :hash_set
   end
   
+  def delete_by_hash(hsh, key)
+    Ruby.primitive :hash_delete
+  end
+  
   def default(key = nil)
     @default_proc ? @default.call(self, key) : @default
   end
   
+  def find_unambigious(key)
+    code, hk, val, nxt = get_by_hash key.hash, key
+    if code
+      return Tuple[true, val]
+    else
+      return Tuple[false, nil]
+    end            
+  end
+  
   def [](key)
-    out = get_by_hash key.hash, key
-    if out.undef?
+    code, hk, val, nxt = get_by_hash key.hash, key
+    
+    unless code
       return nil unless @default
       if @default_proc
-        out = @default.call(self, key)
+        return @default.call(self, key)
       else
-        out = @default
+        return @default
       end
     end
-    return out
+    
+    if hk.eql? key
+      return val
+    end
+    
+    return nil    
   end
   
   def []=(key, val)
@@ -70,8 +89,8 @@ class Hash
   end
 
   def key?(key)
-    out = get_by_hash key.hash, key
-    return out.undef? ? false : true
+    tup = get_by_hash key.hash, key
+    return tup ? true : false
   end
 
   def values
