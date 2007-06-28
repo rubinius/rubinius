@@ -444,13 +444,21 @@ OBJECT bignum_from_ll(STATE, long long val) {
 }
 
 OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
-  char buffer[1024];
+  char *buf;
+  int sz;  
   int k;
-  mp_toradix_nd(MP(self), buffer, FIXNUM_TO_INT(radix), 1024, &k);
-  if(k >= 1022) {
-    return Qnil;
-  } else {
-    return string_new(state, buffer);
+  OBJECT obj;
+  sz = 1024;
+  for(;;) {
+    buf = malloc(sizeof(char) * sz);
+    mp_toradix_nd(MP(self), buf, FIXNUM_TO_INT(radix), sz, &k);
+    if(k < sz - 2) {
+      obj = string_new(state, buf);
+      free(buf);
+      return obj;
+    }
+    free(buf);
+    sz += 1024;
   }
 }
 
