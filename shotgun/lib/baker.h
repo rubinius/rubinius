@@ -42,6 +42,7 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag);
 void baker_gc_describe(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);
 void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, GPtrArray *refs);
+inline int baker_gc_forwarded_p(OBJECT obj);
 
 #define baker_gc_allocate(g, size) (heap_allocate((g)->current, size))
 #define baker_gc_allocate_spilled(g, size) (heap_allocate((g)->next, size))

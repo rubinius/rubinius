@@ -90,7 +90,7 @@ void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
   HEADER(obj)->klass = dest;
 }
 
-static inline int baker_gc_forwarded_p(OBJECT obj) {
+inline int baker_gc_forwarded_p(OBJECT obj) {
   return HEADER(obj)->flags == FORWARDING_MAGIC;
 }
 
