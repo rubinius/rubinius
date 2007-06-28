@@ -108,21 +108,22 @@ void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
 
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
   unsigned int cur;
+  
   g_hash_table_insert(state->cleanup, 
       (gpointer)module_get_name(cls),
       (gpointer)func);
-            
+  
+  // printf("Registered cleanup for %p\n", module_get_name(cls));
   cur = (unsigned int)FIXNUM_TO_INT(class_get_instance_flags(cls));
   class_set_instance_flags(cls, I2N(cur | RequiresCleanupFlag));
 }
 
-void state_run_cleanup(STATE, OBJECT obj) {
-  OBJECT cls;
+void state_run_cleanup(STATE, OBJECT obj, OBJECT cls) {
   state_cleanup_func func;
-  
-  cls = object_class(state, obj);
-  
+    
   if(!REFERENCE_P(cls)) return;
+  
+  // printf("Cleaning up %p (%s, %p)\n", obj, _inspect(cls), module_get_name(cls));
   
   func = g_hash_table_lookup(state->cleanup, (gconstpointer)module_get_name(cls));
   if(func) {

@@ -288,4 +288,4 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 typedef void (*state_cleanup_func)(STATE, OBJECT);
 #define SHOULD_CLEANUP_P(obj) (FLAG_SET_P(obj, RequiresCleanupFlag))
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
-void state_run_cleanup(STATE, OBJECT obj);
+void state_run_cleanup(STATE, OBJECT obj, OBJECT cls);

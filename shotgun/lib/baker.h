@@ -18,6 +18,7 @@ struct baker_gc_struct {
   void *om;
   GPtrArray *seen_weak_refs;
   OBJECT become_from, become_to;
+  char *last_start, *last_end;
 };
 
 typedef struct baker_gc_struct* baker_gc;

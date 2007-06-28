@@ -4,6 +4,7 @@
 #include "string.h"
 #include "symbol.h"
 #include "hash.h"
+#include "flags.h"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED   ONIG_OPTION_EXTEND
@@ -135,6 +136,9 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
     onig_foreach_name(*reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
     regexp_set_names(o_reg, o_names);
   }
+  
+  FLAG_SET(o_reg, RequiresCleanupFlag);
+  
   return o_reg;
 }
 

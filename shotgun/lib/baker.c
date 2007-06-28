@@ -63,9 +63,13 @@ int baker_gc_used(baker_gc g) {
 
 int baker_gc_swap(baker_gc g) {
   rheap tmp;
+  
   tmp = g->current;
   g->current = g->next;
   g->next = tmp;
+  
+  g->last_start = tmp->address;
+  g->last_end =   tmp->current;
   
   heap_reset(tmp);
   /* Reset used to the what the current has used. */
@@ -467,19 +471,27 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
 void baker_gc_find_lost_souls(STATE, baker_gc g) {
   int sz, osz;
   char *end, *cur;
-  OBJECT obj;
+  OBJECT obj, cls;
   
   sz = baker_gc_used(g);
-  cur = (char*)g->next->address;
-  end = cur + sz;
+  cur = (char*)g->last_start;
+  end = (char*)g->last_end;
+  // printf("Looking for lost souls between %p and %p\n", cur, end);
   
   while(cur < end) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(cur);
     
-    if(!baker_gc_forwarded_p(obj)) {      
+    if(!baker_gc_forwarded_p(obj)) {
+      //printf("%p is dead: %d, %p, %s.\n", obj, SHOULD_CLEANUP_P(obj), 
+      //  cls, cls ? _inspect(cls) : "(NULL)");
       if(SHOULD_CLEANUP_P(obj)) {
-        state_run_cleanup(state, obj);
+        cls = CLASS_OBJECT(obj);
+        if(cls && REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
+          cls = baker_gc_forwarded_object(cls);
+        }
+        
+        state_run_cleanup(state, obj, cls);
       }
     }
 

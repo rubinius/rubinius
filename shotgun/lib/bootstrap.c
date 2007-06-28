@@ -3,6 +3,7 @@
 #include "symbol.h"
 #include "module.h"
 #include "hash.h"
+#include "regexp.h"
 #include <assert.h>
 #include <errno.h>
 
@@ -522,6 +523,7 @@ void cpu_bootstrap(STATE) {
   Init_list(state);
   Init_cpu_task(state);
   Init_ffi(state);
+  regexp_init(state);
   
   state->global->external_ivars = hash_new(state);  
 }
