@@ -22,18 +22,6 @@ OBJECT bytearray_new(STATE, int size) {
   return obj;
 }
 
-void *bytearray_byte_address(STATE, OBJECT self) {
-  void *addr;
-  
-  addr = (void*)(self + (HEADER_SIZE * REFSIZE));
-  
-  return addr;
-}
-
-int bytearray_bytes(STATE, OBJECT self) {
-  return SIZE_OF_BODY(self);
-}
-
 char *bytearray_as_string(STATE, OBJECT self) {
   char *str;
   char *out;

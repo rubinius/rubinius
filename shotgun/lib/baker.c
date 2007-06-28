@@ -469,25 +469,25 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
 }
 
 void baker_gc_find_lost_souls(STATE, baker_gc g) {
-  int sz, osz;
+  int osz;
   char *end, *cur;
   OBJECT obj, cls;
   
-  sz = baker_gc_used(g);
   cur = (char*)g->last_start;
   end = (char*)g->last_end;
   // printf("Looking for lost souls between %p and %p\n", cur, end);
   
   while(cur < end) {
     obj = (OBJECT)cur;
-    osz = SIZE_IN_BYTES(cur);
-    
+    osz = NUM_FIELDS(obj);
+        
     if(!baker_gc_forwarded_p(obj)) {
+      cls = CLASS_OBJECT(obj);
+      
       //printf("%p is dead: %d, %p, %s.\n", obj, SHOULD_CLEANUP_P(obj), 
       //  cls, cls ? _inspect(cls) : "(NULL)");
-      if(SHOULD_CLEANUP_P(obj)) {
-        cls = CLASS_OBJECT(obj);
-        if(cls && REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
+      if(SHOULD_CLEANUP_P(obj)) {  
+        if(REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
           cls = baker_gc_forwarded_object(cls);
         }
         
@@ -495,7 +495,7 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
       }
     }
 
-    cur += osz;
+    cur += ((osz + HEADER_SIZE) * REFSIZE);
   }
 }
 

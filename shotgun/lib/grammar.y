@@ -184,13 +184,17 @@ static int tokadd_string(int, int, int, int *, rb_parse_state*);
  
 #define SHOW_PARSER_WARNS 0
  
-static void _debug_print(char *fmt, ...) {
+static int _debug_print(char *fmt, ...) {
 #if SHOW_PARSER_WARNS
   va_list ar;
+  int i;
 
   va_start(ar, fmt);
-  vprintf(fmt, ar);
+  i = vprintf(fmt, ar);
   va_end(ar);
+  return i;
+#else
+  return 0;
 #endif
 }
  
@@ -198,7 +202,13 @@ static void _debug_print(char *fmt, ...) {
 #define rb_warn _debug_print
 #define rb_warning _debug_print
 
+// #define rb_warn printf
+// #define rb_warning printf
+
 //static void syd_compile_error(char *fmt, ...);
+// #define rb_compile_error _debug_print
+
+// #define rb_compile_error printf
 #define rb_compile_error _debug_print
 
 static ID rb_intern(const char *name);
@@ -3594,7 +3604,7 @@ yylex(YYSTYPE *yylval, void *vstate)
         return token;
     }
     cmd_state = command_start;
-    command_start = Qfalse;
+    command_start = FALSE;
   retry:
     switch (c = nextc()) {
       case '\0':                /* NUL */
@@ -3649,7 +3659,7 @@ yylex(YYSTYPE *yylval, void *vstate)
           default:
             break;
         }
-        command_start = Qtrue;
+        command_start = TRUE;
         parse_state->lex_state = EXPR_BEG;
         return '\n';
 
@@ -4318,7 +4328,7 @@ yylex(YYSTYPE *yylval, void *vstate)
         return '^';
 
       case ';':
-        command_start = Qtrue;
+        command_start = TRUE;
       case ',':
         parse_state->lex_state = EXPR_BEG;
         return c;
@@ -4338,7 +4348,7 @@ yylex(YYSTYPE *yylval, void *vstate)
         return '~';
 
       case '(':
-        command_start = Qtrue;
+        command_start = TRUE;
         if (parse_state->lex_state == EXPR_BEG || parse_state->lex_state == EXPR_MID) {
             c = tLPAREN;
         }
@@ -5398,7 +5408,7 @@ value_expr0(node, parse_state)
           case NODE_DEFN:
           case NODE_DEFS:
             parser_warning(node, "void value expression");
-            return Qfalse;
+            return FALSE;
 
           case NODE_RETURN:
           case NODE_BREAK:
@@ -5407,7 +5417,7 @@ value_expr0(node, parse_state)
           case NODE_RETRY:
             if (!cond) yyerror("void value expression");
             /* or "control never reach"? */
-            return Qfalse;
+            return FALSE;
 
           case NODE_BLOCK:
             while (node->nd_next) {
@@ -5421,7 +5431,7 @@ value_expr0(node, parse_state)
             break;
 
           case NODE_IF:
-            if (!value_expr(node->nd_body)) return Qfalse;
+            if (!value_expr(node->nd_body)) return FALSE;
             node = node->nd_else;
             break;
 
@@ -5436,11 +5446,11 @@ value_expr0(node, parse_state)
             break;
 
           default:
-            return Qtrue;
+            return TRUE;
         }
     }
 
-    return Qtrue;
+    return TRUE;
 }
 
 static void
@@ -5623,8 +5633,8 @@ static int
 e_option_supplied()
 {
     if (strcmp(ruby_sourcefile, "-e") == 0)
-        return Qtrue;
-    return Qfalse;
+        return TRUE;
+    return FALSE;
 }
 
 static void
