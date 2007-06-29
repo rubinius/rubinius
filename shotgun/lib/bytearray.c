@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bytearray.h"
+
 OBJECT bytearray_new(STATE, int size) {
   int words;
   OBJECT obj;
