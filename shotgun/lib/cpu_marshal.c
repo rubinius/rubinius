@@ -487,6 +487,7 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
   struct marshal_state ms;
   ms.consumed = 0;
   
+  data = NULL;
   err = NULL;
   
   io = g_io_channel_new_file(path, "r", &err);
@@ -512,7 +513,7 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
 cleanup:
   g_io_channel_shutdown(io, TRUE, &err);
   g_io_channel_unref(io);
-  g_free(data);
+  if(data) g_free(data);
   g_ptr_array_free(ms.objects, 1);
   return obj;
 }
