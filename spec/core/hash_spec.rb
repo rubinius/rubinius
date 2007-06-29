@@ -286,6 +286,18 @@ context "Hash instance methods" do
     { }[x].should == nil
     x.frozen?.should == true
   end
+  
+  # True for all other methods using hash codes as well...
+  specify "[] should call % on hash code from hash()" do
+    x = Object.new
+    def x.hash() @hash end
+    hc = Object.new
+    x.instance_variable_set(:@hash, hc)
+    
+    hc.should_receive(:%, :returning => 0)
+    h = {1 => 2}
+    h[x].should == nil
+  end
     
   specify "[] shouldn't compare key with unknown hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
@@ -368,8 +380,16 @@ context "Hash instance methods" do
 
   specify "default should return the default value" do
     h = Hash.new(5)
-    h.default.should == 5 
+    h.default.should == 5
+    h.default(4).should == 5
     {}.default.should == nil
+    {}.default(4).should == nil
+  end
+
+  specify "default should use the default proc to compute a default value, passing given key" do
+    h = Hash.new { |*args| args }
+    h.default.should == [h, nil]
+    h.default(5).should == [h, 5]
   end
   
   specify "default= should set the default value" do
@@ -379,15 +399,13 @@ context "Hash instance methods" do
   end
 
   specify "default= should unset the default proc" do
-    h = Hash.new { 5 }
-    h.default_proc.should_not == nil
-    h.default = 99
-    h.default_proc.should == nil
-    
-    h = Hash.new { 5 }
-    h.default_proc.should_not == nil
-    h.default = nil
-    h.default_proc.should == nil
+    [99, nil, lambda { 6 }].each do |default|
+      h = Hash.new { 5 }
+      h.default_proc.should_not == nil
+      h.default = default
+      h.default.should == default
+      h.default_proc.should == nil
+    end
   end
   
   specify "default_proc should return the block passed to Hash.new" do
@@ -420,11 +438,23 @@ context "Hash instance methods" do
     h.delete(k2).should == first_value
     h.size.should == 1
   end
+
+  specify "delete should call supplied block if the key is not found" do
+    {:a => 1, :b => 10, :c => 100 }.delete(:d) { 5 }.should == 5
+    Hash.new(:default).delete(:d) { 5 }.should == 5
+    Hash.new() { :defualt }.delete(:d) { 5 }.should == 5
+  end
   
-  specify "delete should return nil if the key is not found" do
+  specify "delete should return nil if the key is not found when no block is given" do
     {:a => 1, :b => 10, :c => 100 }.delete(:d).should == nil
     Hash.new(:default).delete(:d).should == nil
     Hash.new() { :defualt }.delete(:d).should == nil
+  end
+  
+  specify "delete_if should yield two arguments: key and value" do
+    all_args = []
+    {1 => 2, 3 => 4}.delete_if { |*args| all_args << args }
+    all_args.should == [[1, 2], [3, 4]]
   end
   
   specify "delete_if should remove every entry for which block is true and returns self" do
@@ -439,9 +469,15 @@ context "Hash instance methods" do
     each_pairs = []
     delete_pairs = []
     h.each { |pair| each_pairs << pair }
-    h.delete_if { |pair| delete_pairs << pair }
+    h.delete_if { |*pair| delete_pairs << pair }
 
     each_pairs.should == delete_pairs
+  end
+
+  specify "each should yield one argument: [key, value]" do
+    all_args = []
+    {1 => 2, 3 => 4}.each { |*args| all_args << args }
+    all_args.should == [[[1, 2]], [[3, 4]]]
   end
   
   specify "each should call block once for each entry, passing key, value" do
@@ -479,13 +515,13 @@ context "Hash instance methods" do
     keys.should == h.keys
   end
   
-  specify "each_pair should be a synonym for each" do
-    a, b = [], []
-    h = {:a, 1, :b, 2, :c, 3, :d, 5}
-    h.each_pair { |k,v| a << "#{k} => #{v}" }.equal?(h).should == true
-    h.each { |k,v| b << "#{k} => #{v}" }
+  specify "each_pair should process all pairs, yielding two arguments: key and value" do
+    all_args = []
 
-    a.should == b
+    h = {1 => 2, 3 => 4}
+    h.each_pair { |*args| all_args << args }.equal?(h).should == true
+
+    all_args.should == [[1, 2], [3, 4]]
   end
   
   specify "each_value should call block once for each key, passing value" do
@@ -770,7 +806,7 @@ context "Hash instance methods" do
   end
   
   specify "merge should return a new hash by combining self with the contents of other" do
-    { 1, :a, 2, :b, 3, :c }.merge(:a => 1, :c => 2).should == { :c=> 2, 1 => :a, 2 => :b, :a => 1, 3 => :c }
+    { 1, :a, 2, :b, 3, :c }.merge(:a => 1, :c => 2).should == { :c => 2, 1 => :a, 2 => :b, :a => 1, 3 => :c }
   end
   
   specify "merge with block sets any duplicate key to the value of block" do
@@ -849,8 +885,8 @@ context "Hash instance methods" do
     h = {1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => []}
     merge_bang_pairs = []
     merge_pairs = []
-    h.merge(h) { |arg| merge_pairs << arg }
-    h.merge!(h) { |arg| merge_bang_pairs << arg }
+    h.merge(h) { |*arg| merge_pairs << arg }
+    h.merge!(h) { |*arg| merge_bang_pairs << arg }
     merge_bang_pairs.should == merge_pairs
   end
   
@@ -907,6 +943,13 @@ context "Hash instance methods" do
     h = { :a => 'a', :b => 'b', :c => 'd' }
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
     
+    all_args_reject = []
+    all_args_delete_if = []
+    h = {1 => 2, 3 => 4}
+    h.reject { |*args| all_args_reject << args }
+    h.delete_if { |*args| all_args_delete_if << args }
+    all_args_reject.should == all_args_delete_if
+    
     h = { 1 => 2 }
     # dup doesn't copy singleton methods
     def h.to_a() end
@@ -923,15 +966,21 @@ context "Hash instance methods" do
 
     reject_pairs = []
     reject_bang_pairs = []
-    h.reject { |pair| reject_pairs << pair }
-    h.reject! { |pair| reject_bang_pairs << pair }
-    h.dup.delete_if { |pair| delete_if_pairs << pair }
+    h.reject { |*pair| reject_pairs << pair }
+    h.reject! { |*pair| reject_bang_pairs << pair }
 
     reject_pairs.should == reject_bang_pairs
   end
     
   specify "reject! is equivalent to delete_if if changes are made" do
     {:a => 2}.reject! { |k,v| v > 1 }.should == ({:a => 2}.delete_if { |k, v| v > 1 })
+
+    h = {1 => 2, 3 => 4}
+    all_args_reject = []
+    all_args_delete_if = []
+    h.dup.reject! { |*args| all_args_reject << args }
+    h.dup.delete_if { |*args| all_args_delete_if << args }
+    all_args_reject.should == all_args_delete_if
   end
   
   specify "reject! should return nil if no changes were made" do
@@ -943,8 +992,8 @@ context "Hash instance methods" do
 
     reject_bang_pairs = []
     delete_if_pairs = []
-    h.dup.reject! { |pair| reject_bang_pairs << pair }
-    h.dup.delete_if { |pair| delete_if_pairs << pair }
+    h.dup.reject! { |*pair| reject_bang_pairs << pair }
+    h.dup.delete_if { |*pair| delete_if_pairs << pair }
 
     reject_bang_pairs.should == delete_if_pairs
   end
@@ -969,6 +1018,12 @@ context "Hash instance methods" do
     h.replace(ToHashHash[1 => 2])
     h.should == {1 => 2}
   end
+
+  specify "select should yield two arguments: key and value" do
+    all_args = []
+    {1 => 2, 3 => 4}.select { |*args| all_args << args }
+    all_args.should == [[1, 2], [3, 4]]
+  end
   
   specify "select should return an array of entries for which block is true" do
     a = { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
@@ -980,8 +1035,8 @@ context "Hash instance methods" do
     
     select_pairs = []
     reject_pairs = []
-    h.select { |pair| select_pairs << pair }
-    h.reject { |pair| reject_pairs << pair }
+    h.select { |*pair| select_pairs << pair }
+    h.reject { |*pair| reject_pairs << pair }
     
     select_pairs.should == reject_pairs
   end
@@ -999,6 +1054,12 @@ context "Hash instance methods" do
     
     hash.should == {}
     hash.shift.should == nil
+  end
+  
+  specify "shift should return (computed) default for empty hashes" do
+    Hash.new(5).shift.should == 5
+    h = Hash.new { |*args| args }
+    h.shift.should == [h, nil]
   end
   
   specify "size should be a synonym for length" do
@@ -1099,6 +1160,39 @@ context "Hash instance methods" do
     h.values_at().should == []
     h.values_at(:a, :d, :b).class.should == Array
     h.values_at(:a, :d, :b).should == [9, nil, 'a']
+  end
+end
+
+context "Iteration method" do
+  # These are the only ones that actually have the exceptions on MRI 1.8.
+  # sort and reject don't raise!
+  %w(
+    delete_if each each_key each_pair each_value merge merge! reject!
+    select update
+  ).each do |cmd|
+    hash = {1 => 2, 3 => 4, 5 => 6}  
+    big_hash = {}
+    100.times { |k| big_hash[k.to_s] = k }    
+    
+    args = cmd[/merge|update/] ? [hash] : []
+       
+    specify "#{cmd} should raise if rehash() is called from block" do
+      should_raise(RuntimeError, "rehash occurred during iteration") do
+        hash.send(cmd, *args) { hash.rehash }
+      end
+    end
+
+    hash = {1 => 2, 3 => 4, 5 => 6}      
+    args = cmd[/merge|update/] ? [hash] : []
+
+    specify "#{cmd} should raise if lots of new entries are added from block" do
+      should_raise(RuntimeError, "hash modified during iteration") do
+        hash.send(cmd, *args) { |*x| hash.merge!(big_hash) }
+      end
+    end
+
+    hash = {1 => 2, 3 => 4, 5 => 6}      
+    args = cmd[/merge|update/] ? [hash] : []
   end
 end
 
