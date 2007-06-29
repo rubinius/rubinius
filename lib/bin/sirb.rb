@@ -87,7 +87,7 @@ while true
   elsif context.size > 0
     begin
       # Enlarge locals as needed.
-      if compiler_state.locals.size >= locals.fields
+      if compiler_state.number_of_locals >= locals.fields
         nl = Tuple.new(compiler_state.locals.size + 10)
         nl.copy_from locals, 0
         locals = nl

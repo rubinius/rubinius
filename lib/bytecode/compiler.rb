@@ -15,7 +15,6 @@ module Bytecode
       @file = nil
       @required = 0
       @path = []
-      @locals = nil
     end
     
     def add_literal(obj)
@@ -25,7 +24,7 @@ module Bytecode
     end
     
     attr_accessor :name, :assembly, :literals, :primitive, :file
-    attr_accessor :required, :path, :locals, :state
+    attr_accessor :required, :path, :state
   end
 
   class Compiler
@@ -179,7 +178,6 @@ module Bytecode
 
       meth = MethodDescription.new(name)
       meth.path = @path.dup
-      meth.locals = state.locals
       meth.state = state
       
       pro = Processor.new(self, meth, state)
@@ -773,7 +771,7 @@ module Bytecode
         name = x.shift
         idx = x.shift
         
-        if idx == 0
+        if idx == -1
           raise "Unprocessed lvar '#{name}' detected!"
         end
         

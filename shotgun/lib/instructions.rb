@@ -542,8 +542,8 @@ CODE
     t3 = stack_pop(); /* locals */
     cpu_goto_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop()); /* block */
     if(RTEST(t3)) {
-      if(NUM_FIELDS(t3) >= NUM_FIELDS(c->locals)) {
-        methctx_set_locals(c->active_context, t3);
+      if(NIL_P(c->locals) || NUM_FIELDS(t3) >= NUM_FIELDS(c->locals)) {
+        // methctx_set_locals(c->active_context, t3);
         c->locals = t3;
       }
     }

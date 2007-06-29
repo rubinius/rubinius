@@ -425,7 +425,11 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->data_size = bytearray_bytes(state, ba);
   fc->literals = cmethod_get_literals(mo);
   fc->self = recv;
-  fc->locals = tuple_new(state, num_lcls + 2);
+  if(num_lcls > 0) {
+    fc->locals = tuple_new(state, num_lcls + 2);
+  } else {
+    fc->locals = Qnil;
+  }
   fc->argcount = args;
   fc->name = name;
   fc->method_module = mod;

@@ -4,12 +4,11 @@ class RsLocalState
   end
   
   def reset
-    @locals = [:_, :~]
     @unique = 0
     @args = []
     @arg_splat = nil
     
-    @top_scope = { :_ => 0, :~ => 1 }
+    @top_scope = {}
     @current_scope = @top_scope
     @scopes = [@top_scope]
     @all_scopes = [@top_scope]
@@ -21,22 +20,8 @@ class RsLocalState
     @unique += 1
   end
   
-  attr_accessor :locals, :unique, :args, :arg_splat
-  
-  def old_local(name)
-    cnt = @locals.index(name)
-    unless cnt
-      cnt = @locals.size
-      @locals << name
-    end
+  attr_accessor :unique, :args, :arg_splat
     
-    return cnt
-  end
-  
-  def local?(name)
-    @locals.include? name
-  end
-  
   def next_slot
     # @lslot += 1
     @current_scope.size
