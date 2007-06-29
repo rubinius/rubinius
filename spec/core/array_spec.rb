@@ -1052,6 +1052,11 @@ context "Array instance method" do
 
     [1, 2, 3, 4, obj].join(' | ').should == '1 | 2 | 3 | 4 | foo'
   end
+  
+  specify "join with nested arrays should pass along separator" do
+    [1, [2, [3, 4], 5], 6].join(":").should == "1:2:3:4:5:6"
+    [1, [2, MyArray[3, 4], 5], 6].join(":").should == "1:2:3:4:5:6"
+  end
 
   specify "join's separator defaults to $, (which defaults to empty)" do
     [1, 2, 3].join.should == '123'
