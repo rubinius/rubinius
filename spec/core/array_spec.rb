@@ -15,12 +15,22 @@ class ToAryArray < Array
   def to_ary() ["to_ary", "was", "called!"] end
 end
 
+context "Array" do
+  specify "includes Enumerable" do
+    Array.include?(Enumerable).should == true
+  end
+end
+
 context "Array class method" do  
   specify "new without arguments should return a new array" do
     a = Array.new
     a.class.should == Array
     b = MyArray.new
     b.class.should == MyArray
+  end
+  
+  specify "new with negative size should raise" do
+    should_raise(ArgumentError) { Array.new(-1) }
   end
   
   specify "new with size should return a new array of size with nil elements" do
@@ -611,6 +621,7 @@ context "Array instance method" do
 
   specify "fetch with block should return the value of block if there is no element at index" do
     [1, 2, 3].fetch(9) { |i| i * i }.should == 81
+    [1, 2, 3].fetch(-9) { |i| i * i }.should == 81
   end
 
   specify "fetch's default block should take precedence over its default argument" do
@@ -727,6 +738,11 @@ context "Array instance method" do
     [true, false, true, nil, false].first(2).should == [true, false]
   end
   
+  specify "first with count on an empty array should return an empty array" do
+    [].first(0).should == []
+    [].first(1).should == []
+  end
+  
   specify "first with count == 0 should return an empty array" do
     [1, 2, 3, 4, 5].first(0).should == []
   end
@@ -750,6 +766,8 @@ context "Array instance method" do
   end
   
   specify "first with count on array subclasses shouldn't return subclass instance" do
+    MyArray[].first(0).class.should == Array
+    MyArray[].first(2).class.should == Array
     MyArray[1, 2, 3].first(0).class.should == Array
     MyArray[1, 2, 3].first(1).class.should == Array
     MyArray[1, 2, 3].first(2).class.should == Array
@@ -1095,8 +1113,13 @@ context "Array instance method" do
     [].last.should == nil
   end
   
-  specify "last returns the last count elements" do
+  specify "last with count returns the last count elements" do
     [1, 2, 3, 4, 5, 9].last(3).should == [4, 5, 9]
+  end
+
+  specify "last with count on an empty array should return an empty array" do
+    [].last(0).should == []
+    [].last(1).should == []
   end
   
   specify "last returns an empty array when count == 0" do
@@ -1112,6 +1135,8 @@ context "Array instance method" do
   end
 
   specify "last with count on array subclasses shouldn't return subclass instance" do
+    MyArray[].last(0).class.should == Array
+    MyArray[].last(2).class.should == Array
     MyArray[1, 2, 3].last(0).class.should == Array
     MyArray[1, 2, 3].last(1).class.should == Array
     MyArray[1, 2, 3].last(2).class.should == Array
@@ -1304,6 +1329,22 @@ context "Array instance method" do
     [1, 3, 4, 6].reverse_each { |i| a << i }
     a.should == [6, 4, 3, 1]
   end
+
+  specify "reverse_earch doesn't go berserk when removing elements from block" do
+    ary = [0, 0, 1, 1, 3, 2, 1, :x]
+    
+    count = 0
+    
+    ary.reverse_each do |item|
+      count += 1
+      
+      if item == :x then
+        ary.slice!(1..-1)
+      end
+    end
+    
+    count.should == 2
+  end
   
   specify "rindex returns the first index backwards from the end where element == to object" do
     key = 3    
@@ -1325,6 +1366,16 @@ context "Array instance method" do
 
   specify "rindex returns nil if no element == to object" do
     [1, 1, 3, 2, 1, 3].rindex(4).should == nil
+  end
+
+  specify "rindex doesn't go berserk when removing elements from block" do
+    sentinel = Object.new
+    ary = [0, 0, 1, 1, 3, 2, 1, sentinel]
+
+    sentinel.instance_variable_set(:@ary, ary)
+    def sentinel.==(o) @ary.slice!(1..-1); false; end
+    
+    ary.rindex(0).should == 0
   end
   
   specify "select should return a new array of elements for which block is true" do
@@ -2761,6 +2812,13 @@ context "On a frozen array" do
     nested_ary.freeze
     should_raise(TypeError) { nested_ary.flatten! }
   end
+  
+  specify "initialize should raise" do
+    ary.instance_eval do
+      should_raise(TypeError) { initialize() }
+      should_raise(TypeError) { initialize([1, 2, 3]) }
+    end
+  end
 
   specify "insert should raise" do
     ary.insert(0) # ok
@@ -2815,23 +2873,6 @@ context "On a frozen array" do
     ary.unshift() # ok
     should_raise(TypeError) { ary.unshift(1) }
   end
-end
-
-# Redundant, should be in Object --rue
-context "Array inherited instance method" do
- specify "instance_variable_get should return the value of the instance variable" do
-    a = []
-    a.instance_variable_set(:@c, 1)
-    a.instance_variable_get(:@c).should == 1
- end
- 
- specify "instance_variable_get should return nil if the instance variable does not exist" do
-    [].instance_variable_get(:@c).should == nil
- end
- 
- specify "instance_variable_get should raise NameError if the argument is not of form '@x'" do
-    should_raise(NameError) { [].instance_variable_get(:c) }
- end
 end
 
 describe 'Array packing' do
@@ -3402,7 +3443,7 @@ describe 'Array packing' do
   end
 end
 
-# Redundant, should be in Object? --rue
+# Redundant, should be in Object --rue
 context "Array inherited instance method" do
   specify "instance_variable_get should return the value of the instance variable" do
     a = []

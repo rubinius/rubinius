@@ -13,6 +13,12 @@ class ToHashHash < Hash
   def to_hash() { "to_hash" => "was", "called!" => "duh." } end
 end
 
+context "Hash" do
+  specify "includes Enumerable" do
+    Hash.include?(Enumerable).should == true
+  end
+end
+
 context "Hash class method" do
   specify "[] creates a Hash; values can be provided as the argument list" do
     Hash[:a, 1, :b, 2].should == {:a => 1, :b => 2}
@@ -69,7 +75,7 @@ context "Hash class method" do
   end
 end
 
-context "Hash instance methods" do
+context "Hash instance method" do
   specify "== is true if they have the same number of keys and each key-value pair matches" do
     Hash.new(5).should == Hash.new(1)
     Hash.new {|h, k| 1}.should == Hash.new {}
@@ -388,8 +394,13 @@ context "Hash instance methods" do
 
   specify "default should use the default proc to compute a default value, passing given key" do
     h = Hash.new { |*args| args }
-    h.default.should == [h, nil]
+    h.default(nil).should == [h, nil]
     h.default(5).should == [h, 5]
+  end
+  
+  specify "default with default proc, but no arg should call default proc with nil arg" do
+    h = Hash.new { |*args| args }
+    h.default.should == [h, nil]
   end
   
   specify "default= should set the default value" do
@@ -482,13 +493,13 @@ context "Hash instance methods" do
   
   specify "each should call block once for each entry, passing key, value" do
     r = {}
-    h = {:a, 1, :b, 2, :c, 3, :d, 5}
+    h = {:a => 1, :b => 2, :c => 3, :d => 5}
     h.each { |k,v| r[k.to_s] = v.to_s }.equal?(h).should == true
     r.should == {"a" => "1", "b" => "2", "c" => "3", "d" => "5" }
   end
 
   specify "each should use the same order as keys() and values()" do
-    h = {:a, 1, :b, 2, :c, 3, :d, 5}
+    h = {:a => 1, :b => 2, :c => 3, :d => 5}
     keys = []
     values = []
 
@@ -806,7 +817,7 @@ context "Hash instance methods" do
   end
   
   specify "merge should return a new hash by combining self with the contents of other" do
-    { 1, :a, 2, :b, 3, :c }.merge(:a => 1, :c => 2).should == { :c => 2, 1 => :a, 2 => :b, :a => 1, 3 => :c }
+    { 1 => :a, 2 => :b, 3 => :c }.merge(:a => 1, :c => 2).should == { :c => 2, 1 => :a, 2 => :b, :a => 1, 3 => :c }
   end
   
   specify "merge with block sets any duplicate key to the value of block" do
@@ -1018,6 +1029,23 @@ context "Hash instance methods" do
     h.replace(ToHashHash[1 => 2])
     h.should == {1 => 2}
   end
+  
+  specify "replace should transfer default values" do
+    hash_a = {}
+    hash_b = Hash.new(5)
+    hash_a.replace(hash_b)
+    hash_a.default.should == 5
+    
+    hash_a = {}
+    hash_b = Hash.new { |h, k| k * 2 }
+    hash_a.replace(hash_b)
+    hash_a.default(5).should == 10
+    
+    hash_a = Hash.new { |h, k| k * 5 }
+    hash_b = Hash.new(lambda { raise "Should not invoke lambda" })
+    hash_a.replace(hash_b)
+    hash_a.default.should == hash_b.default
+  end
 
   specify "select should yield two arguments: key and value" do
     all_args = []
@@ -1147,6 +1175,10 @@ context "Hash instance methods" do
     h = Hash.new { 5 }
     h.value?(5).should == false
   end
+
+  specify "value? uses == semantics for comparing values" do
+    { 5 => 2.0 }.value?(2).should == true
+  end
   
   specify "values should return an array of values" do
     h = { 1 => :a, 'a' => :a, 'the' => 'lang'}
@@ -1173,26 +1205,40 @@ context "Iteration method" do
     hash = {1 => 2, 3 => 4, 5 => 6}  
     big_hash = {}
     100.times { |k| big_hash[k.to_s] = k }    
-    
-    args = cmd[/merge|update/] ? [hash] : []
        
     specify "#{cmd} should raise if rehash() is called from block" do
+      h = hash.dup
+      args = cmd[/merge|update/] ? [h] : []
+      
       should_raise(RuntimeError, "rehash occurred during iteration") do
-        hash.send(cmd, *args) { hash.rehash }
+        h.send(cmd, *args) { h.rehash }
       end
     end
-
-    hash = {1 => 2, 3 => 4, 5 => 6}      
-    args = cmd[/merge|update/] ? [hash] : []
 
     specify "#{cmd} should raise if lots of new entries are added from block" do
+      h = hash.dup
+      args = cmd[/merge|update/] ? [h] : []
+
       should_raise(RuntimeError, "hash modified during iteration") do
-        hash.send(cmd, *args) { |*x| hash.merge!(big_hash) }
+        h.send(cmd, *args) { |*x| h.merge!(big_hash) }
       end
     end
 
-    hash = {1 => 2, 3 => 4, 5 => 6}      
-    args = cmd[/merge|update/] ? [hash] : []
+    specify "#{cmd}'s yielded items shouldn't be affected by removing current element" do
+      n = 3
+      
+      h = Array.new(n) { hash.dup }
+      args = Array.new(n) { |i| cmd[/merge|update/] ? [h[i]] : [] }
+      r = Array.new(n) { [] }
+      
+      h[0].send(cmd, *args[0]) { |*x| r[0] << x; true }
+      h[1].send(cmd, *args[1]) { |*x| r[1] << x; h[1].shift; true }
+      h[2].send(cmd, *args[2]) { |*x| r[2] << x; h[2].delete(h[2].keys.first); true }
+      
+      r[1..-1].each do |yielded|
+        yielded.should == r[0]
+      end
+    end
   end
 end
 
