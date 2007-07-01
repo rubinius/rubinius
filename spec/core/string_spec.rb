@@ -11,20 +11,87 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # swapcase, swapcase!, to_f, to_i, to_s, to_str, to_sym, tr, tr!,
 # tr_s, tr_s!, unpack, upcase, upcase!, upto
 
+class MyString < String; end
+class MyArray < Array; end
+
 describe "String#%(Object)" do
-  it "should format with multiple expressions" do
+  it "ignores unused arguments" do
+    ("" % [1, 2, 3]).should == ""
+    ("%s" % [1, 2, 3]).should == "1"
+    ("%2$s" % [1, 2, 3]).should == "2"
+  end
+  
+  it "ignores trailing percent signs" do
+    ("%" % "x").should == "%"
+    ("foo%" % "x").should == "foo%"
+  end
+
+  it "replaces trailing absolute argument specifier with percent sign" do
+    ("hello %1$" % "foo").should == "hello %"
+  end
+  
+  it "raises when given invalid argument specifiers" do
+    should_raise(ArgumentError) { "%1" % "x" }
+    should_raise(ArgumentError) { "%+" % "x" }
+    should_raise(ArgumentError) { "%-" % "x" }
+    should_raise(ArgumentError) { "%#" % "x" }
+    should_raise(ArgumentError) { "%0" % "x" }
+    should_raise(ArgumentError) { "%*" % "x" }
+    should_raise(ArgumentError) { "%_" % "x" }
+  end
+    
+  it "raises when there are less arguments than format specifiers" do
+    ("foo" % []).should == "foo"
+    should_raise(ArgumentError) { "%s" % [] }
+    should_raise(ArgumentError) { "%s %s" % [1] }
+  end
+  
+  it "raises when absolute and relative argument numbers are mixed" do
+    should_raise(ArgumentError) { "%s %1$s" % "foo" }
+    should_raise(ArgumentError) { "%1$s %s" % "foo" }
+
+    should_raise(ArgumentError) { "%s %2$s" % ["foo", "bar"] }
+    should_raise(ArgumentError) { "%2$s %s" % ["foo", "bar"] }
+  end
+  
+  it "allows reuse of the one argument multiple via absolute argument numbers" do
+    ("%1$s %1$s" % "foo").should == "foo foo"
+    ("%1$s %2$s %1$s %2$s" % ["foo", "bar"]).should == "foo bar foo bar"
+  end
+  
+  it "always interprets an array argument as a list of argument parameters" do
+    should_raise(ArgumentError) { "%p" % [] }
+    ("%p" % [1]).should == "1"
+    ("%p %p" % [1, 2]).should == "1 2"
+  end
+
+  it "always interprets an array subclass argument as a list of argument parameters" do
+    should_raise(ArgumentError) { "%p" % MyArray[] }
+    ("%p" % MyArray[1]).should == "1"
+    ("%p %p" % MyArray[1, 2]).should == "1 2"
+  end
+  
+  it "doesn't call to_ary on its argument" do
+    obj = Object.new
+    def obj.to_ary() [1, 2] end
+    def obj.to_s() "obj" end
+    should_raise(ArgumentError) { "%s %s" % obj }
+    ("%s" % obj).should == "obj"
+  end
+  
+  it "formats multiple expressions" do
     ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
   end
   
-  it "should format with expressions mid string" do
+  it "formats expressions mid string" do
     ("hello %s!" % "world").should == "hello world!"
   end
   
-  it "should correctly format %%" do
+  it "formats %% into %" do
     ("%d%% %s" % [10, "of chickens!"]).should == "10% of chickens!"
   end
   
-  it "should correctly apply binary formats" do
+  it "supports binary formats using %b" do
     ("%b" % 10).should == "1010"
     ("% b" % 10).should == " 1010"
     ("%1$b" % [10, 20]).should == "1010"
@@ -34,25 +101,35 @@ describe "String#%(Object)" do
     ("%05b" % 10).should == "01010"
     ("%*b" % [10, 6]).should == "       110"
   end
-  
-  it "should correctly apply character formats" do
+    
+  it "supports character formats using %c" do
     ("%c" % 10).should == "\n"
     ("%2$c" % [10, 11, 14]).should == "\v"
     ("%-4c" % 10).should == "\n   "
     ("%*c" % [10, 3]).should == "         \003"
+    
+    should_raise(TypeError) { "%c" % Object }
+    
+    obj = Object.new
+    def obj.to_int() 65 end
+    ("%c" % obj).should == ("%c" % obj.to_int)
   end
   
-  it "should correctly apply decimal formats" do
-    ("%d" % 10).should == "10"
-    ("% d" % 10).should == " 10"
-    ("%1$d" % [10, 20]).should == "10"
-    ("%+d" % 10).should == "+10"
-    ("%-7d" % 10).should == "10     "
-    ("%04d" % 10).should == "0010"
-    ("%*d" % [10, 4]).should == "         4"
+  %w(d i).each do |f|
+    format = "%" + f
+    
+    it "supports integer formats using #{format}" do
+      ("%#{f}" % 10).should == "10"
+      ("% #{f}" % 10).should == " 10"
+      ("%1$#{f}" % [10, 20]).should == "10"
+      ("%+#{f}" % 10).should == "+10"
+      ("%-7#{f}" % 10).should == "10     "
+      ("%04#{f}" % 10).should == "0010"
+      ("%*#{f}" % [10, 4]).should == "         4"
+    end
   end
   
-  it "should correctly apply float (E) formats" do
+  it "supports float formats using %E" do
     ("%E" % 10).should == "1.000000E+01"
     ("% E" % 10).should == " 1.000000E+01"
     ("%1$E" % 10).should == "1.000000E+01"
@@ -63,7 +140,7 @@ describe "String#%(Object)" do
     ("%*E" % [10, 9]).should == "9.000000E+00"
   end
 
-  it "should correctly apply float (e) formats" do
+  it "supports float formats using %e" do
     ("%e" % 10).should == "1.000000e+01"
     ("% e" % 10).should == " 1.000000e+01"
     ("%1$e" % 10).should == "1.000000e+01"
@@ -75,7 +152,7 @@ describe "String#%(Object)" do
     ("%e" % (0.0/0)).should == "nan"
   end
   
-  it "should correctly apply float (f) formats" do
+  it "supports float formats using %f" do
     ("%f" % 10).should == "10.000000"
     ("% f" % 10).should == " 10.000000"
     ("%1$f" % 10).should == "10.000000"
@@ -86,7 +163,7 @@ describe "String#%(Object)" do
     ("%*f" % [10, 9]).should == "  9.000000"
   end
   
-  it "should correctly apply float (G) formats" do
+  it "supports float formats using %G" do
     ("%G" % 10).should == "10"
     ("% G" % 10).should == " 10"
     ("%1$G" % 10).should == "10"
@@ -97,7 +174,7 @@ describe "String#%(Object)" do
     ("%*G" % [10, 9]).should == "         9"
   end
   
-  it "should correctly apply float (g) formats" do
+  it "supports float formats using %g" do
     ("%g" % 10).should == "10"
     ("% g" % 10).should == " 10"
     ("%1$g" % 10).should == "10"
@@ -108,17 +185,7 @@ describe "String#%(Object)" do
     ("%*g" % [10, 9]).should == "         9"
   end
   
-  it "should correctly apply integer formats" do
-    ("%i" % 10).should == "10"
-    ("% i" % 10).should == " 10"
-    ("%1$i" % [10, 20]).should == "10"
-    ("%+i" % 10).should == "+10"
-    ("%-7i" % 10).should == "10     "
-    ("%04i" % 10).should == "0010"
-    ("%*i" % [10, 4]).should == "         4"
-  end
-  
-  it "should correctly apply octal formats" do
+  it "supports octal formats using %o" do
     ("%o" % 10).should == "12"
     ("% o" % 10).should == " 12"
     ("%1$o" % [10, 20]).should == "12"
@@ -129,21 +196,29 @@ describe "String#%(Object)" do
     ("%*o" % [10, 6]).should == "         6"
   end
   
-  it "should correctly apply inspect formats" do
+  it "supports inspect formats using %p" do
     ("%p" % 10).should == "10"
     ("%1$p" % [10, 5]).should == "10"
     ("%-22p" % 10).should == "10                    "
     ("%*p" % [10, 10]).should == "        10"
+
+    obj = Object.new
+    obj.should_receive(:inspect, :returning => "obj")
+    ("%p" % obj).should == "obj"
   end
   
-  it "should correctly apply string formats" do
+  it "supports string formats using %s" do
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
+
+    obj = Object.new
+    obj.should_receive(:to_s, :returning => "obj")
+    ("%s" % obj).should == "obj"
   end
   
-  it "should correctly apply unsigned formats" do
+  it "supports unsigned formats using %u" do
     ("%u" % 10).should == "10"
     ("% u" % 10).should == " 10"
     ("%1$u" % [10, 20]).should == "10"
@@ -151,9 +226,11 @@ describe "String#%(Object)" do
     ("%-7u" % 10).should == "10     "
     ("%04u" % 10).should == "0010"
     ("%*u" % [10, 4]).should == "         4"
+    
+    ("%u" % -431647880).should == "..3863319416"
   end
   
-  it "should correctly apply hex (X) formats" do
+  it "supports hex formats using %X" do
     ("%X" % 10).should == "A"
     ("% X" % 10).should == " A"
     ("%1$X" % [10, 20]).should == "A"
@@ -164,7 +241,7 @@ describe "String#%(Object)" do
     ("%*X" % [10, 6]).should == "         6"
   end
   
-  it "should correctly apply hex (x) formats" do
+  it "supports hex formats using %x" do
     ("%x" % 10).should == "a"
     ("% x" % 10).should == " a"
     ("%1$x" % [10, 20]).should == "a"
@@ -173,6 +250,31 @@ describe "String#%(Object)" do
     ("%-9x" % 10).should == "a        "
     ("%05x" % 10).should == "0000a"
     ("%*x" % [10, 6]).should == "         6"
+  end
+  
+  %w(b d i o u X x).each do |f|
+    format = "%" + f
+    
+    it "calls to_i on #{format} arguments" do
+      (format % "10").should == (format % 10)
+      (format % nil).should == (format % 0)
+      
+      obj = Object.new
+      obj.should_receive(:to_i, :returning => 5)
+      (format % obj).should == (format % 5)
+    end
+  end
+  
+  %w(E e f G g).each do |f|
+    format = "%" + f
+    
+    it "calls to_f on #{format} arguments" do
+      (format % 10).should == (format % 10.0)
+      
+      obj = Object.new
+      obj.should_receive(:to_f, :returning => 5.0)
+      (format % obj).should == (format % 5.0)
+    end
   end
 end
 
