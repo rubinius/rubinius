@@ -23,7 +23,7 @@ def engine?(name)
   case name
   when :rbx, :rubinius
     RUBY_NAME == 'rbx'
-  when :ruby
+  when :mri, :ruby
     RUBY_NAME == 'ruby'
   when :jruby
     RUBY_NAME == 'jruby'
