@@ -430,12 +430,14 @@ describe "String#%(Object)" do
   end
 end
 
-describe "String#*(Integer)" do
-  it "should return a new string containing integer copies of self" do
+describe "String#*(count)" do
+  it "returns a new string containing count copies of self" do
+    ("cool" * 0).should == ""
+    ("cool" * 1).should == "cool"
     ("cool" * 3).should == "coolcoolcool"
   end
   
-  it "should try to convert the given argument to an integer using to_int" do
+  it "tries to convert the given argument to an integer using to_int" do
     ("cool" * 3.1).should == "coolcoolcool"
     ("a" * 3.999).should == "aaa"
     
@@ -445,7 +447,7 @@ describe "String#*(Integer)" do
     ("a" * a).should == "aaaa"
   end
   
-  it "should raise an ArgumentError when given integer is negative" do
+  it "raises an ArgumentError when given integer is negative" do
     should_raise(ArgumentError) do
       "cool" * -3
     end
@@ -455,33 +457,53 @@ describe "String#*(Integer)" do
     end
   end
   
-  it "should raise a RangeError when given integer is a Bignum" do
+  it "raises a RangeError when given integer is a Bignum" do
     should_raise(RangeError) do
       "cool" * 9999999999
     end
   end
+  
+  it "returns subclass instances" do
+    (MyString.new("cool") * 0).class.should == MyString
+    (MyString.new("cool") * 1).class.should == MyString
+    (MyString.new("cool") * 2).class.should == MyString
+  end
 end
 
-describe "String#+(String)" do
-  it "should return a new string containing the given String concatenated to self" do
+describe "String#+(string)" do
+  it "returns a new string containing the given string concatenated to self" do
+    ("" + "").should == ""
+    ("" + "Hello").should == "Hello"
+    ("Hello" + "").should == "Hello"
     ("Ruby !" + "= Rubinius").should == "Ruby != Rubinius"
   end
   
-  it "should convert the given String using to_str" do
+  it "converts the argument to a string using to_str" do
     c = Object.new
     def c.to_str() "aaa" end
     
     ("a" + c).should == "aaaa"
   end
+  
+  it "doesn't return subclass instances" do
+    (MyString.new("hello") + "").class.should == String
+    (MyString.new("hello") + "foo").class.should == String
+    (MyString.new("hello") + MyString.new("foo")).class.should == String
+    (MyString.new("hello") + MyString.new("")).class.should == String
+    (MyString.new("") + MyString.new("")).class.should == String
+    ("hello" + MyString.new("foo")).class.should == String
+    ("hello" + MyString.new("")).class.should == String
+  end
 end
 
-describe "String#<<(String)" do
-  it "should return self after concatenating the given argument to self" do
-    a = 'hello ' << 'world'
-    a.should == "hello world"
+describe "String#<<(string)" do
+  it "concatenates the given argument to self and returns self" do
+    str = 'hello '
+    (str << 'world').equal?(str).should == true
+    str.should == "hello world"
   end
   
-  it "should convert the given argument to a String using to_str before concatenating" do
+  it "converts the given argument to a String using to_str" do
     obj = Object.new
     def obj.to_str() "world!" end
     
@@ -489,7 +511,7 @@ describe "String#<<(String)" do
     a.should == 'hello world!'
   end
   
-  it "should raise a TypeError if the given argument can't be converted to a String" do
+  it "raises a TypeError if the given argument can't be converted to a String" do
     should_raise(TypeError) do
       a = 'hello ' << :world
     end
@@ -499,80 +521,109 @@ describe "String#<<(String)" do
     end
   end
 
-  it "should raise a TypeError when self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a << "test"
-    end
+  it "raises a TypeError when self is frozen" do
+    a = "hello"
+    a.freeze
+
+    should_raise(TypeError) { a << "" }
+    should_raise(TypeError) { a << "test" }
+  end
+  
+  it "works when given a subclass instance" do
+    a = "hello"
+    a << MyString.new(" world")
+    a.should == "hello world"
   end
 end
 
-describe "String#<<(Fixnum)" do
-  it "should convert the given Fixnum to a char before concatenating" do
+describe "String#<<(fixnum)" do
+  it "converts the given Fixnum to a char before concatenating" do
     b = 'hello ' << 'world' << 33
     b.should == "hello world!"
+    b << 0
+    b.should == "hello world!\x00"
   end
   
-  it "should raise a TypeError when the given Fixnum is not between 0 and 255" do
+  it "raises a TypeError when the given Fixnum is not between 0 and 255" do
     should_raise(TypeError) do
       "hello world" << 333
     end
   end
 
-  it "should raise a TypeError when self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a << 33
-    end
+  it "doesn't call to_int on its argument" do
+    x = Object.new
+    x.should_not_receive(:to_int)
+    
+    should_raise(TypeError) { "" << x }
+  end
+
+  it "raises a TypeError when self is frozen" do
+    a = "hello"
+    a.freeze
+
+    should_raise(TypeError) { a << 0 }
+    should_raise(TypeError) { a << 33 }
   end
 end
 
 describe "String#<=>(other_string)" do
-  specify "should return -1 when self is less than other" do
+  it "compares individual characters based on their ascii value" do
+    ascii_order = Array.new(256) { |x| x.chr }
+    sort_order = ascii_order.sort
+    sort_order.should == ascii_order
+  end
+  
+  it "returns -1 when self is less than other" do
     ("this" <=> "those").should == -1
   end
 
-  specify "should return 0 when self is equal to other" do
+  it "returns 0 when self is equal to other" do
     ("yep" <=> "yep").should == 0
   end
 
-  specify "should return 1 when self is greater than other" do
+  it "returns 1 when self is greater than other" do
     ("yoddle" <=> "griddle").should == 1
   end
   
-  specify "should consider string that comes lexicographically first to be less if strings have same size" do
+  it "considers string that comes lexicographically first to be less if strings have same size" do
     ("aba" <=> "abc").should == -1
     ("abc" <=> "aba").should == 1
   end
 
-  specify "should consider shorter string to be less if longer string starts with shorter one" do
+  it "doesn't consider shorter string to be less if longer string starts with shorter one" do
     ("abc" <=> "abcd").should == -1
     ("abcd" <=> "abc").should == 1
   end
 
-  specify "should compare shorter string with corresponding number of first chars of longer string" do
+  it "compares shorter string with corresponding number of first chars of longer string" do
     ("abx" <=> "abcd").should == 1
     ("abcd" <=> "abx").should == -1
+  end
+  
+  it "ignores subclass differences" do
+    a = "hello"
+    b = MyString.new("hello")
+    
+    (a <=> b).should == 0
+    (b <=> a).should == 0
   end
 end
 
 describe "String#<=>(obj)" do
-  specify "should return nil if obj does not respond to to_str" do
+  it "returns nil if its argument does not respond to to_str" do
     ("abc" <=> 1).should == nil
     ("abc" <=> :abc).should == nil
     ("abc" <=> Object.new).should == nil
   end
   
-  specify "should return nil if obj does not respond to <=>" do
+  it "returns nil if its argument does not respond to <=>" do
     obj = Object.new
     def obj.to_str() "" end
     
     ("abc" <=> obj).should == nil
   end
   
-  specify "should compare the obj and self by calling <=> on obj and turning the result around" do
+  it "compares its argument and self by calling <=> on obj and turning the result around" do
     obj = Object.new
     def obj.to_str() "" end
     def obj.<=>(arg) 1  end
@@ -583,24 +634,32 @@ describe "String#<=>(obj)" do
 end
 
 describe "String#==(other_string)" do
-  it "should return true if self <=> string returns 0" do
+  it "returns true if self <=> string returns 0" do
     ('hello' == 'hello').should == true
   end
   
-  it "should return false if self <=> string does not return 0" do
+  it "returns false if self <=> string does not return 0" do
     ("more" == "MORE").should == false
     ("less" == "greater").should == false
   end
+  
+  it "ignores subclass differences" do
+    a = "hello"
+    b = MyString.new("hello")
+    
+    (a == b).should == true
+    (b == a).should == true
+  end  
 end
 
 describe "String#==(obj)" do
-  it "should return false if obj does not respond to to_str" do
+  it "returns false if obj does not respond to to_str" do
     ('hello' == 5).should == false
     ('hello' == :hello).should == false
     ('hello' == Object.new).should == false
   end
   
-  it "should return obj == self if obj responds to to_str" do
+  it "returns obj == self if obj responds to to_str" do
     obj = Object.new
     def obj.to_str() "world!" end
     def obj.==(other) true end
@@ -610,108 +669,245 @@ describe "String#==(obj)" do
   end
 end
 
-describe "String#=~(regexp)" do
-  it "should return the position the match starts" do
-    ("rudder" =~ /udder/).should == 1
-    ("boat" =~ /[^fl]oat/).should == 0
-  end
-  
-  it "should return nil if there is no match" do
-    ("bean" =~ /bag/).should == nil
-    ("true" =~ /false/).should == nil
-  end
-end
-
 describe "String#=~(obj)" do
-  it "should raise a TypeError if a obj is a string" do
-    should_raise(TypeError) do
-      "some string" =~ "another string"
-    end
+  it "behaves the same way as index() when given a regexp" do
+    ("rudder" =~ /udder/).should == "rudder".index(/udder/)
+    ("boat" =~ /[^fl]oat/).should == "boat".index(/[^fl]oat/)
+    ("bean" =~ /bag/).should == "bean".index(/bag/)
+    ("true" =~ /false/).should == "true".index(/false/)
+  end
+
+  it "raises a TypeError if a obj is a string" do
+    should_raise(TypeError) { "some string" =~ "another string" }
+    should_raise(TypeError) { "a" =~ MyString.new("b") }
   end
   
-  it "should invoke obj.=~ with self" do
+  it "invokes obj.=~ with self if obj is neither a string nor regexp" do
+    str = "w00t"
     obj = Object.new
-    def obj.=~(object) true end
-    
-    ("w00t" =~ obj).should == true
+
+    obj.should_receive(:=~, :with => [str], :returning => true)
+    (str =~ obj).should == true
+
+    obj.should_receive(:=~, :with => [str], :returning => false)
+    (str =~ obj).should == false
   end
 end
 
-describe "String#[fixnum]" do
-  it "should return the character code of the character at fixnum" do
-    "hello"[0].should == 104
-    "hello"[-1].should == 111
+describe "String#[idx]" do
+  it "returns the character code of the character at fixnum" do
+    "hello"[0].should == ?h
+    "hello"[-1].should == ?o
   end
   
-  it "should return nil if fixnum falls outside of self" do
+  it "returns nil if idx is outside of self" do
     "hello"[20].should == nil
     "hello"[-20].should == nil
   end
+  
+  it "calls to_int on idx" do
+    "hello"[0.5].should == ?h
+    
+    obj = Object.new
+    obj.should_receive(:to_int, :returning => 1)
+    "hello"[obj].should == ?e
+  end
 end
 
-describe "String#[fixnum, fixnum]" do
-  it "should return substring starting at the offset (first fixnum) with the given length (second fixnum)" do
+describe "String#[idx, length]" do
+  it "returns the substring starting at idx and the given length" do
+    "hello there"[0,0].should == ""
+    "hello there"[0,1].should == "h"
+    "hello there"[0,3].should == "hel"
+    "hello there"[0,6].should == "hello "
+    "hello there"[0,9].should == "hello the"
+    "hello there"[0,12].should == "hello there"
+
+    "hello there"[1,0].should == ""
+    "hello there"[1,1].should == "e"
     "hello there"[1,3].should == "ell"
+    "hello there"[1,6].should == "ello t"
+    "hello there"[1,9].should == "ello ther"
+    "hello there"[1,12].should == "ello there"
+
+    "hello there"[3,0].should == ""
+    "hello there"[3,1].should == "l"
+    "hello there"[3,3].should == "lo "
+    "hello there"[3,6].should == "lo the"
+    "hello there"[3,9].should == "lo there"
+
+    "hello there"[4,0].should == ""
+    "hello there"[4,3].should == "o t"
+    "hello there"[4,6].should == "o ther"
+    "hello there"[4,9].should == "o there"
+    
+    "foo"[2,1].should == "o"
+    "foo"[3,0].should == ""
+    "foo"[3,1].should == ""
+
     "hello there"[-3,2].should == "er"
   end
   
-  it "should return nil if the offset falls outside of self" do
+  it "returns nil if the offset falls outside of self" do
     "hello there"[20,3].should == nil
     "hello there"[-20,3].should == nil
   end
   
-  it "should return nil if the length is negative" do
+  it "returns nil if the length is negative" do
     "hello there"[4,-3].should == nil
     "hello there"[-4,-3].should == nil
+  end
+  
+  it "calls to_int on idx and length" do
+    "hello"[0.5, 1].should == "h"
+    "hello"[0.5, 2.5].should == "he"
+    "hello"[1, 2.5].should == "el"
+    
+    obj = Object.new
+    obj.should_receive(:to_int, :count => 4, :returning => 2)
+
+    "hello"[obj, 1].should == "l"
+    "hello"[obj, obj].should == "ll"
+    "hello"[0, obj].should == "he"
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s[0,0].class.should == MyString
+    s[0,4].class.should == MyString
+    s[1,4].class.should == MyString
   end
 end
 
 describe "String#[range]" do
-  it "should return substring given by the offsets of the range" do
+  it "returns the substring given by the offsets of the range" do
+    "hello there"[1..1].should == "e"
     "hello there"[1..3].should == "ell"
+    "hello there"[1...3].should == "el"
     "hello there"[-4..-2].should == "her"
+    "hello there"[-4...-2].should == "he"
     "hello there"[5..-1].should == " there"
+    "hello there"[5...-1].should == " ther"
   end
   
-  it "should return nil if the beginning of the range falls outside of self" do
+  it "returns nil if the beginning of the range falls outside of self" do
     "hello there"[12..-1].should == nil
     "hello there"[20..25].should == nil
+    "hello there"[20..1].should == nil
+    "hello there"[-20..1].should == nil
+    "hello there"[-20..-1].should == nil
   end
   
-  it "should return an empty string if the beginning if the range is negative and greater than the end" do
+  it "returns an empty string if range.begin is inside self and > real end" do
+    "hello there"[1...1].should == ""
+    "hello there"[4..2].should == ""
+    "hello"[4..-4].should == ""
+    "hello there"[-5..-6].should == ""
     "hello there"[-2..-4].should == ""
     "hello there"[-5..-6].should == ""
+    "hello there"[-5..2].should == ""
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s[0...0].class.should == MyString
+    s[0..4].class.should == MyString
+    s[1..4].class.should == MyString
+  end
+  
+  specify "it calls to_int on range arguments" do
+    from = Object.new
+    to = Object.new
+
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+
+    def from.to_int() 1 end
+    def to.to_int() -2 end
+      
+    "hello there"[from..to].should == "ello ther"
+    "hello there"[from...to].should == "ello the"
   end
 end
 
 describe "String#[regexp]" do
-  it "should return the matching portion of self" do
+  it "returns the matching portion of self" do
     "hello there"[/[aeiou](.)\1/].should == "ell"
   end
   
-  it "should return nil if there is no match" do
+  it "returns nil if there is no match" do
     "hello there"[/xyz/].should == nil
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s[/../].class.should == MyString
   end
 end
 
-describe "String#[regexp, fixnum]" do
-  it "should return the capture matching the fixnum" do
+describe "String#[regexp, idx]" do
+  it "returns the capture for idx" do
     "hello there"[/[aeiou](.)\1/, 0].should == "ell"
     "hello there"[/[aeiou](.)\1/, 1].should == "l"
+    "hello there"[/[aeiou](.)\1/, -1].should == "l"
+
+    "har"[/(.)(.)(.)/, 0].should == "har"
+    "har"[/(.)(.)(.)/, 1].should == "h"
+    "har"[/(.)(.)(.)/, 2].should == "a"
+    "har"[/(.)(.)(.)/, 3].should == "r"
+    "har"[/(.)(.)(.)/, -1].should == "r"
+    "har"[/(.)(.)(.)/, -2].should == "a"
+    "har"[/(.)(.)(.)/, -3].should == "h"
   end
   
-  it "should return nil if there is no match" do
+  it "returns nil if there is no match" do
+    "hello there"[/(what?)/, 1].should == nil
+  end
+  
+  it "returns nil if there is no capture for idx" do
     "hello there"[/[aeiou](.)\1/, 2].should == nil
+    # You can't refer to 0 using negative indices
+    "hello there"[/[aeiou](.)\1/, -2].should == nil
+  end
+  
+  it "calls to_int on idx" do
+    obj = Object.new
+    obj.should_receive(:to_int, :returning => 2)
+      
+    "har"[/(.)(.)(.)/, 1.5].should == "h"
+    "har"[/(.)(.)(.)/, obj].should == "a"
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s[/(.)(.)/, 0].class.should == MyString
+    s[/(.)(.)/, 1].class.should == MyString
   end
 end
 
 describe "String#[other_string]" do
-  it "should return other_string if it occurs in self" do
-    "hello there"["lo"].should == "lo"
+  it "returns the string if it occurs in self" do
+    s = "lo"
+    "hello there"[s].should == s
   end
   
-  it "should return nil if there is no match" do
+  it "returns nil if there is no match" do
     "hello there"["bye"].should == nil
+  end
+  
+  it "doesn't call to_str on its argument" do
+    o = Object.new
+    o.should_not_receive(:to_str)
+      
+    should_raise(TypeError) { "hello"[o] }
+  end
+  
+  it "returns a subclass instance when given a subclass instance" do
+    s = MyString.new("el")
+    r = "hello"[s]
+    r.should == "el"
+    r.class.should == MyString
   end
 end
 

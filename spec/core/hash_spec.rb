@@ -1270,7 +1270,16 @@ context "On a frozen hash" do
   specify "delete_if should raise" do
     should_raise(TypeError) { hash.delete_if { false } }
     should_raise(TypeError) { empty.delete_if { true } }
-  end  
+  end
+  
+  specify "initialize should raise" do
+    hash.instance_eval do
+      should_raise(TypeError) { initialize() }
+      should_raise(TypeError) { initialize(nil) }
+      should_raise(TypeError) { initialize(5) }
+      should_raise(TypeError) { initialize { 5 } }
+    end
+  end
 
   specify "merge! should raise" do
     hash.merge!(empty) # ok, empty
