@@ -1,14 +1,62 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-# %, *, **, +, -, -@, /, <, <=, <=>, ==, >, >=, abs, ceil, coerce,
+# %, *, **, +, -, -@,+@, /, <, <=, <=>, ==, >, >=, abs, ceil, coerce,
 # divmod, eql?, finite?, floor, hash, infinite?, modulo, nan?, round,
 # to_f, to_i, to_int, to_s, truncate, zero?
 
+TOLERANCE = 0.00003
+
+describe "Float#CONSTANTS" do 
+  specify  "the DIG value is  15" do
+    Float::DIG.should_be_close(15,TOLERANCE)
+  end
+  
+  specify "the EPSILON value is " do
+    Float::EPSILON.should_be_close(2.22044604925031e-16,TOLERANCE)
+  end
+  
+  specify "the MANT_DIG is 53" do
+    Float::MANT_DIG.should_be_close(53,TOLERANCE)
+  end
+  
+  specify "the MAX_10_EXP is 308" do
+    Float::MAX_10_EXP.should == 308
+  end
+  
+  specify "the MIN_10_EXP is -308" do    
+    Float::MIN_10_EXP.should == -307
+  end  
+  
+  specify "the MAX_EXP is 1024" do    
+    Float::MAX_EXP.should_be_close(1024,TOLERANCE)
+  end
+  
+  specify "the MIN_EXP is -1021" do
+    Float::MIN_EXP.should_be_close(-1021,TOLERANCE)
+  end   
+  
+  specify "the MIN_EXP is 1.79769313486232e+308" do
+    Float::MIN_EXP.should_be_close(-1021,TOLERANCE)
+  end 
+  
+  specify "the MAX is -1021" do
+    Float::MAX.to_s.should == "1.79769313486232e+308".to_s    
+  end 
+  
+  specify "the MIN is 2.2250738585072e-308" do    
+    Float::MIN.should_be_close(2.2250738585072e-308,TOLERANCE)    
+  end 
+  
+  specify "the RADIX is 2" do
+    Float::RADIX.should_be_close(2,TOLERANCE)
+  end
+end
+
 context "Float" do
   specify "% should return self modulo other" do
-    (6543.21 % 137).to_s.should == '104.21'
-    (5667.19 % 0xffffffff).to_s.should == '5667.19'
-    (6543.21 % 137.24).to_s.should == '92.9299999999996'
+    (6543.21 % 137).should_be_close(104.21, TOLERANCE)
+    (5667.19 % 0xffffffff).should_be_close(5667.19,TOLERANCE)
+    (6543.21 % 137.24).should_be_close(92.9299999999996, TOLERANCE)
   end
   
   specify "% should NOT raise ZeroDivisionError if other is zero" do
@@ -16,43 +64,43 @@ context "Float" do
     (1.0 % 0.0).to_s.should == 'NaN'
   end
   
-  specify "* should return self multiplied by other" do
-    (4923.98221 * 2).to_s.should == '9847.96442'
-    (256.4096 * 0xffffffff).to_s.should == "1101270846124.03"
-    (6712.5 * 0.25).to_s.should == '1678.125'
+  specify "* should return self multiplied by other" do 
+    (4923.98221 * 2).should_be_close(9847.96442, TOLERANCE) 
+    (256.4096 * 0xffffffff).should_be_close(1101270846124.03 , TOLERANCE)
+    (6712.5 * 0.25).should_be_close(1678.125, TOLERANCE) 
   end
   
   specify "** should return self raise to the other power" do
-    (2.3 ** 3).to_s.should == '12.167'
-    (5.2 ** -1).to_s.should == '0.192307692307692'
-    (9.5 ** 0.5).to_s.should == '3.08220700148449'
+    (2.3 ** 3).should_be_close(12.167,TOLERANCE)
+    (5.2 ** -1).should_be_close(0.192307692307692,TOLERANCE)
+    (9.5 ** 0.5).should_be_close(3.08220700148449, TOLERANCE) 
     (9.5 ** 0xffffffff).to_s.should == 'Infinity'
   end
   
   specify "+ should return self plus other" do
-    (491.213 + 2).to_s.should == '493.213'
-    (9.99 + 0xffffffff).to_s.should == '4294967304.99'
-    (1001.99 + 5.219).to_s.should == '1007.209'
+    (491.213 + 2).should_be_close(493.213, TOLERANCE)
+    (9.99 + 0xffffffff).should_be_close(4294967304.99,TOLERANCE)
+    (1001.99 + 5.219).should_be_close(1007.209, TOLERANCE)
   end
 
   specify "- should return self minus other" do
-    (9_237_212.5280 - 5_280).to_s.should == '9231932.528'
-    (2_560_496.1691 - 0xfffffffff).to_s.should == '-68716916238.8309'
-    (5.5 - 5.5).to_s.should == '0.0'
+    (9_237_212.5280 - 5_280).should_be_close(9231932.528, TOLERANCE)
+    (2_560_496.1691 - 0xfffffffff).should_be_close(-68716916238.8309, TOLERANCE)
+    (5.5 - 5.5).should_be_close(0.0,TOLERANCE)
   end
   
   specify "-@ should negate self" do
-    (2.221.send(:-@)).to_s.should == '-2.221'
-    -2.01.to_s.should == '-2.01'
-    -2_455_999_221.5512.to_s.should == '-2455999221.5512'
-    (--5.5).to_s.should == '5.5'
-    -8.551.send(:-@).to_s.should == '8.551'
+    (2.221.send(:-@)).should_be_close(-2.221, TOLERANCE)
+    -2.01.should_be_close(-2.01,TOLERANCE)
+    -2_455_999_221.5512.should_be_close(-2455999221.5512, TOLERANCE)
+    (--5.5).should_be_close(5.5, TOLERANCE)
+    -8.551.send(:-@).should_be_close(8.551, TOLERANCE)
   end
 
   specify "/ should return self divided by other" do
-    (5.75 / -2).to_s.should == "-2.875"
-    (451.0 / 9.3).to_s.should == "48.494623655914"
-    (91.1 / -0xffffffff).to_s.should == "-2.12108716418061e-08"
+    (5.75 / -2).should_be_close(-2.875,TOLERANCE)
+    (451.0 / 9.3).should_be_close(48.494623655914,TOLERANCE)
+    (91.1 / -0xffffffff).should_be_close(-2.12108716418061e-08, TOLERANCE)
   end
   
   specify "/ should NOT raise ZeroDivisionError if other is zero" do
@@ -110,9 +158,9 @@ context "Float" do
   end
 
   specify "abs should return the absolute value" do
-    -99.1.abs.to_s.should == '99.1'
-    4.5.abs.to_s.should == '4.5'
-    0.0.abs.to_s.should == '0.0'
+    -99.1.abs.should_be_close(99.1, TOLERANCE)
+    4.5.abs.should_be_close(4.5, TOLERANCE)
+    0.0.abs.should_be_close(0.0, TOLERANCE)
   end
   
   specify "ceil should return the smallest Integer greater than or equal to self" do
@@ -178,9 +226,13 @@ context "Float" do
   end
   
   specify "modulo should be a synonym for %" do
-    6543.21.modulo(137).to_s.should == '104.21'
-    5667.19.modulo(0xffffffff).to_s.should == '5667.19'
-    6543.21.modulo(137.24).to_s.should == '92.9299999999996'
+    6543.21.modulo(137).should_be_close(104.21, TOLERANCE)
+    5667.19.modulo(0xffffffff).should_be_close(5667.19, TOLERANCE)
+    6543.21.modulo(137.24).should_be_close(92.9299999999996, TOLERANCE)
+    
+    6543.21.modulo(137).should_be_close(6543.21.%(137), TOLERANCE)
+    5667.19.modulo(0xffffffff).should_be_close(5667.19.%(0xffffffff), TOLERANCE)
+    6543.21.modulo(137.24).should_be_close(6543.21.%(137.24), TOLERANCE)
   end
 
   specify "modulo should NOT raise ZeroDivisionError if other is zero" do
@@ -264,5 +316,12 @@ context "Float.induced_from" do
     end
     should_raise(TypeError) { Float.induced_from(Foo.new) }
   end
-end
+end 
 
+describe "Float#+@" do 
+  it " should return the same value with same sign (two complement)" do 
+    34.56.send(:+@).should == 34.56
+    -34.56.send(:+@).should == -34.56
+    0.0.send(:+@).should == 0.0
+  end  
+end
