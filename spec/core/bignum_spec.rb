@@ -4,6 +4,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # div, divmod, eql?, hash, modulo, power!, quo, quo, rdiv, remainder,
 # rpower, size, to_f, to_s, |, ~
 
+TOLERANCE = 0.000003
+
 module S_BignumHelper
   def self.sbm(plus=0)
     0x40000000 + plus
@@ -45,14 +47,14 @@ describe "Bignum instance method" do
   
   it "* should return self multiplied by other" do
     a = S_BignumHelper.sbm(772)
-    (a * 98.6).to_s.should == '105871019965.6'
+    (a * 98.6).should_be_close(1.0587101996559999e+11, TOLERANCE)
     (a * 10).to_s.should == '10737425960'
     (a * (a - 40)).to_s.should == '1152923119515115376'
   end
   
   it "** should return self raised to other power" do
     a = S_BignumHelper.sbm(47)
-    (a ** 5.2).to_s.should == '9.13438731244363e+46'
+    (a ** 5.2).to_s.should == "9.13438731244363e+46"
     (a ** 4).should == 1329228228517658539377366716859970881
   end
   
@@ -77,8 +79,8 @@ describe "Bignum instance method" do
   
   it "/ should return self divided by other" do
     a = S_BignumHelper.sbm(88)
-    (a / 4).to_s.should == '268435478'
-    (a / 16.2).to_s.should == '66280364.9382716'
+    (a / 4).should_be_close(268435478, TOLERANCE)
+    (a / 16.2).should_be_close(66280364.9382716, TOLERANCE)
     (a / S_BignumHelper.sbm(2)).to_s.should == '1'
   end
   
@@ -185,7 +187,7 @@ describe "Bignum instance method" do
   it "div should be a synonym for /" do
     a = S_BignumHelper.sbm(41622)
     a.div(4).should == (a / 4)
-    a.div(16.2).to_s.should == (a / 16.2).to_s
+    a.div(16.2).should_be_close((a / 16.2), TOLERANCE)
     a.div(S_BignumHelper.sbm(2)).should == (a / (S_BignumHelper.sbm(2)))
   end
   
@@ -234,7 +236,7 @@ describe "Bignum instance method" do
   it "modulo should be a synonym for %" do
     a = S_BignumHelper.sbm(2_222)
     a.modulo(5).should == 1
-    a.modulo(2.22).to_s.should == '0.419999905491539'
+    a.modulo(2.22).should_be_close(0.419999905491539, TOLERANCE)
     a.modulo(S_BignumHelper.sbm).should == 2222
   end
   
@@ -251,9 +253,9 @@ describe "Bignum instance method" do
   
   it "quo should return the floating-point result of self divided by other" do
     a = S_BignumHelper.sbm(3)
-    a.quo(2.5).to_s.should == '429496730.8'
-    a.quo(13).to_s.should == '82595525.1538462'
-    a.quo(S_BignumHelper.sbm).to_s.should == '1.00000000279397'
+    a.quo(2.5).should_be_close(429496730.8, TOLERANCE)
+    a.quo(13).should_be_close(82595525.1538462, TOLERANCE)
+    a.quo(S_BignumHelper.sbm).should_be_close(1.00000000279397, TOLERANCE)
   end
 
   it "quo should NOT raise an exception when other is zero" do
@@ -268,7 +270,7 @@ describe "Bignum instance method" do
   it "remainder should return the remainder of dividing self by other" do
     a = S_BignumHelper.sbm(79)
     a.remainder(2).should == 1
-    a.remainder(97.345).to_s.should == '75.16000001254'
+    a.remainder(97.345).should_be_close(75.16000001254, TOLERANCE)
     a.remainder(S_BignumHelper.sbm).should == 79
   end
   
@@ -305,12 +307,6 @@ describe "Bignum instance method" do
     S_BignumHelper.sbm(14).to_f.should == 1073741838.0
   end
   
-  it "to_s should return a string representation of self" do
-    S_BignumHelper.sbm(9).to_s.should == "1073741833"
-    S_BignumHelper.sbm.to_s.should == "1073741824"
-    (-S_BignumHelper.sbm(675)).to_s.should == "-1073742499"
-  end
-  
   it "| should return self bitwise OR other" do
     a = S_BignumHelper.sbm(11)
     (a | 2).should == 1073741835
@@ -328,5 +324,50 @@ describe "Bignum instance method" do
     a = 0xffffffff.coerce(0xffffffff)
     a.should == [4294967295, 4294967295]
     a.collect { |i| i.class }.should == [Bignum, Bignum]
+  end
+end
+
+describe "Bignum " do 
+  # 18446744073709551616 == 2**64
+  # 36893488147419103232 == 2**65
+  it " return self bitwise AND other" do
+      (18446744073709551616).&(1).should_be_close(0,0.00001)
+      (18446744073709551616).&(-1).should == 18446744073709551616
+      (36893488147419103232).&(-1).should == 36893488147419103232
+      (18446744073709551616).&(18446744073709551616).should == 18446744073709551616
+  end
+end
+
+describe "Bignum#>>" do 
+   # This test was added as the result of ruby-core:9020.
+   it "return the right shift alignment" do
+      ((1 - 2**31) >> 31).should == -1
+      ((1 - 2**32) >> 32).should == -1
+      ((1 - 2**63) >> 63).should == -1 
+      ((1 - 2**64) >> 64).should == -1 
+   end
+end
+
+describe "Bignum#to_s" do  
+  it "return a string representation of self" do
+    S_BignumHelper.sbm(9).to_s.should == "1073741833"
+    S_BignumHelper.sbm.to_s.should == "1073741824"
+    (-S_BignumHelper.sbm(675)).to_s.should == "-1073742499"
+  end
+  
+  it "return a string with the representation of self in base x"  do 
+    a = 18446744073709551616 #2**64
+    a.to_s(2).should == "10000000000000000000000000000000000000000000000000000000000000000" 
+    a.to_s(8).should == "2000000000000000000000"
+    a.to_s(16).should == "10000000000000000"
+    a.to_s(32).should == "g000000000000" 
+  end
+  
+  it "raise an ArgumentError exception if argument is 0" do
+    should_raise(ArgumentError){ 18446744073709551616.to_s(0) }
+  end
+  
+  it "raise an ArgumentError exception if argument is bigger than 36" do 
+    should_raise(ArgumentError){ 18446744073709551616.to_s(37) } # Max is 36
   end
 end
