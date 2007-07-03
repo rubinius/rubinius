@@ -9,6 +9,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 struct marshal_state {
   int consumed;
@@ -478,27 +481,49 @@ OBJECT cpu_unmarshal(STATE, char *str, int version) {
 }
 
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
-  gchar *data;
-  GIOChannel *io;
-  GError *err;
-  gsize sz, count = 4;
-  gchar buf[4];
+  gchar *ptr, *data = NULL;
+  FILE *f = NULL;
+  size_t read;
+  off_t left;
+  char buf[4];
   OBJECT obj = Qnil;
   struct marshal_state ms;
+  struct stat st;
+  int s;
+
+  s = stat(path, &st);
+  if(s == -1) {
+    return Qnil;
+  }
+
+  left = st.st_size;
+
   ms.consumed = 0;
-  
-  data = NULL;
-  err = NULL;
-  
-  io = g_io_channel_new_file(path, "r", &err);
-  if(io == NULL) {return Qnil;}
-  g_io_channel_set_encoding(io, NULL, &err);
-  g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
+  ms.objects = NULL;
+
+  f = fopen(path, "rb");
+  if(!f) {
+    goto cleanup;
+  }
+
+  read = fread(buf, 1, 4, f);
+  if(read != 4) {
+    goto cleanup;
+  }
+
+  left -= 4;
+
   ms.objects = g_ptr_array_new();
   if(!strncmp(buf, "RBIS", 4)) {
     version = -1;
   } else if(!strncmp(buf, "RBIX", 4)) {
-    g_io_channel_read_chars(io, (gchar*)&buf, count, &sz, &err);
+    read = fread(buf, 1, 4, f);
+    if(read != 4) {
+      goto cleanup;
+    }
+
+    left -= 4;
+
     if(read_int(buf) < version) {
       /* out of date. */
       goto cleanup;
@@ -507,14 +532,33 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
     printf("Invalid compiled file.\n");
     goto cleanup;
   }
-  
-  g_io_channel_read_to_end(io, &data, &sz, &err);
+
+  /* read the payload of the file */
+  data = ptr = malloc(st.st_size);
+  if(!data) {
+    return Qnil;
+  }
+
+  do {
+    read = fread(ptr, 1, left, f);
+    ptr += read;
+    left -= read;
+  } while (read > 0);
+
   obj = unmarshal(state, data, &ms);
 cleanup:
-  g_io_channel_shutdown(io, TRUE, &err);
-  g_io_channel_unref(io);
-  if(data) g_free(data);
-  g_ptr_array_free(ms.objects, 1);
+  if(f) {
+    fclose (f);
+  }
+
+  if(data) {
+    free(data);
+  }
+
+  if(ms.objects) {
+    g_ptr_array_free(ms.objects, 1);
+  }
+
   return obj;
 }
 
