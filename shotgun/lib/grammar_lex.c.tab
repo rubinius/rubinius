@@ -1,6 +1,10 @@
 /* C code produced by gperf version 2.7.2 */
 /* Command-line: gperf -p -j1 -i 1 -g -o -t -N rb_reserved_word -k'1,3,$' ./keywords  */
-struct kwtable {char *name; int id[2]; enum lex_state state;};
+struct kwtable {
+  int id[2];
+  enum lex_state state;
+  char name[];
+};
 
 #define TOTAL_KEYWORDS 40
 #define MIN_WORD_LENGTH 2
@@ -71,49 +75,49 @@ syd_reserved_word (register const char *str, register unsigned int len)
 {
   static const struct kwtable wordlist[] =
     {
-      {""}, {""}, {""}, {""}, {""}, {""},
-      {"end", {kEND, kEND}, EXPR_END},
-      {"else", {kELSE, kELSE}, EXPR_BEG},
-      {"case", {kCASE, kCASE}, EXPR_BEG},
-      {"ensure", {kENSURE, kENSURE}, EXPR_BEG},
-      {"module", {kMODULE, kMODULE}, EXPR_BEG},
-      {"elsif", {kELSIF, kELSIF}, EXPR_BEG},
-      {"def", {kDEF, kDEF}, EXPR_FNAME},
-      {"rescue", {kRESCUE, kRESCUE_MOD}, EXPR_MID},
-      {"not", {kNOT, kNOT}, EXPR_BEG},
-      {"then", {kTHEN, kTHEN}, EXPR_BEG},
-      {"yield", {kYIELD, kYIELD}, EXPR_ARG},
-      {"for", {kFOR, kFOR}, EXPR_BEG},
-      {"self", {kSELF, kSELF}, EXPR_END},
-      {"false", {kFALSE, kFALSE}, EXPR_END},
-      {"retry", {kRETRY, kRETRY}, EXPR_END},
-      {"return", {kRETURN, kRETURN}, EXPR_MID},
-      {"true", {kTRUE, kTRUE}, EXPR_END},
-      {"if", {kIF, kIF_MOD}, EXPR_BEG},
-      {"defined?", {kDEFINED, kDEFINED}, EXPR_ARG},
-      {"super", {kSUPER, kSUPER}, EXPR_ARG},
-      {"undef", {kUNDEF, kUNDEF}, EXPR_FNAME},
-      {"break", {kBREAK, kBREAK}, EXPR_MID},
-      {"in", {kIN, kIN}, EXPR_BEG},
-      {"do", {kDO, kDO}, EXPR_BEG},
-      {"nil", {kNIL, kNIL}, EXPR_END},
-      {"until", {kUNTIL, kUNTIL_MOD}, EXPR_BEG},
-      {"unless", {kUNLESS, kUNLESS_MOD}, EXPR_BEG},
-      {"or", {kOR, kOR}, EXPR_BEG},
-      {"next", {kNEXT, kNEXT}, EXPR_MID},
-      {"when", {kWHEN, kWHEN}, EXPR_BEG},
-      {"redo", {kREDO, kREDO}, EXPR_END},
-      {"and", {kAND, kAND}, EXPR_BEG},
-      {"begin", {kBEGIN, kBEGIN}, EXPR_BEG},
-      {"__LINE__", {k__LINE__, k__LINE__}, EXPR_END},
-      {"class", {kCLASS, kCLASS}, EXPR_CLASS},
-      {"__FILE__", {k__FILE__, k__FILE__}, EXPR_END},
-      {"END", {klEND, klEND}, EXPR_END},
-      {"BEGIN", {klBEGIN, klBEGIN}, EXPR_END},
-      {"while", {kWHILE, kWHILE_MOD}, EXPR_BEG},
-      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""},
-      {"alias", {kALIAS, kALIAS}, EXPR_FNAME}
+      {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}},
+      {{kEND, kEND}, EXPR_END, "end"},
+      {{kELSE, kELSE}, EXPR_BEG, "else"},
+      {{kCASE, kCASE}, EXPR_BEG, "case"},
+      {{kENSURE, kENSURE}, EXPR_BEG, "ensure"},
+      {{kMODULE, kMODULE}, EXPR_BEG, "module"},
+      {{kELSIF, kELSIF}, EXPR_BEG, "elsif"},
+      {{kDEF, kDEF}, EXPR_FNAME, "def"},
+      {{kRESCUE, kRESCUE_MOD}, EXPR_MID, "rescue"},
+      {{kNOT, kNOT}, EXPR_BEG, "not"},
+      {{kTHEN, kTHEN}, EXPR_BEG, "then"},
+      {{kYIELD, kYIELD}, EXPR_ARG, "yield"},
+      {{kFOR, kFOR}, EXPR_BEG, "for"},
+      {{kSELF, kSELF}, EXPR_END, "self"},
+      {{kFALSE, kFALSE}, EXPR_END, "false"},
+      {{kRETRY, kRETRY}, EXPR_END, "retry"},
+      {{kRETURN, kRETURN}, EXPR_MID, "return"},
+      {{kTRUE, kTRUE}, EXPR_END, "true"},
+      {{kIF, kIF_MOD}, EXPR_BEG, "if"},
+      {{kDEFINED, kDEFINED}, EXPR_ARG, "defined?"},
+      {{kSUPER, kSUPER}, EXPR_ARG, "super"},
+      {{kUNDEF, kUNDEF}, EXPR_FNAME, "undef"},
+      {{kBREAK, kBREAK}, EXPR_MID, "break"},
+      {{kIN, kIN}, EXPR_BEG, "in"},
+      {{kDO, kDO}, EXPR_BEG, "do"},
+      {{kNIL, kNIL}, EXPR_END, "nil"},
+      {{kUNTIL, kUNTIL_MOD}, EXPR_BEG, "until"},
+      {{kUNLESS, kUNLESS_MOD}, EXPR_BEG, "unless"},
+      {{kOR, kOR}, EXPR_BEG, "or"},
+      {{kNEXT, kNEXT}, EXPR_MID, "next"},
+      {{kWHEN, kWHEN}, EXPR_BEG, "when"},
+      {{kREDO, kREDO}, EXPR_END, "redo"},
+      {{kAND, kAND}, EXPR_BEG, "and"},
+      {{kBEGIN, kBEGIN}, EXPR_BEG, "begin"},
+      {{k__LINE__, k__LINE__}, EXPR_END, "__LINE__"},
+      {{kCLASS, kCLASS}, EXPR_CLASS, "class"},
+      {{k__FILE__, k__FILE__}, EXPR_END, "__FILE__"},
+      {{klEND, klEND}, EXPR_END, "END"},
+      {{klBEGIN, klBEGIN}, EXPR_END, "BEGIN"},
+      {{kWHILE, kWHILE_MOD}, EXPR_BEG, "while"},
+      {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}},
+      {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}}, {{0, 0}},
+      {{kALIAS, kALIAS}, EXPR_FNAME, "alias"}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
