@@ -3,7 +3,7 @@
 struct kwtable {
   int id[2];
   enum lex_state state;
-  char name[];
+  char name[16];
 };
 
 #define TOTAL_KEYWORDS 40
