@@ -79,6 +79,7 @@ subtend/PortableUContext_asm.lo:
 	$(COMP) $(CFLAGS) -c subtend/PortableUContext_asm.S -o subtend/PortableUContext_asm.lo
 
 .%.d:  %.c  $(DEPS)
+	@echo DEP $<
 	@set -e; rm -f $@; \
 	$(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.lo $@ : ,g' < $@.$$$$ > $@; \
