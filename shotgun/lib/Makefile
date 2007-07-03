@@ -1,16 +1,5 @@
 -include ../config.mk
-
-# Respect ENV
-ifeq ($(CC),)
-   CC=gcc
-endif
-
-
-COMP=$(LIBTOOL) --mode=compile $(CC)
-LINKER=$(LIBTOOL) --mode=link $(CC)
-UNAME=$(shell uname)
-CPU=$(shell uname -p)
-MARCH=$(shell uname -m)
+include ../common.mk
 
 ifeq ($(UNAME),Darwin)
   SINGLE_MODULE=-Wl,-single_module
@@ -84,7 +73,6 @@ show_info:
 	@echo "Debugging: $(DEBUG)"
 
 %.lo: %.c
-	@echo "CC $@"
 	$(COMP) $(CFLAGS) -c $< -o $@
 
 subtend/PortableUContext_asm.lo:
@@ -116,11 +104,9 @@ node_types.c node_types.h: node_types.rb
 	$(RUBY) node_types.rb
 
 grammar.lo:
-	@echo "CC grammar.o"
-	@$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c
+	$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c
 
 subtend/ffi.lo: subtend/ffi.c
-	@echo "CC subtend/ffi.o"
 	$(COMP) $(CFLAGS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
 
 # In a perfect world, we'd only rebuild grammar.c if grammar.y changed.

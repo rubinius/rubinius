@@ -1,12 +1,6 @@
 include config.mk
+include common.mk
 
-# Respect the environment
-ifeq ($(CC),)
-CC=gcc
-endif
-
-COMP=$(LIBTOOL) --mode=compile $(CC)
-LINKER=$(LIBTOOL) --mode=link $(CC)
 INSTALL=$(LIBTOOL) --mode=install install
 MKDIR=install -d
 
