@@ -121,9 +121,11 @@ static OBJECT cstring_to_symbol(STATE, const char *str) {
 
 const char *op_to_name(ID id);
 
+#if 0
 static const char* print_quark(GQuark quark) {
   return g_quark_to_string(id_to_quark(quark));
 }
+#endif
 
 static OBJECT quark_to_symbol(STATE, GQuark quark) {
   const char *op;
@@ -133,11 +135,6 @@ static OBJECT quark_to_symbol(STATE, GQuark quark) {
   }
   return cstring_to_symbol(state, g_quark_to_string(id_to_quark(quark)));
 }
-
-static char *show_node(NODE *node) {
-  return get_node_type_string(nd_type(node));
-}
-
 
 static OBJECT gstring2rubinius(STATE, GString *str) {
   return string_new2(state, str->str, str->len);
