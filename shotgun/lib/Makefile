@@ -30,6 +30,16 @@ ifneq ($(findstring BSD,$(UNAME)),BSD)
   LIBS+="-ldl"
 endif
 
+# BSD comes with strlcat and strlcpy
+ifeq ($(findstring BSD,$(UNAME)),BSD)
+  CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
+endif
+
+# OSX comes with strlcat and strlcpy
+ifeq ($(UNAME),Darwin)
+  CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
+endif
+
 # Darwin doesn't need -lcrypt
 ifneq ($(UNAME),Darwin)
   LIBS+="-lcrypt"
