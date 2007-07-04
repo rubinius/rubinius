@@ -70,6 +70,9 @@ compiler_state = RsLocalState.new
 # Start off with just 10 slots, but we enlarge as needed below.
 locals = Tuple.new(10)
 
+# Alias quit to exit to match IRB, make it easier to quit
+class Object; alias :quit :exit; end
+
 pstate = ">"
 
 while true
