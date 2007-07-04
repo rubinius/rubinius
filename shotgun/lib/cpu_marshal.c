@@ -384,18 +384,11 @@ static void marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
 OBJECT cpu_marshal(STATE, OBJECT obj, int version) {
   GString *buf;
   OBJECT ret;
-  struct marshal_state ms;
-  ms.consumed = 0;
-  ms.objects = g_ptr_array_new();
-  
-  buf = g_string_new(NULL);
-  g_string_append(buf, "RBIX");
-  _append_sz(buf, version);
-  
-  marshal(state, obj, buf, &ms);
+
+  buf = cpu_marshal_to_gstring(state, obj, version);
   ret = string_new2(state, buf->str, buf->len);
   g_string_free(buf, 1);
-  g_ptr_array_free(ms.objects, 1);
+
   return ret;
 }
 
