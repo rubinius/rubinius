@@ -144,7 +144,11 @@ class Time
   end
   
   def -(other)
-    dup.at_gmt(seconds - other, usec, @is_gmt)
+    if other.kind_of? Time
+      seconds - other.seconds + (usec - other.usec) * 0.000001
+    else
+      dup.at_gmt(seconds - other, usec, @is_gmt)
+    end
   end
   
   def succ

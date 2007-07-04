@@ -98,6 +98,7 @@ context "Time instance method" do
   
   specify "- should decrement the time by the specified amount" do
     (Time.at(100) - 100).should == Time.at(0)
+    (Time.at(100) - Time.at(99)).should == 1.0
   end
   
   specify "succ should return a new time one second later than time" do
