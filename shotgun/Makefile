@@ -10,9 +10,6 @@ else
   BINSUFFIX?=
 endif
 
-UNAME=$(shell uname)
-MARCH=$(shell uname -m)
-
 CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
 
 # amd64 must have fPIC shared
