@@ -179,6 +179,10 @@ unsigned int string_hash_cstr(STATE, const char *bp) {
   return _hash_str((unsigned char*)bp, sz);
 }
 
+unsigned int string_hash_str_with_size(STATE, const char *bp, int size) {
+  return _hash_str((unsigned char*)bp, size);
+}
+
 OBJECT string_to_sym(STATE, OBJECT self) {
   assert(STRING_P(self));
   return symtbl_lookup(state, state->global->symbols, self);

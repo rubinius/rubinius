@@ -26,6 +26,7 @@ char *string_as_string(STATE, OBJECT self);
 char *string_byte_address(STATE, OBJECT self);
 unsigned int string_hash_int(STATE, OBJECT self);
 unsigned int string_hash_cstr(STATE, const char *bp);
+unsigned int string_hash_str_with_size(STATE, const char *bp, int size);
 OBJECT string_to_sym(STATE, OBJECT self);
 double string_to_double(STATE, OBJECT self);
 

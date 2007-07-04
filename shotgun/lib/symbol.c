@@ -24,10 +24,15 @@ OBJECT symtbl_new(STATE) {
 }
 
 OBJECT symtbl_lookup_cstr(STATE, OBJECT self, const char *str) {
+  return symtbl_lookup_str_with_size(state, self, str, strlen(str));
+}
+
+OBJECT symtbl_lookup_str_with_size(STATE, OBJECT self,
+                                   const char *str, int size) {
   unsigned int hash;
   OBJECT strs, idx, syms;
 
-  hash = string_hash_cstr(state, str);
+  hash = string_hash_str_with_size(state, str, size);
   strs = symtbl_get_strings(self);
   syms = symtbl_get_symbols(self);
   
@@ -35,7 +40,7 @@ OBJECT symtbl_lookup_cstr(STATE, OBJECT self, const char *str) {
   
   /* If it wasn't present, use the longer, more correct version. */
   if(NIL_P(idx) || idx == Qundef) {
-    return symtbl_lookup(state, self, string_new(state, str));
+    return symtbl_lookup(state, self, string_new2(state, str, size));
   }
   
   return symbol_from_index(state, FIXNUM_TO_INT(idx));
