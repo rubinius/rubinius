@@ -6,6 +6,8 @@
 #include "ltdl.h"
 
 #include "string.h"
+#include "strlcpy.h"
+#include "strlcat.h"
 
 #ifdef _WIN32
 #define LIBSUFFIX ".dll"
@@ -69,13 +71,11 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   nmc = NULL;
   
-  bzero(sys_name, 128);
-  
   /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
      or whatever the library suffix is. */
   c_path = string_as_string(state, path);
-  strncat(sys_name, c_path, 120);
-  strncat(sys_name, LIBSUFFIX, 120);
+  strlcpy(sys_name, c_path, sizeof(sys_name));
+  strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
   
   /* Open it up. If this fails, then we just pretend like
      the library isn't there. */
@@ -89,7 +89,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   /* name is like 'gzip', we want 'Init_gzip' */
   c_name = string_as_string(state, name);
-  strncat(init, c_name, 122);
+  strlcat(init, c_name, sizeof(init));
   
   /* Try and load the init function. */
   ep = (void (*)(void))lt_dlsym(lib, init);
