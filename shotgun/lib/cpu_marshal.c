@@ -137,8 +137,6 @@ static void marshal_fields_as(STATE, OBJECT obj, GString *buf, char type, struct
 static OBJECT unmarshal_into_fields(STATE, int sz, OBJECT tup, struct marshal_state *ms) {
   int i, j, cur;
   OBJECT o;
-  ms->consumed += 5;
-  ms->buf += 5;
   cur = ms->consumed;
   for(i = 0; i < sz; i++) {
     uint8_t *old = ms->buf;
@@ -153,9 +151,13 @@ static OBJECT unmarshal_into_fields(STATE, int sz, OBJECT tup, struct marshal_st
   return tup;
 }
 
-static int unmarshal_num_fields(uint8_t *str) {
+static int unmarshal_num_fields(struct marshal_state *ms) {
   int i;
-  i = read_int(str + 1);
+  i = read_int(ms->buf + 1);
+
+  ms->consumed += 5;
+  ms->buf += 5;
+
   return i;
 }
 
@@ -197,7 +199,7 @@ static void marshal_tup(STATE, OBJECT obj, GString *buf, struct marshal_state *m
 static OBJECT unmarshal_tup(STATE, struct marshal_state *ms) {
   int sz;
   OBJECT tup;
-  sz = unmarshal_num_fields(ms->buf);
+  sz = unmarshal_num_fields(ms);
   tup = tuple_new(state, sz);
   unmarshal_into_fields(state, sz, tup, ms);
   return tup;
@@ -283,7 +285,7 @@ static void marshal_cmethod(STATE, OBJECT obj, GString *buf, struct marshal_stat
 static OBJECT unmarshal_cmethod(STATE, struct marshal_state *ms) {
   int sz;
   OBJECT cm;
-  sz = unmarshal_num_fields(ms->buf);
+  sz = unmarshal_num_fields(ms);
   cm = cmethod_allocate(state);
   unmarshal_into_fields(state, sz, cm, ms);
   return cm;
