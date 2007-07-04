@@ -451,7 +451,7 @@ OBJECT cpu_unmarshal(STATE, char *str, int version) {
   int offset = 4;
   if(!strncmp(str, "RBIS", 4)) {
     version = -1;
-  } else if(!strncmp(str, "RBIX", 3)) {
+  } else if(!strncmp(str, "RBIX", 4)) {
     if(read_int(str + 3) < version) {
       /* file is out of date. */
       return Qnil;
