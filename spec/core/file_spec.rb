@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require 'fileutils'
 
 # class methods
 # atime, basename, blockdev?, chardev?, chmod, chown, ctime, delete,
@@ -191,8 +192,7 @@ context "File class method" do
   end
 end
 
-context "File instance method" do
-  
+context "File instance method" do  
   specify "path should return the pathname used to create file as a string" do
     begin
       file1 = "testfile"
@@ -203,5 +203,195 @@ context "File instance method" do
       File.delete(file1) rescue nil
       File.delete(file2) rescue nil
     end
+  end
+end
+
+describe "File#atime" do
+  before(:each) do
+    @name = File.expand_path(__FILE__)
+    @file = File.open(@name)
+  end
+
+  it "returns the last access time to self" do
+    @file.atime  
+    @file.atime.class.should === Time
+  end
+
+  it "raise an Exception if it has the worng number of argments" do
+    should_raise(ArgumentError){ @file.atime(@name) }
+  end
+
+  after(:each) do 
+    @name = nil
+    @file = nil
+  end
+end
+ 
+describe "File#ctime" do
+  before(:each) do
+    @file = File.open(__FILE__)
+  end
+
+  it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
+    @file.ctime
+    @file.ctime.class.should == Time
+  end
+ 
+  it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    should_raise(ArgumentError){ @file.ctime(@file, @file) } 
+  end
+
+  after(:each) do
+    @file = nil
+  end
+end 
+
+describe "File.ctime" do
+  before(:each) do
+    @file = __FILE__
+  end
+
+  it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
+    File.ctime(@file)  
+    File.ctime(@file).class.should == Time
+  end
+
+  it "raise an Errno::ENOENT exception if the file is not found" do    
+    should_raise(Errno::ENOENT){ File.ctime('bogus') }
+  end
+  
+  it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    should_raise(ArgumentError){ File.ctime }
+    should_raise(ArgumentError){ File.ctime(@file, @file) }
+    should_raise(TypeError){ File.ctime(1) }
+  end
+
+  after(:each) do
+    @file = nil
+  end
+end 
+
+describe "File.delete" do
+  before(:each) do
+    @file1 = 'temp1.txt'
+    @file2 = 'temp2.txt'
+
+    File.open(@file1, "w"){} # Touch
+    File.open(@file2, "w"){} # Touch
+  end
+
+  it "deletes the named files," do
+    File.delete(@file1)
+    should_raise(Errno::ENOENT){File.open(@file1,"r")}
+  end
+
+  it "return the number of names passed as arguments (0 and 1 argument)" do
+    File.delete.should == 0
+    File.delete(@file1).should == 1
+  end
+
+  it "return the number of names passed as arguments(multiples arguments)" do
+    File.delete(@file1, @file2).should == 2
+  end
+
+  it "raise an exception its the arguments are the worng type or number" do
+    should_raise(TypeError){ File.delete(1) }
+    should_raise(Errno::ENOENT){ File.delete('a_fake_file') }
+  end
+ 
+  after(:each) do
+    FileUtils.remove_file(@file1)
+    FileUtils.remove_file(@file2)
+
+    @file1 = nil
+    @file2 = nil
+  end
+end
+
+describe "File.directory?" do 
+  before(:each) do
+    if RUBY_PLATFORM.match('mswin')
+      @dir  = "C:\\"
+      @file = "C:\\winnt\\notepad.exe"
+    else
+      @dir  = "/"
+      @file = "/bin/ls"
+    end
+  end
+ 
+  it "return true if dir is a directory, otherwise return false" do
+    File.directory?(@dir).should == true
+    File.directory?(@file).should == false
+  end
+   
+  it "raise an exception its the arguments are the worng type or number" do
+    should_raise(ArgumentError){ File.directory? }
+    should_raise(ArgumentError){ File.directory?(@dir, @file) }
+    should_raise(TypeError){ File.directory?(nil) }
+  end
+
+  after(:each) do
+    @dir = nil
+  end
+end
+
+describe "File.executable?" do 
+  before(:each) do
+    @file1 = File.join(Dir.pwd, 'temp1.txt')
+    @file2 = File.join(Dir.pwd, 'temp2.txt')
+
+    FileUtils.touch(@file1)
+    FileUtils.touch(@file2)      
+    File.chmod(0755, @file1)
+  end
+
+  unless  RUBY_PLATFORM.match('mswin')
+    it "return true if the argument its an executable file" do
+      File.executable?(@file1).should == true
+      File.executable?(@file2).should == false
+      File.executable?('a_fake_file').should == false
+    end
+  end
+
+  it "raise an exception its the arguments are the worng type or number" do
+    should_raise(ArgumentError){ File.executable? }
+    should_raise(TypeError){ File.executable?(1) }
+    should_raise(TypeError){ File.executable?(nil) }
+    should_raise(TypeError){ File.executable?(false) }
+  end
+
+  after(:each) do
+    # FileUtils.remove_file(@file1)
+    # FileUtils.remove_file(@file2)
+
+    @file1 =  nil
+    @file2 = nil
+  end
+end
+
+describe "File.atime" do
+  before(:each) do
+    @file = File.join(Dir.pwd, 'test.txt')
+    FileUtils.touch(@file)
+  end
+
+  it "returns the last access time for the named file as a Time object" do      
+    File.atime(@file)
+    File.atime(@file).class.should == Time
+  end
+
+  it "raise an Errno::ENOENT exception if the file is not found" do 
+    should_raise(Errno::ENOENT){ File.atime('a_fake_file') }
+  end
+   
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    should_raise(ArgumentError){ File.atime }
+    should_raise(ArgumentError){ File.atime(@file, @file) }
+    should_raise(TypeError){ File.atime(1) }
+  end
+
+  after(:each) do
+    FileUtils.remove_file(@file)
+    @file = nil
   end
 end
