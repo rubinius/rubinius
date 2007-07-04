@@ -208,15 +208,11 @@ static OBJECT unmarshal_tup(STATE, struct marshal_state *ms) {
 static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
   int i;
   char buffer[1024];
-  char *s;
   bignum_into_string(state, obj, 10, buffer, 1024);
   append_c('B');
   i = strlen(buffer);
   append_sz(i);
-  s = buffer;
-  while(*s) {
-    append_c(*s++);
-  }
+  g_string_append(buf, buffer);
   append_c(0);                  /* zero byte */
 }
 
@@ -232,16 +228,12 @@ static OBJECT unmarshal_bignum(STATE, struct marshal_state *ms) {
 static void marshal_floatpoint(STATE, OBJECT obj, GString *buf) {
   int i;
   char buffer[26];
-  char *s;
 
   float_into_string(state, obj, buffer, 26);
   append_c('d');
   i = strlen(buffer);
   append_sz(i);
-  s = buffer;
-  while(*s) {
-    append_c(*s++);
-  }
+  g_string_append(buf, buffer);
   append_c(0);               /* zero byte */
 }
 
