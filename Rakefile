@@ -11,6 +11,19 @@ def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
 
+@pb = "runtime/pristine_bootstrap.rba"
+@pc = "runtime/pristine_core.rba"
+
+if File.exists?(@pb)
+  puts "Using #{@pb} for bootstrap."
+  ENV['BOOTSTRAP'] = @pb
+end
+
+if File.exists?(@pc)
+  puts "Using #{@pc} for core."
+  ENV['CORE'] = @pc
+end
+
 def update_archive(files, archive, dir=nil)
   archive = File.expand_path(ENV['OUTPUT'] || archive)
   
@@ -238,6 +251,16 @@ namespace :svn do
     sh "svn revert reports/*.html"
     sh "svn revert runtime/*.rba"
     puts `svn up`
+  end
+end
+
+# dev tasks
+
+namespace :dev do
+  desc "Make a few changes to support easier development"
+  task :setup do
+    sh "cp runtime/core.rba #{@pc}"
+    sh "cp runtime/bootstrap.rba #{@pb}" 
   end
 end
 
