@@ -420,15 +420,13 @@ GString *cpu_marshal_to_gstring(STATE, OBJECT obj, int version) {
 
 OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   GString *buf;
-  GIOChannel *io;
-  GError *err;
-  gsize sz;
+  FILE *f;
   struct marshal_state ms;
   
-  err = NULL;
-  
-  io = g_io_channel_new_file(path, "w", &err);
-  if(io == NULL) { return Qfalse; }
+  f = fopen(path, "wb");
+  if(!f) {
+    return Qfalse;
+  }
   
   ms.consumed = 0;
   ms.objects = g_ptr_array_new();
@@ -437,12 +435,11 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   _append_sz(buf, version);
   marshal(state, obj, buf, &ms);
   
-  g_io_channel_set_encoding(io, NULL, &err);
   /* TODO do error chceking here */
-  g_io_channel_write_chars(io, "RBIX", -1, NULL, &err);
-  g_io_channel_write_chars(io, buf->str, buf->len, &sz, &err);
-  g_io_channel_shutdown(io, TRUE, &err);
-  g_io_channel_unref(io);
+  fwrite("RBIX", 1, 4, f);
+  fwrite(buf->str, 1, buf->len, f);
+  fclose(f);
+
   g_string_free(buf, 1);
   g_ptr_array_free(ms.objects, 1);
   return Qtrue;
