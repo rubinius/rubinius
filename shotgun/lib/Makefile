@@ -3,6 +3,7 @@ include ../common.mk
 
 ifeq ($(UNAME),Darwin)
   SINGLE_MODULE=-Wl,-single_module
+  export MACOSX_DEPLOYMENT_TARGET=10.4
 else
   SINGLE_MODULE=
 endif
@@ -86,7 +87,7 @@ subtend/PortableUContext_asm.lo:
 	rm -f $@.$$$$
 
 librubinius.la: show_info $(DEPS) $(LOBJS) 
-	MACOSX_DEPLOYMENT_TARGET=10.4 $(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) $(LIBS)
+	$(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) $(LIBS)
 
 cpu_instructions.o: instructions.gen instruction_names.c instruction_names.h
 cpu_primitives.o: system_primitives.gen

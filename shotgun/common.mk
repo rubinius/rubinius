@@ -7,10 +7,10 @@ UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
 
-LINKER=$(LIBTOOL) --mode=link $(CC)
-
 ifdef VERBOSE
   COMP=$(LIBTOOL) --mode=compile $(CC)
+  LINKER=$(LIBTOOL) --mode=link $(CC)
 else
   COMP=@echo CC $@;$(LIBTOOL) --mode=compile $(CC) > /dev/null
+  LINKER=@echo LINK $@;$(LIBTOOL) --mode=link $(CC) > /dev/null
 endif
