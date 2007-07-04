@@ -223,11 +223,9 @@ void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *coun
 void machine_resolve_address(unsigned long pc, 
                     char *function, int fs, char *loc, int ls) {
   FILE *io;
-  char cmd[1025];
+  char cmd[1024];
 
-  memset(cmd, 0, 1025);
-
-  snprintf(cmd, 1024, "addr2line -f -e %s %p", current_machine->interpreter, (void*)pc);
+  snprintf(cmd, sizeof(cmd), "addr2line -f -e %s %p", current_machine->interpreter, (void*)pc);
   io = popen(cmd, "r");
   fgets(function, fs, io);
   function[strlen(function)-1] = 0;
@@ -239,18 +237,16 @@ void machine_resolve_address(unsigned long pc,
 void machine_resolve_address(unsigned long pc, 
                     char *function, int fs, char *loc, int ls) {
   FILE *io;
-  char cmd[1025];
+  char cmd[1024];
   int line;
-  char buf[1025];
+  char buf[1024];
 
-  memset(cmd, 0, 1025);
-
-  snprintf(cmd, 1024, "atos -o %s %p", current_machine->interpreter, (void*)pc);
+  snprintf(cmd, sizeof(cmd), "atos -o %s %p", current_machine->interpreter, (void*)pc);
   io = popen(cmd, "r");
-  fgets(cmd, 1025, io);
+  fgets(cmd, sizeof(cmd), io);
   if(cmd[0] == '0') {
-    strncpy(function, "unknown", fs);
-    strncpy(loc, "??:0", ls);
+    strlcpy(function, "unknown", fs);
+    strlcpy(loc, "??:0", ls);
   } else {
     line = sscanf(cmd, "_%s (in %s (%s\n", function, buf, loc);
     loc[strlen(loc)-1] = 0;
@@ -264,8 +260,8 @@ void machine_resolve_address(unsigned long pc,
   int offset;
   Dl_info info;
   if(!dladdr((void*)pc, &info)) {
-    strncpy(function, "<unknown>", fs);
-    strncpy(loc, "??:0", ls);
+    strlcpy(function, "<unknown>", fs);
+    strlcpy(loc, "??:0", ls);
   } else {
     if (info.dli_sname == NULL)
       info.dli_sname = "??";
@@ -276,7 +272,7 @@ void machine_resolve_address(unsigned long pc,
     }
 
     snprintf(function, fs, "%s+%d", info.dli_sname, (int)offset);
-    strncpy(loc, info.dli_fname, ls);
+    strlcpy(loc, info.dli_fname, ls);
   }
 }
 #endif
@@ -284,14 +280,12 @@ void machine_resolve_address(unsigned long pc,
 void machine_show_backtrace(unsigned long *frames, int count) {
   unsigned long sym;
   int i;
-  char function[1025];
-  char loc[1025];
+  char function[1024];
+  char loc[1024];
 
   for(i = 0; i < count; i++) {
-    memset(function, 0, 1025);
-    memset(loc, 0, 1025);
     sym = frames[i];
-    machine_resolve_address(sym, function, 1024, loc, 1024);
+    machine_resolve_address(sym, function, sizeof(function), loc, sizeof(loc));
     fprintf(stdout, "%10p <%s> at %s\n", (void*)sym, function, loc);
   }
 }
