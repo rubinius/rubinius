@@ -138,7 +138,7 @@ inline void cpu_save_registers(STATE, cpu c);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
 
-OBJECT cpu_unmarshal(STATE, char *str, int version);
+OBJECT cpu_unmarshal(STATE, uint8_t *str, int version);
 OBJECT cpu_marshal(STATE, OBJECT obj, int version);
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version);
 GString *cpu_marshal_to_gstring(STATE, OBJECT obj, int version);

@@ -71,10 +71,9 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   struct zip *za;
   struct zip_stat st;
   struct zip_file *zf;
-  char *str;
+  uint8_t *str, *buf;
   OBJECT ret;
   int n, total, err, file = -1;
-  char *buf;
   
   if((za=zip_open(path, 0, &err)) == NULL) {
     return Qnil;

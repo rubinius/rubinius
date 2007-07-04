@@ -16,6 +16,7 @@
 struct marshal_state {
   int consumed;
   GPtrArray *objects;
+  uint8_t *buf;
 };
 
 static int _find_object(OBJECT obj, struct marshal_state *ms) {
@@ -33,7 +34,7 @@ static void _add_object(OBJECT obj, struct marshal_state *ms) {
   g_ptr_array_add(ms->objects, (gpointer)obj);
 }
 
-static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms);
+static OBJECT unmarshal(STATE, struct marshal_state *ms);
 static void   marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms);
 
 #define append_c(ch) g_string_append_c(buf, ch)
@@ -61,26 +62,26 @@ static void marshal_int(STATE, OBJECT obj, GString *buf) {
   append_sz(i);
 }
 
-static int read_int(char *str) {
-  return (int)( ( (unsigned char)str[0] << 24 )
-              | ( (unsigned char)str[1] << 16 )
-              | ( (unsigned char)str[2] << 8  )
-              |   (unsigned char)str[3]         );
+static int read_int(uint8_t *str) {
+  return (int)( (str[0] << 24)
+              | (str[1] << 16)
+              | (str[2] << 8 )
+              |  str[3]      );
 }
 
-static OBJECT _nth_object(STATE, char *str, struct marshal_state *ms) {
+static OBJECT _nth_object(STATE, struct marshal_state *ms) {
   int ref;
   
   ms->consumed += 5;
-  ref = read_int(str + 1);
+  ref = read_int(ms->buf + 1);
   return (OBJECT)g_ptr_array_index(ms->objects, ref);
 }
 
-static OBJECT unmarshal_int(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_int(STATE, struct marshal_state *ms) {
   int i;
   ms->consumed += 6;
-  i = read_int(str + 2);
-  if(str[1] == 'n') {
+  i = read_int(ms->buf + 2);
+  if(ms->buf[1] == 'n') {
     i = -i;
   }
   return I2N(i);
@@ -94,12 +95,12 @@ static void marshal_str(STATE, OBJECT obj, GString *buf) {
   append_str(string_byte_address(state, obj), i);
 }
 
-static OBJECT unmarshal_str(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_str(STATE, struct marshal_state *ms) {
   int sz;
-  sz = read_int(str + 1);
+  sz = read_int(ms->buf + 1);
   ms->consumed += 5;
   ms->consumed += sz;
-  return string_new2(state, str + 5, sz);
+  return string_new2(state, (char *) ms->buf + 5, sz);
 }
 
 static void marshal_sym(STATE, OBJECT obj, GString *buf) {
@@ -112,15 +113,15 @@ static void marshal_sym(STATE, OBJECT obj, GString *buf) {
   append_str(string_byte_address(state, str), i);
 }
 
-static OBJECT unmarshal_sym(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_sym(STATE, struct marshal_state *ms) {
   int sz;
   
-  sz = read_int(str + 1);
+  sz = read_int(ms->buf + 1);
   ms->consumed += 5;
   ms->consumed += sz;
   
   return symtbl_lookup_str_with_size(state, state->global->symbols,
-                                     str + 5, sz);
+                                     (char *) ms->buf + 5, sz);
 }
 
 static void marshal_fields_as(STATE, OBJECT obj, GString *buf, char type, struct marshal_state *ms) {
@@ -133,17 +134,18 @@ static void marshal_fields_as(STATE, OBJECT obj, GString *buf, char type, struct
   }
 }
 
-static OBJECT unmarshal_into_fields(STATE, char *str, int sz, OBJECT tup, struct marshal_state *ms) {
-  char *buf;
+static OBJECT unmarshal_into_fields(STATE, int sz, OBJECT tup, struct marshal_state *ms) {
   int i, j, cur;
   OBJECT o;
   ms->consumed += 5;
-  buf = str + 5;
+  ms->buf += 5;
   cur = ms->consumed;
   for(i = 0; i < sz; i++) {
-    o = unmarshal(state, buf, ms);
+    uint8_t *old = ms->buf;
+
+    o = unmarshal(state, ms);
     j = ms->consumed - cur;
-    buf += j;
+    ms->buf = old + j;
     cur = ms->consumed;
     SET_FIELD(tup, i, o);
   }
@@ -151,7 +153,7 @@ static OBJECT unmarshal_into_fields(STATE, char *str, int sz, OBJECT tup, struct
   return tup;
 }
 
-static int unmarshal_num_fields(char *str) {
+static int unmarshal_num_fields(uint8_t *str) {
   int i;
   i = read_int(str + 1);
   return i;
@@ -192,12 +194,12 @@ static void marshal_tup(STATE, OBJECT obj, GString *buf, struct marshal_state *m
   return marshal_fields_as(state, obj, buf, 'p', ms);
 }
 
-static OBJECT unmarshal_tup(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_tup(STATE, struct marshal_state *ms) {
   int sz;
   OBJECT tup;
-  sz = unmarshal_num_fields(str);
+  sz = unmarshal_num_fields(ms->buf);
   tup = tuple_new(state, sz);
-  unmarshal_into_fields(state, str, sz, tup, ms);
+  unmarshal_into_fields(state, sz, tup, ms);
   return tup;
 }
 
@@ -216,13 +218,13 @@ static void marshal_bignum(STATE, OBJECT obj, GString *buf) {
   append_c(0);                  /* zero byte */
 }
 
-static OBJECT unmarshal_bignum(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_bignum(STATE, struct marshal_state *ms) {
   int sz;
-  sz = read_int(str + 1);
+  sz = read_int(ms->buf + 1);
   ms->consumed += 5;
   ms->consumed += sz;
   ms->consumed++;               /* zero byte */
-  return bignum_from_string(state, str + 5, 10);
+  return bignum_from_string(state, (char *) ms->buf + 5, 10);
 }
 
 static void marshal_floatpoint(STATE, OBJECT obj, GString *buf) {
@@ -241,13 +243,13 @@ static void marshal_floatpoint(STATE, OBJECT obj, GString *buf) {
   append_c(0);               /* zero byte */
 }
 
-static OBJECT unmarshal_floatpoint(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_floatpoint(STATE, struct marshal_state *ms) {
   int sz;
-  sz = read_int(str + 1);
+  sz = read_int(ms->buf + 1);
   ms->consumed += 5;
   ms->consumed += sz;
   ms->consumed++;               /* zero byte */
-  return float_from_string(state, str + 5);
+  return float_from_string(state, (char *) ms->buf + 5);
 }
 
 static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
@@ -258,16 +260,16 @@ static void marshal_bytes(STATE, OBJECT obj, GString *buf) {
   append_str(bytearray_byte_address(state, obj), i);
 }
 
-static OBJECT unmarshal_bytes(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_bytes(STATE, struct marshal_state *ms) {
   int sz;
   OBJECT obj;
-  sz = read_int(str + 1);
+  sz = read_int(ms->buf + 1);
   
   ms->consumed += 5;
   ms->consumed += sz;
   obj = bytearray_new(state, sz);
   
-  memcpy(bytearray_byte_address(state, obj), str + 5, sz);
+  memcpy(bytearray_byte_address(state, obj), ms->buf + 5, sz);
   
   // printf("Unmarshaled bytes: %p / %d / %d\n", bytearray_byte_address(state, obj), sz, bytearray_bytes(state, obj));
   
@@ -278,53 +280,53 @@ static void marshal_cmethod(STATE, OBJECT obj, GString *buf, struct marshal_stat
   marshal_fields_as(state, obj, buf, 'm', ms);
 }
 
-static OBJECT unmarshal_cmethod(STATE, char *str, struct marshal_state *ms) {
+static OBJECT unmarshal_cmethod(STATE, struct marshal_state *ms) {
   int sz;
   OBJECT cm;
-  sz = unmarshal_num_fields(str);
+  sz = unmarshal_num_fields(ms->buf);
   cm = cmethod_allocate(state);
-  unmarshal_into_fields(state, str, sz, cm, ms);
+  unmarshal_into_fields(state, sz, cm, ms);
   return cm;
 }
 
-static OBJECT unmarshal(STATE, char *str, struct marshal_state *ms) {
-  char tag;
+static OBJECT unmarshal(STATE, struct marshal_state *ms) {
+  uint8_t tag = *ms->buf;
   OBJECT o;
-  tag = str[0];
+
 //  printf("%c\n", tag);
   switch(tag) {
     case 'i':
-      o = unmarshal_int(state, str, ms);
+      o = unmarshal_int(state, ms);
       break;
     case 's':
-      o = unmarshal_str(state, str, ms);
+      o = unmarshal_str(state, ms);
       _add_object(o, ms);
       break;
     case 'x':
-      o = unmarshal_sym(state, str, ms);
+      o = unmarshal_sym(state, ms);
       break;
     case 'p':
-      o = unmarshal_tup(state, str, ms);
+      o = unmarshal_tup(state, ms);
       _add_object(o, ms);
       break;
     case 'b':
-      o = unmarshal_bytes(state, str, ms);
+      o = unmarshal_bytes(state, ms);
       _add_object(o, ms);
       break;
     case 'm':
-      o = unmarshal_cmethod(state, str, ms);
+      o = unmarshal_cmethod(state, ms);
       _add_object(o, ms);
       break;
     case 'B':
-      o = unmarshal_bignum(state, str, ms);
+      o = unmarshal_bignum(state, ms);
       _add_object(o, ms);
       break;
     case 'd':
-      o = unmarshal_floatpoint(state, str, ms);
+      o = unmarshal_floatpoint(state, ms);
       _add_object(o, ms);
       break;
     case 'r':
-      o = _nth_object(state, str, ms);
+      o = _nth_object(state, ms);
       break;
     case 'n':
       ms->consumed += 1;
@@ -445,13 +447,13 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   return Qtrue;
 }
 
-OBJECT cpu_unmarshal(STATE, char *str, int version) {
+OBJECT cpu_unmarshal(STATE, uint8_t *str, int version) {
   struct marshal_state ms;
   OBJECT ret;
   int offset = 4;
-  if(!strncmp(str, "RBIS", 4)) {
+  if(!memcmp(str, "RBIS", 4)) {
     version = -1;
-  } else if(!strncmp(str, "RBIX", 4)) {
+  } else if(!memcmp(str, "RBIX", 4)) {
     if(read_int(str + 3) < version) {
       /* file is out of date. */
       return Qnil;
@@ -463,18 +465,19 @@ OBJECT cpu_unmarshal(STATE, char *str, int version) {
   }
   ms.consumed = 0;
   ms.objects = g_ptr_array_new();
-  str += offset;
-  ret = unmarshal(state, str, &ms);
+  ms.buf = str + offset;
+
+  ret = unmarshal(state, &ms);
   g_ptr_array_free(ms.objects, 1);
   return ret;
 }
 
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
-  gchar *ptr, *data = NULL;
+  uint8_t *ptr, *data = NULL;
   FILE *f = NULL;
   size_t read;
   off_t left;
-  char buf[4];
+  uint8_t buf[4];
   OBJECT obj = Qnil;
   struct marshal_state ms;
   struct stat st;
@@ -503,9 +506,9 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
   left -= 4;
 
   ms.objects = g_ptr_array_new();
-  if(!strncmp(buf, "RBIS", 4)) {
+  if(!memcmp(buf, "RBIS", 4)) {
     version = -1;
-  } else if(!strncmp(buf, "RBIX", 4)) {
+  } else if(!memcmp(buf, "RBIX", 4)) {
     read = fread(buf, 1, 4, f);
     if(read != 4) {
       goto cleanup;
@@ -534,7 +537,8 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
     left -= read;
   } while (read > 0);
 
-  obj = unmarshal(state, data, &ms);
+  ms.buf = data;
+  obj = unmarshal(state, &ms);
 cleanup:
   if(f) {
     fclose (f);
