@@ -22,6 +22,11 @@ class Process
   def self.replace(file, arg)
     Ruby.primitive :replace_process
   end
+  
+  def self.times
+    now = Time.now
+    Struct::Tms.new(now - $STARTUP_TIME, 0.0, 0.0, 0.0)
+  end
 end
 
 module Functions

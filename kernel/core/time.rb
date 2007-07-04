@@ -403,3 +403,6 @@ class Time
   alias :gmtoff :gmt_offset
   alias :getutc :getgm
 end
+
+# define a global "start time" to use for process calculation
+$STARTUP_TIME = Time.now

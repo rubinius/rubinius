@@ -193,4 +193,21 @@ class Struct
   def hash
     @map.hash
   end
+  
+  # FIXME: This should eventually just be a struct, once struct is working right
+  # Struct.new("Tms", :utime, :stime, :cutime, :cstime)
+  class Tms < Struct
+    @generated = true
+    attr_accessor :utime
+    attr_accessor :stime
+    attr_accessor :cutime
+    attr_accessor :cstime
+    
+    def initialize(u, s, cu, cs)
+      @utime = u
+      @stime = s
+      @cutime = cu
+      @cstime = cs
+    end
+  end
 end
