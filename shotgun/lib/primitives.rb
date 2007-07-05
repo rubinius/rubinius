@@ -850,28 +850,23 @@ class ShotgunPrimitives
   def load_file
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
+    POP(t1, STRING);
     POP(t2, FIXNUM);
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      char *path = string_as_string(state, t1);
-      t2 = cpu_unmarshal_file(state, path, FIXNUM_TO_INT(t2));
-      free(path); 
-      stack_push(t2);
-    }
+
+    char *path = string_as_string(state, t1);
+    t2 = cpu_unmarshal_file(state, path, FIXNUM_TO_INT(t2));
+    free(path); 
+    stack_push(t2);
     CODE
   end
   
   def activate_as_script
     <<-CODE
     self = stack_pop();
-    if(!RISA(self, cmethod)) {
-      _ret = FALSE;
-    } else {
-      cpu_run_script(state, c, self);
-      stack_push(Qtrue);
-    }
+    GUARD(RISA(self, cmethod));
+
+    cpu_run_script(state, c, self);
+    stack_push(Qtrue);
     CODE
   end
   
@@ -879,54 +874,51 @@ class ShotgunPrimitives
     <<-CODE
     struct stat sb = {0};
     self = stack_pop();
-    t1 = stack_pop();
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      char *path = string_as_string(state, t1);
-      j = stat(path, &sb);
-      free(path);
+    POP(t1, STRING);
 
-      if(j != 0) {
-        if(errno == ENOENT) {
-          stack_push(I2N(1));
-        } else if(errno == EACCES) {
-          stack_push(I2N(2));
-        } else {
-          stack_push(Qfalse);
-        }
+    char *path = string_as_string(state, t1);
+    j = stat(path, &sb);
+    free(path);
+
+    if(j != 0) {
+      if(errno == ENOENT) {
+        stack_push(I2N(1));
+      } else if(errno == EACCES) {
+        stack_push(I2N(2));
       } else {
-        t2 = tuple_new(state, 10);
-        tuple_put(state, t2, 0, I2N((int)sb.st_ino));
-        tuple_put(state, t2, 1, I2N((int)sb.st_mode));
-        if((sb.st_mode & S_IFIFO) == S_IFIFO) {
-          t3 = string_to_sym(state, string_new(state, "fifo"));
-        } else if((sb.st_mode & S_IFCHR) == S_IFCHR) {
-          t3 = string_to_sym(state, string_new(state, "char"));
-        } else if((sb.st_mode & S_IFDIR) == S_IFDIR) {
-          t3 = string_to_sym(state, string_new(state, "dir"));
-        } else if((sb.st_mode & S_IFBLK) == S_IFBLK) {
-          t3 = string_to_sym(state, string_new(state, "block"));
-        } else if((sb.st_mode & S_IFREG) == S_IFREG) {
-          t3 = string_to_sym(state, string_new(state, "regular"));
-        } else if((sb.st_mode & S_IFLNK) == S_IFLNK) {
-          t3 = string_to_sym(state, string_new(state, "link"));
-        } else if((sb.st_mode & S_IFSOCK) == S_IFSOCK) {
-          t3 = string_to_sym(state, string_new(state, "socket"));
-        } else {
-          t3 = string_to_sym(state, string_new(state, "file"));
-        }
-        tuple_put(state, t2, 2, t3);
-        tuple_put(state, t2, 3, I2N((int)sb.st_uid));
-        tuple_put(state, t2, 4, I2N((int)sb.st_gid));
-        tuple_put(state, t2, 5, I2N((int)sb.st_size));
-        tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
-        tuple_put(state, t2, 7, UI2N((int)sb.st_atime));
-        tuple_put(state, t2, 8, UI2N((int)sb.st_mtime));
-        tuple_put(state, t2, 9, UI2N((int)sb.st_ctime));
-      
-        stack_push(t2);
+        stack_push(Qfalse);
       }
+    } else {
+      t2 = tuple_new(state, 10);
+      tuple_put(state, t2, 0, I2N((int)sb.st_ino));
+      tuple_put(state, t2, 1, I2N((int)sb.st_mode));
+      if((sb.st_mode & S_IFIFO) == S_IFIFO) {
+        t3 = string_to_sym(state, string_new(state, "fifo"));
+      } else if((sb.st_mode & S_IFCHR) == S_IFCHR) {
+        t3 = string_to_sym(state, string_new(state, "char"));
+      } else if((sb.st_mode & S_IFDIR) == S_IFDIR) {
+        t3 = string_to_sym(state, string_new(state, "dir"));
+      } else if((sb.st_mode & S_IFBLK) == S_IFBLK) {
+        t3 = string_to_sym(state, string_new(state, "block"));
+      } else if((sb.st_mode & S_IFREG) == S_IFREG) {
+        t3 = string_to_sym(state, string_new(state, "regular"));
+      } else if((sb.st_mode & S_IFLNK) == S_IFLNK) {
+        t3 = string_to_sym(state, string_new(state, "link"));
+      } else if((sb.st_mode & S_IFSOCK) == S_IFSOCK) {
+        t3 = string_to_sym(state, string_new(state, "socket"));
+      } else {
+        t3 = string_to_sym(state, string_new(state, "file"));
+      }
+      tuple_put(state, t2, 2, t3);
+      tuple_put(state, t2, 3, I2N((int)sb.st_uid));
+      tuple_put(state, t2, 4, I2N((int)sb.st_gid));
+      tuple_put(state, t2, 5, I2N((int)sb.st_size));
+      tuple_put(state, t2, 6, I2N((int)sb.st_blocks));
+      tuple_put(state, t2, 7, UI2N((int)sb.st_atime));
+      tuple_put(state, t2, 8, UI2N((int)sb.st_mtime));
+      tuple_put(state, t2, 9, UI2N((int)sb.st_ctime));
+    
+      stack_push(t2);
     }
     CODE
   end
@@ -934,12 +926,9 @@ class ShotgunPrimitives
   def process_exit
     <<-CODE
     stack_pop();
-    t1 = stack_pop();
-    if(!FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      exit(FIXNUM_TO_INT(t1));
-    }
+    POP(t1, FIXNUM);
+
+    exit(FIXNUM_TO_INT(t1));
     CODE
   end
   
@@ -947,21 +936,19 @@ class ShotgunPrimitives
     <<-CODE
     struct timespec ts;
     stack_pop();
-    t1 = stack_pop();
-    if(!FIXNUM_P(t1)) {
-      _ret = FALSE;
-    } else {
-      j = FIXNUM_TO_INT(t1);
-      ts.tv_sec = j / 1000000;
-      ts.tv_nsec = (j % 1000000) * 1000;
+    POP(t1, FIXNUM);
+
+    j = FIXNUM_TO_INT(t1);
+    ts.tv_sec = j / 1000000;
+    ts.tv_nsec = (j % 1000000) * 1000;
       
-      if(!nanosleep(&ts, NULL)) {
-        t2 = Qfalse;
-      } else {
-        t2 = Qtrue;
-      }
-      stack_push(t2);
+    if(!nanosleep(&ts, NULL)) {
+      t2 = Qfalse;
+    } else {
+      t2 = Qtrue;
     }
+
+    stack_push(t2);
     CODE
   end
   
@@ -996,21 +983,19 @@ class ShotgunPrimitives
     {
       GString *str;
       char *str1, *str2;
+
       self = stack_pop();
-      t1 = stack_pop();
-      t2 = stack_pop();
+      POP(t1, STRING);
+      POP(t2, FIXNUM);
       t3 = stack_pop();
-      if(!STRING_P(t1) || !FIXNUM_P(t2)) {
-        _ret = FALSE;
-      } else {
-        str1 = string_as_string(state, self);
-        str = g_string_new(str1);
-        free(str1);
-        str2 = string_as_string(state, t1);
-        t1 = syd_compile_string(state,str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
-        free(str2);
-        stack_push(t1);
-      }
+
+      str1 = string_as_string(state, self);
+      str = g_string_new(str1);
+      free(str1);
+      str2 = string_as_string(state, t1);
+      t1 = syd_compile_string(state,str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
+      free(str2);
+      stack_push(t1);
     }
     CODE
   end
@@ -1018,30 +1003,28 @@ class ShotgunPrimitives
   def file_to_sexp
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop(); /* The filename */
+    POP(t1, STRING); /* The filename */
     t2 = stack_pop();
-    if(!STRING_P(t1)) {
+
+    GIOChannel *io;
+    GError *err;
+    char *name;
+      
+    err = NULL;
+
+    name = string_as_string(state, t1);
+    io = g_io_channel_new_file(name, "r", &err);
+    if(io == NULL) {
       _ret = FALSE;
     } else {
-      GIOChannel *io;
-      GError *err;
-      char *name;
-      
-      err = NULL;
-
-      name = string_as_string(state, t1);
-      io = g_io_channel_new_file(name, "r", &err);
-      if(io == NULL) {
-        _ret = FALSE;
-      } else {
-        g_io_channel_set_encoding(io, NULL, &err);
-        t1 = syd_compile_file(state,name, io, 1, RTEST(t2));
-        g_io_channel_shutdown(io, TRUE, &err);
-        g_io_channel_unref(io);
-        stack_push(t1);
-      }
-      free(name);
+      g_io_channel_set_encoding(io, NULL, &err);
+      t1 = syd_compile_file(state,name, io, 1, RTEST(t2));
+      g_io_channel_shutdown(io, TRUE, &err);
+      g_io_channel_unref(io);
+      stack_push(t1);
     }
+
+    free(name);
     CODE
   end
     
@@ -1094,25 +1077,17 @@ class ShotgunPrimitives
   def regexp_new
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
+    POP(t1, STRING);
     t2 = stack_pop();
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      stack_push(regexp_new(state, t1, t2));
-    }
+    stack_push(regexp_new(state, t1, t2));
     CODE
   end
   
   def regexp_match
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      stack_push(regexp_match(state, self, t1));
-    }
+    POP(t1, STRING);
+    stack_push(regexp_match(state, self, t1));
     CODE
   end
 
@@ -1157,25 +1132,21 @@ class ShotgunPrimitives
   def set_index
     <<-CODE
     self = stack_pop();
-    if(!INDEXED(self)) {
-      _ret = FALSE;
-    } else {
-      j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
-      SET_FIELD(self, j, stack_pop());
-      stack_push(NTH_FIELD(self, j));  
-      }  
+    GUARD(INDEXED(self));
+
+    j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
+    SET_FIELD(self, j, stack_pop());
+    stack_push(NTH_FIELD(self, j));  
     CODE
   end
   
   def get_index
     <<-CODE
     self = stack_pop();
-    if(!INDEXED(self)) {
-      _ret = FALSE;
-    } else {
-      j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
-      stack_push(NTH_FIELD(self, j));
-    }
+    GUARD(INDEXED(self));
+
+    j = FIXNUM_TO_INT(NTH_FIELD(mo, 4));
+    stack_push(NTH_FIELD(self, j));
     CODE
   end
 
@@ -1324,13 +1295,10 @@ class ShotgunPrimitives
   def unmarshal_object
     <<-CODE
     stack_pop(); /* class */
-    t1 = stack_pop();
+    POP(t1, STRING);
     POP(t2, FIXNUM);
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      stack_push(cpu_unmarshal(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
-    }
+
+    stack_push(cpu_unmarshal(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
     CODE
   end
   
@@ -1339,15 +1307,12 @@ class ShotgunPrimitives
     char *_path;
     stack_pop();
     t1 = stack_pop();
-    t2 = stack_pop();
+    POP(t2, STRING);
     POP(t3, FIXNUM);
-    if(!STRING_P(t2)) {
-      _ret = FALSE;
-    } else {
-      _path = string_as_string(state, t2);
-      stack_push(cpu_marshal_to_file(state, t1, _path, FIXNUM_TO_INT(t3)));
-      free(_path);
-    }
+
+    _path = string_as_string(state, t2);
+    stack_push(cpu_marshal_to_file(state, t1, _path, FIXNUM_TO_INT(t3)));
+    free(_path);
     CODE
   end
   
@@ -1355,15 +1320,12 @@ class ShotgunPrimitives
     <<-CODE
     char *_path;
     stack_pop(); /* class */
-    t1 = stack_pop();
+    POP(t1, STRING);
     POP(t2, FIXNUM);
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      _path = string_as_string(state, t1);
-      stack_push(cpu_unmarshal_file(state, _path, FIXNUM_TO_INT(t2)));
-      free(_path);
-    }
+
+    _path = string_as_string(state, t1);
+    stack_push(cpu_unmarshal_file(state, _path, FIXNUM_TO_INT(t2)));
+    free(_path);
     CODE
   end
   
@@ -1371,14 +1333,11 @@ class ShotgunPrimitives
     <<-CODE
     char *path;
     stack_pop(); /* blah */
-    t1 = stack_pop();
-    if(!STRING_P(t1)) {
-      _ret = FALSE;
-    } else {
-      path = string_as_string(state, t1);
-      stack_push(archive_list_files(state, path));
-      free(path);
-    }
+    POP(t1, STRING);
+
+    path = string_as_string(state, t1);
+    stack_push(archive_list_files(state, path));
+    free(path);
     CODE
   end
   
@@ -1386,17 +1345,14 @@ class ShotgunPrimitives
     <<-CODE
     char *path, *file;
     stack_pop();
-    t1 = stack_pop();
-    t2 = stack_pop();
-    if(!STRING_P(t1) || !STRING_P(t2)) {
-      _ret = FALSE;
-    } else {
-      path = string_as_string(state, t1);
-      file = string_as_string(state, t2);
-      stack_push(archive_get_file(state, path, file));
-      free(path);
-      free(file);
-    }
+    POP(t1, STRING);
+    POP(t2, STRING);
+
+    path = string_as_string(state, t1);
+    file = string_as_string(state, t2);
+    stack_push(archive_get_file(state, path, file));
+    free(path);
+    free(file);
     CODE
   end
   
@@ -1404,18 +1360,15 @@ class ShotgunPrimitives
     <<-CODE
     char *path, *file;
     stack_pop();
-    t1 = stack_pop();
-    t2 = stack_pop();
+    POP(t1, STRING);
+    POP(t2, STRING);
     POP(t3, FIXNUM);
-    if(!STRING_P(t1) || !STRING_P(t2)) {
-      _ret = FALSE;
-    } else {
-      path = string_as_string(state, t1);
-      file = string_as_string(state, t2);
-      stack_push(archive_get_object(state, path, file, FIXNUM_TO_INT(t3)));
-      free(path);
-      free(file);
-    }
+
+    path = string_as_string(state, t1);
+    file = string_as_string(state, t2);
+    stack_push(archive_get_object(state, path, file, FIXNUM_TO_INT(t3)));
+    free(path);
+    free(file);
     CODE
   end
   
@@ -1463,77 +1416,55 @@ class ShotgunPrimitives
   def archive_delete_file
     <<-CODE
     stack_pop();
-    t1 = stack_pop();
-    t2 = stack_pop();
-    if(!STRING_P(t1) || !FIXNUM_P(t2)) {
-      _ret = FALSE;
-    } else {
-      t3 = archive_delete_file(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2));
-      stack_push(t3);
-    }
+    POP(t1, STRING);
+    POP(t2, FIXNUM);
+
+    t3 = archive_delete_file(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2));
+    stack_push(t3);
     CODE
   end  
   
   def float_to_s
     <<-CODE
-    self = stack_pop();
-    if( FLOAT_P(self) ) {
-      stack_push(float_to_s(state, self));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, FLOAT);
+
+    stack_push(float_to_s(state, self));
     CODE
   end
   
   def float_add
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
 
-    if( FLOAT_P(self) && FLOAT_P(t1) ) {
-      stack_push(float_add(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(float_add(state, self, t1));
     CODE
   end
   
   def float_sub
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
 
-    if( FLOAT_P(self) && FLOAT_P(t1) ) {
-      stack_push(float_sub(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(float_sub(state, self, t1));
     CODE
   end
   
   def float_mul
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
 
-    if( FLOAT_P(self) && FLOAT_P(t1) ) {
-      stack_push(float_mul(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(float_mul(state, self, t1));
     CODE
   end
   
   def float_equal
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
 
-    if( FLOAT_P(self) && FLOAT_P(t1) ) {
-      stack_push(float_equal(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    stack_push(float_equal(state, self, t1));
     CODE
   end
 
@@ -1645,12 +1576,9 @@ class ShotgunPrimitives
   
   def bignum_to_float
     <<-CODE
-    self = stack_pop();
-    if( BIGNUM_P(self) ) {
-      stack_push(float_new(state, bignum_to_double(state, self)));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, BIGNUM);
+
+    stack_push(float_new(state, bignum_to_double(state, self)));
     CODE
   end
 
@@ -1663,68 +1591,50 @@ class ShotgunPrimitives
   def bignum_or
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
-    if( INTEGER_P(t1) ) {
-      stack_push(bignum_or(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    POP(t1, INTEGER);
+
+    stack_push(bignum_or(state, self, t1));
     CODE
   end
 
   def bignum_xor
     <<-CODE
     self = stack_pop();
-    t1 = stack_pop();
-    if( INTEGER_P(t1) ) {
-      stack_push(bignum_xor(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    POP(t1, INTEGER);
+
+    stack_push(bignum_xor(state, self, t1));
     CODE
   end
 
   def bignum_neg
     <<-CODE
-    self = stack_pop();
-    if( INTEGER_P(self) ) {
-      stack_push(bignum_neg(state, self));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, INTEGER);
+
+    stack_push(bignum_neg(state, self));
     CODE
   end
 
   def bignum_invert
     <<-CODE
-    self = stack_pop();
-    if( INTEGER_P(self) ) {
-      stack_push(bignum_invert(state, self));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, INTEGER);
+
+    stack_push(bignum_invert(state, self));
     CODE
   end
   
   def float_nan_p
     <<-CODE
-    self = stack_pop();
-    if( FLOAT_P(self) ) {
-      stack_push(float_nan_p(state, self));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, FLOAT);
+
+    stack_push(float_nan_p(state, self));
     CODE
   end
   
   def float_infinite_p
     <<-CODE
-    self = stack_pop();
-    if(FLOAT_P(self)) {
-      stack_push(float_infinite_p(state, self));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, FLOAT);
+
+    stack_push(float_infinite_p(state, self));
     CODE
   end
   
@@ -1739,31 +1649,25 @@ class ShotgunPrimitives
   
   def float_uminus
     <<-CODE
-    self = stack_pop();
-    if(FLOAT_P(self)) {
-      stack_push(float_uminus(state, self));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, FLOAT);
+
+    stack_push(float_uminus(state, self));
     CODE
   end
   
   def float_pow
     <<-CODE
-    self = stack_pop();
-    t1 =   stack_pop();
-    if(FLOAT_P(self) && FLOAT_P(t1)) {
-      stack_push(float_pow(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
+
+    stack_push(float_pow(state, self, t1));
     CODE
   end
   
   def float_to_i
     <<-CODE
-    self = stack_pop();
-    if(FLOAT_P(self) && float_infinite_p(state, self) == Qfalse && float_nan_p(state, self) == Qfalse) {
+    POP(self, FLOAT);
+    if(float_infinite_p(state, self) == Qfalse && float_nan_p(state, self) == Qfalse) {
       stack_push(float_to_i(state, self));
     } else {
       _ret = FALSE;
@@ -1773,30 +1677,27 @@ class ShotgunPrimitives
   
   def numeric_coerce
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if(INTEGER_P(self) && INTEGER_P(t1)) {
-      t3 = array_new(state, 2);
-      if(BIGNUM_P(self)) {
-        if(BIGNUM_P(t1)) {
-          array_set(state, t3, 0, t1);
-        } else {
-          array_set(state, t3, 0, bignum_new(state, FIXNUM_TO_INT(t1)));
-        }
-        array_set(state, t3, 1, self);
+    POP(self, INTEGER);
+    POP(t1, INTEGER);
+
+    t3 = array_new(state, 2);
+    if(BIGNUM_P(self)) {
+      if(BIGNUM_P(t1)) {
+        array_set(state, t3, 0, t1);
       } else {
-        if(BIGNUM_P(t1)) {
-          array_set(state, t3, 0, t1);
-          array_set(state, t3, 1, bignum_new(state, FIXNUM_TO_INT(self)));
-        } else {
-          array_set(state, t3, 0, t1);
-          array_set(state, t3, 1, self);
-        }
+        array_set(state, t3, 0, bignum_new(state, FIXNUM_TO_INT(t1)));
       }
-      stack_push(t3);
+      array_set(state, t3, 1, self);
     } else {
-      _ret = FALSE;
+      if(BIGNUM_P(t1)) {
+        array_set(state, t3, 0, t1);
+        array_set(state, t3, 1, bignum_new(state, FIXNUM_TO_INT(self)));
+      } else {
+        array_set(state, t3, 0, t1);
+        array_set(state, t3, 1, self);
+      }
     }
+    stack_push(t3);
     CODE
   end
   
@@ -1808,13 +1709,10 @@ class ShotgunPrimitives
   
   def float_compare
     <<-CODE
-    self = stack_pop();
-    t1 = stack_pop();
-    if(FLOAT_P(self) && FLOAT_P(t1)) {
-      stack_push(float_compare(state, self, t1));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, FLOAT);
+    POP(t1, FLOAT);
+
+    stack_push(float_compare(state, self, t1));
     CODE
   end
   
@@ -1826,12 +1724,9 @@ class ShotgunPrimitives
   
   def string_to_f
     <<-CODE
-    self = stack_pop();
-    if(STRING_P(self)) {
-      stack_push(float_new(state, string_to_double(state, self)));
-    } else {
-      _ret = FALSE;
-    }
+    POP(self, STRING);
+
+    stack_push(float_new(state, string_to_double(state, self)));
     CODE
   end
   
@@ -1946,54 +1841,52 @@ class ShotgunPrimitives
     int i;
     struct fast_context *fc;
     t1 = stack_pop();
-    if(RISA(t1, fastctx)) {
-      fc = FASTCTX(t1);
-      i = FIXNUM_TO_INT(stack_pop());
-      switch(i) {
-        case 0:
-          if(!NIL_P(fc->sender)) {
-            methctx_reference(state, fc->sender);
-          }
-          stack_push(fc->sender);
-          break;
-        case 1:
-          stack_push(I2N(fc->ip));
-          break;
-        case 2:
-          stack_push(I2N(fc->sp));
-          break;
-        case 3:
-          stack_push(fc->block);
-          break;
-        case 4:
-          stack_push(fc->raiseable);
-          break;
-        case 5:
-          stack_push(fc->method);
-          break;
-        case 6:
-          stack_push(fc->literals);
-          break;
-        case 7:
-          stack_push(fc->self);
-          break;
-        case 8:
-          stack_push(fc->locals);
-          break;
-        case 9:
-          stack_push(I2N(fc->argcount));
-          break;
-        case 10:
-          stack_push(fc->name);
-          break;
-        case 11:
-          stack_push(fc->method_module);
-          break;
-        default:
-          stack_push(Qnil);
-      }
-    } else {
-      _ret = FALSE;
+    GUARD(RISA(t1, fastctx));
+
+    fc = FASTCTX(t1);
+    i = FIXNUM_TO_INT(stack_pop());
+    switch(i) {
+      case 0:
+        if(!NIL_P(fc->sender)) {
+          methctx_reference(state, fc->sender);
+        }
+        stack_push(fc->sender);
+        break;
+      case 1:
+        stack_push(I2N(fc->ip));
+        break;
+      case 2:
+        stack_push(I2N(fc->sp));
+        break;
+      case 3:
+        stack_push(fc->block);
+        break;
+      case 4:
+        stack_push(fc->raiseable);
+        break;
+      case 5:
+        stack_push(fc->method);
+        break;
+      case 6:
+        stack_push(fc->literals);
+        break;
+      case 7:
+        stack_push(fc->self);
+        break;
+      case 8:
+        stack_push(fc->locals);
+        break;
+      case 9:
+        stack_push(I2N(fc->argcount));
+        break;
+      case 10:
+        stack_push(fc->name);
+        break;
+      case 11:
+        stack_push(fc->method_module);
+        break;
+      default:
+        stack_push(Qnil);
     }
     CODE
   end
@@ -2006,54 +1899,53 @@ class ShotgunPrimitives
     i = FIXNUM_TO_INT(stack_pop());
     t2 = stack_pop();
     
-    if(RISA(t1, fastctx)) {
-      fc = FASTCTX(t1);
-      switch(i) {
-        case 0:
-          fc->sender = t2;
-          break;
-        case 1:
-          GUARD(FIXNUM_P(t2));
-          fc->ip = FIXNUM_TO_INT(t2);
-          break;
-        case 2:
-          GUARD(FIXNUM_P(t2));
-          fc->sp = FIXNUM_TO_INT(t2);
-          break;
-        case 3:
-          fc->block = t2;
-          break;
-        case 4:
-          fc->raiseable = t2;
-          break;
-        case 5:
-          fc->method = t2;
-          break;
-        case 6:
-          fc->literals = t2;
-          break;
-        case 7:
-          fc->self = t2;
-          break;
-        case 8:
-          fc->locals = t2;
-          break;
-        case 9:
-          GUARD(FIXNUM_P(t2));
-          fc->argcount = I2N(t2);
-          break;
-        case 10:
-          fc->name = t2;
-          break;
-        case 11:
-          fc->method_module = t2;
-          break;
-        default:
-          _ret = FALSE;
-      }
-    } else {
-      _ret = FALSE;
+    GUARD(RISA(t1, fastctx));
+
+    fc = FASTCTX(t1);
+    switch(i) {
+      case 0:
+        fc->sender = t2;
+        break;
+      case 1:
+        GUARD(FIXNUM_P(t2));
+        fc->ip = FIXNUM_TO_INT(t2);
+        break;
+      case 2:
+        GUARD(FIXNUM_P(t2));
+        fc->sp = FIXNUM_TO_INT(t2);
+        break;
+      case 3:
+        fc->block = t2;
+        break;
+      case 4:
+        fc->raiseable = t2;
+        break;
+      case 5:
+        fc->method = t2;
+        break;
+      case 6:
+        fc->literals = t2;
+        break;
+      case 7:
+        fc->self = t2;
+        break;
+      case 8:
+        fc->locals = t2;
+        break;
+      case 9:
+        GUARD(FIXNUM_P(t2));
+        fc->argcount = I2N(t2);
+        break;
+      case 10:
+        fc->name = t2;
+        break;
+      case 11:
+        fc->method_module = t2;
+        break;
+      default:
+        _ret = FALSE;
     }
+
     stack_push(t2);
     CODE
   end
