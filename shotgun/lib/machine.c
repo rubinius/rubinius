@@ -731,35 +731,47 @@ void machine_config_env(machine m) {
 }
 
 OBJECT machine_load_archive(machine m, const char *path) {
-  OBJECT order, cm;
+  OBJECT order, cm, ret = Qfalse;
+  archive_handle_t *archive;
   char *files, *nxt, *top;
-  order = archive_get_file(m->s, path, ".load_order.txt");
+
+  archive = archive_open(m->s, path);
+  if(!archive) {
+    fprintf(stderr, "cannot load archive '%s'\n", path);
+    return ret;
+  }
+
+  order = archive_get_file2(m->s, archive, ".load_order.txt");
   if(!RTEST(order)) {
     printf("Unable to find .load_order.txt\n");
-    return Qfalse;
+    goto out;
   }
   top = files = string_as_string(m->s, order);
   nxt = strchr(files, '\n');
   
   while(nxt) {
     *nxt++ = 0;
-    cm = archive_get_object(m->s, path, files, 0);
+    cm = archive_get_object2(m->s, archive, files, 0);
     if(!RTEST(cm)) {
       printf("Unable to find '%s'\n", files); 
-      return Qfalse;
+      goto out;
     }
     cpu_run_script(m->s, m->c, cm);
     if(!machine_run(m)) {
       printf("Unable to run '%s'\n", files);
-      return Qfalse;
+      goto out;
     }
     files = nxt;
     nxt = strchr(nxt, '\n');
   }
   
   free(top);
+  ret = Qtrue;
+
+out:
+  archive_close(m->s, archive);
   
-  return Qtrue;
+  return ret;
 }
 
 

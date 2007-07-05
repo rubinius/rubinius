@@ -5,6 +5,19 @@
 #include "cpu.h"
 #include "array.h"
 #include "tuple.h"
+#include "archive.h"
+
+archive_handle_t *archive_open(STATE, const char *path) {
+  int err = 0;
+
+  return zip_open(path, 0, &err);
+}
+
+OBJECT archive_close(STATE, archive_handle_t *za) {
+  zip_close(za);
+
+  return Qnil;
+}
 
 OBJECT archive_list_files(STATE, char *path) {
   struct zip *za;
@@ -67,6 +80,38 @@ OBJECT archive_get_file(STATE, const char *path, const char* name) {
   return str;
 }
 
+OBJECT archive_get_file2(STATE, archive_handle_t *za, const char *name) {
+  struct zip_stat st;
+  struct zip_file *zf;
+  OBJECT str;
+  int n, total, file;
+  char *buf;
+
+  file = zip_name_locate(za, name, 0);
+  if(file < 0) {
+    return Qnil;
+  }
+  
+  zf = zip_fopen_index(za, file, 0);
+  if(!zf) {
+    return Qnil;
+  }
+  
+  zip_stat_index(za, file, 0, &st);
+  total = st.size;
+  str = string_new2(state, NULL, total);
+  buf = string_byte_address(state, str);
+  
+  while((n = zip_fread(zf, buf, total)) > 0) {
+    buf += n;
+    total -= n;
+  }
+  
+  zip_fclose(zf);
+  
+  return str;
+}
+
 OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   struct zip *za;
   struct zip_stat st;
@@ -106,6 +151,43 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   
   ret = cpu_unmarshal(state, str, version);
   free(str);
+  return ret;
+}
+
+OBJECT archive_get_object2(STATE, archive_handle_t *za,
+                           const char *name, int version) {
+  struct zip_stat st;
+  struct zip_file *zf;
+  uint8_t *str, *buf;
+  OBJECT ret;
+  int n, total, file = -1;
+
+  file = zip_name_locate(za, name, 0);
+  if(file < 0) {
+    //printf("Couldn't find %s in %s (%s/%d)\n", name, path, zip_strerror(za), file);
+    return Qnil;
+  }
+  
+  zf = zip_fopen_index(za, file, 0);
+  if(!zf) {
+    return Qnil;
+  }
+  
+  zip_stat_index(za, file, 0, &st);
+  total = st.size;
+  str = malloc(total);
+  buf = str;
+  
+  while((n = zip_fread(zf, buf, total)) > 0) {
+    buf += n;
+    total -= n;
+  }
+  
+  zip_fclose(zf);
+  
+  ret = cpu_unmarshal(state, str, version);
+  free(str);
+
   return ret;
 }
 
