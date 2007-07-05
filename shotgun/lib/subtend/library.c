@@ -26,14 +26,11 @@ void* subtend_find_symbol(STATE, OBJECT path, OBJECT name) {
   char sys_name[128];
 
   if(!NIL_P(path)) {
-
-    bzero(sys_name, 128);
-
     /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
        or whatever the library suffix is. */
     c_path = string_as_string(state, path);
-    strncat(sys_name, c_path, 120);
-    strncat(sys_name, LIBSUFFIX, 120);
+    strlcpy(sys_name, c_path, sizeof(sys_name));
+    strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
     np = sys_name;
   } else {
     np = NULL;
