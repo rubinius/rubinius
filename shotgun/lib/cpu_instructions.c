@@ -272,8 +272,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   
   /*
   printf("Looking for method: %s in %p (%s)\n", 
-    string_as_string(state, symtbl_find_string(state, state->global->symbols, name)), obj,
-    string_as_string(state, symtbl_find_string(state, state->global->symbols, 
+    string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)), obj,
+    string_byte_address(state, symtbl_find_string(state, state->global->symbols, 
         class_get_name(object_logical_class(state, obj))))
     );
   */
@@ -293,8 +293,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     if(NIL_P(klass)) { break; }
     /*
     printf("Looking for method (sup): %s in %ul (%s)\n", 
-      string_as_string(state, symtbl_find_string(state, state->global->symbols, name)), klass,
-      string_as_string(state, symtbl_find_string(state, state->global->symbols, 
+      string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)), klass,
+      string_byte_address(state, symtbl_find_string(state, state->global->symbols, 
         class_get_name(klass)))
     );
     */

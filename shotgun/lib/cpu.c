@@ -376,7 +376,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     } /*
     else {
       printf("Found constant %s under %p => %p (%d).\n", 
-        string_as_string(state, symtbl_find_string(state, state->global->symbols, sym)),
+        string_byte_address(state, symtbl_find_string(state, state->global->symbols, sym)),
         under, val, val);
     } */
     

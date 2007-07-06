@@ -433,7 +433,7 @@ OBJECT machine_load_file(machine m, const char *path) {
 
 void machine_show_exception(machine m, OBJECT exc) {
   printf("\nError: An unhandled exception has terminated this VM.\n");
-  printf(" => %s (%s)\n", string_as_string(m->s, exception_get_message(exc)), rbs_inspect(m->s, HEADER(exc)->klass));
+  printf(" => %s (%s)\n", string_byte_address(m->s, exception_get_message(exc)), rbs_inspect(m->s, HEADER(exc)->klass));
 }
 
 int machine_run(machine m) {
@@ -746,7 +746,7 @@ OBJECT machine_load_archive(machine m, const char *path) {
     printf("Unable to find .load_order.txt\n");
     goto out;
   }
-  top = files = string_as_string(m->s, order);
+  top = files = strdup(string_byte_address(m->s, order));
   nxt = strchr(files, '\n');
   
   while(nxt) {

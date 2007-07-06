@@ -68,7 +68,7 @@ OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string) {
     }
     
     tuple_put(state, syms, FIXNUM_TO_INT(idx), string);
-    // printf("Adding to symbol table: %d, %s\n", FIXNUM_TO_INT(idx), string_as_string(state, string));
+    // printf("Adding to symbol table: %d, %s\n", FIXNUM_TO_INT(idx), string_byte_address(state, string));
     hash_add(state, strs, hash, I2N(hash), idx);
   }
   

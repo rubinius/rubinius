@@ -352,12 +352,10 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, STRING);
 
-    _path = string_as_string(state, t1);
-    _mode = string_as_string(state, t2);
+    _path = string_byte_address(state, t1);
+    _mode = string_byte_address(state, t2);
     _fobj = fopen(_path, _mode);
     t3 = io_new(state, fileno(_fobj));
-    free(_path);
-    free(_mode);
     stack_push(t3);
     CODE
   end
@@ -403,14 +401,13 @@ class ShotgunPrimitives
     POP(t1, STRING);
 
     char *name;
-    name = string_as_string(state, t1);
+    name = string_byte_address(state, t1);
     if(unlink(name) == 0) {
       stack_push(Qtrue);
     } else {
       /* TODO translate errno into an exception. */
       stack_push(Qfalse);
     }
-    free(name);
     CODE
   end
   
@@ -462,15 +459,13 @@ class ShotgunPrimitives
     tm.tm_zone = string_byte_address(state, array_get(state, t1, 10));
 #endif
 
-    format = string_as_string(state, t2);
+    format = string_byte_address(state, t2);
 
     out = strftime(str, MAX_STRFTIME_OUTPUT-1, format, &tm);
 
     str[MAX_STRFTIME_OUTPUT] = '\\0';
     t3 = string_new2(state, str, out);
     stack_push(t3);
-
-    if(format) {free(format);}
     CODE
   end
 
@@ -853,9 +848,8 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    char *path = string_as_string(state, t1);
+    char *path = string_byte_address(state, t1);
     t2 = cpu_unmarshal_file(state, path, FIXNUM_TO_INT(t2));
-    free(path); 
     stack_push(t2);
     CODE
   end
@@ -876,9 +870,8 @@ class ShotgunPrimitives
     self = stack_pop();
     POP(t1, STRING);
 
-    char *path = string_as_string(state, t1);
+    char *path = string_byte_address(state, t1);
     j = stat(path, &sb);
-    free(path);
 
     if(j != 0) {
       if(errno == ENOENT) {
@@ -989,12 +982,10 @@ class ShotgunPrimitives
       POP(t2, FIXNUM);
       t3 = stack_pop();
 
-      str1 = string_as_string(state, self);
+      str1 = string_byte_address(state, self);
       str = g_string_new(str1);
-      free(str1);
-      str2 = string_as_string(state, t1);
+      str2 = string_byte_address(state, t1);
       t1 = syd_compile_string(state,str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
-      free(str2);
       stack_push(t1);
     }
     CODE
@@ -1012,7 +1003,7 @@ class ShotgunPrimitives
       
     err = NULL;
 
-    name = string_as_string(state, t1);
+    name = string_byte_address(state, t1);
     io = g_io_channel_new_file(name, "r", &err);
     if(io == NULL) {
       _ret = FALSE;
@@ -1023,8 +1014,6 @@ class ShotgunPrimitives
       g_io_channel_unref(io);
       stack_push(t1);
     }
-
-    free(name);
     CODE
   end
     
@@ -1186,9 +1175,8 @@ class ShotgunPrimitives
     POP(t2, STRING);
     POP(t3, FIXNUM);
 
-    _path = string_as_string(state, t2);
+    _path = string_byte_address(state, t2);
     stack_push(cpu_marshal_to_file(state, t1, _path, FIXNUM_TO_INT(t3)));
-    free(_path);
     CODE
   end
   
@@ -1199,9 +1187,8 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    _path = string_as_string(state, t1);
+    _path = string_byte_address(state, t1);
     stack_push(cpu_unmarshal_file(state, _path, FIXNUM_TO_INT(t2)));
-    free(_path);
     CODE
   end
   
@@ -1211,9 +1198,8 @@ class ShotgunPrimitives
     stack_pop(); /* blah */
     POP(t1, STRING);
 
-    path = string_as_string(state, t1);
+    path = string_byte_address(state, t1);
     stack_push(archive_list_files(state, path));
-    free(path);
     CODE
   end
   
@@ -1224,11 +1210,9 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, STRING);
 
-    path = string_as_string(state, t1);
-    file = string_as_string(state, t2);
+    path = string_byte_address(state, t1);
+    file = string_byte_address(state, t2);
     stack_push(archive_get_file(state, path, file));
-    free(path);
-    free(file);
     CODE
   end
   
@@ -1240,11 +1224,9 @@ class ShotgunPrimitives
     POP(t2, STRING);
     POP(t3, FIXNUM);
 
-    path = string_as_string(state, t1);
-    file = string_as_string(state, t2);
+    path = string_byte_address(state, t1);
+    file = string_byte_address(state, t2);
     stack_push(archive_get_object(state, path, file, FIXNUM_TO_INT(t3)));
-    free(path);
-    free(file);
     CODE
   end
   
@@ -1256,14 +1238,11 @@ class ShotgunPrimitives
     POP(t2, STRING);
     POP(t3, STRING);
     
-    path = string_as_string(state, t1);
-    file = string_as_string(state, t2);
-    data = string_as_string(state, t3);
+    path = string_byte_address(state, t1);
+    file = string_byte_address(state, t2);
+    data = string_byte_address(state, t3);
     
     t1 = archive_add_file(state, path, file, data);
-    free(path);
-    free(file);
-    free(data);
     stack_push(t1);
     CODE
   end
@@ -1277,14 +1256,10 @@ class ShotgunPrimitives
     t3 = stack_pop();
     POP(t4, FIXNUM);
     
-    path = string_as_string(state, t1);
-    file = string_as_string(state, t2);
+    path = string_byte_address(state, t1);
+    file = string_byte_address(state, t2);
     
     t1 = archive_add_object(state, path, file, t3, FIXNUM_TO_INT(t4));
-    
-    free(path);
-    free(file);
-    
     stack_push(t1);
     CODE
   end
@@ -1908,14 +1883,13 @@ class ShotgunPrimitives
     
     /* TODO: use t2. */
     
-    pat = string_as_string(state, t1);
+    pat = string_byte_address(state, t1);
     k = glob(pat, 0, NULL, &gd);
     t2 = array_new(state, gd.gl_pathc);
     for(j = 0; j < gd.gl_pathc; j++) {
       array_set(state, t2, j, string_new(state, gd.gl_pathv[j]));
     }
     globfree(&gd);
-    free(pat);
     stack_push(t2);
     CODE
   end
@@ -1926,13 +1900,12 @@ class ShotgunPrimitives
     stack_pop();
     POP(t1, STRING);
     
-    path = string_as_string(state, t1);
+    path = string_byte_address(state, t1);
     if(!chdir(path)) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
     }
-    free(path);
     CODE
   end
   
@@ -2315,14 +2288,15 @@ class ShotgunPrimitives
   def replace_process
     <<-CODE
     int i;
-    char *file;
+    char *tmp, *file;
     char **argv;
     
     stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, ARRAY);
     
-    file = string_as_string(state, t1);
+    tmp = string_byte_address(state, t1);
+    file = tmp ? strdup(tmp) : NULL;
     k = FIXNUM_TO_INT(array_get_total(t2)) + 1;
     argv = (char**)calloc(k + 1, sizeof(char*));
     argv[0] = file;
@@ -2336,7 +2310,8 @@ class ShotgunPrimitives
         return FALSE;
       }
       
-      argv[j] = string_as_string(state, t3);
+      tmp = string_byte_address(state, t3);
+      argv[j] = tmp ? strdup(tmp) : NULL;
     }
     
     argv[k] = NULL;
@@ -2392,15 +2367,13 @@ class ShotgunPrimitives
 
     t2 = Qnil;
 
-    key = string_as_string(state, t1);
+    key = string_byte_address(state, t1);
     if (key) {
       char *value = getenv(key);
 
       if (value) {
         t2 = string_new(state, value);
       }
-
-      free(key);
     }
 
     stack_push(t2);
@@ -2415,7 +2388,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     t2 = stack_pop();
 
-    key = string_as_string(state, t1);
+    key = string_byte_address(state, t1);
     if(key) {
       /* if t2 is nil, we need to delete the variable
        * and return its value.
@@ -2430,17 +2403,14 @@ class ShotgunPrimitives
         }
       } else {
         GUARD(STRING_P(t2));
-        value = string_as_string(state, t2);
+        value = string_byte_address(state, t2);
         if(value) {
           setenv(key, value, 1);
           stack_push(t2);
-          free(value);
         } else {
           stack_push(Qnil);
         }
       }
-
-      free(key);
     }
     CODE
   end

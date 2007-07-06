@@ -78,26 +78,6 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   return self;
 }
 
-char *string_as_string(STATE, OBJECT self) {
-  int i;
-  OBJECT data;
-  char *out;
-  
-  assert(STRING_P(self) || debugging);
-  i = FIXNUM_TO_INT(string_get_bytes(self));
-  data = string_get_data(self);
-  
-  out = (char*)malloc(i+1);
-  
-  if(!NIL_P(data)) {
-    memcpy(out, bytearray_byte_address(state, data), i);
-    out[i] = 0;
-  } else {
-    out[0] = 0;
-  }
-  return out;
-}
-
 char *string_byte_address(STATE, OBJECT self) {
   OBJECT data;
 
