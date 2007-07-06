@@ -272,7 +272,7 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
   }
 }
 
-char *rb_id2name(ID sym) {
+const char *rb_id2name(ID sym) {
   OBJECT obj;
   CTX;
   

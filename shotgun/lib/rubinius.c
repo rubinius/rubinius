@@ -45,12 +45,8 @@ OBJECT rbs_symbol_to_string(STATE, OBJECT sym) {
   return str;
 }
 
-char *rbs_symbol_to_cstring(STATE, OBJECT sym) {
-  char *s;
-
-  s = string_byte_address(state, rbs_symbol_to_string(state, sym));
-
-  return s ? strdup(s) : NULL;
+const char *rbs_symbol_to_cstring(STATE, OBJECT sym) {
+  return string_byte_address(state, rbs_symbol_to_string(state, sym));
 }
 
 OBJECT rbs_get_field_raw(OBJECT obj, int fel) {
@@ -103,7 +99,7 @@ char *rbs_inspect_verbose(STATE, OBJECT obj) {
   } else if(kls == state->global->class) {
     sprintf(buf, "%s", rbs_symbol_to_cstring(state, module_get_name(obj)));
   } else if(kls == state->global->symbol || kls == state->global->string) {
-    char *s = 0;
+    const char *s = NULL;
     sprintf(buf, "<%s:%p '", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);
     
     if (kls == state->global->symbol) {
@@ -112,7 +108,6 @@ char *rbs_inspect_verbose(STATE, OBJECT obj) {
     
     if (kls == state->global->string) {
       s = string_byte_address(state, obj);
-      s = s ? strdup(s) : NULL;
     }
     
     if (s) {
