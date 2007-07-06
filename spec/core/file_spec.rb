@@ -13,6 +13,8 @@ require 'fileutils'
 
 # atime, chmod, chown, ctime, flock, lstat, mtime, path, truncate
 
+WINDOWS =  RUBY_PLATFORM.match('mswin')
+
 context "File class method" do
   def non_existent_file
     file = 'i_dont_exist'
@@ -237,6 +239,13 @@ describe "File#ctime" do
     @file.ctime.class.should == Time
   end
  
+  #  it "" do
+  #    sys("touch  #@file")
+  #    ctime = RubiconStat::ctime(@file)
+  #    @cTime = Time.at(ctime)
+  #    @cTime.should == File.ctime(@file)
+  #  end
+  
   it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
     should_raise(ArgumentError){ @file.ctime(@file, @file) } 
   end
@@ -310,7 +319,7 @@ end
 
 describe "File.directory?" do 
   before(:each) do
-    if RUBY_PLATFORM.match('mswin')
+    if WINDOWS
       @dir  = "C:\\"
       @file = "C:\\winnt\\notepad.exe"
     else
@@ -345,7 +354,7 @@ describe "File.executable?" do
     File.chmod(0755, @file1)
   end
 
-  unless  RUBY_PLATFORM.match('mswin')
+  unless WINDOWS
     it "return true if the argument its an executable file" do
       File.executable?(@file1).should == true
       File.executable?(@file2).should == false
@@ -368,6 +377,355 @@ describe "File.executable?" do
     @file2 = nil
   end
 end
+
+describe "File.executable_real?" do
+  def setup
+    @file1 = File.join(Dir.pwd, 'temp1.txt')
+    @file2 = File.join(Dir.pwd, 'temp2.txt')
+
+    FileUtils.touch(@file1)
+    FileUtils.touch(@file2)
+      
+    File.chmod(0755, @file1)
+  end
+ 
+  unless WINDOWS
+    it "returns true if the file its an executable" do 
+      File.executable_real?(@file1).should == true
+      File.executable_real?(@file2).should == false
+      File.executable_real?('bogus').should == false
+    end
+  end
+  
+  it "raise an exception if the argumnent is not from the correct type or are missing" do
+    should_raise(ArgumentError){ File.executable_real? }
+    should_raise(TypeError){ File.executable_real?(1) }
+    should_raise(TypeError){ File.executable_real?(nil) }
+    should_raise(TypeError){ File.executable_real?(false) }
+  end
+
+  after(:each) do
+    #FileUtils.remove_file(@file1)
+    #FileUtils.remove_file(@file2)
+
+    @file1 = nil
+    @file2 = nil
+  end
+end
+   
+
+#describe "File::Constants" do 
+#  before(:each) do
+#    
+#  end
+#   
+#  after(:each) do
+#    
+#  end  
+#end
+
+describe "File.exist?" do 
+  before(:each) do
+    @file = 'temp.txt'
+    FileUtils.touch(@file)  
+  end 
+  
+  it "return true if the file exist" do
+    File.exist?(@file).should == true
+    File.exist?('a_fake_file').should == false
+  end
+
+  it "return true if the file exist using the alias exists?" do 
+    File.exists?(@file).should == true
+    File.exists?('a_fake_file').should == false
+  end
+
+  it "raise an exception if the argumnent is not from the correct type or are missing" do
+    should_raise(ArgumentError){ File.exist? }
+    should_raise(ArgumentError){ File.exist?(@file, @file) }
+    should_raise(TypeError){ File.exist?(nil) }
+  end 
+   
+  after(:each) do
+    #FileUtils.remove_file(@file)
+    @file = nil
+  end  
+end
+
+describe "File::Constants" do 
+  specify "match mode constants" do 
+    File::FNM_NOESCAPE.should_not == nil
+    File::FNM_PATHNAME.should_not == nil
+    File::FNM_DOTMATCH.should_not == nil
+    File::FNM_CASEFOLD.should_not == nil
+    File::FNM_SYSCASE.should_not == nil
+
+    if WINDOWS #|| VMS
+      File::FNM_SYSCASE.should == 8
+    end
+  end
+
+  # Only these constants are not inherited from the IO class
+  specify "the sperator constant" do
+    File::SEPARATOR.should_not == nil 
+    File::Separator.should_not == nil
+    File::PATH_SEPARATOR.should_not == nil
+    File::SEPARATOR.should == "/"
+
+    if WINDOWS #|| VMS
+      File::ALT_SEPARATOR.should_not == nil
+      File::PATH_SEPARATOR.should == ";"
+    else
+      File::ALT_SEPARATOR.should == nil
+      File::PATH_SEPARATOR.should == ":"
+    end
+  end
+
+  specify "the open mode constants" do   
+    File::APPEND.should_not == nil
+    File::CREAT.should_not == nil
+    File::EXCL.should_not == nil
+    File::NONBLOCK.should_not == nil
+    File::RDONLY.should_not == nil
+    File::RDWR.should_not == nil
+    File::TRUNC.should_not == nil
+    File::WRONLY.should_not == nil
+      
+    unless WINDOWS # Not sure about VMS here
+      File::NOCTTY.should_not == nil
+    end
+  end
+
+  specify "lock mode constants" do 
+    File::LOCK_EX.should_not == nil
+    File::LOCK_NB.should_not == nil
+    File::LOCK_SH.should_not == nil
+    File::LOCK_UN.should_not == nil
+  end
+end
+
+describe "File.expand_path" do
+  before(:each) do
+    if WINDOWS
+      @base = `cd`.chomp.tr '\\', '/'
+      @tmpdir = "c:/tmp"
+      @rootdir = "c:/"
+    else
+      @base = `pwd`.chomp
+      @tmpdir = "/tmp"
+      @rootdir = "/"
+      @pwd  = Dir.pwd
+    end
+  end
+  
+  it "Converts a pathname to an absolute pathname" do 
+    File.expand_path('').should == @base
+    File.expand_path('a').should == File.join(@base, 'a')
+    File.expand_path('a', nil).should == File.join(@base, 'a')
+  end
+  
+  it "Converts a pathname to an absolute pathname, Ruby-Talk:18512 " do 
+    # Because of Ruby-Talk:18512
+    File.expand_path('a.').should == File.join(@base, 'a.')
+    File.expand_path('.a').should == File.join(@base, '.a')
+    File.expand_path('a..').should == File.join(@base, 'a..')
+    File.expand_path('..a').should == File.join(@base, '..a')
+    File.expand_path('a../b').should == File.join(@base, 'a../b')
+  end
+  
+  it "Converts a pathname to an absolute pathname, using a complete path" do     
+    File.expand_path("", "#{@tmpdir}").should == "#{@tmpdir}"
+    File.expand_path("a", "#{@tmpdir}").should =="#{@tmpdir}/a"
+    File.expand_path("../a", "#{@tmpdir}/xxx").should == "#{@tmpdir}/a"
+    File.expand_path(".", "#{@rootdir}").should == "#{@rootdir}"
+  end
+  
+  unless not home = ENV['HOME']
+    it "Converts a pathname to an absolute pathname, using ~ (home) as base" do
+      File.expand_path('~').should == home
+      File.expand_path('~', '/tmp/gumby/ddd').should == home
+      File.expand_path('~/a', '/tmp/gumby/ddd').should == File.join(home, 'a')
+    end
+  end
+  
+  unless WINDOWS
+    it "expand path with " do      
+      File.expand_path("../../bin", "/tmp/x").should == "/bin" 
+      File.expand_path("../../bin", "/tmp").should == "/bin"
+      File.expand_path("../../bin", "/").should == "/bin"
+      File.expand_path("../../bin", "tmp/x").should == File.join(@pwd, 'bin')
+    end
+  end
+  
+  it "raise an exception if the argumnents are not of the correct type or are missing" do
+    should_raise(ArgumentError){ File.expand_path }
+    should_raise(TypeError){ File.expand_path(1) }
+    should_raise(TypeError){ File.expand_path(nil) }
+    should_raise(TypeError){ File.expand_path(true) }
+      
+    unless WINDOWS
+      should_raise(ArgumentError){ File.expand_path("~a_fake_file") }
+    end
+  end
+  
+  after(:each) do
+    @base = nil
+    @tmpdir = nil
+    @rootdir = nil    
+    @pwd  = nil
+  end
+end
+
+describe "File.extname" do
+  it "returns the extension (the portion of file name in path after the period)." do 
+    File.extname("foo.rb").should == ".rb"
+    File.extname("/foo/bar.rb").should == ".rb"
+    File.extname("/foo.rb/bar.c").should == ".c"
+    File.extname("bar").should == ""
+    File.extname(".bashrc").should == ""
+    File.extname("/foo.bar/baz").should == ""
+    File.extname(".app.conf").should == ".conf"
+  end
+
+  it "returns the extension (the portion of file name in path after the period).(edge cases)" do 
+    File.extname("").should ==  ""
+    File.extname(".").should ==  ""
+    File.extname("/").should ==  ""
+    File.extname("/.").should ==  ""
+    File.extname("..").should ==  ""
+    File.extname(".foo.").should ==  ""
+    File.extname("foo.").should ==  ""
+  end
+  
+  it "returns only the last extension of a file with several dots" do
+    File.extname("a.b.c.d.e").should == ".e"
+  end
+
+  it "raise an exception if the argumnents are not of the correct type or are missing" do
+    should_raise(TypeError){ File.extname(nil) }
+    should_raise(TypeError){ File.extname(0) }
+    should_raise(TypeError){ File.extname(true) }
+    should_raise(TypeError){ File.extname(false) }
+    should_raise(ArgumentError){ File.extname("foo.bar", "foo.baz") }
+  end  
+end
+
+describe "File.file?" do 
+  before(:each) do 
+    if WINDOWS
+      @null = "NUL"
+      @dir  = "C:\\"
+    else
+      @null = "/dev/null"
+      @dir  = "/bin"
+    end
+
+    @file = "test.txt"
+    FileUtils.touch(@file)
+  end
+  
+  it "returns true if the named file exists and is a regular file." do 
+    File.file?(@file).should == true
+    File.file?(@dir).should == false
+    File.file?(@null).should == false # May fail on MS Windows
+  end
+
+  it "raise an exception if the argumnents are not of the correct type or are missing" do
+    should_raise(ArgumentError){ File.file? }
+    should_raise(ArgumentError){ File.file?(@null, @file) }
+    should_raise(TypeError){ File.file?(nil) }
+  end
+
+  after(:each) do
+    #FileUtils.remove_file(@file)
+    @null = nil
+    @file = nil
+  end
+end
+
+describe "File.fnmatch" do  
+  it "match partial or entire strings" do 
+    File.fnmatch('cat',       'cat')        #=> true  : match entire string
+    File.fnmatch('cat',       'category')   #=> false : only match partial string
+    File.fnmatch('c{at,ub}s', 'cats')       #=> false : { } isn't supported
+  end
+  it "match using the only-one-character expresion (?)" do
+    File.fnmatch('c?t',     'cat')          #=> true  : '?' match only 1 character
+    File.fnmatch('c??t',    'cat')          #=> false : ditto
+  end
+  it "match using the 0 or more characters expresion (*)" do
+    File.fnmatch('c*',      'cats')         #=> true  : '*' match 0 or more characters
+    File.fnmatch('c*t',     'c/a/b/t')      #=> true  : ditto
+  end
+  
+  it "match inclusive bracket expresion [x-y] " do
+    File.fnmatch('ca[a-z]', 'cat')          #=> true  : inclusive bracket expression
+  end
+  
+  it "match exclusive bracket expresion [^t] or [!t]" do
+    File.fnmatch('ca[^t]',  'cat')          #=> false : exclusive bracket expression ('^' or '!')
+    File.fnmatch('ca[!t]',  'cat')          #=> false : exclusive bracket expression ('^' or '!')
+  end
+  
+  it "match case sensitive" do
+    File.fnmatch('cat', 'CAT')                     #=> false : case sensitive
+  end
+  
+  it "match case insensitive" do
+    File.fnmatch('cat', 'CAT', File::FNM_CASEFOLD) #=> true  : case insensitive
+  end
+
+  it "not match a character using wildcard" do
+    File.fnmatch('?',   '/', File::FNM_PATHNAME)  #=> false : wildcard doesn't match '/' on FNM_PATHNAME
+    File.fnmatch('*',   '/', File::FNM_PATHNAME)  #=> false : ditto
+    File.fnmatch('[/]', '/', File::FNM_PATHNAME)  #=> false : ditto
+  end
+  
+  it "escaped characters becomes ordinary when match" do
+    File.fnmatch('\?',   '?')                       #=> true  : escaped wildcard becomes ordinary
+    File.fnmatch('\a',   'a')                       #=> true  : escaped ordinary remains ordinary
+    File.fnmatch('\a',   '\a', File::FNM_NOESCAPE)  #=> true  : FNM_NOESACPE makes '\' ordinary
+    File.fnmatch('[\?]', '?')                       #=> true  : can escape inside bracket expression
+  end
+  
+  it "wildcards doesnt match leading by default" do
+    File.fnmatch('*',   '.profile')                      #=> false : wildcard doesn't match leading
+    File.fnmatch('*',   '.profile', File::FNM_DOTMATCH)  #=> true    period by default.
+    File.fnmatch('.*',  '.profile')                      #=> true
+  end
+
+  it "match " do
+    rbfiles = '**' '/' '*.rb' # you don't have to do like this. just write in single string.
+    File.fnmatch(rbfiles, 'main.rb')                    #=> false
+    File.fnmatch(rbfiles, './main.rb')                  #=> false
+    File.fnmatch(rbfiles, 'lib/song.rb')                #=> true
+    File.fnmatch('**.rb', 'main.rb')                    #=> true
+    File.fnmatch('**.rb', './main.rb')                  #=> false
+    File.fnmatch('**.rb', 'lib/song.rb')                #=> true
+    File.fnmatch('*',           'dave/.profile')                      #=> true
+  end
+  
+  it "match " do
+    pattern = '*' '/' '*'
+    File.fnmatch(pattern, 'dave/.profile', File::FNM_PATHNAME)  #=> false
+    File.fnmatch(pattern, 'dave/.profile', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
+
+    pattern = '**' '/' 'foo'
+    File.fnmatch(pattern, 'a/b/c/foo', File::FNM_PATHNAME)     #=> true
+    File.fnmatch(pattern, '/a/b/c/foo', File::FNM_PATHNAME)    #=> true
+    File.fnmatch(pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME)  #=> true
+    File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME)    #=> false
+    File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
+  end
+  
+  it "raise an exception if the argumnents are not of the correct type or are missing" do
+    should_raise(ArgumentError){ File.fnmatch(@path1, @path1, 0, 0) }
+    should_raise(TypeError){ File.fnmatch(1, @path1) }
+    should_raise(TypeError){ File.fnmatch(@path1, 1) }
+    should_raise(TypeError){ File.fnmatch(@path1, @path2, @path3) }
+  end 
+end
+
 
 describe "File.atime" do
   before(:each) do

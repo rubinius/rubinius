@@ -375,23 +375,21 @@ describe "Object#method_missing" do
     
   class AClassWithProtectedMethodAndMetohdMissing 
     def method_missing(*args)
-      "a_new_method_missing"
+      :a_new_method_missing
     end
-    protected
-    def a_protected_method; end        
+    protected 
     def self.a_protected_class_method
-      "a_private_class_method"
+      :a_protected_class_method
     end
   end
     
   class AClassWithPrivateMethodAndMetohdMissing
     def method_missing(*args)
-      "a_new_method_missing"
+      :a_new_method_missing
     end    
-    private
-    def a_private_method; end 
+    private 
     def self.a_private_class_method
-      "a_private_class_method"
+      :a_private_class_method
     end 
   end 
    
@@ -408,18 +406,18 @@ describe "Object#method_missing" do
   end
   
   it  "return the correct value from the method_missing method after call a private instance method" do
-    AClassWithPrivateMethodAndMetohdMissing.new.a_private_method.should == "a_new_method_missing"
+    AClassWithPrivateMethodAndMetohdMissing.new.a_private_method.should == :a_new_method_missing
   end
   
   it  "return the correct value from the method_missing method after call a protected instance method" do
-    AClassWithProtectedMethodAndMetohdMissing.new.a_protected_method.should == "a_new_method_missing"
+    AClassWithProtectedMethodAndMetohdMissing.new.a_protected_method.should == :a_new_method_missing
   end
   
   it  "return the correct value from the method_missing method after call a private class method" do
-    AClassWithPrivateMethodAndMetohdMissing.a_private_class_method.should == "a_private_class_method"
+    AClassWithPrivateMethodAndMetohdMissing.a_private_class_method.should == :a_private_class_method
   end
     
   it  "return the correct value from the method_missing method after call a protected class method" do
-    AClassWithProtectedMethodAndMetohdMissing.a_protected_class_method.should == "a_private_class_method"
+    AClassWithProtectedMethodAndMetohdMissing.a_protected_class_method.should == :a_protected_class_method
   end 
 end
