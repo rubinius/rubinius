@@ -10,7 +10,7 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS=-Wall -g -ggdb3 -I../include -iquote . -iquote lib `pkg-config glib-2.0 --cflags` -Iexternal_libs/cinvoke/lib
+CFLAGS += -I../include -iquote . -iquote lib
 
 # amd64 must have fPIC shared
 ifeq ($(MARCH),amd64)
@@ -31,6 +31,7 @@ LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
 LDFLAGS=
 
 ifdef USE_CINVOKE
+CFLAGS += -Iexternal_libs/cinvoke/lib
 LIBS+= external_libs/cinvoke/lib/libcinvoke.a
 ALIBS+= external_libs/cinvoke/lib/libcinvoke.a
 endif

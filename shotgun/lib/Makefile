@@ -8,9 +8,7 @@ else
   SINGLE_MODULE=
 endif
 
-CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl `pkg-config glib-2.0 --cflags` -D_GNU_SOURCE
-
-WARNINGS=-Wall -Winline
+CPPFLAGS=-I../../include -I .. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl -D_GNU_SOURCE
 
 LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm
 
@@ -47,18 +45,15 @@ endif
 
 ifdef DEV
   OPTIMIZATIONS=
-  WARNINGS=-Wall
 else
   INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=2000 --param inline-unit-growth=1000
-  OPTIMIZATIONS=-O2 -ffast-math -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
-  WARNINGS=-Wall
+  OPTIMIZATIONS=-ffast-math -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
 endif
 ifeq ($(CPU), powerpc)
   OPTIMIZATIONS+=-falign-loops=16
 endif
 
-DEBUG=-g
-CFLAGS=-fPIC $(WARNINGS) $(OPTIMIZATIONS) $(DEBUG) $(CPPFLAGS)
+CFLAGS += -fPIC $(CPPFLAGS)
 DEPS=auto.h system_primitives.gen instruction_names.c instruction_names.h \
      node_types.c node_types.h
 
@@ -84,10 +79,10 @@ show_info:
 	@echo "Debugging: $(DEBUG)"
 
 %.lo: %.c
-	$(COMP) $(CFLAGS) -c $< -o $@
+	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
 
 subtend/PortableUContext_asm.lo:
-	$(COMP) $(CFLAGS) -c subtend/PortableUContext_asm.S -o subtend/PortableUContext_asm.lo
+	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c subtend/PortableUContext_asm.S -o subtend/PortableUContext_asm.lo
 
 .%.d:  %.c  $(DEPS)
 	@echo DEP $<
@@ -116,10 +111,10 @@ node_types.c node_types.h: node_types.rb
 	$(RUBY) node_types.rb
 
 grammar.lo:
-	$(COMP) -Wall -O $(DEBUG) $(CPPFLAGS) -c grammar.c
+	$(COMP) $(CFLAGS) -c grammar.c
 
 subtend/ffi.lo: subtend/ffi.c
-	$(COMP) $(CFLAGS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
+	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
 
 # In a perfect world, we'd only rebuild grammar.c if grammar.y changed.
 # However, SVN likes to play with the file mtime, which will just mess

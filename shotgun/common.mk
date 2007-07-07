@@ -7,6 +7,14 @@ UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
 
+WARNINGS = -Wall
+DEBUG = -g -ggdb3
+
+# basic optimizations should be overridable
+CFLAGS ?= -O2
+
+CFLAGS += $(WARNINGS) $(DEBUG) `pkg-config glib-2.0 --cflags` 
+
 ifdef VERBOSE
   COMP=$(LIBTOOL) --mode=compile $(CC)
   LINKER=$(LIBTOOL) --mode=link $(CC)
