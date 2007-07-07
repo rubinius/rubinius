@@ -81,8 +81,8 @@ show_info:
 %.lo: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
 
-subtend/PortableUContext_asm.lo:
-	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c subtend/PortableUContext_asm.S -o subtend/PortableUContext_asm.lo
+subtend/PortableUContext_asm.lo: subtend/PortableUContext_asm.S
+	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
 
 .%.d:  %.c  $(DEPS)
 	@echo DEP $<
