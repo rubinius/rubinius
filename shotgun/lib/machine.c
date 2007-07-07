@@ -532,7 +532,7 @@ static void _machine_add_config(gpointer key, gpointer value, gpointer user_data
   hash_set(m->s, m->s->global->config, ok, ov);
 }
 
-void machine_parse_config_var(machine m, char *var) {
+static void machine_parse_config_var(machine m, char *var) {
   char *eq, *or;;
   char buf[1024];
   char *name;
@@ -559,7 +559,7 @@ void machine_parse_config_var(machine m, char *var) {
   }
 }
 
-void machine_parse_configs(machine m, char *config) {
+static void machine_parse_configs(machine m, char *config) {
   char *semi;
   char tmp[1024];
   int sz;
