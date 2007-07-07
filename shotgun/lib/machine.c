@@ -53,9 +53,7 @@ void machine_print_callstack(machine m) {
 
 void machine_print_callstack_limited(machine m, int maxlev) {
   OBJECT context;
-  char *modname;
-  char *methname;
-  char *filename;
+  const char *modname, *methname, *filename;
   
   context = m->c->active_context;
   
@@ -299,7 +297,7 @@ void machine_print_registers(machine m) {
 }
 
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
-  char *signame;
+  const char *signame;
   rni_context *rni_ctx;
   
   /* See if the error happened during the running of a C function.
@@ -801,7 +799,7 @@ void _print_stack(int cnt, int start) {
   }
 }
 
-char *_inspect(OBJECT obj) {
+const char *_inspect(OBJECT obj) {
   if(SYMBOL_P(obj)) {
     return rbs_symbol_to_cstring(current_machine->s, obj);
   }

@@ -255,7 +255,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   return;
 }
 
-OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg) {
+OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
   OBJECT obj, str;
   
   obj = class_new_instance(state, klass);

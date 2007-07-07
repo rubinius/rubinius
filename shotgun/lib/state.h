@@ -136,9 +136,9 @@ OBJECT rbs_class_new(STATE, const char *name, int fields, OBJECT obj);
 OBJECT rbs_class_new_with_namespace(STATE, const char *name, int fields, OBJECT obj, OBJECT ns);
 const char *rbs_symbol_to_cstring(STATE, OBJECT sym);
 OBJECT rbs_symbol_to_string(STATE, OBJECT sym);
-char *rbs_inspect(STATE, OBJECT obj);
-char *rbs_inspect_verbose(STATE, OBJECT obj);
-char *_inspect(OBJECT obj);
+const char *rbs_inspect(STATE, OBJECT obj);
+const char *rbs_inspect_verbose(STATE, OBJECT obj);
+const char *_inspect(OBJECT obj);
 OBJECT rbs_module_new(STATE, const char *name, OBJECT ns);
 OBJECT rbs_class_new_instance(STATE, OBJECT cls);
 

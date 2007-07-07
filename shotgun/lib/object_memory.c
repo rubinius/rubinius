@@ -279,7 +279,7 @@ void state_each_object(STATE, OBJECT kls, void (*cb)(STATE, OBJECT)) {
 void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
   int sz, osz;
   char *start, *end, *cur;
-  char *kind;
+  const char *kind;
   OBJECT obj, kls;
   
   sz = object_memory_used(om);

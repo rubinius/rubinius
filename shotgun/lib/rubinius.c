@@ -70,7 +70,7 @@ OBJECT rbs_class_new_instance(STATE, OBJECT cls) {
   return NEW_OBJECT(cls, FIXNUM_TO_INT(t1));
 }
 
-char *rbs_inspect(STATE, OBJECT obj) {
+const char *rbs_inspect(STATE, OBJECT obj) {
   OBJECT kls;
   static char buf[1024];
   
@@ -87,7 +87,7 @@ char *rbs_inspect(STATE, OBJECT obj) {
   return buf;
 }
 
-char *rbs_inspect_verbose(STATE, OBJECT obj) {
+const char *rbs_inspect_verbose(STATE, OBJECT obj) {
   OBJECT kls;
   static char buf[1024];
   

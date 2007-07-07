@@ -234,7 +234,6 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
 
 OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val) {
   OBJECT tbl, t2;
-  int i, j;
   
   /* Implements the external ivars table for objects that don't
      have their own space for ivars. */

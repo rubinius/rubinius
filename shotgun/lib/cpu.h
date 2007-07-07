@@ -119,9 +119,9 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);
 void cpu_raise_exception(STATE, cpu c, OBJECT exc);
 void cpu_raise_arg_error(STATE, cpu c, int args, int req);
-void cpu_raise_arg_error_generic(STATE, cpu c, char *msg);
-void cpu_raise_from_errno(STATE, cpu c, char *msg);
-OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, char *msg);
+void cpu_raise_arg_error_generic(STATE, cpu c, const char *msg);
+void cpu_raise_from_errno(STATE, cpu c, const char *msg);
+OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg);
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg);
 
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,

@@ -451,7 +451,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   return ctx;
 }
 
-void cpu_raise_from_errno(STATE, cpu c, char *msg) {
+void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
   char buf[1024];
   
@@ -465,7 +465,7 @@ void cpu_raise_from_errno(STATE, cpu c, char *msg) {
   cpu_raise_exception(state, c, cpu_new_exception(state, c, cls, msg));
 }
 
-void cpu_raise_arg_error_generic(STATE, cpu c, char *msg) {
+void cpu_raise_arg_error_generic(STATE, cpu c, const char *msg) {
   cpu_raise_exception(state, c, cpu_new_exception(state, c, state->global->exc_arg, msg));
 }
 
