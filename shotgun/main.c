@@ -12,15 +12,17 @@
 void *__main_address;
 
 /* TODO incorporate system paths calculated at compile time. */
+static const char *search_path[] = {
+  "runtime",
 #ifdef CONFIG_RBAPATH
-char *search_path[] = {"runtime", CONFIG_RBAPATH, NULL};
-#else
-char *search_path[] = {"runtime", NULL};
+  CONFIG_RBAPATH,
 #endif
+  NULL
+};
 
-static char *search_for(char *evs, char *file) {
+static const char *search_for(const char *evs, const char *file) {
   char *env;
-  char path[PATH_MAX];
+  static char path[PATH_MAX];
   struct stat _st;
   int i;
 
@@ -28,14 +30,14 @@ static char *search_for(char *evs, char *file) {
   
   env = getenv(evs);
   if(env) {
-    if(file_exists_p(env)) return strdup(env);
+    if(file_exists_p(env)) return env;
     return NULL;
   }
   
   for(i = 0; search_path[i]; i++) {
     snprintf(path, PATH_MAX, "%s/%s", search_path[i], file);
     if(file_exists_p(path)) {
-      return strdup(path);
+      return path;
     }
   }
   
@@ -44,7 +46,7 @@ static char *search_for(char *evs, char *file) {
 
 int main(int argc, char **argv) {
   machine m;
-  char *archive;
+  const char *archive;
   int offset = 0;
   int flag;
   
