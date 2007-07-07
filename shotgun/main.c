@@ -45,7 +45,7 @@ static const char *search_for(const char *evs, const char *file) {
 }
 
 int main(int argc, char **argv) {
-  machine m;
+  machine m, *ptr = &m;
   const char *archive;
   int offset = 0;
   int flag;
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   
   m = machine_new();
   /* We sure to setup the bottom of the stack so it can be properly saved. */
-  m->s->stack_bottom = (unsigned long*)&m;
+  m->s->stack_bottom = (unsigned long*) ptr;
   machine_save_args(m, argc, argv);
   machine_setup_standard_io(m);
   machine_setup_ruby(m, argv[0]);
