@@ -130,8 +130,8 @@ struct rubinius_state {
 // This is pretty confusing, since they look identical before the pre-processor runs.
 // HACK
 #ifdef __SHOTGUN__
-OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj);
-OBJECT rbs_const_get(STATE, OBJECT module, char *name);
+OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
+OBJECT rbs_const_get(STATE, OBJECT module, const char *name);
 OBJECT rbs_class_new(STATE, const char *name, int fields, OBJECT obj);
 OBJECT rbs_class_new_with_namespace(STATE, const char *name, int fields, OBJECT obj, OBJECT ns);
 const char *rbs_symbol_to_cstring(STATE, OBJECT sym);

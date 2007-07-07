@@ -5,7 +5,7 @@
 #include "class.h"
 #include <string.h>
 
-OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj) {
+OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj) {
   OBJECT sym, str;
   
   str = string_new(state, name);
@@ -15,7 +15,7 @@ OBJECT rbs_const_set(STATE, OBJECT module, char *name, OBJECT obj) {
   return obj;
 }
 
-OBJECT rbs_const_get(STATE, OBJECT module, char *name) {
+OBJECT rbs_const_get(STATE, OBJECT module, const char *name) {
   OBJECT sym, str;
   
   str = string_new(state, name);
