@@ -62,12 +62,6 @@ class ShotgunPrimitives
     
   end
 
-  def generate_declarations(fd)
-    fd.puts "int _int, j, k, m;"
-    fd.puts "OBJECT _lit, t1, t2, t3;"
-    fd.puts "char buffer[1024];"
-  end
-    
   def add(_ = fixnum, t1 = fixnum)
     <<-CODE
     stack_push(fixnum_add(state, self, t1));
