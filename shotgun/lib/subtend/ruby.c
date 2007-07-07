@@ -5,6 +5,7 @@
 #include "symbol.h"
 #include "string.h"
 #include "hash.h"
+#include "class.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
