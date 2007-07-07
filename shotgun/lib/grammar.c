@@ -455,7 +455,7 @@ static int tokadd_string(int, int, int, int *, rb_parse_state*);
  
 #define SHOW_PARSER_WARNS 0
  
-static int _debug_print(char *fmt, ...) {
+static int _debug_print(const char *fmt, ...) {
 #if SHOW_PARSER_WARNS
   va_list ar;
   int i;
@@ -585,7 +585,7 @@ typedef union YYSTYPE
     int num;
     var_table *vars;
 }
-/* Line 193 of yacc.c.  */
+/* Line 187 of yacc.c.  */
 #line 590 "grammar.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -9840,23 +9840,6 @@ syd_node_newnode(st, type, a0, a1, a2)
     return n;
 }
 
-#ifdef DEBUG
-static enum node_type
-nodetype(node)                  /* for debug */
-    NODE *node;
-{
-    return (enum node_type)nd_type(node);
-}
-
-static int
-nodeline(node)
-    NODE *node;
-{
-    return nd_line(node);
-}
-
-#endif
-
 static NODE*
 newline_node(parse_state, node)
     rb_parse_state *parse_state;
@@ -9885,17 +9868,6 @@ fixpos(node, orig)
 
 static void
 parser_warning(node, mesg)
-    NODE *node;
-    const char *mesg;
-{
-    int line = ruby_sourceline;
-    ruby_sourceline = nd_line(node);
-    printf("Warning: %s\n", mesg);
-    ruby_sourceline = line;
-}
-
-static void
-parser_warn(node, mesg)
     NODE *node;
     const char *mesg;
 {
@@ -10514,7 +10486,7 @@ static void
 void_expr0(node)
     NODE *node;
 {
-    char *useless = 0;
+  const char *useless = NULL;
 
     if (!RTEST(ruby_verbose)) return;
 
@@ -10696,14 +10668,6 @@ e_option_supplied()
 
 static void
 warn_unless_e_option(node, str)
-    NODE *node;
-    const char *str;
-{
-    if (!e_option_supplied()) parser_warn(node, str);
-}
-
-static void
-warning_unless_e_option(node, str)
     NODE *node;
     const char *str;
 {
