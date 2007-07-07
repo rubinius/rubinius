@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "grammar_internal.h"
 #include "grammar_runtime.h"
@@ -2812,17 +2813,38 @@ syd_compile_string(STATE, const char *f, GString *s, int line, int newlines)
 }
 
 static GString* parse_io_gets(rb_parse_state *parse_state) {
-  GString *output;
-  GError *err;
-  output = g_string_new(NULL);
-  err = NULL;
-  g_io_channel_read_line_string(parse_state->lex_io, output, NULL, &err);
-  
-  return output;
+  GString *ret;
+
+  if(feof(parse_state->lex_io)) {
+    return NULL;
+  }
+
+  ret = g_string_new(NULL);
+
+  while(true) {
+    char *ptr, buf[128];
+    int read;
+
+    ptr = fgets(buf, sizeof(buf), parse_state->lex_io);
+    if(!ptr) {
+      g_string_free(ret, TRUE);
+      return NULL;
+    }
+
+    g_string_append(ret, ptr);
+
+    /* check whether we read a full line */
+    read = strlen(ptr);
+    if(!(read == (sizeof(buf) - 1) && ptr[read] != '\r')) {
+      break;
+    }
+  }
+
+  return ret;
 }
 
 OBJECT
-syd_compile_file(STATE, const char *f, GIOChannel *file, int start, int newlines)
+syd_compile_file(STATE, const char *f, FILE *file, int start, int newlines)
 {
     int n;
     OBJECT ret;

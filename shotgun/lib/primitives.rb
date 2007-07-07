@@ -987,25 +987,21 @@ class ShotgunPrimitives
   
   def file_to_sexp
     <<-CODE
+    FILE *file;
+    char *name;
+
     self = stack_pop();
     POP(t1, STRING); /* The filename */
     t2 = stack_pop();
 
-    GIOChannel *io;
-    GError *err;
-    char *name;
-      
-    err = NULL;
-
     name = string_byte_address(state, t1);
-    io = g_io_channel_new_file(name, "r", &err);
-    if(io == NULL) {
+    file = fopen(name, "r");
+
+    if(!file) {
       _ret = FALSE;
     } else {
-      g_io_channel_set_encoding(io, NULL, &err);
-      t1 = syd_compile_file(state,name, io, 1, RTEST(t2));
-      g_io_channel_shutdown(io, TRUE, &err);
-      g_io_channel_unref(io);
+      t1 = syd_compile_file(state, name, file, 1, RTEST(t2));
+      fclose(file);
       stack_push(t1);
     }
     CODE

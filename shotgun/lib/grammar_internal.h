@@ -49,7 +49,7 @@ typedef struct rb_parse_state {
     
     GString *(*lex_gets)();
     /* If this is set, we use the io method. */
-    GIOChannel *lex_io;
+    FILE *lex_io;
     GString *line_buffer;
     /* Otherwise, we use this. */
     GString *lex_string;
