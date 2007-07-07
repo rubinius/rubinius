@@ -13,7 +13,9 @@ DEBUG = -g -ggdb3
 # basic optimizations should be overridable
 CFLAGS ?= -O2
 
-CFLAGS += $(WARNINGS) $(DEBUG) `pkg-config glib-2.0 --cflags` 
+CFLAGS += $(WARNINGS) $(DEBUG) 
+
+CPPFLAGS += `pkg-config glib-2.0 --cflags`
 
 ifdef VERBOSE
   COMP=$(LIBTOOL) --mode=compile $(CC)

@@ -10,7 +10,7 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS += -I../include -iquote . -iquote lib
+CFLAGS += -I../include -iquote . -iquote lib $(CPPFLAGS)
 
 # amd64 must have fPIC shared
 ifeq ($(MARCH),amd64)
