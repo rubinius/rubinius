@@ -453,12 +453,12 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
 
 void cpu_raise_from_errno(STATE, cpu c, const char *msg) {
   OBJECT cls;
-  char buf[1024];
+  char buf[32];
   
   cls = hash_get(state, state->global->errno_mapping, I2N(errno));
   if(NIL_P(cls)) {
     cls = state->global->exc_arg;
-    sprintf(buf, "Unknown errno %d", errno);
+    snprintf(buf, sizeof(buf), "Unknown errno %d", errno);
     msg = buf;
   }
     
