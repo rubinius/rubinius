@@ -2,6 +2,7 @@
 #define __GRAMMER_INTERNAL_H__
 
 #include <glib.h>
+#include <stdbool.h>
 #include "shotgun.h"
 
 #define ID GQuark
@@ -47,10 +48,14 @@ typedef struct rb_parse_state {
     /* Mirror'ing the 1.8 parser, There are 2 input methods,
        from IO and directly from a string. */
     
-    GString *(*lex_gets)();
+    /* this function reads a line from lex_io and stores it in
+     * line_buffer.
+     */
+    bool (*lex_gets)();
+    GString *line_buffer;
+
     /* If this is set, we use the io method. */
     FILE *lex_io;
-    GString *line_buffer;
     /* Otherwise, we use this. */
     GString *lex_string;
     GString *lex_lastline;

@@ -2733,21 +2733,22 @@ yycompile(parse_state, f, line)
     return n;
 }
 
-static GString*
-lex_get_str(parse_state)
-    rb_parse_state *parse_state;
+static bool
+lex_get_str(rb_parse_state *parse_state)
 {
     char *str;
     char *beg, *end, *pend;
-    GString *output;
     int sz;
 
     str = parse_state->lex_string->str;
     beg = str;
     
     if (parse_state->lex_str_used) {
-        if (parse_state->lex_string->len == parse_state->lex_str_used) return NULL;
-        beg += parse_state->lex_str_used;
+      if (parse_state->lex_string->len == parse_state->lex_str_used) {
+        return false;
+      }
+
+      beg += parse_state->lex_str_used;
     }
     
     pend = str + parse_state->lex_string->len;
@@ -2758,10 +2759,10 @@ lex_get_str(parse_state)
     }
     
     sz = end - beg;
-    output = g_string_new_len(beg, sz);
+    g_string_append_len(parse_state->line_buffer, beg, sz);
     parse_state->lex_str_used += sz;
 
-    return output;
+    return true;
 }
 
 void syd_add_to_parse_tree(STATE, OBJECT ary,
@@ -2774,14 +2775,16 @@ static OBJECT convert_to_sexp(STATE, NODE *node, int newlines) {
   return array_get(state, ary, 0);
 }
 
-static GString*
+static bool
 lex_getline(rb_parse_state *parse_state)
 {
-  GString *out;
-  /* TODO: Should the current line_buffer be freed here? */
-  out = (parse_state->lex_gets)(parse_state);
-  parse_state->line_buffer = out;
-  return out;
+  if(!parse_state->line_buffer) {
+    parse_state->line_buffer = g_string_new(NULL);
+  } else {
+    g_string_truncate(parse_state->line_buffer, 0);
+  }
+
+  return parse_state->lex_gets(parse_state);
 }
 
 OBJECT
@@ -2814,14 +2817,10 @@ syd_compile_string(STATE, const char *f, GString *s, int line, int newlines)
     return ret;
 }
 
-static GString* parse_io_gets(rb_parse_state *parse_state) {
-  GString *ret;
-
+static bool parse_io_gets(rb_parse_state *parse_state) {
   if(feof(parse_state->lex_io)) {
-    return NULL;
+    return false;
   }
-
-  ret = g_string_new(NULL);
 
   while(true) {
     char *ptr, buf[128];
@@ -2829,11 +2828,10 @@ static GString* parse_io_gets(rb_parse_state *parse_state) {
 
     ptr = fgets(buf, sizeof(buf), parse_state->lex_io);
     if(!ptr) {
-      g_string_free(ret, TRUE);
-      return NULL;
+      return false;
     }
 
-    g_string_append(ret, ptr);
+    g_string_append(parse_state->line_buffer, ptr);
 
     /* check whether we read a full line */
     read = strlen(ptr);
@@ -2842,7 +2840,7 @@ static GString* parse_io_gets(rb_parse_state *parse_state) {
     }
   }
 
-  return ret;
+  return true;
 }
 
 OBJECT
@@ -2884,9 +2882,11 @@ ps_nextc(rb_parse_state *parse_state)
     int c;
 
     if (parse_state->lex_p == parse_state->lex_pend) {
-        GString *v = lex_getline(parse_state);
+        GString *v;
         
-        if (!v) return -1;
+        if (!lex_getline(parse_state)) return -1;
+        v = parse_state->line_buffer;
+
         if (heredoc_end > 0) {
             ruby_sourceline = heredoc_end;
             heredoc_end = 0;
@@ -2894,7 +2894,7 @@ ps_nextc(rb_parse_state *parse_state)
         ruby_sourceline++;
         parse_state->lex_pbeg = parse_state->lex_p = v->str;
         parse_state->lex_pend = parse_state->lex_p + v->len;
-        parse_state->lex_lastline = v;
+        parse_state->lex_lastline = g_string_new_len(v->str, v->len);
     }
     c = (unsigned char)*(parse_state->lex_p++);
     if (c == '\r' && parse_state->lex_p < parse_state->lex_pend && *(parse_state->lex_p) == '\n') {
