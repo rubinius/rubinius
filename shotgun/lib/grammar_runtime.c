@@ -69,6 +69,9 @@ void *pt_allocate(rb_parse_state *st, int size) {
 
 void pt_free(rb_parse_state *st) {
   int i;
+
+  var_table_destroy(st->variables);
+
   if(!st->memory_pools) return;
   
   for(i = 0; i <= st->current_pool; i++) {

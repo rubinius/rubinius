@@ -9,6 +9,7 @@ struct _var_table {
 typedef struct _var_table var_table;
 
 var_table *var_table_create();
+void var_table_destroy(var_table *vt);
 var_table *var_table_push(var_table *cur);
 var_table *var_table_pop(var_table *cur);
 int var_table_find(var_table *tbl, GQuark needle);

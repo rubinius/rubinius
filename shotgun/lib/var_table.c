@@ -9,6 +9,15 @@ var_table *var_table_create() {
   return vt;
 }
 
+void var_table_destroy(var_table *vt) {
+  while (vt) {
+    var_table *cur = vt;
+    vt = vt->next;
+
+    free(cur);
+  }
+}
+
 var_table *var_table_push(var_table *cur) {
   var_table *vt = var_table_create();
   vt->next = cur;
