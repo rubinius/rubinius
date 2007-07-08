@@ -70,6 +70,7 @@ void *pt_allocate(rb_parse_state *st, int size) {
 void pt_free(rb_parse_state *st) {
   int i;
 
+  free(st->token_buffer);
   var_table_destroy(st->variables);
 
   if(!st->memory_pools) return;
