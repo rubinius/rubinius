@@ -89,9 +89,6 @@ typedef struct rb_parse_state {
 
 } rb_parse_state;
 
-NODE *syd_node_newnode(rb_parse_state*, enum node_type,VALUE,VALUE,VALUE);
-
-
 #define PARSE_STATE ((rb_parse_state*)parse_state)
 #define PARSE_VAR(var) (PARSE_STATE->var)
 #define ruby_debug_lines PARSE_VAR(debug_lines)

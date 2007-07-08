@@ -25,6 +25,8 @@
 #include "grammar_runtime.h"
 #include "array.h"
 
+static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, OBJECT);
+
 #undef VALUE
 
 #define ALLOC_N(what, many) ((what*)malloc(sizeof(what) * (many)))
@@ -4783,11 +4785,9 @@ yylex(YYSTYPE *yylval, void *vstate)
 }
 
 
-NODE*
-syd_node_newnode(st, type, a0, a1, a2)
-    rb_parse_state *st;
-    enum node_type type;
-    OBJECT a0, a1, a2;
+static NODE*
+syd_node_newnode(rb_parse_state *st, enum node_type type,
+                 OBJECT a0, OBJECT a1, OBJECT a2)
 {
     NODE *n = (NODE*)pt_allocate(st, sizeof(NODE));
     // NODE *n = (NODE*)rb_newobj();
