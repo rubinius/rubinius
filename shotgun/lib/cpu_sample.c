@@ -103,7 +103,6 @@ void cpu_sampler_resume(STATE) {
 }
 
 /* move into state. */
-static clock_t first_clock;
 static int interval;
 
 void cpu_sampler_activate(STATE, int hz) {
