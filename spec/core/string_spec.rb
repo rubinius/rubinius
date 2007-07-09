@@ -1193,16 +1193,56 @@ describe "String#casecmp" do
   end
 end
 
-describe "String#center(integer, padstr)" do
-  it "returns a new string of length integer with self centered and padded with padstr" do
+describe "String#center(length, padstr)" do
+  it "returns a new string of specified length with self centered and padded with padstr" do
     "one".center(9, '.').should       == "...one..."
     "hello".center(20, '123').should  == "1231231hello12312312"
     "middle".center(13, '-').should   == "---middle----"
+
+    "".center(1, "abcd").should == "a"
+    "".center(2, "abcd").should == "aa"
+    "".center(3, "abcd").should == "aab"
+    "".center(4, "abcd").should == "abab"
+    "".center(6, "xy").should == "xyxxyx"
+    "".center(11, "12345").should == "12345123451"
+
+    "|".center(2, "abcd").should == "|a"
+    "|".center(3, "abcd").should == "a|a"
+    "|".center(4, "abcd").should == "a|ab"
+    "|".center(5, "abcd").should == "ab|ab"
+    "|".center(6, "xy").should == "xy|xyx"
+    "|".center(7, "xy").should == "xyx|xyx"
+    "|".center(11, "12345").should == "12345|12345"
+    "|".center(12, "12345").should == "12345|123451"
+
+    "||".center(3, "abcd").should == "||a"
+    "||".center(4, "abcd").should == "a||a"
+    "||".center(5, "abcd").should == "a||ab"
+    "||".center(6, "abcd").should == "ab||ab"
+    "||".center(8, "xy").should == "xyx||xyx"
+    "||".center(12, "12345").should == "12345||12345"
+    "||".center(13, "12345").should == "12345||123451"
   end
   
   it "pads with whitespace if no padstr is given" do
     "two".center(5).should    == " two "
     "hello".center(20).should == "       hello        "
+  end
+  
+  it "tries to convert length to an integer using to_int" do
+    "_".center(3.8, "^").should == "^_^"
+    
+    obj = Object.new
+    def obj.to_int() 3 end
+      
+    "_".center(obj, "o").should == "o_o"
+  end
+  
+  it "raises a TypeError when length can't be converted to an integer" do
+    should_raise(TypeError) { "hello".center("x") }
+    should_raise(TypeError) { "hello".center("x", "y") }
+    should_raise(TypeError) { "hello".center([]) }
+    should_raise(TypeError) { "hello".center(Object.new) }
   end
   
   it "tries to convert padstr to a string using to_str" do
@@ -1212,46 +1252,57 @@ describe "String#center(integer, padstr)" do
     "hello".center(20, padstr).should == "1231231hello12312312"
   end
   
-  it "raises an ArgumentError when padstr can't be converted to a string" do
-    should_raise(ArgumentError) do
-      "hello".chomp(20, ?o)
-    end
-    
-    should_raise(ArgumentError) do
-      "hello".chomp(20, :llo)
-    end
-    
-    should_raise(ArgumentError) do
-      "hello".chomp(20, Object.new)
-    end
+  it "raises a TypeError when padstr can't be converted to a string" do
+    should_raise(TypeError) { "hello".center(20, ?o) }
+    should_raise(TypeError) { "hello".center(20, :llo) }
+    should_raise(TypeError) { "hello".center(20, Object.new) }
   end
   
-  it "returns self if it's longer than or as long as integer chars" do
+  it "returns self if it's longer than or as long as the specified length" do
+    "".center(0).should == ""
+    "".center(-1).should == ""
     "hello".center(4).should == "hello"
+    "hello".center(-1).should == "hello"
     "this".center(3).should == "this"
     "radiology".center(8, '-').should == "radiology"
   end
   
-  it "raises an ArgumentError if padstr length is 0" do
+  it "raises an ArgumentError if padstr is empty" do
     should_raise(ArgumentError) do
       "hello".center(10, "")
     end
+  end
+  
+  it "returns subclass instances when called on subclasses" do
+    MyString.new("").center(10).class.should == MyString
+    MyString.new("foo").center(10).class.should == MyString
+    MyString.new("foo").center(10, MyString.new("x")).class.should == MyString
+    
+    "".center(10, MyString.new("x")).class.should == String
+    "foo".center(10, MyString.new("x")).class.should == String
   end
 end
 
 describe "String#chomp(separator)" do
   it "returns a new string with the given record separator removed" do
     "hello".chomp("llo").should == "he"
+    "hellollo".chomp("llo").should == "hello"
   end
 
-  it "removes carriage return chars multiple times when seperator is an empty string" do
+  it "removes carriage return (except \\r) chars multiple times when separator is an empty string" do
+    "".chomp("").should == ""
     "hello".chomp("").should == "hello"
     "hello\n".chomp("").should == "hello"
+    "hello\nx".chomp("").should == "hello\nx"
     "hello\r\n".chomp("").should == "hello"
     "hello\r\n\r\n\n\n\r\n".chomp("").should == "hello"
+
+    "hello\r".chomp("").should == "hello\r"
+    "hello\n\r".chomp("").should == "hello\n\r"
+    "hello\r\r\r\n".chomp("").should == "hello\r\r"
   end
   
-  it "removes carriage return chars when separator is \\n" do
+  it "removes carriage return chars (\\n, \\r, \\r\\n) when separator is \\n" do
     "hello".chomp("\n").should == "hello"
     "hello\n".chomp("\n").should == "hello"
     "hello\r\n".chomp("\n").should == "hello"
@@ -1259,20 +1310,29 @@ describe "String#chomp(separator)" do
     "hello\r".chomp("\n").should == "hello"
     "hello \n there".chomp("\n").should == "hello \n there"
     "hello\r\n\r\n\n\n\r\n".chomp("\n").should == "hello\r\n\r\n\n\n"
-  end
-  
-  it "removes carriage return chars when separator is $/ (default)" do
-    "hello".chomp.should == "hello"
-    "hello\n".chomp.should == "hello"
-    "hello\r\n".chomp.should == "hello"
-    "hello\n\r".chomp.should == "hello\n"
-    "hello\r".chomp.should == "hello"
-    "hello \n there".chomp.should == "hello \n there"
-    "hello\r\n\r\n\n\n\r\n".chomp.should == "hello\r\n\r\n\n\n"
+    
+    "hello\n\r".chomp("\r").should == "hello\n"
+    "hello\n\r\n".chomp("\r\n").should == "hello\n"
   end
   
   it "returns self if the separator is nil" do
     "hello\n\n".chomp(nil).should == "hello\n\n"
+  end
+  
+  it "uses $/ as the separator when none is given" do
+    ["", "x", "x\n", "x\r", "x\r\n", "x\n\r\r\n", "hello"].each do |str|
+      ["", "llo", "\n", "\r", nil].each do |sep|
+        begin
+          expected = str.chomp(sep)
+
+          old_rec_sep, $/ = $/, sep
+
+          str.chomp.should == expected
+        ensure
+          $/ = old_rec_sep
+        end
+      end
+    end
   end
   
   it "tries to convert separator to a string using to_str" do
@@ -1283,37 +1343,41 @@ describe "String#chomp(separator)" do
   end
   
   it "raises a TypeError if separator can't be converted to a string" do
-    should_raise(TypeError) do
-      "hello".chomp(?o)
-    end
-    
-    should_raise(TypeError) do
-      "hello".chomp(:llo)
-    end
-    
-    should_raise(TypeError) do
-      "hello".chomp(Object.new)
-    end
+    should_raise(TypeError) { "hello".chomp(?o) }
+    should_raise(TypeError) { "hello".chomp(:llo) }
+    should_raise(TypeError) { "hello".chomp(Object.new) }
   end
 end
 
 describe "String#chomp!(seperator)" do
-  it "modifies self in place" do
+  it "modifies self in place and returns self" do
     s = "one\n"
-    s.chomp!
+    s.chomp!.equal?(s).should == true
     s.should == "one"
     
     t = "two\r\n"
-    t.chomp!
+    t.chomp!.equal?(t).should == true
     t.should == "two"
     
     u = "three\r"
     u.chomp!
     u.should == "three"
     
-    w = "four\n\r"
-    w.chomp!
-    w.should == "four\n"
+    v = "four\n\r"
+    v.chomp!
+    v.should == "four\n"
+    
+    w = "five\n\n"
+    w.chomp!(nil)
+    w.should == "five\n\n"
+    
+    x = "six"
+    x.chomp!("ix")
+    x.should == "s"
+    
+    y = "seven\n\n\n\n"
+    y.chomp!("")
+    y.should == "seven"
   end
   
   it "returns nil if no modifications were made" do
@@ -1323,40 +1387,84 @@ describe "String#chomp!(seperator)" do
     
     "".chomp!.should == nil
     "line".chomp!.should == nil
+    
+    "hello\n".chomp!("x").should == nil
+    "hello".chomp!("").should == nil
+    "hello".chomp!(nil).should == nil
   end
 
   it "raises a TypeError when self is frozen" do
-    should_raise(TypeError) do
-      a = "string\n\r"
-      a.freeze
-      a.chomp!
-    end
+    a = "string\n\r"
+    a.freeze
+
+    should_raise(TypeError) { a.chomp! }
+
+    a.chomp!(nil) # ok, no change
+    a.chomp!("x") # ok, no change
   end
 end
 
 describe "String#concat(String)" do
   it "is an alias of String#<<" do
-    (a = "abc") << "xyz"
-    (b = "abc").concat("xyz")
-    a.should == b
+    ["xyz", 42].each do |arg|
+      (a = "abc") << arg
+      (b = "abc").concat(arg).equal?(b).should == true
+      
+      a.should == b
+    end
   end
 end
 
 describe "String#delete(*String)" do
   it "returns a new string with the chars from other_string removed" do
-    "hello".delete("lo").should == "he"
+    s = "hello"
+    s.delete("lo").should == "he"
+    s.should == "hello"
+    
+    "hell yeah".delete("").should == "hell yeah"
   end
   
-  it "deletes only the intersection of characters in other_strings" do
-    "hello".delete("l", "lo").should == "heo"
+  it "raises ArgumentError when given no arguments" do
+    should_raise(ArgumentError) { "hell yeah".delete }
   end
 
   it "negates strings starting with ^" do
     "hello".delete("aeiou", "^e").should == "hell"
+    "hello".delete("^leh").should == "hell"
+    "hello".delete("^o").should == "o"
+    "hello".delete("^").should == "hello"
+    "^_^".delete("^^").should == "^^"
+    "oa^_^o".delete("a^").should == "o_o"
   end
 
   it "deletes all chars in a sequence" do
+    "hello".delete("\x00-\xFF").should == ""
     "hello".delete("ej-m").should == "ho"
+    "hello".delete("e-h").should == "llo"
+    "hel-lo".delete("e-").should == "hllo"
+    "hel-lo".delete("-h").should == "ello"
+    "hel-lo".delete("---").should == "hello"
+    "hel-012".delete("--2").should == "hel"
+    "hel-()".delete("(--").should == "hel"
+    "hello".delete("h-e").should == "hello"
+    "hello".delete("^h-e").should == ""
+    "hello".delete("^e-h").should == "he"
+    "hello^".delete("^^-^").should == "^"
+    "hel--lo".delete("^---").should == "--"
+
+    "abcdefgh".delete("a-ce-fh").should == "dg"
+    "abcdefgh".delete("he-fa-c").should == "dg"
+    "abcdefgh".delete("e-fha-c").should == "dg"
+    
+    "abcde".delete("ac-e").should == "b"
+    "abcde".delete("^ac-e").should == "acde"
+    "abcde".delete("ac-e").should == "b"
+    
+    "ABCabc[]".delete("A-a").should == "bc"
+  end
+  
+  it "deletes only the intersection of characters in other_strings" do
+    "hello".delete("l", "lo").should == "heo"
   end
 
   it "tries to convert each other_string given to a string using to_str" do
@@ -1382,12 +1490,16 @@ describe "String#delete(*String)" do
       "hello world".delete(Object.new)
     end
   end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("oh no!!!").delete("!").class.should == MyString
+  end
 end
 
 describe "String#delete!([other_strings])" do
-  it "modifies self in place" do
+  it "modifies self in place and returns self" do
     a = "hello"
-    a.delete!("aeiou", "^e").should == "hell"
+    a.delete!("aeiou", "^e").equal?(a).should == true
     a.should == "hell"
   end
   
@@ -1398,11 +1510,11 @@ describe "String#delete!([other_strings])" do
   end
 
   it "raises a TypeError when self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.delete!("aeiou", "^e")
-    end
+    a = "hello"
+    a.freeze
+
+    should_raise(TypeError) { a.delete!("") }
+    should_raise(TypeError) { a.delete!("aeiou", "^e") }
   end
 end
 
@@ -1414,6 +1526,18 @@ describe "String#downcase" do
   
   it "is locale insensitive (only replacing A-Z)" do
     "ÄÖÜ".downcase.should == "ÄÖÜ"
+
+    str = Array.new(256) { |c| c.chr }.join
+    expected = Array.new(256) do |i|
+      c = i.chr
+      c.between?("A", "Z") ? c.downcase : c
+    end.join
+    
+    str.downcase.should == expected
+  end
+  
+  it "returns a subclass instance for subclasses" do
+    MyString.new("FOObar").downcase.class.should == MyString
   end
 end
 
@@ -1458,24 +1582,54 @@ describe "String#dump" do
       $KCODE = old_kcode
     end
   end
+  
+  it "returns a subclass instance for subclasses" do
+    MyString.new("hi!").dump.class.should == MyString
+  end
 end
 
 describe "String#each_byte" do
   it "passes each byte in self to the given block" do
     a = []
-    "hello".each_byte { |c| a << c }
-    a.should == [104, 101, 108, 108, 111]
+    "hello\x00".each_byte { |c| a << c }
+    a.should == [104, 101, 108, 108, 111, 0]
+  end
+
+  it "keeps iterating from the old position (to new string end) when self changes" do
+    r = ""
+    s = "hello world"
+    s.each_byte do |c|
+      r << c
+      s.insert(0, "<>") if r.size < 3
+    end
+    r.should == "h><>hello world"
+
+    r = ""
+    s = "hello world"
+    s.each_byte { |c| s.slice!(-1); r << c }
+    r.should == "hello "
+
+    r = ""
+    s = "hello world"
+    s.each_byte { |c| s.slice!(0); r << c }
+    r.should == "hlowrd"
+
+    r = ""
+    s = "hello world"
+    s.each_byte { |c| s.slice!(0..-1); r << c }
+    r.should == "h"
   end
   
   it "returns self" do
-    ("hello".each_byte {}).should == "hello"
+    s = "hello"
+    (s.each_byte {}).equal?(s).should == true
   end
 end
 
 describe "String#each(separator)" do
-  it "splits self using the supplied record separator (default: $/) and pass each substring to the block" do
+  it "splits self using the supplied record separator and pass each substring to the block" do
     a = []
-    "one\ntwo\r\nthree".each { |s| a << s }
+    "one\ntwo\r\nthree".each("\n") { |s| a << s }
     a.should == ["one\n", "two\r\n", "three"]
     
     b = []
@@ -1483,7 +1637,7 @@ describe "String#each(separator)" do
     b.should == [ "hel", "l", "o\nworl", "d" ]
     
     c = []
-    "hello\n\n\nworld".each { |s| c << s }
+    "hello\n\n\nworld".each("\n") { |s| c << s }
     c.should == ["hello\n", "\n", "\n", "world"]
   end
   
@@ -1501,17 +1655,47 @@ describe "String#each(separator)" do
     a.should == ["one\ntwo\r\nthree"]
   end
   
-  it "appends multiple successive newlines together when the separotar is an empty string" do
+  it "appends multiple successive newlines together when the separator is an empty string" do
     a = []
-    "hello\n\n\nworld".each('') { |s| a << s }
-    a.should == ["hello\n\n\n", "world"]
+    "hello\nworld\n\n\nand\nuniverse\n\n\n\n\n".each('') { |s| a << s }
+    a.should == ["hello\nworld\n\n\n", "and\nuniverse\n\n\n\n\n"]
+  end
+
+  it "uses $/ as the separator when none is given" do
+    [
+      "", "x", "x\ny", "x\ry", "x\r\ny", "x\n\r\r\ny",
+      "hello hullo bello"
+    ].each do |str|
+      ["", "llo", "\n", "\r", nil].each do |sep|
+        begin
+          expected = []
+          str.each(sep) { |x| expected << x }
+
+          old_rec_sep, $/ = $/, sep
+
+          actual = []
+          str.each { |x| actual << x }
+
+          actual.should == expected
+        ensure
+          $/ = old_rec_sep
+        end
+      end
+    end
+  end
+  
+  it "yields subclass instances for subclasses" do
+    a = []
+    MyString.new("hello\nworld").each { |s| a << s.class }
+    a.should == [MyString, MyString]
   end
   
   it "returns self" do
-    ("hello\nworld".each {}).should == "hello\nworld"
+    s = "hello\nworld"
+    (s.each {}).equal?(s).should == true
   end
 
-  it "tries to convert each separator to a string using to_str" do
+  it "tries to convert the separator to a string using to_str" do
     separator = Object.new
     def separator.to_str() 'l' end
     
@@ -1521,29 +1705,30 @@ describe "String#each(separator)" do
   end
   
   it "raises a TypeError when the separator can't be converted to a string" do
-    should_raise(TypeError) do
-      "hello world".each(?o)
-    end
-
-    should_raise(TypeError) do
-      "hello world".each(:o)
-    end
-
-    should_raise(TypeError) do
-      "hello world".each(Object.new)
-    end
+    should_raise(TypeError) { "hello world".each(?o) }
+    should_raise(TypeError) { "hello world".each(:o) }
+    should_raise(TypeError) { "hello world".each(Object.new) }
   end
 end
 
 describe "String#each_line(separator)" do
   it "is an alias of String#each" do
-    a = []
-    "one\ntwo\r\nthree".each { |s| a << s }
+    [
+      "", "x", "x\ny", "x\ry", "x\r\ny", "x\n\r\r\ny",
+      "hello hullo bello"
+    ].each do |str|
+      [[""], ["llo"], ["\n"], ["\r"], [nil], []].each do |args|
+        begin
+          expected = []
+          str.each(*args) { |x| expected << x }
 
-    b = []
-    "one\ntwo\r\nthree".each_line { |s| b << s }
+          actual = []
+          str.each_line(*args) { |x| actual << x }.equal?(str).should == true
 
-    a.should == b
+          actual.should == expected
+        end
+      end
+    end
   end
 end
 
@@ -1551,6 +1736,7 @@ describe "String#empty?" do
   it "returns true if the string has a length of zero" do
     "hello".empty?.should == false
     " ".empty?.should == false
+    "\x00".empty?.should == false
     "".empty?.should == true
   end
 end
