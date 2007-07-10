@@ -5997,7 +5997,7 @@ syd_local_tbl(rb_parse_state *st)
     tbl = st->variables;
     len = tbl->size;
     // printf("Converting local table with %d entries.\n", len);
-    lcl_tbl = malloc(sizeof(ID) * (len + 3));
+    lcl_tbl = pt_allocate(st, sizeof(ID) * (len + 3));
     lcl_tbl[0] = (ID)len;
     lcl_tbl[1] = '_';
     lcl_tbl[2] = '~';
