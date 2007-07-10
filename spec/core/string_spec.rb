@@ -1854,7 +1854,7 @@ describe "String#dump" do
 end
 
 describe "String#each(separator)" do
-  it "splits self using the supplied record separator and pass each substring to the block" do
+  it "splits self using the supplied record separator and passes each substring to the block" do
     a = []
     "one\ntwo\r\nthree".each("\n") { |s| a << s }
     a.should == ["one\n", "two\r\n", "three"]
@@ -2027,6 +2027,22 @@ end
 describe "String#gsub(pattern, replacement)" do
   it "returns a copy of self with all occurences of pattern replaced with replacement" do
     "hello".gsub(/[aeiou]/, '*').should == "h*ll*"
+
+    str = "hello homely world. hah!"
+    str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
+
+    "hello".gsub(//, ".").should == ".h.e.l.l.o."
+  end
+
+  it "supports \\G which matches at the beginning of the remaining (non-matched) string" do
+    str = "hello homely world. hah!"
+    str.gsub(/\Gh\S+\s*/, "huh? ").should == "huh? huh? world. hah!"
+  end
+  
+  it "supports /i for ignoring case" do
+    str = "Hello. How happy are you?"
+    str.gsub(/h/i, "j").should == "jello. jow jappy are you?"
+    str.gsub(/H/i, "j").should == "jello. jow jappy are you?"
   end
   
   it "doesn't interpret regexp metacharacters if pattern is a string" do
@@ -2034,19 +2050,134 @@ describe "String#gsub(pattern, replacement)" do
     '\d'.gsub('\d', 'a').should == "a"
   end
   
-  it "replaces \\1, \\2 etc. with the captures from the regexp" do
-    "hello".gsub(/([aeiou])/, '<\1>').should == "h<e>ll<o>"
+  it "replaces \\1 sequences with the regexp's corresponding capture" do
+    str = "hello"
+    
+    str.gsub(/([aeiou])/, '<\1>').should == "h<e>ll<o>"
+    str.gsub(/(.)/, '\1\1').should == "hheelllloo"
+
+    str.gsub(/.(.?)/, '<\0>(\1)').should == "<he>(e)<ll>(l)<o>()"
+
+    str.gsub(/.(.)+/, '\1').should == "o"
+
+    str = "ABCDEFGHIJKLabcdefghijkl"
+    re = /#{"(.)" * 12}/
+    str.gsub(re, '\1').should == "Aa"
+    str.gsub(re, '\9').should == "Ii"
+    # Only the first 9 captures can be accessed in MRI
+    str.gsub(re, '\10').should == "A0a0"
+  end
+
+  it "treats \\1 sequences without corresponding captures as empty strings" do
+    str = "hello!"
+    
+    str.gsub("", '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("h", '<\1>').should == "<>ello!"
+
+    str.gsub(//, '<\1>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(/./, '\1\2\3').should == ""
+    str.gsub(/.(.{20})?/, '\1').should == ""
+  end
+
+  it "replaces \\& and \\0 with the complete match" do
+    str = "hello!"
+    
+    str.gsub("", '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("", '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub("he", '<\0>').should == "<he>llo!"
+    str.gsub("he", '<\&>').should == "<he>llo!"
+    str.gsub("l", '<\0>').should == "he<l><l>o!"
+    str.gsub("l", '<\&>').should == "he<l><l>o!"
+    
+    str.gsub(//, '<\0>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(//, '<\&>').should == "<>h<>e<>l<>l<>o<>!<>"
+    str.gsub(/../, '<\0>').should == "<he><ll><o!>"
+    str.gsub(/../, '<\&>').should == "<he><ll><o!>"
+    str.gsub(/(.)./, '<\0>').should == "<he><ll><o!>"
+  end
+
+  it "replaces \\` with everything before the current match" do
+    str = "hello!"
+    
+    str.gsub("", '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub("h", '<\`>').should == "<>ello!"
+    str.gsub("l", '<\`>').should == "he<he><hel>o!"
+    str.gsub("!", '<\`>').should == "hello<hello>"
+    
+    str.gsub(//, '<\`>').should == "<>h<h>e<he>l<hel>l<hell>o<hello>!<hello!>"
+    str.gsub(/../, '<\`>').should == "<><he><hell>"
+  end
+
+  it "replaces \\' with everything after the current match" do
+    str = "hello!"
+    
+    str.gsub("", '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+    str.gsub("h", '<\\\'>').should == "<ello!>ello!"
+    str.gsub("ll", '<\\\'>').should == "he<o!>o!"
+    str.gsub("!", '<\\\'>').should == "hello<>"
+    
+    str.gsub(//, '<\\\'>').should == "<hello!>h<ello!>e<llo!>l<lo!>l<o!>o<!>!<>"
+    str.gsub(/../, '<\\\'>').should == "<llo!><o!><>"
   end
   
-  it "inherits the tainting in the original string or the replacement" do
-    a = "hello"
-    a.taint
-    a.gsub(/./, 'a').tainted?.should == true
+  it "replaces \\+ with the last paren that actually matched" do
+    str = "hello!"
     
-    b = "hello"
-    c = 'a'
-    c.taint
-    b.gsub(/./, c).tainted?.should == true
+    str.gsub(/(.)(.)/, '\+').should == "el!"
+    str.gsub(/(.)(.)+/, '\+').should == "!"
+    str.gsub(/(.)()/, '\+').should == ""
+    str.gsub(/(.)(.{20})?/, '<\+>').should == "<h><e><l><l><o><!>"
+
+    str = "ABCDEFGHIJKLabcdefghijkl"
+    re = /#{"(.)" * 12}/
+    str.gsub(re, '\+').should == "Ll"
+  end
+
+  it "treats \\+ as an empty string if there was no captures" do
+    "hello!".gsub(/./, '\+').should == ""
+  end
+  
+  it "maps \\\\ in replacement to \\" do
+    "hello".gsub(/./, '\\\\').should == '\\' * 5
+  end
+
+  it "leaves unknown \\x escapes in replacement untouched" do
+    "hello".gsub(/./, '\\x').should == '\\x' * 5
+    "hello".gsub(/./, '\\y').should == '\\y' * 5
+  end
+
+  it "leaves \\ at the end of replacement untouched" do
+    "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
+  end
+  
+  it "taints the result if the original string or replacement is tainted" do
+    hello = "hello"
+    hello_t = "hello"
+    a = "a"
+    a_t = "a"
+    empty = ""
+    empty_t = ""
+    
+    hello_t.taint; a_t.taint; empty_t.taint
+    
+    hello_t.gsub(/./, a).tainted?.should == true
+    hello_t.gsub(/./, empty).tainted?.should == true
+
+    hello.gsub(/./, a_t).tainted?.should == true
+    hello.gsub(/./, empty_t).tainted?.should == true
+    hello.gsub(//, empty_t).tainted?.should == true
+  end
+
+  it "tries to convert pattern to a string using to_str" do
+    pattern = Object.new
+    def pattern.to_str() "." end
+    
+    "hello.".gsub(pattern, "!").should == "hello!"
+  end
+
+  it "raises a TypeError when pattern can't be converted to a string" do
+    should_raise(TypeError) { "hello".gsub(:woot, "x") }
+    should_raise(TypeError) { "hello".gsub(5, "x") }
   end
   
   it "tries to convert replacement to a string using to_str" do
@@ -2057,13 +2188,15 @@ describe "String#gsub(pattern, replacement)" do
   end
   
   it "raises a TypeError when replacement can't be converted to a string" do
-    should_raise(TypeError) do
-      "hello".gsub(/[aeiou]/, :woot)
-    end
-
-    should_raise(TypeError) do
-      "hello".gsub(/[aeiou]/, 5)
-    end
+    should_raise(TypeError) { "hello".gsub(/[aeiou]/, :woot) }
+    should_raise(TypeError) { "hello".gsub(/[aeiou]/, 5) }
+  end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("").gsub(//, "").class.should == MyString
+    MyString.new("").gsub(/foo/, "").class.should == MyString
+    MyString.new("foo").gsub(/foo/, "").class.should == MyString
+    MyString.new("foo").gsub("foo", "").class.should == MyString
   end
 end
 
