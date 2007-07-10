@@ -12,7 +12,7 @@ end
 class Symbol
   def self.all_symbols
     # Symbols.strings.values.map {|x| x.to_sym}
-    Symbols.symbols.to_a.map { |x| x.intern}
+    Symbols.symbols.to_a.map { |x| x.intern }
   end
 
   def index
