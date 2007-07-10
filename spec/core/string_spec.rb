@@ -361,6 +361,9 @@ describe "String#%(Object)" do
     ("%.10u" % -5).should == "4294967291"
     ("% u" % -26).should == "-26"
     ("%+u" % -26).should == "-26"
+
+    # Something's odd for MRI here. For details see
+    # http://groups.google.com/group/ruby-core-google/msg/408e2ebc8426f449
     ("%u" % -(2 ** 64 + 5)).should == "..79228162495817593519834398715"
   end
   
@@ -695,7 +698,7 @@ describe "String#=~(obj)" do
 end
 
 describe "String#[idx]" do
-  it "returns the character code of the character at fixnum" do
+  it "returns the character code of the character at idx" do
     "hello"[0].should == ?h
     "hello"[-1].should == ?o
   end
@@ -1101,6 +1104,11 @@ describe "String#capitalize" do
     "ärger".capitalize.should == "ärger"
     "BÄR".capitalize.should == "BÄr"
   end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("hello").capitalize.class.should == MyString
+    MyString.new("Hello").capitalize.class.should == MyString
+  end
 end
 
 describe "String#capitalize!" do
@@ -1319,6 +1327,13 @@ describe "String#chomp(separator)" do
     "hello\n\n".chomp(nil).should == "hello\n\n"
   end
   
+  it "returns an empty string when called on an empty string" do
+    "".chomp("\n").should == ""
+    "".chomp("\r").should == ""
+    "".chomp("").should == ""
+    "".chomp(nil).should == ""
+  end
+  
   it "uses $/ as the separator when none is given" do
     ["", "x", "x\n", "x\r", "x\r\n", "x\n\r\r\n", "hello"].each do |str|
       ["", "llo", "\n", "\r", nil].each do |sep|
@@ -1346,6 +1361,12 @@ describe "String#chomp(separator)" do
     should_raise(TypeError) { "hello".chomp(?o) }
     should_raise(TypeError) { "hello".chomp(:llo) }
     should_raise(TypeError) { "hello".chomp(Object.new) }
+  end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("hello\n").chomp.class.should == MyString
+    MyString.new("hello").chomp.class.should == MyString
+    MyString.new("").chomp.class.should == MyString
   end
 end
 
@@ -1404,6 +1425,74 @@ describe "String#chomp!(seperator)" do
   end
 end
 
+describe "String#chop" do
+  it "returns a new string with the last character removed" do
+    "hello\n".chop.should == "hello"
+    "hello\x00".chop.should == "hello"
+    "hello".chop.should == "hell"
+    
+    ori_str = ""
+    256.times { |i| ori_str << i }
+    
+    str = ori_str
+    256.times do |i|
+      str = str.chop
+      str.should == ori_str[0, 255 - i]
+    end
+  end
+  
+  it "removes both characters if the string ends with \\r\\n" do
+    "hello\r\n".chop.should == "hello"
+    "hello\r\n\r\n".chop.should == "hello\r\n"
+    "hello\n\r".chop.should == "hello\n"
+    "hello\n\n".chop.should == "hello\n"
+    "hello\r\r".chop.should == "hello\r"
+    
+    "\r\n".chop.should == ""
+  end
+  
+  it "returns an empty string when applied to an empty string" do
+    "".chop.should == ""
+  end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("hello\n").chop.class.should == MyString
+    MyString.new("hello").chop.class.should == MyString
+    MyString.new("").chop.class.should == MyString
+  end
+end
+
+describe "String#chop!" do
+  it "behaves just like chop, but in-place" do
+    ["hello\n", "hello\r\n", "hello", ""].each do |base|
+      str = base.dup
+      str.chop!
+      
+      str.should == base.chop
+    end
+  end
+
+  it "returns self if modifications were made" do
+    ["hello", "hello\r\n"].each do |s|
+      s.chop!.equal?(s).should == true
+    end
+  end
+
+  it "returns nil when called on an empty string" do
+    "".chop!.should == nil
+  end
+  
+  it "raises a TypeError when self is frozen" do
+    a = "string\n\r"
+    a.freeze
+    should_raise(TypeError) { a.chop! }
+
+    a = ""
+    a.freeze
+    a.chop! # ok, no change
+  end
+end
+
 describe "String#concat(String)" do
   it "is an alias of String#<<" do
     ["xyz", 42].each do |arg|
@@ -1413,10 +1502,187 @@ describe "String#concat(String)" do
       a.should == b
     end
   end
+  
+  it "raises a TypeError when self is frozen" do
+    s = "hello"
+    s.freeze
+    
+    should_raise(TypeError) { s.concat("") }
+    should_raise(TypeError) { s.concat("foo") }
+    should_raise(TypeError) { s.concat(0) }
+  end
 end
 
-describe "String#delete(*String)" do
-  it "returns a new string with the chars from other_string removed" do
+describe "String#count(*sets)" do
+  it "counts occurrences of chars from the intersection of the specified sets" do
+    s = "hello\nworld\x00\x00"
+
+    s.count(s).should == s.size
+    s.count("lo").should == 5
+    s.count("eo").should == 3
+    s.count("l").should == 3
+    s.count("\n").should == 1
+    s.count("\x00").should == 2
+    
+    s.count("").should == 0
+    "".count("").should == 0
+
+    s.count("l", "lo").should == s.count("l")
+    s.count("l", "lo", "o").should == s.count("")
+    s.count("helo", "hel", "h").should == s.count("h")
+    s.count("helo", "", "x").should == 0
+  end
+
+  it "raises ArgumentError when given no arguments" do
+    should_raise(ArgumentError) { "hell yeah".count }
+  end
+
+  it "negates sets starting with ^" do
+    s = "^hello\nworld\x00\x00"
+    
+    s.count("^").should == 1 # no negation, counts ^
+
+    s.count("^leh").should == 9
+    s.count("^o").should == 12
+
+    s.count("helo", "^el").should == s.count("ho")
+    s.count("aeiou", "^e").should == s.count("aiou")
+    
+    "^_^".count("^^").should == 1
+    "oa^_^o".count("a^").should == 3
+  end
+
+  it "counts all chars in a sequence" do
+    s = "hel-[()]-lo012^"
+    
+    s.count("\x00-\xFF").should == s.size
+    s.count("ej-m").should == 3
+    s.count("e-h").should == 2
+
+    # no sequences
+    s.count("-").should == 2
+    s.count("e-").should == s.count("e") + s.count("-")
+    s.count("-h").should == s.count("h") + s.count("-")
+
+    s.count("---").should == s.count("-")
+    
+    # see an ASCII table for reference
+    s.count("--2").should == s.count("-./012")
+    s.count("(--").should == s.count("()*+,-")
+    s.count("A-a").should == s.count("A-Z[\\]^_`a")
+    
+    # empty sequences (end before start)
+    s.count("h-e").should == 0
+    s.count("^h-e").should == s.size
+
+    # negated sequences
+    s.count("^e-h").should == s.size - s.count("e-h")
+    s.count("^^-^").should == s.size - s.count("^")
+    s.count("^---").should == s.size - s.count("-")
+
+    "abcdefgh".count("a-ce-fh").should == 6
+    "abcdefgh".count("he-fa-c").should == 6
+    "abcdefgh".count("e-fha-c").should == 6
+
+    "abcde".count("ac-e").should == 4
+    "abcde".count("^ac-e").should == 1
+  end
+
+  it "tries to convert each set arg to a string using to_str" do
+    other_string = Object.new
+    def other_string.to_str() "lo" end
+
+    other_string2 = Object.new
+    def other_string2.to_str() "o" end
+
+    s = "hello world"
+    s.count(other_string, other_string2).should == s.count("o")
+  end
+
+  it "raises a TypeError when a set arg can't be converted to a string" do
+    should_raise(TypeError) do
+      "hello world".count(?o)
+    end
+
+    should_raise(TypeError) do
+      "hello world".count(:o)
+    end
+
+    should_raise(TypeError) do
+      "hello world".count(Object.new)
+    end
+  end
+end
+
+describe "String#crypt" do
+  # Note: MRI's documentation just says that the C stdlib function crypt() is
+  # called.
+  #
+  # I'm not sure if crypt() is guaranteed to produce the same result across
+  # different platforms. It seems that there is one standard UNIX implementation
+  # of crypt(), but that alternative implementations are possible. See
+  # http://www.unix.org.ua/orelly/networking/puis/ch08_06.htm
+  it "returns a cryptographic hash of self by applying the UNIX crypt algorithm with the specified salt" do
+    "".crypt("aa").should == "aaQSqAReePlq6"
+    "nutmeg".crypt("Mi").should == "MiqkFWCm1fNJI"
+    "ellen1".crypt("ri").should == "ri79kNd7V6.Sk"
+    "Sharon".crypt("./").should == "./UY9Q7TvYJDg"
+    "norahs".crypt("am").should == "amfIADT2iqjA."
+    "norahs".crypt("7a").should == "7azfT5tIdyh0I"
+    
+    # Only uses first 8 chars of string
+    "01234567".crypt("aa").should == "aa4c4gpuvCkSE"
+    "012345678".crypt("aa").should == "aa4c4gpuvCkSE"
+    "0123456789".crypt("aa").should == "aa4c4gpuvCkSE"
+    
+    # Only uses first 2 chars of salt
+    "hello world".crypt("aa").should == "aayPz4hyPS1wI"
+    "hello world".crypt("aab").should == "aayPz4hyPS1wI"
+    "hello world".crypt("aabc").should == "aayPz4hyPS1wI"
+    
+    # Maps null bytes in salt to ..
+    "hello".crypt("\x00\x00").should == "..dR0/E99ehpU"
+  end
+  
+  it "raises an ArgumentError when the salt is shorter than two characters" do
+    should_raise(ArgumentError) { "hello".crypt("") }
+    should_raise(ArgumentError) { "hello".crypt("f") }
+  end
+
+  it "converts the salt arg to a string via to_str" do
+    obj = Object.new
+    def obj.to_str() "aa" end
+    
+    "".crypt(obj).should == "aaQSqAReePlq6"
+  end
+
+  it "raises a type error when the salt arg can't be converted to a string" do
+    should_raise(TypeError) { "".crypt(5) }
+    should_raise(TypeError) { "".crypt(Object.new) }
+  end
+  
+  it "taints the result if either salt or self is tainted" do
+    tainted_salt = "aa"
+    tainted_str = "hello"
+    
+    tainted_salt.taint
+    tainted_str.taint
+    
+    "hello".crypt("aa").tainted?.should == false
+    tainted_str.crypt("aa").tainted?.should == true
+    "hello".crypt(tainted_salt).tainted?.should == true
+    tainted_str.crypt(tainted_salt).tainted?.should == true
+  end
+  
+  it "doesn't return subclass instances" do
+    MyString.new("hello").crypt("aa").class.should == String
+    "hello".crypt(MyString.new("aa")).class.should == String
+    MyString.new("hello").crypt(MyString.new("aa")).class.should == String
+  end
+end
+
+describe "String#delete(*sets)" do
+  it "returns a new string with the chars from the intersection of sets removed" do
     s = "hello"
     s.delete("lo").should == "he"
     s.should == "hello"
@@ -1428,7 +1694,7 @@ describe "String#delete(*String)" do
     should_raise(ArgumentError) { "hell yeah".delete }
   end
 
-  it "negates strings starting with ^" do
+  it "negates sets starting with ^" do
     "hello".delete("aeiou", "^e").should == "hell"
     "hello".delete("^leh").should == "hell"
     "hello".delete("^o").should == "o"
@@ -1458,16 +1724,15 @@ describe "String#delete(*String)" do
     
     "abcde".delete("ac-e").should == "b"
     "abcde".delete("^ac-e").should == "acde"
-    "abcde".delete("ac-e").should == "b"
     
     "ABCabc[]".delete("A-a").should == "bc"
   end
   
-  it "deletes only the intersection of characters in other_strings" do
+  it "deletes only the intersection of sets" do
     "hello".delete("l", "lo").should == "heo"
   end
 
-  it "tries to convert each other_string given to a string using to_str" do
+  it "tries to convert each set arg to a string using to_str" do
     other_string = Object.new
     def other_string.to_str() "lo" end
     
@@ -1477,7 +1742,7 @@ describe "String#delete(*String)" do
     "hello world".delete(other_string, other_string2).should == "hell wrld"
   end
   
-  it "raises a TypeError when one other_string can't be converted to a string" do
+  it "raises a TypeError when one set arg can't be converted to a string" do
     should_raise(TypeError) do
       "hello world".delete(?o)
     end
@@ -1496,7 +1761,7 @@ describe "String#delete(*String)" do
   end
 end
 
-describe "String#delete!([other_strings])" do
+describe "String#delete!(*sets)" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.delete!("aeiou", "^e").equal?(a).should == true
@@ -1588,44 +1853,6 @@ describe "String#dump" do
   end
 end
 
-describe "String#each_byte" do
-  it "passes each byte in self to the given block" do
-    a = []
-    "hello\x00".each_byte { |c| a << c }
-    a.should == [104, 101, 108, 108, 111, 0]
-  end
-
-  it "keeps iterating from the old position (to new string end) when self changes" do
-    r = ""
-    s = "hello world"
-    s.each_byte do |c|
-      r << c
-      s.insert(0, "<>") if r.size < 3
-    end
-    r.should == "h><>hello world"
-
-    r = ""
-    s = "hello world"
-    s.each_byte { |c| s.slice!(-1); r << c }
-    r.should == "hello "
-
-    r = ""
-    s = "hello world"
-    s.each_byte { |c| s.slice!(0); r << c }
-    r.should == "hlowrd"
-
-    r = ""
-    s = "hello world"
-    s.each_byte { |c| s.slice!(0..-1); r << c }
-    r.should == "h"
-  end
-  
-  it "returns self" do
-    s = "hello"
-    (s.each_byte {}).equal?(s).should == true
-  end
-end
-
 describe "String#each(separator)" do
   it "splits self using the supplied record separator and pass each substring to the block" do
     a = []
@@ -1711,19 +1938,62 @@ describe "String#each(separator)" do
   end
 end
 
+describe "String#each_byte" do
+  it "passes each byte in self to the given block" do
+    a = []
+    "hello\x00".each_byte { |c| a << c }
+    a.should == [104, 101, 108, 108, 111, 0]
+  end
+
+  it "keeps iterating from the old position (to new string end) when self changes" do
+    r = ""
+    s = "hello world"
+    s.each_byte do |c|
+      r << c
+      s.insert(0, "<>") if r.size < 3
+    end
+    r.should == "h><>hello world"
+
+    r = ""
+    s = "hello world"
+    s.each_byte { |c| s.slice!(-1); r << c }
+    r.should == "hello "
+
+    r = ""
+    s = "hello world"
+    s.each_byte { |c| s.slice!(0); r << c }
+    r.should == "hlowrd"
+
+    r = ""
+    s = "hello world"
+    s.each_byte { |c| s.slice!(0..-1); r << c }
+    r.should == "h"
+  end
+  
+  it "returns self" do
+    s = "hello"
+    (s.each_byte {}).equal?(s).should == true
+  end
+end
+
 describe "String#each_line(separator)" do
   it "is an alias of String#each" do
     [
       "", "x", "x\ny", "x\ry", "x\r\ny", "x\n\r\r\ny",
-      "hello hullo bello"
+      "hello hullo bello", MyString.new("hello\nworld")
     ].each do |str|
-      [[""], ["llo"], ["\n"], ["\r"], [nil], []].each do |args|
+      [
+        [""], ["llo"], ["\n"], ["\r"], [nil],
+        [], [MyString.new("\n")]
+      ].each do |args|
         begin
           expected = []
-          str.each(*args) { |x| expected << x }
+          str.each(*args) { |x| expected << x << x.class }
 
           actual = []
-          str.each_line(*args) { |x| actual << x }.equal?(str).should == true
+          actual_cls = []
+          r = str.each_line(*args) { |x| actual << x << x.class }
+          r.equal?(str).should == true
 
           actual.should == expected
         end
@@ -1738,6 +2008,7 @@ describe "String#empty?" do
     " ".empty?.should == false
     "\x00".empty?.should == false
     "".empty?.should == true
+    MyString.new("").empty?.should == true
   end
 end
 
@@ -1746,6 +2017,10 @@ describe "String#eql?" do
     "hello".eql?("hello").should == true
     "hello".eql?("hell").should == false
     "1".eql?(1).should == false
+    
+    MyString.new("hello").eql?("hello").should == true
+    "hello".eql?(MyString.new("hello")).should == true
+    MyString.new("hello").eql?(MyString.new("hello")).should == true
   end
 end
 
@@ -1759,7 +2034,7 @@ describe "String#gsub(pattern, replacement)" do
     '\d'.gsub('\d', 'a').should == "a"
   end
   
-  it "interpolates successive groups in the match with \\1, \\2 and so on" do
+  it "replaces \\1, \\2 etc. with the captures from the regexp" do
     "hello".gsub(/([aeiou])/, '<\1>').should == "h<e>ll<o>"
   end
   
