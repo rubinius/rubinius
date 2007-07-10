@@ -79,7 +79,6 @@ typedef struct rb_parse_state {
     
     var_table *variables;
     var_table *block_vars;
-    int find_block_args;
 
     int ternary_colon;
 

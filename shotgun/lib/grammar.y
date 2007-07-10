@@ -217,8 +217,6 @@ static int _debug_print(const char *fmt, ...) {
 static ID rb_intern(const char *name);
 static ID rb_id_attrset(ID);
 
-static NODE *
-extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars);
 rb_parse_state *alloc_parse_state();
 static unsigned long scan_oct(const char *start, int len, int *retlen);
 static unsigned long scan_hex(const char *start, int len, int *retlen);
@@ -5200,8 +5198,11 @@ syd_gettable(parse_state, id)
 
 static void
 reset_block(rb_parse_state *parse_state) {
-  parse_state->find_block_args++;
-  parse_state->block_vars = var_table_create();
+  if(!parse_state->block_vars) {
+    parse_state->block_vars = var_table_create();
+  } else {
+    parse_state->block_vars = var_table_push(parse_state->block_vars);
+  }
 }
 
 static NODE *
@@ -5209,10 +5210,10 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars)
 {
     int i;
     // struct RVarmap *post = ruby_dyna_vars;
-    NODE *var, *out;
+    NODE *var, *out = node;
         
-    if (!node) return node;
-    if(vars->size == 0) return node;
+    if (!node) goto out;
+    if(vars->size == 0) goto out;
         
     var = NULL;
     // if (!node || !post || pre == post) return node;
@@ -5224,9 +5225,13 @@ extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars)
         var = NEW_DASGN_CURR(post->id, var);
     }
     */
-    parse_state->find_block_args--;
     out = block_append(parse_state, var, node);
-    return out;
+
+out:
+  assert(vars == parse_state->block_vars);
+  parse_state->block_vars = var_table_pop(parse_state->block_vars);
+
+  return out;
 }
 
 static NODE*
@@ -5255,7 +5260,7 @@ assignable(id, val, parse_state)
         yyerror("Can't assign to __LINE__");
     }
     else if (is_local_id(id)) {
-        if(parse_state->find_block_args) {
+        if(parse_state->block_vars) {
           var_table_add(parse_state->block_vars, id);
         }
         return NEW_LASGN(id, val);      
