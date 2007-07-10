@@ -72,7 +72,7 @@ describe "Symbol#to_int" do
       :ruby.to_int
       $stderr.output.should == "treating Symbol as an integer\n"
     ensure
-      $stderr, $VERBOSE = old_stdout, true
+      $stderr, $VERBOSE = old_stdout, old_verbose
     end
   end
 end
