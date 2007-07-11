@@ -840,7 +840,11 @@ context "Hash instance method" do
   specify "merge should call to_hash on its argument" do
     obj = Object.new
     obj.should_receive(:to_hash, :returning => {1 => 2})
+    {3 => 4}.merge(obj).should == {1 => 2, 3 => 4}
     
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_hash], :returning => { 1 => 2})
     {3 => 4}.merge(obj).should == {1 => 2, 3 => 4}
   end
 
@@ -884,7 +888,11 @@ context "Hash instance method" do
   specify "merge! should call to_hash on its argument" do
     obj = Object.new
     obj.should_receive(:to_hash, :returning => {1 => 2})
-    
+    {3 => 4}.merge!(obj).should == {1 => 2, 3 => 4}
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_hash], :returning => { 1 => 2})
     {3 => 4}.merge!(obj).should == {1 => 2, 3 => 4}
   end
 
@@ -1022,6 +1030,13 @@ context "Hash instance method" do
     h = {}
     h.replace(obj)
     h.should == {1 => 2, 3 => 4}
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_hash], :returning => {})
+
+    h.replace(obj)
+    h.should == {}
   end
 
   specify "replace shouldn't call to_hash on hash subclasses" do
@@ -1054,8 +1069,7 @@ context "Hash instance method" do
   end
   
   specify "select should return an array of entries for which block is true" do
-    a = { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
-    a.sort { |a,b| a.to_s <=> b.to_s }.should == [[:c, 4], [:d, 2]]
+    { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
   end
 
   specify "select should process entries with the same order as reject" do
