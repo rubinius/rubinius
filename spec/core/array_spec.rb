@@ -44,6 +44,11 @@ context "Array class method" do
     obj = Object.new
     def obj.to_int() 3 end
     Array.new(obj).should == [nil, nil, nil]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
+    Array.new(obj).should == [nil, nil, nil]
   end
   
   specify "new with size and default object should return a new array of size objects" do
@@ -68,6 +73,11 @@ context "Array class method" do
     a = MyArray.new(obj)
     a.class.should == MyArray
     a.inspect.should == [:foo].inspect
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:foo])
+    Array.new(obj).should == [:foo]
   end
   
   specify "new with array-like argument shouldn't call to_ary on array subclasses" do
@@ -133,6 +143,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() [1, 2, 3] end
     ([1, 2] & obj).should == ([1, 2] & obj.to_ary)
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [1, 2, 3])
+    ([1, 2] & obj).should == [1, 2]
   end
 
   # MRI doesn't actually call eql?() however. So you can't reimplement it.
@@ -171,6 +186,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() [1, 2, 3] end
     ([0] | obj).should == ([0] | obj.to_ary)
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [1, 2, 3])
+    ([0] | obj).should == [0, 1, 2, 3]
   end
 
   # MRI doesn't actually call eql?() however. So you can't reimplement it.
@@ -210,6 +230,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_str() "x" end
     ([1, 2, 3] * obj).should == [1, 2, 3].join(obj)
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :count => 2, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :count => 2, :with => [:to_str], :returning => "x")
+    ([1, 2, 3] * obj).should == [1, 2, 3].join(obj)
   end
   
   specify "* with an int should concatenate n copies of the array" do
@@ -229,6 +254,11 @@ context "Array instance method" do
     def obj.to_int() 2 end
 
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_int
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    ([1, 2, 3] * obj).should == [1, 2, 3] * 2
   end
 
   specify "* should call to_str on its argument before to_int" do
@@ -259,6 +289,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() ["x", "y"] end
     ([1, 2, 3] + obj).should == [1, 2, 3] + obj.to_ary
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:x])
+    ([1, 2, 3] + obj).should == [1, 2, 3, :x]
   end
 
   specify "+ with array subclasses shouldn't return subclass instance" do
@@ -284,6 +319,11 @@ context "Array instance method" do
   specify "- should call to_ary on its argument" do
     obj = Object.new
     def obj.to_ary() [2, 3, 3, 4] end
+    ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [2, 3, 4])
     ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
   end
 
@@ -333,6 +373,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() [1, 2, 3] end
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [4, 5])
+    ([4, 5] <=> obj).should == 0
   end
 
   specify "<=> shouldn't call to_ary on array subclasses" do
@@ -425,6 +470,11 @@ context "Array instance method" do
     obj = Object.new
     obj.should_receive(:to_int, :returning => 2)
     a.at(obj).should == "c"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    a.at(obj).should == "c"
   end
   
   specify "class should return Array" do
@@ -489,6 +539,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_ary() ["x", "y"] end
     [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:x])
+    [].concat(obj).should == [:x]
   end
   
   specify "concat shouldn't call to_ary on array subclasses" do
@@ -538,6 +593,11 @@ context "Array instance method" do
   specify "delete_at should call to_int on its argument" do
     obj = Object.new
     def obj.to_int() -1 end
+    [1, 2].delete_at(obj).should == 2
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
     [1, 2].delete_at(obj).should == 2
   end
   
@@ -632,6 +692,11 @@ context "Array instance method" do
     x = Object.new
     def x.to_int() 0 end
     [1, 2, 3].fetch(x).should == 1
+    
+    x = Object.new
+    x.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    x.should_receive(:method_missing, :with => [:to_int], :returning => 0)
+    [1, 2, 3].fetch(x).should == 1
   end
   
   specify "fill should replace all elements in the array with object" do
@@ -659,7 +724,11 @@ context "Array instance method" do
   specify "fill should call to_int on start and length" do
     x = Object.new
     def x.to_int() 2 end
+    [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
     
+    x = Object.new
+    x.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
+    x.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
   end
 
@@ -763,6 +832,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_int() 2 end
     [1, 2, 3, 4, 5].first(obj).should == [1, 2]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    [1, 2, 3, 4, 5].first(obj).should == [1, 2]    
   end
   
   specify "first with count on array subclasses shouldn't return subclass instance" do
@@ -871,6 +945,16 @@ context "Array instance method" do
     
     ary.hash
     ary.each { |obj| obj.frozen?.should == true }
+    
+    hash = Object.new
+    hash.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    hash.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    
+    obj = Object.new
+    obj.instance_variable_set(:@hash, hash)
+    def obj.hash() @hash end
+      
+    [obj].hash == [0].hash
   end
   
   specify "hash should ignore array class differences" do
@@ -937,6 +1021,12 @@ context "Array instance method" do
     params = [1, 0, 5, -1, -8, 10, x]
     array.indexes(*params).should == array.values_at(*params)
     array.indices(*params).should == array.values_at(*params)
+    
+    x = Object.new
+    x.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
+    x.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 1)
+    array.indexes(x).should == array.indexes(1)
+    array.indices(x).should == array.indices(1)
   end
 
   specify 'indexes and indices can be given ranges which are returned as nested arrays (DEPRECATED)' do
@@ -1029,6 +1119,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_int() 2 end
     [].insert(obj, 'x').should == [nil, nil, 'x']
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    [].insert(obj, 'x').should == [nil, nil, 'x']
   end
   
   # FIX: compatibility? --rue
@@ -1067,8 +1162,12 @@ context "Array instance method" do
   specify "join should return a string formed by concatenating each element.to_s separated by separator without trailing separator" do
     obj = Object.new
     def obj.to_s() 'foo' end
-
     [1, 2, 3, 4, obj].join(' | ').should == '1 | 2 | 3 | 4 | foo'
+
+    obj = Object.new
+    class << obj; undef :to_s; end
+    obj.should_receive(:method_missing, :with => [:to_s], :returning => "o")
+    [1, obj].join(":").should == "1:o"
   end
   
   specify "join with nested arrays should pass along separator" do
@@ -1087,6 +1186,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_str() '::' end    
     [1, 2, 3, 4].join(obj).should == '1::2::3::4'
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => ".")
+    [1, 2].join(obj).should == "1.2"
   end
 
   specify "join should handle recursive arrays" do
@@ -1296,10 +1400,17 @@ context "Array instance method" do
   specify "replace should call to_ary on its argument" do
     obj = Object.new
     def obj.to_ary() [1, 2, 3] end
-      
+
     ary = []
     ary.replace(obj)
     ary.should == [1, 2, 3]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [])
+
+    ary.replace(obj)
+    ary.should == []
   end
   
   specify "replace shouldn't call to_ary on array subclasses" do
@@ -1455,6 +1566,12 @@ context "Array instance method" do
     a.should == [1, 2]
     a.slice!(0, obj).should == [1, 2]
     a.should == []
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    a = [1, 2, 3, 4, 5]
+    a.slice!(obj).should == 3    
   end
 
   specify "slice! with range should remove and return elements in range" do
@@ -1486,12 +1603,23 @@ context "Array instance method" do
       
     a.slice!(from .. to).should == [2, 3, 4]
     a.should == [1, 5]
-
-    a.slice!(1..0).should == []
-    a.should == [1, 5]
   
     should_raise(TypeError) { a.slice!("a" .. "b") }
     should_raise(TypeError) { a.slice!(from .. "b") }
+    
+    from = Object.new
+    to = Object.new
+    
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+      
+    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+
+    a = [1, 2, 3, 4, 5]
+    a.slice!(from .. to).should == [2, 3, 4]
   end
   
   # TODO: MRI behaves inconsistently here. I'm trying to find out what it should
@@ -1586,203 +1714,6 @@ context "Array instance method" do
 
   specify "transpose assumes an array of arrays and should return the result of transposing rows and columns" do
     [[1, 'a'], [2, 'b'], [3, 'c']].transpose.should == [[1, 2, 3], ["a", "b", "c"]]
-  end
-
-  specify "transpose raises if the elements of the array are not Arrays or respond to to_ary" do
-    g = Object.new
-    def g.to_a() [1, 2] end
-    h = Object.new
-    def h.to_ary() [1, 2] end
-  end
-  
-  specify "slice! with index should remove and return the element at index" do
-    a = [1, 2, 3, 4]
-    a.slice!(10).should == nil
-    a.should == [1, 2, 3, 4]
-    a.slice!(-10).should == nil
-    a.should == [1, 2, 3, 4]
-    a.slice!(2).should == 3
-    a.should == [1, 2, 4]
-    a.slice!(-1).should == 4
-    a.should == [1, 2]
-    a.slice!(1).should == 2
-    a.should == [1]
-    a.slice!(-1).should == 1
-    a.should == []
-    a.slice!(-1).should == nil
-    a.should == []
-    a.slice!(0).should == nil
-    a.should == []
-  end
-  
-  specify "slice! with start, length should remove and return length elements beginning at start" do
-    a = [1, 2, 3, 4, 5, 6]
-    a.slice!(2, 3).should == [3, 4, 5]
-    a.should == [1, 2, 6]
-    a.slice!(1, 1).should == [2]
-    a.should == [1, 6]
-    a.slice!(1, 0).should == []
-    a.should == [1, 6]
-    a.slice!(2, 0).should == []
-    a.should == [1, 6]
-    a.slice!(0, 4).should == [1, 6]
-    a.should == []
-    a.slice!(0, 4).should == []
-    a.should == []
-  end
-
-  specify "slice! should call to_int on start and length arguments" do
-    obj = Object.new
-    def obj.to_int() 2 end
-      
-    a = [1, 2, 3, 4, 5]
-    a.slice!(obj).should == 3
-    a.should == [1, 2, 4, 5]
-    a.slice!(obj, obj).should == [4, 5]
-    a.should == [1, 2]
-    a.slice!(0, obj).should == [1, 2]
-    a.should == []
-  end
-
-  specify "slice! with range should remove and return elements in range" do
-    a = [1, 2, 3, 4, 5, 6, 7, 8]
-    a.slice!(1..4).should == [2, 3, 4, 5]
-    a.should == [1, 6, 7, 8]
-    a.slice!(1...3).should == [6, 7]
-    a.should == [1, 8]
-    a.slice!(-1..-1).should == [8]
-    a.should == [1]
-    a.slice!(0...0).should == []
-    a.should == [1]
-    a.slice!(0..0).should == [1]
-    a.should == []
-  end
-  
-  specify "slice! with range should call to_int on range arguments" do
-    from = Object.new
-    to = Object.new
-    
-    # So we can construct a range out of them...
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
-
-    def from.to_int() 1 end
-    def to.to_int() -2 end
-      
-    a = [1, 2, 3, 4, 5]
-      
-    a.slice!(from .. to).should == [2, 3, 4]
-    a.should == [1, 5]
-
-    a.slice!(1..0).should == []
-    a.should == [1, 5]
-  
-    should_raise(TypeError) { a.slice!("a" .. "b") }
-    should_raise(TypeError) { a.slice!(from .. "b") }
-  end
-  
-  # TODO: MRI behaves inconsistently here. I'm trying to find out what it should
-  # do at ruby-core right now. -- flgr
-  # See http://groups.google.com/group/ruby-core-google/t/af70e3d0e9b82f39
-  specify "slice! with indices outside of array should (not?) expand array" do
-    # This is the way MRI behaves -- subject to change
-    a = [1, 2]
-    a.slice!(4).should == nil
-    a.should == [1, 2]
-    a.slice!(4, 0).should == nil
-    a.should == [1, 2, nil, nil]
-    a.slice!(6, 1).should == nil
-    a.should == [1, 2, nil, nil, nil, nil]
-    a.slice!(8...8).should == nil
-    a.should == [1, 2, nil, nil, nil, nil, nil, nil]
-    a.slice!(10..10).should == nil
-    a.should == [1, 2, nil, nil, nil, nil, nil, nil, nil, nil]
-  end
-  
-  class D 
-    def <=>(obj) 
-      return 4 <=> obj unless obj.class == D
-      0
-    end
-  end
-
-  specify "sort should return a new array from sorting elements using <=> on the pivot" do
-    d = D.new
-
-    [1, 1, 5, -5, 2, -10, 14, 6].sort.should == [-10, -5, 1, 1, 2, 5, 6, 14]
-    [d, 1].sort.should == [1, d]
-  end
-
-  specify "sort raises an ArgumentError if the comparison cannot be completed" do
-    d = D.new
-
-    # Fails essentially because of d.<=>(e) whereas d.<=>(1) would work
-    should_raise(ArgumentError) { [1, d].sort.should == [1, d] }
-  end
-  
-  specify "sort may take a block which is used to determine the order of objects a and b described as -1, 0 or +1" do
-    a = [5, 1, 4, 3, 2]
-    a.sort.should == [1, 2, 3, 4, 5]
-    a.sort {|x, y| y <=> x}.should == [5, 4, 3, 2, 1]
-  end
-  
-  specify "sort on array subclasses should return subclass instance" do
-    ary = MyArray[1, 2, 3]
-    ary.sort.class.should == MyArray
-  end
-  
-  specify "sort! should sort array in place using <=>" do
-    a = [1, 9, 7, 11, -1, -4]
-    a.sort!
-    a.should == [-4, -1, 1, 7, 9, 11]
-  end
-  
-  specify "sort! should sort array in place using block value" do
-    a = [1, 3, 2, 5, 4]
-    a.sort! { |x, y| y <=> x }
-    a.should == [5, 4, 3, 2, 1]
-  end
-  
-  specify "to_a returns self" do
-    a = [1, 2, 3]
-    a.to_a.should == [1, 2, 3]
-    a.equal?(a.to_a).should == true 
-  end
-  
-  specify "to_a on array subclasses shouldn't return subclass instance" do
-    e = MyArray.new
-    e << 1
-    e.to_a.class.should == Array
-    e.to_a.should == [1]
-  end
-  
-  specify "to_ary returns self" do
-    a = [1, 2, 3]
-    a.equal?(a.to_ary).should == true
-    a = MyArray[1, 2, 3]
-    a.equal?(a.to_ary).should == true
-  end
-  
-  specify "to_s is equivalent to #joining without a separator string" do
-    a = [1, 2, 3, 4]
-    a.to_s.should == a.join
-    $, = '-'
-    a.to_s.should == a.join
-    $, = ''
-
-    x = []
-    x << x
-    x.to_s.should == x.join
-
-    x = []
-    y = []
-    y << 9 << x << 8 << y << 7
-    x << 1 << x << 2 << y << 3
-    x.to_s.should == x.join    
-  end
-
-  specify "transpose assumes an array of arrays and should return the result of transposing rows and columns" do
-    [[1, 'a'], [2, 'b'], [3, 'c']].transpose.should == [[1, 2, 3], ["a", "b", "c"]]
     [[1, 2, 3], ["a", "b", "c"]].transpose.should == [[1, 'a'], [2, 'b'], [3, 'c']]
     [].transpose.should == []
     [[]].transpose.should == []
@@ -1799,6 +1730,11 @@ context "Array instance method" do
 
     should_raise(TypeError) { [g, [:a, :b]].transpose } 
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
+    
+    h = Object.new
+    h.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    h.should_receive(:method_missing, :with => [:to_ary], :returning => [1, 2])
+    [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]    
   end
   
   specify "transpose shouldn't call to_ary on array subclass elements" do
@@ -1927,6 +1863,11 @@ context "Array instance method" do
     obj = Object.new
     def obj.to_int() 1 end
     [1, 2].values_at(obj, obj, obj).should == [2, 2, 2]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    [1, 2].values_at(obj).should == [2]
   end
   
   specify "values_at with ranges should return an array of elements in the ranges" do
@@ -1947,6 +1888,18 @@ context "Array instance method" do
       
     ary = [1, 2, 3, 4, 5]
     ary.values_at(from .. to, from ... to, to .. from).should == [2, 3, 4, 2, 3]
+
+    from = Object.new
+    to = Object.new
+    
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+      
+    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+    ary.values_at(from .. to).should == [2, 3, 4]
   end
   
   specify "values_at on array subclasses shouldn't return subclass instance" do
@@ -1963,10 +1916,16 @@ context "Array instance method" do
       [[1, "a"], [2, "b"], [3, "c"], [4, "d"], [5, nil]]
   end
   
-  # MRI 1.8.4 uses to_ary, but it's been fixed in 1.9, perhaps also in 1.8.5
+  # MRI 1.8.6 uses to_ary, but it's been fixed in 1.9
   specify "zip should call to_a on its arguments" do
     [1, 2, 3].zip("f" .. "z", 1 .. 9).should ==
       [[1, "f", 1], [2, "g", 2], [3, "h", 3]]
+      
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_a], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_a], :returning => [3, 4])
+    
+    [1, 2].zip(obj).should == [[1, 3], [2, 4]]
   end  
 
   specify "zip should call block if supplied" do
@@ -2096,6 +2055,11 @@ describe 'Array access using #[] and #slice' do
       a.send(cmd, obj, 1).should == [3]
       a.send(cmd, obj, obj).should == [3, 4]
       a.send(cmd, 0, obj).should == [1, 2]
+      
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+      a.send(cmd, obj).should == 3
     end
     
     specify "[m..n] should provide a subarray specified by range (##{cmd})" do
@@ -2244,6 +2208,18 @@ describe 'Array access using #[] and #slice' do
       should_raise(TypeError) { a.slice("a" ... "b") }
       should_raise(TypeError) { a.slice(from .. "b") }
       should_raise(TypeError) { a.slice(from ... "b") }
+      
+      from = Object.new
+      to = Object.new
+
+      def from.<=>(o) 0 end
+      def to.<=>(o) 0 end
+
+      from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+      to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+      a.send(cmd, from..to).should == [2, 3]
     end
 
     specify "[index] returns nil for a requested index not in the array (##{cmd})" do
@@ -2716,10 +2692,24 @@ describe 'Array splicing using #[]=' do
     a[from .. to] = ["a", "b", "c"]
     a.should == [1, "a", "b", "c", 4]
 
-    a[1..0] = ["x"]
-    a.should == [1, "x", "a", "b", "c", 4]
+    a[to .. from] = ["x"]
+    a.should == [1, "a", "b", "x", "c", 4]
     should_raise(TypeError) { a["a" .. "b"] = [] }
     should_raise(TypeError) { a[from .. "b"] = [] }
+    
+    from = Object.new
+    to = Object.new
+    
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+      
+    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+
+    a = [1, 2, 3, 4]
+    a[from .. to] = ["a", "b", "c"]
   end
   
   specify "[]= with negative index beyond array should raise" do
