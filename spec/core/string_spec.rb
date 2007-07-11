@@ -156,6 +156,15 @@ describe "String#%(Object)" do
     def p.to_int() 5 end
     
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
+    
+    w = Object.new
+    w.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    w.should_receive(:method_missing, :with => [:to_int], :returning => 10)
+    p = Object.new
+    p.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    p.should_receive(:method_missing, :with => [:to_int], :returning => 5)
+
+    ("%*.*f" % [w, p, 1]).should == "   1.00000"
   end
   
   it "doesn't call to_ary on its argument" do
@@ -218,10 +227,17 @@ describe "String#%(Object)" do
     ("%c" % (256 + 42)).should == "*"
     
     should_raise(TypeError) { "%c" % Object }
-    
+  end
+  
+  it "calls to_int on argument for %c formats" do
     obj = Object.new
     def obj.to_int() 65 end
     ("%c" % obj).should == ("%c" % obj.to_int)
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 65)
+    ("%c" % obj).should == "A"
   end
   
   %w(d i).each do |f|
@@ -319,10 +335,17 @@ describe "String#%(Object)" do
     ("%1$p" % [10, 5]).should == "10"
     ("%-22p" % 10).should == "10                    "
     ("%*p" % [10, 10]).should == "        10"
-
+  end
+  
+  it "calls inspect on arguments for %p format" do
     obj = Object.new
     obj.should_receive(:inspect, :returning => "obj")
     ("%p" % obj).should == "obj"
+    
+    obj = Object.new
+    class << obj; undef :inspect; end
+    obj.should_receive(:method_missing, :with => [:inspect], :returning => "obj")
+    ("%p" % obj).should == "obj"    
   end
   
   it "supports string formats using %s" do
@@ -330,9 +353,16 @@ describe "String#%(Object)" do
     ("%1$s" % [10, 8]).should == "10"
     ("%-5s" % 10).should == "10   "
     ("%*s" % [10, 9]).should == "         9"
-
+  end
+  
+  it "calls to_s on arguments for %s format" do
     obj = Object.new
     obj.should_receive(:to_s, :returning => "obj")
+    ("%s" % obj).should == "obj"
+
+    obj = Object.new
+    class << obj; undef :to_s; end
+    obj.should_receive(:method_missing, :with => [:to_s], :returning => "obj")
     ("%s" % obj).should == "obj"
   end
 
@@ -410,25 +440,85 @@ describe "String#%(Object)" do
   %w(b d i o u X x).each do |f|
     format = "%" + f
     
-    it "calls to_i on #{format} arguments" do
+    it "behaves as if calling Kernel#Integer for #{format} argument" do
       (format % "10").should == (format % 10)
       (format % nil).should == (format % 0)
+      (format % "0x42").should == (format % 0x42)
+      (format % "0b1101").should == (format % 0b1101)
+      (format % "0b1101_0000").should == (format % 0b1101_0000)
+      (format % "0777").should == (format % 0777)
+      (format % "0_7_7_7").should == (format % 0777)
+      
+      should_raise(ArgumentError) { format % "" }
+      should_raise(ArgumentError) { format % "x" }
+      should_raise(ArgumentError) { format % "5x" }
+      should_raise(ArgumentError) { format % "08" }
+      should_raise(ArgumentError) { format % "0b2" }
+      should_raise(ArgumentError) { format % "123__456" }
       
       obj = Object.new
       obj.should_receive(:to_i, :returning => 5)
       (format % obj).should == (format % 5)
+
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => 5)
+      (format % obj).should == (format % 5)
+
+      obj = Object.new
+      def obj.to_int() 4 end
+      def obj.to_i() 0 end
+      (format % obj).should == (format % 4)
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => 65)
+      (format % obj).should == (format % 65)
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => false)
+      obj.should_receive(:respond_to?, :with => [:to_i], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_i], :returning => 65)
+      (format % obj).should == (format % 65)
+      
+      obj = Object.new
+      def obj.respond_to?(*) true end
+      def obj.method_missing(name, *)
+        name == :to_int ? 4 : 0
+      end
+      (format % obj).should == (format % 4)
     end
   end
   
   %w(E e f G g).each do |f|
     format = "%" + f
     
-    it "calls to_f on #{format} arguments" do
+    it "behaves as if calling Kernel#Float for #{format} arguments" do
       (format % 10).should == (format % 10.0)
+      (format % "-10.4e-20").should == (format % -10.4e-20)
+      (format % ".5").should == (format % 0.5)
+      (format % "-.5").should == (format % -0.5)
+      (format % "10_1_0.5_5_5").should == (format % 1010.555)
+      (format % "0777").should == (format % 777)
+
+      should_raise(ArgumentError) { format % "" }
+      should_raise(ArgumentError) { format % "x" }
+      should_raise(ArgumentError) { format % "." }
+      should_raise(ArgumentError) { format % "10." }
+      should_raise(ArgumentError) { format % "5x" }
+      should_raise(ArgumentError) { format % "0xA" }
+      should_raise(ArgumentError) { format % "0b1" }
+      should_raise(ArgumentError) { format % "10e10.5" }
+      should_raise(ArgumentError) { format % "10__10" }
+      should_raise(ArgumentError) { format % "10.10__10" }
       
       obj = Object.new
       obj.should_receive(:to_f, :returning => 5.0)
       (format % obj).should == (format % 5.0)
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_f], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_f], :returning => 3.14)
+      (format % obj).should == (format % 3.14)
     end
   end
 end
@@ -446,8 +536,12 @@ describe "String#*(count)" do
     
     a = Object.new
     def a.to_int() 4; end
-    
     ("a" * a).should == "aaaa"
+    
+    a = Object.new
+    a.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    a.should_receive(:method_missing, :with => [:to_int], :returning => 4)
+    ("a" * a).should == "aaaa"    
   end
   
   it "raises an ArgumentError when given integer is negative" do
@@ -486,6 +580,11 @@ describe "String#+(string)" do
     def c.to_str() "aaa" end
     
     ("a" + c).should == "aaaa"
+
+    c = Object.new
+    c.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    c.should_receive(:method_missing, :with => [:to_str], :returning => "aaa")
+    ("a" + c).should == "aaaa"
   end
   
   it "doesn't return subclass instances" do
@@ -509,7 +608,12 @@ describe "String#<<(string)" do
   it "converts the given argument to a String using to_str" do
     obj = Object.new
     def obj.to_str() "world!" end
+    a = 'hello ' << obj
+    a.should == 'hello world!'
     
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "world!")
     a = 'hello ' << obj
     a.should == 'hello world!'
   end
@@ -633,6 +737,13 @@ describe "String#<=>(obj)" do
     
     ("abc" <=> obj).should == -1
     ("xyz" <=> obj).should == -1
+    
+    obj = Object.new
+    other = "abc"
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:<=>], :returning => true)
+    obj.should_receive(:method_missing, :with => [:<=>, other], :returning => -1)
+    (other <=> obj).should == +1
   end
 end
 
@@ -666,9 +777,16 @@ describe "String#==(obj)" do
     obj = Object.new
     def obj.to_str() "world!" end
     def obj.==(other) true end
-    
+
     ('hello' == obj).should == true
     ('world!' == obj).should == true 
+    
+    obj = Object.new
+    class << obj; undef :==; end
+    other = "abc"
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:==, other], :returning => true)
+    (other == obj).should == true
   end
 end
 
@@ -716,6 +834,11 @@ describe "String#[idx]" do
     
     obj = Object.new
     obj.should_receive(:to_int, :returning => 1)
+    "hello"[obj].should == ?e
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     "hello"[obj].should == ?e
   end
 end
@@ -798,6 +921,11 @@ describe "String#[idx, length]" do
     "hello"[obj, 1].should == "l"
     "hello"[obj, obj].should == "ll"
     "hello"[0, obj].should == "he"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
+    "hello"[obj, obj].should == "ll"
   end
   
   it "returns subclass instances" do
@@ -881,6 +1009,19 @@ describe "String#[range]" do
       
     "hello there"[from..to].should == "ello ther"
     "hello there"[from...to].should == "ello the"
+    
+    from = Object.new
+    to = Object.new
+    
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+      
+    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+
+    "hello there"[from..to].should == "ello ther"
   end
 end
 
@@ -931,6 +1072,11 @@ describe "String#[regexp, idx]" do
     obj.should_receive(:to_int, :returning => 2)
       
     "har"[/(.)(.)(.)/, 1.5].should == "h"
+    "har"[/(.)(.)(.)/, obj].should == "a"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     "har"[/(.)(.)(.)/, obj].should == "a"
   end
   
@@ -1017,6 +1163,12 @@ describe "String#[idx] = char" do
     obj.should_receive(:to_int, :returning => -1)
     str[obj] = ?y
     str.should == "celly"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+    str[obj] = ?!
+    str.should == "cell!"
   end
   
   it "doesn't call to_int on char" do
@@ -1072,6 +1224,12 @@ describe "String#[idx] = other_str" do
     obj.should_receive(:to_int, :returning => -1)
     str[obj] = "!"
     str.should == "hi ell!"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+    str[obj] = "e vator"
+    str.should == "hi elle vator"
   end
   
   it "tries to convert other_str to a String using to_str" do
@@ -1081,6 +1239,14 @@ describe "String#[idx] = other_str" do
     a = "abc"
     a[1] = other_str
     a.should == "a-test-c"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "ROAR")
+
+    a = "abc"
+    a[1] = obj
+    a.should == "aROARc"
   end
   
   it "raises a TypeError if other_str can't be converted to a String" do
@@ -1244,6 +1410,11 @@ describe "String#center(length, padstr)" do
     def obj.to_int() 3 end
       
     "_".center(obj, "o").should == "o_o"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
+    "_".center(obj, "~").should == "~_~"
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
@@ -1258,6 +1429,12 @@ describe "String#center(length, padstr)" do
     def padstr.to_str() "123" end
     
     "hello".center(20, padstr).should == "1231231hello12312312"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
+
+    "hello".center(7, obj).should == "khellok"
   end
   
   it "raises a TypeError when padstr can't be converted to a string" do
@@ -1355,6 +1532,12 @@ describe "String#chomp(separator)" do
     def separator.to_str() "llo" end
     
     "hello".chomp(separator).should == "he"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
+
+    "hark".chomp(obj).should == "har"
   end
   
   it "raises a TypeError if separator can't be converted to a string" do
@@ -1597,6 +1780,12 @@ describe "String#count(*sets)" do
 
     s = "hello world"
     s.count(other_string, other_string2).should == s.count("o")
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
+    s = "hacker kimono"
+    s.count(obj).should == s.count("k")
   end
 
   it "raises a TypeError when a set arg can't be converted to a string" do
@@ -1653,6 +1842,11 @@ describe "String#crypt" do
     obj = Object.new
     def obj.to_str() "aa" end
     
+    "".crypt(obj).should == "aaQSqAReePlq6"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "aa")
     "".crypt(obj).should == "aaQSqAReePlq6"
   end
 
@@ -1740,6 +1934,11 @@ describe "String#delete(*sets)" do
     def other_string2.to_str() "o" end
     
     "hello world".delete(other_string, other_string2).should == "hell wrld"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+    "hello world".delete(obj).should == "hell wrld"
   end
   
   it "raises a TypeError when one set arg can't be converted to a string" do
@@ -1928,6 +2127,14 @@ describe "String#each(separator)" do
     
     a = []
     "hello\nworld".each(separator) { |s| a << s }
+    a.should == [ "hel", "l", "o\nworl", "d" ]
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "l")
+    
+    a = []
+    "hello\nworld".each(obj) { |s| a << s }
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
   
@@ -2173,6 +2380,12 @@ describe "String#gsub(pattern, replacement)" do
     def pattern.to_str() "." end
     
     "hello.".gsub(pattern, "!").should == "hello!"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => ".")
+
+    "hello.".gsub(obj, "!").should == "hello!"
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
@@ -2185,6 +2398,11 @@ describe "String#gsub(pattern, replacement)" do
     def replacement.to_str() "hello_replacement" end
     
     "hello".gsub(/hello/, replacement).should == "hello_replacement"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "ok")
+    "hello".gsub(/hello/, obj).should == "ok"
   end
   
   it "raises a TypeError when replacement can't be converted to a string" do
@@ -2216,18 +2434,6 @@ describe "String#gsub(pattern) { block }" do
     
     "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
   end
-  
-# TODO: This should raise a RuntimeError, but does not
-#  it "raises a RuntimeError" do
-#    str = "a" * 0x20
-#    str.gsub(/\z/) {
-#      dest = nil
-#      ObjectSpace.each_object(String) {|o|
-#         dest = o if o.length == 0x20+30
-#      }
-#      dest
-#    }
-#  end
 end
 
 describe "String#gsub!(pattern, replacement)" do
