@@ -2645,9 +2645,6 @@ syd_yyerror(msg, parse_state)
     return 1;
 }
 
-#undef string_new
-#define string_new(ptr, len) g_string_new_len(ptr, len)
-
 /*
 static int heredoc_end;
 static int command_start = Qtrue;
