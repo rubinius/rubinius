@@ -8265,11 +8265,6 @@ enum string_type {
     str_dsym   = (STR_FUNC_SYMBOL|STR_FUNC_EXPAND),
 };
 
-static void
-dispose_string(GString *str) {
-  g_string_free(str, TRUE);
-}
-
 static int tokadd_string(int func, int term, int paren, int *nest, rb_parse_state *parse_state)
 {
     int c;
