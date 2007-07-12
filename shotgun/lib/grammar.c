@@ -8266,13 +8266,8 @@ enum string_type {
 };
 
 static void
-dispose_string(str)
-    OBJECT str;
-{
-    /* FIXME!
-    free(RSTRING(str)->ptr);
-    rb_gc_force_recycle(str);
-    */
+dispose_string(GString *str) {
+  g_string_free(str, TRUE);
 }
 
 static int tokadd_string(int func, int term, int paren, int *nest, rb_parse_state *parse_state)
@@ -8504,7 +8499,7 @@ heredoc_restore(here, parse_state)
     parse_state->lex_p = parse_state->lex_pbeg + here->nd_nth;
     heredoc_end = ruby_sourceline;
     ruby_sourceline = nd_line(here);
-    dispose_string(here->nd_lit);
+    g_string_free((GString *) here->nd_lit, TRUE);
 //    rb_gc_force_recycle((VALUE)here);
 }
 
@@ -8588,7 +8583,7 @@ here_document(here, parse_state)
             if (pend < parse_state->lex_pend) g_string_append_len(str, "\n", 1);
             parse_state->lex_p = parse_state->lex_pend;
             if (nextc() == -1) {
-                if (str) dispose_string(str);
+                if (str) g_string_free(str, TRUE);
                 goto error;
             }
         } while (!whole_match_p(eos, len, indent, parse_state));
