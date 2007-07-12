@@ -4817,13 +4817,11 @@ fixpos(node, orig)
 }
 
 static void
-parser_warning(node, mesg)
-    NODE *node;
-    const char *mesg;
+parser_warning(NODE *node, const char *mesg)
 {
     int line = ruby_sourceline;
     ruby_sourceline = nd_line(node);
-    printf("Warning: %s\n", mesg);
+    printf("%s:%i: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
     ruby_sourceline = line;
 }
 
