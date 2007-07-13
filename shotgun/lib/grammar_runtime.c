@@ -74,6 +74,10 @@ void pt_free(rb_parse_state *st) {
     g_string_free(st->line_buffer, TRUE);
   }
 
+  if(st->lex_lastline) {
+    g_string_free(st->lex_lastline, TRUE);
+  }
+
   free(st->token_buffer);
   var_table_destroy(st->variables);
 

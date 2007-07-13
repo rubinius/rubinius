@@ -2889,7 +2889,13 @@ ps_nextc(rb_parse_state *parse_state)
         ruby_sourceline++;
         parse_state->lex_pbeg = parse_state->lex_p = v->str;
         parse_state->lex_pend = parse_state->lex_p + v->len;
-        parse_state->lex_lastline = g_string_new_len(v->str, v->len);
+
+        if(parse_state->lex_lastline) {
+          g_string_truncate(parse_state->lex_lastline, 0);
+          g_string_append_len(parse_state->lex_lastline, v->str, v->len);
+        } else {
+          parse_state->lex_lastline = g_string_new_len(v->str, v->len);
+        }
     }
     c = (unsigned char)*(parse_state->lex_p++);
     if (c == '\r' && parse_state->lex_p < parse_state->lex_pend && *(parse_state->lex_p) == '\n') {
@@ -3418,10 +3424,13 @@ heredoc_identifier(rb_parse_state *parse_state)
     /* Tell the lexer that we're inside a string now. nd_lit is
        the heredoc identifier that we watch the stream for to 
        detect the end of the heredoc. */
+  GString *str = g_string_new_len(parse_state->lex_lastline->str,
+                                  parse_state->lex_lastline->len);
+
     lex_strterm = syd_node_newnode(parse_state, NODE_HEREDOC,
                                   (OBJECT)string_new(tok(), toklen()),  /* nd_lit */
                                   len,                          /* nd_nth */
-                                  (OBJECT)parse_state->lex_lastline);    /* nd_orig */
+                                  (OBJECT)str);    /* nd_orig */
     return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 
@@ -3431,6 +3440,9 @@ heredoc_restore(here, parse_state)
     rb_parse_state *parse_state;
 {
     GString *line = here->nd_orig;
+
+  g_string_free(parse_state->lex_lastline, TRUE);
+
     parse_state->lex_lastline = line;
     parse_state->lex_pbeg = line->str;
     parse_state->lex_pend = parse_state->lex_pbeg + line->len;
