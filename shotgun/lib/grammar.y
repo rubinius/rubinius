@@ -4852,8 +4852,9 @@ block_append(parse_state, head, tail)
       case NODE_NEWLINE:
         h = h->nd_next;
         goto again;
-      case NODE_LIT:
       case NODE_STR:
+        g_string_free(h->nd_str, TRUE);
+      case NODE_LIT:
         parser_warning(h, "unused literal ignored");
         return tail;
       default:
