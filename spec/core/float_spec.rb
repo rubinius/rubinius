@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # divmod, eql?, finite?, floor, hash, infinite?, modulo, nan?, round,
 # to_f, to_i, to_int, to_s, truncate, zero?
 
-TOLERANCE = 0.00003
+TOLERANCE = 0.0003
 
 describe "Float#CONSTANTS" do 
   specify  "the DIG value is  15" do
@@ -39,7 +39,7 @@ describe "Float#CONSTANTS" do
     Float::MIN_EXP.should_be_close(-1021,TOLERANCE)
   end 
   
-  specify "the MAX is -1021" do
+  specify "the MAX is 1.79769313486232e+308" do
     Float::MAX.to_s.should == "1.79769313486232e+308".to_s    
   end 
   
@@ -66,8 +66,8 @@ context "Float" do
   
   specify "* should return self multiplied by other" do 
     (4923.98221 * 2).should_be_close(9847.96442, TOLERANCE) 
-    (256.4096 * 0xffffffff).should_be_close(1101270846124.03 , TOLERANCE)
     (6712.5 * 0.25).should_be_close(1678.125, TOLERANCE) 
+    (256.4096 * 0xffffffff).to_s.should == 1101270846124.03.to_s
   end
   
   specify "** should return self raise to the other power" do
@@ -178,9 +178,9 @@ context "Float" do
   end
   
   specify "divmod should return an [quotient, modulus] from dividing self by other" do
-    3.14.divmod(2).inspect.should == "[1.0, 1.14]"
-    2.8284.divmod(3.1415).inspect.should == "[0.0, 2.8284]"
-    -1.0.divmod(0xffffffff).inspect.should == "[-1.0, 4294967294.0]"
+    3.14.divmod(2).inspect.should == "[1, 1.14]"
+    2.8284.divmod(3.1415).inspect.should == "[0, 2.8284]"
+    -1.0.divmod(0xffffffff).inspect.should == "[-1, 4294967294.0]"
   end
 
   # This failed for me on MRI. I'm assuming it is platform dependent -- flgr

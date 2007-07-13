@@ -1,5 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
-require 'fileutils'
+require File.dirname(__FILE__) + '/../spec_helper' 
 
 # class methods
 # atime, basename, blockdev?, chardev?, chmod, chown, ctime, delete,
@@ -86,19 +85,6 @@ context "File class method" do
     ensure
       File.delete(file) rescue nil
     end
-  end
-
-  specify "expand_path should give a full path" do
-    File.expand_path('/tmp/').should =='/tmp'
-    File.expand_path('/tmp/../../../tmp').should == '/tmp'
-    File.expand_path('').should == Dir.pwd
-    File.expand_path('./////').should == Dir.pwd
-    File.expand_path('.').should == Dir.pwd
-    File.expand_path(Dir.pwd).should == Dir.pwd
-    File.expand_path('~/').should == ENV['HOME']
-    File.expand_path('~/..badfilename').should == ENV['HOME'] + '/..badfilename'
-    File.expand_path('..').should == Dir.pwd.split('/')[0...-1].join("/")
-    File.expand_path('//').should == '//'
   end
   
   specify "delete should delete a file and return the number of names passed as arguments" do
@@ -285,7 +271,7 @@ describe "File.delete" do
     @file1 = 'temp1.txt'
     @file2 = 'temp2.txt'
 
-    File.open(@file1, "w"){} # Touch
+    File.open(@file1, "w"){} # touch # Touch
     File.open(@file2, "w"){} # Touch
   end
 
@@ -309,8 +295,8 @@ describe "File.delete" do
   end
  
   after(:each) do
-    FileUtils.remove_file(@file1)
-    FileUtils.remove_file(@file2)
+    # FileUtils.remove_file(@file1)
+    # FileUtils.remove_file(@file2)
 
     @file1 = nil
     @file2 = nil
@@ -349,8 +335,9 @@ describe "File.executable?" do
     @file1 = File.join(Dir.pwd, 'temp1.txt')
     @file2 = File.join(Dir.pwd, 'temp2.txt')
 
-    FileUtils.touch(@file1)
-    FileUtils.touch(@file2)      
+    File.open(@file1, "w"){} # touch
+    File.open(@file2, "w"){}
+    
     File.chmod(0755, @file1)
   end
 
@@ -383,8 +370,8 @@ describe "File.executable_real?" do
     @file1 = File.join(Dir.pwd, 'temp1.txt')
     @file2 = File.join(Dir.pwd, 'temp2.txt')
 
-    FileUtils.touch(@file1)
-    FileUtils.touch(@file2)
+    File.open(@file1, "w"){} # touch
+    File.open(@file2, "w"){}
       
     File.chmod(0755, @file1)
   end
@@ -427,7 +414,7 @@ end
 describe "File.exist?" do 
   before(:each) do
     @file = 'temp.txt'
-    FileUtils.touch(@file)  
+    File.open(@file, "w"){}
   end 
   
   it "return true if the file exist" do
@@ -555,7 +542,22 @@ describe "File.expand_path" do
       File.expand_path("../../bin", "/").should == "/bin"
       File.expand_path("../../bin", "tmp/x").should == File.join(@pwd, 'bin')
     end
-  end
+  end  
+  
+  unless WINDOWS
+    specify "expand_path for commoms unix path  give a full path" do      
+      File.expand_path('/tmp/').should =='/tmp'
+      File.expand_path('/tmp/../../../tmp').should == '/tmp'
+      File.expand_path('').should == Dir.pwd
+      File.expand_path('./////').should == Dir.pwd
+      File.expand_path('.').should == Dir.pwd
+      File.expand_path(Dir.pwd).should == Dir.pwd
+      File.expand_path('~/').should == ENV['HOME']
+      File.expand_path('~/..badfilename').should == ENV['HOME'] + '/..badfilename'
+      File.expand_path('..').should == Dir.pwd.split('/')[0...-1].join("/")
+      File.expand_path('//').should == '//'
+    end
+  end 
   
   it "raise an exception if the argumnents are not of the correct type or are missing" do
     should_raise(ArgumentError){ File.expand_path }
@@ -621,7 +623,7 @@ describe "File.file?" do
     end
 
     @file = "test.txt"
-    FileUtils.touch(@file)
+    File.open(@file1, "w"){} # touch
   end
   
   it "returns true if the named file exists and is a regular file." do 
@@ -644,68 +646,95 @@ describe "File.file?" do
 end
 
 describe "File.fnmatch" do  
-  it "match partial or entire strings" do 
-    File.fnmatch('cat',       'cat')        #=> true  : match entire string
-    File.fnmatch('cat',       'category')   #=> false : only match partial string
-    File.fnmatch('c{at,ub}s', 'cats')       #=> false : { } isn't supported
-  end
-  it "match using the only-one-character expresion (?)" do
-    File.fnmatch('c?t',     'cat')          #=> true  : '?' match only 1 character
-    File.fnmatch('c??t',    'cat')          #=> false : ditto
-  end
-  it "match using the 0 or more characters expresion (*)" do
-    File.fnmatch('c*',      'cats')         #=> true  : '*' match 0 or more characters
-    File.fnmatch('c*t',     'c/a/b/t')      #=> true  : ditto
+  it "match entire strings" do 
+    File.fnmatch('cat',       'cat').should == true        #=> true  : match entire string
   end
   
-  it "match inclusive bracket expresion [x-y] " do
-    File.fnmatch('ca[a-z]', 'cat')          #=> true  : inclusive bracket expression
+  it "match when use a partial strings" do 
+    File.fnmatch('cat',       'category').should == false   #=> false : only match partial string
+  end
+  
+  it "not match  when use { } because is not supported" do
+    File.fnmatch('c{at,ub}s', 'cats').should == false       #=> false : { } isn't supported
+  end
+  
+  it "match when use the wildcard for one-character expresion (?)" do
+    File.fnmatch('c?t',     'cat').should == true          #=> true  : '?' match only 1 character
+    File.fnmatch('c??t',    'cat').should == false          #=> false : ditto
+  end
+  
+  it "match when use the wildcard for 0 or more characters expresion (*)" do
+    File.fnmatch('c*',      'cats').should == true         #=> true  : '*' match 0 or more characters
+    File.fnmatch('c*t',     'c/a/b/t').should == true      #=> true  : ditto
+  end
+  
+  it "match when use inclusive bracket expresion [a-z] " do
+    File.fnmatch('ca[a-z]', 'cat').should == true          #=> true  : inclusive bracket expression
+  end  
+  
+  it "not match when the character is out of the range using an inclusive bracket expresion [x-z] " do
+    File.fnmatch('ca[x-z]', 'cat').should == false          #=> true  : inclusive bracket expression
   end
   
   it "match exclusive bracket expresion [^t] or [!t]" do
-    File.fnmatch('ca[^t]',  'cat')          #=> false : exclusive bracket expression ('^' or '!')
-    File.fnmatch('ca[!t]',  'cat')          #=> false : exclusive bracket expression ('^' or '!')
+    File.fnmatch('ca[^t]',  'cat').should == false          #=> false : exclusive bracket expression ('^' or '!')
+    File.fnmatch('ca[!t]',  'cat').should == false          #=> false : exclusive bracket expression ('^' or '!')
   end
   
   it "match case sensitive" do
-    File.fnmatch('cat', 'CAT')                     #=> false : case sensitive
+    File.fnmatch('cat', 'CAT').should == false              #=> false : case sensitive
   end
   
   it "match case insensitive" do
-    File.fnmatch('cat', 'CAT', File::FNM_CASEFOLD) #=> true  : case insensitive
-  end
-
-  it "not match a character using wildcard" do
-    File.fnmatch('?',   '/', File::FNM_PATHNAME)  #=> false : wildcard doesn't match '/' on FNM_PATHNAME
-    File.fnmatch('*',   '/', File::FNM_PATHNAME)  #=> false : ditto
-    File.fnmatch('[/]', '/', File::FNM_PATHNAME)  #=> false : ditto
+    File.fnmatch('cat', 'CAT', File::FNM_CASEFOLD).should == true #=> true  : case insensitive
   end
   
-  it "escaped characters becomes ordinary when match" do
-    File.fnmatch('\?',   '?')                       #=> true  : escaped wildcard becomes ordinary
-    File.fnmatch('\a',   'a')                       #=> true  : escaped ordinary remains ordinary
-    File.fnmatch('\a',   '\a', File::FNM_NOESCAPE)  #=> true  : FNM_NOESACPE makes '\' ordinary
-    File.fnmatch('[\?]', '?')                       #=> true  : can escape inside bracket expression
+  it "not match a character using the wildcard '?'" do
+    File.fnmatch('?',   '/', File::FNM_PATHNAME).should == false  #=> false : wildcard doesn't match '/' on FNM_PATHNAME
+  end
+  
+  it "not match a character using the wildcard '*'" do
+    File.fnmatch('*',   '/', File::FNM_PATHNAME).should == false  #=> false : ditto
+  end
+  
+  it "not match a character using a charater insede a bracket expression " do
+    File.fnmatch('[/]', '/', File::FNM_PATHNAME).should == false  #=> false : ditto
+  end
+  
+  it "escaped wildcard becomes ordinary" do
+    File.fnmatch('\?',   '?').should == true                       #=> true  : escaped wildcard becomes ordinary
+  end
+  
+  it "escaped ordinary remains ordinary" do
+    File.fnmatch('\a',   'a').should == true                       #=> true  : escaped ordinary remains ordinary
+  end
+  
+  it " FNM_NOESACPE makes '\' ordinary" do
+    File.fnmatch('\a',   '\a', File::FNM_NOESCAPE).should == true  #=> true  : FNM_NOESACPE makes '\' ordinary
+  end
+  
+  it "can escape inside bracket expression" do
+    File.fnmatch('[\?]', '?').should == true                       #=> true  : can escape inside bracket expression
   end
   
   it "wildcards doesnt match leading by default" do
-    File.fnmatch('*',   '.profile')                      #=> false : wildcard doesn't match leading
-    File.fnmatch('*',   '.profile', File::FNM_DOTMATCH)  #=> true    period by default.
-    File.fnmatch('.*',  '.profile')                      #=> true
+    File.fnmatch('*',   '.profile').should == false                      #=> false : wildcard doesn't match leading
+    File.fnmatch('*',   '.profile', File::FNM_DOTMATCH).should == true  #=> true    period by default.
+    File.fnmatch('.*',  '.profile').should == true                      #=> true
   end
 
-  it "match " do
-    rbfiles = '**' '/' '*.rb' # you don't have to do like this. just write in single string.
-    File.fnmatch(rbfiles, 'main.rb')                    #=> false
-    File.fnmatch(rbfiles, './main.rb')                  #=> false
-    File.fnmatch(rbfiles, 'lib/song.rb')                #=> true
-    File.fnmatch('**.rb', 'main.rb')                    #=> true
-    File.fnmatch('**.rb', './main.rb')                  #=> false
-    File.fnmatch('**.rb', 'lib/song.rb')                #=> true
-    File.fnmatch('*',           'dave/.profile')                      #=> true
+  it "match some paths using a composite string" do
+    rbfiles = '**' '/' '*.rb'                           # you don't have to do like this. just write in single string.
+    File.fnmatch(rbfiles, 'main.rb').should == false    #=> false
+    File.fnmatch(rbfiles, './main.rb').should == false  #=> false
+    File.fnmatch(rbfiles, 'lib/song.rb').should == true #=> true
+    File.fnmatch('**.rb', 'main.rb').should == true     #=> true
+    File.fnmatch('**.rb', './main.rb').should == false  #=> false
+    File.fnmatch('**.rb', 'lib/song.rb').should == true #=> true
+    File.fnmatch('*',     'dave/.profile').should == true  #=> true
   end
   
-  it "match " do
+  it "match usign File::CONSTANT" do
     pattern = '*' '/' '*'
     File.fnmatch(pattern, 'dave/.profile', File::FNM_PATHNAME)  #=> false
     File.fnmatch(pattern, 'dave/.profile', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
@@ -730,7 +759,7 @@ end
 describe "File.atime" do
   before(:each) do
     @file = File.join(Dir.pwd, 'test.txt')
-    FileUtils.touch(@file)
+    File.open(@file1, "w"){} # touch
   end
 
   it "returns the last access time for the named file as a Time object" do      
@@ -749,7 +778,7 @@ describe "File.atime" do
   end
 
   after(:each) do
-    FileUtils.remove_file(@file)
+    #FileUtils.remove_file(@file)
     @file = nil
   end
 end
