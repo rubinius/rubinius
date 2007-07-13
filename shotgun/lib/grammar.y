@@ -6230,11 +6230,17 @@ rb_parser_while_loop(chop, split)
 */
 
 
-ID syd_last_id;
+static ID syd_last_id;
 
+#if 0
+/* FIXME:
+ * Why is this function not called?
+ * Someone look into this and either put this to use or kill it.
+ */
 void setup_parser() {
     syd_last_id = tLAST_TOKEN;
 }
+#endif
 
 /*
 void
