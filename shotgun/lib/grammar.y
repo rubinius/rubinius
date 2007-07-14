@@ -4966,6 +4966,7 @@ literal_concat(parse_state, head, tail)
       case NODE_STR:
         if (htype == NODE_STR) {
             g_string_append_string(head->nd_str, tail->nd_str);
+            g_string_free(tail->nd_str, TRUE);
             // rb_gc_force_recycle((VALUE)tail);
         }
         else {
@@ -4976,6 +4977,8 @@ literal_concat(parse_state, head, tail)
       case NODE_DSTR:
         if (htype == NODE_STR) {
             g_string_append_string(head->nd_str, tail->nd_str);
+            g_string_free(tail->nd_str, TRUE);
+
             tail->nd_lit = head->nd_lit;
             // rb_gc_force_recycle((VALUE)head);
             head = tail;
