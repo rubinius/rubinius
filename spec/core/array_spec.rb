@@ -15,6 +15,8 @@ class ToAryArray < Array
   def to_ary() ["to_ary", "was", "called!"] end
 end
 
+class MyRange < Range; end
+
 context "Array" do
   specify "includes Enumerable" do
     Array.include?(Enumerable).should == true
@@ -2221,6 +2223,15 @@ describe 'Array access using #[] and #slice' do
       to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
       a.send(cmd, from..to).should == [2, 3]
     end
+    
+    specify "[m..n] and [m...n] work with Range subclasses (##{cmd})" do
+      a = [1, 2, 3, 4]
+      range_incl = MyRange.new(1, 2)
+      range_excl = MyRange.new(-3, -1, true)
+
+      a[range_incl].should == [2, 3]
+      a[range_excl].should == [2, 3]
+    end
 
     specify "[index] returns nil for a requested index not in the array (##{cmd})" do
       [ "a", "b", "c", "d", "e" ].send(cmd, 5).should == nil
@@ -2710,6 +2721,17 @@ describe 'Array splicing using #[]=' do
 
     a = [1, 2, 3, 4]
     a[from .. to] = ["a", "b", "c"]
+  end
+  
+  specify "[m..n]= and [m...n]= work with Range subclasses" do
+    a = [1, 2, 3, 4]
+    range_incl = MyRange.new(1, 2)
+    range_excl = MyRange.new(-3, -1, true)
+
+    a[range_incl] = ["a", "b"]
+    a.should == [1, "a", "b", 4]
+    a[range_excl] = ["A", "B"]
+    a.should == [1, "A", "B", 4]
   end
   
   specify "[]= with negative index beyond array should raise" do
