@@ -13,6 +13,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 class MyString < String; end
 class MyArray < Array; end
+class MyRange < Range; end
 
 describe "String#%(Object)" do
   it "formats multiple expressions" do
@@ -174,6 +175,43 @@ describe "String#%(Object)" do
     should_raise(ArgumentError) { "%s %s" % obj }
     ("%s" % obj).should == "obj"
   end
+  
+  it "doesn't return subclass instances when called on a subclass" do
+    universal = Object.new
+    def universal.to_int() 0 end
+    def universal.to_str() "0" end
+    def universal.to_f() 0.0 end
+
+    [
+      "", "foo",
+      "%b", "%B", "%c", "%d", "%e", "%E",
+      "%f", "%g", "%G", "%i", "%o", "%p",
+      "%s", "%u", "%x", "%X"
+    ].each do |format|
+      (MyString.new(format) % universal).class.should == String
+    end
+  end
+
+  it "always taints the result when the format string is tainted" do
+    universal = Object.new
+    def universal.to_int() 0 end
+    def universal.to_str() "0" end
+    def universal.to_f() 0.0 end
+    
+    [
+      "", "foo",
+      "%b", "%B", "%c", "%d", "%e", "%E",
+      "%f", "%g", "%G", "%i", "%o", "%p",
+      "%s", "%u", "%x", "%X"
+    ].each do |format|
+      subcls_format = MyString.new(format)
+      subcls_format.taint
+      format.taint
+      
+      (format % universal).tainted?.should == true
+      (subcls_format % universal).tainted?.should == true
+    end
+  end
 
   it "supports binary formats using %b" do
     ("%b" % 10).should == "1010"
@@ -253,17 +291,6 @@ describe "String#%(Object)" do
       ("%*#{f}" % [10, 4]).should == "         4"
     end
   end
-  
-  it "supports float formats using %E" do
-    ("%E" % 10).should == "1.000000E+01"
-    ("% E" % 10).should == " 1.000000E+01"
-    ("%1$E" % 10).should == "1.000000E+01"
-    ("%#E" % 10).should == "1.000000E+01"
-    ("%+E" % 10).should == "+1.000000E+01"
-    ("%-7E" % 10).should == "1.000000E+01"
-    ("%05E" % 10).should == "1.000000E+01"
-    ("%*E" % [10, 9]).should == "9.000000E+00"
-  end
 
   it "supports float formats using %e" do
     ("%e" % 10).should == "1.000000e+01"
@@ -277,6 +304,17 @@ describe "String#%(Object)" do
     ("%e" % (0.0/0)).should == "nan"
   end
   
+  it "supports float formats using %E" do
+    ("%E" % 10).should == "1.000000E+01"
+    ("% E" % 10).should == " 1.000000E+01"
+    ("%1$E" % 10).should == "1.000000E+01"
+    ("%#E" % 10).should == "1.000000E+01"
+    ("%+E" % 10).should == "+1.000000E+01"
+    ("%-7E" % 10).should == "1.000000E+01"
+    ("%05E" % 10).should == "1.000000E+01"
+    ("%*E" % [10, 9]).should == "9.000000E+00"
+  end
+  
   it "supports float formats using %f" do
     ("%f" % 10).should == "10.000000"
     ("% f" % 10).should == " 10.000000"
@@ -288,17 +326,6 @@ describe "String#%(Object)" do
     ("%*f" % [10, 9]).should == "  9.000000"
   end
   
-  it "supports float formats using %G" do
-    ("%G" % 10).should == "10"
-    ("% G" % 10).should == " 10"
-    ("%1$G" % 10).should == "10"
-    ("%#G" % 10).should == "10.0000"
-    ("%+G" % 10).should == "+10"
-    ("%-7G" % 10).should == "10     "
-    ("%05G" % 10).should == "00010"
-    ("%*G" % [10, 9]).should == "         9"
-  end
-  
   it "supports float formats using %g" do
     ("%g" % 10).should == "10"
     ("% g" % 10).should == " 10"
@@ -308,6 +335,17 @@ describe "String#%(Object)" do
     ("%-7g" % 10).should == "10     "
     ("%05g" % 10).should == "00010"
     ("%*g" % [10, 9]).should == "         9"
+  end
+  
+  it "supports float formats using %G" do
+    ("%G" % 10).should == "10"
+    ("% G" % 10).should == " 10"
+    ("%1$G" % 10).should == "10"
+    ("%#G" % 10).should == "10.0000"
+    ("%+G" % 10).should == "+10"
+    ("%-7G" % 10).should == "10     "
+    ("%05G" % 10).should == "00010"
+    ("%*G" % [10, 9]).should == "         9"
   end
   
   it "supports octal formats using %o" do
@@ -348,6 +386,18 @@ describe "String#%(Object)" do
     ("%p" % obj).should == "obj"    
   end
   
+  it "taints result for %p when argument.inspect is tainted" do
+    obj = Object.new
+    obj.should_receive(:inspect, :returning => "x".taint)
+    
+    ("%p" % obj).tainted?.should == true
+    
+    obj = Object.new; obj.taint
+    obj.should_receive(:inspect, :returning => "x")
+    
+    ("%p" % obj).tainted?.should == false
+  end
+  
   it "supports string formats using %s" do
     ("%s" % 10).should == "10"
     ("%1$s" % [10, 8]).should == "10"
@@ -364,6 +414,12 @@ describe "String#%(Object)" do
     class << obj; undef :to_s; end
     obj.should_receive(:method_missing, :with => [:to_s], :returning => "obj")
     ("%s" % obj).should == "obj"
+  end
+  
+  it "taints result for %s when argument is tainted" do
+    ("%s" % "x".taint).tainted?.should == true
+    ("%s" % Object.new.taint).tainted?.should == true
+    ("%s" % 5.0.taint).tainted?.should == true
   end
 
   # MRI crashes on this one.
@@ -437,7 +493,7 @@ describe "String#%(Object)" do
     ("%X" % -(2 ** 64 + 5)).should == "..FEFFFFFFFFFFFFFFFB"
   end
   
-  %w(b d i o u X x).each do |f|
+  %w(b d i o u x X).each do |f|
     format = "%" + f
     
     it "behaves as if calling Kernel#Integer for #{format} argument" do
@@ -487,9 +543,13 @@ describe "String#%(Object)" do
       end
       (format % obj).should == (format % 4)
     end
+    
+    it "doesn't taint the result for #{format} when argument is tainted" do
+      (format % "5".taint).tainted?.should == false
+    end
   end
   
-  %w(E e f G g).each do |f|
+  %w(e E f g G).each do |f|
     format = "%" + f
     
     it "behaves as if calling Kernel#Float for #{format} arguments" do
@@ -519,6 +579,10 @@ describe "String#%(Object)" do
       obj.should_receive(:respond_to?, :with => [:to_f], :returning => true)
       obj.should_receive(:method_missing, :with => [:to_f], :returning => 3.14)
       (format % obj).should == (format % 3.14)
+    end
+    
+    it "doesn't taint the result for #{format} when argument is tainted" do
+      (format % "5".taint).tainted?.should == false
     end
   end
 end
@@ -565,9 +629,19 @@ describe "String#*(count)" do
     (MyString.new("cool") * 1).class.should == MyString
     (MyString.new("cool") * 2).class.should == MyString
   end
+  
+  it "always taints the result when self is tainted" do
+    ["", "OK", MyString.new(""), MyString.new("OK")].each do |str|
+      str.taint
+
+      [0, 1, 2].each do |arg|
+        (str * arg).tainted?.should == true
+      end
+    end
+  end
 end
 
-describe "String#+(string)" do
+describe "String#+(other)" do
   it "returns a new string containing the given string concatenated to self" do
     ("" + "").should == ""
     ("" + "Hello").should == "Hello"
@@ -575,7 +649,7 @@ describe "String#+(string)" do
     ("Ruby !" + "= Rubinius").should == "Ruby != Rubinius"
   end
   
-  it "converts the argument to a string using to_str" do
+  it "converts its argument to a string using to_str" do
     c = Object.new
     def c.to_str() "aaa" end
     
@@ -596,9 +670,20 @@ describe "String#+(string)" do
     ("hello" + MyString.new("foo")).class.should == String
     ("hello" + MyString.new("")).class.should == String
   end
+  
+  it "always taints the result when self or other is tainted" do
+    strs = ["", "OK", MyString.new(""), MyString.new("OK")]
+    strs += strs.map { |s| s.dup.taint }
+    
+    strs.each do |str|
+      str.each do |other|
+        (str + other).tainted?.should == (str.tainted? | other.tainted?)
+      end
+    end
+  end
 end
 
-describe "String#<<(string)" do
+describe "String#<<(other)" do
   it "concatenates the given argument to self and returns self" do
     str = 'hello '
     (str << 'world').equal?(str).should == true
@@ -640,6 +725,14 @@ describe "String#<<(string)" do
     a = "hello"
     a << MyString.new(" world")
     a.should == "hello world"
+  end
+  
+  it "taints self if other is tainted" do
+    x = "x"
+    (x << "".taint).tainted?.should == true
+
+    x = "x"
+    (x << "y".taint).tainted?.should == true
   end
 end
 
@@ -888,6 +981,15 @@ describe "String#[idx, length]" do
     "hello there"[-3,2].should == "er"
   end
   
+  it "always taints resulting strings when self is tainted" do
+    str = "hello world"
+    str.taint
+    
+    str[0,0].tainted?.should == true
+    str[0,1].tainted?.should == true
+    str[2,1].tainted?.should == true
+  end
+  
   it "returns nil if the offset falls outside of self" do
     "hello there"[20,3].should == nil
     "hello there"[-20,3].should == nil
@@ -989,6 +1091,18 @@ describe "String#[range]" do
     "x"[1...-1].should == ""
   end
   
+  it "always taints resulting strings when self is tainted" do
+    str = "hello world"
+    str.taint
+    
+    str[0..0].tainted?.should == true
+    str[0...0].tainted?.should == true
+    str[0..1].tainted?.should == true
+    str[0...1].tainted?.should == true
+    str[2..3].tainted?.should == true
+    str[2..0].tainted?.should == true
+  end
+  
   it "returns subclass instances" do
     s = MyString.new("hello")
     s[0...0].class.should == MyString
@@ -1023,6 +1137,15 @@ describe "String#[range]" do
 
     "hello there"[from..to].should == "ello ther"
   end
+  
+  it "works with Range subclasses" do
+    a = "GOOD"
+    range_incl = MyRange.new(1, 2)
+    range_excl = MyRange.new(-3, -1, true)
+
+    a[range_incl].should == "OO"
+    a[range_excl].should == "OO"
+  end
 end
 
 describe "String#[regexp]" do
@@ -1035,6 +1158,21 @@ describe "String#[regexp]" do
     "hello there"[/xyz/].should == nil
   end
   
+  it "always taints resulting strings when self or regexp is tainted" do
+    strs = ["hello world"]
+    strs += strs.map { |s| s.dup.taint }
+    
+    strs.each do |str|
+      str[//].tainted?.should == str.tainted?
+      str[/hello/].tainted?.should == str.tainted?
+
+      tainted_re = /./
+      tainted_re.taint
+      
+      str[tainted_re].tainted?.should == true
+    end
+  end
+
   it "returns subclass instances" do
     s = MyString.new("hello")
     s[//].class.should == MyString
@@ -1055,6 +1193,28 @@ describe "String#[regexp, idx]" do
     "har"[/(.)(.)(.)/, -1].should == "r"
     "har"[/(.)(.)(.)/, -2].should == "a"
     "har"[/(.)(.)(.)/, -3].should == "h"
+  end
+
+  it "always taints resulting strings when self or regexp is tainted" do
+    strs = ["hello world"]
+    strs += strs.map { |s| s.dup.taint }
+    
+    strs.each do |str|
+      str[//, 0].tainted?.should == str.tainted?
+      str[/hello/, 0].tainted?.should == str.tainted?
+
+      str[/(.)(.)(.)/, 0].tainted?.should == str.tainted?
+      str[/(.)(.)(.)/, 1].tainted?.should == str.tainted?
+      str[/(.)(.)(.)/, -1].tainted?.should == str.tainted?
+      str[/(.)(.)(.)/, -2].tainted?.should == str.tainted?
+      
+      tainted_re = /(.)(.)(.)/
+      tainted_re.taint
+      
+      str[tainted_re, 0].tainted?.should == true
+      str[tainted_re, 1].tainted?.should == true
+      str[tainted_re, -1].tainted?.should == true
+    end
   end
   
   it "returns nil if there is no match" do
@@ -1087,10 +1247,23 @@ describe "String#[regexp, idx]" do
   end
 end
 
-describe "String#[other_string]" do
-  it "returns the string if it occurs in self" do
+describe "String#[other]" do
+  it "returns other if it occurs in self" do
     s = "lo"
     "hello there"[s].should == s
+  end
+
+  it "taints resulting strings when other is tainted" do
+    strs = ["", "hello world", "hello"]
+    strs += strs.map { |s| s.dup.taint }
+    
+    strs.each do |str|
+      strs.each do |other|
+        r = str[other]
+        
+        r.tainted?.should == !r.nil? & other.tainted?
+      end
+    end
   end
   
   it "returns nil if there is no match" do
@@ -1194,6 +1367,16 @@ describe "String#[idx] = other_str" do
     a.should == "bamelo"
   end
 
+  it "taints self if other_str is tainted" do
+    a = "hello"
+    a[0] = "".taint
+    a.tainted?.should == true
+    
+    a = "hello"
+    a[0] = "x".taint
+    a.tainted?.should == true
+  end
+
   it "raises an IndexError  without changing self if idx is outside of self" do
     str = "hello"
 
@@ -1256,13 +1439,97 @@ describe "String#[idx] = other_str" do
   end
 end
 
+describe "String#[idx, count] = other_str" do
+  it "starts at idx and overwrites count characters before inserting the rest of other_str" do
+    a = "hello"
+    a[0, 2] = "xx"
+    a.should == "xxllo"
+    a = "hello"
+    a[0, 2] = "jello"
+    a.should == "jellollo"
+  end
+ 
+  it "counts negative idx values from end of the string" do
+    a = "hello"
+    a[-1, 0] = "bob"
+    a.should == "hellbobo"
+    a = "hello"
+    a[-5, 0] = "bob"
+    a.should == "bobhello"
+  end
+ 
+  it "overwrites and deletes characters if count is more than the length of other_str" do
+    a = "hello"
+    a[0, 4] = "x"
+    a.should == "xo"
+    a = "hello"
+    a[0, 5] = "x"
+    a.should == "x"
+  end
+ 
+  it "deletes characters if other_str is an empty string" do
+    a = "hello"
+    a[0, 2] = ""
+    a.should == "llo"
+  end
+ 
+  it "deletes characters up to the maximum length of the existing string" do
+    a = "hello"
+    a[0, 6] = "x"
+    a.should == "x"
+    a = "hello"
+    a[0, 100] = ""
+    a.should == ""
+  end
+ 
+  it "appends other_str to the end of the string if idx == the length of the string" do
+    a = "hello"
+    a[5, 0] = "bob"
+    a.should == "hellobob"
+  end
+  
+  it "taints self if other_str is tainted" do
+    a = "hello"
+    a[0, 0] = "".taint
+    a.tainted?.should == true
+    
+    a = "hello"
+    a[1, 4] = "x".taint
+    a.tainted?.should == true
+  end
+ 
+  it "raises an IndexError if |idx| is greater than the length of the string" do
+    should_raise(IndexError) { "hello"[6, 0] = "bob" }
+    should_raise(IndexError) { "hello"[-6, 0] = "bob" }
+  end
+ 
+  it "raises an IndexError if count < 0" do
+    should_raise(IndexError) { "hello"[0, -1] = "bob" }
+    should_raise(IndexError) { "hello"[1, -1] = "bob" }
+  end
+ 
+  it "raises a TypeError if other_str is a type other than String" do
+    should_raise(TypeError) { "hello"[0, 2] = nil }
+    should_raise(TypeError) { "hello"[0, 2] = :bob }
+    should_raise(TypeError) { "hello"[0, 2] = 33 }
+  end
+end
+
 # TODO: Add more String#[]= specs
 
 describe "String#capitalize" do
   it "returns a copy of self with the first character converted to uppercase and the remainder to lowercase" do
+    "".capitalize.should == ""
+    "h".capitalize.should == "H"
+    "H".capitalize.should == "H"
     "hello".capitalize.should == "Hello"
     "HELLO".capitalize.should == "Hello"
     "123ABC".capitalize.should == "123abc"
+  end
+
+  it "taints resulting string when self is tainted" do
+    "".taint.capitalize.tainted?.should == true
+    "hello".taint.capitalize.tainted?.should == true
   end
 
   it "is locale insensitive (only upcases a-z and only downcases A-Z)" do
@@ -1290,6 +1557,7 @@ describe "String#capitalize!" do
     a.should == "Hello"
     
     "".capitalize!.should == nil
+    "H".capitalize!.should == nil
   end
 
   it "raises a TypeError when self is frozen" do
@@ -1403,6 +1671,23 @@ describe "String#center(length, padstr)" do
     "hello".center(20).should == "       hello        "
   end
   
+  it "returns self if it's longer than or as long as the specified length" do
+    "".center(0).should == ""
+    "".center(-1).should == ""
+    "hello".center(4).should == "hello"
+    "hello".center(-1).should == "hello"
+    "this".center(3).should == "this"
+    "radiology".center(8, '-').should == "radiology"
+  end
+
+  it "taints result when self or padstr is tainted" do
+    "x".taint.center(4).tainted?.should == true
+    "x".taint.center(0).tainted?.should == true
+    "".taint.center(0).tainted?.should == true
+    "x".taint.center(4, "*").tainted?.should == true
+    "x".center(4, "*".taint).tainted?.should == true
+  end
+  
   it "tries to convert length to an integer using to_int" do
     "_".center(3.8, "^").should == "^_^"
     
@@ -1443,19 +1728,9 @@ describe "String#center(length, padstr)" do
     should_raise(TypeError) { "hello".center(20, Object.new) }
   end
   
-  it "returns self if it's longer than or as long as the specified length" do
-    "".center(0).should == ""
-    "".center(-1).should == ""
-    "hello".center(4).should == "hello"
-    "hello".center(-1).should == "hello"
-    "this".center(3).should == "this"
-    "radiology".center(8, '-').should == "radiology"
-  end
-  
   it "raises an ArgumentError if padstr is empty" do
-    should_raise(ArgumentError) do
-      "hello".center(10, "")
-    end
+    should_raise(ArgumentError) { "hello".center(10, "") }
+    should_raise(ArgumentError) { "hello".center(0, "") }
   end
   
   it "returns subclass instances when called on subclasses" do
@@ -1525,6 +1800,16 @@ describe "String#chomp(separator)" do
         end
       end
     end
+  end
+  
+  it "taints result when self is tainted" do
+    "hello".taint.chomp("llo").tainted?.should == true
+    "hello".taint.chomp("").tainted?.should == true
+    "hello".taint.chomp(nil).tainted?.should == true
+    "hello".taint.chomp.tainted?.should == true
+    "hello\n".taint.chomp.tainted?.should == true
+    
+    "hello".chomp("llo".taint).tainted?.should == false
   end
   
   it "tries to convert separator to a string using to_str" do
@@ -1637,6 +1922,11 @@ describe "String#chop" do
   it "returns an empty string when applied to an empty string" do
     "".chop.should == ""
   end
+
+  it "taints result when self is tainted" do
+    "hello".taint.chop.tainted?.should == true
+    "".taint.chop.tainted?.should == true
+  end
   
   it "returns subclass instances when called on a subclass" do
     MyString.new("hello\n").chop.class.should == MyString
@@ -1676,7 +1966,7 @@ describe "String#chop!" do
   end
 end
 
-describe "String#concat(String)" do
+describe "String#concat(other)" do
   it "is an alias of String#<<" do
     ["xyz", 42].each do |arg|
       (a = "abc") << arg
@@ -1684,6 +1974,14 @@ describe "String#concat(String)" do
       
       a.should == b
     end
+  end
+
+  it "taints self if other is tainted" do
+    a = "x"
+    (a << "".taint).tainted?.should == true
+
+    a = "x"
+    (a << "y".taint).tainted?.should == true
   end
   
   it "raises a TypeError when self is frozen" do
@@ -1925,6 +2223,13 @@ describe "String#delete(*sets)" do
   it "deletes only the intersection of sets" do
     "hello".delete("l", "lo").should == "heo"
   end
+  
+  it "taints result when self is tainted" do
+    "hello".taint.delete("e").tainted?.should == true
+    "hello".taint.delete("a-z").tainted?.should == true
+
+    "hello".delete("e".taint).tainted?.should == false
+  end
 
   it "tries to convert each set arg to a string using to_str" do
     other_string = Object.new
@@ -2000,6 +2305,12 @@ describe "String#downcase" do
     str.downcase.should == expected
   end
   
+  it "taints result when self is tainted" do
+    "".taint.downcase.tainted?.should == true
+    "x".taint.downcase.tainted?.should == true
+    "X".taint.downcase.tainted?.should == true
+  end
+  
   it "returns a subclass instance for subclasses" do
     MyString.new("FOObar").downcase.class.should == MyString
   end
@@ -2046,6 +2357,11 @@ describe "String#dump" do
       $KCODE = old_kcode
     end
   end
+
+  it "taints result when self is tainted" do
+    "".taint.dump.tainted?.should == true
+    "x".taint.dump.tainted?.should == true
+  end
   
   it "returns a subclass instance for subclasses" do
     MyString.new("hi!").dump.class.should == MyString
@@ -2068,11 +2384,9 @@ describe "String#each(separator)" do
   end
   
   it "taints substrings that are passed to the block if self is tainted" do
-    a = "one\ntwo\r\nthree"
-    b = []
-    a.taint
-    a.each { |s| b << s.tainted? }
-    b.should == [true, true, true]
+    "one\ntwo\r\nthree".taint.each { |s| s.tainted?.should == true }
+
+    "x.y.".each(".".taint) { |s| s.tainted?.should == false }
   end
   
   it "passes self as a whole to the block if the separator is nil" do
@@ -2373,6 +2687,8 @@ describe "String#gsub(pattern, replacement)" do
     hello.gsub(/./, a_t).tainted?.should == true
     hello.gsub(/./, empty_t).tainted?.should == true
     hello.gsub(//, empty_t).tainted?.should == true
+    
+    hello.gsub(//.taint, "foo").tainted?.should == false
   end
 
   it "tries to convert pattern to a string using to_str" do
@@ -2419,13 +2735,31 @@ describe "String#gsub(pattern, replacement)" do
 end
 
 describe "String#gsub(pattern) { block }" do
-  it "returns a copy of self with all occurences of pattern replaced with the block's return value" do
-    "hello".gsub(/./) { |s| s[0].to_s + ' ' }.should == "104 101 108 108 111 "
+  it "returns a copy of self with all occurrences of pattern replaced with the block's return value" do
+    "hello".gsub(/./) { |s| s.succ + ' ' }.should == "i f m m p "
+    "hello!".gsub(/(.)(.)/) { |*a| a.inspect }.should == '["he"]["ll"]["o!"]'
   end
   
-  it "allows the use of variables such as $1, $2, $`, $& and $' in the block" do
-    "hello".gsub(/([aeiou])/) { "<#$1>" }.should == "h<e>ll<o>"
-    "hello".gsub(/([aeiou])/) { "<#$&>" }.should == "h<e>ll<o>"
+  it "sets $~ for access from the block" do
+    str = "hello"
+    str.gsub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>ll<o>"
+    str.gsub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>ll<o>"
+    
+    offsets = []
+    
+    str.gsub(/([aeiou])/) do
+       md = $~
+       md.string.should == str
+       offsets << md.offset(0)
+       str
+    end.should == "hhellollhello"
+    
+    offsets.should == [[1, 2], [4, 5]]
+  end
+  
+  it "doesn't interpolate special sequences like \\1 for the block's return value" do
+    repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
+    "hello".gsub(/(.+)/) { repl }.should == repl
   end
   
   it "converts the block's return value to a string using to_s" do
@@ -2433,28 +2767,94 @@ describe "String#gsub(pattern) { block }" do
     def replacement.to_s() "hello_replacement" end
     
     "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
+    
+    obj = Object.new
+    class << obj; undef :to_s; end
+    obj.should_receive(:method_missing, :with => [:to_s], :returning => "ok")
+    
+    "hello".gsub(/.+/) { obj }.should == "ok"
+  end
+  
+  it "taints the result if the original string or replacement is tainted" do
+    hello = "hello"
+    hello_t = "hello"
+    a = "a"
+    a_t = "a"
+    empty = ""
+    empty_t = ""
+    
+    hello_t.taint; a_t.taint; empty_t.taint
+    
+    hello_t.gsub(/./) { a }.tainted?.should == true
+    hello_t.gsub(/./) { empty }.tainted?.should == true
+
+    hello.gsub(/./) { a_t }.tainted?.should == true
+    hello.gsub(/./) { empty_t }.tainted?.should == true
+    hello.gsub(//) { empty_t }.tainted?.should == true
+    
+    hello.gsub(//.taint) { "foo" }.tainted?.should == false
   end
 end
 
 describe "String#gsub!(pattern, replacement)" do
-  it "modifies self in place" do
+  it "modifies self in place and returns self" do
     a = "hello"
-    a.gsub!(/[aeiou]/, '*').should == "h*ll*"
+    a.gsub!(/[aeiou]/, '*').equal?(a).should == true
     a.should == "h*ll*"
+  end
+
+  it "taints self if replacement is tainted" do
+    a = "hello"
+    a.gsub!(/./.taint, "foo").tainted?.should == false
+    a.gsub!(/./, "foo".taint).tainted?.should == true
   end
   
   it "returns nil if no modifications were made" do
     a = "hello"
     a.gsub!(/z/, '*').should == nil
+    a.gsub!(/z/, 'z').should == nil
     a.should == "hello"
   end
   
   it "raises a TypeError when self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.gsub!(/[aeiou]/, '*')
-    end
+    s = "hello"
+    s.freeze
+    
+    s.gsub!(/ROAR/, "x") # ok
+    should_raise(TypeError) { s.gsub!(/e/, "e") }
+    should_raise(TypeError) { s.gsub!(/[aeiou]/, '*') }
+  end
+end
+
+describe "String#gsub!(pattern) { block }" do
+  it "modifies self in place and returns self" do
+    a = "hello"
+    a.gsub!(/[aeiou]/) { '*' }.equal?(a).should == true
+    a.should == "h*ll*"
+  end
+
+  it "taints self if block's result is tainted" do
+    a = "hello"
+    a.gsub!(/./.taint) { "foo" }.tainted?.should == false
+    a.gsub!(/./) { "foo".taint }.tainted?.should == true
+  end
+  
+  it "returns nil if no modifications were made" do
+    a = "hello"
+    a.gsub!(/z/) { '*' }.should == nil
+    a.gsub!(/z/) { 'z' }.should == nil
+    a.should == "hello"
+  end
+  
+  # MRI 1.8 raises a RuntimeError here which is inconsistent
+  # with the non-block form of gsub! (and everything else)
+  it "raises a TypeError when self is frozen" do
+    s = "hello"
+    s.freeze
+    
+    s.gsub!(/ROAR/) { "x" } # ok
+    should_raise(TypeError) { s.gsub!(/e/) { "e" } }
+    should_raise(TypeError) { s.gsub!(/[aeiou]/) { '*' } }
   end
 end
 
