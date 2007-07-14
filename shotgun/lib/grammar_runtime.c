@@ -772,36 +772,43 @@ again_no_block:
   case NODE_NUMBER:
     array_set(state, current, 0, SYMBOL("lit"));
     array_push(current, bignum_from_string_detect(state, node->nd_str->str));
+    g_string_free(node->nd_str, TRUE);
     break;
     
   case NODE_HEXNUM:
     array_set(state, current, 0, SYMBOL("lit"));
     array_push(current, bignum_from_string(state, node->nd_str->str, 16));
+    g_string_free(node->nd_str, TRUE);
     break;
   
   case NODE_BINNUM:
     array_set(state, current, 0, SYMBOL("lit"));
     array_push(current, bignum_from_string(state, node->nd_str->str, 2));
+    g_string_free(node->nd_str, TRUE);
     break;
     
   case NODE_OCTNUM:
     array_set(state, current, 0, SYMBOL("lit"));
     array_push(current, bignum_from_string(state, node->nd_str->str, 8));
+    g_string_free(node->nd_str, TRUE);
     break;
     
   case NODE_FLOAT:
     array_set(state, current, 0, SYMBOL("lit"));
     array_push(current, float_from_string(state, node->nd_str->str));
+    g_string_free(node->nd_str, TRUE);
     break;
     
   case NODE_XSTR:             /* u1    (%x{ls}) */
   case NODE_STR:              /* u1 */
     array_push(current, gstring2rubinius(state, node->nd_str));
+    g_string_free(node->nd_str, TRUE);
     break;
   case NODE_REGEX:
   case NODE_MATCH:
     array_push(current, gstring2rubinius(state, node->nd_str));
     array_push(current, I2N(node->nd_cnt));
+    g_string_free(node->nd_str, TRUE);
     break;
   case NODE_LIT:
     array_push(current, ID2SYM(node->nd_lit));
