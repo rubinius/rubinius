@@ -968,18 +968,18 @@ class ShotgunPrimitives
   def string_to_sexp
     <<-CODE
     {
-      GString *str;
-      char *str1, *str2;
+      GString *contents;
+      const char *name;
 
       self = stack_pop();
       POP(t1, STRING);
       POP(t2, FIXNUM);
       t3 = stack_pop();
 
-      str1 = string_byte_address(state, self);
-      str = g_string_new(str1);
-      str2 = string_byte_address(state, t1);
-      t1 = syd_compile_string(state,str2, str, FIXNUM_TO_INT(t2), RTEST(t3));
+      contents = g_string_new(string_byte_address(state, self));
+      name = string_byte_address(state, t1);
+      t1 = syd_compile_string(state, name, contents, FIXNUM_TO_INT(t2), RTEST(t3));
+      g_string_free(contents, TRUE);
       stack_push(t1);
     }
     CODE
