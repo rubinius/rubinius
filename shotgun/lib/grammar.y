@@ -2246,9 +2246,13 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                                 break;
                               case NODE_STR:
                                 if (strlen($$->nd_str->str) == $$->nd_str->len) {
-                                    $$->nd_lit = rb_intern($$->nd_str->str);
-                                    nd_set_type($$, NODE_LIT);
-                                    break;
+                                  ID tmp = rb_intern($$->nd_str->str);
+                                  g_string_free($$->nd_str, TRUE);
+                                  $$->nd_lit = tmp;
+                                  nd_set_type($$, NODE_LIT);
+                                  break;
+                                } else {
+                                  g_string_free($$->nd_str, TRUE);
                                 }
                                 /* fall through */
                               default:
