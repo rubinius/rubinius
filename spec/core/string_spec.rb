@@ -15,6 +15,9 @@ class MyString < String; end
 class MyArray < Array; end
 class MyRange < Range; end
 
+# TODO: Add specs to verify that methods operate on bytes instead of
+# chars independently of encoding and $KCODE all over the place.
+
 describe "String#%(Object)" do
   it "formats multiple expressions" do
     ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
@@ -265,6 +268,11 @@ describe "String#%(Object)" do
     ("%c" % (256 + 42)).should == "*"
     
     should_raise(TypeError) { "%c" % Object }
+  end
+  
+  it "uses argument % 256" do
+    ("%c" % [256 * 3 + 64]).should == ("%c" % 64)
+    ("%c" % -200).should == ("%c" % 56)
   end
   
   it "calls to_int on argument for %c formats" do
@@ -676,7 +684,7 @@ describe "String#+(other)" do
     strs += strs.map { |s| s.dup.taint }
     
     strs.each do |str|
-      str.each do |other|
+      strs.each do |other|
         (str + other).tainted?.should == (str.tainted? | other.tainted?)
       end
     end
@@ -742,6 +750,11 @@ describe "String#<<(fixnum)" do
     b.should == "hello world!"
     b << 0
     b.should == "hello world!\x00"
+  end
+
+  it "doesn't use fixnum % 256" do
+    should_raise(TypeError) { "" << (256 * 3 + 64) }
+    should_raise(TypeError) { "" << -200 }
   end
   
   it "raises a TypeError when the given Fixnum is not between 0 and 255" do
@@ -1030,6 +1043,15 @@ describe "String#[idx, length]" do
     "hello"[obj, obj].should == "ll"
   end
   
+  it "raises TypeError when idx or length can't be converted to an integer" do
+    should_raise(TypeError) { "hello"[Object.new, 0] }
+    should_raise(TypeError) { "hello"[0, Object.new] }
+
+    # I'm deliberately including this here.
+    # It means that str[other, idx] isn't supported.
+    should_raise(TypeError) { "hello"["", 0] }
+  end
+  
   it "returns subclass instances" do
     s = MyString.new("hello")
     s[0,0].class.should == MyString
@@ -1247,8 +1269,8 @@ describe "String#[regexp, idx]" do
   end
 end
 
-describe "String#[other]" do
-  it "returns other if it occurs in self" do
+describe "String#[other_str]" do
+  it "returns other_str if it occurs in self" do
     s = "lo"
     "hello there"[s].should == s
   end
@@ -1342,6 +1364,15 @@ describe "String#[idx] = char" do
     obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
     str[obj] = ?!
     str.should == "cell!"
+  end
+  
+  it "sets the code to char % 256" do
+    str = "Hello"
+    
+    str[0] = ?a + 256 * 3
+    str[0].should == ?a
+    str[0] = -200
+    str[0].should == 56
   end
   
   it "doesn't call to_int on char" do
@@ -1515,7 +1546,11 @@ describe "String#[idx, count] = other_str" do
   end
 end
 
-# TODO: Add more String#[]= specs
+# TODO: Add missing String#[]= specs:
+#   String#[range] = obj
+#   String#[re] = obj
+#   String#[re, idx] = obj
+#   String#[str] = obj
 
 describe "String#capitalize" do
   it "returns a copy of self with the first character converted to uppercase and the remainder to lowercase" do
@@ -1983,6 +2018,11 @@ describe "String#concat(other)" do
     a = "x"
     (a << "y".taint).tainted?.should == true
   end
+
+  it "doesn't use fixnum % 256" do
+    should_raise(TypeError) { "".concat(256 * 3 + 64) }
+    should_raise(TypeError) { "".concat(-200) }
+  end
   
   it "raises a TypeError when self is frozen" do
     s = "hello"
@@ -2085,19 +2125,11 @@ describe "String#count(*sets)" do
     s = "hacker kimono"
     s.count(obj).should == s.count("k")
   end
-
+ 
   it "raises a TypeError when a set arg can't be converted to a string" do
-    should_raise(TypeError) do
-      "hello world".count(?o)
-    end
-
-    should_raise(TypeError) do
-      "hello world".count(:o)
-    end
-
-    should_raise(TypeError) do
-      "hello world".count(Object.new)
-    end
+    should_raise(TypeError) { "hello world".count(?o) }
+    should_raise(TypeError) { "hello world".count(:o) }
+    should_raise(TypeError) { "hello world".count(Object.new) }
   end
 end
 
@@ -2247,17 +2279,9 @@ describe "String#delete(*sets)" do
   end
   
   it "raises a TypeError when one set arg can't be converted to a string" do
-    should_raise(TypeError) do
-      "hello world".delete(?o)
-    end
-
-    should_raise(TypeError) do
-      "hello world".delete(:o)
-    end
-
-    should_raise(TypeError) do
-      "hello world".delete(Object.new)
-    end
+    should_raise(TypeError) { "hello world".delete(?o) }
+    should_raise(TypeError) { "hello world".delete(:o) }
+    should_raise(TypeError) { "hello world".delete(Object.new) }
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -2452,6 +2476,11 @@ describe "String#each(separator)" do
     a.should == [ "hel", "l", "o\nworl", "d" ]
   end
   
+  it "raises a RuntimeError if the string is modified while substituting" do
+    str = "hello\nworld"
+    should_raise(RuntimeError) { str.each_line { str[0] = 'x' } }
+  end
+  
   it "raises a TypeError when the separator can't be converted to a string" do
     should_raise(TypeError) { "hello world".each(?o) }
     should_raise(TypeError) { "hello world".each(:o) }
@@ -2546,13 +2575,17 @@ describe "String#eql?" do
 end
 
 describe "String#gsub(pattern, replacement)" do
-  it "returns a copy of self with all occurences of pattern replaced with replacement" do
+  it "returns a copy of self with all occurrences of pattern replaced with replacement" do
     "hello".gsub(/[aeiou]/, '*').should == "h*ll*"
 
     str = "hello homely world. hah!"
     str.gsub(/\Ah\S+\s*/, "huh? ").should == "huh? homely world. hah!"
 
     "hello".gsub(//, ".").should == ".h.e.l.l.o."
+  end
+  
+  it "ignores a block if supplied" do
+    "food".gsub(/f/, "g") { "w" }.should == "good"
   end
 
   it "supports \\G which matches at the beginning of the remaining (non-matched) string" do
@@ -2706,7 +2739,7 @@ describe "String#gsub(pattern, replacement)" do
 
   it "raises a TypeError when pattern can't be converted to a string" do
     should_raise(TypeError) { "hello".gsub(:woot, "x") }
-    should_raise(TypeError) { "hello".gsub(5, "x") }
+    should_raise(TypeError) { "hello".gsub(?e, "x") }
   end
   
   it "tries to convert replacement to a string using to_str" do
@@ -2723,7 +2756,7 @@ describe "String#gsub(pattern, replacement)" do
   
   it "raises a TypeError when replacement can't be converted to a string" do
     should_raise(TypeError) { "hello".gsub(/[aeiou]/, :woot) }
-    should_raise(TypeError) { "hello".gsub(/[aeiou]/, 5) }
+    should_raise(TypeError) { "hello".gsub(/[aeiou]/, ?f) }
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -2755,6 +2788,11 @@ describe "String#gsub(pattern) { block }" do
     end.should == "hhellollhello"
     
     offsets.should == [[1, 2], [4, 5]]
+  end
+  
+  it "raises a RuntimeError if the string is modified while substituting" do
+    str = "hello"
+    should_raise(RuntimeError) { str.gsub(//) { str[0] = 'x' } }
   end
   
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
@@ -2801,6 +2839,10 @@ describe "String#gsub!(pattern, replacement)" do
     a = "hello"
     a.gsub!(/[aeiou]/, '*').equal?(a).should == true
     a.should == "h*ll*"
+  end
+
+  it "ignores a block if supplied" do
+    "food".gsub!(/f/, "g") { "w" }.should == "good"
   end
 
   it "taints self if replacement is tainted" do
@@ -2865,10 +2907,17 @@ describe "String#hash" do
   end
 end
 
+# TODO: Move actual results to String#to_int() and spec in terms of it
 describe "String#hex" do
   it "treats leading characters of self as a string of hex digits" do
     "0a".hex.should == 10
+    "0o".hex.should == 0
     "0x".hex.should == 0
+    "A_BAD_BABE".hex.should == 0xABADBABE
+    "a__b".hex.should == 0xab
+    "0b1010".hex.should == "b1010".hex
+    "0d500".hex.should == "d500".hex
+    "abcdefG".hex.should == 0xabcdef
   end
   
   it "takes an optional sign" do
@@ -2881,31 +2930,38 @@ describe "String#hex" do
   end
   
   it "returns 0 on error" do
+    "".hex.should == 0
+    "+-5".hex.should == 0
     "wombat".hex.should == 0
   end
 end
 
-describe "String#include?(other)" do
-  it "returns true if self contains other" do
+describe "String#include?(other_str)" do
+  it "returns true if self contains other_str" do
     "hello".include?("lo").should == true
     "hello".include?("ol").should == false
+  end
+  
+  it "ignores subclass differences" do
+    "hello".include?(MyString.new("lo")).should == true
+    MyString.new("hello").include?("lo").should == true
+    MyString.new("hello").include?(MyString.new("lo")).should == true
   end
   
   it "tries to convert other to string using to_str" do
     other = Object.new
     def other.to_str() "lo" end
-    
     "hello".include?(other).should == true
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+    "hello".include?(obj).should == true
   end
   
   it "raises a TypeError if other can't be converted to string" do
-    should_raise(TypeError) do
-      "hello".include?(:lo)
-    end
-    
-    should_raise(TypeError) do
-      "hello".include?(Object.new)
-    end
+    should_raise(TypeError) { "hello".include?(:lo) }
+    should_raise(TypeError) { "hello".include?(Object.new) }
   end
 end
 
@@ -2913,64 +2969,414 @@ describe "String#include?(fixnum)" do
   it "returns true if self contains the given char" do
     "hello".include?(?h).should == true
     "hello".include?(?z).should == false
+    "hello".include?(0).should == false
+  end
+  
+  it "uses fixnum % 256" do
+    "hello".include?(?h + 256 * 3).should == true
+  end
+  
+  it "doesn't try to convert fixnum to an Integer using to_int" do
+    obj = Object.new
+    obj.should_not_receive(:to_int)
+    should_raise(TypeError) { "hello".include?(obj) }
   end
 end
 
-describe "String#index(fixnum [, offset])" do
-  it "returns the index of the first occurence of the given character" do
+describe "String#index(obj [, start_offset])" do
+  it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
+    should_raise(TypeError) { "hello".index(:sym) }    
+    should_raise(TypeError) { "hello".index(Object.new) }
+  end
+
+  it "doesn't try to convert obj to an Integer via to_int" do
+    obj = Object.new
+    obj.should_not_receive(:to_int)
+    should_raise(TypeError) { "hello".index(obj) }
+  end
+
+  it "tries to convert obj to a string via to_str" do
+    obj = Object.new
+    obj.should_receive(:to_str, :returning => "lo")
+    "hello".index(obj).should == "hello".index("lo")
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+    "hello".index(obj).should == "hello".index("o")
+  end
+end
+
+describe "String#index(fixnum [, start_offset])" do
+  it "returns the index of the first occurrence of the given character" do
     "hello".index(?e).should == 1
+    "hello".index(?l).should == 2
+  end
+  
+  it "doesn't use fixnum % 256" do
+    "hello".index(?e + 256 * 3).should == nil
+    "hello".index(-(256 - ?e)).should == nil
   end
   
   it "starts the search at the given offset" do
-    "hello".index(?o, -2).should == 4
+    "blablabla".index(?b, 0).should == 0
+    "blablabla".index(?b, 1).should == 3
+    "blablabla".index(?b, 2).should == 3
+    "blablabla".index(?b, 3).should == 3
+    "blablabla".index(?b, 4).should == 6
+    "blablabla".index(?b, 5).should == 6
+    "blablabla".index(?b, 6).should == 6
+
+    "blablabla".index(?a, 0).should == 2
+    "blablabla".index(?a, 2).should == 2
+    "blablabla".index(?a, 3).should == 5
+    "blablabla".index(?a, 4).should == 5
+    "blablabla".index(?a, 5).should == 5
+    "blablabla".index(?a, 6).should == 8
+    "blablabla".index(?a, 7).should == 8
+    "blablabla".index(?a, 8).should == 8
   end
   
-  it "returns nil if no occurence is found" do
+  it "starts the search at offset + self.length if offset is negative" do
+    str = "blablabla"
+    
+    [?a, ?b].each do |needle|
+      (-str.length .. -1).each do |offset|
+        str.index(needle, offset).should ==
+        str.index(needle, offset + str.length)
+      end
+    end
+
+    "blablabla".index(?b, -9).should == 0
+  end
+  
+  it "returns nil if offset + self.length is < 0 for negative offsets" do
+    "blablabla".index(?b, -10).should == nil
+    "blablabla".index(?b, -20).should == nil
+  end
+  
+  it "returns nil if the character isn't found" do
+    "hello".index(0).should == nil
+    
+    "hello".index(?H).should == nil
     "hello".index(?z).should == nil
-    "hello".index(?e, -2).should == nil
+    "hello".index(?e, 2).should == nil
+
+    "blablabla".index(?b, 7).should == nil
+    "blablabla".index(?b, 10).should == nil
+
+    "blablabla".index(?a, 9).should == nil
+    "blablabla".index(?a, 20).should == nil
+  end
+  
+  it "converts start_offset to an integer via to_int" do
+    obj = Object.new
+    obj.should_receive(:to_int, :returning => 1)
+    "ROAR".index(?R, obj).should == 3
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    "ROAR".index(?R, obj).should == 3
   end
 end
 
-describe "String#index(substring [, offset])" do
-  it "returns the index of the first occurence of the given substring" do
-    "hello".index('e').should == 1
-    "hello".index('lo').should == 3
+describe "String#index(substring [, start_offset])" do
+  it "behaves the same as String#index(char) for one-character strings" do
+    ["blablabla", "hello cruel world...!"].each do |str|
+      str.split("").uniq.each do |str|
+        chr = str[0]
+        str.index(str).should == str.index(chr)
+        
+        0.upto(str.size + 1) do |start|
+          str.index(str, start).should == str.index(chr, start)
+        end
+        
+        (-str.size - 1).upto(-1) do |start|
+          str.index(str, start).should == str.index(chr, start)
+        end
+      end
+    end
+  end
+  
+  it "returns the index of the first occurrence of the given substring" do
+    "blablabla".index("").should == 0
+    "blablabla".index("b").should == 0
+    "blablabla".index("bla").should == 0
+    "blablabla".index("blabla").should == 0
+    "blablabla".index("blablabla").should == 0
+
+    "blablabla".index("l").should == 1
+    "blablabla".index("la").should == 1
+    "blablabla".index("labla").should == 1
+    "blablabla".index("lablabla").should == 1
+
+    "blablabla".index("a").should == 2
+    "blablabla".index("abla").should == 2
+    "blablabla".index("ablabla").should == 2
+  end  
+  
+  it "ignores string subclasses" do
+    "blablabla".index(MyString.new("bla")).should == 0
+    MyString.new("blablabla").index("bla").should == 0
+    MyString.new("blablabla").index(MyString.new("bla")).should == 0
   end
   
   it "starts the search at the given offset" do
-    "hello".index('o', -3).should == 4
+    "blablabla".index("bl", 0).should == 0
+    "blablabla".index("bl", 1).should == 3
+    "blablabla".index("bl", 2).should == 3
+    "blablabla".index("bl", 3).should == 3
+
+    "blablabla".index("bla", 0).should == 0
+    "blablabla".index("bla", 1).should == 3
+    "blablabla".index("bla", 2).should == 3
+    "blablabla".index("bla", 3).should == 3
+
+    "blablabla".index("blab", 0).should == 0
+    "blablabla".index("blab", 1).should == 3
+    "blablabla".index("blab", 2).should == 3
+    "blablabla".index("blab", 3).should == 3
+
+    "blablabla".index("la", 1).should == 1
+    "blablabla".index("la", 2).should == 4
+    "blablabla".index("la", 3).should == 4
+    "blablabla".index("la", 4).should == 4
+
+    "blablabla".index("lab", 1).should == 1
+    "blablabla".index("lab", 2).should == 4
+    "blablabla".index("lab", 3).should == 4
+    "blablabla".index("lab", 4).should == 4
+
+    "blablabla".index("ab", 2).should == 2
+    "blablabla".index("ab", 3).should == 5
+    "blablabla".index("ab", 4).should == 5
+    "blablabla".index("ab", 5).should == 5
+    
+    "blablabla".index("", 0).should == 0
+    "blablabla".index("", 1).should == 1
+    "blablabla".index("", 2).should == 2
+    "blablabla".index("", 7).should == 7
+    "blablabla".index("", 8).should == 8
+    "blablabla".index("", 9).should == 9
   end
   
-  it "returns nil if no occurence is found" do
-    "hello".index('z').should == nil
-    "hello".index('e', -2).should == nil
-    "a-b-c".split("-").should == ["a", "b", "c"]
+  it "starts the search at offset + self.length if offset is negative" do
+    str = "blablabla"
+    
+    ["bl", "bla", "blab", "la", "lab", "ab", ""].each do |needle|
+      (-str.length .. -1).each do |offset|
+        str.index(needle, offset).should ==
+        str.index(needle, offset + str.length)
+      end
+    end
+  end
+
+  it "returns nil if the substring isn't found" do
+    "blablabla".index("B").should == nil
+    "blablabla".index("z").should == nil
+    "blablabla".index("BLA").should == nil
+    "blablabla".index("blablablabla").should == nil
+    "blablabla".index("", 10).should == nil
+        
+    "hello".index("he", 1).should == nil
+    "hello".index("he", 2).should == nil
   end
   
-  it "raises a TypeError if no string was given" do
-    should_raise(TypeError) do
-      "hello".index(:sym)
+  it "converts start_offset to an integer via to_int" do
+    obj = Object.new
+    obj.should_receive(:to_int, :returning => 1)
+    "RWOARW".index("RW", obj).should == 4
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    "RWOARW".index("RW", obj).should == 4
+  end
+end
+
+describe "String#index(regexp [, start_offset])" do
+  it "behaves the same as String#index(string) for escaped string regexps" do
+    ["blablabla", "hello cruel world...!"].each do |str|
+      ["", "b", "bla", "lab", "o c", "d."].each do |needle|
+        regexp = Regexp.new(Regexp.escape(needle))
+        str.index(regexp).should == str.index(needle)
+        
+        0.upto(str.size + 1) do |start|
+          str.index(regexp, start).should == str.index(needle, start)
+        end
+        
+        (-str.size - 1).upto(-1) do |start|
+          str.index(regexp, start).should == str.index(needle, start)
+        end
+      end
+    end
+  end
+  
+  it "returns the index of the first match of regexp" do
+    "blablabla".index(/bla/).should == 0
+    "blablabla".index(/BLA/i).should == 0
+
+    "blablabla".index(/.{0}/).should == 0
+    "blablabla".index(/.{6}/).should == 0
+    "blablabla".index(/.{9}/).should == 0
+
+    "blablabla".index(/.*/).should == 0
+    "blablabla".index(/.+/).should == 0
+
+    "blablabla".index(/lab|b/).should == 0
+    
+    "blablabla".index(/\A/).should == 0
+    "blablabla".index(/\Z/).should == 9
+    "blablabla".index(/\z/).should == 9
+    "blablabla\n".index(/\Z/).should == 9
+    "blablabla\n".index(/\z/).should == 10
+
+    "blablabla".index(/^/).should == 0
+    "\nblablabla".index(/^/).should == 0
+    "b\nablabla".index(/$/).should == 1
+    "bl\nablabla".index(/$/).should == 2
+    
+    "blablabla".index(/.l./).should == 0
+  end
+  
+  it "starts the search at the given offset" do
+    "blablabla".index(/.{0}/, 5).should == 5
+    "blablabla".index(/.{1}/, 5).should == 5
+    "blablabla".index(/.{2}/, 5).should == 5
+    "blablabla".index(/.{3}/, 5).should == 5
+    "blablabla".index(/.{4}/, 5).should == 5
+
+    "blablabla".index(/.{0}/, 3).should == 3
+    "blablabla".index(/.{1}/, 3).should == 3
+    "blablabla".index(/.{2}/, 3).should == 3
+    "blablabla".index(/.{5}/, 3).should == 3
+    "blablabla".index(/.{6}/, 3).should == 3
+
+    "blablabla".index(/.l./, 0).should == 0
+    "blablabla".index(/.l./, 1).should == 3
+    "blablabla".index(/.l./, 2).should == 3
+    "blablabla".index(/.l./, 3).should == 3
+    
+    "xblaxbla".index(/x./, 0).should == 0
+    "xblaxbla".index(/x./, 1).should == 4
+    "xblaxbla".index(/x./, 2).should == 4
+    
+    "blablabla\n".index(/\Z/, 9).should == 9
+  end
+  
+  it "starts the search at offset + self.length if offset is negative" do
+    str = "blablabla"
+    
+    ["bl", "bla", "blab", "la", "lab", "ab", ""].each do |needle|
+      (-str.length .. -1).each do |offset|
+        str.index(needle, offset).should ==
+        str.index(needle, offset + str.length)
+      end
+    end
+  end
+
+  it "returns nil if the substring isn't found" do
+    "blablabla".index(/BLA/).should == nil
+
+    "blablabla".index(/.{10}/).should == nil
+    "blaxbla".index(/.x/, 3).should == nil
+    "blaxbla".index(/..x/, 2).should == nil
+  end
+
+  it "supports \\G which matches at the given start offset" do
+    "helloYOU.".index(/\GYOU/, 5).should == 5
+    "helloYOU.".index(/\GYOU/).should == nil
+
+    re = /\G.+YOU/
+    # The # marks where \G will match.
+    [
+      ["#hi!YOUall.", 0],
+      ["h#i!YOUall.", 1],
+      ["hi#!YOUall.", 2],
+      ["hi!#YOUall.", nil]
+    ].each do |spec, res|
+      start = spec.index("#")
+      str = spec.delete("#")
+
+      str.index(re, start).should == res
+    end
+  end
+  
+  it "converts start_offset to an integer via to_int" do
+    obj = Object.new
+    obj.should_receive(:to_int, :returning => 1)
+    "RWOARW".index(/R./, obj).should == 4
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    "RWOARW".index(/R./, obj).should == 4
+  end
+end
+
+describe "String#initialize([str])" do
+  it "is a private method" do
+    "".private_methods.map { |m| m.to_s }.include?("initialize").should == true    
+  end
+  
+  it "can be used to reinitialize self to str" do
+    "some string".instance_eval do
+      initialize("another string").equal?(self).should == true
+      self.should == "another string"
+
+      initialize("").should == ""
+    end
+  end
+  
+  it "doesn't change self when str isn't supplied" do
+    "some string".instance_eval do
+      initialize().should == "some string"
+    end
+  end
+  
+  it "replaces the taint status of self with that of str" do
+    a = "an untainted string"
+    b = "a tainted string".taint
+    a.instance_eval { initialize(b) }
+    a.tainted?.should == true
+  end
+    
+  it "raises a TypeError if self is frozen" do
+    a = "hello".freeze
+
+    a.instance_eval { initialize(a) } # ok, no change
+    should_raise(TypeError) { a.instance_eval { initialize("world") } }
+  end
+end
+
+describe "String#initialize_copy(other)" do
+  it "is a private method" do
+    "".private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
+  end
+  
+  it "is an alias for replace()" do
+    a = "some string"
+    a.instance_eval do
+      initialize_copy("another string").equal?(a).should == true
     end
     
-    should_raise(TypeError) do
-      "hello".index(Object.new)
-    end
-    "a   b c  ".split(/\s+/).should == ["a", "b", "c"]
+    a.should == "another string"
   end
-end
+  
+  it "replaces the taint status of self with that of other" do
+    a = "an untainted string"
+    b = "a tainted string".taint
+    a.instance_eval { initialize_copy(b) }
+    a.tainted?.should == true
+  end
+    
+  it "raises a TypeError if self is frozen" do
+    a = "hello".freeze
 
-describe "String#index(regexp [, offset])" do
-  it "returns the index of the first match with the given regexp" do
-    "hello".index(/[aeiou]/).should == 1
-  end
-  
-  it "starts the search at the given offset" do
-    "hello".index(/[aeiou]/, -3).should == 4
-  end
-  
-  it "returns nil if no occurence is found" do
-    "hello".index(/z/).should == nil
-    "hello".index(/e/, -2).should == nil
+    a.instance_eval { initialize_copy(a) } # ok, no change
+    should_raise(TypeError) { a.instance_eval { initialize_copy("") } }
+    should_raise(TypeError) { a.instance_eval { initialize_copy("world") } }
   end
 end
 
@@ -2988,47 +3394,58 @@ describe "String#insert(index, other)" do
   end
   
   it "inserts after the given character on an negative count" do
+    "abcd".insert(-5, 'X').should == "Xabcd"
     "abcd".insert(-3, 'X').should == "abXcd"
     "abcd".insert(-1, 'X').should == "abcdX"
   end
   
-  it "raises an IndexError if the index is out of string" do
-    should_raise(IndexError) do
-      "abcd".insert(5, 'X')
-    end
-    
-    should_raise(IndexError) do
-      "abcd".insert(-6, 'X')
-    end
+  it "raises an IndexError if the index is beyond string" do
+    should_raise(IndexError) { "abcd".insert(5, 'X') }
+    should_raise(IndexError) { "abcd".insert(-6, 'X') }
+  end
+  
+  it "converts index to an integer using to_int" do
+    other = Object.new
+    def other.to_int() -3 end
+    "abcd".insert(other, "XYZ").should == "abXYZcd"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => -3)
+    "abcd".insert(obj, "XYZ").should == "abXYZcd"
   end
   
   it "converts other to a string using to_str" do
     other = Object.new
     def other.to_str() "XYZ" end
-    
     "abcd".insert(-3, other).should == "abXYZcd"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "X")
+    "abcd".insert(-3, obj).should == "abXcd"
+  end
+
+  it "taints self if string to insert is tainted" do
+    str = "abcd"
+    str.insert(0, "T".taint).tainted?.should == true
+
+    str = "abcd"
+    other = Object.new
+    def other.to_str() "T".taint end
+    str.insert(0, other).tainted?.should == true
   end
   
   it "raises a TypeError if other can't be converted to string" do
-    should_raise(TypeError) do
-      "abcd".insert(-6, :sym)
-    end
-    
-    should_raise(TypeError) do
-      "abcd".insert(-6, 12)
-    end
-    
-    should_raise(TypeError) do
-      "abcd".insert(-6, Object.new)
-    end
+    should_raise(TypeError) { "abcd".insert(-6, ?e) }
+    should_raise(TypeError) { "abcd".insert(-6, :sym) }
+    should_raise(TypeError) { "abcd".insert(-6, Object.new) }
   end
   
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "abcd"
-      a.freeze
-      a.insert(4, 'X')
-    end
+    str = "abcd".freeze
+    should_raise(TypeError) { str.insert(4, '') }
+    should_raise(TypeError) { str.insert(4, 'X') }
   end
 end
 
@@ -3051,11 +3468,17 @@ describe "String#inspect" do
       $KCODE = old_kcode
     end
   end
+  
+  it "taints the result if self is tainted" do
+    "foo".taint.inspect.tainted?.should == true
+    "foo\n".taint.inspect.tainted?.should == true
+  end
 end
 
 describe "String#length" do
   it "returns the length of self" do
     "".length.should == 0
+    "\x00".length.should == 1
     "one".length.should == 3
     "two".length.should == 3
     "three".length.should == 5
@@ -3063,30 +3486,77 @@ describe "String#length" do
   end
 end
 
-describe "String#ljust(integer, padstr)" do
-  it "returns a new integer with length of integer and self left justified and padded with padstr (default: whitespace)" do
-    "hello".ljust(20).should         == "hello               "
+describe "String#ljust(length, padstr)" do
+  it "returns a new string of specified length with self left justified and padded with padstr" do
     "hello".ljust(20, '1234').should == "hello123412341234123"
+
+    "".ljust(1, "abcd").should == "a"
+    "".ljust(2, "abcd").should == "ab"
+    "".ljust(3, "abcd").should == "abc"
+    "".ljust(4, "abcd").should == "abcd"
+    "".ljust(6, "abcd").should == "abcdab"
+
+    "OK".ljust(3, "abcd").should == "OKa"
+    "OK".ljust(4, "abcd").should == "OKab"
+    "OK".ljust(6, "abcd").should == "OKabcd"
+    "OK".ljust(8, "abcd").should == "OKabcdab"
+  end
+  
+  it "pads with whitespace if no padstr is given" do
+    "hello".ljust(20).should == "hello               "
   end
 
-  it "returns self if self is longer than integer" do
-    "hello".ljust(5).should == "hello"
-    "hello".ljust(1).should == "hello"
+  it "returns self if it's longer than or as long as the specified length" do
+    "".ljust(0).should == ""
+    "".ljust(-1).should == ""
+    "hello".ljust(4).should == "hello"
+    "hello".ljust(-1).should == "hello"
+    "this".ljust(3).should == "this"
+    "radiology".ljust(8, '-').should == "radiology"
+  end
+
+  it "taints result when self or padstr is tainted" do
+    "x".taint.ljust(4).tainted?.should == true
+    "x".taint.ljust(0).tainted?.should == true
+    "".taint.ljust(0).tainted?.should == true
+    "x".taint.ljust(4, "*").tainted?.should == true
+    "x".ljust(4, "*".taint).tainted?.should == true
+  end
+
+  it "tries to convert length to an integer using to_int" do
+    "^".ljust(3.8, "_^").should == "^_^"
+    
+    obj = Object.new
+    def obj.to_int() 3 end
+      
+    "o".ljust(obj, "_o").should == "o_o"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
+    "~".ljust(obj, "_~").should == "~_~"
   end
   
-  it "raises an ArgumentError when padstr is empty" do
-    should_raise(ArgumentError) do
-      "hello".ljust(10, '')
-    end
+  it "raises a TypeError when length can't be converted to an integer" do
+    should_raise(TypeError) { "hello".ljust("x") }
+    should_raise(TypeError) { "hello".ljust("x", "y") }
+    should_raise(TypeError) { "hello".ljust([]) }
+    should_raise(TypeError) { "hello".ljust(Object.new) }
   end
-  
+
   it "tries to convert padstr to a string using to_str" do
     padstr = Object.new
-    def padstr.to_str() "1234" end
+    def padstr.to_str() "123" end
     
-    "hello".ljust(20, padstr).should == "hello123412341234123"
+    "hello".ljust(10, padstr).should == "hello12312"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
+
+    "hello".ljust(7, obj).should == "hellokk"
   end
-  
+
   it "raises a TypeError when padstr can't be converted" do
     should_raise(TypeError) do
       "hello".ljust(20, :sym)
@@ -3100,21 +3570,43 @@ describe "String#ljust(integer, padstr)" do
       "hello".ljust(20, Object.new)
     end
   end
+  
+  it "raises an ArgumentError when padstr is empty" do
+    should_raise(ArgumentError) do
+      "hello".ljust(10, '')
+    end
+  end
+  
+  it "returns subclass instances when called on subclasses" do
+    MyString.new("").ljust(10).class.should == MyString
+    MyString.new("foo").ljust(10).class.should == MyString
+    MyString.new("foo").ljust(10, MyString.new("x")).class.should == MyString
+    
+    "".ljust(10, MyString.new("x")).class.should == String
+    "foo".ljust(10, MyString.new("x")).class.should == String
+  end
 end
 
 describe "String#lstrip" do
   it "returns a copy of self with leading whitespace removed" do
    "  hello  ".lstrip.should == "hello  "
    "  hello world  ".lstrip.should == "hello world  "
-   "\n\r\t\n\rhello world  ".lstrip.should == "hello world  "
+   "\n\r\t\n\v\r hello world  ".lstrip.should == "hello world  "
    "hello".lstrip.should == "hello"
+   "\x00hello".lstrip.should == "\x00hello"
+  end
+  
+  it "taints the result when self is tainted" do
+    "".taint.lstrip.tainted?.should == true
+    "ok".taint.lstrip.tainted?.should == true
+    "   ok".taint.lstrip.tainted?.should == true
   end
 end
 
 describe "String#lstrip!" do
-  it "modifies self in place" do
+  it "modifies self in place and returns self" do
     a = "  hello  "
-    a.lstrip!.should == "hello  "
+    a.lstrip!.equal?(a).should == true
     a.should == "hello  "
   end
   
@@ -3125,11 +3617,10 @@ describe "String#lstrip!" do
   end
   
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "  hello  "
-      a.freeze
-      a.lstrip!
-    end
+    "hello".freeze.lstrip! # ok, nothing changed
+    "".freeze.lstrip! # ok, nothing changed
+
+    should_raise(TypeError) { "  hello  ".freeze.lstrip! }
   end
 end
 
@@ -3137,31 +3628,59 @@ describe "String#match(pattern)" do
   it "matches the pattern against self" do
     'hello'.match(/(.)\1/)[0].should == 'll'
   end
+  
+  it "tries to convert pattern to a string via to_str" do
+    obj = Object.new
+    obj.should_receive(:to_str, :returning => ".")
+    "hello".match(obj)[0].should == "h"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => ".")
+    "hello".match(obj)[0].should == "h"    
+  end
+  
+  it "raises a TypeError if pattern is not a regexp or a string" do
+    should_raise(TypeError) { 'hello'.match(10) }
+    should_raise(TypeError) { 'hello'.match(:ell) }
+  end
 
-  it "converts pattern to a regexp if it isn't already one" do
+  it "converts string patterns to regexps without escaping" do
     'hello'.match('(.)\1')[0].should == 'll'
   end
   
   it "returns nil if there's no match" do
     'hello'.match('xx').should == nil
   end
-  
-  it "raises a TypeError if pattern is not a regexp or a string" do
-    should_raise TypeError do
-      'hello'.match(10)
-    end
-    
-    should_raise TypeError do
-      'hello'.match(:ell)
-    end
+
+  it "matches \\G at the start of the string" do
+    'hello'.match(/\Gh/)[0].should == 'h'
+    'hello'.match(/\Go/).should == nil
+  end
+
+  it "sets $~" do
+    'hello'.match(/./)
+    $~[0].should == 'h'
+    Regexp.last_match[0].should == 'h'
+
+    'hello'.match(/X/)
+    $~.should == nil
+    Regexp.last_match.should == nil
   end
 end
 
 describe "String#next" do
   it "is an alias of String#succ" do
+    "".succ.should == ""
+    "\xFF".succ.should == "\x01\x00"
     "abcd".succ.should == "abcd".next
     "98".succ.should == "98".next
     "ZZZ9999".succ.should == "ZZZ9999".next
+  end
+  
+  it "taints the result if self is tainted" do
+    "".taint.succ.tainted?.should == true
+    "x".taint.succ.tainted?.should == true
   end
 end
 
@@ -3172,35 +3691,54 @@ describe "String#next!" do
     a.succ!.should == b.next!
     a.should == b
   end
+  
+  it "raises a TypeError if self is frozen" do
+    should_raise(TypeError) { "".freeze.succ! }
+    should_raise(TypeError) { "a".freeze.succ! }
+  end
 end
 
+# Note: We can't completely spec this in terms of to_int() because hex()
+# allows the base to be changed by a base specifier in the string.
+# See http://groups.google.com/group/ruby-core-google/browse_frm/thread/b53e9c2003425703
 describe "String#oct" do
-  it "treats leading characters of self as octal digits" do
-    "123".oct.should == 83
-    "0377bad".oct.should == 255
+  it "treats leading characters of self as a string of oct digits" do
+    "0".oct.should == 0
+    "77".oct.should == 077
+    "077".oct.should == 077
+    "0o".oct.should == 0
+
+    "755_333".oct.should == 0755_333
+    "7__3".oct.should == 073
+    "5678".oct.should == 0567
+
+    "0b1010".oct.should == 0b1010
+    "0xFF".oct.should == 0xFF
+    "0d500".oct.should == 500
   end
   
   it "takes an optional sign" do
-    "-377".oct.should == -255
-    "+377".oct.should == 255
+    "-1234".oct.should == -01234
+    "+1234".oct.should == 01234
   end
   
-  it "returns 0 if the conversion fails" do
-    "bad".oct.should == 0
+  it "returns 0 on error" do
+    "".oct.should == 0
+    "+-5".oct.should == 0
+    "wombat".oct.should == 0
   end
 end
 
 describe "String#replace(other)" do
-  it "replaces the content of self with other" do
+  it "replaces the content of self with other and returns self" do
     a = "some string"
-    a.replace("another string")
+    a.replace("another string").equal?(a).should == true
     a.should == "another string"
   end
   
-  it "replaces the taintedness of self with that of other" do
+  it "replaces the taint status of self with that of other" do
     a = "an untainted string"
-    b = "a tainted string"
-    b.taint
+    b = "a tainted string".taint
     a.replace(b)
     a.tainted?.should == true
   end
@@ -3208,30 +3746,26 @@ describe "String#replace(other)" do
   it "tries to convert other to string using to_str" do
     other = Object.new
     def other.to_str() "an object converted to a string" end
-    
     "hello".replace(other).should == "an object converted to a string"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "X")
+    "hello".replace(obj).should == "X"
   end
   
   it "raises a TypeError if other can't be converted to string" do
-    should_raise(TypeError) do
-      "hello".replace(123)
-    end
-    
-    should_raise(TypeError) do
-      "hello".replace(:test)
-    end
-    
-    should_raise(TypeError) do
-      "hello".replace(Object.new)
-    end
+    should_raise(TypeError) { "hello".replace(123) }
+    should_raise(TypeError) { "hello".replace(:test) }
+    should_raise(TypeError) { "hello".replace(Object.new) }
   end
   
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.replace("world")
-    end
+    a = "hello".freeze
+
+    a.replace(a) # ok, no change
+    should_raise(TypeError) { a.replace("") }
+    should_raise(TypeError) { a.replace("world") }
   end
 end
 
@@ -3241,25 +3775,26 @@ describe "String#reverse" do
     "m".reverse.should == "m"
     "".reverse.should == ""
   end
+  
+  it "taints the result if self is tainted" do
+    "".taint.reverse.tainted?.should == true
+    "m".taint.reverse.tainted?.should == true
+  end
 end
 
 describe "String#reverse!" do
-  it "reverses self in place" do
+  it "reverses self in place and always returns self" do
     a = "stressed"
-    a.reverse!.should == "desserts"
+    a.reverse!.equal?(a).should == true
     a.should == "desserts"
     
-    b = ""
-    b.reverse!.should == ""
-    b.should == ""
+    "".reverse!.should == ""
   end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.reverse!
-    end
+    "".freeze.reverse! # ok, no change
+    should_raise(TypeError) { "anna".freeze.reverse! }
+    should_raise(TypeError) { "hello".freeze.reverse! }
   end
 end
 
@@ -3269,12 +3804,23 @@ describe "String#rindex(obj [, start_offset])" do
     should_raise(TypeError) { "hello".rindex(Object.new) }
   end
 
-  it "calls neither to_str nor to_int on obj" do
+  it "doesn't try to convert obj to an integer via to_int" do
     obj = Object.new
     obj.should_not_receive(:to_int)
-    obj.should_not_receive(:to_str)
-    
     should_raise(TypeError) { "hello".rindex(obj) }
+  end
+
+  # Note: MRI doesn't call to_str, but should do so because index() does it.
+  # See http://groups.google.com/group/ruby-core-google/t/3f2d4129febd2a66
+  it "tries to convert obj to a string via to_str" do
+    obj = Object.new
+    obj.should_receive(:to_str, :returning => "lo")
+    "hello".rindex(obj).should == "hello".rindex("lo")
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+    "hello".rindex(obj).should == "hello".rindex("o")
   end
 end
 
@@ -3282,6 +3828,11 @@ describe "String#rindex(fixnum [, start_offset])" do
   it "returns the index of the last occurrence of the given character" do
     "hello".rindex(?e).should == 1
     "hello".rindex(?l).should == 3
+  end
+  
+  it "doesn't use fixnum % 256" do
+    "hello".rindex(?e + 256 * 3).should == nil
+    "hello".rindex(-(256 - ?e)).should == nil
   end
   
   it "starts the search at the given offset" do
@@ -3336,10 +3887,14 @@ describe "String#rindex(fixnum [, start_offset])" do
     "blablabla".rindex(?b, -20).should == nil
   end
   
-  it "calls to_int on start_offset" do
+  it "tries to convert start_offset to an integer via to_int" do
     obj = Object.new
     obj.should_receive(:to_int, :returning => 5)
+    "str".rindex(?s, obj).should == 0
     
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 5)
     "str".rindex(?s, obj).should == 0
   end
 end
@@ -3390,9 +3945,13 @@ describe "String#rindex(substring [, start_offset])" do
     "blablabla".rindex("ablab").should == 2
     "blablabla".rindex("lablab").should == 1
     "blablabla".rindex("blablab").should == 0
-    
-    "blablabla".rindex(/BLA/i).should == 6
   end  
+  
+  it "ignores string subclasses" do
+    "blablabla".rindex(MyString.new("bla")).should == 6
+    MyString.new("blablabla").rindex("bla").should == 6
+    MyString.new("blablabla").rindex(MyString.new("bla")).should == 6
+  end
   
   it "starts the search at the given offset" do
     "blablabla".rindex("bl", 0).should == 0
@@ -3469,10 +4028,14 @@ describe "String#rindex(substring [, start_offset])" do
     "hello".rindex("h", -6).should == nil
   end
   
-  it "calls to_int on start_offset" do
+  it "tries to convert start_offset to an integer via to_int" do
     obj = Object.new
     obj.should_receive(:to_int, :returning => 5)
+    "str".rindex("st", obj).should == 0
     
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 5)
     "str".rindex("st", obj).should == 0
   end
 end
@@ -3496,6 +4059,9 @@ describe "String#rindex(regexp [, start_offset])" do
   end
   
   it "returns the index of the first match from the end of string of regexp" do
+    "blablabla".rindex(/bla/).should == 6
+    "blablabla".rindex(/BLA/i).should == 6
+
     "blablabla".rindex(/.{0}/).should == 9
     "blablabla".rindex(/.{1}/).should == 8
     "blablabla".rindex(/.{2}/).should == 7
@@ -3563,6 +4129,7 @@ describe "String#rindex(regexp [, start_offset])" do
   end
 
   it "returns nil if the substring isn't found" do
+    "blablabla".rindex(/BLA/).should == nil
     "blablabla".rindex(/.{10}/).should == nil
     "blablablax".rindex(/.x/, 7).should == nil
     "blablablax".rindex(/..x/, 6).should == nil
@@ -3593,38 +4160,89 @@ describe "String#rindex(regexp [, start_offset])" do
     end
   end
   
-  it "calls to_int on start_offset" do
+  it "tries to convert start_offset to an integer via to_int" do
     obj = Object.new
     obj.should_receive(:to_int, :returning => 5)
+    "str".rindex(/../, obj).should == 1
     
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 5)
     "str".rindex(/../, obj).should == 1
   end
 end
 
-describe "String#rjust(integer, padstr)" do
-  it "returns a new integer with length of integer and self right justified and padded with padstr (default: whitespace)" do
-    "hello".rjust(20).should         == "               hello"
+describe "String#rjust(length, padstr)" do
+  it "returns a new string of specified length with self right justified and padded with padstr" do
     "hello".rjust(20, '1234').should == "123412341234123hello"
-  end
 
-  it "returns self if self is longer than integer" do
-    "hello".rjust(5).should == "hello"
-    "hello".rjust(1).should == "hello"
+    "".rjust(1, "abcd").should == "a"
+    "".rjust(2, "abcd").should == "ab"
+    "".rjust(3, "abcd").should == "abc"
+    "".rjust(4, "abcd").should == "abcd"
+    "".rjust(6, "abcd").should == "abcdab"
+
+    "OK".rjust(3, "abcd").should == "aOK"
+    "OK".rjust(4, "abcd").should == "abOK"
+    "OK".rjust(6, "abcd").should == "abcdOK"
+    "OK".rjust(8, "abcd").should == "abcdabOK"
   end
   
-  it "raises an ArgumentError when padstr is empty" do
-    should_raise(ArgumentError) do
-      "hello".rjust(10, '')
-    end
+  it "pads with whitespace if no padstr is given" do
+    "hello".rjust(20).should == "               hello"
+  end
+
+  it "returns self if it's longer than or as long as the specified length" do
+    "".rjust(0).should == ""
+    "".rjust(-1).should == ""
+    "hello".rjust(4).should == "hello"
+    "hello".rjust(-1).should == "hello"
+    "this".rjust(3).should == "this"
+    "radiology".rjust(8, '-').should == "radiology"
+  end
+
+  it "taints result when self or padstr is tainted" do
+    "x".taint.rjust(4).tainted?.should == true
+    "x".taint.rjust(0).tainted?.should == true
+    "".taint.rjust(0).tainted?.should == true
+    "x".taint.rjust(4, "*").tainted?.should == true
+    "x".rjust(4, "*".taint).tainted?.should == true
+  end
+
+  it "tries to convert length to an integer using to_int" do
+    "^".rjust(3.8, "^_").should == "^_^"
+    
+    obj = Object.new
+    def obj.to_int() 3 end
+      
+    "o".rjust(obj, "o_").should == "o_o"
+    
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
+    "~".rjust(obj, "~_").should == "~_~"
+  end
+  
+  it "raises a TypeError when length can't be converted to an integer" do
+    should_raise(TypeError) { "hello".rjust("x") }
+    should_raise(TypeError) { "hello".rjust("x", "y") }
+    should_raise(TypeError) { "hello".rjust([]) }
+    should_raise(TypeError) { "hello".rjust(Object.new) }
   end
 
   it "tries to convert padstr to a string using to_str" do
     padstr = Object.new
-    def padstr.to_str() "1234" end
+    def padstr.to_str() "123" end
     
-    "hello".rjust(20, padstr).should == "123412341234123hello"
+    "hello".rjust(10, padstr).should == "12312hello"
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
+
+    "hello".rjust(7, obj).should == "kkhello"
   end
-  
+
   it "raises a TypeError when padstr can't be converted" do
     should_raise(TypeError) do
       "hello".rjust(20, :sym)
@@ -3638,21 +4256,44 @@ describe "String#rjust(integer, padstr)" do
       "hello".rjust(20, Object.new)
     end
   end
+  
+  it "raises an ArgumentError when padstr is empty" do
+    should_raise(ArgumentError) do
+      "hello".rjust(10, '')
+    end
+  end
+  
+  it "returns subclass instances when called on subclasses" do
+    MyString.new("").rjust(10).class.should == MyString
+    MyString.new("foo").rjust(10).class.should == MyString
+    MyString.new("foo").rjust(10, MyString.new("x")).class.should == MyString
+    
+    "".rjust(10, MyString.new("x")).class.should == String
+    "foo".rjust(10, MyString.new("x")).class.should == String
+  end
 end
+
 
 describe "String#rstrip" do
   it "returns a copy of self with trailing whitespace removed" do
    "  hello  ".rstrip.should == "  hello"
    "  hello world  ".rstrip.should == "  hello world"
-   "  hello world\n\r\t\n\r".rstrip.should == "  hello world"
+   "  hello world \n\r\t\n\v\r".rstrip.should == "  hello world"
    "hello".rstrip.should == "hello"
+   "hello\x00".rstrip.should == "hello"
+  end
+  
+  it "taints the result when self is tainted" do
+    "".taint.rstrip.tainted?.should == true
+    "ok".taint.rstrip.tainted?.should == true
+    "ok    ".taint.rstrip.tainted?.should == true
   end
 end
 
 describe "String#rstrip!" do
-  it "modifies self in place" do
+  it "modifies self in place and returns self" do
     a = "  hello  "
-    a.rstrip!.should == "  hello"
+    a.rstrip!.equal?(a).should == true
     a.should == "  hello"
   end
   
@@ -3661,13 +4302,12 @@ describe "String#rstrip!" do
     a.rstrip!.should == nil
     a.should == "hello"
   end
-
+  
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "  hello  "
-      a.freeze
-      a.rstrip!
-    end
+    "hello".freeze.rstrip! # ok, nothing changed
+    "".freeze.rstrip! # ok, nothing changed
+
+    should_raise(TypeError) { "  hello  ".freeze.rstrip! }
   end
 end
 
@@ -3686,7 +4326,7 @@ describe "String#scan(pattern)" do
     "cruel world".scan(/(..)(..)/).should == [["cr", "ue"], ["l ", "wo"]]
   end
   
-  it "scans for occurences of pattern if pattern is a string" do
+  it "scans for occurrences of pattern if pattern is a string" do
     "one two one two".scan('one').should == ["one", "one"]
   end
   
@@ -3865,7 +4505,7 @@ describe "String#slice!(regexp)" do
 end
 
 describe "String#slice!(other)" do
-  it "removes the first occurence of other from the self" do
+  it "removes the first occurrence of other from the self" do
     c = "hello hello"
     c.slice!('llo').should == "llo"
     c.should == "he hello"
@@ -4003,7 +4643,7 @@ describe "String#strip!" do
 end
 
 describe "String#sub(pattern, replacement)" do
-  it "returns a copy of self with all occurences of pattern replaced with replacement" do
+  it "returns a copy of self with all occurrences of pattern replaced with replacement" do
     "hello".sub(/[aeiou]/, '*').should == "h*llo"
   end
   
@@ -4046,7 +4686,7 @@ describe "String#sub(pattern, replacement)" do
 end
 
 describe "String#sub(pattern) { block }" do
-  it "returns a copy of self with all occurences of pattern replaced with the block's return value" do
+  it "returns a copy of self with all occurrences of pattern replaced with the block's return value" do
     "hello".sub(/./) { |s| s[0].to_s + ' ' }.should == "104 ello"
   end
   
@@ -4061,18 +4701,6 @@ describe "String#sub(pattern) { block }" do
     
     "hello".sub(/hello/) { replacement }.should == "hello_replacement"
   end
-  
-# TODO: This should raise a RuntimeError, but does not
-#  it "raises a RuntimeError" do
-#    str = "a" * 0x20
-#    str.sub(/\z/) {
-#      dest = nil
-#      ObjectSpace.each_object(String) {|o|
-#         dest = o if o.length == 0x20+30
-#      }
-#      dest
-#    }
-#  end
 end
 
 describe "String#sub!(pattern, replacement)" do
@@ -4196,6 +4824,10 @@ describe "String#to_f" do
   end
 end
 
+describe "String#to_i" do
+  # TODO
+end
+
 describe "String#to_s" do
   it "returns self" do
     a = "a string"
@@ -4221,51 +4853,6 @@ describe "String#to_sym" do
   it "raises an ArgumentError when self can't be converted to symbol" do
     should_raise(ArgumentError) do
       "".to_sym
-    end
-  end
-end
-
-describe "String#tr_s(from_strin, to_string)" do
-  it "returns a string processed according to tr with duplicate characters removed" do
-    "hello".tr_s('l', 'r').should == "hero"
-    "hello".tr_s('el', '*').should == "h*o"
-    "hello".tr_s('el', 'hx').should == "hhxo"
-  end
-  
-  it "accepts c1-c2 notation to denote ranges of characters" do
-    "hello".tr_s('a-y', 'b-z').should == "ifmp"
-    "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
-  end
-
-  it "doesn't translate chars negated with a ^ in from_string" do
-    "hello".tr_s('^aeiou', '*').should == "*e*o"
-    "123456789".tr_s("^345", "abc").should == "c345c"
-    "abcdefghijk".tr_s("^d-g", "9131").should == "1defg1"
-  end
-  
-  it "pads to_str with it's last char if it is shorter than from_string" do
-    "this".tr_s("this", "x").should == "x"
-  end
-end
-
-describe "String#tr_s!(from_string, to_string)" do
-  it "modifies self in place" do
-    s = "hello"
-    s.tr_s!('l', 'r').should == "hero"
-    s.should == "hero"
-  end
-  
-  it "returns nil if no modification was made" do
-    s = "hello"
-    s.tr!('za', 'yb').should == nil
-    s.should == "hello"
-  end
-
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.tr_s!('l', 'r')
     end
   end
 end
@@ -4315,8 +4902,53 @@ describe "String#tr!(from_string, to_string)" do
   end
 end
 
+describe "String#tr_s(from_strin, to_string)" do
+  it "returns a string processed according to tr with duplicate characters removed" do
+    "hello".tr_s('l', 'r').should == "hero"
+    "hello".tr_s('el', '*').should == "h*o"
+    "hello".tr_s('el', 'hx').should == "hhxo"
+  end
+  
+  it "accepts c1-c2 notation to denote ranges of characters" do
+    "hello".tr_s('a-y', 'b-z').should == "ifmp"
+    "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
+  end
+
+  it "doesn't translate chars negated with a ^ in from_string" do
+    "hello".tr_s('^aeiou', '*').should == "*e*o"
+    "123456789".tr_s("^345", "abc").should == "c345c"
+    "abcdefghijk".tr_s("^d-g", "9131").should == "1defg1"
+  end
+  
+  it "pads to_str with it's last char if it is shorter than from_string" do
+    "this".tr_s("this", "x").should == "x"
+  end
+end
+
+describe "String#tr_s!(from_string, to_string)" do
+  it "modifies self in place" do
+    s = "hello"
+    s.tr_s!('l', 'r').should == "hero"
+    s.should == "hero"
+  end
+  
+  it "returns nil if no modification was made" do
+    s = "hello"
+    s.tr!('za', 'yb').should == nil
+    s.should == "hello"
+  end
+
+  it "raises a TypeError if self is frozen" do
+    should_raise(TypeError) do
+      a = "hello"
+      a.freeze
+      a.tr_s!('l', 'r')
+    end
+  end
+end
+
 describe "String#unpack(format)" do
-  specify "returns an array by decoding self according to the format string" do
+  it "returns an array by decoding self according to the format string" do
     "abc \0\0abc \0\0".unpack('A6Z6').should == ["abc", "abc "]
     "abc \0\0".unpack('a3a3').should == ["abc", " \000\000"]
     "abc \0abc \0".unpack('Z*Z*').should == ["abc ", "abc "]
@@ -4326,6 +4958,14 @@ describe "String#unpack(format)" do
     "now=20is".unpack('M*').should == ["now is"]
     "whole".unpack('xax2aX2aX1aX2a').should == ["h", "e", "l", "l", "o"]
   end
+end
+
+describe "String#upcase" do
+  # TODO
+end
+
+describe "String#upcase!" do
+  # TODO
 end
 
 describe "String#upto(other_string) { block }" do
