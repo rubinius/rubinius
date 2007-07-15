@@ -108,6 +108,11 @@ double string_to_double(STATE, OBJECT self) {
   }
   *n = 0;
   
+  /* Some implementations of strtod() don't guarantee to
+   * set errno, so we need to reset it ourselves.
+   */
+  errno = 0;
+
   value = strtod(ba, &rest);
   if (errno == ERANGE) {
 	  printf("Float %s out of range\n", ba);

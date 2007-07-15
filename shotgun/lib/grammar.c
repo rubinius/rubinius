@@ -9318,6 +9318,11 @@ yylex(YYSTYPE *yylval, void *vstate)
                 yyerror(tmp);
             }
             if (is_float) {
+                /* Some implementations of strtod() don't guarantee to
+                 * set errno, so we need to reset it ourselves.
+                 */
+                errno = 0;
+
                 strtod(tok(), 0);
                 if (errno == ERANGE) {
                     rb_warn("Float %s out of range", tok());
