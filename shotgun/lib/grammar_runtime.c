@@ -893,6 +893,7 @@ again_no_block:
 
     array_append(state, hack, SYMBOL("dstr"));
     array_append(state, hack, gstring2rubinius(state, node->nd_str));
+    g_string_free(node->nd_str, TRUE);
 
     int i = 1;
     while (i < sz) {
