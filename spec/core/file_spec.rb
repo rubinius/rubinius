@@ -866,6 +866,113 @@ describe "File.fnmatch?" do
   end 
 end
 
+describe "File.join" do   
+  before(:each) do
+    @root = WINDOWS ? "C:\\" : "/"
+    @dirs = ['usr', 'local', 'bin']
+  end 
+
+  if WINDOWS
+    it "returns a new string formed by joining the strings using File::SEPARATOR (windows)" do 
+      File.join(*@dirs).should == "usr/local/bin"
+      File.join(@root, *@dirs).should == "C:\\usr/local/bin"
+    end
+
+    it "returns a new string formed by joining the strings using File::SEPARATOR (edge cases on windows) " do 
+      File.join("").should = ""
+      File.join("", "foo").should == "/foo"
+      File.join("usr", "", "local", "", "bin").should == "usr/local/bin"
+      File.join("\\\\", "usr", "local").should = "\\\\usr/local"
+    end
+  end
+  
+  unless WINDOWS 
+    it "returns a new string formed by joining the strings using File::SEPARATOR (unix)" do 
+      File.join(*@dirs).should == "usr/local/bin"
+      File.join(@root, *@dirs).should == "/usr/local/bin"
+    end
+    
+    it "returns a new string formed by joining the strings using File::SEPARATOR (edge cases on windows) " do 
+      File.join("").should == ""
+      File.join("", "foo").should == "/foo"
+      File.join("usr", "", "local", "", "bin").should == "usr/local/bin"
+    end
+  end
+
+  it "returns a new string formed by joining the strings using File::SEPARATOR (any plataform)" do 
+    [ %w( a b c d ), %w( a ), %w( ), %w( a b .. c ) ].each do |a|
+      a.join(File::SEPARATOR).should == File.join(*a)
+    end
+  end
+  
+  it "raise a TypeError exception when args are nil" do
+    should_raise(TypeError){ File.join(nil, nil) }
+  end
+
+  after(:each) do
+    @root = nil
+    @dirs = nil
+  end
+end
+
+describe "File.new" do
+  before(:each) do
+    @fh    = nil
+    @file  = 'test.txt'
+    @flags = File::CREAT | File::TRUNC | File::WRONLY
+    File.open(@file, "w"){} #touch
+  end 
+
+  it "return a new File with mode string" do
+    @fh = File.new(@file, 'w')
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  it "return a new File with mode num" do   
+    @fh = File.new(@file, @flags) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  it "return a new Fiel with modus num and premissions " do 
+    File.delete(@file) 
+    @fh = File.new(@file, @flags, 0755)
+    @fh.class.should == File
+    File.stat(@file).mode.to_s(8).should == "100751"
+    File.exists?(@file).should == true
+  end
+
+  it "return a new Fiel with modus fd " do 
+    @fh = File.new(@file) 
+    @fh = File.new(@fh.fileno) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  specify  "expected errors " do
+    should_raise(TypeError){ File.new(true) }
+    should_raise(TypeError){ File.new(false) }
+    should_raise(TypeError){ File.new(nil) }
+    should_raise(Errno::EBADF){ File.new(-1) }
+    should_raise(ArgumentError){ File.new(@file, File::CREAT, 0755, 'test') }
+  end
+
+  # You can't alter mode or permissions when opening a file descriptor
+  #
+  it "can't alter mode or permissions when opening a file" do 
+    @fh = File.new(@file)
+    should_raise(Errno::EINVAL){ File.new(@fh.fileno, @flags) }
+  end
+
+  after(:each) do
+    @fh.close if @fh 
+    @fh    = nil
+    @file  = nil
+    @flags = nil
+  end
+end
+
 describe "File.atime" do
   before(:each) do
     @file = File.join(Dir.pwd, 'test.txt')
