@@ -19,7 +19,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.separator ""
 
   opts.on("-f", "--format FORMAT", String, 
-          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html") { |f|
+          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") { |f|
     case f
     when 's', 'specdox', 'specdoc'
       format = 'SpecDoxReporter'
