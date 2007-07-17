@@ -100,7 +100,7 @@ if file.suffix?(".c")
 else
   if File.exists?(file)
     puts "Compiling #{file}..."
-    compile(file)
+    compile(file, ARGV.shift)
   else
     puts "Unable to compile '#{file}'"
   end

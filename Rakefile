@@ -203,9 +203,18 @@ namespace :build do
   desc "Compiles the Rubinius core archive"
   task :core do
     files = Dir["kernel/core/*.rb"].sort
-    files.delete("kernel/core/__loader.rb")
-    files << "kernel/core/__loader.rb"
     update_archive files, 'runtime/core.rba'
+  end
+
+  task :loader do
+    i = "kernel/loader.rb"
+    o = "runtime/loader.rbc"
+    
+    if @compiler
+      system "shotgun/rubinius -I#{@compiler} compile #{i} #{o}"
+    else
+      system "shotgun/rubinius compile #{i} #{o}"
+    end
   end
 
   desc "Compiles the Rubinius library archive"

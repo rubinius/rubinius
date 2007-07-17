@@ -452,6 +452,7 @@ int machine_run_file(machine m, const char *path) {
     return FALSE;
   }
   
+  cpu_stack_push(m->s, m->c, meth, FALSE);
   cpu_run_script(m->s, m->c, meth);
   return machine_run(m);
 }

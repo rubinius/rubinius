@@ -92,15 +92,33 @@ int main(int argc, char **argv) {
   }
     
   flag = machine_load_archive(m, archive);
- 
-  if(m->s->gc_stats) {
-    printf("[GC M %6dK total]\n", m->s->om->ms->allocated_bytes);
+   
+  if(!flag) {
+    printf("Unable to run %s\n", archive);
+    return 1;
   }
+  
+  /* Load the loader.rbc */
+  
+  archive = search_for("LOADER", "loader.rbc");
+  if(!archive) {
+    printf("Unable to find loader (loader.rbc) to load!\n");
+    return 1;
+  }
+  
+  flag = machine_run_file(m, archive);
   
   if(!flag) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
+  
+  /* Done! */
+  
+  if(m->s->gc_stats) {
+    printf("[GC M %6dK total]\n", m->s->om->ms->allocated_bytes);
+  }
+  
   
   // machine_emit_memory(m);
   
