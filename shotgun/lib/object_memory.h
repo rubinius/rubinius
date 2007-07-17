@@ -8,7 +8,12 @@
 #define __RUBINIUS_OM__ 1
 
 #define OMDefaultSize 1048576
+/* A little over 1% of the total heap size. */
+#define LargeObjectThreshold 2700
 //#define OMDefaultSize 100000
+
+#define OMCollectYoung  0x1
+#define OMCollectMature 0x2
 
 struct object_memory_struct {
   int collect_now;
@@ -18,6 +23,7 @@ struct object_memory_struct {
   int last_object_id;
   baker_gc gc;
   mark_sweep_gc ms;
+  int last_tenured;
 };
 
 typedef struct object_memory_struct *object_memory;

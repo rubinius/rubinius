@@ -99,14 +99,14 @@ class CompiledMethod
     end
     
     Ruby.asm <<-ASM
-    push args
-    push_array
-    push block
-    push locals
-    push sz
-    push self
-    push recv
-    activate_method
+#local args
+push_array
+#local block
+#local locals
+#local sz
+push self
+#local recv
+activate_method
     ASM
   end
   

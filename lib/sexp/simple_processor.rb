@@ -9,6 +9,11 @@ class SimpleSexpProcessor
   
   attr_accessor :default_object, :auto_shift_type
   
+  def self.process(what, *args)
+    x = new(*args)
+    x.process(what)
+  end
+  
   def ignore_return!
     @ignore_return = true
     @default_object = []
@@ -45,7 +50,7 @@ class SimpleSexpProcessor
     
     if @default_object
       if respond_to?(sel)
-        return send(sel, x)
+        return __send__(sel, x)
       else
         obj = @default_object.dup
         if @auto_shift_type
@@ -57,7 +62,7 @@ class SimpleSexpProcessor
         return concat_all(obj, x)
       end
     elsif respond_to?(sel)
-      return send(sel, x)
+      return __send__(sel, x)
     else
       raise RuntimeError, "Unknown type '#{name.inspect}', #{x.inspect}"
     end

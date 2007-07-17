@@ -8,8 +8,6 @@
 #include "baker.h"
 #include "tuple.h"
 
-static int promoted = 0;
-
 #define DEFAULT_TENURE_AGE 6
 
 baker_gc baker_gc_new(int size) {
@@ -34,7 +32,6 @@ void baker_gc_describe(baker_gc g) {
       (void*)g->current->last);
   printf("Next:    %p => %p\n", (void*)g->next->address, (void*)g->next->last);
   printf("RS Size: %d\n", g->remember_set->len);
-  printf("Promoted last: %d\n", promoted);
 }
 
 int baker_gc_enlarge_next(baker_gc g, int sz) {
@@ -270,11 +267,15 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
     }
   }
   
-  if((AGE(obj) == g->tenure_age) && !FOREVER_YOUNG(obj)) {
+  if((AGE(obj) == g->tenure_age)) {
     // int age = AGE(obj);
     assert(HEADER(obj)->klass != state->global->fastctx);
     CLEAR_AGE(obj);
-    promoted++;
+    /*
+    if(CLASS_OBJECT(obj) == state->global->cmethod) {
+      printf("Tenuring %p (%s / %d)\n", obj, _inspect(cmethod_get_name(obj)), NUM_FIELDS(obj));
+    }
+    */
     dest = (*g->tenure)(g->tenure_data, obj);
     baker_gc_set_forwarding_address(obj, dest);
     //printf("Tenuring object %p to %p, age %d (%d).\n", obj, dest, age, g->tenure_now);
@@ -283,10 +284,9 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
     if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
       dest = heap_copy_object(g->next, obj);
       baker_gc_set_forwarding_address(obj, dest);
-      HEADER(dest)->gc++;
+      if(!FOREVER_YOUNG(obj)) HEADER(dest)->gc++;
     } else {
       CLEAR_AGE(obj);
-      promoted++;
       dest = (*g->tenure)(g->tenure_data, obj);
       baker_gc_set_forwarding_address(obj, dest);
       _mutate_references(state, g, dest);
@@ -341,7 +341,8 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   OBJECT tmp, root;
   struct method_cache *end, *ent;
   GPtrArray *rs;
-  promoted = 0;
+  
+  g->num_collection++;
   
   /* empty it out. */
   g->seen_weak_refs->len = 0;
@@ -398,8 +399,9 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   
   sp = state->current_stack;
   while(sp <= state->current_sp) {
-    if(REFERENCE2_P(*sp)) {
-      *sp = baker_gc_mutate_from(state, g, *sp);
+    tmp = *sp;
+    if(REFERENCE2_P(tmp)) {
+      *sp = baker_gc_mutate_from(state, g, tmp);
     }
     sp++;
   }
@@ -445,7 +447,6 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   }
   
   g_ptr_array_free(rs, TRUE);
-  // printf("%d objects promoted.\n", promoted);
   return TRUE;
 }
 
@@ -454,11 +455,10 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
   char *end, *cur;
   OBJECT obj;
   
-  sz = baker_gc_used(g);
   cur = (char*)g->current->address;
-  end = cur + sz;
+  end = (char*)g->current->current;
   
-  while(cur < end) {
+  while(cur <= end) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(cur);
     
@@ -469,7 +469,7 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
 }
 
 void baker_gc_find_lost_souls(STATE, baker_gc g) {
-  int osz;
+  int osz, bs;
   char *end, *cur;
   OBJECT obj, cls;
   
@@ -494,8 +494,10 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
         state_run_cleanup(state, obj, cls);
       }
     }
-
-    cur += ((osz + HEADER_SIZE) * REFSIZE);
+    bs = ((osz + HEADER_SIZE) * REFSIZE);
+    memset(cur, 0, bs);
+    HEADER(cur)->object_id = g->num_collection;
+    cur += bs;
   }
 }
 

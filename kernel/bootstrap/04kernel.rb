@@ -47,7 +47,7 @@ module Functions
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
     
-    Ruby.asm "push exc\nraise_exc"
+    Ruby.asm "#local exc\nraise_exc"
   end
 
   def at_exit(&block)

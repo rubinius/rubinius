@@ -4,19 +4,8 @@ require 'translation/states'
 # This converts a ruby 1.8.x sexp's idea of the scoping of 
 # local variables into rubinius 1.0's idea.
 # 
-# The idea is the same as ruby 2.0 (or it was the last time I
-# looked.)
-# 1) Block arguments are scoped as local variables that are
-#    only visible to the block that they are arguments for.
-# 2) Any other local variable assignment is performed directly
-#    into the lexical scope for the block.
-# 2a) The upshot of this is the major change. In ruby 1.8.x
-#     locals defined in a block we called 'dvars' and were
-#     only visible in the block they were defined in.
-#     In rubinius 1.0, those variables are visible outside
-#     the block as well. There are NO dvars in rubinius.
-# 3) Currently, block args are still allowed to shadow existing
-#    locals so that they are visible outside the block.
+# Local variables are scoped the same as 1.8, using the depth
+# + slot addressing protocol YARV also uses. 
 #
 # NOTE: I quite dislike that a block arg can be a global or an
 # instance variable. This behavior is totally unexpected and 
@@ -30,12 +19,117 @@ require 'translation/states'
 # at "attribute". Again, I've never seen them used and believe
 # that they should be removed.
 #
-# I think that for the meantime, I'm going to add another processor
-# that will refactor all those into assigning the block argument
-# into a local, then pull them back out and do the operation
-# on the local like normal code.
+# To reduce memory usage, arguments and locals can be accessed and
+# allocated directly on the stack as well as in the normal locals tuple.
+# These are the rules for when they use the stack:
+# 
+# 1) Arguments by default are accessed directly on the stack, as offsets
+#    from the frame pointer.
+# 1a) If an argument is stored to, it's converted to be a normal lvar.
+# 1b) If an argument is accessed in a block (ie closed over), 
+#     it's converted to be a normal lvar.
+# 2) Locals are by default accessed, allocated, and stored on the stack.
+# 2a) If a local is access or store in a block, it's converted to a normal
+#     lvar.
+# 
+# Generalized:
+# 3) Any lvar accessed in a block is converted to a normal lvar.
+# 4) An argument lvar that is stored to is converted.
 
-class RsLocalScoper < SimpleSexpProcessor
+class RsMethodBodyOnly < SimpleSexpProcessor
+  
+  def process_defs(x)
+    y = x.dup
+    x.clear
+    if @auto_shift_type
+      y[0] = process(y[0]) # the receiver of defs might be an lvar
+      y.unshift :defs
+    else
+      y[1] = process(y[1])
+    end
+    
+    return y
+  end
+
+  def process_defn(x)
+    y = x.dup
+    x.clear
+    y.unshift :defn if @auto_shift_type
+    return y
+  end
+  
+  def process_class(x)
+    y = x.dup
+    x.clear
+    y.unshift :class if @auto_shift_type
+    return y
+  end
+  
+  def process_module(x)
+    y = x.dup
+    x.clear
+    y.unshift :module if @auto_shift_type
+    return y
+  end
+  
+  def process_case(x)
+    x.shift unless @auto_shift_type
+    cond = process(x.shift)
+    whns = x.shift.map { |w| process(w) }
+    els = process(x.shift)
+    
+    [:case, cond, whns, els]
+  end
+end
+
+class RsLocalScoper < RsMethodBodyOnly
+  
+  class Phase1 < RsMethodBodyOnly
+    def initialize(state)
+      super()
+      self.strict = false
+      self.expected = Array
+      
+      @state = state
+      @depth = 0
+    end
+    
+    def process_iter(x)
+      x.shift
+      f = x.shift
+      a = x.shift
+      b = x.shift
+      
+      @depth += 1
+      a = process(a)
+      b = process(b)
+      @depth -= 1
+      
+      [:iter, process(f), a, b]
+    end
+    
+    def process_lvar(x)
+      x.shift
+      name = x.shift
+      idx = x.shift
+      @state.local(name).set_depth @depth
+      [:lvar, name, idx]
+    end
+    
+    def process_lasgn(x)
+      x.shift
+      name = x.shift
+      idx = x.shift
+      val = x.shift
+      @state.local(name).set_depth @depth
+      out = [:lasgn, name, idx]
+      out << process(val) if val
+      return out
+    end
+    
+  end
+  
+    
   def initialize(state=RsLocalState.new)
     super()
     self.strict = false
@@ -44,30 +138,29 @@ class RsLocalScoper < SimpleSexpProcessor
     @state = state
     @bargs = []
     @masgn = []
+    @in_block = false
+    @call_scope = nil
+  end
+  
+  def local(name)
+    lv = @state.local(name)
+    unless lv.scope
+      if lv.min_depth == 0
+        lv.scope = :normal
+      else
+        lv.scope = :block
+      end
+    end
+    
+    return lv
   end
   
   def inside_masgn
     @masgn.last == true
   end
-  
-  def start_args
-    @bargs << []
-  end
-  
-  def clear_args
-    cur = @bargs.last
-        
-    # Don't delete them, just set them to nil so that their space
-    # is still calculated but they can't be seen.
-    cur.each do |a|
-      i = @state.locals.index(a)
-      @state.locals[i] = [a, false]
-    end
-    @bargs.pop
-  end
-  
-  def find_lvar(name)
-    return @state.find_local(name)
+    
+  def find_lvar(name, assign=false)
+    return @state.find_local(name, true, assign)
 =begin
     if idx = @state.locals.index(name)
       return idx
@@ -82,6 +175,22 @@ class RsLocalScoper < SimpleSexpProcessor
 =end
   end
   
+  def setup_lvar(name, assign=false)
+    lv = local(name)
+    lv.assigned! if assign
+    return lv
+  end
+  
+  # Any local that still does not have a value can be allocated
+  # on the stack.
+  def formalize_lvars!
+    @locals.each do |name, lv|
+      unless lv.value?
+        lv.set_value nil
+      end
+    end
+  end
+  
   def process_iter(x)
     f = x.shift
     a = x.shift
@@ -89,17 +198,20 @@ class RsLocalScoper < SimpleSexpProcessor
     
     a2 = nil
     b2 = nil
+
+    ob = @in_block
+    @in_block = true
     
     count = @state.new_scope do
       @masgn.push true
-      # start_args
       a2 = process(a)
       @masgn.pop
       b2 = process(b)
-      # clear_args
     end
 
-    [:iter, process(f), a2, b2, count]
+    out = [:iter, process(f), a2, b2, count]
+    @in_block = ob
+    return out
   end
 
   # Converts a for loop into an 'iter' that calls each
@@ -142,17 +254,26 @@ class RsLocalScoper < SimpleSexpProcessor
     return [:masgn, m1, m2, m3]
   end
   
+=begin
+
+  rubinius has no dvar/dasgn nodes, these were only used when
+  we used sydparse.
+  
   def process_dasgn_curr(x)
     name = x.shift
     val = x.shift
+    
+    # @state.disallow_stack_access(name) if @in_block
+    lv = find_lvar(name, true)
+    
     if inside_masgn
-      [:lasgn, name, find_lvar(name)]
+      [:lasgn, name, lv]
     else
       if not val
         raise "Incorrect usage of dasgn_curr '#{name}', needs a value. (#{val.inspect})"
       end
       
-      [:lasgn, name, find_lvar(name), process(val)]
+      [:lasgn, name, lv, process(val)]
     end
   end
   
@@ -160,66 +281,115 @@ class RsLocalScoper < SimpleSexpProcessor
   
   def process_dvar(x)
     name = x.shift
-    [:lvar, name, find_lvar(name)]
+    
+    # @state.disallow_stack_access(name) if @in_block
+    lv = find_lvar(name)
+    [:lvar, name, lv]
   end
-  
+=end
+
+
+  # 3) Any lvar accessed/stored in a block is converted to a normal lvar.
+
   def process_lvar(x)
     name = x.shift
     old = x.shift
-    [:lvar, name, find_lvar(name)]
+    
+    lv = local(name)
+    
+    lv.referenced!
+    
+    val = nil
+    
+    # If we're inside a block, we've only got a few choises..
+    if @in_block
+      lv.access_in_block!
+      # Block scope'd vars have a access dependent location, so we
+      # recalculate the position every access.
+      
+      val = find_lvar(name) if lv.scope == :block
+    end
+    
+    if @call_scope == :recv
+      lv.called_methods << @call_method
+    elsif @call_scope == :args
+      lv.passed_as_argument!
+    end
+    
+    return [:lvar, name, lv, val]
   end
+  
+  # 3) Any lvar accessed/stored in a block is converted to a normal lvar.
+  # 4) An argument lvar that is stored to is converted.
   
   def process_lasgn(x)
     name = x.shift
     old = x.shift
-    lv = find_lvar(name)
+        
+    lv = local(name)
+    
+    val = nil
+    
+    lv.assigned!
+    
+    # If we're inside a block, we've only got a few choises..
+    if @in_block
+      
+      lv.access_in_block!
+      
+      # No scope means it's new, give it a scope.
+      lv.scope = :block unless lv.scope
+      
+      if lv.scope == :block
+        val = find_lvar(name)
+        
+        # This is unpleasant, but 'for' loops need to make use of 'create_block' 
+        # without actually creating a nested scope for their arguments
+        if @for_argument && Array === val
+          val = [val[0]+1, val[1]]
+        end
+      end
+    else
+      lv.scope = :normal unless lv.scope
+    end
+    
     if inside_masgn
       x.clear
-      # This is unpleasant, but 'for' loops need to make use of 'create_block' 
-      # without actually creating a nested scope for their arguments
-      if @for_argument && Array === lv
-        lv = [lv[0]+1, lv[1]] 
-      end
-      [:lasgn, name, lv]
+      out = [:lasgn, name, lv, val]
     else
-      [:lasgn, name, lv, process(x.shift)]
+      out = [:lasgn, name, lv, val, process(x.shift)]
+    end
+    
+    return out
+  end
+  
+  def process_vcall(x)
+    name = x.shift
+    if lv = @state.local_exists?(name)
+      [:lvar, name, lv, nil]
+    else
+      [:call, [:self], name, [:array], {:function => true}]
     end
   end
-
-  def process_defs(x)
-    y = x.dup
-    x.clear
-    y[0] = process(y[0]) # the receiver of defs might be an lvar
-    y.unshift :defs
-    return y
-  end
-
-  def process_defn(x)
-    y = x.dup
-    x.clear
-    y.unshift :defn
-    return y
-  end
   
-  def process_class(x)
-    y = x.dup
-    x.clear
-    y.unshift :class
-    return y
-  end
-  
-  def process_module(x)
-    y = x.dup
-    x.clear
-    y.unshift :module
-    return y
-  end
-  
-  def process_case(x)
-    cond = process(x.shift)
-    whns = x.shift.map { |w| process(w) }
-    els = process(x.shift)
+  def process_call(x)
+    recv = x.shift
+    meth = x.shift
+    args = x.shift
+    options = x.shift
     
-    [:case, cond, whns, els]
+    cm = @call_method
+    cs = @call_scope
+    
+    @call_method = meth
+    @call_scope = :recv
+    r2 = process(recv)    
+    @call_scope = :args
+    a2 = process(args)
+    
+    @call_scope = cs
+    @call_method = cm
+    
+    [:call, r2, meth, a2, options]
   end
 end

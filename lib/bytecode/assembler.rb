@@ -205,12 +205,29 @@ module Bytecode
         @primitive = args.to_i
       when :arg
         @arguments << args.strip.to_sym
+      when :local
+        name = args.strip.to_sym
+        lv = @state.local(name)
+        unless lv
+          raise "Unknown local '#{name}'"
+        end
+        
+        parse_line lv.access_assembly
+      when :set_local
+        name = args.strip.to_sym
+        lv = @state.local(name)
+        unless lv
+          raise "Unknown local '#{name}'"
+        end
+        
+        parse_line lv.set_assembly        
       else
         raise "Unknown command '#{kind}'"
       end
     end
     
     def parse_line(line)
+      line.gsub!(/;.*$/, "")
       if m = /^\s*([^\s]*):(.*)/.match(line)
         name = m[1].to_sym
         if @labels.key?(name)
@@ -440,7 +457,7 @@ module Bytecode
       if lop = Translations[op]
         op = lop
       end
-      
+            
       if Simple.include?(op)
         @output << op
         @current_op += 1
@@ -526,7 +543,10 @@ module Bytecode
       
       if Bytecode::InstructionEncoder::OpCodes.include?(op)
         @current_op += 1
-        if Bytecode::InstructionEncoder::IntArg.include?(op)
+        if Bytecode::InstructionEncoder::TwoInt.include?(op)
+          @current_op += 8
+          @output << [op, parts.shift.to_i, parts.shift.to_i]
+        elsif Bytecode::InstructionEncoder::IntArg.include?(op)
           @current_op += 4
           @output << [op, parts.first.to_i]
         else

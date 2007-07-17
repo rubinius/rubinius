@@ -584,6 +584,10 @@ void machine_setup_from_config(machine m) {
   if(g_hash_table_lookup(m->s->config, "rbx.debug.trace")) {
     m->s->excessive_tracing = 1;
   }
+  
+  if(g_hash_table_lookup(m->s->config, "rbx.debug.gc")) {
+    m->s->gc_stats = 1;
+  }
 }
 
 void machine_setup_config(machine m) {
@@ -754,11 +758,17 @@ OBJECT machine_load_archive(machine m, const char *path) {
       printf("Unable to find '%s'\n", files); 
       goto out;
     }
+    /* We push this on the stack so it's properly seen by the GCs */
+    cpu_stack_push(m->s, m->c, cm, FALSE);
     cpu_run_script(m->s, m->c, cm);
     if(!machine_run(m)) {
       printf("Unable to run '%s'\n", files);
       goto out;
     }
+    /* Pop the scripts return value. */
+    cpu_stack_pop(m->s, m->c);
+    /* Pop the script object. */
+    cpu_stack_pop(m->s, m->c);
     files = nxt;
     nxt = strchr(nxt, '\n');
   }

@@ -281,7 +281,7 @@ class ShotgunPrimitives
 
     cpu_flush_sp(c);
     t2 = blokenv_create_context(state, self, c->active_context, c->sp);    
-    cpu_activate_context(state, c, t2, blokenv_get_home(self));
+    cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
     CODE
   end
   
@@ -915,6 +915,9 @@ class ShotgunPrimitives
     stack_pop();
     POP(t1, FIXNUM);
 
+    if(state->gc_stats) {
+      printf("[GC M %6dK total]\\n", state->om->ms->allocated_bytes / 1024);
+    }
     exit(FIXNUM_TO_INT(t1));
     CODE
   end
@@ -948,7 +951,7 @@ class ShotgunPrimitives
       t1 = self;
     }
     
-    cpu_activate_context(state, c, self, t1);
+    cpu_activate_context(state, c, self, t1, 0);
     CODE
   end
   
@@ -1082,9 +1085,9 @@ class ShotgunPrimitives
     stack_pop();
     t1 = stack_pop();
     if(RTEST(t1)) {
-      state->om->collect_now = 0x4;
+      state->om->collect_now = OMCollectYoung;
     } else {
-      state->om->collect_now = 0x3;
+      state->om->collect_now = OMCollectYoung | OMCollectMature;
     }
     stack_push(Qtrue);
     CODE
@@ -1814,7 +1817,7 @@ class ShotgunPrimitives
     <<-CODE
     cpu_flush_ip(c);
     cpu_flush_sp(c);
-    cpu_save_registers(state, c);
+    cpu_save_registers(state, c, 0);
     t1 = nmc_new(state, mo, c->active_context, stack_pop(), method_name, num_args);
     nmc_activate(state, c, t1, FALSE);
     CODE

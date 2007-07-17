@@ -64,7 +64,7 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   ns = cur_sz + oth_sz;
   tmp = bytearray_bytes(state, cur);
   if(ns+1 > tmp) {
-    nd = bytearray_new(state, ns+1);
+    nd = bytearray_new(state, ns+100);
     object_copy_bytes_into(state, cur, nd, cur_sz, 0);
     object_copy_bytes_into(state, obs, nd, oth_sz, cur_sz);
     ba = bytearray_byte_address(state, nd);

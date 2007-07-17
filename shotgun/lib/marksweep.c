@@ -33,7 +33,12 @@
 
 #define FREE_FLAG 0xff
 
-static int objects_marked = 0;
+#define TRACK_REFERENCE 1
+#define TRACK_DONT_FREE 0
+
+#undef MS_COLLECTION_FREQUENCY
+#define MS_COLLECTION_FREQUENCY 5000
+
 
 mark_sweep_gc mark_sweep_new() {
   mark_sweep_gc ms;
@@ -44,11 +49,21 @@ mark_sweep_gc mark_sweep_new() {
   ms->chunks = ms->current;
   ms->enlarged = 0;
   ms->seen_weak_refs = NULL;
+  ms->next_collection = 0;
+#if TRACK_REFERENCE
+  if(getenv("MSTRACK")) {
+    ms->track = (OBJECT)atoi(getenv("MSTRACK"));
+  }
+#endif
   return ms;
 }
 
 void mark_sweep_add_chunk(mark_sweep_gc ms) {
   ms_chunk *new;
+  struct ms_entry *ent;
+  int i;
+  
+  ms->enlarged = 1;
   
   new = calloc(1, sizeof(struct ms_chunk));
   
@@ -64,37 +79,57 @@ void mark_sweep_add_chunk(mark_sweep_gc ms) {
     ms->current->next = new;
     ms->current = new;
   }
+  for(i = 0; i < TABLE_INCS; i++) {
+    ent = new->entries + i;
+    ent->object = (struct ms_header*)(ms->free_list);
+    ms->free_list = ent;
+  }
 }
+
 
 OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
   int bytes, idx;
   struct ms_header *oh;
+  struct ms_entry *ent;
   ms_chunk *chk;
   OBJECT ro;
   
   bytes = sizeof(struct ms_header) + ((obj_fields + HEADER_SIZE) * REFSIZE);
   
-  chk = ms->current;
+  ent = ms->free_list;
   
-  if(chk->next_entry == chk->num_entries) {
+  if(!ent) {
     mark_sweep_add_chunk(ms);
-    chk = ms->current;
+    ent = ms->free_list;
   }
   
-  idx = chk->next_entry;
-  chk->next_entry++;
-  
+  ms->free_list = (struct ms_entry*)ent->object;
   oh = (struct ms_header*)calloc(1, bytes);
-  assert(oh != NULL);
-  chk->entries[idx].object = oh;
-  chk->entries[idx].fields = obj_fields;
-  chk->entries[idx].bytes = bytes;
-  chk->entries[idx].marked = 0;
+  ent->object = oh;
+  ent->fields = obj_fields;
+  ent->bytes = bytes;
+  ent->marked = 0;
   
-  oh->entry = chk->entries + idx;
+  ms->allocated_bytes += bytes;
+  ms->next_collection++;
+  
+  if(ms->next_collection >= MS_COLLECTION_FREQUENCY) {
+    ms->next_collection = 0;
+    ms->enlarged = 1;
+    // printf("[GC M Collecting based on count (every %d objects)]\n", MS_COLLECTION_FREQUENCY);
+  }
+  
+  oh->entry = ent;
   ro = to_object(oh);
   // printf("Allocated %d\n", ro);
   SET_NUM_FIELDS(ro, obj_fields);
+  
+#if TRACK_REFERENCE
+  if(ms->track == ro) {
+    printf("Allocated tracked object %p\n", ro);
+  }
+#endif
+
     
   return ro;
 }
@@ -104,7 +139,11 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
   
   obj = to_object(ent->object);
   
-  // printf("Freeing %d\n", obj);
+#if TRACK_REFERENCE
+  if(ms->track == obj) {
+    printf("Free'ing tracked object %p\n", obj);
+  }
+#endif
   
   if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
     g_ptr_array_remove(state->om->gc->remember_set, (gpointer)obj);
@@ -119,21 +158,30 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
     state_run_cleanup(state, obj, cls);
   }
   
+#if TRACK_DONT_FREE
+  memset(obj, 0, SIZE_IN_BYTES(obj));
+  *((int*)(obj)) = 0xbaddecaf;
+#else
+  memset(obj, 55, SIZE_IN_BYTES(obj));
   free(ent->object);
+#endif
   
-  ent->object = NULL;
+  ms->last_freed++;
+  
+  ms->allocated_bytes -= ent->bytes;
+  
   ent->bytes = 0;
   ent->marked = 0;
   ent->fields = 0;
+  
+  ent->object = (struct ms_header*)(ms->free_list);
+  ms->free_list = ent;
 }
-
-static int freed_objects = 0;
-static int marked_objects = 0;
 
 #define mark_sweep_free_object(obj) (HEADER(obj)->flags == FREE_FLAG)
 
 void mark_sweep_describe(mark_sweep_gc ms) {
-  printf("Last marked: %d\n", objects_marked);
+  printf("Last marked: %d\n", ms->last_marked);
 }
 
 #define BCM_P(obj) (ms->become_from == obj)
@@ -153,6 +201,12 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;
   struct ms_header *header;
+  
+#if TRACK_REFERENCE
+  if(ms->track == iobj) {
+    printf("Found tracked object %p\n", iobj);
+  }
+#endif
     
   if(GC_ZONE(iobj) == GC_MATURE_OBJECTS) {
     header = to_header(iobj);
@@ -170,8 +224,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   
   // printf("Marked %d\n", iobj);
   
-  objects_marked++;
-  marked_objects++;
+  ms->last_marked++;
   
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
@@ -268,9 +321,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   int i, sz;
   OBJECT root, tmp;
   struct method_cache *end, *ent;
-  
-  marked_objects = 0;
-  
+    
   if(ms->become_to) {
     mark_sweep_mark_object(state, ms, ms->become_to);
   }
@@ -366,7 +417,6 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
                       (cpu_sampler_collect_cb) mark_sweep_mark_object,
                       ms);
   
-  // printf("Marked Objects: %d\n", marked_objects);
 }
 
 void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
@@ -383,13 +433,19 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
     for(i = 0; i < cur->num_entries; i++) {
       ent = &(cur->entries[i]);
       count++;
-      if(ent->object) {
+      if(ent->bytes) {
         obj = to_object(ent->object);
+#if TRACK_REFERENCE
+        if(ms->track == obj) {
+          printf("Detect tracked object in sweep %p\n", obj);
+        }
+#endif
+        
         assert(ent->fields == NUM_FIELDS(obj));
         if(!ent->marked) {
           mark_sweep_free_entry(state, ms, ent);
         } else {
-          UNMARK_OBJ(obj);
+          if(MARKED_P(obj)) UNMARK_OBJ(obj);
           ent->marked = 0;
         }
       }
@@ -402,10 +458,11 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
 
 void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   ms->enlarged = 0;
-  objects_marked = 0;
+  ms->last_freed = 0;
+  ms->last_marked = 0;
+  
   ms->seen_weak_refs = g_ptr_array_new();  
   mark_sweep_mark_phase(state, ms, roots);
-  // printf("%d objects marked.\n", objects_marked);
   mark_sweep_sweep_phase(state, ms);
   
   int j, i;

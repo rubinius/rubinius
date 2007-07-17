@@ -30,6 +30,7 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
   //if(mark_sweep_contains_p(om->ms, target) && baker_gc_contains_spill_p(om->gc, val)) {
     //assert(tz < vz);
     if(!FLAG_SET_ON_P(target, gc, REMEMBER_FLAG)) {
+      // printf("[Tracking %p in baker RS]\n", (void*)target);
       g_ptr_array_add(om->gc->remember_set, (gpointer)target);
       FLAG_SET_ON(target, gc, REMEMBER_FLAG);
     }

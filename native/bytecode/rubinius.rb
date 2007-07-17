@@ -10,7 +10,7 @@ module Bytecode
       if $DEBUG_COMPILER
         puts "==================================="
         puts "Assembly of #{@name} in #{@file} (#{@path.inspect}):"
-        p @assembly
+        puts @assembly
       end
       
       asm = Bytecode::Assembler.new(@literals, @name, @state)
@@ -24,7 +24,7 @@ module Bytecode
         puts "\nPre-encoded:"
         p stream
       end
-            
+                  
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = @state.number_of_locals

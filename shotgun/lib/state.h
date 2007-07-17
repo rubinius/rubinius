@@ -104,7 +104,7 @@ struct rubinius_state {
   OBJECT *samples;
   int max_samples, cur_sample;
   
-  int excessive_tracing;
+  int excessive_tracing, gc_stats;
 };
 
 #define BASIC_CLASS(kind) state->global->kind

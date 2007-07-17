@@ -121,13 +121,16 @@ rescue SystemExit => e
   code = e.code
 rescue Object => e
   begin
+    p e
     puts "An exception has occurred:"
     puts "    #{e.message} (#{e.class})"
     puts "\nBacktrace:"
     puts e.backtrace.show
     code = 1
-  rescue Object => e
-    puts "VERY BROKEN."
+  rescue Object => e2
+    puts "Unable to build backtrace due to errors"
+    puts "Original Exception: #{e.inspect} (#{e.class})"
+    puts "New Exception: #{e2.inspect} (#{e.class})"
     code = 128
   end
 end

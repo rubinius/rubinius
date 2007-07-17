@@ -35,9 +35,9 @@ class Object
   
   def kind_of?(cls)
     Ruby.asm <<-ASM
-    push cls
-    push self
-    kind_of
+#local cls
+push self
+kind_of
     ASM
   end
   
@@ -88,7 +88,7 @@ class Object
         end
       end
     else
-      0.step(@__ivars__.size, 2) do |i|
+      0.step(@__ivars__.size - 1, 2) do |i|
         if k = @__ivars__[i]
           v = @__ivars__[i+1]
           if v.object_id == self.object_id # This would be an infinite loop
@@ -107,12 +107,10 @@ class Object
   
   def respond_to?(meth)
     meth = meth.to_sym
-    cm = nil
-    Ruby.asm <<-ASM
-    push self
-    push meth
-    locate_method
-    set cm
+    cm = Ruby.asm <<-ASM
+push self
+#local meth
+locate_method
     ASM
     !cm.nil?
   end
@@ -121,14 +119,14 @@ class Object
     meth = name.to_sym
     count = args.size.to_i
     Ruby.asm <<-ASM
-    push args
-    push_array
-    push self
-    push prc
-    push meth
-    push count
-    set_args
-    send_off_stack
+#local args
+push_array
+push self
+#local prc
+#local meth
+#local count
+set_args
+send_off_stack
     ASM
   end
   
@@ -136,12 +134,10 @@ class Object
   
   def method(name)
     meth = name.to_sym
-    cm = nil
-    Ruby.asm <<-ASM
-    push self
-    push meth
-    locate_method
-    set cm
+    cm = Ruby.asm <<-ASM
+push self
+#local meth
+locate_method
     ASM
     
     if cm
@@ -152,8 +148,7 @@ class Object
   end
   
   def lambda
-    env = nil
-    Ruby.asm "push_block\nset env\n"
+    env = Ruby.asm "push_block\n"
     unless env
       raise ArgumentError, "Unable to create a Proc if a block is not passed in"
     end

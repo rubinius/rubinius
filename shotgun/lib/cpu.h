@@ -26,7 +26,8 @@
   OBJECT name; \
   OBJECT method_module; \
   long type; \
-  void *opaque_data;
+  void *opaque_data; \
+  OBJECT *fp_ptr;
 
 struct fast_context {
   CPU_REGISTERS
@@ -34,7 +35,7 @@ struct fast_context {
 
 #define InitialStackSize 4096
 
-#define FASTCTX_FIELDS 23
+#define FASTCTX_FIELDS 24
 #define FASTCTX_NORMAL 0
 #define FASTCTX_NMC    1
 
@@ -64,7 +65,7 @@ struct fast_context {
   OBJECT debug_channel; \
   OBJECT control_channel; \
   unsigned long int flags;
-
+  
 #define TASK_FIELDS 25
 
 struct cpu_task {
@@ -107,8 +108,8 @@ void cpu_initialize(STATE, cpu c);
 void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
-inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home);
-inline void cpu_return_to_sender(STATE, cpu c, int consider_block);
+inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
+inline int cpu_return_to_sender(STATE, cpu c, int consider_block);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c);
@@ -134,7 +135,7 @@ OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym);
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);
-inline void cpu_save_registers(STATE, cpu c);
+inline void cpu_save_registers(STATE, cpu c, int stack_offset);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
 
@@ -182,10 +183,10 @@ void cpu_task_set_outstanding(STATE, OBJECT self, OBJECT ary);
 void cpu_event_setup_children(STATE, cpu c);
 void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid);
 
-#define channel_set_waiting(obj, val) SET_FIELD(obj, 0, val)
-#define channel_get_waiting(obj) NTH_FIELD(obj, 0)
-#define channel_set_value(obj, val) SET_FIELD(obj, 1, val)
-#define channel_get_value(obj) NTH_FIELD(obj, 1)
+#define channel_set_waiting(obj, val) SET_FIELD(obj, 1, val)
+#define channel_get_waiting(obj) NTH_FIELD(obj, 1)
+#define channel_set_value(obj, val) SET_FIELD(obj, 2, val)
+#define channel_get_value(obj) NTH_FIELD(obj, 2)
 
 void cpu_sampler_init(STATE, cpu c);
 void cpu_sampler_activate(STATE, int hz);

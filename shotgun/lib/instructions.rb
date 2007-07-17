@@ -23,7 +23,7 @@ class ShotgunInstructions
   end
   
   def generate_declarations(fd)
-    fd.puts "int _int, j, k;"
+    fd.puts "int _int, j, k, m;"
     fd.puts "OBJECT _lit, t1, t2, t3, t4;"
   end
   
@@ -194,7 +194,6 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    assert(REFERENCE_P(t2));
     stack_push(NTH_FIELD(t2, FIXNUM_TO_INT(t1)));
     CODE
   end
@@ -202,7 +201,6 @@ CODE
   def push_my_field
     <<-CODE
     next_int;
-    assert(REFERENCE_P(c->self));
     stack_push(NTH_FIELD(c->self, _int));
     CODE
   end
@@ -302,6 +300,17 @@ CODE
     // printf("Set local %d to %s\\n", _int, _inspect(t1));
     tuple_put(state, c->locals, _int, t1);
     stack_push(t1);
+    CODE
+  end
+  
+  def set_local_from_fp
+    <<-CODE
+    next_int;
+    k = _int;
+    next_int;
+    
+    t1 = *(c->fp_ptr - _int);
+    tuple_put(state, c->locals, k, t1);
     CODE
   end
   
@@ -470,7 +479,6 @@ CODE
     <<-CODE
     t1 = stack_pop();
     cpu_set_encloser_path(state, c, t1);
-    stack_push(t1);
     CODE
   end
   
@@ -694,11 +702,16 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    // printf("opeqal %s == %s\\n", _inspect(t1), _inspect(t2));
     /* If both are fixnums, or one is a symbol, compare the ops directly. */
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
       stack_push((t1 == t2) ? Qtrue : Qfalse);
     } else {
+      /*
+      cpu_flush_sp(c);
+      printf("opeqal %s == ", _inspect(t1));
+      printf("%s (%d, ", _inspect(t2), c->sp);
+      printf("%s)\\n", _inspect(stack_top()));
+      */
       stack_push(t2);
       cpu_send_method(state, c, t1, state->global->sym_equal, 1);
     }
@@ -765,14 +778,22 @@ CODE
   end
   
   def soft_return
-    "cpu_return_to_sender(state, c, FALSE);"
+    <<-CODE
+    t1 = stack_top();
+    if(cpu_return_to_sender(state, c, FALSE)) {
+      stack_push(t1);
+    }
+    CODE
   end
   
   def caller_return
     <<-CODE
+    t1 = stack_top();
     t1 = c->active_context;
     c->active_context = c->sender;
-    cpu_return_to_sender(state, c, TRUE);
+    if(cpu_return_to_sender(state, c, TRUE)) {
+      stack_push(t1);
+    }
     CODE
   end
   
@@ -785,7 +806,10 @@ CODE
   
   def ret
     <<-CODE
-    cpu_return_to_sender(state, c, TRUE);
+    t1 = stack_pop();
+    if(cpu_return_to_sender(state, c, TRUE)) {
+      stack_push(t1);
+    }
     CODE
   end
   
@@ -821,6 +845,18 @@ CODE
     t1 = array_new(state, j);
     for(k = 0; k < j; k++) {
       array_set(state, t1, k, stack_pop());
+    }
+    stack_push(t1);
+    CODE
+  end
+  
+  def make_rest_fp
+    <<-CODE
+    next_int;
+    j = c->argcount - _int;
+    t1 = array_new(state, j);
+    for(k = _int, m = 0; k < c->argcount; k++, m++) {
+      array_set(state, t1, m, *(c->fp_ptr - k));
     }
     stack_push(t1);
     CODE
@@ -870,7 +906,6 @@ CODE
   def set_args
     <<-CODE
     t1 = stack_pop();
-    assert(FIXNUM_P(t1));
     c->args = FIXNUM_TO_INT(t1);
     CODE
   end
@@ -962,6 +997,47 @@ CODE
     } else {
       cpu_raise_arg_error_generic(state, c, "Attempted to switch to debugger, no debugger installed");
     }
+    CODE
+  end
+  
+  def from_fp
+    <<-CODE
+    next_int;
+    stack_push(*(c->fp_ptr - _int));
+    CODE
+  end
+  
+  def allocate_stack
+    <<-CODE
+    next_int;
+    /* The stack must be initialized to nil because any refers that
+       were there are probably bad. */
+    for(k = 0; k <= _int; k++) {
+      *++c->sp_ptr = Qnil;
+    }
+    CODE
+  end
+  
+  def deallocate_stack
+    <<-CODE
+    next_int;
+    c->sp_ptr -= _int;
+    CODE
+  end
+  
+  def set_local_fp
+    <<-CODE
+    next_int;
+    assert(c->sp_ptr > c->fp_ptr + _int);
+    *(c->fp_ptr + _int) = stack_top();
+    CODE
+  end
+  
+  def get_local_fp
+    <<-CODE
+    next_int;
+    assert(c->sp_ptr > c->fp_ptr + _int);
+    stack_push(*(c->fp_ptr + _int));
     CODE
   end
   

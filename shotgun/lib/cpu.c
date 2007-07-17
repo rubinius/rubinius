@@ -12,6 +12,8 @@
 #include "symbol.h"
 #include <glib.h>
 
+#define EXCESSIVE_TRACING state->excessive_tracing
+
 #include "rubinius.h"
 
 cpu cpu_new(STATE) {
@@ -207,6 +209,10 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   }
   
   cpu_flush_ip(c);
+  
+  /* NOTE: using return_to_sender worries me a little because it can
+     switch to a different task if you try to return off the top
+     of a task.. */
   
   while(!NIL_P(ctx)) {
     is_block = blokctx_s_block_context_p(state, ctx);
@@ -435,7 +441,6 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   if(target == c->main) {
     target = c->enclosing_class;
   }
-  // printf("Attaching %s to %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(target));
   
   cpu_clear_cache_for_method(state, c, sym);
   
@@ -460,6 +465,10 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   case 1:
     vis = state->global->sym_private;
     break;
+  }
+  
+  if(EXCESSIVE_TRACING) {
+    printf("=> Adding method %s to %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(target));
   }
   
   hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));
@@ -488,5 +497,17 @@ char *cpu_show_context(STATE, cpu c, OBJECT ctx) {
   );
   
   return buf;
+}
+
+/* Updates the cpu registers by reading out of the active context.
+   These get out of sync when the GC runs. */
+void cpu_hard_cache(STATE, cpu c) {
+  struct fast_context *fc;
   
+  cpu_flush_ip(c);
+  
+  fc = (struct fast_context*)BYTES_OF(c->home_context);
+  c->data = fc->data;
+  
+  cpu_cache_ip(c);  
 }

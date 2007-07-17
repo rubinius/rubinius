@@ -24,7 +24,11 @@ module Bytecode
     end
     
     attr_accessor :name, :assembly, :literals, :primitive, :file
-    attr_accessor :required, :path, :state
+    attr_accessor :required, :path, :state, :stack_space
+    
+    def prepend_asm(str)
+      @assembly = str + @assembly
+    end
   end
 
   class Compiler
@@ -42,8 +46,10 @@ module Bytecode
       
       @flags = {
         :fast_math => true
-      }
+      }      
     end
+    
+    attr_reader :call_hooks
     
     @system_hints = nil
     
@@ -165,7 +171,8 @@ module Bytecode
         puts "==================================="
 
         puts "Sexp:"
-        p sx
+        STDOUT.print sx.inspect
+        STDOUT.print "\n"
       end
 
       nx = fully_normalize(sx, state)
@@ -186,11 +193,13 @@ module Bytecode
     end
     
     def fully_normalize(x, state=RsLocalState.new)
+      x = RsLocalScoper::Phase1.process(x, state)
       comp = CompositeSexpProcessor.new
       comp << RsNormalizer.new(state, true)
       comp << RsLocalScoper.new(state)
-      
-      return comp.process(x)      
+      out = comp.process(x)
+      state.collapse_lvars!
+      return out
     end
     
     def compile_as_method(sx, name, state=RsLocalState.new)
@@ -202,13 +211,25 @@ module Bytecode
         raise exc
       end
       pro.finalize("ret")
-      return pro.method
+      
+      meth = pro.method
+      meth.stack_space = state.stack_space
+      
+      return meth
     end
     
-    def compile_as_script(sx, name)
-      pro = compile(sx, name)
-      pro.finalize("push true\nret")
-      return pro.method
+    def compile_as_script(sx, name, state=RsLocalState.new)
+      pro = compile(sx, name, state)
+      pro.finalize("pop\npush true\nret")
+      
+      meth = pro.method
+      meth.stack_space = state.stack_space
+      
+      if meth.stack_space > 0
+        meth.prepend_asm "allocate_stack #{meth.stack_space}\n"
+      end
+      
+      return meth
     end
     
     class Processor < SimpleSexpProcessor
@@ -224,6 +245,9 @@ module Bytecode
         @state = state
         @next = nil
         @break = nil
+        
+        @call_hooks = []
+        @call_hooks << MetaOperatorPlugin.new(self)
       end
       
       def flag?(name)
@@ -654,16 +678,14 @@ module Bytecode
       
       def process_lasgn(x)
         name = x.shift
+        lv = x.shift
         idx = x.shift
+        
         if val = x.shift
           process val
         end
         
-        if Array === idx
-          add "set #{name}:#{idx[0]}:#{idx[1]}"
-        else
-          add "set #{name}:#{idx}"
-        end
+        add lv.set_assembly(idx)
       end
 
       def process_svalue(x)
@@ -769,17 +791,14 @@ module Bytecode
       
       def process_lvar(x)
         name = x.shift
+        lv = x.shift
         idx = x.shift
         
-        if idx == -1
+        unless lv
           raise "Unprocessed lvar '#{name}' detected!"
         end
         
-        if Array === idx
-          add "push #{name}:#{idx[0]}:#{idx[1]}"
-        else
-          add "push #{name}:#{idx}"
-        end
+        add lv.access_assembly(idx)
       end
       
       def process_array(x)
@@ -797,11 +816,16 @@ module Bytecode
       
       def process_hash(x)
         sz = x.size
-        y = x.reverse
-        while i = y.shift
-          process i
+        i = 0
+        until x.empty?
+          k = x.shift
+          v = x.shift
+          
+          process v
+          process k
+          
+          i += 1
         end
-        x.clear
         
         add "make_hash #{sz}"
       end
@@ -909,6 +933,8 @@ module Bytecode
         add "open_metaclass"
         add "dup"
         meth = @compiler.compile_as_method body, :__metaclass_init__
+        ss = meth.stack_space
+        meth.prepend_asm "allocate_stack #{ss}" if ss > 0
         idx = @method.add_literal meth
         add "push_literal #{idx}"
         add "swap"
@@ -958,7 +984,12 @@ module Bytecode
         @compiler.path.pop
         
         idx = @method.add_literal meth
-        meth.assembly = "push self\nset_encloser\n" + meth.assembly
+        ss = meth.stack_space
+        if ss > 0
+          meth.prepend_asm "allocate_stack #{ss}\npush self\nset_encloser\n"
+        else
+          meth.prepend_asm "push self\nset_encloser\n"
+        end
         add "push_literal #{idx}"
         add "swap"
         add "attach __class_init__"
@@ -998,12 +1029,20 @@ module Bytecode
         @compiler.path.pop
         
         idx = @method.add_literal meth
-        meth.assembly = "push self\nset_encloser\n" + meth.assembly
+        ss = meth.stack_space
+        if ss > 0
+          meth.prepend_asm "allocate_stack #{ss}\npush self\nset_encloser\n"
+        else
+          meth.prepend_asm "push self\nset_encloser\n"
+        end
+        
         add "push_literal #{idx}"
         add "swap"
         add "attach __module_init__"
         add "pop"
         add "send __module_init__"
+        add "pop"
+        add "push self"
         add "push_encloser"
         # add "set_encloser"
       end
@@ -1517,20 +1556,14 @@ module Bytecode
         name = x.shift
         args = x.shift
         body = x.shift
-        
+                
         prim = detect_primitive(body) if body
         state = RsLocalState.new
         scoper = RsLocalScoper.new(state)
 
-        # Required arguments
-        args[1].each do |e|
-          state.args << [e, state.find_local(e)]
-        end
-        
-        # Splat argument
-        if args[3]
-          state.arg_splat = [args[3].first, state.local(args[3].first)]
-        end
+        # Required arguments, added in order so we know
+        # their positions.
+        args[1].each { |e| state.add_arg e }
         
         defaults = args[4]
         # The initializers for default argument values may contain
@@ -1541,15 +1574,23 @@ module Bytecode
           defaults.each_with_index do |node,i|
             defaults[i] = scoper.process(node)
             var = defaults[i]
-            state.args << [var[1], state.local(var[1])]
+            lv = state.add_arg(var[1])
+            lv.disallow_stack_access!
+            lv.has_default = true
+            # state.disallow_stack_access var[1]
+            # state.find_local(var[1], true, true)
           end
+        end
+        
+        # Splat argument
+        if args[3]
+          state.arg_splat = args[3].first
         end
         
         ba_name = nil
         if args.last and args.last.first == :block_arg
           ba = args.last
-          ba_name = ba[1]
-          ba_idx = state.local(ba_name)
+          state.arg_block = ba[1]
         end
         
         meth = nil
@@ -1569,19 +1610,25 @@ module Bytecode
         
         add "#{kind} #{name}"
         str = ""
+                
         required = args[1].size
-        args[1].each do |var|
-          str << "set #{var}:#{state.local(var)}\npop\n"
+        
+        # Copy all the non-stack, not-default args into the locals tuple
+        state.each_arg do |name, var|
+          if !var.on_stack? and !var.has_default
+            str << "set_local_from_fp #{var.slot} #{var.stack_position}\n"
+          end
         end
         
-        max = min = args[1].size
+        max = min = required
                 
         if defaults
-          idx = min
           defaults.each do |var|
+            lv = state.local(var[1])
             lbl = unique_lbl('set_')
+            lbl2 = unique_lbl('set_')
             #lbl = "set#{state.unique_id}"
-            str << "passed_arg #{idx}\ngit #{lbl}\n"
+            str << "passed_arg #{lv.argument_position}\ngit #{lbl}\n"
             save = @output
             @output = ""
             cur = @method
@@ -1590,30 +1637,48 @@ module Bytecode
             str << @output
             @output = save
             @method = cur
-            idx += 1
-            str << "#{lbl}:\nset #{var[1]}:#{state.local(var[1])}\npop\n"
+            str << "set #{var[1]}:#{lv.slot}\npop\ngoto #{lbl2}\n"
+            str << "#{lbl}: set_local_from_fp #{lv.slot} #{lv.stack_position}\n#{lbl2}:\n"
           end
           
-          max = idx
+          max += defaults.size
         end
-        splat = args[3]
-        if splat
-          str << "make_rest #{required}\nset #{splat.first}\npop\n"
+                
+        if state.arg_splat
+          name, lv = state.arg_splat
+          str << "make_rest_fp #{state.number_of_arguments}\n"
+          if lv.on_stack?
+            str << "set_local_fp #{lv.alloca}\npop\n"
+          else
+            str << "set #{name}:#{lv.slot}\npop\n"
+          end
           max = 0
           req = -1
         else
           req = min
         end
         
-        if ba_name
-          str << "push_block\npush Proc\nsend from_environment 1\nset #{ba_name}:#{ba_idx}\npop\n"
+        if state.arg_block
+          name, lv = state.arg_block
+          str <<  "push_block\npush Proc\nsend from_environment 1\n"
+          if lv.on_stack?
+            str << "set_local_fp #{lv.alloca}\npop\n"
+          else
+            str << "set #{name}:#{lv.slot}\npop\n"
+          end
         end
         
         meth.required = req
         
-        str = "check_argcount #{min} #{max}\n" + str
-        
-        meth.assembly = str + meth.assembly
+        # Add an opcode to allocate space for fast locals
+        ss = state.stack_space
+        if ss > 0
+          str = "check_argcount #{min} #{max}\nallocate_stack #{ss}\n" + str
+        else
+          str = "check_argcount #{min} #{max}\n" + str
+        end
+                
+        meth.prepend_asm str
       end
       
       def detect_class_special(x)
@@ -1644,26 +1709,10 @@ module Bytecode
         end
         return false
       end
-
-      MetaMath = {
-        :+ =>   "meta_send_op_plus",
-        :- =>   "meta_send_op_minus", 
-        :== =>  "meta_send_op_equal",
-        :"!=" =>  "meta_send_op_nequal",
-        :=== => "meta_send_op_tequal",
-        :< =>   "meta_send_op_lt", 
-        :> =>   "meta_send_op_gt"
-      }
-      
-      def use_meta_opcode(recv, meth, args)
-        if flag?(:fast_math)
-          name = MetaMath[meth]
-          if name and args and args.size == 2
-            process args.last
-            process recv
-            add name
-            return true
-          end
+            
+      def hook_call(recv, meth, args)
+        @call_hooks.each do |plugin|
+          return true if plugin.handle(recv, meth, args)
         end
         
         return false
@@ -1710,7 +1759,7 @@ module Bytecode
           return
         end
         
-        return if use_meta_opcode(recv, meth, args)
+        return if hook_call(recv, meth, args)
         
         grab_args = false
         
@@ -2093,3 +2142,5 @@ module Bytecode
     end
   end
 end
+
+require 'bytecode/plugins'

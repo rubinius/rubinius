@@ -24,6 +24,8 @@ if File.exists?(@pc)
   ENV['CORE'] = @pc
 end
 
+@compiler = ENV['COMPILER']
+
 def update_archive(files, archive, dir=nil)
   archive = File.expand_path(ENV['OUTPUT'] || archive)
   
@@ -32,7 +34,11 @@ def update_archive(files, archive, dir=nil)
     cmp = "#{file}c"
     if !newer?(file, cmp)
       changed << cmp
-      system "shotgun/rubinius compile #{file}"
+      if @compiler
+        system "shotgun/rubinius -I#{@compiler} compile #{file}"
+      else
+        system "shotgun/rubinius compile #{file}"
+      end
     elsif !File.exists?(archive)
       changed << cmp
     end
@@ -229,7 +235,9 @@ namespace :build do
       paths << dest
     end
 
-    paths += %w!native/bytecode/rubinius.rb native/bytecode/system_hints.rb!
+    paths += %w!native/bytecode/rubinius.rb 
+                native/bytecode/system_hints.rb
+                native/bytecode/plugins.rb!
    
     update_archive paths, 'runtime/compiler.rba', "native"
   end

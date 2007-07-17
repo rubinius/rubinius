@@ -1,18 +1,30 @@
 static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields) {
-  int size, i, f;
+  int size, i, f, loc;
   OBJECT obj, flags;
   struct rubinius_object *header;
+  
+  if(fields > LargeObjectThreshold) {
+    mark_sweep_gc ms = om->ms;
+    obj = mark_sweep_allocate(ms, fields);
+    if(ms->enlarged) { 
+      om->collect_now |= OMCollectMature;
+    }
     
-  //fields += 4; /* PAD */
-  size = (HEADER_SIZE + fields) * REFSIZE;
-  if(!heap_enough_space_p(om->gc->current, size)) {
-    obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
-    assert(heap_enough_space_p(om->gc->next, size));
-    // DEBUG("Ran out of space! spilled into %p\n", obj);
-    om->collect_now |= 1;
-    // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
+    loc = GC_MATURE_OBJECTS;    
   } else {
-    obj = (OBJECT)baker_gc_allocate(om->gc, size);
+    //fields += 4; /* PAD */
+    size = (HEADER_SIZE + fields) * REFSIZE;
+    if(!heap_enough_space_p(om->gc->current, size)) {
+      obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
+      assert(heap_enough_space_p(om->gc->next, size));
+      // DEBUG("Ran out of space! spilled into %p\n", obj);
+      om->collect_now |= OMCollectYoung;
+      // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
+    } else {
+      obj = (OBJECT)baker_gc_allocate(om->gc, size);
+    }
+    
+    loc = GC_YOUNG_OBJECTS;
   }
   
   header = (struct rubinius_object*)obj;
@@ -31,7 +43,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
     rbs_set_field(om, obj, i, Qnil);
   }
   
-  GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
+  GC_ZONE_SET(obj, loc);
   
   header->object_id = 0;
   return obj;
@@ -42,7 +54,7 @@ static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
   /* I'd love to remove this check, but context allocation could flow over. */
   if(!heap_enough_space_p(om->gc->current, size)) {
     obj = (OBJECT)baker_gc_allocate_spilled_ultra(om->gc, size);
-    om->collect_now |= 1;
+    om->collect_now |= OMCollectYoung;
   } else {
     obj = (OBJECT)baker_gc_allocate_ultra(om->gc, size);
   }

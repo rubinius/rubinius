@@ -28,7 +28,6 @@ typedef struct ms_chunk ms_chunk;
 
 struct _mark_sweep_gc {
   struct ms_chunk *chunks;
-  OBJECT free_list;
   void *extreme_min;
   void *extreme_max;
   GPtrArray *remember_set;
@@ -37,12 +36,21 @@ struct _mark_sweep_gc {
   OBJECT become_from, become_to;
   GPtrArray *seen_weak_refs;
   ms_chunk *current;
+  
+  int last_freed;
+  int last_marked;
+  unsigned int allocated_bytes;
+  int next_collection;
+  OBJECT track;
+  
+  struct ms_entry *free_list;
 };
 
 typedef struct _mark_sweep_gc *mark_sweep_gc;
 
 #define MS_MARK 0x80
 #define MS_CHUNKSIZE 0x20000
+#define MS_COLLECTION_FREQUENCY 500 // 500 fields
 
 mark_sweep_gc mark_sweep_new();
 void mark_sweep_adjust_extremes(mark_sweep_gc ms, ms_chunk *new);

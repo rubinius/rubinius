@@ -19,8 +19,7 @@ class MethodContext
   def module   ; @module    ; end
   
   def self.current
-    cur = nil
-    Ruby.asm "push_context\nset cur\n"
+    cur = Ruby.asm "push_context\n"
     return cur.sender
   end
   

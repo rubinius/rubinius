@@ -417,6 +417,10 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->sender = sender;
   fc->ip = 0;
   fc->sp = c->sp;
+  /* fp_ptr points to the location on the stack as the context
+     was being created. */
+  fc->fp_ptr = c->sp_ptr;
+  
   fc->block = block;
   fc->raiseable = Qtrue;
   fc->method = mo;
@@ -515,18 +519,20 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
 }
 
 /* Raw most functions for moving in a method. Adjusts register. */
-
-inline void cpu_save_registers(STATE, cpu c) {
+/* Stack offset is used to adjust sp when it's saved so when
+   this context is swapped back in,  any arguments are automatically
+   removed from the stack */
+inline void cpu_save_registers(STATE, cpu c, int offset) {
   if(!RTEST(c->active_context)) return;
   cpu_flush_ip(c);
   cpu_flush_sp(c);
   if(methctx_is_fast_p(state, c->active_context)) {
     struct fast_context *fc;
     fc = (struct fast_context*)BYTES_OF(c->active_context);
-    fc->sp = c->sp;
+    fc->sp = c->sp - offset;
     fc->ip = c->ip;
   } else {
-    methctx_set_sp(c->active_context, I2N(c->sp));
+    methctx_set_sp(c->active_context, I2N(c->sp - offset));
     methctx_set_ip(c->active_context, I2N(c->ip));
   }
 }
@@ -562,6 +568,11 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
          seems to break things.. */
     }
     
+    /*
+    
+    sp is now adjusted when it's saved, so we don't have to do this now.
+    
+
     if(ret && ac > 0) {
       if (is_block) {
         --c->sp;
@@ -569,7 +580,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
         c->sp -= ac;
       }
     }
-    
+    */    
     /* Ok, reason we'd be restoring a native context:
        1) the native context used rb_funcall and we need to return
           it the result of the call.
@@ -582,6 +593,10 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     }
     
   } else {
+    abort();
+    /* This is all old, dead code. It's for support old, slow
+       method contexts. */
+    /*
     c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
     c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
     if(ret && c->argcount > 0) {
@@ -618,6 +633,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     } else {
       c->exceptions = Qnil;
     }
+    */
   }
   
   cpu_cache_ip(c);
@@ -629,9 +645,9 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
 
 /* Layer 2 method movement: use lower level only. */
 
-inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home) {
+inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) {
   c->depth += 2;
-  cpu_save_registers(state, c);
+  cpu_save_registers(state, c, so);
   cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
 }
 
@@ -642,31 +658,26 @@ static inline void cpu_restore_context(STATE, cpu c, OBJECT x) {
 /* Layer 2.5: Uses lower layers to return to the calling context.
    Returning ends here. */
 
-inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
-  OBJECT sender, top, home, home_sender;
+inline int cpu_return_to_sender(STATE, cpu c, int consider_block) {
+  OBJECT sender, home, home_sender;
   int is_block;
   
   is_block = blokctx_s_block_context_p(state, c->active_context);
   sender = c->sender;
-  
+    
   if(sender == Qnil) {
     c->active_context = Qnil;
     
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
       cpu_thread_run_best(state, c);
-      
+      return FALSE;
     /* Switch back to the main task... */
     } else if(c->current_task != c->main_task) {
       cpu_task_select(state, c, c->main_task);
-    }
-    
+      return FALSE;
+    }    
   } else {
-    if(cpu_stack_empty_p(state, c)) {
-      top = Qnil;
-    } else {
-      top = cpu_stack_top(state, c);
-    }
     
     if(consider_block && is_block) {
       home = blokctx_home(state, c->active_context);
@@ -701,8 +712,9 @@ inline void cpu_return_to_sender(STATE, cpu c, int consider_block) {
       printf("Returning to %s.\n", _inspect(sender));
     }
     cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
-    cpu_stack_push(state, c, top, FALSE);
   }
+  
+  return TRUE;
 }
 
 /* Layer 2.6: Uses lower layers to return to the created context of the
@@ -733,7 +745,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
   if(cpu_try_primitive(state, c, meth, recv, count, name, Qnil)) { return; }
   ctx = cpu_create_context(state, c, recv, meth, name, 
         _real_class(state, recv), (unsigned long int)count, block);
-  cpu_activate_context(state, c, ctx, ctx);
+  cpu_activate_context(state, c, ctx, ctx, 0);
 }
 
 /* Layer 3: hook. Shortcut for running hook methods. */
@@ -746,7 +758,7 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
   
   ctx = cpu_create_context(state, c, recv, mo, meth, 
         _real_class(state, recv), 1, Qnil);
-  cpu_activate_context(state, c, ctx, ctx);
+  cpu_activate_context(state, c, ctx, ctx, 1);
 }
 
 /* Layer 4: High level method calling. */
@@ -799,7 +811,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
   }
   */
-  cpu_activate_context(state, c, ctx, ctx);
+  cpu_activate_context(state, c, ctx, ctx, args);
   //printf("Setting method module to: %s\n", _inspect(mod));
   c->method_module = mod;
 }
@@ -920,6 +932,12 @@ void cpu_run_old(STATE, cpu c) {
   }
 }
 
+static void _cpu_inst(STATE, cpu c, OBJECT self, OBJECT arg) {
+  printf("op_equal: %s == %s\n", _inspect(self), _inspect(arg));
+  stack_push(arg);
+  cpu_send_method(state, c, self, state->global->sym_equal, 1);
+}
+
 int cpu_dispatch(STATE, cpu c) {
   unsigned char op;  
 
@@ -965,7 +983,7 @@ void cpu_run(STATE, cpu c) {
       continue;
     }
     #endif
-    
+        
     op = *c->ip_ptr++;
     
     // #undef stack_push
@@ -993,34 +1011,26 @@ check_interupts:
     // if (0 && !state->om->collect_now) object_memory_check_memory(state->om);
     if(state->om->collect_now) {
       int cm = state->om->collect_now;
-      /* We're supposed to tenure all the objects now. */
-      if(cm & 0x4) {
-        printf("Tenuring all objects...\n");
-        state->om->tenure_now = 1;
-        state_collect(state, c);
-        state->om->collect_now = 0;
-        printf("Tenure finished.\n");
-      }
       
       /* Collect the first generation. */
-      if(cm & 0x1) {
+      if(cm & OMCollectYoung) {
         if(EXCESSIVE_TRACING) {
-        printf("[[ Collecting young objects. ]]\n");
-        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ Collecting young objects. ]]\n");
+          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
         }
         state_collect(state, c);
         if(EXCESSIVE_TRACING) {
-        printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
-        printf("[[ Finished collect. ]]\n");
+          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ Finished collect. ]]\n");
         }
       }
       
       /* Collect the old generation. */
-      if(cm & 0x2) {
+      if(cm & OMCollectMature) {
         if(EXCESSIVE_TRACING) {
-        printf("[[ Collecting old objects. ]\n");
+          printf("[[ Collecting old objects. ]\n");
         }
-        state_major_collect(state, c);        
+        state_major_collect(state, c);
         // printf("Done with major collection.\n");
       }
       

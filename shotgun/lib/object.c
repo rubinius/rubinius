@@ -120,17 +120,59 @@ char *object_byte_start(STATE, OBJECT self) {
   return BYTES_OF(self);
 }
 
+#define REMEMBER_FLAG 0x10
+
+void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
+  if(GC_ZONE(dest) != GC_MATURE_OBJECTS) return;
+  if(FLAG_SET_ON_P(dest, gc, REMEMBER_FLAG)) return;
+    
+  if(GC_ZONE(self) == GC_MATURE_OBJECTS) {
+    if(FLAG_SET_ON_P(self, gc, REMEMBER_FLAG)) {
+      g_ptr_array_add(state->om->gc->remember_set, (gpointer)dest);
+      FLAG_SET_ON(dest, gc, REMEMBER_FLAG);
+    }
+  } else {
+    int i;
+    OBJECT tmp;
+    for(i = 0; i < NUM_FIELDS(dest); i++) {
+      tmp = NTH_FIELD(dest, i);
+      if(!REFERENCE_P(tmp)) continue;
+      
+      if(GC_ZONE(tmp) == GC_YOUNG_OBJECTS) {
+        g_ptr_array_add(state->om->gc->remember_set, (gpointer)dest);
+        FLAG_SET_ON(dest, gc, REMEMBER_FLAG);
+        /* We can return because the only setting we have is now
+           correct, no need to look through all the rest. */
+        return;
+      }
+    }  
+  }
+}
+
 int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int count) {
+  int i, j;
+  
+  for(i = first, j = 0; j < count; i++, j++) {
+    SET_FIELD(dest, j, NTH_FIELD(self, i));
+  }
+  
+  return TRUE;
+  
+/*
   char *da;
   void *start;
   int sz;
+  
+  
   
   da = object_byte_start(state, dest);
   sz = count * REFSIZE;
   start = (void*)((first * REFSIZE) + object_byte_start(state, self));
   
   memcpy((void*)da, (const void *)start, (size_t)sz);
+  object_propgate_gc_info(state, self, dest);
   return TRUE;
+*/
 }
 
 int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, int dist) {

@@ -1,7 +1,11 @@
 class Class
   def new(*args, &block)
     obj = allocate()
-    obj.initialize(*args, &block)
+    if block
+      obj.initialize(*args, &block)
+    else
+      obj.initialize(*args)
+    end
     obj
   end
 

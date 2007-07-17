@@ -30,11 +30,22 @@ static GPtrArray *_gather_roots(STATE, cpu c) {
 
 void cpu_sampler_suspend(STATE);
 void cpu_sampler_resume(STATE);
+void cpu_hard_cache(STATE, cpu c);
 
 void state_collect(STATE, cpu c) {
   GPtrArray *roots;
+  int stats = state->gc_stats;
+  struct timeval start, fin;
+  
+  if(stats) {
+    gettimeofday(&start, NULL);
+  }
+  
   c->context_cache = 0;
   state->free_contexts->len = 0;
+  
+  cpu_flush_ip(c);
+  cpu_flush_sp(c);
   
   state->current_stack = c->stack_top;
   state->current_sp =    c->sp_ptr;
@@ -53,10 +64,38 @@ void state_collect(STATE, cpu c) {
   
   baker_gc_find_lost_souls(state, state->om->gc);
   cpu_sampler_resume(state);
+  
+  if(stats) {
+    double elapse;
+    gettimeofday(&fin, NULL);
+    elapse =  (fin.tv_sec - start.tv_sec);
+    elapse += (((double)fin.tv_usec - start.tv_usec) / 1000000);
+    printf("[GC Y %f secs, %dK total, %3dK used, %4d tenured, %d]\n", 
+      elapse,
+      (state->om->gc->current->size / 1024),
+      ((state->om->gc->current->current - state->om->gc->current->address) / 1024),
+      state->om->last_tenured,
+      state->om->gc->num_collection
+    );
+  }
+  
+  cpu_hard_cache(state, c);
+  cpu_cache_sp(c);  
 }
+
 
 void state_major_collect(STATE, cpu c) {
   GPtrArray *roots;
+  int stats = state->gc_stats;
+  struct timeval start, fin;
+    
+  if(stats) {
+    gettimeofday(&start, NULL);
+  }
+  
+  cpu_flush_ip(c);
+  cpu_flush_sp(c);
+  
   c->context_cache = 0;
   state->free_contexts->len = 0;
   
@@ -75,6 +114,23 @@ void state_major_collect(STATE, cpu c) {
 
   g_ptr_array_free(roots, TRUE);
   cpu_sampler_suspend(state);
+  
+  if(stats) {
+    double elapse;
+    gettimeofday(&fin, NULL);
+    elapse =  (fin.tv_sec - start.tv_sec);
+    elapse += (((double)fin.tv_usec - start.tv_usec) / 1000000);
+    
+    printf("[GC M %f secs, %d freed, %d total, %d segments, %6dK total]\n", 
+      elapse,
+      state->om->ms->last_freed, state->om->ms->last_marked,
+      state->om->ms->num_chunks,
+      state->om->ms->allocated_bytes / 1024
+      );
+  }
+  
+  cpu_hard_cache(state, c);  
+  cpu_cache_sp(c);
 }
 
 void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {

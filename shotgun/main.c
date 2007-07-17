@@ -92,6 +92,10 @@ int main(int argc, char **argv) {
   }
     
   flag = machine_load_archive(m, archive);
+ 
+  if(m->s->gc_stats) {
+    printf("[GC M %6dK total]\n", m->s->om->ms->allocated_bytes);
+  }
   
   if(!flag) {
     printf("Unable to run %s\n", archive);

@@ -271,7 +271,17 @@ class Object
 end
 
 if @reporter == nil
-  @reporter = DottedReporter.new
+  if rep = ENV['REPORTER']
+    cls = Object.const_get(rep) rescue nil
+    if cls.nil?
+      puts "Unable to find reporter '#{rep}', falling back."
+      @reporter = DottedReporter.new
+    else
+      @reporter = cls.new
+    end
+  else
+    @reporter = DottedReporter.new
+  end
 end
 
 at_exit do

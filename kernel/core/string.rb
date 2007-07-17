@@ -26,9 +26,7 @@ class String
     
     raise TypeError, "can't modify frozen string" if self.frozen?
     
-    out = nil
-    Ruby.asm "push other\npush self\nstring_append\nset out"
-    return out
+    Ruby.asm "#local other\npush self\nstring_append\n"
   end
   alias :concat :<<
 
@@ -36,8 +34,7 @@ class String
   # NOTE: This overwrites String#dup defined in bootstrap
   #+++
   def dup
-    out = nil
-    Ruby.asm "push self\nstring_dup\nset out"
+    out = Ruby.asm "push self\nstring_dup\n"
     out.taint if self.tainted?
     out.freeze if self.frozen?
     return out

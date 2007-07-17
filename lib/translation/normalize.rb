@@ -176,16 +176,6 @@ class RsNormalizer < SimpleSexpProcessor
     x.clear
     return out
   end
-
-  def process_vcall(x)
-    name = x.shift
-    idx = @state.find_local(name, false)
-    if idx
-      [:lvar, name, idx]
-    else
-      [:call, [:self], name, [:array], {:function => true}]
-    end
-  end
   
   def process_zarray(x)
     x.clear

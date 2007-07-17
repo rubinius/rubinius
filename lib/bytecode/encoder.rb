@@ -3,6 +3,115 @@ class InstructionEncoder
   
   class InvalidOpCode < RuntimeError
   end
+
+=begin
+  StackChanges = {
+    :noop =>        [0, 0],
+    :push_nil =>    [0, 1],
+    :push_true =>   [0, 1],
+    :push_false =>  [0, 1],
+    :allocate =>    [1, 1],
+    :set_class =>   [2, 1],
+    :store_field => [3, 1],
+    :push_int =>    [0, 1],
+    :fetch_field => [2, 1],
+    :send_primitive => proc { |a| [a[1], 1] },
+    :push_context => [0, 1],
+    :push_literal => [0, 1],
+    :push_self =>   [0, 1],
+    :goto =>        [0, 0],
+    :goto_if_false => [1, 0],
+    :goto_if_true =>  [1, 0],
+    :swap_stack =>  [2, 2],
+    :set_local =>   [1, 1],
+    :push_local =>  [0, 1],
+    :push_exception => [0, 1],
+    :make_array =>  proc { |a| [a[0], 1] },
+    :set_ivar => [1, 1],
+    :push_ivar => [0, 1],
+    :goto_if_defined => [1, 0],
+    :push_const =>  [0, 1],
+    :set_const =>   [1, 1],
+    :set_const_at =>  [2, 0],
+    :find_const =>    [1, 1],
+    :attach_method => [2, 1],
+    :add_method =>    [2, 1],
+    :open_class =>    [1, 1],
+    :open_class_under => [2, 1],
+    :open_module =>   [0, 1],
+    :open_module_under => [1, 1],
+    :unshift_tuple => [1, 2],
+    :cast_tuple =>    [1, 1],
+    :make_rest =>     nil, # a special case
+    :dup_top =>       [0, 1],
+    :pop =>           [1, 0],
+    :ret =>           [0, 0],
+    :send_method =>   [1, 1],
+    :send_stack =>  proc { |a| [a[1] + 1, 1] },
+    :send_stack_with_block => proc { |a| [a[1] + 2, 1] },
+    :push_block =>    [0, 1],
+    :clear_exception => [0, 0],
+    :soft_return =>   [0, 0],
+    :caller_return => [0, 0],
+    :push_array =>    nil, # arg. not sure what do do with this yet
+    :cast_array =>    [1, 1],
+    :make_hash =>     proc { |a| [a, 1] },
+    :raise_exc =>     [1, 0],
+    :set_encloser =>  [1, 0],
+    :push_encloser => [0, 0],
+    :activate_method => nil, # again, unsure
+    :push_cpath_top => [0, 1],
+    :check_argcount => [0, 0],
+    :passed_arg =>    [0, 1],
+    :string_append => [2, 1],
+    :string_dup =>    [1, 1],
+    :set_args =>      [1, 0],
+    :get_args =>      [0, 1],
+    :send_with_arg_register => nil,
+    :cast_array_for_args => nil ,
+    :send_super_stack_with_block,
+    :push_my_field,
+    :store_my_field,
+    :open_metaclass,
+    :set_cache_index,
+    :block_break,
+    :send_super_with_arg_register,
+    :meta_push_neg_1,
+    :meta_push_0,
+    :meta_push_1,
+    :meta_push_2,
+    :meta_send_stack_1,
+    :meta_send_stack_2,
+    :meta_send_stack_3,
+    :meta_send_stack_4,
+    :meta_send_op_plus,
+    :meta_send_op_minus,
+    :meta_send_op_equal,
+    :meta_send_op_lt,
+    :meta_send_op_gt,
+    :meta_send_op_tequal,
+    :meta_send_op_nequal,
+    :push_local_depth,
+    :set_local_depth,
+    :create_block,
+    :send_off_stack,
+    :locate_method,
+    :kind_of,
+    :instance_of,
+    :set_call_flags,
+    :yield_debugger,
+    :from_fp,
+    :set_local_from_fp,
+    :make_rest_fp,
+    :allocate_stack,
+    :deallocate_stack,
+    :set_local_fp,
+    :get_local_fp
+    
+    
+  }
+  
+=end
   
   OpCodes = [
     :noop,
@@ -98,7 +207,14 @@ class InstructionEncoder
     :kind_of,
     :instance_of,
     :set_call_flags,
-    :yield_debugger
+    :yield_debugger,
+    :from_fp,
+    :set_local_from_fp,
+    :make_rest_fp,
+    :allocate_stack,
+    :deallocate_stack,
+    :set_local_fp,
+    :get_local_fp
   ]
   
   IntArg = [
@@ -142,7 +258,17 @@ class InstructionEncoder
     :push_local_depth,
     :set_local_depth,
     :create_block,
-    :set_call_flags
+    :set_call_flags,
+    :from_fp,
+    :set_local_from_fp,
+    :make_rest_fp,
+    :allocate_stack,
+    :deallocate_stack,
+    :set_local_fp,
+    :allocate_stack,
+    :deallocate_stack,
+    :set_local_fp,
+    :get_local_fp
   ]
   
   TwoInt = [
@@ -151,7 +277,8 @@ class InstructionEncoder
     :send_super_stack_with_block,
     :send_primitive,
     :push_local_depth,
-    :set_local_depth
+    :set_local_depth,
+    :set_local_from_fp
   ]
   
   def instruction_width(op)

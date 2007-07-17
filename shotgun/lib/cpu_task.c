@@ -36,9 +36,10 @@ void Init_cpu_task(STATE) {
   state->global->scheduled_threads = tup;
   rbs_const_set(state, BASIC_CLASS(task), "ScheduledThreads", tup);
   
-  BASIC_CLASS(channel) = rbs_class_new(state, "Channel", 2, BASIC_CLASS(object));
+  BASIC_CLASS(channel) = rbs_class_new(state, "Channel", 3, BASIC_CLASS(object));
   BASIC_CLASS(thread) =  rbs_class_new(state, "Thread", 4, BASIC_CLASS(object));
-  class_set_instance_flags(BASIC_CLASS(thread), I2N(0x02)); /* ivars allowed. */
+  class_set_instance_flags(BASIC_CLASS(channel), I2N(0x02)); /* ivars allowed. */
+  class_set_instance_flags(BASIC_CLASS(thread),  I2N(0x02)); /* ivars allowed. */
   
   cpu_event_init(state);
 }
@@ -64,8 +65,9 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
 void cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
-  cpu_save_registers(state, c);
+  cpu_save_registers(state, c, 0);
   
+  // printf("Switching to task %s (%p, %d)\n", _inspect(nw), c->sp_ptr, c->sp);
   cur = c->current_task;
   
   ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
@@ -130,7 +132,6 @@ static void cpu_task_clear_flag(STATE, OBJECT self, int flag) {
 
 void cpu_task_set_top(STATE, OBJECT self, OBJECT val) {
   struct cpu_task *task;
-  
   task = (struct cpu_task*)BYTES_OF(self);
   *(task->sp_ptr) = val;
 }

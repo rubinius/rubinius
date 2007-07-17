@@ -7,6 +7,7 @@
 #include "baker.h"
 #include "marksweep.h"
 #include "tuple.h"
+#include "flags.h"
 
 void *main_om;
 
@@ -17,7 +18,7 @@ void _describe(OBJECT ptr) {
   om = (object_memory)main_om;
   printf("Address:             %p (%lu)\n", (void*)ptr, (unsigned long int)ptr);
   printf("Contained in baker?: %d/%d\n", baker_gc_contains_p(om->gc, ptr), baker_gc_contains_spill_p(om->gc, ptr));
-  // printf("Contained in m/s?:   %d\n", GC_ZONE(ptr) == GC_MATURE_OBJECTS);
+  printf("Contained in m/s?:   %d\n", GC_ZONE(ptr) == GC_MATURE_OBJECTS);
 }
 
 void _stats() {
@@ -28,6 +29,37 @@ void _stats() {
   baker_gc_describe(om->gc);
   printf("MarkSweep Info:\n");
   mark_sweep_describe(om->ms);
+}
+
+void _verify(OBJECT self) {
+  object_memory om;
+  om = (object_memory)main_om;
+  OBJECT tmp;
+  int i, rs, tz, vz, refs;
+  
+  printf("Verifying %p...\n", (void*)self);
+  if(FLAG_SET_P(self, StoresBytesFlag)) {
+    printf("Object stores bytes.\n");
+    return;
+  }
+  
+  rs = FLAG_SET_ON_P(self, gc, 0x10);
+  
+  tz = GC_ZONE(self);
+  refs = 0;
+  
+  for(i = 0; i < NUM_FIELDS(self); i++) {
+    tmp = NTH_FIELD(self, i);
+    if(!REFERENCE_P(tmp)) continue;
+    
+    refs++;
+    vz = GC_ZONE(tmp);
+    if(tz < vz && !rs) {
+      printf("ERROR: Object %p (at %i) is IG, but no RS mark!\n", (void*)tmp, i);
+    }
+    
+  }
+  printf("Done verifying %p: %d fields, %d refs\n", (void*)self, NUM_FIELDS(self), refs);  
 }
 
 int object_memory_actual_omsize() {
@@ -89,10 +121,12 @@ int object_memory_collect(STATE, object_memory om, GPtrArray *roots) {
   // printf("%d objects since last collection.\n", allocated_objects);
   allocated_objects = 0;
   om->gc->tenure_now = om->tenure_now;
+  om->last_tenured = 0;
   i = baker_gc_collect(state, om->gc, roots);
   // object_memory_check_memory(om);
   om->gc->tenure_now = om->tenure_now = 0;
   om->collect_now = 0;
+  
   return i;
 }
 
@@ -102,19 +136,23 @@ void object_memory_major_collect(STATE, object_memory om, GPtrArray *roots) {
   allocated_objects = 0;
   mark_sweep_collect(state, om->ms, roots);
   baker_gc_clear_gc_flag(om->gc, MS_MARK);
-  if(om->ms->enlarged) {
-    om->collect_now |= 0x2;
-    om->ms->enlarged = 0;
-  }
 }
 
 OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
   OBJECT dest;
   object_memory om = (object_memory)data;
+  mark_sweep_gc ms = om->ms;
   
-  // printf("Tenuring %p\n", (void*)obj);
+  om->last_tenured++;
   
-  dest = mark_sweep_allocate(om->ms, NUM_FIELDS(obj));
+  dest = mark_sweep_allocate(ms, NUM_FIELDS(obj));
+  
+  // printf("Tenuring %p to %p (%d)\n", (void*)obj, (void*)dest, NUM_FIELDS(obj));
+  
+  if(ms->enlarged) { 
+    om->collect_now |= OMCollectMature;
+  }
+  
   /*
   HEADER(dest)->flags = HEADER(obj)->flags;
   HEADER(dest)->flags2 = HEADER(obj)->flags2;
@@ -320,9 +358,14 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   int i, f;
   OBJECT obj, flags;
   struct rubinius_object *header;
+  mark_sweep_gc ms;
   
-  obj = mark_sweep_allocate(om->ms, fields);
+  ms = om->ms;
   
+  obj = mark_sweep_allocate(ms, fields);
+  if(ms->enlarged) { 
+    om->collect_now |= OMCollectMature;
+  }
   
   header = (struct rubinius_object*)obj;
   rbs_set_class(om, obj, cls);
@@ -356,8 +399,8 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   if(!heap_enough_space_p(om->gc->current, size)) {
     obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
     assert(heap_enough_space_p(om->gc->next, size));
-    DEBUG("Ran out of space! spilled into %p\n", obj);
-    om->collect_now |= 1;
+    // DEBUG("Ran out of space! spilled into %p\n", obj);
+    om->collect_now |= OMCollectYoung;
     // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
   } else {
     obj = (OBJECT)baker_gc_allocate(om->gc, size);

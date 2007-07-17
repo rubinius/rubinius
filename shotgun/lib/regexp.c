@@ -21,12 +21,12 @@
 #define REG(k) (*DATA_STRUCT(k, regex_t**))
 
 void regexp_cleanup(STATE, OBJECT regexp) {
-  onig_free(REG(regexp_get_data(regexp)));
+  onig_free(REG(regexp));
 }
 
 void regexp_init(STATE) {
   onig_init();
-  state_add_cleanup(state, state->global->regexp, regexp_cleanup);
+  state_add_cleanup(state, BASIC_CLASS(regexpdata), regexp_cleanup);
 }
 
 char *regexp_version(STATE) {
