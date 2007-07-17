@@ -15,6 +15,8 @@ class MyString < String; end
 class MyArray < Array; end
 class MyRange < Range; end
 
+# TODO: Add specs using MyRegexp
+
 # TODO: Add specs to verify that methods operate on bytes instead of
 # chars independently of encoding and $KCODE all over the place.
 
@@ -68,15 +70,12 @@ describe "String#%(Object)" do
     end
   end
   
-  it "ignores percent signs at end of string / before newlines" do
+  it "ignores percent signs at end of string / before newlines, null bytes" do
     ("%" % []).should == "%"
     ("foo%" % []).should == "foo%"
+    ("%\0x hello" % []).should == "%\0x hello"
   end
   
-  it "replaces percent sign followed by null byte with a percent sign" do
-    ("%\0x hello" % []).should == "%x hello"
-  end
-
   it "replaces trailing absolute argument specifier without type with percent sign" do
     ("hello %1$" % "foo").should == "hello %"
   end
@@ -93,6 +92,27 @@ describe "String#%(Object)" do
     should_raise(ArgumentError) { "%0$s" % "x" }
     should_raise(ArgumentError) { "%*0$s" % [5, "x"] }
     should_raise(ArgumentError) { "%*1$.*0$1$s" % [1, 2, 3] }
+    
+    # Star precision before star width:
+    should_raise(ArgumentError) { "%.**d" % [5, 10, 1] }
+
+    # Precision before flags and width:
+    should_raise(ArgumentError) { "%.5+05d" % 5 }
+    should_raise(ArgumentError) { "%.5 5d" % 5 }
+
+    # Overriding a star width with a numeric one:
+    should_raise(ArgumentError) { "%*1s" % [5, 1] }
+
+    # Width before flags:
+    should_raise(ArgumentError) { "%5+0d" % 1 }
+    should_raise(ArgumentError) { "%5 0d" % 1 }
+
+    # Specifying width multiple times:
+    should_raise(ArgumentError) { "%50+30+20+10+5d" % 5 }
+    should_raise(ArgumentError) { "%50 30 20 10 5d" % 5 }
+
+    # Specifying the precision multiple times with negative star arguments:
+    should_raise(ArgumentError) { "%.*.*.*.*f" % [-1, -1, -1, 5, 1] }
   end
 
   it "raises an ArgumentError when multiple positional argument tokens are given for one format specifier" do
@@ -433,9 +453,10 @@ describe "String#%(Object)" do
   # MRI crashes on this one.
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
   failure :mri do
-    it "ignores huge precisions for %s" do
-      ("%.25555555555555555555555555555555555555s" % "hello world").should ==
-      "hello world"
+    it "raises ArgumentError for huge precisions for %s" do
+      should_raise(ArgumentError) do
+        "%.25555555555555555555555555555555555555s" % "hello world"
+      end
     end
   end
   
@@ -822,6 +843,8 @@ describe "String#<=>(other_string)" do
   end
 end
 
+# Note: This is inconsistent with Array#<=> which calls to_str instead of
+# just using it as an indicator.
 describe "String#<=>(obj)" do
   it "returns nil if its argument does not respond to to_str" do
     ("abc" <=> 1).should == nil
@@ -836,7 +859,7 @@ describe "String#<=>(obj)" do
     ("abc" <=> obj).should == nil
   end
   
-  it "compares its argument and self by calling <=> on obj and turning the result around" do
+  it "compares its argument and self by calling <=> on obj and turning the result around if obj responds to to_str" do
     obj = Object.new
     def obj.to_str() "" end
     def obj.<=>(arg) 1  end
@@ -919,391 +942,428 @@ describe "String#=~(obj)" do
     obj.should_receive(:=~, :with => [str], :returning => false)
     (str =~ obj).should == false
   end
-end
-
-describe "String#[idx]" do
-  it "returns the character code of the character at idx" do
-    "hello"[0].should == ?h
-    "hello"[-1].should == ?o
-  end
   
-  it "returns nil if idx is outside of self" do
-    "hello"[20].should == nil
-    "hello"[-20].should == nil
+  it "sets $~ to MatchData when there is a match and nil when there's none" do
+    'hello' =~ /./
+    $~[0].should == 'h'
     
-    ""[0].should == nil
-    ""[-1].should == nil
-  end
-  
-  it "calls to_int on idx" do
-    "hello"[0.5].should == ?h
-    
-    obj = Object.new
-    obj.should_receive(:to_int, :returning => 1)
-    "hello"[obj].should == ?e
-    
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-    "hello"[obj].should == ?e
+    'hello' =~ /not/
+    $~.should == nil
   end
 end
 
-describe "String#[idx, length]" do
-  it "returns the substring starting at idx and the given length" do
-    "hello there"[0,0].should == ""
-    "hello there"[0,1].should == "h"
-    "hello there"[0,3].should == "hel"
-    "hello there"[0,6].should == "hello "
-    "hello there"[0,9].should == "hello the"
-    "hello there"[0,12].should == "hello there"
+# Let's keep this file sane and not duplicate all this two times.
+["[]", "slice"].each do |cmd|
+  describe "String##{cmd}(idx)" do
+    it "returns the character code of the character at idx" do
+      "hello".send(cmd, 0).should == ?h
+      "hello".send(cmd, -1).should == ?o
+    end
 
-    "hello there"[1,0].should == ""
-    "hello there"[1,1].should == "e"
-    "hello there"[1,3].should == "ell"
-    "hello there"[1,6].should == "ello t"
-    "hello there"[1,9].should == "ello ther"
-    "hello there"[1,12].should == "ello there"
+    it "returns nil if idx is outside of self" do
+      "hello".send(cmd, 20).should == nil
+      "hello".send(cmd, -20).should == nil
 
-    "hello there"[3,0].should == ""
-    "hello there"[3,1].should == "l"
-    "hello there"[3,3].should == "lo "
-    "hello there"[3,6].should == "lo the"
-    "hello there"[3,9].should == "lo there"
+      "".send(cmd, 0).should == nil
+      "".send(cmd, -1).should == nil
+    end
 
-    "hello there"[4,0].should == ""
-    "hello there"[4,3].should == "o t"
-    "hello there"[4,6].should == "o ther"
-    "hello there"[4,9].should == "o there"
-    
-    "foo"[2,1].should == "o"
-    "foo"[3,0].should == ""
-    "foo"[3,1].should == ""
+    it "calls to_int on idx" do
+      "hello".send(cmd, 0.5).should == ?h
 
-    ""[0,0].should == ""
-    ""[0,1].should == ""
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => 1)
+      "hello".send(cmd, obj).should == ?e
 
-    "x"[0,0].should == ""
-    "x"[0,1].should == "x"
-    "x"[1,0].should == ""
-    "x"[1,1].should == ""
-
-    "x"[-1,0].should == ""
-    "x"[-1,1].should == "x"
-
-    "hello there"[-3,2].should == "er"
-  end
-  
-  it "always taints resulting strings when self is tainted" do
-    str = "hello world"
-    str.taint
-    
-    str[0,0].tainted?.should == true
-    str[0,1].tainted?.should == true
-    str[2,1].tainted?.should == true
-  end
-  
-  it "returns nil if the offset falls outside of self" do
-    "hello there"[20,3].should == nil
-    "hello there"[-20,3].should == nil
-
-    ""[1,0].should == nil
-    ""[1,1].should == nil
-    
-    ""[-1,0].should == nil
-    ""[-1,1].should == nil
-    
-    "x"[2,0].should == nil
-    "x"[2,1].should == nil
-
-    "x"[-2,0].should == nil
-    "x"[-2,1].should == nil
-  end
-  
-  it "returns nil if the length is negative" do
-    "hello there"[4,-3].should == nil
-    "hello there"[-4,-3].should == nil
-  end
-  
-  it "calls to_int on idx and length" do
-    "hello"[0.5, 1].should == "h"
-    "hello"[0.5, 2.5].should == "he"
-    "hello"[1, 2.5].should == "el"
-    
-    obj = Object.new
-    obj.should_receive(:to_int, :count => 4, :returning => 2)
-
-    "hello"[obj, 1].should == "l"
-    "hello"[obj, obj].should == "ll"
-    "hello"[0, obj].should == "he"
-    
-    obj = Object.new
-    obj.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
-    "hello"[obj, obj].should == "ll"
-  end
-  
-  it "raises TypeError when idx or length can't be converted to an integer" do
-    should_raise(TypeError) { "hello"[Object.new, 0] }
-    should_raise(TypeError) { "hello"[0, Object.new] }
-
-    # I'm deliberately including this here.
-    # It means that str[other, idx] isn't supported.
-    should_raise(TypeError) { "hello"["", 0] }
-  end
-  
-  it "returns subclass instances" do
-    s = MyString.new("hello")
-    s[0,0].class.should == MyString
-    s[0,4].class.should == MyString
-    s[1,4].class.should == MyString
-  end
-end
-
-describe "String#[range]" do
-  it "returns the substring given by the offsets of the range" do
-    "hello there"[1..1].should == "e"
-    "hello there"[1..3].should == "ell"
-    "hello there"[1...3].should == "el"
-    "hello there"[-4..-2].should == "her"
-    "hello there"[-4...-2].should == "he"
-    "hello there"[5..-1].should == " there"
-    "hello there"[5...-1].should == " ther"
-    
-    ""[0..0].should == ""
-
-    "x"[0..0].should == "x"
-    "x"[0..1].should == "x"
-    "x"[0...1].should == "x"
-    "x"[0..-1].should == "x"
-    
-    "x"[1..1].should == ""
-    "x"[1..-1].should == ""
-  end
-  
-  it "returns nil if the beginning of the range falls outside of self" do
-    "hello there"[12..-1].should == nil
-    "hello there"[20..25].should == nil
-    "hello there"[20..1].should == nil
-    "hello there"[-20..1].should == nil
-    "hello there"[-20..-1].should == nil
-
-    ""[-1..-1].should == nil
-    ""[-1...-1].should == nil
-    ""[-1..0].should == nil
-    ""[-1...0].should == nil
-  end
-  
-  it "returns an empty string if range.begin is inside self and > real end" do
-    "hello there"[1...1].should == ""
-    "hello there"[4..2].should == ""
-    "hello"[4..-4].should == ""
-    "hello there"[-5..-6].should == ""
-    "hello there"[-2..-4].should == ""
-    "hello there"[-5..-6].should == ""
-    "hello there"[-5..2].should == ""
-
-    ""[0...0].should == ""
-    ""[0..-1].should == ""
-    ""[0...-1].should == ""
-    
-    "x"[0...0].should == ""
-    "x"[0...-1].should == ""
-    "x"[1...1].should == ""
-    "x"[1...-1].should == ""
-  end
-  
-  it "always taints resulting strings when self is tainted" do
-    str = "hello world"
-    str.taint
-    
-    str[0..0].tainted?.should == true
-    str[0...0].tainted?.should == true
-    str[0..1].tainted?.should == true
-    str[0...1].tainted?.should == true
-    str[2..3].tainted?.should == true
-    str[2..0].tainted?.should == true
-  end
-  
-  it "returns subclass instances" do
-    s = MyString.new("hello")
-    s[0...0].class.should == MyString
-    s[0..4].class.should == MyString
-    s[1..4].class.should == MyString
-  end
-  
-  it "calls to_int on range arguments" do
-    from = Object.new
-    to = Object.new
-
-    # So we can construct a range out of them...
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
-
-    def from.to_int() 1 end
-    def to.to_int() -2 end
-      
-    "hello there"[from..to].should == "ello ther"
-    "hello there"[from...to].should == "ello the"
-    
-    from = Object.new
-    to = Object.new
-    
-    def from.<=>(o) 0 end
-    def to.<=>(o) 0 end
-      
-    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
-
-    "hello there"[from..to].should == "ello ther"
-  end
-  
-  it "works with Range subclasses" do
-    a = "GOOD"
-    range_incl = MyRange.new(1, 2)
-    range_excl = MyRange.new(-3, -1, true)
-
-    a[range_incl].should == "OO"
-    a[range_excl].should == "OO"
-  end
-end
-
-describe "String#[regexp]" do
-  it "returns the matching portion of self" do
-    "hello there"[/[aeiou](.)\1/].should == "ell"
-    ""[//].should == ""
-  end
-  
-  it "returns nil if there is no match" do
-    "hello there"[/xyz/].should == nil
-  end
-  
-  it "always taints resulting strings when self or regexp is tainted" do
-    strs = ["hello world"]
-    strs += strs.map { |s| s.dup.taint }
-    
-    strs.each do |str|
-      str[//].tainted?.should == str.tainted?
-      str[/hello/].tainted?.should == str.tainted?
-
-      tainted_re = /./
-      tainted_re.taint
-      
-      str[tainted_re].tainted?.should == true
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+      "hello".send(cmd, obj).should == ?e
     end
   end
 
-  it "returns subclass instances" do
-    s = MyString.new("hello")
-    s[//].class.should == MyString
-    s[/../].class.should == MyString
-  end
-end
+  describe "String##{cmd}(idx, length)" do
+    it "returns the substring starting at idx and the given length" do
+      "hello there".send(cmd, 0,0).should == ""
+      "hello there".send(cmd, 0,1).should == "h"
+      "hello there".send(cmd, 0,3).should == "hel"
+      "hello there".send(cmd, 0,6).should == "hello "
+      "hello there".send(cmd, 0,9).should == "hello the"
+      "hello there".send(cmd, 0,12).should == "hello there"
 
-describe "String#[regexp, idx]" do
-  it "returns the capture for idx" do
-    "hello there"[/[aeiou](.)\1/, 0].should == "ell"
-    "hello there"[/[aeiou](.)\1/, 1].should == "l"
-    "hello there"[/[aeiou](.)\1/, -1].should == "l"
+      "hello there".send(cmd, 1,0).should == ""
+      "hello there".send(cmd, 1,1).should == "e"
+      "hello there".send(cmd, 1,3).should == "ell"
+      "hello there".send(cmd, 1,6).should == "ello t"
+      "hello there".send(cmd, 1,9).should == "ello ther"
+      "hello there".send(cmd, 1,12).should == "ello there"
 
-    "har"[/(.)(.)(.)/, 0].should == "har"
-    "har"[/(.)(.)(.)/, 1].should == "h"
-    "har"[/(.)(.)(.)/, 2].should == "a"
-    "har"[/(.)(.)(.)/, 3].should == "r"
-    "har"[/(.)(.)(.)/, -1].should == "r"
-    "har"[/(.)(.)(.)/, -2].should == "a"
-    "har"[/(.)(.)(.)/, -3].should == "h"
-  end
+      "hello there".send(cmd, 3,0).should == ""
+      "hello there".send(cmd, 3,1).should == "l"
+      "hello there".send(cmd, 3,3).should == "lo "
+      "hello there".send(cmd, 3,6).should == "lo the"
+      "hello there".send(cmd, 3,9).should == "lo there"
 
-  it "always taints resulting strings when self or regexp is tainted" do
-    strs = ["hello world"]
-    strs += strs.map { |s| s.dup.taint }
-    
-    strs.each do |str|
-      str[//, 0].tainted?.should == str.tainted?
-      str[/hello/, 0].tainted?.should == str.tainted?
+      "hello there".send(cmd, 4,0).should == ""
+      "hello there".send(cmd, 4,3).should == "o t"
+      "hello there".send(cmd, 4,6).should == "o ther"
+      "hello there".send(cmd, 4,9).should == "o there"
 
-      str[/(.)(.)(.)/, 0].tainted?.should == str.tainted?
-      str[/(.)(.)(.)/, 1].tainted?.should == str.tainted?
-      str[/(.)(.)(.)/, -1].tainted?.should == str.tainted?
-      str[/(.)(.)(.)/, -2].tainted?.should == str.tainted?
-      
-      tainted_re = /(.)(.)(.)/
-      tainted_re.taint
-      
-      str[tainted_re, 0].tainted?.should == true
-      str[tainted_re, 1].tainted?.should == true
-      str[tainted_re, -1].tainted?.should == true
+      "foo".send(cmd, 2,1).should == "o"
+      "foo".send(cmd, 3,0).should == ""
+      "foo".send(cmd, 3,1).should == ""
+
+      "".send(cmd, 0,0).should == ""
+      "".send(cmd, 0,1).should == ""
+
+      "x".send(cmd, 0,0).should == ""
+      "x".send(cmd, 0,1).should == "x"
+      "x".send(cmd, 1,0).should == ""
+      "x".send(cmd, 1,1).should == ""
+
+      "x".send(cmd, -1,0).should == ""
+      "x".send(cmd, -1,1).should == "x"
+
+      "hello there".send(cmd, -3,2).should == "er"
+    end
+
+    it "always taints resulting strings when self is tainted" do
+      str = "hello world"
+      str.taint
+
+      str.send(cmd, 0,0).tainted?.should == true
+      str.send(cmd, 0,1).tainted?.should == true
+      str.send(cmd, 2,1).tainted?.should == true
+    end
+
+    it "returns nil if the offset falls outside of self" do
+      "hello there".send(cmd, 20,3).should == nil
+      "hello there".send(cmd, -20,3).should == nil
+
+      "".send(cmd, 1,0).should == nil
+      "".send(cmd, 1,1).should == nil
+
+      "".send(cmd, -1,0).should == nil
+      "".send(cmd, -1,1).should == nil
+
+      "x".send(cmd, 2,0).should == nil
+      "x".send(cmd, 2,1).should == nil
+
+      "x".send(cmd, -2,0).should == nil
+      "x".send(cmd, -2,1).should == nil
+    end
+
+    it "returns nil if the length is negative" do
+      "hello there".send(cmd, 4,-3).should == nil
+      "hello there".send(cmd, -4,-3).should == nil
+    end
+
+    it "calls to_int on idx and length" do
+      "hello".send(cmd, 0.5, 1).should == "h"
+      "hello".send(cmd, 0.5, 2.5).should == "he"
+      "hello".send(cmd, 1, 2.5).should == "el"
+
+      obj = Object.new
+      obj.should_receive(:to_int, :count => 4, :returning => 2)
+
+      "hello".send(cmd, obj, 1).should == "l"
+      "hello".send(cmd, obj, obj).should == "ll"
+      "hello".send(cmd, 0, obj).should == "he"
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
+      "hello".send(cmd, obj, obj).should == "ll"
+    end
+
+    it "raises TypeError when idx or length can't be converted to an integer" do
+      should_raise(TypeError) { "hello".send(cmd, Object.new, 0) }
+      should_raise(TypeError) { "hello".send(cmd, 0, Object.new) }
+
+      # I'm deliberately including this here.
+      # It means that str.send(cmd, other, idx) isn't supported.
+      should_raise(TypeError) { "hello".send(cmd, "", 0) }
+    end
+
+    it "returns subclass instances" do
+      s = MyString.new("hello")
+      s.send(cmd, 0,0).class.should == MyString
+      s.send(cmd, 0,4).class.should == MyString
+      s.send(cmd, 1,4).class.should == MyString
     end
   end
-  
-  it "returns nil if there is no match" do
-    "hello there"[/(what?)/, 1].should == nil
-  end
-  
-  it "returns nil if there is no capture for idx" do
-    "hello there"[/[aeiou](.)\1/, 2].should == nil
-    # You can't refer to 0 using negative indices
-    "hello there"[/[aeiou](.)\1/, -2].should == nil
-  end
-  
-  it "calls to_int on idx" do
-    obj = Object.new
-    obj.should_receive(:to_int, :returning => 2)
-      
-    "har"[/(.)(.)(.)/, 1.5].should == "h"
-    "har"[/(.)(.)(.)/, obj].should == "a"
-    
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
-    "har"[/(.)(.)(.)/, obj].should == "a"
-  end
-  
-  it "returns subclass instances" do
-    s = MyString.new("hello")
-    s[/(.)(.)/, 0].class.should == MyString
-    s[/(.)(.)/, 1].class.should == MyString
-  end
-end
 
-describe "String#[other_str]" do
-  it "returns other_str if it occurs in self" do
-    s = "lo"
-    "hello there"[s].should == s
+  describe "String##{cmd}(range)" do
+    it "returns the substring given by the offsets of the range" do
+      "hello there".send(cmd, 1..1).should == "e"
+      "hello there".send(cmd, 1..3).should == "ell"
+      "hello there".send(cmd, 1...3).should == "el"
+      "hello there".send(cmd, -4..-2).should == "her"
+      "hello there".send(cmd, -4...-2).should == "he"
+      "hello there".send(cmd, 5..-1).should == " there"
+      "hello there".send(cmd, 5...-1).should == " ther"
+
+      "".send(cmd, 0..0).should == ""
+
+      "x".send(cmd, 0..0).should == "x"
+      "x".send(cmd, 0..1).should == "x"
+      "x".send(cmd, 0...1).should == "x"
+      "x".send(cmd, 0..-1).should == "x"
+
+      "x".send(cmd, 1..1).should == ""
+      "x".send(cmd, 1..-1).should == ""
+    end
+
+    it "returns nil if the beginning of the range falls outside of self" do
+      "hello there".send(cmd, 12..-1).should == nil
+      "hello there".send(cmd, 20..25).should == nil
+      "hello there".send(cmd, 20..1).should == nil
+      "hello there".send(cmd, -20..1).should == nil
+      "hello there".send(cmd, -20..-1).should == nil
+
+      "".send(cmd, -1..-1).should == nil
+      "".send(cmd, -1...-1).should == nil
+      "".send(cmd, -1..0).should == nil
+      "".send(cmd, -1...0).should == nil
+    end
+
+    it "returns an empty string if range.begin is inside self and > real end" do
+      "hello there".send(cmd, 1...1).should == ""
+      "hello there".send(cmd, 4..2).should == ""
+      "hello".send(cmd, 4..-4).should == ""
+      "hello there".send(cmd, -5..-6).should == ""
+      "hello there".send(cmd, -2..-4).should == ""
+      "hello there".send(cmd, -5..-6).should == ""
+      "hello there".send(cmd, -5..2).should == ""
+
+      "".send(cmd, 0...0).should == ""
+      "".send(cmd, 0..-1).should == ""
+      "".send(cmd, 0...-1).should == ""
+
+      "x".send(cmd, 0...0).should == ""
+      "x".send(cmd, 0...-1).should == ""
+      "x".send(cmd, 1...1).should == ""
+      "x".send(cmd, 1...-1).should == ""
+    end
+
+    it "always taints resulting strings when self is tainted" do
+      str = "hello world"
+      str.taint
+
+      str.send(cmd, 0..0).tainted?.should == true
+      str.send(cmd, 0...0).tainted?.should == true
+      str.send(cmd, 0..1).tainted?.should == true
+      str.send(cmd, 0...1).tainted?.should == true
+      str.send(cmd, 2..3).tainted?.should == true
+      str.send(cmd, 2..0).tainted?.should == true
+    end
+
+    it "returns subclass instances" do
+      s = MyString.new("hello")
+      s.send(cmd, 0...0).class.should == MyString
+      s.send(cmd, 0..4).class.should == MyString
+      s.send(cmd, 1..4).class.should == MyString
+    end
+
+    it "calls to_int on range arguments" do
+      from = Object.new
+      to = Object.new
+
+      # So we can construct a range out of them...
+      def from.<=>(o) 0 end
+      def to.<=>(o) 0 end
+
+      def from.to_int() 1 end
+      def to.to_int() -2 end
+
+      "hello there".send(cmd, from..to).should == "ello ther"
+      "hello there".send(cmd, from...to).should == "ello the"
+
+      from = Object.new
+      to = Object.new
+
+      def from.<=>(o) 0 end
+      def to.<=>(o) 0 end
+
+      from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+      to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+
+      "hello there".send(cmd, from..to).should == "ello ther"
+    end
+
+    it "works with Range subclasses" do
+      a = "GOOD"
+      range_incl = MyRange.new(1, 2)
+      range_excl = MyRange.new(-3, -1, true)
+
+      a.send(cmd, range_incl).should == "OO"
+      a.send(cmd, range_excl).should == "OO"
+    end
   end
 
-  it "taints resulting strings when other is tainted" do
-    strs = ["", "hello world", "hello"]
-    strs += strs.map { |s| s.dup.taint }
-    
-    strs.each do |str|
-      strs.each do |other|
-        r = str[other]
-        
-        r.tainted?.should == !r.nil? & other.tainted?
+  describe "String##{cmd}(regexp)" do
+    it "returns the matching portion of self" do
+      "hello there".send(cmd, /[aeiou](.)\1/).should == "ell"
+      "".send(cmd, //).should == ""
+    end
+
+    it "returns nil if there is no match" do
+      "hello there".send(cmd, /xyz/).should == nil
+    end
+
+    it "always taints resulting strings when self or regexp is tainted" do
+      strs = ["hello world"]
+      strs += strs.map { |s| s.dup.taint }
+
+      strs.each do |str|
+        str.send(cmd, //).tainted?.should == str.tainted?
+        str.send(cmd, /hello/).tainted?.should == str.tainted?
+
+        tainted_re = /./
+        tainted_re.taint
+
+        str.send(cmd, tainted_re).tainted?.should == true
       end
     end
+
+    it "returns subclass instances" do
+      s = MyString.new("hello")
+      s.send(cmd, //).class.should == MyString
+      s.send(cmd, /../).class.should == MyString
+    end
+    
+    it "sets $~ to MatchData when there is a match and nil when there's none" do
+      'hello'.send(cmd, /./)
+      $~[0].should == 'h'
+
+      'hello'.send(cmd, /not/)
+      $~.should == nil
+    end
   end
-  
-  it "returns nil if there is no match" do
-    "hello there"["bye"].should == nil
+
+  describe "String##{cmd}(regexp, idx)" do
+    it "returns the capture for idx" do
+      "hello there".send(cmd, /[aeiou](.)\1/, 0).should == "ell"
+      "hello there".send(cmd, /[aeiou](.)\1/, 1).should == "l"
+      "hello there".send(cmd, /[aeiou](.)\1/, -1).should == "l"
+
+      "har".send(cmd, /(.)(.)(.)/, 0).should == "har"
+      "har".send(cmd, /(.)(.)(.)/, 1).should == "h"
+      "har".send(cmd, /(.)(.)(.)/, 2).should == "a"
+      "har".send(cmd, /(.)(.)(.)/, 3).should == "r"
+      "har".send(cmd, /(.)(.)(.)/, -1).should == "r"
+      "har".send(cmd, /(.)(.)(.)/, -2).should == "a"
+      "har".send(cmd, /(.)(.)(.)/, -3).should == "h"
+    end
+
+    it "always taints resulting strings when self or regexp is tainted" do
+      strs = ["hello world"]
+      strs += strs.map { |s| s.dup.taint }
+
+      strs.each do |str|
+        str.send(cmd, //, 0).tainted?.should == str.tainted?
+        str.send(cmd, /hello/, 0).tainted?.should == str.tainted?
+
+        str.send(cmd, /(.)(.)(.)/, 0).tainted?.should == str.tainted?
+        str.send(cmd, /(.)(.)(.)/, 1).tainted?.should == str.tainted?
+        str.send(cmd, /(.)(.)(.)/, -1).tainted?.should == str.tainted?
+        str.send(cmd, /(.)(.)(.)/, -2).tainted?.should == str.tainted?
+
+        tainted_re = /(.)(.)(.)/
+        tainted_re.taint
+
+        str.send(cmd, tainted_re, 0).tainted?.should == true
+        str.send(cmd, tainted_re, 1).tainted?.should == true
+        str.send(cmd, tainted_re, -1).tainted?.should == true
+      end
+    end
+
+    it "returns nil if there is no match" do
+      "hello there".send(cmd, /(what?)/, 1).should == nil
+    end
+
+    it "returns nil if there is no capture for idx" do
+      "hello there".send(cmd, /[aeiou](.)\1/, 2).should == nil
+      # You can't refer to 0 using negative indices
+      "hello there".send(cmd, /[aeiou](.)\1/, -2).should == nil
+    end
+
+    it "calls to_int on idx" do
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => 2)
+
+      "har".send(cmd, /(.)(.)(.)/, 1.5).should == "h"
+      "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+      "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
+    end
+
+    it "returns subclass instances" do
+      s = MyString.new("hello")
+      s.send(cmd, /(.)(.)/, 0).class.should == MyString
+      s.send(cmd, /(.)(.)/, 1).class.should == MyString
+    end
+    
+    it "sets $~ to MatchData when there is a match and nil when there's none" do
+      'hello'.send(cmd, /.(.)/, 0)
+      $~[0].should == 'he'
+
+      'hello'.send(cmd, /.(.)/, 1)
+      $~[1].should == 'e'
+
+      'hello'.send(cmd, /not/, 0)
+      $~.should == nil
+    end
   end
-  
-  it "doesn't call to_str on its argument" do
-    o = Object.new
-    o.should_not_receive(:to_str)
+
+  describe "String##{cmd}(other_str)" do
+    it "returns other_str if it occurs in self" do
+      s = "lo"
+      "hello there".send(cmd, s).should == s
+    end
+
+    it "taints resulting strings when other is tainted" do
+      strs = ["", "hello world", "hello"]
+      strs += strs.map { |s| s.dup.taint }
+
+      strs.each do |str|
+        strs.each do |other|
+          r = str.send(cmd, other)
+
+          r.tainted?.should == !r.nil? & other.tainted?
+        end
+      end
+    end
+    
+    it "doesn't set $~" do
+      $~ = nil
       
-    should_raise(TypeError) { "hello"[o] }
-  end
-  
-  it "returns a subclass instance when given a subclass instance" do
-    s = MyString.new("el")
-    r = "hello"[s]
-    r.should == "el"
-    r.class.should == MyString
+      'hello'.send(cmd, 'll')
+      $~.should == nil
+    end
+
+    it "returns nil if there is no match" do
+      "hello there".send(cmd, "bye").should == nil
+    end
+
+    it "doesn't call to_str on its argument" do
+      o = Object.new
+      o.should_not_receive(:to_str)
+
+      should_raise(TypeError) { "hello".send(cmd, o) }
+    end
+
+    it "returns a subclass instance when given a subclass instance" do
+      s = MyString.new("el")
+      r = "hello".send(cmd, s)
+      r.should == "el"
+      r.class.should == MyString
+    end
   end
 end
 
@@ -1408,7 +1468,7 @@ describe "String#[idx] = other_str" do
     a.tainted?.should == true
   end
 
-  it "raises an IndexError  without changing self if idx is outside of self" do
+  it "raises an IndexError without changing self if idx is outside of self" do
     str = "hello"
 
     should_raise(IndexError) { str[20] = "bam" }    
@@ -2765,6 +2825,20 @@ describe "String#gsub(pattern, replacement)" do
     MyString.new("foo").gsub(/foo/, "").class.should == MyString
     MyString.new("foo").gsub("foo", "").class.should == MyString
   end
+  
+  it "sets $~ to MatchData of last match and nil when there's none" do
+    'hello.'.gsub('hello', 'x')
+    $~[0].should == 'hello'
+
+    'hello.'.gsub('not', 'x')
+    $~.should == nil
+
+    'hello.'.gsub(/.(.)/, 'x')
+    $~[0].should == 'o.'
+
+    'hello.'.gsub(/not/, 'x')
+    $~.should == nil
+  end
 end
 
 describe "String#gsub(pattern) { block }" do
@@ -2772,11 +2846,16 @@ describe "String#gsub(pattern) { block }" do
     "hello".gsub(/./) { |s| s.succ + ' ' }.should == "i f m m p "
     "hello!".gsub(/(.)(.)/) { |*a| a.inspect }.should == '["he"]["ll"]["o!"]'
   end
+
+  it "ignores a block if supplied" do
+    "food".gsub(/f/, "g") { "w" }.should == "good"
+  end
   
   it "sets $~ for access from the block" do
     str = "hello"
     str.gsub(/([aeiou])/) { "<#{$~[1]}>" }.should == "h<e>ll<o>"
     str.gsub(/([aeiou])/) { "<#{$1}>" }.should == "h<e>ll<o>"
+    str.gsub("l") { "<#{$~[0]}>" }.should == "he<l><l>o"
     
     offsets = []
     
@@ -2788,6 +2867,35 @@ describe "String#gsub(pattern) { block }" do
     end.should == "hhellollhello"
     
     offsets.should == [[1, 2], [4, 5]]
+  end
+  
+  it "restores $~ after leaving the block" do
+    [/./, "l"].each do |pattern|
+      old_md = nil
+      "hello".gsub(pattern) do
+        old_md = $~
+        "ok".match(/./)
+        "x"
+      end
+    
+      $~.should == old_md
+      $~.string.should == "hello"
+    end
+  end
+  
+  it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
+    'hello.'.gsub('l') { 'x' }
+    $~.begin(0).should == 3
+    $~[0].should == 'l'
+
+    'hello.'.gsub('not') { 'x' }
+    $~.should == nil
+
+    'hello.'.gsub(/.(.)/) { 'x' }
+    $~[0].should == 'o.'
+
+    'hello.'.gsub(/not/) { 'x' }
+    $~.should == nil
   end
   
   it "raises a RuntimeError if the string is modified while substituting" do
@@ -2831,7 +2939,7 @@ describe "String#gsub(pattern) { block }" do
     hello.gsub(//) { empty_t }.tainted?.should == true
     
     hello.gsub(//.taint) { "foo" }.tainted?.should == false
-  end
+  end  
 end
 
 describe "String#gsub!(pattern, replacement)" do
@@ -2839,10 +2947,6 @@ describe "String#gsub!(pattern, replacement)" do
     a = "hello"
     a.gsub!(/[aeiou]/, '*').equal?(a).should == true
     a.should == "h*ll*"
-  end
-
-  it "ignores a block if supplied" do
-    "food".gsub!(/f/, "g") { "w" }.should == "good"
   end
 
   it "taints self if replacement is tainted" do
@@ -2927,6 +3031,8 @@ describe "String#hex" do
   
   it "takes an optional 0x" do
     "0x0a".hex.should == 10
+    "0x-1".hex.should == 0
+    "0x0x1".hex.should == 0
   end
   
   it "returns 0 on error" do
@@ -3116,6 +3222,13 @@ describe "String#index(substring [, start_offset])" do
     "blablabla".index("ablabla").should == 2
   end  
   
+  it "doesn't set $~" do
+    $~ = nil
+    
+    'hello.'.index('ll')
+    $~.should == nil
+  end
+
   it "ignores string subclasses" do
     "blablabla".index(MyString.new("bla")).should == 0
     MyString.new("blablabla").index("bla").should == 0
@@ -3238,6 +3351,14 @@ describe "String#index(regexp [, start_offset])" do
     "bl\nablabla".index(/$/).should == 2
     
     "blablabla".index(/.l./).should == 0
+  end
+
+  it "sets $~ to MatchData of match and nil when there's none" do
+    'hello.'.index(/.(.)/)
+    $~[0].should == 'he'
+
+    'hello.'.index(/not/)
+    $~.should == nil
   end
   
   it "starts the search at the given offset" do
@@ -3658,7 +3779,7 @@ describe "String#match(pattern)" do
     'hello'.match(/\Go/).should == nil
   end
 
-  it "sets $~" do
+  it "sets $~ to MatchData of match or nil when there is none" do
     'hello'.match(/./)
     $~[0].should == 'h'
     Regexp.last_match[0].should == 'h'
@@ -3705,6 +3826,7 @@ describe "String#oct" do
   it "treats leading characters of self as a string of oct digits" do
     "0".oct.should == 0
     "77".oct.should == 077
+    "78".oct.should == 7
     "077".oct.should == 077
     "0o".oct.should == 0
 
@@ -3947,6 +4069,13 @@ describe "String#rindex(substring [, start_offset])" do
     "blablabla".rindex("blablab").should == 0
   end  
   
+  it "doesn't set $~" do
+    $~ = nil
+    
+    'hello.'.rindex('ll')
+    $~.should == nil
+  end
+  
   it "ignores string subclasses" do
     "blablabla".rindex(MyString.new("bla")).should == 6
     MyString.new("blablabla").rindex("bla").should == 6
@@ -4085,6 +4214,14 @@ describe "String#rindex(regexp [, start_offset])" do
     "blablabla".rindex(/$/).should == 9
     
     "blablabla".rindex(/.l./).should == 6
+  end
+  
+  it "sets $~ to MatchData of match and nil when there's none" do
+    'hello.'.rindex(/.(.)/)
+    $~[0].should == 'o.'
+
+    'hello.'.rindex(/not/)
+    $~.should == nil
   end
   
   it "starts the search at the given offset" do
@@ -4322,46 +4459,169 @@ describe "String#scan(pattern)" do
   end
   
   it "stores groups as arrays in the returned arrays" do
+    "hello".scan(/()/).should == [[""]] * 6
+    "hello".scan(/()()/).should == [["", ""]] * 6
     "cruel world".scan(/(...)/).should == [["cru"], ["el "], ["wor"]]
     "cruel world".scan(/(..)(..)/).should == [["cr", "ue"], ["l ", "wo"]]
   end
   
-  it "scans for occurrences of pattern if pattern is a string" do
+  it "scans for occurrences of the string if pattern is a string" do
     "one two one two".scan('one').should == ["one", "one"]
+    "hello.".scan('.').should == ['.']
+  end
+
+  it "sets $~ to MatchData of last match and nil when there's none" do
+    'hello.'.scan(/.(.)/)
+    $~[0].should == 'o.'
+
+    'hello.'.scan(/not/)
+    $~.should == nil
+
+    'hello.'.scan('l')
+    $~.begin(0).should == 3
+    $~[0].should == 'l'
+
+    'hello.'.scan('not')
+    $~.should == nil
   end
   
-  it "raises a TypeError if pattern can't be converted to a Regexp" do
-    should_raise(TypeError) do
-      "cruel world".scan(5)
-    end
+  it "supports \\G which matches the end of the previous match / string start for first match" do
+    "one two one two".scan(/\G\w+/).should == ["one"]
+    "one two one two".scan(/\G\w+\s*/).should == ["one ", "two ", "one ", "two"]
+    "one two one two".scan(/\G\s*\w+/).should == ["one", " two", " one", " two"]
+  end
 
-    should_raise(TypeError) do
-      "cruel world".scan(:test)
-    end
+  it "tries to convert pattern to a string via to_str" do
+    obj = Object.new
+    obj.should_receive(:to_str, :returning => "o")
+    "o_o".scan(obj).should == ["o", "o"]
     
-    should_raise(TypeError) do
-      "cruel world".scan(Object.new)
-    end
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "-")
+    "-_-".scan(obj).should == ["-", "-"]
+  end
+  
+  it "raises a TypeError if pattern isn't a Regexp and can't be converted to a String" do
+    should_raise(TypeError) { "cruel world".scan(5) }
+    should_raise(TypeError) { "cruel world".scan(:test) }
+    should_raise(TypeError) { "cruel world".scan(Object.new) }
+  end
+  
+  # Note: MRI taints for tainted regexp patterns,
+  # but not for tainted string patterns.
+  # TODO: Report to ruby-core.
+  it "taints the match strings if self is tainted" do
+    a = "hello hello hello".scan("hello".taint)
+    a.each { |m| m.tainted?.should == true }
+    
+    a = "hello hello hello".taint.scan("hello")
+    a.each { |m| m.tainted?.should == true }
+    
+    a = "hello".scan(/./.taint)
+    a.each { |m| m.tainted?.should == true }
+
+    a = "hello".taint.scan(/./)
+    a.each { |m| m.tainted?.should == true }    
   end
 end
 
 describe "String#scan(pattern) { block }" do
-  it "passes matches to the block" do
-    a = []
-    "cruel world".scan(/\w+/) { |w| a << w }
-    a.should == ["cruel", "world"]
+  it "returns self" do
+    s = "foo"
+    s.scan(/./) {}.equal?(s).should == true
+    s.scan(/roar/) {}.equal?(s).should == true
   end
   
-  it "passes groups as arguments to the block" do
+  it "passes each match to the block as one argument: an array" do
     a = []
-    "cruel world".scan(/(..)(..)/) { |x, y| a << [x, y] }
-    a.should == [["cr", "ue"], ["l ", "wo"]]
+    "cruel world".scan(/\w+/) { |*w| a << w }
+    a.should == [["cruel"], ["world"]]
+  end
+  
+  it "passes groups as to the block as one argument: an array" do
+    a = []
+    "cruel world".scan(/(..)(..)/) { |*w| a << w }
+    a.should == [[["cr", "ue"]], [["l ", "wo"]]]
+  end
+  
+  it "sets $~ for access from the block" do
+    str = "hello"
+
+    matches = []
+    offsets = []
+    
+    str.scan(/([aeiou])/) do
+       md = $~
+       md.string.should == str
+       matches << md.to_a
+       offsets << md.offset(0)
+       str
+    end
+    
+    matches.should == [["e", "e"], ["o", "o"]]
+    offsets.should == [[1, 2], [4, 5]]
+
+    matches = []
+    offsets = []
+    
+    str.scan("l") do
+       md = $~
+       md.string.should == str
+       matches << md.to_a
+       offsets << md.offset(0)
+       str
+    end
+    
+    matches.should == [["l"], ["l"]]
+    offsets.should == [[2, 3], [3, 4]]
+  end
+  
+  it "restores $~ after leaving the block" do
+    [/./, "l"].each do |pattern|
+      old_md = nil
+      "hello".scan(pattern) do
+        old_md = $~
+        "ok".match(/./)
+        "x"
+      end
+    
+      $~.should == old_md
+      $~.string.should == "hello"
+    end
+  end
+  
+  it "sets $~ to MatchData of last match and nil when there's none for access from outside" do
+    'hello.'.scan('l') { 'x' }
+    $~.begin(0).should == 3
+    $~[0].should == 'l'
+
+    'hello.'.scan('not') { 'x' }
+    $~.should == nil
+
+    'hello.'.scan(/.(.)/) { 'x' }
+    $~[0].should == 'o.'
+
+    'hello.'.scan(/not/) { 'x' }
+    $~.should == nil
+  end
+  
+  # Note: MRI taints for tainted regexp patterns,
+  # but not for tainted string patterns.
+  # TODO: Report to ruby-core.
+  it "taints the match strings if self is tainted" do
+    "hello hello hello".scan("hello".taint) { |m| m.tainted?.should == true }
+    "hello hello hello".taint.scan("hello") { |m| m.tainted?.should == true }
+    
+    "hello".scan(/./.taint) { |m| m.tainted?.should == true }
+    "hello".taint.scan(/./) { |m| m.tainted?.should == true }
   end
 end
 
 describe "String#size" do
   it "is an alias of String#length" do
     "".length.should == "".size
+    "\x00".length.should == "\x00".size
     "one".length.should == "one".size
     "two".length.should == "two".size
     "three".length.should == "three".size
@@ -4369,50 +4629,76 @@ describe "String#size" do
   end
 end
 
-describe "String#slice" do
-  it "is an alias of String#[]" do
-    # TODO:
-  end
-end
+# String#slice is merged with String#[] for spec sanity reasons.
 
-describe "String#slice!(fixnum)" do
+describe "String#slice!(idx)" do
   it "deletes and return the char at the given position" do
     a = "hello"
     a.slice!(1).should == ?e
     a.should == "hllo"
+    a.slice!(-1).should == ?o
+    a.should == "hll"
   end
   
-  it "returns nil if the given position is out of self" do
+  it "returns nil if idx is outside of self" do
     a = "hello"
-    a.slice(10).should == nil
+    a.slice!(20).should == nil
+    a.should == "hello"
+    a.slice!(-20).should == nil
     a.should == "hello"
   end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.slice!(1)
-    end
+    should_raise(TypeError) { "hello".freeze.slice!(1) }
   end
   
-  it "doesn't raise a TypeError if self is frozen but the given position is out of self" do
-    s = "hello"
-    s.freeze
-    s.slice!(10)
+  it "doesn't raise a TypeError if self is frozen and idx is outside of self" do
+    "hello".freeze.slice!(10)
+    "".freeze.slice!(0)
+  end
+  
+  it "calls to_int on idx" do
+    "hello".slice!(0.5).should == ?h
+
+    obj = Object.new
+    # MRI calls this twice so we can't use should_receive here.
+    def obj.to_int() 1 end
+    "hello".slice!(obj).should == ?e
+
+    obj = Object.new
+    def obj.respond_to?(name) name == :to_int ? true : super; end
+    def obj.method_missing(name, *) name == :to_int ? 1 : super; end
+    "hello".slice!(obj).should == ?e
   end
 end
 
-describe "String#slice!(fixnum, fixnum)" do
-  it "deletes and return the chars at the defined position" do
+describe "String#slice!(idx, length)" do
+  it "deletes and returns the substring at idx and the given length" do
     a = "hello"
     a.slice!(1, 2).should == "el"
     a.should == "hlo"
+
+    a.slice!(1, 0).should == ""
+    a.should == "hlo"
+
+    a.slice!(-2, 4).should == "lo"
+    a.should == "h"
+  end
+
+  it "always taints resulting strings when self is tainted" do
+    str = "hello world"
+    str.taint
+
+    str.slice!(0, 0).tainted?.should == true
+    str.slice!(2, 1).tainted?.should == true
   end
 
   it "returns nil if the given position is out of self" do
     a = "hello"
     a.slice(10, 3).should == nil
+    a.should == "hello"
+
+    a.slice(-10, 20).should == nil
     a.should == "hello"
   end
   
@@ -4423,25 +4709,47 @@ describe "String#slice!(fixnum, fixnum)" do
   end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.slice!(1, 2)
-    end
+    should_raise(TypeError) { "hello".freeze.slice!(1, 2) }
   end
   
   it "doesn't raise a TypeError if self is frozen but the given position is out of self" do
-    s = "hello"
-    s.freeze
-    s.slice!(10, 3)
+    "hello".freeze.slice!(10, 3)
+    "hello".freeze.slice!(-10, 3)
+  end
+
+  it "doesn't raise a TypeError if self is frozen but length is negative" do
+    "hello".freeze.slice!(4, -3)
+  end
+  
+  it "calls to_int on idx and length" do
+    "hello".slice!(0.5, 2.5).should == "he"
+
+    obj = Object.new
+    def obj.to_int() 2 end
+    "hello".slice!(obj, obj).should == "ll"
+
+    obj = Object.new
+    def obj.respond_to?(name) name == :to_int; end
+    def obj.method_missing(name, *) name == :to_int ? 2 : super; end
+    "hello".slice!(obj, obj).should == "ll"
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s.slice!(0, 0).class.should == MyString
+    s.slice!(0, 4).class.should == MyString
   end
 end
 
 describe "String#slice!(range)" do
-  it "deletes and return the chars between the given range" do
+  it "deletes and return the substring given by the offsets of the range" do
     a = "hello"
     a.slice!(1..3).should == "ell"
     a.should == "ho"
+    a.slice!(0..0).should == "h"
+    a.should == "o"
+    a.slice!(0...0).should == ""
+    a.should == "o"
     
     # Edge Case?
     "hello".slice!(-3..-9).should == ""
@@ -4456,24 +4764,66 @@ describe "String#slice!(range)" do
     b.slice!(10..20).should == nil
     b.should == "hello"
   end
+  
+  it "always taints resulting strings when self is tainted" do
+    str = "hello world"
+    str.taint
+
+    str.slice!(0..0).tainted?.should == true
+    str.slice!(2..3).tainted?.should == true
+  end
+
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s.slice!(0...0).class.should == MyString
+    s.slice!(0..4).class.should == MyString
+  end
+
+  it "calls to_int on range arguments" do
+    from = Object.new
+    to = Object.new
+
+    # So we can construct a range out of them...
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+
+    def from.to_int() 1 end
+    def to.to_int() -2 end
+
+    "hello there".slice!(from..to).should == "ello ther"
+
+    from = Object.new
+    to = Object.new
+
+    def from.<=>(o) 0 end
+    def to.<=>(o) 0 end
+
+    def from.respond_to?(name) name == :to_int; end
+    def from.method_missing(name) name == :to_int ? 1 : super; end
+    def to.respond_to?(name) name == :to_int; end
+    def to.method_missing(name) name == :to_int ? -2 : super; end
+
+    "hello there".slice!(from..to).should == "ello ther"
+  end
+  
+  it "works with Range subclasses" do
+    a = "GOOD"
+    range_incl = MyRange.new(1, 2)
+
+    a.slice!(range_incl).should == "OO"
+  end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.slice!(1..3)
-    end
+    should_raise(TypeError) { "hello".freeze.slice!(1..3) }
   end
   
   it "doesn't raise a TypeError if self is frozen but the given range is out of self" do
-    s = "hello"
-    s.freeze
-    s.slice!(10..20).should == nil
+    "hello".freeze.slice!(10..20).should == nil
   end
 end
 
 describe "String#slice!(regexp)" do
-  it "deletes the first match from self" do
+  it "deletes and returns the first match from self" do
     s = "this is a string"
     s.slice!(/s.*t/).should == 's is a st'
     s.should == 'thiring'
@@ -4489,26 +4839,164 @@ describe "String#slice!(regexp)" do
     s.should == "this is a string"
   end
   
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      s = "this is a string"
-      s.freeze
-      s.slice!(/s.*t/)
+  it "always taints resulting strings when self or regexp is tainted" do
+    strs = ["hello world"]
+    strs += strs.map { |s| s.dup.taint }
+
+    strs.each do |str|
+      str = str.clone
+      str.slice!(//).tainted?.should == str.tainted?
+      str.slice!(/hello/).tainted?.should == str.tainted?
+
+      tainted_re = /./
+      tainted_re.taint
+
+      str.slice!(tainted_re).tainted?.should == true
     end
+  end
+
+  it "doesn't taint self when regexp is tainted" do
+    s = "hello"
+    s.slice!(/./.taint)
+    s.tainted?.should == false
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s.slice!(//).class.should == MyString
+    s.slice!(/../).class.should == MyString
+  end
+
+  it "sets $~ to MatchData when there is a match and nil when there's none" do
+    'hello'.slice!(/./)
+    $~[0].should == 'h'
+
+    'hello'.slice!(/not/)
+    $~.should == nil
+  end
+  
+  it "raises a TypeError if self is frozen" do
+    should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
   end
   
   it "doesn't raise a TypeError if self is frozen but there is no match" do
-    s = "this is a string"
-    s.freeze
-    s.slice!(/zzz/).should == nil
+    "this is a string".freeze.slice!(/zzz/).should == nil
   end
 end
 
-describe "String#slice!(other)" do
-  it "removes the first occurrence of other from the self" do
+describe "String#slice!(regexp, idx)" do
+  it "deletes and returns the capture for idx from self" do
+    str = "hello there"
+    str.slice!(/[aeiou](.)\1/, 0).should == "ell"
+    str.should == "ho there"
+    str.slice!(/(t)h/, 1).should == "t"
+    str.should == "ho here"
+  end
+
+  it "always taints resulting strings when self or regexp is tainted" do
+    strs = ["hello world"]
+    strs += strs.map { |s| s.dup.taint }
+
+    strs.each do |str|
+      str = str.clone
+      str.slice!(//, 0).tainted?.should == str.tainted?
+      str.slice!(/hello/, 0).tainted?.should == str.tainted?
+
+      tainted_re = /(.)(.)(.)/
+      tainted_re.taint
+
+      str.slice!(tainted_re, 1).tainted?.should == true
+    end
+  end
+  
+  it "doesn't taint self when regexp is tainted" do
+    s = "hello"
+    s.slice!(/(.)(.)/.taint, 1)
+    s.tainted?.should == false
+  end
+  
+  it "returns nil if there was no match" do
+    s = "this is a string"
+    s.slice!(/x(zzz)/, 1).should == nil
+    s.should == "this is a string"
+  end
+  
+  it "returns nil if there is no capture for idx" do
+    "hello there".slice!(/[aeiou](.)\1/, 2).should == nil
+    # You can't refer to 0 using negative indices
+    "hello there".slice!(/[aeiou](.)\1/, -2).should == nil
+  end
+
+  it "calls to_int on idx" do
+    obj = Object.new
+    def obj.to_int() 2 end
+
+    "har".slice!(/(.)(.)(.)/, 1.5).should == "h"
+    "har".slice!(/(.)(.)(.)/, obj).should == "a"
+
+    obj = Object.new
+    def obj.respond_to?(name) name == :to_int; end
+    def obj.method_missing(name) name == :to_int ? 2: super; end
+    "har".slice!(/(.)(.)(.)/, obj).should == "a"
+  end
+  
+  it "returns subclass instances" do
+    s = MyString.new("hello")
+    s.slice!(/(.)(.)/, 0).class.should == MyString
+    s.slice!(/(.)(.)/, 1).class.should == MyString
+  end
+
+  it "sets $~ to MatchData when there is a match and nil when there's none" do
+    'hello'[/.(.)/, 0]
+    $~[0].should == 'he'
+
+    'hello'[/.(.)/, 1]
+    $~[1].should == 'e'
+
+    'hello'[/not/, 0]
+    $~.should == nil
+  end
+  
+  it "raises a TypeError if self is frozen" do
+    should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
+  end
+  
+  it "doesn't raise a TypeError if self is frozen but there is no match" do
+    "this is a string".freeze.slice!(/zzz/, 0).should == nil
+  end
+
+  it "doesn't raise a TypeError if self is frozen but there is no capture for idx" do
+    "this is a string".freeze.slice!(/(.)/, 2).should == nil
+  end
+end
+
+describe "String#slice!(other_str)" do
+  it "removes and returns the first occurrence of other_str from self" do
     c = "hello hello"
     c.slice!('llo').should == "llo"
     c.should == "he hello"
+  end
+  
+  it "taints resulting strings when other is tainted" do
+    strs = ["", "hello world", "hello"]
+    strs += strs.map { |s| s.dup.taint }
+
+    strs.each do |str|
+      str = str.clone
+      strs.each do |other|
+        other = other.clone
+        r = str.slice!(other)
+
+        r.tainted?.should == !r.nil? & other.tainted?
+      end
+    end
+  end
+  
+  it "doesn't set $~" do
+    $~ = nil
+    
+    'hello'.slice!('ll')
+    $~.should == nil
   end
   
   it "returns nil if self does not contain other" do
@@ -4516,19 +5004,27 @@ describe "String#slice!(other)" do
     a.slice!('zzz').should == nil
     a.should == "hello"
   end
+  
+  it "doesn't call to_str on its argument" do
+    o = Object.new
+    o.should_not_receive(:to_str)
+
+    should_raise(TypeError) { "hello".slice!(o) }
+  end
+
+  it "returns a subclass instance when given a subclass instance" do
+    s = MyString.new("el")
+    r = "hello".slice!(s)
+    r.should == "el"
+    r.class.should == MyString
+  end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      s = "hello hello"
-      s.freeze
-      s.slice!('llo')
-    end
+    should_raise(TypeError) { "hello hello".freeze.slice!('llo') }
   end
   
   it "doesn't raise a TypeError if self is frozen but self does not contain other" do
-    s = "this is a string"
-    s.freeze
-    s.slice!('zzz').should == nil
+    "this is a string".freeze.slice!('zzz').should == nil
   end
 end
 
