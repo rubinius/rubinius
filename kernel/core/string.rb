@@ -763,6 +763,7 @@ class String
     return nil
   end
 
+  
   def rindex(arg, finish = nil )
     if finish
       raise TypeError, "can't convert #{finish.class} into Integer" if !finish.is_a?(Integer)
@@ -790,6 +791,7 @@ class String
       mstr = self[0..finish]
       offset = nil
       while m = arg.match(mstr)
+        break if m.begin(0) == m.end(0)
         offset = offset ? offset += m.begin(0) + len : m.begin(0)
         len = m.end(0) - m.begin(0)
         mstr = m.post_match
