@@ -45,6 +45,7 @@
 extern char **environ;
 
 OBJECT math_sqrt(STATE, OBJECT a);
+int _object_stores_bytes(OBJECT self);
 
 #define STATIC_SIZE 100
 

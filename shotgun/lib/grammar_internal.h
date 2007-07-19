@@ -44,7 +44,7 @@ typedef struct rb_parse_state {
     char *token_buffer;
     int tokidx;
     int toksiz;
-    
+    int emit_warnings;
     /* Mirror'ing the 1.8 parser, There are 2 input methods,
        from IO and directly from a string. */
     

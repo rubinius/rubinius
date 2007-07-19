@@ -208,7 +208,7 @@ namespace :build do
 
   task :loader do
     i = "kernel/loader.rb"
-    o = "runtime/loader.rbc"
+    o = ENV['OUTPUT'] || "runtime/loader.rbc"
     
     if @compiler
       system "shotgun/rubinius -I#{@compiler} compile #{i} #{o}"

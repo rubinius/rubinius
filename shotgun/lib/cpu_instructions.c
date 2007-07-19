@@ -22,9 +22,12 @@
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
+#if USE_INTCODE
+#define next_int _int = *c->ip_ptr++;
+#else
 #define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
 #define next_int set_int(_int,(c->ip_ptr)); c->ip_ptr += 4
-// #define next_int set_int(_int,(c->data + c->ip)); c->ip += 4; c->ip_ptr += 4
+#endif
 
 /* #ifndef __BIG_ENDIAN__ */
 /* #define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4 */
@@ -36,7 +39,7 @@
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   OBJECT sym, _lit, val, s1, s2, s3, s4, sup_itr;
-  int _int;
+  uint32_t _int;
     
   next_literal;
   sym = _lit;
@@ -951,7 +954,7 @@ void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
 void cpu_run(STATE, cpu c) {
-  unsigned char op;
+  IP_TYPE op;
   
   g_use_firesuit = 1;
   g_access_violation = 0;

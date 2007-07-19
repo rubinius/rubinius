@@ -253,7 +253,7 @@ class ShotgunPrimitives
     } else {
       cpu_flush_sp(c);
       cpu_flush_ip(c);
-      j = c->ip + 5;
+      j = c->ip + BS_JUMP;
       t2 = blokenv_s_under_context(state, t3, c->block, j, t1, t2, 0);
       stack_push(t2);
     }
@@ -712,6 +712,26 @@ class ShotgunPrimitives
     object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
     HEADER(self)->flags  = HEADER(t1)->flags;
     // HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
+    stack_push(t1);
+    CODE
+  end
+  
+  def bytes_dup_into
+    <<-CODE
+    POP(self, REFERENCE);
+    POP(t1,   REFERENCE);
+
+    GUARD(_object_stores_bytes(self));
+    GUARD(_object_stores_bytes(t1));
+    
+    k = bytearray_bytes(state, self);
+    j = bytearray_bytes(state, t1);
+    
+    if(j < k) { k = j; }
+      
+    memcpy(bytearray_byte_address(state, t1), 
+           bytearray_byte_address(state, self), k);
+           
     stack_push(t1);
     CODE
   end

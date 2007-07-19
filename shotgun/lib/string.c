@@ -83,6 +83,10 @@ char *string_byte_address(STATE, OBJECT self) {
 
   assert(STRING_P(self));
   data = string_get_data(self);
+  if(NIL_P(data)) {
+    return "";
+  }
+  
   return bytearray_byte_address(state, data);
 }
 

@@ -11,13 +11,24 @@
 /* Enables the context cache. */
 #define CTX_CACHE_ENABLED 0
 
+/* Enable intcode*/
+#define USE_INTCODE 1
+
+#if USE_INTCODE
+#define IP_TYPE uint32_t
+#define BS_JUMP 2
+#else
+#define IP_TYPE unsigned char
+#define BS_JUMP 5
+#endif
+
 #define CPU_REGISTERS OBJECT sender; \
   unsigned long int ip; \
   unsigned long int sp; \
   OBJECT block; \
   unsigned long int raiseable; \
   OBJECT method; \
-  unsigned char *data; \
+  IP_TYPE *data; \
   unsigned long int data_size; \
   OBJECT literals; \
   OBJECT self; \
@@ -59,7 +70,7 @@ struct fast_context {
   GPtrArray *paths; \
   unsigned int depth; \
   OBJECT context_cache; \
-  unsigned char *ip_ptr; \
+  IP_TYPE *ip_ptr; \
   OBJECT *sp_ptr; \
   int call_flags; \
   OBJECT debug_channel; \

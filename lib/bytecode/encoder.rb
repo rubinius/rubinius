@@ -286,7 +286,7 @@ class InstructionEncoder
       op = OpCodes[op]
     end
     
-    width = 1
+    width = 4
     if IntArg.include?(op)
       width += 4
     elsif TwoInt.include?(op)
@@ -330,7 +330,7 @@ class InstructionEncoder
   end
   
   def process_args(kind, opcode, args)
-    str = opcode.chr
+    str = [opcode].pack("N")
     # puts "#{kind} args. (#{str.inspect})"
     
     # puts args.inspect if ENV["DEBUG_ASSEMBLER"]

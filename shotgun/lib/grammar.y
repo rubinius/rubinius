@@ -4838,12 +4838,14 @@ fixpos(node, orig)
 }
 
 static void
-parser_warning(NODE *node, const char *mesg)
+parser_warning(rb_parse_state *parse_state, NODE *node, const char *mesg)
 {
     int line = ruby_sourceline;
-    ruby_sourceline = nd_line(node);
-    printf("%s:%i: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
-    ruby_sourceline = line;
+    if(parse_state->emit_warnings) {
+      ruby_sourceline = nd_line(node);
+      printf("%s:%i: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
+      ruby_sourceline = line;
+    }
 }
 
 static NODE*
@@ -4864,7 +4866,7 @@ block_append(parse_state, head, tail)
       case NODE_STR:
         g_string_free(h->nd_str, TRUE);
       case NODE_LIT:
-        parser_warning(h, "unused literal ignored");
+        parser_warning(parse_state, h, "unused literal ignored");
         return tail;
       default:
         h = end = NEW_BLOCK(head);
@@ -4886,7 +4888,7 @@ block_append(parse_state, head, tail)
           case NODE_NEXT:
           case NODE_REDO:
           case NODE_RETRY:
-            parser_warning(nd, "statement not reached");
+            parser_warning(parse_state, nd, "statement not reached");
             break;
 
         case NODE_NEWLINE:
@@ -5416,7 +5418,7 @@ value_expr0(node, parse_state)
         switch (nd_type(node)) {
           case NODE_DEFN:
           case NODE_DEFS:
-            parser_warning(node, "void value expression");
+            parser_warning(parse_state, node, "void value expression");
             return FALSE;
 
           case NODE_RETURN:
@@ -5632,7 +5634,7 @@ assign_in_cond(node, parse_state)
     }
 #if 0
     if (assign_in_cond(node->nd_value) == 0) {
-        parser_warning(node->nd_value, "assignment in condition");
+        parser_warning(parse_state, node->nd_value, "assignment in condition");
     }
 #endif
     return 1;
@@ -5647,11 +5649,12 @@ e_option_supplied()
 }
 
 static void
-warn_unless_e_option(node, str)
+warn_unless_e_option(ps, node, str)
+    rb_parse_state *ps;
     NODE *node;
     const char *str;
 {
-    if (!e_option_supplied()) parser_warning(node, str);
+    if (!e_option_supplied()) parser_warning(ps, node, str);
 }
 
 static NODE *cond0();
@@ -5674,7 +5677,7 @@ range_op(node, parse_state)
         type = nd_type(node);
     }
     if (type == NODE_LIT && FIXNUM_P(node->nd_lit)) {
-        warn_unless_e_option(node, "integer literal in conditional range");
+        warn_unless_e_option(parse_state, node, "integer literal in conditional range");
         return call_op(node,tEQ,1,NEW_GVAR(rb_intern("$.")), parse_state);
     }
     return node;

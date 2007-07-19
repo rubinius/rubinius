@@ -28,8 +28,8 @@ module Bytecode
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = @state.number_of_locals
-            
-      cmeth = CompiledMethod.new.from_string bc.data, lcls, @required
+      iseq = bc.data.dup(InstructionSequence)
+      cmeth = CompiledMethod.new.from_string iseq, lcls, @required
       cmeth.exceptions = asm.exceptions_as_tuple
 
       idx = nil

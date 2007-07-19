@@ -28,4 +28,19 @@ class ByteArray
       yield get_byte(i)
     end
   end
+  
+  def dup_into(other)
+    Ruby.primitive 32 # :bytes_dup_into
+  end
+  
+  def dup(cls=nil)
+    cls ||= self.class
+    obj = cls.new(self.size)
+    dup_into obj
+    return obj
+  end
+  
+  def inspect
+    "#<#{self.class}:0x#{object_id.to_s(16)} #{size} bytes>"
+  end
 end

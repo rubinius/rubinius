@@ -35,6 +35,7 @@ rb_parse_state *alloc_parse_state() {
     parse_state->pool_size = 0;
     parse_state->memory_size = 204800;
     parse_state->memory_pools = NULL;
+    parse_state->emit_warnings = 0;
 
     return parse_state;
 }

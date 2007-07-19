@@ -41,6 +41,16 @@ module Bytecode
       @state = state
     end
     
+    def add(*args)
+      @current_op += args.size
+      if args.size == 1
+        @output << args.first
+      else
+        @output << args
+      end
+    end
+    
+    # OpWidth = 4
     CacheSlotsPerEntry = 4
     CacheSlotsForConst = 1
         
@@ -51,13 +61,11 @@ module Bytecode
     end
     
     def add_cache_index
-      @current_op += 5
-      @output << [:set_cache_index, next_cache_index(CacheSlotsPerEntry)]
+      add :set_cache_index, next_cache_index(CacheSlotsPerEntry)
     end
     
     def add_const_cache_index
-      @current_op += 5
-      @output << [:set_cache_index, next_cache_index(CacheSlotsForConst)]
+      add :set_cache_index, next_cache_index(CacheSlotsForConst)
     end
     
     attr_reader :labels, :source_lines, :primitive, :literals
@@ -328,122 +336,100 @@ module Bytecode
       if what[0] == ?&
         lbl = @labels[what[1..-1].to_sym]
         raise "Unknown label '#{lbl}'" unless lbl
-        @output << [:push_int, lbl]
+        add :push_int, lbl
       elsif what[0] == ?@
         lit = find_literal(what.to_sym)
-        @output << [:push_ivar, lit]
+        add :push_ivar, lit
       elsif what.to_i.to_s == what
         num = what.to_i
         if num == -1
-          @current_op += 1
-          @output << :meta_push_neg_1
+          add :meta_push_neg_1
         elsif num == 0
-          @current_op += 1
-          @output << :meta_push_0
+          add :meta_push_0
         elsif num == 1
-          @current_op += 1
-          @output << :meta_push_1
+          add :meta_push_1
         elsif num == 2
-          @current_op += 1
-          @output << :meta_push_2
+          add :meta_push_2
         else
-          @current_op += 5
-          @output << [:push_int, num]
+          add :push_int, num
         end
         return
       elsif idx = parse_aref(what)
-        @output << [:push_int, idx]
-        @output << :fetch_field
-        @current_op += 1
+        add :push_int, idx
+        add :fetch_field
       elsif what[0] == ?:
         lit = find_literal(what[1..-1].to_sym)
-        @output << [:push_literal, lit]
+        add :push_literal, lit
       else
         case what
         when "true", true
-          @output << :push_true
-          @current_op += 1
+          add :push_true
           return
         when "false", false
-          @output << :push_false
-          @current_op += 1
+          add :push_false
           return
         when "nil", nil
-          @output << :push_nil
-          @current_op += 1
+          add :push_nil
           return
         when "self", :self
-          @output << :push_self
-          @current_op += 1
+          add :push_self
         else
           if cnt = parse_lvar(what)
             if Array === cnt
-              @output << [:push_local_depth, cnt[0], cnt[1]]
-              @current_op += 9
+              add :push_local_depth, cnt[0], cnt[1]
             else
-              @output << [:push_local, cnt]
-              @current_op += 5
+              add :push_local, cnt
             end
           elsif info = parse_ivar(what)
-            @output << [:push_local, info.first]
-            @output << [:push_ivar, info.last]
-            @current_op += 10
+            add :push_local, info.first
+            add :push_ivar, info.last
           elsif cnt = parse_const(what)
             add_const_cache_index
-            @output << [:push_const, cnt]
-            @current_op += 5
+            add :push_const, cnt
           else
             raise "Unknown push argument '#{what}'"
           end
         end
         return
       end
-      @current_op += 5
     end
     
     def parse_set(what)
       if cnt = parse_lvar(what)
         if Array === cnt
-          @output << [:set_local_depth, cnt[0], cnt[1]]
-          @current_op += 9
+          add :set_local_depth, cnt[0], cnt[1]
         else
-          @output << [:set_local, cnt]
-          @current_op += 5
+          add :set_local, cnt
         end
       elsif info = parse_ivar(what)
-        @output << [:push_local, info.first]
-        @output << [:set_ivar, info.last]
-        @current_op += 10
+        add :push_local, info.first
+        add :set_ivar, info.last
       elsif what[0] == ?@
         lit = find_literal(what.to_sym)
-        @output << [:set_ivar, lit]
-        @current_op += 5
+        add :set_ivar, lit
       elsif idx = parse_aref(what)
-        @output << [:push_int, idx]
-        @output << :store_field
-        @current_op += 6
+        add :push_int, idx
+        add :store_field
       elsif cnt = parse_const(what)
-        @output << [:set_const, cnt]
-        @current_op += 5
+        add :set_const, cnt
       elsif what.index("::")
         parent, chld = what.split("::", 2)
         if cnt = parse_const(parent)
           add_const_cache_index
-          @output << [:push_const, cnt]
+          add :push_const, cnt
         else
           raise "Invalid lhs to double colon (#{parent})"
         end
         
         if cnt = parse_const(chld)
-          @output << [:set_const_at, cnt]
+          add :set_const_at, cnt
         else
           raise "Invalid rhs to double colon (#{chld})"
         end
         
-        @current_op += 10
       elsif what.index("+") == 0
         if cnt = parse_const(what[1..-1])
-          @output << [:set_const_at, cnt]
+          add :set_const_at, cnt
         else
           raise "Unknown + argument (#{what})"
         end
@@ -459,8 +445,7 @@ module Bytecode
       end
             
       if Simple.include?(op)
-        @output << op
-        @current_op += 1
+        add op
         return
       end
       
@@ -469,8 +454,7 @@ module Bytecode
         return
       elsif [:goto, :goto_if_true, :goto_if_false].include?(op)
         label = parts.shift.to_sym
-        @output << [op, @labels[label]]
-        @current_op += 5
+        add op, @labels[label]
         return
       elsif op == :push
         parse_push parts.shift
@@ -480,8 +464,7 @@ module Bytecode
         idx = find_literal(sym)
         add_const_cache_index if op == :find_const
         add_cache_index if op == :send_method
-        @output << [op, idx]
-        @current_op += 5
+        add op, idx
         return
       elsif op == :push
         parse_push parts.shift
@@ -490,29 +473,26 @@ module Bytecode
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         add_cache_index
-        @output << [op, idx, parts.shift.to_i]
-        @current_op += 9
+        add op, idx, parts.shift.to_i
         return
       elsif [:"&send", :send].include?(op)
         sym = parts.shift.to_sym
         idx = find_literal(sym)
         add_cache_index
-        @current_op += 5
         if args = parts.shift
           if args.to_i.to_s == args
             meth = (op == :send ? :send_stack : :send_stack_with_block)
           elsif args == "+"
             meth = :send_with_arg_register
-            @output << [meth, idx]
+            add meth, idx
             return            
           else
             raise "Unknown send argument type '#{args}'"
           end
           na = args.to_i
-          @output << [meth, idx, na]
-          @current_op += 4
+          add meth, idx, na
         else
-          @output << [:send_method, idx]
+          add :send_method, idx
         end
         return
       elsif op == :super
@@ -521,36 +501,33 @@ module Bytecode
         add_cache_index
         args = parts.shift
         if args == "+"
-          @current_op += 5
-          @output << [:send_super_with_arg_register, idx]          
-        else  
-          @current_op += 9
-          @output << [:send_super_stack_with_block, idx, args.to_i]
+          add :send_super_with_arg_register, idx
+        else
+          add :send_super_stack_with_block, idx, args.to_i
         end
         return
       elsif op == :send_primitive
         sym = parts.shift.to_sym
         idx = primitive_to_index(sym)
         num_args = parts.shift.to_i
-        @current_op += 9
-        @output << [:send_primitive, idx, num_args]
+        add :send_primitive, idx, num_args
         return
       elsif op == :check_argcount
-        @output << [op, parts.shift.to_i, parts.shift.to_i]
-        @current_op += 9
+        req = parts.shift.to_i
+        add op, req, parts.shift.to_i
         return
       end
       
       if Bytecode::InstructionEncoder::OpCodes.include?(op)
-        @current_op += 1
-        if Bytecode::InstructionEncoder::TwoInt.include?(op)
-          @current_op += 8
-          @output << [op, parts.shift.to_i, parts.shift.to_i]
-        elsif Bytecode::InstructionEncoder::IntArg.include?(op)
-          @current_op += 4
-          @output << [op, parts.first.to_i]
+        if Bytecode::InstructionEncoder::IntArg.include?(op)  
+          if Bytecode::InstructionEncoder::TwoInt.include?(op)
+            fir = parts.shift.to_i
+            add op, fir, parts.shift.to_i
+          else
+            add op, parts.shift.to_i
+          end
         else
-          @output << op
+          add op
         end
         return
       end

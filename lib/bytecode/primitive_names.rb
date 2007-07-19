@@ -32,7 +32,7 @@ module Bytecode
       :create_pipe,
       :gettimeofday,
       :strftime,
-      nil,
+      :bytes_dup_into,
       :activate_as_script,
       :stat_file,
       :io_open,

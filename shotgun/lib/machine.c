@@ -445,6 +445,11 @@ int machine_run(machine m) {
 
 int machine_run_file(machine m, const char *path) {
   OBJECT meth;
+  int out;
+  
+  if(m->s->excessive_tracing) {
+    printf("[ Loading file %s]\n", path);
+  }
   
   meth = machine_load_file(m, path);
   if(!RTEST(meth)) {
@@ -454,7 +459,11 @@ int machine_run_file(machine m, const char *path) {
   
   cpu_stack_push(m->s, m->c, meth, FALSE);
   cpu_run_script(m->s, m->c, meth);
-  return machine_run(m);
+  out = machine_run(m);
+  if(m->s->excessive_tracing) {
+    printf("[ Finished loading file %s]\n", path);
+  }
+  return out;
 }
 
 void machine_set_const_under(machine m, const char *str, OBJECT val, OBJECT under) {
@@ -737,6 +746,10 @@ OBJECT machine_load_archive(machine m, const char *path) {
   OBJECT order, cm, ret = Qfalse;
   archive_handle_t *archive;
   char *files, *nxt, *top;
+  
+  if(m->s->excessive_tracing) {
+    printf("[ Loading archive %s]\n", path);
+  }
 
   archive = archive_open(m->s, path);
   if(!archive) {
@@ -779,6 +792,9 @@ OBJECT machine_load_archive(machine m, const char *path) {
 
 out:
   archive_close(m->s, archive);
+  if(m->s->excessive_tracing) {
+    printf("[ Finished loading archive %s]\n", path);
+  }
   
   return ret;
 }

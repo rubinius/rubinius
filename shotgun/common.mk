@@ -10,10 +10,7 @@ MARCH=$(shell uname -m)
 WARNINGS = -Wall
 DEBUG = -g -ggdb3
 
-# basic optimizations should be overridable
-CFLAGS ?= -O2
-
-CFLAGS += $(WARNINGS) $(DEBUG) 
+CFLAGS = $(WARNINGS) $(DEBUG) 
 
 CPPFLAGS += `pkg-config glib-2.0 --cflags`
 

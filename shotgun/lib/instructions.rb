@@ -953,7 +953,7 @@ CODE
     } else {
       cpu_flush_sp(c);
       cpu_flush_ip(c);
-      j = c->ip + 5;
+      j = c->ip + BS_JUMP;
       t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, _int);
       stack_push(t2);
     }

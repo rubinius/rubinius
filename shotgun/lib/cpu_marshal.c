@@ -270,6 +270,47 @@ static OBJECT unmarshal_bytes(STATE, struct marshal_state *ms) {
   return obj;
 }
 
+static void marshal_iseq(STATE, OBJECT obj, GString *buf) {
+  int i;
+  append_c('I');
+  /* Right now, an iseq is always stored as big endian, we need to 
+     figure out how it knows the iseq is in little to use this code. */
+  append_c('b');
+/*
+#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+  append_c('b');
+#else
+  append_c('l');
+#endif
+*/
+  i = NUM_FIELDS(obj) * REFSIZE;
+  append_sz(i);
+  append_str(bytearray_byte_address(state, obj), i);
+}
+
+static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
+  int sz;
+  char endian;
+  OBJECT obj;
+  endian = ms->buf[1];
+    
+  sz = read_int(ms->buf + 2);
+  
+  ms->consumed += 6;
+  ms->consumed += sz;
+  obj = iseq_new(state, sz / REFSIZE);
+  
+  memcpy(bytearray_byte_address(state, obj), ms->buf + 6, sz);
+  
+  #if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+    if(endian != 'b') iseq_flip(state, obj);
+  #else
+    if(endian != 'l') iseq_flip(state, obj);
+  #endif
+  
+  return obj;
+}
+
 static void marshal_cmethod(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
   marshal_fields_as(state, obj, buf, 'm', ms);
 }
@@ -305,6 +346,10 @@ static OBJECT unmarshal(STATE, struct marshal_state *ms) {
       break;
     case 'b':
       o = unmarshal_bytes(state, ms);
+      _add_object(o, ms);
+      break;
+    case 'I':
+      o = unmarshal_iseq(state, ms);
       _add_object(o, ms);
       break;
     case 'm':
@@ -370,6 +415,8 @@ static void marshal(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
         marshal_cmethod(state, obj, buf, ms);
       } else if(kls == state->global->bytearray) {
         marshal_bytes(state, obj, buf);
+      } else if(kls == state->global->iseq) {
+        marshal_iseq(state, obj, buf);
       } else if(kls == BASIC_CLASS(bignum)) {
         marshal_bignum(state, obj, buf);
       } else if(kls == BASIC_CLASS(floatpoint)) {

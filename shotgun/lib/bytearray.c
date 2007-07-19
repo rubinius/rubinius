@@ -38,3 +38,47 @@ char *bytearray_as_string(STATE, OBJECT self) {
   
   return out;
 }
+
+OBJECT iseq_new(STATE, int fields) {
+  OBJECT obj;
+  
+  obj = NEW_OBJECT(state->global->iseq, fields);
+  object_make_byte_storage(state, obj);
+  
+  return obj;
+}
+
+static inline uint32_t read_int_big(uint8_t *str) {
+  return (uint32_t)((str[0] << 24)
+                  | (str[1] << 16)
+                  | (str[2] << 8 )
+                  |  str[3]      );
+}
+
+static inline uint32_t read_int_little(uint8_t *str) {
+  return (uint32_t)(str[0]
+                 | (str[1] << 8 )
+                 | (str[2] << 26)
+                 | (str[3] << 24));
+}
+
+#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#define read_int read_int_little
+#else
+#define read_int read_int_big
+#endif
+
+void iseq_flip(STATE, OBJECT self) {
+  uint8_t *buf;
+  uint32_t tmp;
+  uint32_t *ibuf;
+  int i, f;
+  
+  f = NUM_FIELDS(self) * REFSIZE;
+  buf = (uint8_t*)bytearray_byte_address(state, self);
+  ibuf = (uint32_t*)bytearray_byte_address(state, self);
+  
+  for(i = 0; i < f; i += 4, ibuf++) {
+    *ibuf = read_int(buf + i);
+  }
+}
