@@ -2464,16 +2464,21 @@ class ShotgunPrimitives
   def iseq_compile
     <<-CODE
     self = stack_pop();
+    /*
+    printf("Compiling iseq %p...\\n", self);
     if(FLAG2_SET_P(self, IsLittleEndianFlag)) {
       #if defined(__BIG_ENDIAN__)
+      printf("flip1\\n");
       iseq_flip(state, self);
-      FLAG2_SET(self, IsLittleEndianFlag);
       #endif
     } else {
       #if !defined(__BIG_ENDIAN__)
+      printf("flip2\\n");
       iseq_flip(state, self);
       #endif
     }
+    */
+    stack_push(Qtrue);
     CODE
   end
 end

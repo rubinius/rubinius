@@ -1,5 +1,6 @@
 #include "shotgun.h"
 #include "object.h"
+#include "flags.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -57,6 +58,7 @@ static inline uint32_t read_int(uint8_t *str) {
                  | (str[2] << 26)
                  | (str[3] << 24));
 }
+#define ISET_FLAG(o) 
 #else
 static inline uint32_t read_int(uint8_t *str) {
   return (uint32_t)((str[0] << 24)
@@ -64,6 +66,7 @@ static inline uint32_t read_int(uint8_t *str) {
                   | (str[2] << 8 )
                   |  str[3]      );
 }
+#define ISET_FLAG(o) FLAG2_SET(o, IsLittleEndianFlag)
 #endif
 
 void iseq_flip(STATE, OBJECT self) {
@@ -74,8 +77,15 @@ void iseq_flip(STATE, OBJECT self) {
   f = NUM_FIELDS(self) * REFSIZE;
   buf = (uint8_t*)bytearray_byte_address(state, self);
   ibuf = (uint32_t*)bytearray_byte_address(state, self);
-  
+  /* A sanity check. The first thing is always an instruction,
+   * and we've got less that 512 instructions, so if it's less
+   * it's already been flipped. */
+  if(*ibuf < 512) {
+    ISET_FLAG(self);
+    return;
+  }  
   for(i = 0; i < f; i += 4, ibuf++) {
     *ibuf = read_int(buf + i);
   }
+  ISET_FLAG(self);
 }

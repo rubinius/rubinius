@@ -303,7 +303,6 @@ static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
     if(endian != 'b') iseq_flip(state, obj);
   #else
     if(endian != 'l') iseq_flip(state, obj);
-    FLAG2_SET(obj, IsLittleEndianFlag);
   #endif
   
   return obj;

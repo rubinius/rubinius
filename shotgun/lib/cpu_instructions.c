@@ -404,12 +404,32 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   sender = c->active_context;
   
   ba = cmethod_get_bytecodes(mo);
-  
+
 #if DIRECT_THREADED
   if(!FLAG2_SET_P(ba, IsFrozenFlag)) {
+    if(FLAG2_SET_P(ba, IsLittleEndianFlag)) {
+#if defined(__BIG_ENDIAN__)
+      iseq_flip(state, ba);
+#endif
+    } else {
+#if !defined(__BIG_ENDIAN__)
+      iseq_flip(state, ba);
+#endif
+    }
     calculate_into_gotos(state, ba, _dt_addresses);
     FLAG2_SET(ba, IsFrozenFlag);
   }
+#else
+  if(FLAG2_SET_P(ba, IsLittleEndianFlag)) {
+#if defined(__BIG_ENDIAN__)
+    iseq_flip(state, ba);
+#endif
+  } else {
+#if !defined(__BIG_ENDIAN__)
+    iseq_flip(state, ba);
+#endif
+  }
+
 #endif
   
   num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
