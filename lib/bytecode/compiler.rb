@@ -1272,7 +1272,12 @@ module Bytecode
           add "#{bl}:"
         end
         
-        process body
+        if body
+          process body
+        else
+          add "push nil"
+        end
+        
         goto fin
         
         if !other.nil?
