@@ -68,7 +68,6 @@ static inline uint32_t read_int(uint8_t *str) {
 
 void iseq_flip(STATE, OBJECT self) {
   uint8_t *buf;
-  uint32_t tmp;
   uint32_t *ibuf;
   int i, f;
   

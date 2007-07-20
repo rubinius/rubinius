@@ -14,6 +14,9 @@
 /* Enable intcode*/
 #define USE_INTCODE 1
 
+/* Enable direct threading */
+#define DIRECT_THREADED 1
+
 #if USE_INTCODE
 #define IP_TYPE uint32_t
 #define BS_JUMP 2
@@ -123,7 +126,7 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
 inline int cpu_return_to_sender(STATE, cpu c, int consider_block);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
-void cpu_run(STATE, cpu c);
+void cpu_run(STATE, cpu c, int setup);
 int cpu_dispatch(STATE, cpu c);
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);

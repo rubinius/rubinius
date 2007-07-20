@@ -207,23 +207,49 @@ extern int g_access_violation;
 
 void machine_handle_fire(int);
 
-// #define ACCESS_MACROS 1
+#define ACCESS_MACROS 1
 
 #ifdef ACCESS_MACROS
 
 #define rbs_set_field(om, obj, fel, val) ({ \
-  OBJECT _v, _o; \
-  _v = (val); _o = (obj);\
+  OBJECT _v = (val), _o = (obj); \
   if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
-  OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(_o, fel);\
-  *slot = _v;\
-})
+  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
+
+#if DISABLE_CHECKS
 
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
 
 #else
+
+static void _bad_reference(OBJECT in) {
+  printf("Attempted to access field of non reference.\n");
+  if(g_use_firesuit) {
+    machine_handle_fire(FIRE_NULL);
+  } 
+}
+
+static void _bad_reference2(OBJECT in) {
+  printf("Attempted to access field %d in an object with %lu fields.\n", 
+    fel, (unsigned long)NUM_FIELDS(in));
+    
+  if(g_use_firesuit) {
+    machine_handle_fire(FIRE_ACCESS);
+  }
+}
+
+#define rbs_get_field(i_in, i_fel) ({ \
+  OBJECT in = (i_in); int fel = (i_fel); \
+  if(!REFERENCE_P(in)) _bad_reference(in); \
+  if(fel >= HEADER(in)->fields) _bad_reference2(in); \
+  NTH_FIELD_DIRECT(in, fel); })
+
+#endif
+
+#else
+
 
 static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
@@ -277,7 +303,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
 #endif
   *slot = val;
   return val;
-}
+} 
 
 #endif
 

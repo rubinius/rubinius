@@ -22,6 +22,96 @@ class ShotgunInstructions
     fd.puts
   end
   
+  def generate_threaded(fd, op="op")
+    i = 0 
+    order = Bytecode::InstructionEncoder::OpCodes
+    ci =    Bytecode::InstructionEncoder::CheckInterupts
+    term =  Bytecode::InstructionEncoder::Terminators
+    
+    order.each do |ins|
+      code = send(ins) rescue nil
+      if code
+        fd.puts "   insn_#{i}: {"
+        fd.puts code
+        if ci.index(ins)
+          fd.puts "   goto check_interupts;"
+        elsif term.index(ins)
+          fd.puts "   goto insn_start;"
+        else
+          fd.puts "   NEXT_OP;"
+        end
+        fd.puts "   }"
+          
+      else
+        STDERR.puts "Problem with opcode: #{ins}"
+      end
+      i += 1
+    end
+    fd.puts
+  end
+  
+  def generate_dter
+    order = Bytecode::InstructionEncoder::OpCodes
+    two = Bytecode::InstructionEncoder::TwoInt
+    one = Bytecode::InstructionEncoder::IntArg - two
+    
+    code = "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
+    two.each do |ins|
+      code << "  case #{order.index(ins)}:\n"
+    end
+    code << "    return 3;\n"
+    
+    one.each do |ins|
+      idx = order.index(ins)
+      unless idx
+        raise "Couldn't find index of #{ins}!!!"
+      end
+      code << "  case #{idx}:\n"
+    end
+    code << "   return 2;\n"
+    
+    code << "}\nreturn 1;\n}\n\n"
+    
+    code << "#define DT_ADDRESSES static void* _dt_addresses[#{order.size + 1}];\n"
+    code << "#define SETUP_DT_ADDRESSES "
+    
+    i = 0
+    order.each do |ins|
+      code << "_dt_addresses[#{i}] = &&insn_#{i}; "
+      i += 1
+    end
+    code << "\n"
+    
+    code << <<-CODE
+    
+    static void calculate_into_gotos(STATE, OBJECT iseq, void **addrs) {
+      uint32_t *insn;
+      uint32_t op;
+      void *addr;
+      int i, k, count;
+      
+      k = bytearray_bytes(state, iseq) / sizeof(uint32_t);
+      insn = (uint32_t*)bytearray_byte_address(state, iseq);
+      i = 0;
+      count = 0;
+      
+      while(i < k) {
+        op = insn[i];
+        addr = addrs[op];
+        // printf("OC: %d => %p\\n", op, addr);
+        // assert(addr);
+        insn[i] = (uint32_t)addr;
+        i += _ip_size(op);
+        count++;
+      }
+      // printf("Calculated %d ops into %s\\n", count, _inspect(iseq));
+    }
+    
+    CODE
+    
+    code
+  end
+  
   def generate_declarations(fd)
     fd.puts "int _int, j, k, m;"
     fd.puts "OBJECT _lit, t1, t2, t3, t4;"
@@ -544,11 +634,12 @@ CODE
   
   def activate_method
     <<-CODE
+    next_int;
     t1 = stack_pop(); /* recv */
     t2 = stack_pop(); /* self */ 
     j = FIXNUM_TO_INT(stack_pop()); /* sz */
     t3 = stack_pop(); /* locals */
-    cpu_goto_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop()); /* block */
+    cpu_activate_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop());
     if(RTEST(t3)) {
       if(NIL_P(c->locals) || NUM_FIELDS(t3) >= NUM_FIELDS(c->locals)) {
         // methctx_set_locals(c->active_context, t3);
@@ -1054,3 +1145,13 @@ end
 File.open("instruction_names.h","w") do |f|
   f.puts si.generate_names_header
 end
+
+File.open("instruction_funcs.gen", "w") do |f|
+  f.puts si.generate_dter
+end
+
+File.open("instruction_dt.gen", "w") do |f|
+  si.generate_declarations(f)
+  si.generate_threaded(f)
+end
+

@@ -382,6 +382,8 @@ machine machine_new() {
   m = calloc(1, sizeof(struct rubinius_machine));
   m->s = rubinius_state_new();
   m->c = cpu_new(m->s);
+  /* Initialize the instruction addresses. */
+  cpu_run(m->s, m->c, TRUE);
   machine_setup_signals(m);
   cpu_initialize(m->s, m->c);
   cpu_bootstrap(m->s);
@@ -435,7 +437,7 @@ void machine_show_exception(machine m, OBJECT exc) {
 }
 
 int machine_run(machine m) {
-  cpu_run(m->s, m->c);
+  cpu_run(m->s, m->c, 0);
   if(RTEST(m->c->exception)) {
     machine_show_exception(m, m->c->exception);
     return FALSE;

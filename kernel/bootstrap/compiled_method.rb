@@ -102,7 +102,7 @@ class CompiledMethod
       block = nil
     end
     
-    Ruby.asm <<-ASM
+    out = Ruby.asm <<-ASM
 #local args
 push_array
 #local block
@@ -112,6 +112,8 @@ push self
 #local recv
 activate_method
     ASM
+    
+    return out
   end
   
   def self.load_from_file(path, version)

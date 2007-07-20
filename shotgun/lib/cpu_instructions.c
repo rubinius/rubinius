@@ -35,6 +35,18 @@
 /* #define next_int _int = *(int*)(c->data + c->ip); c->ip += 4 */
 /* #endif */
 
+#if DIRECT_THREADED
+#include "instruction_funcs.gen"
+DT_ADDRESSES;
+
+#ifdef SHOW_OPS
+#define NEXT_OP printf(" => %p\n", *c->ip_ptr); assert(*c->ip_ptr); goto **c->ip_ptr++
+#else
+#define NEXT_OP goto **c->ip_ptr++
+#endif
+
+#endif
+
 #define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
@@ -391,6 +403,15 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
   sender = c->active_context;
   
+  ba = cmethod_get_bytecodes(mo);
+  
+#if DIRECT_THREADED
+  if(!FLAG2_SET_P(ba, IsFrozenFlag)) {
+    calculate_into_gotos(state, ba, _dt_addresses);
+    FLAG2_SET(ba, IsFrozenFlag);
+  }
+#endif
+  
   num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
   
   cpu_flush_sp(c);
@@ -427,7 +448,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->block = block;
   fc->raiseable = Qtrue;
   fc->method = mo;
-  ba = cmethod_get_bytecodes(mo);
   fc->data = bytearray_byte_address(state, ba);
   fc->data_size = bytearray_bytes(state, ba);
   fc->literals = cmethod_get_literals(mo);
@@ -819,6 +839,15 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   c->method_module = mod;
 }
 
+
+/* Layer 4: direct activation. Used for calling a method thats already
+   been looked up. */
+static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
+                                       int args, OBJECT name, OBJECT block) {
+  
+  _cpu_build_and_activate(state, c, mo, recv, name, args, block, 0, Qnil);  
+}
+
 /* Layer 4: send. Primary method calling function. */
 
 static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
@@ -926,21 +955,6 @@ const char *cpu_op_to_name(STATE, char op) {
   return get_instruction_name(op);
 }
 
-void cpu_run_old(STATE, cpu c) {
-  // printf("Running: %p\n", c->active_context);
-  while(RTEST(c->active_context)) {
-    if(!cpu_dispatch(state, c)) {
-      cpu_return_to_sender(state, c, FALSE);
-    }
-  }
-}
-
-static void _cpu_inst(STATE, cpu c, OBJECT self, OBJECT arg) {
-  printf("op_equal: %s == %s\n", _inspect(self), _inspect(arg));
-  stack_push(arg);
-  cpu_send_method(state, c, self, state->global->sym_equal, 1);
-}
-
 int cpu_dispatch(STATE, cpu c) {
   unsigned char op;  
 
@@ -953,8 +967,18 @@ int cpu_dispatch(STATE, cpu c) {
 void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
-void cpu_run(STATE, cpu c) {
+void cpu_run(STATE, cpu c, int setup) {
   IP_TYPE op;
+
+  if(setup) {
+    (void)op;
+#if DIRECT_THREADED
+    SETUP_DT_ADDRESSES;
+    return;
+#else
+    return;
+#endif
+  }
   
   g_use_firesuit = 1;
   g_access_violation = 0;
@@ -972,6 +996,8 @@ void cpu_run(STATE, cpu c) {
             "Attempted to access field of non-reference (null pointer)")); 
     }
   }
+
+insn_start:  
   
   while(c->active_context != Qnil) {
     
@@ -986,9 +1012,17 @@ void cpu_run(STATE, cpu c) {
       continue;
     }
     #endif
-        
+
+#if DIRECT_THREADED
+    if(EXCESSIVE_TRACING) {
+      printf("%-15s: => %p\n",
+        rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
+        (void*)*c->ip_ptr);
+    }
+    NEXT_OP;
+    #include "instruction_dt.gen"
+#else
     op = *c->ip_ptr++;
-    
     // #undef stack_push
     // #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
     
@@ -999,7 +1033,10 @@ void cpu_run(STATE, cpu c) {
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
+    
     #include "instructions.gen"
+    
+#endif
 
     goto check_interupts;
 //stack_error:

@@ -112,7 +112,7 @@ class InstructionEncoder
   }
   
 =end
-  
+
   OpCodes = [
     :noop,
     :push_nil,
@@ -217,8 +217,61 @@ class InstructionEncoder
     :get_local_fp
   ]
   
+  CheckInterupts = [
+    :allocate,
+    :send_primitive,
+    :make_array,
+    :set_ivar,
+    :set_const,
+    :set_const_at,
+    :attach_method,
+    :add_method,
+    :open_class,
+    :open_class_under,
+    :open_module,
+    :open_module_under,
+    :unshift_tuple,
+    :make_rest,
+    :send_method,
+    :send_stack,
+    :send_stack_with_block,
+    :cast_array,
+    :make_hash,
+    :activate_method,
+    :string_append,
+    :string_dup,
+    :send_with_arg_register,
+    :cast_array_for_args,
+    :send_super_stack_with_block,
+    :open_metaclass,
+    :send_super_with_arg_register,
+    :meta_send_stack_1,
+    :meta_send_stack_2,
+    :meta_send_stack_3,
+    :meta_send_stack_4,
+    :meta_send_op_plus,
+    :meta_send_op_minus,
+    :meta_send_op_equal,
+    :meta_send_op_lt,
+    :meta_send_op_gt,
+    :meta_send_op_tequal,
+    :meta_send_op_nequal,
+    :set_local_depth,
+    :create_block,
+    :send_off_stack,
+    :yield_debugger,
+    :make_rest_fp
+  ]
+  
+  Terminators = [
+    :ret,
+    :soft_return,
+    :caller_return,
+    :block_break
+  ]
+  
   IntArg = [
-    :find_field, :push_int, :send_primitive, :push_literal,
+    :push_int, :send_primitive, :push_literal,
     :goto, :goto_if_false, :goto_if_true,
     :goto_if_defined,
     :set_local,
@@ -262,9 +315,6 @@ class InstructionEncoder
     :from_fp,
     :set_local_from_fp,
     :make_rest_fp,
-    :allocate_stack,
-    :deallocate_stack,
-    :set_local_fp,
     :allocate_stack,
     :deallocate_stack,
     :set_local_fp,
