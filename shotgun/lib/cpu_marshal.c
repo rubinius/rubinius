@@ -6,6 +6,7 @@
 #include "tuple.h"
 #include "bignum.h"
 #include "float.h"
+#include "flags.h"
 #include <string.h>
 #include <stdlib.h>
 #include <glib.h>
@@ -273,16 +274,12 @@ static OBJECT unmarshal_bytes(STATE, struct marshal_state *ms) {
 static void marshal_iseq(STATE, OBJECT obj, GString *buf) {
   int i;
   append_c('I');
-  /* Right now, an iseq is always stored as big endian, we need to 
-     figure out how it knows the iseq is in little to use this code. */
-  append_c('b');
-/*
-#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
-  append_c('b');
-#else
-  append_c('l');
-#endif
-*/
+  if(FLAG2_SET_P(obj, IsLittleEndianFlag)) {
+    append_c('l');
+  } else {
+    append_c('b');
+  }
+  
   i = NUM_FIELDS(obj) * REFSIZE;
   append_sz(i);
   append_str(bytearray_byte_address(state, obj), i);
@@ -306,6 +303,7 @@ static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
     if(endian != 'b') iseq_flip(state, obj);
   #else
     if(endian != 'l') iseq_flip(state, obj);
+    FLAG2_SET(obj, IsLittleEndianFlag);
   #endif
   
   return obj;

@@ -26,6 +26,7 @@ module Compile
   
   def self.execute(string)
     cm = compile_string(string)
+    cm.compile
     cm.activate MAIN, []
   end
 end
@@ -76,7 +77,11 @@ module Functions
 
     # and store it
     Marshal.dump_to_file cm, comp, Rubinius::CompiledMethodVersion
-
+    
+    # since we just created it, 'compile it', ie, let the VM finish
+    # preparing it to be run
+    cm.compile
+    
     return cm.activate_as_script
   end
   

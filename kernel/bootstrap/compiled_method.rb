@@ -90,6 +90,10 @@ class CompiledMethod
     @serial = ser
   end
   
+  def compile
+    @bytecodes.compile
+  end
+  
   def activate(recv, args, locals=nil, &prc)
     sz = args.total
     if prc
@@ -187,6 +191,7 @@ class Method
   def compiled_method
     @method
   end
+
 end
 
 class UnboundMethod

@@ -54,7 +54,7 @@ module Bytecode
       :gc_start,
       :file_to_sexp,
       :get_byte,
-      nil, # :zlib_inflate,
+      :iseq_compile,
       nil, # :zlib_deflate,
       :fixnum_modulo,
       :bytearray_size,

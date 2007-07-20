@@ -2460,6 +2460,22 @@ class ShotgunPrimitives
     stack_push(bignum_size(state, self));
     CODE
   end
+
+  def iseq_compile
+    <<-CODE
+    self = stack_pop();
+    if(FLAG2_SET_P(self, IsLittleEndianFlag)) {
+      #if defined(__BIG_ENDIAN__)
+      iseq_flip(state, self);
+      FLAG2_SET(self, IsLittleEndianFlag);
+      #endif
+    } else {
+      #if !defined(__BIG_ENDIAN__)
+      iseq_flip(state, self);
+      #endif
+    }
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

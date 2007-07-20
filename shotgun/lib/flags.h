@@ -17,5 +17,5 @@
 
 #define IsTaintedFlag        (1<<0)
 #define IsFrozenFlag         (1<<1)
-
+#define IsLittleEndianFlag   (1<<2)
 #endif 

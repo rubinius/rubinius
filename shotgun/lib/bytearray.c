@@ -48,24 +48,22 @@ OBJECT iseq_new(STATE, int fields) {
   return obj;
 }
 
-static inline uint32_t read_int_big(uint8_t *str) {
-  return (uint32_t)((str[0] << 24)
-                  | (str[1] << 16)
-                  | (str[2] << 8 )
-                  |  str[3]      );
-}
 
-static inline uint32_t read_int_little(uint8_t *str) {
+
+#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+static inline uint32_t read_int(uint8_t *str) {
   return (uint32_t)(str[0]
                  | (str[1] << 8 )
                  | (str[2] << 26)
                  | (str[3] << 24));
 }
-
-#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
-#define read_int read_int_little
 #else
-#define read_int read_int_big
+static inline uint32_t read_int(uint8_t *str) {
+  return (uint32_t)((str[0] << 24)
+                  | (str[1] << 16)
+                  | (str[2] << 8 )
+                  |  str[3]      );
+}
 #endif
 
 void iseq_flip(STATE, OBJECT self) {
