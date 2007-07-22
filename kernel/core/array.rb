@@ -28,7 +28,6 @@ class Array
   # Synonymous to #replace
   alias initialize_copy replace
 
-
   def at(idx)
     if idx < 0
       idx += @total
@@ -299,7 +298,7 @@ class Array
 
   def delete_at(idx)
     if idx < 0
-      idx = @total - idx
+      idx += @total
       return nil if idx < 0
     end
 
@@ -417,12 +416,13 @@ class Array
     i = 0
     while i < @total
       o = @tuple.at(i)
+  
       if Array === o
         self[i, 1] = o          # FIXME: quadratic.
         ret = self
-      else
-        i += 1
       end
+      
+      i += 1      
     end
     ret
   end
@@ -440,7 +440,7 @@ class Array
   end
 
   def self.[](*args)
-    args
+    new.push(*args)
   end
 
   def values_at(*args)
@@ -497,7 +497,7 @@ class Array
   end
 
   def zip(*others)
-    result = []        
+    result = []
     others = others.map { |a| a.to_ary }
 
     each_with_index { |a, i|
@@ -767,14 +767,15 @@ class Array
     return out
   end
   
-  def &(other)    
-    out=[]
-    self.uniq!
-    each { |e| 
+  def &(other)
+    out = []
+
+    self.uniq.each do |e|
       if other.include?(e)
         out << e 
       end
-    }
+    end
+    
     return out
   end
   
