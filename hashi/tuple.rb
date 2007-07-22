@@ -12,6 +12,15 @@ class Tuple
     num.times { append nil }
   end
   
+  # I'm not sure if these are 100% the right semantics. Please verify. -- flgr
+  def copy_from(other_tuple, start_idx = 0)
+    idx = 0
+    other_tuple.each do |value|
+      append(value) if idx >= start_idx
+      idx += 1
+    end
+  end
+  
   def at(index)
     guard(index)
     locate index
