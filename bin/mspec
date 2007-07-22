@@ -6,11 +6,14 @@
 require 'optparse'
 
 module MSpec
-  VERSION = '0.6.0'
+  VERSION = '0.6.1'
 end
 
 # defaults
 patterns = []
+includes = ['-Ispec']
+requires = ['-rmini_rspec.rb', '-rmini_mock.rb']
+name = nil
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
 
@@ -19,7 +22,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.separator ""
 
   opts.on("-f", "--format FORMAT", String, 
-          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") { |f|
+          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
     case f
     when 's', 'specdox', 'specdoc'
       format = 'SpecDoxReporter'
@@ -36,9 +39,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       puts opts
       exit
     end
-  }
+  end
   opts.on("-t", "--target TARGET", String, 
-          "Implementation that will run the specs: r:ruby|x:rbx|j:jruby") { |t|
+          "Implementation that will run the specs: r:ruby|x:rbx|j:jruby") do |t|
     case t
     when 'r', 'ruby'
       target = 'ruby'
@@ -51,15 +54,27 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     else
       target = t
     end
-  }
-  opts.on("-v", "--version", "Show version") {
+  end
+  opts.on("-I", "--include DIRECTORY", String,
+          "Passes through as the -I option to the target") do |d|
+    includes << "-I#{d}"
+  end
+  opts.on("-r", "--require LIBRARY", String,
+          "Passes through as the -r option to the target") do |f|
+    requires << "-r#{f}"
+  end
+  opts.on("-n", "--name RUBY_NAME", String,
+          "Overrides the name used to determine the implementation") do |n|
+    name = "RUBY_NAME = \"#{n}\"; "
+  end
+  opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
     exit
-  }
-  opts.on("-h", "--help", "Show this message") {
+  end
+  opts.on("-h", "--help", "Show this message") do
     puts opts
     exit
-  }
+  end
   
   patterns = opts.parse ARGV
 end
@@ -78,7 +93,7 @@ patterns.each do |item|
 end
 
 cmd = <<-EOC
-#{target} -Ispec -rmini_rspec.rb -rmini_mock.rb -e '@reporter = #{format}.new;
+#{target} #{includes.join(" ")} #{requires.join(" ")} -e '#{name}@reporter = #{format}.new;
 #{files.inspect}.each { |f| load f }'
 EOC
 system cmd

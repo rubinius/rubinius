@@ -64,7 +64,8 @@ class Tuple
   
   def join_upto(sep, count, meth=:to_s)
     str = ""
-    return str if count == 0
+    return str if count == 0 or empty?
+    count = fields if count >= fields
     count -= 1
     i = 0
     while i < count
@@ -85,6 +86,7 @@ class Tuple
   end
   
   def shift
+    return self unless fields > 0
     t = Tuple.new(fields-1)
     t.copy_from self, 1
     return t
