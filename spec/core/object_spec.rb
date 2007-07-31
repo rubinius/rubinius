@@ -421,3 +421,116 @@ describe "Object#method_missing" do
     AClassWithProtectedMethodAndMetohdMissing.a_protected_class_method.should == :a_protected_class_method
   end 
 end
+
+class ObjectMethods
+  def self.ichi; end
+  def ni; end
+  class << self
+    def san; end
+  end
+  
+  private
+  
+  def self.shi; end
+  def juu_shi; end
+  
+  class << self
+    def roku; end
+
+    private
+    
+    def shichi; end
+  end
+  
+  protected
+  
+  def self.hachi; end
+  def ku; end
+  
+  class << self
+    def juu; end
+    
+    protected
+    
+    def juu_ichi; end
+  end
+  
+  public
+  
+  def self.juu_ni; end
+  def juu_san; end
+end
+
+describe "Object#methods" do
+  it "returns a list of the names of publicly accessible methods in the object" do
+    ObjectMethods.methods(false).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    ObjectMethods.new.methods(false).should == []
+  end
+  
+  it "returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules" do
+    (ObjectMethods.methods(false) & ObjectMethods.methods).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    m = ObjectMethods.new.methods
+    m.should_include('ku')
+    m.should_include('ni')
+    m.should_include('juu_san')
+  end
+end
+
+describe "Object#singleton_methods" do
+  it "returns a list of the names of singleton methods in the object" do
+    ObjectMethods.singleton_methods(false).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    ObjectMethods.new.singleton_methods(false).should == []
+  end
+  
+  it "returns a list of the names of singleton methods in the object and its ancestors and mixed-in modules" do
+    (ObjectMethods.singleton_methods(false) & ObjectMethods.singleton_methods).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    ObjectMethods.new.singleton_methods.should == []
+  end
+end
+
+describe "Object#public_methods" do
+  it "returns a list of the names of publicly accessible methods in the object" do
+    ObjectMethods.public_methods(false).sort.should == 
+      ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
+    ObjectMethods.new.public_methods(false).sort.should == ["juu_san", "ni"]
+  end
+  
+  it "returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules" do
+    (ObjectMethods.public_methods(false) & ObjectMethods.public_methods).sort.should == 
+      ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
+    m = ObjectMethods.new.public_methods
+    m.should_include('ni')
+    m.should_include('juu_san')
+  end
+end
+
+describe "Object#private_methods" do
+  it "returns a list of the names of privately accessible methods in the object" do
+    ObjectMethods.private_methods(false).sort.should == 
+      ["inherited", "initialize", "initialize_copy", "shichi"]
+    ObjectMethods.new.private_methods(false).sort.should == ["juu_shi"]
+  end
+  
+  it "returns a list of the names of privately accessible methods in the object and its ancestors and mixed-in modules" do
+    (ObjectMethods.private_methods(false) & ObjectMethods.private_methods).sort.should == 
+      ["inherited", "initialize", "initialize_copy", "shichi"]
+    m = ObjectMethods.new.private_methods
+    m.should_include('juu_shi')
+  end
+end
+
+describe "Object#protected_methods" do
+  it "returns a list of the names of protected methods accessible in the object" do
+    ObjectMethods.protected_methods(false).sort.should == ["juu_ichi"]
+    ObjectMethods.new.protected_methods(false).should == ["ku"]
+  end
+  
+  it "returns a list of the names of protected methods accessible in the object and from its ancestors and mixed-in modules" do
+    (ObjectMethods.protected_methods(false) & ObjectMethods.protected_methods).sort.should == ["juu_ichi"]
+    ObjectMethods.new.protected_methods.should_include('ku')
+  end
+end
