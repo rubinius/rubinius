@@ -460,6 +460,9 @@ describe "String#%(Object)" do
     end
   end
   
+  # Note: %u has been changed to an alias for %d in MRI 1.9 trunk.
+  # Let's wait a bit for it to cool down and see if it will
+  # be changed for 1.8 as well.
   it "supports unsigned formats using %u" do
     ("%u" % 10).should == "10"
     ("% u" % 10).should == " 10"
@@ -5029,45 +5032,279 @@ describe "String#slice!(other_str)" do
 end
 
 describe "String#split(string [, limit])" do
-  it "returns an array of substrings based on the given delimeter" do
+  it "returns an array of substrings based on splitting on the given string" do
     "mellow yellow".split("ello").should == ["m", "w y", "w"]
   end
   
-  it "suppresses trailing null fields when no limit is given" do
+  it "suppresses trailing empty fields when limit isn't given or 0" do
     "1,2,,3,4,,".split(',').should == ["1", "2", "", "3", "4"]
+    "1,2,,3,4,,".split(',', 0).should == ["1", "2", "", "3", "4"]
+    "  a  b  c\nd  ".split("  ").should == ["", "a", "b", "c\nd"]
+    "hai".split("hai").should == []
+    ",".split(",").should == []
+    ",".split(",", 0).should == []
   end
-  
-  it "doesn't suppress trailing null fields when limit is negative" do
-    "1,2,,3,4,,".split(',', -1).should == ["1", "2", "", "3", "4", "", ""]
+
+  it "returns an array with one entry if limit is 1: the original string" do
+    "hai".split("hai", 1).should == ["hai"]
+    "x.y.z".split(".", 1).should == ["x.y.z"]
+    "hello world ".split(" ", 1).should == ["hello world "]
+    "hi!".split("", 1).should == ["hi!"]
   end
-  
-  it "returns at most fields as specified by limit" do
+
+  it "returns at most limit fields when limit > 1" do
+    "hai".split("hai", 2).should == ["", ""]
+
+    "1,2,,3,4,,".split(',', 2).should == ["1", "2,,3,4,,"]
+    "1,2,,3,4,,".split(',', 3).should == ["1", "2", ",3,4,,"]
     "1,2,,3,4,,".split(',', 4).should == ["1", "2", "", "3,4,,"]
+    "1,2,,3,4,,".split(',', 5).should == ["1", "2", "", "3", "4,,"]
+    "1,2,,3,4,,".split(',', 6).should == ["1", "2", "", "3", "4", ","]
+
+    "x".split('x', 2).should == ["", ""]
+    "xx".split('x', 2).should == ["", "x"]
+    "xx".split('x', 3).should == ["", "", ""]
+    "xxx".split('x', 2).should == ["", "xx"]
+    "xxx".split('x', 3).should == ["", "", "x"]
+    "xxx".split('x', 4).should == ["", "", "", ""]
   end
   
-  it "splits self on whitespace if string is $; (default value: nil)" do
-    " now's  the time".split.should == ["now's", "the", "time"]
+  it "doesn't suppress or limit fields when limit is negative" do
+    "1,2,,3,4,,".split(',', -1).should == ["1", "2", "", "3", "4", "", ""]
+    "1,2,,3,4,,".split(',', -5).should == ["1", "2", "", "3", "4", "", ""]
+    "  a  b  c\nd  ".split("  ", -1).should == ["", "a", "b", "c\nd", ""]
+    ",".split(",", -1).should == ["", ""]
   end
   
+  it "defaults to $; when string isn't given or nil" do
+    begin
+      old_fs = $;
+    
+      [",", ":", "", "XY", nil].each do |fs|
+        $; = fs
+        
+        ["x,y,z,,,", "1:2:", "aXYbXYcXY", ""].each do |str|
+          expected = str.split(fs || " ")
+          
+          str.split(nil).should == expected
+          str.split.should == expected
+
+          str.split(nil, -1).should == str.split(fs || " ", -1)
+          str.split(nil, 0).should == str.split(fs || " ", 0)
+          str.split(nil, 2).should == str.split(fs || " ", 2)
+        end
+      end
+    ensure
+      $; = old_fs
+    end    
+  end
+    
   it "ignores leading and continuous whitespace when string is a single space" do
-    " now's  the time".split(' ').should == ["now's", "the", "time"]
+    " now's  the time  ".split(' ').should == ["now's", "the", "time"]
+    " now's  the time  ".split(' ', -1).should == ["now's", "the", "time", ""]
+
+    "\t\n a\t\tb \n\r\r\nc\v\vd\v ".split(' ').should == ["a", "b", "c", "d"]
+    "a\x00a b".split(' ').should == ["a\x00a", "b"]
+  end
+  
+  it "splits between characters when its argument is an empty string" do
+    "hi!".split("").should == ["h", "i", "!"]
+    "hi!".split("", -1).should == ["h", "i", "!", ""]
+    "hi!".split("", 2).should == ["h", "i!"]
+  end
+  
+  it "tries converting its pattern argument to a string via to_str" do
+    obj = Object.new
+    def obj.to_str() "::" end
+    "hello::world".split(obj).should == ["hello", "world"]
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "::")
+    "hello::world".split(obj).should == ["hello", "world"]
+  end
+  
+  it "tries converting limit to an integer via to_int" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
+  end
+  
+  it "doesn't set $~" do
+    $~ = nil
+    "x.y.z".split(".")
+    $~.should == nil
+  end
+  
+  it "returns subclass instances based on self" do
+    ["", "x.y.z.", "  x  y  "].each do |str|
+      ["", ".", " "].each do |pat|
+        [-1, 0, 1, 2].each do |limit|
+          MyString.new(str).split(pat, limit).each do |x|
+            x.class.should == MyString
+          end
+          
+          str.split(MyString.new(pat), limit).each do |x|
+            x.class.should == String 
+          end
+        end
+      end
+    end
+  end
+  
+  it "taints the resulting strings if self is tainted" do
+    ["", "x.y.z.", "  x  y  "].each do |str|
+      ["", ".", " "].each do |pat|
+        [-1, 0, 1, 2].each do |limit|
+          str.dup.taint.split(pat).each do |x|
+            x.tainted?.should == true
+          end
+          
+          str.split(pat.dup.taint).each do |x|
+            x.tainted?.should == false
+          end
+        end
+      end
+    end    
   end
 end
 
 describe "String#split(regexp [, limit])" do
-  it "divides self where the pattern matches" do
+  it "divides self on regexp matches" do
     " now's  the time".split(/ /).should == ["", "now's", "", "the", "time"]
+    " x\ny ".split(/ /).should == ["", "x\ny"]
     "1, 2.34,56, 7".split(/,\s*/).should == ["1", "2.34", "56", "7"]
+    "1x2X3".split(/x/i).should == ["1", "2", "3"]
   end
   
-  it "splits self into individual characters when regexp matches a zero-length string" do
+  it "suppresses trailing empty fields when limit isn't given or 0" do
+    "1,2,,3,4,,".split(/,/).should == ["1", "2", "", "3", "4"]
+    "1,2,,3,4,,".split(/,/, 0).should == ["1", "2", "", "3", "4"]
+    "  a  b  c\nd  ".split(/\s+/).should == ["", "a", "b", "c", "d"]
+    "hai".split(/hai/).should == []
+    ",".split(/,/).should == []
+    ",".split(/,/, 0).should == []
+  end
+
+  it "returns an array with one entry if limit is 1: the original string" do
+    "hai".split(/hai/, 1).should == ["hai"]
+    "xAyBzC".split(/[A-Z]/, 1).should == ["xAyBzC"]
+    "hello world ".split(/\s+/, 1).should == ["hello world "]
+    "hi!".split(//, 1).should == ["hi!"]
+  end
+
+  it "returns at most limit fields when limit > 1" do
+    "hai".split(/hai/, 2).should == ["", ""]
+
+    "1,2,,3,4,,".split(/,/, 2).should == ["1", "2,,3,4,,"]
+    "1,2,,3,4,,".split(/,/, 3).should == ["1", "2", ",3,4,,"]
+    "1,2,,3,4,,".split(/,/, 4).should == ["1", "2", "", "3,4,,"]
+    "1,2,,3,4,,".split(/,/, 5).should == ["1", "2", "", "3", "4,,"]
+    "1,2,,3,4,,".split(/,/, 6).should == ["1", "2", "", "3", "4", ","]
+
+    "x".split(/x/, 2).should == ["", ""]
+    "xx".split(/x/, 2).should == ["", "x"]
+    "xx".split(/x/, 3).should == ["", "", ""]
+    "xxx".split(/x/, 2).should == ["", "xx"]
+    "xxx".split(/x/, 3).should == ["", "", "x"]
+    "xxx".split(/x/, 4).should == ["", "", "", ""]
+  end
+  
+  it "doesn't suppress or limit fields when limit is negative" do
+    "1,2,,3,4,,".split(/,/, -1).should == ["1", "2", "", "3", "4", "", ""]
+    "1,2,,3,4,,".split(/,/, -5).should == ["1", "2", "", "3", "4", "", ""]
+    "  a  b  c\nd  ".split(/\s+/, -1).should == ["", "a", "b", "c", "d", ""]
+    ",".split(/,/, -1).should == ["", ""]
+  end
+  
+  it "defaults to $; when regexp isn't given or nil" do
+    begin
+      old_fs = $;
+    
+      [/,/, /:/, //, /XY/, /./].each do |fs|
+        $; = fs
+        
+        ["x,y,z,,,", "1:2:", "aXYbXYcXY", ""].each do |str|
+          expected = str.split(fs)
+          
+          str.split(nil).should == expected
+          str.split.should == expected
+
+          str.split(nil, -1).should == str.split(fs, -1)
+          str.split(nil, 0).should == str.split(fs, 0)
+          str.split(nil, 2).should == str.split(fs, 2)
+        end
+      end
+    ensure
+      $; = old_fs
+    end    
+  end
+  
+  it "splits between characters when regexp matches a zero-length string" do
     "hello".split(//).should == ["h", "e", "l", "l", "o"]
+    "hello".split(//, -1).should == ["h", "e", "l", "l", "o", ""]
+    "hello".split(//, 2).should == ["h", "ello"]
+    
     "hi mom".split(/\s*/).should == ["h", "i", "m", "o", "m"]
   end
   
-  it "returns at most fields as specified by limit" do
-    "hello".split(//, 3).should == ["h", "e", "llo"]
+  it "includes all captures in the result array" do
+    "hello".split(/(el)/).should == ["h", "el", "lo"]
+    "hi!".split(/()/).should == ["h", "", "i", "", "!"]
+    "hi!".split(/()/, -1).should == ["h", "", "i", "", "!", "", ""]
+    "hello".split(/((el))()/).should == ["h", "el", "el", "", "lo"]
+    "AabB".split(/([a-z])+/).should == ["A", "b", "B"]
   end
+
+  it "tries converting limit to an integer via to_int" do
+    obj = Object.new
+    def obj.to_int() 2 end
+    "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
+  end
+  
+  it "doesn't set $~" do
+    $~ = nil
+    "x:y:z".split(/:/)
+    $~.should == nil
+  end
+  
+  it "returns subclass instances based on self" do
+    ["", "x:y:z:", "  x  y  "].each do |str|
+      [//, /:/, /\s+/].each do |pat|
+        [-1, 0, 1, 2].each do |limit|
+          MyString.new(str).split(pat, limit).each do |x|
+            x.class.should == MyString
+          end
+        end
+      end
+    end
+  end
+  
+  it "taints the resulting strings if self is tainted" do
+    ["", "x:y:z:", "  x  y  "].each do |str|
+      [//, /:/, /\s+/].each do |pat|
+        [-1, 0, 1, 2].each do |limit|
+          str.dup.taint.split(pat).each do |x|
+            x.tainted?.should == true
+          end
+          
+          str.split(pat.dup.taint).each do |x|
+            x.tainted?.should == false
+          end
+        end
+      end
+    end    
+  end  
 end
 
 describe "String#squeeze([other_strings])" do
