@@ -1,7 +1,7 @@
 class Module
   ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
   def __ivars__      ; @__ivars__    ; end
-  def methods        ; @methods      ; end
+  # Do not define #methods as an accessor for @methods, use #method_table instead
   def method_cache   ; @method_cache ; end
   def name           ; @name         ; end
   def constants_table; @constants    ; end

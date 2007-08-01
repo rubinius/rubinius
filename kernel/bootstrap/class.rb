@@ -64,19 +64,6 @@ class Class
     inst.kind_of? self
   end
     
-  def instance_methods(all=true)
-    mine = method_table.names
-    return mine unless all
-    
-    sup = direct_superclass()
-    while sup
-      mine |= sup.method_table.names
-      sup = sup.direct_superclass()
-    end
-    
-    return mine
-  end
-  
   def superclass
     cls = direct_superclass
     return nil unless cls

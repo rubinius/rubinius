@@ -33,8 +33,38 @@ class Module
   end
 
   def instance_methods(all=true)
-    method_table.names
+    filter_methods(:public_names, all) | filter_methods(:protected_names, all)
   end
+
+  def public_instance_methods(all=true)
+    filter_methods(:public_names, all)
+  end
+  
+  def private_instance_methods(all=true)
+    filter_methods(:private_names, all)
+  end
+  
+  def protected_instance_methods(all=true)
+    filter_methods(:protected_names, all)
+  end
+  
+  def filter_methods(filter, all)
+    names = method_table.__send__(filter)
+    # TODO: fix for module when modules can include modules
+    return names if self.is_a?(Module)
+    unless all or self.is_a?(MetaClass) or self.is_a?(IncludedModule)
+      return names
+    end
+    
+    sup = direct_superclass()
+    while sup
+      names |= sup.method_table.__send__(filter)
+      sup = sup.direct_superclass()
+    end
+    
+    return names
+  end
+  # private :filter_methods
   
   def const_defined?(name)
     name = name.to_s

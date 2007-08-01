@@ -98,4 +98,12 @@ class Tuple
   def empty?
     size == 0
   end
+  
+  def first
+    at(0)
+  end
+  
+  def last
+    at(fields-1)
+  end
 end

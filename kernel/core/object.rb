@@ -176,13 +176,27 @@ class Object
     str
   end
   
-  def singleton_methods
+  def singleton_methods(all=true)
     class << self
-      method_table.names
+      method_table.public_names
     end
   end
   
-  def methods
-    singleton_methods | self.class.instance_methods(true)
+  def methods(all=true)
+    names = singleton_methods
+    names |= self.class.instance_methods(true) if all
+    return names
+  end
+  
+  def public_methods(all=true)
+    self.class.public_instance_methods(all)
+  end
+  
+  def private_methods(all=true)
+    self.class.private_instance_methods(all)
+  end
+  
+  def protected_methods(all=true)
+    self.class.protected_instance_methods(all)
   end
 end

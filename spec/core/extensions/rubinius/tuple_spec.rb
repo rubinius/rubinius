@@ -99,6 +99,20 @@ extension :rubinius do
     end
   end
   
+  describe "Tuple#first" do
+    it "returns the first element" do
+      t = Tuple[:foo, :bar, :baz]
+      t.first.should == :foo
+    end
+  end
+  
+  describe "Tuple#last" do
+    it "returns the last element" do
+      t = Tuple[:a, 'b', 3]
+      t.last.should == 3
+    end
+  end
+  
   describe "Tuple#shift" do
     it "returns the tuple after removing the first value" do
       t = Tuple[99, 98, 97].shift

@@ -14,8 +14,8 @@ class Module
     if method_names.empty?
       raise ArgumentError, "module_function without an argument is not supported"
     else
-      mod_methods = methods
-      inst_methods = metaclass.methods
+      mod_methods = method_table
+      inst_methods = metaclass.method_table
       method_names.each do |method_name|
         inst_methods[method_name] = mod_methods[method_name]
       end

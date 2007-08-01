@@ -67,7 +67,7 @@ class Array
   end
   
   def compact
-    out = self.class.new
+    out = Array.new
     each do |ent|
       out << ent unless ent.nil?
     end
@@ -161,7 +161,7 @@ class Array
   end
   
   def dup
-    ary = self.class.new
+    ary = Array.new
     each { |e| ary << e }
     return ary
   end
