@@ -42,6 +42,8 @@ class SpecReporter
     @exceptions = []
   end
   
+  attr_reader :describe
+  
   def before_describe(msg)
     @describe = msg
   end
@@ -236,6 +238,15 @@ def after(at=:each,&block)
 end
 
 def it(msg)
+  full_msg = @reporter.describe + " " + msg
+  skip = false
+  
+  $spec_exclude_res.each do |re|
+    skip = true if re.match(full_msg)
+  end
+  
+  return if skip
+  
   @reporter.before_it(msg)
 
   begin
