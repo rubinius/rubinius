@@ -42,8 +42,6 @@ class SpecReporter
     @exceptions = []
   end
   
-  attr_reader :describe
-  
   def before_describe(msg)
     @describe = msg
   end
@@ -214,63 +212,114 @@ class Object
   end
 end
 
-@__before__ = []
-@__after__ = []
-
-def before(at=:each,&block)
-  if at == :each
-    @__before__.push block
-  elsif at == :all
-    STDOUT.print "mini_rspec does not support before(:all)"
-  else
-    raise ArgumentError, "I do not know when you want me to call your block"
+class SpecRunner
+  def initialize(reporter=nil)
+    @only = []
+    @except = []
+    @reporter = reporter
+    if @reporter == nil
+      if rep = ENV['REPORTER']
+        cls = Object.const_get(rep) rescue nil
+        if cls.nil?
+          puts "Unable to find reporter '#{rep}', falling back."
+          @reporter = DottedReporter.new
+        else
+          @reporter = cls.new
+        end
+      else
+        @reporter = DottedReporter.new
+      end
+    end
   end
+  
+  def reporter
+    @reporter
+  end
+  
+  def only(*args)
+    @only = args.map { |a| Regexp.new(a) }
+  end
+  
+  def except(*args)
+    @except = args.map { |a| Regexp.new(a) }
+  end
+  
+  def skip?
+    example = @describe.to_s + " " + @it.to_s
+    @except.each { |re| return true if re.match(example) }
+    @only.each { |re| return true unless re.match(example) }
+    return false
+  end
+  
+  def before(at=:each,&block)
+    if at == :each
+      @before.push block
+    elsif at == :all
+      STDOUT.print "mini_rspec does not support before(:all)"
+    else
+      raise ArgumentError, "I do not know when you want me to call your block"
+    end
+  end
+
+  def after(at=:each,&block)
+    if at == :each
+      @after.push block
+    elsif at == :all
+      STDOUT.print "mini_rspec does not support after(:all)"
+    else
+      raise ArgumentError, "I do not know when you want me to call your block"
+    end
+  end
+
+  def it(msg)
+    @it = msg
+    return if skip?
+
+    @reporter.before_it(msg)
+    begin
+      @before.each { |b| b.call }
+      yield
+      Mock.verify  
+    rescue Exception => e
+      @reporter.exception(e)
+    ensure
+      Mock.cleanup
+      Mock.reset
+      @after.each { |b| b.call }
+    end
+    @reporter.after_it(msg)
+  end
+
+  def describe(msg)
+    @before = []
+    @after = []
+    @describe = msg
+
+    @reporter.before_describe(msg)
+    yield
+    @reporter.after_describe(msg)
+  end
+end
+
+if @runner == nil
+  @runner = SpecRunner.new
+end
+
+# Expose the runner methods
+def before(at=:each,&block)
+  @runner.before(at,&block)
 end
 
 def after(at=:each,&block)
-  if at == :each
-    @__after__.push block
-  elsif at == :all
-    STDOUT.print "mini_rspec does not support after(:all)"
-  else
-    raise ArgumentError, "I do not know when you want me to call your block"
-  end
+  @runner.after(at,&block)
 end
 
-def it(msg)
-  full_msg = @reporter.describe + " " + msg
-  skip = false
-  
-  $spec_exclude_res.each do |re|
-    skip = true if re.match(full_msg)
-  end
-  
-  return if skip
-  
-  @reporter.before_it(msg)
-
-  begin
-    @__before__.each { |b| b.call }
-    yield
-    Mock.verify  
-
-  rescue Exception => e
-    @reporter.exception(e)
-
-  # Cleanup
-  ensure
-    Mock.cleanup
-    Mock.reset
-    @__after__.each { |b| b.call }
-  end
-  
-  @reporter.after_it(msg)
+def describe(msg,&block)
+  @runner.describe(msg,&block)
 end
 
-def describe(msg)
-  @reporter.before_describe(msg)
-  yield
-  @reporter.after_describe(msg)
+def it(msg,&block)
+  @runner.it(msg,&block)
 end
 
 # Alternatives
@@ -281,20 +330,6 @@ class Object
   alias teardown after
 end
 
-if @reporter == nil
-  if rep = ENV['REPORTER']
-    cls = Object.const_get(rep) rescue nil
-    if cls.nil?
-      puts "Unable to find reporter '#{rep}', falling back."
-      @reporter = DottedReporter.new
-    else
-      @reporter = cls.new
-    end
-  else
-    @reporter = DottedReporter.new
-  end
-end
-
 at_exit do
-  @reporter.summary
+  @runner.reporter.summary
 end

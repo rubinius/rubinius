@@ -13,7 +13,8 @@ end
 patterns = []
 includes = ['-Ispec']
 requires = ['-rmini_rspec.rb', '-rmini_mock.rb']
-exclude_res = []
+except = []
+only = []
 name = nil
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
@@ -66,11 +67,15 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-n", "--name RUBY_NAME", String,
           "Overrides the name used to determine the implementation") do |n|
-    name = "RUBY_NAME = \"#{n}\"; "
+    name = "RUBY_NAME = \"#{n}\";"
+  end
+  opts.on("-e", "--example RE", String,
+          "Execute example(s) with descriptions matching RE") do |r|
+    only << r
   end
   opts.on("-x", "--exclude RE", String,
-          "Exclude specs with descriptions matching RE") do |r|
-    exclude_res << Regexp.new(r)
+          "Exclude example(s) with descriptions matching RE") do |r|
+    except << r
   end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
@@ -98,7 +103,10 @@ patterns.each do |item|
 end
 
 cmd = <<-EOC
-#{target} #{includes.join(" ")} #{requires.join(" ")} -e '#{name}@reporter = #{format}.new;
-$spec_exclude_res = #{exclude_res.inspect}; #{files.inspect}.each { |f| load f }'
+#{target} #{includes.join(" ")} #{requires.join(" ")} -e '#{name}
+@runner = SpecRunner.new(#{format}.new);
+@runner.only(*#{only.inspect});
+@runner.except(*#{except.inspect});
+#{files.inspect}.each { |f| load f }'
 EOC
 system cmd
