@@ -223,14 +223,7 @@ describe "File#ctime" do
   it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
     @file.ctime
     @file.ctime.class.should == Time
-  end
- 
-  #  it "" do
-  #    sys("touch  #@file")
-  #    ctime = RubiconStat::ctime(@file)
-  #    @cTime = Time.at(ctime)
-  #    @cTime.should == File.ctime(@file)
-  #  end
+  end 
   
   it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
     should_raise(ArgumentError){ @file.ctime(@file, @file) } 
@@ -271,7 +264,7 @@ describe "File.delete" do
     @file1 = 'temp1.txt'
     @file2 = 'temp2.txt'
 
-    File.open(@file1, "w"){} # touch # Touch
+    File.open(@file1, "w"){} # touch 
     File.open(@file2, "w"){} # Touch
   end
 
@@ -295,8 +288,8 @@ describe "File.delete" do
   end
  
   after(:each) do
-    # FileUtils.remove_file(@file1)
-    # FileUtils.remove_file(@file2)
+    File.delete("temp1.txt")    
+    File.delete("temp2.txt")
 
     @file1 = nil
     @file2 = nil
@@ -357,8 +350,8 @@ describe "File.executable?" do
   end
 
   after(:each) do
-    # FileUtils.remove_file(@file1)
-    # FileUtils.remove_file(@file2)
+#    File.delete(Dir.pwd,"temp1.txt")    
+#    File.delete(Dir.pwd,"temp2.txt")
 
     @file1 =  nil
     @file2 = nil
@@ -392,24 +385,39 @@ describe "File.executable_real?" do
   end
 
   after(:each) do
-    #FileUtils.remove_file(@file1)
-    #FileUtils.remove_file(@file2)
+#    File.delete("temp1.txt")    
+#    File.delete("temp2.txt")
 
     @file1 = nil
     @file2 = nil
   end
-end
-   
+end   
 
-#describe "File::Constants" do 
-#  before(:each) do
-#    
-#  end
-#   
-#  after(:each) do
-#    
-#  end  
-#end
+describe "File::Constants" do  
+  specify "File::RDONLY" do 
+    File::RDONLY.should == 0
+  end
+ 
+  specify "File::WRONLY" do 
+    File::WRONLY.should ==  1
+  end
+ 
+  specify "File::CREAT" do 
+    File::CREAT.should == 64
+  end
+ 
+  specify "File::RDWR" do 
+    File::RDWR.should == 2
+  end
+ 
+  specify "File::APPEND" do 
+    File::APPEND.should == 1024
+  end
+ 
+  specify "File::TRUNC" do 
+    File::TRUNC.should == 512
+  end
+end
 
 describe "File.exist?" do 
   before(:each) do
@@ -434,7 +442,7 @@ describe "File.exist?" do
   end 
    
   after(:each) do
-    #FileUtils.remove_file(@file)
+    File.delete("temp.txt")
     @file = nil
   end  
 end
@@ -623,7 +631,7 @@ describe "File.file?" do
     end
 
     @file = "test.txt"
-    File.open(@file1, "w"){} # touch
+    File.open(@file, "w"){} # touch
   end
   
   it "returns true if the named file exists and is a regular file." do 
@@ -639,7 +647,7 @@ describe "File.file?" do
   end
 
   after(:each) do
-    #FileUtils.remove_file(@file)
+    File.delete(@file) rescue nil
     @null = nil
     @file = nil
   end
@@ -916,11 +924,11 @@ describe "File.join" do
 end
 
 describe "File.new" do
-  before(:each) do
-    @fh    = nil
-    @file  = 'test.txt'
+  before(:each) do 
+    @file = 'test.txt'
+    @fh = nil 
     @flags = File::CREAT | File::TRUNC | File::WRONLY
-    File.open(@file, "w"){} #touch
+    File.open(@file, "w"){} # touch
   end 
 
   it "return a new File with mode string" do
@@ -965,9 +973,183 @@ describe "File.new" do
     should_raise(Errno::EINVAL){ File.new(@fh.fileno, @flags) }
   end
 
-  after(:each) do
-    @fh.close if @fh 
+  after(:each) do   
+    File.delete("test.txt")
     @fh    = nil
+    @file  = nil
+    @flags = nil
+  end
+end 
+
+describe "File.open" do 
+  before(:each) do
+    @file = 'test.txt'    
+    File.delete(@file)
+    @fh = nil
+    @fd = nil
+    @flags = File::CREAT | File::TRUNC | File::WRONLY
+    File.open(@file, "w"){} # touch
+  end
+
+  it "open the file (basic case)" do 
+    @fh = File.open(@file) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  it "open file when call with a block (basic case)" do
+    File.open(@file){ |fh| @fd = fh.fileno }
+    should_raise(SystemCallError){ File.open(@fd) } # Should be closed by block
+    File.exists?(@file).should == true
+  end
+
+  it "open with mode string" do
+    @fh = File.open(@file, 'w') 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  it "open a file with mode string and block" do
+    File.open(@file, 'w'){ |fh| @fd = fh.fileno }
+    should_raise(SystemCallError){ File.open(@fd) }
+    File.exists?(@file).should == true
+  end
+
+  it "open a file with mode num" do 
+    @fh = File.open(@file, @flags)
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  it "open a file with mode num and block" do
+    File.open(@file, 'w'){ |fh| @fd = fh.fileno }
+    should_raise(SystemCallError){ File.open(@fd) }
+    File.exists?(@file).should == true
+  end
+
+  # For this test we delete the file first to reset the perms
+  it "open the file when call with mode, num andpermissions" do
+    File.delete(@file)
+    @fh = File.open(@file, @flags, 0755)
+    File.stat(@file).mode.to_s(8).should == "100751"
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  # For this test we delete the file first to reset the perms
+  it "open the flie when call with mode, num, permissions and block" do
+    File.delete(@file)
+    File.open(@file, @flags, 0755){ |fh| @fd = fh.fileno }
+    should_raise(SystemCallError){ File.open(@fd) }
+    File.stat(@file).mode.to_s(8).should == "100751"
+    File.exists?(@file).should == true
+  end
+
+  it "open the file when call with fd" do
+    @fh = File.open(@file)
+    @fh = File.open(@fh.fileno) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  # Note that this test invalidates the file descriptor in @fh. That's
+  # handled in the teardown via the 'rescue nil'.
+  #
+  it "open a file with a file descriptor d and a block" do 
+    @fh = File.open(@file) 
+    File.open(@fh.fileno){ |fh| @fd = fh.fileno }
+    should_raise(SystemCallError){ File.open(@fd) }
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end  
+    
+  it "raise an ArgumentError exception when call with an unknow mode" do 
+    should_raise(ArgumentError){File.open(@file, "q")  }
+  end
+  
+  it "can read in a block when call open with RDONLY mode" do 
+    File.open(@file, File::RDONLY) do |f| 
+      f.gets.should == nil
+    end
+  end
+  
+  it "can read in a block when call open with 'r' mode" do 
+    File.open(@file, "r") do |f| 
+      f.gets.should == nil
+    end
+  end
+  
+  it "raise an IO exception when write in a block opened with RDONLY mode" do 
+    File.open(@file, File::RDONLY) do |f| 
+      should_raise(IOError) { f.puts "writing ..." }
+    end
+  end
+  
+  it "raise an IO exception when write in a block opened with 'r' mode" do 
+    File.open(@file, "r") do |f| 
+      should_raise(IOError) { f.puts "writing ..." }
+    end
+  end
+  
+  it "can write in a block when call open with WRONLY mode" do 
+    File.open(@file, File::WRONLY) do |f| 
+      f.puts("writing").should == nil
+    end
+  end
+  
+  it "can write in a block when call open with 'w' mode" do 
+    File.open(@file, "w") do |f| 
+      f.puts("writing").should == nil
+    end
+  end
+  
+  it "raise an IO exception when read in a block opened with WRONLY mode" do 
+    File.open(@file, File::WRONLY) do |f| 
+      should_raise(IOError) { f.gets  }
+    end
+  end
+  
+  it "raise an IO exception when read in a block opened with 'w' mode" do 
+    File.open(@file, "w") do |f| 
+      should_raise(IOError) { f.gets   }
+    end
+  end
+  
+  it "raise an IO exception when read in a block opened with 'a' mode" do 
+    File.open(@file, "a") do |f| 
+      should_raise(IOError) { f.gets  }
+    end
+  end
+  
+  it "raise an IO exception when read in a block opened with 'w' mode" do 
+    File.open(@file, "a") do |f|        
+      f.puts("writing").should == nil      
+      should_raise(IOError) { f.gets }
+    end
+  end
+  
+  it "can read and write in a block when call open with RDWR mode" do 
+    File.open(@file, File::RDWR) do |f| 
+      f.gets.should == nil      
+      f.puts("writing").should == nil
+      f.rewind
+      f.gets.should == "writing\n"
+    end
+  end
+    
+  specify "expected errors " do
+    should_raise(TypeError){ File.open(true) }
+    should_raise(TypeError){ File.open(false) }
+    should_raise(TypeError){ File.open(nil) }
+    should_raise(SystemCallError){ File.open(-1) } # kind_of ?
+    should_raise(ArgumentError){ File.open(@file, File::CREAT, 0755, 'test') }
+  end
+  
+  after(:each) do     
+    @fh.delete if @fh  rescue nil
+    @fh.close if @fh rescue nil
+    @fh    = nil
+    @fd    = nil
     @file  = nil
     @flags = nil
   end
@@ -975,7 +1157,7 @@ end
 
 describe "File.atime" do
   before(:each) do
-    @file = File.join(Dir.pwd, 'test.txt')
+    @file = File.join('test.txt')
     File.open(@file1, "w"){} # touch
   end
 
@@ -994,8 +1176,8 @@ describe "File.atime" do
     should_raise(TypeError){ File.atime(1) }
   end
 
-  after(:each) do
-    #FileUtils.remove_file(@file)
+  after(:each) do 
+    File.delete("test.txt")     
     @file = nil
   end
 end
