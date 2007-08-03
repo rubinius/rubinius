@@ -43,7 +43,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     end
   end
   opts.on("-t", "--target TARGET", String, 
-          "Implementation that will run the specs: r:ruby|x:rbx|j:jruby") do |t|
+          "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
     case t
     when 'r', 'ruby'
       target = 'ruby'

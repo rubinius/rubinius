@@ -237,11 +237,11 @@ class SpecRunner
   end
   
   def only(*args)
-    @only = args.map { |a| Regexp.new(a) }
+    @only = args.map { |a| Regexp.new(Regexp.escape(a)) }
   end
   
   def except(*args)
-    @except = args.map { |a| Regexp.new(a) }
+    @except = args.map { |a| Regexp.new(Regexp.escape(a)) }
   end
   
   def skip?
@@ -299,6 +299,14 @@ class SpecRunner
     yield
     @reporter.after_describe(msg)
   end
+  
+  def shared(msg, &block)
+    return Proc.new(&block)
+  end
+  
+  def it_should_behave_like(behavior, meth)
+    behavior.call(meth)
+  end
 end
 
 if @runner == nil
@@ -306,20 +314,28 @@ if @runner == nil
 end
 
 # Expose the runner methods
-def before(at=:each,&block)
-  @runner.before(at,&block)
+def before(at=:each, &block)
+  @runner.before(at, &block)
 end
 
-def after(at=:each,&block)
-  @runner.after(at,&block)
+def after(at=:each, &block)
+  @runner.after(at, &block)
 end
 
-def describe(msg,&block)
-  @runner.describe(msg,&block)
+def describe(msg, &block)
+  @runner.describe(msg, &block)
 end
 
-def it(msg,&block)
-  @runner.it(msg,&block)
+def it(msg, &block)
+  @runner.it(msg, &block)
+end
+
+def shared(msg, &block)
+  @runner.shared(msg, &block)
+end
+
+def it_should_behave_like(behavior, meth)
+  @runner.it_should_behave_like(behavior, meth)
 end
 
 # Alternatives
