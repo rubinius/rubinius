@@ -299,14 +299,6 @@ class SpecRunner
     yield
     @reporter.after_describe(msg)
   end
-  
-  def shared(msg, &block)
-    return Proc.new(&block)
-  end
-  
-  def it_should_behave_like(behavior, meth)
-    behavior.call(meth)
-  end
 end
 
 if @runner == nil
@@ -328,14 +320,6 @@ end
 
 def it(msg, &block)
   @runner.it(msg, &block)
-end
-
-def shared(msg, &block)
-  @runner.shared(msg, &block)
-end
-
-def it_should_behave_like(behavior, meth)
-  @runner.it_should_behave_like(behavior, meth)
 end
 
 # Alternatives

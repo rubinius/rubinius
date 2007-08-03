@@ -82,3 +82,11 @@ class Object
   alias noncompliant compliant
   alias extension compliant
 end
+
+def shared(msg, &block)
+  return Proc.new(&block)
+end
+
+def it_behaves_like(behavior, meth)
+  behavior.call(meth)
+end
