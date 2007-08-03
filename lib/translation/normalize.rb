@@ -59,15 +59,15 @@ class RsNormalizer < SimpleSexpProcessor
     end
 
     block = body[1]
-    if block[0] == :args 
+    if block && block[0] == :args 
       # Insane defs like this:
       # def some_local_var.foo(x = ($foo_self = self; nil)); end
       body[1] = [:block, block]
       process_defn([name, body])
-    elsif block[1][0] != :args
+    elsif block && block[1][0] != :args
       raise "Unknown defn layout."
     end
-    args = block[1]
+    args = block[1] || []
 
     if args.size == 1
       args += [[], [], nil, nil]
@@ -88,7 +88,8 @@ class RsNormalizer < SimpleSexpProcessor
       args << block[2]
     end
 
-    block.replace block[start..-1].unshift(:block)
+    normalized_block = (block[start..-1] || []).unshift(:block)
+    block.replace(normalized_block)
     if @full
       cur = @state
       @state = RsLocalState.new

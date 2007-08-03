@@ -188,7 +188,7 @@ module Bytecode
       meth.state = state
       
       pro = Processor.new(self, meth, state)
-      pro.process nx
+      pro.process nx if nx[0]
       return pro
     end
     
@@ -1487,6 +1487,7 @@ module Bytecode
       end
       
       def detect_primitive(body)
+        return unless body && body[1] && body[1][1]
         cl = body[1][1]
         if cl.first == :newline
           cl = cl.last
@@ -1562,13 +1563,15 @@ module Bytecode
         args = x.shift
         body = x.shift
                 
-        prim = detect_primitive(body) if body
+        prim = detect_primitive(body)
         state = RsLocalState.new
         scoper = RsLocalScoper.new(state)
 
         # Required arguments, added in order so we know
         # their positions.
-        args[1].each { |e| state.add_arg e }
+        if required_args = args[1]
+          required_args.each { |e| state.add_arg e }
+        end
         
         defaults = args[4]
         # The initializers for default argument values may contain
@@ -1616,7 +1619,7 @@ module Bytecode
         add "#{kind} #{name}"
         str = ""
                 
-        required = args[1].size
+        required = args[1] ? args[1].size : 0
         
         # Copy all the non-stack, not-default args into the locals tuple
         state.each_arg do |name, var|

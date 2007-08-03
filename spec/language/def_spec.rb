@@ -66,6 +66,13 @@ describe "Defining a singleton method" do
     end
     @@a.foo.should == 8
   end
+
+  it "should work without a body" do
+    class DefSpecClassOne
+      def self.foo;end
+    end
+    DefSpecClassOne.foo.should == nil
+  end
 end
 describe "Defining a method with complex default args" do
   it "should let you define a method inside a default argument" do
