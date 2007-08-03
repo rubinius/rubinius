@@ -255,6 +255,7 @@ end
 desc "Remove all .rbc files from the project"
 task :pristine do
   FileList['**/*.rbc'].each do |fn|
+    next if fn == 'runtime/loader.rbc'
     FileUtils.rm fn rescue nil
   end
 end
