@@ -1,1 +1,1 @@
-warn 'No ThreadGroup specs'
+require File.dirname(__FILE__) + '/../spec_helper'

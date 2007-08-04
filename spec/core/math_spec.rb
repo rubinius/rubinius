@@ -10,7 +10,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # exp exp exp! frexp ldexp sinh sinh sinh!  tanh   tanh   tanh!  
 
 
-TOLERANCE=0.00003
+TOLERANCE=0.00003 unless Object.const_defined?(:TOLERANCE)
 
 class IncludesMath
   include Math

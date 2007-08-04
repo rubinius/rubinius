@@ -46,8 +46,7 @@ while File.exist? $nonexisting
   $nonexisting = $nonexisting.succ
 end
 
-
-def setup_mock_fs()
+def setup_mock_fs
   system "mkdir -p '#{$mockdir}';
           mkdir -p '#{$mockdir}/subdir_one';
           mkdir -p '#{$mockdir}/subdir_two';
@@ -73,19 +72,16 @@ def setup_mock_fs()
           touch '#{$mockdir}/deeply/nested/directory/structure/.ext';"
 end
 
-#def teardown_mock_fs()
-#end
+def teardown_mock_fs
+  system "rm -r #{$mockdir}"
+end
 
-warn "Running Dir specs will leave you with a #{$mockdir}, feel free to delete it."
 setup_mock_fs
 
 # Try to clean up
 at_exit do
-  system "rm -r #{$mockdir}"
+  teardown_mock_fs
 end
-
-warn 'Dir specs are incomplete. Please add corner cases.'
-
 
 context 'Using Dir to move around the filesystem' do
   specify 'Dir.pwd and Dir.getwd return the current working directory' do

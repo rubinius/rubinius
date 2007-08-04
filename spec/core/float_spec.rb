@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # divmod, eql?, finite?, floor, hash, infinite?, modulo, nan?, round,
 # to_f, to_i, to_int, to_s, truncate, zero?
 
-TOLERANCE = 0.0003
+TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
 
 describe "Float#CONSTANTS" do 
   specify  "the DIG value is  15" do
