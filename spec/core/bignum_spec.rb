@@ -203,7 +203,7 @@ describe "Bignum instance method" do
   it "divmod should return an [quotient, modulus] from dividing self by other" do
     a = S_BignumHelper.sbm(55)
     a.divmod(5).inspect.should == '[214748375, 4]'
-    a.divmod(15.2).inspect.should == '[70640913.0, 1.40000005019339]'
+    a.divmod(15.2).inspect.should == '[70640913, 1.40000005019339]'
     a.divmod(a + 9).inspect.should == '[0, 1073741879]'
   end
   

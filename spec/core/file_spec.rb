@@ -395,27 +395,27 @@ end
 
 describe "File::Constants" do  
   specify "File::RDONLY" do 
-    File::RDONLY.should == 0
+    defined?(File::RDONLY).should == "constant" 
   end
  
-  specify "File::WRONLY" do 
-    File::WRONLY.should ==  1
+  specify "File::WRONLY" do  
+    defined?(File::WRONLY).should == "constant" 
   end
  
-  specify "File::CREAT" do 
-    File::CREAT.should == 64
+  specify "File::CREAT" do     
+    defined?(File::CREAT).should == "constant" 
   end
  
-  specify "File::RDWR" do 
-    File::RDWR.should == 2
+  specify "File::RDWR" do  
+    defined?(File::RDWR).should == "constant" 
   end
  
-  specify "File::APPEND" do 
-    File::APPEND.should == 1024
+  specify "File::APPEND" do      
+    defined?(File::APPEND).should == "constant" 
   end
  
-  specify "File::TRUNC" do 
-    File::TRUNC.should == 512
+  specify "File::TRUNC" do     
+    defined?(File::TRUNC).should == "constant" 
   end
 end
 
