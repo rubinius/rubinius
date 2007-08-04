@@ -25,28 +25,22 @@ module Functions
     nil
   end
 
-  def raise(exc=$!, msg=nil)
-    if Exception === exc
-      # Do nothing, just fast-track it to raising.
-    elsif exc.kind_of?(String)
-      exc = RuntimeError.new(exc)
-    elsif exc.respond_to? :exception
+  def raise(exc=$!, msg=nil, trace=nil)
+    if exc.respond_to? :exception
       exc = exc.exception msg
-    elsif exc.respond_to? :ancestors
-      # This isn't necessary in MRI; Should be fixed in rubinius.
-      # All Exceptions _should_ expose an exception method.
-      exc = exc.new msg if exc.ancestors.include? Exception
-    elsif !exc
-      exc = RuntimeError.new("An unknown exception occurred")
+      raise TypeError, 'exception class/object expected' unless Exception=== exc
+      exc.set_backtrace trace if trace
+    elsif exc.kind_of? String or !exc
+      exc = RuntimeError.exception exc
+    else
+      raise TypeError, 'exception class/object expected'
     end
-    unless Exception === exc
-      raise TypeError.new('exception class/object expected')
-    end
-    
+
     if $DEBUG
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
-    
+
+    exc.set_backtrace MethodContext.current.sender unless exc.backtrace
     Ruby.asm "#local exc\nraise_exc"
   end
 

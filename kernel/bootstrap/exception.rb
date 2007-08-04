@@ -5,8 +5,7 @@ class Exception
 
   def initialize(message = nil)
     @message = message
-    ctx = MethodContext.current.sender.sender
-    @context = ctx
+    @context = nil
   end
 
   def backtrace
