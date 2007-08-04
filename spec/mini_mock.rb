@@ -1,7 +1,5 @@
 # The code is ugly because it must be kept as straightforward
 # as possible, do not blame me.
-require 'mini_rspec'
-
 
 class Object
   # Provide the method name and a hash with any of the following

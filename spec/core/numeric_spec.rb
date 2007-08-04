@@ -31,7 +31,7 @@ a_num_bigint = 3**33
 
 describe "Numeric#-@" do    
   it " should return the same value with opposite sign (integers)" do 
-    zero.send(:-@).should == 0
+    0.send(:-@).should == 0
     a_possitive_number.send(:-@).should == -100
     a_negative_number.send(:-@).should == 100 
   end  
@@ -51,7 +51,7 @@ end
 
 describe "Numeric#+@" do    
   it " should return the same value with opposite sign (integers)" do 
-    zero.send(:+@).should == 0
+    0.send(:+@).should == 0
     a_possitive_number.send(:+@).should == 100
     a_negative_number.send(:+@).should == -100
     
@@ -79,13 +79,13 @@ end
 # Class Numeric achieves this by converting itself to a Float then invoking Float#ceil.
 describe "Numeric#ceil " do  
   it "ceil to integer " do
-    zero.ceil.should == 0
+    0.ceil.should == 0
     a_possitive_number.ceil.should == 100
     a_negative_number.ceil.should == -100
   end
   
   it " should ceil to float " do 
-    zero.ceil.should == 0.0
+    0.ceil.should == 0.0
     a_possitive_float.ceil.should == 35
     a_negative_float.ceil.should == -34
   end
@@ -101,7 +101,7 @@ end
 # Returns the absolute value of num.
 describe "Numeric#abs" do  
   it "return the abs (integers) " do      
-    zero.abs.should == 0 
+    0.abs.should == 0 
     a_possitive_number.abs.should  == 100
     a_negative_number.abs.should   == 100
   end
@@ -158,21 +158,21 @@ describe "Numeric#divmod" do
   end 
 end
 
-specify "quo should return the floating-point result of self divided by other" do
-  # the to_f is required because RSpec (I'm assuming) requires 'rational'
-  2.quo(2.5).to_s.should == '0.8'
-  5.quo(2).to_f.to_s.should == '2.5' 
-end
-  
-specify "quo should NOT raise an exception when other is zero" do
-  # 1.quo(0) should also not raise (i.e works in irb and from a file),
-  # but fails here.
-  1.quo(0.0).to_s.should == 'Infinity'
-  1.quo(-0.0).to_s.should == '-Infinity'
-end
-
 # Equivalent to Numeric#/, but overridden in subclasses.
 describe "Numeric#quo" do  
+  specify "quo should return the floating-point result of self divided by other" do
+    # the to_f is required because RSpec (I'm assuming) requires 'rational'
+    2.quo(2.5).to_s.should == '0.8'
+    5.quo(2).to_f.to_s.should == '2.5' 
+  end
+
+  specify "quo should NOT raise an exception when other is zero" do
+    # 1.quo(0) should also not raise (i.e works in irb and from a file),
+    # but fails here.
+    1.quo(0.0).to_s.should == 'Infinity'
+    1.quo(-0.0).to_s.should == '-Infinity'
+  end
+
   it "quo right  integers" do 
     a_num_int.quo(a_den_int).should_be_close(3.25, TOLERANCE)
     a_den_int.quo(a_num_int).should_be_close( 0.307692307692308, TOLERANCE)
@@ -254,6 +254,13 @@ describe " Numeric#eql?" do
     @bignum   = 4294967296
     @bigfloat = 4294967296.0
   end
+
+  after(:each) do 
+    @integer  = nil
+    @float    = nil
+    @bignum   = nil
+    @bigfloat = nil
+  end
   
   it "be equal (integers and floats)" do 
     @integer.eql?(@integer).should == true
@@ -274,13 +281,6 @@ describe " Numeric#eql?" do
     000000.eql?(0.0).should ==  false
     000000.eql?(000) .should ==  true
   end
-  
-  after(:each) do 
-    @integer  = nil
-    @float    = nil
-    @bignum   = nil
-    @bigfloat = nil
-  end
 end
 
 
@@ -288,7 +288,7 @@ end
 # this by converting anInteger to a Float and invoking Float#floor.
 describe "Numeric#floor" do 
   it "return the largest integer less than or equal to num (integer)" do 
-    zero.floor.should == 0
+    0.floor.should == 0
     a_possitive_number.floor.should == 100
     a_negative_number.floor.should == -100 
   end   
@@ -304,7 +304,7 @@ end
 # Returns true if num is an Integer (including Fixnum and Bignum).
 describe "Numeric#integer?" do  
   it "retrun true if the num is an integer?" do 
-    zero.integer?.should == true
+    0.integer?.should == true
     a_possitive_number.integer?.should  == true
     a_negative_number.integer?.should  == true
     a_possitive_float.integer?.should == false
@@ -318,18 +318,18 @@ end
 
 describe "Numeric#modulo" do 
   it " zero modulo x should be 0 (integer) " do 
-    zero.modulo(a_possitive_number).should == 0
-    zero.modulo(a_negative_number).should == 0
+    0.modulo(a_possitive_number).should == 0
+    0.modulo(a_negative_number).should == 0
   end
   
   it " zero modulo x should be 0 (float) " do 
-    zero.modulo(a_possitive_float).should == 0
-    zero.modulo(a_negative_float).should == 0
+    0.modulo(a_possitive_float).should == 0
+    0.modulo(a_negative_float).should == 0
   end
   
   it " zero modulo x should be 0 (bignum) " do 
-    zero.modulo(a_possitive_bignumber).should == 0
-    zero.modulo(a_negative_bignumber).should == 0 
+    0.modulo(a_possitive_bignumber).should == 0
+    0.modulo(a_negative_bignumber).should == 0 
   end
   
   it "y modulo x should be z (integer - integer) " do 
@@ -408,25 +408,15 @@ end
 # Returns num if num is not zero, nil otherwise. 
 # This behavior is useful when chaining comparisons:
 describe "Numeric#nonzero?" do 
-  before(:each) do 
-    zero    = 0
-    nonzero = 1
-  end  
-  
   it "return the vaule if number is different to 0" do 
-    zero.nonzero?.should == nil
-    nonzero.nonzero?.should == 1
+    0.nonzero?.should == nil
+    1.nonzero?.should == 1
   end  
-  
-  after(:each) do     
-    zero    = nil
-    nonzero = nil
-  end
 end
 
 describe "Numeric#to_int" do  
   it "return the integer (integers)" do 
-    zero.to_int.should == 0
+    0.to_int.should == 0
     a_possitive_number.to_int.should  == 100
     a_negative_number.to_int.should == -100
   end  
@@ -487,7 +477,7 @@ end
 # Rounds num to the nearest integer
 describe "Numeric#round" do  
   it " round (down) " do 
-    zero.round.should == 0.0
+    0.round.should == 0.0
     a_possitive_number.round.should == 100
     a_negative_number.round.should == -100
   end  
@@ -505,7 +495,7 @@ end
 
 describe "Numeric#truncate" do   
   it " truncate integers " do 
-    zero.truncate.should == 0.0
+    0.truncate.should == 0.0
     a_possitive_number.truncate.should == 100
     a_negative_number.truncate.should == -100
   end  
@@ -629,15 +619,10 @@ describe "Numeric#step" do
   end 
 end
 
-describe "Numeric#zero?" do 
-  before(:each) do 
-    zero    = 0
-    nonzero = 1
-  end  
-  
+describe "Numeric#zero?" do   
   it "return the vaule if number is different to 0" do 
-    zero.zero?.should == true
-    nonzero.zero?.should == false
+    0.zero?.should == true
+    1.zero?.should == false
   end     
 end
 

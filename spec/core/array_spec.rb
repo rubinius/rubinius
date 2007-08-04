@@ -2832,10 +2832,8 @@ context "On a frozen array" do
   end
   
   specify "initialize should raise" do
-    ary.instance_eval do
-      should_raise(TypeError) { initialize() }
-      should_raise(TypeError) { initialize([1, 2, 3]) }
-    end
+    should_raise(TypeError) { ary.instance_eval { initialize() } }
+    should_raise(TypeError) { ary.instance_eval { initialize([1, 2, 3]) } }
   end
 
   specify "insert should raise" do

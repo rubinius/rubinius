@@ -11,36 +11,35 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # to_f, to_i, to_s, tv_sec, tv_usec, usec, utc, utc?, utc_offset,
 # wday, yday, year, zone
 
-context "Time class method" do
-  
-  def localtime(seconds)
-    if RUBY_PLATFORM =~ /darwin/
-      `date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
-    elsif RUBY_PLATFORM =~ /linux/
-      `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
-    else
-      `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
-    end
+def with_timezone(name, offset)
+  # TZ convention is backwards
+  offset = -offset
+
+  zone = name.dup
+  zone << offset.to_s
+  zone << ":00:00"
+
+  old = ENV["TZ"]
+  ENV["TZ"] = zone
+
+  begin
+    yield
+  ensure
+    ENV["TZ"] = old
   end
+end
 
-  def with_timezone(name, offset)
-    # TZ convention is backwards
-    offset = -offset
-
-    zone = name.dup
-    zone << offset.to_s
-    zone << ":00:00"
-
-    old = ENV["TZ"]
-    ENV["TZ"] = zone
-
-    begin
-      yield
-    ensure
-      ENV["TZ"] = old
-    end
+def localtime(seconds)
+  if RUBY_PLATFORM =~ /darwin/
+    `date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
+  elsif RUBY_PLATFORM =~ /linux/
+    `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
+  else
+    `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
   end
-  
+end
+
+context "Time class method" do  
   # at
   
   specify "at should convert to time object" do

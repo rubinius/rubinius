@@ -1,25 +1,10 @@
 require 'mini_rspec'
-require 'mini_mock'
 
 def try(a, b=true)
   yield
   return nil
 rescue a
   return b
-end
-
-class Object
-  def should_include(other)
-    unless self.include?(other)
-      raise Exception.new("Expected " + self.inspect + " to include " + other.inspect)
-    end
-  end
-
-  def should_be_close(value, tolerance)
-    unless (value - self).abs <= tolerance
-      raise Exception.new("Expected " + self.inspect + " to be close to " + value.inspect)
-    end
-  end
 end
 
 def should_raise(klass = nil, msg = nil)

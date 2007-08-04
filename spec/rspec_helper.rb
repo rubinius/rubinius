@@ -20,10 +20,24 @@ module ExceptionHelper
 end
 
 class Object
-  def should_raise(exc)
-    yield
-  rescue Object => ex
-    exc.should === ex
+  def should_raise(exc, msg = nil)
+    raised = nil
+    
+    begin
+      yield
+    rescue Object => raised
+    end
+    
+    unless exc === raised
+      raised_str = raised ? raised.inspect : "nothing"
+      reason = "expected to raise %s, but raised %s" % [exc, raised_str]
+      Spec::Expectations.fail_with(reason)
+    end
+    
+    if msg and msg != raised.message then
+      reason = "expected message %p, but god %p" % [msg, e.message]
+      Spec::Expectations.fail_with(reason)
+    end
   end
 
   def should_include(*other)

@@ -33,6 +33,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 #
 
 # Helpers
+$orig = Dir.pwd
+
 $mockdir = '/tmp/rubinius_mock_fs'
 $mockdir.sub!('/tmp', '/private/tmp') if RUBY_PLATFORM["darwin"]
 
@@ -77,6 +79,11 @@ end
 warn "Running Dir specs will leave you with a #{$mockdir}, feel free to delete it."
 setup_mock_fs
 
+# Try to clean up
+at_exit do
+  system "rm -r #{$mockdir}"
+end
+
 warn 'Dir specs are incomplete. Please add corner cases.'
 
 
@@ -89,22 +96,26 @@ context 'Using Dir to move around the filesystem' do
   specify 'Dir.chdir can be used to change the working directory--temporary if a block is provided. Defaults to $HOME' do
     orig = Dir.pwd
 
-    Dir.chdir
-    Dir.pwd.should == ENV['HOME'] 
-    Dir.chdir orig
+    begin
+      Dir.chdir
+      Dir.pwd.should == ENV['HOME'] 
+      Dir.chdir orig
 
-    Dir.chdir $mockdir 
-    Dir.pwd.should == $mockdir
-    Dir.chdir orig 
+      Dir.chdir $mockdir 
+      Dir.pwd.should == $mockdir
+      Dir.chdir orig 
 
-    # Return values
-    Dir.chdir(orig).should == 0
-    Dir.chdir(orig) {:returns_block_value}.should == :returns_block_value
+      # Return values
+      Dir.chdir(orig).should == 0
+      Dir.chdir(orig) {:returns_block_value}.should == :returns_block_value
 
-    Dir.chdir($mockdir) {|dir| [dir, Dir.pwd]}.should == [$mockdir, $mockdir] 
-    Dir.pwd.should == orig
+      Dir.chdir($mockdir) {|dir| [dir, Dir.pwd]}.should == [$mockdir, $mockdir] 
+      Dir.pwd.should == orig
 
-    should_raise(SystemCallError) { Dir.chdir $nonexisting }
+      should_raise(SystemCallError) { Dir.chdir $nonexisting }
+    ensure
+      Dir.chdir(orig)
+    end
   end
 
   # Need special perms to run chroot
@@ -140,19 +151,14 @@ context 'Using Dir to move around the filesystem' do
 #  end
 end
 
-context 'Using Dir to modify the filesystem' do
-#  setup do 
-#    @orig = Dir.pwd
-#    Dir.chdir $mockdir
-#  end
-#
-#  teardown do 
-#    Dir.chdir @orig
-#  end
+context 'Using Dir to modify the filesystem' do  
+  setup do 
+    Dir.chdir $mockdir
+  end
 
-  # FIX: manual setup :)
-  @orig = Dir.pwd
-  Dir.chdir $mockdir
+  teardown do 
+    Dir.chdir $orig
+  end
 
   specify 'Dir.mkdir creates the named directory with the given permissions' do
     File.exist?('nonexisting').should == false
@@ -211,8 +217,6 @@ context 'Using Dir to modify the filesystem' do
       Dir.rmdir "noperm_#{cmd}"
     }
   end
-
-  Dir.chdir @orig
 end
 
 context 'Examining directory contents with Dir' do
@@ -243,17 +247,13 @@ context 'Examining directory contents with Dir' do
 end
 
 context 'Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0)' do
-#  setup do 
-#    @orig = Dir.pwd
-#    Dir.chdir $mockdir
-#  end
-#
-#  teardown do 
-#    Dir.chdir @orig
-#  end
+  setup do 
+    Dir.chdir $mockdir
+  end
 
-  @orig = Dir.pwd
-  Dir.chdir $mockdir
+  teardown do 
+    Dir.chdir $orig
+  end
 
   specify "* by itself matches any non-dotfile" do
   %w|glob []|.each {|msg|
@@ -331,10 +331,9 @@ context 'Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equ
 
   specify ".**/ recursively matches any subdirectories including ./ and ../" do
   %w|glob []|.each {|msg|
-    Dir.chdir "#{$mockdir}/subdir_one"
-    Dir.send(msg, '.**/').sort.should == %w|./ ../|.sort
-
-    Dir.chdir $mockdir
+    Dir.chdir("#{$mockdir}/subdir_one") do
+      Dir.send(msg, '.**/').sort.should == %w|./ ../|.sort
+    end
   }
   end
 
@@ -441,8 +440,6 @@ context 'Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equ
                                                        deeply/nested/directory/structure/file_one|.sort
     }
   end
-  
-  Dir.chdir @orig
 end
 
 
@@ -633,6 +630,6 @@ context dir_spec_object_text do
   @dir.close rescue nil
 end
 
-
-# Try to clean up
-system "rm -r #{$mockdir}"
+# Interestingly MRI 1.8 will fail on later load() calls without this...
+# Big WTF. -- flgr
+GC.start

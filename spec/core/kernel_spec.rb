@@ -134,14 +134,12 @@ end
 
 context "Kernel.at_exit()" do
   specify "should fire after all other code" do
-    vm = (ENV['SR_TARGET']||ENV['_'])
-    result = `#{vm} -e "at_exit {print 5}; print 6"`
+    result = `#{RUBY_NAME} -e "at_exit {print 5}; print 6"`
     result.should == "65"
   end
 
   specify "should fire in reverse order of registration" do
-    vm = (ENV['SR_TARGET']||ENV['_'])
-    result = `#{vm} -e "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"`
+    result = `#{RUBY_NAME} -e "at_exit {print 4};at_exit {print 5}; print 6; at_exit {print 7}"`
     result.should == '6754'
   end
 end
@@ -218,34 +216,7 @@ context "Kernel.warn()" do
   end
 end
 
-
-# The heavier duty specs are on Sprintf.
-context 'Functions::printf' do
-  specify 'should print to $stdout if the first argument is a string' do
-    $stdout.should_receive :write, {:with => ['foo bar baz']}
-    printf '%s %s %s', 'foo', 'bar', 'baz'
-  end
-  specify 'should print to an io if it is the first argument' do
-    $stderr.should_receive :write, {:with => ['hello rubinius']}
-    printf $stderr, '%s %s', 'hello', 'rubinius'
-  end
-end
-
-context 'Functions::abort' do
-  specify 'should call exit(1)' do
-    self.should_receive :exit, {:with => [1]}
-    abort
-  end
-  specify 'should call puts to $stderr if an argument is given' do
-    $stderr.should_receive :puts, {:with => ['bye']}
-    begin
-      abort 'bye'
-    rescue SystemExit
-    end
-  end
-end
-
-describe "A class with the Functions mixin" do
+context "Kernel.loop()" do
   specify "loop calls block until it is terminated by a break" do
     i = 0
     loop do
@@ -271,7 +242,9 @@ describe "A class with the Functions mixin" do
   specify "loop raises LocalJumpError if no block given" do
     should_raise(LocalJumpError) { loop }
   end
+end
 
+context "Kernel.srand()" do
   it "srand should return the previous seed value" do
     srand(10)
     srand(20).should == 10
@@ -283,12 +256,13 @@ describe "A class with the Functions mixin" do
     srand(10)
     rand.should == x
   end
+end
 
+context "Kernel.rand()" do
   it "rand should have the random number generator seeded uniquely at startup" do
-    vm = (ENV['SR_TARGET']||ENV['_'])
-    `#{vm} -e "puts rand"`.should_not == `#{vm} -e "puts rand"`
+    `#{RUBY_NAME} -e "puts rand"`.should_not == `#{RUBY_NAME} -e "puts rand"`
   end
-  
+
   it "rand should return a random float less than 1 if no max argument is passed" do
     rand.kind_of?(Float).should == true
   end
@@ -317,4 +291,3 @@ describe "A class with the Functions mixin" do
     end
   end
 end
-

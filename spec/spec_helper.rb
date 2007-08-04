@@ -10,6 +10,8 @@ rescue
   require 'mspec_helper'
 end
 
+require 'mini_mock'
+
 if !defined?(RUBY_NAME) then
   begin
     require 'rbconfig'
@@ -81,6 +83,21 @@ end
 class Object
   alias noncompliant compliant
   alias extension compliant
+end
+
+
+class Object
+  def should_include(other)
+    unless self.include?(other)
+      raise Exception.new("Expected " + self.inspect + " to include " + other.inspect)
+    end
+  end
+
+  def should_be_close(value, tolerance)
+    unless (value - self).abs <= tolerance
+      raise Exception.new("Expected " + self.inspect + " to be close to " + value.inspect)
+    end
+  end
 end
 
 def shared(msg, &block)

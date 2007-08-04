@@ -200,24 +200,28 @@ describe "File#atime" do
     @file = File.open(@name)
   end
 
+  after(:each) do 
+    @name = nil
+    @file = nil
+  end
+
   it "returns the last access time to self" do
     @file.atime  
-    @file.atime.class.should === Time
+    @file.atime.class.should == Time
   end
 
   it "raise an Exception if it has the worng number of argments" do
     should_raise(ArgumentError){ @file.atime(@name) }
-  end
-
-  after(:each) do 
-    @name = nil
-    @file = nil
   end
 end
  
 describe "File#ctime" do
   before(:each) do
     @file = File.open(__FILE__)
+  end
+
+  after(:each) do
+    @file = nil
   end
 
   it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
@@ -228,15 +232,15 @@ describe "File#ctime" do
   it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
     should_raise(ArgumentError){ @file.ctime(@file, @file) } 
   end
-
-  after(:each) do
-    @file = nil
-  end
 end 
 
 describe "File.ctime" do
   before(:each) do
     @file = __FILE__
+  end
+
+  after(:each) do
+    @file = nil
   end
 
   it "Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself)." do 
@@ -253,10 +257,6 @@ describe "File.ctime" do
     should_raise(ArgumentError){ File.ctime(@file, @file) }
     should_raise(TypeError){ File.ctime(1) }
   end
-
-  after(:each) do
-    @file = nil
-  end
 end 
 
 describe "File.delete" do
@@ -267,6 +267,14 @@ describe "File.delete" do
     File.open(@file1, "w"){} # touch 
     File.open(@file2, "w"){} # Touch
   end
+
+ after(:each) do
+   File.delete("temp1.txt") if File.exist?("temp1.txt")
+   File.delete("temp2.txt") if File.exist?("temp1.txt")
+
+   @file1 = nil
+   @file2 = nil
+ end
 
   it "deletes the named files," do
     File.delete(@file1)
@@ -286,14 +294,6 @@ describe "File.delete" do
     should_raise(TypeError){ File.delete(1) }
     should_raise(Errno::ENOENT){ File.delete('a_fake_file') }
   end
- 
-  after(:each) do
-    File.delete("temp1.txt")    
-    File.delete("temp2.txt")
-
-    @file1 = nil
-    @file2 = nil
-  end
 end
 
 describe "File.directory?" do 
@@ -306,6 +306,10 @@ describe "File.directory?" do
       @file = "/bin/ls"
     end
   end
+
+  after(:each) do
+    @dir = nil
+  end
  
   it "return true if dir is a directory, otherwise return false" do
     File.directory?(@dir).should == true
@@ -316,10 +320,6 @@ describe "File.directory?" do
     should_raise(ArgumentError){ File.directory? }
     should_raise(ArgumentError){ File.directory?(@dir, @file) }
     should_raise(TypeError){ File.directory?(nil) }
-  end
-
-  after(:each) do
-    @dir = nil
   end
 end
 
@@ -332,6 +332,14 @@ describe "File.executable?" do
     File.open(@file2, "w"){}
     
     File.chmod(0755, @file1)
+  end
+
+  after(:each) do
+#    File.delete(Dir.pwd,"temp1.txt")    
+#    File.delete(Dir.pwd,"temp2.txt")
+
+    @file1 =  nil
+    @file2 = nil
   end
 
   unless WINDOWS
@@ -348,18 +356,10 @@ describe "File.executable?" do
     should_raise(TypeError){ File.executable?(nil) }
     should_raise(TypeError){ File.executable?(false) }
   end
-
-  after(:each) do
-#    File.delete(Dir.pwd,"temp1.txt")    
-#    File.delete(Dir.pwd,"temp2.txt")
-
-    @file1 =  nil
-    @file2 = nil
-  end
 end
 
 describe "File.executable_real?" do
-  def setup
+  before(:each) do
     @file1 = File.join(Dir.pwd, 'temp1.txt')
     @file2 = File.join(Dir.pwd, 'temp2.txt')
 
@@ -368,6 +368,14 @@ describe "File.executable_real?" do
       
     File.chmod(0755, @file1)
   end
+ 
+  after(:each) do
+#    File.delete("temp1.txt")    
+#    File.delete("temp2.txt")
+
+    @file1 = nil
+    @file2 = nil
+  end 
  
   unless WINDOWS
     it "returns true if the file its an executable" do 
@@ -382,14 +390,6 @@ describe "File.executable_real?" do
     should_raise(TypeError){ File.executable_real?(1) }
     should_raise(TypeError){ File.executable_real?(nil) }
     should_raise(TypeError){ File.executable_real?(false) }
-  end
-
-  after(:each) do
-#    File.delete("temp1.txt")    
-#    File.delete("temp2.txt")
-
-    @file1 = nil
-    @file2 = nil
   end
 end   
 
@@ -424,6 +424,11 @@ describe "File.exist?" do
     @file = 'temp.txt'
     File.open(@file, "w"){}
   end 
+
+  after(:each) do
+   File.delete("temp.txt")
+   @file = nil
+  end  
   
   it "return true if the file exist" do
     File.exist?(@file).should == true
@@ -440,11 +445,6 @@ describe "File.exist?" do
     should_raise(ArgumentError){ File.exist?(@file, @file) }
     should_raise(TypeError){ File.exist?(nil) }
   end 
-   
-  after(:each) do
-    File.delete("temp.txt")
-    @file = nil
-  end  
 end
 
 describe "File::Constants" do 
@@ -512,6 +512,13 @@ describe "File.expand_path" do
       @pwd  = Dir.pwd
     end
   end
+
+  after(:each) do
+    @base = nil
+    @tmpdir = nil
+    @rootdir = nil    
+    @pwd  = nil
+  end
   
   it "Converts a pathname to an absolute pathname" do 
     File.expand_path('').should == @base
@@ -577,13 +584,6 @@ describe "File.expand_path" do
       should_raise(ArgumentError){ File.expand_path("~a_fake_file") }
     end
   end
-  
-  after(:each) do
-    @base = nil
-    @tmpdir = nil
-    @rootdir = nil    
-    @pwd  = nil
-  end
 end
 
 describe "File.extname" do
@@ -633,6 +633,12 @@ describe "File.file?" do
     @file = "test.txt"
     File.open(@file, "w"){} # touch
   end
+
+  after(:each) do
+    File.delete(@file) rescue nil
+    @null = nil
+    @file = nil
+  end
   
   it "returns true if the named file exists and is a regular file." do 
     File.file?(@file).should == true
@@ -644,12 +650,6 @@ describe "File.file?" do
     should_raise(ArgumentError){ File.file? }
     should_raise(ArgumentError){ File.file?(@null, @file) }
     should_raise(TypeError){ File.file?(nil) }
-  end
-
-  after(:each) do
-    File.delete(@file) rescue nil
-    @null = nil
-    @file = nil
   end
 end
 
@@ -880,6 +880,11 @@ describe "File.join" do
     @dirs = ['usr', 'local', 'bin']
   end 
 
+  after(:each) do
+    @root = nil
+    @dirs = nil
+  end
+
   if WINDOWS
     it "returns a new string formed by joining the strings using File::SEPARATOR (windows)" do 
       File.join(*@dirs).should == "usr/local/bin"
@@ -916,11 +921,6 @@ describe "File.join" do
   it "raise a TypeError exception when args are nil" do
     should_raise(TypeError){ File.join(nil, nil) }
   end
-
-  after(:each) do
-    @root = nil
-    @dirs = nil
-  end
 end
 
 describe "File.new" do
@@ -929,7 +929,14 @@ describe "File.new" do
     @fh = nil 
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     File.open(@file, "w"){} # touch
-  end 
+  end
+
+  # after(:each) do   
+  #   File.delete("test.txt")
+  #   @fh    = nil
+  #   @file  = nil
+  #   @flags = nil
+  # end
 
   it "return a new File with mode string" do
     @fh = File.new(@file, 'w')
@@ -972,13 +979,6 @@ describe "File.new" do
     @fh = File.new(@file)
     should_raise(Errno::EINVAL){ File.new(@fh.fileno, @flags) }
   end
-
-  after(:each) do   
-    File.delete("test.txt")
-    @fh    = nil
-    @file  = nil
-    @flags = nil
-  end
 end 
 
 describe "File.open" do 
@@ -989,6 +989,15 @@ describe "File.open" do
     @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     File.open(@file, "w"){} # touch
+  end
+  
+  after(:each) do     
+    @fh.delete if @fh  rescue nil
+    @fh.close if @fh rescue nil
+    @fh    = nil
+    @fd    = nil
+    @file  = nil
+    @flags = nil
   end
 
   it "open the file (basic case)" do 
@@ -1144,21 +1153,17 @@ describe "File.open" do
     should_raise(SystemCallError){ File.open(-1) } # kind_of ?
     should_raise(ArgumentError){ File.open(@file, File::CREAT, 0755, 'test') }
   end
-  
-  after(:each) do     
-    @fh.delete if @fh  rescue nil
-    @fh.close if @fh rescue nil
-    @fh    = nil
-    @fd    = nil
-    @file  = nil
-    @flags = nil
-  end
 end
 
 describe "File.atime" do
   before(:each) do
     @file = File.join('test.txt')
-    File.open(@file1, "w"){} # touch
+    File.open(@file, "w"){} # touch
+  end
+
+  after(:each) do 
+    File.delete("test.txt") if File.exist?("test.txt")
+    @file = nil
   end
 
   it "returns the last access time for the named file as a Time object" do      
@@ -1175,9 +1180,8 @@ describe "File.atime" do
     should_raise(ArgumentError){ File.atime(@file, @file) }
     should_raise(TypeError){ File.atime(1) }
   end
-
-  after(:each) do 
-    File.delete("test.txt")     
-    @file = nil
-  end
 end
+
+# Interestingly MRI 1.8 will fail on later load() calls without this...
+# Big WTF. -- flgr
+GC.start
