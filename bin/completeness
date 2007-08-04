@@ -95,13 +95,13 @@ end
 tabulator = Tabulator.new
 
 constants.compact.each do |c|
-  c.methods(false).each do |m|
-    print_summary.call(%x(#{cmd % "#{c}\\.#{m}"}), "#{c}.#{m}", tabulator)
+  c.methods(false).sort.each do |m|
+    print_summary.call(%x(#{cmd % "#{c}.#{m}"}), "#{c}.#{m}", tabulator)
   end
   
   (c.public_instance_methods(false) +
       c.private_instance_methods(false) +
-      c.protected_instance_methods(false)).each do |m|
+      c.protected_instance_methods(false)).sort.each do |m|
     name = "#{c}\##{m}"
     print_summary.call(%x(#{cmd % name}), name, tabulator)
   end
