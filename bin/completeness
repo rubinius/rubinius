@@ -54,7 +54,7 @@ end
 
 cmd = %(bin/mspec -t #{target} -e "%s" -f ci spec 2> /dev/null)
 
-print_summary = lambda do |str, name|
+print_summary = lambda do |str, name, tab|
   examples, failures = 0, 0
   str.scan(/(\d+) examples, (\d+) failures/) do |e, f|
     examples += e.to_i
@@ -66,21 +66,46 @@ print_summary = lambda do |str, name|
     "No examples found"
   end
   puts "#{name}\n    #{summary}"
+  tab.add(examples, failures)
 end
 
 if constants.empty?
   constants = Object.constants.map { |c| get_class_or_module.call(c) }
 end
 
+class Tabulator
+  def initialize
+    @methods = @examples = @failures = @missing = 0
+    @start = Time.now
+  end
+  
+  def add(examples, failures)
+    @methods += 1
+    @examples += examples
+    @failures += failures
+    @missing += 1 if examples == 0
+  end
+  
+  def summarize
+    puts "\nFinished in #{Time.now - @start} seconds\n\n"
+    puts "#{@methods} methods, #{@examples} examples, #{@failures} failures, #{@missing} methods with no examples"
+  end
+end
+
+tabulator = Tabulator.new
+
 constants.compact.each do |c|
   c.methods(false).each do |m|
-    print_summary.call(%x(#{cmd % "#{c}\\.#{m}"}), "#{c}.#{m}")
+    print_summary.call(%x(#{cmd % "#{c}\\.#{m}"}), "#{c}.#{m}", tabulator)
   end
   
   (c.public_instance_methods(false) +
       c.private_instance_methods(false) +
       c.protected_instance_methods(false)).each do |m|
     name = "#{c}\##{m}"
-    print_summary.call(%x(#{cmd % name}), name)
+    print_summary.call(%x(#{cmd % name}), name, tabulator)
   end
 end
+
+tabulator.summarize
+
