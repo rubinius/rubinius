@@ -1945,7 +1945,7 @@ context "Array instance method" do
   end
 end
 
-array_slice_specs = shared "Array#[] | Array#slice" do |cmd|
+array_slice = shared "Array#[] | Array#slice" do |cmd|
   describe "Array\##{cmd}" do
     it "returns the element at index with [index]" do
       [ "a", "b", "c", "d", "e" ].send(cmd, 1).should == "b"
@@ -2330,11 +2330,11 @@ array_slice_specs = shared "Array#[] | Array#slice" do |cmd|
 end
 
 describe "Array#[]" do
-  it_behaves_like(array_slice_specs, :[])
+  it_behaves_like(array_slice, :[])
 end
 
 describe "Array#slice" do
-  it_behaves_like(array_slice_specs, :slice)
+  it_behaves_like(array_slice, :slice)
 end
 
 describe 'Array splicing using #[]=' do

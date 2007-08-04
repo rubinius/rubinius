@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+#
+# Generate a completeness report from MRI classes and modules
+# based on the specs.
+
+require 'optparse'
+
+module Completeness
+  VERSION = '0.0.1'
+end
+
+get_class_or_module = lambda do |c|
+  constant = Object.const_get(c)
+  return constant if constant.is_a?(Module) or constant.is_a?(Class)
+end
+
+target = 'shotgun/rubinius'
+constants = []
+
+opts = OptionParser.new("", 24, '   ') do |opts|
+  opts.banner = "completeness [options]"
+  opts.separator ""
+
+  opts.on("-c", "--constant CONSTANT", String,
+          "Name of a Class or Module") do |c|
+    constants << get_class_or_module.call(c)
+  end
+  opts.on("-t", "--target TARGET", String, 
+          "Implementation to test for completeness: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+    case t
+    when 'r', 'ruby'
+      target = 'ruby'
+    when 'r19', 'ruby19'
+      target = 'ruby19'
+    when 'x', 'rbx', 'rubinius'
+      target = 'shotgun/rubinius'
+    when 'j', 'jruby'
+      target = 'jruby'
+    else
+      target = t
+    end
+  end
+  opts.on("-v", "--version", "Show version") do
+    puts "Completeness Reporter #{Completeness::VERSION}"
+    exit
+  end
+  opts.on("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+  
+  opts.parse ARGV
+end
+
+cmd = %(bin/mspec -t #{target} -e "%s" -f ci spec 2> /dev/null)
+
+print_summary = lambda do |str, name|
+  examples, failures = 0, 0
+  str.scan(/(\d+) examples, (\d+) failures/) do |e, f|
+    examples += e.to_i
+    failures += f.to_i
+  end
+  summary = if examples > 0
+    "#{examples} examples, #{failures} failures"
+  else
+    "No examples found"
+  end
+  puts "#{name}\n    #{summary}"
+end
+
+if constants.empty?
+  constants = Object.constants.map { |c| get_class_or_module.call(c) }
+end
+
+constants.compact.each do |c|
+  c.methods(false).each do |m|
+    print_summary.call(%x(#{cmd % "#{c}\\.#{m}"}), "#{c}.#{m}")
+  end
+  
+  (c.public_instance_methods(false) +
+      c.private_instance_methods(false) +
+      c.protected_instance_methods(false)).each do |m|
+    name = "#{c}\##{m}"
+    print_summary.call(%x(#{cmd % name}), name)
+  end
+end

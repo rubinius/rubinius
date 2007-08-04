@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 #  it "is a pain in the ass to test..."
 #end
 
-describe "Symbol == other" do
+describe "Symbol#==" do
   it "only returns true when the other is exactly the same symbol" do
     (:ruby == :ruby).should == true
     (:ruby == :"ruby").should == true
@@ -19,14 +19,20 @@ describe "Symbol == other" do
   end
 end
 
-describe "Symbol#id2name" do
-  it "returns the string corresponding to self" do
-    :rubinius.id2name.should == "rubinius"
-    :squash.id2name.should == "squash"
-    :[].id2name.should == "[]"
-    :@ruby.id2name.should == "@ruby"
-    :@@ruby.id2name.should == "@@ruby"
+symbol_id2name = shared "Symbol#id2name | Symbol#to_s" do |cmd|
+  describe "Symbol\##{cmd}" do
+    it "returns the string corresponding to self" do
+      :rubinius.send(cmd).should == "rubinius"
+      :squash.send(cmd).should == "squash"
+      :[].send(cmd).should == "[]"
+      :@ruby.send(cmd).should == "@ruby"
+      :@@ruby.send(cmd).should == "@@ruby"
+    end
   end
+end
+
+describe "Symbol#id2name" do
+  it_behaves_like(symbol_id2name, :id2name)
 end
 
 describe "Symbol#inspect" do
@@ -62,14 +68,13 @@ describe "Symbol#to_int" do
   it "raises a warning" do
     begin
       new_stderr = Object.new
-
       class << new_stderr
         attr_reader :output
         def write(str) (@output ||= "") << str end
       end
-      
+        
       old_verbose, $VERBOSE = $VERBOSE, true    
-      old_stderr,  $stderr  = $stderr, new_stderr
+      old_stderr,  $stderr  = $stderr,  new_stderr
 
       :ruby.to_int
       $stderr.output.split(": ").last.should == "treating Symbol as an integer\n"
@@ -80,11 +85,7 @@ describe "Symbol#to_int" do
 end
 
 describe "Symbol#to_s" do
-  it "is a synonym for Symbol#id2name" do
-    [:rubinius, :squash, :[], :@ruby, :@@ruby].each do |sym|
-      sym.to_s.should == sym.id2name
-    end
-  end
+  it_behaves_like(symbol_id2name, :to_s)
 end
 
 describe "Symbol#to_sym" do

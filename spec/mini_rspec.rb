@@ -102,6 +102,11 @@ class SpecReporter
 end
 
 class SpecDoxReporter < SpecReporter
+  def before_describe(msg)
+    super
+    @describe_printed = false
+  end
+  
   def print_describe
     unless @describe_printed
       @out.print "\n" + @describe + "\n"
