@@ -80,7 +80,7 @@ class SpecReporter
   end
   
   def print_failure(i,r)
-    @out.print i.to_s + ") " + r.describe + " " + r.it + " FAILED\n"
+    @out.print i.to_s + ")\n" + r.describe + " " + r.it + " FAILED\n"
   end
   
   def print_backtrace(e)
@@ -102,20 +102,17 @@ class SpecReporter
 end
 
 class SpecDoxReporter < SpecReporter
-  def before_describe(msg)
-    super
-    @out.print msg
-    @out.print "\n-------------------\n"
-  end
-  
-  def after_describe(msg)
-    @out.print "\n"
+  def print_describe
+    unless @describe_printed
+      @out.print "\n" + @describe + "\n"
+      @describe_printed = true
+    end
   end
   
   def before_it(msg)
     super
-    @out.print " - "
-    @out.print msg
+    print_describe
+    @out.print "- " + msg
   end
   
   def after_it(msg)
@@ -124,14 +121,22 @@ class SpecDoxReporter < SpecReporter
   
   def exception(e)
     super
-    @out.print " FAILED"
+    if e.is_a?(ExpectationError)
+      @out.print " (FAILED - " + @failures.to_s + ")"
+    else
+      @out.print " (ERROR - " + @failures.to_s + ")"
+    end
   end
 end
 
 class DottedReporter < SpecReporter
   def after_it(msg)
     if @report.exception
-      @out.print 'F'
+      if @report.exception.is_a?(ExpectationError)
+        @out.print 'F'
+      else
+        @out.print 'E'
+      end
     else
       @out.print '.'
     end
@@ -142,6 +147,10 @@ class HtmlReporter < SpecReporter
 end
 
 class CIReporter < SpecReporter
+  def print_failure(i,r)
+    @out.print i.to_s + ") " + r.describe + " " + r.it + " FAILED\n"
+  end
+  
   def print_backtrace(e)
   end
 end
@@ -166,6 +175,8 @@ class ImmediateReporter < SpecReporter
   end
 end
 
+class ExpectationError < Exception; end
+
 class PositiveExpectation
   def initialize(obj)
     @obj = obj
@@ -173,13 +184,13 @@ class PositiveExpectation
   
   def ==(other)
     unless @obj == other
-      raise Exception.new("Equality expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationError.new("Equality expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
   
   def =~(other)
     unless @obj =~ other
-      raise Exception.new("Match expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationError.new("Match expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
 end
@@ -191,13 +202,13 @@ class NegativeExpectation
   
   def ==(other)
     if @obj == other
-      raise Exception.new("Inequality expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationError.new("Inequality expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
   
   def =~(other)
     if @obj =~ other
-      raise Exception.new("Match not expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationError.new("Match not expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
 end
