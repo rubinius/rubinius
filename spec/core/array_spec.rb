@@ -1707,11 +1707,12 @@ context "Array instance method" do
   end
   
   specify "to_s is equivalent to #joining without a separator string" do
+    old = $,
     a = [1, 2, 3, 4]
     a.to_s.should == a.join
     $, = '-'
     a.to_s.should == a.join
-    $, = ''
+    $, = old
   end
 
   specify "transpose assumes an array of arrays and should return the result of transposing rows and columns" do

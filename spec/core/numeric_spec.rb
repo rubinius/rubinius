@@ -193,16 +193,19 @@ describe "Numeric#quo" do
     a_den_flt.quo(a_num_int).should_be_close(0.307692307692308, TOLERANCE)
   end
    
+  # NOTE: Doesn't work when run with RSpec because it loads rational.rb
   it " should quo right with bignums and integers" do
     a_possitive_bignumber.quo( a_possitive_number).to_s.should == 21474836.48.to_s
   end
   
+  # NOTE: Doesn't work when run with RSpec because it loads rational.rb
   it "not raise a Exception when quo by 0" do
     a_num_int.quo(0)
     a_num_flt.quo(0)
     a_num_bigint.quo(0)
   end
   
+  # NOTE: Doesn't work when run with RSpec because it loads rational.rb
   it "raise the expected exception" do
     should_raise(ArgumentError){ a_num_int.quo } 
     should_raise(TypeError){ a_num_int.quo(nil) }

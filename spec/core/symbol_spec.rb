@@ -61,18 +61,20 @@ describe "Symbol#to_int" do
   
   it "raises a warning" do
     begin
-      old_verbose, $VERBOSE = $VERBOSE, true    
-      old_stdout,  $stderr  = $stderr,  Object.new
+      new_stderr = Object.new
 
-      class << $stderr
+      class << new_stderr
         attr_reader :output
         def write(str) (@output ||= "") << str end
       end
+      
+      old_verbose, $VERBOSE = $VERBOSE, true    
+      old_stderr,  $stderr  = $stderr, new_stderr
 
       :ruby.to_int
-      $stderr.output.should == "treating Symbol as an integer\n"
+      $stderr.output.split(": ").last.should == "treating Symbol as an integer\n"
     ensure
-      $stderr, $VERBOSE = old_stdout, old_verbose
+      $stderr, $VERBOSE = old_stderr, old_verbose
     end
   end
 end
