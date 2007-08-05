@@ -7,36 +7,42 @@ unless defined? Channel
   end
 end
 
-context "For Thread" do
-  specify "new should create a thread executing the given block" do
+describe "Thread.new" do
+  it "creates a thread executing the given block" do
     c = Channel.new
     Thread.new { c << true }.join
     c << false
     c.receive.should == true
   end
+end
 
-  specify "current should return a thread" do
+describe "Thread.current" do
+  it "returns a thread" do
     current = Thread.current
     current.class.should == Thread
   end
 
-  specify "current should return the current thread" do
+  it "returns the current thread" do
     t = Thread.new { Thread.current }
     t.value.should.equal? t
   end
+end
 
-  specify "main should return the main thread" do
+describe "Thread.main" do
+  it "returns the main thread" do
     Thread.new { @main = Thread.main ; @current = Thread.current}.join
     @main.should_not == @current
   end
 end
 
-context "For a Thread instance" do
-  specify "value should return the result of the block" do
+describe "Thread#value" do
+  it "returns the result of the block" do
     Thread.new { 3 }.value.should == 3
   end
+end
 
-  specify "alive? should return true as long as the thread is alive" do
+describe "Thread#alive?" do
+  it "returns true as long as the thread is alive" do
     c = Channel.new
     t = Thread.new { c.receive }
     begin
@@ -46,24 +52,26 @@ context "For a Thread instance" do
     end
   end
 
-  specify "alive? should return false when the thread is finished" do
+  it "returns false when the thread is finished" do
     t = Thread.new {}
     t.join
     t.alive?.should == false
   end
+end
 
-  specify "join should return the thread when it is finished" do
+describe "Thread#join" do
+  it "returns the thread when it is finished" do
     t = Thread.new {}
     t.join.should.equal? t
   end
 
-  specify "join with a timeout should return the thread when it is finished" do
+  it "returns the thread when it is finished when given a timeout" do
     t = Thread.new {}
     t.join
     t.join(0).should.equal? t
   end
 
-  specify "join with a timeout should return nil if it is not finished" do
+  it "returns nil if it is not finished when given a timeout" do
     c = Channel.new
     t = Thread.new { c.receive }
     begin
@@ -73,12 +81,14 @@ context "For a Thread instance" do
     end
   end
 
-  specify "joining should raise any exceptions encountered in the thread body" do
+  it "raises any exceptions encountered in the thread body" do
     t = Thread.new { raise NotImplementedError.new("Just kidding") }
     should_raise(NotImplementedError) { t.join }
   end
+end
 
-  specify "status should report its current state" do
+describe "Thread#status" do
+  it "reports the thread's current state" do
     v = nil
     t = Thread.new {
       v = Thread.current.status
@@ -88,7 +98,10 @@ context "For a Thread instance" do
     t.status.should == false
   end
 
-  specify "inspect should show its status" do
+end
+
+describe "Thread#inspect" do
+  it "shows the thread's status" do
     x = nil
     t = Thread.new { x = Thread.current.inspect; sleep 4 }
     Thread.pass until t.status == false || t.status == 'sleep'
