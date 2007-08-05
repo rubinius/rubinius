@@ -1323,7 +1323,6 @@ context "On a frozen hash" do
 
   specify "store should raise" do
     should_raise(TypeError) { hash.store(1, 2) }
-    should_raise(TypeError) { empty.shift }
   end
 
   specify "update should raise" do
