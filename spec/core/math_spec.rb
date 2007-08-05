@@ -9,9 +9,6 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # atan2 atan2   atan2! atanh atanh atanh!    cosh   cosh   cosh!      
 # exp exp exp! frexp ldexp sinh sinh sinh!  tanh   tanh   tanh!  
 
-
-TOLERANCE=0.00003 unless Object.const_defined?(:TOLERANCE)
-
 class IncludesMath
   include Math
 end

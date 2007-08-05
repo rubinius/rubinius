@@ -12,6 +12,9 @@ end
 
 require 'mini_mock'
 
+# used for many should_be_close specs
+TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
+
 if !defined?(RUBY_NAME) then
   begin
     require 'rbconfig'

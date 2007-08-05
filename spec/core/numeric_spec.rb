@@ -1,7 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
-
 # TODO <=> angle arg  conj conjugate   
 # im imag image  polar real  singleton_method_added    
 zero  = 0
