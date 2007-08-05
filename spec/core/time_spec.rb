@@ -39,210 +39,287 @@ def localtime(seconds)
   end
 end
 
-context "Time class method" do  
-  # at
-  
-  specify "at should convert to time object" do
+describe "Time.at" do
+  it "converts to time object" do
     Time.at( 1168475924 ).inspect.should == localtime(1168475924)
   end
   
-  specify "at should create a new time object with the value given by time" do
+  it "creates a new time object with the value given by time" do
     t = Time.now
     Time.at(t).inspect.should == t.inspect
   end
   
-  specify "at should create a dup time object with the value given by time" do
+  it "creates a dup time object with the value given by time" do
     t1 = Time.new
     t2 = Time.at(t1)
     t1.object_id.should_not == t2.object_id
   end
-  
-  # gm/utc
-  
-  specify "gm should create a time based on given values, interpreted as UTC (GMT)" do
-    Time.gm(2000,"jan",1,20,15,1).inspect.should == "Sat Jan 01 20:15:01 UTC 2000"
-  end
-  
-  specify "gm should create a time based on given C-style gmtime arguments, interpreted as UTC (GMT)" do
-    Time.gm(1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 20:15:01 UTC 2000"
-  end
-  
-  specify "utc is a synonym for Time.gm" do
-    Time.utc(2000,"jan",1,20,15,1).inspect.should == Time.gm(2000,"jan",1,20,15,1).inspect
-  end
-  
-  #local/mktime
-  
-  specify "local should create a time based on given values, interpreted in the local time zone" do
-    with_timezone("PST", -8) do
-      Time.local(2000,"jan",1,20,15,1).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
-    end
-  end
-  
-  specify "local should create a time based on given C-style gmtime arguments, interpreted in the local time zone" do
-    with_timezone("PST", -8) do
-      Time.local(1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
-    end
-  end
+end
 
-  specify "mktime is a synonym for Time.local" do
-    Time.mktime(2000,"jan",1,20,15,1).inspect.should == Time.local(2000,"jan",1,20,15,1).inspect
+time_gm = shared "Time.gm" do |cmd|
+  describe "Time.#{cmd}" do
+    it "creates a time based on given values, interpreted as UTC (GMT)" do
+      Time.send(cmd, 2000,"jan",1,20,15,1).inspect.should == "Sat Jan 01 20:15:01 UTC 2000"
+    end
+
+    it "creates a time based on given C-style gmtime arguments, interpreted as UTC (GMT)" do
+      Time.send(cmd, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 20:15:01 UTC 2000"
+    end
   end
 end
 
-context "Time instance method" do
-  specify "+ should increment the time by the specified amount" do
+describe "Time.gm" do
+  it_behaves_like(time_gm, :gm)
+end
+
+describe "Time.utc" do
+  it_behaves_like(time_gm, :utc)
+end
+
+time_local = shared "Time.local" do |cmd|
+  describe "Time.#{cmd}" do
+    it "local should create a time based on given values, interpreted in the local time zone" do
+      with_timezone("PST", -8) do
+        Time.send(cmd, 2000,"jan",1,20,15,1).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
+      end
+    end
+
+    it "local should create a time based on given C-style gmtime arguments, interpreted in the local time zone" do
+      with_timezone("PST", -8) do
+        Time.send(cmd, 1, 15, 20, 1, 1, 2000, :ignored, :ignored, :ignored, :ignored).inspect.should == "Sat Jan 01 20:15:01 -0800 2000"
+      end
+    end
+  end
+end
+
+describe "Time.local" do
+  it_behaves_like(time_local, :local)
+end
+
+describe "Time.mktime" do
+  it_behaves_like(time_local, :mktime)
+end
+
+describe "Time#+" do
+  it "increments the time by the specified amount" do
     (Time.at(0) + 100).should == Time.at(100)
   end
-  
-  specify "- should decrement the time by the specified amount" do
+end
+
+describe "Time#-" do
+  it "decrements the time by the specified amount" do
     (Time.at(100) - 100).should == Time.at(0)
     (Time.at(100) - Time.at(99)).should == 1.0
   end
-  
-  specify "succ should return a new time one second later than time" do
+end
+
+describe "Time#succ" do
+  it "returns a new time one second later than time" do
     Time.at(100).succ.should == Time.at(101)
   end
   
-  specify "succ should return a new instance" do
+  it "returns a new instance" do
     t1 = Time.at(100)
     t2 = t1.succ
     t1.object_id.should_not == t2.object_id
   end
-  
-  specify "asctime should return a canonical string representation of time" do
-    t = Time.now
-    t.asctime.should == t.strftime("%a %b %e %H:%M:%S %Y")
+end
+
+time_asctime = shared "Time#asctime" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns a canonical string representation of time" do
+      t = Time.now
+      t.send(cmd).should == t.strftime("%a %b %e %H:%M:%S %Y")
+    end
   end
-  
-  specify "ctime is a synonym for Time#asctime" do
-    t = Time.now
-    t.ctime.should == t.asctime
-  end
-  
-  specify "sec should return the second of the minute(0..60) for time" do
+end
+
+describe "Time#asctime" do
+  it_behaves_like(time_asctime, :asctime)
+end
+
+describe "Time#ctime" do
+  it_behaves_like(time_asctime, :ctime)
+end
+
+describe "Time#sec" do
+  it "returns the second of the minute(0..60) for time" do
     Time.at(0).sec.should == 0
   end
-  
-  specify "to_i should return the value of time as an integer number of seconds since epoch" do
-    Time.at(0).to_i.should == 0
+end
+
+time_to_i = shared "Time#to_i" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns the value of time as an integer number of seconds since epoch" do
+      Time.at(0).send(cmd).should == 0
+    end
   end
-  
-  specify "tv_sec is a synonym for Time#to_i" do
-    Time.at(0).tv_sec.should == Time.at(0).to_i
-  end
-  
-  specify "hour should return the hour of the day (0..23) for time" do
+end
+
+describe "Time#to_i" do
+  it_behaves_like(time_to_i, :to_i)
+end
+
+describe "Time#tv_sec" do
+  it_behaves_like(time_to_i, :tv_sec)
+end
+
+describe "Time#hour" do
+  it "returns the hour of the day (0..23) for time" do
     with_timezone("CET", 1) do
       Time.at(0).hour.should == 1
     end
   end
-  
-  specify "min should return the minute of the hour (0..59) for time" do
+end
+
+describe "Time#min" do
+  it "returns the minute of the hour (0..59) for time" do
     with_timezone("CET", 1) do
       Time.at(0).min.should == 0
     end
   end
-  
-  specify "day should return the day of the month (1..n) for time" do
-    with_timezone("CET", 1) do
-      Time.at(0).day.should == 1
-    end
+end
+
+time_day = shared "Time#day" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns the day of the month (1..n) for time" do
+      with_timezone("CET", 1) do
+        Time.at(0).send(cmd).should == 1
+      end
+    end  
   end
-  
-  specify "mday is a synonym for Time#day" do
-    Time.new.mday.should == Time.new.day
-  end
-  
-  specify "<=> should return 1 if the first argument is a point in time after the second argument" do
+end
+
+describe "Time#day" do
+  it_behaves_like(time_day, :day)
+end
+
+describe "Time#mday" do
+  it_behaves_like(time_day, :mday)
+end
+
+describe "Time#<=>" do
+  it "returns 1 if the first argument is a point in time after the second argument" do
     (Time.now <=> Time.at(0)).should == 1
     (Time.at(0, 100) <=> Time.at(0, 0)).should == 1
   end
   
-  specify "<=> should return 0 iff time is the same as other" do
+  it "returns 0 if time is the same as other" do
     (Time.at(100, 100) <=> Time.at(100, 100)).should == 0
     (Time.at(100, 100) <=> Time.at(100, 99)).should == 1
     (Time.at(100, 100) <=> Time.at(101, 100)).should == -1
   end
   
-  specify "<=> should return -1 if the first argument is a point in time before the second argument" do
+  it "returns -1 if the first argument is a point in time before the second argument" do
     (Time.at(0) <=> Time.now).should == -1
     (Time.at(0, 0) <=> Time.at(0, 100)).should == -1
-  end
-  
-  specify "eql? should return true iff time is equal in seconds and usecs to other time" do
+  end  
+end
+
+describe "Time#eql?" do
+  it "returns true iff time is equal in seconds and usecs to other time" do
     Time.at(100, 100).eql?(Time.at(100, 100)).should == true
     Time.at(100, 100).eql?(Time.at(100, 99)).should == false
     Time.at(100, 100).eql?(Time.at(99, 100)).should == false
-  end
-  
-  specify "utc? should return true if time represents a time in UTC (GMT)" do
+  end  
+end
+
+describe "Time#utc?" do
+  it "returns true if time represents a time in UTC (GMT)" do
     Time.now.utc?.should == false
-  end
-  
-  specify "year should return the four digit year for time as an integer" do
+  end  
+end
+
+describe "Time#year" do
+  it "returns the four digit year for time as an integer" do
     with_timezone("CET", 1) do
       Time.at(0).year.should == 1970
     end
-  end
-  
-  specify "strftime should format time according to the directives in the given format string" do
+  end  
+end
+
+describe "Time#strftime" do
+  it "formats time according to the directives in the given format string" do
     Time.at(0).strftime("There is %M minutes in epoch").should == "There is 00 minutes in epoch"
   end
-  
-  specify "wday should return an integer representing the day of the week, 0..6, with Sunday being 0" do
+end
+
+describe "Time#wday" do
+  it "returns an integer representing the day of the week, 0..6, with Sunday being 0" do
     with_timezone("GMT", 0) do
       Time.at(0).wday.should == 4
     end
   end
-  
-  specify "yday should return an integer representing the day of the year, 1..366" do
+end
+
+describe "Time#yday" do
+  it "returns an integer representing the day of the year, 1..366" do
     Time.at(9999999).yday.should == 116
   end
-  
-  specify "zone should return the time zone used for time" do
+end
+
+describe "Time#zone" do
+  it "returns the time zone used for time" do
     # Testing with Asia/Kuwait here because it doesn't have DST.
     with_timezone("AST", 3) do
       Time.now.zone.should == "AST"
     end
   end
-  
-  specify "mon should return the month of the year" do
-    Time.at(99999).mon.should == 1
+end
+
+time_month = shared "Time#month" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns the month of the year" do
+      Time.at(99999).mon.should == 1
+    end
   end
-  
-  specify "month is a synonym for Time#mon" do
-    Time.at(99999).month.should == Time.at(99999).mon
-  end
-  
-  specify "gmt? should return true if time represents a time in UTC (GMT)" do
+end
+
+describe "Time#mon" do
+  it_behaves_like(time_month, :mon)
+end
+
+describe "Time#month" do
+  it_behaves_like(time_month, :month)
+end
+
+describe "Time#gmt?" do
+  it "returns true if time represents a time in UTC (GMT)" do
     Time.now.gmt?.should == false
     Time.now.gmtime.gmt?.should == true
   end
-  
-  specify "usec should return the microseconds for time" do
+end
+
+describe "Time#usec" do
+  it "returns the microseconds for time" do
     Time.at(0).usec.should == 0
   end
-  
-  specify "gmt_offset should return the offset in seconds between the timezone of time and UTC" do
-    with_timezone("AST", 3) do
-      Time.new.gmt_offset.should == 10800
+end
+
+time_gmt_offset = shared "Time#gmt_offset" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns the offset in seconds between the timezone of time and UTC" do
+      with_timezone("AST", 3) do
+        Time.new.send(cmd).should == 10800
+      end
     end
   end
-  
-  specify "utc_offset should be an alias for gmt_offset" do
-    with_timezone("AST", 3) do
-      Time.new.utc_offset.should == 10800
-    end
-  end
-  
-  specify "gmtoff should be an alias for gmt_offset" do
-    with_timezone("AST", 3) do
-      Time.new.gmtoff.should == 10800
-    end
-  end
-  
-  specify "localtime should return the local representation of time" do
+end
+
+describe "Time#gmt_offset" do
+  it_behaves_like(time_gmt_offset, :gmt_offset)
+end
+
+describe "Time#utc_offset" do
+  it_behaves_like(time_gmt_offset, :utc_offset)
+end
+
+describe "Time#gmtoff" do
+  it_behaves_like(time_gmt_offset, :gmtoff)
+end
+
+describe "Time#localtime" do
+  it "returns the local representation of time" do
     # Testing with America/Regina here because it doesn't have DST.
     with_timezone("CST", -6) do
       t = Time.gm(2007, 1, 9, 12, 0, 0)
@@ -250,90 +327,110 @@ context "Time instance method" do
       t.should == Time.local(2007, 1, 9, 6, 0, 0)
     end
   end
-  
-  specify "gmtime should return the utc representation of time" do
-    # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("CST", -6) do
-      t = Time.local(2007, 1, 9, 6, 0, 0)
-      t.gmtime
-      t.should == Time.gm(2007, 1, 9, 12, 0, 0)
+end
+
+time_gmtime = shared "Time#gmtime" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns the utc representation of time" do
+      # Testing with America/Regina here because it doesn't have DST.
+      with_timezone("CST", -6) do
+        t = Time.local(2007, 1, 9, 6, 0, 0)
+        t.send(cmd)
+        t.should == Time.gm(2007, 1, 9, 12, 0, 0)
+      end
     end
   end
-  
-  specify "getlocal should return a new time which is the local representation of time" do
+end
+
+describe "Time#gmtime" do
+  it_behaves_like(time_gmtime, :gmtime)
+end
+
+describe "Time#utc" do
+  it_behaves_like(time_gmtime, :utc)
+end  
+
+describe "Time#getlocal" do
+  it "returns a new time which is the local representation of time" do
     # Testing with America/Regina here because it doesn't have DST.
     with_timezone("CST", -6) do
       t = Time.gm(2007, 1, 9, 12, 0, 0)
       t.localtime.should == Time.local(2007, 1, 9, 6, 0, 0)
     end
   end
-  
-  specify "getgm should return a new time which is the utc representation of time" do
-    # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("CST", -6) do
-      t = Time.local(2007, 1, 9, 6, 0, 0)
-      t.getgm.should == Time.gm(2007, 1, 9, 12, 0, 0)
+end
+
+time_getgm = shared "Time#getgm" do |cmd|
+  describe "Time##{cmd}" do
+    it "returns a new time which is the utc representation of time" do
+      # Testing with America/Regina here because it doesn't have DST.
+      with_timezone("CST", -6) do
+        t = Time.local(2007, 1, 9, 6, 0, 0)
+        t.send(cmd).should == Time.gm(2007, 1, 9, 12, 0, 0)
+      end
     end
   end
-  
-  specify "getutc should be an alias for getgm" do
-    # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("CST", -6) do
-      t = Time.local(2007, 1, 9, 6, 0, 0)
-      t.getutc.should == Time.gm(2007, 1, 9, 12, 0, 0)
+end
+
+describe "Time#getgm" do
+  it_behaves_like(time_getgm, :getgm)
+end
+
+describe "Time#getutc" do
+  it_behaves_like(time_getgm, :getutc)
+end
+
+time_isdst = shared "Time#isdst" do |cmd|
+  describe "Time##{cmd}" do
+    it "dst? returns whether time is during daylight saving time" do
+      Time.local(2007, 9, 9, 0, 0, 0).send(cmd).should == true
+      Time.local(2007, 1, 9, 0, 0, 0).send(cmd).should == false
     end
   end
-  
-  specify "utc should be an alias of gmtime" do
-    # Testing with America/Regina here because it doesn't have DST.
-    with_timezone("CST", -6) do
-      t = Time.local(2007, 1, 9, 6, 0, 0)
-      t.utc
-      t.should == Time.gm(2007, 1, 9, 12, 0, 0)
-    end
-  end
-  
-  specify "dst? should return whether time is during daylight saving time" do
-    Time.local(2007, 9, 9, 0, 0, 0).dst?.should == true
-    Time.local(2007, 1, 9, 0, 0, 0).dst?.should == false
-  end
-  
-  specify "isdst should be an alias of dst?" do
-    Time.local(2007, 9, 9, 0, 0, 0).isdst.should == true
-    Time.local(2007, 1, 9, 0, 0, 0).isdst.should == false
-  end
-  
-  specify "to_f should return the float number of seconds + usecs since the epoch" do
+end
+
+describe "Time#dst?" do
+  it_behaves_like(time_isdst, :dst?)
+end
+
+describe "Time#isdst" do
+  it_behaves_like(time_isdst, :isdst)
+end  
+
+describe "Time#to_f" do
+  it "returns the float number of seconds + usecs since the epoch" do
     Time.at(100, 100).to_f.should == 100.0001
   end
-  
-  specify "to_i should return the integer number of seconds since the epoch" do
-    Time.at(100, 100).to_i.should == 100
-  end
-  
-  specify "hash should return a unique integer for each time" do
+end
+
+describe "Time#hash" do
+  it "returns a unique integer for each time" do
     Time.at(100).hash.should == 100
     Time.at(100, 123456).hash.should == 123428
     Time.gm(1980).hash.should == 315532800
   end
-  
-  specify "to_a should return a 10 element array representing the deconstructed time" do
+end
+
+describe "Time#to_a" do
+  it "returns a 10 element array representing the deconstructed time" do
     # Testing with America/Regina here because it doesn't have DST.
     with_timezone("CST", -6) do
       Time.at(0).to_a.should == [0, 0, 18, 31, 12, 1969, 3, 365, false, "CST"]
     end
   end
+end
 
-  specify "dup should return a Time object that represents the same time" do
+describe "Time#dup" do
+  it "returns a Time object that represents the same time" do
 	  t = Time.at(100)
 	  t.dup.tv_sec.should == t.tv_sec
   end
 
-  specify "dup should copy the gmt state flag" do
+  it "should copy the gmt state flag" do
 	  Time.now.gmtime.dup.gmt?.should == true
   end
 
-  specify "dup should return an independent Time object" do
+  it "returns an independent Time object" do
 	  t = Time.now
 	  t2 = t.dup
 	  t.gmtime
