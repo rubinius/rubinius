@@ -268,13 +268,13 @@ describe "File.delete" do
     File.open(@file2, "w"){} # Touch
   end
 
- after(:each) do
-   File.delete("temp1.txt") if File.exist?("temp1.txt")
-   File.delete("temp2.txt") if File.exist?("temp1.txt")
+  after(:each) do
+    File.delete("temp1.txt") if File.exist?("temp1.txt")
+    File.delete("temp2.txt") if File.exist?("temp1.txt")
 
-   @file1 = nil
-   @file2 = nil
- end
+    @file1 = nil
+    @file2 = nil
+  end
 
   it "deletes the named files," do
     File.delete(@file1)
@@ -335,8 +335,8 @@ describe "File.executable?" do
   end
 
   after(:each) do
-#    File.delete(Dir.pwd,"temp1.txt")    
-#    File.delete(Dir.pwd,"temp2.txt")
+    #    File.delete(Dir.pwd,"temp1.txt")    
+    #    File.delete(Dir.pwd,"temp2.txt")
 
     @file1 =  nil
     @file2 = nil
@@ -370,8 +370,8 @@ describe "File.executable_real?" do
   end
  
   after(:each) do
-#    File.delete("temp1.txt")    
-#    File.delete("temp2.txt")
+    #    File.delete("temp1.txt")    
+    #    File.delete("temp2.txt")
 
     @file1 = nil
     @file2 = nil
@@ -394,6 +394,7 @@ describe "File.executable_real?" do
 end   
 
 describe "File::Constants" do  
+  # These mode and permission bits are platform dependent
   specify "File::RDONLY" do 
     defined?(File::RDONLY).should == "constant" 
   end
@@ -426,8 +427,8 @@ describe "File.exist?" do
   end 
 
   after(:each) do
-   File.delete("temp.txt")
-   @file = nil
+    File.delete("temp.txt")
+    @file = nil
   end  
   
   it "return true if the file exist" do
@@ -950,7 +951,7 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  it "return a new Fiel with modus num and premissions " do 
+  it "return a new File with modus num and premissions " do 
     File.delete(@file) 
     @fh = File.new(@file, @flags, 0755)
     @fh.class.should == File
@@ -958,13 +959,51 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  it "return a new Fiel with modus fd " do 
+  it "return a new File with modus fd " do 
     @fh = File.new(@file) 
     @fh = File.new(@fh.fileno) 
     @fh.class.should == File
     File.exists?(@file).should == true
   end
+  
+  it "create a new file when use File::EXCL mode " do 
+    @fh = File.new(@file, File::EXCL) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
 
+  it "raise an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL" do 
+    should_raise(Errno::EEXIST){@fh = File.new(@file, File::CREAT|File::EXCL)}
+  end
+  
+  it "create a new file when use File::WRONLY|File::APPEND mode" do 
+    @fh = File.new(@file, File::WRONLY|File::APPEND) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+
+  it "raise an Errno::EINVAL error with File::APPEND" do 
+    should_raise(Errno::EINVAL){@fh = File.new(@file, File::APPEND)}
+  end
+  
+  
+  it "raise an Errno::EINVAL error with File::RDONLY|File::APPEND" do 
+    should_raise(Errno::EINVAL){@fh = File.new(@file, File::RDONLY|File::APPEND)}
+  end
+  
+  it "raise an Errno::EINVAL error with File::RDONLY|File::WRONLY" do 
+    @fh = File.new(@file, File::RDONLY|File::WRONLY)
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+  
+  
+  it "create a new file when use File::WRONLY|File::TRUNC mode" do 
+    @fh = File.new(@file, File::WRONLY|File::TRUNC) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end
+  
   specify  "expected errors " do
     should_raise(TypeError){ File.new(true) }
     should_raise(TypeError){ File.new(false) }
@@ -1072,6 +1111,7 @@ describe "File.open" do
     File.exists?(@file).should == true
   end  
     
+  # Check the grants associated to the differents open modes combinations. 
   it "raise an ArgumentError exception when call with an unknow mode" do 
     should_raise(ArgumentError){File.open(@file, "q")  }
   end
@@ -1099,6 +1139,20 @@ describe "File.open" do
       should_raise(IOError) { f.puts "writing ..." }
     end
   end
+  
+  it "can't write in a block when call open with File::WRONLY||File::RDONLY mode" do  
+    File.open(@file, File::WRONLY|File::RDONLY ) do |f|  
+      f.puts("writing").should == nil 
+    end 
+  end  
+  
+  it "can't read in a block when call open with File::WRONLY||File::RDONLY mode" do 
+    should_raise(IOError) do
+      File.open(@file, File::WRONLY|File::RDONLY ) do |f| 
+        f.gets.should == nil       
+      end
+    end
+  end    
   
   it "can write in a block when call open with WRONLY mode" do 
     File.open(@file, File::WRONLY) do |f| 
@@ -1130,10 +1184,30 @@ describe "File.open" do
     end
   end
   
-  it "raise an IO exception when read in a block opened with 'w' mode" do 
+  it "raise an IO exception when read in a block opened with 'a' mode" do 
     File.open(@file, "a") do |f|        
       f.puts("writing").should == nil      
       should_raise(IOError) { f.gets }
+    end
+  end  
+  
+  it "raise an IO exception when read in a block opened with 'a' mode" do 
+    File.open(@file, File::WRONLY|File::APPEND ) do |f| 
+      should_raise(IOError) { f.gets  }
+    end
+  end
+  
+  it "raise an IO exception when read in a block opened with File::WRONLY|File::APPEND mode" do 
+    File.open(@file, File::WRONLY|File::APPEND ) do |f|        
+      f.puts("writing").should == nil  
+    end
+  end
+  
+  it "raise an IO exception when read in a block opened with File::RDONLY|File::APPEND mode" do 
+    should_raise(Errno::EINVAL) do 
+      File.open(@file, File::RDONLY|File::APPEND ) do |f|        
+        f.puts("writing").should == nil  
+      end
     end
   end
   
@@ -1144,8 +1218,92 @@ describe "File.open" do
       f.rewind
       f.gets.should == "writing\n"
     end
+  end  
+  
+  it "can't read in a block when call open with File::EXCL mode" do 
+    should_raise(IOError) do
+      File.open(@file, File::EXCL) do |f|  
+        f.puts("writing").should == nil 
+      end
+    end
+  end
+  
+  it "can read in a block when call open with File::EXCL mode" do  
+    File.open(@file, File::EXCL) do |f|  
+      f.gets.should == nil      
+    end 
+  end    
+    
+  it "can read and write in a block when call open with File::RDWR|File::EXCL mode" do 
+    File.open(@file, File::RDWR|File::EXCL) do |f| 
+      f.gets.should == nil      
+      f.puts("writing").should == nil
+      f.rewind
+      f.gets.should == "writing\n"
+    end     
+  end
+  
+  it "raise an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL" do 
+    should_raise(Errno::EEXIST) do
+      File.open(@file, File::CREAT|File::EXCL) do |f|  
+        f.puts("writing").should == nil 
+      end
+    end
+  end
+ 
+  it "create a new file when use File::WRONLY|File::APPEND mode" do 
+    @fh = File.new(@file, File::WRONLY|File::APPEND) 
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end  
+  
+  it "raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND" do 
+    should_raise( Errno::EINVAL) do
+      File.open(@file, File::RDONLY|File::APPEND) do |f|  
+        f.puts("writing").should == nil 
+      end
+    end
+  end
+  
+  it "create a new file when use File::TRUNC mode" do 
+    # create and write in the file
+    File.open(@file, File::RDWR) do |f|
+      f.puts "hello file" 
+    end    
+    # Truncate the file    
+    @fh = File.new(@file, File::TRUNC)   
+    @fh.gets.should == nil
+  end 
+    
+  
+  it "can't read in a block when call open with File::TRUNC mode" do  
+      File.open(@file, File::TRUNC) do |f|  
+        f.gets  
+      end 
   end
     
+  it "open a file when use File::WRONLY|File::TRUNC mode" do 
+    File.open(@file, File::WRONLY|File::TRUNC) 
+    @fh.class.should == NilClass
+    File.exists?(@file).should == true
+  end
+  
+  it "can't write in a block when call open with File::TRUNC mode" do 
+    should_raise(IOError) do
+      File.open(@file, File::TRUNC) do |f|  
+        f.puts("writing")
+      end
+    end
+  end  
+      
+  it "raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC" do 
+    should_raise(IOError) do
+      File.open(@file, File::RDONLY|File::TRUNC) do |f|  
+        f.puts("writing").should == nil 
+      end
+    end
+  end
+   
   specify "expected errors " do
     should_raise(TypeError){ File.open(true) }
     should_raise(TypeError){ File.open(false) }
