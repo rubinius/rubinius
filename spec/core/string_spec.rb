@@ -5907,6 +5907,22 @@ describe "String#swapcase" do
    "cYbEr_PuNk11".swapcase.should == "CyBeR_pUnK11"
    "+++---111222???".swapcase.should == "+++---111222???"
   end
+  
+  it "taints resulting string when self is tainted" do
+    "".taint.swapcase.tainted?.should == true
+    "hello".taint.swapcase.tainted?.should == true
+  end
+
+  it "is locale insensitive (only upcases a-z and only downcases A-Z)" do
+    "ÄÖÜ".swapcase.should == "ÄÖÜ"
+    "ärger".swapcase.should == "äRGER"
+    "BÄR".swapcase.should == "bÄr"
+  end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("").swapcase.class.should == MyString
+    MyString.new("hello").swapcase.class.should == MyString
+  end
 end
 
 describe "String#swapcase!" do
@@ -5920,13 +5936,14 @@ describe "String#swapcase!" do
     a = "+++---111222???"
     a.swapcase!.should == nil
     a.should == "+++---111222???"
+    
+    "".swapcase!.should == nil
   end
-
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "cYbEr_PuNk11"
+  
+  it "raises a TypeError when self is frozen" do
+    ["", "hello"].each do |a|
       a.freeze
-      a.swapcase!
+      should_raise(TypeError) { a.swapcase! }
     end
   end
 end
@@ -5935,11 +5952,28 @@ describe "String#to_f" do
   it "treats leading characters of self as a floating point number" do
    "123.45e1".to_f.should == 1234.5
    "45.67 degrees".to_f.should == 45.67
+   "0".to_f.to_s.should == "0.0"
+   "123.45e1".to_f.should == 1234.5
+   
+   ".5".to_f.should == 0.5
+   ".5e1".to_f.should == 5.0
+   
+   "0b5".to_f.should == 0
+   "0d5".to_f.should == 0
+   "0o5".to_f.should == 0
+   "0x5".to_f.should == 0
+   
+   "NaN".to_f.should == 0
+   "Infinity".to_f.should == 0
+   "-Infinity".to_f.should == 0
   end
 
   it "takes an optional sign" do
     "-45.67 degrees".to_f.should == -45.67
     "+45.67 degrees".to_f.should == 45.67
+    "-5_5e-5_0".to_f.should == -55e-50
+    "-".to_f.to_s.should == "-0.0"
+    "-0".to_f.to_s.should == "-0.0"
   end
   
   it "returns 0.0 if the conversion fails" do
@@ -5948,8 +5982,76 @@ describe "String#to_f" do
   end
 end
 
-describe "String#to_i" do
-  # TODO
+describe "String#to_i(base=10)" do
+  it "interprets leading characters as a number in the given base" do
+    "100110010010".to_i(2).should == 0b100110010010
+    "100110201001".to_i(3).should == 186409
+    "103110201001".to_i(4).should == 5064769
+    "103110241001".to_i(5).should == 55165126
+    "153110241001".to_i(6).should == 697341529
+    "153160241001".to_i(7).should == 3521513430
+    "153160241701".to_i(8).should == 14390739905
+    "853160241701".to_i(9).should == 269716550518
+    "853160241791".to_i(10).should == 853160241791
+    
+    "F00D_BE_1337".to_i(16).should == 0xF00D_BE_1337
+    "-hello_world".to_i(32).should == -18306744
+    "abcXYZ".to_i(36).should == 623741435
+    
+    ("z" * 24).to_i(36).should == 22452257707354557240087211123792674815
+
+    "5e10".to_i.should == 5
+    
+    "0b-1".to_i(2).should == 0
+    "0d-1".to_i(10).should == 0
+    "0o-1".to_i(8).should == 0
+    "0x-1".to_i(16).should == 0
+  end
+  
+  it "auto-detects base via base specifiers (default: 10) for base = 0" do
+    "01778".to_i(0).should == 0177
+    "0b112".to_i(0).should == 0b11
+    "0d19A".to_i(0).should == 19
+    "0o178".to_i(0).should == 0o17
+    "0xFAZ".to_i(0).should == 0xFA
+    "1234567890ABC".to_i(0).should == 1234567890
+
+    "-01778".to_i(0).should == -0177
+    "-0b112".to_i(0).should == -0b11
+    "-0d19A".to_i(0).should == -19
+    "-0o178".to_i(0).should == -0o17
+    "-0xFAZ".to_i(0).should == -0xFA
+    "-1234567890ABC".to_i(0).should == -1234567890
+    
+    "0b-1".to_i(0).should == 0
+    "0d-1".to_i(0).should == 0
+    "0o-1".to_i(0).should == 0
+    "0x-1".to_i(0).should == 0
+  end
+  
+  it "doesn't handle foreign base specifiers when base is > 0" do
+    [2, 3, 4, 8, 10].each do |base|
+      "0111".to_i(base).should == "111".to_i(base)
+      
+      "0b11".to_i(base).should == (base ==  2 ? 0b11 : 0)
+      "0d11".to_i(base).should == (base == 10 ? 0d11 : 0)
+      "0o11".to_i(base).should == (base ==  8 ? 0o11 : 0)
+      "0xFA".to_i(base).should == 0
+    end
+    
+    "0xD00D".to_i(16).should == 0xD00D
+    
+    "0b11".to_i(16).should == 0xb11
+    "0d11".to_i(16).should == 0xd11
+    "0o11".to_i(25).should == 15026
+    "0x11".to_i(34).should == 38183
+  end
+  
+  it "raises ArgumentError for illegal radices (1, < 0 or > 36)" do
+    should_raise(ArgumentError) { "".to_i(1) }
+    should_raise(ArgumentError) { "".to_i(-1) }
+    should_raise(ArgumentError) { "".to_i(37) }
+  end
 end
 
 describe "String#to_s" do
@@ -5960,8 +6062,9 @@ describe "String#to_s" do
 end
 
 describe "String#to_str" do
-  it "is an alias of to_s" do
-    # TODO
+  it "returns self" do
+    a = "a string"
+    a.equal?(a.to_s).should == true
   end
 end
 
@@ -5975,9 +6078,8 @@ describe "String#to_sym" do
   end
   
   it "raises an ArgumentError when self can't be converted to symbol" do
-    should_raise(ArgumentError) do
-      "".to_sym
-    end
+    should_raise(ArgumentError) { "".to_sym }
+    should_raise(ArgumentError) { "foo\x00bar".to_sym }
   end
 end
 
