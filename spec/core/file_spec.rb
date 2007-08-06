@@ -417,7 +417,7 @@ describe "File::Constants" do
  
   specify "File::TRUNC" do     
     defined?(File::TRUNC).should == "constant" 
-  end
+  end   
 end
 
 describe "File.exist?" do 
@@ -1021,24 +1021,16 @@ describe "File.new" do
 end 
 
 describe "File.open" do 
-  before(:each) do
+  before(:each) do         
     @file = 'test.txt'    
-    File.delete(@file)
+    File.delete(@file)    
+    File.delete("fake") if File.exists?("fake")
     @fh = nil
     @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     File.open(@file, "w"){} # touch
   end
   
-  after(:each) do     
-    @fh.delete if @fh  rescue nil
-    @fh.close if @fh rescue nil
-    @fh    = nil
-    @fd    = nil
-    @file  = nil
-    @flags = nil
-  end
-
   it "open the file (basic case)" do 
     @fh = File.open(@file) 
     @fh.class.should == File
@@ -1111,7 +1103,53 @@ describe "File.open" do
     File.exists?(@file).should == true
   end  
     
-  # Check the grants associated to the differents open modes combinations. 
+  it "open a file that no exists when use File::WRONLY mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", File::WRONLY)  }
+  end  
+  
+  it "open a file that no exists when use File::RDONLY mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", File::RDONLY)  }
+  end    
+  
+  it "open a file that no exists when use 'r' mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", 'r')  }
+  end  
+  
+  it "open a file that no exists when use File::EXCL mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", File::EXCL)  }
+  end  
+  
+  it "open a file that no exists when use File::NONBLOCK mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", File::NONBLOCK)  }
+  end  
+  
+  it "open a file that no exists when use File::TRUNC mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", File::TRUNC)  }
+  end  
+  
+  it "open a file that no exists when use File::NOCTTY mode" do 
+    should_raise(Errno::ENOENT) { File.open("fake", File::NOCTTY)  }
+  end  
+  
+  it "open a file that no exists when use File::CREAT mode" do 
+    @fh = File.open("fake", File::CREAT)      
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end  
+  
+  it "open a file that no exists when use 'a' mode" do 
+    @fh = File.open("fake", 'a')      
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end  
+     
+  it "open a file that no exists when use 'w' mode" do 
+    @fh = File.open("fake", 'w')  
+    @fh.class.should == File
+    File.exists?(@file).should == true
+  end  
+  
+  # Check the grants associated to the differents open modes combinations.   
   it "raise an ArgumentError exception when call with an unknow mode" do 
     should_raise(ArgumentError){File.open(@file, "q")  }
   end
@@ -1206,7 +1244,7 @@ describe "File.open" do
   it "raise an IO exception when read in a block opened with File::RDONLY|File::APPEND mode" do 
     should_raise(Errno::EINVAL) do 
       File.open(@file, File::RDONLY|File::APPEND ) do |f|        
-        f.puts("writing").should == nil  
+        f.puts("writing")  
       end
     end
   end
@@ -1246,15 +1284,28 @@ describe "File.open" do
   it "raise an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL" do 
     should_raise(Errno::EEXIST) do
       File.open(@file, File::CREAT|File::EXCL) do |f|  
-        f.puts("writing").should == nil 
+        f.puts("writing")
       end
     end
   end
  
   it "create a new file when use File::WRONLY|File::APPEND mode" do 
-    @fh = File.new(@file, File::WRONLY|File::APPEND) 
+    @fh = File.open(@file, File::WRONLY|File::APPEND) 
     @fh.class.should == File
     File.exists?(@file).should == true
+  end  
+  
+  it "open a file when use File::WRONLY|File::APPEND mode" do 
+    File.open(@file, File::WRONLY) do |f|
+      f.puts("hello file")
+    end    
+    File.open(@file, File::RDWR|File::APPEND) do |f|
+      f.puts("bye file") 
+      f.rewind
+      f.gets().should == "hello file\n"
+      f.gets().should == "bye file\n"
+      f.gets().should == nil
+    end     
   end  
   
   it "raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND" do 
@@ -1277,9 +1328,9 @@ describe "File.open" do
     
   
   it "can't read in a block when call open with File::TRUNC mode" do  
-      File.open(@file, File::TRUNC) do |f|  
-        f.gets  
-      end 
+    File.open(@file, File::TRUNC) do |f|  
+      f.gets  
+    end 
   end
     
   it "open a file when use File::WRONLY|File::TRUNC mode" do 
@@ -1311,17 +1362,22 @@ describe "File.open" do
     should_raise(SystemCallError){ File.open(-1) } # kind_of ?
     should_raise(ArgumentError){ File.open(@file, File::CREAT, 0755, 'test') }
   end
+  
+  after(:each) do         
+    File.delete("fake")
+    @fh.delete if @fh  rescue nil
+    @fh.close if @fh rescue nil
+    @fh    = nil
+    @fd    = nil
+    @file  = nil
+    @flags = nil
+  end
 end
 
 describe "File.atime" do
   before(:each) do
     @file = File.join('test.txt')
     File.open(@file, "w"){} # touch
-  end
-
-  after(:each) do 
-    File.delete("test.txt") if File.exist?("test.txt")
-    @file = nil
   end
 
   it "returns the last access time for the named file as a Time object" do      
@@ -1338,6 +1394,70 @@ describe "File.atime" do
     should_raise(ArgumentError){ File.atime(@file, @file) }
     should_raise(TypeError){ File.atime(1) }
   end
+  
+  after(:each) do 
+    File.delete("test.txt") if File.exist?("test.txt") 
+    @file = nil
+  end
+end
+
+describe "File.truncate" do  
+  before(:each) do
+    @fname = "test.txt"
+    @file  = File.open(@fname, 'w')
+    File.open(@fname,"w"){ |f| f.write("1234567890") }
+  end
+ 
+  it "truncate the a file" do 
+    File.open(@fname, "w") { |f| f.puts "123456789" } 
+    if WINDOWS
+      File.size(@fname).should == 11
+    else
+      File.size(@fname).should == 10
+    end
+    File.truncate(@fname, 5)
+    File.size(@fname).should == 5
+    File.open(@fname, "r") do |f|
+      f.read(99).should == "12345"
+      f.eof?.should == true
+    end
+  end  
+
+  it "truncate to 0 a file" do
+    File.truncate(@fname, 0).should == 0    
+    IO.read(@fname).should == ""
+  end
+ 
+  it "truncate to 5 a file"  do
+    File.size(@fname).should == 10
+    File.truncate(@fname, 5) 
+    File.size(@fname).should == 5
+    IO.read(@fname).should == "12345"
+  end
+
+  it "truncate to a lager size than the original file" do
+    File.truncate(@fname, 12) 
+    File.size(@fname).should == 12
+    IO.read(@fname).should == "1234567890\000\000"
+  end
+
+  it "truncate to a the same size the original file" do
+    File.truncate(@fname, File.size(@fname))    
+    File.size(@fname).should == 10
+    IO.read(@fname).should == "1234567890"
+  end
+   
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    should_raise(ArgumentError){ File.truncate(@fname) }
+    should_raise(Errno::EINVAL){ File.truncate(@fname, -1) } # May fail
+    should_raise(TypeError){ File.truncate(@fname, nil) }
+  end
+
+  def teardown
+    @file.close rescue nil
+    @fname = nil
+  end
+  
 end
 
 # Interestingly MRI 1.8 will fail on later load() calls without this...
