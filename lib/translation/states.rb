@@ -176,7 +176,9 @@ class RsLocalState
       end
     end
     
-    @locals.each do |name, lv|
+    @locals.keys.each do |name|
+      lv = @locals[name]
+
       unless lv.argument?
         if lv.on_stack?
           lv.alloca = alloca_local(name)
