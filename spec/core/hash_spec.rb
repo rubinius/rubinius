@@ -13,70 +13,78 @@ class ToHashHash < Hash
   def to_hash() { "to_hash" => "was", "called!" => "duh." } end
 end
 
-context "Hash" do
-  specify "includes Enumerable" do
+empty = {}
+empty.freeze
+
+hash = {1 => 2, 3 => 4}
+hash.freeze
+
+describe "Hash" do
+  it "includes Enumerable" do
     Hash.include?(Enumerable).should == true
   end
 end
 
-context "Hash class method" do
-  specify "[] creates a Hash; values can be provided as the argument list" do
+describe "Hash.[]" do
+  it "creates a Hash; values can be provided as the argument list" do
     Hash[:a, 1, :b, 2].should == {:a => 1, :b => 2}
     Hash[].should == {}
   end
 
-  specify "[] creates a Hash; values can be provided as one single hash" do
+  it "creates a Hash; values can be provided as one single hash" do
     Hash[:a => 1, :b => 2].should == {:a => 1, :b => 2} 
     Hash[{1 => 2, 3 => 4}].should == {1 => 2, 3 => 4}
     Hash[{}].should == {}
   end
 
-  specify "[] raises on odd parameter list count" do
+  it "raises on odd parameter list count" do
     should_raise(ArgumentError) { Hash[1, 2, 3] }
   end
  
-  specify "[] raises when mixing argument styles" do
+  it "raises when mixing argument styles" do
     should_raise(ArgumentError) { Hash[1, 2, {3 => 4}] }
     Hash[1, 2, 3, {3 => 4}].should == {1 => 2, 3 => {3 => 4}}
   end
   
-  specify "[] shouldn't call to_hash" do
+  it "does not call to_hash" do
     obj = Object.new
     def obj.to_hash() { 1 => 2, 3 => 4 } end
     should_raise(ArgumentError) { Hash[obj] }
   end
 
-  specify "[] should always return an instance of the class it's called on" do
+  it "returns an instance of the class it's called on" do
     Hash[MyHash[1, 2]].class.should == Hash
     MyHash[Hash[1, 2]].class.should == MyHash
   end
+end
 
-  specify "new with default argument creates a new Hash with default object" do
+describe "Hash.new" do
+  it "creates a new Hash with default object if pass a default argument " do
     Hash.new(5).default.should == 5
     Hash.new({}).default.should == {}
   end
 
-  specify "new with default argument shouldn't create a copy of the default" do
+  it "does not create a copy of the default argument" do
     str = "foo"
     Hash.new(str).default.equal?(str).should == true
   end
   
-  specify "new with block creates a Hash with a default_proc" do
+  it "creates a Hash with a default_proc if passed a block" do
     Hash.new.default_proc.should == nil
     
-    hash = Hash.new { |x| "Answer to #{x}" }
-    hash.default_proc.call(5).should == "Answer to 5"
-    hash.default_proc.call("x").should == "Answer to x"
+    h = Hash.new { |x| "Answer to #{x}" }
+    h.default_proc.call(5).should == "Answer to 5"
+    h.default_proc.call("x").should == "Answer to x"
   end
   
-  specify "new with default argument and default block should raise" do
+  it "raises ArgumentError if passed both default argument and default block" do
     should_raise(ArgumentError) { Hash.new(5) { 0 } }
     should_raise(ArgumentError) { Hash.new(nil) { 0 } }
   end
 end
 
-context "Hash instance method" do
-  specify "== is true if they have the same number of keys and each key-value pair matches" do
+describe "Hash#==" do
+  it "returns true if other Hash has the same number of keys and each key-value pair matches" do
     Hash.new(5).should == Hash.new(1)
     Hash.new {|h, k| 1}.should == Hash.new {}
     Hash.new {|h, k| 1}.should == Hash.new(2)
@@ -97,18 +105,18 @@ context "Hash instance method" do
     c.should == d
   end
   
-  specify "== should call to_hash on its argument" do
+  it "calls to_hash on its argument" do
     obj = Object.new
     obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
     
     {1 => 2, 3 => 4}.should == obj
   end
   
-  specify "== shouldn't call to_hash on hash subclasses" do
+  it "does not call to_hash on hash subclasses" do
     {5 => 6}.should == ToHashHash[5 => 6]
   end
   
-  specify "== should be instantly false when the numbers of keys differ" do
+  it "returns false when the numbers of keys differ without comparing any elements" do
     obj = Object.new
     obj.should_not_receive(:==)
     obj.should_not_receive(:eql?)
@@ -117,13 +125,13 @@ context "Hash instance method" do
     { obj => obj }.should_not == {}
   end
   
-  specify "== should compare keys with eql? semantics" do
+  it "compares keys with eql? semantics" do
     { 1.0 => "x" }.should == { 1.0 => "x" }
     { 1 => "x" }.should_not == { 1.0 => "x" }
     { 1.0 => "x" }.should_not == { 1 => "x" }
   end
 
-  specify "== should first compare keys via hash" do
+  it "first compares keys via hash" do
     # Can't use should_receive because it uses hash internally
     x = Object.new
     def x.hash() freeze; 0 end
@@ -135,7 +143,7 @@ context "Hash instance method" do
     y.frozen?.should == true
   end
     
-  specify "== shouldn't compare keys with different hash codes via eql?" do
+  it "does not compare keys with different hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     x = Object.new
     def x.eql?(o) raise("Shouldn't receive eql?") end
@@ -150,7 +158,7 @@ context "Hash instance method" do
     y.frozen?.should == true
   end    
     
-  specify "== should compare keys with matching hash codes via eql?" do
+  it "compares keys with matching hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     a = Array.new(2) do 
       obj = Object.new
@@ -187,17 +195,17 @@ context "Hash instance method" do
     a[1].tainted?.should == true
   end
   
-  specify "== should compare values with == semantics" do
+  it "compares values with == semantics" do
     { "x" => 1.0 }.should == { "x" => 1 }
   end
   
-  specify "== shouldn't compare values when keys don't match" do
+  it "does not compare values when keys don't match" do
     value = Object.new
     value.should_not_receive(:==)
     { 1 => value }.should_not == { 2 => value }
   end
   
-  specify "== should compare values when keys match" do
+  it "compares values when keys match" do
     x = Object.new
     y = Object.new
     def x.==(o) freeze; false; end
@@ -215,14 +223,16 @@ context "Hash instance method" do
     (x.frozen? | y.frozen?).should == true
   end
 
-  specify "== should ignore hash class differences" do
+  it "ignores hash class differences" do
     h = { 1 => 2, 3 => 4 }
     MyHash[h].should == h
     MyHash[h].should == MyHash[h]
     h.should == MyHash[h]
-  end
-  
-  specify "[] should return the value for key" do
+  end  
+end
+
+describe "Hash#[]" do
+  it "returns the value for key" do
     obj = Object.new
     h = { 1 => 2, 3 => 4, "foo" => "bar", obj => obj }
     h[1].should == 2
@@ -230,19 +240,19 @@ context "Hash instance method" do
     h["foo"].should == "bar"
     h[obj].should == obj
   end
-  
-  specify "[] should return the default (immediate) value for missing keys" do
+
+  it "returns the default (immediate) value for missing keys" do
     h = Hash.new(5)
     h[:a].should == 5
     h[:a] = 0
     h[:a].should == 0
     h[:b].should == 5
-    
+
     # The default default is nil
     { 0 => 0 }[5].should == nil
   end
 
-  specify "[] shouldn't create copies of the immediate default value" do
+  it "does not create copies of the immediate default value" do
     str = "foo"
     h = Hash.new(str)
     a = h[:a]
@@ -254,37 +264,37 @@ context "Hash instance method" do
     b.should == "foobar"
   end
 
-  specify "[] should return the default (dynamic) value for missing keys" do
-    h = Hash.new { |hash, k| k.kind_of?(Numeric) ? hash[k] = k + 2 : hash[k] = k }
+  it "returns the default (dynamic) value for missing keys" do
+    h = Hash.new { |hsh, k| k.kind_of?(Numeric) ? hsh[k] = k + 2 : hsh[k] = k }
     h[1].should == 3
     h['this'].should == 'this'
     h.should == {1 => 3, 'this' => 'this'}
-    
+
     i = 0
-    h = Hash.new { |hash, key| i += 1 }
+    h = Hash.new { |hsh, key| i += 1 }
     h[:foo].should == 1
     h[:foo].should == 2
     h[:bar].should == 3
   end
 
-  specify "[] shouldn't return default values for keys with nil values" do
+  it "does not return default values for keys with nil values" do
     h = Hash.new(5)
     h[:a] = nil
     h[:a].should == nil
-    
+
     h = Hash.new() { 5 }
     h[:a] = nil
     h[:a].should == nil
   end
-  
-  specify "[] should compare keys with eql? semantics" do
+
+  it "compares keys with eql? semantics" do
     { 1.0 => "x" }[1].should == nil
     { 1.0 => "x" }[1.0].should == "x"
     { 1 => "x" }[1.0].should == nil
     { 1 => "x" }[1].should == "x"
   end
 
-  specify "[] should compare key via hash" do
+  it "compares key via hash" do
     # Can't use should_receive because it uses hash internally
     x = Object.new
     def x.hash() freeze; 0 end
@@ -292,20 +302,20 @@ context "Hash instance method" do
     { }[x].should == nil
     x.frozen?.should == true
   end
-  
+
   # True for all other methods using hash codes as well...
-  specify "[] should call % on hash code from hash()" do
+  it "calls % on hash code from hash()" do
     x = Object.new
     def x.hash() @hash end
     hc = Object.new
     x.instance_variable_set(:@hash, hc)
-    
+
     hc.should_receive(:%, :returning => 0)
     h = {1 => 2}
     h[x].should == nil
   end
-    
-  specify "[] shouldn't compare key with unknown hash codes via eql?" do
+
+  it "does not compare key with unknown hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     x = Object.new
     y = Object.new
@@ -317,8 +327,8 @@ context "Hash instance method" do
     { y => 1 }[x].should == nil
     x.frozen?.should == true
   end    
-    
-  specify "[] should compare key with found hash code via eql?" do
+
+  it "compares key with found hash code via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     y = Object.new
     def y.hash() 0 end
@@ -328,53 +338,67 @@ context "Hash instance method" do
       def self.eql?(o) taint; false; end
       return 0
     end
-    
+
     { y => 1 }[x].should == nil
     x.tainted?.should == true
-    
+
     x = Object.new
     def x.hash()
       def self.eql?(o) taint; true; end
       return 0
     end
-    
+
     { y => 1 }[x].should == 1
     x.tainted?.should == true
   end  
-  
-  specify "[]= should associate the key with the value and return the value" do
-    h = { :a => 1 }
-    (h[:b] = 2).should == 2
-    h.should == {:b=>2, :a=>1}
-  end
-  
-  specify "[]= should duplicate and freeze string keys" do
-    key = "foo"
-    h = {}
-    h[key] = 0
-    key << "bar"
+end
 
-    h.should == { "foo" => 0 }
-    h.keys[0].frozen?.should == true
-  end
+hash_store = shared "Hash#store" do |cmd|
+  describe "Hash##{cmd}" do
+    it "associates the key with the value and return the value" do
+      h = { :a => 1 }
+      h.send(cmd, :b, 2).should == 2
+      h.should == {:b=>2, :a=>1}
+    end
 
-  specify "[]= should duplicate string keys using dup semantics" do
-    # dup doesn't copy singleton methods
-    key = "foo"
-    def key.reverse() "bar" end
-    h = {}
-    h[key] = 0
+    it "duplicates and freezes string keys" do
+      key = "foo"
+      h = {}
+      h.send(cmd, key, 0)
+      key << "bar"
 
-    h.keys[0].reverse.should == "oof"
+      h.should == { "foo" => 0 }
+      h.keys[0].frozen?.should == true
+    end
+
+    it "duplicates string keys using dup semantics" do
+      # dup doesn't copy singleton methods
+      key = "foo"
+      def key.reverse() "bar" end
+      h = {}
+      h.send(cmd, key, 0)
+
+      h.keys[0].reverse.should == "oof"
+    end  
+
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { hash.send(cmd, 1, 2) }
+    end
   end
-  
-  specify "clear should remove all key, value pairs" do
+end
+
+describe "Hash#[]=" do
+  it_behaves_like(hash_store, :[]=)
+end
+
+describe "Hash#clear" do
+  it "removes all key, value pairs" do
     h = { 1 => 2, 3 => 4 }
     h.clear.equal?(h).should == true
     h.should == {}
   end
 
-  specify "clear shouldn't remove default values and procs" do
+  it "does not remove default values and procs" do
     h = Hash.new(5)
     h.clear
     h.default.should == 5
@@ -384,7 +408,14 @@ context "Hash instance method" do
     h.default_proc.should_not == nil
   end
 
-  specify "default should return the default value" do
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.clear }
+    should_raise(TypeError) { empty.clear }
+  end
+end
+
+describe "Hash#default" do
+  it "returns the default value" do
     h = Hash.new(5)
     h.default.should == 5
     h.default(4).should == 5
@@ -392,24 +423,27 @@ context "Hash instance method" do
     {}.default(4).should == nil
   end
 
-  specify "default should use the default proc to compute a default value, passing given key" do
+  it "uses the default proc to compute a default value, passing given key" do
     h = Hash.new { |*args| args }
     h.default(nil).should == [h, nil]
     h.default(5).should == [h, 5]
   end
   
-  specify "default with default proc, but no arg should call default proc with nil arg" do
+  it "calls default proc with nil arg if passed a default proc but no arg" do
     h = Hash.new { |*args| args }
     h.default.should == [h, nil]
   end
   
-  specify "default= should set the default value" do
+end
+
+describe "Hash#default=" do
+  it "sets the default value" do
     h = Hash.new
     h.default = 99
     h.default.should == 99
   end
 
-  specify "default= should unset the default proc" do
+  it "unsets the default proc" do
     [99, nil, lambda { 6 }].each do |default|
       h = Hash.new { 5 }
       h.default_proc.should_not == nil
@@ -418,18 +452,26 @@ context "Hash instance method" do
       h.default_proc.should == nil
     end
   end
-  
-  specify "default_proc should return the block passed to Hash.new" do
+
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.default = nil }
+  end
+end
+
+describe "Hash#default_proc" do
+  it "returns the block passed to Hash.new" do
     h = Hash.new { |i| 'Paris' }
     p = h.default_proc
     p.call(1).should == 'Paris'
   end
   
-  specify "default_proc should return nil if no block was passed to proc" do
+  it "returns nil if no block was passed to proc" do
     Hash.new.default_proc.should == nil
   end
-  
-  specify "delete should first entry (#keys order) whose key is == key and return the deleted value" do
+end
+
+describe "Hash#delete" do
+  it "removes the first entry (#keys order) whose key is == key and return the deleted value" do
     h = {:a => 5, :b => 2}
     h.delete(:b).should == 2
     h.should == {:a => 5}
@@ -450,31 +492,86 @@ context "Hash instance method" do
     h.size.should == 1
   end
 
-  specify "delete should call supplied block if the key is not found" do
+  it "calls supplied block if the key is not found" do
     {:a => 1, :b => 10, :c => 100 }.delete(:d) { 5 }.should == 5
     Hash.new(:default).delete(:d) { 5 }.should == 5
     Hash.new() { :defualt }.delete(:d) { 5 }.should == 5
   end
   
-  specify "delete should return nil if the key is not found when no block is given" do
+  it "returns nil if the key is not found when no block is given" do
     {:a => 1, :b => 10, :c => 100 }.delete(:d).should == nil
     Hash.new(:default).delete(:d).should == nil
     Hash.new() { :defualt }.delete(:d).should == nil
   end
-  
-  specify "delete_if should yield two arguments: key and value" do
+
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.delete("foo") }
+    should_raise(TypeError) { empty.delete("foo") }
+  end
+end
+
+hash_iteration_method = shared "Iteration method" do |cmd|
+  # These are the only ones that actually have the exceptions on MRI 1.8.
+  # sort and reject don't raise!
+  # 
+  #   delete_if each each_key each_pair each_value merge merge! reject!
+  #   select update
+  #
+  describe "Hash##{cmd}" do
+    hsh = {1 => 2, 3 => 4, 5 => 6}  
+    big_hash = {}
+    100.times { |k| big_hash[k.to_s] = k }    
+       
+    it "raise RuntimeError if #rehash is called from block" do
+      h = hsh.dup
+      args = cmd.to_s[/merge|update/] ? [h] : []
+      
+      should_raise(RuntimeError, "rehash occurred during iteration") do
+        h.send(cmd, *args) { h.rehash }
+      end
+    end
+
+    it "raises if lots of new entries are added from block" do
+      h = hsh.dup
+      args = cmd.to_s[/merge|update/] ? [h] : []
+
+      should_raise(RuntimeError, "hash modified during iteration") do
+        h.send(cmd, *args) { |*x| h.merge!(big_hash) }
+      end
+    end
+
+    it "does not affect yielded items by removing the current element" do
+      n = 3
+      
+      h = Array.new(n) { hsh.dup }
+      args = Array.new(n) { |i| cmd.to_s[/merge|update/] ? [h[i]] : [] }
+      r = Array.new(n) { [] }
+      
+      h[0].send(cmd, *args[0]) { |*x| r[0] << x; true }
+      h[1].send(cmd, *args[1]) { |*x| r[1] << x; h[1].shift; true }
+      h[2].send(cmd, *args[2]) { |*x| r[2] << x; h[2].delete(h[2].keys.first); true }
+      
+      r[1..-1].each do |yielded|
+        yielded.should == r[0]
+      end
+    end
+  end
+end
+
+describe "Hash#delete_if" do
+  it "yields two arguments: key and value" do
     all_args = []
     {1 => 2, 3 => 4}.delete_if { |*args| all_args << args }
     all_args.should == [[1, 2], [3, 4]]
   end
   
-  specify "delete_if should remove every entry for which block is true and returns self" do
+  it "removes every entry for which block is true and returns self" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
     h.delete_if { |k,v| v % 2 == 1 }.equal?(h).should == true
     h.should == {:b => 2, :d => 4}
   end
   
-  specify "delete_if should process entries with the same order as each()" do
+  it "processes entries with the same order as each()" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
 
     each_pairs = []
@@ -485,20 +582,29 @@ context "Hash instance method" do
     each_pairs.should == delete_pairs
   end
 
-  specify "each should yield one argument: [key, value]" do
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.delete_if { false } }
+    should_raise(TypeError) { empty.delete_if { true } }
+  end
+  
+  it_behaves_like(hash_iteration_method, :delete_if)
+end
+
+describe "Hash#each" do
+  it "yields one argument: [key, value]" do
     all_args = []
     {1 => 2, 3 => 4}.each { |*args| all_args << args }
     all_args.should == [[[1, 2]], [[3, 4]]]
   end
   
-  specify "each should call block once for each entry, passing key, value" do
+  it "calls block once for each entry, passing key, value" do
     r = {}
     h = {:a => 1, :b => 2, :c => 3, :d => 5}
     h.each { |k,v| r[k.to_s] = v.to_s }.equal?(h).should == true
     r.should == {"a" => "1", "b" => "2", "c" => "3", "d" => "5" }
   end
 
-  specify "each should use the same order as keys() and values()" do
+  it "uses the same order as keys() and values()" do
     h = {:a => 1, :b => 2, :c => 3, :d => 5}
     keys = []
     values = []
@@ -511,22 +617,30 @@ context "Hash instance method" do
     keys.should == h.keys
     values.should == h.values
   end
-  
-  specify "each_key should call block once for each key, passing key" do
+
+  it_behaves_like(hash_iteration_method, :each)
+end
+
+describe "Hash#each_key" do
+  it "calls block once for each key, passing key" do
     r = {}
     h = {1 => -1, 2 => -2, 3 => -3, 4 => -4 }
     h.each_key { |k| r[k] = k }.equal?(h).should == true
     r.should == { 1 => 1, 2 => 2, 3 => 3, 4 => 4 }
   end
 
-  specify "each_key should process keys in the same order as keys()" do
+  it "processes keys in the same order as keys()" do
     keys = []
     h = {1 => -1, 2 => -2, 3 => -3, 4 => -4 }
     h.each_key { |k| keys << k }
     keys.should == h.keys
   end
-  
-  specify "each_pair should process all pairs, yielding two arguments: key and value" do
+
+  it_behaves_like(hash_iteration_method, :each_key)
+end
+
+describe "Hash#each_pair" do
+  it "processes all pairs, yielding two arguments: key and value" do
     all_args = []
 
     h = {1 => 2, 3 => 4}
@@ -534,87 +648,125 @@ context "Hash instance method" do
 
     all_args.should == [[1, 2], [3, 4]]
   end
-  
-  specify "each_value should call block once for each key, passing value" do
+
+  it_behaves_like(hash_iteration_method, :each_pair)
+end
+
+describe "Hash#each_value" do
+  it "calls block once for each key, passing value" do
     r = []
     h = { :a => -5, :b => -3, :c => -2, :d => -1, :e => -1 }
     h.each_value { |v| r << v }.equal?(h).should == true
     r.sort.should == [-5, -3, -2, -1, -1]
   end
 
-  specify "each_value should process values in the same order as values()" do
+  it "processes values in the same order as values()" do
     values = []
     h = { :a => -5, :b => -3, :c => -2, :d => -1, :e => -1 }
     h.each_value { |v| values << v }
     values.should == h.values
   end
-  
-  specify "empty? should return true if the hash has no entries" do
+
+  it_behaves_like(hash_iteration_method, :each_value)
+end
+
+describe "Hash#empty?" do
+  it "returns true if the hash has no entries" do
     {}.empty?.should == true
     {1 => 1}.empty?.should == false
     Hash.new(5).empty?.should == true
     Hash.new { 5 }.empty?.should == true
   end
-  
-  specify "fetch should return the value for key" do
+end
+
+describe "Hash#fetch" do
+  it "returns the value for key" do
     { :a => 1, :b => -1 }.fetch(:b).should == -1
   end
   
-  specify "fetch should raise IndexError if key is not found" do
+  it "raises IndexError if key is not found" do
     should_raise(IndexError) { {}.fetch(:a) }
     should_raise(IndexError) { Hash.new(5).fetch(:a) }
     should_raise(IndexError) { Hash.new { 5 }.fetch(:a) }
   end
   
-  specify "fetch with default should return default if key is not found" do
+  it "returns default if key is not found when passed a default" do
     {}.fetch(:a, nil).should == nil
     {}.fetch(:a, 'not here!').should == "not here!"
     { :a => nil }.fetch(:a, 'not here!').should == nil
   end
   
-  specify "fetch with block should return value of block if key is not found" do
+  it "returns value of block if key is not found when passed a block" do
     {}.fetch('a') { |k| k + '!' }.should == "a!"
   end
 
-  specify "fetch's default block should take precedence over its default argument" do
+  it "gives precedence to the default block over the default argument when passed both" do
     {}.fetch(9, :foo) { |i| i * i }.should == 81
   end
-  
-  specify "has_key? should be a synonym for key?" do
-    h = {:a => 1, :b => 2, :c => 3}
-    h.has_key?(:a).should == h.key?(:a)
-    h.has_key?(:b).should == h.key?(:b) 
-    h.has_key?('b').should == h.key?('b') 
-    h.has_key?(2).should == h.key?(2)
-  end
-  
-  specify "has_value? should be a synonym for value?" do
-    {:a => :b}.has_value?(:a).should == {:a => :b}.value?(:a)
-    {1 => 2}.has_value?(2).should == {1 => 2}.value?(2)
-    h = Hash.new(5)
-    h.has_value?(5).should == h.value?(5)
-    h = Hash.new { 5 }
-    h.has_value?(5).should == h.value?(5)
-  end
-  
-  specify "include? should be a synonym for key?" do
-    h = {:a => 1, :b => 2, :c => 3}
-    h.include?(:a).should   == h.key?(:a) 
-    h.include?(:b).should   == h.key?(:b) 
-    h.include?('b').should  == h.key?('b')
-    h.include?(2).should    == h.key?(2)
-  end
+end
 
-  specify "index should return the corresponding key for value" do
+hash_key_p = shared "Hash#key?" do |cmd|
+  describe "Hash##{cmd}" do
+    it "returns true if argument is a key" do
+      h = { :a => 1, :b => 2, :c => 3, 4 => 0 }
+      h.send(cmd, :a).should == true
+      h.send(cmd, :b).should == true
+      h.send(cmd, 'b').should == false
+      h.send(cmd, 2).should == false
+      h.send(cmd, 4).should == true
+      h.send(cmd, 4.0).should == false
+    end
+
+    it "returns true if the key's matching value was nil" do
+      { :xyz => nil }.send(cmd, :xyz).should == true
+    end
+
+    it "returns true if the key's matching value was false" do
+      { :xyz => false }.send(cmd, :xyz).should == true
+    end
+  end
+end
+
+describe "Hash#has_key?" do
+  it_behaves_like(hash_key_p, :has_key?)
+end
+
+describe "Hash#include?" do
+  it_behaves_like(hash_key_p, :include?)
+end
+
+hash_value_p = shared "Hash#value?" do |cmd|
+  describe "Hash##{cmd}" do
+    it "returns true if the value exists in the hash" do
+      {:a => :b}.send(cmd, :a).should == false
+      {1 => 2}.send(cmd, 2).should == true
+      h = Hash.new(5)
+      h.send(cmd, 5).should == false
+      h = Hash.new { 5 }
+      h.send(cmd, 5).should == false
+    end
+
+    it "uses == semantics for comparing values" do
+      { 5 => 2.0 }.send(cmd, 2).should == true
+    end
+  end
+end
+
+describe "Hash#has_value?" do
+  it_behaves_like(hash_value_p, :has_value?)
+end
+
+describe "Hash#index" do
+  it "returns the corresponding key for value" do
     {2 => 'a', 1 => 'b'}.index('b').should == 1
   end
   
-  specify "index should return nil if the value is not found" do
+  it "returns nil if the value is not found" do
     {:a => -1, :b => 3.14, :c => 2.718}.index(1).should == nil
     Hash.new(5).index(5).should == nil
   end
 
-  specify "index should compare values using ==" do
+  it "compares values using ==" do
     {1 => 0}.index(0.0).should == 1
     {1 => 0.0}.index(0).should == 1
     
@@ -625,7 +777,7 @@ context "Hash instance method" do
     {1 => inhash}.index(needle).should == 1
   end
 
-  specify "index should compare values with same order as keys() and values()" do
+  it "compares values with same order as keys() and values()" do
     h = {1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0}
     h.index(0).should == h.keys.first
     
@@ -638,20 +790,30 @@ context "Hash instance method" do
     
     h.index(needle).should == h.keys[2]
   end
-  
-  specify "indexes and indices should be DEPRECATED synonyms for values_at" do
+end
+
+describe "Hash#indexes" do
+  it "is a DEPRECATED synonyms for values_at" do
     h = {:a => 9, :b => 'a', :c => -10, :d => nil}
     h.indexes(:a, :d, :b).should == h.values_at(:a, :d, :b)
     h.indexes().should == h.values_at()
+  end
+end
+
+describe "Hash#indices" do
+  it "is a DEPRECATED synonyms for values_at" do
+    h = {:a => 9, :b => 'a', :c => -10, :d => nil}
     h.indices(:a, :d, :b).should == h.values_at(:a, :d, :b)
     h.indices().should == h.values_at()
   end
+end
 
-  specify "initialize should be private" do
+describe "Hash#initialize" do
+  it "is private" do
     {}.private_methods.map { |m| m.to_s }.include?("initialize").should == true
   end
 
-  specify "initialize can be used to reset default_proc" do
+  it "can be used to reset default_proc" do
     h = { "foo" => 1, "bar" => 2 }
     h.default_proc.should == nil
     h.instance_eval { initialize { |h, k| k * 2 } }
@@ -659,33 +821,80 @@ context "Hash instance method" do
     h["a"].should == "aa"
   end
 
-  specify "initialize_copy should be private" do
-    {}.private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
-  end
-  
-  specify "initialize_copy should be a synonym for replace" do
-    init_hash = Hash.new
-    repl_hash = Hash.new
-    arg = { :a => 1, :b => 2 }
-    
-    init_hash.instance_eval { initialize_copy(arg) }.should == repl_hash.replace(arg)
-    init_hash.should == repl_hash
-  end
-  
-  specify "initialize_copy should have the same to_hash behaviour as replace" do
-    init_hash = Hash.new
-    repl_hash = Hash.new
-    arg1 = Object.new
-    def arg1.to_hash() {1 => 2} end
-    arg2 = ToHashHash[1 => 2]
-    
-    [arg1, arg2].each do |arg|      
-      init_hash.instance_eval { initialize_copy(arg) }.should == repl_hash.replace(arg)
-      init_hash.should == repl_hash
+  it "raises TypeError if called on a frozen instance" do
+    hash.instance_eval do
+      should_raise(TypeError) { initialize() }
+      should_raise(TypeError) { initialize(nil) }
+      should_raise(TypeError) { initialize(5) }
+      should_raise(TypeError) { initialize { 5 } }
     end
   end
-  
-  specify "inspect should return a string representation with same order as each()" do
+end
+
+hash_replace = shared "Hash#replace" do |cmd|
+  describe "Hash##{cmd}" do
+    it "replaces the contents of self with other" do
+      h = { :a => 1, :b => 2 }
+      h.send(cmd, :c => -1, :d => -2).equal?(h).should == true
+      h.should == { :c => -1, :d => -2 }
+    end
+
+    it "calls to_hash on its argument" do
+      obj = Object.new
+      obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
+
+      h = {}
+      h.send(cmd, obj)
+      h.should == {1 => 2, 3 => 4}
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_hash], :returning => {})
+
+      h.send(cmd, obj)
+      h.should == {}
+    end
+
+    it "calls to_hash on hash subclasses" do
+      h = {}
+      h.send(cmd, ToHashHash[1 => 2])
+      h.should == {1 => 2}
+    end
+
+    it "does not transfer default values" do
+      hash_a = {}
+      hash_b = Hash.new(5)
+      hash_a.send(cmd, hash_b)
+      hash_a.default.should == 5
+
+      hash_a = {}
+      hash_b = Hash.new { |h, k| k * 2 }
+      hash_a.send(cmd, hash_b)
+      hash_a.default(5).should == 10
+
+      hash_a = Hash.new { |h, k| k * 5 }
+      hash_b = Hash.new(lambda { raise "Should not invoke lambda" })
+      hash_a.send(cmd, hash_b)
+      hash_a.default.should == hash_b.default
+    end
+
+    it "raises TypeError if called on a frozen instance" do
+      hash.send(cmd, hash) # ok, nothing changed
+      should_raise(TypeError) { hash.send(cmd, empty) }
+    end
+  end
+end
+
+describe "Hash#initialize_copy" do
+  it "is private" do
+    {}.private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
+  end
+
+  it_behaves_like(hash_replace, :initialize_copy)
+end
+
+describe "Hash#inspect" do
+  it "returns a string representation with same order as each()" do
     h = {:a => [1, 2], :b => -2, :d => -6, nil => nil}
     
     pairs = []
@@ -697,7 +906,7 @@ context "Hash instance method" do
     h.inspect.should == str
   end
 
-  specify "inspect should call inspect on keys and values" do
+  it "calls inspect on keys and values" do
     key = Object.new
     val = Object.new
     key.should_receive(:inspect, :returning => 'key')
@@ -706,7 +915,7 @@ context "Hash instance method" do
     { key => val }.inspect.should == '{key=>val}'
   end
 
-  specify "inspect should handle recursive hashes" do
+  it "handles recursive hashes" do
     x = {}
     x[0] = x
     x.inspect.should == '{0=>{...}}'
@@ -740,48 +949,38 @@ context "Hash instance method" do
     x.inspect.should == "{{{...}=>{...}}=>{...}}"
     y.inspect.should == "{{{...}=>{...}}=>{...}}"
   end
-  
-  specify "invert should return a new hash where keys are values and vice versa" do
+end
+
+describe "Hash#invert" do
+  it "returns a new hash where keys are values and vice versa" do
     { 1 => 'a', 2 => 'b', 3 => 'c' }.invert.should == { 'a' => 1, 'b' => 2, 'c' => 3 }
   end
   
-  specify "invert should handle collisions by overriding with the key coming later in keys()" do
+  it "handles collisions by overriding with the key coming later in keys()" do
     h = { :a => 1, :b => 1 }
     override_key = h.keys.last
     h.invert[1].should == override_key
   end
 
-  specify "invert should compare new keys with eql? semantics" do
+  it "compares new keys with eql? semantics" do
     h = { :a => 1.0, :b => 1 }
     i = h.invert
     i[1.0].should == :a
     i[1].should == :b
   end
   
-  specify "invert on hash subclasses shouldn't return subclass instances" do
+  it "does not return subclass instances for subclasses" do
     MyHash[1 => 2, 3 => 4].invert.class.should == Hash
     MyHash[].invert.class.should == Hash
   end
-  
-  specify "key? should return true if argument is a key" do
-    h = { :a => 1, :b => 2, :c => 3, 4 => 0 }
-    h.key?(:a).should == true
-    h.key?(:b).should == true
-    h.key?('b').should == false
-    h.key?(2).should == false
-    h.key?(4).should == true
-    h.key?(4.0).should == false
-  end
+end
 
-  specify "key? should return true if the key's matching value was nil" do
-    { :xyz => nil }.key?(:xyz).should == true
-  end
+describe "Hash#key?" do
+  it_behaves_like(hash_key_p, :key?)
+end
 
-  specify "key? should return true if the key's matching value was false" do
-    { :xyz => false }.key?(:xyz).should == true
-  end
-
-  specify "keys should return an array populated with keys" do
+describe "Hash#keys" do
+  it "returns an array populated with keys" do
     {}.keys.should == []
     {}.keys.class.should == Array
     Hash.new(5).keys.should == []
@@ -791,36 +990,42 @@ context "Hash instance method" do
     { nil => nil }.keys.should == [nil]
   end
 
-  specify "keys and values should use the same order" do
+  it "it uses the same order as #values" do
     h = { 1 => "1", 2 => "2", 3 => "3", 4 => "4" }
     
     h.size.times do |i|
       h[h.keys[i]].should == h.values[i]
     end
   end
+end
 
-  specify "length should return the number of entries" do
-    {:a => 1, :b => 'c'}.length.should == 2
-    {:a => 1, :b => 2, :a => 2}.length.should == 2
-    {:a => 1, :b => 1, :c => 1}.length.should == 3
-    {}.length.should == 0
-    Hash.new(5).length.should == 0
-    Hash.new { 5 }.length.should == 0
+hash_length = shared "Hash#length" do |cmd|
+  describe "Hash##{cmd}" do
+    it "returns the number of entries" do
+      {:a => 1, :b => 'c'}.send(cmd).should == 2
+      {:a => 1, :b => 2, :a => 2}.send(cmd).should == 2
+      {:a => 1, :b => 1, :c => 1}.send(cmd).should == 3
+      {}.send(cmd).should == 0
+      Hash.new(5).send(cmd).should == 0
+      Hash.new { 5 }.send(cmd).should == 0
+    end
   end
-  
-  specify "member? should be a synonym for key?" do
-    h = {:a => 1, :b => 2, :c => 3}
-    h.member?(:a).should == h.key?(:a)
-    h.member?(:b).should == h.key?(:b)
-    h.member?('b').should == h.key?('b')
-    h.member?(2).should == h.key?(2)
-  end
-  
-  specify "merge should return a new hash by combining self with the contents of other" do
+end
+
+describe "Hash#length" do
+  it_behaves_like(hash_length, :length)
+end
+
+describe "Hash#member?" do
+  it_behaves_like(hash_key_p, :member?)
+end
+
+describe "Hash#merge" do
+  it "returns a new hash by combining self with the contents of other" do
     { 1 => :a, 2 => :b, 3 => :c }.merge(:a => 1, :c => 2).should == { :c => 2, 1 => :a, 2 => :b, :a => 1, 3 => :c }
   end
   
-  specify "merge with block sets any duplicate key to the value of block" do
+  it "sets any duplicate key to the value of block if passed a block" do
     h1 = { :a => 2, :b => 1, :d => 5}
     h2 = { :a => -2, :b => 4, :c => -3 }
     r = h1.merge(h2) { |k,x,y| nil }
@@ -837,7 +1042,7 @@ context "Hash instance method" do
     r.should == { :a => :x, :b => :x, :d => :x }
   end
   
-  specify "merge should call to_hash on its argument" do
+  it "calls to_hash on its argument" do
     obj = Object.new
     obj.should_receive(:to_hash, :returning => {1 => 2})
     {3 => 4}.merge(obj).should == {1 => 2, 3 => 4}
@@ -848,11 +1053,11 @@ context "Hash instance method" do
     {3 => 4}.merge(obj).should == {1 => 2, 3 => 4}
   end
 
-  specify "merge shouldn't call to_hash on hash subclasses" do    
+  it "does not call to_hash on hash subclasses" do    
     {3 => 4}.merge(ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
   end
 
-  specify "merge on hash subclasses should return subclass instance" do
+  it "returns subclass instance for subclasses" do
     MyHash[1 => 2, 3 => 4].merge({1 => 2}).class.should == MyHash
     MyHash[].merge({1 => 2}).class.should == MyHash
 
@@ -860,7 +1065,7 @@ context "Hash instance method" do
     {}.merge(MyHash[1 => 2]).class.should == Hash
   end
   
-  specify "merge should process entries with same order as each()" do
+  it "processes entries with same order as each()" do
     h = {1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => []}
     merge_pairs = []
     each_pairs = []
@@ -868,48 +1073,67 @@ context "Hash instance method" do
     h.merge(h) { |k, v1, v2| merge_pairs << [k, v1] }
     merge_pairs.should == each_pairs
   end
-  
-  specify "merge! should add the entries from other, overwriting duplicate keys. Returns self" do
-    h = { :_1 => 'a', :_2 => '3' }
-    h.merge!(:_1 => '9', :_9 => 2).equal?(h).should == true
-    h.should == {:_1 => "9", :_2 => "3", :_9 => 2}
-  end
-  
-  specify "merge! with block sets any duplicate key to the value of block" do
-    h1 = { :a => 2, :b => -1 }
-    h2 = { :a => -2, :c => 1 }
-    h1.merge!(h2) { |k,x,y| 3.14 }.equal?(h1).should == true
-    h1.should == {:c => 1, :b => -1, :a => 3.14}
-    
-    h1.merge!(h1) { nil }
-    h1.should == { :a => nil, :b => nil, :c => nil }
-  end
-  
-  specify "merge! should call to_hash on its argument" do
-    obj = Object.new
-    obj.should_receive(:to_hash, :returning => {1 => 2})
-    {3 => 4}.merge!(obj).should == {1 => 2, 3 => 4}
 
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_hash], :returning => { 1 => 2})
-    {3 => 4}.merge!(obj).should == {1 => 2, 3 => 4}
-  end
+  it_behaves_like(hash_iteration_method, :merge)
+end
 
-  specify "merge! shouldn't call to_hash on hash subclasses" do    
-    {3 => 4}.merge!(ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
+hash_update = shared "Hash#update" do |cmd|
+  describe "Hash##{cmd}" do
+    it "adds the entries from other, overwriting duplicate keys. Returns self" do
+      h = { :_1 => 'a', :_2 => '3' }
+      h.send(cmd, :_1 => '9', :_9 => 2).equal?(h).should == true
+      h.should == {:_1 => "9", :_2 => "3", :_9 => 2}
+    end
+
+    it "sets any duplicate key to the value of block if passed a block" do
+      h1 = { :a => 2, :b => -1 }
+      h2 = { :a => -2, :c => 1 }
+      h1.send(cmd, h2) { |k,x,y| 3.14 }.equal?(h1).should == true
+      h1.should == {:c => 1, :b => -1, :a => 3.14}
+
+      h1.send(cmd, h1) { nil }
+      h1.should == { :a => nil, :b => nil, :c => nil }
+    end
+
+    it "calls to_hash on its argument" do
+      obj = Object.new
+      obj.should_receive(:to_hash, :returning => {1 => 2})
+      {3 => 4}.send(cmd, obj).should == {1 => 2, 3 => 4}
+
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_hash], :returning => { 1 => 2})
+      {3 => 4}.send(cmd, obj).should == {1 => 2, 3 => 4}
+    end
+
+    it "does not call to_hash on hash subclasses" do    
+      {3 => 4}.send(cmd, ToHashHash[1 => 2]).should == {1 => 2, 3 => 4}
+    end
+
+    it "processes entries with same order as merge()" do
+      h = {1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => []}
+      merge_bang_pairs = []
+      merge_pairs = []
+      h.merge(h) { |*arg| merge_pairs << arg }
+      h.send(cmd, h) { |*arg| merge_bang_pairs << arg }
+      merge_bang_pairs.should == merge_pairs
+    end
+
+    it "raises TypeError if called on a frozen instance" do
+      hash.send(cmd, empty) # ok, empty
+      should_raise(TypeError) { hash.send(cmd, 1 => 2) }
+    end
   end
-  
-  specify "merge! should process entries with same order as merge()" do
-    h = {1 => 2, 3 => 4, 5 => 6, "x" => nil, nil => 5, [] => []}
-    merge_bang_pairs = []
-    merge_pairs = []
-    h.merge(h) { |*arg| merge_pairs << arg }
-    h.merge!(h) { |*arg| merge_bang_pairs << arg }
-    merge_bang_pairs.should == merge_pairs
-  end
-  
-  specify "rehash should reorganize the hash by recomputing all key hash codes" do
+end
+
+describe "Hash#merge!" do
+  it_behaves_like(hash_update, :merge!)
+
+  it_behaves_like(hash_iteration_method, :merge!)
+end
+
+describe "Hash#rehash" do
+  it "reorganizes the hash by recomputing all key hash codes" do
     k1 = [1]
     k2 = [2]
     h = {}
@@ -945,7 +1169,7 @@ context "Hash instance method" do
     k2.frozen?.should == true    
   end
   
-  specify "rehash gives precedence to keys coming later in keys() on collisions" do
+  it "gives precedence to keys coming later in keys() on collisions" do
     k1 = [1]
     k2 = [2]
     h = {}
@@ -957,8 +1181,15 @@ context "Hash instance method" do
     h.rehash
     h[k1].should == override_val
   end
-  
-  specify "reject should be equivalent to hsh.dup.delete_if" do
+
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.rehash }
+    should_raise(TypeError) { empty.rehash }
+  end  
+end
+
+describe "Hash#reject" do
+  it "should be equivalent to hsh.dup.delete_if" do
     h = { :a => 'a', :b => 'b', :c => 'd' }
     h.reject { |k,v| k == 'd' }.should == (h.dup.delete_if { |k, v| k == 'd' })
     
@@ -975,23 +1206,25 @@ context "Hash instance method" do
     h.reject { false }.to_a.should == [[1, 2]]
   end
   
-  specify "reject on hash subclasses should return subclass instance" do
+  it "returns subclass instance for subclasses" do
     MyHash[1 => 2, 3 => 4].reject { false }.class.should == MyHash
     MyHash[1 => 2, 3 => 4].reject { true }.class.should == MyHash
   end
   
-  specify "reject should process entries with the same order as reject!" do
+  it "processes entries with the same order as reject!" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
 
     reject_pairs = []
     reject_bang_pairs = []
-    h.reject { |*pair| reject_pairs << pair }
+    h.dup.reject { |*pair| reject_pairs << pair }
     h.reject! { |*pair| reject_bang_pairs << pair }
 
     reject_pairs.should == reject_bang_pairs
   end
-    
-  specify "reject! is equivalent to delete_if if changes are made" do
+end
+
+describe "Hash#reject!" do
+  it "is equivalent to delete_if if changes are made" do
     {:a => 2}.reject! { |k,v| v > 1 }.should == ({:a => 2}.delete_if { |k, v| v > 1 })
 
     h = {1 => 2, 3 => 4}
@@ -1002,11 +1235,11 @@ context "Hash instance method" do
     all_args_reject.should == all_args_delete_if
   end
   
-  specify "reject! should return nil if no changes were made" do
+  it "returns nil if no changes were made" do
     { :a => 1 }.reject! { |k,v| v > 1 }.should == nil
   end
   
-  specify "reject! should process entries with the same order as delete_if" do
+  it "processes entries with the same order as delete_if" do
     h = {:a => 1, :b => 2, :c => 3, :d => 4}
 
     reject_bang_pairs = []
@@ -1015,119 +1248,97 @@ context "Hash instance method" do
     h.dup.delete_if { |*pair| delete_if_pairs << pair }
 
     reject_bang_pairs.should == delete_if_pairs
-  end
-  
-  specify "replace should replace the contents of self with other" do
-    h = { :a => 1, :b => 2 }
-    h.replace(:c => -1, :d => -2).equal?(h).should == true
-    h.should == { :c => -1, :d => -2 }
+  end  
+
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.reject! { false } }
+    should_raise(TypeError) { empty.reject! { true } }
   end
 
-  specify "replace should call to_hash on its argument" do
-    obj = Object.new
-    obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
-    
-    h = {}
-    h.replace(obj)
-    h.should == {1 => 2, 3 => 4}
-    
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_hash], :returning => {})
+  it_behaves_like(hash_iteration_method, :reject!)
+end
 
-    h.replace(obj)
-    h.should == {}
-  end
+describe "Hash#replace" do
+  it_behaves_like(hash_replace, :replace)
+end
 
-  specify "replace shouldn't call to_hash on hash subclasses" do
-    h = {}
-    h.replace(ToHashHash[1 => 2])
-    h.should == {1 => 2}
-  end
-  
-  specify "replace should transfer default values" do
-    hash_a = {}
-    hash_b = Hash.new(5)
-    hash_a.replace(hash_b)
-    hash_a.default.should == 5
-    
-    hash_a = {}
-    hash_b = Hash.new { |h, k| k * 2 }
-    hash_a.replace(hash_b)
-    hash_a.default(5).should == 10
-    
-    hash_a = Hash.new { |h, k| k * 5 }
-    hash_b = Hash.new(lambda { raise "Should not invoke lambda" })
-    hash_a.replace(hash_b)
-    hash_a.default.should == hash_b.default
-  end
-
-  specify "select should yield two arguments: key and value" do
+describe "Hash#select" do
+  it "yields two arguments: key and value" do
     all_args = []
     {1 => 2, 3 => 4}.select { |*args| all_args << args }
     all_args.should == [[1, 2], [3, 4]]
   end
   
-  specify "select should return an array of entries for which block is true" do
+  it "returns an array of entries for which block is true" do
     { :a => 9, :c => 4, :b => 5, :d => 2 }.select { |k,v| v % 2 == 0 }
   end
 
-  specify "select should process entries with the same order as reject" do
+  it "processes entries with the same order as reject" do
     h = { :a => 9, :c => 4, :b => 5, :d => 2 }
     
     select_pairs = []
     reject_pairs = []
-    h.select { |*pair| select_pairs << pair }
+    h.dup.select { |*pair| select_pairs << pair }
     h.reject { |*pair| reject_pairs << pair }
     
     select_pairs.should == reject_pairs
   end
-  
-  specify "shift should remove a pair from hash and return it (same order as to_a)" do
-    hash = { :a => 1, :b => 2, "c" => 3, nil => 4, [] => 5 }
-    pairs = hash.to_a
+
+  it_behaves_like(hash_iteration_method, :select)
+end
+
+describe "Hash#shift" do
+  it "removes a pair from hash and return it (same order as to_a)" do
+    h = { :a => 1, :b => 2, "c" => 3, nil => 4, [] => 5 }
+    pairs = h.to_a
     
-    hash.size.times do
-      r = hash.shift
+    h.size.times do
+      r = h.shift
       r.class.should == Array
       r.should == pairs.shift
-      hash.size.should == pairs.size
+      h.size.should == pairs.size
     end
     
-    hash.should == {}
-    hash.shift.should == nil
+    h.should == {}
+    h.shift.should == nil
   end
   
-  specify "shift should return (computed) default for empty hashes" do
+  it "returns (computed) default for empty hashes" do
     Hash.new(5).shift.should == 5
     h = Hash.new { |*args| args }
     h.shift.should == [h, nil]
   end
-  
-  specify "size should be a synonym for length" do
-    { :a => 1, :b => 'c' }.size.should == {:a => 1, :b => 'c'}.length 
-    {}.size.should == {}.length
+
+  it "raises TypeError if called on a frozen instance" do
+    should_raise(TypeError) { hash.shift }
+    should_raise(TypeError) { empty.shift }
   end
-  
-  specify "sort should convert self to a nested array of [key, value] arrays and sort with Array#sort" do
+end
+
+describe "Hash#size" do
+  it_behaves_like(hash_length, :size)
+end
+
+describe "Hash#sort" do
+  it "converts self to a nested array of [key, value] arrays and sort with Array#sort" do
     { 'a' => 'b', '1' => '2', 'b' => 'a' }.sort.should == [["1", "2"], ["a", "b"], ["b", "a"]]
   end
   
-  specify "sort should work when some of the keys are themselves arrays" do
+  it "works when some of the keys are themselves arrays" do
     { [1,2] => 5, [1,1] => 5 }.sort.should == [[[1,1],5], [[1,2],5]]
   end
   
-  specify "sort with block should use block to sort array" do
+  it "uses block to sort array if passed a block" do
     { 1 => 2, 2 => 9, 3 => 4 }.sort { |a,b| b <=> a }.should == [[3, 4], [2, 9], [1, 2]]
   end
+end
 
-  specify "store should be a synonym for []=" do
-    h1, h2 = {:a => 1}, {:a => 1}
-    h1.store(:b, 2).should == (h2[:b] = 2)
-    h1.should == h2
-  end
-  
-  specify "to_a should return a list of [key, value] pairs with same order as each()" do
+describe "Hash#store" do
+  it_behaves_like(hash_store, :store)
+end
+
+describe "Hash#to_a" do
+  it "returns a list of [key, value] pairs with same order as each()" do
     h = {:a => 1, 1 => :a, 3 => :b, :b => 5}
     pairs = []
 
@@ -1138,195 +1349,49 @@ context "Hash instance method" do
     h.to_a.class.should == Array
     h.to_a.should == pairs
   end
-  
-  specify "to_hash should return self" do
+end
+
+describe "Hash#to_hash" do
+  it "returns self" do
     h = {}
     h.to_hash.equal?(h).should == true
   end
-  
-  specify "to_s should return a string by calling Hash#to_a and using Array#join with default separator" do
+end
+
+describe "Hash#to_s" do
+  it "returns a string by calling Hash#to_a and using Array#join with default separator" do
     h = { :fun => 'x', 1 => 3, nil => "ok", [] => :y }
     h.to_a.to_s.should == h.to_s
     old, $, = $,, ':'
     h.to_a.to_s.should == h.to_s
     $, = old
   end
-  
-  specify "update should be a synonym for merge!" do
-    h1 = { :_1 => 'a', :_2 => '3' }
-    h2 = h1.dup
+end
 
-    h1.update(:_1 => '9', :_9 => 2).should == h2.merge!(:_1 => '9', :_9 => 2)
-    h1.should == h2
-  end
-  
-  specify "update with block should be a synonym for merge!" do
-    h1 = { :a => 2, :b => -1 }
-    h2 = h1.dup
+describe "Hash#update" do
+  it_behaves_like(hash_update, :update)
 
-    h1.update(:a => -2, :c => 1) { |k,v| 3.14 }.should == h2.update(:a => -2, :c => 1) { |k,v| 3.14 }
-    h1.should == h2
-  end
-  
-  specify "update should have the same to_hash behaviour as merge!" do
-    update_hash = Hash.new
-    merge_hash = Hash.new
+  it_behaves_like(hash_iteration_method, :update)
+end
 
-    arg1 = Object.new
-    def arg1.to_hash() {1 => 2} end
-    arg2 = ToHashHash[1 => 2]
-    
-    [arg1, arg2].each do |arg|      
-      update_hash.update(arg).should == merge_hash.merge!(arg)
-      update_hash.should == merge_hash
-    end    
-  end
-  
-  specify "value? returns true if the value exists in the hash" do
-    {:a => :b}.value?(:a).should == false
-    {1 => 2}.value?(2).should == true
-    h = Hash.new(5)
-    h.value?(5).should == false
-    h = Hash.new { 5 }
-    h.value?(5).should == false
-  end
+describe "Hash#value?" do
+  it_behaves_like(hash_value_p, :value?)
+end
 
-  specify "value? uses == semantics for comparing values" do
-    { 5 => 2.0 }.value?(2).should == true
-  end
-  
-  specify "values should return an array of values" do
+describe "Hash#values" do
+  it "returns an array of values" do
     h = { 1 => :a, 'a' => :a, 'the' => 'lang'}
     h.values.class.should == Array
     h.values.sort {|a, b| a.to_s <=> b.to_s}.should == [:a, :a, 'lang']
   end
-  
-  specify "values_at should return an array of values for the given keys" do
+end
+
+describe "Hash#values_at" do
+  it "returns an array of values for the given keys" do
     h = {:a => 9, :b => 'a', :c => -10, :d => nil}
     h.values_at().class.should == Array
     h.values_at().should == []
     h.values_at(:a, :d, :b).class.should == Array
     h.values_at(:a, :d, :b).should == [9, nil, 'a']
-  end
-end
-
-context "Iteration method" do
-  # These are the only ones that actually have the exceptions on MRI 1.8.
-  # sort and reject don't raise!
-  %w(
-    delete_if each each_key each_pair each_value merge merge! reject!
-    select update
-  ).each do |cmd|
-    hash = {1 => 2, 3 => 4, 5 => 6}  
-    big_hash = {}
-    100.times { |k| big_hash[k.to_s] = k }    
-       
-    specify "#{cmd} should raise if rehash() is called from block" do
-      h = hash.dup
-      args = cmd[/merge|update/] ? [h] : []
-      
-      should_raise(RuntimeError, "rehash occurred during iteration") do
-        h.send(cmd, *args) { h.rehash }
-      end
-    end
-
-    specify "#{cmd} should raise if lots of new entries are added from block" do
-      h = hash.dup
-      args = cmd[/merge|update/] ? [h] : []
-
-      should_raise(RuntimeError, "hash modified during iteration") do
-        h.send(cmd, *args) { |*x| h.merge!(big_hash) }
-      end
-    end
-
-    specify "#{cmd}'s yielded items shouldn't be affected by removing current element" do
-      n = 3
-      
-      h = Array.new(n) { hash.dup }
-      args = Array.new(n) { |i| cmd[/merge|update/] ? [h[i]] : [] }
-      r = Array.new(n) { [] }
-      
-      h[0].send(cmd, *args[0]) { |*x| r[0] << x; true }
-      h[1].send(cmd, *args[1]) { |*x| r[1] << x; h[1].shift; true }
-      h[2].send(cmd, *args[2]) { |*x| r[2] << x; h[2].delete(h[2].keys.first); true }
-      
-      r[1..-1].each do |yielded|
-        yielded.should == r[0]
-      end
-    end
-  end
-end
-
-context "On a frozen hash" do
-  empty = {}
-  empty.freeze
-
-  hash = {1 => 2, 3 => 4}
-  hash.freeze
-  
-  specify "[]= should raise" do
-    should_raise(TypeError) { hash[1] = 2 }
-  end
-
-  specify "clear should raise" do
-    should_raise(TypeError) { hash.clear }
-    should_raise(TypeError) { empty.clear }
-  end
-
-  specify "default= should raise" do
-    should_raise(TypeError) { hash.default = nil }
-  end
-
-  specify "delete should raise" do
-    should_raise(TypeError) { hash.delete("foo") }
-    should_raise(TypeError) { empty.delete("foo") }
-  end
-
-  specify "delete_if should raise" do
-    should_raise(TypeError) { hash.delete_if { false } }
-    should_raise(TypeError) { empty.delete_if { true } }
-  end
-  
-  specify "initialize should raise" do
-    hash.instance_eval do
-      should_raise(TypeError) { initialize() }
-      should_raise(TypeError) { initialize(nil) }
-      should_raise(TypeError) { initialize(5) }
-      should_raise(TypeError) { initialize { 5 } }
-    end
-  end
-
-  specify "merge! should raise" do
-    hash.merge!(empty) # ok, empty
-    should_raise(TypeError) { hash.merge!(1 => 2) }
-  end
-
-  specify "rehash should raise" do
-    should_raise(TypeError) { hash.rehash }
-    should_raise(TypeError) { empty.rehash }
-  end
-  
-  specify "reject! should raise" do
-    should_raise(TypeError) { hash.reject! { false } }
-    should_raise(TypeError) { empty.reject! { true } }
-  end  
-
-  specify "replace should raise" do
-    hash.replace(hash) # ok, nothing changed
-    should_raise(TypeError) { hash.replace(empty) }
-  end  
-
-  specify "shift should raise" do
-    should_raise(TypeError) { hash.shift }
-    should_raise(TypeError) { empty.shift }
-  end
-
-  specify "store should raise" do
-    should_raise(TypeError) { hash.store(1, 2) }
-  end
-
-  specify "update should raise" do
-    hash.update(empty) # ok, empty
-    should_raise(TypeError) { hash.update(1 => 2) }
   end
 end

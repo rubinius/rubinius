@@ -263,8 +263,8 @@ class SpecRunner
   def skip?
     example = @describe.to_s + " " + @it.to_s
     @except.each { |re| return true if re.match(example) }
-    @only.each { |re| return true unless re.match(example) }
-    return false
+    return false if @only.empty?
+    return true unless @only.any? { |re| re.match(example) }
   end
   
   def before(at=:each,&block)
