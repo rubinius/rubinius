@@ -6064,7 +6064,7 @@ end
 describe "String#to_str" do
   it "returns self" do
     a = "a string"
-    a.equal?(a.to_s).should == true
+    a.equal?(a.to_str).should == true
   end
 end
 
