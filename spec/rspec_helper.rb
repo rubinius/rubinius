@@ -35,7 +35,7 @@ class Object
     end
     
     if msg and msg != raised.message then
-      reason = "expected message %p, but god %p" % [msg, e.message]
+      reason = "expected message %p, but got %p" % [msg, e.message]
       Spec::Expectations.fail_with(reason)
     end
   end
