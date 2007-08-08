@@ -126,7 +126,7 @@ class SpecDoxReporter < SpecReporter
   
   def exception(e)
     super
-    if e.is_a?(ExpectationError)
+    if e.is_a?(ExpectationNotMetError)
       @out.print " (FAILED - " + @failures.to_s + ")"
     else
       @out.print " (ERROR - " + @failures.to_s + ")"
@@ -137,7 +137,7 @@ end
 class DottedReporter < SpecReporter
   def after_it(msg)
     if @report.exception
-      if @report.exception.is_a?(ExpectationError)
+      if @report.exception.is_a?(ExpectationNotMetError)
         @out.print 'F'
       else
         @out.print 'E'
@@ -180,7 +180,8 @@ class ImmediateReporter < SpecReporter
   end
 end
 
-class ExpectationError < Exception; end
+class ExpectationNotMetError < StandardError
+end
 
 class PositiveExpectation
   def initialize(obj)
@@ -189,13 +190,13 @@ class PositiveExpectation
   
   def ==(other)
     unless @obj == other
-      raise ExpectationError.new("Equality expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Equality expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
   
   def =~(other)
     unless @obj =~ other
-      raise ExpectationError.new("Match expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Match expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
 end
@@ -207,13 +208,13 @@ class NegativeExpectation
   
   def ==(other)
     if @obj == other
-      raise ExpectationError.new("Inequality expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Inequality expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
   
   def =~(other)
     if @obj =~ other
-      raise ExpectationError.new("Match not expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Match not expected for #{@obj.inspect} and #{other.inspect}")
     end
   end
 end

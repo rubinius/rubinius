@@ -39,7 +39,6 @@ describe "MatchData#captures" do
   it "returns an array of the match captures" do
     /(.)(.)(\d+)(\d)/.match("THX1138.").captures.should == ["H","X","113","8"]
   end
-
 end
 
 describe "MatchData#end" do
@@ -47,7 +46,6 @@ describe "MatchData#end" do
     /(.)(.)(\d+)(\d)/.match("THX1138.").end(0).should == 7
     /(.)(.)(\d+)(\d)/.match("THX1138.").end(2).should == 3 
   end
-
 end
 
 matchdata_length = shared "MatchData#length | MatchData#size" do |cmd|
@@ -77,7 +75,6 @@ describe "MatchData#offset" do
     /(.)(.)(\d+)(\d)/.match("THX1138.").offset(0).should == [1, 7]
     /(.)(.)(\d+)(\d)/.match("THX1138.").offset(4).should == [6, 7]
   end
-
 end
 
 describe "MatchData#post_match" do
@@ -85,7 +82,6 @@ describe "MatchData#post_match" do
     /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").post_match.should == ': The Movie' 
     $'.should == ': The Movie'
   end
-
 end
 
 describe "MatchData#pre_match" do
@@ -93,21 +89,18 @@ describe "MatchData#pre_match" do
     /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").pre_match.should == 'T'
     $`.should == 'T'
   end
-
 end
 
 describe "MatchData#values_at" do
   it "returns an array of the matching value" do
     /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").values_at(0, 2, -2).should == ["HX1138", "X", "113"]
   end
-
 end
 
 describe "MatchData#select" do
   it "yields the contents of the match array to a block" do
      /(.)(.)(\d+)(\d)/.match("THX1138: The Movie").select { |x| x }.should == ["HX1138", "H", "X", "113", "8"]
   end
-
 end
 
 describe "MatchData#string" do
@@ -116,7 +109,6 @@ describe "MatchData#string" do
     str.should == "THX1138."
     str.frozen?.should == true
   end
-
 end
 
 describe "MatchData#to_a" do

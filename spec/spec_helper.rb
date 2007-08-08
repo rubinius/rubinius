@@ -3,6 +3,7 @@ $:.unshift File.dirname(__FILE__)
 begin
   if ENV['USE_RSPEC'] == '1'
     require 'rspec_helper'
+    ExpectationNotMetError = Spec::Expectations::ExpectationNotMetError
   else
     require 'mspec_helper'
   end
@@ -88,17 +89,22 @@ class Object
   alias extension compliant
 end
 
-
 class Object
   def should_include(other)
     unless self.include?(other)
-      raise Exception.new("Expected " + self.inspect + " to include " + other.inspect)
+      raise ExpectationNotMetError.new("Expected " + self.inspect + " to include " + other.inspect)
     end
   end
 
   def should_be_close(value, tolerance)
     unless (value - self).abs <= tolerance
-      raise Exception.new("Expected " + self.inspect + " to be close to " + value.inspect)
+      raise ExpectationNotMetError.new("Expected " + self.inspect + " to be close to " + value.inspect)
+    end
+  end
+  
+  def should_be_ancestor_of(klass)
+    unless klass.ancestors.include?(self)
+      raise ExpectationNotMetError.new("Expected " + self.class.name + " to be kind of " + klass.name)
     end
   end
 end
