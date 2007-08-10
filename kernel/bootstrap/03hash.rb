@@ -1,19 +1,18 @@
 class Hash
-  ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4
+  ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
   def __ivars__   ; @__ivars__    ; end
   def keys        ; @keys         ; end
   def values      ; @values       ; end
   def bins        ; @bins         ; end
   def entries     ; @entries      ; end
-
-  def self.allocate()
-    result = super
-    bins = 11
-    result.put(1, Tuple.new(bins))
-    result.put(2, Tuple.new(bins))
-    result.put(3, bins)
-    result.put(4, 0)
-    return result
+  def default_proc; @default_proc ; end
+  
+  def self.new(default_value=nil,&block)
+    hsh = {}
+    raise ArgumentError, 'wrong number of arguments' if default_value && block
+    hsh.put(5, (default_value || block))
+    hsh.put(6, (block != nil))
+    return hsh
   end
   
   def get_by_hash(hsh, key)
@@ -30,6 +29,10 @@ class Hash
     Ruby.primitive :hash_delete
   end
   
+  def default(key = nil)
+    @default_proc ? @default.call(self, key) : @default
+  end
+  
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -38,8 +41,43 @@ class Hash
       return Tuple[false, nil]
     end            
   end
+  
+  def [](key)
+    code, hk, val, nxt = get_by_hash key.hash, key
+    
+    unless code
+      return nil unless @default
+      if @default_proc
+        return @default.call(self, key)
+      else
+        return @default
+      end
+    end
+    
+    if hk.eql? key
+      return val
+    end
+    
+    return nil    
+  end
+  
+  def []=(key, val)
+    set_by_hash key.hash, key, val
+  end
 
-  def keys()
+  def size
+    @entries
+  end
+  
+  def empty?
+    @entries == 0
+  end
+  
+  def values_data
+    @values
+  end
+  
+  def keys
     out = []
     @values.each do |tup|
       while tup
@@ -49,54 +87,34 @@ class Hash
     end
     return out
   end
-  
-  def fetch(key, *rest)
-    raise ArgumentError, "wrong number of arguments (#{rest.size + 1} for 2)" if rest.size > 1
 
-    found, val = find_unambigious(key)
-
-    unless found
-      if block_given?
-        val = yield(key)
-      elsif rest.size == 1
-        val = rest.first
-      else
-        raise IndexError, 'key not found'
-      end
-    end
-    
-    return val
-  end
-
-  def []=(key, val)
-    set_by_hash key.hash, key, val
-  end
-
-  def delete(key)
-    found, val = find_unambigious(key)
-    
-    if found
-      delete_by_hash(key.hash, key)
-    elsif block_given?
-      val = yield(key)
-    end
-    
-    return val
-  end
-  
-  # Note: This is a minimal version without default handling
-  def [](key)
-    code, hk, val, nxt = get_by_hash key.hash, key
-    
-    return val if hk.eql? key
-  end
-  
   def key?(key)
     tup = get_by_hash key.hash, key
     return tup ? true : false
   end
+
+  def values
+    out = []
+    @values.each do |tup|
+      while tup
+        out << tup.at(2)
+        tup = tup.at(3)
+      end
+    end
+    return out
+  end
   
-  def inspect()
+  def each
+    @values.each do |tup|
+      while tup
+        yield tup.at(1), tup.at(2)
+        tup = tup.at(3)
+      end
+    end
+    return self
+  end
+  
+  def inspect
     ary = []
     @values.each do |tup|
       while tup
