@@ -18,7 +18,6 @@ int heap_deallocate(rheap h);
 int heap_allocate_memory(rheap h);
 int heap_allocate_extended(rheap h);
 int heap_reset(rheap h);
-int heap_contains_p(rheap h, address addr);
 int heap_enough_fields_p(rheap h, int fields);
 int heap_allocated_p(rheap h);
 int heap_using_extended_p(rheap h);
@@ -46,10 +45,22 @@ static inline address heap_allocate(rheap h, int size) {
 #define heap_allocate_dirty(h, size) ({ \
   address _a; _a = (address)h->current; h->current += size; _a; })
 
+#define heap_putback(h, size) (h->current -= size)
+
 static inline int heap_enough_space_p(rheap h, int size) {
   if(h->current + size > h->last + 1) return FALSE;
   return TRUE;
 }
+
+static inline int heap_contains_p(rheap h, address addr) {
+
+  if(addr < h->address) return FALSE;
+  if(addr >= h->address + h->size) return FALSE;
+  return TRUE;
+}
+
+
+// #define heap_contains_p(h, addr) ((addr > h->address) && (addr < h->last))
 
 // #define heap_enough_space_p(h, size) ((h)->current + size <= (h)->last)
 

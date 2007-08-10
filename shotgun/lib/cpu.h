@@ -15,7 +15,7 @@
 #define USE_INTCODE 1
 
 /* Enable direct threading */
-#define DIRECT_THREADED 1
+#define DIRECT_THREADED 0
 
 #if USE_INTCODE
 #define IP_TYPE uint32_t
@@ -24,6 +24,9 @@
 #define IP_TYPE unsigned char
 #define BS_JUMP 5
 #endif
+
+/* This must be aligned on word boundries so fast_memcpy32 can
+   be used on it. */
 
 #define CPU_REGISTERS OBJECT sender; \
   unsigned long int ip; \
@@ -49,10 +52,6 @@ struct fast_context {
 
 #define InitialStackSize 4096
 
-#define FASTCTX_FIELDS 24
-#define FASTCTX_NORMAL 0
-#define FASTCTX_NMC    1
-
 #define TASK_NO_STACK 1
 #define TASK_FLAG_P(task, flag) ((task->flags & flag) == flag)
 #define TASK_SET_FLAG(task, flag) (task->flags |= flag)
@@ -68,7 +67,6 @@ struct fast_context {
   OBJECT enclosing_class; \
   OBJECT new_class_of; \
   OBJECT exceptions; \
-  OBJECT top_context; \
   OBJECT active_context, home_context, main; \
   GPtrArray *paths; \
   unsigned int depth; \

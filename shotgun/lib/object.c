@@ -149,46 +149,6 @@ void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
   }
 }
 
-int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int count) {
-  int i, j;
-  
-  for(i = first, j = 0; j < count; i++, j++) {
-    SET_FIELD(dest, j, NTH_FIELD(self, i));
-  }
-  
-  return TRUE;
-  
-/*
-  char *da;
-  void *start;
-  int sz;
-  
-  
-  
-  da = object_byte_start(state, dest);
-  sz = count * REFSIZE;
-  start = (void*)((first * REFSIZE) + object_byte_start(state, self));
-  
-  memcpy((void*)da, (const void *)start, (size_t)sz);
-  object_propgate_gc_info(state, self, dest);
-  return TRUE;
-*/
-}
-
-int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, int dist) {
-  int count;
-  int i;
-
-  count = NUM_FIELDS(self);
-  
-  for(i = 0; i < count; i++) {
-    SET_FIELD(dest, dist + i, NTH_FIELD(self, i));
-  }
-  
-  return TRUE;
-}
-
-
 int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offset) {
   char *str, *start;
   

@@ -33,11 +33,14 @@
 
 #define FREE_FLAG 0xff
 
-#define TRACK_REFERENCE 1
+#define TRACK_REFERENCE 0
 #define TRACK_DONT_FREE 0
 
 #undef MS_COLLECTION_FREQUENCY
 #define MS_COLLECTION_FREQUENCY 5000
+
+// 2 Megs
+#define MS_COLLECTION_BYTES 10485760
 
 
 mark_sweep_gc mark_sweep_new() {
@@ -49,7 +52,8 @@ mark_sweep_gc mark_sweep_new() {
   ms->chunks = ms->current;
   ms->enlarged = 0;
   ms->seen_weak_refs = NULL;
-  ms->next_collection = 0;
+  ms->next_collection_objects = MS_COLLECTION_FREQUENCY;
+  ms->next_collection_bytes =   MS_COLLECTION_BYTES;
 #if TRACK_REFERENCE
   if(getenv("MSTRACK")) {
     ms->track = (OBJECT)atoi(getenv("MSTRACK"));
@@ -93,6 +97,7 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
   struct ms_entry *ent;
   ms_chunk *chk;
   OBJECT ro;
+  clock_t curt;
   
   bytes = sizeof(struct ms_header) + ((obj_fields + HEADER_SIZE) * REFSIZE);
   
@@ -111,12 +116,43 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
   ent->marked = 0;
   
   ms->allocated_bytes += bytes;
-  ms->next_collection++;
+  ms->last_allocated += bytes;
+  ms->allocated_objects++;
+  // ms->next_collection_objects--;
+  ms->next_collection_bytes -= bytes;
   
-  if(ms->next_collection >= MS_COLLECTION_FREQUENCY) {
-    ms->next_collection = 0;
-    ms->enlarged = 1;
-    // printf("[GC M Collecting based on count (every %d objects)]\n", MS_COLLECTION_FREQUENCY);
+  if(obj_fields > 10000) {
+    // printf("[GC M allocating large object %d]\n", obj_fields);
+  }
+  
+  if(!ms->enlarged) {
+    
+    if(ms->next_collection_objects <= 0) {
+      // printf("[GC M Collecting based on objects]\n");
+      ms->enlarged = 1;
+      ms->next_collection_bytes = MS_COLLECTION_FREQUENCY;
+    } else if(ms->next_collection_bytes <= 0) {
+      // printf("[GC M Collecting based on bytes: %d]\n", ms->allocated_bytes);
+      ms->enlarged = 1;
+    }
+    
+  
+  /*  
+  
+    if(ms->last_allocated_bytes) {
+      if(ms->last_allocated_bytes * 2 <= ms->allocated_bytes) {
+        printf("[GC M Collecting based on heap size (%d, %d)]\n", ms->last_allocated_bytes, ms->allocated_bytes);
+        ms->enlarged = 1;
+      }
+    } else if(ms->last_allocated >= ms->next_collection) {
+      curt = clock();
+      ms->last_allocated = 0;
+      ms->enlarged = 1;
+      printf("[GC M Collecting based on bytes (every %d bytes, %d total)]\n", MS_COLLECTION_BYTES, ms->allocated_bytes);
+      printf("[GC M last_clock=%d, cur=%d]\n", ms->last_clock, curt);
+      ms->last_clock = curt;
+    }
+    */
   }
   
   oh->entry = ent;
@@ -162,13 +198,14 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
   memset(obj, 0, SIZE_IN_BYTES(obj));
   *((int*)(obj)) = 0xbaddecaf;
 #else
-  memset(obj, 55, SIZE_IN_BYTES(obj));
+  // memset(obj, 55, SIZE_IN_BYTES(obj));
   free(ent->object);
 #endif
   
   ms->last_freed++;
   
   ms->allocated_bytes -= ent->bytes;
+  ms->allocated_objects--;
   
   ent->bytes = 0;
   ent->marked = 0;
@@ -260,6 +297,8 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     if(methctx_is_fast_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
+      if(!NIL_P(fc->sender)) assert(blokctx_s_block_context_p(state, fc->sender) || methctx_is_fast_p(state, fc->sender));
+      
       fc_mutate(block);
       fc_mutate(method);
       fc_mutate(literals);
@@ -278,7 +317,6 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       fc_mutate(exception);
       fc_mutate(new_class_of);
       fc_mutate(enclosing_class);
-      fc_mutate(top_context);
       fc_mutate(exceptions);
       fc_mutate(active_context);
       fc_mutate(home_context);
@@ -315,6 +353,39 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   }
   
   return iobj;
+}
+
+void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
+  #define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) mark_sweep_mark_object(state, ms, fc->field)
+  if(MARKED_P(iobj)) return;
+  MARK_OBJ(iobj);
+  
+  struct fast_context *fc = FASTCTX(iobj);
+
+  if(REFERENCE_P(fc->sender) && om_in_heap(state->om, fc->sender)) {
+    fc_mutate(sender);
+  }
+
+  fc_mutate(method);
+  fc_mutate(block);
+  fc_mutate(literals);
+  fc_mutate(self);
+  fc_mutate(locals);
+  fc_mutate(method_module);
+  
+  fc_mutate(locals);
+
+  /* We cache the bytecode in a char*, so adjust it. */
+  OBJECT ba;
+  ba = cmethod_get_bytecodes(fc->method);
+  fc->data = BYTEARRAY_ADDRESS(ba);
+  fc->data_size = BYTEARRAY_SIZE(ba);
+#undef fc_mutate
+}
+
+void mark_sweep_clear_mark(STATE, OBJECT iobj) {
+  UNMARK_OBJ(iobj);
+  assert(!MARKED_P(iobj));
 }
 
 void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
@@ -416,7 +487,8 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   cpu_sampler_collect(state,
                       (cpu_sampler_collect_cb) mark_sweep_mark_object,
                       ms);
-  
+                      
+  object_memory_mark_contexts(state, state->om);
 }
 
 void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
@@ -481,6 +553,9 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
   
   g_ptr_array_free(ms->seen_weak_refs, TRUE);
   ms->seen_weak_refs = NULL;
+  
+  // printf("[GC M compacted to %d bytes]\n", ms->allocated_bytes);
+  ms->next_collection_bytes = ms->allocated_bytes + MS_COLLECTION_BYTES;
 }
 
 /*

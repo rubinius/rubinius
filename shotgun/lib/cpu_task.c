@@ -70,6 +70,10 @@ void cpu_task_select(STATE, cpu c, OBJECT nw) {
   // printf("Switching to task %s (%p, %d)\n", _inspect(nw), c->sp_ptr, c->sp);
   cur = c->current_task;
   
+  /* Invalidates the stack, so they don't get confused being used across boundries */
+  if(REFERENCE_P(c->active_context)) methctx_reference(state, c->active_context);
+  if(REFERENCE_P(c->home_context))   methctx_reference(state, c->home_context);
+  
   ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
   cur_task = (struct cpu_task*)BYTES_OF(cur);
   new_task = (struct cpu_task*)BYTES_OF(nw);

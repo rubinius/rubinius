@@ -278,7 +278,9 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); 
     GUARD( RISA(self, blokenv) );
-
+    
+    methctx_reference(state, c->active_context);
+    
     cpu_flush_sp(c);
     t2 = blokenv_create_context(state, self, c->active_context, c->sp);    
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);

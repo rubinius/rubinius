@@ -55,6 +55,7 @@ void state_collect(STATE, cpu c) {
       can't keep objects alive. */
   
   cpu_sampler_suspend(state);
+  object_memory_formalize_contexts(state, state->om);
   roots = _gather_roots(state, c);
   object_memory_collect(state, state->om, roots);
   memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
@@ -88,6 +89,8 @@ void state_major_collect(STATE, cpu c) {
   GPtrArray *roots;
   int stats = state->gc_stats;
   struct timeval start, fin;
+  
+  state_collect(state, c);
     
   if(stats) {
     gettimeofday(&start, NULL);

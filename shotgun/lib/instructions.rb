@@ -883,6 +883,7 @@ CODE
     t1 = c->active_context;
     c->active_context = c->sender;
     if(cpu_return_to_sender(state, c, TRUE)) {
+      methctx_reference(state, t1);
       stack_push(t1);
     }
     CODE
@@ -1035,19 +1036,13 @@ CODE
     } else {
       t3 = t4;
     }
-    
-    // GUARD(t3 == Qnil) would like to use this...
-    if(t3 == Qnil) {
-      // can this be put somewhere else?
-      printf("Create block failed, %s!!\\n", _inspect(t4));
-      abort();
-    } else {
-      cpu_flush_sp(c);
-      cpu_flush_ip(c);
-      j = c->ip + BS_JUMP;
-      t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, _int);
-      stack_push(t2);
-    }
+    methctx_reference(state, t4);
+    methctx_reference(state, t3);
+    cpu_flush_sp(c);
+    cpu_flush_ip(c);
+    j = c->ip + BS_JUMP;
+    t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, _int);
+    stack_push(t2);
     CODE
   end
   
@@ -1079,6 +1074,7 @@ CODE
     <<-CODE
     cpu_flush_sp(c);
     cpu_flush_ip(c);
+    methctx_reference(state, c->active_context);
     if(c->debug_channel != Qnil) {
       cpu_channel_send(state, c, c->debug_channel, c->active_context);
       /* This is so when this task is reactivated, the sent value wont be placed

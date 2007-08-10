@@ -71,7 +71,6 @@ void cpu_setup_top_scope(STATE, cpu c) {
 
 void cpu_initialize_context(STATE, cpu c) {
   c->active_context = Qnil;
-  c->top_context = c->active_context;
   c->home_context = c->active_context;
   c->enclosing_class = state->global->object;
   c->new_class_of = state->global->class;
@@ -114,13 +113,38 @@ void cpu_initialize_context(STATE, cpu c) {
   cpu_event_setup_children(state, c);
 }
 
+#define ON_STACK(obj) (HEADER(obj)->klass == Qnil)
+
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   int i, len;
   gpointer t;
   #define ar(obj) if(REFERENCE_P(obj)) { \
     g_ptr_array_add(roots, (gpointer)obj); \
   }
-  ar(c->sender);
+  
+  if(!ON_STACK(c->active_context)) {
+    ar(c->active_context);
+    state->ac_on_stack = 0;
+  } else {
+    state->ac_on_stack = 1;
+  }
+  
+  if(!ON_STACK(c->home_context)) {
+    ar(c->home_context);
+    state->home_on_stack = 0;
+  } else {
+    state->home_on_stack = 1;
+  }
+  
+  if(REFERENCE_P(c->sender)) {
+    if(!ON_STACK(c->sender)) {
+      ar(c->sender);
+      state->sender_on_stack = 0;
+    } else {
+      state->sender_on_stack = 1;
+    }
+  }
+  
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
@@ -128,12 +152,9 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->locals);
   ar(c->block);
   ar(c->method);
-  ar(c->active_context);
-  ar(c->home_context);
   ar(c->main);
   ar(c->literals);
   ar(c->exceptions);
-  ar(c->top_context);
   ar(c->method_module);
   ar(c->current_thread);
   ar(c->main_thread);
@@ -162,7 +183,35 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
     tmp = g_ptr_array_index(roots, start++); \
     obj = (OBJECT)tmp; \
   }
-  ar(c->sender);
+  
+  if(state->ac_on_stack) {
+    /* if active_context is on the stack, it's the last object. */
+    /* if context_top is nil, then we didn't need to compact, they're
+       still pointed at the right point. */
+    
+    if(state->om->context_top != Qnil) {
+      c->active_context = state->om->context_top;
+    }
+  } else {
+    ar(c->active_context);
+  }
+  
+  if(state->home_on_stack) {
+    /* If it's on the stack, it's the same as active */
+    c->home_context = c->active_context;
+  } else {
+    ar(c->home_context);
+  }
+  
+  if(REFERENCE_P(c->sender)) {
+    if(state->sender_on_stack) {
+      /* If it's on the stack, it's the active_context's sender */
+      c->sender = FASTCTX(c->active_context)->sender;
+    } else {
+      ar(c->sender);
+    }
+  }
+  
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
@@ -170,12 +219,9 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->locals);
   ar(c->block);
   ar(c->method);
-  ar(c->active_context);
-  ar(c->home_context);
   ar(c->main);
   ar(c->literals);
   ar(c->exceptions);
-  ar(c->top_context);
   ar(c->method_module);
   ar(c->current_thread);
   ar(c->main_thread);

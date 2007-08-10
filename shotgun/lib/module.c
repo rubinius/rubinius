@@ -5,8 +5,12 @@
 #include "module.h"
 
 void module_setup_fields(STATE, OBJECT module) {
-  module_set_constants(module, hash_new(state));
-  module_set_methods(module, methtbl_new(state));
+  if(NIL_P(module_get_constants(module))) {
+    module_set_constants(module, hash_new(state));
+  }
+  if(NIL_P(module_get_methods(module))) {
+    module_set_methods(module, methtbl_new(state));
+  }
 }
 
 void module_setup_name(STATE, OBJECT module, const char *name, OBJECT ns) {

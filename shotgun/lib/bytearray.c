@@ -10,18 +10,30 @@ OBJECT bytearray_new(STATE, int size) {
   int words;
   OBJECT obj;
   
-  assert(size >= 0);
-  
   words = size / REFSIZE;
   if(size % REFSIZE != 0) {
     words += 1;
   }
   
-  assert(words >= 0);
-  
   obj = bytearray_allocate_with_extra(state, words);
   object_make_byte_storage(state, obj);
+  fast_memfill32(BYTES_OF(obj), 0, words);
   object_initialize_bytes(state, obj);
+  return obj;
+}
+
+OBJECT bytearray_new_dirty(STATE, int size) {
+  int words;
+  OBJECT obj;
+    
+  words = size / REFSIZE;
+  if(size % REFSIZE != 0) {
+    words += 1;
+  }
+    
+  obj = object_memory_new_dirty_object(state->om, BASIC_CLASS(bytearray), words);
+  object_make_byte_storage(state, obj);
+  
   return obj;
 }
 

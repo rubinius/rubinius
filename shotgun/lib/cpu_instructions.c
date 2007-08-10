@@ -435,18 +435,16 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
   
   cpu_flush_sp(c);
-  
-#if CTX_USE_FAST
-
-  /*
-  ctx = c->context_cache;
-  if(!ctx) {
-    ctx = object_memory_new_object(state->om, state->global->fastctx, FASTCTX_FIELDS);
-  } else {
-    c->context_cache = HEADER(ctx)->klass;
-    HEADER(ctx)->klass = state->global->fastctx;
+    
+  ctx = object_memory_new_context(state->om);
+  if(ctx >= state->om->context_last) {
+    state->om->collect_now |= OMCollectYoung;
   }
-  */
+  
+  HEADER(ctx)->klass = Qnil;
+  HEADER(ctx)->fields = FASTCTX_FIELDS;
+  HEADER(ctx)->object_id = 47;
+  /*
   
   ctx = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);
   SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
@@ -455,10 +453,12 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   FLAG_SET(ctx, StoresBytesFlag);
     
   CHECK_PTR(mo);
+  */
   
   fc = FASTCTX(ctx);
   // memset(fc, 0, sizeof(struct fast_context));
   fc->sender = sender;
+  xassert(om_valid_sender_p(state->om, ctx, sender));
   fc->ip = 0;
   fc->sp = c->sp;
   /* fp_ptr points to the location on the stack as the context
@@ -474,6 +474,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->self = recv;
   if(num_lcls > 0) {
     fc->locals = tuple_new(state, num_lcls + 2);
+    GC_MAKE_FOREVER_YOUNG(fc->locals);
   } else {
     fc->locals = Qnil;
   }
@@ -481,19 +482,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->name = name;
   fc->method_module = mod;
   fc->type = FASTCTX_NORMAL;
-    
-#else
-
-  ctx = methctx_s_from_method(state, mo, sender, mod);
-  methctx_set_receiver(ctx, recv);
-  methctx_set_name(ctx, name);
-  methctx_set_sp(ctx, I2N(c->sp));
-  methctx_set_method(ctx, mo);
-  methctx_set_block(ctx, block);
-  methctx_set_argcount(ctx, I2N(args));
-#endif
-
-  GC_MAKE_FOREVER_YOUNG(ctx);
 
   return ctx;
 }
@@ -569,7 +557,7 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
   if(!RTEST(c->active_context)) return;
   cpu_flush_ip(c);
   cpu_flush_sp(c);
-  if(methctx_is_fast_p(state, c->active_context)) {
+  if(HEADER(c->active_context)->klass == Qnil || methctx_is_fast_p(state, c->active_context)) {
     struct fast_context *fc;
     fc = (struct fast_context*)BYTES_OF(c->active_context);
     fc->sp = c->sp - offset;
@@ -584,99 +572,38 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
 void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise);
 
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
-  int ac;
+  struct fast_context *fc;
   
-  ac = c->argcount;
   c->depth--;
   
   /* Home is actually the main context here because it's the method
      context that holds all the data. So if it's a fast, we restore
      it's data, then if ctx != home, we restore a little more */
   
-  if(methctx_is_fast_p(state, home)) {
-    struct fast_context *fc;
-    fc = (struct fast_context*)BYTES_OF(home);
-    CHECK_PTR(fc->self);
-    CHECK_PTR(fc->method);
-    memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
-    // printf("Restoring fast context %p\n", home);
-    /* Only happens if we're restoring a block. */
-    if(ctx != home) {
-      // assert(!ISA(ctx, state->global->fastctx));
-      c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
-      c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
-            
-      c->sender = methctx_get_sender(ctx);
-      /* FIXME: seems like we should set c->block too.. but that
-         seems to break things.. */
-    }
-    
-    /*
-    
-    sp is now adjusted when it's saved, so we don't have to do this now.
-    
-
-    if(ret && ac > 0) {
-      if (is_block) {
-        --c->sp;
-      } else {
-        c->sp -= ac;
-      }
-    }
-    */    
-    /* Ok, reason we'd be restoring a native context:
-       1) the native context used rb_funcall and we need to return
-          it the result of the call.
-    */
-    if(fc->type == FASTCTX_NMC) {
-      nmc_activate(state, c, home, FALSE);
-      /* We return because nmc_activate will setup the cpu to do whatever
-         it needs to next. */
-      return;
-    }
-    
-  } else {
-    abort();
-    /* This is all old, dead code. It's for support old, slow
-       method contexts. */
-    /*
+  fc = (struct fast_context*)BYTES_OF(home);
+  CHECK_PTR(fc->self);
+  CHECK_PTR(fc->method);
+  fast_memcpy32((void*)c, (void*)fc, sizeof(struct fast_context) >> 2);
+  /* Only happens if we're restoring a block. */
+  if(ctx != home) {
+    // assert(!ISA(ctx, state->global->fastctx));
     c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
     c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
-    if(ret && c->argcount > 0) {
-      if (is_block) {
-        --c->sp;
-      } else {
-        c->sp -= c->argcount;
-      }
-    }
-  
-    OBJECT ba;
-  
-    ba = methctx_get_bytecodes(home);
-    if(!RTEST(ba)) {
-      c->data = NULL;
-      c->data_size = 0;
-    } else {
-      c->data = bytearray_byte_address(state, ba);    
-      c->data_size = bytearray_bytes(state, ba);
-    }
-  
-    c->raiseable = RTEST(methctx_get_raiseable(home));
+          
     c->sender = methctx_get_sender(ctx);
-    c->self = methctx_get_receiver(home);
-    c->locals = methctx_get_locals(home);
-    c->block = methctx_get_block(home);
-    c->method = methctx_get_method(home);
-    c->literals = methctx_get_literals(home);
-    c->argcount = FIXNUM_TO_INT(methctx_get_argcount(home));
-    c->method_module = methctx_get_module(home);
+    /* FIXME: seems like we should set c->block too.. but that
+       seems to break things.. */
+  }
   
-    if(RTEST(c->method)) {
-      c->exceptions = cmethod_get_exceptions(c->method);
-    } else {
-      c->exceptions = Qnil;
-    }
-    */
+  /* Ok, reason we'd be restoring a native context:
+     1) the native context used rb_funcall and we need to return
+        it the result of the call.
+  */
+  if(fc->type == FASTCTX_NMC) {
+    nmc_activate(state, c, home, FALSE);
+    /* We return because nmc_activate will setup the cpu to do whatever
+       it needs to next. */
+    return;
   }
   
   cpu_cache_ip(c);
@@ -722,6 +649,9 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block) {
     }    
   } else {
     
+    /* Implements a block causing the the context it was created in
+       to return (IE, a non local return) */
+    
     if(consider_block && is_block) {
       home = blokctx_home(state, c->active_context);
       if(methctx_is_fast_p(state, home)) {
@@ -739,21 +669,23 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block) {
       home = sender;
     }
     
-    /* Cache the context if we can. */
-#if CTX_USE_FAST && CTX_CACHE_ENABLED
-    if(!is_block && !methctx_s_was_referenced_p(state, c->active_context)) {
-      HEADER(c->active_context)->klass = 0;
-      if(!c->context_cache) {
-        c->context_cache = c->active_context;
+    if(!is_block) {
+      /* Break the chain. Lets us detect invalid non-local returns, as well
+         is much nicer on the GC. */
+      FASTCTX(c->active_context)->sender = Qnil;
+      object_memory_retire_context(state->om, c->active_context);
+    }
+    
+    if(EXCESSIVE_TRACING) {
+      if(HEADER(sender)->klass == Qnil) {
+        printf("Returning to a stack context.\n");
       } else {
-        HEADER(c->context_cache)->klass = c->active_context;
+        printf("Returning to %s.\n", _inspect(sender));
       }
     }
-#endif
-
-    if(EXCESSIVE_TRACING) {
-      printf("Returning to %s.\n", _inspect(sender));
-    }
+    xassert(om_valid_context_p(state, sender));
+    xassert(om_valid_context_p(state, home));
+    
     cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
   }
   
@@ -908,7 +840,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
 static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
   OBJECT sym, mo, klass, mod;
   int missing;
-  assert(RTEST(c->literals));
+  xassert(RTEST(c->literals));
   sym = tuple_at(state, c->literals, idx);
     
   missing = 0;

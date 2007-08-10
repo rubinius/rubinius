@@ -450,15 +450,23 @@ void cpu_bootstrap(STATE) {
   BC(module) = _module_basic_class(state, obj);
   class_set_superclass(cls, BC(module));
   BC(metaclass) = _metaclass_basic_class(state, cls);
+  
+  BC(tuple) = _tuple_basic_class(state, obj);
+  BC(hash) =  _hash_basic_class(state, obj);
+  BC(methtbl) = _methtbl_basic_class(state, BC(hash));
+  
   object_create_metaclass(state, obj, cls);
   object_create_metaclass(state, BC(module), object_metaclass(state, obj));
   object_create_metaclass(state, BC(class), object_metaclass(state, BC(module)));
   
-  BC(hash) = _hash_class(state, obj);
-  BC(methtbl) = _methtbl_class(state, BC(hash));
+  object_create_metaclass(state, BC(tuple), (OBJECT)0);
+  object_create_metaclass(state, BC(hash), (OBJECT)0);
+  object_create_metaclass(state, BC(methtbl), (OBJECT)0);
+  
   module_setup_fields(state, object_metaclass(state, obj));
   module_setup_fields(state, object_metaclass(state, BC(module)));
   module_setup_fields(state, object_metaclass(state, BC(class)));
+  module_setup_fields(state, object_metaclass(state, BC(tuple)));
   module_setup_fields(state, object_metaclass(state, BC(hash)));
   module_setup_fields(state, object_metaclass(state, BC(methtbl)));
   BC(symbol) = _symbol_class(state, obj);

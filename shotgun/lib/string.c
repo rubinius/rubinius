@@ -15,13 +15,13 @@ OBJECT string_new2(STATE, const char *str, int sz) {
   OBJECT obj, data;
   char *ba;
   
-  assert(sz >= 0);
+  xassert(sz >= 0);
   obj = string_allocate(state);
   string_set_bytes(obj, I2N(sz));
   string_set_characters(obj, I2N(sz));
   string_set_encoding(obj, Qnil);
 
-  data = bytearray_new(state, sz+1);
+  data = bytearray_new_dirty(state, sz+1);
   ba = bytearray_byte_address(state, data);
   if(str == NULL) {
     memset(ba, 0, sz);
@@ -42,7 +42,7 @@ OBJECT string_new(STATE, const char *str) {
 OBJECT string_dup(STATE, OBJECT self) {
   char *ba;
   
-  assert(STRING_P(self));
+  xassert(STRING_P(self));
   ba = bytearray_byte_address(state, string_get_data(self));
   
   return string_new2(state, ba, FIXNUM_TO_INT(string_get_bytes(self)));
@@ -50,11 +50,11 @@ OBJECT string_dup(STATE, OBJECT self) {
 
 OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   OBJECT cur, obs, nd;
-  int cur_sz, oth_sz, ns, tmp;
+  int cur_sz, oth_sz, ns, tmp, extra;
   char *ba;
   
-  assert(STRING_P(self));
-  assert(STRING_P(other));
+  xassert(STRING_P(self));
+  xassert(STRING_P(other));
   
   cur = string_get_data(self);
   obs = string_get_data(other);
@@ -64,7 +64,9 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   ns = cur_sz + oth_sz;
   tmp = bytearray_bytes(state, cur);
   if(ns+1 > tmp) {
-    nd = bytearray_new(state, ns+100);
+    extra = ns * 0.01;
+    if(extra < 10) extra = 10;
+    nd = bytearray_new_dirty(state, ns+extra);
     object_copy_bytes_into(state, cur, nd, cur_sz, 0);
     object_copy_bytes_into(state, obs, nd, oth_sz, cur_sz);
     ba = bytearray_byte_address(state, nd);
@@ -81,7 +83,7 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
 char *string_byte_address(STATE, OBJECT self) {
   OBJECT data;
 
-  assert(STRING_P(self));
+  xassert(STRING_P(self));
   data = string_get_data(self);
   if(NIL_P(data)) {
     return "";
@@ -95,7 +97,7 @@ double string_to_double(STATE, OBJECT self) {
   double value;
   char *p, *n, *ba, *rest;
   
-  assert(STRING_P(self));
+  xassert(STRING_P(self));
   str = string_dup(state, self);
   data = string_get_data(str);
   ba = bytearray_byte_address(state, data);
@@ -150,7 +152,7 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   unsigned int sz, h;
   OBJECT data;
   
-  assert(STRING_P(self));
+  xassert(STRING_P(self));
   data = string_get_data(self);
   if(HEADER(data)->hash != 0) {
     return HEADER(data)->hash;
@@ -173,6 +175,6 @@ unsigned int string_hash_str_with_size(STATE, const char *bp, int size) {
 }
 
 OBJECT string_to_sym(STATE, OBJECT self) {
-  assert(STRING_P(self));
+  xassert(STRING_P(self));
   return symtbl_lookup(state, state->global->symbols, self);
 }

@@ -1,6 +1,8 @@
 #ifndef __MARKSWEEP_H__
 #define __MARKSWEEP_H__
 
+#include <time.h>
+
 struct ms_header;
 
 struct ms_entry {
@@ -40,7 +42,12 @@ struct _mark_sweep_gc {
   int last_freed;
   int last_marked;
   unsigned int allocated_bytes;
-  int next_collection;
+  int next_collection_objects;
+  unsigned int last_allocated;
+  unsigned int allocated_objects;
+  int next_collection_bytes;
+  
+  clock_t last_clock;
   OBJECT track;
   
   struct ms_entry *free_list;
@@ -66,5 +73,7 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms);
 void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots);
 void mark_sweep_describe(mark_sweep_gc ms);
 void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArray *refs);
+void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj);
+void mark_sweep_clear_mark(STATE, OBJECT iobj);
 
 #endif /* __MARKSWEEP_H__ */

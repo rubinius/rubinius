@@ -56,9 +56,9 @@ struct rubinius_object {
 /* Mask the current flags2 to remove the current zone bits, then or
    them with the new desired ones. */
 #define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ZONE_MASK) | (((val) & ZONE_MASK) << ZONE_OFFSET)))
-#define GC_MATURE_OBJECTS 0
-#define GC_YOUNG_OBJECTS  1
-#define GC_LARGE_OBJECTS  2
+#define GC_MATURE_OBJECTS 1
+#define GC_YOUNG_OBJECTS  2
+#define GC_LARGE_OBJECTS  3
 
 #define GC_MAKE_FOREVER_YOUNG(obj) (HEADER(obj)->gc |= 0x8000)
 

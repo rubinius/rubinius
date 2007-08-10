@@ -40,18 +40,18 @@ int heap_reset(rheap h) {
   return TRUE;
 }
 
+int heap_allocated_p(rheap h) {
+  return h->address > 0;
+}
+
+#ifndef FAST_HEAP
+
 int heap_contains_p(rheap h, address addr) {
 
   if(addr < h->address) return FALSE;
   if(addr >= h->address + h->size) return FALSE;
   return TRUE;
 }
-
-int heap_allocated_p(rheap h) {
-  return h->address > 0;
-}
-
-#ifndef FAST_HEAP
 
 address heap_allocate(rheap h, int size) {
   address addr;

@@ -88,6 +88,8 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   blokctx_set_sp(obj, I2N(sp));
   blokctx_set_env(obj, self);
   blokctx_set_locals(obj, tuple_new(state, blokenv_get_local_count(self)));
+
+  GC_MAKE_FOREVER_YOUNG(obj);
   return obj;
 }
 

@@ -1,4 +1,5 @@
 #include "shotgun.h"
+#include "memutil.h"
 
 #include <ucontext.h>
 #include "subtend/PortableUContext.h"
@@ -86,6 +87,7 @@ struct rubinius_state {
   /* Used to pass information down to the garbage collectors */
   OBJECT *current_stack;
   OBJECT *current_sp;
+  int ac_on_stack, home_on_stack, sender_on_stack;
 
 #ifdef USE_CINVOKE
   CInvContext *c_context;
@@ -125,6 +127,10 @@ struct rubinius_state {
 #define FIRE_ACCESS 1
 #define FIRE_NULL   2
 #define FIRE_STACK  3
+
+#define FASTCTX_FIELDS 24
+#define FASTCTX_NORMAL 0
+#define FASTCTX_NMC    1
 
 // rubinius.h defines STATE as void*, which means these prototypes fail to match.
 // This is pretty confusing, since they look identical before the pre-processor runs.
@@ -187,6 +193,18 @@ static inline OBJECT rbs_uint_to_fixnum(STATE, unsigned int num) {
 extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
+
+// #define XDEBUG 0
+
+#ifdef XDEBUG
+/* Copied from assert.h */
+#define xassert(cond) ((void)((cond) ? 0 : xassert_message(#cond, __FILE__, __LINE__)))
+#define xassert_message(str, file, line) \
+  (printf("%s:%u: failed assertion '%s'\n", file, line, str), abort(), 0)
+#else
+#define xassert(cond) 
+#endif
+
 // #define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
 #define CHECK_PTR(obj) 
 
@@ -207,7 +225,7 @@ extern int g_access_violation;
 
 void machine_handle_fire(int);
 
-#define ACCESS_MACROS 1
+#define ACCESS_MACROS 0
 
 #ifdef ACCESS_MACROS
 
@@ -261,6 +279,13 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
     }
   }
   
+  if(FLAG_SET_P(in, StoresBytesFlag)) {
+    printf("Attempted to access field of byte addressed object.\n");
+    if(g_use_firesuit) {
+      machine_handle_fire(FIRE_NULL);
+    }
+  }
+  
   if(fel >= HEADER(in)->fields) {
     printf("Attempted to access field %d in an object with %lu fields.\n", 
       fel, (unsigned long)NUM_FIELDS(in));
@@ -293,6 +318,13 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   }
 #endif
 
+  if(FLAG_SET_P(obj, StoresBytesFlag)) {
+    printf("Attempted to access field of byte addressed object.\n");
+    if(g_use_firesuit) {
+      machine_handle_fire(FIRE_NULL);
+    }
+  }
+
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
 #ifdef INTERNAL_MACROS
   /* Check that it's even, ie a ref, and above the special range. */
@@ -315,3 +347,4 @@ typedef void (*state_cleanup_func)(STATE, OBJECT);
 #define SHOULD_CLEANUP_P(obj) (FLAG_SET_P(obj, RequiresCleanupFlag))
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
 void state_run_cleanup(STATE, OBJECT obj, OBJECT cls);
+

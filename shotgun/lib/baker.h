@@ -44,12 +44,26 @@ void baker_gc_describe(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);
 void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, GPtrArray *refs);
 inline int baker_gc_forwarded_p(OBJECT obj);
+void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int top);
+
+
+
+#define baker_gc_allocate_ultra(g, size) heap_allocate_dirty((g)->current, size)
+#define baker_gc_allocate_spilled_ultra(g, size) heap_allocate_dirty((g)->next, size)
+
+// #define MEM_DEBUG 1
+
+#ifdef MEM_DEBUG
 
 #define baker_gc_allocate(g, size) (heap_allocate((g)->current, size))
 #define baker_gc_allocate_spilled(g, size) (heap_allocate((g)->next, size))
 
-#define baker_gc_allocate_ultra(g, size) heap_allocate_dirty((g)->current, size)
-#define baker_gc_allocate_spilled_ultra(g, size) heap_allocate_dirty((g)->next, size)
+#else
+
+#define baker_gc_allocate(g, size) baker_gc_allocate_ultra(g, size);
+#define baker_gc_allocate_spilled(g, size) baker_gc_allocate_spilled_ultra(g, size);
+
+#endif
 
 #endif
 
