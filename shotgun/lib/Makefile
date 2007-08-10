@@ -91,7 +91,7 @@ show_info:
 	sed 's,\($*\)\.o[ :]*,\1.lo $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-librubinius.la: show_info $(DEPS) $(LOBJS) 
+librubinius.la: $(DEPS) $(LOBJS) 
 	$(LINKER) -release $(VERSION) -o librubinius.la $(LOBJS) -rpath $(LIBPATH) $(LIBS)
 
 cpu_instructions.o: instructions.gen instruction_names.c instruction_names.h

@@ -103,8 +103,9 @@ external_libs/libltdl/config.h:
 external_libs/libltdl/.libs/libltdl.a: external_libs/libltdl/config.h
 	cd external_libs/libltdl; $(MAKE)
 
-lib/librubinius.la: config.h $(ALIBS) external_libs/lightning/config.h 
+lib/librubinius.la: 
 	cd lib; $(MAKE) librubinius.la; 
+.PHONY: lib/librubinius.la
 
 # Don't try to build main until librubinius exists
 main.c: lib/librubinius.la
