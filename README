@@ -19,7 +19,7 @@ You should not run your mission-critical Rails apps under Rubinius yet.
 
 * Thread safety. Rubinius intends to be thread-safe so you could embed more
   than one interpreter in a single application. It does not currently meet 
-	this goal due to some components borrowed from the mainline Ruby interpreter.
+  this goal due to some components borrowed from the mainline Ruby interpreter.
 
 * Clean, readable code that is easy for users to understand and extend.
 
