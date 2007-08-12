@@ -1,6 +1,3 @@
-require 'rake/legacy_tasks'
-require 'rake/rubinius_spec_tasks'
-
 task :default => :tasks
 
 task :tasks do
@@ -69,6 +66,8 @@ def update_archive(files, archive, dir=nil)
 end
 
 # spec tasks
+desc "Run continuous integration examples"
+task :spec => 'spec:ci'
 namespace :spec do
   namespace :setup do
     desc "Setup for subtend examples"
@@ -96,7 +95,7 @@ namespace :spec do
     sh "bin/mspec -t #{target} -f ci CI-specs"
   end
 
-  spec_targets = %w(compiler core incompatible language library parser rubinius)
+  spec_targets = %w(compiler core language library parser rubinius)
   # Build a spec:<task_name> for each group of Rubinius specs
   spec_targets.each do |group|
     desc "Run #{group} examples"
