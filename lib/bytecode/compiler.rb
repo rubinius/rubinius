@@ -552,6 +552,12 @@ module Bytecode
         restore_condmod(*cm)
       end
       
+      def process_undef(x)
+        arg = x.shift
+        STDERR.puts "undef called with: #{arg}, but not implemented yet"
+        add "push nil"
+      end
+
       def process_until(x)
         process_while(x, "git")
       end
