@@ -9,6 +9,7 @@ COMMIT
 *.rbc
 
 !runtime/loader.rbc
+runtime/pristine*
 
 *.o
 *.lo
