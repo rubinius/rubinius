@@ -9,4 +9,4 @@ export LIBPATH=$LIBPATH:shotgun/lib
 export PATH=$PATH:shotgun/lib
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:shotgun/lib
 
-exec $REAL $@
+exec $REAL "$@"
