@@ -1,2 +1,0 @@
-puts "hello"
-88

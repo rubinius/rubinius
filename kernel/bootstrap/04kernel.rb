@@ -28,7 +28,7 @@ module Functions
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
       exc = exc.exception msg
-      raise TypeError, 'exception class/object expected' unless Exception=== exc
+      raise TypeError, 'exception class/object expected' unless Exception === exc
       exc.set_backtrace trace if trace
     elsif exc.kind_of? String or !exc
       exc = RuntimeError.exception exc

@@ -52,6 +52,8 @@ begin
     when '-dl'
       $DEBUG_LOADING = true
       puts "[Code loading debugging enabled]"
+    when '-d'
+      $DEBUG = true
     when '-c'
       puts "Deprecated. Use 'rbx compile' instead."
       file = ARGV.shift
@@ -121,7 +123,6 @@ rescue SystemExit => e
   code = e.code
 rescue Object => e
   begin
-    p e
     puts "An exception has occurred:"
     puts "    #{e.message} (#{e.class})"
     puts "\nBacktrace:"
