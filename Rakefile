@@ -224,30 +224,8 @@ namespace :build do
 
   desc "Compiles the Rubinius compiler archive"
   task :compiler do
-    files = %w! bytecode/compiler bytecode/assembler bytecode/encoder
-      sexp/simple_processor translation/normalize translation/local_scoping
-      sexp/composite_processor translation/states sexp/exceptions
-      bytecode/primitive_names !
-
-    paths = []
-
-    files.each do |name|
-      file = "#{name}.rb"
-      dir = File.dirname(file)
-      dest_dir = File.join("native", dir)
-      path = File.expand_path File.join("lib", file)
-      dest = File.join("native", file)
-      FileUtils.mkdir_p dest_dir
-      FileUtils.symlink path, dest rescue nil
-      
-      paths << dest
-    end
-
-    paths += %w!native/bytecode/rubinius.rb 
-                native/bytecode/system_hints.rb
-                native/bytecode/plugins.rb!
-   
-    update_archive paths, 'runtime/compiler.rba', "native"
+    files = Dir["compiler/**/*.rb"].sort   
+    update_archive files, 'runtime/compiler.rba', "compiler"
   end
 end
 

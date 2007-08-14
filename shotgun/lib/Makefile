@@ -104,7 +104,7 @@ instruction_names.c instruction_names.h instructions.gen: instructions.rb
 system_primitives.gen: primitives.rb
 	$(RUBY) primitives.rb > system_primitives.gen
 
-auto.h auto.c: genheader.rb ../../native/bytecode/system_hints.rb
+auto.h auto.c: genheader.rb ../../compiler/bytecode/system_hints.rb
 	$(RUBY) genheader.rb > auto.c
 
 node_types.c node_types.h: node_types.rb
