@@ -121,7 +121,7 @@ void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
-inline int cpu_return_to_sender(STATE, cpu c, int consider_block);
+inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);

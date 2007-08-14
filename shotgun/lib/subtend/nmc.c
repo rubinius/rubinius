@@ -367,7 +367,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
       nmc_cleanup(n, state->handle_tbl);
       n->stack = NULL;
       if(n->setup_context) {
-        cpu_return_to_sender(state, c, 0);
+        cpu_return_to_sender(state, c, 0, FALSE);
       }
       nmc_delete(n);
       fc->opaque_data = NULL;

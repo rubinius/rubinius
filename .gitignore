@@ -40,10 +40,11 @@ native/bytecode/compiler.rb
 native/bytecode/primitive_names.rb
 native/bytecode/system_hints.rbc
 
-shotgun/rubinius
+shotgun/rubinius.bin
 shotgun/config.h
 shotgun/.libs
 shotgun/config.mk
+shotgun/lib/librubinius.*
 
 shotgun/external_libs/cinvoke/Makefile
 shotgun/external_libs/cinvoke/lib/Makefile

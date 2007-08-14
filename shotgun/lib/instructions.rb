@@ -871,7 +871,7 @@ CODE
   def soft_return
     <<-CODE
     t1 = stack_top();
-    if(cpu_return_to_sender(state, c, FALSE)) {
+    if(cpu_return_to_sender(state, c, FALSE, FALSE)) {
       stack_push(t1);
     }
     CODE
@@ -882,7 +882,7 @@ CODE
     t1 = stack_top();
     t1 = c->active_context;
     c->active_context = c->sender;
-    if(cpu_return_to_sender(state, c, TRUE)) {
+    if(cpu_return_to_sender(state, c, TRUE, FALSE)) {
       methctx_reference(state, t1);
       stack_push(t1);
     }
@@ -899,7 +899,7 @@ CODE
   def ret
     <<-CODE
     t1 = stack_pop();
-    if(cpu_return_to_sender(state, c, TRUE)) {
+    if(cpu_return_to_sender(state, c, TRUE, FALSE)) {
       stack_push(t1);
     }
     CODE

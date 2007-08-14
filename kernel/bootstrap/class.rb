@@ -44,7 +44,11 @@ class Class
     if meth
       method_table[new_name] = meth
     else
-      raise NameError, "undefined method `#{current_name}' for class `#{self.name}'"
+      if self.kind_of? MetaClass        
+        raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
+      else
+        raise NameError, "undefined method `#{current_name}' for class `#{self.name}'"
+      end
     end
   end
 

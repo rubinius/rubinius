@@ -267,7 +267,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
     table = cmethod_get_exceptions(c->method);
     
     if(!table || NIL_P(table)) {
-      cpu_return_to_sender(state, c, FALSE);
+      cpu_return_to_sender(state, c, FALSE, TRUE);
       ctx = c->active_context;
       continue;
     }
@@ -296,7 +296,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
       }
     }
     
-    cpu_return_to_sender(state, c, FALSE);
+    cpu_return_to_sender(state, c, FALSE, TRUE);
     ctx = c->active_context;
   }
   
