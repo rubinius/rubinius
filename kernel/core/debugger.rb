@@ -29,7 +29,8 @@ class BreakpointTracker
     @control_channel = Channel.new
   end
   
-  attr_accessor :debug_channel, :control_channel
+  attr_accessor :debug_channel
+  attr_accessor :control_channel
   
   def add_thread(thr)
     thr.set_debugging @debug_channel, @control_channel

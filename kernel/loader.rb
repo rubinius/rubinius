@@ -1,3 +1,19 @@
+# Contained first is the system startup code.
+
+Array.after_loaded
+Module.after_loaded
+Readline.after_loaded
+
+Class.after_loaded
+Hash.after_loaded
+Functions.after_loaded
+Actor.after_loaded
+
+ENV = EnvironmentVariables.new
+
+# define a global "start time" to use for process calculation
+$STARTUP_TIME = Time.now
+
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is
 # trying to do.

@@ -1,6 +1,17 @@
 class List
-  define_fields :count, :first, :last
   ivar_as_index :count => 0, :first => 1, :last => 2
+  
+  def count
+    @count
+  end
+  
+  def first
+    @first
+  end
+  
+  def last
+    @last
+  end
   
   def initialize
     @count = 0
@@ -43,8 +54,15 @@ class List
   end
 
   class Node
-    define_fields :object, :next
     ivar_as_index :object => 0, :next => 1
+    
+    def object
+      @object
+    end
+    
+    def next
+      @next
+    end
 
     def initialize(obj)
       @object = obj

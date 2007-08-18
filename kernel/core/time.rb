@@ -281,10 +281,6 @@ class Time
   
   # private
   
-  def self.gettimeofday
-    Ruby.primitive :gettimeofday
-  end
-
   def force_localtime
     @tm = time_switch(@timeval.first, false)
     @is_gmt = false
@@ -299,21 +295,9 @@ class Time
     self
   end
 
-  def time_switch(sec, to_gmt)
-    Ruby.primitive :time_switch
-  end
-
   def mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
     @timeval = time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
     self
-  end
-
-  def time_mktime(sec, min, hour, mday, mon, year, usec, isdst, from_gmt)
-    Ruby.primitive :mktime
-  end
-  
-  def __strftime(tm, format)
-    Ruby.primitive :strftime
   end
 
   # sec and usec are always given in gmt here.
@@ -403,6 +387,3 @@ class Time
   alias :gmtoff :gmt_offset
   alias :getutc :getgm
 end
-
-# define a global "start time" to use for process calculation
-$STARTUP_TIME = Time.now

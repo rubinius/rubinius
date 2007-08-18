@@ -80,7 +80,7 @@ class SpecReporter
   end
   
   def print_failure(i,r)
-    @out.print i.to_s + ")\n" + r.describe + " " + r.it + " FAILED\n"
+    @out.print i.to_s + ")\n" + r.describe.to_s + " " + r.it.to_s + " FAILED\n"
   end
   
   def print_backtrace(e)
@@ -157,6 +157,9 @@ class CIReporter < SpecReporter
   end
   
   def print_backtrace(e)
+  end
+
+  def warn(str)
   end
 end
 

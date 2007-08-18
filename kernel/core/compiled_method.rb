@@ -115,15 +115,7 @@ activate_method
     
     return out
   end
-  
-  def self.load_from_file(path, version)
-    Ruby.primitive :load_file
-  end
-  
-  def activate_as_script
-    Ruby.primitive :activate_as_script
-  end
-  
+    
   def line_from_ip(i)
     @lines.each do |t|
       start = t.at(0)
@@ -215,50 +207,4 @@ class UnboundMethod
   end
 end
 
-class RuntimePrimitive
-  SetIvar = 1024
-  GetIvar = 1025
-  SetIndex = 1026
-  GetIndex = 1027
-end
-
-class AccessVarMethod < RuntimePrimitive
-  self.instance_fields = 5
-  
-  def self.get_ivar(name)
-    obj = allocate()
-    obj.put 1, RuntimePrimitive::GetIvar
-    obj.put 2, 0
-    obj.put 3, 0 # serial number
-    obj.put 4, name
-    return obj
-  end
-  
-  def self.set_ivar(name)
-    obj = allocate()
-    obj.put 1, RuntimePrimitive::SetIvar
-    obj.put 2, 1
-    obj.put 3, 0 # serial number
-    obj.put 4, name
-    return obj
-  end
-  
-  def self.get_index(idx)
-    obj = allocate()
-    obj.put 1, RuntimePrimitive::GetIndex
-    obj.put 2, 0
-    obj.put 3, 0 # serial number
-    obj.put 4, idx
-    return obj
-  end
-  
-  def self.set_index(idx)
-    obj = allocate()
-    obj.put 1, RuntimePrimitive::SetIndex
-    obj.put 2, 1
-    obj.put 3, 0 # serial number
-    obj.put 4, idx
-    return obj
-  end
-end
 

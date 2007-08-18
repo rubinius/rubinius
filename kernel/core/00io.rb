@@ -10,6 +10,9 @@ class IO
     @descriptor = fd
   end
   
+  ivar_as_index :__ivars__ => 0, :descriptor => 1
+  def __ivars__ ; @__ivars__  ; end
+    
   def inspect
     "#<#{self.class}:#{object_id.to_s(16)} fd=#{@descriptor}>"
   end
@@ -58,8 +61,10 @@ class IO
     end
   end
   
-  index_reader :descriptor, 1
-  
+  def descriptor
+    @descriptor
+  end
+    
   def closed?
     @descriptor == -1
   end
@@ -86,10 +91,6 @@ class IO
     return out    
   end
   
-  def self.create_pipe(lhs, rhs)
-    Ruby.primitive :create_pipe
-  end
-  
   def self.pipe
     lhs = IO.allocate
     rhs = IO.allocate
@@ -97,13 +98,5 @@ class IO
     return [lhs, rhs]
   end
   
-  def reopen(other)
-    Ruby.primitive :io_reopen
-    raise ArgumentError, "only accepts an IO object"
-  end
-
-  private
-  def io_close
-    Ruby.primitive :io_close
-  end
+  private :io_close
 end

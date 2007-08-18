@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   machine m, *ptr = &m;
   const char *archive;
   int offset = 0;
-  int flag;
+  OBJECT flag;
   
   /* Setup the global that contains the address of the 
      frame pointer for main. This is so the missing
@@ -78,7 +78,22 @@ int main(int argc, char **argv) {
     
   flag = machine_load_archive(m, archive);
   
-  if(!flag) {
+  if(!TRUE_P(flag)) {
+    printf("Unable to run %s\n", archive);
+    return 1;
+  }
+  
+  /* Load the platform. */
+  
+  archive = search_for("PLATFORM", "platform.rba");
+  if(!archive) {
+    printf("Unable to find a platform (platform.rba) to load!\n");
+    return 1;
+  }
+    
+  flag = machine_load_archive(m, archive);
+  
+  if(!TRUE_P(flag)) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
@@ -93,7 +108,7 @@ int main(int argc, char **argv) {
     
   flag = machine_load_archive(m, archive);
    
-  if(!flag) {
+  if(!TRUE_P(flag)) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
@@ -108,7 +123,7 @@ int main(int argc, char **argv) {
   
   flag = machine_run_file(m, archive);
   
-  if(!flag) {
+  if(!TRUE_P(flag)) {
     printf("Unable to run %s\n", archive);
     return 1;
   }

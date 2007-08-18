@@ -13,11 +13,7 @@ class File < IO
   def self.new(path, mode)
     return open_with_mode(path, mode)
   end
-  
-  def self.open_with_mode(path, mode)
-    Ruby.primitive :io_open
-  end
-  
+    
   def self.open(path, mode="r")
     f = open_with_mode(path, mode)
     return f unless block_given?
@@ -28,11 +24,7 @@ class File < IO
       f.close unless f.closed?
     end
   end
-  
-  def self.raw_stat(path)
-    Ruby.primitive :stat_file
-  end
-  
+    
   def self.exists?(path)
     out = raw_stat(path)
     if Tuple === out
@@ -150,9 +142,22 @@ class File < IO
   end
 
   class Stat
-    
-    define_fields :inode, :mode, :kind, :owner, :group, :size, :block, :atime, :mtime, :ctime, :path
-        
+    self.instance_fields = 11
+    ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
+      :size => 5, :block => 6, :atime => 7, :mtime => 8, :ctime => 9, :path => 10
+      
+    def inode; @inode; end
+    def mode; @mode; end
+    def kind; @kind; end
+    def owner; @owner; end
+    def group; @group; end
+    def size; @size; end
+    def block; @block; end
+    def atime; @atime; end
+    def mtime; @mtime; end
+    def ctime; @ctime; end
+    def path; @path; end
+            
     def self.from_tuple(tup, path)
       obj = allocate
       obj.copy_from tup, 0
@@ -178,11 +183,7 @@ class File < IO
       return Stat.from_tuple(out, path)
     end
   end
-  
-  def self.unlink(path)
-    Ruby.primitive :file_unlink
-  end
-  
+    
   def self.to_sexp(name, newlines=true)
     out = to_sexp_full(name, newlines)
     if out.kind_of? Tuple
@@ -193,16 +194,12 @@ class File < IO
     return out
   end
     
-  def self.to_sexp_full(path, newlines)
-    Ruby.primitive :file_to_sexp
-  end
-  
 end
 
 class Dir
-  module Foreign
-    attach_function nil, "getcwd", [:string, :int], :string
-  end
+  # module Foreign
+  #  attach_function nil, "getcwd", [:string, :int], :string
+  # end
 
   def self.glob(pattern, flags)
     Ruby.primitive :dir_glob

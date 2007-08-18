@@ -23,6 +23,46 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_div
     super(o)
   end
+  
+  def %(o)
+    Ruby.primitive :fixnum_modulo
+    super(o)
+  end
+  
+  def &(o)
+    Ruby.primitive :fixnum_and
+    super(o)
+  end
+
+  def |(o)
+    Ruby.primitive :fixnum_or
+    super(o)
+  end
+
+  def ^(o)
+    Ruby.primitive :fixnum_xor
+    super(o)
+  end
+
+  def ~
+    Ruby.primitive :fixnum_invert
+  end
+
+  def -@
+    Ruby.primitive :fixnum_neg
+  end
+  
+  def divmod(other)
+    Ruby.primitive :fixnum_divmod
+    super(other)
+  end
+  
+  
+  
+  def <=>(other)
+    Ruby.primitive :compare
+    super(other)
+  end
 
   def <(o)
     (self <=> o) == -1
@@ -48,6 +88,10 @@ class Fixnum < Integer
     Ruby.primitive :fixnum_to_s
   end
   
+  def to_f
+    Ruby.primitive :fixnum_to_f
+  end
+  
   def size
     Ruby.primitive :fixnum_size
   end
@@ -63,10 +107,27 @@ class Fixnum < Integer
   def nonzero?
     self != 0
   end
+    
+  def __fixnum_left_shift__(c)
+    Ruby.primitive :fixnum_left_shift
+  end
 
-  def <=>(other)
-    Ruby.primitive :compare
-    super(other)
+  def __fixnum_right_shift__(c)
+    Ruby.primitive :fixnum_right_shift
+  end
+
+  def __bignum_new__(value)
+    Ruby.primitive :bignum_new
   end
 end
 
+class Numeric
+  def coerce(other)
+    Ruby.primitive(:numeric_coerce) # try to keep bignum/fixnum precision
+    if other.nil?
+      raise TypeError, "nil can't be coerced into #{self.class}"
+    else
+      [Float(other), Float(self)]
+    end
+  end
+end

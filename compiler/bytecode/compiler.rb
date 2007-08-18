@@ -1263,15 +1263,22 @@ module Bytecode
         one_cond = (cond.size == 1)
         
         bl = unique_lbl('resbody_')
-        while cur = cond.shift
-          add "push_exception"
-          process cur
-          add "send === 1"
-          if cond.empty?
-            gif nxt
-          else
-            git bl
+        
+        # If Object is your condition, we run it without checking
+        # since everything is an object.
+        unless cond == [[:const, :Object]]
+        
+          while cur = cond.shift
+            add "push_exception"
+            process cur
+            add "send === 1"
+            if cond.empty?
+              gif nxt
+            else
+              git bl
+            end
           end
+          
         end
         
         if !one_cond
@@ -1718,8 +1725,10 @@ module Bytecode
           return true
         elsif recv = [:self] and meth == :private and args.empty?
           @compiler.flags[:visibility] = :private
+          return true
         elsif recv = [:self] and meth == :public and args.empty?
           @compiler.flags[:visibility] = :public
+          return true
         end
         return false
       end

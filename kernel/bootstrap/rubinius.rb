@@ -1,3 +1,0 @@
-module Rubinius
-  AtExit = []
-end

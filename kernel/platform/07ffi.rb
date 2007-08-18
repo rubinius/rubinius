@@ -8,7 +8,7 @@ module FFI
   class << self
     
     def add_typedef(current, add)
-      if Fixnum === current
+      if current.kind_of? Fixnum
         code = current
       else
         code = FFI::TypeDefs[current]
@@ -29,18 +29,17 @@ module FFI
     end
     
     def create_function(library, name, args, ret)
-      cargs = []
       i = 0
       tot = args.size
       # We use this instead of map or each because it's really early, map
       # isn't yet available.
       while i < tot
-        cargs[i] = find_type(args[i])
+        args[i] = find_type(args[i])
         i += 1
       end
       cret = find_type(ret)
       
-      create_backend(library, name, cargs, cret)
+      create_backend(library, name, args, cret)
     end
   end  
   

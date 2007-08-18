@@ -5,7 +5,7 @@ code-cache
 .hg
 COMMIT
 .load_order.txt
-
+CI-specs
 *.rbc
 
 !runtime/loader.rbc

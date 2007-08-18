@@ -6,11 +6,11 @@ module Compression
     end
     
     def self.inflate(input)
-      Foreign.inflate nil, input
+      Foreign.inflate input
     end
 
     def self.deflate(input)
-      Foreign.deflate nil, input
+      Foreign.deflate input
     end
   end
 end

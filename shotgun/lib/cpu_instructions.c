@@ -57,52 +57,14 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   sym = _lit;
     
   val = module_const_get(state, under, sym);
-  if(!RTEST(val)) {
-    
-    if(NIL_P(sup)) {
-      sup = state->global->object;
-    } else if(sup == Qfalse) {
-      /* Support class detached from the normal class heirarchy. */
-      sup = Qnil;
-    } else if(!ISA(sup, state->global->class)) {
-      /* Validate sup is a valid superclass-like object. */
-      
-      sup_itr = sup;
-      while(!NIL_P(sup_itr)) {
-        if(NUM_FIELDS(sup_itr) <= CLASS_f_SUPERCLASS ||
-           !ISA(class_get_methods(sup_itr), state->global->hash)) {
-          /* Ok, this wont work as a superclass. */
-        
-          cpu_raise_exception(state, c, 
-            cpu_new_exception(state, c, state->global->exc_arg, "Invalid superclass"));
-          return Qnil;
-        } else {
-          sup_itr = class_get_superclass(sup_itr);
-        }
-      }
-      
-      /* Ok, we validated the hierarchy as being superclass-like, so it's
-         ok to use. */
+  if(!RTEST(val)) {    
+    val = class_constitute(state, sup, under);
+    if(NIL_P(val)) {
+      cpu_raise_exception(state, c, 
+        cpu_new_exception(state, c, state->global->exc_arg, "Invalid superclass"));
+      return Qnil;
     }
     
-    val = class_create(state);
-    
-    /* Push superclass instance information down. */
-    if(NIL_P(sup) || NUM_FIELDS(sup) <= CLASS_f_INSTANCE_FIELDS) {
-      /* When this object is detatched from the normal class hierarchy, we give
-         it the normal fields and flags info by default. */
-      class_set_instance_fields(val, class_get_instance_fields(state->global->object));
-      class_set_instance_flags(val, class_get_instance_flags(state->global->object));
-    } else {
-      class_set_instance_fields(val, class_get_instance_fields(sup));
-      class_set_instance_flags(val, class_get_instance_flags(sup));
-    }
-    
-    // printf("Setting superclass of %p to: %p\n", val, sup);
-    class_set_superclass(val, sup);
-    module_setup_fields(state, val);
-    object_create_metaclass(state, val, object_metaclass(state, sup));
-    module_set_parent(val, under);
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(c->enclosing_class));
     */
@@ -120,13 +82,16 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
       // printf("Module %s name set to %s (%d)\n", _inspect(val), rbs_symbol_to_cstring(state, sym), FIXNUM_TO_INT(class_get_instance_fields(val)));
     }
     module_const_set(state, under, sym, val);
-    module_setup_fields(state, object_metaclass(state, val));
     sup_itr = sup;
+    
+    /* This code does not work. perform_hook will return before running */
+    /*
     while(!NIL_P(sup_itr)) {
       cpu_perform_hook(state, c, sup_itr, state->global->sym_inherited, val);
       sup_itr = class_get_superclass(sup_itr);
       if(sup_itr == state->global->object) { break; }
     }
+    */
   }
   return val;
 }

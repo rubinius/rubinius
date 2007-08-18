@@ -774,11 +774,15 @@ OBJECT machine_load_archive(machine m, const char *path) {
       printf("Unable to find '%s'\n", files); 
       goto out;
     }
+    if(m->s->excessive_tracing) {
+      printf("[ Loading file %s]\n", files);
+    }
     /* We push this on the stack so it's properly seen by the GCs */
     cpu_stack_push(m->s, m->c, cm, FALSE);
     cpu_run_script(m->s, m->c, cm);
     if(!machine_run(m)) {
       printf("Unable to run '%s'\n", files);
+      ret = Qfalse;
       goto out;
     }
     /* Pop the scripts return value. */

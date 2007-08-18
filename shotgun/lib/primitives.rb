@@ -1666,9 +1666,9 @@ class ShotgunPrimitives
     CODE
   end
   
-  def math_sqrt(_ = reference, t1 = float)
+  def math_sqrt(_ = float)
     <<-CODE
-      stack_push(math_sqrt(state, t1));
+      stack_push(math_sqrt(state, self));
     CODE
   end
   
@@ -1849,7 +1849,6 @@ class ShotgunPrimitives
     <<-CODE
     /* Get rid of the module */
     stack_pop();
-    
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
        to be done. The stub contains all the serialization code. 
        
@@ -1944,10 +1943,9 @@ class ShotgunPrimitives
 
   def float_sprintf
     <<-CODE
-    stack_pop(); /* self */
+    POP(self, FLOAT);
     POP(t1, STRING);
-    POP(t2, FLOAT);
-    stack_push(float_sprintf(state, t1, t2));
+    stack_push(float_sprintf(state, t1, self));
     CODE
   end
   

@@ -6,17 +6,9 @@ class Sampler
   def start
     @start_clock = activate(@frequency)
   end
-  
-  def activate(hz)
-    Ruby.primitive :sampler_activate
-  end
-  
+    
   def stop
     @results, @last_clock, @interval = terminate()
-  end
-
-  def terminate
-    Ruby.primitive :sampler_stop
   end
   
   def display

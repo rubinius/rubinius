@@ -101,14 +101,12 @@ external_libs/libltdl/.libs/libltdl.a: external_libs/libltdl/config.h
 $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 
 
-library: $(RBLIB)
-
-.PHONY: library
+.PHONY: $(RBLIB)
 
 # Don't try to build main until librubinius exists
-main.c: library
+main.c: $(RBLIB)
 
-rubinius.bin: library main.o
+rubinius.bin: $(RBLIB) main.o
 	$(COMP) -o rubinius.bin main.o $(RBLIB)
 
 test/test_state: test/test_state.c library

@@ -1,134 +1,137 @@
+
 class Class
+  
+  ivar_as_index :method_table => 1, :superclass => 6, :instance_fields => 7, :instance_flags => 8
+  
   def allocate
     Ruby.primitive :allocate
     raise RuntimeError, "primitive 'allocate' failed on #{self.inspect}"
   end
   
-  # A version taking a block is available in core; it's too early to
-  # support one during bootstrap
-  def new(*arg)
-    obj = self.allocate()
-    obj.initialize(*arg)
+  def new(*a)
+    obj = allocate
+    obj.initialize(*a)
     return obj
   end
   
-  def ancestors
-    out = [self]
-    sup = direct_superclass()
-    while sup
-      out << sup
-      sup = sup.direct_superclass()
-    end
-    return out
+  def self.new(sclass=Object, &block)
+    Ruby.asm <<-ASM
+#local sclass
+open_class nil
+    ASM
   end
   
-  def find_method_in_hierarchy(sym)
-    mod = self
-    while mod
-      meth = mod.method_table[sym]
-      if meth
-        return meth
-      end
-      
-      if mod == Functions
-        mod = nil
-      else
-        mod = mod.direct_superclass || Functions
-      end
-    end
-    nil
+  def instance_fields; @instance_fields ; end
+  def instance_flags ; @instance_flags  ; end
+  
+  def instance_fields=(num)
+    @instance_fields = num
   end
   
-  def alias_method(new_name, current_name)
-    meth = find_method_in_hierarchy(current_name)
-    if meth
-      method_table[new_name] = meth
-    else
-      if self.kind_of? MetaClass        
-        raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
-      else
-        raise NameError, "undefined method `#{current_name}' for class `#{self.name}'"
-      end
-    end
-  end
-
-  def <(other)
-    return true if object_id == other.object_id
-    sup = direct_superclass()
-    while sup
-      return true if sup.object_id == other.object_id
-      sup = sup.direct_superclass()
-    end
-    false
+  # 'superclass' method defined in class.rb, 
+  # because it is more complex than a mere accessor
+  def superclass=(other)
+    @superclass = other
   end
   
-  def ===(inst)
-    # Could call kind_of?, but the body of kind_of does this exact
-    # thing.
-    inst.kind_of? self
-  end
-    
-  def superclass
-    cls = direct_superclass
-    return nil unless cls
-    while cls and cls.class == IncludedModule
-      cls = cls.direct_superclass
-    end
-    return cls
+  def direct_superclass
+    @superclass
   end
   
-  def attr_reader(*args)
-    args.each do |name|
-      sym = "@#{name}".to_sym
-      meth = AccessVarMethod.get_ivar(sym)
-      self.method_table[name.to_sym] = meth
-    end
+  def attr_reader(name)
+    sym = "@#{name}".__symbol_lookup__
+    meth = AccessVarMethod.get_ivar(sym)
+    @method_table[name] = meth
     return nil
   end
   
-  def attr_writer(*args)
-    args.each do |name|
-      sym = "@#{name}".to_sym
-      meth = AccessVarMethod.set_ivar(sym)
-      mname = "#{name}=".to_sym
-      self.method_table[mname] = meth
-    end
-    return nil
+  def attr_writer(name)
+    sym = "@#{name}".__symbol_lookup__
+    meth = AccessVarMethod.get_ivar(sym)
+    @method_table[name] = meth
+    return nil    
   end
   
-  def attr_accessor(*names)
-    names.each do |name|
-      attr_reader(name)
-      attr_writer(name)
-    end
+  def attr_accessor(name)
+    attr_reader(name)
+    attr_writer(name)
     return true
   end
   
-  def index_reader(name, idx)
-    meth = AccessVarMethod.get_index(idx)
-    self.method_table[name.to_sym] = meth
-    return name
+end
+
+class RuntimePrimitive
+  SetIvar = 1024
+  GetIvar = 1025
+  SetIndex = 1026
+  GetIndex = 1027
+end
+
+class AccessVarMethod < RuntimePrimitive
+  self.instance_fields = 5
+  
+  def self.get_ivar(name)
+    obj = allocate()
+    obj.put 1, RuntimePrimitive::GetIvar
+    obj.put 2, 0
+    obj.put 3, 0 # serial number
+    obj.put 4, name
+    return obj
   end
   
-  def index_writer(name, idx)
-    meth = AccessVarMethod.set_index(idx)
-    mname = "#{name}="
-    self.method_table[mname.to_sym] = meth
-    return name
+  def self.set_ivar(name)
+    obj = allocate()
+    obj.put 1, RuntimePrimitive::SetIvar
+    obj.put 2, 1
+    obj.put 3, 0 # serial number
+    obj.put 4, name
+    return obj
   end
   
-  def index_accessor(name, idx)
-    index_reader(name, idx)
-    index_writer(name, idx)
+  def self.get_index(idx)
+    obj = allocate()
+    obj.put 1, RuntimePrimitive::GetIndex
+    obj.put 2, 0
+    obj.put 3, 0 # serial number
+    obj.put 4, idx
+    return obj
   end
   
-  def define_fields(*fields)
-    i = 0
-    fields.each do |fel|
-      index_reader(fel, i)
-      i += 1
-    end
-    self.instance_fields = i
+  def self.set_index(idx)
+    obj = allocate()
+    obj.put 1, RuntimePrimitive::SetIndex
+    obj.put 2, 1
+    obj.put 3, 0 # serial number
+    obj.put 4, idx
+    return obj
   end
-  
+end
+
+# This is here because it uses instance_fields, which is defined above.
+# This is the ONLY way to force load order in the bootstrap (and the 
+# only instance of load order mattering)
+class IncludedModule < Module
+  self.instance_fields = 8
+
+  ivar_as_index :superclass => 6, :module => 7
+  def superclass; @superclass ; end
+  def module    ; @module     ; end
+
+  def initialize(mod)
+    @methods = mod.method_table
+    @method_cache = nil
+    @name = mod.name
+    @constants = {}
+    @parent = nil
+    @module = mod
+  end
+
+  def attach_to(cls)
+    @superclass = cls.direct_superclass
+    cls.superclass = self
+  end
+
+  def direct_superclass
+    @superclass
+  end
 end

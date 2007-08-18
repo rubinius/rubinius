@@ -588,7 +588,9 @@ CODE
   
   def open_class
     <<-CODE
-    stack_push(cpu_open_class(state, c, c->enclosing_class, stack_pop()));
+    t1 = stack_pop();
+    t2 = c->enclosing_class;
+    stack_push(cpu_open_class(state, c, t2, t1));
     CODE
   end
   

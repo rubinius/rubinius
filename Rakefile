@@ -10,6 +10,7 @@ end
 
 @pb = "runtime/pristine_bootstrap.rba"
 @pc = "runtime/pristine_core.rba"
+@pl = "runtime/pristine_loader.rbc"
 
 if File.exists?(@pb)
   puts "Using #{@pb} for bootstrap."
@@ -19,6 +20,11 @@ end
 if File.exists?(@pc)
   puts "Using #{@pc} for core."
   ENV['CORE'] = @pc
+end
+
+if File.exists?(@pl)
+  puts "Using #{@pl} for the loader."
+  ENV['LOADER'] = @pl
 end
 
 @compiler = ENV['COMPILER']
@@ -227,6 +233,13 @@ namespace :build do
     files = Dir["compiler/**/*.rb"].sort   
     update_archive files, 'runtime/compiler.rba', "compiler"
   end
+  
+  desc "Compiles the Rubinius platform archive"
+  task :platform do
+    files = Dir["kernel/platform/*.rb"].sort   
+    update_archive files, 'runtime/platform.rba'
+  end
+  
 end
 
 desc "Remove all .rbc files from the project"

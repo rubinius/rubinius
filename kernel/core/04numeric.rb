@@ -100,15 +100,6 @@ class Numeric
     a <=> b
   end
 
-  def coerce(other)
-    Ruby.primitive(:numeric_coerce) # try to keep bignum/fixnum precision
-    if other.nil?
-      raise TypeError, "nil can't be coerced into #{self.class}"
-    else
-      [Float(other), Float(self)]
-    end
-  end
-
   def zero?
     self == 0
   end

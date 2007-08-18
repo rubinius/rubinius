@@ -16,9 +16,11 @@ module Readline
   @history_idx = 0
   @raw_mode = false
 
-  # Reset the terminal when we exit.
-  at_exit do
-    _terminal_normal if @raw_mode
+  def self.after_loaded
+    # Reset the terminal when we exit.
+    at_exit do
+      _terminal_normal if @raw_mode
+    end
   end
 
   def self.readline(prompt)
@@ -119,13 +121,5 @@ module Readline
 
     out = str.join("")
     return out
-  end
-
-  def self._terminal_raw
-    Ruby.primitive :terminal_raw
-  end
-
-  def self._terminal_normal
-    Ruby.primitive :terminal_normal
   end
 end
