@@ -203,3 +203,7 @@ class NativeFunction
     end
   end
 end
+
+# Define it now so that the rest of platform can use it.
+module Platform
+end

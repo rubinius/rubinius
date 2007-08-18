@@ -131,12 +131,12 @@ module Functions
   # seed value from srand and we don't seed the RNG by default with a combination
   # of time, pid and sequence number
   def srand(seed)
-    Random.srand(seed.to_i)
+    Platform::POSIX.srand(seed.to_i)
   end
 
   def rand(max=nil)
     max = max.to_i.abs
-    x = Random.rand
+    x = Platform::POSIX.rand
     # scale result of rand to a domain between 0 and max
     if max.zero?
       x / 0x7fffffff.to_f
