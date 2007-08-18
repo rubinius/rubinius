@@ -18,13 +18,13 @@ COMP=$(CC)
 ifeq ($(UNAME),Darwin)
   LDOPT=-dynamiclib -undefined dynamic_lookup
   LINKER=$(CC) $(LDOPT)
-  RPATH=-install_name
+  RPATH=-install_name 
   SONAME=-current_version 
   SUFFIX=dylib
 else
   LDOPT=-shared
   LINKER=$(CC) -shared
-  RPATH=-rpath
+  RPATH=-Wl,-rpath -Wl,
   SONAME=-Wl,-soname,
   SUFFIX=so
 endif
@@ -34,4 +34,4 @@ ifndef VERBOSE
   LINKER=@echo LINK $@;$(CC) $(LDOPT)
 endif
 
-RBXLIB=librubinius.$(SUFFIX)
+RBXLIB=librubinius-$(VERSION).$(SUFFIX)
