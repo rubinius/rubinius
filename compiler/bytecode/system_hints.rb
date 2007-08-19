@@ -10,7 +10,7 @@ module Rubinius
     "Object"=>{:@__ivars__=>0},
     "Float"=>{:@__ivars__=>0},
     "Array"=>{:@total=>0, :@tuple=>1},
-    "String"=>{:@bytes=>0, :@characters=>1, :@encoding=>2, :@data=>3},
+    "String"=>{:@bytes=>0, :@characters=>1, :@encoding=>2, :@data=>3, :@hash => 4, :@shared => 5},
     "CompiledMethod"=>{:@file=>6, :@required=>2, :@bytecodes=>4, :@locals=>7, :@path=>13, :@serial=>3, :@arguments=>9, :@scope=>10, :@lines=>12, :@cache=>14, :@name=>5, :@literals=>8, :@exceptions=>11, :@__ivars__=>0, :@primitive=>1},
     "SymbolTable"=>{:@symbols=>1, :@strings=>2, :@__ivars__=>0},
     "IO"=>{:@__ivars__ => 0, :@descriptor => 1, :@buffer => 2 },

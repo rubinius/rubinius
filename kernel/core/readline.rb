@@ -35,13 +35,12 @@ module Readline
       end
       while true
         cur = STDIN.read(1)
-
+        
         code = cur[0]
         code = ASCII::Erase if code == @c_erase
 
         cur = code.chr
-
-        #puts "Code: #{code}"
+        
         if code == ASCII::Return
           print "\n"
           break
