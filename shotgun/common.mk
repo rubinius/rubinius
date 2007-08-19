@@ -18,15 +18,15 @@ COMP=$(CC)
 ifeq ($(UNAME),Darwin)
   LDOPT=-dynamiclib -undefined dynamic_lookup
   LINKER=$(CC) $(LDOPT)
-  RPATH=-install_name 
-  SONAME=-current_version 
   SUFFIX=dylib
+  BIN_RPATH=
+  SONAME=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name /usr/local/lib/librubinius-$(VERSION).$(SUFFIX)
 else
   LDOPT=-shared
   LINKER=$(CC) -shared
-  RPATH=-Wl,-rpath -Wl,
-  SONAME=-Wl,-soname,
+  BIN_RPATH=-Wl,-rpath -Wl,/usr/local/lib
   SUFFIX=so
+  SONAME=-Wl,-soname,librubinius-$(VERSION).$(SUFFIX)
 endif
 
 ifndef VERBOSE

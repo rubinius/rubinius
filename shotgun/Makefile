@@ -107,7 +107,7 @@ $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h
 main.c: $(RBLIB)
 
 rubinius.bin: $(RBLIB) main.o
-	$(COMP) -o rubinius.bin main.o lib/$(RBLIB) $(RPATH)/usr/local/lib
+	$(COMP) -o rubinius.bin main.o $(RBLIB) $(BIN_RPATH)
 
 test/test_state: test/test_state.c library
 	$(COMP) -c -o test/test_state.o test/test_state.c $(CFLAGS)

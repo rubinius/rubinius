@@ -84,7 +84,7 @@ RUBY=ruby -I../../compiler
 	rm -f $@.$$$$
 
 $(RBXLIB): $(DEPS) $(OBJS) 
-	$(LINKER) -o $(RBXLIB) $(OBJS) $(SONAME)$(RBXLIB) $(LIBS)
+	$(LINKER) -o $(RBXLIB) $(OBJS) $(SONAME) $(LIBS)
 
 library: $(RBXLIB)
 
