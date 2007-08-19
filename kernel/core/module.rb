@@ -1,13 +1,12 @@
 class Module
   
-  ivar_as_index :__ivars__ => 0, :methods => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
-  # Do not define #methods as an accessor for @methods, use #method_table instead
+  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
   def method_cache   ; @method_cache ; end
   def constants_table; @constants    ; end
   def parent         ; @parent       ; end
   
   def method_table
-    @methods
+    @method_table
   end
   
   def self.new(&prc)
@@ -25,11 +24,7 @@ class Module
   end
   
   def find_method_in_hierarchy(sym)
-    [self, Functions].each do |mod|
-      meth = mod.method_table[sym]
-      return meth if meth
-    end
-    nil
+    return @method_table[sym]
   end
 
   def alias_method(new_name, current_name)

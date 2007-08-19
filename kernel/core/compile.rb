@@ -42,7 +42,7 @@ class String
   end
 end
 
-module Functions
+module Kernel
   def load(path)
     if path.suffix? ".rbc"
       cm = CompiledMethod.load_from_file(path, Rubinius::CompiledMethodVersion)

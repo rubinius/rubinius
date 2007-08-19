@@ -341,15 +341,6 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
   
   mo = cpu_find_method(state, c, obj, sym, mod);
   if(!NIL_P(mo)) { return mo; }
-
-  if(c->call_flags == 1) {
-    mo = hash_find(state, module_get_methods(state->global->functions), sym);
-    if(!NIL_P(mo)) {
-      *mod = state->global->functions;
-      UNVIS_METHOD(mo);
-      return mo;
-    }
-  }
     
   // printf("method missing: %p\n", state->global->method_missing);
   mo = cpu_find_method(state, c, obj, state->global->method_missing, mod);

@@ -12,7 +12,7 @@ class Continuation
   alias :[] :call
 end
 
-module Functions
+module Kernel
   def callcc(&block)
     first = true
     task = Task.current.dup

@@ -13,7 +13,7 @@ class Process
   end
 end
 
-module Functions
+module Kernel
   def system(prog, *args)
     cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
     pid = Process.fork

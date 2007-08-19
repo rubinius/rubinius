@@ -1,26 +1,30 @@
 # Contained first is the system startup code.
 
-Array.after_loaded
-Module.after_loaded
-Readline.after_loaded
+begin
+  Array.after_loaded
+  Module.after_loaded
+  Readline.after_loaded
 
-Class.after_loaded
-Hash.after_loaded
-Functions.after_loaded
-Actor.after_loaded
+  Class.after_loaded
+  Hash.after_loaded
+  Kernel.after_loaded
+  Actor.after_loaded
 
-ENV = EnvironmentVariables.new
+  ENV = EnvironmentVariables.new
 
-# define a global "start time" to use for process calculation
-$STARTUP_TIME = Time.now
+  # define a global "start time" to use for process calculation
+  $STARTUP_TIME = Time.now
+rescue Object => e
+  puts "Error detected running loader startup stage:"
+  puts "  #{e.message} (#{e.class})"
+  exit 2
+end
 
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
 
-GC.start
-
-# Now, setup a few changes to the include path.
+# Setup a few changes to the include path.
 
 # If there is a closer compiler, use it. Otherwise, use the system one.
 unless File.exists? "runtime/compiler.rba"
