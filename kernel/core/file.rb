@@ -102,7 +102,7 @@ class File < IO
   end
   
   class << self
-    alias :delete :unlink
+    alias_method :delete, :unlink
   end
   
   def self.chmod(mode, *paths)
@@ -292,6 +292,6 @@ class Dir
   end
 
   class << self
-    alias :pwd :getwd
+    alias_method :pwd, :getwd
   end
 end
