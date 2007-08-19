@@ -47,7 +47,19 @@ context "File class method" do
   end
   
   specify "chardev? should return true/false depending if the named file is a char device" do
-    File.chardev?("/tmp")
+    File.chardev?("/tmp").should == false
+  end
+  
+  specify "zero? should return false if the named file exists and is not of zero size." do
+    begin
+      file = '/tmp/i_exist'
+      f = File.open(file,'w')
+      f.write("this is a test")
+      f.close
+      File.zero?(file).should == false
+    ensure
+      File.delete(file) rescue nil
+    end
   end
   
   specify "zero? should return true if the named file exists and has a zero size." do
@@ -56,6 +68,56 @@ context "File class method" do
       file = '/tmp/i_exist'
       File.open(file,'w'){
         File.zero?(file).should == true
+      }
+    ensure
+      File.delete(file) rescue nil
+    end
+  end
+  
+  specify "executable_real? should return true if named file is readable by the real user id of the process, otherwise false" do
+    begin
+      File.executable_real?('fake_file').should == false
+      file = '/tmp/i_exist'
+      File.open(file,'w'){}
+      File.chmod(0755, file)
+      File.executable_real?(file).should == true
+    ensure
+      File.delete(file) rescue nil
+    end
+  end
+    
+  specify "executable? should return true if named file is readable by the effective user id of the process, otherwise false" do
+    begin
+      File.executable?('fake_file').should == false
+      File.executable?('/etc/passwd').should == false
+      file = '/tmp/i_exist'
+      File.open(file,'w'){}
+      File.chmod(0755, file)
+      File.executable?(file).should == true
+    ensure
+      File.delete(file) rescue nil
+    end
+  end
+  
+  specify "readable_real? should return true if named file is readable by the real user id of the process, otherwise false" do
+    begin
+      File.readable_real?('fake_file').should == false
+      file = '/tmp/i_exist'
+      File.open(file,'w'){
+        File.readable_real?(file).should == true
+      }
+    ensure
+      File.delete(file) rescue nil
+    end
+  end
+    
+  specify "readable? should return true if named file is readable by the effective user id of the process, otherwise false" do
+    begin
+      File.readable?('fake_file').should == false
+      File.readable?('/etc/passwd').should == true
+      file = '/tmp/i_exist'
+      File.open(file,'w'){
+        File.readable?(file).should == true
       }
     ensure
       File.delete(file) rescue nil
@@ -265,7 +327,7 @@ describe "File.delete" do
     @file2 = 'temp2.txt'
 
     File.open(@file1, "w"){} # touch 
-    File.open(@file2, "w"){} # Touch
+    File.open(@file2, "w"){} # touch
   end
 
   after(:each) do
@@ -276,7 +338,7 @@ describe "File.delete" do
     @file2 = nil
   end
 
-  it "deletes the named files," do
+  it "deletes the named files" do
     File.delete(@file1)
     should_raise(Errno::ENOENT){File.open(@file1,"r")}
   end
@@ -286,13 +348,18 @@ describe "File.delete" do
     File.delete(@file1).should == 1
   end
 
-  it "return the number of names passed as arguments(multiples arguments)" do
+  it "return the number of names passed as arguments (multiple arguments)" do
     File.delete(@file1, @file2).should == 2
   end
 
-  it "raise an exception its the arguments are the worng type or number" do
+  it "raise an exception its the arguments are the wrong type or number" do
     should_raise(TypeError){ File.delete(1) }
     should_raise(Errno::ENOENT){ File.delete('a_fake_file') }
+  end
+  
+  it "should coerce a given parameter into a string if possible" do
+    class Coercable; def to_str; "temp1.txt"; end; end
+    File.delete(Coercable.new).should == 1
   end
 end
 
@@ -385,13 +452,50 @@ describe "File.executable_real?" do
     end
   end
   
-  it "raise an exception if the argumnent is not from the correct type or are missing" do
+  it "raise an exception if the argument is not from the correct type or are missing" do
     should_raise(ArgumentError){ File.executable_real? }
     should_raise(TypeError){ File.executable_real?(1) }
     should_raise(TypeError){ File.executable_real?(nil) }
     should_raise(TypeError){ File.executable_real?(false) }
   end
-end   
+end
+
+describe "File.chmod" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+    File.open(@file, 'w') {}
+    @count = File.chmod(0755, @file)
+  end
+  
+  it "should return the number of files modified" do
+    @count.should == 1
+  end
+  
+  it "should modify the permission bits of the files specified" do
+    File.stat(@file).mode.should == 33261
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exist?(@file)
+  end  
+end
+
+describe "File#chmod" do
+  before(:each) do
+    @filename = '/tmp/i_exist'
+    @file = File.open(@filename, 'w')
+  end
+  
+  it "should modify the permission bits of the files specified" do
+  @file.chmod(0755).should == 0
+    File.stat(@filename).mode.should == 33261
+  end
+  
+  after(:each) do
+    @file.close
+    File.delete(@filename) if File.exist?(@filename)
+  end
+end
 
 describe "File::Constants" do  
   # These mode and permission bits are platform dependent

@@ -1,4 +1,11 @@
 class File < IO
+  module Constants
+    F_OK = 0 # test for existence of file
+    X_OK = 1 # test for execute or search permission
+    W_OK = 2 # test for write permission
+    R_OK = 4 # test for read permission
+  end
+    
   class FileError < Exception; end
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
@@ -15,6 +22,8 @@ class File < IO
   end
     
   def self.open(path, mode="r")
+    raise Errno::ENOENT if mode == "r" and not exists?(path)
+    
     f = open_with_mode(path, mode)
     return f unless block_given?
 
@@ -34,6 +43,10 @@ class File < IO
     end
   end
   
+  class << self
+    alias :exist? :exists?
+  end
+  
   def self.file?(path)
     stat(path).kind == :file
   end
@@ -46,7 +59,61 @@ class File < IO
     stat(path).kind == :link
   end
 
+  def self.blockdev?(path)
+    stat(path).kind == :block
+  end
 
+  def self.chardev?(path)
+    stat(path).kind == :char
+  end
+
+  def self.zero?(path)
+    exists?(path) && stat(path).size == 0
+  end
+
+  def self.size(path)
+    stat(path).size
+  end
+
+  def self.size?(path)
+    return nil if zero?(path)
+    size(path)
+  end
+  
+  def self.writable_real?(path)
+    Platform::POSIX.access(enforce_string(path), Constants::W_OK) == 0
+  end
+
+  def self.executable_real?(path)
+    Platform::POSIX.access(enforce_string(path), Constants::X_OK) == 0
+  end
+
+  def self.readable_real?(path)
+    Platform::POSIX.access(enforce_string(path), Constants::R_OK) == 0
+  end
+  
+  def self.unlink(*paths)
+    paths.each do |path|
+      path = enforce_string(path)
+      raise Errno::ENOENT unless exists?(path)
+      Platform::POSIX.unlink(path) 
+    end
+    paths.size
+  end
+  
+  class << self
+    alias :delete :unlink
+  end
+  
+  def self.chmod(mode, *paths)
+    paths.each { |path| Platform::POSIX.chmod(path, mode) }
+    paths.size
+  end
+    
+  def chmod(mode)
+    Platform::POSIX.fchmod(@descriptor, mode)
+  end
+  
   def self.atime(path)
     Time.at stat(path).atime
   end
@@ -172,6 +239,7 @@ class File < IO
   end
   
   def self.stat(path)
+    enforce_string(path)
     out = raw_stat(path)
     if !out
       raise UnableToStat.new("Unable to perform stat on '#{path}'")
@@ -193,14 +261,19 @@ class File < IO
     end
     return out
   end
-    
+  
+  private
+
+    def self.enforce_string(obj)
+      unless obj.kind_of? String
+        return obj.to_str if obj.respond_to? :to_str # coerce if possible
+        raise TypeError, "can't convert #{obj.class} into String"
+      end
+      obj
+    end
 end
 
 class Dir
-  # module Foreign
-  #  attach_function nil, "getcwd", [:string, :int], :string
-  # end
-
   def self.glob(pattern, flags)
     Ruby.primitive :dir_glob
   end
@@ -215,7 +288,7 @@ class Dir
 
   def self.getwd
     buf = " " * 1024
-    Foreign.getcwd(buf, buf.length)
+    Platform::POSIX.getcwd(buf, buf.length)
   end
 
   class << self
