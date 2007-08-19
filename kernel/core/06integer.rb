@@ -47,8 +47,8 @@ class Integer < Numeric
 
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0
-    a = "x"                     # This automatically does a dup
-    a.data.set_byte(0, self)
+    a = "x"
+    a[0] = self
     a
   end
   

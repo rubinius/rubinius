@@ -8,8 +8,7 @@ class Array
   include Enumerable
 
   def initialize(sz=0, obj=nil)
-    #    super
-    if Array === sz #.class == Array        # can we really use === here?
+    if Array === sz
       # dup from sz, which is really an Array
       @tuple = Tuple.new(sz.size + 10)
       @tuple.copy_from sz.tuple, 0
@@ -18,7 +17,8 @@ class Array
       @tuple = Tuple.new(sz.to_ary.size + 10)
       @tuple.copy_from sz.to_ary.tuple, 0
       @total = sz.to_ary.size
-    elsif block_given?          # FIXME in class.rb: This apparently never is true!
+      # FIXME in class.rb: This apparently never is true!
+    elsif block_given?
       # fill sz times from yield
       @tuple = Tuple.new(sz + 10)
       sz.times { |i| @tuple.put i, yield(i) }
@@ -883,7 +883,7 @@ class Array
     
     pos = index
     if pos == -1
-	  pos = self.length;
+      pos = self.length
     end
     if pos < 0
       pos += self.length + 1

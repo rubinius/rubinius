@@ -37,6 +37,19 @@ OBJECT bytearray_new_dirty(STATE, int size) {
   return obj;
 }
 
+OBJECT bytearray_dup(STATE, OBJECT self) {
+  OBJECT obj;
+  int words = NUM_FIELDS(self);
+  
+  obj = object_memory_new_dirty_object(state->om, BASIC_CLASS(bytearray), words);
+  object_make_byte_storage(state, obj);
+  
+  memcpy(object_byte_start(state, obj), 
+      object_byte_start(state, self), SIZE_IN_BYTES(self));
+  
+  return obj;
+}
+
 char *bytearray_as_string(STATE, OBJECT self) {
   char *str;
   char *out;

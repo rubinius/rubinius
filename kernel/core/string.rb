@@ -2,7 +2,7 @@ class String
   include Comparable
   include Enumerable
   
-  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3
+  ivar_as_index :bytes => 0, :characters => 1, :encoding => 2, :data => 3, :hash => 4, :shared => 5
   def bytes     ; @bytes      ; end
   def characters; @characters ; end
   def encoding  ; @encoding   ; end
@@ -121,7 +121,7 @@ class String
   def ==(other)
     if String === other
       return false unless @bytes == other.size
-      
+            
       # This clamps the data to the right size, then we compare
       # FIXME: This is very inefficient, creating a new ByteArray just
       # to compare. 
@@ -386,6 +386,10 @@ class String
     return str
   end
   
+  def shared!
+    @shared = true
+  end
+  
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i>.
   # 
@@ -399,7 +403,9 @@ class String
 
     raise TypeError, "can't modify frozen string" if self.frozen?
 
-    @data = other.dup.data
+    @shared = true
+    other.shared!
+    @data = other.data
     @bytes = other.bytes
     @characters = other.characters
     @encoding = other.encoding
@@ -529,6 +535,11 @@ class String
     return if @bytes == 0
     raise TypeError, "can't modify frozen string" if self.frozen?
     
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
+    
     modified = false
     
     if @data[0].islower
@@ -554,6 +565,11 @@ class String
     return if @bytes == 0
     raise TypeError, "can't modify frozen string" if self.frozen?
   
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
+  
     modified = false
   
     @bytes.times do |i|
@@ -578,6 +594,11 @@ class String
     raise TypeError, "can't modify frozen string" if self.frozen?
   
     modified = false
+    
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
   
     @bytes.times do |i|
       if @data[i].islower
@@ -596,6 +617,11 @@ class String
   def downcase!
     return if @bytes == 0
     raise TypeError, "can't modify frozen string" if self.frozen?
+  
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
   
     modified = false
   
@@ -616,6 +642,11 @@ class String
   def reverse!
     return self if @bytes <= 1
     raise TypeError, "can't modify frozen string" if self.frozen?
+    
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
     
     i = 0
     j = @bytes - 1
@@ -1177,6 +1208,12 @@ class String
   end
 
   def []=(*args)
+    
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
+    
     if args.size == 3
     
       case args.first
