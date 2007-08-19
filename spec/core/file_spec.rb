@@ -1099,7 +1099,7 @@ describe "File.new" do
   end
 
   after(:each) do   
-    File.delete("test.txt")
+    File.delete("test.txt") if File.exists?("test.txt")
     @fh    = nil
     @file  = nil
     @flags = nil
