@@ -21,7 +21,7 @@ any platform-specific requirements.
 * "libtool version >= 1.5":http://www.gnu.org/software/libtool/
 * "Ruby version >= 1.8.4 (the Ruby language)":http://www.ruby-lang.org/
 * "RubyGems (Ruby package manager)":http://www.rubygems.org/
-* "Subversion/SVN with WebDAV support (source control used by rubinius)":http://subversion.tigris.org/
+* "Git (source control used by rubinius)":http://git.or.cz/
 * "zip and unzip commands (archiving)":http://www.info-zip.org
 
 Each package may have requirements of its own, of course.
@@ -49,9 +49,9 @@ Rake may be obtained with the gem install command. See http://www.rubygems.org f
 
 == Rubinius itself
 
-You need to check Rubinius out through SVN (which we just installed.) The invocation looks like this:
+You need to check Rubinius out through Git (which we just installed). The invocation looks like this:
 
-  svn co http://code.fallingsnow.net/svn/rubinius/trunk rubinius
+  git clone http://git.rubini.us/code rubinius
 
 == Compiling etc.
 
