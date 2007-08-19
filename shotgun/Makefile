@@ -14,7 +14,7 @@ CFLAGS += -I../include -iquote . -iquote lib $(CPPFLAGS)
 
 ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
 
-LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
+LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm shotgun/lib
 LDFLAGS=
 
 # amd64 must have fPIC shared
@@ -107,7 +107,7 @@ $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h
 main.c: $(RBLIB)
 
 rubinius.bin: $(RBLIB) main.o
-	$(COMP) -o rubinius.bin main.o $(RBLIB)
+	$(COMP) -o rubinius.bin main.o lib/$(RBLIB) $(RPATH)/usr/local/lib
 
 test/test_state: test/test_state.c library
 	$(COMP) -c -o test/test_state.o test/test_state.c $(CFLAGS)
