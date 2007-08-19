@@ -76,7 +76,7 @@ class File < IO
   end
 
   def self.size?(path)
-    return nil if zero?(path)
+    return nil unless exists?(path)
     size(path)
   end
   
@@ -239,7 +239,7 @@ class File < IO
   end
   
   def self.stat(path)
-    enforce_string(path)
+    path = enforce_string(path)
     out = raw_stat(path)
     if !out
       raise UnableToStat.new("Unable to perform stat on '#{path}'")
