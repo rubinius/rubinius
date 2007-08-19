@@ -58,11 +58,7 @@ class Class
         return meth
       end
       
-      if mod == Functions
-        mod = nil
-      else
-        mod = mod.direct_superclass || Functions
-      end
+      mod = mod.direct_superclass
     end
     nil
   end

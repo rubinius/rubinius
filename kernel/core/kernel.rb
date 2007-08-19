@@ -1,4 +1,4 @@
-module Functions
+module Kernel
 
   # Conversion methods
   def Float(obj)
@@ -176,13 +176,10 @@ module Functions
   end
   
   def self.after_loaded
-    # This nukes the bootstrap raise so the Kernel/Functions one is
+    # This nukes the bootstrap raise so the Kernel one is
     # used.
     Object.method_table[:raise] = nil
   end
-end
-
-module Kernel
 end
 
 Object.include Kernel
