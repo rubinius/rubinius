@@ -1,5 +1,6 @@
 #!/bin/sh
 
+
 REAL=shotgun/rubinius.bin
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:shotgun/lib
@@ -9,4 +10,9 @@ export LIBPATH=$LIBPATH:shotgun/lib
 export PATH=$PATH:shotgun/lib
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:shotgun/lib
 
-exec $REAL "$@"
+if test "x$1" = "x--gdb"; then
+  shift
+  exec gdb -x shotgun/gdbstartup --args /dev/null "$@"
+else
+  exec $REAL "$@"
+fi
