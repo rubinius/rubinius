@@ -38,13 +38,13 @@ extension :rubinius do
     it "compiles or" do
       compile [:or, [:true], [:false]]
       @method.assembly.should == 
-        "push true\ndup\ngit lbl1\npop\npush false\nlbl1:\nret\n"
+        "push true\ndup\ngit or_lbl1\npop\npush false\nor_lbl1:\nret\n"
     end
   
     it "compiles not" do
       compile [:not, [:true]]
       @method.assembly.should == 
-        "push true\ngit lbl1\npush true\ngoto lbl2\nlbl1:\npush false\nlbl2:\nret\n"
+        "push true\ngit not_lbl1\npush true\ngoto not_lbl2\nnot_lbl1:\npush false\nnot_lbl2:\nret\n"
     end
   
     it "compiles a number literal" do
@@ -66,19 +66,19 @@ extension :rubinius do
     it "compiles if" do
       compile [:if, [:true], [:lit, 9], [:lit, 10]]
       @method.assembly.should == 
-        "push true\ngif lbl1\npush 9\ngoto lbl2\nlbl1:\npush 10\nlbl2:\nret\n"
+        "push true\ngif if_lbl1\npush 9\ngoto if_lbl2\nif_lbl1:\npush 10\nif_lbl2:\nret\n"
     end
   
     it "compiles if with no else" do
       compile [:if, [:true], [:lit, 9]]
       @method.assembly.should == 
-        "push true\ngif lbl1\npush 9\ngoto lbl2\nlbl1:\npush nil\nlbl2:\nret\n"
+        "push true\ngif if_lbl1\npush 9\ngoto if_lbl2\nif_lbl1:\npush nil\nif_lbl2:\nret\n"
     end
   
     it "compiles if with no then" do
       compile [:if, [:true], nil, [:lit, 10]]
       @method.assembly.should == 
-        "push true\ngit lbl1\npush 10\ngoto lbl2\nlbl1:\npush nil\nlbl2:\nret\n"
+        "push true\ngit if_lbl1\npush 10\ngoto if_lbl2\nif_lbl1:\npush nil\nif_lbl2:\nret\n"
     end
 
     it "compiles a block" do
@@ -93,24 +93,24 @@ extension :rubinius do
   
     it "compiles while" do
       compile [:while, [:true], [:lit, 10]]
-      @method.assembly.should == 
-         "lbl1:\npush true\ngif lbl2\nlbl3:\npush 10\npop\ngoto lbl1\nlbl2:\npush nil\nret\n"
+      @method.assembly.should ==
+        "next_lbl1:\npush true\ngif break_lbl2\nredo_lbl3:\npush 10\npop\ngoto next_lbl1\nbreak_lbl2:\npush nil\nret\n"
     end
   
     it "compiles until" do
       compile [:until, [:true], [:lit, 10]]
       @method.assembly.should == 
-        "lbl1:\npush true\ngit lbl2\nlbl3:\npush 10\npop\ngoto lbl1\nlbl2:\npush nil\nret\n"
+        "next_lbl1:\npush true\ngit break_lbl2\nredo_lbl3:\npush 10\npop\ngoto next_lbl1\nbreak_lbl2:\npush nil\nret\n"
     end
   
     it "compiles lasgn" do
       compile [:lasgn, :x, 8, [:false]]
-      @method.assembly.should == "push false\nset x:2\nret\n"
+      @method.assembly.should == "push false\nset_local_fp 1 ; local x\nret\n"
     end
   
     it "compiles lvar" do
       compile [:lvar, :x, 8]
-      @method.assembly.should == "push x:2\nret\n"
+      @method.assembly.should == "get_local_fp 1 ; local x\nret\n"
     end
   
     it "compiles an array literal" do
@@ -131,35 +131,34 @@ extension :rubinius do
     it "compiles a simple rescue" do
       compile [:rescue, [:true], [:resbody, nil, [:lit, 2], nil]]
       @method.assembly.should == 
-        "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
+        "rescue_lbl4:\n\#exc_start exc1\npush true\ngoto rescue_lbl2\n\#exceptions exc1\n" \
         "push_exception\npush StandardError\nsend === 1\n" \
-        "gif lbl3\npush 2\ngoto lbl2\nlbl3:\npush_exception\nraise_exc\n" \
-        "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
+        "gif rescue_lbl3\npush 2\ngoto rescue_lbl2\nrescue_lbl3:\n" \
+        "push_exception\nraise_exc\nrescue_lbl2:\nclear_exception\n\#exc_end exc1\nret\n"
     end
   
     it "compiles rescue with two resbodies" do
       compile [:rescue, [:true], [:resbody, nil, [:lit, 2], [:resbody, nil, [:lit, 3]]]]
       @method.assembly.should == 
-        "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
+        "rescue_lbl4:\n\#exc_start exc1\npush true\ngoto rescue_lbl2\n\#exceptions exc1\n" \
         "push_exception\npush StandardError\nsend === 1\n" \
-        "gif lbl5\npush 2\ngoto lbl2\n" \
-        "lbl5:\npush_exception\npush StandardError\nsend === 1\n" \
-        "gif lbl3\npush 3\ngoto lbl2\n" \
-        "lbl3:\npush_exception\nraise_exc\n" \
-        "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
+        "gif resbody_lbl5\npush 2\ngoto rescue_lbl2\n" \
+        "resbody_lbl5:\npush_exception\npush StandardError\nsend === 1\n" \
+        "gif rescue_lbl3\npush 3\ngoto rescue_lbl2\nrescue_lbl3:\n" \
+        "push_exception\nraise_exc\nrescue_lbl2:\nclear_exception\n\#exc_end exc1\nret\n"
     end
   
     it "compiles rescue with multiple classes" do
       compile [:rescue, [:true], [:resbody, 
         [:array, [:const, :Blah], [:const, :Bleh]], [:lit, 4]]]
       @method.assembly.should == 
-        "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
+        "rescue_lbl4:\n\#exc_start exc1\npush true\ngoto rescue_lbl2\n\#exceptions exc1\n" \
         "push_exception\npush Blah\nsend === 1\n" \
-        "git lbl5\npush_exception\npush Bleh\nsend === 1\n" \
-        "gif lbl3\n" \
-        "lbl5:\npush 4\ngoto lbl2\n" \
-        "lbl3:\npush_exception\nraise_exc\n" \
-        "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
+        "git resbody_lbl5\npush_exception\npush Bleh\nsend === 1\n" \
+        "gif rescue_lbl3\n" \
+        "resbody_lbl5:\npush 4\ngoto rescue_lbl2\n" \
+        "rescue_lbl3:\npush_exception\nraise_exc\n" \
+        "rescue_lbl2:\nclear_exception\n\#exc_end exc1\nret\n"
     end
   
     it "compiles argscat" do
@@ -224,7 +223,7 @@ extension :rubinius do
   
     it "compiles a hash literal" do
       compile [:hash, [:lit, 1], [:lit, 2], [:lit, 3], [:lit, 4]]
-      @method.assembly.should == "push 4\npush 3\npush 2\npush 1\nmake_hash 4\nret\n"
+      @method.assembly.should == "push 2\npush 1\npush 4\npush 3\nmake_hash 4\nret\n"
     end
   
     it "compiles colon2" do
@@ -257,7 +256,7 @@ extension :rubinius do
       @method.assembly.should == 
         "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n" \
         "attach __class_init__\npop\nsend __class_init__\n" \
-        "pop\npush_encloser\npush nil\nret\n"
+        "push_encloser\nret\n"
       m = @method.literals.first
       m.kind_of?(Bytecode::MethodDescription).should == true
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -265,10 +264,11 @@ extension :rubinius do
   
     it "compiles class with sugar" do
       compile [:class, [:colon2, :Blah], [:colon2, [:const, :A], :B], [:scope, [:true]]]
-      @method.assembly.should == "push A\nfind B\n" \
+      @method.assembly.should == 
+        "push A\nfind B\n" \
         "open_class Blah\ndup\npush_literal 0\nswap\n" \
         "attach __class_init__\npop\nsend __class_init__\n" \
-        "pop\npush_encloser\npush nil\nret\n"
+        "push_encloser\nret\n"
       m = @method.literals.first
       m.kind_of?(Bytecode::MethodDescription).should == true
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -278,8 +278,7 @@ extension :rubinius do
       compile [:class, [:colon2, [:const, :A], :Blah], nil, [:scope, [:true]]]
       @method.assembly.should == 
         "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n" \
-        "attach __class_init__\npop\nsend __class_init__\n" \
-        "pop\npush_encloser\npush nil\nret\n"
+        "attach __class_init__\npop\nsend __class_init__\npush_encloser\nret\n"
       m = @method.literals.first
       m.kind_of?(Bytecode::MethodDescription).should == true
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -290,7 +289,7 @@ extension :rubinius do
       @method.assembly.should == 
         "open_module A\ndup\npush_literal 0\nswap\n" \
         "attach __module_init__\npop\nsend __module_init__\n" \
-        "pop\npush_encloser\npush nil\nret\n"
+        "pop\npush self\npush_encloser\nret\n"
       m = @method.literals.first
       m.kind_of?(Bytecode::MethodDescription).should == true
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -301,7 +300,7 @@ extension :rubinius do
       @method.assembly.should == 
         "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n" \
         "attach __module_init__\npop\nsend __module_init__\n" \
-        "pop\npush_encloser\npush nil\nret\n"
+        "pop\npush self\npush_encloser\nret\n"
       m = @method.literals.first
       m.kind_of?(Bytecode::MethodDescription).should == true
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
@@ -314,7 +313,12 @@ extension :rubinius do
   
     it "compiles ensure" do
       compile [:ensure, [:lit, 10], [:lit, 11]]
-      @method.assembly.should == "#exc_start exc1\npush 10\n#exceptions exc1\npush_exception\n#exc_start exc2\npush 11\npop\ngoto lbl3\n#exceptions exc2\ngit lbl4\npop\nlbl4:\npush_exception\nlbl3:\n#exc_end exc2\ndup\ngif lbl5\nraise_exc\nlbl5:\npop\n#exc_end exc1\nret\n"
+      @method.assembly.should == 
+        "\#exc_start exc1\npush 10\n\#exceptions exc1\npush_exception\n" \
+        "\#exc_start exc2\npush 11\npop\ngoto ensure_lbl3\n\#exceptions exc2\n" \
+        "git ensure_lbl4\npop\nensure_lbl4:\npush_exception\n" \
+        "ensure_lbl3:\n\#exc_end exc2\ndup\ngif ensure_lbl5\nraise_exc\n" \
+        "ensure_lbl5:\npop\n\#exc_end exc1\nret\n"
     end
   
     it "compiles defn" do
@@ -326,8 +330,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == 
-        "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
+      defn.assembly.should == "check_argcount 2 2\npush true\nret\n"
     end
   
     it "compiles defn with splat" do
@@ -340,7 +343,7 @@ extension :rubinius do
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
       defn.assembly.should == 
-        "check_argcount 2 0\nset a:2\npop\nset b:3\npop\nmake_rest 2\nset c\npop\n" \
+        "check_argcount 2 0\nallocate_stack 1\nmake_rest_fp 2\nset_local_fp 1\npop\n" \
         "push true\nret\n"
     end
   
@@ -355,9 +358,10 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 1 2\n" \
-        "set a:2\npop\npassed_arg 1\ngit set1\npush 9\n" \
-        "set1:\nset b:3\npop\npush false\npop\npush true\nret\n"
+      defn.assembly.should == 
+        "check_argcount 1 2\npassed_arg 1\ngit set_lbl1\npush 9\n" \
+        "set b:0\npop\ngoto set_lbl2\nset_lbl1: set_local_from_fp 0 1\n" \
+        "set_lbl2:\npush false\npop\npush true\nret\n"
     end
   
     it "compiles defn with block arg" do
@@ -372,9 +376,10 @@ extension :rubinius do
         "push_literal 0\npush_self\nadd_method blah\nret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 0 0\n" \
-        "push_block\npush Proc\nsend from_environment 1\nset b:2" \
-        "\npop\npush true\nret\n"
+      defn.assembly.should == 
+        "check_argcount 0 0\n" \
+        "allocate_stack 1\npush_block\npush Proc\nsend from_environment 1\nset_local_fp 1\n" \
+        "pop\npush true\nret\n"
     end
   
     it "compiles defn with primitive" do
@@ -387,7 +392,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
+      defn.assembly.should == "check_argcount 2 2\npush true\nret\n"
       defn.primitive.should == :at
     end
   
@@ -401,7 +406,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\npop\npush self\nret\n"
+      defn.assembly.should == "check_argcount 2 2\npush true\npop\npush self\nret\n"
     end
   
     it "compiles defs" do
@@ -421,10 +426,11 @@ extension :rubinius do
         [:array, [:lasgn, :a, 2], [:lasgn, :b, 3], [:lasgn, :c, 4]],
         nil,
         [:to_ary, [:lit, 8]]]
-      @method.assembly.should == "push 8\ncast_tuple\n" \
-        "unshift_tuple\nset a:2\npop\n" \
-        "unshift_tuple\nset b:3\npop\n" \
-        "unshift_tuple\nset c:4\npop\npop\npush true\nret\n"
+      @method.assembly.should == 
+        "push 8\ncast_tuple\ndup\n" \
+        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 1 ; local b\npop\n" \
+        "unshift_tuple\nset_local_fp 3 ; local c\npop\npop\ncast_array\nret\n"
     end
   
     it "compiles masgn with splat" do
@@ -432,10 +438,11 @@ extension :rubinius do
         [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
         [:lasgn, :c, 4],
         [:to_ary, [:lit, 8]]]
-      @method.assembly.should == "push 8\ncast_tuple\n" \
-        "unshift_tuple\nset a:2\npop\n" \
-        "unshift_tuple\nset b:3\npop\n" \
-        "cast_array\nset c:4\npop\npop\npush true\nret\n"
+      @method.assembly.should == 
+        "push 8\ncast_tuple\ndup\n" \
+        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 1 ; local b\npop\n" \
+        "cast_array\nset_local_fp 3 ; local c\npop\ncast_array\nret\n"
     end
   
     it "compiles masgn with array as the source" do
@@ -444,7 +451,7 @@ extension :rubinius do
        nil,
        [:array, [:lit, 99], [:lit, 8]]]
      
-      @method.assembly.should == "push 8\npush 99\nset a:2\npop\nset b:3\npop\npush true\nret\n"
+      @method.assembly.should == "push 8\npush 99\nset_local_fp 2 ; local a\npop\nset_local_fp 1 ; local b\npop\npush true\nret\n"
     end
   
     # TODO - Add correct asm expectation, remove should_raise
@@ -484,17 +491,17 @@ extension :rubinius do
   
     it "compiles block pass" do
       compile [:block_pass, [:lit, 10], [:fcall, :d, [:array, [:lit, 9]]]]
-      @method.assembly.should == "push 9\npush 10\npush self\n&send d 1\nlbl1:\nret\n"
+      @method.assembly.should == "push 9\npush 10\npush self\nset_call_flags 1\n&send d 1\nps_lbl1:\nret\n"
     end
   
     it "compiles iter" do
       compile [:iter, [:fcall, :m], [:lasgn, :a, 0], [:block, [:dasgn_curr, :a], 
         [:true], [:fcall, :p, [:array, [:lit, 2]] ] ] ]
-      @method.assembly.should == "push &lbl1\npush &lbl2\ncreate_block 1\ngoto lbl3\n" \
-      "unshift_tuple\nset a:0:0\npop\nlbl4:\npush true\npop\npush 2\n" \
-      "push self\nset_call_flags 1\n" \
-      "send p 1\nlbl2: soft_return\nlbl3:\npush self\n" \
-      "set_call_flags 1\n&send m 0\nlbl1:\nret\n"
+      @method.assembly.should == 
+        "push &ps_lbl1\npush &iter_lbl2\ncreate_block 1\ngoto iter_lbl3\n" \
+        "unshift_tuple\nset a:0:0\npop\npop\nredo_lbl4:\npush true\npop\npush 2\n" \
+        "push self\nset_call_flags 1\nsend p 1\niter_lbl2: soft_return\niter_lbl3:\n" \
+        "push self\nset_call_flags 1\n&send m 0\nps_lbl1:\nret\n"
     end
   
     it "compiles a string literal" do
@@ -536,15 +543,16 @@ extension :rubinius do
       cls.kind_of?(Bytecode::MethodDescription).should == true
       defn = cls.literals.last
       defn.assembly.should == 
-        "check_argcount 0 1\npassed_arg 0\ngit set1\npush 10\nset1:\nset base:2\n" \
-        "pop\npush base:2\npush self\nsend based_to_s 1\nret\n"
+        "check_argcount 0 1\npassed_arg 0\ngit set_lbl1\npush 10\nset base:0\npop\n" \
+        "goto set_lbl2\nset_lbl1: set_local_from_fp 0 0\nset_lbl2:\npush base:0\npush self\n" \
+        "set_call_flags 1\nsend based_to_s 1\nret\n"
     end
   
     it "compiles a simple case" do
       compile [:case, [:lit, 1], [[:when, [:array, [:const, :String]], [:lit, 9]]]]
       @method.assembly.should == 
-        "push 1\ndup\npush String\nsend === 1\ngif lbl1\n" \
-        "push 9\nlbl1:\nswap\npop\nret\n"
+        "push 1\ndup\npush String\nsend === 1\ngif case_lbl1\n" \
+        "push 9\ncase_lbl1:\npush nil\ncase_lbl2:\nswap\npop\nret\n"
     end
   
     it "compiles a case with many when" do
@@ -553,19 +561,18 @@ extension :rubinius do
               [:when, [:array, [:const, :Blah]], [:lit, 3423]]
               ]]
       @method.assembly.should == 
-        "push 1\ndup\npush String\nsend === 1\ngit lbl3\n" \
-        "dup\npush Fixnum\nsend === 1\ngif lbl1\n" \
-        "lbl3:\npush 9\ngoto lbl2\nlbl1:\n" \
-        "dup\npush Blah\nsend === 1\ngif lbl2\n" \
-        "push 3423\nlbl2:\nswap\npop\nret\n"
+        "push 1\ndup\npush String\nsend === 1\ngit when_lbl4\n" \
+        "dup\npush Fixnum\nsend === 1\ngif case_lbl1\n" \
+        "when_lbl4:\npush 9\ngoto case_lbl3\ncase_lbl1:\ndup\npush Blah\nsend === 1\n" \
+        "gif case_lbl2\npush 3423\ngoto case_lbl3\ncase_lbl2:\npush nil\ncase_lbl3:\nswap\npop\nret\n"
     end
   
     it "compiles case with else" do
       compile [:case, [:lit, 1], [[:when, [:array, [:const, :String]], 
         [:lit, 9]]], [:lit, 10]]
       @method.assembly.should == 
-        "push 1\ndup\npush String\nsend === 1\ngif lbl1\n" \
-        "push 9\ngoto lbl2\nlbl1:\npush 10\nlbl2:\nswap\npop\nret\n"
+        "push 1\ndup\npush String\nsend === 1\ngif case_lbl1\n" \
+        "push 9\ngoto case_lbl2\ncase_lbl1:\npush 10\ncase_lbl2:\nswap\npop\nret\n"
     end
   
     it "compiles case with else and multiple when" do
@@ -574,13 +581,13 @@ extension :rubinius do
               [:when, [:array, [:const, :Blah], [:const, :Go]], [:lit, 3423]]
               ], [:lit, 632]]
       @method.assembly.should == 
-        "push 1\ndup\npush String\nsend === 1\ngit lbl4\n" \
-        "dup\npush Fixnum\nsend === 1\ngif lbl1\n" \
-        "lbl4:\npush 9\ngoto lbl3\nlbl1:\n" \
-        "dup\npush Blah\nsend === 1\ngit lbl5\n" \
-        "dup\npush Go\nsend === 1\ngif lbl2\n" \
-        "lbl5:\npush 3423\ngoto lbl3\nlbl2:\npush 632\n" \
-        "lbl3:\nswap\npop\nret\n"
+        "push 1\ndup\npush String\nsend === 1\ngit when_lbl4\n" \
+        "dup\npush Fixnum\nsend === 1\ngif case_lbl1\n" \
+        "when_lbl4:\npush 9\ngoto case_lbl3\n" \
+        "case_lbl1:\ndup\npush Blah\nsend === 1\n" \
+        "git when_lbl5\ndup\npush Go\nsend === 1\ngif case_lbl2\n" \
+        "when_lbl5:\npush 3423\ngoto case_lbl3\ncase_lbl2:\npush 632\n" \
+        "case_lbl3:\nswap\npop\nret\n"
     end
   
     it "compiles dot2" do
