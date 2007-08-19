@@ -24,14 +24,20 @@ class File < IO
       f.close unless f.closed?
     end
   end
+  
+  def self.delete(*files)
+  end
     
-  def self.exists?(path)
+  def self.exist?(path)
     out = raw_stat(path)
     if Tuple === out
       return true
     else
       return false
     end
+  end
+  class << self
+    alias_method :exists?, :exist?
   end
   
   def self.file?(path)
@@ -197,10 +203,6 @@ class File < IO
 end
 
 class Dir
-  # module Foreign
-  #  attach_function nil, "getcwd", [:string, :int], :string
-  # end
-
   def self.glob(pattern, flags)
     Ruby.primitive :dir_glob
   end
@@ -215,7 +217,7 @@ class Dir
 
   def self.getwd
     buf = " " * 1024
-    Foreign.getcwd(buf, buf.length)
+    Platform::POSIX.getcwd(buf, buf.length)
   end
 
   class << self

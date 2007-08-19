@@ -18,7 +18,7 @@ module ModuleSpecs
   end
 
   module SuperModule
-    include BasicModule
+    # include BasicModule
     
     def public_super_module() end
     protected
@@ -28,7 +28,7 @@ module ModuleSpecs
   end
     
   class Child < Parent
-    include SuperModule
+    # include SuperModule
     
     def public_child() end
     protected
