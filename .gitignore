@@ -45,6 +45,7 @@ shotgun/config.h
 shotgun/.libs
 shotgun/config.mk
 shotgun/lib/librubinius.*
+shotgun/lib/librubinius-*
 
 shotgun/external_libs/cinvoke/Makefile
 shotgun/external_libs/cinvoke/lib/Makefile
