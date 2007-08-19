@@ -1,0 +1,47 @@
+#! /usr/bin/env ruby
+#
+# ci - continuous integration tool
+#
+
+require 'optparse'
+
+module CI
+  VERSION = '0.0.1'
+end
+
+action = :create
+patterns = []
+
+opts = OptionParser.new("", 24, '   ') do |opts|
+  opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
+  opts.separator ""
+
+  opts.on("-c", "--create", "Create the exclude file for failing specs") do
+    action = :create
+  end
+  opts.on("-r", "--run", "Run the specs excluding the expected failures") do
+    action = :run
+  end
+  opts.on("-u", "--update", "Remove passing specs from the exclude file") do
+    action = :update
+  end
+  opts.on("-v", "--version", "Show version") do
+    puts "Continuous Integration Tool #{CI::VERSION}"
+    exit
+  end
+  opts.on("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  patterns = opts.parse ARGV
+end
+
+patterns << 'spec' if patterns.empty?
+files = []
+patterns.each do |item|
+  stat = File.stat(File.expand_path(item))
+  files << item if stat.file?
+  files.concat(Dir[item+"/**/*_spec.rb"]) if stat.directory?
+end
+
