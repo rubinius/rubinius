@@ -13,122 +13,122 @@ extension :rubinius do
       @method = @compiler.compile_as_method(sexp, :test)
     end
   
-    it "should compile the sexpression to a method" do
+    it "compiles the sexpression to a method" do
       compile [:and, [:true], [:false]]
       @method.kind_of?(Bytecode::MethodDescription).should == true
       @method.name.should == :test
       @method.assembly.kind_of?(String).should == true
     end
   
-    it "should compile true" do
+    it "compiles true" do
       compile [:true]
       @method.assembly.should == "push true\nret\n"
     end
   
-    it "should compile false" do
+    it "compiles false" do
       compile [:false]
       @method.assembly.should == "push false\nret\n"
     end
   
-    it "should compile nil" do
+    it "compiles nil" do
       compile [:nil]
       @method.assembly.should == "push nil\nret\n"
     end
   
-    it "should compile or" do
+    it "compiles or" do
       compile [:or, [:true], [:false]]
       @method.assembly.should == 
         "push true\ndup\ngit lbl1\npop\npush false\nlbl1:\nret\n"
     end
   
-    it "should compile not" do
+    it "compiles not" do
       compile [:not, [:true]]
       @method.assembly.should == 
         "push true\ngit lbl1\npush true\ngoto lbl2\nlbl1:\npush false\nlbl2:\nret\n"
     end
   
-    it "should compile a number literal" do
+    it "compiles a number literal" do
       compile [:lit, 9]
       @method.assembly.should == "push 9\nret\n"
     end
   
-    it "should compile a symbol literal" do
+    it "compiles a symbol literal" do
       compile [:lit, :blah]
       @method.assembly.should == "push_literal 0\nret\n"
     end
   
-    it "should compile a regexp literal" do
+    it "compiles a regexp literal" do
       compile [:lit, /hello/]
       @method.assembly.should == 
         "push 16\npush_literal 0\npush Regexp\nsend new 2\nret\n"
     end
   
-    it "should compile if" do
+    it "compiles if" do
       compile [:if, [:true], [:lit, 9], [:lit, 10]]
       @method.assembly.should == 
         "push true\ngif lbl1\npush 9\ngoto lbl2\nlbl1:\npush 10\nlbl2:\nret\n"
     end
   
-    it "should compile if with no else" do
+    it "compiles if with no else" do
       compile [:if, [:true], [:lit, 9]]
       @method.assembly.should == 
         "push true\ngif lbl1\npush 9\ngoto lbl2\nlbl1:\npush nil\nlbl2:\nret\n"
     end
   
-    it "should compile if with no then" do
+    it "compiles if with no then" do
       compile [:if, [:true], nil, [:lit, 10]]
       @method.assembly.should == 
         "push true\ngit lbl1\npush 10\ngoto lbl2\nlbl1:\npush nil\nlbl2:\nret\n"
     end
 
-    it "should compile a block" do
+    it "compiles a block" do
       compile [:block, [:true], [:lit, 11]]
       @method.assembly.should == "push true\npop\npush 11\nret\n"
     end
   
-    it "should compile scope" do
+    it "compiles scope" do
       compile [:scope, [:true]]
       @method.assembly.should == "push true\nret\n"
     end
   
-    it "should compile while" do
+    it "compiles while" do
       compile [:while, [:true], [:lit, 10]]
       @method.assembly.should == 
          "lbl1:\npush true\ngif lbl2\nlbl3:\npush 10\npop\ngoto lbl1\nlbl2:\npush nil\nret\n"
     end
   
-    it "should compile until" do
+    it "compiles until" do
       compile [:until, [:true], [:lit, 10]]
       @method.assembly.should == 
         "lbl1:\npush true\ngit lbl2\nlbl3:\npush 10\npop\ngoto lbl1\nlbl2:\npush nil\nret\n"
     end
   
-    it "should compile lasgn" do
+    it "compiles lasgn" do
       compile [:lasgn, :x, 8, [:false]]
       @method.assembly.should == "push false\nset x:2\nret\n"
     end
   
-    it "should compile lvar" do
+    it "compiles lvar" do
       compile [:lvar, :x, 8]
       @method.assembly.should == "push x:2\nret\n"
     end
   
-    it "should compile an array literal" do
+    it "compiles an array literal" do
       compile [:array, [:lit, 99]]
       @method.assembly.should == "push 99\nmake_array 1\nret\n"
     end
   
-    it "should compile zarray" do
+    it "compiles zarray" do
       compile [:zarray]
       @method.assembly.should == "make_array 0\nret\n"
     end
   
-    it "should compile to_ary" do
+    it "compiles to_ary" do
       compile [:to_ary, [:lit, 8]]
       @method.assembly.should == "push 8\ncast_array\nret\n"
     end
   
-    it "should compile a simple rescue" do
+    it "compiles a simple rescue" do
       compile [:rescue, [:true], [:resbody, nil, [:lit, 2], nil]]
       @method.assembly.should == 
         "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
@@ -137,7 +137,7 @@ extension :rubinius do
         "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
     end
   
-    it "should compile rescue with two resbodies" do
+    it "compiles rescue with two resbodies" do
       compile [:rescue, [:true], [:resbody, nil, [:lit, 2], [:resbody, nil, [:lit, 3]]]]
       @method.assembly.should == 
         "lbl4:\n#exc_start exc1\npush true\ngoto lbl2\n#exceptions exc1\n" \
@@ -149,7 +149,7 @@ extension :rubinius do
         "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
     end
   
-    it "should compile rescue with multiple classes" do
+    it "compiles rescue with multiple classes" do
       compile [:rescue, [:true], [:resbody, 
         [:array, [:const, :Blah], [:const, :Bleh]], [:lit, 4]]]
       @method.assembly.should == 
@@ -162,45 +162,45 @@ extension :rubinius do
         "lbl2:\nclear_exception\n#exc_end exc1\nret\n"
     end
   
-    it "should compile argscat" do
+    it "compiles argscat" do
       compile [:argscat, [:array, [:lit, 1], [:lit, 2]], [:lit, 99]]
       @method.assembly.should == "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nret\n"
     end
   
-    it "should compile call with argscat" do
+    it "compiles call with argscat" do
       compile [:call, [:self], :b, [:argscat, [:array, [:lit, 1], [:lit, 2]], [:lit, 99]]]
       @method.assembly.should == 
         "push 99\ncast_array_for_args 2\npush_array\npush 2\npush 1\nget_args\npush nil\n" \
         "swap\npush self\nswap\nset_args\nsend b +\nret\n"
     end
 
-    it "should compile call with argscat and newline" do
+    it "compiles call with argscat and newline" do
       compile [:call, [:const, :Hash], :[], [:newline, 1, "(eval)", [:argscat, [:array, [:lit, 1], [:lit, 2]]]]]
       @method.assembly.should == "cast_array_for_args 2\npush_array\npush 2\npush 1\nget_args\npush nil\nswap\npush Hash\nswap\nset_args\nsend [] +\nret\n"
     end
   
-    it "should compile yield" do
+    it "compiles yield" do
       compile [:yield, [:array, [:lit, 1], [:lit, 2]], false]
       @method.assembly.should == 
         "push 2\npush 1\npush_block\nsend call 2\nret\n"
     end
 
-    it "should compile yield with a splat" do
+    it "compiles yield with a splat" do
       compile [:yield, [:splat, [:array, [:lit, 5], [:lit, 6]]], true]
       @method.assembly.should == "push 5\npush 6\nmake_array 2\ncast_array_for_args 0\npush_array\nget_args\npush_block\nsend call +\nret\n"
     end
   
-    it "should compile ivar" do
+    it "compiles ivar" do
       compile [:ivar, :@blah]
       @method.assembly.should == "push @blah\nret\n"
     end
   
-    it "should compile iasgn" do
+    it "compiles iasgn" do
       compile [:iasgn, :@blah, [:lit, 99]]
       @method.assembly.should == "push 99\nset @blah\nret\n"
     end
   
-    it "should compile ivar_as_index" do
+    it "compiles ivar_as_index" do
       compile [:class, [:colon2, :B], nil, 
         [:scope, [:block,
           [:fcall, :ivar_as_index, [:array, 
@@ -222,37 +222,37 @@ extension :rubinius do
          "check_argcount 0 0\npush_my_field 1\npop\npush 11\nstore_my_field 1\nret\n"
     end
   
-    it "should compile a hash literal" do
+    it "compiles a hash literal" do
       compile [:hash, [:lit, 1], [:lit, 2], [:lit, 3], [:lit, 4]]
       @method.assembly.should == "push 4\npush 3\npush 2\npush 1\nmake_hash 4\nret\n"
     end
   
-    it "should compile colon2" do
+    it "compiles colon2" do
       compile [:colon2, [:const, :B], :A]
       @method.assembly.should == "push B\nfind A\nret\n"
     end
   
-    it "should compile colon3" do
+    it "compiles colon3" do
       compile [:colon3, :A]
       @method.assembly.should == "push_cpath_top\nfind A\nret\n"
     end
   
-    it "should compile const" do
+    it "compiles const" do
       compile [:const, :A]
       @method.assembly.should == "push A\nret\n"
     end
   
-    it "should compile cdecl" do
+    it "compiles cdecl" do
       compile [:cdecl, :Blah, [:lit, 8], nil]
       @method.assembly.should == "push 8\nset Blah\nret\n"
     end
   
-    it "should compile cdecl with path" do
+    it "compiles cdecl with path" do
       compile [:cdecl, nil, [:lit, 8], [:colon2, [:const, :A], :Blah]]
       @method.assembly.should == "push A\npush 8\nset +Blah\nret\n"
     end
   
-    it "should compile class" do
+    it "compiles class" do
       compile [:class, [:colon2, :Blah], nil, [:scope, [:true]]]
       @method.assembly.should == 
         "push nil\nopen_class Blah\ndup\npush_literal 0\nswap\n" \
@@ -263,7 +263,7 @@ extension :rubinius do
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
     end
   
-    it "should compile class with sugar" do
+    it "compiles class with sugar" do
       compile [:class, [:colon2, :Blah], [:colon2, [:const, :A], :B], [:scope, [:true]]]
       @method.assembly.should == "push A\nfind B\n" \
         "open_class Blah\ndup\npush_literal 0\nswap\n" \
@@ -274,7 +274,7 @@ extension :rubinius do
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
     end
   
-    it "should compile class at cpath" do
+    it "compiles class at cpath" do
       compile [:class, [:colon2, [:const, :A], :Blah], nil, [:scope, [:true]]]
       @method.assembly.should == 
         "push A\npush nil\nopen_class_under Blah\ndup\npush_literal 0\nswap\n" \
@@ -285,7 +285,7 @@ extension :rubinius do
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
     end
   
-    it "should compile module" do
+    it "compiles module" do
       compile [:module, [:colon2, :A], [:scope, [:true]]]
       @method.assembly.should == 
         "open_module A\ndup\npush_literal 0\nswap\n" \
@@ -296,7 +296,7 @@ extension :rubinius do
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
     end
   
-    it "should compile module at cpath" do
+    it "compiles module at cpath" do
       compile [:module, [:colon2, [:const, :B], :A], [:scope, [:true]]]
       @method.assembly.should == 
         "push B\nopen_module_under A\ndup\npush_literal 0\nswap\n" \
@@ -307,17 +307,17 @@ extension :rubinius do
       m.assembly.should == "push self\nset_encloser\npush true\nret\n"
     end
   
-    it "should compile return" do
+    it "compiles return" do
       compile [:return, [:lit, 8]]
       @method.assembly.should == "push 8\nret\nret\n"
     end
   
-    it "should compile ensure" do
+    it "compiles ensure" do
       compile [:ensure, [:lit, 10], [:lit, 11]]
       @method.assembly.should == "#exc_start exc1\npush 10\n#exceptions exc1\npush_exception\n#exc_start exc2\npush 11\npop\ngoto lbl3\n#exceptions exc2\ngit lbl4\npop\nlbl4:\npush_exception\nlbl3:\n#exc_end exc2\ndup\ngif lbl5\nraise_exc\nlbl5:\npop\n#exc_end exc1\nret\n"
     end
   
-    it "should compile defn" do
+    it "compiles defn" do
       compile [:defn, :blah, [:scope, [:block,
           [:args, [:a, :b], [], nil, nil],
           [:true]],
@@ -330,7 +330,7 @@ extension :rubinius do
         "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\nret\n"
     end
   
-    it "should compile defn with splat" do
+    it "compiles defn with splat" do
       compile [:defn, :blah, [:scope, [:block,
           [:args, [:a, :b], [], [:c, 4], nil],
           [:true]],
@@ -344,7 +344,7 @@ extension :rubinius do
         "push true\nret\n"
     end
   
-    it "should compile defn with default" do
+    it "compiles defn with default" do
       compile [:defn, :blah,
        [:scope,
         [:block,
@@ -360,7 +360,7 @@ extension :rubinius do
         "set1:\nset b:3\npop\npush false\npop\npush true\nret\n"
     end
   
-    it "should compile defn with block arg" do
+    it "compiles defn with block arg" do
       compile [:defn, :blah,
        [:scope,
         [:block,
@@ -377,7 +377,7 @@ extension :rubinius do
         "\npop\npush true\nret\n"
     end
   
-    it "should compile defn with primitive" do
+    it "compiles defn with primitive" do
       compile [:defn, :blah, [:scope, [:block,
           [:args, [:a, :b], [], nil, nil],
           [:call, [:const, :Ruby], :primitive, [:array, [:lit, :at]]],
@@ -391,7 +391,7 @@ extension :rubinius do
       defn.primitive.should == :at
     end
   
-    it "should compile defn with inline bytecodes" do
+    it "compiles defn with inline bytecodes" do
       compile [:defn, :blah, [:scope, [:block,
         [:args, [:a, :b], [], nil, nil],
         [:true],
@@ -404,7 +404,7 @@ extension :rubinius do
       defn.assembly.should == "check_argcount 2 2\nset a:2\npop\nset b:3\npop\npush true\npop\npush self\nret\n"
     end
   
-    it "should compile defs" do
+    it "compiles defs" do
       compile [:defs, [:const, :Object], :blah, [:scope, [:block,
           [:args, [:a, :b], [], nil, nil],
           [:true]],
@@ -416,7 +416,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush Object\nattach_method blah\nret\n"
     end
   
-    it "should compile masgn with no splat" do
+    it "compiles masgn with no splat" do
       compile [:masgn,
         [:array, [:lasgn, :a, 2], [:lasgn, :b, 3], [:lasgn, :c, 4]],
         nil,
@@ -427,7 +427,7 @@ extension :rubinius do
         "unshift_tuple\nset c:4\npop\npop\npush true\nret\n"
     end
   
-    it "should compile masgn with splat" do
+    it "compiles masgn with splat" do
       compile [:masgn,
         [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
         [:lasgn, :c, 4],
@@ -438,7 +438,7 @@ extension :rubinius do
         "cast_array\nset c:4\npop\npop\npush true\nret\n"
     end
   
-    it "should compile masgn with array as the source" do
+    it "compiles masgn with array as the source" do
       compile [:masgn,
        [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
        nil,
@@ -448,7 +448,7 @@ extension :rubinius do
     end
   
     # TODO - Add correct asm expectation, remove should_raise
-    it "should compile masgn with array as the source and too many lhs" do
+    it "compiles masgn with array as the source and too many lhs" do
       should_raise(RuntimeError) {
         compile [:masgn,
          [:array, [:lasgn, :a, 2], [:lasgn, :b, 3], [:lasgn, :c, 4]],
@@ -458,7 +458,7 @@ extension :rubinius do
     end
   
     # TODO - Add correct asm expectation, remove should_raise
-    it "should compile masgn with array as the source and too many rhs" do
+    it "compiles masgn with array as the source and too many rhs" do
       should_raise(RuntimeError) {
         compile [:masgn,
          [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
@@ -468,7 +468,7 @@ extension :rubinius do
     end
   
     # TODO - Add correct asm expectation, remove should_raise
-    it "should compile masgn with array as source splat is stupid" do
+    it "compiles masgn with array as source splat is stupid" do
       should_raise(RuntimeError) {
         compile [:masgn,
          [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
@@ -477,17 +477,17 @@ extension :rubinius do
       }
     end
   
-    it "should compile call" do
+    it "compiles call" do
       compile [:call, [:self], :b, [:array, [:lit, 1], [:lit, 2]]]
       @method.assembly.should == "push 2\npush 1\npush self\nsend b 2\nret\n"
     end
   
-    it "should compile block pass" do
+    it "compiles block pass" do
       compile [:block_pass, [:lit, 10], [:fcall, :d, [:array, [:lit, 9]]]]
       @method.assembly.should == "push 9\npush 10\npush self\n&send d 1\nlbl1:\nret\n"
     end
   
-    it "should compile iter" do
+    it "compiles iter" do
       compile [:iter, [:fcall, :m], [:lasgn, :a, 0], [:block, [:dasgn_curr, :a], 
         [:true], [:fcall, :p, [:array, [:lit, 2]] ] ] ]
       @method.assembly.should == "push &lbl1\npush &lbl2\ncreate_block 1\ngoto lbl3\n" \
@@ -497,12 +497,12 @@ extension :rubinius do
       "set_call_flags 1\n&send m 0\nlbl1:\nret\n"
     end
   
-    it "should compile a string literal" do
+    it "compiles a string literal" do
       compile [:str, "blah"]
       @method.assembly.should == "push_literal 0\nstring_dup\nret\n"
     end
   
-    it "should compile dstr" do
+    it "compiles dstr" do
       compile [:dstr, "blah ", [:evstr, [:lit, 1]], [:str, " more "], [:evstr, [:lit, 2]]]
       @method.assembly.should == 
         "push 2\nsend to_s\npush_literal 0\nstring_dup\npush 1\n" \
@@ -511,13 +511,13 @@ extension :rubinius do
         "string_append\nret\n"
     end
   
-    it "should compile newline" do
+    it "compiles newline" do
       compile [:newline, 7, "blah.rb", [:true]]
       @method.assembly.should == "\#line 7\npush true\nret\n"
       @method.file.should == "blah.rb"
     end
   
-    it "should compile correct lvars" do
+    it "compiles correct lvars" do
       m1 = [:defn, :blah, [:scope, [:block, 
         [:args, [], [:fuck], nil, nil], [:true]], []]]
       m2 = [:defn, :to_s,
@@ -540,14 +540,14 @@ extension :rubinius do
         "pop\npush base:2\npush self\nsend based_to_s 1\nret\n"
     end
   
-    it "should compile a simple case" do
+    it "compiles a simple case" do
       compile [:case, [:lit, 1], [[:when, [:array, [:const, :String]], [:lit, 9]]]]
       @method.assembly.should == 
         "push 1\ndup\npush String\nsend === 1\ngif lbl1\n" \
         "push 9\nlbl1:\nswap\npop\nret\n"
     end
   
-    it "should compile a case with many when" do
+    it "compiles a case with many when" do
       compile [:case, [:lit, 1], [
               [:when, [:array, [:const, :String], [:const, :Fixnum]], [:lit, 9]],
               [:when, [:array, [:const, :Blah]], [:lit, 3423]]
@@ -560,7 +560,7 @@ extension :rubinius do
         "push 3423\nlbl2:\nswap\npop\nret\n"
     end
   
-    it "should compile case with else" do
+    it "compiles case with else" do
       compile [:case, [:lit, 1], [[:when, [:array, [:const, :String]], 
         [:lit, 9]]], [:lit, 10]]
       @method.assembly.should == 
@@ -568,7 +568,7 @@ extension :rubinius do
         "push 9\ngoto lbl2\nlbl1:\npush 10\nlbl2:\nswap\npop\nret\n"
     end
   
-    it "should compile case with else and multiple when" do
+    it "compiles case with else and multiple when" do
       compile [:case, [:lit, 1], [
               [:when, [:array, [:const, :String], [:const, :Fixnum]], [:lit, 9]],
               [:when, [:array, [:const, :Blah], [:const, :Go]], [:lit, 3423]]
@@ -583,12 +583,12 @@ extension :rubinius do
         "lbl3:\nswap\npop\nret\n"
     end
   
-    it "should compile dot2" do
+    it "compiles dot2" do
       compile [:dot2, [:lit, 100], [:lit, 1]]
       @method.assembly.should == "push 1\npush 100\npush Range\nsend new 2\nret\n"
     end
   
-    it "should compile dot3" do
+    it "compiles dot3" do
       compile [:dot3, [:lit, 100], [:lit, 1]]
       @method.assembly.should == "push true\npush 1\npush 100\npush Range\nsend new 3\nret\n"
     end

@@ -74,6 +74,7 @@ end
 # spec tasks
 desc "Run continuous integration examples"
 task :spec => 'spec:ci'
+
 namespace :spec do
   namespace :setup do
     desc "Setup for subtend examples"
@@ -86,19 +87,9 @@ namespace :spec do
   
   desc "Run continuous integration examples"
   task :ci do
-    begin
-      stat = File.stat("CI-specs")
-      if stat.file?
-        raise "CI-specs is a file. Remove it to run CI specs"
-      elsif stat.directory?
-        sh "svn up CI-specs"
-      end
-    rescue
-      sh("svn co http://code.fallingsnow.net/svn/rubinius/branches/CI-specs")
-    end
     target = ENV['SPEC_TARGET'] || 'rbx'
     system %(shotgun/rubinius -e 'puts "rbx build: \#{Rubinius::BUILDREV}"') if target == 'rbx'
-    sh "bin/mspec -t #{target} -f ci CI-specs"
+    sh "bin/mspec -t #{target} -f ci -x spec/reports/ci-excludes.txt spec"
   end
 
   spec_targets = %w(compiler core language library parser rubinius)
@@ -112,7 +103,7 @@ namespace :spec do
 
   desc "Run subtend examples"
   task :subtend => "spec:setup:subtend" do
-    sh "bin/mspec spec/subtend"
+    sh "bin/mspec spec/rubinius/subtend"
   end
 
   # Specdiffs to make it easier to see what your changes have affected :)
@@ -122,14 +113,14 @@ namespace :spec do
   namespace :diff do
     desc 'Run specs and produce a diff against current base'
     task :run do
-      system 'bin/mspec spec > /tmp/rbs_specdiff' 
-      system 'diff -u spec/diffs/base.txt /tmp/rbs_specdiff'
-      system 'rm /tmp/rbs_specdiff'
+      system 'bin/mspec -f ci -o spec/reports/specdiff.txt spec' 
+      system 'diff -u spec/reports/base.txt spec/reports/specdiff.txt'
+      system 'rm spec/reports/specdiff.txt'
     end
 
     desc 'Replace the base spec file with a new one'
     task :replace do
-      system 'bin/mspec spec > spec/diffs/base.txt' 
+      system 'bin/mspec -f ci -o spec/reports/base.txt spec' 
     end
   end
 

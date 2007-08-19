@@ -78,7 +78,7 @@ class IO
     true
   end
   
-  def gets
+  def gets(sep=$/)
     cur = read(1)
     return nil unless cur
     out = cur
@@ -89,6 +89,12 @@ class IO
     end
     
     return out    
+  end
+  
+  def each(sep=$/)
+    while line = gets(sep)
+      yield line
+    end
   end
   
   def self.pipe

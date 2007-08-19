@@ -291,3 +291,181 @@ context "Kernel.rand()" do
     end
   end
 end
+
+describe "Kernel#instance_variable_get" do
+  it "returns the value of the instance variable" do
+    class Fred 
+      def initialize(p1, p2) 
+        @a, @b = p1, p2 
+      end 
+    end 
+    fred = Fred.new('cat', 99) 
+    fred.instance_variable_get(:@a).should == "cat"
+    fred.instance_variable_get("@b").should == 99
+
+    a = []
+    a.instance_variable_set(:@c, 1)
+    a.instance_variable_get(:@c).should == 1
+  end
+
+  it "returns nil if the instance variable does not exist" do
+    [].instance_variable_get(:@c).should == nil
+  end
+
+  it "raises NameError exception if the argument is not of form '@x'" do
+    class NoFred; end
+    should_raise(NameError) { NoFred.new.instance_variable_get(:c) }
+    should_raise(NameError) { [].instance_variable_get(:c) }
+  end
+end
+
+describe "Kernel#instance_variable_set" do
+  it "sets the value of the specified instance variable" do
+    class Dog
+      def initialize(p1, p2) 
+        @a, @b = p1, p2 
+      end 
+    end 
+    Dog.new('cat', 99).instance_variable_set(:@a, 'dog').should == "dog"
+  end
+
+  it "sets the value of the instance variable when no instance variables exist yet" do
+    class NoVariables; end
+    NoVariables.new.instance_variable_set(:@a, "new").should == "new"
+  end
+
+  it "raises NameError exception if the argument is not of form '@x'" do
+    class NoDog; end
+    should_raise(NameError) { NoDog.new.instance_variable_set(:c, "cat") }
+  end
+end
+
+describe "Array inherited instance method" do
+  it "instance_variable_get returns the value of the instance variable" do
+    a = []
+    a.instance_variable_set(:@c, 1)
+    a.instance_variable_get(:@c).should == 1
+  end
+
+  it "instance_variable_get returns nil if the instance variable does not exist" do
+    [].instance_variable_get(:@c).should == nil
+  end
+
+  it "instance_variable_get should raise NameError if the argument is not of form '@x'" do
+    should_raise(NameError) { [].instance_variable_get(:c) }
+  end
+end
+
+
+class KernelMethods
+  def self.ichi; end
+  def ni; end
+  class << self
+    def san; end
+  end
+  
+  private
+  
+  def self.shi; end
+  def juu_shi; end
+  
+  class << self
+    def roku; end
+
+    private
+    
+    def shichi; end
+  end
+  
+  protected
+  
+  def self.hachi; end
+  def ku; end
+  
+  class << self
+    def juu; end
+    
+    protected
+    
+    def juu_ichi; end
+  end
+  
+  public
+  
+  def self.juu_ni; end
+  def juu_san; end
+end
+
+describe "Kernel#methods" do
+  it "returns a list of the names of publicly accessible methods in the object" do
+    KernelMethods.methods(false).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    KernelMethods.new.methods(false).should == []
+  end
+  
+  it "returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules" do
+    (KernelMethods.methods(false) & KernelMethods.methods).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    m = KernelMethods.new.methods
+    m.should_include('ku')
+    m.should_include('ni')
+    m.should_include('juu_san')
+  end
+end
+
+describe "Kernel#singleton_methods" do
+  it "returns a list of the names of singleton methods in the object" do
+    KernelMethods.singleton_methods(false).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    KernelMethods.new.singleton_methods(false).should == []
+  end
+  
+  it "returns a list of the names of singleton methods in the object and its ancestors and mixed-in modules" do
+    (KernelMethods.singleton_methods(false) & KernelMethods.singleton_methods).sort.should ==
+      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
+    KernelMethods.new.singleton_methods.should == []
+  end
+end
+
+describe "Kernel#public_methods" do
+  it "returns a list of the names of publicly accessible methods in the object" do
+    KernelMethods.public_methods(false).sort.should == 
+      ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
+    KernelMethods.new.public_methods(false).sort.should == ["juu_san", "ni"]
+  end
+  
+  it "returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules" do
+    (KernelMethods.public_methods(false) & KernelMethods.public_methods).sort.should == 
+      ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
+    m = KernelMethods.new.public_methods
+    m.should_include('ni')
+    m.should_include('juu_san')
+  end
+end
+
+describe "Kernel#private_methods" do
+  it "returns a list of the names of privately accessible methods in the object" do
+    KernelMethods.private_methods(false).sort.should == 
+      ["inherited", "initialize", "initialize_copy", "shichi"]
+    KernelMethods.new.private_methods(false).sort.should == ["juu_shi"]
+  end
+  
+  it "returns a list of the names of privately accessible methods in the object and its ancestors and mixed-in modules" do
+    (KernelMethods.private_methods(false) & KernelMethods.private_methods).sort.should == 
+      ["inherited", "initialize", "initialize_copy", "shichi"]
+    m = KernelMethods.new.private_methods
+    m.should_include('juu_shi')
+  end
+end
+
+describe "Kernel#protected_methods" do
+  it "returns a list of the names of protected methods accessible in the object" do
+    KernelMethods.protected_methods(false).sort.should == ["juu_ichi"]
+    KernelMethods.new.protected_methods(false).should == ["ku"]
+  end
+  
+  it "returns a list of the names of protected methods accessible in the object and from its ancestors and mixed-in modules" do
+    (KernelMethods.protected_methods(false) & KernelMethods.protected_methods).sort.should == ["juu_ichi"]
+    KernelMethods.new.protected_methods.should_include('ku')
+  end
+end

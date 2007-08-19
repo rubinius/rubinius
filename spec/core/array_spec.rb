@@ -227,7 +227,7 @@ describe "Array#*" do
     ([ 1, 2, 3 ] * ",").should == [1, 2, 3].join(",")
   end
 
-  it "handles recursive arrays like join" do
+  it "handles recursive arrays like #join" do
     x = []
     x << x
     (x * ":").should == x.join(":")
@@ -3627,15 +3627,15 @@ describe "Array#pack" do
     [].pack('x').should == "\000"
   end
 
-  it "with count returns string of count zero chars with ('x')" do
+  it "returns string of count zero chars with count and ('x')" do
     [].pack('x5').should == "\000\000\000\000\000"
   end
 
-  it "with count = 0 returns empty string with ('x')" do
+  it "returns empty string with count == 0 and ('x')" do
     [].pack('x0').should == ""
   end
 
-  it "with star parameter behaves like with count = 0 with ('x')" do
+  it "behaves like with count == 0 with star parameter and ('x')" do
     [].pack('x*').should == ""
   end
 
@@ -3647,7 +3647,7 @@ describe "Array#pack" do
     ['abcde'].pack('Z3').should == 'abc'
   end
 
-  it "consider count = 1 if count omited with ('Z')" do
+  it "considers count = 1 if count omited with ('Z')" do
     ['abcde'].pack('Z').should == 'a'
   end
 

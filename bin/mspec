@@ -16,6 +16,7 @@ requires = ['-rmini_rspec.rb', '-rmini_mock.rb']
 except = []
 only = []
 name = nil
+output = nil
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
 
@@ -69,6 +70,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Overrides the name used to determine the implementation") do |n|
     name = "RUBY_NAME = \"#{n}\";"
   end
+  opts.on("-o", "--output FILE", String,
+          "Reporter output will be sent to FILE") do |f|
+    output = f
+  end
   opts.on("-e", "--example RE", String,
           "Execute example(s) with descriptions matching RE") do |r|
     only << r
@@ -104,7 +109,7 @@ end
 
 cmd = <<-EOC
 #{target} #{includes.join(" ")} #{requires.join(" ")} -e '#{name}
-@runner = SpecRunner.new(#{format}.new);
+@runner = SpecRunner.new(#{format}.new(#{output.inspect if output}));
 @runner.only(*#{only.inspect});
 @runner.except(*#{except.inspect});
 #{files.inspect}.each { |f| load f }'
