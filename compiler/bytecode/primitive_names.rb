@@ -38,7 +38,7 @@ module Bytecode
       :io_open,
       :process_exit,
       :io_close,
-      nil,
+      :object_equal,
       :activate_context,
       :context_sender,
       :micro_sleep,

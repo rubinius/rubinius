@@ -9,10 +9,6 @@ class Object
   
   ivar_as_index :__ivars__ => 0
   def __ivars__; @__ivars__ ; end
-    
-  def eql?(other)
-    object_id == other.object_id
-  end
 
   def initialize
   end
@@ -31,19 +27,14 @@ class Object
   
   alias :is_a? :kind_of?
   
-  
   def dup
     nw = self.class.allocate
     nw.copy_from(self, 0)
     return nw
   end
-  
-  def equal?(other)
-    object_id == other.object_id
-  end
-  
-  alias :==   :equal?
+    
   alias :eql? :equal?
+  alias :==   :equal?
   alias :===  :equal?
 
   def to_s

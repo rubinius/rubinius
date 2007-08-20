@@ -103,6 +103,8 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_private = symbol_from_cstr(state, "private");
   state->global->sym_protected = symbol_from_cstr(state, "protected");
   state->global->sym_const_missing = SYM("const_missing");
+  state->global->sym_object_id = SYM("object_id");
+  
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;
   c->current_task = cpu_thread_get_task(state, c->current_thread);

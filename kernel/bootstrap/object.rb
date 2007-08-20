@@ -27,6 +27,10 @@ class Object
     Ruby.primitive :hash_object
     raise PrimitiveFailure, "Object#hash failed."
   end
+
+  def equal?(other)
+    Ruby.primitive :object_equal
+  end
   
   def kind_of?(cls)
     Ruby.asm <<-ASM

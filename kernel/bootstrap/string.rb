@@ -30,5 +30,9 @@ class String
   def dup
     Ruby.asm "push self\nstring_dup\n"
   end
+
+  def to_s
+    self
+  end
   
 end

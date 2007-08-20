@@ -561,9 +561,6 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
     fast_memfill32(cur, 0, HEADER_SIZE + osz);
     // memset(cur, 0, bs);
     
-#ifdef XDEBUG
-    HEADER(cur)->object_id = g->num_collection;
-#endif
     cur += bs;
 
   }

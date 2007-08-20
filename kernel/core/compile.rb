@@ -102,8 +102,9 @@ module Kernel
       kinds.each do |filename|
         path = "#{dir}/#{filename}"
         return false if $".include?(path)
+        # puts "looking for #{filename} in #{dir}"
+        
         if dir.suffix?(".rba") and File.exists?(dir)
-          # puts "looking for #{filename} in #{dir}" #(#{Archive.list_files(dir).inspect})"
           cm = Archive.get_object(dir, filename, Rubinius::CompiledMethodVersion)
           if cm
             # puts "Found #{filename} in #{dir}"
@@ -113,11 +114,13 @@ module Kernel
           
         # Don't accidentally load non-extension files
         elsif File.exists?(path) && (path.suffix?(".rb") or path.suffix?(".rbc"))
+          # puts "Loading from disk directly."
           $" << path
           return load(path)
         elsif (load_result = VM.load_library(path, File.basename(path)))
           case load_result
           when true
+            # puts "Loaded as extension."
             $" << path
             return true
           when 1

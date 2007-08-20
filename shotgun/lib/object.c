@@ -176,8 +176,6 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   } else {
     if(ISA(self, state->global->string)) {
       hsh = string_hash_int(state, self);
-    } else if(HEADER(self)->hash != 0) {
-      hsh = HEADER(self)->hash;
     } else {
       hsh = object_get_id(state, self);
     }

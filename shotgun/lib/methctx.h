@@ -28,7 +28,6 @@ static inline void methctx_reference(STATE, OBJECT ctx) {
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
   HEADER(ctx)->gc = 0;
-  HEADER(ctx)->object_id = 0;
   GC_ZONE_SET(ctx, GC_YOUNG_OBJECTS);
   
   HEADER(ctx)->klass = state->global->fastctx;

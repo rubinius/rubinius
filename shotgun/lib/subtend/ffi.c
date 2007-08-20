@@ -885,6 +885,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
           arg_count--;
         } else {
           free(arg_types);
+          printf("Invalid arg types.\n");
           return Qnil;
         }
       }

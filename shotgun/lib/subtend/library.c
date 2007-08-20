@@ -72,7 +72,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
      the library isn't there. */
   lib = lt_dlopen(sys_name);
   if(!lib) {
-/*    printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror()); */
+    // printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror());
     /* No need to raise an exception, it's not there. */
     return I2N(0);
   }
@@ -85,7 +85,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   ep = (void (*)(void))lt_dlsym(lib, init);
   if(!ep) {
     /* TODO: raise an exception that the library is missing the function. */
-    ret = I2N(1);
+    return I2N(1);
   } else {
     nmc = nmc_new_standalone();
     
@@ -108,5 +108,5 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   
   subtend_set_context(state, c, NULL);
   
-  return ret;
+  return Qtrue;
 }

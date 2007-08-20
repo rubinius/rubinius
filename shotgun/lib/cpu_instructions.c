@@ -399,7 +399,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
   HEADER(ctx)->klass = Qnil;
   HEADER(ctx)->fields = FASTCTX_FIELDS;
-  HEADER(ctx)->object_id = 47;
   /*
   
   ctx = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);

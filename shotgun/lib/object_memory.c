@@ -533,8 +533,6 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   header = (struct rubinius_object*)obj;  
   header->flags2 = 0;
   header->gc = 0;
-  header->object_id = 0;
-  header->hash = 0;
   
   GC_ZONE_SET(obj, GC_MATURE_OBJECTS);
   
@@ -575,8 +573,6 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   header = (struct rubinius_object*)obj;
   header->flags2 = 0;
   header->gc = 0;
-  header->object_id = 0;
-  header->hash = 0;
   
   GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
   

@@ -33,12 +33,18 @@ void object_cleanup_weak_refs(STATE, OBJECT self);
 
 static inline uint32_t object_get_id(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
+    OBJECT meta, id;
+    
+    meta =  object_metaclass(state, self);
+    id =    object_get_ivar(state, meta, state->global->sym_object_id);
+                  
     /* Lazy allocate object's ids, since most don't need them. */
-    if(HEADER(self)->object_id == 0) {
-      HEADER(self)->object_id = state->om->last_object_id++;
+    if(NIL_P(id)) {
+      id = I2N(state->om->last_object_id++);
+      object_set_ivar(state, meta, state->global->sym_object_id, id);
     }
     
-    return HEADER(self)->object_id;
+    return id;
   } else {
     return (uint32_t)(self);
   }

@@ -128,10 +128,24 @@ class ShotgunPrimitives
   def equal(_ = fixnum, t1 = fixnum)
     <<-CODE
     /* No need to shift them to be longs, the comparison is the same. */
-    if(self == t1)
+    if(self == t1) {
       stack_push(Qtrue); 
-    else
+    } else {
       stack_push(Qfalse);
+    }
+    CODE
+  end
+  
+  def object_equal
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    
+    if(self == t1) {
+      stack_push(Qtrue); 
+    } else {
+      stack_push(Qfalse);
+    }
     CODE
   end
   
@@ -679,12 +693,7 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, REFERENCE);
     POP(t1, NUMERIC);
-    if(FIXNUM_P(t1)) {
-      HEADER(self)->hash = (uint32_t)FIXNUM_TO_INT(t1);
-    } else {
-      HEADER(self)->hash = (uint32_t)bignum_to_int(state, t1);
-    }
-    stack_push(UI2N(HEADER(self)->hash));
+    abort();
     CODE
   end
 
