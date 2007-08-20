@@ -138,7 +138,6 @@ void machine_gather_ppc_frames(ucontext_t *ctx, unsigned long *frames, int *coun
      * we want the current one. */
     frames[i] = pc - 4;
     
-    if(sp == (unsigned long)__main_address) break;
     /* The saved stack pointer is the first thing pushed
        on the stack by the caller. */
     sp = _mem_at(sp);
@@ -172,7 +171,6 @@ void machine_show_ppc_backtrace(ucontext_t *ctx) {
       fprintf(stdout, "%10p <%s+%d> at %s\n",
             (void*)sym, info.dli_sname, (int)offset, info.dli_fname);
       
-      if(sp == (unsigned long)__main_address) return;
       /* The saved stack pointer is the first thing pushed
          on the stack by the caller. */
       sp = _mem_at(sp);
@@ -206,7 +204,6 @@ void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *coun
      * we want the current one. */
     frames[i] = pc - 4;
     
-    if(sp == (unsigned long)__main_address) break;
     /* The saved stack pointer is the first thing on the stack at
        the current pointer. */
     sp = _mem_at(sp);

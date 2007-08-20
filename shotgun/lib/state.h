@@ -132,10 +132,6 @@ struct rubinius_state {
 #define FASTCTX_NORMAL 0
 #define FASTCTX_NMC    1
 
-// rubinius.h defines STATE as void*, which means these prototypes fail to match.
-// This is pretty confusing, since they look identical before the pre-processor runs.
-// HACK
-#ifdef __SHOTGUN__
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, const char *name);
 OBJECT rbs_class_new(STATE, const char *name, int fields, OBJECT obj);
@@ -147,8 +143,6 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj);
 const char *_inspect(OBJECT obj);
 OBJECT rbs_module_new(STATE, const char *name, OBJECT ns);
 OBJECT rbs_class_new_instance(STATE, OBJECT cls);
-
-#endif
 
 static inline long rbs_to_int(OBJECT obj) {
   return STRIP_TAG((long)obj);

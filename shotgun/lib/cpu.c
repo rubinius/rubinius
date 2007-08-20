@@ -14,8 +14,6 @@
 
 #define EXCESSIVE_TRACING state->excessive_tracing
 
-#include "rubinius.h"
-
 cpu cpu_new(STATE) {
   cpu c = (cpu)calloc(1, sizeof(struct rubinius_cpu));
   c->paths = g_ptr_array_new();

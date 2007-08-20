@@ -7,7 +7,6 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "rubinius.h"
 #include "subtend/ffi.h"
 
 #define BC(o) BASIC_CLASS(o)

@@ -1,5 +1,3 @@
-#define MAIN 1
-
 #include "shotgun.h"
 #include "machine.h"
 #include <sys/stat.h>
@@ -8,8 +6,6 @@
 
 #include "config.h"
 #include "subtend/ruby.h"
-
-void *__main_address;
 
 /* TODO incorporate system paths calculated at compile time. */
 static const char *search_path[] = {
@@ -49,11 +45,6 @@ int main(int argc, char **argv) {
   const char *archive;
   int offset = 0;
   OBJECT flag;
-  
-  /* Setup the global that contains the address of the 
-     frame pointer for main. This is so the missing
-     backtrace knows where to stop looking for return address. */
-  __main_address = __builtin_frame_address(0);
   
   m = machine_new();
   /* We sure to setup the bottom of the stack so it can be properly saved. */

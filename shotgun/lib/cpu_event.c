@@ -26,8 +26,6 @@
 #include "config.h"
 #include <glib.h>
 
-#include "rubinius.h"
-
 struct thread_info {
   STATE;
   cpu c;

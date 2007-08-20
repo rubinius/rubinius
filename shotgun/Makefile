@@ -10,7 +10,7 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS += -I../include -iquote . -iquote lib $(CPPFLAGS)
+CFLAGS += -iquote . -iquote lib $(CPPFLAGS)
 
 ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
 
@@ -22,7 +22,7 @@ ifeq ($(MARCH),amd64)
 	CFLAGS+=-fPIC
 endif
 
-DEPS=../include/rubinius.h
+DEPS=lib/rubinius.h
 # No disass support for 64
 ifneq ($(findstring 64,$(MARCH)),64)
 	RBS_LIGHTNING_DISASS='--enable-disassembling'
