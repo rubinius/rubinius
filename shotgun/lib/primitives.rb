@@ -432,11 +432,11 @@ class ShotgunPrimitives
      */
     gettimeofday(&tv, NULL);
 
-    k = array_new(state, 2);
-    array_set(state, k, 0, I2N(tv.tv_sec));
-    array_set(state, k, 1, I2N(tv.tv_usec));
+    self = array_new(state, 2);
+    array_set(state, self, 0, I2N(tv.tv_sec));
+    array_set(state, self, 1, I2N(tv.tv_usec));
 
-    stack_push(k);
+    stack_push(self);
     CODE
   end
 
@@ -500,30 +500,30 @@ class ShotgunPrimitives
       tm = localtime(&seconds);
     }
 
-    k = array_new(state, 2);
-    array_set(state, k, 0, I2N(tm->tm_sec));
-    array_set(state, k, 1, I2N(tm->tm_min));
-    array_set(state, k, 2, I2N(tm->tm_hour));
-    array_set(state, k, 3, I2N(tm->tm_mday));
-    array_set(state, k, 4, I2N(tm->tm_mon));
-    array_set(state, k, 5, I2N(tm->tm_year));
-    array_set(state, k, 6, I2N(tm->tm_wday));
-    array_set(state, k, 7, I2N(tm->tm_yday));
-    array_set(state, k, 8, I2N(tm->tm_isdst));
+    t3 = array_new(state, 2);
+    array_set(state, t3, 0, I2N(tm->tm_sec));
+    array_set(state, t3, 1, I2N(tm->tm_min));
+    array_set(state, t3, 2, I2N(tm->tm_hour));
+    array_set(state, t3, 3, I2N(tm->tm_mday));
+    array_set(state, t3, 4, I2N(tm->tm_mon));
+    array_set(state, t3, 5, I2N(tm->tm_year));
+    array_set(state, t3, 6, I2N(tm->tm_wday));
+    array_set(state, t3, 7, I2N(tm->tm_yday));
+    array_set(state, t3, 8, I2N(tm->tm_isdst));
 
 #ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    array_set(state, k, 9, I2N(tm->tm_gmtoff));
+    array_set(state, t3, 9, I2N(tm->tm_gmtoff));
 #else
-    array_set(state, k, 9, Qnil);
+    array_set(state, t3, 9, Qnil);
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
-    array_set(state, k, 10, string_new(state, tm->tm_zone));
+    array_set(state, t3, 10, string_new(state, tm->tm_zone));
 #else
-    array_set(state, k, 10, Qnil);
+    array_set(state, t3, 10, Qnil);
 #endif
 
-    stack_push(k);
+    stack_push(t3);
     CODE
   end
 

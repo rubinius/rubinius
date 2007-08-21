@@ -538,7 +538,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   fc = (struct fast_context*)BYTES_OF(home);
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
-  fast_memcpy32((void*)c, (void*)fc, sizeof(struct fast_context) >> 2);
+  memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
     // assert(!ISA(ctx, state->global->fastctx));

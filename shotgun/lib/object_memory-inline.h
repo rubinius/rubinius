@@ -45,14 +45,14 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   } else {
     header->flags = 0;
   }
-    
+
   return obj;
 }
 
 static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, int fields) {
   OBJECT obj;
   obj = _om_inline_new_object(om, cls, fields);
-  fast_memfill32((void*)BYTES_OF(obj), Qnil, fields);
+  fast_memfill((void*)BYTES_OF(obj), Qnil, fields);
   
   return obj;
 }

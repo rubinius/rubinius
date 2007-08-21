@@ -49,9 +49,9 @@ typedef uintptr_t OBJECT;
    have to be aligned on 64bit (double word) boundaries) */
 
 /* On a 32 bit platform, I expect rubinius_object to take up
-   1 + 1 + 2 + 4 + 4 + 4 + 4 = 20 bytes.
+   1 + 1 + 2 + 4 + 4 = 12 bytes.
    on 64 bit platform,
-   1 + 1 + 2 + 4 + 4 + 4 + 8 = 24 bytes.
+   1 + 1 + 2 + 4 + 8 = 16 bytes.
 */
 
 struct rubinius_object {

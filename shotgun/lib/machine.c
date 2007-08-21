@@ -429,8 +429,16 @@ OBJECT machine_load_file(machine m, const char *path) {
 }
 
 void machine_show_exception(machine m, OBJECT exc) {
+  OBJECT msg;
+  char *buf;
   printf("\nError: An unhandled exception has terminated this VM.\n");
-  printf(" => %s (%s)\n", string_byte_address(m->s, exception_get_message(exc)), rbs_inspect(m->s, HEADER(exc)->klass));
+  msg = exception_get_message(exc);
+  if(REFERENCE_P(msg)) {
+    buf = string_byte_address(m->s, msg);
+  } else {
+    buf = "<no message>";
+  }
+  printf(" => %s (%s)\n", buf, rbs_inspect(m->s, HEADER(exc)->klass));
 }
 
 int machine_run(machine m) {

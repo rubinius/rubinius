@@ -17,7 +17,7 @@ OBJECT bytearray_new(STATE, int size) {
   
   obj = bytearray_allocate_with_extra(state, words);
   object_make_byte_storage(state, obj);
-  fast_memfill32(BYTES_OF(obj), 0, words);
+  fast_memfill(BYTES_OF(obj), 0, words);
   object_initialize_bytes(state, obj);
   return obj;
 }

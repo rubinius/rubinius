@@ -311,7 +311,7 @@ OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
     om->collect_now |= OMCollectMature;
   }
   
-  fast_memcpy32((void*)dest, (void*)obj, NUM_FIELDS(obj) + HEADER_SIZE);
+  fast_memcpy((void*)dest, (void*)obj, NUM_FIELDS(obj) + HEADER_SIZE);
   GC_ZONE_SET(dest, GC_MATURE_OBJECTS);
   //printf("Allocated %d fields to %p\n", NUM_FIELDS(obj), obj);
   // printf(" :: %p => %p (%d / %d )\n", obj, dest, NUM_FIELDS(obj), SIZE_IN_BYTES(obj));

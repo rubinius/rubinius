@@ -52,6 +52,10 @@ void object_memory_clear_become(STATE, object_memory om);
 void object_memory_retire_context(object_memory om, OBJECT ctx);
 void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val);
 
+void object_memory_shift_contexts(STATE, object_memory om);
+void object_memory_mark_contexts(STATE, object_memory om);
+void object_memory_formalize_contexts(STATE, object_memory om);
+
 #define FAST_NEW 1
 
 #ifdef FAST_NEW
@@ -71,7 +75,7 @@ void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val);
 
 #define object_memory_retire_context(om, ctx) \
 if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
-  fast_memfill32_s20((void*)ctx, 0); heap_putback(om->contexts, CTX_SIZE); \
+  fast_memfill_s20((void*)ctx, 0); heap_putback(om->contexts, CTX_SIZE); \
 }
 
 #define object_memory_context_referenced(om, ctx) (void)({ \
@@ -121,3 +125,4 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   (om_in_heap(om, ctx) && (om_context_referenced_p(om, sender) || om_in_heap(om, sender))))
 
 #endif
+

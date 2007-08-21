@@ -88,6 +88,8 @@ void cpu_task_select(STATE, cpu c, OBJECT nw) {
   c->current_task = nw;
 }
 
+void cpu_task_push(STATE, OBJECT self, OBJECT val);
+
 OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be) {
   OBJECT bc;
   struct cpu_task *task;
