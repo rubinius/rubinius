@@ -533,7 +533,11 @@ void cpu_bootstrap(STATE) {
     state->global->special_classes[i + 0] = Qnil;
     state->global->special_classes[i + 1] = BC(fixnum_class);
     state->global->special_classes[i + 2] = Qnil;
-    state->global->special_classes[i + 3] = BC(symbol);
+    if(((i + 3) & 0x7) == 0x3) {
+      state->global->special_classes[i + 3] = BC(symbol);
+    } else {
+      state->global->special_classes[i + 3] = CUSTOM_CLASS;
+    }
   }
   
   state->global->special_classes[(int)Qundef] = BC(undef_class);

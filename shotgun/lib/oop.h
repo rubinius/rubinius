@@ -17,20 +17,29 @@ typedef uintptr_t OBJECT;
 #define TAG_SHIFT   2
 
 #define TAG_REF     0x0
-#define TAG_SYMBOL  0x3
+#define TAG_DATA    0x3
 #define TAG_FIXNUM  0x1
 #define TAG_LITERAL 0x2
 
-#define TAG(v) ((OBJECT)v & TAG_MASK)
+#define TAG(v) ((OBJECT)(v) & TAG_MASK)
 #define APPLY_TAG(v, tag) ((v << TAG_SHIFT) | tag)
 #define STRIP_TAG(v) (v >> TAG_SHIFT)
 
-#define SYMBOL_SHIFT TAG_SHIFT
-#define FIXNUM_SHIFT TAG_SHIFT
-
-#define SYMBOL_P(v) (TAG(v) == TAG_SYMBOL)
+#define DATA_P(v) (TAG(v) == TAG_DATA)
 #define FIXNUM_P(v) (TAG(v) == TAG_FIXNUM)
 
+#define DATA_MASK   0x7
+#define DATA_SHIFT  3
+
+#define DATA_TAG_SYMBOL 0x3
+#define DATA_TAG_CUSTOM 0x7
+
+#define DATA_TAG(v) ((OBJECT)(v) & DATA_MASK)
+#define DATA_APPLY_TAG(v, tag) ((v << DATA_SHIFT) | tag)
+#define DATA_STRIP_TAG(v) (v >> DATA_SHIFT)
+
+#define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
+#define CUSTOM_P(v) (DATA_TAG(v) == DATA_TAG_CUSTOM)
 
 /* the sizeof(struct rubinius_object) must an increment of
    REFSIZE, so that the bytes located directly after a

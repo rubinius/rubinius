@@ -8,6 +8,10 @@
 #include <cinvoke.h>
 #endif
 
+/* These are for custom literals. We'll need an API to set it
+   eventually. */
+#define CUSTOM_CLASS Qnil
+
 #define SPECIAL_CLASS_MASK 0x1f
 #define SPECIAL_CLASS_SIZE 32
 
