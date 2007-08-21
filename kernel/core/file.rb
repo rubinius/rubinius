@@ -242,11 +242,11 @@ class File < IO
     path = enforce_string(path)
     out = raw_stat(path)
     if !out
-      raise UnableToStat.new("Unable to perform stat on '#{path}'")
+      raise UnableToStat, "Unable to perform stat on '#{path}'"
     elsif out == 1
-      raise NoFileError.new("'#{path}' does not exist")
+      raise NoFileError, "'#{path}' does not exist"
     elsif out == 2
-      raise PermissionError.new("Unable to access '#{path}'")
+      raise PermissionError, "Unable to access '#{path}'"
     else
       return Stat.from_tuple(out, path)
     end

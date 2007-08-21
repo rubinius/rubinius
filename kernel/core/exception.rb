@@ -10,8 +10,10 @@ class Exception
   end
 
   def backtrace
+    return nil unless @context
+    
     bt = @context
-    if FastMethodContext === bt
+    unless bt.kind_of? Backtrace
       bt = Backtrace.backtrace(bt)
       @context = bt
     end
