@@ -368,7 +368,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   /* Ick. I'd love to be able to not have to only check in
      classes and modules. */
-  kls = object_logical_class(state, c->self);
+  kls = object_class(state, c->self);
   if(REFERENCE_P(c->self) && (
      kls == state->global->module ||
      kls == state->global->class)) {
@@ -537,7 +537,7 @@ char *cpu_show_context(STATE, cpu c, OBJECT ctx) {
   buf = malloc(1024);
   
   snprintf(buf, 1024, "%s#%s (%d)", 
-    rbs_symbol_to_cstring(state, module_get_name(object_logical_class(state, self))),
+    rbs_symbol_to_cstring(state, module_get_name(object_class(state, self))),
     rbs_symbol_to_cstring(state, methctx_get_name(ctx)),
     (int)FIXNUM_TO_INT(methctx_get_ip(ctx))
   );

@@ -120,7 +120,7 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
   if(REFERENCE_P(obj)) {
     return HEADER(obj)->klass;
   } else {
-    return object_logical_class(state, obj);
+    return object_class(state, obj);
   }
 }
 
@@ -254,7 +254,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   printf("Looking for method: %s in %p (%s)\n", 
     string_byte_address(state, symtbl_find_string(state, state->global->symbols, name)), obj,
     string_byte_address(state, symtbl_find_string(state, state->global->symbols, 
-        class_get_name(object_logical_class(state, obj))))
+        class_get_name(object_class(state, obj))))
     );
   */
   

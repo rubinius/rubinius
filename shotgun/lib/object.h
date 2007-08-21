@@ -3,8 +3,6 @@
 
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup);
 OBJECT object_metaclass(STATE, OBJECT obj);
-OBJECT object_class(STATE, OBJECT self);
-OBJECT object_logical_class(STATE, OBJECT self);
 int object_kind_of_p(STATE, OBJECT self, OBJECT cls);
 int object_has_ivars(STATE, OBJECT self);
 void object_set_has_ivars(STATE, OBJECT self);
@@ -25,6 +23,20 @@ int object_frozen_p(STATE, OBJECT self);
 
 OBJECT object_make_weak_ref(STATE, OBJECT self);
 void object_cleanup_weak_refs(STATE, OBJECT self);
+
+static inline OBJECT object_class(STATE, OBJECT self) {
+  if(REFERENCE_P(self)) {
+    OBJECT cls = HEADER(self)->klass;
+    while(REFERENCE_P(cls) && metaclass_s_metaclass_p(state, cls)) {
+      cls = class_get_superclass(cls);
+    }
+
+    return cls;
+  }
+
+  return state->global->special_classes[((uint)self) & SPECIAL_CLASS_MASK];
+}
+
 
 #define ISA(o, c) object_kind_of_p(state, o, c)
 
@@ -70,6 +82,7 @@ static inline int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int f
   }
   return TRUE;  
 }
+
 
 
 #endif

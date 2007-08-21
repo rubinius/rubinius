@@ -12,7 +12,8 @@
 
 #include "oop.h"
 #include "state.h"
-#include "object.h"
 #include "auto.h"
+#include "metaclass.h"
+#include "object.h"
 #include "log.h"
 #endif

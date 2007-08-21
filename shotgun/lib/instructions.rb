@@ -1064,7 +1064,7 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    if(object_logical_class(state, t1) == t2) {
+    if(object_class(state, t1) == t2) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);

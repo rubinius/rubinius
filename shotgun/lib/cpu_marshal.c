@@ -166,7 +166,7 @@ static int unmarshal_num_fields(struct marshal_state *ms) {
 
 static void marshal_object(STATE, OBJECT obj, GString *buf, struct marshal_state *ms) {
   marshal_fields_as(state, obj, buf, 'o', ms);
-  marshal_sym(state, class_get_name(object_logical_class(state, obj)));
+  marshal_sym(state, class_get_name(object_class(state, obj)));
 }
 
 static OBJECT unmarshal_object(STATE, char *str, struct marshal_state *ms) {

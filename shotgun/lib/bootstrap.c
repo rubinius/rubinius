@@ -436,6 +436,7 @@ void Init_list(STATE);
 
 void cpu_bootstrap(STATE) {
   OBJECT cls, obj, tmp, tmp2;
+  int i;
   
   cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
   HEADER(cls)->klass = cls;
@@ -519,6 +520,26 @@ void cpu_bootstrap(STATE) {
   
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
     module_setup(state, BC(name), string);
+  
+  /* OOP layout:
+   * [30 bits of data | 2 bits of tag]
+   * if tag == 00, the whole thing is a pointer to a memory location.
+   * if tag == 11, the data is a symbol index
+   * if tag == 01, the data is a fixnum
+   * if tag == 10, the data is a literal
+   */
+  
+  for(i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
+    state->global->special_classes[i + 0] = Qnil;
+    state->global->special_classes[i + 1] = BC(fixnum_class);
+    state->global->special_classes[i + 2] = Qnil;
+    state->global->special_classes[i + 3] = BC(symbol);
+  }
+  
+  state->global->special_classes[(int)Qundef] = BC(undef_class);
+  state->global->special_classes[(int)Qfalse] = BC(false_class);
+  state->global->special_classes[(int)Qnil  ] = BC(nil_class);
+  state->global->special_classes[(int)Qtrue ] = BC(true_class);
   
   bcs(regexp, obj, "Regexp");
   bcs(regexpdata, obj, "RegexpData");

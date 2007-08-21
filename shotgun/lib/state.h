@@ -8,6 +8,9 @@
 #include <cinvoke.h>
 #endif
 
+#define SPECIAL_CLASS_MASK 0x1f
+#define SPECIAL_CLASS_SIZE 32
+
 struct rubinius_globals {
   
   /* classes for the core 'types' */
@@ -35,9 +38,10 @@ struct rubinius_globals {
   OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
   OBJECT sym_object_id;
   OBJECT exception, iseq;
+  
+  OBJECT special_classes[SPECIAL_CLASS_SIZE];
 };
 
-#define GLOBAL_cmethod
 
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
 

@@ -74,7 +74,7 @@ const char *rbs_inspect(STATE, OBJECT obj) {
   OBJECT kls;
   static char buf[1024];
   
-  kls = object_logical_class(state, obj);
+  kls = object_class(state, obj);
   
   if(NIL_P(kls)) {
     assert(RTEST(kls) && "class is nil");
@@ -91,7 +91,7 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj) {
   OBJECT kls;
   static char buf[1024];
   
-  kls = object_logical_class(state, obj);
+  kls = object_class(state, obj);
   
   if(NIL_P(kls)) {
     assert(RTEST(kls) && "class is nil");

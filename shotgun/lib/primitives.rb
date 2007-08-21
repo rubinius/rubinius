@@ -634,9 +634,9 @@ class ShotgunPrimitives
 
   def logical_class
     <<-CODE
-    /* self is ANY object because object_logical_class knows all. */
+    /* self is ANY object because object_class knows all. */
     self = stack_pop();
-    stack_push(object_logical_class(state, self));
+    stack_push(object_class(state, self));
     CODE
   end
 
@@ -672,7 +672,7 @@ class ShotgunPrimitives
 
   def hash_object
     <<-CODE
-    /* self is ANY object because object_logical_class knows all. */    
+    /* self is ANY object because object_class knows all. */    
     self = stack_pop();
     t1 = UI2N(object_hash_int(state, self));
     stack_push(t1);
