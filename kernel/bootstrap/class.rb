@@ -120,7 +120,7 @@ class IncludedModule < Module
   def initialize(mod)
     @methods = mod.method_table
     @method_cache = nil
-    @name = mod.name
+    @name = mod.name.to_sym
     @constants = {}
     @parent = nil
     @module = mod
