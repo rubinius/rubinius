@@ -9,8 +9,10 @@ module CI
   VERSION = '0.0.1'
 end
 
-action = :create
+action = :run
 patterns = []
+target = 'shotgun/rubinius'
+format = 'ci'
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
@@ -22,8 +24,30 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-r", "--run", "Run the specs excluding the expected failures") do
     action = :run
   end
+  opts.on("-i", "--invert", "Run the specs using only the expected failures") do
+    action = :invert
+  end
   opts.on("-u", "--update", "Remove passing specs from the exclude file") do
     action = :update
+  end
+  opts.on("-t", "--target TARGET", String, 
+          "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+    case t
+    when 'r', 'ruby'
+      target = 'ruby'
+    when 'r19', 'ruby19'
+      target = 'ruby19'
+    when 'x', 'rbx', 'rubinius'
+      target = 'shotgun/rubinius'
+    when 'j', 'jruby'
+      target = 'jruby'
+    else
+      target = t
+    end
+  end
+  opts.on("-f", "--format FORMAT", String, 
+          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
+    format = f
   end
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
@@ -45,3 +69,32 @@ patterns.each do |item|
   files.concat(Dir[item+"/**/*_spec.rb"]) if stat.directory?
 end
 
+case action
+when :create
+  cmd = <<-EOC
+bin/mspec -t #{target} -x spec/reports/critical-excludes.txt -f ci %s 
+> spec/reports/ci-excludes.txt 
+2> /dev/null
+EOC
+  system("rm -f spec/reports/ci-excludes.txt")
+  files.each do |file|
+    system(cmd % file)
+  end
+  system("cat spec/reports/critical-excludes.txt >> spec/reports/ci-excludes.txt")
+when :run
+  files.each do |file|
+    system("bin/mspec -t #{target} -x spec/reports/ci-excludes.txt -f #{format} #{file} 2> /dev/null")
+  end
+when :invert
+  files.each do |file|
+    system("bin/mspec -t #{target} -e spec/reports/ci-excludes.txt -f #{format} #{file}")
+  end
+when :update
+  files.each do |file|
+    
+  end
+else
+  puts "Unknown action: #{action}"
+  puts opts
+  exit
+end

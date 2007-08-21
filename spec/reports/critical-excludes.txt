@@ -1,0 +1,8 @@
+Array#* handles recursive arrays like #join
+Array#join handles recursive arrays
+Executing a Continuation Using #call transfers execution to right after the Kernel.callcc block
+Executing a Continuation Arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)
+Executing a Continuation #[] is an alias for #call
+Creating Bindings No .new provided
+Creating Bindings Kernel.binding creates a new Binding
+Hash#inspect handles recursive hashes
