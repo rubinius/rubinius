@@ -50,7 +50,7 @@ class File < IO
   def self.file?(path)
     st = Stat.stat(path)
     return false unless st.kind_of? Stat
-    st.kind == :file
+    st.kind == :regular
   end
 
   def self.directory?(path)
@@ -75,6 +75,19 @@ class File < IO
     st = Stat.stat(path)
     return false unless st.kind_of? Stat
     st.kind == :char
+  end
+  
+  def self.fifo?(path)
+    stat(path).kind == :fifo
+  end
+  
+  def self.socket?(path)
+    stat(path).kind == :socket
+  end
+
+  def self.ftype(path)
+    kind = stat(path).kind
+    FILE_TYPES.include?(kind) ? FILE_TYPES[kind] : 'unknown'
   end
 
   def self.zero?(path)
@@ -268,6 +281,15 @@ class File < IO
   end
   
   private
+    FILE_TYPES = {
+      :regular => 'file',
+      :dir => 'directory',
+      :char => 'characterSpecial',
+      :block => 'blockSpecial',
+      :fifo => 'fifo',
+      :link => 'link',
+      :socket => 'socket'
+    }
 
     def self.enforce_string(obj)
       unless obj.kind_of? String
