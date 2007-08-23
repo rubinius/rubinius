@@ -18,7 +18,7 @@ module ModuleSpecs
   end
 
   module SuperModule
-    # include BasicModule
+    include BasicModule
     
     def public_super_module() end
     protected
@@ -28,7 +28,7 @@ module ModuleSpecs
   end
     
   class Child < Parent
-    # include SuperModule
+    include SuperModule
     
     def public_child() end
     protected
@@ -910,12 +910,31 @@ describe "Module#const_missing(name)" do
 end
 
 describe "Module#const_set(name, value)" do
-
-
   it "sets the constant with the given name to the given value" do
+    m = Module.new do
+      const_set :A, "A"
+      const_set :B.to_i, "B"
+      const_set "C", "C"
+    end
     
+    m.const_get("A").should == "A"
+    m.const_get("B").should == "B"
+    m.const_get("C").should == "C"
   end
 
+  it "raises a NameError when the given name is no valid constant name" do
+    should_raise(NameError, "wrong constant name invalid") do
+      Module.new { const_set "invalid", "some value" }
+    end
+
+    should_raise(NameError, "wrong constant name Dup Dup") do
+      Module.new { const_set "Dup Dup", "some value" }
+    end
+
+    should_raise(NameError, "wrong constant name 123") do
+      Module.new { const_set "123", "some value" }
+    end
+  end
   
   it "raises a NameError when there is no constant with the given name" do
     should_raise(NameError, "uninitialized constant ModuleSpecs::NotExistant") do
@@ -946,7 +965,7 @@ end
 
 describe "Module#constants" do
   it "returns an array with the names of all constants accessible in the scope of self" do
-    ModuleSpecs.constants.should == ["Child", "SuperModule", "BasicModule", "Parent"]
+    ModuleSpecs.constants.should == ["Parent", "Child", "SuperModule", "BasicModule"]
     
     Module.new { const_set :A, "test" }.constants.should == [ "A" ]
     Class.new  { const_set :A, "test" }.constants.should == [ "A" ]
@@ -1150,5 +1169,244 @@ describe "Module#included_modules" do
     ModuleSpecs::Parent.included_modules.should      == [Kernel]
     ModuleSpecs::BasicModule.included_modules.should == []
     ModuleSpecs::SuperModule.included_modules.should == [ModuleSpecs::BasicModule]
+  end
+end
+
+describe "Module#instance_method(name)" do
+  it "returns an UnboundMethod representing the instance method with the given name" do
+    c = Class.new do
+      def test
+        "test"
+      end
+    end
+    
+    meth = c.instance_method(:test)
+    meth.inspect.should == "#<UnboundMethod: #{c}#test>"
+
+    meth = c.instance_method("test")
+    meth.inspect.should == "#<UnboundMethod: #{c}#test>"
+    
+    meth = Object.instance_method("dup")
+    meth.inspect.should == "#<UnboundMethod: Object(Kernel)#dup>"
+  end
+  
+  it "raises a TypeError if the given name is not a string/symbol" do
+    should_raise(TypeError) do
+      Object.instance_method(Object.new)
+    end
+  end
+end
+
+describe "Module#instance_methods(include_super)" do
+  it "returns an array containing the public and protected methods of self if include_super is false" do
+    methods = ModuleSpecs::Parent.instance_methods(false) 
+    methods.should == [ "protected_parent", "public_parent" ]
+    
+    methods = ModuleSpecs::Child.instance_methods(false) 
+    methods.should == [ "public_child", "protected_child" ]
+  end
+  
+  it "returns an array containing the public and protected methods of self and it's ancestors" do
+    methods = ModuleSpecs::BasicModule.instance_methods
+    methods.should == [ "protected_module", "public_module" ]
+    
+    methods = ModuleSpecs::SuperModule.instance_methods
+    methods.should == [ "protected_module", "public_super_module", "public_module", "protected_super_module" ]
+  end
+end
+
+describe "Module#method_added(name)" do
+  it "is called when a new method is defined in self" do
+    begin
+      $methods_added = []
+      
+      m = Module.new do
+        def self.method_added(name)
+          $methods_added << name
+        end
+        
+        def test() end
+        def test2() end
+        def test() end
+      end
+      
+      $methods_added.should == [:test,:test2, :test] 
+    ensure
+      $methods_added = nil
+    end
+  end
+end
+
+describe "Module#method_defined?(name)" do
+  it "returns true if a public or private method with the given name is defined in self, self's ancestors or one of self's included modules" do
+    # Defined in Child
+    ModuleSpecs::Child.method_defined?(:public_child).should == true
+    ModuleSpecs::Child.method_defined?(:protected_child.to_i).should == true
+    ModuleSpecs::Child.method_defined?("private_child").should == false
+
+    # Defined in Parent
+    ModuleSpecs::Child.method_defined?("public_parent").should == true
+    ModuleSpecs::Child.method_defined?(:protected_parent.to_i).should == true
+    ModuleSpecs::Child.method_defined?(:private_parent).should == false
+
+    # Defined in Module
+    ModuleSpecs::Child.method_defined?(:public_module).should == true
+    ModuleSpecs::Child.method_defined?(:protected_module).should == true
+    ModuleSpecs::Child.method_defined?(:private_module).should == false
+
+    # Defined in SuperModule
+    ModuleSpecs::Child.method_defined?(:public_super_module).should == true
+    ModuleSpecs::Child.method_defined?(:protected_super_module).should == true
+    ModuleSpecs::Child.method_defined?(:private_super_module).should == false
+  end
+
+  it "raises a TypeError when the given object is not a string/symbol/fixnum" do
+    c = Class.new
+    o = Object.new
+    
+    should_raise(TypeError, "#{o} is not a symbol") do
+      c.method_defined?(o)
+    end
+    
+    o.should_receive(:to_str, :returning => 123)
+    should_raise(TypeError, "Object#to_str should return String") do
+      c.method_defined?(o)
+    end
+  end
+  
+  it "converts the given name to a string using to_str" do
+    c = Class.new { def test(); end }
+    (o = Object.new).should_receive(:to_str, :returning => "test")
+    
+    c.method_defined?(o).should == true
+  end
+end
+
+describe "Module#method_removed(name)" do
+  it "is called when a method is removed from self" do
+    begin
+      Module.new do
+        def self.method_removed(name)
+          $method_removed = name
+        end
+        
+        def test
+          "test"
+        end
+        remove_method :test
+      end
+      
+      $method_removed.should == :test
+    ensure
+      $method_removed = nil
+    end
+  end
+end
+
+describe "Module#method_undefined(name)" do
+  it "is called when a method is undefined from self" do
+    begin
+      Module.new do
+        def self.method_undefined(name)
+          $method_undefined = name
+        end
+        
+        def test
+          "test"
+        end
+        undef_method :test
+      end
+      
+      $method_undefined.should == :test
+    ensure
+      $method_undefined = nil
+    end
+  end
+end
+
+describe "Module#module_function(name, ...)" do
+  it "creates module functions for the given methods" do
+    m = Module.new do
+      def test()  end
+      def test2() end
+      def test3() end
+      
+      module_function :test, :test2
+    end
+    
+    m.respond_to?(:test).should  == true
+    m.respond_to?(:test2).should == true
+    m.respond_to?(:test3).should == false
+  end
+
+  it "makes the instance method versions private" do
+    m = Module.new do
+      def test() "hello" end
+      module_function :test
+    end
+    
+    (o = Object.new).extend(m)
+    o.respond_to?(:test).should == false
+    o.send(:test).should == "hello"
+  end
+  
+  it "makes subsequently defined methods module functions if no names are given" do
+    m = Module.new do
+      module_function
+        def test() end
+        def test2() end
+      public
+        def test3() end
+    end
+
+    m.respond_to?(:test).should  == true
+    m.respond_to?(:test2).should == true
+    m.respond_to?(:test3).should == false
+  end
+  
+  it "tries to convert the given names to strings using to_str" do
+    (o = Object.new).should_receive(:to_str, :returning => "test", :count => :any)
+    (o2 = Object.new).should_receive(:to_str, :returning => "test2", :count => :any)
+    
+    m = Module.new do
+      def test() end
+      def test2() end
+      module_function o, o2
+    end
+    
+    m.respond_to?(:test).should  == true
+    m.respond_to?(:test2).should == true
+  end
+
+  it "raises a TypeError when the given names can't be converted to string using to_str" do
+    o = Object.new
+    
+    should_raise(TypeError, "#{o} is not a symbol") do
+      Module.new { module_function(o) }
+    end
+
+    o.should_receive(:to_str, :returning => 123)
+    should_raise(TypeError, "Object#to_str should return String") do
+      Module.new { module_function(o) }
+    end
+  end
+end
+
+describe "Module#name" do
+  it "returns the name of self" do
+    Module.new.name.should == ""
+    Class.new.name.should == ""
+    
+    ModuleSpecs.name.should == "ModuleSpecs"
+    ModuleSpecs::Child.name.should == "ModuleSpecs::Child"
+    ModuleSpecs::Parent.name.should == "ModuleSpecs::Parent"
+    ModuleSpecs::BasicModule.name.should == "ModuleSpecs::BasicModule"
+    ModuleSpecs::SuperModule.name.should == "ModuleSpecs::SuperModule"
+    
+    begin
+      (ModuleSpecs::X = Module.new).name.should == "ModuleSpecs::X"
+    ensure
+      ModuleSpecs.send :remove_const, :X
+    end
   end
 end
