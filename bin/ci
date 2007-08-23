@@ -72,8 +72,8 @@ end
 case action
 when :create
   cmd = <<-EOC
-bin/mspec -t #{target} -x spec/reports/critical-excludes.txt -f ci %s 
-> spec/reports/ci-excludes.txt 
+bin/mspec -t #{target} -x spec/reports/critical-excludes.txt -f ci %s \
+>> spec/reports/ci-excludes.txt \
 2> /dev/null
 EOC
   system("rm -f spec/reports/ci-excludes.txt")
@@ -82,9 +82,7 @@ EOC
   end
   system("cat spec/reports/critical-excludes.txt >> spec/reports/ci-excludes.txt")
 when :run
-  files.each do |file|
-    system("bin/mspec -t #{target} -x spec/reports/ci-excludes.txt -f #{format} #{file} 2> /dev/null")
-  end
+  system("bin/mspec -t #{target} -x spec/reports/ci-excludes.txt -f #{format} #{files.join(' ')} 2> /dev/null")
 when :invert
   files.each do |file|
     system("bin/mspec -t #{target} -e spec/reports/ci-excludes.txt -f #{format} #{file}")

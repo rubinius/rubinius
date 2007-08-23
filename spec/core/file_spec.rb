@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper' 
-require 'pathname'
+failure :rbx do
+  require 'pathname'
+end
 
 # class methods
 # atime, basename, blockdev?, chardev?, chmod, chown, ctime, delete,
