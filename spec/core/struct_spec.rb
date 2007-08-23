@@ -80,8 +80,9 @@ end
 
 
 describe "Struct anonymous class class methods" do
-  # fake before(:all)
-  Struct.new('Ruby', :version, :platform)
+  failure :rbx do
+    Struct.new('Ruby', :version, :platform)
+  end
 
   specify "new should create an instance" do
     Struct::Ruby.new.kind_of?(Struct::Ruby).should == true
@@ -111,8 +112,9 @@ describe "Struct anonymous class class methods" do
 end
 
 describe "Struct anonymous class instance methods" do
-  # fake before(:all)
-  Struct.new('Car', :make, :model, :year)
+  failure :rbx do
+    Struct.new('Car', :make, :model, :year)
+  end
 
   specify "length should return the number of attributes" do
     Struct::Car.new('Cadillac', 'DeVille').length.should == 3

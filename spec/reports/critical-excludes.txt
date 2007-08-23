@@ -6,3 +6,17 @@ Executing a Continuation #[] is an alias for #call
 Creating Bindings No .new provided
 Creating Bindings Kernel.binding creates a new Binding
 Hash#inspect handles recursive hashes
+Module#append_features(mod) gets called when self is included in another module/class
+Module#autoload(name, filename) registers the given filename to be loaded the first time that the Module with the given name is accessed
+Module#autoload(name, filename) does not autoload when the specified constant was already set
+Module#autoload(name, filename) raises a NameError when an invalid constant name is given
+Module#define_method(name, Method, &block) defines a new method with the given name and the given block as body in self
+Module#extend_object(object) is called when an object gets extended with self
+Module#extended(module) is called when an object gets extended with self
+Module#extended(module) is called after Module#extend_object
+String#gsub(pattern, replacement) treats \1 sequences without corresponding captures as empty strings
+String#gsub(pattern, replacement) replaces \& and \0 with the complete match
+String#gsub(pattern, replacement) replaces \` with everything before the current match
+String#gsub(pattern, replacement) replaces \' with everything after the current match
+String#gsub(pattern, replacement) returns subclass instances when called on a subclass
+String#gsub(pattern) { block } raises a RuntimeError if the string is modified while substituting
