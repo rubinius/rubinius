@@ -20,7 +20,7 @@ class MyRange < Range; end
 # TODO: Add specs to verify that methods operate on bytes instead of
 # chars independently of encoding and $KCODE all over the place.
 
-describe "String#%(Object)" do
+describe "String#%" do
   it "formats multiple expressions" do
     ("%b %x %d %s" % [10, 10, 10, 10]).should == "1010 a 10 10"
   end
@@ -619,7 +619,7 @@ describe "String#%(Object)" do
   end
 end
 
-describe "String#*(count)" do
+describe "String#*" do
   it "returns a new string containing count copies of self" do
     ("cool" * 0).should == ""
     ("cool" * 1).should == "cool"
@@ -673,7 +673,7 @@ describe "String#*(count)" do
   end
 end
 
-describe "String#+(other)" do
+describe "String#+" do
   it "returns a new string containing the given string concatenated to self" do
     ("" + "").should == ""
     ("" + "Hello").should == "Hello"
@@ -715,7 +715,7 @@ describe "String#+(other)" do
   end
 end
 
-describe "String#<<(other)" do
+describe "String#<<" do
   it "concatenates the given argument to self and returns self" do
     str = 'hello '
     (str << 'world').equal?(str).should == true
@@ -768,7 +768,7 @@ describe "String#<<(other)" do
   end
 end
 
-describe "String#<<(fixnum)" do
+describe "String#<< with Fixnum" do
   it "converts the given Fixnum to a char before concatenating" do
     b = 'hello ' << 'world' << 33
     b.should == "hello world!"
@@ -803,7 +803,7 @@ describe "String#<<(fixnum)" do
   end
 end
 
-describe "String#<=>(other_string)" do
+describe "String#<=> with String" do
   it "compares individual characters based on their ascii value" do
     ascii_order = Array.new(256) { |x| x.chr }
     sort_order = ascii_order.sort
@@ -848,7 +848,7 @@ end
 
 # Note: This is inconsistent with Array#<=> which calls to_str instead of
 # just using it as an indicator.
-describe "String#<=>(obj)" do
+describe "String#<=>" do
   it "returns nil if its argument does not respond to to_str" do
     ("abc" <=> 1).should == nil
     ("abc" <=> :abc).should == nil
@@ -879,7 +879,7 @@ describe "String#<=>(obj)" do
   end
 end
 
-describe "String#==(other_string)" do
+describe "String#== with String" do
   it "returns true if self <=> string returns 0" do
     ('hello' == 'hello').should == true
   end
@@ -898,7 +898,7 @@ describe "String#==(other_string)" do
   end  
 end
 
-describe "String#==(obj)" do
+describe "String#==" do
   it "returns false if obj does not respond to to_str" do
     ('hello' == 5).should == false
     ('hello' == :hello).should == false
@@ -922,7 +922,7 @@ describe "String#==(obj)" do
   end
 end
 
-describe "String#=~(obj)" do
+describe "String#=~" do
   it "behaves the same way as index() when given a regexp" do
     ("rudder" =~ /udder/).should == "rudder".index(/udder/)
     ("boat" =~ /[^fl]oat/).should == "boat".index(/[^fl]oat/)
@@ -955,9 +955,8 @@ describe "String#=~(obj)" do
   end
 end
 
-# Let's keep this file sane and not duplicate all this two times.
-["[]", "slice"].each do |cmd|
-  describe "String##{cmd}(idx)" do
+string_slice = shared "String#slice" do |cmd|
+  describe "String##{cmd} with index" do
     it "returns the character code of the character at idx" do
       "hello".send(cmd, 0).should == ?h
       "hello".send(cmd, -1).should == ?o
@@ -985,7 +984,7 @@ end
     end
   end
 
-  describe "String##{cmd}(idx, length)" do
+  describe "String##{cmd} with index, length" do
     it "returns the substring starting at idx and the given length" do
       "hello there".send(cmd, 0,0).should == ""
       "hello there".send(cmd, 0,1).should == "h"
@@ -1096,7 +1095,7 @@ end
     end
   end
 
-  describe "String##{cmd}(range)" do
+  describe "String##{cmd} with Range" do
     it "returns the substring given by the offsets of the range" do
       "hello there".send(cmd, 1..1).should == "e"
       "hello there".send(cmd, 1..3).should == "ell"
@@ -1206,7 +1205,7 @@ end
     end
   end
 
-  describe "String##{cmd}(regexp)" do
+  describe "String##{cmd} with Regexp" do
     it "returns the matching portion of self" do
       "hello there".send(cmd, /[aeiou](.)\1/).should == "ell"
       "".send(cmd, //).should == ""
@@ -1246,7 +1245,7 @@ end
     end
   end
 
-  describe "String##{cmd}(regexp, idx)" do
+  describe "String##{cmd} with Regexp, index" do
     it "returns the capture for idx" do
       "hello there".send(cmd, /[aeiou](.)\1/, 0).should == "ell"
       "hello there".send(cmd, /[aeiou](.)\1/, 1).should == "l"
@@ -1324,7 +1323,7 @@ end
     end
   end
 
-  describe "String##{cmd}(other_str)" do
+  describe "String##{cmd} with String" do
     it "returns other_str if it occurs in self" do
       s = "lo"
       "hello there".send(cmd, s).should == s
@@ -1370,7 +1369,15 @@ end
   end
 end
 
-describe "String#[idx] = char" do
+describe "String#[]" do
+  it_behaves_like(string_slice, :[])
+end
+
+describe "String#slice" do
+  it_behaves_like(string_slice, :slice)
+end
+
+describe "String#[]= with index" do
   it "sets the code of the character at idx to char modulo 256" do
     a = "hello"
     a[0] = ?b
@@ -1452,7 +1459,7 @@ describe "String#[idx] = char" do
   end
 end
 
-describe "String#[idx] = other_str" do
+describe "String#[]= with String" do
   it "replaces the char at idx with other_str" do
     a = "hello"
     a[0] = "bam"
@@ -1533,7 +1540,7 @@ describe "String#[idx] = other_str" do
   end
 end
 
-describe "String#[idx, count] = other_str" do
+describe "String#[]= with index, count" do
   it "starts at idx and overwrites count characters before inserting the rest of other_str" do
     a = "hello"
     a[0, 2] = "xx"
@@ -1733,7 +1740,7 @@ describe "String#casecmp" do
   end
 end
 
-describe "String#center(length, padstr)" do
+describe "String#center with length, padding" do
   it "returns a new string of specified length with self centered and padded with padstr" do
     "one".center(9, '.').should       == "...one..."
     "hello".center(20, '123').should  == "1231231hello12312312"
@@ -1841,7 +1848,7 @@ describe "String#center(length, padstr)" do
   end
 end
 
-describe "String#chomp(separator)" do
+describe "String#chomp with separator" do
   it "returns a new string with the given record separator removed" do
     "hello".chomp("llo").should == "he"
     "hellollo".chomp("llo").should == "hello"
@@ -1936,7 +1943,7 @@ describe "String#chomp(separator)" do
   end
 end
 
-describe "String#chomp!(seperator)" do
+describe "String#chomp! with seperator" do
   it "modifies self in place and returns self" do
     s = "one\n"
     s.chomp!.equal?(s).should == true
@@ -2064,7 +2071,7 @@ describe "String#chop!" do
   end
 end
 
-describe "String#concat(other)" do
+describe "String#concat" do
   it "is an alias of String#<<" do
     ["xyz", 42].each do |arg|
       (a = "abc") << arg
@@ -2097,7 +2104,7 @@ describe "String#concat(other)" do
   end
 end
 
-describe "String#count(*sets)" do
+describe "String#count" do
   it "counts occurrences of chars from the intersection of the specified sets" do
     s = "hello\nworld\x00\x00"
 
@@ -2268,7 +2275,7 @@ describe "String#crypt" do
   end
 end
 
-describe "String#delete(*sets)" do
+describe "String#delete" do
   it "returns a new string with the chars from the intersection of sets removed" do
     s = "hello"
     s.delete("lo").should == "he"
@@ -2350,7 +2357,7 @@ describe "String#delete(*sets)" do
   end
 end
 
-describe "String#delete!(*sets)" do
+describe "String#delete!" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.delete!("aeiou", "^e").equal?(a).should == true
@@ -2453,7 +2460,7 @@ describe "String#dump" do
   end
 end
 
-describe "String#each(separator)" do
+describe "String#each" do
   it "splits self using the supplied record separator and passes each substring to the block" do
     a = []
     "one\ntwo\r\nthree".each("\n") { |s| a << s }
@@ -2587,7 +2594,7 @@ describe "String#each_byte" do
   end
 end
 
-describe "String#each_line(separator)" do
+describe "String#each_line" do
   it "is an alias of String#each" do
     [
       "", "x", "x\ny", "x\ry", "x\r\ny", "x\n\r\r\ny",
@@ -2635,7 +2642,7 @@ describe "String#eql?" do
   end
 end
 
-describe "String#gsub(pattern, replacement)" do
+describe "String#gsub with pattern, replacement" do
   it "returns a copy of self with all occurrences of pattern replaced with replacement" do
     "hello".gsub(/[aeiou]/, '*').should == "h*ll*"
 
@@ -2842,7 +2849,7 @@ describe "String#gsub(pattern, replacement)" do
   end
 end
 
-describe "String#gsub(pattern) { block }" do
+describe "String#gsub with pattern and block" do
   it "returns a copy of self with all occurrences of pattern replaced with the block's return value" do
     "hello".gsub(/./) { |s| s.succ + ' ' }.should == "i f m m p "
     "hello!".gsub(/(.)(.)/) { |*a| a.inspect }.should == '["he"]["ll"]["o!"]'
@@ -2939,7 +2946,7 @@ describe "String#gsub(pattern) { block }" do
   end  
 end
 
-describe "String#gsub!(pattern, replacement)" do
+describe "String#gsub! with pattern, replacement" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.gsub!(/[aeiou]/, '*').equal?(a).should == true
@@ -2969,7 +2976,7 @@ describe "String#gsub!(pattern, replacement)" do
   end
 end
 
-describe "String#gsub!(pattern) { block }" do
+describe "String#gsub! with pattern and block" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.gsub!(/[aeiou]/) { '*' }.equal?(a).should == true
@@ -3039,7 +3046,7 @@ describe "String#hex" do
   end
 end
 
-describe "String#include?(other_str)" do
+describe "String#include? with String" do
   it "returns true if self contains other_str" do
     "hello".include?("lo").should == true
     "hello".include?("ol").should == false
@@ -3068,7 +3075,7 @@ describe "String#include?(other_str)" do
   end
 end
 
-describe "String#include?(fixnum)" do
+describe "String#include? with Fixnum" do
   it "returns true if self contains the given char" do
     "hello".include?(?h).should == true
     "hello".include?(?z).should == false
@@ -3086,7 +3093,7 @@ describe "String#include?(fixnum)" do
   end
 end
 
-describe "String#index(obj [, start_offset])" do
+describe "String#index with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
     should_raise(TypeError) { "hello".index(:sym) }    
     should_raise(TypeError) { "hello".index(Object.new) }
@@ -3110,7 +3117,7 @@ describe "String#index(obj [, start_offset])" do
   end
 end
 
-describe "String#index(fixnum [, start_offset])" do
+describe "String#index with Fixnum" do
   it "returns the index of the first occurrence of the given character" do
     "hello".index(?e).should == 1
     "hello".index(?l).should == 2
@@ -3184,7 +3191,7 @@ describe "String#index(fixnum [, start_offset])" do
   end
 end
 
-describe "String#index(substring [, start_offset])" do
+describe "String#index with String" do
   it "behaves the same as String#index(char) for one-character strings" do
     ["blablabla", "hello cruel world...!"].each do |str|
       str.split("").uniq.each do |str|
@@ -3305,7 +3312,7 @@ describe "String#index(substring [, start_offset])" do
   end
 end
 
-describe "String#index(regexp [, start_offset])" do
+describe "String#index with Regexp" do
   it "behaves the same as String#index(string) for escaped string regexps" do
     ["blablabla", "hello cruel world...!"].each do |str|
       ["", "b", "bla", "lab", "o c", "d."].each do |needle|
@@ -3433,7 +3440,7 @@ describe "String#index(regexp [, start_offset])" do
   end
 end
 
-describe "String#initialize([str])" do
+describe "String#initialize" do
   it "is a private method" do
     "".private_methods.map { |m| m.to_s }.include?("initialize").should == true    
   end
@@ -3468,7 +3475,7 @@ describe "String#initialize([str])" do
   end
 end
 
-describe "String#initialize_copy(other)" do
+describe "String#initialize_copy" do
   it "is a private method" do
     "".private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
   end
@@ -3498,7 +3505,7 @@ describe "String#initialize_copy(other)" do
   end
 end
 
-describe "String#insert(index, other)" do
+describe "String#insert with index, other" do
   it "inserts other before the character at the given index" do
     "abcd".insert(0, 'X').should == "Xabcd"
     "abcd".insert(3, 'X').should == "abcXd"
@@ -3604,7 +3611,7 @@ describe "String#length" do
   end
 end
 
-describe "String#ljust(length, padstr)" do
+describe "String#ljust with length, padding" do
   it "returns a new string of specified length with self left justified and padded with padstr" do
     "hello".ljust(20, '1234').should == "hello123412341234123"
 
@@ -3742,7 +3749,7 @@ describe "String#lstrip!" do
   end
 end
 
-describe "String#match(pattern)" do
+describe "String#match" do
   it "matches the pattern against self" do
     'hello'.match(/(.)\1/)[0].should == 'll'
   end
@@ -3848,7 +3855,7 @@ describe "String#oct" do
   end
 end
 
-describe "String#replace(other)" do
+describe "String#replace" do
   it "replaces the content of self with other and returns self" do
     a = "some string"
     a.replace("another string").equal?(a).should == true
@@ -3917,7 +3924,7 @@ describe "String#reverse!" do
   end
 end
 
-describe "String#rindex(obj [, start_offset])" do
+describe "String#rindex with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
     should_raise(TypeError) { "hello".rindex(:sym) }    
     should_raise(TypeError) { "hello".rindex(Object.new) }
@@ -3943,7 +3950,7 @@ describe "String#rindex(obj [, start_offset])" do
   end
 end
 
-describe "String#rindex(fixnum [, start_offset])" do
+describe "String#rindex with Fixnum" do
   it "returns the index of the last occurrence of the given character" do
     "hello".rindex(?e).should == 1
     "hello".rindex(?l).should == 3
@@ -4018,7 +4025,7 @@ describe "String#rindex(fixnum [, start_offset])" do
   end
 end
 
-describe "String#rindex(substring [, start_offset])" do
+describe "String#rindex with String" do
   it "behaves the same as String#rindex(char) for one-character strings" do
     ["blablabla", "hello cruel world...!"].each do |str|
       str.split("").uniq.each do |str|
@@ -4166,7 +4173,7 @@ describe "String#rindex(substring [, start_offset])" do
   end
 end
 
-describe "String#rindex(regexp [, start_offset])" do
+describe "String#rindex with Regexp" do
   it "behaves the same as String#rindex(string) for escaped string regexps" do
     ["blablabla", "hello cruel world...!"].each do |str|
       ["", "b", "bla", "lab", "o c", "d."].each do |needle|
@@ -4306,7 +4313,7 @@ describe "String#rindex(regexp [, start_offset])" do
   end
 end
 
-describe "String#rjust(length, padstr)" do
+describe "String#rjust with length, padding" do
   it "returns a new string of specified length with self right justified and padded with padstr" do
     "hello".rjust(20, '1234').should == "123412341234123hello"
 
@@ -4407,7 +4414,6 @@ describe "String#rjust(length, padstr)" do
   end
 end
 
-
 describe "String#rstrip" do
   it "returns a copy of self with trailing whitespace removed" do
    "  hello  ".rstrip.should == "  hello"
@@ -4445,7 +4451,7 @@ describe "String#rstrip!" do
   end
 end
 
-describe "String#scan(pattern)" do
+describe "String#scan" do
   it "returns an array containing all matches" do
     "cruel world".scan(/\w+/).should == ["cruel", "world"]
     "cruel world".scan(/.../).should == ["cru", "el ", "wor"]
@@ -4523,7 +4529,7 @@ describe "String#scan(pattern)" do
   end
 end
 
-describe "String#scan(pattern) { block }" do
+describe "String#scan with pattern and block" do
   it "returns self" do
     s = "foo"
     s.scan(/./) {}.equal?(s).should == true
@@ -4628,7 +4634,7 @@ end
 
 # String#slice is merged with String#[] for spec sanity reasons.
 
-describe "String#slice!(idx)" do
+describe "String#slice! with index" do
   it "deletes and return the char at the given position" do
     a = "hello"
     a.slice!(1).should == ?e
@@ -4669,7 +4675,7 @@ describe "String#slice!(idx)" do
   end
 end
 
-describe "String#slice!(idx, length)" do
+describe "String#slice! with index, length" do
   it "deletes and returns the substring at idx and the given length" do
     a = "hello"
     a.slice!(1, 2).should == "el"
@@ -4738,7 +4744,7 @@ describe "String#slice!(idx, length)" do
   end
 end
 
-describe "String#slice!(range)" do
+describe "String#slice! Range" do
   it "deletes and return the substring given by the offsets of the range" do
     a = "hello"
     a.slice!(1..3).should == "ell"
@@ -4819,7 +4825,7 @@ describe "String#slice!(range)" do
   end
 end
 
-describe "String#slice!(regexp)" do
+describe "String#slice! with Regexp" do
   it "deletes and returns the first match from self" do
     s = "this is a string"
     s.slice!(/s.*t/).should == 's is a st'
@@ -4881,7 +4887,7 @@ describe "String#slice!(regexp)" do
   end
 end
 
-describe "String#slice!(regexp, idx)" do
+describe "String#slice! with Regexp, index" do
   it "deletes and returns the capture for idx from self" do
     str = "hello there"
     str.slice!(/[aeiou](.)\1/, 0).should == "ell"
@@ -4967,7 +4973,7 @@ describe "String#slice!(regexp, idx)" do
   end
 end
 
-describe "String#slice!(other_str)" do
+describe "String#slice! with String" do
   it "removes and returns the first occurrence of other_str from self" do
     c = "hello hello"
     c.slice!('llo').should == "llo"
@@ -5025,7 +5031,7 @@ describe "String#slice!(other_str)" do
   end
 end
 
-describe "String#split(string [, limit])" do
+describe "String#split with String" do
   it "returns an array of substrings based on splitting on the given string" do
     "mellow yellow".split("ello").should == ["m", "w y", "w"]
   end
@@ -5168,7 +5174,7 @@ describe "String#split(string [, limit])" do
   end
 end
 
-describe "String#split(regexp [, limit])" do
+describe "String#split with Regexp" do
   it "divides self on regexp matches" do
     " now's  the time".split(/ /).should == ["", "now's", "", "the", "time"]
     " x\ny ".split(/ /).should == ["", "x\ny"]
@@ -5301,7 +5307,7 @@ describe "String#split(regexp [, limit])" do
   end  
 end
 
-describe "String#squeeze(*sets)" do
+describe "String#squeeze" do
   it "returns new string where runs of the same character are replaced by a single character when no args are given" do
     "yellow moon".squeeze.should == "yelow mon"
   end
@@ -5381,7 +5387,7 @@ describe "String#squeeze(*sets)" do
   end
 end
 
-describe "String#squeeze!([other_strings])" do
+describe "String#squeeze!" do
   it "modifies self in place and returns self" do
     a = "yellow moon"
     a.squeeze!.equal?(a).should == true
@@ -5440,7 +5446,7 @@ describe "String#strip!" do
   end
 end
 
-describe "String#sub(pattern, replacement)" do
+describe "String#sub with pattern, replacement" do
   it "returns a copy of self with all occurrences of pattern replaced with replacement" do
     "hello".sub(/[aeiou]/, '*').should == "h*llo"
     "hello".sub(//, ".").should == ".hello"
@@ -5641,7 +5647,7 @@ describe "String#sub(pattern, replacement)" do
   end
 end
 
-describe "String#sub(pattern) { block }" do
+describe "String#sub with pattern and block" do
   it "returns a copy of self with the first occurrences of pattern replaced with the block's return value" do
     "hi".sub(/./) { |s| s[0].to_s + ' ' }.should == "104 i"
     "hi!".sub(/(.)(.)/) { |*a| a.inspect }.should == '["hi"]!'
@@ -5739,7 +5745,7 @@ describe "String#sub(pattern) { block }" do
   end
 end
 
-describe "String#sub!(pattern, replacement)" do
+describe "String#sub! with pattern, replacement" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.sub!(/[aeiou]/, '*').equal?(a).should == true
@@ -5769,7 +5775,7 @@ describe "String#sub!(pattern, replacement)" do
   end
 end
 
-describe "String#sub!(pattern) { block }" do
+describe "String#sub! with pattern and block" do
   it "modifies self in place and returns self" do
     a = "hello"
     a.sub!(/[aeiou]/) { '*' }.equal?(a).should == true
@@ -5893,7 +5899,7 @@ describe "String#succ!" do
   end
 end
 
-describe "String#sum(n)" do
+describe "String#sum" do
   it "returns a basic n-bit checksum of the characters in self" do
     "ruby".sum.should == 450
     "ruby".sum(8).should == 194
@@ -5982,7 +5988,7 @@ describe "String#to_f" do
   end
 end
 
-describe "String#to_i(base=10)" do
+describe "String#to_i with base 10" do
   it "interprets leading characters as a number in the given base" do
     "100110010010".to_i(2).should == 0b100110010010
     "100110201001".to_i(3).should == 186409
@@ -6083,7 +6089,7 @@ describe "String#to_sym" do
   end
 end
 
-describe "String#tr(from_string, to_string)" do
+describe "String#tr" do
   it "returns a new string with the characters from from_string replaced by the ones in to_string" do
     "hello".tr('aeiou', '*').should == "h*ll*"
     "hello".tr('el', 'ip').should == "hippo"
@@ -6106,7 +6112,7 @@ describe "String#tr(from_string, to_string)" do
   end
 end
 
-describe "String#tr!(from_string, to_string)" do
+describe "String#tr!" do
   it "modifies self in place" do
     s = "abcdefghijklmnopqR"
     s.tr!("cdefg", "12")
@@ -6128,7 +6134,7 @@ describe "String#tr!(from_string, to_string)" do
   end
 end
 
-describe "String#tr_s(from_strin, to_string)" do
+describe "String#tr_s" do
   it "returns a string processed according to tr with duplicate characters removed" do
     "hello".tr_s('l', 'r').should == "hero"
     "hello".tr_s('el', '*').should == "h*o"
@@ -6151,7 +6157,7 @@ describe "String#tr_s(from_strin, to_string)" do
   end
 end
 
-describe "String#tr_s!(from_string, to_string)" do
+describe "String#tr_s!" do
   it "modifies self in place" do
     s = "hello"
     s.tr_s!('l', 'r').should == "hero"
@@ -6194,7 +6200,7 @@ describe "String#upcase!" do
   # TODO
 end
 
-describe "String#upto(other_string) { block }" do
+describe "String#upto" do
   it "passes successive values, starting at self and ending at other_string, to the block" do
     a = []
     "*+".upto("*3") { |s| a << s }
