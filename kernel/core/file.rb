@@ -78,15 +78,19 @@ class File < IO
   end
   
   def self.fifo?(path)
-    stat(path).kind == :fifo
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    stat.kind == :fifo
   end
   
   def self.socket?(path)
-    stat(path).kind == :socket
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    stat.kind == :socket
   end
 
   def self.ftype(path)
-    kind = stat(path).kind
+    kind = stat(path).kind # TODO(MC): lstat
     FILE_TYPES.include?(kind) ? FILE_TYPES[kind] : 'unknown'
   end
 
