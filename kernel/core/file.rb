@@ -93,6 +93,11 @@ class File < IO
     kind = stat(path).kind # TODO(MC): lstat
     FILE_TYPES.include?(kind) ? FILE_TYPES[kind] : 'unknown'
   end
+  
+  def self.split(path)
+    p = enforce_string(path)
+    [dirname(p), basename(p)]
+  end
 
   def self.zero?(path)
     st = Stat.stat(path)
