@@ -75,12 +75,11 @@ OBJECT iseq_new(STATE, int fields) {
 }
 
 
-
-#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#if defined(__BIG_ENDIAN__)
 static inline uint32_t read_int(uint8_t *str) {
   return (uint32_t)(str[0]
                  | (str[1] << 8 )
-                 | (str[2] << 26)
+                 | (str[2] << 16)
                  | (str[3] << 24));
 }
 #define ISET_FLAG(o) 
