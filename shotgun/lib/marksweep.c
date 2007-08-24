@@ -92,12 +92,10 @@ void mark_sweep_add_chunk(mark_sweep_gc ms) {
 
 
 OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
-  int bytes, idx;
+  int bytes;
   struct ms_header *oh;
   struct ms_entry *ent;
-  ms_chunk *chk;
   OBJECT ro;
-  clock_t curt;
   
   bytes = sizeof(struct ms_header) + ((obj_fields + HEADER_SIZE) * REFSIZE);
   

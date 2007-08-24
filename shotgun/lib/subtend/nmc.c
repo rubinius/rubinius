@@ -53,7 +53,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->locals = (OBJECT)Qfalse;
   fc->argcount = args;
   fc->name = name;
-  fc->method_module = Qnil;
+  fc->method_module = (OBJECT)Qnil;
   fc->type = FASTCTX_NMC;
   
   n = nmc_new_standalone();

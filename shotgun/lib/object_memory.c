@@ -140,7 +140,6 @@ void object_memory_shift_contexts(STATE, object_memory om) {
   OBJECT ctx, new_ctx;
   int inc = 0;
   // char *addr, *cur;
-  struct fast_context *fc;
   
   // addr = (char*)(om->context_bottom);
   // cur = (char*)(om->contexts->address);
@@ -235,9 +234,8 @@ void object_memory_mark_contexts(STATE, object_memory om) {
 }
 
 void object_memory_clear_marks(STATE, object_memory om) {
-  OBJECT ctx, lst;
-  char *addr, *cur;
-  struct fast_context *fc;
+  OBJECT ctx;
+  char *addr;
   
   addr = (char*)(om->contexts->address);
   

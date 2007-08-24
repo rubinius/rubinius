@@ -265,12 +265,12 @@ static void syd_dvar_push();
 
 #define NODE_STRTERM NODE_ZARRAY        /* nothing to gc */
 #define NODE_HEREDOC NODE_ARRAY         /* 1, 3 to gc */
-#define SIGN_EXTEND(x,n) (((1<<(n)-1)^((x)&~(~0<<(n))))-(1<<(n)-1))
+#define SIGN_EXTEND(x,n) (((1<<((n)-1))^((x)&~(~0<<(n))))-(1<<((n)-1)))
 #define nd_func u1.id
-#if SIZEOF_SHORT == 2
-#define nd_term(node) ((signed short)(node)->u2.id)
-#else
+#if SIZEOF_SHORT != 2
 #define nd_term(node) SIGN_EXTEND((node)->u2.id, (CHAR_BIT*2))
+#else
+#define nd_term(node) ((signed short)(node)->u2.id)
 #endif
 #define nd_paren(node) (char)((node)->u2.id >> (CHAR_BIT*2))
 #define nd_nest u3.id
@@ -6342,7 +6342,6 @@ rb_intern(const char *name)
     pre = qrk + tLAST_TOKEN;
     bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
-  id_regist:  
     // printf("Registered '%s' as %d (%d, %d, %d).\n", name, id, qrk, tLAST_TOKEN, bef);
     return id;
 }

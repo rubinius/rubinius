@@ -23,7 +23,7 @@ static inline int methctx_s_was_referenced_p(STATE, OBJECT obj) {
 static inline void methctx_reference(STATE, OBJECT ctx) {  
   /* If it has a class object setup, we've already adjusted it
      and everything. Don't do it again. */
-  if(HEADER(ctx)->klass != Qnil) return;
+  if(HEADER(ctx)->klass != (OBJECT)Qnil) return;
   
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
@@ -42,7 +42,7 @@ static inline void methctx_reference(STATE, OBJECT ctx) {
 }
 
 static inline int blokctx_s_block_context_p(STATE, OBJECT ctx) {
-  return HEADER(ctx)->klass != Qnil && FLAG_SET_P(ctx, IsBlockContextFlag);
+  return HEADER(ctx)->klass != (OBJECT)Qnil && FLAG_SET_P(ctx, IsBlockContextFlag);
 }
 
 #endif
