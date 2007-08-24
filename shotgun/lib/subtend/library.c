@@ -58,7 +58,6 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   char init[128] = "Init_";
   char sys_name[128];
   rni_nmc *nmc;
-  OBJECT ret = Qtrue;
   
   nmc = NULL;
   

@@ -74,7 +74,7 @@ void state_collect(STATE, cpu c) {
     printf("[GC Y %f secs, %dK total, %3dK used, %4d tenured, %d]\n", 
       elapse,
       (state->om->gc->current->size / 1024),
-      ((state->om->gc->current->current - state->om->gc->current->address) / 1024),
+      (int)((state->om->gc->current->current - state->om->gc->current->address) / 1024),
       state->om->last_tenured,
       state->om->gc->num_collection
     );

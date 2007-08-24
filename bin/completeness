@@ -52,7 +52,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.parse ARGV
 end
 
-cmd = %(bin/mspec -t #{target} -e "%s " -f ci spec 2> /dev/null)
+cmd = %(bin/mspec -t #{target} -e "%s " -f d spec 2> /dev/null)
 
 print_summary = lambda do |str, name, tab|
   examples, failures = 0, 0

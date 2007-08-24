@@ -912,8 +912,10 @@ void cpu_run(STATE, cpu c, int setup) {
     }
   }
 
-insn_start:  
-  
+#if DIRECT_THREADED
+insn_start:
+#endif
+
   while(c->active_context != Qnil) {
     
     /* This check I've commented out is a safety blanket. I've tested

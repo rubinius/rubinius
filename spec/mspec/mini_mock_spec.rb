@@ -12,6 +12,12 @@ context 'Setting up mock methods in a #specify/#it block' do
     o.should_receive :foobar
     o.foobar
   end
+  
+  specify 'any class can set up a mock method using #should_receive' do
+    class O; end
+    O.should_receive :foobar
+    O.foobar
+  end
 end
 
 context 'Lifetime of the mocked methods' do

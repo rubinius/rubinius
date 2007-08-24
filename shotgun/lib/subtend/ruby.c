@@ -123,7 +123,7 @@ VALUE subtend_get_global(int which) {
     break;
         
     default:
-    val = Qnil;
+    val = (OBJECT)Qnil;
   }
   
   return NEW_HANDLE(ctx, val);

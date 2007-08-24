@@ -41,7 +41,6 @@ void cpu_event_init(STATE) {
 
 /* kqueue is broken on darwin, so we have to disable it's use. */
 #if CONFIG_DISABLE_KQUEUE
-  #warning "kqueue is disabled. sorry."
   setenv("EVENT_NOKQUEUE", "1", 1);
   setenv("EVENT_NOPOLL", "1", 1);
 #endif
@@ -111,7 +110,7 @@ void _cpu_wake_channel(int fd, short event, void *arg) {
 
 void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   STATE;
-  size_t sz;
+  size_t sz, total;
   ssize_t i;
   char *buf;
   OBJECT ret, ba;
@@ -124,6 +123,12 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   } else {
     ba = string_get_data(ti->buffer);
     sz = (size_t)ti->count;
+
+    /* Clamp the read size so we don't overrun */
+    total = SIZE_OF_BODY(ba) - 1;
+    if(total < sz) {
+      sz = total;
+    }
     
     buf = bytearray_byte_address(state, ba);
     while(1) {
@@ -135,14 +140,13 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
            It might be better to re-schedule this in libevent and try again,
            but libevent just said SOMETHING was there... */
         if(errno == EINTR) continue;
-        ret = I2N(errno);
-      } else {
+        ret = Qfalse;
+      } else {        
         buf[i] = 0;
         string_set_bytes(ti->buffer, I2N(i));
         
-        ret = ti->buffer;
+        ret = I2N(i);
       }
-      
       break;
     }
   }

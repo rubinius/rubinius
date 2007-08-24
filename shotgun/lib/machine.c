@@ -505,9 +505,9 @@ void machine_restart_debugging(machine m) {
 }
 
 void machine_setup_standard_io(machine m) {
-  machine_set_const(m, "STDIN", io_new(m->s, 0));
-  machine_set_const(m, "STDOUT", io_new(m->s, 1));
-  machine_set_const(m, "STDERR", io_new(m->s, 2));
+  machine_set_const(m, "STDIN", io_new(m->s, 0, "r"));
+  machine_set_const(m, "STDOUT", io_new(m->s, 1, "w"));
+  machine_set_const(m, "STDERR", io_new(m->s, 2, "w"));
 }
 
 void machine_setup_ruby(machine m, char *name) {
