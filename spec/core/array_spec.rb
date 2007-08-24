@@ -22,7 +22,7 @@ frozen_array.freeze
 
 describe "Array" do
   it "includes Enumerable" do
-    Array.include?(Enumerable).should == true
+    Array.ancestors.include?(Enumerable).should == true
   end
 end
 
@@ -80,8 +80,8 @@ describe "Array.new" do
     a.inspect.should == [:foo].inspect
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:foo])
+    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true, :count => :any)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:foo], :count => :any)
     Array.new(obj).should == [:foo]
   end
   
@@ -104,6 +104,10 @@ describe "Array.new" do
     a.class.should == MyArray
     a.inspect.should == [1, 2, 3, 4, 5].inspect
   end  
+
+  it "will fail if a to_ary is supplied as the first argument and a second argument is given" do
+    should_raise(TypeError) { Array.new([1, 2], 1) } 
+  end
 end
 
 describe "Array.[]" do

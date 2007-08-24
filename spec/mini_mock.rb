@@ -5,7 +5,7 @@ class Object
   # Provide the method name and a hash with any of the following
   #   :with       => Array of arguments or :any (default)
   #   :block      => Whether block is present or :any (default)
-  #   :count      => Number of times invoked, default once
+  #   :count      => Number of times invoked, default once (special: :any and :never)
   #   :returning  => Object to return
   def should_receive(sym, info = {:with => :any, :block => :any, :count => 1})
     meta = class << self; self; end

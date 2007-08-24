@@ -7,29 +7,61 @@ class Array
   
   include Enumerable
 
-  def initialize(sz=0, obj=nil)
-    if Array === sz
-      # dup from sz, which is really an Array
-      @tuple = Tuple.new(sz.size + 10)
-      @tuple.copy_from sz.tuple, 0
-      @total = sz.size
-    elsif sz.respond_to? :to_ary
-      @tuple = Tuple.new(sz.to_ary.size + 10)
-      @tuple.copy_from sz.to_ary.tuple, 0
-      @total = sz.to_ary.size
-      # FIXME in class.rb: This apparently never is true!
-    elsif block_given?
-      # fill sz times from yield
-      @tuple = Tuple.new(sz + 10)
-      sz.times { |i| @tuple.put i, yield(i) }
-      @total = sz
+  # The flow control for many of these methods is
+  # pretty evil due to how MRI works. There is
+  # also a lot of duplication of code due to very
+  # subtle processing differences and, in some
+  # cases, to avoid mutual dependency. Apologies.
+  
+
+  # Returns a new Array populated with the given objects
+  def self.[](*args)
+    return args if self.class == Array
+    new(args.size) { |i| args[i] }   
+  end                                                 # self.[]
+
+
+  # Creates a new Array. Without arguments, an empty
+  # Array is returned. If the only argument is an object
+  # that responds to +to_ary+, a copy of that Array is 
+  # created. Otherwise the first argument is the size
+  # of the new Array (default 0.) The second argument 
+  # may be an object used to fill the Array up to the
+  # size given (the same object, not a copy.) Alternatively,
+  # a block that takes the numeric index can be given and
+  # will be run size times to fill the Array with its
+  # result. The block supercedes any object given. If
+  # neither is provided, the Array is filled with nil.
+  def initialize(*args)
+    raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
+
+    if args.empty?
+      @tuple = Tuple.new 10
+      @total = 0
+
+    elsif (args.first.kind_of? Array or args.first.respond_to? :to_ary) and args.size == 1
+      ary = ary_from args.first
+
+      @tuple = Tuple.new(ary.size + 10)
+      @total = ary.size
+      @tuple.copy_from ary.tuple, 0
+
     else
-      # fill sz times from obj
-      @tuple = Tuple.new(sz + 10)
-      sz.times { |i| @tuple.put i, obj }
-      @total = sz
+      count = int_from args.first
+      obj   = args[1]
+      raise ArgumentError, "Size must be positive" if count < 0
+
+      @tuple = Tuple.new(count + 10)
+      @total = count
+
+      if block_given?   
+        count.times { |i| @tuple.put i, yield(i) }
+
+      else
+        count.times { |i| @tuple.put i, obj }
+      end
     end
-  end
+  end                                                 # initialize
 
   def at(idx)
     if idx < 0
@@ -1119,4 +1151,28 @@ class Array
     
     return str
   end
+
+
+  # Internals
+  private
+
+    # Attempt to convert the given object to_int or fail 
+    def int_from(obj)
+      unless obj.kind_of? Integer
+        raise TypeError, "Unable to convert #{obj.inspect} to Integer" unless obj.respond_to? :to_int
+        return obj.to_int
+      end
+
+      obj
+    end                                               # int_from
+
+    # Attempt to convert the given object to_ary or fail 
+    def ary_from(obj)
+      unless obj.kind_of? Array
+        raise TypeError, "Unable to convert #{obj.inspect} to Array" unless obj.respond_to? :to_ary
+        return obj.to_ary
+      end
+
+      obj
+    end                                               # ary_from
 end
