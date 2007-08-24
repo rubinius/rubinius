@@ -1,11 +1,23 @@
 #!/usr/bin/env ruby
-start_time = Time.now
-child = fork {
+
+max = 60
+
+def fin(code=0)
+  Process.wait(@child)
+  if !$?.success?
+    exit! 1
+  end
+  exit! code
+end
+
+@child = fork {
 	exec(*ARGV)
 }
-Process.waitpid(child)
-if (!$?.success?)
-	exit(1)
-end	
-end_time = Time.now
-puts(end_time - start_time)
+
+Signal.trap('CHLD') do |o|
+  fin
+end
+
+sleep max
+Process.kill 'INT', @child
+exit! 2

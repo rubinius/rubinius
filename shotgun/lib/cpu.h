@@ -54,7 +54,8 @@ struct fast_context {
   CPU_REGISTERS
 };
 
-#define InitialStackSize 4096
+/* 3Megs of stack */
+#define InitialStackSize 786432
 
 #define TASK_NO_STACK 1
 #define TASK_FLAG_P(task, flag) ((task->flags & flag) == flag)
