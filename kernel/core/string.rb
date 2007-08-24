@@ -339,7 +339,8 @@ class String
 
   def initialize(arg)
     if Fixnum === arg
-      @data = ByteArray.new(arg)
+      # + 1 for the null on the end.
+      @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
       @encoding = nil

@@ -6,15 +6,17 @@ end
 
 class IO
   
+  BufferSize = 8096
+  
   def initialize(fd)
     @descriptor = fd
   end
   
-  ivar_as_index :__ivars__ => 0, :descriptor => 1
+  ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
   def __ivars__ ; @__ivars__  ; end
     
   def inspect
-    "#<#{self.class}:#{object_id.to_s(16)} fd=#{@descriptor}>"
+    "#<#{self.class}:#{object_id.to_s(16)}>"
   end
   
   def puts(*args)
@@ -38,26 +40,40 @@ class IO
   end
   
   alias :print :<<
+    
+  def sysread(size, buf=nil)
+    buf = String.new(size) unless buf
+    chan = Channel.new
+    Scheduler.send_on_readable chan, self, buf, size
+    raise EOFError if chan.receive.nil?
+    return buf
+  end
+    
+  alias :syswrite :write
 
-  def read(size=nil)
+  def read(size=nil, buf=nil)
     if size
-      buf = String.new(size)
-      chan = Channel.new
-      Scheduler.send_on_readable chan, self, buf, size
-      chan.receive
+      begin
+        sysread(size, buf)
+      rescue EOFError
+        return nil
+      end
     else
       out = ""
       loop do
-        chunk = read(32)
-        return out unless chunk
+        begin
+          chunk = sysread(BufferSize, buf)
+        rescue EOFError
+          return out
+        end
         out << chunk
-      end      
+      end
     end
   end
   
   def close
     unless io_close
-      raise IOError.new("Unable to close instance of IO")
+      raise IOError "Unable to close instance of IO"
     end
   end
   

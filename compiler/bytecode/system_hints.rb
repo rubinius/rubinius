@@ -13,7 +13,7 @@ module Rubinius
     "String"=>{:@bytes=>0, :@characters=>1, :@encoding=>2, :@data=>3, :@hash => 4, :@shared => 5},
     "CompiledMethod"=>{:@file=>6, :@required=>2, :@bytecodes=>4, :@locals=>7, :@path=>13, :@serial=>3, :@arguments=>9, :@scope=>10, :@lines=>12, :@cache=>14, :@name=>5, :@literals=>8, :@exceptions=>11, :@__ivars__=>0, :@primitive=>1},
     "SymbolTable"=>{:@symbols=>1, :@strings=>2, :@__ivars__=>0},
-    "IO"=>{:@__ivars__ => 0, :@descriptor => 1, :@buffer => 2 },
+    "IO"=>{:@__ivars__ => 0, :@descriptor => 1, :@buffer => 2, :mode => 3 },
     "Module"=>{:@methods=>1, :@method_cache=>2, :@constants=>4, :@parent=>5, :@name=>3, :@__ivars__=>0},
     "MethodContext"=>{:@raiseable=>5, :@bytecodes=>7, :@locals=>10, :@argcount=>11, :@receiver=>9, :@method=>6, :@sender=>1, :@module=>13, :@ip=>2, :@name=>12, :@sp=>3, :@literals=>8, :@__ivars__=>0, :@block=>4},
     "Hash"=>{:@entries=>4, :@default=>5, :@default_proc=>6, :@keys=>1, :@values=>2, :@__ivars__=>0, :@bins=>3},

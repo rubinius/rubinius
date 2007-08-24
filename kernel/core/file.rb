@@ -35,8 +35,8 @@ class File < IO
   end
   
   def self.exist?(path)
-    out = raw_stat(path)
-    if Tuple === out
+    out = Stat.stat(path)
+    if out.kind_of? Stat
       return true
     else
       return false
@@ -48,27 +48,39 @@ class File < IO
   end
   
   def self.file?(path)
-    stat(path).kind == :file
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.kind == :file
   end
 
   def self.directory?(path)
-    stat(path).kind == :dir
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.kind == :dir
   end
   
   def self.link?(path)
-    stat(path).kind == :link
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.kind == :link
   end
 
   def self.blockdev?(path)
-    stat(path).kind == :block
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.kind == :block
   end
 
   def self.chardev?(path)
-    stat(path).kind == :char
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.kind == :char
   end
 
   def self.zero?(path)
-    exists?(path) && stat(path).size == 0
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.size == 0
   end
 
   def self.size(path)
@@ -76,8 +88,9 @@ class File < IO
   end
 
   def self.size?(path)
-    return nil unless exists?(path)
-    size(path)
+    st = Stat.stat(path)
+    return false unless st.kind_of? Stat
+    st.size
   end
   
   def self.writable_real?(path)
@@ -95,7 +108,7 @@ class File < IO
   def self.unlink(*paths)
     paths.each do |path|
       path = enforce_string(path)
-      raise Errno::ENOENT unless exists?(path)
+      raise Errno::ENOENT, path unless exists?(path)
       Platform::POSIX.unlink(path) 
     end
     paths.size
@@ -224,23 +237,15 @@ class File < IO
     def mtime; @mtime; end
     def ctime; @ctime; end
     def path; @path; end
-            
-    def self.from_tuple(tup, path)
-      obj = allocate
-      obj.copy_from tup, 0
-      obj.put 10, path
-      return obj
-    end
-    
-    
+   
     def inspect
-      "#<#{self.class}:0x#{object_id.to_s(16)} path=#{self.path} kind=#{self.kind}>"
+      "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
     end
   end
   
   def self.stat(path)
     path = enforce_string(path)
-    out = raw_stat(path)
+    out = Stat.stat(path)
     if !out
       raise UnableToStat, "Unable to perform stat on '#{path}'"
     elsif out == 1
@@ -248,7 +253,7 @@ class File < IO
     elsif out == 2
       raise PermissionError, "Unable to access '#{path}'"
     else
-      return Stat.from_tuple(out, path)
+      return out
     end
   end
     

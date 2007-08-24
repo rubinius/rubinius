@@ -306,7 +306,7 @@ class ShotgunPrimitives
     POP(self, IO);
     POP(t1, STRING);
 
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    j = io_to_fd(self);
     buf = string_byte_address(state, t1);
     k = FIXNUM_TO_INT(string_get_bytes(t1));
     k = write(j, buf, k);
@@ -324,7 +324,7 @@ class ShotgunPrimitives
     POP(t1, FIXNUM);
 
     t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    j = io_to_fd(self);
     k = read(j, string_byte_address(state, t2), FIXNUM_TO_INT(t1));
     if(k == 0) {
       t2 = Qnil;
@@ -345,10 +345,8 @@ class ShotgunPrimitives
     
     j = pipe(fds);
     if(!j) {
-      io_set_descriptor(t1, I2N(fds[0]));
-      io_initialize(state, fds[0]);
-      io_set_descriptor(t2, I2N(fds[1]));      
-      io_initialize(state, fds[1]);
+      io_wrap(state, t1, fds[0], "r");
+      io_wrap(state, t2, fds[1], "r");
     }
     stack_push(I2N(j));
     CODE
@@ -361,11 +359,11 @@ class ShotgunPrimitives
     self = stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, STRING);
-
+    
     _path = string_byte_address(state, t1);
     _mode = string_byte_address(state, t2);
-    _fobj = fopen(_path, _mode);
-    t3 = io_new(state, fileno(_fobj));
+    
+    t3 = io_open(state, _path, _mode);
     stack_push(t3);
     CODE
   end
@@ -378,9 +376,10 @@ class ShotgunPrimitives
     /* MRI does a ton more with reopen, but I don't yet understand why.
        This seems perfectly acceptable currently. */
     
-    k = FIXNUM_TO_INT(io_get_descriptor(self));
-    j = FIXNUM_TO_INT(io_get_descriptor(t1));
-    
+    k = io_to_fd(self);
+    j = io_to_fd(t1);
+
+    /* Probably needs an fflush here. */
     if(dup2(j, k) == -1) {
       cpu_raise_from_errno(state, c, "Unable to reopen IO object");
     } else {
@@ -393,8 +392,8 @@ class ShotgunPrimitives
   def io_close
     <<-CODE
     POP(self, IO);
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
-    GUARD(j >= 0)
+    j = io_to_fd(self);
+    GUARD(j >= 0);
 
     if( close(j) ) {
       stack_push(Qfalse);
@@ -907,7 +906,7 @@ class ShotgunPrimitives
         stack_push(Qfalse);
       }
     } else {
-      t2 = tuple_new(state, 10);
+      t2 = NEW_OBJECT(self, 10);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
       if((sb.st_mode & S_IFIFO) == S_IFIFO) {
@@ -2149,15 +2148,20 @@ class ShotgunPrimitives
     <<-CODE
     stack_pop(); /* scheduler */
     POP(self, REFERENCE);
-    POP(t1,   IO);
+    t1 = stack_pop();
     t2 = stack_pop();
     t3 = stack_pop();
     
     GUARD(RISA(self, channel));
     GUARD(STRING_P(t2) || NIL_P(t2));
     GUARD(FIXNUM_P(t3) || NIL_P(t3));
-    
-    j = FIXNUM_TO_INT(io_get_descriptor(t1));
+    if(IO_P(t1)) {
+      j = io_to_fd(t1);
+    } else if(FIXNUM_P(t1)) {
+      j = FIXNUM_TO_INT(t1);
+    } else {
+      GUARD(0);
+    }
     cpu_event_wait_readable(state, c, self, j, t2, FIXNUM_TO_INT(t3));
     stack_push(Qtrue);
     CODE
@@ -2171,7 +2175,7 @@ class ShotgunPrimitives
     
     GUARD(RISA(self, channel));
     
-    j = FIXNUM_TO_INT(io_get_descriptor(t1));
+    j = io_to_fd(t1);
     cpu_event_wait_writable(state, c, self, j);
     stack_push(Qtrue);
     CODE

@@ -9,6 +9,7 @@ def newer?(file, cmp)
 end
 
 @pb = "runtime/pristine_bootstrap.rba"
+@pp = "runtime/pristine_platform.rba"
 @pc = "runtime/pristine_core.rba"
 @pl = "runtime/pristine_loader.rbc"
 
@@ -25,6 +26,11 @@ end
 if File.exists?(@pl)
   puts "Using #{@pl} for the loader."
   ENV['LOADER'] = @pl
+end
+
+if File.exists?(@pp)
+  puts "Using #{@pp} for the platform."
+  ENV['PLATFORM'] = @pp
 end
 
 @compiler = ENV['COMPILER']
@@ -260,6 +266,8 @@ namespace :dev do
   task :setup do
     sh "cp runtime/core.rba #{@pc}"
     sh "cp runtime/bootstrap.rba #{@pb}" 
+    sh "cp runtime/platform.rba #{@pp}" 
+    sh "cp runtime/loader.rbc #{@pl}" 
   end
 end
 
