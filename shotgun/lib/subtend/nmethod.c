@@ -7,8 +7,6 @@
 #include "primitive_indexes.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args) {
-  /* 40 argumennts is a lot, and the max (1.8 has a max of 13) */
-  char params[40];
   OBJECT sys, nm;
   native_method *sys_nm;
   
@@ -26,7 +24,7 @@ OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *
   sys_nm->entry = func;
   sys_nm->args = args;
     
-  sys_nm->stub = ffi_generate_c_stub(state, args, func);
+  sys_nm->stub = (nm_stub_ffi)ffi_generate_c_stub(state, args, func);
   
   nm = nmethod_allocate(state);
   cmethod_set_primitive(nm, I2N(CPU_PRIMITIVE_NMETHOD_CALL));

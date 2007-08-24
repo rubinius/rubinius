@@ -41,7 +41,6 @@ void cpu_event_init(STATE) {
 
 /* kqueue is broken on darwin, so we have to disable it's use. */
 #if CONFIG_DISABLE_KQUEUE
-  #warning "kqueue is disabled. sorry."
   setenv("EVENT_NOKQUEUE", "1", 1);
   setenv("EVENT_NOPOLL", "1", 1);
 #endif
@@ -115,7 +114,6 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   ssize_t i;
   char *buf;
   OBJECT ret, ba;
-  int bytes_read;
   struct thread_info *ti = (struct thread_info*)arg;
   
   state = ti->state;

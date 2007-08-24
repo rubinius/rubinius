@@ -354,7 +354,6 @@ class ShotgunPrimitives
   
   def io_open
     <<-CODE
-    FILE *_fobj;
     char *_path, *_mode;
     self = stack_pop(); /* class */
     POP(t1, STRING);
@@ -532,7 +531,9 @@ class ShotgunPrimitives
     struct tm tm;
     char *old_tz, old_tz_buf[128];
     OBJECT t5, t6, t7, t8, t9, ret;
-
+    
+    old_tz = NULL;
+    
     POP(self, REFERENCE);
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
@@ -1186,7 +1187,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    stack_push(cpu_unmarshal(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
+    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
     CODE
   end
   
