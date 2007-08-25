@@ -222,6 +222,25 @@ class Array
     self
   end                                                 # <<
 
+  # Creates a new Array containing only elements common to
+  # both Arrays, without duplicates. Also known as a 'set
+  # intersection'
+  def &(other)
+    other = ary_from other
+
+    out, set_include = [], {}
+
+    other.each { |x| set_include[x] = true }
+    each { |x| 
+      if set_include[x]
+        out << x
+        set_include[x] = false
+      end
+    }
+
+    out
+  end                                                 # &
+
   def at(idx)
     if idx < 0
       idx += @total
@@ -447,21 +466,6 @@ class Array
       unless set_exclude[x]
         out << x
         set_exclude[x] = true
-      end
-    }
-    out
-  end
-
-  def &(ary)
-    set_include = { }
-    out = []
-    ary.each {  |x|
-      set_include[x] = true
-    }
-    each {  |x|
-      if set_include[x]
-        out << x
-        set_include[x] = false
       end
     }
     out
