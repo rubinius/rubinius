@@ -277,6 +277,17 @@ class Array
       out
     end
   end                                                 # *
+  
+  # Create a concatenation of the two Arrays.
+  def +(other)
+    other = ary_from other
+    out = []
+
+    each { |e| out << e }
+    other.each { |e| out << e }
+
+    out
+  end                                                 # +
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -1053,12 +1064,6 @@ class Array
     @tuple.put 0, val
     @total += 1
     return self
-  end
-  
-  def +(other)
-    out = dup()
-    other.each { |e| out << e }
-    return out
   end
   
   def <=>(other)
