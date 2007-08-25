@@ -181,7 +181,7 @@ describe "Array#&" do
   it "calls to_ary on its argument" do
     obj = Object.new
     def obj.to_ary() [1, 2, 3] end
-    ([1, 2] & obj).should == ([1, 2] & obj.to_ary)
+    ([1, 2] & obj).should == ([1, 2])
     
     obj = Object.new
     obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)

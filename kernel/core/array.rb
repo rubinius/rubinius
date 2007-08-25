@@ -230,9 +230,9 @@ class Array
 
     out, set_include = [], {}
 
-    other.each { |x| set_include[x] = true }
+    other.each { |x| set_include[x] = [true, x] }
     each { |x| 
-      if set_include[x]
+      if set_include[x] and set_include[x].last.eql?(x)
         out << x
         set_include[x] = false
       end
@@ -240,6 +240,23 @@ class Array
 
     out
   end                                                 # &
+
+  # Creates a new Array by combining the two Arrays' items,
+  # without duplicates. Also known as a 'set union.'
+  def |(other)
+    other = ary_from other
+
+    out, exclude = [], {}
+    
+    (self + other).each { |x|
+      unless exclude[x]
+        out << x
+        exclude[x] = true
+      end
+    }
+
+    out
+  end                                                 # |
 
   def at(idx)
     if idx < 0
@@ -448,24 +465,6 @@ class Array
       unless set_exclude[x]
         out << x
         #        set_exclude[x] = true    No!
-      end
-    }
-    out
-  end
-
-  def |(ary)
-    set_exclude = { }
-    out = []
-    each {  |x|
-      unless set_exclude[x]
-        out << x
-        set_exclude[x] = true
-      end
-    }
-    ary.each {  |x|
-      unless set_exclude[x]
-        out << x
-        set_exclude[x] = true
       end
     }
     out
@@ -866,18 +865,6 @@ class Array
         out << e 
       end
     }
-    return out
-  end
-  
-  def &(other)
-    out = []
-
-    self.uniq.each do |e|
-      if other.include?(e)
-        out << e 
-      end
-    end
-    
     return out
   end
   
