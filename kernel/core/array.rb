@@ -257,6 +257,26 @@ class Array
 
     out
   end                                                 # |
+  
+  # Repetition operator when supplied a #to_int argument:
+  # returns a new Array as a concatenation of the given number
+  # of the original Arrays. With an argument that responds to
+  # #to_str, functions exactly like #join instead.
+  def *(val)
+    if val.respond_to? :to_str
+      return join(val)
+
+    else 
+      # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
+      val = int_from val
+
+      raise ArgumentError, "Count cannot be negative" if val < 0
+
+      out = self.class.new
+      val.times { out.push(*self) }
+      out
+    end
+  end                                                 # *
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -876,19 +896,6 @@ class Array
       end
     }
     return out
-  end
-  
-  # TODO: test val for negative values and floats 
-  def *(val)
-    if val.class == String
-      return self.join(val)
-    else
-      out=[]
-      val.times do
-        out.push(*self)
-      end
-      return out
-    end
   end
 
   def fetch(pos, *rest)
