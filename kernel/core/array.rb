@@ -211,6 +211,16 @@ class Array
     return ent
   end
   
+  # Appends the object to the end of the Array.
+  # Returns self so several appends can be chained.
+  def <<(obj)
+    raise TypeError, "Array is frozen" if frozen?
+
+    reallocate :at_least => (@total + 1)
+    @tuple.put @total, obj
+    @total += 1
+    self
+  end                                                 # <<
 
   def at(idx)
     if idx < 0
@@ -223,10 +233,6 @@ class Array
     end
 
     @tuple.at(idx)
-  end
-  def <<(ent)
-    self[@total] = ent
-    self
   end
   
   def push(*args)
@@ -1154,6 +1160,20 @@ class Array
 
   # Internals
   private
+
+    # Reallocates the internal Tuple to accommodate at least given size
+    def reallocate(at_least)
+      at_least = at_least[:at_least] if Hash === at_least
+      return if at_least < @tuple.size
+
+      factor = @total < 1_000_000 ? 2 : 1        # Does this make any sense?
+      
+      tuple = Tuple.new((at_least * factor) + 10)
+
+      tuple.copy_from @tuple, 0     # Swap over old data
+
+      @tuple = tuple
+    end
 
     # Attempt to convert the given object to_int or fail 
     def int_from(obj)
