@@ -301,6 +301,27 @@ class Array
 
     out
   end                                                 # -
+  
+  # Compares the two Arrays and returns -1, 0 or 1 depending
+  # on whether the first one is 'smaller', 'equal' or 'greater'
+  # in relation to the second. Two Arrays are equal only if all
+  # their elements are 0 using first_e <=> second_e and their
+  # lengths are the same. The element comparison is the primary
+  # and length is only checked if the former results in 0's.
+  def <=>(other)
+    other = ary_from other
+
+    size.times { |i| 
+      return 1 unless other.size > i
+
+      diff = at(i) <=> other.at(i)
+      return diff if diff != 0 
+    }
+
+    return 1 if size > other.size
+    return -1 if size < other.size
+    0
+  end                                                 # <=>
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -1052,16 +1073,6 @@ class Array
     @tuple.put 0, val
     @total += 1
     return self
-  end
-  
-  def <=>(other)
-    each_with_index do |a, i| #Should use zip, but it wasn't liking it.
-      return -1 if a.nil?
-      return 1 if other[i].nil?
-      dif = a <=> other[i]
-      return dif unless dif == 0
-    end
-    return 0 #If no elements were different, then the arrays are identical.
   end
   
   def replace(other)
