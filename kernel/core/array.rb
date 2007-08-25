@@ -1,3 +1,4 @@
+# Ruby's builtin dynamic array implementation
 class Array
   ivar_as_index :total => 0, :tuple => 1
   
@@ -63,74 +64,59 @@ class Array
     end
   end                                                 # initialize
 
-  def at(idx)
-    if idx < 0
-      idx += @total
-      return nil if idx < 0
+  # Element reference, returns the element at the given index or 
+  # a subarray starting from the index continuing for length 
+  # elements or returns a subarray from range elements. Negative 
+  # indices count from the end. Returns nil if the index or subarray 
+  # request cannot be completed. Array#slice is synonymous with #[].
+  # Subclasses return instances of themselves.
+  def [](one, two = nil)
+    # Normalise the argument variants
+    start, finish, count, simple = nil, nil, nil, false
+
+    if one.kind_of? Range
+      start, finish = one.begin, one.end
+    elsif two
+      start, count = one, int_from(two)
+      return nil if count < 0       # No need to go further
+    else  
+      start, finish, simple = one, one, true
     end
 
-    if idx >= @total
+    # Convert negative indices
+    start = int_from start
+    start += @total if start < 0
+
+    return self.class.new if start == @total and !simple   # ONE past end only, MRI compat
+
+    finish = int_from finish if finish
+    finish = (start + count - 1) if count    # For non-ranges
+
+    finish += @total if finish < 0
+
+    finish -= 1 if one.kind_of? Range and one.exclude_end?
+
+    # Going past the end is ignored (sort of)
+    finish = (@total - 1) if finish >= @total 
+
+    return nil if start < 0 || start >= @total
+
+    if finish < 0
+      return self.class.new if one.kind_of? Range
       return nil
     end
 
-    @tuple.at(idx)
-  end
+    return @tuple.at(start) if simple
 
-  def [](idx, cnt=nil)
-    # Don't use kind_of? or === here! Both of those use Array#[] and
-    # it will descend and spiral out to infinity!
+    return self.class.new if finish < start
 
-    # Normalise Range arguments
-    if idx.class == Range
-      if cnt
-        raise ArgumentError, "Second argument invalid with a range"
-      end
+    return self.class.new if count == 0
 
-      # Extract the count
-      lst = idx.last
-      lst += @total if lst < 0
-      return nil if lst < 0
+    out = self.class.new
+    start.upto(finish) { |i| out << at(i) }
+    out
+  end                                                 # []
 
-      lst += 1 unless idx.exclude_end?
-
-      idx = idx.first
-      idx += @total if idx < 0
-      return nil if idx < 0
-
-      return [] if lst == 0
-
-      cnt = lst - idx
-    end
-
-    if idx < 0
-      idx += @total
-    end
-
-    if idx < 0
-      return nil
-    end
-
-    if cnt
-      return nil if cnt < 0
-      return [] if cnt == 0
-
-      out = []
-      max = idx + cnt - 1
-      max = @total - 1 if max >= @total
-      idx.upto(max) do |i|
-        out << @tuple.at(i)
-      end
-
-      return nil if idx > @total || max < 0
-      return out
-    end
-
-    if idx < 0 || idx >= @total
-      return nil
-    end
-
-    @tuple.at(idx)
-  end
 
   def []=(idx, ent, *args)
     cnt = nil
@@ -225,6 +211,19 @@ class Array
     return ent
   end
   
+
+  def at(idx)
+    if idx < 0
+      idx += @total
+      return nil if idx < 0
+    end
+
+    if idx >= @total
+      return nil
+    end
+
+    @tuple.at(idx)
+  end
   def <<(ent)
     self[@total] = ent
     self
