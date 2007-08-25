@@ -493,14 +493,25 @@ describe "Array#assoc" do
     a.assoc("key not in array").should == nil
   end
 
-  it "calls == on argument" do
+  specify "calls == on argument" do
     key = Object.new
-    items = Array.new(3) { [Object.new, "foo"] }
-    items[0][0].should_receive(:==, :with => [key], :returning => false)
-    items[1][0].should_receive(:==, :with => [key], :returning => true)
-    items[2][0].should_not_receive(:==, :with => [key])
+    items = [['not it', 1], ['it', 2], ['na', 3]]
+
+    items.assoc(key).should == nil
+
+    def key.==(other); other == 'it' ; end
+
     items.assoc(key).should == items[1]
   end
+
+#  it "calls == on argument" do
+#    key = Object.new
+#    items = Array.new(3) { [Object.new, "foo"] }
+#    items[0][0].should_receive(:==, :with => [key], :returning => false)
+#    items[1][0].should_receive(:==, :with => [key], :returning => true)
+#    items[2][0].should_not_receive(:==, :with => [key])
+#    items.assoc(key).should == items[1]
+#  end
   
   it "ignores any non-Array elements" do
     [1, 2, 3].assoc(2).should == nil

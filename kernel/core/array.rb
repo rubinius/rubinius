@@ -323,6 +323,40 @@ class Array
     0
   end                                                 # <=>
 
+  # The two Arrays are considered equal only if their
+  # lengths are the same and each of their elements 
+  # are equal according to first_e == second_e . Both
+  # Array subclasses and to_ary objects are accepted.
+  def ==(other)
+    unless other.kind_of? Array
+      return false unless other.respond_to? :to_ary
+      other = other.to_ary
+    end
+
+    return false unless size == other.size
+
+    size.times { |i| return false unless at(i) == other.at(i) }
+    
+    true
+  end                                                 # ==
+
+  # Assumes the Array contains other Arrays and searches through 
+  # it comparing the given object with the first element of each
+  # contained Array using obj.==. Returns the first contained 
+  # Array that matches (the first 'associated' Array) or nil.
+  def assoc(obj)
+    # FIX: use break when it works again
+    found, res = nil, nil
+
+    each { |elem| 
+      if found.nil? and elem.kind_of? Array and obj == elem.first 
+        found, res = true, elem
+      end
+    }
+
+    res
+  end                                                 # assoc
+
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
@@ -360,14 +394,6 @@ class Array
     self
   end
   
-  def ==(other)
-    return false unless other.kind_of?(Array)
-    return false if @total != other.size
-    each_with_index do |o, i|
-      return false unless o == other[i]
-    end
-    return true
-  end
 
   def each_index
     i = 0
@@ -516,12 +542,6 @@ class Array
     end
     @total -= 1
     return obj
-  end
-
-  def assoc(obj)
-    find { |x|
-      Array === x && x.first == obj
-    }
   end
 
   def rassoc(obj)
