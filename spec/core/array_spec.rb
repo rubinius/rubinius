@@ -130,6 +130,32 @@ describe "Array[]" do
   end
 end
 
+describe "Array#<<" do
+  it "pushes the object onto the end of the array" do
+    ([ 1, 2 ] << "c" << "d" << [ 3, 4 ]).should == [1, 2, "c", "d", [3, 4]]
+  end
+
+  it "returns self to allow chaining" do
+    a = []
+    b = a
+    (a << 1).equal?(b).should == true
+    (a << 2 << 3).equal?(b).should == true
+  end
+
+  it "correctly resizes the Array" do
+    a = []
+    a.size.should == 0
+    a << :foo
+    a.size.should == 1
+    a << :bar << :baz
+    a.size.should == 3
+  end  
+  
+  it "raises TypeError on a frozen array" do
+    should_raise(TypeError) { frozen_array << 5 }
+  end
+end
+
 describe "Array#&" do
   it "creates an array with elements common to both arrays (intersection)" do
     ([] & []).should == []
@@ -358,16 +384,6 @@ describe "Array#-" do
 
   it "does not call to_ary on array subclasses" do
     ([5, 6, 7] - ToAryArray[7]).should == [5, 6]
-  end
-end
-
-describe "Array#<<" do
-  it "pushes the object onto the end of the array" do
-    ([ 1, 2 ] << "c" << "d" << [ 3, 4 ]).should == [1, 2, "c", "d", [3, 4]]
-  end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array << 5 }
   end
 end
 
