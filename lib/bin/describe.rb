@@ -15,9 +15,15 @@ state = RsLocalState.new
 
 sexp = code.to_sexp
 puts "\nSexp:\n  #{sexp.pretty_inspect}"
+
 # nx = compiler.fully_normalize(sexp, state)
 # puts "\nNormalized Sexp:\n  #{nx.pretty_inspect}"
-desc = compiler.compile_as_script(sexp, :__eval_script__, state)
+begin
+  desc = compiler.compile_as_script(sexp, :__eval_script__, state)
+rescue Object => e
+  puts "Unable to compile."
+  raise e
+end
 puts "\nAssembly:\n#{desc.assembly}"
 
 puts "Sub methods:"

@@ -250,6 +250,21 @@ module Bytecode
         @call_hooks << MetaOperatorPlugin.new(self)
       end
       
+      attr_accessor :state
+      
+      def capture
+        s = @output
+        o = ""
+        @output = o
+        begin
+          yield
+        ensure
+          @output = s
+        end
+        
+        return o
+      end
+      
       def flag?(name)
         @compiler.flags[name]
       end
@@ -1733,9 +1748,9 @@ module Bytecode
         return false
       end
             
-      def hook_call(recv, meth, args)
+      def hook_call(recv, meth, args, block)
         @call_hooks.each do |plugin|
-          return true if plugin.handle(recv, meth, args)
+          return true if plugin.handle(recv, meth, args, block)
         end
         
         return false
@@ -1782,7 +1797,7 @@ module Bytecode
           return
         end
         
-        return if hook_call(recv, meth, args)
+        return if hook_call(recv, meth, args, block)
         
         grab_args = false
         
