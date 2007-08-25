@@ -357,6 +357,19 @@ class Array
     res
   end                                                 # assoc
 
+  # Returns the element at the given index. If the
+  # index is negative, counts from the end of the
+  # Array. If the index is out of range, nil is
+  # returned. Slightly faster than +Array#[]+
+  def at(idx)
+    idx = int_from idx
+    idx += @total if idx < 0
+
+    return nil if idx < 0 || idx >= @total
+
+    @tuple.at idx
+  end                                                 # at
+
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
@@ -373,19 +386,6 @@ class Array
     recursively_join self, separator, out, stack
     out[separator.size..-1] 
   end                                                 # join
-
-  def at(idx)
-    if idx < 0
-      idx += @total
-      return nil if idx < 0
-    end
-
-    if idx >= @total
-      return nil
-    end
-
-    @tuple.at(idx)
-  end
   
   def push(*args)
     args.each do |ent|
