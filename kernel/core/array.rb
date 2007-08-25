@@ -258,6 +258,23 @@ class Array
     out
   end                                                 # |
 
+  # Generates a string from converting all elements of 
+  # the Array to strings, inserting a separator between
+  # each. The separator defaults to $,. Detects recursive
+  # Arrays.
+  def join(separator = nil, method = :to_s)
+    return '' if @total == 0
+    return at(0).to_s if @total == 1
+
+    separator = $, unless separator
+    raise TypeError, "Cannot convert #{separator.inspect} to str" unless separator.respond_to? :to_str
+
+    separator, out, stack = separator.to_str, "", []
+
+    recursively_join self, separator, out, stack
+    out[separator.size..-1] 
+  end                                                 # join
+
   def at(idx)
     if idx < 0
       idx += @total
@@ -285,13 +302,6 @@ class Array
       return false unless o == other[i]
     end
     return true
-  end
-  
-  def join(sep = nil, meth=:to_s)
-    str = ""
-    return str if @total == 0
-    sep = $, unless sep
-    tuple.join_upto(sep, @total, meth)
   end
 
   def each_index
@@ -1185,4 +1195,25 @@ class Array
 
       obj
     end                                               # ary_from
+
+    # Helper to depth-first recurse through joining an Array
+    # Detects recursive structures.
+    def recursively_join(array, separator, out, stack)
+      if stack.include?(array.object_id)
+        out << separator << "[...]"
+      end
+
+      stack.push array.object_id
+
+      array.each { |o|
+        if o.kind_of? Array
+          recursively_join(o, separator, out, stack)
+        else
+          out << separator << o.to_s
+        end
+      }
+
+      stack.pop
+      out
+    end                                                 # recursively_inspect
 end

@@ -1454,22 +1454,23 @@ describe "Array#join" do
     [1, 2].join(obj).should == "1.2"
   end
 
+# Rubinius cannot create recursive arrays, it segfaults -rue
 failure :rubinius do
-#  it "handles recursive arrays" do
-#    x = []
-#    x << x
-#    x.join(":").should == '[...]'
-#    
-#    x = []
-#    y = []
-#    y << 9 << x << 8 << y << 7
-#    x << 1 << x << 2 << y << 3
-#    # representations when recursing from x
-#    # these are here to make it easier to understand what is happening
-#    y_rec = '9:[...]:8:9:[...]:8:[...]:7:7'
-#    x_rec = '1:[...]:2:' + y_rec + ':3'
-#    x.join(":").should == '1:' + x_rec + ':2:' + y_rec + ':3'
-#  end
+  it "handles recursive arrays" do
+    x = []
+    x << x
+    x.join(":").should == '[...]'
+    
+    x = []
+    y = []
+    y << 9 << x << 8 << y << 7
+    x << 1 << x << 2 << y << 3
+    # representations when recursing from x
+    # these are here to make it easier to understand what is happening
+    y_rec = '9:[...]:8:9:[...]:8:[...]:7:7'
+    x_rec = '1:[...]:2:' + y_rec + ':3'
+    x.join(":").should == '1:' + x_rec + ':2:' + y_rec + ':3'
+  end
 end
 end
 
