@@ -17,6 +17,14 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # taint, tainted?, to_a, to_enum, to_json, to_s, to_yaml,
 # to_yaml_properties, to_yaml_style, type, untaint, verify
 
+class A 
+  def public_method; :public_method; end
+  protected
+  def protected_method; :protected_method; end
+  private
+  def private_method; :private_method; end
+end
+
 context "Object class method" do
   specify "new should create a new Object" do
     Object.new.class.should == Object
@@ -273,7 +281,6 @@ describe "Object#instance_variable_set" do
   end
 end
 
-
 describe "Object#method_missing" do
   class A
     def method_missing (*args)
@@ -385,4 +392,350 @@ describe "Object#method_missing" do
   it  "return the correct value from the method_missing method after call a protected class method" do
     AClassWithProtectedMethodAndMetohdMissing.a_protected_class_method.should == :a_protected_class_method
   end 
+end
+
+describe "Object#==" do 
+  it "returns true only if obj and other are the same object" do
+    o1 = Object.new
+    o2 = Object.new
+    (o1 == o1).should == true
+    (o2 == o2).should == true
+    (o1 == o2).should== false
+    (nil == nil).should == true
+    (o1 == nil).should== false
+    (nil == o2).should== false
+  end
+   
+end
+
+describe "Object#eql?" do 
+  it "returns true if obj and anObject are the same object." do 
+    o1 = Object.new
+    o2 = Object.new
+    (o1.eql?(o1)).should == true
+    (o2.eql?(o2)).should == true
+    (o1.eql?(o2)).should == false
+  end
+  
+  it "returns true if obj and anObject have the same value." do 
+    o1 = 1
+    o2 = :hola
+    (:hola.eql? o1).should == false
+    (1.eql? o1).should == true
+    (:hola.eql? o2).should == true
+  end
+end
+
+describe "Object#===" do 
+  
+end
+
+describe "Object#equal?" do   
+  it "returns true only if obj and other are the same object" do
+    o1 = Object.new
+    o2 = Object.new
+    (o1.equal? o1).should == true
+    (o2.equal? o2).should == true
+    (o1.equal? o2).should== false
+    (nil.equal? nil).should == true
+    (o1.equal?  nil).should== false
+    (nil.equal?  o2).should== false
+  end
+  
+  
+  it "returns true if obj and anObject have the same value." do 
+    o1 = 1
+    o2 = :hola
+    (:hola.equal? o1).should == false
+    (1.equal? o1).should == true
+    (:hola.equal? o2).should == true
+  end
+end
+
+generic_entries_object_id = shared "Object#__id__object_id" do |cmd|
+  describe "Enumerable##{cmd}" do     
+    # #object_id and #__id__ are aliases, so we only need one function
+    # that tests both methods
+    it "return an Integer" do
+      Object.new.send(cmd).class.should == Fixnum      
+      nil.send(cmd).class.should == Fixnum      
+    end
+  
+    it "return same number will be returned on all calls to id for a given object" do
+      o1 = Object.new
+      o2 = Object.new
+      o1.send(cmd).should == o1.send(cmd)
+    end
+  
+    it "return same number will be returned on all calls to id for a given object" do
+      o1 = Object.new
+      o2 = Object.new
+      o1.send(cmd).should_not == o2.send(cmd)
+    end
+    it "" do
+    end
+    
+  end
+end
+
+describe "Obejct.__id__" do
+  it_behaves_like(generic_entries_object_id, :__id__) 
+end
+
+describe "Obejct.object_id" do
+  it_behaves_like(generic_entries_object_id, :object_id) 
+end
+
+describe "Object.=~" do
+  it "Overridden by descendents" do
+    o1 = Object.new
+    o2 = Object.new
+    (o1 =~ o1).should == false
+    (o2 =~ o2).should == false
+    (o1 !~ o2).should == true
+    (o1 =~ o2).should == false
+  end
+end
+
+generic_entries_kind_of = shared "Object#is_a_kind_of" do |cmd|
+  describe "Enumerable##{cmd}" do     
+    # #kind_of? and #is_a are aliases, so we only need one function
+    # that tests both methods  
+    
+    it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj (String example)" do    
+      s = "hello"
+      s.send(cmd, String).should == true
+      s.send(cmd, Object).should == true
+      s.send(cmd, Class).should == false 
+    end
+
+    it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example" do
+      a = []
+      a.send(cmd, Array).should == true
+      a.send(cmd, Enumerable).should == true
+    end    
+          
+    module M;    end
+    class X; include M; end
+    class Y < X; end
+    class Z < Y; end 
+  
+    it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example" do     
+      y = Y.new
+      y.send(cmd, X).should == true       
+      y.send(cmd, Y).should == true       
+      y.send(cmd, Z).should == false       
+      y.send(cmd, M).should == true
+    end
+    
+    it "nil.#{cmd} cases specs"  do 
+      (nil.send(cmd,  NilClass)).should == true
+      (nil.send(cmd, Object)).should == true
+      (nil.send(cmd, Module)).should == false
+      (nil.send(cmd, Kernel)).should == true
+      
+    end
+  end 
+end
+
+describe "Obejct.is_a?" do
+  it_behaves_like(generic_entries_kind_of , :is_a?) 
+end
+
+describe "Obejct.kind_of?" do
+  it_behaves_like(generic_entries_kind_of , :kind_of?) 
+end
+
+describe "Object#to_s" do
+  it "match the  /^#<Object:0x[0-9a-f]+>/ format" do
+    o = Object.new
+    o.to_s.match(/^#<Object:0x[0-9a-f]+>/).should_not == nil
+  end
+end
+
+describe "Object#respond_to?" do
+  before :each do 
+    @a = A.new  
+  end
+   
+  it "returns true if obj responds to the given public method" do    
+    @a.respond_to?("five").should == false
+    @a.respond_to?(:public_method).should == true
+    @a.respond_to?("public_method").should == true
+  end
+  
+  it "returns true if obj responds to the given protected method" do
+    @a.respond_to?("five", true).should == false
+    @a.respond_to?(:protected_method, false).should == true
+    @a.respond_to?("protected_method", false).should == true
+  end
+  
+  it "returns true if obj responds to the given protected method, include_private = true" do 
+    @a.respond_to?("seven").should == false
+    @a.respond_to?(:protected_method).should == true
+    @a.respond_to?("protected_method").should == true
+  end
+  
+  it "returns true if obj responds to the given protected method" do
+    @a.respond_to?("seven", true).should == false
+    @a.respond_to?(:protected_method, false).should == true
+    @a.respond_to?("protected_method", false).should == true
+  end
+  
+  it "returns true if obj responds to the given private method, include_private = true" do
+    @a.respond_to?("six").should == false
+    @a.respond_to?(:private_method).should == false
+    @a.respond_to?("private_method").should == false
+  end
+  
+  it "returns true if obj responds to the given private method" do    
+    @a.respond_to?("six", true).should == false
+    @a.respond_to?(:private_method, true).should == true    
+    @a.respond_to?("private_method", true).should == true
+  end 
+end
+
+describe "objects#methods" do
+  it "return all the methods of a custom class" do
+    A.new.methods.should ==   ["inspect", "send", "clone", "should_be_ancestor_of", 
+                               "should", "public_methods", "should_not_receive",
+                               "__send__", "equal?", "freeze", "should_include", 
+                               "protected_method", "methods", "instance_eval", 
+                               "display", "dup", "object_id", "instance_variables",
+                                "extend", "instance_of?", "eql?", "hash", "id", 
+                                "singleton_methods", "taint", "frozen?", 
+                                "instance_variable_get", "kind_of?", "to_a", 
+                                "type", "should_be_close", "protected_methods", 
+                                "==", "method_missing", "===", "instance_variable_set",
+                                "is_a?", "respond_to?", "to_s", "class", "tainted?", "=~",
+                                "private_methods", "__id__", "nil?", "should_not", "untaint",
+                                "should_receive", "method", "public_method"] 
+    A.new.methods.size.should == 50
+  end
+  
+  it "return all the methods of Object.new" do          
+    Object.new.methods.size.should == 47
+  end  
+  
+  it "return all the methods of Object" do    
+    Object.methods.size.should == 80 
+  end
+end
+
+describe "objects#private_methods" do
+  it "return all the methods of a custom class" do
+    A.new.private_methods.should == ["Integer", "initialize", "p", "singleton_method_removed", 
+                                     "chomp", "fail", "exec", "syscall", "callcc",
+                                      "sub!", "load", "proc", "it_behaves_like",
+                                      "iterator?", "catch", "puts", "it","Float", 
+                                      "singleton_method_undefined", "split", "caller",
+                                      "system", "require", "open", "gsub!", "lambda", 
+                                      "try", "block_given?", "throw", "gets", "private_method",
+                                      "sub", "loop", "trap", "String", "fork",
+                                      "initialize_copy", "sprintf", "shared", "setup", 
+                                      "exit", "sleep", "printf", "chop!", "autoload", 
+                                      "scan", "failure", "trace_var", "select", 
+                                      "global_variables", "should_output", "readline", 
+                                      "warn", "`", "gsub", "context", "exit!", "before", 
+                                      "Array", "format", "teardown", "abort", "chomp!", 
+                                      "print", "eval", "srand", "engine?", "noncompliant",
+                                      "untrace_var", "local_variables", "readlines",
+                                      "singleton_method_added", "specify", "chop", 
+                                      "raise", "getc", "autoload?", "binding", "compliant", 
+                                      "should_raise", "at_exit", "describe", "putc", 
+                                      "remove_instance_variable", "set_trace_func", 
+                                      "after", "extension", "rand", "test"] 
+    A.new.private_methods.size.should == 89 
+  end
+  
+  it "return all the methods of Object.new" do          
+    Object.new.private_methods.size.should == 89
+  end  
+  
+  it "return all the methods of Object" do    
+    Object.private_methods.size.should == 109
+  end
+  
+  it "return all the methods of a custom class, all = false" do
+    A.new.private_methods(false).should ==  ["private_method"]   
+    A.new.private_methods(false).size.should == 1
+  end
+  
+  it "return all the methods of Object.new, all = false" do          
+    Object.new.private_methods(false).size.should == 19
+  end  
+  
+  it "return all the methods of Object, all = false" do    
+    Object.private_methods(false).size.should == 3 
+  end
+end
+
+
+describe "objects#protected_methods" do
+  it "return all the methods of a custom class" do
+    A.new.protected_methods.should == ["protected_method"] 
+    A.new.protected_methods.size.should == 1
+  end
+  
+  it "return all the methods of Object.new" do          
+    Object.new.protected_methods.size.should == 0
+  end  
+  
+  it "return all the methods of Object" do    
+    Object.protected_methods.size.should == 0
+  end
+  
+  it "return all the methods of a custom class, all = false" do
+    A.new.protected_methods(false).should ==  ["protected_method"]   
+    A.new.protected_methods(false).size.should == 1
+  end
+  
+  it "return all the methods of Object.new, all = false" do          
+    Object.new.protected_methods(false).size.should == 0
+  end  
+  
+  it "return all the methods of Object, all = false" do    
+    Object.protected_methods(false).size.should == 0 
+  end
+end
+
+
+describe "objects#public_methods" do
+  it "return all the methods of a custom class" do
+    A.new.public_methods.should ==  ["inspect", "send", "clone", 
+                                     "should_be_ancestor_of", "should", "public_methods", 
+                                     "should_not_receive", "__send__", "equal?", 
+                                     "freeze", "should_include", "methods", 
+                                     "instance_eval", "display", "dup", "object_id", 
+                                     "instance_variables", "extend", "instance_of?", "eql?",
+                                      "hash", "id", "singleton_methods", "taint", "frozen?", 
+                                      "instance_variable_get", "kind_of?", "to_a", "type",
+                                      "should_be_close", "protected_methods", "==", "method_missing", 
+                                      "===", "instance_variable_set", "is_a?", 
+                                      "respond_to?", "to_s", "class", "tainted?", 
+                                      "=~", "private_methods", "__id__", "nil?", "should_not",
+                                      "untaint", "should_receive", "method", "public_method"]
+    A.new.public_methods.size.should == 49
+  end
+  
+  it "return all the methods of Object.new" do          
+    Object.new.public_methods.size.should == 47
+  end  
+  
+  it "return all the methods of Object" do    
+    Object.public_methods.size.should == 80
+  end
+  
+  it "return all the methods of a custom class, all = false" do
+    A.new.public_methods(false).should ==  ["method_missing", "public_method"]   
+    A.new.public_methods(false).size.should == 2
+  end
+  
+  it "return all the methods of Object.new, all = false" do          
+    Object.new.public_methods(false).size.should == 7
+  end  
+  
+  it "return all the methods of Object, all = false" do    
+    Object.public_methods(false).size.should == 3
+  end
 end
