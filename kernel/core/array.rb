@@ -288,6 +288,19 @@ class Array
 
     out
   end                                                 # +
+  
+  # Creates a new Array that contains the items of the original 
+  # Array that do not appear in the other Array, effectively
+  # 'deducting' those items. The matching method is Hash-based.
+  def -(other)
+    other = ary_from other
+    out, exclude = [], {}
+
+    other.each { |x| exclude[x] = true }
+    each { |x| out << x unless exclude[x] }
+
+    out
+  end                                                 # -
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -494,21 +507,6 @@ class Array
     find { |x|
       Array === x && x[1] == obj
     }
-  end
-
-  def -(ary)
-    set_exclude = { }
-    out = []
-    ary.each {  |x|
-      set_exclude[x] = true
-    }
-    each {  |x|
-      unless set_exclude[x]
-        out << x
-        #        set_exclude[x] = true    No!
-      end
-    }
-    out
   end
 
   def to_ary
@@ -899,16 +897,6 @@ class Array
     ary.size == self.size ? nil : replace(ary)
   end
   
-  def -(other)
-    out = []
-    each { |e| 
-      unless other.include?(e)
-        out << e 
-      end
-    }
-    return out
-  end
-
   def fetch(pos, *rest)
     if rest.length > 1
       raise ArgumentError, "wrong number of arguments (#{1 + rest.length} for 2)"
