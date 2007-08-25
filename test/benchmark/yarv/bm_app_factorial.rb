@@ -6,6 +6,9 @@ def fact(n)
   end
 end
 
-8.times{
-  fact(5000)
-}
+fact(5000)
+fact(5000)
+fact(5000)
+fact(5000)
+fact(5000)
+
