@@ -59,13 +59,14 @@ class IO
         return nil
       end
     else
+      chunk = String.new(BufferSize)
       out = ""
       loop do
-        begin
-          chunk = sysread(BufferSize, buf)
-        rescue EOFError
-          return out
-        end
+        chan = Channel.new
+        Scheduler.send_on_readable chan, self, chunk, BufferSize
+        
+        return out if chan.receive.nil?
+                
         out << chunk
       end
     end
