@@ -5899,6 +5899,19 @@ describe "String#sum(n)" do
     "ruby".sum(8).should == 194
     "rubinius".sum(23).should == 881
   end
+  
+  it "tries to convert n to an integer using to_int" do
+    obj = Object.new
+    def obj.to_int() 8 end
+    
+    "hello".sum(obj).should == "hello".sum(obj.to_int)
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 8)
+
+    "hello".sum(obj).should == "hello".sum(8)
+  end
 end
 
 describe "String#swapcase" do
@@ -6047,7 +6060,20 @@ describe "String#to_i(base=10)" do
     "0x11".to_i(34).should == 38183
   end
   
-  it "raises ArgumentError for illegal radices (1, < 0 or > 36)" do
+  it "tries to convert the base to an integer using to_int" do
+    obj = Object.new
+    def obj.to_int() 8 end
+    
+    "777".to_i(obj).should == 0777
+
+    obj = Object.new
+    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 8)
+
+    "777".to_i(obj).should == 0777
+  end
+  
+  it "raises ArgumentError for illegal bases (1, < 0 or > 36)" do
     should_raise(ArgumentError) { "".to_i(1) }
     should_raise(ArgumentError) { "".to_i(-1) }
     should_raise(ArgumentError) { "".to_i(37) }
@@ -6055,16 +6081,40 @@ describe "String#to_i(base=10)" do
 end
 
 describe "String#to_s" do
-  it "returns self" do
+  it "returns self when self.class == String" do
     a = "a string"
     a.equal?(a.to_s).should == true
+  end
+  
+  it "returns a new instance of String when called on a subclass" do
+    a = MyString.new("a string")
+    s = a.to_s
+    s.should == "a string"
+    s.class.should == String
+  end
+
+  it "taints the result when self is tainted" do
+    "x".taint.to_s.tainted?.should == true
+    MyString.new("x").taint.to_s.tainted?.should == true
   end
 end
 
 describe "String#to_str" do
-  it "returns self" do
+  it "returns self when self.class == String" do
     a = "a string"
     a.equal?(a.to_str).should == true
+  end
+
+  it "returns a new instance of String when called on a subclass" do
+    a = MyString.new("a string")
+    s = a.to_str
+    s.should == "a string"
+    s.class.should == String
+  end
+  
+  it "taints the result when self is tainted" do
+    "x".taint.to_str.tainted?.should == true
+    MyString.new("x").taint.to_str.tainted?.should == true
   end
 end
 
@@ -6093,16 +6143,62 @@ describe "String#tr(from_string, to_string)" do
   it "accepts c1-c2 notation to denote ranges of characters" do
     "hello".tr('a-y', 'b-z').should == "ifmmp"
     "123456789".tr("2-5","abcdefg").should == "1abcd6789"
+    "hello ^-^".tr("e-", "__").should == "h_llo ^_^"
+    "hello ^-^".tr("---", "_").should == "hello ^_^"
   end
   
-  it "doesn't translate chars negated with a ^ in from_string" do
+  it "pads to_str with its last char if it is shorter than from_string" do
+    "this".tr("this", "x").should == "xxxx"
+    "hello".tr("a-z", "A-H.").should == "HE..."
+  end
+  
+  it "translates chars not in from_string when it starts with a ^" do
     "hello".tr('^aeiou', '*').should == "*e**o"
     "123456789".tr("^345", "abc").should == "cc345cccc"
     "abcdefghijk".tr("^d-g", "9131").should == "111defg1111"
+    
+    "hello ^_^".tr("a-e^e", ".").should == "h.llo ._."
+    "hello ^_^".tr("^^", ".").should == "......^.^"
+    "hello ^_^".tr("^", "x").should == "hello x_x"
+    "hello ^-^".tr("^-^", "x").should == "xxxxxx^-^"
+    "hello ^-^".tr("^^-^", "x").should == "xxxxxx^x^"
+    "hello ^-^".tr("^---", "x").should == "xxxxxxx-x"
+    "hello ^-^".tr("^---l-o", "x").should == "xxlloxx-x"
   end
   
-  it "pads to_str with it's last char if it is shorter than from_string" do
-    "this".tr("this", "x").should == "xxxx"
+  it "tries to convert from_str and to_str to strings using to_str" do
+    from_str = Object.new
+    def from_str.to_str() "ab" end
+
+    to_str = Object.new
+    def to_str.to_str() "AB" end
+    
+    "bla".tr(from_str, to_str).should == "BlA"
+
+    from_str = Object.new
+    from_str.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    from_str.should_receive(:method_missing, :with => [:to_str], :returning => "ab")
+
+    to_str = Object.new
+    to_str.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    to_str.should_receive(:method_missing, :with => [:to_str], :returning => "AB")
+
+    "bla".tr(from_str, to_str).should == "BlA"
+  end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("hello").tr("e", "a").class.should == MyString
+  end
+  
+  it "taints the result when self is tainted" do
+    ["h", "hello"].each do |str|
+      tainted_str = str.dup.taint
+      
+      tainted_str.tr("e", "a").tainted?.should == true
+      
+      str.tr("e".taint, "a").tainted?.should == false
+      str.tr("e", "a".taint).tainted?.should == false
+    end
   end
 end
 
@@ -6116,15 +6212,14 @@ describe "String#tr!(from_string, to_string)" do
   it "returns nil if no modification was made" do
     s = "hello"
     s.tr!('za', 'yb').should == nil
+    s.tr!('', '').should == nil
     s.should == "hello"
   end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "abcdefghijklmnopqR"
-      a.freeze
-      a.tr!("cdefg", "12")
-    end
+    str = "abcdefghijklmnopqR".freeze
+    should_raise(TypeError) { str.tr!("cdefg", "12") }
+    should_raise(TypeError) { str.tr!("", "") }
   end
 end
 
