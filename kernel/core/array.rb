@@ -369,6 +369,21 @@ class Array
 
     @tuple.at idx
   end                                                 # at
+  
+  # Removes all elements in the Array and leaves it empty
+  def clear()
+    raise TypeError, "Array is frozen" if frozen? 
+
+    @tuple = Tuple.new(0)
+    @total = 0
+    self
+  end                                                 # clear
+
+  # Returns true if the Array is frozen with #freeze or
+  # temporarily frozen while being sorted.
+  def frozen?()
+    @sort_frozen || super 
+  end                                                 # frozen?
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -1103,12 +1118,6 @@ class Array
   
   # Synonymous to #replace
   alias initialize_copy replace
-  
-  def clear
-    @tuple = Tuple.new(0)
-    @total = 0
-    return self
-  end
   
   def dup
     ary = Array.new

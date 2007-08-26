@@ -546,11 +546,12 @@ describe "Array#at" do
   end
 end
 
-describe "Array#class" do
-  it "returns Array" do
-    [].class.should == Array
-  end
-end
+# Why is this here? -rue
+#describe "Array#class" do
+#  it "returns Array" do
+#    [].class.should == Array
+#  end
+#end
 
 describe "Array#clear" do
   it "removes all elements" do
@@ -559,8 +560,23 @@ describe "Array#clear" do
     a.should == []
   end  
 
+  it "returns self" do
+    a = [1]
+    oid = a.object_id
+    a.clear.object_id.should == oid
+  end
+
+  it "leaves the Array empty" do
+    a = [1]
+    a.clear
+    a.empty?.should == true
+    a.size.should == 0
+  end
+
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.clear }
+    a = [1]
+    a.freeze
+    should_raise(TypeError) { a.clear }
   end
 end
 
