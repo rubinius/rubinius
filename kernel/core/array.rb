@@ -518,6 +518,32 @@ class Array
     self.class.new self
   end                                                 # dup
 
+  # Passes each element in the Array to the given block
+  # and returns self.
+  def each
+    @total.times { |i| yield at(i) }
+    self
+  end                                                 # each
+
+  # Passes each index of the Array to the given block
+  # and returns self.
+  def each_index()
+    @total.times {|i| yield i}
+    self
+  end                                                 # each_index
+
+  # Returns true if both are the same object or if both
+  # have the same elements (#eql? used for testing.)
+  def eql?(other)
+    return true if equal? other
+    return false unless other.kind_of?(Array)
+    return false if @total != other.size
+
+    each_with_index { |o, i| return false unless o.eql?(other[i]) }
+
+    true
+  end                                                 # eql?
+
   # Returns true if the Array is frozen with #freeze or
   # temporarily sorted while being sorted.
   def frozen?()
@@ -553,15 +579,6 @@ class Array
     i = 0
     while i < @total
       yield i
-      i += 1
-    end
-    self
-  end
-
-  def each
-    i = 0
-    while i < @total
-      yield @tuple.at(i)
       i += 1
     end
     self
