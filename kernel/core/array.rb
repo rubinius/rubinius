@@ -369,6 +369,160 @@ class Array
 
     @tuple.at idx
   end                                                 # at
+  
+  # Removes all elements in the Array and leaves it empty
+  def clear()
+    raise TypeError, "Array is frozen" if frozen? 
+
+    @tuple = Tuple.new(0)
+    @total = 0
+    self
+  end                                                 # clear
+
+  # Returns a copy of self with all nil elements removed
+  def compact()
+    dup.compact! || self
+  end                                                 # compact
+
+  # Removes all nil elements from self, returns nil if no changes
+  # TODO: Needs improvement
+  def compact!()
+    raise TypeError, "Array is frozen" if frozen?
+
+    i = 0 
+
+    # Low-level because pretty much anything else breaks everything
+    while i < @total
+      if @tuple.at(i) == nil
+        j = i
+        i += 1
+
+        while i < @total
+          if @tuple.at(i) != nil
+            @tuple.put j, @tuple.at(i)
+            j += 1
+          end
+
+          i += 1
+        end
+
+        @total = j              # OK to leave tuple size larger?
+        return self
+      end
+
+      i += 1
+    end
+
+    nil                 
+  end                                                 # compact!
+
+  # Appends the elements in the other Array to self
+  def concat(other)
+    raise TypeError, "Array is frozen" if frozen?
+
+    push(*ary_from(other))
+  end                                                 # concat
+
+  # Stupid subtle differences prevent proper reuse in these three
+  
+  # Removes all elements from self that are #== to the given object.
+  # If the object does not appear at all, nil is returned unless a
+  # block is provided in which case the value of running it is
+  # returned instead.
+  def delete(obj)
+    raise TypeError, "Array is frozen" if frozen?
+
+    i = 0
+
+    # Leaves the tuple to the original size still
+    while i < @total
+      if @tuple.at(i) == obj
+        j = i
+        i += 1
+
+        while i < @total
+          if @tuple.at(i) != obj
+            @tuple.put(j, @tuple.at(i))
+            j += 1
+          end
+
+          i += 1
+        end
+
+        @total = j             
+        return obj
+      end
+
+      i += 1
+    end
+
+    yield if block_given?       # Too clever?
+  end                                                 # delete
+
+  # Deletes the element at the given index and returns
+  # the deleted element or nil if the index is out of
+  # range. Negative indices count backwards from end.
+  def delete_at(idx)
+    raise TypeError, "Array is frozen" if frozen?
+
+    idx = int_from idx
+
+    # Flip to positive and weed out out of bounds
+    idx += @total if idx < 0
+    return nil if idx < 0 || idx >= @total
+
+    # Grab the object and adjust the indices for the rest
+    obj = @tuple.at(idx)
+
+    idx.upto(@total - 2) { |i| @tuple.put i, @tuple.at(i + 1) }
+    @tuple.put((@total - 1), nil)     # Release object
+
+    @total -= 1
+    obj
+  end                                                 # delete_at
+
+  # Deletes every element from self for which block evaluates to true
+  def delete_if()
+    raise TypeError, "Array is frozen" if frozen?
+ 
+    i = 0
+
+    # Leaves the tuple to the original size still
+    while i < @total
+      if yield @tuple.at(i)
+        j = i
+        i += 1
+
+        while i < @total
+          unless yield @tuple.at(i)
+            @tuple.put(j, @tuple.at(i))
+            j += 1
+          end
+
+          i += 1
+        end
+
+        @total = j             
+        return self
+      end
+
+      i += 1
+    end
+    
+    return self
+  end                                                 # delete_if
+
+  # Creates a shallow copy of this Array as Object#dup.
+  # Contained elements are not recursively #dupped.
+  def dup()
+    self.class.new self
+  end                                                 # dup
+
+  # Returns true if the Array is frozen with #freeze or
+  # temporarily sorted while being sorted.
+  def frozen?()
+    @sort_frozen || super 
+  end                                                 # frozen?
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -452,97 +606,6 @@ class Array
 
   alias :collect! :map!
 
-  def concat(arr)
-    push(*arr)
-  end
-  # The following three are all slightly different...
-
-  def compact!
-    i = 0
-    while i < @total
-      if @tuple.at(i) == nil
-        j = i
-        i += 1
-        while i < @total
-          if @tuple.at(i) != nil
-            @tuple.put(j, @tuple.at(i))
-            j += 1
-          end
-          i += 1
-        end
-        @total = j              # OK to leave tuple larger?
-        return self
-      end
-      i += 1
-    end
-    nil                         # i.e., no change
-  end
-  
-  def compact
-    dup.compact!
-  end
-
-  def delete(obj)
-    i = 0
-    while i < @total
-      if @tuple.at(i) == obj
-        j = i
-        i += 1
-        while i < @total
-          if @tuple.at(i) != obj
-            @tuple.put(j, @tuple.at(i))
-            j += 1
-          end
-          i += 1
-        end
-        @total = j              # OK to leave tuple larger?
-        return obj
-      end
-      i += 1
-    end
-    yield if block_given?
-    nil
-  end
-
-  def delete_if
-    i = 0
-    while i < @total
-      if yield @tuple.at(i)
-        j = i
-        i += 1
-        while i < @total
-          unless yield @tuple.at(i)
-            @tuple.put(j, @tuple.at(i))
-            j += 1
-          end
-          i += 1
-        end
-        @total = j              # OK to leave tuple larger?
-        return self
-      end
-      i += 1
-    end
-    return self
-  end
-
-  def delete_at(idx)
-    if idx < 0
-      idx += @total
-      return nil if idx < 0
-    end
-
-    if idx >= @total
-      return nil
-    end
-    obj = @tuple.at(idx)
-    idx += 1
-    while idx < @total
-      @tuple.put(idx-1, @tuple.at(idx))
-      idx += 1
-    end
-    @total -= 1
-    return obj
-  end
 
   def rassoc(obj)
     find { |x|
@@ -1103,18 +1166,6 @@ class Array
   
   # Synonymous to #replace
   alias initialize_copy replace
-  
-  def clear
-    @tuple = Tuple.new(0)
-    @total = 0
-    return self
-  end
-  
-  def dup
-    ary = Array.new
-    each { |e| ary << e }
-    return ary
-  end
   
   def shift
     return nil if empty?

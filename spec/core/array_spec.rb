@@ -546,11 +546,12 @@ describe "Array#at" do
   end
 end
 
-describe "Array#class" do
-  it "returns Array" do
-    [].class.should == Array
-  end
-end
+# Why is this here? -rue
+#describe "Array#class" do
+#  it "returns Array" do
+#    [].class.should == Array
+#  end
+#end
 
 describe "Array#clear" do
   it "removes all elements" do
@@ -559,8 +560,23 @@ describe "Array#clear" do
     a.should == []
   end  
 
+  it "returns self" do
+    a = [1]
+    oid = a.object_id
+    a.clear.object_id.should == oid
+  end
+
+  it "leaves the Array empty" do
+    a = [1]
+    a.clear
+    a.empty?.should == true
+    a.size.should == 0
+  end
+
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.clear }
+    a = [1]
+    a.freeze
+    should_raise(TypeError) { a.clear }
   end
 end
 
@@ -664,10 +680,22 @@ describe "Array#concat" do
     [].concat(ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
+compliant :r18 do
+  it "raises a TypeError when Array is frozen and modification occurs" do
+    should_raise(TypeError) { frozen_array.concat [1] }
+  end
+
+  it "does not raise a TypeError when Array is frozen but no modification occurs" do
+    should_raise(TypeError) { frozen_array.concat [] }
+  end
+end
+
+noncompliant :rubinius do
   it "raises TypeError on a frozen array" do
-    frozen_array.concat([]) # ok
+    should_raise(TypeError) { frozen_array.concat [] }
     should_raise(TypeError) { frozen_array.concat([1]) }
   end
+end
 end
 
 describe "Array#delete" do
@@ -692,10 +720,22 @@ describe "Array#delete" do
     [].delete('a') {:not_found}.should == :not_found
   end
   
-  it "raises TypeError on a frozen array" do
-    frozen_array.delete(0) # ok, not in array
+compliant :r18 do
+  it "raises TypeError on a frozen array if a modification would take place" do
     should_raise(TypeError) { frozen_array.delete(1) }
   end
+
+  it "does not raise on a frozen array if a modification would not take place" do
+    should_raise(TypeError) { frozen_array.delete(0) }
+  end
+end
+  
+noncompliant :rubinius do
+  it "raises TypeError on a frozen array" do
+    should_raise(TypeError) { frozen_array.delete(0) }
+    should_raise(TypeError) { frozen_array.delete(1) }
+  end
+end
 end
 
 describe "Array#delete_at" do
@@ -748,6 +788,20 @@ describe "Array#delete_if" do
   
   it "raises TypeError on a frozen array" do
     should_raise(TypeError) { frozen_array.delete_if {} }
+  end
+end
+
+describe "Array#dup" do
+  it "returns an Array or a subclass instance" do
+    [].dup.class.should == Array
+    MyArray[1, 2].dup.class.should == MyArray
+  end
+
+  it "produces a shallow copy where the references are directly copied" do
+    a = [Object.new, Object.new]
+    b = a.dup
+    b.first.object_id.should == a.first.object_id
+    b.last.object_id.should == a.last.object_id
   end
 end
 
