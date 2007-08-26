@@ -418,6 +418,13 @@ class Array
     nil                 
   end                                                 # compact!
 
+  # Appends the elements in the other Array to self
+  def concat(other)
+    raise TypeError, "Array is frozen" if frozen?
+
+    push(*ary_from(other))
+  end                                                 # concat
+
   # Creates a shallow copy of this Array as Object#dup.
   # Contained elements are not recursively #dupped.
   def dup()
@@ -512,9 +519,6 @@ class Array
 
   alias :collect! :map!
 
-  def concat(arr)
-    push(*arr)
-  end
   # The following three are all slightly different...
 
   def delete(obj)
