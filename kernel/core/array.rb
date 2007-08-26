@@ -379,8 +379,53 @@ class Array
     self
   end                                                 # clear
 
+  # Returns a copy of self with all nil elements removed
+  def compact()
+    dup.compact! || self
+  end                                                 # compact
+
+  # Stupid subtle differences prevent proper reuse in these three
+
+  # Removes all nil elements from self, returns nil if no changes
+  # TODO: Needs improvement
+  def compact!()
+    raise TypeError, "Array is frozen" if frozen?
+
+    i = 0 
+
+    # Low-level because pretty much anything else breaks everything
+    while i < @total
+      if @tuple.at(i) == nil
+        j = i
+        i += 1
+
+        while i < @total
+          if @tuple.at(i) != nil
+            @tuple.put j, @tuple.at(i)
+            j += 1
+          end
+
+          i += 1
+        end
+
+        @total = j              # OK to leave tuple size larger?
+        return self
+      end
+
+      i += 1
+    end
+
+    nil                 
+  end                                                 # compact!
+
+  # Creates a shallow copy of this Array as Object#dup.
+  # Contained elements are not recursively #dupped.
+  def dup()
+    self.class.new self
+  end                                                 # dup
+
   # Returns true if the Array is frozen with #freeze or
-  # temporarily frozen while being sorted.
+  # temporarily sorted while being sorted.
   def frozen?()
     @sort_frozen || super 
   end                                                 # frozen?
@@ -471,31 +516,6 @@ class Array
     push(*arr)
   end
   # The following three are all slightly different...
-
-  def compact!
-    i = 0
-    while i < @total
-      if @tuple.at(i) == nil
-        j = i
-        i += 1
-        while i < @total
-          if @tuple.at(i) != nil
-            @tuple.put(j, @tuple.at(i))
-            j += 1
-          end
-          i += 1
-        end
-        @total = j              # OK to leave tuple larger?
-        return self
-      end
-      i += 1
-    end
-    nil                         # i.e., no change
-  end
-  
-  def compact
-    dup.compact!
-  end
 
   def delete(obj)
     i = 0
@@ -1118,12 +1138,6 @@ class Array
   
   # Synonymous to #replace
   alias initialize_copy replace
-  
-  def dup
-    ary = Array.new
-    each { |e| ary << e }
-    return ary
-  end
   
   def shift
     return nil if empty?

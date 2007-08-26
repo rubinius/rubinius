@@ -767,6 +767,20 @@ describe "Array#delete_if" do
   end
 end
 
+describe "Array#dup" do
+  it "returns an Array or a subclass instance" do
+    [].dup.class.should == Array
+    MyArray[1, 2].dup.class.should == MyArray
+  end
+
+  it "produces a shallow copy where the references are directly copied" do
+    a = [Object.new, Object.new]
+    b = a.dup
+    b.first.object_id.should == a.first.object_id
+    b.last.object_id.should == a.last.object_id
+  end
+end
+
 describe "Array#each" do
   it "yields each element to the block" do
     a = []
