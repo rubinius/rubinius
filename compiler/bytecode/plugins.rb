@@ -29,6 +29,10 @@ class Bytecode::Compiler
       @compiler.capture(&b)
     end
     
+    def unique_lbl(arg)
+      @compiler.unique_lbl(arg)
+    end
+    
     def temp
       name = "+temp_#{@compiler.unique_id}"
       
@@ -149,7 +153,6 @@ class NamedSendPlugin < Bytecode::Compiler::Plugin
     args.shift
     name = args.shift
     return false unless name
-    return false if name.first != :lit
     
     count = args.size
     args.reverse.each do |a|
@@ -158,7 +161,13 @@ class NamedSendPlugin < Bytecode::Compiler::Plugin
     
     process recv
     add "push nil"
-    add "push :#{name.last}"
+    process name
+    add "dup"
+    add "is_symbol"
+    lbl = unique_lbl("send_")
+    add "git #{lbl}"
+    add "send to_sym 0"
+    add "#{lbl}:"
     add "push #{count}"
     add "set_args"
     add "send_off_stack"
