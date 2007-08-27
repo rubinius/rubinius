@@ -76,8 +76,9 @@ static inline int object_copy_fields_shifted(STATE, OBJECT self, OBJECT dest, in
 
 static inline int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int first, int count) {
   int i, j;
+  int max = NUM_FIELDS(self);
   
-  for(i = first, j = 0; j < count; i++, j++) {
+  for(i = first, j = 0; j < count && i < max; i++, j++) {
     SET_FIELD(dest, j, NTH_FIELD(self, i));
   }
   return TRUE;  

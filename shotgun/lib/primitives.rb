@@ -719,8 +719,13 @@ class ShotgunPrimitives
     POP(t1, REFERENCE);
     POP(t2, FIXNUM);
 
-    j = FIXNUM_TO_INT(t2);
-    object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
+    int start = FIXNUM_TO_INT(t2);
+    for(k = start, j = 0; 
+        k < NUM_FIELDS(t1) && j < NUM_FIELDS(self); 
+        k++, j++) {
+      SET_FIELD(self, j, NTH_FIELD(t1, k));
+    }
+    // object_copy_fields_from(state, t1, self, j, NUM_FIELDS(self));
     HEADER(self)->flags  = HEADER(t1)->flags;
     // HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
     stack_push(t1);
