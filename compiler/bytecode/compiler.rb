@@ -45,7 +45,9 @@ module Bytecode
       end
       
       @flags = {
-        :fast_math => true
+        :fast_math => true,
+        :fast_system => true,
+        :fast_send_method => true
       }      
     end
     
@@ -248,6 +250,8 @@ module Bytecode
         
         @call_hooks = []
         @call_hooks << MetaOperatorPlugin.new(self)
+        @call_hooks << SystemMethodPlugin.new(self)
+        @call_hooks << NamedSendPlugin.new(self)
       end
       
       attr_accessor :state
@@ -1750,7 +1754,7 @@ module Bytecode
             
       def hook_call(recv, meth, args, block)
         @call_hooks.each do |plugin|
-          return true if plugin.handle(recv, meth, args, block)
+          return true if plugin.run(recv, meth, args, block)
         end
         
         return false

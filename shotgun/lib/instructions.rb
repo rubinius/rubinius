@@ -1130,6 +1130,42 @@ CODE
     CODE
   end
   
+  def is_fixnum
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(FIXNUM_P(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def is_symbol
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(SYMBOL_P(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def is_nil
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(t1 == Qnil ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def class
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(object_class(state, t1));
+    CODE
+  end
+  
+  def equal
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(t1 == t2 ? Qtrue : Qfalse);
+    CODE
+  end
+  
 end
 
 si = ShotgunInstructions.new

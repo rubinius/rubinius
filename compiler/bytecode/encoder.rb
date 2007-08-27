@@ -214,7 +214,12 @@ class InstructionEncoder
     :allocate_stack,
     :deallocate_stack,
     :set_local_fp,
-    :get_local_fp
+    :get_local_fp,
+    :is_fixnum,
+    :is_symbol,
+    :is_nil,
+    :class,
+    :equal
   ]
   
   CheckInterupts = [

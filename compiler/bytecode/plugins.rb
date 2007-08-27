@@ -1,5 +1,14 @@
 class Bytecode::Compiler
   class Plugin
+    
+    def self.flag(n=nil)
+      if n
+        @flag = n
+      else
+        @flag
+      end
+    end
+
     def initialize(compiler)
       @compiler = compiler
     end
@@ -19,10 +28,22 @@ class Bytecode::Compiler
     def capture(&b)
       @compiler.capture(&b)
     end
+    
+    def temp
+      name = "+temp_#{@compiler.unique_id}"
+      
+    end
+    
+    def run(recv, meth, args, block)
+      return false unless @compiler.flag?(self.class.flag)
+      handle(recv, meth, args, block)
+    end
   end
 end
 
 class MetaOperatorPlugin < Bytecode::Compiler::Plugin
+  
+  flag :fast_math
   
   MetaMath = {
     :+ =>   "meta_send_op_plus",
@@ -37,14 +58,12 @@ class MetaOperatorPlugin < Bytecode::Compiler::Plugin
   def handle(recv, meth, args, block)
     return false if block
     
-    if flag?(:fast_math)
-      name = MetaMath[meth]
-      if name and args and args.size == 2
-        process args.last
-        process recv
-        add name
-        return true
-      end
+    name = MetaMath[meth]
+    if name and args and args.size == 2
+      process args.last
+      process recv
+      add name
+      return true
     end
     
     return false
@@ -54,9 +73,32 @@ end
 
 class SystemMethodPlugin < Bytecode::Compiler::Plugin
   
+  flag :fast_system
+  
   Methods = {
     :kind_of? => "kind_of",
-    :instance_of? => "instance_of"
+    :instance_of? => "instance_of",
+    :nil? => "is_nil",
+    :equal? => "equal",
+    :class => "class"
+  }
+  
+  # How many arguments each method takes.
+  Args = {
+    :kind_of?     => 1,
+    :instance_of? => 1,
+    :nil?         => 0,
+    :equal?       => 1,
+    :class        => 0
+  }
+  
+  # How to map class checks directly to instructions.
+  # I highly doubt anyone does the last one, but it's here
+  # for completeness.
+  KindOf = {
+    :Fixnum =>    "is_fixnum",
+    :Symbol =>    "is_symbol",
+    :NilClass =>  "is_nil"
   }
   
   def handle(recv, meth, args, block)
@@ -64,8 +106,29 @@ class SystemMethodPlugin < Bytecode::Compiler::Plugin
     
     name = Methods[meth]
     
-    if name and args and args.size == 2
-      process args.last
+    return false unless name and args
+    
+    # Check that the arg count is correct for this method.
+    return false unless Args[meth] == args.size - 1
+    
+    if args.size == 1    
+      process recv
+      add name
+      return true
+    end
+    
+    if args.size == 2
+      cls = args.last
+      # Special case for obj.kind_of?(Fixnum)
+      if meth == :kind_of? and cls.first == :const
+        if op = KindOf[cls.last]
+          process recv
+          add op
+          return true
+        end
+      end
+
+      process cls
       process recv
       add name
       return true
@@ -77,18 +140,25 @@ end
 
 class NamedSendPlugin < Bytecode::Compiler::Plugin
   
+  flag :fast_send_method
+  
   def handle(recv, meth, args, block)
     return false if block
     return false unless meth == :__send__
-    count = args.size - 1
-    args.shift # remove :array
+    
+    args.shift
+    name = args.shift
+    return false unless name
+    return false if name.first != :lit
+    
+    count = args.size
     args.reverse.each do |a|
       process a
     end
     
     process recv
     add "push nil"
-    add "push :#{meth}"
+    add "push :#{name.last}"
     add "push #{count}"
     add "set_args"
     add "send_off_stack"
@@ -97,7 +167,11 @@ class NamedSendPlugin < Bytecode::Compiler::Plugin
   end
 end
 
+=begin
+
 class FastTimesPlugin < Bytecode::Compiler::Plugin
+  
+  flag :fast_times
   
   UnrollThreshold = 5
   
@@ -116,13 +190,12 @@ class FastTimesPlugin < Bytecode::Compiler::Plugin
       count.times do
         add code
       end
-    else
-      
     end
+    
+    return false
   end
 end
 
-=begin
 
 this is premature
 
