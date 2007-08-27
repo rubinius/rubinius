@@ -270,12 +270,12 @@ class SpecRunner
   def convert_to_regexps(args)
     args.inject([]) do |list, item|
       if File.exists?(item)
-        File.open(item, "r") do |f|
-          f.each do |line|
-            line.chomp!
-            list << Regexp.new(Regexp.escape(line)) unless line.empty?
-          end
+        f = File.open(item, "r")
+        f.each do |line|
+          line.chomp!
+          list << Regexp.new(Regexp.escape(line)) unless line.empty?
         end
+        f.close
         list
       else
         list << escape(item)

@@ -595,147 +595,147 @@ describe "Object#respond_to?" do
   end 
 end
 
-describe "objects#methods" do
-  it "return all the methods of a custom class" do
-    A.new.methods.should ==   ["inspect", "send", "clone", "should_be_ancestor_of", 
-                               "should", "public_methods", "should_not_receive",
-                               "__send__", "equal?", "freeze", "should_include", 
-                               "protected_method", "methods", "instance_eval", 
-                               "display", "dup", "object_id", "instance_variables",
-                                "extend", "instance_of?", "eql?", "hash", "id", 
-                                "singleton_methods", "taint", "frozen?", 
-                                "instance_variable_get", "kind_of?", "to_a", 
-                                "type", "should_be_close", "protected_methods", 
-                                "==", "method_missing", "===", "instance_variable_set",
-                                "is_a?", "respond_to?", "to_s", "class", "tainted?", "=~",
-                                "private_methods", "__id__", "nil?", "should_not", "untaint",
-                                "should_receive", "method", "public_method"] 
-    A.new.methods.size.should == 50
-  end
-  
-  it "return all the methods of Object.new" do          
-    Object.new.methods.size.should == 47
-  end  
-  
-  it "return all the methods of Object" do    
-    Object.methods.size.should == 80 
-  end
-end
-
-describe "objects#private_methods" do
-  it "return all the methods of a custom class" do
-    A.new.private_methods.should == ["Integer", "initialize", "p", "singleton_method_removed", 
-                                     "chomp", "fail", "exec", "syscall", "callcc",
-                                      "sub!", "load", "proc", "it_behaves_like",
-                                      "iterator?", "catch", "puts", "it","Float", 
-                                      "singleton_method_undefined", "split", "caller",
-                                      "system", "require", "open", "gsub!", "lambda", 
-                                      "try", "block_given?", "throw", "gets", "private_method",
-                                      "sub", "loop", "trap", "String", "fork",
-                                      "initialize_copy", "sprintf", "shared", "setup", 
-                                      "exit", "sleep", "printf", "chop!", "autoload", 
-                                      "scan", "failure", "trace_var", "select", 
-                                      "global_variables", "should_output", "readline", 
-                                      "warn", "`", "gsub", "context", "exit!", "before", 
-                                      "Array", "format", "teardown", "abort", "chomp!", 
-                                      "print", "eval", "srand", "engine?", "noncompliant",
-                                      "untrace_var", "local_variables", "readlines",
-                                      "singleton_method_added", "specify", "chop", 
-                                      "raise", "getc", "autoload?", "binding", "compliant", 
-                                      "should_raise", "at_exit", "describe", "putc", 
-                                      "remove_instance_variable", "set_trace_func", 
-                                      "after", "extension", "rand", "test"] 
-    A.new.private_methods.size.should == 89 
-  end
-  
-  it "return all the methods of Object.new" do          
-    Object.new.private_methods.size.should == 89
-  end  
-  
-  it "return all the methods of Object" do    
-    Object.private_methods.size.should == 109
-  end
-  
-  it "return all the methods of a custom class, all = false" do
-    A.new.private_methods(false).should ==  ["private_method"]   
-    A.new.private_methods(false).size.should == 1
-  end
-  
-  it "return all the methods of Object.new, all = false" do          
-    Object.new.private_methods(false).size.should == 19
-  end  
-  
-  it "return all the methods of Object, all = false" do    
-    Object.private_methods(false).size.should == 3 
-  end
-end
-
-
-describe "objects#protected_methods" do
-  it "return all the methods of a custom class" do
-    A.new.protected_methods.should == ["protected_method"] 
-    A.new.protected_methods.size.should == 1
-  end
-  
-  it "return all the methods of Object.new" do          
-    Object.new.protected_methods.size.should == 0
-  end  
-  
-  it "return all the methods of Object" do    
-    Object.protected_methods.size.should == 0
-  end
-  
-  it "return all the methods of a custom class, all = false" do
-    A.new.protected_methods(false).should ==  ["protected_method"]   
-    A.new.protected_methods(false).size.should == 1
-  end
-  
-  it "return all the methods of Object.new, all = false" do          
-    Object.new.protected_methods(false).size.should == 0
-  end  
-  
-  it "return all the methods of Object, all = false" do    
-    Object.protected_methods(false).size.should == 0 
-  end
-end
-
-
-describe "objects#public_methods" do
-  it "return all the methods of a custom class" do
-    A.new.public_methods.should ==  ["inspect", "send", "clone", 
-                                     "should_be_ancestor_of", "should", "public_methods", 
-                                     "should_not_receive", "__send__", "equal?", 
-                                     "freeze", "should_include", "methods", 
-                                     "instance_eval", "display", "dup", "object_id", 
-                                     "instance_variables", "extend", "instance_of?", "eql?",
-                                      "hash", "id", "singleton_methods", "taint", "frozen?", 
-                                      "instance_variable_get", "kind_of?", "to_a", "type",
-                                      "should_be_close", "protected_methods", "==", "method_missing", 
-                                      "===", "instance_variable_set", "is_a?", 
-                                      "respond_to?", "to_s", "class", "tainted?", 
-                                      "=~", "private_methods", "__id__", "nil?", "should_not",
-                                      "untaint", "should_receive", "method", "public_method"]
-    A.new.public_methods.size.should == 49
-  end
-  
-  it "return all the methods of Object.new" do          
-    Object.new.public_methods.size.should == 47
-  end  
-  
-  it "return all the methods of Object" do    
-    Object.public_methods.size.should == 80
-  end
-  
-  it "return all the methods of a custom class, all = false" do
-    A.new.public_methods(false).should ==  ["method_missing", "public_method"]   
-    A.new.public_methods(false).size.should == 2
-  end
-  
-  it "return all the methods of Object.new, all = false" do          
-    Object.new.public_methods(false).size.should == 7
-  end  
-  
-  it "return all the methods of Object, all = false" do    
-    Object.public_methods(false).size.should == 3
-  end
-end
+# describe "objects#methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.methods.should ==   ["inspect", "send", "clone", "should_be_ancestor_of", 
+#                                "should", "public_methods", "should_not_receive",
+#                                "__send__", "equal?", "freeze", "should_include", 
+#                                "protected_method", "methods", "instance_eval", 
+#                                "display", "dup", "object_id", "instance_variables",
+#                                 "extend", "instance_of?", "eql?", "hash", "id", 
+#                                 "singleton_methods", "taint", "frozen?", 
+#                                 "instance_variable_get", "kind_of?", "to_a", 
+#                                 "type", "should_be_close", "protected_methods", 
+#                                 "==", "method_missing", "===", "instance_variable_set",
+#                                 "is_a?", "respond_to?", "to_s", "class", "tainted?", "=~",
+#                                 "private_methods", "__id__", "nil?", "should_not", "untaint",
+#                                 "should_receive", "method", "public_method"] 
+#     A.new.methods.size.should == 50
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.methods.size.should == 47
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.methods.size.should == 80 
+#   end
+# end
+# 
+# describe "objects#private_methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.private_methods.should == ["Integer", "initialize", "p", "singleton_method_removed", 
+#                                      "chomp", "fail", "exec", "syscall", "callcc",
+#                                       "sub!", "load", "proc", "it_behaves_like",
+#                                       "iterator?", "catch", "puts", "it","Float", 
+#                                       "singleton_method_undefined", "split", "caller",
+#                                       "system", "require", "open", "gsub!", "lambda", 
+#                                       "try", "block_given?", "throw", "gets", "private_method",
+#                                       "sub", "loop", "trap", "String", "fork",
+#                                       "initialize_copy", "sprintf", "shared", "setup", 
+#                                       "exit", "sleep", "printf", "chop!", "autoload", 
+#                                       "scan", "failure", "trace_var", "select", 
+#                                       "global_variables", "should_output", "readline", 
+#                                       "warn", "`", "gsub", "context", "exit!", "before", 
+#                                       "Array", "format", "teardown", "abort", "chomp!", 
+#                                       "print", "eval", "srand", "engine?", "noncompliant",
+#                                       "untrace_var", "local_variables", "readlines",
+#                                       "singleton_method_added", "specify", "chop", 
+#                                       "raise", "getc", "autoload?", "binding", "compliant", 
+#                                       "should_raise", "at_exit", "describe", "putc", 
+#                                       "remove_instance_variable", "set_trace_func", 
+#                                       "after", "extension", "rand", "test"] 
+#     A.new.private_methods.size.should == 89 
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.private_methods.size.should == 89
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.private_methods.size.should == 109
+#   end
+#   
+#   it "return all the methods of a custom class, all = false" do
+#     A.new.private_methods(false).should ==  ["private_method"]   
+#     A.new.private_methods(false).size.should == 1
+#   end
+#   
+#   it "return all the methods of Object.new, all = false" do          
+#     Object.new.private_methods(false).size.should == 19
+#   end  
+#   
+#   it "return all the methods of Object, all = false" do    
+#     Object.private_methods(false).size.should == 3 
+#   end
+# end
+# 
+# 
+# describe "objects#protected_methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.protected_methods.should == ["protected_method"] 
+#     A.new.protected_methods.size.should == 1
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.protected_methods.size.should == 0
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.protected_methods.size.should == 0
+#   end
+#   
+#   it "return all the methods of a custom class, all = false" do
+#     A.new.protected_methods(false).should ==  ["protected_method"]   
+#     A.new.protected_methods(false).size.should == 1
+#   end
+#   
+#   it "return all the methods of Object.new, all = false" do          
+#     Object.new.protected_methods(false).size.should == 0
+#   end  
+#   
+#   it "return all the methods of Object, all = false" do    
+#     Object.protected_methods(false).size.should == 0 
+#   end
+# end
+# 
+# 
+# describe "objects#public_methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.public_methods.should ==  ["inspect", "send", "clone", 
+#                                      "should_be_ancestor_of", "should", "public_methods", 
+#                                      "should_not_receive", "__send__", "equal?", 
+#                                      "freeze", "should_include", "methods", 
+#                                      "instance_eval", "display", "dup", "object_id", 
+#                                      "instance_variables", "extend", "instance_of?", "eql?",
+#                                       "hash", "id", "singleton_methods", "taint", "frozen?", 
+#                                       "instance_variable_get", "kind_of?", "to_a", "type",
+#                                       "should_be_close", "protected_methods", "==", "method_missing", 
+#                                       "===", "instance_variable_set", "is_a?", 
+#                                       "respond_to?", "to_s", "class", "tainted?", 
+#                                       "=~", "private_methods", "__id__", "nil?", "should_not",
+#                                       "untaint", "should_receive", "method", "public_method"]
+#     A.new.public_methods.size.should == 49
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.public_methods.size.should == 47
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.public_methods.size.should == 80
+#   end
+#   
+#   it "return all the methods of a custom class, all = false" do
+#     A.new.public_methods(false).should ==  ["method_missing", "public_method"]   
+#     A.new.public_methods(false).size.should == 2
+#   end
+#   
+#   it "return all the methods of Object.new, all = false" do          
+#     Object.new.public_methods(false).size.should == 7
+#   end  
+#   
+#   it "return all the methods of Object, all = false" do    
+#     Object.public_methods(false).size.should == 3
+#   end
+# end
