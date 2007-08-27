@@ -894,9 +894,14 @@ class ShotgunPrimitives
     struct stat sb = {0};
     self = stack_pop();
     POP(t1, STRING);
+    t2 = stack_pop();
 
     char *path = string_byte_address(state, t1);
-    j = stat(path, &sb);
+    if (RTEST(t2)) {
+      j = stat(path, &sb);
+    } else {
+      j = lstat(path, &sb);
+    }
 
     if(j != 0) {
       if(errno == ENOENT) {
@@ -910,23 +915,36 @@ class ShotgunPrimitives
       t2 = NEW_OBJECT(self, 10);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
-      if((sb.st_mode & S_IFIFO) == S_IFIFO) {
-        t3 = string_to_sym(state, string_new(state, "fifo"));
-      } else if((sb.st_mode & S_IFCHR) == S_IFCHR) {
-        t3 = string_to_sym(state, string_new(state, "char"));
-      } else if((sb.st_mode & S_IFDIR) == S_IFDIR) {
-        t3 = string_to_sym(state, string_new(state, "dir"));
-      } else if((sb.st_mode & S_IFBLK) == S_IFBLK) {
-        t3 = string_to_sym(state, string_new(state, "block"));
-      } else if((sb.st_mode & S_IFREG) == S_IFREG) {
-        t3 = string_to_sym(state, string_new(state, "regular"));
-      } else if((sb.st_mode & S_IFLNK) == S_IFLNK) {
-        t3 = string_to_sym(state, string_new(state, "link"));
-      } else if((sb.st_mode & S_IFSOCK) == S_IFSOCK) {
-        t3 = string_to_sym(state, string_new(state, "socket"));
-      } else {
-        t3 = string_to_sym(state, string_new(state, "file"));
+
+      switch(sb.st_mode & S_IFMT) {
+        case S_IFIFO:     // named pipe
+          t3 = string_to_sym(state, string_new(state, "fifo"));
+          break;
+        case S_IFCHR:     // character special
+          t3 = string_to_sym(state, string_new(state, "char"));
+        	break;
+        case S_IFDIR:     // directory
+          t3 = string_to_sym(state, string_new(state, "dir"));
+        	break;
+        case S_IFBLK:     // block special
+          t3 = string_to_sym(state, string_new(state, "block"));
+        	break;
+        case S_IFREG:     // regular file
+          t3 = string_to_sym(state, string_new(state, "file"));
+        	break;
+        case S_IFLNK:     // symbolic link
+          t3 = string_to_sym(state, string_new(state, "link"));
+        	break;
+        case S_IFSOCK:    // socket
+          t3 = string_to_sym(state, string_new(state, "socket"));
+        	break;
+        case S_IFWHT:     // whiteout
+          t3 = string_to_sym(state, string_new(state, "whiteout"));
+        	break;
+        default:
+          t3 = string_to_sym(state, string_new(state, "file"));
       }
+      
       tuple_put(state, t2, 2, t3);
       tuple_put(state, t2, 3, I2N((int)sb.st_uid));
       tuple_put(state, t2, 4, I2N((int)sb.st_gid));

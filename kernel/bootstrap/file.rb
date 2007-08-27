@@ -12,7 +12,7 @@ class File < IO
   end
   
   class Stat
-    def self.stat(path)
+    def self.stat(path, follow_links)
       Ruby.primitive :stat_file
     end
   end

@@ -35,7 +35,7 @@ class File < IO
   end
   
   def self.exist?(path)
-    out = Stat.stat(path)
+    out = Stat.stat(path, true)
     if out.kind_of? Stat
       return true
     else
@@ -48,49 +48,59 @@ class File < IO
   end
   
   def self.file?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
-    st.kind == :regular
+    st.kind == :file
   end
 
   def self.directory?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
     st.kind == :dir
   end
   
   def self.link?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
     st.kind == :link
   end
 
   def self.blockdev?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
     st.kind == :block
   end
 
   def self.chardev?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
     st.kind == :char
   end
   
   def self.fifo?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
-    stat.kind == :fifo
+    st.kind == :fifo
   end
   
   def self.socket?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
-    stat.kind == :socket
+    st.kind == :socket
   end
 
+  FILE_TYPES = {
+    :dir => 'directory',
+    :char => 'characterSpecial',
+    :block => 'blockSpecial',
+    :fifo => 'fifo',
+    :link => 'link',
+    :socket => 'socket',
+    :file => 'file'
+  }
+  
   def self.ftype(path)
-    kind = stat(path).kind # TODO(MC): lstat
+    kind = lstat(path).kind
     FILE_TYPES.include?(kind) ? FILE_TYPES[kind] : 'unknown'
   end
   
@@ -100,7 +110,7 @@ class File < IO
   end
 
   def self.zero?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
     st.size == 0
   end
@@ -110,7 +120,7 @@ class File < IO
   end
 
   def self.size?(path)
-    st = Stat.stat(path)
+    st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
     st.size
   end
@@ -266,19 +276,26 @@ class File < IO
   end
   
   def self.stat(path)
-    path = enforce_string(path)
-    out = Stat.stat(path)
+    perform_stat(path, true)
+  end
+  
+  def self.lstat(path)
+    perform_stat(path, false)
+  end
+  
+  def self.perform_stat(path, follow_links)
+    out = Stat.stat(path, follow_links)
     if !out
       raise UnableToStat, "Unable to perform stat on '#{path}'"
     elsif out == 1
-      raise NoFileError, "'#{path}' does not exist"
+      raise Errno::ENOENT, "No such file or directory - #{path}"
     elsif out == 2
-      raise PermissionError, "Unable to access '#{path}'"
+      raise Errno::EACCES, "Unable to access '#{path}'"
     else
       return out
     end
   end
-    
+  
   def self.to_sexp(name, newlines=true)
     out = to_sexp_full(name, newlines)
     if out.kind_of? Tuple
@@ -290,15 +307,6 @@ class File < IO
   end
   
   private
-    FILE_TYPES = {
-      :regular => 'file',
-      :dir => 'directory',
-      :char => 'characterSpecial',
-      :block => 'blockSpecial',
-      :fifo => 'fifo',
-      :link => 'link',
-      :socket => 'socket'
-    }
 
     def self.enforce_string(obj)
       unless obj.kind_of? String
