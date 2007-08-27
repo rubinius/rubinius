@@ -6,20 +6,22 @@ module Rubinius
 end
 
 module Compile
-  def self.compile_file(path)
+  def self.compile_file(path, flags=nil)
     require 'bytecode/compiler'
     require 'bytecode/rubinius'
     sexp = File.to_sexp(path, true)
     comp = Bytecode::Compiler.new
+    comp.import_flags(flags) if flags
     desc = comp.compile_as_script(sexp, :__script__)
     return desc.to_cmethod
   end
   
-  def self.compile_string(string)
+  def self.compile_string(string, flags=nil)
     require 'bytecode/compiler'
     require 'bytecode/rubinius'
     sexp = string.to_sexp
     comp = Bytecode::Compiler.new
+    comp.import_flags(flags) if flags
     desc = comp.compile_as_method(sexp, :__eval_script__)
     return desc.to_cmethod
   end
@@ -85,9 +87,9 @@ module Kernel
     return cm.activate_as_script
   end
   
-  def compile(path, out=nil)
+  def compile(path, out=nil, flags=nil)
     out = "#{path}c" unless out
-    cm = Compile.compile_file(path)
+    cm = Compile.compile_file(path, flags)
     Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end

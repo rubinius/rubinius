@@ -66,6 +66,8 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   xassert(STRING_P(self));
   xassert(STRING_P(other));
   
+  string_unshare(state, self);
+  
   cur = string_get_data(self);
   obs = string_get_data(other);
   cur_sz = FIXNUM_TO_INT(string_get_bytes(self));
@@ -73,7 +75,7 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   
   ns = cur_sz + oth_sz;
   tmp = bytearray_bytes(state, cur);
-  if(string_get_shared(self) == Qtrue || ns+1 > tmp) {
+  if(ns+1 > tmp) {
     extra = ns * 0.01;
     if(extra < 10) extra = 10;
     nd = bytearray_new_dirty(state, ns+extra);

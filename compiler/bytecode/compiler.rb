@@ -51,6 +51,33 @@ module Bytecode
       }      
     end
     
+    def import_flags(flags)
+      if flags.kind_of? Hash
+        @flags.update flags
+      else
+        flags.each do |flag|
+          if flag.kind_of? Symbol
+            name = flag
+            val = true
+          else
+            flag = flag.to_s.gsub("-","_")
+            if m = /^no_(.*)/.match(flag)
+              name = m[1].to_sym
+              val = false
+            else
+              name = flag.to_sym
+              val = true
+            end
+          end
+          
+          @flags[name] = val
+          if $DEBUG
+            STDERR.puts "Set flag '#{name}' to #{val.inspect}."
+          end
+        end
+      end
+    end
+    
     attr_reader :call_hooks
     
     @system_hints = nil

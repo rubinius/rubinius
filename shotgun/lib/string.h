@@ -30,6 +30,6 @@ OBJECT string_to_sym(STATE, OBJECT self);
 double string_to_double(STATE, OBJECT self);
 
 #define string_unshare(state, cur) \
-  if(string_get_shared(cur) == Qtrue) { string_set_data(cur, bytearray_dup(state, string_get_data(cur))); }
+if(string_get_shared(cur) == Qtrue) { string_set_data(cur, bytearray_dup(state, string_get_data(cur))); string_set_shared(cur, Qnil); }
 
 #endif
