@@ -24,6 +24,7 @@ module Platform::POSIX
   attach_function nil, 'fchmod', [:int, :int], :int
   attach_function nil, 'unlink', [:string], :int
   attach_function nil, 'getcwd', [:string, :int], :string
+  attach_function nil, 'umask', [:int], :int
   
   # File/IO
   #   opening/closing
