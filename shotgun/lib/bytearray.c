@@ -45,7 +45,7 @@ OBJECT bytearray_dup(STATE, OBJECT self) {
   object_make_byte_storage(state, obj);
   
   memcpy(object_byte_start(state, obj), 
-      object_byte_start(state, self), SIZE_IN_BYTES(self));
+      object_byte_start(state, self), SIZE_OF_BODY(self));
   
   return obj;
 }

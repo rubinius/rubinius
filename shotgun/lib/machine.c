@@ -331,6 +331,12 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   
   printf("\nAn error has occured: %s\n\n", signame);
 
+  if(getenv("CRASH_WAIT")) {
+    printf("Pausing so I can be debugged.\n");
+    pause();
+    printf("Continuing after debugger.\n");
+  }
+
   /* This code is kind of dangerous, and general problematic (ie, it cases
      more problems that in solves). So it's disabled unless you really want it. */
   if(getenv("ENABLE_BT")) {

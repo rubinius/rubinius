@@ -53,11 +53,11 @@ class IO
 
   def read(size=nil, buf=nil)
     if size
-      begin
-        sysread(size, buf)
-      rescue EOFError
-        return nil
-      end
+      buf = String.new(size) unless buf
+      chan = Channel.new
+      Scheduler.send_on_readable chan, self, buf, size
+      return nil if chan.receive.nil?
+      return buf
     else
       chunk = String.new(BufferSize)
       out = ""

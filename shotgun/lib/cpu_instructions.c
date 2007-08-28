@@ -634,7 +634,7 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
          was created inside a method that has already returned. Thats an edge
          case I'm wiling to live with (for now). */
       if(!exception) { 
-        FASTCTX(c->active_context)->sender = Qnil;
+        // FASTCTX(c->active_context)->sender = Qnil;
       }
       object_memory_retire_context(state->om, c->active_context);
     }
