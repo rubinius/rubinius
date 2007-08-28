@@ -38,7 +38,6 @@
   OBJECT block; \
   OBJECT method; \
   IP_TYPE *data; \
-  unsigned long int data_size; \
   OBJECT literals; \
   OBJECT self; \
   OBJECT locals; \

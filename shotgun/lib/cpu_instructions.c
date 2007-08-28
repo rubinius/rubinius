@@ -423,7 +423,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->block = block;
   fc->method = mo;
   fc->data = bytearray_byte_address(state, ba);
-  fc->data_size = bytearray_bytes(state, ba);
   fc->literals = cmethod_get_literals(mo);
   fc->self = recv;
   if(num_lcls > 0) {
@@ -917,18 +916,6 @@ insn_start:
 
   while(c->active_context != Qnil) {
     
-    /* This check I've commented out is a safety blanket. I've tested
-       running my benchmark (compiling sirb.rb) and it's not hit. It's
-       therefore just excess overhead per VM instruction, so it's not
-       going to be run normally. */
-       
-    #if 0
-    if(!c->data || c->ip >= c->data_size) {
-      cpu_return_to_sender(state, c, FALSE);
-      continue;
-    }
-    #endif
-
 #if DIRECT_THREADED
     if(EXCESSIVE_TRACING) {
       printf("%-15s: => %p\n",

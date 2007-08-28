@@ -308,7 +308,6 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       OBJECT ba;
       ba = cmethod_get_bytecodes(fc->method);
       fc->data = BYTEARRAY_ADDRESS(ba);
-      fc->data_size = BYTEARRAY_SIZE(ba);
     } else if(ISA(iobj, BASIC_CLASS(task))) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
       
@@ -377,7 +376,6 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT ba;
   ba = cmethod_get_bytecodes(fc->method);
   fc->data = BYTEARRAY_ADDRESS(ba);
-  fc->data_size = BYTEARRAY_SIZE(ba);
 #undef fc_mutate
 }
 

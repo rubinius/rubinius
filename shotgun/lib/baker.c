@@ -214,7 +214,6 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       ba = baker_gc_maybe_mutate(state, g, ba);
       
       fc->data = BYTEARRAY_ADDRESS(ba);
-      fc->data_size = BYTEARRAY_SIZE(ba);
     } else if(ISA(iobj, BASIC_CLASS(task))) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
       fc_mutate(exception);
@@ -293,7 +292,6 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   ba = baker_gc_maybe_mutate(state, g, ba);
 
   fc->data = BYTEARRAY_ADDRESS(ba);
-  fc->data_size = BYTEARRAY_SIZE(ba);
 #undef fc_mutate
 }
 
