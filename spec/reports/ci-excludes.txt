@@ -1091,3 +1091,8 @@ String#gsub with pattern, replacement replaces \' with everything after the curr
 String#gsub with pattern, replacement returns subclass instances when called on a subclass
 String#gsub with pattern and block raises a RuntimeError if the string is modified while substituting
 Numeric#coerce coerce strings to strings
+File.executable? returns true if named file is readable by the effective user id of the process, otherwise false
+File.readable? returns true if named file is readable by the effective user id of the process, otherwise false
+File.open open the file when call with mode, num and permissions
+File.open raise an ArgumentError exception when call with an unknown mode
+File.truncate truncate to a larger size than the original file
