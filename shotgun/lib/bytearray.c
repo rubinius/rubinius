@@ -44,8 +44,7 @@ OBJECT bytearray_dup(STATE, OBJECT self) {
   obj = object_memory_new_dirty_object(state->om, BASIC_CLASS(bytearray), words);
   object_make_byte_storage(state, obj);
   
-  memcpy(object_byte_start(state, obj), 
-      object_byte_start(state, self), SIZE_OF_BODY(self));
+  object_copy_body(state, self, obj);
   
   return obj;
 }
@@ -57,9 +56,8 @@ char *bytearray_as_string(STATE, OBJECT self) {
   
   str = (char*)bytearray_byte_address(state, self);
   
-  sz = NUM_FIELDS(self) * REFSIZE;
-  out = malloc(sizeof(char) * sz);
-  
+  sz = object_size(state, self);
+  out = (char*)malloc(sizeof(char) * sz);
   memcpy(out, str, sz);
   
   return out;
@@ -98,7 +96,7 @@ void iseq_flip(STATE, OBJECT self) {
   uint32_t *ibuf;
   int i, f;
   
-  f = NUM_FIELDS(self) * REFSIZE;
+  f = object_size(state, self);
   buf = (uint8_t*)bytearray_byte_address(state, self);
   ibuf = (uint32_t*)bytearray_byte_address(state, self);
   /* A sanity check. The first thing is always an instruction,

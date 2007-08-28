@@ -10,7 +10,6 @@ OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym);
 OBJECT object_set_ivar(STATE, OBJECT self, OBJECT sym, OBJECT val);
 OBJECT object_get_ivars(STATE, OBJECT self);
 OBJECT object_new(STATE);
-char *object_byte_start(STATE, OBJECT self);
 int object_copy_bytes_into(STATE, OBJECT self, OBJECT dest, int count, int offset);
 unsigned int object_hash_int(STATE, OBJECT self);
 int object_stores_bytes_p(STATE, OBJECT self);
@@ -35,6 +34,18 @@ static inline OBJECT object_class(STATE, OBJECT self) {
   }
 
   return state->global->special_classes[((uint)self) & SPECIAL_CLASS_MASK];
+}
+
+#define object_byte_start(st, self) ((char*)BYTES_OF(self))
+#define object_size(st, self) SIZE_OF_BODY(self)
+
+static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
+  int max, s2;
+  max = object_size(state, self);
+  s2 = object_size(state, dest);
+  if(s2 < max) max = s2;
+  
+  memcpy(object_byte_start(state, dest), object_byte_start(state, self), max);
 }
 
 

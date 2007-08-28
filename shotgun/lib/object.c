@@ -57,10 +57,6 @@ int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
   return FALSE;
 }
 
-char *object_byte_start(STATE, OBJECT self) {
-  return BYTES_OF(self);
-}
-
 #define REMEMBER_FLAG 0x10
 
 void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
