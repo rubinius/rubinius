@@ -887,6 +887,13 @@ describe "Array#fetch" do
     [1, 2, 3].fetch(-9) { |i| i * i }.should == 81
   end
 
+  it "passes the original index argument object to the block, not the converted Integer" do
+    o = Object.new
+    def o.to_int(); 5; end
+
+    [1, 2, 3].fetch(o) { |i| i }.equal?(o).should == true
+  end
+
   it "gives precedence to the default block over the default argument" do
     [1, 2, 3].fetch(9, :foo) { |i| i * i }.should == 81
   end

@@ -19,7 +19,7 @@ class Array
   def self.[](*args)
     return args if self.class == Array
     new(args.size) { |i| args[i] }   
-  end                                                 # self.[]
+  end               
 
 
   # Creates a new Array. Without arguments, an empty
@@ -62,7 +62,7 @@ class Array
         count.times { |i| @tuple.put i, obj }
       end
     end
-  end                                                 # initialize
+  end              
 
   # Element reference, returns the element at the given index or 
   # a subarray starting from the index continuing for length 
@@ -115,7 +115,7 @@ class Array
     out = self.class.new
     start.upto(finish) { |i| out << at(i) }
     out
-  end                                                 # []
+  end             
 
 
   def []=(idx, ent, *args)
@@ -220,7 +220,7 @@ class Array
     @tuple.put @total, obj
     @total += 1
     self
-  end                                                 # <<
+  end                                               
 
   # Creates a new Array containing only elements common to
   # both Arrays, without duplicates. Also known as a 'set
@@ -239,7 +239,7 @@ class Array
     }
 
     out
-  end                                                 # &
+  end     
 
   # Creates a new Array by combining the two Arrays' items,
   # without duplicates. Also known as a 'set union.'
@@ -256,7 +256,7 @@ class Array
     }
 
     out
-  end                                                 # |
+  end    
   
   # Repetition operator when supplied a #to_int argument:
   # returns a new Array as a concatenation of the given number
@@ -276,7 +276,7 @@ class Array
       val.times { out.push(*self) }
       out
     end
-  end                                                 # *
+  end   
   
   # Create a concatenation of the two Arrays.
   def +(other)
@@ -287,7 +287,7 @@ class Array
     other.each { |e| out << e }
 
     out
-  end                                                 # +
+  end  
   
   # Creates a new Array that contains the items of the original 
   # Array that do not appear in the other Array, effectively
@@ -300,7 +300,7 @@ class Array
     each { |x| out << x unless exclude[x] }
 
     out
-  end                                                 # -
+  end 
   
   # Compares the two Arrays and returns -1, 0 or 1 depending
   # on whether the first one is 'smaller', 'equal' or 'greater'
@@ -321,7 +321,7 @@ class Array
     return 1 if size > other.size
     return -1 if size < other.size
     0
-  end                                                 # <=>
+  end
 
   # The two Arrays are considered equal only if their
   # lengths are the same and each of their elements 
@@ -338,7 +338,7 @@ class Array
     size.times { |i| return false unless at(i) == other.at(i) }
     
     true
-  end                                                 # ==
+  end 
 
   # Assumes the Array contains other Arrays and searches through 
   # it comparing the given object with the first element of each
@@ -355,7 +355,7 @@ class Array
     }
 
     res
-  end                                                 # assoc
+  end 
 
   # Returns the element at the given index. If the
   # index is negative, counts from the end of the
@@ -368,7 +368,7 @@ class Array
     return nil if idx < 0 || idx >= @total
 
     @tuple.at idx
-  end                                                 # at
+  end 
   
   # Removes all elements in the Array and leaves it empty
   def clear()
@@ -377,12 +377,12 @@ class Array
     @tuple = Tuple.new(0)
     @total = 0
     self
-  end                                                 # clear
+  end 
 
   # Returns a copy of self with all nil elements removed
   def compact()
     dup.compact! || self
-  end                                                 # compact
+  end 
 
   # Removes all nil elements from self, returns nil if no changes
   # TODO: Needs improvement
@@ -414,14 +414,14 @@ class Array
     end
 
     nil                 
-  end                                                 # compact!
+  end
 
   # Appends the elements in the other Array to self
   def concat(other)
     raise TypeError, "Array is frozen" if frozen?
 
     push(*ary_from(other))
-  end                                                 # concat
+  end 
 
   # Stupid subtle differences prevent proper reuse in these three
   
@@ -457,7 +457,7 @@ class Array
     end
 
     yield if block_given?       # Too clever?
-  end                                                 # delete
+  end  
 
   # Deletes the element at the given index and returns
   # the deleted element or nil if the index is out of
@@ -479,7 +479,7 @@ class Array
 
     @total -= 1
     obj
-  end                                                 # delete_at
+  end 
 
   # Deletes every element from self for which block evaluates to true
   def delete_if()
@@ -510,27 +510,27 @@ class Array
     end
     
     return self
-  end                                                 # delete_if
+  end
 
   # Creates a shallow copy of this Array as Object#dup.
   # Contained elements are not recursively #dupped.
   def dup()
     self.class.new self
-  end                                                 # dup
+  end  
 
   # Passes each element in the Array to the given block
   # and returns self.
-  def each
+  def each()
     @total.times { |i| yield at(i) }
     self
-  end                                                 # each
+  end 
 
   # Passes each index of the Array to the given block
   # and returns self.
   def each_index()
     @total.times {|i| yield i}
     self
-  end                                                 # each_index
+  end 
 
   # Returns true if both are the same object or if both
   # have the same elements (#eql? used for testing.)
@@ -542,13 +542,39 @@ class Array
     each_with_index { |o, i| return false unless o.eql?(other[i]) }
 
     true
-  end                                                 # eql?
+  end 
+
+  # True if Array has no elements.
+  def empty?()
+    @total == 0
+  end
+
+  # Attempts to return the element at the given index. By default
+  # an IndexError is raised if the element is out of bounds. The
+  # user may supply either a default value or a block that takes
+  # the index object instead.
+  def fetch(idx, *rest)
+    raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
+    warn 'Block supercedes default object' if !rest.empty? && block_given?
+
+    idx, orig = int_from(idx), idx
+    idx += @total if idx < 0
+
+    if idx < 0 || idx >= @total
+      return yield(orig) if block_given?
+      return rest.at(0) unless rest.empty?
+
+      raise IndexError, "Index #{idx} out of array" if rest.empty?
+    end
+
+    at(idx)
+  end                                                 # fetch
 
   # Returns true if the Array is frozen with #freeze or
   # temporarily sorted while being sorted.
   def frozen?()
     @sort_frozen || super 
-  end                                                 # frozen?
+  end 
 
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
@@ -565,21 +591,11 @@ class Array
 
     recursively_join self, separator, out, stack
     out[separator.size..-1] 
-  end                                                 # join
+  end 
   
   def push(*args)
     args.each do |ent|
       self[@total] = ent
-    end
-    self
-  end
-  
-
-  def each_index
-    i = 0
-    while i < @total
-      yield i
-      i += 1
     end
     self
   end
@@ -600,16 +616,6 @@ class Array
       i += 1
     end
     return self
-  end
-
-  def eql?(other)
-    return true if equal? other
-    return false unless other.kind_of?(Array)
-    return false if @total != other.size
-    each_with_index do |o, i|
-      return false unless o.eql? other[i]
-    end
-    return true
   end
 
   #  def collect!                  # FIXME: should use alias
@@ -1017,27 +1023,6 @@ class Array
     ary = self.uniq
     ary.size == self.size ? nil : replace(ary)
   end
-  
-  def fetch(pos, *rest)
-    if rest.length > 1
-      raise ArgumentError, "wrong number of arguments (#{1 + rest.length} for 2)"
-    end
-    if !rest.empty? && block_given?
-      #warn about block superceding default arg
-    end
-    index = pos
-    if index < 0
-      index += self.length
-    end
-    if index < 0 || self.length <= index
-      return yield(pos) if block_given?
-      if rest.length == 0
-        raise IndexError, "index #{index} out of array"
-      end
-      return rest[0]
-    end
-    self.at(index)
-  end  
 
   def nitems
     self.inject(0) { |count, elt| elt ? count + 1 : count}
@@ -1160,10 +1145,6 @@ class Array
 
   def length
     @total
-  end
-  
-  def empty?
-    @total == 0
   end
   
   
