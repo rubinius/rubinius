@@ -69,7 +69,7 @@ OBJECT archive_get_file(STATE, const char *path, const char* name) {
   str = string_new2(state, NULL, total);
   buf = string_byte_address(state, str);
   
-  while((n=zip_fread(zf, buf, total)) > 0) {
+  while((n = zip_fread(zf, buf, total)) > 0) {
     buf += n;
     total -= n;
   }
@@ -87,13 +87,11 @@ OBJECT archive_get_file2(STATE, archive_handle_t *za, const char *name) {
   int n, total, file;
   char *buf;
 
-  file = zip_name_locate(za, name, 0);
-  if(file < 0) {
+  if((file = zip_name_locate(za, name, 0)) < 0) {
     return Qnil;
   }
   
-  zf = zip_fopen_index(za, file, 0);
-  if(!zf) {
+  if((zf = zip_fopen_index(za, file, 0)) == NULL) {
     return Qnil;
   }
   
@@ -124,14 +122,12 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
     return Qnil;
   }
   
-  file = zip_name_locate(za, name, 0);
-  if(file < 0) {
-    //printf("Couldn't find %s in %s (%s/%d)\n", name, path, zip_strerror(za), file);
+  if((file = zip_name_locate(za, name, 0)) < 0) {
     zip_close(za);
     return Qnil;
   }
   
-  if((zf=zip_fopen_index(za, file, 0)) == NULL) {
+  if((zf = zip_fopen_index(za, file, 0)) == NULL) {
     zip_close(za);
     return Qnil;
   }
@@ -141,7 +137,7 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   str = malloc(sizeof(char) * total);
   buf = str;
   
-  while((n=zip_fread(zf, buf, total)) > 0) {
+  while((n = zip_fread(zf, buf, total)) > 0) {
     buf += n;
     total -= n;
   }
@@ -162,20 +158,17 @@ OBJECT archive_get_object2(STATE, archive_handle_t *za,
   OBJECT ret;
   int n, total, file = -1;
 
-  file = zip_name_locate(za, name, 0);
-  if(file < 0) {
-    //printf("Couldn't find %s in %s (%s/%d)\n", name, path, zip_strerror(za), file);
+  if((file = zip_name_locate(za, name, 0)) < 0) {
     return Qnil;
   }
   
-  zf = zip_fopen_index(za, file, 0);
-  if(!zf) {
+  if((zf = zip_fopen_index(za, file, 0)) == NULL) {
     return Qnil;
   }
   
   zip_stat_index(za, file, 0, &st);
   total = st.size;
-  str = malloc(total);
+  str = malloc(sizeof(char) * total);
   buf = str;
   
   while((n = zip_fread(zf, buf, total)) > 0) {
@@ -217,11 +210,11 @@ OBJECT archive_add_file(STATE, char *path, char *name, char *file) {
   OBJECT ret;
   int err;
   
-  if((za=zip_open(path, 0, &err)) == NULL) {
+  if((za = zip_open(path, 0, &err)) == NULL) {
     return Qnil;
   }
   
-  if((zs=zip_source_file(za, file, 0, 0)) == NULL) {
+  if((zs = zip_source_file(za, file, 0, 0)) == NULL) {
     zip_close(za);
     return Qfalse;
   }
@@ -239,7 +232,7 @@ OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj, int version
   OBJECT ret;
   int err;
   
-  if((za=zip_open(path, 0, &err)) == NULL) {
+  if((za = zip_open(path, 0, &err)) == NULL) {
     return Qnil;
   }
   
@@ -259,7 +252,7 @@ OBJECT archive_delete_file(STATE, char *path, int idx) {
   OBJECT ret;
   int err;
   
-  if((za=zip_open(path, 0, &err)) == NULL) {
+  if((za = zip_open(path, 0, &err)) == NULL) {
     return Qnil;
   }
     
