@@ -943,9 +943,11 @@ class ShotgunPrimitives
         case S_IFSOCK:    // socket
           t3 = string_to_sym(state, string_new(state, "socket"));
         	break;
+        #ifdef S_IFWHT
         case S_IFWHT:     // whiteout
           t3 = string_to_sym(state, string_new(state, "whiteout"));
         	break;
+        #endif
         default:
           t3 = string_to_sym(state, string_new(state, "file"));
       }
