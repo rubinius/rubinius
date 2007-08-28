@@ -11,6 +11,139 @@
 
 #define BC(o) BASIC_CLASS(o)
 
+void bignum_init(STATE);
+void Init_cpu_task(STATE);
+void Init_list(STATE);
+void cpu_bootstrap_exceptions(STATE);
+
+/* Creates the rubinius object universe from scratch. */
+void cpu_bootstrap(STATE) {
+  OBJECT cls, obj, tmp, tmp2;
+  int i;
+
+  /* Class is created first by hand, and twittle to setup the internal
+     recursion. */
+  cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
+  HEADER(cls)->klass = cls;
+  class_set_instance_fields(cls, CLASS_FIELDS);
+  /* Ick. 0x02 says it has normal ivars. constants suck. */
+  class_set_instance_flags(cls, I2N(0x02));  
+  BC(class) = cls;
+  obj = _object_basic_class(state, Qnil);
+  BC(object) = obj;
+  BC(module) = _module_basic_class(state, obj);
+  class_set_superclass(cls, BC(module));
+  BC(metaclass) = _metaclass_basic_class(state, cls);
+  
+  BC(tuple) = _tuple_basic_class(state, obj);
+  BC(hash) =  _hash_basic_class(state, obj);
+  BC(methtbl) = _methtbl_basic_class(state, BC(hash));
+  
+  object_create_metaclass(state, obj, cls);
+  object_create_metaclass(state, BC(module), object_metaclass(state, obj));
+  object_create_metaclass(state, BC(class), object_metaclass(state, BC(module)));
+  
+  object_create_metaclass(state, BC(tuple), (OBJECT)0);
+  object_create_metaclass(state, BC(hash), (OBJECT)0);
+  object_create_metaclass(state, BC(methtbl), (OBJECT)0);
+  
+  module_setup_fields(state, object_metaclass(state, obj));
+  module_setup_fields(state, object_metaclass(state, BC(module)));
+  module_setup_fields(state, object_metaclass(state, BC(class)));
+  module_setup_fields(state, object_metaclass(state, BC(tuple)));
+  module_setup_fields(state, object_metaclass(state, BC(hash)));
+  module_setup_fields(state, object_metaclass(state, BC(methtbl)));
+  BC(symbol) = _symbol_class(state, obj);
+  BC(tuple) = _tuple_class(state, obj);
+  BC(array) = _array_class(state, obj);
+  BC(bytearray) = _bytearray_class(state, obj);
+  BC(string) = _string_class(state, obj);
+  BC(symtbl) = _symtbl_class(state, obj);
+  BC(cmethod) = _cmethod_class(state, obj);
+  BC(io) = _io_class(state, obj);
+  BC(methctx) = _methctx_class(state, obj);
+  BC(blokenv) = _blokenv_class(state, obj);
+  BC(blokctx) = _blokctx_class(state, obj);
+  
+  /* The symbol table */
+  state->global->symbols = symtbl_new(state);
+  
+  module_setup(state, obj, "Object");
+  module_setup(state, cls, "Class");
+  module_setup(state, BC(module), "Module");
+  module_setup(state, BC(metaclass), "MetaClass");
+  module_setup(state, BC(symbol), "Symbol");
+  module_setup(state, BC(tuple), "Tuple");
+  module_setup(state, BC(array), "Array");
+  module_setup(state, BC(bytearray), "ByteArray");
+  module_setup(state, BC(hash), "Hash");
+  module_setup(state, BC(string), "String");
+  module_setup(state, BC(symtbl), "SymbolTable");
+  module_setup(state, BC(methtbl), "MethodTable");
+  module_setup(state, BC(cmethod), "CompiledMethod");
+  module_setup(state, BC(io), "IO");
+  module_setup(state, BC(methctx), "MethodContext");
+  module_setup(state, BC(blokenv), "BlockEnvironment");
+  module_setup(state, BC(blokctx), "BlockContext");
+  
+  rbs_const_set(state, obj, "Symbols", state->global->symbols);
+  BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
+  BC(true_class) = rbs_class_new(state, "TrueClass", 0, obj);
+  BC(false_class) = rbs_class_new(state, "FalseClass", 0, obj);
+  tmp = rbs_class_new(state, "Numeric", 0, obj);
+  tmp2 = rbs_class_new(state, "Integer", 0, tmp);
+  BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, tmp2);
+  
+  BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
+  bignum_init(state);
+  
+  BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
+  BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
+  BC(fastctx) = rbs_class_new(state, "FastMethodContext", 0, BC(methctx));
+  BC(task) = rbs_class_new(state, "Task", 0, obj);
+  BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
+  
+  #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
+    module_setup(state, BC(name), string);
+  
+  /* the special_classes C array is use do quickly calculate the class
+     of an immediate by just indexing into the array using (obj & 0x1f) */
+  
+  /* fixnum, symbol, and custom can have a number of patterns below
+     0x1f, so we fill them all. */
+     
+  for(i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
+    state->global->special_classes[i + 0] = Qnil;
+    state->global->special_classes[i + 1] = BC(fixnum_class);
+    state->global->special_classes[i + 2] = Qnil;
+    if(((i + 3) & 0x7) == 0x3) {
+      state->global->special_classes[i + 3] = BC(symbol);
+    } else {
+      state->global->special_classes[i + 3] = CUSTOM_CLASS;
+    }
+  }
+  
+  /* These only have one value, so they only need one spot in
+     the array */
+  state->global->special_classes[(int)Qundef] = BC(undef_class);
+  state->global->special_classes[(int)Qfalse] = BC(false_class);
+  state->global->special_classes[(int)Qnil  ] = BC(nil_class);
+  state->global->special_classes[(int)Qtrue ] = BC(true_class);
+  
+  bcs(regexp, obj, "Regexp");
+  bcs(regexpdata, obj, "RegexpData");
+  bcs(matchdata, obj, "MatchData");
+      
+  cpu_bootstrap_exceptions(state);
+  
+  Init_list(state);
+  Init_cpu_task(state);
+  Init_ffi(state);
+  regexp_init(state);
+  
+  state->global->external_ivars = hash_new(state);  
+}
+
 void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 3;
@@ -428,133 +561,4 @@ void cpu_bootstrap_exceptions(STATE) {
     set_syserr(EDQUOT, "EDQUOT");
 #endif
 
-}
-
-void bignum_init(STATE);
-void Init_cpu_task(STATE);
-void Init_list(STATE);
-
-void cpu_bootstrap(STATE) {
-  OBJECT cls, obj, tmp, tmp2;
-  int i;
-  
-  cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
-  HEADER(cls)->klass = cls;
-  class_set_instance_fields(cls, CLASS_FIELDS);
-  /* Ick. 0x02 says it has normal ivars. constants suck. */
-  class_set_instance_flags(cls, I2N(0x02));  
-  BC(class) = cls;
-  assert(cls == CLASS_OBJECT(cls));
-  obj = _object_basic_class(state, Qnil);
-  BC(object) = obj;
-  BC(module) = _module_basic_class(state, obj);
-  class_set_superclass(cls, BC(module));
-  BC(metaclass) = _metaclass_basic_class(state, cls);
-  
-  BC(tuple) = _tuple_basic_class(state, obj);
-  BC(hash) =  _hash_basic_class(state, obj);
-  BC(methtbl) = _methtbl_basic_class(state, BC(hash));
-  
-  object_create_metaclass(state, obj, cls);
-  object_create_metaclass(state, BC(module), object_metaclass(state, obj));
-  object_create_metaclass(state, BC(class), object_metaclass(state, BC(module)));
-  
-  object_create_metaclass(state, BC(tuple), (OBJECT)0);
-  object_create_metaclass(state, BC(hash), (OBJECT)0);
-  object_create_metaclass(state, BC(methtbl), (OBJECT)0);
-  
-  module_setup_fields(state, object_metaclass(state, obj));
-  module_setup_fields(state, object_metaclass(state, BC(module)));
-  module_setup_fields(state, object_metaclass(state, BC(class)));
-  module_setup_fields(state, object_metaclass(state, BC(tuple)));
-  module_setup_fields(state, object_metaclass(state, BC(hash)));
-  module_setup_fields(state, object_metaclass(state, BC(methtbl)));
-  BC(symbol) = _symbol_class(state, obj);
-  BC(tuple) = _tuple_class(state, obj);
-  BC(array) = _array_class(state, obj);
-  BC(bytearray) = _bytearray_class(state, obj);
-  BC(string) = _string_class(state, obj);
-  BC(symtbl) = _symtbl_class(state, obj);
-  BC(cmethod) = _cmethod_class(state, obj);
-  BC(io) = _io_class(state, obj);
-  BC(methctx) = _methctx_class(state, obj);
-  BC(blokenv) = _blokenv_class(state, obj);
-  BC(blokctx) = _blokctx_class(state, obj);
-  
-  state->global->symbols = symtbl_new(state);
-  
-  module_setup(state, obj, "Object");
-  module_setup(state, cls, "Class");
-  module_setup(state, BC(module), "Module");
-  module_setup(state, BC(metaclass), "MetaClass");
-  module_setup(state, BC(symbol), "Symbol");
-  module_setup(state, BC(tuple), "Tuple");
-  module_setup(state, BC(array), "Array");
-  module_setup(state, BC(bytearray), "ByteArray");
-  module_setup(state, BC(hash), "Hash");
-  module_setup(state, BC(string), "String");
-  module_setup(state, BC(symtbl), "SymbolTable");
-  module_setup(state, BC(methtbl), "MethodTable");
-  module_setup(state, BC(cmethod), "CompiledMethod");
-  module_setup(state, BC(io), "IO");
-  module_setup(state, BC(methctx), "MethodContext");
-  module_setup(state, BC(blokenv), "BlockEnvironment");
-  module_setup(state, BC(blokctx), "BlockContext");
-  
-  rbs_const_set(state, obj, "Symbols", state->global->symbols);
-  BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
-  BC(true_class) = rbs_class_new(state, "TrueClass", 0, obj);
-  BC(false_class) = rbs_class_new(state, "FalseClass", 0, obj);
-  tmp = rbs_class_new(state, "Numeric", 0, obj);
-  tmp2 = rbs_class_new(state, "Integer", 0, tmp);
-  BC(fixnum_class) = rbs_class_new(state, "Fixnum", 0, tmp2);
-  
-  BC(bignum) = rbs_class_new(state, "Bignum", 0, tmp2);
-  bignum_init(state);
-  
-  BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
-  BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
-  BC(fastctx) = rbs_class_new(state, "FastMethodContext", 0, BC(methctx));
-  BC(task) = rbs_class_new(state, "Task", 0, obj);
-  BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
-  
-  #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
-    module_setup(state, BC(name), string);
-  
-  /* OOP layout:
-   * [30 bits of data | 2 bits of tag]
-   * if tag == 00, the whole thing is a pointer to a memory location.
-   * if tag == 11, the data is a symbol index
-   * if tag == 01, the data is a fixnum
-   * if tag == 10, the data is a literal
-   */
-  
-  for(i = 0; i < SPECIAL_CLASS_SIZE; i += 4) {
-    state->global->special_classes[i + 0] = Qnil;
-    state->global->special_classes[i + 1] = BC(fixnum_class);
-    state->global->special_classes[i + 2] = Qnil;
-    if(((i + 3) & 0x7) == 0x3) {
-      state->global->special_classes[i + 3] = BC(symbol);
-    } else {
-      state->global->special_classes[i + 3] = CUSTOM_CLASS;
-    }
-  }
-  
-  state->global->special_classes[(int)Qundef] = BC(undef_class);
-  state->global->special_classes[(int)Qfalse] = BC(false_class);
-  state->global->special_classes[(int)Qnil  ] = BC(nil_class);
-  state->global->special_classes[(int)Qtrue ] = BC(true_class);
-  
-  bcs(regexp, obj, "Regexp");
-  bcs(regexpdata, obj, "RegexpData");
-  bcs(matchdata, obj, "MatchData");
-      
-  cpu_bootstrap_exceptions(state);
-  
-  Init_list(state);
-  Init_cpu_task(state);
-  Init_ffi(state);
-  regexp_init(state);
-  
-  state->global->external_ivars = hash_new(state);  
 }
