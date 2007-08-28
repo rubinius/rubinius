@@ -15,8 +15,7 @@ end
 
 # atime, chmod, chown, ctime, flock, lstat, mtime, path, truncate
 
-WINDOWS =  RUBY_PLATFORM.match('mswin')
-
+WINDOWS = RUBY_PLATFORM.match('mswin')
 
 describe "File.dirname" do   
   it "dirname should return all the components of filename except the last one" do
@@ -217,13 +216,13 @@ describe "File.basename" do
 end 
 
 describe "File.blockdev?" do
-  it "should return true/false depending if the named file is a block device" do
+  it "returns true/false depending if the named file is a block device" do
     File.blockdev?("/tmp").should == false
   end
 end
 
 describe "File.chardev?" do
-  it "should return true/false depending if the named file is a char device" do
+  it "returns true/false depending if the named file is a char device" do
     File.chardev?("/tmp").should == false
   end
 end 
@@ -237,17 +236,11 @@ describe "File.executable_real?" do
     File.open(@file2, "w"){}
       
     File.chmod(0755, @file1)
-  end 
-  it "should return true if named file is readable by the real user id of the process, otherwise false" do
-    begin
-      File.executable_real?('fake_file').should == false
-      file = '/tmp/i_exist'
-      File.open(file,'w'){}
-      File.chmod(0755, file)
-      File.executable_real?(file).should == true
-    ensure
-      File.delete(file) rescue nil
-    end
+  end
+  
+  it "returns true if named file is readable by the real user id of the process, otherwise false" do
+    File.executable_real?('fake_file').should == false
+    File.executable_real?(@file1).should == true
   end
   
   after(:each) do
@@ -285,23 +278,16 @@ describe "File.executable?" do
   end
 
   after(:each) do
-    File.delete( @file1)    
-    File.delete( @file2) 
+    File.delete(@file1)    
+    File.delete(@file2) 
     @file1 =  nil
     @file2 = nil
   end
   
-  it "should return true if named file is readable by the effective user id of the process, otherwise false" do
-    begin
-      File.executable?('fake_file').should == false
-      File.executable?('/etc/passwd').should == false
-      file = '/tmp/i_exist'
-      File.open(file,'w'){}
-      File.chmod(0755, file)
-      File.executable?(file).should == true
-    ensure
-      File.delete(file) rescue nil
-    end
+  it "returns true if named file is readable by the effective user id of the process, otherwise false" do
+    File.executable?('fake_file').should == false
+    File.executable?('/etc/passwd').should == false
+    File.executable?(@file).should == true
   end
 
   unless WINDOWS
@@ -321,47 +307,55 @@ describe "File.executable?" do
 end
 
 describe "File.readable_real?" do
-  it "should return true if named file is readable by the real user id of the process, otherwise false" do
-    begin
-      File.readable_real?('fake_file').should == false
-      file = '/tmp/i_exist'
-      File.open(file,'w'){
-        File.readable_real?(file).should == true
-      }
-    ensure
-      File.delete(file) rescue nil
-    end
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exists?(@file)
+  end
+  
+  it "returns true if named file is readable by the real user id of the process, otherwise false" do
+    File.readable_real?('fake_file').should == false
+    File.open(@file,'w'){
+      File.readable_real?(@file).should == true
+    }
   end
 end
 
 describe "File.readable?" do
-  it "should return true if named file is readable by the effective user id of the process, otherwise false" do
-    begin
-      File.readable?('fake_file').should == false
-      File.readable?('/etc/passwd').should == true
-      file = '/tmp/i_exist'
-      File.open(file,'w'){
-        File.readable?(file).should == true
-      }
-    ensure
-      File.delete(file) rescue nil
-    end
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exists?(@file)
+  end
+  
+  it "returns true if named file is readable by the effective user id of the process, otherwise false" do
+    File.readable?('fake_file').should == false
+    File.readable?('/etc/passwd').should == true
+    File.open(@file,'w'){
+      File.readable?(@file).should == true
+    }
   end
 end
  
-
 describe "File.writable?" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exists?(@file)
+  end
+  
   it "should return true if named file is writable by the effective user id of the process, otherwise false" do
-    begin
-      File.writable?('fake_file').should == false
-      File.writable?('/etc/passwd').should == false
-      file = '/tmp/i_exist'
-      File.open(file,'w'){
-        File.writable?(file).should == true
-      }
-    ensure
-      File.delete(file) rescue nil
-    end
+    File.writable?('fake_file').should == false
+    File.writable?('/etc/passwd').should == false
+    File.open(@file,'w'){
+      File.writable?(@file).should == true
+    }
   end
 end
 
@@ -412,6 +406,10 @@ describe "File.unlink" do
     File.exists?(@file).should == true
     File.unlink(@file).should == 1
     File.exists?(@file).should == false 
+  end
+  
+  it "should raise Errno::ENOENT if the file does not exist" do
+    should_raise(Errno::ENOENT){ File.unlink('bogus') }
   end
 end 
 
@@ -776,33 +774,6 @@ describe "File#chmod" do
     @file.close
     File.delete(@filename) if File.exist?(@filename)
   end
-end
-
-describe "File::Constants" do  
-  # These mode and permission bits are platform dependent
-  specify "File::RDONLY" do 
-    defined?(File::RDONLY).should == "constant" 
-  end
- 
-  specify "File::WRONLY" do  
-    defined?(File::WRONLY).should == "constant" 
-  end
- 
-  specify "File::CREAT" do     
-    defined?(File::CREAT).should == "constant" 
-  end
- 
-  specify "File::RDWR" do  
-    defined?(File::RDWR).should == "constant" 
-  end
- 
-  specify "File::APPEND" do      
-    defined?(File::APPEND).should == "constant" 
-  end
- 
-  specify "File::TRUNC" do     
-    defined?(File::TRUNC).should == "constant" 
-  end   
 end
 
 describe "File.exist?" do 
@@ -1535,7 +1506,7 @@ describe "File.open" do
   end
 
   # For this test we delete the file first to reset the perms
-  it "open the file when call with mode, num andpermissions" do
+  it "open the file when call with mode, num and permissions" do
     File.delete(@file)
     @fh = File.open(@file, @flags, 0755)
     File.stat(@file).mode.to_s(8).should == "100755"
@@ -1617,7 +1588,7 @@ describe "File.open" do
   end  
   
   # Check the grants associated to the differents open modes combinations.   
-  it "raise an ArgumentError exception when call with an unknow mode" do 
+  it "raise an ArgumentError exception when call with an unknown mode" do 
     should_raise(ArgumentError){File.open(@file, "q")  }
   end
   
@@ -1831,7 +1802,7 @@ describe "File.open" do
   end
   
   after(:each) do         
-    File.delete("fake")
+    File.delete("fake") rescue nil
     @fh.delete if @fh  rescue nil
     @fh.close if @fh rescue nil
     @fh    = nil
@@ -1902,7 +1873,7 @@ describe "File.truncate" do
     IO.read(@fname).should == "12345"
   end
 
-  it "truncate to a lager size than the original file" do
+  it "truncate to a larger size than the original file" do
     File.truncate(@fname, 12) 
     File.size(@fname).should == 12
     IO.read(@fname).should == "1234567890\000\000"
@@ -1964,17 +1935,20 @@ describe "File.umask" do
   end
 end 
 
-describe "File.writable_real?" do    
-  specify "return true if named file is writable by the real user id of the process, otherwise false" do
-    begin
-      File.writable_real?('fake_file').should == false
-      file = 'i_exist'
-      File.open(file,'w'){
-        File.writable_real?(file).should == true
-      }
-    ensure
-      File.delete(file) rescue nil
-    end
+describe "File.writable_real?" do  
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+
+  after(:each) do
+    File.delete(@file) rescue nil
+  end
+    
+  it "returns true if named file is writable by the real user id of the process, otherwise false" do
+    File.writable_real?('fake_file').should == false
+    File.open(@file,'w'){
+      File.writable_real?(@file).should == true
+    }
   end
   
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  

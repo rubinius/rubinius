@@ -140,7 +140,7 @@ class File < IO
   def self.unlink(*paths)
     paths.each do |path|
       path = enforce_string(path)
-      raise Errno::ENOENT, path unless exists?(path)
+      raise Errno::ENOENT, "No such file or directory - #{path}" unless exists?(path)
       Platform::POSIX.unlink(path) 
     end
     paths.size
@@ -304,6 +304,16 @@ class File < IO
       raise exc
     end
     return out
+  end
+  
+  def self.umask(mask = nil)
+    if mask
+      Platform::POSIX.umask(mask)
+    else
+      old_mask = Platform::POSIX.umask(0)
+      Platform::POSIX.umask(old_mask)
+      old_mask
+    end
   end
   
   private
