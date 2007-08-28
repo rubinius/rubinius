@@ -84,6 +84,17 @@ static inline int object_copy_fields_from(STATE, OBJECT self, OBJECT dest, int f
   return TRUE;  
 }
 
+static inline void object_copy_fields(STATE, OBJECT self, OBJECT dest) {
+  int i, max, j;
+  
+  max = NUM_FIELDS(self);
+  j = NUM_FIELDS(dest);
+  if(max < j) max = j;
+  
+  for(i = 0; i < max; i++) {
+    SET_FIELD(dest, i, NTH_FIELD(self, i));
+  }
+}
 
 
 #endif

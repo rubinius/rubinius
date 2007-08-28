@@ -16,7 +16,7 @@ OBJECT array_from_tuple(STATE, OBJECT tuple) {
   int count;
   count = NUM_FIELDS(tuple);
   tup = tuple_new(state, count);
-  object_copy_fields_from(state, tuple, tup, 0, count);
+  object_copy_fields(state, tuple, tup);
   ary = array_new(state, count);
   array_set_total(ary, I2N(count));
   array_set_tuple(ary, tup);
@@ -24,20 +24,27 @@ OBJECT array_from_tuple(STATE, OBJECT tuple) {
 }
 
 OBJECT array_set(STATE, OBJECT self, int idx, OBJECT val) {
-  OBJECT nt;
-  int cur = NUM_FIELDS(array_get_tuple(self));
+  OBJECT nt, tup;
+  int cur;
+  
+  tup = array_get_tuple(self);
+  cur = NUM_FIELDS(tup);
+  
   if(idx >= cur) {
-    int new_size = (cur == 0) ? 10 : cur;
+    int new_size = (cur == 0) ? 1 : cur;
 
-    while (new_size <= idx)
+    /* geometric expansion to fit idx in */
+    while (new_size <= idx) {
       new_size *= 2;
+    }
 
     nt = tuple_new(state, new_size);
-    object_copy_fields_from(state, array_get_tuple(self), nt, 0, cur);
+    object_copy_fields_from(state, tup, nt, 0, cur);
     array_set_tuple(self, nt);
+    tup = nt;
   }
   
-  tuple_put(state, array_get_tuple(self), idx, val);
+  tuple_put(state, tup, idx, val);
   if(FIXNUM_TO_INT(array_get_total(self)) <= idx) {
     array_set_total(self, I2N(idx+1));
   }
@@ -45,6 +52,9 @@ OBJECT array_set(STATE, OBJECT self, int idx, OBJECT val) {
 }
 
 OBJECT array_get(STATE, OBJECT self, int idx) {
+  if(idx >= FIXNUM_TO_INT(array_get_total(self))) {
+    return Qnil;
+  }
   return tuple_at(state, array_get_tuple(self), idx);
 }
 
