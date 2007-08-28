@@ -36,7 +36,6 @@
   unsigned long int ip; \
   unsigned long int sp; \
   OBJECT block; \
-  unsigned long int raiseable; \
   OBJECT method; \
   IP_TYPE *data; \
   unsigned long int data_size; \

@@ -262,7 +262,6 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   
   while(!NIL_P(ctx)) {
     is_block = blokctx_s_block_context_p(state, ctx);
-    if(!c->raiseable) { return; }
     
     table = cmethod_get_exceptions(c->method);
     

@@ -421,7 +421,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->fp_ptr = c->sp_ptr;
   
   fc->block = block;
-  fc->raiseable = Qtrue;
   fc->method = mo;
   fc->data = bytearray_byte_address(state, ba);
   fc->data_size = bytearray_bytes(state, ba);

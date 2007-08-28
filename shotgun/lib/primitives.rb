@@ -1761,9 +1761,6 @@ class ShotgunPrimitives
       case 3:
         stack_push(fc->block);
         break;
-      case 4:
-        stack_push(fc->raiseable);
-        break;
       case 5:
         stack_push(fc->method);
         break;
@@ -1816,9 +1813,6 @@ class ShotgunPrimitives
         break;
       case 3:
         fc->block = t2;
-        break;
-      case 4:
-        fc->raiseable = t2;
         break;
       case 5:
         fc->method = t2;
