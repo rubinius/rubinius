@@ -25,7 +25,7 @@ void bignum_init(STATE) {
   state_add_cleanup(state, state->global->bignum, bignum_cleanup);
 }
 
-void twos_complement(mp_int *a)
+static void twos_complement(mp_int *a)
 {
   long i = a->used;
   BDIGIT_DBL num;
@@ -49,9 +49,11 @@ OBJECT bignum_new(STATE, int num) {
   o = object_memory_new_opaque(state, BASIC_CLASS(bignum), sizeof(mp_int));
   a = (mp_int*)BYTES_OF(o);
   mp_init(a);
-  mp_set_int(a, (unsigned int)num);
   if(num < 0) {
+    mp_set_int(a, (unsigned int)-num);
     a->sign = MP_NEG;
+  } else {
+    mp_set_int(a, (unsigned int)num);
   }
   return o;
 }
@@ -66,9 +68,8 @@ OBJECT bignum_new_unsigned(STATE, unsigned int num) {
   return o;
 }
 
-OBJECT bignum_normalize(STATE, OBJECT b) {
-  /* TODO: replace the 32 - 3 with something thats calculate, not constant. */
-  if(mp_count_bits(MP(b)) <= (32 - 3)) {
+static inline OBJECT bignum_normalize(STATE, OBJECT b) {
+  if(mp_count_bits(MP(b)) <= FIXNUM_WIDTH) {
     int val;
     val = (int)mp_get_int(MP(b));
     if(MP(b)->sign == MP_NEG) {
@@ -227,6 +228,7 @@ OBJECT bignum_and(STATE, OBJECT a, OBJECT b) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
 
+  /* Perhaps this should use mp_and rather than our own version */
   bignum_bitwise_op(BITWISE_OP_AND, MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
@@ -237,7 +239,7 @@ OBJECT bignum_or(STATE, OBJECT a, OBJECT b) {
   if(FIXNUM_P(b)) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
-
+  /* Perhaps this should use mp_or rather than our own version */
   bignum_bitwise_op(BITWISE_OP_OR, MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
@@ -248,7 +250,7 @@ OBJECT bignum_xor(STATE, OBJECT a, OBJECT b) {
   if(FIXNUM_P(b)) {
     b = bignum_new(state, FIXNUM_TO_INT(b));
   }
-
+  /* Perhaps this should use mp_xor rather than our own version */
   bignum_bitwise_op(BITWISE_OP_XOR, MP(a), MP(b), n);
   return bignum_normalize(state, n_obj);
 }
@@ -274,9 +276,11 @@ OBJECT bignum_neg(STATE, OBJECT self) {
   return bignum_normalize(state, n_obj);
 }
 
+/* These 2 don't use mp_lshd because it shifts by internal digits,
+   not bits. */
+
 OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
-
   int shift = FIXNUM_TO_INT(bits);
   int s1 = shift / DIGIT_BIT;
   int s2 = shift % DIGIT_BIT;
@@ -311,7 +315,6 @@ OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
 
 OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
-
   int shift = FIXNUM_TO_INT(bits);
   long s1 = shift / DIGIT_BIT;
   long s2 = shift % DIGIT_BIT;
@@ -589,21 +592,15 @@ OBJECT bignum_from_double(STATE, double d)
 }
 
 OBJECT bignum_size(STATE, OBJECT self)
-{
-  mp_int *value = MP(self);
+{  
+  int bits = mp_count_bits(MP(self));
+  int bytes = bits / 8;
   
-  int size_in_bits = mp_count_bits(value);
-  int size_in_bytes = size_in_bits / 8;
+  if(bits % 8 > 0) {
+    ++bytes;
+  }
   
-  if(size_in_bits % 8 > 0) {
-    ++size_in_bytes;
-  }
-
-  int word_alignment_remainder = size_in_bytes % sizeof(int); 
-  if(word_alignment_remainder > 0) {
-    size_in_bytes -= word_alignment_remainder;
-    size_in_bytes += sizeof(int);
-  }
-
-  return INT_TO_FIXNUM(size_in_bytes);
+  /* MRI returns this in words, but thats an implementation detail as far
+     as I'm concerned. */
+  return I2N(bytes);
 }

@@ -41,6 +41,10 @@ typedef uintptr_t OBJECT;
 #define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
 #define CUSTOM_P(v) (DATA_TAG(v) == DATA_TAG_CUSTOM)
 
+/* How many bits of data are available in fixnum, not including
+   the sign. */
+#define FIXNUM_WIDTH 28
+
 /* the sizeof(struct rubinius_object) must an increment of
    REFSIZE, so that the bytes located directly after a
    struct rubinius_object can hold a pointer which can be
