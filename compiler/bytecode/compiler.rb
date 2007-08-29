@@ -980,8 +980,11 @@ module Bytecode
       end
       
       def process_sclass(x)
-        process x.shift
+        receiver = x.shift
+        process receiver
         body = x.shift
+        add "send __verify_metaclass__ 0" # Raises TypeError if unsupported
+        add "pop"
         add "open_metaclass"
         add "dup"
         meth = @compiler.compile_as_method body, :__metaclass_init__
