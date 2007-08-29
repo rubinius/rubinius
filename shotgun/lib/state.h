@@ -311,7 +311,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   }
 #endif
   obj = NTH_FIELD_DIRECT(in, fel);
-#ifdef INTERNAL_MACROS
+#if INTERNAL_DEBUG
   CHECK_PTR(obj);
 #endif
   return obj;
@@ -339,7 +339,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   }
 
   OBJECT *slot = (OBJECT*)ADDRESS_OF_FIELD(obj, fel);
-#ifdef INTERNAL_MACROS
+#if INTERNAL_DEBUG
   /* Check that it's even, ie a ref, and above the special range. */
   if(IS_REF_P(val)) {
     object_memory_write_barrier(om, obj, val);

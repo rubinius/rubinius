@@ -1,7 +1,6 @@
 #ifndef __SHOTGUN__
 #define __SHOTGUN__ 1
-#define INTERNAL_MACROS 1
-#define INTERNAL_DEBUG 1
+#define INTERNAL_DEBUG 0
 
 #define TRACK_STATS 1
 #define DISABLE_CHECKS 0
