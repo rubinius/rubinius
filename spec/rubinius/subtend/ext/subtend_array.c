@@ -12,6 +12,10 @@ static VALUE sa_array_push(VALUE self, VALUE array, VALUE item) {
   return array;
 }
 
+static VALUE sa_array_pop(VALUE self, VALUE array) {
+  return rb_ary_pop(array);
+}
+
 static VALUE sa_array_push2(VALUE self, VALUE array, VALUE item, VALUE i2) {
   rb_ary_push(array, item);
   rb_ary_push(array, i2);
@@ -56,4 +60,5 @@ void Init_subtend_array() {
   rb_define_method(cls, "rb_ary_unshift", sa_array_unshift, 2);
   rb_define_method(cls, "rb_ary_shift", sa_array_shift, 1);
   rb_define_method(cls, "rb_ary_store", sa_array_store, 3);
+  rb_define_method(cls, "rb_ary_pop", sa_array_pop, 1);
 }
