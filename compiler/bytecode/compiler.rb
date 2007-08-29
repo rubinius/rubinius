@@ -999,11 +999,11 @@ module Bytecode
         receiver = x.shift
         process receiver
         body = x.shift
+        add "dup"
         add "send __verify_metaclass__ 0" # Raises TypeError if unsupported
         add "pop"
         add "open_metaclass"
         add "dup"
-        STDERR.puts "compiling sclass body: #{body.inspect}"
         compile_internal_method body, :__metaclass_init__
       end
 
