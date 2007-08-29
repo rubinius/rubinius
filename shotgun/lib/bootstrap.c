@@ -4,6 +4,7 @@
 #include "module.h"
 #include "hash.h"
 #include "regexp.h"
+#include "flags.h"
 #include <assert.h>
 #include <errno.h>
 
@@ -26,8 +27,7 @@ void cpu_bootstrap(STATE) {
   cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
   HEADER(cls)->klass = cls;
   class_set_instance_fields(cls, CLASS_FIELDS);
-  /* Ick. 0x02 says it has normal ivars. constants suck. */
-  class_set_instance_flags(cls, I2N(0x02));  
+  class_set_instance_flags(cls, I2N(CanStoreIvarsFlag));
   BC(class) = cls;
   obj = _object_basic_class(state, Qnil);
   BC(object) = obj;
@@ -61,9 +61,7 @@ void cpu_bootstrap(STATE) {
   BC(symtbl) = _symtbl_class(state, obj);
   BC(cmethod) = _cmethod_class(state, obj);
   BC(io) = _io_class(state, obj);
-  BC(methctx) = _methctx_class(state, obj);
   BC(blokenv) = _blokenv_class(state, obj);
-  BC(blokctx) = _blokctx_class(state, obj);
   
   /* The symbol table */
   state->global->symbols = symtbl_new(state);
@@ -82,9 +80,13 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(methtbl), "MethodTable");
   module_setup(state, BC(cmethod), "CompiledMethod");
   module_setup(state, BC(io), "IO");
-  module_setup(state, BC(methctx), "MethodContext");
   module_setup(state, BC(blokenv), "BlockEnvironment");
-  module_setup(state, BC(blokctx), "BlockContext");
+  
+#define set_type(cls, flag) class_set_instance_flags(cls, I2N(flag | FIXNUM_TO_INT(class_get_instance_flags(cls))));
+  
+  set_type(cls, TYPE_CLASS);
+  set_type(BC(metaclass), TYPE_METACLASS);
+  set_type(BC(methtbl), TYPE_MT);
   
   rbs_const_set(state, obj, "Symbols", state->global->symbols);
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
@@ -99,7 +101,10 @@ void cpu_bootstrap(STATE) {
   
   BC(floatpoint) = rbs_class_new(state, "Float", 0, tmp);
   BC(undef_class) = rbs_class_new(state, "UndefClass", 0, obj);
-  BC(fastctx) = rbs_class_new(state, "FastMethodContext", 0, BC(methctx));
+  BC(fastctx) = rbs_class_new(state, "MethodContext", 0, obj);
+  BC(methctx) = BC(fastctx);
+  BC(blokctx) = rbs_class_new(state, "BlockContext", 0, BC(fastctx));
+  
   BC(task) = rbs_class_new(state, "Task", 0, obj);
   BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
   

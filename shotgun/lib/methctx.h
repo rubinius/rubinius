@@ -1,48 +1,47 @@
 #ifndef RBS_METHCTX
 #define RBS_METHCTX 1
 
-OBJECT methctx_new(STATE, int cnt);
-void methctx_init_registers(STATE, OBJECT self);
-void methctx_init_locals(STATE, OBJECT self, int cnt);
-OBJECT methctx_s_from_method(STATE, OBJECT meth, OBJECT from, OBJECT mod);
 OBJECT blokctx_s_under_context(STATE, OBJECT ctx);
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, int count);
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
-OBJECT blokctx_home(STATE, OBJECT self);
-void methctx_s_reuse(STATE, OBJECT self, OBJECT meth, OBJECT from, OBJECT mod);
 
 #include "flags.h"
 
-#define methctx_is_fast_p(st, ctx) FLAG_SET_P(ctx, CTXFastFlag)
+#define methctx_is_context_p(st, ctx) (OBJ_TYPE(ctx) == TYPE_MCONTEXT || OBJ_TYPE(ctx) == TYPE_BCONTEXT)
+#define blokctx_s_block_context_p(state, ctx) (FASTCTX(ctx)->type == FASTCTX_BLOCK)
+
+#define methctx_is_fast_p(st, ctx) (OBJ_TYPE(ctx) == TYPE_MCONTEXT)
+
+#define blokctx_home(state, self) (FASTCTX(self)->method)
+#define blokctx_env(state, self) (FASTCTX(self)->name)
+#define blokctx_locals(state, self) (FASTCTX(self)->locals)
+
 #define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
 
-static inline int methctx_s_was_referenced_p(STATE, OBJECT obj) {
-  return FLAG_SET_P(obj, WasReferencedFlag);
-}
-
 static inline void methctx_reference(STATE, OBJECT ctx) {  
-  /* If it has a class object setup, we've already adjusted it
-     and everything. Don't do it again. */
-  if(HEADER(ctx)->klass != (OBJECT)Qnil) return;
+  /* Don't do it again. */
+  if(!stack_context_p(ctx)) return;
   
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
   HEADER(ctx)->gc = 0;
   GC_ZONE_SET(ctx, GC_YOUNG_OBJECTS);
-  
-  HEADER(ctx)->klass = state->global->fastctx;
+
+  if(FASTCTX(ctx)->type == FASTCTX_NORMAL) {
+    HEADER(ctx)->klass = BASIC_CLASS(fastctx);
+    OBJ_TYPE_SET(ctx, TYPE_MCONTEXT);
+    FLAG_SET(ctx, CTXFastFlag);
+  } else {
+    HEADER(ctx)->klass = BASIC_CLASS(blokctx);
+    OBJ_TYPE_SET(ctx, TYPE_BCONTEXT);
+  }
   SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
   
-  FLAG_SET(ctx, CTXFastFlag);
   FLAG_SET(ctx, StoresBytesFlag);
     
   GC_MAKE_FOREVER_YOUNG(ctx);
   
   object_memory_context_referenced(state->om, ctx);
-}
-
-static inline int blokctx_s_block_context_p(STATE, OBJECT ctx) {
-  return HEADER(ctx)->klass != (OBJECT)Qnil && FLAG_SET_P(ctx, IsBlockContextFlag);
 }
 
 #endif

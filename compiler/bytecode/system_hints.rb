@@ -6,7 +6,7 @@ module Rubinius
     "MethodTable"=>{:@entries=>4, :@default=>5, :@default_proc=>6, :@keys=>1, :@values=>2, :@__ivars__=>0, :@bins=>3},
     "MetaClass"=>{:@methods=>1, :@method_cache=>2, :@constants=>4, :@parent=>5, :@superclass=>6, :@instance_fields=>7, :@attached_instance=>9, :@instance_flags=>8, :@name=>3, :@__ivars__=>0},
     "Class"=>{:@methods=>1, :@method_cache=>2, :@constants=>4, :@parent=>5, :@superclass=>6, :@instance_fields=>7, :@instance_flags=>8, :@name=>3, :@__ivars__=>0},
-    "BlockContext"=>{:@raiseable=>5, :@env=>6, :@sender=>1, :@ip=>2, :@sp=>3, :@__ivars__=>0, :@block=>4, :@locals => 7},
+    "BlockContext"=>{},
     "Object"=>{:@__ivars__=>0},
     "Float"=>{:@__ivars__=>0},
     "Array"=>{:@total=>0, :@tuple=>1},
@@ -15,7 +15,7 @@ module Rubinius
     "SymbolTable"=>{:@symbols=>1, :@strings=>2, :@__ivars__=>0},
     "IO"=>{:@__ivars__ => 0, :@descriptor => 1, :@buffer => 2, :mode => 3 },
     "Module"=>{:@methods=>1, :@method_cache=>2, :@constants=>4, :@parent=>5, :@name=>3, :@__ivars__=>0},
-    "MethodContext"=>{:@raiseable=>5, :@bytecodes=>7, :@locals=>10, :@argcount=>11, :@receiver=>9, :@method=>6, :@sender=>1, :@module=>13, :@ip=>2, :@name=>12, :@sp=>3, :@literals=>8, :@__ivars__=>0, :@block=>4},
+    "MethodContext"=>{},
     "Hash"=>{:@entries=>4, :@default=>5, :@default_proc=>6, :@keys=>1, :@values=>2, :@__ivars__=>0, :@bins=>3},
     "BlockEnvironment"=>{:@last_ip=>3, :@post_send=>4, :@home=>1, :@__ivars__=>0, :@initial_ip=>2, :@home_block => 5, :@local_count => 6},
     "Exception" => {:@__ivars__ => 0, :@message => 1, :@context => 2 }

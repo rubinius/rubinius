@@ -18,8 +18,8 @@
 
 #include "shotgun.h"
 #include "object.h"
-#include "methctx.h"
 #include "cpu.h"
+#include "methctx.h"
 #include "bytearray.h"
 #include "tuple.h"
 
@@ -292,10 +292,9 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     if(BCM_P(fc->field)) { fc->field = BCM_TO; \
     } else { mark_sweep_mark_object(state, ms, fc->field); } }
     
-    if(methctx_is_fast_p(state, iobj)) {
+    if(methctx_is_context_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
-      if(!NIL_P(fc->sender)) assert(blokctx_s_block_context_p(state, fc->sender) || methctx_is_fast_p(state, fc->sender));
       
       fc_mutate(block);
       fc_mutate(method);
@@ -303,6 +302,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       fc_mutate(self);
       fc_mutate(locals);
       fc_mutate(method_module);
+      fc_mutate(name);
 
       /* We cache the bytecode in a char*, so adjust it. */
       OBJECT ba;

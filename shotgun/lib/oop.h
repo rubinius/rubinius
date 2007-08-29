@@ -74,17 +74,6 @@ struct rubinius_object {
 
 /* Header size is in uintptr_t's */
 #define HEADER_SIZE (sizeof(struct rubinius_object) / REFSIZE)
-/* Macros to find out the zone of an object. */
-#define ZONE_BITS 2
-#define ZONE_OFFSET 6
-#define ZONE_MASK ((1 << ZONE_BITS) - 1)
-#define GC_ZONE(obj) (HEADER(obj)->flags2 >> ZONE_OFFSET)
-/* Mask the current flags2 to remove the current zone bits, then or
-   them with the new desired ones. */
-#define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ZONE_MASK) | (((val) & ZONE_MASK) << ZONE_OFFSET)))
-#define GC_MATURE_OBJECTS 1
-#define GC_YOUNG_OBJECTS  2
-#define GC_LARGE_OBJECTS  3
 
 #define GC_MAKE_FOREVER_YOUNG(obj) (HEADER(obj)->gc |= 0x8000)
 
@@ -139,6 +128,25 @@ to be a simple test for that bit pattern.
 #define REFERENCE_P(v) (TAG(v) == TAG_REF)
 
 #define REFERENCE2_P(v) (v && REFERENCE_P(v))
+
+/* Macros to find out the type number of an object */
+#define TYPE_SET_MASK 0xf8
+#define TYPE_MASK 0x7
+
+#define OBJ_TYPE(obj) (HEADER(obj)->flags & TYPE_MASK)
+#define OBJ_TYPE_SET(obj, type) (HEADER(obj)->flags = ((HEADER(obj)->flags & TYPE_SET_MASK) | type))
+
+/* Macros to find out the zone of an object. */
+#define ZONE_SET_MASK 0xfc
+#define ZONE_MASK 0x3
+
+#define GC_ZONE(obj) (HEADER(obj)->flags2 & ZONE_MASK)
+#define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ZONE_SET_MASK) | val))
+
+#define GC_MATURE_OBJECTS 1
+#define GC_YOUNG_OBJECTS  2
+#define GC_LARGE_OBJECTS  3
+
 #define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
 #define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)
 

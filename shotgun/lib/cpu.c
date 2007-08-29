@@ -51,14 +51,6 @@ void cpu_initialize(STATE, cpu c) {
   c->control_channel = Qnil;
 
   cpu_sampler_init(state, c);
-  /*
-#if CTX_USE_FAST
-  printf("[ FastMethodContext objects enabled.]\n");
-  #if CTX_CACHE_ENABLED
-    printf("[ Context caching enabled.]\n");
-  #endif
-#endif
-  */
 }
 
 void cpu_setup_top_scope(STATE, cpu c) {
@@ -113,8 +105,6 @@ void cpu_initialize_context(STATE, cpu c) {
   cpu_event_setup_children(state, c);
 }
 
-#define ON_STACK(obj) (HEADER(obj)->klass == Qnil)
-
 void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   int i, len;
   gpointer t;
@@ -122,14 +112,14 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
     g_ptr_array_add(roots, (gpointer)obj); \
   }
   
-  if(!ON_STACK(c->active_context)) {
+  if(!stack_context_p(c->active_context)) {
     ar(c->active_context);
     state->ac_on_stack = 0;
   } else {
     state->ac_on_stack = 1;
   }
   
-  if(!ON_STACK(c->home_context)) {
+  if(!stack_context_p(c->home_context)) {
     ar(c->home_context);
     state->home_on_stack = 0;
   } else {
@@ -137,7 +127,7 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   }
   
   if(REFERENCE_P(c->sender)) {
-    if(!ON_STACK(c->sender)) {
+    if(!stack_context_p(c->sender)) {
       ar(c->sender);
       state->sender_on_stack = 0;
     } else {
@@ -282,7 +272,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
         /* Make sure the bounds are within the block, therwise, don't use
            it. */
         if(is_block) {
-          env = blokctx_get_env(ctx);
+          env = blokctx_env(state, ctx);
           if(l < FIXNUM_TO_INT(blokenv_get_initial_ip(env))
                   || r > FIXNUM_TO_INT(blokenv_get_last_ip(env))) {
             continue;
@@ -525,23 +515,6 @@ void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meta;
   meta = object_metaclass(state, target);
   cpu_add_method(state, c, meta, sym, method);
-}
-
-char *cpu_show_context(STATE, cpu c, OBJECT ctx) {
-  char *buf;
-  OBJECT self;
-  
-  self = methctx_get_receiver(ctx);
-  
-  buf = malloc(1024);
-  
-  snprintf(buf, 1024, "%s#%s (%d)", 
-    rbs_symbol_to_cstring(state, module_get_name(object_class(state, self))),
-    rbs_symbol_to_cstring(state, methctx_get_name(ctx)),
-    (int)FIXNUM_TO_INT(methctx_get_ip(ctx))
-  );
-  
-  return buf;
 }
 
 /* Updates the cpu registers by reading out of the active context.

@@ -5,6 +5,7 @@ klasses = []
 fd = File.open("auto.h", "w")
 
 puts "#include \"shotgun.h\""
+puts "#include \"flags.h\""
 
 Rubinius::Bootstrap::TYPES.each do |name, klass|
   prefix = "#{name}_"
@@ -52,8 +53,7 @@ klasses.each do |name, sz, has_ivars|
   puts "   cls = class_allocate_mature(state, 0);"
   puts "   class_set_instance_fields(cls, I2N(#{sz}));"
   if has_ivars
-    # HACK i hate that this is hardcoded here.
-    flags = "0x02"
+    flags = "CanStoreIvarsFlag"
   else
     flags = "0"
   end

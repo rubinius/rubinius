@@ -34,7 +34,7 @@ OBJECT object_make_weak_ref(STATE, OBJECT self) {
   OBJECT tup;
   
   tup = tuple_new2(state, 1, self);
-  FLAG_SET(tup, RefsAreWeakFlag);
+  FLAG2_SET(tup, RefsAreWeakFlag);
   
   return tup;
 }

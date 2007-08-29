@@ -44,10 +44,8 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->ip = 0;
   fc->sp = 0;
   fc->block = (OBJECT)Qnil;
-  fc->raiseable = (unsigned long)Qfalse;
   fc->method = nmethod;
   fc->data = NULL;
-  fc->data_size = 0;
   fc->literals = (OBJECT)Qnil;
   fc->self = recv;
   fc->locals = (OBJECT)Qfalse;

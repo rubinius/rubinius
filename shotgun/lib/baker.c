@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "heap.h"
-#include "methctx.h"
 #include "cpu.h"
+#include "methctx.h"
 #include "bytearray.h"
 #include "baker.h"
 #include "tuple.h"
@@ -178,13 +178,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
     depth--;
     return;
   }
-  
-  /*
-  if(HAS_WEAK_REFS_P(iobj)) {
-    printf("%p with weak refs is still alive.\n", (void*)iobj);
-  }
-  */
-  
+    
   //printf("%d: Mutating references of %p\n", depth, iobj);
   
   if(!_object_stores_bytes(iobj)) {
@@ -197,7 +191,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
     }
   } else {
 #define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) SET_STRUCT_FIELD(iobj, fc->field, baker_gc_maybe_mutate(state, g, fc->field))
-    if(methctx_is_fast_p(state, iobj)) {
+    if(methctx_is_context_p(state, iobj)) {
       struct fast_context *fc = FASTCTX(iobj);
       fc_mutate(sender);
       fc_mutate(block);
@@ -206,6 +200,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(self);
       fc_mutate(locals);
       fc_mutate(method_module);
+      fc_mutate(name);
 
       /* We cache the bytecode in a char*, so adjust it. 
          We mutate the data first so we cache the newest address. */

@@ -3,21 +3,10 @@ class MethodContext
     cur = Ruby.asm "push_context\n"
     return cur.sender
   end
-  
-  def sender
-    Ruby.primitive :context_sender
-    # We use a primitive here so that the underside is aware that
-    # we're pulling a methodcontext into the normal fraw. Currently
-    # this means that it can't be reused automatically.
-  end
-  
+    
   def activate(val)
     Ruby.primitive :activate_context    
   end
-  
-end
-
-class FastMethodContext
   
   def sender
     _get_field(0)
@@ -72,9 +61,13 @@ class FastMethodContext
   end  
 end
 
-class BlockContext
-  def activate(val)
-    Ruby.primitive :activate_context    
+class BlockContext  
+  def env
+    _get_field(10)
+  end
+  
+  def home
+    _get_field(5)
   end
 end
 

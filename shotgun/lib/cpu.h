@@ -5,12 +5,6 @@
 
 /* Configuration macros. */
 
-/* Enables use of FastMethodContext objects. */
-#define CTX_USE_FAST 1
-
-/* Enables the context cache. */
-#define CTX_CACHE_ENABLED 0
-
 /* Enable intcode*/
 #define USE_INTCODE 1
 
@@ -33,18 +27,18 @@
    be used on it. */
 
 #define CPU_REGISTERS OBJECT sender; \
-  unsigned long int ip; \
-  unsigned long int sp; \
+  unsigned int ip; \
+  unsigned int sp; \
   OBJECT block; \
   OBJECT method; \
   IP_TYPE *data; \
   OBJECT literals; \
   OBJECT self; \
   OBJECT locals; \
-  unsigned long int argcount; \
+  unsigned int argcount; \
   OBJECT name; \
   OBJECT method_module; \
-  long type; \
+  unsigned int type; \
   void *opaque_data; \
   OBJECT *fp_ptr;
 

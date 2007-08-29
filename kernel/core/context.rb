@@ -2,21 +2,6 @@
 # Hey! Be careful with this! This is used by backtrace and if it doesn't work,
 # you can get recursive exceptions being raised (THATS BAD, BTW).
 class MethodContext
-  ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :method => 6, :bytecodes => 7, :literals => 8, :receiver => 9, :locals => 10, :argcount => 11, :name => 12, :module => 13
-  def __ivars__; @__ivars__ ; end
-  def sender   ; @sender    ; end
-  def ip       ; @ip        ; end
-  def sp       ; @sp        ; end
-  def block    ; @block     ; end
-  def raiseable; @raiseable ; end
-  def method   ; @method    ; end
-  def bytecodes; @bytecodes ; end
-  def literals ; @literals  ; end
-  def receiver ; @receiver  ; end
-  def locals   ; @locals    ; end
-  def argcount ; @argcount  ; end
-  def name     ; @name      ; end
-  def module   ; @module    ; end
     
   def to_s
     "#<#{self.class}:0x#{self.object_id.to_s(16)} #{receiver}##{name} #{file}:#{line}>"
@@ -60,25 +45,17 @@ end
 
 
 class BlockContext
-  ivar_as_index :__ivars__ => 0, :sender => 1, :ip => 2, :sp => 3, :block => 4, :raiseable => 5, :env => 6
-  def __ivars__; @__ivars__ ; end
-  def sender   ; @sender    ; end
-  def ip       ; @ip        ; end
-  def sp       ; @sp        ; end
-  def block    ; @block     ; end
-  def raiseable; @raiseable ; end
-  def env      ; @env       ; end
   
   def name
-    env.home.name
+    home.name
   end
   
   def receiver
-    env.home.receiver
+    home.receiver
   end
   
   def file
-    env.home.file
+    home.file
   end
   
   def line
@@ -89,11 +66,11 @@ class BlockContext
   end
 
   def method
-    env.home.method
+    home.method
   end
 
   def method_module
-    env.home.method_module
+    home.method_module
   end
 end
 

@@ -254,7 +254,7 @@ class ShotgunPrimitives
 
     t3 =   Qnil;
     if( !RISA(self, methctx) && RISA(self, blokctx) ) {
-      t3 = blokenv_get_home(blokctx_get_env(self));
+      t3 = blokctx_home(state, self);
     } else {
       t3 = self;
     }
@@ -292,9 +292,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); 
     GUARD( RISA(self, blokenv) );
-    
-    methctx_reference(state, c->active_context);
-    
+        
     cpu_flush_sp(c);
     t2 = blokenv_create_context(state, self, c->active_context, c->sp);    
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
@@ -1014,7 +1012,7 @@ class ShotgunPrimitives
   def context_sender
     <<-CODE
     self = stack_pop();
-    t1 = methctx_get_sender(self);
+    t1 = FASTCTX(self)->sender;
     
     if(t1 != Qnil) {
       methctx_reference(state, t1);

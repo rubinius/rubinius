@@ -167,7 +167,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
   /* Skip if we aren't running a normal method. */
-  if(c->type == FASTCTX_NORMAL) {
+  int normal = (c->type & 0x1) == FASTCTX_NORMAL;
+  if(normal) {
     
   cache = cmethod_get_cache(c->method);
   
@@ -208,7 +209,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
       /* Update the inline cache. */
-      if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
+      if(normal && c->cache_index > 0) {
         tuple_put(state, cache, c->cache_index, klass);
         tuple_put(state, cache, c->cache_index + 1, ent->module);
         tuple_put(state, cache, c->cache_index + 2, meth);
@@ -397,21 +398,12 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
     state->om->collect_now |= OMCollectYoung;
   }
   
+  HEADER(ctx)->flags = 0;
+  HEADER(ctx)->flags2 = 0;
   HEADER(ctx)->klass = Qnil;
   HEADER(ctx)->fields = FASTCTX_FIELDS;
-  /*
-  
-  ctx = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);
-  SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
-  
-  FLAG_SET(ctx, CTXFastFlag);
-  FLAG_SET(ctx, StoresBytesFlag);
-    
-  CHECK_PTR(mo);
-  */
   
   fc = FASTCTX(ctx);
-  // memset(fc, 0, sizeof(struct fast_context));
   fc->sender = sender;
   xassert(om_valid_sender_p(state->om, ctx, sender));
   fc->ip = 0;
@@ -507,18 +499,14 @@ static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int ar
    this context is swapped back in,  any arguments are automatically
    removed from the stack */
 inline void cpu_save_registers(STATE, cpu c, int offset) {
+  struct fast_context *fc;
+  
   if(!RTEST(c->active_context)) return;
   cpu_flush_ip(c);
   cpu_flush_sp(c);
-  if(HEADER(c->active_context)->klass == Qnil || methctx_is_fast_p(state, c->active_context)) {
-    struct fast_context *fc;
-    fc = (struct fast_context*)BYTES_OF(c->active_context);
-    fc->sp = c->sp - offset;
-    fc->ip = c->ip;
-  } else {
-    methctx_set_sp(c->active_context, I2N(c->sp - offset));
-    methctx_set_ip(c->active_context, I2N(c->ip));
-  }
+  fc = (struct fast_context*)BYTES_OF(c->active_context);
+  fc->sp = c->sp - offset;
+  fc->ip = c->ip;
 }
 
 #include <string.h>
@@ -533,17 +521,17 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
      context that holds all the data. So if it's a fast, we restore
      it's data, then if ctx != home, we restore a little more */
   
-  fc = (struct fast_context*)BYTES_OF(home);
+  fc = FASTCTX(home);
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
   memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
     // assert(!ISA(ctx, state->global->fastctx));
-    c->sp = FIXNUM_TO_INT(methctx_get_sp(ctx));
-    c->ip = FIXNUM_TO_INT(methctx_get_ip(ctx));
-          
-    c->sender = methctx_get_sender(ctx);
+    fc = FASTCTX(ctx);
+    c->sp = fc->sp;
+    c->ip = fc->ip;
+    c->sender = fc->sender;
     /* FIXME: seems like we should set c->block too.. but that
        seems to break things.. */
   }
@@ -582,13 +570,13 @@ static inline void cpu_restore_context(STATE, cpu c, OBJECT x) {
    Returning ends here. */
 
 inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception) {
-  OBJECT sender, home, home_sender;
+  OBJECT destination, home;
   int is_block;
   
   is_block = blokctx_s_block_context_p(state, c->active_context);
-  sender = c->sender;
+  destination = c->sender;
     
-  if(sender == Qnil) {
+  if(destination == Qnil) {
     c->active_context = Qnil;
     
     /* Thread exitting, reschedule.. */
@@ -607,19 +595,15 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
     
     if(consider_block && is_block) {
       home = blokctx_home(state, c->active_context);
-      if(methctx_is_fast_p(state, home)) {
-        home_sender = FASTCTX(home)->sender;
-      } else {
-        home_sender = methctx_get_sender(home);
-      }
-      
-      sender = home_sender;
+      destination = FASTCTX(home)->sender;
     }
-        
-    if(blokctx_s_block_context_p(state, sender)) {
-      home = blokctx_home(state, sender);
+    
+    /* Now, figure out if the destination is a block, so we pass the correct
+       home to restore_context */
+    if(blokctx_s_block_context_p(state, destination)) {
+      home = blokctx_home(state, destination);
     } else {
-      home = sender;
+      home = destination;
     }
     
     if(!is_block) {
@@ -634,20 +618,22 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
       if(!exception) { 
         // FASTCTX(c->active_context)->sender = Qnil;
       }
-      object_memory_retire_context(state->om, c->active_context);
     }
+    
+    object_memory_retire_context(state->om, c->active_context);
     
     if(EXCESSIVE_TRACING) {
-      if(HEADER(sender)->klass == Qnil) {
+      if(stack_context_p(destination)) {
         printf("Returning to a stack context.\n");
       } else {
-        printf("Returning to %s.\n", _inspect(sender));
+        printf("Returning to %s.\n", _inspect(destination));
       }
     }
-    xassert(om_valid_context_p(state, sender));
+    
+    xassert(om_valid_context_p(state, destination));
     xassert(om_valid_context_p(state, home));
     
-    cpu_restore_context_with_home(state, c, sender, home, TRUE, is_block);
+    cpu_restore_context_with_home(state, c, destination, home, TRUE, is_block);
   }
   
   return TRUE;
@@ -733,7 +719,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
 
   if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s => %s#%s on %s (%p/%lu) (%s).\n", c->depth,
+    printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
       rbs_symbol_to_cstring(state, module_get_name(mod)),
       rbs_symbol_to_cstring(state, sym), 
@@ -779,7 +765,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -835,7 +821,7 @@ void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args) {
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -855,7 +841,7 @@ void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT bl
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%lu) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -959,11 +945,11 @@ check_interupts:
       if(cm & OMCollectYoung) {
         if(EXCESSIVE_TRACING) {
           printf("[[ Collecting young objects. ]]\n");
-          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
         }
         state_collect(state, c);
         if(EXCESSIVE_TRACING) {
-          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%lu, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
           printf("[[ Finished collect. ]]\n");
         }
       }

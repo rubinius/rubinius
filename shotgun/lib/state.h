@@ -138,8 +138,9 @@ struct rubinius_state {
 #define FIRE_STACK  3
 
 #define FASTCTX_FIELDS 24
-#define FASTCTX_NORMAL 0
-#define FASTCTX_NMC    1
+#define FASTCTX_NORMAL 1
+#define FASTCTX_BLOCK  3
+#define FASTCTX_NMC    4
 
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, const char *name);

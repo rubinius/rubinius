@@ -51,8 +51,7 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
 
 #define ISA(o, c) object_kind_of_p(state, o, c)
 
-#define WEAK_REFERENCES_P(obj) FLAG_SET_P(obj, RefsAreWeakFlag)
-#define HAS_WEAK_REFS_P(obj) FLAG_SET_P(obj, HasWeakRefsFlag)
+#define WEAK_REFERENCES_P(obj) FLAG2_SET_P(obj, RefsAreWeakFlag)
 
 static inline uint32_t object_get_id(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {

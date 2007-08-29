@@ -45,6 +45,8 @@ static int _recursive_reporting = 0;
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
+/*
+
 void machine_print_callstack_limited(machine m, int maxlev);
 
 void machine_print_callstack(machine m) {
@@ -58,7 +60,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
   context = m->c->active_context;
   
   while(RTEST(context) && maxlev--) {
-    if (NUM_FIELDS(context) == 7) { /* FIXME: print_callstack does not know about block contexts */
+    if (NUM_FIELDS(context) == 7) {
         printf("Skipping Block Context\n");
         context = blokctx_get_sender(context);
         continue;
@@ -89,6 +91,8 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     context = methctx_get_sender(context);
   }
 }
+
+*/
 
 void machine_print_stack(machine m) {
   unsigned int i, start, end;
@@ -288,8 +292,8 @@ void machine_show_backtrace(unsigned long *frames, int count) {
 void machine_print_registers(machine m) {
   cpu_flush_sp(m->c);
   cpu_flush_ip(m->c);
-  printf("IP: %04lu     SP: %04lu\n", m->c->ip, m->c->sp);
-  printf("AC: %04lu     AR: %04lu\n", m->c->argcount, m->c->args);
+  printf("IP: %04d      SP: %04d\n", m->c->ip, m->c->sp);
+  printf("AC: %04d      AR: %04lu\n", m->c->argcount, m->c->args);
   printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));
 }
 
@@ -354,8 +358,8 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
       machine_show_backtrace(frames, count);
     } while(0);
 #endif
-    printf("\nRuby backtrace:\n");
-    machine_print_callstack(current_machine);
+    // printf("\nRuby backtrace:\n");
+    // machine_print_callstack(current_machine);
   
   }
   

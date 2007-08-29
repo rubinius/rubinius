@@ -49,7 +49,6 @@ void object_memory_major_collect(STATE, object_memory om, GPtrArray *roots);
 OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark);
 void object_memory_setup_become(STATE, object_memory om, OBJECT from, OBJECT to);
 void object_memory_clear_become(STATE, object_memory om);
-void object_memory_retire_context(object_memory om, OBJECT ctx);
 void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val);
 
 void object_memory_shift_contexts(STATE, object_memory om);
@@ -69,6 +68,8 @@ void object_memory_formalize_contexts(STATE, object_memory om);
 #define CTX_SIZE ((HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE)
   
 #define object_memory_new_context(om) ((OBJECT)heap_allocate_dirty(om->contexts, CTX_SIZE))
+
+#define stack_context_p(ctx) (HEADER(ctx)->flags2 == 0)
 
 #define om_on_stack(om, ctx) heap_contains_p(om->contexts, ctx)
 #define om_in_heap(om, ctx) heap_contains_p(om->gc->current, ctx)
@@ -91,7 +92,7 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
 #define om_stack_sender(ctx) om_stack_prev_ctx(ctx)
 
 #define om_valid_context_p(state, ctx) ( \
-  (om_stack_context_p(state->om, ctx) && (HEADER(ctx)->klass == Qnil)) || \
+  (om_stack_context_p(state->om, ctx) && stack_context_p(ctx)) || \
   (om_context_referenced_p(state->om, ctx)) || \
   (om_in_heap(state->om, ctx) && (methctx_is_fast_p(state, ctx) ||  blokctx_s_block_context_p(state, ctx))) \
 )

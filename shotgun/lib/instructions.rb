@@ -225,10 +225,10 @@ CODE
     next_int;
     t1 = c->active_context;
     for(j = 0; j < k; j++) {
-      t2 = blokctx_get_env(t1);
+      t2 = blokctx_env(state, t1);
       t1 = blokenv_get_home_block(t2);
     }
-    stack_push(tuple_at(state, blokctx_get_locals(t1), _int));
+    stack_push(tuple_at(state, blokctx_locals(state, t1), _int));
     CODE
   end
   
@@ -413,10 +413,10 @@ CODE
     t1 = c->active_context;
         
     for(j = 0; j < k; j++) {
-      t2 = blokctx_get_env(t1);
+      t2 = blokctx_env(state, t1);
       t1 = blokenv_get_home_block(t2);
     }
-    tuple_put(state, blokctx_get_locals(t1), _int, t3);
+    tuple_put(state, blokctx_locals(state, t1), _int, t3);
     stack_push(t3);
     
     CODE
@@ -1032,14 +1032,16 @@ CODE
     
     t4 = c->active_context;
 
-    t3 =   Qnil;
+    t3 = Qnil;
     if(blokctx_s_block_context_p(state, t4)) {
-      t3 = blokenv_get_home(blokctx_get_env(t4));
+      t3 = blokctx_home(state, t4);
     } else {
       t3 = t4;
     }
+    
     methctx_reference(state, t4);
     methctx_reference(state, t3);
+    
     cpu_flush_sp(c);
     cpu_flush_ip(c);
     j = c->ip + BS_JUMP;

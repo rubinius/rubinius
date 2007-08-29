@@ -30,7 +30,7 @@ void _describe(OBJECT ptr) {
       printf("  Normal on stack (not referenced)\n");
     }
   }
-  printf("stack_context_p: %d\n", om_stack_context_p(om, ptr));
+  printf("stack_context_p: %d / %d\n", om_stack_context_p(om, ptr), stack_context_p(ptr));
   printf("nil klass:       %d\n", HEADER(ptr)->klass == Qnil);
   printf("context_refd_p:  %d\n", om_context_referenced_p(om, ptr));
   printf("in_heap:         %d\n", om_in_heap(om, ptr));
@@ -139,10 +139,6 @@ void object_memory_formalize_contexts(STATE, object_memory om) {
 void object_memory_shift_contexts(STATE, object_memory om) {
   OBJECT ctx, new_ctx;
   int inc = 0;
-  // char *addr, *cur;
-  
-  // addr = (char*)(om->context_bottom);
-  // cur = (char*)(om->contexts->address);
   
   /* If the context_bottom is the true bottom, we haven't promoted
      anything and everything can stay where it is. */
@@ -155,13 +151,6 @@ void object_memory_shift_contexts(STATE, object_memory om) {
       baker_gc_mutate_context(state, om->gc, ctx, FALSE, inc == 0);
       inc++;
     } DONE_EACH_STACK_CTX(ctx); 
-    /*
-    while(addr < (char*)om->contexts->current) {
-      ctx = (OBJECT)addr;
-      xassert(HEADER(ctx)->klass == Qnil);
-      addr += CTX_SIZE;
-    } 
-    */   
   } else {
     
     new_ctx = (OBJECT)(om->contexts->address);
@@ -184,27 +173,6 @@ void object_memory_shift_contexts(STATE, object_memory om) {
     
     om->contexts->current = (address)new_ctx;
     om->context_top = new_ctx - CTX_SIZE;
-    
-    /*
-    
-    while(addr < (char*)om->contexts->current) {
-      ctx = (OBJECT)cur;
-        
-      memcpy(cur, addr, CTX_SIZE);
-      // printf("Shifted context %p to %p\n", addr, cur);
-    
-      HEADER(addr)->klass = ctx;
-    
-      xassert(HEADER(ctx)->klass == Qnil);
-      baker_gc_mutate_context(state, om->gc, ctx, TRUE);
-    
-      cur += CTX_SIZE;
-      addr += CTX_SIZE;
-    }
-    
-     Reset current to be the moved top 
-    om->contexts->current = (address)(cur);
-    */
   }
   
   om->context_bottom = (OBJECT)(om->contexts->address);
@@ -218,19 +186,6 @@ void object_memory_mark_contexts(STATE, object_memory om) {
     mark_sweep_mark_context(state, om->ms, ctx);    
   } DONE_EACH_CTX(ctx);
   
-  /*
-  
-  OBJECT ctx, lst;
-  char *addr, *cur;
-  struct fast_context *fc;
-  
-  addr = (char*)(om->contexts->address);
-  
-  while(addr < (char*)om->contexts->current) {
-    ctx = (OBJECT)addr;
-    addr += CTX_SIZE;
-  }
-  */ 
 }
 
 void object_memory_clear_marks(STATE, object_memory om) {
