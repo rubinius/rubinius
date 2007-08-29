@@ -337,6 +337,12 @@ VALUE rb_ary_push(VALUE array, VALUE val) {
   return NEW_HANDLE(ctx, ary);
 }
 
+VALUE rb_ary_pop(VALUE array) {
+  CTX;
+  OBJECT ary = HNDL(array);
+  return NEW_HANDLE(array_pop(ctx->state, ary));
+}
+
 VALUE rb_ary_entry(VALUE array, int offset) {
   CTX;
   OBJECT val, ary = HNDL(array);
@@ -364,6 +370,10 @@ VALUE rb_ary_clear(VALUE array) {
 
 VALUE rb_ary_dup(VALUE array) {
   return rb_funcall2(array, rb_intern("dup"), 0, NULL);
+}
+
+VALUE rb_ary_join(VALUE array1, VALUE array2) {
+  return rb_funcall(array1, rb_intern("join"), 1, array2);
 }
 
 VALUE rb_ary_unshift(VALUE array, VALUE val) {

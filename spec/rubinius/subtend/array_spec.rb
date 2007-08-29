@@ -23,6 +23,10 @@ extension :rubinius do
       @s.rb_ary_push2([], 4, o).should == [4,o]
     end
 
+    specify "rb_ary_pop should remove the last element in the array and return it" do
+      @s.rb_ary_pop([1,2,3]).should == 3
+    end
+
     specify "rb_ary_entry should return nil when called with an empty array" do
       @s.rb_ary_entry([], 0).should == nil
     end
