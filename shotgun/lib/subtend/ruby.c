@@ -376,6 +376,10 @@ VALUE rb_ary_join(VALUE array1, VALUE array2) {
   return rb_funcall(array1, rb_intern("join"), 1, array2);
 }
 
+VALUE rb_ary_reverse(VALUE array) {
+  return rb_funcall(array, rb_intern("reverse"), 0)
+}
+
 VALUE rb_ary_unshift(VALUE array, VALUE val) {
   return rb_funcall2(array, rb_intern("unshift"), 1, &val);
 }

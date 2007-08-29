@@ -34,6 +34,14 @@ static VALUE sa_array_dup(VALUE self, VALUE array) {
   return rb_ary_dup(array);
 }
 
+static VALUE sa_array_join(VALUE self, VALUE array1, VALUE array2) {
+  return rb_ary_join(array1, array2);
+}
+
+static VALUE sa_array_reverse(VALUE self, VALUE array) {
+  return rb_ary_reverse(array);
+}
+
 static VALUE sa_array_unshift(VALUE self, VALUE array, VALUE val) {
   return rb_ary_unshift(array, val);
 }
@@ -57,6 +65,8 @@ void Init_subtend_array() {
   rb_define_method(cls, "rb_ary_entry", sa_array_entry, 2);
   rb_define_method(cls, "rb_ary_clear", sa_array_clear, 1);
   rb_define_method(cls, "rb_ary_dup", sa_array_dup, 1);
+  rb_define_method(cls, "rb_ary_join", sa_array_join, 2);
+  rb_define_method(cls, "rb_ary_reverse", sa_array_join, 1);
   rb_define_method(cls, "rb_ary_unshift", sa_array_unshift, 2);
   rb_define_method(cls, "rb_ary_shift", sa_array_shift, 1);
   rb_define_method(cls, "rb_ary_store", sa_array_store, 3);

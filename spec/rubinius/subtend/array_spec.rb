@@ -28,6 +28,17 @@ extension :rubinius do
       @s.rb_ary_pop(a).should == 3
       a.should == [1,2]
     end
+    
+    specify "rb_ary_join should join two arrays" do
+      a = [1,2,3]
+      b = [4,5,6]
+      @s.rb_ary_join(a,b).should == [1,2,3,4,5,6]
+    end
+    
+    specify "rb_ary_reverse should reverse an array" do
+      a = [1,2,3]
+      @s.rb_ary_reverse(a).should == [3,2,1]
+    end
 
     specify "rb_ary_entry should return nil when called with an empty array" do
       @s.rb_ary_entry([], 0).should == nil
