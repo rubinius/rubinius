@@ -262,7 +262,7 @@ end
 # dev tasks
 
 namespace :dev do
-  desc "Make a few changes to support easier development"
+  desc "Make a snapshot of the runtime files for your own safety"
   task :setup do
     sh "cp runtime/core.rba #{@pc}"
     sh "cp runtime/bootstrap.rba #{@pb}" 
