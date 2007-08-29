@@ -24,7 +24,9 @@ extension :rubinius do
     end
 
     specify "rb_ary_pop should remove the last element in the array and return it" do
-      @s.rb_ary_pop([1,2,3]).should == 3
+      a = [1,2,3]
+      @s.rb_ary_pop(a).should == 3
+      a.should == [1,2]
     end
 
     specify "rb_ary_entry should return nil when called with an empty array" do
