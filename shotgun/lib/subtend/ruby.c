@@ -340,7 +340,7 @@ VALUE rb_ary_push(VALUE array, VALUE val) {
 VALUE rb_ary_pop(VALUE array) {
   CTX;
   OBJECT ary = HNDL(array);
-  return NEW_HANDLE(array_pop(ctx->state, ary));
+  return NEW_HANDLE(ctx, array_pop(ctx->state, ary));
 }
 
 VALUE rb_ary_entry(VALUE array, int offset) {
