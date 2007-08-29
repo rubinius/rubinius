@@ -568,7 +568,85 @@ class Array
     end
 
     at(idx)
-  end                                                 # fetch
+  end
+
+  # Fill some portion of the Array with a given element. The
+  # element to be used can be either given as the first argument
+  # or as a block that takes the index as its argument. The
+  # section that is to be filled can be defined by the following
+  # arguments. The first following argument is either a starting
+  # index or a Range. If the first argument is a starting index,
+  # the second argument can be the length. No length given
+  # defaults to rest of Array, no starting defaults to 0. Negative
+  # indices are treated as counting backwards from the end. Negative
+  # counts leave the Array unchanged. Returns self.
+  #
+  # array.fill(obj)                                -> array
+  # array.fill(obj, start [, length])              -> array
+  # array.fill(obj, range)                         -> array
+  # array.fill {|index| block }                    -> array
+  # array.fill(start [, length]) {|index| block }  -> array
+  # array.fill(range) {|index| block }             -> array
+  #
+  def fill(*args)
+    raise TypeError, "Array is frozen" if frozen?
+
+    raise ArgumentError, "Wrong number of arguments" if block_given? and args.size > 2
+    raise ArgumentError, "Wrong number of arguments" if args.size > 3
+
+    # Normalise arguments
+    start, finish, obj = 0, (@total - 1), nil
+
+    obj = args.shift unless block_given?
+    one, two = args.at(0), args.at(1)
+
+    if one.kind_of? Range
+      raise TypeError, "Length invalid with range" if args.size > 1   # WTF, MRI, TypeError?
+
+      start, finish = int_from(one.begin), int_from(one.end)
+
+      start += @total if start < 0
+      finish += @total if finish < 0
+
+      if one.exclude_end?
+        return self if start == finish
+        finish -= 1
+      end
+
+      raise RangeError, "#{one.inspect} out of range" if start < 0 
+      return self if finish < 0           # Nothing to modify
+
+    else
+      if one
+        start = int_from one
+
+        start += @total if start < 0
+        start = 0 if start < 0            # MRI comp adjusts to 0
+
+        if two
+          finish = int_from two
+          return self if finish < 1       # Nothing to modify
+
+          finish = start + finish - 1
+        end
+      end
+    end                                   # Argument normalisation
+
+    # Adjust the size progressively
+    unless finish < @total
+      reallocate(finish)
+      @total = finish + 1
+    end
+
+    if block_given?
+      start.upto(finish) { |i|  @tuple.put i, yield(i) } 
+    else
+      start.upto(finish) { |i|  @tuple.put i, obj } 
+    end
+
+
+    self
+  end 
 
   # Returns true if the Array is frozen with #freeze or
   # temporarily sorted while being sorted.
@@ -1069,60 +1147,6 @@ class Array
     self
   end
   
-  def fill(*args)
-    start_index = 0
-    end_index = self.length - 1
-    len = item = nil
-    arg_length = args.length
-    arg_index_offset = 0
-    max_args = 2
-    if !block_given?
-      item = args[0]
-      arg_length -= 1
-      arg_index_offset = 1
-      max_args = 3
-    end
-
-    arg1 = args[arg_index_offset] || 0
-    arg2 = args[1 + arg_index_offset]
-
-    case arg_length
-    when 0
-      start_index = 0
-      end_index = self.length - 1
-    when 1
-      if arg1.nil? || arg1.kind_of?(Integer)
-        start_index = arg1 || 0
-        end_index = self.length - 1
-      elsif arg1.kind_of?(Range)
-        start_index = arg1.first
-        end_index = arg1.last
-        end_index -= 1 if arg1.exclude_end?
-        if end_index < 0
-          end_index += self.length
-        end
-      else
-        raise TypeError, "can't convert #{arg1.class} into Integer"
-      end
-    when 2
-      start_index = arg1
-      len = arg2
-    else
-      raise ArgumentError, "wrong number of arguments (#{args.length} for #{max_args})"
-    end
-    if start_index < 0
-      start_index += self.length
-      start_index = 0 if start_index < 0
-    end
-    if len
-      end_index = start_index + len - 1
-    end
-    
-    (start_index..end_index).each do |i|
-      self[i] = block_given? ? yield(i) : item
-    end
-    self
-  end
   
   def first(n=nil)
     return self[0] unless n

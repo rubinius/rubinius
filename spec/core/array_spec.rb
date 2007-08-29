@@ -938,10 +938,10 @@ describe "Array#fill" do
     def x.to_int() 2 end
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
     
-    x = Object.new
-    x.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
-    x.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
-    [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
+#    x = Object.new
+#    x.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
+#    x.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
+#    [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
   end
 
   it "starts at 0 if the negative index is before the start of the array" do
