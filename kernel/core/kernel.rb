@@ -180,6 +180,13 @@ module Kernel
     # used.
     Object.method_table[:raise] = nil
   end
+
+  # TODO - Improve this check for metaclass support
+  def __verify_metaclass__
+    if Fixnum === self or Symbol === self
+      raise TypeError, "no virtual class for #{self.class}"
+    end
+  end
 end
 
 Object.include Kernel

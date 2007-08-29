@@ -323,6 +323,21 @@ module Bytecode
         @method.assembly = @output
         add last
       end
+
+      # Compile and insert a 'helper' method into the assembly
+      # Used when a method should not be exposed to the public,
+      # such as the body of a metaclass
+      def compile_internal_method(body, name)
+        meth = @compiler.compile_as_method body, name
+        ss = meth.stack_space
+        meth.prepend_asm "allocate_stack #{ss}" if ss > 0
+        idx = @method.add_literal meth
+        add "push_literal #{idx}"
+        add "swap"
+        add "attach #{name}"
+        add "pop"
+        add "send #{name}"
+      end
       
       def process_true(x)
         add "push true"
@@ -636,7 +651,8 @@ module Bytecode
         elsif @break
           goto @break
         else
-          raise "Unable to handle this break."
+          add "push Compile"
+          add "send __unexpected_break__ 0"
         end
       end
             
@@ -980,19 +996,15 @@ module Bytecode
       end
       
       def process_sclass(x)
-        process x.shift
+        receiver = x.shift
+        process receiver
         body = x.shift
+        add "dup"
+        add "send __verify_metaclass__ 0" # Raises TypeError if unsupported
+        add "pop"
         add "open_metaclass"
         add "dup"
-        meth = @compiler.compile_as_method body, :__metaclass_init__
-        ss = meth.stack_space
-        meth.prepend_asm "allocate_stack #{ss}" if ss > 0
-        idx = @method.add_literal meth
-        add "push_literal #{idx}"
-        add "swap"
-        add "attach __metaclass_init__"
-        add "pop"
-        add "send __metaclass_init__"
+        compile_internal_method body, :__metaclass_init__
       end
 
       def process_class(x)

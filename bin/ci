@@ -6,13 +6,14 @@
 require 'optparse'
 
 module CI
-  VERSION = '0.0.1'
+  VERSION = '0.5.0'
 end
 
 action = :run
 patterns = []
 target = 'shotgun/rubinius'
 format = 'ci'
+clean = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
@@ -26,9 +27,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
     action = :invert
-  end
-  opts.on("-u", "--update", "Remove passing specs from the exclude file") do
-    action = :update
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -49,6 +47,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
     format = f
   end
+  opts.on("-C", "--clean", "Remove all compiled spec files first") do
+    clean = true
+  end
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
     exit
@@ -61,6 +62,11 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   patterns = opts.parse ARGV
 end
 
+# remove all compiled spec files to catch compiler bugs
+Dir['spec/**/*_spec.rbc'].each { |name| File.delete name } if clean
+
+# only these directories are included because other directories have specs
+# that cause compilation to fail. ideally, spec/**/*_spec.rb would be run.
 patterns = ['spec/compiler', 'spec/core', 'spec/mspec', 'spec/parser'] if patterns.empty?
 files = []
 patterns.each do |item|
@@ -86,10 +92,6 @@ when :run
 when :invert
   files.each do |file|
     system("bin/mspec -t #{target} -e spec/reports/ci-excludes.txt -f #{format} #{file}")
-  end
-when :update
-  files.each do |file|
-    
   end
 else
   puts "Unknown action: #{action}"

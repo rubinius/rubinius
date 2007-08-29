@@ -31,6 +31,12 @@ module Compile
     cm.compile
     cm.activate MAIN, []
   end
+
+  # Called when we encounter a break keyword that we do not support
+  # TODO - This leaves a moderately lame stack trace entry
+  def self.__unexpected_break__
+    raise TypeError, "unexpected break"
+  end
 end
 
 class String
