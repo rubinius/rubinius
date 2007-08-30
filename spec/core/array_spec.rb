@@ -1610,6 +1610,15 @@ describe "Array#last" do
     [1, 2, 3, 4, 5, 9].last(10).should == [1, 2, 3, 4, 5, 9]
   end
 
+  it "uses to_int to convert its argument" do
+    o = Object.new
+    should_raise(TypeError) { [1, 2, 3].last o }
+
+    def o.to_int(); 2; end
+
+    [1, 2, 3].last(o).should == [2, 3]
+  end
+
   it "does not return subclass instance on Array subclasses" do
     MyArray[].last(0).class.should == Array
     MyArray[].last(2).class.should == Array

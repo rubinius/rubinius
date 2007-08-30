@@ -791,6 +791,20 @@ class Array
     out[sep.size..-1] 
   end 
   
+  # Returns the last element or n elements of self. If
+  # the Array is empty, without a count nil is returned,
+  # otherwise an empty Array. Always returns an Array.
+  def last(n = nil)
+    return at(-1) unless n
+    
+    n = int_from n
+    return [] if n.zero?
+    raise ArgumentError, "Number must be positive" if n < 0
+
+    n = size if n > size
+    Array.new self[-n..-1] 
+  end 
+  
   def push(*args)
     args.each do |ent|
       self[@total] = ent
@@ -1192,15 +1206,6 @@ class Array
        end
     end
     self
-  end
-  
-  
-  def last(n=nil)
-    return self[-1] unless n
-    raise ArgumentError, "negative array size (or size too big)" if n < 0
-    return [] if n.zero?
-    n = size if n > size
-    self[-n..-1]
   end
 
   
