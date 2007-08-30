@@ -426,12 +426,25 @@ VALUE rb_str_dup(VALUE str) {
 
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
   CTX;
-  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
+  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), string_new2(ctx->state, ptr, len)));
 }
 
 VALUE rb_str_append(VALUE str, VALUE str2) {
   CTX;
   return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(str2)));
+}
+
+VALUE rb_str_cat(VALUE str, const char *ptr, long len) {
+  CTX;
+  if(len < 0) rb_raise(rb_eArgError, "negative string size (or size too big)");
+  OBJECT new_string = string_dup(ctx->state, HNDL(str));
+  return NEW_HANDLE(ctx, string_append(ctx->state, new_string, string_new2(ctx->state, ptr, len)));
+}
+
+VALUE rb_str_plus(VALUE str1, VALUE str2) {
+  CTX;
+  OBJECT new_string = string_dup(ctx->state, HNDL(str1));
+  return NEW_HANDLE(ctx, string_append(ctx->state, new_string, HNDL(str2)));
 }
 
 VALUE rb_hash_new(void) {
