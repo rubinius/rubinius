@@ -1175,7 +1175,9 @@ describe "Array#hash" do
       ary.hash.class.should == Fixnum
     end
   end
-  
+
+#  Too much of an implementation detail? -rue
+compliant :r18 do
   it "calls to_int on result of calling hash on each element" do
     ary = Array.new(5) do
       # Can't use should_receive here because it calls hash()
@@ -1200,6 +1202,7 @@ describe "Array#hash" do
       
     [obj].hash == [0].hash
   end
+end
   
   it "ignores array class differences" do
     MyArray[].hash.should == [].hash
@@ -1220,7 +1223,6 @@ describe "Array#hash" do
     a.hash.should == b.hash
     a.eql?(b).should == true
   end
-
 end
 
 describe "Array#include?" do

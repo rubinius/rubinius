@@ -700,6 +700,18 @@ class Array
     @sort_frozen || super 
   end 
 
+  # Computes a Fixnum hash code for this Array. Any two
+  # Arrays with the same content will have the same hash
+  # code (similar to #eql?)
+  def hash()
+    # IMPROVE: This is a really really poor implementation of hash for an array, but
+    # it does work. It should be replaced with something much better, but I'm not sure
+    # what level it belongs at.
+    str = ""
+    each { |item| str << item.hash.to_s }
+    str.hash
+  end
+
   # Produces a printable string of the Array. The string 
   # is constructed by calling #inspect on all elements.
   # Descends through contained Arrays, recursive ones
@@ -1227,17 +1239,6 @@ class Array
     return ele
   end
 
-  def hash
-    # IMPROVE: This is a really really poor implementation of hash for an array, but
-    # it does work. It should be replaced with something much better, but I'm not sure
-    # what level it belongs at.
-    str = ""
-    each do |item|
-      str << item.hash.to_s
-    end
-    return str.hash
-  end
-  
   def pretty_inspect(indent=0)
     str = "["
     
