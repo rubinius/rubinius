@@ -747,6 +747,23 @@ class Array
 
   alias indices indexes
 
+  # For a positive index, inserts the given values before
+  # the element at the given index. Negative indices count 
+  # backwards from the end and the values are inserted 
+  # after them.
+  def insert(idx, *items)
+    raise TypeError, "Array is frozen" if frozen?
+
+    return self if items.length == 0
+    
+    # Adjust the index for correct insertion
+    idx = int_from idx
+    idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
+    raise IndexError, "#{idx} out of bounds" if idx < 0
+
+    self[idx, 0] = items   # Cheat
+    self
+  end 
 
   # Produces a printable string of the Array. The string 
   # is constructed by calling #inspect on all elements.
@@ -1158,28 +1175,6 @@ class Array
     self.inject(0) { |count, elt| elt ? count + 1 : count}
   end
   
-  def insert(index, *items)
-    return self if items.length == 0
-    
-    pos = index
-    if pos == -1
-      pos = self.length
-    end
-    if pos < 0
-      pos += self.length + 1
-      if pos < 0
-        raise IndexError, "index #{index} out of array"
-      end
-    end
-
-    #move up existing elements if necessary
-    #this should probably some sort of fast native memmove operation
-    if pos < self.length
-      (self.length - 1).downto(pos) {|i| self[i + items.length] = self[i] }
-    end
-    items.each_with_index {|el, i| self[i + pos] = el}
-    self
-  end
   
   def reject!(&block)
     old_length = self.length
