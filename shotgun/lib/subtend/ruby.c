@@ -429,6 +429,11 @@ VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
   return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
 }
 
+VALUE rb_str_append(VALUE str, VALUE str2) {
+  CTX;
+  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(str2)));
+}
+
 VALUE rb_hash_new(void) {
   CTX;
   return NEW_HANDLE(ctx, hash_new(ctx->state));
