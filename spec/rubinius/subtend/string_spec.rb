@@ -32,6 +32,10 @@ extension :rubinius do
       str1.should == str2
       str1.object_id.should_not == str2.object_id
     end
+    
+    specify "rb_str_append should append a string to another string" do
+      @s.rb_str_append("Hello", " Goodbye").should == "Hello Goodbye"
+    end
   
     specify "rb_str_buf_cat should concat C strings to ruby strings" do
       @s.phrase_as_question("Your house is on fire").should == "Your house is on fire?"
