@@ -658,17 +658,17 @@ class Array
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
-  def join(separator = nil, method = :to_s)
+  def join(sep = nil, method = :to_s)
     return '' if @total == 0
-    return at(0).to_s if @total == 1
+    return at(0).__send__(method) if @total == 1
+    sep ||= $,
 
-    separator = $, unless separator
-    raise TypeError, "Cannot convert #{separator.inspect} to str" unless separator.respond_to? :to_str
+    raise TypeError, "Cannot convert #{sep.inspect} to str" unless sep.respond_to? :to_str
+    sep = sep.to_str
+    out = ""
 
-    separator, out, stack = separator.to_str, "", []
-
-    recursively_join self, separator, out, stack
-    out[separator.size..-1] 
+    recursively_join self, sep, out, [], method
+    out[sep.size..-1] 
   end 
   
   def push(*args)
@@ -731,7 +731,8 @@ class Array
   end
 
   def inspect
-    "[#{join(", ", :inspect)}]"
+    inspected = self.map {|e| e.inspect}
+    "[#{inspected.join(', ')}]"
   end
 
   alias slice []
@@ -1302,7 +1303,7 @@ class Array
 
     # Helper to depth-first recurse through joining an Array
     # Detects recursive structures.
-    def recursively_join(array, separator, out, stack)
+    def recursively_join(array, separator, out, stack, method)
       if stack.include?(array.object_id)
         out << separator << "[...]"
       end
@@ -1310,14 +1311,14 @@ class Array
       stack.push array.object_id
 
       array.each { |o|
-        if o.kind_of? Array
-          recursively_join(o, separator, out, stack)
+        if Array === o
+          recursively_join(o, separator, out, stack, method)
         else
-          out << separator << o.to_s
+          out << separator << o.__send__(method)
         end
       }
 
       stack.pop
       out
-    end                                                 # recursively_inspect
+    end
 end
