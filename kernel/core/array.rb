@@ -820,13 +820,18 @@ class Array
   def map!(&block)
     raise TypeError, "Array is frozen" if frozen? 
 
-    # FIX: replace this with, er, replace(map) when possible
     replace(map &block)
-#    size.times { |i| @tuple.put(i, yield(@tuple.at(i))) }
-#    self
   end
   
   alias :collect! :map!
+
+  # Returns number of non-nil elements in self, may be zero
+  def nitems
+    sum = 0
+    each { |elem| sum += 1 unless elem.nil? }
+    sum
+  end 
+
 
   def push(*args)
     args.each do |ent|
@@ -1196,10 +1201,6 @@ class Array
   def uniq!
     ary = self.uniq
     ary.size == self.size ? nil : replace(ary)
-  end
-
-  def nitems
-    self.inject(0) { |count, elt| elt ? count + 1 : count}
   end
   
   
