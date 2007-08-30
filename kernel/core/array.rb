@@ -727,6 +727,27 @@ class Array
     nil
   end 
 
+  # Returns an Array populated with the objects at the given indices of the original.
+  # Range arguments are given as nested Arrays as from #[].
+  def indexes(*args)
+    warn 'Array#indexes is deprecated, use Array#values_at instead'
+
+    out = []
+
+    args.each { |a| 
+      if a.kind_of? Range
+        out << self[a]
+      else
+        out << at(int_from(a))
+      end
+    }
+
+    out
+  end
+
+  alias indices indexes
+
+
   # Produces a printable string of the Array. The string 
   # is constructed by calling #inspect on all elements.
   # Descends through contained Arrays, recursive ones
@@ -860,16 +881,6 @@ class Array
     }
     out
   end
-
-  def indexes(*args)
-    out = []
-    args.each { |x|
-      out << self[x]
-    }
-    out
-  end
-
-  alias indices indexes
 
   def transpose()
     result = []
