@@ -1231,6 +1231,17 @@ describe "Array#include?" do
     [1, 2, "a", "b"].include?("a").should == true
   end
 
+  it "determines presence by using obj == element" do
+    o = Object.new
+  
+    [1, 2, "a", "b"].include?(o).should == false
+
+    def o.==(other); other == 'a'; end
+
+    [1, 2, "a", "b"].include?(o).should == true
+  end
+
+compliant :r18 do
   it "calls == on elements from left to right until success" do
     key = "x"
     ary = Array.new(3) { Object.new }
@@ -1240,6 +1251,7 @@ describe "Array#include?" do
     
     ary.include?(key).should == true
   end
+end
 end
 
 describe "Array#index" do

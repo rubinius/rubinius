@@ -712,6 +712,21 @@ class Array
     str.hash
   end
 
+  # Returns true if the given obj is present in the Array.
+  # Presence is determined by calling obj.== on each element
+  # until found.
+  def include?(obj)
+    @total.times { |i| return true if obj == at(i) }
+    false
+  end
+
+  # Returns the index of the first element in the Array
+  # for which elem == obj is true or nil.
+  def index(obj)
+    @total.times { |i| return i if @tuple.at(i) == obj }
+    nil
+  end 
+
   # Produces a printable string of the Array. The string 
   # is constructed by calling #inspect on all elements.
   # Descends through contained Arrays, recursive ones
@@ -941,15 +956,6 @@ class Array
     end
     nil
   end
-
-  def index(obj)
-    i = 0
-    while i < @total
-      return i if @tuple.at(i) == obj
-      i += 1
-    end
-    nil
-  end  
   
   BASE_64_ALPHA = {}
   def self.after_loaded
