@@ -745,7 +745,7 @@ class Array
     out
   end
 
-  alias indices indexes
+  alias :indices :indexes
 
   # For a positive index, inserts the given values before
   # the element at the given index. Negative indices count 
@@ -805,6 +805,29 @@ class Array
     Array.new self[-n..-1] 
   end 
   
+  # Creates a new Array from the return values of passing
+  # each element in self to the supplied block.
+  def map()
+    out = []
+    each { |elem| out << yield(elem) }
+    out
+  end 
+
+  alias :collect :map
+
+  # Replaces each element in self with the return value
+  # of passing that element to the supplied block.
+  def map!(&block)
+    raise TypeError, "Array is frozen" if frozen? 
+
+    # FIX: replace this with, er, replace(map) when possible
+    replace(map &block)
+#    size.times { |i| @tuple.put(i, yield(@tuple.at(i))) }
+#    self
+  end
+  
+  alias :collect! :map!
+
   def push(*args)
     args.each do |ent|
       self[@total] = ent
@@ -820,15 +843,6 @@ class Array
     end
     self
   end
-  
-  def map!
-    i = 0
-    each do |a|
-      self[i] = yield(a)
-      i += 1
-    end
-    return self
-  end
 
   #  def collect!                  # FIXME: should use alias
   #    i = 0
@@ -839,7 +853,6 @@ class Array
   #    return self
   #  end
 
-  alias :collect! :map!
 
 
   def rassoc(obj)
