@@ -91,6 +91,14 @@ locate_method
     class << self;self;end
   end
   
+  # TODO - Improve this check for metaclass support
+  # TODO - Make this private in core
+  def __verify_metaclass__
+    if self.kind_of?(Fixnum) or self.kind_of?(Symbol)
+      raise TypeError, "no virtual class for #{self.class}"
+    end
+  end
+
   def extend(*mods)
     metaclass.include(*mods)
   end
