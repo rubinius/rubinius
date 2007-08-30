@@ -37,7 +37,7 @@ end
 
 def update_archive(files, archive, dir=nil)
   archive = File.expand_path(ENV['OUTPUT'] || archive)
-  
+
   changed = []
   files.each do |file|
     cmp = "#{file}c"
@@ -53,17 +53,17 @@ def update_archive(files, archive, dir=nil)
     end
     file << "c"
   end
-  
+
   curdir = Dir.getwd
   if dir
     Dir.chdir(dir)    
     changed.map! { |f| f.gsub(%r!^#{dir}/!, "") }
   end
-  
+
   File.open(".load_order.txt","w") do |f|
     f.puts files.join("\n")
   end
-  
+
   if File.exists? archive
     if changed.empty?
       puts "No files to update."
@@ -73,24 +73,24 @@ def update_archive(files, archive, dir=nil)
   else
     system "zip #{archive} .load_order.txt #{changed.join(' ')}"
   end
-  
+
   Dir.chdir(curdir) if dir
 end
 
 # spec tasks
-desc "Run continuous integration examples"
+desc "Run all 'known good' specs (task alias for spec:ci)"
 task :spec => 'spec:ci'
 
 namespace :spec do
   namespace :setup do
-    desc "Setup for subtend examples"
+    # Setup for 'Subtend' specs. No need to call this yourself.
     task :subtend do
       Dir[File.join(ROOT,"spec/subtend/**/Rakefile")].each do |rakefile|
         sh "rake -f #{rakefile}"
       end
     end
   end
-  
+
   desc "Run continuous integration examples"
   task :ci do
     target = ENV['SPEC_TARGET'] || 'rbx'
@@ -107,7 +107,7 @@ namespace :spec do
     end
   end
 
-  desc "Run subtend examples"
+  desc "Run subtend (Rubinius C API) examples"
   task :subtend => "spec:setup:subtend" do
     sh "bin/mspec spec/rubinius/subtend"
   end
@@ -135,67 +135,57 @@ namespace :spec do
   end
 end
 
-# build tasks
-desc "Completely rebuild everything"
-task :rebuild => ['build:clean', 'build:shotgun', 'build:compiler', 'build:bootstrap', 'build:core', 'build:library']
-
-desc "Build shotgun (the C-code VM)"
+desc "Build Shotgun (task alias for build:shotgun)"
 task :build => ['build:shotgun']
 
-namespace :build do
-  
-  desc "Removes build by-products for shotgun, compiler, and library"
-  task :clean => ['clean:shotgun', 'clean:compiler', 'clean:bootstrap', 'clean:core', 'clean:library']
-  
-  namespace :clean do
-    desc "Removes build by-products for shotgun"
-    task :shotgun do
-      sh "make -C shotgun clean || true"
-    end
-    
-    desc "Removes build by-products for compiler"
-    task :compiler do
-      FileList['native/**/*.rbc', '/tmp/*.rbc'].each do |fn|
-        FileUtils.rm fn rescue nil
-      end
-    end
-    
-    desc "Removes build by-products for library"
-    task :library do
-      FileList['library/**/*.rbc'].each do |fn|
-        FileUtils.rm fn rescue nil
-      end
-    end
+desc "Removes build by-products for Rubinius runtime components"
+task :clean => ['clean:compiler', 'clean:bootstrap', 'clean:core', 'clean:library']
 
-    desc "Removes build by-products for bootstrap"
-    task :bootstrap do
-      FileList['kernel/bootstrap/**/*.rbc'].each do |fn|
-        FileUtils.rm fn rescue nil
-      end
-    end
-
-    desc "Removes build by-products for core"
-    task :core do
-      FileList['kernel/core/**/*.rbc'].each do |fn|
-        FileUtils.rm fn rescue nil
-      end
+namespace :clean do
+  desc "Removes build by-products for compiler"
+  task :compiler do
+    FileList['native/**/*.rbc', '/tmp/*.rbc'].each do |fn|
+      FileUtils.rm fn rescue nil
     end
   end
 
+  desc "Removes build by-products for library"
+  task :library do
+    FileList['library/**/*.rbc'].each do |fn|
+      FileUtils.rm fn rescue nil
+    end
+  end
+
+  desc "Removes build by-products for bootstrap"
+  task :bootstrap do
+    FileList['kernel/bootstrap/**/*.rbc'].each do |fn|
+      FileUtils.rm fn rescue nil
+    end
+  end
+
+  desc "Removes build by-products for core"
+  task :core do
+    FileList['kernel/core/**/*.rbc'].each do |fn|
+      FileUtils.rm fn rescue nil
+    end
+  end
+end
+
+namespace :build do
   file "shotgun/config.h" do
     sh "./configure"
     raise 'Failed to configure Rubinius' unless $?.success?
   end
-  
+
   task :configure => ["shotgun/config.h"] do
   end
-  
+
   desc "Compiles shotgun (the C-code VM)"
   task :shotgun => :configure do
     sh "make"
     raise 'Failed to build shotgun' unless $?.success?
   end
-  
+
   desc "Compiles the Rubinius bootstrap archive"
   task :bootstrap do
     files = Dir["kernel/bootstrap/*.rb"].sort
@@ -211,7 +201,7 @@ namespace :build do
   task :loader do
     i = "kernel/loader.rb"
     o = ENV['OUTPUT'] || "runtime/loader.rbc"
-    
+
     if @compiler
       system "shotgun/rubinius -I#{@compiler} compile #{i} #{o}"
     else
@@ -230,16 +220,15 @@ namespace :build do
     files = Dir["compiler/**/*.rb"].sort   
     update_archive files, 'runtime/compiler.rba', "compiler"
   end
-  
+
   desc "Compiles the Rubinius platform archive"
   task :platform do
     files = Dir["kernel/platform/*.rb"].sort   
     update_archive files, 'runtime/platform.rba'
   end
-  
 end
 
-desc "Remove all .rbc files from the project"
+desc "Remove all compiled Ruby files"
 task :pristine do
   FileList['**/*.rbc'].each do |fn|
     next if fn == 'runtime/loader.rbc'
@@ -247,20 +236,7 @@ task :pristine do
   end
 end
 
-# svn tasks
-desc "Remove runtime/*.rba then svn up"
-task :svn => 'svn:up'
-namespace :svn do
-  desc "Revert runtime/*.rba then svn up"
-  task :up do
-    sh "svn revert reports/*.html"
-    sh "svn revert runtime/*.rba"
-    puts `svn up`
-  end
-end
-
 # dev tasks
-
 namespace :dev do
   desc "Make a snapshot of the runtime files for your own safety"
   task :setup do
