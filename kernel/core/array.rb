@@ -667,6 +667,15 @@ class Array
     @sort_frozen || super 
   end 
 
+  # Produces a printable string of the Array. The string 
+  # is constructed by calling #inspect on all elements.
+  # Descends through contained Arrays, recursive ones
+  # are indicated as [...].
+  def inspect()
+    stack = []
+    recursively_inspect self, stack
+  end
+
   # Generates a string from converting all elements of 
   # the Array to strings, inserting a separator between
   # each. The separator defaults to $,. Detects recursive
@@ -741,11 +750,6 @@ class Array
 
   def to_s
     self.join
-  end
-
-  def inspect
-    inspected = self.map {|e| e.inspect}
-    "[#{inspected.join(', ')}]"
   end
 
   alias slice []
@@ -1307,6 +1311,26 @@ class Array
 
       obj
     end                                               # ary_from
+
+    # Helper to recurse through inspecting an Array.
+    # Detects recursive structures.
+    def recursively_inspect(array, stack)
+      return "[...]" if stack.include?(array.object_id)
+      stack.push array.object_id
+
+      out = []
+      
+      array.each { |o|
+        if o.kind_of? Array
+          out << recursively_inspect(o, stack)
+        else
+          out << o.inspect
+        end
+      }
+
+      stack.pop
+      "[#{out.join ', '}]"
+    end     
 
     # Helper to depth-first recurse through joining an Array
     # Detects recursive structures.
