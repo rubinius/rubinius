@@ -661,6 +661,39 @@ class Array
     Array.new(self[0...n])
   end    
 
+  # Recursively flatten any contained Arrays into an one-dimensional result.  
+  def flatten()
+    dup.flatten! || self
+  end 
+
+  # Flattens self in place as #flatten. If no changes are
+  # made, returns nil, otherwise self.
+  def flatten!
+    raise TypeError, "Array is frozen" if frozen?
+
+    ret, out, stack = nil, [], []
+
+    ret = recursively_flatten self, out, stack
+    replace(out) if ret
+    ret
+    
+#    recursor  = lambda { |ary|
+#                  ary.each { |o|
+#                    if o.kind_of? Array
+#                      recursor.call o 
+#                      ret = self
+#                    else
+#                      out << o
+#                    end
+#                  }
+#                }
+#
+#    recursor.call self
+#
+#    replace(out) if ret
+#    ret
+  end 
+
   # Returns true if the Array is frozen with #freeze or
   # temporarily sorted while being sorted.
   def frozen?()
@@ -770,34 +803,6 @@ class Array
     self.send(:"[]=", *args)
     #self[*args] = []       # FIXME: this has mysterious bugs
     out
-  end
-
-  def flatten!
-    ret = nil
-    i = 0
-    while i < @total
-      o = @tuple.at(i)
-  
-      if Array === o
-        self[i, 1] = o          # FIXME: quadratic.
-        ret = self
-      end
-      
-      i += 1      
-    end
-    ret
-  end
-
-  def flatten
-    ret = []
-    each { |o|
-      if Array === o
-        ret.concat(o.flatten)
-      else
-        ret << o
-      end
-    }
-    ret
   end
 
   def self.[](*args)
@@ -1300,7 +1305,7 @@ class Array
       end
 
       obj
-    end                                               # int_from
+    end  
 
     # Attempt to convert the given object to_ary or fail 
     def ary_from(obj)
@@ -1310,7 +1315,28 @@ class Array
       end
 
       obj
-    end                                               # ary_from
+    end 
+
+    # Helper to recurse through flattening since the method
+    # is not allowed to recurse itself. Detects recursive structures.
+    def recursively_flatten(array, out, stack)
+      raise ArgumentError, "Recursive Array!" if stack.include?(array.object_id)
+      stack.push array.object_id
+
+      ret = nil
+
+      array.each { |o|
+        if o.kind_of? Array
+          recursively_flatten o, out, stack 
+          ret = array
+        else
+          out << o
+        end
+      }
+
+      stack.pop                # Eep
+      ret
+    end
 
     # Helper to recurse through inspecting an Array.
     # Detects recursive structures.

@@ -1067,76 +1067,84 @@ describe "Array#first" do
 end
 
 describe "Array#flatten" do
-  # FIX: as of r1357, #flatten[!] causes Rubinius to allocate memory without bound
-  failure :rubinius do
-#    it "returns a one-dimensional flattening recursively" do
-#      [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []].flatten.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
-#    end
-#
-#    it "does not call flatten on elements" do
-#      obj = Object.new
-#      def obj.flatten() [1, 2] end
-#      [obj, obj].flatten.should == [obj, obj]
-#  
-#      obj = [5, 4]
-#      def obj.flatten() [1, 2] end
-#      [obj, obj].flatten.should == [5, 4, 5, 4]
-#    end
-#  
-#    it "raises ArgumentError on recursive arrays" do
-#      x = []
-#      x << x
-#      should_raise(ArgumentError) { x.flatten }
-#    
-#      x = []
-#      y = []
-#      x << y
-#      y << x
-#      should_raise(ArgumentError) { x.flatten }
-#    end
-#  
-#    it "returns subclass instance for Array subclasses" do
-#      MyArray[].flatten.class.should == MyArray
-#      MyArray[1, 2, 3].flatten.class.should == MyArray
-#      MyArray[1, [2], 3].flatten.class.should == MyArray
-#      [MyArray[1, 2, 3]].flatten.class.should == Array
-#    end
+  it "returns a one-dimensional flattening recursively" do
+    [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []].flatten.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
+  end
+
+  it "does not call flatten on elements" do
+    obj = Object.new
+    def obj.flatten() [1, 2] end
+    [obj, obj].flatten.should == [obj, obj]
+
+    obj = [5, 4]
+    def obj.flatten() [1, 2] end
+    [obj, obj].flatten.should == [5, 4, 5, 4]
+  end
+  
+  it "raises ArgumentError on recursive arrays" do
+    x = []
+    x << x
+    should_raise(ArgumentError) { x.flatten }
+  
+    x = []
+    y = []
+    x << y
+    y << x
+    should_raise(ArgumentError) { x.flatten }
+  end
+  
+  it "returns subclass instance for Array subclasses" do
+    MyArray[].flatten.class.should == MyArray
+    MyArray[1, 2, 3].flatten.class.should == MyArray
+    MyArray[1, [2], 3].flatten.class.should == MyArray
+    [MyArray[1, 2, 3]].flatten.class.should == Array
   end
 end  
 
 describe "Array#flatten!" do
-  # FIX: as of r1357, #flatten[!] causes Rubinius to allocate memory without bound
-  failure :rubinius do
-#    it "modifies array to produce a one-dimensional flattening recursively" do
-#      a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []]
-#      a.flatten!.equal?(a).should == true
-#      a.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
-#    end
-#  
-#    it "returns nil if no modifications took place" do
-#      a = [1, 2, 3]
-#      a.flatten!.should == nil
-#    end
-#  
-#    it "raises ArgumentError on recursive arrays" do
-#      x = []
-#      x << x
-#      should_raise(ArgumentError) { x.flatten! }
-#    
-#      x = []
-#      y = []
-#      x << y
-#      y << x
-#      should_raise(ArgumentError) { x.flatten! }
-#    end
-#
-#    it "raises TypeError on frozen arrays" do
-#      frozen_array.flatten! # ok, already flat
-#      nested_ary = [1, 2, []]
-#      nested_ary.freeze
-#      should_raise(TypeError) { nested_ary.flatten! }
-#    end
+  it "modifies array to produce a one-dimensional flattening recursively" do
+    a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []]
+    a.flatten!.equal?(a).should == true
+    a.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
   end
+
+  it "returns nil if no modifications took place" do
+    a = [1, 2, 3]
+    a.flatten!.should == nil
+  end
+
+  it "raises ArgumentError on recursive arrays" do
+    x = []
+    x << x
+    should_raise(ArgumentError) { x.flatten! }
+  
+    x = []
+    y = []
+    x << y
+    y << x
+    should_raise(ArgumentError) { x.flatten! }
+  end
+
+compliant :r18 do
+  it "raises TypeError on frozen arrays when modification would take place" do
+    nested_ary = [1, 2, []]
+    nested_ary.freeze
+    should_raise(TypeError) { nested_ary.flatten! }
+  end
+
+  it "does not raise on frozen arrays when no modification would take place" do
+    frozen_array.flatten! # ok, already flat
+  end
+end
+
+noncompliant :rubinius do
+  it "always raises TypeError on frozen arrays" do
+    should_raise(TypeError) { frozen_array.flatten! }
+    nested_ary = [1, 2, []]
+    nested_ary.freeze
+    should_raise(TypeError) { nested_ary.flatten! }
+  end
+end
 end
 
 describe "Array#frozen?" do
@@ -1475,20 +1483,17 @@ describe "Array#inspect" do
     items.inspect.should == '[items[0], items[1], items[2]]'
   end
   
-  # FIX: as of r1357 this causes a VM SIGBUS
-  failure :rubinius do
-    it "handles recursive arrays" do
-      x = [1, 2]
-      x << x << 4
-      x.inspect.should == '[1, 2, [...], 4]'
-  
-      x = [1, 2]
-      y = [3, 4]
-      x << y
-      y << x
-      x.inspect.should == '[1, 2, [3, 4, [...]]]'
-      y.inspect.should == '[3, 4, [1, 2, [...]]]'
-    end
+  it "handles recursive arrays" do
+    x = [1, 2]
+    x << x << 4
+    x.inspect.should == '[1, 2, [...], 4]'
+
+    x = [1, 2]
+    y = [3, 4]
+    x << y
+    y << x
+    x.inspect.should == '[1, 2, [3, 4, [...]]]'
+    y.inspect.should == '[3, 4, [1, 2, [...]]]'
   end
 end
 
@@ -1528,7 +1533,6 @@ describe "Array#join" do
     [1, 2].join(obj).should == "1.2"
   end
 
-# Rubinius cannot create recursive arrays, it segfaults -rue
 failure :rubinius do
   it "handles recursive arrays" do
     x = []
