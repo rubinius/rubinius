@@ -647,6 +647,19 @@ class Array
 
     self
   end 
+  
+  # Returns the first or first n elements of the Array.
+  # If no argument is given, returns nil if the item
+  # is not found. If there is an argument, an empty
+  # Array is returned instead.
+  def first(n = nil)
+    return at(0) unless n
+
+    n = int_from n
+    raise ArgumentError, "Size must be positive" if n < 0
+
+    Array.new(self[0...n])
+  end    
 
   # Returns true if the Array is frozen with #freeze or
   # temporarily sorted while being sorted.
@@ -1148,12 +1161,6 @@ class Array
     self
   end
   
-  
-  def first(n=nil)
-    return self[0] unless n
-    raise ArgumentError, "negative array size (or size too big)" if n < 0
-    self[0...n]
-  end
   
   def last(n=nil)
     return self[-1] unless n
