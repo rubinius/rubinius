@@ -831,7 +831,176 @@ class Array
     each { |elem| sum += 1 unless elem.nil? }
     sum
   end 
+  
+  BASE_64_ALPHA = {}
+  def self.after_loaded
+    (0..25).each {|x| BASE_64_ALPHA[x] = ?A + x}
+    (26..51).each {|x| BASE_64_ALPHA[x] = ?a + x - 26}
+    (52..61).each {|x| BASE_64_ALPHA[x] = ?0 + x - 52}
+    BASE_64_ALPHA[62] = ?+
+    BASE_64_ALPHA[63] = ?/
+  end
 
+  # TODO fill out pack.
+  def pack(schema)
+    # The schema is an array of arrays like [["A", "6"], ["u", "*"], ["X", ""]]. It represents the parsed
+    # form of "A6u*X".
+    schema = schema.scan(/([a-zA-Z][\d\*]*)/).flatten.map {|x| x.match(/([a-zA-Z])([\d\*]*)/)[1..-1] }
+    
+    # create the buffer
+    ret = ""
+    # we're starting from the first element in the array
+    arr_idx = 0
+    schema.each do |scheme|
+      # get the kind of pack
+      kind = scheme[0]
+      # get the array item being worked on
+      item = self[arr_idx]
+      # set t to nil if no number (or "*") was passed in
+      t = scheme[1].empty? ? nil : scheme[1]
+      # X deletes a number of characters from the buffer (defaults to one; * means 0)
+      if kind == "X"
+        # set the default number to 1; otherwise to_i will give us the correct value
+        t = t.nil? ? 1 : t.to_i
+        # don't allow backing up farther than the size of the buffer
+        raise ArgumentError, "you're backing up too far" if t > ret.size
+        ret = ret[0..-(t + 1)]
+      # x returns just a group of null strings
+      elsif kind == "x"
+        t = t.nil? ? 1 : t.to_i
+        ret = "\x0" * t
+      # if there's no item, that means there's more schema items than array items,
+      # so throw an error.
+      elsif !item
+        raise ArgumentError, "too few array elements"
+      # TODO: Document this
+      elsif kind == "N"
+        obj = self[arr_idx]
+        parts = []
+        4.times do
+          parts << (obj % 256)
+          obj = obj / 256
+        end
+        3.downto(0) do |j|
+          ret << parts[j].chr
+        end
+      # A and a both pad the text
+      elsif kind =~ /[aAZ]/
+        raise TypeError unless item.is_a?(String)
+        # The total new string size will be:
+        # * the number passed in
+        # * the size of the array's string if "*" was passed in
+        # * 1 if nothing was passed in
+        size = !t ? 1 : (t == "*" ? item.size : t.to_i)              
+        # Z has a twist: "*" adds a null to the end of the string
+        size += 1 if kind == "Z" && t == "*"
+        # Pad or truncate the string (with spaces) as appropriate        
+        ret << ("%-#{size}s" % item.dup)[0...(size)]
+        # The padding size is the calculated size minus the string size        
+        padsize = size - item.size
+        # Replace the space padding for null padding in "a" or "Z"
+        ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if kind =~ /[aZ]/ && padsize > 0
+      # c returns a single character. If there's a size, it will gobble up more array elements
+      elsif kind =~ /c/i
+        raise TypeError if item.is_a?(String)
+        # Size is the same as for A
+        size = !t ? 1 : (t == "*" ? self.size : t.to_i)
+        0.upto(size - 1) do |i| 
+          raise ArgumentError, "too few array elements" if !self[arr_idx + i]
+          # Add a character if there's an element at the array index; otherwise add a null
+          ret << (self[arr_idx + i] ? "%c" % self[arr_idx + i] : "\x0")
+        end
+      # M returns a string encoded with Quoted printable
+      elsif kind == "M"
+         # normalize non-strings
+         if !item.is_a?(String)
+           item = item.to_s
+         end
+         encoded = ""
+         # only 75 characters per line (each line ends with "=\n")
+         e = item.scan(/.{0,73}/m).each do |result|
+           # Loop through each byte
+           # * if it's an encodable byte, encode it
+           # * otherwise pass it through
+           result.each_byte { |byte| encoded << (((32..60).to_a + (62..126).to_a + [9,10]).include?(byte) ? byte.chr : "=%02X" % byte) }         
+           # add a line-ending to the end of the line
+           encoded << "=\n"
+         end
+         ret << encoded
+      # Base64 encoding
+      elsif kind == "m"
+        raise TypeError if !item.is_a?(String)
+        # split the string into letters
+        letters = item.split(//)
+        # get a series of 0-padded 8-bit representations of the letters
+        letters.map! {|letter| "%08d" % letter[0].to_s(2) }
+        # merge the 8-bit representations into 24-bit representations (divisible by 6 and 8)
+        even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream| stream.empty? }
+        # pad the 24-bit streams so we have an set of complete, 24-bit numbers (with a's for padding characters)
+        even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "a") }
+        # split the numbers up into 6-bit (base64) fragments
+        base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream| stream.empty? }
+        # convert the 6-bit fragments into base64 characters. 'aaaaaa' means a padded base64 fragment
+        encoded_letters = base_64_stream.map do |fragment|
+          # if there's a mixture of digits and "a", the a's should be 0's
+          fragment = fragment.gsub("a", "0") if fragment =~ /\da/
+          # if the fragment is not a pad, get the letter from the alphabet; otherwise, pad with "="
+          (fragment != "aaaaaa") ? BASE_64_ALPHA[("%08s" % fragment).to_i(2)].chr : "="
+        end
+        # almost done; join the encoded letters together
+        unbroken_stream = encoded_letters.join
+        # break the stream up into 60 character sets
+        broken_stream = unbroken_stream.scan(/.{0,60}/).reject{|set| set.empty?}
+        # add \n to the end of each line (including the last line)
+        ret << broken_stream.map {|set| set + "\n"}.join
+      # UUEncode
+      elsif kind == "u"
+        raise TypeError if !item.is_a?(String)
+        # split the string into 45-character lines
+        lines = item.scan(/.{0,45}/)
+        # get a series of 0-padded 8-bit representations of the lines
+        lines.map! do |line|
+          # store line length
+          line_length = line.size
+          # get a list of 0-padded 8-bit representations of the line
+          letters = line.split(//).map! {|letter| "%08d" % letter[0].to_s(2) }
+          # merge the 8-bit representations into 24-bit representations (divisible by 6 and 8)
+          even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream| stream.empty? }
+          # pad the 24-bit streams so we have an set of complete, 24-bit numbers (with a's for padding characters)
+          even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "0") }
+          # split the numbers up into 6-bit fragments
+          base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream| stream.empty? }
+          # convert the 6-bit fragments into ASCII characters.
+          encoded_letters = base_64_stream.map do |fragment|
+            fragment == "000000" ? "`" : (("%08s" % fragment).to_i(2) + 32).chr
+          end
+          # almost done; join the encoded letters together
+          unbroken_stream = encoded_letters.join
+          # return properly set up line (size preamble and line feed ending) from the map
+          "#{(line_length + 32).chr}#{unbroken_stream}\n"
+        end
+        # add \n to the end of each line (including the last line)
+        ret << lines.join
+      else
+        raise ArgumentError, "Unknown kind #{kind.chr}"
+      end
+      arr_idx += 1
+    end
+    
+    return ret
+  end
+
+  # Removes and returns the last element from the Array.
+  def pop()
+    raise TypeError, "Array is frozen" if frozen?
+    return nil if empty?
+    
+    # TODO Reduce tuple if there are a lot of free slots
+    
+    elem = at(-1)
+    @total -= 1
+    elem
+  end
 
   def push(*args)
     args.each do |ent|
@@ -1017,164 +1186,6 @@ class Array
     nil
   end
   
-  BASE_64_ALPHA = {}
-  def self.after_loaded
-    (0..25).each {|x| BASE_64_ALPHA[x] = ?A + x}
-    (26..51).each {|x| BASE_64_ALPHA[x] = ?a + x - 26}
-    (52..61).each {|x| BASE_64_ALPHA[x] = ?0 + x - 52}
-    BASE_64_ALPHA[62] = ?+
-    BASE_64_ALPHA[63] = ?/
-  end
-
-  # TODO fill out pack.
-  def pack(schema)
-    # The schema is an array of arrays like [["A", "6"], ["u", "*"], ["X", ""]]. It represents the parsed
-    # form of "A6u*X".
-    schema = schema.scan(/([a-zA-Z][\d\*]*)/).flatten.map {|x| x.match(/([a-zA-Z])([\d\*]*)/)[1..-1] }
-    
-    # create the buffer
-    ret = ""
-    # we're starting from the first element in the array
-    arr_idx = 0
-    schema.each do |scheme|
-      # get the kind of pack
-      kind = scheme[0]
-      # get the array item being worked on
-      item = self[arr_idx]
-      # set t to nil if no number (or "*") was passed in
-      t = scheme[1].empty? ? nil : scheme[1]
-      # X deletes a number of characters from the buffer (defaults to one; * means 0)
-      if kind == "X"
-        # set the default number to 1; otherwise to_i will give us the correct value
-        t = t.nil? ? 1 : t.to_i
-        # don't allow backing up farther than the size of the buffer
-        raise ArgumentError, "you're backing up too far" if t > ret.size
-        ret = ret[0..-(t + 1)]
-      # x returns just a group of null strings
-      elsif kind == "x"
-        t = t.nil? ? 1 : t.to_i
-        ret = "\x0" * t
-      # if there's no item, that means there's more schema items than array items,
-      # so throw an error.
-      elsif !item
-        raise ArgumentError, "too few array elements"
-      # TODO: Document this
-      elsif kind == "N"
-        obj = self[arr_idx]
-        parts = []
-        4.times do
-          parts << (obj % 256)
-          obj = obj / 256
-        end
-        3.downto(0) do |j|
-          ret << parts[j].chr
-        end
-      # A and a both pad the text
-      elsif kind =~ /[aAZ]/
-        raise TypeError unless item.is_a?(String)
-        # The total new string size will be:
-        # * the number passed in
-        # * the size of the array's string if "*" was passed in
-        # * 1 if nothing was passed in
-        size = !t ? 1 : (t == "*" ? item.size : t.to_i)              
-        # Z has a twist: "*" adds a null to the end of the string
-        size += 1 if kind == "Z" && t == "*"
-        # Pad or truncate the string (with spaces) as appropriate        
-        ret << ("%-#{size}s" % item.dup)[0...(size)]
-        # The padding size is the calculated size minus the string size        
-        padsize = size - item.size
-        # Replace the space padding for null padding in "a" or "Z"
-        ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if kind =~ /[aZ]/ && padsize > 0
-      # c returns a single character. If there's a size, it will gobble up more array elements
-      elsif kind =~ /c/i
-        raise TypeError if item.is_a?(String)
-        # Size is the same as for A
-        size = !t ? 1 : (t == "*" ? self.size : t.to_i)
-        0.upto(size - 1) do |i| 
-          raise ArgumentError, "too few array elements" if !self[arr_idx + i]
-          # Add a character if there's an element at the array index; otherwise add a null
-          ret << (self[arr_idx + i] ? "%c" % self[arr_idx + i] : "\x0")
-        end
-      # M returns a string encoded with Quoted printable
-      elsif kind == "M"
-         # normalize non-strings
-         if !item.is_a?(String)
-           item = item.to_s
-         end
-         encoded = ""
-         # only 75 characters per line (each line ends with "=\n")
-         e = item.scan(/.{0,73}/m).each do |result|
-           # Loop through each byte
-           # * if it's an encodable byte, encode it
-           # * otherwise pass it through
-           result.each_byte { |byte| encoded << (((32..60).to_a + (62..126).to_a + [9,10]).include?(byte) ? byte.chr : "=%02X" % byte) }         
-           # add a line-ending to the end of the line
-           encoded << "=\n"
-         end
-         ret << encoded
-      # Base64 encoding
-      elsif kind == "m"
-        raise TypeError if !item.is_a?(String)
-        # split the string into letters
-        letters = item.split(//)
-        # get a series of 0-padded 8-bit representations of the letters
-        letters.map! {|letter| "%08d" % letter[0].to_s(2) }
-        # merge the 8-bit representations into 24-bit representations (divisible by 6 and 8)
-        even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream| stream.empty? }
-        # pad the 24-bit streams so we have an set of complete, 24-bit numbers (with a's for padding characters)
-        even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "a") }
-        # split the numbers up into 6-bit (base64) fragments
-        base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream| stream.empty? }
-        # convert the 6-bit fragments into base64 characters. 'aaaaaa' means a padded base64 fragment
-        encoded_letters = base_64_stream.map do |fragment|
-          # if there's a mixture of digits and "a", the a's should be 0's
-          fragment = fragment.gsub("a", "0") if fragment =~ /\da/
-          # if the fragment is not a pad, get the letter from the alphabet; otherwise, pad with "="
-          (fragment != "aaaaaa") ? BASE_64_ALPHA[("%08s" % fragment).to_i(2)].chr : "="
-        end
-        # almost done; join the encoded letters together
-        unbroken_stream = encoded_letters.join
-        # break the stream up into 60 character sets
-        broken_stream = unbroken_stream.scan(/.{0,60}/).reject{|set| set.empty?}
-        # add \n to the end of each line (including the last line)
-        ret << broken_stream.map {|set| set + "\n"}.join
-      # UUEncode
-      elsif kind == "u"
-        raise TypeError if !item.is_a?(String)
-        # split the string into 45-character lines
-        lines = item.scan(/.{0,45}/)
-        # get a series of 0-padded 8-bit representations of the lines
-        lines.map! do |line|
-          # store line length
-          line_length = line.size
-          # get a list of 0-padded 8-bit representations of the line
-          letters = line.split(//).map! {|letter| "%08d" % letter[0].to_s(2) }
-          # merge the 8-bit representations into 24-bit representations (divisible by 6 and 8)
-          even_bitstream = letters.join.scan(/.{0,24}/).reject {|stream| stream.empty? }
-          # pad the 24-bit streams so we have an set of complete, 24-bit numbers (with a's for padding characters)
-          even_bitstream.map! {|bitset| ("%-24s" % bitset).gsub(" ", "0") }
-          # split the numbers up into 6-bit fragments
-          base_64_stream = even_bitstream.join.scan(/.{0,6}/).reject {|stream| stream.empty? }
-          # convert the 6-bit fragments into ASCII characters.
-          encoded_letters = base_64_stream.map do |fragment|
-            fragment == "000000" ? "`" : (("%08s" % fragment).to_i(2) + 32).chr
-          end
-          # almost done; join the encoded letters together
-          unbroken_stream = encoded_letters.join
-          # return properly set up line (size preamble and line feed ending) from the map
-          "#{(line_length + 32).chr}#{unbroken_stream}\n"
-        end
-        # add \n to the end of each line (including the last line)
-        ret << lines.join
-      else
-        raise ArgumentError, "Unknown kind #{kind.chr}"
-      end
-      arr_idx += 1
-    end
-    
-    return ret
-  end
-  
   def reverse
     ary = []
     i = @total - 1
@@ -1259,16 +1270,6 @@ class Array
     return ele
   end
   
-  def pop
-    return nil if empty?
-    
-    # TODO if total is a lot less than size of the tuple, 
-    # the tuple should be resized down.
-    
-    ele = last()
-    @total -= 1
-    return ele
-  end
 
   def pretty_inspect(indent=0)
     str = "["
