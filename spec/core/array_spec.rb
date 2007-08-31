@@ -1283,7 +1283,6 @@ describe "Array#include?" do
     [1, 2, o, "b"].include?('a').should == true
   end
 
-compliant :r18 do
   it "calls == on elements from left to right until success" do
     key = "x"
     ary = Array.new(3) { Object.new }
@@ -1293,7 +1292,6 @@ compliant :r18 do
     
     ary.include?(key).should == true
   end
-end
 end
 
 describe "Array#index" do

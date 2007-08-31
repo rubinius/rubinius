@@ -342,14 +342,14 @@ class Array
 
   # Assumes the Array contains other Arrays and searches through 
   # it comparing the given object with the first element of each
-  # contained Array using obj.==. Returns the first contained 
+  # contained Array using elem == obj. Returns the first contained 
   # Array that matches (the first 'associated' Array) or nil.
   def assoc(obj)
     # FIX: use break when it works again
     found, res = nil, nil
 
     each { |elem| 
-      if found.nil? and elem.kind_of? Array and obj == elem.first 
+      if found.nil? and elem.kind_of? Array and elem.first == obj
         found, res = true, elem
       end
     }
@@ -713,10 +713,9 @@ class Array
   end
 
   # Returns true if the given obj is present in the Array.
-  # Presence is determined by calling obj.== on each element
-  # until found.
+  # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    @total.times { |i| return true if obj == at(i) }
+    @total.times { |i| return true if at(i) == obj }
     false
   end
 
