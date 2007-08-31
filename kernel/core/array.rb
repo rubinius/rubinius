@@ -1000,13 +1000,59 @@ class Array
     @total -= 1
     elem
   end
+  
+  # Rubinius-only, better inspect representation of the Array
+  def pretty_inspect(indent = 0)
+    # Here there be dragons. In fact, there is one jusAAAAAAAARGH
+    str = "["
+    
+    sub = false
+    i = 0
+    lst = size - 1
+    while i < size
+      element = self[i]
+      if Array === element
+        estr = element.pretty_inspect(indent + 2)
+        if str.size > 30 or estr.size > 30
+          if estr[0] != ?\ 
+            estr = "#{' ' * (indent + 2)}#{estr}"
+          end
 
-  def push(*args)
-    args.each do |ent|
-      self[@total] = ent
+          str << "\n#{estr}"
+          sub = true
+        else
+          str << estr
+        end
+      else
+        str << element.inspect
+      end
+      
+      str << ", " unless i == lst
+      i += 1
     end
+    
+    if sub
+      str << "\n#{' ' * indent}]"
+    else
+      str << "]"
+    end
+    
+    if sub
+      return "#{' ' * indent}#{str}"
+    end
+    
+    return str
+  end  
+
+  # Appends the given object(s) to the Array and returns
+  # the modified self.
+  def push(*args)
+    raise TypeError, "Array is frozen" if frozen?
+    return self if args.empty?
+
+    args.each { |ent| self[@total] = ent }
     self
-  end
+  end 
   
   def reverse_each
     i = @total
