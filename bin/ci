@@ -29,6 +29,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
     action = :invert
+    format = 'd'
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -70,9 +71,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   patterns = opts.parse ARGV
 end
 
-# remove all compiled spec files to catch compiler bugs
-Dir['spec/**/*_spec.rbc'].each { |name| File.delete name } if clean
-
 # only these directories are included because other directories have specs
 # that cause compilation to fail. ideally, spec/**/*_spec.rb would be run.
 patterns = ['spec/compiler', 'spec/core', 'spec/mspec', 'spec/parser'] if patterns.empty?
@@ -82,6 +80,9 @@ patterns.each do |item|
   files << item if stat.file?
   files.concat(Dir[item+"/**/*_spec.rb"]) if stat.directory?
 end
+
+# remove all compiled spec files to catch compiler bugs
+files.each { |name| File.delete name } if clean
 
 process = lambda do |cmd|
   if separate
