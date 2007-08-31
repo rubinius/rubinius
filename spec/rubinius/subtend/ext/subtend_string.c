@@ -14,7 +14,7 @@ VALUE ss_dup_string(VALUE self, VALUE str) {
   return rb_str_dup(str);
 }
 
-value ss_str_append(VALUE self, VALUE str, VALUE str2) {
+VALUE ss_str_append(VALUE self, VALUE str, VALUE str2) {
   return rb_str_append(str, str2);
 }
 

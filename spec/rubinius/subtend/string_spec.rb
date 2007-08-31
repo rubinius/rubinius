@@ -45,7 +45,7 @@ extension :rubinius do
       @s.phrase_as_question("Your house is on fire").should == "Your house is on fire?"
     end
     
-    specify "rb_str_vat should concat C strings to ruby strings" do
+    specify "rb_str_cat should concat C strings to ruby strings" do
       @s.cat_as_question("Your house is on fire").should == "Your house is on fire?"
     end
     
