@@ -517,6 +517,11 @@ describe "Array#==" do
   end
 end
 
+module ArraySpecs
+  class AssocKey
+    def ==(other); other == 'it'; end
+  end
+end
 describe "Array#assoc" do
   it "returns the first array whose 1st item is == obj or nil" do
     s1 = ["colors", "red", "blue", "green"] 
@@ -532,15 +537,13 @@ describe "Array#assoc" do
     a.assoc("key not in array").should == nil
   end
 
-  specify "calls == on argument" do
-    key = Object.new
-    items = [['not it', 1], ['it', 2], ['na', 3]]
+  specify "calls == on first element of each array" do
+    key1 = 'it'
+    key2 = Object.new
+    items = [['not it', 1], [ArraySpecs::AssocKey.new, 2], ['na', 3]]
 
-    items.assoc(key).should == nil
-
-    def key.==(other); other == 'it' ; end
-
-    items.assoc(key).should == items[1]
+    items.assoc(key1).should == items[1]
+    items.assoc(key2).should == nil
   end
 
 #  it "calls == on argument" do
@@ -814,7 +817,7 @@ describe "Array#delete_at" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.delete_at(0) }
+    should_raise(TypeError) { [1,2,3].freeze.delete_at(0) }
   end
 end
 
@@ -1270,14 +1273,14 @@ describe "Array#include?" do
     [1, 2, "a", "b"].include?("a").should == true
   end
 
-  it "determines presence by using obj == element" do
+  it "determines presence by using element == obj" do
     o = Object.new
   
     [1, 2, "a", "b"].include?(o).should == false
 
     def o.==(other); other == 'a'; end
 
-    [1, 2, "a", "b"].include?(o).should == true
+    [1, 2, o, "b"].include?('a').should == true
   end
 
 compliant :r18 do

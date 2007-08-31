@@ -17,12 +17,14 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # taint, tainted?, to_a, to_enum, to_json, to_s, to_yaml,
 # to_yaml_properties, to_yaml_style, type, untaint, verify
 
-class A 
-  def public_method; :public_method; end
-  protected
-  def protected_method; :protected_method; end
-  private
-  def private_method; :private_method; end
+module ObjectSpecs
+  class A 
+    def public_method; :public_method; end
+    protected
+    def protected_method; :protected_method; end
+    private
+    def private_method; :private_method; end
+  end
 end
 
 context "Object class method" do
@@ -33,39 +35,39 @@ end
 
 context "Object instance method" do
   specify "send should invoke the named method" do
-    class Foo
+    class ObjectSpecs::Foo
       def bar
         'done'
       end
     end
-    Foo.new.send(:bar).should == 'done'
+    ObjectSpecs::Foo.new.send(:bar).should == 'done'
   end
 
   specify "send should invoke a class method if called on a class" do
-    class Foo
+    class ObjectSpecs::Foo
       def self.bar
         'done'
       end
     end
-    Foo.send(:bar).should == 'done'
+    ObjectSpecs::Foo.send(:bar).should == 'done'
   end
 
   specify "send should raise NoMethodError if the corresponding method can't be found" do
-    class Foo
+    class ObjectSpecs::Foo
       def bar
         'done'
       end
     end
-    should_raise(NoMethodError) { Foo.new.send(:baz) }
+    should_raise(NoMethodError) { ObjectSpecs::Foo.new.send(:baz) }
   end
 
   specify "send should raise NoMethodError if the corresponding singleton method can't be found" do
-    class Foo
+    class ObjectSpecs::Foo
       def self.bar
         'done'
       end
     end
-    should_raise(NoMethodError) { Foo.send(:baz) }
+    should_raise(NoMethodError) { ObjectSpecs::Foo.send(:baz) }
   end
   
   specify "freeze should prevent self from being further modified" do
@@ -177,35 +179,35 @@ context "Object instance method" do
   end
 
   specify "method should return a method object for a valid method" do
-    class Foo; def bar; 'done'; end; end
-    Foo.new.method(:bar).class.should == Method
+    class ObjectSpecs::Foo; def bar; 'done'; end; end
+    ObjectSpecs::Foo.new.method(:bar).class.should == Method
   end
 
   specify "method should return a method object for a valid singleton method" do
-    class Foo; def self.bar; 'done'; end; end
-    Foo.method(:bar).class.should == Method
+    class ObjectSpecs::Foo; def self.bar; 'done'; end; end
+    ObjectSpecs::Foo.method(:bar).class.should == Method
   end
  
   specify "method should raise a NameError for an invalid method name" do
-    class Foo; def bar; 'done'; end; end
-    should_raise(NameError) { Foo.new.method(:baz) }
+    class ObjectSpecs::Foo; def bar; 'done'; end; end
+    should_raise(NameError) { ObjectSpecs::Foo.new.method(:baz) }
   end
 
   specify "method should raise a NameError for an invalid singleton method name" do
-    class Foo; def self.bar; 'done'; end; end
-    should_raise(NameError) { Foo.method(:baz) }
+    class ObjectSpecs::Foo; def self.bar; 'done'; end; end
+    should_raise(NameError) { ObjectSpecs::Foo.method(:baz) }
   end
 
   specify "respond_to? should indicate if an object responds to a particular message" do
-    class Foo; def bar; 'done'; end; end
-    Foo.new.respond_to?(:bar).should == true
-    Foo.new.respond_to?(:baz).should == false
+    class ObjectSpecs::Foo; def bar; 'done'; end; end
+    ObjectSpecs::Foo.new.respond_to?(:bar).should == true
+    ObjectSpecs::Foo.new.respond_to?(:baz).should == false
   end
 
   specify "respond_to? should indicate if a singleton object responds to a particular message" do
-    class Foo; def self.bar; 'done'; end; end
-    Foo.respond_to?(:bar).should == true
-    Foo.respond_to?(:baz).should == false
+    class ObjectSpecs::Foo; def self.bar; 'done'; end; end
+    ObjectSpecs::Foo.respond_to?(:bar).should == true
+    ObjectSpecs::Foo.respond_to?(:baz).should == false
   end
 end
 
@@ -215,17 +217,17 @@ describe "Object#instance_variable_get" do
   end
   
   it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
-    class A; end
-    should_raise(TypeError) { "".instance_variable_get(A.new) }
+    class ObjectSpecs::A; end
+    should_raise(TypeError) { "".instance_variable_get(ObjectSpecs::A.new) }
   end
   
   it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
-    class B
+    class ObjectSpecs::B
       def to_str
         ":c"
       end
     end
-    should_raise(NameError) { "".instance_variable_get(B.new) }
+    should_raise(NameError) { "".instance_variable_get(ObjectSpecs::B.new) }
   end
   
   it "should raise NameError if pass an object that cannot be a symbol" do
@@ -233,7 +235,7 @@ describe "Object#instance_variable_get" do
   end
   
   it "should accept as instance variable name any instance of a class that responds to to_str" do
-    class C
+    class ObjectSpecs::C
       def initialize
         @a = 1
       end
@@ -241,7 +243,7 @@ describe "Object#instance_variable_get" do
         "@a"
       end
     end
-    C.new.instance_variable_get(C.new).should == 1
+    ObjectSpecs::C.new.instance_variable_get(ObjectSpecs::C.new).should == 1
   end
 end
 
@@ -251,17 +253,17 @@ describe "Object#instance_variable_set" do
   end
   
   it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
-    class A; end
-    should_raise(TypeError) { "".instance_variable_set(A.new, 3) }
+    class ObjectSpecs::A; end
+    should_raise(TypeError) { "".instance_variable_set(ObjectSpecs::A.new, 3) }
   end
   
   it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
-    class B
+    class ObjectSpecs::B
       def to_str
         ":c"
       end
     end
-    should_raise(NameError) { "".instance_variable_set(B.new, 4) }
+    should_raise(NameError) { "".instance_variable_set(ObjectSpecs::B.new, 4) }
   end
   
   it "should raise NameError if pass an object that cannot be a symbol" do
@@ -269,7 +271,7 @@ describe "Object#instance_variable_set" do
   end
   
   it "should accept as instance variable name any instance of a class that responds to to_str" do
-    class C
+    class ObjectSpecs::C
       def initialize
         @a = 1
       end
@@ -277,29 +279,29 @@ describe "Object#instance_variable_set" do
         "@a"
       end
     end
-    C.new.instance_variable_set(C.new, 2).should == 2
+    ObjectSpecs::C.new.instance_variable_set(ObjectSpecs::C.new, 2).should == 2
   end
 end
 
 describe "Object#method_missing" do
-  class A
+  class ObjectSpecs::A
     def method_missing (*args)
       "a_new_method_missing"
     end
   end 
    
   it  "return the correct value form method_missing after call a not defined instance method" do
-    A.new.foo.should == "a_new_method_missing"
+    ObjectSpecs::A.new.foo.should == "a_new_method_missing"
   end
   
   it "raise a NoMethodError Exceptiong after call a not defined Class method even if te the method_missing its defined" do  
-    should_raise(NoMethodError){A.foo.should == "a_new_method_missing"} 
+    should_raise(NoMethodError){ObjectSpecs::A.foo.should == "a_new_method_missing"} 
   end    
    
-  class B;end   
+  class ObjectSpecs::B;end   
   
   it "raise a NoMethodError Exceptiong after call a not defined instance method" do
-    should_raise(NoMethodError){B.new.foo}
+    should_raise(NoMethodError){ObjectSpecs::B.new.foo}
   end
 
   
@@ -307,45 +309,45 @@ describe "Object#method_missing" do
     should_raise(NoMethodError){some_method "a", 1} 
   end    
   
-  class C
+  class ObjectSpecs::C
     def self.method_missing (*args)
       "a_new_method_missing"
     end
   end
     
   it  "return the correct value form method_missing after call a not defined class method" do
-    C.foo.should == "a_new_method_missing"
+    ObjectSpecs::C.foo.should == "a_new_method_missing"
   end
   
   it  "raise a NoMethodError Exceptiong after call a not defined instance method" do 
-    should_raise(NoMethodError){C.new.foo.should == "a_new_method_missing"} 
+    should_raise(NoMethodError){ObjectSpecs::C.new.foo.should == "a_new_method_missing"} 
   end
    
 
-  class AParent
+  class ObjectSpecs::AParent
     def method_missing (*args)
       "a_new_method_missing"
     end
   end
     
-  class AChild < AParent
+  class ObjectSpecs::AChild < ObjectSpecs::AParent
     def foo
       super
     end
   end    
     
   it  "return the correct value form method_missing after call a not defined instance method" do
-    AChild.new.foo.should == "a_new_method_missing"
+    ObjectSpecs::AChild.new.foo.should == "a_new_method_missing"
   end
    
-  class AClassWithProtectedAndPrivateMethod
+  class ObjectSpecs::ProtectedAndPrivate
     private
     def a_private_method;  end 
     protected
     def a_protected_method; end
   end
     
-  class AClassWithProtectedMethodAndMetohdMissing 
+  class ObjectSpecs::ProtectedAndMissing 
     def method_missing(*args)
       :a_new_method_missing
     end
@@ -355,7 +357,7 @@ describe "Object#method_missing" do
     end
   end
     
-  class AClassWithPrivateMethodAndMetohdMissing
+  class ObjectSpecs::PrivateAndMissing
     def method_missing(*args)
       :a_new_method_missing
     end    
@@ -366,31 +368,31 @@ describe "Object#method_missing" do
   end 
    
   it  "raise a NoMethodError exception after call a non defined method in a class with proctected and private methods" do
-    should_raise(NoMethodError){AClassWithProtectedAndPrivateMethod.new.a_missing_method}
+    should_raise(NoMethodError){ObjectSpecs::ProtectedAndPrivate.new.a_missing_method}
   end  
   
   it  "raise a not a NoMethodError and message should be a exception after call a private methor defined in a class " do
-    should_raise(NoMethodError){AClassWithProtectedAndPrivateMethod.new.a_private_method} 
+    should_raise(NoMethodError){ObjectSpecs::ProtectedAndPrivate.new.a_private_method} 
   end
   
   it  "raise a not a NoMethodError and message should be a exception after call a protected methor defined in a class " do
-    should_raise(NoMethodError){AClassWithProtectedAndPrivateMethod.new.a_protected_method}
+    should_raise(NoMethodError){ObjectSpecs::ProtectedAndPrivate.new.a_protected_method}
   end
   
   it  "return the correct value from the method_missing method after call a private instance method" do
-    AClassWithPrivateMethodAndMetohdMissing.new.a_private_method.should == :a_new_method_missing
+    ObjectSpecs::PrivateAndMissing.new.a_private_method.should == :a_new_method_missing
   end
   
   it  "return the correct value from the method_missing method after call a protected instance method" do
-    AClassWithProtectedMethodAndMetohdMissing.new.a_protected_method.should == :a_new_method_missing
+    ObjectSpecs::ProtectedAndMissing.new.a_protected_method.should == :a_new_method_missing
   end
   
   it  "return the correct value from the method_missing method after call a private class method" do
-    AClassWithPrivateMethodAndMetohdMissing.a_private_class_method.should == :a_private_class_method
+   ObjectSpecs::PrivateAndMissing.a_private_class_method.should == :a_private_class_method
   end
     
   it  "return the correct value from the method_missing method after call a protected class method" do
-    AClassWithProtectedMethodAndMetohdMissing.a_protected_class_method.should == :a_protected_class_method
+    ObjectSpecs::ProtectedAndMissing.a_protected_class_method.should == :a_protected_class_method
   end 
 end
 
@@ -515,17 +517,17 @@ generic_entries_kind_of = shared "Object#is_a_kind_of" do |cmd|
       a.send(cmd, Enumerable).should == true
     end    
           
-    module M;    end
-    class X; include M; end
-    class Y < X; end
-    class Z < Y; end 
+    module ObjectSpecs::M;    end
+    class ObjectSpecs::X; include ObjectSpecs::M; end
+    class ObjectSpecs::Y < ObjectSpecs::X; end
+    class ObjectSpecs::Z < ObjectSpecs::Y; end 
   
     it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example" do     
-      y = Y.new
-      y.send(cmd, X).should == true       
-      y.send(cmd, Y).should == true       
-      y.send(cmd, Z).should == false       
-      y.send(cmd, M).should == true
+      y = ObjectSpecs::Y.new
+      y.send(cmd, ObjectSpecs::X).should == true       
+      y.send(cmd, ObjectSpecs::Y).should == true       
+      y.send(cmd, ObjectSpecs::Z).should == false       
+      y.send(cmd, ObjectSpecs::M).should == true
     end
     
     it "nil.#{cmd} cases specs"  do 
@@ -555,7 +557,7 @@ end
 
 describe "Object#respond_to?" do
   before :each do 
-    @a = A.new  
+    @a = ObjectSpecs::A.new  
   end
    
   it "returns true if obj responds to the given public method" do    
