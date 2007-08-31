@@ -21,3 +21,4 @@ String#gsub with pattern, replacement replaces \' with everything after the curr
 String#gsub with pattern, replacement returns subclass instances when called on a subclass
 String#gsub with pattern and block raises a RuntimeError if the string is modified while substituting
 Numeric#coerce coerce strings to strings
+String#=~ raises a TypeError if a obj is a string

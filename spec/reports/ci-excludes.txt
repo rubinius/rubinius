@@ -1,3 +1,1052 @@
+Bytecode::Compiler compiles masgn with array as the source and too many lhs
+Bytecode::Compiler compiles masgn with array as the source and too many rhs
+Bytecode::Compiler compiles masgn with array as source splat is stupid
+Local variable access lvar in method body uses specific syntax
+Local variable access lvar defined in method, accessed in block
+Single assignment If rhs has multiple arguments, lhs becomes an Array of them
+Multiple assignment without grouping or splatting An equal number of arguments on lhs and rhs assigns positionally
+Multiple assignment without grouping or splatting If rhs has too few arguments, the missing ones on lhs are assigned nil
+Multiple assignment without grouping or splatting If rhs has too many arguments, the extra ones are silently not assigned anywhere
+Array includes Enumerable
+Array#initialize is private
+Array#initialize does nothing when passed self
+Array#initialize sets the array to size objects when passed size, object
+Array#initialize does not raise TypeError on a frozen array if it would not change the array
+Array#initialize raises TypeError on frozen arrays
+Array#assoc calls == on first element of each array
+Array#collect! raises TypeError on a frozen array
+Array#map! raises TypeError on a frozen array
+Array#frozen? returns true if array is temporarily frozen while being sort!ed
+Array#include? determines presence by using element == obj
+Array#initialize_copy is private
+Array#initialize_copy calls to_ary on its argument
+Array#initialize_copy raises TypeError on a frozen array
+Array#nitems returns the number of non-nil elements
+Array#pop raises TypeError on a frozen array
+Array#push raises TypeError on a frozen array
+Array#rassoc calls == on argument
+Array#replace calls to_ary on its argument
+Array#replace raises TypeError on a frozen array
+Array#reverse returns subclass instance on Array subclasses
+Array#reverse! raises TypeError on a frozen array
+Array#reverse_each does not fail when removing elements from block
+Array#rindex does not fail when removing elements from block
+Array#shift raises TypeError on a frozen array
+Array#slice! removes and return the element at index
+Array#slice! calls to_int on start and length arguments
+Array#slice! calls to_int on range arguments
+Array#slice! does (not?) expand array with indices out of bounds
+Array#slice! raises TypeError on a frozen array
+Array#sort returns subclass instance on Array subclasses
+Array#sort! raises TypeError on a frozen array
+Array#to_a does not return subclass instance on Array subclasses
+Array#transpose assumes an array of arrays and returns the result of transposing rows and columns
+Array#transpose raises if the items aren't arrays and don't respond to to_ary
+Array#transpose does not call to_ary on array subclass elements
+Array#uniq returns subclass instance on Array subclasses
+Array#uniq! raises TypeError on a frozen array
+Array#unshift prepends object to the original array
+Array#unshift raises TypeError on a frozen array
+Array#values_at calls to_int on its indices
+Array#values_at calls to_int on arguments of ranges when passes ranges
+Array#[]= calls to_int on its start and length arguments
+Array#[]= calls to_int on range arguments
+Array#[]= raises IndexError when passed indexes out of bounds
+Array#[]= calls to_ary on its rhs argument for multi-element sets
+Array#[]= does not call to_ary on rhs array subclasses for multi-element sets
+Array#[]= raises TypeError on a frozen array
+Array#[]= with [index, count] sets elements when passed start, length
+Array#[]= with [m..n] accepts Range subclasses
+Bignum#% % should NOT raise ZeroDivisionError if other is zero and is a Float
+Bignum#modulo % should NOT raise ZeroDivisionError if other is zero and is a Float
+Bignum#& returns self bitwise AND other
+Bignum#<< returns self shifted left other bits
+Bignum#>> returns self shifted right other bits
+Bignum#[] returns the nth bit in the binary representation of self
+Bignum#divmod returns an [quotient, modulus] from dividing self by other
+Bignum#eql? returns true if other is a Bignum with the same value
+Bignum#remainder returns the remainder of dividing self by other
+Bignum#remainder raises ZeroDivisionError if other is zero and not a Float
+Bignum#remainder does NOT raise ZeroDivisionError if other is zero and is a Float
+Bignum#to_s returns a string with the representation of self in base x
+Bignum#to_s raises an ArgumentError exception if argument is 0
+Bignum#to_s raises an ArgumentError exception if argument is bigger than 36
+Initialised Binding May be duplicated with #dup
+Initialised Binding May be cloned with #clone
+Initialised Binding Normal #dup and #clone semantics apply
+Using Class.new to create a new class If a block is provided, it is evaluated in the context of the Class object
+Class event hook methods #inherited, if implemented, is called when a Class object is inherited. Subclass object given as parameter.
+Creating a Continuation object Must be done through Kernel.callcc, no .new
+Using Dir to move around the filesystem Dir.pwd and Dir.getwd return the current working directory
+Using Dir to move around the filesystem Dir.chdir can be used to change the working directory--temporary if a block is provided. Defaults to $HOME
+Using Dir to modify the filesystem Dir.mkdir creates the named directory with the given permissions
+Using Dir to modify the filesystem Dir.mkdir raises without adequate permissions in the parent dir
+Using Dir to modify the filesystem Dir.mkdir cannot create directory hierarchies
+Using Dir to modify the filesystem Dir.rmdir, .delete and .unlink remove non-empty directories
+Using Dir to modify the filesystem Dir.rmdir, .delete and .unlink will raise an exception trying to remove a nonempty directory
+Using Dir to modify the filesystem Dir.rmdir, .delete and .unlink need adequate permissions to remove a directory or will raise
+Examining directory contents with Dir Dir.entries gives an Array of filenames in an existing directory including dotfiles
+Examining directory contents with Dir Dir.foreach yields all filenames (including dotfiles) in an existing directory to block provided, returns nil
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) * by itself matches any non-dotfile
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) .* by itself matches any dotfile
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) * with option File::FNM_DOTMATCH matches both dot- and nondotfiles
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) * followed by literals matches any (or no) beginning for nondot filenames
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) .* followed by a string matches any (or no) beginning for dotfile names
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) * with File::FNM_DOTMATCH followed by literals matches any (or no) beginning for any filenames
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) * in the end of a string matches any (or no) ending
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) * in the middle matches any (or no) characters
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) multiple * may appear in a glob to use all above capabilities
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) ** by itself matches any nondot files in the current directory
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) .** by itself matches any dotfiles in the current directory
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) .** with File::FNM_DOTMATCH matches any files in the current directory
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) **/ recursively matches any nondot subdirectories
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) **/ with File::FNM_DOTMATCH recursively matches any subdirectories (not ./ or ../)
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) ? can be used anywhere in a file name to match any one character except leading .
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) multiple ? can appear to match any one character each
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) [CHARACTERS] can be used to match any one character of the ones in the brackets
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) [CHAR-OTHER] can contain ranges of characters such as a-z
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) [^CHARACTERS] matches anything BUT those characters or range
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) [^CHAR-OTHER] matches anything BUT those characters or range
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) {string,other,...} matches one of the provided strings exactly in any part of a filename
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) {string,,other} can have an empty string
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) {,.}* etc. can be used to match any dot- or nondot file
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) In a single-quoted pattern, \ escapes the following character of any special meaning
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) In a single-quoted pattern, File::FNM_NOESCAPE treats \ as the literal backslash
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) Normally, / is a special character. File::FNM_PATHNAME treats it like any regular character
+Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equivalent to Dir.glob(PATTERN, 0) **/PATTERN recursively matches the pattern (as above) in itself and all subdirectories
+Creating Dir objects Both Dir.new and Dir.open return a new Dir instance
+Creating Dir objects Dir.new and Dir.open will raise if the directory does not exist
+Creating Dir objects Dir.open may also take a block which yields the Dir instance and closes it after. Returns block value
+Dir objects Dir#path gives the path that was supplied to .new or .open
+Dir objects Dir#read gives the file name in the current seek position
+Dir objects Both Dir#pos and Dir#tell give the current dir position
+Dir objects Dir#seek can be used to return to a certain position (obtained from #pos or #tell), returns the Dir object
+Dir objects Dir#pos= also seeks to a certain position but returns the position number instead
+Dir objects Dir#rewind will reset the next read to start from the first entry but *does not reset the pointer to 1*
+Dir objects Dir#each will yield each directory entry in succession
+Dir objects Dir#each returns the directory which remains open
+Dir objects Dir#close will close the stream and fd and returns nil
+Dir objects Further attempts to use a dir that has been #closed will result in an error
+Enumerable#all fail when have a wrong argument 
+Enumerable#min return nil when error
+Enumerable#max return an error when introduce the wrong kind or number of parameters 
+ENV should return the variable from []
+ENV should set the variable to the given value in []=
+NoMethodError#args returns an empty array if the caller method had no arguments
+NoMethodError#args returns an array with the same elements as passed to the method
+File.dirname return all the components of filename except the last one (edge cases)
+File.dirname raise an exception if the arguments are wrong type or are the incorect number of arguments 
+File.basename return the basename of a path (basic cases)
+File.basename return the basename for unix format
+File.basename return the basename for edge cases
+File.basename return the basename for unix suffix
+File.basename raise an exception if the arguments are wrong type or are the incorect number of arguments 
+File.executable? returns true if named file is readable by the effective user id of the process, otherwise false
+File.executable? return true if the argument its an executable file
+File.executable? raise an exception its the arguments are the worng type or number
+File.readable? returns true if named file is readable by the effective user id of the process, otherwise false
+File.writable? should return true if named file is writable by the effective user id of the process, otherwise false
+File.link link a file with another 
+File.link raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.zero? raise an exception if the arguments are wrong type or are the incorect number of arguments 
+File.size? should return nil if file_name doesn't exist or has zero size, the size of the file otherwise
+File.identical? return a Boolean class
+File.identical? return true if they are identicals
+File.identical? raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.identical? identical? should return true if both named files are identical
+File.join should return a new string formed by joining the strings using File::SEPARATOR
+File#path should return the pathname used to create file as a string
+File#atime returns the last access time to self
+File#atime raise an Exception if it has the worng number of argments
+File#ctime Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself).
+File#ctime raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.ctime raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.directory? raise an exception its the arguments are the worng type or number
+File.executable? return true if the argument its an executable file
+File.executable? raise an exception its the arguments are the worng type or number
+File#chmod should modify the permission bits of the files specified
+File.exist? raise an exception if the argumnent is not from the correct type or are missing
+File::Constants File::RDONLY
+File::Constants File::WRONLY
+File::Constants File::CREAT
+File::Constants File::RDWR
+File::Constants File::APPEND
+File::Constants File::TRUNC
+File::Constants File::NOCTTY
+File::Constants File::NONBLOCK
+File::Constants File::LOCK_EX
+File::Constants File::LOCK_NB
+File::Constants File::LOCK_SH
+File::Constants File::LOCK_UN
+File::Constants File::SEPARATOR
+File::Constants File::Separator
+File::Constants File::PATH_SEPARATOR
+File::Constants File::SEPARATOR
+File::Constants File::PATH_SEPARATOR
+File::Constants match mode constants
+File::Constants the separator constant
+File::Constants the open mode constants
+File::Constants lock mode constants
+File.expand_path Converts a pathname to an absolute pathname
+File.expand_path Converts a pathname to an absolute pathname, Ruby-Talk:18512 
+File.expand_path Converts a pathname to an absolute pathname, using a complete path
+File.expand_path Converts a pathname to an absolute pathname, using ~ (home) as base
+File.expand_path expand path with 
+File.expand_path expand_path for commoms unix path  give a full path
+File.expand_path raise an exception if the argumnents are not of the correct type or are missing
+File.extname returns the extension (the portion of file name in path after the period).
+File.extname returns the extension (the portion of file name in path after the period).(edge cases)
+File.extname returns only the last extension of a file with several dots
+File.extname raise an exception if the argumnents are not of the correct type or are missing
+File.file? raise an exception if the argumnents are not of the correct type or are missing
+File.fnmatch match entire strings
+File.fnmatch match when use a partial strings
+File.fnmatch not match  when use { } because is not supported
+File.fnmatch match when use the wildcard for one-character expresion (?)
+File.fnmatch match when use the wildcard for 0 or more characters expresion (*)
+File.fnmatch match when use inclusive bracket expresion [a-z] 
+File.fnmatch not match when the character is out of the range using an inclusive bracket expresion [x-z] 
+File.fnmatch match exclusive bracket expresion [^t] or [!t]
+File.fnmatch match case sensitive
+File.fnmatch match case insensitive
+File.fnmatch not match a character using the wildcard '?'
+File.fnmatch not match a character using the wildcard '*'
+File.fnmatch not match a character using a charater insede a bracket expression 
+File.fnmatch escaped wildcard becomes ordinary
+File.fnmatch escaped ordinary remains ordinary
+File.fnmatch  FNM_NOESACPE makes '' ordinary
+File.fnmatch can escape inside bracket expression
+File.fnmatch wildcards doesnt match leading by default
+File.fnmatch match some paths using a composite string
+File.fnmatch match usign File::CONSTANT
+File.fnmatch raise an exception if the argumnents are not of the correct type or are missing
+File.fnmatch? match entire strings
+File.fnmatch? match when use a partial strings
+File.fnmatch? not match  when use { } because is not supported
+File.fnmatch? match when use the wildcard for one-character expresion (?)
+File.fnmatch? match when use the wildcard for 0 or more characters expresion (*)
+File.fnmatch? match when use inclusive bracket expresion [a-z] 
+File.fnmatch? not match when the character is out of the range using an inclusive bracket expresion [x-z] 
+File.fnmatch? match exclusive bracket expresion [^t] or [!t]
+File.fnmatch? match case sensitive
+File.fnmatch? match case insensitive
+File.fnmatch? not match a character using the wildcard '?'
+File.fnmatch? not match a character using the wildcard '*'
+File.fnmatch? not match a character using a charater insede a bracket expression 
+File.fnmatch? escaped wildcard becomes ordinary
+File.fnmatch? escaped ordinary remains ordinary
+File.fnmatch?  FNM_NOESACPE makes '' ordinary
+File.fnmatch? can escape inside bracket expression
+File.fnmatch? wildcards doesnt match leading by default
+File.fnmatch? match some paths using a composite string
+File.fnmatch? match usign File::CONSTANT
+File.fnmatch? raise an exception if the argumnents are not of the correct type or are missing
+File.join returns a new string formed by joining the strings using File::SEPARATOR (unix)
+File.join returns a new string formed by joining the strings using File::SEPARATOR (edge cases on windows) 
+File.join raise a TypeError exception when args are nil
+File.new return a new File with mode string
+File.new return a new File with mode num
+File.new return a new File with modus num and premissions 
+File.new return a new File with modus fd 
+File.new create a new file when use File::EXCL mode 
+File.new raise an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL
+File.new create a new file when use File::WRONLY|File::APPEND mode
+File.new raise an Errno::EINVAL error with File::APPEND
+File.new raise an Errno::EINVAL error with File::RDONLY|File::APPEND
+File.new raise an Errno::EINVAL error with File::RDONLY|File::WRONLY
+File.new create a new file when use File::WRONLY|File::TRUNC mode
+File.new expected errors 
+File.new can't alter mode or permissions when opening a file
+File.open open the file (basic case)
+File.open open file when call with a block (basic case)
+File.open open with mode string
+File.open open a file with mode string and block
+File.open open a file with mode num
+File.open open a file with mode num and block
+File.open open the file when call with mode, num and permissions
+File.open open the flie when call with mode, num, permissions and block
+File.open open the file when call with fd
+File.open open a file with a file descriptor d and a block
+File.open open a file that no exists when use File::WRONLY mode
+File.open open a file that no exists when use File::RDONLY mode
+File.open open a file that no exists when use 'r' mode
+File.open open a file that no exists when use File::EXCL mode
+File.open open a file that no exists when use File::NONBLOCK mode
+File.open open a file that no exists when use File::TRUNC mode
+File.open open a file that no exists when use File::NOCTTY mode
+File.open open a file that no exists when use File::CREAT mode
+File.open open a file that no exists when use 'a' mode
+File.open open a file that no exists when use 'w' mode
+File.open raise an ArgumentError exception when call with an unknown mode
+File.open can read in a block when call open with RDONLY mode
+File.open can read in a block when call open with 'r' mode
+File.open raise an IO exception when write in a block opened with RDONLY mode
+File.open raise an IO exception when write in a block opened with 'r' mode
+File.open can't write in a block when call open with File::WRONLY||File::RDONLY mode
+File.open can't read in a block when call open with File::WRONLY||File::RDONLY mode
+File.open can write in a block when call open with WRONLY mode
+File.open can write in a block when call open with 'w' mode
+File.open raise an IO exception when read in a block opened with WRONLY mode
+File.open raise an IO exception when read in a block opened with 'w' mode
+File.open raise an IO exception when read in a block opened with 'a' mode
+File.open raise an IO exception when read in a block opened with 'a' mode
+File.open raise an IO exception when read in a block opened with 'a' mode
+File.open raise an IO exception when read in a block opened with File::WRONLY|File::APPEND mode
+File.open raise an IO exception when read in a block opened with File::RDONLY|File::APPEND mode
+File.open can read and write in a block when call open with RDWR mode
+File.open can't read in a block when call open with File::EXCL mode
+File.open can read in a block when call open with File::EXCL mode
+File.open can read and write in a block when call open with File::RDWR|File::EXCL mode
+File.open raise an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL
+File.open create a new file when use File::WRONLY|File::APPEND mode
+File.open open a file when use File::WRONLY|File::APPEND mode
+File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND
+File.open create a new file when use File::TRUNC mode
+File.open can't read in a block when call open with File::TRUNC mode
+File.open open a file when use File::WRONLY|File::TRUNC mode
+File.open can't write in a block when call open with File::TRUNC mode
+File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC
+File.open expected errors 
+File.atime raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.truncate truncate the a file
+File.truncate truncate to 0 a file
+File.truncate truncate to 5 a file
+File.truncate truncate to a larger size than the original file
+File.truncate truncate to a the same size the original file
+File.truncate raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.umask return a Fixnum
+File.umask umask should return the current umask value for the process
+File.split should split the given string into a directory and a file component and returns them in a two-element array. (edge cases)
+Fixnum#% does NOT raise ZeroDivisionError if other is zero and is a Float
+Fixnum#<< coerces result on overflow and return self shifted left other bits
+Fixnum#[] coerces the bit and return the nth bit in the binary representation of self
+Fixnum#div coerces fixnum and return self divided by other as an Integer
+Fixnum#modulo does NOT raise ZeroDivisionError if other is zero and is a Float
+Float#CONSTANTS the DIG value is  15
+Float#CONSTANTS the EPSILON value is 
+Float#CONSTANTS the MANT_DIG is 53
+Float#CONSTANTS the MAX_10_EXP is 308
+Float#CONSTANTS the MIN_10_EXP is -308
+Float#CONSTANTS the MAX_EXP is 1024
+Float#CONSTANTS the MIN_EXP is -1021
+Float#CONSTANTS the MIN_EXP is 1.79769313486232e+308
+Float#CONSTANTS the MAX is 1.79769313486232e+308
+Float#CONSTANTS the MIN is 2.2250738585072e-308
+Float#CONSTANTS the RADIX is 2
+Float#% does NOT raise ZeroDivisionError if other is zero
+Float#/ does NOT raise ZeroDivisionError if other is zero
+Float#divmod returns an [quotient, modulus] from dividing self by other
+Float#infinite? returns nil, -1, +1 when self is finite, -Infinity, +Infinity
+Float#modulo does NOT raise ZeroDivisionError if other is zero
+Float#nan? returns true if self is not a valid IEEE floating-point number
+Hash includes Enumerable
+Hash.[] returns an instance of the class it's called on
+Hash.new raises ArgumentError if passed both default argument and default block
+Hash#== compares keys with eql? semantics
+Hash#== first compares keys via hash
+Hash#== does not compare keys with different hash codes via eql?
+Hash#== compares keys with matching hash codes via eql?
+Hash#[] compares keys with eql? semantics
+Hash#[] calls % on hash code from hash()
+Hash#[] compares key with found hash code via eql?
+Hash#[]= duplicates and freezes string keys
+Hash#[]= duplicates string keys using dup semantics
+Hash#[]= raises TypeError if called on a frozen instance
+Hash#clear raises TypeError if called on a frozen instance
+Hash#default= raises TypeError if called on a frozen instance
+Hash#delete removes the first entry (#keys order) whose key is == key and return the deleted value
+Hash#delete raises TypeError if called on a frozen instance
+Hash#delete_if processes entries with the same order as each()
+Hash#delete_if raises TypeError if called on a frozen instance
+Hash#delete_if raise RuntimeError if #rehash is called from block
+Hash#delete_if raises if lots of new entries are added from block
+Hash#each yields one argument: [key, value]
+Hash#each raise RuntimeError if #rehash is called from block
+Hash#each raises if lots of new entries are added from block
+Hash#each_key raise RuntimeError if #rehash is called from block
+Hash#each_key raises if lots of new entries are added from block
+Hash#each_pair raise RuntimeError if #rehash is called from block
+Hash#each_pair raises if lots of new entries are added from block
+Hash#each_value raise RuntimeError if #rehash is called from block
+Hash#each_value raises if lots of new entries are added from block
+Hash#initialize is private
+Hash#initialize can be used to reset default_proc
+Hash#initialize raises TypeError if called on a frozen instance
+Hash#initialize_copy is private
+Hash#initialize_copy calls to_hash on its argument
+Hash#initialize_copy does not transfer default values
+Hash#initialize_copy raises TypeError if called on a frozen instance
+Hash#merge calls to_hash on its argument
+Hash#merge returns subclass instance for subclasses
+Hash#merge processes entries with same order as each()
+Hash#merge raise RuntimeError if #rehash is called from block
+Hash#merge raises if lots of new entries are added from block
+Hash#merge! calls to_hash on its argument
+Hash#merge! processes entries with same order as merge()
+Hash#merge! raises TypeError if called on a frozen instance
+Hash#merge! raise RuntimeError if #rehash is called from block
+Hash#merge! raises if lots of new entries are added from block
+Hash#rehash raises TypeError if called on a frozen instance
+Hash#reject returns subclass instance for subclasses
+Hash#reject! raises TypeError if called on a frozen instance
+Hash#reject! raise RuntimeError if #rehash is called from block
+Hash#reject! raises if lots of new entries are added from block
+Hash#replace calls to_hash on its argument
+Hash#replace does not transfer default values
+Hash#replace raises TypeError if called on a frozen instance
+Hash#select raise RuntimeError if #rehash is called from block
+Hash#select raises if lots of new entries are added from block
+Hash#shift removes a pair from hash and return it (same order as to_a)
+Hash#shift raises TypeError if called on a frozen instance
+Hash#store duplicates and freezes string keys
+Hash#store duplicates string keys using dup semantics
+Hash#store raises TypeError if called on a frozen instance
+Hash#to_a returns a list of [key, value] pairs with same order as each()
+Hash#update calls to_hash on its argument
+Hash#update processes entries with same order as merge()
+Hash#update raises TypeError if called on a frozen instance
+Hash#update raise RuntimeError if #rehash is called from block
+Hash#update raises if lots of new entries are added from block
+
+Examining the call stack may be viewed through .caller
+Kernel.at_exit() should fire after all other code
+Kernel.at_exit() should fire in reverse order of registration
+Kernel.loop() loop returns value passed to break
+Kernel.loop() loop raises LocalJumpError if no block given
+Kernel.srand() srand should return the previous seed value
+Kernel.rand() rand should have the random number generator seeded uniquely at startup
+Kernel#methods returns a list of the names of publicly accessible methods in the object
+Kernel#methods returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules
+Kernel#singleton_methods returns a list of the names of singleton methods in the object
+Kernel#singleton_methods returns a list of the names of singleton methods in the object and its ancestors and mixed-in modules
+Kernel#public_methods returns a list of the names of publicly accessible methods in the object
+Kernel#public_methods returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules
+Kernel#private_methods returns a list of the names of privately accessible methods in the object
+Kernel#private_methods returns a list of the names of privately accessible methods in the object and its ancestors and mixed-in modules
+Kernel#protected_methods returns a list of the names of protected methods accessible in the object
+Kernel#protected_methods returns a list of the names of protected methods accessible in the object and from its ancestors and mixed-in modules
+MatchData#[] provides access to named groups
+MatchData#string returns a frozen copy of the match string
+A class that includes the Math module can access the sqrt method as a private instance method
+A class that includes the Math module can access the cos method as a private instance method
+A class that includes the Math module has the Math::E constant
+A class that includes the Math module has the Math::PI constant
+Math.cos returns a float
+Math.cos returns the cosine of the argument expressed in radians
+Math.cos raises an ArgumentError if the argument cannot be coerced with Float()
+Math.cos raises a TypeError if the argument is nil
+Math.cos accepts any argument that can be coerced with Float()
+Math.sin returns a float
+Math.sin returns the sine of the argument expressed in radians
+Math.sin raises an ArgumentError if the argument cannot be coerced with Float()
+Math.sin raises a TypeError if the argument is nil
+Math.acos returns a float
+Math.acos returns the arccosine of the argument
+Math.acos raises an Errno::EDOM if the argument is greater than 1.0
+Math.acos raises an Errno::EDOM if the argument is less than -1.0
+Math.acos raises an ArgumentError if the argument cannot be coerced with Float()
+Math.acos raises a TypeError if the argument is nil
+Math.asin return a float
+Math.asin returns the arcsine of the argument
+Math.asin raises an Errno::EDOM if the argument is greater than 1.0
+Math.asin raises an Errno::EDOM if the argument is less than -1.0
+Math.asin raises an ArgumentError if the argument cannot be coerced with Float()
+Math.asin raises a TypeError if the argument is nil
+Math.atan returns a float
+Math.atan return the arctangent of the argument
+Math.atan raises an ArgumentError if the argument cannot be coerced with Float()
+Math.atan raises a TypeError if the argument is nil
+Math.hypot returns a float
+Math.hypot returns the length of the hypotenuse of a right triangle with legs given by the arguments
+Math.hypot raises an ArgumentError if the argument cannot be coerced with Float()
+Math.hypot raises a TypeError if the argument is nil
+Math.erf returns a float
+Math.erf returns the error function of the argument
+Math.erf raises an ArgumentError if the argument cannot be coerced with Float()
+Math.erf raises a TypeError if the argument is nil
+Math#erfc returns a float
+Math#erfc returns the complimentary error function of the argument
+Math#erfc raises an ArgumentError if the argument cannot be coerced with Float()
+Math#erfc raises a TypeError if the argument is nil
+Math.log returns a float
+Math.log returns the natural logarithm of the argument
+Math.log raises an Errno::EDOM if the argument is less than 0
+Math.log raises an ArgumentError if the argument cannot be coerced with Float()
+Math.log raises a TypeError if the argument is nil
+Math.log10 returns a float
+Math.log10 return the base-10 logarithm of the argument
+Math.log10 raises an Errno::EDOM if the argument is less than 0
+Math.log10 raises an ArgumentError if the argument cannot be coerced with Float()
+Math.log10 raises a TypeError if the argument is nil
+Math.sqrt raises an ArgumentError if the argument cannot be coerced with Float()
+Math.sqrt raises a TypeError if the argument is nil
+Module.constants returns an array of the names of all constants defined
+Module.nesting returns the list of Modules nested at the point of call
+Module#<(Module) returns true if self is a subclass of or includes the given module
+Module#<(Module) returns false if self is the same as the given module
+Module#<(Module) returns nil if self is not related to the given module
+Module#<(Module) raises a TypeError the argument is no class/module
+Module#<=(Module) returns true if self is a subclass of, the same as or includes the given module
+Module#<=(Module) returns nil if self is not related to the given module
+Module#<=(Module) returns false if self is a superclass of or is included by the given module
+Module#<=(Module) raises a TypeError if the argument is no class/module
+Module#<=>(Module) returns -1 if self is a subclass of or includes the given module
+Module#<=>(Module) returns 0 if self is the same as the given module
+Module#<=>(Module) returns +1 if self is a superclas of or included by the given module
+Module#<=>(Module) returns nil if self and the given module are not related
+Module#<=>(Module) returns nil if the argument is no class/module
+Module#===(Object) returns true when the given Object is an instance of self or of self's descendants
+Module#===(Object) returns true when the given Object's class includes self or when the given Object is extended by self
+Module#>(Module) returns true if self is a superclass of or included by the given module
+Module#>(Module) returns false if self is the same as the given module
+Module#>(Module) returns nil if self is not related to the given module
+Module#>(Module) raises a TypeError the argument is no class/module
+Module#>=(Module) returns true if self is a superclass of, the same as or included by given module
+Module#>=(Module) returns nil if self is not related to the given module
+Module#>=(Module) returns false if self is a subclass of or includes the given module
+Module#>=(Module) raises a TypeError if the argument is no class/module
+Module#ancestors returns a list of modules included in self (including self)
+Module#attr(name, writable) creates a getter for the given attribute name
+Module#attr(name, writable) creates a setter for the given attribute name if writable is true
+Module#attr(name, writable) converts non string/symbol/fixnum names to strings using to_str
+Module#attr(name, writable) raises a TypeError when the given names can't be converted to strings using to_str
+Module#attr_accessor(name, ...) creates a getter and setter for each given attribute name
+Module#attr_accessor(name, ...) converts non string/symbol/fixnum names to strings using to_str
+Module#attr_accessor(name, ...) raises a TypeError when the given names can't be converted to strings using to_str
+Module#attr_reader(name, ...) creates a getter for each given attribute name
+Module#attr_reader(name, ...) converts non string/symbol/fixnum names to strings using to_str
+Module#attr_reader(name, ...) raises a TypeError when the given names can't be converted to strings using to_str
+Module#attr_writer(name, ...) creates a setter for each given attribute name
+Module#attr_writer(name, ...) converts non string/symbol/fixnum names to strings using to_str
+Module#attr_writer(name, ...) raises a TypeError when the given names can't be converted to strings using to_str
+Module#autoload(name, filename) raises an ArgumentError when an empty filename is given
+Module#class_eval(string, filename, lineno, &block) uses the optional filename and lineno parameters for error messages
+Module#class_eval(string, filename, lineno, &block) converts non string eval-string to string using to_str
+Module#class_eval(string, filename, lineno, &block) raises a TypeError when the given eval-string can't be converted to string using to_str
+Module#class_eval(string, filename, lineno, &block) raises an ArgumentError when more than 3 arguments are given
+Module#class_eval(string, filename, lineno, &block) raises an ArgumentError when a block and normal arguments are given
+Module#module_eval(string, filename, lineno, &block) uses the optional filename and lineno parameters for error messages
+Module#module_eval(string, filename, lineno, &block) converts non string eval-string to string using to_str
+Module#module_eval(string, filename, lineno, &block) raises a TypeError when the given eval-string can't be converted to string using to_str
+Module#module_eval(string, filename, lineno, &block) raises an ArgumentError when more than 3 arguments are given
+Module#module_eval(string, filename, lineno, &block) raises an ArgumentError when a block and normal arguments are given
+Module#class_variable_defined?(name) returns true if a class variable with the given name is defined in self
+Module#class_variable_defined?(name) raises a NameError when the given name is not allowed
+Module#class_variable_defined?(name) converts a non string/symbol/fixnum name to string using to_str
+Module#class_variable_defined?(name) raises a TypeError when the given names can't be converted to strings using to_str
+Module#class_variable_get(name) returns the value of the class variable with the given name
+Module#class_variable_get(name) raises a NameError when an uninitialized class variable is accessed
+Module#class_variable_get(name) raises a NameError when the given name is not allowed
+Module#class_variable_get(name) converts a non string/symbol/fixnum name to string using to_str
+Module#class_variable_get(name) raises a TypeError when the given names can't be converted to strings using to_str
+Module#class_variable_set(name, value) sets the class variable with the given name to the given value
+Module#class_variable_set(name, value) raises a TypeError when self is frozen
+Module#class_variable_set(name, value) raises a NameError when the given name is not allowed
+Module#class_variable_set(name, value) converts a non string/symbol/fixnum name to string using to_str
+Module#class_variable_set(name, value) raises a TypeError when the given names can't be converted to strings using to_str
+Module#class_variables returns an array with the names of class variables of self and self's ancestors
+Module#const_defined?(name) returns true if a constant with the given name is defined in self
+Module#const_defined?(name) tries to convert the given name to a string using to_str
+Module#const_defined?(name) raises a NameError when the given constant name is not allowed
+Module#const_defined?(name) raises a TypeError when the given names can't be converted to strings using to_str
+Module#const_get(name) returns the value of the constant with the given name
+Module#const_get(name) raises a NameError when there is no constant with the given name
+Module#const_get(name) tries to convert the given name to a string using to_str
+Module#const_get(name) raises a TypeError when the given name can't be converted to string using to_str
+Module#const_missing(name) is invoked when an undefined constant is referenced in the scope of self
+Module#const_set(name, value) sets the constant with the given name to the given value
+Module#const_set(name, value) raises a NameError when the given name is no valid constant name
+Module#const_set(name, value) raises a NameError when there is no constant with the given name
+Module#const_set(name, value) tries to convert the given name to a string using to_str
+Module#const_set(name, value) raises a TypeError when the given name can't be converted to string using to_str
+Module#constants returns an array with the names of all constants accessible in the scope of self
+Module#define_method(name, Method, &block) defines the given method as an instance method with the given name in self
+Module#define_method(name, Method, &block) raises a TypeError when the given method is no Method/Proc
+Module#extend_object(object) extends the given object with constants and methods of self
+Module#freeze prevents further modifications to self
+Module#include?(Module) returns true if the given module is included by self or one of it's ancestors
+Module#include?(Module) raises a TypeError when no module was given
+Module#included_modules returns a list of modules included in self
+Module#instance_method(name) returns an UnboundMethod representing the instance method with the given name
+Module#instance_method(name) raises a TypeError if the given name is not a string/symbol
+Module#instance_methods(include_super) returns an array containing the public and protected methods of self if include_super is false
+Module#instance_methods(include_super) returns an array containing the public and protected methods of self and it's ancestors
+Module#method_added(name) is called when a new method is defined in self
+Module#method_defined?(name) returns true if a public or private method with the given name is defined in self, self's ancestors or one of self's included modules
+Module#method_defined?(name) raises a TypeError when the given object is not a string/symbol/fixnum
+Module#method_defined?(name) converts the given name to a string using to_str
+Module#method_removed(name) is called when a method is removed from self
+Module#method_undefined(name) is called when a method is undefined from self
+Module#module_function(name, ...) creates module functions for the given methods
+Module#module_function(name, ...) makes the instance method versions private
+Module#module_function(name, ...) makes subsequently defined methods module functions if no names are given
+Module#module_function(name, ...) tries to convert the given names to strings using to_str
+Module#module_function(name, ...) raises a TypeError when the given names can't be converted to string using to_str
+Module#name returns the name of self
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Attempted to access field of non reference.
+Numeric#divmod raise the expected exception
+Numeric#quo quo right  floats
+Numeric#quo not raise a Exception when quo by 0
+Numeric#quo raise the expected exception
+Numeric#div raise the expected exception
+Numeric#modulo y modulo x should be z (integer - bignum) 
+Numeric#modulo y modulo x should be z (bignum -integer) 
+Numeric#modulo  should NOT raise ZeroDivisionError if other is zero and is a Float
+Numeric#nonzero? return the vaule if number is different to 0
+Numeric#remainder remainder the right  integers
+Numeric#remainder remainder right  integers and floats
+Numeric#remainder remainder right the integers and floats
+Numeric#remainder  should remainder right with bignums and integers
+Numeric#remainder raise the expected exception
+Numeric#step if base < limit > step then it should iterate (base-limit)/step times (floats)
+Numeric#step iterate one time if step is bigger than base-limit (floats)
+Numeric#step not iterate if base is bigger than limit and step >0 (floats)
+Numeric#step iterate backward if base is bigger than limit (floats)
+Numeric#step not iterate if base is minor than limit and step <0 (floats)
+Numeric#step if base < limit > step then  iterate (base-limit)/step times (floats)
+Numeric#step raise the expected exception
+Numeric#coerce return the vaule if number is different to 0
+Object instance method send should invoke the named method
+Object instance method freeze should prevent self from being further modified
+Object instance method instance_eval with a block should have access to receiver's instance variables
+Object instance method instance_eval with string argument should have access to receiver's instance variables
+Object instance method method should return a method object for a valid method
+Object instance method respond_to? should indicate if an object responds to a particular message
+Object#instance_variable_get should raise NameError if the passed object, when coerced with to_str, does not start with @
+Object#instance_variable_get should accept as instance variable name any instance of a class that responds to to_str
+Object#instance_variable_set should raise NameError if the passed object, when coerced with to_str, does not start with @
+Object#instance_variable_set should accept as instance variable name any instance of a class that responds to to_str
+Object#method_missing return the correct value form method_missing after call a not defined instance method
+Object#method_missing return the correct value form method_missing after call a not defined instance method
+Object#method_missing return the correct value from the method_missing method after call a private instance method
+Object#method_missing return the correct value from the method_missing method after call a protected instance method
+Enumerable#__id__ return an Integer
+Enumerable#__id__ return same number will be returned on all calls to id for a given object
+Enumerable#__id__ return same number will be returned on all calls to id for a given object
+Object.=~ Overridden by descendents
+Enumerable#is_a? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example
+Enumerable#is_a? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example
+Enumerable#is_a? nil.is_a? cases specs
+Enumerable#kind_of? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example
+Enumerable#kind_of? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example
+Enumerable#kind_of? nil.kind_of? cases specs
+Object#respond_to? returns true if obj responds to the given protected method
+Object#respond_to? returns true if obj responds to the given protected method
+Object#respond_to? returns true if obj responds to the given private method
+ObjectSpace class methods _id2ref should convert an object id to a reference to the object
+ObjectSpace class methods each_object should call the block once for each living, nonimmediate object in the Ruby process
+Range.union returns /(?!)/ when passed no arguments
+Range.union returns a regular expression that will match passed arguments
+Regexp#inspect returns a formatted string
+Regexp#options returns set of bits for options used
+String#% raises ArgumentError for unused arguments when $DEBUG is true
+String#% ignores percent signs at end of string / before newlines, null bytes
+String#% replaces trailing absolute argument specifier without type with percent sign
+String#% raises an ArgumentError when given invalid argument specifiers
+String#% raises an ArgumentError when absolute and relative argument numbers are mixed
+String#% calls to_int on width star and precision star tokens
+String#% doesn't return subclass instances when called on a subclass
+String#% always taints the result when the format string is tainted
+String#% supports binary formats using %b
+String#% supports binary formats using %B with same behaviour as %b except for using 0B instead of 0b for #
+String#% calls to_int on argument for %c formats
+String#% supports octal formats using %o
+String#% calls inspect on arguments for %p format
+String#% taints result for %p when argument.inspect is tainted
+String#% calls to_s on arguments for %s format
+String#% taints result for %s when argument is tainted
+String#% raises ArgumentError for huge precisions for %s
+String#% supports unsigned formats using %u
+String#% supports hex formats using %x
+String#% supports hex formats using %X
+String#% behaves as if calling Kernel#Integer for %b argument
+String#% behaves as if calling Kernel#Integer for %d argument
+String#% behaves as if calling Kernel#Integer for %i argument
+String#% behaves as if calling Kernel#Integer for %o argument
+String#% behaves as if calling Kernel#Integer for %u argument
+String#% behaves as if calling Kernel#Integer for %x argument
+String#% behaves as if calling Kernel#Integer for %X argument
+String#% behaves as if calling Kernel#Float for %e arguments
+String#% behaves as if calling Kernel#Float for %E arguments
+String#% behaves as if calling Kernel#Float for %f arguments
+String#% behaves as if calling Kernel#Float for %g arguments
+String#% behaves as if calling Kernel#Float for %G arguments
+String#* returns subclass instances
+String#+ always taints the result when self or other is tainted
+String#<< taints self if other is tainted
+String#<=> compares its argument and self by calling <=> on obj and turning the result around if obj responds to to_str
+String#== returns obj == self if obj responds to to_str
+String#[] with index calls to_int on idx
+String#[] with index, length always taints resulting strings when self is tainted
+String#[] with index, length returns nil if the offset falls outside of self
+String#[] with index, length calls to_int on idx and length
+String#[] with index, length raises TypeError when idx or length can't be converted to an integer
+String#[] with index, length returns subclass instances
+String#[] with Range always taints resulting strings when self is tainted
+String#[] with Range returns subclass instances
+String#[] with Range calls to_int on range arguments
+String#[] with Regexp always taints resulting strings when self or regexp is tainted
+String#[] with Regexp returns subclass instances
+String#[] with Regexp, index always taints resulting strings when self or regexp is tainted
+String#[] with Regexp, index returns nil if there is no capture for idx
+String#[] with Regexp, index calls to_int on idx
+String#[] with Regexp, index returns subclass instances
+String#[] with String doesn't call to_str on its argument
+String#[] with String returns a subclass instance when given a subclass instance
+String#slice with index calls to_int on idx
+String#slice with index, length always taints resulting strings when self is tainted
+String#slice with index, length returns nil if the offset falls outside of self
+String#slice with index, length calls to_int on idx and length
+String#slice with index, length raises TypeError when idx or length can't be converted to an integer
+String#slice with index, length returns subclass instances
+String#slice with Range always taints resulting strings when self is tainted
+String#slice with Range returns subclass instances
+String#slice with Range calls to_int on range arguments
+String#slice with Regexp always taints resulting strings when self or regexp is tainted
+String#slice with Regexp returns subclass instances
+String#slice with Regexp, index always taints resulting strings when self or regexp is tainted
+String#slice with Regexp, index returns nil if there is no capture for idx
+String#slice with Regexp, index calls to_int on idx
+String#slice with Regexp, index returns subclass instances
+String#slice with String doesn't call to_str on its argument
+String#slice with String returns a subclass instance when given a subclass instance
+String#[]= with index raises an IndexError without changing self if idx is outside of self
+String#[]= with index calls to_int on idx
+String#[]= with index raises a TypeError when self is frozen
+String#[]= with String taints self if other_str is tainted
+String#[]= with String raises an IndexError without changing self if idx is outside of self
+String#[]= with String calls to_int on idx
+String#[]= with index, count taints self if other_str is tainted
+String#[]= with index, count raises a TypeError if other_str is a type other than String
+String#capitalize returns subclass instances when called on a subclass
+String#capitalize! raises a TypeError when self is frozen
+String#center with length, padding returns a new string of specified length with self centered and padded with padstr
+String#center with length, padding pads with whitespace if no padstr is given
+String#center with length, padding taints result when self or padstr is tainted
+String#center with length, padding tries to convert length to an integer using to_int
+String#center with length, padding tries to convert padstr to a string using to_str
+String#center with length, padding raises an ArgumentError if padstr is empty
+String#center with length, padding returns subclass instances when called on subclasses
+String#chomp with separator uses $/ as the separator when none is given
+String#chomp with separator returns subclass instances when called on a subclass
+String#chop returns subclass instances when called on a subclass
+String#concat is an alias of String#<<
+String#concat taints self if other is tainted
+String#count counts occurrences of chars from the intersection of the specified sets
+String#count negates sets starting with ^
+String#count counts all chars in a sequence
+String#delete returns a new string with the chars from the intersection of sets removed
+String#delete negates sets starting with ^
+String#delete deletes all chars in a sequence
+String#delete returns subclass instances when called on a subclass
+String#downcase returns a subclass instance for subclasses
+String#dump taints result when self is tainted
+String#dump returns a subclass instance for subclasses
+String#each appends multiple successive newlines together when the separator is an empty string
+String#each yields subclass instances for subclasses
+String#each raises a RuntimeError if the string is modified while substituting
+String#each_byte keeps iterating from the old position (to new string end) when self changes
+String#each_byte returns self
+String#gsub with pattern, replacement returns a copy of self with all occurrences of pattern replaced with replacement
+String#gsub with pattern, replacement ignores a block if supplied
+String#gsub with pattern, replacement replaces \+ with the last paren that actually matched
+String#gsub with pattern, replacement treats \+ as an empty string if there was no captures
+String#gsub with pattern, replacement maps \\ in replacement to \
+String#gsub with pattern, replacement taints the result if the original string or replacement is tainted
+String#gsub with pattern, replacement tries to convert pattern to a string using to_str
+String#gsub with pattern, replacement raises a TypeError when pattern can't be converted to a string
+String#gsub with pattern, replacement sets $~ to MatchData of last match and nil when there's none
+String#gsub with pattern and block sets $~ for access from the block
+String#gsub with pattern and block restores $~ after leaving the block
+String#gsub with pattern and block sets $~ to MatchData of last match and nil when there's none for access from outside
+String#gsub with pattern and block converts the block's return value to a string using to_s
+String#gsub with pattern and block taints the result if the original string or replacement is tainted
+String#gsub! with pattern, replacement raises a TypeError when self is frozen
+String#gsub! with pattern and block taints self if block's result is tainted
+String#gsub! with pattern and block raises a TypeError when self is frozen
+String#hex treats leading characters of self as a string of hex digits
+String#include? with Fixnum uses fixnum % 256
+String#index with object tries to convert obj to a string via to_str
+String#index with Fixnum converts start_offset to an integer via to_int
+String#index with String returns the index of the first occurrence of the given substring
+String#index with String starts the search at the given offset
+String#index with String converts start_offset to an integer via to_int
+String#index with Regexp behaves the same as String#index(string) for escaped string regexps
+String#index with Regexp supports \G which matches at the given start offset
+String#index with Regexp converts start_offset to an integer via to_int
+String#initialize is a private method
+String#initialize doesn't change self when str isn't supplied
+String#initialize_copy is a private method
+String#insert with index, other converts index to an integer using to_int
+String#insert with index, other taints self if string to insert is tainted
+String#inspect produces different output based on $KCODE
+String#inspect taints the result if self is tainted
+String#ljust with length, padding taints result when self or padstr is tainted
+String#ljust with length, padding tries to convert length to an integer using to_int
+String#ljust with length, padding tries to convert padstr to a string using to_str
+String#ljust with length, padding raises an ArgumentError when padstr is empty
+String#lstrip returns a copy of self with leading whitespace removed
+String#match tries to convert pattern to a string via to_str
+String#next taints the result if self is tainted
+String#next! raises a TypeError if self is frozen
+String#oct treats leading characters of self as a string of oct digits
+String#rindex with object raises a TypeError if obj isn't a String, Fixnum or Regexp
+String#rindex with object doesn't try to convert obj to an integer via to_int
+String#rindex with object tries to convert obj to a string via to_str
+String#rindex with Fixnum tries to convert start_offset to an integer via to_int
+String#rindex with String behaves the same as String#rindex(char) for one-character strings
+String#rindex with String returns the index of the last occurrence of the given substring
+String#rindex with String ignores string subclasses
+String#rindex with String starts the search at the given offset
+String#rindex with String tries to convert start_offset to an integer via to_int
+String#rindex with Regexp behaves the same as String#rindex(string) for escaped string regexps
+String#rindex with Regexp returns the index of the first match from the end of string of regexp
+String#rindex with Regexp sets $~ to MatchData of match and nil when there's none
+String#rindex with Regexp starts the search at the given offset
+String#rindex with Regexp supports \G which matches at the given start offset
+String#rindex with Regexp tries to convert start_offset to an integer via to_int
+String#rjust with length, padding taints result when self or padstr is tainted
+String#rjust with length, padding tries to convert length to an integer using to_int
+String#rjust with length, padding tries to convert padstr to a string using to_str
+String#rjust with length, padding raises an ArgumentError when padstr is empty
+String#rjust with length, padding returns subclass instances when called on subclasses
+String#scan scans for occurrences of the string if pattern is a string
+String#scan sets $~ to MatchData of last match and nil when there's none
+String#scan tries to convert pattern to a string via to_str
+String#scan taints the match strings if self is tainted
+String#scan with pattern and block returns self
+String#scan with pattern and block passes groups as to the block as one argument: an array
+String#scan with pattern and block sets $~ for access from the block
+String#scan with pattern and block restores $~ after leaving the block
+String#scan with pattern and block sets $~ to MatchData of last match and nil when there's none for access from outside
+String#scan with pattern and block taints the match strings if self is tainted
+String#slice! with index calls to_int on idx
+String#slice! with index, length always taints resulting strings when self is tainted
+String#slice! with index, length calls to_int on idx and length
+String#slice! with index, length returns subclass instances
+String#slice! Range always taints resulting strings when self is tainted
+String#slice! Range returns subclass instances
+String#slice! Range calls to_int on range arguments
+String#slice! with Regexp always taints resulting strings when self or regexp is tainted
+String#slice! with Regexp returns subclass instances
+String#slice! with Regexp sets $~ to MatchData when there is a match and nil when there's none
+String#slice! with Regexp, index always taints resulting strings when self or regexp is tainted
+String#slice! with Regexp, index returns nil if there is no capture for idx
+String#slice! with Regexp, index calls to_int on idx
+String#slice! with Regexp, index returns subclass instances
+String#slice! with String taints resulting strings when other is tainted
+String#slice! with String doesn't call to_str on its argument
+String#slice! with String returns a subclass instance when given a subclass instance
+String#split with String suppresses trailing empty fields when limit isn't given or 0
+String#split with String returns an array with one entry if limit is 1: the original string
+String#split with String returns at most limit fields when limit > 1
+String#split with String doesn't suppress or limit fields when limit is negative
+String#split with String defaults to $; when string isn't given or nil
+String#split with String ignores leading and continuous whitespace when string is a single space
+String#split with String splits between characters when its argument is an empty string
+String#split with String tries converting its pattern argument to a string via to_str
+String#split with String tries converting limit to an integer via to_int
+String#split with String returns subclass instances based on self
+String#split with String taints the resulting strings if self is tainted
+String#split with Regexp suppresses trailing empty fields when limit isn't given or 0
+String#split with Regexp returns an array with one entry if limit is 1: the original string
+String#split with Regexp returns at most limit fields when limit > 1
+String#split with Regexp doesn't suppress or limit fields when limit is negative
+String#split with Regexp defaults to $; when regexp isn't given or nil
+String#split with Regexp splits between characters when regexp matches a zero-length string
+String#split with Regexp includes all captures in the result array
+String#split with Regexp tries converting limit to an integer via to_int
+String#split with Regexp returns subclass instances based on self
+String#split with Regexp taints the resulting strings if self is tainted
+String#squeeze negates sets starting with ^
+String#squeeze squeezes all chars in a sequence
+String#squeeze taints the result when self is tainted
+String#squeeze returns subclass instances when called on a subclass
+String#squeeze! raises a TypeError when self is frozen
+String#sub with pattern, replacement ignores a block if supplied
+String#sub with pattern, replacement treats \1 sequences without corresponding captures as empty strings
+String#sub with pattern, replacement replaces \& and \0 with the complete match
+String#sub with pattern, replacement replaces \` with everything before the current match
+String#sub with pattern, replacement replaces \' with everything after the current match
+String#sub with pattern, replacement replaces \+ with the last paren that actually matched
+String#sub with pattern, replacement treats \+ as an empty string if there was no captures
+String#sub with pattern, replacement maps \\ in replacement to \
+String#sub with pattern, replacement tries to convert pattern to a string using to_str
+String#sub with pattern, replacement raises a TypeError when pattern can't be converted to a string
+String#sub with pattern, replacement returns subclass instances when called on a subclass
+String#sub with pattern, replacement sets $~ to MatchData of match and nil when there's none
+String#sub with pattern and block restores $~ after leaving the block
+String#sub with pattern and block sets $~ to MatchData of last match and nil when there's none for access from outside
+String#sub with pattern and block converts the block's return value to a string using to_s
+String#sub with pattern and block taints the result if the original string or replacement is tainted
+String#sub! with pattern and block taints self if block's result is tainted
+String#sub! with pattern and block raises a RuntimeError if the string is modified while substituting
+String#succ increases the next best alphanumeric (jumping over non-alphanumerics) if there is a carry
+String#succ adds an additional character (just left to the last increased one) if there is a carry and no character left to increase
+String#succ returns subclass instances when called on a subclass
+String#succ taints the result if self is tainted
+String#succ! is equivalent to succ, but modifies self in place (still returns self)
+String#succ! raises a TypeError if self is frozen
+String#swapcase returns subclass instances when called on a subclass
+String#swapcase! raises a TypeError when self is frozen
+String#to_f treats leading characters of self as a floating point number
+String#to_f takes an optional sign
+String#to_i with base 10 interprets leading characters as a number in the given base
+String#to_i with base 10 auto-detects base via base specifiers (default: 10) for base = 0
+String#to_i with base 10 doesn't handle foreign base specifiers when base is > 0
+String#to_i with base 10 raises ArgumentError for illegal radices (1, < 0 or > 36)
+String#to_sym raises an ArgumentError when self can't be converted to symbol
+String#tr! raises a TypeError if self is frozen
+String#unpack(format) returns an array by decoding self according to the format string
+Struct class methods new with string as first argument should overwrite previously defined constants
+Struct class methods new should call to_str on its first argument (constant name)
+Struct class methods new should accept nil first argument for not creating constants
+Struct class methods new with symbol as first argument should not create a constant
+Struct class methods new with symbol arguments should create a new anonymous class
+Struct class methods new should only accept symbols
+Struct class methods new should instance_eval a passed block
+Struct subclass new should create a constant in subclass' namespace
+Struct anonymous class class methods new should create an instance
+Struct anonymous class class methods new should create reader methods
+Struct anonymous class class methods new should create writer methods
+Struct anonymous class class methods new with too many arguments should fail
+Struct anonymous class class methods [] should be a synonym for new
+Struct anonymous class class methods members should return an array of attribute names
+Struct anonymous class instance methods length should return the number of attributes
+Struct anonymous class instance methods size should be a synonym for length
+Struct anonymous class instance methods members should return an array of attribute names
+Struct anonymous class instance methods to_a should return the values for this instance as an array
+Struct anonymous class instance methods values should be a synonym for to_a
+Struct anonymous class instance methods values_at should return an array of values
+Struct anonymous class instance methods values_at should fail when passed unsupported types
+Struct anonymous class instance methods [] should return the attribute referenced
+Struct anonymous class instance methods [] should fail when it doesnt know about the requested attribute
+Struct anonymous class instance methods [] should fail if passed too many arguments
+Struct anonymous class instance methods [] should fail if not passed a string, symbol, or integer
+Struct anonymous class instance methods []= should assign the passed value
+Struct anonymous class instance methods []= should fail when trying to assign attributes which don't exist
+Struct anonymous class instance methods each should pass each value to the given block
+Struct anonymous class instance methods each should fail if not passed a block
+Struct anonymous class instance methods each_pair should pass each key value pair to the given block
+Struct anonymous class instance methods each_pair should fail if not passed a block
+Struct anonymous class instance methods Enumerable methods should work
+Struct anonymous class instance methods reader method should be a synonym for []
+Struct anonymous class instance methods reader method should not interfere with undefined methods
+Struct anonymous class instance methods writer method be a synonym for []=
+Struct anonymous class instance methods inspect should return a string representation of some kind
+Struct anonymous class instance methods to_s should be a synonym for inspect
+Struct anonymous class instance methods == should compare all attributes
+Thread#inspect shows the thread's status
+Time.at converts to time object
+Module instance_methods with false should exclude super class instance methods
+Module instance_methods should return all instance methods of a module
+{"aaaa"=>true, "aa"=>true, :args=>["ARG"], "cc"=>true, "cccc"=>true}
+Parsing options using the configured parser sets the value of any given option without a parameter to true
+Parsing options using the configured parser places any given arguments in :args if they do not belong to options
+Parsing short options without arguments takes short options combined
+Parsing short options without arguments takes short options interspersed with nonoption-arguments
+Parsing short options with arguments stores the argument(s) in an Array stored as the value of the option name
+Parsing short options with arguments accepts :many to indicate as many nonoption args as follow before the following option
+Parsing short options with arguments accepts :maybe to indicate zero or as many as possible arguments
+Parsing short options with arguments assigns arguments only to the last in a set of combined short options 
+Parsing long options without arguments takes long options interspersed with nonoption-arguments
+Parsing long options with arguments stores the argument(s) in an Array stored as the value of the option name
+Parsing long options with arguments accepts :many to indicate as many nonoption args as follow before the following option
+Parsing long options with arguments accepts :maybe to indicate zero or as many as possible arguments
+String instance method % format float (e) values should return a string resulting from applying the format
+Lifetime of the mocked methods ...at the end of the #it block
+Shotgun should convert a heredoc to an sexp
+Producing sexps from source code should succeed for a node of type :case_nested
+Producing sexps from source code should succeed for a node of type :zsuper
+Producing sexps from source code should succeed for a node of type :rescue
+Producing sexps from source code should succeed for a node of type :match
+Producing sexps from source code should succeed for a node of type :defs
+Producing sexps from source code should succeed for a node of type :ensure
+Producing sexps from source code should succeed for a node of type :iteration6
+Producing sexps from source code should succeed for a node of type :yield_arg
+Producing sexps from source code should succeed for a node of type :dstr
+Producing sexps from source code should succeed for a node of type :lit_regexp
+Producing sexps from source code should succeed for a node of type :case_no_expr
+Producing sexps from source code should succeed for a node of type :block_pass_omgwtf
+Producing sexps from source code should succeed for a node of type :ivar
+Producing sexps from source code should succeed for a node of type :dsym
+Producing sexps from source code should succeed for a node of type :lasgn_array
+Producing sexps from source code should succeed for a node of type :masgn_splat
+Producing sexps from source code should succeed for a node of type :masgn
+Producing sexps from source code should succeed for a node of type :rescue_exceptions
+Producing sexps from source code should succeed for a node of type :dmethod
+Producing sexps from source code should succeed for a node of type :module
+Producing sexps from source code should succeed for a node of type :dregx_once
+Producing sexps from source code should succeed for a node of type :sclass
+Producing sexps from source code should succeed for a node of type :super_multi
+Producing sexps from source code should succeed for a node of type :defn_args
+Producing sexps from source code should succeed for a node of type :dregx
+Producing sexps from source code should succeed for a node of type :argscat
+Producing sexps from source code should succeed for a node of type :op_asgn1
+Producing sexps from source code should succeed for a node of type :svalue
+Producing sexps from source code should succeed for a node of type :defn_or
+Producing sexps from source code should succeed for a node of type :defn_is_something
+Producing sexps from source code should succeed for a node of type :rescue_block_nada
+Producing sexps from source code should succeed for a node of type :op_asgn2
+Producing sexps from source code should succeed for a node of type :bmethod
+Producing sexps from source code should succeed for a node of type :attrset
+Producing sexps from source code should succeed for a node of type :undef
+Producing sexps from source code should succeed for a node of type :defn_rescue
+Producing sexps from source code should succeed for a node of type :conditional4
+Producing sexps from source code should succeed for a node of type :alias
+Producing sexps from source code should succeed for a node of type :yield
+Producing sexps from source code should succeed for a node of type :class_plain
+Producing sexps from source code should succeed for a node of type :cdecl
+Producing sexps from source code should succeed for a node of type :masgn_attrasgn
+Producing sexps from source code should succeed for a node of type :class_super_object
+Producing sexps from source code should succeed for a node of type :op_asgn_or
+Producing sexps from source code should succeed for a node of type :conditional2
+Producing sexps from source code should succeed for a node of type :zarray
+Producing sexps from source code should succeed for a node of type :conditional3
+Producing sexps from source code should succeed for a node of type :lasgn_call
+Producing sexps from source code should succeed for a node of type :for
+Producing sexps from source code should succeed for a node of type :class_super_expr
+Producing sexps from source code should succeed for a node of type :valias
+Producing sexps from source code should succeed for a node of type :block_pass_splat
+Producing sexps from source code should succeed for a node of type :rescue_block_body
+Producing sexps from source code should succeed for a node of type :flip3
+Producing sexps from source code should succeed for a node of type :defn_zarray
+Producing sexps from source code should succeed for a node of type :conditional1
+Producing sexps from source code should succeed for a node of type :dxstr
+Producing sexps from source code should succeed for a node of type :back_ref
+Producing sexps from source code should succeed for a node of type :yield_args
+Producing sexps from source code should succeed for a node of type :flip2
+Producing sexps from source code should succeed for a node of type :undef_multi
+Producing sexps from source code should succeed for a node of type :case
+Producing sexps from source code should succeed for a node of type :bmethod_splat
+Producing sexps from source code should succeed for a node of type :lit_range3
+Producing sexps from source code should succeed for a node of type :defn_empty
+Producing sexps from source code should succeed for a node of type :class_super_array
+Producing sexps from source code should succeed for a node of type :lit_range2
+Producing sexps from source code should succeed for a node of type :fbody
+Producing sexps from source code should succeed for a node of type :to_ary
+Producing sexps from source code should succeed for a node of type :proc_args
+Producing sexps from source code should succeed for a node of type :iteration3
+Producing sexps from source code should succeed for a node of type :cvdecl
+Producing sexps from source code should succeed for a node of type :iteration2
+Producing sexps from source code should succeed for a node of type :cvasgn
+Producing sexps from source code should succeed for a node of type :dasgn
+Producing sexps from source code should succeed for a node of type :op_asgn_and
+Producing sexps from source code should succeed for a node of type :super
+Producing sexps from source code should succeed for a node of type :match3
+Producing sexps from source code should succeed for a node of type :attrasgn
+Producing sexps from source code should succeed for a node of type :match2
+Producing sexps from source code should succeed for a node of type :iteration5
+Producing sexps from source code should succeed for a node of type :masgn_iasgn
+Producing sexps from source code should succeed for a node of type :dasgn_curr
+Producing sexps from source code should succeed for a node of type :iteration4
 Array#* handles recursive arrays like #join
 Array#join handles recursive arrays
 Executing a Continuation Using #call transfers execution to right after the Kernel.callcc block
@@ -21,3 +1070,4 @@ String#gsub with pattern, replacement replaces \' with everything after the curr
 String#gsub with pattern, replacement returns subclass instances when called on a subclass
 String#gsub with pattern and block raises a RuntimeError if the string is modified while substituting
 Numeric#coerce coerce strings to strings
+String#=~ raises a TypeError if a obj is a string
