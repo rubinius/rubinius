@@ -1070,6 +1070,24 @@ class Array
 
     res
   end  
+ 
+  # Returns a new Array by removing items from self for
+  # which block is true. An Array is also returned when
+  # invoked on subclasses. See #reject!
+  def reject(&block)
+    Array.new(self).reject!(&block) || self   
+  end
+
+  # Equivalent to #delete_if except that returns nil if
+  # no changes were made.
+  def reject!(&block)
+    raise TypeError, "Array is frozen" if frozen?
+
+    was = length
+    self.delete_if(&block)
+
+    self if was != length     # Too clever?
+  end 
   
   def reverse_each
     i = @total
@@ -1079,15 +1097,6 @@ class Array
     end
     self
   end
-
-  #  def collect!                  # FIXME: should use alias
-  #    i = 0
-  #    each do |a|
-  #      self[i] = yield(a)
-  #      i += 1
-  #    end
-  #    return self
-  #  end
 
   def to_ary
     self
@@ -1268,12 +1277,6 @@ class Array
     ary.size == self.size ? nil : replace(ary)
   end
   
-  
-  def reject!(&block)
-    old_length = self.length
-    self.delete_if(&block)
-    old_length == self.length ? nil : self
-  end
   
   def reverse!
     if self.length > 1

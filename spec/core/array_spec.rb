@@ -1767,12 +1767,12 @@ describe "Array#reject" do
   # Returns MyArray on MRI 1.8 which is inconsistent with select.
   # It has been changed on 1.9 however.
   compliant(:ruby) do
-    it "does not return subclass instance on Array subclasses" do
+    it "returns subclass instance on Array subclasses" do
       MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == MyArray
     end
   end
   
-  compliant(:r19) do
+  noncompliant(:r19, :rubinius) do
     it "does not return subclass instance on Array subclasses" do
       MyArray[1, 2, 3].reject { |x| x % 2 == 0 }.class.should == Array
     end
