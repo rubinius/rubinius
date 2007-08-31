@@ -1053,6 +1053,23 @@ class Array
     args.each { |ent| self[@total] = ent }
     self
   end 
+
+  # Searches through contained Arrays within the Array,
+  # comparing obj with the second element of each using
+  # elem == obj. Returns the first matching Array, nil
+  # on failure. See also Array#assoc.
+  def rassoc(obj)
+    # FIX: Use break when it works
+    found, res = nil, nil
+
+    each { |elem| 
+      if found.nil? and elem.kind_of? Array and elem.at(1) == obj
+        res, found = elem, true
+      end
+    }
+
+    res
+  end  
   
   def reverse_each
     i = @total
@@ -1071,14 +1088,6 @@ class Array
   #    end
   #    return self
   #  end
-
-
-
-  def rassoc(obj)
-    find { |x|
-      Array === x && x[1] == obj
-    }
-  end
 
   def to_ary
     self

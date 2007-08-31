@@ -1736,13 +1736,20 @@ describe "Array#rassoc" do
     ary.rassoc("z").should == nil
   end
   
-  it "calls == on argument" do
-    key = Object.new
-    items = Array.new(3) { ["foo", Object.new, "bar"] }
-    items[0][1].should_receive(:==, :with => [key], :returning => false)
-    items[1][1].should_receive(:==, :with => [key], :returning => true)
-    items[2][1].should_not_receive(:==, :with => [key])
-    items.rassoc(key).should == items[1]
+  it "calls elem == obj on the second element of each contained array" do
+    key = 'foobar'
+    o = Object.new
+    def o.==(other); other == 'foobar'; end
+
+    [[1, :foobar], [2, o], [3, Object.new]].rassoc(key).should == [2, o]
+  end
+
+  it "does not check the last element in each contained but speficically the second" do
+    key = 'foobar'
+    o = Object.new
+    def o.==(other); other == 'foobar'; end
+
+    [[1, :foobar, o], [2, o, 1], [3, Object.new]].rassoc(key).should == [2, o, 1]
   end
 end
 
