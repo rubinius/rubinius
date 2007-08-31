@@ -16,6 +16,7 @@ end
 
 target = 'shotgun/rubinius'
 constants = []
+except = []
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "completeness [options]"
@@ -40,6 +41,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = t
     end
   end
+  opts.on("-x", "--exclude STRING|FILE", String,
+          "Exclude example(s) with descriptions matching STRING or each line of FILE") do |r|
+    except << r
+  end
   opts.on("-v", "--version", "Show version") do
     puts "Completeness Reporter #{Completeness::VERSION}"
     exit
@@ -52,7 +57,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.parse ARGV
 end
 
-cmd = %(bin/mspec -t #{target} -e "%s " -f d spec 2> /dev/null)
+cmd = %(bin/mspec -t #{target} -e "%s " #{except.map { |x| "-x #{x}" }.join(' ')} -f d spec 2> /dev/null)
 
 print_summary = lambda do |str, name, tab|
   examples, failures = 0, 0

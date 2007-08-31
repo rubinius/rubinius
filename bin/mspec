@@ -75,12 +75,12 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Reporter output will be sent to FILE") do |f|
     output = f
   end
-  opts.on("-e", "--example RE", String,
-          "Execute example(s) with descriptions matching RE") do |r|
+  opts.on("-e", "--example STRING|FILE", String,
+          "Execute example(s) with descriptions matching STRING or each line of FILE") do |r|
     only << r
   end
-  opts.on("-x", "--exclude RE", String,
-          "Exclude example(s) with descriptions matching RE") do |r|
+  opts.on("-x", "--exclude STRING|FILE", String,
+          "Exclude example(s) with descriptions matching STRING or each line of FILE") do |r|
     except << r
   end
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
