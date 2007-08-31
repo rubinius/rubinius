@@ -17,6 +17,7 @@ except = []
 only = []
 name = nil
 output = nil
+clean = false
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
 
@@ -82,6 +83,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Exclude example(s) with descriptions matching RE") do |r|
     except << r
   end
+  opts.on("-C", "--clean", "Remove all compiled spec files first") do
+    clean = true
+  end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
     exit
@@ -112,6 +116,9 @@ cmd = <<-EOC
 @runner = SpecRunner.new(#{format}.new(#{output.inspect if output}));
 @runner.only(*#{only.inspect});
 @runner.except(*#{except.inspect});
-#{files.inspect}.each { |f| load f }'
+#{files.inspect}.each do |f| 
+  File.delete("\#{f}c") if #{clean}
+  load f
+end'
 EOC
 system cmd
