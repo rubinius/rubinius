@@ -1101,6 +1101,28 @@ class Array
     self
   end
   
+  # Returns a new Array or subclass populated from self 
+  # but in reverse order.
+  def reverse()
+    dup.reverse!
+  end 
+  
+  # Reverses the order of elements in self. Returns self
+  # even if no changes are made
+  def reverse!
+    raise TypeError, "Array is frozen" if frozen?
+
+    return self unless size > 1
+
+    tuple = Tuple.new @tuple.size
+
+    size.times { |i| tuple.put i, at(size - i - 1) }
+
+    @tuple = tuple
+
+    self
+  end 
+  
   def reverse_each
     i = @total
     while i > 0
@@ -1260,16 +1282,6 @@ class Array
     end
     nil
   end
-  
-  def reverse
-    ary = []
-    i = @total - 1
-    while i >= 0
-      ary << self[i]
-      i -= 1
-    end
-    return ary
-  end
 
   def uniq
     seen = {}
@@ -1289,19 +1301,6 @@ class Array
     ary.size == self.size ? nil : replace(ary)
   end
   
-  
-  def reverse!
-    if self.length > 1
-       len = self.length - 1
-       0.upto(len / 2) do |i|
-         tmp = self[i]
-         self[i] = self[len - i]
-         self[len - i] = tmp
-       end
-    end
-    self
-  end
-
   
   def size
     @total
