@@ -1220,6 +1220,16 @@ class Array
     @sort_frozen = false
   end   
 
+  # Returns self except on subclasses which are converted
+  # or 'upcast' to Arrays.
+  def to_a
+    if self.class == Array
+      self
+    else
+      Array.new(self[0..-1])
+    end
+  end                                                 # to_a
+
   # Returns self
   def to_ary
     self
@@ -1230,14 +1240,6 @@ class Array
   def to_s
     self.join
   end 
-
-  def to_a
-    if self.class == Array
-      self
-    else
-      self[0..-1] or []
-    end
-  end
 
 
   def values_at(*args)
