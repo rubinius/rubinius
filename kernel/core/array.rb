@@ -1150,6 +1150,76 @@ class Array
     obj
   end 
 
+  # TODO will fix when #[]= works
+  def slice!(*args)
+    a1 = args.shift
+    out = self[a1, *args]       # FIXME: a1 is needed to avoid compiler crash
+    args.unshift a1
+
+    args << 1 if args.size == 1 && !(Range === args[0])
+    args << []
+    self.send(:"[]=", *args)
+    #self[*args] = []       # FIXME: this has mysterious bugs
+    out
+  end
+
+  # Returns a new Array created by sorting elements in self. Comparisons
+  # to sort are either done using <=> or a block may be provided. The
+  # block must take two parameters and return -1, 0, 1 depending on 
+  # whether the first parameter is smaller, equal or larger than the
+  # second parameter.
+  def sort(&block)
+    return self.dup if self.size <= 1
+    
+    pivot, left, middle, right = at(0), [], [], []
+    
+    each { |elem| 
+      begin
+        if block_given?
+          result = yield(elem, pivot) || 0          
+        else
+          # Done the 'wrong' way around to keep comp with MRI        
+          result = pivot <=> elem
+        end
+        
+        # Done backward to keep comp with MRI when no block is given
+        if result == -1
+          (block_given? ? left : right) << elem
+        elsif result == 0
+          middle << elem
+        elsif result == 1
+          (block_given? ? right : left) << elem
+        else
+          raise ArgumentError, block_given ? "Unknown result #{result} from block" : 
+                                             "Unable to <=> on candidate #{elem.inspect}"
+        end
+
+      rescue TypeError
+        raise ArgumentError, "Unable to compare #{pivot.class} with #{elem.class}"
+      rescue
+        raise
+      end
+    }
+
+    left = left.sort(&block)
+    right = right.sort(&block)
+
+    self.class.new(left + middle + right) # MRI #+ always returns Array    
+  end                           
+
+  # Sorts self in place as #sort. Array will be frozen while
+  # the sorting ensues. See Array#sort for other details. 
+  def sort!(&block)
+    raise TypeError, "Array is frozen" if frozen?
+
+    @sort_frozen = true     # MRI comp, must be #frozen? while #sort!ing
+    res = sort(&block)
+    @sort_frozen = false
+    replace res
+  ensure
+    @sort_frozen = false
+  end   
+
   def to_ary
     self
   end
@@ -1168,23 +1238,6 @@ class Array
 
   alias slice []
 
-  # crashes compiler:
-  #  def slice! (*args)
-  #    out = self[*args]
-  #    self[*args] = nil
-  #    out
-  #  end
-  def slice!(*args)
-    a1 = args.shift
-    out = self[a1, *args]       # FIXME: a1 is needed to avoid compiler crash
-    args.unshift a1
-
-    args << 1 if args.size == 1 && !(Range === args[0])
-    args << []
-    self.send(:"[]=", *args)
-    #self[*args] = []       # FIXME: this has mysterious bugs
-    out
-  end
 
   def self.[](*args)
     new.push(*args)
@@ -1243,53 +1296,6 @@ class Array
     }
 
     result unless block_given?
-  end
-
-  def sort(&block)
-    return self.dup if self.size <= 1
-    array = self.dup
-    
-    pivot   = array.first
-    left    = []
-    middle  = []
-    right   = []    
-    
-    each { |elem| 
-      begin
-        if block_given?
-          result = yield(elem, pivot) || 0          
-        else
-          # Done the 'wrong' way around to keep comp with MRI        
-          result = pivot <=> elem
-        end
-        
-        # Done backward to keep comp with MRI when no block is given
-        if result == -1
-          (block_given? ? left : right) << elem
-        elsif result == 0
-          middle << elem
-        elsif result == 1
-          (block_given? ? right : left) << elem
-        else
-          raise ArgumentError, block_given ? "Unknown result #{result} from block" : 
-            "Unable to <=> on candidate #{elem.inspect}"
-        end
-
-      rescue TypeError
-        raise ArgumentError, "Unable to compare #{pivot.class} with #{elem.class}"
-      rescue
-        raise
-      end
-    }
-
-    left = left.sort(&block)
-    right = right.sort(&block)
-
-    left + middle + right    
-  end
-
-  def sort!(&block)
-    replace(sort(&block))
   end
 
   def uniq
