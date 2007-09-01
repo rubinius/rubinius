@@ -1846,6 +1846,8 @@ describe "Array#reverse_each" do
     a.should == [6, 4, 3, 1]
   end
 
+# Is this a valid requirement? -rue
+compliant :r18 do
   it "does not fail when removing elements from block" do
     ary = [0, 0, 1, 1, 3, 2, 1, :x]
     
@@ -1861,6 +1863,7 @@ describe "Array#reverse_each" do
     
     count.should == 2
   end
+end
 end
 
 describe "Array#rindex" do

@@ -1115,21 +1115,24 @@ class Array
     return self unless size > 1
 
     tuple = Tuple.new @tuple.size
-
     size.times { |i| tuple.put i, at(size - i - 1) }
-
     @tuple = tuple
 
     self
   end 
   
-  def reverse_each
-    i = @total
-    while i > 0
-      i -= 1
-      yield @tuple.at(i)
-    end
+  # Goes through the Array back to front and yields 
+  # each element to the supplied block. Returns self.
+  def reverse_each()
+    (@total - 1).downto(0) { |i| yield(at(i)) }
     self
+  end
+
+  # Returns the index of the last element in the Array
+  # for which elem == obj is true.
+  def rindex(obj)
+    (@total - 1).downto(0) { |i| return i if at(i) == obj }
+    nil
   end
 
   def to_ary
@@ -1272,15 +1275,6 @@ class Array
 
   def sort!(&block)
     replace(sort(&block))
-  end
-
-  def rindex(obj)
-    i = @total
-    while i > 0
-      i -= 1
-      return i if @tuple.at(i) == obj
-    end
-    nil
   end
 
   def uniq
