@@ -17,9 +17,8 @@ class Array
 
   # Returns a new Array populated with the given objects
   def self.[](*args)
-    return args if self.class == Array
-    new(args.size) { |i| args[i] }   
-  end               
+    new.push(*args)
+  end
 
 
   # Creates a new Array. Without arguments, an empty
@@ -117,6 +116,7 @@ class Array
     out
   end             
 
+  alias :slice :[]
 
   def []=(idx, ent, *args)
     cnt = nil
@@ -1220,9 +1220,16 @@ class Array
     @sort_frozen = false
   end   
 
+  # Returns self
   def to_ary
     self
   end
+
+  # Produces a string by joining all elements without a 
+  # separator. See #join
+  def to_s
+    self.join
+  end 
 
   def to_a
     if self.class == Array
@@ -1232,16 +1239,6 @@ class Array
     end
   end
 
-  def to_s
-    self.join
-  end
-
-  alias slice []
-
-
-  def self.[](*args)
-    new.push(*args)
-  end
 
   def values_at(*args)
     out = []
