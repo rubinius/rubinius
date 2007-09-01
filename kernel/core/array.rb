@@ -1134,6 +1134,21 @@ class Array
     (@total - 1).downto(0) { |i| return i if at(i) == obj }
     nil
   end
+  
+  # Removes and returns the first element in the
+  # Array or nil if empty. All other elements are
+  # moved down one index.
+  def shift()
+    raise TypeError, "Array is frozen" if frozen?
+    return nil if empty?
+    
+    obj = at 0
+    
+    @tuple = @tuple.shift
+    @total -= 1
+
+    obj
+  end 
 
   def to_ary
     self
@@ -1311,16 +1326,6 @@ class Array
     @tuple.put 0, val
     @total += 1
     return self
-  end
-  
-  def shift
-    return nil if empty?
-    
-    ele = self[0]
-    
-    @tuple = @tuple.shift
-    @total -= 1
-    return ele
   end
   
 
