@@ -1088,6 +1088,18 @@ class Array
 
     self if was != length     # Too clever?
   end 
+
+  # Replaces contents of self with contents of other,
+  # adjusting size as needed.
+  def replace(other)
+    raise TypeError, "Array is frozen" if frozen?
+
+    other = ary_from other
+
+    @tuple = other.tuple.dup
+    @total = other.total
+    self
+  end
   
   def reverse_each
     i = @total
@@ -1308,15 +1320,6 @@ class Array
     return self
   end
   
-  def replace(other)
-    @tuple = other.tuple.dup
-    @total = other.total
-    return self
-  end
-  
-  # Synonymous to #replace
-  alias initialize_copy replace
-  
   def shift
     return nil if empty?
     
@@ -1372,6 +1375,10 @@ class Array
 
   # Internals
   private
+    # Exactly the same as #replace but private
+    def initialize_copy(other)
+      replace other
+    end
 
     # Reallocates the internal Tuple to accommodate at least given size
     def reallocate(at_least)
