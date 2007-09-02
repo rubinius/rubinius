@@ -4,15 +4,16 @@
 #define INTERNAL_DEBUG 1
 
 #define TRACK_STATS 1
-#define DISABLE_CHECKS 1
+#define DISABLE_CHECKS 0
 
-#ifndef MAIN
-extern void *__main_address;
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
-#include "rubinius.h"
+#include "oop.h"
 #include "state.h"
-#include "object.h"
 #include "auto.h"
+#include "metaclass.h"
+#include "object.h"
 #include "log.h"
 #endif

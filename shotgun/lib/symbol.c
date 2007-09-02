@@ -7,14 +7,6 @@
 #define StartSize 256
 #define Increments 32
 
-OBJECT symbol_from_index(STATE, int idx) {
-  return APPLY_TAG(idx, TAG_SYMBOL);
-}
-
-int symbol_to_index(STATE, OBJECT self) {
-  return STRIP_TAG((int)self);
-}
-
 OBJECT symtbl_new(STATE) {
   OBJECT tbl;
   tbl = symtbl_allocate(state);

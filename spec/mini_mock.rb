@@ -5,7 +5,7 @@ class Object
   # Provide the method name and a hash with any of the following
   #   :with       => Array of arguments or :any (default)
   #   :block      => Whether block is present or :any (default)
-  #   :count      => Number of times invoked, default once
+  #   :count      => Number of times invoked, default once (special: :any and :never)
   #   :returning  => Object to return
   def should_receive(sym, info = {:with => :any, :block => :any, :count => 1})
     meta = class << self; self; end
@@ -57,7 +57,7 @@ module Mock
     @expects.each {|k, info|
       obj, sym = k[0], k[1]
 
-      if info[:count] != :never 
+      if info[:count] != :never && info[:count] != :any
         if info[:count] > 0
           raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too FEW times on object #{obj.inspect}")
         end
@@ -110,14 +110,16 @@ module Mock
       end
     end
 
-    if info[:count] == :never
-      raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} should NOT be called on object #{obj.inspect}")
-    end
+    unless info[:count] == :any
+      if info[:count] == :never
+        raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} should NOT be called on object #{obj.inspect}")
+      end
     
-    info[:count] = info[:count] - 1
+      info[:count] = info[:count] - 1
 
-    if info[:count] < 0
-      raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too MANY times on object #{obj.inspect}")
+      if info[:count] < 0
+        raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too MANY times on object #{obj.inspect}")
+      end
     end
 
     return info[:returning]

@@ -30,11 +30,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 class Actor
+  
+  def self.after_loaded
+    Actor.metaclass.alias_method :private_new, :new
+    Actor.metaclass.alias_method :new, :spawn
+    Actor.metaclass.private :private_new
+  end
+  
   class << self
-    alias :private_new :new
-    # This doesn't work yet...
-    # private :private_new
-
     def spawn(&prc)
       channel = Channel.new
       Thread.new do
@@ -43,7 +46,6 @@ class Actor
       end
       channel.receive
     end
-    alias :new :spawn
 
     def current
       Thread.current[:__current_actor__] ||= private_new(current_mailbox)

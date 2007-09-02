@@ -171,6 +171,7 @@ int ffi_type_size(int type) {
     case FFI_TYPE_STRING:
     case FFI_TYPE_STATE:
     case FFI_TYPE_STRPTR:
+    case FFI_TYPE_OBJECT:
     return sizeof(void*);
     
     default:
@@ -190,7 +191,6 @@ OBJECT ffi_to_object() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
-  
   return obj;
 }
 
@@ -459,11 +459,7 @@ void ffi_from_string(char *str) {
 
 /* state */
 void* ffi_to_state() {
-  rni_context *ctx = subtend_retrieve_context();
-  /* We pop and discard the value, it's just a place holder in the args
-     list for the state. */
-  cpu_stack_pop(ctx->state, ctx->cpu);
-  
+  rni_context *ctx = subtend_retrieve_context();  
   return (void*)ctx->state;
 }
 
@@ -615,9 +611,8 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   int int_count, float_count, double_count;
   OBJECT obj;
       
-  /* Until lightning supports more than 6 args, we can only generate a stub
-     for 5 args (0 is the receiver). */
-  if(args > 5) return Qnil;
+  /* lightning only supports 6 arguments currently. */
+  if(args > 6) return Qnil;
   
   int_count = 0;
   float_count = 0;
@@ -648,8 +643,8 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         int_count++;
         break;
       }
-      
-#define call_conv(kind) jit_prepare(0); jit_calli(conv); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
+            
+#define call_conv(kind) jit_calli(conv); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
     
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
@@ -691,8 +686,8 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     }
     
     jit_prepare_i(int_count);
-    jit_prepare_d(double_count);
-    jit_prepare_f(float_count);
+    if(double_count > 0) jit_prepare_d(double_count);
+    if(float_count > 0)  jit_prepare_f(float_count);
     
     for(i = args - 1; i >= 0; i--) {
       switch(arg_types[i]) {
@@ -743,48 +738,60 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     free(ids);
   }
   
+  jit_finish(func);
+  
   switch(ret_type) {
   case FFI_TYPE_FLOAT:
   case FFI_TYPE_DOUBLE:
     reg = JIT_FPR0;
+    break;
   default:
     reg = JIT_V1;
   }
   
-  jit_finish(func);
-  jit_retval_p(reg);
-  
-  jit_prepare_i(1);
   switch(ret_type) {
   case FFI_TYPE_CHAR:
   case FFI_TYPE_UCHAR:
+    jit_retval_c(reg);
+    jit_prepare_i(1);
     jit_pusharg_c(reg);
     break;
     
   case FFI_TYPE_SHORT:
   case FFI_TYPE_USHORT:
+    jit_retval_s(reg);
+    jit_prepare_i(1);
     jit_pusharg_s(reg);
     break;
     
   case FFI_TYPE_INT:
   case FFI_TYPE_UINT:
+    jit_retval_i(reg);
+    jit_prepare_i(1);
     jit_pusharg_i(reg);
     break;
     
   case FFI_TYPE_LONG:
   case FFI_TYPE_ULONG:
+    jit_retval_l(reg);
+    jit_prepare_i(1);
     jit_pusharg_l(reg);
     break;
   
   case FFI_TYPE_FLOAT:
+    jit_retval_f(reg);
+    jit_prepare_f(1);
     jit_pusharg_f(reg);    
     break;
     
   case FFI_TYPE_DOUBLE:
+    jit_retval_d(reg);
+    jit_prepare_d(1);
     jit_pusharg_d(reg);
     break;
     
   case FFI_TYPE_VOID:
+    jit_prepare_i(1);
     jit_movi_i(reg, 1);
     jit_pusharg_i(reg);
     break;
@@ -794,6 +801,8 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   case FFI_TYPE_STRING:
   case FFI_TYPE_STRPTR:
   default:
+    jit_retval_p(reg);
+    jit_prepare_i(1);
     jit_pusharg_p(reg);
   }
 
@@ -849,24 +858,38 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   void *ep;
   int *arg_types;
   int ret_type;
-  int i, tot;
-  OBJECT ptr, func, meths, sym;
+  int i, tot, arg_count;
+  OBJECT ptr, func, meths, sym, type;
   
   ep = subtend_find_symbol(state, library, name);
   if(!ep) return Qnil;
   
   tot = FIXNUM_TO_INT(array_get_total(args));
-  if(tot > 0) {
+  arg_count = tot;
+  /* We don't support more than 6 args currently. */
+  if(tot > 6) {
+    return Qnil;
+  } else if(tot > 0) {
     arg_types = calloc(tot, sizeof(int));
   
     for(i = 0; i < tot; i++) {
-      if(!FIXNUM_P(array_get(state, args, i))) return Qnil;
-      arg_types[i] = FIXNUM_TO_INT(array_get(state, args, i));  
+      type = array_get(state, args, i);
+      if(!FIXNUM_P(type)) return Qnil;
+      arg_types[i] = FIXNUM_TO_INT(type);
+      
+      /* State can only be passed as the first arg, and it's invisible,
+         ie doesn't get seen as in onbound arg by ruby. But it can ONLY
+         be the first arg. */
+      if(arg_types[i] == FFI_TYPE_STATE) {
+        if(i == 0) {
+          arg_count--;
+        } else {
+          free(arg_types);
+          printf("Invalid arg types.\n");
+          return Qnil;
+        }
+      }
     }
-    
-  /* We don't support more than 5 args currently. */
-  } else if(tot > 5) {
-    return Qnil;
   } else {
     arg_types = NULL;
   }
@@ -875,7 +898,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   
   ptr = ffi_generate_typed_c_stub(state, tot, arg_types, ret_type, ep);
   sym = string_to_sym(state, name);
-  func = ffi_function_new(state, ptr, sym, tot);
+  func = ffi_function_new(state, ptr, sym, arg_count);
 
   return func;
 }
@@ -883,11 +906,12 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 void ffi_call(STATE, cpu c, OBJECT ptr) {
   nf_stub_ffi func;
   rni_context *ctx;
-
+  
   ctx = subtend_retrieve_context();
   ctx->state = state;
   ctx->cpu = c;
-    
+  
+  
   func = (nf_stub_ffi)(*DATA_STRUCT(ptr, void**));
   func();
 }

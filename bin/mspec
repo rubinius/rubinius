@@ -16,6 +16,8 @@ requires = ['-rmini_rspec.rb', '-rmini_mock.rb']
 except = []
 only = []
 name = nil
+output = nil
+clean = false
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
 
@@ -69,13 +71,20 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Overrides the name used to determine the implementation") do |n|
     name = "RUBY_NAME = \"#{n}\";"
   end
-  opts.on("-e", "--example RE", String,
-          "Execute example(s) with descriptions matching RE") do |r|
+  opts.on("-o", "--output FILE", String,
+          "Reporter output will be sent to FILE") do |f|
+    output = f
+  end
+  opts.on("-e", "--example STRING|FILE", String,
+          "Execute example(s) with descriptions matching STRING or each line of FILE") do |r|
     only << r
   end
-  opts.on("-x", "--exclude RE", String,
-          "Exclude example(s) with descriptions matching RE") do |r|
+  opts.on("-x", "--exclude STRING|FILE", String,
+          "Exclude example(s) with descriptions matching STRING or each line of FILE") do |r|
     except << r
+  end
+  opts.on("-C", "--clean", "Remove all compiled spec files first") do
+    clean = true
   end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
@@ -104,9 +113,12 @@ end
 
 cmd = <<-EOC
 #{target} #{includes.join(" ")} #{requires.join(" ")} -e '#{name}
-@runner = SpecRunner.new(#{format}.new);
+@runner = SpecRunner.new(#{format}.new(#{output.inspect if output}));
 @runner.only(*#{only.inspect});
 @runner.except(*#{except.inspect});
-#{files.inspect}.each { |f| load f }'
+#{files.inspect}.each do |f| 
+  File.delete("\#{f}c") if #{clean}
+  load f
+end'
 EOC
 system cmd

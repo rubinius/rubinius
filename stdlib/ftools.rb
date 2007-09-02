@@ -65,7 +65,7 @@ class << File
 
     begin
       while true
-	to.syswrite from.sysread(BUFSIZE)
+        to.syswrite from.sysread(BUFSIZE)
       end
     rescue EOFError
       ret = true

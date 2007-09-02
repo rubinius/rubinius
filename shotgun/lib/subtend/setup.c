@@ -9,6 +9,8 @@
 
 void subtend_setup_global();
 
+rni_handle_table *handle_table_new();
+
 void subtend_setup(STATE) {
   /* SystemData is class that just means that the body is opaque
      and not directly usable. It's used to store rni_nmc's

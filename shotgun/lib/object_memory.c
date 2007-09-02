@@ -140,7 +140,6 @@ void object_memory_shift_contexts(STATE, object_memory om) {
   OBJECT ctx, new_ctx;
   int inc = 0;
   // char *addr, *cur;
-  struct fast_context *fc;
   
   // addr = (char*)(om->context_bottom);
   // cur = (char*)(om->contexts->address);
@@ -235,9 +234,8 @@ void object_memory_mark_contexts(STATE, object_memory om) {
 }
 
 void object_memory_clear_marks(STATE, object_memory om) {
-  OBJECT ctx, lst;
-  char *addr, *cur;
-  struct fast_context *fc;
+  OBJECT ctx;
+  char *addr;
   
   addr = (char*)(om->contexts->address);
   
@@ -311,7 +309,7 @@ OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
     om->collect_now |= OMCollectMature;
   }
   
-  fast_memcpy32((void*)dest, (void*)obj, NUM_FIELDS(obj) + HEADER_SIZE);
+  fast_memcpy((void*)dest, (void*)obj, NUM_FIELDS(obj) + HEADER_SIZE);
   GC_ZONE_SET(dest, GC_MATURE_OBJECTS);
   //printf("Allocated %d fields to %p\n", NUM_FIELDS(obj), obj);
   // printf(" :: %p => %p (%d / %d )\n", obj, dest, NUM_FIELDS(obj), SIZE_IN_BYTES(obj));
@@ -533,8 +531,6 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   header = (struct rubinius_object*)obj;  
   header->flags2 = 0;
   header->gc = 0;
-  header->object_id = 0;
-  header->hash = 0;
   
   GC_ZONE_SET(obj, GC_MATURE_OBJECTS);
   
@@ -575,8 +571,6 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   header = (struct rubinius_object*)obj;
   header->flags2 = 0;
   header->gc = 0;
-  header->object_id = 0;
-  header->hash = 0;
   
   GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
   

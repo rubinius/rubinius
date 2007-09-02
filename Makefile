@@ -8,7 +8,7 @@ install:
 	cd shotgun; $(MAKE) install
 	mkdir -p $(RBAPATH)
 	mkdir -p $(CODEPATH)
-	cp runtime/*.rba $(RBAPATH)/
+	cp runtime/*.rba runtime/*.rbc $(RBAPATH)/
 	mkdir -p $(CODEPATH)/bin
 	cp lib/bin/*.rb $(CODEPATH)/bin
 	for rb in $(CODEPATH)/bin/*.rb ; do $(BINPATH)/rbx compile $$rb; done	

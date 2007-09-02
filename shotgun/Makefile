@@ -10,31 +10,24 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS += -I../include -iquote . -iquote lib $(CPPFLAGS)
+CFLAGS += -iquote . -iquote lib $(CPPFLAGS)
+
+ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
+
+LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm shotgun/lib
+LDFLAGS=
 
 # amd64 must have fPIC shared
 ifeq ($(MARCH),amd64)
 	CFLAGS+=-fPIC
 endif
 
-DEPS=../include/rubinius.h
-
-ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a
-
+DEPS=lib/rubinius.h
 # No disass support for 64
 ifneq ($(findstring 64,$(MARCH)),64)
 	RBS_LIGHTNING_DISASS='--enable-disassembling'
 	ALIBS+=external_libs/lightning/opcode/libdisass.a
 endif	
-
-LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm
-LDFLAGS=
-
-ifdef USE_CINVOKE
-CFLAGS += -Iexternal_libs/cinvoke/lib
-LIBS+= external_libs/cinvoke/lib/libcinvoke.a
-ALIBS+= external_libs/cinvoke/lib/libcinvoke.a
-endif
 
 ifeq ($(UNAME),SunOS)
   LDFLAGS+=-lrt
@@ -51,20 +44,22 @@ endif
 
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
 LOBJS=$(patsubst %.c,%.lo,$(shell ls *.c))
-RBLIB=lib/librubinius.a
+RBLIB=lib/$(RBXLIB)
 
-all: rubinius
+rubinius: rubinius.bin
+
+.PHONY: rubinius
 
 install:
 	$(MKDIR) $(LIBPATH)
-	$(INSTALL) -c lib/librubinius.la $(LIBPATH)
+	$(INSTALL) -c $(RBLIB) $(LIBPATH)
 	$(MKDIR) $(BINPATH)
-	$(INSTALL) -c rubinius $(BINPATH)/rbx$(BINSUFFIX)
+	$(INSTALL) -c rubinius.bin $(BINPATH)/rbx$(BINSUFFIX)
 
 config.h:
 	./mkconfig.sh
 
-%.lo: %.c $(DEPS)
+%.o: %.c $(DEPS)
 	$(COMP) $(CFLAGS) -c $< 
 
 external_libs/lightning/config.h:
@@ -103,25 +98,26 @@ external_libs/libltdl/config.h:
 external_libs/libltdl/.libs/libltdl.a: external_libs/libltdl/config.h
 	cd external_libs/libltdl; $(MAKE)
 
-lib/librubinius.la: config.h $(ALIBS) external_libs/lightning/config.h 
-	cd lib; $(MAKE) librubinius.la; 
-.PHONY: lib/librubinius.la
+$(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
+	cd lib; $(MAKE) library; 
+
+.PHONY: $(RBLIB)
 
 # Don't try to build main until librubinius exists
-main.c: lib/librubinius.la
+main.c: $(RBLIB)
 
-rubinius: lib/librubinius.la main.lo
-	$(LINKER) -o rubinius main.lo lib/librubinius.la
+rubinius.bin: $(RBLIB) main.o
+	$(COMP) -o rubinius.bin main.o $(RBLIB) $(BIN_RPATH)
 
-test/test_state: test/test_state.c librubinius.a
+test/test_state: test/test_state.c library
 	$(COMP) -c -o test/test_state.o test/test_state.c $(CFLAGS)
 	$(COMP) $(LIBS) -o test/test_state test/test_state.o $(RBLIB)
 
-test/test_gc: test/test_gc.c librubinius.a
+test/test_gc: test/test_gc.c library
 	$(COMP) -c -o test/test_gc.o test/test_gc.c $(CFLAGS)
 	$(COMP) $(LIBS) -o test/test_gc test/test_gc.o $(RBLIB)
 
-test/test_instructions: test/test_instructions.c librubinius.a 
+test/test_instructions: test/test_instructions.c library
 	$(COMP) -c -o test/test_instructions.o test/test_instructions.c $(CFLAGS)
 	$(COMP) $(LIBS) -o test/test_instructions test/test_instructions.o $(RBLIB)
 
@@ -132,7 +128,7 @@ test: test/test_state test/test_instructions
 .PHONY: test
 
 clean:
-	rm -f *.o *.lo *.gen rubinius config.h config.mk
+	rm -f *.o *.lo *.gen rubinius.bin config.h config.mk
 	rm -rf .libs
 	cd lib; $(MAKE) clean
 	cd external_libs/libtommath; $(MAKE) clean

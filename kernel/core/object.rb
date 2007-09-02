@@ -7,6 +7,96 @@ class Object
   RUBY_RELEASE_DATE = Rubinius::RUBY_RELEASE_DATE
   RUBY_ENGINE = Rubinius::RUBY_ENGINE
   
+  ivar_as_index :__ivars__ => 0
+  def __ivars__; @__ivars__ ; end
+
+  def initialize
+  end
+    
+  def nil?
+    false
+  end
+  
+  def undef?
+    false
+  end
+    
+  def instance_of?(cls)
+    self.class == cls
+  end
+  
+  alias :is_a? :kind_of?
+  
+  def dup
+    nw = self.class.allocate
+    nw.copy_from(self, 0)
+    return nw
+  end
+    
+  alias :eql? :equal?
+  alias :==   :equal?
+  alias :===  :equal?
+
+  def to_s
+    "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
+  end
+  
+  def inspect
+    return self.to_s unless @__ivars__
+    
+    if (@__ivars__.is_a?(Hash) or @__ivars__.is_a?(Tuple)) and @__ivars__.empty?
+      return self.to_s
+    end
+    
+    res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
+    parts = []
+    
+    if @__ivars__.is_a?(Hash)    
+      @__ivars__.each do |k,v|
+        if v.object_id == self.object_id # This would be an infinite loop
+          parts << "#{k}=self"
+        else
+          parts << "#{k}=#{v.inspect}"
+        end
+      end
+    else
+      0.step(@__ivars__.size - 1, 2) do |i|
+        if k = @__ivars__[i]
+          v = @__ivars__[i+1]
+          if v.object_id == self.object_id # This would be an infinite loop
+            parts << "#{k}=self"
+          else
+            parts << "#{k}=#{v.inspect}"
+          end
+        end
+      end
+    end
+    
+    res << parts.join(" ")
+    res << ">"
+    return res
+  end
+    
+  alias :send :__send__
+  
+  def method(name)    
+    cm = __find_method__(name)
+    
+    if cm
+      return Method.new(self, cm[1], cm[0])
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+  
+  def lambda(&prc)
+    return prc
+  end
+  
+  def method_missing(meth, *args)
+    raise NoMethodError, "No method '#{meth}' on an instance of #{self.class}."
+  end
+  
   #  call-seq:
   #     obj.instance_exec(arg...) {|var...| block }                       => obj
   #  
@@ -66,7 +156,7 @@ class Object
     # CSM awareness
     if Tuple === vars
       out = []
-      0.step(vars.size, 2) do |i|
+      0.step(vars.size - 1, 2) do |i|
         k = vars[i]
         if k
           k = k.to_s unless symbols
@@ -164,10 +254,9 @@ class Object
     self.object_id == other.object_id
   end
 
-  def __not_equal__(other)
+  def !=(other)
     !(self == other)
   end
-  self.method_table[:"!="] = self.method_table[:__not_equal__]
   
   def coerce_string
     raise TypeError, "can't convert #{self.inspect} into String" unless respond_to?(:to_str)

@@ -1,5 +1,3 @@
-#define MAIN 1
-
 #include "shotgun.h"
 #include "machine.h"
 #include <sys/stat.h>
@@ -8,8 +6,6 @@
 
 #include "config.h"
 #include "subtend/ruby.h"
-
-void *__main_address;
 
 /* TODO incorporate system paths calculated at compile time. */
 static const char *search_path[] = {
@@ -48,12 +44,7 @@ int main(int argc, char **argv) {
   machine m, *ptr = &m;
   const char *archive;
   int offset = 0;
-  int flag;
-  
-  /* Setup the global that contains the address of the 
-     frame pointer for main. This is so the missing
-     backtrace knows where to stop looking for return address. */
-  __main_address = __builtin_frame_address(0);
+  OBJECT flag;
   
   m = machine_new();
   /* We sure to setup the bottom of the stack so it can be properly saved. */
@@ -78,7 +69,22 @@ int main(int argc, char **argv) {
     
   flag = machine_load_archive(m, archive);
   
-  if(!flag) {
+  if(!TRUE_P(flag)) {
+    printf("Unable to run %s\n", archive);
+    return 1;
+  }
+  
+  /* Load the platform. */
+  
+  archive = search_for("PLATFORM", "platform.rba");
+  if(!archive) {
+    printf("Unable to find a platform (platform.rba) to load!\n");
+    return 1;
+  }
+    
+  flag = machine_load_archive(m, archive);
+  
+  if(!TRUE_P(flag)) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
@@ -93,7 +99,7 @@ int main(int argc, char **argv) {
     
   flag = machine_load_archive(m, archive);
    
-  if(!flag) {
+  if(!TRUE_P(flag)) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
@@ -108,7 +114,7 @@ int main(int argc, char **argv) {
   
   flag = machine_run_file(m, archive);
   
-  if(!flag) {
+  if(!TRUE_P(flag)) {
     printf("Unable to run %s\n", archive);
     return 1;
   }

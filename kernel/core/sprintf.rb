@@ -303,7 +303,7 @@ module Sprintf
           fmt << @width.to_s            if @width
           fmt << '.' << @precision.to_s if @precision
           fmt << @type
-          out << __float_sprintf__(fmt, v)
+          out << v.to_s_formatted(fmt)
         end
         
       when ?u
@@ -386,12 +386,7 @@ module Sprintf
       #Ruby.primitive :fixnum_twos_complement
       v
     end
-    
-    def __float_sprintf__(fmt, v)
-      Ruby.primitive :float_sprintf
-      #sprintf(fmt,v)
-    end
-    
+        
     def integer_value(base, signed)
       # Negative numbers:
       # [+, space] : does not two's complement the number

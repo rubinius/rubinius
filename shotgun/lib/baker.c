@@ -521,7 +521,7 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
   cur = (char*)g->current->address;
   end = (char*)g->current->current;
   
-  while(cur <= end) {
+  while(cur < end) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(cur);
     
@@ -558,13 +558,19 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
       }
     }
     bs = ((osz + HEADER_SIZE) * REFSIZE);
-    fast_memfill32(cur, 0, HEADER_SIZE + osz);
+    fast_memfill(cur, 0, HEADER_SIZE + osz);
     // memset(cur, 0, bs);
     
-#ifdef XDEBUG
-    HEADER(cur)->object_id = g->num_collection;
-#endif
     cur += bs;
+
+  }
+
+  // the 'next' heap has been enlarged (replaced by a new larger one).
+  // free the old buffer.
+  // the heap struct that holds a copy of the g->last_start pointer
+  // in its 'address' slot is unreachable so can't be freed.
+  if((OBJECT)g->last_start != g->next->address) {
+    free(g->last_start);
   }
 }
 

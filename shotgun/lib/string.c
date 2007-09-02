@@ -39,13 +39,23 @@ OBJECT string_new(STATE, const char *str) {
   return string_new2(state, str, sz);
 }
 
+OBJECT string_new_shared(STATE, OBJECT cur) {
+  OBJECT obj;
+ 
+  obj = string_allocate(state);
+  string_set_bytes(obj, string_get_bytes(cur));
+  string_set_characters(obj, string_get_bytes(cur));
+  string_set_encoding(obj, Qnil);
+  
+  string_set_data(obj, string_get_data(cur));
+  string_set_shared(obj, Qtrue);
+  string_set_shared(cur, Qtrue);
+  return obj;
+}
+
 OBJECT string_dup(STATE, OBJECT self) {
-  char *ba;
-  
   xassert(STRING_P(self));
-  ba = bytearray_byte_address(state, string_get_data(self));
-  
-  return string_new2(state, ba, FIXNUM_TO_INT(string_get_bytes(self)));
+  return string_new_shared(state, self);
 }
 
 OBJECT string_append(STATE, OBJECT self, OBJECT other) {
@@ -55,6 +65,8 @@ OBJECT string_append(STATE, OBJECT self, OBJECT other) {
   
   xassert(STRING_P(self));
   xassert(STRING_P(other));
+  
+  string_unshare(state, self);
   
   cur = string_get_data(self);
   obs = string_get_data(other);
@@ -150,18 +162,20 @@ static inline unsigned int _hash_str(unsigned char *bp, unsigned int sz) {
 unsigned int string_hash_int(STATE, OBJECT self) {
   unsigned char *bp;
   unsigned int sz, h;
-  OBJECT data;
+  OBJECT data, hsh;
   
   xassert(STRING_P(self));
   data = string_get_data(self);
-  if(HEADER(data)->hash != 0) {
-    return HEADER(data)->hash;
+  hsh = string_get_hash(self);
+  if(hsh != Qnil) {
+    return FIXNUM_TO_INT(hsh);
   }
   bp = (unsigned char*)bytearray_byte_address(state, data);
   sz = FIXNUM_TO_INT(string_get_bytes(self));
   
   h = _hash_str(bp, sz);
-  HEADER(data)->hash = h;
+  string_set_hash(self, UI2N(h));
+  
   return h;
 }
 

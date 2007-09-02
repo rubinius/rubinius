@@ -19,7 +19,7 @@ class SpecReporter
     end
     
     def describe=(d)
-      @describe = d
+      @describe = d.to_s
     end
     
     def describe
@@ -27,7 +27,7 @@ class SpecReporter
     end
     
     def it=(i)
-      @it = i
+      @it = i.to_s
     end
     
     def it
@@ -36,7 +36,11 @@ class SpecReporter
   end
   
   def initialize(out=STDOUT)
-    @out = out
+    if out.respond_to?(:print)
+      @out = out
+    else
+      @out = File.open(out, "w")
+    end
     @examples = 0
     @failures = 0
     @exceptions = []
@@ -109,7 +113,7 @@ class SpecDoxReporter < SpecReporter
   
   def print_describe
     unless @describe_printed
-      @out.print "\n" + @describe + "\n"
+      @out.print "\n" + @describe.to_s + "\n"
       @describe_printed = true
     end
   end
@@ -153,10 +157,16 @@ end
 
 class CIReporter < SpecReporter
   def print_failure(i,r)
-    @out.print i.to_s + ") " + r.describe + " " + r.it + " FAILED\n"
+    @out.print r.describe + " " + r.it + "\n"
   end
   
-  def print_backtrace(e)
+  def summary
+    unless @summarized
+      @exceptions.each_with_index do |r,i|
+        print_failure(i+1,r)
+      end
+      @summarized = true
+    end
   end
 end
 
@@ -164,7 +174,7 @@ class ImmediateReporter < SpecReporter
   def after_it(msg)
     if @report.exception
       @out.print 'F'
-      @out.print "\n" + @describe + " " + @report.it + " FAILED\n"
+      @out.print "\n" + @report.describe + " " + @report.it + " FAILED\n"
       print_backtrace(@report.exception)
     else
       @out.print '.'
@@ -253,12 +263,32 @@ class SpecRunner
     @reporter
   end
   
+  def escape(str)
+    Regexp.new(Regexp.escape(str))
+  end
+  
+  def convert_to_regexps(args)
+    args.inject([]) do |list, item|
+      if File.exists?(item)
+        f = File.open(item, "r")
+        f.each do |line|
+          line.chomp!
+          list << Regexp.new(Regexp.escape(line)) unless line.empty?
+        end
+        f.close
+        list
+      else
+        list << escape(item)
+      end
+    end
+  end
+  
   def only(*args)
-    @only = args.map { |a| Regexp.new(Regexp.escape(a)) }
+    @only = convert_to_regexps(args)
   end
   
   def except(*args)
-    @except = args.map { |a| Regexp.new(Regexp.escape(a)) }
+    @except = convert_to_regexps(args)
   end
   
   def skip?

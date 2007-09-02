@@ -123,7 +123,7 @@ VALUE subtend_get_global(int which) {
     break;
         
     default:
-    val = Qnil;
+    val = (OBJECT)Qnil;
   }
   
   return NEW_HANDLE(ctx, val);
@@ -337,6 +337,12 @@ VALUE rb_ary_push(VALUE array, VALUE val) {
   return NEW_HANDLE(ctx, ary);
 }
 
+VALUE rb_ary_pop(VALUE array) {
+  CTX;
+  OBJECT ary = HNDL(array);
+  return NEW_HANDLE(ctx, array_pop(ctx->state, ary));
+}
+
 VALUE rb_ary_entry(VALUE array, int offset) {
   CTX;
   OBJECT val, ary = HNDL(array);
@@ -364,6 +370,14 @@ VALUE rb_ary_clear(VALUE array) {
 
 VALUE rb_ary_dup(VALUE array) {
   return rb_funcall2(array, rb_intern("dup"), 0, NULL);
+}
+
+VALUE rb_ary_join(VALUE array1, VALUE array2) {
+  return rb_funcall(array1, rb_intern("join"), 1, array2);
+}
+
+VALUE rb_ary_reverse(VALUE array) {
+  return rb_funcall(array, rb_intern("reverse"), 0);
 }
 
 VALUE rb_ary_unshift(VALUE array, VALUE val) {
@@ -412,7 +426,25 @@ VALUE rb_str_dup(VALUE str) {
 
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len) {
   CTX;
-  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(rb_str_new(ptr, len))));
+  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), string_new2(ctx->state, ptr, len)));
+}
+
+VALUE rb_str_append(VALUE str, VALUE str2) {
+  CTX;
+  return NEW_HANDLE(ctx, string_append(ctx->state, HNDL(str), HNDL(str2)));
+}
+
+VALUE rb_str_cat(VALUE str, const char *ptr, long len) {
+  CTX;
+  if(len < 0) rb_raise(rb_eArgError, "negative string size (or size too big)");
+  OBJECT new_string = string_dup(ctx->state, HNDL(str));
+  return NEW_HANDLE(ctx, string_append(ctx->state, new_string, string_new2(ctx->state, ptr, len)));
+}
+
+VALUE rb_str_plus(VALUE str1, VALUE str2) {
+  CTX;
+  OBJECT new_string = string_dup(ctx->state, HNDL(str1));
+  return NEW_HANDLE(ctx, string_append(ctx->state, new_string, HNDL(str2)));
 }
 
 VALUE rb_hash_new(void) {

@@ -15,7 +15,11 @@
 #define USE_INTCODE 1
 
 /* Enable direct threading */
+#ifdef __LP64__
 #define DIRECT_THREADED 0
+#else
+#define DIRECT_THREADED 1
+#endif
 
 #if USE_INTCODE
 #define IP_TYPE uint32_t
@@ -50,7 +54,8 @@ struct fast_context {
   CPU_REGISTERS
 };
 
-#define InitialStackSize 4096
+/* 3Megs of stack */
+#define InitialStackSize 786432
 
 #define TASK_NO_STACK 1
 #define TASK_FLAG_P(task, flag) ((task->flags & flag) == flag)
@@ -121,7 +126,7 @@ void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
-inline int cpu_return_to_sender(STATE, cpu c, int consider_block);
+inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);

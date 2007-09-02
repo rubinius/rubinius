@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../lib/bytecode/primitive_names'
+require File.dirname(__FILE__) + '/../../compiler/bytecode/primitive_names'
 require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
@@ -128,10 +128,24 @@ class ShotgunPrimitives
   def equal(_ = fixnum, t1 = fixnum)
     <<-CODE
     /* No need to shift them to be longs, the comparison is the same. */
-    if(self == t1)
+    if(self == t1) {
       stack_push(Qtrue); 
-    else
+    } else {
       stack_push(Qfalse);
+    }
+    CODE
+  end
+  
+  def object_equal
+    <<-CODE
+    self = stack_pop();
+    t1 =   stack_pop();
+    
+    if(self == t1) {
+      stack_push(Qtrue); 
+    } else {
+      stack_push(Qfalse);
+    }
     CODE
   end
   
@@ -292,7 +306,7 @@ class ShotgunPrimitives
     POP(self, IO);
     POP(t1, STRING);
 
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    j = io_to_fd(self);
     buf = string_byte_address(state, t1);
     k = FIXNUM_TO_INT(string_get_bytes(t1));
     k = write(j, buf, k);
@@ -310,7 +324,7 @@ class ShotgunPrimitives
     POP(t1, FIXNUM);
 
     t2 = string_new2(state, NULL, FIXNUM_TO_INT(t1));
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
+    j = io_to_fd(self);
     k = read(j, string_byte_address(state, t2), FIXNUM_TO_INT(t1));
     if(k == 0) {
       t2 = Qnil;
@@ -331,10 +345,8 @@ class ShotgunPrimitives
     
     j = pipe(fds);
     if(!j) {
-      io_set_descriptor(t1, I2N(fds[0]));
-      io_initialize(state, fds[0]);
-      io_set_descriptor(t2, I2N(fds[1]));      
-      io_initialize(state, fds[1]);
+      io_wrap(state, t1, fds[0], "r");
+      io_wrap(state, t2, fds[1], "r");
     }
     stack_push(I2N(j));
     CODE
@@ -342,16 +354,15 @@ class ShotgunPrimitives
   
   def io_open
     <<-CODE
-    FILE *_fobj;
     char *_path, *_mode;
     self = stack_pop(); /* class */
     POP(t1, STRING);
     POP(t2, STRING);
-
+    
     _path = string_byte_address(state, t1);
     _mode = string_byte_address(state, t2);
-    _fobj = fopen(_path, _mode);
-    t3 = io_new(state, fileno(_fobj));
+    
+    t3 = io_open(state, _path, _mode);
     stack_push(t3);
     CODE
   end
@@ -364,9 +375,10 @@ class ShotgunPrimitives
     /* MRI does a ton more with reopen, but I don't yet understand why.
        This seems perfectly acceptable currently. */
     
-    k = FIXNUM_TO_INT(io_get_descriptor(self));
-    j = FIXNUM_TO_INT(io_get_descriptor(t1));
-    
+    k = io_to_fd(self);
+    j = io_to_fd(t1);
+
+    /* Probably needs an fflush here. */
     if(dup2(j, k) == -1) {
       cpu_raise_from_errno(state, c, "Unable to reopen IO object");
     } else {
@@ -379,8 +391,8 @@ class ShotgunPrimitives
   def io_close
     <<-CODE
     POP(self, IO);
-    j = FIXNUM_TO_INT(io_get_descriptor(self));
-    GUARD(j >= 0)
+    j = io_to_fd(self);
+    GUARD(j >= 0);
 
     if( close(j) ) {
       stack_push(Qfalse);
@@ -418,11 +430,11 @@ class ShotgunPrimitives
      */
     gettimeofday(&tv, NULL);
 
-    k = array_new(state, 2);
-    array_set(state, k, 0, I2N(tv.tv_sec));
-    array_set(state, k, 1, I2N(tv.tv_usec));
+    self = array_new(state, 2);
+    array_set(state, self, 0, I2N(tv.tv_sec));
+    array_set(state, self, 1, I2N(tv.tv_usec));
 
-    stack_push(k);
+    stack_push(self);
     CODE
   end
 
@@ -486,30 +498,30 @@ class ShotgunPrimitives
       tm = localtime(&seconds);
     }
 
-    k = array_new(state, 2);
-    array_set(state, k, 0, I2N(tm->tm_sec));
-    array_set(state, k, 1, I2N(tm->tm_min));
-    array_set(state, k, 2, I2N(tm->tm_hour));
-    array_set(state, k, 3, I2N(tm->tm_mday));
-    array_set(state, k, 4, I2N(tm->tm_mon));
-    array_set(state, k, 5, I2N(tm->tm_year));
-    array_set(state, k, 6, I2N(tm->tm_wday));
-    array_set(state, k, 7, I2N(tm->tm_yday));
-    array_set(state, k, 8, I2N(tm->tm_isdst));
+    t3 = array_new(state, 2);
+    array_set(state, t3, 0, I2N(tm->tm_sec));
+    array_set(state, t3, 1, I2N(tm->tm_min));
+    array_set(state, t3, 2, I2N(tm->tm_hour));
+    array_set(state, t3, 3, I2N(tm->tm_mday));
+    array_set(state, t3, 4, I2N(tm->tm_mon));
+    array_set(state, t3, 5, I2N(tm->tm_year));
+    array_set(state, t3, 6, I2N(tm->tm_wday));
+    array_set(state, t3, 7, I2N(tm->tm_yday));
+    array_set(state, t3, 8, I2N(tm->tm_isdst));
 
 #ifdef HAVE_STRUCT_TM_TM_GMTOFF
-    array_set(state, k, 9, I2N(tm->tm_gmtoff));
+    array_set(state, t3, 9, I2N(tm->tm_gmtoff));
 #else
-    array_set(state, k, 9, Qnil);
+    array_set(state, t3, 9, Qnil);
 #endif
 
 #ifdef HAVE_STRUCT_TM_TM_ZONE
-    array_set(state, k, 10, string_new(state, tm->tm_zone));
+    array_set(state, t3, 10, string_new(state, tm->tm_zone));
 #else
-    array_set(state, k, 10, Qnil);
+    array_set(state, t3, 10, Qnil);
 #endif
 
-    stack_push(k);
+    stack_push(t3);
     CODE
   end
 
@@ -519,7 +531,9 @@ class ShotgunPrimitives
     struct tm tm;
     char *old_tz, old_tz_buf[128];
     OBJECT t5, t6, t7, t8, t9, ret;
-
+    
+    old_tz = NULL;
+    
     POP(self, REFERENCE);
     POP(t1, FIXNUM);
     POP(t2, FIXNUM);
@@ -620,9 +634,9 @@ class ShotgunPrimitives
 
   def logical_class
     <<-CODE
-    /* self is ANY object because object_logical_class knows all. */
+    /* self is ANY object because object_class knows all. */
     self = stack_pop();
-    stack_push(object_logical_class(state, self));
+    stack_push(object_class(state, self));
     CODE
   end
 
@@ -658,7 +672,7 @@ class ShotgunPrimitives
 
   def hash_object
     <<-CODE
-    /* self is ANY object because object_logical_class knows all. */    
+    /* self is ANY object because object_class knows all. */    
     self = stack_pop();
     t1 = UI2N(object_hash_int(state, self));
     stack_push(t1);
@@ -679,12 +693,7 @@ class ShotgunPrimitives
     <<-CODE
     POP(self, REFERENCE);
     POP(t1, NUMERIC);
-    if(FIXNUM_P(t1)) {
-      HEADER(self)->hash = (uint32_t)FIXNUM_TO_INT(t1);
-    } else {
-      HEADER(self)->hash = (uint32_t)bignum_to_int(state, t1);
-    }
-    stack_push(UI2N(HEADER(self)->hash));
+    abort();
     CODE
   end
 
@@ -710,8 +719,13 @@ class ShotgunPrimitives
     POP(t1, REFERENCE);
     POP(t2, FIXNUM);
 
-    j = FIXNUM_TO_INT(t2);
-    object_copy_fields_from(state, t1, self, j, NUM_FIELDS(t1) - j);
+    int start = FIXNUM_TO_INT(t2);
+    for(k = start, j = 0; 
+        k < NUM_FIELDS(t1) && j < NUM_FIELDS(self); 
+        k++, j++) {
+      SET_FIELD(self, j, NTH_FIELD(t1, k));
+    }
+    // object_copy_fields_from(state, t1, self, j, NUM_FIELDS(self));
     HEADER(self)->flags  = HEADER(t1)->flags;
     // HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
     stack_push(t1);
@@ -885,9 +899,14 @@ class ShotgunPrimitives
     struct stat sb = {0};
     self = stack_pop();
     POP(t1, STRING);
+    t2 = stack_pop();
 
     char *path = string_byte_address(state, t1);
-    j = stat(path, &sb);
+    if (RTEST(t2)) {
+      j = stat(path, &sb);
+    } else {
+      j = lstat(path, &sb);
+    }
 
     if(j != 0) {
       if(errno == ENOENT) {
@@ -898,26 +917,41 @@ class ShotgunPrimitives
         stack_push(Qfalse);
       }
     } else {
-      t2 = tuple_new(state, 10);
+      t2 = NEW_OBJECT(self, 10);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));
       tuple_put(state, t2, 1, I2N((int)sb.st_mode));
-      if((sb.st_mode & S_IFIFO) == S_IFIFO) {
-        t3 = string_to_sym(state, string_new(state, "fifo"));
-      } else if((sb.st_mode & S_IFCHR) == S_IFCHR) {
-        t3 = string_to_sym(state, string_new(state, "char"));
-      } else if((sb.st_mode & S_IFDIR) == S_IFDIR) {
-        t3 = string_to_sym(state, string_new(state, "dir"));
-      } else if((sb.st_mode & S_IFBLK) == S_IFBLK) {
-        t3 = string_to_sym(state, string_new(state, "block"));
-      } else if((sb.st_mode & S_IFREG) == S_IFREG) {
-        t3 = string_to_sym(state, string_new(state, "regular"));
-      } else if((sb.st_mode & S_IFLNK) == S_IFLNK) {
-        t3 = string_to_sym(state, string_new(state, "link"));
-      } else if((sb.st_mode & S_IFSOCK) == S_IFSOCK) {
-        t3 = string_to_sym(state, string_new(state, "socket"));
-      } else {
-        t3 = string_to_sym(state, string_new(state, "file"));
+
+      switch(sb.st_mode & S_IFMT) {
+        case S_IFIFO:     // named pipe
+          t3 = string_to_sym(state, string_new(state, "fifo"));
+          break;
+        case S_IFCHR:     // character special
+          t3 = string_to_sym(state, string_new(state, "char"));
+        	break;
+        case S_IFDIR:     // directory
+          t3 = string_to_sym(state, string_new(state, "dir"));
+        	break;
+        case S_IFBLK:     // block special
+          t3 = string_to_sym(state, string_new(state, "block"));
+        	break;
+        case S_IFREG:     // regular file
+          t3 = string_to_sym(state, string_new(state, "file"));
+        	break;
+        case S_IFLNK:     // symbolic link
+          t3 = string_to_sym(state, string_new(state, "link"));
+        	break;
+        case S_IFSOCK:    // socket
+          t3 = string_to_sym(state, string_new(state, "socket"));
+        	break;
+        #ifdef S_IFWHT
+        case S_IFWHT:     // whiteout
+          t3 = string_to_sym(state, string_new(state, "whiteout"));
+        	break;
+        #endif
+        default:
+          t3 = string_to_sym(state, string_new(state, "file"));
       }
+      
       tuple_put(state, t2, 2, t3);
       tuple_put(state, t2, 3, I2N((int)sb.st_uid));
       tuple_put(state, t2, 4, I2N((int)sb.st_gid));
@@ -1178,7 +1212,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    stack_push(cpu_unmarshal(state, string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
+    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
     CODE
   end
   
@@ -1666,9 +1700,9 @@ class ShotgunPrimitives
     CODE
   end
   
-  def math_sqrt(_ = reference, t1 = float)
+  def math_sqrt(_ = float)
     <<-CODE
-      stack_push(math_sqrt(state, t1));
+      stack_push(math_sqrt(state, self));
     CODE
   end
   
@@ -1849,7 +1883,6 @@ class ShotgunPrimitives
     <<-CODE
     /* Get rid of the module */
     stack_pop();
-    
     /* The definition of beauty. Simplicity. To call a native function, there is no work 
        to be done. The stub contains all the serialization code. 
        
@@ -1944,10 +1977,9 @@ class ShotgunPrimitives
 
   def float_sprintf
     <<-CODE
-    stack_pop(); /* self */
+    POP(self, FLOAT);
     POP(t1, STRING);
-    POP(t2, FLOAT);
-    stack_push(float_sprintf(state, t1, t2));
+    stack_push(float_sprintf(state, t1, self));
     CODE
   end
   
@@ -2142,15 +2174,20 @@ class ShotgunPrimitives
     <<-CODE
     stack_pop(); /* scheduler */
     POP(self, REFERENCE);
-    POP(t1,   IO);
+    t1 = stack_pop();
     t2 = stack_pop();
     t3 = stack_pop();
     
     GUARD(RISA(self, channel));
     GUARD(STRING_P(t2) || NIL_P(t2));
     GUARD(FIXNUM_P(t3) || NIL_P(t3));
-    
-    j = FIXNUM_TO_INT(io_get_descriptor(t1));
+    if(IO_P(t1)) {
+      j = io_to_fd(t1);
+    } else if(FIXNUM_P(t1)) {
+      j = FIXNUM_TO_INT(t1);
+    } else {
+      GUARD(0);
+    }
     cpu_event_wait_readable(state, c, self, j, t2, FIXNUM_TO_INT(t3));
     stack_push(Qtrue);
     CODE
@@ -2164,7 +2201,7 @@ class ShotgunPrimitives
     
     GUARD(RISA(self, channel));
     
-    j = FIXNUM_TO_INT(io_get_descriptor(t1));
+    j = io_to_fd(t1);
     cpu_event_wait_writable(state, c, self, j);
     stack_push(Qtrue);
     CODE

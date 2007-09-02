@@ -138,7 +138,6 @@ void machine_gather_ppc_frames(ucontext_t *ctx, unsigned long *frames, int *coun
      * we want the current one. */
     frames[i] = pc - 4;
     
-    if(sp == (unsigned long)__main_address) break;
     /* The saved stack pointer is the first thing pushed
        on the stack by the caller. */
     sp = _mem_at(sp);
@@ -172,7 +171,6 @@ void machine_show_ppc_backtrace(ucontext_t *ctx) {
       fprintf(stdout, "%10p <%s+%d> at %s\n",
             (void*)sym, info.dli_sname, (int)offset, info.dli_fname);
       
-      if(sp == (unsigned long)__main_address) return;
       /* The saved stack pointer is the first thing pushed
          on the stack by the caller. */
       sp = _mem_at(sp);
@@ -206,7 +204,6 @@ void machine_gather_x86_frames(ucontext_t *ctx, unsigned long *frames, int *coun
      * we want the current one. */
     frames[i] = pc - 4;
     
-    if(sp == (unsigned long)__main_address) break;
     /* The saved stack pointer is the first thing on the stack at
        the current pointer. */
     sp = _mem_at(sp);
@@ -334,6 +331,12 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   
   printf("\nAn error has occured: %s\n\n", signame);
 
+  if(getenv("CRASH_WAIT")) {
+    printf("Pausing so I can be debugged.\n");
+    pause();
+    printf("Continuing after debugger.\n");
+  }
+
   /* This code is kind of dangerous, and general problematic (ie, it cases
      more problems that in solves). So it's disabled unless you really want it. */
   if(getenv("ENABLE_BT")) {
@@ -432,8 +435,16 @@ OBJECT machine_load_file(machine m, const char *path) {
 }
 
 void machine_show_exception(machine m, OBJECT exc) {
+  OBJECT msg;
+  char *buf;
   printf("\nError: An unhandled exception has terminated this VM.\n");
-  printf(" => %s (%s)\n", string_byte_address(m->s, exception_get_message(exc)), rbs_inspect(m->s, HEADER(exc)->klass));
+  msg = exception_get_message(exc);
+  if(REFERENCE_P(msg)) {
+    buf = string_byte_address(m->s, msg);
+  } else {
+    buf = "<no message>";
+  }
+  printf(" => %s (%s)\n", buf, rbs_inspect(m->s, HEADER(exc)->klass));
 }
 
 int machine_run(machine m) {
@@ -500,9 +511,9 @@ void machine_restart_debugging(machine m) {
 }
 
 void machine_setup_standard_io(machine m) {
-  machine_set_const(m, "STDIN", io_new(m->s, 0));
-  machine_set_const(m, "STDOUT", io_new(m->s, 1));
-  machine_set_const(m, "STDERR", io_new(m->s, 2));
+  machine_set_const(m, "STDIN", io_new(m->s, 0, "r"));
+  machine_set_const(m, "STDOUT", io_new(m->s, 1, "w"));
+  machine_set_const(m, "STDERR", io_new(m->s, 2, "w"));
 }
 
 void machine_setup_ruby(machine m, char *name) {
@@ -774,11 +785,15 @@ OBJECT machine_load_archive(machine m, const char *path) {
       printf("Unable to find '%s'\n", files); 
       goto out;
     }
+    if(m->s->excessive_tracing) {
+      printf("[ Loading file %s]\n", files);
+    }
     /* We push this on the stack so it's properly seen by the GCs */
     cpu_stack_push(m->s, m->c, cm, FALSE);
     cpu_run_script(m->s, m->c, cm);
     if(!machine_run(m)) {
       printf("Unable to run '%s'\n", files);
+      ret = Qfalse;
       goto out;
     }
     /* Pop the scripts return value. */

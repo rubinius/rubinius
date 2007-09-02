@@ -14,10 +14,24 @@ CFLAGS = $(WARNINGS) $(DEBUG)
 
 CPPFLAGS += `pkg-config glib-2.0 --cflags`
 
-ifdef VERBOSE
-  COMP=$(LIBTOOL) --mode=compile $(CC)
-  LINKER=$(LIBTOOL) --mode=link $(CC)
+COMP=$(CC)
+ifeq ($(UNAME),Darwin)
+  LDOPT=-dynamiclib -undefined dynamic_lookup
+  LINKER=$(CC) $(LDOPT)
+  SUFFIX=dylib
+  BIN_RPATH=
+  SONAME=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name /usr/local/lib/librubinius-$(VERSION).$(SUFFIX)
 else
-  COMP=@echo CC $@;$(LIBTOOL) --mode=compile $(CC) > /dev/null
-  LINKER=@echo LINK $@;$(LIBTOOL) --mode=link $(CC) > /dev/null
+  LDOPT=-shared
+  LINKER=$(CC) -shared
+  BIN_RPATH=-Wl,-rpath -Wl,/usr/local/lib
+  SUFFIX=so
+  SONAME=-Wl,-soname,librubinius-$(VERSION).$(SUFFIX)
 endif
+
+ifndef VERBOSE
+  COMP=@echo CC $@;$(CC)
+  LINKER=@echo LINK $@;$(CC) $(LDOPT)
+endif
+
+RBXLIB=librubinius-$(VERSION).$(SUFFIX)

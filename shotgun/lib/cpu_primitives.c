@@ -36,6 +36,7 @@
 #include <math.h>
 #include <glob.h>
 #include <termios.h>
+#include <sys/time.h>
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 # define HAVE_STRUCT_TM_TM_GMTOFF

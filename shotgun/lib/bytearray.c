@@ -17,7 +17,7 @@ OBJECT bytearray_new(STATE, int size) {
   
   obj = bytearray_allocate_with_extra(state, words);
   object_make_byte_storage(state, obj);
-  fast_memfill32(BYTES_OF(obj), 0, words);
+  fast_memfill(BYTES_OF(obj), 0, words);
   object_initialize_bytes(state, obj);
   return obj;
 }
@@ -33,6 +33,19 @@ OBJECT bytearray_new_dirty(STATE, int size) {
     
   obj = object_memory_new_dirty_object(state->om, BASIC_CLASS(bytearray), words);
   object_make_byte_storage(state, obj);
+  
+  return obj;
+}
+
+OBJECT bytearray_dup(STATE, OBJECT self) {
+  OBJECT obj;
+  int words = NUM_FIELDS(self);
+  
+  obj = object_memory_new_dirty_object(state->om, BASIC_CLASS(bytearray), words);
+  object_make_byte_storage(state, obj);
+  
+  memcpy(object_byte_start(state, obj), 
+      object_byte_start(state, self), SIZE_OF_BODY(self));
   
   return obj;
 }
@@ -62,12 +75,11 @@ OBJECT iseq_new(STATE, int fields) {
 }
 
 
-
-#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#if defined(__BIG_ENDIAN__)
 static inline uint32_t read_int(uint8_t *str) {
   return (uint32_t)(str[0]
                  | (str[1] << 8 )
-                 | (str[2] << 26)
+                 | (str[2] << 16)
                  | (str[3] << 24));
 }
 #define ISET_FLAG(o) 

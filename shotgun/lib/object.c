@@ -30,65 +30,6 @@ OBJECT object_metaclass(STATE, OBJECT obj) {
   return object_create_metaclass(state, obj, 0);
 }
 
-OBJECT object_class(STATE, OBJECT self) {
-  OBJECT cls = HEADER(self)->klass;
-  while(REFERENCE_P(cls) && metaclass_s_metaclass_p(state, cls)) {
-    cls = class_get_superclass(cls);
-  }
-  
-  return cls;
-}
-
-/*
-void rbs_show_classes(STATE, OBJECT self) {
-  OBJECT cls = HEADER(self)->klass;
-  printf("Class from %p\n", (void *)self);
-  while(REFERENCE_P(cls) && metaclass_s_metaclass_p(state, cls)) {
-    printf(" => %d %p %s\n",
-        HEADER(cls)->klass == state->global->metaclass,
-        (void *)cls,
-        rbs_symbol_to_cstring(state,
-          class_get_name(object_logical_class(state, cls))));
-    cls = class_get_superclass(cls);
-  }
-  printf(" found => %p\n", (void *)cls);
-}
-*/
-
-OBJECT object_logical_class(STATE, OBJECT self) {
-  if(REFERENCE_P(self)) {
-    return object_class(state, self);
-  }
-  
-  if(FIXNUM_P(self)) {
-    return state->global->fixnum_class;
-  }
-  
-  if(SYMBOL_P(self)) {
-    return state->global->symbol;
-  }
-  
-  if(self == Qtrue) {
-    return state->global->true_class;
-  }
-  
-  if(self == Qfalse) {
-    return state->global->false_class;
-  }
-  
-  if(self == Qnil) {
-    return state->global->nil_class;
-  }
-
-  if(self == Qundef) {
-    return state->global->undef_class;
-  }
-  
-  printf("Unable to figure out logical class.\n");
-  abort();
-  return Qnil;
-}
-
 OBJECT object_make_weak_ref(STATE, OBJECT self) {
   OBJECT tup;
   
@@ -101,7 +42,7 @@ OBJECT object_make_weak_ref(STATE, OBJECT self) {
 int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
   OBJECT found;
   
-  found = object_logical_class(state, self);
+  found = object_class(state, self);
   if(found == cls) {
     return TRUE;
   }
@@ -176,8 +117,6 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   } else {
     if(ISA(self, state->global->string)) {
       hsh = string_hash_int(state, self);
-    } else if(HEADER(self)->hash != 0) {
-      hsh = HEADER(self)->hash;
     } else {
       hsh = object_get_id(state, self);
     }

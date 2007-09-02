@@ -32,8 +32,6 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   header = (struct rubinius_object*)obj;
   header->flags2 = 0;
   header->gc = 0;
-  header->object_id = 0;
-  header->hash = 0;
   
   GC_ZONE_SET(obj, loc);
   
@@ -47,14 +45,14 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   } else {
     header->flags = 0;
   }
-    
+
   return obj;
 }
 
 static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, int fields) {
   OBJECT obj;
   obj = _om_inline_new_object(om, cls, fields);
-  fast_memfill32((void*)BYTES_OF(obj), Qnil, fields);
+  fast_memfill((void*)BYTES_OF(obj), Qnil, fields);
   
   return obj;
 }
@@ -73,8 +71,6 @@ static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
   HEADER(obj)->flags = 0;
   HEADER(obj)->flags2 = 0;
   HEADER(obj)->gc = 0;
-  HEADER(obj)->object_id = 0;
-  HEADER(obj)->hash = 0;
   
   GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
   

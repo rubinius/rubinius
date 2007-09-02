@@ -14,8 +14,6 @@
 
 #define EXCESSIVE_TRACING state->excessive_tracing
 
-#include "rubinius.h"
-
 cpu cpu_new(STATE) {
   cpu c = (cpu)calloc(1, sizeof(struct rubinius_cpu));
   c->paths = g_ptr_array_new();
@@ -105,6 +103,8 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_private = symbol_from_cstr(state, "private");
   state->global->sym_protected = symbol_from_cstr(state, "protected");
   state->global->sym_const_missing = SYM("const_missing");
+  state->global->sym_object_id = SYM("object_id");
+  
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;
   c->current_task = cpu_thread_get_task(state, c->current_thread);
@@ -267,7 +267,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
     table = cmethod_get_exceptions(c->method);
     
     if(!table || NIL_P(table)) {
-      cpu_return_to_sender(state, c, FALSE);
+      cpu_return_to_sender(state, c, FALSE, TRUE);
       ctx = c->active_context;
       continue;
     }
@@ -296,7 +296,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
       }
     }
     
-    cpu_return_to_sender(state, c, FALSE);
+    cpu_return_to_sender(state, c, FALSE, TRUE);
     ctx = c->active_context;
   }
   
@@ -368,7 +368,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   /* Ick. I'd love to be able to not have to only check in
      classes and modules. */
-  kls = object_logical_class(state, c->self);
+  kls = object_class(state, c->self);
   if(REFERENCE_P(c->self) && (
      kls == state->global->module ||
      kls == state->global->class)) {
@@ -537,7 +537,7 @@ char *cpu_show_context(STATE, cpu c, OBJECT ctx) {
   buf = malloc(1024);
   
   snprintf(buf, 1024, "%s#%s (%d)", 
-    rbs_symbol_to_cstring(state, module_get_name(object_logical_class(state, self))),
+    rbs_symbol_to_cstring(state, module_get_name(object_class(state, self))),
     rbs_symbol_to_cstring(state, methctx_get_name(ctx)),
     (int)FIXNUM_TO_INT(methctx_get_ip(ctx))
   );

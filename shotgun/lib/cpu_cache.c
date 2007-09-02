@@ -12,8 +12,6 @@
 #include "symbol.h"
 #include <glib.h>
 
-#include "rubinius.h"
-
 /* Pulled over from 1.8.5. */
 
 void cpu_clear_cache(STATE, cpu c) {

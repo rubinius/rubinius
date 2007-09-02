@@ -17,7 +17,8 @@ class CodeArchive
     end
   end
   
-  attr_accessor :data, :times
+  attr_accessor :data
+  attr_accessor :times
   
   def files
     out = []

@@ -53,7 +53,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->locals = (OBJECT)Qfalse;
   fc->argcount = args;
   fc->name = name;
-  fc->method_module = Qnil;
+  fc->method_module = (OBJECT)Qnil;
   fc->type = FASTCTX_NMC;
   
   n = nmc_new_standalone();
@@ -367,7 +367,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
       nmc_cleanup(n, state->handle_tbl);
       n->stack = NULL;
       if(n->setup_context) {
-        cpu_return_to_sender(state, c, 0);
+        cpu_return_to_sender(state, c, 0, FALSE);
       }
       nmc_delete(n);
       fc->opaque_data = NULL;

@@ -17,6 +17,16 @@ require File.dirname(__FILE__) + '/../spec_helper'
 # taint, tainted?, to_a, to_enum, to_json, to_s, to_yaml,
 # to_yaml_properties, to_yaml_style, type, untaint, verify
 
+module ObjectSpecs
+  class A 
+    def public_method; :public_method; end
+    protected
+    def protected_method; :protected_method; end
+    private
+    def private_method; :private_method; end
+  end
+end
+
 context "Object class method" do
   specify "new should create a new Object" do
     Object.new.class.should == Object
@@ -25,39 +35,39 @@ end
 
 context "Object instance method" do
   specify "send should invoke the named method" do
-    class Foo
+    class ObjectSpecs::Foo
       def bar
         'done'
       end
     end
-    Foo.new.send(:bar).should == 'done'
+    ObjectSpecs::Foo.new.send(:bar).should == 'done'
   end
 
   specify "send should invoke a class method if called on a class" do
-    class Foo
+    class ObjectSpecs::Foo
       def self.bar
         'done'
       end
     end
-    Foo.send(:bar).should == 'done'
+    ObjectSpecs::Foo.send(:bar).should == 'done'
   end
 
   specify "send should raise NoMethodError if the corresponding method can't be found" do
-    class Foo
+    class ObjectSpecs::Foo
       def bar
         'done'
       end
     end
-    should_raise(NoMethodError) { Foo.new.send(:baz) }
+    should_raise(NoMethodError) { ObjectSpecs::Foo.new.send(:baz) }
   end
 
   specify "send should raise NoMethodError if the corresponding singleton method can't be found" do
-    class Foo
+    class ObjectSpecs::Foo
       def self.bar
         'done'
       end
     end
-    should_raise(NoMethodError) { Foo.send(:baz) }
+    should_raise(NoMethodError) { ObjectSpecs::Foo.send(:baz) }
   end
   
   specify "freeze should prevent self from being further modified" do
@@ -161,41 +171,6 @@ context "Object instance method" do
     Klass.new.instance_eval("@secret").should == 99
   end
   
-  specify "instance_variable_get should return the value of the instance variable" do
-    class Fred 
-      def initialize(p1, p2) 
-        @a, @b = p1, p2 
-      end 
-    end 
-    fred = Fred.new('cat', 99) 
-    fred.instance_variable_get(:@a).should == "cat"
-    fred.instance_variable_get("@b").should == 99
-  end
-  
-  specify "instance_variable_get should raise NameError exception if the argument is not of form '@x'" do
-    class NoFred; end
-    should_raise(NameError) { NoFred.new.instance_variable_get(:c) }
-  end
-
-  specify "instance_variable_set should set the value of the specified instance variable" do
-    class Dog
-      def initialize(p1, p2) 
-        @a, @b = p1, p2 
-      end 
-    end 
-    Dog.new('cat', 99).instance_variable_set(:@a, 'dog').should == "dog"
-  end
-  
-  specify "instance_variable_set should set the value of the instance variable when no instance variables exist yet" do
-    class NoVariables; end
-    NoVariables.new.instance_variable_set(:@a, "new").should == "new"
-  end
-  
-  specify "instance_variable_set should raise NameError exception if the argument is not of form '@x'" do
-    class NoDog; end
-    should_raise(NameError) { NoDog.new.instance_variable_set(:c, "cat") }
-  end
-
   specify "metaclass should return the object's metaclass" do
     foo = "foo"
     foo.instance_eval "class << self; def meta_test_method; 5; end; end"
@@ -204,35 +179,35 @@ context "Object instance method" do
   end
 
   specify "method should return a method object for a valid method" do
-    class Foo; def bar; 'done'; end; end
-    Foo.new.method(:bar).class.should == Method
+    class ObjectSpecs::Foo; def bar; 'done'; end; end
+    ObjectSpecs::Foo.new.method(:bar).class.should == Method
   end
 
   specify "method should return a method object for a valid singleton method" do
-    class Foo; def self.bar; 'done'; end; end
-    Foo.method(:bar).class.should == Method
+    class ObjectSpecs::Foo; def self.bar; 'done'; end; end
+    ObjectSpecs::Foo.method(:bar).class.should == Method
   end
  
   specify "method should raise a NameError for an invalid method name" do
-    class Foo; def bar; 'done'; end; end
-    should_raise(NameError) { Foo.new.method(:baz) }
+    class ObjectSpecs::Foo; def bar; 'done'; end; end
+    should_raise(NameError) { ObjectSpecs::Foo.new.method(:baz) }
   end
 
   specify "method should raise a NameError for an invalid singleton method name" do
-    class Foo; def self.bar; 'done'; end; end
-    should_raise(NameError) { Foo.method(:baz) }
+    class ObjectSpecs::Foo; def self.bar; 'done'; end; end
+    should_raise(NameError) { ObjectSpecs::Foo.method(:baz) }
   end
 
   specify "respond_to? should indicate if an object responds to a particular message" do
-    class Foo; def bar; 'done'; end; end
-    Foo.new.respond_to?(:bar).should == true
-    Foo.new.respond_to?(:baz).should == false
+    class ObjectSpecs::Foo; def bar; 'done'; end; end
+    ObjectSpecs::Foo.new.respond_to?(:bar).should == true
+    ObjectSpecs::Foo.new.respond_to?(:baz).should == false
   end
 
   specify "respond_to? should indicate if a singleton object responds to a particular message" do
-    class Foo; def self.bar; 'done'; end; end
-    Foo.respond_to?(:bar).should == true
-    Foo.respond_to?(:baz).should == false
+    class ObjectSpecs::Foo; def self.bar; 'done'; end; end
+    ObjectSpecs::Foo.respond_to?(:bar).should == true
+    ObjectSpecs::Foo.respond_to?(:baz).should == false
   end
 end
 
@@ -242,17 +217,17 @@ describe "Object#instance_variable_get" do
   end
   
   it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
-    class A; end
-    should_raise(TypeError) { "".instance_variable_get(A.new) }
+    class ObjectSpecs::A; end
+    should_raise(TypeError) { "".instance_variable_get(ObjectSpecs::A.new) }
   end
   
   it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
-    class B
+    class ObjectSpecs::B
       def to_str
         ":c"
       end
     end
-    should_raise(NameError) { "".instance_variable_get(B.new) }
+    should_raise(NameError) { "".instance_variable_get(ObjectSpecs::B.new) }
   end
   
   it "should raise NameError if pass an object that cannot be a symbol" do
@@ -260,7 +235,7 @@ describe "Object#instance_variable_get" do
   end
   
   it "should accept as instance variable name any instance of a class that responds to to_str" do
-    class C
+    class ObjectSpecs::C
       def initialize
         @a = 1
       end
@@ -268,7 +243,7 @@ describe "Object#instance_variable_get" do
         "@a"
       end
     end
-    C.new.instance_variable_get(C.new).should == 1
+    ObjectSpecs::C.new.instance_variable_get(ObjectSpecs::C.new).should == 1
   end
 end
 
@@ -278,17 +253,17 @@ describe "Object#instance_variable_set" do
   end
   
   it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
-    class A; end
-    should_raise(TypeError) { "".instance_variable_set(A.new, 3) }
+    class ObjectSpecs::A; end
+    should_raise(TypeError) { "".instance_variable_set(ObjectSpecs::A.new, 3) }
   end
   
   it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
-    class B
+    class ObjectSpecs::B
       def to_str
         ":c"
       end
     end
-    should_raise(NameError) { "".instance_variable_set(B.new, 4) }
+    should_raise(NameError) { "".instance_variable_set(ObjectSpecs::B.new, 4) }
   end
   
   it "should raise NameError if pass an object that cannot be a symbol" do
@@ -296,7 +271,7 @@ describe "Object#instance_variable_set" do
   end
   
   it "should accept as instance variable name any instance of a class that responds to to_str" do
-    class C
+    class ObjectSpecs::C
       def initialize
         @a = 1
       end
@@ -304,30 +279,29 @@ describe "Object#instance_variable_set" do
         "@a"
       end
     end
-    C.new.instance_variable_set(C.new, 2).should == 2
+    ObjectSpecs::C.new.instance_variable_set(ObjectSpecs::C.new, 2).should == 2
   end
 end
 
-
 describe "Object#method_missing" do
-  class A
+  class ObjectSpecs::A
     def method_missing (*args)
       "a_new_method_missing"
     end
   end 
    
   it  "return the correct value form method_missing after call a not defined instance method" do
-    A.new.foo.should == "a_new_method_missing"
+    ObjectSpecs::A.new.foo.should == "a_new_method_missing"
   end
   
   it "raise a NoMethodError Exceptiong after call a not defined Class method even if te the method_missing its defined" do  
-    should_raise(NoMethodError){A.foo.should == "a_new_method_missing"} 
+    should_raise(NoMethodError){ObjectSpecs::A.foo.should == "a_new_method_missing"} 
   end    
    
-  class B;end   
+  class ObjectSpecs::B;end   
   
   it "raise a NoMethodError Exceptiong after call a not defined instance method" do
-    should_raise(NoMethodError){B.new.foo}
+    should_raise(NoMethodError){ObjectSpecs::B.new.foo}
   end
 
   
@@ -335,45 +309,45 @@ describe "Object#method_missing" do
     should_raise(NoMethodError){some_method "a", 1} 
   end    
   
-  class C
+  class ObjectSpecs::C
     def self.method_missing (*args)
       "a_new_method_missing"
     end
   end
     
   it  "return the correct value form method_missing after call a not defined class method" do
-    C.foo.should == "a_new_method_missing"
+    ObjectSpecs::C.foo.should == "a_new_method_missing"
   end
   
   it  "raise a NoMethodError Exceptiong after call a not defined instance method" do 
-    should_raise(NoMethodError){C.new.foo.should == "a_new_method_missing"} 
+    should_raise(NoMethodError){ObjectSpecs::C.new.foo.should == "a_new_method_missing"} 
   end
    
 
-  class AParent
+  class ObjectSpecs::AParent
     def method_missing (*args)
       "a_new_method_missing"
     end
   end
     
-  class AChild < AParent
+  class ObjectSpecs::AChild < ObjectSpecs::AParent
     def foo
       super
     end
   end    
     
   it  "return the correct value form method_missing after call a not defined instance method" do
-    AChild.new.foo.should == "a_new_method_missing"
+    ObjectSpecs::AChild.new.foo.should == "a_new_method_missing"
   end
    
-  class AClassWithProtectedAndPrivateMethod
+  class ObjectSpecs::ProtectedAndPrivate
     private
     def a_private_method;  end 
     protected
     def a_protected_method; end
   end
     
-  class AClassWithProtectedMethodAndMetohdMissing 
+  class ObjectSpecs::ProtectedAndMissing 
     def method_missing(*args)
       :a_new_method_missing
     end
@@ -383,7 +357,7 @@ describe "Object#method_missing" do
     end
   end
     
-  class AClassWithPrivateMethodAndMetohdMissing
+  class ObjectSpecs::PrivateAndMissing
     def method_missing(*args)
       :a_new_method_missing
     end    
@@ -394,143 +368,376 @@ describe "Object#method_missing" do
   end 
    
   it  "raise a NoMethodError exception after call a non defined method in a class with proctected and private methods" do
-    should_raise(NoMethodError){AClassWithProtectedAndPrivateMethod.new.a_missing_method}
+    should_raise(NoMethodError){ObjectSpecs::ProtectedAndPrivate.new.a_missing_method}
   end  
   
   it  "raise a not a NoMethodError and message should be a exception after call a private methor defined in a class " do
-    should_raise(NoMethodError){AClassWithProtectedAndPrivateMethod.new.a_private_method} 
+    should_raise(NoMethodError){ObjectSpecs::ProtectedAndPrivate.new.a_private_method} 
   end
   
   it  "raise a not a NoMethodError and message should be a exception after call a protected methor defined in a class " do
-    should_raise(NoMethodError){AClassWithProtectedAndPrivateMethod.new.a_protected_method}
+    should_raise(NoMethodError){ObjectSpecs::ProtectedAndPrivate.new.a_protected_method}
   end
   
   it  "return the correct value from the method_missing method after call a private instance method" do
-    AClassWithPrivateMethodAndMetohdMissing.new.a_private_method.should == :a_new_method_missing
+    ObjectSpecs::PrivateAndMissing.new.a_private_method.should == :a_new_method_missing
   end
   
   it  "return the correct value from the method_missing method after call a protected instance method" do
-    AClassWithProtectedMethodAndMetohdMissing.new.a_protected_method.should == :a_new_method_missing
+    ObjectSpecs::ProtectedAndMissing.new.a_protected_method.should == :a_new_method_missing
   end
   
   it  "return the correct value from the method_missing method after call a private class method" do
-    AClassWithPrivateMethodAndMetohdMissing.a_private_class_method.should == :a_private_class_method
+   ObjectSpecs::PrivateAndMissing.a_private_class_method.should == :a_private_class_method
   end
     
   it  "return the correct value from the method_missing method after call a protected class method" do
-    AClassWithProtectedMethodAndMetohdMissing.a_protected_class_method.should == :a_protected_class_method
+    ObjectSpecs::ProtectedAndMissing.a_protected_class_method.should == :a_protected_class_method
   end 
 end
 
-class ObjectMethods
-  def self.ichi; end
-  def ni; end
-  class << self
-    def san; end
+describe "Object#==" do 
+  it "returns true only if obj and other are the same object" do
+    o1 = Object.new
+    o2 = Object.new
+    (o1 == o1).should == true
+    (o2 == o2).should == true
+    (o1 == o2).should== false
+    (nil == nil).should == true
+    (o1 == nil).should== false
+    (nil == o2).should== false
+  end
+   
+end
+
+describe "Object#eql?" do 
+  it "returns true if obj and anObject are the same object." do 
+    o1 = Object.new
+    o2 = Object.new
+    (o1.eql?(o1)).should == true
+    (o2.eql?(o2)).should == true
+    (o1.eql?(o2)).should == false
   end
   
-  private
-  
-  def self.shi; end
-  def juu_shi; end
-  
-  class << self
-    def roku; end
+  it "returns true if obj and anObject have the same value." do 
+    o1 = 1
+    o2 = :hola
+    (:hola.eql? o1).should == false
+    (1.eql? o1).should == true
+    (:hola.eql? o2).should == true
+  end
+end
 
-    private
+describe "Object#===" do 
+  
+end
+
+describe "Object#equal?" do   
+  it "returns true only if obj and other are the same object" do
+    o1 = Object.new
+    o2 = Object.new
+    (o1.equal? o1).should == true
+    (o2.equal? o2).should == true
+    (o1.equal? o2).should== false
+    (nil.equal? nil).should == true
+    (o1.equal?  nil).should== false
+    (nil.equal?  o2).should== false
+  end
+  
+  
+  it "returns true if obj and anObject have the same value." do 
+    o1 = 1
+    o2 = :hola
+    (:hola.equal? o1).should == false
+    (1.equal? o1).should == true
+    (:hola.equal? o2).should == true
+  end
+end
+
+generic_entries_object_id = shared "Object#__id__object_id" do |cmd|
+  describe "Enumerable##{cmd}" do     
+    # #object_id and #__id__ are aliases, so we only need one function
+    # that tests both methods
+    it "return an Integer" do
+      Object.new.send(cmd).class.should == Fixnum      
+      nil.send(cmd).class.should == Fixnum      
+    end
+  
+    it "return same number will be returned on all calls to id for a given object" do
+      o1 = Object.new
+      o2 = Object.new
+      o1.send(cmd).should == o1.send(cmd)
+    end
+  
+    it "return same number will be returned on all calls to id for a given object" do
+      o1 = Object.new
+      o2 = Object.new
+      o1.send(cmd).should_not == o2.send(cmd)
+    end
+    it "" do
+    end
     
-    def shichi; end
   end
-  
-  protected
-  
-  def self.hachi; end
-  def ku; end
-  
-  class << self
-    def juu; end
+end
+
+describe "Obejct.__id__" do
+  it_behaves_like(generic_entries_object_id, :__id__) 
+end
+
+describe "Obejct.object_id" do
+  it_behaves_like(generic_entries_object_id, :object_id) 
+end
+
+describe "Object.=~" do
+  it "Overridden by descendents" do
+    o1 = Object.new
+    o2 = Object.new
+    (o1 =~ o1).should == false
+    (o2 =~ o2).should == false
+    (o1 !~ o2).should == true
+    (o1 =~ o2).should == false
+  end
+end
+
+generic_entries_kind_of = shared "Object#is_a_kind_of" do |cmd|
+  describe "Enumerable##{cmd}" do     
+    # #kind_of? and #is_a are aliases, so we only need one function
+    # that tests both methods  
     
-    protected
+    it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj (String example)" do    
+      s = "hello"
+      s.send(cmd, String).should == true
+      s.send(cmd, Object).should == true
+      s.send(cmd, Class).should == false 
+    end
+
+    it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example" do
+      a = []
+      a.send(cmd, Array).should == true
+      a.send(cmd, Enumerable).should == true
+    end    
+          
+    module ObjectSpecs::M;    end
+    class ObjectSpecs::X; include ObjectSpecs::M; end
+    class ObjectSpecs::Y < ObjectSpecs::X; end
+    class ObjectSpecs::Z < ObjectSpecs::Y; end 
+  
+    it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example" do     
+      y = ObjectSpecs::Y.new
+      y.send(cmd, ObjectSpecs::X).should == true       
+      y.send(cmd, ObjectSpecs::Y).should == true       
+      y.send(cmd, ObjectSpecs::Z).should == false       
+      y.send(cmd, ObjectSpecs::M).should == true
+    end
     
-    def juu_ichi; end
-  end
-  
-  public
-  
-  def self.juu_ni; end
-  def juu_san; end
+    it "nil.#{cmd} cases specs"  do 
+      (nil.send(cmd,  NilClass)).should == true
+      (nil.send(cmd, Object)).should == true
+      (nil.send(cmd, Module)).should == false
+      (nil.send(cmd, Kernel)).should == true
+      
+    end
+  end 
 end
 
-describe "Object#methods" do
-  it "returns a list of the names of publicly accessible methods in the object" do
-    ObjectMethods.methods(false).sort.should ==
-      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
-    ObjectMethods.new.methods(false).should == []
-  end
-  
-  it "returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules" do
-    (ObjectMethods.methods(false) & ObjectMethods.methods).sort.should ==
-      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
-    m = ObjectMethods.new.methods
-    m.should_include('ku')
-    m.should_include('ni')
-    m.should_include('juu_san')
-  end
+describe "Obejct.is_a?" do
+  it_behaves_like(generic_entries_kind_of , :is_a?) 
 end
 
-describe "Object#singleton_methods" do
-  it "returns a list of the names of singleton methods in the object" do
-    ObjectMethods.singleton_methods(false).sort.should ==
-      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
-    ObjectMethods.new.singleton_methods(false).should == []
-  end
-  
-  it "returns a list of the names of singleton methods in the object and its ancestors and mixed-in modules" do
-    (ObjectMethods.singleton_methods(false) & ObjectMethods.singleton_methods).sort.should ==
-      ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
-    ObjectMethods.new.singleton_methods.should == []
+describe "Obejct.kind_of?" do
+  it_behaves_like(generic_entries_kind_of , :kind_of?) 
+end
+
+describe "Object#to_s" do
+  it "match the  /^#<Object:0x[0-9a-f]+>/ format" do
+    o = Object.new
+    o.to_s.match(/^#<Object:0x[0-9a-f]+>/).should_not == nil
   end
 end
 
-describe "Object#public_methods" do
-  it "returns a list of the names of publicly accessible methods in the object" do
-    ObjectMethods.public_methods(false).sort.should == 
-      ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
-    ObjectMethods.new.public_methods(false).sort.should == ["juu_san", "ni"]
+describe "Object#respond_to?" do
+  before :each do 
+    @a = ObjectSpecs::A.new  
+  end
+   
+  it "returns true if obj responds to the given public method" do    
+    @a.respond_to?("five").should == false
+    @a.respond_to?(:public_method).should == true
+    @a.respond_to?("public_method").should == true
   end
   
-  it "returns a list of the names of publicly accessible methods in the object and its ancestors and mixed-in modules" do
-    (ObjectMethods.public_methods(false) & ObjectMethods.public_methods).sort.should == 
-      ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
-    m = ObjectMethods.new.public_methods
-    m.should_include('ni')
-    m.should_include('juu_san')
+  it "returns true if obj responds to the given protected method" do
+    @a.respond_to?("five", true).should == false
+    @a.respond_to?(:protected_method, false).should == true
+    @a.respond_to?("protected_method", false).should == true
   end
+  
+  it "returns true if obj responds to the given protected method, include_private = true" do 
+    @a.respond_to?("seven").should == false
+    @a.respond_to?(:protected_method).should == true
+    @a.respond_to?("protected_method").should == true
+  end
+  
+  it "returns true if obj responds to the given protected method" do
+    @a.respond_to?("seven", true).should == false
+    @a.respond_to?(:protected_method, false).should == true
+    @a.respond_to?("protected_method", false).should == true
+  end
+  
+  it "returns true if obj responds to the given private method, include_private = true" do
+    @a.respond_to?("six").should == false
+    @a.respond_to?(:private_method).should == false
+    @a.respond_to?("private_method").should == false
+  end
+  
+  it "returns true if obj responds to the given private method" do    
+    @a.respond_to?("six", true).should == false
+    @a.respond_to?(:private_method, true).should == true    
+    @a.respond_to?("private_method", true).should == true
+  end 
 end
 
-describe "Object#private_methods" do
-  it "returns a list of the names of privately accessible methods in the object" do
-    ObjectMethods.private_methods(false).sort.should == 
-      ["inherited", "initialize", "initialize_copy", "shichi"]
-    ObjectMethods.new.private_methods(false).sort.should == ["juu_shi"]
-  end
-  
-  it "returns a list of the names of privately accessible methods in the object and its ancestors and mixed-in modules" do
-    (ObjectMethods.private_methods(false) & ObjectMethods.private_methods).sort.should == 
-      ["inherited", "initialize", "initialize_copy", "shichi"]
-    m = ObjectMethods.new.private_methods
-    m.should_include('juu_shi')
-  end
-end
-
-describe "Object#protected_methods" do
-  it "returns a list of the names of protected methods accessible in the object" do
-    ObjectMethods.protected_methods(false).sort.should == ["juu_ichi"]
-    ObjectMethods.new.protected_methods(false).should == ["ku"]
-  end
-  
-  it "returns a list of the names of protected methods accessible in the object and from its ancestors and mixed-in modules" do
-    (ObjectMethods.protected_methods(false) & ObjectMethods.protected_methods).sort.should == ["juu_ichi"]
-    ObjectMethods.new.protected_methods.should_include('ku')
-  end
-end
+# describe "objects#methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.methods.should ==   ["inspect", "send", "clone", "should_be_ancestor_of", 
+#                                "should", "public_methods", "should_not_receive",
+#                                "__send__", "equal?", "freeze", "should_include", 
+#                                "protected_method", "methods", "instance_eval", 
+#                                "display", "dup", "object_id", "instance_variables",
+#                                 "extend", "instance_of?", "eql?", "hash", "id", 
+#                                 "singleton_methods", "taint", "frozen?", 
+#                                 "instance_variable_get", "kind_of?", "to_a", 
+#                                 "type", "should_be_close", "protected_methods", 
+#                                 "==", "method_missing", "===", "instance_variable_set",
+#                                 "is_a?", "respond_to?", "to_s", "class", "tainted?", "=~",
+#                                 "private_methods", "__id__", "nil?", "should_not", "untaint",
+#                                 "should_receive", "method", "public_method"] 
+#     A.new.methods.size.should == 50
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.methods.size.should == 47
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.methods.size.should == 80 
+#   end
+# end
+# 
+# describe "objects#private_methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.private_methods.should == ["Integer", "initialize", "p", "singleton_method_removed", 
+#                                      "chomp", "fail", "exec", "syscall", "callcc",
+#                                       "sub!", "load", "proc", "it_behaves_like",
+#                                       "iterator?", "catch", "puts", "it","Float", 
+#                                       "singleton_method_undefined", "split", "caller",
+#                                       "system", "require", "open", "gsub!", "lambda", 
+#                                       "try", "block_given?", "throw", "gets", "private_method",
+#                                       "sub", "loop", "trap", "String", "fork",
+#                                       "initialize_copy", "sprintf", "shared", "setup", 
+#                                       "exit", "sleep", "printf", "chop!", "autoload", 
+#                                       "scan", "failure", "trace_var", "select", 
+#                                       "global_variables", "should_output", "readline", 
+#                                       "warn", "`", "gsub", "context", "exit!", "before", 
+#                                       "Array", "format", "teardown", "abort", "chomp!", 
+#                                       "print", "eval", "srand", "engine?", "noncompliant",
+#                                       "untrace_var", "local_variables", "readlines",
+#                                       "singleton_method_added", "specify", "chop", 
+#                                       "raise", "getc", "autoload?", "binding", "compliant", 
+#                                       "should_raise", "at_exit", "describe", "putc", 
+#                                       "remove_instance_variable", "set_trace_func", 
+#                                       "after", "extension", "rand", "test"] 
+#     A.new.private_methods.size.should == 89 
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.private_methods.size.should == 89
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.private_methods.size.should == 109
+#   end
+#   
+#   it "return all the methods of a custom class, all = false" do
+#     A.new.private_methods(false).should ==  ["private_method"]   
+#     A.new.private_methods(false).size.should == 1
+#   end
+#   
+#   it "return all the methods of Object.new, all = false" do          
+#     Object.new.private_methods(false).size.should == 19
+#   end  
+#   
+#   it "return all the methods of Object, all = false" do    
+#     Object.private_methods(false).size.should == 3 
+#   end
+# end
+# 
+# 
+# describe "objects#protected_methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.protected_methods.should == ["protected_method"] 
+#     A.new.protected_methods.size.should == 1
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.protected_methods.size.should == 0
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.protected_methods.size.should == 0
+#   end
+#   
+#   it "return all the methods of a custom class, all = false" do
+#     A.new.protected_methods(false).should ==  ["protected_method"]   
+#     A.new.protected_methods(false).size.should == 1
+#   end
+#   
+#   it "return all the methods of Object.new, all = false" do          
+#     Object.new.protected_methods(false).size.should == 0
+#   end  
+#   
+#   it "return all the methods of Object, all = false" do    
+#     Object.protected_methods(false).size.should == 0 
+#   end
+# end
+# 
+# 
+# describe "objects#public_methods" do
+#   it "return all the methods of a custom class" do
+#     A.new.public_methods.should ==  ["inspect", "send", "clone", 
+#                                      "should_be_ancestor_of", "should", "public_methods", 
+#                                      "should_not_receive", "__send__", "equal?", 
+#                                      "freeze", "should_include", "methods", 
+#                                      "instance_eval", "display", "dup", "object_id", 
+#                                      "instance_variables", "extend", "instance_of?", "eql?",
+#                                       "hash", "id", "singleton_methods", "taint", "frozen?", 
+#                                       "instance_variable_get", "kind_of?", "to_a", "type",
+#                                       "should_be_close", "protected_methods", "==", "method_missing", 
+#                                       "===", "instance_variable_set", "is_a?", 
+#                                       "respond_to?", "to_s", "class", "tainted?", 
+#                                       "=~", "private_methods", "__id__", "nil?", "should_not",
+#                                       "untaint", "should_receive", "method", "public_method"]
+#     A.new.public_methods.size.should == 49
+#   end
+#   
+#   it "return all the methods of Object.new" do          
+#     Object.new.public_methods.size.should == 47
+#   end  
+#   
+#   it "return all the methods of Object" do    
+#     Object.public_methods.size.should == 80
+#   end
+#   
+#   it "return all the methods of a custom class, all = false" do
+#     A.new.public_methods(false).should ==  ["method_missing", "public_method"]   
+#     A.new.public_methods(false).size.should == 2
+#   end
+#   
+#   it "return all the methods of Object.new, all = false" do          
+#     Object.new.public_methods(false).size.should == 7
+#   end  
+#   
+#   it "return all the methods of Object, all = false" do    
+#     Object.public_methods(false).size.should == 3
+#   end
+# end

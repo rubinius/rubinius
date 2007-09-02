@@ -480,7 +480,7 @@ Using Dir objects
 
 END
 
-context dir_spec_object_text do
+context "Dir objects" do
 #  setup do
 #    @dir = Dir.open $mockdir
 #  end

@@ -20,3 +20,51 @@ OBJECT class_new_instance(STATE, OBJECT self) {
   count = FIXNUM_TO_INT(class_get_instance_fields(self));
   return NEW_OBJECT(self, count);
 }
+
+OBJECT class_constitute(STATE, OBJECT sup, OBJECT under) {
+  OBJECT val, sup_itr;
+    
+  if(NIL_P(sup)) {
+    sup = state->global->object;
+  } else if(sup == Qfalse) {
+    /* Support class detached from the normal class heirarchy. */
+    sup = Qnil;
+  } else if(!ISA(sup, state->global->class)) {
+    /* Validate sup is a valid superclass-like object. */
+    
+    sup_itr = sup;
+    while(!NIL_P(sup_itr)) {
+      if(NUM_FIELDS(sup_itr) <= CLASS_f_SUPERCLASS ||
+         !ISA(class_get_methods(sup_itr), state->global->hash)) {
+        /* Ok, this wont work as a superclass. */
+        return Qnil;
+      } else {
+        sup_itr = class_get_superclass(sup_itr);
+      }
+    }
+    
+    /* Ok, we validated the hierarchy as being superclass-like, so it's
+       ok to use. */
+  }
+  
+  val = class_create(state);
+  
+  /* Push superclass instance information down. */
+  if(NIL_P(sup) || NUM_FIELDS(sup) <= CLASS_f_INSTANCE_FIELDS) {
+    /* When this object is detatched from the normal class hierarchy, we give
+       it the normal fields and flags info by default. */
+    class_set_instance_fields(val, class_get_instance_fields(state->global->object));
+    class_set_instance_flags(val, class_get_instance_flags(state->global->object));
+  } else {
+    class_set_instance_fields(val, class_get_instance_fields(sup));
+    class_set_instance_flags(val, class_get_instance_flags(sup));
+  }
+  
+  // printf("Setting superclass of %p to: %p\n", val, sup);
+  class_set_superclass(val, sup);
+  module_setup_fields(state, val);
+  object_create_metaclass(state, val, object_metaclass(state, sup));
+  module_set_parent(val, under);
+  module_setup_fields(state, object_metaclass(state, val));
+  return val; 
+}

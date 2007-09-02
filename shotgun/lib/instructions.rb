@@ -588,7 +588,9 @@ CODE
   
   def open_class
     <<-CODE
-    stack_push(cpu_open_class(state, c, c->enclosing_class, stack_pop()));
+    t1 = stack_pop();
+    t2 = c->enclosing_class;
+    stack_push(cpu_open_class(state, c, t2, t1));
     CODE
   end
   
@@ -871,7 +873,7 @@ CODE
   def soft_return
     <<-CODE
     t1 = stack_top();
-    if(cpu_return_to_sender(state, c, FALSE)) {
+    if(cpu_return_to_sender(state, c, FALSE, FALSE)) {
       stack_push(t1);
     }
     CODE
@@ -882,7 +884,7 @@ CODE
     t1 = stack_top();
     t1 = c->active_context;
     c->active_context = c->sender;
-    if(cpu_return_to_sender(state, c, TRUE)) {
+    if(cpu_return_to_sender(state, c, TRUE, FALSE)) {
       methctx_reference(state, t1);
       stack_push(t1);
     }
@@ -899,7 +901,7 @@ CODE
   def ret
     <<-CODE
     t1 = stack_pop();
-    if(cpu_return_to_sender(state, c, TRUE)) {
+    if(cpu_return_to_sender(state, c, TRUE, FALSE)) {
       stack_push(t1);
     }
     CODE
@@ -1062,7 +1064,7 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    if(object_logical_class(state, t1) == t2) {
+    if(object_class(state, t1) == t2) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -1125,6 +1127,42 @@ CODE
     next_int;
     assert(c->sp_ptr > c->fp_ptr + _int);
     stack_push(*(c->fp_ptr + _int));
+    CODE
+  end
+  
+  def is_fixnum
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(FIXNUM_P(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def is_symbol
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(SYMBOL_P(t1) ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def is_nil
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(t1 == Qnil ? Qtrue : Qfalse);
+    CODE
+  end
+  
+  def class
+    <<-CODE
+    t1 = stack_pop();
+    stack_push(object_class(state, t1));
+    CODE
+  end
+  
+  def equal
+    <<-CODE
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(t1 == t2 ? Qtrue : Qfalse);
     CODE
   end
   

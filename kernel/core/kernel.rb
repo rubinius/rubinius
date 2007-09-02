@@ -1,9 +1,6 @@
-module Functions
-  module Foreign
-    attach_function nil, 'srand', [:uint], :void
-    attach_function nil, 'rand', [], :int
-  end
+module Kernel
 
+  # Conversion methods
   def Float(obj)
     obj = obj.to_f
     if Float === obj
@@ -43,6 +40,29 @@ module Functions
     obj.to_s
   end
   
+  # Reporting methods
+  
+  def raise(exc=$!, msg=nil, trace=nil)
+    if exc.respond_to? :exception
+      exc = exc.exception msg
+      raise TypeError, 'exception class/object expected' unless Exception === exc
+      exc.set_backtrace trace if trace
+    elsif exc.kind_of? String or !exc
+      exc = RuntimeError.exception exc
+    else
+      raise TypeError, 'exception class/object expected'
+    end
+
+    if $DEBUG
+      STDERR.puts "Exception: #{exc.message} (#{exc.class})"
+    end
+
+    exc.set_backtrace MethodContext.current.sender unless exc.backtrace
+    Ruby.asm "#local exc\nraise_exc"
+  end
+  
+  alias fail raise
+  
   def warn(warning)
     unless $VERBOSE.nil?
       $stderr.write warning
@@ -64,6 +84,7 @@ module Functions
     exit 1
   end
 
+  # Display methods
   def printf(*args)
     if args[0].class == IO
       args[0].write(Sprintf::Parser.format(args[1], args[2..-1]))
@@ -80,16 +101,42 @@ module Functions
   end
   alias :format :sprintf
   
+  def puts(*a)
+    a = [""] if a.empty?
+    a.each do |obj| 
+      str = obj.to_s
+      if str[-1] == 10
+        $CONSOLE.print str
+      else
+        $CONSOLE.puts str
+      end
+    end
+    nil
+  end
+  
+  def p(*a)
+    a = [nil] if a.empty?
+    a.each { |obj| $CONSOLE.puts obj.inspect }
+    nil
+  end
+
+  def print(*args)
+    args.each do |obj|
+      $CONSOLE.write obj.to_s
+    end
+    nil
+  end
+    
   # NOTE - this isn't quite MRI compatible, we don't store return the previous
   # seed value from srand and we don't seed the RNG by default with a combination
   # of time, pid and sequence number
   def srand(seed)
-    Foreign.srand(seed.to_i)
+    Platform::POSIX.srand(seed.to_i)
   end
 
   def rand(max=nil)
     max = max.to_i.abs
-    x = Foreign.rand
+    x = Platform::POSIX.rand
     # scale result of rand to a domain between 0 and max
     if max.zero?
       x / 0x7fffffff.to_f
@@ -123,9 +170,19 @@ module Functions
     end
     ret
   end
-
-  alias fail raise
+  
+  def at_exit(&block)
+    Rubinius::AtExit.unshift(block)
+  end
+  
+  def self.after_loaded
+    # This nukes the bootstrap raise so the Kernel one is
+    # used.
+    Object.method_table[:raise] = nil
+  end
 end
+
+Object.include Kernel
 
 class SystemExit < Exception
   def initialize(code)

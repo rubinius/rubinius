@@ -8,6 +8,13 @@
 #include <cinvoke.h>
 #endif
 
+/* These are for custom literals. We'll need an API to set it
+   eventually. */
+#define CUSTOM_CLASS Qnil
+
+#define SPECIAL_CLASS_MASK 0x1f
+#define SPECIAL_CLASS_SIZE 32
+
 struct rubinius_globals {
   
   /* classes for the core 'types' */
@@ -32,11 +39,13 @@ struct rubinius_globals {
   
   OBJECT external_ivars, scheduled_threads, errno_mapping;
   OBJECT recent_children, config, ffi_ptr, ffi_func, sym_send;
-  OBJECT functions, sym_public, sym_private, sym_protected, sym_const_missing;
+  OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
+  OBJECT sym_object_id;
   OBJECT exception, iseq;
+  
+  OBJECT special_classes[SPECIAL_CLASS_SIZE];
 };
 
-#define GLOBAL_cmethod
 
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
 
@@ -132,10 +141,6 @@ struct rubinius_state {
 #define FASTCTX_NORMAL 0
 #define FASTCTX_NMC    1
 
-// rubinius.h defines STATE as void*, which means these prototypes fail to match.
-// This is pretty confusing, since they look identical before the pre-processor runs.
-// HACK
-#ifdef __SHOTGUN__
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, const char *name);
 OBJECT rbs_class_new(STATE, const char *name, int fields, OBJECT obj);
@@ -147,8 +152,6 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj);
 const char *_inspect(OBJECT obj);
 OBJECT rbs_module_new(STATE, const char *name, OBJECT ns);
 OBJECT rbs_class_new_instance(STATE, OBJECT cls);
-
-#endif
 
 static inline long rbs_to_int(OBJECT obj) {
   return STRIP_TAG((long)obj);
@@ -225,9 +228,11 @@ extern int g_access_violation;
 
 void machine_handle_fire(int);
 
-#define ACCESS_MACROS 0
+#define ACCESS_MACROS 1
 
-#ifdef ACCESS_MACROS
+#if ACCESS_MACROS
+
+#if DISABLE_CHECKS
 
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
@@ -235,8 +240,6 @@ void machine_handle_fire(int);
     object_memory_write_barrier(om, _o, _v); \
   } \
   *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
-
-#if DISABLE_CHECKS
 
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
 
@@ -249,7 +252,7 @@ static void _bad_reference(OBJECT in) {
   } 
 }
 
-static void _bad_reference2(OBJECT in) {
+static void _bad_reference2(OBJECT in, int fel) {
   printf("Attempted to access field %d in an object with %lu fields.\n", 
     fel, (unsigned long)NUM_FIELDS(in));
     
@@ -258,10 +261,19 @@ static void _bad_reference2(OBJECT in) {
   }
 }
 
+#define rbs_set_field(om, obj, fel, val) ({ \
+  OBJECT _v = (val), _o = (obj); \
+  if(!REFERENCE_P(obj)) _bad_reference(obj); \
+  if(fel >= HEADER(obj)->fields) _bad_reference2(obj, fel); \
+  if(REFERENCE_P(_v)) { \
+    object_memory_write_barrier(om, _o, _v); \
+  } \
+  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
+
 #define rbs_get_field(i_in, i_fel) ({ \
   OBJECT in = (i_in); int fel = (i_fel); \
   if(!REFERENCE_P(in)) _bad_reference(in); \
-  if(fel >= HEADER(in)->fields) _bad_reference2(in); \
+  if(fel >= HEADER(in)->fields) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
 
 #endif

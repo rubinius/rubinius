@@ -1,137 +1,50 @@
 class Module
-  def self.new(&prc)
-    mod = allocate
-    mod.module_eval(&prc) if block_given?
-    mod
+  ivar_as_index :method_table => 1, :name => 3
+    
+  def method_table
+    @method_table
+  end
+    
+  def name
+    @name.to_s
   end
   
-  def include(*modules)
-    modules.reverse_each do |mod|
-      mod.append_features(self)
-      mod.included(self)
+  # Ultra simple private
+  def private(name)
+    if cm = @method_table[name]
+      if cm.kind_of? Tuple
+        cm.put 0, :private
+      else
+        tup = Tuple.new(2)
+        tup.put 0, :private
+        tup.put 1, cm
+        @method_table[name] = tup
+      end
     end
   end
-
-  def to_s
-    if name
-      name.to_s
-    else
-      super()
-    end
-  end
-
+  
   def __find_method(namesym)
     Ruby.primitive :find_method
   end
-
-  def instance_method(name)
-    name = name.to_sym
-    cur, cm = __find_method(name)
-    return UnboundMethod.new(cur, cm) if cm
-    thing = self.kind_of?(Class) ? "class" : "module"
-    raise NameError, "undefined method `#{name}' for #{thing} #{self}"
-  end
-
-  def instance_methods(all=true)
-    filter_methods(:public_names, all) | filter_methods(:protected_names, all)
+  
+  def alias_method(new_name, current_name)
+    meth = @method_table[current_name]
+    unless meth
+      raise NoMethodError, "Unable to find method '#{current_name}' to alias to '#{new_name}'"
+    end
+    @method_table[new_name] = meth
   end
 
-  def public_instance_methods(all=true)
-    filter_methods(:public_names, all)
+  def append_features(mod)
+    im = IncludedModule.new(self)
+    im.attach_to mod
   end
   
-  def private_instance_methods(all=true)
-    filter_methods(:private_names, all)
+  def included(mod); end
+  
+  def include(mod)    
+    mod.append_features(self)
+    mod.included(self)
   end
   
-  def protected_instance_methods(all=true)
-    filter_methods(:protected_names, all)
-  end
-  
-  def filter_methods(filter, all)
-    names = method_table.__send__(filter)
-    # TODO: fix for module when modules can include modules
-    return names if self.is_a?(Module)
-    unless all or self.is_a?(MetaClass) or self.is_a?(IncludedModule)
-      return names
-    end
-    
-    sup = direct_superclass()
-    while sup
-      names |= sup.method_table.__send__(filter)
-      sup = sup.direct_superclass()
-    end
-    
-    return names
-  end
-  # private :filter_methods
-  
-  def const_defined?(name)
-    name = name.to_s
-    hierarchy = name.split('::')
-    hierarchy.shift if hierarchy.first == ""
-    hierarchy.shift if hierarchy.first == "Object"
-    const = self
-    until hierarchy.empty?
-      const = const.constants_table[hierarchy.shift.to_sym]
-      return false unless const
-    end
-    return true
-  end
-
-  def define_method(name, meth = nil, &prc)
-    meth ||= prc
-    case meth
-    when Proc
-      block_env = meth.block
-      meth_ctx = block_env.home
-      cm = meth_ctx.method.dup
-      initial = block_env.initial_ip
-      last = block_env.last_ip + 1
-      trimmed_bytecodes = cm.bytecodes.fetch_bytes(initial, last - initial)
-      cm.bytecodes = trimmed_bytecodes
-    when Method, UnboundMethod
-      cm = meth.instance_eval { @method }
-      meth = meth.dup
-    when CompiledMethod
-      cm = meth
-      meth = UnboundMethod.new(self, cm)
-    else
-      raise TypeError, "invalid argument type #{meth.class} (expected Proc/Method)"
-    end
-    self.method_table[name.to_sym] = cm
-    meth
-  end
-  
-  def set_visibility(meth, vis)
-    name = meth.to_sym
-    tup = find_method_in_hierarchy(name)
-    vis = vis.to_sym
-    
-    unless tup
-      raise NoMethodError, "Unknown method '#{name}' to make private"
-    end
-
-    method_table[name] = tup.dup
-    if Tuple === tup
-      method_table[name][0] = vis
-    else
-      method_table[name] = Tuple[vis, tup]
-    end
-    
-    return name
-  end
-  
-  def private(*args)
-    args.each { |meth| set_visibility(meth, :private) }
-  end
-  
-  def protected(*args)
-    args.each { |meth| set_visibility(meth, :protected) }
-  end
-  
-  def public(*args)
-    args.each { |meth| set_visibility(meth, :public) }
-  end
-
 end

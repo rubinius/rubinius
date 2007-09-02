@@ -1,6 +1,4 @@
-ENV = Object.new
-
-class << ENV
+class EnvironmentVariables
   def [](key)
     unless key.respond_to?(:to_str)
       raise TypeError
@@ -31,21 +29,9 @@ class << ENV
     env_set(key.to_str, nil)
   end
 
-  def to_hash
-    Ruby.primitive :env_as_hash
-  end
-
   def to_s
     "ENV"
   end
-
-  private
-  def env_get(key)
-    Ruby.primitive :env_get
-  end
-
-  def env_set(key, value)
-    Ruby.primitive :env_set
-  end
+  
 end
 

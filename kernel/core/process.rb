@@ -1,26 +1,10 @@
-class Process
-  def self.exit(code)
-    Ruby.primitive :process_exit
-  end
-  
-  def self.micro_sleep(ms)
-    Ruby.primitive :micro_sleep
-  end
-  
+class Process    
   def self.sleep(sec)
     micro_sleep(sec * 1_000_000)
   end
   
   def self.usleep(sec)
     micro_sleep(sec * 1_000)
-  end
-
-  def self.fork
-    Ruby.primitive :fork_process
-  end
-
-  def self.replace(file, arg)
-    Ruby.primitive :replace_process
   end
   
   def self.times
@@ -29,7 +13,7 @@ class Process
   end
 end
 
-module Functions
+module Kernel
   def system(prog, *args)
     cmd = args.inject(prog.to_s) { |a,e| a << " #{e}" }
     pid = Process.fork

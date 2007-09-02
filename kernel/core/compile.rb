@@ -6,20 +6,22 @@ module Rubinius
 end
 
 module Compile
-  def self.compile_file(path)
+  def self.compile_file(path, flags=nil)
     require 'bytecode/compiler'
     require 'bytecode/rubinius'
     sexp = File.to_sexp(path, true)
     comp = Bytecode::Compiler.new
+    comp.import_flags(flags) if flags
     desc = comp.compile_as_script(sexp, :__script__)
     return desc.to_cmethod
   end
   
-  def self.compile_string(string)
+  def self.compile_string(string, flags=nil)
     require 'bytecode/compiler'
     require 'bytecode/rubinius'
     sexp = string.to_sexp
     comp = Bytecode::Compiler.new
+    comp.import_flags(flags) if flags
     desc = comp.compile_as_method(sexp, :__eval_script__)
     return desc.to_cmethod
   end
@@ -28,6 +30,12 @@ module Compile
     cm = compile_string(string)
     cm.compile
     cm.activate MAIN, []
+  end
+
+  # Called when we encounter a break keyword that we do not support
+  # TODO - This leaves a moderately lame stack trace entry
+  def self.__unexpected_break__
+    raise TypeError, "unexpected break"
   end
 end
 
@@ -42,7 +50,7 @@ class String
   end
 end
 
-module Functions
+module Kernel
   def load(path)
     if path.suffix? ".rbc"
       cm = CompiledMethod.load_from_file(path, Rubinius::CompiledMethodVersion)
@@ -85,9 +93,9 @@ module Functions
     return cm.activate_as_script
   end
   
-  def compile(path, out=nil)
+  def compile(path, out=nil, flags=nil)
     out = "#{path}c" unless out
-    cm = Compile.compile_file(path)
+    cm = Compile.compile_file(path, flags)
     Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end
@@ -102,8 +110,9 @@ module Functions
       kinds.each do |filename|
         path = "#{dir}/#{filename}"
         return false if $".include?(path)
+        # puts "looking for #{filename} in #{dir}"
+        
         if dir.suffix?(".rba") and File.exists?(dir)
-          # puts "looking for #{filename} in #{dir}" #(#{Archive.list_files(dir).inspect})"
           cm = Archive.get_object(dir, filename, Rubinius::CompiledMethodVersion)
           if cm
             # puts "Found #{filename} in #{dir}"
@@ -113,11 +122,13 @@ module Functions
           
         # Don't accidentally load non-extension files
         elsif File.exists?(path) && (path.suffix?(".rb") or path.suffix?(".rbc"))
+          # puts "Loading from disk directly."
           $" << path
           return load(path)
         elsif (load_result = VM.load_library(path, File.basename(path)))
           case load_result
           when true
+            # puts "Loaded as extension."
             $" << path
             return true
           when 1

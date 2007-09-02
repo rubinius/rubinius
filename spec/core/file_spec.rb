@@ -1,4 +1,7 @@
 require File.dirname(__FILE__) + '/../spec_helper' 
+failure :rbx do
+  require 'pathname'
+end
 
 # class methods
 # atime, basename, blockdev?, chardev?, chmod, chown, ctime, delete,
@@ -12,16 +15,10 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 # atime, chmod, chown, ctime, flock, lstat, mtime, path, truncate
 
-WINDOWS =  RUBY_PLATFORM.match('mswin')
+WINDOWS = RUBY_PLATFORM.match('mswin')
 
-context "File class method" do
-  def non_existent_file
-    file = 'i_dont_exist'
-    File.delete(file) rescue nil
-    file
-  end
-  
-  specify "dirname should return all the components of filename except the last one" do
+describe "File.dirname" do   
+  it "dirname should return all the components of filename except the last one" do
     File.dirname('/home/jason').should == '/home'
     File.dirname('/home/jason/poot.txt').should == '/home/jason'
     File.dirname('poot.txt').should == '.'
@@ -29,9 +26,102 @@ context "File class method" do
     File.dirname('').should == '.'
     File.dirname('/').should == '/'
     File.dirname('/////').should == '/'
+  end 
+  
+  it "return a String" do
+    File.dirname("foo").class.should == String
   end
 
-  specify "basename should return the last component of the filename" do
+  it "return the return all the components of filename except the last one (unix format)" do
+    File.dirname("foo").should =="."
+    File.dirname("/foo").should =="/"
+    File.dirname("/foo/bar").should =="/foo"
+    File.dirname("/foo/bar.txt").should =="/foo"
+    File.dirname("/foo/bar/baz").should =="/foo/bar"
+  end
+
+  it "return all the components of filename except the last one (edge cases)" do
+    File.dirname("").should == "."
+    File.dirname(".").should == "."
+    File.dirname("..").should == "."
+    File.dirname("/").should == "/"
+    File.dirname("/foo/").should == "/"    
+    File.dirname("//foo//").should == "/"
+    File.dirname("//foo").should == "/" unless WINDOWS  # Fails on MS Windows
+  end
+
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
+    should_raise(TypeError){ File.dirname(nil) }
+    should_raise(TypeError){ File.dirname(0) }
+    should_raise(TypeError){ File.dirname(true) }
+    should_raise(TypeError){ File.dirname(false) }
+  end
+
+  # Windows specific tests
+  if WINDOWS
+    it "return the return all the components of filename except the last one (Windows format)" do 
+      File.dirname("C:\\foo\\bar\\baz.txt").should =="C:\\foo\\bar"
+      File.dirname("C:\\foo\\bar").should =="C:\\foo"
+      File.dirname("C:\\foo\\bar\\").should == "C:\\foo"
+      File.dirname("C:\\foo").should == "C:\\"
+      File.dirname("C:\\").should =="C:\\"
+    end
+
+    it "return the return all the components of filename except the last one (windows unc)" do
+      File.dirname("\\\\foo\\bar\\baz.txt").should == "\\\\foo\\bar"
+      File.dirname("\\\\foo\\bar\\baz").should == "\\\\foo\\bar"
+      File.dirname("\\\\foo").should =="\\\\foo"
+      File.dirname("\\\\foo\\bar").should =="\\\\foo\\bar"
+    end
+         
+    it "return the return all the components of filename except the last one (forward_slash)" do 
+      File.dirname("C:/").should == "C:/"
+      File.dirname("C:/foo").should == "C:/"
+      File.dirname("C:/foo/bar").should == "C:/foo"
+      File.dirname("C:/foo/bar/").should == "C:/foo"
+      File.dirname("C:/foo/bar//").should == "C:/foo"
+    end
+  end 
+end
+
+describe "File.basename" do  
+  before :each do     
+    @file = "test.txt"  
+    File.delete(@file) if File.exist? @file
+    File.open(@file,"w+") 
+  end
+  
+  after :each do
+    #File.delete(@file)
+  end
+  
+  it "return the basename of a path (basic cases)" do     
+    File.basename(@file).should == "test.txt"
+    File.basename(File.join("/tmp")).should == "tmp"
+    File.basename(File.join(*%w( g f d s a b))).should == "b"
+    File.basename("/tmp", ".*").should == "tmp"
+    File.basename("/tmp", ".c").should == "tmp"
+    File.basename("/tmp.c", ".c").should == "tmp"
+    File.basename("/tmp.c", ".*").should == "tmp"
+    File.basename("/tmp.o", ".c").should == "tmp.o"
+    #Version.greater_or_equal("1.8.0") do
+    File.basename(File.join("/tmp/")).should == "tmp"
+    File.basename("/").should == "/"
+    File.basename("//").should == "/"
+    File.basename("dir///base", ".*").should == "base"
+    File.basename("dir///base", ".c").should == "base"
+    File.basename("dir///base.c", ".c").should == "base"
+    File.basename("dir///base.c", ".*").should == "base"
+    File.basename("dir///base.o", ".c").should == "base.o"
+    File.basename("dir///base///").should == "base"
+    File.basename("dir//base/", ".*").should == "base"
+    File.basename("dir//base/", ".c").should == "base"
+    File.basename("dir//base.c/", ".c").should == "base"
+    File.basename("dir//base.c/", ".*").should == "base"
+    #end
+  end
+  
+  it "return the last component of the filename" do
     File.basename('a').should == 'a'
     File.basename('/a').should == 'a'
     File.basename('/a/b').should == 'b'
@@ -40,16 +130,326 @@ context "File class method" do
     File.basename('/').should == '/'
     File.basename('/foo/bar/baz.rb', '.rb').should == 'baz'
     File.basename('baz.rb', 'z.rb').should == 'ba'
-  end
+  end 
   
-  specify "blockdev? should return true/false depending if the named file is a block device" do
+  it "return an string" do 
+    File.basename("foo").class.should == String
+  end
+
+  it "return the basename for unix format" do 
+    File.basename("/foo/bar").should == "bar"
+    File.basename("/foo/bar.txt").should == "bar.txt"
+    File.basename("bar.c").should == "bar.c"
+    File.basename("/bar").should == "bar"
+    File.basename("/bar/").should == "bar"
+      
+    # Considered UNC paths on Windows
+    unless WINDOWS 
+      File.basename("baz//foo").should =="foo"
+      File.basename("//foo/bar/baz").should == "baz"
+    end
+  end
+
+  it "return the basename for edge cases" do  
+    File.basename("").should == ""
+    File.basename(".").should == "."
+    File.basename("..").should == ".."
+    File.basename("//foo/").should == "foo"
+    File.basename("//foo//").should == "foo"
+  end
+      
+  it "return the basename for unix suffix" do
+    File.basename("bar.c", ".c").should == "bar"
+    File.basename("bar.txt", ".txt").should == "bar"
+    File.basename("/bar.txt", ".txt").should == "bar"
+    File.basename("/foo/bar.txt", ".txt").should == "bar"
+    File.basename("bar.txt", ".exe").should == "bar.txt"
+    File.basename("bar.txt.exe", ".exe").should == "bar.txt"
+    File.basename("bar.txt.exe", ".txt").should == "bar.txt.exe"
+    File.basename("bar.txt", ".*").should == "bar"
+    File.basename("bar.txt.exe", ".*").should == "bar.txt"
+  end
+
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
+    should_raise(TypeError){ File.basename(nil) }
+    should_raise(TypeError){ File.basename(1) }
+    should_raise(TypeError){ File.basename("bar.txt", 1) }
+    should_raise(TypeError){ File.basename(true) }
+    should_raise(ArgumentError){ File.basename('bar.txt', '.txt', '.txt') }
+  end
+
+  # specific to MS Windows
+  unless not WINDOWS 
+    it "return the basename for windows" do  
+      File.basename("C:\\foo\\bar\\baz.txt").should == "baz.txt"
+      File.basename("C:\\foo\\bar").should == "baz"
+      File.basename("C:\\foo\\bar\\").should == "baz"
+      File.basename("C:\\foo").should == "foo"
+      File.basename("C:\\").should == "C:\\"
+    end
+
+    it "return basename windows unc" do 
+      File.basename("\\\\foo\\bar\\baz.txt").shoould == "baz.txt"
+      File.basename("\\\\foo\\bar\\baz").shoould =="baz"
+      File.basename("\\\\foo").should == "\\\\foo"
+      File.basename("\\\\foo\\bar").shoould == "\\\\foo\\bar"
+    end
+         
+    it "return basename windows forward slash" do  
+      File.basename("C:/").should == "C:/"
+      File.basename("C:/foo").should == "foo"
+      File.basename("C:/foo/bar").should == "bar"
+      File.basename("C:/foo/bar/").should "bar"
+      File.basename("C:/foo/bar//").shouldl == "bar"
+    end
+
+    it "return basename with windows suffix" do
+      File.basename("c:\\bar.txt", ".txt").should == "bar"
+      File.basename("c:\\foo\\bar.txt", ".txt").should == "bar"
+      File.basename("c:\\bar.txt", ".exe").should == "bar.txt"
+      File.basename("c:\\bar.txt.exe", ".exe").should == "bar.txt"
+      File.basename("c:\\bar.txt.exe", ".txt").should == "bar.txt.exe"
+      File.basename("c:\\bar.txt", ".*").should == "bar"
+      File.basename("c:\\bar.txt.exe", ".*").should == "bar.txt"
+    end
+  end
+end 
+
+describe "File.blockdev?" do
+  it "returns true/false depending if the named file is a block device" do
     File.blockdev?("/tmp").should == false
   end
-  
-  specify "chardev? should return true/false depending if the named file is a char device" do
-    File.chardev?("/tmp")
+end
+
+describe "File.chardev?" do
+  it "returns true/false depending if the named file is a char device" do
+    File.chardev?("/tmp").should == false
+  end
+end 
+
+describe "File.executable_real?" do
+  before(:each) do
+    @file1 = 'test.txt'
+    @file2 = 'test2.txt'
+
+    File.open(@file1, "w"){} # touch
+    File.open(@file2, "w"){}
+      
+    File.chmod(0755, @file1)
   end
   
+  it "returns true if named file is readable by the real user id of the process, otherwise false" do
+    File.executable_real?('fake_file').should == false
+    File.executable_real?(@file1).should == true
+  end
+  
+  after(:each) do
+    File.delete(@file1)    
+    File.delete(@file2) 
+    @file1 = nil
+    @file2 = nil
+  end 
+ 
+  unless WINDOWS
+    it "returns true if the file its an executable" do 
+      File.executable_real?(@file1).should == true
+      File.executable_real?(@file2).should == false
+      File.executable_real?('bogus').should == false
+    end
+  end
+  
+  it "raise an exception if the argumnent is not from the correct type or are missing" do
+    should_raise(ArgumentError){ File.executable_real? }
+    should_raise(TypeError){ File.executable_real?(1) }
+    should_raise(TypeError){ File.executable_real?(nil) }
+    should_raise(TypeError){ File.executable_real?(false) }
+  end
+end   
+ 
+describe "File.executable?" do 
+  before(:each) do
+    @file1 = File.join('test.txt')
+    @file2 = File.join('test2.txt')
+
+    File.open(@file1, "w"){} # touch
+    File.open(@file2, "w"){}
+    
+    File.chmod(0755, @file1)
+  end
+
+  after(:each) do
+    File.delete(@file1)    
+    File.delete(@file2) 
+    @file1 =  nil
+    @file2 = nil
+  end
+  
+  it "returns true if named file is readable by the effective user id of the process, otherwise false" do
+    File.executable?('fake_file').should == false
+    File.executable?('/etc/passwd').should == false
+    File.executable?(@file).should == true
+  end
+
+  unless WINDOWS
+    it "return true if the argument its an executable file" do
+      File.executable?(@file1).should == true
+      File.executable?(@file2).should == false
+      File.executable?('a_fake_file').should == false
+    end
+  end
+
+  it "raise an exception its the arguments are the worng type or number" do
+    should_raise(ArgumentError){ File.executable? }
+    should_raise(TypeError){ File.executable?(1) }
+    should_raise(TypeError){ File.executable?(nil) }
+    should_raise(TypeError){ File.executable?(false) }
+  end
+end
+
+describe "File.readable_real?" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exists?(@file)
+  end
+  
+  it "returns true if named file is readable by the real user id of the process, otherwise false" do
+    File.readable_real?('fake_file').should == false
+    File.open(@file,'w'){
+      File.readable_real?(@file).should == true
+    }
+  end
+end
+
+describe "File.readable?" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exists?(@file)
+  end
+  
+  it "returns true if named file is readable by the effective user id of the process, otherwise false" do
+    File.readable?('fake_file').should == false
+    File.readable?('/etc/passwd').should == true
+    File.open(@file,'w'){
+      File.readable?(@file).should == true
+    }
+  end
+end
+ 
+describe "File.writable?" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+  
+  after(:each) do
+    File.delete(@file) if File.exists?(@file)
+  end
+  
+  it "should return true if named file is writable by the effective user id of the process, otherwise false" do
+    File.writable?('fake_file').should == false
+    File.writable?('/etc/passwd').should == false
+    File.open(@file,'w'){
+      File.writable?(@file).should == true
+    }
+  end
+end
+
+describe "File.link" do
+  before(:each) do   
+    @file = "test.txt"
+    @link = "test.lnk"     
+    File.delete(@link) if File.exists?(@link)
+    File.delete(@file) if File.exists?(@file)
+    File.open(@file,"w+") 
+  end 
+
+  unless WINDOWS
+    it "link a file with another " do
+      File.link(@file, @link).should == 0
+      File.exists?(@link).should == true
+      File.identical?(@file, @link).should == true
+    end
+
+    it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+      File.link(@file, @link)  
+      should_raise(Errno::EEXIST){ File.link(@file, @link) }
+      should_raise(ArgumentError){ File.link }
+      should_raise(ArgumentError){ File.link(@file) }
+    end
+  end
+
+  after(:each)do
+    File.unlink(@link)
+    File.delete(@file)
+    @link = nil
+  end
+end
+
+describe "File.unlink" do
+  before(:each) do
+    @file = "i_dont_exist"
+    File.delete(@file) if File.exists?(@file)
+  end
+  
+  after(:each) do
+    File.delete(@file) rescue nil
+  end
+  
+  it "should delete a file and return the number of names passed as arguments" do
+    File.exists?(@file).should == false
+    File.new(@file,'w').close
+    File.exists?(@file).should == true
+    File.unlink(@file).should == 1
+    File.exists?(@file).should == false 
+  end
+  
+  it "should raise Errno::ENOENT if the file does not exist" do
+    should_raise(Errno::ENOENT){ File.unlink('bogus') }
+  end
+end 
+
+
+describe "File.zero?" do
+  before :each do
+    @zero_file    = 'test.txt'
+    @nonzero_file = 'test2.txt'
+      
+    File.open(@zero_file    , "w"){} # Touch
+    File.open(@nonzero_file , "w"){|f| f.puts "hello"} # Touch
+  end
+  
+  after :each do
+    File.delete(@zero_file    ) if File.exists?(@zero_file)
+    File.delete(@nonzero_file ) if File.exists?(@nonzero_file)  
+    @zero_file    = nil
+    @nonzero_file = nil
+  end
+     
+  it "return true if the length of a file its zero, otherwise true" do
+    File.zero?(@zero_file).should == true
+    File.zero?(@nonzero_file).should == false
+  end
+   
+  it " edgy cases" do
+    if WINDOWS
+      File.zero?('NUL').should == true
+    else
+      File.zero?('/dev/null').should == true
+    end
+  end
+  
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
+    should_raise(ArgumentError){ File.zero? }
+    should_raise(TypeError){ File.zero?(nil) }
+    should_raise(TypeError){ File.zero?(true) }
+    should_raise(TypeError){ File.zero?(false) }
+  end
+   
   specify "zero? should return true if the named file exists and has a zero size." do
     begin
       File.zero?('fake_file').should == false
@@ -61,101 +461,70 @@ context "File class method" do
       File.delete(file) rescue nil
     end
   end
-  
-  specify "writable_real? should return true if named file is writable by the real user id of the process, otherwise false" do
-    begin
-      File.writable_real?('fake_file').should == false
-      file = '/tmp/i_exist'
-      File.open(file,'w'){
-        File.writable_real?(file).should == true
-      }
-    ensure
-      File.delete(file) rescue nil
-    end
+end 
+
+describe "File.size?" do
+  before(:each) do
+    @file = "i_dont_exist"
+    File.delete(@file) if File.exists?(@file)
+    File.size?(@file).should == nil
+    @file = '/tmp/i_exist'
+    File.open(@file,'w'){|f| f.write 'rubinius'}
   end
   
-  specify "writable? should return true if named file is writable by the effective user id of the process, otherwise false" do
-    begin
-      File.writable?('fake_file').should == false
-      File.writable?('/etc/passwd').should == false
-      file = '/tmp/i_exist'
-      File.open(file,'w'){
-        File.writable?(file).should == true
-      }
-    ensure
-      File.delete(file) rescue nil
-    end
+  after(:each) do
+    File.delete(@file) rescue nil
   end
   
-  specify "delete should delete a file and return the number of names passed as arguments" do
-    begin
-      file = non_existent_file
-      File.exists?(file).should == false
-      File.new(file,'w').close
-      File.exists?(file).should == true
-      File.delete(file).should == 1
-      File.exists?(file).should == false
-    ensure
-      File.delete(file) rescue nil
-    end
+  it "should return nil if file_name doesn't exist or has zero size, the size of the file otherwise" do
+    File.size?(@file).should == 8
+  end
+end
+
+describe "File.size" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+    File.open(@file,'w'){|f| f.write 'rubinius'}
   end
   
-  specify "unlink should delete a file and return the number of names passed as arguments" do
-    begin
-      file = non_existent_file
-      File.exists?(file).should == false
-      File.new(file,'w').close
-      File.exists?(file).should == true
-      File.unlink(file).should == 1
-      File.exists?(file).should == false 
-    ensure
-      File.delete(file) rescue nil
-    end
+  after(:each) do
+    File.delete(@file) rescue nil
   end
   
-  specify "umask should return the current umask value for the process" do
-    File.umask(0006).should == 18
-    File.umask.should == 6
+  it "should return the size of the file" do
+    File.size?(@file).should == 8
   end
-  
-  specify "split should split the given string into a directory and a file component and returns them in a 2 element array" do
-    File.split("/rubinius/better/than/ruby").should == ["/rubinius/better/than", "ruby"]
+end 
+ 
+describe "File.identical?" do  
+  before(:each) do    
+    @file1 = 'test.txt'
+    @file2 = 'test2.txt'
+    @file3 = 'test.lnk'
+    File.delete(@file3) if File.exists?(@file3)
+     
+    File.open(@file1,"w+"){|f| f.puts "file1"}
+    File.open(@file2,"w+"){|f| f.puts "file2"} 
+    File.link(@file1, @file3)
   end
-  
-  specify "size? should return nil if file_name doesn't exist or has zero size, the size of the file otherwise" do
-    begin
-      File.size?(non_existent_file).should == nil
-      file = '/tmp/i_exist'
-      File.open(file,'w'){|f| f.write 'rubinius'}
-      File.size?(file).should == 8
-    ensure
-      File.delete(file) rescue nil
-    end
+
+  it  "return a Boolean class" do 
+    File.identical?(@file1, @file2).class.should == FalseClass
+    File.identical?(@file1, @file1).class.should == TrueClass
   end
-  
-  specify "size should the size of the file" do
-    begin
-      file = '/tmp/i_exist'
-      File.open(file,'w'){|f| f.write 'rubinius'}
-      File.size?(file).should == 8
-    ensure
-      File.delete(file) rescue nil
-    end
+
+  it "return true if they are identicals" do
+    File.identical?(@file1, @file1).should == true
+    File.identical?(@file1, @file2).should == false
+    File.identical?(@file1, @file3).should == true
   end
-  
-  specify "ftype should return the type of the named file" do
-    begin
-      file = 'testfile'
-      File.new(file,'w').close
-      File.ftype(file).should == "file"
-      File.ftype("/dev/tty").should == "characterSpecial"
-      File.ftype("/").should == "directory"
-    ensure
-      File.delete(file) rescue nil
-    end
+
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    should_raise(ArgumentError){ File.identical?(@file1, @file2, @file3) }
+    should_raise(TypeError){ File.identical?(1,1) }
   end
-  
-  specify "identical? should return true if both named files are identical" do
+
+  it "identical? should return true if both named files are identical" do
     begin
       file = '/tmp/i_exist'
       file2 = '/tmp/i_exist_too'
@@ -167,9 +536,20 @@ context "File class method" do
       File.delete(file) rescue nil
       File.delete(file2) rescue nil
     end
-  end
+  end  
   
-  specify "join should return new string formed by joining the strings using File::SEPARATOR" do
+  after(:each) do          
+    File.unlink(@file3)  
+    File.delete(@file1) if File.exists?(@file1)    
+    File.delete(@file2) if File.exists?(@file2)     
+    @file1 = nil
+    @file1 = nil
+    @file1 = nil
+  end
+end
+
+describe "File.join" do
+  it "should return a new string formed by joining the strings using File::SEPARATOR" do
     File.join("smalltalk","ruby","rubinius").should == "smalltalk/ruby/rubinius"
     File.join.should == ""
 
@@ -180,17 +560,20 @@ context "File class method" do
   end
 end
 
-context "File instance method" do  
-  specify "path should return the pathname used to create file as a string" do
-    begin
-      file1 = "testfile"
-      file2 = "/tmp/../tmp/xxx"
-      File.open(file1,'w'){|file| file.path.should == "testfile"}
-      File.open(file2, 'w'){|file| file.path.should == "/tmp/../tmp/xxx"}
-    ensure
-      File.delete(file1) rescue nil
-      File.delete(file2) rescue nil
-    end
+describe "File#path" do
+  before(:each) do
+    @file1 = "testfile"
+    @file2 = "/tmp/../tmp/xxx"
+  end
+  
+  after(:each) do
+    File.delete(@file1) rescue nil
+    File.delete(@file2) rescue nil
+  end
+  
+  it "should return the pathname used to create file as a string" do
+    File.open(@file1,'w'){|file| file.path.should == "testfile"}
+    File.open(@file2, 'w'){|file| file.path.should == "/tmp/../tmp/xxx"}
   end
 end
 
@@ -259,43 +642,6 @@ describe "File.ctime" do
   end
 end 
 
-describe "File.delete" do
-  before(:each) do
-    @file1 = 'temp1.txt'
-    @file2 = 'temp2.txt'
-
-    File.open(@file1, "w"){} # touch 
-    File.open(@file2, "w"){} # Touch
-  end
-
-  after(:each) do
-    File.delete("temp1.txt") if File.exist?("temp1.txt")
-    File.delete("temp2.txt") if File.exist?("temp1.txt")
-
-    @file1 = nil
-    @file2 = nil
-  end
-
-  it "deletes the named files," do
-    File.delete(@file1)
-    should_raise(Errno::ENOENT){File.open(@file1,"r")}
-  end
-
-  it "return the number of names passed as arguments (0 and 1 argument)" do
-    File.delete.should == 0
-    File.delete(@file1).should == 1
-  end
-
-  it "return the number of names passed as arguments(multiples arguments)" do
-    File.delete(@file1, @file2).should == 2
-  end
-
-  it "raise an exception its the arguments are the worng type or number" do
-    should_raise(TypeError){ File.delete(1) }
-    should_raise(Errno::ENOENT){ File.delete('a_fake_file') }
-  end
-end
-
 describe "File.directory?" do 
   before(:each) do
     if WINDOWS
@@ -325,18 +671,18 @@ end
 
 describe "File.executable?" do 
   before(:each) do
-    @file1 = File.join(Dir.pwd, 'temp1.txt')
-    @file2 = File.join(Dir.pwd, 'temp2.txt')
+    @file1 = 'temp1.txt'
+    @file2 = 'temp2.txt'
 
     File.open(@file1, "w"){} # touch
-    File.open(@file2, "w"){}
+    File.open(@file2, "w"){} # touch
     
     File.chmod(0755, @file1)
   end
 
   after(:each) do
-    #    File.delete(Dir.pwd,"temp1.txt")    
-    #    File.delete(Dir.pwd,"temp2.txt")
+    File.delete("temp1.txt")    
+    File.delete("temp2.txt")
 
     @file1 =  nil
     @file2 = nil
@@ -370,8 +716,8 @@ describe "File.executable_real?" do
   end
  
   after(:each) do
-    #    File.delete("temp1.txt")    
-    #    File.delete("temp2.txt")
+    File.delete("temp1.txt")    
+    File.delete("temp2.txt")
 
     @file1 = nil
     @file2 = nil
@@ -385,39 +731,49 @@ describe "File.executable_real?" do
     end
   end
   
-  it "raise an exception if the argumnent is not from the correct type or are missing" do
+  it "raise an exception if the argument is not from the correct type or are missing" do
     should_raise(ArgumentError){ File.executable_real? }
     should_raise(TypeError){ File.executable_real?(1) }
     should_raise(TypeError){ File.executable_real?(nil) }
     should_raise(TypeError){ File.executable_real?(false) }
   end
-end   
+end
 
-describe "File::Constants" do  
-  # These mode and permission bits are platform dependent
-  specify "File::RDONLY" do 
-    defined?(File::RDONLY).should == "constant" 
+describe "File.chmod" do
+  before(:each) do
+    @file = '/tmp/i_exist'
+    File.open(@file, 'w') {}
+    @count = File.chmod(0755, @file)
   end
- 
-  specify "File::WRONLY" do  
-    defined?(File::WRONLY).should == "constant" 
+  
+  it "should return the number of files modified" do
+    @count.should == 1
   end
- 
-  specify "File::CREAT" do     
-    defined?(File::CREAT).should == "constant" 
+  
+  it "should modify the permission bits of the files specified" do
+    File.stat(@file).mode.should == 33261
   end
- 
-  specify "File::RDWR" do  
-    defined?(File::RDWR).should == "constant" 
+  
+  after(:each) do
+    File.delete(@file) if File.exist?(@file)
+  end  
+end
+
+describe "File#chmod" do
+  before(:each) do
+    @filename = '/tmp/i_exist'
+    @file = File.open(@filename, 'w')
   end
- 
-  specify "File::APPEND" do      
-    defined?(File::APPEND).should == "constant" 
+  
+  it "should modify the permission bits of the files specified" do
+    @file.chmod(0755).should == 0
+    File.stat(@filename).mode.should == 33261
   end
- 
-  specify "File::TRUNC" do     
-    defined?(File::TRUNC).should == "constant" 
-  end   
+  
+  after(:each) do
+    @file.close
+    File.delete(@filename) if File.exist?(@filename)
+  end
 end
 
 describe "File.exist?" do 
@@ -448,6 +804,88 @@ describe "File.exist?" do
   end 
 end
 
+describe "File::Constants" do  
+  # These mode and permission bits are platform dependent
+  specify "File::RDONLY" do 
+    defined?(File::RDONLY).should == "constant" 
+  end
+ 
+  specify "File::WRONLY" do  
+    defined?(File::WRONLY).should == "constant" 
+  end
+ 
+  specify "File::CREAT" do     
+    defined?(File::CREAT).should == "constant" 
+  end
+ 
+  specify "File::RDWR" do  
+    defined?(File::RDWR).should == "constant" 
+  end
+ 
+  specify "File::APPEND" do      
+    defined?(File::APPEND).should == "constant" 
+  end
+ 
+  specify "File::TRUNC" do     
+    defined?(File::TRUNC).should == "constant" 
+  end   
+  
+  unless WINDOWS # Not sure about VMS here
+    specify "File::NOCTTY" do     
+      defined?(File::NOCTTY).should == "constant" 
+    end   
+  end
+  
+  specify "File::NONBLOCK" do     
+    defined?(File::NONBLOCK).should == "constant" 
+  end   
+  
+  specify "File::LOCK_EX" do     
+    defined?(File::LOCK_EX).should == "constant" 
+  end   
+  
+  specify "File::LOCK_NB" do     
+    defined?(File::LOCK_NB).should == "constant" 
+  end   
+  
+  specify "File::LOCK_SH" do     
+    defined?(File::LOCK_SH).should == "constant" 
+  end   
+  
+  specify "File::LOCK_UN" do     
+    defined?(File::LOCK_UN).should == "constant" 
+  end  
+  
+  specify "File::SEPARATOR" do     
+    defined?(File::SEPARATOR).should == "constant" 
+  end  
+  specify "File::Separator" do     
+    defined?(File::Separator).should == "constant" 
+  end  
+  
+  specify "File::PATH_SEPARATOR" do     
+    defined?(File::PATH_SEPARATOR).should == "constant" 
+  end  
+  
+  specify "File::SEPARATOR" do     
+    defined?(File::SEPARATOR).should == "constant" 
+    File::SEPARATOR.should == "/" 
+  end   
+  
+  if WINDOWS #|| VMS 
+    specify "File::ALT_SEPARATOR" do     
+      defined?(File::ALT_SEPARATOR).should == "constant" 
+      File::PATH_SEPARATOR.should == ";" 
+    end  
+  else 
+    specify "File::PATH_SEPARATOR" do     
+      defined?(File::PATH_SEPARATOR).should == "constant"       
+      File::PATH_SEPARATOR.should == ":"
+    end  
+  end
+  
+end
+
 describe "File::Constants" do 
   specify "match mode constants" do 
     File::FNM_NOESCAPE.should_not == nil
@@ -462,7 +900,7 @@ describe "File::Constants" do
   end
 
   # Only these constants are not inherited from the IO class
-  specify "the sperator constant" do
+  specify "the separator constant" do
     File::SEPARATOR.should_not == nil 
     File::Separator.should_not == nil
     File::PATH_SEPARATOR.should_not == nil
@@ -932,12 +1370,12 @@ describe "File.new" do
     File.open(@file, "w"){} # touch
   end
 
-  # after(:each) do   
-  #   File.delete("test.txt")
-  #   @fh    = nil
-  #   @file  = nil
-  #   @flags = nil
-  # end
+  after(:each) do   
+    File.delete("test.txt") if File.exists?("test.txt")
+    @fh    = nil
+    @file  = nil
+    @flags = nil
+  end
 
   it "return a new File with mode string" do
     @fh = File.new(@file, 'w')
@@ -955,7 +1393,7 @@ describe "File.new" do
     File.delete(@file) 
     @fh = File.new(@file, @flags, 0755)
     @fh.class.should == File
-    File.stat(@file).mode.to_s(8).should == "100751"
+    File.stat(@file).mode.to_s(8).should == "100755"
     File.exists?(@file).should == true
   end
 
@@ -1023,7 +1461,7 @@ end
 describe "File.open" do 
   before(:each) do         
     @file = 'test.txt'    
-    File.delete(@file)    
+    File.delete(@file) if File.exists?(@file)
     File.delete("fake") if File.exists?("fake")
     @fh = nil
     @fd = nil
@@ -1068,10 +1506,10 @@ describe "File.open" do
   end
 
   # For this test we delete the file first to reset the perms
-  it "open the file when call with mode, num andpermissions" do
+  it "open the file when call with mode, num and permissions" do
     File.delete(@file)
     @fh = File.open(@file, @flags, 0755)
-    File.stat(@file).mode.to_s(8).should == "100751"
+    File.stat(@file).mode.to_s(8).should == "100755"
     @fh.class.should == File
     File.exists?(@file).should == true
   end
@@ -1081,7 +1519,7 @@ describe "File.open" do
     File.delete(@file)
     File.open(@file, @flags, 0755){ |fh| @fd = fh.fileno }
     should_raise(SystemCallError){ File.open(@fd) }
-    File.stat(@file).mode.to_s(8).should == "100751"
+    File.stat(@file).mode.to_s(8).should == "100755"
     File.exists?(@file).should == true
   end
 
@@ -1150,7 +1588,7 @@ describe "File.open" do
   end  
   
   # Check the grants associated to the differents open modes combinations.   
-  it "raise an ArgumentError exception when call with an unknow mode" do 
+  it "raise an ArgumentError exception when call with an unknown mode" do 
     should_raise(ArgumentError){File.open(@file, "q")  }
   end
   
@@ -1364,7 +1802,7 @@ describe "File.open" do
   end
   
   after(:each) do         
-    File.delete("fake")
+    File.delete("fake") rescue nil
     @fh.delete if @fh  rescue nil
     @fh.close if @fh rescue nil
     @fh    = nil
@@ -1435,7 +1873,7 @@ describe "File.truncate" do
     IO.read(@fname).should == "12345"
   end
 
-  it "truncate to a lager size than the original file" do
+  it "truncate to a larger size than the original file" do
     File.truncate(@fname, 12) 
     File.size(@fname).should == 12
     IO.read(@fname).should == "1234567890\000\000"
@@ -1453,13 +1891,291 @@ describe "File.truncate" do
     should_raise(TypeError){ File.truncate(@fname, nil) }
   end
 
-  def teardown
+  after :each do
     @file.close rescue nil
     @fname = nil
+  end  
+end
+
+describe "File.umask" do
+  before :each do
+    @file = 'test.txt'
+    File.open(@file, 'w'){}
+  end
+   
+  it "return a Fixnum" do
+    File.umask.class.should == Fixnum
+  end    
+  
+  specify "umask should return the current umask value for the process" do
+    File.umask(0006).should == 18
+    File.umask.should == 6
+  end
+   
+  if WINDOWS
+    it "Returns the current umask value for this process. (basic)" do   
+      File.umask.should == 0
+    end
+      
+    # The value used here is the value of _S_IWRITE.
+    it "Returns the current umask value for this process." do 
+      File.umask(0000200) 
+      File.umask.should == 128
+    end
+      
+    it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
+      File.umask(0006)  
+      File.umask.should == 0
+    end
+  end
+
+  after :each do
+    File.delete(@file) if File.exists?(@file)
+    @file = nil
+  end
+end 
+
+describe "File.writable_real?" do  
+  before(:each) do
+    @file = '/tmp/i_exist'
+  end
+
+  after(:each) do
+    File.delete(@file) rescue nil
+  end
+    
+  it "returns true if named file is writable by the real user id of the process, otherwise false" do
+    File.writable_real?('fake_file').should == false
+    File.open(@file,'w'){
+      File.writable_real?(@file).should == true
+    }
   end
   
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
+    should_raise(ArgumentError){ File.writable_real? }
+    should_raise(TypeError){ File.writable_real?(1) }
+    should_raise(TypeError){ File.writable_real?(nil) }
+    should_raise(TypeError){ File.writable_real?(false) }
+  end 
 end
+
+describe "File.split" do 
+  before :each do
+    @path_unix             = "/foo/bar/baz.rb"
+    @path_windows_backward = "C:\\foo\\bar\\baz.rb"
+    @path_windows_forward  = "C:/foo/bar/baz.rb"
+  end 
+  
+  it "should split the given string into a directory and a file component and returns them in a 2 element array" do
+    File.split("/rubinius/better/than/ruby").should == ["/rubinius/better/than", "ruby"]
+  end
+
+  it "should split the given string into a directory and a file component and returns them in a two-element array. (unix)" do
+    File.split(@path_unix).should == ["/foo/bar","baz.rb"]
+  end
+
+  it "should split the given string into a directory and a file component and returns them in a two-element array. (edge cases)" do 
+    File.split("").should == [".", ""]
+    File.split("//foo////").should == ["/", "foo"]  
+  end
+
+  it "should split the given string into a directory and a file component and returns them in a two-element array.(windows)" do
+    File.split(@path_windows_backward).should ==  [".", "C:\\foo\\bar\\baz.rb"]
+  end   
+   
+  it "should split the given string into a directory and a file component and returns them in a two-element array.(forward slash)" do
+    File.split(@path_windows_forward).should == ["C:/foo/bar", "baz.rb"] 
+  end
+  
+  it "should raise an exception if the number of arguments are incorrect or of incorrect type" do
+    should_raise(ArgumentError){ File.split }
+    should_raise(ArgumentError){ File.split('string', 'another string') }
+    should_raise(TypeError){ File.split(1) }
+  end
+    
+  it "should coerce argument to a string if a non string type is given" do
+    class C; def to_str; "/rubinius/better/than/ruby"; end; end
+    File.split(C.new).should == ["/rubinius/better/than", "ruby"]
+  end
+end
+
+
+describe "File.delete" do     
+  before :each do     
+    @file1 = 'test.txt'
+    @file2 = 'test2.txt'
+    File.delete(@file1) if File.exists?(@file1)
+    File.delete(@file2) if File.exists?(@file2)
+
+    File.open(@file1, "w"){} # Touch
+    File.open(@file2, "w"){} # Touch
+  end 
+
+  it "delete a file " do
+    File.delete.should == 0
+    File.delete(@file1).should == 1    
+    File.exists?(@file1).should == false
+  end
+
+  it "should delete multiple files" do
+    File.delete(@file1, @file2).should == 2    
+    File.exists?(@file1).should == false
+    File.exists?(@file2).should == false
+  end
+
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
+    should_raise(TypeError){ File.delete(1) }
+  end
+  
+  it "raise an error when the target file no exists " do 
+    should_raise(Errno::ENOENT){ File.delete('bogus') }
+  end
+
+  it "delete a file using the alias unlink"  do
+    File.unlink(@file1) 
+    File.exists?(@file1).should == false
+  end  
+  
+  it "deletes the named files" do
+    File.delete(@file1)
+    should_raise(Errno::ENOENT){File.open(@file1,"r")}
+  end
+    
+  it "return the number of names passed as arguments (0 and 1 argument)" do
+    File.delete.should == 0
+    File.delete(@file1).should == 1
+  end
+
+  it "return the number of names passed as arguments (multiple arguments)" do
+    File.delete(@file1, @file2).should == 2
+  end
+ 
+  specify "delete should delete a file and return the number of names passed as arguments" do
+    begin
+      File.delete(@file1) if File.exists?(@file1)
+      File.exists?(@file1).should == false
+      File.new(@file1,'w').close
+      File.exists?(@file1).should == true
+      File.delete(@file1).should == 1
+      File.exists?(@file1).should == false
+    ensure
+      File.delete(@file1) rescue nil
+    end
+  end  
+  
+  it "should coerce a given parameter into a string if possible" do
+    class Coercable; def to_str; "test.txt"; end; end
+    File.delete(Coercable.new).should == 1
+  end
+  
+  after :each do
+    File.delete(@file1) if File.exists?(@file1)
+    File.delete(@file2) if File.exists?(@file2)
+
+    @file1 = nil
+    @file2 = nil
+  end
+end
+
+
+describe "File.ftype" do
+  
+  # Identifies the type of the named file; the return string is one of ``file’’, 
+  # `directory’’, ``characterSpecial’’, ``blockSpecial’’, ``fifo’’, ``link’’, 
+  # `socket’’, or ``unknown’’.
+  
+  before :each do
+    @file = "test.txt"
+    @dir  = Dir.pwd
+    File.open(@file, "w"){} # Touch
+    #@char = Pathname.new(File.null).realpath
+
+    if WINDOWS
+      @block_dev = "NUL"
+    else
+      @fifo = "test_fifo"
+      system("mkfifo #{@fifo}") unless File.exists?(@fifo)
+
+      if File.exists?("/dev/fd0")
+        @block = Pathname.new("/dev/fd0").realpath
+        @link  = "/dev/fd0" if File.symlink?("/dev/fd0")
+      elsif File.exists?("/dev/diskette")
+        @block = Pathname.new("/dev/diskette").realpath
+        @link  = "/dev/diskette" if File.symlink?("/dev/diskette")
+      elsif File.exists?("/dev/cdrom")
+        @block = Pathname.new("/dev/cdrom").realpath
+        @link  = "/dev/cdrom" if File.symlink?("/dev/cdrom")
+      elsif File.exists?("/dev/sr0") # CDROM
+        @block = Pathname.new("/dev/sr0").realpath
+        @link  = "/dev/sr0" if File.symlink?("/dev/sr0") 
+      elsif File.exists?("/dev/disk0")
+        @block = "/dev/disk0"
+        @link  = "/tmp"
+      else
+        @block = nil
+        @link  = nil
+      end
+    end
+  end
+
+  it "return a string " do  
+    File.ftype(@file).class.should == String
+  end
+
+  it "return 'file' when is a file" do
+    File.ftype(@file).should == 'file'
+  end
+
+  it "return 'directory' when is a dir" do
+    File.ftype(@dir).should == 'directory'
+  end
+
+  #   it "return characterSpecial when is a char"  do
+  #      File.ftype(@char).should = 'characterSpecial'
+  #   end
+
+  it "return blockSpecial when is a block" do
+    File.ftype(@block).should == 'blockSpecial'
+  end
+
+  it "return link when is a link" do
+    File.ftype(@link).should == 'link'
+  end
+
+  it "return fifo when is a fifo" do
+    File.ftype(@fifo).should == 'fifo'
+  end   
+  
+  it "should return the type of the named file" do
+    File.ftype(@file).should == "file"
+    File.ftype("/dev/tty").should == "characterSpecial"
+    File.ftype("/").should == "directory"
+  end
+
+  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    should_raise(ArgumentError){ File.ftype }
+    should_raise(Errno::ENOENT){ File.ftype('bogus') }
+  end
+
+  after :each do 
+    File.delete(@fifo)
+      
+    @file   = nil
+    @dir    = nil
+    @char   = nil
+    @block  = nil
+    @fifo   = nil
+    @link   = nil
+    @socket = nil
+  end
+end 
+
 
 # Interestingly MRI 1.8 will fail on later load() calls without this...
 # Big WTF. -- flgr
 GC.start
+
+File.delete("test.lnk")  if File.exists?("test.lnk") 
+File.delete("test_fifo") if File.exists?("test_fifo")
+File.delete("test.txt")  if File.exists?("test.txt")
+File.delete("test2.txt") if File.exists?("test2.txt")

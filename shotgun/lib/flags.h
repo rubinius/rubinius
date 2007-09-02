@@ -18,4 +18,10 @@
 #define IsTaintedFlag        (1<<0)
 #define IsFrozenFlag         (1<<1)
 #define IsLittleEndianFlag   (1<<2)
+
+/* RESERVED FOR TYPE         (1<<4) */
+/* RESERVED FOR TYPE         (1<<5) */
+/* RESERVED FOR GC           (1<<6) */
+/* RESERVED FOR GC           (1<<7) */
+
 #endif 

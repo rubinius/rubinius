@@ -1,10 +1,30 @@
+# Contained first is the system startup code.
+
+begin
+  Array.after_loaded
+  Module.after_loaded
+  Readline.after_loaded
+
+  Class.after_loaded
+  Hash.after_loaded
+  Kernel.after_loaded
+  Actor.after_loaded
+
+  ENV = EnvironmentVariables.new
+
+  # define a global "start time" to use for process calculation
+  $STARTUP_TIME = Time.now
+rescue Object => e
+  puts "Error detected running loader startup stage:"
+  puts "  #{e.message} (#{e.class})"
+  exit 2
+end
+
 # This is the end of the kernel and the beginning of specified
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
 
-GC.start
-
-# Now, setup a few changes to the include path.
+# Setup a few changes to the include path.
 
 # If there is a closer compiler, use it. Otherwise, use the system one.
 unless File.exists? "runtime/compiler.rba"
@@ -52,6 +72,8 @@ begin
     when '-dl'
       $DEBUG_LOADING = true
       puts "[Code loading debugging enabled]"
+    when '-d'
+      $DEBUG = true
     when '-c'
       puts "Deprecated. Use 'rbx compile' instead."
       file = ARGV.shift
@@ -121,7 +143,6 @@ rescue SystemExit => e
   code = e.code
 rescue Object => e
   begin
-    p e
     puts "An exception has occurred:"
     puts "    #{e.message} (#{e.class})"
     puts "\nBacktrace:"

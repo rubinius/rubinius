@@ -13,8 +13,6 @@
 #include "list.h"
 #include <glib.h>
 
-#include "rubinius.h"
-
 void Init_list(STATE) {
   BASIC_CLASS(list) = rbs_class_new(state, "List", ListFields, BASIC_CLASS(object));
   BASIC_CLASS(list_node) = rbs_class_new_with_namespace(state, "Node", 

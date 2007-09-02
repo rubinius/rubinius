@@ -85,6 +85,11 @@ class ExtensionCompiler
   end
 end
 
+flags = []
+while ARGV[0] and ARGV[0].prefix? "-f"
+  flags << ARGV.shift[2..-1]
+end
+
 file = ARGV.shift
 
 if file.suffix?(".c")
@@ -100,7 +105,7 @@ if file.suffix?(".c")
 else
   if File.exists?(file)
     puts "Compiling #{file}..."
-    compile(file, ARGV.shift)
+    compile(file, ARGV.shift, flags)
   else
     puts "Unable to compile '#{file}'"
   end

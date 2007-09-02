@@ -6,12 +6,17 @@ end
 
 class IO
   
+  BufferSize = 8096
+  
   def initialize(fd)
     @descriptor = fd
   end
   
+  ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
+  def __ivars__ ; @__ivars__  ; end
+    
   def inspect
-    "#<#{self.class}:#{object_id.to_s(16)} fd=#{@descriptor}>"
+    "#<#{self.class}:#{object_id.to_s(16)}>"
   end
   
   def puts(*args)
@@ -35,31 +40,48 @@ class IO
   end
   
   alias :print :<<
+    
+  def sysread(size, buf=nil)
+    buf = String.new(size) unless buf
+    chan = Channel.new
+    Scheduler.send_on_readable chan, self, buf, size
+    raise EOFError if chan.receive.nil?
+    return buf
+  end
+    
+  alias :syswrite :write
 
-  def read(size=nil)
+  def read(size=nil, buf=nil)
     if size
-      buf = String.new(size)
+      buf = String.new(size) unless buf
       chan = Channel.new
       Scheduler.send_on_readable chan, self, buf, size
-      chan.receive
+      return nil if chan.receive.nil?
+      return buf
     else
+      chunk = String.new(BufferSize)
       out = ""
       loop do
-        chunk = read(32)
-        return out unless chunk
+        chan = Channel.new
+        Scheduler.send_on_readable chan, self, chunk, BufferSize
+        
+        return out if chan.receive.nil?
+                
         out << chunk
-      end      
+      end
     end
   end
   
   def close
     unless io_close
-      raise IOError.new("Unable to close instance of IO")
+      raise IOError "Unable to close instance of IO"
     end
   end
   
-  index_reader :descriptor, 1
-  
+  def descriptor
+    @descriptor
+  end
+    
   def closed?
     @descriptor == -1
   end
@@ -73,7 +95,7 @@ class IO
     true
   end
   
-  def gets
+  def gets(sep=$/)
     cur = read(1)
     return nil unless cur
     out = cur
@@ -86,8 +108,10 @@ class IO
     return out    
   end
   
-  def self.create_pipe(lhs, rhs)
-    Ruby.primitive :create_pipe
+  def each(sep=$/)
+    while line = gets(sep)
+      yield line
+    end
   end
   
   def self.pipe
@@ -97,13 +121,5 @@ class IO
     return [lhs, rhs]
   end
   
-  def reopen(other)
-    Ruby.primitive :io_reopen
-    raise ArgumentError, "only accepts an IO object"
-  end
-
-  private
-  def io_close
-    Ruby.primitive :io_close
-  end
+  private :io_close
 end

@@ -22,15 +22,9 @@ class ByteArray
   def size
     Ruby.primitive :bytearray_size
   end
-
-  def each
-    0.upto(self.size - 1) do |i|
-      yield get_byte(i)
-    end
-  end
   
   def dup_into(other)
-    Ruby.primitive 32 # :bytes_dup_into
+    Ruby.primitive :bytes_dup_into
   end
   
   def dup(cls=nil)
@@ -38,9 +32,5 @@ class ByteArray
     obj = cls.new(self.size)
     dup_into obj
     return obj
-  end
-  
-  def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)} #{size} bytes>"
   end
 end
