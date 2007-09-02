@@ -1645,7 +1645,7 @@ end
 describe "String#capitalize!" do
   it "capitalizes self in place" do
     a = "hello"
-    a.capitalize!.should == "Hello"
+    a.capitalize!.equal?(a).should == true
     a.should == "Hello"
   end
   
@@ -2378,7 +2378,7 @@ describe "String#downcase" do
     "hello".downcase.should == "hello"
   end
   
-  it "is locale insensitive (only replacing A-Z)" do
+  it "is locale insensitive (only replaces A-Z)" do
     "ÄÖÜ".downcase.should == "ÄÖÜ"
 
     str = Array.new(256) { |c| c.chr }.join
@@ -2404,7 +2404,7 @@ end
 describe "String#downcase!" do
   it "modifies self in place" do
     a = "HeLlO"
-    a.downcase!.should == "hello"
+    a.downcase!.equal?(a).should == true
     a.should == "hello"
   end
   
@@ -2415,11 +2415,8 @@ describe "String#downcase!" do
   end
 
   it "raises a TypeError when self is frozen" do
-    should_raise(TypeError) do
-      a = "HeLlO"
-      a.freeze
-      a.downcase!
-    end
+    should_raise(TypeError) { "HeLlo".freeze.downcase! }
+    should_raise(TypeError) { "hello".freeze.downcase! }
   end
 end
 
@@ -5941,7 +5938,7 @@ end
 describe "String#swapcase!" do
   it "modifies self in place" do
     a = "cYbEr_PuNk11"
-    a.swapcase!.should == "CyBeR_pUnK11"
+    a.swapcase!.equal?(a).should == true
     a.should == "CyBeR_pUnK11"
   end
   
@@ -6224,25 +6221,71 @@ describe "String#tr!(from_string, to_string)" do
 end
 
 describe "String#tr_s(from_strin, to_string)" do
-  it "returns a string processed according to tr with duplicate characters removed" do
+  it "returns a string processed according to tr with newly duplicate characters removed" do
     "hello".tr_s('l', 'r').should == "hero"
     "hello".tr_s('el', '*').should == "h*o"
     "hello".tr_s('el', 'hx').should == "hhxo"
+    "hello".tr_s('o', '.').should == "hell."
   end
   
   it "accepts c1-c2 notation to denote ranges of characters" do
     "hello".tr_s('a-y', 'b-z').should == "ifmp"
-    "123456789".tr_s("2-5","abcdefg").should == "1abcd6789"
+    "123456789".tr_s("2-5", "abcdefg").should == "1abcd6789"
+    "hello ^--^".tr_s("e-", "__").should == "h_llo ^_^"
+    "hello ^--^".tr_s("---", "_").should == "hello ^_^"
   end
 
-  it "doesn't translate chars negated with a ^ in from_string" do
+  it "pads to_str with its last char if it is shorter than from_string" do
+    "this".tr_s("this", "x").should == "x"
+  end
+
+  it "translates chars not in from_string when it starts with a ^" do
     "hello".tr_s('^aeiou', '*').should == "*e*o"
     "123456789".tr_s("^345", "abc").should == "c345c"
     "abcdefghijk".tr_s("^d-g", "9131").should == "1defg1"
+    
+    "hello ^_^".tr_s("a-e^e", ".").should == "h.llo ._."
+    "hello ^_^".tr_s("^^", ".").should == ".^.^"
+    "hello ^_^".tr_s("^", "x").should == "hello x_x"
+    "hello ^-^".tr_s("^-^", "x").should == "x^-^"
+    "hello ^-^".tr_s("^^-^", "x").should == "x^x^"
+    "hello ^-^".tr_s("^---", "x").should == "x-x"
+    "hello ^-^".tr_s("^---l-o", "x").should == "xllox-x"
   end
   
-  it "pads to_str with it's last char if it is shorter than from_string" do
-    "this".tr_s("this", "x").should == "x"
+  it "tries to convert from_str and to_str to strings using to_str" do
+    from_str = Object.new
+    def from_str.to_str() "ab" end
+
+    to_str = Object.new
+    def to_str.to_str() "AB" end
+    
+    "bla".tr_s(from_str, to_str).should == "BlA"
+
+    from_str = Object.new
+    from_str.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    from_str.should_receive(:method_missing, :with => [:to_str], :returning => "ab")
+
+    to_str = Object.new
+    to_str.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    to_str.should_receive(:method_missing, :with => [:to_str], :returning => "AB")
+
+    "bla".tr_s(from_str, to_str).should == "BlA"
+  end
+  
+  it "returns subclass instances when called on a subclass" do
+    MyString.new("hello").tr_s("e", "a").class.should == MyString
+  end
+  
+  it "taints the result when self is tainted" do
+    ["h", "hello"].each do |str|
+      tainted_str = str.dup.taint
+      
+      tainted_str.tr_s("e", "a").tainted?.should == true
+      
+      str.tr_s("e".taint, "a").tainted?.should == false
+      str.tr_s("e", "a".taint).tainted?.should == false
+    end
   end
 end
 
@@ -6256,15 +6299,14 @@ describe "String#tr_s!(from_string, to_string)" do
   it "returns nil if no modification was made" do
     s = "hello"
     s.tr!('za', 'yb').should == nil
+    s.tr!('', '').should == nil
     s.should == "hello"
   end
 
   it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) do
-      a = "hello"
-      a.freeze
-      a.tr_s!('l', 'r')
-    end
+    s = "hello".freeze
+    should_raise(TypeError) { s.tr_s!('l', 'r') }
+    should_raise(TypeError) { s.tr_s!('', '') }
   end
 end
 
@@ -6282,11 +6324,51 @@ describe "String#unpack(format)" do
 end
 
 describe "String#upcase" do
-  # TODO
+  it "returns a copy of self with all lowercase letters upcased" do
+    "Hello".upcase.should == "HELLO"
+    "hello".upcase.should == "HELLO"
+  end
+  
+  it "is locale insensitive (only replaces a-z)" do
+    "äöü".upcase.should == "äöü"
+
+    str = Array.new(256) { |c| c.chr }.join
+    expected = Array.new(256) do |i|
+      c = i.chr
+      c.between?("a", "z") ? c.upcase : c
+    end.join
+    
+    str.upcase.should == expected
+  end
+  
+  it "taints result when self is tainted" do
+    "".taint.upcase.tainted?.should == true
+    "X".taint.upcase.tainted?.should == true
+    "x".taint.upcase.tainted?.should == true
+  end
+  
+  it "returns a subclass instance for subclasses" do
+    MyString.new("fooBAR").upcase.class.should == MyString
+  end
 end
 
 describe "String#upcase!" do
-  # TODO
+  it "modifies self in place" do
+    a = "HeLlO"
+    a.upcase!.equal?(a).should == true
+    a.should == "HELLO"
+  end
+  
+  it "returns nil if no modifications were made" do
+    a = "HELLO"
+    a.upcase!.should == nil
+    a.should == "HELLO"
+  end
+
+  it "raises a TypeError when self is frozen" do
+    should_raise(TypeError) { "HeLlo".freeze.upcase! }
+    should_raise(TypeError) { "HELLO".freeze.upcase! }
+  end
 end
 
 describe "String#upto(other_string) { block }" do
