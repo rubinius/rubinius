@@ -2520,6 +2520,14 @@ class ShotgunPrimitives
     stack_push(Qtrue);
     CODE
   end
+
+  def reset_method_cache
+    <<-CODE
+    stack_pop(); /* self */
+    t1 = stack_pop();
+    cpu_clear_cache_for_method(state, c, t1);
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

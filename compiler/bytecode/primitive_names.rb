@@ -173,7 +173,8 @@ module Bytecode
       :task_set_debugging,
       :mktime,
       :time_switch,
-      :bignum_size
+      :bignum_size,
+      :reset_method_cache
     ]
 
     FirstRuntimePrimitive = 1024

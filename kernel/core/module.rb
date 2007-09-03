@@ -31,6 +31,7 @@ class Module
     meth = find_method_in_hierarchy(current_name)
     if meth
       method_table[new_name] = meth
+      VM.reset_method_cache(new_name)
     else
       raise NameError, "undefined method `#{current_name}' for module `#{self.name}'"
     end

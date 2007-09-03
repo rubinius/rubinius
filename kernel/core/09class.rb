@@ -67,6 +67,7 @@ class Class
     meth = find_method_in_hierarchy(current_name)
     if meth
       method_table[new_name] = meth
+      VM.reset_method_cache(new_name)
     else
       if self.kind_of? MetaClass        
         raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
