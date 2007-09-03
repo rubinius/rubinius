@@ -18,6 +18,22 @@ describe "The alias keyword" do
     @obj.__value.should == 5
   end
 
+  it "should add the new method to the list of methods" do
+    original_methods = @obj.methods
+    @meta.class_eval do
+      alias __value value
+    end
+    (@obj.methods - original_methods).should == ["__value"]
+  end
+
+  it "should add the new method to the list of public methods" do
+    original_methods = @obj.public_methods
+    @meta.class_eval do
+      alias __value value
+    end
+    (@obj.public_methods - original_methods).should == ["__value"]
+  end
+
   it "should overwrite an existing method with the target name" do
     @meta.class_eval do
       alias false_value value

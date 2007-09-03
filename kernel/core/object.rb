@@ -265,12 +265,25 @@ class Object
     str
   end
   
+  # TODO - Implement support for the 'all' parameter
   def singleton_methods(all=true)
     class << self
       method_table.public_names
     end
   end
+
+  def private_singleton_methods
+    class << self
+      method_table.private_names
+    end
+  end
   
+  def protected_singleton_methods
+    class << self
+      method_table.protected_names
+    end
+  end
+
   def methods(all=true)
     names = singleton_methods
     names |= self.class.instance_methods(true) if all
@@ -278,14 +291,20 @@ class Object
   end
   
   def public_methods(all=true)
-    self.class.public_instance_methods(all)
+    names = singleton_methods
+    names |= self.class.public_instance_methods(all)
+    return names
   end
   
   def private_methods(all=true)
-    self.class.private_instance_methods(all)
+    names = private_singleton_methods
+    names |= self.class.private_instance_methods(all)
+    return names
   end
   
   def protected_methods(all=true)
-    self.class.protected_instance_methods(all)
+    names = protected_singleton_methods
+    names |= self.class.protected_instance_methods(all)
+    return names
   end
 end
