@@ -35,10 +35,10 @@
   OBJECT literals; \
   OBJECT self; \
   OBJECT locals; \
-  unsigned int argcount; \
+  unsigned short argcount; \
+  unsigned short type; \
   OBJECT name; \
   OBJECT method_module; \
-  unsigned int type; \
   void *opaque_data; \
   OBJECT *fp_ptr;
 
@@ -111,6 +111,8 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 
 #define cpu_cache_ip(cpu) (cpu->ip_ptr = (cpu->data + cpu->ip))
 #define cpu_cache_sp(cpu) (cpu->sp_ptr = (cpu->stack_top + cpu->sp))
+
+#define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
 
 cpu cpu_new(STATE);
 void cpu_initialize(STATE, cpu c);

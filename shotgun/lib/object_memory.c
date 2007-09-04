@@ -143,7 +143,6 @@ void object_memory_shift_contexts(STATE, object_memory om) {
   /* If the context_bottom is the true bottom, we haven't promoted
      anything and everything can stay where it is. */
   if(om_no_referenced_ctxs_p(om)) {
-    // printf("Nothing to shift!\n");
     om->context_top = Qnil;
     
     /* Fixup the refs that are in the context stack */
@@ -152,7 +151,6 @@ void object_memory_shift_contexts(STATE, object_memory om) {
       inc++;
     } DONE_EACH_STACK_CTX(ctx); 
   } else {
-    
     new_ctx = (OBJECT)(om->contexts->address);
     
     EACH_STACK_CTX(om, ctx) {

@@ -26,6 +26,7 @@ struct object_memory_struct {
   int last_tenured;
   
   rheap contexts;
+  /* The first not referenced stack context */
   OBJECT context_bottom;
   OBJECT context_top;
   OBJECT context_last;
@@ -76,11 +77,12 @@ void object_memory_formalize_contexts(STATE, object_memory om);
 
 #define object_memory_retire_context(om, ctx) \
 if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
+  xassert(ctx == om->contexts->current - CTX_SIZE);\
   fast_memfill_s20((void*)ctx, 0); heap_putback(om->contexts, CTX_SIZE); \
 }
 
 #define object_memory_context_referenced(om, ctx) (void)({ \
-  OBJECT _nb = ctx + CTX_SIZE; \
+  OBJECT _nb = ctx + CTX_SIZE;\
   if(om_on_stack(om, ctx) && (om->context_bottom < _nb)) { om->context_bottom = _nb; } })
 
 #define om_context_referenced_p(om, ctx) ((ctx < om->context_bottom) && (ctx >= om->contexts->address))

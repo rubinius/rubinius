@@ -236,6 +236,7 @@ class InstructionEncoder
     :open_module,
     :open_module_under,
     :unshift_tuple,
+    :cast_tuple,
     :make_rest,
     :send_method,
     :send_stack,
@@ -272,7 +273,9 @@ class InstructionEncoder
     :ret,
     :soft_return,
     :caller_return,
-    :block_break
+    :block_break,
+    :raise_exc,
+    :check_argcount
   ]
   
   IntArg = [

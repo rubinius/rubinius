@@ -454,6 +454,7 @@ void machine_show_exception(machine m, OBJECT exc) {
 int machine_run(machine m) {
   cpu_run(m->s, m->c, 0);
   if(RTEST(m->c->exception)) {
+    printf("Toplevel exception detected.\n");
     machine_show_exception(m, m->c->exception);
     return FALSE;
   }

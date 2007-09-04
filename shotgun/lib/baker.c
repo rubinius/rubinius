@@ -202,13 +202,15 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       fc_mutate(method_module);
       fc_mutate(name);
 
-      /* We cache the bytecode in a char*, so adjust it. 
-         We mutate the data first so we cache the newest address. */
-      OBJECT ba;
-      ba = cmethod_get_bytecodes(fc->method);
-      ba = baker_gc_maybe_mutate(state, g, ba);
+      if(!NIL_P(fc->method)) {
+        /* We cache the bytecode in a char*, so adjust it. 
+           We mutate the data first so we cache the newest address. */
+        OBJECT ba;
+        ba = cmethod_get_bytecodes(fc->method);
+        ba = baker_gc_maybe_mutate(state, g, ba);
       
-      fc->data = BYTEARRAY_ADDRESS(ba);
+        fc->data = BYTEARRAY_ADDRESS(ba);
+      }
     } else if(ISA(iobj, BASIC_CLASS(task))) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
       fc_mutate(exception);
@@ -279,14 +281,17 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   fc_mutate(self);
   fc_mutate(locals);
   fc_mutate(method_module);
+  fc_mutate(name);
 
-  /* We cache the bytecode in a char*, so adjust it. 
-     We mutate the data first so we cache the newest address. */
-  OBJECT ba;
-  ba = cmethod_get_bytecodes(fc->method);
-  ba = baker_gc_maybe_mutate(state, g, ba);
+  if(!NIL_P(fc->method)) {
+    /* We cache the bytecode in a char*, so adjust it. 
+       We mutate the data first so we cache the newest address. */
+    OBJECT ba;
+    ba = cmethod_get_bytecodes(fc->method);
+    ba = baker_gc_maybe_mutate(state, g, ba);
 
-  fc->data = BYTEARRAY_ADDRESS(ba);
+    fc->data = BYTEARRAY_ADDRESS(ba);
+  }
 #undef fc_mutate
 }
 
@@ -402,6 +407,18 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
   
   // printf("Running garbage collector...\n");
   
+  
+  sz = roots->len;
+  for(i = 0; i < sz; i++) {
+    root = (OBJECT)(g_ptr_array_index(roots, i));
+    // printf("Collecting from root %d\n", i);
+    // printf("%p => %p\n", g->current->address, g->next->address);
+    // printf("Start at RS (%d): %p\n", i, root);
+    if(!REFERENCE2_P(root)) { continue; }
+    tmp = baker_gc_mutate_from(state, g, root);
+    g_ptr_array_set_index(roots, i, tmp);
+  }
+  
   /* To maintain the remember set, we setup a totally new
      set before do any walking of objects, so that only objects
      which truely still contain pointers to this generation
@@ -419,17 +436,6 @@ int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots) {
     // g_ptr_array_set_index(g->remember_set, i, tmp);
   }
           
-  sz = roots->len;
-  for(i = 0; i < sz; i++) {
-    root = (OBJECT)(g_ptr_array_index(roots, i));
-    // printf("Collecting from root %d\n", i);
-    // printf("%p => %p\n", g->current->address, g->next->address);
-    // printf("Start at RS (%d): %p\n", i, root);
-    if(!REFERENCE2_P(root)) { continue; }
-    tmp = baker_gc_mutate_from(state, g, root);
-    g_ptr_array_set_index(roots, i, tmp);
-  }
-  
   
   ent = state->method_cache;
   end = ent + CPU_CACHE_SIZE;

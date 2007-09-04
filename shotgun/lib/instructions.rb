@@ -4,14 +4,24 @@ class ShotgunInstructions
   
   def generate_switch(fd, op="op")
     i = 0 
-    order = Bytecode::InstructionEncoder::OpCodes;
+    order = Bytecode::InstructionEncoder::OpCodes
+    ci =    Bytecode::InstructionEncoder::CheckInterupts
+    term =  Bytecode::InstructionEncoder::Terminators
+    
     fd.puts "switch(#{op}) {"
     order.each do |ins|
       code = send(ins) rescue nil
       if code
-        fd.puts "   case #{i}: {"
+        fd.puts "   case #{i}: { /* #{ins} */"
         fd.puts code
-        fd.puts "   break;\n    }"
+        if ci.index(ins)
+          fd.puts "   goto check_interupts;"
+        elsif term.index(ins)
+          fd.puts "   goto insn_start;"
+        else
+          fd.puts "   goto next_op;"
+        end
+        fd.puts "   }"
       else
         STDERR.puts "Problem with opcode: #{ins}"
       end
@@ -244,7 +254,7 @@ CODE
   end
   
   def push_block
-    "stack_push(c->block);"
+    "stack_push(cpu_current_block(state, c));"
   end
   
   def push_ivar

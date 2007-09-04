@@ -38,7 +38,6 @@ void cpu_initialize(STATE, cpu c) {
   c->outstanding = Qnil;
   c->locals = Qnil;
   c->literals = Qnil;
-  c->block = Qnil;
   c->method = Qnil;
   c->method_module = Qnil;
   c->argcount = 0;
@@ -140,7 +139,6 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->enclosing_class);
   ar(c->new_class_of);
   ar(c->locals);
-  ar(c->block);
   ar(c->method);
   ar(c->main);
   ar(c->literals);
@@ -207,7 +205,6 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->enclosing_class);
   ar(c->new_class_of);
   ar(c->locals);
-  ar(c->block);
   ar(c->method);
   ar(c->main);
   ar(c->literals);

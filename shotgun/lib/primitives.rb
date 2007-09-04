@@ -268,7 +268,7 @@ class ShotgunPrimitives
       cpu_flush_sp(c);
       cpu_flush_ip(c);
       j = c->ip + BS_JUMP;
-      t2 = blokenv_s_under_context(state, t3, c->block, j, t1, t2, 0);
+      t2 = blokenv_s_under_context(state, t3, cpu_current_block(state, c), j, t1, t2, 0);
       stack_push(t2);
     }
     CODE
@@ -280,7 +280,7 @@ class ShotgunPrimitives
     // pop true off the stack to conform to the "all primitives have a self rule"
     self = stack_pop(); GUARD( TRUE_P(self) )
 
-    if( RTEST(c->block) ) {
+    if( RTEST(cpu_current_block(state, c)) ) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);
@@ -294,7 +294,7 @@ class ShotgunPrimitives
     GUARD( RISA(self, blokenv) );
         
     cpu_flush_sp(c);
-    t2 = blokenv_create_context(state, self, c->active_context, c->sp);    
+    t2 = blokenv_create_context(state, self, c->active_context, c->sp);
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
     CODE
   end

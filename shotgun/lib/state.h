@@ -137,7 +137,7 @@ struct rubinius_state {
 #define FIRE_NULL   2
 #define FIRE_STACK  3
 
-#define FASTCTX_FIELDS 24
+#define FASTCTX_FIELDS 14
 #define FASTCTX_NORMAL 1
 #define FASTCTX_BLOCK  3
 #define FASTCTX_NMC    4
@@ -198,7 +198,7 @@ extern void* main_om;
 void object_memory_check_ptr(void *ptr, OBJECT obj);
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val);
 
-// #define XDEBUG 0
+// #define XDEBUG 1
 
 #ifdef XDEBUG
 /* Copied from assert.h */

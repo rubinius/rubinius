@@ -405,7 +405,6 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
   fc = FASTCTX(ctx);
   fc->sender = sender;
-  xassert(om_valid_sender_p(state->om, ctx, sender));
   fc->ip = 0;
   fc->sp = c->sp;
   /* fp_ptr points to the location on the stack as the context
@@ -427,6 +426,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->name = name;
   fc->method_module = mod;
   fc->type = FASTCTX_NORMAL;
+  
+  xassert(om_valid_sender_p(state->om, ctx, sender));
 
   return ctx;
 }
@@ -577,6 +578,8 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
   destination = c->sender;
     
   if(destination == Qnil) {
+    object_memory_retire_context(state->om, c->active_context);
+    
     c->active_context = Qnil;
     
     /* Thread exitting, reschedule.. */
@@ -592,10 +595,33 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
     
     /* Implements a block causing the the context it was created in
        to return (IE, a non local return) */
-    
     if(consider_block && is_block) {
       home = blokctx_home(state, c->active_context);
       destination = FASTCTX(home)->sender;
+      if(EXCESSIVE_TRACING) {
+        printf("CTX: remote return from %d to %d\n", (int)c->active_context, (int)destination);
+      }
+      
+      /* If we're making a non-local return to a stack context... */
+      if(om_on_stack(state->om, destination)) {
+        /* If we're returning to a reference'd context, reset the 
+           context stack to the virtual bottom */
+        if(om_context_referenced_p(state->om, destination)) {
+          state->om->contexts->current = state->om->context_bottom;          
+        /* Otherwise set it to just beyond where we're returning to */
+        } else {
+          state->om->contexts->current = destination + CTX_SIZE;
+        }
+      
+      /* It's a heap context, so reset the context stack to the virtual
+         bottom. */
+      } else {
+        state->om->contexts->current = state->om->context_bottom;
+      }
+    /* It's a normal return. */
+    } else {
+      /* retire this one context. */
+      object_memory_retire_context(state->om, c->active_context);      
     }
     
     /* Now, figure out if the destination is a block, so we pass the correct
@@ -620,11 +646,9 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
       }
     }
     
-    object_memory_retire_context(state->om, c->active_context);
-    
     if(EXCESSIVE_TRACING) {
       if(stack_context_p(destination)) {
-        printf("Returning to a stack context.\n");
+        printf("Returning to a stack context %d / %d (%s).\n", (int)c->active_context, (int)destination, c->active_context - destination == CTX_SIZE ? "stack" : "REMOTE");
       } else {
         printf("Returning to %s.\n", _inspect(destination));
       }
@@ -733,6 +757,9 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     printf("in send to '%s', block %p\n", rbs_symbol_to_cstring(state, sym), block);
   }
   */
+  if(EXCESSIVE_TRACING) {
+    printf("CTX:                 running %d\n", (int)ctx);
+  }
   cpu_activate_context(state, c, ctx, ctx, args);
   //printf("Setting method module to: %s\n", _inspect(mod));
   c->method_module = mod;
@@ -896,10 +923,7 @@ void cpu_run(STATE, cpu c, int setup) {
     }
   }
 
-#if DIRECT_THREADED
 insn_start:
-#endif
-
   while(c->active_context != Qnil) {
     
 #if DIRECT_THREADED
@@ -911,14 +935,14 @@ insn_start:
     NEXT_OP;
     #include "instruction_dt.gen"
 #else
+
+next_op:
     op = *c->ip_ptr++;
-    // #undef stack_push
-    // #define stack_push(obj) if(!cpu_stack_push(state, c, obj, TRUE)) { goto stack_error; }
-    
+
     if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
     cpu_flush_sp(c);
-    printf("%-15s: OP: %s (%d/%lu/%lu)\n", 
+    printf("%-15s: OP: %s (%d/%d/%d)\n", 
       rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
@@ -926,18 +950,7 @@ insn_start:
     #include "instructions.gen"
     
 #endif
-
-    goto check_interupts;
-//stack_error:
-    /* enlarge the stack to handle the exception */
-    c->stack_top = realloc(c->stack_top, c->stack_size += 128);
-    
-    // printf("HEAP INFO: %d used, %d total.\n", state->om->gc->current->current - state->om->gc->current->address, state->om->gc->current->size);
-    cpu_raise_exception(state, c, 
-          cpu_new_exception(state, c, state->global->exc_stack_explosion,
-          "Stack has exploded"));
 check_interupts:
-    // if (0 && !state->om->collect_now) object_memory_check_memory(state->om);
     if(state->om->collect_now) {
       int cm = state->om->collect_now;
       
@@ -945,11 +958,11 @@ check_interupts:
       if(cm & OMCollectYoung) {
         if(EXCESSIVE_TRACING) {
           printf("[[ Collecting young objects. ]]\n");
-          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
         }
         state_collect(state, c);
         if(EXCESSIVE_TRACING) {
-          printf("[[ method=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->method, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
           printf("[[ Finished collect. ]]\n");
         }
       }

@@ -12,7 +12,7 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
 
 #define methctx_is_fast_p(st, ctx) (OBJ_TYPE(ctx) == TYPE_MCONTEXT)
 
-#define blokctx_home(state, self) (FASTCTX(self)->method)
+#define blokctx_home(state, obj) (blokenv_get_home(FASTCTX(obj)->name))
 #define blokctx_env(state, self) (FASTCTX(self)->name)
 #define blokctx_locals(state, self) (FASTCTX(self)->locals)
 

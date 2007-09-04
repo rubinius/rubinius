@@ -27,6 +27,10 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
     state->om->collect_now |= OMCollectYoung;
   }
   
+  if(state->excessive_tracing) {
+    printf("CTX:           block running %d\n", (int)ctx);
+  }
+  
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
   HEADER(ctx)->fields = FASTCTX_FIELDS;
@@ -37,8 +41,11 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   fc->sp = sp;
   /* env lives here */
   fc->name = self;
-  /* home lives here */
-  fc->method = blokenv_get_home(self);
+  fc->self = Qnil;
+  fc->method = Qnil;
+  fc->block = Qnil;
+  fc->literals = Qnil;
+  fc->method_module = Qnil;
   
   cnt = FIXNUM_TO_INT(blokenv_get_local_count(self));
   if(cnt > 0) {

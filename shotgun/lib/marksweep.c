@@ -303,11 +303,13 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       fc_mutate(locals);
       fc_mutate(method_module);
       fc_mutate(name);
-
-      /* We cache the bytecode in a char*, so adjust it. */
-      OBJECT ba;
-      ba = cmethod_get_bytecodes(fc->method);
-      fc->data = BYTEARRAY_ADDRESS(ba);
+      
+      if(!NIL_P(fc->method)) {
+        /* We cache the bytecode in a char*, so adjust it. */
+        OBJECT ba;
+        ba = cmethod_get_bytecodes(fc->method);
+        fc->data = BYTEARRAY_ADDRESS(ba);
+      }
     } else if(ISA(iobj, BASIC_CLASS(task))) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
       
@@ -369,13 +371,15 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   fc_mutate(self);
   fc_mutate(locals);
   fc_mutate(method_module);
-  
+  fc_mutate(name);
   fc_mutate(locals);
-
-  /* We cache the bytecode in a char*, so adjust it. */
-  OBJECT ba;
-  ba = cmethod_get_bytecodes(fc->method);
-  fc->data = BYTEARRAY_ADDRESS(ba);
+  
+  if(!NIL_P(fc->method)) {
+    /* We cache the bytecode in a char*, so adjust it. */
+    OBJECT ba;
+    ba = cmethod_get_bytecodes(fc->method);
+    fc->data = BYTEARRAY_ADDRESS(ba);
+  }
 #undef fc_mutate
 }
 

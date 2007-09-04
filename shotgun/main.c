@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
   
   flag = machine_run_file(m, archive);
   
-  if(!TRUE_P(flag)) {
+  if(!flag) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
