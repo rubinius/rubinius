@@ -1,3 +1,6 @@
+# See rake build:platform
+# depends on: ffi.rb
+
 module Platform::POSIX
   
   def self.add(ret, name, *args)

@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: enumerable.rb
+
 # Ruby's builtin dynamic array implementation
 class Array
   ivar_as_index :total => 0, :tuple => 1

@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: class.rb module.rb
+
 class Tuple
   
   def self.[](*args)

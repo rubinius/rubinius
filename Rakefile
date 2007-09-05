@@ -1,9 +1,21 @@
+require 'tsort'
+
 task :default => :tasks
 
 task :tasks do
   puts `rake -T`
 end
 
+class Hash
+  include TSort
+  
+  alias tsort_each_node each_key
+  
+  def tsort_each_child(node, &block)
+    fetch(node).each(&block)
+  end
+end
+  
 def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
@@ -35,7 +47,61 @@ end
 
 @compiler = ENV['COMPILER']
 
-def update_archive(files, archive, dir=nil)
+def source_name(compiled)
+  File.basename(compiled, '.*') + '.rb'
+end
+
+def compiled_name(source, dir)
+  File.join(dir, File.basename(source, '.*') + '.rbc')
+end
+
+# Some files have load order dependencies. To specify a load order
+# dependency, include a comment in the file that has the dependency.
+# For example, assume files a.rb and b.rb, where a.rb requires that
+# b.rb is loaded first. In a.rb, include a comment
+#   # depends on: b.rb
+#
+# The 'depends on:' declaration takes a space separated list of file.
+# When the '.load_order.txt' file is created, a topological sort
+# (see name caveat in TSort) of the dependencies is performed
+# so files that are depended on are loaded first.
+#
+# If there is a 'depends on:' declarations for a non-existent file,
+# or if there are cyclic dependencies, this method will not create
+# the '.load_order.txt' file.
+
+def create_load_order(files)
+  d = Hash.new { |h,k| h[k] = [] }
+  
+  # assume all the files are in the same directory
+  dir = File.dirname(files.first)
+  files.each do |fname|
+    name = source_name(fname)
+    d[name]
+    File.open(File.join(dir, name), "r") do |f|
+      f.each do |line|
+        if m = /#\s*depends on:\s*(.*)/.match(line)
+          m[1].split.each { |dep| d[name] << dep }
+        end
+      end
+    end
+  end
+  
+  File.open(".load_order.txt", "w") do |f|
+    begin
+      f.puts d.tsort.collect { |n| compiled_name(n, dir) }.join("\n")
+    rescue IndexError
+      puts "Unable to generate '.load_order.txt'"
+      puts "Most likely, a file includes a 'depends on:' declaration for a non-existent file"
+      exit 1
+    rescue TSort::Cyclic => e
+      puts "Unable to generate '.load_order.txt' due to a cyclic dependency\n  (#{e.message})"
+      exit 1
+    end
+  end
+end
+
+def update_archive(files, archive, deps=true, dir=nil)
   archive = File.expand_path(ENV['OUTPUT'] || archive)
 
   changed = []
@@ -60,8 +126,10 @@ def update_archive(files, archive, dir=nil)
     changed.map! { |f| f.gsub(%r!^#{dir}/!, "") }
   end
 
-  File.open(".load_order.txt","w") do |f|
-    f.puts files.join("\n")
+  if deps
+    create_load_order(files)
+  else
+    File.open(".load_order.txt","w") { |f| f.puts files.join("\n") }
   end
 
   if File.exists? archive
@@ -189,7 +257,7 @@ namespace :build do
   desc "Compiles the Rubinius bootstrap archive"
   task :bootstrap do
     files = Dir["kernel/bootstrap/*.rb"].sort
-    update_archive files, 'runtime/bootstrap.rba'
+    update_archive files, 'runtime/bootstrap.rba', false
   end
 
   desc "Compiles the Rubinius core archive"
@@ -211,14 +279,14 @@ namespace :build do
 
   desc "Compiles the Rubinius library archive"
   task :library do
-    files = Dir["library/**/*.rb"].sort
-    update_archive files, 'runtime/library.rba'
+    files = Dir["lib/**/*.rb"].sort
+    update_archive files, 'runtime/library.rba', false
   end
 
   desc "Compiles the Rubinius compiler archive"
   task :compiler do
     files = Dir["compiler/**/*.rb"].sort   
-    update_archive files, 'runtime/compiler.rba', "compiler"
+    update_archive files, 'runtime/compiler.rba', false, "compiler"
   end
 
   desc "Compiles the Rubinius platform archive"

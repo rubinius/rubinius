@@ -1,3 +1,6 @@
+Bytecode::Compiler compiles masgn with no splat
+Bytecode::Compiler compiles masgn with splat
+Bytecode::Compiler compiles masgn with array as the source
 Bytecode::Compiler compiles masgn with array as the source and too many lhs
 Bytecode::Compiler compiles masgn with array as the source and too many rhs
 Bytecode::Compiler compiles masgn with array as source splat is stupid
@@ -13,38 +16,15 @@ Array#initialize does nothing when passed self
 Array#initialize sets the array to size objects when passed size, object
 Array#initialize does not raise TypeError on a frozen array if it would not change the array
 Array#initialize raises TypeError on frozen arrays
-Array#assoc calls == on first element of each array
-Array#collect! raises TypeError on a frozen array
-Array#map! raises TypeError on a frozen array
-Array#frozen? returns true if array is temporarily frozen while being sort!ed
-Array#include? determines presence by using element == obj
-Array#initialize_copy is private
-Array#initialize_copy calls to_ary on its argument
-Array#initialize_copy raises TypeError on a frozen array
-Array#nitems returns the number of non-nil elements
-Array#pop raises TypeError on a frozen array
-Array#push raises TypeError on a frozen array
-Array#rassoc calls == on argument
-Array#replace calls to_ary on its argument
-Array#replace raises TypeError on a frozen array
-Array#reverse returns subclass instance on Array subclasses
-Array#reverse! raises TypeError on a frozen array
-Array#reverse_each does not fail when removing elements from block
-Array#rindex does not fail when removing elements from block
-Array#shift raises TypeError on a frozen array
 Array#slice! removes and return the element at index
 Array#slice! calls to_int on start and length arguments
 Array#slice! calls to_int on range arguments
 Array#slice! does (not?) expand array with indices out of bounds
 Array#slice! raises TypeError on a frozen array
-Array#sort returns subclass instance on Array subclasses
-Array#sort! raises TypeError on a frozen array
-Array#to_a does not return subclass instance on Array subclasses
 Array#transpose assumes an array of arrays and returns the result of transposing rows and columns
 Array#transpose raises if the items aren't arrays and don't respond to to_ary
 Array#transpose does not call to_ary on array subclass elements
 Array#uniq returns subclass instance on Array subclasses
-Array#uniq! raises TypeError on a frozen array
 Array#unshift prepends object to the original array
 Array#unshift raises TypeError on a frozen array
 Array#values_at calls to_int on its indices
@@ -57,6 +37,55 @@ Array#[]= does not call to_ary on rhs array subclasses for multi-element sets
 Array#[]= raises TypeError on a frozen array
 Array#[]= with [index, count] sets elements when passed start, length
 Array#[]= with [m..n] accepts Range subclasses
+Array#pack raises ArgumentError with ('%')
+Array#pack skips everything till the end of schema string with ('#')
+Array#pack skips everything till the end of schema line with ('#')
+Array#pack returns packed bit-string descending order with ('B')
+Array#pack uses char codes to determine if bit is set or not with ('B')
+Array#pack conversion edge case: all zeros with ('B')
+Array#pack conversion edge case: all ones with ('B')
+Array#pack conversion edge case: left one with ('B')
+Array#pack conversion edge case: left one with ('B')
+Array#pack conversion edge case: edge sequences not in first char with ('B')
+Array#pack uses zeros if count is not multiple of 8 with ('B')
+Array#pack returns zero-char for each 2 of count that greater than string length with ('B')
+Array#pack returns extra zero char if count is odd and greater than string length with ('B')
+Array#pack starts new char if string is ended before char's 8 bits with ('B')
+Array#pack considers count = 1 if no explicit count it given with ('B')
+Array#pack returns empty string if count = 0 with ('B')
+Array#pack uses argument string length as count if count = * with ('B')
+Array#pack consumes only one array item with ('B')
+Array#pack raises TypeError if corresponding array item is not String with ('B')
+Array#pack returns packed bit-string descending order with ('b')
+Array#pack conversion edge case: all zeros with ('b')
+Array#pack conversion edge case: all ones with ('b')
+Array#pack conversion edge case: left one with ('b')
+Array#pack conversion edge case: left one with ('b')
+Array#pack conversion edge case: edge sequences not in first char with ('b')
+Array#pack uses char codes to determine if bit is set or not with ('b')
+Array#pack uses zeros if count is not multiple of 8 with ('b')
+Array#pack returns zero-char for each 2 of count that greater than string length with ('b')
+Array#pack returns extra zero char if count is odd and greater than string length with ('b')
+Array#pack starts new char if argument string is ended before char's 8 bits with ('b')
+Array#pack considers count = 1 if no explicit count it given with ('b')
+Array#pack returns empty string if count = 0 with ('b')
+Array#pack uses argument string length as count if count = * with ('b')
+Array#pack consumes only one array item with ('b')
+Array#pack raises TypeError if corresponding array item is not String with ('b')
+Array#pack enocdes string with Qouted Printable encoding with ('M')
+Array#pack doesn't encode new line chars with ('M')
+Array#pack doesn't quote chars 32..60 and 62..126) with ('M')
+Array#pack quotes chars by adding equal sign and char's hex value with ('M')
+Array#pack quotes equal sign with ('M')
+Array#pack doesn't quote \t char with ('M')
+Array#pack returns empty string if source string is empty with ('M')
+Array#pack calls to_s on object to convert to string with ('M')
+Array#pack encodes string with UU-encoding with ('u')
+Array#pack converts series of 3-char sequences into four 4-char sequences with ('u')
+Array#pack appends zero-chars to source string if string length is not multiple of 3 with ('u')
+Array#pack encodes 6-bit char with another char starting from char 32 with ('u')
+Array#pack replaces spaces in encoded string with grave accent (`) char with ('u')
+Array#pack returns empty string if source string is empty with ('u')
 Bignum#% % should NOT raise ZeroDivisionError if other is zero and is a Float
 Bignum#modulo % should NOT raise ZeroDivisionError if other is zero and is a Float
 Bignum#& returns self bitwise AND other
@@ -314,8 +343,6 @@ File.truncate truncate to 5 a file
 File.truncate truncate to a larger size than the original file
 File.truncate truncate to a the same size the original file
 File.truncate raise an exception if the arguments are wrong type or are the incorect number of arguments
-File.umask return a Fixnum
-File.umask umask should return the current umask value for the process
 File.split should split the given string into a directory and a file component and returns them in a two-element array. (edge cases)
 Fixnum#% does NOT raise ZeroDivisionError if other is zero and is a Float
 Fixnum#<< coerces result on overflow and return self shifted left other bits
@@ -382,7 +409,6 @@ Hash#merge processes entries with same order as each()
 Hash#merge raise RuntimeError if #rehash is called from block
 Hash#merge raises if lots of new entries are added from block
 Hash#merge! calls to_hash on its argument
-Hash#merge! processes entries with same order as merge()
 Hash#merge! raises TypeError if called on a frozen instance
 Hash#merge! raise RuntimeError if #rehash is called from block
 Hash#merge! raises if lots of new entries are added from block
@@ -407,7 +433,6 @@ Hash#update processes entries with same order as merge()
 Hash#update raises TypeError if called on a frozen instance
 Hash#update raise RuntimeError if #rehash is called from block
 Hash#update raises if lots of new entries are added from block
-
 Examining the call stack may be viewed through .caller
 Kernel.at_exit() should fire after all other code
 Kernel.at_exit() should fire in reverse order of registration
@@ -894,6 +919,7 @@ String#succ returns subclass instances when called on a subclass
 String#succ taints the result if self is tainted
 String#succ! is equivalent to succ, but modifies self in place (still returns self)
 String#succ! raises a TypeError if self is frozen
+String#sum tries to convert n to an integer using to_int
 String#swapcase returns subclass instances when called on a subclass
 String#swapcase! raises a TypeError when self is frozen
 String#to_f treats leading characters of self as a floating point number
@@ -901,10 +927,23 @@ String#to_f takes an optional sign
 String#to_i with base 10 interprets leading characters as a number in the given base
 String#to_i with base 10 auto-detects base via base specifiers (default: 10) for base = 0
 String#to_i with base 10 doesn't handle foreign base specifiers when base is > 0
-String#to_i with base 10 raises ArgumentError for illegal radices (1, < 0 or > 36)
+String#to_i with base 10 raises ArgumentError for illegal bases (1, < 0 or > 36)
+String#to_s returns a new instance of String when called on a subclass
+String#to_str returns a new instance of String when called on a subclass
 String#to_sym raises an ArgumentError when self can't be converted to symbol
+String#tr translates chars not in from_string when it starts with a ^
+String#tr tries to convert from_str and to_str to strings using to_str
+String#tr returns subclass instances when called on a subclass
+String#tr taints the result when self is tainted
+String#tr! returns nil if no modification was made
 String#tr! raises a TypeError if self is frozen
+String#tr_s(from_strin, to_string) translates chars not in from_string when it starts with a ^
+String#tr_s(from_strin, to_string) tries to convert from_str and to_str to strings using to_str
+String#tr_s(from_strin, to_string) returns subclass instances when called on a subclass
+String#tr_s(from_strin, to_string) taints the result when self is tainted
+String#tr_s! returns nil if no modification was made
 String#unpack(format) returns an array by decoding self according to the format string
+String#upcase returns a subclass instance for subclasses
 Struct class methods new with string as first argument should overwrite previously defined constants
 Struct class methods new should call to_str on its first argument (constant name)
 Struct class methods new should accept nil first argument for not creating constants
@@ -943,11 +982,10 @@ Struct anonymous class instance methods writer method be a synonym for []=
 Struct anonymous class instance methods inspect should return a string representation of some kind
 Struct anonymous class instance methods to_s should be a synonym for inspect
 Struct anonymous class instance methods == should compare all attributes
-Thread#inspect shows the thread's status
 Time.at converts to time object
 Module instance_methods with false should exclude super class instance methods
 Module instance_methods should return all instance methods of a module
-{"aaaa"=>true, "aa"=>true, :args=>["ARG"], "cc"=>true, "cccc"=>true}
+{"aaaa"=>true, "aa"=>true, "cc"=>true, "cccc"=>true, :args=>["ARG"]}
 Parsing options using the configured parser sets the value of any given option without a parameter to true
 Parsing options using the configured parser places any given arguments in :args if they do not belong to options
 Parsing short options without arguments takes short options combined

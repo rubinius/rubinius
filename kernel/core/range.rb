@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: enumerable.rb
+
 ##
 # Comments borrowed from MRI Implementation
 #

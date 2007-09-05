@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: io.rb
+
 class File < IO
   module Constants
     F_OK = 0 # test for existence of file

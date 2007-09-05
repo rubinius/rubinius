@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: numeric.rb ctype.rb
+
 class Integer < Numeric
   include CType
   

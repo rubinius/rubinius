@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: numeric.rb
+
 class Float < Numeric
   
   def __ivars__; nil; end

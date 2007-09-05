@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: comparable.rb enumerable.rb
+
 class String
   include Comparable
   include Enumerable

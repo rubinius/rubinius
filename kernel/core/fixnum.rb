@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: integer.rb
+
 class Fixnum < Integer
   
   alias :modulo :%

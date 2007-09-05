@@ -1,3 +1,6 @@
+# See rake build:core
+# depends on: comparable.rb
+
 class Numeric
   include Comparable
 
