@@ -277,12 +277,6 @@ namespace :build do
     end
   end
 
-  desc "Compiles the Rubinius library archive"
-  task :library do
-    files = Dir["lib/**/*.rb"].sort
-    update_archive files, 'runtime/library.rba', false
-  end
-
   desc "Compiles the Rubinius compiler archive"
   task :compiler do
     files = Dir["compiler/**/*.rb"].sort   
