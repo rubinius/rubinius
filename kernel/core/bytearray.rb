@@ -1,6 +1,6 @@
 class ByteArray
-  alias :[] :get_byte
-  alias :[]= :set_byte
+  alias_method :[], :get_byte
+  alias_method :[]=, :set_byte
   
   def each
     0.upto(self.size - 1) do |i|

@@ -69,5 +69,5 @@ class Actor
     @mailbox.send value
     self
   end
-  alias :<< :send
+  alias_method :<<, :send
 end

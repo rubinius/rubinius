@@ -7,14 +7,14 @@ module Rubinius
 end
 
 class NilClass
-  alias :| :^
+  alias_method :|, :^
 end
 
 class TrueClass
-  alias :inspect :to_s
+  alias_method :inspect, :to_s
 end
 
 class FalseClass
-  alias :| :^
-  alias :inspect :to_s
+  alias_method :|, :^
+  alias_method :inspect, :to_s
 end

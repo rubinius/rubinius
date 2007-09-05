@@ -1,9 +1,8 @@
-# See rake build:core
 # depends on: integer.rb
 
 class Fixnum < Integer
   
-  alias :modulo :%
+  alias_method :modulo, :%
   
   def <<(c)
     c = guard_integer_type(c)

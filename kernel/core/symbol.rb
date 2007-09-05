@@ -11,10 +11,10 @@ class Symbol
     Symbols.symbols.to_a.map { |x| x.intern }
   end
   
-  alias :to_i   :index
-  alias :to_int :index
+  alias_method :to_i,   :index
+  alias_method :to_int, :index
     
-  alias :id2name :to_s
+  alias_method :id2name, :to_s
   
   def inspect
     ":#{to_s}"

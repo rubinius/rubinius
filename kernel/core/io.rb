@@ -39,7 +39,7 @@ class IO
     return self
   end
   
-  alias :print :<<
+  alias_method :print, :<<
     
   def sysread(size, buf=nil)
     buf = String.new(size) unless buf
@@ -49,7 +49,7 @@ class IO
     return buf
   end
     
-  alias :syswrite :write
+  alias_method :syswrite, :write
 
   def read(size=nil, buf=nil)
     if size

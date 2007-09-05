@@ -33,8 +33,8 @@ class Exception
     "#<#{self.class.name}: #{self.to_s}>"
   end
   
-  alias :message :to_s
-  alias :to_str :to_s
+  alias_method :message, :to_s
+  alias_method :to_str, :to_s
   
   def self.exception(message=nil)
     self.new(message)

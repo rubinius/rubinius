@@ -1,4 +1,3 @@
-# See rake build:platform
 # depends on: ffi.rb
 
 module Compression

@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: numeric.rb
 
 class Float < Numeric
@@ -13,7 +12,7 @@ class Float < Numeric
     end
   end
 
-  alias :inspect :to_s
+  alias_method :inspect, :to_s
 
   def finite?
     not (nan? or infinite?) 
@@ -23,15 +22,15 @@ class Float < Numeric
     self
   end
     
-  alias :to_int :to_i
-  alias :truncate :to_i
+  alias_method :to_int, :to_i
+  alias_method :truncate, :to_i
   
   def %(other)
     return 0 / 0.to_f if other == 0
     self.divmod(Float(other))[1]
   end
   
-  alias :modulo :%
+  alias_method :modulo, :%
 
 end
 

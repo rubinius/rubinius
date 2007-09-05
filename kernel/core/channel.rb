@@ -1,3 +1,3 @@
 class Channel
-  alias :<< :send
+  alias_method :<<, :send
 end

@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: class.rb module.rb
 
 class Tuple
@@ -78,8 +77,8 @@ class Tuple
     return t
   end
   
-  alias :size :fields
-  alias :length :fields
+  alias_method :size, :fields
+  alias_method :length, :fields
   
   def empty?
     size == 0

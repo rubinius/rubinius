@@ -25,7 +25,7 @@ class Object
     self.class == cls
   end
   
-  alias :is_a? :kind_of?
+  alias_method :is_a?, :kind_of?
   
   def dup
     nw = self.class.allocate
@@ -33,9 +33,9 @@ class Object
     return nw
   end
     
-  alias :eql? :equal?
-  alias :==   :equal?
-  alias :===  :equal?
+  alias_method :eql?, :equal?
+  alias_method :==,   :equal?
+  alias_method :===,  :equal?
 
   def to_s
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
@@ -77,7 +77,7 @@ class Object
     return res
   end
     
-  alias :send :__send__
+  alias_method :send, :__send__
   
   def method(name)    
     cm = __find_method__(name)

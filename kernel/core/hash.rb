@@ -1,3 +1,5 @@
+# depends on: enumerable.rb
+
 class Hash
   
   ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
@@ -113,12 +115,12 @@ class Hash
     return str
   end
   
-  alias :has_key?   :key?
-  alias :include?   :key?
-  alias :member?    :key?
-  alias :each_pair  :each
-  alias :length     :size
-  alias :store      :[]=
+  alias_method :has_key?,   :key?
+  alias_method :include?,   :key?
+  alias_method :member?,    :key?
+  alias_method :each_pair,  :each
+  alias_method :length,     :size
+  alias_method :store,      :[]=
 
   def self.[](*args)
     unless args.size % 2 == 0 or (args.size == 1 and args[0].is_a?(Hash))
@@ -148,7 +150,7 @@ class Hash
   def value?(val)
     values.include?(val)
   end
-  alias :has_value? :value?
+  alias_method :has_value?, :value?
     
   def delete(key)
     retval = nil
@@ -199,7 +201,7 @@ class Hash
    end
     self
   end
-  alias :update :merge!
+  alias_method :update, :merge!
   
   def shift
     out = nil
@@ -222,8 +224,8 @@ class Hash
   def values_at(*args)
     args.collect { |a| self[a] }
   end
-  alias :indexes :values_at
-  alias :indices :values_at
+  alias_method :indexes, :values_at
+  alias_method :indices, :values_at
   
   def merge(other_hash, &block)
     dup.merge!(other_hash, &block)
@@ -257,7 +259,7 @@ class Hash
     end
     self
   end
-  alias :initialize_copy :replace
+  alias_method :initialize_copy, :replace
   
   def rehash
     out = {}

@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: numeric.rb ctype.rb
 
 class Integer < Numeric
@@ -44,9 +43,9 @@ class Integer < Numeric
   def to_i
     self
   end
-  alias to_int to_i
-  alias round to_i
-  alias truncate to_i
+  alias_method :to_int, :to_i
+  alias_method :round, :to_i
+  alias_method :truncate, :to_i
 
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0
@@ -89,7 +88,7 @@ class Integer < Numeric
   def next
     self + 1
   end
-  alias succ next
+  alias_method :succ, :next
 
   def integer?
     true

@@ -61,7 +61,7 @@ module Kernel
     Ruby.asm "#local exc\nraise_exc"
   end
   
-  alias fail raise
+  alias_method :fail, :raise
   
   def warn(warning)
     unless $VERBOSE.nil?
@@ -99,7 +99,7 @@ module Kernel
   def sprintf(str, *args)
     Sprintf::Parser.format(str, args)
   end
-  alias :format :sprintf
+  alias_method :format, :sprintf
   
   def puts(*a)
     a = [""] if a.empty?

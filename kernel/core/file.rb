@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: io.rb
 
 class File < IO

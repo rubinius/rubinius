@@ -45,7 +45,7 @@ class Regexp
       __regexp_new__(arg, opts)
     end
 
-    alias :compile :new
+    alias_method :compile, :new
 
     # FIXME - Optimize me using String#[], String#chr, etc.
     # Do away with the control-character comparisons.
@@ -158,7 +158,7 @@ class Regexp
     return nil
   end
 
-  alias :__regexp_match__ :match
+  alias_method :__regexp_match__, :match
 
   def match(str)
     obj = __regexp_match__(str)

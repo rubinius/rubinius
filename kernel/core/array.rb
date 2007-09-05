@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: enumerable.rb
 
 # Ruby's builtin dynamic array implementation
@@ -119,7 +118,7 @@ class Array
     out
   end             
 
-  alias :slice :[]
+  alias_method :slice, :[]
 
   def []=(idx, ent, *args)
     cnt = nil
@@ -747,7 +746,7 @@ class Array
     out
   end
 
-  alias :indices :indexes
+  alias_method :indices, :indexes
 
   # For a positive index, inserts the given values before
   # the element at the given index. Negative indices count 
@@ -815,7 +814,7 @@ class Array
     out
   end 
 
-  alias :collect :map
+  alias_method :collect, :map
 
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
@@ -825,7 +824,7 @@ class Array
     replace(map &block)
   end
   
-  alias :collect! :map!
+  alias_method :collect!, :map!
 
   # Returns number of non-nil elements in self, may be zero
   def nitems

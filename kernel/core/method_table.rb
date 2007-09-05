@@ -12,7 +12,7 @@ class MethodTable
     filter_names :protected
   end
   
-  alias :to_a :public_names
+  alias_method :to_a, :public_names
   
   def filter_names(filter, format=:to_s)
     ary = Array.new

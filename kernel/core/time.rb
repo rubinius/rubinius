@@ -1,3 +1,5 @@
+# depends on: comparable.rb class.rb module.rb
+
 # _load
 # parse
 # --------------------
@@ -368,22 +370,22 @@ class Time
   public
   
   class << self
-    alias :now :new
-    alias :mktime :local
-    alias :utc :gm
+    alias_method :now,    :new
+    alias_method :mktime, :local
+    alias_method :utc,    :gm
   end
     
-  alias :utc? :gmt?
-  alias :month :mon
-  alias :ctime :asctime
-  alias :mday :day
-  alias :to_i :seconds
-  alias :to_s :inspect
-  alias :tv_sec :seconds
-  alias :tv_usec :usec
-  alias :utc :gmtime
-  alias :isdst :dst?
-  alias :utc_offset :gmt_offset
-  alias :gmtoff :gmt_offset
-  alias :getutc :getgm
+  alias_method :utc?,       :gmt?
+  alias_method :month,      :mon
+  alias_method :ctime,      :asctime
+  alias_method :mday,       :day
+  alias_method :to_i,       :seconds
+  alias_method :to_s,       :inspect
+  alias_method :tv_sec,     :seconds
+  alias_method :tv_usec,    :usec
+  alias_method :utc,        :gmtime
+  alias_method :isdst,      :dst?
+  alias_method :utc_offset, :gmt_offset
+  alias_method :gmtoff,     :gmt_offset
+  alias_method :getutc,     :getgm
 end

@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: integer.rb
 
 class Bignum < Integer
@@ -6,7 +5,7 @@ class Bignum < Integer
     self.divmod(other)[1]
   end
   
-  alias :modulo :%
+  alias_method :modulo, :%
   
-  alias :div :/
+  alias_method :div, :/
 end

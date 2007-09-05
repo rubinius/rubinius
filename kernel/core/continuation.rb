@@ -9,7 +9,7 @@ class Continuation
     Task.current = task
   end
 
-  alias :[] :call
+  alias_method :[], :call
 end
 
 module Kernel

@@ -164,7 +164,6 @@ class Module
     alias_method :private, :private_cv
   end
   
-  
   def module_exec(*args, &prc)
     instance_exec(*args, &prc)
   end

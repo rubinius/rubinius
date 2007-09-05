@@ -1,4 +1,3 @@
-# See rake build:core
 # depends on: comparable.rb enumerable.rb
 
 class String
@@ -56,8 +55,7 @@ class String
   def length
     @bytes
   end
-  alias :size :length
-  
+  alias_method :size, :length
   
   alias_method :to_str, :to_s
 
@@ -82,7 +80,7 @@ class String
     raise TypeError, "can't modify frozen string" if self.frozen?
     append(other)
   end
-  alias :concat :<<
+  alias_method :concat, :<<
 
   #---
   # NOTE: This overwrites String#dup defined in bootstrap
@@ -154,7 +152,7 @@ class String
     false
   end
   
-  alias :=== :==
+  alias_method :===, :==
 
   def <=>(other)
     if String === other
@@ -201,7 +199,7 @@ class String
     raise ArgumentError, "interning empty string" if self.empty?
     __symbol_lookup__
   end
-  alias :intern :to_sym
+  alias_method :intern, :to_sym
 
   def each_byte(&prc)
     0.upto(@bytes - 1) do |i|
@@ -418,7 +416,7 @@ class String
     
     self
   end
-  alias :initialize_copy :replace
+  alias_method :initialize_copy, :replace
   
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i> if they differ.
@@ -1427,7 +1425,7 @@ class String
     hash
   end
     
-  alias :eql? :==
+  alias_method :eql?, :==
 
 =begin
 

@@ -39,7 +39,7 @@ class Mailbox
     @channel.send value
     self
   end
-  alias :<< :send
+  alias_method :<<, :send
 
   def receive
     if block_given?

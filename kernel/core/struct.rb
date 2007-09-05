@@ -1,3 +1,5 @@
+# depends on: comparable.rb
+
 class Struct
   include Enumerable
 
