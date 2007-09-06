@@ -293,7 +293,7 @@ void machine_print_registers(machine m) {
   cpu_flush_sp(m->c);
   cpu_flush_ip(m->c);
   printf("IP: %04d      SP: %04d\n", m->c->ip, m->c->sp);
-  printf("AC: %04d      AR: %04lu\n", m->c->argcount, m->c->args);
+  printf("AC: %04d      AR: %04lu\n", cpu_current_argcount(m->c), m->c->args);
   printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));
 }
 

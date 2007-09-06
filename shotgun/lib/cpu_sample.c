@@ -38,7 +38,7 @@ void _cpu_sampler_record_method_object(int sig) {
   cpu c;
   state = current_machine->s;
   c = current_machine->c;
-  state->samples[state->cur_sample++] = c->method;
+  state->samples[state->cur_sample++] = cpu_current_method(state, c);
   
   if(state->cur_sample == state->max_samples) {
     state->max_samples += SAMPLE_INCS;
@@ -56,7 +56,7 @@ void _cpu_sampler_record_method_name(int sig) {
   
   if(!state->samples) return;
     
-  tup = tuple_new2(state, 3, c->self, c->method_module, c->name);
+  tup = tuple_new2(state, 3, c->self, cpu_current_module(state, c), cpu_current_name(state, c));
   state->samples[state->cur_sample++] = tup;
   
   if(state->cur_sample == state->max_samples) {

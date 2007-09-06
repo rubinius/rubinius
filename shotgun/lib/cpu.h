@@ -23,28 +23,27 @@
 #define BS_JUMP 5
 #endif
 
-/* This must be aligned on word boundries so fast_memcpy32 can
-   be used on it. */
-
 #define CPU_REGISTERS OBJECT sender; \
-  unsigned int ip; \
-  unsigned int sp; \
   OBJECT block; \
   OBJECT method; \
-  IP_TYPE *data; \
   OBJECT literals; \
-  OBJECT self; \
   OBJECT locals; \
   unsigned short argcount; \
-  unsigned short type; \
   OBJECT name; \
   OBJECT method_module; \
   void *opaque_data; \
+  OBJECT self; \
+  IP_TYPE *data; \
+  unsigned short type; \
+  unsigned int ip; \
+  unsigned int sp; \
   OBJECT *fp_ptr;
 
 struct fast_context {
   CPU_REGISTERS
 };
+
+#define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
 
 /* 3Megs of stack */
 #define InitialStackSize 786432
@@ -83,7 +82,14 @@ struct cpu_task {
 
 struct rubinius_cpu {
   /* Normal registers ande saved and restored per new method call . */
-  CPU_REGISTERS;
+  OBJECT self;
+  IP_TYPE *data;
+  unsigned short type;
+  unsigned int ip;
+  unsigned int sp;
+  OBJECT *fp_ptr;
+  
+  // CPU_REGISTERS;
   
   OBJECT current_task, main_task;
   OBJECT current_thread, main_thread;
@@ -106,13 +112,22 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define stack_pop() cpu_stack_pop(state, c)
 #define stack_top() cpu_stack_top(state, c)
 
+#define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
+#define cpu_current_method(state, cpu) (FASTCTX(cpu->home_context)->method)
+#define cpu_current_literals(state, cpu) (FASTCTX(cpu->home_context)->literals)
+#define cpu_current_locals(state, cpu) (FASTCTX(cpu->home_context)->locals)
+#define cpu_set_locals(state, cpu, obj) (FASTCTX(cpu->home_context)->locals = obj)
+#define cpu_current_name(state, cpu) (FASTCTX(cpu->home_context)->name)
+#define cpu_current_module(state, cpu) (FASTCTX(cpu->home_context)->method_module)
+#define cpu_current_data(cpu) (FASTCTX(cpu->home_context)->data)
+#define cpu_current_argcount(cpu) (FASTCTX(cpu->home_context)->argcount)
+#define cpu_current_sender(cpu) (FASTCTX(cpu->active_context)->sender)
+
 #define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
 #define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack_top))
 
 #define cpu_cache_ip(cpu) (cpu->ip_ptr = (cpu->data + cpu->ip))
 #define cpu_cache_sp(cpu) (cpu->sp_ptr = (cpu->stack_top + cpu->sp))
-
-#define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
 
 cpu cpu_new(STATE);
 void cpu_initialize(STATE, cpu c);

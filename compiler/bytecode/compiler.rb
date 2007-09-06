@@ -1875,8 +1875,10 @@ module Bytecode
         end
         
         if block
+          line = @last_line
           op = "&send"
           process block
+          add "#line #{line}" if @last_line != line
         else
           add "push nil" if grab_args
           
@@ -2165,7 +2167,7 @@ module Bytecode
         @last_line = line
         process(x.shift)
       end
-      
+
       def process_alias(x)
         cur = x.shift
         nw = x.shift

@@ -217,7 +217,7 @@ CODE
   end
   
   def push_literal
-    "next_int; stack_push(tuple_at(state, c->literals, _int));"
+    "next_int; stack_push(tuple_at(state, cpu_current_literals(state, c), _int));"
   end
   
   def push_self
@@ -225,7 +225,7 @@ CODE
   end
   
   def push_local
-    "next_int; stack_push(tuple_at(state, c->locals, _int));"
+    "next_int; stack_push(tuple_at(state, cpu_current_locals(state, c), _int));"
   end
   
   def push_local_depth
@@ -398,7 +398,7 @@ CODE
     next_int;
     t1 = stack_pop();
     // printf("Set local %d to %s\\n", _int, _inspect(t1));
-    tuple_put(state, c->locals, _int, t1);
+    tuple_put(state, cpu_current_locals(state, c), _int, t1);
     stack_push(t1);
     CODE
   end
@@ -410,7 +410,7 @@ CODE
     next_int;
     
     t1 = *(c->fp_ptr - _int);
-    tuple_put(state, c->locals, k, t1);
+    tuple_put(state, cpu_current_locals(state, c), k, t1);
     CODE
   end
   
@@ -525,7 +525,7 @@ CODE
   def set_ivar
     <<-CODE
     next_int;
-    t1 = tuple_at(state, c->literals, _int);
+    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
     t2 = stack_pop();
     object_set_ivar(state, c->self, t1, t2);
     stack_push(t2);
@@ -535,7 +535,7 @@ CODE
   def push_const
     <<-CODE
     next_int;
-    t1 = tuple_at(state, c->literals, _int);
+    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
     t2 = cpu_const_get(state, c, t1, c->enclosing_class);
     if(t2 != Qundef) stack_push(t2);
     c->cache_index = -1;
@@ -546,7 +546,7 @@ CODE
     <<-CODE
     t1 = stack_pop();
     next_int;
-    t2 = tuple_at(state, c->literals, _int);
+    t2 = tuple_at(state, cpu_current_literals(state, c), _int);
     t2 = cpu_const_get(state, c, t2, t1);
     if(t2 != Qundef) stack_push(t2);
     c->cache_index = -1;
@@ -556,7 +556,7 @@ CODE
   def set_const
     <<-CODE
     next_int;
-    t1 = tuple_at(state, c->literals, _int);
+    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
     stack_push(cpu_const_set(state, c, t1, stack_pop(), c->enclosing_class));
     CODE
   end
@@ -564,7 +564,7 @@ CODE
   def set_const_at
     <<-CODE
     next_int;
-    t1 = tuple_at(state, c->literals, _int);
+    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
     t2 = stack_pop();
     t3 = stack_pop();
     cpu_const_set(state, c, t1, t2, t3);
@@ -653,9 +653,9 @@ CODE
     t3 = stack_pop(); /* locals */
     cpu_activate_method(state, c, t1, t2, j, cmethod_get_name(t2), stack_pop());
     if(RTEST(t3)) {
-      if(NIL_P(c->locals) || NUM_FIELDS(t3) >= NUM_FIELDS(c->locals)) {
+      if(NIL_P(cpu_current_locals(state, c)) || NUM_FIELDS(t3) >= NUM_FIELDS(cpu_current_locals(state, c))) {
         // methctx_set_locals(c->active_context, t3);
-        c->locals = t3;
+        cpu_set_locals(state, c, t3);
       }
     }
     
@@ -893,7 +893,7 @@ CODE
     <<-CODE
     t1 = stack_top();
     t1 = c->active_context;
-    c->active_context = c->sender;
+    c->active_context = cpu_current_sender(c);
     if(cpu_return_to_sender(state, c, TRUE, FALSE)) {
       methctx_reference(state, t1);
       stack_push(t1);
@@ -945,7 +945,7 @@ CODE
   def make_rest
     <<-CODE
     next_int;
-    j = c->argcount - _int;
+    j = cpu_current_argcount(c) - _int;
     t1 = array_new(state, j);
     for(k = 0; k < j; k++) {
       array_set(state, t1, k, stack_pop());
@@ -957,9 +957,9 @@ CODE
   def make_rest_fp
     <<-CODE
     next_int;
-    j = c->argcount - _int;
+    j = cpu_current_argcount(c) - _int;
     t1 = array_new(state, j);
-    for(k = _int, m = 0; k < c->argcount; k++, m++) {
+    for(k = _int, m = 0; k < cpu_current_argcount(c); k++, m++) {
       array_set(state, t1, m, *(c->fp_ptr - k));
     }
     stack_push(t1);
@@ -972,10 +972,10 @@ CODE
     j = _int;
     next_int;
     
-    if(c->argcount < (unsigned long int)j) {
-      cpu_raise_arg_error(state, c, c->argcount, j);
-    } else if(_int > 0 && c->argcount > (unsigned long int)_int) {
-      cpu_raise_arg_error(state, c, c->argcount, _int);
+    if(cpu_current_argcount(c) < (unsigned long int)j) {
+      cpu_raise_arg_error(state, c, cpu_current_argcount(c), j);
+    } else if(_int > 0 && cpu_current_argcount(c) > (unsigned long int)_int) {
+      cpu_raise_arg_error(state, c, cpu_current_argcount(c), _int);
     }
     CODE
   end
@@ -983,7 +983,7 @@ CODE
   def passed_arg
     <<-CODE
     next_int;
-    if((unsigned long int)_int < c->argcount) {
+    if((unsigned long int)_int < cpu_current_argcount(c)) {
       stack_push(Qtrue);
     } else {
       stack_push(Qfalse);

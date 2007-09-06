@@ -46,6 +46,10 @@ end
 
 class BlockContext
   
+  def home
+    env.home
+  end
+  
   def name
     home.name
   end
@@ -59,10 +63,10 @@ class BlockContext
   end
   
   def line
-    return 0 unless self.method
+    return 0 unless method
     # We subtract 1 because the ip is actually set to what it should do
     # next, not what it's currently doing.
-    return self.method.line_from_ip(self.ip - 1)
+    return method.line_from_ip(self.ip - 1)
   end
 
   def method
@@ -81,21 +85,17 @@ class BlockEnvironment
   def initial_ip; @initial_ip ; end
   def last_ip   ; @last_ip    ; end
   def post_send ; @post_send  ; end
-  
-  def call(*args)
-    execute args.tuple
-  end
-    
+      
   # These should be safe since I'm unsure how you'd have a BlockContext
   # and have a nil CompiledMethod (something that can (and has) happened
   # with MethodContexts)
   
   def file
-    self.home.method.file
+    home.method.file
   end
   
   def line
-    self.home.method.line_from_ip(self.initial_ip)
+    home.method.line_from_ip(initial_ip)
   end
   
   def home=(home)
@@ -107,7 +107,7 @@ class BlockEnvironment
   end
   
   def redirect_to(obj)
-    env = self.dup
+    env = dup
     env.make_independent
     env.home.receiver = obj
     return env
@@ -250,30 +250,33 @@ class Backtrace
   
   def fill_from(ctx)
     @max = 0
-    while ctx
-      if ctx.method
-        if MAIN == ctx.receiver
-          str = "#{ctx.receiver.to_s}."
-        elsif MetaClass === ctx.method_module
-          str = "#{ctx.receiver}."
-        elsif ctx.method_module != ctx.receiver.class
-          str = "#{ctx.method_module}(#{ctx.receiver.class})#"
-        else
-          str = "#{ctx.receiver.class}#"
-        end
-        
-        if ctx.name == ctx.method.name
-          str << "#{ctx.name}"
-        else
-          str << "#{ctx.name} (#{ctx.method.name})"
-        end
-        
-        if str.size > @max
-          @max = str.size
-        end
-        
-        @frames << [str, "#{ctx.file}:#{ctx.line}"]
+    while ctx   
+      unless ctx.method
+        ctx = ctx.sender
+        next
       end
+      
+      if MAIN == ctx.receiver
+        str = "#{ctx.receiver.to_s}."
+      elsif MetaClass === ctx.method_module
+        str = "#{ctx.receiver}."
+      elsif ctx.method_module != ctx.receiver.class
+        str = "#{ctx.method_module}(#{ctx.receiver.class})#"
+      else
+        str = "#{ctx.receiver.class}#"
+      end
+      
+      if ctx.name == ctx.method.name
+        str << "#{ctx.name}"
+      else
+        str << "#{ctx.name} (#{ctx.method.name})"
+      end
+      
+      if str.size > @max
+        @max = str.size
+      end
+      
+      @frames << [str, "#{ctx.file}:#{ctx.line}"]
       ctx = ctx.sender
     end
     @max = MAX_WIDTH if @max > MAX_WIDTH

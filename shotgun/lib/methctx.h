@@ -16,8 +16,6 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
 #define blokctx_env(state, self) (FASTCTX(self)->name)
 #define blokctx_locals(state, self) (FASTCTX(self)->locals)
 
-#define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
-
 static inline void methctx_reference(STATE, OBJECT ctx) {  
   /* Don't do it again. */
   if(!stack_context_p(ctx)) return;

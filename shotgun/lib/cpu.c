@@ -36,11 +36,6 @@ void cpu_initialize(STATE, cpu c) {
   c->enclosing_class = Qnil;
   c->new_class_of = Qnil;
   c->outstanding = Qnil;
-  c->locals = Qnil;
-  c->literals = Qnil;
-  c->method = Qnil;
-  c->method_module = Qnil;
-  c->argcount = 0;
   c->args = 0;
   c->depth = 0;
   c->call_flags = 0;
@@ -54,7 +49,6 @@ void cpu_initialize(STATE, cpu c) {
 
 void cpu_setup_top_scope(STATE, cpu c) {
   c->enclosing_class = state->global->object;
-  c->method_module = state->global->object;
   c->new_class_of = state->global->class;
 }
 
@@ -125,6 +119,7 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
     state->home_on_stack = 1;
   }
   
+  /*
   if(REFERENCE_P(c->sender)) {
     if(!stack_context_p(c->sender)) {
       ar(c->sender);
@@ -133,17 +128,14 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
       state->sender_on_stack = 1;
     }
   }
+  */
   
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->new_class_of);
-  ar(c->locals);
-  ar(c->method);
   ar(c->main);
-  ar(c->literals);
   ar(c->exceptions);
-  ar(c->method_module);
   ar(c->current_thread);
   ar(c->main_thread);
   ar(c->current_task);
@@ -191,25 +183,22 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
     ar(c->home_context);
   }
   
+  /*
   if(REFERENCE_P(c->sender)) {
     if(state->sender_on_stack) {
-      /* If it's on the stack, it's the active_context's sender */
       c->sender = FASTCTX(c->active_context)->sender;
     } else {
       ar(c->sender);
     }
   }
+  */
   
   ar(c->self);
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->new_class_of);
-  ar(c->locals);
-  ar(c->method);
   ar(c->main);
-  ar(c->literals);
   ar(c->exceptions);
-  ar(c->method_module);
   ar(c->current_thread);
   ar(c->main_thread);
   ar(c->current_task);
@@ -250,7 +239,7 @@ void cpu_raise_exception(STATE, cpu c, OBJECT exc) {
   while(!NIL_P(ctx)) {
     is_block = blokctx_s_block_context_p(state, ctx);
     
-    table = cmethod_get_exceptions(c->method);
+    table = cmethod_get_exceptions(cpu_current_method(state, c));
     
     if(!table || NIL_P(table)) {
       cpu_return_to_sender(state, c, FALSE, TRUE);
@@ -306,7 +295,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
 
 /* FIXME: the inline caches of constants aren't flushed! */
 
-#define update_cache(val) if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(c->method), c->cache_index, val)
+#define update_cache(val) if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index, val)
 
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   OBJECT hsh, val, kls, parent;
@@ -316,7 +305,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
 #if TRACK_STATS
     state->cache_inline_const_hit++;
 #endif
-    val = tuple_at(state, cmethod_get_cache(c->method), c->cache_index);
+    val = tuple_at(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index);
     if(val != Qnil) return val;
   }
   
@@ -368,7 +357,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   }
   
   /* Case 2: Check in the module that defined the method. */
-  hsh = module_get_constants(c->method_module);
+  hsh = module_get_constants(cpu_current_module(state, c));
   val = hash_find_undef(state, hsh, sym);
   if(val != Qundef) {
     update_cache(val);
@@ -377,8 +366,8 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   /* Case 3: Look up the compile time lexical stack. */
   
-  //printf("Path from %s\n", _inspect(c->method_module));
-  under = module_get_parent(c->method_module);
+  //printf("Path from %s\n", _inspect(cpu_current_module(state, c)));
+  under = module_get_parent(cpu_current_module(state, c));
   while(RTEST(under)) {
     hsh = module_get_constants(under);
     val = hash_find_undef(state, hsh, sym);

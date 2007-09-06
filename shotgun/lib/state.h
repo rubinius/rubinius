@@ -137,7 +137,7 @@ struct rubinius_state {
 #define FIRE_NULL   2
 #define FIRE_STACK  3
 
-#define FASTCTX_FIELDS 14
+#define FASTCTX_FIELDS 17
 #define FASTCTX_NORMAL 1
 #define FASTCTX_BLOCK  3
 #define FASTCTX_NMC    4

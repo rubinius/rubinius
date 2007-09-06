@@ -29,12 +29,6 @@
 #define next_int set_int(_int,(c->ip_ptr)); c->ip_ptr += 4
 #endif
 
-/* #ifndef __BIG_ENDIAN__ */
-/* #define next_int _int = swap32(*(int*)(c->data + c->ip)); c->ip += 4 */
-/* #else */
-/* #define next_int _int = *(int*)(c->data + c->ip); c->ip += 4 */
-/* #endif */
-
 #if DIRECT_THREADED
 #include "instruction_funcs.gen"
 DT_ADDRESSES;
@@ -47,7 +41,7 @@ DT_ADDRESSES;
 
 #endif
 
-#define next_literal next_int; _lit = tuple_at(state, c->literals, _int)
+#define next_literal next_int; _lit = tuple_at(state, cpu_current_literals(state, c), _int)
 
 OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   OBJECT sym, _lit, val, s1, s2, s3, s4, sup_itr;
@@ -170,7 +164,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   int normal = (c->type & 0x1) == FASTCTX_NORMAL;
   if(normal) {
     
-  cache = cmethod_get_cache(c->method);
+  cache = cmethod_get_cache(cpu_current_method(state, c));
   
   /* There is a cache index for this send, use it! */
   if(c->cache_index > 0) {
@@ -525,17 +519,19 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   fc = FASTCTX(home);
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
-  memcpy((void*)c, (void*)fc, sizeof(struct fast_context));
+  
+  c->self = fc->self;
+  c->data = fc->data;
+  c->type = fc->type;
+  c->fp_ptr = fc->fp_ptr;
+  
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
-    // assert(!ISA(ctx, state->global->fastctx));
     fc = FASTCTX(ctx);
-    c->sp = fc->sp;
-    c->ip = fc->ip;
-    c->sender = fc->sender;
-    /* FIXME: seems like we should set c->block too.. but that
-       seems to break things.. */
   }
+  
+  c->sp = fc->sp;
+  c->ip = fc->ip;
   
   /* Ok, reason we'd be restoring a native context:
      1) the native context used rb_funcall and we need to return
@@ -575,7 +571,7 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
   int is_block;
   
   is_block = blokctx_s_block_context_p(state, c->active_context);
-  destination = c->sender;
+  destination = cpu_current_sender(c);
     
   if(destination == Qnil) {
     object_memory_retire_context(state->om, c->active_context);
@@ -720,8 +716,8 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   if(missing) {
     cpu_flush_ip(c);
     DEBUG("%05d: Missed Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
-     rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
-     rbs_symbol_to_cstring(state, sym), _inspect(recv), c->method, c->ip, missing);
+     rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
+     rbs_symbol_to_cstring(state, sym), _inspect(recv), cpu_current_method(state, c), c->ip, missing);
   }
 
   if(missing) {
@@ -733,7 +729,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     if(cpu_try_primitive(state, c, mo, recv, args, sym, mod)) {
       if(EXCESSIVE_TRACING) {
         printf("%05d: Called prim %s => %s on %s.\n", c->depth,
-          rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+          rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
           rbs_symbol_to_cstring(state, sym), _inspect(recv));
       }
       return;
@@ -744,10 +740,10 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
   if(EXCESSIVE_TRACING) {
     cpu_flush_ip(c);
     printf("%05d: Calling %s => %s#%s on %s (%p/%d) (%s).\n", c->depth,
-      rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),  
+      rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),  
       rbs_symbol_to_cstring(state, module_get_name(mod)),
       rbs_symbol_to_cstring(state, sym), 
-      _inspect(recv), (void*)c->method, c->ip,
+      _inspect(recv), (void*)cpu_current_method(state, c), c->ip,
       prim ? "" : "PRIM FAILED"
       );
   }
@@ -761,8 +757,6 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
     printf("CTX:                 running %d\n", (int)ctx);
   }
   cpu_activate_context(state, c, ctx, ctx, args);
-  //printf("Setting method module to: %s\n", _inspect(mod));
-  c->method_module = mod;
 }
 
 
@@ -780,7 +774,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   OBJECT sym, mo, mod;
   int missing;
 
-  sym = tuple_at(state, c->literals, idx);
+  sym = tuple_at(state, cpu_current_literals(state, c), idx);
   
   if(0 && c->depth == 1000) {
     printf("Runaway depth...\n");
@@ -792,7 +786,7 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -814,14 +808,14 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
 static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
   OBJECT sym, mo, klass, mod;
   int missing;
-  xassert(RTEST(c->literals));
-  sym = tuple_at(state, c->literals, idx);
+  xassert(RTEST(cpu_current_literals(state, c)));
+  sym = tuple_at(state, cpu_current_literals(state, c), idx);
     
   missing = 0;
   
-  // printf("Looking up from: %s\n", _inspect(c->method_module));
+  // printf("Looking up from: %s\n", _inspect(cpu_current_module(state, c)));
   
-  klass = class_get_superclass(c->method_module);
+  klass = class_get_superclass(cpu_current_module(state, c));
     
   mo = cpu_locate_method(state, c, klass, sym, &mod, &missing);
   if(NIL_P(mo)) {
@@ -848,7 +842,7 @@ void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args) {
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -868,7 +862,7 @@ void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT bl
   mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)c->method, c->ip, missing);
+    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     assert(RTEST(mo));
   }
@@ -929,7 +923,7 @@ insn_start:
 #if DIRECT_THREADED
     if(EXCESSIVE_TRACING) {
       printf("%-15s: => %p\n",
-        rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
+        rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
         (void*)*c->ip_ptr);
     }
     NEXT_OP;
@@ -943,7 +937,7 @@ next_op:
     cpu_flush_ip(c);
     cpu_flush_sp(c);
     printf("%-15s: OP: %s (%d/%d/%d)\n", 
-      rbs_symbol_to_cstring(state, cmethod_get_name(c->method)),
+      rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
     
@@ -958,11 +952,11 @@ check_interupts:
       if(cm & OMCollectYoung) {
         if(EXCESSIVE_TRACING) {
           printf("[[ Collecting young objects. ]]\n");
-          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, cpu_current_data(c), c->ip_ptr, c->ip, *c->ip_ptr);
         }
         state_collect(state, c);
         if(EXCESSIVE_TRACING) {
-          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, c->data, c->ip_ptr, c->ip, *c->ip_ptr);
+          printf("[[ ctx=%p, data=%p, ip_ptr=%p, ip=%d, op=%d ]]\n", (void*)c->active_context, cpu_current_data(c), c->ip_ptr, c->ip, *c->ip_ptr);
           printf("[[ Finished collect. ]]\n");
         }
       }

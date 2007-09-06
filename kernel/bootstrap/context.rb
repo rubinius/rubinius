@@ -65,14 +65,10 @@ class BlockContext
   def env
     _get_field(10)
   end
-  
-  def home
-    _get_field(5)
-  end
 end
 
 class BlockEnvironment
-  def execute(args)
+  def call(*args)
     Ruby.primitive :block_call
   end
 end

@@ -292,7 +292,14 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); 
     GUARD( RISA(self, blokenv) );
-        
+    
+    
+    t3 = tuple_new(state, num_args);
+    for(j = 0; j < num_args; j++) {
+      tuple_put(state, t3, j, stack_pop());
+    }
+    stack_push(t3);
+    
     cpu_flush_sp(c);
     t2 = blokenv_create_context(state, self, c->active_context, c->sp);
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);

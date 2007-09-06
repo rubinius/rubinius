@@ -77,13 +77,13 @@ void cpu_task_select(STATE, cpu c, OBJECT nw) {
   new_task = (struct cpu_task*)BYTES_OF(nw);
   
   memcpy(cur_task, ct, sizeof(struct cpu_task));
-  // printf(" Saving to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)cur, c->sp, c->ip, c->method, c->active_context, c->home_context);
+  // printf(" Saving to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)cur, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   memcpy(ct, new_task, sizeof(struct cpu_task));
   
   home = NIL_P(c->home_context) ? c->active_context : c->home_context;
   
   cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
-  // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, c->method, c->active_context, c->home_context);
+  // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   
   c->current_task = nw;
 }
