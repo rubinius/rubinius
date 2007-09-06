@@ -1705,12 +1705,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  def math_sqrt(_ = float)
-    <<-CODE
-      stack_push(math_sqrt(state, self));
-    CODE
-  end
-  
   def object_taint
     <<-CODE
     self = stack_pop();

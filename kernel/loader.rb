@@ -9,6 +9,7 @@ begin
   Hash.after_loaded
   Kernel.after_loaded
   Actor.after_loaded
+  Math.after_loaded
 
   ENV = EnvironmentVariables.new
 

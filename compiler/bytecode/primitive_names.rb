@@ -114,7 +114,7 @@ module Bytecode
       :bignum_right_shift,
       :bignum_divmod,
       :regexp_options,
-      :math_sqrt,
+      nil,
       :object_taint,
       :object_tainted_p,
       :object_freeze,

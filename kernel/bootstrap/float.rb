@@ -78,8 +78,4 @@ class Float
   def round
     Ruby.primitive :float_round
   end
-  
-  def sqrt
-    Ruby.primitive :math_sqrt
-  end
 end
