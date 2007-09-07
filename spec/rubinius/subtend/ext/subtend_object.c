@@ -21,6 +21,10 @@ VALUE so_require(VALUE self) {
   return Qnil;
 }
 
+VALUE so_attr_get(VALUE self, VALUE obj, VALUE attr) {
+  return rb_attr_get(obj, SYM2ID(attr));
+}
+
 void Init_subtend_object() {
   VALUE cls;
   cls = rb_define_class("SubtendObject", rb_cObject);
@@ -29,4 +33,5 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_respond_to", so_respond_to, 2);    
   rb_define_method(cls, "rb_to_id", so_to_id, 1);
   rb_define_method(cls, "rb_require", so_require, 0);
+  rb_define_method(cls, "rb_attr_get", so_attr_get, 2);
 }

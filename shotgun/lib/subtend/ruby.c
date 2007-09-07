@@ -255,6 +255,10 @@ VALUE rb_ivar_get(VALUE obj, ID sym) {
   return NEW_HANDLE(ctx, val);
 }
 
+VALUE rb_attr_get(VALUE obj, ID sym) {
+  return rb_ivar_get(obj, sym);
+}
+
 VALUE rb_iv_get(VALUE obj, char *name) {
   return rb_ivar_get(obj, rb_intern(name));
 }

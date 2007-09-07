@@ -12,6 +12,10 @@ extension :rubinius do
     end
     
     class ObjectTest
+      def initialize
+        @foo = 7
+      end
+      
       def foo
       end
     end
@@ -45,6 +49,11 @@ extension :rubinius do
       $:.unshift File.dirname(__FILE__)
       @o.rb_require()
       $foo.should == 7
+    end
+    
+    specify "rb_attr_get should get an instance variable" do
+      o = ObjectTest.new
+      @o.rb_attr_get(o, :@foo).should == 7
     end
     
   end
