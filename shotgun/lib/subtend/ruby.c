@@ -313,6 +313,10 @@ VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass) {
   return rb_funcall(obj, rb_intern("kind_of?"), 1, klass);
 }
 
+int rb_respond_to(VALUE obj, ID sym) {
+  return rb_funcall(obj, rb_intern("respond_to?"), 1, sym) == Qtrue ? 1 : 0;
+}
+
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
   VALUE obj;
 
