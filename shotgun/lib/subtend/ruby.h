@@ -73,6 +73,8 @@ VALUE rb_iv_set(VALUE obj, char *name, VALUE val);
 
 void rb_raise(VALUE exc, const char *fmt, ...);
 
+VALUE rb_require(const char *name);
+
 VALUE rb_obj_alloc(VALUE klass);
 void rb_obj_call_init(VALUE obj, int nargs, VALUE *args);
 VALUE rb_obj_is_instance_of(VALUE obj, VALUE klass);

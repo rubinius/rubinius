@@ -318,7 +318,7 @@ int rb_respond_to(VALUE obj, ID sym) {
 }
 
 ID rb_to_id(VALUE obj) {
-  return rb_funcall(obj, rb_intern("to_sym"), 0);
+  return SYM2ID(rb_funcall(obj, rb_intern("to_sym"), 0));
 }
 
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
@@ -529,6 +529,12 @@ void rb_raise(VALUE exc, const char *fmt, ...) {
   ctx->nmc->value = NEW_HANDLE(ctx, cpu_new_exception(ctx->state, ctx->cpu, HNDL(exc), buf));
   ctx->nmc->jump_val = RAISED_EXCEPTION;
   setcontext(&ctx->nmc->system);
+}
+
+VALUE rb_require(const char* name) {
+  CTX;
+  VALUE str = NEW_HANDLE(ctx, string_new(ctx->state, name));
+  return rb_funcall((VALUE)Qnil, rb_intern("require"), 1, str);
 }
 
 int FIX2INT(VALUE val) {

@@ -40,5 +40,12 @@ extension :rubinius do
       @o.rb_to_id(:foo).should == :foo
     end
     
+    specify "rb_require should require a ruby file" do
+      $foo.should == nil
+      $:.unshift File.dirname(__FILE__)
+      @o.rb_require()
+      $foo.should == 7
+    end
+    
   end
 end
