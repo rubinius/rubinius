@@ -246,6 +246,10 @@ void rb_define_const(VALUE klass, const char* key, VALUE val) {
   module_const_set(ctx->state, HNDL(klass), rb_intern(key), HNDL(val));
 }
 
+int rb_const_defined(VALUE klass, ID id) {
+  return rb_funcall(klass, rb_intern("const_defined?"), 1, ID2SYM(id)) == Qtrue ? 1 : 0;
+}
+
 VALUE rb_ivar_get(VALUE obj, ID sym) {
   CTX;
   OBJECT val;

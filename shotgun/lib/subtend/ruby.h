@@ -38,6 +38,7 @@ VALUE rb_define_module_under(VALUE parent, const char *name);
 
 VALUE rb_const_get(VALUE klass, ID id);
 void rb_define_const(VALUE klass, const char* key, VALUE val);
+int rb_const_defined(VALUE klass, ID id);
 
 VALUE rb_ivar_get(VALUE obj, ID sym);
 VALUE rb_iv_get(VALUE obj, char *name);
