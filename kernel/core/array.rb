@@ -1243,6 +1243,28 @@ class Array
     self.join
   end 
 
+  # Treats all elements as being Arrays of equal lengths and
+  # transposes their rows and columns so that the first contained
+  # Array in the result includes the first elements of all the
+  # Arrays and so on.
+  def transpose()
+    return [] if empty?
+
+    out, max = [], nil
+
+    each { |ary| 
+      ary = ary_from ary
+      max ||= ary.size
+
+      # Catches too-large as well as too-small (for which #fetch would suffice)
+      raise IndexError, "All arrays must be same length" if ary.size != max
+
+      ary.size.times { |i| (out[i] ||= []) << ary.at(i) }
+    }
+
+    out
+  end                                                 # transpose
+
 
   def values_at(*args)
     out = []
@@ -1267,24 +1289,6 @@ class Array
       end
     }
     out
-  end
-
-  def transpose()
-    result = []
-    elems = map { |a| 
-      begin
-        a.to_ary 
-      rescue 
-        raise TypeError, "Unable to convert #{a.class.name} to Array" 
-      end
-    }
-    a = elems.shift
-
-    a.each_with_index { |a, i|
-      result << elems.inject([a]) { |memo, o| memo << o.fetch(i) } 
-    }
-
-    result
   end
 
   def zip(*others)
