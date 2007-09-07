@@ -1265,6 +1265,27 @@ class Array
     out
   end                                                 # transpose
 
+  # Returns a new Array by removing duplicate entries
+  # from self. Equality is determined by using a Hash
+  def uniq()
+    seen, out = {}, self.class.new
+
+    each { |elem|
+      out << elem unless seen[elem]
+      seen[elem] = true
+    }
+
+    out
+  end                                                 # uniq
+
+  # Removes duplicates from the Array in place as #uniq
+  def uniq!()
+    raise TypeError, "Array is frozen" if frozen?
+
+    ary = uniq
+    replace(ary) if size != ary.size
+  end                                                 # uniq!
+
 
   def values_at(*args)
     out = []
@@ -1301,24 +1322,6 @@ class Array
     }
 
     result unless block_given?
-  end
-
-  def uniq
-    seen = {}
-    ary = []
-    i = 0
-    while i < @total
-      e = @tuple.at(i)
-      ary << e unless seen[e]
-      seen[e] = true
-      i += 1
-    end
-    ary
-  end
-
-  def uniq!
-    ary = self.uniq
-    ary.size == self.size ? nil : replace(ary)
   end
   
   
