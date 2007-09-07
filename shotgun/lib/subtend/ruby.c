@@ -327,6 +327,27 @@ ID rb_to_id(VALUE obj) {
   return SYM2ID(rb_funcall(obj, rb_intern("to_sym"), 0));
 }
 
+VALUE rb_check_array_type(VALUE ary) {
+  CTX;
+  VALUE coercable = rb_funcall(ary, rb_intern("respond_to?"), 1, CHAR2STR("to_ary"));
+  if(coercable == Qtrue) return rb_funcall(ary, rb_intern("to_ary"), 0);
+  else return Qnil;
+}
+
+VALUE rb_check_string_type(VALUE str) {
+  CTX;
+  VALUE coercable = rb_funcall(str, rb_intern("respond_to?"), 1, CHAR2STR("to_str"));
+  if(coercable == Qtrue) return rb_funcall(str, rb_intern("to_str"), 0);
+  else return NEW_HANDLE(ctx, string_new(ctx->state, ""));  
+}
+
+VALUE rb_check_convert_type(VALUE val, int type, const char* tname, const char* method) {
+  CTX;
+  VALUE coercable = rb_funcall(val, rb_intern("respond_to?"), 1, CHAR2STR(method));
+  if(coercable == Qtrue) return rb_funcall(val, rb_intern(method), 0);
+  else return Qnil;  
+}
+
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
   VALUE obj;
 

@@ -25,6 +25,18 @@ VALUE so_attr_get(VALUE self, VALUE obj, VALUE attr) {
   return rb_attr_get(obj, SYM2ID(attr));
 }
 
+VALUE so_check_array_type(VALUE self, VALUE ary) {
+  return rb_check_array_type(ary);
+}
+
+VALUE so_check_string_type(VALUE self, VALUE str) {
+  return rb_check_string_type(str);
+}
+
+VALUE so_check_convert_type(VALUE self, VALUE obj) {
+  return rb_check_convert_type(obj, 9, "Array", "to_ary");
+}
+
 void Init_subtend_object() {
   VALUE cls;
   cls = rb_define_class("SubtendObject", rb_cObject);
@@ -34,4 +46,7 @@ void Init_subtend_object() {
   rb_define_method(cls, "rb_to_id", so_to_id, 1);
   rb_define_method(cls, "rb_require", so_require, 0);
   rb_define_method(cls, "rb_attr_get", so_attr_get, 2);
+  rb_define_method(cls, "rb_check_array_type", so_check_array_type, 1);
+  rb_define_method(cls, "rb_check_string_type", so_check_string_type, 1);
+  rb_define_method(cls, "rb_check_convert_type", so_check_convert_type, 1);  
 }

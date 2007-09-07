@@ -20,6 +20,12 @@ extension :rubinius do
       end
     end
     
+    class AryChild < Array
+    end
+    
+    class StrChild < String
+    end
+    
     class DescObjectTest < ObjectTest
     end
     
@@ -54,6 +60,34 @@ extension :rubinius do
     specify "rb_attr_get should get an instance variable" do
       o = ObjectTest.new
       @o.rb_attr_get(o, :@foo).should == 7
+    end
+    
+    specify "rb_check_array_type should try to coerce to array, otherwise return nil" do
+      ac = AryChild.new
+      ao = Array.new
+      h = Hash.new
+      @o.rb_check_array_type(ac).should == []
+      @o.rb_check_array_type(ao).should == []
+      @o.rb_check_array_type(h).should == nil
+    end
+    
+    specify "rb_check_convert_type should try to coerce to a type, otherwise return nil" do    
+      ac = AryChild.new
+      ao = Array.new
+      h = Hash.new
+      # note that I force the ary information in the spec extension
+      @o.rb_check_convert_type(ac).should == []
+      @o.rb_check_convert_type(ao).should == []
+      @o.rb_check_convert_type(h).should == nil
+    end
+    
+    specify "rb_check_string_type should try to coerce to a string, otherwise return an empty string" do
+      sc = "Hello"
+      so = StrChild.new("Hello")
+      h = {:hello => :goodbye}
+      @o.rb_check_string_type(sc).should == "Hello"
+      @o.rb_check_string_type(so).should == "Hello"
+      @o.rb_check_string_type(h).should == ""
     end
     
   end
