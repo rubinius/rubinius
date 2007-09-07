@@ -638,13 +638,14 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       case FFI_TYPE_DOUBLE:
         reg = JIT_FPR5;
         double_count++;
+        break;
       default:
         reg = JIT_V1;
         int_count++;
         break;
       }
             
-#define call_conv(kind) jit_calli(conv); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
+#define call_conv(kind) jit_prepare(0); jit_calli(conv); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
     
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
@@ -685,7 +686,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       }
     }
     
-    jit_prepare_i(int_count);
+    if(int_count > 0) jit_prepare_i(int_count);
     if(double_count > 0) jit_prepare_d(double_count);
     if(float_count > 0)  jit_prepare_f(float_count);
     

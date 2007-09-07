@@ -319,8 +319,10 @@ union jit_double_imm {
 #define jit_bordr_d(d, s1, s2)          jit_fp_btest((d), (s1), (s2), 11, 0, 0, JNCm)
 #define jit_bunordr_d(d, s1, s2)        jit_fp_btest((d), (s1), (s2), 11, 0, 0, JCm)
 
-#define jit_pusharg_d(rs)            (jit_subi_i(JIT_SP,JIT_SP,sizeof(double)), jit_str_d(JIT_SP,(rs)))
-#define jit_pusharg_f(rs)            (jit_subi_i(JIT_SP,JIT_SP,sizeof(float)), jit_str_f(JIT_SP,(rs)))
+#define jit_pusharg_d(rs)	({ if(!_jitl.args_clamped) jit_prepare_clamp(); (SUBLir(sizeof(double), JIT_SP), jit_str_d(JIT_SP,(rs))); })
+#define jit_pusharg_f(rs)	({ if(!_jitl.args_clamped) jit_prepare_clamp(); (SUBLir(sizeof(double), JIT_SP), jit_str_f(JIT_SP,(rs))); })
+// #define jit_pusharg_d(rs)            (SUBLir(sizeof(double), JIT_SP), jit_str_d(JIT_SP,(rs)))
+// #define jit_pusharg_f(rs)            (SUBLir(sizeof(float), JIT_SP), jit_str_d(JIT_SP,(rs)))
 
 
 #if 0
@@ -346,8 +348,10 @@ union jit_double_imm {
 			 _OO(0xd9f1))			/* fyl2x */
 #endif
 
-#define jit_prepare_f(nf)       (_jitl.argssize += (nf))
-#define jit_prepare_d(nd)       (_jitl.argssize += 2 * (nd))
+#define jit_prepare_f(nf) jit_prepare_i(nf)
+#define jit_prepare_d(nf) jit_prepare_i(2 * nf)
+//#define jit_prepare_f(nf)       (_jitl.argssize += (nf))
+//#define jit_prepare_d(nd)       (_jitl.argssize += 2 * (nd))
 #define jit_arg_f()             ((_jitl.framesize += sizeof(float)) - sizeof(float))
 #define jit_arg_d()             ((_jitl.framesize += sizeof(double)) - sizeof(double))
 
