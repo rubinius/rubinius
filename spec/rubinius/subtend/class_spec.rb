@@ -5,6 +5,12 @@ extension :rubinius do
   compile_extension('subtend_class')
   require File.dirname(__FILE__) + '/ext/subtend_class'
 
+  module SubtendModuleTest
+    def im_included
+      "YEP"
+    end
+  end
+
   class SubtendClassTest
     attr_reader :foo
 
@@ -12,7 +18,7 @@ extension :rubinius do
       @foo = v
     end
   end
-
+  
   context "SubtendClass" do
     setup do
       @s = SubtendClass.new
@@ -35,5 +41,13 @@ extension :rubinius do
       o.class.should == SubtendClassTest
       o.foo.should == "yo"
     end
+    
+    specify "rb_include_module should include a module into a class" do
+      SubtendClassTest.new(4).respond_to?(:im_included).should == false
+      @s.rb_include_module(SubtendClassTest, SubtendModuleTest)
+      SubtendClassTest.new(4).respond_to?(:im_included).should == true
+      SubtendClassTest.new(4).im_included.should == "YEP"
+    end
+    
   end
 end

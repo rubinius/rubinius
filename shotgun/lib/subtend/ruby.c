@@ -228,6 +228,10 @@ VALUE rb_define_module(const char *name) {
   return NEW_HANDLE(ctx, mod);
 }
 
+void rb_include_module(VALUE klass, VALUE module) {
+  rb_funcall(klass, rb_intern("include"), 1, module);
+}
+
 VALUE rb_const_get(VALUE klass, ID id) {
   CTX;
   return NEW_HANDLE(ctx, cpu_const_get(ctx->state, ctx->cpu, (OBJECT)id, HNDL(klass)));
