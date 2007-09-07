@@ -49,5 +49,12 @@ extension :rubinius do
       @s.cat_as_question("Your house is on fire").should == "Your house is on fire?"
     end
     
+    specify "rb_str_cmp should compare two strings" do
+      @s.rb_str_cmp("xxx", "xxxx").should == -1
+      @s.rb_str_cmp("xxxx", "xxx").should == 1
+      @s.rb_str_cmp("xxx", "yyy").should == -1
+      @s.rb_str_cmp("yyy", "xxx").should == 1
+    end
+
   end
 end

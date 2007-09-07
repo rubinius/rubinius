@@ -429,6 +429,8 @@ void rb_ary_store(VALUE array, int offset, VALUE val) {
   array_set(ctx->state, ary, offset, HNDL(val));
 }
 
+/* Strings */
+
 VALUE rb_str_new(const char *ptr, long len) {
   CTX;
   return NEW_HANDLE(ctx, string_new2(ctx->state, (char*)ptr, len));
@@ -457,16 +459,18 @@ VALUE rb_str_append(VALUE str, VALUE str2) {
 }
 
 VALUE rb_str_cat(VALUE str, const char *ptr, long len) {
-  CTX;
   if(len < 0) rb_raise(rb_eArgError, "negative string size (or size too big)");
-  OBJECT new_string = string_dup(ctx->state, HNDL(str));
-  return NEW_HANDLE(ctx, string_append(ctx->state, new_string, string_new2(ctx->state, ptr, len)));
+  return rb_funcall(str, rb_intern("+"), 1, rb_str_new(ptr, len));
 }
 
 VALUE rb_str_plus(VALUE str1, VALUE str2) {
   CTX;
   OBJECT new_string = string_dup(ctx->state, HNDL(str1));
   return NEW_HANDLE(ctx, string_append(ctx->state, new_string, HNDL(str2)));
+}
+
+VALUE rb_str_cmp(VALUE str1, VALUE str2) {
+  return rb_funcall(str1, rb_intern("<=>"), 1, str2);
 }
 
 VALUE rb_hash_new(void) {

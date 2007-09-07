@@ -20,8 +20,7 @@ VALUE ss_str_append(VALUE self, VALUE str, VALUE str2) {
 
 VALUE ss_cat_as_question(VALUE self, VALUE str) {
   const char *question_mark = "?";
-  rb_str_cat(str, question_mark, strlen(question_mark));
-  return str;
+  return rb_str_cat(str, "?", 1);
 }
 
 VALUE ss_str_plus(VALUE self, VALUE str1, VALUE str2) {
@@ -38,6 +37,10 @@ VALUE ss_rb_str_new2_with_null(VALUE self) {
   return rb_str_new2(NULL);
 }
 
+VALUE ss_str_cmp(VALUE self, VALUE str1, VALUE str2) {
+  return rb_str_cmp(str1, str2);
+}
+
 void Init_subtend_string() {
   VALUE cls;
   cls = rb_define_class("SubtendString", rb_cObject);
@@ -49,4 +52,5 @@ void Init_subtend_string() {
   rb_define_method(cls, "rb_str_plus", ss_str_plus, 2);
   rb_define_method(cls, "cat_as_question", ss_cat_as_question, 1);
   rb_define_method(cls, "phrase_as_question", ss_phrase_as_question, 1);
+  rb_define_method(cls, "rb_str_cmp", ss_str_cmp, 2);
 }
