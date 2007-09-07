@@ -65,5 +65,10 @@ extension :rubinius do
       @s.rb_str2inum("A", 16).should == 10
     end
 
+    specify "rb_str2inum should return a string representation as a number" do
+      @s.rb_cstr2inum(10).should == 10
+      @s.rb_cstr2inum(16).should == 16
+    end
+
   end
 end

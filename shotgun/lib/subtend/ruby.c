@@ -529,6 +529,11 @@ VALUE rb_str2inum(VALUE str, int base) {
   return rb_funcall(str, rb_intern("to_i"), 1, INT2NUM(base));
 }
 
+VALUE rb_cstr2inum(VALUE str, int base) {
+  CTX;
+  return rb_funcall(CHAR2STR(str), rb_intern("to_i"), 1, INT2NUM(base));
+}
+
 VALUE rb_hash_new(void) {
   CTX;
   return NEW_HANDLE(ctx, hash_new(ctx->state));
