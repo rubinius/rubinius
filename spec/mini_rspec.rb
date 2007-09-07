@@ -302,7 +302,7 @@ class SpecRunner
     if at == :each
       @before.push block
     elsif at == :all
-      STDOUT.print "mini_rspec does not support before(:all)"
+      yield
     else
       raise ArgumentError, "I do not know when you want me to call your block"
     end
@@ -312,7 +312,7 @@ class SpecRunner
     if at == :each
       @after.push block
     elsif at == :all
-      STDOUT.print "mini_rspec does not support after(:all)"
+      yield
     else
       raise ArgumentError, "I do not know when you want me to call your block"
     end

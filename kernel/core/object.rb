@@ -1,11 +1,12 @@
 class Object
   
-  VERSION = Rubinius::VERSION
   # VERSION is deprecated in MRI 1.9
-  RUBY_VERSION = Rubinius::VERSION
+  VERSION = Rubinius::RUBY_VERSION
+  RUBY_VERSION = Rubinius::RUBY_VERSION
   RUBY_PLATFORM = Rubinius::RUBY_PLATFORM
   RUBY_RELEASE_DATE = Rubinius::RUBY_RELEASE_DATE
   RUBY_ENGINE = Rubinius::RUBY_ENGINE
+  RBX_VERSION = Rubinius::RBX_VERSION
   
   ivar_as_index :__ivars__ => 0
   def __ivars__; @__ivars__ ; end

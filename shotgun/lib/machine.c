@@ -627,7 +627,9 @@ void machine_setup_config(machine m) {
   mod = rbs_module_new(m->s, "Rubinius", m->s->global->object);
   machine_set_const(m, "RUBY_PLATFORM", string_new(m->s, CONFIG_HOST));
   machine_set_const(m, "RUBY_RELEASE_DATE", string_new(m->s, CONFIG_RELDATE));
-  machine_set_const_under(m, "VERSION", string_new(m->s, CONFIG_VERSION), mod);
+  machine_set_const_under(m, "RBX_VERSION", string_new(m->s, CONFIG_VERSION), mod);
+  machine_set_const_under(m, "RUBY_VERSION", string_new(m->s, CONFIG_RUBY_VERSION), mod);
+  machine_set_const_under(m, "VERSION", string_new(m->s, CONFIG_RUBY_VERSION), mod);
   machine_set_const_under(m, "RUBY_ENGINE", string_new(m->s, CONFIG_ENGINE), mod);
   machine_set_const_under(m, "BUILDREV", string_new(m->s, CONFIG_BUILDREV), mod);
   machine_set_const_under(m, "CODE_PATH", string_new(m->s, CONFIG_CODEPATH), mod);

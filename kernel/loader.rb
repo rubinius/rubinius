@@ -64,7 +64,7 @@ begin
       puts RBS_USAGE
       exit 1
     when "-v"
-      puts "rubinius #{Rubinius::VERSION} (#{Rubinius::BUILDREV}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
+      puts "rubinius #{Rubinius::RBX_VERSION} (ruby #{Rubinius::RUBY_VERSION} compatible) (#{Rubinius::BUILDREV[0..8]}) (#{RUBY_RELEASE_DATE}) [#{RUBY_PLATFORM}]"
       $VERBOSE = true
     when '-dc'
       puts "[Compiler debugging enabled]"
