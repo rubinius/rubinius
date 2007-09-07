@@ -317,6 +317,10 @@ int rb_respond_to(VALUE obj, ID sym) {
   return rb_funcall(obj, rb_intern("respond_to?"), 1, sym) == Qtrue ? 1 : 0;
 }
 
+ID rb_to_id(VALUE obj) {
+  return rb_funcall(obj, rb_intern("to_sym"), 0);
+}
+
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
   VALUE obj;
 

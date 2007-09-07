@@ -35,5 +35,10 @@ extension :rubinius do
       @o.rb_respond_to(ObjectTest.new, :bar).should == false
     end
     
+    specify "rb_to_id should return a symbol representation of the object" do
+      @o.rb_to_id("foo").should == :foo
+      @o.rb_to_id(:foo).should == :foo
+    end
+    
   end
 end
