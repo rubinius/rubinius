@@ -120,13 +120,31 @@ struct jit_local_state {
       _jitl.alloca_space += _x; \
       _jitl.alloca_slack = _x; \
       SUBLir(_x, _ESP); \
-    }; _pos; \
+    }; -_pos; \
 })
 
 #else
-#define jit_prepare_clamp() (_jitl.args_clamped++)
-#define jit_allocai(n)						\
-  jit_allocai_internal ((n), 0)
+# define jit_prepare_clamp()	({ \
+  int _ni = _jitl.argssize; \
+  int _sb = _ni + _jitl.unbound_stack; \
+  _jitl.args_clamped++; \
+  _jitl.arg_padding = 4 * _sb;\
+})
+#define jit_allocai(n) ({ \
+    int _pos; \
+    int _n = (n); \
+    int _x = (_n + 3) & ~3;\
+    _pos = _jitl.alloca_offset; \
+    _jitl.alloca_offset += _x; \
+    if(_x <= _jitl.alloca_slack) { \
+      _jitl.alloca_slack -= _x; \
+    } else { \
+      _x = (_n + 15) & ~15; \
+      _jitl.alloca_space += _x; \
+      _jitl.alloca_slack = _x; \
+      SUBLir(_x, _ESP); \
+    }; -_pos; \
+})
 #endif
 
 #define jit_pusharg_i(rs)	({ if(!_jitl.args_clamped) jit_prepare_clamp(); PUSHLr(rs); })
