@@ -41,6 +41,10 @@ VALUE ss_str_cmp(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_cmp(str1, str2);
 }
 
+VALUE ss_str_split(VALUE self, VALUE str) {
+  return rb_str_split(str, ",");
+}
+
 void Init_subtend_string() {
   VALUE cls;
   cls = rb_define_class("SubtendString", rb_cObject);
@@ -53,4 +57,5 @@ void Init_subtend_string() {
   rb_define_method(cls, "cat_as_question", ss_cat_as_question, 1);
   rb_define_method(cls, "phrase_as_question", ss_phrase_as_question, 1);
   rb_define_method(cls, "rb_str_cmp", ss_str_cmp, 2);
+  rb_define_method(cls, "rb_str_split", ss_str_split, 1);
 }

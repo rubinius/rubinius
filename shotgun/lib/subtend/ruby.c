@@ -15,6 +15,8 @@ OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *
 #define CTX rni_context* ctx = subtend_retrieve_context()
 #define NEW_HANDLE(ctx, val) nmc_handle_new(ctx->nmc, ctx->state->handle_tbl, val)
 
+#define CHAR2STR(name) NEW_HANDLE(ctx, string_new(ctx->state, name))
+
 ID rb_intern(const char *name) {
   CTX;
   return (ID)symtbl_lookup_cstr(ctx->state, ctx->state->global->symbols, name);
@@ -487,6 +489,11 @@ VALUE rb_str_plus(VALUE str1, VALUE str2) {
 
 VALUE rb_str_cmp(VALUE str1, VALUE str2) {
   return rb_funcall(str1, rb_intern("<=>"), 1, str2);
+}
+
+VALUE rb_str_split(VALUE str, const char *sep) {
+  CTX;
+  return rb_funcall(str, rb_intern("split"), 1, CHAR2STR(sep));
 }
 
 VALUE rb_hash_new(void) {

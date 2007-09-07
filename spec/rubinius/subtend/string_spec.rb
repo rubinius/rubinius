@@ -55,6 +55,10 @@ extension :rubinius do
       @s.rb_str_cmp("xxx", "yyy").should == -1
       @s.rb_str_cmp("yyy", "xxx").should == 1
     end
+    
+    specify "rb_str_split should split strings over a splitter" do
+      @s.rb_str_split("Hello,Goodbye").should == ["Hello", "Goodbye"]
+    end
 
   end
 end
