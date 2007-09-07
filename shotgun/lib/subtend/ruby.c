@@ -6,6 +6,7 @@
 #include "string.h"
 #include "hash.h"
 #include "class.h"
+#include "module.h"
 
 OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
@@ -235,6 +236,12 @@ void rb_include_module(VALUE klass, VALUE module) {
 VALUE rb_const_get(VALUE klass, ID id) {
   CTX;
   return NEW_HANDLE(ctx, cpu_const_get(ctx->state, ctx->cpu, (OBJECT)id, HNDL(klass)));
+}
+
+void rb_define_const(VALUE klass, const char* key, VALUE val) {
+  CTX;
+  if(NIL_P(klass)) rb_raise(rb_eTypeError, "no class/module to define constant %s", key);
+  module_const_set(ctx->state, HNDL(klass), rb_intern(key), HNDL(val));
 }
 
 VALUE rb_ivar_get(VALUE obj, ID sym) {
