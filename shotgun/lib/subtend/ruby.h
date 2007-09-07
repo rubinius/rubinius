@@ -76,6 +76,7 @@ VALUE rb_obj_alloc(VALUE klass);
 void rb_obj_call_init(VALUE obj, int nargs, VALUE *args);
 VALUE rb_obj_is_instance_of(VALUE obj, VALUE klass);
 VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass);
+int rb_respond_to(VALUE obj, ID sym);
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 
 /* Conversions */
