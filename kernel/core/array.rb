@@ -1224,22 +1224,22 @@ class Array
 
   # Returns self except on subclasses which are converted
   # or 'upcast' to Arrays.
-  def to_a
+  def to_a()
     if self.class == Array
       self
     else
       Array.new(self[0..-1])
     end
-  end                                                 # to_a
+  end
 
   # Returns self
-  def to_ary
+  def to_ary()
     self
   end
 
   # Produces a string by joining all elements without a 
   # separator. See #join
-  def to_s
+  def to_s()
     self.join
   end 
 
@@ -1263,7 +1263,7 @@ class Array
     }
 
     out
-  end                                                 # transpose
+  end 
 
   # Returns a new Array by removing duplicate entries
   # from self. Equality is determined by using a Hash
@@ -1276,7 +1276,7 @@ class Array
     }
 
     out
-  end                                                 # uniq
+  end
 
   # Removes duplicates from the Array in place as #uniq
   def uniq!()
@@ -1284,31 +1284,50 @@ class Array
 
     ary = uniq
     replace(ary) if size != ary.size
-  end                                                 # uniq!
+  end
 
+#  # Inserts the element to the front of the Array and
+#  # moves the other elements up by one index.
+#  def unshift(*val)
+#    raise TypeError, "Array is frozen" if frozen?
+#    return self if val.empty?
+#
+#    self[0, 0] = val
+#    self
+#  end 
 
+  # Returns a new Array populated from the elements in
+  # self corresponding to the given selector(s.) The
+  # arguments may be one or more integer indices or
+  # Ranges. 
   def values_at(*args)
     out = []
-    args.each { |x|
-      if Range === x
-        # doesn't work: x.each { |i| out << self[i] }: one nil too many
-        # doesn't work: out.concat self[x]: [1, 2, 3, 4, 5].values_at(0..2, 1...3, 4..6).should == [1, 2, 3, 2, 3, 5, nil]
-        lst = x.last
-        if lst < 0
-          lst += @total
-        end
-        if lst > size
-          lst = size            # sick to do this BEFORE exclude_end?
-        end
-        lst -= 1 if x.exclude_end?
-        idx = x.first  
-        idx.upto(lst) { |i|
-          out << self[i]
-        }
+
+    args.each { |elem|
+      # Cannot use #[] because of subtly different errors
+      if elem.kind_of? Range
+        finish = elem.last
+        start = elem.first  
+
+        start, finish = int_from(start), int_from(finish)
+
+        start += @total if start < 0
+        next if start < 0
+
+        finish += @total if finish < 0
+        finish -= 1 if elem.exclude_end?
+        finish = @total unless finish < @total
+
+        next if finish < start
+
+        start.upto(finish) { |i| out << at(i) }
+
       else
-        out << self[x]
+        i = int_from elem
+        out << at(i)
       end
     }
+
     out
   end
 
