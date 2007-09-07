@@ -37,6 +37,13 @@ static VALUE sc_include_module(VALUE self, VALUE klass, VALUE module) {
   return klass;
 }
 
+void sc_define_attr(VALUE self, VALUE klass, VALUE sym, VALUE read, VALUE write) {
+  int int_read, int_write;
+  int_read = read == Qtrue ? 1 : 0;
+  int_write = write == Qtrue ? 1 : 0;
+  rb_define_attr(klass, SYM2ID(sym), int_read, int_write);
+}
+
 void Init_subtend_class() {
   VALUE cls;
   cls = rb_define_class("SubtendClass", rb_cObject);
@@ -44,4 +51,5 @@ void Init_subtend_class() {
   rb_define_method(cls, "rb_obj_call_init", sc_rb_obj_call_init, 3);
   rb_define_method(cls, "rb_class_new_instance", sc_rb_class_new_instance, 3);
   rb_define_method(cls, "rb_include_module", sc_include_module, 2);
+  rb_define_method(cls, "rb_define_attr", sc_define_attr, 4);  
 }

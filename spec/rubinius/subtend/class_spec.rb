@@ -49,5 +49,18 @@ extension :rubinius do
       SubtendClassTest.new(4).im_included.should == "YEP"
     end
     
+    specify "rb_define_attr should be able to define attributes" do
+      @s.rb_define_attr(SubtendClassTest, :bar, true, false)
+      @s.rb_define_attr(SubtendClassTest, :baz, false, true)
+      @s.rb_define_attr(SubtendClassTest, :bat, true, true)      
+      s = SubtendClassTest.new(7)
+      s.respond_to?(:bar).should == true
+      s.respond_to?(:bar=).should == false
+      s.respond_to?(:baz).should == false
+      s.respond_to?(:baz=).should == true
+      s.respond_to?(:bat).should == true
+      s.respond_to?(:bat=).should == true      
+    end
+    
   end
 end

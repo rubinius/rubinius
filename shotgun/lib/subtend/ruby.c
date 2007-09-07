@@ -263,6 +263,11 @@ VALUE rb_attr_get(VALUE obj, ID sym) {
   return rb_ivar_get(obj, sym);
 }
 
+void rb_define_attr(VALUE klass, ID id, int read, int write) {
+  if(read == 1) rb_funcall(klass, rb_intern("attr_reader_cv"), 1, id);
+  if(write == 1) rb_funcall(klass, rb_intern("attr_writer_cv"), 1, id);    
+}
+
 VALUE rb_iv_get(VALUE obj, char *name) {
   return rb_ivar_get(obj, rb_intern(name));
 }
@@ -604,7 +609,6 @@ rb_str_substr
 
 /*
 
-rb_define_singleton_method
 rb_gc_mark
 rb_gv_get
 
@@ -612,7 +616,6 @@ rb_class2name
 rb_obj_classname
 
 rb_call_super
-rb_respond_to
 
 rb_str_catf
 rb_str_resize
@@ -621,7 +624,6 @@ rb_str_cat2
 rb_block_given_p
 rb_block_proc
 rb_throw
-rb_float_new
 Data_Wrap_Struct
 
 rb_num2ull

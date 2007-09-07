@@ -44,6 +44,8 @@ VALUE rb_ivar_get(VALUE obj, ID sym);
 VALUE rb_iv_get(VALUE obj, char *name);
 VALUE rb_ivar_set(VALUE obj, ID sym, VALUE val);
 VALUE rb_iv_set(VALUE obj, char *name, VALUE val);
+void rb_define_attr(VALUE klass, ID id, int read, int write);
+VALUE rb_attr_get(VALUE obj, ID sym);
 
 #define rb_cObject (subtend_get_global(0))
 
