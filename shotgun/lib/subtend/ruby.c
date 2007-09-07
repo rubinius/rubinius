@@ -315,6 +315,17 @@ int rb_ary_size(VALUE self) {
 /* The same value as 1.8.x */
 #define ARRAY_DEFAULT_SIZE 16
 
+/* Float */
+
+VALUE rb_float_new(double d) {
+  OBJECT flt;
+  CTX;
+  
+  flt = float_new(ctx->state, d);
+  
+  return NEW_HANDLE(ctx, flt);
+}
+
 /* Array */
 
 VALUE rb_ary_new(void) {

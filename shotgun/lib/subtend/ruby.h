@@ -37,6 +37,11 @@ VALUE rb_define_module_under(VALUE parent, const char *name);
 
 VALUE rb_const_get(VALUE klass, ID id);
 
+VALUE rb_ivar_get(VALUE obj, ID sym);
+VALUE rb_iv_get(VALUE obj, char *name);
+VALUE rb_ivar_set(VALUE obj, ID sym, VALUE val);
+VALUE rb_iv_set(VALUE obj, char *name, VALUE val);
+
 #define rb_cObject (subtend_get_global(0))
 
 /* TODO: Pull these into an enum */
@@ -101,6 +106,9 @@ VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val);
 VALUE rb_hash_delete(VALUE hash, VALUE key);
+
+/* Float */
+VALUE rb_float_new(double d);
 
 const char *rb_id2name(ID sym);
 ID rb_intern(const char *name);
