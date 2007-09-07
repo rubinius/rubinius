@@ -66,7 +66,7 @@ void Init_subtend_array() {
   rb_define_method(cls, "rb_ary_clear", sa_array_clear, 1);
   rb_define_method(cls, "rb_ary_dup", sa_array_dup, 1);
   rb_define_method(cls, "rb_ary_join", sa_array_join, 2);
-  rb_define_method(cls, "rb_ary_reverse", sa_array_join, 1);
+  rb_define_method(cls, "rb_ary_reverse", sa_array_reverse, 1);
   rb_define_method(cls, "rb_ary_unshift", sa_array_unshift, 2);
   rb_define_method(cls, "rb_ary_shift", sa_array_shift, 1);
   rb_define_method(cls, "rb_ary_store", sa_array_store, 3);

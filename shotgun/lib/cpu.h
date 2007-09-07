@@ -135,7 +135,7 @@ void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
-inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception);
+inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);
@@ -157,7 +157,6 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args);
 void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym);
-
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);

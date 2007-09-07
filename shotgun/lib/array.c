@@ -66,8 +66,11 @@ OBJECT array_append(STATE, OBJECT self, OBJECT val) {
 
 OBJECT array_pop(STATE, OBJECT self) {
   int idx;
+  OBJECT val;
   
   idx = FIXNUM_TO_INT(array_get_total(self)) - 1;
+  val = array_get(state, self, idx);
+  
   array_set_total(self, I2N(idx));
-  return array_get(state, self, idx);
+  return val;
 }

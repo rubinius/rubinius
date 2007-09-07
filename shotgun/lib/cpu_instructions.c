@@ -505,7 +505,6 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
 }
 
 #include <string.h>
-void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise);
 
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   struct fast_context *fc;
@@ -523,6 +522,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   c->self = fc->self;
   c->data = fc->data;
   c->type = fc->type;
+    
   c->fp_ptr = fc->fp_ptr;
   
   /* Only happens if we're restoring a block. */
@@ -532,18 +532,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   
   c->sp = fc->sp;
   c->ip = fc->ip;
-  
-  /* Ok, reason we'd be restoring a native context:
-     1) the native context used rb_funcall and we need to return
-        it the result of the call.
-  */
-  if(fc->type == FASTCTX_NMC) {
-    nmc_activate(state, c, home, FALSE);
-    /* We return because nmc_activate will setup the cpu to do whatever
-       it needs to next. */
-    return;
-  }
-  
+    
   cpu_cache_ip(c);
   cpu_cache_sp(c);
   
@@ -559,14 +548,12 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
   cpu_restore_context_with_home(state, c, ctx, home, FALSE, FALSE);
 }
 
-static inline void cpu_restore_context(STATE, cpu c, OBJECT x) {
-    cpu_restore_context_with_home(state, c, x, x, FALSE, FALSE);
-}
-
 /* Layer 2.5: Uses lower layers to return to the calling context.
    Returning ends here. */
 
-inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception) {
+void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
+
+inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception) {
   OBJECT destination, home;
   int is_block;
   
@@ -586,7 +573,9 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
     } else if(c->current_task != c->main_task) {
       cpu_task_select(state, c, c->main_task);
       return FALSE;
-    }    
+    }
+    /* The return value of the script is passed on the stack. */
+    stack_push(val);
   } else {
     
     /* Implements a block causing the the context it was created in
@@ -653,7 +642,25 @@ inline int cpu_return_to_sender(STATE, cpu c, int consider_block, int exception)
     xassert(om_valid_context_p(state, destination));
     xassert(om_valid_context_p(state, home));
     
-    cpu_restore_context_with_home(state, c, destination, home, TRUE, is_block);
+    /* Skip over NMCs for now. */
+    if(exception && FASTCTX(destination)->type == FASTCTX_NMC) {
+      c->active_context = destination;
+      return cpu_return_to_sender(state, c, val, FALSE, TRUE);      
+    }
+    
+    /* Ok, reason we'd be restoring a native context:
+       1) the native context used rb_funcall and we need to return
+          it the result of the call.
+    */
+    if(FASTCTX(home)->type == FASTCTX_NMC) {
+      nmc_activate(state, c, home, val, FALSE);
+      /* We return because nmc_activate will setup the cpu to do whatever
+         it needs to next. */
+      return TRUE;
+    } else {
+      cpu_restore_context_with_home(state, c, destination, home, TRUE, is_block);
+      if(!exception) stack_push(val);
+    }
   }
   
   return TRUE;

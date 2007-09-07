@@ -29,10 +29,10 @@ extension :rubinius do
       a.should == [1,2]
     end
     
-    specify "rb_ary_join should join two arrays" do
+    specify "rb_ary_join should join elements of an array with a string" do
       a = [1,2,3]
-      b = [4,5,6]
-      @s.rb_ary_join(a,b).should == [1,2,3,4,5,6]
+      b = ","
+      @s.rb_ary_join(a,b).should == "1,2,3"
     end
     
     specify "rb_ary_reverse should reverse an array" do

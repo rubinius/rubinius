@@ -25,13 +25,20 @@ static inline void methctx_reference(STATE, OBJECT ctx) {
   HEADER(ctx)->gc = 0;
   GC_ZONE_SET(ctx, GC_YOUNG_OBJECTS);
 
-  if(FASTCTX(ctx)->type == FASTCTX_NORMAL) {
+  switch(FASTCTX(ctx)->type) {
+  case FASTCTX_NORMAL:
     HEADER(ctx)->klass = BASIC_CLASS(fastctx);
     OBJ_TYPE_SET(ctx, TYPE_MCONTEXT);
     FLAG_SET(ctx, CTXFastFlag);
-  } else {
+    break;
+  case FASTCTX_BLOCK:  
     HEADER(ctx)->klass = BASIC_CLASS(blokctx);
     OBJ_TYPE_SET(ctx, TYPE_BCONTEXT);
+    break;
+  case FASTCTX_NMC:
+    HEADER(ctx)->klass = BASIC_CLASS(nmc);
+    OBJ_TYPE_SET(ctx, TYPE_MCONTEXT);
+    break;
   }
   SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
   

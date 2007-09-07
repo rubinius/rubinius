@@ -1870,11 +1870,12 @@ class ShotgunPrimitives
   
   def nmethod_call
     <<-CODE
+    t1 = stack_pop();
     cpu_flush_ip(c);
     cpu_flush_sp(c);
-    cpu_save_registers(state, c, 0);
-    t1 = nmc_new(state, mo, c->active_context, stack_pop(), method_name, num_args);
-    nmc_activate(state, c, t1, FALSE);
+    cpu_save_registers(state, c, num_args);
+    t1 = nmc_new(state, mo, c->active_context, t1, method_name, num_args);
+    nmc_activate(state, c, t1, Qnil, FALSE);
     CODE
   end
 

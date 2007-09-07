@@ -33,25 +33,31 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   OBJECT ctx, sys;
   struct fast_context *fc;
   
-  ctx = object_memory_new_object(state->om, state->global->nmc, FASTCTX_FIELDS);
+  ctx = object_memory_new_context(state->om);
+  if(ctx >= state->om->context_last) {
+    state->om->collect_now |= OMCollectYoung;
+  }
   
-  FLAG_SET(ctx, CTXFastFlag);
-  FLAG_SET(ctx, StoresBytesFlag);
+  if(state->excessive_tracing) {
+    printf("CTX:           block running %d\n", (int)ctx);
+  }
   
+  HEADER(ctx)->flags = 0;
+  HEADER(ctx)->flags2 = 0;
+  HEADER(ctx)->fields = FASTCTX_FIELDS;
+    
   fc = FASTCTX(ctx);
-  memset(fc, 0, sizeof(struct fast_context));
   fc->sender = sender;
   fc->ip = 0;
   fc->sp = 0;
-  fc->block = (OBJECT)Qnil;
-  fc->method = nmethod;
-  fc->data = NULL;
-  fc->literals = (OBJECT)Qnil;
-  fc->self = recv;
-  fc->locals = (OBJECT)Qfalse;
-  fc->argcount = args;
   fc->name = name;
+  fc->self = recv;
+  fc->method = nmethod;  
+  fc->block = (OBJECT)Qnil;
+  fc->literals = (OBJECT)Qnil;
   fc->method_module = (OBJECT)Qnil;
+  fc->locals = (OBJECT)Qnil;
+  fc->argcount = args;
   fc->type = FASTCTX_NMC;
   
   n = nmc_new_standalone();
@@ -151,13 +157,15 @@ void _nmc_start() {
   va = NULL;
   args = NULL;
   
+  /*
   #ifndef __i386__
   if(n->method->stub) {
     retval = n->method->stub(recv);
     goto done;
   }
   #endif
-
+  */
+  
   rni_handle* (*func)() = (rni_handle* (*)())(n->method->entry);
   int hs, ch;
   if(n->method->args == -2) {
@@ -252,12 +260,12 @@ done:
   
   n->value = retval;
   
-  /* Switch back to the main stack, into nmc_activate so finish up. */
+  /* Switch back to the main stack, into nmc_activate to finish up. */
   n->jump_val = ALL_DONE;
   setcontext(&n->system);
 }
 
-void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
+void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
   int travel;
   rni_nmc *n;
   struct fast_context *fc;
@@ -287,10 +295,16 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
   
   /* If we haven't traveled yet, call the method. */
   if(!travel) {
+    c->self = fc->self;
+    c->type = fc->type;
+    
+    c->home_context = nmc;
+    c->active_context = nmc;
+    
     /* Oh! It's already running, lets reactivate it. */
     if(n->cont_set) {
       /* Grab the return value and make a handle for it. */
-      n->value = nmc_handle_new(n, state->handle_tbl, cpu_stack_pop(state, c));
+      n->value = nmc_handle_new(n, state->handle_tbl, val);
       
       /* Go go gadget stack! */
       n->jump_val = 1;
@@ -329,8 +343,8 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
       break;
 
     case CALL_METHOD:
-      c->active_context = nmc;
-      n->setup_context++;
+      // c->active_context = nmc;
+      // n->setup_context++;
       /* With call method, the rb_funcall shim pushs the arguments
          on the stack already, so we just have to perform the send. */
       tmp = handle_to_object(state, state->handle_tbl, n->value);
@@ -361,12 +375,9 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise) {
     case ALL_DONE:
       /* Push the return value onto the stack. */
       tmp = handle_to_object(global_context->state, global_context->state->handle_tbl, n->value);
-      stack_push(tmp);
       nmc_cleanup(n, state->handle_tbl);
       n->stack = NULL;
-      if(n->setup_context) {
-        cpu_return_to_sender(state, c, 0, FALSE);
-      }
+      cpu_return_to_sender(state, c, tmp, 0, FALSE);
       nmc_delete(n);
       fc->opaque_data = NULL;
       return;

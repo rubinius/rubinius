@@ -250,10 +250,6 @@ class Object
     end
   end
 
-  def ==(other)
-    self.object_id == other.object_id
-  end
-
   def !=(other)
     !(self == other)
   end

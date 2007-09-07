@@ -41,8 +41,17 @@ class MethodContext
     
     return d
   end
+
+  def location
+    "#{file}:#{line}"
+  end
 end
 
+class NativeMethodContext
+  def location
+    "#{file}"
+  end
+end
 
 class BlockContext
   
@@ -260,7 +269,7 @@ class Backtrace
         str = "#{ctx.receiver.to_s}."
       elsif MetaClass === ctx.method_module
         str = "#{ctx.receiver}."
-      elsif ctx.method_module != ctx.receiver.class
+      elsif ctx.method_module and ctx.method_module != ctx.receiver.class
         str = "#{ctx.method_module}(#{ctx.receiver.class})#"
       else
         str = "#{ctx.receiver.class}#"
@@ -276,7 +285,7 @@ class Backtrace
         @max = str.size
       end
       
-      @frames << [str, "#{ctx.file}:#{ctx.line}"]
+      @frames << [str, ctx.location]
       ctx = ctx.sender
     end
     @max = MAX_WIDTH if @max > MAX_WIDTH

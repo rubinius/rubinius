@@ -40,7 +40,7 @@ typedef struct rni_context rni_context;
 void subtend_set_context(STATE, cpu c, rni_nmc *nmc);
 rni_context* subtend_retrieve_context();
 rni_nmc *nmc_new_standalone();
-void nmc_activate(STATE, cpu c, OBJECT nmc, int reraise);
+void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, int args);
 void _nmc_save_stack(rni_nmc *nmc, unsigned long *bottom, unsigned long *top);
 rni_handle *nmc_handle_new(rni_nmc *n, rni_handle_table *tbl, OBJECT obj);

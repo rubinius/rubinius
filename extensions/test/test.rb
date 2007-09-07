@@ -14,12 +14,17 @@ puts "\nTest 2 (call from C into ruby):"
 class TestExtension
   def from_c
     puts "R* called from C into ruby!"
+    [1,2,3]
   end
 end
 
 puts "R* before call in ruby"
-t.test_call
-puts "R* after call in ruby"
+out = t.test_call
+if out != [1,2,3]
+  puts "RETURN VALUE FAILED: #{out.inspect}"
+  exit 1
+end
+puts "R* after call in ruby: #{out.inspect}"
 
 puts "\nTest 3 (detect and convert segfault):"
 

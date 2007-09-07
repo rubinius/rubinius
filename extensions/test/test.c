@@ -8,10 +8,11 @@ VALUE test_print(VALUE self) {
 }
 
 VALUE test_call(VALUE self) {
+  VALUE tmp;
   printf("C* calling into ruby...\n");
-  rb_funcall(self, rb_intern("from_c"), 0);
+  tmp = rb_funcall(self, rb_intern("from_c"), 0);
   printf("C* after the call!\n");
-  return Qtrue;
+  return tmp;
 }
 
 VALUE test_call2(VALUE self) {
