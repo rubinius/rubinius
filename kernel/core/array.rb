@@ -1331,16 +1331,29 @@ class Array
     out
   end
 
+  # Interleaves all given :to_ary's so that the n-th element of each
+  # Array is inserted into the n-th subarray of the returned Array.
+  # If a block is provided, then each subarray is passed to it 
+  # instead. The maximum number of subarrays and therefore elements
+  # used is the size of self. Missing indices are filled in with
+  # nils and any elements past self.size in the other Arrays are
+  # ignored.
   def zip(*others)
-    result = []
-    others = others.map { |a| a.to_ary }
+    out = Array.new(size) { [] }
+    others = others.map { |ary| ary.to_a }
 
-    each_with_index { |a, i|
-      result << others.inject([a]) { |memo, o| memo << o.fetch(i, nil) } 
-      yield result.last if block_given?
-    }
+    size.times do |i|
+      slot = out.at(i)
+      slot << @tuple.at(i)
+      others.each { |ary| slot << ary.at(i) }
+    end
 
-    result unless block_given?
+    if block_given?
+      out.each { |ary| yield ary }
+      return nil
+    end
+    
+    out
   end
   
   
