@@ -74,6 +74,8 @@ void rb_raise(VALUE exc, const char *fmt, ...);
 
 VALUE rb_obj_alloc(VALUE klass);
 void rb_obj_call_init(VALUE obj, int nargs, VALUE *args);
+VALUE rb_obj_is_instance_of(VALUE obj, VALUE klass);
+VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass);
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 
 /* Conversions */
@@ -101,6 +103,7 @@ VALUE rb_str_append(VALUE str, VALUE str2);
 VALUE rb_str_cat(VALUE str, const char *ptr, long len);
 VALUE rb_str_plus(VALUE str1, VALUE str2);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
+VALUE rb_str_cmp(VALUE str1, VALUE str2);
 
 /* Hash */
 VALUE rb_hash_new(void);

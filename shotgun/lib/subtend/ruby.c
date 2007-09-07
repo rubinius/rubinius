@@ -305,6 +305,14 @@ void rb_obj_call_init(VALUE obj, int nargs, VALUE *args) {
   rb_funcall2(obj, rb_intern("initialize"), nargs, args);
 }
 
+VALUE rb_obj_is_instance_of(VALUE obj, VALUE klass) {
+  return rb_funcall(obj, rb_intern("instance_of?"), 1, klass);
+}
+
+VALUE rb_obj_is_kind_of(VALUE obj, VALUE klass) {
+  return rb_funcall(obj, rb_intern("kind_of?"), 1, klass);
+}
+
 VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass) {
   VALUE obj;
 
