@@ -85,6 +85,7 @@ VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 
 /* Conversions */
 int FIX2INT(VALUE val);
+VALUE INT2NUM(int num);
 
 /* Array */
 VALUE rb_ary_new(void);
@@ -110,6 +111,7 @@ VALUE rb_str_plus(VALUE str1, VALUE str2);
 VALUE rb_str_buf_cat(VALUE str, const char *ptr, long len);
 VALUE rb_str_cmp(VALUE str1, VALUE str2);
 VALUE rb_str_split(VALUE str, const char *sep);
+VALUE rb_str2inum(VALUE str, int base);
 
 /* Hash */
 VALUE rb_hash_new(void);

@@ -45,6 +45,11 @@ VALUE ss_str_split(VALUE self, VALUE str) {
   return rb_str_split(str, ",");
 }
 
+VALUE ss_str2inum(VALUE self, VALUE str, VALUE inum) {
+  int num = FIX2INT(inum);
+  return rb_str2inum(str, num);
+}
+
 void Init_subtend_string() {
   VALUE cls;
   cls = rb_define_class("SubtendString", rb_cObject);
@@ -58,4 +63,5 @@ void Init_subtend_string() {
   rb_define_method(cls, "phrase_as_question", ss_phrase_as_question, 1);
   rb_define_method(cls, "rb_str_cmp", ss_str_cmp, 2);
   rb_define_method(cls, "rb_str_split", ss_str_split, 1);
+  rb_define_method(cls, "rb_str2inum", ss_str2inum, 2);  
 }

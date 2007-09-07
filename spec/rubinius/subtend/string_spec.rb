@@ -59,6 +59,11 @@ extension :rubinius do
     specify "rb_str_split should split strings over a splitter" do
       @s.rb_str_split("Hello,Goodbye").should == ["Hello", "Goodbye"]
     end
+    
+    specify "rb_str2inum should return a string representation as a number" do
+      @s.rb_str2inum("10", 10).should == 10
+      @s.rb_str2inum("A", 16).should == 10
+    end
 
   end
 end

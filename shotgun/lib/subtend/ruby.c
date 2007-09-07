@@ -496,6 +496,10 @@ VALUE rb_str_split(VALUE str, const char *sep) {
   return rb_funcall(str, rb_intern("split"), 1, CHAR2STR(sep));
 }
 
+VALUE rb_str2inum(VALUE str, int base) {
+  return rb_funcall(str, rb_intern("to_i"), 1, INT2NUM(base));
+}
+
 VALUE rb_hash_new(void) {
   CTX;
   return NEW_HANDLE(ctx, hash_new(ctx->state));
@@ -548,6 +552,11 @@ int FIX2INT(VALUE val) {
   CTX;
   OBJECT arg = HNDL(val);
   return FIXNUM_TO_INT(arg);
+}
+
+VALUE INT2NUM(int num) {
+  CTX;
+  return NEW_HANDLE(ctx, rbs_int_to_fixnum(ctx->state, num));
 }
 
 /*
