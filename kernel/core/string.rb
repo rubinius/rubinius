@@ -78,7 +78,9 @@ class String
     end
     
     raise TypeError, "can't modify frozen string" if self.frozen?
-    append(other)
+    r = append(other)
+    r.taint if other.tainted?
+    r
   end
   alias_method :concat, :<<
 

@@ -2080,12 +2080,12 @@ end
 
 describe "String#concat" do
   it "is an alias of String#<<" do
-    ["xyz", 42].each do |arg|
-      (a = "abc") << arg
-      (b = "abc").concat(arg).equal?(b).should == true
-      
-      a.should == b
-    end
+    str = 'hello '
+    (str.concat('world')).equal?(str).should == true
+    str.should == "hello world"
+    str2 = 'hello '
+    str2 << 'world'
+    str.should == str2
   end
 
   it "taints self if other is tainted" do
