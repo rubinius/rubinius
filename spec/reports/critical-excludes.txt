@@ -23,3 +23,16 @@ String#gsub with pattern and block raises a RuntimeError if the string is modifi
 String#initialize doesn't change self when str isn't supplied
 Numeric#coerce coerce strings to strings
 String#=~ raises a TypeError if a obj is a string
+String#%
+Array#pack
+Regexp#~ matchs against the contents of $_
+Regexp#to_s returns a string in 
+Thread.new creates a thread executing the given block
+Thread.current returns the current thread
+Thread.main returns the main thread
+Thread#value returns the result of the block
+Thread#alive? returns false when the thread is finished
+Thread#join
+Thread#status
+Thread#inspect
+Thread#alive?
