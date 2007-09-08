@@ -82,7 +82,12 @@ patterns.each do |item|
 end
 
 # remove all compiled spec files to catch compiler bugs
-files.each { |name| File.delete name } if clean
+if clean
+  files.each do |name|
+    cname = "#{name}c"
+    File.delete(cname) if File.exist?(cname)
+  end
+end
 
 process = lambda do |cmd|
   if separate

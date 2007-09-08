@@ -3,25 +3,135 @@ module Math
   PI = 3.14159_26535_89793_23846
   E  = 2.71828_18284_59045_23536
   
-  def sqrt(value)
-    result = Platform::Math.sqrt(Float(value))
-    verify_range(result, 'sqrt')
+  def atan2(y, x)
+    Platform::Math.atan2 Float(y), Float(x)
+  end
+  
+  def cos(x)
+    Platform::Math.cos Float(x)
+  end
+  
+  def sin(x)
+    Platform::Math.sin Float(x)
+  end
+  
+  def tan(x)
+    Platform::Math.tan Float(x)
+  end
+  
+  def acos(x)
+    x = Float(x)
+    verify_domain('acos') { x.abs <= 1 }
+    Platform::Math.acos x
+  end
+  
+  def asin(x)
+    x = Float(x)
+    verify_domain('asin') { x.abs <= 1 }
+    Platform::Math.asin x
+  end
+  
+  def atan(x)
+    Platform::Math.atan Float(x)
+  end
+  
+  def cosh(x)
+    Platform::Math.cosh Float(x)
+  end
+  
+  def sinh(x)
+    Platform::Math.sinh Float(x)
+  end
+  
+  def tanh(x)
+    Platform::Math.tanh Float(x)
+  end
+  
+  def acosh(x)
+    x = Float(x)
+    verify_domain('acosh') { x >= 1 }
+    Platform::Math.acosh x
+  end
+  
+  def asinh(x)
+    Platform::Math.asinh Float(x)
+  end
+  
+  def atanh(x)
+    x = Float(x)
+    verify_domain('atanh') { x.abs <= 1 }
+    Platform::Math.atanh x
+  end
+  
+  def exp(x)
+    Platform::Math.exp Float(x)
+  end
+  
+  def log(x, base=nil)
+    x = Float(x)
+    verify_domain('log') { x >= 0 }
+    result = Platform::Math.log x
+    result /= Platorm::Math.log Float(base) if base
     return result
   end
   
-  def verify_range(value, msg)
-    Errno.handle msg
-    if value.nan?
+  def log2(x)
+    x = Float(x)
+    verify_domain('log2') { x >= 0 }
+    Platform::Math.log2 x
+  end
+  
+  def log10(x)
+    x = Float(x)
+    verify_domain('log10') { x >= 0 }
+    Platform::Math.log10 x
+  end
+  
+  def sqrt(x)
+    x = Float(x)
+    verify_domain('sqrt') { x >= 0 }
+    Platform::Math.sqrt x
+  end
+  
+  def frexp(x)
+    x = Float(x)
+    raise Exception, "frexp not implemented"
+    # exp = 0
+    # result = Platform::Math.frexp x, exp
+    # [result, exp]
+  end
+  
+  def ldexp(x, n)
+    Platform::Math.ldexp Float(x), Integer(n)
+  end
+  
+  def hypot(x, y)
+    Platform::Math.hypot Float(x), Float(y)
+  end
+  
+  def erf(x)
+    Platform::Math.erf Float(x)
+  end
+  
+  def erfc(x)
+    Platform::Math.erfc Float(x)
+  end
+  
+  def verify_domain(msg)
+    unless yield
       raise Errno::EDOM, msg if Errno.const_defined?(:EDOM)
       raise Errno::ERANGE, msg if Errno.const_defined?(:ERANGE)
     end
   end
-  private :verify_range
-
-  def self.after_loaded
-    module_function :sqrt
   
-    private :sqrt
+  def self.after_loaded
+    module_function :verify_domain, :atan2, :cos, :sin, :tan, :acos, :asin, :atan,
+                    :cosh, :sinh, :tanh, :acosh, :asinh, :atanh, :exp, :log, :log2,
+                    :log10, :sqrt, :frexp, :ldexp, :hypot, :erf, :erfc
+      
+    private :verify_domain, :atan2, :cos, :sin, :tan, :acos, :asin, :atan,
+            :cosh, :sinh, :tanh, :acosh, :asinh, :atanh, :exp, :log, :log2,
+            :log10, :sqrt, :frexp, :ldexp, :hypot, :erf, :erfc
   end
 end
 

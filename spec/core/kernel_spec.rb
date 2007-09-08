@@ -29,14 +29,13 @@ context "Kernel.Float()" do
     Float(KernelSpecFloat.new).should == 1.1
   end
 
-#  This should not work
-#  specify "should call to_i to convert any arbitrary argument to a Float" do
-#    class KernelSpecFloat2
-#      def to_i; 7; end
-#    end
-#
-#    Float(KernelSpecFloat2.new).should == 7.0
-#  end
+ specify "should call to_i to convert any arbitrary argument to a Float" do
+   class KernelSpecFloat2
+     def to_i; 7; end
+   end
+
+   Float(KernelSpecFloat2.new).should == 7.0
+ end
 
   specify "should give to_f precedence over to_i" do
     class KernelSpecFloat3

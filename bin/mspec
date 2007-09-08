@@ -116,8 +116,9 @@ cmd = <<-EOC
 @runner = SpecRunner.new(#{format}.new(#{output.inspect if output}));
 @runner.only(*#{only.inspect});
 @runner.except(*#{except.inspect});
-#{files.inspect}.each do |f| 
-  File.delete("\#{f}c") if #{clean}
+#{files.inspect}.each do |f|
+  cname = "\#{f}c"
+  File.delete(cname) if #{clean} and File.exist?(cname)
   load f
 end'
 EOC

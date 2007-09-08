@@ -1,43 +1,36 @@
 module Kernel
 
   # Conversion methods
-  def Float(obj)
-    obj = obj.to_f
-    if Float === obj
-      obj
-    else
-      raise TypeError, "#{obj.class}#to_f should return Float"
+  def coerce_to(type, method, do_raise=true)
+    if self.respond_to?(method)
+      result = self.__send__(method)
+      raise TypeError, "#{self.class}##{method} should return #{type}" unless result.is_a?(type)
+      return result
+    elsif do_raise
+      raise TypeError, "can't convert #{self.class} into #{type}"
     end
-  rescue NoMethodError
-    Integer(obj).to_f
-  rescue TypeError
-    raise TypeError, "can't convert #{obj.class} into Float"
+  end
+  
+  def Float(obj)
+    raise TypeError, "can't convert nil into Float" if obj.nil?
+    obj.coerce_to(Float, :to_f)
   end
   
   def Integer(obj)
-    obj = obj.to_i
-    if Integer === obj
-      obj
-    else
-      raise TypeError, "#{obj.class}#to_i should return Integer"
-    end
-  rescue NoMethodError
-    raise TypeError, "can't convert #{obj.class} into Integer"
+    result = obj.coerce_to(Integer, :to_int, false)
+    result = obj.coerce_to(Integer, :to_i) if result.nil?
+    return result
   end
 
   def Array(obj)
-    ret = obj.respond_to?(:to_ary) ? obj.to_ary : obj.to_a
-    if Array === ret
-      ret
-    else
-      raise TypeError, "#{obj.class}#to_a did not return Array"
-    end
-  rescue NoMethodError
-    raise TypeError, "can't convert #{obj.class} into Array"
+    result = obj.coerce_to(Array, :to_ary, false)
+    result = obj.coerce_to(Array, :to_a, false) if result.nil?
+    result = [obj] if result.nil?
+    return result
   end
 
   def String(obj)
-    obj.to_s
+    coerce_to(String, :to_s)
   end
   
   # Reporting methods
