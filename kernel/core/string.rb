@@ -362,6 +362,7 @@ class String
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(arg)
+    # raise ArgumentError, "Too many arguments for format string" if $DEBUG && self.scan(/%/).size < arg.size
     Sprintf::Parser.format(self, arg)
   end
   
@@ -383,7 +384,7 @@ class String
 
     str = []
     num.times { str << self }
-    str = str.join
+    str = self.class.new(str.join)
     str.taint if self.tainted?
     return str
   end
