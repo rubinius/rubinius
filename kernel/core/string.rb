@@ -98,7 +98,9 @@ class String
   # 
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    self.dup << other
+    r = String.new(self) << other
+    r.taint if self.tainted? || other.tainted?
+    r
   end
 
   def substring(start, count)
