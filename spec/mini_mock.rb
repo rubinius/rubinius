@@ -46,6 +46,10 @@ module Mock
 
   def self.set_expect(obj, sym, info)
     if @expects[[obj, sym]]
+      if tmp = @expects[[obj, sym]].find { |i| i[:with] == info[:with] }
+        @expects[[obj, sym]].delete(tmp)
+      end
+
       @expects[[obj, sym]] << info
     else 
       @expects[[obj, sym]] = [ info ]
