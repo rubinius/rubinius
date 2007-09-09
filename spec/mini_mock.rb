@@ -45,7 +45,11 @@ module Mock
   end
 
   def self.set_expect(obj, sym, info)
-    @expects[[obj, sym]] = info
+    if @expects[[obj, sym]]
+      @expects[[obj, sym]] << info
+    else 
+      @expects[[obj, sym]] = [ info ]
+    end
   end
 
   def self.set_objects(obj, sym, type = nil)
@@ -54,15 +58,18 @@ module Mock
 
   # Verify to correct number of calls
   def self.verify()
-    @expects.each {|k, info|
-      obj, sym = k[0], k[1]
-
-      if info[:count] != :never && info[:count] != :any
-        if info[:count] > 0
-          raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too FEW times on object #{obj.inspect}")
+    @expects.each do |k, expects|
+      expects.each do |info|
+        obj, sym = k[0], k[1]
+  
+        if info[:count] != :never && info[:count] != :any
+          if info[:count] > 0
+            raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too FEW times on object #{obj.inspect}")
+          end
         end
+        
       end
-    }
+    end
   end
 
   # Clean up any methods we set up
@@ -94,13 +101,9 @@ module Mock
   # is not detected until #verify_expects! gets called
   # which by default happens at the end of a #specify
   def self.report(obj, sym, *args, &block)
-    info = @expects[[obj, sym]]
+    info = @expects[[obj, sym]].find { |info| info[:with] == :any || info[:with] == args }
 
-    unless info[:with] == :any
-      unless info[:with] == args
-        return
-      end
-    end
+    return unless info
 
     unless info[:block] == :any
       if block
