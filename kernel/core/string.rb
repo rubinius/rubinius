@@ -10,6 +10,202 @@ class String
   def encoding  ; @encoding   ; end
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
+
+  def initialize(arg = "")
+    if Fixnum === arg
+      # + 1 for the null on the end.
+      @data = ByteArray.new(arg+1)
+      @bytes = arg
+      @characters = arg
+      @encoding = nil
+    else
+      replace(arg.coerce_to(String, :to_str))
+    end
+  end
+
+  # call-seq:
+  #   str % arg   => new_str
+  #  
+  # Format---Uses <i>str</i> as a format specification, and returns the result
+  # of applying it to <i>arg</i>. If the format specification contains more than
+  # one substitution, then <i>arg</i> must be an <code>Array</code> containing
+  # the values to be substituted. See <code>Kernel::sprintf</code> for details
+  # of the format string.
+  # 
+  #   "%05d" % 123                       #=> "00123"
+  #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
+  def %(arg)
+    # raise ArgumentError, "Too many arguments for format string" if $DEBUG && self.scan(/%/).size < arg.size
+    Sprintf::Parser.format(self, arg)
+  end
+
+  # call-seq:
+  #   str * integer   => new_str
+  #
+  # Copy --- Returns a new <code>String</code> containing <i>integer</i> copies of
+  # the receiver.
+  #   
+  #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
+  def *(num)
+    unless num.is_a? Integer
+      raise "Can't convert #{num.class} to Integer" unless num.respond_to? :to_int
+      num = num.to_int
+    end
+    
+    raise RangeError, "bignum too big to convert into `long'" if num.is_a? Bignum
+    raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
+
+    str = []
+    num.times { str << self }
+    str = self.class.new(str.join)
+    str.taint if self.tainted?
+    return str
+  end
+  
+  # Concatenation --- Returns a new <code>String</code> containing
+  # <i>other</i> concatenated to <i>string</i>.
+  # 
+  #   "Hello from " + self.to_s   #=> "Hello from main"
+  def +(other)
+    r = String.new(self) << other
+    r.taint if self.tainted? || other.tainted?
+    r
+  end
+
+  # Append --- Concatenates the given object to <i>self</i>. If the object is a
+  # <code>Fixnum</code> between 0 and 255, it is converted to a character before
+  # concatenation.
+  #    
+  #   a = "hello "
+  #   a << "world"   #=> "hello world"
+  #   a.concat(33)   #=> "hello world!"
+  def <<(other)
+    unless other.kind_of? String
+      if other.is_a?(Integer) && other >= 0 && other <= 255
+        other = other.chr
+      elsif other.respond_to? :to_str
+        other = other.to_str
+      else
+        raise TypeError, "can't convert #{other.class} into String"
+      end
+    end
+    
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    r = append(other)
+    r.taint if other.tainted?
+    r
+  end
+  alias_method :concat, :<<
+
+  # call-seq:
+  #   str <=> other_str   => -1, 0, +1
+  # 
+  # Comparison --- Returns -1 if <i>other_str</i> is less than, 0 if
+  # <i>other_str</i> is equal to, and +1 if <i>other_str</i> is greater than
+  # <i>str</i>. If the strings are of different lengths, and the strings are
+  # equal when compared up to the shortest length, then the longer string is
+  # considered greater than the shorter one. If the variable <code>$=</code> is
+  # <code>false</code>, the comparison is based on comparing the binary values
+  # of each character in the string. In older versions of Ruby, setting
+  # <code>$=</code> allowed case-insensitive comparisons; this is now deprecated
+  # in favor of using <code>String#casecmp</code>.
+  #
+  # <code><=></code> is the basis for the methods <code><</code>,
+  # <code><=</code>, <code>></code>, <code>>=</code>, and <code>between?</code>,
+  # included from module <code>Comparable</code>. The method
+  # <code>String#==</code> does not use <code>Comparable#==</code>.
+  #    
+  #    "abcdef" <=> "abcde"     #=> 1
+  #    "abcdef" <=> "abcdef"    #=> 0
+  #    "abcdef" <=> "abcdefg"   #=> -1
+  #    "abcdef" <=> "ABCDEF"    #=> 1
+  def <=>(other)
+    if String === other
+      len = other.size
+      len = size if size < len
+
+      od = other.data
+      len.times do |i|
+        result = (@data.get_byte(i) <=> od.get_byte(i))
+        return result if result != 0
+      end
+
+      if size < other.size
+        return -1
+      elsif size > other.size
+        return 1
+      else
+        return 0
+      end
+    else
+      return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
+      return unless tmp = (other <=> self)
+      return -tmp # We're not supposed to convert to integer here
+    end
+  end
+
+  # call-seq:
+  #    str == obj   => true or false
+  # 
+  # Equality---If <i>obj</i> is not a <code>String</code>, returns
+  # <code>false</code>. Otherwise, returns <code>true</code> if <i>str</i>
+  # <code><=></code> <i>obj</i> returns zero.
+  #---
+  # TODO: MRI does simply use <=> for Strings here, so what's this code about?
+  #+++ 
+  def ==(other)
+    if String === other
+      return false unless @bytes == other.size
+            
+      # This clamps the data to the right size, then we compare
+      # FIXME: This is very inefficient, creating a new ByteArray just
+      # to compare. 
+      ld = @data.fetch_bytes(0, @bytes)
+      rd = other.data.fetch_bytes(0, @bytes)
+      
+      return (ld <=> rd) == 0
+      
+      # It would be nice if the rest of this worked, but it had problems
+      # last I (evan) tried. We need to go through and make sure null termination
+      # of ByteArray's is universal.
+      od = other.data
+      if @data.size == od.size
+        return (@data <=> od) == 0
+      elsif @data.size < od.size
+        puts "od is bigger"
+        return (od.fetch_bytes(0, @data.size) <=> @data) == 0
+      else
+        puts "data is bigger"
+        out = (@data.fetch_bytes(0, od.size) <=> od)
+        p out
+        return out == 0
+      end
+    elsif other.respond_to?(:to_str)
+      return other == self
+    end
+    false
+  end
+  alias_method :===, :==
+
+  # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
+  # against <i>self</i>, and return the position the match starts, or 
+  # <code>nil</code> if there is no match. Otherwise, invoke
+  # <i>pattern.=~</i>, passing <i>self</i> as an argument.
+  # 
+  # The default <code>=~</code> in <code>Object</code> returns <code>false</code>.
+  #    
+  #   "cat o' 9 tails" =~ /\d/ #=> 7
+  #   "cat o' 9 tails" =~ 9    #=> false
+  def =~(pattern)
+    case pattern
+    when Regexp
+      pattern.match(self)
+    when String
+      raise TypeError, "type mismatch: String given"
+    else
+      pattern =~ self
+    end
+  end
   
   def to_s
     self
@@ -59,31 +255,6 @@ class String
   
   alias_method :to_str, :to_s
 
-  # Append --- Concatenates the given object to <i>self</i>. If the object is a
-  # <code>Fixnum</code> between 0 and 255, it is converted to a character before
-  # concatenation.
-  #    
-  #   a = "hello "
-  #   a << "world"   #=> "hello world"
-  #   a.concat(33)   #=> "hello world!"
-  def <<(other)
-    unless other.kind_of? String
-      if other.is_a?(Integer) && other >= 0 && other <= 255
-        other = other.chr
-      elsif other.respond_to? :to_str
-        other = other.to_str
-      else
-        raise TypeError, "can't convert #{other.class} into String"
-      end
-    end
-    
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    r = append(other)
-    r.taint if other.tainted?
-    r
-  end
-  alias_method :concat, :<<
-
   #---
   # NOTE: This overwrites String#dup defined in bootstrap
   # TODO: Remove me and make string_dup check taint and freeze
@@ -93,16 +264,6 @@ class String
     out.taint if self.tainted?
     out.freeze if self.frozen?
     return out
-  end
-  
-  # Concatenation --- Returns a new <code>String</code> containing
-  # <i>other</i> concatenated to <i>string</i>.
-  # 
-  #   "Hello from " + self.to_s   #=> "Hello from main"
-  def +(other)
-    r = String.new(self) << other
-    r.taint if self.tainted? || other.tainted?
-    r
   end
 
   def substring(start, count)
@@ -121,70 +282,6 @@ class String
       chars << self.substring(pos, 1)
     end
     chars
-  end
-
-  def ==(other)
-    if String === other
-      return false unless @bytes == other.size
-            
-      # This clamps the data to the right size, then we compare
-      # FIXME: This is very inefficient, creating a new ByteArray just
-      # to compare. 
-      ld = @data.fetch_bytes(0, @bytes)
-      rd = other.data.fetch_bytes(0, @bytes)
-      
-      return (ld <=> rd) == 0
-      
-      # It would be nice if the rest of this worked, but it had problems
-      # last I (evan) tried. We need to go through and make sure null termination
-      # of ByteArray's is universal.
-      od = other.data
-      if @data.size == od.size
-        return (@data <=> od) == 0
-      elsif @data.size < od.size
-        puts "od is bigger"
-        return (od.fetch_bytes(0, @data.size) <=> @data) == 0
-      else
-        puts "data is bigger"
-        out = (@data.fetch_bytes(0, od.size) <=> od)
-        p out
-        return out == 0
-      end
-    elsif other.respond_to?(:to_str)
-      return other == self
-    end
-    false
-  end
-  
-  alias_method :===, :==
-
-  def <=>(other)
-    if String === other
-      len = other.size
-      len = size if size < len
-
-      od = other.data
-      len.times do |i|
-        result = (@data.get_byte(i) <=> od.get_byte(i))
-        return result if result != 0
-      end
-
-      if size < other.size
-        return -1
-      elsif size > other.size
-        return 1
-      else
-        return 0
-      end
-    else
-      return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
-      
-      tmp = other <=> self
-      return unless tmp
-      
-      tmp = Integer(tmp) unless tmp.is_a?(Integer)
-      return -(tmp)
-    end
   end
 
   def prefix?(pre)
@@ -342,57 +439,6 @@ class String
     return out
   end
 
-  def initialize(arg)
-    if Fixnum === arg
-      # + 1 for the null on the end.
-      @data = ByteArray.new(arg+1)
-      @bytes = arg
-      @characters = arg
-      @encoding = nil
-    else
-      replace(arg.to_s)
-    end
-  end
-
-  # call-seq:
-  #   str % arg   => new_str
-  #  
-  # Format---Uses <i>str</i> as a format specification, and returns the result
-  # of applying it to <i>arg</i>. If the format specification contains more than
-  # one substitution, then <i>arg</i> must be an <code>Array</code> containing
-  # the values to be substituted. See <code>Kernel::sprintf</code> for details
-  # of the format string.
-  # 
-  #   "%05d" % 123                       #=> "00123"
-  #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
-  def %(arg)
-    # raise ArgumentError, "Too many arguments for format string" if $DEBUG && self.scan(/%/).size < arg.size
-    Sprintf::Parser.format(self, arg)
-  end
-  
-  # call-seq:
-  #   str * integer   => new_str
-  #
-  # Copy --- Returns a new <code>String</code> containing <i>integer</i> copies of
-  # the receiver.
-  #   
-  #   "Ho! " * 3   #=> "Ho! Ho! Ho! "
-  def *(num)
-    unless num.is_a? Integer
-      raise "Can't convert #{num.class} to Integer" unless num.respond_to? :to_int
-      num = num.to_int
-    end
-    
-    raise RangeError, "bignum too big to convert into `long'" if num.is_a? Bignum
-    raise ArgumentError, "unable to multiple negative times (#{num})" if num < 0
-
-    str = []
-    num.times { str << self }
-    str = self.class.new(str.join)
-    str.taint if self.tainted?
-    return str
-  end
-  
   def shared!
     @shared = true
   end
@@ -1011,26 +1057,6 @@ class String
 
   def tr!(from_str, to_str)
     replace_if(tr(from_str, to_str))
-  end
-
-  # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
-  # against <i>self</i>, and return the position the match starts, or 
-  # <code>nil</code> if there is no match. Otherwise, invoke
-  # <i>pattern.=~</i>, passing <i>self</i> as an argument.
-  # 
-  # The default <code>=~</code> in <code>Object</code> returns <code>false</code>.
-  #    
-  #   "cat o' 9 tails" =~ /\d/ #=> 7
-  #   "cat o' 9 tails" =~ 9    #=> false
-  def =~(pattern)
-    case pattern
-    when Regexp
-      pattern.match(self)
-    when String
-      raise TypeError, "type mismatch: String given"
-    else
-      pattern =~ self
-    end
   end
 
   # Returns <code>true</code> if <i>self</i> contains the given string or
