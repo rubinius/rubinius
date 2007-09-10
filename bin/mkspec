@@ -10,8 +10,9 @@ module MkSpec
 end
 
 get_class_or_module = lambda do |c|
-  constant = Object.const_get(c)
-  return constant if constant.is_a?(Module) or constant.is_a?(Class)
+  const = Object.const_get(c)
+  return const if (const.is_a?(Module) or const.is_a?(Class)) and 
+    not ['OptionParser', 'SystemExit'].include?(const.name)
 end
 
 target = 'ruby'
@@ -53,6 +54,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
 end
 
 map = {
+  '`'   => 'backtick',
   '+'   => 'plus',
   '-'   => 'minus',
   '+@'  => 'uplus',
@@ -97,7 +99,21 @@ map = {
             'TrueClass'  => 'or',
             'FalseClass' => 'or',
             'NilClass'   => 'or' },
+  '^'   => {'Bignum'     => 'bit_xor',
+            'Fixnum'     => 'bit_xor',
+            'TrueClass'  => 'xor',
+            'FalseClass' => 'xor',
+            'NilClass'   => 'xor'}
 }
+
+get_dir_name = lambda do |c|
+  base = 'spec/core/'
+  if c.name.include?('Error') and c.ancestors.include?(Exception)
+    base + 'exception'
+  else
+    base + c.name.gsub(/\w+Class/, '').downcase
+  end
+end
 
 get_spec_name = lambda do |m, c, map|
   "#{map.key?(m) ? (map[m].is_a?(Hash) ? map[m][c] : map[m]) : m.gsub(/[?!]/, '')}_spec.rb"
@@ -114,7 +130,7 @@ if constants.empty?
 end
 
 constants.compact.each do |c|
-  dir = "spec/core/#{c.name.downcase}"
+  dir = get_dir_name.call(c)
   if File.exist?(dir)
     unless File.directory?(dir)
       puts "A file named #{dir} already exists and is not a directory."
