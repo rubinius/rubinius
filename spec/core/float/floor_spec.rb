@@ -1,1 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+
+describe "Float#floor" do
+  it "returns the largest Integer less than or equal to self" do
+    -1.2.floor.should == -2
+    -1.0.floor.should == -1
+    0.0.floor.should == 0
+    1.0.floor.should == 1
+    5.9.floor.should == 5
+  end
+end
