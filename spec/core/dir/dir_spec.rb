@@ -1,5 +1,5 @@
 # PRIMITIVE Dir testing. Add cases as they come along.
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 # Class methods:
 #

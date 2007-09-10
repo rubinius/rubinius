@@ -118,7 +118,7 @@ get_dir_name = lambda do |c|
 end
 
 get_spec_name = lambda do |m, c, map|
-  "#{map.key?(m) ? (map[m].is_a?(Hash) ? map[m][c] : map[m]) : m.gsub(/[?!]/, '')}_spec.rb"
+  "#{map.key?(m) ? (map[m].is_a?(Hash) ? map[m][c] : map[m]) : m.gsub(/[?!=]/, '')}_spec.rb"
 end
 
 create_file = lambda do |dir, name|
