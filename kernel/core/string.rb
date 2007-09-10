@@ -19,7 +19,7 @@ class String
       @characters = arg
       @encoding = nil
     else
-      replace(arg.coerce_to(String, :to_str))
+      replace(arg)
     end
   end
 
@@ -293,6 +293,89 @@ class String
   end
   alias_method :slice, :[]
 
+  # call-seq:
+  #   str[fixnum] = fixnum
+  #   str[fixnum] = new_str
+  #   str[fixnum, fixnum] = new_str
+  #   str[range] = aString
+  #   str[regexp] = new_str
+  #   str[regexp, fixnum] = new_str
+  #   str[other_str] = new_str
+  # 
+  # Element Assignment --- Replaces some or all of the content of <i>str</i>. The
+  # portion of the string affected is determined using the same criteria as
+  # <code>String#[]</code>. If the replacement string is not the same length as
+  # the text it is replacing, the string will be adjusted accordingly. If the
+  # regular expression or string is used as the index doesn't match a position
+  # in the string, <code>IndexError</code> is raised. If the regular expression
+  # form is used, the optional second <code>Fixnum</code> allows you to specify
+  # which portion of the match to replace (effectively using the
+  # <code>MatchData</code> indexing rules. The forms that take a
+  # <code>Fixnum</code> will raise an <code>IndexError</code> if the value is
+  # out of range; the <code>Range</code> form will raise a
+  # <code>RangeError</code>, and the <code>Regexp</code> and <code>String</code>
+  # forms will silently ignore the assignment.
+  def []=(*args)
+    if args.size == 3
+      if args.first.is_a? Regexp
+        self.subpattern_set(args[0], args[1].coerce_to(Integer, :to_int), args[2])
+      else
+        self.splice(args[0].coerce_to(Integer, :to_int), args[1].coerce_to(Integer, :to_int), args[2])
+      end
+      
+      return args.last
+    elsif args.size != 2
+      raise ArgumentError, "wrong number of arguments (#{args.size} for 2)"
+    end
+    
+    index = args[0]
+    replacement = args[1]
+    
+    case index
+    when Regexp
+      self.subpattern_set(index, 0, replacement)
+    when String
+      unless start = self.index(index)
+        raise IndexError, "string not matched"
+      end
+      
+      self.splice(start, index.length, replacement)
+    when Range
+      start   = index.first.coerce_to(Integer, :to_int)
+      length  = index.last.coerce_to(Integer, :to_int)
+
+      start += @bytes if start < 0
+      
+      # TODO: this is wrong
+      return nil if start < 0 || start > @bytes
+
+      length = @bytes if length > @bytes
+      length += @bytes if length < 0
+      length += 1 unless index.exclude_end?
+      
+      length = length - start
+      length = 0 if length < 0
+      
+      self.splice(start, length, replacement)
+    else
+      index = index.coerce_to(Integer, :to_int)
+      raise IndexError, "index #{index} out of string" if @bytes <= index
+      
+      if index < 0
+        raise IndexError, "index #{index} out of string" if -index > @bytes
+        index += @bytes
+      end
+      
+      if replacement.is_a?(Fixnum)
+        raise TypeError, "can't modify frozen string" if self.frozen?
+        @data[index] = replacement
+      else
+        self.splice(index, 1, replacement)
+      end
+    end
+    return replacement
+  end
+
   def subpattern(pattern, capture)
     # TODO: A part of the functionality here should go into MatchData#[]
     return if (match = pattern.match(self)).nil? || capture >= match.size
@@ -306,6 +389,23 @@ class String
     str = self.substring(start, count)
     str.taint if pattern.tainted?
     str
+  end
+
+  def subpattern_set(pattern, capture, replacement)
+    unless match = pattern.match(self)
+      raise IndexError, "regexp not matched"
+    end
+    
+    raise IndexError, "index #{index} out of regexp" if capture >= match.size
+    
+    if capture < 0
+      raise IndexError, "index #{index} out of regexp" if -capture >= match.size
+      capture += match.size
+    end
+    
+    start  = match.begin(capture)
+    length = match.end(capture) - start 
+    self.splice(start, length, replacement)
   end
 
   def substring(start, count)
@@ -332,6 +432,33 @@ class String
     return str
   end
 
+  def splice(start, count, replacement)
+    raise IndexError, "negative length #{count}" if count < 0
+    
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    
+    raise IndexError, "index #{start} out of string" if @bytes < start
+    
+    if start < 0
+      raise IndexError, "index #{start} out of string" if -start > @bytes
+      start += @bytes
+    end
+    
+    count = @bytes - start if @bytes < count || @bytes < start + count
+
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
+    
+    # TODO: Optimize this by using the @data ByteArray directly?
+    output = ""
+    output << substring(0, start) if start != 0
+    output << replacement.coerce_to(String, :to_str)
+    output << substring(start + count, @bytes - (start + count)) if start + count < @bytes
+      
+    replace(output)
+  end
 
 
   def to_s
@@ -1300,91 +1427,6 @@ class String
     result
   end
 
-  def []=(*args)
-    
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
-    
-    if args.size == 3
-    
-      case args.first
-      when Regexp
-        # Regexp match with given index
-        index = args[1]
-        match = args.first.match(self)
-        
-        raise IndexError, "regexp not matched" unless match
-        raise IndexError, "index #{index} out of regexp" if index.abs >= match.size
-        
-        # Negative index?
-        index += match.size if index < 0
-
-        # Let's hope this is not evil...
-        start  = match.begin(index)
-        length = match.end(index) - start 
-        self[start, length] = args.last
-      when Fixnum
-        start, count, content = *args
-        start = @bytes + start if start < 0
-        
-        raise IndexError, "index #{start} out of string" if start < 0 || start > @bytes
-        
-        if content.is_a?(Fixnum)
-          @data[start] = content
-        else
-          raise IndexError, "negative length #{count}" if count < 0
-
-          output = ""
-          output << substring(0, start) if start != 0
-          output << content
-          output << substring(start + count, @bytes - (start + count)) if start + count < @bytes
-          
-          replace(output)
-        end
-
-        return content
-      end
-      
-    elsif args.size == 2
-
-      case args.first
-      when Regexp
-        self[args.first, 0] = args.last
-      when Fixnum
-        self[args.first, 1] = args.last
-      when Range
-        range  = args.first
-        
-        start   = range.first
-        length  = range.last
-
-        start += @bytes if start < 0
-        
-        return nil if start < 0 || start > @bytes
-
-        length = @bytes if length > @bytes
-        length += @bytes if length < 0
-        length += 1 unless range.exclude_end?
-        
-        length = length - start
-        length = 0 if length < 0
-        
-        self[start, length] = args.last
-      when String
-        length = args.first.length
-        start  = index(args.first)
-        
-        raise IndexError, "string not matched" unless start
-        self[start, length] = args.last
-      end
-    
-    else
-      raise ArgumentError, "wrong number of arguments (#{args.size} for 2)" 
-    end
-  end
-  
   def oct
     self.to_i(8)
   end
