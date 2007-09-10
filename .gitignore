@@ -7,6 +7,7 @@ COMMIT
 .load_order.txt
 CI-specs
 *.rbc
+.spec
 
 !runtime/loader.rbc
 runtime/pristine*

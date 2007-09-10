@@ -108,7 +108,7 @@ map = {
 
 get_dir_name = lambda do |c|
   base = 'spec/core/'
-  if c.name.include?('Error') and c.ancestors.include?(Exception)
+  if (c.name.include?('Error') or c.name == 'Errno') and c.ancestors.include?(Exception)
     base + 'exception'
   elsif c == Class
     base + c.name.downcase
