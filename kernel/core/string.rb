@@ -206,7 +206,134 @@ class String
       pattern =~ self
     end
   end
-  
+
+  # call-seq:
+  #    str[fixnum]                 => fixnum or nil
+  #    str[fixnum, fixnum]         => new_str or nil
+  #    str[range]                  => new_str or nil
+  #    str[regexp]                 => new_str or nil
+  #    str[regexp, fixnum]         => new_str or nil
+  #    str[other_str]              => new_str or nil
+  #    str.slice(fixnum)           => fixnum or nil
+  #    str.slice(fixnum, fixnum)   => new_str or nil
+  #    str.slice(range)            => new_str or nil
+  #    str.slice(regexp)           => new_str or nil
+  #    str.slice(regexp, fixnum)   => new_str or nil
+  #    str.slice(other_str)        => new_str or nil
+  # 
+  # Element Reference --- If passed a single <code>Fixnum</code>, returns the code
+  # of the character at that position. If passed two <code>Fixnum</code>
+  # objects, returns a substring starting at the offset given by the first, and
+  # a length given by the second. If given a range, a substring containing
+  # characters at offsets given by the range is returned. In all three cases, if
+  # an offset is negative, it is counted from the end of <i>str</i>. Returns
+  # <code>nil</code> if the initial offset falls outside the string, the length
+  # is negative, or the beginning of the range is greater than the end.
+  #    
+  # If a <code>Regexp</code> is supplied, the matching portion of <i>str</i> is
+  # returned. If a numeric parameter follows the regular expression, that
+  # component of the <code>MatchData</code> is returned instead. If a
+  # <code>String</code> is given, that string is returned if it occurs in
+  # <i>str</i>. In both cases, <code>nil</code> is returned if there is no
+  # match.
+  #    
+  #    a = "hello there"
+  #    a[1]                   #=> 101
+  #    a[1,3]                 #=> "ell"
+  #    a[1..3]                #=> "ell"
+  #    a[-3,2]                #=> "er"
+  #    a[-4..-2]              #=> "her"
+  #    a[12..-1]              #=> nil
+  #    a[-2..-4]              #=> ""
+  #    a[/[aeiou](.)\1/]      #=> "ell"
+  #    a[/[aeiou](.)\1/, 0]   #=> "ell"
+  #    a[/[aeiou](.)\1/, 1]   #=> "l"
+  #    a[/[aeiou](.)\1/, 2]   #=> nil
+  #    a["lo"]                #=> "lo"
+  #    a["bye"]               #=> nil
+  def [](*args)
+    if args.size == 2
+      if args.first.is_a? Regexp
+        return self.subpattern(args[0], args[1].coerce_to(Integer, :to_int))
+      else
+        return self.substring(args[0].coerce_to(Integer, :to_int), args[1].coerce_to(Integer, :to_int))
+      end
+    elsif args.size != 1
+      raise ArgumentError, "wrong number of arguments (#{args.size} for 1)"
+    end
+
+    case index = args.first
+    when Regexp
+      return self.subpattern(index, 0)
+    when String
+      return self.include?(index) ? index.dup : nil
+    when Range
+      start   = index.first.coerce_to(Integer, :to_int)
+      length  = index.last.coerce_to(Integer, :to_int)
+
+      start += @bytes if start < 0
+
+      length += @bytes if length < 0
+      length += 1 unless index.exclude_end?
+      
+      return "" if start == @bytes
+      return nil if start < 0 || start > @bytes
+      
+      length = @bytes if length > @bytes
+      length = length - start
+      length = 0 if length < 0
+      
+      return self.substring(start, length)
+    else
+      index = index.coerce_to(Integer, :to_int)
+      index = @bytes + index if index < 0
+      return if index < 0 || @bytes <= index
+      return @data[index]
+    end
+  end
+  alias_method :slice, :[]
+
+  def subpattern(pattern, capture)
+    # TODO: A part of the functionality here should go into MatchData#[]
+    return if (match = pattern.match(self)).nil? || capture >= match.size
+    if capture < 0
+      capture += match.size
+      return if capture <= 0
+    end
+    
+    start = match.begin(capture)
+    count = match.end(capture) - match.begin(capture)
+    str = self.substring(start, count)
+    str.taint if pattern.tainted?
+    str
+  end
+
+  def substring(start, count)
+    return if count < 0 || start > @bytes
+    
+    if start < 0
+      start += @bytes
+      return if start < 0
+    end
+    
+    count = @bytes - start if start + count > @bytes
+    count = 0 if count < 0
+
+    str = self.class.allocate
+    str.taint if self.tainted?
+    str.put 0, count
+    str.put 1, count
+    if count == 0
+      str.put(3, ByteArray.new(0))
+    else
+      str.put(3, @data.fetch_bytes(start, count))
+    end
+    
+    return str
+  end
+
+
+
   def to_s
     self
   end
@@ -264,15 +391,6 @@ class String
     out.taint if self.tainted?
     out.freeze if self.frozen?
     return out
-  end
-
-  def substring(start, count)
-    nd = @data.fetch_bytes(start, count)
-    str = String.allocate
-    str.put 0, count
-    str.put 1, count
-    str.put 3, nd
-    return str
   end
 
   # FIXME - Make Unicode-safe
@@ -1175,64 +1293,6 @@ class String
   def center(width, str=" ")
     justify_string(width, str, 0) 
   end
-
-  def [](*args)
-    if args.size == 2
-      case args.first
-      when Regexp
-        match = args.first.match(self)
-        capture_num = args.last
-        return match && capture_num <= match.size ? match[args.last] : nil
-      else
-        start, count = *args
-
-        start = @bytes + start if start < 0
-        count = @bytes - start if start + count > @bytes
-
-        return "" if count == 0
-        return nil if start < 0 || start > @bytes || count < 0
-        
-        return substring(start, count)
-      end
-    elsif args.size == 1
-      case args.first
-      when Fixnum
-        index = args.first
-        index += @bytes if index < 0
-        if 0 <= index && index < @bytes
-          return @data[index]
-        end
-      when Regexp
-        return self[args.first, 0]
-      when String
-        return self.include?(args.first) ? args.first.dup : nil
-      when Range
-        range  = args.first
-        
-        start   = range.first
-        length  = range.last
-
-        start += @bytes if start < 0
-
-        length += @bytes if length < 0
-        length += 1 unless range.exclude_end?
-        
-        return "" if start == @bytes
-        return nil if start < 0 || start > @bytes
-        
-        length = @bytes if length > @bytes
-        length = length - start
-        length = 0 if length < 0
-        
-        return self[start, length]
-      end
-    else
-      raise ArgumentError, "wrong number of arguments (#{args.size} for 1)"
-    end
-    
-    return nil
-  end
-  alias_method :slice, :[]
 
   def slice!(*args)
     result = slice(*args)
