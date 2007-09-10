@@ -110,8 +110,10 @@ get_dir_name = lambda do |c|
   base = 'spec/core/'
   if c.name.include?('Error') and c.ancestors.include?(Exception)
     base + 'exception'
+  elsif c == Class
+    base + c.name.downcase
   else
-    base + c.name.gsub(/\w+Class/, '').downcase
+    base + c.name.gsub(/Class/, '').downcase
   end
 end
 
