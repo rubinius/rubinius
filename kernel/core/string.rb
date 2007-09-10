@@ -409,12 +409,9 @@ class String
   end
 
   def substring(start, count)
-    return if count < 0 || start > @bytes
+    return if count < 0 || start > @bytes || -start > @bytes
     
-    if start < 0
-      start += @bytes
-      return if start < 0
-    end
+    start += @bytes if start < 0
     
     count = @bytes - start if start + count > @bytes
     count = 0 if count < 0
@@ -434,17 +431,11 @@ class String
 
   def splice(start, count, replacement)
     raise IndexError, "negative length #{count}" if count < 0
-    
     raise TypeError, "can't modify frozen string" if self.frozen?
+    raise IndexError, "index #{start} out of string" if @bytes < start || -start > @bytes
     
-    raise IndexError, "index #{start} out of string" if @bytes < start
-    
-    if start < 0
-      raise IndexError, "index #{start} out of string" if -start > @bytes
-      start += @bytes
-    end
-    
-    count = @bytes - start if @bytes < count || @bytes < start + count
+    start += @bytes if start < 0
+    count = @bytes - start if start + count > @bytes
 
     if @shared
       @data = @data.dup
