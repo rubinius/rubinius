@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-range_end = shared "Range#end" do |cmd|
+@range_end = shared "Range#end" do |cmd|
   describe "Range##{cmd}" do
     it "end returns the last element" do
       (-1..1).send(cmd).should == 1
@@ -14,5 +14,5 @@ range_end = shared "Range#end" do |cmd|
 end
 
 describe "Range#end" do
-  it_behaves_like(range_end, :end)
+  it_behaves_like(@range_end, :end)
 end

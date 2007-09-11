@@ -19,7 +19,7 @@ describe "File.executable?" do
     @file2 = nil
   end
 
-  unless WINDOWS
+  platform :not, :mswin do
     it "return true if the argument its an executable file" do
       File.executable?(@file1).should == true
       File.executable?(@file2).should == false
@@ -59,7 +59,7 @@ describe "File.executable?" do
     File.executable?(@file).should == true
   end
 
-  unless WINDOWS
+  platform :not, :mswin do
     it "return true if the argument its an executable file" do
       File.executable?(@file1).should == true
       File.executable?(@file2).should == false

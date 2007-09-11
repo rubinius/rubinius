@@ -19,7 +19,7 @@ describe "File.executable_real?" do
     @file2 = nil
   end 
  
-  unless WINDOWS
+  platform :not, :mswin do
     it "returns true if the file its an executable" do 
       File.executable_real?(@file1).should == true
       File.executable_real?(@file2).should == false
@@ -58,7 +58,7 @@ describe "File.executable_real?" do
     @file2 = nil
   end 
  
-  unless WINDOWS
+  platform :not, :mswin do
     it "returns true if the file its an executable" do 
       File.executable_real?(@file1).should == true
       File.executable_real?(@file2).should == false

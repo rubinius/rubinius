@@ -15,7 +15,7 @@ describe "File.umask" do
     File.umask.should == 6
   end
    
-  if WINDOWS
+  platform :mswin do
     it "Returns the current umask value for this process. (basic)" do   
       File.umask.should == 0
     end

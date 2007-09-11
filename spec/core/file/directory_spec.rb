@@ -2,10 +2,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.directory?" do 
   before(:each) do
-    if WINDOWS
+    platform :mswin do
       @dir  = "C:\\"
       @file = "C:\\winnt\\notepad.exe"
-    else
+    end
+    
+    platform :not, :mswin do
       @dir  = "/"
       @file = "/bin/ls"
     end

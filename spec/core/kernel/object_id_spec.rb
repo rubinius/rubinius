@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 @kernel_object_id = shared "Kernel#object_id" do |cmd|
   describe "Enumerable##{cmd}" do     

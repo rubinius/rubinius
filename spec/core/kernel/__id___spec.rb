@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 require File.dirname(__FILE__) + '/object_id_spec'
 
 describe "Kernel#__id__" do

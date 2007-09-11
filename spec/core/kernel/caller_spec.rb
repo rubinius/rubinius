@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 # DO NOT PUT ANYTHING ABOVE THIS
 describe 'Examining the call stack' do

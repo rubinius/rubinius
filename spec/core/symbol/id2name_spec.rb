@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-symbol_id2name = shared "Symbol#id2name" do |cmd|
+@symbol_id2name = shared "Symbol#id2name" do |cmd|
   describe "Symbol\##{cmd}" do
     it "returns the string corresponding to self" do
       :rubinius.send(cmd).should == "rubinius"
@@ -13,5 +13,5 @@ symbol_id2name = shared "Symbol#id2name" do |cmd|
 end
 
 describe "Symbol#id2name" do
-  it_behaves_like(symbol_id2name, :id2name)
+  it_behaves_like(@symbol_id2name, :id2name)
 end

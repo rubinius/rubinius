@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-require File.dirname(__FILE__) + '/../fixtures/classes'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#singleton_methods" do
   it "returns a list of the names of singleton methods in the object" do

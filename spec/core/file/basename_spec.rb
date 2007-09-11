@@ -60,7 +60,7 @@ describe "File.basename" do
     File.basename("/bar/").should == "bar"
       
     # Considered UNC paths on Windows
-    unless WINDOWS 
+    platform :mswin do 
       File.basename("baz//foo").should =="foo"
       File.basename("//foo/bar/baz").should == "baz"
     end
@@ -95,7 +95,7 @@ describe "File.basename" do
   end
 
   # specific to MS Windows
-  unless not WINDOWS 
+  platform :mswin do
     it "return the basename for windows" do  
       File.basename("C:\\foo\\bar\\baz.txt").should == "baz.txt"
       File.basename("C:\\foo\\bar").should == "baz"

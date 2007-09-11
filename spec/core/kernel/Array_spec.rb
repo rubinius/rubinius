@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.Array" do
   it "should call to_a to convert any arbitrary argument to an Array" do

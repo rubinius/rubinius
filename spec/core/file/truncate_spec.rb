@@ -9,9 +9,11 @@ describe "File.truncate" do
  
   it "truncate the a file" do 
     File.open(@fname, "w") { |f| f.puts "123456789" } 
-    if WINDOWS
+    platform :mswin do
       File.size(@fname).should == 11
-    else
+    end
+    
+    platform :not, :mswin do
       File.size(@fname).should == 10
     end
     File.truncate(@fname, 5)

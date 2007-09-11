@@ -84,6 +84,13 @@ def failure(*engines)
   end
 end
 
+def platform(*args)
+  reverse = args.first == :not
+  args.shift if reverse
+  result = args.any? { |a| RUBY_PLATFORM.match(a.to_s) }
+  yield if reverse ? (not result) : result
+end
+
 class Object
   alias noncompliant compliant
   alias extension compliant

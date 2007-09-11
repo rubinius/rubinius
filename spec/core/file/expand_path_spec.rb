@@ -2,11 +2,13 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.expand_path" do
   before(:each) do
-    if WINDOWS
+    platform :mswin do
       @base = `cd`.chomp.tr '\\', '/'
       @tmpdir = "c:/tmp"
       @rootdir = "c:/"
-    else
+    end
+    
+    platform :not, :mswin do
       @base = `pwd`.chomp
       @tmpdir = "/tmp"
       @rootdir = "/"
@@ -51,7 +53,7 @@ describe "File.expand_path" do
     end
   end
   
-  unless WINDOWS
+  platform :not, :mswin do
     it "expand path with " do      
       File.expand_path("../../bin", "/tmp/x").should == "/bin" 
       File.expand_path("../../bin", "/tmp").should == "/bin"
@@ -60,7 +62,7 @@ describe "File.expand_path" do
     end
   end  
   
-  unless WINDOWS
+  platform :not, :mswin do
     specify "expand_path for commoms unix path  give a full path" do      
       File.expand_path('/tmp/').should =='/tmp'
       File.expand_path('/tmp/../../../tmp').should == '/tmp'
@@ -81,7 +83,7 @@ describe "File.expand_path" do
     should_raise(TypeError){ File.expand_path(nil) }
     should_raise(TypeError){ File.expand_path(true) }
       
-    unless WINDOWS
+    platform :not, :mswin do
       should_raise(ArgumentError){ File.expand_path("~a_fake_file") }
     end
   end

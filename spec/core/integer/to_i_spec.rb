@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-integer_to_i = shared "Integer#to_i" do |cmd|
+@integer_to_i = shared "Integer#to_i" do |cmd|
   describe "Integer##{cmd}" do
     it "returns self" do
       a = 1
@@ -11,5 +11,5 @@ integer_to_i = shared "Integer#to_i" do |cmd|
 end
 
 describe "Integer#to_i" do
-  it_behaves_like(integer_to_i, :to_i)
+  it_behaves_like(@integer_to_i, :to_i)
 end

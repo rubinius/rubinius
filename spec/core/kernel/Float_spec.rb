@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.Float" do
   it "should call to_f to convert any arbitrary argument to a Float" do

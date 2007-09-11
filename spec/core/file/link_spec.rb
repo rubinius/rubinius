@@ -9,7 +9,7 @@ describe "File.link" do
     File.open(@file,"w+") 
   end 
 
-  unless WINDOWS
+  platform :not, :mswin do
     it "link a file with another " do
       File.link(@file, @link).should == 0
       File.exists?(@link).should == true

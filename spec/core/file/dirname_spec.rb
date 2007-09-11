@@ -23,14 +23,21 @@ describe "File.dirname" do
     File.dirname("/foo/bar/baz").should =="/foo/bar"
   end
 
-  it "return all the components of filename except the last one (edge cases)" do
-    File.dirname("").should == "."
-    File.dirname(".").should == "."
-    File.dirname("..").should == "."
-    File.dirname("/").should == "/"
-    File.dirname("/foo/").should == "/"    
-    File.dirname("//foo//").should == "/"
-    File.dirname("//foo").should == "/" unless WINDOWS  # Fails on MS Windows
+  platform :not, :mswin do
+    it "return all the components of filename except the last one (edge cases)" do
+      File.dirname("").should == "."
+      File.dirname(".").should == "."
+      File.dirname("..").should == "."
+      File.dirname("/").should == "/"
+      File.dirname("/foo/").should == "/"    
+      File.dirname("//foo//").should == "/"
+    end
+  end
+  
+  platform :mswin do
+    it "return all the components of filename except the last one (edge cases)" do
+      File.dirname("//foo").should == "/"
+    end
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
@@ -41,7 +48,7 @@ describe "File.dirname" do
   end
 
   # Windows specific tests
-  if WINDOWS
+  platform :mswin do
     it "return the return all the components of filename except the last one (Windows format)" do 
       File.dirname("C:\\foo\\bar\\baz.txt").should =="C:\\foo\\bar"
       File.dirname("C:\\foo\\bar").should =="C:\\foo"

@@ -15,9 +15,11 @@ describe "File.ftype" do
     File.open(@file, "w"){} # Touch
     #@char = Pathname.new(File.null).realpath
 
-    if WINDOWS
+    platform :mswin do
       @block_dev = "NUL"
-    else
+    end
+    
+    platform :not, :mswin do
       @fifo = "test_fifo"
       system("mkfifo #{@fifo}") unless File.exists?(@fifo)
 

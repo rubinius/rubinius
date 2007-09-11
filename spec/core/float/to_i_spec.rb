@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-float_to_i = shared "Float#to_i" do |cmd|
+@float_to_i = shared "Float#to_i" do |cmd|
   describe "Float##{cmd}" do
     it "returns self truncated to an Integer" do
       899.2.send(cmd).should == 899
@@ -11,5 +11,5 @@ float_to_i = shared "Float#to_i" do |cmd|
 end
 
 describe "Float#to_i" do
-  it_behaves_like(float_to_i, :to_i)
+  it_behaves_like(@float_to_i, :to_i)
 end
