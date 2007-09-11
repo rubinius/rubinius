@@ -434,13 +434,80 @@ class String
     justify(integer, :center, padstr)
   end
 
+  # Returns a new <code>String</code> with the given record separator removed
+  # from the end of <i>str</i> (if present). If <code>$/</code> has not been
+  # changed from the default Ruby record separator, then <code>chomp</code> also
+  # removes carriage return characters (that is it will remove <code>\n</code>,
+  # <code>\r</code>, and <code>\r\n</code>).
+  #    
+  #   "hello".chomp            #=> "hello"
+  #   "hello\n".chomp          #=> "hello"
+  #   "hello\r\n".chomp        #=> "hello"
+  #   "hello\n\r".chomp        #=> "hello\n"
+  #   "hello\r".chomp          #=> "hello"
+  #   "hello \n there".chomp   #=> "hello \n there"
+  #   "hello".chomp("llo")     #=> "he"
+  def chomp(separator = $/)
+    (str = self.dup).chomp!(separator) || str
+  end
+  
+  # Default Ruby Record Seperator
+  DEFAULT_RUBY_SEPERATOR = $/
+  
+  # Modifies <i>self</i> in place as described for <code>String#chomp</code>,
+  # returning <i>self</i>, or <code>nil</code> if no modifications were made.
+  #---
+  # NOTE: TypeError is raised in String#replace and not in String#chomp! when
+  # self is frozen. This is intended behaviour.
+  #+++
+  def chomp!(separator = $/)
+    return nil if separator.nil? || @bytes == 0
 
-
-
-
-
-
-
+    if separator == $/ && separator == DEFAULT_RUBY_SEPERATOR
+      return smart_chomp!
+    end
+    
+    separator = separator.coerce_string unless separator.is_a? String
+    length = @bytes - 1
+    
+    if separator.length == 0 
+      while length > 0 && @data[length] == ?\n
+        length -= 1
+        length -= 1 if length > 0 && @data[length] == ?\r
+      end
+      
+      return replace(substring(0, length + 1)) if length + 1 < @bytes
+      return nil
+    elsif separator.length > @bytes
+      return nil
+    elsif separator.length == 1 && separator == "\n"
+      return self.smart_chomp!
+    elsif @data[length] == separator || self[-separator.length, separator.length] == separator
+      return replace(substring(0, length + 1 - separator.length))
+    end
+  end
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  def smart_chomp!
+    length = @bytes - 1
+    if @data[length] == ?\n
+      length -= 1
+      length -= 1 if length > 0 && @data[length] == ?\r
+    elsif @data[length] == ?\r
+      length -= 1
+    else
+      return nil
+    end
+    
+    return replace(substring(0, length + 1))
+  end
 
   def justify(integer, direction, padstr = " ")
     integer = integer.coerce_to(Integer, :to_int) unless integer.is_a?(Fixnum)
@@ -462,6 +529,7 @@ class String
     end
   end
   
+  # Convert this string to a padstring for use in String#justify.
   def to_padding(padsize)
     if padsize != 0
       (self * ((padsize / self.size) + 1)).slice(0, padsize)
@@ -470,7 +538,7 @@ class String
     end
   end
 
-
+  # Raises a TypeError on frozen strings and unshares shared ones.
   def modify!
     raise TypeError, "can't modify frozen string" if self.frozen?
     
@@ -549,7 +617,6 @@ class String
       
     replace(output)
   end
-
 
   def to_s
     self
@@ -820,66 +887,6 @@ class String
   #   s                     #=> "world"
   def replace_if(other)
     self == other ? nil : replace(other)
-  end
-  
-  # Returns a new <code>String</code> with the given record separator removed
-  # from the end of <i>str</i> (if present). If <code>$/</code> has not been
-  # changed from the default Ruby record separator, then <code>chomp</code> also
-  # removes carriage return characters (that is it will remove <code>\n</code>,
-  # <code>\r</code>, and <code>\r\n</code>).
-  #    
-  #   "hello".chomp            #=> "hello"
-  #   "hello\n".chomp          #=> "hello"
-  #   "hello\r\n".chomp        #=> "hello"
-  #   "hello\n\r".chomp        #=> "hello\n"
-  #   "hello\r".chomp          #=> "hello"
-  #   "hello \n there".chomp   #=> "hello \n there"
-  #   "hello".chomp("llo")     #=> "he"
-  def chomp(separator = $/)
-    (str = self.dup).chomp!(separator) || str
-  end
-  
-  # Modifies <i>self</i> in place as described for <code>String#chomp</code>,
-  # returning <i>self</i>, or <code>nil</code> if no modifications were made.
-  #---
-  # NOTE: TypeError is raised in String#replace and not in String#chomp! when
-  # self is frozen. This is intended behaviour.
-  #+++
-  def chomp!(separator = $/)
-    return nil if separator.nil? || @bytes == 0
-
-    length = @bytes - 1
-
-    if separator == $/
-      if @data[length] == ?\n
-        length -= 1
-        length -= 1 if length > 0 && @data[length] == ?\r
-      elsif @data[length] == ?\r
-        length -= 1
-      else
-        return nil
-      end
-      
-      return replace(substring(0, length + 1))
-    end
-    
-    separator = separator.coerce_string unless separator.is_a? String
-    
-    if separator.length == 0 
-      while length > 0 && @data[length] == ?\n
-        length -= 1
-        length -= 1 if length > 0 && @data[length] == ?\r
-      end
-      
-      return replace(substring(0, length + 1)) if length + 1 < @bytes
-      return nil
-    elsif separator.length > @bytes
-      return nil
-    elsif separator.length == 1 && separator == "\n"
-      return self.chomp!
-    elsif @data[length] == separator || self[-separator.length, separator.length] == separator
-      return replace(substring(0, length + 1 - separator.length))
-    end
   end
   
   # Returns a new <code>String</code> with the last character removed.  If the
