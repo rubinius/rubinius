@@ -413,7 +413,62 @@ class String
     modified ? self : nil
   end
 
+  # Case-insensitive version of <code>String#<=></code>.
+  #    
+  #   "abcdef".casecmp("abcde")     #=> 1
+  #   "aBcDeF".casecmp("abcdef")    #=> 0
+  #   "abcdef".casecmp("abcdefg")   #=> -1
+  #   "abcdef".casecmp("ABCDEF")    #=> 0
+  def casecmp(to)
+    self.upcase <=> to.upcase
+  end
 
+  # If <i>integer</i> is greater than the length of <i>str</i>, returns a new
+  # <code>String</code> of length <i>integer</i> with <i>str</i> centered and
+  # padded with <i>padstr</i>; otherwise, returns <i>str</i>.
+  #    
+  #    "hello".center(4)         #=> "hello"
+  #    "hello".center(20)        #=> "       hello        "
+  #    "hello".center(20, '123') #=> "1231231hello12312312"
+  def center(integer, padstr = " ")
+    justify(integer, :center, padstr)
+  end
+
+
+
+
+
+
+
+
+
+  def justify(integer, direction, padstr = " ")
+    integer = integer.coerce_to(Integer, :to_int) unless integer.is_a?(Fixnum)
+    padstr = padstr.coerce_to(String, :to_str) unless padstr.is_a?(String)
+    
+    raise ArgumentError, "zero width padding" if padstr.length == 0
+
+    padsize = integer - self.size
+    padsize = padsize > 0 ? padsize : 0
+    case direction
+    when :right
+      dup.insert(0, padstr.to_padding(padsize))
+    when :left
+      dup.insert(-1, padstr.to_padding(padsize))
+    when :center
+      lpad = padstr.to_padding((padsize / 2.0).floor)
+      rpad = padstr.to_padding((padsize / 2.0).ceil)
+      dup.insert(0, lpad).insert(-1, rpad)
+    end
+  end
+  
+  def to_padding(padsize)
+    if padsize != 0
+      (self * ((padsize / self.size) + 1)).slice(0, padsize)
+    else
+      ""
+    end
+  end
 
 
   def modify!
@@ -1413,10 +1468,6 @@ class String
     justify_string(width, str, -1)
   end
 
-  def center(width, str=" ")
-    justify_string(width, str, 0) 
-  end
-
   def slice!(*args)
     result = slice(*args)
     self[*args] = '' unless result.nil?
@@ -1458,10 +1509,6 @@ class String
       break if str.size > stop.size || str > stop
     end
     self
-  end
-
-  def casecmp(to)
-    self.upcase <=> to.upcase
   end
 
   def each(separator=$/)
