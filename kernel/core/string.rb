@@ -482,18 +482,69 @@ class String
       return nil
     elsif separator.length == 1 && separator == "\n"
       return self.smart_chomp!
-    elsif @data[length] == separator || self[-separator.length, separator.length] == separator
+    elsif @data[length].chr == separator || self[-separator.length, separator.length] == separator
       return replace(substring(0, length + 1 - separator.length))
     end
   end
+
+  # Each <i>other_string</i> parameter defines a set of characters to count.  The
+  # intersection of these sets defines the characters to count in
+  # <i>self</i>. Any <i>other_str</i> that starts with a caret (^) is
+  # negated. The sequence c1--c2 means all characters between c1 and c2.
+  #    
+  #   a = "hello world"
+  #   a.count "lo"            #=> 5
+  #   a.count "lo", "o"       #=> 2
+  #   a.count "hello", "^l"   #=> 4
+  #   a.count "ej-m"          #=> 4
+  def count(*strings)
+    raise ArgumentError, "wrong number of Arguments" if strings.empty?
+    return 0 if @bytes == 0
+    
+    table = setup_tr_table(*strings)
+    
+    count = 0
+    self.each_byte { |c| count += 1 if table[c] }
+    count
+  end
+  
+
   
   
   
   
   
-  
-  
-  
+  def setup_tr_table(*strings)
+    table = Array.new(256, true)
+    
+    strings.each do |str|
+      str = str.coerce_to(String, :to_str) unless str.is_a? String
+      str = str.to_expanded_tr_string
+      
+      if str.length > 1 && str[0] == ?^
+        flag, start = true, 1 
+      else
+        flag, start = false, 0
+      end
+      
+      buf = Array.new(256, flag)
+
+      (start...str.size).each do |i|
+        c = str[i]
+        buf[c] = !flag
+      end
+      
+      table.each_index do |i|
+        table[i] = table[i] && buf[i]
+      end
+    end
+    
+    table
+  end
+
+  def to_expanded_tr_string
+    self.gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } if r[0] < r[2] }
+  end
   
   def smart_chomp!
     length = @bytes - 1
@@ -1244,21 +1295,6 @@ class String
       return if intersection.empty?
     end
     intersection
-  end
-
-  # Each <i>other_string</i> parameter defines a set of characters to count.  The
-  # intersection of these sets defines the characters to count in
-  # <i>self</i>. Any <i>other_str</i> that starts with a caret (^) is
-  # negated. The sequence c1--c2 means all characters between c1 and c2.
-  #    
-  #   a = "hello world"
-  #   a.count "lo"            #=> 5
-  #   a.count "lo", "o"       #=> 2
-  #   a.count "hello", "^l"   #=> 4
-  #   a.count "ej-m"          #=> 4
-  def count(*other_strings)
-    raise ArgumentError, "wrong number of arguments" if other_strings.empty?
-    intersect_string_from_args(self, *other_strings).length
   end
 
   def squeeze(*arg)
