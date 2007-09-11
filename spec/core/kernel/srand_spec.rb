@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-context "Kernel.srand()" do
+context "Kernel.srand" do
   it "srand should return the previous seed value" do
     srand(10)
     srand(20).should == 10

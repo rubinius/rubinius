@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 # DO NOT PUT ANYTHING ABOVE THIS
-context 'Examining the call stack' do
+describe 'Examining the call stack' do
   it "may be viewed through .caller" do
     def a(skip)
       caller(skip)

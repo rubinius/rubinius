@@ -2,7 +2,7 @@
 # Continuation. The mechanics thereof may be further
 # examined in spec/language.
 #
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 # Class methods
 #   -

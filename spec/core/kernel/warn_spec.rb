@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-context "Kernel.warn()" do
+describe "Kernel.warn" do
   class FakeErr
     def initialize; @written = ''; end
     def written; @written; end
     def write(warning); @written << warning; end;
    end
 
-  specify "should call #write on $stderr" do
+  it "should call #write on $stderr" do
     s = $stderr
     $stderr = FakeErr.new
     warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
@@ -15,7 +15,7 @@ context "Kernel.warn()" do
     $stderr = s
   end
 
-  specify "should write the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
+  it "should write the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
     s = $stderr
     rs = $/
     $/ = 'rs'
@@ -26,7 +26,7 @@ context "Kernel.warn()" do
     $/ = rs
   end
 
-  specify "should not call #write on $stderr if $VERBOSE is nil" do
+  it "should not call #write on $stderr if $VERBOSE is nil" do
     v = $VERBOSE
     $VERBOSE = nil
     s = $stderr

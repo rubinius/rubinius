@@ -2,7 +2,7 @@
 # related to Class (such as the class and def keywords) 
 # is in spec/language/class_syntax_spec.rb
 #
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
 # Class methods:
 #   .new              OK
