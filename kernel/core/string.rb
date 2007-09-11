@@ -486,7 +486,34 @@ class String
       return replace(substring(0, length + 1 - separator.length))
     end
   end
+  
+  # Returns a new <code>String</code> with the last character removed.  If the
+  # string ends with <code>\r\n</code>, both characters are removed. Applying
+  # <code>chop</code> to an empty string returns an empty
+  # string. <code>String#chomp</code> is often a safer alternative, as it leaves
+  # the string unchanged if it doesn't end in a record separator.
+  #    
+  #   "string\r\n".chop   #=> "string"
+  #   "string\n\r".chop   #=> "string\n"
+  #   "string\n".chop     #=> "string"
+  #   "string".chop       #=> "strin"
+  #   "x".chop.chop       #=> ""
+  def chop
+    (str = self.dup).chop! || str
+  end
 
+  # Processes <i>str</i> as for <code>String#chop</code>, returning <i>str</i>,
+  # or <code>nil</code> if <i>str</i> is the empty string.  See also
+  # <code>String#chomp!</code>.
+  def chop!
+    return if @bytes == 0
+    
+    length = @bytes - 1
+    length -= 1 if @data[length] == ?\n && @data[length - 1] == ?\r
+    
+    replace(substring(0, length))
+  end
+  
   # Each <i>other_string</i> parameter defines a set of characters to count.  The
   # intersection of these sets defines the characters to count in
   # <i>self</i>. Any <i>other_str</i> that starts with a caret (^) is
@@ -507,10 +534,79 @@ class String
     self.each_byte { |c| count += 1 if table[c] }
     count
   end
-  
 
+  # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
+  # library function <code>crypt</code>. The argument is the salt string, which
+  # should be two characters long, each character drawn from
+  # <code>[a-zA-Z0-9./]</code>.
+  def crypt(other_str)
+    other_str = other_str.coerce_string unless other_str.is_a? String
+    raise ArgumentError.new("salt must be at least 2 characters") if other_str.size < 2
+
+    hash = __crypt__(other_str)
+    hash.taint if self.tainted? || other_str.tainted?
+    hash
+  end
+
+  # Returns a copy of <i>self</i> with all characters in the intersection of its
+  # arguments deleted. Uses the same rules for building the set of characters as
+  # <code>String#count</code>.
+  #    
+  #   "hello".delete "l","lo"        #=> "heo"
+  #   "hello".delete "lo"            #=> "he"
+  #   "hello".delete "aeiou", "^e"   #=> "hell"
+  #   "hello".delete "ej-m"          #=> "ho"
+  def delete(*args)
+    (str = self.dup).delete!(*args) || str
+  end
+
+  # Performs a <code>delete</code> operation in place, returning <i>self</i>, or
+  # <code>nil</code> if <i>self</i> was not modified.
+  def delete!(*strings)
+    raise ArgumentError, "wrong number of arguments" if strings.empty?
+    
+    # We need to raise a TypeError here, event if we won't be making any changes.
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    
+    return if @bytes == 0
+    
+    table = setup_tr_table(*strings)
+    
+    # TODO: Can't we use the ByteArray directly here?
+    new = []
+    self.each_byte do |c|
+      new << c.chr unless table[c]
+    end
+    new = new.join
+    new != self ? replace(new) : nil # TODO
+  end
   
+  # Returns a copy of <i>str</i> with all uppercase letters replaced with their
+  # lowercase counterparts. The operation is locale insensitive---only
+  # characters ``A'' to ``Z'' are affected.
+  # 
+  # "hEllO".downcase   #=> "hello"
+  def downcase
+    (str = self.dup).downcase! || str
+  end
   
+  # Downcases the contents of <i>str</i>, returning <code>nil</code> if no
+  # changes were made.
+  def downcase!
+    return if @bytes == 0
+    self.modify!
+  
+    modified = false
+  
+    @bytes.times do |i|
+      if @data[i].isupper
+        @data[i] = @data[i].tolower
+        modified = true
+      end
+    end
+
+    modified ? self : nil
+  end
   
   
   
@@ -940,30 +1036,6 @@ class String
     self == other ? nil : replace(other)
   end
   
-  # Returns a new <code>String</code> with the last character removed.  If the
-  # string ends with <code>\r\n</code>, both characters are removed. Applying
-  # <code>chop</code> to an empty string returns an empty
-  # string. <code>String#chomp</code> is often a safer alternative, as it leaves
-  # the string unchanged if it doesn't end in a record separator.
-  #    
-  #   "string\r\n".chop   #=> "string"
-  #   "string\n\r".chop   #=> "string\n"
-  #   "string\n".chop     #=> "string"
-  #   "string".chop       #=> "strin"
-  #   "x".chop.chop       #=> ""
-  def chop
-    (str = self.dup).chop! || str
-  end
-  
-  def chop!
-    return if @bytes == 0
-    
-    length = @bytes - 1
-    length -= 1 if @data[length] == ?\n && @data[length - 1] == ?\r
-    
-    replace(substring(0, length))
-  end
-  
   def swapcase
     (str = self.dup).swapcase! || str
   end
@@ -1017,31 +1089,6 @@ class String
     modified ? self : nil
   end
   
-  def downcase
-    (str = self.dup).downcase! || str
-  end
-  
-  def downcase!
-    return if @bytes == 0
-    raise TypeError, "can't modify frozen string" if self.frozen?
-  
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
-  
-    modified = false
-  
-    @bytes.times do |i|
-      if @data[i].isupper
-        @data[i] = @data[i].tolower
-        modified = true
-      end
-    end
-
-    modified ? self : nil
-  end
-
   def reverse
     self.dup.reverse!
   end
@@ -1255,29 +1302,6 @@ class String
 
   def tr_s!(from_str, to_str)
     replace_if(tr_string(from_str, to_str, true))
-  end
-
-  # Returns a copy of <i>self</i> with all characters in the intersection of its
-  # arguments deleted. Uses the same rules for building the set of characters as
-  # <code>String#count</code>.
-  #    
-  #   "hello".delete "l","lo"        #=> "heo"
-  #   "hello".delete "lo"            #=> "he"
-  #   "hello".delete "aeiou", "^e"   #=> "hell"
-  #   "hello".delete "ej-m"          #=> "ho"
-  def delete(*args)
-    (str = self.dup).delete!(*args) || str
-  end
-
-  # Performs a <code>delete</code> operation in place, returning <i>self</i>, or
-  # <code>nil</code> if <i>self</i> was not modified.
-  def delete!(*args)
-    raise ArgumentError, "wrong number of arguments" if args.empty?
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    return if self.empty?
-    
-    new = tr_string(intersect_string_from_args(*args), '', false)
-    new != self ? replace(new) : nil # TODO
   end
 
   # used by count, delete, squeeze
@@ -1629,19 +1653,6 @@ class String
         end
       end
     end
-  end
-
-  # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
-  # library function <code>crypt</code>. The argument is the salt string, which
-  # should be two characters long, each character drawn from
-  # <code>[a-zA-Z0-9./]</code>.
-  def crypt(other_str)
-    other_str = other_str.coerce_string unless other_str.is_a? String
-    raise ArgumentError.new("salt must be at least 2 characters") if other_str.size < 2
-
-    hash = __crypt__(other_str)
-    hash.taint if self.tainted? || other_str.tainted?
-    hash
   end
     
   alias_method :eql?, :==
