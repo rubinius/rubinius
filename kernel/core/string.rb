@@ -83,17 +83,14 @@ class String
     unless other.kind_of? String
       if other.is_a?(Integer) && other >= 0 && other <= 255
         other = other.chr
-      elsif other.respond_to? :to_str
-        other = other.to_str
       else
-        raise TypeError, "can't convert #{other.class} into String"
+        other = other.coerce_to(String, :to_str)
       end
     end
     
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    r = append(other)
-    r.taint if other.tainted?
-    r
+    self.modify!
+    self.taint if other.tainted?
+    self.append(other)
   end
   alias_method :concat, :<<
 
@@ -367,13 +364,65 @@ class String
       end
       
       if replacement.is_a?(Fixnum)
-        raise TypeError, "can't modify frozen string" if self.frozen?
+        self.modify!
         @data[index] = replacement
       else
         self.splice(index, 1, replacement)
       end
     end
     return replacement
+  end
+
+  # Returns a copy of <i>self</i> with the first character converted to uppercase
+  # and the remainder to lowercase.
+  # Note: case conversion is effective only in ASCII region.
+  #    
+  #   "hello".capitalize    #=> "Hello"
+  #   "HELLO".capitalize    #=> "Hello"
+  #   "123ABC".capitalize   #=> "123abc"
+  def capitalize
+    (str = self.dup).capitalize! || str
+  end
+
+  # Modifies <i>self</i> by converting the first character to uppercase and the
+  # remainder to lowercase. Returns <code>nil</code> if no changes are made.
+  # Note: case conversion is effective only in ASCII region.
+  #    
+  #   a = "hello"
+  #   a.capitalize!   #=> "Hello"
+  #   a               #=> "Hello"
+  #   a.capitalize!   #=> nil
+  def capitalize!
+    self.modify!
+    return if @bytes == 0
+    
+    modified = false
+    
+    if @data[0].islower
+      @data[0] = @data[0].toupper
+      modified = true
+    end
+    
+    1.upto(@bytes - 1) do |i|
+      if @data[i].isupper
+        @data[i] = @data[i].tolower
+        modified = true
+      end
+    end
+  
+    modified ? self : nil
+  end
+
+
+
+
+  def modify!
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
   end
 
   def subpattern(pattern, capture)
@@ -431,16 +480,11 @@ class String
 
   def splice(start, count, replacement)
     raise IndexError, "negative length #{count}" if count < 0
-    raise TypeError, "can't modify frozen string" if self.frozen?
+    self.modify!
     raise IndexError, "index #{start} out of string" if @bytes < start || -start > @bytes
     
     start += @bytes if start < 0
     count = @bytes - start if start + count > @bytes
-
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
     
     # TODO: Optimize this by using the @data ByteArray directly?
     output = ""
@@ -501,11 +545,17 @@ class String
   alias_method :to_str, :to_s
 
   #---
-  # NOTE: This overwrites String#dup defined in bootstrap
-  # TODO: Remove me and make string_dup check taint and freeze
+  # NOTE: This overwrites String#dup defined in bootstrap.
+  # TODO: Remove me and make string_dup check taint and freeze.
+  # TODO: Make string_dup compatible with String subclasses
   #+++
   def dup
-    out = Ruby.asm "push self\nstring_dup\n"
+    if self.instance_of? String
+      out = Ruby.asm "push self\nstring_dup\n"
+    else
+      out = self.class.new(self)
+    end
+    
     out.taint if self.tainted?
     out.freeze if self.frozen?
     return out
@@ -799,51 +849,6 @@ class String
     length -= 1 if @data[length] == ?\n && @data[length - 1] == ?\r
     
     replace(substring(0, length))
-  end
-  
-  # Returns a copy of <i>self</i> with the first character converted to uppercase
-  # and the remainder to lowercase.
-  # Note: case conversion is effective only in ASCII region.
-  #    
-  #   "hello".capitalize    #=> "Hello"
-  #   "HELLO".capitalize    #=> "Hello"
-  #   "123ABC".capitalize   #=> "123abc"
-  def capitalize
-    (str = self.dup).capitalize! || str
-  end
-
-  # Modifies <i>self</i> by converting the first character to uppercase and the
-  # remainder to lowercase. Returns <code>nil</code> if no changes are made.
-  # Note: case conversion is effective only in ASCII region.
-  #    
-  #   a = "hello"
-  #   a.capitalize!   #=> "Hello"
-  #   a               #=> "Hello"
-  #   a.capitalize!   #=> nil
-  def capitalize!
-    return if @bytes == 0
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
-    
-    modified = false
-    
-    if @data[0].islower
-      @data[0] = @data[0].toupper
-      modified = true
-    end
-    
-    1.upto(@bytes - 1) do |i|
-      if @data[i].isupper
-        @data[i] = @data[i].tolower
-        modified = true
-      end
-    end
-  
-    modified ? self : nil
   end
   
   def swapcase
