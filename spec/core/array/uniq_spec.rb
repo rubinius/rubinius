@@ -1,1 +1,121 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
+
+describe "Array#uniq" do
+  it "returns an array with no duplicates" do
+    ["a", "a", "b", "b", "c"].uniq.should == ["a", "b", "c"]
+  end
+
+  it "uses eql? semantics" do
+    [1.0, 1].uniq.should == [1.0, 1]
+  end
+
+  it "compares elements first with hash" do
+    # Can't use should_receive because it uses hash internally
+    x = Object.new
+    def x.hash() freeze; 0 end
+    y = Object.new
+    def y.hash() freeze; 0 end
+    
+    [x, y].uniq
+    x.frozen?.should == true
+    y.frozen?.should == true
+  end
+  
+  it "does not compare elements with different hash codes via eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    x = Object.new
+    def x.eql?(o) raise("Shouldn't receive eql?") end
+    y = Object.new
+    def y.eql?(o) raise("Shouldn't receive eql?") end
+
+    def x.hash() freeze; 0 end
+    def y.hash() freeze; 1 end
+
+    [x, y].uniq.should == [x, y]
+    x.frozen?.should == true
+    y.frozen?.should == true
+  end
+  
+  it "compares elements with matching hash codes with #eql?" do
+    # Can't use should_receive because it uses hash and eql? internally
+    a = Array.new(2) do 
+      obj = Object.new
+
+      def obj.hash()
+        # It's undefined whether the impl does a[0].eql?(a[1]) or
+        # a[1].eql?(a[0]) so we taint both.
+        def self.eql?(o) taint; o.taint; false; end
+        return 0
+      end
+
+      obj
+    end
+
+    a.uniq.should == a
+    a[0].tainted?.should == true
+    a[1].tainted?.should == true
+
+    a = Array.new(2) do 
+      obj = Object.new
+
+      def obj.hash()
+        # It's undefined whether the impl does a[0].eql?(a[1]) or
+        # a[1].eql?(a[0]) so we taint both.
+        def self.eql?(o) taint; o.taint; true; end
+        return 0
+      end
+
+      obj
+    end
+
+    a.uniq.size == 1
+    a[0].tainted?.should == true
+    a[1].tainted?.should == true
+  end
+  
+  it "returns subclass instance on Array subclasses" do
+    MyArray[1, 2, 3].uniq.class.should == MyArray
+  end
+end
+
+describe "Array#uniq!" do
+  it "modifies the array in place" do
+    a = [ "a", "a", "b", "b", "c" ]
+    a.uniq!
+    a.should == ["a", "b", "c"]
+  end
+  
+  it "returns self" do
+    a = [ "a", "a", "b", "b", "c" ]
+    a.equal?(a.uniq!).should == true
+  end
+  
+  it "returns nil if no changes are made to the array" do
+    [ "a", "b", "c" ].uniq!.should == nil
+  end
+  
+compliant :r18 do
+  it "raises TypeError on a frozen array if modification would take place" do
+    dup_ary = [1, 1, 2]
+    dup_ary.freeze
+    should_raise(TypeError) { dup_ary.uniq! }
+  end
+
+  it "does not raise TypeError on a frozen array if no modification takes place" do
+    frozen_array.uniq! # ok, already uniq
+    dup_ary = [1, 1, 2]
+    dup_ary.freeze
+    should_raise(TypeError) { dup_ary.uniq! }
+  end
+end
+
+noncompliant :rubinius do
+  it "always raises TypeError on a frozen array regardless of modification" do
+    should_raise(TypeError) { frozen_array.uniq! }
+    dup_ary = [1, 1, 2]
+    dup_ary.freeze
+    should_raise(TypeError) { dup_ary.uniq! }
+  end
+end
+end
