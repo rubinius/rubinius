@@ -11,7 +11,7 @@ end
 
 describe "Kernel#respond_to?" do
   before :each do 
-    @a = ObjectSpecs::A.new  
+    @a = KernelSpecs::A.new  
   end
    
   it "returns true if obj responds to the given public method" do    

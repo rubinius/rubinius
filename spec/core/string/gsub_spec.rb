@@ -355,27 +355,12 @@ describe "String#gsub! with pattern and block" do
     a.should == "hello"
   end
   
-  # MRI 1.8 raises a RuntimeError here which is inconsistent
-  # with the non-block form of gsub! (and everything else)
-  noncompliant :rubinius do
-    it "raises a TypeError when self is frozen" do
-      s = "hello"
-      s.freeze
-    
-      s.gsub!(/ROAR/) { "x" } # ok
-      should_raise(TypeError) { s.gsub!(/e/) { "e" } }
-      should_raise(TypeError) { s.gsub!(/[aeiou]/) { '*' } }
-    end
-  end
+  it "raises a RuntimeError when self is frozen" do
+    s = "hello"
+    s.freeze
   
-  noncompliant :mri do
-    it "raises a TypeError when self is frozen" do
-      s = "hello"
-      s.freeze
-    
-      s.gsub!(/ROAR/) { "x" } # ok
-      should_raise(RuntimeError) { s.gsub!(/e/) { "e" } }
-      should_raise(RubtimeError) { s.gsub!(/[aeiou]/) { '*' } }
-    end
+    s.gsub!(/ROAR/) { "x" } # ok
+    should_raise(RuntimeError) { s.gsub!(/e/) { "e" } }
+    should_raise(RuntimeError) { s.gsub!(/[aeiou]/) { '*' } }
   end
 end

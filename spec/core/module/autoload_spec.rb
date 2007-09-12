@@ -10,11 +10,11 @@ describe "Module#autoload" do
       $m.const_get(:A).should == "test"
 
       # I know this is bad...
-      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../core/fixtures/autoload.rb") }
+      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../module/fixtures/autoload.rb") }
       $m.const_get(:A).should == "test"
 
       # And this is no better...
-      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../core/../core/fixtures/autoload.rb") }
+      $m = Module.new { autoload(:A, File.dirname(__FILE__) + "/../module/../module/fixtures/autoload.rb") }
       $m.const_get(:A).should == "test"
     ensure
       $m = nil

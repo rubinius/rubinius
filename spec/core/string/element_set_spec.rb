@@ -47,23 +47,40 @@ describe "String#[]= with index" do
     should_raise(IndexError) { ""[0] = ?a }
     should_raise(IndexError) { ""[-1] = ?a }
   end
+
+  version '1.8.4'..'1.8.5' do
+    it "raises IndexError when passed other than a Fixnum" do
+      str = "hello"
+      should_raise(IndexError) { str[0.5] = ?c }
+    
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => -1)
+      should_raise(IndexError) { str[obj] = ?y }
+    
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      should_raise(IndexError) { str[obj] = ?! }
+    end
+  end
   
-  # Broken in MRI 1.8.4
-  it "calls to_int on idx" do
-    str = "hello"
-    str[0.5] = ?c
-    str.should == "cello"
+  version '1.8.6' do
+    it "calls to_int on index" do
+      str = "hello"
+      str[0.5] = ?c
+      str.should == "cello"
     
-    obj = Object.new
-    obj.should_receive(:to_int, :returning => -1)
-    str[obj] = ?y
-    str.should == "celly"
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => -1)
+      str[obj] = ?y
+      str.should == "celly"
     
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
-    str[obj] = ?!
-    str.should == "cell!"
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      str[obj] = ?!
+      str.should == "cell!"
+    end
   end
   
   it "sets the code to char % 256" do
@@ -127,23 +144,40 @@ describe "String#[]= with String" do
     
     should_raise(TypeError) { a[0] = "bam" }
   end
+
+  version '1.8.4'..'1.8.5' do
+    it "raises IndexError when passed other than a Fixnum" do
+      str = "hello"
+      should_raise(IndexError) { str[0.5] = "hi " }
+    
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => -1)
+      should_raise(IndexError) { str[obj] = "!" }
+    
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      should_raise(IndexError) { str[obj] = "e vator" }
+    end
+  end
   
-  # Broken in MRI 1.8.4
-  it "calls to_int on idx" do
-    str = "hello"
-    str[0.5] = "hi "
-    str.should == "hi ello"
+  version '1.8.6' do
+    it "calls to_int on index" do
+      str = "hello"
+      str[0.5] = "hi "
+      str.should == "hi ello"
     
-    obj = Object.new
-    obj.should_receive(:to_int, :returning => -1)
-    str[obj] = "!"
-    str.should == "hi ell!"
+      obj = Object.new
+      obj.should_receive(:to_int, :returning => -1)
+      str[obj] = "!"
+      str.should == "hi ell!"
     
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
-    str[obj] = "e vator"
-    str.should == "hi elle vator"
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      str[obj] = "e vator"
+      str.should == "hi elle vator"
+    end
   end
   
   it "tries to convert other_str to a String using to_str" do

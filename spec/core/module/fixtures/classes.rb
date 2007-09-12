@@ -16,7 +16,9 @@ module ModuleSpecs
   end
 
   module SuperModule
-    # include BasicModule
+    failure :rubinius do
+      include BasicModule
+    end
     
     def public_super_module() end
     protected
@@ -26,7 +28,9 @@ module ModuleSpecs
   end
     
   class Child < Parent
-    # include SuperModule
+    failure :rubinius do
+      include SuperModule
+    end
     
     def public_child() end
     protected

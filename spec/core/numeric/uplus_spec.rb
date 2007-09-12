@@ -14,8 +14,8 @@ describe "Numeric#+@" do
   end  
 
   it " should return the same value with opposite sign (floats)" do 
-    2**31.send(:+@).should == 2**31
-    -2**31.send(:+@).should == -2**31
+    (2**31).send(:+@).should == 2**31
+    (-2**31).send(:+@).should == -2**31
   end  
 
   it " should return the same value with opposite sign (two complement)" do 

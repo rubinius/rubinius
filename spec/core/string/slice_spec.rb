@@ -445,18 +445,41 @@ describe "String#slice! with index" do
     "".freeze.slice!(0)
   end
   
-  it "calls to_int on idx" do
-    "hello".slice!(0.5).should == ?h
+  version '1.8.6' do
+    it "calls to_int on index" do
+      "hello".slice!(0.5).should == ?h
+      "hello".slice!('1.5').should == ?e
 
-    obj = Object.new
-    # MRI calls this twice so we can't use should_receive here.
-    def obj.to_int() 1 end
-    "hello".slice!(obj).should == ?e
+      obj = Object.new
+      # MRI calls this twice so we can't use should_receive here.
+      def obj.to_int() 1 end
+      "hello".slice!(obj).should == ?e
 
-    obj = Object.new
-    def obj.respond_to?(name) name == :to_int ? true : super; end
-    def obj.method_missing(name, *) name == :to_int ? 1 : super; end
-    "hello".slice!(obj).should == ?e
+      obj = Object.new
+      def obj.respond_to?(name) name == :to_int ? true : super; end
+      def obj.method_missing(name, *) name == :to_int ? 1 : super; end
+      "hello".slice!(obj).should == ?e
+    end
+  end
+  
+  version '1.8.4'..'1.8.5' do
+    it "raises IndexError when passed other than a Fixnum" do
+      should_raise(IndexError) { "hello".slice!(0.5).should == ?h }
+
+      obj = Object.new
+      # MRI calls this twice so we can't use should_receive here.
+      def obj.to_int() 1 end
+      should_raise(IndexError) { "hello".slice!(obj).should == ?e }
+
+      obj = Object.new
+      def obj.respond_to?(name) name == :to_int ? true : super; end
+      def obj.method_missing(name, *) name == :to_int ? 1 : super; end
+      should_raise(IndexError) { "hello".slice!(obj).should == ?e }
+    end
+    
+    it "returns nil when passed a String" do
+      "hello".slice!('1.5').should == nil
+    end
   end
 end
 

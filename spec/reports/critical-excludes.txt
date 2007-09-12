@@ -36,3 +36,29 @@ Thread#join
 Thread#status
 Thread#inspect
 Thread#alive?
+Module#attr_accessor creates a getter and setter for each given attribute name
+Module#define_method defines a new method with the given name and the given block as body in self
+Module#extend_object is called when an object gets extended with self
+Module#extended is called when an object gets extended with self
+Module#extended is called after Module#extend_object
+Module#attr_accessor converts non string/symbol/fixnum names to strings using to_str
+Module#attr_reader converts non string/symbol/fixnum names to strings using to_str
+Module#class_variables returns an array with the names of class variables of self and self's ancestors
+Module#attr creates a getter for the given attribute name
+Module#attr creates a setter for the given attribute name if writable is true
+Module#attr converts non string/symbol/fixnum names to strings using to_str
+Module#autoload registers the given filename to be loaded the first time that the Module with the given name is accessed
+Module#autoload does not autoload when the specified constant was already set
+Module#const_missing is invoked when an undefined constant is referenced in the scope of self
+Module#module_function raises a TypeError when the given names can't be converted to string using to_str
+Module#const_set sets the constant with the given name to the given value
+Module#const_set tries to convert the given name to a string using to_str
+Module#extend_object extends the given object with constants and methods of self
+Module#method_added is called when a new method is defined in self
+Module#method_removed is called when a method is removed from self
+Module#method_undefined is called when a method is undefined from self
+Module#module_function creates module functions for the given methods
+Module#attr_writer creates a setter for each given attribute name
+Module#module_function makes the instance method versions private
+Module#module_function makes subsequently defined methods module functions if no names are given
+Module#module_function tries to convert the given names to strings using to_str

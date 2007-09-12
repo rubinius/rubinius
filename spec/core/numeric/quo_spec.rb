@@ -16,18 +16,18 @@ describe "Numeric#quo" do
   end
 
   it "quo right  integers" do 
-    13.quo(a_den_int).should_be_close(3.25, TOLERANCE)
-    a_den_int.quo(13).should_be_close( 0.307692307692308, TOLERANCE)
+    13.quo(4).should_be_close(3.25, TOLERANCE)
+    4.quo(13).should_be_close( 0.307692307692308, TOLERANCE)
   end
      
   it "quo right  integers and floats" do 
     13.quo(4.0).should_be_close(3.25, TOLERANCE)
-    a_den_int.quo(13).should_be_close(0.307692307692308, TOLERANCE)
+    4.quo(13).should_be_close(0.307692307692308, TOLERANCE)
   end
   
   it "quo right the integers and floats" do 
     13.quo(4.0).should_be_close(3.25, TOLERANCE)
-    a_den_int.quo(13).should_be_close(0.307692307692308, TOLERANCE)
+    4.quo(13).should_be_close(0.307692307692308, TOLERANCE)
   end
   
   it "quo right  floats" do 

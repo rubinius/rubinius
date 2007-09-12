@@ -29,7 +29,7 @@ describe "String#rindex with object" do
     end
   end
   
-  noncompliant :mri do
+  version '1.8.6' do
     it "tries to convert obj to a string via to_str" do
       obj = Object.new
       obj.should_receive(:to_str, :returning => "lo")
@@ -41,7 +41,6 @@ describe "String#rindex with object" do
       should_raise(Exception) { "hello".rindex(obj) }
     end
   end
-  
 end
 
 describe "String#rindex with Fixnum" do

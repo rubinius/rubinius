@@ -11,7 +11,7 @@ end
 
 describe "Module#constants" do
   it "returns an array with the names of all constants accessible in the scope of self" do
-    ModuleSpecs.constants.should == ["Parent", "Child", "SuperModule", "BasicModule"]
+    ModuleSpecs.constants.sort.should == ["BasicModule", "Child", "Parent", "SuperModule"]
     
     Module.new { const_set :A, "test" }.constants.should == [ "A" ]
     Class.new  { const_set :A, "test" }.constants.should == [ "A" ]

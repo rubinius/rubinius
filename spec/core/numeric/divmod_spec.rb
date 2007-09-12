@@ -5,19 +5,19 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 #    q = floor(float(x)/float(y))
 #    x = q*y + r
 describe "Numeric#divmod" do    
-  it "divmod right  integers" do 
-    13.divmod(a_den_int).should == [3,1]
-    a_den_int.divmod(13).should == [0,4]
+  it "divmod right integers" do 
+    13.divmod(4).should == [3,1]
+    4.divmod(13).should == [0,4]
   end
   
-  it "divmod right  integers and floats" do 
+  it "divmod right integers and floats" do 
     13.divmod(4.0).should == [3,1]
-    a_den_int.divmod(13).should == [0,4]
+    4.divmod(13).should == [0,4]
   end
   
   it "divmod right the integers and floats" do 
     13.divmod(4.0).should == [3,1]
-    a_den_int.divmod(13).should == [0,4]
+    4.divmod(13).should == [0,4]
   end
   
   it "divmod right  floats" do 
@@ -25,8 +25,8 @@ describe "Numeric#divmod" do
     4.0.divmod(13).should == [0.0,4.0]
   end
   
-  it " should divmod right with bignums and integers" do
-    3**33.divmod( 100).should == [55590605665555, 23]
+  it "should divmod right with bignums and integers" do
+    (3**33).divmod( 100).should == [55590605665555, 23]
   end
   
   it "raise the expected exception" do

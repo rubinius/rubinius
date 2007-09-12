@@ -355,9 +355,7 @@ describe "String#sub! with pattern and block" do
     should_raise(RuntimeError) { str.sub!(//) { str << 'x' } }
   end
   
-  # MRI 1.8 raises a RuntimeError here which is inconsistent
-  # with the non-block form of sub! (and everything else)
-  noncompliant :rubinius do
+  version '1.8.4'..'1.8.5' do
     it "raises a TypeError when self is frozen" do
       s = "hello"
       s.freeze
@@ -365,10 +363,10 @@ describe "String#sub! with pattern and block" do
       s.sub!(/ROAR/) { "x" } # ok
       should_raise(TypeError) { s.sub!(/e/) { "e" } }
       should_raise(TypeError) { s.sub!(/[aeiou]/) { '*' } }
-    end
+    end    
   end
-  
-  noncompliant :mri do
+
+  version '1.8.6' do
     it "raises a RuntimeError when self is frozen" do
       s = "hello"
       s.freeze
