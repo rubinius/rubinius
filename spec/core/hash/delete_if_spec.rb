@@ -27,8 +27,8 @@ describe "Hash#delete_if" do
   end
 
   it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { hash.delete_if { false } }
-    should_raise(TypeError) { empty.delete_if { true } }
+    should_raise(TypeError) { @hash.delete_if { false } }
+    should_raise(TypeError) { @empty.delete_if { true } }
   end
   
   it_behaves_like(@hash_iteration_method, :delete_if)

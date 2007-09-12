@@ -24,7 +24,7 @@ describe "Hash#shift" do
   end
 
   it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { hash.shift }
-    should_raise(TypeError) { empty.shift }
+    should_raise(TypeError) { @hash.shift }
+    should_raise(TypeError) { @empty.shift }
   end
 end

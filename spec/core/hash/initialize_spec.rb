@@ -15,7 +15,7 @@ describe "Hash#initialize" do
   end
 
   it "raises TypeError if called on a frozen instance" do
-    hash.instance_eval do
+    @hash.instance_eval do
       should_raise(TypeError) { initialize() }
       should_raise(TypeError) { initialize(nil) }
       should_raise(TypeError) { initialize(5) }

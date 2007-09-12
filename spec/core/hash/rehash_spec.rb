@@ -52,7 +52,7 @@ describe "Hash#rehash" do
   end
 
   it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { hash.rehash }
-    should_raise(TypeError) { empty.rehash }
+    should_raise(TypeError) { @hash.rehash }
+    should_raise(TypeError) { @empty.rehash }
   end  
 end

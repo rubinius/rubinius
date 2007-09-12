@@ -49,8 +49,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
     end
 
     it "raises TypeError if called on a frozen instance" do
-      hash.send(cmd, hash) # ok, nothing changed
-      should_raise(TypeError) { hash.send(cmd, empty) }
+      @hash.send(cmd, @hash) # ok, nothing changed
+      should_raise(TypeError) { @hash.send(cmd, @empty) }
     end
   end
 end

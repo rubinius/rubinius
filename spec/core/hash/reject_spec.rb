@@ -65,8 +65,8 @@ describe "Hash#reject!" do
   end  
 
   it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { hash.reject! { false } }
-    should_raise(TypeError) { empty.reject! { true } }
+    should_raise(TypeError) { @hash.reject! { false } }
+    should_raise(TypeError) { @empty.reject! { true } }
   end
 
   it_behaves_like(@hash_iteration_method, :reject!)

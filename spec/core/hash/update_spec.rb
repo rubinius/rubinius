@@ -45,8 +45,8 @@ require File.dirname(__FILE__) + '/iteration_spec'
     end
 
     it "raises TypeError if called on a frozen instance" do
-      hash.send(cmd, empty) # ok, empty
-      should_raise(TypeError) { hash.send(cmd, 1 => 2) }
+      @hash.send(cmd, @empty) # ok, empty
+      should_raise(TypeError) { @hash.send(cmd, 1 => 2) }
     end
   end
 end

@@ -23,11 +23,13 @@ describe "Hash#==" do
     c.should == d
   end
   
-  it "calls to_hash on its argument" do
-    obj = Object.new
-    obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
+  version '1.8.6' do
+    it "calls to_hash on its argument" do
+      obj = Object.new
+      obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})
     
-    {1 => 2, 3 => 4}.should == obj
+      {1 => 2, 3 => 4}.should == obj
+    end
   end
   
   it "does not call to_hash on hash subclasses" do

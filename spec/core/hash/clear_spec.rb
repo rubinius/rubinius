@@ -19,7 +19,7 @@ describe "Hash#clear" do
   end
 
   it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { hash.clear }
-    should_raise(TypeError) { empty.clear }
+    should_raise(TypeError) { @hash.clear }
+    should_raise(TypeError) { @empty.clear }
   end
 end
