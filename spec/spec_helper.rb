@@ -73,27 +73,45 @@ end
 
 
 def compliant(*engines)
-  if engines.any? { |e| engine?(e) }
-    yield
-  end
+  yield if engines.any? { |e| engine?(e) }
 end
 
 def failure(*engines)
-  unless engines.any? { |e| engine?(e) }
-    yield
-  end
-end
-
-def platform(*args)
-  reverse = args.first == :not
-  args.shift if reverse
-  result = args.any? { |a| RUBY_PLATFORM.match(a.to_s) }
-  yield if reverse ? (not result) : result
+  yield unless engines.any? { |e| engine?(e) }
 end
 
 class Object
   alias noncompliant compliant
   alias extension compliant
+end
+
+# platform :darwin, :mswin do
+#   run these specs if RUBY_PLATFORM matches :darwin or :mswin
+# end
+#
+# platform :not, :mswin do
+#   run these specs if RUBY_PLATFORM does not match :mswin
+# end
+def platform(*args)
+  yield if guard(*args) { |a| RUBY_PLATFORM.match(a.to_s) }
+end
+
+# version :not, '1.8.4', '1.8.6' do
+#   run these specs if RUBY_VERSION is not 1.8.4 or 1.8.6
+# end
+#
+# version '1.8.4'..'1.8.6' do
+#   run these specs if RUBY_VERSION is in the range 1.8.4 to 1.8.6
+# end
+def version(*args)
+  yield if guard(*args) { |a| a === RUBY_VERSION }
+end
+
+def guard(*args, &cond)
+  reverse = args.first == :not
+  args.shift if reverse
+  result = args.any? &cond
+  reverse ? (not result) : result
 end
 
 class Object
