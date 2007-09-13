@@ -213,7 +213,7 @@ desc "Build Shotgun (task alias for build:shotgun)"
 task :build => ['build:shotgun']
 
 desc "Removes build by-products for Rubinius runtime components"
-task :clean => ['clean:compiler', 'clean:bootstrap', 'clean:core', 'clean:library']
+task :clean => ['clean:compiler', 'clean:bootstrap', 'clean:core', 'clean:platform']
 
 namespace :clean do
   desc "Removes build by-products for compiler"
@@ -223,9 +223,9 @@ namespace :clean do
     end
   end
 
-  desc "Removes build by-products for library"
-  task :library do
-    FileList['library/**/*.rbc'].each do |fn|
+  desc "Removes build by-products for platform"
+  task :platform do
+    FileList['platform/**/*.rbc'].each do |fn|
       FileUtils.rm fn rescue nil
     end
   end

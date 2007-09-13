@@ -30,7 +30,7 @@ module Kernel
   end
 
   def String(obj)
-    coerce_to(String, :to_s)
+    obj.coerce_to(String, :to_s)
   end
   
   # Reporting methods

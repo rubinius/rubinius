@@ -73,7 +73,11 @@ class Class
     out = [self]
     sup = direct_superclass()
     while sup
-      out << sup
+      if sup.class == IncludedModule
+        out << sup.module
+      else
+        out << sup
+      end
       sup = sup.direct_superclass()
     end
     return out
