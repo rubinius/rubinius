@@ -1303,7 +1303,6 @@ module Bytecode
       def const_to_string(tree, str)
         return str if tree.empty?
         piece = tree.shift
-        p str
         unless str[-2,2] == "::" || str == ""
           str << "::"
         end
@@ -1467,6 +1466,7 @@ module Bytecode
       # Handles various types of multiple assignment, including do |*args| .. end
       # argscat and argspush are handled elsewhere
       def process_masgn(x)
+        return unless x[0] # masgn to empty name, e.g. do |*| .. end
         if x[0][0] == :array
           lhs = x.shift
         else # splatted block arguments have no lhs
