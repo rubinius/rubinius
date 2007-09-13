@@ -7,7 +7,7 @@
 #ifndef __RUBINIUS_OM__
 #define __RUBINIUS_OM__ 1
 
-#define OMDefaultSize 1048576
+#define OMDefaultSize 4194304
 /* A little over 1% of the total heap size. */
 #define LargeObjectThreshold 2700
 //#define OMDefaultSize 100000

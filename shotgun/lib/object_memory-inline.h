@@ -15,16 +15,25 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
     //fields += 4; /* PAD */
     size = (HEADER_SIZE + fields) * REFSIZE;
     if(!heap_enough_space_p(om->gc->current, size)) {
-      obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
-      xassert(heap_enough_space_p(om->gc->next, size));
-      // DEBUG("Ran out of space! spilled into %p\n", obj);
-      om->collect_now |= OMCollectYoung;
-      // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
+      if(!heap_enough_space_p(om->gc->next, size)) {
+        mark_sweep_gc ms = om->ms;
+        obj = mark_sweep_allocate(ms, fields);
+        if(ms->enlarged) { 
+          om->collect_now |= OMCollectMature;
+        }
+
+        loc = GC_MATURE_OBJECTS;    
+      } else {
+        loc = GC_YOUNG_OBJECTS;
+        obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
+        // DEBUG("Ran out of space! spilled into %p\n", obj);
+        om->collect_now |= OMCollectYoung;
+        // baker_gc_enlarge_next(om->gc, om->gc->current->size * GC_SCALING_FACTOR);
+      }
     } else {
       obj = (OBJECT)baker_gc_allocate(om->gc, size);
+      loc = GC_YOUNG_OBJECTS;
     }
-    
-    loc = GC_YOUNG_OBJECTS;
   }
   
   // memset(obj, 0, HEADER_SIZE * REFSIZE);

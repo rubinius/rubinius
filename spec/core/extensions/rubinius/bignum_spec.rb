@@ -5,7 +5,17 @@ extension :rubinius do
     specify "should have max value 2 ** 29" do
       max = 2 ** 29
       max.class.should == Bignum
-      (max - 1).class.should == Fixnum
+      sub = max - 1
+      sub.should == 536870911
+      sub.class.should == Fixnum
+    end
+    
+    specify "should have min value -(2 ** 29)" do
+      min = -2 ** 29
+      min.class.should == Bignum
+      sub = min + 1
+      sub.should == -536870911
+      sub.class.should == Fixnum
     end
   end
 

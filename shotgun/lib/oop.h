@@ -43,7 +43,7 @@ typedef uintptr_t OBJECT;
 
 /* How many bits of data are available in fixnum, not including
    the sign. */
-#define FIXNUM_WIDTH 28
+#define FIXNUM_WIDTH 29
 
 /* the sizeof(struct rubinius_object) must an increment of
    REFSIZE, so that the bytes located directly after a
