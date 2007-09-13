@@ -62,3 +62,17 @@ Module#attr_writer creates a setter for each given attribute name
 Module#module_function makes the instance method versions private
 Module#module_function makes subsequently defined methods module functions if no names are given
 Module#module_function tries to convert the given names to strings using to_str
+Array#[]= with [m..n] accepts Range subclasses
+Module#attr_accessor raises a TypeError when the given names can't be converted to strings using to_str
+Module#autoload raises an ArgumentError when an empty filename is given
+Module#attr_accessor raises a TypeError when the given names can't be converted to strings using to_str
+Hash#initialize raises TypeError if called on a frozen instance
+Hash#each yields one argument: [key, value]
+Hash#delete raises TypeError if called on a frozen instance
+Hash#initialize can be used to reset default_proc
+Module#autoload raises a NameError when an invalid constant name is given
+Hash#each
+Hash#each_pair
+Hash#each_key
+String#<=> compares its argument and self by calling <=> on obj and turning the result around if obj responds to to_str
+String#each tries to convert the separator to a string using to_str
