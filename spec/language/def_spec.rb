@@ -34,6 +34,54 @@ describe 'Defining methods with *' do
   end
 end
 
+describe "Defining a method with a default arg" do
+  it "should assign single default arg when nothing is passed" do
+    def foo(a = 1)
+      a
+    end
+    foo.should == 1
+    foo(2).should == 2
+  end
+
+  it "should assign [] to unpassed rest args" do
+    def foo(a = 1, *b)
+      [a,b]
+    end
+    foo.should == [1, []]
+    foo(2).should == [2, []]
+  end
+
+  it "should assign when only required args are passed" do
+    def foo(a, b = 2)
+      [a,b]
+    end
+    should_raise(ArgumentError) {foo}
+    foo(1).should == [1, 2]
+  end
+
+  it "should assign default and assign [] to rest args when only required args are present" do
+    def foo(a, b = 2, *c)
+      [a,b,c]
+    end
+    should_raise(ArgumentError) {foo}
+    foo(1).should == [1,2,[]]
+  end
+
+  it "should not assign when restargs get assigned" do
+    def foo(a = 1, *args)
+      [a,args]
+    end
+    foo(2,2).should == [2,[2]]
+  end
+
+  it "should not assign when required and restargs get assigned" do
+    def foo(a, b = 2, *args)
+      [a,b,args]
+    end
+    foo(2,3,3).should == [2,3,[3]]
+  end
+end
+
 describe "Defining a singleton method" do
   it "should work on an lvar" do
     a = "hi"
