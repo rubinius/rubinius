@@ -242,6 +242,7 @@ class RsLocalScoper < RsMethodBodyOnly
 
   def p_or_n(val)
     return nil if val.nil?
+    return nil if val == true # Crazy, but this is how anonymous splats look
     process(val)
   end
 
