@@ -1,0 +1,2 @@
+Struct#[]= assigns the passed value
+Struct#[]= fails when trying to assign attributes which don't exist

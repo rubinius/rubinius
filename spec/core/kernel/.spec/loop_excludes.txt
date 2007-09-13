@@ -1,0 +1,2 @@
+Kernel.loop returns value passed to break
+Kernel.loop raises LocalJumpError if no block given

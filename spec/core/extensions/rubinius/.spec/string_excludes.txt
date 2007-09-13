@@ -1,0 +1,1 @@
+String instance method % format float (e) values should return a string resulting from applying the format

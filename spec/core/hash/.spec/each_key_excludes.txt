@@ -1,0 +1,20 @@
+An exception has occurred:
+    No method 'call' on an instance of NilClass. (NoMethodError)
+
+Backtrace:
+    Object(NilClass)#call (method_missing) at kernel/core/object.rb:98
+                      main.it_behaves_like at ./spec/core/true/../../spec_helper.rb:142
+                           main.__script__ at spec/core/hash/each_key_spec.rb:19
+                                 Proc#call at kernel/core/context.rb:238
+                       SpecRunner#describe at spec/mini_rspec.rb:346
+                             main.describe at spec/mini_rspec.rb:365
+                           main.__script__ at spec/core/hash/each_key_spec.rb:4
+                                 main.load at kernel/core/compile.rb:59
+                      main.__eval_script__ at (eval):8
+                                Array#each at kernel/core/array.rb:526
+                     Integer(Fixnum)#times at kernel/core/integer.rb:19
+                                Array#each at kernel/core/array.rb:526
+                      main.__eval_script__ at (eval):5
+                   CompiledMethod#activate at kernel/core/compiled_method.rb:105
+                           Compile.execute at kernel/core/compile.rb:32
+                           main.__script__ at kernel/loader.rb:150

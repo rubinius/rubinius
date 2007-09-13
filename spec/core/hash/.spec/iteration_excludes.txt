@@ -1,0 +1,15 @@
+An exception has occurred:
+    No method 'shared' on an instance of Object. (NoMethodError)
+
+Backtrace:
+    main.shared (method_missing) at kernel/core/object.rb:98
+                 main.__script__ at ./spec/core/hash/iteration_spec.rb:1
+                       main.load at kernel/core/compile.rb:76
+            main.__eval_script__ at (eval):8
+                      Array#each at kernel/core/array.rb:526
+           Integer(Fixnum)#times at kernel/core/integer.rb:19
+                      Array#each at kernel/core/array.rb:526
+            main.__eval_script__ at (eval):5
+         CompiledMethod#activate at kernel/core/compiled_method.rb:105
+                 Compile.execute at kernel/core/compile.rb:32
+                 main.__script__ at kernel/loader.rb:150

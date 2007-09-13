@@ -1,0 +1,1 @@
+Numeric#nonzero? return the vaule if number is different to 0

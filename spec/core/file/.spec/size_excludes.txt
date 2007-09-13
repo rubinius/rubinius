@@ -1,0 +1,1 @@
+File.size? should return nil if file_name doesn't exist or has zero size, the size of the file otherwise

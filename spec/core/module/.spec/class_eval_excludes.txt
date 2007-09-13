@@ -1,0 +1,5 @@
+Module#class_eval(string, filename, lineno, &block) uses the optional filename and lineno parameters for error messages
+Module#class_eval(string, filename, lineno, &block) converts non string eval-string to string using to_str
+Module#class_eval(string, filename, lineno, &block) raises a TypeError when the given eval-string can't be converted to string using to_str
+Module#class_eval(string, filename, lineno, &block) raises an ArgumentError when more than 3 arguments are given
+Module#class_eval(string, filename, lineno, &block) raises an ArgumentError when a block and normal arguments are given

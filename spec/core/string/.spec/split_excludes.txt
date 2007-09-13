@@ -1,0 +1,21 @@
+String#split with String suppresses trailing empty fields when limit isn't given or 0
+String#split with String returns an array with one entry if limit is 1: the original string
+String#split with String returns at most limit fields when limit > 1
+String#split with String doesn't suppress or limit fields when limit is negative
+String#split with String defaults to $; when string isn't given or nil
+String#split with String ignores leading and continuous whitespace when string is a single space
+String#split with String splits between characters when its argument is an empty string
+String#split with String tries converting its pattern argument to a string via to_str
+String#split with String tries converting limit to an integer via to_int
+String#split with String returns subclass instances based on self
+String#split with String taints the resulting strings if self is tainted
+String#split with Regexp suppresses trailing empty fields when limit isn't given or 0
+String#split with Regexp returns an array with one entry if limit is 1: the original string
+String#split with Regexp returns at most limit fields when limit > 1
+String#split with Regexp doesn't suppress or limit fields when limit is negative
+String#split with Regexp defaults to $; when regexp isn't given or nil
+String#split with Regexp splits between characters when regexp matches a zero-length string
+String#split with Regexp includes all captures in the result array
+String#split with Regexp tries converting limit to an integer via to_int
+String#split with Regexp returns subclass instances based on self
+String#split with Regexp taints the resulting strings if self is tainted

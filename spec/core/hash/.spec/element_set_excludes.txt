@@ -1,0 +1,6 @@
+Hash#store duplicates and freezes string keys
+Hash#store duplicates string keys using dup semantics
+Hash#store raises TypeError if called on a frozen instance
+Hash#[]= duplicates and freezes string keys
+Hash#[]= duplicates string keys using dup semantics
+Hash#[]= raises TypeError if called on a frozen instance

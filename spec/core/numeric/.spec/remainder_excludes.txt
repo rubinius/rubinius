@@ -1,0 +1,5 @@
+Numeric#remainder remainder the right  integers
+Numeric#remainder remainder right  integers and floats
+Numeric#remainder remainder right the integers and floats
+Numeric#remainder  should remainder right with bignums and integers
+Numeric#remainder raise the expected exception

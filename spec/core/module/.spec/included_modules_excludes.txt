@@ -1,0 +1,1 @@
+Module#included_modules returns a list of modules included in self

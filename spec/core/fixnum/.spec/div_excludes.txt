@@ -1,0 +1,1 @@
+Fixnum#div coerces fixnum and return self divided by other as an Integer

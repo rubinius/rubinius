@@ -1,0 +1,1 @@
+Bignum#eql? returns true if other is a Bignum with the same value

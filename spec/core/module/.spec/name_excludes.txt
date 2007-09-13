@@ -1,0 +1,1 @@
+Module#name returns the name of self

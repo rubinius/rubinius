@@ -1,0 +1,4 @@
+Hash#reject returns subclass instance for subclasses
+Hash#reject! raises TypeError if called on a frozen instance
+Hash#reject! raise RuntimeError if #rehash is called from block
+Hash#reject! raises if lots of new entries are added from block

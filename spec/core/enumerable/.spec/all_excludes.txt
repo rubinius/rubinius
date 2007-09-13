@@ -1,0 +1,1 @@
+Enumerable#all fail when have a wrong argument 

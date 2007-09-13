@@ -1,0 +1,42 @@
+File.fnmatch? match entire strings
+File.fnmatch? match when use a partial strings
+File.fnmatch? not match  when use { } because is not supported
+File.fnmatch? match when use the wildcard for one-character expresion (?)
+File.fnmatch? match when use the wildcard for 0 or more characters expresion (*)
+File.fnmatch? match when use inclusive bracket expresion [a-z] 
+File.fnmatch? not match when the character is out of the range using an inclusive bracket expresion [x-z] 
+File.fnmatch? match exclusive bracket expresion [^t] or [!t]
+File.fnmatch? match case sensitive
+File.fnmatch? match case insensitive
+File.fnmatch? not match a character using the wildcard '?'
+File.fnmatch? not match a character using the wildcard '*'
+File.fnmatch? not match a character using a charater insede a bracket expression 
+File.fnmatch? escaped wildcard becomes ordinary
+File.fnmatch? escaped ordinary remains ordinary
+File.fnmatch?  FNM_NOESACPE makes '' ordinary
+File.fnmatch? can escape inside bracket expression
+File.fnmatch? wildcards doesnt match leading by default
+File.fnmatch? match some paths using a composite string
+File.fnmatch? match usign File::CONSTANT
+File.fnmatch? raise an exception if the argumnents are not of the correct type or are missing
+File.fnmatch match entire strings
+File.fnmatch match when use a partial strings
+File.fnmatch not match  when use { } because is not supported
+File.fnmatch match when use the wildcard for one-character expresion (?)
+File.fnmatch match when use the wildcard for 0 or more characters expresion (*)
+File.fnmatch match when use inclusive bracket expresion [a-z] 
+File.fnmatch not match when the character is out of the range using an inclusive bracket expresion [x-z] 
+File.fnmatch match exclusive bracket expresion [^t] or [!t]
+File.fnmatch match case sensitive
+File.fnmatch match case insensitive
+File.fnmatch not match a character using the wildcard '?'
+File.fnmatch not match a character using the wildcard '*'
+File.fnmatch not match a character using a charater insede a bracket expression 
+File.fnmatch escaped wildcard becomes ordinary
+File.fnmatch escaped ordinary remains ordinary
+File.fnmatch  FNM_NOESACPE makes '' ordinary
+File.fnmatch can escape inside bracket expression
+File.fnmatch wildcards doesnt match leading by default
+File.fnmatch match some paths using a composite string
+File.fnmatch match usign File::CONSTANT
+File.fnmatch raise an exception if the argumnents are not of the correct type or are missing

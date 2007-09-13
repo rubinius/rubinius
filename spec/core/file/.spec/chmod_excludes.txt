@@ -1,0 +1,1 @@
+File#chmod should modify the permission bits of the files specified

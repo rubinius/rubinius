@@ -1,0 +1,2 @@
+Hash#initialize is private
+Hash#initialize can be used to reset default_proc

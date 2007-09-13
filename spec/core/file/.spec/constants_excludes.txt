@@ -1,0 +1,21 @@
+File::Constants match mode constants
+File::Constants the separator constant
+File::Constants the open mode constants
+File::Constants lock mode constants
+File::Constants File::RDONLY
+File::Constants File::WRONLY
+File::Constants File::CREAT
+File::Constants File::RDWR
+File::Constants File::APPEND
+File::Constants File::TRUNC
+File::Constants File::NOCTTY
+File::Constants File::NONBLOCK
+File::Constants File::LOCK_EX
+File::Constants File::LOCK_NB
+File::Constants File::LOCK_SH
+File::Constants File::LOCK_UN
+File::Constants File::SEPARATOR
+File::Constants File::Separator
+File::Constants File::PATH_SEPARATOR
+File::Constants File::SEPARATOR
+File::Constants File::PATH_SEPARATOR

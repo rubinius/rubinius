@@ -1,0 +1,2 @@
+Module#const_set raises a NameError when there is no constant with the given name
+Module#const_set raises a TypeError when the given name can't be converted to string using to_str

@@ -1,0 +1,5 @@
+File.executable? return true if the argument its an executable file
+File.executable? raise an exception its the arguments are the worng type or number
+File.executable? returns true if named file is readable by the effective user id of the process, otherwise false
+File.executable? return true if the argument its an executable file
+File.executable? raise an exception its the arguments are the worng type or number

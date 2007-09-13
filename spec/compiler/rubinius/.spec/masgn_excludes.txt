@@ -1,0 +1,4 @@
+Single assignment If rhs has multiple arguments, lhs becomes an Array of them
+Multiple assignment without grouping or splatting An equal number of arguments on lhs and rhs assigns positionally
+Multiple assignment without grouping or splatting If rhs has too few arguments, the missing ones on lhs are assigned nil
+Multiple assignment without grouping or splatting If rhs has too many arguments, the extra ones are silently not assigned anywhere

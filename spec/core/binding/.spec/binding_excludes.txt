@@ -1,0 +1,3 @@
+Initialised Binding May be duplicated with #dup
+Initialised Binding May be cloned with #clone
+Initialised Binding Normal #dup and #clone semantics apply

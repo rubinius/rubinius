@@ -1,0 +1,1 @@
+Module#define_method raises a TypeError when the given method is no Method/Proc

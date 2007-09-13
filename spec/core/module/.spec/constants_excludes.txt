@@ -1,0 +1,2 @@
+Module.constants returns an array of the names of all constants defined
+Module#constants returns an array with the names of all constants accessible in the scope of self

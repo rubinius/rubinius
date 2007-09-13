@@ -1,0 +1,3 @@
+Bignum#remainder returns the remainder of dividing self by other
+Bignum#remainder raises ZeroDivisionError if other is zero and not a Float
+Bignum#remainder does NOT raise ZeroDivisionError if other is zero and is a Float

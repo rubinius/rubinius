@@ -1,0 +1,2 @@
+Hash#select raise RuntimeError if #rehash is called from block
+Hash#select raises if lots of new entries are added from block

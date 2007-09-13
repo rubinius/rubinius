@@ -1,0 +1,2 @@
+Module#include? returns true if the given module is included by self or one of it's ancestors
+Module#include? raises a TypeError when no module was given

@@ -1,0 +1,1 @@
+Hash#to_a returns a list of [key, value] pairs with same order as each()

@@ -1,0 +1,14 @@
+Hash#update calls to_hash on its argument
+Hash#update raises TypeError if called on a frozen instance
+Hash#update raise RuntimeError if #rehash is called from block
+Hash#update raises if lots of new entries are added from block
+Hash#merge calls to_hash on its argument
+Hash#merge returns subclass instance for subclasses
+Hash#merge processes entries with same order as each()
+Hash#merge raise RuntimeError if #rehash is called from block
+Hash#merge raises if lots of new entries are added from block
+Hash#merge! calls to_hash on its argument
+Hash#merge! processes entries with same order as merge()
+Hash#merge! raises TypeError if called on a frozen instance
+Hash#merge! raise RuntimeError if #rehash is called from block
+Hash#merge! raises if lots of new entries are added from block

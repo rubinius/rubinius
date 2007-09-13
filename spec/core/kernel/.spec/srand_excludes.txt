@@ -1,0 +1,1 @@
+Kernel.srand srand should return the previous seed value

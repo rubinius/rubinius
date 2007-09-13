@@ -1,0 +1,2 @@
+Struct#each_pair passes each key value pair to the given block
+Struct#each_pair fails if not passed a block

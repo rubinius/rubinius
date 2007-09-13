@@ -1,0 +1,2 @@
+Struct#each passes each value to the given block
+Struct#each fails if not passed a block

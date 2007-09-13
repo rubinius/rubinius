@@ -1,0 +1,2 @@
+File.dirname return all the components of filename except the last one (edge cases)
+File.dirname raise an exception if the arguments are wrong type or are the incorect number of arguments 

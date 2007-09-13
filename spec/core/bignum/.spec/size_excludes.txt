@@ -1,0 +1,1 @@
+Bignum#size returns number of bytes in self

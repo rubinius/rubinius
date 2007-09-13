@@ -1,0 +1,4 @@
+File.identical? return a Boolean class
+File.identical? return true if they are identicals
+File.identical? raise an exception if the arguments are wrong type or are the incorect number of arguments
+File.identical? identical? should return true if both named files are identical

@@ -1,0 +1,2 @@
+Kernel.Float should call to_i to convert any arbitrary argument to a Float
+Kernel.Float raises TypeError if passed a string that cannot be fully converted to a Float

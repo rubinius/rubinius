@@ -1,0 +1,1 @@
+Numeric#divmod raise the expected exception

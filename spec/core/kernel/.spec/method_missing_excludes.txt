@@ -1,0 +1,2 @@
+Kernel#method_missing return the correct value from the method_missing method after call a private instance method
+Kernel#method_missing return the correct value from the method_missing method after call a protected instance method

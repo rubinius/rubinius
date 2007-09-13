@@ -1,0 +1,2 @@
+Float#% does NOT raise ZeroDivisionError if other is zero
+Float#modulo does NOT raise ZeroDivisionError if other is zero

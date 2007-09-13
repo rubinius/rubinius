@@ -1,0 +1,3 @@
+Enumerable#__id__ return an Integer
+Enumerable#__id__ return same number will be returned on all calls to id for a given object
+Enumerable#__id__ return same number will be returned on all calls to id for a given object

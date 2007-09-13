@@ -1,0 +1,2 @@
+Fixnum#% does NOT raise ZeroDivisionError if other is zero and is a Float
+Fixnum#modulo does NOT raise ZeroDivisionError if other is zero and is a Float

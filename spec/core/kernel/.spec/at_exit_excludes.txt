@@ -1,0 +1,2 @@
+Kernel.at_exit should fire after all other code
+Kernel.at_exit should fire in reverse order of registration

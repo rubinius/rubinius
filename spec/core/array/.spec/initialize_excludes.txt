@@ -1,0 +1,5 @@
+Array#initialize is private
+Array#initialize does nothing when passed self
+Array#initialize sets the array to size objects when passed size, object
+Array#initialize does not raise TypeError on a frozen array if it would not change the array
+Array#initialize raises TypeError on frozen arrays

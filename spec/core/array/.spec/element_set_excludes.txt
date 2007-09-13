@@ -1,0 +1,7 @@
+Array#[]= calls to_int on its start and length arguments
+Array#[]= calls to_int on range arguments
+Array#[]= raises IndexError when passed indexes out of bounds
+Array#[]= calls to_ary on its rhs argument for multi-element sets
+Array#[]= does not call to_ary on rhs array subclasses for multi-element sets
+Array#[]= raises TypeError on a frozen array
+Array#[]= with [index, count] sets elements when passed start, length

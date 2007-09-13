@@ -1,0 +1,8 @@
+String#index with object tries to convert obj to a string via to_str
+String#index with Fixnum converts start_offset to an integer via to_int
+String#index with String returns the index of the first occurrence of the given substring
+String#index with String starts the search at the given offset
+String#index with String converts start_offset to an integer via to_int
+String#index with Regexp behaves the same as String#index(string) for escaped string regexps
+String#index with Regexp supports \G which matches at the given start offset
+String#index with Regexp converts start_offset to an integer via to_int

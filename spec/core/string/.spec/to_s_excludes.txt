@@ -1,0 +1,1 @@
+String#to_s returns a new instance of String when called on a subclass

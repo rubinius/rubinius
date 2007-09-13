@@ -1,0 +1,3 @@
+Numeric#quo quo right  floats
+Numeric#quo not raise a Exception when quo by 0
+Numeric#quo raise the expected exception

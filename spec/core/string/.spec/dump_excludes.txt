@@ -1,0 +1,2 @@
+String#dump taints result when self is tainted
+String#dump returns a subclass instance for subclasses

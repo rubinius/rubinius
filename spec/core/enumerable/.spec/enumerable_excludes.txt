@@ -1,0 +1,9 @@
+A class with Enumerable mixin, cmd detect should return the first element for which block is not false
+A class with Enumerable mixin, cmd map should be a synonym for collect
+A class with Enumerable mixin, cmd partition should return two arrays, the first containing elements for which the block is true, the second containing the rest
+A class with Enumerable mixin, cmd reject should return an array of the elements for which block is false
+A class with Enumerable mixin, cmd zip without a block should merge elements with corresponding indexes from each #to_a argument
+A class with Enumerable mixin, cmd zip with a block merges corresponding indexes and passes these to the block
+A class with Enumerable mixin and <=> defined, cmd sort without a block should should return an array of elements ordered lowest to highest
+A class with Enumerable mixin and <=> defined, cmd sort with a block should return an array of elements ordered by the result of block
+A class with Enumerable mixin and <=> defined, cmd sort_by should return an array of elements ordered by the result of block

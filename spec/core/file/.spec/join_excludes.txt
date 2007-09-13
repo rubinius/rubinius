@@ -1,0 +1,4 @@
+File.join returns a new string formed by joining the strings using File::SEPARATOR (unix)
+File.join returns a new string formed by joining the strings using File::SEPARATOR (edge cases on windows) 
+File.join raise a TypeError exception when args are nil
+File.join should return a new string formed by joining the strings using File::SEPARATOR

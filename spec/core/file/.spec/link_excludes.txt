@@ -1,0 +1,2 @@
+File.link link a file with another 
+File.link raise an exception if the arguments are wrong type or are the incorect number of arguments

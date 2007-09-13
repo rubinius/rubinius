@@ -1,0 +1,13 @@
+File.new return a new File with mode string
+File.new return a new File with mode num
+File.new return a new File with modus num and premissions 
+File.new return a new File with modus fd 
+File.new create a new file when use File::EXCL mode 
+File.new raise an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL
+File.new create a new file when use File::WRONLY|File::APPEND mode
+File.new raise an Errno::EINVAL error with File::APPEND
+File.new raise an Errno::EINVAL error with File::RDONLY|File::APPEND
+File.new raise an Errno::EINVAL error with File::RDONLY|File::WRONLY
+File.new create a new file when use File::WRONLY|File::TRUNC mode
+File.new expected errors 
+File.new can't alter mode or permissions when opening a file

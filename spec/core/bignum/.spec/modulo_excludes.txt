@@ -1,0 +1,2 @@
+Bignum#% % should NOT raise ZeroDivisionError if other is zero and is a Float
+Bignum#modulo % should NOT raise ZeroDivisionError if other is zero and is a Float
