@@ -245,14 +245,38 @@ class Backtrace
   end
   
   def show
+    first = true
+    color_config = RUBY_CONFIG["rbx.colorize_backtraces"]
+    colorize = true
+    if color_config == "no" or color_config == "NO"
+      colorize = false
+      color = ""
+      clear = ""
+    else
+      clear = "\033[0m"
+    end
+
     fr2 = @frames.map do |ent|
       recv = ent[0]
       loc = ent[1]
+      color = color_from_loc(loc, first) if colorize
+      first = false # special handling for first line
       times = @max - recv.size
       times = 0 if times < 0
-      "    #{' ' * times}#{recv} at #{loc}"
+      "#{color}    #{' ' * times}#{recv} at #{loc}#{clear}"
     end
     return fr2.join("\n")
+  end
+
+  def color_from_loc(loc, first)
+    return "\033[0;31m" if first
+    if loc =~ /kernel/
+      "\033[0;34m"
+    elsif loc =~ /\(eval\)/
+      "\033[0;33m"
+    else
+      ""
+    end
   end
   
   MAX_WIDTH = 40

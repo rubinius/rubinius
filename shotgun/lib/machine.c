@@ -759,6 +759,8 @@ void machine_config_env(machine m) {
   config = getenv("RBX");
   if(config) {
     machine_parse_configs(m, config); 
+  } else {
+    machine_parse_configs(m, "");
   }
 }
 
