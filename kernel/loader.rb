@@ -27,8 +27,10 @@ end
 
 # Setup a few changes to the include path.
 
-# If there is a closer compiler, use it. Otherwise, use the system one.
-unless File.exists? "runtime/compiler.rba"
+# If there is no compiler.rba or COMPILER env variable, use the system one.
+if ENV["COMPILER"] and File.exists? ENV["COMPILER"] then
+  $:.unshift ENV["COMPILER"]
+elsif not File.exists? "runtime/compiler.rba"
   $:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
 end
 

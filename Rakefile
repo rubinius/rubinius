@@ -24,6 +24,7 @@ end
 @pp = "runtime/pristine_platform.rba"
 @pc = "runtime/pristine_core.rba"
 @pl = "runtime/pristine_loader.rbc"
+@pr = "runtime/pristine_compiler.rba"
 
 if File.exists?(@pb)
   puts "Using #{@pb} for bootstrap."
@@ -43,6 +44,11 @@ end
 if File.exists?(@pp)
   puts "Using #{@pp} for the platform."
   ENV['PLATFORM'] = @pp
+end
+
+if File.exists?(@pr)
+  puts "Using #{@pr} for the compiler."
+  ENV['COMPILER'] = @pr
 end
 
 @compiler = ENV['COMPILER']
@@ -306,6 +312,7 @@ namespace :dev do
     sh "cp runtime/bootstrap.rba #{@pb}" 
     sh "cp runtime/platform.rba #{@pp}" 
     sh "cp runtime/loader.rbc #{@pl}" 
+    sh "cp runtime/compiler.rba #{@pr}" 
   end
 end
 
