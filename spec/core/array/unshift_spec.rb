@@ -13,7 +13,7 @@ describe "Array#unshift" do
   end
 
   it "raises TypeError on a frozen array" do
-    frozen_array.unshift() # ok
-    should_raise(TypeError) { frozen_array.unshift(1) }
+    @frozen_array.unshift() # ok
+    should_raise(TypeError) { @frozen_array.unshift(1) }
   end  
 end

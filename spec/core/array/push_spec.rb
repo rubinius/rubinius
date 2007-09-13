@@ -12,18 +12,18 @@ describe "Array#push" do
   
 compliant :r18 do
   it "raises TypeError on a frozen array if modification takes place" do
-    should_raise(TypeError) { frozen_array.push(1) }
+    should_raise(TypeError) { @frozen_array.push(1) }
   end
 
   it "does not raise on a frozen array if no modification is made" do
-    frozen_array.push() # ok
+    @frozen_array.push() # ok
   end
 end
 
 noncompliant :rubinius do
   it "always raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.push() }
-    should_raise(TypeError) { frozen_array.push(1) }
+    should_raise(TypeError) { @frozen_array.push() }
+    should_raise(TypeError) { @frozen_array.push(1) }
   end
 end
 end

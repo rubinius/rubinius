@@ -18,6 +18,6 @@ class D
   end
 end
 
-frozen_array = [1, 2, 3]
-frozen_array.freeze
+@frozen_array = [1, 2, 3]
+@frozen_array.freeze
 

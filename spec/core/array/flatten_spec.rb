@@ -68,13 +68,13 @@ compliant :r18 do
   end
 
   it "does not raise on frozen arrays when no modification would take place" do
-    frozen_array.flatten! # ok, already flat
+    @frozen_array.flatten! # ok, already flat
   end
 end
 
 noncompliant :rubinius do
   it "always raises TypeError on frozen arrays" do
-    should_raise(TypeError) { frozen_array.flatten! }
+    should_raise(TypeError) { @frozen_array.flatten! }
     nested_ary = [1, 2, []]
     nested_ary.freeze
     should_raise(TypeError) { nested_ary.flatten! }

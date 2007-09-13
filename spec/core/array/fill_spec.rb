@@ -98,6 +98,6 @@ describe "Array#fill" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.fill('x') }
+    should_raise(TypeError) { @frozen_array.fill('x') }
   end
 end

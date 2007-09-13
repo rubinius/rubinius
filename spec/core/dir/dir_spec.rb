@@ -427,13 +427,13 @@ context 'Wildcard-matching directory contents with Dir.glob (Dir[PATTERN] is equ
   end
 
   specify "**/PATTERN recursively matches the pattern (as above) in itself and all subdirectories" do
-    warn 'MRI (glob(3)) and shell glob return deeply/nested/directory/structure/file_one.ext twice!' 
-
     %w|glob []|.each {|msg|
-      Dir.send(msg, '**/*fil?{,.}*').sort.should == %w|nondotfile file_one.ext file_two.ext subdir_one/nondotfile 
-                                                       subdir_two/nondotfile subdir_two/nondotfile.ext deeply/nondotfile 
+      Dir.send(msg, '**/*fil?{,.}*').sort.should == %w|deeply/nested/directory/structure/file_one 
                                                        deeply/nested/directory/structure/file_one.ext 
-                                                       deeply/nested/directory/structure/file_one|.sort
+                                                       deeply/nondotfile file_one.ext file_two.ext 
+                                                       nondotfile subdir_one/nondotfile 
+                                                       subdir_two/nondotfile subdir_two/nondotfile.ext 
+                                                       subdir_two/nondotfile.ext|
     }
   end
 end

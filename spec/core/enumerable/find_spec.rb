@@ -5,6 +5,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
   describe "Enumerable##{cmd}" do 
     # #detect and #find are aliases, so we only need one function 
     before :each do
+      @a = EachDefiner.new( 2, 4, 6, 8, 10 )
       @fail_count = 0
       @fail_proc = lambda { @fail_count += 1 ; "not found" }
       @fail_proc_value = "not found"

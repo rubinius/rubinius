@@ -103,7 +103,7 @@ compliant :r18 do
   end
 
   it "does not raise TypeError on a frozen array if no modification takes place" do
-    frozen_array.uniq! # ok, already uniq
+    @frozen_array.uniq! # ok, already uniq
     dup_ary = [1, 1, 2]
     dup_ary.freeze
     should_raise(TypeError) { dup_ary.uniq! }
@@ -112,7 +112,7 @@ end
 
 noncompliant :rubinius do
   it "always raises TypeError on a frozen array regardless of modification" do
-    should_raise(TypeError) { frozen_array.uniq! }
+    should_raise(TypeError) { @frozen_array.uniq! }
     dup_ary = [1, 1, 2]
     dup_ary.freeze
     should_raise(TypeError) { dup_ary.uniq! }

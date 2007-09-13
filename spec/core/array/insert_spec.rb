@@ -68,18 +68,18 @@ describe "Array#insert" do
   
 compliant :r18 do
   it "raises TypeError on frozen arrays if modification takes place" do
-    should_raise(TypeError) { frozen_array.insert(0, 'x') }
+    should_raise(TypeError) { @frozen_array.insert(0, 'x') }
   end
 
   it "does not raise on frozen arrays if no modification takes place" do
-    frozen_array.insert(0) # ok
+    @frozen_array.insert(0) # ok
   end
 end
 
 noncompliant :rubinius do
   it "always raises TypeError on frozen arrays" do
-    should_raise(TypeError) { frozen_array.insert(0) } 
-    should_raise(TypeError) { frozen_array.insert(0, 'x') }
+    should_raise(TypeError) { @frozen_array.insert(0) } 
+    should_raise(TypeError) { @frozen_array.insert(0, 'x') }
   end
 end
 end

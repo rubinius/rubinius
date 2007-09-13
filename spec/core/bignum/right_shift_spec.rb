@@ -10,10 +10,19 @@ describe "Bignum#>>" do
   end
   
   # This test was added as the result of ruby-core:9020.
-  it "return the right shift alignment" do
-     ((1 - 2**31) >> 31).should == -1
-     ((1 - 2**32) >> 32).should == -1
-     ((1 - 2**63) >> 63).should == -1 
-     ((1 - 2**64) >> 64).should == -1 
+  version '1.8'..'1.8.5' do
+    it "shows the bug described in ruby-core:9020" do
+      ((1 - 2**32) >> 32).should == 0
+      ((1 - 2**64) >> 64).should == 0
+    end
+  end
+  
+  version '1.8.6' do
+    it "return the right shift alignment" do
+       ((1 - 2**31) >> 31).should == -1
+       ((1 - 2**32) >> 32).should == -1
+       ((1 - 2**63) >> 63).should == -1 
+       ((1 - 2**64) >> 64).should == -1 
+    end
   end
 end

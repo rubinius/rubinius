@@ -9,6 +9,6 @@ describe "Array#delete_if" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.delete_if {} }
+    should_raise(TypeError) { @frozen_array.delete_if {} }
   end
 end

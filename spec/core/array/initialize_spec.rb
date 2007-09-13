@@ -31,11 +31,11 @@ describe "Array#initialize" do
   end
   
   it "does not raise TypeError on a frozen array if it would not change the array" do
-    frozen_array.instance_eval { initialize() }.should == frozen_array
+    @frozen_array.instance_eval { initialize() }.should == @frozen_array
   end
 
   it "raises TypeError on frozen arrays" do
-    should_raise(TypeError) { frozen_array.instance_eval { initialize(1) } }
-    should_raise(TypeError) { frozen_array.instance_eval { initialize([1, 2, 3]) } }
+    should_raise(TypeError) { @frozen_array.instance_eval { initialize(1) } }
+    should_raise(TypeError) { @frozen_array.instance_eval { initialize([1, 2, 3]) } }
   end
 end

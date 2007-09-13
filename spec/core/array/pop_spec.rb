@@ -23,6 +23,6 @@ describe "Array#pop" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.pop }
+    should_raise(TypeError) { @frozen_array.pop }
   end
 end

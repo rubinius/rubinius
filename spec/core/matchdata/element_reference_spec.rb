@@ -16,10 +16,12 @@ describe "MatchData#[]" do
     /(.)(.)(\d+)(\d)/.match("THX1138.")[1..3].should == %w|H X 113|
   end
 
-  it "provides access to named groups" do
-    r = Regexp.new("(?<section>...)(?<code>\d+)")
-    m = r.match("THX1138")
-    m[:section] == "THX"
-    m[:code] == "1138"
+  extension :rubinius do
+    it "provides access to named groups" do
+      r = Regexp.new("(?<section>...)(?<code>\d+)")
+      m = r.match("THX1138")
+      m[:section] == "THX"
+      m[:code] == "1138"
+    end
   end
 end

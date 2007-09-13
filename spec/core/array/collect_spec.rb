@@ -28,7 +28,7 @@ end
     end
 
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { frozen_array.send(cmd) {} }
+      should_raise(TypeError) { @frozen_array.send(cmd) {} }
     end
   end
 end

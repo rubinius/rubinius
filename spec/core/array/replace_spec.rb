@@ -40,7 +40,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
     end
 
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { frozen_array.send(cmd, frozen_array) }
+      should_raise(TypeError) { @frozen_array.send(cmd, @frozen_array) }
     end
   end
 end

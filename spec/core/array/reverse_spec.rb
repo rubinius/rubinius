@@ -21,6 +21,6 @@ describe "Array#reverse!" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.reverse! }
+    should_raise(TypeError) { @frozen_array.reverse! }
   end
 end

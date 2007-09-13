@@ -42,6 +42,6 @@ describe "Array#sort!" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.sort! }
+    should_raise(TypeError) { @frozen_array.sort! }
   end
 end

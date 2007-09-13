@@ -14,11 +14,13 @@ describe "Bignum#divmod" do
   end
   
   # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
-  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
+  version '1.8.6' do
     it "returns [NaN, NaN] if other is zero and is a Float" do
       BignumHelper.sbm(9).divmod(0.0).inspect.should == '[NaN, NaN]'
     end
-  else
+  end
+  
+  version '1.8'..'1.8.5' do
     it "raises FloatDomainError if other is zero and is a Float" do
       should_raise(FloatDomainError) { BignumHelper.sbm(9).divmod(0.0) }
     end

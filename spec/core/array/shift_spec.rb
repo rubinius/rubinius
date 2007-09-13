@@ -21,6 +21,6 @@ describe "Array#shift" do
   end
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.shift }
+    should_raise(TypeError) { @frozen_array.shift }
   end
 end

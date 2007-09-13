@@ -124,7 +124,7 @@ describe "Array#slice!" do
   end
 
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array.slice!(0, 0) }
+    should_raise(TypeError) { @frozen_array.slice!(0, 0) }
   end
 end
 

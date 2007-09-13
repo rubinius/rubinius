@@ -23,6 +23,6 @@ describe "Array#<<" do
   end  
   
   it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { frozen_array << 5 }
+    should_raise(TypeError) { @frozen_array << 5 }
   end
 end
