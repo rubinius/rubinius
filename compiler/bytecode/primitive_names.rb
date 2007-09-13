@@ -183,7 +183,8 @@ module Bytecode
       :set_ivar,
       :get_ivar,
       :set_index,
-      :get_index
+      :get_index,
+      :dispatch_as_method
     ]
     
   end

@@ -1,26 +1,31 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+class DefineMethodSpecClass
+end
+
 describe "Module#define_method" do
   it "defines the given method as an instance method with the given name in self" do
-    c = Class.new do
-      def test() "test" end
-      define_method(:another_test, instance_method(:test))
+    class DefineMethodSpecClass
+      def test1
+        "test" 
+      end
+      define_method(:another_test, instance_method(:test1))
     end
     
-    o = c.new
-    o.test.should == o.another_test
+    o = DefineMethodSpecClass.new
+    o.test1.should == o.another_test
   end
   
   it "defines a new method with the given name and the given block as body in self" do
-    c = Class.new do
-      define_method(:test) { self }
-      define_method(:test2, &lambda { self })
+    class DefineMethodSpecClass
+      define_method(:block_test1) { self }
+      define_method(:block_test2, &lambda { self })
     end
     
-    o = c.new
-    o.test.should == o
-    o.test2.should == o
+    o = DefineMethodSpecClass.new
+    o.block_test1.should == o
+    o.block_test2.should == o
   end
   
   it "raises a TypeError when the given method is no Method/Proc" do

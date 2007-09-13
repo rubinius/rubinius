@@ -121,6 +121,11 @@ class BlockEnvironment
     env.home.receiver = obj
     return env
   end
+
+  def call_on_instance(obj, *args)
+    obj = redirect_to(obj)
+    obj.call *args
+  end
 end
 
 class Proc

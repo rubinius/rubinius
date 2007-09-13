@@ -65,6 +65,7 @@ class RuntimePrimitive
   GetIvar = 1025
   SetIndex = 1026
   GetIndex = 1027
+  DispatchAsMethod = 1028
 end
 
 class AccessVarMethod < RuntimePrimitive

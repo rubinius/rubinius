@@ -1171,6 +1171,23 @@ class ShotgunPrimitives
     stack_push(t2);
     CODE
   end
+
+  # field 4: method to call
+  # field 5: object to call method on
+  # field 6: whether or not we need to retain 'self'
+  def dispatch_as_method
+    <<-CODE
+      t1 = NTH_FIELD(mo, 4);
+      t2 = NTH_FIELD(mo, 5);
+      t3 = NTH_FIELD(mo, 6);
+      if(Qtrue == t3) {
+        num_args++;
+      } else {
+       stack_pop();
+      }
+      cpu_send_method2(state, c, t2, t1, num_args, Qnil);
+    CODE
+  end
   
   def set_index
     <<-CODE
