@@ -27,4 +27,14 @@ class Array
     end
     return ent
   end
+
+  # Runtime method to support case when *foo syntax
+  def __matches_when__(receiver)
+    i = 0
+    while i < @total
+      return true if @tuple.at(i) === receiver
+      i = i + 1
+    end
+    false
+  end
 end

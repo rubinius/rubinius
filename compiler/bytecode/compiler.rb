@@ -672,10 +672,28 @@ module Bytecode
         end
       end
       
+      # A when clause has one of the following forms:
+      # 1) when foo
+      # 2) when foo, *something
+      # 3) when *something
+      # 4) when a,b,c,d
       def generate_when(w, nxt, post)
         w[1].shift # Remove the :array
-        lst = w[1].pop
+        lst = w[1].pop 
+        # lst now contains: (referring to examples above)
+        # foo in example 1 
+        # *something in example 2
+        # *something in example 3
+        # d in example 4
+
+        if lst[0] == :when # splat!
+          matcher = "__matches_when__"
+          lst = lst[1] # discard :when
+        else
+          matcher = "==="
+        end
         body = nil
+
         unless w[1].empty?
           body = unique_lbl('when_')
           w[1].each do |cond|
@@ -685,9 +703,10 @@ module Bytecode
             git body
           end
         end
+
         add "dup"
         process lst
-        add "send === 1"
+        add "send #{matcher} 1"
         gif nxt
         set_label(body) if body
         process w[2]
