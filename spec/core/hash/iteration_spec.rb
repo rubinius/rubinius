@@ -28,22 +28,29 @@
       end
     end
 
-    # unless [:delete_if, :reject!].include?(cmd) do
-      it "does not affect yielded items by removing the current element" do
-        n = 3
-      
-        h = Array.new(n) { hsh.dup }
-        args = Array.new(n) { |i| cmd.to_s[/merge|update/] ? [h[i]] : [] }
-        r = Array.new(n) { [] }
-      
-        h[0].send(cmd, *args[0]) { |*x| r[0] << x; true }
-        h[1].send(cmd, *args[1]) { |*x| r[1] << x; h[1].shift; true }
-        h[2].send(cmd, *args[2]) { |*x| r[2] << x; h[2].delete(h[2].keys.first); true }
-      
-        r[1..-1].each do |yielded|
-          yielded.should == r[0]
-        end
+  end
+end
+
+@hash_iteration_modifying = shared "Iteration modifying" do |cmd|
+  describe "Hash##{cmd}" do
+    hsh = {1 => 2, 3 => 4, 5 => 6}  
+    big_hash = {}
+    100.times { |k| big_hash[k.to_s] = k }    
+       
+    it "does not affect yielded items by removing the current element" do
+      n = 3
+    
+      h = Array.new(n) { hsh.dup }
+      args = Array.new(n) { |i| cmd.to_s[/merge|update/] ? [h[i]] : [] }
+      r = Array.new(n) { [] }
+    
+      h[0].send(cmd, *args[0]) { |*x| r[0] << x; true }
+      h[1].send(cmd, *args[1]) { |*x| r[1] << x; h[1].shift; true }
+      h[2].send(cmd, *args[2]) { |*x| r[2] << x; h[2].delete(h[2].keys.first); true }
+    
+      r[1..-1].each do |yielded|
+        yielded.should == r[0]
       end
-    # end
+    end
   end
 end

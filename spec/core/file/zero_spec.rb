@@ -21,10 +21,14 @@ describe "File.zero?" do
     File.zero?(@nonzero_file).should == false
   end
    
-  it " edgy cases" do
-    if WINDOWS
+  platform :mswin do
+    it "returns true for NUL" do
       File.zero?('NUL').should == true
-    else
+    end
+  end
+    
+  platform :not, :mswin do
+    it "returns true for /dev/null" do
       File.zero?('/dev/null').should == true
     end
   end

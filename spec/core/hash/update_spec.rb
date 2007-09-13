@@ -55,4 +55,5 @@ describe "Hash#update" do
   it_behaves_like(@hash_update, :update)
 
   it_behaves_like(@hash_iteration_method, :update)
+  it_behaves_like(@hash_iteration_modifying, :update)
 end

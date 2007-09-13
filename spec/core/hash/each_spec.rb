@@ -30,4 +30,5 @@ describe "Hash#each" do
   end
 
   it_behaves_like(@hash_iteration_method, :each)
+  it_behaves_like(@hash_iteration_modifying, :each)
 end

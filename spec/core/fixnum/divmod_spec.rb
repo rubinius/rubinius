@@ -15,12 +15,13 @@ describe "Fixnum#divmod" do
     should_raise(ZeroDivisionError) { 1.divmod(0) }
   end
 
-  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
-  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
+  version '1.8.4' do
     it "returns [NaN, NaN] if other is zero and is a Float" do
       1.divmod(0.0).inspect.should == '[NaN, NaN]'
     end
-  else
+  end
+  
+  version '1.8.5'..'1.8.6' do
     it "raises FloatDomainError if other is zero and is a Float" do
       should_raise(FloatDomainError) { 1.divmod(0.0) }
     end

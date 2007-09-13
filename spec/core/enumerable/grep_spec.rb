@@ -2,6 +2,9 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Enumerable#grep" do
+  before(:each) do
+    @a = EachDefiner.new( 2, 4, 6, 8, 10)
+  end
   
   it "grep without a block should return an array of all elements === pattern" do
     class EnumerableSpecGrep; def ===(obj); obj == '2'; end; end

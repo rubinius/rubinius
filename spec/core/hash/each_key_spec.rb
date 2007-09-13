@@ -17,4 +17,5 @@ describe "Hash#each_key" do
   end
 
   it_behaves_like(@hash_iteration_method, :each_key)
+  it_behaves_like(@hash_iteration_modifying, :each_key)
 end

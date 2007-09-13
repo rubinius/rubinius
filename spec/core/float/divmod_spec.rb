@@ -7,13 +7,14 @@ describe "Float#divmod" do
     -1.0.divmod(0xffffffff).inspect.should == "[-1, 4294967294.0]"
   end
 
-  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
-  if RUBY_PLATFORM["darwin"] && !defined?(RUBY_ENGINE) then
+  version '1.8.4' do
     it "returns [NaN, NaN] if other is zero" do
       1.0.divmod(0).inspect.should == '[NaN, NaN]'
       1.0.divmod(0.0).inspect.should == '[NaN, NaN]'
     end
-  else
+  end
+  
+  version '1.8.5'..'1.8.6' do
     it "raises FloatDomainError if other is zero" do
       should_raise(FloatDomainError) { 1.0.divmod(0) }
       should_raise(FloatDomainError) { 1.0.divmod(0.0) }
