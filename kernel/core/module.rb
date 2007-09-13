@@ -24,7 +24,7 @@ class Module
   end
   
   def find_method_in_hierarchy(sym)
-    return @method_table[sym]
+    @method_table[sym] || Object.find_method_in_hierarchy(sym)
   end
 
   def alias_method(new_name, current_name)
