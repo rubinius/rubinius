@@ -205,6 +205,10 @@ class UnboundMethod
   def arity
     @method.arity
   end
+
+  def call_on_instance(obj, *args)
+    bind(obj).call *args
+  end
 end
 
 

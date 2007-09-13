@@ -98,17 +98,16 @@ class Module
     if meth.kind_of?(Proc)
       block_env = meth.block
       cm = DelegatedMethod.build(:call_on_instance, block_env, true)
-    elsif meth.kind_of?(Method) or meth.kind_of?(UnboundMethod)
-      cm = meth.instance_eval { @method }
-      meth = meth.dup
-    elsif meth.kind_of?(CompiledMethod)
-      cm = meth
-      meth = UnboundMethod.new(self, cm)
+    elsif meth.kind_of?(Method)
+      cm = DelegatedMethod.build(:call, meth, false)
+    elsif meth.kind_of?(UnboundMethod)
+      cm = DelegatedMethod.build(:call_on_instance, meth, true)
     else
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
     self.method_table[name.to_sym] = cm
+    VM.reset_method_cache(name.to_sym)
     meth
   end
   
