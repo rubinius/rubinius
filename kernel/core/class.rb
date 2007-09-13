@@ -11,10 +11,39 @@ class Class
     obj
   end
 
-  def self.new(sclass=Object, &block)    
+  def self.new(sclass=Object, &block)
     obj = Rubinius.class_constitute(sclass, nil)
     obj.class_eval(&block) if block
+    # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
+    # NOTE: This is non-standard; Ruby does not normally track subclasses
     obj
+  end
+
+  def opened_class_cv(cls)
+    cls = Object unless cls
+    cls.add_subclass(self)
+    # FIXME: We shouldn't have to do this; hook calls should preserve the stack
+    self
+  end
+
+  # NOTE: The next two methods are not standard Ruby; JRuby implements them, but not public
+  def add_subclass_cv(cls)
+    @subclasses ||= []
+    @subclasses << cls
+  end
+
+  def subclasses_cv(descend = false)
+    if descend
+      subclasses_descend()
+    else
+      @subclasses.dup
+    end
+  end
+
+  def subclasses_descend(all = [])
+    return unless @subclasses
+    @subclasses.each {|cls| all << cls; cls.subclasses_descend(all)}
+    all
   end
   
   def class_variable_set(name, val)
@@ -134,6 +163,9 @@ class Class
     alias_method :attr_writer, :attr_writer_cv
     alias_method :attr_accessor, :attr_accessor_cv
     alias_method :alias_method, :alias_method_cv
+    alias_method :opened_class, :opened_class_cv
+    alias_method :add_subclass, :add_subclass_cv
+    alias_method :subclasses, :subclasses_cv
   end
 
 end

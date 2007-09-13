@@ -67,9 +67,6 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_inherited = string_to_sym(state, 
         string_new(state, "inherited"));
 
-  state->global->sym_from_literal = string_to_sym(state, 
-        string_new(state, "from_literal"));
-        
   state->global->sym_method_added = string_to_sym(state, 
         string_new(state, "method_added"));
         
@@ -89,6 +86,8 @@ void cpu_initialize_context(STATE, cpu c) {
   state->global->sym_protected = symbol_from_cstr(state, "protected");
   state->global->sym_const_missing = SYM("const_missing");
   state->global->sym_object_id = SYM("object_id");
+  state->global->sym_from_literal = SYM("from_literal");
+  state->global->sym_opened_class = SYM("opened_class");
   
   c->current_thread = cpu_thread_new(state, c);
   c->main_thread = c->current_thread;
