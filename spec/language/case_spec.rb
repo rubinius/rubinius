@@ -178,4 +178,44 @@ describe "The 'case'-construct" do
       CODE
     end
   end
+
+  it "should support nested case statements" do
+    result = false
+    case :x
+    when Symbol
+      case :y
+      when Symbol
+        result = true
+      end
+    end
+    result.should == true
+  end
+
+  it "should support nested case statements followed by a when with a splatted array" do
+    result = false
+    case :x
+    when Symbol
+      case :y
+      when Symbol
+        result = true
+      end
+    when *[Symbol]
+      result = false
+    end
+    result.should == true
+  end
+
+  it "should support nested case statements followed by a when with a splatted non-array" do
+    result = false
+    case :x
+    when Symbol
+      case :y
+      when Symbol
+        result = true
+      end
+    when *Symbol
+      result = false
+    end
+    result.should == true
+  end
 end
