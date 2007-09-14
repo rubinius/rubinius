@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include "st.h"
 
 #if defined(__cplusplus)

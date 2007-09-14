@@ -1,12 +1,17 @@
 #include "shotgun.h"
 #include <stdarg.h>
 #include "nmc.h"
-#include "ruby.h"
 #include "symbol.h"
 #include "string.h"
 #include "hash.h"
 #include "class.h"
 #include "module.h"
+
+#undef SYMBOL_P
+#include "ruby.h"
+
+#define RBX_SYMBOL_P(obj) (DATA_TAG(obj) == DATA_TAG_SYMBOL)
+
 
 OBJECT nmethod_new(STATE, OBJECT mod, const char *file, const char *name, void *func, int args);
 #define AS_HNDL(obj) ((rni_handle*)obj)
@@ -304,7 +309,7 @@ const char *rb_id2name(ID sym) {
   CTX;
   
   obj = (OBJECT)sym;
-  if(!SYMBOL_P(obj)) return NULL;
+  if(!RBX_SYMBOL_P(obj)) return NULL;
   return rbs_symbol_to_cstring(ctx->state, obj);
 }
 
@@ -539,6 +544,11 @@ VALUE rb_cstr2inum(VALUE str, int base) {
   return rb_funcall(CHAR2STR(str), rb_intern("to_i"), 1, INT2NUM(base));
 }
 
+char *StringValuePtr(VALUE str) {
+  CTX;
+  return (char*)string_byte_address(ctx->state, HNDL(str));
+}
+
 VALUE rb_hash_new(void) {
   CTX;
   return NEW_HANDLE(ctx, hash_new(ctx->state));
@@ -596,6 +606,10 @@ int FIX2INT(VALUE val) {
 VALUE INT2NUM(int num) {
   CTX;
   return NEW_HANDLE(ctx, rbs_int_to_fixnum(ctx->state, num));
+}
+
+int SYMBOL_P(VALUE obj) {
+  return RBX_SYMBOL_P(obj);
 }
 
 /*

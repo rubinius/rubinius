@@ -1,21 +1,29 @@
 class ExtensionCompiler
   
-  def initialize(file, extra="")
+  def initialize(file, extra=[], flags=[])
     @includes = []
-    @extra = extra
     @input = file
+    extra.delete @input
+    @extra = extra.join(" ")
     @options = "-g"
+    @output_name = @input
+    @flags = flags
+    flags.each do |i|
+      if m = /output=(.*)/.match(i)
+        @output_name = m[1]
+      end
+    end
     calculate_output()
   end
   
   attr_reader :output
   
   def calculate_output
-    m = /(.*)\.[^\.]+/.match(@input)
+    m = /(.*)\.[^\.]+/.match(@output_name)
     if m
       @output = "#{m[1]}.#{Rubinius::LIBSUFFIX}"
     else
-      @output = "#{@input}.#{Rubinius::LIBSUFFIX}"
+      @output = "#{@output_name}.#{Rubinius::LIBSUFFIX}"
     end
   end
     
@@ -79,7 +87,7 @@ class ExtensionCompiler
   end
   
   def compile
-    cmd = "#{compiler} #{global_options} #{link_options} #{@input} -o #{@output} #{@extra}"
+    cmd = "#{compiler} #{global_options} #{link_options} #{@input} #{@extra} -o #{@output}"
     puts cmd if $VERBOSE
     system cmd
   end
@@ -94,7 +102,7 @@ file = ARGV.shift
 
 if file.suffix?(".c")
   puts "Compiling extension #{file}..."
-  ext = ExtensionCompiler.new(file, ARGV.join(" "))
+  ext = ExtensionCompiler.new(file, ARGV, flags)
   ext.compile
   if File.exists?(ext.output)
     puts "Created #{ext.output}"

@@ -17,7 +17,9 @@ typedef void * VALUE;
 #define Qundef ((VALUE)18L)
 
 #define SYM2ID(sym) ((ID)(sym))
-#define ID2SYM(id) id
+#define ID2SYM(id) ((VALUE)(id))
+
+int SYMBOL_P(VALUE obj);
 
 extern VALUE rb_funcall(VALUE, ID, int cnt, ...);
 extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
@@ -121,6 +123,7 @@ VALUE rb_str_cmp(VALUE str1, VALUE str2);
 VALUE rb_str_split(VALUE str, const char *sep);
 VALUE rb_str2inum(VALUE str, int base);
 VALUE rb_cstr2inum(VALUE str, int base);
+char *StringValuePtr(VALUE str);
 
 /* Hash */
 VALUE rb_hash_new(void);
