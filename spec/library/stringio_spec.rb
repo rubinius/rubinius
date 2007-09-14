@@ -253,6 +253,85 @@ describe "StringIO#lineno=" do
   end
 end
 
+describe "StringIO#path" do
+  it "should return nil" do
+    StringIO.new("path").path.should == nil
+  end
+end
+
+describe "StringIO#pid" do
+  it "should return nil" do
+    StringIO.new("pid").pid.should == nil
+  end
+end
+
+describe "StringIO#pos and tell" do
+  before(:each) do
+    util_build_stringio
+  end
+
+  it "should return the current byte offset" do
+    @io.getc
+    @io.pos.should == 1
+    @io.read(7)
+    @io.tell.should == 8
+  end
+end
+
+describe "StringIO#pos=" do
+  before(:each) do
+    util_build_stringio
+  end
+
+  it "should update the current byte offset" do
+    @io.pos = 26
+    @io.read(1).should == "r"
+  end
+end
+
+describe "StringIO#print" do
+  before(:each) do
+    @io = StringIO.new('')
+  end
+  after(:each) do
+    $\ = nil
+  end
+
+  it "should print multiple items to the output" do
+    @io.print(5,6,7,8).should == nil
+    @io.string.should == '5678'
+  end
+
+  it "should honor the output record separator global" do
+    $\ = 'x'
+    @io.print(5,6,7,8).should == nil
+    @io.string.should == '5678x'
+  end
+end
+
+describe "StringIO#printf" do
+  before(:each) do
+    @io = StringIO.new('')
+  end
+
+  it "should perform format conversion" do
+    @io.printf("%d %04x", 123, 123).should == nil
+    @io.string.should == "123 007b"
+  end
+end
+
+describe "StringIO#putc" do
+  before(:each) do
+    @io = StringIO.new('')
+  end
+
+  it "should handle characters and character codes" do
+    @io.putc(65).should == 65
+    @io.putc('A').should == 'A'
+    @io.putc('AA').should == 'AA'
+    @io.string.should == 'AAA'
+  end
+end
 __END__
 
 describe "StringIO#" do
