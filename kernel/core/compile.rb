@@ -2,7 +2,7 @@ module Rubinius
   # This const controls what the lowest version of compiled methods we can
   # allow is. This allows us to cut off compability at some point, or just
   # increment when major changes are made to the compiler.
-  CompiledMethodVersion = 4
+  CompiledMethodVersion = 5
 end
 
 module Compile

@@ -88,17 +88,20 @@ class BlockContext
 end
 
 class BlockEnvironment
-  ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, :post_send => 4
-  def __ivars__ ; @__ivars__  ; end
-  def home      ; @home       ; end
-  def initial_ip; @initial_ip ; end
-  def last_ip   ; @last_ip    ; end
-  def post_send ; @post_send  ; end
+  ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, 
+    :post_send => 4, :home_block => 5, :local_count => 6, :scope => 7
+  def __ivars__   ; @__ivars__   ; end
+  def home        ; @home        ; end
+  def initial_ip  ; @initial_ip  ; end
+  def last_ip     ; @last_ip     ; end
+  def post_send   ; @post_send   ; end
+  def home_block  ; @home_block  ; end
+  def local_count ; @local_count ; end
+  def scope       ; @scope       ; end
       
   # These should be safe since I'm unsure how you'd have a BlockContext
   # and have a nil CompiledMethod (something that can (and has) happened
   # with MethodContexts)
-  
   def file
     home.method.file
   end
@@ -109,6 +112,10 @@ class BlockEnvironment
   
   def home=(home)
     @home = home
+  end
+
+  def scope=(tup)
+    @scope = tup
   end
   
   def make_independent

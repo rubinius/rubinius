@@ -17,7 +17,7 @@ class NativeMethod
 end
 
 class CompiledMethod
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14, :scope => 15
   def __ivars__ ; @__ivars__  ; end
   def primitive ; @primitive  ; end
   def required  ; @required   ; end
@@ -33,6 +33,7 @@ class CompiledMethod
   def lines     ; @lines      ; end
   def path      ; @path       ; end
   def cache     ; @cache      ; end
+  def scope     ; @scope      ; end
   
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"
@@ -88,6 +89,10 @@ class CompiledMethod
   
   def serial=(ser)
     @serial = ser
+  end
+
+  def scope=(tup)
+    @scope = tup
   end
   
   def compile
