@@ -34,15 +34,21 @@ class Thread
     end
   end
 
-  def setup_task(&prc)
-    @task.associate prc.block
+  def setup_task
+    block = Ruby.asm "push_block"
+    @task.associate block
   end
   
-  def self.new(&block)
+  def self.new
+    block = Ruby.asm "push_block"
     th = allocate()
     th.initialize(&block)
     th.wakeup
     return th
+  end
+  
+  def current_context
+    @task.current_context
   end
 
   def alive?
@@ -101,6 +107,28 @@ class Thread
     Scheduler.send_in_microseconds(chan, secs * 1_000_000)
     chan.receive
     return true
+  end
+  
+  def raise(exc=$!, msg=nil, trace=nil)
+    if exc.respond_to? :exception
+      exc = exc.exception msg
+      raise TypeError, 'exception class/object expected' unless Exception === exc
+      exc.set_backtrace trace if trace
+    elsif exc.kind_of? String or !exc
+      exc = RuntimeError.exception exc
+    else
+      raise TypeError, 'exception class/object expected'
+    end
+    
+    if $DEBUG
+      STDERR.puts "Exception: #{exc.message} (#{exc.class})"
+    end
+    
+    ctx = @task.current_context
+
+    exc.set_backtrace ctx unless exc.backtrace
+    
+    @task.raise exc
   end
 
   def [](key)

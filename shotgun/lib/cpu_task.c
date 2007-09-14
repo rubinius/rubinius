@@ -24,6 +24,9 @@ void cpu_task_cleanup(STATE, OBJECT self) {
   }
 }
 
+extern machine current_machine;
+void cpu_task_configure_premption(STATE);
+
 void Init_cpu_task(STATE) {
   OBJECT tup;
   state_add_cleanup(state, state->global->task, cpu_task_cleanup);
@@ -40,6 +43,23 @@ void Init_cpu_task(STATE) {
   class_set_instance_flags(BASIC_CLASS(thread),  I2N(CanStoreIvarsFlag));
   
   cpu_event_init(state);
+  
+  cpu_task_configure_premption(state);
+}
+
+static void _cpu_task_preempt(int sig) {
+  current_machine->s->check_events = 1;
+}
+
+void cpu_task_configure_premption(STATE) {
+  struct itimerval new, old;
+  new.it_interval.tv_usec = 10000; /* Same as MRI */
+  new.it_interval.tv_sec = 0;
+  new.it_value.tv_usec = new.it_interval.tv_usec;
+  new.it_value.tv_sec = 0;
+    
+  signal(SIGVTALRM, _cpu_task_preempt);
+  setitimer(ITIMER_VIRTUAL, &new, &old);
 }
 
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
@@ -64,8 +84,10 @@ void cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
   cpu_save_registers(state, c, 0);
-  
-  // printf("Switching to task %s (%p, %d)\n", _inspect(nw), c->sp_ptr, c->sp);
+
+  if(state->excessive_tracing) {
+    printf("[CPU] Switching to task %s (%p, %d)\n", _inspect(nw), c->sp_ptr, c->sp);
+  }
   cur = c->current_task;
   
   /* Invalidates the stack, so they don't get confused being used across boundries */
@@ -105,6 +127,7 @@ OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be) {
   /* The args to the block (none). */
   cpu_task_push(state, self, tuple_new(state, 0));
   
+  methctx_reference(state, bc);
   task->main = bc;
   task->active_context = bc;
   task->home_context = blokenv_get_home(be);
@@ -206,6 +229,7 @@ void cpu_thread_schedule(STATE, OBJECT self) {
   long int prio, rprio;
   OBJECT lst;
   
+  state->pending_threads++;
   prio = FIXNUM_TO_INT(thread_get_priority(self));
   
   if(prio < 1) { 
@@ -233,6 +257,7 @@ OBJECT cpu_thread_find_highest(STATE) {
     for(i = t - 1; i >= 0; i--) {
       lst = tuple_at(state, tup, i);
       if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
+        state->pending_threads--;
         return list_shift(state, lst);
       }
     }
@@ -265,6 +290,32 @@ void cpu_thread_run_best(STATE, cpu c) {
   OBJECT thr;
   
   thr = cpu_thread_find_highest(state);
+  cpu_thread_switch(state, c, thr);
+}
+
+void cpu_thread_switch_best(STATE, cpu c) {
+  OBJECT thr, tup, lst;
+  int i, t;
+  
+  if(state->pending_threads == 0) return;
+  
+  tup = state->global->scheduled_threads;
+  t = NUM_FIELDS(tup);
+  
+  thr = Qnil;
+  
+  for(i = t - 1; i >= 0; i--) {
+    lst = tuple_at(state, tup, i);
+    if(FIXNUM_TO_INT(list_get_count(lst)) != 0) {
+      thr = list_shift(state, lst);
+      break;
+    }
+  }
+  
+  if(thr == Qnil) return;
+  
+  state->pending_threads--;
+  cpu_thread_schedule(state, c->current_thread);
   cpu_thread_switch(state, c, thr);
 }
 

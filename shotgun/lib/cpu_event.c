@@ -58,10 +58,10 @@ void cpu_event_runonce(STATE) {
 void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_data) {
   struct thread_info *ti = (struct thread_info*)state->thread_infos;
   while(ti) {
-    if(REFERENCE_P(ti->channel)) {
+    if(ti->channel && REFERENCE_P(ti->channel)) {
       ti->channel = cb(state, cb_data, ti->channel);
     }
-    if(REFERENCE_P(ti->buffer)) {
+    if(ti->buffer && REFERENCE_P(ti->buffer)) {
       ti->buffer = cb(state, cb_data, ti->buffer);
     }
     ti = ti->next;
@@ -71,6 +71,7 @@ void cpu_event_each_channel(STATE, OBJECT (*cb)(STATE, void*, OBJECT), void *cb_
 void _cpu_event_register_info(STATE, struct thread_info *ti) {
   struct thread_info *top = (struct thread_info*)state->thread_infos;
   
+  state->pending_events++;
   if(!state->thread_infos) {
     state->thread_infos = (void*)ti;
     ti->prev = ti->next = NULL;
@@ -95,6 +96,8 @@ void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
       ti->next->prev = ti->prev;
     }
   }
+  
+  state->pending_events--;
 }
 
 void _cpu_wake_channel(int fd, short event, void *arg) {

@@ -116,6 +116,7 @@ struct rubinius_state {
   int max_samples, cur_sample;
   
   int excessive_tracing, gc_stats;
+  int check_events, pending_threads, pending_events;
 };
 
 #define BASIC_CLASS(kind) state->global->kind

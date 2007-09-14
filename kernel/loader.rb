@@ -25,6 +25,13 @@ end
 # code. We read out of ARGV to figure out what the user is
 # trying to do.
 
+Signal.trap("INT") do
+  # Push the output down a little bit, makes things look more
+  # obvious that the system was interrupted.
+  puts
+  Thread.main.raise Interrupt, "Thread has been interrupted"
+end
+
 # Setup a few changes to the include path.
 
 # If there is no compiler.rba or COMPILER env variable, use the system one.

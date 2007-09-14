@@ -2056,6 +2056,7 @@ class ShotgunPrimitives
       break;
     case 1:
       t2 = task->active_context;
+      methctx_reference(state, t2);
       break;
     default:
       t2 = Qnil;
@@ -2085,6 +2086,20 @@ class ShotgunPrimitives
     CODE
   end
   
+  def task_raise
+    <<-CODE
+    self = stack_pop();
+    GUARD( RISA(self, task) );
+    
+    t1 = stack_pop();
+    
+    /* The return value */
+    stack_push(Qnil);
+    
+    cpu_task_select(state, c, self);
+    cpu_raise_exception(state, c, t1);
+    CODE
+  end
   
   def channel_new
     <<-CODE

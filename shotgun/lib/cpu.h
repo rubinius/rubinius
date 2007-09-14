@@ -189,6 +189,7 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_task);
 OBJECT cpu_thread_new(STATE, cpu c);
 void cpu_thread_switch(STATE, cpu c, OBJECT thr);
 OBJECT cpu_thread_get_task(STATE, OBJECT self);
+void cpu_thread_switch_best(STATE, cpu c);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
 void cpu_sampler_collect(STATE, cpu_sampler_collect_cb, void *cb_data);

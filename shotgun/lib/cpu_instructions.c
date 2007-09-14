@@ -979,7 +979,13 @@ check_interupts:
       
       state->om->collect_now = 0;
     }
-  }   
+    
+    if(state->check_events) {
+      state->check_events = 0;
+      if(state->pending_events) cpu_event_runonce(state);
+      if(state->pending_threads) cpu_thread_switch_best(state, c);
+    }
+  }
 }
 
 void cpu_run_script(STATE, cpu c, OBJECT meth) {
