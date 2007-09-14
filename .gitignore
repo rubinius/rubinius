@@ -17,6 +17,7 @@ runtime/pristine*
 *.a
 *.la
 *.bundle
+*.swp
 
 attic/externals/syd-parser/pkg
 
