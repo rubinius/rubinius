@@ -155,6 +155,7 @@ class RsLocalState
     @depth = 0
     @nostack_access = []
     @block_access = []
+    @uses_eval = false
     
     @alloca = 1
     @alloca_locals = {}
@@ -162,6 +163,7 @@ class RsLocalState
   end
   
   attr_reader :arg_splat, :arg_block
+  attr_accessor :uses_eval
   
   def each_arg
     @args.each do |arg|

@@ -129,10 +129,37 @@ class RsNormalizer < SimpleSexpProcessor
     [:iter, meth, oargs, process(body)]
   end
   
+  def process_vcall(x)
+    #flag: [:binding]
+    if x == [:binding]
+      #puts "magic vcall detected!: #{x.inspect}"
+      @state.uses_eval = true      
+    end
+    [:vcall] + x
+  end
+
   # For some reason this can be asked to handle :newline nodes. 
   # TODO - Sanity check
   #[:call, [:const, :Hash], :[], [:newline, 1, "(eval)", [:splat, [:lvar, :x, 0]]]]
   def process_call(x)
+    #skip: [[:lvar, :x, 0], :instance_eval]
+    #skip: [[:self], :instance_eval]
+    #skip: [[:lvar, :x, 0], :class_eval]
+    #flag: [[:self], :instance_eval, [:array, [:str, "z"]]] 
+    #flag: [[:lvar, :z, 0], :instance_eval, [:array, [:str, "z"]]]
+    #flag: [[:self], :eval, [:array, [:str, "z"]]]
+    #flag: [[:self], :binding] 
+    msg = x[1]
+    if msg == :eval or msg == :binding
+      #puts "magic call detected!: #{x.inspect}"
+      @state.uses_eval = true      
+    elsif (msg == :instance_eval or msg == :class_eval)
+      if x[2] and x[2] != [:array] # no args indicates block form
+        puts "magic call detected!: #{x.inspect}"
+        @state.uses_eval = true
+      end
+    end
+    
     if x.size == 2
       recv = x.shift
       meth = x.shift
