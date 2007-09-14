@@ -1,12 +1,12 @@
 
 include shotgun/config.mk
 
-all: shotgun/rubinius.bin exts
+all: vm exts
 
-shotgun/rubinius.bin:
+vm:
 	cd shotgun; $(MAKE) rubinius
 
-exts: shotgun/rubinius.bin
+exts: vm
 	./shotgun/rubinius compile -foutput=lib/ext/syck/rbxext lib/ext/syck/rbxext.c -Ilib/ext/syck lib/ext/syck/*.c
 
 install:

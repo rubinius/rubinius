@@ -413,7 +413,7 @@ VALUE rb_ary_push(VALUE array, VALUE val) {
   CTX;
   OBJECT ary = HNDL(array);
   array_append(ctx->state, ary, HNDL(val));
-  return NEW_HANDLE(ctx, ary);
+  return array;
 }
 
 VALUE rb_ary_pop(VALUE array) {
@@ -566,7 +566,9 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE val) {
   hsh = HNDL(hash);
   k = HNDL(key);
   v = HNDL(val);
-  return NEW_HANDLE(ctx, hash_set(ctx->state, hsh, k, v));
+  hash_set(ctx->state, hsh, k, v);
+  
+  return val;
 }
 
 VALUE rb_hash_delete(VALUE hash, VALUE key) {

@@ -1,6 +1,5 @@
 #include "shotgun.h"
 #include "nmc.h"
-#include "ruby.h"
 
 #include <string.h>
 
@@ -8,6 +7,8 @@
 #include "cpu.h"
 #include "flags.h"
 #include "methctx.h"
+#undef SYMBOL_P
+#include "ruby.h"
 
 /* TODO: replace this static with a pthread local */
 static rni_context* global_context = NULL;
