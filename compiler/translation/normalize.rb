@@ -132,7 +132,6 @@ class RsNormalizer < SimpleSexpProcessor
   def process_vcall(x)
     #flag: [:binding]
     if x == [:binding]
-      #puts "magic vcall detected!: #{x.inspect}"
       @state.uses_eval = true      
     end
     [:vcall] + x
@@ -151,11 +150,9 @@ class RsNormalizer < SimpleSexpProcessor
     #flag: [[:self], :binding] 
     msg = x[1]
     if msg == :eval or msg == :binding
-      #puts "magic call detected!: #{x.inspect}"
       @state.uses_eval = true      
-    elsif (msg == :instance_eval or msg == :class_eval)
+    elsif msg == :instance_eval or msg == :class_eval or msg == :module_eval
       if x[2] and x[2] != [:array] # no args indicates block form
-        puts "magic call detected!: #{x.inspect}"
         @state.uses_eval = true
       end
     end

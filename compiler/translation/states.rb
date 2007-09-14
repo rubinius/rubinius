@@ -193,7 +193,9 @@ class RsLocalState
   
   def local(name, allocate=true)
     if allocate
-      @locals[name] ||= LocalVariable.new(name)
+      lv = @locals[name] || LocalVariable.new(name)
+      lv.disallow_stack_access! if @uses_eval
+      @locals[name] = lv
     else
       @locals[name]
     end
