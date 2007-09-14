@@ -7,7 +7,7 @@ vm:
 	cd shotgun; $(MAKE) rubinius
 
 exts: vm
-	./shotgun/rubinius compile -foutput=lib/ext/syck/rbxext lib/ext/syck/rbxext.c -Ilib/ext/syck lib/ext/syck/*.c
+	./shotgun/rubinius compile lib/ext/syck
 
 install:
 	cd shotgun; $(MAKE) install

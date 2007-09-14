@@ -62,6 +62,17 @@ void cpu_task_configure_premption(STATE) {
   setitimer(ITIMER_VIRTUAL, &new, &old);
 }
 
+void cpu_task_disable_preemption(STATE) {
+  struct itimerval new;
+  new.it_interval.tv_usec = 0;
+  new.it_interval.tv_sec = 0;
+  new.it_value.tv_usec = new.it_interval.tv_usec;
+  new.it_value.tv_sec = 0;
+    
+  signal(SIGVTALRM, SIG_DFL);
+  setitimer(ITIMER_VIRTUAL, &new, NULL);
+}
+
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   struct cpu_task *cur_task, *task;
   

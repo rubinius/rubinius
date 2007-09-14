@@ -192,6 +192,10 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_switch_best(STATE, cpu c);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
+
+void cpu_task_disable_preemption(STATE);
+void cpu_task_configure_premption(STATE);
+
 void cpu_sampler_collect(STATE, cpu_sampler_collect_cb, void *cb_data);
 
 #define cpu_event_outstanding_p(state) (state->thread_infos != NULL)
