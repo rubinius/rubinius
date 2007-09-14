@@ -180,6 +180,7 @@ static SyckParser* new_parser() {
   syck_parser_implicit_typing( parser, 1 );
   syck_parser_taguri_expansion( parser, 1 );
   syck_parser_set_input_type( parser, syck_yaml_utf8 );
+  return parser;
 }
 
 static VALUE syck_parse_file(VALUE self, VALUE file_name) {
@@ -258,3 +259,4 @@ void Init_rbxext() {
   rb_define_singleton_method(mod, "parse_string", syck_parse_string, 1);
   rb_define_singleton_method(mod, "emit_yaml", syck_emit_string, 1);
 }
+
