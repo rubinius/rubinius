@@ -19,7 +19,9 @@ typedef void * VALUE;
 #define SYM2ID(sym) ((ID)(sym))
 #define ID2SYM(id) ((VALUE)(id))
 
+#ifndef SYMBOL_P
 int SYMBOL_P(VALUE obj);
+#endif
 
 extern VALUE rb_funcall(VALUE, ID, int cnt, ...);
 extern VALUE rb_funcall2(VALUE, ID, int cnt, VALUE*);
