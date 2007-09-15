@@ -17,7 +17,7 @@ module Rubinius
     "Module"=>{:@__ivars__=>0, :@methods=>1, :@method_cache=>2, :@name=>3, :@constants=>4, :@parent=>5},
     "MethodContext"=>{},
     "Hash"=>{:@__ivars__=>0, :@keys=>1, :@values=>2,:@bins=>3, :@entries=>4, :@default=>5, :@default_proc=>6},
-    "BlockEnvironment"=>{:@__ivars__=>0, :@home=>1, :@initial_ip=>2, :@last_ip=>3, :@post_send=>4, :@home_block => 5, :@local_count => 6, :@bonus => 7},
+    "BlockEnvironment"=>{:@__ivars__=>0, :@home=>1, :@initial_ip=>2, :@last_ip=>3, :@post_send=>4, :@home_block => 5, :@local_count => 6, :@bonus => 7, :@method => 8},
     "Exception" => {:@__ivars__ => 0, :@message => 1, :@context => 2 }
     }
 

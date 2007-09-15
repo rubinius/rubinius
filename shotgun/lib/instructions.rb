@@ -1039,8 +1039,6 @@ CODE
     t2 = stack_pop();
     if(_int == 255) {
       t5 = stack_pop();
-      assert(!NIL_P(t5) && "locals tuple was nil!");
-      _int = NUM_FIELDS(t5);
     } else {
       assert(0 && "old-style block!!");
     }

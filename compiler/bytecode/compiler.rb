@@ -2022,14 +2022,16 @@ module Bytecode
         args = x.shift
         body = x.shift
         locals = x.shift
-        raise "block iter with nil locals!" unless locals
-        count = locals.size
 
         one = unique_lbl('iter_')
         two = unique_lbl('iter_')
 
-        local_idx = @method.add_literal locals
-        add "push_literal #{local_idx}"
+        if locals
+          local_idx = @method.add_literal locals
+          add "push_literal #{local_idx}"
+        else
+          add "push nil"
+        end
         add "push &#{@post_send}"
         add "push &#{one}"
         add "create_block 255"

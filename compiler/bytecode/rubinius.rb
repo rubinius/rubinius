@@ -30,7 +30,7 @@ module Bytecode
       lcls = @state.number_of_locals
       iseq = bc.data.dup(InstructionSequence)
       cmeth = CompiledMethod.new.from_string iseq, lcls, @required
-      cmeth.bonus = @state.top_locals_tuple
+      cmeth.bonus = Tuple[@state.slot_locals_tuple, @state.stack_locals_tuple]
       cmeth.exceptions = asm.exceptions_as_tuple
 
       idx = nil

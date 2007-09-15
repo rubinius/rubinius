@@ -19,7 +19,7 @@ class RsLocalState
     end
     
     attr_accessor :slot, :alloca, :scope, :has_default, :magic
-    attr_reader :called_methods, :min_depth
+    attr_reader :called_methods, :min_depth, :name
     
     def assigned!
       @assigned = true
@@ -386,12 +386,38 @@ class RsLocalState
     @scopes.first
   end
 
-  def top_locals_tuple
-    t = Tuple.new(@top_scope.size)
-    @top_scope.each do |k,v|
-      t[v] = k
+  def slot_locals_tuple
+    top_locals = []
+    max_index = 0
+    @locals.each do |k,v| 
+      if v.slot and v.min_depth == 0
+        top_locals << v 
+        max_index = v.slot if v.slot > max_index
+      end
     end
-    t
+    return nil if top_locals.empty?
+    tuple = Tuple.new(max_index + 1)
+    top_locals.each do |l|
+      tuple[l.slot] = l.name
+    end
+    tuple
+  end
+
+  def stack_locals_tuple
+    top_locals = []
+    max_index = 0
+    @locals.each do |k,v| 
+      if v.alloca and v.min_depth == 0
+        top_locals << v 
+        max_index = v.alloca if v.alloca > max_index
+      end
+    end
+    return nil if top_locals.empty?
+    tuple = Tuple.new(max_index + 1)
+    top_locals.each do |l|
+      tuple[l.alloca] = l.name
+    end
+    tuple
   end
 end
 

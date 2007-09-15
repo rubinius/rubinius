@@ -13,7 +13,12 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, O
   blokenv_set_last_ip(obj, lst);
   blokenv_set_post_send(obj, vlst);
   blokenv_set_home_block(obj, ctx_block);
-  blokenv_set_local_count(obj, I2N(NUM_FIELDS(locals)));
+  blokenv_set_method(obj, FASTCTX(ctx)->method); // Calling method's CompiledMethod
+  if(NIL_P(locals)) {
+    blokenv_set_local_count(obj, I2N(0));
+  } else {
+    blokenv_set_local_count(obj, I2N(NUM_FIELDS(locals)));
+  }
   blokenv_set_bonus(obj, locals);
   return obj;
 }
@@ -43,7 +48,7 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   /* env lives here */
   fc->name = self;
   fc->self = Qnil;
-  fc->method = Qnil;
+  fc->method = blokenv_get_method(self);
   fc->block = Qnil;
   fc->literals = Qnil;
   fc->method_module = Qnil;
