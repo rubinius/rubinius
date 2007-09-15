@@ -1,5 +1,4 @@
 class RsLocalState
-  
   class LocalVariable
     def initialize(name)
       @name = name
@@ -136,7 +135,10 @@ class RsLocalState
     end
     
   end
-  
+end
+
+
+class RsLocalState
   def initialize
     reset
   end
@@ -369,10 +371,13 @@ class RsLocalState
       this_scope = @scopes.shift
       @current_scope = @scopes[0]
       @depth -= 1
-      # puts "exitting scope.. (#{old.inspect} / #{@current_scope.inspect})"
     end
     
-    return this_scope.size
+    t = Tuple.new(this_scope.size)
+    this_scope.each do |k,v|
+      t[v] = k
+    end
+    t
   end
 
   # 'for' uses this, since it needs to call :iter, 
@@ -389,3 +394,4 @@ class RsLocalState
     t
   end
 end
+

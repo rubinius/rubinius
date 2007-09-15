@@ -1996,7 +1996,7 @@ module Bytecode
         cl = x.shift
         args = x.shift
         body = x.shift
-        count = x.shift
+        locals = x.shift
      
         kind = cl.shift
 
@@ -2008,7 +2008,7 @@ module Bytecode
           puts "OPEN A TICKET: Unexpected iter args: #{args.inspect}"
         end
 
-        iter = [:block_iter, args, body, count]
+        iter = [:block_iter, args, body, locals]
         if kind == :call
           process_call cl, iter
         elsif kind == :super
@@ -2019,21 +2019,20 @@ module Bytecode
       end
       
       def process_block_iter(x)
-        if x[2].nil?
-          puts "OPEN A TICKET: block iter without count: #{x.inspect}"
-          raise "Unexpected sexp"
-        end
-
         args = x.shift
         body = x.shift
-        count = x.shift
+        locals = x.shift
+        count = locals.size
+
         one = unique_lbl('iter_')
         two = unique_lbl('iter_')
+
+        local_idx = @method.add_literal locals
+        add "push_literal #{local_idx}"
         add "push &#{@post_send}"
         add "push &#{one}"
-        add "create_block #{count}"
-        # add "push_context"
-        # add "send_primitive create_block 2"
+        add "create_block 255"
+
         brk = @break
         @break = :block
         goto two

@@ -124,7 +124,7 @@ class ShotgunInstructions
   
   def generate_declarations(fd)
     fd.puts "int _int, j, k, m;"
-    fd.puts "OBJECT _lit, t1, t2, t3, t4;"
+    fd.puts "OBJECT _lit, t1, t2, t3, t4, t5;"
   end
   
   def generate_names
@@ -1034,9 +1034,13 @@ CODE
   
   def create_block
     <<-CODE
+    next_int;
     t1 = stack_pop();
     t2 = stack_pop();
-    next_int;
+    if(_int == 255) {
+      t5 = stack_pop();
+      _int = NUM_FIELDS(t5);
+    }
     
     t4 = c->active_context;
 

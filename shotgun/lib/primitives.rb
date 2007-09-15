@@ -258,35 +258,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  # FIXME: this is really messy can someone who knows this better refactor it
-  def create_block
-    <<-CODE
-    self = stack_pop(); // Again no type assertions can be made (or can they!?)
-    POP(t1, FIXNUM);
-    POP(t2, FIXNUM);
-
-    t3 =   Qnil;
-    if( !RISA(self, methctx) && RISA(self, blokctx) ) {
-      t3 = blokctx_home(state, self);
-    } else {
-      t3 = self;
-    }
-    
-    // GUARD(t3 == Qnil) would like to use this...
-    if(t3 == Qnil) {
-      // can this be put somewhere else?
-      printf("Create block failed, %s!!\\n", _inspect(self));
-      _ret = FALSE;
-    } else {
-      cpu_flush_sp(c);
-      cpu_flush_ip(c);
-      j = c->ip + BS_JUMP;
-      t2 = blokenv_s_under_context(state, t3, cpu_current_block(state, c), j, t1, t2, 0);
-      stack_push(t2);
-    }
-    CODE
-  end
-  
   def block_given
     <<-CODE
     ARITY(0)

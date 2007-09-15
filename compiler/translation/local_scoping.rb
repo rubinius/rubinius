@@ -202,14 +202,14 @@ class RsLocalScoper < RsMethodBodyOnly
     ob = @in_block
     @in_block = true
     
-    count = @state.new_scope do
+    locals = @state.new_scope do
       @masgn.push true
       a2 = process(a)
       @masgn.pop
       b2 = process(b)
     end
 
-    out = [:iter, process(f), a2, b2, count]
+    out = [:iter, process(f), a2, b2, locals]
     @in_block = ob
     return out
   end
