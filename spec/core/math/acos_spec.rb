@@ -32,8 +32,13 @@ describe "Math.acos" do
     should_raise(TypeError) { Math.acos(nil) }
   end  
 
+  it "accepts any argument that can be coerced with Float()" do
+    Math.acos(MathSpecs::Float.new).should == 0.0
+  end
+end
+
+describe "Math#acos" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:cos, 0).should == 1.0
-    should_raise(NoMethodError) { IncludesMath.new.sqrt(0) }
+    IncludesMath.new.send(:acos, 0).should_be_close(1.5707963267949, TOLERANCE)
   end
 end

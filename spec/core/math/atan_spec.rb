@@ -23,4 +23,14 @@ describe "Math.atan" do
   it "raises a TypeError if the argument is nil" do
     should_raise(TypeError) { Math.atan(nil) }
   end  
-end 
+  
+  it "accepts any argument that can be coerced with Float()" do
+    Math.atan(MathSpecs::Float.new).should_be_close(0.785398163397448, TOLERANCE)
+  end
+end
+
+describe "Math#atan" do
+  it "is accessible as a private instance method" do
+    IncludesMath.new.send(:atan, 3.1415).should_be_close(1.2626187313511, TOLERANCE)
+  end
+end

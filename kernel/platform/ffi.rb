@@ -63,21 +63,6 @@ module FFI
   
 end
 
-class MemoryPointer
-  def inspect
-    "#<MemoryPointer address=0x#{address.to_s(16)}>"
-  end
-  
-  def address
-    i = get_byte(3)
-    i += (get_byte(2) << 8)
-    i += (get_byte(1) << 16)
-    i += (get_byte(0) << 24)
-    return i
-  end
-end
-
-
 class Module
   def attach_function(lib, name, a3, a4, a5=nil)
     if a5
@@ -97,6 +82,51 @@ class Module
     metaclass.method_table[mname] = func
     return func
   end
+end
+
+class MemoryPointer
+  def self.new(type, clear=true)
+    size = type.is_a?(Fixnum) ? type : FFI.type_size(type)
+    ptr = Platform::POSIX.malloc size
+    Platform::POSIX.memset ptr, 0, size if clear
+    return ptr
+  end
+  
+  def free
+    Platform::POSIX.free self
+  end
+  
+  def write_int(obj)
+    self.class.write_int self, Integer(obj)
+  end
+  
+  def read_int
+    self.class.read_int self
+  end
+  
+  def write_float(obj)
+    # TODO: ffi needs to be fixed for passing [:pointer, double]
+    #       when :pointer is a (double *)
+    self.class.write_float self, Float(obj)
+  end
+  
+  def read_float
+    self.class.read_float self
+  end
+  
+  def inspect
+    "#<MemoryPointer address=0x#{address.to_s(16)}>"
+  end
+  
+  def address
+    self.class.address self
+  end
+  
+  attach_function nil, "ffi_address", :address, [:pointer], :int
+  attach_function nil, "ffi_write_int", :write_int, [:pointer, :int], :int
+  attach_function nil, "ffi_read_int", :read_int, [:pointer], :int
+  attach_function nil, "ffi_write_float", :write_float, [:pointer, :double], :double
+  attach_function nil, "ffi_read_float", :read_float, [:pointer], :double
 end
 
 module FFI

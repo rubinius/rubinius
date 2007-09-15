@@ -26,4 +26,14 @@ describe "Math.log10" do
   it "raises a TypeError if the argument is nil" do
     should_raise(TypeError) { Math.log10(nil) }
   end
+  
+  it "accepts any argument that can be coerced with Float()" do
+    Math.log10(MathSpecs::Float.new).should_be_close(0.0, TOLERANCE)
+  end
+end
+
+describe "Math#log10" do
+  it "is accessible as a private instance method" do
+    IncludesMath.new.send(:log10, 4.15).should_be_close(0.618048096712093, TOLERANCE)
+  end
 end

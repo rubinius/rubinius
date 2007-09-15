@@ -22,4 +22,14 @@ describe "Math.sin" do
   it "raises a TypeError if the argument is nil" do
     should_raise(TypeError) { Math.sin(nil) }
   end  
+  
+  it "accepts any argument that can be coerced with Float()" do
+    Math.sin(MathSpecs::Float.new).should_be_close(0.841470984807897, TOLERANCE)
+  end
+end
+
+describe "Math#sin" do
+  it "is accessible as a private instance method" do
+    IncludesMath.new.send(:sin, 1.21).should_be_close(0.935616001553386, TOLERANCE)
+  end
 end

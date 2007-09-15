@@ -15,6 +15,7 @@ module Platform::POSIX
   add :pointer, 'malloc',  :int
   add :pointer, 'realloc', :pointer, :int
   add :void,    'free',    :pointer 
+  add :pointer, 'memset',  :pointer, :int, :int 
     
   # rand
   attach_function nil, 'srand', [:uint], :void

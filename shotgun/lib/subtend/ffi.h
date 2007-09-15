@@ -1,6 +1,5 @@
 char *ffi_generate_c_stub(STATE, int args, void *func);
 int ffi_type_size(int type);
-OBJECT ffi_new_pointer(STATE, void *ptr);
 void Init_ffi(STATE);
 void* ffi_get_to_converter(int type);
 void* ffi_get_from_converter(int type);

@@ -25,10 +25,20 @@ describe "Math.asin" do
   end
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.sin("test") }
+    should_raise(ArgumentError) { Math.asin("test") }
   end
   
   it "raises a TypeError if the argument is nil" do
     should_raise(TypeError) { Math.asin(nil) }
-  end    
+  end
+
+  it "accepts any argument that can be coerced with Float()" do
+    Math.asin(MathSpecs::Float.new).should_be_close(1.5707963267949, TOLERANCE)
+  end
+end
+
+describe "Math#asin" do
+  it "is accessible as a private instance method" do
+    IncludesMath.new.send(:asin, 0.5).should_be_close(0.523598775598299, TOLERANCE)
+  end
 end

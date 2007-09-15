@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 # erfc is the complementary error function  
-describe "Math#erfc" do
+describe "Math.erfc" do
   it "returns a float" do
     Math.erf(1).class.should == Float
   end
@@ -26,4 +26,14 @@ describe "Math#erfc" do
   it "raises a TypeError if the argument is nil" do
     should_raise(TypeError) { Math.erfc(nil) }
   end 
+  
+  it "accepts any argument that can be coerced with Float()" do
+    Math.erfc(MathSpecs::Float.new).should_be_close(0.157299207050285, TOLERANCE)
+  end
+end
+
+describe "Math#erfc" do
+  it "is accessible as a private instance method" do
+    IncludesMath.new.send(:erf, 3.1415).should_be_close(0.999991118444483, TOLERANCE)
+  end
 end

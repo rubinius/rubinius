@@ -24,6 +24,12 @@ describe "Math.cos" do
   end
   
   it "accepts any argument that can be coerced with Float()" do
-    Math.cos(ClassLikeFloat.new).should_be_close(0.54030230586814, TOLERANCE)
+    Math.cos(MathSpecs::Float.new).should_be_close(0.54030230586814, TOLERANCE)
   end
 end  
+
+describe "Math#cos" do
+  it "is accessible as a private instance method" do
+    IncludesMath.new.send(:cos, 3.1415).should_be_close(-0.999999995707656, TOLERANCE)
+  end
+end

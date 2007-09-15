@@ -95,10 +95,9 @@ module Math
   
   def frexp(x)
     x = Float(x)
-    raise Exception, "frexp not implemented"
-    # exp = 0
-    # result = Platform::Math.frexp x, exp
-    # [result, exp]
+    exp = MemoryPointer.new :int
+    result = Platform::Math.frexp x, exp
+    [result, exp.read_int]
   end
   
   def ldexp(x, n)

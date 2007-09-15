@@ -28,6 +28,28 @@ OBJECT ffi_new_pointer(STATE, void *ptr) {
   return obj;
 }
 
+int ffi_address(void *ptr) {
+  return (int)ptr;
+}
+
+int ffi_write_int(int *ptr, int val) {
+  *ptr = val;
+  return val;
+}
+
+int ffi_read_int(int *ptr, int val) {
+  return *ptr;
+}
+
+double ffi_write_float(double *ptr, double val) {
+  *ptr = val;
+  return val;
+}
+
+double ffi_read_float(double *ptr) {
+  return *ptr;
+}
+
 OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
   struct sockaddr_un *sa;
   
