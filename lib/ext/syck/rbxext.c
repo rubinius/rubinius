@@ -146,7 +146,7 @@ static void rbx_syck_emitter(SyckEmitter *e, st_data_t data) {
   if(type == Qnil) {
     ts = NULL;
   } else if(SYMBOL_P(type)) {
-    ts = rb_id2name(SYM2ID(type));
+    ts = (char*)rb_id2name(SYM2ID(type));
   } else {
     ts = StringValuePtr(type);
   }
@@ -175,8 +175,8 @@ static void rbx_syck_emitter(SyckEmitter *e, st_data_t data) {
 
 static SyckParser* new_parser() {
   SyckParser *parser = syck_new_parser();
-  syck_parser_set_root_on_error( parser, Qnil );
-  syck_parser_handler( parser, rbx_syck_handler );
+  syck_parser_set_root_on_error( parser, (SYMID)Qnil );
+  syck_parser_handler( parser, (SyckNodeHandler)rbx_syck_handler );
   syck_parser_implicit_typing( parser, 1 );
   syck_parser_taguri_expansion( parser, 1 );
   syck_parser_set_input_type( parser, syck_yaml_utf8 );
@@ -243,7 +243,7 @@ static VALUE syck_emit_string(VALUE self, VALUE ary) {
   emitter->bonus = &xtra;
   xtra.object = Qnil;
   syck_emitter_handler( emitter, rbx_syck_emitter );
-  syck_output_handler( emitter, rbx_syck_emitter_output );    
+  syck_output_handler( emitter, (SyckOutputHandler)rbx_syck_emitter_output );
   syck_emitter_mark_node(emitter, (st_data_t)ary);
   syck_emit(emitter, (st_data_t)ary);
   syck_emitter_flush(emitter, 0);
