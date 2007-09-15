@@ -2,7 +2,7 @@
 #define RBS_METHCTX 1
 
 OBJECT blokctx_s_under_context(STATE, OBJECT ctx);
-OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, int count);
+OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals);
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
 
 #include "flags.h"

@@ -1,3 +1,4 @@
+require 'bytecode/compiler'
 class ExtensionCompiler
   
   def initialize(extra=[], flags=[])

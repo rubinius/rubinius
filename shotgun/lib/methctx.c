@@ -4,7 +4,7 @@
 #include "tuple.h"
 #include "flags.h"
 
-OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, int locals) {
+OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals) {
   OBJECT obj;
     
   obj = blokenv_allocate(state);
@@ -13,7 +13,8 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, O
   blokenv_set_last_ip(obj, lst);
   blokenv_set_post_send(obj, vlst);
   blokenv_set_home_block(obj, ctx_block);
-  blokenv_set_local_count(obj, I2N(locals));
+  blokenv_set_local_count(obj, I2N(NUM_FIELDS(locals)));
+  blokenv_set_bonus(obj, locals);
   return obj;
 }
 

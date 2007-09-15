@@ -1039,7 +1039,10 @@ CODE
     t2 = stack_pop();
     if(_int == 255) {
       t5 = stack_pop();
+      assert(!NIL_P(t5) && "locals tuple was nil!");
       _int = NUM_FIELDS(t5);
+    } else {
+      assert(0 && "old-style block!!");
     }
     
     t4 = c->active_context;
@@ -1057,7 +1060,7 @@ CODE
     cpu_flush_sp(c);
     cpu_flush_ip(c);
     j = c->ip + BS_JUMP;
-    t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, _int);
+    t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, t5);
     stack_push(t2);
     CODE
   end

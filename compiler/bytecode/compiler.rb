@@ -2022,6 +2022,7 @@ module Bytecode
         args = x.shift
         body = x.shift
         locals = x.shift
+        raise "block iter with nil locals!" unless locals
         count = locals.size
 
         one = unique_lbl('iter_')
