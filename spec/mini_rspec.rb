@@ -200,13 +200,13 @@ class PositiveExpectation
   
   def ==(other)
     unless @obj == other
-      raise ExpectationNotMetError.new("Equality expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Expected #{@obj.inspect} to equal #{other.inspect}")
     end
   end
   
   def =~(other)
     unless @obj =~ other
-      raise ExpectationNotMetError.new("Match expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Expected #{@obj.inspect} to match #{other.inspect}")
     end
   end
 end
@@ -218,13 +218,13 @@ class NegativeExpectation
   
   def ==(other)
     if @obj == other
-      raise ExpectationNotMetError.new("Inequality expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Expected #{@obj.inspect} not to equal #{other.inspect}")
     end
   end
   
   def =~(other)
     if @obj =~ other
-      raise ExpectationNotMetError.new("Match not expected for #{@obj.inspect} and #{other.inspect}")
+      raise ExpectationNotMetError.new("Expected #{@obj.inspect} not to match #{other.inspect}")
     end
   end
 end
