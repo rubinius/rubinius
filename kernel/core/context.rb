@@ -89,7 +89,7 @@ end
 
 class BlockEnvironment
   ivar_as_index :__ivars__ => 0, :home => 1, :initial_ip => 2, :last_ip => 3, 
-    :post_send => 4, :home_block => 5, :local_count => 6, :scope => 7
+    :post_send => 4, :home_block => 5, :local_count => 6, :bonus => 7
   def __ivars__   ; @__ivars__   ; end
   def home        ; @home        ; end
   def initial_ip  ; @initial_ip  ; end
@@ -97,8 +97,13 @@ class BlockEnvironment
   def post_send   ; @post_send   ; end
   def home_block  ; @home_block  ; end
   def local_count ; @local_count ; end
-  def scope       ; @scope       ; end
+  def bonus       ; @bonus       ; end
       
+  # Holds a Tuple of local variable names to support eval
+  def bonus=(tup)
+    @bonus = tup
+  end
+
   # These should be safe since I'm unsure how you'd have a BlockContext
   # and have a nil CompiledMethod (something that can (and has) happened
   # with MethodContexts)

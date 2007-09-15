@@ -380,4 +380,12 @@ class RsLocalState
   def surrounding_scope
     @scopes.first
   end
+
+  def top_locals_tuple
+    t = Tuple.new(@top_scope.size)
+    @top_scope.each do |k,v|
+      t[v] = k
+    end
+    t
+  end
 end
