@@ -45,10 +45,6 @@ class File < IO
     end
   end
 
-  class << self
-    alias_method :exists?, :exist?
-  end
-  
   def self.file?(path)
     st = Stat.stat(path, true)
     return false unless st.kind_of? Stat
@@ -146,10 +142,6 @@ class File < IO
       Platform::POSIX.unlink(path) 
     end
     paths.size
-  end
-  
-  class << self
-    alias_method :delete, :unlink
   end
   
   def self.chmod(mode, *paths)
@@ -254,7 +246,13 @@ class File < IO
   def self.join(*args)
     args.map { |arg| arg.to_str }.join(SEPARATOR)
   end
-
+  
+  class << self
+    alias_method :delete, :unlink
+    alias_method :exists?, :exist?
+    alias_method :fnmatch?, :fnmatch
+  end
+  
   class Stat
     self.instance_fields = 11
     ivar_as_index :inode => 0, :mode => 1, :kind => 2, :owner => 3, :group => 4,
@@ -327,27 +325,4 @@ class File < IO
       end
       obj
     end
-end
-
-class Dir
-  def self.glob(pattern, flags)
-    Ruby.primitive :dir_glob
-  end
-  
-  def self.[](pattern)
-    glob(pattern, 0)
-  end
-  
-  def self.chdir(path)
-    Ruby.primitive :dir_chdir
-  end
-
-  def self.getwd
-    buf = " " * 1024
-    Platform::POSIX.getcwd(buf, buf.length)
-  end
-
-  class << self
-    alias_method :pwd, :getwd
-  end
 end

@@ -46,7 +46,6 @@ module Platform::POSIX
   attach_function nil, 'fseek',  [:pointer, :int, :int], :int
   attach_function nil, 'ftell',  [:pointer], :int
   
-  
   #   reading
   attach_function nil, 'fread',   [:string, :int, :int, :pointer], :int
   attach_function nil, 'fgets',   [:string, :int, :pointer], :void
@@ -55,4 +54,9 @@ module Platform::POSIX
   #   writing
   attach_function nil, 'fwrite',  [:string, :int, :int, :pointer], :int
   attach_function nil, 'ungetc',  [:int, :pointer], :int
+  
+  #   testing
+  attach_function nil, 'fnmatch', [:string, :string, :int], :int
+  
+  # Dir
 end

@@ -85,11 +85,33 @@ class Module
 end
 
 class MemoryPointer
+  # call-seq:
+  #   MemoryPointer.new(num) => MemoryPointer instance of <i>num</i> bytes
+  #   MemoryPointer.new(sym) => MemoryPointer instance with number 
+  #                             of bytes need by FFI type <i>sym</i>
+  #   MemoryPointer.new(arg) { |p| ... }
+  #
+  # Both forms create a MemoryPointer instance. The number of bytes to
+  # allocate is either specified directly or by passing an FFI type, which
+  # specifies the number of bytes needed for that type.
+  #
+  # The form without a block returns the MemoryPointer instance. The form
+  # with a block yields the MemoryPointer instance and frees the memory
+  # when the block returns. The value returned is the value of the block.
   def self.new(type, clear=true)
     size = type.is_a?(Fixnum) ? type : FFI.type_size(type)
     ptr = Platform::POSIX.malloc size
     Platform::POSIX.memset ptr, 0, size if clear
-    return ptr
+
+    if block_given?
+      begin
+        yield ptr
+      ensure
+        ptr.free
+      end
+    else
+      ptr
+    end
   end
   
   def free
