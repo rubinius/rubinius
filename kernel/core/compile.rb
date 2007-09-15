@@ -22,7 +22,9 @@ module Compile
     sexp = string.to_sexp
     comp = Bytecode::Compiler.new
     comp.import_flags(flags) if flags
-    desc = comp.compile_as_method(sexp, :__eval_script__)
+    state = RsLocalState.new
+    state.uses_eval = true
+    desc = comp.compile_as_method(sexp, :__eval_script__, state)
     return desc.to_cmethod
   end
   

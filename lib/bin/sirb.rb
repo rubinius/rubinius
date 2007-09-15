@@ -11,7 +11,6 @@ def usage
 
     Options: 
             -p   Print the parsed s-expression
-            -x   Print the normalized s-expression.
             -s   Print assembly instructions.
             -b   Print bytecode encoding.
             -t   Print stats.
@@ -35,8 +34,6 @@ begin
       usage
     when '-p'
       $show_parse = true
-    when '-x'
-      $show_sexp = true
     when '-s'
       $show_asm = true
     when '-b'
@@ -66,6 +63,7 @@ compiler = Bytecode::Compiler.new
 # We use the same compiler state for each evaluation so we can save
 # stuff like locals between statements.
 compiler_state = RsLocalState.new
+compiler_state.uses_eval = true # Don't allocate locals on the stack
 
 # Start off with just 10 slots, but we enlarge as needed below.
 locals = Tuple.new(10)
@@ -95,24 +93,24 @@ while true
         nl.copy_from locals, 0
         locals = nl
       end
-      
-      if str == "local_variables\n"
-        puts " Names: #{compiler_state.locals.inspect}\nValues: #{locals.inspect}\n"
+     
+      if str == "local_variables"
+        h = Hash.new
+        compiler_state.locals.keys.each_with_index do |k,i|
+          h[k] = locals.at(i)
+        end
+        puts h.inspect
         context = ""
       else  
         pstate = ">"
         sexp = context.to_sexp
         puts "\nS-exp:\n#{sexp.inspect}" if $show_parse
-        nx = compiler.fully_normalize(sexp, compiler_state)
-        puts "\nNormalized S-exp:\n#{nx.inspect}" if $show_sexp
-        desc = compiler.compile_as_method(nx, :__eval_script__, compiler_state)
+        desc = compiler.compile_as_method(sexp, :__eval_script__, compiler_state)
         puts "\nAssembly:\n#{desc.assembly}" if $show_asm
         cm = desc.to_cmethod
+        cm.compile
         print_bytecodes(cm.bytecodes) if $show_bytes
         out = cm.activate(MAIN, [], locals)
-        
-        # Support _ being the last value.
-        locals.put 0, out
         
         puts "=> #{out.inspect}" # do it like this so exit won't do =>
         context = ""

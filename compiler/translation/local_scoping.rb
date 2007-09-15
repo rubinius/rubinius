@@ -366,7 +366,8 @@ class RsLocalScoper < RsMethodBodyOnly
   
   def process_vcall(x)
     name = x.shift
-    if lv = @state.local_exists?(name)
+
+    if lv = @state.local(name, false) # don't allocate if it doesn't exist
       [:lvar, name, lv, nil]
     else
       [:call, [:self], name, [:array], {:function => true}]

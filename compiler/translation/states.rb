@@ -162,7 +162,7 @@ class RsLocalState
     @locals = {}
   end
   
-  attr_reader :arg_splat, :arg_block
+  attr_reader :arg_splat, :arg_block, :locals
   attr_accessor :uses_eval
   
   def each_arg

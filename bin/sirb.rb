@@ -1,1 +1,0 @@
-../lib/bin/sirb.rb
