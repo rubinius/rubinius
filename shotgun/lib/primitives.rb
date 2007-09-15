@@ -32,21 +32,34 @@ class ShotgunPrimitives
 
       i += 1
     end
-    i = Bytecode::Compiler::FirstRuntimePrimitive
-    order = Bytecode::Compiler::RuntimePrimitives
-    order.each do |ins|
-      code = send(ins) rescue nil
-      if code
-        fd.puts "   case #{i}: {"
-        fd.puts code
-        fd.puts "   break; \n   }"
-      else
-        STDERR.puts "Problem with runtime primitive: #{ins}"
-      end
-      i += 1
-    end
+    
     fd.puts "}"
     fd.puts
+    
+    File.open("runtime_primitives.gen","w") do |f|
+      total = Bytecode::Compiler::FirstRuntimePrimitive
+      order = Bytecode::Compiler::RuntimePrimitives
+      i = 0
+      f.puts "switch(#{op} - #{total}) {"
+      
+      order.each do |ins|
+        code = send(ins) rescue nil
+        if code
+          f.puts "   case #{i}: { // #{ins}"
+          f.puts code
+          f.puts "   break; \n   }"
+        else
+          STDERR.puts "Problem with runtime primitive: #{ins}"
+        end
+        i += 1
+      end
+      
+      f.puts "default:"
+      f.puts 'printf("Error: Primitive index out of range for this VM\n");'
+      f.puts "abort();"
+      f.puts "}"
+      f.puts
+    end
     
     File.open("primitive_indexes.h", "w") do |f|
       i = 1
@@ -2560,4 +2573,3 @@ end
 
 prim = ShotgunPrimitives.new
 prim.generate_select(STDOUT)
-

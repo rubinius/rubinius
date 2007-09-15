@@ -257,14 +257,17 @@ static inline OBJECT cpu_stack_top(STATE, cpu c) {
 
 #define MAX_SYSTEM_PRIM 2048
 
+#define FIRST_RUNTIME_PRIM 1024
+
 int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod);
 
+int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT name, OBJECT mod);
+
 static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int args, OBJECT name, OBJECT mod) {
-  if(prim < MAX_SYSTEM_PRIM) {
+  if(prim < FIRST_RUNTIME_PRIM) {
     return cpu_perform_system_primitive(state, c, prim, mo, args, name, mod);
   } else {
-    printf("Error: Primitive index out of range for this VM\n");
-    abort();
+    return cpu_perform_runtime_primitive(state, c, prim, mo, args, name, mod);
   }
 }
 

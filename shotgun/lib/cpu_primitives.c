@@ -105,3 +105,21 @@ int cpu_perform_system_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args
   return _ret;
 }
 
+int cpu_perform_runtime_primitive(STATE, cpu c, int prim, OBJECT mo, int num_args, OBJECT method_name, OBJECT mod) {
+  int _ret = TRUE;
+  OBJECT self, t1, t2, t3;
+  int j, _orig_sp;
+  OBJECT *_orig_sp_ptr;
+  
+  _orig_sp_ptr = c->sp_ptr;
+  _orig_sp = c->sp;
+  #include "runtime_primitives.gen"
+  
+  if(!_ret) {
+    c->sp_ptr = _orig_sp_ptr;
+    c->sp = _orig_sp;
+  }
+  return _ret;
+}
+
+
