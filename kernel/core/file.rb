@@ -242,6 +242,10 @@ class File < IO
       !string.empty? && string[0].chr == '/' ? string : prefix || '/' +string
     end
   end
+  
+  def self.fnmatch(pattern, path, flags=0)
+    Platform::POSIX.fnmatch(pattern, path, flags) == 0
+  end
 
   def self.join(*args)
     args.map { |arg| arg.to_str }.join(SEPARATOR)
