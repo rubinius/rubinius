@@ -639,7 +639,7 @@ class String
   end
 
   def to_expanded_tr_string
-    self.gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } if r[0] < r[2] }
+    self.reverse.gsub(/.-./) { |r| (r[2]..r[0]).to_a.map { |c| c.chr } }
   end
   
   def smart_chomp!
@@ -858,9 +858,12 @@ class String
   alias_method :intern, :to_sym
 
   def each_byte(&prc)
-    0.upto(@bytes - 1) do |i|
+    i = 0
+    while i < @bytes do
       yield @data.get_byte(i)
+      i += 1
     end
+    self
   end
   
   def empty?
