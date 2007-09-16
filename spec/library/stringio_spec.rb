@@ -192,6 +192,10 @@ describe "StringIO#gets" do
     @io = StringIO.new("g e t s")
   end
 
+  after(:each) do
+    $/ = "\n"
+  end
+
   it "should return the next 'line'" do
     @io.gets.should == 'g e t s'
     @io.gets.should == nil
@@ -205,6 +209,14 @@ describe "StringIO#gets" do
   it "should support separator strings" do
     @io.gets('e').should == 'g e'
     @io.gets('e').should == ' t s'
+  end
+
+  it "should honor the $/ global separator" do
+    $/ = ' '
+    @io.gets.should == 'g '
+    @io.gets.should == 'e '
+    @io.gets.should == 't '
+    @io.gets.should == 's'
   end
 end
 
