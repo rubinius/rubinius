@@ -448,7 +448,6 @@ describe "String#slice! with index" do
   version '1.8.6' do
     it "calls to_int on index" do
       "hello".slice!(0.5).should == ?h
-      "hello".slice!('1.5').should == ?e
 
       obj = Object.new
       # MRI calls this twice so we can't use should_receive here.
@@ -655,7 +654,7 @@ describe "String#slice! with Regexp" do
     strs += strs.map { |s| s.dup.taint }
 
     strs.each do |str|
-      str = str.clone
+      str = str.dup
       str.slice!(//).tainted?.should == str.tainted?
       str.slice!(/hello/).tainted?.should == str.tainted?
 
@@ -678,6 +677,8 @@ describe "String#slice! with Regexp" do
     s.slice!(/../).class.should == MyString
   end
 
+  # This currently fails, but passes in a pure Rubinius environment (without mspec)
+  # probably because mspec uses match internally for its operation
   it "sets $~ to MatchData when there is a match and nil when there's none" do
     'hello'.slice!(/./)
     $~[0].should == 'h'
@@ -709,7 +710,7 @@ describe "String#slice! with Regexp, index" do
     strs += strs.map { |s| s.dup.taint }
 
     strs.each do |str|
-      str = str.clone
+      str = str.dup
       str.slice!(//, 0).tainted?.should == str.tainted?
       str.slice!(/hello/, 0).tainted?.should == str.tainted?
 
@@ -793,9 +794,9 @@ describe "String#slice! with String" do
     strs += strs.map { |s| s.dup.taint }
 
     strs.each do |str|
-      str = str.clone
+      str = str.dup
       strs.each do |other|
-        other = other.clone
+        other = other.dup
         r = str.slice!(other)
 
         r.tainted?.should == !r.nil? & other.tainted?

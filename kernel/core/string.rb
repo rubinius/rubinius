@@ -261,7 +261,9 @@ class String
 
     case index = args.first
     when Regexp
-      return self.subpattern(index, 0)
+      ret = self.subpattern(index, 0)
+      self.match(index)
+      return ret
     when String
       return self.include?(index) ? index.dup : nil
     when Range
