@@ -36,10 +36,9 @@ describe "String#==" do
     ('world!' == obj).should == true 
     
     obj = Object.new
-    class << obj; undef :==; end
     other = "abc"
     obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
-    obj.should_receive(:method_missing, :with => [:==, other], :returning => true)
+    obj.should_receive(:==, :returning => true)
     (other == obj).should == true
   end
 end

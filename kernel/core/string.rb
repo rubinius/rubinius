@@ -153,7 +153,7 @@ class String
   def ==(other)
     if String === other
       return false unless @bytes == other.size
-            
+      
       # This clamps the data to the right size, then we compare
       # FIXME: This is very inefficient, creating a new ByteArray just
       # to compare. 
