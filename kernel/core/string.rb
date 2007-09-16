@@ -1647,15 +1647,19 @@ class String
     last_index = 0
     index = separator.length
     
+    old_str = self.dup
+    
     while index < self.length
       if separator.empty?
-        index += 1 while self[index + 1] == ?\n
+        index += 1 while (self.size > index + 2) && self[(index + 1)..(index + 2)] =~ /[^\n]/
+        index += 1 while (self.size > index + 1) && self[index + 1] == ?\n
       end
     
       if self[index] == newline && self[-separator.length, separator.length]
         line = self[last_index..index]
         line.taint if self.tainted?
         yield line
+        raise RuntimeError, "You modified the string while running each" if old_str != self
         last_index = index + 1
       end
       
