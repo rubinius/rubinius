@@ -12,10 +12,22 @@ class StringIO
   end
   
   def initialize(string="", mode=nil)
+    @writable = false
+    @readable = false 
+    @append = false
+
+    if not string.kind_of?(String) then
+      if string.respond_to?(:to_str) then
+        string = string.to_str
+      else
+        raise TypeError, "can't convert #{string.class} into String"
+      end
+    end
+
     @string = string
     @mode = mode || "r+"
-    @append = false
-    
+    @mode.gsub!(/b/,'') # Ignore binary mode flags 
+
     if @mode.include?("+")
       @readable = true
       @writable = true

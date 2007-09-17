@@ -11,7 +11,13 @@ def util_build_stringio
   @io = StringIO.new(str)
 end
 
+class StringSubclass < String;end
+
 describe "StringIO.open" do
+  it "should contain an empty string if no argument is provided" do
+    StringIO.open.string.should == ""
+  end
+
   it "should yield the IO object to the block" do
     sio = nil
     StringIO.open("abc") do |io|
@@ -21,6 +27,55 @@ describe "StringIO.open" do
       sio = io
     end
     sio.closed?.should == true
+  end
+
+  it "should call to_str on the first argument if it is not a String" do
+    obj = Object.new
+    def obj.to_str; "hello"; end
+    StringIO.open(obj) do |io|
+      io.string.should == "hello"
+    end
+  end
+
+  it "should raise TypeError if the argument cannot be converted" do
+    obj = Object.new
+    should_raise(TypeError) { StringIO.open(obj) }
+  end
+end
+
+describe "StringIO.new" do
+  it "should contain an empty string if no argument is provided" do
+    StringIO.new.string.should == ""
+  end
+
+  it "should call to_str on the first argument if it is not a String" do
+    obj = Object.new
+    def obj.to_str; "hello"; end
+    io = StringIO.new(obj)
+    io.string.should == "hello"
+  end
+
+  it "should raise TypeError if the argument cannot be converted" do
+    obj = Object.new
+    should_raise(TypeError) { StringIO.new(obj) }
+  end
+
+  it "should initialize in read-only mode when given a 'read' mode flag" do
+    io = StringIO.new('hi', 'r')
+    io.closed_write?.should == true
+    io.closed_read?.should == false
+    io = StringIO.new('bye', 'rb')
+    io.closed_write?.should == true
+    io.closed_read?.should == false
+    should_raise(IOError) { io.write('!') }
+  end
+
+  it "should not call to_str on String subclasses" do
+    str = StringSubclass.new('keep')
+    io = StringIO.new(str)
+    io.string.class.should == StringSubclass
+    io.write('!')
+    io.string.class.should == StringSubclass
   end
 end
 
@@ -479,6 +534,54 @@ describe "StringIO#readlines" do
   end
 end
 
+# NOTE: Some reopen specs disabled due to MRI bugs. See:
+# http://rubyforge.org/tracker/index.php?func=detail&aid=13919&group_id=426&atid=1698
+# for details.
+describe "StringIO#reopen" do
+  before(:each) do
+    @io = StringIO.new('hello','a')
+  end
+
+  failure(:ruby) do
+    it "should reopen a stream when given a String argument" do
+      @io.reopen('goodbye', 'a').should == @io
+      @io.string.should == 'goodbye'
+      @io << 'x'
+      @io.string.should == 'goodbyex'
+    end
+
+    it "should reopen a stream in a different mode" do
+      @io.reopen('goodbye', 'w').should == @io
+      @io.string.should == 'goodbye'
+      @io << 'x'
+      @io.string.should == 'xoodbye'
+    end
+  end
+
+  # MRI refuses to convert objects that support to_str, JRuby and Rubinius can
+  noncompliant(:jruby, :rubinius) do
+    it "should call to_str on the first argument if it is not a String" do
+      obj = Object.new
+      def obj.to_str; "reopen"; end
+      @io.reopen(obj)
+      @io.string.should == "reopen"
+    end
+  end
+
+  it "should raise TypeError if the argument cannot be converted" do
+    obj = Object.new
+    should_raise(TypeError) { @io.reopen(obj) }
+  end
+  
+  it "should reopen a stream when given a new StringIO object" do
+    @io.close
+    nio = StringIO.new('goodbye')
+    @io.reopen(nio)
+    @io.closed?.should == false
+    @io.string.should == 'goodbye'
+  end
+end
+
 describe "StringIO#rewind" do
   before(:each) do
     @io = StringIO.new("hello\nworld")
@@ -679,30 +782,6 @@ describe "StringIO#ungetc" do
 
   it "should not accept strings" do
     should_raise(TypeError) { @io.ungetc('A') }
-  end
-end
-
-__END__
-
-# TODO - Reopen is utterly broken in MRI right now
-# File bug report
-describe "StringIO#reopen" do
-  before(:each) do
-    @io = StringIO.new('hello','a')
-  end
-
-  it "should reopen a stream in the same mode" do
-    @io.reopen('goodbye').should == @io
-    @io.string.should == 'goodbye'
-    @io << 'x'
-    @io.string.should == 'goodbyex'
-  end
-
-  it "should reopen a stream in a different mode" do
-    @io.reopen('goodbye', 'w').should == @io
-    @io.string.should == 'goodbye'
-    @io << 'x'
-    @io.string.should == 'xoodbye'
   end
 end
 
