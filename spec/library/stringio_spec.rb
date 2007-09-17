@@ -197,6 +197,33 @@ describe "StringIO#eof? and eof" do
     @io.eof.should == true
     @io.eof?.should == true
   end
+
+  it "should be true after gets returns nil" do
+    @io.gets.should == 'eof'
+    @io.gets.should == nil
+    @io.eof.should == true
+    @io.eof?.should == true
+  end
+
+  it "should be true after seeking to the end" do
+    @io.seek(3)
+    @io.eof.should == true
+  end
+
+  it "should be true after seeking beyond the end" do
+    @io.seek(5)
+    @io.eof.should == true
+  end
+
+  it "should be true after setting the position to the end" do
+    @io.pos = 3
+    @io.eof.should == true
+  end
+
+  it "should be true after setting the position beyond the end" do
+    @io.pos = 5
+    @io.eof.should == true
+  end
 end
 
 describe "StringIO#fcntl" do
@@ -425,6 +452,10 @@ describe "StringIO#puts" do
     @io = StringIO.new('')
   end
 
+  after(:each) do
+    $/ = "\n"
+  end
+
   it "should write a newline after objects that do not end in newlines" do
     @io.puts(5).should == nil
     @io.string.should == "5\n"
@@ -433,6 +464,12 @@ describe "StringIO#puts" do
   it "should not write a newline after objects that end in newlines" do
     @io.puts("5\n").should == nil
     @io.string.should == "5\n"
+  end
+
+  it "should ignore the $/ separator global" do
+    $/ = ":"
+    @io.puts(5,6)
+    @io.string.should == "5\n6\n"
   end
 end
 

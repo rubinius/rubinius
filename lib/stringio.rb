@@ -1,4 +1,5 @@
 class StringIO
+  DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
   
   def self.open(string="", mode=nil)
     obj = new(string, mode)
@@ -42,6 +43,7 @@ class StringIO
     end
 
     @pos = 0
+    @eof = false
     @lineno = 0
   end
   
@@ -89,7 +91,7 @@ class StringIO
   end
   
   def eof
-    @pos >= @string.size
+    @eof or @pos >= @string.size
   end
   
   alias_method :eof?, :eof
@@ -337,7 +339,7 @@ class StringIO
   
   def puts(*args)
     if args.empty?
-      write $/
+      write DEFAULT_RECORD_SEPARATOR
       return nil
     end
     
@@ -352,7 +354,7 @@ class StringIO
       
       write line
       if line.empty? or line[-1] != ?\n
-        write $/
+        write DEFAULT_RECORD_SEPARATOR
       end              
     end
     

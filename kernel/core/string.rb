@@ -1,4 +1,8 @@
 # depends on: comparable.rb enumerable.rb
+  
+# Default Ruby Record Separator
+# Used in this file and by various methods that need to ignore $/
+DEFAULT_RECORD_SEPARATOR = "\n"
 
 class String
   include Comparable
@@ -453,9 +457,6 @@ class String
     (str = self.dup).chomp!(separator) || str
   end
   
-  # Default Ruby Record Seperator
-  DEFAULT_RUBY_SEPERATOR = $/
-  
   # Modifies <i>self</i> in place as described for <code>String#chomp</code>,
   # returning <i>self</i>, or <code>nil</code> if no modifications were made.
   #---
@@ -465,7 +466,7 @@ class String
   def chomp!(separator = $/)
     return nil if separator.nil? || @bytes == 0
 
-    if separator == $/ && separator == DEFAULT_RUBY_SEPERATOR
+    if separator == $/ && separator == DEFAULT_RECORD_SEPARATOR
       return smart_chomp!
     end
     

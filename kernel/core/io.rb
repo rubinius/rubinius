@@ -24,13 +24,13 @@ class IO
   
   def puts(*args)
     if args.empty?
-      write $/
+      write DEFAULT_RECORD_SEPARATOR
     else
       args.each do |arg|
         str = arg.to_s
 
         write str
-        write $/ unless str.suffix?($/)
+        write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
       end
     end
 
