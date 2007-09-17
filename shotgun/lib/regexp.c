@@ -20,6 +20,8 @@
 
 #define REG(k) (*DATA_STRUCT(k, regex_t**))
 
+OBJECT get_match_data(STATE, OnigRegion *region, OBJECT string, OBJECT regex, int max);
+
 void regexp_cleanup(STATE, OBJECT regexp) {
   onig_free(REG(regexp));
 }
@@ -164,6 +166,59 @@ OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
     tuple_put(state, tup, i - 1, sub);
   }
   return tup;
+}
+
+OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
+  int beg, max;
+  long len, region_end;
+  const UChar *str, *end, *start, *range;
+  OnigRegion *region = onig_region_new();
+  OnigEncoding enc;
+  regex_t *reg;
+  OBJECT md, matches;
+  
+  max = FIXNUM_TO_INT(string_get_bytes(string));
+  str = (UChar*)string_byte_address(state, string);
+  end = str + max;
+  start = str;
+  range = end;
+  
+  matches = array_new(state, 0);
+  reg = REG(regexp_get_data(regexp));
+  enc = onig_get_encoding(reg);
+  beg = onig_search(reg, str, end, start, end, region, ONIG_OPTION_NONE);
+  if(beg == ONIG_MISMATCH) {
+    onig_region_free(region, 1);
+    return array_new(state, 0);
+  }
+
+  int i = 0;
+  
+  do {
+    array_append(state, matches, get_match_data(state, region, string, regexp, max));
+
+    region_end = region->end[0];
+    if(region_end == beg) {
+      if(max <= region_end) break;
+      len = ONIGENC_MBC_ENC_LEN(enc, str + region_end);
+      region_end += len;
+    }
+    beg = onig_search(reg, str, end, str + region_end, end, region, ONIG_OPTION_NONE);
+    i++;
+  } while(beg >= 0 && i < 100);
+  
+  onig_region_free(region, 1);
+  
+  return matches;
+}
+
+OBJECT get_match_data(STATE, OnigRegion *region, OBJECT string, OBJECT regexp, int max) {
+  OBJECT md = matchdata_allocate(state); 
+  matchdata_set_source(md, string);
+  matchdata_set_regexp(md, regexp);
+  matchdata_set_full(md, tuple_new2(state, 2, I2N(region->beg[0]), I2N(region->end[0])));
+  matchdata_set_region(md, _md_region_to_tuple(state, region, max));
+  return md;
 }
 
 OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string) {

@@ -89,7 +89,7 @@ describe "String#split with String" do
     "hello::world".split(obj).should == ["hello", "world"]
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true, :count => :any)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "::")
     "hello::world".split(obj).should == ["hello", "world"]
   end
@@ -246,6 +246,10 @@ describe "String#split with Regexp" do
     $~ = nil
     "x:y:z".split(/:/)
     $~.should == nil
+  end
+  
+  it "returns the original string if no matches are found" do
+    "foo".split("\n").should == ["foo"]
   end
   
   it "returns subclass instances based on self" do
