@@ -65,7 +65,7 @@ module Sprintf
             
           when ?B, ?b,?c,?d,?E,?e,?f,?G,?g,?i,?o,?p,?s,?u,?X,?x
             fmt.type = c
-            fmt.value = fmtstr.get_next_argument if fmt.value.nil?
+            fmt.value = fmtstr.get_next_argument if fmt.unset?
             fmtstr.next
             break
           else
@@ -76,7 +76,7 @@ module Sprintf
           raise ArgumentError, "malformed format string - missing field type"
         end
         # Pop another argument off the stack if no absolute reference provided
-        fmt.value = fmtstr.get_next_argument if fmt.value.nil?
+        fmt.value = fmtstr.get_next_argument if fmt.unset?
         out << fmt
         fmtstr.drop_mark_point
       end
@@ -201,6 +201,7 @@ module Sprintf
     def initialize
       @flags     = 0
       @value     = nil
+      @unset     = true
       @type      = nil
       @width     = nil
       @precision = nil
@@ -219,8 +220,13 @@ module Sprintf
     end
     
     def value=(v)
-      raise ArgumentError, "value given twice " if !@value.nil?
+      raise ArgumentError, "value given twice " unless @unset
+      @unset = false
       @value = v
+    end
+
+    def unset?
+      @unset
     end
     
     def type
