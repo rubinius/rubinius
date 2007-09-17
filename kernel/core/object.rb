@@ -255,13 +255,6 @@ class Object
     !(self == other)
   end
   
-  def coerce_string
-    raise TypeError, "can't convert #{self.inspect} into String" unless respond_to?(:to_str)
-    str = self.to_str
-    raise TypeError, "#{self.class}#to_str should return String" unless str.is_a?(String)
-    str
-  end
-  
   # TODO - Implement support for the 'all' parameter
   def singleton_methods(all=true)
     class << self

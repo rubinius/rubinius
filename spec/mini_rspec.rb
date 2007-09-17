@@ -273,7 +273,7 @@ class SpecRunner
         f = File.open(item, "r")
         f.each do |line|
           line.chomp!
-          list << Regexp.new(Regexp.escape(line)) unless line.empty?
+          list << escape(line) unless line.empty?
         end
         f.close
         list

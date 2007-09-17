@@ -469,7 +469,7 @@ class String
       return smart_chomp!
     end
     
-    separator = separator.coerce_string unless separator.is_a? String
+    separator = StringValue(separator)
     length = @bytes - 1
     
     if separator.length == 0 
@@ -542,7 +542,7 @@ class String
   # should be two characters long, each character drawn from
   # <code>[a-zA-Z0-9./]</code>.
   def crypt(other_str)
-    other_str = other_str.coerce_string unless other_str.is_a? String
+    other_str = StringValue(other_str)
     raise ArgumentError.new("salt must be at least 2 characters") if other_str.size < 2
 
     hash = __crypt__(other_str)
@@ -1063,7 +1063,7 @@ class String
     # If we're replacing with ourselves, then we have nothing to do
     return self if self.equal?(other)
 
-    other = other.coerce_string unless other.is_a? String
+    other = StringValue(other)
 
     raise TypeError, "can't modify frozen string" if self.frozen?
 
@@ -1230,7 +1230,7 @@ class String
   def gsub!(pattern, replacement = nil)
     raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
     
-    replacement = replacement.coerce_string if replacement && !replacement.is_a?(String)
+    replacement = StringValue(replacement) if replacement
     
     pattern = Regexp.quote(pattern) if pattern.is_a?(String)
     pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
@@ -1259,7 +1259,7 @@ class String
   def sub!(pattern, replacement = nil)
     raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
     
-    replacement = replacement.coerce_string if replacement && !replacement.is_a?(String)
+    replacement = StringValue(replacement) if replacement
     
     pattern = Regexp.quote(pattern) if pattern.is_a?(String)
     pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
@@ -1282,7 +1282,7 @@ class String
   end
 
   def insert(index, other_string)
-    other_string = other_string.coerce_string unless other_string.is_a?(String)
+    other_string = StringValue(other_string)
     
     if index == -1
       return self << other_string
@@ -1363,7 +1363,7 @@ class String
   # used by count, delete, squeeze
   def intersect_string_from_args(*args)
     args.map! do |chars|
-      chars = chars.coerce_string unless chars.is_a? String
+      chars = StringValue(chars)
       expand_tr_string(chars)
     end
 
@@ -1490,7 +1490,7 @@ class String
       return false
     end
 
-    !self.index(needle.coerce_string).nil?
+    !self.index(StringValue(needle)).nil?
   end
 
   def index(needle, offset = 0)
@@ -1620,7 +1620,7 @@ class String
   end
   
   def upto(stop)
-    stop = stop.coerce_string unless stop.is_a? String
+    stop = StringValue(stop)
     raise LocalJumpError, "no block given" unless block_given?
 
     return self if self > stop
@@ -1640,7 +1640,7 @@ class String
       return self
     end
 
-    separator = separator.coerce_string unless separator.is_a? String
+    separator = StringValue(separator)
     
     raise LocalJumpError, "no block given" unless block_given?
     

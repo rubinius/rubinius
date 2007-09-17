@@ -33,6 +33,18 @@ module Kernel
     obj.coerce_to(String, :to_s)
   end
   
+  # MRI uses a macro named StringValue which has essentially
+  # the same semantics as obj.coerce_to(String, :to_str), but
+  # rather than using that long construction everywhere, we
+  # define a private method similar to String(). Another
+  # possibility would be to change String() as follows:
+  #   String(obj, sym=:to_s)
+  # and use String(obj, :to_str) instead of StringValue(obj)
+  def StringValue(obj)
+    obj.coerce_to(String, :to_str)
+  end
+  private :StringValue
+  
   # Reporting methods
   
   def raise(exc=$!, msg=nil, trace=nil)

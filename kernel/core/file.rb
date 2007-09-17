@@ -6,7 +6,19 @@ class File < IO
     X_OK = 1 # test for execute or search permission
     W_OK = 2 # test for write permission
     R_OK = 4 # test for read permission
+    
+    FNM_NOESCAPE = 0x01;
+    FNM_PATHNAME = 0x02;
+    FNM_DOTMATCH = 0x04;
+    FNM_CASEFOLD = 0x08;
   end
+  include Constants
+
+  # TODO: remove these when 'include Constants' works
+  FNM_NOESCAPE = 0x01;
+  FNM_PATHNAME = 0x02;
+  FNM_DOTMATCH = 0x04;
+  FNM_CASEFOLD = 0x08;
     
   class FileError < Exception; end
   class NoFileError < FileError; end
@@ -103,7 +115,7 @@ class File < IO
   end
   
   def self.split(path)
-    p = enforce_string(path)
+    p = StringValue(path)
     [dirname(p), basename(p)]
   end
 
@@ -124,20 +136,20 @@ class File < IO
   end
   
   def self.writable_real?(path)
-    Platform::POSIX.access(enforce_string(path), Constants::W_OK) == 0
+    Platform::POSIX.access(StringValue(path), Constants::W_OK) == 0
   end
 
   def self.executable_real?(path)
-    Platform::POSIX.access(enforce_string(path), Constants::X_OK) == 0
+    Platform::POSIX.access(StringValue(path), Constants::X_OK) == 0
   end
 
   def self.readable_real?(path)
-    Platform::POSIX.access(enforce_string(path), Constants::R_OK) == 0
+    Platform::POSIX.access(StringValue(path), Constants::R_OK) == 0
   end
   
   def self.unlink(*paths)
     paths.each do |path|
-      path = enforce_string(path)
+      path = StringValue(path)
       raise Errno::ENOENT, "No such file or directory - #{path}" unless exists?(path)
       Platform::POSIX.unlink(path) 
     end
@@ -244,7 +256,32 @@ class File < IO
   end
   
   def self.fnmatch(pattern, path, flags=0)
-    Platform::POSIX.fnmatch(pattern, path, flags) == 0
+    pattern = StringValue(pattern).dup
+    path = StringValue(path).dup
+    escape = (flags & FNM_NOESCAPE) == 0
+    pathname = (flags & FNM_PATHNAME) != 0
+    nocase = (flags & FNM_CASEFOLD) != 0
+    
+    pattern.gsub!('.', '\.')
+    subs = { /\*{1,2}/ => '(.*)', /\?/ => '(.)', /\{/ => '\{', /\}/ => '\}' }
+    subs.each { |p,s| pattern.gsub!(p, s) }
+    if escape
+      pattern.gsub!(/\\([*?\[\]])/, '\1')
+      pattern.gsub!(/\\([^*?\[\]])/, '\1')
+    else
+      pattern.gsub!(/(\\)([^*?\[\]])/, '\1\1\2')
+    end
+    @pattern = pattern
+    
+    re = Regexp.new("^#{pattern}$", nocase ? Regexp::IGNORECASE : 0)
+    m = re.match path
+    if m
+      return false unless m[0].size == path.size
+      m.captures.each { |c| return false if c.include?('/') and pathname }
+      return true
+    else
+      return false
+    end
   end
 
   def self.join(*args)
@@ -319,14 +356,4 @@ class File < IO
       old_mask
     end
   end
-  
-  private
-
-    def self.enforce_string(obj)
-      unless obj.kind_of? String
-        return obj.to_str if obj.respond_to? :to_str # coerce if possible
-        raise TypeError, "can't convert #{obj.class} into String"
-      end
-      obj
-    end
 end

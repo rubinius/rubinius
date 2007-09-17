@@ -55,8 +55,5 @@ module Platform::POSIX
   attach_function nil, 'fwrite',  [:string, :int, :int, :pointer], :int
   attach_function nil, 'ungetc',  [:int, :pointer], :int
   
-  #   testing
-  attach_function nil, 'fnmatch', [:string, :string, :int], :int
-  
   # Dir
 end
