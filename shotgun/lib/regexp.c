@@ -192,8 +192,6 @@ OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
     return array_new(state, 0);
   }
 
-  int i = 0;
-  
   do {
     array_append(state, matches, get_match_data(state, region, string, regexp, max));
 
@@ -205,7 +203,7 @@ OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
     }
     beg = onig_search(reg, str, end, str + region_end, end, region, ONIG_OPTION_NONE);
     i++;
-  } while(beg >= 0 && i < 100);
+  } while(beg >= 0);
   
   onig_region_free(region, 1);
   
