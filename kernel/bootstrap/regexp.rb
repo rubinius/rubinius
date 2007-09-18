@@ -7,6 +7,10 @@ class Regexp
     Ruby.primitive :regexp_match
   end
   
+  def match_from(str, start)
+    Ruby.primitive :regexp_match_start
+  end
+  
   def match_all(str)
     Ruby.primitive :regexp_scan
   end

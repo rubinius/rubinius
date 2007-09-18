@@ -170,40 +170,30 @@ OBJECT _md_region_to_tuple(STATE, OnigRegion *region, int max) {
 
 OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
   int beg, max;
-  long len, region_end;
-  const UChar *str, *end, *start, *range;
+  size_t region_end = 0;
+  const UChar *str, *end;
   OnigRegion *region = onig_region_new();
   OnigEncoding enc;
   regex_t *reg;
-  OBJECT md, matches;
+  OBJECT matches;
   
   max = FIXNUM_TO_INT(string_get_bytes(string));
   str = (UChar*)string_byte_address(state, string);
   end = str + max;
-  start = str;
-  range = end;
   
   matches = array_new(state, 0);
   reg = REG(regexp_get_data(regexp));
   enc = onig_get_encoding(reg);
-  beg = onig_search(reg, str, end, start, end, region, ONIG_OPTION_NONE);
-  if(beg == ONIG_MISMATCH) {
-    onig_region_free(region, 1);
-    return array_new(state, 0);
-  }
 
-  do {
+  while((beg = onig_search(reg, str, end, str + region_end, end, region, ONIG_OPTION_NONE)) > 0) {
     array_append(state, matches, get_match_data(state, region, string, regexp, max));
 
     region_end = region->end[0];
     if(region_end == beg) {
       if(max <= region_end) break;
-      len = ONIGENC_MBC_ENC_LEN(enc, str + region_end);
-      region_end += len;
+      region_end += ONIGENC_MBC_ENC_LEN(enc, str + region_end);
     }
-    beg = onig_search(reg, str, end, str + region_end, end, region, ONIG_OPTION_NONE);
-    i++;
-  } while(beg >= 0);
+  }
   
   onig_region_free(region, 1);
   
@@ -216,6 +206,28 @@ OBJECT get_match_data(STATE, OnigRegion *region, OBJECT string, OBJECT regexp, i
   matchdata_set_regexp(md, regexp);
   matchdata_set_full(md, tuple_new2(state, 2, I2N(region->beg[0]), I2N(region->end[0])));
   matchdata_set_region(md, _md_region_to_tuple(state, region, max));
+  return md;
+}
+
+OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start) {
+  int beg, max;
+  const UChar *str;
+  OnigRegion *region;
+  OBJECT md;
+  
+  region = onig_region_new();
+  
+  max = FIXNUM_TO_INT(string_get_bytes(string));
+  str = (UChar*)string_byte_address(state, string);
+  
+  beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(start), str + max, region, ONIG_OPTION_NONE);
+  
+  if(beg == ONIG_MISMATCH) {
+    onig_region_free(region, 1);
+    return Qnil;
+  }
+  
+  md = get_match_data(state, region, string, regexp, max);
   return md;
 }
 

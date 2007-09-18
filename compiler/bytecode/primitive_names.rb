@@ -175,7 +175,8 @@ module Bytecode
       :time_switch,
       :bignum_size,
       :reset_method_cache,
-      :regexp_scan
+      :regexp_scan,
+      :regexp_match_start
     ]
 
     FirstRuntimePrimitive = 1024

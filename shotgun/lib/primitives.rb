@@ -1118,6 +1118,15 @@ class ShotgunPrimitives
     CODE
   end
   
+  def regexp_match_start
+    <<-CODE
+    self = stack_pop();
+    POP(t1, STRING);
+    POP(t2, FIXNUM);
+    stack_push(regexp_match_start(state, self, t1, t2));
+    CODE
+  end
+  
   def regexp_scan
     <<-CODE
     self = stack_pop();
