@@ -156,6 +156,11 @@ class File < IO
     paths.size
   end
   
+  def self.link(from, to)
+    raise Errno::EEXIST if exists?(to)
+    Platform::POSIX.link(from, to)
+  end
+  
   def self.chmod(mode, *paths)
     paths.each { |path| Platform::POSIX.chmod(path, mode) }
     paths.size

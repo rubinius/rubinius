@@ -16,9 +16,12 @@ describe "File.link" do
       File.identical?(@file, @link).should == true
     end
 
-    it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+    it "raise an exception if the target already exists" do
       File.link(@file, @link)  
       should_raise(Errno::EEXIST){ File.link(@file, @link) }
+    end
+
+    it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
       should_raise(ArgumentError){ File.link }
       should_raise(ArgumentError){ File.link(@file) }
     end

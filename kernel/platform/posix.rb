@@ -28,6 +28,7 @@ module Platform::POSIX
   attach_function nil, 'unlink', [:string], :int
   attach_function nil, 'getcwd', [:string, :int], :string
   attach_function nil, 'umask', [:int], :int
+  attach_function nil, 'link', [:string, :string], :int
   
   # File/IO
   #   opening/closing
