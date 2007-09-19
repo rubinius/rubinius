@@ -127,6 +127,12 @@
 /* Define to 1 if you have the `kqueue' function. */
 #undef HAVE_KQUEUE
 
+/* Define to 1 if you have the `resolv' library (-lresolv). */
+#undef HAVE_LIBRESOLV
+
+/* Define to 1 if you have the `rt' library (-lrt). */
+#undef HAVE_LIBRT
+
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
@@ -204,6 +210,9 @@
 
 /* Define to 1 if you have the <sys/queue.h> header file. */
 #undef HAVE_SYS_QUEUE_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
@@ -290,13 +299,13 @@
 #undef socklen_t
 
 /* Define to `unsigned short' if <sys/types.h> does not define. */
-#undef u_int16_t
+#undef uint16_t
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
-#undef u_int32_t
+#undef uint32_t
 
 /* Define to `unsigned long long' if <sys/types.h> does not define. */
-#undef u_int64_t
+#undef uint64_t
 
 /* Define to `unsigned char' if <sys/types.h> does not define. */
-#undef u_int8_t
+#undef uint8_t
