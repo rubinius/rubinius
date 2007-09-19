@@ -27,9 +27,9 @@ class Float < Numeric
   alias_method :inspect, :to_s
   
   def to_i
-    if self.infinite?
+    if infinite?
       raise FloatDomainError, "Infinity"
-    elsif self.nan?
+    elsif nan?
       return self
     else
       Platform::Float.to_i self

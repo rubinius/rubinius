@@ -16,6 +16,7 @@ inline OBJECT float_nan_p(STATE, OBJECT self);
 inline OBJECT float_infinite_p(STATE, OBJECT self);
 OBJECT float_pow(STATE, OBJECT a, OBJECT b);
 OBJECT float_to_i(STATE, OBJECT self);
+int ffi_float_to_i(double value);
 OBJECT float_divmod(STATE, OBJECT a, OBJECT b);
 OBJECT float_round(STATE, OBJECT self);
 OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val); 

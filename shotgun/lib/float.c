@@ -125,6 +125,13 @@ OBJECT float_to_i(STATE, OBJECT self) {
   return bignum_from_double(state, value);
 }
 
+int ffi_float_to_i(double value) {
+  if (value > 0.0) value = floor(value);
+  if (value < 0.0) value = ceil(value);
+
+  return (int) value;
+}
+
 OBJECT float_to_s(STATE, OBJECT self) {
   char buf[32];
   double value;

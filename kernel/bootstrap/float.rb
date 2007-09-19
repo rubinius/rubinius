@@ -59,11 +59,11 @@ class Float
     super(other)
   end
   
-  def to_i
-    Ruby.primitive :float_to_i
-    raise FloatDomainError, "Infinity" if infinite?
-    self if nan?
-  end
+  # def to_i
+  #   Ruby.primitive :float_to_i
+  #   raise FloatDomainError, "Infinity" if infinite?
+  #   self if nan?
+  # end
   
   def to_f
     self

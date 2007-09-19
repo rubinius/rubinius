@@ -10,4 +10,6 @@ class Platform::Float
   attach_function nil, 'ffi_float_dig',        :DIG, [], :int
   attach_function nil, 'ffi_float_mant_dig',   :MANT_DIG, [], :int
   attach_function nil, 'ffi_float_epsilon',    :EPSILON, [], :double
+  
+  attach_function nil, 'ffi_float_to_i', :to_i, [:double], :int
 end
