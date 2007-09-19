@@ -261,23 +261,37 @@ class File < IO
     escape = (flags & FNM_NOESCAPE) == 0
     pathname = (flags & FNM_PATHNAME) != 0
     nocase = (flags & FNM_CASEFOLD) != 0
-    
-    pattern.gsub!('.', '\.')
+    period = (flags & FNM_DOTMATCH) == 0
     subs = { /\*{1,2}/ => '(.*)', /\?/ => '(.)', /\{/ => '\{', /\}/ => '\}' }
-    subs.each { |p,s| pattern.gsub!(p, s) }
-    if escape
-      pattern.gsub!(/\\([*?\[\]])/, '\1')
-      pattern.gsub!(/\\([^*?\[\]])/, '\1')
-    else
-      pattern.gsub!(/(\\)([^*?\[\]])/, '\1\1\2')
-    end
-    @pattern = pattern
+    
+    return false if path[0] == ?. and pattern[0] != ?. and period
+    pattern.gsub!('.', '\.')
+    pattern = pattern.split(/(?<pg>\[(?:\\[\[\]]|[^\[\]]|\g<pg>)*\])/).collect do |part|
+      if part[0] == ?[
+        part.gsub!(/\\([*?])/, '\1')
+        part.gsub(/\[!/, '[^')
+      else
+        subs.each { |p,s| part.gsub!(p, s) }
+        if escape
+          part.gsub(/\\(.)/, '\1')
+        else
+          part.gsub(/(\\)([^*?\[\]])/, '\1\1\2')
+        end
+      end
+    end.join
     
     re = Regexp.new("^#{pattern}$", nocase ? Regexp::IGNORECASE : 0)
     m = re.match path
     if m
       return false unless m[0].size == path.size
-      m.captures.each { |c| return false if c.include?('/') and pathname }
+      if pathname
+        return false if m.captures.any? { |c| c.include?('/') }
+        
+        a = StringValue(pattern).dup.split '/'
+        b = path.split '/'
+        return false unless a.size == b.size
+        return false unless a.zip(b).all? { |ary| ary[0][0] == ary[1][0] }
+      end
       return true
     else
       return false

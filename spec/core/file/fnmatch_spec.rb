@@ -72,15 +72,20 @@ file_fnmatch = shared "File.fnmatch" do |cmd|
   
     it "escapes special characters inside bracket expression" do
       File.send(cmd, '[\?]', '?').should == true
+      File.send(cmd, '[\*]', '*').should == true
     end
   
     it "does not match leading periods in filenames with wildcards by default" do
       File.send(cmd, '*', '.profile').should == false
+      File.send(cmd, '*', 'home/.profile').should == true
+      File.send(cmd, '*/*', 'home/.profile').should == true
+      File.send(cmd, '*/*', 'dave/.profile', File::FNM_PATHNAME).should == false
       File.send(cmd, '.*', '.profile').should == true
     end
     
     it "matches leading periods in filenames when flags includes FNM_DOTMATCH" do
       File.send(cmd, '*', '.profile', File::FNM_DOTMATCH).should == true
+      File.send(cmd, '*', 'home/.profile', File::FNM_DOTMATCH).should == true
     end
 
     it "matches multiple directories with ** and *" do
