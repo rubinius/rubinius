@@ -248,7 +248,7 @@ void _nmc_start() {
     }
   }
   
-done:
+//done:
   
   /*
   if(args) free(args);
