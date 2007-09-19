@@ -806,9 +806,9 @@ OBJECT machine_load_archive(machine m, const char *path) {
       goto out;
     }
     /* Pop the scripts return value. */
-    cpu_stack_pop(m->s, m->c);
+    (void)cpu_stack_pop(m->s, m->c);
     /* Pop the script object. */
-    cpu_stack_pop(m->s, m->c);
+    (void)cpu_stack_pop(m->s, m->c);
     files = nxt;
     nxt = strchr(nxt, '\n');
   }

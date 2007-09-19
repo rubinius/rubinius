@@ -46,12 +46,12 @@ static rni_handle* _ffi_pop() {
   return h;
 }
 
-#define ffi_pop(reg) jit_prepare(0); jit_calli(_ffi_pop); jit_retval_p(reg);
+#define ffi_pop(reg) jit_prepare(0); (void)(jit_calli(_ffi_pop)); jit_retval_p(reg);
 
 char *ffi_generate_c_stub(STATE, int args, void *func) {
-  char *start, *end;
-  char *codebuf, *res;
-  int in, vars, i, aligned, size;
+  char *start; /*, *end; */
+  char *codebuf; /*, *res; */
+  int in, i; /*, vars, aligned, size */
   int *ids;
     
   /* The stub is called with the receiver, so if there are no args, we
@@ -365,7 +365,6 @@ long long ffi_to_ll() {
 }
 
 void ffi_from_ll(long long val) {
-  int out;
   OBJECT ret;
   rni_context *ctx = subtend_retrieve_context();
   
@@ -435,7 +434,6 @@ void ffi_from_ptr(void *ptr) {
 }
 
 void ffi_from_void(int dummy) {
-  OBJECT ret;
   rni_context *ctx = subtend_retrieve_context();
   cpu_stack_push(ctx->state, ctx->cpu, Qnil, FALSE);
 }
@@ -602,10 +600,10 @@ void* ffi_get_from_converter(int type) {
 }
 
 OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, void *func) {
-  char *start, *end;
+  char *start; /* *end */
   void **code_start;
-  char *codebuf, *res;
-  int in, vars, i, aligned, reg, size;
+  char *codebuf; /*, *res */
+  int i, reg; /* in, aligned, vars, size */
   int *ids;
   void *conv;
   int int_count, float_count, double_count;
@@ -645,7 +643,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
         break;
       }
             
-#define call_conv(kind) jit_prepare(0); jit_calli(conv); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
+#define call_conv(kind) jit_prepare(0); (void)(jit_calli(conv)); jit_retval_ ## kind (reg); ids[i] = jit_allocai(ffi_get_alloc_size(arg_types[i]));
     
       switch(arg_types[i]) {
       case FFI_TYPE_CHAR:
@@ -860,7 +858,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   int *arg_types;
   int ret_type;
   int i, tot, arg_count;
-  OBJECT ptr, func, meths, sym, type;
+  OBJECT ptr, func, sym, type; /* meths; */
   
   ep = subtend_find_symbol(state, library, name);
   if(!ep) return Qnil;
@@ -949,13 +947,12 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
 
 void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
   int sz;
-  STATE;
+  /* STATE; */
   uint8_t u8;
   uint16_t u16;
   uint32_t u32;
   uint64_t u64;
   
-  int data;
   rni_context *ctx = subtend_retrieve_context();
   nf_converter conv = (nf_converter)ffi_get_to_converter(type);
   sz = ffi_type_size(type);

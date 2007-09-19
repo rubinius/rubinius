@@ -109,7 +109,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_local_set(state, cpu, idx, obj) (SET_FIELD(cpu->locals, idx, obj))
 
 #define stack_push(obj) cpu_stack_push(state, c, obj, FALSE)
-#define stack_pop() cpu_stack_pop(state, c)
+#define stack_pop() ({cpu_stack_pop(state, c);})
 #define stack_top() cpu_stack_top(state, c)
 
 #define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)

@@ -248,7 +248,11 @@ void _nmc_start() {
     }
   }
   
-//done:
+  /*
+  #ifndef __i386__
+    done:
+  #endif
+  */
   
   /*
   if(args) free(args);
