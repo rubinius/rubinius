@@ -4,6 +4,18 @@ class Float < Numeric
   
   def __ivars__; nil; end
   
+  RADIX      = Platform::Float.RADIX
+  ROUNDS     = Platform::Float.ROUNDS
+  MIN        = Platform::Float.MIN
+  MAX        = Platform::Float.MAX
+  MIN_EXP    = Platform::Float.MIN_EXP
+  MAX_EXP    = Platform::Float.MAX_EXP
+  MIN_10_EXP = Platform::Float.MIN_10_EXP
+  MAX_10_EXP = Platform::Float.MAX_10_EXP
+  DIG        = Platform::Float.DIG
+  MANT_DIG   = Platform::Float.MANT_DIG
+  EPSILON    = Platform::Float.EPSILON
+  
   def self.induced_from(obj)
     if [Float, Bignum, Fixnum].include?(obj.class)
       obj.to_f
@@ -13,6 +25,16 @@ class Float < Numeric
   end
 
   alias_method :inspect, :to_s
+  
+  def to_i
+    if self.infinite?
+      raise FloatDomainError, "Infinity"
+    elsif self.nan?
+      return self
+    else
+      Platform::Float.to_i self
+    end
+  end
 
   def finite?
     not (nan? or infinite?) 
