@@ -12,18 +12,18 @@ describe "File.identical?" do
     File.link(@file1, @file3)
   end
 
-  it  "return a Boolean class" do 
+  it "return a Boolean class" do 
     File.identical?(@file1, @file2).class.should == FalseClass
     File.identical?(@file1, @file1).class.should == TrueClass
   end
 
-  it "return true if they are identicals" do
+  it "return true if they are identical" do
     File.identical?(@file1, @file1).should == true
     File.identical?(@file1, @file2).should == false
     File.identical?(@file1, @file3).should == true
   end
 
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
+  it "raise an exception if the arguments are the wrong type or of incorrect number" do
     should_raise(ArgumentError){ File.identical?(@file1, @file2, @file3) }
     should_raise(TypeError){ File.identical?(1,1) }
   end

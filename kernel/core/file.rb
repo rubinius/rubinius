@@ -161,6 +161,21 @@ class File < IO
     Platform::POSIX.link(from, to)
   end
   
+  def self.identical?(orig, copy)
+    raise TypeError, "Cannot convert #{orig.class} into a String" unless orig.kind_of? String
+    raise TypeError, "Cannot convert #{copy.class} into a String" unless copy.kind_of? String
+    
+    st_o = stat(orig)
+    st_c = stat(copy)
+    
+    return false unless st_o.kind == st_c.kind
+    return false unless st_o.inode == st_c.inode
+    return false unless Platform::POSIX.access(orig, Constants::R_OK)
+    return false unless Platform::POSIX.access(copy, Constants::R_OK)
+    
+    true
+  end
+  
   def self.chmod(mode, *paths)
     paths.each { |path| Platform::POSIX.chmod(path, mode) }
     paths.size
