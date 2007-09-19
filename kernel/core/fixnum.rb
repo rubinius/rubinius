@@ -2,6 +2,8 @@
 
 class Fixnum < Integer
   
+  MAX = Platform::Fixnum.MAX
+  
   alias_method :modulo, :%
   
   def <<(c)

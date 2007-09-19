@@ -1,3 +1,5 @@
+# depends on: ffi.rb
+
 class Platform::Float
   attach_function nil, 'ffi_float_radix',      :RADIX, [], :int
   attach_function nil, 'ffi_float_rounds',     :ROUNDS, [], :int
