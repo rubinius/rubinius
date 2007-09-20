@@ -175,7 +175,19 @@ class File < IO
     
     true
   end
-  
+
+  def self.extname(path)
+    raise TypeError, "Cannot convert #{path.class} into a String" unless path.kind_of? String
+    
+    filename = File.basename(path)
+    idx = filename.rindex '.'
+    have_dot = idx != nil
+    first_or_last_char = idx == 0 || filename.size == 1
+    
+    return '' unless have_dot and not first_or_last_char
+    filename.slice idx..-1
+  end
+
   def self.chmod(mode, *paths)
     paths.each { |path| Platform::POSIX.chmod(path, mode) }
     paths.size
