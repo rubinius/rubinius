@@ -33,9 +33,9 @@ ifeq ($(UNAME),Darwin)
   CPPFLAGS+=-DHAVE_STRLCAT -DHAVE_STRLCPY
 endif
 
-# Darwin doesn't need -lcrypt
+# Darwin doesn't need -lcrypt or -lrt
 ifneq ($(UNAME),Darwin)
-  LIBS+=-lcrypt
+  LIBS+=-lcrypt -lrt
 endif
 
 ifeq ($(UNAME),SunOS)

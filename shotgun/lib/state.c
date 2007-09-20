@@ -3,6 +3,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "flags.h"
+#include <sys/time.h>
 
 rstate rubinius_state_new() {
   rstate st;

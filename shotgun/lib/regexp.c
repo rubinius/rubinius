@@ -263,3 +263,4 @@ OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string) {
   onig_region_free(region, 1);
   return md;
 }
+

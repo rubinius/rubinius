@@ -13,6 +13,7 @@
 #include "list.h"
 #include "array.h"
 #include <glib.h>
+#include <sys/time.h>
 
 void cpu_task_cleanup(STATE, OBJECT self) {
   struct cpu_task *task;
