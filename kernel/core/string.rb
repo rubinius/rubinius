@@ -620,6 +620,8 @@ class String
       str = str.coerce_to(String, :to_str) unless str.is_a? String
       str = str.to_expanded_tr_string
       
+      return table if str.nil?
+
       if str.length > 1 && str[0] == ?^
         flag, start = true, 1 
       else
@@ -642,7 +644,9 @@ class String
   end
 
   def to_expanded_tr_string
-    self.reverse.gsub(/.-./) { |r| (r[2]..r[0]).to_a.map { |c| c.chr } }
+    return self unless self =~ /.-./
+    ret = self.reverse.gsub(/.-./) { |r| (r[2]..r[0]).to_a.map { |c| c.chr } }.reverse
+    return self.size > 1 && ret == "^" ? nil : ret
   end
   
   def smart_chomp!
