@@ -774,6 +774,13 @@ describe "StringIO#write and syswrite" do
     @io.syswrite(9)
     @io.string.should == "12345\000\000\000x9"
   end
+
+  it "should return the number of bytes written" do
+    @io.write('').should == 0
+    @io.write(nil).should == 0
+    str = "1" * 100
+    @io.write(str).should == 100
+  end
 end
 
 describe "StringIO#truncate" do

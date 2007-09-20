@@ -273,7 +273,7 @@ class StringIO
     
     len = str.size
     
-    return nil if len == 0
+    return 0 if len == 0
     
     if @append
       @pos = @string.size
