@@ -20,7 +20,7 @@ module FFI
     
     def find_type(name)
       code = FFI::TypeDefs[name]
-      raise TypeError, "Unable to resolve type '#{name}'" unless name
+      raise TypeError, "Unable to resolve type '#{name}'" unless code
       return code
     end
     
@@ -189,14 +189,15 @@ module FFI
     
     def initialize(ptr, *spec)
       @ptr = ptr
-      @cspec = self.class.layout()
+      @cspec = self.class.layout(*spec)
     end
     
     def [](field)
+      p @cspec
       offset, type = @cspec[field]
       raise "Unknown field #{field}" unless offset
       
-      Struct.ffi_get_field(@ptr, offset, type)
+      self.class.ffi_get_field(@ptr, offset, type)
     end
     
     def []=(field, val)
