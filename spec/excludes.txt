@@ -14,12 +14,6 @@ Module#define_method(name, Method, &block) defines a new method with the given n
 Module#extend_object(object) is called when an object gets extended with self
 Module#extended(module) is called when an object gets extended with self
 Module#extended(module) is called after Module#extend_object
-String#gsub with pattern, replacement treats \1 sequences without corresponding captures as empty strings
-String#gsub with pattern, replacement replaces \& and \0 with the complete match
-String#gsub with pattern, replacement replaces \` with everything before the current match
-String#gsub with pattern, replacement replaces \' with everything after the current match
-String#gsub with pattern, replacement returns subclass instances when called on a subclass
-String#gsub with pattern and block raises a RuntimeError if the string is modified while substituting
 String#initialize doesn't change self when str isn't supplied
 Numeric#coerce coerce strings to strings
 String#=~ raises a TypeError if a obj is a string

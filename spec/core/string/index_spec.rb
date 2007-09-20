@@ -328,11 +328,12 @@ describe "String#index with Regexp" do
       ["h#i!YOUall.", 1],
       ["hi#!YOUall.", 2],
       ["hi!#YOUall.", nil]
-    ].each do |spec, res|
-      start = spec.index("#")
-      str = spec.delete("#")
-
-      str.index(re, start).should == res
+    ].each do |spec|
+      
+      start = spec[0].index("#")
+      str = spec[0].delete("#")
+      
+      str.index(re, start).should == spec[1]
     end
   end
   

@@ -1560,8 +1560,11 @@ class String
   end
 
   def index(needle, offset = 0)
+    offset = offset.to_int if !offset.instance_of?(Integer) && offset.respond_to?(:to_int)
     offset = @bytes + offset if offset < 0
     return nil if offset < 0 || offset > @bytes
+
+    needle = needle.to_str if !needle.instance_of?(String) && needle.respond_to?(:to_str)
 
     # What are we searching for?
     case needle
@@ -1570,8 +1573,9 @@ class String
         return i if @data[i] == needle
       end
     when String
+      return offset if needle == ""
+            
       needle_size = needle.size
-      return if needle_size <= 0
       
       max = @bytes - needle_size
       return if max < 0 # <= 0 maybe?
