@@ -401,6 +401,10 @@ describe "StringIO#pos=" do
     @io.pos = 26
     @io.read(1).should == "r"
   end
+
+  it "should raise EINVAL if given a negative argument" do
+    should_raise(Errno::EINVAL) { @io.pos = -10 } 
+  end
 end
 
 describe "StringIO#print" do
@@ -581,17 +585,42 @@ describe "StringIO#reopen" do
 
   failure(:ruby) do
     it "should reopen a stream when given a String argument" do
+      @io.reopen('goodbye').should == @io
+      @io.string.should == 'goodbye'
+      @io << 'x'
+      @io.string.should == 'xoodbye'
+    end
+
+    it "should reopen a stream in append mode when flagged as such" do
       @io.reopen('goodbye', 'a').should == @io
       @io.string.should == 'goodbye'
       @io << 'x'
       @io.string.should == 'goodbyex'
     end
 
-    it "should reopen a stream in a different mode" do
-      @io.reopen('goodbye', 'w').should == @io
-      @io.string.should == 'goodbye'
+    it "should reopen and truncate when reopened in write mode" do
+      @io.reopen('goodbye', 'wb').should == @io
+      @io.string.should == ''
       @io << 'x'
-      @io.string.should == 'xoodbye'
+      @io.string.should == 'x'
+    end
+
+    it "should truncate the given string, not a copy" do
+      str = 'goodbye'
+      @io.reopen(str, 'w')
+      @io.string.should == ''
+      str.should == ''
+    end
+
+    it "should deny access to prevent truncation of a frozen string" do
+      @io = StringIO.new("ice")
+      should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'w') }
+      should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'a') }
+    end
+
+    it "should not raise IOError if a frozen string is passed in read mode" do
+      @io.reopen("burn".freeze, 'r')
+      @io.string.should == "burn"
     end
   end
 

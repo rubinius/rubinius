@@ -125,6 +125,11 @@ class StringIO
       @mode =   obj.mode
     else
       initialize(obj, mode)
+      if @mode =~ /^[wa]/
+        # StringIO acts like an IO object, so raises EACCES instead of TypeError
+        raise Errno::EACCES, "Permission denied" if @string.frozen?
+        @string.replace '' unless @append
+      end
     end
     
     return self
@@ -133,7 +138,7 @@ class StringIO
   def pos=(where)
     i = where.to_i
     if i < 0
-      raise "Invalide position '#{i}'"
+      raise Errno::EINVAL, "Invalid position '#{i}'"
     end
     
     @pos = i
