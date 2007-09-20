@@ -296,6 +296,16 @@ class MatchData
     @source[0..nd]
   end
   
+  def pre_match_from(idx)
+    return "" if full.at(0) == 0
+    nd = full.at(0) - 1
+    @source[idx..nd]    
+  end
+  
+  def collapsing?
+    self.begin(0) == self.end(0)
+  end
+  
   def post_match
     nd = @source.size - 1
     st = full.at(1)

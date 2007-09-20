@@ -873,86 +873,47 @@ class String
     @bytes == 0
   end
   
-  def split(pattern = $;, limit = nil)
-    limit = limit.to_int if !limit.is_a?(Integer) && limit.respond_to?(:to_int)
-    return [self] if limit == 1
-    pattern ||= $;
-    is_limited = limit.to_i <= 0 ? false : true
-    str = self.dup
-    ret = []
-    count = 0
-    pattern = /\s+/ if pattern.nil?
-    pattern, spaces = [/\s+/, true] if pattern == ' '
-    pattern = pattern.to_str unless [Regexp, String].include?(pattern.class) || !pattern.respond_to?(:to_str)
+  def split(pattern = nil, limit = nil)
+    limit = limit.to_int if (!limit.is_a?(Integer) && limit.respond_to?(:to_int))
+    return [self.dup] if limit == 1
+    limited = limit.to_i > 1
+    pattern ||= ($; || " ")
+    
+    spaces = true if pattern == ' '
+    pattern = /\s+/ if pattern == nil || pattern == ' '
+    pattern = pattern.to_str if ![String, Regexp].include?(pattern.class) && pattern.respond_to?(:to_str)
     pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
-    next_pattern = Regexp.new("(?!^)#{pattern.source}")
-    pattern = next_pattern if pattern == //
-
-    while match = pattern.match(str)
-      if is_limited && (limit - count <= 1)
-        ret << str
-        break
+    
+    start = 0
+    ret = []
+    
+    while match = pattern.match_from(self, start)
+      break if limited && limit - ret.size <= 1
+      collapsed = match.collapsing?
+      if !collapsed || (match.begin(0) != 0)
+        ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
+        ret.push(*match.captures)        
       end
-      collapsed = match.begin(0) == match.end(0)
-      next_match = match.post_match.match(collapsed ? next_pattern : pattern)
-      match = str.match(next_pattern) if collapsed && next_match && match.pre_match.empty?
-      (ret << str and break) if !match
-
-      unless collapsed && match.pre_match.empty? 
-        ret << match.pre_match
-        count += 1
+      if collapsed
+        start += 1
+      elsif last_match && last_match.collapsing?
+        start = match.end(0) + 1
+      else
+        start = match.end(0)
       end
-
-      ret.push(*match.captures)
-      count += match.captures.size
-      
-      if !next_match || match.post_match == ""
-        ret << match.post_match
-        break
-      end
-      str = match.post_match
+      last_match = match
     end
-    if limit.to_i == 0
-      while(ret[-1] == "") 
-        ret.pop
-      end
+    if last_match
+      ret << last_match.post_match
+    elsif ret.empty?
+      ret << self.dup
     end
-    ret << str if ret.empty? && (pattern !~ str) && !str.empty?
-    ret.shift if spaces && ret[0] && (ret[0] =~ /^\s+*$/)
-    ret.map! {|x| self.class.new(x) } if !self.instance_of?(String)
-    ret.map! {|x| x.taint } if self.tainted?
+    (ret.pop while ret[-1] == "") if limit == 0 || limit.nil?
+    (ret.shift while ret[0] == "") if spaces
+    ret = ret.map {|str| self.class.new(str) } if !self.instance_of?(String)
+    ret = ret.map {|str| str.taint} if self.tainted?
     ret
   end
-  
-  # def split(pattern = $;, limit = nil)
-  #   return [] if @bytes == 0
-  #   return [self] if limit == 0
-  #   pattern = /\s+/ if pattern.nil?
-  #   pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
-  #   
-  #   ret = []
-  #   count = 0
-  #   str = self
-  #   while match = pattern.match(str)
-  #     # When the Regexp matches a zero-length string, return an Array of characters
-  #     if match.begin(0) == match.end(0)
-  #       cp = self.codepoints
-  #       if limit
-  #         return cp[0,limit-1] + self[limit-1,@bytes]
-  #       else
-  #         return cp
-  #       end
-  #     end
-  # 
-  #     count += 1
-  #     ret << match.pre_match
-  #     str = match.post_match
-  #     return ret if limit and limit == count
-  #   end
-  # 
-  #   ret << str unless str.empty?
-  #   return ret
-  # end
 
   # TODO: check that the string will never go over the maximum range
   #       as the function is not supposed to raise an exception.
