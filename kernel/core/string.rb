@@ -1185,34 +1185,134 @@ class String
     left.nil? && right.nil? ? nil : self
   end
 
-  def gsub(pattern, replacement = nil, &block)
-    (str = self.dup).gsub!(pattern, replacement, &block) || str
-  end
-
-  def gsub!(pattern, replacement = nil)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
-    
-    replacement = StringValue(replacement) if replacement
-    
+  def gsub_pattern(pattern)
+    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
+      if pattern.respond_to?(:to_str)
+        pattern = pattern.to_str
+      else
+        raise TypeError, "pattern cannot be converted to a string"
+      end
+    end
     pattern = Regexp.quote(pattern) if pattern.is_a?(String)
     pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-
-    out = [self]
-    while (match = pattern.match(out.last)) && out.pop
-      out << match.pre_match
-      if block_given?
-        out << yield(match[0])
-      else
-        replacement = replacement.to_str
-        out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
-      end
-      out << match.post_match
-    end
-
-    out = out.join
-    out.taint if self.tainted? || (replacement && replacement.tainted?)
-    out.empty? || out == self ? nil : replace(out)
+    pattern
   end
+
+  # mini-gsub created purely to handle slashes because using gsub recursively was causing segfaults
+  # TODO: make it work correctly
+  def replace_slashes
+    start = 0
+    ret = ""
+    while(match = /\\\\/.match_from(self, start))
+      ret << match.pre_match_from(start)
+      ret << '\\'
+      start = match.end(0)
+    end
+    ret << self[start..-1]
+    ret
+  end
+
+  def gsub(pattern, replacement = nil, &block)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
+
+    raise TypeError, "replacement must be a string" unless replacement.respond_to?(:to_str) || block
+    replacement = replacement.to_str if replacement.respond_to?(:to_str)
+
+    taint = self.tainted? || replacement.tainted?
+
+    replacement = replacement.replace_slashes if replacement.is_a?(String)
+
+    start = 0
+    last_end = 0
+    ret = ""
+
+    $~ = nil
+
+    pattern = gsub_pattern(pattern)
+    
+    copy = self.dup
+    
+    
+    while(match = pattern.match_from(copy, start))
+      $~ = match      
+      ret << (match.pre_match_from(last_end) || "")
+      if replacement
+        # x[-1,1] returns a character version of the last character
+        old_md = $~
+        ret << replacement.gsub(/\\[\d\&\`\'\+]/) do |x| 
+          cap = x[-1,1]
+          if cap == '`'
+            match.pre_match
+          elsif cap == '\''
+            match.post_match
+          elsif cap == '+'
+            match.captures.compact[-1].to_s
+          else
+            match[cap.to_i]
+          end
+        end
+        $~ = old_md
+      else
+        old_md = $~
+        item = block.call(match[0].dup)
+        ret << item.to_s
+        $~ = old_md
+      end
+      last_end = match.end(0)
+      start = match.collapsing? ? start + 1 : match.end(0)
+    end
+    if self != copy
+      raise RuntimeError, "You cannot modify the original string"
+    end
+    ret << self[start..-1] if self[start..-1]
+    ret.taint if taint
+    ret = self.class.new(ret) unless self.instance_of?(String)
+    ret
+  end
+  
+  def gsub!(pattern, replacement = nil, &block)
+    pattern = gsub_pattern(pattern)
+    if self.frozen? && self =~ pattern
+      raise TypeError, "You cannot modify a frozen string" if !block
+      raise RuntimeError, "You cannot modify a frozen string" if block
+    end
+    to_replace = self.gsub(pattern, replacement, &block)
+    if self != to_replace
+      self.replace(to_replace)
+    else
+      return nil
+    end
+  end
+
+  # def gsub(pattern, replacement = nil, &block)
+  #   (str = self.dup).gsub!(pattern, replacement, &block) || str
+  # end
+  # 
+  # def gsub!(pattern, replacement = nil)
+  #   raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+  #   
+  #   replacement = StringValue(replacement) if replacement
+  #   
+  #   pattern = Regexp.quote(pattern) if pattern.is_a?(String)
+  #   pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+  # 
+  #   out = [self]
+  #   while (match = pattern.match(out.last)) && out.pop
+  #     out << match.pre_match
+  #     if block_given?
+  #       out << yield(match[0])
+  #     else
+  #       replacement = replacement.to_str
+  #       out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
+  #     end
+  #     out << match.post_match
+  #   end
+  # 
+  #   out = out.join
+  #   out.taint if self.tainted? || (replacement && replacement.tainted?)
+  #   out.empty? || out == self ? nil : replace(out)
+  # end
 
   def sub(pattern, replacement = nil, &block)
     (str = self.dup).sub!(pattern, replacement, &block) || str

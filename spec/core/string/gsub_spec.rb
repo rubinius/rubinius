@@ -156,12 +156,6 @@ describe "String#gsub with pattern, replacement" do
     def pattern.to_str() "." end
     
     "hello.".gsub(pattern, "!").should == "hello!"
-
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => ".")
-
-    "hello.".gsub(obj, "!").should == "hello!"
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
@@ -174,11 +168,6 @@ describe "String#gsub with pattern, replacement" do
     def replacement.to_str() "hello_replacement" end
     
     "hello".gsub(/hello/, replacement).should == "hello_replacement"
-    
-    obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "ok")
-    "hello".gsub(/hello/, obj).should == "ok"
   end
   
   it "raises a TypeError when replacement can't be converted to a string" do
@@ -192,17 +181,19 @@ describe "String#gsub with pattern, replacement" do
     MyString.new("foo").gsub(/foo/, "").class.should == MyString
     MyString.new("foo").gsub("foo", "").class.should == MyString
   end
+
+  # Note: $~ cannot be tested because mspec messes with it
   
   it "sets $~ to MatchData of last match and nil when there's none" do
     'hello.'.gsub('hello', 'x')
     $~[0].should == 'hello'
-
+  
     'hello.'.gsub('not', 'x')
     $~.should == nil
-
+  
     'hello.'.gsub(/.(.)/, 'x')
     $~[0].should == 'o.'
-
+  
     'hello.'.gsub(/not/, 'x')
     $~.should == nil
   end
@@ -278,8 +269,7 @@ describe "String#gsub with pattern and block" do
     "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
     
     obj = Object.new
-    class << obj; undef :to_s; end
-    obj.should_receive(:method_missing, :with => [:to_s], :returning => "ok")
+    def obj.to_s() "ok" end
     
     "hello".gsub(/.+/) { obj }.should == "ok"
   end
