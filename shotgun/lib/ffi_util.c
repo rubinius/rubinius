@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h> //remove me
 #include <netdb.h>
 
 #include "shotgun.h"
@@ -100,5 +101,14 @@ int ffi_connect(int fd, struct sockaddr *name, int len) {
   
   ret = connect(fd, name, len);
   
+  return ret;
+}
+
+int ffi_bind(int s, struct sockaddr *name, int len) {
+  int ret;
+  struct stat sb;
+  ret = fstat(s, &sb);
+  assert(sb.st_mode & S_IFSOCK && "trying to bind something that isn't a socket!");
+  ret = bind(s, name, len);
   return ret;
 }

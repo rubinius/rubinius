@@ -38,6 +38,8 @@ class Socket < IO
     SOCK_RAW =    3
     SOCK_RDM =    4
     SOCK_SEQPACKET = 5
+
+    AI_PASSIVE = 1
   end
   
   module Foreign
@@ -45,6 +47,7 @@ class Socket < IO
     attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function nil, "connect", :connect_socket, [:int, :pointer, :int], :int
+    attach_function nil, "ffi_bind", :bind_socket, [:int, :pointer, :int], :int
   end
   
   def initialize(domain, type, protocol)
@@ -87,9 +90,10 @@ class TCPSocket < IPSocket
     @host = host
     @port = port
     
-    @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(nil, host.to_s, port.to_s, @type, 0)
+    @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, @type, 0)
     
-    if Socket::Foreign.connect_socket(descriptor(), @sockaddr, @sockaddr_size) != 0
+    sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
+    if sock != 0
       Errno.handle "Unable to connect to #{host}:#{port}"
     end
   end
@@ -100,5 +104,35 @@ class TCPSocket < IPSocket
 end
 
 class TCPServer < TCPSocket
+  ivar_as_index :descriptor => 1
+  def initialize(host, port = nil)
+    if host.kind_of?(Fixnum) then
+      port = host
+      host = '0.0.0.0' # TODO - Do this in a portable way
+    end
+    @host = host
+    @port = port
+
+    @domain = Socket::Constants::AF_INET
+    @type = Socket::Constants::SOCK_STREAM
+    @protocol = 0
+    fd = Socket::Foreign.create_socket(@domain, @type, @protocol)
+    if fd < 0
+      Errno.handle "Unable to create socket"
+    end
+    @descriptor = fd
+
+    @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(@host.to_s, @port.to_s, @type, Socket::Constants::AI_PASSIVE)
+    bind = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr_size)
+    if bind != 0
+      Errno.handle "Unable to bind to #{@host}:#{@port}"
+    end
+
+    sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
+    if sock != 0
+      Errno.handle "Unable to connect to #{host}:#{port}"
+    end
+  end
+
 end
 
