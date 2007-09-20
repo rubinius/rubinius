@@ -47,7 +47,9 @@ class Socket < IO
     attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function nil, "connect", :connect_socket, [:int, :pointer, :int], :int
-    attach_function nil, "ffi_bind", :bind_socket, [:int, :pointer, :int], :int
+    attach_function nil, "bind", :bind_socket, [:int, :pointer, :int], :int
+    attach_function nil, "listen", :listen_socket, [:int, :int], :int
+    attach_function nil, "ffi_accept", :accept, [:int, :pointer, :pointer], :int
   end
   
   def initialize(domain, type, protocol)
@@ -127,12 +129,24 @@ class TCPServer < TCPSocket
     if bind != 0
       Errno.handle "Unable to bind to #{@host}:#{@port}"
     end
-
-    sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
-    if sock != 0
-      Errno.handle "Unable to connect to #{host}:#{port}"
+    ret = Socket::Foreign.listen_socket(fd, 5)
+    if ret != 0
+      Errno.handle "Unable to listen on #{@host}:#{@port}"
     end
   end
 
+  def accept
+    ret = 0
+    size = 0
+    MemoryPointer.new :int do |sz|
+      sz.write_int @sockaddr_size # initialize to the 'expected' size
+      ret = Socket::Foreign.accept @descriptor, @sockaddr, sz
+      size = sz.read_int
+    end
+    if ret != 0
+      Errno.handle "Unable to accept on socket"
+    end
+    return @sockaddr, size
+  end
 end
 

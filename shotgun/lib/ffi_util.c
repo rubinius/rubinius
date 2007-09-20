@@ -104,11 +104,19 @@ int ffi_connect(int fd, struct sockaddr *name, int len) {
   return ret;
 }
 
-int ffi_bind(int s, struct sockaddr *name, int len) {
+int ffi_bind(int s, struct sockaddr *name, socklen_t len) {
   int ret;
   struct stat sb;
   ret = fstat(s, &sb);
   assert(sb.st_mode & S_IFSOCK && "trying to bind something that isn't a socket!");
   ret = bind(s, name, len);
+  return ret;
+}
+
+int ffi_accept(int s, struct sockaddr *name, socklen_t *len) {
+  int ret;
+  
+  ret = accept(s, name, len);
+  
   return ret;
 }

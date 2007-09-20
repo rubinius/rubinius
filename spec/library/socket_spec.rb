@@ -69,7 +69,6 @@ describe "TCPServer#listen" do
 end
 =end
 
-=begin
 describe "TCPServer receiving data" do
   before(:each) do
     @data = []
@@ -94,7 +93,6 @@ describe "TCPServer receiving data" do
     @data.should == ['hello']
   end
 end
-=end
 
 describe "TCPServer#sysaccept" do
 end
