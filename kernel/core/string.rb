@@ -1638,8 +1638,9 @@ class String
 
   # justify left = -1, center = 0, right = 1
   def justify_string(width, str, justify)
-    raise TypeError, "can't convert #{width.class} into Integer" if !width.is_a?(Integer)
-    raise TypeError, "can't convert #{str.class} into String" if !str.respond_to?(:to_str)
+    width = width.coerce_to(Integer, :to_int, true)
+    str = StringValue(str)
+    raise ArgumentError, "zero width padding" if str.empty?
     return self if width <= @bytes
     pad = width - @bytes
     out = str.to_str * (pad / str.length)
