@@ -48,6 +48,21 @@ class Float < Numeric
     Platform::Float.uminus self
   end
 
+  def ==(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.eql? self, other
+  end
+
+  def eql?(other)
+    return false unless other.is_a?(Float)
+    Platform::Float.eql? self, other
+  end
+  
+  def <=>(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.compare self, other
+  end
+
   alias_method :inspect, :to_s
   
   def to_i

@@ -7,20 +7,20 @@ class Float
     Ruby.primitive :float_sprintf
   end    
   
-  def ==(o)
-    Ruby.primitive :float_equal
-    super(o)
-  end
-
-  def eql?(other)
-    Ruby.primitive :float_equal
-    false
-  end
-  
-  def <=>(other)
-    Ruby.primitive :float_compare
-    super(other)
-  end
+  # def ==(o)
+  #   Ruby.primitive :float_equal
+  #   super(o)
+  # end
+  # 
+  # def eql?(other)
+  #   Ruby.primitive :float_equal
+  #   false
+  # end
+  # 
+  # def <=>(other)
+  #   Ruby.primitive :float_compare
+  #   super(other)
+  # end
 
   def nan?
     Ruby.primitive :float_nan_p

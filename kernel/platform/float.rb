@@ -19,4 +19,10 @@ class Platform::Float
   attach_function nil, 'float_mul', :mul, [:double, :double], :double
   attach_function nil, 'float_div', :div, [:double, :double], :double
   attach_function nil, 'float_uminus', :uminus, [:double], :double
+  attach_function nil, 'float_equal', :value_equal, [:double, :double], :int
+  attach_function nil, 'float_compare', :compare, [:double, :double], :int
+  
+  def self.eql?(a, b)
+    value_equal(a, b) == 1
+  end
 end

@@ -1355,15 +1355,6 @@ class ShotgunPrimitives
     CODE
   end
     
-  def float_equal
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_equal(state, self, t1));
-    CODE
-  end
-
   # FIXME: get rid of bignum awareness and use coerce
   # i.e. t1 = fixnum
   def fixnum_and(_ = fixnum, t1 = integer)
@@ -1583,15 +1574,6 @@ class ShotgunPrimitives
   def bignum_compare(_ = bignum, t1 = bignum)
     <<-CODE
     stack_push(bignum_compare(state, self, t1));
-    CODE
-  end
-  
-  def float_compare
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_compare(state, self, t1));
     CODE
   end
   
