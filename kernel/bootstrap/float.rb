@@ -7,26 +7,6 @@ class Float
     Ruby.primitive :float_sprintf
   end    
   
-  def +(other)
-    Ruby.primitive :float_add
-    super(other)
-  end
-
-  def -(other)
-    Ruby.primitive :float_sub
-    super(other)
-  end
-
-  def *(other)
-    Ruby.primitive :float_mul
-    super(other)
-  end
-
-  def /(other)
-    Ruby.primitive :float_div
-    super(other)
-  end
-  
   def ==(o)
     Ruby.primitive :float_equal
     super(o)
@@ -50,20 +30,10 @@ class Float
     Ruby.primitive :float_infinite_p
   end
   
-  def -@
-    Ruby.primitive :float_uminus
-  end
-  
   def **(other)
     Ruby.primitive :float_pow
     super(other)
   end
-  
-  # def to_i
-  #   Ruby.primitive :float_to_i
-  #   raise FloatDomainError, "Infinity" if infinite?
-  #   self if nan?
-  # end
   
   def to_f
     self

@@ -1354,34 +1354,7 @@ class ShotgunPrimitives
     stack_push(float_to_s(state, self));
     CODE
   end
-  
-  def float_add
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_add(state, self, t1));
-    CODE
-  end
-  
-  def float_sub
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_sub(state, self, t1));
-    CODE
-  end
-  
-  def float_mul
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_mul(state, self, t1));
-    CODE
-  end
-  
+    
   def float_equal
     <<-CODE
     POP(self, FLOAT);
@@ -1558,23 +1531,6 @@ class ShotgunPrimitives
     POP(self, FLOAT);
 
     stack_push(float_infinite_p(state, self));
-    CODE
-  end
-  
-  def float_div
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_div(state, self, t1));
-    CODE
-  end
-  
-  def float_uminus
-    <<-CODE
-    POP(self, FLOAT);
-
-    stack_push(float_uminus(state, self));
     CODE
   end
   

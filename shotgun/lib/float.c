@@ -55,17 +55,17 @@
 #endif
 /* End borrowing from MRI 1.8.6 stable */
 
-int ffi_float_radix()      { return FLT_RADIX; }
-int ffi_float_rounds()     { return FLT_ROUNDS; }
-double ffi_float_min()     { return DBL_MIN; }
-double ffi_float_max()     { return DBL_MAX; }
-int ffi_float_min_exp()    { return DBL_MIN_EXP; }
-int ffi_float_max_exp()    { return DBL_MAX_EXP; }
-int ffi_float_min_10_exp() { return DBL_MIN_10_EXP; }
-int ffi_float_max_10_exp() { return DBL_MAX_10_EXP; }
-int ffi_float_dig()        { return DBL_DIG; }
-int ffi_float_mant_dig()   { return DBL_MANT_DIG; }
-double ffi_float_epsilon() { return DBL_EPSILON; }
+int float_radix()      { return FLT_RADIX; }
+int float_rounds()     { return FLT_ROUNDS; }
+double float_min()     { return DBL_MIN; }
+double float_max()     { return DBL_MAX; }
+int float_min_exp()    { return DBL_MIN_EXP; }
+int float_max_exp()    { return DBL_MAX_EXP; }
+int float_min_10_exp() { return DBL_MIN_10_EXP; }
+int float_max_10_exp() { return DBL_MAX_10_EXP; }
+int float_dig()        { return DBL_DIG; }
+int float_mant_dig()   { return DBL_MANT_DIG; }
+double float_epsilon() { return DBL_EPSILON; }
 
 OBJECT float_new(STATE, double dbl) {
   double *value;
@@ -76,24 +76,24 @@ OBJECT float_new(STATE, double dbl) {
   return o;
 }
 
-OBJECT float_add(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLOAT_TO_DOUBLE(a) + FLOAT_TO_DOUBLE(b));
+double float_add(double a, double b) {
+  return a + b;
 }
 
-OBJECT float_sub(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLOAT_TO_DOUBLE(a) - FLOAT_TO_DOUBLE(b));
+double float_sub(double a, double b) {
+  return a - b;
 }
 
-OBJECT float_mul(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLOAT_TO_DOUBLE(a) * FLOAT_TO_DOUBLE(b));
+double float_mul(double a, double b) {
+  return a * b;
 }
 
-OBJECT float_div(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, FLOAT_TO_DOUBLE(a) / FLOAT_TO_DOUBLE(b));
+double float_div(double a, double b) {
+  return a / b;
 }
 
-OBJECT float_uminus(STATE, OBJECT self) {
-  return float_new(state, -FLOAT_TO_DOUBLE(self));
+double float_uminus(double a) {
+  return -a;
 }
 
 OBJECT float_equal(STATE, OBJECT a, OBJECT b) {
@@ -222,4 +222,3 @@ OBJECT float_round(STATE, OBJECT self) {
   if (value < 0.0) value = ceil(value-0.5);
   return bignum_from_double(state, value);
 }
-

@@ -2,11 +2,11 @@
 #define RBS_FLOAT 1
 
 OBJECT float_new(STATE, double dbl);
-OBJECT float_add(STATE, OBJECT a, OBJECT b);
-OBJECT float_sub(STATE, OBJECT a, OBJECT b);
-OBJECT float_mul(STATE, OBJECT a, OBJECT b);
-OBJECT float_div(STATE, OBJECT a, OBJECT b);
-OBJECT float_uminus(STATE, OBJECT self);
+double float_add(double a, double b);
+double float_sub(double a, double b);
+double float_mul(double a, double b);
+double float_div(double a, double b);
+double float_uminus(double a);
 OBJECT float_equal(STATE, OBJECT a, OBJECT b);
 OBJECT float_compare(STATE, OBJECT a, OBJECT b);
 OBJECT float_to_s(STATE, OBJECT self);

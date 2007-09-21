@@ -23,6 +23,30 @@ class Float < Numeric
       raise TypeError, "failed to convert #{obj.class} into Float"
     end
   end
+  
+  def +(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.add self, other
+  end
+  
+  def -(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.sub self, other
+  end
+  
+  def *(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.mul self, other
+  end
+  
+  def /(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.div self, other
+  end
+  
+  def -@
+    Platform::Float.uminus self
+  end
 
   alias_method :inspect, :to_s
   
@@ -53,6 +77,6 @@ class Float < Numeric
   end
   
   alias_method :modulo, :%
-
+  
 end
 
