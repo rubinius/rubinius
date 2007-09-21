@@ -21,7 +21,7 @@ class Platform::Float
   attach_function nil, 'float_uminus',  :uminus,      [:double], :double
   attach_function nil, 'float_equal',   :value_equal, [:double, :double], :int
   attach_function nil, 'float_compare', :compare,     [:double, :double], :int
-  attach_function nil, 'float_round',   :round,       [:double], :double
+  attach_function nil, 'float_round',   :round,       [:double], :int
   attach_function nil, 'float_sprintf', :sprintf,     [:pointer, :int, :string, :double], :int
   attach_function nil, 'fmod',  [:double, :double], :double
   attach_function nil, 'pow',   [:double, :double], :double
@@ -37,6 +37,6 @@ class Platform::Float
   end
   
   def self.infinite?(value)
-    (value < 0 ? -1 : 1) if isinf value
+    return (value < 0 ? -1 : 1) if isinf(value) == 1
   end
 end

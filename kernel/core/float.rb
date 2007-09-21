@@ -66,7 +66,7 @@ class Float < Numeric
   
   def divmod(other)
     raise FloatDomainError, "divide by 0" if other == 0
-    return false unless other.is_a?(Float)
+    return super(other) unless other.is_a?(Float)
     mod = Platform::Float.fmod self, other
     div = (self - mod) / other;
     if (other * mod < 0)
@@ -90,7 +90,7 @@ class Float < Numeric
 
   def **(other)
     return super(other) unless other.is_a?(Float)
-    Platform::Float.pow self
+    Platform::Float.pow self, other
   end
   
   def to_f
@@ -110,13 +110,16 @@ class Float < Numeric
   alias_method :truncate, :to_i
   
   def to_s
-    return (value < 0 ? "-Infinity" : "Infinity") if infinite?
+    return (self < 0 ? "-Infinity" : "Infinity") if infinite?
     return "NaN" if nan?
     
     str = to_s_formatted "%#.15g"
     e = str.index('e') || str.size
-    str = to_s_formatted "%#.14e" unless str[e-1].isdigit
-    str.gsub(/(\d)(0+)(e|$)?/, '\1\3')
+    unless str[e-1].isdigit
+      str = to_s_formatted "%#.14e"
+      e = str.index('e') || str.size
+    end
+    str.gsub(/(\.\d|[^0])(0+)($|e[+-]\d*)/, '\1\3')
   end
   alias_method :inspect, :to_s
   
