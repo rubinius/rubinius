@@ -1534,7 +1534,7 @@ class String
   #   "hello".include? ?h     #=> true
   def include?(needle)
     if needle.is_a? Fixnum
-      each_byte { |b| return true if b == needle }
+      each_byte { |b| return true if b == (needle % 256) }
       return false
     end
 
@@ -1645,14 +1645,17 @@ class String
 
   def slice!(*args)
     result = slice(*args)
+    old_md = $~
     self[*args] = '' unless result.nil?
+    $~ = old_md
     result
   end
 
   def oct
     self.to_i(8)
   end
-  
+
+  # This will work correctly when #to_i works
   def hex
     self.to_i(16)
   end
