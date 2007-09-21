@@ -1342,6 +1342,8 @@ class String
   def insert(index, other_string)
     other_string = StringValue(other_string)
     
+    index = Integer(index)
+    
     if index == -1
       return self << other_string
     elsif index < 0
