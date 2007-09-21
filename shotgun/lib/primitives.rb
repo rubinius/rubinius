@@ -1347,14 +1347,6 @@ class ShotgunPrimitives
     CODE
   end  
   
-  def float_to_s
-    <<-CODE
-    POP(self, FLOAT);
-
-    stack_push(float_to_s(state, self));
-    CODE
-  end
-    
   # FIXME: get rid of bignum awareness and use coerce
   # i.e. t1 = fixnum
   def fixnum_and(_ = fixnum, t1 = integer)
@@ -1509,42 +1501,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  def float_nan_p
-    <<-CODE
-    POP(self, FLOAT);
-
-    stack_push(float_nan_p(state, self));
-    CODE
-  end
-  
-  def float_infinite_p
-    <<-CODE
-    POP(self, FLOAT);
-
-    stack_push(float_infinite_p(state, self));
-    CODE
-  end
-  
-  def float_pow
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-
-    stack_push(float_pow(state, self, t1));
-    CODE
-  end
-  
-  def float_to_i
-    <<-CODE
-    POP(self, FLOAT);
-    if(float_infinite_p(state, self) != Qnil && float_nan_p(state, self) == Qfalse) {
-      stack_push(float_to_i(state, self));
-    } else {
-      _ret = FALSE;
-    }
-    CODE
-  end
-  
   def numeric_coerce
     <<-CODE
     POP(self, INTEGER);
@@ -1591,16 +1547,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  def float_divmod
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, FLOAT);
-    GUARD( FLOAT_TO_DOUBLE(t1) != 0.0 ) // no divide by zero
-
-    stack_push(float_divmod(state, self, t1));
-    CODE
-  end
-  
   def fixnum_divmod(_ = fixnum, t1 = fixnum)
     <<-CODE
     GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
@@ -1608,14 +1554,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  def float_round
-    <<-CODE
-    POP(self, FLOAT);
-
-    stack_push(float_round(state, self));
-    CODE
-  end
-
   def bignum_left_shift
     <<-CODE
     POP(self, BIGNUM);
@@ -1925,14 +1863,6 @@ class ShotgunPrimitives
     CODE
   end
 
-  def float_sprintf
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, STRING);
-    stack_push(float_sprintf(state, t1, self));
-    CODE
-  end
-  
   def task_dup
     <<-CODE
     self = stack_pop();

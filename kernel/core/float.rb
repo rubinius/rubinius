@@ -15,6 +15,7 @@ class Float < Numeric
   DIG        = Platform::Float.DIG
   MANT_DIG   = Platform::Float.MANT_DIG
   EPSILON    = Platform::Float.EPSILON
+  STRLEN     = 32
   
   def self.induced_from(obj)
     if [Float, Bignum, Fixnum].include?(obj.class)
@@ -48,6 +49,11 @@ class Float < Numeric
     Platform::Float.uminus self
   end
 
+  def <=>(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.compare self, other
+  end
+
   def ==(other)
     return super(other) unless other.is_a?(Float)
     Platform::Float.eql? self, other
@@ -58,12 +64,38 @@ class Float < Numeric
     Platform::Float.eql? self, other
   end
   
-  def <=>(other)
-    return super(other) unless other.is_a?(Float)
-    Platform::Float.compare self, other
+  def divmod(other)
+    raise FloatDomainError, "divide by 0" if other == 0
+    return false unless other.is_a?(Float)
+    mod = Platform::Float.fmod self, other
+    div = (self - mod) / other;
+    if (other * mod < 0)
+    	mod += other;
+    	div -= 1.0;
+    end
+    return [div.to_i, mod]
   end
 
-  alias_method :inspect, :to_s
+  def nan?
+    Platform::Float.nan? self
+  end
+
+  def infinite?
+    Platform::Float.infinite? self
+  end
+  
+  def finite?
+    not (nan? or infinite?) 
+  end
+
+  def **(other)
+    return super(other) unless other.is_a?(Float)
+    Platform::Float.pow self
+  end
+  
+  def to_f
+    self
+  end
   
   def to_i
     if infinite?
@@ -74,24 +106,28 @@ class Float < Numeric
       Platform::Float.to_i self
     end
   end
-
-  def finite?
-    not (nan? or infinite?) 
-  end
-
-  def to_f
-    self
-  end
-    
   alias_method :to_int, :to_i
   alias_method :truncate, :to_i
+  
+  def to_s
+    str = to_s_formatted "%#.15g"
+  end
+  alias_method :inspect, :to_s
+  
+  def to_s_formatted(format)
+    str = ' ' * STRLEN
+    Platform::Float.sprintf str, STRLEN, format, self
+  end    
   
   def %(other)
     return 0 / 0.to_f if other == 0
     self.divmod(Float(other))[1]
   end
-  
   alias_method :modulo, :%
+  
+  def round
+    Platform::Float.round self
+  end
   
 end
 

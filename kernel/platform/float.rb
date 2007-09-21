@@ -14,15 +14,29 @@ class Platform::Float
   attach_function nil, 'float_epsilon',    :EPSILON, [], :double
   
   attach_function nil, 'float_to_i', :to_i, [:double], :int
-  attach_function nil, 'float_add', :add, [:double, :double], :double
-  attach_function nil, 'float_sub', :sub, [:double, :double], :double
-  attach_function nil, 'float_mul', :mul, [:double, :double], :double
-  attach_function nil, 'float_div', :div, [:double, :double], :double
-  attach_function nil, 'float_uminus', :uminus, [:double], :double
-  attach_function nil, 'float_equal', :value_equal, [:double, :double], :int
-  attach_function nil, 'float_compare', :compare, [:double, :double], :int
+  attach_function nil, 'float_add',  :add, [:double, :double], :double
+  attach_function nil, 'float_sub',  :sub, [:double, :double], :double
+  attach_function nil, 'float_mul',  :mul, [:double, :double], :double
+  attach_function nil, 'float_div',  :div, [:double, :double], :double
+  attach_function nil, 'float_uminus',  :uminus,      [:double], :double
+  attach_function nil, 'float_equal',   :value_equal, [:double, :double], :int
+  attach_function nil, 'float_compare', :compare,     [:double, :double], :int
+  attach_function nil, 'float_round',   :round,       [:double], :double
+  attach_function nil, 'float_sprintf', :sprintf,     [:string, :string, :double], :string
+  attach_function nil, 'fmod',  [:double, :double], :double
+  attach_function nil, 'pow',   [:double, :double], :double
+  attach_function nil, 'isnan', [:double], :int
+  attach_function nil, 'isinf', [:double], :int
   
   def self.eql?(a, b)
     value_equal(a, b) == 1
+  end
+  
+  def nan?(value)
+    isnan(value) == 1
+  end
+  
+  def infinite?(value)
+    (value < 0 ? -1 : 1) if isinf value
   end
 end

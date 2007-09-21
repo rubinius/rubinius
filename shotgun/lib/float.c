@@ -108,70 +108,75 @@ int float_compare(double a, double b) {
   return 0;
 }
 
-OBJECT float_pow(STATE, OBJECT a, OBJECT b) {
-  return float_new(state, pow(FLOAT_TO_DOUBLE(a), FLOAT_TO_DOUBLE(b)));
-}
+// OBJECT float_pow(STATE, OBJECT a, OBJECT b) {
+//   return float_new(state, pow(FLOAT_TO_DOUBLE(a), FLOAT_TO_DOUBLE(b)));
+// }
 
-OBJECT float_to_i(STATE, OBJECT self) {
-  double value;
-  value = FLOAT_TO_DOUBLE(self);
-  if (value > 0.0) value = floor(value);
-  if (value < 0.0) value = ceil(value);
-  
-  return bignum_from_double(state, value);
-}
-
-int ffi_float_to_i(double value) {
+// OBJECT float_to_i(STATE, OBJECT self) {
+//   double value;
+//   value = FLOAT_TO_DOUBLE(self);
+//   if (value > 0.0) value = floor(value);
+//   if (value < 0.0) value = ceil(value);
+//   
+//   return bignum_from_double(state, value);
+// }
+// 
+int float_to_i(double value) {
   if (value > 0.0) value = floor(value);
   if (value < 0.0) value = ceil(value);
 
   return (int) value;
 }
 
-OBJECT float_to_s(STATE, OBJECT self) {
-  char buf[32];
-  double value;
-  char *p, *e;
-  
-  value = FLOAT_TO_DOUBLE(self);
-  
-  // adapted from ruby 1.8.x source
-  if(isinf(value)) {
-	  return string_new(state, value < 0 ? "-Infinity" : "Infinity");
-  } else if(isnan(value)) {
-	  return string_new(state, "NaN");
-	}
-
-  snprintf(buf, 32, "%#.15g", value); /* ensure to print decimal point */
-  if (!(e = strchr(buf, 'e'))) {
-	  e = buf + strlen(buf);
-  }
-  if (!ISDIGIT(e[-1])) { /* reformat if ended with decimal point (ex 111111111111111.) */
-	  snprintf(buf, 32, "%#.14e", value);
-  	if (!(e = strchr(buf, 'e'))) {
-  	  e = buf + strlen(buf);
-  	}
-  }
-  p = e;
-  while (p[-1]=='0' && ISDIGIT(p[-2]))
-	p--;
-	memmove(p, e, strlen(e)+1);
-  return string_new(state, buf);
-}
+// OBJECT float_to_s(STATE, OBJECT self) {
+//   char buf[32];
+//   double value;
+//   char *p, *e;
+//   
+//   value = FLOAT_TO_DOUBLE(self);
+//   
+//   // adapted from ruby 1.8.x source
+//   if(isinf(value)) {
+//    return string_new(state, value < 0 ? "-Infinity" : "Infinity");
+//   } else if(isnan(value)) {
+//    return string_new(state, "NaN");
+//  }
+// 
+//   snprintf(buf, 32, "%#.15g", value); /* ensure to print decimal point */
+//   if (!(e = strchr(buf, 'e'))) {
+//    e = buf + strlen(buf);
+//   }
+//   if (!ISDIGIT(e[-1])) { /* reformat if ended with decimal point (ex 111111111111111.) */
+//    snprintf(buf, 32, "%#.14e", value);
+//    if (!(e = strchr(buf, 'e'))) {
+//      e = buf + strlen(buf);
+//    }
+//   }
+//   p = e;
+//   while (p[-1]=='0' && ISDIGIT(p[-2]))
+//  p--;
+//  memmove(p, e, strlen(e)+1);
+//   return string_new(state, buf);
+// }
 
 void float_into_string(STATE, OBJECT self, char *buf, int sz) {
   snprintf(buf, sz, "%+.17e", FLOAT_TO_DOUBLE(self));
 }
 
-OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val) {
- char buf[32];
- char *p;
-
- p = string_byte_address(state, fmt);
- snprintf(buf, 32, p, FLOAT_TO_DOUBLE(val));
- return string_new(state, buf);
+char *float_sprintf(char *buf, int size, char *fmt, double value) {
+  snprintf(buf, size, fmt, value);
+  return buf;
 }
 
+// OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val) {
+//  char buf[32];
+//  char *p;
+// 
+//  p = string_byte_address(state, fmt);
+//  snprintf(buf, 32, p, FLOAT_TO_DOUBLE(val));
+//  return string_new(state, buf);
+// }
+// 
 OBJECT float_from_string(STATE, char *str) {
   double d;
   
@@ -179,42 +184,48 @@ OBJECT float_from_string(STATE, char *str) {
   return float_new(state, d);
 }
 
-inline OBJECT float_nan_p(STATE, OBJECT self) {
-  return isnan(FLOAT_TO_DOUBLE(self)) ? Qtrue : Qfalse;
-}
+// inline OBJECT float_nan_p(STATE, OBJECT self) {
+//   return isnan(FLOAT_TO_DOUBLE(self)) ? Qtrue : Qfalse;
+// }
+// 
+// inline OBJECT float_infinite_p(STATE, OBJECT self) {
+//   double value = FLOAT_TO_DOUBLE(self);
+//   
+//   if (isinf(value))
+//     return I2N(value < 0 ? -1 : 1);
+//     
+//   return Qnil;
+// }
 
-inline OBJECT float_infinite_p(STATE, OBJECT self) {
-  double value = FLOAT_TO_DOUBLE(self);
-  
-  if (isinf(value))
-    return I2N(value < 0 ? -1 : 1);
-    
-  return Qnil;
-}
+// OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
+//   OBJECT ary;
+//   double x, y, div, mod;
+//   
+//   x = FLOAT_TO_DOUBLE(a);
+//   y = FLOAT_TO_DOUBLE(b);
+//   mod = fmod(x, y);
+//   div = (x - mod) / y;
+//   if (y*mod < 0) {
+//    mod += y;
+//    div -= 1.0;
+//   }
+//   ary = array_new(state, 2);
+//   array_set(state, ary, 0, I2N(div));
+//   array_set(state, ary, 1, float_new(state, mod));
+//   return ary;
+// }
 
-OBJECT float_divmod(STATE, OBJECT a, OBJECT b) {
-  OBJECT ary;
-  double x, y, div, mod;
-  
-  x = FLOAT_TO_DOUBLE(a);
-  y = FLOAT_TO_DOUBLE(b);
-  mod = fmod(x, y);
-  div = (x - mod) / y;
-  if (y*mod < 0) {
-  	mod += y;
-  	div -= 1.0;
-  }
-  ary = array_new(state, 2);
-  array_set(state, ary, 0, I2N(div));
-  array_set(state, ary, 1, float_new(state, mod));
-  return ary;
-}
-
-OBJECT float_round(STATE, OBJECT self) {
-  double value;
-  
-  value = FLOAT_TO_DOUBLE(self);
+int float_round(double value) {
   if (value > 0.0) value = floor(value+0.5);
   if (value < 0.0) value = ceil(value-0.5);
-  return bignum_from_double(state, value);
+  return (int)value;
 }
+
+// OBJECT float_round(STATE, OBJECT self) {
+//   double value;
+//   
+//   value = FLOAT_TO_DOUBLE(self);
+//   if (value > 0.0) value = floor(value+0.5);
+//   if (value < 0.0) value = ceil(value-0.5);
+//   return bignum_from_double(state, value);
+// }
