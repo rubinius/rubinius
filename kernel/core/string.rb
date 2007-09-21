@@ -15,17 +15,21 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
-  def initialize(arg = "")
+  # Can't be changed if run inside instance_eval with no param passed in
+  def initialize(arg = nil)
     if Fixnum === arg
+      arg ||= ""
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
       @encoding = nil
-    else
-      replace(arg)
+    elsif !@bytes || arg
+      replace(arg || "")
     end
+    self
   end
+  # private :initialize
 
   # call-seq:
   #   str % arg   => new_str
@@ -1056,6 +1060,7 @@ class String
     self
   end
   alias_method :initialize_copy, :replace
+  private :initialize_copy
   
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i> if they differ.
@@ -1343,10 +1348,11 @@ class String
   end
 
   def succ
-    return "" if length == 0
+    return "".copy_properties(self) if length == 0
     out = self.dup
 
     start = length-1
+    alnum = self[-1..-1] =~ /[a-zA-Z0-9]/
     while start >= 0       # can't break from a step or downto yet
       if out[start].isalnum
         break
@@ -1361,6 +1367,11 @@ class String
     start.step(0, -1) do |idx|
       c = out[idx]
       carry = true 
+      if alnum && carry && c.chr !~ /[a-zA-Z0-9]/
+        out[idx] = c
+        next
+      end
+      last_alnum = idx
       if c == ?9
         c = ?0
       elsif c == ?Z
@@ -1372,17 +1383,17 @@ class String
         carry = false if c != 0
       end
       out[idx] = c
-      return out if !carry
+      return out.copy_properties(self) if !carry
     end
+    c = out[last_alnum]
     c += 1 if c == ?0 || c == 0
+    out = out[0...last_alnum] + c.chr + out[last_alnum..-1]
     # work around for << not taking Fixnum
-    out = " " << out
-    out[0] = c
-    return out
+    return out.copy_properties(self)
   end
 
   def succ!
-    replace_if(succ)
+    replace(succ)
   end
 
   alias_method :next, :succ
