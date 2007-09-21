@@ -2425,6 +2425,14 @@ class ShotgunPrimitives
     cpu_clear_cache_for_method(state, c, t1);
     CODE
   end
+  
+  def float_sprintf
+    <<-CODE
+    POP(self, FLOAT);
+    POP(t1, STRING);
+    stack_push(float_sprintf(state, t1, self));
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

@@ -129,54 +129,49 @@ int float_to_i(double value) {
 }
 
 // OBJECT float_to_s(STATE, OBJECT self) {
-//   char buf[32];
-//   double value;
-//   char *p, *e;
-//   
-//   value = FLOAT_TO_DOUBLE(self);
-//   
-//   // adapted from ruby 1.8.x source
-//   if(isinf(value)) {
-//    return string_new(state, value < 0 ? "-Infinity" : "Infinity");
-//   } else if(isnan(value)) {
-//    return string_new(state, "NaN");
-//  }
-// 
-//   snprintf(buf, 32, "%#.15g", value); /* ensure to print decimal point */
-//   if (!(e = strchr(buf, 'e'))) {
-//    e = buf + strlen(buf);
-//   }
-//   if (!ISDIGIT(e[-1])) { /* reformat if ended with decimal point (ex 111111111111111.) */
-//    snprintf(buf, 32, "%#.14e", value);
-//    if (!(e = strchr(buf, 'e'))) {
-//      e = buf + strlen(buf);
-//    }
-//   }
-//   p = e;
-//   while (p[-1]=='0' && ISDIGIT(p[-2]))
-//  p--;
-//  memmove(p, e, strlen(e)+1);
-//   return string_new(state, buf);
+ //  char buf[32];
+ //  double value;
+ //  char *p, *e;
+ //  
+ //  value = FLOAT_TO_DOUBLE(self);
+ //  
+ //  // adapted from ruby 1.8.x source
+ //  if(isinf(value)) {
+ //   return string_new(state, value < 0 ? "-Infinity" : "Infinity");
+ //  } else if(isnan(value)) {
+ //   return string_new(state, "NaN");
+ // }
+ // 
+ //  snprintf(buf, 32, "%#.15g", value); /* ensure to print decimal point */
+ //  if (!(e = strchr(buf, 'e'))) {
+ //   e = buf + strlen(buf);
+ //  }
+ //  if (!ISDIGIT(e[-1])) { /* reformat if ended with decimal point (ex 111111111111111.) */
+ //   snprintf(buf, 32, "%#.14e", value);
+ //   if (!(e = strchr(buf, 'e'))) {
+ //     e = buf + strlen(buf);
+ //   }
+ //  }
+ //  p = e;
+ //  while (p[-1]=='0' && ISDIGIT(p[-2]))
+ // p--;
+ // memmove(p, e, strlen(e)+1);
+ //  return string_new(state, buf);
 // }
 
 void float_into_string(STATE, OBJECT self, char *buf, int sz) {
   snprintf(buf, sz, "%+.17e", FLOAT_TO_DOUBLE(self));
 }
 
-char *float_sprintf(char *buf, int size, char *fmt, double value) {
-  snprintf(buf, size, fmt, value);
-  return buf;
+OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val) {
+ char buf[32];
+ char *p;
+
+ p = string_byte_address(state, fmt);
+ snprintf(buf, 32, p, FLOAT_TO_DOUBLE(val));
+ return string_new(state, buf);
 }
 
-// OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val) {
-//  char buf[32];
-//  char *p;
-// 
-//  p = string_byte_address(state, fmt);
-//  snprintf(buf, 32, p, FLOAT_TO_DOUBLE(val));
-//  return string_new(state, buf);
-// }
-// 
 OBJECT float_from_string(STATE, char *str) {
   double d;
   

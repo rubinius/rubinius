@@ -110,14 +110,15 @@ class Float < Numeric
   alias_method :truncate, :to_i
   
   def to_s
+    return (value < 0 ? "-Infinity" : "Infinity") if infinite?
+    return "NaN" if nan?
+    
     str = to_s_formatted "%#.15g"
+    e = str.index('e') || str.size
+    str = to_s_formatted "%#.14e" unless str[e-1].isdigit
+    str.gsub(/(\d)(0+)(e|$)?/, '\1\3')
   end
   alias_method :inspect, :to_s
-  
-  def to_s_formatted(format)
-    str = ' ' * STRLEN
-    Platform::Float.sprintf str, STRLEN, format, self
-  end    
   
   def %(other)
     return 0 / 0.to_f if other == 0

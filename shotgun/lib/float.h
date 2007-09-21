@@ -19,6 +19,5 @@ OBJECT float_from_string(STATE, char *str);
 int float_to_i(double value);
 // OBJECT float_divmod(STATE, OBJECT a, OBJECT b);
 // OBJECT float_round(STATE, OBJECT self);
-// OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val); 
-char *float_sprintf(char *buf, int size, char *fmt, double value);
+OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val); 
 #endif

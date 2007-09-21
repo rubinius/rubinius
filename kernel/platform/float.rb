@@ -22,7 +22,7 @@ class Platform::Float
   attach_function nil, 'float_equal',   :value_equal, [:double, :double], :int
   attach_function nil, 'float_compare', :compare,     [:double, :double], :int
   attach_function nil, 'float_round',   :round,       [:double], :double
-  attach_function nil, 'float_sprintf', :sprintf,     [:string, :string, :double], :string
+  attach_function nil, 'float_sprintf', :sprintf,     [:pointer, :int, :string, :double], :int
   attach_function nil, 'fmod',  [:double, :double], :double
   attach_function nil, 'pow',   [:double, :double], :double
   attach_function nil, 'isnan', [:double], :int
@@ -32,11 +32,11 @@ class Platform::Float
     value_equal(a, b) == 1
   end
   
-  def nan?(value)
+  def self.nan?(value)
     isnan(value) == 1
   end
   
-  def infinite?(value)
+  def self.infinite?(value)
     (value < 0 ? -1 : 1) if isinf value
   end
 end
