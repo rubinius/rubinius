@@ -790,6 +790,7 @@ class String
   #   str[3] = 8
   #   str.inspect       #=> "hel\010o"
   def inspect
+    return "\"#{self}\"".copy_properties(self) if $KCODE == "UTF-8"
     res =  "\""
     self.each_byte do |char|
       if ci = ControlCharacters.index(char)
@@ -814,7 +815,7 @@ class String
       end
     end
     res << "\""
-    return res
+    return res.copy_properties(self)
   end
 
   def length
@@ -1009,7 +1010,11 @@ class String
   
   # TODO: inspect is NOT dump!
   def dump
-    self.inspect.copy_properties(self)
+    kcode = $KCODE
+    $KCODE = "NONE"
+    ret = self.inspect.copy_properties(self)
+    $KCODE = $KCODE
+    ret
   end
   
   def copy_properties(original)
@@ -1673,7 +1678,8 @@ class String
   
   def match(pattern)
     unless pattern.is_a?(String) || pattern.is_a?(Regexp)
-      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
+      pattern = pattern.to_str if pattern.respond_to?(:to_str)
+      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)" unless pattern.is_a?(String)
     end
     pattern = Regexp.new(pattern) unless Regexp === pattern
     pattern.match(self)
