@@ -1004,7 +1004,18 @@ class String
   end
   
   # TODO: inspect is NOT dump!
-  alias_method :dump, :inspect
+  def dump
+    self.inspect.copy_properties(self)
+  end
+  
+  def copy_properties(original)
+    ret = self.dup
+    ret.taint if original.tainted?
+    unless original.instance_of?(String)
+      ret = original.class.new(ret)
+    end
+    ret
+  end
   
   def to_sexp(name="(eval)",line=1,newlines=true)
     out = to_sexp_full(name, line, newlines)
@@ -1288,35 +1299,6 @@ class String
       return nil
     end
   end
-
-  # def gsub(pattern, replacement = nil, &block)
-  #   (str = self.dup).gsub!(pattern, replacement, &block) || str
-  # end
-  # 
-  # def gsub!(pattern, replacement = nil)
-  #   raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
-  #   
-  #   replacement = StringValue(replacement) if replacement
-  #   
-  #   pattern = Regexp.quote(pattern) if pattern.is_a?(String)
-  #   pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-  # 
-  #   out = [self]
-  #   while (match = pattern.match(out.last)) && out.pop
-  #     out << match.pre_match
-  #     if block_given?
-  #       out << yield(match[0])
-  #     else
-  #       replacement = replacement.to_str
-  #       out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
-  #     end
-  #     out << match.post_match
-  #   end
-  # 
-  #   out = out.join
-  #   out.taint if self.tainted? || (replacement && replacement.tainted?)
-  #   out.empty? || out == self ? nil : replace(out)
-  # end
 
   def sub(pattern, replacement = nil, &block)
     (str = self.dup).sub!(pattern, replacement, &block) || str
