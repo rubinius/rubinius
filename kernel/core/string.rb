@@ -1060,7 +1060,7 @@ class String
     self
   end
   alias_method :initialize_copy, :replace
-  private :initialize_copy
+  # private :initialize_copy
   
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i> if they differ.
