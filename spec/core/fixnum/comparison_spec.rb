@@ -1,17 +1,23 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#<=>" do
-  it "returns -1, 0, 1 when self is less than, equal, or greater than other" do
-    # 3 comparisions causes rubinius to crash, 2 comparisions work fine 
-    # and each comparision tested singularly is ok
+  it "returns -1 when self is less than the given argument" do
     (-3 <=> -1).should == -1
+    (-5 <=> 10).should == -1
+  end
+  
+  it "returns 0 when self is equal to the given argument" do
+    (0 <=> 0).should == 0
     (954 <=> 954).should == 0
+  end
+  
+  it "returns 1 when self is greater than the given argument" do
     (496 <=> 5).should == 1
+    (200 <=> 100).should == 1
   end
 
-  it "coerces fixnum and return -1, 0, 1 when self is less than, equal, or greater than other" do
-    (-1 <=> 0xffffffff).should == -1
-    (954 <=> 954.0).should == 0
-    (496 <=> 5).should == 1
+  it "returns nil when the given argument is no Fixnum" do
+    (3 <=> Object.new).should == nil
+    (3 <=> 'test').should == nil
   end
 end
