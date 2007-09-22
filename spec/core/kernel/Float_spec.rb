@@ -10,23 +10,12 @@ describe "Kernel.Float" do
     Float(KernelSpecFloat.new).should == 1.1
   end
 
-  version :not, '1.8.4'..'1.8.5' do
-    it "should call to_i to convert any arbitrary argument to a Float" do
-     class KernelSpecFloat2
-       def to_i; 7; end
-     end
-
-     Float(KernelSpecFloat2.new).should == 7.0
+  version '1.8.6' do
+    it "raises TypeError if passed a string that cannot be fully converted to a Float" do
+      should_raise(ArgumentError, 'invalid value for Float(): "float"') do
+        Float('float')
+      end
     end
-  end
-
-  it "should give to_f precedence over to_i" do
-    class KernelSpecFloat3
-      def to_i; 7; end
-      def to_f; 69.9; end
-    end
-
-    Float(KernelSpecFloat3.new).should == 69.9
   end
 
   it "should raise a TypeError if there is no to_f or to_i method on an object" do
@@ -44,14 +33,27 @@ describe "Kernel.Float" do
   end
   
   version '1.8.4'..'1.8.5' do
-    it "raises ArgumentError if passed a string that cannot be fully converted to a Float" do
-      should_raise(ArgumentError) { Float('float') }
-    end
-  end
-  
-  version '1.8.6' do
     it "raises TypeError if passed a string that cannot be fully converted to a Float" do
       should_raise(TypeError) { Float('float') }
+    end
+  end
+
+  version :not, '1.8.4'..'1.8.6' do
+    it "should call to_i to convert any arbitrary argument to a Float" do
+     class KernelSpecFloat2
+       def to_i; 7; end
+     end
+
+     Float(KernelSpecFloat2.new).should == 7.0
+    end
+
+    it "should give to_f precedence over to_i" do
+      class KernelSpecFloat3
+        def to_i; 7; end
+        def to_f; 69.9; end
+      end
+  
+      Float(KernelSpecFloat3.new).should == 69.9
     end
   end
 end
