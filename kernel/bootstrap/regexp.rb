@@ -3,16 +3,8 @@ class Regexp
     Ruby.primitive :regexp_new
   end
   
-  def match(str)
-    Ruby.primitive :regexp_match
-  end
-  
-  def match_from(str, start)
-    Ruby.primitive :regexp_match_start
-  end
-  
-  def match_all(str)
-    Ruby.primitive :regexp_scan
+  def match_region(str, start, finish, forward)
+    Ruby.primitive :regexp_match_region
   end
   
   def options

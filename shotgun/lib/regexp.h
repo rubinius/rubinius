@@ -5,4 +5,5 @@ void regexp_cleanup(STATE, OBJECT regexp);
 OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string);
 OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start);
 OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string);
+OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OBJECT end, OBJECT forward);
 OBJECT regexp_options(STATE, OBJECT regexp);

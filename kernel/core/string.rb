@@ -1596,45 +1596,82 @@ class String
     return nil
   end
 
-  
-  def rindex(arg, finish = nil )
+  def rindex(arg, finish = nil)
+    arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
+    original_klass = arg.class
     if finish
-      raise TypeError, "can't convert #{finish.class} into Integer" if !finish.is_a?(Integer)
+      finish = finish.coerce_to(Integer, :to_int)
       finish += @bytes if finish < 0
       return nil if finish < 0
-      finish = @bytes - 1 if finish >= @bytes
+      finish = @bytes if finish >= @bytes
     else
-      finish = @bytes - 1
+      finish = size
+    end
+    case arg
+    when Fixnum
+      return nil if arg > 255 || arg < 0
+      arg = Regexp.new(Regexp.quote(arg.chr))
+    when String
+      arg = Regexp.new(Regexp.quote(arg))
     end
     
-    if arg.is_a?(Fixnum)
-      finish.step(0, -1) do |idx|
-        return idx if @data[idx] == arg
-      end
-    elsif arg.is_a? String
-      return nil if arg.length > finish
-      len   = arg.length
-      start = finish - len
-      start.step(0, -1) do |idx|
-        if @data[idx] == arg.data[0]
-          return idx if substring(idx,len) == arg
-        end
-      end
-    elsif arg.is_a? Regexp
-      mstr = self[0..finish]
-      offset = nil
-      while m = arg.match(mstr)
-        break if m.begin(0) == m.end(0)
-        offset = offset ? offset += m.begin(0) + len : m.begin(0)
-        len = m.end(0) - m.begin(0)
-        mstr = m.post_match
-      end
-      return offset
-    else
-      raise ArgumentError.new("String#index cannot accept #{arg.class} objects")
-    end
-    return nil
+    ret = arg.match_region(self, 0, finish, false)
+    $~ = ret if original_klass == Regexp
+    ret && ret.begin(0)
   end
+  
+  def without_changing_regex_global
+    old_md = $~
+    yield
+    $~ old_md
+  end
+
+  # def rindex(arg, finish = nil )
+  #   arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
+  #   return (finish || self.size) if arg.is_a?(String) && arg.empty?
+  #   
+  #   arg_finish = finish
+  #   if finish
+  #     at_end = 0
+  #     finish = finish.coerce_to(Integer, :to_int)
+  #     finish += @bytes if finish < 0
+  #     return nil if finish < 0
+  #     finish, at_end = @bytes - 1, 1 if finish >= @bytes
+  #   else
+  #     finish, at_end = @bytes - 1, 1
+  #   end
+  # 
+  #   arg = arg[0] if arg.is_a?(String) && arg.size == 1
+  #   
+  #   if arg.is_a?(Fixnum)
+  #     finish.step(0, -1) do |idx|
+  #       return idx if @data[idx] == arg
+  #     end
+  #   elsif arg.is_a? String
+  #     # return nil if arg.length > finish + at_end
+  #     len   = arg.length
+  #     start = finish - len + at_end
+  #     start = 0 if start < 0 && finish >= 0
+  #     start.step(0, -1) do |idx|
+  #       if @data[idx] == arg.data[0]
+  #         return idx if substring(idx,len) == arg
+  #       end
+  #     end
+  #   elsif arg.is_a? Regexp
+  #     mstr = self[0..finish]
+  #     offset = nil
+  #     while m = arg.match(mstr)
+  #       break if m.begin(0) == m.end(0)
+  #       offset = offset ? offset += m.begin(0) + len : m.begin(0)
+  #       len = m.end(0) - m.begin(0)
+  #       mstr = m.post_match
+  #     end
+  #     return offset
+  #   else
+  #     raise TypeError.new("String#index cannot accept #{arg.class} objects")
+  #   end
+  #   return nil
+  # end
 
   # justify left = -1, center = 0, right = 1
   def justify_string(width, str, justify)

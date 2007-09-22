@@ -110,6 +110,32 @@ class Regexp
     return m.begin(0) if m
     nil
   end
+  
+  def match_all(str)
+    start = 0
+    arr = []
+    while(match = self.match_from(str, start))
+      arr << match
+      if match.collapsing?
+        start += 1
+      else
+        start = match.end(0)
+      end
+    end
+    arr
+  end
+
+  # def match_all_reverse(str)
+  #   arr = []
+  #   pos = str.size
+  #   while pos >= 0
+  #     match = match_region(str, pos, pos)
+  #     break unless match
+  #     arr << match
+  #     pos = match.collapsing? ? pos - 1 : match.begin(0)
+  #   end
+  #   arr
+  # end
 
   def ===(other)
     if !other.is_a?(String)
@@ -158,12 +184,14 @@ class Regexp
     return nil
   end
 
-  alias_method :__regexp_match__, :match
-
   def match(str)
-    obj = __regexp_match__(str)
+    obj = match_region(str, 0, str.size, true)
     $~ = obj
     return obj
+  end
+  
+  def match_from(str, count)
+    match_region(str, count, str.size, true)
   end
 
   def to_s

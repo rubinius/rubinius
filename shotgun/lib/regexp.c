@@ -231,6 +231,31 @@ OBJECT regexp_match_start(STATE, OBJECT regexp, OBJECT string, OBJECT start) {
   return md;
 }
 
+OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OBJECT end, OBJECT forward) {
+  int beg, max;
+  const UChar *str;
+  OnigRegion *region;
+  OBJECT md;
+  
+  region = onig_region_new();
+  
+  max = FIXNUM_TO_INT(string_get_bytes(string));
+  str = (UChar*)string_byte_address(state, string);
+  
+  if(forward == Qfalse)
+    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(end), str + FIXNUM_TO_INT(start), region, ONIG_OPTION_NONE);  
+  else
+    beg = onig_search(REG(regexp_get_data(regexp)), str, str + max, str + FIXNUM_TO_INT(start), str + FIXNUM_TO_INT(end), region, ONIG_OPTION_NONE);
+  
+  if(beg == ONIG_MISMATCH || region->beg[0] > FIXNUM_TO_INT(end) || region->end[0] < FIXNUM_TO_INT(start)) {
+    onig_region_free(region, 1);
+    return Qnil;
+  }
+  
+  md = get_match_data(state, region, string, regexp, max);
+  return md;
+}
+
 OBJECT regexp_match(STATE, OBJECT regexp, OBJECT string) {
   int err, max;
   const UChar *str, *end, *start, *range;

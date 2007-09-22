@@ -118,8 +118,7 @@ module Bytecode
     
     def assemble(str)
       puts str if ENV["DEBUG_ASSEMBLER"]
-      lines = str.split("\n")
-      lines.each { |l| parse_line l }
+      str.each { |l| parse_line l }
       translate_labels
       if ent = @source_lines.last
         ent[1] = @current_op

@@ -49,7 +49,7 @@ module Bytecode
       :bignum_mul,
       :bignum_equal,
       :regexp_new,
-      :regexp_match,
+      nil,
       :tuple_shifted,
       :gc_start,
       :file_to_sexp,
@@ -175,8 +175,8 @@ module Bytecode
       :time_switch,
       :bignum_size,
       :reset_method_cache,
-      :regexp_scan,
-      :regexp_match_start,
+      :nil,
+      :regexp_match_region,
       :bignum_from_float
     ]
 

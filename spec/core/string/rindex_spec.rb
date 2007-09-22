@@ -19,26 +19,28 @@ describe "String#rindex with object" do
   noncompliant :rubinius do
     it "tries to convert obj to a string via to_str" do
       obj = Object.new
-      obj.should_receive(:to_str, :returning => "lo")
+      def obj.to_str() "lo" end
       "hello".rindex(obj).should == "hello".rindex("lo")
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+      def obj.respond_to?(arg) true end
+      def obj.method_missing(*args) "o" end
       "hello".rindex(obj).should == "hello".rindex("o")
     end
   end
   
-  version '1.8.6' do
-    it "tries to convert obj to a string via to_str" do
-      obj = Object.new
-      obj.should_receive(:to_str, :returning => "lo")
-      should_raise(Exception) { "hello".rindex(obj) }
+  compliant :mri, :jruby do
+    version "1.8.6" do
+      it "tries to convert obj to a string via to_str" do
+        obj = Object.new
+        def obj.to_str() "lo" end
+        should_raise(Exception) { "hello".rindex(obj) }
 
-      obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
-      should_raise(Exception) { "hello".rindex(obj) }
+        obj = Object.new
+        def obj.respond_to?(arg) true end
+        def obj.method_missing(*args) "o" end
+        should_raise(Exception) { "hello".rindex(obj) }
+      end
     end
   end
 end
@@ -108,12 +110,12 @@ describe "String#rindex with Fixnum" do
   
   it "tries to convert start_offset to an integer via to_int" do
     obj = Object.new
-    obj.should_receive(:to_int, :returning => 5)
+    def obj.to_int() 5 end
     "str".rindex(?s, obj).should == 0
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 5)
+    def obj.respond_to?(arg) true end
+    def obj.method_missing(*args); 5; end
     "str".rindex(?s, obj).should == 0
   end
 end
@@ -256,12 +258,12 @@ describe "String#rindex with String" do
   
   it "tries to convert start_offset to an integer via to_int" do
     obj = Object.new
-    obj.should_receive(:to_int, :returning => 5)
+    def obj.to_int() 5 end
     "str".rindex("st", obj).should == 0
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 5)
+    def obj.respond_to?(arg) true end
+    def obj.method_missing(*args) 5 end
     "str".rindex("st", obj).should == 0
   end
 end
@@ -386,22 +388,22 @@ describe "String#rindex with Regexp" do
       ["helloYOUal#l.", idx],
       ["helloYOUall#.", idx],
       ["helloYOUall.#", nil]
-    ].each do |spec, res|
-      start = spec.index("#")
-      str = spec.delete("#")
+    ].each do |i|
+      start = i[0].index("#")
+      str = i[0].delete("#")
 
-      str.rindex(re, start).should == res
+      str.rindex(re, start).should == i[1]
     end
   end
   
   it "tries to convert start_offset to an integer via to_int" do
     obj = Object.new
-    obj.should_receive(:to_int, :returning => 5)
+    def obj.to_int() 5 end
     "str".rindex(/../, obj).should == 1
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 5)
+    def obj.respond_to?(arg) true end
+    def obj.method_missing(*args); 5; end
     "str".rindex(/../, obj).should == 1
   end
 end
