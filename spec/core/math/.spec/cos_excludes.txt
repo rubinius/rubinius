@@ -1,1 +1,2 @@
 Math.cos raises an ArgumentError if the argument cannot be coerced with Float()
+Math#cos is accessible as a private instance method

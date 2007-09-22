@@ -1,1 +1,0 @@
-Float#/ does NOT raise ZeroDivisionError if other is zero

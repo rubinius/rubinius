@@ -1,1 +1,2 @@
 Math.sin raises an ArgumentError if the argument cannot be coerced with Float()
+Math#sin is accessible as a private instance method
