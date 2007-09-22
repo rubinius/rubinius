@@ -175,7 +175,7 @@ module Bytecode
       :time_switch,
       :bignum_size,
       :reset_method_cache,
-      :nil,
+      nil,
       :regexp_match_region,
       :bignum_from_float
     ]
