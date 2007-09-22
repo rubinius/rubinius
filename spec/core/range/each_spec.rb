@@ -41,4 +41,8 @@ describe "Range#each" do
       (a..b).each { |i| i }
     end
   end
+  
+  it "returns self" do
+    (1..10).each {}.should == (1..10)
+  end
 end

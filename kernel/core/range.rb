@@ -53,28 +53,27 @@
 #  <code>==</code> method is defined in terms of the <code><=></code>
 #  method implemented in <code>Xs</code>.
 class Range
-
   include Enumerable
 
-  ##
-  # call-seq:
-  #   Range.new(start, end, exclusive=false)    => range
-  #
   # Constructs a range using the given <em>start</em> and <em>end</em>.
   # If the third parameter is omitted or is <tt>false</tt>, the
   # <em>range</em> will include the end object; otherwise, it will be
   # excluded.
-
-  def initialize(first, last, exclude_end=false)
-    @first = first
-    @last = last
-    @exclude_end = exclude_end
+  def initialize(first, last, exclude_end = false)
+    raise NameError, "`initialize' called twice" if @first
+    
+    unless first.is_a?(Fixnum) && last.is_a?(Fixnum)
+      begin
+        raise ArgumentError, "bad value for range" unless first <=> last
+      rescue
+        raise ArgumentError, "bad value for range"
+      end
+    end
+    
+    @first, @last = first, last
+    @exclude_end  = exclude_end
   end
 
-  ##
-  # call-seq:
-  #   rng == obj    => true or false
-  #
   # Returns <tt>true</tt> only if <em>obj</em> is a Range, has
   # equivalent beginning and end items (by comparing them with
   # <tt>==</tt>), and has the same #exclude_end? setting as <i>rng</t>.
@@ -82,35 +81,30 @@ class Range
   #   (0..2) == (0..2)            #=> true
   #   (0..2) == Range.new(0,2)    #=> true
   #   (0..2) == (0...2)           #=> false
-
   def ==(other)
-    return false unless Range === other 
-    return self.first == other.first && self.last == other.last && self.exclude_end? == other.exclude_end?
+    self.equal?(other) ||
+      (other.is_a?(Range) && self.first == other.first &&
+       self.last == other.last && self.exclude_end? == other.exclude_end?)
+   
   end
+  alias_method :eql?, :==
 
-  ##
-  # call-seq:
-  #   rng === obj       =>  true or false
-  #   rng.member?(val)  =>  true or false
-  #   rng.include?(val) =>  true or false
-  #
   # Returns <tt>true</tt> if <em>obj</em> is an element of <em>rng</em>,
   # <tt>false</tt> otherwise. Conveniently, <tt>===</tt> is the
   # comparison operator used by <tt>case</tt> statements.
   #
-  #    case 79
-  #    when 1..50   then   print "low\n"
-  #    when 51..75  then   print "medium\n"
-  #    when 76..100 then   print "high\n"
-  #    end
+  #   case 79
+  #     when 1..50   then   print "low\n"
+  #     when 51..75  then   print "medium\n"
+  #     when 76..100 then   print "high\n"
+  #   end
   #
   # <em>produces:</em>
   #
-  #    high
-
+  #   high
   def ===(value)
-    if @first <= value then
-      if self.exclude_end? then
+    if @first <= value
+      if self.exclude_end?
         return true if value < @last
       else
         return true if value <= @last
@@ -123,10 +117,6 @@ class Range
   alias_method :member?, :===
   alias_method :include?, :===
 
-  ##
-  # call-seq:
-  #   rng.each {| i | block } => rng
-  #
   # Iterates over the elements <em>rng</em>, passing each in turn to the
   # block. You can only iterate if the start object of the range
   # supports the <tt>succ</tt> method (which means that you can't
@@ -139,35 +129,29 @@ class Range
   # <em>produces:</em>
   #
   #    10 11 12 13 14 15
-
-  def each
-    first = self.first # dup?
-    last = self.last
+  def each(&block)
+    first, last = @first, @last # dup?
     
-    unless first.respond_to? :succ
-      raise TypeError.new("can't iterate from #{first.class}")
-    end
+    raise TypeError, "can't iterate from #{first.class}" unless first.respond_to? :succ
 
-    if Fixnum === first && Fixnum === last then
+    if first.is_a?(Fixnum) && last.is_a?(Fixnum)
       last -= 1 if self.exclude_end?
-      first.upto(last) { |i| yield(i) }
-    elsif String === first then
+      first.upto(last, &block)
+    elsif first.is_a?(String)
       first.upto(last) do |s|
-        next if @exclude_end && s == last
-        yield(s)
+        block.call(s) unless @exclude_end && s == last
       end
     else
       current = first
       if @exclude_end then
-        loop do
-          break if current == last
-          yield(current)
+        while (current <=> last) < 0
+          block.call(current)
           current = current.succ
         end
       else
-        loop do
-          yield(current)
-          break if current == last
+        while (c = current <=> last) && c <= 0
+          block.call(current)
+          break if c == 0
           current = current.succ
         end
       end
@@ -175,55 +159,20 @@ class Range
     return self
   end
 
-  ##
-  # call-seq:
-  #   rng.eql?(obj)    => true or false
-  #
-  # Returns <tt>true</tt> only if <em>obj</em> is a Range, has
-  # equivalent beginning and end items (by comparing them with #eql?),
-  # and has the same #exclude_end? setting as <em>rng</em>.
-  #
-  #   (0..2) == (0..2)            #=> true
-  #   (0..2) == Range.new(0,2)    #=> true
-  #   (0..2) == (0...2)           #=> false
-
-  def eql?(other)
-    return false unless Range === other 
-    return self.first.eql?(other.first) &&
-      self.last.eql?(other.last) &&
-      self.exclude_end? == other.exclude_end?
-  end
-
-  ##
-  # call-seq:
-  #   rng.exclude_end?    => true or false
-  #
   # Returns <tt>true</tt> if <em>rng</em> excludes its end value.
-
   def exclude_end?
     @exclude_end
   end
 
-  ##
-  # call-seq:
-  #   rng.first    => obj
-  #   rng.begin    => obj
-  #
   # Returns the first object in <em>rng</em>.
-
   def first
     @first
   end
   alias_method :begin, :first
 
-  ##
-  # call-seq:
-  #   rng.hash    => fixnum
-  #
   # Generate a hash value such that two ranges with the same start and
   # end points, and the same value for the "exclude end" flag, generate
   # the same hash value.
-
   def hash
     excl = @exclude_end ? 1 : 0
     hash = excl
@@ -233,37 +182,21 @@ class Range
     return hash
   end
 
-  ##
-  # call-seq:
-  #   rng.inspect  => string
-  #
   # Convert this range object to a printable form (using
   # <tt>inspect</tt> to convert the start and end objects).
-
   def inspect
-    joiner = @exclude_end ? "..." : ".."
-    return "#{@first.inspect}#{joiner}#{@last.inspect}"
+    "#{@first.inspect}#{@exclude_end ? "..." : ".."}#{@last.inspect}"
   end
 
-  ##
-  # call-seq:
-  #   rng.end    => obj
-  #   rng.last   => obj
-  #
   # Returns the object that defines the end of <em>rng</em>.
   #
   #    (1..10).end    #=> 10
   #    (1...10).end   #=> 10
-
   def last
     return @last
   end
   alias_method :end, :last
 
-  ##
-  # call-seq:
-  #   rng.step(n=1) {| obj | block }    => rng
-  #
   # Iterates over <em>rng</em>, passing each <em>n</em>th element to the
   # block. If the range contains numbers or strings, natural ordering is
   # used. Otherwise <tt>step</tt> invokes <tt>succ</tt> to iterate
@@ -285,48 +218,36 @@ class Range
   #     4 xxxx
   #     7 xxxxxxx
   #    10 xxxxxxxxxx
+  def step(step_size = 1, &block) # :yields: object
+    first, last = @first, @last
+    step_size = step_size.to_f #people might not pass numbers in. This stops them.
 
-  def step(n=1)
-    first = self.first
-    last = self.last
-    n = n.to_f #people might not pass numbers in. This stops them.
-
-    if n < 0
-      raise ArgumentError.new("step can't be negative.")
-    elsif n == 0
-      raise ArgumentError.new("step can't be 0.")
-    elsif n == 1 then
-      each { |o| yield(o) }
+    raise ArgumentError, "step can't be negative" if step_size < 0
+    raise ArgumentError, "step can't be 0" if step_size == 0
+    
+    if step_size == 1
+      each(&block)
     elsif Numeric === first
-      if self.exclude_end?
-        while (first < last)
-          yield(first)
-          first += n
-        end
-      else
-        while (first <= last)
-          yield(first)
-          first += n
-        end
+      cmp_method = self.exclude_end? ? :< : :<=
+      
+      while first.__send__(cmp_method, last)
+        block.call(first)
+        first += step_size
       end
     else
       counter = 0
       each do |o|
-        yield(o) if counter % n == 0
+        block.call(o) if counter % step_size == 0
         counter += 1
       end
     end
+    
+    return self
   end
 
-  ##
-  # call-seq:
-  #   rng.to_s   => string
-  #
   # Convert this range object to a printable form.
-
   def to_s
-    joiner = @exclude_end ? "..." : ".."
-    return "#{@first}#{joiner}#{@last}"
+    "#@first#{@exclude_end ? "..." : ".."}#@last"
   end
 end
 

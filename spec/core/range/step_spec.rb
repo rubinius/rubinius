@@ -41,4 +41,8 @@ describe "Range#step" do
       (a..b).step(1) { |i| i }
     end
   end
+
+  it "returns self" do
+    (1..10).step(1) {}.should == (1..10)
+  end
 end
