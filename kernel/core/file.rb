@@ -157,16 +157,15 @@ class File < IO
   end
   
   def self.link(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
     raise Errno::EEXIST if exists?(to)
     Platform::POSIX.link(from, to)
   end
   
   def self.identical?(orig, copy)
-    raise TypeError, "Cannot convert #{orig.class} into a String" unless orig.kind_of? String
-    raise TypeError, "Cannot convert #{copy.class} into a String" unless copy.kind_of? String
-    
-    st_o = stat(orig)
-    st_c = stat(copy)
+    st_o = stat(StringValue(orig))
+    st_c = stat(StringValue(copy))
     
     return false unless st_o.kind == st_c.kind
     return false unless st_o.inode == st_c.inode
@@ -177,9 +176,7 @@ class File < IO
   end
 
   def self.extname(path)
-    raise TypeError, "Cannot convert #{path.class} into a String" unless path.kind_of? String
-    
-    filename = File.basename(path)
+    filename = File.basename(StringValue(path))
     idx = filename.rindex '.'
     have_dot = idx != nil
     first_or_last_char = idx == 0 || filename.size == 1

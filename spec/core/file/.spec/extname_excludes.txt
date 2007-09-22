@@ -1,4 +1,0 @@
-File.extname returns the extension (the portion of file name in path after the period).
-File.extname returns the extension (the portion of file name in path after the period).(edge cases)
-File.extname returns only the last extension of a file with several dots
-File.extname raise an exception if the argumnents are not of the correct type or are missing
