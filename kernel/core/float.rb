@@ -103,7 +103,11 @@ class Float < Numeric
     elsif nan?
       return self
     else
-      Platform::Float.to_i self
+      if self < Platform::Fixnum::MAX.to_f
+        Platform::Float.to_i self
+      else
+        Bignum.from_float self
+      end
     end
   end
   alias_method :to_int, :to_i
@@ -130,7 +134,11 @@ class Float < Numeric
   alias_method :modulo, :%
   
   def round
-    Platform::Float.round self
+    if self < Platform::Fixnum::MAX.to_f
+      Platform::Float.round self
+    else
+      Bignum.from_float self
+    end
   end
   
 end

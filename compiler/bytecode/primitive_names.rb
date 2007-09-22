@@ -176,7 +176,8 @@ module Bytecode
       :bignum_size,
       :reset_method_cache,
       :regexp_scan,
-      :regexp_match_start
+      :regexp_match_start,
+      :bignum_from_float
     ]
 
     FirstRuntimePrimitive = 1024

@@ -2433,6 +2433,14 @@ class ShotgunPrimitives
     stack_push(float_sprintf(state, t1, self));
     CODE
   end
+  
+  def bignum_from_float
+    <<-CODE
+    stack_pop(); /* we don't care */
+    POP(t1, FLOAT);
+    stack_push(bignum_from_double(state, FLOAT_TO_DOUBLE(t1)));
+    CODE
+  end
 end
 
 prim = ShotgunPrimitives.new

@@ -1,4 +1,8 @@
 class Bignum < Integer
+  def self.from_float(value)
+    Ruby.primitive :bignum_from_float
+  end
+  
   def radix_to_s(radix)
     Ruby.primitive :bignum_to_s
   end
