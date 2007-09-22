@@ -13,6 +13,13 @@ module Kernel
   
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
+    
+    if obj.is_a?(String)
+      if obj !~ /^(\+|\-)?\d+$/ && obj !~ /^(\+|\-)?\d+\.\d+$/
+        raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
+      end
+    end
+  
     obj.coerce_to(Float, :to_f)
   end
   
