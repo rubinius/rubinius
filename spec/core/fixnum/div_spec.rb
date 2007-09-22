@@ -44,7 +44,7 @@ describe "Fixnum#div" do
     end
     
     should_raise(TypeError, "String can't be coerced into Fixnum") do
-      5.div(2)
+      5.div("2")
     end
   end
 end

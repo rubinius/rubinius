@@ -1,15 +1,25 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#>=" do
-  it "returns true if self is greater than or equal to other" do
-    (-50 >= -50).should == true
-    (14 >= 2).should == true
-    (900 >= 901).should == false
+  it "returns true if self is greater than or equal to the given argument" do
+    (13 >= 2).should == true
+    (-500 >= -600).should == true
+    
+    (1 >= 5).should == false
+    (2 >= 2).should == true
+    (5 >= 5).should == true
+    
+    (900 >= 0xffffffff).should == false
+    (5 >= 4.999).should == true
   end
 
-  it "coerces fixnum and return true if self is greater than or equal to other" do
-    (-50 >= -50).should == true
-    (14 >= 2.5).should == true
-    (900 >= 0xffffffff).should == false
+  it "raises an ArgumentError when given a non-Integer" do
+    should_raise(ArgumentError, "comparison of Fixnum with String failed") do
+      5 >= "4"
+    end
+    
+    should_raise(ArgumentError, "comparison of Fixnum with Object failed") do
+      5 >= Object.new
+    end
   end
 end

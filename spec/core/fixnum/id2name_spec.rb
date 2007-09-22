@@ -9,4 +9,8 @@ describe "Fixnum#id2name" do
     b.to_i.id2name.should == '@ruby'
     c.to_i.id2name.should == '@rubinius'
   end
+  
+  it "returns nil if there is no symbol in the symbol table with this value" do
+    100000000.id2name.should == nil
+  end
 end
