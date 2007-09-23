@@ -87,8 +87,13 @@ class Numeric
   end
 
   def divmod(other)
-    b, a = self.coerce(other)
-    raise ZeroDivisionError, "Divide by 0" unless Float === b or b != 0
+    b, a = self.do_coerce(other, true)
+    
+    if other == 0
+      raise FloatDomainError, "NaN" if other.is_a?(Float)
+      raise ZeroDivisionError, "divided by 0"
+    end
+    
     a.divmod(b)
   end
   

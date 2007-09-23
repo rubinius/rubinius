@@ -57,5 +57,9 @@ describe "Fixnum#divmod" do
     should_raise(TypeError, "String can't be coerced into Fixnum") do
       13.divmod("10")
     end
+
+    should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+      13.divmod(:symbol)
+    end
   end
 end
