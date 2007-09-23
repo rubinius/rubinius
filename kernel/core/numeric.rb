@@ -25,7 +25,7 @@ class Numeric
   end
   
   def **(other)
-    b, a = self.coerce(other)
+    b, a = self.do_coerce(other, true)
     a ** b
   end
   

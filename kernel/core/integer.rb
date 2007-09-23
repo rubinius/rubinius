@@ -55,8 +55,17 @@ class Integer < Numeric
   end
 
   def **(exp)
-    if exp < 0 || !(Integer === exp)
-      Float(self)**Float(exp)
+    if !exp.is_a?(Integer)
+      b, a = self.do_coerce(exp, true)
+      return a ** b
+    end
+    
+    return 1 if exp == 0
+    return self if exp == 1 || self == 0 || self == 1
+    return b % 2 == 0 ? 1 : -1 if self == -1
+    
+    if exp < 0
+      Float(self) ** Float(exp)
     else
       out = 1
       base = self
