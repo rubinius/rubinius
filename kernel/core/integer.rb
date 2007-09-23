@@ -49,12 +49,9 @@ class Integer < Numeric
     a
   end
   
-  def [](i)
-    if i < 0
-      0
-    else
-      (self >> i) & 1
-    end
+  def [](index)
+    index = index.coerce_to(Integer, :to_int) unless index.is_a?(Integer)
+    index < 0 ? 0 : (self >> index) & 1
   end
 
   def **(exp)
