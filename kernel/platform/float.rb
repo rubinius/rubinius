@@ -37,6 +37,6 @@ class Platform::Float
   end
   
   def self.infinite?(value)
-    return (value < 0 ? -1 : 1) if isinf(value) == 1
+    return (value < 0 ? -1 : 1) if isinf(value) != 0
   end
 end
