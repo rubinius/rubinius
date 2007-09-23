@@ -422,3 +422,28 @@ module Sprintf
   end
 end
 
+module YSprintf
+  class Parser
+    NONE  = 0
+    SHARP = 1
+    MINUS = 2
+    PLUS  = 4
+    ZERO  = 8
+    SPACE = 16
+    WIDTH = 32
+    PREC  = 64
+    PREC0 = 128
+
+    def sprintf(fmt, *args)
+      fmt = StringValue(fmt)
+      ret = ""
+      fmt_args = fmt.split(/%/)
+      fmt_args.pop while(fmt_args[0] == "")
+    end
+
+    def self.printable(char)
+      (/[[:printable:]]/ ~= char.chr) && char >= 0 && char <= 127
+    end
+
+  end
+end

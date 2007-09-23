@@ -194,6 +194,20 @@ class Regexp
     match_region(str, count, str.size, true)
   end
 
+  def match_reverse(str, count)
+    # \G is a special-case where our progressively moving forward algorithm doesn't work
+    # because \G matches the START position (which is *count* in our case)
+    return match_region(str, 0, count, false) if self.source =~ /\\G/
+
+    idx, last_match = count, nil
+    while idx <= str.size
+      match = match_region(str, 0, idx, false)      
+      return last_match if (match && match.begin(0) > count) || (!match && last_match)
+      idx, last_match = idx + 1, match
+    end
+    match && (match.begin(0) <= count) ? match : last_match
+  end
+
   def to_s
     idx     = 0
     offset  = 0

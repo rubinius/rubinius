@@ -2,7 +2,7 @@
   mktable.c
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2004  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,31 @@
  * SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <locale.h>
 
-#define NOT_RUBY
 #include "regenc.h"
 
-#define UNICODE_ISO_8859_1     0
-#define ISO_8859_1     1
-#define ISO_8859_2     2
-#define ISO_8859_3     3
-#define ISO_8859_4     4
-#define ISO_8859_5     5
-#define ISO_8859_6     6
-#define ISO_8859_7     7
-#define ISO_8859_8     8
-#define ISO_8859_9     9
-#define ISO_8859_10   10
-#define ISO_8859_11   11
-#define ISO_8859_13   12
-#define ISO_8859_14   13
-#define ISO_8859_15   14
-#define ISO_8859_16   15
-#define KOI8          16
-#define KOI8_R        17
+#define ASCII                0
+#define UNICODE_ISO_8859_1   1
+#define ISO_8859_1           2
+#define ISO_8859_2           3
+#define ISO_8859_3           4
+#define ISO_8859_4           5
+#define ISO_8859_5           6
+#define ISO_8859_6           7
+#define ISO_8859_7           8
+#define ISO_8859_8           9
+#define ISO_8859_9          10
+#define ISO_8859_10         11
+#define ISO_8859_11         12
+#define ISO_8859_13         13
+#define ISO_8859_14         14
+#define ISO_8859_15         15
+#define ISO_8859_16         16
+#define KOI8                17
+#define KOI8_R              18
 
 typedef struct {
   int   num;
@@ -57,6 +59,7 @@ typedef struct {
 } ENC_INFO;
 
 static ENC_INFO Info[] = {
+  { ASCII,               "ASCII" },
   { UNICODE_ISO_8859_1,  "UNICODE_ISO_8859_1"  },
   { ISO_8859_1,  "ISO_8859_1"  },
   { ISO_8859_2,  "ISO_8859_2"  },
@@ -80,6 +83,9 @@ static ENC_INFO Info[] = {
 
 static int IsAlpha(int enc, int c)
 {
+  if (enc == ASCII)
+    return isalpha(c);
+
   if (c >= 0x41 && c <= 0x5a) return 1;
   if (c >= 0x61 && c <= 0x7a) return 1;
 
@@ -254,6 +260,9 @@ static int IsAlpha(int enc, int c)
 
 static int IsBlank(int enc, int c)
 {
+  if (enc == ASCII)
+    return isblank(c);
+
   if (c == 0x09	|| c == 0x20) return 1;
 
   switch (enc) {
@@ -290,6 +299,9 @@ static int IsBlank(int enc, int c)
 
 static int IsCntrl(int enc, int c)
 {
+  if (enc == ASCII)
+    return iscntrl(c);
+
   if (c >= 0x00	&& c <= 0x1F) return 1;
 
   switch (enc) {
@@ -335,6 +347,9 @@ static int IsDigit(int enc, int c)
 
 static int IsGraph(int enc, int c)
 {
+  if (enc == ASCII)
+    return isgraph(c);
+
   if (c >= 0x21 && c <= 0x7e) return 1;
 
   switch (enc) {
@@ -404,6 +419,9 @@ static int IsGraph(int enc, int c)
 
 static int IsLower(int enc, int c)
 {
+  if (enc == ASCII)
+    return islower(c);
+
   if (c >= 0x61 && c <= 0x7a) return 1;
 
   switch (enc) {
@@ -533,6 +551,9 @@ static int IsLower(int enc, int c)
 
 static int IsPrint(int enc, int c)
 {
+  if (enc == ASCII)
+    return isprint(c);
+
   if (c >= 0x20 && c <= 0x7e) return 1;
 
   switch (enc) {
@@ -608,21 +629,19 @@ static int IsPrint(int enc, int c)
 
 static int IsPunct(int enc, int c)
 {
+  if (enc == ASCII)
+    return ispunct(c);
+
   if (enc == UNICODE_ISO_8859_1) {
     if (c == 0x24 || c == 0x2b || c == 0x5e || c == 0x60 ||
         c == 0x7c || c == 0x7e) return 1;
     if (c >= 0x3c && c <= 0x3e) return 1;
   }
 
-  if (c >= 0x21 && c <= 0x23) return 1;
-  if (c >= 0x25 && c <= 0x2a) return 1;
-  if (c >= 0x2c && c <= 0x2f) return 1;
-  if (c >= 0x3a && c <= 0x3b) return 1;
-  if (c >= 0x3f && c <= 0x40) return 1;
-  if (c >= 0x5b && c <= 0x5d) return 1;
-  if (c == 0x5f) return 1;
-  if (c == 0x7b) return 1;
-  if (c == 0x7d) return 1;
+  if (c >= 0x21 && c <= 0x2f) return 1;
+  if (c >= 0x3a && c <= 0x40) return 1;
+  if (c >= 0x5b && c <= 0x60) return 1;
+  if (c >= 0x7b && c <= 0x7e) return 1;
 
   switch (enc) {
   case ISO_8859_1:
@@ -709,6 +728,9 @@ static int IsPunct(int enc, int c)
 
 static int IsSpace(int enc, int c)
 {
+  if (enc == ASCII)
+    return isspace(c);
+
   if (c >= 0x09 && c <= 0x0d) return 1;
   if (c == 0x20) return 1;
 
@@ -748,6 +770,9 @@ static int IsSpace(int enc, int c)
 
 static int IsUpper(int enc, int c)
 {
+  if (enc == ASCII)
+    return isupper(c);
+
   if (c >= 0x41 && c <= 0x5a) return 1;
 
   switch (enc) {
@@ -872,6 +897,9 @@ static int IsUpper(int enc, int c)
 
 static int IsXDigit(int enc, int c)
 {
+  if (enc == ASCII)
+    return isxdigit(c);
+
   if (c >= 0x30 && c <= 0x39) return 1;
   if (c >= 0x41 && c <= 0x46) return 1;
   if (c >= 0x61 && c <= 0x66) return 1;
@@ -880,6 +908,10 @@ static int IsXDigit(int enc, int c)
 
 static int IsWord(int enc, int c)
 {
+  if (enc == ASCII) {
+    return (isalpha(c) || isdigit(c) || c == 0x5f);
+  }
+
   if (c >= 0x30 && c <= 0x39) return 1;
   if (c >= 0x41 && c <= 0x5a) return 1;
   if (c == 0x5f) return 1;
@@ -1076,25 +1108,25 @@ static int exec(FILE* fp, ENC_INFO* einfo)
 
   enc = einfo->num;
 
-  fprintf(fp, "static unsigned short Enc%s_CtypeTable[256] = {\n",
+  fprintf(fp, "static const unsigned short Enc%s_CtypeTable[256] = {\n",
 	  einfo->name);
 
   for (c = 0; c < 256; c++) {
     val = 0;
-    if (IsNewline(enc, c))  val |= ONIGENC_CTYPE_NEWLINE;
-    if (IsAlpha (enc, c))   val |= ONIGENC_CTYPE_ALPHA;
-    if (IsBlank (enc, c))   val |= ONIGENC_CTYPE_BLANK;
-    if (IsCntrl (enc, c))   val |= ONIGENC_CTYPE_CNTRL;
-    if (IsDigit (enc, c))   val |= ONIGENC_CTYPE_DIGIT;
-    if (IsGraph (enc, c))   val |= ONIGENC_CTYPE_GRAPH;
-    if (IsLower (enc, c))   val |= ONIGENC_CTYPE_LOWER;
-    if (IsPrint (enc, c))   val |= ONIGENC_CTYPE_PRINT;
-    if (IsPunct (enc, c))   val |= ONIGENC_CTYPE_PUNCT;
-    if (IsSpace (enc, c))   val |= ONIGENC_CTYPE_SPACE;
-    if (IsUpper (enc, c))   val |= ONIGENC_CTYPE_UPPER;
-    if (IsXDigit(enc, c))   val |= ONIGENC_CTYPE_XDIGIT;
-    if (IsWord  (enc, c))   val |= ONIGENC_CTYPE_WORD;
-    if (IsAscii (enc, c))   val |= ONIGENC_CTYPE_ASCII;
+    if (IsNewline(enc, c))  val |= BIT_CTYPE_NEWLINE;
+    if (IsAlpha (enc, c))   val |= (BIT_CTYPE_ALPHA | BIT_CTYPE_ALNUM);
+    if (IsBlank (enc, c))   val |= BIT_CTYPE_BLANK;
+    if (IsCntrl (enc, c))   val |= BIT_CTYPE_CNTRL;
+    if (IsDigit (enc, c))   val |= (BIT_CTYPE_DIGIT | BIT_CTYPE_ALNUM);
+    if (IsGraph (enc, c))   val |= BIT_CTYPE_GRAPH;
+    if (IsLower (enc, c))   val |= BIT_CTYPE_LOWER;
+    if (IsPrint (enc, c))   val |= BIT_CTYPE_PRINT;
+    if (IsPunct (enc, c))   val |= BIT_CTYPE_PUNCT;
+    if (IsSpace (enc, c))   val |= BIT_CTYPE_SPACE;
+    if (IsUpper (enc, c))   val |= BIT_CTYPE_UPPER;
+    if (IsXDigit(enc, c))   val |= BIT_CTYPE_XDIGIT;
+    if (IsWord  (enc, c))   val |= BIT_CTYPE_WORD;
+    if (IsAscii (enc, c))   val |= BIT_CTYPE_ASCII;
 
     if (c % NCOL == 0) fputs("  ", fp);
     fprintf(fp, "0x%04x", val);
@@ -1112,6 +1144,12 @@ extern int main(int argc, char* argv[])
 {
   int i;
   FILE* fp = stdout;
+
+  setlocale(LC_ALL, "C");
+  /* setlocale(LC_ALL, "POSIX"); */
+  /* setlocale(LC_ALL, "en_GB.iso88591"); */
+  /* setlocale(LC_ALL, "de_BE.iso88591"); */
+  /* setlocale(LC_ALL, "fr_FR.iso88591"); */
 
   for (i = 0; i < sizeof(Info)/sizeof(ENC_INFO); i++) {
     exec(fp, &Info[i]);

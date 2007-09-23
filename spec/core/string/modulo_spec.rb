@@ -388,23 +388,23 @@ describe "String#%" do
   
   it "calls inspect on arguments for %p format" do
     obj = Object.new
-    obj.should_receive(:inspect, :returning => "obj")
+    def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
     
     obj = Object.new
     class << obj; undef :inspect; end
-    obj.should_receive(:method_missing, :with => [:inspect], :returning => "obj")
+    def obj.method_missing(*args) "obj" end
     ("%p" % obj).should == "obj"    
   end
   
   it "taints result for %p when argument.inspect is tainted" do
     obj = Object.new
-    obj.should_receive(:inspect, :returning => "x".taint)
+    def obj.inspect() "x".taint end
     
     ("%p" % obj).tainted?.should == true
     
     obj = Object.new; obj.taint
-    obj.should_receive(:inspect, :returning => "x")
+    def obj.inspect() "x" end
     
     ("%p" % obj).tainted?.should == false
   end
@@ -418,12 +418,14 @@ describe "String#%" do
   
   it "calls to_s on arguments for %s format" do
     obj = Object.new
-    obj.should_receive(:to_s, :returning => "obj")
+    def obj.to_s() "obj" end
+    
     ("%s" % obj).should == "obj"
 
     obj = Object.new
     class << obj; undef :to_s; end
-    obj.should_receive(:method_missing, :with => [:to_s], :returning => "obj")
+    def obj.method_missing(*args) "obj" end
+    
     ("%s" % obj).should == "obj"
   end
   

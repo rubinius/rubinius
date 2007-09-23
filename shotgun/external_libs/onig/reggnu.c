@@ -2,7 +2,7 @@
   reggnu.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2006  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ re_compile_pattern(const char* pattern, int size, regex_t* reg, char* ebuf)
   OnigErrorInfo einfo;
 
   r = onig_compile(reg, (UChar* )pattern, (UChar* )(pattern + size), &einfo);
-  if (r != 0) {
+  if (r != ONIG_NORMAL) {
     if (IS_NOT_NULL(ebuf))
       (void )onig_error_code_to_str((UChar* )ebuf, r, &einfo);
   }
@@ -108,7 +108,7 @@ re_recompile_pattern(const char* pattern, int size, regex_t* reg, char* ebuf)
 
   r = onig_recompile(reg, (UChar* )pattern, (UChar* )(pattern + size),
 		     reg->options, enc, OnigDefaultSyntax, &einfo);
-  if (r != 0) {
+  if (r != ONIG_NORMAL) {
     if (IS_NOT_NULL(ebuf))
       (void )onig_error_code_to_str((UChar* )ebuf, r, &einfo);
   }
@@ -126,7 +126,7 @@ extern int
 re_alloc_pattern(regex_t** reg)
 {
   return onig_alloc_init(reg, ONIG_OPTION_DEFAULT,
-                         ONIGENC_AMBIGUOUS_MATCH_DEFAULT,
+                         ONIGENC_CASE_FOLD_DEFAULT,
                          OnigEncDefaultCharEncoding,
 			 OnigDefaultSyntax);
 }
@@ -138,18 +138,8 @@ re_set_casetable(const char* table)
 }
 
 extern void
-#ifdef ONIG_RUBY_M17N
-re_mbcinit(OnigEncoding enc)
-#else
 re_mbcinit(int mb_code)
-#endif
 {
-#ifdef ONIG_RUBY_M17N
-
-  onigenc_set_default_encoding(enc);
-
-#else
-
   OnigEncoding enc;
 
   switch (mb_code) {
@@ -171,5 +161,4 @@ re_mbcinit(int mb_code)
   }
 
   onigenc_set_default_encoding(enc);
-#endif
 }

@@ -101,6 +101,9 @@
 /* Define if combination explosion check */
 #undef USE_COMBINATION_EXPLOSION_CHECK
 
+/* Define if enable CR+NL as line terminator */
+#undef USE_CRNL_AS_LINE_TERMINATOR
+
 /* Version number of package */
 #undef VERSION
 

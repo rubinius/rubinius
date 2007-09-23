@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-SOURCES = $(encode_SOURCES) $(listcap_SOURCES) $(names_SOURCES) $(posix_SOURCES) $(simple_SOURCES) $(sql_SOURCES) $(syntax_SOURCES)
+SOURCES = crnl.c $(encode_SOURCES) $(listcap_SOURCES) $(names_SOURCES) $(posix_SOURCES) $(simple_SOURCES) $(sql_SOURCES) $(syntax_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -39,7 +39,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = encode$(EXEEXT) listcap$(EXEEXT) names$(EXEEXT) \
-	posix$(EXEEXT) simple$(EXEEXT) sql$(EXEEXT) syntax$(EXEEXT)
+	posix$(EXEEXT) simple$(EXEEXT) sql$(EXEEXT) syntax$(EXEEXT) \
+	crnl$(EXEEXT)
 subdir = sample
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -50,10 +51,14 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
+crnl_SOURCES = crnl.c
+crnl_OBJECTS = crnl.$(OBJEXT)
+crnl_LDADD = $(LDADD)
+am__DEPENDENCIES_1 = $(top_builddir)/libonig.la
+crnl_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_encode_OBJECTS = encode.$(OBJEXT)
 encode_OBJECTS = $(am_encode_OBJECTS)
 encode_LDADD = $(LDADD)
-am__DEPENDENCIES_1 = $(top_builddir)/libonig.la
 encode_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_listcap_OBJECTS = listcap.$(OBJEXT)
 listcap_OBJECTS = $(am_listcap_OBJECTS)
@@ -90,12 +95,12 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(encode_SOURCES) $(listcap_SOURCES) $(names_SOURCES) \
+SOURCES = crnl.c $(encode_SOURCES) $(listcap_SOURCES) $(names_SOURCES) \
 	$(posix_SOURCES) $(simple_SOURCES) $(sql_SOURCES) \
 	$(syntax_SOURCES)
-DIST_SOURCES = $(encode_SOURCES) $(listcap_SOURCES) $(names_SOURCES) \
-	$(posix_SOURCES) $(simple_SOURCES) $(sql_SOURCES) \
-	$(syntax_SOURCES)
+DIST_SOURCES = crnl.c $(encode_SOURCES) $(listcap_SOURCES) \
+	$(names_SOURCES) $(posix_SOURCES) $(simple_SOURCES) \
+	$(sql_SOURCES) $(syntax_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -250,6 +255,9 @@ clean-noinstPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
+crnl$(EXEEXT): $(crnl_OBJECTS) $(crnl_DEPENDENCIES) 
+	@rm -f crnl$(EXEEXT)
+	$(LINK) $(crnl_LDFLAGS) $(crnl_OBJECTS) $(crnl_LDADD) $(LIBS)
 encode$(EXEEXT): $(encode_OBJECTS) $(encode_DEPENDENCIES) 
 	@rm -f encode$(EXEEXT)
 	$(LINK) $(encode_LDFLAGS) $(encode_OBJECTS) $(encode_LDADD) $(LIBS)
@@ -278,6 +286,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crnl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/encode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/listcap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/names.Po@am__quote@

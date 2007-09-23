@@ -131,7 +131,7 @@ onig2posix_error_code(int code)
 }
 
 extern int
-onig_regcomp(regex_t* reg, const char* pattern, int posix_options)
+regcomp(regex_t* reg, const char* pattern, int posix_options)
 {
   int r, len;
   OnigSyntaxType* syntax = OnigDefaultSyntax;
@@ -163,7 +163,7 @@ onig_regcomp(regex_t* reg, const char* pattern, int posix_options)
 }
 
 extern int
-onig_regexec(regex_t* reg, const char* str, size_t nmatch,
+regexec(regex_t* reg, const char* str, size_t nmatch,
 	regmatch_t pmatch[], int posix_options)
 {
   int r, i, len;
@@ -221,7 +221,7 @@ onig_regexec(regex_t* reg, const char* str, size_t nmatch,
 }
 
 extern void
-onig_regfree(regex_t* reg)
+regfree(regex_t* reg)
 {
   onig_free(ONIG_C(reg));
 }

@@ -1,4 +1,4 @@
-noinst_PROGRAMS = encode listcap names posix simple sql syntax
+noinst_PROGRAMS = encode listcap names posix simple sql syntax crnl
 
 libname = $(top_builddir)/libonig.la
 LDADD   = $(libname)

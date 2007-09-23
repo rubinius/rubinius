@@ -75,7 +75,8 @@ am_libonig_la_OBJECTS = regerror.lo regparse.lo regext.lo regcomp.lo \
 	iso8859_3.lo iso8859_4.lo iso8859_5.lo iso8859_6.lo \
 	iso8859_7.lo iso8859_8.lo iso8859_9.lo iso8859_10.lo \
 	iso8859_11.lo iso8859_13.lo iso8859_14.lo iso8859_15.lo \
-	iso8859_16.lo euc_tw.lo euc_kr.lo big5.lo gb18030.lo koi8_r.lo
+	iso8859_16.lo euc_tw.lo euc_kr.lo big5.lo gb18030.lo koi8_r.lo \
+	cp1251.lo
 libonig_la_OBJECTS = $(am_libonig_la_OBJECTS)
 am_testc_OBJECTS = testc.$(OBJEXT)
 testc_OBJECTS = $(am_testc_OBJECTS)
@@ -228,8 +229,9 @@ target_alias = @target_alias@
 encdir = $(top_srcdir)/enc
 sampledir = $(top_srcdir)/sample
 libname = libonig.la
-RUBY_INSTALL_MODE = -m 0644
-AM_CFLAGS = -DNOT_RUBY
+
+#AM_CFLAGS = -DNOT_RUBY
+AM_CFLAGS = 
 INCLUDES = -I$(top_srcdir) -I$(includedir)
 SUBDIRS = . sample
 include_HEADERS = oniguruma.h oniggnu.h onigposix.h
@@ -250,11 +252,10 @@ libonig_la_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/iso8859_13.c $(encdir)/iso8859_14.c \
 	$(encdir)/iso8859_15.c $(encdir)/iso8859_16.c \
 	$(encdir)/euc_tw.c $(encdir)/euc_kr.c $(encdir)/big5.c \
-	$(encdir)/gb18030.c $(encdir)/koi8_r.c
+	$(encdir)/gb18030.c $(encdir)/koi8_r.c $(encdir)/cp1251.c
 
 libonig_la_LDFLAGS = -version-info $(LTVERSION)
-EXTRA_DIST = HISTORY INSTALL-RUBY MANIFEST-RUBY README.ja index.html \
-	test.rb testconv.rb testconvu.rb \
+EXTRA_DIST = HISTORY README.ja index.html index_ja.html \
 	doc/API doc/API.ja doc/RE doc/RE.ja doc/FAQ doc/FAQ.ja \
 	win32/Makefile win32/config.h win32/testc.c \
 	$(encdir)/koi8.c $(encdir)/mktable.c \
@@ -403,6 +404,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ascii.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/big5.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cp1251.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_jp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_kr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/euc_tw.Plo@am__quote@
@@ -670,6 +672,13 @@ koi8_r.lo: $(encdir)/koi8_r.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(encdir)/koi8_r.c' object='koi8_r.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o koi8_r.lo `test -f '$(encdir)/koi8_r.c' || echo '$(srcdir)/'`$(encdir)/koi8_r.c
+
+cp1251.lo: $(encdir)/cp1251.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT cp1251.lo -MD -MP -MF "$(DEPDIR)/cp1251.Tpo" -c -o cp1251.lo `test -f '$(encdir)/cp1251.c' || echo '$(srcdir)/'`$(encdir)/cp1251.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/cp1251.Tpo" "$(DEPDIR)/cp1251.Plo"; else rm -f "$(DEPDIR)/cp1251.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(encdir)/cp1251.c' object='cp1251.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o cp1251.lo `test -f '$(encdir)/cp1251.c' || echo '$(srcdir)/'`$(encdir)/cp1251.c
 
 testp-testc.o: testc.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(testp_CFLAGS) $(CFLAGS) -MT testp-testc.o -MD -MP -MF "$(DEPDIR)/testp-testc.Tpo" -c -o testp-testc.o `test -f 'testc.c' || echo '$(srcdir)/'`testc.c; \
@@ -1178,22 +1187,6 @@ dll:
 	$(LIBS)
 	strip libonig.dll
 
-# Ruby 1.9 update
-19:
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regerror.c   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regparse.c   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regcomp.c    $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regexec.c    $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regenc.c     $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regint.h     $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regparse.h   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regenc.h     $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/oniguruma.h  $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/ascii.c  $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/utf8.c   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/euc_jp.c $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/sjis.c   $(RUBYDIR)
-
 # Ruby TEST
 rtest:
 	$(RUBYDIR)/ruby -w -Ke $(srcdir)/test.rb
@@ -1210,14 +1203,14 @@ atest: testc testp testcu
 	@echo "[Oniguruma API, UTF-16 check]"
 	@$(top_builddir)/testcu | grep RESULT
 
-testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
-	ruby -Ke $(srcdir)/testconv.rb < $(srcdir)/test.rb > $@
+#testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
+#	ruby -Ke $(srcdir)/testconv.rb < $(srcdir)/test.rb > $@
 
-testu.c: $(srcdir)/test.rb $(srcdir)/testconvu.rb
-	ruby -Ke $(srcdir)/testconvu.rb $(srcdir)/test.rb > $@
+#testu.c: $(srcdir)/test.rb $(srcdir)/testconvu.rb
+#	ruby -Ke $(srcdir)/testconvu.rb $(srcdir)/test.rb > $@
 
-win32/testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
-	ruby -Ke $(srcdir)/testconv.rb -win < $(srcdir)/test.rb | nkf -cs > $@
+#win32/testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
+#	ruby -Ke $(srcdir)/testconv.rb -win < $(srcdir)/test.rb | nkf -cs > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

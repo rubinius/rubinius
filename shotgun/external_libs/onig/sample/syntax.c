@@ -60,7 +60,7 @@ extern int main(int argc, char* argv[])
   int r;
 
   r = exec(ONIG_SYNTAX_PERL,
-	   "\\p{XDigit}\\P{XDigit}\\p{^XDigit}\\P{^XDigit}\\p{IsXDigit}",
+	   "\\p{XDigit}\\P{XDigit}\\p{^XDigit}\\P{^XDigit}\\p{XDigit}",
 	   "bgh3a");
 
   r = exec(ONIG_SYNTAX_JAVA,

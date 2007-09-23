@@ -130,7 +130,7 @@ static void xx(char* pattern, char* str, int from, int to, int mem, int not)
   ci.target_enc  = ENC;
   ci.syntax      = ONIG_SYNTAX_DEFAULT;
   ci.option      = ONIG_OPTION_DEFAULT;
-  ci.ambig_flag  = ONIGENC_AMBIGUOUS_MATCH_DEFAULT;
+  ci.case_fold_flag = ONIGENC_CASE_FOLD_DEFAULT;
 
   r = onig_new_deluxe(&reg, (UChar* )pattern,
           (UChar* )(pattern + ulen(pattern)),

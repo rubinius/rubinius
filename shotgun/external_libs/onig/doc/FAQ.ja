@@ -1,4 +1,4 @@
-FAQ    2006/05/15
+FAQ    2006/12/19
 
 1. 最長マッチ
 
@@ -13,12 +13,17 @@ FAQ    2006/05/15
 
    (A) Oniguruma Layer
 
-       oniguruma/regint.hの中のNOT_RUBYの部分の以下のマクロを定義する。
+       oniguruma/regint.hの中の以下のマクロを定義する。
 
        USE_MULTI_THREAD_SYSTEM
        THREAD_ATOMIC_START
        THREAD_ATOMIC_END
        THREAD_PASS
+
+       何らかの初期化/終了処理が必要であれば、以下のマクロに定義する。
+       THREAD_SYSTEM_INIT
+       THREAD_SYSTEM_END
+
 
    (B) Application Layer
 
@@ -30,7 +35,20 @@ FAQ    2006/05/15
    "スレッドセーフに関する補足"に書いておいた。
 
 
-3. メーリングリスト
+3. CR + LF
+
+   DOSの改行(CR(0x0c) + LF(0x0a)の連続)については、
+   公式にはサポートしていない。
+
+   どうしても必要な場合には、以下のようにすれば一応動作するが、
+   こちらでは、まともなテストはしていない。
+
+   regint.hの中の、以下の部分を有効にする。
+
+     /* #define USE_CRNL_AS_LINE_TERMINATOR */
+
+
+4. メーリングリスト
 
    鬼車に関するメーリングリストは存在しない。
 
@@ -54,8 +72,7 @@ Onigurumaライブラリの中で行うか、どちらかを選ぶことができます。
 
 (A) Onigurumaの中で対応する場合
 
-oniguruma/regint.hの中のNOT_RUBYで囲まれている部分の中で
-以下のマクロを定義して再コンパイルしてください。
+oniguruma/regint.hの中で以下のマクロを定義して再コンパイルしてください。
 
 USE_MULTI_THREAD_SYSTEM
 
@@ -85,6 +102,8 @@ Rubyは自分自身で独自のスレッド機能を実装しています。
 なります。
 
 #define USE_MULTI_THREAD_SYSTEM
+#define THREAD_SYSTEM_INIT
+#define THREAD_SYSTEM_END
 #define THREAD_ATOMIC_START       DEFER_INTS
 #define THREAD_ATOMIC_END         ENABLE_INTS
 #define THREAD_PASS               rb_thread_schedule()

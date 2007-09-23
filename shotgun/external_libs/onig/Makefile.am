@@ -3,8 +3,8 @@ encdir    = $(top_srcdir)/enc
 sampledir = $(top_srcdir)/sample
 libname = libonig.la
 
-RUBY_INSTALL_MODE = -m 0644
-AM_CFLAGS = -DNOT_RUBY
+#AM_CFLAGS = -DNOT_RUBY
+AM_CFLAGS =
 INCLUDES  = -I$(top_srcdir) -I$(includedir)
 
 SUBDIRS = . sample
@@ -28,12 +28,11 @@ libonig_la_SOURCES = regint.h regparse.h regenc.h st.h \
 	$(encdir)/iso8859_13.c $(encdir)/iso8859_14.c \
 	$(encdir)/iso8859_15.c $(encdir)/iso8859_16.c \
 	$(encdir)/euc_tw.c $(encdir)/euc_kr.c $(encdir)/big5.c \
-	$(encdir)/gb18030.c $(encdir)/koi8_r.c
+	$(encdir)/gb18030.c $(encdir)/koi8_r.c $(encdir)/cp1251.c
 
 libonig_la_LDFLAGS = -version-info $(LTVERSION)
 
-EXTRA_DIST = HISTORY INSTALL-RUBY MANIFEST-RUBY README.ja index.html \
-	test.rb testconv.rb testconvu.rb \
+EXTRA_DIST = HISTORY README.ja index.html index_ja.html \
 	doc/API doc/API.ja doc/RE doc/RE.ja doc/FAQ doc/FAQ.ja \
 	win32/Makefile win32/config.h win32/testc.c \
 	$(encdir)/koi8.c $(encdir)/mktable.c \
@@ -49,22 +48,6 @@ dll:
 	$(CXX) -shared -Wl,--output-def,libonig.def -o libonig.dll *.o \
 	$(LIBS)
 	strip libonig.dll
-
-# Ruby 1.9 update
-19:
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regerror.c   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regparse.c   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regcomp.c    $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regexec.c    $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regenc.c     $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regint.h     $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regparse.h   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/regenc.h     $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/oniguruma.h  $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/ascii.c  $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/utf8.c   $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/euc_jp.c $(RUBYDIR)
-	$(INSTALL) $(RUBY_INSTALL_MODE) $(srcdir)/enc/sjis.c   $(RUBYDIR)
 
 # Ruby TEST
 rtest:
@@ -99,13 +82,13 @@ testcu_SOURCES = testu.c
 testcu_LDADD = libonig.la
 
 
-testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
-	ruby -Ke $(srcdir)/testconv.rb < $(srcdir)/test.rb > $@
+#testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
+#	ruby -Ke $(srcdir)/testconv.rb < $(srcdir)/test.rb > $@
 
-testu.c: $(srcdir)/test.rb $(srcdir)/testconvu.rb
-	ruby -Ke $(srcdir)/testconvu.rb $(srcdir)/test.rb > $@
+#testu.c: $(srcdir)/test.rb $(srcdir)/testconvu.rb
+#	ruby -Ke $(srcdir)/testconvu.rb $(srcdir)/test.rb > $@
 
-win32/testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
-	ruby -Ke $(srcdir)/testconv.rb -win < $(srcdir)/test.rb | nkf -cs > $@
+#win32/testc.c: $(srcdir)/test.rb $(srcdir)/testconv.rb
+#	ruby -Ke $(srcdir)/testconv.rb -win < $(srcdir)/test.rb | nkf -cs > $@
 
 ## END OF FILE

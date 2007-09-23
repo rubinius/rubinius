@@ -1,4 +1,4 @@
-FAQ    2006/05/15
+FAQ    2006/11/14
 
 1. Lognest match
 
@@ -12,12 +12,16 @@ FAQ    2006/05/15
 
    (A) Oniguruma Layer
 
-       Define the macro below at NOT_RUBY case in oniguruma/regint.h.
+       Define the macro below in oniguruma/regint.h.
 
        USE_MULTI_THREAD_SYSTEM
        THREAD_ATOMIC_START
        THREAD_ATOMIC_END
        THREAD_PASS
+
+       THREAD_SYSTEM_INIT
+       THREAD_SYSTEM_END
+
 
    (B) Application Layer
 

@@ -97,7 +97,7 @@ typedef struct {
 
 #ifndef ONIG_EXTERN
 #if defined(_WIN32) && !defined(__GNUC__)
-#if defined(EXPORT) || defined(RUBY_EXPORT)
+#if defined(EXPORT)
 #define ONIG_EXTERN   extern __declspec(dllexport)
 #else
 #define ONIG_EXTERN   extern __declspec(dllimport)
@@ -150,12 +150,10 @@ ONIG_EXTERN const char* onig_copyright P_((void));
 
 #endif /* ONIGURUMA_H */
 
-#define regcomp onig_regcomp
-ONIG_EXTERN int    onig_regcomp P_((regex_t* reg, const char* pat, int options));
-#define regexec onig_regexec
-ONIG_EXTERN int    onig_regexec P_((regex_t* reg, const char* str, size_t nmatch, regmatch_t* matches, int options));
-#define regfree onig_regfree
-ONIG_EXTERN void   onig_regfree P_((regex_t* reg));
+
+ONIG_EXTERN int    regcomp P_((regex_t* reg, const char* pat, int options));
+ONIG_EXTERN int    regexec P_((regex_t* reg, const char* str, size_t nmatch, regmatch_t* matches, int options));
+ONIG_EXTERN void   regfree P_((regex_t* reg));
 ONIG_EXTERN size_t regerror P_((int code, const regex_t* reg, char* buf, size_t size));
 
 /* extended API */

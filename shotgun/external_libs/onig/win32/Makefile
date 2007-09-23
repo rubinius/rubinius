@@ -52,7 +52,8 @@ encobjs      =  $(encdir)\ascii.obj $(encdir)\utf8.obj \
 		$(jp_objs) $(iso8859_objs) \
 		$(encdir)\euc_tw.obj $(encdir)\euc_kr.obj $(encdir)\big5.obj \
 		$(encdir)\gb18030.obj \
-		$(encdir)\koi8_r.obj  # $(encdir)\koi8.obj
+		$(encdir)\koi8_r.obj  \
+		$(encdir)\cp1251.obj # $(encdir)\koi8.obj
 
 onigsources  = regerror.c regparse.c regext.c regcomp.c regexec.c regenc.c \
 	       regsyntax.c regtrav.c regversion.c reggnu.c st.c
@@ -135,6 +136,7 @@ $(encdir)\iso8859_15.obj: $(encdir)\iso8859_15.c regenc.h config.h
 $(encdir)\iso8859_16.obj: $(encdir)\iso8859_16.c regenc.h config.h
 $(encdir)\koi8.obj:       $(encdir)\koi8.c   regenc.h config.h
 $(encdir)\koi8_r.obj:     $(encdir)\koi8_r.c regenc.h config.h
+$(encdir)\cp1251.obj:     $(encdir)\cp1251.c regenc.h config.h
 $(encdir)\big5.obj:       $(encdir)\big5.c   regenc.h config.h
 $(encdir)\gb18030.obj:    $(encdir)\gb18030.c   regenc.h config.h
 
@@ -157,8 +159,8 @@ $(testc): $(testc).c $(libname)
 $(testp): $(testc).c $(dlllib)
 	$(CC) -nologo -DPOSIX_TEST -o $(testp) $(testc).c $(dlllib)
 
-$(testc)u.c: test.rb testconvu.rb
-	ruby -Ke testconvu.rb test.rb > $@
+#$(testc)u.c: test.rb testconvu.rb
+#	ruby -Ke testconvu.rb test.rb > $@
 
 $(testc)u: $(testc)u.c $(libname)
 	$(CC) -nologo -o $(testc)u -DONIG_EXTERN=extern $(testc)u.c $(libname)
@@ -172,20 +174,20 @@ SORIG = ruby_orig
 
 # ruby 1.9 source update
 19:
-	$(CP) regerror.c   $(RUBYDIR)
-	$(CP) regparse.c   $(RUBYDIR)
-	$(CP) regcomp.c    $(RUBYDIR)
-	$(CP) regexec.c    $(RUBYDIR)
-	$(CP) regenc.c     $(RUBYDIR)
-	$(CP) regint.h     $(RUBYDIR)
-	$(CP) regparse.h   $(RUBYDIR)
-	$(CP) regenc.h     $(RUBYDIR)
-	$(CP) oniguruma.h  $(RUBYDIR)
-	mkdir $(RUBYDIR)\enc
-	$(CP) enc\ascii.c  $(RUBYDIR)
-	$(CP) enc\utf8.c   $(RUBYDIR)
-	$(CP) enc\euc_jp.c $(RUBYDIR)
-	$(CP) enc\sjis.c   $(RUBYDIR)
+	$(CP) regerror.c    $(RUBYDIR)
+	$(CP) regparse.c    $(RUBYDIR)
+	$(CP) regcomp.c     $(RUBYDIR)
+	$(CP) regexec.c     $(RUBYDIR)
+	$(CP) regenc.c      $(RUBYDIR)
+	$(CP) regint.h      $(RUBYDIR)
+	$(CP) regparse.h    $(RUBYDIR)
+	$(CP) regenc.h      $(RUBYDIR)
+	$(CP) oniguruma.h   $(RUBYDIR)
+	$(CP) enc\ascii.c   $(RUBYDIR)
+	$(CP) enc\utf8.c    $(RUBYDIR)
+	$(CP) enc\euc_jp.c  $(RUBYDIR)
+	$(CP) enc\sjis.c    $(RUBYDIR)
+	$(CP) enc\unicode.c $(RUBYDIR)
 
 
 samples: all
