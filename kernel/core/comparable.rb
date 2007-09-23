@@ -33,56 +33,45 @@
 #     [ s3, s2, s5, s4, s1 ].sort   #=> [Z, YY, XXX, WWWW, VVVVV]
 #     
 module Comparable
-  #  :call-seq:
-  #     obj == other    => true or false
-  #  
-  #  Compares two objects based on the receiver's <code><=></code>
-  #  method, returning true if it returns 0. Also returns true if
-  #  _obj_ and _other_ are the same object.
 
+  # Compares two objects based on the receiver's <code><=></code>
+  # method, returning true if it returns 0. Also returns true if
+  # _obj_ and _other_ are the same object.
   def ==(other)
-    self.object_id == other.object_id || (self <=> other) == 0
+    return true if self.equal?(other)
+    
+    return unless c = (self <=> other)
+    return c == 0 if c.is_a?(Numeric)
+
+    raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+  rescue StandardError
+    return nil
   end
 
-  #  :call-seq:
-  #     obj > other    => true or false
-  #  
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns 1.
   def >(other)
-    (self <=> other) > 0
+    __internal_compare__(other) > 0
   end
 
-  #  :call-seq:
-  #     obj >= other    => true or false
-  #  
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns 0 or 1.
   def >=(other)
-    (self <=> other) >= 0
+    __internal_compare__(other) >= 0
   end
 
-  #  :call-seq:
-  #     obj < other    => true or false
-  #  
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns -1.
   def <(other)
-    (self <=> other) < 0
+    __internal_compare__(other) < 0
   end
 
-  #  :call-seq:
-  #     obj <= other    => true or false
-  #  
   #  Compares two objects based on the receiver's <code><=></code>
   #  method, returning true if it returns -1 or 0.
   def <=(other)
-    (self <=> other) <= 0
+    __internal_compare__(other) <= 0
   end
   
-  #  :call-seq:
-  #     obj.between?(min, max)    => true or false
-  #  
   #  Returns <code>false</code> if <i>obj</i> <code><=></code>
   #  <i>min</i> is less than zero or if <i>anObject</i> <code><=></code>
   #  <i>max</i> is greater than zero, <code>true</code> otherwise.
@@ -94,6 +83,16 @@ module Comparable
   #     
   def between?(min, max)
     (min <= self) && (self <= max)
+  end
+  
+  # TODO: mark as internal only
+  #private
+  def __internal_compare__(other)
+    unless result = (self <=> other)
+      raise ArgumentError, "comparison of #{self.class} with #{other.class} failed"
+    end
+    
+    return result
   end
 end
 
