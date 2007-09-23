@@ -29,5 +29,9 @@ describe "Fixnum#/" do
     should_raise(TypeError, "String can't be coerced into Fixnum") do
       13 / "10"
     end
+    
+    should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+      13 / :symbol
+    end
   end
 end

@@ -19,8 +19,8 @@ class Numeric
   end
   
   def /(other)
-    b, a = self.coerce(other)
-    raise ZeroDivisionError, "Divide by 0" unless Float === b or b != 0
+    b, a = self.do_coerce(other, true)
+    raise ZeroDivisionError, "divided by 0" unless Float === b or b != 0
     a / b
   end
   
@@ -81,8 +81,9 @@ class Numeric
     false
   end
  
-  def div(numeric)
-    (self / numeric).to_i
+  def div(other)
+    raise FloatDomainError, "NaN" if self == 0 && other.is_a?(Float) && other == 0
+    (self / other).to_i
   end
 
   def divmod(other)
@@ -119,6 +120,25 @@ class Numeric
       yield(idx)
       idx += step
     end
+  end
+
+  # Little helper to ease coercing
+  def do_coerce(other, raise_error = false)
+    begin
+      values = other.coerce(self)
+    rescue
+      if raise_error
+        message = "#{other.is_a?(Symbol) ? other.inspect : other.class} can't be coerced into #{self.class}"
+        raise TypeError, message 
+      end
+    end
+    
+    unless values.is_a?(Array) && values.length == 2
+      raise TypeError, "coerce must return [x, y]" if raise_error
+      return false
+    end
+    
+    return values[1], values[0]
   end
 end
 

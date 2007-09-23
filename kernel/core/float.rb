@@ -99,7 +99,7 @@ class Float < Numeric
   
   def to_i
     if infinite?
-      raise FloatDomainError, "Infinity"
+      raise FloatDomainError, self < 0 ? "-Infinity" : "Infinity"
     elsif nan?
       return self
     else
