@@ -1,19 +1,15 @@
-module ComparableSpecs 
+module ComparableSpecs
   class Weird
     include Comparable
   
-    def initialize(int)
-      @int = int
-    end
+    attr_reader :value
   
-    def negative?
-      @int < 0
+    def initialize(value)
+      @value = value
     end
   
     def <=>(other)
-      return 0 if self.negative? == other.negative?
-      return 1 if self.negative?
-      -1
+      self.value <=> other.value
     end
   end
 end
