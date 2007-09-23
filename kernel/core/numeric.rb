@@ -35,17 +35,20 @@ class Numeric
     a % b
   end
    
+  def &(other)
+    self & other.coerce_to(Integer, :to_int)
+  end
+   
   def |(other)
-    self | Integer(other)
+    self | other.coerce_to(Integer, :to_int)
   end
   
   def ^(other)
-    self ^ Integer(other)
+    self ^ other.coerce_to(Integer, :to_int)
   end
 
   def abs
-    return -self if self < 0
-    self
+    self < 0 ? -self : self
   end
 
   def floor
