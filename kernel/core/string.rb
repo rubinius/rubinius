@@ -1615,7 +1615,7 @@ class String
       arg = Regexp.new(Regexp.quote(arg))
     end
     
-    ret = arg.match_reverse(self, finish)
+    ret = arg.match_region(self, 0, finish, false)
     $~ = ret if original_klass == Regexp
     ret && ret.begin(0)
   end

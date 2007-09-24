@@ -460,43 +460,177 @@ end
 
 class YSprintf
   
-  def self.parse(fmt, args)
-    start, out, position = 0, "", false
-    flags = {:space => nil, :position => nil, :alternative => nil, :plus => nil, 
-      :minus => nil, :zero => nil, :star => nil}
-    arg_position = 0
-    val = nil
-    while (match = /%/.match_from(self, start))
-      out << match.pre_match_from(start)
-      # Get the next flag token
-      while token = match_from(/\G( |\d\$|#|\+|\-|0|\*)/, start + 1)
+  attr_accessor :fmt
+  attr_accessor :args
+  attr_accessor :flags
+  def initialize(fmt, *args)
+    @fmt, @args, @arg_position = fmt, args, 0
+  end
+  
+  def parse
+    start = 0
+    ret = ""
+    width = nil
+    precision = nil
+    @arg_position = 0
+    
+    while (match = /%/.match_from(fmt, start))
+      @flags = {:space => nil, :position => nil, :alternative => nil, :plus => nil, 
+        :minus => nil, :zero => nil, :star => nil}
+      @width = @precision = @type = nil
+
+      ret << match.pre_match_from(start)
+      start = match.begin(0) + 1
+      # FLAG STATE
+      while token = /\G( |\d\$|#|\+|\-|0|\*)/.match_from(fmt, start)
         case token[0]
-        # Special case: if we get two \d\$, it means that we're outsid of flag-land
+        # Special case: if we get two \d\$, it means that we're outside of flag-land
         when /\d\$/
           break if flags[:position]
-          flags[:position] = token[0][0].chr.to_i
-          val = args[flags[:position]]
+          @flags[:position] = token[0][0].chr.to_i
           start += 1
         when " "
-          flags[:space] = true
+          @flags[:space] = true
         when "#"
-          flags[:alternative] = true
+          @flags[:alternative] = true
         when "+"
-          flags[:plus] = true
+          @flags[:plus] = true
         when "-"
-          flags[:minus] = true
+          @flags[:minus] = true
         when "0"
-          flags[:zero] = true
+          @flags[:zero] = true
         when "*"
-          flags[:start] = true
-          val = args[arg_position]
-          arg_position += 1
+          @flags[:star] = true
         end
         start += 1
       end
       
+      # WIDTH STATE
+      if width_match = /\G(\d\$|\*|\d+)/.match_from(fmt, start)
+        @width = Slot.new(width_match[0])
+        start += width_match[0].size
+      end
+    
+      # PRECISION DETERMINATION STATE
+      if /\G\./.match_from(fmt, start)
+        start += 1
+        # PRECISION STATE
+        if precision_match = /\G(\d\$|\*|\d+)/.match_from(fmt, start)
+          @precision = Slot.new(precision_match[0])
+          start += precision_match[0].size
+        else
+          @precision = Slot.new("0")
+        end
+      end
+    
+      # TYPE STATE
+      unless type = /\G[bcdEefGgiopsuXx]/.match_from(fmt, start)
+        raise ArgumentError, "malformed format string - missing field type" 
+      else
+        @type = type[0]
+        start += 1
+      end
+    
+      # Next: Use the parsed values to format some stuff :)
+      f = format
+      ret << f if f
     end
-    flags
+    ret
+  end
+  
+  def format
+    raise ArgumentError, "provided width twice" if flags[:star] && @width
+    
+    # GET VALUE
+    if flags[:position]
+      val = args[flags[:position] - 1]
+      raise ArgumentError, "you specified an argument position that did not exist" unless val
+    else
+      val = args[@arg_position]
+      @arg_position += 1
+      raise ArgumentError, "you have more format specifiers than arguments" unless val      
+    end
+
+    
+    # GET WIDTH
+    @width = Slot.new("*") if flags[:star]
+    width = get_arg(@width)
+    
+    # GET PRECISION
+    precision = get_arg(@precision) || 0
+    
+    case @type
+    when "d"
+      ret = pad(val.to_s(10), width, precision)
+    when "b"
+      ret = pad(val.to_s(2), width, precision)
+    end
+    ret
+  end
+  
+  def get_arg(slot)
+    return nil unless slot
+    if slot.position == :next
+      ret = args[@arg_position]
+      @arg_position += 1
+    elsif slot.pos
+      ret = args[slot.position - 1]
+    elsif slot.value
+      ret = slot.value
+    else
+      ret = nil
+    end
+    raise ArgumentError, "you specified an argument position that did not exist: #{slot.str}" unless ret
+    ret
+  end
+  
+  def pad(val, width, precision)
+    direction = flags[:minus] ? :ljust : :rjust
+    ret = val
+    width = nil if width.to_i <= val.size
+    if precision
+      ret = plus_char + ret.send(direction, precision, "0") 
+      flags[:zero] = flags[:plus] = flags[:space] = nil
+    end
+    if width
+      ret = ret.send(direction, width, pad_char)
+      ret[0] = plus_char unless plus_char.empty?
+    else
+      ret = plus_char + ret
+    end
+    ret
+  end
+  
+  def pad_char
+    flags[:zero] ? "0" : " "
+  end
+  
+  def plus_char
+    return "+" if flags[:plus]
+    return " " if flags[:space]
+    ""
+  end
+  
+  class Slot
+    
+    # pos means it got a N$ position
+    attr_reader :pos
+    attr_reader :position
+    attr_reader :value
+    attr_reader :str
+    
+    def initialize(str)
+      @pos = false
+      @str = str
+      if str.size == 2 && str[1] == ?$
+        @pos = true
+        @position = str[0..0].to_i
+      elsif str == "*"
+        @position = :next
+      else
+        @value = str.to_i
+      end
+    end
   end
   
 end
