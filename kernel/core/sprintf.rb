@@ -7,9 +7,10 @@ module Sprintf
       out  = []
       # The instance contains all the state handling
       fmtstr = Sprintf::Parser.new(str, args)
+      numbered = nil
       
       while fmtstr.index('%')
-        if !fmtstr.end_of_string? && fmtstr[1] == ?%
+        if !fmtstr.end_of_string? && (fmtstr[1] == ?% || fmtstr[1] == 0)
           fmtstr.next
           out << fmtstr.get_mark_to_cursor
           fmtstr.next
@@ -49,7 +50,9 @@ module Sprintf
             number = fmtstr.get_number
             if fmtstr[] == ?$
               raise ArgumentError, "value given twice #{number}$" if !fmt.value.nil?
+              raise ArgumentError, "mixing numbered with unnumbered" if numbered == false
               fmt.value = fmtstr.get_argument(number - 1)
+              numbered = true
               fmtstr.next
             else
               fmt.width = number
@@ -65,7 +68,11 @@ module Sprintf
             
           when ?B, ?b,?c,?d,?E,?e,?f,?G,?g,?i,?o,?p,?s,?u,?X,?x
             fmt.type = c
-            fmt.value = fmtstr.get_next_argument if fmt.unset?
+            if fmt.unset?
+              raise ArgumentError, "mixing numbered with unnumbered" if numbered == true
+              fmt.value = fmtstr.get_next_argument if fmt.unset?
+              numbered = false
+            end
             fmtstr.next
             break
           else
@@ -73,10 +80,22 @@ module Sprintf
           end
         end
         if fmt.type.nil?
-          raise ArgumentError, "malformed format string - missing field type"
+          puts fmtstr.instance_variable_get("@str")
+          unless (fmtstr.next_char == "\n") || fmt.value
+            raise ArgumentError, "malformed format string - missing field type" 
+          else
+            # fmtstr.next
+            # out << fmtstr.get_mark_to_cursor
+            out << "%"
+            fmtstr.drop_mark_point
+            next
+          end
         end
         # Pop another argument off the stack if no absolute reference provided
-        fmt.value = fmtstr.get_next_argument if fmt.unset?
+        if fmt.unset?
+          fmt.value = fmtstr.get_next_argument
+          raise ArgumentError, "mixing numbered with unnumbered" if numbered == true
+        end
         out << fmt
         fmtstr.drop_mark_point
       end
@@ -113,6 +132,10 @@ module Sprintf
       @str.data[@idx+offset]
     end
     
+    def len
+      @len
+    end
+    
     def cursor
       @idx
     end
@@ -126,8 +149,20 @@ module Sprintf
       @mark = 0
     end
     
+    def last_char?
+      @idx == @len - 1
+    end
+    
     def end_of_string?
       @idx >= @len
+    end
+    
+    def cur_char
+      @str[@idx]
+    end
+    
+    def next_char
+      @str[@idx + 1]
     end
     
     def index(char)
@@ -422,28 +457,180 @@ module Sprintf
   end
 end
 
-module YSprintf
-  class Parser
-    NONE  = 0
-    SHARP = 1
-    MINUS = 2
-    PLUS  = 4
-    ZERO  = 8
-    SPACE = 16
-    WIDTH = 32
-    PREC  = 64
-    PREC0 = 128
 
-    def sprintf(fmt, *args)
-      fmt = StringValue(fmt)
-      ret = ""
-      fmt_args = fmt.split(/%/)
-      fmt_args.pop while(fmt_args[0] == "")
-    end
-
-    def self.printable(char)
-      (/[[:printable:]]/ ~= char.chr) && char >= 0 && char <= 127
-    end
-
+class YSprintf
+  
+  attr_accessor :fmt
+  attr_accessor :args
+  attr_accessor :flags
+  def initialize(fmt, *args)
+    @fmt, @args, @arg_position = fmt, args, 0
   end
+  
+  def parse
+    start = 0
+    ret = ""
+    width = nil
+    precision = nil
+    @arg_position = 0
+    
+    while (match = /%/.match_from(fmt, start))
+      @flags = {:space => nil, :position => nil, :alternative => nil, :plus => nil, 
+        :minus => nil, :zero => nil, :star => nil}
+      @width = @precision = @type = nil
+
+      ret << match.pre_match_from(start)
+      start = match.begin(0) + 1
+      # FLAG STATE
+      while token = /\G( |\d\$|#|\+|\-|0|\*)/.match_from(fmt, start)
+        case token[0]
+        # Special case: if we get two \d\$, it means that we're outside of flag-land
+        when /\d\$/
+          break if flags[:position]
+          @flags[:position] = token[0][0].chr.to_i
+          start += 1
+        when " "
+          @flags[:space] = true
+        when "#"
+          @flags[:alternative] = true
+        when "+"
+          @flags[:plus] = true
+        when "-"
+          @flags[:minus] = true
+        when "0"
+          @flags[:zero] = true
+        when "*"
+          @flags[:star] = true
+        end
+        start += 1
+      end
+      
+      # WIDTH STATE
+      if width_match = /\G(\d\$|\*|\d+)/.match_from(fmt, start)
+        @width = Slot.new(width_match[0])
+        start += width_match[0].size
+      end
+    
+      # PRECISION DETERMINATION STATE
+      if /\G\./.match_from(fmt, start)
+        start += 1
+        # PRECISION STATE
+        if precision_match = /\G(\d\$|\*|\d+)/.match_from(fmt, start)
+          @precision = Slot.new(precision_match[0])
+          start += precision_match[0].size
+        else
+          @precision = Slot.new("0")
+        end
+      end
+    
+      # TYPE STATE
+      unless type = /\G[bcdEefGgiopsuXx]/.match_from(fmt, start)
+        raise ArgumentError, "malformed format string - missing field type" 
+      else
+        @type = type[0]
+        start += 1
+      end
+    
+      # Next: Use the parsed values to format some stuff :)
+      f = format
+      ret << f if f
+    end
+    ret
+  end
+  
+  def format
+    raise ArgumentError, "provided width twice" if flags[:star] && @width
+    
+    # GET VALUE
+    if flags[:position]
+      val = args[flags[:position] - 1]
+      raise ArgumentError, "you specified an argument position that did not exist" unless val
+    else
+      val = args[@arg_position]
+      @arg_position += 1
+      raise ArgumentError, "you have more format specifiers than arguments" unless val      
+    end
+
+    
+    # GET WIDTH
+    @width = Slot.new("*") if flags[:star]
+    width = get_arg(@width)
+    
+    # GET PRECISION
+    precision = get_arg(@precision) || 0
+    
+    case @type
+    when "d"
+      ret = pad(val.to_s(10), width, precision)
+    when "b"
+      ret = pad(val.to_s(2), width, precision)
+    end
+    ret
+  end
+  
+  def get_arg(slot)
+    return nil unless slot
+    if slot.position == :next
+      ret = args[@arg_position]
+      @arg_position += 1
+    elsif slot.pos
+      ret = args[slot.position - 1]
+    elsif slot.value
+      ret = slot.value
+    else
+      ret = nil
+    end
+    raise ArgumentError, "you specified an argument position that did not exist: #{slot.str}" unless ret
+    ret
+  end
+  
+  def pad(val, width, precision)
+    direction = flags[:minus] ? :ljust : :rjust
+    ret = val
+    width = nil if width.to_i <= val.size
+    if precision
+      ret = plus_char + ret.send(direction, precision, "0") 
+      flags[:zero] = flags[:plus] = flags[:space] = nil
+    end
+    if width
+      ret = ret.send(direction, width, pad_char)
+      ret[0] = plus_char unless plus_char.empty?
+    else
+      ret = plus_char + ret
+    end
+    ret
+  end
+  
+  def pad_char
+    flags[:zero] ? "0" : " "
+  end
+  
+  def plus_char
+    return "+" if flags[:plus]
+    return " " if flags[:space]
+    ""
+  end
+  
+  class Slot
+    
+    # pos means it got a N$ position
+    attr_reader :pos
+    attr_reader :position
+    attr_reader :value
+    attr_reader :str
+    
+    def initialize(str)
+      @pos = false
+      @str = str
+      if str.size == 2 && str[1] == ?$
+        @pos = true
+        @position = str[0..0].to_i
+      elsif str == "*"
+        @position = :next
+      else
+        @value = str.to_i
+      end
+    end
+  end
+  
 end

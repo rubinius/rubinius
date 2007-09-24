@@ -256,7 +256,9 @@ module Benchmark
     print "Rehearsal "
     puts '-'*(width+CAPTION.length - "Rehearsal ".length)
     list = []
-    job.list.each{|label,item|
+    job.list.each{|label_item|
+      label = label_item[0]
+      item = label_item[1]
       print(label.ljust(width))
       res = Benchmark::measure(&item)
       print res.format()
