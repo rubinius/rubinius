@@ -7,9 +7,10 @@ module Sprintf
       out  = []
       # The instance contains all the state handling
       fmtstr = Sprintf::Parser.new(str, args)
+      numbered = nil
       
       while fmtstr.index('%')
-        if !fmtstr.end_of_string? && fmtstr[1] == ?%
+        if !fmtstr.end_of_string? && (fmtstr[1] == ?% || fmtstr[1] == 0)
           fmtstr.next
           out << fmtstr.get_mark_to_cursor
           fmtstr.next
@@ -49,7 +50,9 @@ module Sprintf
             number = fmtstr.get_number
             if fmtstr[] == ?$
               raise ArgumentError, "value given twice #{number}$" if !fmt.value.nil?
+              raise ArgumentError, "mixing numbered with unnumbered" if numbered == false
               fmt.value = fmtstr.get_argument(number - 1)
+              numbered = true
               fmtstr.next
             else
               fmt.width = number
@@ -65,7 +68,11 @@ module Sprintf
             
           when ?B, ?b,?c,?d,?E,?e,?f,?G,?g,?i,?o,?p,?s,?u,?X,?x
             fmt.type = c
-            fmt.value = fmtstr.get_next_argument if fmt.unset?
+            if fmt.unset?
+              raise ArgumentError, "mixing numbered with unnumbered" if numbered == true
+              fmt.value = fmtstr.get_next_argument if fmt.unset?
+              numbered = false
+            end
             fmtstr.next
             break
           else
@@ -73,10 +80,22 @@ module Sprintf
           end
         end
         if fmt.type.nil?
-          raise ArgumentError, "malformed format string - missing field type"
+          puts fmtstr.instance_variable_get("@str")
+          unless (fmtstr.next_char == "\n") || fmt.value
+            raise ArgumentError, "malformed format string - missing field type" 
+          else
+            # fmtstr.next
+            # out << fmtstr.get_mark_to_cursor
+            out << "%"
+            fmtstr.drop_mark_point
+            next
+          end
         end
         # Pop another argument off the stack if no absolute reference provided
-        fmt.value = fmtstr.get_next_argument if fmt.unset?
+        if fmt.unset?
+          fmt.value = fmtstr.get_next_argument
+          raise ArgumentError, "mixing numbered with unnumbered" if numbered == true
+        end
         out << fmt
         fmtstr.drop_mark_point
       end
@@ -113,6 +132,10 @@ module Sprintf
       @str.data[@idx+offset]
     end
     
+    def len
+      @len
+    end
+    
     def cursor
       @idx
     end
@@ -126,8 +149,20 @@ module Sprintf
       @mark = 0
     end
     
+    def last_char?
+      @idx == @len - 1
+    end
+    
     def end_of_string?
       @idx >= @len
+    end
+    
+    def cur_char
+      @str[@idx]
+    end
+    
+    def next_char
+      @str[@idx + 1]
     end
     
     def index(char)
@@ -422,28 +457,46 @@ module Sprintf
   end
 end
 
-module YSprintf
-  class Parser
-    NONE  = 0
-    SHARP = 1
-    MINUS = 2
-    PLUS  = 4
-    ZERO  = 8
-    SPACE = 16
-    WIDTH = 32
-    PREC  = 64
-    PREC0 = 128
 
-    def sprintf(fmt, *args)
-      fmt = StringValue(fmt)
-      ret = ""
-      fmt_args = fmt.split(/%/)
-      fmt_args.pop while(fmt_args[0] == "")
+class YSprintf
+  
+  def self.parse(fmt, args)
+    start, out, position = 0, "", false
+    flags = {:space => nil, :position => nil, :alternative => nil, :plus => nil, 
+      :minus => nil, :zero => nil, :star => nil}
+    arg_position = 0
+    val = nil
+    while (match = /%/.match_from(self, start))
+      out << match.pre_match_from(start)
+      # Get the next flag token
+      while token = match_from(/\G( |\d\$|#|\+|\-|0|\*)/, start + 1)
+        case token[0]
+        # Special case: if we get two \d\$, it means that we're outsid of flag-land
+        when /\d\$/
+          break if flags[:position]
+          flags[:position] = token[0][0].chr.to_i
+          val = args[flags[:position]]
+          start += 1
+        when " "
+          flags[:space] = true
+        when "#"
+          flags[:alternative] = true
+        when "+"
+          flags[:plus] = true
+        when "-"
+          flags[:minus] = true
+        when "0"
+          flags[:zero] = true
+        when "*"
+          flags[:start] = true
+          val = args[arg_position]
+          arg_position += 1
+        end
+        start += 1
+      end
+      
     end
-
-    def self.printable(char)
-      (/[[:printable:]]/ ~= char.chr) && char >= 0 && char <= 127
-    end
-
+    flags
   end
+  
 end

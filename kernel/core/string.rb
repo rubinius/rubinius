@@ -44,8 +44,7 @@ class String
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(arg)
     # raise ArgumentError, "Too many arguments for format string" if $DEBUG && self.scan(/%/).size < arg.size
-    orig = self.dup.gsub(/%(?=[$\0]+)/, "") #.gsub(/%(?=$|\0)/)
-    Sprintf::Parser.format(orig, arg)
+    Sprintf::Parser.format(self, arg)
   end
 
   # call-seq:
