@@ -54,7 +54,6 @@ void cpu_bootstrap(STATE) {
   module_setup_fields(state, object_metaclass(state, BC(hash)));
   module_setup_fields(state, object_metaclass(state, BC(methtbl)));
   BC(symbol) = _symbol_class(state, obj);
-  BC(tuple) = _tuple_class(state, obj);
   BC(array) = _array_class(state, obj);
   BC(bytearray) = _bytearray_class(state, obj);
   BC(string) = _string_class(state, obj);
