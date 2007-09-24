@@ -128,7 +128,7 @@ module Bytecode
       :load_library,
       :dir_glob,
       :dir_chdir,
-      :float_sprintf,
+      nil,  # :float_sprintf,
       :make_weak_ref,
       :fastctx_set_field,
       :fastctx_dup,

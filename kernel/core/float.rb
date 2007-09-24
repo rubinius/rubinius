@@ -117,10 +117,10 @@ class Float < Numeric
     return (self < 0 ? "-Infinity" : "Infinity") if infinite?
     return "NaN" if nan?
     
-    str = sprintf STRLEN, "%#.15g"
+    str = Platform::Float.to_s_formatted STRLEN, "%#.15g", self
     e = str.index('e') || str.size
     unless str[e-1].isdigit
-      str = sprintf STRLEN, "%#.14e"
+      str = Platform::Float.to_s_formatted STRLEN, "%#.14e", self
       e = str.index('e') || str.size
     end
     str.gsub(/(\.\d|[^0])(0+)($|e[+-]\d*)/, '\1\3')

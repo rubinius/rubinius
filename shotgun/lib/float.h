@@ -4,7 +4,6 @@
 OBJECT float_new(STATE, double dbl);
 OBJECT float_from_string(STATE, char *str);
 void float_into_string(STATE, OBJECT self, char *buf, int sz);
-OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val); 
 double float_add(double a, double b);
 double float_sub(double a, double b);
 double float_mul(double a, double b);

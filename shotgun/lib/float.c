@@ -87,15 +87,6 @@ void float_into_string(STATE, OBJECT self, char *buf, int sz) {
   snprintf(buf, sz, "%+.17e", FLOAT_TO_DOUBLE(self));
 }
 
-OBJECT float_sprintf(STATE, OBJECT fmt, OBJECT val) {
- char buf[32];
- char *p;
-
- p = string_byte_address(state, fmt);
- snprintf(buf, 32, p, FLOAT_TO_DOUBLE(val));
- return string_new(state, buf);
-}
-
 double float_add(double a, double b) {
   return a + b;
 }

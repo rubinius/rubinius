@@ -2438,14 +2438,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  def float_sprintf
-    <<-CODE
-    POP(self, FLOAT);
-    POP(t1, STRING);
-    stack_push(float_sprintf(state, t1, self));
-    CODE
-  end
-  
   def bignum_from_float
     <<-CODE
     stack_pop(); /* we don't care */
