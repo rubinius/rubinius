@@ -50,6 +50,19 @@ double ffi_read_float(double *ptr) {
   return *ptr;
 }
 
+char *ffi_sprintf_f(double value, int size, char *fmt) {
+  char *str;
+  str = malloc(size);
+  snprintf(str, size, fmt, value);
+  return str;
+}
+
+char *ffi_sprintf_d(int value, int size, char *fmt) {
+  char *str = malloc(size);
+  snprintf(str, size, fmt, value);
+  return str;
+}
+
 OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
   struct sockaddr_un *sa;
   

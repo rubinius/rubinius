@@ -57,4 +57,8 @@ module Platform::POSIX
   attach_function nil, 'ungetc',  [:int, :pointer], :int
   
   # Dir
+  
+  #   formatted strings
+  attach_function nil, 'ffi_sprintf_f', [:double, :int, :string], :strptr
+  attach_function nil, 'ffi_sprintf_d', [:int, :int, :string], :strptr
 end

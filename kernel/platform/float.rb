@@ -22,7 +22,7 @@ class Platform::Float
   attach_function nil, 'float_equal',   :value_equal, [:double, :double], :int
   attach_function nil, 'float_compare', :compare,     [:double, :double], :int
   attach_function nil, 'float_round',   :round,       [:double], :int
-  attach_function nil, 'float_sprintf', :sprintf,     [:pointer, :int, :string, :double], :int
+  # attach_function nil, 'float_sprintf', :sprintf,     [:pointer, :int, :string, :double], :int
   attach_function nil, 'fmod',  [:double, :double], :double
   attach_function nil, 'pow',   [:double, :double], :double
   attach_function nil, 'isnan', [:double], :int
@@ -38,5 +38,12 @@ class Platform::Float
   
   def self.infinite?(value)
     return (value < 0 ? -1 : 1) if isinf(value) != 0
+  end
+  
+  def sprintf(size, fmt)
+    s, p = Platform::POSIX.sprintf_f self, size, fmt
+    str = s.dup
+    p.free
+    return str
   end
 end

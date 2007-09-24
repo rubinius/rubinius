@@ -204,7 +204,7 @@ module FFI
       offset, type = @cspec[field]
       raise "Unknown field #{field}" unless offset
       
-      Struct.ffi_set_field(@ptr, offset, type, val)
+      self.class.ffi_set_field(@ptr, offset, type, val)
       return val
     end
   end
