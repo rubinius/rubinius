@@ -107,8 +107,9 @@ class Numeric
   end
   
   def <=>(other)
-    b, a = self.coerce(other)
-    a <=> b
+    if values = self.do_coerce(other)
+      values[1] <=> values[0]
+    end
   end
 
   def zero?
