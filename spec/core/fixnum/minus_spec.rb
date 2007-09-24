@@ -1,13 +1,26 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#-" do
-  it "returns self minus other fixnum" do
+  it "returns self minus the given Integer" do
     (5 - 10).should == -5
     (9237212 - 5_280).should == 9231932
+    
+    (781 - 0.5).should == 780.5
+    (2_560_496 - 0xfffffffff).should == -68716916239
   end
   
-  it "coerces fixnum and return self minus other fixnum" do
-    (2_560_496 - 0xfffffffff).should == -68716916239
-    (781 - 0.5).to_s.should == '780.5'
+  it "raises a TypeError when given a non-Integer" do
+    should_raise(TypeError, "Object can't be coerced into Fixnum") do
+      (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+      13 - obj
+    end
+    
+    should_raise(TypeError, "String can't be coerced into Fixnum") do
+      13 - "10"
+    end
+    
+    should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+      13 - :symbol
+    end
   end
 end

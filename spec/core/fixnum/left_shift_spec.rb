@@ -1,9 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#<<" do
-  it "returns self shifted left other bits" do
+  it "returns self shifted the given amount of bits to the left" do
     (7 << 2).should == 28
     (9 << 4).should == 144
+  end
+
+  it "performs a right-shift if given a negative value" do
+    (7 << -2).should == (7 >> 2)
+    (9 << -4).should == (9 >> 4)
   end
   
   it "coerces result on overflow and return self shifted left other bits" do

@@ -2,11 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#to_sym" do
   it "returns the symbol whose integer value is self" do
-    a = :fred.to_i
-    b = :wilma.to_i
-    c = :bambam.to_i
-    a.to_sym.should == :fred
-    b.to_sym.should == :wilma
-    c.to_sym.should == :bambam
-  end  
+    a = :@sym
+    b = :@ruby
+    c = :@rubinius
+    
+    a.to_i.to_sym.should == :@sym
+    b.to_i.to_sym.should == :@ruby
+    c.to_i.to_sym.should == :@rubinius
+  end
+
+  it "returns nil if there is no symbol in the symbol table with this value" do
+    100000000.to_sym.should == nil
+  end
 end

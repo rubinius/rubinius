@@ -2,23 +2,50 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 fixnum_modulo = shared "Fixnum#%" do |cmd|
   describe "Fixnum##{cmd}" do
-    it "returns self modulo other" do
-      451.send(cmd, 2).should == 1
-      32.send(cmd, 16).should == 0
+    it "returns the modulus obtained from dividing self by the given argument" do
+      13.send(cmd, 4).should == 1
+      4.send(cmd, 13).should == 4
+  
+      13.send(cmd, 4.0).should == 1
+      4.send(cmd, 13.0).should == 4
+  
+      1.send(cmd, 2.0).should == 1.0
+      200.send(cmd, 0xffffffff).should == 200
     end
 
-    it "coerces fixnum and return self modulo other" do
-      93.send(cmd, 3.2).to_s.should == '0.199999999999995'
-      120.send(cmd, -4.5).to_s.should == '-1.5'
+    it "raises a ZeroDivisionError when the given argument is 0" do
+      should_raise(ZeroDivisionError, "divided by 0") do
+        13.send(cmd, 0)
+      end
+  
+      should_raise(ZeroDivisionError, "divided by 0") do
+        0.send(cmd, 0)
+      end
+      
+      should_raise(ZeroDivisionError, "divided by 0") do
+        -10.send(cmd, 0)
+      end
     end
 
-    it "raises ZeroDivisionError if other is zero and not a Float" do
-      should_raise(ZeroDivisionError) { 1.send(cmd, 0) }
+    it "does not raise a FloatDomainError when the given argument is 0 and a Float" do
+      0.send(cmd, 0.0).to_s.should == "NaN" 
+      10.send(cmd, 0.0).to_s.should == "NaN" 
+      -10.send(cmd, 0.0).to_s.should == "NaN" 
     end
 
-    it "does NOT raise ZeroDivisionError if other is zero and is a Float" do
-      1.send(cmd, 0.0).to_s.should == 'NaN'
-      1.send(cmd, -0.0).to_s.should == 'NaN'
+    it "raises a TypeError when given a non-Integer" do
+      should_raise(TypeError, "Object can't be coerced into Fixnum") do
+        (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+        13.send(cmd, obj)
+      end
+      
+      should_raise(TypeError, "String can't be coerced into Fixnum") do
+        13.send(cmd, "10")
+      end
+  
+      should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+        13.send(cmd, :symbol)
+      end
     end
   end
 end
