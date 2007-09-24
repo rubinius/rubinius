@@ -33,14 +33,14 @@ describe "Server class hierarchy" do
 end
 =end
 
-describe "TCPServer.new" do
-  after(:each) do
-    @server.close if @server
-  end
-  it "should bind to a host and a port" do
-    @server = TCPServer.new('127.0.0.1', @port)
-  end
-end
+#describe "TCPServer.new" do
+#  after(:each) do
+#    @server.close if @server
+#  end
+#  it "should bind to a host and a port" do
+#    @server = TCPServer.new('127.0.0.1', @port)
+#  end
+#end
 
 =begin
 describe "TCPServer#accept" do
@@ -73,8 +73,8 @@ describe "TCPServer receiving data" do
   before(:each) do
     @data = []
     @read = false
+    @server = TCPServer.new('127.0.0.1', @port)
     @thread = Thread.new do
-      @server = TCPServer.new('127.0.0.1', @port)
       while (client = @server.accept) do
         @data << client.read(5)
         @read = true
@@ -83,7 +83,7 @@ describe "TCPServer receiving data" do
     end
   end
   after(:each) do
-    @server.close
+    @server.close if @server
   end
 
   it "should accept what is written by the client" do

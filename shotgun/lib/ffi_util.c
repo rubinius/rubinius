@@ -81,6 +81,9 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
   struct addrinfo *res = NULL;
   int error;
   
+  if (type == 0 && flags == 0) {
+       type = SOCK_DGRAM;
+    }
   memset(&hints, 0, sizeof(struct addrinfo));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = type;
@@ -91,6 +94,24 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
     printf("ERROR: %s\n", gai_strerror(error));
     return Qnil;
   }
+
+#if defined(__APPLE__) && defined(__MACH__)
+    {
+        struct addrinfo *r;
+       r = res;
+       while (r) {
+            if (! r->ai_socktype) r->ai_socktype = hints.ai_socktype;
+            if (! r->ai_protocol) {
+                if (r->ai_socktype == SOCK_DGRAM) {
+                    r->ai_protocol = IPPROTO_UDP;
+                } else if (r->ai_socktype == SOCK_STREAM) {
+                    r->ai_protocol = IPPROTO_TCP;
+                }
+            }
+            r = r->ai_next;
+        }
+    }
+#endif
   
   return tuple_new2(state, 2, ffi_new_pointer(state, 
     (void*)res->ai_addr), I2N(res->ai_addrlen));
@@ -110,6 +131,26 @@ int ffi_bind(int s, struct sockaddr *name, socklen_t len) {
   ret = fstat(s, &sb);
   assert(sb.st_mode & S_IFSOCK && "trying to bind something that isn't a socket!");
   ret = bind(s, name, len);
+  return ret;
+}
+
+int ffi_bind_local_socket(int s) {
+  struct addrinfo hints;
+  struct addrinfo *res = NULL;
+  int error;
+  int ret;
+  
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = 0;
+  
+  error = getaddrinfo(0, 0, &hints, &res);
+  if(error) {
+    printf("bind_local_socket ERROR: %s\n", gai_strerror(error));
+    return Qnil;
+  }
+  ret = bind(s, res->ai_addr, res->ai_addrlen);
   return ret;
 }
 

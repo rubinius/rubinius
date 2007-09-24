@@ -49,7 +49,8 @@ class Socket < IO
     attach_function nil, "connect", :connect_socket, [:int, :pointer, :int], :int
     attach_function nil, "bind", :bind_socket, [:int, :pointer, :int], :int
     attach_function nil, "listen", :listen_socket, [:int, :int], :int
-    attach_function nil, "ffi_accept", :accept, [:int, :pointer, :pointer], :int
+    attach_function nil, "ffi_bind_local_socket", :bind_local_socket, [:int], :int
+    attach_function nil, "accept", :accept, [:int, :pointer, :pointer], :int
   end
   
   def initialize(domain, type, protocol)
@@ -86,17 +87,23 @@ class IPSocket < Socket
 end
 
 class TCPSocket < IPSocket
+  ivar_as_index :descriptor => 1
+  def descriptor=(other)
+    @descriptor = other
+  end
   
-  def initialize(host, port)
-    super(Socket::Constants::SOCK_STREAM)
-    @host = host
-    @port = port
-    
-    @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, @type, 0)
-    
-    sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
-    if sock != 0
-      Errno.handle "Unable to connect to #{host}:#{port}"
+  def initialize(host, port, connected = false)
+    unless connected
+      super(Socket::Constants::SOCK_STREAM)
+      @host = host
+      @port = port
+
+
+      @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, @type, 0)
+      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
+      if sock != 0
+        Errno.handle "Unable to connect to #{host}:#{port}"
+      end
     end
   end
   
@@ -136,17 +143,22 @@ class TCPServer < TCPSocket
   end
 
   def accept
-    ret = 0
+    return if closed?
+    fd = -1
     size = 0
     MemoryPointer.new :int do |sz|
       sz.write_int @sockaddr_size # initialize to the 'expected' size
-      ret = Socket::Foreign.accept @descriptor, @sockaddr, sz
+      fd = Socket::Foreign.accept @descriptor, @sockaddr, sz
       size = sz.read_int
     end
-    if ret != 0
+    if fd < 0
       Errno.handle "Unable to accept on socket"
     end
-    return @sockaddr, size
+
+    socket = TCPSocket.new(@host, @port, true)
+    socket.descriptor = fd
+
+    socket
   end
 end
 
