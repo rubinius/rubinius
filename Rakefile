@@ -159,7 +159,7 @@ namespace :spec do
   namespace :setup do
     # Setup for 'Subtend' specs. No need to call this yourself.
     task :subtend do
-      Dir[File.join(ROOT,"spec/subtend/**/Rakefile")].each do |rakefile|
+      Dir["spec/subtend/**/Rakefile"].each do |rakefile|
         sh "rake -f #{rakefile}"
       end
     end
