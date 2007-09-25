@@ -20,10 +20,13 @@ class Struct
   # Struct class methods
 
   def self.new_anonymous_class(*args, &block)
-    name, *attributes = args.dup
+    # TODO: There's a bug in masgns with splats and calls to dup in rhs
+    # name, *attributes = args.dup
+    attributes = args.dup
+    name = attributes.shift
 
     unless constant = constantize(name)
-      attributes.unshift name
+      attributes.unshift name if name
     end
 
     attributes.collect! do |attribute|
@@ -34,7 +37,8 @@ class Struct
   end
 
   def self.constantize(name)
-    return unless String === name
+    return unless name.respond_to?(:to_str)
+    name = name.to_str
     return name if name =~ /^[A-Z]\w*$/
     raise NameError, "identifier #{name} needs to be a constant"
   end
@@ -164,6 +168,8 @@ class Struct
   end
 
   def each(&block)
+    raise LocalJumpError unless block_given?
+    
     to_a.each(&block)
     self
   end
