@@ -557,15 +557,35 @@ class YSprintf
     width = get_arg(@width)
     
     # GET PRECISION
-    precision = get_arg(@precision) || 0
+    precision = get_arg(@precision)
+    
+    puts "val: #{val}"
     
     case @type
-    when "d"
-      ret = pad(val.to_s(10), width, precision)
-    when "b"
-      ret = pad(val.to_s(2), width, precision)
+    when "d", "b"
+      if @type == "b"
+        val = val.to_s(2).to_i
+        @type = "d"
+      end
+      ret = val.to_s_formatted(build_format_string(width, precision))
     end
     ret
+  end
+  
+  def build_format_string(width, precision)
+    ret = "%#{make_flags}#{width}"
+    ret << ".#{precision}" if precision
+    ret << @type
+    ret
+  end
+  
+  def make_flags
+    ret = ""
+    ret << " " if flags[:space]
+    ret << "#" if flags[:alternative]
+    ret << "+" if flags[:plus]
+    ret << "-" if flags[:minus]
+    ret << "0" if flags[:zero]
   end
   
   def get_arg(slot)

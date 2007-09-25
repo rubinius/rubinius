@@ -87,6 +87,10 @@ class Float < Numeric
   def finite?
     not (nan? or infinite?) 
   end
+  
+  def to_s_formatted(fmt)
+    Platform::Float.to_s_formatted(32, fmt, self)
+  end
 
   def **(other)
     return super(other) unless other.is_a?(Float)
