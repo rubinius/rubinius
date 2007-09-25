@@ -1198,7 +1198,7 @@ class ShotgunPrimitives
       } else {
        stack_pop();
       }
-      cpu_send_method2(state, c, t2, t1, num_args, Qnil);
+      cpu_unified_send(state, c, t2, t1, num_args, Qnil);
     CODE
   end
   

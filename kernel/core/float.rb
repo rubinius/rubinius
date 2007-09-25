@@ -126,6 +126,10 @@ class Float < Numeric
     str.gsub(/(\.\d|[^0])(0+)($|e[+-]\d*)/, '\1\3')
   end
   alias_method :inspect, :to_s
+
+  def to_s_formatted(fmt)
+    Platform::Float.to_s_formatted STRLEN, fmt, self
+  end
   
   def %(other)
     return 0 / 0.to_f if other == 0

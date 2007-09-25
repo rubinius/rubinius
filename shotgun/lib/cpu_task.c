@@ -43,9 +43,7 @@ void Init_cpu_task(STATE) {
   class_set_instance_flags(BASIC_CLASS(channel), I2N(CanStoreIvarsFlag));
   class_set_instance_flags(BASIC_CLASS(thread),  I2N(CanStoreIvarsFlag));
   
-  cpu_event_init(state);
-  
-  cpu_task_configure_premption(state);
+  cpu_event_init(state);  
 }
 
 static void _cpu_task_preempt(int sig) {

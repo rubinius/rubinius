@@ -123,8 +123,8 @@ class ShotgunInstructions
   end
   
   def generate_declarations(fd)
-    fd.puts "int _int, j, k, m;"
-    fd.puts "OBJECT _lit, t1, t2, t3, t4, t5;"
+    fd.puts "register int _int, j, k, m;"
+    fd.puts "register OBJECT _lit, t1, t2, t3, t4, t5;"
   end
   
   def generate_names
@@ -666,85 +666,121 @@ CODE
   
   def send_method
     <<-CODE
-    next_int;
+    next_literal;
     t1 = stack_pop();
-    cpu_unified_send(state, c, t1, _int, 0, Qnil);
+    t2 = Qnil;
+    j = 0;
+    goto perform_send;
+    // cpu_unified_send(state, c, t1, _int, 0, Qnil);
     CODE
   end
   
   def meta_send_stack_1
     <<-CODE
-    next_int;
-    cpu_unified_send(state, c, stack_pop(), _int, 1, Qnil);
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    j = 1;
+    goto perform_send;
+    // cpu_unified_send(state, c, stack_pop(), _int, 1, Qnil);
     CODE
   end
   
   def meta_send_stack_2
     <<-CODE
-    next_int;
-    cpu_unified_send(state, c, stack_pop(), _int, 2, Qnil);
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    j = 2;
+    goto perform_send;
+    // cpu_unified_send(state, c, stack_pop(), _int, 2, Qnil);
     CODE
   end
   
   def meta_send_stack_3
     <<-CODE
-    next_int;
-    cpu_unified_send(state, c, stack_pop(), _int, 3, Qnil);
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    j = 3;
+    goto perform_send;
+    
+    // next_int;
+    // cpu_unified_send(state, c, stack_pop(), _int, 3, Qnil);
     CODE
   end
   
   def meta_send_stack_4
     <<-CODE
-    next_int;
-    cpu_unified_send(state, c, stack_pop(), _int, 4, Qnil);
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    j = 4;
+    goto perform_send;
+    
+    // next_int;
+    // cpu_unified_send(state, c, stack_pop(), _int, 4, Qnil);
     CODE
   end
   
   def send_stack
     <<-CODE
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
     next_int;
-    j = _int; // index
-    next_int;
-    k = _int; // num_args
-    cpu_unified_send(state, c, stack_pop(), j, k, Qnil);
+    j = _int; // num_args
+    
+    goto perform_send;
+    // cpu_unified_send(state, c, stack_pop(), j, k, Qnil);
     CODE
   end
   
   def send_stack_with_block
     <<-CODE
+    next_literal;
     t1 = stack_pop();
     t2 = stack_pop();
     next_int;
     j = _int;
-    next_int;
-    cpu_unified_send(state, c, t1, j, _int, t2);
+    
+    goto perform_send;
+    // cpu_unified_send(state, c, t1, j, _int, t2);
     CODE
   end
 
   def send_with_arg_register
     <<-CODE
+    next_literal;
     t1 = stack_pop();
     t2 = stack_pop();
-    next_int;
-    cpu_unified_send(state, c, t1, _int, c->args, t2);
+    j = c->args;
+    
+    perform_send:
+    
+    cpu_unified_send(state, c, t1, _lit, j, t2);
     CODE
   end
   
   def send_super_stack_with_block
     <<-CODE
+    next_literal;
     t1 = stack_pop();
     next_int;
     j = _int;
-    next_int;
-    cpu_unified_send_super(state, c, c->self, j, _int, t1);
+    
+    goto perform_super_send;
     CODE
   end
   
   def send_super_with_arg_register
     <<-CODE
+    next_literal;
     t1 = stack_pop();
-    next_int;
-    cpu_unified_send_super(state, c, c->self, _int, c->args, t1);
+    j = c->args;
+        
+    perform_super_send:
+    cpu_unified_send_super(state, c, c->self, _lit, j, t1);
     CODE
   end
   
@@ -758,14 +794,19 @@ CODE
         t2 = stack_pop();
         t1 = stack_pop();
         stack_push(t3);
-        cpu_send_method2(state, c, t1, state->global->sym_send, c->args + 1, t2);
-        goto sos_done;
+        _lit = state->global->sym_send;
+        j = c->args;
+        // cpu_send_method2(state, c, t1, state->global->sym_send, c->args + 1, t2);
+        goto perform_send;
       }
     }
     t2 = stack_pop();
     t1 = stack_pop();
-    cpu_send_method2(state, c, t1, t3, c->args, t2);
-    sos_done:
+    _lit = t3;
+    j = c->args;
+    goto perform_send;
+    // cpu_send_method2(state, c, t1, t3, c->args, t2);
+    // sos_done:
     CODE
   end
   
@@ -785,7 +826,11 @@ CODE
       stack_push(fixnum_add(state, t1, t2));
     } else {
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_plus, 1);
+      _lit = state->global->sym_plus;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      // cpu_send_method(state, c, t1, state->global->sym_plus, 1);
     }
     CODE
   end
@@ -798,7 +843,11 @@ CODE
       stack_push(fixnum_sub(state, t1, t2));
     } else {
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_minus, 1);
+      _lit = state->global->sym_minus;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      // cpu_send_method(state, c, t1, state->global->sym_minus, 1);
     }
     CODE
   end
@@ -811,14 +860,12 @@ CODE
     if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
       stack_push((t1 == t2) ? Qtrue : Qfalse);
     } else {
-      /*
-      cpu_flush_sp(c);
-      printf("opeqal %s == ", _inspect(t1));
-      printf("%s (%d, ", _inspect(t2), c->sp);
-      printf("%s)\\n", _inspect(stack_top()));
-      */
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_equal, 1);
+      _lit = state->global->sym_equal;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      // cpu_send_method(state, c, t1, state->global->sym_equal, 1);
     }
     CODE
   end
@@ -832,7 +879,12 @@ CODE
       stack_push((t1 == t2) ? Qfalse : Qtrue);
     } else {
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_nequal, 1);
+      _lit = state->global->sym_nequal;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      
+      // cpu_send_method(state, c, t1, state->global->sym_nequal, 1);
     }
     CODE
   end
@@ -843,11 +895,16 @@ CODE
     t1 = stack_pop();
     t2 = stack_pop();
     /* If both are fixnums, or one is a symbol, compare the ops directly. */
-    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || SYMBOL_P(t1) || SYMBOL_P(t2)) {
+    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || (SYMBOL_P(t1) || SYMBOL_P(t2))) {
       stack_push((t1 == t2) ? Qtrue : Qfalse);
     } else {
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_tequal, 1);
+      _lit = state->global->sym_tequal;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      
+      // cpu_send_method(state, c, t1, state->global->sym_tequal, 1);
     }
     CODE
   end
@@ -862,7 +919,12 @@ CODE
       stack_push((j < k) ? Qtrue : Qfalse);
     } else {
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_lt, 1);
+      _lit = state->global->sym_lt;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      
+      // cpu_send_method(state, c, t1, state->global->sym_lt, 1);
     }
     CODE
   end
@@ -877,7 +939,11 @@ CODE
       stack_push((j > k) ? Qtrue : Qfalse);
     } else {
       stack_push(t2);
-      cpu_send_method(state, c, t1, state->global->sym_gt, 1);
+      _lit = state->global->sym_gt;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      // cpu_send_method(state, c, t1, state->global->sym_gt, 1);
     }
     CODE
   end
@@ -944,6 +1010,7 @@ CODE
     <<-CODE
     next_int;
     j = cpu_current_argcount(c) - _int;
+    if(j < 0) j = 0;
     t1 = array_new(state, j);
     for(k = 0; k < j; k++) {
       array_set(state, t1, k, stack_pop());
@@ -956,6 +1023,7 @@ CODE
     <<-CODE
     next_int;
     j = cpu_current_argcount(c) - _int;
+    if(j < 0) j = 0;
     t1 = array_new(state, j);
     for(k = _int, m = 0; k < cpu_current_argcount(c); k++, m++) {
       array_set(state, t1, m, *(c->fp_ptr - k));

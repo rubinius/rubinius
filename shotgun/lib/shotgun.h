@@ -2,7 +2,7 @@
 #define __SHOTGUN__ 1
 #define INTERNAL_DEBUG 0
 
-#define TRACK_STATS 1
+#define TRACK_STATS 0
 #define DISABLE_CHECKS 0
 
 #include <stdio.h>

@@ -401,6 +401,8 @@ machine machine_new() {
   machine_set_const(m, "MAIN", m->c->main);
   current_machine = m;
   
+  cpu_task_configure_premption(m->s);
+  
   return m;
 }
 

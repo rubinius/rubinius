@@ -519,6 +519,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
   
+  c->argcount = fc->argcount;
   c->self = fc->self;
   c->data = fc->data;
   c->type = fc->type;
@@ -777,31 +778,22 @@ static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
 
 /* Layer 4: send. Primary method calling function. */
 
-static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
-  OBJECT sym, mo, mod;
+inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+  OBJECT mo, mod, cls;
   int missing;
 
-  sym = tuple_at(state, cpu_current_literals(state, c), idx);
-  
-  if(0 && c->depth == 1000) {
-    printf("Runaway depth...\n");
-    abort();
-  }
-  
   missing = 0;
   
-  mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
+  cls = _real_class(state, recv);
+  
+  mo = cpu_locate_method(state, c, cls, sym, &mod, &missing);
   if(NIL_P(mo)) {
     cpu_flush_ip(c);
     printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    assert(RTEST(mo));
+    exit(128);
   }
-  
-  if(TUPLE_P(mo)) {
-    mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
-  }
-  
+    
   /* Make sure no one else sees the a recently set cache_index, it was
      only for us! */
   c->cache_index = -1;
@@ -812,11 +804,9 @@ static inline void cpu_unified_send(STATE, cpu c, OBJECT recv, int idx, int args
 /* This is duplicated from above rather than adding another parameter
    because unified_send is used SO often that I didn't want to slow it down
    any with checking a flag. */
-static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, int args, OBJECT block) {
-  OBJECT sym, mo, klass, mod;
+static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
+  OBJECT mo, klass, mod;
   int missing;
-  xassert(RTEST(cpu_current_literals(state, c)));
-  sym = tuple_at(state, cpu_current_literals(state, c), idx);
     
   missing = 0;
   
@@ -837,46 +827,6 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, int idx, in
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
 }
 
-void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args) {
-  OBJECT mo, mod;
-  int missing;
-  
-  missing = 0;
-  
-  /* No cache location, sorry. */
-  c->cache_index = -1;
-  
-  mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
-  if(NIL_P(mo)) {
-    cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
-    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    assert(RTEST(mo));
-  }
-    
-  _cpu_build_and_activate(state, c, mo, recv, sym, args, Qnil, missing, mod);
-}
-
-void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
-  OBJECT mo, mod;
-  int missing;
-  
-  missing = 0;
-  
-  /* No cache location, sorry. */
-  c->cache_index = -1;
-  
-  mo = cpu_locate_method(state, c, _real_class(state, recv), sym, &mod, &missing);
-  if(NIL_P(mo)) {
-    cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
-    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    assert(RTEST(mo));
-  }
-    
-  _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
-}
-
 const char *cpu_op_to_name(STATE, char op) {
 #include "instruction_names.h"
   return get_instruction_name(op);
@@ -894,8 +844,9 @@ int cpu_dispatch(STATE, cpu c) {
 void state_collect(STATE, cpu c);
 void state_major_collect(STATE, cpu c);
 
-void cpu_run(STATE, cpu c, int setup) {
-  IP_TYPE op;
+void cpu_run(STATE, cpu ic, int setup) {
+  register IP_TYPE op;
+  register cpu c = ic;
 
   if(setup) {
     (void)op;

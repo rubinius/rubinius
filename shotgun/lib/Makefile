@@ -47,7 +47,7 @@ ifdef DEV
 else
   INLINE_OPTS=-finline-limit=2000 --param max-inline-insns-single=3500 --param large-function-growth=2000 --param inline-unit-growth=1500
   FP_OPTS=-fno-math-errno -funsafe-math-optimizations -fno-trapping-math -fno-rounding-math -fno-signaling-nans -fcx-limited-range
-  OPTIMIZATIONS=-O2 -funroll-loops -finline-functions -fno-omit-frame-pointer $(INLINE_OPTS)
+  OPTIMIZATIONS=-O2 -funroll-loops -finline-functions $(INLINE_OPTS)
 endif
 
 ifeq ($(CPU), powerpc)

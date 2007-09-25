@@ -85,6 +85,7 @@ struct rubinius_cpu {
   OBJECT self;
   IP_TYPE *data;
   unsigned short type;
+  unsigned short argcount;
   unsigned int ip;
   unsigned int sp;
   OBJECT *fp_ptr;
@@ -120,7 +121,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_current_name(state, cpu) (FASTCTX(cpu->home_context)->name)
 #define cpu_current_module(state, cpu) (FASTCTX(cpu->home_context)->method_module)
 #define cpu_current_data(cpu) (FASTCTX(cpu->home_context)->data)
-#define cpu_current_argcount(cpu) (FASTCTX(cpu->home_context)->argcount)
+#define cpu_current_argcount(cpu) (cpu->argcount)
 #define cpu_current_sender(cpu) (FASTCTX(cpu->active_context)->sender)
 
 #define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
@@ -154,8 +155,7 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block);
 
-void cpu_send_method(STATE, cpu c, OBJECT recv, OBJECT sym, int args);
-void cpu_send_method2(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
+inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym);
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 

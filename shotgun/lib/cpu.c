@@ -403,7 +403,7 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
     /* Totally unable to find the constant, call const_missing */
     if(val == Qundef) {  
       stack_push(sym);
-      cpu_send_method(state, c, parent, state->global->sym_const_missing, 1);
+      cpu_unified_send(state, c, parent, state->global->sym_const_missing, 1, Qnil);
       return Qundef;      
     } /*
     else {
