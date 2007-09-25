@@ -1,8 +1,6 @@
 #include <ruby.h>
 #include <stdio.h>
 
-#define ID2SYM(in) ((VALUE)in)
-
 VALUE se_raise(VALUE self) {
   rb_raise(rb_eTypeError, "Wrong argument type %s (expected %s)", "Integer", "String");
   return Qnil;

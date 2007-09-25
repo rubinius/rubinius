@@ -13,7 +13,7 @@ VALUE so_respond_to(VALUE self, VALUE obj, VALUE sym) {
 }
 
 VALUE so_to_id(VALUE self, VALUE obj) {
-  return rb_to_id(obj);
+  return ID2SYM(rb_to_id(obj));
 }
 
 VALUE so_require(VALUE self) {

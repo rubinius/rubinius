@@ -109,6 +109,7 @@ VALUE rb_ary_entry(VALUE array, int offset);
 VALUE rb_ary_clear(VALUE array);
 VALUE rb_ary_dup(VALUE array);
 VALUE rb_ary_join(VALUE array1, VALUE array2);
+VALUE rb_ary_reverse(VALUE array);
 VALUE rb_ary_unshift(VALUE array, VALUE val);
 VALUE rb_ary_shift(VALUE array);
 void rb_ary_store(VALUE array, int offset, VALUE val);
