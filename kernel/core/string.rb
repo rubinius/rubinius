@@ -865,6 +865,7 @@ class String
 
   def to_sym
     raise ArgumentError, "interning empty string" if self.empty?
+    raise ArgumentError, "symbol string may not contain `\\0'" if self.include?("\x00")
     __symbol_lookup__
   end
   alias_method :intern, :to_sym
@@ -1084,8 +1085,8 @@ class String
   end
   
   def swapcase!
-    return if @bytes == 0
     raise TypeError, "can't modify frozen string" if self.frozen?
+    return if @bytes == 0
   
     if @shared
       @data = @data.dup
@@ -1478,8 +1479,11 @@ class String
 
   # Generic function for the family of tr functions
   def tr_string(from_str, to_str, no_dups=false)
-    raise TypeError, "can't convert #{from_str.class} to String" unless String === from_str
-    raise TypeError, "can't convert #{to_str.class} to String"   unless String === to_str
+    raise TypeError, "can't convert #{from_str.class} to String" unless from_str.respond_to?(:to_str)
+    raise TypeError, "can't convert #{to_str.class} to String"   unless to_str.respond_to?(:to_str)
+    
+    from_str = from_str.to_str unless String === from_str
+    to_str = to_str.to_str     unless String === to_str
 
     return "" if from_str == ""
 
@@ -1680,7 +1684,7 @@ class String
     raise ArgumentError, "zero width padding" if str.empty?
     return self if width <= @bytes
     pad = width - @bytes
-    out = str.to_str * (pad / str.length)
+    out = self.class.new(str.to_str * (pad / str.length))
     out << str[0, pad - out.length] if out.length < pad
     # Left justification
     return self << out if justify == -1
