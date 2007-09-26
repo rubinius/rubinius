@@ -16,10 +16,6 @@
 #include <string.h>
 #include <errno.h>
 
-#define EXCESSIVE_TRACING state->excessive_tracing
-#define USE_GLOBAL_CACHING 1
-#define USE_INLINE_CACHING 1
-
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
 #if USE_INTCODE
@@ -161,13 +157,13 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
   /* Skip if we aren't running a normal method. */
-  int normal = (c->type & 0x1) == FASTCTX_NORMAL;
-  if(normal) {
+  //int normal = (c->type & 0x1) == FASTCTX_NORMAL;
+  //if(normal) {
     
-  cache = cmethod_get_cache(cpu_current_method(state, c));
-  
   /* There is a cache index for this send, use it! */
   if(c->cache_index > 0) {
+    cache = cmethod_get_cache(cpu_current_method(state, c));
+    
     if(tuple_at(state, cache, c->cache_index) == klass) {
       meth = tuple_at(state, cache, c->cache_index + 2);
       ser =  tuple_at(state, cache, c->cache_index + 3);
@@ -188,7 +184,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     }
   }
 
-  }
+  // }
 #endif
 
 #if USE_GLOBAL_CACHING
@@ -203,7 +199,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
       /* Update the inline cache. */
-      if(normal && c->cache_index > 0) {
+      if(c->cache_index > 0) {
         tuple_put(state, cache, c->cache_index, klass);
         tuple_put(state, cache, c->cache_index + 1, ent->module);
         tuple_put(state, cache, c->cache_index + 2, meth);
@@ -297,7 +293,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 
 #if USE_INLINE_CACHING
     /* Update the inline cache. */
-    if(c->type == FASTCTX_NORMAL && c->cache_index > 0) {
+    if(c->cache_index > 0) {
       tuple_put(state, cache, c->cache_index, orig_klass);
       tuple_put(state, cache, c->cache_index + 1, ent->module);
       tuple_put(state, cache, c->cache_index + 2, meth);
@@ -508,9 +504,7 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
 
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   struct fast_context *fc;
-  
-  c->depth--;
-  
+    
   /* Home is actually the main context here because it's the method
      context that holds all the data. So if it's a fast, we restore
      it's data, then if ctx != home, we restore a little more */
@@ -531,6 +525,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     fc = FASTCTX(ctx);
   }
   
+  c->sender = fc->sender;
   c->sp = fc->sp;
   c->ip = fc->ip;
     
@@ -553,6 +548,57 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
    Returning ends here. */
 
 void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
+
+static inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
+  OBJECT destination, home;
+
+  destination = cpu_current_sender(c);
+    
+  if(destination == Qnil) {
+    object_memory_retire_context(state->om, c->active_context);
+    
+    c->active_context = Qnil;
+    
+    /* Thread exitting, reschedule.. */
+    if(c->current_thread != c->main_thread) {
+      cpu_thread_run_best(state, c);
+      return FALSE;
+    /* Switch back to the main task... */
+    } else if(c->current_task != c->main_task) {
+      cpu_task_select(state, c, c->main_task);
+      return FALSE;
+    }
+    /* The return value of the script is passed on the stack. */
+    stack_push(val);
+  } else {
+    /* retire this one context. */
+    object_memory_retire_context(state->om, c->active_context);      
+    
+    /* Now, figure out if the destination is a block, so we pass the correct
+       home to restore_context */
+    if(blokctx_s_block_context_p(state, destination)) {
+      home = blokctx_home(state, destination);
+    } else {
+      home = destination;
+    }
+    
+    /*
+    if(EXCESSIVE_TRACING) {
+      if(stack_context_p(destination)) {
+        printf("Returning to a stack context %d / %d (%s).\n", (int)c->active_context, (int)destination, c->active_context - destination == CTX_SIZE ? "stack" : "REMOTE");
+      } else {
+        printf("Returning to %s.\n", _inspect(destination));
+      }
+    }
+    */
+        
+    cpu_restore_context_with_home(state, c, destination, home, TRUE, FALSE);
+    stack_push(val);
+  }
+  
+  return TRUE;
+   
+}
 
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception) {
   OBJECT destination, home;

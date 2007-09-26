@@ -15,6 +15,10 @@
 #define DIRECT_THREADED 1
 #endif
 
+#define EXCESSIVE_TRACING state->excessive_tracing
+#define USE_GLOBAL_CACHING 1
+#define USE_INLINE_CACHING 1
+
 #if USE_INTCODE
 #define IP_TYPE uint32_t
 #define BS_JUMP 2
@@ -82,7 +86,7 @@ struct cpu_task {
 
 struct rubinius_cpu {
   /* Normal registers ande saved and restored per new method call . */
-  OBJECT self;
+  OBJECT self, sender;
   IP_TYPE *data;
   unsigned short type;
   unsigned short argcount;
@@ -122,7 +126,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 #define cpu_current_module(state, cpu) (FASTCTX(cpu->home_context)->method_module)
 #define cpu_current_data(cpu) (FASTCTX(cpu->home_context)->data)
 #define cpu_current_argcount(cpu) (cpu->argcount)
-#define cpu_current_sender(cpu) (FASTCTX(cpu->active_context)->sender)
+#define cpu_current_sender(cpu) (cpu->sender)
 
 #define cpu_flush_ip(cpu) (cpu->ip = (cpu->ip_ptr - cpu->data))
 #define cpu_flush_sp(cpu) (cpu->sp = (cpu->sp_ptr - cpu->stack_top))
@@ -137,6 +141,10 @@ void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
+
+OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym);
+OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under);
+
 OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);

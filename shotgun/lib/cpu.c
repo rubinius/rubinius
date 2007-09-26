@@ -12,8 +12,6 @@
 #include "symbol.h"
 #include <glib.h>
 
-#define EXCESSIVE_TRACING state->excessive_tracing
-
 cpu cpu_new(STATE) {
   cpu c = (cpu)calloc(1, sizeof(struct rubinius_cpu));
   c->paths = g_ptr_array_new();
@@ -300,128 +298,104 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
 
 /* FIXME: the inline caches of constants aren't flushed! */
 
-#define update_cache(val) if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index, val)
+#define update_cache(val) // if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index, val)
 
-OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT hsh, val, kls, parent;
-  int i;
+OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
+  OBJECT cur, start, hsh, val;
   
-  if(c->cache_index >= 0) {
-#if TRACK_STATS
-    state->cache_inline_const_hit++;
-#endif
-    val = tuple_at(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index);
-    if(val != Qnil) return val;
+  /* If self is a module, we start with it, otherwise we start with
+     self's class. */
+  if(object_kind_of_p(state, c->self, state->global->module)) {
+    start = c->self;
+  } else {
+    start = object_class(state, c->self);
   }
   
-  val = Qundef;
+  cur = start;
   
-  /* A boundry case. */
-  if(NIL_P(under)) {
-    return Qnil;
+  // printf("Looking for %s in the current context.\n", rbs_symbol_to_cstring(state, sym));
+  
+  if(sym == module_get_name(cur)) {
+    // printf("  found, it's where you are.\n");
+    return cur;
   }
   
-  /* We can only look for constants under modules */
-  if(!ISA(under, state->global->module)) {
-    cpu_raise_exception(state, c, 
-      cpu_new_exception(state, c, 
-        rbs_const_get(state, state->global->object, "TypeError"),
-        "Can only access constants under a class/module"));
-    return Qundef;
-  }
-  
-  parent = under;
-  
-  hsh = module_get_constants(under);
-  val = hash_find_undef(state, hsh, sym);
-  
-  /*
-  printf("Looking for %s starting from %s (%d) (self=%s)\n", rbs_symbol_to_cstring(state, sym),
-    _inspect(under), c->paths->len, _inspect(c->self));
-  */
-  if(val != Qundef) {
-    update_cache(val);
-    return val;
-  }
-  
-  /* Case 1: self itself contains constants, so check there. */
-  
-  /* Ick. I'd love to be able to not have to only check in
-     classes and modules. */
-  kls = object_class(state, c->self);
-  if(REFERENCE_P(c->self) && (
-     kls == state->global->module ||
-     kls == state->global->class)) {
-       hsh = module_get_constants(c->self);
-       val = hash_find_undef(state, hsh, sym);
-       if(val != Qundef) {
-         update_cache(val);
-         // printf("Found under %s.\n", _inspect(c->self));
-         return val;
-       }
-  }
-  
-  /* Case 2: Check in the module that defined the method. */
-  hsh = module_get_constants(cpu_current_module(state, c));
-  val = hash_find_undef(state, hsh, sym);
-  if(val != Qundef) {
-    update_cache(val);
-    return val; 
-  }
-  
-  /* Case 3: Look up the compile time lexical stack. */
-  
-  //printf("Path from %s\n", _inspect(cpu_current_module(state, c)));
-  under = module_get_parent(cpu_current_module(state, c));
-  while(RTEST(under)) {
-    hsh = module_get_constants(under);
+  while(!NIL_P(cur)) {
+    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+    
+    hsh = module_get_constants(cur);
     val = hash_find_undef(state, hsh, sym);
-    if(val != Qundef) {
-      update_cache(val);
+    if(val != Qundef) { 
+      // printf("   found!\n");
       return val;
     }
-    under = module_get_parent(under);
+    cur = module_get_parent(cur);
   }
   
-  // printf("Paths: %d\n", c->paths->len);
-  
-  /* Case 3: Look up the runtime lexical stack. */
-  if(NIL_P(val) || val == Qundef) {
-    for(i = 0; i < c->paths->len; i++) {
-      under = (OBJECT)g_ptr_array_index(c->paths, i);
-      hsh = module_get_constants(under);
-      val = hash_find_undef(state, hsh, sym);
-      
-      /*
-      printf("Looking for %s starting from %s in path\n", rbs_symbol_to_cstring(state, sym),
-        _inspect(under));
-      */
-      // printf(" => %d\n", val);
-      if(val != Qundef) { break; }
-    }
-
-    /* Totally unable to find the constant, call const_missing */
-    if(val == Qundef) {  
-      stack_push(sym);
-      cpu_unified_send(state, c, parent, state->global->sym_const_missing, 1, Qnil);
-      return Qundef;      
-    } /*
-    else {
-      printf("Found constant %s under %p => %p (%d).\n", 
-        string_byte_address(state, symtbl_find_string(state, state->global->symbols, sym)),
-        under, val, val);
-    } */
+  cur = object_class(state, c->self);
     
+  // printf("Couldn't find in lex scope. Looking up from %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+  
+  while(!NIL_P(cur)) {
+    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+    
+    hsh = module_get_constants(cur);
+    val = hash_find_undef(state, hsh, sym);
+    if(val != Qundef) { 
+      // printf("   found!\n");
+      return val;
+    }
+    cur = class_get_superclass(cur);
   }
   
-  if(val != Qundef) {
-    update_cache(val);
-  }
+  // printf("Still unable to find, firing const_missing.\n");
   
-  return val;
+  c->cache_index = -1;
+  stack_push(sym);
+  cpu_unified_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
+  return Qundef;
 }
 
-#undef update_cache
+OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
+  OBJECT cur, start, hsh, val;
+  
+  // printf("Looking for %s under %s.\n", rbs_symbol_to_cstring(state, sym), rbs_symbol_to_cstring(state, module_get_name(under)));
+  
+  cur = under;
+  
+  while(!NIL_P(cur)) {
+    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+    
+    hsh = module_get_constants(cur);
+    val = hash_find_undef(state, hsh, sym);
+    if(val != Qundef) { 
+      // printf("   found!\n");
+      return val;
+    }
+    cur = class_get_superclass(cur);
+  }
+  
+  if(object_kind_of_p(state, under, state->global->module)) {
+    // printf("Looking directly in Object.\n");
+    hsh = module_get_constants(state->global->object);
+    val = hash_find_undef(state, hsh, sym);
+    if(val != Qundef) { 
+      // printf("   found!\n");
+      return val;
+    }
+  }
+  
+  // printf("Still unable to find, firing const_missing.\n");
+  
+  c->cache_index = -1;
+  stack_push(sym);
+  cpu_unified_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
+  return Qundef;
+}
+
+OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under) {
+  return cpu_const_get_from(state, c, sym, under);
+}
 
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
   OBJECT hsh;

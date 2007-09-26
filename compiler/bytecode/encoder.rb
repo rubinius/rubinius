@@ -219,7 +219,8 @@ class InstructionEncoder
     :is_symbol,
     :is_nil,
     :class,
-    :equal
+    :equal,
+    :sret
   ]
   
   CheckInterupts = [
@@ -271,6 +272,7 @@ class InstructionEncoder
   
   Terminators = [
     :ret,
+    :sret,
     :soft_return,
     :caller_return,
     :block_break,

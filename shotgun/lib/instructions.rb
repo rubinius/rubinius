@@ -534,10 +534,9 @@ CODE
   
   def push_const
     <<-CODE
-    next_int;
-    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
-    t2 = cpu_const_get(state, c, t1, c->enclosing_class);
-    if(t2 != Qundef) stack_push(t2);
+    next_literal;
+    t1 = cpu_const_get_in_context(state, c, _lit);
+    if(t1 != Qundef) stack_push(t1);
     c->cache_index = -1;
     CODE
   end
@@ -547,7 +546,7 @@ CODE
     t1 = stack_pop();
     next_int;
     t2 = tuple_at(state, cpu_current_literals(state, c), _int);
-    t2 = cpu_const_get(state, c, t2, t1);
+    t2 = cpu_const_get_from(state, c, t2, t1);
     if(t2 != Qundef) stack_push(t2);
     c->cache_index = -1;
     CODE
@@ -978,6 +977,13 @@ CODE
     <<-CODE
     t1 = stack_pop();
     cpu_return_to_sender(state, c, t1, TRUE, FALSE);
+    CODE
+  end
+  
+  def sret
+    <<-CODE
+    t1 = stack_pop();
+    cpu_simple_return(state, c, t1);
     CODE
   end
   

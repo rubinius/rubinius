@@ -239,7 +239,7 @@ module Bytecode
         exc.set_backtrace e.backtrace
         raise exc
       end
-      pro.finalize("ret")
+      pro.finalize("sret")
       
       meth = pro.method
       meth.stack_space = state.stack_space
@@ -249,7 +249,7 @@ module Bytecode
     
     def compile_as_script(sx, name, state=RsLocalState.new)
       pro = compile(sx, name, state)
-      pro.finalize("pop\npush true\nret")
+      pro.finalize("pop\npush true\nsret")
       
       meth = pro.method
       meth.stack_space = state.stack_space
@@ -275,13 +275,15 @@ module Bytecode
         @next = nil
         @break = nil
         
+        @in_block = false
+        
         @call_hooks = []
         @call_hooks << MetaOperatorPlugin.new(self)
         @call_hooks << SystemMethodPlugin.new(self)
         @call_hooks << NamedSendPlugin.new(self)
       end
       
-      attr_accessor :state
+      attr_accessor :state, :in_block
       
       def capture
         s = @output
@@ -1460,7 +1462,12 @@ module Bytecode
         else
           add "push nil"
         end
-        add "ret"
+        
+        if @in_block
+          add "ret"
+        else
+          add "sret"
+        end
       end
       
       # Handles various types of multiple assignment, including do |*args| .. end
@@ -1896,7 +1903,10 @@ module Bytecode
         if block
           line = @last_line
           op = "&send"
+          ib = @in_block
+          @in_block = true
           process block
+          @in_block = ib
           add "#line #{line}" if @last_line != line
         else
           add "push nil" if grab_args

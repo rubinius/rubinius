@@ -20,6 +20,7 @@ void module_setup_name(STATE, OBJECT module, const char *name, OBJECT ns) {
   sym = string_to_sym(state, str);
   module_set_name(module, sym);
   module_const_set(state, ns, sym, module);
+  module_set_parent(module, ns);
   return;
 }
 
