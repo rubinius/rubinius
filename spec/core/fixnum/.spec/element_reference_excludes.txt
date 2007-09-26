@@ -1,1 +1,1 @@
-Fixnum#[] coerces the bit and return the nth bit in the binary representation of self
+Fixnum#[] returns the nth bit in the binary representation of self

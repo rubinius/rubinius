@@ -1,0 +1,3 @@
+Dir.mkdir Dir.mkdir creates the named directory with the given permissions
+Dir.mkdir Dir.mkdir raises without adequate permissions in the parent dir
+Dir.mkdir raises a SystemCallError any of the directories in the path before the last does not exist

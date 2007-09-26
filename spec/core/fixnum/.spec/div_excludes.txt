@@ -1,1 +1,1 @@
-Fixnum#div coerces fixnum and return self divided by other as an Integer
+Fixnum#div coerces self and the given argument to Floats and returns self divided by other as Fixnum

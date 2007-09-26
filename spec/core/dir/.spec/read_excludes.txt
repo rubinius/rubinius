@@ -1,0 +1,4 @@
+Dir#close closes the stream and fd and returns nil
+Dir#close raises an IOError when called on a closed Dir instance
+Dir#read returns the file name in the current seek position
+Dir#read raises an IOError when called on a closed Dir instance

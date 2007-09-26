@@ -1,0 +1,1 @@
+Array#assoc returns the first array whose 1st item is == obj or nil
