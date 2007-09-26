@@ -617,6 +617,14 @@ class String
   
   
   
+  
+  def to_s
+    self.class == String ? self : String.new(self)
+  end
+  alias_method :to_str, :to_s
+  
+  
+  
   def setup_tr_table(*strings)
     table = Array.new(256, true)
     
@@ -775,10 +783,6 @@ class String
       
     replace(output)
   end
-
-  def to_s
-    self
-  end
   
   ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
@@ -823,8 +827,6 @@ class String
   end
   alias_method :size, :length
   
-  alias_method :to_str, :to_s
-
   #---
   # NOTE: This overwrites String#dup defined in bootstrap.
   # TODO: Remove me and make string_dup check taint and freeze.
