@@ -23,7 +23,7 @@ end
       should_raise(IOError) do
         dir = Dir.open mock_dir
         dir.close
-        dir.send msg
+        dir.send cmd
       end
     end
   end

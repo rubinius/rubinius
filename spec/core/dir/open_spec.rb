@@ -9,7 +9,7 @@ require File.dirname(__FILE__) + '/fixtures/common'
   end
   
   it "raises SystemCallError if the directory does not exist" do
-    should_raise(SystemCallError) { Dir.send msg, nonexistent }
+    should_raise(SystemCallError) { Dir.send cmd, nonexistent }
   end
   
   it "takes a block which yields the Dir instance and closes it after" do
