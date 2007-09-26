@@ -1677,30 +1677,12 @@ class String
   #   return nil
   # end
 
-  # justify left = -1, center = 0, right = 1
-  def justify_string(width, str, justify)
-    width = width.coerce_to(Integer, :to_int, true)
-    str = StringValue(str)
-    raise ArgumentError, "zero width padding" if str.empty?
-    return self if width <= @bytes
-    pad = width - @bytes
-    out = self.class.new(str.to_str * (pad / str.length))
-    out << str[0, pad - out.length] if out.length < pad
-    # Left justification
-    return self << out if justify == -1
-    # Right justification
-    return out << self if justify == 1
-    # and finially center
-    split = (width / 2) - (@bytes / 2)
-    return out.insert(split, self)
+  def rjust(integer, padstr = " ")
+    justify(integer, :right, padstr)
   end
 
-  def rjust(width, str=" ")
-    justify_string(width, str, 1)
-  end
-
-  def ljust(width, str=" ")
-    justify_string(width, str, -1)
+  def ljust(integer, padstr = " ")
+    justify(integer, :left, padstr)
   end
 
   def slice!(*args)
