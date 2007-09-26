@@ -5,7 +5,13 @@ describe "Array#initialize" do
   it "is private" do
     [].private_methods.map { |m| m.to_s }.include?("initialize").should == true
   end
-
+  
+  it "does nothing when passed an object equal to self" do
+    ary = [1, 2, 3]
+    ary.instance_eval { initialize([1, 2, 3]) }
+    ary.should == [1, 2, 3]
+  end
+  
   it "does nothing when passed self" do
     ary = [1, 2, 3]
     ary.instance_eval { initialize(ary) }

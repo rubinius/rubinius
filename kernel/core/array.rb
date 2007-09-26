@@ -36,33 +36,37 @@ class Array
   # neither is provided, the Array is filled with nil.
   def initialize(*args)
     raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
-
+    
     if args.empty?
       @tuple = Tuple.new 10
       @total = 0
-
-    elsif (args.first.kind_of? Array or args.first.respond_to? :to_ary) and args.size == 1
-      ary = ary_from args.first
-
-      @tuple = Tuple.new(ary.size + 10)
-      @total = ary.size
-      @tuple.copy_from ary.tuple, 0
-
     else
-      count = int_from args.first
-      obj   = args[1]
-      raise ArgumentError, "Size must be positive" if count < 0
-
-      @tuple = Tuple.new(count + 10)
-      @total = count
-
-      if block_given?   
-        count.times { |i| @tuple.put i, yield(i) }
-
+      raise TypeError, "can't modify frozen array" if frozen?
+      
+      if (args.first.kind_of? Array or args.first.respond_to? :to_ary) and args.size == 1
+        ary = ary_from args.first
+        return self if self == ary
+      
+        @tuple = Tuple.new(ary.size + 10)
+        @total = ary.size
+        @tuple.copy_from ary.tuple, 0
       else
-        count.times { |i| @tuple.put i, obj }
+        count = int_from args.first
+        obj   = args[1]
+        raise ArgumentError, "Size must be positive" if count < 0
+
+        @tuple = Tuple.new(count + 10)
+        @total = count
+      
+        if block_given?
+          count.times { |i| @tuple.put i, yield(i) }
+        else
+          count.times { |i| @tuple.put i, obj }
+        end
       end
     end
+  
+    self
   end              
 
   # Element reference, returns the element at the given index or 
@@ -121,27 +125,38 @@ class Array
   alias_method :slice, :[]
 
   def []=(idx, ent, *args)
+    raise TypeError, "can't modify frozen array" if frozen?
+    
     cnt = nil
     if args.size != 0
-      cnt = ent
+      cnt = ent.to_int
       ent = args[0]             # 2nd arg (cnt) is the optional one!
     end
 
     # Normalise Ranges
-    if idx.class == Range
+    if idx.is_a?(Range)
       if cnt
         raise ArgumentError, "Second argument invalid with a range"
       end
-      lst = idx.last
+      
+      unless idx.first.respond_to?(:to_int)
+        raise TypeError, "can't convert #{idx.first.class} into Integer"
+      end
+      
+      unless idx.last.respond_to?(:to_int)
+        raise TypeError, "can't convert #{idx.last.class} into Integer"
+      end
+      
+      lst = idx.last.to_int
       if lst < 0
         lst += @total
       end
       lst += 1 unless idx.exclude_end?
 
-      idx = idx.first
+      idx = idx.first.to_int
       if idx < 0
         idx += @total
-        raise IndexError if idx < 0
+        raise RangeError if idx < 0
       end
 
       # m..n, m > n allowed
@@ -149,7 +164,9 @@ class Array
 
       cnt = lst - idx
     end
-
+    
+    idx = idx.to_int
+    
     if idx < 0
       idx += @total
       raise IndexError.new("Index #{idx -= @total} out of bounds") if idx < 0
@@ -160,10 +177,14 @@ class Array
       raise IndexError.new("Negative length #{cnt}") if cnt < 0
 
       cnt = @total - idx if cnt > @total - idx # MRI seems to be forgiving here!
-      replacement = ent
+      
       if ent == nil
         replacement = []
-      elsif ent.class != Array  # FIXME: right test?
+      elsif ent.is_a?(Array)
+        replacement = ent
+      elsif ent.respond_to?(:to_ary)
+        replacement = ent.to_ary
+      else
         replacement = [ent]
       end
 
@@ -186,15 +207,25 @@ class Array
       replacement.each_with_index { |el, i|
         @tuple.put(idx+i, el)
       }
+      
       if replacement.size < cnt
         f = idx + cnt
         t = idx + replacement.size
+        
+        # shift fields to the left
         while f < @total
           @tuple.put(t, @tuple.at(f))
           t += 1
           f += 1
         end
-        @total -= cnt - replacement.size
+        
+        # unset any extraneous fields
+        while t < @tuple.fields
+          @tuple.put(t, nil)
+          t += 1
+        end
+        
+        @total -= (cnt - replacement.size)
       end
 
       return ent
@@ -337,7 +368,7 @@ class Array
 
     return false unless size == other.size
 
-    size.times { |i| return false unless at(i) == other.at(i) }
+    size.times { |i| return false unless @tuple.at(i) == other.at(i) }
     
     true
   end 
@@ -717,7 +748,7 @@ class Array
   # Returns true if the given obj is present in the Array.
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    @total.times { |i| return true if at(i) == obj }
+    @total.times { |i| return true if @tuple.at(i) == obj }
     false
   end
 
