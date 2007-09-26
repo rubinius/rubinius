@@ -1,59 +1,53 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+describe "Kernel.Float when passed a String" do
+  it "raises a TypeError when the given String can't be fully converted to a Float" do
+    should_raise(ArgumentError, 'invalid value for Float(): "0.0.0"') do
+      Float('0.0.0')
+    end
+    
+    should_raise(ArgumentError, 'invalid value for Float(): "float"') do
+      Float('float')
+    end
+    
+    should_raise(ArgumentError, 'invalid value for Float(): "10.0:D"') do
+      Float('10.0:D')
+    end
+    
+    should_raise(ArgumentError, 'invalid value for Float(): "D10"') do
+      Float('D10')
+    end
+  end
+end
+
 describe "Kernel.Float" do
-  it "should call to_f to convert any arbitrary argument to a Float" do
-    class KernelSpecFloat
-      def to_f; 1.1; end
-    end
-
-    Float(KernelSpecFloat.new).should == 1.1
-  end
-
-  version '1.8.6' do
-    it "raises TypeError if passed a string that cannot be fully converted to a Float" do
-      should_raise(ArgumentError, 'invalid value for Float(): "float"') do
-        Float('float')
-      end
-    end
-  end
-
-  it "should raise a TypeError if there is no to_f or to_i method on an object" do
-    class KernelSpecFloat4; end
-
-    should_raise(TypeError) { Float(KernelSpecFloat4.new) }
-  end
-
-  it "should raise a TypeError if to_f doesn't return a Float" do
-    class KernelSpecFloat5
-      def to_f; 'har'; end
-    end
-
-    should_raise(TypeError) { Float(KernelSpecFloat5.new) }  
+  it "converts the given argument to a Float by calling #to_f" do
+    Kernel.Float(1).should == 1.0
+    Kernel.Float(1.12).should == 1.12
+    Kernel.Float(1000000000000).should == 1000000000000.0
+    Kernel.Float("10").should == 10.0
+    
+    (obj = Object.new).should_receive(:to_f, :returning => 1.2)
+    obj.should_not_receive(:to_i)
+    Kernel.Float(obj).should == 1.2
   end
   
-  version '1.8.4'..'1.8.5' do
-    it "raises TypeError if passed a string that cannot be fully converted to a Float" do
-      should_raise(TypeError) { Float('float') }
+  it "raises a TypeError of #to_f is not provided" do
+    should_raise(TypeError, "can't convert Object into Float") do
+      Kernel.Float(Object.new)
     end
   end
-
-  version :not, '1.8.4'..'1.8.6' do
-    it "should call to_i to convert any arbitrary argument to a Float" do
-     class KernelSpecFloat2
-       def to_i; 7; end
-     end
-
-     Float(KernelSpecFloat2.new).should == 7.0
+  
+  it "raises a TypeError if #to_f does not return a Float" do
+    (obj = Object.new).should_receive(:to_f, :returning => 'ha!')
+    should_raise(TypeError, "Object#to_f should return Float") do
+      Kernel.Float(obj)
     end
 
-    it "should give to_f precedence over to_i" do
-      class KernelSpecFloat3
-        def to_i; 7; end
-        def to_f; 69.9; end
-      end
-  
-      Float(KernelSpecFloat3.new).should == 69.9
+    obj.should_receive(:to_f, :returning => 123)
+    should_raise(TypeError, "Object#to_f should return Float") do
+      Kernel.Float(obj)
     end
   end
 end

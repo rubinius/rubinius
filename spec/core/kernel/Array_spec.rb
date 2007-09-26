@@ -1,32 +1,37 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Kernel.Array" do
-  it "should call to_a to convert any arbitrary argument to an Array" do
-    class KernelSpecArray
-      def to_a; [:a, :b]; end
-    end
-
-    Array(KernelSpecArray.new).should == [:a, :b]
+describe "Kernel#Array" do
+  it "first tries to call #to_ary on the given argument" do
+    (obj = Object.new).should_receive(:to_ary, :returning => [1, 2, 3])
+    obj.should_not_receive(:to_a)
+    
+    Array(obj).should == [1, 2, 3]
   end
-
-  it "should prefer to_ary over to_a" do
-    class KernelSpecArray2
-      def to_ary; [:a, :r, :y]; end
-      def to_a; [:a, :b]; end
-    end
-    Array(KernelSpecArray2.new).should == [:a, :r, :y]
+  
+  it "tries to call #to_a on the given argument if #to_ary is not provided" do
+    (obj = Object.new).should_receive(:to_a, :returning => [4, 5, 6])
+    Array(obj).should == [4, 5, 6]
   end
-
-  it "should raise a TypeError if to_a doesn't return an Array" do
-    class KernelSpecArray3
-      def to_a; 'har'; end
-    end
-
-    should_raise(TypeError) { Array(KernelSpecArray3.new) }
+  
+  it "returns an array with the given argument if neither #to_ary nor #to_a are provided" do
+    obj = Object.new
+    Array(obj).should == [obj]
   end
-
-  it "called with nil as argument should return an empty Array" do
+  
+  it "returns an empty array if the given argument is nil" do
     Array(nil).should == []
+  end
+  
+  it "raises a TypeError if #to_ary / #to_a do not return an array" do
+    (obj = Object.new).should_receive(:to_a, :returning => "ha!")
+    should_raise(TypeError, "`to_a' did not return Array") do
+      Array(obj)
+    end
+
+    obj.should_receive(:to_ary, :returning => "ha!")
+    should_raise(TypeError, "Object#to_ary should return Array") do
+      Array(obj)
+    end
   end
 end
