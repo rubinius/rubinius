@@ -1,0 +1,3 @@
+Dir.foreach yields all names in an existing directory to the provided block
+Dir.foreach returns nil when successful
+Dir.foreach raises a SystemCallError if passed a nonexistent directory

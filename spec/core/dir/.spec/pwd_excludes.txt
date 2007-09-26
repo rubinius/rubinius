@@ -1,0 +1,1 @@
+Dir.pwd returns the current working directory

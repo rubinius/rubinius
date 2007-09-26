@@ -1,0 +1,4 @@
+Dir.open returns a Dir instance representing the specified directory
+Dir.open raises SystemCallError if the directory does not exist
+Dir.open takes a block which yields the Dir instance and closes it after
+Dir.open returns the value of the block if a block is passed

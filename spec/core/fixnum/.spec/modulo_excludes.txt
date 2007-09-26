@@ -1,0 +1,4 @@
+Fixnum#% raises a ZeroDivisionError when the given argument is 0
+Fixnum#% raises a TypeError when given a non-Integer
+Fixnum#modulo raises a ZeroDivisionError when the given argument is 0
+Fixnum#modulo raises a TypeError when given a non-Integer

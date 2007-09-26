@@ -1,0 +1,1 @@
+Fixnum#quo raises a TypeError when given a non-Integer
