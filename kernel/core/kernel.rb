@@ -2,6 +2,8 @@ module Kernel
 
   # Conversion methods
   def coerce_to(type, method, do_raise=true)
+    return self if self.is_a?(type)
+    
     if self.respond_to?(method)
       result = self.__send__(method)
       raise TypeError, "#{self.class}##{method} should return #{type}" unless result.is_a?(type)
@@ -48,7 +50,7 @@ module Kernel
   #   String(obj, sym=:to_s)
   # and use String(obj, :to_str) instead of StringValue(obj)
   def StringValue(obj)
-    obj.is_a?(String) ? obj : obj.coerce_to(String, :to_str)
+    obj.coerce_to(String, :to_str)
   end
   private :StringValue
   
