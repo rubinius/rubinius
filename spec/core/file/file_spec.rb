@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.file?" do 
-  before(:each) do 
+  before :each do 
     platform :mswin do
       @null = "NUL"
       @dir  = "C:\\"
@@ -16,7 +16,7 @@ describe "File.file?" do
     File.open(@file, "w"){} # touch
   end
 
-  after(:each) do
+  after :each do
     File.delete(@file) rescue nil
     @null = nil
     @file = nil

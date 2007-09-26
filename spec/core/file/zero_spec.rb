@@ -5,13 +5,13 @@ describe "File.zero?" do
     @zero_file    = 'test.txt'
     @nonzero_file = 'test2.txt'
       
-    File.open(@zero_file    , "w"){} # Touch
-    File.open(@nonzero_file , "w"){|f| f.puts "hello"} # Touch
+    File.open(@zero_file, "w") {} # Touch
+    File.open(@nonzero_file, "w") { |f| f.puts "hello" }
   end
   
   after :each do
-    File.delete(@zero_file    ) if File.exists?(@zero_file)
-    File.delete(@nonzero_file ) if File.exists?(@nonzero_file)  
+    File.delete(@zero_file) if File.exists?(@zero_file)
+    File.delete(@nonzero_file) if File.exists?(@nonzero_file)  
     @zero_file    = nil
     @nonzero_file = nil
   end

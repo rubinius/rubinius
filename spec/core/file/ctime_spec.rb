@@ -1,11 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.ctime" do
-  before(:each) do
+  before :each do
     @file = __FILE__
   end
 
-  after(:each) do
+  after :each do
     @file = nil
   end
 
@@ -26,11 +26,12 @@ describe "File.ctime" do
 end 
 
 describe "File#ctime" do
-  before(:each) do
+  before :each do
     @file = File.open(__FILE__)
   end
 
-  after(:each) do
+  after:each do
+    @file.close
     @file = nil
   end
 

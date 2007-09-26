@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.unlink" do
-  before(:each) do
+  before :each  do
     @file = "i_dont_exist"
     File.delete(@file) if File.exists?(@file)
   end
   
-  after(:each) do
-    File.delete(@file) rescue nil
+  after :each do
+    File.delete(@file) if File.exist?(@file)
   end
   
   it "should delete a file and return the number of names passed as arguments" do

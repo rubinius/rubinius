@@ -1,13 +1,13 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.exist?" do 
-  before(:each) do
+  before :each do
     @file = 'temp.txt'
     File.open(@file, "w"){}
   end 
 
-  after(:each) do
-    File.delete("temp.txt")
+  after :each do
+    File.delete(@file) if File.exist?(@file)
     @file = nil
   end  
   

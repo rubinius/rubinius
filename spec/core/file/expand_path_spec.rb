@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.expand_path" do
-  before(:each) do
+  before :each do
     platform :mswin do
       @base = `cd`.chomp.tr '\\', '/'
       @tmpdir = "c:/tmp"
@@ -16,7 +16,7 @@ describe "File.expand_path" do
     end
   end
 
-  after(:each) do
+  after :each do
     @base = nil
     @tmpdir = nil
     @rootdir = nil    

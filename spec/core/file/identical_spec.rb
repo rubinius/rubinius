@@ -1,15 +1,24 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.identical?" do  
-  before(:each) do    
+  before :each do    
     @file1 = 'test.txt'
     @file2 = 'test2.txt'
     @file3 = 'test.lnk'
     File.delete(@file3) if File.exists?(@file3)
      
-    File.open(@file1,"w+"){|f| f.puts "file1"}
-    File.open(@file2,"w+"){|f| f.puts "file2"} 
+    File.open(@file1,"w+") { |f| f.puts "file1" }
+    File.open(@file2,"w+") { |f| f.puts "file2" } 
     File.link(@file1, @file3)
+  end
+  
+  after :each do          
+    File.unlink(@file3)  
+    File.delete(@file1) if File.exists?(@file1)    
+    File.delete(@file2) if File.exists?(@file2)     
+    @file1 = nil
+    @file1 = nil
+    @file1 = nil
   end
 
   it "return a Boolean class" do 
@@ -41,13 +50,4 @@ describe "File.identical?" do
       File.delete(file2) rescue nil
     end
   end  
-  
-  after(:each) do          
-    File.unlink(@file3)  
-    File.delete(@file1) if File.exists?(@file1)    
-    File.delete(@file2) if File.exists?(@file2)     
-    @file1 = nil
-    @file1 = nil
-    @file1 = nil
-  end
 end

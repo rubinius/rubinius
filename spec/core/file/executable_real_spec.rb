@@ -1,19 +1,19 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.executable_real?" do
-  before(:each) do
+  before :each do
     @file1 = File.join(Dir.pwd, 'temp1.txt')
     @file2 = File.join(Dir.pwd, 'temp2.txt')
 
-    File.open(@file1, "w"){} # touch
-    File.open(@file2, "w"){}
+    File.open(@file1, "w") {} # touch
+    File.open(@file2, "w") {}
       
     File.chmod(0755, @file1)
   end
  
-  after(:each) do
-    File.delete("temp1.txt")    
-    File.delete("temp2.txt")
+  after :each do
+    File.delete(@file1) if File.exist?(@file1)
+    File.delete(@file2) if File.exist?(@file2)
 
     @file1 = nil
     @file2 = nil
@@ -36,28 +36,28 @@ describe "File.executable_real?" do
 end
 
 describe "File.executable_real?" do
-  before(:each) do
+  before :each do
     @file1 = 'test.txt'
     @file2 = 'test2.txt'
 
-    File.open(@file1, "w"){} # touch
-    File.open(@file2, "w"){}
+    File.open(@file1, "w") {} # touch
+    File.open(@file2, "w") {}
       
     File.chmod(0755, @file1)
   end
   
+  after :each do
+    File.delete(@file1) if File.exist?(@file1)
+    File.delete(@file2) if File.exist?(@file2) 
+    @file1 = nil
+    @file2 = nil
+  end 
+ 
   it "returns true if named file is readable by the real user id of the process, otherwise false" do
     File.executable_real?('fake_file').should == false
     File.executable_real?(@file1).should == true
   end
   
-  after(:each) do
-    File.delete(@file1)    
-    File.delete(@file2) 
-    @file1 = nil
-    @file2 = nil
-  end 
- 
   platform :not, :mswin do
     it "returns true if the file its an executable" do 
       File.executable_real?(@file1).should == true

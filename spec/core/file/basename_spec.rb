@@ -2,17 +2,18 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.basename" do  
   before :each do     
-    @file = "test.txt"  
-    File.delete(@file) if File.exist? @file
-    File.open(@file,"w+") 
+    @name = "test.txt"  
+    File.delete(@name) if File.exist? @name
+    @file = File.open(@name,"w+") 
   end
   
   after :each do
-    #File.delete(@file)
+    @file.close
+    File.delete(@name) if File.exist?(@name)
   end
   
   it "return the basename of a path (basic cases)" do     
-    File.basename(@file).should == "test.txt"
+    File.basename(@name).should == "test.txt"
     File.basename(File.join("/tmp")).should == "tmp"
     File.basename(File.join(*%w( g f d s a b))).should == "b"
     File.basename("/tmp", ".*").should == "tmp"

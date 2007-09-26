@@ -1,13 +1,19 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.link" do
-  before(:each) do   
+  before :each do   
     @file = "test.txt"
     @link = "test.lnk"     
-    File.delete(@link) if File.exists?(@link)
-    File.delete(@file) if File.exists?(@file)
+    File.delete(@link) if File.exist?(@link)
+    File.delete(@file) if File.exist?(@file)
     File.open(@file,"w+") 
   end 
+
+  after :each do
+    File.unlink(@link) if File.exist?(@link)
+    File.delete(@file) if File.exist?(@file)
+    @link = nil
+  end
 
   platform :not, :mswin do
     it "link a file with another " do
@@ -25,11 +31,5 @@ describe "File.link" do
       should_raise(ArgumentError){ File.link }
       should_raise(ArgumentError){ File.link(@file) }
     end
-  end
-
-  after(:each)do
-    File.unlink(@link)
-    File.delete(@file)
-    @link = nil
   end
 end

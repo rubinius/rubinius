@@ -45,6 +45,18 @@ describe "File.ftype" do
     end
   end
 
+  after :each do 
+    File.delete(@fifo) if File.exist?(@fifo)
+      
+    @file   = nil
+    @dir    = nil
+    @char   = nil
+    @block  = nil
+    @fifo   = nil
+    @link   = nil
+    @socket = nil
+  end
+
   it "return a string " do  
     File.ftype(@file).class.should == String
   end
@@ -82,17 +94,5 @@ describe "File.ftype" do
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
     should_raise(ArgumentError){ File.ftype }
     should_raise(Errno::ENOENT){ File.ftype('bogus') }
-  end
-
-  after :each do 
-    File.delete(@fifo)
-      
-    @file   = nil
-    @dir    = nil
-    @char   = nil
-    @block  = nil
-    @fifo   = nil
-    @link   = nil
-    @socket = nil
   end
 end 

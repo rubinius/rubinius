@@ -1,9 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.atime" do
-  before(:each) do
+  before :each do
     @file = File.join('test.txt')
-    File.open(@file, "w"){} # touch
+    File.open(@file, "w") {} # touch
+  end
+  
+  after :each do 
+    File.delete(@file) if File.exist?(@file) 
+    @file = nil
   end
 
   it "returns the last access time for the named file as a Time object" do      
@@ -20,20 +25,16 @@ describe "File.atime" do
     should_raise(ArgumentError){ File.atime(@file, @file) }
     should_raise(TypeError){ File.atime(1) }
   end
-  
-  after(:each) do 
-    File.delete("test.txt") if File.exist?("test.txt") 
-    @file = nil
-  end
 end
 
 describe "File#atime" do
-  before(:each) do
+  before :each do
     @name = File.expand_path(__FILE__)
     @file = File.open(@name)
   end
 
-  after(:each) do 
+  after :each do
+    @file.close rescue nil
     @name = nil
     @file = nil
   end

@@ -7,9 +7,17 @@ describe "File.delete" do
     File.delete(@file1) if File.exists?(@file1)
     File.delete(@file2) if File.exists?(@file2)
 
-    File.open(@file1, "w"){} # Touch
-    File.open(@file2, "w"){} # Touch
+    File.open(@file1, "w") {} # Touch
+    File.open(@file2, "w") {} # Touch
   end 
+  
+  after :each do
+    File.delete(@file1) if File.exists?(@file1)
+    File.delete(@file2) if File.exists?(@file2)
+
+    @file1 = nil
+    @file2 = nil
+  end
 
   it "delete a file " do
     File.delete.should == 0
@@ -66,13 +74,5 @@ describe "File.delete" do
   it "should coerce a given parameter into a string if possible" do
     class Coercable; def to_str; "test.txt"; end; end
     File.delete(Coercable.new).should == 1
-  end
-  
-  after :each do
-    File.delete(@file1) if File.exists?(@file1)
-    File.delete(@file2) if File.exists?(@file2)
-
-    @file1 = nil
-    @file2 = nil
   end
 end

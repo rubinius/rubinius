@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.open" do 
-  before(:each) do         
+  before :each do         
     @file = 'test.txt'    
     File.delete(@file) if File.exists?(@file)
     File.delete("fake") if File.exists?("fake")
@@ -9,6 +9,16 @@ describe "File.open" do
     @fd = nil
     @flags = File::CREAT | File::TRUNC | File::WRONLY
     File.open(@file, "w"){} # touch
+  end
+  
+  after :each do         
+    File.delete("fake") rescue nil
+    @fh.delete if @fh  rescue nil
+    @fh.close if @fh rescue nil
+    @fh    = nil
+    @fd    = nil
+    @file  = nil
+    @flags = nil
   end
   
   it "open the file (basic case)" do 
@@ -341,15 +351,5 @@ describe "File.open" do
     should_raise(TypeError){ File.open(nil) }
     should_raise(SystemCallError){ File.open(-1) } # kind_of ?
     should_raise(ArgumentError){ File.open(@file, File::CREAT, 0755, 'test') }
-  end
-  
-  after(:each) do         
-    File.delete("fake") rescue nil
-    @fh.delete if @fh  rescue nil
-    @fh.close if @fh rescue nil
-    @fh    = nil
-    @fd    = nil
-    @file  = nil
-    @flags = nil
   end
 end

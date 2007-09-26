@@ -3,7 +3,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 describe "File.umask" do
   before :each do
     @file = 'test.txt'
-    File.open(@file, 'w'){}
+    File.open(@file, 'w') {}
+  end
+
+  after :each do
+    File.delete(@file) if File.exists?(@file)
+    @file = nil
   end
    
   it "return a Fixnum" do
@@ -30,10 +35,5 @@ describe "File.umask" do
       File.umask(0006)  
       File.umask.should == 0
     end
-  end
-
-  after :each do
-    File.delete(@file) if File.exists?(@file)
-    @file = nil
   end
 end 

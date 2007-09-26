@@ -1,15 +1,15 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.new" do
-  before(:each) do 
+  before :each do 
     @file = 'test.txt'
     @fh = nil 
     @flags = File::CREAT | File::TRUNC | File::WRONLY
-    File.open(@file, "w"){} # touch
+    File.open(@file, "w") {} # touch
   end
 
-  after(:each) do   
-    File.delete("test.txt") if File.exists?("test.txt")
+  after :each do   
+    File.delete(@file) if File.exists?(@file)
     @fh    = nil
     @file  = nil
     @flags = nil

@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File#path" do
-  before(:each) do
+  before :each do
     @file1 = "testfile"
     @file2 = "/tmp/../tmp/xxx"
   end
   
-  after(:each) do
-    File.delete(@file1) rescue nil
-    File.delete(@file2) rescue nil
+  after :each do
+    File.delete(@file1) if File.exist?(@file1)
+    File.delete(@file2) if File.exist?(@file2)
   end
   
   it "should return the pathname used to create file as a string" do

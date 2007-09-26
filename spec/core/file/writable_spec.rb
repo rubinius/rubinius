@@ -1,11 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.writable?" do
-  before(:each) do
+  before :each do
     @file = '/tmp/i_exist'
   end
   
-  after(:each) do
+  after :each do
     File.delete(@file) if File.exists?(@file)
   end
   

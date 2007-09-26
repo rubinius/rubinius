@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.executable?" do 
-  before(:each) do
+  before :each do
     @file1 = 'temp1.txt'
     @file2 = 'temp2.txt'
 
@@ -11,9 +11,9 @@ describe "File.executable?" do
     File.chmod(0755, @file1)
   end
 
-  after(:each) do
-    File.delete("temp1.txt")    
-    File.delete("temp2.txt")
+  after :each do
+    File.delete(@file1) if File.exist?(@file1)    
+    File.delete(@file2) if File.exist?(@file2)
 
     @file1 =  nil
     @file2 = nil
@@ -36,19 +36,19 @@ describe "File.executable?" do
 end
 
 describe "File.executable?" do 
-  before(:each) do
+  before :each do
     @file1 = File.join('test.txt')
     @file2 = File.join('test2.txt')
 
-    File.open(@file1, "w"){} # touch
-    File.open(@file2, "w"){}
+    File.open(@file1, "w") {} # touch
+    File.open(@file2, "w") {}
     
     File.chmod(0755, @file1)
   end
 
-  after(:each) do
-    File.delete(@file1)    
-    File.delete(@file2) 
+  after :each do
+    File.delete(@file1) if File.exist?(@file1)
+    File.delete(@file2) if File.exist?(@file2) 
     @file1 =  nil
     @file2 = nil
   end

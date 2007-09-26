@@ -1,12 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.writable_real?" do  
-  before(:each) do
+  before :each do
     @file = '/tmp/i_exist'
   end
 
-  after(:each) do
-    File.delete(@file) rescue nil
+  after :each do
+    File.delete(@file) if File.exist?(@file)
   end
     
   it "returns true if named file is writable by the real user id of the process, otherwise false" do

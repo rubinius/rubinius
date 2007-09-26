@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File.directory?" do 
-  before(:each) do
+  before :each do
     platform :mswin do
       @dir  = "C:\\"
       @file = "C:\\winnt\\notepad.exe"
@@ -13,7 +13,7 @@ describe "File.directory?" do
     end
   end
 
-  after(:each) do
+  after :each do
     @dir = nil
   end
  
