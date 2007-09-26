@@ -1,1 +1,0 @@
-Numeric#coerce return the vaule if number is different to 0

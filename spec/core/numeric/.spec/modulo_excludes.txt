@@ -1,3 +1,2 @@
 Numeric#modulo y modulo x should be z (integer - bignum) 
 Numeric#modulo y modulo x should be z (bignum -integer) 
-Numeric#modulo  should NOT raise ZeroDivisionError if other is zero and is a Float

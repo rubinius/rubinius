@@ -17,6 +17,8 @@ class Float < Numeric
   EPSILON    = Platform::Float.EPSILON
   STRLEN     = 32
   
+  alias_method :quo, :/
+  
   def self.induced_from(obj)
     if [Float, Bignum, Fixnum].include?(obj.class)
       obj.to_f

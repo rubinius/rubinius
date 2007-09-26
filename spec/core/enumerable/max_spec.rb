@@ -38,6 +38,7 @@ describe "Enumerable#max" do
     EachDefiner.new().max.should == nil
     should_raise(NoMethodError) { EachDefiner.new(Object.new, Object.new).max }
     should_raise(ArgumentError) { EachDefiner.new(11,"22").max }
+    should_raise( ArgumentError) {EachDefiner.new(11,12,22,33).max{|a, b| nil}}
   end
  
   it "return the maximum element (with block" do

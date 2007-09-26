@@ -486,7 +486,16 @@ module Enumerable
     prc = lambda { |a, b| a <=> b } unless block_given?
     min = nil
     each do |o|
-      min = o if min.nil? || prc.call(min, o) > 0
+      if min.nil?
+        min = o
+      else
+        comp = prc.call(o, min)
+        if comp.nil?
+          raise ArgumentError, "comparison of #{o.class} with #{min} failed"
+        elsif comp < 0
+          min = o
+        end
+      end
     end
     min
   end
@@ -506,8 +515,17 @@ module Enumerable
   def max(&prc)
     prc = lambda { |a, b| a <=> b } unless block_given?
     max = nil
-    each do |o| 
-      max = o if max.nil? || prc.call(max, o) < 0
+    each do |o|
+      if max.nil?
+        max = o
+      else
+        comp = prc.call(o, max)
+        if comp.nil?
+          raise ArgumentError, "comparison of #{o.class} with #{max} failed"
+        elsif comp > 0
+          max = o
+        end
+      end
     end
     max
   end

@@ -1,1 +1,0 @@
-Enumerable#max return an error when introduce the wrong kind or number of parameters 

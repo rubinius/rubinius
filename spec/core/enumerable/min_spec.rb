@@ -37,6 +37,7 @@ describe "Enumerable#min" do
     EachDefiner.new().min.should == nil
     should_raise(NoMethodError) {EachDefiner.new(Object.new, Object.new).min }
     should_raise( ArgumentError) {EachDefiner.new(11,"22").min }
+    should_raise( ArgumentError) {EachDefiner.new(11,12,22,33).min{|a, b| nil}}
   end
   
   it "return the minimun when using a block rule" do
@@ -45,6 +46,12 @@ describe "Enumerable#min" do
 
     EachDefiner.new("2","33","4","11").min {|a,b| b <=> a }.should == "4"
     EachDefiner.new( 2 , 33 , 4 , 11 ).min {|a,b| b <=> a }.should == 33
+
+    EachDefiner.new( 1, 2, 3, 4 ).min {|a,b| 15 }.should == 1
+
+    EachDefiner.new(11,12,22,33).min{|a, b| 2 }.should == 11
+    @i = -2
+    EachDefiner.new(11,12,22,33).min{|a, b| @i += 1 }.should == 12
 
     @e_strs.min {|a,b| a.length <=> b.length }.should == "1"
 
