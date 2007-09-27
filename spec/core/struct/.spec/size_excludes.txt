@@ -1,1 +1,0 @@
-Struct#size is a synonym for length

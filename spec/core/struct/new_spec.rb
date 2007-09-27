@@ -44,10 +44,11 @@ describe "Struct.new" do
     should_raise(NameError) { Struct.new('animal', :name, :legs, :eyeballs) }
   end
 
-  it "accepts only symbols" do
-    # i think this is an ArgumentError because 1.to_sym => nil, but not sure
-    should_raise(ArgumentError) { Struct.new(:animal, 1) }
-
+  it "raises ArgumentError if object#to_sym is nil" do
+    should_raise(ArgumentError) { Struct.new(:animal, 10000) }
+  end
+  
+  it "raises TypeError if object doesn't respond to to_sym" do
     should_raise(TypeError) { Struct.new(:animal, 1.0) }
     should_raise(TypeError) { Struct.new(:animal, Time.now) }
     should_raise(TypeError) { Struct.new(:animal, Class) }

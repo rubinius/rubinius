@@ -1,1 +1,0 @@
-Struct#values is a synonym for to_a

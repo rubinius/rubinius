@@ -1,2 +1,0 @@
-Struct#values_at returns an array of values
-Struct#values_at fails when passed unsupported types

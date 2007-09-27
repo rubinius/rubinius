@@ -1,12 +1,5 @@
-Struct.new overwrites previously defined constants with string as first argument
 Struct.new calls to_str on its first argument (constant name)
-Struct.new accepts nil first argument for not creating constants
 Struct.new does not create a constant with symbol as first argument
-Struct.new creates a new anonymous class with symbol arguments
-Struct.new accepts only symbols
-Struct.new instance_eval's a passed block
 Struct.new creates a constant in subclass' namespace
-Struct.new creates an instance
 Struct.new creates reader methods
 Struct.new creates writer methods
-Struct.new fails with too many arguments

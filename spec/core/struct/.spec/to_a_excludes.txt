@@ -1,1 +1,0 @@
-Struct#to_a returns the values for this instance as an array
