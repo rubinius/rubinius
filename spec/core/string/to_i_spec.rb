@@ -1,7 +1,41 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
-describe "String#to_i with base 10" do
+describe "String#to_i" do
+  it "ignores leading whitespaces" do
+    [ " 123", "     123", "\r\n\r\n123", "\t\t123",
+      "\r\n\t\n123", " \t\n\r\t 123"].each do |str|
+      str.to_i.should == 123
+    end
+  end
+  
+  it "ignores leading underscores" do
+    "_123".to_i.should == 123
+    "__123".to_i.should == 123
+    "___123".to_i.should == 123
+  end
+  
+  it "ignores whitespaces in between the digits" do
+    "1_2_3asdf".to_i.should == 123
+  end
+  
+  it "ignores subsequent invalid characters" do
+    "123asdf".to_i.should == 123
+    "123#123".to_i.should == 123
+  end
+  
+  it "returns 0 if self is no valid integer-representation" do
+    [ "++2", "+-2", "--2" ].each do |str|
+      str.to_i.should == 0
+    end
+  end
+  
+  it "ignores a leading mix of whitespaces and underscores" do
+    [ "_ _123", "_\t_123", "_\r\n_123" ].each do |str|
+      str.to_i.should == 123
+    end
+  end
+
   it "interprets leading characters as a number in the given base" do
     "100110010010".to_i(2).should == 0b100110010010
     "100110201001".to_i(3).should == 186409
@@ -20,34 +54,50 @@ describe "String#to_i with base 10" do
     ("z" * 24).to_i(36).should == 22452257707354557240087211123792674815
 
     "5e10".to_i.should == 5
-    
-    "0b-1".to_i(2).should == (2 ** 32) - 1
-    "0d-1".to_i(10).should == (2 ** 32) - 1
-    "0o-1".to_i(8).should == (2 ** 32) - 1
-    "0x-1".to_i(16).should == (2 ** 32) - 1
   end
   
   noncompliant :rubinius do
-    it "auto-detects base via base specifiers (default: 10) for base = 0" do
-      "01778".to_i(0).should == 0177
-      "0b112".to_i(0).should == 0b11
-      "0d19A".to_i(0).should == 19
-      "0o178".to_i(0).should == 0o17
-      "0xFAZ".to_i(0).should == 0xFA
-      "1234567890ABC".to_i(0).should == 1234567890
-
-      "-01778".to_i(0).should == -0177
-      "-0b112".to_i(0).should == -0b11
-      "-0d19A".to_i(0).should == -19
-      "-0o178".to_i(0).should == -0o17
-      "-0xFAZ".to_i(0).should == -0xFA
-      "-1234567890ABC".to_i(0).should == -1234567890
-    
+    it "does not expose weird strtoul behaviour" do
       "0b-1".to_i(0).should == 0
       "0d-1".to_i(0).should == 0
       "0o-1".to_i(0).should == 0
       "0x-1".to_i(0).should == 0
+
+      "0b-1".to_i(2).should == 0
+      "0o-1".to_i(8).should == 0
+      "0d-1".to_i(10).should == 0
+      "0x-1".to_i(16).should == 0
     end
+  end
+  
+  noncompliant :mri do
+    it "exposes weird strtoul behaviour" do
+      "0b-1".to_i(0).should == 4294967295
+      "0d-1".to_i(0).should == 4294967295
+      "0o-1".to_i(0).should == 4294967295
+      "0x-1".to_i(0).should == 4294967295
+
+      "0b-1".to_i(2).should == (2 ** 32) - 1
+      "0d-1".to_i(10).should == (2 ** 32) - 1
+      "0o-1".to_i(8).should == (2 ** 32) - 1
+      "0x-1".to_i(16).should == (2 ** 32) - 1
+    end
+  end
+  
+  it "auto-detects base via base specifiers (default: 10) for base = 0" do
+    "01778".to_i(0).should == 0177
+    "0b112".to_i(0).should == 0b11
+    "0d19A".to_i(0).should == 19
+    "0o178".to_i(0).should == 0o17
+    "0xFAZ".to_i(0).should == 0xFA
+    "1234567890ABC".to_i(0).should == 1234567890
+
+    "-01778".to_i(0).should == -0177
+    "-0b112".to_i(0).should == -0b11
+    "-0d19A".to_i(0).should == -19
+    "-0o178".to_i(0).should == -0o17
+    "-0xFAZ".to_i(0).should == -0xFA
+    "-1234567890ABC".to_i(0).should == -1234567890
   end
   
   it "doesn't handle foreign base specifiers when base is > 0" do
@@ -82,8 +132,8 @@ describe "String#to_i with base 10" do
   end
   
   it "raises ArgumentError for illegal bases (1, < 0 or > 36)" do
-    should_raise(ArgumentError) { "".to_i(1) }
-    should_raise(ArgumentError) { "".to_i(-1) }
-    should_raise(ArgumentError) { "".to_i(37) }
+    should_raise(ArgumentError, "illegal radix 1") { "".to_i(1) }
+    should_raise(ArgumentError, "illegal radix -1") { "".to_i(-1) }
+    should_raise(ArgumentError, "illegal radix 37") { "".to_i(37) }
   end
 end

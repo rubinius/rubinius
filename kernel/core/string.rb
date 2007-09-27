@@ -616,15 +616,134 @@ class String
   end
   
   
+
+
+
+
+  # Returns the result of interpreting leading characters in <i>self</i> as an
+  # integer base <i>base</i> (2, 8, 10, or 16). Extraneous characters past the
+  # end of a valid number are ignored. If there is not a valid number at the
+  # start of <i>self</i>, <code>0</code> is returned. This method never raises an
+  # exception.
+  #    
+  #   "12345".to_i             #=> 12345
+  #   "99 red balloons".to_i   #=> 99
+  #   "0a".to_i                #=> 0
+  #   "0a".to_i(16)            #=> 10
+  #   "hello".to_i             #=> 0
+  #   "1100101".to_i(2)        #=> 101
+  #   "1100101".to_i(8)        #=> 294977
+  #   "1100101".to_i(10)       #=> 1100101
+  #   "1100101".to_i(16)       #=> 17826049
+  def to_i(base = 10)
+    base = base.coerce_to(Integer, :to_int)
+    raise ArgumentError, "illegal radix #{base}" if base < 0
+    self.to_inum(base)
+  end
   
-  
+  # Returns self if self is an instance of String,
+  # else returns self converted to a String instance.
   def to_s
     self.class == String ? self : String.new(self)
   end
   alias_method :to_str, :to_s
   
   
-  
+
+
+
+
+  def to_inum(base, check = false)
+    i = 0
+    # ignore only leading whitespaces
+    if check
+      while i < @bytes && @data[i].isspace
+        i += 1
+      end
+    # ignore leading whitespaces and underscores
+    else
+      while i < @bytes && (@data[i].isspace ||  @data[i] == ?_)
+        i += 1
+      end
+    end
+    
+    negative = false
+    if @data[i] == ?+
+      i += 1
+    elsif @data[i] == ?-
+      negative = true
+      i += 1
+    end
+    
+    if @data[i] == ?+ || @data[i] == ?-
+      raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
+      return 0
+    end
+    
+    if base <= 0
+      if @data[i] == ?0
+        case @data[i+1]
+        when ?x, ?X
+          base = 16
+        when ?b, ?B
+          base = 2
+        when ?o, ?O
+          base = 8
+        when ?d, ?D
+          base = 10
+        else
+          base = 8
+        end
+      elsif base < -1
+        base = -base
+      else
+        base = 10
+      end
+    end
+    
+    case base
+    when 2
+      i += 2 if @data[i] == ?0 && (@data[i+1] == ?b || @data[i+1] == ?B)
+    when 8
+      i += 2 if @data[i] == ?0 && (@data[i+1] == ?o || @data[i+1] == ?O)
+    when 10
+      i += 2 if @data[i] == ?0 && (@data[i+1] == ?d || @data[i+1] == ?D)
+    when 16
+      i += 2 if @data[i] == ?0 && (@data[i+1] == ?x || @data[i+1] == ?X)
+    else
+      raise ArgumentError, "illegal radix #{base}" if (base < 2 || 36 < base)
+    end
+    
+    result = 0
+    i.upto(@bytes - 1) do |index|
+      char = @data[index]
+
+      if char == ?_
+        next
+      elsif char >= ?0 && char <= ?9
+        value = (char - ?0)
+      elsif char >= ?A && char <= ?Z
+        value = (char - ?A + 10)
+      elsif char >= ?a && char <= ?z
+        value = (char - ?a + 10)
+      # An invalid character.
+      else
+        raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
+        return negative ? -result : result
+      end
+
+      if value >= base
+        raise ArgumentError, "invalid value for Integer: #{self.inspect}" if check
+        return negative ? -result : result
+      end
+
+      result *= base
+      result += value
+    end
+    
+    return negative ? -result : result
+  end
+
   def setup_tr_table(*strings)
     table = Array.new(256, true)
     
@@ -925,90 +1044,6 @@ class String
     ret = ret.map {|str| self.class.new(str) } if !self.instance_of?(String)
     ret = ret.map {|str| str.taint} if self.tainted?
     ret
-  end
-
-  # TODO: check that the string will never go over the maximum range
-  #       as the function is not supposed to raise an exception.
-  def to_i(radix=10)
-    unless radix.is_a? Integer
-      raise TypeError, "can't convert #{radix.class} into Integer" unless radix.respond_to? :to_int
-      radix = radix.to_int
-    end
-    
-    raise ArgumentError, "illegal radix #{radix}" if radix < 0
-    return 0 unless @bytes > 0
-    
-    # leading whitespace removal
-    i = 0
-    while i < @bytes
-      break unless self[i].isspace
-      i += 1
-    end
-    return 0 if i >= @bytes
-
-    # Sign determination
-    if self[i] == ?-
-      neg = true
-      i += 1
-    else
-      neg = false
-      if self[i] == ?+
-        i += 1
-      end
-    end
-    
-    # Determine the radix from the string for radix = 0
-    # 0b = 2, 0o = 8, 0x = 16, defaults to radix = 10
-    if @bytes - i >= 2
-      z = self[i]
-      f = self[i+1].tolower
-      if radix == 0
-        radix = 10
-        if z == ?0
-          if f == ?b
-            radix = 2
-          elsif f == ?o
-            radix = 8
-          elsif f == ?x
-            radix = 16
-          else
-            radix = 8
-          end
-        end
-      end
-      if z == ?0
-        if (radix == 2 and f == ?b) or
-           (radix == 8 and f == ?o) or
-           (radix == 16 and f == ?x)
-          i += 2
-        end
-      end
-    end
-
-    ret = 0
-    i.upto(@bytes - 1) do |idx|
-      char = @data.get_byte(idx)
-      value = 0
-      if char >= ?0 and char <= ?9
-        value = (char - ?0)
-      elsif char >= ?A and char <= ?Z
-        value = (char - ?A + 10)
-      elsif char >= ?a and char <= ?z
-        value = (char - ?a + 10)
-      # An invalid character.
-      elsif char != ?_
-        return neg ? -ret : ret
-      end
-
-      if value >= radix
-        return neg ? -ret : ret
-      end
-
-      ret *= radix
-      ret += value
-    end
-    
-    return neg ? -ret : ret
   end
   
   # TODO: inspect is NOT dump!
