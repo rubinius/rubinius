@@ -363,8 +363,8 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   
   }
   
-  printf("\nRuby stack:\n");
-  machine_print_stack(current_machine);
+  // printf("\nRuby stack:\n");
+  // machine_print_stack(current_machine);
   printf("\nVM Registers:\n");
   machine_print_registers(current_machine);
   

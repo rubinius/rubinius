@@ -116,7 +116,6 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
     state->home_on_stack = 1;
   }
   
-  /*
   if(REFERENCE_P(c->sender)) {
     if(!stack_context_p(c->sender)) {
       ar(c->sender);
@@ -125,7 +124,6 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
       state->sender_on_stack = 1;
     }
   }
-  */
   
   ar(c->self);
   ar(c->exception);
@@ -180,7 +178,6 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
     ar(c->home_context);
   }
   
-  /*
   if(REFERENCE_P(c->sender)) {
     if(state->sender_on_stack) {
       c->sender = FASTCTX(c->active_context)->sender;
@@ -188,7 +185,6 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
       ar(c->sender);
     }
   }
-  */
   
   ar(c->self);
   ar(c->exception);

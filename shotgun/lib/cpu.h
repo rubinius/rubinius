@@ -5,27 +5,31 @@
 
 /* Configuration macros. */
 
-/* Enable intcode*/
-#define USE_INTCODE 1
-
 /* Enable direct threading */
-#ifdef __LP64__
+#if CONFIG_ENABLE_DT
 #define DIRECT_THREADED 0
 #else
 #define DIRECT_THREADED 1
 #endif
 
+/* Whether or not to do runtime tracing support */
+#ifdef FAST
+#define EXCESSIVE_TRACING 0
+#else
 #define EXCESSIVE_TRACING state->excessive_tracing
+#endif
+
+/* For profiling of code */
+#ifdef DISABLE_CACHE
+#define USE_GLOBAL_CACHING 0
+#define USE_INLINE_CACHING 0
+#else
 #define USE_GLOBAL_CACHING 1
 #define USE_INLINE_CACHING 1
+#endif
 
-#if USE_INTCODE
 #define IP_TYPE uint32_t
 #define BS_JUMP 2
-#else
-#define IP_TYPE unsigned char
-#define BS_JUMP 5
-#endif
 
 #define CPU_REGISTERS OBJECT sender; \
   OBJECT block; \

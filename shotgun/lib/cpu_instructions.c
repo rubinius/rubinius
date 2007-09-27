@@ -18,12 +18,7 @@
 
 #define RISA(obj,cls) (REFERENCE_P(obj) && ISA(obj,BASIC_CLASS(cls)))
 
-#if USE_INTCODE
 #define next_int _int = *c->ip_ptr++;
-#else
-#define set_int(i,s) ((i)=(((s)[0] << 24) | ((s)[1] << 16) | ((s)[2] << 8) | (s)[3]))
-#define next_int set_int(_int,(c->ip_ptr)); c->ip_ptr += 4
-#endif
 
 #if DIRECT_THREADED
 #include "instruction_funcs.gen"
@@ -944,7 +939,7 @@ next_op:
       rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
       cpu_op_to_name(state, op), op, c->ip, c->sp);
     }
-    
+
     #include "instructions.gen"
     
 #endif

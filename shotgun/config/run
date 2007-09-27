@@ -1,0 +1,15 @@
+#!/bin/sh
+
+name=$1
+
+if ! test -f run; then
+  cd config
+fi
+
+if test -f $name; then
+  exec ./$name
+fi
+
+cc -o $name $name.c
+
+exec ./$name
