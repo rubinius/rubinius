@@ -26,6 +26,8 @@ module Kernel
   end
   
   def Integer(obj)
+    return obj.to_inum(10, true) if obj.is_a?(String)
+    
     result = obj.coerce_to(Integer, :to_int, false)
     result = obj.coerce_to(Integer, :to_i) if result.nil?
     return result

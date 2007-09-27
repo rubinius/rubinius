@@ -718,7 +718,7 @@ class String
     i.upto(@bytes - 1) do |index|
       char = @data[index]
 
-      if char == ?_
+      if char.isspace || (!check && char == ?_) 
         next
       elsif char >= ?0 && char <= ?9
         value = (char - ?0)
