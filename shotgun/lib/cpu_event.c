@@ -164,7 +164,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
 void _cpu_wake_channel_alot(int fd, short event, void *arg) {
   STATE;
   struct thread_info *ti = (struct thread_info*)arg;
-  
+    
   state = ti->state;
   cpu_channel_send(state, ti->c, ti->channel, I2N((int)event));
 }
@@ -249,7 +249,7 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   ti->c = c;
   ti->channel = channel;
   _cpu_event_register_info(state, ti);
-  
+    
   signal_set(&ti->ev, sig, _cpu_wake_channel_alot, (void*)ti);
   signal_add(&ti->ev, NULL);  
 }
@@ -265,9 +265,15 @@ void _cpu_find_waiters(int fd, short event, void *arg) {
   
   state = sti->state;
     
-  while((pid = waitpid(-1, &status, WNOHANG)) != -1) {
+  while((pid = waitpid(-1, &status, WNOHANG)) != 0) {
+    if(pid == -1) {
+      if(errno == EINTR) continue;
+      break;
+    }
+    
     ti = (struct thread_info*)(state->thread_infos);
     found = 0;
+    
     while(ti) {
       if(ti->pid == pid) {
         state = ti->state;

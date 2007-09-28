@@ -325,6 +325,9 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       // printf("   found!\n");
       return val;
     }
+    /* TODO: this shouldn't be needed, since Object's parent
+       really should be nil. Currently, it doesn't seem to be though. */
+    if(cur == state->global->object) break;
     cur = module_get_parent(cur);
   }
   
@@ -341,6 +344,9 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       // printf("   found!\n");
       return val;
     }
+    /* Object's superclass MUST be nil, but we check directly just
+       to be safe. */
+    if(cur == state->global->object) break;
     cur = class_get_superclass(cur);
   }
   
@@ -353,7 +359,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
 }
 
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
-  OBJECT cur, start, hsh, val;
+  OBJECT cur, hsh, val;
   
   // printf("Looking for %s under %s.\n", rbs_symbol_to_cstring(state, sym), rbs_symbol_to_cstring(state, module_get_name(under)));
   
@@ -368,6 +374,9 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
       // printf("   found!\n");
       return val;
     }
+    /* Object's superclass MUST be nil, but we check directly just
+       to be safe. */
+    if(cur == state->global->object) break;
     cur = class_get_superclass(cur);
   }
   
@@ -385,7 +394,7 @@ OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under) {
   
   c->cache_index = -1;
   stack_push(sym);
-  cpu_unified_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
+  cpu_unified_send(state, c, under, state->global->sym_const_missing, 1, Qnil);
   return Qundef;
 }
 

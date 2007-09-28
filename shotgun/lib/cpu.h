@@ -7,26 +7,17 @@
 
 /* Enable direct threading */
 #if CONFIG_ENABLE_DT
-#define DIRECT_THREADED 0
-#else
 #define DIRECT_THREADED 1
+#else
+#define DIRECT_THREADED 0
 #endif
 
 /* Whether or not to do runtime tracing support */
-#ifdef FAST
-#define EXCESSIVE_TRACING 0
-#else
 #define EXCESSIVE_TRACING state->excessive_tracing
-#endif
 
 /* For profiling of code */
-#ifdef DISABLE_CACHE
-#define USE_GLOBAL_CACHING 0
-#define USE_INLINE_CACHING 0
-#else
 #define USE_GLOBAL_CACHING 1
 #define USE_INLINE_CACHING 1
-#endif
 
 #define IP_TYPE uint32_t
 #define BS_JUMP 2
