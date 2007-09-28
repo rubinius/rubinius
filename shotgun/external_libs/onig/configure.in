@@ -38,7 +38,6 @@ fi
 
 dnl Checks for programs.
 AC_PROG_CC
-AM_PROG_CC_C_O
 AM_PROG_LIBTOOL
 LTVERSION="2:0:0"
 AC_SUBST(LTVERSION)
