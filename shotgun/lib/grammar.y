@@ -1209,12 +1209,7 @@ arg             : lhs '=' arg
                     }
                 | tUPLUS arg
                     {
-                        if ($2 && nd_type($2) == NODE_LIT) {
-                            $$ = $2;
-                        }
-                        else {
-                            $$ = call_op($2, tUPLUS, 0, 0, parse_state);
-                        }
+                        $$ = call_op($2, tUPLUS, 0, 0, parse_state);
                     }
                 | tUMINUS arg
                     {
