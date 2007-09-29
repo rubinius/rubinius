@@ -3,7 +3,7 @@
 #Tom St Denis
 
 #version of library 
-VERSION=0.39
+VERSION=0.41
 
 CFLAGS  +=  -I./ -Wall -W -Wshadow -Wsign-compare -fPIC
 
@@ -40,12 +40,13 @@ else
    USER=$(INSTALL_USER)
 endif
 
-default: libtommath.a
-
 #default files to install
 ifndef LIBNAME
    LIBNAME=libtommath.a
 endif
+
+default: ${LIBNAME}
+
 HEADERS=tommath.h tommath_class.h tommath_superclass.h
 
 #LIBPATH-The directory for libtommath to be installed to.

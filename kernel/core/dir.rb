@@ -1,4 +1,8 @@
 class Dir
+  module Foreign
+    attach_function nil, 'chdir', [:string], :int
+  end
+  
   def self.glob(pattern, flags)
     Ruby.primitive :dir_glob
   end
@@ -7,8 +11,16 @@ class Dir
     glob(pattern, 0)
   end
   
-  def self.chdir(path)
-    Ruby.primitive :dir_chdir
+  def self.chdir(path = ENV['HOME'])
+    if block_given?
+      original_path = self.getwd
+      Foreign.chdir path
+      value = yield path
+      Foreign.chdir original_path
+      return value
+    else
+      Foreign.chdir path
+    end
   end
 
   def self.getwd

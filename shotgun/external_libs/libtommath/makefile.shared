@@ -1,7 +1,7 @@
 #Makefile for GCC
 #
 #Tom St Denis
-VERSION=0:39
+VERSION=0:41
 
 CC = libtool --mode=compile --tag=CC gcc
 
