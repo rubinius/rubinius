@@ -60,6 +60,7 @@ module FFI
   add_typedef TYPE_STATE,   :state
   add_typedef TYPE_STRPTR,  :string_and_pointer
   add_typedef TYPE_STRPTR,  :strptr
+  add_typedef TYPE_CHARARR, :char_array
   
 end
 
@@ -126,6 +127,10 @@ class MemoryPointer
     self.class.read_int self
   end
   
+  def read_string
+    self.class.read_string self
+  end
+  
   def write_float(obj)
     # TODO: ffi needs to be fixed for passing [:pointer, double]
     #       when :pointer is a (double *)
@@ -144,11 +149,21 @@ class MemoryPointer
     self.class.address self
   end
   
+  def null?
+    address == 0x0
+  end
+  
+  def +(value)
+    self.class.add_ptr(self, value)
+  end
+  
   attach_function nil, "ffi_address", :address, [:pointer], :int
   attach_function nil, "ffi_write_int", :write_int, [:pointer, :int], :int
   attach_function nil, "ffi_read_int", :read_int, [:pointer], :int
   attach_function nil, "ffi_write_float", :write_float, [:pointer, :double], :double
   attach_function nil, "ffi_read_float", :read_float, [:pointer], :double
+  attach_function nil, "ffi_read_string", :read_string, [:pointer], :string
+  attach_function nil, "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
 end
 
 module FFI
@@ -193,11 +208,14 @@ module FFI
     end
     
     def [](field)
-      p @cspec
       offset, type = @cspec[field]
       raise "Unknown field #{field}" unless offset
       
-      self.class.ffi_get_field(@ptr, offset, type)
+      if type == FFI::TYPE_CHARARR
+        (@ptr + offset).read_string
+      else
+        self.class.ffi_get_field(@ptr, offset, type)
+      end
     end
     
     def []=(field, val)

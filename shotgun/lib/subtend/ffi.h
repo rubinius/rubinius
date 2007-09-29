@@ -8,24 +8,25 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
 OBJECT ffi_new_pointer(STATE, void *ptr);
 #define ffi_pointer(ptr) (*DATA_STRUCT(ptr, void**))
 
-#define FFI_TYPE_OBJECT 0
-#define FFI_TYPE_CHAR   1
-#define FFI_TYPE_UCHAR  2
-#define FFI_TYPE_SHORT  3
-#define FFI_TYPE_USHORT 4
-#define FFI_TYPE_INT    5
-#define FFI_TYPE_UINT   6
-#define FFI_TYPE_LONG   7
-#define FFI_TYPE_ULONG  8
-#define FFI_TYPE_LL     9
-#define FFI_TYPE_ULL    10
-#define FFI_TYPE_FLOAT  11
-#define FFI_TYPE_DOUBLE 12
-#define FFI_TYPE_PTR    13
-#define FFI_TYPE_VOID   14
-#define FFI_TYPE_STRING 15
-#define FFI_TYPE_STATE  16
-#define FFI_TYPE_STRPTR 17
+#define FFI_TYPE_OBJECT  0
+#define FFI_TYPE_CHAR    1
+#define FFI_TYPE_UCHAR   2
+#define FFI_TYPE_SHORT   3
+#define FFI_TYPE_USHORT  4
+#define FFI_TYPE_INT     5
+#define FFI_TYPE_UINT    6
+#define FFI_TYPE_LONG    7
+#define FFI_TYPE_ULONG   8
+#define FFI_TYPE_LL      9
+#define FFI_TYPE_ULL     10
+#define FFI_TYPE_FLOAT   11
+#define FFI_TYPE_DOUBLE  12
+#define FFI_TYPE_PTR     13
+#define FFI_TYPE_VOID    14
+#define FFI_TYPE_STRING  15
+#define FFI_TYPE_STATE   16
+#define FFI_TYPE_STRPTR  17
+#define FFI_TYPE_CHARARR 18
 
 typedef void (*nf_stub_ffi)(void);
 typedef int (*nf_converter)();

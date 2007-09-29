@@ -17,22 +17,23 @@ void Init_ffi(STATE) {
   BASIC_CLASS(ffi_ptr) = rbs_class_new(state, "MemoryPointer", 0, BASIC_CLASS(bytearray));
   BASIC_CLASS(ffi_func) = rbs_class_new(state, "NativeFunction", 0, BASIC_CLASS(object));
   mod = rbs_module_new(state, "FFI", BASIC_CLASS(object));
-  rbs_const_set(state, mod, "TYPE_OBJECT",  I2N(FFI_TYPE_OBJECT));
-  rbs_const_set(state, mod, "TYPE_CHAR",    I2N(FFI_TYPE_CHAR));
-  rbs_const_set(state, mod, "TYPE_UCHAR",   I2N(FFI_TYPE_UCHAR));
-  rbs_const_set(state, mod, "TYPE_SHORT",   I2N(FFI_TYPE_SHORT));
-  rbs_const_set(state, mod, "TYPE_USHORT",  I2N(FFI_TYPE_USHORT));
-  rbs_const_set(state, mod, "TYPE_INT",     I2N(FFI_TYPE_INT));
-  rbs_const_set(state, mod, "TYPE_UINT",    I2N(FFI_TYPE_UINT));
-  rbs_const_set(state, mod, "TYPE_LONG",    I2N(FFI_TYPE_LONG));
-  rbs_const_set(state, mod, "TYPE_ULONG",   I2N(FFI_TYPE_ULONG));
-  rbs_const_set(state, mod, "TYPE_FLOAT",   I2N(FFI_TYPE_FLOAT));
-  rbs_const_set(state, mod, "TYPE_DOUBLE",  I2N(FFI_TYPE_DOUBLE));
-  rbs_const_set(state, mod, "TYPE_PTR",     I2N(FFI_TYPE_PTR));
-  rbs_const_set(state, mod, "TYPE_VOID",    I2N(FFI_TYPE_VOID));
-  rbs_const_set(state, mod, "TYPE_STRING",  I2N(FFI_TYPE_STRING));
-  rbs_const_set(state, mod, "TYPE_STATE",   I2N(FFI_TYPE_STATE));
-  rbs_const_set(state, mod, "TYPE_STRPTR",  I2N(FFI_TYPE_STRPTR));
+  rbs_const_set(state, mod, "TYPE_OBJECT",   I2N(FFI_TYPE_OBJECT));
+  rbs_const_set(state, mod, "TYPE_CHAR",     I2N(FFI_TYPE_CHAR));
+  rbs_const_set(state, mod, "TYPE_UCHAR",    I2N(FFI_TYPE_UCHAR));
+  rbs_const_set(state, mod, "TYPE_SHORT",    I2N(FFI_TYPE_SHORT));
+  rbs_const_set(state, mod, "TYPE_USHORT",   I2N(FFI_TYPE_USHORT));
+  rbs_const_set(state, mod, "TYPE_INT",      I2N(FFI_TYPE_INT));
+  rbs_const_set(state, mod, "TYPE_UINT",     I2N(FFI_TYPE_UINT));
+  rbs_const_set(state, mod, "TYPE_LONG",     I2N(FFI_TYPE_LONG));
+  rbs_const_set(state, mod, "TYPE_ULONG",    I2N(FFI_TYPE_ULONG));
+  rbs_const_set(state, mod, "TYPE_FLOAT",    I2N(FFI_TYPE_FLOAT));
+  rbs_const_set(state, mod, "TYPE_DOUBLE",   I2N(FFI_TYPE_DOUBLE));
+  rbs_const_set(state, mod, "TYPE_PTR",      I2N(FFI_TYPE_PTR));
+  rbs_const_set(state, mod, "TYPE_VOID",     I2N(FFI_TYPE_VOID));
+  rbs_const_set(state, mod, "TYPE_STRING",   I2N(FFI_TYPE_STRING));
+  rbs_const_set(state, mod, "TYPE_STATE",    I2N(FFI_TYPE_STATE));
+  rbs_const_set(state, mod, "TYPE_STRPTR",   I2N(FFI_TYPE_STRPTR));
+  rbs_const_set(state, mod, "TYPE_CHARARR",  I2N(FFI_TYPE_CHARARR));
 }
 
 #ifdef RBS_DISASS

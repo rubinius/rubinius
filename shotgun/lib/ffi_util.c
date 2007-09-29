@@ -49,6 +49,10 @@ double ffi_read_float(double *ptr) {
   return *ptr;
 }
 
+char *ffi_read_string(char *ptr) {
+  return ptr;
+}
+
 char *ffi_sprintf_f(double value, int size, char *fmt) {
   char *str;
   str = malloc(size);
@@ -171,5 +175,9 @@ int ffi_bind_local_socket(int s) {
   ret = bind(s, res->ai_addr, res->ai_addrlen);
   return ret;
 }
+<<<<<<< HEAD:shotgun/lib/ffi_util.c
 */
 
+void *ffi_add_ptr(char *ptr, int offset) { 
+  return (void*)(ptr + offset); 
+}
