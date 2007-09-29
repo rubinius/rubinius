@@ -2,10 +2,11 @@
 
 # Ruby's builtin dynamic array implementation
 class Array
-  ivar_as_index :total => 0, :tuple => 1
+  ivar_as_index :total => 0, :tuple => 1, :start => 2, :shared => 3
   
   def total    ; @total ; end
   def tuple    ; @tuple ; end
+  def start    ; @start ; end
   def __ivars__; nil    ; end
   
   include Enumerable
@@ -37,8 +38,10 @@ class Array
   def initialize(*args)
     raise ArgumentError, "Wrong number of arguments, #{args.size} for 2" if args.size > 2
     
+    @start = 0
+    
     if args.empty?
-      @tuple = Tuple.new 10
+      @tuple = Tuple.new 2
       @total = 0
     else
       raise TypeError, "can't modify frozen array" if frozen?
@@ -49,7 +52,7 @@ class Array
       
         @tuple = Tuple.new(ary.size + 10)
         @total = ary.size
-        @tuple.copy_from ary.tuple, 0
+        @tuple.copy_from ary.tuple, ary.start
       else
         count = int_from args.first
         obj   = args[1]
@@ -77,9 +80,10 @@ class Array
   # Subclasses return instances of themselves.
   def [](one, two = nil)
     # Normalise the argument variants
-    start, finish, count, simple = nil, nil, nil, false
+    start, finish, count, simple, is_range = nil, nil, nil, false, false
 
     if one.kind_of? Range
+      is_range = true
       start, finish = one.begin, one.end
     elsif two
       start, count = one, int_from(two)
@@ -91,27 +95,33 @@ class Array
     # Convert negative indices
     start = int_from start
     start += @total if start < 0
-
-    return self.class.new if start == @total and !simple   # ONE past end only, MRI compat
+    
+    if simple
+      return nil if start < 0 or start >= @total
+      return @tuple.at(@start + start)
+      
+    # ONE past end only, MRI compat
+    elsif start == @total
+      return self.class.new
+      
+    elsif start < 0 or start >= @total
+      return nil
+    end
 
     finish = int_from finish if finish
     finish = (start + count - 1) if count    # For non-ranges
 
     finish += @total if finish < 0
 
-    finish -= 1 if one.kind_of? Range and one.exclude_end?
+    finish -= 1 if is_range and one.exclude_end?
 
     # Going past the end is ignored (sort of)
     finish = (@total - 1) if finish >= @total 
 
-    return nil if start < 0 || start >= @total
-
     if finish < 0
-      return self.class.new if one.kind_of? Range
+      return self.class.new if is_range
       return nil
     end
-
-    return @tuple.at(start) if simple
 
     return self.class.new if finish < start
 
@@ -192,7 +202,8 @@ class Array
         newtotal = @total + replacement.size - cnt
         if newtotal > @tuple.fields
           nt = Tuple.new(newtotal + 10)
-          nt.copy_from @tuple, 0 # FIXME: double copy of right part
+          nt.copy_from @tuple, @start # FIXME: double copy of right part
+          @start = 0
           @tuple = nt
         end                     # this should be an else
         f = @total
@@ -200,17 +211,17 @@ class Array
         while f > idx + cnt
           t -= 1
           f -= 1
-          @tuple.put(t, @tuple.at(f))
+          @tuple.put(@start+t, @tuple.at(@start+f))
         end
         @total = newtotal
       end
       replacement.each_with_index { |el, i|
-        @tuple.put(idx+i, el)
+        @tuple.put(@start+idx+i, el)
       }
       
       if replacement.size < cnt
-        f = idx + cnt
-        t = idx + replacement.size
+        f = @start + idx + cnt
+        t = @start + idx + replacement.size
         
         # shift fields to the left
         while f < @total
@@ -233,11 +244,12 @@ class Array
 
     if idx >= @tuple.fields
       nt = Tuple.new(idx + 10)
-      nt.copy_from @tuple, 0
+      nt.copy_from @tuple, @start
       @tuple = nt
+      @start = 0
     end
 
-    @tuple.put idx, ent
+    @tuple.put @start + idx, ent
     if idx >= @total - 1
       @total = idx + 1
     end
@@ -250,7 +262,7 @@ class Array
     raise TypeError, "Array is frozen" if frozen?
 
     reallocate :at_least => (@total + 1)
-    @tuple.put @total, obj
+    @tuple.put @start + @total, obj
     @total += 1
     self
   end                                               
@@ -368,7 +380,7 @@ class Array
 
     return false unless size == other.size
 
-    size.times { |i| return false unless @tuple.at(i) == other.at(i) }
+    size.times { |i| return false unless @tuple.at(@start + i) == other.at(i) }
     
     true
   end 
@@ -398,17 +410,18 @@ class Array
     idx = int_from idx
     idx += @total if idx < 0
 
-    return nil if idx < 0 || idx >= @total
+    return nil if idx < 0 or idx >= @total
 
-    @tuple.at idx
+    @tuple.at @start + idx
   end 
   
   # Removes all elements in the Array and leaves it empty
   def clear()
     raise TypeError, "Array is frozen" if frozen? 
 
-    @tuple = Tuple.new(0)
+    @tuple = Tuple.new(1)
     @total = 0
+    @start = 0
     self
   end 
 
@@ -422,15 +435,16 @@ class Array
   def compact!()
     raise TypeError, "Array is frozen" if frozen?
 
-    i = 0 
+    i = @start
+    tot = @start + @total
 
     # Low-level because pretty much anything else breaks everything
-    while i < @total
+    while i < tot
       if @tuple.at(i) == nil
         j = i
         i += 1
 
-        while i < @total
+        while i < tot
           if @tuple.at(i) != nil
             @tuple.put j, @tuple.at(i)
             j += 1
@@ -439,7 +453,8 @@ class Array
           i += 1
         end
 
-        @total = j              # OK to leave tuple size larger?
+        # OK to leave tuple size larger?
+        @total = j - @start
         return self
       end
 
@@ -465,15 +480,16 @@ class Array
   def delete(obj)
     raise TypeError, "Array is frozen" if frozen?
 
-    i = 0
+    i = @start
+    tot = @start + @total
 
     # Leaves the tuple to the original size still
-    while i < @total
+    while i < tot
       if @tuple.at(i) == obj
         j = i
         i += 1
 
-        while i < @total
+        while i < tot
           if @tuple.at(i) != obj
             @tuple.put(j, @tuple.at(i))
             j += 1
@@ -482,14 +498,12 @@ class Array
           i += 1
         end
 
-        @total = j             
+        @total = j - @start            
         return obj
       end
 
       i += 1
     end
-
-    yield if block_given?       # Too clever?
   end  
 
   # Deletes the element at the given index and returns
@@ -502,13 +516,13 @@ class Array
 
     # Flip to positive and weed out out of bounds
     idx += @total if idx < 0
-    return nil if idx < 0 || idx >= @total
+    return nil if idx < 0 or idx >= @total
 
     # Grab the object and adjust the indices for the rest
-    obj = @tuple.at(idx)
+    obj = @tuple.at(@start + idx)
 
-    idx.upto(@total - 2) { |i| @tuple.put i, @tuple.at(i + 1) }
-    @tuple.put((@total - 1), nil)     # Release object
+    idx.upto(@total - 2) { |i| @tuple.put(@start + i, @tuple.at(@start + i + 1)) }
+    @tuple.put(@start + @total - 1, nil)
 
     @total -= 1
     obj
@@ -518,15 +532,16 @@ class Array
   def delete_if()
     raise TypeError, "Array is frozen" if frozen?
  
-    i = 0
+    i = @start
+    tot = @total + @start
 
     # Leaves the tuple to the original size still
-    while i < @total
+    while i < tot
       if yield @tuple.at(i)
         j = i
         i += 1
 
-        while i < @total
+        while i < tot
           unless yield @tuple.at(i)
             @tuple.put(j, @tuple.at(i))
             j += 1
@@ -535,7 +550,7 @@ class Array
           i += 1
         end
 
-        @total = j             
+        @total = j - @start          
         return self
       end
 
@@ -544,12 +559,6 @@ class Array
     
     return self
   end
-
-  # Creates a shallow copy of this Array as Object#dup.
-  # Contained elements are not recursively #dupped.
-  def dup()
-    self.class.new self
-  end  
 
   # Passes each element in the Array to the given block
   # and returns self.
@@ -672,9 +681,9 @@ class Array
     end
 
     if block_given?
-      start.upto(finish) { |i|  @tuple.put i, yield(i) } 
+      start.upto(finish) { |i|  @tuple.put @start + i, yield(i) }
     else
-      start.upto(finish) { |i|  @tuple.put i, obj } 
+      start.upto(finish) { |i|  @tuple.put @start + i, obj }
     end
 
 
@@ -748,14 +757,14 @@ class Array
   # Returns true if the given obj is present in the Array.
   # Presence is determined by calling elem == obj until found.
   def include?(obj)
-    @total.times { |i| return true if @tuple.at(i) == obj }
+    @total.times { |i| return true if @tuple.at(@start + i) == obj }
     false
   end
 
   # Returns the index of the first element in the Array
   # for which elem == obj is true or nil.
   def index(obj)
-    @total.times { |i| return i if @tuple.at(i) == obj }
+    @total.times { |i| return i if @tuple.at(@start + i) == obj }
     nil
   end 
 
@@ -1131,6 +1140,7 @@ class Array
 
     @tuple = other.tuple.dup
     @total = other.total
+    @start = other.start
     self
   end
   
@@ -1145,11 +1155,17 @@ class Array
   def reverse!
     raise TypeError, "Array is frozen" if frozen?
 
-    return self unless size > 1
+    return self unless @total > 1
 
-    tuple = Tuple.new @tuple.size
-    size.times { |i| tuple.put i, at(size - i - 1) }
+    tuple = Tuple.new @total
+    i = 0
+    (@start + @total - 1).downto(@start) do |j|
+      tuple.put i, @tuple.at(j)
+      i += 1
+    end
+    
     @tuple = tuple
+    @start = 0
 
     self
   end 
@@ -1172,14 +1188,12 @@ class Array
   # Array or nil if empty. All other elements are
   # moved down one index.
   def shift()
-    raise TypeError, "Array is frozen" if frozen?
-    return nil if empty?
-    
-    obj = at 0
-    
-    @tuple = @tuple.shift
+    return nil if @total == 0
+        
+    obj = @tuple.at(@start)
+    @start += 1
     @total -= 1
-
+    
     obj
   end 
 
@@ -1375,7 +1389,7 @@ class Array
 
     size.times do |i|
       slot = out.at(i)
-      slot << @tuple.at(i)
+      slot << @tuple.at(@start + i)
       others.each { |ary| slot << ary.at(i) }
     end
 
@@ -1398,6 +1412,13 @@ class Array
   
   
   def unshift(val)
+    if @start > 0
+      @start -= 1
+      @total += 1
+      @tuple.put @start, val
+      return self
+    end
+    
     @tuple = @tuple.shifted(1)
     
     @tuple.put 0, val
@@ -1450,104 +1471,108 @@ class Array
 
   # Internals
   private
-    # Exactly the same as #replace but private
-    def initialize_copy(other)
-      replace other
+  
+  # Exactly the same as #replace but private
+  def initialize_copy(other)
+    @tuple = other.tuple.dup
+    @total = other.total
+    @start = other.start    
+  end
+
+  # Reallocates the internal Tuple to accommodate at least given size
+  def reallocate(at_least)
+    at_least = at_least[:at_least] if Hash === at_least
+    return if at_least < @tuple.size
+
+    factor = @total < 1_000_000 ? 2 : 1        # Does this make any sense?
+    
+    tuple = Tuple.new((at_least * factor) + 10)
+
+    tuple.copy_from @tuple, @start     # Swap over old data
+
+    @tuple = tuple
+    @start = 0
+  end
+
+  # Attempt to convert the given object to_int or fail 
+  def int_from(obj)
+    unless obj.kind_of? Integer
+      raise TypeError, "Unable to convert #{obj.inspect} to Integer" unless obj.respond_to? :to_int
+      return obj.to_int
     end
 
-    # Reallocates the internal Tuple to accommodate at least given size
-    def reallocate(at_least)
-      at_least = at_least[:at_least] if Hash === at_least
-      return if at_least < @tuple.size
+    obj
+  end  
 
-      factor = @total < 1_000_000 ? 2 : 1        # Does this make any sense?
-      
-      tuple = Tuple.new((at_least * factor) + 10)
-
-      tuple.copy_from @tuple, 0     # Swap over old data
-
-      @tuple = tuple
+  # Attempt to convert the given object to_ary or fail 
+  def ary_from(obj)
+    unless obj.kind_of? Array
+      raise TypeError, "Unable to convert #{obj.inspect} to Array" unless obj.respond_to? :to_ary
+      return obj.to_ary
     end
 
-    # Attempt to convert the given object to_int or fail 
-    def int_from(obj)
-      unless obj.kind_of? Integer
-        raise TypeError, "Unable to convert #{obj.inspect} to Integer" unless obj.respond_to? :to_int
-        return obj.to_int
+    obj
+  end 
+
+  # Helper to recurse through flattening since the method
+  # is not allowed to recurse itself. Detects recursive structures.
+  def recursively_flatten(array, out, stack)
+    raise ArgumentError, "Recursive Array!" if stack.include?(array.object_id)
+    stack.push array.object_id
+
+    ret = nil
+
+    array.each { |o|
+      if o.kind_of? Array
+        recursively_flatten o, out, stack 
+        ret = array
+      else
+        out << o
       end
+    }
 
-      obj
-    end  
+    stack.pop                # Eep
+    ret
+  end
 
-    # Attempt to convert the given object to_ary or fail 
-    def ary_from(obj)
-      unless obj.kind_of? Array
-        raise TypeError, "Unable to convert #{obj.inspect} to Array" unless obj.respond_to? :to_ary
-        return obj.to_ary
+  # Helper to recurse through inspecting an Array.
+  # Detects recursive structures.
+  def recursively_inspect(array, stack)
+    return "[...]" if stack.include?(array.object_id)
+    stack.push array.object_id
+
+    out = []
+    
+    array.each { |o|
+      if o.kind_of? Array
+        out << recursively_inspect(o, stack)
+      else
+        out << o.inspect
       end
+    }
 
-      obj
-    end 
+    stack.pop
+    "[#{out.join ', '}]"
+  end     
 
-    # Helper to recurse through flattening since the method
-    # is not allowed to recurse itself. Detects recursive structures.
-    def recursively_flatten(array, out, stack)
-      raise ArgumentError, "Recursive Array!" if stack.include?(array.object_id)
-      stack.push array.object_id
-
-      ret = nil
-
-      array.each { |o|
-        if o.kind_of? Array
-          recursively_flatten o, out, stack 
-          ret = array
-        else
-          out << o
-        end
-      }
-
-      stack.pop                # Eep
-      ret
+  # Helper to depth-first recurse through joining an Array
+  # Detects recursive structures.
+  def recursively_join(array, separator, out, stack, method)
+    if stack.include?(array.object_id)
+      out << separator << "[...]"
     end
 
-    # Helper to recurse through inspecting an Array.
-    # Detects recursive structures.
-    def recursively_inspect(array, stack)
-      return "[...]" if stack.include?(array.object_id)
-      stack.push array.object_id
+    stack.push array.object_id
 
-      out = []
-      
-      array.each { |o|
-        if o.kind_of? Array
-          out << recursively_inspect(o, stack)
-        else
-          out << o.inspect
-        end
-      }
-
-      stack.pop
-      "[#{out.join ', '}]"
-    end     
-
-    # Helper to depth-first recurse through joining an Array
-    # Detects recursive structures.
-    def recursively_join(array, separator, out, stack, method)
-      if stack.include?(array.object_id)
-        out << separator << "[...]"
+    array.each { |o|
+      if Array === o
+        recursively_join(o, separator, out, stack, method)
+      else
+        out << separator << o.__send__(method)
       end
+    }
 
-      stack.push array.object_id
-
-      array.each { |o|
-        if Array === o
-          recursively_join(o, separator, out, stack, method)
-        else
-          out << separator << o.__send__(method)
-        end
-      }
-
-      stack.pop
-      out
-    end
+    stack.pop
+    out
+  end
 end

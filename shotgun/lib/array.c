@@ -7,6 +7,7 @@ OBJECT array_new(STATE, int count) {
   tup = tuple_new(state, count);
   obj = array_allocate(state);
   array_set_total(obj, I2N(0));
+  array_set_start(obj, I2N(0));
   array_set_tuple(obj, tup);
   return obj;
 }
@@ -25,10 +26,13 @@ OBJECT array_from_tuple(STATE, OBJECT tuple) {
 
 OBJECT array_set(STATE, OBJECT self, int idx, OBJECT val) {
   OBJECT nt, tup;
-  int cur;
+  int cur, oidx;
   
   tup = array_get_tuple(self);
   cur = NUM_FIELDS(tup);
+  
+  oidx = idx;
+  idx += FIXNUM_TO_INT(array_get_start(self));
   
   if(idx >= cur) {
     int new_size = (cur == 0) ? 1 : cur;
@@ -45,8 +49,8 @@ OBJECT array_set(STATE, OBJECT self, int idx, OBJECT val) {
   }
   
   tuple_put(state, tup, idx, val);
-  if(FIXNUM_TO_INT(array_get_total(self)) <= idx) {
-    array_set_total(self, I2N(idx+1));
+  if(FIXNUM_TO_INT(array_get_total(self)) <= oidx) {
+    array_set_total(self, I2N(oidx+1));
   }
   return val;
 }
@@ -55,6 +59,9 @@ OBJECT array_get(STATE, OBJECT self, int idx) {
   if(idx >= FIXNUM_TO_INT(array_get_total(self))) {
     return Qnil;
   }
+  
+  idx += FIXNUM_TO_INT(array_get_start(self));
+  
   return tuple_at(state, array_get_tuple(self), idx);
 }
 
@@ -70,6 +77,7 @@ OBJECT array_pop(STATE, OBJECT self) {
   
   idx = FIXNUM_TO_INT(array_get_total(self)) - 1;
   val = array_get(state, self, idx);
+  array_set(state, self, idx, Qnil);
   
   array_set_total(self, I2N(idx));
   return val;

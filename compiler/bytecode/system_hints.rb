@@ -9,7 +9,7 @@ module Rubinius
     "BlockContext"=>{},
     "Object"=>{:@__ivars__=>0},
     "Float"=>{:@__ivars__=>0},
-    "Array"=>{:@total=>0, :@tuple=>1},
+    "Array"=>{:@total=>0, :@tuple=>1, :@start => 2, :@shared => 3},
     "String"=>{:@bytes=>0, :@characters=>1, :@encoding=>2, :@data=>3, :@hash => 4, :@shared => 5},
     "CompiledMethod"=>{:@__ivars__=>0, :@primitive => 1, :@required=>2, :@serial=>3, :@bytecodes=>4, :@name=>5, :@file=>6, :@locals=>7, :@literals=>8, :@arguments=>9, :@scope=>10, :@exceptions=>11, :@lines=>12, :@path=>13, :@cache=>14, :@bonus => 15},
     "SymbolTable"=>{:@__ivars__=>0,:@symbols=>1, :@strings=>2},

@@ -11,17 +11,17 @@ class Array
       return nil
     end
 
-    @tuple.at(idx)
+    @tuple.at(@start + idx)
   end
   
   def []=(idx, ent)
     if idx >= @tuple.fields
       nt = Tuple.new(idx + 10)
-      nt.copy_from @tuple, 0
+      nt.copy_from @tuple, @start
       @tuple = nt
     end
 
-    @tuple.put idx, ent
+    @tuple.put @start + idx, ent
     if idx >= @total - 1
       @total = idx + 1
     end
@@ -30,8 +30,9 @@ class Array
 
   # Runtime method to support case when *foo syntax
   def __matches_when__(receiver)
-    i = 0
-    while i < @total
+    i = @start
+    tot = @total + @start
+    while i < tot
       return true if @tuple.at(i) === receiver
       i = i + 1
     end
