@@ -82,7 +82,7 @@ while (<IN>) {
          # scan till next end of comment, e.g. skip license 
          while (<SRC>) {
             $text[$line++] = $_;
-            last if ($_ =~ /math\.libtomcrypt\.org/);
+            last if ($_ =~ /math\.libtomcrypt\.com/);
          }
          <SRC>;   
       }

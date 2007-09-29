@@ -12,7 +12,7 @@
  * The library is free for all purposes without any express
  * guarantee it works.
  *
- * Tom St Denis, tomstdenis@gmail.com, http://math.libtomcrypt.com
+ * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 
 /* this is a modified version of fast_s_mul_digs that only produces
@@ -78,7 +78,7 @@ int fast_s_mp_mul_high_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
     register mp_digit *tmpc;
 
     tmpc = c->dp + digs;
-    for (ix = digs; ix <= pa; ix++) {
+    for (ix = digs; ix < pa; ix++) {
       /* now extract the previous digit [below the carry] */
       *tmpc++ = W[ix];
     }
@@ -94,5 +94,5 @@ int fast_s_mp_mul_high_digs (mp_int * a, mp_int * b, mp_int * c, int digs)
 #endif
 
 /* $Source: /cvs/libtom/libtommath/bn_fast_s_mp_mul_high_digs.c,v $ */
-/* $Revision: 1.4 $ */
-/* $Date: 2006/03/31 14:18:44 $ */
+/* $Revision: 1.6 $ */
+/* $Date: 2006/12/28 01:25:13 $ */
