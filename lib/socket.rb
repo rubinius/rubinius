@@ -51,6 +51,7 @@ class Socket < IO
     attach_function nil, "listen", :listen_socket, [:int, :int], :int
     attach_function nil, "ffi_bind_local_socket", :bind_local_socket, [:int], :int
     attach_function nil, "accept", :accept, [:int, :pointer, :pointer], :int
+    attach_function nil, "ffi_getpeername", :getpeername, [:state, :int], :object
   end
   
   def initialize(domain, type, protocol)
@@ -83,6 +84,14 @@ end
 class IPSocket < Socket
   def initialize(kind, protocol=0)
     super(Socket::Constants::AF_INET, kind, protocol)
+  end
+
+  def peeraddr
+    name, addr = Socket::Foreign.getpeername descriptor
+    if addr.nil?
+      raise "Unable to get peer address"
+    end
+    ["AF_INET", @port, name, addr]
   end
 end
 

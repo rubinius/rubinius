@@ -69,28 +69,39 @@ describe "TCPServer#listen" do
 end
 =end
 
-describe "TCPServer receiving data" do
+#describe "TCPServer receiving data" do
+#  before(:each) do
+#    @data = []
+#    @read = false
+#    @server = TCPServer.new('127.0.0.1', @port)
+#    @thread = Thread.new do
+#      while (client = @server.accept) do
+#        @data << client.read(5)
+#        @read = true
+#        client.close
+#      end
+#    end
+#  end
+#  after(:each) do
+#    @server.close if @server
+#  end
+#
+#  it "should accept what is written by the client" do
+#    @client = TCPSocket.new('127.0.0.1', @port)
+#    @client.write('hello')
+#    nil until @read
+#    @data.should == ['hello']
+#  end
+#end
+
+describe "IPSocket#peeraddr" do
   before(:each) do
-    @data = []
-    @read = false
     @server = TCPServer.new('127.0.0.1', @port)
-    @thread = Thread.new do
-      while (client = @server.accept) do
-        @data << client.read(5)
-        @read = true
-        client.close
-      end
-    end
-  end
-  after(:each) do
-    @server.close if @server
   end
 
-  it "should accept what is written by the client" do
-    @client = TCPSocket.new('127.0.0.1', @port)
-    @client.write('hello')
-    nil until @read
-    @data.should == ['hello']
+  it "should return an array of values" do
+    @socket = TCPSocket.new('127.0.0.1', @port)
+    @socket.peeraddr.should == ["AF_INET", @port, "localhost", "127.0.0.1"]
   end
 end
 
