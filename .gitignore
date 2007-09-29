@@ -46,6 +46,7 @@ shotgun/rubinius.bin
 shotgun/config.h
 shotgun/.libs
 shotgun/config.mk
+shotgun/config/is64bit
 shotgun/lib/librubinius.*
 shotgun/lib/librubinius-*
 
@@ -201,6 +202,7 @@ shotgun/external_libs/onig/onig-config
 # shotgun/external_libs/onig/enc
 
 # shotgun/external_libs/onig/sample
+shotgun/external_libs/onig/sample/crnl
 shotgun/external_libs/onig/sample/syntax
 shotgun/external_libs/onig/sample/simple
 shotgun/external_libs/onig/sample/encode
