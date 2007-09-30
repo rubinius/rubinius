@@ -18,6 +18,7 @@ class Class
     obj.class_eval(&block) if block
     # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses
+    sclass.inherited(obj) if sclass.respond_to?(:inherited)
     obj
   end
 
