@@ -101,7 +101,7 @@ class Numeric
     begin
       b, a = self.coerce(other)
       return a == b
-    rescue TypeError
+    rescue TypeError, ArgumentError
       return other == self
     end
   end
