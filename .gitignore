@@ -1,3 +1,4 @@
+.DS_Store
 .gdb_history
 coverage
 code-cache
@@ -6,6 +7,9 @@ code-cache
 COMMIT
 .load_order.txt
 CI-specs
+TAGS
+tags
+tmtags
 *.rbc
 .spec/bm.yml
 
@@ -18,6 +22,7 @@ runtime/pristine*
 *.la
 *.bundle
 *.swp
+*~
 
 attic/externals/syd-parser/pkg
 
