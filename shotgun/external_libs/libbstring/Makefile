@@ -63,9 +63,9 @@ ifeq ($(CPU), powerpc)
 endif
 
 CFLAGS += -fPIC $(CPPFLAGS)
-DEPS=bsafe.h bstraux.h bstrlib.h
+DEPS=bstraux.h bstrlib.h
 
-SOURCES=bsafe.c bstraux.c bstrlib.c
+SOURCES=bstraux.c bstrlib.c
 OBJS=$(SOURCES:.c=.o)
 LOBJS=$(SOURCES:.c=.lo)
 
