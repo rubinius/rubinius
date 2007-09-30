@@ -30,6 +30,12 @@ module Platform::POSIX
   attach_function nil, 'umask', [:int], :int
   attach_function nil, 'link', [:string, :string], :int
   
+  # directories
+  attach_function nil, 'chdir', [:string], :int
+  attach_function nil, 'opendir',  [:string], :pointer
+  attach_function nil, 'readdir',  [:pointer], :pointer
+  attach_function nil, 'closedir', [:pointer], :int
+  
   # File/IO
   #   opening/closing
   attach_function nil, 'fdopen', [:int, :string], :pointer

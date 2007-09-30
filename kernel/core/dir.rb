@@ -1,12 +1,4 @@
-class Dir
-  module Foreign
-    attach_function nil, 'chdir', [:string], :int
-    
-    attach_function nil, 'opendir',  [:string], :pointer
-    attach_function nil, 'readdir',  [:pointer], :pointer
-    attach_function nil, 'closedir', [:pointer], :int
-  end
-  
+class Dir  
   # class DirEntry < FFI::Struct            
   #   # struct dirent {
   #   #   ino_t d_ino;      /* file number of entry */
@@ -34,12 +26,12 @@ class Dir
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd
-      Foreign.chdir path
+      Platform::POSIX.chdir path
       value = yield path
-      Foreign.chdir original_path
+      Platform::POSIX.chdir original_path
       return value
     else
-      Foreign.chdir path
+      Platform::POSIX.chdir path
     end
   end
 
@@ -60,19 +52,19 @@ class Dir
   end
   
   def initialize(path)
-    @dirptr = Foreign.opendir(path)
+    @dirptr = Platform::POSIX.opendir(path)
     @path = path
   end
   
   def close
-    Foreign.closedir(@dirptr)
+    # Platform::POSIX.closedir(@dirptr)
   end
   
   def read
     # TODO: DirEntry should subclass FFI::Struct instead of using
     # the struct constructor. Can't do it right now because splats are
     # broken, so FFI::Struct.layout is broken -- KC, 9/29/07
-    dir_entry_ptr = Foreign.readdir(@dirptr)
+    dir_entry_ptr = Platform::POSIX.readdir(@dirptr)
     
     return nil if dir_entry_ptr.null?
     
