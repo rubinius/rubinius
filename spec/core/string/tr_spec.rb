@@ -73,20 +73,29 @@ end
 describe "String#tr!" do
   it "modifies self in place" do
     s = "abcdefghijklmnopqR"
-    s.tr!("cdefg", "12")
+    s.tr!("cdefg", "12").should == "ab12222hijklmnopqR"
     s.should == "ab12222hijklmnopqR"
   end
   
   it "returns nil if no modification was made" do
     s = "hello"
-    s.tr!('za', 'yb').should == nil
-    s.tr!('', '').should == nil
+    s.tr!("za", "yb").should == nil
+    s.tr!("", "").should == nil
     s.should == "hello"
   end
-
+  
+  it "does not modify self if from_str is empty" do
+    s = "hello"
+    s.tr!("", "").should == nil
+    s.should == "hello"
+    s.tr!("", "yb").should == nil
+    s.should == "hello"
+  end
+  
   it "raises a TypeError if self is frozen" do
-    str = "abcdefghijklmnopqR".freeze
-    should_raise(TypeError) { str.tr!("cdefg", "12") }
-    should_raise(TypeError) { str.tr!("", "") }
+    s = "abcdefghijklmnopqR".freeze
+    should_raise(TypeError) { s.tr!("cdefg", "12") }
+    should_raise(TypeError) { s.tr!("R", "S") }
+    should_raise(TypeError) { s.tr!("", "") }
   end
 end
