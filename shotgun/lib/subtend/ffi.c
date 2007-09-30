@@ -610,8 +610,11 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   OBJECT obj;
       
   /* lightning only supports 6 arguments currently. */
-  if(args > 6) return Qnil;
-  
+  if(args > 6) 
+  {
+    free(arg_types);
+    return Qnil;
+  }
   int_count = 0;
   float_count = 0;
   double_count = 0;
@@ -734,6 +737,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       }
     
     }
+    free(arg_types);
     free(ids);
   }
   

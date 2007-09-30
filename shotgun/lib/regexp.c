@@ -253,6 +253,7 @@ OBJECT regexp_match_region(STATE, OBJECT regexp, OBJECT string, OBJECT start, OB
   }
   
   md = get_match_data(state, region, string, regexp, max);
+  onig_region_free(region, 1);
   return md;
 }
 
