@@ -140,7 +140,7 @@ class Struct
   end
 
   def validate_member_type(member)
-    if member.kind_of?(Symbol) or member.kind_of?(String)
+    if Symbol === member || String === member
       unless member?(sym = member.to_sym)
         raise NameError, "no member '#{member}' in struct" 
       end
