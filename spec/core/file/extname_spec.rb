@@ -17,6 +17,8 @@ describe "File.extname" do
     File.extname("/").should ==  ""
     File.extname("/.").should ==  ""
     File.extname("..").should ==  ""
+    File.extname("...").should ==  ""
+    File.extname("....").should ==  ""
     File.extname(".foo.").should ==  ""
     File.extname("foo.").should ==  ""
   end
