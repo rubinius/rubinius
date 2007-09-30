@@ -240,7 +240,6 @@ extension :rubinius do
     it 'takes long options interspersed with nonoption-arguments' do
       h = @o.parse '--aa ARG --cc'
     
-      p h
       h.key?('a').should == true
       h.key?('aa').should == true
       h.key?('c').should == true
