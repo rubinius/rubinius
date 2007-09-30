@@ -1,41 +1,35 @@
-An exception has occurred:
-    Primitive dir_chdir failed. (ArgumentError)
-
-Backtrace:
-[0;31m                  Dir.chdir at :0[0m
-            main.__script__ at ./spec/core/dir/glob_spec.rb:8[0m
-[0;34m                  Proc#call at kernel/core/context.rb:262[0m
-          SpecRunner#before at spec/mini_rspec.rb:305[0m
-                main.before at spec/mini_rspec.rb:357[0m
-            main.__script__ at ./spec/core/dir/glob_spec.rb:6[0m
-[0;34m                  Proc#call at kernel/core/context.rb:262[0m
-        SpecRunner#describe at spec/mini_rspec.rb:346[0m
-              main.describe at spec/mini_rspec.rb:365[0m
-            main.__script__ at ./spec/core/dir/glob_spec.rb:5[0m
-[0;34m                  Proc#call at kernel/core/context.rb:262[0m
-       main.it_behaves_like at ./spec/core/float/../../spec_helper.rb:142[0m
-            main.__script__ at ./spec/core/dir/glob_spec.rb:125[0m
-[0;34m                  Proc#call at kernel/core/context.rb:262[0m
-        SpecRunner#describe at spec/mini_rspec.rb:346[0m
-              main.describe at spec/mini_rspec.rb:365[0m
-            main.__script__ at ./spec/core/dir/glob_spec.rb:124[0m
-[0;34m                  main.load at kernel/core/compile.rb:78[0m
-[0;34m               main.require at kernel/core/compile.rb:129[0m
-[0;34m                 Array#each at kernel/core/array.rb:526[0m
-[0;34m      Integer(Fixnum)#times at kernel/core/integer.rb:14[0m
-[0;34m                 Array#each at kernel/core/array.rb:526[0m
-[0;34m               main.require at kernel/core/compile.rb:112[0m
-[0;34m                 Array#each at kernel/core/array.rb:526[0m
-[0;34m      Integer(Fixnum)#times at kernel/core/integer.rb:14[0m
-[0;34m                 Array#each at kernel/core/array.rb:526[0m
-[0;34m               main.require at kernel/core/compile.rb:111[0m
-            main.__script__ at spec/core/dir/element_reference_spec.rb:3[0m
-[0;34m                  main.load at kernel/core/compile.rb:78[0m
-[0;33m       main.__eval_script__ at (eval):8[0m
-[0;34m                 Array#each at kernel/core/array.rb:526[0m
-[0;34m      Integer(Fixnum)#times at kernel/core/integer.rb:14[0m
-[0;34m                 Array#each at kernel/core/array.rb:526[0m
-[0;33m       main.__eval_script__ at (eval):5[0m
-[0;34m    CompiledMethod#activate at kernel/core/compiled_method.rb:110[0m
-[0;34m            Compile.execute at kernel/core/compile.rb:34[0m
-[0;34m            main.__script__ at kernel/loader.rb:159[0m
+Dir.glob matches non-dotfiles with '*'
+Dir.glob matches dotfiles with '.*'
+Dir.glob matches non-dotfiles with '*<non-special characters>'
+Dir.glob matches dotfiles with '.*<non-special characters>'
+Dir.glob matches files with any ending with '<non-special characters>*'
+Dir.glob matches files with any middle with '<non-special characters>*<non-special characters>'
+Dir.glob matches files with multiple '*' special characters
+Dir.glob matches non-dotfiles in the current directory with '**'
+Dir.glob matches dotfiles in the current directory with '.**'
+Dir.glob recursively matches any nondot subdirectories with '**/'
+Dir.glob recursively matches any subdirectories including ./ and ../ with '.**/'
+Dir.glob matches a single character except leading '.' with '?'
+Dir.glob accepts multiple '?' characters in a pattern
+Dir.glob matches any characters in a set with '[<characters>]'
+Dir.glob matches any characters in a range with '[<character>-<character>]'
+Dir.glob matches any characters except those in a set with '[^<characters>]'
+Dir.glob matches any characters except those in a range with '[^<character>-<character]'
+Dir.glob matches any one of the strings in a set with '{<string>,<other>,...}'
+Dir.glob accepts string sets with empty strings with {<string>,,<other>}
+Dir.glob matches dot or non-dotfiles with '{,.}*'
+Dir.glob matches special characters by escaping with a backslash with '\<character>'
+Dir.glob recursively matches directories with '**/<characters>'
+Dir.glob matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH
+Dir.glob matches files with any beginning with '*<non-special characters>' and option File::FNM_DOTMATCH
+Dir.glob matches any files in the current directory with '.**' and option File::FNM_DOTMATCH
+Dir.glob recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH
+Dir.glob matches the literal character '\' with option File::FNM_NOESCAPE
+Dir.[] recursively matches any nondot subdirectories with '**/'
+Dir.[] matches any characters except those in a set with '[^<characters>]'
+Dir.[] matches any characters except those in a range with '[^<character>-<character]'
+Dir.[] matches any one of the strings in a set with '{<string>,<other>,...}'
+Dir.[] accepts string sets with empty strings with {<string>,,<other>}
+Dir.[] matches dot or non-dotfiles with '{,.}*'
+Dir.[] matches special characters by escaping with a backslash with '\<character>'
+Dir.[] recursively matches directories with '**/<characters>'

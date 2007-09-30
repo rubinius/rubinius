@@ -1,7 +1,1 @@
-true
-/Users/brian/devel/rubinius/spec/core/dir/fixtures/mock
-Dir.chdir defaults to $HOME with no arguments
-Dir.chdir changes to the specified directory
-Dir.chdir returns 0 when successfully changing directory
-Dir.chdir changes to the specified directory for the duration of the block
 Dir.chdir raises a SystemCallError if the directory does not exist
