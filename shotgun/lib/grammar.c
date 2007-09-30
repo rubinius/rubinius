@@ -649,7 +649,7 @@ typedef short int yytype_int16;
 #define YYSIZE_MAXIMUM ((YYSIZE_T) -1)
 
 #ifndef YY_
-# if defined YYENABLE_NLS && YYENABLE_NLS
+# if YYENABLE_NLS
 #  if ENABLE_NLS
 #   include <libintl.h> /* INFRINGES ON USER NAME SPACE */
 #   define YY_(msgid) dgettext ("bison-runtime", msgid)
@@ -3713,7 +3713,7 @@ while (YYID (0))
    we won't break user code: when these are the locations we know.  */
 
 #ifndef YY_LOCATION_PRINT
-# if defined YYLTYPE_IS_TRIVIAL && YYLTYPE_IS_TRIVIAL
+# if YYLTYPE_IS_TRIVIAL
 #  define YY_LOCATION_PRINT(File, Loc)			\
      fprintf (File, "%d.%d-%d.%d",			\
 	      (Loc).first_line, (Loc).first_column,	\
@@ -8502,7 +8502,7 @@ heredoc_restore(here, parse_state)
     parse_state->lex_p = parse_state->lex_pbeg + here->nd_nth;
     heredoc_end = ruby_sourceline;
     ruby_sourceline = nd_line(here);
-    bdestroy(here->nd_orig);
+    bdestroy((bstring)here->nd_lit);
 //    rb_gc_force_recycle((VALUE)here);
 }
 
@@ -8540,7 +8540,7 @@ here_document(here, parse_state)
 
     /* eos == the heredoc ident that we found when the heredoc started */
     eos = bdata(here->nd_str);
-    len = blength(here->nd_str);
+    len = blength(here->nd_str) - 1;
     
     /* indicates if we should search for expansions. */
     indent = (func = *eos++) & STR_FUNC_INDENT;
