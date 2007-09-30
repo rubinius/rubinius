@@ -26,6 +26,15 @@ describe "Class.new" do
     klass_instance.is_a?(klass).should == true
   end
   
+  it "creates a class without a name" do
+    Class.new.name.should == ""
+  end
+  
+  it "creates a class that can be given a name by assigning it to a constant" do
+    MyClass = Class.new
+    MyClass.name.should == "MyClass"
+  end
+  
   it "sets the new class' superclass to the given class" do
     top = Class.new
     Class.new(top).superclass.should == top
