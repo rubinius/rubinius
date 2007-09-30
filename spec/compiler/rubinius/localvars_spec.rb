@@ -19,7 +19,7 @@ pop
 push a:2
 push self
 send p 1
-ret
+sret
     CODE
   
     c.encode(code).should == asm
@@ -62,7 +62,7 @@ lbl3:
 make_array 0
 &send each 0
 lbl1:
-ret
+sret
     CODE
   
     c.encode(code).should == asm

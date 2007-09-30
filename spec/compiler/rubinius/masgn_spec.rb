@@ -16,7 +16,7 @@ push 2
 push 3
 make_array 3
 set a:2
-ret
+sret
   ASM
 
     c.encode(code).should == asm
@@ -43,7 +43,7 @@ set c:4
 pop
 set d:5
 pop
-ret
+sret
     ASM
     
     out = c.encode(code)
@@ -66,7 +66,7 @@ set b:3
 pop
 set c:4
 pop
-ret
+sret
     ASM
     
     out = c.encode(code)
@@ -88,7 +88,7 @@ pop
 set b:3
 pop
 pop
-ret
+sret
     ASM
     
     out = c.encode(code)
@@ -100,56 +100,41 @@ end
 =begin
 context 'Multiple assignments with grouping' do
   specify 'A group on the lhs is considered one position and treats its corresponding rhs position like an Array' do
-    example do
-      a, (b, c), d = 1, 2, 3, 4
-      e, (f, g), h = 1, [2, 3, 4], 5
-      i, (j, k), l = 1, 2, 3
-
-      [a == 1, b == 2, c == nil, d == 3,
-       e == 1, f == 2, g == 3, h == 5,
-       i == 1, j == 2, k == nil, l == 3]
-    end.all? {|x| x == true}.should == true
+    a, (b, c), d = 1, 2, 3, 4
+    [a, b, c, d].should == [1, 2, nil, 3]
+    e, (f, g), h = 1, [2, 3, 4], 5
+    [e, f, g, h].should == [1, 2, 3, 5]
+    i, (j, k), l = 1, 2, 3
+    [i, j, k, l].should == [1, 2, nil, 3]
   end
 
   specify 'rhs cannot use parameter grouping, it is a syntax error' do
-    example do
-      begin 
-        eval '(a, b) = (1, 2)'
-      rescue SyntaxError
-        :success
-      end
-    end.should == :success
+    should_raise(SyntaxError) do
+      eval '(a, b) = (1, 2)'
+    end
   end
 end
 =end
-=begin
 
 context 'Multiple assignments with splats' do
+=begin
   specify '* on the lhs has to be applied to the last parameter' do
-    example do
-      begin
-        eval 'a, *b, c = 1, 2, 3'
-      rescue SyntaxError
-        :success
-      end
-    end.should == :success
+    should_raise(SyntaxError) do
+      eval 'a, *b, c = 1, 2, 3'
+    end
   end
+=end
 
   specify '* on the lhs collects all parameters from its position onwards as an Array or an empty Array' do
-    example do
-      a, *b = 1, 2
-      c, *d = 1
-      e, *f = 1, 2, 3
-      g, *h = 1, [2, 3]
-      i, *j = [1, 2, 3].dup
-
-      [a == 1, b == [2],
-       c == 1, d == [],
-       e == 1, f == [2, 3],
-       g == 1, h == [[2, 3]],
-       i == 1, j == [2, 3]]
-    end.all? {|x| x == true}.should == true
+    a, *b = 1, 2
+    [a, b].should == [1, [2]]
+    c, *d = 1
+    [c, d].should == [1, []]
+    e, *f = 1, 2, 3
+    [e, f].should == [1, [2, 3]]
+    g, *h = 1, [2, 3]
+    [g, h].should == [1, [[2, 3]]]
+    i, *j = [1, 2, 3].dup
+    [i, j].should == [1, [2, 3]]
   end
 end
-
-=end
