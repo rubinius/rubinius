@@ -141,11 +141,13 @@ context 'Multiple assignments with splats' do
       c, *d = 1
       e, *f = 1, 2, 3
       g, *h = 1, [2, 3]
+      i, *j = [1, 2, 3].dup
 
       [a == 1, b == [2],
        c == 1, d == [],
        e == 1, f == [2, 3],
-       g == 1, h == [[2, 3]]]
+       g == 1, h == [[2, 3]],
+       i == 1, j == [2, 3]]
     end.all? {|x| x == true}.should == true
   end
 end
