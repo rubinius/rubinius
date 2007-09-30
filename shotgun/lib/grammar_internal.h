@@ -4,6 +4,7 @@
 #include <glib.h>
 #include <stdbool.h>
 #include "shotgun.h"
+#include "bstrlib.h"
 
 #define ID GQuark
 #define VALUE OBJECT
@@ -52,13 +53,13 @@ typedef struct rb_parse_state {
      * line_buffer.
      */
     bool (*lex_gets)();
-    GString *line_buffer;
+    bstring line_buffer;
 
     /* If this is set, we use the io method. */
     FILE *lex_io;
     /* Otherwise, we use this. */
-    GString *lex_string;
-    GString *lex_lastline;
+    bstring lex_string;
+    bstring lex_lastline;
 
     char *lex_pbeg;
     char *lex_p;

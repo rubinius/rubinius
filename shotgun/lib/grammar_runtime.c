@@ -8,6 +8,25 @@
 #include "symbol.h"
 #include "grammar.h"
 
+static OBJECT string_newfrombstr(STATE, bstring output)
+{
+	return string_new2(state, bdata(output), blength(output));
+}
+
+static OBJECT float_from_bstring(STATE, bstring str)
+{
+	return float_from_string(state, bdata(str));
+}
+
+static OBJECT bignum_from_bstring_detect(STATE, bstring str)
+{
+	return bignum_from_string_detect(state, bdata(str));
+}
+static OBJECT bignum_from_bstring(STATE, bstring str, int radix)
+{
+	return bignum_from_string(state, bdata(str), radix);
+}
+
 rb_parse_state *alloc_parse_state() {
     rb_parse_state *parse_state = (rb_parse_state*)calloc(1, sizeof(rb_parse_state));
 
@@ -72,11 +91,11 @@ void pt_free(rb_parse_state *st) {
   int i;
 
   if(st->line_buffer) {
-    g_string_free(st->line_buffer, TRUE);
+    bdestroy(st->line_buffer);
   }
 
   if(st->lex_lastline) {
-    g_string_free(st->lex_lastline, TRUE);
+	bdestroy(st->lex_lastline);
   }
 
   free(st->token_buffer);
@@ -102,8 +121,7 @@ void create_error(rb_parse_state *parse_state, char *msg) {
   tup = tuple_new(state, 3);
   tuple_put(state, tup, 0, string_new(state, msg));
   tuple_put(state, tup, 1, I2N(col));
-  tuple_put(state, tup, 2, string_new(state, parse_state->lex_lastline->str));
-  
+  tuple_put(state, tup, 2, string_newfrombstr(state, parse_state->lex_lastline));
   parse_state->error = tup;
 }
 
@@ -147,10 +165,6 @@ static OBJECT quark_to_symbol(STATE, GQuark quark) {
     return cstring_to_symbol(state, op);
   }
   return cstring_to_symbol(state, g_quark_to_string(id_to_quark(quark)));
-}
-
-static OBJECT gstring2rubinius(STATE, GString *str) {
-  return string_new2(state, str->str, str->len);
 }
 
 void syd_add_to_parse_tree(STATE, OBJECT ary,
@@ -634,7 +648,7 @@ again_no_block:
       }
       */
       /* array_push(current, I2N(node->nd_cnt)); */
-      array_push(current, gstring2rubinius(state, node->nd_str));
+      array_push(current, string_newfrombstr(state, node->nd_str));
       while (list) {
 	      if (list->nd_head) {
           switch (nd_type(list->nd_head)) {
@@ -772,45 +786,45 @@ again_no_block:
     
   case NODE_NUMBER:
     array_set(state, current, 0, SYMBOL("lit"));
-    array_push(current, bignum_from_string_detect(state, node->nd_str->str));
-    g_string_free(node->nd_str, TRUE);
+    array_push(current, bignum_from_bstring_detect(state, node->nd_str));
+	bdestroy(node->nd_str);
     break;
     
   case NODE_HEXNUM:
     array_set(state, current, 0, SYMBOL("lit"));
-    array_push(current, bignum_from_string(state, node->nd_str->str, 16));
-    g_string_free(node->nd_str, TRUE);
+    array_push(current, bignum_from_bstring(state, node->nd_str, 16));
+    bdestroy(node->nd_str);
     break;
   
   case NODE_BINNUM:
     array_set(state, current, 0, SYMBOL("lit"));
-    array_push(current, bignum_from_string(state, node->nd_str->str, 2));
-    g_string_free(node->nd_str, TRUE);
+    array_push(current, bignum_from_bstring(state, node->nd_str, 2));
+    bdestroy(node->nd_str);
     break;
     
   case NODE_OCTNUM:
     array_set(state, current, 0, SYMBOL("lit"));
-    array_push(current, bignum_from_string(state, node->nd_str->str, 8));
-    g_string_free(node->nd_str, TRUE);
-    break;
+    array_push(current, bignum_from_bstring(state, node->nd_str, 8));
+    bdestroy(node->nd_str);
+	break;
     
   case NODE_FLOAT:
     array_set(state, current, 0, SYMBOL("lit"));
-    array_push(current, float_from_string(state, node->nd_str->str));
-    g_string_free(node->nd_str, TRUE);
-    break;
+    array_push(current, float_from_bstring(state, node->nd_str));
+    bdestroy(node->nd_str);
+	break;
     
   case NODE_XSTR:             /* u1    (%x{ls}) */
   case NODE_STR:              /* u1 */
-    array_push(current, gstring2rubinius(state, node->nd_str));
-    g_string_free(node->nd_str, TRUE);
-    break;
+    array_push(current, string_newfrombstr(state, node->nd_str));
+    bdestroy(node->nd_str);
+	break;
   case NODE_REGEX:
   case NODE_MATCH:
-    array_push(current, gstring2rubinius(state, node->nd_str));
+    array_push(current, string_newfrombstr(state, node->nd_str));
     array_push(current, I2N(node->nd_cnt));
-    g_string_free(node->nd_str, TRUE);
-    break;
+    bdestroy(node->nd_str);
+	break;
   case NODE_LIT:
     array_push(current, ID2SYM(node->nd_lit));
     break;
@@ -893,8 +907,8 @@ again_no_block:
     OBJECT hack = array_new(state, sz);
 
     array_append(state, hack, SYMBOL("dstr"));
-    array_append(state, hack, gstring2rubinius(state, node->nd_str));
-    g_string_free(node->nd_str, TRUE);
+    array_append(state, hack, string_newfrombstr(state, node->nd_str));
+    bdestroy(node->nd_str);
 
     int i = 1;
     while (i < sz) {

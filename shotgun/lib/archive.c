@@ -228,7 +228,7 @@ OBJECT archive_add_file(STATE, char *path, char *name, char *file) {
 OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj, int version) {
   struct zip *za;
   struct zip_source *zs;
-  GString *buf;
+  bstring buf;
   OBJECT ret;
   int err;
   
@@ -236,14 +236,14 @@ OBJECT archive_add_object(STATE, char *path, char *name, OBJECT obj, int version
     return Qnil;
   }
   
-  buf = cpu_marshal_to_gstring(state, obj, version);
+  buf = cpu_marshal_to_bstring(state, obj, version);
   
-  zs = zip_source_buffer(za, buf->str, buf->len, 0);
+  zs = zip_source_buffer(za, bdata(buf), blength(buf), 0);
 
   ret = add_or_replace(za, name, zs);
   
   zip_close(za);
-  g_string_free(buf, 1);
+  bdestroy(buf);
   return ret;
 }
 

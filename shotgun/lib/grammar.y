@@ -48,9 +48,8 @@ static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, O
 
 #define ID2SYM(i) i
 
-#define string_new(ptr, len) g_string_new_len(ptr, len)
-#define string_new2(ptr) g_string_new(ptr)
-#define g_string_append_string(h,t) g_string_append_len(h, t->str, t->len)
+#define string_new(ptr, len) blk2bstr(ptr, len)
+#define string_new2(ptr) cstr2bstr(ptr)
 
 static int syd_sourceline;
 static char *syd_sourcefile;
@@ -2240,14 +2239,15 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                                 nd_set_type($$, NODE_DSYM);
                                 break;
                               case NODE_STR:
-                                if (strlen($$->nd_str->str) == $$->nd_str->len) {
-                                  ID tmp = rb_intern($$->nd_str->str);
-                                  g_string_free($$->nd_str, TRUE);
+                                /* TODO: this line should never fail unless nd_str is binary */
+                                if (strlen(bdata($$->nd_str)) == blength($$->nd_str)) {
+                                  ID tmp = rb_intern(bdata($$->nd_str));
+                                  bdestroy($$->nd_str);
                                   $$->nd_lit = tmp;
                                   nd_set_type($$, NODE_LIT);
                                   break;
                                 } else {
-                                  g_string_free($$->nd_str, TRUE);
+                                  bdestroy($$->nd_str);
                                 }
                                 /* fall through */
                               default:
@@ -2730,22 +2730,22 @@ yycompile(parse_state, f, line)
 static bool
 lex_get_str(rb_parse_state *parse_state)
 {
-    char *str;
-    char *beg, *end, *pend;
+    const char *str;
+    const char *beg, *end, *pend;
     int sz;
 
-    str = parse_state->lex_string->str;
+    str = bdata(parse_state->lex_string);
     beg = str;
     
     if (parse_state->lex_str_used) {
-      if (parse_state->lex_string->len == parse_state->lex_str_used) {
+      if (blength(parse_state->lex_string) == parse_state->lex_str_used) {
         return false;
       }
 
       beg += parse_state->lex_str_used;
     }
     
-    pend = str + parse_state->lex_string->len;
+    pend = str + blength(parse_state->lex_string);
     end = beg;
     
     while(end < pend) {
@@ -2753,7 +2753,7 @@ lex_get_str(rb_parse_state *parse_state)
     }
     
     sz = end - beg;
-    g_string_append_len(parse_state->line_buffer, beg, sz);
+    bcatblk(parse_state->line_buffer, beg, sz);
     parse_state->lex_str_used += sz;
 
     return true;
@@ -2773,16 +2773,16 @@ static bool
 lex_getline(rb_parse_state *parse_state)
 {
   if(!parse_state->line_buffer) {
-    parse_state->line_buffer = g_string_new(NULL);
+    parse_state->line_buffer = cstr2bstr("");
   } else {
-    g_string_truncate(parse_state->line_buffer, 0);
+    btrunc(parse_state->line_buffer, 0);
   }
 
   return parse_state->lex_gets(parse_state);
 }
 
 OBJECT
-syd_compile_string(STATE, const char *f, GString *s, int line, int newlines)
+syd_compile_string(STATE, const char *f, bstring s, int line, int newlines)
 {
     int n;
     rb_parse_state *parse_state;
@@ -2825,10 +2825,10 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
       return false;
     }
 
-    g_string_append(parse_state->line_buffer, ptr);
+    read = strlen(ptr);
+    bcatblk(parse_state->line_buffer, ptr, read);
 
     /* check whether we read a full line */
-    read = strlen(ptr);
     if(!(read == (sizeof(buf) - 1) && ptr[read] != '\r')) {
       break;
     }
@@ -2876,7 +2876,7 @@ ps_nextc(rb_parse_state *parse_state)
     int c;
 
     if (parse_state->lex_p == parse_state->lex_pend) {
-        GString *v;
+        bstring v;
         
         if (!lex_getline(parse_state)) return -1;
         v = parse_state->line_buffer;
@@ -2886,14 +2886,13 @@ ps_nextc(rb_parse_state *parse_state)
             heredoc_end = 0;
         }
         ruby_sourceline++;
-        parse_state->lex_pbeg = parse_state->lex_p = v->str;
-        parse_state->lex_pend = parse_state->lex_p + v->len;
+        parse_state->lex_pbeg = parse_state->lex_p = bdata(v);
+        parse_state->lex_pend = parse_state->lex_p + blength(v);
 
         if(parse_state->lex_lastline) {
-          g_string_truncate(parse_state->lex_lastline, 0);
-          g_string_append_len(parse_state->lex_lastline, v->str, v->len);
+          bassign(parse_state->lex_lastline, v);
         } else {
-          parse_state->lex_lastline = g_string_new_len(v->str, v->len);
+          parse_state->lex_lastline = bstrcpy(v);
         }
     }
     c = (unsigned char)*(parse_state->lex_p++);
@@ -3423,9 +3422,7 @@ heredoc_identifier(rb_parse_state *parse_state)
     /* Tell the lexer that we're inside a string now. nd_lit is
        the heredoc identifier that we watch the stream for to 
        detect the end of the heredoc. */
-  GString *str = g_string_new_len(parse_state->lex_lastline->str,
-                                  parse_state->lex_lastline->len);
-
+    bstring str = bstrcpy(parse_state->lex_lastline);
     lex_strterm = syd_node_newnode(parse_state, NODE_HEREDOC,
                                   (OBJECT)string_new(tok(), toklen()),  /* nd_lit */
                                   len,                          /* nd_nth */
@@ -3438,17 +3435,17 @@ heredoc_restore(here, parse_state)
     NODE *here;
     rb_parse_state *parse_state;
 {
-    GString *line = here->nd_orig;
+    bstring line = here->nd_orig;
 
-  g_string_free(parse_state->lex_lastline, TRUE);
+    bdestroy(parse_state->lex_lastline);
 
     parse_state->lex_lastline = line;
-    parse_state->lex_pbeg = line->str;
-    parse_state->lex_pend = parse_state->lex_pbeg + line->len;
+    parse_state->lex_pbeg = bdata(line);
+    parse_state->lex_pend = parse_state->lex_pbeg + blength(line);
     parse_state->lex_p = parse_state->lex_pbeg + here->nd_nth;
     heredoc_end = ruby_sourceline;
     ruby_sourceline = nd_line(here);
-    g_string_free((GString *) here->nd_lit, TRUE);
+    bdestroy(here->nd_orig);
 //    rb_gc_force_recycle((VALUE)here);
 }
 
@@ -3482,11 +3479,11 @@ here_document(here, parse_state)
     int c, func, indent = 0;
     char *eos, *p, *pend;
     long len;
-    GString *str = NULL;
+    bstring str = NULL;
 
     /* eos == the heredoc ident that we found when the heredoc started */
-    eos = here->nd_str->str;
-    len = here->nd_str->len - 1;
+    eos = bdata(here->nd_str);
+    len = blength(here->nd_str);
     
     /* indicates if we should search for expansions. */
     indent = (func = *eos++) & STR_FUNC_INDENT;
@@ -3512,7 +3509,7 @@ here_document(here, parse_state)
        
     if ((func & STR_FUNC_EXPAND) == 0) {
         do {
-            p = parse_state->lex_lastline->str;
+            p = bdata(parse_state->lex_lastline);
             pend = parse_state->lex_pend;
             if (pend > p) {
                 switch (pend[-1]) {
@@ -3526,13 +3523,13 @@ here_document(here, parse_state)
                 }
             }
             if (str)
-                g_string_append_len(str, p, pend - p);
+                bcatblk(str, p, pend - p);
             else
-                str = string_new(p, pend - p);
-            if (pend < parse_state->lex_pend) g_string_append_len(str, "\n", 1);
+                str = blk2bstr(p, pend - p);
+            if (pend < parse_state->lex_pend) bcatblk(str, "\n", 1);
             parse_state->lex_p = parse_state->lex_pend;
             if (nextc() == -1) {
-                if (str) g_string_free(str, TRUE);
+                if (str) bdestroy(str);
                 goto error;
             }
         } while (!whole_match_p(eos, len, indent, parse_state));
@@ -3593,7 +3590,7 @@ yylex(YYSTYPE *yylval, void *vstate)
     int space_seen = 0;
     int cmd_state, comment_column;
     struct rb_parse_state *parse_state;
-    GString *cur_line;
+    bstring cur_line;
     parse_state = (struct rb_parse_state*)vstate;
 
     parse_state->lval = (void *)yylval;
@@ -3642,18 +3639,13 @@ yylex(YYSTYPE *yylval, void *vstate)
       case '#':         /* it's a comment */
         // printf("hit comment.. %x\n", parse_state->comments);
         if(parse_state->comments) {
-            int i = 0;
             comment_column = parse_state->column;
-            cur_line = string_new(0, 50);
+            cur_line = bfromcstralloc(50, "");
             
             while((c = nextc()) != '\n' && c != -1) {
-                cur_line->str[i++] = c;
-                if(i == cur_line->len) {
-                    g_string_set_size(cur_line, i+50);
-                }
+              bconchar(cur_line, c);
             }
             
-            g_string_set_size(cur_line, i);
             // FIXME: used to have the file and column too, but took it out.
             g_ptr_array_add(parse_state->comments, cur_line);
                 // rb_ary_new3(3, INT2NUM(ruby_sourceline), INT2NUM(comment_column),
@@ -4859,7 +4851,7 @@ block_append(parse_state, head, tail)
         h = h->nd_next;
         goto again;
       case NODE_STR:
-        g_string_free(h->nd_str, TRUE);
+        bdestroy(h->nd_str);
       case NODE_LIT:
         parser_warning(parse_state, h, "unused literal ignored");
         return tail;
@@ -4971,8 +4963,8 @@ literal_concat(parse_state, head, tail)
     switch (nd_type(tail)) {
       case NODE_STR:
         if (htype == NODE_STR) {
-            g_string_append_string(head->nd_str, tail->nd_str);
-            g_string_free(tail->nd_str, TRUE);
+            bconcat(head->nd_str, tail->nd_str);
+			bdestroy(tail->nd_str);
             // rb_gc_force_recycle((VALUE)tail);
         }
         else {
@@ -4982,8 +4974,8 @@ literal_concat(parse_state, head, tail)
 
       case NODE_DSTR:
         if (htype == NODE_STR) {
-            g_string_append_string(head->nd_str, tail->nd_str);
-            g_string_free(tail->nd_str, TRUE);
+            bconcat(head->nd_str, tail->nd_str);
+            bdestroy(tail->nd_str);
 
             tail->nd_lit = head->nd_lit;
             // rb_gc_force_recycle((VALUE)head);

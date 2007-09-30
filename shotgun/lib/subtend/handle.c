@@ -60,10 +60,10 @@ rni_handle *handle_new(rni_handle_table *tbl, OBJECT obj) {
 /*
 
 void handle_become_string(rni_handle *h, char *str, int len) {
-  GString *gstr;
+  bstring bstr;
   SET_FLAG(h, STRING_FLAG);
-  gstr = g_string_new_len((const gchar*)str, len);
-  h->data = (void*)gstr;
+  bstr = blk2bstr(str, len);
+  h->data = (void*)bstr;
 }
 
 OBJECT _handle_convert_string(STATE, rni_handle_table *tbl, rni_handle *h) {
@@ -171,7 +171,7 @@ OBJECT handle_remove(rni_handle_table *tbl, rni_handle *h) {
 void handle_delete(rni_handle *h) {
   /*
   if(IS_FLAG(h, STRING_FLAG)) {
-    g_string_free((GString*)h->data);
+    bdestroy((bstring)h->data);
   } else if(IS_FLAG(h, ARRAY_FLAG)) {
     g_ptr_array_free((GPtrArray*)h->data);
   }

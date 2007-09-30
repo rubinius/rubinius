@@ -18,6 +18,7 @@ extern "C" {
 #endif
 
 #include "node_types.h"
+#include "bstrlib.h"
 
 typedef struct RNode {
     unsigned long flags;
@@ -27,7 +28,7 @@ typedef struct RNode {
     	ID id;
     	OBJECT value;
     	ID *tbl;
-    	GString *string;
+    	bstring string;
     } u1;
     union {
     	struct RNode *node;
@@ -41,7 +42,7 @@ typedef struct RNode {
     	long state;
     	long cnt;
     	OBJECT value;
-    	GString *string;
+    	bstring string;
     } u3;
 } NODE;
 

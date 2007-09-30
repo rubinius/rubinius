@@ -24,7 +24,7 @@ struct rni_handle_table {
 
 typedef struct rni_handle_table rni_handle_table;
 
-#define AS_STR(handle) ((GString*)handle->data)
+#define AS_STR(handle) ((bstring)(handle->data))
 #define AS_ARY(handle) ((GPtrArray*)handle->data)
 #define SET_FLAG(ha,fl) ha->flags |= fl
 #define IS_FLAG(ha, fl) ((ha->flags & fl) == fl)

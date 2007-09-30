@@ -1016,7 +1016,7 @@ class ShotgunPrimitives
   def string_to_sexp
     <<-CODE
     {
-      GString *contents;
+      bstring contents;
       const char *name;
 
       self = stack_pop();
@@ -1024,10 +1024,10 @@ class ShotgunPrimitives
       POP(t2, FIXNUM);
       t3 = stack_pop();
 
-      contents = g_string_new(string_byte_address(state, self));
+      contents = cstr2bstr(string_byte_address(state, self));
       name = string_byte_address(state, t1);
       t1 = syd_compile_string(state, name, contents, FIXNUM_TO_INT(t2), RTEST(t3));
-      g_string_free(contents, TRUE);
+      bdestroy(contents);
       stack_push(t1);
     }
     CODE
