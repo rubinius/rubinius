@@ -16,8 +16,6 @@ describe "Dir.chdir" do
   end
   
   it "changes to the specified directory" do
-    puts mock_dir
-    puts Dir.pwd 
     Dir.chdir mock_dir 
     Dir.pwd.should == mock_dir
   end
