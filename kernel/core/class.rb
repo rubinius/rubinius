@@ -12,6 +12,8 @@ class Class
   end
 
   def self.new(sclass=Object, &block)
+    raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless Class === sclass
+    
     obj = Rubinius.class_constitute(sclass, nil)
     obj.class_eval(&block) if block
     # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
