@@ -214,6 +214,12 @@ shotgun/external_libs/onig/sample/.libs
 shotgun/external_libs/onig/sample/.deps
 shotgun/external_libs/onig/sample/Makefile
 
+# shotgun/external_libs/libstring
+shotgun/external_libs/libbstring/*.d
+shotgun/external_libs/libbstring/*.so
+shotgun/external_libs/libbstring/*.dylib
+shotgun/external_libs/libbstring/*.a
+
 # shotgun/lib
 shotgun/lib/.*.d
 shotgun/lib/*.gen

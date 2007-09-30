@@ -98,6 +98,9 @@ external_libs/libltdl/config.h:
 external_libs/libltdl/.libs/libltdl.a: external_libs/libltdl/config.h
 	cd external_libs/libltdl; $(MAKE)
 
+external_libs/libbstring/libbstring.a:
+	cd external_libs/libbstring; $(MAKE)
+
 $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 
 
@@ -134,7 +137,7 @@ clean:
 	cd external_libs/libtommath; $(MAKE) clean
 	cd external_libs/onig; $(MAKE) clean
 	cd external_libs/libevent; $(MAKE) clean
-
+	cd external_libs/libbstring; $(MAKE) clean
 .PHONY: clean
 
 # Clean, but also nuke configs

@@ -93,7 +93,7 @@ $(OUTPUT_A): $(DEPS) $(OBJS)
 .PHONY: library
 
 clean:
-	rm -f *.o *.lo *.la 
+	rm -f *.o *.lo *.la *.so *.dylib *.a
 
 .PHONY: clean
 
