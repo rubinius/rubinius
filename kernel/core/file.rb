@@ -179,9 +179,13 @@ class File < IO
     filename = File.basename(StringValue(path))
     idx = filename.rindex '.'
     have_dot = idx != nil
-    first_or_last_char = idx == 0 || filename.size == 1
-    
-    return '' unless have_dot and not first_or_last_char
+    first_char = idx == 0
+    last_char = idx == filename.length - 1
+    only_dots = filename.match(/[^\.]/) == nil
+
+    return '' unless have_dot
+    return '' if first_char || last_char
+    return '' if only_dots
     filename.slice idx..-1
   end
 
