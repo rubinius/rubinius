@@ -616,6 +616,77 @@ class String
   
   
 
+  # Returns the successor to <i>self</i>. The successor is calculated by
+  # incrementing characters starting from the rightmost alphanumeric (or
+  # the rightmost character if there are no alphanumerics) in the
+  # string. Incrementing a digit always results in another digit, and
+  # incrementing a letter results in another letter of the same case.
+  # Incrementing nonalphanumerics uses the underlying character set's
+  # collating sequence.
+  #    
+  # If the increment generates a ``carry,'' the character to the left of
+  # it is incremented. This process repeats until there is no carry,
+  # adding an additional character if necessary.
+  #    
+  #   "abcd".succ        #=> "abce"
+  #   "THX1138".succ     #=> "THX1139"
+  #   "<<koala>>".succ   #=> "<<koalb>>"
+  #   "1999zzz".succ     #=> "2000aaa"
+  #   "ZZZ9999".succ     #=> "AAAA0000"
+  #   "***".succ         #=> "**+"
+  def succ
+    return "".copy_properties(self) if length == 0
+    out = self.dup
+
+    start = length-1
+    alnum = self[-1..-1] =~ /[a-zA-Z0-9]/
+    while start >= 0       # can't break from a step or downto yet
+      if out[start].isalnum
+        break
+      else
+        start -= 1
+      end
+    end
+    start = length-1 if start < 0
+    
+    carry = false
+    c = 0
+    start.step(0, -1) do |idx|
+      c = out[idx]
+      carry = true 
+      if alnum && carry && c.chr !~ /[a-zA-Z0-9]/
+        out[idx] = c
+        next
+      end
+      last_alnum = idx
+      if c == ?9
+        c = ?0
+      elsif c == ?Z
+        c = ?A
+      elsif c == ?z
+        c = ?a
+      else
+        c = (c + 1) % 256
+        carry = false if c != 0
+      end
+      out[idx] = c
+      return out.copy_properties(self) if !carry
+    end
+    c = out[last_alnum]
+    c += 1 if c == ?0 || c == 0
+    out = out[0...last_alnum] + c.chr + out[last_alnum..-1]
+    # work around for << not taking Fixnum
+    return out.copy_properties(self)
+  end
+
+  # Equivalent to <code>String#succ</code>, but modifies the receiver in
+  # place.
+  def succ!
+    replace(succ)
+  end
+
+  alias_method :next, :succ
+  alias_method :next!, :succ!
 
   # Returns a basic <em>n</em>-bit checksum of the characters in <i>self</i>,
   # where <em>n</em> is the optional <code>Fixnum</code> parameter, defaulting
@@ -1423,58 +1494,6 @@ class String
     self[index, 0] = other_string
     self
   end
-
-  def succ
-    return "".copy_properties(self) if length == 0
-    out = self.dup
-
-    start = length-1
-    alnum = self[-1..-1] =~ /[a-zA-Z0-9]/
-    while start >= 0       # can't break from a step or downto yet
-      if out[start].isalnum
-        break
-      else
-        start -= 1
-      end
-    end
-    start = length-1 if start < 0
-    
-    carry = false
-    c = 0
-    start.step(0, -1) do |idx|
-      c = out[idx]
-      carry = true 
-      if alnum && carry && c.chr !~ /[a-zA-Z0-9]/
-        out[idx] = c
-        next
-      end
-      last_alnum = idx
-      if c == ?9
-        c = ?0
-      elsif c == ?Z
-        c = ?A
-      elsif c == ?z
-        c = ?a
-      else
-        c = (c + 1) % 256
-        carry = false if c != 0
-      end
-      out[idx] = c
-      return out.copy_properties(self) if !carry
-    end
-    c = out[last_alnum]
-    c += 1 if c == ?0 || c == 0
-    out = out[0...last_alnum] + c.chr + out[last_alnum..-1]
-    # work around for << not taking Fixnum
-    return out.copy_properties(self)
-  end
-
-  def succ!
-    replace(succ)
-  end
-
-  alias_method :next, :succ
-  alias_method :next!, :succ!
 
   def expand_tr_string(string)
     string.gsub(/[^-]-[^-]/) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
