@@ -626,39 +626,29 @@ class String
   #   "yellow moon".squeeze                  #=> "yelow mon"
   #   "  now   is  the".squeeze(" ")         #=> " now is the"
   #   "putters shoot balls".squeeze("m-z")   #=> "puters shot balls"
-  def squeeze(*arg)
-
-    out = ""
-    last_char = -1
-
-    if arg.length > 0
-      # Build the target character map
-      str = intersect_string_from_args(*arg)
-      return self.dup if str == nil
-      char_map = 0.chr * 256
-      str.each_byte { |c| char_map[c] = 1 }
-
-      each_byte do |c|
-        if char_map[c] == 1
-          out << c if c != last_char
-        else
-          out << c
-        end
-        last_char = c
-      end
-    else
-      each_byte do |c|
-        out << c if c != last_char
-        last_char = c
-      end
-    end
-    out
+  def squeeze(*strings)
+    (str = self.dup).squeeze!(*strings) || str
   end
 
   # Squeezes <i>self</i> in place, returning either <i>self</i>, or
   # <code>nil</code> if no changes were made.
-  def squeeze!(*arg)
-    replace_if(squeeze(*arg))
+  def squeeze!(*strings)
+    table = strings.empty? ? Array.new(256, true) : setup_tr_table(*strings)
+    
+    self.modify!
+    return if @bytes == 0
+    
+    # TODO: Use the @data bytearray directly.
+    new = []
+    save = nil
+    self.each_byte do |c|
+      if !table[c] || c != save
+        new << c.chr
+        save = c
+      end
+    end
+    new = new.join
+    new != self ? replace(new) : nil
   end
 
   # Returns a copy of <i>self</i> with leading and trailing whitespace removed.
