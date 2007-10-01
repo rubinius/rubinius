@@ -109,7 +109,7 @@ class Float < Numeric
     elsif nan?
       return self
     else
-      if self < Platform::Fixnum.MAX.to_f
+      if self < MAX.to_f
         Platform::Float.to_i self
       else
         Bignum.from_float self
