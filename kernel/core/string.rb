@@ -640,7 +640,7 @@ class String
   end
   
   # Equivalent to <code>String#swapcase</code>, but modifies the receiver in
-  # place, returning <i>str</i>, or <code>nil</code> if no changes were made.
+  # place, returning <i>self</i>, or <code>nil</code> if no changes were made.
   def swapcase!
     raise TypeError, "can't modify frozen string" if self.frozen?
     return if @bytes == 0
@@ -664,6 +664,29 @@ class String
   
     modified ? self : nil
   end
+
+  # Returns the <code>Symbol</code> corresponding to <i>self</i>, creating the
+  # symbol if it did not previously exist. See <code>Symbol#id2name</code>.
+  #    
+  #   "Koala".intern         #=> :Koala
+  #   s = 'cat'.to_sym       #=> :cat
+  #   s == :cat              #=> true
+  #   s = '@cat'.to_sym      #=> :@cat
+  #   s == :@cat             #=> true
+  #
+  # This can also be used to create symbols that cannot be represented using the
+  # <code>:xxx</code> notation.
+  #    
+  #   'cat and dog'.to_sym   #=> :"cat and dog"
+  #--
+  # TODO: Add taintedness-check
+  #++
+  def to_sym
+    raise ArgumentError, "interning empty string" if self.empty?
+    raise ArgumentError, "symbol string may not contain `\\0'" if self.include?("\x00")
+    __symbol_lookup__
+  end
+  alias_method :intern, :to_sym
 
   # Returns the result of interpreting leading characters in <i>self</i> as an
   # integer base <i>base</i> (2, 8, 10, or 16). Extraneous characters past the
@@ -1028,13 +1051,6 @@ class String
     sub = substring(@bytes - pre.size, pre.size)
     pre == sub
   end
-
-  def to_sym
-    raise ArgumentError, "interning empty string" if self.empty?
-    raise ArgumentError, "symbol string may not contain `\\0'" if self.include?("\x00")
-    __symbol_lookup__
-  end
-  alias_method :intern, :to_sym
 
   def each_byte(&prc)
     i = 0
