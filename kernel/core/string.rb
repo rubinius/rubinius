@@ -623,7 +623,8 @@ class String
   # to 16. The result is simply the sum of the binary value of each character in
   # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
-  def sum(bits=16)
+  def sum(bits = 16)
+    bits = bits.coerce_to(Integer, :to_int)
     sum = 0
     each_byte { |b| sum += b }
     sum & ((1 << bits) - 1)
