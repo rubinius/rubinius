@@ -3,8 +3,6 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/stat.h> //remove me
 #include <netdb.h>
 
 #include "shotgun.h"
@@ -106,6 +104,44 @@ int ffi_reuse_addr(int s) {
   return error;
 }
 
+OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
+  OBJECT host;
+  OBJECT address;
+
+  int error = 0;
+
+  struct sockaddr_storage addr;
+  socklen_t len = sizeof addr;
+
+  char hbuf[1024];
+  char pbuf[1024];
+
+  error = getpeername(s, (struct sockaddr*)&addr, &len);
+  if(error) {
+    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
+    return Qnil;
+  }
+
+  error = getnameinfo((struct sockaddr*)&addr, len, hbuf, sizeof(hbuf), pbuf, sizeof(pbuf), NI_NUMERICHOST | NI_NUMERICSERV);
+  if(error) {
+    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
+    return Qnil;
+  }
+  address = string_new(state, hbuf);
+
+  if(reverse_lookup) {
+    error = getnameinfo((struct sockaddr*)&addr, len, hbuf, sizeof(hbuf), NULL, 0, 0);
+    if(error) {
+      printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
+      return Qnil;
+    }
+  }
+
+  host = string_new(state, hbuf);
+
+  return tuple_new2(state, 2, host, address);
+}
+
 /*
 int ffi_bind(int s, struct sockaddr *name, socklen_t len) {
   int ret;
@@ -137,42 +173,3 @@ int ffi_bind_local_socket(int s) {
 }
 */
 
-
-OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
-  OBJECT host;
-  OBJECT address;
-
-  int error = 0;
-
-  struct sockaddr_storage addr;
-  socklen_t len = sizeof addr;
-
-  char hbuf[1024];
-  char pbuf[1024];
-
-  error = getpeername(s, (struct sockaddr*)&addr, &len);
-  if(error) {
-    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-    return Qnil;
-  }
-
-  error = getnameinfo((struct sockaddr*)&addr, ((struct sockaddr*)&addr)->sa_len, hbuf, sizeof(hbuf), pbuf, sizeof(pbuf), NI_NUMERICHOST | NI_NUMERICSERV);
-  if(error) {
-    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-    return Qnil;
-  }
-  address = string_new(state, hbuf);
-
-  if(reverse_lookup) {
-    error = getnameinfo((struct sockaddr*)&addr, ((struct sockaddr*)&addr)->sa_len, hbuf, sizeof(hbuf), NULL, 0, 0);
-    if(error) {
-      printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-      return Qnil;
-    }
-    host = string_new(state, hbuf);
-  } else {
-    host = string_new(state, hbuf);
-  }
-
-  return tuple_new2(state, 2, host, address);
-}
