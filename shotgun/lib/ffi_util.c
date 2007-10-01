@@ -94,37 +94,19 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
     printf("ERROR: %s\n", gai_strerror(error));
     return Qnil;
   }
-
-#if defined(__APPLE__) && defined(__MACH__)
-    {
-        struct addrinfo *r;
-       r = res;
-       while (r) {
-            if (! r->ai_socktype) r->ai_socktype = hints.ai_socktype;
-            if (! r->ai_protocol) {
-                if (r->ai_socktype == SOCK_DGRAM) {
-                    r->ai_protocol = IPPROTO_UDP;
-                } else if (r->ai_socktype == SOCK_STREAM) {
-                    r->ai_protocol = IPPROTO_TCP;
-                }
-            }
-            r = r->ai_next;
-        }
-    }
-#endif
   
   return tuple_new2(state, 2, ffi_new_pointer(state, 
     (void*)res->ai_addr), I2N(res->ai_addrlen));
 }
 
-int ffi_connect(int fd, struct sockaddr *name, int len) {
-  int ret;
-  
-  ret = connect(fd, name, len);
-  
-  return ret;
+int ffi_reuse_addr(int s) {
+  int error = 0;
+  int opt = 1;
+  error = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+  return error;
 }
 
+/*
 int ffi_bind(int s, struct sockaddr *name, socklen_t len) {
   int ret;
   struct stat sb;
@@ -153,16 +135,10 @@ int ffi_bind_local_socket(int s) {
   ret = bind(s, res->ai_addr, res->ai_addrlen);
   return ret;
 }
+*/
 
-int ffi_accept(int s, struct sockaddr *name, socklen_t *len) {
-  int ret;
-  
-  ret = accept(s, name, len);
-  
-  return ret;
-}
 
-OBJECT ffi_getpeername(STATE, int s) {
+OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
   OBJECT host;
   OBJECT address;
 
@@ -179,17 +155,24 @@ OBJECT ffi_getpeername(STATE, int s) {
     printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
     return Qnil;
   }
-	error = getnameinfo((struct sockaddr*)&addr, ((struct sockaddr*)&addr)->sa_len, hbuf, sizeof(hbuf), NULL, 0, 0);
-  if(error) {
-    printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
-    return Qnil;
-  }
-  host = string_new(state, hbuf);
+
   error = getnameinfo((struct sockaddr*)&addr, ((struct sockaddr*)&addr)->sa_len, hbuf, sizeof(hbuf), pbuf, sizeof(pbuf), NI_NUMERICHOST | NI_NUMERICSERV);
   if(error) {
     printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
     return Qnil;
   }
   address = string_new(state, hbuf);
+
+  if(reverse_lookup) {
+    error = getnameinfo((struct sockaddr*)&addr, ((struct sockaddr*)&addr)->sa_len, hbuf, sizeof(hbuf), NULL, 0, 0);
+    if(error) {
+      printf("ffi_getpeername ERROR: %s\n", gai_strerror(error));
+      return Qnil;
+    }
+    host = string_new(state, hbuf);
+  } else {
+    host = string_new(state, hbuf);
+  }
+
   return tuple_new2(state, 2, host, address);
 }

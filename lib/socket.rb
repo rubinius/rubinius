@@ -26,7 +26,34 @@ module Errno
   end
 end
 
-class Socket < IO
+class BasicSocket < IO
+  def self.do_not_reverse_lookup=(setting)
+    @no_reverse_lookup = setting
+  end
+
+  def self.do_not_reverse_lookup
+    @no_reverse_lookup ? true : false
+  end
+
+  def initialize(domain, type, protocol)
+    fd = Socket::Foreign.create_socket(domain.to_i, type.to_i, protocol.to_i)
+    if fd < 0
+      raise "Unable to create socket"
+    end
+    ret = Socket::Foreign.reuse_addr(fd)
+    if ret != 0
+      Errno.handle "Unable to set SO_REUSEADDR on socket"
+    end
+    
+    super(fd)
+    
+    @domain = domain
+    @type = type
+    @protocol = protocol
+  end
+end
+
+class Socket < BasicSocket
     
   module Constants
     AF_UNIX =   1
@@ -44,32 +71,19 @@ class Socket < IO
   
   module Foreign
     attach_function nil, "socket", :create_socket, [:int, :int, :int], :int
-    attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
-    attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function nil, "connect", :connect_socket, [:int, :pointer, :int], :int
     attach_function nil, "bind", :bind_socket, [:int, :pointer, :int], :int
     attach_function nil, "listen", :listen_socket, [:int, :int], :int
-    attach_function nil, "ffi_bind_local_socket", :bind_local_socket, [:int], :int
     attach_function nil, "accept", :accept, [:int, :pointer, :pointer], :int
-    attach_function nil, "ffi_getpeername", :getpeername, [:state, :int], :object
-  end
-  
-  def initialize(domain, type, protocol)
-    fd = Foreign.create_socket(domain.to_i, type.to_i, protocol.to_i)
-    if fd < 0
-      raise "Unable to create socket"
-    end
-    
-    super(fd)
-    
-    @domain = domain
-    @type = type
-    @protocol = protocol
+    attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
+    attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
+    attach_function nil, "ffi_getpeername", :getpeername, [:state, :int, :int], :object
+    attach_function nil, "ffi_reuse_addr", :reuse_addr, [:int], :int
   end
   
 end
 
-class UNIXSocket < Socket
+class UNIXSocket < BasicSocket
     
   def initialize(path)
     super(Socket::Constants::AF_UNIX, Socket::Constants::SOCK_STREAM, 0)
@@ -81,17 +95,45 @@ class UNIXServer < UNIXSocket
   
 end
 
-class IPSocket < Socket
+class IPSocket < BasicSocket
   def initialize(kind, protocol=0)
     super(Socket::Constants::AF_INET, kind, protocol)
   end
 
   def peeraddr
-    name, addr = Socket::Foreign.getpeername descriptor
+    reverse = BasicSocket.do_not_reverse_lookup ? 0 : 1
+
+    name, addr = Socket::Foreign.getpeername descriptor, reverse
     if addr.nil?
       raise "Unable to get peer address"
     end
     ["AF_INET", @port, name, addr]
+  end
+end
+
+class UDPSocket < IPSocket
+  ivar_as_index :descriptor => 1
+  def descriptor=(other)
+    @descriptor = other
+  end
+  
+  def initialize(host, port, connected = false)
+    unless connected
+      super(Socket::Constants::SOCK_DGRAM)
+      @host = host
+      @port = port
+
+
+      @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, @type, 0)
+      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
+      if sock != 0
+        Errno.handle "Unable to connect to #{host}:#{port}"
+      end
+    end
+  end
+  
+  def inspect
+    "#<#{self.class}:0x#{object_id.to_s(16)} #{@host}:#{@port}>"
   end
 end
 
@@ -137,6 +179,10 @@ class TCPServer < TCPSocket
     fd = Socket::Foreign.create_socket(@domain, @type, @protocol)
     if fd < 0
       Errno.handle "Unable to create socket"
+    end
+    ret = Socket::Foreign.reuse_addr(fd)
+    if ret != 0
+      Errno.handle "Unable to set SO_REUSEADDR on socket"
     end
     @descriptor = fd
 
