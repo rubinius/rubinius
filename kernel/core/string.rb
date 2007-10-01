@@ -34,7 +34,7 @@ class String
   # call-seq:
   #   str % arg   => new_str
   #  
-  # Format---Uses <i>str</i> as a format specification, and returns the result
+  # Format---Uses <i>self</i> as a format specification, and returns the result
   # of applying it to <i>arg</i>. If the format specification contains more than
   # one substitution, then <i>arg</i> must be an <code>Array</code> containing
   # the values to be substituted. See <code>Kernel::sprintf</code> for details
@@ -107,7 +107,7 @@ class String
   # 
   # Comparison --- Returns -1 if <i>other_str</i> is less than, 0 if
   # <i>other_str</i> is equal to, and +1 if <i>other_str</i> is greater than
-  # <i>str</i>. If the strings are of different lengths, and the strings are
+  # <i>self</i>. If the strings are of different lengths, and the strings are
   # equal when compared up to the shortest length, then the longer string is
   # considered greater than the shorter one. If the variable <code>$=</code> is
   # <code>false</code>, the comparison is based on comparing the binary values
@@ -153,7 +153,7 @@ class String
   #    str == obj   => true or false
   # 
   # Equality---If <i>obj</i> is not a <code>String</code>, returns
-  # <code>false</code>. Otherwise, returns <code>true</code> if <i>str</i>
+  # <code>false</code>. Otherwise, returns <code>true</code> if <i>self</i>
   # <code><=></code> <i>obj</i> returns zero.
   #---
   # TODO: MRI does simply use <=> for Strings here, so what's this code about?
@@ -231,15 +231,15 @@ class String
   # objects, returns a substring starting at the offset given by the first, and
   # a length given by the second. If given a range, a substring containing
   # characters at offsets given by the range is returned. In all three cases, if
-  # an offset is negative, it is counted from the end of <i>str</i>. Returns
+  # an offset is negative, it is counted from the end of <i>self</i>. Returns
   # <code>nil</code> if the initial offset falls outside the string, the length
   # is negative, or the beginning of the range is greater than the end.
   #    
-  # If a <code>Regexp</code> is supplied, the matching portion of <i>str</i> is
+  # If a <code>Regexp</code> is supplied, the matching portion of <i>self</i> is
   # returned. If a numeric parameter follows the regular expression, that
   # component of the <code>MatchData</code> is returned instead. If a
   # <code>String</code> is given, that string is returned if it occurs in
-  # <i>str</i>. In both cases, <code>nil</code> is returned if there is no
+  # <i>self</i>. In both cases, <code>nil</code> is returned if there is no
   # match.
   #    
   #    a = "hello there"
@@ -309,7 +309,7 @@ class String
   #   str[regexp, fixnum] = new_str
   #   str[other_str] = new_str
   # 
-  # Element Assignment --- Replaces some or all of the content of <i>str</i>. The
+  # Element Assignment --- Replaces some or all of the content of <i>self</i>. The
   # portion of the string affected is determined using the same criteria as
   # <code>String#[]</code>. If the replacement string is not the same length as
   # the text it is replacing, the string will be adjusted accordingly. If the
@@ -433,9 +433,9 @@ class String
     self.upcase <=> to.upcase
   end
 
-  # If <i>integer</i> is greater than the length of <i>str</i>, returns a new
-  # <code>String</code> of length <i>integer</i> with <i>str</i> centered and
-  # padded with <i>padstr</i>; otherwise, returns <i>str</i>.
+  # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
+  # <code>String</code> of length <i>integer</i> with <i>self</i> centered and
+  # padded with <i>padstr</i>; otherwise, returns <i>self</i>.
   #    
   #    "hello".center(4)         #=> "hello"
   #    "hello".center(20)        #=> "       hello        "
@@ -445,7 +445,7 @@ class String
   end
 
   # Returns a new <code>String</code> with the given record separator removed
-  # from the end of <i>str</i> (if present). If <code>$/</code> has not been
+  # from the end of <i>self</i> (if present). If <code>$/</code> has not been
   # changed from the default Ruby record separator, then <code>chomp</code> also
   # removes carriage return characters (that is it will remove <code>\n</code>,
   # <code>\r</code>, and <code>\r\n</code>).
@@ -509,8 +509,8 @@ class String
     (str = self.dup).chop! || str
   end
 
-  # Processes <i>str</i> as for <code>String#chop</code>, returning <i>str</i>,
-  # or <code>nil</code> if <i>str</i> is the empty string.  See also
+  # Processes <i>self</i> as for <code>String#chop</code>, returning <i>self</i>,
+  # or <code>nil</code> if <i>self</i> is the empty string.  See also
   # <code>String#chomp!</code>.
   def chop!
     return if @bytes == 0
@@ -588,7 +588,7 @@ class String
     new != self ? replace(new) : nil # TODO
   end
   
-  # Returns a copy of <i>str</i> with all uppercase letters replaced with their
+  # Returns a copy of <i>self</i> with all uppercase letters replaced with their
   # lowercase counterparts. The operation is locale insensitive---only
   # characters ``A'' to ``Z'' are affected.
   # 
@@ -597,7 +597,7 @@ class String
     (str = self.dup).downcase! || str
   end
   
-  # Downcases the contents of <i>str</i>, returning <code>nil</code> if no
+  # Downcases the contents of <i>self</i>, returning <code>nil</code> if no
   # changes were made.
   def downcase!
     return if @bytes == 0
@@ -618,10 +618,10 @@ class String
   
 
 
-  # Returns a basic <em>n</em>-bit checksum of the characters in <i>str</i>,
+  # Returns a basic <em>n</em>-bit checksum of the characters in <i>self</i>,
   # where <em>n</em> is the optional <code>Fixnum</code> parameter, defaulting
   # to 16. The result is simply the sum of the binary value of each character in
-  # <i>str</i> modulo <code>2n - 1</code>. This is not a particularly good
+  # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
   def sum(bits=16)
     sum = 0
