@@ -40,16 +40,37 @@ class BasicSocket < IO
     if fd < 0
       raise "Unable to create socket"
     end
-    ret = Socket::Foreign.reuse_addr(fd)
-    if ret != 0
-      Errno.handle "Unable to set SO_REUSEADDR on socket"
-    end
-    
+
     super(fd)
+    setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
     
     @domain = domain
     @type = type
     @protocol = protocol
+  end
+
+  def setsockopt(level, optname, optval)
+    if optval.is_a?(TrueClass)
+      optval = 1
+    elsif optval.is_a?(FalseClass)
+      optval = 0
+    end
+
+    if optval.is_a?(Fixnum)
+      MemoryPointer.new :int do |val|
+        val.write_int optval
+        error = Socket::Foreign.set_socket_option(@descriptor, level, optname, val, optval.size)
+      end
+    elsif optval.is_a?(String)
+      raise NotImplementedError
+    else
+      raise "socket option should be a String, a Fixnum, true, or false"
+    end
+
+    if error != 0
+      Errno.handle "Unable to set socket option"
+    end
+    nil
   end
 end
 
@@ -60,13 +81,19 @@ class Socket < BasicSocket
     AF_LOCAL =  1
     AF_INET =   2
     
+    AI_PASSIVE = 1
+
     SOCK_STREAM = 1
     SOCK_DGRAM =  2
     SOCK_RAW =    3
     SOCK_RDM =    4
     SOCK_SEQPACKET = 5
 
-    AI_PASSIVE = 1
+    SO_ACCEPTFILTER = 4096
+    SO_REUSEADDR = 4
+
+    SOL_TCP = 6
+    SOL_SOCKET = 65535 # TODO - Different on weird platforms
   end
   
   module Foreign
@@ -75,12 +102,13 @@ class Socket < BasicSocket
     attach_function nil, "bind", :bind_socket, [:int, :pointer, :int], :int
     attach_function nil, "listen", :listen_socket, [:int, :int], :int
     attach_function nil, "accept", :accept, [:int, :pointer, :pointer], :int
+    attach_function nil, "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
     attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
     attach_function nil, "ffi_getpeername", :getpeername, [:state, :int, :int], :object
-    attach_function nil, "ffi_reuse_addr", :reuse_addr, [:int], :int
   end
   
+  include Socket::Constants
 end
 
 class UNIXSocket < BasicSocket
@@ -180,11 +208,9 @@ class TCPServer < TCPSocket
     if fd < 0
       Errno.handle "Unable to create socket"
     end
-    ret = Socket::Foreign.reuse_addr(fd)
-    if ret != 0
-      Errno.handle "Unable to set SO_REUSEADDR on socket"
-    end
+
     @descriptor = fd
+    setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
 
     @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(@host.to_s, @port.to_s, @type, Socket::Constants::AI_PASSIVE)
     bind = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr_size)

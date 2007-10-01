@@ -101,13 +101,6 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
     (void*)res->ai_addr), I2N(res->ai_addrlen));
 }
 
-int ffi_reuse_addr(int s) {
-  int error = 0;
-  int opt = 1;
-  error = setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-  return error;
-}
-
 OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {
   OBJECT host;
   OBJECT address;
