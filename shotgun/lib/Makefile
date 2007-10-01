@@ -113,7 +113,10 @@ grammar.o:
 subtend/ffi.o: subtend/ffi.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -Wno-unused-variable -Wno-unused-value -c $< -o $@
 
-grammar.c: grammar.y
+# In a perfect world, we'd only rebuild grammar.c if grammar.y changed.
+# However, version control systems do not track file modify times, which will
+# mess up make's dependency tracking. So don't depend on grammar.y here.
+grammar.c: 
 	bison -o grammar.c grammar.y
 
 clean:
