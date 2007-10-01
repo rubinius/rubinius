@@ -785,6 +785,21 @@ class String
 
 
 
+  def to_sub_replacement(match)
+    self.gsub(/\\[\d\&\`\'\+]/) do |x| 
+      # x[-1,1] returns a character version of the last character
+      case cap = x[-1,1]
+      when "`"
+        match.pre_match
+      when "'"
+        match.post_match
+      when "+"
+        match.captures.compact[-1].to_s
+      else
+        match[cap.to_i]
+      end
+    end
+  end
 
   def to_inum(base, check = false)
     i = 0
@@ -1401,18 +1416,7 @@ class String
       if replacement
         # x[-1,1] returns a character version of the last character
         old_md = $~
-        ret << replacement.gsub(/\\[\d\&\`\'\+]/) do |x| 
-          cap = x[-1,1]
-          if cap == '`'
-            match.pre_match
-          elsif cap == '\''
-            match.post_match
-          elsif cap == '+'
-            match.captures.compact[-1].to_s
-          else
-            match[cap.to_i]
-          end
-        end
+        ret << replacement.to_sub_replacement(match)
         $~ = old_md
       else
         old_md = $~
