@@ -51,6 +51,8 @@ class IO
     raise EOFError if chan.receive.nil?
     return buf
   end
+
+  alias_method :readpartial, :sysread
     
   alias_method :syswrite, :write
 
