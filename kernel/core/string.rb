@@ -1264,14 +1264,9 @@ class String
   
   def upcase!
     return if @bytes == 0
-    raise TypeError, "can't modify frozen string" if self.frozen?
+    self.modify!
   
     modified = false
-    
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
   
     @bytes.times do |i|
       if @data[i].islower
@@ -1289,12 +1284,7 @@ class String
 
   def reverse!
     return self if @bytes <= 1
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
+    self.modify!
     
     i = 0
     j = @bytes - 1
