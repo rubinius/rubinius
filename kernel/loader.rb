@@ -51,7 +51,8 @@ Usage: rubinius [options] [file]
 
   Options: 
           -c   Compile file only.
-          -e   Directly compile and execute code that follows (no file provided). 
+          -e   Directly compile and execute code that follows (no file provided).
+          -p   Run the profiler.
 
           -dc  Display debugging information for compiler.
           -dl  Display debugging information for loader.
@@ -59,10 +60,12 @@ END
 
 # script = ARGV.shift
 
+if ARGV.include?('-p')
+  ARGV.delete '-p'
+  require 'profile'
+end
 $VERBOSE = false
-
 code = 0
-
 ran_something = false
 
 begin
