@@ -218,14 +218,14 @@ task :clean => ['clean:compiler', 'clean:bootstrap', 'clean:core', 'clean:platfo
 namespace :clean do
   desc "Removes build by-products for compiler"
   task :compiler do
-    FileList['native/**/*.rbc', '/tmp/*.rbc'].each do |fn|
+    FileList['compiler/**/*.rbc', '/tmp/*.rbc'].each do |fn|
       FileUtils.rm fn rescue nil
     end
   end
 
   desc "Removes build by-products for platform"
   task :platform do
-    FileList['platform/**/*.rbc'].each do |fn|
+    FileList['kernel/platform/**/*.rbc'].each do |fn|
       FileUtils.rm fn rescue nil
     end
   end
