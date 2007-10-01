@@ -5,7 +5,7 @@ describe "String#to_f" do
   it "treats leading characters of self as a floating point number" do
    "123.45e1".to_f.should == 1234.5
    "45.67 degrees".to_f.should == 45.67
-   "0".to_f.to_s.should == "0.0"
+   "0".to_f.should == 0.0
    "123.45e1".to_f.should == 1234.5
    
    ".5".to_f.should == 0.5
@@ -25,8 +25,8 @@ describe "String#to_f" do
     "-45.67 degrees".to_f.should == -45.67
     "+45.67 degrees".to_f.should == 45.67
     "-5_5e-5_0".to_f.should == -55e-50
-    "-".to_f.to_s.should == "-0.0"
-    "-0".to_f.to_s.should == "-0.0"
+    "-".to_f.should == -0.0
+    "-0".to_f.should == -0.0
   end
   
   it "returns 0.0 if the conversion fails" do
