@@ -649,27 +649,35 @@ class String
   # performed.
   def sub!(pattern, replacement = nil)
     raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
     
-    replacement = StringValue(replacement) if replacement
-    
-    pattern = Regexp.quote(pattern) if pattern.is_a?(String)
-    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-    
-    return unless match = pattern.match(self)
+    out = self.dup
+    if match = gsub_pattern(pattern).match(self.dup)
+  
+      out = match.pre_match
+      old_md = $~
 
-    out = [ match.pre_match ]
-    if block_given?
-      out << yield(match[0])
-    else
-      replacement = replacement.to_str
-      out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
+      if replacement
+        self.taint if replacement.tainted?
+        replacement = StringValue(replacement).replace_slashes.to_sub_replacement(match)
+      else
+        # Raises a RuntimeError instead a TypeError.
+        raise RuntimeError, "string frozen" if self.frozen?
+        
+        old_str = self.dup
+        replacement = yield(match[0].dup).to_s
+        raise RuntimeError, "string modified" if old_str != self
+
+        self.taint if replacement.tainted?
+      end
+
+      self.modify!
+      out << replacement << match.post_match
+      $~ = old_md
     end
-    out << match.post_match
     
-    ret = out.join
-    ret.taint if self.tainted? || replacement.tainted?
-    
-    replace(ret)
+    out = self.class.new(out) unless self.instance_of?(String)
+    out == self ? nil : self.replace(out)
   end
 
   # Returns the successor to <i>self</i>. The successor is calculated by
