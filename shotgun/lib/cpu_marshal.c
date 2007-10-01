@@ -473,7 +473,7 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   
   /* TODO do error chceking here */
   fwrite("RBIX", 1, 4, f);
-  fwrite(bdata(buf), 1, blength(buf), f);
+  fwrite(bdatae(buf,""), 1, blength(buf), f);
   fclose(f);
 
   bdestroy(buf);

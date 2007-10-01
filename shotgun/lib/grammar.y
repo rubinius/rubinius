@@ -2240,7 +2240,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                                 break;
                               case NODE_STR:
                                 /* TODO: this line should never fail unless nd_str is binary */
-                                if (strlen(bdata($$->nd_str)) == blength($$->nd_str)) {
+                                if (strlen(bdatae($$->nd_str,"")) == blength($$->nd_str)) {
                                   ID tmp = rb_intern(bdata($$->nd_str));
                                   bdestroy($$->nd_str);
                                   $$->nd_lit = tmp;
