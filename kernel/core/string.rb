@@ -572,8 +572,7 @@ class String
   def delete!(*strings)
     raise ArgumentError, "wrong number of arguments" if strings.empty?
     
-    # We need to raise a TypeError here, event if we won't be making any changes.
-    raise TypeError, "can't modify frozen string" if self.frozen?
+    self.modify!
     
     return if @bytes == 0
     
