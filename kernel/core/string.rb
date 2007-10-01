@@ -616,6 +616,62 @@ class String
   
   
 
+
+  # Returns a copy of <i>self</i> with the <em>first</em> occurrence of
+  # <i>pattern</i> replaced with either <i>replacement</i> or the value of the
+  # block. The <i>pattern</i> will typically be a <code>Regexp</code>; if it is
+  # a <code>String</code> then no regular expression metacharacters will be
+  # interpreted (that is <code>/\d/</code> will match a digit, but
+  # <code>'\d'</code> will match a backslash followed by a 'd').
+  #    
+  # If the method call specifies <i>replacement</i>, special variables such as
+  # <code>$&</code> will not be useful, as substitution into the string occurs
+  # before the pattern match starts. However, the sequences <code>\1</code>,
+  # <code>\2</code>, etc., may be used.
+  #    
+  # In the block form, the current match string is passed in as a parameter, and
+  # variables such as <code>$1</code>, <code>$2</code>, <code>$`</code>,
+  # <code>$&</code>, and <code>$'</code> will be set appropriately. The value
+  # returned by the block will be substituted for the match on each call.
+  #    
+  # The result inherits any tainting in the original string or any supplied
+  # replacement string.
+  #    
+  #   "hello".sub(/[aeiou]/, '*')               #=> "h*llo"
+  #   "hello".sub(/([aeiou])/, '<\1>')          #=> "h<e>llo"
+  #   "hello".sub(/./) {|s| s[0].to_s + ' ' }   #=> "104 ello"
+  def sub(pattern, replacement = nil, &block)
+    (str = self.dup).sub!(pattern, replacement, &block) || str
+  end
+
+  # Performs the substitutions of <code>String#sub</code> in place,
+  # returning <i>self</i>, or <code>nil</code> if no substitutions were
+  # performed.
+  def sub!(pattern, replacement = nil)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    
+    replacement = StringValue(replacement) if replacement
+    
+    pattern = Regexp.quote(pattern) if pattern.is_a?(String)
+    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+    
+    return unless match = pattern.match(self)
+
+    out = [ match.pre_match ]
+    if block_given?
+      out << yield(match[0])
+    else
+      replacement = replacement.to_str
+      out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
+    end
+    out << match.post_match
+    
+    ret = out.join
+    ret.taint if self.tainted? || replacement.tainted?
+    
+    replace(ret)
+  end
+
   # Returns the successor to <i>self</i>. The successor is calculated by
   # incrementing characters starting from the rightmost alphanumeric (or
   # the rightmost character if there are no alphanumerics) in the
@@ -1438,35 +1494,6 @@ class String
     else
       return nil
     end
-  end
-
-  def sub(pattern, replacement = nil, &block)
-    (str = self.dup).sub!(pattern, replacement, &block) || str
-  end
-
-  def sub!(pattern, replacement = nil)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
-    
-    replacement = StringValue(replacement) if replacement
-    
-    pattern = Regexp.quote(pattern) if pattern.is_a?(String)
-    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-    
-    return unless match = pattern.match(self)
-
-    out = [ match.pre_match ]
-    if block_given?
-      out << yield(match[0])
-    else
-      replacement = replacement.to_str
-      out << replacement.gsub(/\\\d/) { |x| match[x[-1,1].to_i] }
-    end
-    out << match.post_match
-    
-    ret = out.join
-    ret.taint if self.tainted? || replacement.tainted?
-    
-    replace(ret)
   end
 
   def insert(index, other_string)
