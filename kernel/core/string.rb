@@ -618,7 +618,16 @@ class String
   
 
 
-
+  # Returns a basic <em>n</em>-bit checksum of the characters in <i>str</i>,
+  # where <em>n</em> is the optional <code>Fixnum</code> parameter, defaulting
+  # to 16. The result is simply the sum of the binary value of each character in
+  # <i>str</i> modulo <code>2n - 1</code>. This is not a particularly good
+  # checksum.
+  def sum(bits=16)
+    sum = 0
+    each_byte { |b| sum += b }
+    sum & ((1 << bits) - 1)
+  end
 
   # Returns the result of interpreting leading characters in <i>self</i> as an
   # integer base <i>base</i> (2, 8, 10, or 16). Extraneous characters past the
@@ -1746,12 +1755,6 @@ class String
     end
     pattern = Regexp.new(pattern) unless Regexp === pattern
     pattern.match(self)
-  end
-  
-  def sum(bits=16)
-    sum = 0
-    each_byte { |b| sum += b }
-    sum & ((1 << bits) - 1)
   end
   
   def upto(stop)
