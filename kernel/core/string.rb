@@ -630,6 +630,41 @@ class String
     sum & ((1 << bits) - 1)
   end
 
+  # Returns a copy of <i>self</i> with uppercase alphabetic characters converted to
+  # lowercase and lowercase characters converted to uppercase.
+  #
+  #   "Hello".swapcase          #=> "hELLO"
+  #   "cYbEr_PuNk11".swapcase   #=> "CyBeR_pUnK11"
+  def swapcase
+    (str = self.dup).swapcase! || str
+  end
+  
+  # Equivalent to <code>String#swapcase</code>, but modifies the receiver in
+  # place, returning <i>str</i>, or <code>nil</code> if no changes were made.
+  def swapcase!
+    raise TypeError, "can't modify frozen string" if self.frozen?
+    return if @bytes == 0
+  
+    if @shared
+      @data = @data.dup
+      @shared = nil
+    end
+  
+    modified = false
+  
+    @bytes.times do |i|
+      if @data[i].islower
+        @data[i] = @data[i].toupper
+        modified = true
+      elsif @data[i].isupper
+        @data[i] = @data[i].tolower
+        modified = true
+      end
+    end
+  
+    modified ? self : nil
+  end
+
   # Returns the result of interpreting leading characters in <i>self</i> as an
   # integer base <i>base</i> (2, 8, 10, or 16). Extraneous characters past the
   # end of a valid number are ignored. If there is not a valid number at the
@@ -1125,34 +1160,6 @@ class String
   #   s                     #=> "world"
   def replace_if(other)
     self == other ? nil : replace(other)
-  end
-  
-  def swapcase
-    (str = self.dup).swapcase! || str
-  end
-  
-  def swapcase!
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    return if @bytes == 0
-  
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
-  
-    modified = false
-  
-    @bytes.times do |i|
-      if @data[i].islower
-        @data[i] = @data[i].toupper
-        modified = true
-      elsif @data[i].isupper
-        @data[i] = @data[i].tolower
-        modified = true
-      end
-    end
-  
-    modified ? self : nil
   end
   
   def upcase
