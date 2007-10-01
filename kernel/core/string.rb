@@ -712,13 +712,8 @@ class String
   # Equivalent to <code>String#swapcase</code>, but modifies the receiver in
   # place, returning <i>self</i>, or <code>nil</code> if no changes were made.
   def swapcase!
-    raise TypeError, "can't modify frozen string" if self.frozen?
+    self.modify!
     return if @bytes == 0
-  
-    if @shared
-      @data = @data.dup
-      @shared = nil
-    end
   
     modified = false
   
