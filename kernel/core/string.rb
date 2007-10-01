@@ -616,6 +616,21 @@ class String
   
   
 
+  # Returns a copy of <i>self</i> with leading and trailing whitespace removed.
+  #    
+  #   "    hello    ".strip   #=> "hello"
+  #   "\tgoodbye\r\n".strip   #=> "goodbye"
+  def strip
+    (str = self.dup).strip! || str
+  end
+  
+  # Removes leading and trailing whitespace from <i>self</i>. Returns
+  # <code>nil</code> if <i>self</i> was not altered.
+  def strip!
+    left = lstrip!
+    right = rstrip!
+    left.nil? && right.nil? ? nil : self
+  end
 
   # Returns a copy of <i>self</i> with the <em>first</em> occurrence of
   # <i>pattern</i> replaced with either <i>replacement</i> or the value of the
@@ -1403,16 +1418,6 @@ class String
 
     return if stop + 1 == @bytes
     replace(substring(0, stop + 1))
-  end
-
-  def strip
-    (str = self.dup).strip! || str
-  end
-  
-  def strip!
-    left = lstrip!
-    right = rstrip!
-    left.nil? && right.nil? ? nil : self
   end
 
   def gsub_pattern(pattern)
