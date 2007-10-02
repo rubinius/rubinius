@@ -43,9 +43,8 @@ class String
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
-    # raise ArgumentError, "Too many arguments for format string" if $DEBUG && self.scan(/%/).size < arg.size
-    YSprintf.new(self, *args).parse
-    # Sprintf::Parser.format(self, arg)
+    # YSprintf.new(self, *args).parse
+    Sprintf::Parser.format(self, arg)
   end
 
   # call-seq:
