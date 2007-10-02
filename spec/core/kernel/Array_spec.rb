@@ -25,7 +25,7 @@ describe "Kernel#Array" do
   
   it "raises a TypeError if #to_ary / #to_a do not return an array" do
     (obj = Object.new).should_receive(:to_a, :returning => "ha!")
-    should_raise(TypeError, "`to_a' did not return Array") do
+    should_raise(TypeError) do
       Array(obj)
     end
 
