@@ -16,7 +16,7 @@ describe "Hash#default" do
     h.default(5).should == [h, 5]
   end
   
-  version '1.8.6' do
+  version :not, '1.8.6' do
     it "calls default proc with nil arg if passed a default proc but no arg" do
       h = Hash.new { |*args| args }
       h.default.should == [h, nil]

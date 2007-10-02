@@ -23,7 +23,7 @@ describe "Hash#==" do
     c.should == d
   end
   
-  version '1.8.6' do
+  version :not, '1.8.6' do
     it "calls to_hash on its argument" do
       obj = Object.new
       obj.should_receive(:to_hash, :returning => {1 => 2, 3 => 4})

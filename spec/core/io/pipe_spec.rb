@@ -5,7 +5,7 @@ describe "IO.pipe" do
     r, w = IO.pipe
     w.puts "test_create_pipe\\n"
     w.close
-    puts r.read(16).should == "test_create_pipe"
+    r.read(16).should == "test_create_pipe"
     r.close
   end
 end
