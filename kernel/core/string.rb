@@ -630,7 +630,163 @@ class String
 
 
 
+  # Both forms iterate through <i>self</i>, matching the pattern (which may be a
+  # <code>Regexp</code> or a <code>String</code>). For each match, a result is
+  # generated and either added to the result array or passed to the block. If
+  # the pattern contains no groups, each individual result consists of the
+  # matched string, <code>$&</code>.  If the pattern contains groups, each
+  # individual result is itself an array containing one entry per group.
+  #    
+  #   a = "cruel world"
+  #   a.scan(/\w+/)        #=> ["cruel", "world"]
+  #   a.scan(/.../)        #=> ["cru", "el ", "wor"]
+  #   a.scan(/(...)/)      #=> [["cru"], ["el "], ["wor"]]
+  #   a.scan(/(..)(..)/)   #=> [["cr", "ue"], ["l ", "wo"]]
+  #    
+  # And the block form:
+  #    
+  #   a.scan(/\w+/) {|w| print "<<#{w}>> " }
+  #   print "\n"
+  #   a.scan(/(.)(.)/) {|x,y| print y, x }
+  #   print "\n"
+  #    
+  # <em>produces:</em>
+  #    
+  #   <<cruel>> <<world>>
+  #   rceu lowlr
+  def scan(pattern, &block)
+    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
+      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
+    end
+    
+    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+    index = 0
 
+    unless block_given?
+      ret = []
+      while index <= self.length and match = pattern.match(self[index..-1])
+        if match.begin(0) == match.end(0)
+          index += 1
+        else
+          index += match.end(0)
+        end
+        
+        ret << (match.length > 1 ? match.captures : match[0])
+      end
+      return ret
+    else
+      while index <= self.length and match = pattern.match(self[index..-1])
+        if match.begin(0) == match.end(0)
+          index += 1
+        else
+          index += match.end(0)
+        end
+        
+        if match.size == 1
+          block.call(match[0])
+        else
+          block.call(*match.captures)
+        end
+      end
+    end
+  end
+
+  # Deletes the specified portion from <i>str</i>, and returns the portion
+  # deleted. The forms that take a <code>Fixnum</code> will raise an
+  # <code>IndexError</code> if the value is out of range; the <code>Range</code>
+  # form will raise a <code>RangeError</code>, and the <code>Regexp</code> and
+  # <code>String</code> forms will silently ignore the assignment.
+  #    
+  #   string = "this is a string"
+  #   string.slice!(2)        #=> 105
+  #   string.slice!(3..6)     #=> " is "
+  #   string.slice!(/s.*t/)   #=> "sa st"
+  #   string.slice!("r")      #=> "r"
+  #   string                  #=> "thing"
+  def slice!(*args)
+    result = slice(*args)
+    old_md = $~
+    self[*args] = '' unless result.nil?
+    $~ = old_md
+    result
+  end
+
+  # Divides <i>self</i> into substrings based on a delimiter, returning an array
+  # of these substrings.
+  #    
+  # If <i>pattern</i> is a <code>String</code>, then its contents are used as
+  # the delimiter when splitting <i>self</i>. If <i>pattern</i> is a single
+  # space, <i>self</i> is split on whitespace, with leading whitespace and runs
+  # of contiguous whitespace characters ignored.
+  #    
+  # If <i>pattern</i> is a <code>Regexp</code>, <i>self</i> is divided where the
+  # pattern matches. Whenever the pattern matches a zero-length string,
+  # <i>self</i> is split into individual characters.
+  #    
+  # If <i>pattern</i> is omitted, the value of <code>$;</code> is used.  If
+  # <code>$;</code> is <code>nil</code> (which is the default), <i>self</i> is
+  # split on whitespace as if ` ' were specified.
+  #    
+  # If the <i>limit</i> parameter is omitted, trailing null fields are
+  # suppressed. If <i>limit</i> is a positive number, at most that number of
+  # fields will be returned (if <i>limit</i> is <code>1</code>, the entire
+  # string is returned as the only entry in an array). If negative, there is no
+  # limit to the number of fields returned, and trailing null fields are not
+  # suppressed.
+  #    
+  #   " now's  the time".split        #=> ["now's", "the", "time"]
+  #   " now's  the time".split(' ')   #=> ["now's", "the", "time"]
+  #   " now's  the time".split(/ /)   #=> ["", "now's", "", "the", "time"]
+  #   "1, 2.34,56, 7".split(%r{,\s*}) #=> ["1", "2.34", "56", "7"]
+  #   "hello".split(//)               #=> ["h", "e", "l", "l", "o"]
+  #   "hello".split(//, 3)            #=> ["h", "e", "llo"]
+  #   "hi mom".split(%r{\s*})         #=> ["h", "i", "m", "o", "m"]
+  #    
+  #   "mellow yellow".split("ello")   #=> ["m", "w y", "w"]
+  #   "1,2,,3,4,,".split(',')         #=> ["1", "2", "", "3", "4"]
+  #   "1,2,,3,4,,".split(',', 4)      #=> ["1", "2", "", "3,4,,"]
+  #   "1,2,,3,4,,".split(',', -4)     #=> ["1", "2", "", "3", "4", "", ""]
+  def split(pattern = nil, limit = nil)
+    limit = limit.to_int if (!limit.is_a?(Integer) && limit.respond_to?(:to_int))
+    return [self.dup] if limit == 1
+    limited = limit.to_i > 1
+    pattern ||= ($; || " ")
+    
+    spaces = true if pattern == ' '
+    pattern = /\s+/ if pattern == nil || pattern == ' '
+    pattern = pattern.to_str if ![String, Regexp].include?(pattern.class) && pattern.respond_to?(:to_str)
+    pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
+    
+    start = 0
+    ret = []
+    
+    while match = pattern.match_from(self, start)
+      break if limited && limit - ret.size <= 1
+      collapsed = match.collapsing?
+      if !collapsed || (match.begin(0) != 0)
+        ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
+        ret.push(*match.captures)        
+      end
+      if collapsed
+        start += 1
+      elsif last_match && last_match.collapsing?
+        start = match.end(0) + 1
+      else
+        start = match.end(0)
+      end
+      last_match = match
+    end
+    if last_match
+      ret << last_match.post_match
+    elsif ret.empty?
+      ret << self.dup
+    end
+    (ret.pop while ret[-1] == "") if limit == 0 || limit.nil?
+    (ret.shift while ret[0] == "") if spaces
+    ret = ret.map {|str| self.class.new(str) } if !self.instance_of?(String)
+    ret = ret.map {|str| str.taint} if self.tainted?
+    ret
+  end
 
   # Builds a set of characters from the <i>*strings</i> parameter(s) using the
   # procedure described for <code>String#count</code>. Returns a new string
@@ -1269,48 +1425,6 @@ class String
     @bytes == 0
   end
   
-  def split(pattern = nil, limit = nil)
-    limit = limit.to_int if (!limit.is_a?(Integer) && limit.respond_to?(:to_int))
-    return [self.dup] if limit == 1
-    limited = limit.to_i > 1
-    pattern ||= ($; || " ")
-    
-    spaces = true if pattern == ' '
-    pattern = /\s+/ if pattern == nil || pattern == ' '
-    pattern = pattern.to_str if ![String, Regexp].include?(pattern.class) && pattern.respond_to?(:to_str)
-    pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
-    
-    start = 0
-    ret = []
-    
-    while match = pattern.match_from(self, start)
-      break if limited && limit - ret.size <= 1
-      collapsed = match.collapsing?
-      if !collapsed || (match.begin(0) != 0)
-        ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
-        ret.push(*match.captures)        
-      end
-      if collapsed
-        start += 1
-      elsif last_match && last_match.collapsing?
-        start = match.end(0) + 1
-      else
-        start = match.end(0)
-      end
-      last_match = match
-    end
-    if last_match
-      ret << last_match.post_match
-    elsif ret.empty?
-      ret << self.dup
-    end
-    (ret.pop while ret[-1] == "") if limit == 0 || limit.nil?
-    (ret.shift while ret[0] == "") if spaces
-    ret = ret.map {|str| self.class.new(str) } if !self.instance_of?(String)
-    ret = ret.map {|str| str.taint} if self.tainted?
-    ret
-  end
-  
   # TODO: inspect is NOT dump!
   def dump
     kcode = $KCODE
@@ -1809,14 +1923,6 @@ class String
     justify(integer, :left, padstr)
   end
 
-  def slice!(*args)
-    result = slice(*args)
-    old_md = $~
-    self[*args] = '' unless result.nil?
-    $~ = old_md
-    result
-  end
-
   def oct
     self.to_i(8)
   end
@@ -1893,43 +1999,6 @@ class String
     self
   end
   alias_method :each_line, :each
-
-  def scan(pattern, &block)
-    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
-      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
-    end
-    
-    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
-    index = 0
-
-    unless block_given?
-      ret = []
-      while index <= self.length and match = pattern.match(self[index..-1])
-        if match.begin(0) == match.end(0)
-          index += 1
-        else
-          index += match.end(0)
-        end
-        
-        ret << (match.length > 1 ? match.captures : match[0])
-      end
-      return ret
-    else
-      while index <= self.length and match = pattern.match(self[index..-1])
-        if match.begin(0) == match.end(0)
-          index += 1
-        else
-          index += match.end(0)
-        end
-        
-        if match.size == 1
-          block.call(match[0])
-        else
-          block.call(*match.captures)
-        end
-      end
-    end
-  end
     
   alias_method :eql?, :==
 
