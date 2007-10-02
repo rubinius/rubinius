@@ -225,6 +225,12 @@ shotgun/external_libs/libbstring/*.so
 shotgun/external_libs/libbstring/*.dylib
 shotgun/external_libs/libbstring/*.a
 
+# shotgun/external_libs/libccstring
+shotgun/external_libs/libcchash/*.d
+shotgun/external_libs/libcchash/*.so
+shotgun/external_libs/libcchash/*.dylib
+shotgun/external_libs/libcchash/*.a
+
 # shotgun/lib
 shotgun/lib/.*.d
 shotgun/lib/*.gen
