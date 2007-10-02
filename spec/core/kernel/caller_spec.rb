@@ -33,4 +33,8 @@ describe 'Kernel#caller' do
     c(x+1).should == nil
     c(x+2).should == nil
   end
+  
+  it "defaults to omitting one frame" do
+    caller.should == caller(1)
+  end
 end
