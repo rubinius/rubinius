@@ -11,7 +11,6 @@
 #include "hash.h"
 #include "symbol.h"
 #include "list.h"
-#include <glib.h>
 
 void Init_list(STATE) {
   BASIC_CLASS(list) = rbs_class_new(state, "List", ListFields, BASIC_CLASS(object));

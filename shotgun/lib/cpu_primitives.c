@@ -31,7 +31,6 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
-#include <glib.h>
 #include <zlib.h>
 #include <math.h>
 #include <glob.h>

@@ -10,7 +10,6 @@
 #include "class.h"
 #include "hash.h"
 #include "symbol.h"
-#include <glib.h>
 
 /* Pulled over from 1.8.5. */
 

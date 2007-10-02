@@ -24,7 +24,6 @@
 #include "symbol.h"
 #include "list.h"
 #include "config.h"
-#include <glib.h>
 
 struct thread_info {
   STATE;

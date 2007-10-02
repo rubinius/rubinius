@@ -3,7 +3,6 @@
 #include "compress.h"
 
 #include <bstrlib.h>
-#include <glib.h>
 #include <zlib.h>
 
 #define ZLIB_CHUNK_SIZE 512
