@@ -6,6 +6,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
       899.2.send(cmd).should == 899
       -1.122256e-45.send(cmd).should == 0
       5_213_451.9201.send(cmd).should == 5213451
+      1.233450999123389e+12.send(cmd).should == 1233450999123
     end
   end
 end
