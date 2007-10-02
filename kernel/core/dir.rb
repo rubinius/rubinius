@@ -37,12 +37,18 @@ class Dir
     end
   end
   
-  def self.mkdir(name, mode = 0777)
-    Platform::POSIX.mkdir(name, mode)
+  def self.mkdir(path, mode = 0777)
+    error = Platform::POSIX.mkdir(name, mode)
+    if error != 0
+      Errno.handle "Couldn't make directory #{path}"
+    end
   end
   
-  def self.rmdir(name)
-    Platform::POSIX.rmdir(name)
+  def self.rmdir(path)
+    error = Platform::POSIX.rmdir(path)
+    if error != 0
+      Errno.handle "Couldn't delete directory #{path}"
+    end
   end
 
   def self.getwd
@@ -82,5 +88,7 @@ class Dir
   
   class << self
     alias_method :pwd, :getwd
+    alias_method :delete, :rmdir
+    alias_method :unlink, :rmdir
   end
 end

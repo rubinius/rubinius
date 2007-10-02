@@ -3,10 +3,10 @@ require File.dirname(__FILE__) + '/fixtures/common'
 
 @dir_delete = shared "Dir.delete" do |cmd|
   describe "Dir.#{cmd}" do
-    specify "removes non-empty directories" do
+    specify "removes empty directories" do
       %w|rmdir delete unlink|.each {|cmd|
         Dir.mkdir 'empty_subdir'
-        Dir.send(cmd, 'empty_subdir').should == 0 
+        Dir.send(cmd, 'empty_subdir').should == 0
       }
     end
 
