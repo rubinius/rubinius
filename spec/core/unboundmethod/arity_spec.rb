@@ -1,39 +1,36 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "UnboundMethod#aritiy" do
-  it "returns the number of arguments self does take" do
-    klass = Class.new do
-      def one()
-      end
-      def two(a)
-      end
-      def three(a, b)
-      end
-      def four(a, b, &c)
-      end
-    end
-    
-    klass.instance_method(:one).arity.should == 0
-    klass.instance_method(:two).arity.should == 1
-    klass.instance_method(:three).arity.should == 2
-    klass.instance_method(:four).arity.should == 2
+describe "UnboundMethod#arity" do
+  before(:each) do
+    @um = UnboundMethodSpecs::Methods.new
   end
 
-  it "returns the negative number of mandatory arguments - 1 if self does take optional arguments" do
-    klass = Class.new do
-      def one(*a)
-      end
-      def two(a, *b)
-      end
-      def three(a, b, *c)
-      end
-      def four(a, b, *c, &d)
-      end
-    end
-    
-    klass.instance_method(:one).arity.should == -1
-    klass.instance_method(:two).arity.should == -2
-    klass.instance_method(:three).arity.should == -3
-    klass.instance_method(:four).arity.should == -3
+  it "returns the number of arguments accepted by a method, using Method#unbind" do
+    @um.method(:one).unbind.arity.should == 0
+    @um.method(:two).unbind.arity.should == 1
+    @um.method(:three).unbind.arity.should == 2
+    @um.method(:four).unbind.arity.should == 2
+  end
+
+  it "returns the number arguments accepted by a method, using Module#instance_method" do
+    UnboundMethodSpecs::Methods.instance_method(:one).arity.should == 0
+    UnboundMethodSpecs::Methods.instance_method(:two).arity.should == 1
+    UnboundMethodSpecs::Methods.instance_method(:three).arity.should == 2
+    UnboundMethodSpecs::Methods.instance_method(:four).arity.should == 2
+  end
+
+  it "if optional arguments returns the negative number of mandatory arguments, using Method#unbind" do
+    @um.method(:neg_one).unbind.arity.should == -1
+    @um.method(:neg_two).unbind.arity.should == -2
+    @um.method(:neg_three).unbind.arity.should == -3
+    @um.method(:neg_four).unbind.arity.should == -3
+  end
+
+  it "if optional arguments returns the negative number of mandatory arguments, using Module#instance_method" do
+    UnboundMethodSpecs::Methods.instance_method(:neg_one).arity.should == -1
+    UnboundMethodSpecs::Methods.instance_method(:neg_two).arity.should == -2
+    UnboundMethodSpecs::Methods.instance_method(:neg_three).arity.should == -3
+    UnboundMethodSpecs::Methods.instance_method(:neg_four).arity.should == -3
   end
 end
