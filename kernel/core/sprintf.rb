@@ -463,6 +463,10 @@ class YSprintf
   attr_accessor :fmt
   attr_accessor :args
   attr_accessor :flags
+  
+  RADIXES = {"b" => 2, "o" => 8, "d" => 10, "x" => 16}
+  ALTERNATIVES = {"o" => "0", "b" => "0b", "x" => "0x", "X" => "0X"}
+  
   def initialize(fmt, *args)
     @fmt, @args, @arg_position = fmt, args, 0
   end
@@ -472,6 +476,8 @@ class YSprintf
     ret = ""
     width = nil
     precision = nil
+    @positional = false
+    @relative = false
     @arg_position = 0
     
     while (match = /%/.match_from(fmt, start))
@@ -481,12 +487,24 @@ class YSprintf
 
       ret << match.pre_match_from(start)
       start = match.begin(0) + 1
+
+      # Special case: %% prints out as "%"
+      if [?%, nil, ?\n, 0].include?(@fmt[start])
+        ret << "%"
+        start += 1
+        next
+      elsif @fmt[start..(start + 2)] =~ /[1-9]\$/ && !@fmt[start + 2]
+        ret << "%"
+        start = @fmt.size
+        break
+      end
+      
       # FLAG STATE
-      while token = /\G( |\d\$|#|\+|\-|0|\*)/.match_from(fmt, start)
+      while token = /\G( |[1-9]\$|#|\+|\-|0|\*)/.match_from(fmt, start)
         case token[0]
-        # Special case: if we get two \d\$, it means that we're outside of flag-land
-        when /\d\$/
-          break if flags[:position]
+        # Special case: if we get two [1-9]\$, it means that we're outside of flag-land
+        when /[1-9]\$/
+          raise ArgumentError, "value given twice - #{token[0]}" if flags[:position]
           @flags[:position] = token[0][0].chr.to_i
           start += 1
         when " "
@@ -500,13 +518,14 @@ class YSprintf
         when "0"
           @flags[:zero] = true
         when "*"
+          raise ArgumentError, "width given twice" if flags[:star]
           @flags[:star] = true
         end
         start += 1
       end
       
       # WIDTH STATE
-      if width_match = /\G(\d\$|\*|\d+)/.match_from(fmt, start)
+      if width_match = /\G([1-9]\$|\*|\d+)/.match_from(fmt, start)
         @width = Slot.new(width_match[0])
         start += width_match[0].size
       end
@@ -515,7 +534,7 @@ class YSprintf
       if /\G\./.match_from(fmt, start)
         start += 1
         # PRECISION STATE
-        if precision_match = /\G(\d\$|\*|\d+)/.match_from(fmt, start)
+        if precision_match = /\G([1-9]\$|\*|\d+)/.match_from(fmt, start)
           @precision = Slot.new(precision_match[0])
           start += precision_match[0].size
         else
@@ -535,6 +554,10 @@ class YSprintf
       f = format
       ret << f if f
     end
+    if $DEBUG == true && !@positional
+      raise ArgumentError, "you need to use all the arguments" unless @arg_position == args.size - 1
+    end
+    ret << @fmt[start..-1] if start < @fmt.size
     ret
   end
   
@@ -544,9 +567,13 @@ class YSprintf
     # GET VALUE
     if flags[:position]
       val = args[flags[:position] - 1]
+      raise ArgumentError, "unnumbered mixed with numbered" if @relative      
+      @positional = true
       raise ArgumentError, "you specified an argument position that did not exist" unless val
     else
       val = args[@arg_position]
+      raise ArgumentError, "unnumbered mixed with numbered" if @positional      
+      @relative = true
       @arg_position += 1
       raise ArgumentError, "you have more format specifiers than arguments" unless val      
     end
@@ -559,15 +586,18 @@ class YSprintf
     # GET PRECISION
     precision = get_arg(@precision)
     
-    puts "val: #{val}"
-    
     case @type
-    when "d", "b"
-      if @type == "b"
-        val = val.to_s(2).to_i
-        @type = "d"
-      end
+    when "e", "E", "f", "g", "G"
       ret = val.to_s_formatted(build_format_string(width, precision))
+    when "d"
+      ret = pad(val, width, precision)
+    when "s"
+      flags[:zero] = flags[:space] = flags[:plus] = nil
+      ret = pad(val, width, precision)
+    when "o", "x", "X", "b", "B"
+      ret = Number.new(val, RADIXES[@type]).rep
+      ret = pad(ret, width, precision, (RADIXES[@type] - 1).to_s)
+      ret = ALTERNATIVES[@type].to_s + ret if flags[:alternatives]
     end
     ret
   end
@@ -591,11 +621,17 @@ class YSprintf
   def get_arg(slot)
     return nil unless slot
     if slot.position == :next
+      raise ArgumentError, "unnumbered mixed with numbered" if @positional
+      @relative = true
       ret = args[@arg_position]
       @arg_position += 1
     elsif slot.pos
+      raise ArgumentError, "unnumbered mixed with numbered" if @relative      
+      @positional = true
       ret = args[slot.position - 1]
     elsif slot.value
+      raise ArgumentError, "unnumbered mixed with numbered" if @positional      
+      @relative = true
       ret = slot.value
     else
       ret = nil
@@ -604,12 +640,14 @@ class YSprintf
     ret
   end
   
-  def pad(val, width, precision)
+  def pad(val, width, precision, pad_override = nil)
     direction = flags[:minus] ? :ljust : :rjust
-    ret = val
-    width = nil if width.to_i <= val.size
+    ret = val.to_s
+    modded_width = width.to_i + (flags[:plus] ? 1 : 0)
+    width = nil if modded_width <= val.size
     if precision
-      ret = plus_char + ret.send(direction, precision, "0") 
+      ret.gsub!("..", "")      
+      ret = plus_char + ret.send(direction, precision, pad_override || "0") 
       flags[:zero] = flags[:plus] = flags[:space] = nil
     end
     if width
@@ -651,6 +689,23 @@ class YSprintf
         @value = str.to_i
       end
     end
+  end
+  
+  class Number
+    
+    def initialize(number, radix)
+      @number = number
+      @radix = radix
+      @pad = (radix - 1).to_s(radix)
+    end
+    
+    def rep
+      return @number.to_s(@radix) if(@number >= 0) || @radix == 10
+      strlen = (@number.to_s(@radix)).size
+      max = (@pad * strlen).to_i(@radix)
+      ".." + (max + @number + 1).to_s(@radix)
+    end
+    
   end
   
 end

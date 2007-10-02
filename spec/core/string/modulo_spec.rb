@@ -27,28 +27,24 @@ describe "String#%" do
   end
 
   it "raises ArgumentError for unused arguments when $DEBUG is true" do
-    begin
-      old_debug = $DEBUG
-      $DEBUG = true
+    old_debug = $DEBUG
+    $DEBUG = true
 
-      should_raise(ArgumentError) { "" % [1, 2, 3] }
-      should_raise(ArgumentError) { "%s" % [1, 2, 3] }
-    ensure
-      $DEBUG = old_debug
-    end
+    should_raise(ArgumentError) { "" % [1, 2, 3] }
+    should_raise(ArgumentError) { "%s" % [1, 2, 3] }
+
+    $DEBUG = old_debug
   end
   
   it "always allows unused arguments when positional argument style is used" do
-    begin
-      old_debug = $DEBUG
+    old_debug = $DEBUG
 
-      $DEBUG = false
-      ("%2$s" % [1, 2, 3]).should == "2"
-      $DEBUG = true
-      ("%2$s" % [1, 2, 3]).should == "2"
-    ensure
-      $DEBUG = old_debug
-    end
+    $DEBUG = false
+    ("%2$s" % [1, 2, 3]).should == "2"
+    $DEBUG = true
+    ("%2$s" % [1, 2, 3]).should == "2"
+
+    $DEBUG = old_debug
   end
   
   it "ignores percent signs at end of string / before newlines, null bytes" do
