@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 @kernel_kind_of = shared "Kernel#kind_of" do |cmd|
-  describe "Enumerable##{cmd}" do     
+  describe "Object##{cmd}" do
     # #kind_of? and #is_a are aliases, so we only need one function
     # that tests both methods  
     

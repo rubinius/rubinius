@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 @kernel_object_id = shared "Kernel#object_id" do |cmd|
-  describe "Enumerable##{cmd}" do     
+  describe "Object##{cmd}" do
     # #object_id and #__id__ are aliases, so we only need one function
     # that tests both methods
     it "return an Integer" do
@@ -27,6 +27,6 @@ require File.dirname(__FILE__) + '/fixtures/classes'
   end
 end
 
-describe "Obejct.object_id" do
+describe "Object.object_id" do
   it_behaves_like(@kernel_object_id, :object_id) 
 end
