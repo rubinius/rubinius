@@ -47,7 +47,9 @@ module Bytecode
       @flags = {
         :fast_math => true,
         :fast_system => true,
-        :fast_send_method => true
+        :fast_send_method => true,
+        :fast_field_access => true,
+        :fast_coerce => true
       }      
     end
     
@@ -281,6 +283,8 @@ module Bytecode
         @call_hooks << MetaOperatorPlugin.new(self)
         @call_hooks << SystemMethodPlugin.new(self)
         @call_hooks << NamedSendPlugin.new(self)
+        @call_hooks << FieldAccessPlugin.new(self)
+        @call_hooks << TypeCoercePlugin.new(self)
       end
       
       attr_accessor :state, :in_block

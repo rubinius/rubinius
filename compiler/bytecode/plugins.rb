@@ -176,6 +176,130 @@ class NamedSendPlugin < Bytecode::Compiler::Plugin
   end
 end
 
+class FieldAccessPlugin < Bytecode::Compiler::Plugin
+  flag :fast_field_access
+  
+  def push_index(idx)
+    process idx
+    add "dup"
+    add "is_fixnum"
+    lbl = unique_lbl("ffa_")
+    add "git #{lbl}"
+    add "send to_int 0"
+    add "#{lbl}:"
+  end
+  
+  def handle(recv, meth, args, block)
+    if meth == :__at__
+      return false unless args.size == 2
+      
+      process recv
+      push_index args[1]
+      add "fetch_field"
+      return true
+    elsif meth == :__put__
+      return false unless args.size == 3
+      process recv
+      process args[2]
+      push_index args[1]
+      add "store_field"
+      return true
+    end
+    
+    return false
+  end
+end
+
+class TypeCoercePlugin < Bytecode::Compiler::Plugin
+  flag :fast_coerce
+  
+  def handle_fixnum(recv, meth, obj)
+    process obj
+    add "dup"
+    
+    add "is_fixnum"
+    lbl = unique_lbl("type_")
+    add "git #{lbl}"
+    add "dup"
+    add "send #{meth} 0"
+    add "dup"
+    add "is_fixnum"
+    lbl2 = unique_lbl("type_")
+    add "git #{lbl2}"
+    add "pop"
+    add "push Fixnum"
+    add "push Type"
+    add "send coerce_failed 2"
+    add "#{lbl2}:"
+    add "swap"
+    add "pop"
+    add "#{lbl}:"
+  end
+  
+  def handle(recv, meth, args, block)
+    if recv == [:const, :Type] and meth == :coerce_to
+      # Further verify the form of the expression
+      return false unless args[3].first == :lit
+      return false unless args[2].first == :const
+      
+      meth = args[3].last
+      
+      return false unless meth.kind_of? Symbol
+      
+      cls =  args[2].last
+      
+      # Special case for getting a Fixnum
+      if cls == :Fixnum
+        handle_fixnum(recv, meth, args[1])
+        return true
+      end
+      
+      # Put the thing we're testing on the stack.
+      process args[1]
+      add "dup"
+      
+      # step 1, see if it's already the type we want.
+      add "push #{cls}"
+      add "swap"
+      lbl = unique_lbl("type_")
+      add "kind_of"
+      
+      # if so, we're done.
+      add "git #{lbl}"
+      
+      # step 2. convert it with a send.
+      # save a copy of the original, we might still need it.
+      add "dup"
+      add "send #{meth} 0"
+      
+      # step 3. check it's what we wanted now.
+      add "dup"
+      add "push #{cls}"
+      add "swap"
+      add "kind_of"
+      lbl2 = unique_lbl("type_")      
+      add "git #{lbl2}"
+      
+      # step 4. conversion failed, call out to raise an error.
+      
+      # get rid of the bad object.
+      add "pop"
+      add "push #{cls}"
+      add "push Type"
+      add "send coerce_failed 2"
+      
+      add "#{lbl2}:"
+      # get rid of the extra copy of the original.
+      add "swap"
+      add "pop"
+      add "#{lbl}:"
+      return true
+    end
+    
+    return false
+  end
+end
+
 =begin
 
 class FastTimesPlugin < Bytecode::Compiler::Plugin
