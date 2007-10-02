@@ -3,9 +3,6 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 @kernel_kind_of = shared "Kernel#kind_of" do |cmd|
   describe "Object##{cmd}" do
-    # #kind_of? and #is_a are aliases, so we only need one function
-    # that tests both methods  
-    
     it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj (String example)" do    
       s = "hello"
       s.send(cmd, String).should == true
