@@ -65,9 +65,16 @@ describe "String#scan" do
   # but not for tainted string patterns.
   # TODO: Report to ruby-core.
   it "taints the match strings if self is tainted, unless the taint happens in the method call" do
-    a = "hello hello hello".scan("hello".taint)
-    a.each { |m| m.tainted?.should == false }
-    
+    noncompliant :ruby do
+      a = "hello hello hello".scan("hello".taint)
+      a.each { |m| m.tainted?.should == false }
+    end
+
+    noncompliant :rubinius do
+      a = "hello hello hello".scan("hello".taint)
+      a.each { |m| m.tainted?.should == true }
+    end
+
     a = "hello hello hello".taint.scan("hello")
     a.each { |m| m.tainted?.should == true }
     
@@ -163,7 +170,14 @@ describe "String#scan with pattern and block" do
   # but not for tainted string patterns.
   # TODO: Report to ruby-core.
   it "taints the match strings if self is tainted, unless the tain happens inside the scan" do
-    "hello hello hello".scan("hello".taint) { |m| m.tainted?.should == false }
+    noncompliant :ruby do
+      "hello hello hello".scan("hello".taint) { |m| m.tainted?.should == false }
+    end
+    
+    noncompliant :rubinius do
+      "hello hello hello".scan("hello".taint) { |m| m.tainted?.should == true }
+    end
+
     "hello hello hello".taint.scan("hello") { |m| m.tainted?.should == true }
     
     "hello".scan(/./.taint) { |m| m.tainted?.should == true }
