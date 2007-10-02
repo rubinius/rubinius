@@ -655,11 +655,8 @@ class String
   #   <<cruel>> <<world>>
   #   rceu lowlr
   def scan(pattern, &block)
-    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
-      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
-    end
-    
-    pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
+    taint = self.tainted? || pattern.tainted?
+    pattern = get_pattern(pattern)
     index = 0
 
     unless block_given?
@@ -671,7 +668,7 @@ class String
           index += match.end(0)
         end
         
-        ret << (match.length > 1 ? match.captures : match[0])
+        ret << (match.length > 1 ? match.captures : match[0]).taint
       end
       return ret
     else
@@ -682,12 +679,11 @@ class String
           index += match.end(0)
         end
         
-        if match.size == 1
-          block.call(match[0])
-        else
-          block.call(*match.captures)
-        end
+        old_md = $~
+        block.call((match.length > 1 ? match.captures : match[0]).taint)
+        $~ = old_md
       end
+      return self
     end
   end
 
