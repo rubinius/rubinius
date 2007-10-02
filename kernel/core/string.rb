@@ -1492,12 +1492,8 @@ class String
     raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
 
-    raise TypeError, "replacement must be a string" unless replacement.respond_to?(:to_str) || block
-    replacement = replacement.to_str if replacement.respond_to?(:to_str)
-
     taint = self.tainted? || replacement.tainted?
-
-    replacement = replacement.replace_slashes if replacement.is_a?(String)
+    replacement = StringValue(replacement).replace_slashes if replacement
 
     start = 0
     last_end = 0
@@ -1508,7 +1504,6 @@ class String
     pattern = gsub_pattern(pattern)
     
     copy = self.dup
-    
     
     while(match = pattern.match_from(copy, start))
       $~ = match      
