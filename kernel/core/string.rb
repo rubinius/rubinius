@@ -620,7 +620,16 @@ class String
     modified ? self : nil
   end
   
-  
+
+
+  # Returns the length of <i>self</i>.
+  def length
+    @bytes
+  end
+  alias_method :size, :length
+
+
+
 
 
   # Builds a set of characters from the <i>*strings</i> parameter(s) using the
@@ -1209,11 +1218,6 @@ class String
     return res.copy_properties(self)
   end
 
-  def length
-    @bytes
-  end
-  alias_method :size, :length
-  
   #---
   # NOTE: This overwrites String#dup defined in bootstrap.
   # TODO: Remove me and make string_dup check taint and freeze.
