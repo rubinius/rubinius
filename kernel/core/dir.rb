@@ -1,6 +1,6 @@
 # depends on: array.rb
 
-class Dir  
+class Dir
   class DirEntry < FFI::Struct            
     # struct dirent {
     #   ino_t d_ino;      /* file number of entry */
@@ -15,7 +15,6 @@ class Dir
             :d_type,   :uchar,
             :d_namlen, :uchar,
             :d_name,   :char_array
-      
   end
   
   def self.glob(pattern, flags)
@@ -36,6 +35,14 @@ class Dir
     else
       Platform::POSIX.chdir path
     end
+  end
+  
+  def self.mkdir(name, mode = 0777)
+    Platform::POSIX.mkdir(name, mode)
+  end
+  
+  def self.rmdir(name)
+    Platform::POSIX.rmdir(name)
   end
 
   def self.getwd
@@ -72,7 +79,7 @@ class Dir
     return nil if dir_entry_ptr.null?
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
-
+  
   class << self
     alias_method :pwd, :getwd
   end

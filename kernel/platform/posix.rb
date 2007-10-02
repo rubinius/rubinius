@@ -35,6 +35,8 @@ module Platform::POSIX
   attach_function nil, 'opendir',  [:string], :pointer
   attach_function nil, 'readdir',  [:pointer], :pointer
   attach_function nil, 'closedir', [:pointer], :int
+  attach_function nil, 'mkdir', [:string, :short], :int
+  attach_function nil, 'rmdir', [:string], :int
   
   # File/IO
   #   opening/closing
