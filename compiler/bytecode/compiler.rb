@@ -440,11 +440,25 @@ module Bytecode
       def process_regex(x)
         str = x.shift
         opt = x.shift
-        add "push #{opt}"
+        
+        loc = @method.add_literal nil
+        
+        add "push_literal #{loc}"
+        add "dup"
+        add "is_nil"
+        
+        lbl = unique_lbl("regex_")
+        add "gif #{lbl}"
+        add "pop"
+        
         cnt = @method.add_literal str
+        add "push #{opt}"
         add "push_literal #{cnt}"
         add "push Regexp"
         add "send new 2"
+        add "set_literal #{loc}"
+        
+        add "#{lbl}:"
       end
 
       def process_match2(x)

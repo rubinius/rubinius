@@ -256,27 +256,32 @@ class String
   #    a[/[aeiou](.)\1/, 2]   #=> nil
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
-  def [](*args)
-    if args.size == 2
-      if args.first.is_a? Regexp
-        return self.subpattern(args[0], args[1].coerce_to(Integer, :to_int))
+  def [](index, two=nil)
+    if two
+      if index.kind_of? Regexp
+        length = Type.coerce_to two, Fixnum, :to_int
+        return subpattern(index, length)
       else
-        return self.substring(args[0].coerce_to(Integer, :to_int), args[1].coerce_to(Integer, :to_int))
+        start  = Type.coerce_to index, Fixnum, :to_int
+        length = Type.coerce_to two, Fixnum, :to_int
+        return substring(start, length)
       end
-    elsif args.size != 1
-      raise ArgumentError, "wrong number of arguments (#{args.size} for 1)"
     end
-
-    case index = args.first
-    when Regexp
-      ret = self.subpattern(index, 0)
-      self.match(index)
+    
+    if index.kind_of? Regexp
+      ret = subpattern(index, 0)
+      # Huh? why is this here?
+      # match(index)
       return ret
-    when String
-      return self.include?(index) ? index.dup : nil
-    when Range
-      start   = index.first.coerce_to(Integer, :to_int)
-      length  = index.last.coerce_to(Integer, :to_int)
+    end
+    
+    if index.kind_of? String
+      return include?(index) ? index.dup : nil
+    end
+    
+    if index.kind_of? Range
+      start   = Type.coerce_to index.first, Fixnum, :to_int
+      length  = Type.coerce_to index.last,  Fixnum, :to_int
 
       start += @bytes if start < 0
 
@@ -290,13 +295,14 @@ class String
       length = length - start
       length = 0 if length < 0
       
-      return self.substring(start, length)
-    else
-      index = index.coerce_to(Integer, :to_int)
-      index = @bytes + index if index < 0
-      return if index < 0 || @bytes <= index
-      return @data[index]
+      return substring(start, length)
     end
+    
+    index = Type.coerce_to index, Fixnum, :to_int
+    index = @bytes + index if index < 0
+    
+    return if index < 0 || @bytes <= index
+    return @data[index]
   end
   alias_method :slice, :[]
 

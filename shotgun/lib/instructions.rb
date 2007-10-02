@@ -220,6 +220,14 @@ CODE
     "next_int; stack_push(tuple_at(state, cpu_current_literals(state, c), _int));"
   end
   
+  def set_literal
+    <<-CODE
+    next_int;
+    tuple_put(state, cpu_current_literals(state, c), _int, stack_top());
+    CODE
+  end
+  
+  
   def push_self
     "stack_push(c->self);"
   end

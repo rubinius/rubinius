@@ -277,10 +277,20 @@ class ShotgunPrimitives
     self = stack_pop(); 
     GUARD( RISA(self, blokenv) );
     
-    
-    t3 = tuple_new(state, num_args);
-    for(j = 0; j < num_args; j++) {
-      tuple_put(state, t3, j, stack_pop());
+    /* MRI fun. if an array is passed in, then present it as all
+       the args. */
+    if(0 && num_args == 1 && ISA(stack_top(), state->global->array)) {
+      t1 = stack_pop();
+      k = FIXNUM_TO_INT(array_get_total(t1));
+      t3 = tuple_new(state, k);
+      for(j = 0; j < k; j++) {
+        tuple_put(state, t3, j, array_get(state, t1, j));
+      }
+    } else {
+      t3 = tuple_new(state, num_args);
+      for(j = 0; j < num_args; j++) {
+        tuple_put(state, t3, j, stack_pop());
+      }
     }
     stack_push(t3);
     

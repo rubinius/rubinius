@@ -43,18 +43,16 @@ class Array
     if args.empty?
       @tuple = Tuple.new 2
       @total = 0
-    else
-      raise TypeError, "can't modify frozen array" if frozen?
-      
+    else      
       if (args.first.kind_of? Array or args.first.respond_to? :to_ary) and args.size == 1
-        ary = ary_from args.first
+        ary = Type.coerce_to args.first, Array, :to_ary
         return self if self == ary
       
         @tuple = Tuple.new(ary.size + 10)
         @total = ary.size
         @tuple.copy_from ary.tuple, ary.start
       else
-        count = int_from args.first
+        count = Type.coerce_to args.first, Fixnum, :to_int
         obj   = args[1]
         raise ArgumentError, "Size must be positive" if count < 0
 
@@ -86,14 +84,14 @@ class Array
       is_range = true
       start, finish = one.begin, one.end
     elsif two
-      start, count = one, int_from(two)
+      start, count = one, Type.coerce_to(two, Fixnum, :to_int)
       return nil if count < 0       # No need to go further
     else  
       start, finish, simple = one, one, true
     end
 
     # Convert negative indices
-    start = int_from start
+    start = Type.coerce_to start, Fixnum, :to_int
     start += @total if start < 0
     
     if simple
@@ -108,7 +106,7 @@ class Array
       return nil
     end
 
-    finish = int_from finish if finish
+    finish = Type.coerce_to finish, Fixnum, :to_int if finish
     finish = (start + count - 1) if count    # For non-ranges
 
     finish += @total if finish < 0
@@ -134,9 +132,7 @@ class Array
 
   alias_method :slice, :[]
 
-  def []=(idx, ent, *args)
-    raise TypeError, "can't modify frozen array" if frozen?
-    
+  def []=(idx, ent, *args)    
     cnt = nil
     if args.size != 0
       cnt = ent.to_int
@@ -259,9 +255,8 @@ class Array
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
-    raise TypeError, "Array is frozen" if frozen?
-
-    reallocate :at_least => (@total + 1)
+    nt = @total + 1
+    reallocate nt if @tuple.size < nt
     @tuple.put @start + @total, obj
     @total += 1
     self
@@ -271,7 +266,7 @@ class Array
   # both Arrays, without duplicates. Also known as a 'set
   # intersection'
   def &(other)
-    other = ary_from other
+    other = Type.coerce_to other, Array, :to_ary
 
     out, set_include = [], {}
 
@@ -289,7 +284,7 @@ class Array
   # Creates a new Array by combining the two Arrays' items,
   # without duplicates. Also known as a 'set union.'
   def |(other)
-    other = ary_from other
+    other = Type.coerce_to other, Array, :to_ary
 
     out, exclude = [], {}
     
@@ -313,7 +308,7 @@ class Array
 
     else 
       # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
-      val = int_from val
+      val = Type.coerce_to val, Fixnum, :to_int
 
       raise ArgumentError, "Count cannot be negative" if val < 0
 
@@ -325,7 +320,7 @@ class Array
   
   # Create a concatenation of the two Arrays.
   def +(other)
-    other = ary_from other
+    other = Type.coerce_to other, Array, :to_ary
     out = []
 
     each { |e| out << e }
@@ -338,7 +333,7 @@ class Array
   # Array that do not appear in the other Array, effectively
   # 'deducting' those items. The matching method is Hash-based.
   def -(other)
-    other = ary_from other
+    other = Type.coerce_to other, Array, :to_ary
     out, exclude = [], {}
 
     other.each { |x| exclude[x] = true }
@@ -354,7 +349,7 @@ class Array
   # lengths are the same. The element comparison is the primary
   # and length is only checked if the former results in 0's.
   def <=>(other)
-    other = ary_from other
+    other = Type.coerce_to other, Array, :to_ary
 
     size.times { |i| 
       return 1 unless other.size > i
@@ -407,7 +402,7 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    idx = int_from idx
+    idx = Type.coerce_to idx, Fixnum, :to_int
     idx += @total if idx < 0
 
     return nil if idx < 0 or idx >= @total
@@ -417,8 +412,6 @@ class Array
   
   # Removes all elements in the Array and leaves it empty
   def clear()
-    raise TypeError, "Array is frozen" if frozen? 
-
     @tuple = Tuple.new(1)
     @total = 0
     @start = 0
@@ -433,8 +426,6 @@ class Array
   # Removes all nil elements from self, returns nil if no changes
   # TODO: Needs improvement
   def compact!()
-    raise TypeError, "Array is frozen" if frozen?
-
     i = @start
     tot = @start + @total
 
@@ -466,9 +457,7 @@ class Array
 
   # Appends the elements in the other Array to self
   def concat(other)
-    raise TypeError, "Array is frozen" if frozen?
-
-    push(*ary_from(other))
+    push(*Type.coerce_to(other, Array, :to_ary))
   end 
 
   # Stupid subtle differences prevent proper reuse in these three
@@ -478,8 +467,6 @@ class Array
   # block is provided in which case the value of running it is
   # returned instead.
   def delete(obj)
-    raise TypeError, "Array is frozen" if frozen?
-
     i = @start
     tot = @start + @total
 
@@ -510,9 +497,7 @@ class Array
   # the deleted element or nil if the index is out of
   # range. Negative indices count backwards from end.
   def delete_at(idx)
-    raise TypeError, "Array is frozen" if frozen?
-
-    idx = int_from idx
+    idx = Type.coerce_to idx, Fixnum, :to_int
 
     # Flip to positive and weed out out of bounds
     idx += @total if idx < 0
@@ -529,9 +514,7 @@ class Array
   end 
 
   # Deletes every element from self for which block evaluates to true
-  def delete_if()
-    raise TypeError, "Array is frozen" if frozen?
- 
+  def delete_if() 
     i = @start
     tot = @total + @start
 
@@ -599,7 +582,7 @@ class Array
     raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
     warn 'Block supercedes default object' if !rest.empty? && block_given?
 
-    idx, orig = int_from(idx), idx
+    idx, orig = Type.coerce_to(idx, Fixnum, :to_int), idx
     idx += @total if idx < 0
 
     if idx < 0 || idx >= @total
@@ -631,8 +614,6 @@ class Array
   # array.fill(range) {|index| block }             -> array
   #
   def fill(*args)
-    raise TypeError, "Array is frozen" if frozen?
-
     raise ArgumentError, "Wrong number of arguments" if block_given? and args.size > 2
     raise ArgumentError, "Wrong number of arguments" if args.size > 3
 
@@ -645,7 +626,7 @@ class Array
     if one.kind_of? Range
       raise TypeError, "Length invalid with range" if args.size > 1   # WTF, MRI, TypeError?
 
-      start, finish = int_from(one.begin), int_from(one.end)
+      start, finish = Type.coerce_to(one.begin, Fixnum, :to_int), Type.coerce_to(one.end, Fixnum, :to_int)
 
       start += @total if start < 0
       finish += @total if finish < 0
@@ -660,13 +641,13 @@ class Array
 
     else
       if one
-        start = int_from one
+        start = Type.coerce_to one, Fixnum, :to_int
 
         start += @total if start < 0
         start = 0 if start < 0            # MRI comp adjusts to 0
 
         if two
-          finish = int_from two
+          finish = Type.coerce_to two, Fixnum, :to_int
           return self if finish < 1       # Nothing to modify
 
           finish = start + finish - 1
@@ -676,7 +657,8 @@ class Array
 
     # Adjust the size progressively
     unless finish < @total
-      reallocate(finish)
+      nt = finish + 1
+      reallocate(nt) if @tuple.size < nt
       @total = finish + 1
     end
 
@@ -697,7 +679,7 @@ class Array
   def first(n = nil)
     return at(0) unless n
 
-    n = int_from n
+    n = Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
     Array.new(self[0...n])
@@ -711,8 +693,6 @@ class Array
   # Flattens self in place as #flatten. If no changes are
   # made, returns nil, otherwise self.
   def flatten!
-    raise TypeError, "Array is frozen" if frozen?
-
     ret, out, stack = nil, [], []
 
     ret = recursively_flatten self, out, stack
@@ -734,12 +714,6 @@ class Array
 #
 #    replace(out) if ret
 #    ret
-  end 
-
-  # Returns true if the Array is frozen with #freeze or
-  # temporarily sorted while being sorted.
-  def frozen?()
-    @sort_frozen || super 
   end 
 
   # Computes a Fixnum hash code for this Array. Any two
@@ -779,7 +753,7 @@ class Array
       if a.kind_of? Range
         out << self[a]
       else
-        out << at(int_from(a))
+        out << at(Type.coerce_to(a, Fixnum, :to_int))
       end
     }
 
@@ -793,12 +767,10 @@ class Array
   # backwards from the end and the values are inserted 
   # after them.
   def insert(idx, *items)
-    raise TypeError, "Array is frozen" if frozen?
-
     return self if items.length == 0
     
     # Adjust the index for correct insertion
-    idx = int_from idx
+    idx = Type.coerce_to idx, Fixnum, :to_int
     idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
@@ -838,7 +810,7 @@ class Array
   def last(n = nil)
     return at(-1) unless n
     
-    n = int_from n
+    n = Type.coerce_to n, Fixnum, :to_int
     return [] if n.zero?
     raise ArgumentError, "Number must be positive" if n < 0
 
@@ -859,8 +831,6 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!(&block)
-    raise TypeError, "Array is frozen" if frozen? 
-
     replace(map &block)
   end
   
@@ -1033,7 +1003,6 @@ class Array
 
   # Removes and returns the last element from the Array.
   def pop()
-    raise TypeError, "Array is frozen" if frozen?
     return nil if empty?
     
     # TODO Reduce tuple if there are a lot of free slots
@@ -1089,7 +1058,6 @@ class Array
   # Appends the given object(s) to the Array and returns
   # the modified self.
   def push(*args)
-    raise TypeError, "Array is frozen" if frozen?
     return self if args.empty?
 
     args.each { |ent| self[@total] = ent }
@@ -1123,8 +1091,6 @@ class Array
   # Equivalent to #delete_if except that returns nil if
   # no changes were made.
   def reject!(&block)
-    raise TypeError, "Array is frozen" if frozen?
-
     was = length
     self.delete_if(&block)
 
@@ -1134,9 +1100,7 @@ class Array
   # Replaces contents of self with contents of other,
   # adjusting size as needed.
   def replace(other)
-    raise TypeError, "Array is frozen" if frozen?
-
-    other = ary_from other
+    other = Type.coerce_to other, Array, :to_ary
 
     @tuple = other.tuple.dup
     @total = other.total
@@ -1153,8 +1117,6 @@ class Array
   # Reverses the order of elements in self. Returns self
   # even if no changes are made
   def reverse!
-    raise TypeError, "Array is frozen" if frozen?
-
     return self unless @total > 1
 
     tuple = Tuple.new @total
@@ -1254,17 +1216,10 @@ class Array
     self.class.new(left + middle + right) # MRI #+ always returns Array    
   end                           
 
-  # Sorts self in place as #sort. Array will be frozen while
-  # the sorting ensues. See Array#sort for other details. 
+  # Sorts self in place as #sort. See Array#sort for other details. 
   def sort!(&block)
-    raise TypeError, "Array is frozen" if frozen?
-
-    @sort_frozen = true     # MRI comp, must be #frozen? while #sort!ing
     res = sort(&block)
-    @sort_frozen = false
     replace res
-  ensure
-    @sort_frozen = false
   end   
 
   # Returns self except on subclasses which are converted
@@ -1298,7 +1253,7 @@ class Array
     out, max = [], nil
 
     each { |ary| 
-      ary = ary_from ary
+      ary = Type.coerce_to ary, Array, :to_ary
       max ||= ary.size
 
       # Catches too-large as well as too-small (for which #fetch would suffice)
@@ -1325,8 +1280,6 @@ class Array
 
   # Removes duplicates from the Array in place as #uniq
   def uniq!()
-    raise TypeError, "Array is frozen" if frozen?
-
     ary = uniq
     replace(ary) if size != ary.size
   end
@@ -1354,7 +1307,7 @@ class Array
         finish = elem.last
         start = elem.first  
 
-        start, finish = int_from(start), int_from(finish)
+        start, finish = Type.coerce_to(start, Fixnum, :to_int), Type.coerce_to(finish, Fixnum, :to_int)
 
         start += @total if start < 0
         next if start < 0
@@ -1368,7 +1321,7 @@ class Array
         start.upto(finish) { |i| out << at(i) }
 
       else
-        i = int_from elem
+        i = Type.coerce_to elem, Fixnum, :to_int
         out << at(i)
       end
     }
@@ -1481,38 +1434,21 @@ class Array
 
   # Reallocates the internal Tuple to accommodate at least given size
   def reallocate(at_least)
-    at_least = at_least[:at_least] if Hash === at_least
     return if at_least < @tuple.size
 
-    factor = @total < 1_000_000 ? 2 : 1        # Does this make any sense?
+    new_size = ((3 * @tuple.size) / 2) + 1
     
-    tuple = Tuple.new((at_least * factor) + 10)
+    if new_size < at_least
+      new_size = at_least
+    end
+    
+    tuple = Tuple.new(new_size)
 
     tuple.copy_from @tuple, @start     # Swap over old data
 
     @tuple = tuple
     @start = 0
   end
-
-  # Attempt to convert the given object to_int or fail 
-  def int_from(obj)
-    unless obj.kind_of? Integer
-      raise TypeError, "Unable to convert #{obj.inspect} to Integer" unless obj.respond_to? :to_int
-      return obj.to_int
-    end
-
-    obj
-  end  
-
-  # Attempt to convert the given object to_ary or fail 
-  def ary_from(obj)
-    unless obj.kind_of? Array
-      raise TypeError, "Unable to convert #{obj.inspect} to Array" unless obj.respond_to? :to_ary
-      return obj.to_ary
-    end
-
-    obj
-  end 
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.

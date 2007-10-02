@@ -84,8 +84,13 @@ void _cpu_sampler_record_context(int sig) {
   
   /* Add more space for samples. */
   if(state->cur_sample == state->max_samples) {
+    OBJECT* chunk;
     state->max_samples += SAMPLE_INCS;
-    state->samples = (OBJECT*)realloc(state->samples, state->max_samples * sizeof(OBJECT));
+    chunk = (OBJECT*)realloc(state->samples, state->max_samples * sizeof(OBJECT));
+    if(chunk != state->samples) {
+      // free(state->samples);
+    }
+    state->samples = chunk;    
   }
 }
 

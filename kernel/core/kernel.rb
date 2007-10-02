@@ -1,3 +1,22 @@
+module Type
+  # The order seems backwards and it is. But the Type.coerce_to compiler
+  # plugin is able to send this order much easier than in reverse, so
+  # we use this.
+  def self.coerce_failed(cls, obj)
+    raise TypeError, "Unable to convert a #{obj.class} into a #{cls}"
+  end
+
+  def self.coerce_to(obj, cls, meth)
+    return obj if obj.kind_of?(cls)
+    ret = obj.__send__(meth)
+    if ret.kind_of?(cls)
+      return ret
+    else
+      coerce_failed(cls, obj)
+    end
+  end
+end
+
 module Kernel
 
   # Conversion methods
