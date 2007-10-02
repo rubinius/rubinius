@@ -783,8 +783,8 @@ class String
     end
     (ret.pop while ret[-1] == "") if limit == 0 || limit.nil?
     (ret.shift while ret[0] == "") if spaces
-    ret = ret.map {|str| self.class.new(str) } if !self.instance_of?(String)
-    ret = ret.map {|str| str.taint} if self.tainted?
+    ret = ret.map { |str| self.class.new(str) } if !self.instance_of?(String)
+    ret = ret.map { |str| str.taint } if self.tainted?
     ret
   end
 
@@ -873,7 +873,7 @@ class String
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
     
     out = self.dup
-    if match = gsub_pattern(pattern).match(self.dup)
+    if match = get_pattern(pattern).match(self.dup)
   
       out = match.pre_match
       old_md = $~
@@ -1579,7 +1579,7 @@ class String
     replace(substring(0, stop + 1))
   end
 
-  def gsub_pattern(pattern)
+  def get_pattern(pattern)
     unless pattern.is_a?(String) || pattern.is_a?(Regexp)
       if pattern.respond_to?(:to_str)
         pattern = pattern.to_str
@@ -1619,7 +1619,7 @@ class String
 
     $~ = nil
 
-    pattern = gsub_pattern(pattern)
+    pattern = get_pattern(pattern)
     
     copy = self.dup
     
@@ -1650,7 +1650,7 @@ class String
   end
   
   def gsub!(pattern, replacement = nil, &block)
-    pattern = gsub_pattern(pattern)
+    pattern = get_pattern(pattern)
     if self.frozen? && self =~ pattern
       raise TypeError, "You cannot modify a frozen string" if !block
       raise RuntimeError, "You cannot modify a frozen string" if block
