@@ -44,8 +44,8 @@ int main(int argc, char **argv) {
   machine m, *ptr = &m;
   const char *archive;
   int offset = 0;
-  OBJECT flag;
-  
+  int flag;
+    
   m = machine_new();
   /* We sure to setup the bottom of the stack so it can be properly saved. */
   m->s->stack_bottom = (unsigned long*) ptr;
@@ -67,39 +67,39 @@ int main(int argc, char **argv) {
     return 1;
   }
     
-  flag = machine_load_archive(m, archive);
+  flag = machine_load_bundle(m, archive);
   
-  if(!TRUE_P(flag)) {
+  if(!flag) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
   
   /* Load the platform. */
   
-  archive = search_for("PLATFORM", "platform.rba");
+  archive = search_for("PLATFORM", "platform");
   if(!archive) {
-    printf("Unable to find a platform (platform.rba) to load!\n");
+    printf("Unable to find a platform to load!\n");
     return 1;
   }
     
-  flag = machine_load_archive(m, archive);
+  flag = machine_load_bundle(m, archive);
   
-  if(!TRUE_P(flag)) {
+  if(!flag) {
     printf("Unable to run %s\n", archive);
     return 1;
   }
   
   /* Load the core. */
 
-  archive = search_for("CORE", "core.rba");
+  archive = search_for("CORE", "core");
   if(!archive) {
-    printf("Unable to find a core (core.rba) to load!\n");
+    printf("Unable to find a core to load!\n");
     return 1;
   }
     
-  flag = machine_load_archive(m, archive);
+  flag = machine_load_bundle(m, archive);
    
-  if(!TRUE_P(flag)) {
+  if(!flag) {
     printf("Unable to run %s\n", archive);
     return 1;
   }

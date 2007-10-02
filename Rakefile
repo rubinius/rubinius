@@ -20,38 +20,25 @@ def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
 
-@pb = "runtime/pristine_bootstrap.rba"
-@pp = "runtime/pristine_platform.rba"
-@pc = "runtime/pristine_core.rba"
-@pl = "runtime/pristine_loader.rbc"
-@pr = "runtime/pristine_compiler.rba"
+def setup_stable
+  @pb = "runtime/stable/bootstrap.rba"
+  @pp = "runtime/stable/platform.rba"
+  @pc = "runtime/stable/core.rba"
+  @pl = "runtime/stable/loader.rbc"
+  @pr = "runtime/stable/compiler.rba"
 
-if File.exists?(@pb)
-  puts "Using #{@pb} for bootstrap."
-  ENV['BOOTSTRAP'] = @pb
+  if ENV['USE_CURRENT']
+    puts "Use current versions, not stable."
+  else
+    ENV['BOOTSTRAP'] = @pb
+    ENV['CORE'] = @pc
+    ENV['LOADER'] = @pl
+    ENV['PLATFORM'] = @pp
+    ENV['COMPILER'] = @pr
+  end
+
+  @compiler = ENV['COMPILER']
 end
-
-if File.exists?(@pc)
-  puts "Using #{@pc} for core."
-  ENV['CORE'] = @pc
-end
-
-if File.exists?(@pl)
-  puts "Using #{@pl} for the loader."
-  ENV['LOADER'] = @pl
-end
-
-if File.exists?(@pp)
-  puts "Using #{@pp} for the platform."
-  ENV['PLATFORM'] = @pp
-end
-
-if File.exists?(@pr)
-  puts "Using #{@pr} for the compiler."
-  ENV['COMPILER'] = @pr
-end
-
-@compiler = ENV['COMPILER']
 
 def source_name(compiled)
   File.basename(compiled, '.*') + '.rb'
@@ -107,13 +94,38 @@ def create_load_order(files)
   end
 end
 
+def update_dir(files, dir, deps=true)
+  dir = File.expand_path(ENV['OUTPUT'] || dir)
+  clean = ENV['CLEAN']
+  
+  files.each do |file|
+    cmp = File.join(dir, "#{file}c")
+    if clean or !newer?(file, cmp)
+      if @compiler
+        system "shotgun/rubinius -I#{@compiler} compile #{file} #{cmp}"
+      else
+        system "shotgun/rubinius compile #{file} #{cmp}"
+      end
+    end
+    file << "c"
+  end
+
+  if deps
+    create_load_order(files)
+  else
+    File.open(".load_order.txt","w") { |f| f.puts files.join("\n") }
+  end
+end
+
 def update_archive(files, archive, deps=true, dir=nil)
   archive = File.expand_path(ENV['OUTPUT'] || archive)
+
+  clean = ENV['CLEAN']
 
   changed = []
   files.each do |file|
     cmp = "#{file}c"
-    if !newer?(file, cmp)
+    if clean or !newer?(file, cmp)
       changed << cmp
       if @compiler
         system "shotgun/rubinius -I#{@compiler} compile #{file}"
@@ -262,17 +274,21 @@ namespace :build do
 
   desc "Compiles the Rubinius bootstrap archive"
   task :bootstrap do
+    setup_stable
     files = Dir["kernel/bootstrap/*.rb"].sort
     update_archive files, 'runtime/bootstrap.rba', false
   end
 
-  desc "Compiles the Rubinius core archive"
+  desc "Compiles the Rubinius core directory"
   task :core do
+    setup_stable
+    puts "Updating compiled files in runtime/core/"
     files = Dir["kernel/core/*.rb"].sort
-    update_archive files, 'runtime/core.rba'
+    update_dir files, 'runtime/core'
   end
 
   task :loader do
+    setup_stable
     i = "kernel/loader.rb"
     o = ENV['OUTPUT'] || "runtime/loader.rbc"
 
@@ -285,21 +301,24 @@ namespace :build do
 
   desc "Compiles the Rubinius compiler archive"
   task :compiler do
+    setup_stable
     files = Dir["compiler/**/*.rb"].sort   
     update_archive files, 'runtime/compiler.rba', false, "compiler"
   end
 
   desc "Compiles the Rubinius platform archive"
   task :platform do
+    setup_stable
+    puts "Updating compiled files in runtime/platform/"
     files = Dir["kernel/platform/*.rb"].sort   
-    update_archive files, 'runtime/platform.rba'
+    update_dir files, 'runtime/platform'
   end
 end
 
 desc "Remove all compiled Ruby files"
 task :pristine do
   FileList['**/*.rbc'].each do |fn|
-    next if fn == 'runtime/loader.rbc'
+    next if /^runtime/.match(fn)
     FileUtils.rm fn rescue nil
   end
 end
@@ -308,11 +327,7 @@ end
 namespace :dev do
   desc "Make a snapshot of the runtime files for your own safety"
   task :setup do
-    sh "cp runtime/core.rba #{@pc}"
-    sh "cp runtime/bootstrap.rba #{@pb}" 
-    sh "cp runtime/platform.rba #{@pp}" 
-    sh "cp runtime/loader.rbc #{@pl}" 
-    sh "cp runtime/compiler.rba #{@pr}" 
+    puts "OBSOLETE. You no longer need to do this."
   end
 end
 

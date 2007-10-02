@@ -12,7 +12,7 @@
 #include <signal.h>
 #include "symbol.h"
 #include "config_hash.h"
-
+#include <sys/stat.h>
 #include "config.h"
 
 /* Backtrace support */
@@ -774,6 +774,41 @@ void machine_config_env(machine m) {
   }
 }
 
+int machine_load_directory(machine m, const char *prefix) {
+  char *path;
+  char *file;
+  FILE *fp;
+  int len;
+  path = malloc(1024);
+  sprintf(path, "%s/.load_order.txt", prefix);
+  
+  fp = fopen(path, "r");
+  if(!fp) {
+    printf("Unable to open directory '%s'\n", prefix);
+    free(path);
+    return FALSE;
+  }
+  
+  file = malloc(1024);
+  while(!feof(fp)) {
+    fgets(file, 1024, fp);
+    /* Get rid of the \n on the end. */
+    len = strlen(file);
+    if(file[len-1] == '\n') file[len-1] = 0;
+    snprintf(path, 1024, "%s/%s", prefix, file);
+    if(!machine_run_file(m, path)) {
+      free(file);
+      free(path);
+      return FALSE;
+    }
+  }
+  
+  free(file);
+  free(path);
+  
+  return TRUE;
+}
+
 OBJECT machine_load_archive(machine m, const char *path) {
   OBJECT order, cm, ret = Qfalse;
   archive_handle_t *archive;
@@ -833,6 +868,20 @@ out:
   }
   
   return ret;
+}
+
+int machine_load_bundle(machine m, const char *path) {
+  struct stat sb;
+  OBJECT ret;
+  if(stat(path, &sb) != 0) return FALSE;
+  
+  if(S_ISDIR(sb.st_mode)) {
+    return machine_load_directory(m, path);
+  }
+  
+  ret = machine_load_archive(m, path);
+  if(!TRUE_P(ret)) return FALSE;
+  return TRUE;
 }
 
 

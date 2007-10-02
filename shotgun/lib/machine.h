@@ -18,6 +18,8 @@ machine machine_new();
 OBJECT machine_load_file(machine m, const char *path);
 int machine_run_file(machine m, const char *path);
 OBJECT machine_load_archive(machine m, const char *path);
+int machine_load_directory(machine m, const char *prefix);
+int machine_load_bundle(machine m, const char *path);
 void machine_set_const(machine m, const char *str, OBJECT val);
 void machine_setup_standard_io(machine m);
 void machine_collect(machine m);
