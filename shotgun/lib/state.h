@@ -1,7 +1,10 @@
+#ifndef __STATE__
+#define __STATE__
 #include "shotgun.h"
 #include "memutil.h"
 
 #include <ucontext.h>
+#include <hashtable.h>
 #include "subtend/PortableUContext.h"
 
 #ifdef USE_CINVOKE
@@ -106,8 +109,8 @@ struct rubinius_state {
   
   unsigned long *stack_bottom;
   
-  GHashTable *cleanup;
-  GHashTable *config;
+  struct hashtable *cleanup;
+  struct hashtable *config;
   
   void *event_base;
   void *thread_infos;
@@ -362,3 +365,4 @@ typedef void (*state_cleanup_func)(STATE, OBJECT);
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func);
 void state_run_cleanup(STATE, OBJECT obj, OBJECT cls);
 
+#endif /* __STATE__ */

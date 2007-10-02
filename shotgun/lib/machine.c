@@ -11,6 +11,7 @@
 #include <sys/param.h>
 #include <signal.h>
 #include "symbol.h"
+#include "config_hash.h"
 
 #include "config.h"
 
@@ -42,6 +43,11 @@ int g_use_firesuit;
 int g_access_violation;
 
 static int _recursive_reporting = 0;
+
+static OBJECT string_newfrombstr(STATE, bstring output)
+{
+	return string_new2(state, (const char*)output->data, output->slen);
+}
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
@@ -553,15 +559,6 @@ void machine_setup_argv(machine m, int argc, char **argv) {
   machine_set_const(m, "ARGV", ary);
 }
 
-static void _machine_add_config(gpointer key, gpointer value, gpointer user_data) {
-  machine m = (machine)user_data;
-  OBJECT ok, ov;
-  
-  ok = string_new(m->s, (char*)key);
-  ov = string_new(m->s, (char*)value);
-  hash_set(m->s, m->s->global->config, ok, ov);
-}
-
 static void machine_parse_config_var(machine m, char *var) {
   char *eq, *or;;
   char buf[1024];
@@ -579,13 +576,13 @@ static void machine_parse_config_var(machine m, char *var) {
     if(m->show_config) {
       printf("[config] '%s' => '%s'\n", name, var);
     }
-    g_hash_table_insert(m->s->config, (gpointer)strdup(name), (gpointer)strdup(var));
+    ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr(var));
   } else {
     if(m->show_config) {
       printf("[config] '%s' => '1'\n", var);
     }
     while(*var == ' ') var++;    
-    g_hash_table_insert(m->s->config, (gpointer)strdup(var), (gpointer)strdup("1"));
+    ht_config_insert(m->s->config, cstr2bstr(var), cstr2bstr("1"));
   }
 }
 
@@ -606,16 +603,27 @@ static void machine_parse_configs(machine m, char *config) {
   machine_parse_config_var(m, config);
   
   m->s->global->config = hash_new(m->s);
-  g_hash_table_foreach(m->s->config, _machine_add_config, (gpointer)m);
+  
+  struct hashtable_itr *iter = hashtable_iterator(m->s->config);
+  do
+    {
+      bstring k = (bstring) hashtable_iterator_key(iter);
+      bstring v = (bstring) hashtable_iterator_value(iter);
+      OBJECT ok = string_newfrombstr(m->s, k);
+      OBJECT ov = string_newfrombstr(m->s, v);
+
+      hash_set(m->s, m->s->global->config, ok, ov);
+    }
+  while (hashtable_iterator_advance(iter));
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
 }
 
 void machine_setup_from_config(machine m) {
-  if(g_hash_table_lookup(m->s->config, "rbx.debug.trace")) {
+  if(ht_config_search(m->s->config, cstr2bstr("rbx.debug.trace"))) {
     m->s->excessive_tracing = 1;
   }
   
-  if(g_hash_table_lookup(m->s->config, "rbx.debug.gc")) {
+  if(ht_config_search(m->s->config, cstr2bstr("rbx.debug.gc"))) {
     m->s->gc_stats = 1;
   }
 }

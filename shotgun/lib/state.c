@@ -4,6 +4,8 @@
 #include "cpu.h"
 #include "flags.h"
 #include <sys/time.h>
+#include "cleanup_hash.h"
+#include "config_hash.h"
 
 rstate rubinius_state_new() {
   rstate st;
@@ -11,8 +13,8 @@ rstate rubinius_state_new() {
   st->om = object_memory_new();
   st->free_contexts = g_ptr_array_new();
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
-  st->cleanup = g_hash_table_new(NULL, NULL);
-  st->config = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
+  st->cleanup = ht_cleanup_create(11);
+  st->config = ht_config_create(11);
   return st;
 }
 
@@ -169,9 +171,7 @@ void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
   unsigned int cur;
   
-  g_hash_table_insert(state->cleanup, 
-      (gpointer)module_get_name(cls),
-      (gpointer)func);
+  ht_cleanup_insert(state->cleanup, module_get_name(cls), func);
   
   // printf("Registered cleanup for %p\n", module_get_name(cls));
   cur = (unsigned int)FIXNUM_TO_INT(class_get_instance_flags(cls));
@@ -184,8 +184,7 @@ void state_run_cleanup(STATE, OBJECT obj, OBJECT cls) {
   if(!REFERENCE_P(cls)) return;
   
   // printf("Cleaning up %p (%s, %p)\n", obj, _inspect(cls), module_get_name(cls));
-  
-  func = g_hash_table_lookup(state->cleanup, (gconstpointer)module_get_name(cls));
+  func = ht_cleanup_search(state->cleanup, module_get_name(cls));
   if(func) {
     func(state, obj);
   }
