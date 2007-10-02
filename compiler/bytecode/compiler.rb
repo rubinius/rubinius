@@ -278,6 +278,9 @@ module Bytecode
         @break = nil
         
         @in_block = false
+        @in_ensure = false
+        @in_rescue = false
+        @check_return = false
         
         @call_hooks = []
         @call_hooks << MetaOperatorPlugin.new(self)
@@ -1191,7 +1194,10 @@ module Bytecode
         end
         goto fin
         add "#exceptions #{ex}"
+        ir = @in_rescue
+        @in_rescue = true
         do_resbody res, rr, fin
+        @in_rescue = ir
         set_label rr
         add "push_exception"
         add "raise_exc"
@@ -1425,7 +1431,16 @@ module Bytecode
         
         ex = unique_exc()
         add "#exc_start #{ex}"
+        
+        ie = @in_ensure
+        @in_ensure = true
+        cr = @check_return
+        @check_return = false
         process body
+        should_check = @check_return
+        @check_return = cr
+        @in_ensure = ie
+        
         # We don't jump past the exceptions code here like we did
         # with a rescue because this code needs to be run no matter
         # what.
@@ -1466,22 +1481,49 @@ module Bytecode
         gif l_noex
         # FIXME: re-raising from here messes with line numbers in the
         #        backtrace of body exceptions
+        if should_check
+          add "dup"
+          add "push Tuple"
+          add "swap"
+          add "kind_of"
+          not_tuple = unique_lbl("ensure_")
+          gif not_tuple
+          add "push 0"
+          add "fetch_field"
+          if @in_block
+            add "ret"
+          else
+            add "sret"
+          end
+          set_label not_tuple
+        end
         add "raise_exc"
         set_label l_noex
         # discard nil
         add "pop"
         add "#exc_end #{ex}"
+        
+        @check_return = cr
       end
       
       def process_return(x)
         val = x.shift
+        
+        if @in_rescue
+          add "clear_exception"
+        end
+        
         if val
           process val
         else
           add "push nil"
         end
         
-        if @in_block
+        if @in_ensure
+          add "cast_tuple"
+          add "raise_exc"
+          @check_return = true
+        elsif @in_block
           add "ret"
         else
           add "sret"
