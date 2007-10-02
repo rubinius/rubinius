@@ -44,7 +44,7 @@ class String
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
     # YSprintf.new(self, *args).parse
-    Sprintf::Parser.format(self, arg)
+    Sprintf::Parser.format(self, args)
   end
 
   # call-seq:
