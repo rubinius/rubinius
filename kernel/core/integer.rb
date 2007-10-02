@@ -42,10 +42,6 @@ class Integer < Numeric
   alias_method :round, :to_i
   alias_method :truncate, :to_i
 
-  def to_s_formatted(fmt)
-    Platform::Integer.to_s_formatted(32, fmt, self)
-  end
-
   def chr
     raise RangeError.new("#{self} is out of the valid character range") if self > 255 || self < 0
     a = "x"
