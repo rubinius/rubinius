@@ -1,3 +1,3 @@
-Enumerable#kind_of? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example
-Enumerable#kind_of? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example
-Enumerable#kind_of? nil.kind_of? cases specs
+Object#kind_of? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example
+Object#kind_of? returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Custom class example
+Object#kind_of? nil.kind_of? cases specs
