@@ -1,0 +1,1 @@
+Object#extend raises a TypeError if self is frozen

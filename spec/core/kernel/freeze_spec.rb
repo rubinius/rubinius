@@ -3,10 +3,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#freeze" do
   it "prevents self from being further modified" do
-    module Mod; end
     o = Object.new
+    o.frozen?.should == false
     o.freeze
-    should_raise(TypeError) { o.extend Mod }
+    o.frozen?.should == true
   end
   
   it "has no effect on immediate values" do
