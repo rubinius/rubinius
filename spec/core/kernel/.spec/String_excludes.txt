@@ -1,1 +1,0 @@
-Kernel.String should call to_s to convert any arbitrary object to an String
