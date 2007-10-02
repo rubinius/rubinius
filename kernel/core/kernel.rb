@@ -190,10 +190,9 @@ module Kernel
     method.call
   end
 
-  def caller
+  def caller(start=1)
     ret = []
-    # Since calling this will change the sender, we have to go up twice
-    ctx = MethodContext.current.sender.sender
+    ctx = MethodContext.current.sender
     until ctx.nil?
       if ctx.method.name == :__script__ # This is where MRI stops
         ret << "#{ctx.file}:#{ctx.line}"
@@ -203,7 +202,7 @@ module Kernel
       end
       ctx = ctx.sender
     end
-    ret
+    ret[start..-1]
   end
   
   def at_exit(&block)
