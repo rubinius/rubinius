@@ -26,4 +26,11 @@ describe 'Kernel#caller' do
     c(0)[2..-1].should == c(2)
     c(0)[3..-1].should == c(3)
   end
+  
+  it "returns nil when all frames are omitted" do
+    x = c(0).size
+    c(x).should == []
+    c(x+1).should == nil
+    c(x+2).should == nil
+  end
 end
