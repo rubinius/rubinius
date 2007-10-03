@@ -77,7 +77,11 @@ class Object
     res << ">"
     return res
   end
-    
+  
+  def self.inspect
+    "Object"
+  end
+  
   alias_method :send, :__send__
   
   def method(name)    
