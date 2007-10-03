@@ -191,6 +191,7 @@ class String
     false
   end
   alias_method :===, :==
+  alias_method :eql?, :==
 
   # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
   # against <i>self</i>, and return the position the match starts, or 
@@ -2074,7 +2075,6 @@ class String
   end
   alias_method :each_line, :each
     
-  alias_method :eql?, :==
 
 =begin
 
