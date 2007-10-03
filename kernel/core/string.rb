@@ -43,8 +43,8 @@ class String
   #   "%05d" % 123                       #=> "00123"
   #   "%-5s: %08x" % [ "ID", self.id ]   #=> "ID   : 200e14d6"
   def %(args)
-    # YSprintf.new(self, *args).parse
-    Sprintf::Parser.format(self, args)
+    YSprintf.new(self, *args).parse
+    # Sprintf::Parser.format(self, args)
   end
 
   # call-seq:
@@ -1926,6 +1926,29 @@ class String
   # This will work correctly when #to_i works
   def hex
     self.to_i(16)
+  end
+  
+  def full_to_i
+    err = "invalid value for Integer: #{self.inspect}"
+    raise ArgumentError, err if self.match(/__/) || self.empty?
+    case self
+    when /^[-+]?0(\d|_\d)/
+      raise ArgumentError, err if self =~ /[^0-7_]/
+      to_i(8)
+    when /^[-+]?0x[a-f\d]/i
+      after = self.match(/^[-+]?0x/i)
+      raise ArgumentError, err if /([^0-9a-f_])/i.match_from(self, after.end(0))
+      to_i(16)
+    when /^[-+]?0b[01]/i
+      after = self.match(/^[-+]?0b/i)      
+      raise ArgumentError, err if /[^01_]/.match_from(self, after.end(0))
+      to_i(2)
+    when /^[-+]?\d/
+      raise ArgumentError, err if self.match(/[^0-9_]/)
+      to_i(10)
+    else
+      raise ArgumentError, err
+    end
   end
   
   def match(pattern)

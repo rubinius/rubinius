@@ -465,10 +465,11 @@ class YSprintf
   attr_accessor :flags
   
   RADIXES = {"b" => 2, "o" => 8, "d" => 10, "x" => 16}
-  ALTERNATIVES = {"o" => "0", "b" => "0b", "x" => "0x", "X" => "0X"}
+  ALTERNATIVES = {"o" => "0", "b" => "0b", "B" => "0B", "x" => "0x", "X" => "0X"}
   
   def initialize(fmt, *args)
-    @fmt, @args, @arg_position = fmt, args, 0
+    @tainted = fmt.tainted?
+    @fmt, @args, @arg_position = fmt.to_str, args, 0
   end
   
   def parse
@@ -543,7 +544,7 @@ class YSprintf
       end
     
       # TYPE STATE
-      unless type = /\G[bcdEefGgiopsuXx]/.match_from(fmt, start)
+      unless type = /\G[bcdEefGgiopsuXx]/i.match_from(fmt, start)
         raise ArgumentError, "malformed format string - missing field type" 
       else
         @type = type[0]
@@ -558,6 +559,7 @@ class YSprintf
       raise ArgumentError, "you need to use all the arguments" unless @arg_position == args.size - 1
     end
     ret << @fmt[start..-1] if start < @fmt.size
+    ret.taint if @tainted
     ret
   end
   
@@ -566,40 +568,83 @@ class YSprintf
     
     # GET VALUE
     if flags[:position]
-      val = args[flags[:position] - 1]
-      raise ArgumentError, "unnumbered mixed with numbered" if @relative      
-      @positional = true
-      raise ArgumentError, "you specified an argument position that did not exist" unless val
-    else
-      val = args[@arg_position]
-      raise ArgumentError, "unnumbered mixed with numbered" if @positional      
-      @relative = true
-      @arg_position += 1
-      raise ArgumentError, "you have more format specifiers than arguments" unless val      
+      val = Slot.new("#{flags[:position]}$")
+      val = get_arg(val)            
     end
-
     
     # GET WIDTH
     @width = Slot.new("*") if flags[:star]
     width = get_arg(@width)
+    width = width.to_int if width.respond_to?(:to_int)
+    if width && width < 0
+      width = width.abs
+      flags[:minus] = true
+    end
     
     # GET PRECISION
     precision = get_arg(@precision)
+    precision = precision.to_int if precision.respond_to?(:to_int)
+    
+    unless flags[:position]
+      val = Slot.new("*")
+      val = get_arg(val)
+    end
     
     case @type
     when "e", "E", "f", "g", "G"
+      if @type.downcase == "g" && flags[:alternative]
+        @old_type = "g"
+        @type = "f"
+        precision = 4 unless precision
+      end
+      val = Float(val)
       ret = val.to_s_formatted(build_format_string(width, precision))
-    when "d"
+      ret = plus_char + ret if val >= 0 && @old_type
+    when "d", "i", "u"
+      val = get_number(val)
+      ret = pad(val, width, precision)
+    when "c"
+      val = val.to_int if val.respond_to?(:to_int)
+      raise TypeError, "cannot convert #{val.class} into Integer" unless val.respond_to?(:chr) && val.respond_to?(:%)
+      val = (val % 256).chr
       ret = pad(val, width, precision)
     when "s"
       flags[:zero] = flags[:space] = flags[:plus] = nil
       ret = pad(val, width, precision)
+      ret.taint if val.tainted?
+    when "p"
+      flags[:zero] = flags[:space] = flags[:plus] = nil
+      ret = pad(val.inspect, width, precision)      
     when "o", "x", "X", "b", "B"
-      ret = Number.new(val, RADIXES[@type]).rep
-      ret = pad(ret, width, precision, (RADIXES[@type] - 1).to_s)
-      ret = ALTERNATIVES[@type].to_s + ret if flags[:alternatives]
+      val = get_number(val)
+      unless flags[:space] || flags[:plus]
+        ret = Number.new(val, RADIXES[@type.downcase]).rep
+        ret = pad(ret, width, precision, (RADIXES[@type.downcase] - 1).to_s(RADIXES[@type.downcase]))
+        ret = ALTERNATIVES[@type].to_s + ret if flags[:alternative]
+      else
+        flags[:plus] = nil if val < 0
+        ret = val.to_s(RADIXES[@type.downcase])
+        ret.gsub!(/^(\-?)/, "\1#{ALTERNATIVES[@type]}") if flags[:alternative]
+        ret = pad(ret, width, precision)
+        ret.gsub!(/ \-/, "-")
+      end
+      ret = ret.downcase if @type == "x"
+      ret = ret.upcase if @type == "X"
     end
     ret
+  end
+  
+  def get_number(val)
+    unless val.respond_to?(:full_to_i)
+      if val.respond_to?(:to_int)        
+        val = val.to_int
+      elsif val.respond_to?(:to_i)
+        val = val.to_i
+      end
+    end
+    val = val.full_to_i if val.respond_to?(:full_to_i)    
+    val = 0 if val.nil?
+    val
   end
   
   def build_format_string(width, precision)
@@ -616,6 +661,7 @@ class YSprintf
     ret << "+" if flags[:plus]
     ret << "-" if flags[:minus]
     ret << "0" if flags[:zero]
+    ret
   end
   
   def get_arg(slot)
@@ -623,6 +669,7 @@ class YSprintf
     if slot.position == :next
       raise ArgumentError, "unnumbered mixed with numbered" if @positional
       @relative = true
+      raise ArgumentError, "you ran out of arguments" if @arg_position >= args.size
       ret = args[@arg_position]
       @arg_position += 1
     elsif slot.pos
@@ -633,10 +680,8 @@ class YSprintf
       raise ArgumentError, "unnumbered mixed with numbered" if @positional      
       @relative = true
       ret = slot.value
-    else
-      ret = nil
     end
-    raise ArgumentError, "you specified an argument position that did not exist: #{slot.str}" unless ret
+    raise ArgumentError, "you specified an argument position that did not exist: #{slot.str}" unless defined?(ret)
     ret
   end
   
@@ -644,9 +689,11 @@ class YSprintf
     direction = flags[:minus] ? :ljust : :rjust
     ret = val.to_s
     modded_width = width.to_i + (flags[:plus] ? 1 : 0)
-    width = nil if modded_width <= val.size
+    width = nil if modded_width <= val.to_s.size
+    if precision || flags[:zero]
+      ret.gsub!("..", "")
+    end
     if precision
-      ret.gsub!("..", "")      
       ret = plus_char + ret.send(direction, precision, pad_override || "0") 
       flags[:zero] = flags[:plus] = flags[:space] = nil
     end
