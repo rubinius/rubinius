@@ -810,8 +810,128 @@ class String
     self.to_i(16)
   end
 
+  # Returns <code>true</code> if <i>self</i> contains the given string or
+  # character.
+  #    
+  #   "hello".include? "lo"   #=> true
+  #   "hello".include? "ol"   #=> false
+  #   "hello".include? ?h     #=> true
+  def include?(needle)
+    if needle.is_a? Fixnum
+      each_byte { |b| return true if b == (needle % 256) }
+      return false
+    end
 
+    !self.index(StringValue(needle)).nil?
+  end
 
+  # Returns the index of the first occurrence of the given <i>substring</i>,
+  # character (<i>fixnum</i>), or pattern (<i>regexp</i>) in <i>self</i>. Returns
+  # <code>nil</code> if not found. If the second parameter is present, it
+  # specifies the position in the string to begin the search.
+  # 
+  #   "hello".index('e')             #=> 1
+  #   "hello".index('lo')            #=> 3
+  #   "hello".index('a')             #=> nil
+  #   "hello".index(101)             #=> 1
+  #   "hello".index(/[aeiou]/, -3)   #=> 4
+  def index(needle, offset = 0)
+    offset = offset.to_int if !offset.instance_of?(Integer) && offset.respond_to?(:to_int)
+    offset = @bytes + offset if offset < 0
+    return nil if offset < 0 || offset > @bytes
+
+    needle = needle.to_str if !needle.instance_of?(String) && needle.respond_to?(:to_str)
+
+    # What are we searching for?
+    case needle
+    when Fixnum
+      (offset...self.size).each do |i|
+        return i if @data[i] == needle
+      end
+    when String
+      return offset if needle == ""
+            
+      needle_size = needle.size
+      
+      max = @bytes - needle_size
+      return if max < 0 # <= 0 maybe?
+      
+      offset.upto(max) do |i|
+        if @data[i] == needle.data[0]
+          return i if substring(i, needle_size) == needle
+        end
+      end
+    when Regexp
+      if match = needle.match(self[offset..-1])
+        return (offset + match.begin(0))
+      end
+    else
+      raise TypeError, "type mismatch: #{needle.class} given"
+    end
+
+    return nil
+  end
+  
+  # Inserts <i>other_string</i> before the character at the given
+  # <i>index</i>, modifying <i>self</i>. Negative indices count from the
+  # end of the string, and insert <em>after</em> the given character.
+  # The intent is insert <i>other_string</i> so that it starts at the given
+  # <i>index</i>.
+  #    
+  #   "abcd".insert(0, 'X')    #=> "Xabcd"
+  #   "abcd".insert(3, 'X')    #=> "abcXd"
+  #   "abcd".insert(4, 'X')    #=> "abcdX"
+  #   "abcd".insert(-3, 'X')   #=> "abXcd"
+  #   "abcd".insert(-1, 'X')   #=> "abcdX"
+  def insert(index, other_string)
+    other_string = StringValue(other_string)
+    
+    index = Integer(index)
+    
+    if index == -1
+      return self << other_string
+    elsif index < 0
+      index += 1
+    end
+    
+    self[index, 0] = other_string
+    self
+  end
+
+  # Returns a printable version of _self_, with special characters
+  # escaped.
+  #
+  #   str = "hello"
+  #   str[3] = 8
+  #   str.inspect       #=> "hel\010o"
+  def inspect
+    return "\"#{self}\"".copy_properties(self) if $KCODE == "UTF-8"
+    res =  "\""
+    self.each_byte do |char|
+      if ci = ControlCharacters.index(char)
+        res << ControlPrintValue[ci]
+      elsif char == ?"
+        res << "\\\""
+      elsif char == ?\\
+        res << "\\\\"
+      elsif char == ?#
+        res << "\\\#"
+      elsif char < 32 or char > 126
+        v = char.to_s(8)
+        if v.size == 1
+          res << "\\00#{v}"
+        elsif v.size == 2
+          res << "\\0#{v}"
+        else
+          res << "\\#{v}"
+        end
+      else
+        res << char.chr
+      end
+    end
+    res << "\""
+    return res.copy_properties(self)
+  end
 
   # Returns the length of <i>self</i>.
   def length
@@ -819,6 +939,17 @@ class String
   end
   alias_method :size, :length
 
+  # If <i>integer</i> is greater than the length of <i>str</i>, returns a new
+  # <code>String</code> of length <i>integer</i> with <i>str</i> left justified
+  # and padded with <i>padstr</i>; otherwise, returns <i>str</i>.
+  #    
+  #   "hello".ljust(4)            #=> "hello"
+  #   "hello".ljust(20)           #=> "hello               "
+  #   "hello".ljust(20, '1234')   #=> "hello123412341234123"
+  def ljust(integer, padstr = " ")
+    justify(integer, :left, padstr)
+  end
+  
   # Returns a copy of <i>self</i> with leading whitespace removed. See also
   # <code>String#rstrip</code> and <code>String#strip</code>.
   #    
@@ -1711,41 +1842,6 @@ class String
   
   ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
-  
-  # Returns a printable version of _str_, with special characters
-  # escaped.
-  #
-  #   str = "hello"
-  #   str[3] = 8
-  #   str.inspect       #=> "hel\010o"
-  def inspect
-    return "\"#{self}\"".copy_properties(self) if $KCODE == "UTF-8"
-    res =  "\""
-    self.each_byte do |char|
-      if ci = ControlCharacters.index(char)
-        res << ControlPrintValue[ci]
-      elsif char == ?"
-        res << "\\\""
-      elsif char == ?\\
-        res << "\\\\"
-      elsif char == ?#
-        res << "\\\#"
-      elsif char < 32 or char > 126
-        v = char.to_s(8)
-        if v.size == 1
-          res << "\\00#{v}"
-        elsif v.size == 2
-          res << "\\0#{v}"
-        else
-          res << "\\#{v}"
-        end
-      else
-        res << char.chr
-      end
-    end
-    res << "\""
-    return res.copy_properties(self)
-  end
 
   #---
   # NOTE: This overwrites String#dup defined in bootstrap.
@@ -1876,21 +1972,6 @@ class String
     ret
   end
 
-  def insert(index, other_string)
-    other_string = StringValue(other_string)
-    
-    index = Integer(index)
-    
-    if index == -1
-      return self << other_string
-    elsif index < 0
-      index += 1
-    end
-    
-    self[index, 0] = other_string
-    self
-  end
-
   def expand_tr_string(string)
     string.gsub(/[^-]-[^-]/) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
   end
@@ -1998,58 +2079,6 @@ class String
   def tr!(from_str, to_str)
     replace_if(tr(from_str, to_str))
   end
-
-  # Returns <code>true</code> if <i>self</i> contains the given string or
-  # character.
-  #    
-  #   "hello".include? "lo"   #=> true
-  #   "hello".include? "ol"   #=> false
-  #   "hello".include? ?h     #=> true
-  def include?(needle)
-    if needle.is_a? Fixnum
-      each_byte { |b| return true if b == (needle % 256) }
-      return false
-    end
-
-    !self.index(StringValue(needle)).nil?
-  end
-
-  def index(needle, offset = 0)
-    offset = offset.to_int if !offset.instance_of?(Integer) && offset.respond_to?(:to_int)
-    offset = @bytes + offset if offset < 0
-    return nil if offset < 0 || offset > @bytes
-
-    needle = needle.to_str if !needle.instance_of?(String) && needle.respond_to?(:to_str)
-
-    # What are we searching for?
-    case needle
-    when Fixnum
-      (offset...self.size).each do |i|
-        return i if @data[i] == needle
-      end
-    when String
-      return offset if needle == ""
-            
-      needle_size = needle.size
-      
-      max = @bytes - needle_size
-      return if max < 0 # <= 0 maybe?
-      
-      offset.upto(max) do |i|
-        if @data[i] == needle.data[0]
-          return i if substring(i, needle_size) == needle
-        end
-      end
-    when Regexp
-      if match = needle.match(self[offset..-1])
-        return (offset + match.begin(0))
-      end
-    else
-      raise TypeError, "type mismatch: #{needle.class} given"
-    end
-
-    return nil
-  end
   
   def without_changing_regex_global
     old_md = $~
@@ -2103,10 +2132,6 @@ class String
   #   end
   #   return nil
   # end
-
-  def ljust(integer, padstr = " ")
-    justify(integer, :left, padstr)
-  end
 
   def full_to_i
     err = "invalid value for Integer: #{self.inspect}"
