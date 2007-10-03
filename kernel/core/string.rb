@@ -660,7 +660,21 @@ class String
     replace(substring(start, @bytes - start))
   end
 
-
+  # Converts <i>pattern</i> to a <code>Regexp</code> (if it isn't already one),
+  # then invokes its <code>match</code> method on <i>self</i>.
+  #    
+  #   'hello'.match('(.)\1')      #=> #<MatchData:0x401b3d30>
+  #   'hello'.match('(.)\1')[0]   #=> "ll"
+  #   'hello'.match(/(.)\1/)[0]   #=> "ll"
+  #   'hello'.match('xx')         #=> nil
+  def match(pattern)
+    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
+      pattern = pattern.to_str if pattern.respond_to?(:to_str)
+      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)" unless pattern.is_a?(String)
+    end
+    pattern = Regexp.new(pattern) unless Regexp === pattern
+    pattern.match(self)
+  end
 
   # Treats leading characters of <i>self</i> as a string of octal digits (with an
   # optional sign) and returns the corresponding number. Returns 0 if the
@@ -2005,15 +2019,6 @@ class String
     else
       raise ArgumentError, err
     end
-  end
-  
-  def match(pattern)
-    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
-      pattern = pattern.to_str if pattern.respond_to?(:to_str)
-      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)" unless pattern.is_a?(String)
-    end
-    pattern = Regexp.new(pattern) unless Regexp === pattern
-    pattern.match(self)
   end
   
   def upto(stop)
