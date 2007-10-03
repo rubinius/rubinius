@@ -898,6 +898,9 @@ class String
     self
   end
 
+  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
+  ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
+
   # Returns a printable version of _self_, with special characters
   # escaped.
   #
@@ -939,9 +942,9 @@ class String
   end
   alias_method :size, :length
 
-  # If <i>integer</i> is greater than the length of <i>str</i>, returns a new
-  # <code>String</code> of length <i>integer</i> with <i>str</i> left justified
-  # and padded with <i>padstr</i>; otherwise, returns <i>str</i>.
+  # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
+  # <code>String</code> of length <i>integer</i> with <i>self</i> left justified
+  # and padded with <i>padstr</i>; otherwise, returns <i>self</i>.
   #    
   #   "hello".ljust(4)            #=> "hello"
   #   "hello".ljust(20)           #=> "hello               "
@@ -1190,7 +1193,7 @@ class String
     end
   end
   
-  # Deletes the specified portion from <i>str</i>, and returns the portion
+  # Deletes the specified portion from <i>self</i>, and returns the portion
   # deleted. The forms that take a <code>Fixnum</code> will raise an
   # <code>IndexError</code> if the value is out of range; the <code>Range</code>
   # form will raise a <code>RangeError</code>, and the <code>Regexp</code> and
@@ -1563,7 +1566,33 @@ class String
     self.class == String ? self : String.new(self)
   end
   alias_method :to_str, :to_s
+
+  # Returns a copy of <i>self</i> with all lowercase letters replaced with their
+  # uppercase counterparts. The operation is locale insensitive---only
+  # characters ``a'' to ``z'' are affected.
+  #    
+  #   "hEllO".upcase   #=> "HELLO"
+  def upcase
+    (str = self.dup).upcase! || str
+  end
   
+  # Upcases the contents of <i>self</i>, returning <code>nil</code> if no changes
+  # were made.
+  def upcase!
+    return if @bytes == 0
+    self.modify!
+  
+    modified = false
+  
+    @bytes.times do |i|
+      if @data[i].islower
+        @data[i] = @data[i].toupper
+        modified = true
+      end
+    end
+
+    modified ? self : nil
+  end
   
 
 
@@ -1839,9 +1868,6 @@ class String
       
     replace(output)
   end
-  
-  ControlCharacters = [?\n, ?\t, ?\a, ?\v, ?\f, ?\r, ?\e, ?\b]
-  ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
 
   #---
   # NOTE: This overwrites String#dup defined in bootstrap.
@@ -1923,26 +1949,6 @@ class String
   #   s                     #=> "world"
   def replace_if(other)
     self == other ? nil : replace(other)
-  end
-  
-  def upcase
-    (str = self.dup).upcase! || str
-  end
-  
-  def upcase!
-    return if @bytes == 0
-    self.modify!
-  
-    modified = false
-  
-    @bytes.times do |i|
-      if @data[i].islower
-        @data[i] = @data[i].toupper
-        modified = true
-      end
-    end
-
-    modified ? self : nil
   end
   
   def get_pattern(pattern, quote = false)
