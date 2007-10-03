@@ -87,3 +87,60 @@ describe "Assignment via return" do
     def r; return *[*[1,2]]; end; a,b,*c = r(); [a,b,c].should == [1,2,[]]    
   end
 end
+
+describe "Return from within a begin" do
+  it "should execute ensure before returning from function" do
+    def f(a)
+      begin
+        return a
+      ensure
+        a << 1
+      end
+    end
+    f([]).should == [1]
+  end
+
+  it "should execute return in ensure before returning from function" do
+    def f(a)
+      begin
+        return a
+      ensure
+        return [0]
+        a << 1
+      end
+    end
+    f([]).should == [0]
+  end
+
+  it "should execute ensures in stack order before returning from function" do
+    def f(a)
+      begin
+        begin
+          return a
+        ensure
+          a << 2
+        end
+      ensure
+        a << 1
+      end
+    end
+    f([]).should == [2,1]
+  end
+
+  it "should execute return at base of ensure stack" do
+    def f(a)
+      begin
+        begin
+          return a
+        ensure
+          a << 2
+          return 2
+        end        
+      ensure
+        a << 1
+        return 1
+      end
+    end
+    f([]).should == 1
+  end
+end
