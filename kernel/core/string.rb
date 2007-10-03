@@ -668,12 +668,7 @@ class String
   #   'hello'.match(/(.)\1/)[0]   #=> "ll"
   #   'hello'.match('xx')         #=> nil
   def match(pattern)
-    unless pattern.is_a?(String) || pattern.is_a?(Regexp)
-      pattern = pattern.to_str if pattern.respond_to?(:to_str)
-      raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)" unless pattern.is_a?(String)
-    end
-    pattern = Regexp.new(pattern) unless Regexp === pattern
-    pattern.match(self)
+    get_pattern(pattern).match(self)
   end
 
   # Treats leading characters of <i>self</i> as a string of octal digits (with an
@@ -845,7 +840,7 @@ class String
   #   rceu lowlr
   def scan(pattern, &block)
     taint = self.tainted? || pattern.tainted?
-    pattern = get_pattern(pattern)
+    pattern = get_pattern(pattern, true)
     index = 0
 
     unless block_given?
@@ -1055,8 +1050,7 @@ class String
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
     
     out = self.dup
-    if match = get_pattern(pattern).match(self.dup)
-  
+    if match = get_pattern(pattern, true).match(self.dup)
       out = match.pre_match
       old_md = $~
 
@@ -1677,7 +1671,7 @@ class String
     modified ? self : nil
   end
   
-  def get_pattern(pattern)
+  def get_pattern(pattern, quote = false)
     unless pattern.is_a?(String) || pattern.is_a?(Regexp)
       if pattern.respond_to?(:to_str)
         pattern = pattern.to_str
@@ -1685,7 +1679,7 @@ class String
         raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
       end
     end
-    pattern = Regexp.quote(pattern) if pattern.is_a?(String)
+    pattern = Regexp.quote(pattern) if quote && pattern.is_a?(String)
     pattern = Regexp.new(pattern) unless pattern.is_a?(Regexp)
     pattern
   end
@@ -1717,7 +1711,7 @@ class String
 
     $~ = nil
 
-    pattern = get_pattern(pattern)
+    pattern = get_pattern(pattern, true)
     
     copy = self.dup
     
@@ -1748,7 +1742,7 @@ class String
   end
   
   def gsub!(pattern, replacement = nil, &block)
-    pattern = get_pattern(pattern)
+    pattern = get_pattern(pattern, true)
     if self.frozen? && self =~ pattern
       raise TypeError, "You cannot modify a frozen string" if !block
       raise RuntimeError, "You cannot modify a frozen string" if block
