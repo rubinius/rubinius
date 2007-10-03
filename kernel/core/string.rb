@@ -1583,7 +1583,7 @@ class String
       if pattern.respond_to?(:to_str)
         pattern = pattern.to_str
       else
-        raise TypeError, "pattern cannot be converted to a string"
+        raise TypeError, "wrong argument type #{pattern.class} (expected Regexp)"
       end
     end
     pattern = Regexp.quote(pattern) if pattern.is_a?(String)
