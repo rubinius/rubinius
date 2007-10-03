@@ -15,7 +15,8 @@ describe "String#index with object" do
 
   it "tries to convert obj to a string via to_str" do
     obj = Object.new
-    obj.should_receive(:to_str, :returning => "lo")
+    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "lo")
     "hello".index(obj).should == "hello".index("lo")
     
     obj = Object.new
