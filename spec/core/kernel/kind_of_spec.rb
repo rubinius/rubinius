@@ -8,6 +8,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       s.send(cmd, String).should == true
       s.send(cmd, Object).should == true
       s.send(cmd, Class).should == false
+      s.send(cmd, Kernel).should == true
     end
 
     it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj Array example" do
