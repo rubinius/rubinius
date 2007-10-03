@@ -671,7 +671,7 @@ class String
   #   "bad".oct       #=> 0
   #   "0377bad".oct   #=> 255
   def oct
-    self.to_i(8)
+    self.to_inum(-8)
   end
 
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
