@@ -761,6 +761,50 @@ class String
     ret && ret.begin(0)
   end
 
+  # If <i>integer</i> is greater than the length of <i>self</i>, returns a new
+  # <code>String</code> of length <i>integer</i> with <i>self</i> right justified
+  # and padded with <i>padstr</i>; otherwise, returns <i>self</i>.
+  #    
+  #   "hello".rjust(4)            #=> "hello"
+  #   "hello".rjust(20)           #=> "               hello"
+  #   "hello".rjust(20, '1234')   #=> "123412341234123hello"
+  def rjust(integer, padstr = " ")
+    justify(integer, :right, padstr)
+  end
+  
+  # Returns a copy of <i>self</i> with trailing whitespace removed. See also
+  # <code>String#lstrip</code> and <code>String#strip</code>.
+  #    
+  #   "  hello  ".rstrip   #=> "  hello"
+  #   "hello".rstrip       #=> "hello"
+  def rstrip
+    (str = self.dup).rstrip! || str
+  end
+
+  # Removes trailing whitespace from <i>self</i>, returning <code>nil</code> if
+  # no change was made. See also <code>String#lstrip!</code> and
+  # <code>String#strip!</code>.
+  # 
+  #   "  hello  ".rstrip   #=> "  hello"
+  #   "hello".rstrip!      #=> nil
+  def rstrip!
+    return if @bytes == 0
+    
+    stop = @bytes - 1
+    while stop >= 0
+      c = @data[stop]
+      if c.isspace || c == 0
+        stop -= 1
+      else
+        break
+      end
+    end
+
+    return if stop + 1 == @bytes
+    replace(substring(0, stop + 1))
+  end
+
+
   # Both forms iterate through <i>self</i>, matching the pattern (which may be a
   # <code>Regexp</code> or a <code>String</code>). For each match, a result is
   # generated and either added to the result array or passed to the block. If
@@ -1619,27 +1663,6 @@ class String
     modified ? self : nil
   end
   
-  def rstrip
-    (str = self.dup).rstrip! || str
-  end
-  
-  def rstrip!
-    return if @bytes == 0
-    
-    stop = @bytes - 1
-    while stop >= 0
-      c = @data[stop]
-      if c.isspace || c == 0
-        stop -= 1
-      else
-        break
-      end
-    end
-
-    return if stop + 1 == @bytes
-    replace(substring(0, stop + 1))
-  end
-
   def get_pattern(pattern)
     unless pattern.is_a?(String) || pattern.is_a?(Regexp)
       if pattern.respond_to?(:to_str)
@@ -1951,10 +1974,6 @@ class String
   #   end
   #   return nil
   # end
-
-  def rjust(integer, padstr = " ")
-    justify(integer, :right, padstr)
-  end
 
   def ljust(integer, padstr = " ")
     justify(integer, :left, padstr)
