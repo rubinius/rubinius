@@ -628,6 +628,38 @@ class String
   end
   alias_method :size, :length
 
+  # Returns a copy of <i>self</i> with leading whitespace removed. See also
+  # <code>String#rstrip</code> and <code>String#strip</code>.
+  #    
+  #   "  hello  ".lstrip   #=> "hello  "
+  #   "hello".lstrip       #=> "hello"
+  def lstrip
+    (str = self.dup).lstrip! || str
+  end
+  
+  # Removes leading whitespace from <i>self</i>, returning <code>nil</code> if no
+  # change was made. See also <code>String#rstrip!</code> and
+  # <code>String#strip!</code>.
+  #    
+  #   "  hello  ".lstrip   #=> "hello  "
+  #   "hello".lstrip!      #=> nil
+  def lstrip!
+    return if @bytes == 0
+  
+    start = 0
+    while start < @bytes
+      c = @data[start]
+      if c.isspace
+        start += 1
+      else
+        break
+      end
+    end
+  
+    return if start == 0
+    replace(substring(start, @bytes - start))
+  end
+
 
 
   # Both forms iterate through <i>self</i>, matching the pattern (which may be a
@@ -1534,27 +1566,6 @@ class String
       j -= 1
     end
     self
-  end
-  
-  def lstrip
-    (str = self.dup).lstrip! || str
-  end
-  
-  def lstrip!
-    return if @bytes == 0
-  
-    start = 0
-    while start < @bytes
-      c = @data[start]
-      if c.isspace
-        start += 1
-      else
-        break
-      end
-    end
-  
-    return if start == 0
-    replace(substring(start, @bytes - start))
   end
   
   def rstrip
