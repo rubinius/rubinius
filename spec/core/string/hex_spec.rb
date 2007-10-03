@@ -21,8 +21,12 @@ describe "String#hex" do
   
   it "takes an optional 0x" do
     "0x0a".hex.should == 10
-    "0x-1".hex.should == (2 ** 32) - 1
-    "0x0x1".hex.should == 1
+
+    # Weird strtoul behaviour, see to_i_spec.rb
+    noncompliant :mri do
+      "0x0x1".hex.should == 1
+      "0x-1".hex.should == (2 ** 32) - 1
+    end
   end
   
   it "returns 0 on error" do
