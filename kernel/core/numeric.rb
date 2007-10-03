@@ -98,10 +98,9 @@ class Numeric
   end
   
   def ==(other)
-    begin
-      b, a = self.coerce(other)
-      return a == b
-    rescue TypeError, ArgumentError
+    if values = self.do_coerce(other, false)
+      return values[1] == values[0]
+    else
       return other == self
     end
   end
@@ -137,6 +136,7 @@ class Numeric
         message = "#{other.is_a?(Symbol) ? other.inspect : other.class} can't be coerced into #{self.class}"
         raise TypeError, message 
       end
+      return false
     end
     
     unless values.is_a?(Array) && values.length == 2
