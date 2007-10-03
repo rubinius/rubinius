@@ -807,7 +807,7 @@ class String
   #    "0".hex        #=> 0
   #    "wombat".hex   #=> 0
   def hex
-    self.to_i(16)
+    self.to_inum(16)
   end
 
   # Returns <code>true</code> if <i>self</i> contains the given string or
