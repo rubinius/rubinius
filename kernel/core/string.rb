@@ -628,7 +628,7 @@ class String
   # <em>produces:</em>
   #    
   #   104 101 108 108 111
-  def each_byte(&prc)
+  def each_byte()
     i = 0
     while i < @bytes do
       yield @data.get_byte(i)
@@ -663,7 +663,7 @@ class String
   #   Example three
   #   "hello\n\n\n"
   #   "world"
-  def each(separator=$/)
+  def each(separator = $/)
     if separator.nil?
       yield self
       return self
@@ -714,6 +714,103 @@ class String
   def empty?
     @bytes == 0
   end
+
+  # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
+  # replaced with either <i>replacement</i> or the value of the block. The
+  # <i>pattern</i> will typically be a <code>Regexp</code>; if it is a
+  # <code>String</code> then no regular expression metacharacters will be
+  # interpreted (that is <code>/\d/</code> will match a digit, but
+  # <code>'\d'</code> will match a backslash followed by a 'd').
+  #    
+  # If a string is used as the replacement, special variables from the match
+  # (such as <code>$&</code> and <code>$1</code>) cannot be substituted into it,
+  # as substitution into the string occurs before the pattern match
+  # starts. However, the sequences <code>\1</code>, <code>\2</code>, and so on
+  # may be used to interpolate successive groups in the match.
+  #    
+  # In the block form, the current match string is passed in as a parameter, and
+  # variables such as <code>$1</code>, <code>$2</code>, <code>$`</code>,
+  # <code>$&</code>, and <code>$'</code> will be set appropriately. The value
+  # returned by the block will be substituted for the match on each call.
+  #    
+  # The result inherits any tainting in the original string or any supplied
+  # replacement string.
+  #    
+  #   "hello".gsub(/[aeiou]/, '*')              #=> "h*ll*"
+  #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
+  #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
+  def gsub(pattern, replacement = nil, &block)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
+
+    taint = self.tainted? || replacement.tainted?
+    replacement = StringValue(replacement).replace_slashes if replacement
+
+    start = 0
+    last_end = 0
+    ret = ""
+
+    $~ = nil
+
+    pattern = get_pattern(pattern, true)
+    
+    copy = self.dup
+    
+    while(match = pattern.match_from(copy, start))
+      $~ = match      
+      ret << (match.pre_match_from(last_end) || "")
+      if replacement
+        # x[-1,1] returns a character version of the last character
+        old_md = $~
+        ret << replacement.to_sub_replacement(match)
+        $~ = old_md
+      else
+        old_md = $~
+        item = block.call(match[0].dup)
+        ret << item.to_s
+        $~ = old_md
+      end
+      last_end = match.end(0)
+      start = match.collapsing? ? start + 1 : match.end(0)
+    end
+    if self != copy
+      raise RuntimeError, "You cannot modify the original string"
+    end
+    ret << self[start..-1] if self[start..-1]
+    ret.taint if taint
+    ret = self.class.new(ret) unless self.instance_of?(String)
+    ret
+  end
+  
+  # Performs the substitutions of <code>String#gsub</code> in place, returning
+  # <i>self</i>, or <code>nil</code> if no substitutions were performed.
+  def gsub!(pattern, replacement = nil, &block)
+    pattern = get_pattern(pattern, true)
+    if self.frozen? && self =~ pattern
+      raise TypeError, "You cannot modify a frozen string" if !block
+      raise RuntimeError, "You cannot modify a frozen string" if block
+    end
+    to_replace = self.gsub(pattern, replacement, &block)
+    if self != to_replace
+      self.replace(to_replace)
+    else
+      return nil
+    end
+  end
+
+  # Treats leading characters from <i>self</i> as a string of hexadecimal digits
+  # (with an optional sign and an optional <code>0x</code>) and returns the
+  # corresponding number. Zero is returned on error.
+  #    
+  #    "0x0a".hex     #=> 10
+  #    "-1234".hex    #=> -4660
+  #    "0".hex        #=> 0
+  #    "wombat".hex   #=> 0
+  def hex
+    self.to_i(16)
+  end
+
+
 
 
   # Returns the length of <i>self</i>.
@@ -1779,63 +1876,6 @@ class String
     ret
   end
 
-  def gsub(pattern, replacement = nil, &block)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
-
-    taint = self.tainted? || replacement.tainted?
-    replacement = StringValue(replacement).replace_slashes if replacement
-
-    start = 0
-    last_end = 0
-    ret = ""
-
-    $~ = nil
-
-    pattern = get_pattern(pattern, true)
-    
-    copy = self.dup
-    
-    while(match = pattern.match_from(copy, start))
-      $~ = match      
-      ret << (match.pre_match_from(last_end) || "")
-      if replacement
-        # x[-1,1] returns a character version of the last character
-        old_md = $~
-        ret << replacement.to_sub_replacement(match)
-        $~ = old_md
-      else
-        old_md = $~
-        item = block.call(match[0].dup)
-        ret << item.to_s
-        $~ = old_md
-      end
-      last_end = match.end(0)
-      start = match.collapsing? ? start + 1 : match.end(0)
-    end
-    if self != copy
-      raise RuntimeError, "You cannot modify the original string"
-    end
-    ret << self[start..-1] if self[start..-1]
-    ret.taint if taint
-    ret = self.class.new(ret) unless self.instance_of?(String)
-    ret
-  end
-  
-  def gsub!(pattern, replacement = nil, &block)
-    pattern = get_pattern(pattern, true)
-    if self.frozen? && self =~ pattern
-      raise TypeError, "You cannot modify a frozen string" if !block
-      raise RuntimeError, "You cannot modify a frozen string" if block
-    end
-    to_replace = self.gsub(pattern, replacement, &block)
-    if self != to_replace
-      self.replace(to_replace)
-    else
-      return nil
-    end
-  end
-
   def insert(index, other_string)
     other_string = StringValue(other_string)
     
@@ -2068,11 +2108,6 @@ class String
     justify(integer, :left, padstr)
   end
 
-  # This will work correctly when #to_i works
-  def hex
-    self.to_i(16)
-  end
-  
   def full_to_i
     err = "invalid value for Integer: #{self.inspect}"
     raise ArgumentError, err if self.match(/__/) || self.empty?
