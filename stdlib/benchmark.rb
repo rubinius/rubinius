@@ -172,7 +172,7 @@ module Benchmark
     STDOUT.sync = true
     label_width ||= 0
     fmtstr ||= FMTSTR
-    raise ArgumentError, "no block" unless iterator?
+    raise ArgumentError, "no block" unless block_given?
     print caption
     results = yield(Report.new(label_width, fmtstr))
     Array === results and results.grep(Tms).each {|t|
@@ -273,7 +273,8 @@ module Benchmark
     print ' '*width, CAPTION
     list = []
     ary = []
-    job.list.each{|label,item|
+    job.list.each{|label_item|
+      label, item = label_item
       GC::start
       print label.ljust(width)
       res = Benchmark::measure(&item)
