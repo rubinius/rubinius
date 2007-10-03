@@ -836,7 +836,7 @@ class String
   #   "hello".index(101)             #=> 1
   #   "hello".index(/[aeiou]/, -3)   #=> 4
   def index(needle, offset = 0)
-    offset = offset.to_int if !offset.instance_of?(Integer) && offset.respond_to?(:to_int)
+    offset = offset.coerce_to(Integer, :to_int)
     offset = @bytes + offset if offset < 0
     return nil if offset < 0 || offset > @bytes
 
