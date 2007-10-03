@@ -662,6 +662,105 @@ class String
 
 
 
+  # Treats leading characters of <i>self</i> as a string of octal digits (with an
+  # optional sign) and returns the corresponding number. Returns 0 if the
+  # conversion fails.
+  #    
+  #   "123".oct       #=> 83
+  #   "-377".oct      #=> -255
+  #   "bad".oct       #=> 0
+  #   "0377bad".oct   #=> 255
+  def oct
+    self.to_i(8)
+  end
+
+  # Replaces the contents and taintedness of <i>string</i> with the corresponding
+  # values in <i>other</i>.
+  # 
+  #   s = "hello"         #=> "hello"
+  #   s.replace "world"   #=> "world"
+  def replace(other)
+    # If we're replacing with ourselves, then we have nothing to do
+    return self if self.equal?(other)
+
+    other = StringValue(other)
+
+    raise TypeError, "can't modify frozen string" if self.frozen?
+
+    @shared = true
+    other.shared!
+    @data = other.data
+    @bytes = other.bytes
+    @characters = other.characters
+    @encoding = other.encoding
+    
+    self.taint if other.tainted?
+    
+    self
+  end
+  alias_method :initialize_copy, :replace
+  # private :initialize_copy
+
+  # Returns a new string with the characters from <i>self</i> in reverse order.
+  #    
+  #   "stressed".reverse   #=> "desserts"
+  def reverse
+    self.dup.reverse!
+  end
+
+  # Reverses <i>self</i> in place.
+  def reverse!
+    return self if @bytes <= 1
+    self.modify!
+    
+    i = 0
+    j = @bytes - 1
+    while i < j
+      a = @data[i]
+      b = @data[j]
+      @data[j] = a
+      @data[i] = b
+      i += 1
+      j -= 1
+    end
+    self
+  end
+
+  # Returns the index of the last occurrence of the given <i>substring</i>,
+  # character (<i>fixnum</i>), or pattern (<i>regexp</i>) in <i>self</i>. Returns
+  # <code>nil</code> if not found. If the second parameter is present, it
+  # specifies the position in the string to end the search---characters beyond
+  # this point will not be considered.
+  #    
+  #   "hello".rindex('e')             #=> 1
+  #   "hello".rindex('l')             #=> 3
+  #   "hello".rindex('a')             #=> nil
+  #   "hello".rindex(101)             #=> 1
+  #   "hello".rindex(/[aeiou]/, -2)   #=> 1
+  def rindex(arg, finish = nil)
+    arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
+    original_klass = arg.class
+    if finish
+      finish = finish.coerce_to(Integer, :to_int)
+      finish += @bytes if finish < 0
+      return nil if finish < 0
+      finish = @bytes if finish >= @bytes
+    else
+      finish = size
+    end
+    case arg
+    when Fixnum
+      return nil if arg > 255 || arg < 0
+      arg = Regexp.new(Regexp.quote(arg.chr))
+    when String
+      arg = Regexp.new(Regexp.quote(arg))
+    end
+    
+    ret = arg.match_region(self, 0, finish, false)
+    $~ = ret if original_klass == Regexp
+    ret && ret.begin(0)
+  end
+
   # Both forms iterate through <i>self</i>, matching the pattern (which may be a
   # <code>Regexp</code> or a <code>String</code>). For each match, a result is
   # generated and either added to the result array or passed to the block. If
@@ -1489,33 +1588,6 @@ class String
   end
   
   # Replaces the contents and taintedness of <i>string</i> with the corresponding
-  # values in <i>other</i>.
-  # 
-  #   s = "hello"         #=> "hello"
-  #   s.replace "world"   #=> "world"
-  def replace(other)
-    # If we're replacing with ourselves, then we have nothing to do
-    return self if self.equal?(other)
-
-    other = StringValue(other)
-
-    raise TypeError, "can't modify frozen string" if self.frozen?
-
-    @shared = true
-    other.shared!
-    @data = other.data
-    @bytes = other.bytes
-    @characters = other.characters
-    @encoding = other.encoding
-    
-    self.taint if other.tainted?
-    
-    self
-  end
-  alias_method :initialize_copy, :replace
-  # private :initialize_copy
-  
-  # Replaces the contents and taintedness of <i>string</i> with the corresponding
   # values in <i>other</i> if they differ.
   # 
   #   s = "hello"           #=> "hello"
@@ -1545,27 +1617,6 @@ class String
     end
 
     modified ? self : nil
-  end
-  
-  def reverse
-    self.dup.reverse!
-  end
-
-  def reverse!
-    return self if @bytes <= 1
-    self.modify!
-    
-    i = 0
-    j = @bytes - 1
-    while i < j
-      a = @data[i]
-      b = @data[j]
-      @data[j] = a
-      @data[i] = b
-      i += 1
-      j -= 1
-    end
-    self
   end
   
   def rstrip
@@ -1847,30 +1898,6 @@ class String
 
     return nil
   end
-
-  def rindex(arg, finish = nil)
-    arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
-    original_klass = arg.class
-    if finish
-      finish = finish.coerce_to(Integer, :to_int)
-      finish += @bytes if finish < 0
-      return nil if finish < 0
-      finish = @bytes if finish >= @bytes
-    else
-      finish = size
-    end
-    case arg
-    when Fixnum
-      return nil if arg > 255 || arg < 0
-      arg = Regexp.new(Regexp.quote(arg.chr))
-    when String
-      arg = Regexp.new(Regexp.quote(arg))
-    end
-    
-    ret = arg.match_region(self, 0, finish, false)
-    $~ = ret if original_klass == Regexp
-    ret && ret.begin(0)
-  end
   
   def without_changing_regex_global
     old_md = $~
@@ -1931,10 +1958,6 @@ class String
 
   def ljust(integer, padstr = " ")
     justify(integer, :left, padstr)
-  end
-
-  def oct
-    self.to_i(8)
   end
 
   # This will work correctly when #to_i works
