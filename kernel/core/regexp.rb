@@ -185,13 +185,11 @@ class Regexp
   end
 
   def match(str)
-    obj = match_region(str, 0, str.size, true)
-    $~ = obj
-    return obj
+    $~ = match_region(str, 0, str.size, true)
   end
   
   def match_from(str, count)
-    match_region(str, count, str.size, true)
+    $~ = match_region(str, count, str.size, true)
   end
 
   def to_s

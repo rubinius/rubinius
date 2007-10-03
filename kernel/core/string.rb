@@ -661,32 +661,29 @@ class String
 
     unless block_given?
       ret = []
-      while index <= self.length and match = pattern.match(self[index..-1])
-        if match.begin(0) == match.end(0)
-          index += 1
-        else
-          index += match.end(0)
-        end
-        
-        ret << (match.length > 1 ? match.captures : match[0]).taint
+      while (index, match = scan_once(pattern, index)) && match
+        last_match = $~
+        match.taint if taint
+        ret << match
       end
+      
+      $~ = last_match
       return ret
     else
-      while index <= self.length and match = pattern.match(self[index..-1])
-        if match.begin(0) == match.end(0)
-          index += 1
-        else
-          index += match.end(0)
-        end
+      while (index, match = scan_once(pattern, index)) && match
+        last_match = old_md = $~
         
-        old_md = $~
-        block.call((match.length > 1 ? match.captures : match[0]).taint)
+        match.taint if taint
+        
+        block.call(match)
         $~ = old_md
       end
+      
+      $~ = last_match
       return self
     end
   end
-
+  
   # Deletes the specified portion from <i>str</i>, and returns the portion
   # deleted. The forms that take a <code>Fixnum</code> will raise an
   # <code>IndexError</code> if the value is out of range; the <code>Range</code>
@@ -1065,6 +1062,12 @@ class String
   
 
 
+  def scan_once(pattern, start)
+    if match = pattern.match_from(self, start)
+      start = match.collapsing? ? match.end(0) + 1 : match.end(0)
+      return start, match.length == 1 ? match[0] : match.captures
+    end
+  end
 
   def to_sub_replacement(match)
     self.gsub(/\\[\d\&\`\'\+]/) do |x| 
