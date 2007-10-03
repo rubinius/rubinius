@@ -621,6 +621,99 @@ class String
     modified ? self : nil
   end
   
+  # Passes each byte in <i>self</i> to the given block.
+  #    
+  #   "hello".each_byte {|c| print c, ' ' }
+  #    
+  # <em>produces:</em>
+  #    
+  #   104 101 108 108 111
+  def each_byte(&prc)
+    i = 0
+    while i < @bytes do
+      yield @data.get_byte(i)
+      i += 1
+    end
+    self
+  end
+
+  # Splits <i>self</i> using the supplied parameter as the record separator
+  # (<code>$/</code> by default), passing each substring in turn to the supplied
+  # block. If a zero-length record separator is supplied, the string is split on
+  # <code>\n</code> characters, except that multiple successive newlines are
+  # appended together.
+  #    
+  #   print "Example one\n"
+  #   "hello\nworld".each {|s| p s}
+  #   print "Example two\n"
+  #   "hello\nworld".each('l') {|s| p s}
+  #   print "Example three\n"
+  #   "hello\n\n\nworld".each('') {|s| p s}
+  #    
+  # <em>produces:</em>
+  #    
+  #   Example one
+  #   "hello\n"
+  #   "world"
+  #   Example two
+  #   "hel"
+  #   "l"
+  #   "o\nworl"
+  #   "d"
+  #   Example three
+  #   "hello\n\n\n"
+  #   "world"
+  def each(separator=$/)
+    if separator.nil?
+      yield self
+      return self
+    end
+
+    separator = StringValue(separator)
+    
+    raise LocalJumpError, "no block given" unless block_given?
+    
+    newline = separator.empty? ? ?\n : separator[separator.length - 1]
+    
+    last_index = 0
+    index = separator.length
+    
+    old_str = self.dup
+    
+    while index < self.length
+      if separator.empty?
+        index += 1 while (self.size > index + 2) && self[(index + 1)..(index + 2)] =~ /[^\n]/
+        index += 1 while (self.size > index + 1) && self[index + 1] == ?\n
+      end
+    
+      if self[index] == newline && self[-separator.length, separator.length]
+        line = self[last_index..index]
+        line.taint if self.tainted?
+        yield line
+        raise RuntimeError, "You modified the string while running each" if old_str != self
+        last_index = index + 1
+      end
+      
+      index += 1
+    end
+    
+    unless last_index == self.length
+      line = self[last_index..self.length]
+      line.taint if self.tainted?
+      yield line
+    end
+
+    self
+  end
+  alias_method :each_line, :each
+
+  # Returns <code>true</code> if <i>self</i> has a length of zero.
+  #    
+  #   "hello".empty?   #=> false
+  #   "".empty?        #=> true
+  def empty?
+    @bytes == 0
+  end
 
 
   # Returns the length of <i>self</i>.
@@ -1595,19 +1688,6 @@ class String
     pre == sub
   end
 
-  def each_byte(&prc)
-    i = 0
-    while i < @bytes do
-      yield @data.get_byte(i)
-      i += 1
-    end
-    self
-  end
-  
-  def empty?
-    @bytes == 0
-  end
-  
   # TODO: inspect is NOT dump!
   def dump
     kcode = $KCODE
@@ -2030,51 +2110,6 @@ class String
     end
     self
   end
-
-  def each(separator=$/)
-    if separator.nil?
-      yield self
-      return self
-    end
-
-    separator = StringValue(separator)
-    
-    raise LocalJumpError, "no block given" unless block_given?
-    
-    newline = separator.empty? ? ?\n : separator[separator.length - 1]
-    
-    last_index = 0
-    index = separator.length
-    
-    old_str = self.dup
-    
-    while index < self.length
-      if separator.empty?
-        index += 1 while (self.size > index + 2) && self[(index + 1)..(index + 2)] =~ /[^\n]/
-        index += 1 while (self.size > index + 1) && self[index + 1] == ?\n
-      end
-    
-      if self[index] == newline && self[-separator.length, separator.length]
-        line = self[last_index..index]
-        line.taint if self.tainted?
-        yield line
-        raise RuntimeError, "You modified the string while running each" if old_str != self
-        last_index = index + 1
-      end
-      
-      index += 1
-    end
-    
-    unless last_index == self.length
-      line = self[last_index..self.length]
-      line.taint if self.tainted?
-      yield line
-    end
-
-    self
-  end
-  alias_method :each_line, :each
-    
 
 =begin
 
