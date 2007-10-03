@@ -64,7 +64,7 @@ class SimpleSexpProcessor
     elsif respond_to?(sel)
       return __send__(sel, x)
     else
-      raise RuntimeError, "Unknown type '#{name.inspect}', #{x.inspect}"
+      raise RuntimeError, "Unable to find processor for type '#{name.inspect}'. Rest: #{x.inspect}"
     end
   end
   

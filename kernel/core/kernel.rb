@@ -3,12 +3,25 @@ module Type
   # plugin is able to send this order much easier than in reverse, so
   # we use this.
   def self.coerce_failed(cls, obj)
+    raise TypeError, "A #{obj.class} tried to become a #{cls} but failed"
+  end
+  
+  def self.coerce_unable(exc, cls, obj)
     raise TypeError, "Unable to convert a #{obj.class} into a #{cls}"
   end
 
+  # By default, the inline version of Type.coerce_to is used by the compiler.
+  # This is here for completeness but is rarely called. Changes to it
+  # are not reflected in existing calles to Type.coerce_to without changes
+  # to the compiler.
   def self.coerce_to(obj, cls, meth)
     return obj if obj.kind_of?(cls)
-    ret = obj.__send__(meth)
+    begin
+      ret = obj.__send__(meth)
+    rescue Object => e
+      coerce_unable(e, cls, obj)  
+    end
+    
     if ret.kind_of?(cls)
       return ret
     else

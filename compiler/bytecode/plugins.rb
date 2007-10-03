@@ -33,6 +33,10 @@ class Bytecode::Compiler
       @compiler.unique_lbl(arg)
     end
     
+    def unique_exc
+      @compiler.unique_exc
+    end
+    
     def temp
       name = "+temp_#{@compiler.unique_id}"
       
@@ -221,7 +225,21 @@ class TypeCoercePlugin < Bytecode::Compiler::Plugin
     lbl = unique_lbl("type_")
     add "git #{lbl}"
     add "dup"
+    
+    ec = unique_exc()
+    add "#exc_start #{ec}"
     add "send #{meth} 0"
+    after = unique_lbl("type_")
+    add "goto #{after}"
+    add "#exceptions #{ec}"
+    add "push Fixnum"
+    add "push_exception"
+    add "push Type"
+    add "send coerce_unable 3"
+    add "#exc_end #{ec}"
+    
+    add "#{after}:"
+    
     add "dup"
     add "is_fixnum"
     lbl2 = unique_lbl("type_")
@@ -267,11 +285,24 @@ class TypeCoercePlugin < Bytecode::Compiler::Plugin
       # if so, we're done.
       add "git #{lbl}"
       
+      
       # step 2. convert it with a send.
       # save a copy of the original, we might still need it.
       add "dup"
-      add "send #{meth} 0"
       
+      ec = unique_exc()
+      add "#exc_start #{ec}"
+      add "send #{meth} 0"
+      after = unique_lbl("type_")
+      add "goto #{after}"
+      add "#exceptions #{ec}"
+      add "push #{cls}"
+      add "push_exception"
+      add "push Type"
+      add "send coerce_unable 3"
+      add "#exc_end #{ec}"
+      
+      add "#{after}:"
       # step 3. check it's what we wanted now.
       add "dup"
       add "push #{cls}"

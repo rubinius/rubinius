@@ -219,7 +219,14 @@ module Bytecode
       meth.state = state
       
       pro = Processor.new(self, meth, state)
-      pro.process nx if nx[0]
+      
+      begin
+        pro.process nx if nx[0]
+      rescue RuntimeError => e
+        puts "Compilation error on #{pro.method.file}:#{pro.last_line}"
+        raise e
+      end
+      
       return pro
     end
     
@@ -290,7 +297,7 @@ module Bytecode
         @call_hooks << TypeCoercePlugin.new(self)
       end
       
-      attr_accessor :state, :in_block
+      attr_accessor :state, :in_block, :method, :last_line
       
       def capture
         s = @output
