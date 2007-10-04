@@ -165,6 +165,14 @@ class Class
     return cls
   end
   
+  def inspect
+    if name
+      name
+    else
+      super.inspect
+    end
+  end
+  
   def self.after_loaded
     alias_method :attr_reader, :attr_reader_cv
     alias_method :attr_writer, :attr_writer_cv
