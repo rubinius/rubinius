@@ -38,8 +38,16 @@ class Hash
     return nil    
   end
   
+  def modify_key_cv(key, val)
+    raise TypeError, "can't modify frozen hash" if frozen?
+    
+    key = key.dup.freeze if String === key
+    set_by_hash key.hash, key, val
+  end
+  
   def self.after_loaded
-    alias_method :[], :access_key_cv
+    alias_method :[],  :access_key_cv
+    alias_method :[]=, :modify_key_cv
   end
   
   def default(key = nil)
@@ -125,7 +133,7 @@ class Hash
   alias_method :member?,    :key?
   alias_method :each_pair,  :each
   alias_method :length,     :size
-  alias_method :store,      :[]=
+  alias_method :store,      :modify_key_cv
 
   def self.[](*args)
     unless args.size % 2 == 0 or (args.size == 1 and args[0].is_a?(Hash))
