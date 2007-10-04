@@ -152,7 +152,7 @@ void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 3;
   
-  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce;
+  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
@@ -161,7 +161,7 @@ void cpu_bootstrap_exceptions(STATE) {
   dexc(fatal, exc);
   scp = dexc(ScriptError, exc);
   std = dexc(StandardError, exc);
-  dexc(TypeError, std);
+  type = dexc(TypeError, std);
   arg = dexc(ArgumentError, std);
   nam = dexc(NameError, std);
   dexc(NoMethodError, nam);
@@ -172,6 +172,7 @@ void cpu_bootstrap_exceptions(STATE) {
   stk = dexc(StackError, exc);
   sxp = dexc(StackExploded, stk);
   
+  state->global->exc_type = type;
   state->global->exc_arg = arg;
   state->global->exc_loe = loe;
   

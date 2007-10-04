@@ -108,8 +108,8 @@ describe "A new class definition" do
   it "should allow the definition of Constants" do
     class LanguageClassO; CONST = 'foo!'; end
     
-    defined?(CONST).should == nil
-    defined?(LanguageClassO::CONST).should == "constant"
+    Object.const_defined?('CONST').should == false
+    LanguageClassO.const_defined?('CONST').should == true
     LanguageClassO::CONST.should == 'foo!'
   end
   

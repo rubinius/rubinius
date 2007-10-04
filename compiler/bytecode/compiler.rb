@@ -658,13 +658,11 @@ module Bytecode
         @break = unique_lbl('break_')
         top = unique_lbl('loop_')
         set_label top
-        dontpop = x[0].nil?     # fixme -- why is a nil there?
         process(x.shift)
-        add "pop" unless dontpop # stack cleanup
+        add "pop"
         goto top
         set_label @break
         @break = b
-        add "push nil"          # stack un-cleanup
       end
       
       def process_break(x)

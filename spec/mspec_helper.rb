@@ -14,7 +14,7 @@ def should_raise(klass = nil, msg = nil)
     yield
   rescue Exception => e
     unless klass === e
-      raise ArgumentError, "Expected #{klass}, got #{e.class}"
+      raise ArgumentError, "Expected #{klass}, got #{e.class} (#{e.message})"
     end
     
     if msg and msg != e.message then

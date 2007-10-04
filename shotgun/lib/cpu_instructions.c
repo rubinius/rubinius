@@ -42,12 +42,26 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
   sym = _lit;
     
   val = module_const_get(state, under, sym);
-  if(!RTEST(val)) {    
+  if(RTEST(val)) {
+    if(ISA(val, BASIC_CLASS(class))) {
+      if(!NIL_P(sup) && class_superclass(state, val) != sup) {
+        cpu_raise_exception(state, c, 
+          cpu_new_exception(state, c, state->global->exc_type, "superclass mismatch"));
+        return Qundef;
+      }
+    } else {
+      cpu_raise_exception(state, c, 
+        cpu_new_exception(state, c, state->global->exc_type, "constant is not a class"));
+      return Qundef;
+    }
+    
+    return val;
+  } else {
     val = class_constitute(state, sup, under);
     if(NIL_P(val)) {
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, state->global->exc_arg, "Invalid superclass"));
-      return Qnil;
+      return Qundef;
     }
     
     /*

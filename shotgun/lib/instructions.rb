@@ -599,7 +599,11 @@ CODE
     <<-CODE
     t1 = stack_pop();
     t2 = stack_pop();
-    stack_push(cpu_open_class(state, c, t2, t1));
+    t3 = cpu_open_class(state, c, t2, t1);
+    if(t3 != Qundef) {
+      stack_push(t3);
+      cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+    }
     CODE
   end
   
@@ -608,8 +612,10 @@ CODE
     t1 = stack_pop();
     t2 = c->enclosing_class;
     t3 = cpu_open_class(state, c, t2, t1);
-    stack_push(t3);
-    cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+    if(t3 != Qundef) {
+      stack_push(t3);
+      cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+    }
     CODE
   end
   

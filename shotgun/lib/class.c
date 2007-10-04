@@ -2,6 +2,18 @@
 #include "module.h"
 #include "class.h"
 
+OBJECT class_superclass(STATE, OBJECT cls) {
+  OBJECT sup;
+  
+  sup = class_get_superclass(cls);
+  
+  while(!ISA(sup, BASIC_CLASS(class))) {
+    sup = class_get_superclass(sup);
+  }
+  
+  return sup;
+}
+
 OBJECT class_new(STATE, const char *name, int fields, OBJECT sup, OBJECT ns) {
   OBJECT cls;
   
