@@ -15,6 +15,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       a = []
       a.send(cmd, Array).should == true
       a.send(cmd, Enumerable).should == true
+      a.send(cmd, Comparable).should == false
     end
           
     module KernelSpecs::M; end
