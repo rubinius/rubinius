@@ -1586,15 +1586,15 @@ class String
   #    "hello".tr('^aeiou', '*')   #=> "*e**o"
   #    "hello".tr('el', 'ip')      #=> "hippo"
   #    "hello".tr('a-y', 'b-z')    #=> "ifmmp"
-  def tr(from_str, to_str)
-    tr_string(from_str, to_str, false)
+  def tr(source, replacement)
+    (str = self.dup).tr!(source, replacement) || str
   end
 
   # Translates <i>self</i> in place, using the same rules as
   # <code>String#tr</code>. Returns <i>self</i>, or <code>nil</code> if no
   # changes were made.
-  def tr!(from_str, to_str)
-    replace_if(tr_string(from_str, to_str, false))
+  def tr!(source, replacement)
+    tr_trans(source, replacement, false)
   end
 
   # Processes a copy of <i>self</i> as described under <code>String#tr</code>,
@@ -1604,14 +1604,14 @@ class String
   #    "hello".tr_s('l', 'r')     #=> "hero"
   #    "hello".tr_s('el', '*')    #=> "h*o"
   #    "hello".tr_s('el', 'hx')   #=> "hhxo"
-  def tr_s(from_str, to_str)
-    tr_string(from_str, to_str, true)
+  def tr_s(source, replacement)
+    (str = self.dup).tr_s!(source, replacement) || str
   end
 
   # Performs <code>String#tr_s</code> processing on <i>self</i> in place,
   # returning <i>self</i>, or <code>nil</code> if no changes were made.
-  def tr_s!(from_str, to_str)
-    replace_if(tr_string(from_str, to_str, true))
+  def tr_s!(source, replacement)
+    tr_trans(source, replacement, true)
   end
 
   # Returns a copy of <i>self</i> with all lowercase letters replaced with their
@@ -1642,6 +1642,73 @@ class String
   end
   
 
+
+
+  def tr_trans(source, replacement, squeeze)
+    source = StringValue(source).to_expanded_tr_string
+    replacement = StringValue(replacement).to_expanded_tr_string
+    
+    return if @bytes == 0
+    return self.delete!(source) if replacement.empty?
+
+    if replacement.length < source.length
+      replacement << (replacement.empty? " " : replacement[-1,1]) * (source.length - replacement.length)
+    end
+    
+    if source[0] == ?^ && source.length > 1
+      trans = Array.new(256, 1)
+      
+      (1...source.size).each do |i|
+        c = source[i]
+        trans[c] = -1
+      end
+      
+      c = replacement[-1]
+      
+      trans.each_index do |i|
+        trans[i] = c if trans[i] >= 0
+      end
+    else
+      trans = Array.new(256, -1)
+      (0...source.size).each do |i|
+        c = source[i]
+        trans[c] = replacement[i]
+      end
+    end
+    
+    self.modify!
+    modified = false
+    
+    if squeeze
+      new = []
+      last = nil
+
+      (0...@bytes).each do |i|
+        s = @data[i]
+        if (c = trans[s]) >= 0
+          next if last == c
+          new << c.chr
+          last = c
+        else
+          new << s.chr
+          last = nil
+        end
+      end
+      
+      new = new.join
+      return new != self ? replace(new) : nil
+    else
+      (0...@bytes).each do |i|
+        s = @data[i]
+        if (c = trans[s]) >= 0
+          @data[i] = c
+          modified = true
+        end
+      end
+      
+      return modified ? self : nil
+    end
+  end
 
   def scan_once(pattern, start)
     if match = pattern.match_from(self, start)
