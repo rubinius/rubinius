@@ -45,4 +45,27 @@ module KernelSpecs
     private
     def private_method; :private_method; end
   end
+
+  class Binding
+    @@super_secret = "password"
+
+    def initialize(n)
+      @secret = n
+    end
+  
+    def square(n)
+      n * n
+    end
+    
+    def get_binding
+      a = true
+      @bind = binding
+
+      # Add/Change stuff
+      b = true 
+      @secret += 1
+
+      @bind
+    end
+  end
 end
