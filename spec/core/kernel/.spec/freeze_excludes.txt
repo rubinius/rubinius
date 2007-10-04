@@ -1,1 +1,0 @@
-Kernel#freeze prevents self from being further modified

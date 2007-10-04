@@ -37,6 +37,8 @@ class Object
   alias_method :eql?, :equal?
   alias_method :==,   :equal?
   alias_method :===,  :equal?
+  
+  alias_method :__id__, :object_id
 
   def to_s
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"

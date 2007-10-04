@@ -1,3 +1,0 @@
-Object#__id__ return an Integer
-Object#__id__ return same number will be returned on all calls to id for a given object
-Object#__id__ return same number will be returned on all calls to id for a given object
