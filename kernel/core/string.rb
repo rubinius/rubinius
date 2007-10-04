@@ -545,10 +545,10 @@ class String
     table = setup_tr_table(*strings)
     
     count = 0
-    self.each_byte { |c| count += 1 if table[c] }
+    self.each_byte { |c| count += 1 if table[c] == 1 }
     count
   end
-
+  
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
   # library function <code>crypt</code>. The argument is the salt string, which
   # should be two characters long, each character drawn from
@@ -588,7 +588,7 @@ class String
     # TODO: Can't we use the ByteArray directly here?
     new = []
     self.each_byte do |c|
-      new << c.chr unless table[c]
+      new << c.chr unless table[c] == 1
     end
     new = new.join
     new != self ? replace(new) : nil # TODO
@@ -1314,7 +1314,14 @@ class String
   # Squeezes <i>self</i> in place, returning either <i>self</i>, or
   # <code>nil</code> if no changes were made.
   def squeeze!(*strings)
-    table = strings.empty? ? Array.new(256, true) : setup_tr_table(*strings)
+    if strings.empty?
+      table = ByteArray.new(256)
+      256.times do |i|
+        table[i] = 1
+      end
+    else
+      table = setup_tr_table(*strings)
+    end
     
     self.modify!
     return if @bytes == 0
@@ -1323,7 +1330,7 @@ class String
     new = []
     save = nil
     self.each_byte do |c|
-      if !table[c] || c != save
+      if table[c] == 0 || c != save
         new << c.chr
         save = c
       end
@@ -1742,7 +1749,7 @@ class String
       end
     # ignore leading whitespaces and underscores
     else
-      while i < @bytes && (@data[i].isspace ||  @data[i] == ?_)
+      while i < @bytes && (@data[i].isspace || @data[i] == ?_)
         i += 1
       end
     end
@@ -1825,7 +1832,10 @@ class String
   end
 
   def setup_tr_table(*strings)
-    table = Array.new(256, true)
+    table = ByteArray.new(256)
+    256.times do |i|
+      table[i] = 1
+    end
     
     strings.each do |str|
       unexpanded = StringValue(str)
@@ -1833,21 +1843,33 @@ class String
       
       return table if unexpanded.size > 1 && str == "^"
 
-      if str.length > 1 && str[0] == ?^
-        flag, start = true, 1 
+      if str.length > 1 && str.data[0] == ?^
+        flag = start = 1 
       else
-        flag, start = false, 0
+        flag = start = 0
       end
       
-      buf = Array.new(256, flag)
+      buf = ByteArray.new(256)
+      if flag == 1
+        256.times do |i|
+          buf[i] = 1
+        end
+      end
 
-      (start...str.size).each do |i|
-        c = str[i]
-        buf[c] = !flag
+      if flag == 1
+        (start...str.size).each do |i|
+          c = str.data[i]
+          buf[c] = 0
+        end
+      else
+        (start...str.size).each do |i|
+          c = str.data[i]
+          buf[c] = 1
+        end
       end
       
-      table.each_index do |i|
-        table[i] = table[i] && buf[i]
+      256.times do |i|
+        table[i] = (table[i] == 1 && buf[i] == 1) ? 1 : 0
       end
     end
     
