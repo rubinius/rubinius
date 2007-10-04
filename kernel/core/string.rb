@@ -1856,10 +1856,9 @@ class String
 
   def to_expanded_tr_string
     return self unless self =~ /.-./
-    ret = self.reverse.gsub(/.-./) { |r| (r[2]..r[0]).to_a.map { |c| c.chr } }.reverse
 
-    if self[0] == ?^ && self.size > 1
-      "^" + self[1..-1].gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
+    if @bytes > 1 && @data[0] == ?^
+      "^" << self[1..-1].gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
     else
       self.gsub(/.-./) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
     end
@@ -2095,94 +2094,6 @@ class String
     end
     ret << self[start..-1]
     ret
-  end
-
-  def expand_tr_string(string)
-    string.gsub(/[^-]-[^-]/) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
-  end
-
-  # used by count, delete, squeeze
-  def intersect_string_from_args(*args)
-    args.map! do |chars|
-      chars = StringValue(chars)
-      expand_tr_string(chars)
-    end
-
-    intersection = args.shift
-    args.each do |chars|
-      intersection = intersection.split(//).map { |c|
-        c if chars[0] == ?^ ? !chars.include?(c) : chars.include?(c)
-      }.join
-      return if intersection.empty?
-    end
-    intersection
-  end
-
-  # Generic function for the family of tr functions
-  def tr_string(from_str, to_str, no_dups=false)
-    raise TypeError, "can't convert #{from_str.class} to String" unless from_str.respond_to?(:to_str)
-    raise TypeError, "can't convert #{to_str.class} to String"   unless to_str.respond_to?(:to_str)
-    
-    from_str = from_str.to_str unless String === from_str
-    to_str = to_str.to_str     unless String === to_str
-
-    return "" if from_str == ""
-
-    del_chars = to_str.length == 0
-    from_str  = expand_tr_string(from_str)
-    to_str    = expand_tr_string(to_str)
-
-    # Build out the to_str translations to the same length as from_str
-    if to_str.length < from_str.length
-      to_str << ((to_str.length > 0 ? to_str[-1,1] : ' ') * (from_str.length - to_str.length))
-    end
-
-    # Create an ASCII  translation map
-    trans = 1.chr * 256
-    c = 0
-    if from_str[0] == ?^
-      # This is the inverse map
-      cnt = 0
-      (1...from_str.length).each do |idx| 
-        trans.data[from_str.data[idx]] = 0
-      end
-      (0..255).each do |idx|
-        c = trans.data[idx] == 1 ? to_str.data[cnt] : idx
-        trans.data[idx] = c
-        cnt += 1 if cnt < (to_str.length-1)
-      end
-    else
-      (0..255).each do |idx|
-        trans[idx] = idx
-      end
-      (0...from_str.length).each do |idx| 
-        trans.data[from_str.data[idx]] = to_str.data[idx]
-      end
-    end
-
-    # Translate self using the trans character map
-    out = self.dup
-    idx = 0
-    w_idx = 0
-    last_char = -1
-    while idx < out.length
-      c = trans[out.data[idx]]
-      no_trans_flag = c == out.data[idx]
-      if no_dups == false || no_trans_flag == true || c != last_char
-        # If a translation occurred remember the last char to remove
-        # duplicate translations with the no_dup flag (if required).
-        # Ordering is important here don't move this test below the
-        # substitution.
-        last_char = no_trans_flag == true ? -1 : c
-        if del_chars == false || no_trans_flag == true
-          out.data[w_idx] = c
-          w_idx += 1
-        end
-      end
-      idx += 1
-    end
-    # truncate the string if required
-    out[0,w_idx]
   end
 
   def without_changing_regex_global
