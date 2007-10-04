@@ -155,11 +155,9 @@ class Hash
     @default_proc ? @default : nil
   end
 
-  def default=(val)
-    raise TypeError, "can't modify frozen hash" if frozen?
-
+  def default=(nd)
     @default_proc = false
-    @default = val
+    @default = nd
   end
 
   def value?(val)
@@ -168,8 +166,6 @@ class Hash
   alias_method :has_value?, :value?
 
   def delete(key)
-    raise TypeError, "can't modify frozen hash" if frozen?
-
     retval = nil
     found, val = find_unambigious(key)
     if found
@@ -181,8 +177,6 @@ class Hash
   end
 
   def delete_if
-    raise TypeError, "can't modify frozen hash" if frozen?
-
     # Do this in 2 steps, so we're not altering the structure
     # while we walk it.
     to_delete = []
@@ -224,8 +218,6 @@ class Hash
   alias_method :update, :merge!
 
   def shift
-    raise TypeError, "can't modify frozen hash" if frozen?
-
     out = nil
     if empty?
       out = default_proc ? default_proc.call(self, nil) : default
