@@ -24,7 +24,7 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
       "hello".send(cmd, obj).should == ?e
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
       "hello".send(cmd, obj).should == ?e
     end
@@ -119,7 +119,7 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
       "hello".send(cmd, 0, obj).should == "he"
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
       "hello".send(cmd, obj, obj).should == "ll"
     end
@@ -233,9 +233,9 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
       def from.<=>(o) 0 end
       def to.<=>(o) 0 end
 
-      from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-      to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
 
       "hello there".send(cmd, from..to).should == "ello ther"
@@ -346,7 +346,7 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
     end
