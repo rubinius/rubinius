@@ -31,7 +31,6 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <malloc/malloc.h>
 
 #define array_good_size(max_size) ((max_size + 7L) & ~7L)
 ptr_array ptr_array_new(size_t max_size)
