@@ -228,16 +228,13 @@ class RsLocalScoper < RsMethodBodyOnly
     @for_argument = false
     @masgn.pop
 
-    # create_block needs the number of locals in the block's scope
-    # The size of a scope is the number of locals
-    count = @state.surrounding_scope.size
+    locals = Tuple.new(0)
     @state.new_scope do
       body = process(body)
     end
 
     body = [:block, body] if body.nil? || body.first != :block
-    x = [[:call, process(enum), :each, [:array]], lasgn, body, count]
-    x.unshift(:iter)
+    x = [:iter, [:call, process(enum), :each, [:array]], lasgn, body, locals]
   end
 
   def p_or_n(val)
