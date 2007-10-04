@@ -1575,6 +1575,45 @@ class String
   end
   alias_method :to_str, :to_s
 
+  # Returns a copy of <i>self</i> with the characters in <i>from_str</i> replaced
+  # by the corresponding characters in <i>to_str</i>. If <i>to_str</i> is
+  # shorter than <i>from_str</i>, it is padded with its last character. Both
+  # strings may use the c1--c2 notation to denote ranges of characters, and
+  # <i>from_str</i> may start with a <code>^</code>, which denotes all
+  # characters except those listed.
+  #    
+  #    "hello".tr('aeiou', '*')    #=> "h*ll*"
+  #    "hello".tr('^aeiou', '*')   #=> "*e**o"
+  #    "hello".tr('el', 'ip')      #=> "hippo"
+  #    "hello".tr('a-y', 'b-z')    #=> "ifmmp"
+  def tr(from_str, to_str)
+    tr_string(from_str, to_str, false)
+  end
+
+  # Translates <i>self</i> in place, using the same rules as
+  # <code>String#tr</code>. Returns <i>self</i>, or <code>nil</code> if no
+  # changes were made.
+  def tr!(from_str, to_str)
+    replace_if(tr_string(from_str, to_str, false))
+  end
+
+  # Processes a copy of <i>self</i> as described under <code>String#tr</code>,
+  # then removes duplicate characters in regions that were affected by the
+  # translation.
+  #    
+  #    "hello".tr_s('l', 'r')     #=> "hero"
+  #    "hello".tr_s('el', '*')    #=> "h*o"
+  #    "hello".tr_s('el', 'hx')   #=> "hhxo"
+  def tr_s(from_str, to_str)
+    tr_string(from_str, to_str, true)
+  end
+
+  # Performs <code>String#tr_s</code> processing on <i>self</i> in place,
+  # returning <i>self</i>, or <code>nil</code> if no changes were made.
+  def tr_s!(from_str, to_str)
+    replace_if(tr_string(from_str, to_str, true))
+  end
+
   # Returns a copy of <i>self</i> with all lowercase letters replaced with their
   # uppercase counterparts. The operation is locale insensitive---only
   # characters ``a'' to ``z'' are affected.
@@ -1988,22 +2027,6 @@ class String
 
   def expand_tr_string(string)
     string.gsub(/[^-]-[^-]/) { |r| (r[0]..r[2]).to_a.map { |c| c.chr } }
-  end
-
-  def tr(from_str, to_str)
-    tr_string(from_str, to_str, false)
-  end
-
-  def tr!(from_str, to_str)
-    replace_if(tr_string(from_str, to_str, false))
-  end
-
-  def tr_s(from_str, to_str)
-    tr_string(from_str, to_str, true)
-  end
-
-  def tr_s!(from_str, to_str)
-    replace_if(tr_string(from_str, to_str, true))
   end
 
   # used by count, delete, squeeze
