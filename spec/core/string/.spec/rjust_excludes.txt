@@ -1,4 +1,0 @@
-String#rjust with length, padding tries to convert length to an integer using to_int
-String#rjust with length, padding tries to convert padstr to a string using to_str
-String#rjust with length, padding raises an ArgumentError when padstr is empty
-String#rjust with length, padding returns subclass instances when called on subclasses

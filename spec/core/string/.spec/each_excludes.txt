@@ -1,2 +1,0 @@
-String#each appends multiple successive newlines together when the separator is an empty string
-String#each raises a RuntimeError if the string is modified while substituting

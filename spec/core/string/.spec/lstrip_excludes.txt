@@ -1,1 +1,0 @@
-String#lstrip returns a copy of self with leading whitespace removed

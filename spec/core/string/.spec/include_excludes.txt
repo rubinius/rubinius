@@ -1,1 +1,0 @@
-String#include? with Fixnum uses fixnum % 256

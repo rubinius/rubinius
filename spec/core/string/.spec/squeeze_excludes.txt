@@ -1,5 +1,0 @@
-String#squeeze negates sets starting with ^
-String#squeeze squeezes all chars in a sequence
-String#squeeze taints the result when self is tainted
-String#squeeze returns subclass instances when called on a subclass
-String#squeeze! raises a TypeError when self is frozen

@@ -1,4 +1,0 @@
-String#to_i with base 10 interprets leading characters as a number in the given base
-String#to_i with base 10 auto-detects base via base specifiers (default: 10) for base = 0
-String#to_i with base 10 doesn't handle foreign base specifiers when base is > 0
-String#to_i with base 10 raises ArgumentError for illegal bases (1, < 0 or > 36)

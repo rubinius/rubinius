@@ -1,4 +1,0 @@
-String#tr_s translates chars not in from_string when it starts with a ^
-String#tr_s! returns nil if no modification was made
-String#tr_s! does not modify self if from_str is empty
-String#tr_s! raises a TypeError if self is frozen

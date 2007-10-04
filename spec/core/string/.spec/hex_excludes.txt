@@ -1,2 +1,0 @@
-String#hex treats leading characters of self as a string of hex digits
-String#hex takes an optional 0x

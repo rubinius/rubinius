@@ -1,2 +1,1 @@
 String#to_f treats leading characters of self as a floating point number
-String#to_f takes an optional sign

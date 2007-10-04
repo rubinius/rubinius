@@ -54,13 +54,13 @@ char *ffi_read_string(char *ptr) {
 }
 
 char *ffi_sprintf_f(double value, int size, char *fmt) {
-  char *str = calloc(size);
+  char *str = calloc(size, sizeof(char));
   snprintf(str, size, fmt, value);
   return str;
 }
 
 char *ffi_sprintf_d(int value, int size, char *fmt) {
-  char *str = calloc(size);
+  char *str = calloc(size, sizeof(char));
   snprintf(str, size, fmt, value);
   return str;
 }

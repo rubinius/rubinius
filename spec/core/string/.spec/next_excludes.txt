@@ -1,2 +1,0 @@
-String#next taints the result if self is tainted
-String#next! raises a TypeError if self is frozen

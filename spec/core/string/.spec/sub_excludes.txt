@@ -1,16 +1,1 @@
-String#sub with pattern, replacement ignores a block if supplied
-String#sub with pattern, replacement treats \1 sequences without corresponding captures as empty strings
-String#sub with pattern, replacement replaces \& and \0 with the complete match
-String#sub with pattern, replacement replaces \` with everything before the current match
-String#sub with pattern, replacement replaces \' with everything after the current match
-String#sub with pattern, replacement replaces \+ with the last paren that actually matched
-String#sub with pattern, replacement treats \+ as an empty string if there was no captures
-String#sub with pattern, replacement maps \\ in replacement to \
-String#sub with pattern, replacement tries to convert pattern to a string using to_str
-String#sub with pattern, replacement raises a TypeError when pattern can't be converted to a string
-String#sub with pattern, replacement sets $~ to MatchData of match and nil when there's none
-String#sub with pattern and block restores $~ after leaving the block
-String#sub with pattern and block sets $~ to MatchData of last match and nil when there's none for access from outside
 String#sub with pattern and block converts the block's return value to a string using to_s
-String#sub! with pattern and block raises a RuntimeError if the string is modified while substituting
-String#sub! with pattern and block raises a RuntimeError when self is frozen

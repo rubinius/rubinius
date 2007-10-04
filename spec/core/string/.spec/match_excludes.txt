@@ -1,1 +1,0 @@
-String#match tries to convert pattern to a string via to_str

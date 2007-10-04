@@ -1,2 +1,0 @@
-String#inspect produces different output based on $KCODE
-String#inspect taints the result if self is tainted

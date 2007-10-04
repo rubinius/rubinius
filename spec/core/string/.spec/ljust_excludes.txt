@@ -1,3 +1,0 @@
-String#ljust with length, padding tries to convert length to an integer using to_int
-String#ljust with length, padding tries to convert padstr to a string using to_str
-String#ljust with length, padding raises an ArgumentError when padstr is empty
