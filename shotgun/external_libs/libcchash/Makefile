@@ -25,8 +25,8 @@ else
   LDOPT=-shared
   LINKER=$(CC) -shared
   BIN_RPATH=
-  SUFFIX=so
-  SONAME=-Wl,-soname,libbstrings-$(VERSION).$(SUFFIX)
+  SUFFIX=sox
+  SONAME=-Wl,-soname,libcchash-$(VERSION).$(SUFFIX)
 endif
 
 ifndef VERBOSE
