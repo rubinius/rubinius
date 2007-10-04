@@ -10,9 +10,9 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS += -iquote . -iquote lib $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash
+CFLAGS += -iquote . -iquote lib $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa
 
-ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a
+ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libmpa.a
 
 LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm shotgun/lib
 LDFLAGS=
@@ -103,6 +103,9 @@ external_libs/libbstring/libbstring.a:
 
 external_libs/libcchash/libcchash.a:
 	cd external_libs/libcchash; $(MAKE)
+
+external_libs/libmpa/libmpa.a:
+	cd external_libs/libmpa; $(MAKE)
 
 $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 

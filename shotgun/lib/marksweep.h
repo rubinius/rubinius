@@ -32,11 +32,11 @@ struct _mark_sweep_gc {
   struct ms_chunk *chunks;
   void *extreme_min;
   void *extreme_max;
-  GPtrArray *remember_set;
+  ptr_array remember_set;
   int enlarged;
   int num_chunks;
   OBJECT become_from, become_to;
-  GPtrArray *seen_weak_refs;
+  ptr_array seen_weak_refs;
   ms_chunk *current;
   
   int last_freed;
@@ -68,11 +68,11 @@ void mark_sweep_free(mark_sweep_gc ms, OBJECT obj);
 void mark_sweep_free_fast(STATE, mark_sweep_gc ms, OBJECT obj);
 int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj);
 OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj);
-void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots);
+void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots);
 void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms);
-void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots);
+void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots);
 void mark_sweep_describe(mark_sweep_gc ms);
-void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArray *refs);
+void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_array refs);
 void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj);
 void mark_sweep_clear_mark(STATE, OBJECT iobj);
 

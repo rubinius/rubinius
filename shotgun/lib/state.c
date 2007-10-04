@@ -11,19 +11,19 @@ rstate rubinius_state_new() {
   rstate st;
   st = (rstate)calloc(1, sizeof(struct rubinius_state));
   st->om = object_memory_new();
-  st->free_contexts = g_ptr_array_new();
+  st->free_contexts = ptr_array_new(8);
   st->global = (struct rubinius_globals*)calloc(1, sizeof(struct rubinius_globals));
   st->cleanup = ht_cleanup_create(11);
   st->config = ht_config_create(11);
   return st;
 }
 
-static GPtrArray *_gather_roots(STATE, cpu c) {
-  GPtrArray *roots;
-  roots = g_ptr_array_sized_new(NUM_OF_GLOBALS + 100);
+static ptr_array _gather_roots(STATE, cpu c) {
+  ptr_array roots;
+  roots = ptr_array_new(NUM_OF_GLOBALS + 100);
   
-  memcpy(roots->pdata, state->global, sizeof(struct rubinius_globals));
-  roots->len = NUM_OF_GLOBALS;
+  memcpy(roots->array, state->global, sizeof(struct rubinius_globals));
+  roots->length = NUM_OF_GLOBALS;
   
   cpu_add_roots(state, c, roots);
   /* truncate the free_context list since we don't care about them
@@ -36,7 +36,7 @@ void cpu_sampler_resume(STATE);
 void cpu_hard_cache(STATE, cpu c);
 
 void state_collect(STATE, cpu c) {
-  GPtrArray *roots;
+  ptr_array roots;
   int stats = state->gc_stats;
   struct timeval start, fin;
   
@@ -45,7 +45,7 @@ void state_collect(STATE, cpu c) {
   }
   
   c->context_cache = 0;
-  state->free_contexts->len = 0;
+  ptr_array_clear(state->free_contexts);
   
   cpu_flush_ip(c);
   cpu_flush_sp(c);
@@ -61,10 +61,10 @@ void state_collect(STATE, cpu c) {
   object_memory_formalize_contexts(state, state->om);
   roots = _gather_roots(state, c);
   object_memory_collect(state, state->om, roots);
-  memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
+  memcpy(state->global, roots->array, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
-  g_ptr_array_free(roots, TRUE);
+  ptr_array_free(roots);
   
   baker_gc_find_lost_souls(state, state->om->gc);
   cpu_sampler_resume(state);
@@ -89,7 +89,7 @@ void state_collect(STATE, cpu c) {
 
 
 void state_major_collect(STATE, cpu c) {
-  GPtrArray *roots;
+  ptr_array roots;
   int stats = state->gc_stats;
   struct timeval start, fin;
   
@@ -103,7 +103,7 @@ void state_major_collect(STATE, cpu c) {
   cpu_flush_sp(c);
   
   c->context_cache = 0;
-  state->free_contexts->len = 0;
+  ptr_array_clear(state->free_contexts);
   
   /* HACK: external_ivars needs to be moved out of being a generic
       global and being a special case one so that it's references
@@ -115,10 +115,10 @@ void state_major_collect(STATE, cpu c) {
   cpu_sampler_suspend(state);
   roots = _gather_roots(state, c);
   object_memory_major_collect(state, state->om, roots);
-  memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
+  memcpy(state->global, roots->array, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
-  g_ptr_array_free(roots, TRUE);
+  ptr_array_free(roots);
   cpu_sampler_suspend(state);
   
   if(stats) {
@@ -140,9 +140,9 @@ void state_major_collect(STATE, cpu c) {
 }
 
 void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
-  GPtrArray *roots;
+  ptr_array roots;
   c->context_cache = 0;
-  state->free_contexts->len = 0;
+  ptr_array_clear(state->free_contexts);
         
   state->current_stack = c->stack_top;
   state->current_sp =    c->sp_ptr;
@@ -161,10 +161,10 @@ void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
   
   object_memory_clear_become(state, state->om);
   
-  memcpy(state->global, roots->pdata, sizeof(struct rubinius_globals));
+  memcpy(state->global, roots->array, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
 
-  g_ptr_array_free(roots, TRUE); 
+  ptr_array_free(roots);
   
 }
 

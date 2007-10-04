@@ -93,10 +93,10 @@ void test_bootstrap_secondary(STATE) {
 int main(int argc, char **argv) {
   STATE;
   OBJECT obj, obj2, cls;
-  GPtrArray *roots;
+  ptr_array roots;
   int tmp;
   
-  roots = g_ptr_array_new();
+  roots = ptr_array_new(8);
   
   state = rubinius_state_new();
   rassert(state->om != 0);
@@ -121,20 +121,20 @@ int main(int argc, char **argv) {
   rassert(object_memory_used(state->om) > 0);
   rassert(object_memory_used(state->om) == SIZE_IN_BYTES(obj));
   
-  g_ptr_array_add(roots, (gpointer)obj);
+  ptr_array_append(roots, (gpointer)obj);
   object_memory_collect(state->om, roots);
   rassert(object_memory_used(state->om) == SIZE_IN_BYTES(obj));
-  obj2 = (OBJECT)g_ptr_array_index(roots, 0);
+  obj2 = (OBJECT)ptr_array_get_index(roots, 0);
   rassert(obj2 != obj);
   rassert(state->om->gc->current->address == obj2);
   object_memory_collect(state->om, roots);
-  obj2 = (OBJECT)g_ptr_array_index(roots, 0);
+  obj2 = (OBJECT)ptr_array_get_index(roots, 0);
   rassert(obj == obj2);
   cls = obj;
   
-  g_ptr_array_remove_index(roots, 0);
+  ptr_array_remove_index_fast(roots, 0);
   obj = object_memory_new_object(state->om, cls, 4);
-  g_ptr_array_add(roots, (gpointer)obj);
+  ptr_array_append(roots, (gpointer)obj);
   object_memory_collect(state->om, roots);
   
   rassert(HEADER(obj)->klass != cls);

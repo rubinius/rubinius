@@ -80,7 +80,7 @@ rstate rubinius_state_new();
 
 struct rubinius_state {
   object_memory om;
-  GPtrArray *free_contexts;
+  ptr_array free_contexts;
   
   struct method_cache method_cache[CPU_CACHE_SIZE];
   

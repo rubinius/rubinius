@@ -47,7 +47,7 @@ mark_sweep_gc mark_sweep_new() {
   mark_sweep_gc ms;
   
   ms = calloc(1, sizeof(struct _mark_sweep_gc));
-  ms->remember_set = g_ptr_array_new();
+  ms->remember_set = ptr_array_new(8);
   mark_sweep_add_chunk(ms);
   ms->chunks = ms->current;
   ms->enlarged = 0;
@@ -180,7 +180,7 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
 #endif
   
   if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
-    g_ptr_array_remove(state->om->gc->remember_set, (gpointer)obj);
+    ptr_array_remove_fast(state->om->gc->remember_set, (gpointer)obj);
   }
     
   if(SHOULD_CLEANUP_P(obj)) {
@@ -272,7 +272,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   
   if(WEAK_REFERENCES_P(iobj)) {
     // printf("%p has weak refs.\n", (void*)iobj);
-    g_ptr_array_add(ms->seen_weak_refs, (gpointer)iobj);
+    ptr_array_append(ms->seen_weak_refs, (gpointer)iobj);
     return iobj;
   }
   
@@ -339,10 +339,10 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       }
       
       int i;
-      for(i = 0; i < fc->paths->len; i++) {
-        tmp = (OBJECT)g_ptr_array_index(fc->paths, i);
+      for(i = 0; i < ptr_array_length(fc->paths); i++) {
+        tmp = (OBJECT)ptr_array_get_index(fc->paths, i);
         if(BCM_P(tmp)) {
-          fc->paths->pdata[i] = (gpointer)BCM_TO;
+          ptr_array_set_index(fc->paths,i,(gpointer)BCM_TO);
         } else {
           mark_sweep_mark_object(state, ms, tmp);
         }
@@ -388,7 +388,7 @@ void mark_sweep_clear_mark(STATE, OBJECT iobj) {
   assert(!MARKED_P(iobj));
 }
 
-void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
+void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
   int i, sz;
   OBJECT root, tmp;
   struct method_cache *end, *ent;
@@ -401,23 +401,23 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, GPtrArray *roots) {
     mark_sweep_mark_object(state, ms, ms->become_from);
   }
   
-  sz = roots->len;
+  sz = ptr_array_length(roots);
   for(i = 0; i < sz; i++) {
-    root = (OBJECT)(g_ptr_array_index(roots, i));
+    root = (OBJECT)(ptr_array_get_index(roots, i));
     if(!REFERENCE2_P(root)) { continue; }
     if(BCM_P(root)) {
-      roots->pdata[i] = (gpointer)BCM_TO;
+      ptr_array_set_index(roots, i, (gpointer)BCM_TO);
     } else {
       mark_sweep_mark_object(state, ms, root);
     }
   }
   
-  sz = ms->remember_set->len;
+  sz = ptr_array_length(ms->remember_set);
   for(i = 0; i < sz; i++) {
-    root = (OBJECT)(g_ptr_array_index(ms->remember_set, i));
+    root = (OBJECT)(ptr_array_get_index(ms->remember_set, i));
     if(!REFERENCE2_P(root)) { continue; }
     if(BCM_P(root)) {
-      ms->remember_set->pdata[i] = (gpointer)BCM_TO;
+      ptr_array_set_index(ms->remember_set, i, (gpointer)BCM_TO);
     } else {
       mark_sweep_mark_object(state, ms, root);
     }
@@ -528,19 +528,19 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
   
 }
 
-void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
+void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
   ms->enlarged = 0;
   ms->last_freed = 0;
   ms->last_marked = 0;
   
-  ms->seen_weak_refs = g_ptr_array_new();  
+  ms->seen_weak_refs = ptr_array_new(8);
   mark_sweep_mark_phase(state, ms, roots);
   mark_sweep_sweep_phase(state, ms);
   
   int j, i;
   OBJECT tmp, t2;
-  for(i = 0; i < ms->seen_weak_refs->len; i++) {
-    tmp = (OBJECT)g_ptr_array_index(ms->seen_weak_refs, i);
+  for(i = 0; i < ptr_array_length(ms->seen_weak_refs); i++) {
+    tmp = (OBJECT)ptr_array_get_index(ms->seen_weak_refs, i);
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
       t2 = tuple_at(state, tmp, j);
       if(REFERENCE_P(t2) && GC_ZONE(t2) == GC_MATURE_OBJECTS) {
@@ -551,7 +551,7 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
     }
   }
   
-  g_ptr_array_free(ms->seen_weak_refs, TRUE);
+  ptr_array_free(ms->seen_weak_refs);
   ms->seen_weak_refs = NULL;
   
   // printf("[GC M compacted to %d bytes]\n", ms->allocated_bytes);
@@ -560,7 +560,7 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, GPtrArray *roots) {
 
 /*
 
-void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArray *refs) {
+void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_array refs) {
   ms_chunk *cur;
   char *addr, *last;
   OBJECT obj;
@@ -583,7 +583,7 @@ void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, GPtrArr
       if(HEADER(obj)->flags != FREE_FLAG && !_object_stores_bytes(obj)) {
         for(i = 0; i < NUM_FIELDS(obj); i++) {
           if(NTH_FIELD(obj, i) == mark) {
-            g_ptr_array_add(refs, (gpointer)obj);
+            ptr_array_append(refs, (gpointer)obj);
           }
         }
       }

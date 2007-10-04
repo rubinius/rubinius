@@ -224,7 +224,7 @@ void object_memory_clear_become(STATE, object_memory om) {
   om->ms->become_to = 0;
 }
 
-int object_memory_collect(STATE, object_memory om, GPtrArray *roots) {
+int object_memory_collect(STATE, object_memory om, ptr_array roots) {
   int i;
   // printf("%d objects since last collection.\n", allocated_objects);
   allocated_objects = 0;
@@ -238,7 +238,7 @@ int object_memory_collect(STATE, object_memory om, GPtrArray *roots) {
   return i;
 }
 
-void object_memory_major_collect(STATE, object_memory om, GPtrArray *roots) {
+void object_memory_major_collect(STATE, object_memory om, ptr_array roots) {
   // printf("%d objects since last collection.\n", allocated_objects);
   
   allocated_objects = 0;
@@ -288,7 +288,7 @@ void object_memory_check_ptr(void *ptr, OBJECT obj) {
 void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val) {
   if(!FLAG_SET_ON_P(target, gc, REMEMBER_FLAG)) {
     // printf("[Tracking %p in baker RS]\n", (void*)target);
-    g_ptr_array_add(om->gc->remember_set, (gpointer)target);
+    ptr_array_append(om->gc->remember_set, (gpointer)target);
     FLAG_SET_ON(target, gc, REMEMBER_FLAG);
   }
 }
@@ -298,7 +298,7 @@ int object_memory_is_reference_p(object_memory om, OBJECT tmp) {
 }
 
 OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark) {
-  GPtrArray *refs;
+  ptr_array refs;
   int i;
   OBJECT tup;
   
@@ -306,17 +306,17 @@ OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark) {
   return Qnil;
   
   
-  refs = g_ptr_array_new();
+  refs = ptr_array_new(8);
   
   baker_gc_collect_references(state, om->gc, mark, refs);
   mark_sweep_collect_references(state, om->ms, mark, refs);
   
   
-  if(refs->len == 0) return Qnil;
+  if(ptr_array_length(refs) == 0) return Qnil;
   
-  tup = tuple_new(state, refs->len);
-  for(i = 0; i < refs->len; i++) {
-    tuple_put(state, tup, i, (OBJECT)g_ptr_array_index(refs, i));
+  tup = tuple_new(state, ptr_array_length(refs));
+  for(i = 0; i < ptr_array_length(refs); i++) {
+    tuple_put(state, tup, i, (OBJECT)ptr_array_get_index(refs, i));
   }
     
   return tup;

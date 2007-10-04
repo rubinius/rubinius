@@ -14,7 +14,7 @@
 
 cpu cpu_new(STATE) {
   cpu c = (cpu)calloc(1, sizeof(struct rubinius_cpu));
-  c->paths = g_ptr_array_new();
+  c->paths = ptr_array_new(8);
   return c;
 }
 
@@ -95,11 +95,11 @@ void cpu_initialize_context(STATE, cpu c) {
   cpu_event_setup_children(state, c);
 }
 
-void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
+void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   int i, len;
   gpointer t;
   #define ar(obj) if(REFERENCE_P(obj)) { \
-    g_ptr_array_add(roots, (gpointer)obj); \
+    ptr_array_append(roots, (gpointer)obj); \
   }
   
   if(!stack_context_p(c->active_context)) {
@@ -138,11 +138,11 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   ar(c->outstanding);
   ar(c->debug_channel);
   ar(c->control_channel);
-  len = c->paths->len;
-  g_ptr_array_add(roots, (gpointer)I2N(len));
+  len = ptr_array_length(c->paths);
+  ptr_array_append(roots, (gpointer)I2N(len));
   // printf("Paths: %d\n", len);
   for(i = 0; i < len; i++) {
-    t = g_ptr_array_remove_index(c->paths, 0);
+    t = ptr_array_remove_index_ordered(c->paths, 0);
     //printf("Pulled %s out of paths.\n", _inspect(t));
     ar(t);
   }
@@ -151,11 +151,11 @@ void cpu_add_roots(STATE, cpu c, GPtrArray *roots) {
   #undef ar
 }
 
-void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
+void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   gpointer tmp;
   int i, len;
   #define ar(obj) if(REFERENCE_P(obj)) { \
-    tmp = g_ptr_array_index(roots, start++); \
+    tmp = ptr_array_get_index(roots, start++); \
     obj = (OBJECT)tmp; \
   }
   
@@ -199,12 +199,12 @@ void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start) {
   ar(c->outstanding);
   ar(c->debug_channel);
   ar(c->control_channel);
-  tmp = g_ptr_array_index(roots, start++);
+  tmp = ptr_array_get_index(roots, start++);
   len = FIXNUM_TO_INT((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {
-    tmp = g_ptr_array_index(roots, start);
+    tmp = ptr_array_get_index(roots, start);
     //printf("Adding path %s back in...\n", _inspect(tmp));
-    g_ptr_array_add(c->paths, tmp);
+    ptr_array_append(c->paths, tmp);
   }
   //printf("Paths is %d\n", c->paths->len);
   #undef ar
@@ -412,18 +412,18 @@ OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
 
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   int len;
-  len = c->paths->len;
+  len = ptr_array_length(c->paths);
   /*
-  if(len > 0 && g_ptr_array_index(c->paths, len-1) == cls) {
+  if(len > 0 && ptr_array_get_index(c->paths, len-1) == cls) {
     printf("Removing %p from paths.\n", cls);
-    g_ptr_array_remove(c->paths, len-1); 
+    ptr_array_remove_ordered(c->paths, len-1); 
   } else {
     printf("Adding %p (%d) to the path...\n", cls, cls);
-    g_ptr_array_add(c->paths, cls);
+    ptr_array_append(c->paths, cls);
   }
   */
   /* add stuff for @paths here */
-  g_ptr_array_add(c->paths, (gpointer)c->enclosing_class);
+  ptr_array_append(c->paths, (gpointer)c->enclosing_class);
   /*
   printf("Push %s (%d) to paths (%d)\n", _inspect(c->enclosing_class), 
     c->enclosing_class, c->paths->len);
@@ -433,9 +433,9 @@ void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
 
 void cpu_push_encloser(STATE, cpu c) {
   int len;
-  len = c->paths->len;
+  len = ptr_array_length(c->paths);
   if(len > 0) {
-    c->enclosing_class = (OBJECT)g_ptr_array_remove_index(c->paths, len - 1);
+    c->enclosing_class = (OBJECT)ptr_array_remove_index_ordered(c->paths, len - 1);
     //printf("Setting encloser to %s\n", _inspect(c->enclosing_class));
   }
 }

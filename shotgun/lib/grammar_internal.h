@@ -73,7 +73,7 @@ typedef struct rb_parse_state {
 
     void *lval; /* the parser's yylval */
 
-    GPtrArray *comments;
+    ptr_array comments;
     int column;
     NODE *top;
     ID *locals;

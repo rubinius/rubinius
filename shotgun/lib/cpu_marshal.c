@@ -21,14 +21,14 @@ static OBJECT string_newfrombstr(STATE, bstring output)
 
 struct marshal_state {
   int consumed;
-  GPtrArray *objects;
+  ptr_array objects;
   uint8_t *buf;
 };
 
 static int _find_object(OBJECT obj, struct marshal_state *ms) {
   int i;
-  for(i = 0; i < ms->objects->len; i++) {
-    if(obj == (OBJECT)g_ptr_array_index(ms->objects, i)) {
+  for(i = 0; i < ptr_array_length(ms->objects); i++) {
+    if(obj == (OBJECT)ptr_array_get_index(ms->objects, i)) {
       return i;
     }
   }
@@ -37,7 +37,7 @@ static int _find_object(OBJECT obj, struct marshal_state *ms) {
 }
 
 static void _add_object(OBJECT obj, struct marshal_state *ms) {
-  g_ptr_array_add(ms->objects, (gpointer)obj);
+  ptr_array_append(ms->objects, (gpointer)obj);
 }
 
 static OBJECT unmarshal(STATE, struct marshal_state *ms);
@@ -80,7 +80,7 @@ static OBJECT _nth_object(STATE, struct marshal_state *ms) {
   
   ms->consumed += 5;
   ref = read_int(ms->buf + 1);
-  return (OBJECT)g_ptr_array_index(ms->objects, ref);
+  return (OBJECT)ptr_array_get_index(ms->objects, ref);
 }
 
 static OBJECT unmarshal_int(STATE, struct marshal_state *ms) {
@@ -445,12 +445,12 @@ bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version) {
   struct marshal_state ms;
   
   ms.consumed = 0;
-  ms.objects = g_ptr_array_new();
+  ms.objects = ptr_array_new(8);
   
   buf = cstr2bstr("RBIX");
   _append_sz(buf, version);
   marshal(state, obj, buf, &ms);
-  g_ptr_array_free(ms.objects, 1);
+  ptr_array_free(ms.objects);
   return buf;
 }
 
@@ -465,7 +465,7 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   }
   
   ms.consumed = 0;
-  ms.objects = g_ptr_array_new();
+  ms.objects = ptr_array_new(8);
   
   buf = cstr2bstr("");
   _append_sz(buf, version);
@@ -477,7 +477,7 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   fclose(f);
 
   bdestroy(buf);
-  g_ptr_array_free(ms.objects, 1);
+  ptr_array_free(ms.objects);
   return Qtrue;
 }
 
@@ -498,11 +498,11 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int version) {
     return Qnil;
   }
   ms.consumed = 0;
-  ms.objects = g_ptr_array_new();
+  ms.objects = ptr_array_new(8);
   ms.buf = str + offset;
 
   ret = unmarshal(state, &ms);
-  g_ptr_array_free(ms.objects, 1);
+  ptr_array_free(ms.objects);
   return ret;
 }
 
@@ -539,7 +539,7 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
 
   left -= 4;
 
-  ms.objects = g_ptr_array_new();
+  ms.objects = ptr_array_new(8);
   if(!memcmp(buf, "RBIS", 4)) {
     version = -1;
   } else if(!memcmp(buf, "RBIX", 4)) {
@@ -583,7 +583,7 @@ cleanup:
   }
 
   if(ms.objects) {
-    g_ptr_array_free(ms.objects, 1);
+    ptr_array_free(ms.objects);
   }
 
   return obj;

@@ -75,9 +75,9 @@ OBJECT _handle_convert_string(STATE, rni_handle_table *tbl, rni_handle *h) {
 }
 
 void handle_become_array(rni_handle *h, int len) {
-  GPtrArray *gary;
+  ptr_array gary;
   SET_FLAG(h, ARRAY_FLAG);
-  gary = g_ptr_array_sized_new(len);
+  gary = ptr_array_new(len);
   h->data = (void*)gary;
 }
 
@@ -173,7 +173,7 @@ void handle_delete(rni_handle *h) {
   if(IS_FLAG(h, STRING_FLAG)) {
     bdestroy((bstring)h->data);
   } else if(IS_FLAG(h, ARRAY_FLAG)) {
-    g_ptr_array_free((GPtrArray*)h->data);
+    ptr_array_free(ptr_array)h->data);
   }
   */
   free(h);

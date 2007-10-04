@@ -1,6 +1,6 @@
 #include "heap.h"
 #include <glib.h>
-
+#include <ptr_array.h>
 #ifndef __RUBINIUS_BAKER__
 #define __RUBINIUS_BAKER__ 1
 
@@ -11,12 +11,12 @@ struct baker_gc_struct {
   rheap next;
   int used;
   int tenure_age;
-  GPtrArray *remember_set;
+  ptr_array remember_set;
   void *tenure_data;
   OBJECT (*tenure)(void*, OBJECT obj);
   int tenure_now;
   void *om;
-  GPtrArray *seen_weak_refs;
+  ptr_array seen_weak_refs;
   OBJECT become_from, become_to;
   char *last_start, *last_end;
   int num_collection;
@@ -38,11 +38,11 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj);
 int baker_gc_contains_p(baker_gc g, OBJECT obj);
 int baker_gc_contains_spill_p(baker_gc g, OBJECT obj);
 OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT iobj);
-int baker_gc_collect(STATE, baker_gc g, GPtrArray *roots);
+int baker_gc_collect(STATE, baker_gc g, ptr_array roots);
 void baker_gc_clear_gc_flag(baker_gc g, int flag);
 void baker_gc_describe(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);
-void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, GPtrArray *refs);
+void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs);
 inline int baker_gc_forwarded_p(OBJECT obj);
 void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int top);
 

@@ -8704,7 +8704,7 @@ yylex(YYSTYPE *yylval, void *vstate)
             }
             
             // FIXME: used to have the file and column too, but took it out.
-            g_ptr_array_add(parse_state->comments, cur_line);
+            ptr_array_append(parse_state->comments, cur_line);
                 // rb_ary_new3(3, INT2NUM(ruby_sourceline), INT2NUM(comment_column),
                 //    cur_line));
             

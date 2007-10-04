@@ -37,7 +37,7 @@ typedef struct object_memory_struct *object_memory;
 object_memory object_memory_new();
 int object_memory_delete(object_memory om);
 int object_memory_used(object_memory om);
-int object_memory_collect(STATE, object_memory om, GPtrArray *roots);
+int object_memory_collect(STATE, object_memory om, ptr_array roots);
 void object_memory_check_memory(object_memory om);
 OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields);
 static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields);
@@ -46,7 +46,7 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
 void object_memory_print_stats(object_memory om);
 OBJECT object_memory_new_opaque();
 OBJECT object_memory_tenure_object(void* data, OBJECT obj);
-void object_memory_major_collect(STATE, object_memory om, GPtrArray *roots);
+void object_memory_major_collect(STATE, object_memory om, ptr_array roots);
 OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark);
 void object_memory_setup_become(STATE, object_memory om, OBJECT from, OBJECT to);
 void object_memory_clear_become(STATE, object_memory om);

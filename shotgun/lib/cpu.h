@@ -64,7 +64,7 @@ struct fast_context {
   OBJECT new_class_of; \
   OBJECT exceptions; \
   OBJECT active_context, home_context, main; \
-  GPtrArray *paths; \
+  ptr_array paths; \
   unsigned int depth; \
   OBJECT context_cache; \
   IP_TYPE *ip_ptr; \
@@ -134,7 +134,7 @@ cpu cpu_new(STATE);
 void cpu_initialize(STATE, cpu c);
 void cpu_setup_top_scope(STATE, cpu c);
 void cpu_initialize_context(STATE, cpu c);
-void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
+void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
 
@@ -175,8 +175,8 @@ bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version);
 OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version);
 
 void cpu_bootstrap(STATE);
-void cpu_add_roots(STATE, cpu c, GPtrArray *roots);
-void cpu_update_roots(STATE, cpu c, GPtrArray *roots, int start);
+void cpu_add_roots(STATE, cpu c, ptr_array roots);
+void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
 
 /* Method cache functions */
 void cpu_clear_cache(STATE, cpu c);
