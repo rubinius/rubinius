@@ -1,0 +1,1 @@
+Hash#replace raises TypeError if called on a frozen instance

@@ -1,0 +1,1 @@
+Hash#clear raises TypeError if called on a frozen instance
