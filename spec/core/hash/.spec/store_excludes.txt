@@ -1,1 +1,2 @@
 Hash#store duplicates string keys using dup semantics
+Hash#store raises TypeError if called on a frozen instance

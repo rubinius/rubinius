@@ -1,3 +1,4 @@
 Hash#update processes entries with same order as merge()
+Hash#update raises TypeError if called on a frozen instance
 Hash#update raise RuntimeError if #rehash is called from block
 Hash#update raises if lots of new entries are added from block

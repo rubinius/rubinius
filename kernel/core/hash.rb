@@ -13,7 +13,6 @@ class Hash
   end
 
   def initialize(default_value = nil, &block)
-    raise TypeError, "can't modify frozen hash" if frozen?
     raise ArgumentError, 'wrong number of arguments' if default_value && block
     @default = default_value || block
     @default_proc = block != nil
@@ -39,8 +38,6 @@ class Hash
   end
 
   def modify_key_cv(key, val)
-    raise TypeError, "can't modify frozen hash" if frozen?
-
     key = key.dup.freeze if String === key
     set_by_hash key.hash, key, val
   end
