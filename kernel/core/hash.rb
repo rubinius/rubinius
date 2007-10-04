@@ -210,7 +210,8 @@ class Hash
     nil
   end
   
-  def merge!(other_hash)
+  def merge!(other)
+    other_hash = Type.coerce_to(other, Hash, :to_hash)
    other_hash.each do |k, v| 
      if block_given? && self.key?(k)
        self[k] = yield(k, self[k], v)
@@ -248,8 +249,8 @@ class Hash
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
   
-  def merge(other_hash, &block)
-    dup.merge!(other_hash, &block)
+  def merge(other, &block)
+    dup.merge!(other, &block)
   end
   
   def reject(&block)
@@ -272,7 +273,8 @@ class Hash
     self
   end
   
-  def replace(other_hash)
+  def replace(other)
+    other_hash = Type.coerce_to(other, Hash, :to_hash)
     unless self.equal?(other_hash)
       clear
       other_hash.each {|k, v| self[k] = v}
