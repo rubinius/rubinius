@@ -202,7 +202,7 @@ OBJECT regexp_scan(STATE, OBJECT regexp, OBJECT string) {
 
 OBJECT get_match_data(STATE, OnigRegion *region, OBJECT string, OBJECT regexp, int max) {
   OBJECT md = matchdata_allocate(state); 
-  matchdata_set_source(md, string);
+  matchdata_set_source(md, string_dup(state, string));
   matchdata_set_regexp(md, regexp);
   matchdata_set_full(md, tuple_new2(state, 2, I2N(region->beg[0]), I2N(region->end[0])));
   matchdata_set_region(md, _md_region_to_tuple(state, region, max));
