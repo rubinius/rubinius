@@ -2118,10 +2118,6 @@ class String
     out[0,w_idx]
   end
 
-  def tr!(from_str, to_str)
-    replace_if(tr(from_str, to_str))
-  end
-  
   def without_changing_regex_global
     old_md = $~
     yield
