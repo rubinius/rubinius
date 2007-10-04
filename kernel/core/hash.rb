@@ -6,12 +6,17 @@ class Hash
   
   include Enumerable
   
-  def self.new(default_value=nil,&block)
+  def self.new(default_value = nil, &block)
     hsh = {}
-    raise ArgumentError, 'wrong number of arguments' if default_value && block
-    hsh.put(5, (default_value || block))
-    hsh.put(6, (block != nil))
+    hsh.initialize(default_value, &block)
     return hsh
+  end
+  
+  def initialize(default_value = nil, &block)
+    raise TypeError, "can't modify frozen hash" if frozen?
+    raise ArgumentError, 'wrong number of arguments' if default_value && block
+    @default = default_value || block
+    @default_proc = block != nil
   end
   
   def access_key_cv(key)
