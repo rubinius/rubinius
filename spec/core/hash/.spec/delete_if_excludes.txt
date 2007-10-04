@@ -1,4 +1,3 @@
 Hash#delete_if processes entries with the same order as each()
-Hash#delete_if raises TypeError if called on a frozen instance
 Hash#delete_if raise RuntimeError if #rehash is called from block
 Hash#delete_if raises if lots of new entries are added from block

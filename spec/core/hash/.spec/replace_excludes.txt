@@ -1,3 +1,0 @@
-Hash#replace calls to_hash on its argument
-Hash#replace does not transfer default values
-Hash#replace raises TypeError if called on a frozen instance
