@@ -1217,9 +1217,7 @@ class String
   #   string                  #=> "thing"
   def slice!(*args)
     result = slice(*args)
-    old_md = $~
     self[*args] = '' unless result.nil?
-    $~ = old_md
     result
   end
 
@@ -1385,7 +1383,7 @@ class String
     raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
     
     out = self.dup
-    if match = get_pattern(pattern, true).match(self.dup)
+    if match = get_pattern(pattern, true).match(self)
       out = match.pre_match
       old_md = $~
 
