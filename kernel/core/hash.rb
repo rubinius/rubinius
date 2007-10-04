@@ -278,7 +278,9 @@ class Hash
     unless self.equal?(other_hash)
       clear
       other_hash.each {|k, v| self[k] = v}
-      self.default = other_hash.default
+      # This makes sure a default proc isn't called instead of being read
+      self.put(5, other_hash.at(5))
+      self.put(6, other_hash.at(6))
     end
     self
   end
