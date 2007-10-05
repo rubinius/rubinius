@@ -150,6 +150,11 @@ class Hash
     raise IndexError, 'Key not found'
   end
 
+  def index(val)
+    each_pair { |k, v| return k if v == val }
+    nil
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -219,11 +224,6 @@ class Hash
     values.include?(val)
   end
   alias_method :has_value?, :value?
-
-  def index(val)
-    each {|k, v| return k if v == val}
-    nil
-  end
 
   def merge!(other)
     other_hash = Type.coerce_to(other, Hash, :to_hash)
