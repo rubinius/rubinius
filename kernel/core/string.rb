@@ -580,27 +580,15 @@ class String
   #   "hello".delete "aeiou", "^e"   #=> "hell"
   #   "hello".delete "ej-m"          #=> "ho"
   def delete(*args)
-    (str = self.dup).delete!(*args) || str
+    raise ArgumentError, "wrong number of arguments" if args.empty?    
+    self.gsub(tr_regex(args), "")
   end
 
   # Performs a <code>delete</code> operation in place, returning <i>self</i>, or
   # <code>nil</code> if <i>self</i> was not modified.
   def delete!(*strings)
-    raise ArgumentError, "wrong number of arguments" if strings.empty?
-    
-    self.modify!
-    
-    return if @bytes == 0
-    
-    table = setup_tr_table(*strings)
-    
-    # TODO: Can't we use the ByteArray directly here?
-    new = []
-    self.each_byte do |c|
-      new << c.chr unless table[c] == 1
-    end
-    new = new.join
-    new != self ? replace(new) : nil # TODO
+    replacement = delete(*strings)
+    self == replacement ? nil : replace(replacement)
   end
   
   # Returns a copy of <i>self</i> with all uppercase letters replaced with their

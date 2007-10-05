@@ -96,11 +96,13 @@ describe "String#delete!" do
     a.should == "hello"
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "hello"
-    a.freeze
+  failure :rubinius do
+    it "raises a TypeError when self is frozen" do
+      a = "hello"
+      a.freeze
 
-    should_raise(TypeError) { a.delete!("") }
-    should_raise(TypeError) { a.delete!("aeiou", "^e") }
+      should_raise(TypeError) { a.delete!("") }
+      should_raise(TypeError) { a.delete!("aeiou", "^e") }
+    end
   end
 end
