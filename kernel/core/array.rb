@@ -783,8 +783,7 @@ class Array
   # Descends through contained Arrays, recursive ones
   # are indicated as [...].
   def inspect()
-    stack = []
-    recursively_inspect self, stack
+    recursively_inspect self
   end
 
   # Generates a string from converting all elements of 
@@ -792,17 +791,14 @@ class Array
   # each. The separator defaults to $,. Detects recursive
   # Arrays.
   def join(sep = nil, method = :to_s)
-    return '' if @total == 0
-    return at(0).__send__(method) if @total == 1
     sep ||= $,
-
     raise TypeError, "Cannot convert #{sep.inspect} to str" unless sep.respond_to? :to_str
     sep = sep.to_str
-    out = ""
 
-    recursively_join self, sep, out, [], method
+    out = ""
+    recursively_join self, sep, method, out
     out[sep.size..-1] 
-  end 
+  end
   
   # Returns the last element or n elements of self. If
   # the Array is empty, without a count nil is returned,
@@ -1462,62 +1458,69 @@ class Array
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
   def recursively_flatten(array, out, stack)
-    raise ArgumentError, "Recursive Array!" if stack.include?(array.object_id)
-    stack.push array.object_id
-
+    raise ArgumentError, "Recursive Array!" if in_stack?(stack, array)
+    
     ret = nil
-
     array.each { |o|
       if o.kind_of? Array
-        recursively_flatten o, out, stack 
-        ret = array
+        handle_stack(stack, array) do
+          recursively_flatten o, out, stack 
+          ret = array
+        end
       else
         out << o
       end
     }
-
-    stack.pop                # Eep
+    
     ret
   end
 
   # Helper to recurse through inspecting an Array.
   # Detects recursive structures.
-  def recursively_inspect(array, stack)
-    return "[...]" if stack.include?(array.object_id)
-    stack.push array.object_id
-
-    out = []
+  def recursively_inspect(array, stack = [])
+    return "[...]" if in_stack?(stack, array)
     
+    out = []
     array.each { |o|
       if o.kind_of? Array
-        out << recursively_inspect(o, stack)
+        handle_stack(stack, array) do
+          out << recursively_inspect(o, stack)
+        end
       else
         out << o.inspect
       end
     }
-
-    stack.pop
+    
     "[#{out.join ', '}]"
-  end     
-
-  # Helper to depth-first recurse through joining an Array
-  # Detects recursive structures.
-  def recursively_join(array, separator, out, stack, method)
-    if stack.include?(array.object_id)
-      out << separator << "[...]"
-    end
-
-    stack.push array.object_id
-
-    array.each { |o|
-      if Array === o
-        recursively_join(o, separator, out, stack, method)
+  end
+  
+  def recursively_join(array, separator, method, out, stack = [])
+    array.each do |o|
+      if o.kind_of?(Array)
+        if in_stack?(stack, o)
+          out << separator << "[...]"
+        else
+          handle_stack(stack, array) do
+            recursively_join(o, separator, method, out, stack)
+          end
+        end
       else
         out << separator << o.__send__(method)
       end
-    }
-
-    stack.pop
-    out
+    end
+  end
+  
+  def handle_stack(stack, array, &block)
+    if stack.include?(array.object_id)
+      yield
+    else
+      stack.push(array.object_id)
+      yield
+      stack.pop
+    end
+  end
+  
+  def in_stack?(stack, array)
+    stack.include?(array.object_id)
   end
 end

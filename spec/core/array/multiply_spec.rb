@@ -6,8 +6,6 @@ describe "Array#*" do
     ([ 1, 2, 3 ] * ",").should == [1, 2, 3].join(",")
   end
 
-# Rubinius cannot create recursive Arrays
-failure :rubinius do
   it "handles recursive arrays like #join" do
     x = []
     x << x
@@ -19,7 +17,6 @@ failure :rubinius do
     x << 1 << x << 2 << y << 3
     (x * ":").should == x.join(":")
   end
-end  
 
   it "calls to_str on its argument" do
     obj = Object.new

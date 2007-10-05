@@ -37,7 +37,6 @@ describe "Array#join" do
     [1, 2].join(obj).should == "1.2"
   end
 
-failure :rubinius do
   it "handles recursive arrays" do
     x = []
     x << x
@@ -53,5 +52,4 @@ failure :rubinius do
     x_rec = '1:[...]:2:' + y_rec + ':3'
     x.join(":").should == '1:' + x_rec + ':2:' + y_rec + ':3'
   end
-end
 end
