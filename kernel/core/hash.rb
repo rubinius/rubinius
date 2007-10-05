@@ -86,6 +86,11 @@ class Hash
     @default
   end
 
+  def default=(val)
+    @default_proc = false
+    @default = val
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -168,11 +173,6 @@ class Hash
 
   def default_proc
     @default_proc ? @default : nil
-  end
-
-  def default=(nd)
-    @default_proc = false
-    @default = nd
   end
 
   def value?(val)
