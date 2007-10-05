@@ -41,7 +41,9 @@ describe "Hash#default=" do
     end
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.default = nil }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.default = nil }
+    end
   end
 end

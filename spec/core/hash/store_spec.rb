@@ -29,8 +29,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       h.keys[0].reverse.should == "oof"
     end  
 
-    it "raises TypeError if called on a frozen instance" do
-      should_raise(TypeError) { @hash.send(cmd, 1, 2) }
+    compliant :mri do
+      it "raises TypeError if called on a frozen instance" do
+        should_raise(TypeError) { @hash.send(cmd, 1, 2) }
+      end
     end
   end
 end

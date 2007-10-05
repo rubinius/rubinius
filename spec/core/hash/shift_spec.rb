@@ -23,8 +23,10 @@ describe "Hash#shift" do
     h.shift.should == [h, nil]
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.shift }
-    should_raise(TypeError) { @empty.shift }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.shift }
+      should_raise(TypeError) { @empty.shift }
+    end
   end
 end

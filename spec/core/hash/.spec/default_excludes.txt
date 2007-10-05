@@ -1,1 +1,0 @@
-Hash#default= raises TypeError if called on a frozen instance

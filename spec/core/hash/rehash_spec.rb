@@ -51,8 +51,10 @@ describe "Hash#rehash" do
     h[k1].should == override_val
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.rehash }
-    should_raise(TypeError) { @empty.rehash }
-  end  
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.rehash }
+      should_raise(TypeError) { @empty.rehash }
+    end  
+  end
 end

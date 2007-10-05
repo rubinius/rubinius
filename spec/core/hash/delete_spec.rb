@@ -35,8 +35,10 @@ describe "Hash#delete" do
     Hash.new() { :defualt }.delete(:d).should == nil
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.delete("foo") }
-    should_raise(TypeError) { @empty.delete("foo") }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.delete("foo") }
+      should_raise(TypeError) { @empty.delete("foo") }
+    end
   end
 end

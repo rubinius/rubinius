@@ -14,12 +14,14 @@ describe "Hash#initialize" do
     h["a"].should == "aa"
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    @hash.instance_eval do
-      should_raise(TypeError) { initialize() }
-      should_raise(TypeError) { initialize(nil) }
-      should_raise(TypeError) { initialize(5) }
-      should_raise(TypeError) { initialize { 5 } }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      @hash.instance_eval do
+        should_raise(TypeError) { initialize() }
+        should_raise(TypeError) { initialize(nil) }
+        should_raise(TypeError) { initialize(5) }
+        should_raise(TypeError) { initialize { 5 } }
+      end
     end
   end
 end

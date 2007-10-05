@@ -66,9 +66,11 @@ describe "Hash#reject!" do
     reject_bang_pairs.should == delete_if_pairs
   end  
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.reject! { false } }
-    should_raise(TypeError) { @empty.reject! { true } }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.reject! { false } }
+      should_raise(TypeError) { @empty.reject! { true } }
+    end
   end
 
   it_behaves_like(@hash_iteration_method, :reject!)

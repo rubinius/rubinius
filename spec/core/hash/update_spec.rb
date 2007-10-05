@@ -44,9 +44,11 @@ require File.dirname(__FILE__) + '/iteration_spec'
       merge_bang_pairs.should == merge_pairs
     end
 
-    it "raises TypeError if called on a non-empty, frozen instance" do
-      @hash.send(cmd, @empty) # ok, empty
-      should_raise(TypeError) { @hash.send(cmd, 1 => 2) }
+    compliant :mri do
+      it "raises TypeError if called on a non-empty, frozen instance" do
+        @hash.send(cmd, @empty) # ok, empty
+        should_raise(TypeError) { @hash.send(cmd, 1 => 2) }
+      end
     end
   end
 end

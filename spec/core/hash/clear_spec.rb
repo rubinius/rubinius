@@ -18,8 +18,10 @@ describe "Hash#clear" do
     h.default_proc.should_not == nil
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.clear }
-    should_raise(TypeError) { @empty.clear }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.clear }
+      should_raise(TypeError) { @empty.clear }
+    end
   end
 end

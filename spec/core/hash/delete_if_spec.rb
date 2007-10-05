@@ -27,9 +27,11 @@ describe "Hash#delete_if" do
     each_pairs.should == delete_pairs
   end
 
-  it "raises TypeError if called on a frozen instance" do
-    should_raise(TypeError) { @hash.delete_if { false } }
-    should_raise(TypeError) { @empty.delete_if { true } }
+  compliant :mri do
+    it "raises TypeError if called on a frozen instance" do
+      should_raise(TypeError) { @hash.delete_if { false } }
+      should_raise(TypeError) { @empty.delete_if { true } }
+    end
   end
   
   it_behaves_like(@hash_iteration_method, :delete_if)

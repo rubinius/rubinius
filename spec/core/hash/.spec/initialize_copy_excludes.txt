@@ -1,3 +1,1 @@
-Hash#replace raises TypeError if called on a frozen instance
 Hash#initialize_copy is private
-Hash#initialize_copy raises TypeError if called on a frozen instance
