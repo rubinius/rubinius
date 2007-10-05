@@ -103,6 +103,16 @@ class Hash
     nil
   end
 
+  def delete_if()
+    # Do this in 2 steps, so we're not altering the structure while we walk it.
+    # TODO: I'd like to write it like this:
+    # select(&block).each { |k, v| delete k }
+    to_del = []
+    each_pair { |k, v| to_del << k if yield(k, v) }
+    to_del.each { |k| delete k }
+    self
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -187,15 +197,6 @@ class Hash
     values.include?(val)
   end
   alias_method :has_value?, :value?
-
-  def delete_if
-    # Do this in 2 steps, so we're not altering the structure
-    # while we walk it.
-    to_delete = []
-    each { |k, v| to_delete << k if yield(k, v) }
-    to_delete.each { |k| delete(k) }
-    return self
-  end
 
   def each_key(&block)
     keys.each(&block)
