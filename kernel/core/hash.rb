@@ -169,6 +169,17 @@ class Hash
   alias_method :include?, :key?
   alias_method :member?, :key?
 
+  def keys()
+    out = []
+    @values.each do |tup|
+      while tup
+        out << tup.at(1)
+        tup = tup.at(3)
+      end
+    end
+    out
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -184,17 +195,6 @@ class Hash
 
   def values_data
     @values
-  end
-
-  def keys
-    out = []
-    @values.each do |tup|
-      while tup
-        out << tup.at(1)
-        tup = tup.at(3)
-      end
-    end
-    return out
   end
 
   def values
