@@ -257,6 +257,11 @@ class Hash
     out
   end
 
+  def size()
+    @entries
+  end
+  alias_method :length, :size
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -264,10 +269,6 @@ class Hash
     else
       return Tuple[false, nil]
     end
-  end
-
-  def size
-    @entries
   end
 
   def values_data
@@ -300,8 +301,6 @@ class Hash
     str = "{#{ary.join(", ")}}"
     return str
   end
-
-  alias_method :length,     :size
 
   def value?(val)
     values.include?(val)
