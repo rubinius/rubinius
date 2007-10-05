@@ -119,6 +119,14 @@ class IO
     end
   end
   
+  def readlines(sep=$/)
+    ary = Array.new
+    while line = gets(sep)
+      ary << line
+    end
+    return ary
+  end
+  
   def self.pipe
     lhs = IO.allocate
     rhs = IO.allocate
