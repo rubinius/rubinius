@@ -236,6 +236,27 @@ class Hash
     out
   end
 
+  def shift()
+    return default if empty?
+
+    # TODO: keep around for efficiency?  It's not much faster though.
+    # i = 0
+    # tup = nil
+    # while !tup
+    #   tup = @values.at(i)
+    #   i += 1
+    # end
+    # key = tup.at(1)
+    # out = [key, self[key]]
+    # delete(key)
+    # out
+
+    key = keys.first
+    out = [key, self[key]]
+    delete key
+    out
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -286,24 +307,6 @@ class Hash
     values.include?(val)
   end
   alias_method :has_value?, :value?
-
-  def shift
-    out = nil
-    if empty?
-      out = default_proc ? default_proc.call(self, nil) : default
-    else
-      i = 0
-      tup = nil
-      while !tup
-        tup = @values.at(i)
-        i += 1
-      end
-      key = tup.at(1)
-      out = [key, self[key]]
-      delete(key)
-    end
-    out
-  end
 
   def values_at(*args)
     args.collect { |a| self[a] }
