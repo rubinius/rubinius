@@ -12,7 +12,7 @@ end
 get_class_or_module = lambda do |c|
   const = Object.const_get(c)
   return const if (const.is_a?(Module) or const.is_a?(Class)) and 
-    not ['OptionParser', 'SystemExit'].include?(const.name)
+    not ['OptionParser', 'ParseError', 'SystemExit'].include?(const.name)
 end
 
 target = 'ruby'
@@ -122,8 +122,11 @@ get_spec_name = lambda do |m, c, map|
 end
 
 create_file = lambda do |dir, name|
-  File.open(File.join(dir, name), 'w') do |f|
-    f.puts("require File.dirname(__FILE__) + '/../../spec_helper'\n")
+  file = File.join(dir, name)
+  unless File.exist?(file)
+    File.open(file, 'w') do |f|
+      f.puts("require File.dirname(__FILE__) + '/../../spec_helper'\n")
+    end
   end
 end
 
