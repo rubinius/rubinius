@@ -230,6 +230,12 @@ class Hash
   end
   alias_method :initialize_copy, :replace
 
+  def select()
+    out = []
+    each_pair { |k, v| out << [k, v] if yield(k, v) }
+    out
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -322,11 +328,4 @@ class Hash
   def sort(&block)
     to_a.sort(&block)
   end
-
-  def find_all(&block)
-    a = []
-    each {|k,v| a << [k,v] if yield(k,v) }
-    a
-  end
-  alias_method :select, :find_all
 end
