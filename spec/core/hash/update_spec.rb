@@ -26,8 +26,7 @@ require File.dirname(__FILE__) + '/iteration_spec'
       {3 => 4}.send(cmd, obj).should == {1 => 2, 3 => 4}
 
       obj = Object.new
-      # That's an implementation detail we won't depend on
-      # obj.should_receive(:respond_to?, :with => [:to_hash], :returning => true)
+      def obj.respond_to?(sel) sel == :to_hash end
       obj.should_receive(:method_missing, :with => [:to_hash], :returning => { 1 => 2})
       {3 => 4}.send(cmd, obj).should == {1 => 2, 3 => 4}
     end
