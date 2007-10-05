@@ -104,6 +104,8 @@ class Hash
   end
 
   def delete_if()
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
     # Do this in 2 steps, so we're not altering the structure while we walk it.
     # TODO: I'd like to write it like this:
     # select(&block).each { |k, v| delete k }
@@ -119,6 +121,8 @@ class Hash
   end
 
   def each_pair()
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
     @values.each do |tup|
       while tup
         yield(tup.at(1), tup.at(2))
@@ -236,6 +240,8 @@ class Hash
   alias_method :initialize_copy, :replace
 
   def select()
+    raise LocalJumpError, "no block given" unless block_given? or empty?
+
     out = []
     each_pair { |k, v| out << [k, v] if yield(k, v) }
     out
