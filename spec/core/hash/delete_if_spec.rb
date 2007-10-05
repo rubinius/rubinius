@@ -20,7 +20,8 @@ describe "Hash#delete_if" do
 
     each_pairs = []
     delete_pairs = []
-    h.each { |pair| each_pairs << pair }
+
+    h.each_pair { |*pair| each_pairs << pair }
     h.delete_if { |*pair| delete_pairs << pair }
 
     each_pairs.should == delete_pairs

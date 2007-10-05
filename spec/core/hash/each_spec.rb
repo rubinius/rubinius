@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/iteration_spec'
 
 describe "Hash#each" do
   it "yields one argument: [key, value]" do

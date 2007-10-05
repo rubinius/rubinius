@@ -8,7 +8,7 @@
   describe "Hash##{cmd}" do
     hsh = {1 => 2, 3 => 4, 5 => 6}  
     big_hash = {}
-    100.times { |k| big_hash[k.to_s] = k }    
+    64.times { |k| big_hash[k.to_s] = k }    
        
     it "raise RuntimeError if #rehash is called from block" do
       h = hsh.dup
@@ -19,7 +19,8 @@
       end
     end
 
-    it "raises if lots of new entries are added from block" do
+    # This specification seems arbitrary, but describes the behavior of MRI
+    it "raises if more than 63 new entries are added from block" do
       h = hsh.dup
       args = cmd.to_s[/merge|update/] ? [h] : []
 

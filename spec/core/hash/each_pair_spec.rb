@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
+require File.dirname(__FILE__) + '/iteration_spec'
 
 describe "Hash#each_pair" do
   it "processes all pairs, yielding two arguments: key and value" do
