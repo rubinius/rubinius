@@ -14,4 +14,5 @@ describe "Hash#each_pair" do
 
   it_behaves_like(@hash_iteration_method, :each_pair)
   it_behaves_like(@hash_iteration_modifying, :each_pair)
+  it_behaves_like(@hash_iteration_no_block, :each_pair)
 end

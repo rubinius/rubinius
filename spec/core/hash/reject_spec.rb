@@ -35,6 +35,8 @@ describe "Hash#reject" do
 
     reject_pairs.should == reject_bang_pairs
   end
+
+  it_behaves_like(@hash_iteration_no_block, :reject)
 end
 
 describe "Hash#reject!" do
@@ -70,4 +72,5 @@ describe "Hash#reject!" do
   end
 
   it_behaves_like(@hash_iteration_method, :reject!)
+  it_behaves_like(@hash_iteration_no_block, :reject!)
 end

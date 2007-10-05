@@ -55,3 +55,18 @@ end
     end
   end
 end
+
+@hash_iteration_no_block = shared "Iteration without a block" do |cmd|
+  describe "Hash##{cmd}" do
+    hsh = {1 => 2, 3 => 4, 5 => 6}  
+    empty = {}
+    
+    it "raises LocalJumpError when called on a non-empty hash without a block" do
+      should_raise(LocalJumpError) { hsh.delete_if }
+    end
+    
+    it "does not raise LocalJumpError when called on an empty hash without a block" do
+      empty.delete_if.should == empty
+    end
+  end
+end

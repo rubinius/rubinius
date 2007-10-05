@@ -33,4 +33,5 @@ describe "Hash#delete_if" do
   end
   
   it_behaves_like(@hash_iteration_method, :delete_if)
+  it_behaves_like(@hash_iteration_no_block, :delete_if)
 end
