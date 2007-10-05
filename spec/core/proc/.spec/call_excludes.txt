@@ -1,0 +1,1 @@
+Proc#call when called on a Proc created with Kernel.proc raises an ArgumentError when given to many arguments

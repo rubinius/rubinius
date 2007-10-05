@@ -1,0 +1,1 @@
+Proc#binding returns the binding associated wiht self

@@ -1,0 +1,1 @@
+Array#transpose raises if the items aren't arrays and don't respond to to_ary

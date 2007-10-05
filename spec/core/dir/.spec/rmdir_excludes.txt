@@ -1,6 +1,2 @@
-Dir.delete removes non-empty directories
-Dir.delete raises SystemCallError when trying to remove a nonempty directory
-Dir.delete raises SystemCallError if lacking adequate permissions to remove the directory
-Dir.rmdir removes non-empty directories
-Dir.rmdir raises SystemCallError when trying to remove a nonempty directory
-Dir.rmdir raises SystemCallError if lacking adequate permissions to remove the directory
+Dir.delete removes empty directories
+Dir.rmdir removes empty directories

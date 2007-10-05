@@ -1,0 +1,2 @@
+UnboundMethod#to_s returns a string representing the UnboundMethod
+UnboundMethod#inspect returns a string representing the UnboundMethod

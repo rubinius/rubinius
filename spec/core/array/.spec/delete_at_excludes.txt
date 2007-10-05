@@ -1,0 +1,2 @@
+Array#delete_at calls to_int on its argument
+Array#delete_at raises TypeError on a frozen array

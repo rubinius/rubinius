@@ -1,0 +1,2 @@
+Array#collect! raises TypeError on a frozen array
+Array#map! raises TypeError on a frozen array

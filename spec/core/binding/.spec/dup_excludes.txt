@@ -1,0 +1,2 @@
+Binding#dup return a copy of the Bind object
+Binding#dup should be a shallow copy of the Bind object

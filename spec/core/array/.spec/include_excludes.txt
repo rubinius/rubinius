@@ -1,2 +1,0 @@
-Array#include? returns true if object is present, false otherwise
-Array#include? determines presence by using element == obj

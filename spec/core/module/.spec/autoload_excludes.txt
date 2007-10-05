@@ -1,1 +1,0 @@
-Module#autoload raises a NameError when an invalid constant name is given

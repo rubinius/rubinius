@@ -1,0 +1,2 @@
+Binding#clone return a copy of the Bind object
+Binding#clone should be a shallow copy of the Bind object

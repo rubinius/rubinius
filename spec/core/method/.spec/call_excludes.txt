@@ -1,0 +1,1 @@
+Method#call raises an ArgumentError when given incorrect number of arguments

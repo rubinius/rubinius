@@ -1,0 +1,3 @@
+Kernel#binding should return a Binding object
+Kernel#binding should encapsulate the execution context properly
+Kernel#binding should raise NameError on undefined variable

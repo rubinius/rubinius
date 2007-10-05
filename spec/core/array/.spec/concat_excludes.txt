@@ -1,0 +1,2 @@
+Array#concat calls to_ary on its argument
+Array#concat raises TypeError on a frozen array

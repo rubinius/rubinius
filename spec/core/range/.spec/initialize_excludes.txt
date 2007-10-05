@@ -1,0 +1,1 @@
+Range.new raises an ArgumentError when the given start and end can't be compared by using #<=>

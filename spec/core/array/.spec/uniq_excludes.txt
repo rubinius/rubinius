@@ -1,0 +1,1 @@
+Array#uniq! always raises TypeError on a frozen array regardless of modification

@@ -17,7 +17,6 @@ Module#extended(module) is called when an object gets extended with self
 Module#extended(module) is called after Module#extend_object
 Numeric#coerce coerce strings to strings
 String#%
-Array#pack
 Regexp#~ matchs against the contents of $_
 Regexp#to_s returns a string in 
 Thread.new creates a thread executing the given block
@@ -55,7 +54,6 @@ Module#attr_writer creates a setter for each given attribute name
 Module#module_function makes the instance method versions private
 Module#module_function makes subsequently defined methods module functions if no names are given
 Module#module_function tries to convert the given names to strings using to_str
-Array#[]= with [m..n] accepts Range subclasses
 Module#attr_accessor raises a TypeError when the given names can't be converted to strings using to_str
 Module#autoload raises an ArgumentError when an empty filename is given
 Module#attr_accessor raises a TypeError when the given names can't be converted to strings using to_str
@@ -69,3 +67,7 @@ Hash#each_pair
 Hash#each_key
 String#<=> compares its argument and self by calling <=> on obj and turning the result around if obj responds to to_str
 String#each tries to convert the separator to a string using to_str
+Bignum#& returns self bitwise AND other
+Kernel.at_exit should fire after all other code
+Kernel.at_exit should fire in reverse order of registration
+Kernel.rand is seeded uniquely at startup

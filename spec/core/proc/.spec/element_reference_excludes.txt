@@ -1,0 +1,5 @@
+Proc#call when called on a Proc created with Kernel.proc raises an ArgumentError when given to many arguments
+Proc#[] when called on a Proc created with Kernel.proc raises an ArgumentError when given to many arguments
+Proc[] when called on a Proc created with Proc.new silently ignores extra arguments
+Proc[] invokes self
+Proc[] sets self's parameters to the given values

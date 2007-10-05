@@ -1,0 +1,1 @@
+Array#flatten! always raises TypeError on frozen arrays

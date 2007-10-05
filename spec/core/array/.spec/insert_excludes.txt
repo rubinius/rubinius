@@ -1,0 +1,2 @@
+Array#insert calls to_int on position argument
+Array#insert always raises TypeError on frozen arrays

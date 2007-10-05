@@ -3,3 +3,5 @@ Array#slice! calls to_int on start and length arguments
 Array#slice! calls to_int on range arguments
 Array#slice! does (not?) expand array with indices out of bounds
 Array#slice! raises TypeError on a frozen array
+Array#slice calls to_int on Range arguments with [m..n] and [m...n]
+Array#[] calls to_int on Range arguments with [m..n] and [m...n]

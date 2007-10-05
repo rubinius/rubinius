@@ -2,12 +2,16 @@ module ModuleSpecs
   class Parent
     # For private_class_method spec
     def Parent.private_method; end
-    private_class_method :private_method
+    failure :rubinius do
+      private_class_method :private_method
+    end
 
     # For public_class_method spec
     private
     def Parent.public_method; end
-    public_class_method :public_method
+    failure :rubinius do
+      public_class_method :public_method
+    end
 
     public
     def public_parent() end

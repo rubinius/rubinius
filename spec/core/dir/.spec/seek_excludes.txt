@@ -1,28 +1,2 @@
-An exception has occurred:
-    No method 'close' on an instance of NilClass. (NoMethodError)
-
-Backtrace:
-[0;31m    Object(NilClass)#close (method_missing) at kernel/core/object.rb:98[0m
-                            main.__script__ at spec/core/dir/seek_spec.rb:10[0m
-[0;34m                                  Proc#call at kernel/core/context.rb:262[0m
-                              SpecRunner#it at spec/mini_rspec.rb:335[0m
-[0;34m                                 Array#each at kernel/core/array.rb:557[0m
-[0;34m                      Integer(Fixnum)#times at kernel/core/integer.rb:14[0m
-[0;34m                                 Array#each at kernel/core/array.rb:557[0m
-                              SpecRunner#it at spec/mini_rspec.rb:335[0m
-                                    main.it at spec/mini_rspec.rb:369[0m
-                            main.__script__ at spec/core/dir/seek_spec.rb:13[0m
-[0;34m                                  Proc#call at kernel/core/context.rb:262[0m
-                        SpecRunner#describe at spec/mini_rspec.rb:346[0m
-                              main.describe at spec/mini_rspec.rb:365[0m
-                            main.__script__ at spec/core/dir/seek_spec.rb:4[0m
-[0;34m                                  main.load at kernel/core/compile.rb:78[0m
-[0;33m                       main.__eval_script__ at (eval):8[0m
-[0;34m                                 Array#each at kernel/core/array.rb:557[0m
-[0;34m                      Integer(Fixnum)#times at kernel/core/integer.rb:14[0m
-[0;34m                                 Array#each at kernel/core/array.rb:557[0m
-[0;33m                       main.__eval_script__ at (eval):5[0m
-[0;34m                    CompiledMethod#activate at kernel/core/compiled_method.rb:110[0m
-[0;34m                            Compile.execute at kernel/core/compile.rb:34[0m
-[0;34m                            main.__script__ at kernel/loader.rb:159[0m
 Dir#seek moves the current read position
+Dir#seek returns the Dir instance

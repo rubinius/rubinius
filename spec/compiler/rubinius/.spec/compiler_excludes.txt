@@ -1,3 +1,4 @@
+Bytecode::Compiler compiles a regexp literal
 Bytecode::Compiler compiles masgn with no splat
 Bytecode::Compiler compiles masgn with splat
 Bytecode::Compiler compiles masgn with array as the source

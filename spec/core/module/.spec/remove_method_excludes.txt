@@ -1,0 +1,3 @@
+Module#remove_method removes the method from a class
+Module#remove_method removes method from subclass, but not parent
+Module#remove_method raises NameError when attempting to remove method further up the inheritance tree

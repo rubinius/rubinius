@@ -12,8 +12,10 @@ end
 action = :run
 patterns = []
 target = 'shotgun/rubinius'
-format = 'ci'
+format = 'CIReporter'
 clean = false
+verbose = false
+ci_files = "spec/files.txt"
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
@@ -46,10 +48,28 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-f", "--format FORMAT", String, 
           "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
-    format = f
+    case f
+    when 's', 'specdox', 'specdoc'
+      format = 'SpecDoxReporter'
+    when 'h', 'html'
+      format = 'HtmlReporter'
+    when 'd', 'dot', 'dotted'
+      format = 'DottedReporter'
+    when 'c', 'ci', 'integration'
+      format = 'CIReporter'
+    when 'i', 'immediate'
+      format = 'ImmediateReporter'
+    else
+      puts "Unknown format: #{f}"
+      puts opts
+      exit
+    end
   end
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
     clean = true
+  end
+  opts.on("-V", "--verbose", "Output each file processed when running") do
+    verbose = true
   end
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
@@ -90,20 +110,36 @@ def mk_exclude_dir(file)
   Dir.mkdir(dir) unless File.exist?(dir)
 end
 
-case action
-when :create
+File.open(ci_files, "w") do |f|
   files.each do |file|
     mk_exclude_dir file
-    system("bin/mspec -t #{target} -x spec/excludes.txt -f ci #{file} > #{exclude file} 2> /dev/null")
+    f.print "#{file} #{exclude file}\n"
   end
+end
+
+cmd = <<-EOC
+#{target} -Ispec -rmini_rspec.rb -rmini_mock.rb -e '
+@runner = SpecRunner.new;
+File.open(#{ci_files.inspect}, "r") do |f|
+  f.each do |line|
+    file, exclude = line.split
+    reporter = #{format}.new(%s)
+    @runner.reporter = reporter
+    @runner.%s
+    STDERR.puts file if #{verbose}
+    load file
+    reporter.summary
+  end
+end'
+EOC
+
+case action
+when :create
+  system(cmd % ['exclude', 'except("spec/excludes.txt")'])
 when :run
-  files.each do |file|
-    system("bin/mspec -t #{target} -x spec/excludes.txt -x #{exclude file} -f #{format} #{file} 2> /dev/null")
-  end
+  system(cmd % ['STDOUT', 'except("spec/excludes.txt", exclude)'])
 when :invert
-  files.each do |file|
-    system("bin/mspec -t #{target} -e #{exclude file} -f #{format} #{file}")
-  end
+  system(cmd % ['STDOUT', 'only("spec/excludes.txt")'])
 else
   puts "Unknown action: #{action}"
   puts opts

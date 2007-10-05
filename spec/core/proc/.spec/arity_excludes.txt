@@ -1,0 +1,3 @@
+Proc#arity returns the number of arguments that are not ignored by self
+Proc#arity returns the negative number of mandatory arguments - 1 if self does take optional arguments
+Proc#arity returns -1 if no argument declaration is made

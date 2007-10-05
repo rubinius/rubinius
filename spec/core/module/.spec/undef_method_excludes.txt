@@ -1,0 +1,2 @@
+Module#undef_method removes a method definition from a class
+Module#undef_method does not remove the method for instances of a parent class when removed in a child

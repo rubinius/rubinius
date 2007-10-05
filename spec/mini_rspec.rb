@@ -36,14 +36,18 @@ class SpecReporter
   end
   
   def initialize(out=STDOUT)
-    if out.respond_to?(:print)
+    self.out = out
+    @examples = 0
+    @failures = 0
+    @exceptions = []
+  end
+  
+  def out=(out)
+    if out.is_a?(IO)
       @out = out
     else
       @out = File.open(out, "w")
     end
-    @examples = 0
-    @failures = 0
-    @exceptions = []
   end
   
   def before_describe(msg)
@@ -65,6 +69,10 @@ class SpecReporter
     @failures += 1
     @report.exception = e
     @exceptions.push(@report)
+  end
+  
+  def summarized=(flag)
+    @summarized = flag
   end
   
   def summary
@@ -263,6 +271,10 @@ class SpecRunner
     @reporter
   end
   
+  def reporter=(reporter)
+    @reporter = reporter
+  end
+  
   def escape(str)
     Regexp.new(Regexp.escape(str))
   end
@@ -270,12 +282,13 @@ class SpecRunner
   def convert_to_regexps(args)
     args.inject([]) do |list, item|
       if File.exists?(item)
-        f = File.open(item, "r")
-        f.each do |line|
-          line.chomp!
-          list << escape(line) unless line.empty?
+        if f = File.open(item, "r")
+          f.each do |line|
+            line.chomp!
+            list << escape(line) unless line.empty?
+          end
+          f.close
         end
-        f.close
         list
       else
         list << escape(item)

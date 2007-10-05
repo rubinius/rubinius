@@ -1,7 +1,3 @@
-Hash#replace calls to_hash on its argument
-Hash#replace does not transfer default values
 Hash#replace raises TypeError if called on a frozen instance
 Hash#initialize_copy is private
-Hash#initialize_copy calls to_hash on its argument
-Hash#initialize_copy does not transfer default values
 Hash#initialize_copy raises TypeError if called on a frozen instance

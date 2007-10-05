@@ -1,0 +1,1 @@
+Method#arity if a variable number of arguments, return -(n-1), where n is the number of required arguments

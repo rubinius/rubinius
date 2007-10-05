@@ -1,0 +1,2 @@
+UnboundMethod#== returns true if UnboundMethod's are the same
+UnboundMethod#== returns true on aliased methods which are unbound

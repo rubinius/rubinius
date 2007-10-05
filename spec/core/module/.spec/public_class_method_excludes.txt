@@ -1,0 +1,3 @@
+Module#public_class_method make an existing class method public
+Module#public_class_method make an existing class method public up the inheritance tree
+Module#public_class_method excepts more than one method at a time

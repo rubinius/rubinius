@@ -1,0 +1,3 @@
+Module#private_class_method make an existing class method private
+Module#private_class_method make an existing class method private up the inheritance tree
+Module#private_class_method excepts more than one method at a time

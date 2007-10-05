@@ -1,0 +1,2 @@
+UnboundMethod#arity if optional arguments returns the negative number of mandatory arguments, using Method#unbind
+UnboundMethod#arity if optional arguments returns the negative number of mandatory arguments, using Module#instance_method

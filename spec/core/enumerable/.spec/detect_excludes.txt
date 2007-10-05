@@ -1,2 +1,0 @@
-Enumerable#find call only once if 
-Enumerable#detect call only once if 

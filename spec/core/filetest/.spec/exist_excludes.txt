@@ -1,0 +1,3 @@
+FileTest.exist? return true if the file exist
+FileTest.exist? return true if the file exist using the alias exists?
+FileTest.exist? raise an exception if the argumnent is not from the correct type or are missing

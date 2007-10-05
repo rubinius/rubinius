@@ -1,0 +1,2 @@
+File.exist? raise an exception if the argumnent is not from the correct type or are missing
+File.exists? raise an exception if the argumnent is not from the correct type or are missing

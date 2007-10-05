@@ -1,0 +1,1 @@
+Array#delete raises TypeError on a frozen array

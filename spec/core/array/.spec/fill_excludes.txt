@@ -1,0 +1,2 @@
+Array#fill raises TypeError if the index is not numeric
+Array#fill raises TypeError on a frozen array

@@ -1,2 +1,1 @@
-Math.asin raises an ArgumentError if the argument cannot be coerced with Float()
 Math#asin is accessible as a private instance method

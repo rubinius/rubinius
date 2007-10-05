@@ -73,7 +73,6 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-o", "--output FILE", String,
           "Reporter output will be sent to FILE") do |f|
-    puts 'output' + f
     output = f
   end
   opts.on("-e", "--example STRING|FILE", String,

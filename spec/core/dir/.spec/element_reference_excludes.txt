@@ -25,6 +25,8 @@ Dir.glob matches files with any beginning with '*<non-special characters>' and o
 Dir.glob matches any files in the current directory with '.**' and option File::FNM_DOTMATCH
 Dir.glob recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH
 Dir.glob matches the literal character '\' with option File::FNM_NOESCAPE
+Dir.[] matches non-dotfiles with '*'
+Dir.[] matches non-dotfiles in the current directory with '**'
 Dir.[] recursively matches any nondot subdirectories with '**/'
 Dir.[] matches any characters except those in a set with '[^<characters>]'
 Dir.[] matches any characters except those in a range with '[^<character>-<character]'

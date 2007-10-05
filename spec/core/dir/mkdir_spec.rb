@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "Dir.mkdir" do
-  it "Dir.mkdir creates the named directory with the given permissions" do
+  it "creates the named directory with the given permissions" do
     File.exist?('nonexisting').should == false
     Dir.mkdir 'nonexisting'
     File.exist?('nonexisting').should == true
@@ -21,7 +21,7 @@ describe "Dir.mkdir" do
     Dir.rmdir 'always_returns_0'
   end
 
-  it "Dir.mkdir raises without adequate permissions in the parent dir" do
+  it "raises without adequate permissions in the parent dir" do
     Dir.mkdir 'noperms', 0000
 
     should_raise(SystemCallError) { Dir.mkdir 'noperms/subdir' }

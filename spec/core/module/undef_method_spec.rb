@@ -4,7 +4,9 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 module ModuleSpecs
   class NoInheritance
     def method_to_undef;1;end
-    undef_method :method_to_undef
+    failure :rubinius do
+      undef_method :method_to_undef
+    end
   end
   
   class Parent
@@ -12,7 +14,9 @@ module ModuleSpecs
   end
   
   class Child < Parent
-    undef_method :method_to_undef
+    failure :rubinius do
+      undef_method :method_to_undef
+    end
   end
   
   class Ancestor
@@ -20,7 +24,9 @@ module ModuleSpecs
   end
   
   class Descendant < Ancestor
-    undef_method :method_to_undef
+    failure :rubinius do
+      undef_method :method_to_undef
+    end
   end
 end
 

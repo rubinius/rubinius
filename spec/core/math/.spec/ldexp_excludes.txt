@@ -1,4 +1,3 @@
-Math.ldexp raises an ArgumentError if the first argument cannot be coerced with Float()
 Math.ldexp raises an TypeError if the second argument cannot be coerced with Integer()
 Math.ldexp raises a TypeError if the second argument is nil
 Math#ldexp is accessible as a private instance method
