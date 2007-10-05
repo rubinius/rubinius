@@ -132,7 +132,7 @@ class Array
 
   alias_method :slice, :[]
 
-  def []=(idx, ent, *args)    
+  def []=(idx, ent, *args)
     cnt = nil
     if args.size != 0
       cnt = ent.to_int
@@ -514,7 +514,7 @@ class Array
   end 
 
   # Deletes every element from self for which block evaluates to true
-  def delete_if() 
+  def delete_if()
     i = @start
     tot = @total + @start
 
@@ -1364,19 +1364,28 @@ class Array
   end
   
   
-  def unshift(val)
-    if @start > 0
-      @start -= 1
-      @total += 1
-      @tuple.put @start, val
+  def unshift(*values)
+    if(values.empty?)
+      return self
+    else
+      if @start > 0
+        @start -= values.size
+        @total += values.size
+        values.each_with_index do |val,i|
+          @tuple.put @start+i, val
+        end
+        return self
+      end
+      
+      @tuple = @tuple.shifted(values.size)
+      
+      values.each_with_index do |val,i|
+        @tuple.put i, val
+      end
+      
+      @total += values.size
       return self
     end
-    
-    @tuple = @tuple.shifted(1)
-    
-    @tuple.put 0, val
-    @total += 1
-    return self
   end
   
 
