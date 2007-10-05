@@ -96,6 +96,13 @@ class Hash
     nil
   end
 
+  def delete(key)
+    found, val = find_unambigious key
+    return delete_by_hash key.hash, key if found
+    return yield(key) if block_given?
+    nil
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -180,17 +187,6 @@ class Hash
     values.include?(val)
   end
   alias_method :has_value?, :value?
-
-  def delete(key)
-    retval = nil
-    found, val = find_unambigious(key)
-    if found
-      retval = delete_by_hash key.hash, key
-    else
-      retval = yield(key) if block_given?
-    end
-    retval
-  end
 
   def delete_if
     # Do this in 2 steps, so we're not altering the structure
