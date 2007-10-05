@@ -539,14 +539,23 @@ class String
   #   a.count "hello", "^l"   #=> 4
   #   a.count "ej-m"          #=> 4
   def count(*strings)
-    raise ArgumentError, "wrong number of Arguments" if strings.empty?
-    return 0 if @bytes == 0
-    
-    table = setup_tr_table(*strings)
-    
-    count = 0
-    self.each_byte { |c| count += 1 if table[c] == 1 }
-    count
+    raise ArgumentError if strings.empty?
+    self.scan(tr_regex(strings)).size
+  end
+  
+  def tr_regex(strings)
+    strings = strings.map do |string|
+      string = StringValue(string)
+      if string.empty?
+        "[.]" 
+      elsif string == "^"
+        "[\\^]"
+      else
+        string = string.reverse.gsub(/.-./) {|x| (x[0] >= x[2]) ? x : "." }.reverse
+        "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
+      end
+    end
+    Regexp.new("[#{strings.join("&&")}]")
   end
   
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
