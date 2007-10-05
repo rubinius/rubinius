@@ -161,6 +161,14 @@ class Hash
     out
   end
 
+  def key?(key)
+    found, val = find_unambigious key
+    found
+  end
+  alias_method :has_key?, :key?
+  alias_method :include?, :key?
+  alias_method :member?, :key?
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -187,11 +195,6 @@ class Hash
       end
     end
     return out
-  end
-
-  def key?(key)
-    tup = get_by_hash key.hash, key
-    return tup ? true : false
   end
 
   def values
@@ -221,9 +224,6 @@ class Hash
     return str
   end
 
-  alias_method :has_key?,   :key?
-  alias_method :include?,   :key?
-  alias_method :member?,    :key?
   alias_method :length,     :size
 
   def value?(val)
