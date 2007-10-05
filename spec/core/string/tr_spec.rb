@@ -92,10 +92,12 @@ describe "String#tr!" do
     s.should == "hello"
   end
   
-  it "raises a TypeError if self is frozen" do
-    s = "abcdefghijklmnopqR".freeze
-    should_raise(TypeError) { s.tr!("cdefg", "12") }
-    should_raise(TypeError) { s.tr!("R", "S") }
-    should_raise(TypeError) { s.tr!("", "") }
+  compliant :mri do
+    it "raises a TypeError if self is frozen" do
+      s = "abcdefghijklmnopqR".freeze
+      should_raise(TypeError) { s.tr!("cdefg", "12") }
+      should_raise(TypeError) { s.tr!("R", "S") }
+      should_raise(TypeError) { s.tr!("", "") }
+    end
   end
 end
