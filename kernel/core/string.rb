@@ -539,23 +539,39 @@ class String
   #   a.count "hello", "^l"   #=> 4
   #   a.count "ej-m"          #=> 4
   def count(*strings)
-    raise ArgumentError if strings.empty?
-    self.scan(tr_regex(strings)).size
+    raise ArgumentError, "wrong number of Arguments" if strings.empty?
+    return 0 if @bytes == 0
+    
+    pattern = tr_regex(strings)
+    count = start = 0
+    
+    while start < @bytes
+      break unless match = pattern.match_from(self, start)
+      start = match.begin(0) + 1
+      count += 1
+    end
+    
+    count
   end
   
   def tr_regex(strings)
     strings = strings.map do |string|
       string = StringValue(string)
       if string.empty?
-        "[.]" 
+        "[.]"
       elsif string == "^"
         "[\\^]"
       else
-        string = string.reverse.gsub(/.-./) {|x| (x[0] >= x[2]) ? x : "." }.reverse
-        "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
+        if string.size > 1 && string.data[0] == ?^
+          string = "^" << string[1..-1].gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
+        else
+          string = string.gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
+        end
+        string = "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
+        string.gsub(/(.)-(.)-/, '\\1-\\2\-')
       end
     end
-    Regexp.new("[#{strings.join("&&")}]")
+    /[#{strings.join("&&")}]/
   end
   
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
@@ -579,16 +595,27 @@ class String
   #   "hello".delete "lo"            #=> "he"
   #   "hello".delete "aeiou", "^e"   #=> "hell"
   #   "hello".delete "ej-m"          #=> "ho"
-  def delete(*args)
-    raise ArgumentError, "wrong number of arguments" if args.empty?    
-    self.gsub(tr_regex(args), "")
+  def delete(*strings)
+    (str = self.dup).delete!(*strings) || str
   end
 
   # Performs a <code>delete</code> operation in place, returning <i>self</i>, or
   # <code>nil</code> if <i>self</i> was not modified.
   def delete!(*strings)
-    replacement = delete(*strings)
-    self == replacement ? nil : replace(replacement)
+    raise ArgumentError, "wrong number of arguments" if strings.empty?
+    new = []
+    
+    last_end = 0
+    last_match = nil
+    
+    tr_regex(strings).match_all(self).each do |match|
+      new << match.pre_match_from(last_end) 
+      last_end, last_match = match.begin(0) + 1, match
+    end
+    
+    new << self[last_end..-1] if self[last_end..-1]
+    new = new.join
+    new != self ? replace(new) : nil
   end
   
   # Returns a copy of <i>self</i> with all uppercase letters replaced with their
@@ -1311,27 +1338,30 @@ class String
   # Squeezes <i>self</i> in place, returning either <i>self</i>, or
   # <code>nil</code> if no changes were made.
   def squeeze!(*strings)
-    if strings.empty?
-      table = ByteArray.new(256)
-      256.times do |i|
-        table[i] = 1
-      end
-    else
-      table = setup_tr_table(*strings)
-    end
-    
     self.modify!
     return if @bytes == 0
     
-    # TODO: Use the @data bytearray directly.
     new = []
     save = nil
-    self.each_byte do |c|
-      if table[c] == 0 || c != save
-        new << c.chr
-        save = c
+    
+    if strings.empty?
+      each_byte do |c|
+        new << (save = c).chr unless save == c
       end
+    else
+      last_end = 0
+      last_match = nil
+      
+      tr_regex(strings).match_all(self).each do |match|
+        unless save == match[0] && match.end(0) == last_end + 1
+          new << match.pre_match_from(last_end) << (save = match[0]) 
+        end
+        last_end, last_match = match.begin(0) + 1, match
+      end
+      
+      new << self[last_end..-1] if self[last_end..-1]
     end
+
     new = new.join
     new != self ? replace(new) : nil
   end
