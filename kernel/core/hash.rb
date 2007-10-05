@@ -43,6 +43,19 @@ class Hash
     self.class.new.replace self
   end
 
+  def ==(other)
+    return true if self.equal? other
+    return false unless other.kind_of? Hash or other.respond_to? :to_hash
+    other = Type.coerce_to(other, Hash, :to_hash)
+    return false unless other.size == size
+    # Pickaxe claims that defaults are compared, but MRI 1.8.[46] doesn't actually do that
+    # return false unless other.default == default
+    each_pair do |k, v|
+      return false unless other[k] == self[k]
+    end
+    true
+  end
+
   def access_key_cv(key)
     code, hk, val, nxt = get_by_hash key.hash, key
 
@@ -288,20 +301,6 @@ class Hash
     out = {}
     each {|k, v| out[k] = v}
     replace(out)
-  end
-
-  def ==(other)
-    return true if self.equal?(other)
-    unless other.kind_of?(Hash)
-      return other.respond_to?(:to_hash) ? self == other.to_hash : false
-    end
-    return false unless other.size == size
-    #pickaxe claims that defaults are compared, but MRI 1.8.4 doesn't actually do that
-    #return false unless other.default == default
-    each do |k, v|
-      return false unless other[k] == self[k]
-    end
-    true
   end
 
   def fetch(key, *rest)
