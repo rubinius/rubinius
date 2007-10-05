@@ -39,6 +39,10 @@ class Hash
     end
   end
 
+  def dup()
+    self.class.new.replace self
+  end
+
   def access_key_cv(key)
     code, hk, val, nxt = get_by_hash key.hash, key
 
@@ -298,10 +302,6 @@ class Hash
       return false unless other[k] == self[k]
     end
     true
-  end
-
-  def dup
-    {}.replace(self)
   end
 
   def fetch(key, *rest)
