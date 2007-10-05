@@ -300,15 +300,6 @@ class Hash
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
   
-  def find_unambigious(key)
-    code, hk, val, nxt = get_by_hash key.hash, key
-    if code
-      return Tuple[true, val]
-    else
-      return Tuple[false, nil]
-    end
-  end
-
   def inspect
     ary = []
     @values.each do |tup|
@@ -323,5 +314,14 @@ class Hash
     end
     str = "{#{ary.join(", ")}}"
     return str
+  end
+
+  # Internals
+  private
+  
+  def find_unambigious(key)
+    code, hk, val, nxt = get_by_hash key.hash, key
+    return Tuple[true, val] if code
+    Tuple[false, nil]
   end
 end
