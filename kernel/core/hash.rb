@@ -82,7 +82,8 @@ class Hash
   end
 
   def default(key = nil)
-    @default_proc ? @default.call(self, key) : @default
+    return @default.call(self, key) if @default_proc
+    @default
   end
 
   def find_unambigious(key)
