@@ -18,7 +18,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       h.should == {1 => 2, 3 => 4}
 
       obj = Object.new
-      def obj.respond_to?(sel) sel == :to_hash end
+      obj.should_receive(:respond_to?, :with => [:to_hash], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_hash], :returning => {})
 
       h.send(cmd, obj)
