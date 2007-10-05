@@ -294,6 +294,12 @@ class Hash
     out
   end
 
+  def values_at(*args)
+    args.collect { |key| self[key] }
+  end
+  alias_method :indexes, :values_at
+  alias_method :indices, :values_at
+  
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -322,10 +328,4 @@ class Hash
     str = "{#{ary.join(", ")}}"
     return str
   end
-
-  def values_at(*args)
-    args.collect { |a| self[a] }
-  end
-  alias_method :indexes, :values_at
-  alias_method :indices, :values_at
 end
