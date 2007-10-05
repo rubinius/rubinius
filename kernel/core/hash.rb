@@ -138,6 +138,18 @@ class Hash
     @entries == 0
   end
 
+  def fetch(key, *rest)
+    raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
+    warn 'Block supersedes default object' if block_given? and not rest.empty?
+
+    found, val = find_unambigious key
+    return val if found
+
+    return yield(key) if block_given?
+    return rest.first unless rest.empty?
+    raise IndexError, 'Key not found'
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -291,22 +303,6 @@ class Hash
     out = {}
     each {|k, v| out[k] = v}
     replace(out)
-  end
-
-  def fetch(key, *rest)
-    raise ArgumentError, "wrong number of arguments (#{rest.size + 1} for 2)" if rest.size > 1
-    found, val = find_unambigious(key)
-    unless found
-      if rest.size == 0 && !block_given?
-        raise IndexError, 'key not found'
-      elsif block_given?
-        val = yield key
-      else
-        val = rest.first
-      end
-    end
-
-    val
   end
 
   def to_a
