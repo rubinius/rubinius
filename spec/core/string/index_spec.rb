@@ -15,12 +15,12 @@ describe "String#index with object" do
 
   it "tries to convert obj to a string via to_str" do
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "lo")
     "hello".index(obj).should == "hello".index("lo")
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
     "hello".index(obj).should == "hello".index("o")
   end
@@ -94,7 +94,7 @@ describe "String#index with Fixnum" do
     "ROAR".index(?R, obj).should == 3
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     "ROAR".index(?R, obj).should == 3
   end
@@ -215,7 +215,7 @@ describe "String#index with String" do
     "RWOARW".index("RW", obj).should == 4
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     "RWOARW".index("RW", obj).should == 4
   end
@@ -344,7 +344,7 @@ describe "String#index with Regexp" do
     "RWOARW".index(/R./, obj).should == 4
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     "RWOARW".index(/R./, obj).should == 4
   end

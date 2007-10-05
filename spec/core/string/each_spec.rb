@@ -77,7 +77,7 @@ describe "String#each" do
     a.should == [ "hel", "l", "o\nworl", "d" ]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "l")
     
     a = []

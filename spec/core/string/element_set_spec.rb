@@ -58,7 +58,7 @@ describe "String#[]= with index" do
       should_raise(IndexError) { str[obj] = ?y }
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
       should_raise(IndexError) { str[obj] = ?! }
     end
@@ -76,7 +76,7 @@ describe "String#[]= with index" do
       str.should == "celly"
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
       str[obj] = ?!
       str.should == "cell!"
@@ -155,7 +155,7 @@ describe "String#[]= with String" do
       should_raise(IndexError) { str[obj] = "!" }
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
       should_raise(IndexError) { str[obj] = "e vator" }
     end
@@ -173,7 +173,7 @@ describe "String#[]= with String" do
       str.should == "hi ell!"
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
       str[obj] = "e vator"
       str.should == "hi elle vator"
@@ -189,7 +189,7 @@ describe "String#[]= with String" do
     a.should == "a-test-c"
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "ROAR")
 
     a = "abc"

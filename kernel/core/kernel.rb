@@ -31,20 +31,6 @@ module Type
 end
 
 module Kernel
-
-  # Conversion methods
-  def coerce_to(type, method, do_raise=true)
-    return self if self.is_a?(type)
-    
-    if self.respond_to?(method)
-      result = self.__send__(method)
-      raise TypeError, "#{self.class}##{method} should return #{type}" unless result.is_a?(type)
-      return result
-    elsif do_raise
-      raise TypeError, "can't convert #{self.class} into #{type}"
-    end
-  end
-  
   def Float(obj)
     raise TypeError, "can't convert nil into Float" if obj.nil?
     
@@ -54,26 +40,33 @@ module Kernel
       end
     end
   
-    obj.coerce_to(Float, :to_f)
+    Type.coerce_to(obj, Float, :to_f)
   end
   
   def Integer(obj)
     return obj.to_inum(10, true) if obj.is_a?(String)
     
-    result = obj.coerce_to(Integer, :to_int, false)
-    result = obj.coerce_to(Integer, :to_i) if result.nil?
-    return result
+    begin
+      Type.coerce_to(obj, Integer, :to_int)
+    rescue
+      Type.coerce_to(obj, Integer, :to_i)
+    end
   end
 
   def Array(obj)
-    result = obj.coerce_to(Array, :to_ary, false)
-    result = obj.coerce_to(Array, :to_a, false) if result.nil?
-    result = [obj] if result.nil?
-    return result
+    begin
+      Type.coerce_to(obj, Array, :to_ary)
+    rescue
+      begin
+        Type.coerce_to(obj, Array, :to_a)
+      rescue
+        [obj]
+      end
+    end
   end
 
   def String(obj)
-    obj.coerce_to(String, :to_s)
+    Type.coerce_to(obj, String, :to_s)
   end
   
   # MRI uses a macro named StringValue which has essentially
@@ -84,7 +77,7 @@ module Kernel
   #   String(obj, sym=:to_s)
   # and use String(obj, :to_str) instead of StringValue(obj)
   def StringValue(obj)
-    obj.coerce_to(String, :to_str)
+    Type.coerce_to(obj, String, :to_str)
   end
   private :StringValue
   

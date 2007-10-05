@@ -36,15 +36,15 @@ class Numeric
   end
    
   def &(other)
-    self & other.coerce_to(Integer, :to_int)
+    self & Type.coerce_to(other, Integer, :to_int)
   end
    
   def |(other)
-    self | other.coerce_to(Integer, :to_int)
+    self | Type.coerce_to(other, Integer, :to_int)
   end
   
   def ^(other)
-    self ^ other.coerce_to(Integer, :to_int)
+    self ^ Type.coerce_to(other, Integer, :to_int)
   end
 
   def abs

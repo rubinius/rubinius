@@ -19,7 +19,7 @@ describe "String#include? with String" do
     "hello".include?(other).should == true
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
     "hello".include?(obj).should == true
   end

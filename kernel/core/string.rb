@@ -92,7 +92,7 @@ class String
       if other.is_a?(Integer) && other >= 0 && other <= 255
         other = other.chr
       else
-        other = other.coerce_to(String, :to_str)
+        other = StringValue(other)
       end
     end
     
@@ -332,9 +332,9 @@ class String
   def []=(*args)
     if args.size == 3
       if args.first.is_a? Regexp
-        self.subpattern_set(args[0], args[1].coerce_to(Integer, :to_int), args[2])
+        self.subpattern_set(args[0], Type.coerce_to(args[1], Integer, :to_int), args[2])
       else
-        self.splice(args[0].coerce_to(Integer, :to_int), args[1].coerce_to(Integer, :to_int), args[2])
+        self.splice(Type.coerce_to(args[0], Integer, :to_int), Type.coerce_to(args[1], Integer, :to_int), args[2])
       end
       
       return args.last
@@ -355,8 +355,8 @@ class String
       
       self.splice(start, index.length, replacement)
     when Range
-      start   = index.first.coerce_to(Integer, :to_int)
-      length  = index.last.coerce_to(Integer, :to_int)
+      start   = Type.coerce_to(index.first, Integer, :to_int)
+      length  = Type.coerce_to(index.last, Integer, :to_int)
 
       start += @bytes if start < 0
       
@@ -372,7 +372,7 @@ class String
       
       self.splice(start, length, replacement)
     else
-      index = index.coerce_to(Integer, :to_int)
+      index = Type.coerce_to(index, Integer, :to_int)
       raise IndexError, "index #{index} out of string" if @bytes <= index
       
       if index < 0
@@ -843,7 +843,7 @@ class String
   #   "hello".index(101)             #=> 1
   #   "hello".index(/[aeiou]/, -3)   #=> 4
   def index(needle, offset = 0)
-    offset = offset.coerce_to(Integer, :to_int)
+    offset = Type.coerce_to(offset, Integer, :to_int)
     offset = @bytes + offset if offset < 0
     return nil if offset < 0 || offset > @bytes
 
@@ -1082,7 +1082,7 @@ class String
     arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
     original_klass = arg.class
     if finish
-      finish = finish.coerce_to(Integer, :to_int)
+      finish = Type.coerce_to(finish, Integer, :to_int)
       finish += @bytes if finish < 0
       return nil if finish < 0
       finish = @bytes if finish >= @bytes
@@ -1492,7 +1492,7 @@ class String
   # <i>self</i> modulo <code>2n - 1</code>. This is not a particularly good
   # checksum.
   def sum(bits = 16)
-    bits = bits.coerce_to(Integer, :to_int)
+    bits = Type.coerce_to(bits, Integer, :to_int)
     sum = 0
     each_byte { |b| sum += b }
     sum & ((1 << bits) - 1)
@@ -1567,7 +1567,7 @@ class String
   #   "1100101".to_i(10)       #=> 1100101
   #   "1100101".to_i(16)       #=> 17826049
   def to_i(base = 10)
-    base = base.coerce_to(Integer, :to_int)
+    base = Type.coerce_to(base, Integer, :to_int)
     raise ArgumentError, "illegal radix #{base}" if base < 0
     self.to_inum(base)
   end
@@ -1651,9 +1651,11 @@ class String
   def tr_trans(source, replacement, squeeze)
     source = StringValue(source).to_expanded_tr_string
     replacement = StringValue(replacement).to_expanded_tr_string
+
+    self.modify!
     
-    return if @bytes == 0
     return self.delete!(source) if replacement.empty?
+    return if @bytes == 0
 
     if replacement.length < source.length
       replacement << (replacement.empty? " " : replacement[-1,1]) * (source.length - replacement.length)
@@ -1898,8 +1900,8 @@ class String
   end
 
   def justify(integer, direction, padstr = " ")
-    integer = integer.coerce_to(Integer, :to_int) unless integer.is_a?(Fixnum)
-    padstr = padstr.coerce_to(String, :to_str) unless padstr.is_a?(String)
+    integer = Type.coerce_to(integer, Integer, :to_int) unless integer.is_a?(Fixnum)
+    padstr = StringValue(padstr)
     
     raise ArgumentError, "zero width padding" if padstr.length == 0
 
@@ -2000,7 +2002,7 @@ class String
     # TODO: Optimize this by using the @data ByteArray directly?
     output = ""
     output << substring(0, start) if start != 0
-    output << replacement.coerce_to(String, :to_str)
+    output << StringValue(replacement)
     output << substring(start + count, @bytes - (start + count)) if start + count < @bytes
       
     replace(output)

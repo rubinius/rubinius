@@ -47,7 +47,7 @@ describe "String#rjust with length, padding" do
     "o".rjust(obj, "o_").should == "o_o"
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
     "~".rjust(obj, "~_").should == "~_~"
   end
@@ -66,7 +66,7 @@ describe "String#rjust with length, padding" do
     "hello".rjust(10, padstr).should == "12312hello"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
 
     "hello".rjust(7, obj).should == "kkhello"

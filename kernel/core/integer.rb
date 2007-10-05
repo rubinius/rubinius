@@ -50,7 +50,7 @@ class Integer < Numeric
   end
   
   def [](index)
-    index = index.coerce_to(Integer, :to_int) unless index.is_a?(Integer)
+    index = Type.coerce_to(index, Integer, :to_int)
     index < 0 ? 0 : (self >> index) & 1
   end
 

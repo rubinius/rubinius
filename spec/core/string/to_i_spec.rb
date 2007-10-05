@@ -125,7 +125,7 @@ describe "String#to_i" do
     "777".to_i(obj).should == 0777
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 8)
 
     "777".to_i(obj).should == 0777

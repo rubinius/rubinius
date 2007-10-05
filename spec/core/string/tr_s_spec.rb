@@ -44,11 +44,11 @@ describe "String#tr_s" do
     "bla".tr_s(from_str, to_str).should == "BlA"
 
     from_str = Object.new
-    from_str.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    from_str.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     from_str.should_receive(:method_missing, :with => [:to_str], :returning => "ab")
 
     to_str = Object.new
-    to_str.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    to_str.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     to_str.should_receive(:method_missing, :with => [:to_str], :returning => "AB")
 
     "bla".tr_s(from_str, to_str).should == "BlA"

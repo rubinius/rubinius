@@ -15,7 +15,7 @@ describe "String#<<" do
     a.should == 'hello world!'
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "world!")
     a = 'hello ' << obj
     a.should == 'hello world!'

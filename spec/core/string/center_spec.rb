@@ -63,7 +63,7 @@ describe "String#center with length, padding" do
     "_".center(obj, "o").should == "o_o"
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
     "_".center(obj, "~").should == "~_~"
   end
@@ -82,7 +82,7 @@ describe "String#center with length, padding" do
     "hello".center(20, padstr).should == "1231231hello12312312"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "k")
 
     "hello".center(7, obj).should == "khellok"

@@ -31,7 +31,7 @@ describe "String#insert with index, other" do
     "abcd".insert(other, "XYZ").should == "abXYZcd"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => -3)
     "abcd".insert(obj, "XYZ").should == "abXYZcd"
   end
@@ -42,7 +42,7 @@ describe "String#insert with index, other" do
     "abcd".insert(-3, other).should == "abXYZcd"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "X")
     "abcd".insert(-3, obj).should == "abXcd"
   end

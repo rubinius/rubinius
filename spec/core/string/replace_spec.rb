@@ -21,7 +21,7 @@ describe "String#replace" do
     "hello".replace(other).should == "an object converted to a string"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => "X")
     "hello".replace(obj).should == "X"
   end
