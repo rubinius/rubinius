@@ -1,12 +1,12 @@
 Hash#update processes entries with same order as merge()
-Hash#update raises TypeError if called on a frozen instance
+Hash#update raises TypeError if called on a non-empty, frozen instance
 Hash#update raise RuntimeError if #rehash is called from block
-Hash#update raises if lots of new entries are added from block
+Hash#update raises if more than 63 new entries are added from block
 Hash#merge returns subclass instance for subclasses
 Hash#merge processes entries with same order as each()
 Hash#merge raise RuntimeError if #rehash is called from block
-Hash#merge raises if lots of new entries are added from block
+Hash#merge raises if more than 63 new entries are added from block
 Hash#merge! processes entries with same order as merge()
-Hash#merge! raises TypeError if called on a frozen instance
+Hash#merge! raises TypeError if called on a non-empty, frozen instance
 Hash#merge! raise RuntimeError if #rehash is called from block
-Hash#merge! raises if lots of new entries are added from block
+Hash#merge! raises if more than 63 new entries are added from block
