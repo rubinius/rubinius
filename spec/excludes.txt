@@ -6,7 +6,6 @@ Executing a Continuation Arguments given to #call (or nil) are returned by the K
 Executing a Continuation #[] is an alias for #call
 Creating Bindings No .new provided
 Creating Bindings Kernel.binding creates a new Binding
-Hash#inspect handles recursive hashes
 Module#append_features(mod) gets called when self is included in another module/class
 Module#autoload(name, filename) registers the given filename to be loaded the first time that the Module with the given name is accessed
 Module#autoload(name, filename) does not autoload when the specified constant was already set

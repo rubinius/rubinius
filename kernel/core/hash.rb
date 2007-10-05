@@ -155,6 +155,11 @@ class Hash
     nil
   end
 
+  def inspect()
+    stack = []
+    recursively_inspect self, stack
+  end
+
   def invert()
     out = {}
     each_pair { |k, v| out[v] = k }
@@ -300,22 +305,6 @@ class Hash
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
   
-  def inspect
-    ary = []
-    @values.each do |tup|
-      while tup
-        str =  tup.at(1).inspect
-        str << "=>"
-        str << tup.at(2).inspect
-
-        ary << str
-        tup = tup.at(3)
-      end
-    end
-    str = "{#{ary.join(", ")}}"
-    return str
-  end
-
   # Internals
   private
   
@@ -323,5 +312,30 @@ class Hash
     code, hk, val, nxt = get_by_hash key.hash, key
     return Tuple[true, val] if code
     Tuple[false, nil]
+  end
+  
+  def inspect_helper(thing, stack)
+    if thing.kind_of? Hash
+      recursively_inspect thing, stack
+    else
+      thing.inspect
+    end
+  end
+
+  def recursively_inspect(hash, stack)
+    return '{...}' if stack.include? hash.object_id
+    stack.push hash.object_id
+    
+    out = []
+    
+    hash.each_pair do |key, val|
+      str =  inspect_helper(key, stack)
+      str << '=>'
+      str << inspect_helper(val, stack)
+      out << str
+    end
+    
+    stack.pop
+    "{#{out.join ', '}}"
   end
 end
