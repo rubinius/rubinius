@@ -77,6 +77,10 @@ class Hash
     alias_method :[]=, :set_key_cv
   end
 
+  def clear()
+    delete_if { true }
+  end
+
   def default(key = nil)
     @default_proc ? @default.call(self, key) : @default
   end
@@ -193,10 +197,6 @@ class Hash
     each { |k, v| to_delete << k if yield(k, v) }
     to_delete.each { |k| delete(k) }
     return self
-  end
-
-  def clear
-    delete_if {true}
   end
 
   def each_key(&block)
