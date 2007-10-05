@@ -134,6 +134,10 @@ class Hash
     self
   end
 
+  def empty?()
+    @entries == 0
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -145,10 +149,6 @@ class Hash
 
   def size
     @entries
-  end
-
-  def empty?
-    @entries == 0
   end
 
   def values_data
