@@ -309,10 +309,6 @@ class Hash
     end
   end
 
-  def values_data
-    @values
-  end
-
   def inspect
     ary = []
     @values.each do |tup|
