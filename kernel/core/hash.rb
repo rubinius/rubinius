@@ -197,6 +197,12 @@ class Hash
   end
   alias_method :update, :merge!
 
+  def rehash()
+    out = {}
+    each_pair { |k, v| out[k] = v }
+    replace out
+  end
+  
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -298,12 +304,6 @@ class Hash
     self
   end
   alias_method :initialize_copy, :replace
-
-  def rehash
-    out = {}
-    each {|k, v| out[k] = v}
-    replace(out)
-  end
 
   def to_a
     a = []
