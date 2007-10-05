@@ -56,33 +56,25 @@ class Hash
     true
   end
 
-  def access_key_cv(key)
+  def get_key_cv(key)
     code, hk, val, nxt = get_by_hash key.hash, key
-
-    unless code
-      return nil unless @default
-      if @default_proc
-        return @default.call(self, key)
-      else
-        return @default
-      end
+    if code
+      return val if hk.eql? key
+    else
+      return default key if @default
     end
-
-    if hk.eql? key
-      return val
-    end
-
-    return nil
+    nil
   end
 
-  def modify_key_cv(key, val)
+  def set_key_cv(key, val)
     key = key.dup.freeze if String === key
     set_by_hash key.hash, key, val
   end
+  alias_method :store, :set_key_cv
 
-  def self.after_loaded
-    alias_method :[],  :access_key_cv
-    alias_method :[]=, :modify_key_cv
+  def self.after_loaded()
+    alias_method :[],  :get_key_cv
+    alias_method :[]=, :set_key_cv
   end
 
   def default(key = nil)
@@ -168,7 +160,6 @@ class Hash
   alias_method :member?,    :key?
   alias_method :each_pair,  :each
   alias_method :length,     :size
-  alias_method :store,      :modify_key_cv
 
   def default_proc
     @default_proc ? @default : nil
