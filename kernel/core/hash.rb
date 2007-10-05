@@ -1,15 +1,14 @@
 # depends on: enumerable.rb
 
 class Hash
-
   ivar_as_index :__ivars__ => 0, :keys => 1, :values => 2, :bins => 3, :entries => 4, :default => 5, :default_proc => 6
 
   include Enumerable
 
-  def self.new(default_value = nil, &block)
-    hsh = {}
-    hsh.initialize(default_value, &block)
-    return hsh
+  def self.new(*args, &block)
+    hsh = {} # This makes it impossible to create instances of subclasses of Hash...
+    hsh.initialize(*args, &block)
+    hsh
   end
 
   def initialize(default_value = nil, &block)
