@@ -545,8 +545,7 @@ class String
     pattern = tr_regex(strings)
     count = start = 0
     
-    while start < @bytes
-      break unless match = pattern.match_from(self, start)
+    while start < @bytes and match = pattern.match_from(self, start)
       start = match.begin(0) + 1
       count += 1
     end
@@ -607,10 +606,11 @@ class String
     
     last_end = 0
     last_match = nil
+    pattern = tr_regex(strings)
     
-    tr_regex(strings).match_all(self).each do |match|
+    while match = pattern.match_from(self, last_end)
       new << match.pre_match_from(last_end) 
-      last_end, last_match = match.begin(0) + 1, match
+      last_end = match.begin(0) + 1
     end
     
     new << self[last_end..-1] if self[last_end..-1]
@@ -1351,12 +1351,13 @@ class String
     else
       last_end = 0
       last_match = nil
+      pattern = tr_regex(strings)
       
-      tr_regex(strings).match_all(self).each do |match|
-        unless save == match[0] && match.end(0) == last_end + 1
+      while match = pattern.match_from(self, last_end)
+        unless save == match[0] && match.begin(0) == last_end
           new << match.pre_match_from(last_end) << (save = match[0]) 
         end
-        last_end, last_match = match.begin(0) + 1, match
+        last_end = match.begin(0) + 1
       end
       
       new << self[last_end..-1] if self[last_end..-1]
