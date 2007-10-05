@@ -214,6 +214,22 @@ class Hash
     self
   end
   
+  def replace(other)
+    other = Type.coerce_to(other, Hash, :to_hash)
+    return self if self.equal? other
+    clear
+    other.each_pair { |k, v| self[k] = v }
+    if other.default_proc
+      @default = other.default_proc
+      @default_proc = true
+    else
+      @default = other.default
+      @default_proc = false
+    end
+    self
+  end
+  alias_method :initialize_copy, :replace
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -292,19 +308,6 @@ class Hash
   def to_hash
     self
   end
-
-  def replace(other)
-    other_hash = Type.coerce_to(other, Hash, :to_hash)
-    unless self.equal?(other_hash)
-      clear
-      other_hash.each {|k, v| self[k] = v}
-      # This makes sure a default proc isn't called instead of being read
-      self.put(5, other_hash.at(5))
-      self.put(6, other_hash.at(6))
-    end
-    self
-  end
-  alias_method :initialize_copy, :replace
 
   def to_a
     a = []
