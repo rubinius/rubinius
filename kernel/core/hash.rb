@@ -113,6 +113,27 @@ class Hash
     self
   end
 
+  def each_key(&block)
+    keys.each(&block)
+    self
+  end
+
+  def each_pair()
+    @values.each do |tup|
+      while tup
+        yield(tup.at(1), tup.at(2))
+        tup = tup.at(3)
+      end
+    end
+    self
+  end
+  alias_method :each, :each_pair
+
+  def each_value(&block)
+    values.each(&block)
+    self
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -161,16 +182,6 @@ class Hash
     return out
   end
 
-  def each
-    @values.each do |tup|
-      while tup
-        yield tup.at(1), tup.at(2)
-        tup = tup.at(3)
-      end
-    end
-    return self
-  end
-
   def inspect
     ary = []
     @values.each do |tup|
@@ -190,23 +201,12 @@ class Hash
   alias_method :has_key?,   :key?
   alias_method :include?,   :key?
   alias_method :member?,    :key?
-  alias_method :each_pair,  :each
   alias_method :length,     :size
 
   def value?(val)
     values.include?(val)
   end
   alias_method :has_value?, :value?
-
-  def each_key(&block)
-    keys.each(&block)
-    self
-  end
-
-  def each_value(&block)
-    values.each(&block)
-    self
-  end
 
   def index(val)
     each {|k, v| return k if v == val}
