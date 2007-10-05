@@ -11,6 +11,22 @@ class Hash
     hsh
   end
 
+  def self.[](*args)
+    if args.first.kind_of? Hash and args.length == 1
+      return new.replace args.first
+    end
+
+    raise ArgumentError, "Expected an even number, got #{args.length}" if args.length % 2 == 1
+
+    hsh = {}
+    while args.length >= 2
+      k = args.shift
+      v = args.shift
+      hsh[k] = v
+    end
+    hsh
+  end
+
   def initialize(default_value = nil, &block)
     raise ArgumentError, 'wrong number of arguments' if default_value && block
     @default = default_value || block
@@ -130,22 +146,6 @@ class Hash
   alias_method :each_pair,  :each
   alias_method :length,     :size
   alias_method :store,      :modify_key_cv
-
-  def self.[](*args)
-    unless args.size % 2 == 0 or (args.size == 1 and args[0].is_a?(Hash))
-      raise ArgumentError, "odd number of arguments for Hash"
-    end
-    hsh = {}
-    while args.size >= 2
-      k = args.shift
-      v = args.shift
-      hsh[k] = v
-    end
-    if args.size == 1
-      hsh.merge! args[0]
-    end
-    hsh
-  end
 
   def default_proc
     @default_proc ? @default : nil
