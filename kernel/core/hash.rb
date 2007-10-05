@@ -278,6 +278,22 @@ class Hash
     to_a.join
   end
 
+  def value?(val)
+    values.include?(val)
+  end
+  alias_method :has_value?, :value?
+
+  def values()
+    out = []
+    @values.each do |tup|
+      while tup
+        out << tup.at(2)
+        tup = tup.at(3)
+      end
+    end
+    out
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -289,17 +305,6 @@ class Hash
 
   def values_data
     @values
-  end
-
-  def values
-    out = []
-    @values.each do |tup|
-      while tup
-        out << tup.at(2)
-        tup = tup.at(3)
-      end
-    end
-    return out
   end
 
   def inspect
@@ -317,11 +322,6 @@ class Hash
     str = "{#{ary.join(", ")}}"
     return str
   end
-
-  def value?(val)
-    values.include?(val)
-  end
-  alias_method :has_value?, :value?
 
   def values_at(*args)
     args.collect { |a| self[a] }
