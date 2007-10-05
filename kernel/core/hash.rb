@@ -180,6 +180,23 @@ class Hash
     out
   end
 
+  def merge(other, &block)
+    dup.merge!(other, &block)
+  end
+  
+  def merge!(other)
+    other = Type.coerce_to(other, Hash, :to_hash)
+    other.each_pair do |k, v|
+      if block_given? and self.key? k
+        self[k] = yield(k, self[k], v)
+      else
+        self[k] = v
+      end
+    end
+    self
+  end
+  alias_method :update, :merge!
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -231,19 +248,6 @@ class Hash
   end
   alias_method :has_value?, :value?
 
-  def merge!(other)
-    other_hash = Type.coerce_to(other, Hash, :to_hash)
-    other_hash.each do |k, v|
-      if block_given? && self.key?(k)
-        self[k] = yield(k, self[k], v)
-      else
-        self[k] = v
-      end
-    end
-    self
-  end
-  alias_method :update, :merge!
-
   def shift
     out = nil
     if empty?
@@ -267,10 +271,6 @@ class Hash
   end
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
-
-  def merge(other, &block)
-    dup.merge!(other, &block)
-  end
 
   def reject(&block)
     dup.delete_if(&block)
