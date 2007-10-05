@@ -120,6 +120,11 @@ class Module
     end
   end
   
+  def include?(mod)
+    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless Module === mod
+    ancestors.include? mod
+  end
+  
   def set_visibility(meth, vis)
     name = meth.to_sym
     tup = find_method_in_hierarchy(name)
