@@ -155,6 +155,12 @@ class Hash
     nil
   end
 
+  def invert()
+    out = {}
+    each_pair { |k, v| out[v] = k }
+    out
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -274,12 +280,6 @@ class Hash
     old_size = size
     delete_if(&block)
     old_size == size ? nil : self
-  end
-
-  def invert
-    out = {}
-    each {|k, v| out[v] = k}
-    out
   end
 
   def to_hash
