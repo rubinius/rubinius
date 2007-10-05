@@ -91,6 +91,11 @@ class Hash
     @default = val
   end
 
+  def default_proc()
+    return @default if @default_proc
+    nil
+  end
+
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     if code
@@ -170,10 +175,6 @@ class Hash
   alias_method :member?,    :key?
   alias_method :each_pair,  :each
   alias_method :length,     :size
-
-  def default_proc
-    @default_proc ? @default : nil
-  end
 
   def value?(val)
     values.include?(val)
