@@ -27,10 +27,16 @@ class Hash
     hsh
   end
 
-  def initialize(default_value = nil, &block)
-    raise ArgumentError, 'wrong number of arguments' if default_value && block
-    @default = default_value || block
-    @default_proc = block != nil
+  def initialize(*args, &block)
+    if block
+      raise ArgumentError, "Expected 0, got #{args.length}" if args.length > 0
+      @default = block
+      @default_proc = true
+    else
+      raise ArgumentError, "Expected 1, got #{args.length}" if args.length > 1
+      @default = args.first
+      @default_proc = false
+    end
   end
 
   def access_key_cv(key)
