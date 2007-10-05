@@ -120,12 +120,16 @@ end
 cmd = <<-EOC
 #{target} -Ispec -rmini_rspec.rb -rmini_mock.rb -e '
 @runner = SpecRunner.new;
+excludes = nil
+File.open("spec/excludes.txt") do |f|
+  excludes = f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
+end
 File.open(#{ci_files.inspect}, "r") do |f|
   f.each do |line|
     file, exclude = line.split
     reporter = #{format}.new(%s)
     @runner.reporter = reporter
-    @runner.%s
+    @runner.%s(*(excludes + %s))
     STDERR.puts file if #{verbose}
     load file
     reporter.summary
@@ -135,11 +139,11 @@ EOC
 
 case action
 when :create
-  system(cmd % ['exclude', 'except("spec/excludes.txt")'])
+  system(cmd % ['exclude', 'except', '[]'])
 when :run
-  system(cmd % ['STDOUT', 'except("spec/excludes.txt", exclude)'])
+  system(cmd % ['STDOUT', 'except', '[exclude]'])
 when :invert
-  system(cmd % ['STDOUT', 'only("spec/excludes.txt")'])
+  system(cmd % ['STDOUT', 'only', '[exclude]'])
 else
   puts "Unknown action: #{action}"
   puts opts

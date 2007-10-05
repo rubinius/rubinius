@@ -1,1 +1,2 @@
 Fixnum#[] returns the nth bit in the binary representation of self
+Fixnum#[] raises a TypeError when the given argument can't be converted to Integer

@@ -276,12 +276,12 @@ class SpecRunner
   end
   
   def escape(str)
-    Regexp.new(Regexp.escape(str))
+    str.is_a?(Regexp) ? str : Regexp.new(Regexp.escape(str))
   end
   
   def convert_to_regexps(args)
     args.inject([]) do |list, item|
-      if File.exists?(item)
+      if item.is_a?(String) and File.exists?(item)
         if f = File.open(item, "r")
           f.each do |line|
             line.chomp!

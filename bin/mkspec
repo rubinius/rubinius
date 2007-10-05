@@ -12,7 +12,7 @@ end
 get_class_or_module = lambda do |c|
   const = Object.const_get(c)
   return const if (const.is_a?(Module) or const.is_a?(Class)) and 
-    not ['OptionParser', 'ParseError', 'SystemExit'].include?(const.name)
+    not ['OptionParser', 'SystemExit'].include?(const.name)
 end
 
 target = 'ruby'
