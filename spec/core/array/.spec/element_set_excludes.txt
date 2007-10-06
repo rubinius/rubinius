@@ -1,2 +1,1 @@
-Array#[]= should set elements in the range arguments when passed ranges
 Array#[]= with [index, count] sets elements when passed start, length

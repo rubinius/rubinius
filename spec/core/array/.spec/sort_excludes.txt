@@ -1,1 +1,0 @@
-Array#sort raises an ArgumentError if the comparison cannot be completed
