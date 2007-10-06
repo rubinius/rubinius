@@ -37,9 +37,10 @@ end
 
 describe "File.executable?" do 
   before :each do
-    @file_name = "test.txt"
-    @file1 = File.join(@file_name)
-    @file2 = File.join('test2.txt')
+    @file_name_1 = "test_1.txt"
+    @file_name_2 = "test_2.txt"
+    @file1 = File.join(@file_name_1)
+    @file2 = File.join(@file_name_2)
 
     File.open(@file1, "w") {} # touch
     File.open(@file2, "w") {}
@@ -57,13 +58,14 @@ describe "File.executable?" do
   it "returns true if named file is readable by the effective user id of the process, otherwise false" do
     File.executable?('fake_file').should == false
     File.executable?('/etc/passwd').should == false
-    File.executable?('test2.txt').should == true
+    File.executable?(@file_name_1).should == true
+    File.executable?(@file_name_2).should == false
   end
 
   platform :not, :mswin do
     it "return true if the argument its an executable file" do
-      File.executable?(@file1).should == true
-      File.executable?(@file2).should == false
+      File.executable?(@file_name_1).should == true
+      File.executable?(@file_name_2).should == false
       File.executable?('a_fake_file').should == false
     end
   end
