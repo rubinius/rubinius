@@ -1,1 +1,0 @@
-Array#+ calls to_ary on its argument

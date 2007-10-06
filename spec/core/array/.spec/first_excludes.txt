@@ -1,1 +1,0 @@
-Array#first calls to_int on count

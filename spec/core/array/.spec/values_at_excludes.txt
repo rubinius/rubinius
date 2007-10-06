@@ -1,2 +1,0 @@
-Array#values_at calls to_int on its indices
-Array#values_at calls to_int on arguments of ranges when passes ranges

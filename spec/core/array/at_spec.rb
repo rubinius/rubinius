@@ -18,7 +18,7 @@ describe "Array#at" do
     a.at(obj).should == "c"
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     a.at(obj).should == "c"
   end

@@ -1,1 +1,0 @@
-Array#* calls to_int on its argument

@@ -131,9 +131,9 @@ describe "Array#[]=" do
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
       
-    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
 
     a = [1, 2, 3, 4]

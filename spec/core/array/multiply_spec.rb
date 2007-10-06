@@ -21,13 +21,12 @@ describe "Array#*" do
   it "calls to_str on its argument" do
     obj = Object.new
     def obj.to_str() "x" end
-    ([1, 2, 3] * obj).should == [1, 2, 3].join(obj)
+    ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
     
-# There is something weird with these
-#    obj = Object.new
-#    obj.should_receive(:respond_to?, :count => 2, :with => [:to_str], :returning => true, :count => :any)
-#    obj.should_receive(:method_missing, :count => 2, :with => [:to_str], :returning => "x")
-#    ([1, 2, 3] * obj).should == [1, 2, 3].join(obj)
+    obj = Object.new
+    obj.should_receive(:respond_to?, :count => :any, :with => [:to_str], :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_str], :returning => "x")
+    ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
   end
   
   it "concatenates n copies of the array when passed an integer" do
@@ -49,7 +48,7 @@ describe "Array#*" do
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_int
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     ([1, 2, 3] * obj).should == [1, 2, 3] * 2
   end

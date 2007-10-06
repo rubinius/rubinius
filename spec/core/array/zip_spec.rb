@@ -16,7 +16,7 @@ describe "Array#zip" do
   compliant(:ruby) do
     it "calls to_ary on its arguments" do
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_ary], :returning => [3, 4])
     
       [1, 2].zip(obj).should == [[1, 3], [2, 4]]
@@ -29,7 +29,7 @@ describe "Array#zip" do
         [[1, "f", 1], [2, "g", 2], [3, "h", 3]]
       
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_a], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_a], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_a], :returning => [3, 4])
     
       [1, 2].zip(obj).should == [[1, 3], [2, 4]]

@@ -51,7 +51,7 @@ describe "Array#slice!" do
     a.should == []
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     a = [1, 2, 3, 4, 5]
     a.slice!(obj).should == 3    
@@ -96,9 +96,9 @@ describe "Array#slice!" do
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
       
-    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
 
     a = [1, 2, 3, 4, 5]
@@ -242,11 +242,10 @@ end
       a.send(cmd, obj, obj).should == [3, 4]
       a.send(cmd, 0, obj).should == [1, 2]
 
-#  Not sure of the purpose of this -rue  
-#      obj = Object.new
-#      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true, :count => :any)
-#      obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
-#      a.send(cmd, obj).should == 3
+      obj = Object.new
+      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+      a.send(cmd, obj).should == 3
     end
   
     it "returns the elements specified by Range indexes with [m..n]" do
@@ -402,9 +401,9 @@ end
       def from.<=>(o) 0 end
       def to.<=>(o) 0 end
 
-      from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-      to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
       a.send(cmd, from..to).should == [2, 3]
     end

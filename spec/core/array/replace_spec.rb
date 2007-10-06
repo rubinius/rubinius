@@ -26,7 +26,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       ary.should == [1, 2, 3]
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+      obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_ary], :returning => [])
 
       ary.send(cmd, obj)

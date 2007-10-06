@@ -1,1 +1,0 @@
-Array#delete_at calls to_int on its argument

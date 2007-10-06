@@ -32,7 +32,7 @@ describe "Array#join" do
     [1, 2, 3, 4].join(obj).should == '1::2::3::4'
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_str], :returning => ".")
     [1, 2].join(obj).should == "1.2"
   end

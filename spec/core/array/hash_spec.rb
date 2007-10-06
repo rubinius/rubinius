@@ -28,7 +28,7 @@ compliant :r18 do
     ary.each { |obj| obj.frozen?.should == true }
     
     hash = Object.new
-    hash.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    hash.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     hash.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     
     obj = Object.new

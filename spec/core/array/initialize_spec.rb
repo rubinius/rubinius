@@ -30,7 +30,7 @@ describe "Array#initialize" do
   
   it "calls to_int on array size" do
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     
     [1, 2].instance_eval { initialize(obj, :a) }

@@ -61,7 +61,7 @@ describe "Array#insert" do
     [].insert(obj, 'x').should == [nil, nil, 'x']
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end

@@ -36,7 +36,7 @@ describe "Array#<=>" do
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_ary], :returning => [4, 5])
     ([4, 5] <=> obj).should == 0
   end

@@ -21,7 +21,7 @@ describe "Array#concat" do
     [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:x])
     [].concat(obj).should == [:x]
   end

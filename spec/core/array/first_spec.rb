@@ -42,7 +42,7 @@ describe "Array#first" do
     [1, 2, 3, 4, 5].first(obj).should == [1, 2]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     [1, 2, 3, 4, 5].first(obj).should == [1, 2]    
   end

@@ -13,7 +13,7 @@ describe "Array#values_at" do
     [1, 2].values_at(obj, obj, obj).should == [2, 2, 2]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     [1, 2].values_at(obj).should == [2]
   end
@@ -43,9 +43,9 @@ describe "Array#values_at" do
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
       
-    from.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-    to.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
     to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
     ary.values_at(from .. to).should == [2, 3, 4]
   end

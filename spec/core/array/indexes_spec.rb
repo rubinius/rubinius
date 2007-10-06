@@ -20,10 +20,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       def x.to_int() 4 end
       array.send(cmd, x).should == [5]
 
-#      x = Object.new
-#      x.should_receive(:respond_to?, :count => 2, :with => [:to_int], :returning => true)
-#      x.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 1)
-#      array.send(cmd, x).should == array.send(cmd, x)
+      x = Object.new
+      x.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
+      x.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+      array.send(cmd, x).should == [3]
     end
 
     it "returns elements in range arguments as nested arrays (DEPRECATED)" do
