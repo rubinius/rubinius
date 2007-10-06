@@ -27,4 +27,12 @@ describe "Proc.new" do
       Proc.new
     end 
   end
+
+  it "raises a LocalJumpError when context of block no longer exists" do
+    def some_method(&b) b end
+    a_proc = Proc.new { return } 
+    res = some_method(&a_proc)
+
+    should_raise(LocalJumpError) { res.call }
+  end
 end
