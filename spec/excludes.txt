@@ -1,6 +1,6 @@
 Bytecode::Compiler compiles iter
-Array#* handles recursive arrays like #join
-Array#join handles recursive arrays
+Array#== returns false immediately when sizes of the arrays differ
+Array#inspect calls inspect on its arguments
 Executing a Continuation Using #call transfers execution to right after the Kernel.callcc block
 Executing a Continuation Arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)
 Executing a Continuation #[] is an alias for #call
@@ -70,4 +70,3 @@ Bignum#& returns self bitwise AND other
 Kernel.at_exit should fire after all other code
 Kernel.at_exit should fire in reverse order of registration
 Kernel.rand is seeded uniquely at startup
-Array#[]= calls to_int on range arguments

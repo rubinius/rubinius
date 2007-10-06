@@ -126,6 +126,7 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   }
   
   ar(c->self);
+  ar(c->cache);
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->new_class_of);
@@ -187,6 +188,7 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   }
   
   ar(c->self);
+  ar(c->cache);
   ar(c->exception);
   ar(c->enclosing_class);
   ar(c->new_class_of);
@@ -440,8 +442,27 @@ void cpu_push_encloser(STATE, cpu c) {
   }
 }
 
+/* Increments serial numbers up the superclass chain. */
+static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
+  OBJECT hsh, meth;
+  
+  while(!NIL_P(module)) {
+    hsh = module_get_methods(module);
+    meth = hash_find(state, hsh, sym);
+    
+    if(REFERENCE_P(meth)) {
+      if(CLASS_OBJECT(meth) == BASIC_CLASS(tuple)) { 
+        meth = tuple_at(state, meth, 1);
+      }
+      fast_inc(meth, CMETHOD_f_SERIAL);
+    }
+    
+    module = class_get_superclass(module);
+  }
+}
+
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
-  OBJECT meths, cur, vis;
+  OBJECT meths, vis;
   // Handle a special case where we try and add a method to main
   if(target == c->main) {
     target = c->enclosing_class;
@@ -449,18 +470,8 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   
   cpu_clear_cache_for_method(state, c, sym);
   
+  cpu_increment_serials(state, target, sym);
   meths = module_get_methods(target);
-  cur = hash_find(state, meths, sym);
-  
-  /* If there is already a method there, increment it's serial number
-     to invalidate it in any caches. */
-     
-  if(RTEST(cur)) {
-    if(CLASS_OBJECT(cur) == BASIC_CLASS(tuple)) {
-      cur = tuple_at(state, cur, 1);
-    }
-    cmethod_set_serial(cur, FIXNUM_TO_INT(cmethod_get_serial(cur)) + 1);
-  }
   
   switch(c->call_flags) {
   default:
@@ -484,6 +495,9 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
 void cpu_attach_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meta;
   meta = object_metaclass(state, target);
+  /* static visibility scope doesn't impact singleton classes.
+     we force it to public everytime it's used. */
+  c->call_flags = 0;
   cpu_add_method(state, c, meta, sym, method);
 }
 

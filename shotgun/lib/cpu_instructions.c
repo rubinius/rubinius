@@ -152,75 +152,43 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name)
   return meth;
 }
 
-#define PUBLIC_P(meth) (tuple_at(state, meth, 0) == state->global->sym_public)
+#define PUBLIC_P(meth) (fast_fetch(meth, 0) == state->global->sym_public)
 #define VISIBLE_P(cp, mo, tu) ((c->call_flags == 1) || (!tup) || PUBLIC_P(meth))
 #define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
 #define UNVIS_METHOD2(var) if(tup) { var = tuple_at(state, var, 1); }
 
 static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
-  OBJECT ok, hsh, cache, orig_klass, meth, ser;
-  int tup;
-  struct method_cache *ent;
+  OBJECT ok, hsh, cache, orig_klass, meth;
+  int tup, tries;
+  struct method_cache *ent, *fent;
   
   cache = Qnil;
 
-#if USE_INLINE_CACHING
-  /* Skip if we aren't running a normal method. */
-  //int normal = (c->type & 0x1) == FASTCTX_NORMAL;
-  //if(normal) {
-    
-  /* There is a cache index for this send, use it! */
-  if(c->cache_index > 0) {
-    cache = cmethod_get_cache(cpu_current_method(state, c));
-    
-    if(tuple_at(state, cache, c->cache_index) == klass) {
-      meth = tuple_at(state, cache, c->cache_index + 2);
-      ser =  tuple_at(state, cache, c->cache_index + 3);
-      /* We don't check the visibility here because the inline cache has
-         fixed visibility, meaning it will always be the same after it's
-         populated. */
-      if(cmethod_get_serial(meth) == ser) {
-#if TRACK_STATS
-        state->cache_inline_hit++;
-#endif
-        *mod = tuple_at(state, cache, c->cache_index + 1);
-        return meth;
-      } else {
-#if TRACK_STATS
-        state->cache_inline_stale++;
-#endif
-      }
-    }
-  }
-
-  // }
-#endif
-
 #if USE_GLOBAL_CACHING
-  ent = state->method_cache + CPU_CACHE_HASH(klass, name);
-  if(ent->name == name && ent->klass == klass) {
-    *mod = ent->module;
-    meth = ent->method;
-    tup = TUPLE_P(meth);
-    
-    if(VISIBLE_P(c, meth, tup)) {
-      UNVIS_METHOD2(meth);
-
-#if USE_INLINE_CACHING
-      /* Update the inline cache. */
-      if(c->cache_index > 0) {
-        tuple_put(state, cache, c->cache_index, klass);
-        tuple_put(state, cache, c->cache_index + 1, ent->module);
-        tuple_put(state, cache, c->cache_index + 2, meth);
-        tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(meth));
-      }
-#endif
-    
-#if TRACK_STATS
-      state->cache_hits++;
-#endif
-      return meth;
+  tries = CPU_CACHE_TOLERANCE;
+  fent = state->method_cache + CPU_CACHE_HASH(klass, name);
+  ent = fent;
+  while(tries--) {
+    /* We hit a hole. Stop. */
+    if(!ent->name) {
+      fent = ent;
+      break;
     }
+    if(ent->name == name && ent->klass == klass) {
+      *mod = ent->module;
+      meth = ent->method;
+      tup = TUPLE_P(meth);
+    
+      if(VISIBLE_P(c, meth, tup)) {
+        UNVIS_METHOD2(meth);
+    
+  #if TRACK_STATS
+        state->cache_hits++;
+  #endif
+        return meth;
+      }
+    }
+    ent++;
   }
 #if TRACK_STATS
   if(ent->name) {
@@ -293,22 +261,12 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
 #if USE_GLOBAL_CACHING
   /* Update the cache. */
   if(RTEST(meth)) {
-    ent->klass = orig_klass;
-    ent->name = name;
-    ent->module = klass;
-    ent->method = meth;
+    fent->klass = orig_klass;
+    fent->name = name;
+    fent->module = klass;
+    fent->method = meth;
     
     UNVIS_METHOD(meth);
-
-#if USE_INLINE_CACHING
-    /* Update the inline cache. */
-    if(c->cache_index > 0) {
-      tuple_put(state, cache, c->cache_index, orig_klass);
-      tuple_put(state, cache, c->cache_index + 1, ent->module);
-      tuple_put(state, cache, c->cache_index + 2, meth);
-      tuple_put(state, cache, c->cache_index + 3, cmethod_get_serial(meth));
-    }
-#endif    
   }
 #else
   if(RTEST(meth)) {
@@ -529,10 +487,13 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     
   c->fp_ptr = fc->fp_ptr;
   
+  
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
     fc = FASTCTX(ctx);
   }
+  
+  c->cache = cmethod_get_cache(fc->method);
   
   c->sender = fc->sender;
   c->sp = fc->sp;
@@ -774,7 +735,6 @@ inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg)
 static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo, 
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
   OBJECT ctx;
-  int prim = 0;
   c->call_flags = 0;
   if(missing) {
     cpu_flush_ip(c);
@@ -797,7 +757,6 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
       }
       return;
     }
-    prim = 1;
   }
 
   if(EXCESSIVE_TRACING) {
@@ -807,7 +766,7 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
       rbs_symbol_to_cstring(state, module_get_name(mod)),
       rbs_symbol_to_cstring(state, sym), 
       _inspect(recv), (void*)cpu_current_method(state, c), c->ip,
-      prim ? "" : "PRIM FAILED"
+      missing ? "METHOD MISSING" : ""
       );
   }
   ctx = cpu_create_context(state, c, recv, mo, sym, mod, (unsigned long int)args, block);
@@ -832,28 +791,113 @@ static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
 }
 
 /* Layer 4: send. Primary method calling function. */
-
 inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block) {
-  OBJECT mo, mod, cls;
-  int missing;
+  OBJECT mo, mod, cls, cache, ser, ic;
+  int missing, count, ci;
+
+  ci = c->cache_index;
 
   missing = 0;
   
   cls = _real_class(state, recv);
   
+  ic = Qnil;
+  cache = Qnil;
+  count = 0;
+  
+#if USE_INLINE_CACHING
+  /* There is a cache index for this send, use it! */
+  if(ci > 0) {
+    cache = c->cache;
+    
+    ic = fast_fetch(cache, ci);
+    
+    /* If it's false, the cache is disabled. */
+    if(ic == Qfalse) {
+      mo = cpu_locate_method(state, c, cls, sym, &mod, &missing);
+      if(NIL_P(mo)) goto really_no_method;
+      goto dispatch;
+    }
+    
+    /* Cache hasn't been populated ever. */
+    if(ic == Qnil) goto lookup;
+        
+    fast_inc(ic, ICACHE_f_HOTNESS);
+
+    if(fast_fetch(ic, ICACHE_f_CLASS) == cls) {
+      mo =  fast_fetch(ic, ICACHE_f_METHOD);
+      ser = fast_fetch(ic, ICACHE_f_SERIAL);
+      /* We don't check the visibility here because the inline cache has
+         fixed visibility, meaning it will always be the same after it's
+         populated. */
+      if(fast_fetch(mo, CMETHOD_f_SERIAL) == ser) {
+#if TRACK_STATS
+        state->cache_inline_hit++;
+#endif
+        mod = fast_fetch(ic, ICACHE_f_MODULE);
+        goto dispatch;
+      } else {
+#if TRACK_STATS
+        state->cache_inline_stale++;
+#endif
+      }
+    } else {      
+      count = FIXNUM_TO_INT(fast_fetch(ic, ICACHE_f_TRIP));
+      fast_set_int(ic, ICACHE_f_TRIP, count + 1);
+    }
+  }
+#endif
+
+  lookup:
   mo = cpu_locate_method(state, c, cls, sym, &mod, &missing);
   if(NIL_P(mo)) {
-    cpu_flush_ip(c);
-    printf("%05d: Calling %s on %s (%p/%d) (%d).\n", c->depth, rbs_symbol_to_cstring(state, sym), _inspect(recv), (void *)cpu_current_method(state, c), c->ip, missing);
-    printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    exit(128);
-  }
+    char *msg;
+    really_no_method:
     
+    ser = rbs_const_get(state, BASIC_CLASS(object), "RuntimeError");
+    
+    msg = malloc(1024);
+    sprintf(msg, "Unable to find any version of '%s' to run", _inspect(sym));
+    
+    cpu_raise_exception(state, c, cpu_new_exception(state, c, ser, msg));
+
+    free(msg);
+    
+    return;    
+  }
+  
+#if USE_INLINE_CACHING
+  /* Update the inline cache. */
+  if(cache != Qnil) {
+    if(ic == Qnil) {
+      ic = icache_allocate(state);
+      icache_set_class(ic, cls);
+      icache_set_module(ic, mod);
+      icache_set_method(ic, mo);
+      icache_set_serial(ic, cmethod_get_serial(mo));
+      icache_set_hotness(ic, I2N(0));
+      icache_set_trip(ic, I2N(0));
+      tuple_put(state, cache, ci, ic);
+    } else {
+      if(count > 100) {
+        fast_unsafe_set(cache, ci, Qfalse);
+      } else {
+        icache_set_class(ic, cls);
+        icache_set_module(ic, mod);
+        icache_set_method(ic, mo);
+        icache_set_serial(ic, cmethod_get_serial(mo));
+      }
+    }
+  }
+#endif
+  
+  dispatch:
   /* Make sure no one else sees the a recently set cache_index, it was
      only for us! */
   c->cache_index = -1;
   
   _cpu_build_and_activate(state, c, mo, recv, sym, args, block, missing, mod);
+  return;  
 }
 
 /* This is duplicated from above rather than adding another parameter

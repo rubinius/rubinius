@@ -3,7 +3,7 @@
 #define INTERNAL_DEBUG 0
 
 #define TRACK_STATS 0
-#define DISABLE_CHECKS 0
+#define DISABLE_CHECKS 1
 
 #include <stdio.h>
 #include <stdlib.h>

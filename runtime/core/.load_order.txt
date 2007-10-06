@@ -13,7 +13,6 @@ kernel/core/struct.rbc
 kernel/core/string.rbc
 kernel/core/object.rbc
 kernel/core/io.rbc
-kernel/core/immediate.rbc
 kernel/core/errno.rbc
 kernel/core/codearchive.rbc
 kernel/core/bytearray.rbc
@@ -49,3 +48,4 @@ kernel/core/hash.rbc
 kernel/core/time.rbc
 kernel/core/throw_catch.rbc
 kernel/core/symbol.rbc
+kernel/core/immediate.rbc

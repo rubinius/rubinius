@@ -44,7 +44,7 @@ struct rubinius_globals {
   OBJECT recent_children, config, ffi_ptr, ffi_func, sym_send;
   OBJECT sym_public, sym_private, sym_protected, sym_const_missing;
   OBJECT sym_object_id;
-  OBJECT exception, iseq;
+  OBJECT exception, iseq, icache;
   
   OBJECT special_classes[SPECIAL_CLASS_SIZE];
 };
@@ -52,9 +52,12 @@ struct rubinius_globals {
 
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
 
-#define CPU_CACHE_SIZE 0x1000
 #define CPU_CACHE_MASK 0xfff
 #define CPU_CACHE_HASH(c,m) ((((c)>>3)^(m)) & CPU_CACHE_MASK)
+#define CPU_CACHE_TOLERANCE 3
+
+/* size is mask + 1 + tolerance */
+#define CPU_CACHE_SIZE 0x1003
 
 struct method_cache {
   OBJECT klass;
@@ -82,7 +85,7 @@ struct rubinius_state {
   object_memory om;
   ptr_array free_contexts;
   
-  struct method_cache method_cache[CPU_CACHE_SIZE];
+  struct method_cache method_cache[CPU_CACHE_SIZE + CPU_CACHE_TOLERANCE];
   
 #ifdef TRACK_STATS
   int cache_hits;
@@ -233,7 +236,23 @@ extern int g_access_violation;
 
 void machine_handle_fire(int);
 
+/* No bounds checking! Be careful! */
+#define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)
+
+/* Only ever call this with constant arguments! */
+#define fast_set(obj, idx, val) ({ \
+  if(REFERENCE_P(val)) object_memory_write_barrier(state->om, obj, val); \
+  SET_FIELD_DIRECT(obj, idx, val); \
+  val; \
+})
+
+#define fast_unsafe_set(obj, idx, val) SET_FIELD_DIRECT(obj, idx, val)
+
+#define fast_set_int(obj, idx, int) fast_unsafe_set(obj, idx, I2N(int))
+#define fast_inc(obj, idx) fast_unsafe_set(obj, idx, fast_fetch(obj, idx) + (1 << TAG_SHIFT))
+
 #define ACCESS_MACROS 1
+#define EXTRA_PROTECTION 0
 
 #if ACCESS_MACROS
 
@@ -244,7 +263,7 @@ void machine_handle_fire(int);
   if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
-  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
+  SET_FIELD_DIRECT(_o, fel, _v); })
 
 #define rbs_get_field(obj, fel) NTH_FIELD_DIRECT(obj, fel)
 
@@ -266,6 +285,8 @@ static void _bad_reference2(OBJECT in, int fel) {
   }
 }
 
+#ifdef EXTRA_PROTECTION
+
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
   if(!REFERENCE_P(obj)) _bad_reference(obj); \
@@ -280,6 +301,27 @@ static void _bad_reference2(OBJECT in, int fel) {
   if(!REFERENCE_P(in)) _bad_reference(in); \
   if(fel >= HEADER(in)->fields) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
+
+#else
+
+/* These are the typically used versions. The don't check for ref, they
+   the segfault handler do that. */
+
+#define rbs_set_field(om, obj, fel, val) ({ \
+  OBJECT _v = (val), _o = (obj); \
+  if(fel >= HEADER(obj)->fields) _bad_reference2(obj, fel); \
+  if(REFERENCE_P(_v)) { \
+    object_memory_write_barrier(om, _o, _v); \
+  } \
+  *(OBJECT*)ADDRESS_OF_FIELD(_o, fel) = _v; })
+
+#define rbs_get_field(i_in, i_fel) ({ \
+  OBJECT in = (i_in); int fel = (i_fel); \
+  if(fel >= HEADER(in)->fields) _bad_reference2(in, fel); \
+  NTH_FIELD_DIRECT(in, fel); })
+
+
+#endif
 
 #endif
 
