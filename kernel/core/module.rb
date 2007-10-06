@@ -9,12 +9,6 @@ class Module
     @method_table
   end
   
-  def self.new(&prc)
-    mod = allocate
-    mod.module_eval(&prc) if block_given?
-    mod
-  end
-  
   def to_s
     if @name
       @name.to_s

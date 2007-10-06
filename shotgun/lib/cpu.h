@@ -14,7 +14,8 @@
 #endif
 
 /* Whether or not to do runtime tracing support */
-#define EXCESSIVE_TRACING state->excessive_tracing
+// #define EXCESSIVE_TRACING state->excessive_tracing
+#define EXCESSIVE_TRACING 0
 
 /* For profiling of code */
 #define USE_GLOBAL_CACHING 1
@@ -83,6 +84,7 @@ struct cpu_task {
 struct rubinius_cpu {
   /* Normal registers ande saved and restored per new method call . */
   OBJECT self, sender;
+  OBJECT cache;
   IP_TYPE *data;
   unsigned short type;
   unsigned short argcount;

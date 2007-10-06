@@ -150,12 +150,14 @@ void untrack_ref(OBJECT obj) {
 
 static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   OBJECT cls, tmp, mut;
-  int i;
+  int i, fields;
   
+#if 0
   if(_track_refs) {
     if (ptr_array_contains(_track_refs, (gpointer)iobj))
         printf("Found2 %p!\n", (void*)iobj);
   }
+#endif
   
   //printf("%d: Mutating class of %p\n", ++depth, iobj);
   
@@ -178,7 +180,8 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   //printf("%d: Mutating references of %p\n", depth, iobj);
   
   if(!_object_stores_bytes(iobj)) {
-    for(i = 0; i < NUM_FIELDS(iobj); i++) {
+    fields = NUM_FIELDS(iobj);
+    for(i = 0; i < fields; i++) {
       tmp = NTH_FIELD(iobj, i);
       if(!REFERENCE_P(tmp)) continue;
     
@@ -302,11 +305,13 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
   if(heap_contains_p(state->om->contexts, obj)) {
     saved_contexts++;
   }
-  
+
+#if 0
   if(_track_refs) {
     if (ptr_array_contains(_track_refs, (gpointer)obj))
       printf("Found %p!\n", (void*)obj);
   }
+#endif
   
   if((AGE(obj) == g->tenure_age)) {
     // int age = AGE(obj);
@@ -334,11 +339,13 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       _mutate_references(state, g, dest);
     }
   }
-  
+
+#if 0
   if(_track_refs) {
     if (ptr_array_contains(_track_refs, (gpointer) dest))
         printf("Found3 %p!\n", (void*)dest);
   }
+#endif
   
   return dest;
 }

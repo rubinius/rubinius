@@ -84,7 +84,9 @@ struct rubinius_object {
 #define SIZE_IN_BYTES(obj) ((NUM_FIELDS(obj) + HEADER_SIZE) * REFSIZE)
 #define SIZE_OF_BODY(obj) (NUM_FIELDS(obj) * REFSIZE)
 #define ADDRESS_OF_FIELD(obj, fel) ((OBJECT)(OBJECTS(obj) + HEADER_SIZE + fel))
-#define NTH_FIELD_DIRECT(obj, fel) (*(OBJECT*)(OBJECTS(obj) + HEADER_SIZE + fel))
+// #define NTH_FIELD_DIRECT(obj, fel) (*(OBJECT*)(OBJECTS(obj) + HEADER_SIZE + fel))
+#define NTH_FIELD_DIRECT(obj, fel) (OBJECTS(obj)[HEADER_SIZE + fel])
+#define SET_FIELD_DIRECT(obj, fel, val) (NTH_FIELD_DIRECT(obj, fel) = val)
 
 #define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
 #define FIXNUM_NEG(obj) (((int)(obj)) < 0)

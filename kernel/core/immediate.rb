@@ -1,3 +1,5 @@
+# depends on: kernel.rb
+
 module ImmediateValue
   def singleton_methods
     []

@@ -61,6 +61,7 @@ void cpu_bootstrap(STATE) {
   BC(cmethod) = _cmethod_class(state, obj);
   BC(io) = _io_class(state, obj);
   BC(blokenv) = _blokenv_class(state, obj);
+  BC(icache) = _icache_class(state, obj);
   
   /* The symbol table */
   state->global->symbols = symtbl_new(state);
@@ -80,6 +81,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(cmethod), "CompiledMethod");
   module_setup(state, BC(io), "IO");
   module_setup(state, BC(blokenv), "BlockEnvironment");
+  module_setup(state, BC(icache), "InlineCache");
   
 #define set_type(cls, flag) class_set_instance_flags(cls, I2N(flag | FIXNUM_TO_INT(class_get_instance_flags(cls))));
   
@@ -106,7 +108,7 @@ void cpu_bootstrap(STATE) {
   
   BC(task) = rbs_class_new(state, "Task", 0, obj);
   BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
-  
+    
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
     module_setup(state, BC(name), string);
   

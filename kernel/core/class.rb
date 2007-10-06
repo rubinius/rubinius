@@ -1,8 +1,9 @@
 class Class
     
   # Need to get rid of this cleverness
-  def new(*args, &block)
+  def new(*args)
     obj = allocate()
+    block = Ruby.asm "push_block"
     if block
       obj.initialize(*args, &block)
     else
@@ -11,10 +12,11 @@ class Class
     obj
   end
 
-  def self.new(sclass=Object, &block)
+  def self.new(sclass=Object)
     raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless Class === sclass
     
     obj = Rubinius.class_constitute(sclass, nil)
+    block = Ruby.asm "push_block"
     obj.class_eval(&block) if block
     # add clas to sclass's subclass list, for ObjectSpace.each_object(Class)
     # NOTE: This is non-standard; Ruby does not normally track subclasses

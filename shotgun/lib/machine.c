@@ -306,6 +306,7 @@ void machine_print_registers(machine m) {
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
   const char *signame;
   rni_context *rni_ctx;
+  OBJECT addr;
   
   /* See if the error happened during the running of a C function.
      If so, we raise an exception about the error. */
@@ -317,6 +318,22 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     rni_ctx->fault_address = info->si_addr;
     rni_ctx->nmc->jump_val = SEGFAULT_DETECTED;
     setcontext(&rni_ctx->nmc->system);
+  }
+  
+  /* This is really nice. We don't have to do this check at every
+     fetch, instead, let it segfault and handle it here. 
+     The check for - 4 is because the bounds checks grabs the number
+     of fields from a ref right away, which is where it will segfault
+     if it's not a ref. The fields are 4 bytes into the header.
+     The check for - 8 is because it's common this happens when
+     trying to grab the class of a non-reference. The class is
+     8 bytes into the header. */
+  addr = (OBJECT)(info->si_addr);
+  if(!REFERENCE_P(addr) || !REFERENCE_P(addr - 4) || !REFERENCE_P(addr - 8)) {
+    printf("Attempted to access field of non reference.\n");
+    if(g_use_firesuit) {
+      machine_handle_fire(FIRE_NULL);
+    }
   }
   
   if(_recursive_reporting) {
@@ -509,18 +526,6 @@ void machine_save_args(machine m, int argc, char **argv) {
   memcpy(na, argv, argc);
   m->argc = argc;
   m->argv = na;
-}
-
-void machine_restart_debugging(machine m) {
-  char **args;
-  
-  args = calloc(m->argc + 3, sizeof(char*));
-  memcpy(args + 2, m->argv, m->argc);
-  args[0] = "gdb";
-  args[1] = "--args";
-  args[m->argc + 2] = NULL;
-  
-  execvp("gdb", args);
 }
 
 void machine_setup_standard_io(machine m) {
