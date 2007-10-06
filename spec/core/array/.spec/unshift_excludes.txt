@@ -1,2 +1,1 @@
-Array#unshift prepends object to the original array
 Array#unshift raises TypeError on a frozen array

@@ -1,2 +1,1 @@
 Array#* calls to_int on its argument
-Array#* raises TypeError if the argument can neither be converted to a string nor an integer

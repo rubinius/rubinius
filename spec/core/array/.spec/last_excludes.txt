@@ -1,1 +1,0 @@
-Array#last uses to_int to convert its argument

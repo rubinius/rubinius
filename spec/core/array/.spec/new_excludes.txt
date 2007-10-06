@@ -1,2 +1,1 @@
 Array.new calls to_int on size
-Array.new will fail if a to_ary is supplied as the first argument and a second argument is given
