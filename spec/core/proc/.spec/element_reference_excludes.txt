@@ -1,5 +1,12 @@
-Proc#call when called on a Proc created with Kernel.proc raises an ArgumentError when given to many arguments
-Proc#[] when called on a Proc created with Kernel.proc raises an ArgumentError when given to many arguments
-Proc[] when called on a Proc created with Proc.new silently ignores extra arguments
-Proc[] invokes self
-Proc[] sets self's parameters to the given values
+Proc#call invokes self
+Proc#call sets self's parameters to the given values
+Proc#call sets self's single parameter to an Array of all given values
+Proc#call raises ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc
+Proc#call raises ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc
+Proc#[] invokes self
+Proc#[] sets self's parameters to the given values
+Proc#[] sets self's single parameter to an Array of all given values
+Proc#[] replaces missing arguments with nil when called on a Proc created with Proc.new
+Proc#[] silently ignores extra arguments when called on a Proc created with Proc.new
+Proc#[] raises ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc
+Proc#[] raises ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc
