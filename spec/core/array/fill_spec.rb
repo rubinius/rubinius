@@ -96,8 +96,10 @@ describe "Array#fill" do
     a.fill('x', 1, nil)
     a.should == [1, 'x', 'x']
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.fill('x') }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.fill('x') }
+    end
   end
 end

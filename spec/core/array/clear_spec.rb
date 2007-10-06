@@ -21,9 +21,11 @@ describe "Array#clear" do
     a.size.should == 0
   end
 
-  it "raises TypeError on a frozen array" do
-    a = [1]
-    a.freeze
-    should_raise(TypeError) { a.clear }
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      a = [1]
+      a.freeze
+      should_raise(TypeError) { a.clear }
+    end
   end
 end

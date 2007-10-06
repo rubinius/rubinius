@@ -19,8 +19,10 @@ describe "Array#shift" do
   it "returns nil when the array is empty" do
     [].shift.should == nil
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.shift }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.shift }
+    end
   end
 end

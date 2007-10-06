@@ -123,8 +123,10 @@ describe "Array#slice!" do
     a.should == [1, 2, nil, nil, nil, nil, nil, nil, nil, nil]
   end
 
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.slice!(0, 0) }
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.slice!(0, 0) }
+    end
   end
 end
 

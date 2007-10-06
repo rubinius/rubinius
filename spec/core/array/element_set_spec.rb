@@ -177,9 +177,11 @@ describe "Array#[]=" do
     ary.should == [5, 6, 7]
   end
 
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array[0, 0] = [] }
-  end  
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array[0, 0] = [] }
+    end  
+  end
 end
 
 describe "Array#[]= with [index]" do

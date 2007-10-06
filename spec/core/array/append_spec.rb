@@ -21,8 +21,10 @@ describe "Array#<<" do
     a << :bar << :baz
     a.size.should == 3
   end  
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array << 5 }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array << 5 }
+    end
   end
 end

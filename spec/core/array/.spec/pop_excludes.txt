@@ -1,1 +1,0 @@
-Array#pop raises TypeError on a frozen array

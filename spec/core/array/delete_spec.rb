@@ -23,20 +23,13 @@ describe "Array#delete" do
     [].delete('a') {:not_found}.should == :not_found
   end
   
-compliant :r18 do
-  it "raises TypeError on a frozen array if a modification would take place" do
-    should_raise(TypeError) { @frozen_array.delete(1) }
-  end
+  compliant :mri do
+    it "raises TypeError on a frozen array if a modification would take place" do
+      should_raise(TypeError) { @frozen_array.delete(1) }
+    end
 
-  it "does not raise on a frozen array if a modification would not take place" do
-    should_raise(TypeError) { @frozen_array.delete(0) }
+    it "does not raise on a frozen array if a modification would not take place" do
+      @frozen_array.delete(0) # ok, no modification
+    end
   end
-end
-  
-noncompliant :rubinius do
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.delete(0) }
-    should_raise(TypeError) { @frozen_array.delete(1) }
-  end
-end
 end

@@ -30,20 +30,13 @@ describe "Array#concat" do
     [].concat(ToAryArray[5, 6, 7]).should == [5, 6, 7]
   end
   
-compliant :r18 do
-  it "raises a TypeError when Array is frozen and modification occurs" do
-    should_raise(TypeError) { @frozen_array.concat [1] }
-  end
+  compliant :mri do
+    it "raises a TypeError when Array is frozen and modification occurs" do
+      should_raise(TypeError) { @frozen_array.concat [1] }
+    end
 
-  it "does not raise a TypeError when Array is frozen but no modification occurs" do
-    should_raise(TypeError) { @frozen_array.concat [] }
+    it "does not raise a TypeError when Array is frozen but no modification occurs" do
+      @frozen_array.concat [] # ok, no modification
+    end
   end
-end
-
-noncompliant :rubinius do
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.concat [] }
-    should_raise(TypeError) { @frozen_array.concat([1]) }
-  end
-end
 end

@@ -95,27 +95,15 @@ describe "Array#uniq!" do
     [ "a", "b", "c" ].uniq!.should == nil
   end
   
-compliant :r18 do
-  it "raises TypeError on a frozen array if modification would take place" do
-    dup_ary = [1, 1, 2]
-    dup_ary.freeze
-    should_raise(TypeError) { dup_ary.uniq! }
-  end
+  compliant :mri do
+    it "raises TypeError on a frozen array if modification would take place" do
+      dup_ary = [1, 1, 2]
+      dup_ary.freeze
+      should_raise(TypeError) { dup_ary.uniq! }
+    end
 
-  it "does not raise TypeError on a frozen array if no modification takes place" do
-    @frozen_array.uniq! # ok, already uniq
-    dup_ary = [1, 1, 2]
-    dup_ary.freeze
-    should_raise(TypeError) { dup_ary.uniq! }
+    it "does not raise TypeError on a frozen array if no modification takes place" do
+      @frozen_array.uniq! # ok, already uniq
+    end
   end
-end
-
-noncompliant :rubinius do
-  it "always raises TypeError on a frozen array regardless of modification" do
-    should_raise(TypeError) { @frozen_array.uniq! }
-    dup_ary = [1, 1, 2]
-    dup_ary.freeze
-    should_raise(TypeError) { dup_ary.uniq! }
-  end
-end
 end

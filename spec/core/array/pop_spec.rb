@@ -21,8 +21,10 @@ describe "Array#pop" do
   it "returns nil if there are no more elements" do
     [].pop.should == nil
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.pop }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.pop }
+    end
   end
 end

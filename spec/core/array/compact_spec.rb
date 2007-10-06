@@ -22,8 +22,10 @@ describe "Array#compact!" do
   it "returns nil if there are no nil elements to remove" do
     [1, 2, false, 3].compact!.should == nil
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.compact! }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.compact! }
+    end
   end
 end

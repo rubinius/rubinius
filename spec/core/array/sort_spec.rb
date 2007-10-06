@@ -40,8 +40,10 @@ describe "Array#sort!" do
     a.sort! { |x, y| y <=> x }
     a.should == [5, 4, 3, 2, 1]
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.sort! }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.sort! }
+    end
   end
 end

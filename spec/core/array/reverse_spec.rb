@@ -19,8 +19,10 @@ describe "Array#reverse!" do
     a.should == [1, 2, 4, 3, 6]
     [].reverse!.should == []
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.reverse! }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.reverse! }
+    end
   end
 end

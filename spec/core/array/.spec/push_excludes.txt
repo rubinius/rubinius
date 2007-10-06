@@ -1,1 +1,0 @@
-Array#push always raises TypeError on a frozen array

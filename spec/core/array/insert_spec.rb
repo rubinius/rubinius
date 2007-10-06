@@ -66,20 +66,13 @@ describe "Array#insert" do
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end
   
-compliant :r18 do
-  it "raises TypeError on frozen arrays if modification takes place" do
-    should_raise(TypeError) { @frozen_array.insert(0, 'x') }
-  end
+  compliant :mri do
+    it "raises TypeError on frozen arrays if modification takes place" do
+      should_raise(TypeError) { @frozen_array.insert(0, 'x') }
+    end
 
-  it "does not raise on frozen arrays if no modification takes place" do
-    @frozen_array.insert(0) # ok
+    it "does not raise on frozen arrays if no modification takes place" do
+      @frozen_array.insert(0) # ok
+    end
   end
-end
-
-noncompliant :rubinius do
-  it "always raises TypeError on frozen arrays" do
-    should_raise(TypeError) { @frozen_array.insert(0) } 
-    should_raise(TypeError) { @frozen_array.insert(0, 'x') }
-  end
-end
 end

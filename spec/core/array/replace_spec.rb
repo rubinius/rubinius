@@ -39,8 +39,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       ary.should == [5, 6, 7]
     end
 
-    it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.send(cmd, @frozen_array) }
+    compliant :mri do
+      it "raises TypeError on a frozen array" do
+        should_raise(TypeError) { @frozen_array.send(cmd, @frozen_array) }
+      end
     end
   end
 end

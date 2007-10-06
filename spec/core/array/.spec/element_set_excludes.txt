@@ -1,3 +1,2 @@
 Array#[]= should set elements in the range arguments when passed ranges
-Array#[]= raises TypeError on a frozen array
 Array#[]= with [index, count] sets elements when passed start, length

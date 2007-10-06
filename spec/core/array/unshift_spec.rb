@@ -12,8 +12,13 @@ describe "Array#unshift" do
     a.should == [5, 4, 3, 'a', 1, 2, 3]
   end
 
-  it "raises TypeError on a frozen array" do
-    @frozen_array.unshift() # ok
-    should_raise(TypeError) { @frozen_array.unshift(1) }
-  end  
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.unshift(1) }
+    end  
+    
+    it "does not raise TypeError on a frozen array if no modification takes place" do
+      @frozen_array.unshift() # ok
+    end
+  end
 end

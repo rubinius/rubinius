@@ -1,3 +1,2 @@
 Array#initialize is private
 Array#initialize calls to_int on array size
-Array#initialize raises TypeError on frozen arrays

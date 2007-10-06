@@ -1,1 +1,0 @@
-Array#delete_if raises TypeError on a frozen array

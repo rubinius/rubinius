@@ -27,8 +27,10 @@ end
       a.should == [6, 8, 2, 4]
     end
 
-    it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.send(cmd) {} }
+    compliant :mri do
+      it "raises TypeError on a frozen array" do
+        should_raise(TypeError) { @frozen_array.send(cmd) {} }
+      end
     end
   end
 end

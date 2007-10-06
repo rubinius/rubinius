@@ -1,1 +1,0 @@
-Array#shift raises TypeError on a frozen array

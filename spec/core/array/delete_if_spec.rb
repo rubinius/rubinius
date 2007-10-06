@@ -7,8 +7,10 @@ describe "Array#delete_if" do
     a.delete_if { |x| x >= "b" }.equal?(a).should == true
     a.should == ["a"]
   end
-  
-  it "raises TypeError on a frozen array" do
-    should_raise(TypeError) { @frozen_array.delete_if {} }
+
+  compliant :mri do
+    it "raises TypeError on a frozen array" do
+      should_raise(TypeError) { @frozen_array.delete_if {} }
+    end
   end
 end
