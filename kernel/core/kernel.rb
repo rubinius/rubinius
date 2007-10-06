@@ -189,7 +189,12 @@ module Kernel
       end
     end
   end
-  
+    
+  def lambda(&prc)
+    return prc
+  end
+  alias_method :proc, :lambda
+
   def eval(string, binding = self, filename = '(eval)', lineno = 1)
     compiled_method = string.compile_as_method(filename, lineno)
     method = Method.new(binding, nil, compiled_method)

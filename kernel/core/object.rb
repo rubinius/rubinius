@@ -92,10 +92,6 @@ class Object
     end
   end
   
-  def lambda(&prc)
-    return prc
-  end
-  
   def method_missing(meth, *args)
     raise NoMethodError, "No method '#{meth}' on an instance of #{self.class}."
   end
