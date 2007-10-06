@@ -51,14 +51,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
       Proc.new { |a, b| a + b }.send(cmd, 1, 2, 5).should == 3
     end
     
-    it "auto-explodes a single Array argument when called on a Proc created with Proc.new" do
-      p = Proc.new { |a, b| [a, b] }
-      p.send(cmd, 1, 2).should == [1, 2]
-      p.send(cmd, [1, 2]).should == [1, 2]
-      p.send(cmd, [1, 2, 3]).should == [1, 2]
-      p.send(cmd, [1, 2, 3], 4).should == [[1, 2, 3], 4]
-    end
-    
     it "raises ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc" do
       should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd) }
       should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd, 1) }
@@ -69,13 +61,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
     it "raises ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc" do
       should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd, 1, 2, 3) }
       should_raise(ArgumentError) { proc { |a, b| [a, b] }.send(cmd, 1, 2, 3) }
-    end
-    
-    it "treats a single Array argument as a single argument when called on a Proc created with Kernel#lambda or Kernel#proc" do
-      lambda { |a| [a] }.send(cmd, [1, 2]).should == [[1, 2]]
-      should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd, [1, 2]) }
-      proc { |a| [a] }.send(cmd, [1, 2]).should == [[1, 2]]
-      should_raise(ArgumentError) { proc { |a, b| [a, b] }.send(cmd, [1, 2]) }
     end
   end
 end
