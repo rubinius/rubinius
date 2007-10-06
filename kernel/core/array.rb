@@ -1195,8 +1195,8 @@ class Array
         elsif result == 1
           (block_given? ? right : left) << elem
         else
-          raise ArgumentError, block_given ? "Unknown result #{result} from block" : 
-                                             "Unable to <=> on candidate #{elem.inspect}"
+          raise ArgumentError, block_given? ? "Unknown result #{result} from block"
+                                            : "Unable to <=> on candidate #{elem.inspect}"
         end
 
       rescue TypeError
