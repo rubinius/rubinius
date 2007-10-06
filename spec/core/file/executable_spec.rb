@@ -37,7 +37,8 @@ end
 
 describe "File.executable?" do 
   before :each do
-    @file1 = File.join('test.txt')
+    @file_name = "test.txt"
+    @file1 = File.join(@file_name)
     @file2 = File.join('test2.txt')
 
     File.open(@file1, "w") {} # touch
@@ -56,7 +57,7 @@ describe "File.executable?" do
   it "returns true if named file is readable by the effective user id of the process, otherwise false" do
     File.executable?('fake_file').should == false
     File.executable?('/etc/passwd').should == false
-    File.executable?(@file).should == true
+    File.executable?('test2.txt').should == true
   end
 
   platform :not, :mswin do
@@ -67,10 +68,11 @@ describe "File.executable?" do
     end
   end
 
-  it "raise an exception its the arguments are the worng type or number" do
+  it "raise an exception its the arguments are the wrong type or number" do
     should_raise(ArgumentError){ File.executable? }
     should_raise(TypeError){ File.executable?(1) }
     should_raise(TypeError){ File.executable?(nil) }
     should_raise(TypeError){ File.executable?(false) }
+    should_raise(TypeError) { File.executable?(@file) }
   end
 end
