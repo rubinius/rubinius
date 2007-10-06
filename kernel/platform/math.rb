@@ -16,7 +16,6 @@ module Platform::Math
   attach_function nil, "atanh", [:double], :double
   attach_function nil, "exp",   [:double], :double
   attach_function nil, "log",   [:double], :double
-  attach_function nil, "log2",  [:double], :double
   attach_function nil, "log10", [:double], :double
   attach_function nil, "sqrt",  [:double], :double
   attach_function nil, "frexp", [:double, :pointer], :double
@@ -24,4 +23,11 @@ module Platform::Math
   attach_function nil, "hypot", [:double, :double], :double
   attach_function nil, "erf",   [:double], :double
   attach_function nil, "erfc",  [:double], :double
+
+  # TODO: we need a way to determine whether a function
+  #   is defined for a particular platform.
+  # attach_function nil, "log2",  [:double], :double
+  def self.log2(x)
+    log10(x) / log10(2.0)
+  end
 end
