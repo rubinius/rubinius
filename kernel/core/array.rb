@@ -1157,14 +1157,9 @@ class Array
 
   # TODO will fix when #[]= works
   def slice!(*args)
-    a1 = args.shift
-    out = self[a1, *args]       # FIXME: a1 is needed to avoid compiler crash
-    args.unshift a1
-
+    out = self[*args]
     args << 1 if args.size == 1 && !(Range === args[0])
-    args << []
-    self.send(:"[]=", *args)
-    #self[*args] = []       # FIXME: this has mysterious bugs
+    self[*args] = []
     out
   end
 
@@ -1195,7 +1190,7 @@ class Array
         elsif result == 1
           (block_given? ? right : left) << elem
         else
-          raise ArgumentError, block_given? ? "Unknown result #{result} from block"
+          raise ArgumentError, block_given? ? "Unknown result #{result} from block" \
                                             : "Unable to <=> on candidate #{elem.inspect}"
         end
 
