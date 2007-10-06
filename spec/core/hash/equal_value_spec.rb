@@ -58,7 +58,7 @@ describe "Hash#==" do
     y = Object.new
     def y.hash() freeze; 0 end
 
-    { x => 1 } == { y => 1 }
+    { x => 1 }.should_not == { y => 1 }
     x.frozen?.should == true
     y.frozen?.should == true
   end

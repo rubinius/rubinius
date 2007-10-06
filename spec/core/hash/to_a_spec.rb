@@ -6,7 +6,7 @@ describe "Hash#to_a" do
     h = {:a => 1, 1 => :a, 3 => :b, :b => 5}
     pairs = []
 
-    h.each do |pair|
+    h.each_pair do |*pair|
       pairs << pair
     end
     
