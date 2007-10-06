@@ -1426,6 +1426,10 @@ class Array
     return str
   end
 
+  def dup
+    self.class.new.replace self
+  end
+
 
   # Internals
   private
