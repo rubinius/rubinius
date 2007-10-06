@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 @kernel_lambda = shared "Kernel#lambda" do |cmd|
-  describe "Kernel##{cmd}" do
+  describe "Kernel.#{cmd}" do
     it "should return a Proc object" do
       send(cmd) { true }.kind_of?(Proc).should == true
     end
@@ -35,6 +35,6 @@ require File.dirname(__FILE__) + '/fixtures/classes'
   end
 end
 
-describe "Kernel#lambda" do
+describe "Kernel.lambda" do
   it_behaves_like(@kernel_lambda, :lambda)
 end
