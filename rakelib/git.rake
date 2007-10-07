@@ -26,6 +26,7 @@ namespace :git do
     system "git status"
   end
 
+  desc "Create a new topic branch"
   task :topic do
     total = `git branch`.scan("quick").size
     if total == 0
@@ -40,6 +41,7 @@ namespace :git do
     sh "git checkout -b #{name}"
   end
 
+  desc "Push all changes to the rubinius repository"
   task :push => :update do
     branch = git_branch()
     if branch != "master"
@@ -66,6 +68,7 @@ namespace :git do
     end
   end
 
+  desc "Pull new commits from the rubinius repository"
   task :update do
     check_git_ver
     `git diff-files --quiet`
