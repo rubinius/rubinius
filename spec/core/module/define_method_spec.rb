@@ -4,6 +4,19 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 class DefineMethodSpecClass
 end
 
+describe "Module#define_method when given an UnboundMethod" do
+  it "correctly passes given arguments to the new method" do
+    klass = Class.new do
+      def test_method(arg1, arg2)
+        [arg1, arg2]
+      end
+      define_method(:another_test_method, instance_method(:test_method))
+    end
+    
+    klass.new.another_test_method(1, 2).should == [1, 2]
+  end
+end
+
 describe "Module#define_method" do
   it "defines the given method as an instance method with the given name in self" do
     class DefineMethodSpecClass
