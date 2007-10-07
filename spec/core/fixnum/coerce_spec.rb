@@ -32,21 +32,21 @@ describe "Fixnum#coerce" do
     2.coerce(obj).should == [1.0, 2.0]
     
     (obj = Object.new).should_receive(:to_f, :returning => '0')
-    should_raise(TypeError, "Object#to_f should return Float") do
+    should_raise(TypeError) do
       2.coerce(obj).should == [1.0, 2.0]
     end
   end
 
   it "raises a TypeError when given an Object that does not respond to #to_f" do
-    should_raise(TypeError, "can't convert Object into Float") do
+    should_raise(TypeError) do
       1.coerce(Object.new)
     end
     
-    should_raise(TypeError, "can't convert Range into Float") do
+    should_raise(TypeError) do
       1.coerce(1..4)
     end
     
-    should_raise(TypeError, "can't convert Symbol into Float") do
+    should_raise(TypeError) do
       1.coerce(:test)
     end
   end
