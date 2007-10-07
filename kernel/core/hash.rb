@@ -144,7 +144,7 @@ class Hash
 
   def fetch(key, *rest)
     raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
-    warn 'Block supersedes default object' if block_given? and not rest.empty?
+    # warn 'Block supersedes default object' if block_given? and not rest.empty?
 
     found, val = find_unambigious key
     return val if found
