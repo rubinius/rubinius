@@ -82,10 +82,6 @@ class Integer < Numeric
     end
   end
 
-  def quo(other)
-    Float(self) / Float(other)
-  end
-  
   def next
     self + 1
   end

@@ -4,17 +4,17 @@ class Numeric
   include Comparable
 
   def +(other)
-    b, a = self.coerce(other)
+    b, a = self.do_coerce(other, true)
     a + b
   end
   
   def -(other)
-    b, a = self.coerce(other)
+    b, a = self.do_coerce(other, true)
     a - b
   end
   
   def *(other)
-    b, a = self.coerce(other)
+    b, a = self.do_coerce(other, true)
     a * b
   end
   
@@ -30,8 +30,8 @@ class Numeric
   end
   
   def %(other)
-    b, a = self.coerce(other)
-    raise ZeroDivisionError, "Divide by 0" unless Float === b or b != 0
+    b, a = self.do_coerce(other, true)
+    raise ZeroDivisionError, "divided by 0" unless Float === b or b != 0
     a % b
   end
    
@@ -83,7 +83,16 @@ class Numeric
  
   def div(other)
     raise FloatDomainError, "NaN" if self == 0 && other.is_a?(Float) && other == 0
-    (self / other).to_i
+    (self / other).floor
+  end
+
+  def quo(other)
+    if other.is_a?(Fixnum)
+      self / Float(other)
+    else
+      b, a = self.do_coerce(other, true)
+      a / b
+    end
   end
 
   def divmod(other)
@@ -110,7 +119,7 @@ class Numeric
       values[1] <=> values[0]
     end
   end
-
+  
   def zero?
     self == 0
   end
