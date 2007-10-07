@@ -15,6 +15,17 @@ describe "Module#define_method when given an UnboundMethod" do
     
     klass.new.another_test_method(1, 2).should == [1, 2]
   end
+
+  it "adds the new method to the methods list" do
+    klass = Class.new do
+      def test_method(arg1, arg2)
+        [arg1, arg2]
+      end
+      define_method(:another_test_method, instance_method(:test_method))
+    end
+    
+    klass.new.methods.should_include("another_test_method")
+  end
 end
 
 describe "Module#define_method" do
