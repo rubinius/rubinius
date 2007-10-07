@@ -7,7 +7,7 @@ class Fixnum < Integer
   alias_method :modulo, :%
   
   def <<(c)
-    c = guard_integer_type(c)
+    c = Type.coerce_to(c, Fixnum, :to_int)
     return self >> -c if c < 0
 
     bits = self.size * 8 - 1
@@ -18,7 +18,7 @@ class Fixnum < Integer
   end
 
   def >>(c)
-    c = guard_integer_type(c)
+    c = Type.coerce_to(c, Fixnum, :to_int)
     return self << -c if c < 0
     
     if Bignum === c
@@ -37,19 +37,4 @@ class Fixnum < Integer
   rescue NoMethodError
     nil
   end
-
-  # Matches MRI core lib behaviour
-  def guard_integer_type(obj)
-    return obj if Integer === obj
-    obj = obj.to_int
-    if Integer === obj
-      obj
-    else
-      raise TypeError, "#{obj.class}#to_i should return Integer"
-    end
-  rescue NoMethodError
-    raise TypeError, "can't convert #{obj.class} into Integer"
-  end
-  
 end
-
