@@ -35,7 +35,8 @@
   void *opaque_data; \
   OBJECT self; \
   IP_TYPE *data; \
-  unsigned short type; \
+  unsigned char flags; \
+  unsigned char type; \
   unsigned int ip; \
   unsigned int sp; \
   OBJECT *fp_ptr;
@@ -43,6 +44,8 @@
 struct fast_context {
   CPU_REGISTERS
 };
+
+#define CPU_FLAG_NO_RETURN 1
 
 #define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
 

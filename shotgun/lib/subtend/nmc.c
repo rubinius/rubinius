@@ -60,7 +60,8 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   fc->locals = (OBJECT)Qnil;
   fc->argcount = args;
   fc->type = FASTCTX_NMC;
-  
+  fc->flags = 0;
+
   n = nmc_new_standalone();
   sys = nmethod_get_data(nmethod);
   n->method = DATA_STRUCT(sys, native_method*);

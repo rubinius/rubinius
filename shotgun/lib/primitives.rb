@@ -750,20 +750,37 @@ class ShotgunPrimitives
     stack_push(t1);
     CODE
   end
+
+  def object_dup
+    <<-CODE
+    t1 = stack_pop();
+    if(REFERENCE_P(t1)) {
+      j = NUM_FIELDS(t1);
+      t2 = NEW_OBJECT(object_class(state, t1), j);
+      for(k = 0; k < j; k++) {
+        SET_FIELD(t2, k, NTH_FIELD(t1, k));
+      }
+      stack_push(t2);
+      /* TODO: copy the ivars in slot 0 */
+      cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
+    } else {
+      stack_push(t1);
+    }
+    CODE
+  end
   
   def fastctx_dup
     <<-CODE
     POP(self, REFERENCE);
     GUARD(ISA(self, state->global->fastctx));
     
-    t1 = _om_new_ultra(state->om, state->global->fastctx, (HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE);
-    SET_NUM_FIELDS(t1, FASTCTX_FIELDS);
+    t1 = NEW_OBJECT(object_class(state, self), FASTCTX_FIELDS);
 
     FLAG_SET(t1, CTXFastFlag);
     FLAG_SET(t1, StoresBytesFlag);
     
     memcpy(FASTCTX(t1), FASTCTX(self), sizeof(struct fast_context));
-    stack_push(t1);    
+    stack_push(t1);
     CODE
   end
 
