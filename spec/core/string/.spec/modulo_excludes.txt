@@ -1,0 +1,8 @@
+String#% allows positional arguments for width star and precision star arguments
+String#% supports unsigned formats using %u
+String#% supports negative bignums
+String#% behaves as if calling Kernel#Float for %e arguments
+String#% behaves as if calling Kernel#Float for %E arguments
+String#% behaves as if calling Kernel#Float for %f arguments
+String#% behaves as if calling Kernel#Float for %g arguments
+String#% behaves as if calling Kernel#Float for %G arguments

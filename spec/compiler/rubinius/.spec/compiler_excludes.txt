@@ -5,3 +5,4 @@ Bytecode::Compiler compiles masgn with array as the source
 Bytecode::Compiler compiles masgn with array as the source and too many lhs
 Bytecode::Compiler compiles masgn with array as the source and too many rhs
 Bytecode::Compiler compiles masgn with array as source splat is stupid
+Bytecode::Compiler compiles iter

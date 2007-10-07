@@ -1,0 +1,3 @@
+Module#attr_accessor creates a getter and setter for each given attribute name
+Module#attr_accessor converts non string/symbol/fixnum names to strings using to_str
+Module#attr_accessor raises a TypeError when the given names can't be converted to strings using to_str

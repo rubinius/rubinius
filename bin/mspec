@@ -20,6 +20,7 @@ output = nil
 clean = false
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
+verbose = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
@@ -86,6 +87,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
     clean = true
   end
+  opts.on("-V", "--verbose", "Output each file processed when running") do
+    verbose = true
+  end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
     exit
@@ -119,6 +123,7 @@ cmd = <<-EOC
 #{files.inspect}.each do |f|
   cname = "\#{f}c"
   File.delete(cname) if #{clean} and File.exist?(cname)
+  STDERR.puts f if #{verbose}
   load f
 end'
 EOC
