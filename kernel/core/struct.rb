@@ -183,6 +183,7 @@ class Struct
   def ==(other)
     self.class == other.class && members.all? { |member| self[member] == other[member] }
   end
+  alias_method :eql?, :==
 
   def inspect
     string = "#<struct #{self.class.name}"
