@@ -693,27 +693,11 @@ class Array
   # Flattens self in place as #flatten. If no changes are
   # made, returns nil, otherwise self.
   def flatten!
-    ret, out, stack = nil, [], []
+    ret, out = nil, []
 
-    ret = recursively_flatten self, out, stack
+    ret = recursively_flatten(self, out)
     replace(out) if ret
     ret
-    
-#    recursor  = lambda { |ary|
-#                  ary.each { |o|
-#                    if o.kind_of? Array
-#                      recursor.call o 
-#                      ret = self
-#                    else
-#                      out << o
-#                    end
-#                  }
-#                }
-#
-#    recursor.call self
-#
-#    replace(out) if ret
-#    ret
   end 
 
   # Computes a Fixnum hash code for this Array. Any two
@@ -783,7 +767,16 @@ class Array
   # Descends through contained Arrays, recursive ones
   # are indicated as [...].
   def inspect()
-    recursively_inspect self
+    return "[...]" if RecursionGuard.inspecting?(self)
+    
+    out = []
+    RecursionGuard.inspect(self) do
+      each { |o|
+        out << o.inspect
+      }
+    end
+    
+    "[#{out.join ', '}]"
   end
 
   # Generates a string from converting all elements of 
@@ -796,8 +789,21 @@ class Array
     sep = sep.to_str
 
     out = ""
-    recursively_join self, sep, method, out
-    out[sep.size..-1] 
+    each_with_index do |o, i|
+      out << sep unless i == 0
+      if o.kind_of?(Array)
+        if RecursionGuard.inspecting?(o)
+          out << "[...]"
+        else
+          RecursionGuard.inspect(self) do
+            out << o.join(sep, method)
+          end
+        end
+      else
+        out << o.__send__(method)
+      end
+    end
+    out
   end
   
   # Returns the last element or n elements of self. If
@@ -1456,15 +1462,15 @@ class Array
 
   # Helper to recurse through flattening since the method
   # is not allowed to recurse itself. Detects recursive structures.
-  def recursively_flatten(array, out, stack)
-    raise ArgumentError, "Recursive Array!" if in_stack?(stack, array)
+  def recursively_flatten(array, out)
+    raise ArgumentError, "Recursive Array!" if RecursionGuard.inspecting?(array)
     
     ret = nil
     array.each { |o|
       if o.kind_of? Array
-        handle_stack(stack, array) do
-          recursively_flatten o, out, stack 
-          ret = array
+        RecursionGuard.inspect(array) do
+          recursively_flatten(o, out)
+          ret = self
         end
       else
         out << o
@@ -1472,54 +1478,5 @@ class Array
     }
     
     ret
-  end
-
-  # Helper to recurse through inspecting an Array.
-  # Detects recursive structures.
-  def recursively_inspect(array, stack = [])
-    return "[...]" if in_stack?(stack, array)
-    
-    out = []
-    array.each { |o|
-      if o.kind_of? Array
-        handle_stack(stack, array) do
-          out << recursively_inspect(o, stack)
-        end
-      else
-        out << o.inspect
-      end
-    }
-    
-    "[#{out.join ', '}]"
-  end
-  
-  def recursively_join(array, separator, method, out, stack = [])
-    array.each do |o|
-      if o.kind_of?(Array)
-        if in_stack?(stack, o)
-          out << separator << "[...]"
-        else
-          handle_stack(stack, array) do
-            recursively_join(o, separator, method, out, stack)
-          end
-        end
-      else
-        out << separator << o.__send__(method)
-      end
-    end
-  end
-  
-  def handle_stack(stack, array, &block)
-    if stack.include?(array.object_id)
-      yield
-    else
-      stack.push(array.object_id)
-      yield
-      stack.pop
-    end
-  end
-  
-  def in_stack?(stack, array)
-    stack.include?(array.object_id)
   end
 end
