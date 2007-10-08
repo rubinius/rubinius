@@ -143,16 +143,7 @@ module Kernel
   alias_method :format, :sprintf
   
   def puts(*a)
-    a = [""] if a.empty?
-    a.each do |obj| 
-      str = obj.to_s
-      if str[-1] == 10
-        $CONSOLE.print str
-      else
-        $CONSOLE.puts str
-      end
-    end
-    nil
+    $stdout.puts(a)
   end
   
   def p(*a)
