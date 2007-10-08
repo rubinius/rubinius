@@ -160,8 +160,20 @@ class Hash
   end
 
   def inspect()
-    stack = []
-    recursively_inspect self, stack
+    # recursively_inspect
+    return '{...}' if RecursionGuard.inspecting?(self)
+    
+    out = []
+    RecursionGuard.inspect(self) do
+      each_pair do |key, val|
+        str =  key.inspect
+        str << '=>'
+        str << val.inspect
+        out << str
+      end
+    end
+    
+    "{#{out.join ', '}}"
   end
 
   def invert()
@@ -318,30 +330,5 @@ class Hash
     code, hk, val, nxt = get_by_hash key.hash, key
     return Tuple[true, val] if code
     Tuple[false, nil]
-  end
-  
-  def inspect_helper(thing, stack)
-    if thing.kind_of? Hash
-      recursively_inspect thing, stack
-    else
-      thing.inspect
-    end
-  end
-
-  def recursively_inspect(hash, stack)
-    return '{...}' if stack.include? hash.object_id
-    stack.push hash.object_id
-    
-    out = []
-    
-    hash.each_pair do |key, val|
-      str =  inspect_helper(key, stack)
-      str << '=>'
-      str << inspect_helper(val, stack)
-      out << str
-    end
-    
-    stack.pop
-    "{#{out.join ', '}}"
   end
 end
