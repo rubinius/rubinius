@@ -1,13 +1,10 @@
 class Module
   
-  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5
+  ivar_as_index :__ivars__ => 0, :method_table => 1, :method_cache => 2, :name => 3, :constants => 4, :parent => 5, :superclass => 6
+  def method_table   ; @method_table ; end
   def method_cache   ; @method_cache ; end
   def constants_table; @constants    ; end
   def parent         ; @parent       ; end
-  
-  def method_table
-    @method_table
-  end
   
   def to_s
     if @name
@@ -19,6 +16,20 @@ class Module
   
   def find_method_in_hierarchy(sym)
     @method_table[sym] || Object.find_method_in_hierarchy(sym)
+  end
+  
+  def ancestors
+    out = [self]
+    sup = direct_superclass()
+    while sup
+      if sup.class == IncludedModule
+        out << sup.module
+      else
+        out << sup
+      end
+      sup = sup.direct_superclass()
+    end
+    return out
   end
 
   def alias_method(new_name, current_name)

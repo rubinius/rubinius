@@ -1,5 +1,5 @@
 class Module
-  ivar_as_index :method_table => 1, :name => 3
+  ivar_as_index :method_table => 1, :name => 3, :superclass => 6
     
   def method_table
     @method_table
@@ -34,6 +34,16 @@ class Module
     end
     @method_table[new_name] = meth
     VM.reset_method_cache(new_name)
+  end
+  
+  # 'superclass' method defined in class.rb, 
+  # because it is more complex than a mere accessor
+  def superclass=(other)
+    @superclass = other
+  end
+  
+  def direct_superclass
+    @superclass
   end
 
   def append_features(mod)
