@@ -72,7 +72,7 @@ module Bytecode
       :archive_add_object,
       :archive_delete_file,
       :fixnum_and,
-      nil,
+      :object_dup,
       nil,
       nil,  # :float_to_s,
       nil,  # :float_add,

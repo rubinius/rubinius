@@ -28,7 +28,16 @@ namespace :git do
 
   desc "Create a new topic branch"
   task :topic do
-    name = Readline.readline "Topic name: "
+    total = `git branch`.scan("quick").size
+    if total == 0
+      default = "quick"
+    else
+      default = "quick#{total + 1}"
+    end
+    name = Readline.readline "Topic name (default #{default}): "
+    if name.strip.empty?
+      name = default
+    end
     sh "git checkout -b #{name}"
   end
 
@@ -65,6 +74,7 @@ namespace :git do
     `git diff-files --quiet`
     if $?.exitstatus == 1
       stash = true
+      clear = `git stash list`.scan("\n").size == 0
       puts "* Saving changes..."
       `git stash save`
     else
@@ -92,6 +102,7 @@ namespace :git do
     if stash
       puts "* Applying changes..."
       sh "git stash apply"
+      `git stash clear` if clear
     end
   end
 end

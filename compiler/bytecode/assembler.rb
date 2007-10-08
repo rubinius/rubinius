@@ -494,7 +494,7 @@ module Bytecode
             if na == 0
               add :send_method, idx
             else
-              add "meta_send_stack_#{na}", idx
+              add "meta_send_stack_#{args}".to_sym, idx
             end
           else
             add meth, idx, na
@@ -513,10 +513,6 @@ module Bytecode
         else
           add :send_super_stack_with_block, idx, args.to_i
         end
-        return
-      elsif op == :send_off_stack
-        add_cache_index
-        add :send_off_stack
         return
       elsif op == :send_primitive
         sym = parts.shift.to_sym

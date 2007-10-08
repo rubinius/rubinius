@@ -78,6 +78,10 @@ locate_method
   def copy_from(other, start)
     Ruby.primitive :dup_into
   end
+
+  def dup
+    Ruby.primitive :object_dup
+  end
   
   def to_s
     "#<#{self.class.name}>"
