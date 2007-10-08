@@ -28,6 +28,12 @@ class Object
   
   alias_method :is_a?, :kind_of?
   
+  def dup
+    nw = self.class.allocate
+    nw.copy_from(self, 0)
+    return nw
+  end
+    
   alias_method :eql?, :equal?
   alias_method :==,   :equal?
   alias_method :===,  :equal?

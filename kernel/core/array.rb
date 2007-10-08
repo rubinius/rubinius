@@ -1421,9 +1421,11 @@ class Array
     return str
   end
 
-  # If you implement dup using replace, Evan will kick you butt.
-  # Object#dup calls initialize_copy, which we implement below.
-  
+  def dup
+    self.class.new.replace self
+  end
+
+
   # Internals
   private
   

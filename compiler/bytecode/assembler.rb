@@ -494,7 +494,7 @@ module Bytecode
             if na == 0
               add :send_method, idx
             else
-              add "meta_send_stack_#{na}".to_sym, idx
+              add "meta_send_stack_#{na}", idx
             end
           else
             add meth, idx, na

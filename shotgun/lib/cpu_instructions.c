@@ -383,8 +383,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->name = name;
   fc->method_module = mod;
   fc->type = FASTCTX_NORMAL;
-  fc->flags = 0;
-
+  
   xassert(om_valid_sender_p(state->om, ctx, sender));
 
   return ctx;
@@ -522,9 +521,6 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 
 static inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   OBJECT destination, home;
-  int return_val;
-
-  return_val = !FASTCTX(c->active_context)->flags;
 
   destination = cpu_current_sender(c);
     
@@ -567,7 +563,7 @@ static inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     */
         
     cpu_restore_context_with_home(state, c, destination, home, TRUE, FALSE);
-    if(return_val) stack_push(val);
+    stack_push(val);
   }
   
   return TRUE;
@@ -576,13 +572,7 @@ static inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
 
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception) {
   OBJECT destination, home;
-  int is_block, return_val;
-
-  if(exception) {
-    return_val = 0;
-  } else {
-    return_val = !FASTCTX(c->active_context)->flags;
-  }
+  int is_block;
   
   is_block = blokctx_s_block_context_p(state, c->active_context);
   destination = cpu_current_sender(c);
@@ -686,7 +676,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       return TRUE;
     } else {
       cpu_restore_context_with_home(state, c, destination, home, TRUE, is_block);
-      if(return_val) stack_push(val);
+      if(!exception) stack_push(val);
     }
   }
   
@@ -728,17 +718,12 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
   OBJECT ctx, mo, mod;
-  
-  c->call_flags = 1;
   mo = cpu_find_method(state, c, _real_class(state, recv), meth, &mod);
-  c->call_flags = 0;
-  
   if(NIL_P(mo)) return;
   stack_push(arg);
   
   ctx = cpu_create_context(state, c, recv, mo, meth, 
         _real_class(state, recv), 1, Qnil);
-  FASTCTX(ctx)->flags |= CPU_FLAG_NO_RETURN;
   cpu_activate_context(state, c, ctx, ctx, 1);
 }
 
