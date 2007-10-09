@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
+DEFAULT_RECORD_SEPARATOR = $/
+
 # TODO: need to find a better way to test this. Too fragile to set expectations
 # to each write call. Only care that all the characters are sent not the number
 # or write calls. Also, these tests do not make sure the ordering of the write calls
