@@ -553,26 +553,6 @@ class String
     count
   end
   
-  def tr_regex(strings)
-    strings = strings.map do |string|
-      string = StringValue(string)
-      if string.empty?
-        "[.]"
-      elsif string == "^"
-        "[\\^]"
-      else
-        if string.size > 1 && string.data[0] == ?^
-          string = "^" << string[1..-1].gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
-        else
-          string = string.gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
-        end
-        string = "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
-        string.gsub(/(.)-(.)-/, '\\1-\\2\-')
-      end
-    end
-    /[#{strings.join("&&")}]/
-  end
-  
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
   # library function <code>crypt</code>. The argument is the salt string, which
   # should be two characters long, each character drawn from
@@ -1859,6 +1839,26 @@ class String
     end
     
     return negative ? -result : result
+  end
+
+  def tr_regex(strings)
+    strings = strings.map do |string|
+      string = StringValue(string)
+      if string.empty?
+        "[.]"
+      elsif string == "^"
+        "[\\^]"
+      else
+        if string.size > 1 && string.data[0] == ?^
+          string = "^" << string[1..-1].gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
+        else
+          string = string.gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
+        end
+        string = "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
+        string.gsub(/(.)-(.)-/, '\\1-\\2\-')
+      end
+    end
+    /[#{strings.join("&&")}]/
   end
 
   def setup_tr_table(*strings)
