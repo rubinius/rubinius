@@ -27,7 +27,7 @@ describe "Struct.new" do
   end
 
   it "accepts nil first argument for not creating constants" do
-    Struct.new(nil, :foo).new("foo").foo.should == "foo"
+    Struct.new(nil, :foo).new("bar").foo.should == "bar"
   end
 
   it "does not create a constant with symbol as first argument" do
@@ -43,12 +43,6 @@ describe "Struct.new" do
     should_raise(NameError) { Struct.new('animal', :name, :legs, :eyeballs) }
   end
 
-  it "raises ArgumentError if object#to_sym is nil" do
-    old, $VERBOSE = $VERBOSE, nil
-    should_raise(ArgumentError) { Struct.new(:animal, 10000) }
-    $VERBOSE = old
-  end
-
   it "raises TypeError if object doesn't respond to to_sym" do
     should_raise(TypeError) { Struct.new(:animal, 1.0) }
     should_raise(TypeError) { Struct.new(:animal, Time.now) }
@@ -57,6 +51,27 @@ describe "Struct.new" do
     should_raise(TypeError) { Struct.new(:animal, true) }
     should_raise(TypeError) { Struct.new(:animal, ['chris', 'evan']) }
     should_raise(TypeError) { Struct.new(:animal, { :name => 'chris' }) }
+  end
+
+  it "raises TypeError if object is not a Symbol" do
+    obj = Object.new
+    def obj.to_sym() :ruby end
+    should_raise(TypeError) { Struct.new(:animal, obj) }
+  end
+
+  it "accepts Fixnums as Symbols unless fixnum.to_sym.nil?" do
+    old, $VERBOSE = $VERBOSE, nil
+    num = :foo.to_i
+    Struct.new(nil, num).new("bar").foo.should == "bar"
+    $VERBOSE = old
+  end
+
+  it "raises ArgumentError if fixnum#to_sym is nil" do
+    old, $VERBOSE = $VERBOSE, nil
+    num = 10000
+    num.to_sym.should == nil  # if this fails, we need a new Fixnum to test
+    should_raise(ArgumentError) { Struct.new(:animal, num) }
+    $VERBOSE = old
   end
 
   it "instance_eval's a passed block" do
