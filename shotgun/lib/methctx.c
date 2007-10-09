@@ -60,7 +60,6 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
     fc->locals = Qnil;
   }
   
-  fc->flags = 0;
   fc->type = FASTCTX_BLOCK;
   return ctx;
 }

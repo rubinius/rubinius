@@ -20,16 +20,16 @@ describe "Fixnum#quo" do
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError, "Object can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       13.quo(obj)
     end
     
-    should_raise(TypeError, "String can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       13.quo("10")
     end
 
-    should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       13.quo(:symbol)
     end
   end

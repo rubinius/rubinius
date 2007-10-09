@@ -27,10 +27,24 @@ class IO
       write DEFAULT_RECORD_SEPARATOR
     else
       args.each do |arg|
-        str = arg.to_s
-
-        write str
-        write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+        if arg == nil
+          str = "nil"
+        elsif RecursionGuard.inspecting?(arg)
+          str = "[...]"
+        elsif arg.kind_of?(Array)
+          RecursionGuard.inspect(arg) do
+            arg.each do |a|
+              puts a
+            end
+          end
+        else
+          str = arg.to_s
+        end
+        
+        if str
+          write str
+          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+        end
       end
     end
 

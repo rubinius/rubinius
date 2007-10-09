@@ -3,10 +3,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#included_modules" do
   it "returns a list of modules included in self" do
-    ModuleSpecs.included_modules.should              == []
-    ModuleSpecs::Child.included_modules.should       == [ModuleSpecs::SuperModule, ModuleSpecs::BasicModule, Kernel]
-    ModuleSpecs::Parent.included_modules.should      == [Kernel]
-    ModuleSpecs::BasicModule.included_modules.should == []
-    ModuleSpecs::SuperModule.included_modules.should == [ModuleSpecs::BasicModule]
+    ModuleSpecs.included_modules.should         == []
+    ModuleSpecs::Child.included_modules.should  == [ModuleSpecs::Super, ModuleSpecs::Basic, Kernel]
+    ModuleSpecs::Parent.included_modules.should == [Kernel]
+    ModuleSpecs::Basic.included_modules.should  == []
+    ModuleSpecs::Super.included_modules.should  == [ModuleSpecs::Basic]
   end
 end

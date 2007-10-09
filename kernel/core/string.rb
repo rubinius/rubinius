@@ -553,26 +553,6 @@ class String
     count
   end
   
-  def tr_regex(strings)
-    strings = strings.map do |string|
-      string = StringValue(string)
-      if string.empty?
-        "[.]"
-      elsif string == "^"
-        "[\\^]"
-      else
-        if string.size > 1 && string.data[0] == ?^
-          string = "^" << string[1..-1].gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
-        else
-          string = string.gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
-        end
-        string = "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
-        string.gsub(/(.)-(.)-/, '\\1-\\2\-')
-      end
-    end
-    /[#{strings.join("&&")}]/
-  end
-  
   # Applies a one-way cryptographic hash to <i>self</i> by invoking the standard
   # library function <code>crypt</code>. The argument is the salt string, which
   # should be two characters long, each character drawn from
@@ -1861,49 +1841,24 @@ class String
     return negative ? -result : result
   end
 
-  def setup_tr_table(*strings)
-    table = ByteArray.new(256)
-    256.times do |i|
-      table[i] = 1
-    end
-    
-    strings.each do |str|
-      unexpanded = StringValue(str)
-      str = unexpanded.to_expanded_tr_string
-      
-      return table if unexpanded.size > 1 && str == "^"
-
-      if str.length > 1 && str.data[0] == ?^
-        flag = start = 1 
+  def tr_regex(strings)
+    strings = strings.map do |string|
+      string = StringValue(string)
+      if string.empty?
+        "[.]"
+      elsif string == "^"
+        "[\\^]"
       else
-        flag = start = 0
-      end
-      
-      buf = ByteArray.new(256)
-      if flag == 1
-        256.times do |i|
-          buf[i] = 1
+        if string.size > 1 && string.data[0] == ?^
+          string = "^" << string[1..-1].gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
+        else
+          string = string.gsub(/.-./) { |r| (r[2] >= r[0]) ? r : "." }
         end
-      end
-
-      if flag == 1
-        (start...str.size).each do |i|
-          c = str.data[i]
-          buf[c] = 0
-        end
-      else
-        (start...str.size).each do |i|
-          c = str.data[i]
-          buf[c] = 1
-        end
-      end
-      
-      256.times do |i|
-        table[i] = (table[i] == 1 && buf[i] == 1) ? 1 : 0
+        string = "[#{string.gsub(/[\[\]\/\\]/) {|x| "\\#{x}"}}]"
+        string.gsub(/(.)-(.)-/, '\\1-\\2\-')
       end
     end
-    
-    table
+    /[#{strings.join("&&")}]/
   end
 
   def to_expanded_tr_string

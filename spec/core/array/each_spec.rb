@@ -10,13 +10,18 @@ describe "Array#each" do
   end
   
   it "should support array explosion" do
-    a = [[1,2], [3,4]]
-    b = c = d = []
-    a.each {|x,y| b << x }
-    b.should == [1,3]
-    a.each {|x,y| c << y }
-    c.should == [2,4]    
-    a.each {|x,y| d << x + y }
-    d.should == [4, 6]
+    a = [[1, 2], [3, 4]]
+    b = []
+    
+    a.each { |x, y| b << x }
+    b.should == [1, 3]
+
+    b = []
+    a.each { |x, y| b << y }
+    b.should == [2, 4]
+    
+    b = []
+    a.each { |x, y| b << x + y }
+    b.should == [3, 7]
   end
 end

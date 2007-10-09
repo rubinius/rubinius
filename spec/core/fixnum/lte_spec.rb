@@ -14,11 +14,11 @@ describe "Fixnum#<=" do
   end
 
   it "raises an ArgumentError when given a non-Integer" do
-    should_raise(ArgumentError, "comparison of Fixnum with String failed") do
+    should_raise(ArgumentError) do
       5 <= "4"
     end
     
-    should_raise(ArgumentError, "comparison of Fixnum with Object failed") do
+    should_raise(ArgumentError) do
       5 <= Object.new
     end
   end

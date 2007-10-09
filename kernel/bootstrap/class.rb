@@ -28,16 +28,6 @@ open_class nil
     @instance_fields = num
   end
   
-  # 'superclass' method defined in class.rb, 
-  # because it is more complex than a mere accessor
-  def superclass=(other)
-    @superclass = other
-  end
-  
-  def direct_superclass
-    @superclass
-  end
-  
   def attr_reader(name)
     sym = "@#{name}".__symbol_lookup__
     meth = AccessVarMethod.get_ivar(sym)
@@ -132,7 +122,4 @@ class IncludedModule < Module
     cls.superclass = self
   end
 
-  def direct_superclass
-    @superclass
-  end
 end

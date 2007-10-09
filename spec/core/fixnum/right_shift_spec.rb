@@ -21,9 +21,9 @@ describe "Fixnum#>>" do
   
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = Object.new
-    should_raise(TypeError, "can't convert Object into Integer") { 3 >> obj }
+    should_raise(TypeError) { 3 >> obj }
     
     obj.should_receive(:to_int, :returning => "asdf")
-    should_raise(TypeError, "Object#to_int should return Integer") { 3 >> obj }
+    should_raise(TypeError) { 3 >> obj }
   end
 end

@@ -20,10 +20,7 @@ class Struct
   # Struct class methods
 
   def self.new_anonymous_class(*args, &block)
-    # TODO: There's a bug in masgns with splats and calls to dup in rhs
-    # name, *attributes = args.dup
-    attributes = args.dup
-    name = attributes.shift
+    name, *attributes = args.dup
 
     unless constant = constantize(name)
       attributes.unshift name if name
@@ -186,6 +183,7 @@ class Struct
   def ==(other)
     self.class == other.class && members.all? { |member| self[member] == other[member] }
   end
+  alias_method :eql?, :==
 
   def inspect
     string = "#<struct #{self.class.name}"

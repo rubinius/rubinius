@@ -1,0 +1,2 @@
+Module#define_method when given an UnboundMethod correctly passes given arguments to the new method
+Module#define_method when given an UnboundMethod adds the new method to the methods list

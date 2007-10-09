@@ -762,7 +762,8 @@ class ShotgunPrimitives
       }
       stack_push(t2);
       /* TODO: copy the ivars in slot 0 */
-      cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
+      // perform_hook is broken currently.
+      // cpu_perform_hook(state, c, t2, state->global->sym_init_copy, t1);
     } else {
       stack_push(t1);
     }

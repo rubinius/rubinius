@@ -12,9 +12,9 @@ describe "Module#private_class_method" do
     end
   end
 
-  it "make an existing class method private" do
+  it "makes an existing class method private" do
     ModuleSpecs::Parent.private_method_1.should == nil
-    ModuleSpecs::Parent.module_eval "private_class_method :private_method_1"
+    ModuleSpecs::Parent.private_class_method :private_method_1
     should_raise(NoMethodError) { ModuleSpecs::Parent.private_method_1  }
 
     # Technically above we're testing the Singleton classes, class method(right?).
@@ -22,20 +22,20 @@ describe "Module#private_class_method" do
     should_raise(NoMethodError) { ModuleSpecs::Parent.private_method }
   end
 
-  it "make an existing class method private up the inheritance tree" do
+  it "makes an existing class method private up the inheritance tree" do
     ModuleSpecs::Child.private_method_1.should == nil
-    ModuleSpecs::Child.module_eval "private_class_method :private_method_1"
+    ModuleSpecs::Child.private_class_method :private_method_1
 
     should_raise(NoMethodError) { ModuleSpecs::Child.private_method_1 }
     should_raise(NoMethodError) { ModuleSpecs::Child.private_method }
   end
 
-  it "excepts more than one method at a time" do
+  it "accepts more than one method at a time" do
     ModuleSpecs::Parent.private_method_1.should == nil
     ModuleSpecs::Parent.private_method_2.should == nil
     ModuleSpecs::Parent.private_method_3.should == nil
 
-    ModuleSpecs::Child.module_eval "private_class_method :private_method_1, :private_method_2, :private_method_3"
+    ModuleSpecs::Child.private_class_method :private_method_1, :private_method_2, :private_method_3
     
     should_raise(NoMethodError) { ModuleSpecs::Child.private_method_1 }
     should_raise(NoMethodError) { ModuleSpecs::Child.private_method_2 }
@@ -43,6 +43,31 @@ describe "Module#private_class_method" do
   end
 
   it "should raise a NameError if class method doesn't exist" do
-    should_raise(NameError) { ModuleSpecs.module_eval "private_class_method :no_method_here" }
+    should_raise(NameError) { ModuleSpecs.private_class_method :no_method_here }
+  end
+
+  it "makes a class method private" do
+    c = Class.new do
+      def self.foo() "foo" end
+      private_class_method :foo
+    end
+    should_raise(NoMethodError) { c.foo }
+  end
+
+  it "raises a NameError when the given name is not a method" do
+    should_raise(NameError) do
+      c = Class.new do
+        private_class_method :foo
+      end
+    end
+  end
+
+  it "raises a NameError when the given name is an instance method" do
+    should_raise(NameError) do
+      c = Class.new do
+        def foo() "foo" end
+        private_class_method :foo
+      end
+    end
   end
 end

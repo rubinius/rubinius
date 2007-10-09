@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/fixtures/classes'
 require File.dirname(__FILE__) + '/../../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#===" do
   it "returns true when the given Object is an instance of self or of self's descendants" do
@@ -14,14 +14,14 @@ describe "Module#===" do
   end
   
   it "returns true when the given Object's class includes self or when the given Object is extended by self" do
-    (ModuleSpecs::BasicModule === ModuleSpecs::Child.new).should == true
-    (ModuleSpecs::SuperModule === ModuleSpecs::Child.new).should == true
-    (ModuleSpecs::BasicModule === Object.new.extend(ModuleSpecs::SuperModule)).should == true
-    (ModuleSpecs::SuperModule === Object.new.extend(ModuleSpecs::SuperModule)).should == true
+    (ModuleSpecs::Basic === ModuleSpecs::Child.new).should == true
+    (ModuleSpecs::Super === ModuleSpecs::Child.new).should == true
+    (ModuleSpecs::Basic === Object.new.extend(ModuleSpecs::Super)).should == true
+    (ModuleSpecs::Super === Object.new.extend(ModuleSpecs::Super)).should == true
 
-    (ModuleSpecs::BasicModule === ModuleSpecs::Parent.new).should == false
-    (ModuleSpecs::SuperModule === ModuleSpecs::Parent.new).should == false
-    (ModuleSpecs::BasicModule === Object.new).should == false
-    (ModuleSpecs::SuperModule === Object.new).should == false
+    (ModuleSpecs::Basic === ModuleSpecs::Parent.new).should == false
+    (ModuleSpecs::Super === ModuleSpecs::Parent.new).should == false
+    (ModuleSpecs::Basic === Object.new).should == false
+    (ModuleSpecs::Super === Object.new).should == false
   end
 end

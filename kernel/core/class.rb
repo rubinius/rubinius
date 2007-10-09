@@ -74,20 +74,6 @@ class Class
     end
   end
   
-  def ancestors
-    out = [self]
-    sup = direct_superclass()
-    while sup
-      if sup.class == IncludedModule
-        out << sup.module
-      else
-        out << sup
-      end
-      sup = sup.direct_superclass()
-    end
-    return out
-  end
-  
   def find_method_in_hierarchy(sym)
     mod = self
     while mod

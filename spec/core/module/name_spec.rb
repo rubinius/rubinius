@@ -9,8 +9,8 @@ describe "Module#name" do
     ModuleSpecs.name.should == "ModuleSpecs"
     ModuleSpecs::Child.name.should == "ModuleSpecs::Child"
     ModuleSpecs::Parent.name.should == "ModuleSpecs::Parent"
-    ModuleSpecs::BasicModule.name.should == "ModuleSpecs::BasicModule"
-    ModuleSpecs::SuperModule.name.should == "ModuleSpecs::SuperModule"
+    ModuleSpecs::Basic.name.should == "ModuleSpecs::Basic"
+    ModuleSpecs::Super.name.should == "ModuleSpecs::Super"
     
     begin
       (ModuleSpecs::X = Module.new).name.should == "ModuleSpecs::X"

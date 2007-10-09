@@ -1,0 +1,1 @@
+Struct#hash returns the same value if structs are #eql?

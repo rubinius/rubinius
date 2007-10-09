@@ -27,7 +27,7 @@ class Object
   end
   
   alias_method :is_a?, :kind_of?
-  
+    
   alias_method :eql?, :equal?
   alias_method :==,   :equal?
   alias_method :===,  :equal?
