@@ -6,8 +6,8 @@ describe "Module.nesting" do
     module ModuleSpecs
       Module.nesting.should == [ModuleSpecs]
 
-      module BasicModule
-        Module.nesting.should == [ModuleSpecs::BasicModule, ModuleSpecs]
+      module Basic
+        Module.nesting.should == [ModuleSpecs::Basic, ModuleSpecs]
       end
 
       class Parent

@@ -7,13 +7,13 @@ require File.dirname(__FILE__) + '/fixtures/classes'
       ModuleSpecs.send(cmd, ModuleSpecs).should == true
       ModuleSpecs::Child.send(cmd, ModuleSpecs::Child).should == true
       ModuleSpecs::Parent.send(cmd, ModuleSpecs::Parent).should == true
-      ModuleSpecs::BasicModule.send(cmd, ModuleSpecs::BasicModule).should == true
-      ModuleSpecs::SuperModule.send(cmd, ModuleSpecs::SuperModule).should == true
+      ModuleSpecs::Basic.send(cmd, ModuleSpecs::Basic).should == true
+      ModuleSpecs::Super.send(cmd, ModuleSpecs::Super).should == true
       
       ModuleSpecs::Child.send(cmd, ModuleSpecs).should == false
       ModuleSpecs::Child.send(cmd, ModuleSpecs::Parent).should == false
-      ModuleSpecs::Child.send(cmd, ModuleSpecs::BasicModule).should == false
-      ModuleSpecs::Child.send(cmd, ModuleSpecs::SuperModule).should == false
+      ModuleSpecs::Child.send(cmd, ModuleSpecs::Basic).should == false
+      ModuleSpecs::Child.send(cmd, ModuleSpecs::Super).should == false
     end
   end
 end

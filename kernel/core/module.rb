@@ -120,13 +120,21 @@ class Module
   # version while core loads (a violation of the core/bootstrap boundry)
   def include_cv(*modules)
     modules.reverse_each do |mod|
+      raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
       mod.append_features(self)
       mod.included(self)
     end
   end
   
+  def append_features_cv(mod)
+    ancestors.reverse_each do |m|
+      im = IncludedModule.new(m)
+      im.attach_to mod
+    end
+  end
+  
   def include?(mod)
-    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless Module === mod
+    raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
     ancestors.include? mod
   end
   
@@ -167,6 +175,7 @@ class Module
   def self.after_loaded
     alias_method :include, :include_cv
     alias_method :private, :private_cv
+    alias_method :append_features, :append_features_cv
   end
   
   def module_exec(*args, &prc)

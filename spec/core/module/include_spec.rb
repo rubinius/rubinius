@@ -27,26 +27,25 @@ describe "Module#include" do
     
     $appended_modules.should == [ [ m3, c], [ m2, c ], [ m, c ] ]
   end
+  
+  it "raises a TypeError when the argument is not a Module" do
+    should_raise(TypeError) { ModuleSpecs::Basic.send(:include, Class.new) }
+  end
 end
 
 describe "Module#include?" do
   it "returns true if the given module is included by self or one of it's ancestors" do
-    ModuleSpecs::SuperModule.include?(ModuleSpecs::BasicModule).should == true
-    ModuleSpecs::Child.include?(ModuleSpecs::BasicModule).should == true
-    ModuleSpecs::Child.include?(ModuleSpecs::SuperModule).should == true
+    ModuleSpecs::Super.include?(ModuleSpecs::Basic).should == true
+    ModuleSpecs::Child.include?(ModuleSpecs::Basic).should == true
+    ModuleSpecs::Child.include?(ModuleSpecs::Super).should == true
     ModuleSpecs::Child.include?(Kernel).should == true
     
-    ModuleSpecs::Parent.include?(ModuleSpecs::BasicModule).should == false
-    ModuleSpecs::BasicModule.include?(ModuleSpecs::SuperModule).should == false
+    ModuleSpecs::Parent.include?(ModuleSpecs::Basic).should == false
+    ModuleSpecs::Basic.include?(ModuleSpecs::Super).should == false
   end
   
   it "raises a TypeError when no module was given" do
-    should_raise(TypeError, "wrong argument type String (expected Module)") do
-      ModuleSpecs::Child.include?("Test")
-    end
-
-    should_raise(TypeError, "wrong argument type Class (expected Module)") do
-      ModuleSpecs::Child.include?(ModuleSpecs::Parent)
-    end
+    should_raise(TypeError) { ModuleSpecs::Child.include?("Test") }
+    should_raise(TypeError) { ModuleSpecs::Child.include?(ModuleSpecs::Parent) }
   end
 end

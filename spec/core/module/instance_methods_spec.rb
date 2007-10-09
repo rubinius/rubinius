@@ -11,10 +11,10 @@ describe "Module#instance_methods" do
   end
   
   it "returns an array containing the public and protected methods of self and it's ancestors" do
-    methods = ModuleSpecs::BasicModule.instance_methods
+    methods = ModuleSpecs::Basic.instance_methods
     methods.sort.should == [ "protected_module", "public_module" ]
     
-    methods = ModuleSpecs::SuperModule.instance_methods
+    methods = ModuleSpecs::Super.instance_methods
     methods.sort.should == [ "protected_module", "protected_super_module", "public_module", "public_super_module" ]
   end
 end
