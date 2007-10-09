@@ -54,6 +54,7 @@ mark_sweep_gc mark_sweep_new() {
   ms->seen_weak_refs = NULL;
   ms->next_collection_objects = MS_COLLECTION_FREQUENCY;
   ms->next_collection_bytes =   MS_COLLECTION_BYTES;
+  ms->become_from = ms->become_to = Qnil;
 #if TRACK_REFERENCE
   if(getenv("MSTRACK")) {
     ms->track = (OBJECT)atoi(getenv("MSTRACK"));
@@ -393,11 +394,11 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
   OBJECT root, tmp;
   struct method_cache *end, *ent;
     
-  if(ms->become_to) {
+  if(!NIL_P(ms->become_to)) {
     mark_sweep_mark_object(state, ms, ms->become_to);
   }
   
-  if(ms->become_from) {
+  if(!NIL_P(ms->become_from)) {
     mark_sweep_mark_object(state, ms, ms->become_from);
   }
   

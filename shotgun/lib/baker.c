@@ -22,6 +22,8 @@ baker_gc baker_gc_new(int size) {
   g->next =    g->space_b;
   g->used =    0;
   g->tenure_age = DEFAULT_TENURE_AGE;
+  g->become_from = Qnil;
+  g->become_to = Qnil;
   return g;
 }
 

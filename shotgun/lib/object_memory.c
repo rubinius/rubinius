@@ -218,10 +218,10 @@ void object_memory_setup_become(STATE, object_memory om, OBJECT from, OBJECT to)
 }
 
 void object_memory_clear_become(STATE, object_memory om) {
-  om->gc->become_from = 0;
-  om->gc->become_to = 0;
-  om->ms->become_from = 0;
-  om->ms->become_to = 0;
+  om->gc->become_from = Qnil;
+  om->gc->become_to = Qnil;
+  om->ms->become_from = Qnil;
+  om->ms->become_to = Qnil;
 }
 
 int object_memory_collect(STATE, object_memory om, ptr_array roots) {
