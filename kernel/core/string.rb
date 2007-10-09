@@ -1861,51 +1861,6 @@ class String
     /[#{strings.join("&&")}]/
   end
 
-  def setup_tr_table(*strings)
-    table = ByteArray.new(256)
-    256.times do |i|
-      table[i] = 1
-    end
-    
-    strings.each do |str|
-      unexpanded = StringValue(str)
-      str = unexpanded.to_expanded_tr_string
-      
-      return table if unexpanded.size > 1 && str == "^"
-
-      if str.length > 1 && str.data[0] == ?^
-        flag = start = 1 
-      else
-        flag = start = 0
-      end
-      
-      buf = ByteArray.new(256)
-      if flag == 1
-        256.times do |i|
-          buf[i] = 1
-        end
-      end
-
-      if flag == 1
-        (start...str.size).each do |i|
-          c = str.data[i]
-          buf[c] = 0
-        end
-      else
-        (start...str.size).each do |i|
-          c = str.data[i]
-          buf[c] = 1
-        end
-      end
-      
-      256.times do |i|
-        table[i] = (table[i] == 1 && buf[i] == 1) ? 1 : 0
-      end
-    end
-    
-    table
-  end
-
   def to_expanded_tr_string
     return self unless self =~ /.-./
 
