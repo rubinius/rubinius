@@ -13,6 +13,9 @@ export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:shotgun/lib
 if test "x$1" = "x--gdb"; then
   shift
   exec gdb -x shotgun/gdbstartup --args /dev/null "$@"
+elif test "x$1" = "x--valgrind"; then
+  shift
+  exec valgrind -v $REAL "$@"
 else
   exec $REAL "$@"
 fi
