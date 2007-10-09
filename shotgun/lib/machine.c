@@ -14,6 +14,7 @@
 #include "config_hash.h"
 #include <sys/stat.h>
 #include "config.h"
+#include "methctx.h"
 
 /* Backtrace support */
 #ifdef  __linux__ 
@@ -35,6 +36,7 @@
 #include "subtend/nmc.h"
 
 #include "instruction_names.h"
+#include "tuple.h"
 
 machine current_machine;
 
@@ -51,54 +53,79 @@ static OBJECT string_newfrombstr(STATE, bstring output)
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
-/*
-
 void machine_print_callstack_limited(machine m, int maxlev);
 
 void machine_print_callstack(machine m) {
     machine_print_callstack_limited(m, -1);
 }
 
+static int _ip2line(STATE, OBJECT meth, int ip) {
+  OBJECT lines, tup;
+  int l, total, start, nd, op;
+
+  lines = cmethod_get_lines(meth);
+  total = NUM_FIELDS(lines);
+  for(l = 0; l < total; l++) {
+    tup = tuple_at(state, lines, l);
+    start = FIXNUM_TO_INT(tuple_at(state, tup, 0));
+    nd = FIXNUM_TO_INT(tuple_at(state, tup, 1));
+    op = FIXNUM_TO_INT(tuple_at(state, tup, 2));
+
+    // printf("  %d-%d => %d (%d ?)\n", start, nd, op, ip);
+
+    if(ip >= start && ip <= nd) {
+      return op;
+    }
+  }
+
+  return 0;
+}
+
 void machine_print_callstack_limited(machine m, int maxlev) {
   OBJECT context;
   const char *modname, *methname, *filename;
-  
+  struct fast_context *fc;
+
+  if(!m) m = current_machine;
+
   context = m->c->active_context;
+
+  cpu_flush_ip(m->c);
+  cpu_flush_sp(m->c);
   
   while(RTEST(context) && maxlev--) {
-    if (NUM_FIELDS(context) == 7) {
-        printf("Skipping Block Context\n");
-        context = blokctx_get_sender(context);
-        continue;
-    }
-    if(RTEST(methctx_get_module(context))) {
-      modname = SYM2STR(m->s, module_get_name(methctx_get_module(context)));
+    methctx_reference(m->s, context);
+    fc = FASTCTX(context);
+
+    if(RTEST(fc->method_module)) {
+      modname = SYM2STR(m->s, module_get_name(fc->method_module));
     } else {
       modname = "<none>";
     }
-    
-    if(RTEST(methctx_get_name(context))) {
-      methname = SYM2STR(m->s, methctx_get_name(context));
+
+    if(fc->type == FASTCTX_BLOCK) {
+      methname = "<block>";
+    } else if(RTEST(fc->name)) {
+      methname = SYM2STR(m->s, fc->name);
     } else {
       methname = "<none>";
     }
     
-    if(RTEST(methctx_get_method(context))) {
-      filename = SYM2STR(m->s, cmethod_get_file(methctx_get_method(context)));
+    if(RTEST(fc->method)) {
+      filename = SYM2STR(m->s, cmethod_get_file(fc->method));
     } else {
       filename = "<unknown>";
     }
     
-    printf("%10p %s#%s+%ld in %s\n",
+    printf("%10p %s#%s+%d in %s:%d\n",
       (void*)context, modname, methname,
-      FIXNUM_TO_INT(methctx_get_ip(context)),
-      filename
+      fc->ip,
+      filename,
+      _ip2line(m->s, fc->method, fc->ip)
     );
-    context = methctx_get_sender(context);
+    context = fc->sender;
   }
 }
-
-*/
 
 void machine_print_stack(machine m) {
   unsigned int i, start, end;
