@@ -501,7 +501,13 @@ CODE
     <<-CODE
     t1 = stack_pop();
     if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->array)) {
-      t1 = array_get_tuple(t1);
+      j = FIXNUM_TO_INT(array_get_total(t1));
+      t2 = tuple_new(state, j);
+
+      for(k = 0; k < j; k++) {
+        tuple_put(state, t2, k, array_get(state, t1, k));
+      }
+      t1 = t2;
     } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->tuple)) {
       t2 = tuple_new(state, 1);
       tuple_put(state, t2, 0, t1);
