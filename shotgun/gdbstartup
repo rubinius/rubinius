@@ -1,2 +1,6 @@
+define rbt
+p machine_print_callstack(0)
+end
+
 set environment DYLD_LIBRARY_PATH=shotgun/lib
 file shotgun/rubinius.bin
