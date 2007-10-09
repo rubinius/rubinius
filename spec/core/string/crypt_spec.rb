@@ -28,7 +28,13 @@ describe "String#crypt" do
     "hello world".crypt("aabc").should == "aayPz4hyPS1wI"
     
     # Maps null bytes in salt to ..
-    "hello".crypt("\x00\x00").should == "..dR0/E99ehpU"
+    platform :not, :darwin do
+      "hello".crypt("\x00\x00").should == ""
+    end
+    
+    platform :darwin do
+      "hello".crypt("\x00\x00").should == "..dR0/E99ehpU"
+    end
   end
   
   it "raises an ArgumentError when the salt is shorter than two characters" do
