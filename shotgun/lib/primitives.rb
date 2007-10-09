@@ -798,7 +798,6 @@ class ShotgunPrimitives
     cur->opaque_data = old->opaque_data;
     SET_STRUCT_FIELD(t1, cur->self, old->self);
     cur->data = old->data;
-    cur->flags = old->flags;
     cur->type = old->type;
     cur->ip = old->ip;
     cur->sp = old->sp;
