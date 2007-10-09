@@ -11,8 +11,10 @@ describe "Struct.new" do
     first = Struct.new('Person', :height, :weight)
     first.should == Struct::Person
 
+    old, $VERBOSE = $VERBOSE, nil
     second = Struct.new('Person', :hair, :sex)
     second.should == Struct::Person
+    $VERBOSE = old
 
     first.members.should_not == second.members
   end
@@ -42,7 +44,9 @@ describe "Struct.new" do
   end
 
   it "raises ArgumentError if object#to_sym is nil" do
+    old, $VERBOSE = $VERBOSE, nil
     should_raise(ArgumentError) { Struct.new(:animal, 10000) }
+    $VERBOSE = old
   end
 
   it "raises TypeError if object doesn't respond to to_sym" do
