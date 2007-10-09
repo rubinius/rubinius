@@ -1523,8 +1523,9 @@ module Bytecode
         else
           add "push nil"
         end
-        
+       
         if @in_ensure
+          add "make_array 1"
           add "cast_tuple"
           add "raise_exc"
           @check_return = true
