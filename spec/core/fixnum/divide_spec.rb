@@ -7,7 +7,7 @@ describe "Fixnum#/" do
   end
   
   it "raises ZeroDivisionError if the given argument is zero and not a Float" do
-    should_raise(ZeroDivisionError, "divided by 0") { 1 / 0 }
+    should_raise(ZeroDivisionError) { 1 / 0 }
   end
   
   it "does NOT raise ZeroDivisionError if the given argument is zero and is a Float" do
@@ -21,16 +21,16 @@ describe "Fixnum#/" do
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError, "Object can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       13 / obj
     end
     
-    should_raise(TypeError, "String can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       13 / "10"
     end
     
-    should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       13 / :symbol
     end
   end

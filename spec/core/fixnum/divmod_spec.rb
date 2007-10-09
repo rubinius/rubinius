@@ -13,15 +13,15 @@ describe "Fixnum#divmod" do
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do
-    should_raise(ZeroDivisionError, "divided by 0") do
+    should_raise(ZeroDivisionError) do
       13.divmod(0)
     end
 
-    should_raise(ZeroDivisionError, "divided by 0") do
+    should_raise(ZeroDivisionError) do
       0.divmod(0)
     end
     
-    should_raise(ZeroDivisionError, "divided by 0") do
+    should_raise(ZeroDivisionError) do
       -10.divmod(0)
     end
   end
@@ -49,16 +49,16 @@ describe "Fixnum#divmod" do
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError, "Object can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       13.divmod(obj)
     end
     
-    should_raise(TypeError, "String can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       13.divmod("10")
     end
 
-    should_raise(TypeError, ":symbol can't be coerced into Fixnum") do
+    should_raise(TypeError) do
       13.divmod(:symbol)
     end
   end
