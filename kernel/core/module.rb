@@ -31,6 +31,11 @@ class Module
     end
     return out
   end
+  
+  def find_class_method_in_hierarchy(sym)
+    mc = self.metaclass
+    mc.method_table[sym] || mc.find_method_in_hierarchy(sym)
+  end
 
   def alias_method(new_name, current_name)
     meth = find_method_in_hierarchy(current_name)
@@ -157,6 +162,26 @@ class Module
     return name
   end
   
+  def set_class_visibility(meth, vis)
+    name = meth.to_sym
+    tup = find_class_method_in_hierarchy(name)
+    vis = vis.to_sym
+    
+    unless tup
+      raise NoMethodError, "Unknown class method '#{name}' to make #{vis.to_s}"
+    end
+    
+    mc = self.metaclass
+    mc.method_table[name] = tup.dup
+
+    if Tuple === tup
+      mc.method_table[name][0] = vis
+    else
+      mc.method_table[name] = Tuple[vis, tup]
+    end
+    return name
+  end
+
   # Same as include_cv above, don't call this private.
   def private_cv(*args)
     args.each { |meth| set_visibility(meth, :private) }
@@ -170,6 +195,16 @@ class Module
     args.each { |meth| set_visibility(meth, :public) }
   end
   
+  def private_class_method(*args)
+    args.each { |meth| set_class_visibility(meth, :private) }
+    self
+  end
+
+  def public_class_method(*args)
+    args.each { |meth| set_class_visibility(meth, :public) }
+    self
+  end
+
   # A fixup, move the core versions in place now that everything
   # is loaded.
   def self.after_loaded
