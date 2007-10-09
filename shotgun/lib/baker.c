@@ -162,7 +162,10 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
 #endif
   
   //printf("%d: Mutating class of %p\n", ++depth, iobj);
-  
+ 
+  /* CLASS_OBJECT() gets the object directly in the klass field
+   * of iobj, which is very likely it's metaclass, not it's 
+   * formal class. FYI. */
   cls = CLASS_OBJECT(iobj);
   if(REFERENCE_P(cls)) {
     cls = baker_gc_maybe_mutate(state, g, cls);

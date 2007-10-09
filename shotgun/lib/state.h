@@ -227,8 +227,8 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define IS_REF_P(val) REFERENCE_P(val)
 #define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
 
-#define rbs_set_class(om, obj, cls) ({ HEADER(obj)->klass = cls; if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); })
-#define SET_CLASS(obj, cls) ({ HEADER(obj)->klass = cls; RUN_WB(obj, cls); })
+#define rbs_set_class(om, obj, cls) ({ if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); HEADER(obj)->klass = cls; })
+#define SET_CLASS(obj, cls) ({ RUN_WB(obj, cls); HEADER(obj)->klass = cls; })
 
 extern ucontext_t g_firesuit;
 extern int g_use_firesuit;

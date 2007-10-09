@@ -197,7 +197,6 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
   memset(obj, 0, SIZE_IN_BYTES(obj));
   *((int*)(obj)) = 0xbaddecaf;
 #else
-  // memset(obj, 55, SIZE_IN_BYTES(obj));
   free(ent->object);
 #endif
   

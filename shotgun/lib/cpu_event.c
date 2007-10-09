@@ -95,7 +95,8 @@ void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
       ti->next->prev = ti->prev;
     }
   }
-  
+ 
+  event_del(&ti->ev);
   state->pending_events--;
   event_del(&ti->ev);
 }
