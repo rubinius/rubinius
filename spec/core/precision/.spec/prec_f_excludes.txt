@@ -1,0 +1,2 @@
+Precision#prec_f converts a Integer to Float when called on an Integer
+Precision#prec_f returns the same Float when called on a Float
