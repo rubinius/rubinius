@@ -56,21 +56,27 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   char *c_path, *c_name;
   void (*ep)(void);
   char init[128] = "Init_";
-  char sys_name[128];
+  char *sys_name;
   rni_nmc *nmc;
+  int len;
   
   nmc = NULL;
+
+  len = FIXNUM_TO_INT(string_get_bytes(path));
+
+  sys_name = calloc(1, len+20);
   
   /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
      or whatever the library suffix is. */
   c_path = string_byte_address(state, path);
-  strlcpy(sys_name, c_path, sizeof(sys_name));
-  strlcat(sys_name, LIBSUFFIX, sizeof(sys_name));
+  strlcpy(sys_name, c_path, len);
+  strlcat(sys_name, LIBSUFFIX, 19);
   
   /* Open it up. If this fails, then we just pretend like
      the library isn't there. */
   lib = lt_dlopen(sys_name);
   if(!lib) {
+    free(sys_name);
     // printf("Couldnt open '%s': %s\n", sys_name, lt_dlerror());
     /* No need to raise an exception, it's not there. */
     return I2N(0);
@@ -83,6 +89,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   /* Try and load the init function. */
   ep = (void (*)(void))lt_dlsym(lib, init);
   if(!ep) {
+    free(sys_name);
     /* TODO: raise an exception that the library is missing the function. */
     return I2N(1);
   } else {
@@ -106,6 +113,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   if(nmc) free(nmc);
   
   subtend_set_context(state, c, NULL);
+  free(sys_name);
   
   return Qtrue;
 }

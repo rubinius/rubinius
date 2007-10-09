@@ -97,6 +97,7 @@ void _cpu_event_unregister_info(STATE, struct thread_info *ti) {
   }
   
   state->pending_events--;
+  event_del(&ti->ev);
 }
 
 void _cpu_wake_channel(int fd, short event, void *arg) {
