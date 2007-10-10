@@ -2,6 +2,7 @@
 
 class Integer < Numeric
   include CType
+  include Precision
 
   def self.induced_from(o)
     return o.to_i if o.respond_to?(:to_i)

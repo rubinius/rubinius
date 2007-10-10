@@ -1,7 +1,9 @@
 # depends on: numeric.rb
 
 class Float < Numeric
-  
+
+  include Precision
+
   def __ivars__; nil; end
   
   RADIX      = Platform::Float.RADIX
