@@ -162,7 +162,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
                                      int count, OBJECT name, OBJECT block);
 
 inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OBJECT block);
-OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private);
+OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym);
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block);
 
 void cpu_run_script(STATE, cpu c, OBJECT meth);

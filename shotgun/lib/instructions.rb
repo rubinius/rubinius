@@ -831,10 +831,9 @@ CODE
   
   def locate_method
     <<-CODE
-    t1 = stack_pop(); // include_private
-    t2 = stack_pop(); // meth
-    t3 = stack_pop(); // self
-    stack_push(cpu_locate_method_on(state, c, t3, t2, t1));
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(cpu_locate_method_on(state, c, t2, t1));
     CODE
   end
   

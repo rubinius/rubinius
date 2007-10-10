@@ -40,12 +40,11 @@ kind_of
     ASM
   end
   
-  def respond_to?(meth,include_private=false)
+  def respond_to?(meth)
     meth = meth.to_sym
     cm = Ruby.asm <<-ASM
 push self
 #local meth
-#local include_private
 locate_method
     ASM
     !cm.nil?
