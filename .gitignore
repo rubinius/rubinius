@@ -13,6 +13,7 @@ tmtags
 *.rbc
 .spec/bm.yml
 spec/files.txt
+last_ci.rb
 
 !runtime/loader.rbc
 !runtime/stable/loader.rbc

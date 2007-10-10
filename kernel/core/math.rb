@@ -21,13 +21,13 @@ module Math
   
   def acos(x)
     x = Float(x)
-    verify_domain('acos') { x.abs <= 1 }
+    verify_domain('acos') { x.abs <= 1.0 }
     Platform::Math.acos x
   end
   
   def asin(x)
     x = Float(x)
-    verify_domain('asin') { x.abs <= 1 }
+    verify_domain('asin') { x.abs <= 1.0 }
     Platform::Math.asin x
   end
   
@@ -49,7 +49,7 @@ module Math
   
   def acosh(x)
     x = Float(x)
-    verify_domain('acosh') { x >= 1 }
+    verify_domain('acosh') { x >= 1.0 }
     Platform::Math.acosh x
   end
   
@@ -59,7 +59,7 @@ module Math
   
   def atanh(x)
     x = Float(x)
-    verify_domain('atanh') { x.abs <= 1 }
+    verify_domain('atanh') { x.abs <= 1.0 }
     Platform::Math.atanh x
   end
   
@@ -69,7 +69,7 @@ module Math
   
   def log(x, base=nil)
     x = Float(x)
-    verify_domain('log') { x >= 0 }
+    verify_domain('log') { x >= 0.0 }
     result = Platform::Math.log x
     result /= Platorm::Math.log Float(base) if base
     return result
@@ -77,19 +77,19 @@ module Math
   
   def log2(x)
     x = Float(x)
-    verify_domain('log2') { x >= 0 }
+    verify_domain('log2') { x >= 0.0 }
     Platform::Math.log2 x
   end
   
   def log10(x)
     x = Float(x)
-    verify_domain('log10') { x >= 0 }
+    verify_domain('log10') { x >= 0.0 }
     Platform::Math.log10 x
   end
   
   def sqrt(x)
     x = Float(x)
-    verify_domain('sqrt') { x >= 0 }
+    verify_domain('sqrt') { x >= 0.0 }
     Platform::Math.sqrt x
   end
   
