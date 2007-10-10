@@ -281,10 +281,21 @@ OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT 
     return cpu_find_method(state, c, klass, name, mod);
 }
 
-OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym) {
+OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private) {
   OBJECT mod, meth;
+  int call_flags;
+
+  if(TRUE_P(include_private)) {
+    // save and change call_flags to allow searching for private methods
+    call_flags = c->call_flags;
+    c->call_flags=1;
+    meth = cpu_find_method(state, c, _real_class(state, obj), sym, &mod);
+    c->call_flags = call_flags;
+  } else {
+    meth = cpu_find_method(state, c, _real_class(state, obj), sym, &mod);       
+  }
   
-  meth = cpu_find_method(state, c, _real_class(state, obj), sym, &mod);
+
   if(RTEST(meth)) {
     return tuple_new2(state, 2, meth, mod);
   }
