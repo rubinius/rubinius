@@ -8,21 +8,30 @@ describe "Module#attr_writer" do
     end
     
     o = c.new
-    ('a'..'c').each do |x|
+    %w{a c}.each do |x|
       o.respond_to?(x).should == false
       o.respond_to?("#{x}=").should == true
+    end
+
+    compliant :mri do
+      o.respond_to?('b').should == false
+      o.respond_to?("b=").should == true
     end
     
     o.a = "test"
     o.instance_variable_get(:@a).should == "test"
-    o.b = "test2"
-    o.instance_variable_get(:@b).should == "test2"
+
+    compliant :mri do
+      o.b = "test2"
+      o.instance_variable_get(:@b).should == "test2"
+    end
+
     o.c = "test3"
     o.instance_variable_get(:@c).should == "test3"
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test")
+    (o = Object.new).should_receive(:to_str, :returning => "test", :count => 2)
     c = Class.new do
       attr_writer o
     end

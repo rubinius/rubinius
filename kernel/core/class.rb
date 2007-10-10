@@ -101,31 +101,46 @@ class Class
     end
   end
   
-  def attr_reader_cv(*args)
-    args.each do |name|
-      sym = "@#{name}".to_sym
-      meth = AccessVarMethod.get_ivar(sym)
-      self.method_table[name.to_sym] = meth
+  def attr_reader_cv(*names)
+    names.each do |name|
+      attr(name)
     end
+
     return nil
   end
   
-  def attr_writer_cv(*args)
-    args.each do |name|
-      sym = "@#{name}".to_sym
-      meth = AccessVarMethod.set_ivar(sym)
-      mname = "#{name}=".to_sym
-      self.method_table[mname] = meth
+  def attr_writer_cv(*names)
+    names.each do |name|
+      attr(name,true)
     end
+
     return nil
   end
   
   def attr_accessor_cv(*names)
     names.each do |name|
-      attr_reader(name)
-      attr_writer(name)
+      attr(name)
+      attr(name,true)
     end
-    return true
+
+    return nil
+  end
+
+  def attr(name,writeable=false)
+    method_symbol = nil
+    access_method = nil
+
+    if writeable
+      method_symbol = writer_method_symbol(name)
+      access_method = AccessVarMethod.set_ivar(attribute_symbol(name))
+    else
+      method_symbol = reader_method_symbol(name)
+      access_method = AccessVarMethod.get_ivar(attribute_symbol(name))
+    end
+
+    self.method_table[method_symbol] = access_method
+
+    return nil
   end
 
   def <(other)
@@ -171,4 +186,33 @@ class Class
     alias_method :subclasses, :subclasses_cv
   end
 
+  private
+
+  def normalize_name(name)
+    if [String, Symbol, Fixnum].include?(name.class)
+      name = "#{name}"
+    else
+      begin
+        name = name.to_str
+      rescue NoMethodError
+        raise TypeError,35.chr + "<#{name.class}:" + '0x' + '%x' % name.object_id + '> is not a symbol'
+      end
+
+      raise TypeError,"Object#to_str should return String" unless name.class == String
+    end
+
+    return name
+  end
+
+  def attribute_symbol(name)
+    "@#{normalize_name(name)}".to_sym
+  end
+
+  def reader_method_symbol(name)
+    normalize_name(name).to_sym
+  end
+
+  def writer_method_symbol(name)
+    "#{normalize_name(name)}=".to_sym
+  end
 end

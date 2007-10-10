@@ -9,23 +9,30 @@ describe "Module#attr_accessor" do
     
     o = c.new
     
-    ('a'..'c').each do |x|
+    ['a','c'].each do |x|
       o.respond_to?(x).should == true
       o.respond_to?("#{x}=").should == true
     end
     
+    compliant :mri do
+      o.respond_to?('b').should == false
+      o.respond_to?("b=").should == true
+    end
+
     o.a = "a"
     o.a.should == "a"
-    
-    o.b = "b"
-    o.b.should == "b"
-    
+
+    compliant :mri do
+      o.b = "b"
+      o.b.should == "b"
+    end
+
     o.c = "c"
     o.c.should == "c"
   end
   
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test")
+    (o = Object.new).should_receive(:to_str, :returning => "test", :count => 4)
     c = Class.new do
       attr_accessor o
     end
