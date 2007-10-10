@@ -71,6 +71,7 @@ send_off_stack
     cm = Ruby.asm <<-ASM
 push self
 #local meth
+push true
 locate_method
     ASM
     return cm
