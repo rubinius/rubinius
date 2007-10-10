@@ -15,4 +15,25 @@ describe "The redo statement" do
     }.call
     a.should == [1, 1, 2]
   end
+
+  it "should redo closest loop" do
+    exist = [2,3]
+    processed = []
+    order = []
+    [1,2,3,4].each do |x|
+      order << x
+      begin
+        processed << x
+        if(exist.include?(x))
+          raise StandardError, "included"
+        end
+      rescue StandardError => e
+        exist.delete(x)
+        redo
+      end
+    end
+    processed.should == [1,2,2,3,3,4]
+    exist.should == []
+    order.should == [1,2,2,3,3,4]
+  end
 end
