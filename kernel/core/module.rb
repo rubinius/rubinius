@@ -90,7 +90,11 @@ class Module
   # private :filter_methods
   
   def const_defined?(name)
-    name = name.to_s
+    if name.kind_of?(Symbol)
+      name = name.to_s
+    elsif !name.kind_of?(String)
+      name = name.to_str if name.respond_to?(:to_str)
+    end
     hierarchy = name.split('::')
     hierarchy.shift if hierarchy.first == ""
     hierarchy.shift if hierarchy.first == "Object"
