@@ -229,7 +229,8 @@ class Module
   end
   
   def const_defined?(name)
-    constants_table[const_name_to_sym(name)] ? true : false
+    recursive_const_get(name) ? true : false
+    # constants_table[const_name_to_sym(name)] ? true : false
   end
 
   def const_set(name, value)
@@ -237,7 +238,7 @@ class Module
   end
 
   def const_get(name)
-    const = constants_table[const_name_to_sym(name)]
+    const = recursive_const_get(name)
     unless const
       raise NameError, "uninitialized constant #{self.to_s}::#{name}"
     end
@@ -249,6 +250,20 @@ class Module
   end
 
 private
+
+  def recursive_const_get(name)
+    if name.kind_of?(String)
+      hierarchy = name.split("::")
+      const = self
+      hierarchy.each do |c|
+        const = const.constants_table[const_name_to_sym(c)]
+        return nil unless const
+      end
+    else
+      const = constants_table[const_name_to_sym(name)]
+    end
+    const
+  end
   
   def const_name_to_sym(name)
     sym_name = nil

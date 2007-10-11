@@ -2,6 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#const_get" do
+  extension :rubinius do
+    it "returns the value of the constant with the given String is defined in its parent" do
+      ModuleSpecs.const_get("Super::SuperChild").should == ModuleSpecs::Super::SuperChild
+      should_raise(NameError, "uninitialized constant ModuleSpecs::Super::Something") do
+        ModuleSpecs.const_get("Super::Something")
+      end
+      # Object first and "" first
+    end
+  end
+  
   it "returns the value of the constant with the given name" do
     ModuleSpecs.const_get(:Basic).should == ModuleSpecs::Basic
     ModuleSpecs.const_get(:Super.to_i).should == ModuleSpecs::Super
