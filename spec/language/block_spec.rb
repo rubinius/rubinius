@@ -26,25 +26,9 @@ describe "Block parameters" do
     a.each {|i| ;}
     i.should == 3
   end
-  
-  it "should assign to a global variable" do
-    $global_for_block_assignment = 0
-    a = [1,2,3]
-    a.each {|$global_for_block_assignment| ;}
-    $global_for_block_assignment.should == 3
-  end
 
-  it "should call method=" do
-    class T
-      def n; return @n; end
-      def n=(val); @n = val + 1; end
-      def initialize; @n = 0; end
-    end
-    t = T.new
-    t.n.should == 0
-    a = [1,2,3]    
-    a.each {|t.n| }
-    t.n.should == 4    
+  compliant :mri do
+    require 'spec/language/strange_block_args_spec.rb'
   end
 
   it "should capture variables from outer scope" do
