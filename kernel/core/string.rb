@@ -191,7 +191,6 @@ class String
     false
   end
   alias_method :===, :==
-  alias_method :eql?, :==
 
   # Match --- If <i>pattern</i> is a <code>Regexp</code>, use it as a pattern to match
   # against <i>self</i>, and return the position the match starts, or 
@@ -727,6 +726,12 @@ class String
   #   "".empty?        #=> true
   def empty?
     @bytes == 0
+  end
+
+  # Two strings are equal if the have the same length and content.
+  def eql?(other)
+    return false unless other.is_a?(String) && other.size == @bytes
+    (@data.fetch_bytes(0, @bytes) <=> other.data.fetch_bytes(0, @bytes)) == 0
   end
 
   # Returns a copy of <i>self</i> with <em>all</em> occurrences of <i>pattern</i>
