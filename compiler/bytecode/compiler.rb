@@ -283,6 +283,7 @@ module Bytecode
         @state = state
         @next = nil
         @break = nil
+        @system_prefix = nil
         
         @in_block = false
         @in_ensure = false
@@ -323,11 +324,19 @@ module Bytecode
       end
       
       def unique_lbl(prefix = '')
-        "#{prefix}lbl#{unique_id}"
+        if @system_prefix
+          "#{@system_prefix}#{prefix}lbl#{unique_id}"
+        else
+          "#{prefix}lbl#{unique_id}"
+        end
       end
       
       def unique_exc
-        "exc#{unique_id}"
+        if @system_prefix
+          "#{@system_prefix}exc#{unique_id}"
+        else
+          "exc#{unique_id}"
+        end
       end
       
       def add(str)
@@ -1446,46 +1455,24 @@ module Bytecode
         @check_return = cr
         @in_ensure = ie
         
-        # We don't jump past the exceptions code here like we did
-        # with a rescue because this code needs to be run no matter
-        # what.
-        add "#exceptions #{ex}"
-        add "push_exception"
- 
-        # at this point on the stack we've got either:
-        #   ( result nil )  or
-        #   ( exception )
-
-        ex2 = unique_exc()
-        add "#exc_start #{ex2}"
-        process ens
-        # discard new result
-        add "pop"
-        l_noex2 = unique_lbl('ensure_')
-        goto l_noex2
-
-        add "#exceptions #{ex2}"
-        # replace old result/exception on stack with new exception
-        l_ex = unique_lbl('ensure_')
-        # old exception?
-        git l_ex
-        # discard result, if not
-        add "pop"
-        set_label l_ex
-        add "push_exception"
-
-        set_label l_noex2
-        add "#exc_end #{ex2}"
-
-        # now still either:
-        #   ( result nil )  or
-        #   ( exception )
+        sp = @system_prefix
         
-        l_noex = unique_lbl('ensure_')
-        add "dup"
-        gif l_noex
-        # FIXME: re-raising from here messes with line numbers in the
-        #        backtrace of body exceptions
+        replace = "#{unique_id}XX-ES"
+        @system_prefix = replace
+        
+        ensure_code = capture do
+          process ens
+        end
+        
+        @system_prefix = sp
+        
+        ran_ok =  unique_lbl("ensure_")
+        
+        goto ran_ok
+                
+        add "#exceptions #{ex}"
+        @output << ensure_code
+        add "pop"
         if should_check
           add "dup"
           add "push Tuple"
@@ -1502,13 +1489,20 @@ module Bytecode
           end
           set_label not_tuple
         end
-        add "raise_exc"
-        set_label l_noex
-        # discard nil
-        add "pop"
-        add "#exc_end #{ex}"
         
-        @check_return = cr
+        add "push_exception"
+        add "raise_exc"
+        
+        add "#exc_end #{ex}"
+        set_label ran_ok
+        
+        # we can't have duplicate labels, so we recode the 
+        # all labels with a new prefix, replacing the system
+        # prefix we applied to the original code.
+        @output << ensure_code.gsub(replace, "#{unique_id}XX-ES")
+        
+        # pop the ensure_code's value, leaving the body's value
+        add "pop"
       end
       
       def process_return(x)

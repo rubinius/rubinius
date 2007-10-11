@@ -239,7 +239,7 @@ module Bytecode
         name = m[1].to_sym
         if @labels.key?(name)
           if @labels[name].set
-            raise "Re-defined label #{name}"
+            raise "Re-defined label #{name} (#{@labels[name].location})"
           end
         end
         lbl = @labels[name]

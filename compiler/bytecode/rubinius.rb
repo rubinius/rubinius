@@ -16,15 +16,19 @@ module Bytecode
       asm = Bytecode::Assembler.new(@literals, @name, @state)
       begin
         stream = asm.assemble @assembly
-      rescue Hash => e
-        raise "Unable to assemble #{@name} in #{@file}. #{e.message}"
+      rescue Object => e
+        if $DEBUG
+          puts "Failed to assemble #{@name}"
+          puts @assembly
+        end
+        raise "Unable to assemble #{@name} in #{@file}:#{@last_line}. #{e.message}"
       end
       
       if $DEBUG_COMPILER
         puts "\nPre-encoded:"
         p stream
       end
-                  
+      
       enc = Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = @state.number_of_locals
