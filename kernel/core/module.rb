@@ -229,7 +229,7 @@ class Module
   end
   
   def const_defined?(name)
-    self.const_get(name) ? true : false
+    constants_table[const_name_to_sym(name)] ? true : false
   end
 
   def const_set(name, value)
@@ -237,7 +237,11 @@ class Module
   end
 
   def const_get(name)
-    constants_table[const_name_to_sym(name)]
+    const = constants_table[const_name_to_sym(name)]
+    unless const
+      raise NameError, "uninitialized constant #{self.to_s}::#{name}"
+    end
+    const
   end
   
   def const_missing(name)
