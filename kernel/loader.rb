@@ -10,6 +10,7 @@ begin
   Kernel.after_loaded
   Actor.after_loaded
   Math.after_loaded
+  FileTest.after_loaded
 
   ENV = EnvironmentVariables.new
 
