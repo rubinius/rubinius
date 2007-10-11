@@ -88,10 +88,6 @@ class Module
     return names
   end
   # private :filter_methods
-  
-  def const_defined?(name)
-    self.const_get(name) ? true : false
-  end
 
   def define_method(name, meth = nil, &prc)
     meth ||= prc
@@ -230,6 +226,10 @@ class Module
   
   def constants
     constants_table.keys.map { |v| v.to_s }
+  end
+  
+  def const_defined?(name)
+    self.const_get(name) ? true : false
   end
 
   def const_set(name, value)
