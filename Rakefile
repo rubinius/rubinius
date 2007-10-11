@@ -94,7 +94,7 @@ def create_load_order(files)
   end
 end
 
-def update_dir(files, dir, deps=true)
+def update_dir(files, dir)
   dir = File.expand_path(ENV['OUTPUT'] || dir)
   clean = ENV['CLEAN']
   
@@ -110,11 +110,8 @@ def update_dir(files, dir, deps=true)
     file << "c"
   end
 
-  if deps
-    create_load_order(files)
-  else
-    File.open(".load_order.txt","w") { |f| f.puts files.join("\n") }
-  end
+  create_load_order(files)
+  FileUtils.mv '.load_order.txt', dir
 end
 
 def update_archive(files, archive, deps=true, dir=nil)
