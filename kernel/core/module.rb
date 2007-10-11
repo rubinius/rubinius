@@ -245,11 +245,11 @@ class Module
   end
 
   def const_set(name, value)
-    constants_table[const_name_validate(name)] = value
+    constants_table[const_name_to_sym(name)] = value
   end
 
   def const_get(name)
-    constants_table[const_name_validate(name)]
+    constants_table[const_name_to_sym(name)]
   end
   
   def const_missing(name)
@@ -257,21 +257,12 @@ class Module
   end
 
 private
-
-  def const_name_validate(name)
-    raise ArgumentError, "#{name} is not a symbol" if Fixnum === name
-    
-    unless name.respond_to?(:to_sym)
-      raise TypeError, "#{name} is not a symbol"
-    end
-    
-    name.to_sym
-  end
   
   def const_name_to_sym(name)
     sym_name = nil
     
     if name.respond_to?(:to_sym)
+      warn 'do not use Fixnums as Symbols' if name.kind_of?(Fixnum)
       sym_name = name.to_sym
     elsif name.respond_to?(:to_str)
       sym_name = name.to_str
