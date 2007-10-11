@@ -8,7 +8,6 @@ describe "Module#const_get" do
       should_raise(NameError, "uninitialized constant ModuleSpecs::Super::Something") do
         ModuleSpecs.const_get("Super::Something")
       end
-      # Object first and "" first
     end
   end
   

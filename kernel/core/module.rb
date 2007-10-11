@@ -254,6 +254,9 @@ private
   def recursive_const_get(name)
     if name.kind_of?(String)
       hierarchy = name.split("::")
+      hierarchy.shift if hierarchy.first == ""
+      hierarchy.shift if hierarchy.first == "Object"
+      
       const = self
       hierarchy.each do |c|
         const = const.constants_table[const_name_to_sym(c)]
