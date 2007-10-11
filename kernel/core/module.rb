@@ -90,11 +90,10 @@ class Module
   # private :filter_methods
   
   def const_defined?(name)
-    if name.kind_of?(Symbol)
-      name = name.to_s
-    elsif !name.kind_of?(String)
-      name = name.to_str if name.respond_to?(:to_str)
-    end
+    name = const_name_to_sym(name)
+    
+    name = name.to_s
+    
     hierarchy = name.split('::')
     hierarchy.shift if hierarchy.first == ""
     hierarchy.shift if hierarchy.first == "Object"
@@ -257,18 +256,45 @@ class Module
     raise NameError, "Unable to find constant #{name}" 
   end
 
+private
+
   def const_name_validate(name)
     raise ArgumentError, "#{name} is not a symbol" if Fixnum === name
-
+    
     unless name.respond_to?(:to_sym)
       raise TypeError, "#{name} is not a symbol"
     end
-
-    unless name.to_s =~ /^[A-Z]\w*$/
-      raise NameError, "wrong constant name #{name}"
-    end
-
+    
     name.to_sym
   end
-  private :const_name_validate
+  
+  def const_name_to_sym(name)
+    sym_name = nil
+    
+    if name.respond_to?(:to_sym)
+      sym_name = name.to_sym
+    elsif name.respond_to?(:to_str)
+      sym_name = name.to_str
+      raise TypeError, "Object#to_str should return String" unless sym_name.kind_of?(String)
+      sym_name = sym_name.to_sym
+    end
+    
+    raise TypeError, "#{name} is not a symbol" if sym_name == nil
+    
+    unless valid_const_name?(sym_name)
+      raise NameError, "wrong constant name #{sym_name}"
+    end
+    
+    sym_name
+  end
+  
+  def valid_const_name?(name)
+    name_as_s = name.to_s
+    
+    if name_as_s =~ /^[A-Z]\w*$/ && name_as_s[0, 1] > 'A' && name_as_s[0, 1] < 'Z'
+      true
+    else
+      false
+    end
+  end
 end
