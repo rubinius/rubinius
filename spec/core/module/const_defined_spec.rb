@@ -13,8 +13,8 @@ describe "Module#const_defined?" do
   end
   
   it "returns true if a constant with the given FixNum is defined in self" do
-    # ModuleSpecs.const_defined?(:Child.to_i).should == true
-    # ModuleSpecs.const_defined?(:SomeThing.to_i).should == false
+    ModuleSpecs.const_defined?(:Child.to_i).should == true
+    ModuleSpecs.const_defined?(:SomeThing.to_i).should == false
   end
   
   it "tries to convert the given name to a string using to_str" do
