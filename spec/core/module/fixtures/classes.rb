@@ -37,6 +37,9 @@ module ModuleSpecs
       def protected_super_module() end
     private
       def private_super_module() end
+        
+    class SuperChild
+    end
   end
     
   class Child < Parent

@@ -2,6 +2,14 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#const_defined?" do
+  extension :rubinius do
+    it "returns true if constant with the given String is defined in its parent" do
+      ModuleSpecs.const_defined?("Super::SuperChild").should == true
+      ModuleSpecs.const_defined?("Super::Something").should == false
+      # Object first and "" first
+    end
+  end
+  
   it "returns true if constant with the given Symbol is defined in self" do
     ModuleSpecs.const_defined?(:Child).should == true
     ModuleSpecs.const_defined?(:SomeThing).should == false

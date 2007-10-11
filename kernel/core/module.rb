@@ -90,19 +90,7 @@ class Module
   # private :filter_methods
   
   def const_defined?(name)
-    name = const_name_to_sym(name)
-    
-    name = name.to_s
-    
-    hierarchy = name.split('::')
-    hierarchy.shift if hierarchy.first == ""
-    hierarchy.shift if hierarchy.first == "Object"
-    const = self
-    until hierarchy.empty?
-      const = const.constants_table[hierarchy.shift.to_sym]
-      return false unless const
-    end
-    return true
+    self.const_get(name) ? true : false
   end
 
   def define_method(name, meth = nil, &prc)
