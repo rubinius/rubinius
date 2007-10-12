@@ -1,1 +1,0 @@
-Bignum#divmod returns [NaN, NaN] if other is zero and is a Float

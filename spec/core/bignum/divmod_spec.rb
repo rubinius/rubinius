@@ -13,16 +13,7 @@ describe "Bignum#divmod" do
     should_raise(ZeroDivisionError) { BignumHelper.sbm(2).divmod(0) }
   end
   
-  # This failed for me on MRI. I'm assuming it is platform dependent -- flgr
-  version '1.8.6' do
-    it "returns [NaN, NaN] if other is zero and is a Float" do
-      BignumHelper.sbm(9).divmod(0.0).inspect.should == '[NaN, NaN]'
-    end
-  end
-  
-  version '1.8'..'1.8.5' do
-    it "raises FloatDomainError if other is zero and is a Float" do
-      should_raise(FloatDomainError) { BignumHelper.sbm(9).divmod(0.0) }
-    end
+  it "raises FloatDomainError if other is zero and is a Float" do
+    should_raise(FloatDomainError) { BignumHelper.sbm(9).divmod(0.0) }
   end
 end
