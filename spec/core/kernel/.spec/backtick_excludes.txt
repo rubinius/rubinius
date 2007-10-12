@@ -1,1 +1,0 @@
-Kernel#` returns the result of the executed sub-process
