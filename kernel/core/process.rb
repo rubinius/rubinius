@@ -44,7 +44,7 @@ module Kernel
           output << res
         elsif !res
           Scheduler.send_on_stopped chan, pid
-          res = chan.receive
+          $? = chan.receive
           return output
         end
       end
