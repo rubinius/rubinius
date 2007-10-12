@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/methods'
-require File.dirname(__FILE__) + '/gm_spec'
-require File.dirname(__FILE__) + '/gmtime_spec'
+require File.dirname(__FILE__) + '/shared/gm'
+require File.dirname(__FILE__) + '/shared/gmtime'
 
 describe "Time#utc?" do
   it "returns true if time represents a time in UTC (GMT)" do

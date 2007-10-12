@@ -36,7 +36,7 @@ describe "File.executable?" do
 end
 
 describe "File.executable?" do 
-  before :each do
+  before :all do
     @file_name_1 = "test_1.txt"
     @file_name_2 = "test_2.txt"
     @file1 = File.join(@file_name_1)
@@ -48,13 +48,6 @@ describe "File.executable?" do
     File.chmod(0755, @file1)
   end
 
-  after :each do
-    File.delete(@file1) if File.exist?(@file1)
-    File.delete(@file2) if File.exist?(@file2) 
-    @file1 =  nil
-    @file2 = nil
-  end
-  
   it "returns true if named file is readable by the effective user id of the process, otherwise false" do
     File.executable?('fake_file').should == false
     File.executable?('/etc/passwd').should == false
@@ -75,6 +68,12 @@ describe "File.executable?" do
     should_raise(TypeError){ File.executable?(1) }
     should_raise(TypeError){ File.executable?(nil) }
     should_raise(TypeError){ File.executable?(false) }
-    should_raise(TypeError) { File.executable?(@file) }
+  end
+
+  after :all do
+    File.delete(@file1) if File.exist?(@file1)
+    File.delete(@file2) if File.exist?(@file2) 
+    @file1 =  nil
+    @file2 = nil
   end
 end

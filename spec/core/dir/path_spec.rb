@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/common'
-require File.dirname(__FILE__) + '/close_spec'
+require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#path" do
   it "returns the path that was supplied to .new or .open" do

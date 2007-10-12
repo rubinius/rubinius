@@ -20,8 +20,8 @@ describe "Module#attr_reader" do
     end
 
     compliant :mri do
-      o.respond_to?('b').should == false
-      o.respond_to?("b=").should == true
+      o.respond_to?('b').should == true
+      o.respond_to?("b=").should == false
     end
 
     o.a.should == "test"
@@ -34,7 +34,7 @@ describe "Module#attr_reader" do
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test", :count => 2)
+    (o = Object.new).should_receive(:to_str, :returning => "test", :count => :any)
     c = Class.new do
       attr_reader o
     end

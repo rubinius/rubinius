@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/iteration_spec'
+require File.dirname(__FILE__) + '/shared/iteration'
 
 describe "Hash#delete_if" do
   it "yields two arguments: key and value" do

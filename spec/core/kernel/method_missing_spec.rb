@@ -2,114 +2,51 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#method_missing" do
-  class KernelSpecs::A
-    def method_missing (*args)
-      "a_new_method_missing"
-    end
-  end 
-   
-  it  "return the correct value form method_missing after call a not defined instance method" do
-    KernelSpecs::A.new.foo.should == "a_new_method_missing"
+  it "is not called when a defined method is called" do
+    KernelSpecs::MethodMissing.should_not_receive(:method_missing)
+    KernelSpecs::MethodMissingC.should_not_receive(:method_missing)
+    obj = KernelSpecs::MethodMissingC.new
+    obj.should_not_receive(:method_missing)
+    
+    KernelSpecs::MethodMissing.existing.should == :existing
+    KernelSpecs::MethodMissingC.existing.should == :existing
+    obj.existing.should == :instance_existing
   end
   
-  it "raise a NoMethodError Exceptiong after call a not defined Class method even if te the method_missing its defined" do  
-    should_raise(NoMethodError){KernelSpecs::A.foo.should == "a_new_method_missing"} 
-  end    
-   
-  class KernelSpecs::B;end   
-  
-  it "raise a NoMethodError Exceptiong after call a not defined instance method" do
-    should_raise(NoMethodError){KernelSpecs::B.new.foo}
+  it "is called when an undefined method is called" do
+    KernelSpecs::MethodMissing.nonexistent.should == :method_missing
+    KernelSpecs::MethodMissingC.nonexistent.should == :method_missing
+    KernelSpecs::MethodMissingC.new.nonexistent.should == :instance_method_missing
   end
+  
+  it "is called when a private method is called" do
+    KernelSpecs::MethodMissing.private_method.should == :method_missing
+    KernelSpecs::MethodMissingC.private_method.should == :method_missing
+    KernelSpecs::MethodMissingC.new.private_method.should == :instance_method_missing
+  end
+  
+  it "is called when a protected method is called" do
+    KernelSpecs::MethodMissingC.protected_method.should == :method_missing
+    KernelSpecs::MethodMissingC.new.protected_method.should == :instance_method_missing
+  end
+end
 
-  
-  it  "raise a NoMethodError exception after call a non defined method " do
-    should_raise(NoMethodError){some_method "a", 1} 
-  end    
-  
-  class KernelSpecs::C
-    def self.method_missing (*args)
-      "a_new_method_missing"
-    end
-  end
-    
-  it  "return the correct value form method_missing after call a not defined class method" do
-    KernelSpecs::C.foo.should == "a_new_method_missing"
+describe "When Kernel#method_missing is not defined for an instance" do
+  specify "a NoMethodError is raised when an undefined method is called" do
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.new.nonexistent }
   end
   
-  it  "raise a NoMethodError Exceptiong after call a not defined instance method" do 
-    should_raise(NoMethodError){KernelSpecs::C.new.foo.should == "a_new_method_missing"} 
-  end
-   
-
-  class KernelSpecs::AParent
-    def method_missing (*args)
-      "a_new_method_missing"
-    end
-  end
-    
-  class KernelSpecs::AChild < KernelSpecs::AParent
-    def foo
-      super
-    end
-  end    
-    
-  it  "return the correct value form method_missing after call a not defined instance method" do
-    KernelSpecs::AChild.new.foo.should == "a_new_method_missing"
-  end
-   
-  class KernelSpecs::ProtectedAndPrivate
-    private
-    def a_private_method;  end 
-    protected
-    def a_protected_method; end
-  end
-    
-  class KernelSpecs::ProtectedAndMissing 
-    def method_missing(*args)
-      :a_new_method_missing
-    end
-    protected 
-    def self.a_protected_class_method
-      :a_protected_class_method
-    end
-  end
-    
-  class KernelSpecs::PrivateAndMissing
-    def method_missing(*args)
-      :a_new_method_missing
-    end    
-    private 
-    def self.a_private_class_method
-      :a_private_class_method
-    end 
-  end 
-   
-  it  "raise a NoMethodError exception after call a non defined method in a class with proctected and private methods" do
-    should_raise(NoMethodError){KernelSpecs::ProtectedAndPrivate.new.a_missing_method}
-  end  
-  
-  it  "raise a not a NoMethodError and message should be a exception after call a private methor defined in a class " do
-    should_raise(NoMethodError){KernelSpecs::ProtectedAndPrivate.new.a_private_method} 
+  specify "a NoMethodError is raised when a private method is called" do
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.new.nonexistent }
   end
   
-  it  "raise a not a NoMethodError and message should be a exception after call a protected methor defined in a class " do
-    should_raise(NoMethodError){KernelSpecs::ProtectedAndPrivate.new.a_protected_method}
+  specify "a NoMethodError is raised when a protected method is called" do
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
+    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.new.nonexistent }
   end
-  
-  it  "return the correct value from the method_missing method after call a private instance method" do
-    KernelSpecs::PrivateAndMissing.new.a_private_method.should == :a_new_method_missing
-  end
-  
-  it  "return the correct value from the method_missing method after call a protected instance method" do
-    KernelSpecs::ProtectedAndMissing.new.a_protected_method.should == :a_new_method_missing
-  end
-  
-  it  "return the correct value from the method_missing method after call a private class method" do
-   KernelSpecs::PrivateAndMissing.a_private_class_method.should == :a_private_class_method
-  end
-    
-  it  "return the correct value from the method_missing method after call a protected class method" do
-    KernelSpecs::ProtectedAndMissing.a_protected_class_method.should == :a_protected_class_method
-  end 
 end

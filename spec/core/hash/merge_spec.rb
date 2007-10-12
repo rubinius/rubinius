@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/iteration_spec'
-require File.dirname(__FILE__) + '/update_spec'
+require File.dirname(__FILE__) + '/shared/iteration'
+require File.dirname(__FILE__) + '/shared/update'
 
 describe "Hash#merge" do
   it "returns a new hash by combining self with the contents of other" do

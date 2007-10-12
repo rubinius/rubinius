@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/slice_spec'
+require File.dirname(__FILE__) + '/shared/slice'
 
 describe "Array.[]" do
   it "returns a new array populated with the given elements" do

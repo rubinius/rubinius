@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/common'
+require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#close" do
   it "closes the stream and fd and returns nil" do
@@ -14,18 +15,6 @@ describe "Dir#close" do
 
     dir.close.should == nil
     should_raise(SystemCallError) { File.for_fd(peek).close }  # And closed here
-  end
-end
-
-@dir_closed = shared "Dir closed" do |cmd|
-  describe "Dir##{cmd}" do
-    it "raises an IOError when called on a closed Dir instance" do
-      should_raise(IOError) do
-        dir = Dir.open mock_dir
-        dir.close
-        dir.send cmd
-      end
-    end
   end
 end
 

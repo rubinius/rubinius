@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
-require File.dirname(__FILE__) + '/replace_spec'
+require File.dirname(__FILE__) + '/shared/replace'
 
 describe "Array#initialize_copy" do
  it "is private" do

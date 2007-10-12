@@ -48,12 +48,12 @@ describe "Module#attr" do
     o = c.new
     
     %w{attr attr3}.each do |a|
-      o.respond_to?(a).should == false
+      o.respond_to?(a).should == true
       o.respond_to?("#{a}=").should == true
     end
     
     compliant :mri do
-      o.respond_to?('attr2').should == false
+      o.respond_to?('attr2').should == true
       o.respond_to?("attr2=").should == true
     end
 
@@ -110,7 +110,7 @@ describe "Module#attr" do
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test", :count => 2)
+    (o = Object.new).should_receive(:to_str, :returning => "test", :count => :any)
     Class.new { attr o }.new.respond_to?("test").should == true
   end
   

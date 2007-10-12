@@ -31,7 +31,7 @@ describe "Module#attr_writer" do
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test", :count => 2)
+    (o = Object.new).should_receive(:to_str, :returning => "test", :count => :any)
     c = Class.new do
       attr_writer o
     end

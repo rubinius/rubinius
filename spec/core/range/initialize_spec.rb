@@ -24,28 +24,19 @@ describe "Range.new" do
   end
   
   it "raises an ArgumentError when the given start and end can't be compared by using #<=>" do
-    should_raise(ArgumentError, "bad value for range") do
-      Range.new(1, '3')
-    end
-    
-    should_raise(ArgumentError, "bad value for range") do
-      Range.new(Object.new, Object.new)
-    end
+    should_raise(ArgumentError) { Range.new(1, '3') }
+    should_raise(ArgumentError) { Range.new(Object.new, Object.new) }
     
     b = Object.new
     (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => nil)
-    should_raise(ArgumentError, "bad value for range") do
-      Range.new(a, b)
-    end
+    should_raise(ArgumentError) { Range.new(a, b) }
   end
 end
 
 describe "Range#initialize" do
   it "can't be called twice" do
     [0..1, 'a'..'b'].each do |range|
-      should_raise(NameError, "`initialize' called twice") do
-        range.send(:initialize, range.begin, range.end)
-      end
+      should_raise(NameError) { range.send(:initialize, range.begin, range.end) }
     end
   end
 end
