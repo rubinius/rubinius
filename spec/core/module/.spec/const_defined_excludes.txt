@@ -1,4 +1,0 @@
-Module#const_defined? returns true if a constant with the given name is defined in self
-Module#const_defined? tries to convert the given name to a string using to_str
-Module#const_defined? raises a NameError when the given constant name is not allowed
-Module#const_defined? raises a TypeError when the given names can't be converted to strings using to_str
