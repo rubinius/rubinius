@@ -130,6 +130,10 @@ class MemoryPointer
   def read_string
     self.class.read_string self
   end
+
+  def read_pointer
+    self.class.read_pointer self
+  end
   
   def write_float(obj)
     # TODO: ffi needs to be fixed for passing [:pointer, double]
@@ -163,6 +167,7 @@ class MemoryPointer
   attach_function nil, "ffi_write_float", :write_float, [:pointer, :double], :double
   attach_function nil, "ffi_read_float", :read_float, [:pointer], :double
   attach_function nil, "ffi_read_string", :read_string, [:pointer], :string
+  attach_function nil, "ffi_read_pointer", :read_pointer, [:pointer], :pointer
   attach_function nil, "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
 end
 

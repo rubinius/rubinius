@@ -53,6 +53,10 @@ char *ffi_read_string(char *ptr) {
   return ptr;
 }
 
+void *ffi_read_pointer(void **ptr) {
+  return *ptr;
+}
+
 char *ffi_sprintf_f(double value, int size, char *fmt) {
   char *str = calloc(size, sizeof(char));
   snprintf(str, size, fmt, value);
