@@ -38,7 +38,7 @@ class Dir
   end
   
   def self.mkdir(path, mode = 0777)
-    error = Platform::POSIX.mkdir(name, mode)
+    error = Platform::POSIX.mkdir(path, mode)
     if error != 0
       Errno.handle "Couldn't make directory #{path}"
     end

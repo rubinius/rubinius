@@ -30,7 +30,7 @@ describe "Dir.mkdir" do
     Dir.rmdir 'noperms'
   end
 
-  it "raises a SystemCallError any of the directories in the path before the last does not exist" do
+  it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
     should_raise(SystemCallError) { Dir.mkdir "#{nonexistent}/subdir" }
   end
 end
