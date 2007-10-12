@@ -277,22 +277,27 @@ class ShotgunPrimitives
     self = stack_pop(); 
     GUARD( RISA(self, blokenv) );
     
+    c->blockargs = num_args;
+    
     /* MRI fun. if an array is passed in, then present it as all
        the args. */
     if(0 && num_args == 1 && ISA(stack_top(), state->global->array)) {
+      printf("Cast array as block args.\\n");
       t1 = stack_pop();
       k = FIXNUM_TO_INT(array_get_total(t1));
+      c->blockargs = k;
       t3 = tuple_new(state, k);
       for(j = 0; j < k; j++) {
         tuple_put(state, t3, j, array_get(state, t1, j));
       }
-    } else {
+      stack_push(t3);
+    } else { /* if(num_args > 1) { */
       t3 = tuple_new(state, num_args);
       for(j = 0; j < num_args; j++) {
         tuple_put(state, t3, j, stack_pop());
       }
+      stack_push(t3);
     }
-    stack_push(t3);
     
     cpu_flush_sp(c);
     t2 = blokenv_create_context(state, self, c->active_context, c->sp);

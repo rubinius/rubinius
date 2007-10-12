@@ -2,8 +2,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The redo statement" do
   it "raises LocalJumpError if used not within block or while/for loop" do
-    def x; redo; end
-    should_raise(LocalJumpError) { x }
+    def bad_meth; redo; end
+    should_raise(LocalJumpError) { bad_meth() }
   end
 
   it "restarts block execution if used within block" do

@@ -5,12 +5,6 @@ class Hash
 
   include Enumerable
 
-  def self.new(*args, &block)
-    hsh = {} # This makes it impossible to create instances of subclasses of Hash...
-    hsh.initialize(*args, &block)
-    hsh
-  end
-
   def self.[](*args)
     if args.first.kind_of? Hash and args.length == 1
       return new.replace args.first
@@ -18,7 +12,7 @@ class Hash
 
     raise ArgumentError, "Expected an even number, got #{args.length}" if args.length % 2 == 1
 
-    hsh = {}
+    hsh = new()
     while args.length >= 2
       k = args.shift
       v = args.shift
@@ -27,14 +21,19 @@ class Hash
     hsh
   end
 
-  def initialize(*args, &block)
-    if block
-      raise ArgumentError, "Expected 0, got #{args.length}" if args.length > 0
+  def initialize(default=nil, &block)
+    @keys = Tuple.new(16)
+    @values = Tuple.new(16)
+    @bins = 16
+    @entries = 0
+    
+    if default and block
+      raise ArgumentError, "Specify a default or a block, not both"
+    elsif block
       @default = block
       @default_proc = true
     else
-      raise ArgumentError, "Expected 1, got #{args.length}" if args.length > 1
-      @default = args.first
+      @default = default
       @default_proc = false
     end
   end
@@ -142,15 +141,12 @@ class Hash
     @entries == 0
   end
 
-  def fetch(key, *rest)
-    raise ArgumentError, "Expected 1-2, got #{1 + rest.length}" if rest.length > 1
-    # warn 'Block supersedes default object' if block_given? and not rest.empty?
-
+  def fetch(key, default=nil)
     found, val = find_unambigious key
     return val if found
 
+    return default if default
     return yield(key) if block_given?
-    return rest.first unless rest.empty?
     raise IndexError, 'Key not found'
   end
 

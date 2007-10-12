@@ -1084,6 +1084,17 @@ CODE
     CODE
   end
   
+  def passed_blockarg
+    <<-CODE
+    next_int;
+    if((unsigned long int)_int == c->blockargs) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }
+    CODE
+  end
+  
   def string_append
     <<-CODE
     t1 = stack_pop();

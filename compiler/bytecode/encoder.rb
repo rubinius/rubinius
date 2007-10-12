@@ -221,7 +221,8 @@ class InstructionEncoder
     :class,
     :equal,
     :sret,
-    :set_literal
+    :set_literal,
+    :passed_blockarg
   ]
   
   CheckInterupts = [
@@ -330,7 +331,8 @@ class InstructionEncoder
     :deallocate_stack,
     :set_local_fp,
     :get_local_fp,
-    :set_literal
+    :set_literal,
+    :passed_blockarg
   ]
   
   TwoInt = [

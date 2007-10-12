@@ -1,4 +1,6 @@
 kernel/core/misc.rbc
+kernel/core/compiled_method.rbc
+kernel/core/method.rbc
 kernel/core/math.rbc
 kernel/core/list.rbc
 kernel/core/comparable.rbc
@@ -31,7 +33,6 @@ kernel/core/sampler.rbc
 kernel/core/process.rbc
 kernel/core/options.rbc
 kernel/core/exception.rbc
-kernel/core/compiled_method.rbc
 kernel/core/filetest.rbc
 kernel/core/channel.rbc
 kernel/core/float.rbc

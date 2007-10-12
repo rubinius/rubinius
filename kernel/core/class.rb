@@ -144,13 +144,30 @@ class Class
   end
 
   def <(other)
-    return true if object_id == other.object_id
     sup = direct_superclass()
     while sup
-      return true if sup.object_id == other.object_id
+      if sup.kind_of? IncludedModule
+        return true if sup.module.equal? other
+      else
+        return true if sup.equal? other
+      end
       sup = sup.direct_superclass()
     end
     false
+  end
+  
+  def <=(other)
+    return true if self.equal? other
+    self < other
+  end
+  
+  def >(other)
+    other < self
+  end
+  
+  def >=(other)
+    return true if self.equal? other
+    other < self
   end
   
   def ===(inst)
@@ -162,7 +179,7 @@ class Class
   def superclass
     cls = direct_superclass
     return nil unless cls
-    while cls and cls.class == IncludedModule
+    while cls and cls.kind_of? IncludedModule
       cls = cls.direct_superclass
     end
     return cls

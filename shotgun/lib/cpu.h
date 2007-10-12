@@ -73,7 +73,8 @@ struct fast_context {
   int call_flags; \
   OBJECT debug_channel; \
   OBJECT control_channel; \
-  unsigned long int flags;
+  unsigned long int flags; \
+  unsigned int blockargs;
   
 #define TASK_FIELDS 25
 

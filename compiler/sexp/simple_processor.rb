@@ -38,7 +38,11 @@ class SimpleSexpProcessor
     return nil if x.nil?
     
     unless Array === x
-      raise RuntimeError, "BUG: Invalid sexp: #{x.inspect}"
+      if respond_to? :location
+        raise RuntimeError, "BUG: Invalid sexp: #{x.inspect} near #{location}"
+      else        
+        raise RuntimeError, "BUG: Invalid sexp: #{x.inspect}"
+      end
     end
 
     sel = "process_#{x.first}".to_sym

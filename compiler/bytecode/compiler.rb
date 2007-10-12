@@ -479,6 +479,31 @@ module Bytecode
         
         add "#{lbl}:"
       end
+      
+      def process_dregx(x)
+        process_dstr(x)
+        #add "push 0" # TODO - Fix grammar_runtime so we get the actual options for dregex nodes
+        add "push Regexp"
+        add "send new 1"
+      end
+      
+      def process_dregx_once(x)        
+        loc = @method.add_literal nil
+        
+        add "push_literal #{loc}"
+        add "dup"
+        add "is_nil"
+        
+        lbl = unique_lbl("regex")
+        add "gif #{lbl}"
+        add "pop"
+        
+        process_dstr(x)
+        add "push Regexp"
+        add "send new 1"
+        add "set_literal #{loc}"
+        set_label lbl
+      end
 
       def process_match2(x)
         pattern = x.shift
@@ -705,7 +730,14 @@ module Bytecode
         if @redo
           goto @redo
         else
-          raise "unable to handle this redo."
+          # Compat. I'd rather this be a compile error, but for now
+          # just emit code that raises an exception
+          cnt = @method.add_literal "redo used in invalid context"
+          add "push_literal #{cnt}"
+          add "push LocalJumpError"
+          add "push self"
+          add "set_call_flags 1"
+          add "send raise 2"
         end
       end
       
@@ -1267,17 +1299,16 @@ module Bytecode
         case node
           when :call
             node_type = expr[0].first
-            if (node_type != :self && node_type != :const) || expr.last.size > 1
+            
+            # Make sure there are no args.
+            if expr.last.size > 1
               return(reject_defined) 
             end
-            receiver = expr.shift # self or a const
+            
+            receiver = expr.shift
             msg = expr.shift # method name
-
-            if receiver[0] == :self
-              add "push :#{msg}"
-              add "push self"
-              add "send respond_to? 1"
-            else
+            
+            if receiver[0] == :const              
               lbl = unique_lbl('defined_')
               const = receiver[1]
               add "push :#{const}"
@@ -1289,6 +1320,10 @@ module Bytecode
               add "push #{const}"
               add "send respond_to? 1"
               set_label(lbl)
+            else
+              add "push :#{msg}"
+              process receiver
+              add "send respond_to? 1"
             end
           when :cvar
             cvar = expr.shift
@@ -1557,6 +1592,32 @@ module Bytecode
             "masgn 'source' was not to_ary, splat, or array: #{source.inspect}"
             process source
           end
+        else
+          # This code should only run when an masgn in the block args.
+          add "passed_blockarg 1"
+          lbl = unique_lbl("bamasgn_")
+          gif lbl
+          add "dup"
+          add "push 0"
+          add "fetch_field"
+          add "dup"
+          add "push Array"
+          add "swap"
+          add "kind_of"
+          
+          lbl2 = unique_lbl("bamasgn_")
+          gif lbl2
+          # swap the original tuple with the extract array
+          add "swap"
+          
+          # Remove the thing on the top, either the tuple or the
+          # thing that wasn't an array
+          set_label lbl2
+          add "pop"          
+          set_label lbl
+          # No source implies that the source exists on the stack
+          # already. Make sure it's a tuple first.
+          add "cast_tuple"
         end
 
         # This is bypassed for code like: def foo;yield(1,2,3);end  foo {|*args| ...}
@@ -1586,14 +1647,34 @@ module Bytecode
       end
 
       def process_single_block_var(x)
-        puts "NOT GOOD - OPEN A TICKET: #{x.inspect}" if x.size > 1
         lhs = x.shift
-        lhs.shift # get rid of :array
-        lhs.each do |part|
-          add "unshift_tuple"
-          process part
-          add "pop"
-        end
+        lbl =  unique_lbl("ba_")
+        lbl2 = unique_lbl("ba_")
+        lbl3 = unique_lbl("ba_")
+        
+        add "passed_blockarg 0"
+        gif lbl3
+        add "pop"
+        add "push nil"
+        goto lbl2
+        
+        set_label lbl3
+        add "passed_blockarg 1"
+        git lbl
+        
+        add "cast_array"
+        goto lbl2
+        
+        set_label lbl
+        # add "dup"
+        # add "push self"
+        # add "send p 1"
+        # add "pop"
+        add "push 0"
+        add "fetch_field"
+        
+        set_label lbl2
+        process lhs
         add "pop"
       end
       
@@ -2073,7 +2154,7 @@ module Bytecode
         # Prevent single block arguments from using the more-complex masgn code
         # TODO - Move this to the normalizer
         if args and (args[0] == :lasgn || args[0] == :iasgn)
-          args = [:single_block_var, [:array, args]] 
+          args = [:single_block_var, args] 
         elsif args and args[0] != :masgn
           puts "OPEN A TICKET: Unexpected iter args: #{args.inspect}"
         end
@@ -2190,13 +2271,6 @@ module Bytecode
         add "string_dup"
         cnt.times { add "string_append" }
       end
-
-      def process_dregx(x)
-        process_dstr(x)
-        #add "push 0" # TODO - Fix grammar_runtime so we get the actual options for dregex nodes
-        add "push Regexp"
-        add "send new 1"
-      end
       
       def process_dsym(x) # Symbols with String interpolation
         # Unpack, process contained String and have it symbolise itself
@@ -2206,10 +2280,14 @@ module Bytecode
 
       def process_yield(x)
         args = x.shift
+        # lit indicates that if the args are an array, the are to be
+        # passed not as an array, but directly on the stack as multiple
+        # args.
+        lit = x.shift
         
         if args
           kind = args.first
-          if kind == :array
+          if kind == :array and lit
             args.shift
             args.reverse.each { |a| process(a) }
             sz = args.size
@@ -2227,8 +2305,6 @@ module Bytecode
         else
           sz = 0
         end
-        
-        x.shift
         
         add "push_block"
         add "send call #{sz}"

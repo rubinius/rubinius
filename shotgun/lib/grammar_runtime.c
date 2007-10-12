@@ -262,7 +262,8 @@ again_no_block:
 
   case NODE_CASE:
     {
-      VALUE tmp, t2;
+      VALUE tmp, t2, ic;
+      ic = in_case;
       in_case = 1;
       add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers); /* expr */
       node = node->nd_body;
@@ -294,7 +295,7 @@ again_no_block:
           array_push(current, Qnil);                     /* no else */
         }
       }
-      in_case = 0;
+      in_case = ic;
       break;
     }
   case NODE_WHEN: {

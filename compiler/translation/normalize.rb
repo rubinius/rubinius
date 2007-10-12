@@ -11,6 +11,13 @@ class RsNormalizer < SimpleSexpProcessor
     @state = state || RsLocalState.new
     @full = full
     @lines = lines
+    @file = nil
+    @line = nil
+  end
+  
+  def location
+    return nil unless @file
+    "#{@file}:#{@line}"
   end
   
   def process(x)
@@ -23,7 +30,7 @@ class RsNormalizer < SimpleSexpProcessor
       super(x)
     end
   end
-  
+    
   def process_defs(x)
     recv = x.shift
     out = process_defn(x)
@@ -290,10 +297,10 @@ class RsNormalizer < SimpleSexpProcessor
   end
   
   def process_newline(x)
-    line = x.shift
-    file = x.shift
+    @line = x.shift
+    @file = x.shift
     body = process(x.shift)
-    [:newline, line, file, body]
+    [:newline, @line, @file, body]
   end
   
   def process_case(x)

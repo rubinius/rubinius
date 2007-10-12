@@ -87,7 +87,11 @@ class Object
   end
   
   def method_missing(meth, *args)
-    raise NoMethodError, "No method '#{meth}' on an instance of #{self.class}."
+    if self.kind_of? Class or self.kind_of? Module
+      raise NoMethodError, "No method '#{meth}' on #{self} (#{self.class})"
+    else
+      raise NoMethodError, "No method '#{meth}' on an instance of #{self.class}."
+    end
   end
   
   #  call-seq:
