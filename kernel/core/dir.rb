@@ -33,7 +33,11 @@ class Dir
       Platform::POSIX.chdir original_path
       return value
     else
-      Platform::POSIX.chdir path
+      error = Platform::POSIX.chdir path
+      if error != 0
+        Errno.handle "Couldn't change to directory #{path}"
+      end
+      error
     end
   end
   
