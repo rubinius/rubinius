@@ -2,8 +2,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The redo statement" do
   it "raises LocalJumpError if used not within block or while/for loop" do
-    def bad_meth; redo; end
-    should_raise(LocalJumpError) { bad_meth() }
+    def bad_meth_redo; redo; end
+    should_raise(LocalJumpError) { bad_meth_redo() }
   end
 
   it "restarts block execution if used within block" do
@@ -36,4 +36,14 @@ describe "The redo statement" do
     exist.should == []
     order.should == [1,2,2,3,3,4]
   end
+
+  it "should redo last step in enumeration" do
+    list = []
+    [1,2,3].each do |x|
+      list << x
+      break if list.size == 6
+      redo if x == 3
+    end
+    list.should == [1,2,3,3,3,3]
+  end  
 end

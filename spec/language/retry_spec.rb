@@ -2,8 +2,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The retry statement" do
   it "should raise LocalJumpError if used outside of a block" do
-    def x; retry; end
-    should_raise(LocalJumpError) { x }
+    def bad_meth_retry; retry; end
+    should_raise(LocalJumpError) { bad_meth_retry() }
     should_raise(LocalJumpError) { lambda { retry }.call }
   end
   
@@ -26,5 +26,15 @@ describe "The retry statement" do
     processed.should == [1,2,2,3,3,4]
     exist.should == []
     order.should == [1,2,3,4]
+  end
+
+  it "should retry entire enumeration" do
+    list = []
+    [1,2,3].each do |x|
+      list << x
+      break if list.size == 6
+      retry if x == 3
+    end
+    list.should == [1,2,3,1,2,3]
   end
 end
