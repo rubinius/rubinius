@@ -1,2 +1,0 @@
-Module#const_set raises a NameError when the given name is no valid constant name
-Module#const_set raises a TypeError when the given name can't be converted to string using to_str
