@@ -77,6 +77,10 @@ class Dir
     @path = path
   end
   
+  def path
+    @path
+  end
+  
   def close
     # TODO: Fix this. When using the FFI call, it double frees.
     # I think this is happening in the DIR* internal struct
