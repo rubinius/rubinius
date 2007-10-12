@@ -1,4 +1,3 @@
-Hash.[] returns an instance of the class it's called on
 Hash#[] compares keys with eql? semantics
 Hash#[] calls % on hash code from hash()
 Hash#[] compares key with found hash code via eql?

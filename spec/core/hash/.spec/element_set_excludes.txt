@@ -1,2 +1,1 @@
-Hash#store duplicates string keys using dup semantics
 Hash#[]= duplicates string keys using dup semantics

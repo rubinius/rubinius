@@ -1,0 +1,1 @@
+Module#attr creates a setter for the given attribute name if writable is true

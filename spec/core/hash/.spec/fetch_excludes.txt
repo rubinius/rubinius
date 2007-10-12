@@ -1,0 +1,2 @@
+Hash#fetch returns default if key is not found when passed a default
+Hash#fetch gives precedence to the default block over the default argument when passed both

@@ -1,0 +1,1 @@
+Hash.new raises ArgumentError if passed both default argument and default block

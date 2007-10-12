@@ -1,3 +1,3 @@
-Hash#reject returns subclass instance for subclasses
+Hash#reject processes entries with the same order as reject!
 Hash#reject! raise RuntimeError if #rehash is called from block
 Hash#reject! raises if more than 63 new entries are added from block

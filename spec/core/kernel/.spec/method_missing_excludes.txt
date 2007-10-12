@@ -1,3 +1,3 @@
-Kernel#method_missing raise a NoMethodError exception after call a non defined method 
-Kernel#method_missing return the correct value from the method_missing method after call a private instance method
-Kernel#method_missing return the correct value from the method_missing method after call a protected instance method
+Kernel#method_missing is not called when a defined method is called
+Kernel#method_missing is called when an undefined method is called
+Kernel#method_missing is called when a private method is called
