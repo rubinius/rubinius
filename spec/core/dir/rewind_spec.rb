@@ -11,21 +11,23 @@ describe "Dir#rewind" do
     @dir.close
   end
   
-  it "resets the next read to start from the first entry" do
-    first   = @dir.pos
-    a       = @dir.read
-    b       = @dir.read
-    prejmp  = @dir.pos
-    ret     = @dir.rewind
-    second  = @dir.pos
-    c       = @dir.read
+  platform :not, :darwin do
+    it "resets the next read to start from the first entry" do
+      first   = @dir.pos
+      a       = @dir.read
+      b       = @dir.read
+      prejmp  = @dir.pos
+      ret     = @dir.rewind
+      second  = @dir.pos
+      c       = @dir.read
 
-    a.should_not == b
-    b.should_not == c
-    c.should     == a
+      a.should_not == b
+      b.should_not == c
+      c.should     == a
 
-    second.should_not == first
-    second.should_not == prejmp
+      second.should == first
+      second.should_not == prejmp
+    end
   end
   
   it "returns the Dir instance" do

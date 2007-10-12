@@ -4,12 +4,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Kernel.local_variables" do
   it "should contain locals as they are added" do
     a = 1
-    local_variables.should == ["a"]
     b = 2
-    local_variables.include?("a").should == true
-    local_variables.include?("b").should == true
-    # I'm not sure that the order of local variables should be in the spec for the language
-    # local_variables.should == ["b","a"]
+    local_variables.should_include("a", "b")
   end
 
   it "should be accessable from bindings" do
@@ -20,7 +16,6 @@ describe "Kernel.local_variables" do
     end
     foo_binding = local_var_foo()
     res = eval("local_variables",foo_binding)
-    res.include?("a").should == true
-    res.include?("b").should == true
+    res.should_include("a", "b")
   end
 end

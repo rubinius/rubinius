@@ -115,9 +115,12 @@ def guard(*args, &cond)
 end
 
 class Object
-  def should_include(other)
-    unless self.include?(other)
-      raise ExpectationNotMetError.new("Expected " + self.inspect + " to include " + other.inspect)
+  def should_include(*others)
+    others = others.to_a unless others.is_a? Array
+    others.each do |other|
+      unless self.include?(other)
+        raise ExpectationNotMetError.new("Expected " + self.inspect + " to include " + other.inspect)
+      end
     end
   end
 

@@ -18,10 +18,12 @@ describe "Dir#each" do
   end
 
   it "returns the directory which remains open" do
+    # an FS does not necessarily impose order
+    ls = `ls -a #{mock_dir}`.split
     @dir.each {}.should == @dir
     @dir.read.should == nil
     @dir.rewind
-    @dir.read.should == '.'
+    ls.should_include(@dir.read)
   end
 end
 

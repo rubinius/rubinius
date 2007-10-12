@@ -4,8 +4,6 @@
 # spec to a failure condition.
 require File.dirname(__FILE__) + '/../spec_helper'
 
-    $stderr.puts '#remove_method not implemented!'
-
 context 'Setting up mock methods in a #specify/#it block' do
   specify 'any object can set up a mock method using #should_receive' do
     o = Object.new

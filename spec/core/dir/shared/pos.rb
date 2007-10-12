@@ -1,19 +1,32 @@
 @dir_pos = shared "Dir#pos" do |cmd|
   describe "Dir##{cmd}" do
-    specify 'Both Dir#pos and Dir#tell give the current dir position' do
+    before :each do
       @dir = Dir.open mock_dir
+    end
 
-      @dir.pos.should == 1
-      @dir.tell.should == 2
-      @dir.pos.should == 3
-      @dir.tell.should == 4
-
+    after :each do
       @dir.close rescue nil
     end
 
-    specify 'Dir#pos= also seeks to a certain position but returns the position number instead' do
-      @dir = Dir.open mock_dir
+    platform :darwin do
+      it "gives the current dir position" do
+        @dir.pos.should == 1
+        @dir.tell.should == 2
+        @dir.pos.should == 3
+        @dir.tell.should == 4
+      end
+    end
 
+    platform :not, :darwin do
+      it "gives the current dir position" do
+        @dir.pos.should == 0
+        @dir.tell.should == 0
+        @dir.pos.should == 0
+        @dir.tell.should == 0
+      end
+    end
+
+    it "seeks to a certain position and returns a location number" do
       pos = @dir.pos
       a   = @dir.read
       b   = @dir.read
@@ -25,8 +38,6 @@
       c.should     == a
 
       ret.should == pos
-
-      @dir.close rescue nil
     end
   end
 end

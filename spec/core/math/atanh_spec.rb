@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math.atanh" do
   it "returns a float" do
-    Math.atanh(1.0).class.should == Float
+    Math.atanh(0.5).class.should == Float
   end
   
   it "returns the inverse hyperbolic tangent of the argument" do
@@ -13,15 +13,27 @@ describe "Math.atanh" do
     Math.atanh(-0.2).should_be_close(-0.202732554054082, TOLERANCE)
   end
   
-  it "returns Infinity for 1.0" do
-    Math.atanh(1.0).infinite?.should == 1
+  platform :darwin, :freebsd do
+    it "returns Infinity for 1.0" do
+      Math.atanh(1.0).infinite?.should == 1
+    end
+  
+    it "returns -Infinity for -1.0" do
+      Math.atanh(-1.0).infinite?.should == -1
+    end
+  end
+
+  platform :mswin, :linux, :openbsd do
+    it "raises Errno::EDOM if x = 1.0" do
+      should_raise(Errno::EDOM) { Math.atanh(1.0) }
+    end
+
+    it "raises Errno::EDOM if x = -1.0" do
+      should_raise(Errno::EDOM) { Math.atanh(-1.0) }
+    end
   end
   
-  it "returns -Infinity for -1.0" do
-    Math.atanh(-1.0).infinite?.should == -1
-  end
-  
-  it "it raises Errno::EDOM if x < 1" do
+  it "raises Errno::EDOM if x > 1.0" do
     should_raise(Errno::EDOM) { Math.atanh(1.0 + TOLERANCE) }
     should_raise(Errno::EDOM) { Math.atanh(-1.0 - TOLERANCE) }
   end
@@ -35,7 +47,7 @@ describe "Math.atanh" do
   end
   
   it "accepts any argument that can be coerced with Float()" do
-    Math.atanh(MathSpecs::Float.new).infinite?.should == 1
+    Math.atanh(MathSpecs::Float.new(0.5)).infinite?.should == nil
   end
 end
 

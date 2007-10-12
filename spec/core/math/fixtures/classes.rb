@@ -4,8 +4,12 @@ end
 
 module MathSpecs
   class Float
+    def initialize(value=1.0)
+      @value = value
+    end
+
     def to_f
-      1.0
+      @value
     end
   end
 
