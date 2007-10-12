@@ -144,3 +144,12 @@ end
 def it_behaves_like(behavior, meth)
   behavior.call(meth)
 end
+
+def dev_null
+  null = Object.new
+  null.instance_variable_set :@data, ''
+  def null.write(str) @data << str end
+  def null.print(str) write(str+$\.to_s) end
+  def null.data() @data end
+  null
+end

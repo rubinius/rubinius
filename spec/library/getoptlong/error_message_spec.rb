@@ -9,11 +9,15 @@ describe "GetoptLong#error_message" do
   
   it "should return the error message of the last error that occurred" do
     begin
+      s = $stderr
+      $stderr = dev_null
       opts = GetoptLong.new
       opts.get
       opts.ordering = GetoptLong::PERMUTE
     rescue ArgumentError
       opts.error_message.should == "argument error"
+    ensure
+      $stderr = s
     end
   end
 end

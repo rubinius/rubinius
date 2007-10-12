@@ -14,20 +14,22 @@ context "Exceptions" do
   
   # FIXME: code string is only necessary because ensure crashes shotgun
   specify "ensure should execute when exception is raised" do
-    class A
-      def exception
-        begin
-          raise ArgumentError, "exception"
-        rescue Exception => @e
-          # pass
-        ensure
-          @a = 'ensure ' << @e
+    module RaiseSpecs
+      class A
+        def exception
+          begin
+            raise ArgumentError, "exception"
+          rescue Exception => @e
+            # pass
+          ensure
+            @a = 'ensure ' << @e
+          end
+          @a
         end
-        @a
       end
     end
 
-    A.new.exception.should == "ensure exception"
+    RaiseSpecs::A.new.exception.should == "ensure exception"
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun

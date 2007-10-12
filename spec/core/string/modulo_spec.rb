@@ -30,9 +30,7 @@ describe "String#%" do
     begin
       s = $stderr
       old_debug = $DEBUG
-      out = Object.new
-      def out.write(str) end
-      $stderr = out
+      $stderr = dev_null
       $DEBUG = true
 
       should_raise(ArgumentError) { "" % [1, 2, 3] }

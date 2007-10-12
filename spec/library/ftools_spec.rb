@@ -16,7 +16,6 @@ describe "File.catname" do
 end
 
 describe "File.syscopy" do
-  
   before(:each) do
     system "echo 'hello rubinius' > syscopy_test"
     system "chmod a+x syscopy_test"
@@ -24,12 +23,10 @@ describe "File.syscopy" do
   
   after(:each) do
     File.unlink "syscopy_test"
-    
-    # File.unlink "syscopy_test_dest" rescue nil
+    File.unlink "syscopy_test_dest" rescue nil
   end
   
   it "copies the file at 1st arg to the file at 2nd arg" do
-    
     File.syscopy("syscopy_test", "syscopy_test_dest")
     fd = File.open("syscopy_test_dest")
     data = fd.read
@@ -41,6 +38,4 @@ describe "File.syscopy" do
     
     omode.should == mode
   end
-  
-  
 end

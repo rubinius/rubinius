@@ -2,20 +2,14 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.warn" do
-  class FakeErr
-    def initialize; @written = ''; end
-    def written; @written; end
-    def write(warning); @written << warning; end;
-   end
-
   it "should call #write on $stderr" do
     begin
       v = $VERBOSE
       s = $stderr
       $VERBOSE = true
-      $stderr = FakeErr.new
+      $stderr = dev_null
       warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-      $stderr.written.should == "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n"
+      $stderr.data.should == "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n"
     ensure
       $VERBOSE = v
       $stderr = s
@@ -29,9 +23,9 @@ describe "Kernel.warn" do
       rs = $/
       $VERBOSE = true
       $/ = 'rs'
-      $stderr = FakeErr.new
+      $stderr = dev_null
       warn("")
-      $stderr.written.should == "\n"
+      $stderr.data.should == "\n"
     ensure
       $VERBOSE = v
       $stderr = s
@@ -44,9 +38,9 @@ describe "Kernel.warn" do
       v = $VERBOSE
       s = $stderr
       $VERBOSE = nil
-      $stderr = FakeErr.new
+      $stderr = dev_null
       warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-      $stderr.written.should == ""
+      $stderr.data.should == ""
     ensure
       $stderr = s
       $VERBOSE = v

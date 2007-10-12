@@ -4,6 +4,8 @@ require 'getoptlong'
 describe "GetoptLong#ordering=" do
   it "should raise an ArgumentError if called after processing has started" do
     begin
+      s = $stderr
+      $stderr = dev_null
       old_argv = ARGV
       ARGV = [ "--size", "10k", "--verbose" ]
       
@@ -16,6 +18,7 @@ describe "GetoptLong#ordering=" do
       end
     ensure
       ARGV = old_argv
+      $stderr = s
     end
   end
 
