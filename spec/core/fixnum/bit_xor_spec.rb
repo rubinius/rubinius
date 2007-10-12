@@ -8,7 +8,7 @@ describe "Fixnum#^" do
     (5 ^ 0xffffffff).should == 4294967290
   end
 
-  it "tries to convert it's argument to an Integer using to_int" do
+  it "tries to convert the given argument to an Integer using to_int" do
     (5 ^ 4.3).should == 1
     
     (obj = Object.new).should_receive(:to_int, :returning => 4)

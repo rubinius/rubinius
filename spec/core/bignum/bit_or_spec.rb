@@ -2,10 +2,28 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#|" do
+  before(:each) do
+    @bignum = BignumHelper.sbm(11) 
+  end
+  
   it "returns self bitwise OR other" do
-    a = BignumHelper.sbm(11)
-    (a | 2).should == 1073741835
-    (a | 9.9).should == 1073741835
-    (a | BignumHelper.sbm).should == 1073741835
+    (@bignum | 2).should == 1073741835
+    (@bignum | 9).should == 1073741835
+    (@bignum | BignumHelper.sbm).should == 1073741835
+  end
+
+  it "tries to convert the given argument to an Integer using to_int" do
+    (@bignum | 9.9).should == 1073741835
+    
+    (obj = Object.new).should_receive(:to_int, :returning => 2)
+    (@bignum | obj).should == 1073741835
+  end
+  
+  it "raises a TypeError when the given argument can't be converted to Integer" do
+    obj = Object.new
+    should_raise(TypeError) { @bignum | obj }
+    
+    obj.should_receive(:to_int, :returning => "asdf")
+    should_raise(TypeError) { @bignum | obj }
   end
 end
