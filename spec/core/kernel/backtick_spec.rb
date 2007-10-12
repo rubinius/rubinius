@@ -14,10 +14,12 @@ describe "Kernel#`" do
     $?.stopped?.should == false
     $?.exited?.should == true
     $?.exitstatus.should == 0
+    $?.success?.should == true
     `echo disc #{ip}; exit 99`
     $?.class.should == Process::Status
     $?.stopped?.should == false
     $?.exited?.should == true
     $?.exitstatus.should == 99
+    $?.success?.should == false
   end
 end

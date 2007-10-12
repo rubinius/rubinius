@@ -11,6 +11,72 @@ class Process
     now = Time.now
     Struct::Tms.new(now - $STARTUP_TIME, 0.0, 0.0, 0.0)
   end
+  
+  # TODO: Most of the fields aren't implemented yet.
+  # TODO: Also, these objects should only need to be constructed by Process.wait and family.
+  class Status
+    def initialize(pid, status)
+      @pid = pid
+      @status = status
+    end
+    
+    def to_i
+      @status
+    end
+    
+    def to_s
+      @status.to_s
+    end
+    
+    def &(num)
+      @status & num
+    end
+    
+    def ==(other)
+      other = other.to_i if other.kind_of? Process::Status
+      @status == other
+    end
+    
+    def >>(num)
+      @status >> num
+    end
+    
+    def coredump?
+      false
+    end
+    
+    def exited?
+      true
+    end
+    
+    def exitstatus
+      @status
+    end
+    
+    def pid
+      @pid
+    end
+    
+    def signaled?
+      false
+    end
+    
+    def stopped?
+      false
+    end
+    
+    def stopsig
+      nil
+    end
+    
+    def success?
+      @status == 0
+    end
+    
+    def termsig
+      nil
+    end
+  end
 end
 
 module Kernel
@@ -21,6 +87,7 @@ module Kernel
       chan = Channel.new
       Scheduler.send_on_stopped chan, pid
       status = chan.receive
+      $? = Process::Status.new pid, status
       return false if status != 0
       
       return true
@@ -44,7 +111,7 @@ module Kernel
           output << res
         elsif !res
           Scheduler.send_on_stopped chan, pid
-          res = chan.receive
+          $? = Process::Status.new pid, chan.receive
           return output
         end
       end
