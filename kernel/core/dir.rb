@@ -53,6 +53,7 @@ class Dir
     if error != 0
       Errno.handle "Couldn't delete directory #{path}"
     end
+    error
   end
 
   def self.getwd
