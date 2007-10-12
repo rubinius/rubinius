@@ -1,2 +1,0 @@
-Dir.delete removes empty directories
-Dir.rmdir removes empty directories

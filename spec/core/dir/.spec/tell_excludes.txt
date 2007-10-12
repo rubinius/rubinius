@@ -1,4 +1,3 @@
-Dir#pos raises an IOError when called on a closed Dir instance
-Dir#tell Both Dir#pos and Dir#tell give the current dir position
-Dir#tell Dir#pos= also seeks to a certain position but returns the position number instead
+Dir#tell gives the current dir position
+Dir#tell seeks to a certain position and returns a location number
 Dir#tell raises an IOError when called on a closed Dir instance

@@ -1,5 +1,3 @@
-Dir#close closes the stream and fd and returns nil
-Dir#close raises an IOError when called on a closed Dir instance
 Dir#each yields each directory entry in succession
 Dir#each returns the directory which remains open
 Dir#each raises an IOError when called on a closed Dir instance
