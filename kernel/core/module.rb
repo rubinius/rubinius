@@ -290,12 +290,6 @@ private
   end
   
   def valid_const_name?(name)
-    name_as_s = name.to_s
-    
-    if name_as_s =~ /^[A-Z]\w*$/ && name_as_s[0, 1] > 'A' && name_as_s[0, 1] < 'Z'
-      true
-    else
-      false
-    end
+    name.to_s =~ /^[A-Z]\w*$/ ? true : false
   end
 end

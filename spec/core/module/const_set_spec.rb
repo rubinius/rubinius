@@ -3,15 +3,20 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#const_set" do
   it "sets the constant with the given name to the given value" do
-    m = Module.new do
-      const_set :A, "A"
-      const_set :B.to_i, "B"
-      const_set "C", "C"
+    # module MyModule
+    #   const_set :A, "A"
+    #   const_set :B.to_i, "B"
+    #   const_set "C", "C"
+    # end
+    module MyModule
     end
+    MyModule.const_set :A, "A"
+    MyModule.const_set :B.to_i, "B"
+    MyModule.const_set "C", "C"
     
-    m.const_get("A").should == "A"
-    m.const_get("B").should == "B"
-    m.const_get("C").should == "C"
+    MyModule.const_get("A").should == "A"
+    MyModule.const_get("B").should == "B"
+    MyModule.const_get("C").should == "C"
   end
 
   it "raises a NameError when the given name is no valid constant name" do
