@@ -2,24 +2,30 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "File#chmod" do
   before :each do
-    @filename = '/tmp/i_exist'
+    @filename = File.dirname(__FILE__) + '/fixtures/i_exist'
     @file = File.open(@filename, 'w')
   end
-  
+    
   after :each do
     @file.close
     File.delete(@filename) if File.exist?(@filename)
   end
   
-  it "should modify the permission bits of the files specified" do
+  it "returns 0 if successful" do
     @file.chmod(0755).should == 0
-    File.stat(@filename).mode.should == 33261
+  end 
+    
+  platform :not, :mswin do
+    it "should modify the permission bits of the files specified" do
+      @file.chmod(0755)
+      File.stat(@filename).mode.should == 33261
+    end
   end
 end
 
 describe "File.chmod" do
   before :each do
-    @file = '/tmp/i_exist'
+    @file = File.dirname(__FILE__) + '/fixtures/i_exist'
     File.open(@file, 'w') {}
     @count = File.chmod(0755, @file)
   end
@@ -32,7 +38,9 @@ describe "File.chmod" do
     @count.should == 1
   end
   
-  it "should modify the permission bits of the files specified" do
-    File.stat(@file).mode.should == 33261
+  platform :not, :mswin do
+    it "should modify the permission bits of the files specified" do
+      File.stat(@file).mode.should == 33261
+    end
   end
 end
