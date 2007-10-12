@@ -36,7 +36,7 @@ int ffi_write_int(int *ptr, int val) {
   return val;
 }
 
-int ffi_read_int(int *ptr, int val) {
+int ffi_read_int(int *ptr) {
   return *ptr;
 }
 
