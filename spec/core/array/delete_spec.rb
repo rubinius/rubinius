@@ -25,11 +25,11 @@ describe "Array#delete" do
   
   compliant :mri do
     it "raises TypeError on a frozen array if a modification would take place" do
-      should_raise(TypeError) { @frozen_array.delete(1) }
+      should_raise(TypeError) { [1, 2, 3].freeze.delete(1) }
     end
 
-    it "does not raise on a frozen array if a modification would not take place" do
-      @frozen_array.delete(0) # ok, no modification
+    it "returns false on a frozen array if a modification does not take place" do
+      [1, 2, 3].freeze.delete(0).should == nil
     end
   end
 end
