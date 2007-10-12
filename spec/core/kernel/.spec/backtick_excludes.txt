@@ -1,0 +1,2 @@
+Kernel#` returns the result of the executed sub-process
+Kernel#` sets $? to the exit status of the executed sub-process
