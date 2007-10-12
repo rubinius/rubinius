@@ -389,7 +389,3 @@ class Object
   alias setup before
   alias teardown after
 end
-
-at_exit do
-  @runner.reporter.summary
-end

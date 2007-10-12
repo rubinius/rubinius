@@ -124,6 +124,7 @@ patterns.each do |item|
 end
 
 code = <<-EOC
+$VERBOSE=nil
 #{name}
 @runner = SpecRunner.new(#{format}.new(#{output.inspect if output}));
 @runner.only(*#{only.inspect});
@@ -134,6 +135,7 @@ code = <<-EOC
   STDERR.puts f if #{verbose}
   load f
 end
+@runner.reporter.summary
 EOC
 
 File.open("last_mspec.rb", "w") do |f|

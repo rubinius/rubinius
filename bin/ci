@@ -129,6 +129,7 @@ File.open(ci_files, "w") do |f|
 end
 
 code = <<-EOC
+$VERBOSE=nil
 require 'mini_rspec.rb'
 require 'mini_mock.rb'
 @runner = SpecRunner.new;
