@@ -33,6 +33,7 @@ kernel/core/sampler.rbc
 kernel/core/process.rbc
 kernel/core/options.rbc
 kernel/core/exception.rbc
+kernel/core/filetest.rbc
 kernel/core/channel.rbc
 kernel/core/float.rbc
 kernel/core/fixnum.rbc
