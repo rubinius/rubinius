@@ -1,0 +1,1 @@
+Module#initialize sets the constant with the given name to the given value
