@@ -3,33 +3,26 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#const_set" do
   it "sets the constant with the given name to the given value" do
-    # module MyModule
-    #   const_set :A, "A"
-    #   const_set :B.to_i, "B"
-    #   const_set "C", "C"
-    # end
-    module MyModule
-    end
-    MyModule.const_set :A, "A"
-    MyModule.const_set :B.to_i, "B"
-    MyModule.const_set "C", "C"
+    Module.const_set :A, "A"
+    Module.const_set :B.to_i, "B"
+    Module.const_set "C", "C"
     
-    MyModule.const_get("A").should == "A"
-    MyModule.const_get("B").should == "B"
-    MyModule.const_get("C").should == "C"
+    Module.const_get("A").should == "A"
+    Module.const_get("B").should == "B"
+    Module.const_get("C").should == "C"
   end
 
   it "raises a NameError when the given name is no valid constant name" do
     should_raise(NameError, "wrong constant name invalid") do
-      Module.new { const_set "invalid", "some value" }
+      Module.const_set "invalid", "some value"
     end
 
     should_raise(NameError, "wrong constant name Dup Dup") do
-      Module.new { const_set "Dup Dup", "some value" }
+      Module.const_set "Dup Dup", "some value"
     end
 
     should_raise(NameError, "wrong constant name 123") do
-      Module.new { const_set "123", "some value" }
+      Module.const_set "123", "some value"
     end
   end
   
@@ -41,21 +34,20 @@ describe "Module#const_set" do
 
   it "tries to convert the given name to a string using to_str" do
     (o = Object.new).should_receive(:to_str, :returning => "A")
-    m = Module.new { const_set o, "test" } 
-    m.const_get(:A).should == "test"
+    Module.const_set o, "test"
+    Module.const_get(:A).should == "test"
   end
-
+  
   it "raises a TypeError when the given name can't be converted to string using to_str" do
     o = Object.new
-    m = Module.new
     
     should_raise(TypeError, "#{o} is not a symbol") do
-      m.const_set(o, "test")
+      Module.const_set(o, "test")
     end
-
+  
     o.should_receive(:to_str, :returning => 123)
     should_raise(TypeError, "Object#to_str should return String") do
-      m.const_set(o, "Test")
+      Module.const_set(o, "Test")
     end
   end
 end
