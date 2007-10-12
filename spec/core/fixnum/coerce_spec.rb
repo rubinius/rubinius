@@ -22,7 +22,7 @@ end
 
 describe "Fixnum#coerce" do
   it "raises a TypeError when trying to coerce with nil" do
-    should_raise(TypeError, "can't convert nil into Float") do
+    should_raise(TypeError) do
       1.coerce(nil)
     end
   end
