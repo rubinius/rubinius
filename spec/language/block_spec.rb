@@ -28,7 +28,7 @@ describe "Block parameters" do
   end
 
   compliant :mri do
-    require 'spec/language/strange_block_args_spec.rb'
+    require 'spec/language/strange_block_args_subspec.rb'
   end
 
   it "should capture variables from outer scope" do
