@@ -1,1 +1,0 @@
-The 'case'-construct should work even if there's only one when statement

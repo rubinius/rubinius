@@ -804,7 +804,7 @@ module Bytecode
                 
         cur = nil
         w = whns.shift
-        generate_when w, lbls[0], single ? nil : post
+        generate_when w, lbls[0], post
         
         lst = whns.pop
         
