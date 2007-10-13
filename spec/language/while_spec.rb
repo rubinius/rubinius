@@ -142,15 +142,23 @@ describe "The while modifier" do
   it "should skip to end of body with next" do
     a = []
     i = 0
-    lambda { next if i==3; a << i }.call while (i+=1)<5
-    a.should == [1, 2, 4]
+    while i < 5
+      i += 1
+      next if i == 3
+      a << i
+    end
+    a.should == [1, 2, 4, 5]
   end
 
   it "should restart current iteration without reevaluating condition with redo" do
     a = []
     i = 0
     j = 0
-    lambda { a << i; j+=1; redo if j<3 }.call while (i+=1)<3
+    while (i += 1) < 3
+      a << i
+      j += 1
+      redo if j < 3
+    end
     a.should == [1, 1, 1, 2]
   end
 end

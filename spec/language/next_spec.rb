@@ -2,8 +2,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 describe "The next statement" do
   it "raises LocalJumpError if used not within block or while/for loop" do
-    def x; next; end
-    should_raise(LocalJumpError) { x }
+    def bad_meth; next; end
+    should_raise(LocalJumpError) { bad_meth }
   end
 
   it "ends block execution if used within block" do
@@ -20,8 +20,11 @@ describe "The next statement" do
     lambda { 123; next; 456 }.call.should == nil
   end
 
-  it "accepts argument but returns nil from blocks" do
-    lambda { 123; next 234; 345 }.call.should == nil
+  # This seems like an MRI bug, not a feature or spec.
+  compliant :mri do
+    it "accepts argument but returns nil from blocks" do
+      lambda { 123; next 234; 345 }.call.should == nil
+    end
   end
 end
 

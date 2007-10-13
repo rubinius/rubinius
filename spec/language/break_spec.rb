@@ -48,7 +48,9 @@ describe "Breaking out of a loop with a value" do
     a = loop do break *[nil]; end;    a.should == nil
     a = loop do break *[[]]; end;     a.should == []
     a = loop do break *[*[]]; end;    a.should == nil
+    a = loop do break *[1]; end;      a.should == 1
     a = loop do break *[*[1]]; end;   a.should == 1
+    a = loop do break *[1,2]; end;    a.should == [1,2]
     a = loop do break *[*[1,2]]; end; a.should == [1,2]
   end
 

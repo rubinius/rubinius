@@ -262,8 +262,11 @@ describe 'Multiple assignment without grouping or splatting' do
 end
 
 describe 'Multiple assignments with splats' do
-  it '* on the lhs has to be applied to the last parameter' do
-    should_raise(SyntaxError) { eval 'a, *b, c = 1, 2, 3' }
+  # TODO make this normal once rubinius eval works
+  compliant :mri do
+    it '* on the lhs has to be applied to the last parameter' do
+      should_raise(SyntaxError) { eval 'a, *b, c = 1, 2, 3' }
+    end
   end
 
   it '* on the lhs collects all parameters from its position onwards as an Array or an empty Array' do
@@ -308,8 +311,10 @@ describe 'Multiple assignments with grouping' do
     l.should == 3
   end
 
-  it 'rhs cannot use parameter grouping, it is a syntax error' do
-    should_raise(SyntaxError) { eval '(a, b) = (1, 2)' }
+  compliant :mri do
+    it 'rhs cannot use parameter grouping, it is a syntax error' do
+      should_raise(SyntaxError) { eval '(a, b) = (1, 2)' }
+    end
   end
 end
 

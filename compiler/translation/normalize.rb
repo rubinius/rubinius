@@ -286,10 +286,9 @@ class RsNormalizer < SimpleSexpProcessor
       body = [:block, body]
     end
     
-    # Whats the last field?
-    x.clear
+    style = x.shift
     
-    [kind, process(cond), process(body)]
+    [kind, process(cond), process(body), style]
   end
   
   def process_until(x)
@@ -297,10 +296,10 @@ class RsNormalizer < SimpleSexpProcessor
   end
   
   def process_newline(x)
-    @line = x.shift
-    @file = x.shift
+    line = @line = x.shift
+    file = @file = x.shift
     body = process(x.shift)
-    [:newline, @line, @file, body]
+    [:newline, line, file, body]
   end
   
   def process_case(x)

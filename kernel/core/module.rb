@@ -88,7 +88,7 @@ class Module
     return names
   end
   # private :filter_methods
-
+  
   def define_method(name, meth = nil, &prc)
     meth ||= prc
 

@@ -459,9 +459,13 @@ CODE
   def push_array
     <<-CODE
     t1 = stack_pop();
-    j = FIXNUM_TO_INT(array_get_total(t1)) - 1;
-    for(; j >= 0; j--) {
-      stack_push(array_get(state, t1, j));
+    j = FIXNUM_TO_INT(array_get_total(t1));
+    if(j == 0) {
+      stack_push(Qnil);
+    } else {
+      for(j--; j >= 0; j--) {
+        stack_push(array_get(state, t1, j));
+      }
     }
     CODE
   end

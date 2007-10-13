@@ -86,12 +86,17 @@ context "A ruby environment" do
     !!defined?(x).should == false
   end
 
-  specify "should return true when Bar#no_args uses defined?" do
-    (!!Bar.new.no_args).should == true
-  end
+  # I (Evan) am not certain we'll support defined?(super) ever.
+  # for now, i'm marking these as compliant.
 
-  specify "should return true when Bar#args uses defined?" do
-    (!!Bar.new.args).should == true
+  compliant :mri do
+    specify "should return true when Bar#no_args uses defined?" do
+      (!!Bar.new.no_args).should == true
+    end
+
+    specify "should return true when Bar#args uses defined?" do
+      (!!Bar.new.args).should == true
+    end
   end
 end
 

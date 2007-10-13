@@ -660,19 +660,48 @@ module Bytecode
       
       def process_while(x, cond="gif")
         cm = save_condmod()
-        @next = top = unique_lbl('next_')
-        @break = bot = unique_lbl('break_')
+        top = unique_lbl('next_')
+        bot = unique_lbl('while_')
+        @break = unique_lbl('break_')
         @redo = unique_lbl('redo_')
-        set_label top
-        process x.shift
-        add "#{cond} #{bot}"
-        set_label @redo
-        dontpop = x[0].nil?     # fixme -- why is a nil there?
-        process x.shift
-        add "pop" unless dontpop # stack cleanup
-        goto top
-        set_label bot
-        add "push nil"          # stack un-cleanup
+        
+        check = x.shift
+        body = x.shift
+        check_first = x.shift
+        
+        if check_first
+          @next = top
+
+          set_label top
+          
+          process check
+          add "#{cond} #{bot}"
+          set_label @redo
+          process body
+          add "pop"
+          goto top
+          set_label bot
+          add "pop"
+          add "push nil"
+          set_label @break
+        else
+          add "; post while style"
+          @next = unique_lbl("next_")
+          
+          add "push nil"
+          set_label top
+          add "pop"
+          set_label @redo
+          process body
+          set_label @next
+          process check
+          add "#{cond} #{bot}"
+          goto top
+          set_label bot
+          add "pop"
+          add "push nil"
+          set_label @break
+        end
         
         restore_condmod(*cm)
       end
@@ -717,6 +746,15 @@ module Bytecode
           add "send __unexpected_break__ 0"
         end
       end
+      
+      def jump_error(msg)
+        cnt = @method.add_literal msg
+        add "push_literal #{cnt}"
+        add "push LocalJumpError"
+        add "push self"
+        add "set_call_flags 1"
+        add "send raise 2"
+      end
             
       def process_redo(x)
         # FIXME: stack cleanup?
@@ -732,12 +770,7 @@ module Bytecode
         else
           # Compat. I'd rather this be a compile error, but for now
           # just emit code that raises an exception
-          cnt = @method.add_literal "redo used in invalid context"
-          add "push_literal #{cnt}"
-          add "push LocalJumpError"
-          add "push self"
-          add "set_call_flags 1"
-          add "send raise 2"
+          jump_error "redo used in invalid context"
         end
       end
       
@@ -846,10 +879,23 @@ module Bytecode
 
       def process_svalue(x)
         process(x.shift)
+        add "cast_array"
+        add "dup"
+        add "push 1"
+        add "swap"
+        add "send size 0"
+        add "send <= 1"
+        lbl = unique_lbl("svalue")
+        gif lbl
+        add "push 0"
+        add "swap"
+        add "send at 1"
+        set_label lbl
       end
 
       def process_splat(x)
         process(x.shift)
+        add "cast_array"
       end
 
       def process_op_asgn_or(x)
@@ -1261,9 +1307,16 @@ module Bytecode
       end
 
       def process_retry(x)
-        raise LocalJumpError.new("'retry' called outside of a rescue clause") unless @retry_label
-        raise "retry in blocks not supported" if @retry_label == :block
-        goto @retry_label
+        unless @retry_label
+          jump_error "retry used in invalid context"
+          return
+        end
+        
+        if @retry_label == :block
+          jump_error "retry in blocks not supported"
+        else
+          goto @retry_label
+        end
       end
 
       # There are two rough groups of arguments that can be passed to :defined?:
@@ -1484,10 +1537,13 @@ module Bytecode
         ie = @in_ensure
         @in_ensure = true
         cr = @check_return
-        @check_return = false
         process body
         should_check = @check_return
-        @check_return = cr
+        # If there is an outer ensure, don't reset check_return
+        # let it bubble out.
+        unless ie
+          @check_return = cr
+        end
         @in_ensure = ie
         
         sp = @system_prefix
@@ -1508,7 +1564,11 @@ module Bytecode
         add "#exceptions #{ex}"
         @output << ensure_code
         add "pop"
-        if should_check
+        # @in_ensure is set here if there is an outer ensure
+        # also. if there is, we skip the return logic here
+        # and just raise the return value exception.
+        if should_check and !@in_ensure
+          add "push_exception"
           add "dup"
           add "push Tuple"
           add "swap"
@@ -1567,7 +1627,7 @@ module Bytecode
       
       # Handles various types of multiple assignment, including do |*args| .. end
       # argscat and argspush are handled elsewhere
-      def process_masgn(x)
+      def process_masgn(x, block_args=false)
         return unless x[0] # masgn to empty name, e.g. do |*| .. end
         if x[0][0] == :array
           lhs = x.shift
@@ -1593,31 +1653,37 @@ module Bytecode
             process source
           end
         else
-          # This code should only run when an masgn in the block args.
-          add "passed_blockarg 1"
-          lbl = unique_lbl("bamasgn_")
-          gif lbl
-          add "dup"
-          add "push 0"
-          add "fetch_field"
-          add "dup"
-          add "push Array"
-          add "swap"
-          add "kind_of"
+          if @in_block == :lambda
+            # Stupid other behavior for lambda/proc
+            add "cast_tuple"
+          elsif block_args
+            add "passed_blockarg 1"
+            lbl = unique_lbl("bamasgn_")
+            gif lbl
+            add "dup"
+            add "push 0"
+            add "fetch_field"
+            add "dup"
+            add "push Array"
+            add "swap"
+            add "kind_of"
           
-          lbl2 = unique_lbl("bamasgn_")
-          gif lbl2
-          # swap the original tuple with the extract array
-          add "swap"
+            lbl2 = unique_lbl("bamasgn_")
+            gif lbl2
+            # swap the original tuple with the extract array
+            add "swap"
           
-          # Remove the thing on the top, either the tuple or the
-          # thing that wasn't an array
-          set_label lbl2
-          add "pop"          
-          set_label lbl
-          # No source implies that the source exists on the stack
-          # already. Make sure it's a tuple first.
-          add "cast_tuple"
+            # Remove the thing on the top, either the tuple or the
+            # thing that wasn't an array
+            set_label lbl2
+            add "pop"          
+            set_label lbl
+            # No source implies that the source exists on the stack
+            # already. Make sure it's a tuple first.
+            add "cast_tuple"
+          else
+            add "cast_tuple"
+          end
         end
 
         # This is bypassed for code like: def foo;yield(1,2,3);end  foo {|*args| ...}
@@ -1700,8 +1766,12 @@ module Bytecode
           process splat
           add "pop"
           lhs.reverse.each do |e|
-            process e
-            add "pop"
+            if e.first == :masgn
+              process e
+            else
+              process e
+              add "pop"
+            end
           end
         else
           # for example: a,b,c = 99,8
@@ -1714,8 +1784,12 @@ module Bytecode
           end
         
           lhs.each do |e|
-            process e
-            add "pop"
+            if e.first == :masgn
+              process e
+            else
+              process e
+              add "pop"
+            end
           end
           delta = source_size - lhs_size
           delta.times { add "pop" } # Never happens unless delta > 0
@@ -1967,6 +2041,8 @@ module Bytecode
       end
 
       def process_call(x, block=false)
+        line = @last_line
+        
         x.unshift :call
         asm = detect_special(:asm, x)
         if asm
@@ -2042,10 +2118,13 @@ module Bytecode
         end
         
         if block
-          line = @last_line
           op = "&send"
           ib = @in_block
-          @in_block = true
+          if options and options[:function] and (meth == :lambda or meth == :proc)
+            @in_block = :lambda
+          else
+            @in_block = true
+          end
           process block
           @in_block = ib
           add "#line #{line}" if @last_line != line
@@ -2192,7 +2271,12 @@ module Bytecode
         goto two
 
         if args
-          process args
+          if args.first == :masgn
+            args.shift
+            process_masgn args, true
+          else
+            process args
+          end
         else
           # No args, but we still have to remove the block args tuple from
           # the stack.
@@ -2320,8 +2404,10 @@ module Bytecode
         
         if @next
           goto @next
-        else
+        elsif @in_block
           add "soft_return"
+        else
+          jump_error "next used in invalid context"
         end
       end
       

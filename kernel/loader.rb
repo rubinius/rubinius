@@ -157,8 +157,13 @@ rescue SystemExit => e
   code = e.code
 rescue Object => e
   begin
+    if e.kind_of? Exception
+      msg = e.message
+    else
+      msg = "strange object detected as exception: #{e.inspect}"
+    end
     puts "An exception has occurred:"
-    puts "    #{e.message} (#{e.class})"
+    puts "    #{msg} (#{e.class})"
     puts "\nBacktrace:"
     puts e.backtrace.show
     code = 1

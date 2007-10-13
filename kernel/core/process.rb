@@ -107,12 +107,12 @@ module Kernel
       while true
         Scheduler.send_on_readable chan, read, buf, 50
         res = chan.receive
-        if String === res
-          output << res
-        elsif !res
+        if res.nil?
           Scheduler.send_on_stopped chan, pid
           $? = Process::Status.new pid, chan.receive
           return output
+        else
+          output << buf
         end
       end
     else
@@ -122,3 +122,75 @@ module Kernel
     end
   end
 end
+
+
+class IO
+  def popen(str, mode="r")
+    raise "TODO make this support more than r" if mode != "r"
+    
+    if str == "+-+" and !block_given?
+      raise ArgumentError, "this mode requires a block currently"
+    end
+    
+    pa_read, ch_write = IO.pipe
+    
+    pid = Process.fork
+    
+    if pid != 0
+      ch_write.close
+      rp = BidirectonalPipe.new(pid, pa_read, nil)
+      if block_given?
+        begin
+          yield rp
+        ensure
+          pa_read.close
+        end
+      else
+        return rp
+      end
+    else
+      pa_read.close
+      STDOUT.reopen ch_write
+      if str == "+-+"
+        yield nil
+      else
+        Process.replace "/bin/sh", ["-c", str]
+      end
+    end
+  end
+end
+
+class BidirectionalPipe
+  def initialize(pid, read, write)
+    @pid = pid
+    @read = read
+    @write = write
+  end
+  
+  def pid
+    @pid
+  end
+  
+  def <<(str)
+    @write << str
+  end
+  
+  alias_method :write, :<<
+  
+  def syswrite(str)
+    @write.syswrite str
+  end
+  
+  def read(count)
+    @read.read(count)
+  end
+  
+  def sysread(count)
+    @read.sysread(count)
+  end
+  
+  def method_missing(m, *a, &b)
+    @read.__send__(m, *a, &b)
+  end
+end
+

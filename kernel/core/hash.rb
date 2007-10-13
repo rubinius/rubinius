@@ -319,9 +319,6 @@ class Hash
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
   
-  # Internals
-  private
-  
   def find_unambigious(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     return Tuple[true, val] if code

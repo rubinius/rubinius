@@ -10,14 +10,20 @@ class NilClass
   alias_method :|, :^
 end
 
+NIL = nil
+
 class TrueClass
   alias_method :inspect, :to_s
 end
+
+TRUE = true
 
 class FalseClass
   alias_method :|, :^
   alias_method :inspect, :to_s
 end
+
+FALSE = false
 
 module RecursionGuard
   def self.inspecting?(obj)

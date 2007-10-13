@@ -105,9 +105,6 @@ end
 class RegexpError < StandardError
 end
 
-class ZeroDivisionError < StandardError
-end
-
 class NoMemoryError < Exception
 end
 

@@ -14,10 +14,17 @@ class Symbol
   alias_method :to_i,   :index
   alias_method :to_int, :index
     
-  alias_method :id2name, :to_s
+  
   
   def inspect
-    ":#{to_s}"
+    str = to_s
+    if /^(\+|\-|<<|>>|<=|>=|=|==|===|=~|\*|\*\*|\[\]|\[\]=|\||\^|\&|\/|%|~|`|@\w+)$/ =~ str
+      ":#{str}"
+    elsif /^[0-9]/ =~ str or /[\s]/ =~ str or /[^\w]/ =~ str
+      ":\"#{str}\""
+    else
+      ":#{str}"
+    end
   end
   
   def to_sym
@@ -27,6 +34,8 @@ class Symbol
   def to_s
     Symbols.symbol_to_string(self).dup
   end
+  
+  alias_method :id2name, :to_s
   
   def to_int
     warn "treating Symbol as an integer"

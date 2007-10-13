@@ -45,6 +45,7 @@ kernel/core/dir.rbc
 kernel/core/sprintf.rbc
 kernel/core/delegated_method.rbc
 kernel/core/debugger.rbc
+kernel/core/argf.rbc
 kernel/core/context.rbc
 kernel/core/thread.rbc
 kernel/core/readline.rbc

@@ -26,6 +26,7 @@ struct marshal_state {
 
 static int _find_object(OBJECT obj, struct marshal_state *ms) {
   int i;
+  return -1;
   for(i = 0; i < ptr_array_length(ms->objects); i++) {
     if(obj == (OBJECT)ptr_array_get_index(ms->objects, i)) {
       return i;

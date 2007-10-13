@@ -136,6 +136,8 @@ void cpu_bootstrap(STATE) {
   state->global->special_classes[(int)Qnil  ] = BC(nil_class);
   state->global->special_classes[(int)Qtrue ] = BC(true_class);
   
+  rbs_const_set(state, obj, "UNDEF", Qundef);
+  
   bcs(regexp, obj, "Regexp");
   bcs(regexpdata, obj, "RegexpData");
   bcs(matchdata, obj, "MatchData");
