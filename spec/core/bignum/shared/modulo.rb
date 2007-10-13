@@ -1,21 +1,43 @@
 @bignum_modulo = shared "Bignum#modulo" do |cmd|
   describe "Bignum##{cmd}" do
-    it "returns self modulo other" do
-      a = BignumHelper.sbm(2_222)
-      a.send(cmd, 5).should == 1
-      a.send(cmd, 2.22).inspect.should == '0.419999905491539'
-      a.send(cmd, BignumHelper.sbm).should == 2222
+    before(:each) do
+      @bignum = BignumHelper.sbm
+    end
+    
+    it "returns the modulus obtained from dividing self by the given argument" do
+      @bignum.send(cmd, 5).should == 4
+      @bignum.send(cmd, 2.22).should_be_close(0.639999905491734, TOLERANCE)
+      @bignum.send(cmd, BignumHelper.sbm(10)).should == 1073741824
     end
 
-    it "raises ZeroDivisionError if other is zero and not a Float" do
-      should_raise(ZeroDivisionError) { BignumHelper.sbm.send(cmd, 0) }
+    it "raises a ZeroDivisionError when the given argument is 0" do
+      should_raise(ZeroDivisionError) do
+        @bignum.send(cmd, 0)
+      end
+      
+      should_raise(ZeroDivisionError) do
+        (-@bignum).send(cmd, 0)
+      end
     end
 
-    it "% should NOT raise ZeroDivisionError if other is zero and is a Float" do
-      a = BignumHelper.sbm(5_221)
-      b = BignumHelper.sbm(25)
-      a.send(cmd, 0.0).to_s.should == 'NaN'
-      b.send(cmd, -0.0).to_s.should == 'NaN'
+    it "does not raise a FloatDomainError when the given argument is 0 and a Float" do
+      @bignum.send(cmd, 0.0).to_s.should == "NaN" 
+      (-@bignum).send(cmd, 0.0).to_s.should == "NaN" 
+    end
+
+    it "raises a TypeError when given a non-Integer" do
+      should_raise(TypeError) do
+        (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+        @bignum.send(cmd, obj)
+      end
+      
+      should_raise(TypeError) do
+        @bignum.send(cmd, "10")
+      end
+  
+      should_raise(TypeError) do
+        @bignum.send(cmd, :symbol)
+      end
     end
   end
 end

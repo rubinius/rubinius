@@ -2,18 +2,53 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#divmod" do
-  it "returns an [quotient, modulus] from dividing self by other" do
-    a = BignumHelper.sbm(55)
-    a.divmod(5).inspect.should == '[214748375, 4]'
-    a.divmod(15.2).inspect.should == '[70640913, 1.40000005019339]'
-    a.divmod(a + 9).inspect.should == '[0, 1073741879]'
+  before(:each) do
+    @bignum = BignumHelper.sbm(55)
   end
   
-  it "raises ZeroDivisionError if other is zero and not a Float" do
-    should_raise(ZeroDivisionError) { BignumHelper.sbm(2).divmod(0) }
+  it "returns an Array containing quotient and modulus obtained from dividing self by the given argument" do
+    @bignum.divmod(4).should == [268435469, 3]
+    @bignum.divmod(13).should == [82595529, 2]
+
+    @bignum.divmod(4.0).should == [268435469, 3.0]
+    @bignum.divmod(13.0).should == [82595529, 2.0]
+
+    @bignum.divmod(2.0).should == [536870939, 1.0]
+    @bignum.divmod(0xffffffff).should == [0,  1073741879]
   end
   
-  it "raises FloatDomainError if other is zero and is a Float" do
-    should_raise(FloatDomainError) { BignumHelper.sbm(9).divmod(0.0) }
+  it "raises a ZeroDivisionError when the given argument is 0" do
+    should_raise(ZeroDivisionError) do
+      @bignum.divmod(0)
+    end
+
+    should_raise(ZeroDivisionError) do
+      (-@bignum).divmod(0)
+    end
+  end
+  
+  it "raises a FloatDomainError when the given argument is 0 and a Float" do
+    should_raise(FloatDomainError, "NaN") do
+      @bignum.divmod(0.0)
+    end
+    
+    should_raise(FloatDomainError, "NaN") do
+      (-@bignum).divmod(0.0)
+    end
+  end
+
+  it "raises a TypeError when given a non-Integer" do
+    should_raise(TypeError) do
+      (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+      @bignum.divmod(obj)
+    end
+    
+    should_raise(TypeError) do
+      @bignum.divmod("10")
+    end
+
+    should_raise(TypeError) do
+      @bignum.divmod(:symbol)
+    end
   end
 end

@@ -1,11 +1,21 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Bignum#eql?" do
-  it "returns true if other is a Bignum with the same value" do
+describe "Bignum#eql? when given a Bignum" do
+  it "returns true if the given argument has the same value" do
     a = BignumHelper.sbm(13)
     a.eql?(BignumHelper.sbm(13)).should == true
+    (-a).eql?(-BignumHelper.sbm(13)).should == true
+  end
+end
+
+describe "Bignum#eql? when given a non-Bignum" do
+  it "returns false if the given argument is no Bignum" do
+    a = BignumHelper.sbm(13)
     a.eql?(2).should == false
     a.eql?(3.14).should == false
+    a.eql?(:symbol).should == false
+    a.eql?("String").should == false
+    a.eql?(Object.new).should == false
   end
 end

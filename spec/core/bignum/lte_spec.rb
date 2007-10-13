@@ -2,10 +2,25 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#<=" do
+  before(:each) do
+    @bignum = BignumHelper.sbm(39)
+  end
+
   it "returns true if self is less than or equal to other" do
-    a = BignumHelper.sbm(39)
-    (a <= a).should == true
-    (a <= 4).should == false
-    (a <= 45.8).should == false
+    (@bignum <= @bignum).should == true
+    (-@bignum <= -(@bignum - 1)).should == true
+    
+    (@bignum <= (@bignum + 0.5)).should == true
+    (@bignum <= 4.999).should == false
+  end
+
+  it "raises an ArgumentError when given a non-Integer" do
+    should_raise(ArgumentError) do
+      @bignum <= "4"
+    end
+    
+    should_raise(ArgumentError) do
+      @bignum <= Object.new
+    end
   end
 end
