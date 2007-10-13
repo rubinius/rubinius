@@ -181,7 +181,7 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
 #endif
   
   if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
-    ptr_array_remove_fast(state->om->gc->remember_set, (gpointer)obj);
+    ptr_array_remove_fast(state->om->gc->remember_set, (xpointer)obj);
   }
     
   if(SHOULD_CLEANUP_P(obj)) {
@@ -272,7 +272,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   
   if(WEAK_REFERENCES_P(iobj)) {
     // printf("%p has weak refs.\n", (void*)iobj);
-    ptr_array_append(ms->seen_weak_refs, (gpointer)iobj);
+    ptr_array_append(ms->seen_weak_refs, (xpointer)iobj);
     return iobj;
   }
   
@@ -342,7 +342,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       for(i = 0; i < ptr_array_length(fc->paths); i++) {
         tmp = (OBJECT)ptr_array_get_index(fc->paths, i);
         if(BCM_P(tmp)) {
-          ptr_array_set_index(fc->paths,i,(gpointer)BCM_TO);
+          ptr_array_set_index(fc->paths,i,(xpointer)BCM_TO);
         } else {
           mark_sweep_mark_object(state, ms, tmp);
         }
@@ -406,7 +406,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
     root = (OBJECT)(ptr_array_get_index(roots, i));
     if(!REFERENCE2_P(root)) { continue; }
     if(BCM_P(root)) {
-      ptr_array_set_index(roots, i, (gpointer)BCM_TO);
+      ptr_array_set_index(roots, i, (xpointer)BCM_TO);
     } else {
       mark_sweep_mark_object(state, ms, root);
     }
@@ -417,7 +417,7 @@ void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
     root = (OBJECT)(ptr_array_get_index(ms->remember_set, i));
     if(!REFERENCE2_P(root)) { continue; }
     if(BCM_P(root)) {
-      ptr_array_set_index(ms->remember_set, i, (gpointer)BCM_TO);
+      ptr_array_set_index(ms->remember_set, i, (xpointer)BCM_TO);
     } else {
       mark_sweep_mark_object(state, ms, root);
     }
@@ -583,7 +583,7 @@ void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_arr
       if(HEADER(obj)->flags != FREE_FLAG && !_object_stores_bytes(obj)) {
         for(i = 0; i < NUM_FIELDS(obj); i++) {
           if(NTH_FIELD(obj, i) == mark) {
-            ptr_array_append(refs, (gpointer)obj);
+            ptr_array_append(refs, (xpointer)obj);
           }
         }
       }

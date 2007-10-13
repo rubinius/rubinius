@@ -65,7 +65,7 @@ void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
     
   if(GC_ZONE(self) == GC_MATURE_OBJECTS) {
     if(FLAG_SET_ON_P(self, gc, REMEMBER_FLAG)) {
-      ptr_array_append(state->om->gc->remember_set, (gpointer)dest);
+      ptr_array_append(state->om->gc->remember_set, (xpointer)dest);
       FLAG_SET_ON(dest, gc, REMEMBER_FLAG);
     }
   } else {
@@ -76,7 +76,7 @@ void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
       if(!REFERENCE_P(tmp)) continue;
       
       if(GC_ZONE(tmp) == GC_YOUNG_OBJECTS) {
-        ptr_array_append(state->om->gc->remember_set, (gpointer)dest);
+        ptr_array_append(state->om->gc->remember_set, (xpointer)dest);
         FLAG_SET_ON(dest, gc, REMEMBER_FLAG);
         /* We can return because the only setting we have is now
            correct, no need to look through all the rest. */

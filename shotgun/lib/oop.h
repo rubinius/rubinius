@@ -2,7 +2,7 @@
 #define __RUBINIUS_INCLUDED__ 1
 
 typedef uintptr_t OBJECT;
-
+typedef void * xpointer;
 #define REFSIZE (sizeof(uintptr_t))
 
 /* OOP layout:

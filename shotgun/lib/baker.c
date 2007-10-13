@@ -142,12 +142,12 @@ void track_ref(OBJECT obj) {
   if(!_track_refs) {
     _track_refs = ptr_array_new(8);
   }
-  ptr_array_append(_track_refs, (gpointer)obj);
+  ptr_array_append(_track_refs, (xpointer)obj);
 }
 
 void untrack_ref(OBJECT obj) {
   if(!_track_refs) return;
-  ptr_array_remove_fast(_track_refs, (gpointer)obj);
+  ptr_array_remove_fast(_track_refs, (xpointer)obj);
 }
 
 static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
@@ -156,7 +156,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   
 #if 0
   if(_track_refs) {
-    if (ptr_array_contains(_track_refs, (gpointer)iobj))
+    if (ptr_array_contains(_track_refs, (xpointer)iobj))
         printf("Found2 %p!\n", (void*)iobj);
   }
 #endif
@@ -177,7 +177,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   
   if(WEAK_REFERENCES_P(iobj)) {
     // printf("%p has weak refs.\n", (void*)iobj);
-    ptr_array_append(g->seen_weak_refs, (gpointer)iobj);
+    ptr_array_append(g->seen_weak_refs, (xpointer)iobj);
     depth--;
     return;
   }
@@ -240,7 +240,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       int i;
       for(i = 0; i < ptr_array_length(fc->paths); i++) {
         ptr_array_set_index(fc->paths, i,
-          (gpointer)baker_gc_maybe_mutate(state, g, (OBJECT)ptr_array_get_index(fc->paths, i)));
+          (xpointer)baker_gc_maybe_mutate(state, g, (OBJECT)ptr_array_get_index(fc->paths, i)));
       }
     }
     
@@ -313,7 +313,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
 
 #if 0
   if(_track_refs) {
-    if (ptr_array_contains(_track_refs, (gpointer)obj))
+    if (ptr_array_contains(_track_refs, (xpointer)obj))
       printf("Found %p!\n", (void*)obj);
   }
 #endif
@@ -347,7 +347,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
 
 #if 0
   if(_track_refs) {
-    if (ptr_array_contains(_track_refs, (gpointer) dest))
+    if (ptr_array_contains(_track_refs, (xpointer) dest))
         printf("Found3 %p!\n", (void*)dest);
   }
 #endif
@@ -414,7 +414,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     // printf("Start at RS (%d): %p\n", i, root);
     if(!REFERENCE2_P(root)) { continue; }
     tmp = baker_gc_mutate_from(state, g, root);
-    ptr_array_set_index(roots, i, (gpointer) tmp);
+    ptr_array_set_index(roots, i, (xpointer) tmp);
   }
   
   /* To maintain the remember set, we setup a totally new
@@ -587,7 +587,7 @@ void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs)
     if(!_object_stores_bytes(obj)) {
       for(i = 0; i < NUM_FIELDS(obj); i++) {
         if(NTH_FIELD(obj, i) == mark) {
-          ptr_array_append(refs, (gpointer)obj);
+          ptr_array_append(refs, (xpointer)obj);
         }
       }
     }

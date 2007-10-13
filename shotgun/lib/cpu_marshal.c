@@ -37,7 +37,7 @@ static int _find_object(OBJECT obj, struct marshal_state *ms) {
 }
 
 static void _add_object(OBJECT obj, struct marshal_state *ms) {
-  ptr_array_append(ms->objects, (gpointer)obj);
+  ptr_array_append(ms->objects, (xpointer)obj);
 }
 
 static OBJECT unmarshal(STATE, struct marshal_state *ms);

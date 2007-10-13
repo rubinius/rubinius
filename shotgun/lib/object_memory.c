@@ -288,7 +288,7 @@ void object_memory_check_ptr(void *ptr, OBJECT obj) {
 void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val) {
   if(!FLAG_SET_ON_P(target, gc, REMEMBER_FLAG)) {
     // printf("[Tracking %p in baker RS]\n", (void*)target);
-    ptr_array_append(om->gc->remember_set, (gpointer)target);
+    ptr_array_append(om->gc->remember_set, (xpointer)target);
     FLAG_SET_ON(target, gc, REMEMBER_FLAG);
   }
 }

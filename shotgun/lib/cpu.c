@@ -97,9 +97,9 @@ void cpu_initialize_context(STATE, cpu c) {
 
 void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   int i, len;
-  gpointer t;
+  xpointer t;
   #define ar(obj) if(REFERENCE_P(obj)) { \
-    ptr_array_append(roots, (gpointer)obj); \
+    ptr_array_append(roots, (xpointer)obj); \
   }
   
   if(!stack_context_p(c->active_context)) {
@@ -140,7 +140,7 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->debug_channel);
   ar(c->control_channel);
   len = ptr_array_length(c->paths);
-  ptr_array_append(roots, (gpointer)I2N(len));
+  ptr_array_append(roots, (xpointer)I2N(len));
   // printf("Paths: %d\n", len);
   for(i = 0; i < len; i++) {
     t = ptr_array_remove_index_ordered(c->paths, 0);
@@ -153,7 +153,7 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
 }
 
 void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
-  gpointer tmp;
+  xpointer tmp;
   int i, len;
   #define ar(obj) if(REFERENCE_P(obj)) { \
     tmp = ptr_array_get_index(roots, start++); \
@@ -425,7 +425,7 @@ void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   }
   */
   /* add stuff for @paths here */
-  ptr_array_append(c->paths, (gpointer)c->enclosing_class);
+  ptr_array_append(c->paths, (xpointer)c->enclosing_class);
   /*
   printf("Push %s (%d) to paths (%d)\n", _inspect(c->enclosing_class), 
     c->enclosing_class, c->paths->len);
