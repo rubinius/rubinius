@@ -29,6 +29,7 @@
  ************************************************************************* */
 #include "ptr_array.h"
 
+#include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -173,7 +174,7 @@ int ptr_array_contains(const ptr_array self, const void *value)
 void ptr_array_clear(ptr_array self)
 {
 #ifdef CLEANUP_REFERENCES
-        bzero(self->array, self->size * sizeof(void*));
+	memset(self->array, 0, self->size * sizeof(void*));
 #endif
 	self->length = 0;
 }
