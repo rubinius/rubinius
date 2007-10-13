@@ -12,8 +12,6 @@ DEBUG = -g -ggdb3
 
 CFLAGS = $(WARNINGS) $(DEBUG) 
 
-CPPFLAGS += `pkg-config glib-2.0 --cflags`
-
 COMP=$(CC)
 ifeq ($(UNAME),Darwin)
   LDOPT=-dynamiclib -undefined dynamic_lookup

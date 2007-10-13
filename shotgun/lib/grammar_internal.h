@@ -1,12 +1,12 @@
 #ifndef __GRAMMER_INTERNAL_H__
 #define __GRAMMER_INTERNAL_H__
 
-#include <glib.h>
+#include <quark.h>
 #include <stdbool.h>
 #include "shotgun.h"
 #include "bstrlib.h"
 
-#define ID GQuark
+#define ID quark
 #define VALUE OBJECT
 
 #include "var_table.h"

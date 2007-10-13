@@ -84,27 +84,27 @@ void *ptr_array_remove_fast(ptr_array self, const void *obj)
 	return NULL;
 }
 
-void * ptr_array_get_index(ptr_array self, size_t index)
+void * ptr_array_get_index(const ptr_array self, size_t index)
 {
 	assert (self != NULL);
 	assert (index < self->length);
-	return self->array[index];
+	return (void*)self->array[index];
 }
 
-void * ptr_array_set_index(ptr_array self, size_t index, void *value)
+void * ptr_array_set_index(ptr_array self, size_t index, const void *value)
 {
-	void * oldval;
+	const void * oldval;
 	assert( self != NULL);
 	assert(index < self->length);
 
 	oldval = self->array[index];
 	self->array[index] = value;
-	return oldval;
+	return (void*)oldval;
 }
 
 void* ptr_array_remove_index_ordered(ptr_array self, size_t index)
 {
-	void *retval;
+	const void *retval;
 	size_t i;
 	assert (self != NULL);
 	assert (index < self->length);
@@ -117,12 +117,12 @@ void* ptr_array_remove_index_ordered(ptr_array self, size_t index)
 #ifdef CLEANUP_REFERENCES
 	self->array[self->length] = NULL;
 #endif
-	return retval;
+	return (void*)retval;
 }
 
 void* ptr_array_remove_index_fast(ptr_array self, size_t index)
 {
-	void *retval;
+	const void *retval;
 	assert (self != NULL);
 	assert (index < self->length);
 
@@ -133,10 +133,10 @@ void* ptr_array_remove_index_fast(ptr_array self, size_t index)
 #ifdef CLEANUP_REFERENCES
 	self->array[self->length] = NULL;
 #endif
-	return retval;
+	return (void*)retval;
 }
 
-int _ptr_array_growing_append(ptr_array self, void *value)
+int _ptr_array_growing_append(ptr_array self, const void *value)
 {
 	size_t good_size = array_good_size(self->size + 1);
 	void * new_array = realloc(self->array, good_size*sizeof(void*));
@@ -159,7 +159,7 @@ void ptr_array_free(ptr_array self)
 	}
 }
 
-int ptr_array_contains(ptr_array self, const void *value)
+int ptr_array_contains(const ptr_array self, const void *value)
 {
 	int i;
 	assert (self != NULL);

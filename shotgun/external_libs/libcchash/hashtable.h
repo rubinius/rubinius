@@ -73,8 +73,8 @@ struct hashtable;
 
 struct hashtable *
 create_hashtable(unsigned int minsize,
-                 unsigned int (*hashfunction) (void*),
-                 int (*key_eq_fn) (void*,void*));
+                 unsigned int (*hashfunction) (const void*),
+                 int (*key_eq_fn) (const void*,const void*));
 
 /*****************************************************************************
  * hashtable_insert
@@ -114,10 +114,10 @@ int fnname (struct hashtable *h, keytype *k, valuetype *v) \
  */
 
 void *
-hashtable_search(struct hashtable *h, void *k);
+hashtable_search(const struct hashtable *h, const void *k);
 
 #define DEFINE_HASHTABLE_SEARCH(fnname, keytype, valuetype) \
-valuetype * fnname (struct hashtable *h, keytype *k) \
+valuetype * fnname (const struct hashtable *h, const keytype *k) \
 { \
     return (valuetype *) (hashtable_search(h,k)); \
 }
@@ -132,7 +132,7 @@ valuetype * fnname (struct hashtable *h, keytype *k) \
  */
 
 void * /* returns value */
-hashtable_remove(struct hashtable *h, void *k);
+hashtable_remove(struct hashtable *h, const void *k);
 
 #define DEFINE_HASHTABLE_REMOVE(fnname, keytype, valuetype) \
 valuetype * fnname (struct hashtable *h, keytype *k) \
@@ -149,7 +149,7 @@ valuetype * fnname (struct hashtable *h, keytype *k) \
  * @return      the number of items stored in the hashtable
  */
 unsigned int
-hashtable_count(struct hashtable *h);
+hashtable_count(const struct hashtable *h);
 
 
 /*****************************************************************************

@@ -10,11 +10,11 @@ else
   BINSUFFIX?=
 endif
 
-CFLAGS += -iquote . -iquote lib $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa
+CFLAGS += -iquote . -iquote lib $(CPPFLAGS) -Iexternal_libs/libbstring -Iexternal_libs/libcchash -Iexternal_libs/libmpa -Iexternal_libs/libmquark
 
-ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libmpa.a
+ALIBS=external_libs/libtommath/libtommath.a external_libs/onig/.libs/libonig.a external_libs/libzip/lib/.libs/libzip.a external_libs/libltdl/.libs/libltdl.a external_libs/libevent/.libs/libevent.a external_libs/libbstring/libbstring.a external_libs/libcchash/libcchash.a external_libs/libmpa/libmpa.a external_libs/libmquark/libmquark.a
 
-LIBS=`pkg-config glib-2.0 --libs` $(ALIBS) -lz -lm shotgun/lib
+LIBS=$(ALIBS) -lz -lm shotgun/lib
 LDFLAGS=
 
 # amd64 must have fPIC shared
@@ -63,9 +63,10 @@ config.h:
 	$(COMP) $(CFLAGS) -c $< 
 
 external_libs/lightning/config.h:
-	cd external_libs/lightning; CFLAGS=-fPIC ./configure $(RBS_LIGHTNING_DISASS); $(MAKE)
+	cd external_libs/lightning; CFLAGS=-fPIC ./configure $(RBS_LIGHTNING_DISASS)
 
 external_libs/lightning/opcode/libdisass.a: external_libs/lightning/config.h
+	cd external_libs/lightning; $(MAKE)
 
 external_libs/libtommath/libtommath.a:
 	cd external_libs/libtommath; $(MAKE)
@@ -107,6 +108,9 @@ external_libs/libcchash/libcchash.a:
 external_libs/libmpa/libmpa.a:
 	cd external_libs/libmpa; $(MAKE)
 
+external_libs/libmquark/libmquark.a:
+	cd external_libs/libmquark; $(MAKE)
+
 $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 
 
@@ -145,6 +149,11 @@ clean:
 	cd external_libs/libevent; $(MAKE) clean
 	cd external_libs/libbstring; $(MAKE) clean
 	cd external_libs/libcchash; $(MAKE) clean
+	cd external_libs/libzip; $(MAKE) clean
+	cd external_libs/lightning; $(MAKE) clean
+	cd external_libs/libmpa; $(MAKE) clean
+	cd external_libs/libmquark; $(MAKE) clean
+	cd external_libs/libltdl; $(MAKE) clean
 .PHONY: clean
 
 # Clean, but also nuke configs

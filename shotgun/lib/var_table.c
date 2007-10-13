@@ -32,7 +32,7 @@ var_table *var_table_pop(var_table *cur) {
   return nw; 
 }
 
-int var_table_find(var_table *tbl, GQuark needle) {
+int var_table_find(var_table *tbl, quark needle) {
   int i;
   for(i = 0; i < tbl->size; i++) {
     if(tbl->data[i] == needle) return i;
@@ -40,7 +40,7 @@ int var_table_find(var_table *tbl, GQuark needle) {
   return -1;
 }
 
-int var_table_add(var_table *tbl, GQuark item) {
+int var_table_add(var_table *tbl, quark item) {
   int idx;
   idx = tbl->size;
   assert(idx < 128);

@@ -54,7 +54,7 @@ typedef struct ptr_array_t *ptr_array;
 
 struct ptr_array_t
 {
-  void **array;
+  const void **array;
   size_t length;
   size_t size;
 };
@@ -123,7 +123,7 @@ void * ptr_array_remove_index_fast(ptr_array self, size_t index);
  *            index, the position of the object to retrieve.
  * Result: the value which exists at the given index.
  */
-void * ptr_array_get_index(ptr_array self, size_t index);
+void * ptr_array_get_index(const ptr_array self, size_t index);
 
 /* Modify the pointer at a certain index.
  * 
@@ -132,7 +132,7 @@ void * ptr_array_get_index(ptr_array self, size_t index);
  *            value, the value to overwrite at the specified index
  * Result: the value which was at the index before.
  */
-void * ptr_array_set_index(ptr_array self, size_t index, void *value);
+void * ptr_array_set_index(ptr_array self, size_t index, const void *value);
 
 /* Determine if the pointer array contains a particular value
  * 
@@ -141,20 +141,20 @@ void * ptr_array_set_index(ptr_array self, size_t index, void *value);
  *            array.
  * Result: Non-zero if found, zero if not found.
  */
-int ptr_array_contains(ptr_array self, const void *value);
+int ptr_array_contains(const ptr_array self, const void *value);
 
 /* Determine length (number of pointers) of the array.
  *
  * Arguments: self, the pointer array
  * Result: number of entries within the array.
  */
-static inline size_t ptr_array_length(ptr_array self)
+static inline size_t ptr_array_length(const ptr_array self)
 {
   return self->length;
 }
 
 /* Internal method for appending a value which causes array growth */
-int _ptr_array_growing_append(ptr_array self, void *value);
+int _ptr_array_growing_append(ptr_array self, const void *value);
 
 /* Append a new value to the end of the array.
  * 
@@ -162,14 +162,14 @@ int _ptr_array_growing_append(ptr_array self, void *value);
  *            value, the pointer to append at the end
  * Result: Non-zero on success, zero on failure.
  */
-static inline int ptr_array_append(ptr_array self, void *value)
+static inline int ptr_array_append(ptr_array self, const void *value)
 {
 	if (self->length == self->size)
 		return _ptr_array_growing_append(self, value);
 
 	self->array[self->length] = value;
 	self->length++;
-	return 1;
+        return 1;
 }
 
 /* Clear all entries from the array. This does not reduce the

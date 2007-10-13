@@ -153,18 +153,18 @@ static OBJECT cstring_to_symbol(STATE, const char *str) {
 const char *op_to_name(ID id);
 
 #if 0
-static const char* print_quark(GQuark quark) {
-  return g_quark_to_string(id_to_quark(quark));
+static const char* print_quark(quark quark) {
+  return quark_to_string(id_to_quark(quark));
 }
 #endif
 
-static OBJECT quark_to_symbol(STATE, GQuark quark) {
+static OBJECT quark_to_symbol(STATE, quark quark) {
   const char *op;
   op = op_to_name(quark);
   if(op) {
     return cstring_to_symbol(state, op);
   }
-  return cstring_to_symbol(state, g_quark_to_string(id_to_quark(quark)));
+  return cstring_to_symbol(state, quark_to_string(id_to_quark(quark)));
 }
 
 void syd_add_to_parse_tree(STATE, OBJECT ary,
