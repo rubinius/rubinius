@@ -9,7 +9,7 @@ describe "Fixnum#[]" do
     3[0xffffffff].should == 0
   end
   
-  it "tries to convert the given argument to an integer using #to_int" do
+  it "tries to convert the given argument to an Integer using #to_int" do
     15[1.3].should == 15[1]
     
     (obj = Object.new).should_receive(:to_int, :returning => 1)

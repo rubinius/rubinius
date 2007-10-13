@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Fixnum#divmod" do
-  it "returns an array containing quotient and modulus obtained from dividing self by the given argument" do
+  it "returns an Array containing quotient and modulus obtained from dividing self by the given argument" do
     13.divmod(4).should == [3, 1]
     4.divmod(13).should == [0, 4]
 

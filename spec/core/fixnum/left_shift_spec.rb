@@ -16,7 +16,7 @@ describe "Fixnum#<<" do
     (6 << 0xff).should == 347376267711948586270712955026063723559809953996921692118372752023739388919808
   end
   
-  it "tries to convert it's argument to an Integer using to_int" do
+  it "tries to convert its argument to an Integer using to_int" do
     (5 << 4.3).should == 80
     
     (obj = Object.new).should_receive(:to_int, :returning => 4)

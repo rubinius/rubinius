@@ -19,7 +19,7 @@ describe "Fixnum#<=>" do
     (51 <=> 50.5).should == 1
   end
 
-  it "returns nil when the given argument is no Fixnum" do
+  it "returns nil when the given argument is no Integer" do
     (3 <=> Object.new).should == nil
     (3 <=> 'test').should == nil
   end
