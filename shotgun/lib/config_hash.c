@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "config_hash.h"
 
 
@@ -34,5 +35,6 @@ void ht_config_destroy(struct hashtable *ht_config)
       bdestroy((bstring)hashtable_iterator_value(iter));
     }
   while (hashtable_iterator_remove(iter));
+  free(iter);
   hashtable_destroy(ht_config, 0);
 }

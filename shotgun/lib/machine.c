@@ -647,6 +647,7 @@ static void machine_parse_configs(machine m, char *config) {
       hash_set(m->s, m->s->global->config, ok, ov);
     }
   while (hashtable_iterator_advance(iter));
+  free(iter);
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
 }
 
