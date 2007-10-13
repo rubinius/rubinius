@@ -6325,7 +6325,7 @@ rb_intern(const char *name)
         m += mbclen(*m);
     }
     if (*m) id = ID_JUNK;
-    qrk = (ID)g_quark_from_string(name);
+    qrk = (ID)quark_from_string(name);
     pre = qrk + tLAST_TOKEN;
     bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
@@ -6333,10 +6333,10 @@ rb_intern(const char *name)
     return id;
 }
 
-GQuark id_to_quark(ID id) {
-  GQuark qrk;
+quark id_to_quark(ID id) {
+  quark qrk;
   
-  qrk = (GQuark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
+  qrk = (quark)((id >> ID_SCOPE_SHIFT) - tLAST_TOKEN);
   // printf("ID %d == %d\n", id, qrk);
   return qrk;
 }
@@ -6400,7 +6400,7 @@ rb_id2name(id)
         }
     }
     
-    name = g_quark_to_string(id >> ID_SCOPE_SHIFT);
+    name = quark_to_string(id >> ID_SCOPE_SHIFT);
     if(name) return name;
 
     if (is_attrset_id(id)) {

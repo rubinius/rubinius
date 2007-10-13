@@ -27,8 +27,8 @@ const float max_load_factor = 0.65;
 /*****************************************************************************/
 struct hashtable *
 create_hashtable(unsigned int minsize,
-                 unsigned int (*hashf) (void*),
-                 int (*eqf) (void*,void*))
+                 unsigned int (*hashf) (const void*),
+                 int (*eqf) (const void*,const void*))
 {
     struct hashtable *h;
     unsigned int pindex, size = primes[0];
@@ -54,7 +54,7 @@ create_hashtable(unsigned int minsize,
 
 /*****************************************************************************/
 unsigned int
-hash(struct hashtable *h, void *k)
+hash(const struct hashtable *h, const void *k)
 {
     /* Aim to protect against poor hash functions by adding logic here
      * - logic taken from java 1.4 hashtable source */
@@ -127,7 +127,7 @@ hashtable_expand(struct hashtable *h)
 
 /*****************************************************************************/
 unsigned int
-hashtable_count(struct hashtable *h)
+hashtable_count(const struct hashtable *h)
 {
     return h->entrycount;
 }
@@ -160,7 +160,7 @@ hashtable_insert(struct hashtable *h, void *k, void *v)
 
 /*****************************************************************************/
 void * /* returns value associated with key */
-hashtable_search(struct hashtable *h, void *k)
+hashtable_search(const struct hashtable *h, const void *k)
 {
     struct entry *e;
     unsigned int hashvalue, index;
@@ -178,7 +178,7 @@ hashtable_search(struct hashtable *h, void *k)
 
 /*****************************************************************************/
 void * /* returns value associated with key */
-hashtable_remove(struct hashtable *h, void *k)
+hashtable_remove(struct hashtable *h, const void *k)
 {
     /* TODO: consider compacting the table when the load factor drops enough,
      *       or provide a 'compact' method. */

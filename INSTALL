@@ -17,7 +17,6 @@ any platform-specific requirements.
 * "GNU Bison":http://www.gnu.org/software/bison/
 * "gmake (GNU Make)":http://savannah.gnu.org/projects/make/
 * "pkg-config (configuration tool)":http://pkgconfig.freedesktop.org/
-* "glib2 version >= 2.10 (Gtk2 base libs)":http://www.gtk.org/
 * "libtool version >= 1.5":http://www.gnu.org/software/libtool/
 * "Ruby version >= 1.8.4 (the Ruby language)":http://www.ruby-lang.org/
 * "RubyGems (Ruby package manager)":http://www.rubygems.org/

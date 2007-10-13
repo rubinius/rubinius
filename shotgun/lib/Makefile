@@ -1,9 +1,9 @@
 -include ../config.mk
 include ../common.mk
 
-CPPFLAGS += -I.. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl -I../external_libs/libbstring -I../external_libs/libcchash -I../external_libs/libmpa -D_GNU_SOURCE
+CPPFLAGS += -I.. -iquote . -I../external_libs/lightning -I../external_libs/libevent -I../external_libs/onig -I../external_libs/libtommath -I../external_libs/libzip/lib -I../external_libs/libltdl -I../external_libs/libbstring -I../external_libs/libcchash -I../external_libs/libmpa -I../external_libs/libmquark -D_GNU_SOURCE
 
-LIBS=`pkg-config glib-2.0 --libs` -lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm ../external_libs/libbstring/libbstring.a ../external_libs/libcchash/libcchash.a ../external_libs/libmpa/libptr_array.a
+LIBS=-lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm ../external_libs/libbstring/libbstring.a ../external_libs/libcchash/libcchash.a ../external_libs/libmpa/libptr_array.a ../external_libs/libmquark/libmquark.a
 
 OUTPUT=librubinius.$(SUFFIX)
 
@@ -122,6 +122,7 @@ grammar.c:
 clean:
 	rm -f *.o *.lo *.la subtend/*.o subtend/*.lo *.gen *.a auto.c auto.h .*.d .*.d.* instruction_names.c instruction_names.h node_types.c node_types.h
 	rm -rf .libs subtend/.libs $(RBXLIB)
+	rm -rf *.dylib
 
 .PHONY: clean
 

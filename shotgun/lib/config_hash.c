@@ -4,7 +4,7 @@
 DEFINE_HASHTABLE_INSERT(ht_config_insert, struct tagbstring, struct tagbstring);
 DEFINE_HASHTABLE_SEARCH(ht_config_search, struct tagbstring, struct tagbstring);
 DEFINE_HASHTABLE_REMOVE(ht_config_remove, struct tagbstring, struct tagbstring);
-unsigned int bstring_hash(void * value)
+unsigned int bstring_hash(const void * value)
 {
   unsigned int retval = 0;
   int i = 0;
@@ -15,7 +15,7 @@ unsigned int bstring_hash(void * value)
   return retval;
 }
 
-int bstring_eq(void * value1, void * value2)
+int bstring_eq(const void * value1, const void * value2)
 {
   return biseq((const_bstring)value1, (const_bstring)value2);
 }

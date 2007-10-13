@@ -26,6 +26,9 @@ runtime/pristine*
 *.la
 *.bundle
 *.swp
+*.dylib
+*.so
+*.d
 *~
 
 attic/externals/syd-parser/pkg
@@ -226,19 +229,16 @@ shotgun/external_libs/onig/sample/Makefile
 # shotgun/external_libs/libstring
 shotgun/external_libs/libbstring/*.d
 shotgun/external_libs/libbstring/*.so
-shotgun/external_libs/libbstring/*.dylib
 shotgun/external_libs/libbstring/*.a
 
 # shotgun/external_libs/libcchash
 shotgun/external_libs/libcchash/*.d
 shotgun/external_libs/libcchash/*.so
-shotgun/external_libs/libcchash/*.dylib
 shotgun/external_libs/libcchash/*.a
 
 # shotgun/external_libs/libmpa
 shotgun/external_libs/libmpa/*.d
 shotgun/external_libs/libmpa/*.so
-shotgun/external_libs/libmpa/*.dylib
 shotgun/external_libs/libmpa/*.a
 
 # shotgun/lib
