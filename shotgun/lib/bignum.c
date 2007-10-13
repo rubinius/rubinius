@@ -594,11 +594,7 @@ OBJECT bignum_from_double(STATE, double d)
 OBJECT bignum_size(STATE, OBJECT self)
 {  
   int bits = mp_count_bits(MP(self));
-  int bytes = bits / 8;
-  
-  if(bits % 8 > 0) {
-    ++bytes;
-  }
+  int bytes = (bits + 7) / 8;
   
   /* MRI returns this in words, but thats an implementation detail as far
      as I'm concerned. */
