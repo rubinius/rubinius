@@ -218,4 +218,11 @@ describe "The 'case'-construct" do
     end
     result.should == true
   end
+
+  it "should work even if there's only one when statement" do
+    case 1
+    when 1
+      100
+    end.should == 100
+  end
 end
