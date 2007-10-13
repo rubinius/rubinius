@@ -1530,7 +1530,7 @@ class ShotgunPrimitives
     CODE
   end
 
-  def bignum_and(_ = bignum, t1 = bignum)
+  def bignum_and(_ = bignum, t1 = integer)
     <<-CODE
     stack_push(bignum_and(state, self, t1));
     CODE
