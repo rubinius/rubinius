@@ -48,7 +48,7 @@ describe "Module#attr" do
     o = c.new
     
     %w{attr attr3}.each do |a|
-      o.respond_to?(a).should == true
+      o.respond_to?(a).should == false
       o.respond_to?("#{a}=").should == true
     end
     
