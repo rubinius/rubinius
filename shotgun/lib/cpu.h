@@ -1,7 +1,6 @@
 #ifndef __CPU_H_
 #define __CPU_H_
 
-#include <glib.h>
 #include <bstrlib.h>
 
 /* Configuration macros. */

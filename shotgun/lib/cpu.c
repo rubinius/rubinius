@@ -10,7 +10,6 @@
 #include "class.h"
 #include "hash.h"
 #include "symbol.h"
-#include <glib.h>
 
 cpu cpu_new(STATE) {
   cpu c = (cpu)calloc(1, sizeof(struct rubinius_cpu));

@@ -1,7 +1,6 @@
 #include "shotgun.h"
 #include "baker.h"
 #include "marksweep.h"
-#include <glib.h>
 #include <stdlib.h>
 
 #ifndef __RUBINIUS_OM__
