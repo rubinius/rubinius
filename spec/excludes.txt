@@ -1,4 +1,6 @@
 Bignum#& returns self bitwise AND other
+Bignum#& tries to convert it's argument to an Integer using to_int
+Bignum#& raises a TypeError when the given argument can't be converted to Integer
 Executing a Continuation
 Kernel.at_exit should fire after all other code
 Kernel.at_exit should fire in reverse order of registration
