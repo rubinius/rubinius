@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "quark.h"
 #include "hashtable.h"
