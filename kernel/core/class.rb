@@ -205,28 +205,12 @@ class Class
 
   private
 
-  def normalize_name(name)
-    if [String, Symbol, Fixnum].include?(name.class)
-      name = "#{name}"
-    else
-      begin
-        name = name.to_str
-      rescue NoMethodError
-        raise TypeError,35.chr + "<#{name.class}:" + '0x' + '%x' % name.object_id + '> is not a symbol'
-      end
-
-      raise TypeError,"Object#to_str should return String" unless name.class == String
-    end
-
-    return name
-  end
-
   def attribute_symbol(name)
     "@#{normalize_name(name)}".to_sym
   end
 
   def reader_method_symbol(name)
-    normalize_name(name).to_sym
+    normalize_name(name)
   end
 
   def writer_method_symbol(name)

@@ -230,11 +230,10 @@ class Module
   
   def const_defined?(name)
     recursive_const_get(name) ? true : false
-    # constants_table[const_name_to_sym(name)] ? true : false
   end
 
   def const_set(name, value)
-    constants_table[const_name_to_sym(name)] = value
+    constants_table[normalize_const_name(name)] = value
   end
 
   def const_get(name)
@@ -248,27 +247,13 @@ class Module
   def const_missing(name)
     raise NameError, "Unable to find constant #{name}" 
   end
-
-private
-
-  def recursive_const_get(name)
-    if name.kind_of?(String)
-      hierarchy = name.split("::")
-      hierarchy.shift if hierarchy.first == ""
-      hierarchy.shift if hierarchy.first == "Object"
-      
-      const = self
-      hierarchy.each do |c|
-        const = const.constants_table[const_name_to_sym(c)]
-        return nil unless const
-      end
-    else
-      const = constants_table[const_name_to_sym(name)]
-    end
-    const
-  end
   
-  def const_name_to_sym(name)
+
+  #
+  # The following method will be made private when attr is moved from Class to Module.
+  # Right now, Class uses this methods.
+  # 
+  def normalize_name(name)
     sym_name = nil
     
     if name.respond_to?(:to_sym)
@@ -282,11 +267,35 @@ private
     
     raise TypeError, "#{name} is not a symbol" if sym_name == nil
     
-    unless valid_const_name?(sym_name)
-      raise NameError, "wrong constant name #{sym_name}"
-    end
-    
     sym_name
+  end
+
+private
+
+  # Get a constant with the given name. If the constant does not exist, return nil.
+  def recursive_const_get(name)
+    if name.kind_of?(String)
+      hierarchy = name.split("::")
+      hierarchy.shift if hierarchy.first == ""
+      hierarchy.shift if hierarchy.first == "Object"
+      
+      const = self
+      hierarchy.each do |c|
+        const = const.constants_table[normalize_const_name(c)]
+        return nil unless const
+      end
+    else
+      const = constants_table[normalize_const_name(name)]
+    end
+    const
+  end
+  
+  def normalize_const_name(name)
+    name = normalize_name(name)
+    unless valid_const_name?(name)
+      raise NameError, "wrong constant name #{name}"
+    end
+    name
   end
   
   def valid_const_name?(name)
