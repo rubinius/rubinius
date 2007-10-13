@@ -37,7 +37,7 @@ open_class nil
   
   def attr_writer(name)
     sym = "@#{name}".__symbol_lookup__
-    meth = AccessVarMethod.get_ivar(sym)
+    meth = AccessVarMethod.set_ivar(sym)
     @method_table[name] = meth
     return nil    
   end
