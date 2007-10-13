@@ -144,3 +144,11 @@ describe "Return from within a begin" do
     f([]).should == 1
   end
 end
+
+describe "The return statement" do
+  it "should raise an exception if used to exit a thread" do
+    should_raise(ThreadError) do
+      Thread.new { return }.join
+    end
+  end    
+end

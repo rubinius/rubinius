@@ -78,5 +78,15 @@ describe "The throw keyword" do
     should_raise(NameError) { throw :test,5 }
     should_raise(NameError) { catch(:different) { throw :test,5 } }
   end
+
+  it "should raise an exception if used to exit a thread" do
+    should_raise(ThreadError) do
+      catch(:what) do
+        Thread.new do
+          throw :what
+        end.join
+      end
+    end
+  end    
 end
 

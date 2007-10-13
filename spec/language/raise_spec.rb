@@ -117,6 +117,12 @@ context "Exceptions" do
     variable.should == 'exception'
   end
 
+  specify "that exceptions are not cleared exiting a thread" do
+    should_raise(RangeError) do
+      Thread.new { raise RangeError }.join
+    end
+  end
+  
   specify "that StandardError is the default rescue class" do
     begin
       @ret = ''
@@ -226,6 +232,7 @@ context "Exceptions" do
   end
 
   build_spec_tree.call(EXCEPTION_TREE)
-
+  
+  
 end
 
