@@ -21,7 +21,7 @@ describe "Fixnum#quo" do
 
   it "raises a TypeError when given a non-Integer" do
     should_raise(TypeError) do
-      (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+      (obj = Object.new).should_not_receive(:to_int)
       13.quo(obj)
     end
     
