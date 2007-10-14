@@ -129,7 +129,7 @@ class Float < Numeric
       str = Platform::Float.to_s_formatted STRLEN, "%#.14e", self
       e = str.index('e') || str.size
     end
-    str.gsub(/(\.\d|[^0])(0+)($|e[+-]\d*)/, '\1\3')
+    str.gsub(/(\.\d|\.[^0]+)(0+)($|e[+-]\d*)/, '\1\3')
   end
   alias_method :inspect, :to_s
 
