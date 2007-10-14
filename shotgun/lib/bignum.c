@@ -526,6 +526,22 @@ double bignum_to_double(STATE, OBJECT self) {
   double m;
   mp_int *a;
 
+  /* On Linux/x86, we were seeing strange issues with Bignums/Floats.
+   * This function would randomly break if the code was compiled
+   * with -O or greater. So far this has been reproduced with gcc 4.1.x.
+   *
+   * This seems to be a bug in gcc; as a workaround we are initializing
+   * the floating point registers manually here, which fixes things.
+   * AFAICS this shouldn't have negative side effects either.
+   */
+#ifdef i386
+# ifdef __GNUC__
+#  if __GNUC__ == 4 && __GNUC_MINOR__ == 1
+  __asm__ __volatile__ ("finit":::"memory");
+#  endif
+# endif
+#endif
+
   a = MP(self);
   
   if (a->used == 0) {
@@ -560,6 +576,23 @@ OBJECT bignum_from_double(STATE, double d)
   long i = 0;
   unsigned int c;
   double value;
+
+  /* On Linux/x86, we were seeing strange issues with Bignums/Floats.
+   * This function would randomly break if the code was compiled
+   * with -O or greater. So far this has been reproduced with gcc 4.1.x.
+   *
+   * This seems to be a bug in gcc; as a workaround we are initializing
+   * the floating point registers manually here, which fixes things.
+   * AFAICS this shouldn't have negative side effects either.
+   */
+#ifdef i386
+# ifdef __GNUC__
+#  if __GNUC__ == 4 && __GNUC_MINOR__ == 1
+  __asm__ __volatile__ ("finit":::"memory");
+#  endif
+# endif
+#endif
+
   value = (d < 0) ? -d : d;
 
   /*
