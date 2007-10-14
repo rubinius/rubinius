@@ -1,14 +1,8 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-describe "Bignum#to_s" do  
-  it "returns a string representation of self" do
-    BignumHelper.sbm(9).to_s.should == "1073741833"
-    BignumHelper.sbm.to_s.should == "1073741824"
-    (-BignumHelper.sbm(675)).to_s.should == "-1073742499"
-  end
-  
-  it "returns a string with the representation of self in base x"  do 
+describe "Bignum#to_s when given a base" do
+  it "returns self converted to a String in the given base" do
     a = 18446744073709551616 #2**64
     a.to_s(2).should == "10000000000000000000000000000000000000000000000000000000000000000" 
     a.to_s(8).should == "2000000000000000000000"
@@ -16,11 +10,18 @@ describe "Bignum#to_s" do
     a.to_s(32).should == "g000000000000" 
   end
   
-  it "raises an ArgumentError exception if argument is 0" do
-    should_raise(ArgumentError){ 18446744073709551616.to_s(0) }
+  it "raises an ArgumentError if the base is less than 2 or higher than 36" do
+    should_raise(ArgumentError) { 123.to_s(-1) }
+    should_raise(ArgumentError) { 123.to_s(0) }
+    should_raise(ArgumentError) { 123.to_s(1) }
+    should_raise(ArgumentError) { 123.to_s(37) }
   end
-  
-  it "raises an ArgumentError exception if argument is bigger than 36" do 
-    should_raise(ArgumentError){ 18446744073709551616.to_s(37) } # Max is 36
+end
+
+describe "Bignum#to_s when no base given" do
+  it "returns self converted to a String using base 10" do
+    BignumHelper.sbm(9).to_s.should == "1073741833"
+    BignumHelper.sbm.to_s.should == "1073741824"
+    (-BignumHelper.sbm(675)).to_s.should == "-1073742499"
   end
 end

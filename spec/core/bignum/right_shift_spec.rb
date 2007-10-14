@@ -2,13 +2,35 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Bignum#>>" do
-  it "returns self shifted right other bits" do
-    a = BignumHelper.sbm(90812)
-    (a >> 3.45).should == 134229079
-    (a >> 2).should == 268458159
-    (a >> 21).should == 512
+  before(:each) do 
+    @bignum = BignumHelper.sbm(90812)
+  end
+
+  it "returns self shifted the given amount of bits to the right" do
+    (@bignum >> 1).should == 536916318
+    (@bignum >> 3).should == 134229079
+  end
+
+  it "performs a left-shift if given a negative value" do
+    (@bignum >> -1).should == (@bignum << 1)
+    (@bignum >> -3).should == (@bignum << 3)
   end
   
+  it "tries to convert it's argument to an Integer using to_int" do
+    (@bignum >> 1.3).should == 536916318
+    
+    (obj = Object.new).should_receive(:to_int, :returning => 1)
+    (@bignum >> obj).should == 536916318
+  end
+  
+  it "raises a TypeError when the given argument can't be converted to Integer" do
+    obj = Object.new
+    should_raise(TypeError) { @bignum >> obj }
+    
+    obj.should_receive(:to_int, :returning => "asdf")
+    should_raise(TypeError) { @bignum >> obj }
+  end
+
   # This test was added as the result of ruby-core:9020.
   platform :darwin do
     version '1.8'..'1.8.5' do
