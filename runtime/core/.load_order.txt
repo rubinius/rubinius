@@ -5,6 +5,7 @@ kernel/core/list.rbc
 kernel/core/comparable.rbc
 kernel/core/numeric.rbc
 kernel/core/ctype.rbc
+kernel/core/precision.rbc
 kernel/core/integer.rbc
 kernel/core/enumerable.rbc
 kernel/core/continuation.rbc
