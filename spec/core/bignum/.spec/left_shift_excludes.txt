@@ -1,1 +1,2 @@
-Bignum#<< returns self shifted left other bits
+Bignum#<< tries to convert its argument to an Integer using to_int
+Bignum#<< raises a TypeError when the given argument can't be converted to Integer

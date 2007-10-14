@@ -1,2 +1,4 @@
-Bignum#% % should NOT raise ZeroDivisionError if other is zero and is a Float
-Bignum#modulo % should NOT raise ZeroDivisionError if other is zero and is a Float
+Bignum#% returns the modulus obtained from dividing self by the given argument
+Bignum#% does not raise a FloatDomainError when the given argument is 0 and a Float
+Bignum#modulo returns the modulus obtained from dividing self by the given argument
+Bignum#modulo does not raise a FloatDomainError when the given argument is 0 and a Float

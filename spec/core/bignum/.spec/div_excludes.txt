@@ -1,0 +1,2 @@
+Bignum#div returns self divided by other
+Bignum#div does NOT raise ZeroDivisionError if other is zero and is a Float

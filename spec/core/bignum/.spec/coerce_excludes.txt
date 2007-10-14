@@ -1,0 +1,1 @@
+Bignum#coerce raises a TypeError when given a non Fixnum/Bignum

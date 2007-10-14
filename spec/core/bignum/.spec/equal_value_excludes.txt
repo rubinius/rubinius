@@ -1,0 +1,1 @@
+Bignum#== should return true if self has the same value as the given argument

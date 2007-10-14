@@ -1,0 +1,2 @@
+Bignum#/ returns self divided by other
+Bignum#/ does NOT raise ZeroDivisionError if other is zero and is a Float

@@ -1,3 +1,1 @@
-Bignum#to_s returns a string with the representation of self in base x
-Bignum#to_s raises an ArgumentError exception if argument is 0
-Bignum#to_s raises an ArgumentError exception if argument is bigger than 36
+Bignum#to_s when given a base returns self converted to a String in the given base

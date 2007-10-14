@@ -1,0 +1,1 @@
+Bignum#<=> returns -1 when self is less than the given argument
