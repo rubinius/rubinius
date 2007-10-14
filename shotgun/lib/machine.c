@@ -652,13 +652,21 @@ static void machine_parse_configs(machine m, char *config) {
 }
 
 void machine_setup_from_config(machine m) {
-  if(ht_config_search(m->s->config, cstr2bstr("rbx.debug.trace"))) {
+  bstring s;
+
+  s = cstr2bstr("rbx.debug.trace");
+
+  if(ht_config_search(m->s->config, s)) {
     m->s->excessive_tracing = 1;
   }
+
+  bassigncstr (s, "rbx.debug.gc");
   
-  if(ht_config_search(m->s->config, cstr2bstr("rbx.debug.gc"))) {
+  if(ht_config_search(m->s->config, s)) {
     m->s->gc_stats = 1;
   }
+
+  bdestroy (s);
 }
 
 void machine_setup_config(machine m) {
