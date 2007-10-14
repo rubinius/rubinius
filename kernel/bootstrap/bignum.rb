@@ -62,6 +62,11 @@ class Bignum < Integer
     Ruby.primitive :bignum_equal
     super(o)
   end
+  
+  def eql?(other)
+    false unless other.is_a?(Bignum)
+    self == other
+  end
 
   def <<(s)
     return __bignum_right_shift__(-s) if s < 0
