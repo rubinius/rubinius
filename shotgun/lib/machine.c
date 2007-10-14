@@ -840,10 +840,12 @@ int machine_load_directory(machine m, const char *prefix) {
     if(!machine_run_file(m, path)) {
       free(file);
       free(path);
+      fclose(fp);
       return FALSE;
     }
   }
   
+  fclose(fp);
   free(file);
   free(path);
   
