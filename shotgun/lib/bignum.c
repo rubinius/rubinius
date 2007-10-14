@@ -69,6 +69,8 @@ OBJECT bignum_new_unsigned(STATE, unsigned int num) {
 }
 
 static inline OBJECT bignum_normalize(STATE, OBJECT b) {
+  mp_clamp(MP(b));
+
   if(mp_count_bits(MP(b)) <= FIXNUM_WIDTH) {
     int val;
     val = (int)mp_get_int(MP(b));
