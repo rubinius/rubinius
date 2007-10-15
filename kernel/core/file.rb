@@ -2,15 +2,38 @@
 
 class File < IO
   module Constants
+    # TODO: "OK" constants aren't in File::Constants in MRI
     F_OK = 0 # test for existence of file
     X_OK = 1 # test for execute or search permission
     W_OK = 2 # test for write permission
     R_OK = 4 # test for read permission
-    
+
+    # TODO: these flags should probably be imported from Platform
     FNM_NOESCAPE = 0x01;
     FNM_PATHNAME = 0x02;
     FNM_DOTMATCH = 0x04;
     FNM_CASEFOLD = 0x08;
+
+    LOCK_SH  = 0x01
+    LOCK_EX  = 0x02
+    LOCK_NB  = 0x04
+    LOCK_UN  = 0x08
+
+    SEEK_SET = 0x00
+    SEEK_CUR = 0x01
+    SEEK_END = 0x02
+    
+    RDONLY   = 0x00
+    WRONLY   = 0x01
+    RDRW     = 0x02
+    
+    CREAT    = 0x40
+    EXCL     = 0x80
+    NOCTTY   = 0x100
+    TRUNC    = 0x200
+    APPEND   = 0x400
+    NONBLOCK = 0x800
+    SYNC     = 0x1000
   end
   include Constants
 
@@ -212,7 +235,7 @@ class File < IO
 
   # TODO - needs work for Win32
   def self.dirname(path)
-    raise TypeError.new("can't convert nil into a pathname") if path.nil?
+    path = StringValue(path)
 
     slash = -1
     nonslash = 0
@@ -231,8 +254,9 @@ class File < IO
   end
   
   # TODO - needs work for Win32
-  def self.basename(path, ext=nil)
-    raise TypeError.new("can't convert nil into a pathname") if path.nil?
+  def self.basename(path, ext="")
+    path = StringValue(path)
+    ext = StringValue(ext)
 
     slash = -1
     0.upto(path.length-1) do |i|
@@ -246,7 +270,7 @@ class File < IO
       slash += 1 unless path.length == 1
     end
     bn = path.slice(slash, path.length-slash)
-    if (ext)
+    if (ext.size > 0)
       x = bn.length
       y = ext.length
       # TODO the to_sym works around a mysterious bug
