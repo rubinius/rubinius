@@ -3,15 +3,15 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "The ensure keyword" do
   it "should execute as a result of a throw within it's block" do
     i = []
-    begin
+    catch(:exit) do
       begin
         i << :begin
-        raise "blah"
+        throw :exit
       ensure
         i << :ensure
       end
-    rescue RuntimeError
-    end
+      i << :after_ensure
+    end    
     i.should == [:begin,:ensure]
   end  
 end
