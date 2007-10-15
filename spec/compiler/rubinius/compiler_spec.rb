@@ -428,8 +428,8 @@ extension :rubinius do
         [:to_ary, [:lit, 8]]]
       @method.assembly.should == 
         "push 8\ncast_tuple\ndup\n" \
-        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
-        "unshift_tuple\nset_local_fp 1 ; local b\npop\n" \
+        "unshift_tuple\nset_local_fp 1 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 2 ; local b\npop\n" \
         "unshift_tuple\nset_local_fp 3 ; local c\npop\npop\ncast_array\nsret\n"
     end
   
@@ -440,8 +440,8 @@ extension :rubinius do
         [:to_ary, [:lit, 8]]]
       @method.assembly.should == 
         "push 8\ncast_tuple\ndup\n" \
-        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
-        "unshift_tuple\nset_local_fp 1 ; local b\npop\n" \
+        "unshift_tuple\nset_local_fp 1 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 2 ; local b\npop\n" \
         "cast_array\nset_local_fp 3 ; local c\npop\ncast_array\nsret\n"
     end
   
@@ -451,7 +451,8 @@ extension :rubinius do
        nil,
        [:array, [:lit, 99], [:lit, 8]]]
      
-      @method.assembly.should == "push 8\npush 99\nset_local_fp 2 ; local a\npop\nset_local_fp 1 ; local b\npop\npush true\nsret\n"
+      @method.assembly.should == 
+        "push 8\npush 99\nset_local_fp 1 ; local a\npop\nset_local_fp 2 ; local b\npop\npush true\nsret\n"
     end
   
     # TODO - Add correct asm expectation, remove should_raise
@@ -552,7 +553,7 @@ extension :rubinius do
       compile [:case, [:lit, 1], [[:when, [:array, [:const, :String]], [:lit, 9]]]]
       @method.assembly.should == 
         "push 1\ndup\npush String\nsend === 1\ngif case_lbl1\n" \
-        "push 9\ncase_lbl1:\npush nil\ncase_lbl2:\nswap\npop\nsret\n"
+        "push 9\ngoto case_lbl2\ncase_lbl1:\npush nil\ncase_lbl2:\nswap\npop\nsret\n"
     end
   
     it "compiles a case with many when" do
