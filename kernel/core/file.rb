@@ -49,7 +49,7 @@ class File < IO
   end
   
   def self.exist?(path)
-    out = Stat.stat(path, true)
+    out = Stat.stat(StringValue(path), true)
     if out.kind_of? Stat
       return true
     else
@@ -58,43 +58,43 @@ class File < IO
   end
 
   def self.file?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :file
   end
 
   def self.directory?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :dir
   end
   
   def self.link?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :link
   end
 
   def self.blockdev?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :block
   end
 
   def self.chardev?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :char
   end
   
   def self.fifo?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :fifo
   end
   
   def self.socket?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :socket
   end
@@ -120,7 +120,7 @@ class File < IO
   end
 
   def self.zero?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.size == 0
   end
@@ -130,7 +130,7 @@ class File < IO
   end
 
   def self.size?(path)
-    st = Stat.stat(path, true)
+    st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.size
   end
@@ -372,7 +372,7 @@ class File < IO
   end
   
   def self.perform_stat(path, follow_links)
-    out = Stat.stat(path, follow_links)
+    out = Stat.stat(StringValue(path), follow_links)
     if !out
       raise UnableToStat, "Unable to perform stat on '#{path}'"
     elsif out == 1
