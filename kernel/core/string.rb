@@ -1674,7 +1674,7 @@ class String
     return if @bytes == 0
 
     if replacement.length < source.length
-      replacement << (replacement.empty? " " : replacement[-1,1]) * (source.length - replacement.length)
+      replacement << (replacement.empty? ? " " : replacement[-1,1]) * (source.length - replacement.length)
     end
     
     if source[0] == ?^ && source.length > 1
@@ -2111,7 +2111,7 @@ class String
   def without_changing_regex_global
     old_md = $~
     yield
-    $~ old_md
+    $~ = old_md
   end
 
   # def rindex(arg, finish = nil )
