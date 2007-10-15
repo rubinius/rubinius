@@ -1,3 +1,0 @@
-Bignum#quo returns the result of self divided by the given Integer as a Float
-Bignum#quo does not raise a ZeroDivisionError when the given Integer is 0
-Bignum#quo does not raise a FloatDomainError when the given Integer is 0 and a Float

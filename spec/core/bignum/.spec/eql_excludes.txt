@@ -1,1 +1,0 @@
-Bignum#eql? when given a non-Bignum returns false if the given argument is no Bignum

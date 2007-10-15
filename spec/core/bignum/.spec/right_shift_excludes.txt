@@ -1,2 +1,0 @@
-Bignum#>> tries to convert it's argument to an Integer using to_int
-Bignum#>> raises a TypeError when the given argument can't be converted to Integer
