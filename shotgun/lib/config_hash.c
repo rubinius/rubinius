@@ -28,13 +28,14 @@ struct hashtable * ht_config_create(unsigned int minsize)
 
 void ht_config_destroy(struct hashtable *ht_config)
 {
-  struct hashtable_itr * iter = hashtable_iterator(ht_config);
+  struct hashtable_itr iter;
+  hashtable_iterator_init(&iter, ht_config);
+
   do 
     {
-      bdestroy((bstring)hashtable_iterator_key(iter));
-      bdestroy((bstring)hashtable_iterator_value(iter));
+      bdestroy((bstring)hashtable_iterator_key(&iter));
+      bdestroy((bstring)hashtable_iterator_value(&iter));
     }
-  while (hashtable_iterator_remove(iter));
-  free(iter);
+  while (hashtable_iterator_remove(&iter));
   hashtable_destroy(ht_config, 0);
 }

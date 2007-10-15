@@ -50,7 +50,7 @@ main(int argc, char **argv)
     struct key *k, *kk;
     struct value *v, *found;
     struct hashtable *h;
-    struct hashtable_itr *itr;
+    struct hashtable_itr itr;
     int i;
 
     h = create_hashtable(16, hashfromkey, equalkeys);
@@ -103,13 +103,13 @@ main(int argc, char **argv)
 /* Hashtable iteration */
     /* Iterator constructor only returns a valid iterator if
      * the hashtable is not empty */
-    itr = hashtable_iterator(h);
+    hashtable_iterator_init(&itr, h);
     i = 0;
     if (hashtable_count(h) > 0)
     {
         do {
-            kk = hashtable_iterator_key(itr);
-            v = hashtable_iterator_value(itr);
+            kk = hashtable_iterator_key(&itr);
+            v = hashtable_iterator_value(&itr);
             /* here (kk,v) are a valid (key, value) pair */
             /* We could call 'hashtable_remove(h,kk)' - and this operation
              * 'free's kk. However, the iterator is then broken.
@@ -117,7 +117,7 @@ main(int argc, char **argv)
              */
             i++;
 
-        } while (hashtable_iterator_advance(itr));
+        } while (hashtable_iterator_advance(&itr));
     }
     printf("Iterated through %u entries.\n", i);
 
@@ -132,7 +132,7 @@ main(int argc, char **argv)
         k->one_port = 22 + (7 * i);
         k->two_port = 5522 - (3 * i);
         
-        if (0 == search_itr_some(itr,h,k)) {
+        if (0 == search_itr_some(&itr,h,k)) {
             printf("BUG: key not found searching with iterator");
         }
     }
@@ -206,25 +206,23 @@ main(int argc, char **argv)
         k->one_port = 22 + (7 * i);
         k->two_port = 5522 - (3 * i);
         
-        if (0 == search_itr_some(itr, h, k)) {
+        if (0 == search_itr_some(&itr, h, k)) {
             printf("BUG: key %u not found for search preremoval using iterator\n", i);
             return 1;
         }
-        if (0 == hashtable_iterator_remove(itr)) {
+        if (0 == hashtable_iterator_remove(&itr)) {
             printf("BUG: key not found for removal using iterator\n");
             return 1;
         }
     }
-    free(itr);
 
 /*****************************************************************************/
 /* Hashtable iterator remove and advance */
 
-    for (itr = hashtable_iterator(h);
-         hashtable_iterator_remove(itr) != 0; ) {
+    for (hashtable_iterator_init(&itr, h);
+         hashtable_iterator_remove(&itr) != 0; ) {
         ;
     }
-    free(itr);
     printf("After removal, hashtable contains %u items.\n",
             hashtable_count(h));
 

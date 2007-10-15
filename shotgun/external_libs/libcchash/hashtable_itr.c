@@ -8,19 +8,17 @@
 /*****************************************************************************/
 /* hashtable_iterator    - iterator constructor */
 
-struct hashtable_itr *
-hashtable_iterator(struct hashtable *h)
+void
+hashtable_iterator_init(struct hashtable_itr *itr, struct hashtable *h)
 {
     unsigned int i, tablelength;
-    struct hashtable_itr *itr = (struct hashtable_itr *)
-        malloc(sizeof(struct hashtable_itr));
-    if (NULL == itr) return NULL;
+
     itr->h = h;
     itr->e = NULL;
     itr->parent = NULL;
     tablelength = h->tablelength;
     itr->index = tablelength;
-    if (0 == h->entrycount) return itr;
+    if (0 == h->entrycount) return;
 
     for (i = 0; i < tablelength; i++)
     {
@@ -31,7 +29,6 @@ hashtable_iterator(struct hashtable *h)
             break;
         }
     }
-    return itr;
 }
 
 /*****************************************************************************/

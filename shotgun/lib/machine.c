@@ -636,18 +636,19 @@ static void machine_parse_configs(machine m, char *config) {
   
   m->s->global->config = hash_new(m->s);
   
-  struct hashtable_itr *iter = hashtable_iterator(m->s->config);
+  struct hashtable_itr iter;
+  hashtable_iterator_init(&iter, m->s->config);
+
   do
     {
-      bstring k = (bstring) hashtable_iterator_key(iter);
-      bstring v = (bstring) hashtable_iterator_value(iter);
+      bstring k = (bstring) hashtable_iterator_key(&iter);
+      bstring v = (bstring) hashtable_iterator_value(&iter);
       OBJECT ok = string_newfrombstr(m->s, k);
       OBJECT ov = string_newfrombstr(m->s, v);
 
       hash_set(m->s, m->s->global->config, ok, ov);
     }
-  while (hashtable_iterator_advance(iter));
-  free(iter);
+  while (hashtable_iterator_advance(&iter));
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
 }
 

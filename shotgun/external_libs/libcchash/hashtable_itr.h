@@ -21,8 +21,8 @@ struct hashtable_itr
 /* hashtable_iterator
  */
 
-struct hashtable_itr *
-hashtable_iterator(struct hashtable *h);
+void
+hashtable_iterator_init(struct hashtable_itr *, struct hashtable *h);
 
 /*****************************************************************************/
 /* hashtable_iterator_key
