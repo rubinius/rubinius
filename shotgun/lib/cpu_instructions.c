@@ -139,7 +139,7 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name)
   
   meth = hash_find(state, hsh, name);
   
-  if(NIL_P(meth)) { return Qnil; }
+  if(!RTEST(meth)) { return Qnil; }
   
   if(c->call_flags == 1) { return meth; }
   
@@ -257,6 +257,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   }
   
   *mod = klass;
+  
+  if(FALSE_P(meth)) return Qnil;
 
 #if USE_GLOBAL_CACHING
   /* Update the cache. */

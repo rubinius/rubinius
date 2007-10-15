@@ -705,8 +705,12 @@ module Bytecode
       
       def process_undef(x)
         arg = x.shift
-        STDERR.puts "undef called with: #{arg}, but not implemented yet"
-        add "push nil"
+        add "push :#{arg}"
+        add "push self"
+        unless @in_class_body
+          "send metaclass 0"
+        end
+        add "send undef_method 1"
       end
 
       def process_until(x)

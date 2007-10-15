@@ -185,7 +185,7 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
 
 /* Method cache functions */
 void cpu_clear_cache(STATE, cpu c);
-void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth);
+void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth, int full);
 void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);

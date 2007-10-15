@@ -9,7 +9,7 @@ describe "The undef keyword" do
     obj = UndefSpecClass.new
     (obj.meth 5).should == 5
     class UndefSpecClass
-      undef meth=
+      undef meth
     end
     should_raise(NoMethodError) { obj.meth 5 }
   end

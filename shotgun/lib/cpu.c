@@ -467,7 +467,7 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
     target = c->enclosing_class;
   }
   
-  cpu_clear_cache_for_method(state, c, sym);
+  cpu_clear_cache_for_method(state, c, sym, FALSE);
   
   cpu_increment_serials(state, target, sym);
   meths = module_get_methods(target);

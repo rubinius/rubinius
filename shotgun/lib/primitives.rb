@@ -2506,7 +2506,7 @@ class ShotgunPrimitives
     <<-CODE
     stack_pop(); /* self */
     t1 = stack_pop();
-    cpu_clear_cache_for_method(state, c, t1);
+    cpu_clear_cache_for_method(state, c, t1, TRUE);
     CODE
   end
   

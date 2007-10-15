@@ -47,6 +47,13 @@ class Module
     end
   end
   
+  def undef_method(name)
+    # Will raise a NameError if the method doesn't exist.
+    instance_method(name)
+    method_table[name] = false
+    VM.reset_method_cache(name)
+  end
+  
   def instance_method(name)
     name = name.to_sym
     cur, cm = __find_method(name)
