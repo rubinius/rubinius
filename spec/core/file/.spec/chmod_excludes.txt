@@ -1,1 +1,2 @@
+File#chmod returns 0 if successful
 File#chmod should modify the permission bits of the files specified

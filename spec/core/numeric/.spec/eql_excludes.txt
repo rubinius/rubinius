@@ -1,0 +1,1 @@
+Numeric#eql?  should be equal (bignums and floats 

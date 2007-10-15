@@ -1,0 +1,1 @@
+String#scan with pattern and block passes groups as to the block as one argument: an array

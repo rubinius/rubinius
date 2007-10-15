@@ -31,7 +31,7 @@ describe "Kernel#method_missing" do
   end
 end
 
-describe "When Kernel#method_missing is not defined for an instance" do
+describe "When Kernel#method_missing is undefined" do
   specify "a NoMethodError is raised when an undefined method is called" do
     should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
     should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
