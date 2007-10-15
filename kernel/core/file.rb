@@ -131,7 +131,7 @@ class File < IO
 
   def self.size?(path)
     st = Stat.stat(StringValue(path), true)
-    return false unless st.kind_of? Stat
+    return nil unless st.kind_of? Stat
     st.size
   end
   
