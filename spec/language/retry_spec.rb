@@ -28,13 +28,16 @@ describe "The retry statement" do
     order.should == [1,2,3,4]
   end
 
-  it "should retry entire enumeration" do
-    list = []
-    [1,2,3].each do |x|
-      list << x
-      break if list.size == 6
-      retry if x == 3
+  # block retry is crazy. rubinius is not planning to currently implement it.
+  compliant :mri do
+    it "should retry entire enumeration" do
+      list = []
+      [1,2,3].each do |x|
+        list << x
+        break if list.size == 6
+        retry if x == 3
+      end
+      list.should == [1,2,3,1,2,3]
     end
-    list.should == [1,2,3,1,2,3]
   end
 end

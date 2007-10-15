@@ -660,16 +660,17 @@ module Bytecode
       
       def process_while(x, cond="gif")
         cm = save_condmod()
-        top = unique_lbl('next_')
+        top = unique_lbl('while_')
         bot = unique_lbl('while_')
         @break = unique_lbl('break_')
-        @redo = unique_lbl('redo_')
         
         check = x.shift
         body = x.shift
         check_first = x.shift
         
         if check_first
+          @redo = unique_lbl('redo_')
+          
           @next = top
 
           set_label top
@@ -681,24 +682,20 @@ module Bytecode
           add "pop"
           goto top
           set_label bot
-          add "pop"
           add "push nil"
           set_label @break
         else
-          add "; post while style"
           @next = unique_lbl("next_")
-          
-          add "push nil"
+          @redo = top
           set_label top
-          add "pop"
-          set_label @redo
+          # set_label @redo
           process body
+          add "pop"
           set_label @next
           process check
           add "#{cond} #{bot}"
           goto top
           set_label bot
-          add "pop"
           add "push nil"
           set_label @break
         end
@@ -1419,7 +1416,9 @@ module Bytecode
       end
 
       def reject_defined
-        STDERR.puts "Passed a complex expression to 'defined?'. This is why we can't have nice things."
+        if $DEBUG
+          STDERR.puts "Passed a complex expression to 'defined?'. This is why we can't have nice things."
+        end
         add "push false"
       end
   

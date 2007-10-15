@@ -156,7 +156,7 @@ void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 3;
   
-  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type;
+  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type, lje;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
@@ -175,6 +175,9 @@ void cpu_bootstrap_exceptions(STATE) {
   sce = dexc(SystemCallError, std);
   stk = dexc(StackError, exc);
   sxp = dexc(StackExploded, stk);
+  
+  lje = dexc(LocalJumpError, std);
+  dexc(IllegalLongReturn, lje);
   
   state->global->exc_type = type;
   state->global->exc_arg = arg;

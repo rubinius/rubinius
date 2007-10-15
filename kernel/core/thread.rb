@@ -1,3 +1,7 @@
+# Be very careful about calling raise in here! Thread has it's own
+# raise which, if you're calling raise, you probably don't want. Use
+# Kernel.raise to call the proper raise.
+
 class Thread
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
 
@@ -11,14 +15,28 @@ class Thread
   end
 
   def initialize(*args)
-    raise ThreadError.new("must be called with a block") unless block_given?
-    raise ThreadError.new("thread block arguments not yet supported") unless args.empty?
+    unless block_given?
+      Kernel.raise ThreadError, "must be called with a block"
+    end
+
+    unless args.empty?
+      Kernel.raise ThreadError, "thread block arguments not yet supported"
+    end
+
+    block = Ruby.asm "push_block"
+    block.disable_long_return!
+
     setup(false)
     setup_task do
       begin
         begin
           @lock.send nil
-          @result = yield
+          begin
+            @result = block.call
+          rescue IllegalLongReturn => e2
+            Kernel.raise ThreadError, 
+                      "return is not allowed across threads", e2.context
+          end
         ensure
           @lock.receive
           @alive = false
@@ -94,7 +112,7 @@ class Thread
           @lock.receive
         end
       end
-      raise @exception if @exception
+      Kernel.raise @exception if @exception
       result = yield
     ensure
       @lock.send nil
@@ -112,12 +130,12 @@ class Thread
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
       exc = exc.exception msg
-      raise TypeError, 'exception class/object expected' unless Exception === exc
+      Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
       exc.set_backtrace trace if trace
     elsif exc.kind_of? String or !exc
       exc = RuntimeError.exception exc
     else
-      raise TypeError, 'exception class/object expected'
+      Kernel.raise TypeError, 'exception class/object expected'
     end
     
     if $DEBUG

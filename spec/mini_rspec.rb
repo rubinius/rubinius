@@ -375,6 +375,9 @@ def after(at=:each, &block)
 end
 
 def describe(msg, &block)
+  if @runner == self
+    raise "fucked!"
+  end
   @runner.describe(msg, &block)
 end
 

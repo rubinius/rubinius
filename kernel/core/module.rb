@@ -229,7 +229,13 @@ class Module
   end
   
   def const_defined?(name)
-    recursive_const_get(name) ? true : false
+    begin
+      recursive_const_get(name)
+    rescue NameError
+      return false
+    end
+    
+    return true
   end
 
   def const_set(name, value)
@@ -237,11 +243,7 @@ class Module
   end
 
   def const_get(name)
-    const = recursive_const_get(name)
-    unless const
-      raise NameError, "uninitialized constant #{self.to_s}::#{name}"
-    end
-    const
+    recursive_const_get(name)
   end
   
   def const_missing(name)
@@ -281,13 +283,15 @@ private
       
       const = self
       hierarchy.each do |c|
-        const = const.constants_table[normalize_const_name(c)]
-        return nil unless const
+        f, v = const.constants_table.find_unambigious normalize_const_name(c)
+        return v if f
       end
     else
-      const = constants_table[normalize_const_name(name)]
+      f, v = constants_table.find_unambigious normalize_const_name(name)
+      return v if f
     end
-    const
+    
+    const_missing(name)
   end
   
   def normalize_const_name(name)

@@ -1,22 +1,76 @@
-class Object
-  # FIXME - This totally shouldn't be a global.
-  $__catch_stack__ ||= []
-
-  def catch(sym)
-    callcc do |cc|
-      $__catch_stack__.push([sym, cc])
-      yield
+# Emulates the interface of Exception, but isn't one.
+class ThrownValue
+  def initialize(name, value, ctx)
+    @name = name
+    @value = value
+    @context = ctx
+  end
+  
+  attr_reader :name
+  attr_reader :value
+  
+  def message
+    "A thrown value from Kernel#throw"
+  end
+  
+  def backtrace
+    if @context.kind_of? MethodContext
+      @context = Backtrace.backtrace(@context)
     end
-  ensure
-    $__catch_stack__.pop
+    
+    return @context
+  end
+  
+  def set_backtrace(obj)
+    @context = obj
+  end
+  
+  def exception(msg)
+    true
+  end
+  
+  def self.register(sym)
+    cur = Thread.current[:__catches__]
+    if cur.nil?
+      cur = []
+      Thread.current[:__catches__] = cur
+    end
+    
+    cur << sym
+    
+    begin
+      yield
+    ensure
+      cur.pop
+    end
+  end
+  
+  def self.available?(sym)
+    cur = Thread.current[:__catches__]
+    return false if cur.nil?
+    cur.include? sym
+  end
+end
+
+class Object
+  def catch(sym)
+    begin
+      ThrownValue.register(sym) do
+        yield
+      end
+    rescue ThrownValue => val
+      return val.value if val.name == sym
+      Ruby.asm "#local val\nraise_exc\n"
+    end
   end
 
   def throw(sym, value = nil)
-    until $__catch_stack__.empty? || $__catch_stack__.last[0] == sym
-      $__catch_stack__.pop
+    unless ThrownValue.available? sym
+      raise NameError, "Unknown catch label '#{sym}'"
     end
-    raise NameError.new("uncaught throw `#{sym}'") if $__catch_stack__.empty?
-    $__catch_stack__.last[1].call(value)
+    
+    exc = ThrownValue.new(sym, value, MethodContext.current.sender)
+    Ruby.asm "#local exc\nraise_exc\n"    
   end
 end
 

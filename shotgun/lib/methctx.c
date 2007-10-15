@@ -59,6 +59,13 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   } else {
     fc->locals = Qnil;
   }
+  fc->flags = 0;
+  
+  /* If post send is nil, that means we're not allowed to return directly to
+     the home context. */
+  if(NIL_P(blokenv_get_post_send(self))) {
+    fc->flags |= CTX_FLAG_NO_LONG_RETURN;
+  }
   
   fc->type = FASTCTX_BLOCK;
   return ctx;

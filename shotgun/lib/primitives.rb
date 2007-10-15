@@ -1745,6 +1745,9 @@ class ShotgunPrimitives
       case 11:
         stack_push(fc->method_module);
         break;
+      case 12:
+        stack_push(I2N(fc->flags));
+        break;
       default:
         stack_push(Qnil);
     }
@@ -1798,6 +1801,13 @@ class ShotgunPrimitives
         break;
       case 11:
         fc->method_module = t2;
+        break;
+      case 12:
+        if(NIL_P(t2)) {
+          fc->flags = 0;
+        } else if(FIXNUM_P(t2)) {
+          fc->flags |= FIXNUM_TO_INT(t2);
+        }
         break;
       default:
         _ret = FALSE;
@@ -1995,7 +2005,7 @@ class ShotgunPrimitives
       break;
     case 1:
       t2 = task->active_context;
-      methctx_reference(state, t2);
+      if(REFERENCE_P(t2)) methctx_reference(state, t2);
       break;
     default:
       t2 = Qnil;
@@ -2035,8 +2045,12 @@ class ShotgunPrimitives
     /* The return value */
     stack_push(Qnil);
     
-    cpu_task_select(state, c, self);
-    cpu_raise_exception(state, c, t1);
+    /* This is conditional because task_select can decide that it's not
+       not possible to select this task, in which case it handles letting
+       the user know this on it's own. */
+    if(cpu_task_select(state, c, self)) {
+      cpu_raise_exception(state, c, t1);
+    }
     CODE
   end
   

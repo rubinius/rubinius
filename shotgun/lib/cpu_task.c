@@ -89,7 +89,7 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   return obj;
 }
 
-void cpu_task_select(STATE, cpu c, OBJECT nw) {
+int cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
   cpu_save_registers(state, c, 0);
@@ -107,6 +107,11 @@ void cpu_task_select(STATE, cpu c, OBJECT nw) {
   cur_task = (struct cpu_task*)BYTES_OF(cur);
   new_task = (struct cpu_task*)BYTES_OF(nw);
   
+  if(NIL_P(new_task->active_context) || NIL_P(new_task->home_context)) {
+    cpu_raise_arg_error_generic(state, c, "Task has already exited");
+    return FALSE;
+  }
+  
   memcpy(cur_task, ct, sizeof(struct cpu_task));
   // printf(" Saving to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)cur, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   memcpy(ct, new_task, sizeof(struct cpu_task));
@@ -117,6 +122,7 @@ void cpu_task_select(STATE, cpu c, OBJECT nw) {
   // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   
   c->current_task = nw;
+  return TRUE;
 }
 
 void cpu_task_push(STATE, OBJECT self, OBJECT val);
@@ -132,7 +138,7 @@ OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be) {
   task->sp_ptr = task->stack_top;
   task->stack_size = InitialStackSize;
   task->stack_slave = 0;
-  
+    
   /* The args to the block (none). */
   cpu_task_push(state, self, tuple_new(state, 0));
   

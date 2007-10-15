@@ -92,11 +92,17 @@ extension :rubinius do
     end
   
     it "compiles while" do
-      compile [:while, [:true], [:lit, 10]]
+      compile [:while, [:true], [:block, [:lit, 10], [:lit, 11]], true]
       @method.assembly.should ==
-        "next_lbl1:\npush true\ngif break_lbl2\nredo_lbl3:\npush 10\npop\ngoto next_lbl1\nbreak_lbl2:\npush nil\nsret\n"
+        "while_lbl1:\npush true\ngif while_lbl2\nredo_lbl4:\npush 10\npop\npush 11\npop\ngoto while_lbl1\nwhile_lbl2:\npush nil\nbreak_lbl3:\nsret\n"
     end
-  
+    
+    it "compiles post while" do
+      compile [:while, [:true], [:block, [:lit, 10], [:lit, 11]], false]
+      @method.assembly.should ==
+        "while_lbl1:\npush 10\npop\npush 11\npop\nnext_lbl4:\npush true\ngif while_lbl2\ngoto while_lbl1\nwhile_lbl2:\npush nil\nbreak_lbl3:\nsret\n"
+    end
+    
     it "compiles until" do
       compile [:until, [:true], [:lit, 10]]
       @method.assembly.should == 

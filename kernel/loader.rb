@@ -157,7 +157,7 @@ rescue SystemExit => e
   code = e.code
 rescue Object => e
   begin
-    if e.kind_of? Exception
+    if e.kind_of? Exception or e.kind_of? ThrownValue
       msg = e.message
     else
       msg = "strange object detected as exception: #{e.inspect}"

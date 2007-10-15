@@ -394,6 +394,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->name = name;
   fc->method_module = mod;
   fc->type = FASTCTX_NORMAL;
+  fc->flags = 0;
   
   xassert(om_valid_sender_p(state->om, ctx, sender));
 
@@ -613,6 +614,16 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       destination = FASTCTX(home)->sender;
       if(EXCESSIVE_TRACING) {
         printf("CTX: remote return from %d to %d\n", (int)c->active_context, (int)destination);
+      }
+      
+      /* If the current context is marked as not being allowed to
+         return long, raise an exception instead. */
+      if(FASTCTX(c->active_context)->flags & CTX_FLAG_NO_LONG_RETURN) {
+        home = rbs_const_get(state, BASIC_CLASS(object), "IllegalLongReturn");
+        
+        cpu_raise_exception(state, c, 
+          cpu_new_exception(state, c, home, "Unable to perform a long return"));
+        return TRUE;
       }
       
       /* If we're making a non-local return to a stack context... */

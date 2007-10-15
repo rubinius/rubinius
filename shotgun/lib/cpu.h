@@ -23,6 +23,8 @@
 #define IP_TYPE uint32_t
 #define BS_JUMP 2
 
+#define CTX_FLAG_NO_LONG_RETURN (1<<0)
+
 #define CPU_REGISTERS OBJECT sender; \
   OBJECT block; \
   OBJECT method; \
@@ -34,7 +36,8 @@
   void *opaque_data; \
   OBJECT self; \
   IP_TYPE *data; \
-  unsigned short type; \
+  unsigned char type; \
+  unsigned char flags; \
   unsigned int ip; \
   unsigned int sp; \
   OBJECT *fp_ptr;
@@ -186,7 +189,7 @@ void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth);
 void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
-void cpu_task_select(STATE, cpu c, OBJECT self);
+int cpu_task_select(STATE, cpu c, OBJECT self);
 OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be);
 void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc);
 OBJECT cpu_channel_new(STATE);

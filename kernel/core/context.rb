@@ -46,6 +46,12 @@ class MethodContext
   def location
     "#{file}:#{line}"
   end
+
+  def disable_long_return!
+    # 12 => fc->flags
+    # CTX_FLAG_NO_LONG_RETURN => 1
+    _set_field(12, 1)
+  end
 end
 
 class NativeMethodContext
@@ -144,6 +150,10 @@ class BlockEnvironment
   def call_on_instance(obj, *args)
     obj = redirect_to(obj)
     obj.call *args
+  end
+
+  def disable_long_return!
+    @post_send = nil
   end
 end
 
