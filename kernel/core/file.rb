@@ -94,7 +94,7 @@ class File < IO
     st.kind == :dir
   end
   
-  def self.link?(path)
+  def self.symlink?(path)
     st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :link
@@ -386,6 +386,10 @@ class File < IO
    
     def inspect
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
+    end
+
+    def symlink?
+      @kind == :link
     end
   end
   
