@@ -53,6 +53,8 @@ class File < IO
   else
     SEPARATOR = "/"
   end
+
+  ALT_SEPARATOR = nil
   
   def self.new(path, mode)
     return open_with_mode(path, mode)
