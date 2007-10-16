@@ -323,7 +323,7 @@ class File < IO
     
     return false if path[0] == ?. and pattern[0] != ?. and period
     pattern.gsub!('.', '\.')
-    pattern = pattern.split(/(?\[(?:\\[\[\]]|[^\[\]]|\1)*\])/).collect do |part|
+    pattern = pattern.split(/(?<b>\[(?:\\[\[\]]|[^\[\]]|\g<b>)*\])/).collect do |part|
       if part[0] == ?[
         part.gsub!(/\\([*?])/, '\1')
         part.gsub(/\[!/, '[^')
