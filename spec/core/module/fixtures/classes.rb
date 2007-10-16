@@ -28,7 +28,7 @@ module ModuleSpecs
     private
       def private_module() end
   end
-
+  
   module Super
     include Basic
     
@@ -42,8 +42,17 @@ module ModuleSpecs
     end
   end
     
+  module Internal
+  end
+
   class Child < Parent
     include Super
+
+    failure :rubinius do
+      class << self
+        include Internal
+      end
+    end
     
     def public_child() end
     protected

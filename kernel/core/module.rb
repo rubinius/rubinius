@@ -19,12 +19,16 @@ class Module
   end
   
   def ancestors
-    out = [self]
+    if self.class == MetaClass
+      out = []
+    else
+      out = [self]
+    end
     sup = direct_superclass()
     while sup
       if sup.class == IncludedModule
         out << sup.module
-      else
+      elsif sup.class != MetaClass
         out << sup
       end
       sup = sup.direct_superclass()

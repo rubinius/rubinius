@@ -9,4 +9,9 @@ describe "Module#ancestors" do
     ModuleSpecs::Parent.ancestors.should == [ModuleSpecs::Parent, Object, Kernel]
     ModuleSpecs::Child.ancestors.should  == [ModuleSpecs::Child, ModuleSpecs::Super, ModuleSpecs::Basic, ModuleSpecs::Parent, Object, Kernel]
   end
+  
+  it "returns only modules and classes" do
+    class << ModuleSpecs::Child; self; end.ancestors.should == 
+      [ModuleSpecs::Internal, Class, Module, Object, Kernel]
+  end
 end
