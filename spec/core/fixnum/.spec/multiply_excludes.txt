@@ -1,1 +1,0 @@
-Fixnum#* raises a TypeError when given a non-Integer

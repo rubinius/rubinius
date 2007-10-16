@@ -1,3 +1,0 @@
-Kernel#respond_to? returns true if obj responds to the given protected method
-Kernel#respond_to? returns true if obj responds to the given protected method
-Kernel#respond_to? returns true if obj responds to the given private method

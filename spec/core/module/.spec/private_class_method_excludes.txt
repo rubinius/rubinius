@@ -1,3 +1,4 @@
 Module#private_class_method makes an existing class method private
 Module#private_class_method makes an existing class method private up the inheritance tree
 Module#private_class_method accepts more than one method at a time
+Module#private_class_method makes a class method private

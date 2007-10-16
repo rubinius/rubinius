@@ -1,0 +1,2 @@
+Kernel#send raises NoMethodError if the corresponding method can't be found
+Kernel#send raises NoMethodError if the corresponding singleton method can't be found

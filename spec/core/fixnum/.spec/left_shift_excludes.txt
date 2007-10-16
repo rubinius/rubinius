@@ -1,2 +1,0 @@
-Fixnum#<< coerces result on overflow and return self shifted left other bits
-Fixnum#<< raises a TypeError when the given argument can't be converted to Integer

@@ -1,1 +1,0 @@
-File.directory? raise an exception its the arguments are the worng type or number

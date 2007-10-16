@@ -1,1 +1,0 @@
-File.zero? raise an exception if the arguments are wrong type or are the incorect number of arguments 

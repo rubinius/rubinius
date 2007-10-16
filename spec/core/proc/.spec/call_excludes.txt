@@ -1,7 +1,3 @@
-Proc#call invokes self
-Proc#call sets self's parameters to the given values
-Proc#call sets self's single parameter to an Array of all given values
-Proc#call auto-explodes a single Array argument when called on a Proc created with Proc.new
 Proc#call raises ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc
 Proc#call raises ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc
 Proc#call treats a single Array argument as a single argument when called on a Proc created with Kernel#lambda or Kernel#proc

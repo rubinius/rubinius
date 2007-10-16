@@ -1,2 +1,0 @@
-Fixnum#coerce tries to convert the given Object into a Float by using #to_f
-Fixnum#coerce raises a TypeError when given an Object that does not respond to #to_f

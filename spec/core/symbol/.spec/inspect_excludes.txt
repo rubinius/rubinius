@@ -1,0 +1,1 @@
+Symbol#inspect returns self as a symbol literal

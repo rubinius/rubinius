@@ -1,3 +1,4 @@
 Struct.new raises TypeError if object is not a Symbol
+Struct.new raises ArgumentError if fixnum#to_sym is nil
 Struct.new creates reader methods
 Struct.new creates writer methods

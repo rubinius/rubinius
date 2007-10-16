@@ -1,0 +1,2 @@
+Module#const_defined? returns true if constant with the given String is defined in its parent
+Module#const_defined? raises a NameError when the given constant name is not allowed

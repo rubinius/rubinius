@@ -1,2 +1,0 @@
-Precision#prec_i returns the same Integer when called on an Integer
-Precision#prec_i converts Float to an Integer when called on an Integer

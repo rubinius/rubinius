@@ -106,7 +106,7 @@ extension :rubinius do
     it "compiles until" do
       compile [:until, [:true], [:lit, 10]]
       @method.assembly.should == 
-        "next_lbl1:\npush true\ngit break_lbl2\nredo_lbl3:\npush 10\npop\ngoto next_lbl1\nbreak_lbl2:\npush nil\nsret\n"
+        "while_lbl1:\npush 10\npop\nnext_lbl4:\npush true\ngit while_lbl2\ngoto while_lbl1\nwhile_lbl2:\npush nil\nbreak_lbl3:\nsret\n"
     end
   
     it "compiles lasgn" do
@@ -434,9 +434,9 @@ extension :rubinius do
         [:to_ary, [:lit, 8]]]
       @method.assembly.should == 
         "push 8\ncast_tuple\ndup\n" \
-        "unshift_tuple\nset_local_fp 1 ; local a\npop\n" \
-        "unshift_tuple\nset_local_fp 2 ; local b\npop\n" \
-        "unshift_tuple\nset_local_fp 3 ; local c\npop\npop\ncast_array\nsret\n"
+        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 3 ; local b\npop\n" \
+        "unshift_tuple\nset_local_fp 1 ; local c\npop\npop\ncast_array\nsret\n"
     end
   
     it "compiles masgn with splat" do
@@ -446,9 +446,9 @@ extension :rubinius do
         [:to_ary, [:lit, 8]]]
       @method.assembly.should == 
         "push 8\ncast_tuple\ndup\n" \
-        "unshift_tuple\nset_local_fp 1 ; local a\npop\n" \
-        "unshift_tuple\nset_local_fp 2 ; local b\npop\n" \
-        "cast_array\nset_local_fp 3 ; local c\npop\ncast_array\nsret\n"
+        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 3 ; local b\npop\n" \
+        "cast_array\nset_local_fp 1 ; local c\npop\ncast_array\nsret\n"
     end
   
     it "compiles masgn with array as the source" do

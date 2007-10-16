@@ -1,2 +1,3 @@
+Module const_defined? should return true if the name is defined
 Module instance_methods with false should exclude super class instance methods
 Module instance_methods should return all instance methods of a module

@@ -1,2 +1,1 @@
-Method#to_s returns a string representing the method
 Method#inspect returns a string representing the method

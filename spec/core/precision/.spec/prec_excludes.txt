@@ -1,4 +1,0 @@
-Float#prec returns the same Float when given the class Float
-Float#prec converts the Float to an Integer when given the class Integer
-Integer#prec returns the same Integer when given the class Integer
-Integer#prec converts the Integer to Float when given the class Float

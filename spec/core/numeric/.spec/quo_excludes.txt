@@ -1,1 +1,0 @@
-Numeric#quo raise the expected exception

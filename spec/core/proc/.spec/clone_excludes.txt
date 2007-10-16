@@ -1,2 +1,1 @@
-Proc#dup returns a copy of self
 Proc#clone returns a copy of self

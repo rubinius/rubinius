@@ -1,3 +1,2 @@
-File.atime raise an exception if the arguments are wrong type or are the incorect number of arguments
 File#atime returns the last access time to self
 File#atime raise an Exception if it has the worng number of argments
