@@ -212,9 +212,8 @@ module Kernel
   end
   
   def self.after_loaded
-    # This nukes the bootstrap raise so the Kernel one is
-    # used.
-    Object.method_table[:raise] = nil
+    # This nukes the bootstrap raise so the Kernel one is used.
+    Object.method_table.delete :raise
   end
 end
 
