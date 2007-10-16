@@ -40,12 +40,11 @@ static inline OBJECT object_class(STATE, OBJECT self) {
 #define object_size(st, self) SIZE_OF_BODY(self)
 
 static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
-  int max, s2;
-  max = object_size(state, self);
-  s2 = object_size(state, dest);
-  if(s2 < max) max = s2;
+  int s1 = object_size(state, self);
+  int s2 = object_size(state, dest);
+  assert(s1 <= s2);
   
-  memcpy(object_byte_start(state, dest), object_byte_start(state, self), max);
+  memcpy(object_byte_start(state, dest), object_byte_start(state, self), s1);
 }
 
 
