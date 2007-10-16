@@ -187,6 +187,14 @@ class File < IO
     raise Errno::EEXIST if exists?(to)
     Platform::POSIX.link(from, to)
   end
+
+  def self.readlink(path)
+    StringValue(path)
+
+    buf = " " * 1024
+    n = Platform::POSIX.readlink(path, buf, buf.length)
+    buf[0, n]
+  end
   
   def self.identical?(orig, copy)
     st_o = stat(StringValue(orig))
