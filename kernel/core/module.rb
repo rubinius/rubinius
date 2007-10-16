@@ -80,8 +80,6 @@ class Module
   
   def filter_methods(filter, all)
     names = method_table.__send__(filter)
-    # TODO: fix for module when modules can include modules
-    return names if self.is_a?(Module)
     unless all or self.is_a?(MetaClass) or self.is_a?(IncludedModule)
       return names
     end
