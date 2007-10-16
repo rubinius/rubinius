@@ -1,7 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
-failure :rbx do
-  require 'pathname'
-end
+require 'pathname'
 
 describe "File.ftype" do
   
