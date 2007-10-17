@@ -528,7 +528,8 @@ double bignum_to_double(STATE, OBJECT self) {
 
   /* On Linux/x86, we were seeing strange issues with Bignums/Floats.
    * This function would randomly break if the code was compiled
-   * with -O or greater. So far this has been reproduced with gcc 4.1.x.
+   * with -O or greater. So far this has been reproduced with gcc 4.1.x
+   * and gcc 4.0.x
    *
    * This seems to be a bug in gcc; as a workaround we are initializing
    * the floating point registers manually here, which fixes things.
@@ -536,7 +537,7 @@ double bignum_to_double(STATE, OBJECT self) {
    */
 #ifdef i386
 # ifdef __GNUC__
-#  if __GNUC__ == 4 && __GNUC_MINOR__ == 1
+#  if __GNUC__ == 4 && (__GNUC_MINOR__ == 1 || __GNUC_MINOR__ == 0)
   __asm__ __volatile__ ("finit":::"memory");
 #  endif
 # endif
@@ -579,7 +580,8 @@ OBJECT bignum_from_double(STATE, double d)
 
   /* On Linux/x86, we were seeing strange issues with Bignums/Floats.
    * This function would randomly break if the code was compiled
-   * with -O or greater. So far this has been reproduced with gcc 4.1.x.
+   * with -O or greater. So far this has been reproduced with gcc 4.1.x
+   * and 4.0.x
    *
    * This seems to be a bug in gcc; as a workaround we are initializing
    * the floating point registers manually here, which fixes things.
@@ -587,7 +589,7 @@ OBJECT bignum_from_double(STATE, double d)
    */
 #ifdef i386
 # ifdef __GNUC__
-#  if __GNUC__ == 4 && __GNUC_MINOR__ == 1
+#  if __GNUC__ == 4 && (__GNUC_MINOR__ == 0 || __GNUC_MINOR__ == 1)
   __asm__ __volatile__ ("finit":::"memory");
 #  endif
 # endif
