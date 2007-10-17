@@ -15,6 +15,12 @@ describe "File.dirname" do
     File.dirname("foo").class.should == String
   end
 
+  it "not modify its argument" do
+    x = "/usr/bin"
+    File.dirname(x)
+    x.should == "/usr/bin"
+  end
+
   it "return the return all the components of filename except the last one (unix format)" do
     File.dirname("foo").should =="."
     File.dirname("/foo").should =="/"

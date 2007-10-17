@@ -9,7 +9,7 @@ module Platform::File
       return "."
     else
       # strip the basename off the end and clean up the ending separators
-      path.sub!(/#{SEPARATOR}*[^#{SEPARATOR}]*#{SEPARATOR}*$/,'')    
+      path = path.sub(/#{SEPARATOR}*[^#{SEPARATOR}]*#{SEPARATOR}*$/,'')    
       if(path == '')
         return SEPARATOR
       else
