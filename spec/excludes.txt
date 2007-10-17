@@ -14,3 +14,4 @@ Module#extended is called after Module#extend_object
 Module#module_function makes the instance method versions private
 Module#autoload registers the given filename to be loaded the first time that the Module with the given name is accessed
 Thread#join raises any exceptions encountered in the thread body
+The loop expression restarts the current iteration with redo
