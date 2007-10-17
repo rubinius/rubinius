@@ -27,6 +27,14 @@ class Class
   def opened_class_cv(cls)
     cls = Object unless cls
     cls.add_subclass(self)
+    
+    # Fire all the inherited hooks
+    sup = cls
+    while sup and sup != Object
+      sup.inherited(self) if sup.respond_to?(:inherited)
+      sup = sup.superclass
+    end
+    
     # FIXME: We shouldn't have to do this; hook calls should preserve the stack
     self
   end

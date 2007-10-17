@@ -196,7 +196,7 @@ class Array
 
       if replacement.size > cnt
         newtotal = @total + replacement.size - cnt
-        if newtotal > @tuple.fields
+        if newtotal > @tuple.fields - @start
           nt = Tuple.new(newtotal + 10)
           nt.copy_from @tuple, @start # FIXME: double copy of right part
           @start = 0

@@ -2,7 +2,6 @@ class Exception
   
   ivar_as_index :__ivars => 0, :message => 1, :context => 2
   def message; @message ; end
-  def context; @context ; end
 
   def initialize(message = nil)
     @message = message
@@ -39,12 +38,26 @@ class Exception
   def self.exception(message=nil)
     self.new(message)
   end
+  
   def exception(message=nil)
     if message
       self.class.new(message)
     else 
       self
     end
+  end
+  
+  def context
+    if @context.kind_of? Backtrace
+      return @context.top_context
+    end
+    
+    return @context
+  end
+  
+  def location
+    ctx = self.context
+    [ctx.file.to_s, ctx.line]
   end
 end
 

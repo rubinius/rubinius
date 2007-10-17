@@ -79,7 +79,6 @@ if ARGV.include?('-p')
 end
 $VERBOSE = false
 code = 0
-ran_something = false
 
 begin
 
@@ -107,8 +106,8 @@ begin
       puts "Compiled #{file} to #{path}"
       exit 1
     when '-e'
+      $0 = "(eval)"
       Compile.execute ARGV.shift
-      ran_something = true
     else
       if arg.prefix? "-I"
         more = arg[2..-1]
@@ -127,14 +126,14 @@ begin
           require more
         end
       elsif arg == "-"
-        ran_something = true
+        $0 = "-"
         Compile.execute STDIN.read
       elsif arg.prefix? "-"
         puts "Invalid switch '#{arg}'"
         exit! 1
       else
         if File.exists?(arg)
-          ran_something = true
+          $0 = arg
           load(arg)
         else
           if arg.suffix?(".rb")
@@ -143,7 +142,7 @@ begin
           else
             prog = "bin/#{arg}"
             begin
-              ran_something = true
+              $0 = prog
               require prog
             rescue LoadError => e
               puts "Unable to find program '#{arg}' ('#{prog}'): #{e.message} (#{e.class})"
@@ -156,11 +155,13 @@ begin
     end
   end
   
-  unless ran_something
+  unless $0
     if Rubinius::Terminal
       repr = ENV['RBX_REPR'] || "bin/sirb"
+      $0 = repr
       require repr
     else
+      $0 = "(eval)"
       Compile.execute "p #{STDIN.read}"
     end
   end
@@ -189,6 +190,8 @@ end
 
 begin
   Rubinius::AtExit.each {|handler| handler.call}
+rescue SystemExit => e
+  code = e.code
 rescue Object => e
   puts "An exception occurred inside an at_exit handler:"
   puts "    #{e.message} (#{e.class})"

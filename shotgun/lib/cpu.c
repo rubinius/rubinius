@@ -298,7 +298,7 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
 #define update_cache(val) // if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index, val)
 
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
-  OBJECT cur, start, hsh, val;
+  OBJECT cur, klass, start, hsh, val;
   
   /* Look up the lexical scope first */
   
@@ -322,19 +322,45 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   /* If self is a module, we start with it, otherwise we start with
      self's class. */
   if(object_kind_of_p(state, c->self, state->global->module)) {
-    start = c->self;
+    klass = c->self;
   } else {
-    start = object_class(state, c->self);
+    klass = object_class(state, c->self);
   }
   
-  cur = start;
+  if(sym == module_get_name(klass)) {
+    // printf("  found, it's where you are.\n");
+    return klass;
+  }
+  
+  cur = cpu_current_module(state, c);
+  
+  /* If the current module is a metaclass, then .. */
+  if(ISA(cur, state->global->metaclass)) {
+    /* If the attached instance of the metaclass is a module...
+       start from it */
+    OBJECT inst = metaclass_get_attached_instance(cur);
+    if(ISA(inst, state->global->module)) {
+      cur = inst;
+    }
+  }
+  
+  while(!NIL_P(cur)) {    
+    hsh = module_get_constants(cur);
+    val = hash_find_undef(state, hsh, sym);
+    if(val != Qundef) { 
+      // printf("   found!\n");
+      return val;
+    }
+    /* TODO: this shouldn't be needed, since Object's parent
+       really should be nil. Currently, it doesn't seem to be though. */
+    if(cur == state->global->object) break;
+    cur = module_get_parent(cur);
+  }
+  
+  start = cur = klass;
   
   // printf("Looking for %s in the current context.\n", rbs_symbol_to_cstring(state, sym));
   
-  if(sym == module_get_name(cur)) {
-    // printf("  found, it's where you are.\n");
-    return cur;
-  }
   
   while(!NIL_P(cur)) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));

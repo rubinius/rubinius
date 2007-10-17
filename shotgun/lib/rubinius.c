@@ -98,6 +98,9 @@ const char *rbs_inspect_verbose(STATE, OBJECT obj) {
     sprintf(buf, "<(NilClass!!):%p>", (void*)obj);
   } else if(kls == state->global->class) {
     sprintf(buf, "<Class:%s>", rbs_symbol_to_cstring(state, module_get_name(obj)));
+  } else if(kls == state->global->module) {
+    sprintf(buf, "<Module:%s>", rbs_symbol_to_cstring(state, module_get_name(obj)));
+    
   } else if(kls == state->global->symbol || kls == state->global->string) {
     const char *s = NULL;
     sprintf(buf, "<%s:%p '", rbs_symbol_to_cstring(state, module_get_name(kls)), (void*)obj);

@@ -33,7 +33,7 @@ module Enumerable
     # Sort an Enumerable using simple quicksort (not optimized)
     def quicksort(xs, &prc)
       return [] unless xs
-      #return xs if xs.size <= 1
+      return xs if xs.size <= 1
       pivot = nil
       xs.each { |o| pivot = o; break }
       lmr = xs.group_by { |o| yield(o, pivot) }

@@ -34,12 +34,14 @@ DT_ADDRESSES;
 
 #define next_literal next_int; _lit = tuple_at(state, cpu_current_literals(state, c), _int)
 
-OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
+OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
   OBJECT sym, _lit, val, s1, s2, s3, s4, sup_itr;
   uint32_t _int;
     
   next_literal;
   sym = _lit;
+  
+  *created = FALSE;
     
   val = module_const_get(state, under, sym);
   if(RTEST(val)) {
@@ -64,6 +66,8 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
       return Qundef;
     }
     
+    *created = TRUE;
+    
     /*
     printf("Defining %s under %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(c->enclosing_class));
     */
@@ -81,16 +85,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup) {
       // printf("Module %s name set to %s (%d)\n", _inspect(val), rbs_symbol_to_cstring(state, sym), FIXNUM_TO_INT(class_get_instance_fields(val)));
     }
     module_const_set(state, under, sym, val);
-    sup_itr = sup;
-    
-    /* This code does not work. perform_hook will return before running */
-    /*
-    while(!NIL_P(sup_itr)) {
-      cpu_perform_hook(state, c, sup_itr, state->global->sym_inherited, val);
-      sup_itr = class_get_superclass(sup_itr);
-      if(sup_itr == state->global->object) { break; }
-    }
-    */
+    sup_itr = sup;    
   }
   return val;
 }
@@ -109,7 +104,7 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
     module_set_name(val, sym);
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
-    module_set_parent(val, under);
+    module_set_parent(val, under);    
   }
   
   return val;
@@ -741,14 +736,22 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 /* Layer 3: hook. Shortcut for running hook methods. */
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
-  OBJECT ctx, mo, mod;
+  OBJECT mo, mod, vm;
   mo = cpu_find_method(state, c, _real_class(state, recv), meth, &mod);
   if(NIL_P(mo)) return;
-  stack_push(arg);
   
-  ctx = cpu_create_context(state, c, recv, mo, meth, 
-        _real_class(state, recv), 1, Qnil);
-  cpu_activate_context(state, c, ctx, ctx, 1);
+  vm = rbs_const_get(state, BASIC_CLASS(object), "VM");
+  if(NIL_P(vm)) return;
+  
+  /* The top of the stack contains the value that should remain on the stack.
+     we pass that to the perform_hook call so it is returned and stays on
+     the top of the stack. Thats why we say there are 4 args.*/
+  
+  stack_push(arg);
+  stack_push(meth);
+  stack_push(recv);
+  
+  cpu_unified_send(state, c, vm, SYM("perform_hook"), 4, Qnil);
 }
 
 /* Layer 4: High level method calling. */

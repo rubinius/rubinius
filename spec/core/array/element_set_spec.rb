@@ -451,3 +451,14 @@ describe "Array#[]= with [m..n]" do
     a.should == [1, "A", "B", 4]
   end
 end
+
+describe "Array#[] after a shift" do
+  it "works for insertion" do
+    a = [1,2]
+    a.shift
+    a.shift
+    a[0,0] = [3,4]
+    a.should == [3,4]
+  end
+end
+

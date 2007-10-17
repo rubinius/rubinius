@@ -114,6 +114,10 @@ class IO
     true
   end
   
+  def flush
+    true
+  end
+  
   def gets(sep=$/)
     cur = read(1)
     return nil unless cur

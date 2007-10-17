@@ -189,3 +189,30 @@ describe "Multiple Definitions of the same Class" do
     end    
   end
 end
+
+describe "class provides hooks" do
+  it "calls inherited when a class is created" do
+    class C
+      Subs = []
+      
+      def self.inherited(sub)
+        Subs << sub
+      end
+    end
+    
+    class B < C
+      Subs = []
+      
+      def self.inherited(sub)
+        Subs << sub
+      end
+    end
+
+    class A < B
+    end
+
+    C::Subs.should == [B, A]
+    B::Subs.should == [A]
+  end
+end
+

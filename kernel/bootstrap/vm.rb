@@ -10,4 +10,10 @@ module VM
   def self.reset_method_cache(sym)
     Ruby.primitive :reset_method_cache
   end
+  
+  # Semantics of this are very important. ret MUST be returned.
+  def self.perform_hook(obj, meth, arg, ret)
+    obj.__send__(meth, arg) if obj.respond_to? meth
+    return ret
+  end
 end

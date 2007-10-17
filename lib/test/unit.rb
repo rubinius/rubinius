@@ -12,30 +12,35 @@ module Test
   class Unit
     def self.autotest
       Test::Unit::TestCase::Tests.each do |klass|
+        puts "Running #{klass}"
         inst = klass.new
         klass.instance_methods(false).each do |meth|
           next unless meth.to_s =~ /^test/
           begin
+            print "#{meth}: "
             inst.setup
             inst.send meth.intern
             inst.teardown
-            puts "Test Passed"
+            print "passed\n"
           rescue Exception => e
-            puts "Test failed"
+            print "failed\n"
             break if ENV["SILENCE_TESTS"]
             file, line = file_and_line_number(e)
-            code = file ? load_line(file, line) : nil
-            display_result(klass, meth, e, code)
+            display_result(klass, meth, e, nil)
           end
         end
       end
-      puts "Autotest finished"
+      puts "test/unit finished"
     end
 
     def self.file_and_line_number(exc)
       # './shotgun-tests/test_core.rb:438:in `test_splat'''
-      msg = exc.backtrace.detect {|m| m =~ /in `test/}
-      msg.split(':', 2) rescue [nil,nil]
+      if Object.const_defined? 'Rubinius'
+        exc.location
+      else
+        msg = exc.backtrace.detect {|m| m =~ /in `test/}
+        msg.split(':', 2) rescue [nil,nil]
+      end
     end
 
     def self.display_result(klass, meth, e, code)
@@ -74,7 +79,7 @@ module Test
 
       def assert(test, msg="failed assertion (no message given)")
         unless test
-          exc = Test::Assertion.new
+          exc = Test::Assertion.new(msg)
           exc.line = caller[0].split(':')[1]
           raise exc
         end

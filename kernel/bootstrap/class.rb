@@ -112,8 +112,8 @@ class IncludedModule < Module
     @methods = mod.method_table
     @method_cache = nil
     @name = mod.name.__symbol_lookup__
-    @constants = {}
-    @parent = nil
+    @constants = mod.constant_table
+    @parent = mod.parent
     @module = mod
   end
 

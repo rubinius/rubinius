@@ -1,8 +1,16 @@
 class Module
-  ivar_as_index :method_table => 1, :name => 3, :superclass => 6
+  ivar_as_index :method_table => 1, :name => 3, :constants => 4, :parent => 5, :superclass => 6
     
   def method_table
     @method_table
+  end
+
+  def constant_table
+    @constants
+  end
+
+  def parent
+    @parent
   end
     
   def name

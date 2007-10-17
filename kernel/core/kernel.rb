@@ -113,6 +113,7 @@ module Kernel
   end
 
   def exit(code=0)
+    code = 0 if code.equal? true
     raise SystemExit.new(code)
   end
 

@@ -1625,7 +1625,15 @@ module Bytecode
         end
         
         if val
-          process val
+          if val.first == :argscat
+            ary =  val[1]
+            item = val[2]
+            process item
+            process ary
+            add "send << 1"
+          else
+            process val
+          end
         else
           add "push nil"
         end
@@ -1931,6 +1939,7 @@ module Bytecode
         end
         
         meth = nil
+        line = @last_line
         @compiler.as_method_body(name) do
           meth = @compiler.compile_as_method body, name, state
         end
@@ -1946,7 +1955,7 @@ module Bytecode
         end
         
         add "#{kind} #{name}"
-        str = ""
+        str = "#line #{line}\n"
                 
         required = args[1] ? args[1].size : 0
         
