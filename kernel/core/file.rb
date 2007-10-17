@@ -49,9 +49,9 @@ class File < IO
   class PermissionError < FileError; end
 
   if Rubinius::OS == :win32
-    SEPARATOR = "\\"
+    SEPARATOR = '\\'
   else
-    SEPARATOR = "/"
+    SEPARATOR = '/'
   end
 
   ALT_SEPARATOR = nil
@@ -365,8 +365,10 @@ class File < IO
     end
   end
 
+  # FIXME: will fail a bunch if platfrom == :mswin
   def self.join(*args)
-    args.map { |arg| arg.to_str }.join(SEPARATOR)
+    args = args.map { |arg| StringValue(arg) }
+    args.join(SEPARATOR).gsub(/#{SEPARATOR}+/,SEPARATOR)    
   end
   
   class << self

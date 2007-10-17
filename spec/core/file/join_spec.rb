@@ -23,6 +23,7 @@ describe "File.join" do
       File.join(@root, *@dirs).should == "C:\\usr/local/bin"
     end
 
+    # FIXME: needs edge cases from unix
     it "returns a new string formed by joining the strings using File::SEPARATOR (edge cases on windows) " do 
       File.join("").should = ""
       File.join("", "foo").should == "/foo"
@@ -37,10 +38,17 @@ describe "File.join" do
       File.join(@root, *@dirs).should == "/usr/local/bin"
     end
     
-    it "returns a new string formed by joining the strings using File::SEPARATOR (edge cases on windows) " do 
+    it "returns a new string formed by joining the strings using File::SEPARATOR (edge cases on unix)" do 
       File.join("").should == ""
       File.join("", "foo").should == "/foo"
       File.join("usr", "", "local", "", "bin").should == "usr/local/bin"
+      File.join("","usr", "", "local", "", "bin").should == "/usr/local/bin"
+      File.join("usr", "", "local", "", "bin", "").should == "usr/local/bin/"
+      File.join("", "usr", "local", "", "bin", "").should == "/usr/local/bin/"
+      File.join("", "usr", "local", "", "bin", "/").should == "/usr/local/bin/"
+      File.join("/", "usr", "local", "", "bin", "").should == "/usr/local/bin/"
+      File.join("", "usr", "local/", "", "bin", "").should == "/usr/local/bin/"
+      File.join("", "usr", "local/", "", "bin/", "").should == "/usr/local/bin/"
     end
   end
 
