@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   
   /* Load the bootstrap. */
   
-  archive = search_for("BOOTSTRAP", "bootstrap.rba");
+  archive = search_for("BOOTSTRAP", "bootstrap");
   if(!archive) {
     printf("Unable to find a bootstrap (bootstrap.rba) to load!\n");
     return 1;

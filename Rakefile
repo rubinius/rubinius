@@ -63,7 +63,7 @@ end
 # or if there are cyclic dependencies, this method will not create
 # the '.load_order.txt' file.
 
-def create_load_order(files)
+def create_load_order(files, output=".load_order.txt")
   d = Hash.new { |h,k| h[k] = [] }
   
   # assume all the files are in the same directory
@@ -80,7 +80,7 @@ def create_load_order(files)
     end
   end
   
-  File.open(".load_order.txt", "w") do |f|
+  File.open(output, "w") do |f|
     begin
       f.puts d.tsort.collect { |n| compiled_name(n, dir) }.join("\n")
     rescue IndexError
@@ -94,71 +94,86 @@ def create_load_order(files)
   end
 end
 
-def update_dir(files, dir)
-  dir = File.expand_path(ENV['OUTPUT'] || dir)
-  clean = ENV['CLEAN']
+def compile(name, output)
+  dir = File.dirname(output)
+  unless File.exists?(dir)
+    FileUtils.mkdir_p dir
+  end
   
-  files.each do |file|
-    cmp = File.join(dir, "#{file}c")
-    if clean or !newer?(file, cmp)
-      if @compiler
-        system "shotgun/rubinius -I#{@compiler} compile #{file} #{cmp}"
-      else
-        system "shotgun/rubinius compile #{file} #{cmp}"
-      end
-    end
-    file << "c"
+  if @compiler
+    sh "shotgun/rubinius -I#{@compiler} compile #{name} #{output}", :verbose => false
+  else
+    sh "shotgun/rubinius compile #{name} #{output}", :verbose => false
   end
-
-  create_load_order(files)
-  FileUtils.mv '.load_order.txt', dir
 end
 
-def update_archive(files, archive, deps=true, dir=nil)
-  archive = File.expand_path(ENV['OUTPUT'] || archive)
-
-  clean = ENV['CLEAN']
-
-  changed = []
-  files.each do |file|
-    cmp = "#{file}c"
-    if clean or !newer?(file, cmp)
-      changed << cmp
-      if @compiler
-        system "shotgun/rubinius -I#{@compiler} compile #{file}"
-      else
-        system "shotgun/rubinius compile #{file}"
-      end
-    elsif !File.exists?(archive)
-      changed << cmp
-    end
-    file << "c"
-  end
-
-  curdir = Dir.getwd
-  if dir
-    Dir.chdir(dir)    
-    changed.map! { |f| f.gsub(%r!^#{dir}/!, "") }
-  end
-
-  if deps
-    create_load_order(files)
-  else
-    File.open(".load_order.txt","w") { |f| f.puts files.join("\n") }
-  end
-
-  if File.exists? archive
-    if changed.empty?
-      puts "No files to update."
-    else
-      system "zip -u #{archive} .load_order.txt #{changed.join(' ')}"
-    end
-  else
-    system "zip #{archive} .load_order.txt #{changed.join(' ')}"
-  end
-
-  Dir.chdir(curdir) if dir
+rule ".rbc" => ".rb" do |t|
+  compile(t.source, t.name)
 end
+
+#file 'runtime/core/kernel/core/proc.rbc' => 'kernel/core/proc.rb' do |t|
+#  p t.prerequisites
+#  p t.name
+#end
+
+class CodeGroup
+  def initialize(files, dir, load_order=true)
+    @files = FileList[files]
+    @output = nil
+    @directory = dir
+    map(dir, load_order)
+  end
+  
+  attr_reader :output
+  
+  def map(dir, load_order)
+    
+    unless File.exists?(dir)
+      Dir.mkdir dir
+    end
+    
+    prc = proc do |t|
+      compile(t.prerequisites.first, t.name)
+    end
+
+    @output = []
+
+    @files.each do |source|
+      runtime = File.join(dir, source.ext("rbc"))
+      @output << runtime
+      file(runtime => source, &prc)
+    end
+    
+    if load_order
+    
+      lo = File.join(dir, '.load_order.txt')
+    
+      file lo => @files do
+        create_load_order(@files, lo)
+      end
+      
+      @output << lo
+    end
+
+    return @output
+  end
+  
+  def clean
+    sh "find #{@directory} -name '*.rbc' -delete"
+  end
+end
+
+Core = CodeGroup.new 'kernel/core/*.rb', 'runtime/core'
+Bootstrap = CodeGroup.new 'kernel/bootstrap/*.rb', 'runtime/bootstrap'
+Platform = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform'
+Compiler = CodeGroup.new 'compiler/**/*.rb', 'runtime', false
+
+file 'runtime/loader.rbc' => 'kernel/loader.rb' do
+  compile 'kernel/loader.rb', 'runtime/loader.rbc'
+end
+
+AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output
+AllPreCompiled << "runtime/loader.rbc"
 
 # spec tasks
 desc "Run all 'known good' specs (task alias for spec:ci)"
@@ -218,105 +233,89 @@ namespace :spec do
   end
 end
 
-desc "Build Shotgun (task alias for build:shotgun)"
-task :build => ['build:shotgun']
+desc "Build everything that needs to be built"
+task :build => ['build:all']
 
-desc "Removes build by-products for Rubinius runtime components"
-task :clean => ['clean:compiler', 'clean:bootstrap', 'clean:core', 'clean:platform']
+desc "Recompile all ruby system files"
+task :rebuild => ['clean:rbc', 'clean:shotgun', 'build:all']
 
-namespace :clean do
-  desc "Removes build by-products for compiler"
-  task :compiler do
-    FileList['compiler/**/*.rbc', '/tmp/*.rbc'].each do |fn|
-      FileUtils.rm fn rescue nil
-    end
-  end
+desc "Remove all ruby system files"
+task :distclean => 'clean:rbc'
 
-  desc "Removes build by-products for platform"
-  task :platform do
-    FileList['kernel/platform/**/*.rbc'].each do |fn|
-      FileUtils.rm fn rescue nil
-    end
-  end
-
-  desc "Removes build by-products for bootstrap"
-  task :bootstrap do
-    FileList['kernel/bootstrap/**/*.rbc'].each do |fn|
-      FileUtils.rm fn rescue nil
-    end
-  end
-
-  desc "Removes build by-products for core"
-  task :core do
-    FileList['kernel/core/**/*.rbc'].each do |fn|
-      FileUtils.rm fn rescue nil
-    end
+desc "Remove all stray compiled Ruby files"
+task :pristine do
+  FileList['**/*.rbc'].each do |fn|
+    next if /^runtime/.match(fn)
+    FileUtils.rm fn rescue nil
   end
 end
 
+namespace :clean do
+  
+  desc "Remove all compile system ruby files (runtime/)"
+  task :rbc do
+    AllPreCompiled.each do |f|
+      File.unlink f rescue nil
+    end
+  end
+
+  desc "Cleans up VM building site"
+  task :shotgun do
+    sh "make clean"
+  end  
+end
+
 namespace :build do
+  
+  task :all => ["build:shotgun", "build:rbc"]
+  
+  # This nobody rule lets use use all the shotgun files as 
+  # prereqs. This rule is run for all those prereqs and just 
+  # (obviously) does nothing, but it makes rake happy.
+  rule '^shotgun/.+' do
+  end
+  
+  c_source = FileList["shotgun/lib/*.[ch]", "shotgun/main.c",
+            "shotgun/lib/*.rb", "shotgun/lib/subtend/*.[chS]"]
+  
+  file "shotgun/rubinius.bin" => c_source do
+    sh "make vm"
+  end
+  
+  task :extensions do
+    sh "make exts"
+  end
+    
   file "shotgun/config.h" do
     sh "./configure"
     raise 'Failed to configure Rubinius' unless $?.success?
   end
 
-  task :configure => ["shotgun/config.h"] do
-  end
+  task :configure => ["shotgun/config.h"]
 
   desc "Compiles shotgun (the C-code VM)"
-  task :shotgun => :configure do
-    sh "make"
-    raise 'Failed to build shotgun' unless $?.success?
-  end
-
-  desc "Compiles the Rubinius bootstrap archive"
-  task :bootstrap do
+  task :shotgun => [:configure, "shotgun/rubinius.bin"]
+  
+  task :setup_rbc do
     setup_stable
-    files = Dir["kernel/bootstrap/*.rb"].sort
-    update_archive files, 'runtime/bootstrap.rba', false
   end
-
-  desc "Compiles the Rubinius core directory"
-  task :core do
-    setup_stable
-    puts "Updating compiled files in runtime/core/"
-    files = Dir["kernel/core/*.rb"].sort
-    update_dir files, 'runtime/core'
+  
+  task :rbc => ([:setup_rbc] + AllPreCompiled)
+  
+  task :core => :rbc do
+    puts "OBSOLETE. Use 'rake build'"
   end
-
-  task :loader do
-    setup_stable
-    i = "kernel/loader.rb"
-    o = ENV['OUTPUT'] || "runtime/loader.rbc"
-
-    if @compiler
-      system "shotgun/rubinius -I#{@compiler} compile #{i} #{o}"
-    else
-      system "shotgun/rubinius compile #{i} #{o}"
-    end
+  
+  task :bootstrap => :rbc do
+    puts "OBSOLETE. Use 'rake build'"
   end
-
-  desc "Compiles the Rubinius compiler archive"
-  task :compiler do
-    setup_stable
-    files = Dir["compiler/**/*.rb"].sort   
-    update_archive files, 'runtime/compiler.rba', false, "compiler"
+  
+  task :platform => :rbc do
+    puts "OBSOLETE. Use 'rake build'"
   end
-
-  desc "Compiles the Rubinius platform archive"
-  task :platform do
-    setup_stable
-    puts "Updating compiled files in runtime/platform/"
-    files = Dir["kernel/platform/*.rb"].sort   
-    update_dir files, 'runtime/platform'
-  end
-end
-
-desc "Remove all compiled Ruby files"
-task :pristine do
-  FileList['**/*.rbc'].each do |fn|
-    next if /^runtime/.match(fn)
-    FileUtils.rm fn rescue nil
+  
+  task :loader => :rbc do
+    puts "OBSOLETE. Use 'rake build'"
   end
 end
 
