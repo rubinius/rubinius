@@ -90,7 +90,7 @@ class File < IO
   end
   
   def self.symlink?(path)
-    st = Stat.stat(StringValue(path), true)
+    st = Stat.stat(StringValue(path), false)
     return false unless st.kind_of? Stat
     st.kind == :link
   end
