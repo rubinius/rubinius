@@ -49,7 +49,7 @@ class File < IO
   class PermissionError < FileError; end
 
   SEPARATOR = Platform::File::SEPARATOR
-  ALT_SEPARATOR = Platform::File::SEPARATOR
+  ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
 
   def self.new(path, mode)
     return open_with_mode(path, mode)
@@ -155,12 +155,27 @@ class File < IO
     st.size
   end
   
+  # FIXME: adding these methods but they don't explain difference
+  # between _real correctly
+  
+  def self.writable?(path)
+    writeable_real?(path)
+  end
+
   def self.writable_real?(path)
     Platform::POSIX.access(StringValue(path), Constants::W_OK) == 0
   end
 
+  def self.executable?(path)
+    executable_real?(path)
+  end
+
   def self.executable_real?(path)
     Platform::POSIX.access(StringValue(path), Constants::X_OK) == 0
+  end
+
+  def self.readable?(path)
+    readable_real?(path)
   end
 
   def self.readable_real?(path)
