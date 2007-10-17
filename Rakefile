@@ -73,11 +73,15 @@ def create_load_order(files, output=".load_order.txt")
   
   # assume all the files are in the same directory
   dir = File.dirname(files.first)
+  found = false
   files.each do |fname|
     name = source_name(fname)
+    # Force every entry to be in the hash
+    d[name]
     File.open(File.join(dir, name), "r") do |f|
       f.each do |line|
         if m = /#\s*depends on:\s*(.*)/.match(line)
+          found = true
           m[1].split.each { |dep| d[name] << dep }
         end
       end
@@ -86,20 +90,20 @@ def create_load_order(files, output=".load_order.txt")
   
   File.open(output, "w") do |f|
     begin
-      if d.empty?
-        list = files.sort
-      else
+      if found
         list = d.tsort
+      else
+        list = files.sort
       end
       
       f.puts list.collect { |n| compiled_name(n, dir) }.join("\n")
-    rescue IndexError
+    rescue IndexError => e
       puts "Unable to generate '.load_order.txt'"
       puts "Most likely, a file includes a 'depends on:' declaration for a non-existent file"
-      exit 1
+      raise e
     rescue TSort::Cyclic => e
       puts "Unable to generate '.load_order.txt' due to a cyclic dependency\n  (#{e.message})"
-      exit 1
+      raise e
     end
   end
 end
