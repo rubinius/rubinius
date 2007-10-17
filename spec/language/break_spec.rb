@@ -26,7 +26,7 @@ describe "The break statement" do
 end
 
 describe "Breaking out of a loop with a value" do
-
+  
   it "should assign objects" do
     a = loop do break; end;          a.should == nil
     a = loop do break nil; end;      a.should == nil
@@ -119,5 +119,26 @@ describe "Breaking out of a loop with a value" do
     a,b,*c = loop do break *[*[]]; end;    [a,b,c].should == [nil,nil,[]]
     a,b,*c = loop do break *[*[1]]; end;   [a,b,c].should == [1,nil,[]]
     a,b,*c = loop do break *[*[1,2]]; end; [a,b,c].should == [1,2,[]]    
+  end
+
+  it "should stop any loop type at the correct spot" do
+    i = 0; loop do break i if i == 2; i+=1; end.should == 2
+    i = 0; loop do break if i == 3; i+=1; end; i.should == 3
+    i = 0; 0.upto(5) {|i| break i if i == 2 }.should == 2
+    i = 0; 0.upto(5) {|i| break if i == 3 }; i.should == 3
+    i = 0; while (i < 5) do break i if i == 2 ; i+=1; end.should == 2
+    i = 0; while (i < 5) do break if i == 3 ; i+=1; end; i.should == 3
+  end
+
+  it "should stop a yielded method at the correct spot" do
+    def break_test()
+      yield 1
+      yield 2
+      yield 3
+    end
+    break_test {|i| break i if i == 2 }.should == 2
+    i = 0
+    break_test {|i| break i if i == 1 }
+    i.should == 1
   end
 end
