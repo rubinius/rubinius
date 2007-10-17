@@ -104,7 +104,8 @@ module ModuleSpecs
     def self.cmb(); :b; end
   end
   class C
-    include B
+    OVERRIDE = :c
+    include B    
   end
 end
   

@@ -36,9 +36,12 @@ describe "Module#include" do
     ModuleSpecs::A.constants.should_include("CONSTANT_A")
     ModuleSpecs::B.constants.should_include("CONSTANT_A","CONSTANT_B")
     ModuleSpecs::C.constants.should_include("CONSTANT_A","CONSTANT_B")
-    ModuleSpecs::A.const_get("OVERRIDE").should == :a
-    ModuleSpecs::B.const_get("OVERRIDE").should == :b
-    ModuleSpecs::C.const_get("OVERRIDE").should == :b
+  end
+
+  it "should not override existing constants in modules and classes" do
+    ModuleSpecs::A::OVERRIDE.should == :a
+    ModuleSpecs::B::OVERRIDE.should == :b
+    ModuleSpecs::C::OVERRIDE.should == :c    
   end
 
   it "should import instance methods to modules and classes" do
@@ -47,13 +50,12 @@ describe "Module#include" do
     ModuleSpecs::C.instance_methods.should_include("ma","mb")
   end
 
-  it "should import public methods to modules and classes" do
-    ModuleSpecs::A.public_methods.should_include("cma")
-    ModuleSpecs::C.public_methods.include?("cmb").should == false
-    ModuleSpecs::B.public_methods.should_include("cmb")
-    ModuleSpecs::C.public_methods.include?("cma").should == false    
-    ModuleSpecs::C.public_methods.include?("cma").should == false
-    ModuleSpecs::C.public_methods.include?("cmb").should == false
+  it "should not import methods to modules and classes" do
+    ModuleSpecs::A.methods.include?("cma").should == true
+    ModuleSpecs::B.methods.include?("cma").should == false
+    ModuleSpecs::B.methods.include?("cmb").should == true
+    ModuleSpecs::C.methods.include?("cma").should == false    
+    ModuleSpecs::C.methods.include?("cmb").should == false
   end
 end
 
