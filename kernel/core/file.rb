@@ -243,35 +243,12 @@ class File < IO
     Platform::File.dirname(path)
   end
 
-  
-  # TODO - needs work for Win32
-  def self.basename(path, ext="")
+  def self.basename(path,ext = "")
     path = StringValue(path)
     ext = StringValue(ext)
-
-    slash = -1
-    0.upto(path.length-1) do |i|
-      if path[i].chr == "/"
-        slash = i
-      end
-    end
-    if slash == -1
-      slash = 0 
-    else 
-      slash += 1 unless path.length == 1
-    end
-    bn = path.slice(slash, path.length-slash)
-    if (ext.size > 0)
-      x = bn.length
-      y = ext.length
-      # TODO the to_sym works around a mysterious bug
-      if (x > y && bn.slice(x-y, y).to_sym == ext.to_sym) 
-        bn = bn.slice(0, x-y) 
-      end
-    end
-    return bn 
+    Platform::File.basename(path,ext)
   end
-  
+    
   def self.expand_path(path)
     path = path.to_s.strip
     dirs = path.split('/')

@@ -20,6 +20,9 @@ describe "File.basename" do
     File.basename("/tmp", ".c").should == "tmp"
     File.basename("/tmp.c", ".c").should == "tmp"
     File.basename("/tmp.c", ".*").should == "tmp"
+    File.basename("/tmp.c", ".?").should == "tmp.c"
+    File.basename("/tmp.cpp", ".*").should == "tmp"
+    File.basename("/tmp.cpp", ".???").should == "tmp.cpp"
     File.basename("/tmp.o", ".c").should == "tmp.o"
     #Version.greater_or_equal("1.8.0") do
     File.basename(File.join("/tmp/")).should == "tmp"
@@ -85,6 +88,10 @@ describe "File.basename" do
     File.basename("bar.txt.exe", ".txt").should == "bar.txt.exe"
     File.basename("bar.txt", ".*").should == "bar"
     File.basename("bar.txt.exe", ".*").should == "bar.txt"
+    File.basename("bar.txt.exe", ".txt.exe").should == "bar"
+    #noncompliant(:rbx) do
+    File.basename("bar.txt.exe", ".txt.*").should == "bar"
+    #end
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
