@@ -48,14 +48,9 @@ class File < IO
   class UnableToStat < FileError; end
   class PermissionError < FileError; end
 
-  if Rubinius::OS == :win32
-    SEPARATOR = '\\'
-  else
-    SEPARATOR = '/'
-  end
+  SEPARATOR = Platform::File::SEPARATOR
+  ALT_SEPARATOR = Platform::File::SEPARATOR
 
-  ALT_SEPARATOR = nil
-  
   def self.new(path, mode)
     return open_with_mode(path, mode)
   end
@@ -243,25 +238,11 @@ class File < IO
     Time.at stat(path).ctime
   end
 
-  # TODO - needs work for Win32
   def self.dirname(path)
     path = StringValue(path)
-
-    slash = -1
-    nonslash = 0
-    before_slash = 0
-    0.upto(path.length-1) do |i|
-      if path[i].chr == "/" 
-        slash = i
-        before_slash = nonslash + 1
-      else
-        nonslash = i
-      end
-    end
-    return "/" if slash > 0  and nonslash == 0
-    return "." if slash == -1
-    return path.slice(0, before_slash)
+    Platform::File.dirname(path)
   end
+
   
   # TODO - needs work for Win32
   def self.basename(path, ext="")

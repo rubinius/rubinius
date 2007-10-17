@@ -27,10 +27,18 @@ describe "File.dirname" do
     it "return all the components of filename except the last one (edge cases)" do
       File.dirname("").should == "."
       File.dirname(".").should == "."
+      File.dirname("./").should == "."
+      File.dirname("./b/./").should == "./b"
       File.dirname("..").should == "."
+      File.dirname("../").should == "."
       File.dirname("/").should == "/"
+      File.dirname("/.").should == "/"
       File.dirname("/foo/").should == "/"    
       File.dirname("//foo//").should == "/"
+      File.dirname("/foo/.").should == "/foo"
+      File.dirname("/foo/./").should == "/foo"
+      File.dirname("/foo/../.").should == "/foo/.."
+      File.dirname("foo/../").should == "foo"
     end
   end
   
