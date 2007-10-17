@@ -89,4 +89,22 @@ module ModuleSpecs
     protected
     def protected_1; end
   end
+
+  module A
+    CONSTANT_A = :a
+    OVERRIDE = :a
+    def ma(); :a; end
+    def self.cma(); :a; end
+  end
+  module B
+    CONSTANT_B = :b
+    OVERRIDE = :b
+    include A
+    def mb(); :b; end
+    def self.cmb(); :b; end
+  end
+  class C
+    include B
+  end
 end
+  

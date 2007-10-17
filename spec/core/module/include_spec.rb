@@ -31,6 +31,30 @@ describe "Module#include" do
   it "raises a TypeError when the argument is not a Module" do
     should_raise(TypeError) { ModuleSpecs::Basic.send(:include, Class.new) }
   end
+  
+  it "should import constants to modules and classes" do
+    ModuleSpecs::A.constants.should_include("CONSTANT_A")
+    ModuleSpecs::B.constants.should_include("CONSTANT_A","CONSTANT_B")
+    ModuleSpecs::C.constants.should_include("CONSTANT_A","CONSTANT_B")
+    ModuleSpecs::A.const_get("OVERRIDE").should == :a
+    ModuleSpecs::B.const_get("OVERRIDE").should == :b
+    ModuleSpecs::C.const_get("OVERRIDE").should == :b
+  end
+
+  it "should import instance methods to modules and classes" do
+    ModuleSpecs::A.instance_methods.should_include("ma")
+    ModuleSpecs::B.instance_methods.should_include("ma","mb")
+    ModuleSpecs::C.instance_methods.should_include("ma","mb")
+  end
+
+  it "should import public methods to modules and classes" do
+    ModuleSpecs::A.public_methods.should_include("cma")
+    ModuleSpecs::C.public_methods.include?("cmb").should == false
+    ModuleSpecs::B.public_methods.should_include("cmb")
+    ModuleSpecs::C.public_methods.include?("cma").should == false    
+    ModuleSpecs::C.public_methods.include?("cma").should == false
+    ModuleSpecs::C.public_methods.include?("cmb").should == false
+  end
 end
 
 describe "Module#include?" do
