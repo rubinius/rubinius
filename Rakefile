@@ -20,7 +20,12 @@ def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
 
+@setup_stable = false
+
 def setup_stable
+  return if @setup_stable
+  @setup_stable = true
+  
   @pb = "runtime/stable/bootstrap.rba"
   @pp = "runtime/stable/platform.rba"
   @pc = "runtime/stable/core.rba"
@@ -70,7 +75,6 @@ def create_load_order(files, output=".load_order.txt")
   dir = File.dirname(files.first)
   files.each do |fname|
     name = source_name(fname)
-    d[name]
     File.open(File.join(dir, name), "r") do |f|
       f.each do |line|
         if m = /#\s*depends on:\s*(.*)/.match(line)
@@ -82,7 +86,13 @@ def create_load_order(files, output=".load_order.txt")
   
   File.open(output, "w") do |f|
     begin
-      f.puts d.tsort.collect { |n| compiled_name(n, dir) }.join("\n")
+      if d.empty?
+        list = files.sort
+      else
+        list = d.tsort
+      end
+      
+      f.puts list.collect { |n| compiled_name(n, dir) }.join("\n")
     rescue IndexError
       puts "Unable to generate '.load_order.txt'"
       puts "Most likely, a file includes a 'depends on:' declaration for a non-existent file"
@@ -95,6 +105,8 @@ def create_load_order(files, output=".load_order.txt")
 end
 
 def compile(name, output)
+  setup_stable
+  
   dir = File.dirname(output)
   unless File.exists?(dir)
     FileUtils.mkdir_p dir
