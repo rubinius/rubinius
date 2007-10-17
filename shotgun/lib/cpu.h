@@ -7,14 +7,14 @@
 
 /* Enable direct threading */
 #if CONFIG_ENABLE_DT
-#define DIRECT_THREADED 1
+#define DIRECT_THREADED 0
 #else
 #define DIRECT_THREADED 0
 #endif
 
 /* Whether or not to do runtime tracing support */
-// #define EXCESSIVE_TRACING state->excessive_tracing
-#define EXCESSIVE_TRACING 0
+#define EXCESSIVE_TRACING state->excessive_tracing
+// #define EXCESSIVE_TRACING 0
 
 /* For profiling of code */
 #define USE_GLOBAL_CACHING 1

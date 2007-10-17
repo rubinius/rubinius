@@ -36,11 +36,11 @@ end
 # Setup a few changes to the include path.
 
 # If there is no compiler.rba or COMPILER env variable, use the system one.
-if ENV["COMPILER"] and File.exists? ENV["COMPILER"] then
+if ENV["COMPILER"] and File.exists? ENV["COMPILER"]
   $:.unshift ENV["COMPILER"]
-elsif not File.exists? "runtime/compiler.rba"
-  $:.unshift "#{Rubinius::RBA_PATH}/compiler.rba"
 end
+  
+$: << "#{Rubinius::RBA_PATH}/compiler.rba"
 
 # The main stdlib location
 $: << Rubinius::CODE_PATH

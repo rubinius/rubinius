@@ -1,9 +1,0 @@
-kernel/platform/ffi.rbc
-kernel/platform/math.rbc
-kernel/platform/float.rbc
-kernel/platform/fixnum.rbc
-kernel/platform/file.rbc
-kernel/platform/env.rbc
-kernel/platform/compression.rbc
-kernel/platform/vm.rbc
-kernel/platform/posix.rbc
