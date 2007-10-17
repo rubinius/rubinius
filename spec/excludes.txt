@@ -2,6 +2,8 @@ Executing a Continuation
 Kernel.at_exit should fire after all other code
 Kernel.at_exit should fire in reverse order of registration
 Kernel.rand is seeded uniquely at startup
+Kernel#puts ignores the $/ separator global
+IO#puts ignores the $/ separator global
 Module#autoload does not autoload when the specified constant was already set
 Module#class_variables returns an array with the names of class variables of self and self
 Module#const_missing is invoked when an undefined constant is referenced in the scope of self

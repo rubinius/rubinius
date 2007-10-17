@@ -1,0 +1,1 @@
+Kernel#puts writes just a newline when given no args
