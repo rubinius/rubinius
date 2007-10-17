@@ -460,17 +460,52 @@ describe "StringIO#puts" do
     $/ = "\n"
   end
 
-  it "should write a newline after objects that do not end in newlines" do
+  it "writes a newline after objects that do not end in newlines" do
     @io.puts(5).should == nil
     @io.string.should == "5\n"
   end
 
-  it "should not write a newline after objects that end in newlines" do
+  it "does not write a newline after objects that end in newlines" do
+    @io.puts("5\n").should == nil
+    @io.string.should == "5\n"
+  end
+  
+  it "calls to_s before writing non-string objects" do
+    object = Object.new
+    object.should_receive(:to_s, :returning => "hola")
+    
+    @io.puts(object).should == nil
+    @io.string.should == "hola\n"
+  end
+  
+  it "writes each arg if given several" do
+    @io.puts(1, "two", 3).should == nil
+    @io.string.should == "1\ntwo\n3\n"
+  end
+  
+  it "flattens a nested array before writing it" do
+    @io.puts([1, 2, [3]]).should == nil
+    @io.string.should == "1\n2\n3\n"
+  end
+  
+  it "writes [...] for a recursive array arg" do
+    x = []
+    x << 2 << x
+    @io.puts(x).should == nil
+    @io.string.should == "2\n[...]\n"
+  end
+  
+  it "writes a newline after objects that do not end in newlines" do
+    @io.puts(5).should == nil
+    @io.string.should == "5\n"
+  end
+  
+  it "does not write a newline after objects that end in newlines" do
     @io.puts("5\n").should == nil
     @io.string.should == "5\n"
   end
 
-  it "should ignore the $/ separator global" do
+  it "ignores the $/ separator global" do
     $/ = ":"
     @io.puts(5,6)
     @io.string.should == "5\n6\n"

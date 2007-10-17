@@ -1,0 +1,2 @@
+StringIO#puts flattens a nested array before writing it
+StringIO#puts writes [...] for a recursive array arg
