@@ -108,7 +108,6 @@ static void hash_rehash(STATE, OBJECT hsh, int _ents) {
   unsigned int bin, hv;
   OBJECT tbl, tup, ent, next;
   
-  
   old_bins = FIXNUM_TO_INT(hash_get_bins(hsh));
   new_bins = hash_new_size(old_bins + 1);
   tup = tuple_new(state, new_bins);
@@ -260,10 +259,12 @@ OBJECT hash_get_undef(STATE, OBJECT hash, unsigned int hsh) {
 
 OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
   unsigned int bin;
-  OBJECT entry, th, lk, val;
+  OBJECT entry, th, lk, val, lst;
   
   bin = hsh % FIXNUM_TO_INT(hash_get_bins(self));
   entry = tuple_at(state, hash_get_values(self), bin);
+  
+  lst = Qnil;
   
   while(!NIL_P(entry)) {
     th = tuple_at(state, entry, 0);
@@ -271,11 +272,16 @@ OBJECT hash_delete(STATE, OBJECT self, unsigned int hsh) {
     
     if(FIXNUM_TO_INT(th) == hsh) {
       val = tuple_at(state, entry, 2);
-      tuple_put(state, hash_get_values(self), bin, lk);
+      if(NIL_P(lst)) {
+        tuple_put(state, hash_get_values(self), bin, lk);
+      } else {
+        tuple_put(state, lst, 3, lk);
+      }
       hash_set_entries(self, I2N(FIXNUM_TO_INT(hash_get_entries(self)) - 1));
       return val;
     }
     
+    lst = entry;
     entry = lk;
   }
   

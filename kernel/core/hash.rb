@@ -96,8 +96,34 @@ class Hash
   end
 
   def delete(key)
-    found, val = find_unambigious key
-    return delete_by_hash key.hash, key if found
+    hsh = key.hash
+    bin = hsh % @bins
+
+    entry = @values.at(bin)
+    lst = nil
+
+    while entry
+      cur_hash, cur_key, val, nxt = *entry
+
+      # Check if this entry is for the key in question
+      if cur_hash == hsh and key.eql?(cur_key)
+
+        # Ok, relink the other entries, leaving this one out.
+        if lst
+          lst.put 3, nxt
+        else
+          @values.put bin, nxt
+        end
+
+        @entries = @entries - 1
+
+        return val
+      end
+
+      lst = entry
+      entry = nxt
+    end
+    
     return yield(key) if block_given?
     nil
   end
