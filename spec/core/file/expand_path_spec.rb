@@ -74,6 +74,7 @@ describe "File.expand_path" do
       File.expand_path('~/..badfilename').should == ENV['HOME'] + '/..badfilename'
       File.expand_path('..').should == Dir.pwd.split('/')[0...-1].join("/")
       File.expand_path('//').should == '//'
+      File.expand_path('~/a','~/b').should == ENV['HOME']+"/a"
     end
   end 
   
@@ -85,6 +86,7 @@ describe "File.expand_path" do
       
     platform :not, :mswin do
       should_raise(ArgumentError){ File.expand_path("~a_fake_file") }
+      File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
     end
   end
 end
