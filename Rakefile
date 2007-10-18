@@ -2,11 +2,7 @@
 
 require 'tsort'
 
-task :default => :tasks
-
-task :tasks do
-  puts `rake -T`
-end
+task :default => :build
 
 class Hash
   include TSort
@@ -254,6 +250,11 @@ end
 desc "Build everything that needs to be built"
 task :build => ['build:all']
 
+desc "Install rubinius as rbx"
+task :install do
+  sh "make install"
+end
+
 desc "Recompile all ruby system files"
 task :rebuild => ['clean:rbc', 'clean:shotgun', 'build:all']
 
@@ -317,31 +318,23 @@ namespace :build do
   task :setup_rbc do
     setup_stable
   end
-  
-  task :rbc => ([:setup_rbc] + AllPreCompiled)
-  
-  task :core => :rbc do
-    puts "OBSOLETE. Use 'rake build'"
-  end
-  
-  task :bootstrap => :rbc do
-    puts "OBSOLETE. Use 'rake build'"
-  end
-  
-  task :platform => :rbc do
-    puts "OBSOLETE. Use 'rake build'"
-  end
-  
-  task :loader => :rbc do
-    puts "OBSOLETE. Use 'rake build'"
-  end
-end
 
-# dev tasks
-namespace :dev do
-  desc "Make a snapshot of the runtime files for your own safety"
-  task :setup do
-    puts "OBSOLETE. You no longer need to do this."
+  task :rbc => ([:setup_rbc] + AllPreCompiled)
+
+  task :core => :rbc do
+    raise "OBSOLETE. Use 'rake build'"
+  end
+
+  task :bootstrap => :rbc do
+    raise "OBSOLETE. Use 'rake build'"
+  end
+
+  task :platform => :rbc do
+    raise "OBSOLETE. Use 'rake build'"
+  end
+
+  task :loader => :rbc do
+    raise "OBSOLETE. Use 'rake build'"
   end
 end
 

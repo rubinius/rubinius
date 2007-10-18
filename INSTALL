@@ -36,7 +36,7 @@ for rubinius development.
 
 * rake
 
-Rake may be obtained with the gem install command. See `gem help` and
+Rake may be obtained with the `gem install` command. See `gem help` and
 http://www.rubygems.org for more information.
 
 
@@ -81,7 +81,7 @@ If you want a development version (no optimisations, extra debug info), set the 
 
 To install @rbx@ as a shortcut for @./shotgun/rubinius@:
 
-  make install
+  rake install
 
 
 == Troubleshooting and platform-specific notes
