@@ -66,7 +66,7 @@ class Hash
   end
 
   def set_key_cv(key, val)
-    key = key.dup.freeze if String === key
+    key = key.dup if String === key
     set_by_hash key.hash, key, val
   end
   alias_method :store, :set_key_cv

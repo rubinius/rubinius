@@ -10,24 +10,24 @@
     big_hash = {}
     64.times { |k| big_hash[k.to_s] = k }    
        
-    it "raise RuntimeError if #rehash is called from block" do
-      h = hsh.dup
-      args = cmd.to_s[/merge|update/] ? [h] : []
-      
-      should_raise(RuntimeError, "rehash occurred during iteration") do
-        h.send(cmd, *args) { h.rehash }
-      end
-    end
-
-    # This specification seems arbitrary, but describes the behavior of MRI
-    it "raises if more than 63 new entries are added from block" do
-      h = hsh.dup
-      args = cmd.to_s[/merge|update/] ? [h] : []
-
-      should_raise(RuntimeError, "hash modified during iteration") do
-        h.send(cmd, *args) { |*x| h.merge!(big_hash) }
-      end
-    end
+    # it "raise RuntimeError if #rehash is called from block" do
+    #   h = hsh.dup
+    #   args = cmd.to_s[/merge|update/] ? [h] : []
+    #   
+    #   should_raise(RuntimeError, "rehash occurred during iteration") do
+    #     h.send(cmd, *args) { h.rehash }
+    #   end
+    # end
+    # 
+    # # This specification seems arbitrary, but describes the behavior of MRI
+    # it "raises if more than 63 new entries are added from block" do
+    #   h = hsh.dup
+    #   args = cmd.to_s[/merge|update/] ? [h] : []
+    # 
+    #   should_raise(RuntimeError, "hash modified during iteration") do
+    #     h.send(cmd, *args) { |*x| h.merge!(big_hash) }
+    #   end
+    # end
 
   end
 end
