@@ -55,7 +55,6 @@ struct _mark_sweep_gc {
 
 typedef struct _mark_sweep_gc *mark_sweep_gc;
 
-#define MS_MARK 0x80
 #define MS_CHUNKSIZE 0x20000
 #define MS_COLLECTION_FREQUENCY 500 // 500 fields
 

@@ -13,15 +13,14 @@
  more than once.
  */
 
-#define REMEMBER_FLAG 0x10
 
 /* TODO: This routine MUST be optimized because it's hit constantly. */
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val) {
-  unsigned long tz, vz;
+  gc_zone tz, vz;
   if(!REFERENCE_P(val)) return;
   
-  tz = GC_ZONE(target);
-  vz = GC_ZONE(val);
+  tz = FLAGS(target).gc_zone;
+  vz = FLAGS(val).gc_zone;
   
   xassert(tz > 0);
   xassert(vz > 0);

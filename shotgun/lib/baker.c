@@ -82,15 +82,13 @@ int baker_gc_destroy(baker_gc g) {
   return TRUE;
 }
 
-#define FORWARDING_MAGIC 0xff
-
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
-  obj->flags = FORWARDING_MAGIC;
+  SET_FORWARDED(obj);
   obj->klass = dest;
 }
 
 inline int baker_gc_forwarded_p(OBJECT obj) {
-  return obj->flags == FORWARDING_MAGIC;
+  return FORWARDED_P(obj);
 }
 
 OBJECT baker_gc_forwarded_object(OBJECT obj) {
@@ -98,10 +96,6 @@ OBJECT baker_gc_forwarded_object(OBJECT obj) {
   CHECK_PTR(out);
   return out;
 }
-
-#define AGE(obj) (obj->gc & 0x7f)
-#define CLEAR_AGE(obj) (obj->gc = 0)
-#define FOREVER_YOUNG(obj) (obj->gc & 0x8000)
 
 #define baker_gc_maybe_mutate(st, g, iobj) ({     \
   OBJECT ret;                                 \
@@ -173,9 +167,9 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   
   SET_CLASS(iobj, cls);
   
-  xassert(iobj->flags != FORWARDING_MAGIC);
+  xassert(!FORWARDED_P(iobj));
   
-  if(WEAK_REFERENCES_P(iobj)) {
+  if(FLAGS(iobj).RefsAreWeak) {
     // printf("%p has weak refs.\n", (void*)iobj);
     ptr_array_append(g->seen_weak_refs, (xpointer)iobj);
     depth--;
@@ -336,7 +330,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       xassert(obj->klass != Qnil);
       dest = heap_copy_object(g->next, obj);
       baker_gc_set_forwarding_address(obj, dest);
-      if(!FOREVER_YOUNG(obj)) dest->gc++;
+      if(!FLAGS(obj).ForeverYoung) INCREMENT_AGE(dest);
     } else {
       CLEAR_AGE(obj);
       dest = (*g->tenure)(g->tenure_data, obj);
@@ -429,7 +423,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   for(i = 0; i < sz; i++) {
     root = (OBJECT)(ptr_array_get_index(rs, i));
     if(!REFERENCE2_P(root)) { continue; }
-    FLAG_CLEAR_ON(root, gc, REMEMBER_FLAG);
+    FLAGS(root).Remember = FALSE;
     tmp = baker_gc_mutate_from(state, g, root);
     // ptr_array_set_index(g->remember_set, i, tmp);
   }
@@ -482,7 +476,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
     tmp = (OBJECT)ptr_array_get_index(g->seen_weak_refs, i);
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
       t2 = tuple_at(state, tmp, j);
-      if(GC_ZONE(t2) == GC_YOUNG_OBJECTS) {
+      if(FLAGS(t2).gc_zone == YoungObjectZone) {
         if(baker_gc_forwarded_p(t2)) {
           tuple_put(state, tmp, j, baker_gc_forwarded_object(t2));
         } else {
@@ -509,8 +503,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   ptr_array_free(rs);
   return TRUE;
 }
-
-void baker_gc_clear_gc_flag(baker_gc g, int flag) {
+void baker_gc_clear_marked(baker_gc g) {
   int osz;
   char *end, *cur;
   OBJECT obj;
@@ -521,9 +514,7 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
   while(cur < end) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(obj);
-    
-    obj->gc ^= flag;
-        
+    FLAGS(obj).Marked = FALSE;
     cur += osz;
   }  
 }
@@ -544,9 +535,9 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
     if(!baker_gc_forwarded_p(obj)) {
       cls = CLASS_OBJECT(obj);
       
-      //printf("%p is dead: %d, %p, %s.\n", obj, SHOULD_CLEANUP_P(obj), 
+      //printf("%p is dead: %d, %p, %s.\n", obj, FLAGS(obj).RequiresCleanup);
       //  cls, cls ? _inspect(cls) : "(NULL)");
-      if(SHOULD_CLEANUP_P(obj)) {  
+      if(FLAGS(obj).RequiresCleanup) {
         if(REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
           cls = baker_gc_forwarded_object(cls);
         }

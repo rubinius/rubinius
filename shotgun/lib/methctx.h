@@ -7,10 +7,10 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
 
 #include "flags.h"
 
-#define methctx_is_context_p(st, ctx) (OBJ_TYPE(ctx) == TYPE_MCONTEXT || OBJ_TYPE(ctx) == TYPE_BCONTEXT)
+#define methctx_is_context_p(st, ctx) (FLAGS(ctx).obj_type == MContextType || FLAGS(ctx).obj_type == BContextType)
 #define blokctx_s_block_context_p(state, ctx) (FASTCTX(ctx)->type == FASTCTX_BLOCK)
 
-#define methctx_is_fast_p(st, ctx) (OBJ_TYPE(ctx) == TYPE_MCONTEXT)
+#define methctx_is_fast_p(st, ctx) (FLAGS(ctx).obj_type == MContextType)
 
 #define blokctx_home(state, obj) (blokenv_get_home(FASTCTX(obj)->name))
 #define blokctx_env(state, self) (FASTCTX(self)->name)
@@ -19,33 +19,27 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
 static inline void methctx_reference(STATE, OBJECT ctx) {  
   /* Don't do it again. */
   if(!stack_context_p(ctx)) return;
-  
-  ctx->flags = 0;
-  ctx->flags2 = 0;
-  ctx->gc = 0;
-  GC_ZONE_SET(ctx, GC_YOUNG_OBJECTS);
+  CLEAR_FLAGS(ctx);
+  FLAGS(ctx).gc_zone = YoungObjectZone;
 
   switch(FASTCTX(ctx)->type) {
   case FASTCTX_NORMAL:
     ctx->klass = BASIC_CLASS(fastctx);
-    OBJ_TYPE_SET(ctx, TYPE_MCONTEXT);
-    FLAG_SET(ctx, CTXFastFlag);
+    FLAGS(ctx).obj_type = MContextType;
+    FLAGS(ctx).CTXFast = TRUE;
     break;
   case FASTCTX_BLOCK:  
     ctx->klass = BASIC_CLASS(blokctx);
-    OBJ_TYPE_SET(ctx, TYPE_BCONTEXT);
+    FLAGS(ctx).obj_type = BContextType;
     break;
   case FASTCTX_NMC:
     ctx->klass = BASIC_CLASS(nmc);
-    OBJ_TYPE_SET(ctx, TYPE_MCONTEXT);
+    FLAGS(ctx).obj_type = MContextType;
     break;
   }
   SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
-  
-  FLAG_SET(ctx, StoresBytesFlag);
-    
-  GC_MAKE_FOREVER_YOUNG(ctx);
-  
+  FLAGS(ctx).StoresBytes = TRUE;
+  FLAGS(ctx).ForeverYoung = TRUE;  
   object_memory_context_referenced(state->om, ctx);
 }
 

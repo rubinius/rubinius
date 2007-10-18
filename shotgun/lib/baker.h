@@ -38,7 +38,7 @@ int baker_gc_contains_p(baker_gc g, OBJECT obj);
 int baker_gc_contains_spill_p(baker_gc g, OBJECT obj);
 OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT iobj);
 int baker_gc_collect(STATE, baker_gc g, ptr_array roots);
-void baker_gc_clear_gc_flag(baker_gc g, int flag);
+void baker_gc_clear_marked(baker_gc g);
 void baker_gc_describe(baker_gc g);
 void baker_gc_find_lost_souls(STATE, baker_gc g);
 void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs);

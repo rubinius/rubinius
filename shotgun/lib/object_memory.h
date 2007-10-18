@@ -69,8 +69,6 @@ void object_memory_formalize_contexts(STATE, object_memory om);
   
 #define object_memory_new_context(om) ((OBJECT)heap_allocate_dirty(om->contexts, CTX_SIZE))
 
-#define stack_context_p(ctx) (ctx->flags2 == 0)
-
 #define om_on_stack(om, ctx) heap_contains_p(om->contexts, ctx)
 #define om_in_heap(om, ctx) heap_contains_p(om->gc->current, ctx)
 

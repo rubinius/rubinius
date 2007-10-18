@@ -28,8 +28,8 @@ void cpu_bootstrap(STATE) {
   cls->klass = cls;
   class_set_instance_fields(cls, I2N(CLASS_FIELDS));
   class_set_has_ivars(cls, Qtrue);
-  class_set_object_type(cls, I2N(TYPE_CLASS));
-  OBJ_TYPE_SET(cls, TYPE_CLASS);
+  class_set_object_type(cls, I2N(ClassType));
+  FLAGS(cls).obj_type = ClassType;
   
   BC(class) = cls;
   obj = _object_basic_class(state, Qnil);
@@ -37,7 +37,7 @@ void cpu_bootstrap(STATE) {
   BC(module) = _module_basic_class(state, obj);
   class_set_superclass(cls, BC(module));
   BC(metaclass) = _metaclass_basic_class(state, cls);
-  class_set_object_type(BC(metaclass), I2N(TYPE_METACLASS));
+  class_set_object_type(BC(metaclass), I2N(MetaclassType));
   
   BC(tuple) = _tuple_basic_class(state, obj);
   BC(hash) =  _hash_basic_class(state, obj);
@@ -82,7 +82,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(string), "String");
   module_setup(state, BC(symtbl), "SymbolTable");
   module_setup(state, BC(methtbl), "MethodTable");
-  class_set_object_type(BC(methtbl), I2N(TYPE_MT));
+  class_set_object_type(BC(methtbl), I2N(MTType));
   module_setup(state, BC(cmethod), "CompiledMethod");
   module_setup(state, BC(io), "IO");
   module_setup(state, BC(blokenv), "BlockEnvironment");

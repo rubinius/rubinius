@@ -43,8 +43,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
     printf("CTX:           block running %d\n", (int)ctx);
   }
   
-  ctx->flags = 0;
-  ctx->flags2 = 0;
+  CLEAR_FLAGS(ctx);
   ctx->field_count = FASTCTX_FIELDS;
     
   fc = FASTCTX(ctx);
@@ -67,7 +66,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   
   fc->opaque_data = (void*)n;
   
-  GC_MAKE_FOREVER_YOUNG(ctx);
+  FLAGS(ctx).ForeverYoung = TRUE;
     
   return ctx;
 }

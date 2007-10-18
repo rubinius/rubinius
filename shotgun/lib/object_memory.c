@@ -20,7 +20,7 @@ void _describe(OBJECT ptr) {
   om = (object_memory)main_om;
   printf("Address:             %p (%lu)\n", (void*)ptr, (unsigned long int)ptr);
   printf("Contained in baker?: %d/%d\n", baker_gc_contains_p(om->gc, ptr), baker_gc_contains_spill_p(om->gc, ptr));
-  printf("Contained in m/s?:   %d\n", GC_ZONE(ptr) == GC_MATURE_OBJECTS);
+  printf("Contained in m/s?:   %d\n", FLAGS(ptr).gc_zone == MatureObjectZone);
   if(heap_contains_p(om->contexts, ptr)) {
     printf("Is a context.\n");
     if(ptr < om->context_bottom) {
@@ -52,17 +52,18 @@ void _verify(OBJECT self) {
   object_memory om;
   om = (object_memory)main_om;
   OBJECT tmp;
-  int i, rs, tz, vz, refs;
+  int i, rs, refs;
+  gc_zone tz, vz;
   
   printf("Verifying %p...\n", (void*)self);
-  if(FLAG_SET_P(self, StoresBytesFlag)) {
+  if(FLAGS(self).StoresBytes) {
     printf("Object stores bytes.\n");
     return;
   }
   
-  rs = FLAG_SET_ON_P(self, gc, 0x10);
+  rs = FLAGS(self).Remember;
   
-  tz = GC_ZONE(self);
+  tz = FLAGS(self).gc_zone;
   refs = 0;
   
   for(i = 0; i < NUM_FIELDS(self); i++) {
@@ -70,7 +71,7 @@ void _verify(OBJECT self) {
     if(!REFERENCE_P(tmp)) continue;
     
     refs++;
-    vz = GC_ZONE(tmp);
+    vz = FLAGS(tmp).gc_zone;
     if(tz < vz && !rs) {
       printf("ERROR: Object %p (at %i) is IG, but no RS mark!\n", (void*)tmp, i);
     }
@@ -242,7 +243,7 @@ void object_memory_major_collect(STATE, object_memory om, ptr_array roots) {
   
   allocated_objects = 0;
   mark_sweep_collect(state, om->ms, roots);
-  baker_gc_clear_gc_flag(om->gc, MS_MARK);
+  baker_gc_clear_marked(om->gc);
   object_memory_clear_marks(state, om);
 }
 
@@ -262,7 +263,7 @@ OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
   }
   
   fast_memcpy((void*)dest, (void*)obj, SIZE_IN_WORDS_FIELDS(NUM_FIELDS(obj)));
-  GC_ZONE_SET(dest, GC_MATURE_OBJECTS);
+  FLAGS(dest).gc_zone = MatureObjectZone;
   //printf("Allocated %d fields to %p\n", NUM_FIELDS(obj), obj);
   // printf(" :: %p => %p (%d / %d )\n", obj, dest, NUM_FIELDS(obj), SIZE_IN_BYTES(obj));
   return dest;
@@ -285,10 +286,10 @@ void object_memory_check_ptr(void *ptr, OBJECT obj) {
 }
 
 void object_memory_update_rs(object_memory om, OBJECT target, OBJECT val) {
-  if(!FLAG_SET_ON_P(target, gc, REMEMBER_FLAG)) {
+  if(!FLAGS(target).Remember) {
     // printf("[Tracking %p in baker RS]\n", (void*)target);
     ptr_array_append(om->gc->remember_set, (xpointer)target);
-    FLAG_SET_ON(target, gc, REMEMBER_FLAG);
+    FLAGS(target).Remember = TRUE;
   }
 }
 
@@ -466,6 +467,7 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
   }
   fclose(stream);
 }
+
 OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields) {
   int i;
   OBJECT obj;
@@ -479,19 +481,15 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
     om->collect_now |= OMCollectMature;
   }
   
+  CLEAR_FLAGS(obj);
   header = (struct rubinius_object*)obj;  
-  header->flags2 = 0;
-  header->gc = 0;
   
-  GC_ZONE_SET(obj, GC_MATURE_OBJECTS);
+  FLAGS(obj).gc_zone = MatureObjectZone;
   
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
     _om_apply_class_flags(obj, cls);
-  }
-  else {
-    header->flags = 0;
   }
   for(i = 0; i < fields; i++) {
     rbs_set_field(om, obj, i, Qnil);
@@ -518,18 +516,14 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
     obj = (OBJECT)baker_gc_allocate(om->gc, size);
   }
   
+  CLEAR_FLAGS(obj);
   header = (struct rubinius_object*)obj;
-  header->flags2 = 0;
-  header->gc = 0;
-  
-  GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
+  FLAGS(obj).gc_zone = YoungObjectZone;
   
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
     _om_apply_class_flags(obj, cls);
-  } else {
-    header->flags = 0;
   }
   
   for(i = 0; i < fields; i++) {

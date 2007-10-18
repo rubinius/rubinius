@@ -180,11 +180,11 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
   }
 #endif
   
-  if(FLAG_SET_ON_P(obj, gc, REMEMBER_FLAG)) {
+  if(FLAGS(obj).Remember) {
     ptr_array_remove_fast(state->om->gc->remember_set, (xpointer)obj);
   }
     
-  if(SHOULD_CLEANUP_P(obj)) {
+  if(FLAGS(obj).RequiresCleanup) {
     cls = CLASS_OBJECT(obj);
     if(cls && REFERENCE_P(cls) && baker_gc_forwarded_p(cls)) {
       cls = baker_gc_forwarded_object(cls);
@@ -225,12 +225,9 @@ void mark_sweep_describe(mark_sweep_gc ms) {
 int _object_stores_bytes(OBJECT self);
 
 int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj) {
-  return GC_ZONE(obj) == GC_MATURE_OBJECTS;
+  return FLAGS(obj).gc_zone == MatureObjectZone;
 }
 
-#define MARK_OBJ(obj) (obj->gc |= MS_MARK)
-#define UNMARK_OBJ(obj) (obj->gc ^= MS_MARK)
-#define MARKED_P(obj) (obj->gc & MS_MARK)
 
 OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
@@ -243,7 +240,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   }
 #endif
     
-  if(GC_ZONE(iobj) == GC_MATURE_OBJECTS) {
+  if(FLAGS(iobj).gc_zone == MatureObjectZone) {
     header = to_header(iobj);
     
     assert(header->entry->object == header);
@@ -253,8 +250,8 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     header->entry->marked = 1;
     
   } else {
-    if(MARKED_P(iobj)) return iobj;
-    MARK_OBJ(iobj);
+    if(FLAGS(iobj).Marked) return iobj;
+    FLAGS(iobj).Marked = TRUE;
   }
   
   // printf("Marked %d\n", iobj);
@@ -270,7 +267,7 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     }
   }
   
-  if(WEAK_REFERENCES_P(iobj)) {
+  if(FLAGS(iobj).RefsAreWeak) {
     // printf("%p has weak refs.\n", (void*)iobj);
     ptr_array_append(ms->seen_weak_refs, (xpointer)iobj);
     return iobj;
@@ -356,8 +353,8 @@ OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
 
 void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   #define fc_mutate(field) if(fc->field && REFERENCE_P(fc->field)) mark_sweep_mark_object(state, ms, fc->field)
-  if(MARKED_P(iobj)) return;
-  MARK_OBJ(iobj);
+  if (FLAGS(iobj).Marked) return;
+  FLAGS(iobj).Marked = TRUE;
   
   struct fast_context *fc = FASTCTX(iobj);
 
@@ -384,8 +381,7 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
 }
 
 void mark_sweep_clear_mark(STATE, OBJECT iobj) {
-  UNMARK_OBJ(iobj);
-  assert(!MARKED_P(iobj));
+  FLAGS(iobj).Marked = FALSE;
 }
 
 void mark_sweep_mark_phase(STATE, mark_sweep_gc ms, ptr_array roots) {
@@ -517,7 +513,7 @@ void mark_sweep_sweep_phase(STATE, mark_sweep_gc ms) {
         if(!ent->marked) {
           mark_sweep_free_entry(state, ms, ent);
         } else {
-          if(MARKED_P(obj)) UNMARK_OBJ(obj);
+          FLAGS(obj).Marked = FALSE;
           ent->marked = 0;
         }
       }
@@ -543,7 +539,7 @@ void mark_sweep_collect(STATE, mark_sweep_gc ms, ptr_array roots) {
     tmp = (OBJECT)ptr_array_get_index(ms->seen_weak_refs, i);
     for(j = 0; j < NUM_FIELDS(tmp); j++) {
       t2 = tuple_at(state, tmp, j);
-      if(REFERENCE_P(t2) && GC_ZONE(t2) == GC_MATURE_OBJECTS) {
+      if(REFERENCE_P(t2) && FLAGS(t2).gc_zone == MatureObjectZone) {
         if(!to_header(t2)->entry->object) {
           tuple_put(state, tmp, j, Qnil);
         }

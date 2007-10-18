@@ -171,7 +171,6 @@ int ffi_bind_local_socket(int s) {
   ret = bind(s, res->ai_addr, res->ai_addrlen);
   return ret;
 }
-<<<<<<< HEAD:shotgun/lib/ffi_util.c
 */
 
 void *ffi_add_ptr(char *ptr, int offset) { 

@@ -88,7 +88,6 @@ static inline uint32_t read_int(uint8_t *str) {
                   | (str[2] << 8 )
                   |  str[3]      );
 }
-#define ISET_FLAG(o) FLAG2_SET(o, IsLittleEndianFlag)
 #endif
 
 void iseq_flip(STATE, OBJECT self) {
@@ -103,11 +102,11 @@ void iseq_flip(STATE, OBJECT self) {
    * and we've got less that 512 instructions, so if it's less
    * it's already been flipped. */
   if(*ibuf < 512) {
-    ISET_FLAG(self);
+    FLAGS(self).IsLittleEndian = TRUE;
     return;
   }  
   for(i = 0; i < f; i += 4, ibuf++) {
     *ibuf = read_int(buf + i);
   }
-  ISET_FLAG(self);
+  FLAGS(self).IsLittleEndian = TRUE;
 }

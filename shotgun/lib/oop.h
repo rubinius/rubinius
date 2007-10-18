@@ -1,5 +1,7 @@
 #ifndef __RUBINIUS_INCLUDED__
 #define __RUBINIUS_INCLUDED__ 1
+#include <stdint.h>
+#include "flags.h"
 
 typedef struct rubinius_object* OBJECT;
 typedef void * xpointer;
@@ -58,18 +60,18 @@ typedef void * xpointer;
 */
 
 struct rubinius_object {
-  uint8_t flags;
-  uint8_t flags2;
-  /* Used by the GC to store data about the object. */
-  uint16_t gc;
+  flags_t f;
   uint32_t field_count;
   OBJECT klass;
   OBJECT field[];
 };
 
-#include <assert.h>
-
-#define GC_MAKE_FOREVER_YOUNG(obj) (obj->gc |= 0x8000)
+/* 
+A rubinius object can be followed by:
+ - a series of fields, possibly including an ivar
+ - a series of bytes (ByteArray)
+ - a fast_context pointer
+*/ 
 
 #define CLASS_OBJECT(obj) (obj->klass)
 
@@ -83,7 +85,6 @@ struct rubinius_object {
 #define ADDRESS_OF_FIELD(obj, fel)      (&obj->field[fel])
 #define NTH_FIELD_DIRECT(obj, fel)      (obj->field[fel])
 #define SET_FIELD_DIRECT(obj, fel, val) (obj->field[fel] = val)
-
 #define BYTES_OF(obj)                   ((char*)obj->field)
 #define FIXNUM_NEG(obj)                 ((intptr_t)obj < 0)
 
@@ -127,34 +128,6 @@ to be a simple test for that bit pattern.
 
 #define REFERENCE2_P(v) (v && REFERENCE_P(v))
 
-/* Macros to find out the type number of an object */
-#define TYPE_SET_MASK 0xf8
-#define TYPE_MASK 0x7
-
-#define OBJ_TYPE(obj) (obj->flags & TYPE_MASK)
-#define OBJ_TYPE_SET(obj, type) (obj->flags = (obj->flags & TYPE_SET_MASK) | type)
-
-/* Macros to find out the zone of an object. */
-#define ZONE_SET_MASK 0xfc
-#define ZONE_MASK 0x3
-
-#define GC_ZONE(obj) (obj->flags2 & ZONE_MASK)
-#define GC_ZONE_SET(obj, val) (obj->flags2 = (obj->flags2 & ZONE_SET_MASK) | val)
-
-#define GC_MATURE_OBJECTS 1
-#define GC_YOUNG_OBJECTS  2
-#define GC_LARGE_OBJECTS  3
-
-#define FLAG_SET(obj, flag) (obj->flags |= flag)
-#define FLAG_SET_P(obj, flag) ((obj->flags & flag) == flag)
-
-#define FLAG_SET_ON(obj, fel, flag) (obj->fel |= flag)
-#define FLAG_CLEAR_ON(obj, fel, flag) (obj->fel ^= flag)
-#define FLAG_SET_ON_P(obj, fel, flag) ((obj->fel & flag) == flag)
-
-#define FLAG2_SET(obj, flag) FLAG_SET_ON(obj, flags2, flag)
-#define FLAG2_SET_P(obj, flag) FLAG_SET_ON_P(obj, flags2, flag)
-
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -162,6 +135,33 @@ to be a simple test for that bit pattern.
 #ifndef FALSE
 #define FALSE 0
 #endif
+
+
+enum class_flags {
+/* reserve lower three bits for object type */
+RequiresCleanupClassFlag = 8,
+CanStoreIvarsClassFlag   = 16,
+};
+
+
+static inline void object_apply_class_instance_flags(OBJECT obj, OBJECT flags_field)
+{
+  unsigned int f = STRIP_TAG(flags_field);
+  
+  FLAGS(obj).obj_type = (object_type) (f & 0x07);
+  FLAGS(obj).CanStoreIvars = f & CanStoreIvarsClassFlag;
+  FLAGS(obj).RequiresCleanup = f & RequiresCleanupClassFlag;
+}
+
+static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
+{
+  FLAGS(target).obj_type        = FLAGS(source).obj_type;	     
+  FLAGS(target).CanStoreIvars   = FLAGS(source).CanStoreIvars;   
+  FLAGS(target).StoresBytes     = FLAGS(source).StoresBytes;     
+  FLAGS(target).RequiresCleanup = FLAGS(source).RequiresCleanup; 
+  FLAGS(target).IsBlockContext  = FLAGS(source).IsBlockContext;  
+  FLAGS(target).IsMeta          = FLAGS(source).IsMeta;	     
+}
 
 #endif
 

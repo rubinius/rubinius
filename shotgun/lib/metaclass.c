@@ -5,7 +5,7 @@
 OBJECT metaclass_s_attach(STATE, OBJECT obj) {
   OBJECT meta;
   meta = metaclass_allocate(state);
-  FLAG_SET(meta, IsMetaFlag);
+  FLAGS(meta).IsMeta = TRUE;
   metaclass_set_attached_instance(meta, obj);
   if(RTEST(state->global->hash) || RTEST(state->global->methtbl)) {
     module_setup_fields(state, meta);
@@ -15,9 +15,6 @@ OBJECT metaclass_s_attach(STATE, OBJECT obj) {
 }
 
 int metaclass_s_metaclass_p(STATE, OBJECT obj) {
-  if(FLAG_SET_P(obj, IsMetaFlag)) {
-    return TRUE;
-  }
-  return FALSE;
+  return FLAGS(obj).IsMeta ? TRUE : FALSE;
 }
 

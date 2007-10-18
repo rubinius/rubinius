@@ -2756,7 +2756,7 @@ lex_get_str(rb_parse_state *parse_state)
     bcatblk(parse_state->line_buffer, beg, sz);
     parse_state->lex_str_used += sz;
 
-    return true;
+    return TRUE;
 }
 
 void syd_add_to_parse_tree(STATE, OBJECT ary,
@@ -2816,7 +2816,7 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
     return false;
   }
 
-  while(true) {
+  while(TRUE) {
     char *ptr, buf[128];
     int read;
 
@@ -2834,7 +2834,7 @@ static bool parse_io_gets(rb_parse_state *parse_state) {
     }
   }
 
-  return true;
+  return TRUE;
 }
 
 OBJECT

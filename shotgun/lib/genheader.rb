@@ -54,7 +54,7 @@ klasses.each do |name, sz, has_ivars|
   puts "   class_set_instance_fields(cls, I2N(#{sz}));"
   puts "   class_set_has_ivars(cls, #{has_ivars ? 'Qtrue' : 'Qfalse'});"
   puts "   class_set_needs_cleanup(cls, Qfalse);"
-  puts "   class_set_object_type(cls, I2N(TYPE_OBJECT));"
+  puts "   class_set_object_type(cls, I2N(ObjectType));"
   puts "   class_set_superclass(cls, sup);"
   puts "   return cls;"
   puts "}"

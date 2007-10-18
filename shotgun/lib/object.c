@@ -34,7 +34,7 @@ OBJECT object_make_weak_ref(STATE, OBJECT self) {
   OBJECT tup;
   
   tup = tuple_new2(state, 1, self);
-  FLAG2_SET(tup, RefsAreWeakFlag);
+  FLAGS(tup).RefsAreWeak = TRUE;
   
   return tup;
 }
@@ -60,13 +60,13 @@ int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
 #define REMEMBER_FLAG 0x10
 
 void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
-  if(GC_ZONE(dest) != GC_MATURE_OBJECTS) return;
-  if(FLAG_SET_ON_P(dest, gc, REMEMBER_FLAG)) return;
+  if(FLAGS(dest).gc_zone != MatureObjectZone || FLAGS(dest).Remember)
+    return;
     
-  if(GC_ZONE(self) == GC_MATURE_OBJECTS) {
-    if(FLAG_SET_ON_P(self, gc, REMEMBER_FLAG)) {
+  if(FLAGS(self).gc_zone == MatureObjectZone) {
+    if(FLAGS(self).Remember) {
       ptr_array_append(state->om->gc->remember_set, (xpointer)dest);
-      FLAG_SET_ON(dest, gc, REMEMBER_FLAG);
+      FLAGS(dest).Remember = TRUE;
     }
   } else {
     int i;
@@ -75,9 +75,9 @@ void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
       tmp = NTH_FIELD(dest, i);
       if(!REFERENCE_P(tmp)) continue;
       
-      if(GC_ZONE(tmp) == GC_YOUNG_OBJECTS) {
+      if(FLAGS(tmp).gc_zone == YoungObjectZone) {
         ptr_array_append(state->om->gc->remember_set, (xpointer)dest);
-        FLAG_SET_ON(dest, gc, REMEMBER_FLAG);
+        FLAGS(dest).Remember = TRUE;
         /* We can return because the only setting we have is now
            correct, no need to look through all the rest. */
         return;
@@ -121,19 +121,15 @@ unsigned int object_hash_int(STATE, OBJECT self) {
   return hsh;
 }
 
+/* TODO: here we could check that the 1st field
+   is currently storing a Hash for the ivars and also
+   use that to determine if this object has ivars. */
 int object_has_ivars(STATE, OBJECT self) {
-  if(FLAG_SET_P(self, CanStoreIvarsFlag)) {
-    /* TODO: here we could check that the 1st field
-       is currently storing a Hash for the ivars and also
-       use that to determine if this object has ivars. */
-    return TRUE;
-  }
-  
-  return FALSE;
+  return (FLAGS(self).CanStoreIvars) ? TRUE : FALSE;
 }
 
 void object_set_has_ivars(STATE, OBJECT self) {
-  FLAG_SET(self, CanStoreIvarsFlag);
+  FLAGS(self).CanStoreIvars = TRUE;
 }
 
 OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
@@ -238,17 +234,15 @@ OBJECT object_get_ivars(STATE, OBJECT self) {
 
 int object_stores_bytes_p(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return FALSE;
-  if(FLAG_SET_P(self, StoresBytesFlag)) return TRUE;
-  return FALSE;
+  return FLAGS(self).StoresBytes ? TRUE : FALSE;
 }
 
 int _object_stores_bytes(OBJECT self) {
-  if(FLAG_SET_P(self, StoresBytesFlag)) return TRUE;
-  return FALSE;
+  return FLAGS(self).StoresBytes ? TRUE : FALSE;
 }
 
 void object_make_byte_storage(STATE, OBJECT self) {
-  FLAG_SET(self, StoresBytesFlag);
+  FLAGS(self).StoresBytes = TRUE;
 }
 
 void object_initialize_bytes(STATE, OBJECT self) {
@@ -259,11 +253,11 @@ void object_initialize_bytes(STATE, OBJECT self) {
 
 void object_set_tainted(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-  FLAG2_SET(self, IsTaintedFlag);
+  FLAGS(self).IsTainted = TRUE;
 }
 
 int object_tainted_p(STATE, OBJECT self) {
-  if(REFERENCE_P(self) && FLAG2_SET_P(self, IsTaintedFlag)) {
+  if(REFERENCE_P(self) && FLAGS(self).IsTainted) {
     return TRUE;
   }
   return FALSE;
@@ -271,11 +265,11 @@ int object_tainted_p(STATE, OBJECT self) {
 
 void object_set_frozen(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-  FLAG2_SET(self, IsFrozenFlag);
+  FLAGS(self).IsFrozen = TRUE;
 }
 
 int object_frozen_p(STATE, OBJECT self) {
-  if(REFERENCE_P(self) && FLAG2_SET_P(self, IsFrozenFlag)) {
+  if(REFERENCE_P(self) && FLAGS(self).IsFrozen) {
     return TRUE;
   }
   return FALSE;

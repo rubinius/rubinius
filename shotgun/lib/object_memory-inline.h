@@ -2,18 +2,14 @@
 #include "flags.h"
 
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
-  obj->flags = 0;
-  if (RTEST(class_get_has_ivars(cls))) {
-    FLAG_SET(obj, CanStoreIvarsFlag);
-  }
-  if (RTEST(class_get_needs_cleanup(cls))) {
-    FLAG_SET(obj, RequiresCleanupFlag);
-  }
-  OBJ_TYPE_SET(obj, FIXNUM_TO_INT(class_get_object_type(cls)));
+  FLAGS(obj).CanStoreIvars = (class_get_has_ivars(cls) == Qtrue);
+  FLAGS(obj).RequiresCleanup = (class_get_needs_cleanup(cls) == Qtrue);
+  FLAGS(obj).obj_type = FIXNUM_TO_INT(class_get_object_type(cls));
 }
 
 static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields) {
-  int size, loc;
+  int size;
+  gc_zone loc;
   OBJECT obj;
   struct rubinius_object *header;
   
@@ -24,7 +20,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
       om->collect_now |= OMCollectMature;
     }
     
-    loc = GC_MATURE_OBJECTS;    
+    loc = MatureObjectZone;
   } else {
     //fields += 4; /* PAD */
     size = sizeof(struct rubinius_object) + fields * sizeof(OBJECT);
@@ -36,9 +32,9 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
           om->collect_now |= OMCollectMature;
         }
 
-        loc = GC_MATURE_OBJECTS;    
+        loc = MatureObjectZone;
       } else {
-        loc = GC_YOUNG_OBJECTS;
+        loc = YoungObjectZone;
         obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
         // DEBUG("Ran out of space! spilled into %p\n", obj);
         om->collect_now |= OMCollectYoung;
@@ -46,24 +42,20 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
       }
     } else {
       obj = (OBJECT)baker_gc_allocate(om->gc, size);
-      loc = GC_YOUNG_OBJECTS;
+      loc = YoungObjectZone;
     }
   }
   
-  // memset(obj, 0, sizeof(struct rubinius_object));
+  CLEAR_FLAGS(obj);
   
   header = (struct rubinius_object*)obj;
-  header->flags2 = 0;
-  header->gc = 0;
   
-  GC_ZONE_SET(obj, loc);
+  FLAGS(obj).gc_zone = loc;
   
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
     _om_apply_class_flags(obj, cls);
-  } else {
-    header->flags = 0;
   }
 
   return obj;
@@ -87,11 +79,8 @@ static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
     obj = (OBJECT)baker_gc_allocate_ultra(om->gc, size);
   }
   
-  obj->flags = 0;
-  obj->flags2 = 0;
-  obj->gc = 0;
-  
-  GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
+  CLEAR_FLAGS(obj);
+  FLAGS(obj).gc_zone = YoungObjectZone;
   rbs_set_class(om, obj, cls);
   
   return obj; 

@@ -26,7 +26,7 @@ void object_cleanup_weak_refs(STATE, OBJECT self);
 static inline OBJECT object_class(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
     OBJECT cls = self->klass;
-    while(REFERENCE_P(cls) && (metaclass_s_metaclass_p(state, cls) || OBJ_TYPE(cls) != TYPE_CLASS)) {
+    while(REFERENCE_P(cls) && (metaclass_s_metaclass_p(state, cls) || FLAGS(cls).obj_type != ClassType)) {
       cls = class_get_superclass(cls);
     }
 
@@ -49,8 +49,6 @@ static inline void object_copy_body(STATE, OBJECT self, OBJECT dest) {
 
 
 #define ISA(o, c) object_kind_of_p(state, o, c)
-
-#define WEAK_REFERENCES_P(obj) FLAG2_SET_P(obj, RefsAreWeakFlag)
 
 static inline uint32_t object_get_id(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
@@ -104,6 +102,4 @@ static inline void object_copy_fields(STATE, OBJECT self, OBJECT dest) {
     SET_FIELD(dest, i, NTH_FIELD(self, i));
   }
 }
-
-
 #endif

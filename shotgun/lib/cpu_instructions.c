@@ -328,8 +328,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   ba = cmethod_get_bytecodes(mo);
 
 #if DIRECT_THREADED
-  if(!FLAG2_SET_P(ba, IsFrozenFlag)) {
-    if(FLAG2_SET_P(ba, IsLittleEndianFlag)) {
+  if(!FLAGS(ba).IsFrozen) {
+    if(FLAGS(ba).IsLittleEndian) {
 #if defined(__BIG_ENDIAN__)
       iseq_flip(state, ba);
 #endif
@@ -339,10 +339,10 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
 #endif
     }
     calculate_into_gotos(state, ba, _dt_addresses);
-    FLAG2_SET(ba, IsFrozenFlag);
+    FLAGS(ba).IsFrozen = TRUE;
   }
 #else
-  if(FLAG2_SET_P(ba, IsLittleEndianFlag)) {
+  if(FLAGS(ba).IsLittleEndian) {
 #if defined(__BIG_ENDIAN__)
     iseq_flip(state, ba);
 #endif
@@ -363,8 +363,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
     state->om->collect_now |= OMCollectYoung;
   }
   
-  ctx->flags = 0;
-  ctx->flags2 = 0;
+  CLEAR_FLAGS(ctx);
   ctx->klass = Qnil;
   ctx->field_count = FASTCTX_FIELDS;
   
@@ -383,7 +382,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->self = recv;
   if(num_lcls > 0) {
     fc->locals = tuple_new(state, num_lcls + 2);
-    GC_MAKE_FOREVER_YOUNG(fc->locals);
+    FLAGS(fc->locals).ForeverYoung = TRUE;
   } else {
     fc->locals = Qnil;
   }

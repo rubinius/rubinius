@@ -1,35 +1,67 @@
 #ifndef RBS_FLAGS
 #define RBS_FLAGS
 
-/* for ->flags */
+/* types, takes up 3 bits */
+typedef enum
 
-/* RESERVED FOR TYPE         (1<<0) */
-/* RESERVED FOR TYPE         (1<<1) */
-/* RESERVED FOR TYPE         (1<<2) */
+{
+  ObjectType    = 0,
+  MContextType  = 1,
+  BContextType  = 2,
+  ClassType     = 3,
+  MetaclassType = 4,
+  MTType        = 5,
+} object_type;
 
-#define CanStoreIvarsFlag    (1<<3)
-#define StoresBytesFlag      (1<<4)
-#define RequiresCleanupFlag  (1<<5)
-#define IsBlockContextFlag   (1<<6)
-#define IsMetaFlag           (1<<6)
-#define CTXFastFlag          (1<<7)
+/* gc_zone, takes up two bits and is shifted right to allow for type beneath it. */
+typedef enum
+{ 
+  UnspecifiedZone  = 0,
+  MatureObjectZone = 1,
+  YoungObjectZone  = 2,
+  LargeObjectZone  = 3,
+} gc_zone;
 
-/* for ->flags2 */
+struct flag_layout_t
+{
+  object_type     obj_type    : 3;
+  gc_zone         gc_zone     : 2;
+  unsigned int    copy_count  : 3;
 
-/* RESERVED FOR GC           (1<<0) */
-/* RESERVED FOR GC           (1<<1) */
+  int Remember               : 1;
+  int Marked                 : 1;
+  int ForeverYoung           : 1;
+  int CanStoreIvars          : 1;
+  int StoresBytes            : 1;
+  int RequiresCleanup        : 1;
+  int IsBlockContext         : 1;
+  int IsMeta                 : 1;
 
-#define IsTaintedFlag        (1<<2)
-#define IsFrozenFlag         (1<<3)
-#define IsLittleEndianFlag   (1<<4)
-#define RefsAreWeakFlag      (1<<5)
+  int CTXFast                : 1;
+  int IsTainted              : 1;
+  int IsFrozen               : 1;
+  int IsLittleEndian         : 1;
+  int RefsAreWeak            : 1;
+};
 
-/* Values for the Type bits */
+typedef union
+{
+  struct flag_layout_t flag;
+  unsigned int         forwarded_object; 
+} flags_t;
 
-#define TYPE_OBJECT     0
-#define TYPE_MCONTEXT   1
-#define TYPE_BCONTEXT   2
-#define TYPE_CLASS      3
-#define TYPE_METACLASS  4
-#define TYPE_MT         5
+#define FLAGS(obj)           (obj->f.flag)
+#define RAW_FLAG(obj)        (obj->f.forwarded_object)
+#define CLEAR_FLAGS(obj)     RAW_FLAG(obj) = 0
+#define stack_context_p(obj) (FLAGS(obj).gc_zone == UnspecifiedZone && !FLAGS(obj).IsTainted && !FLAGS(obj).IsFrozen && !FLAGS(obj).IsLittleEndian && !FLAGS(obj).RefsAreWeak)
+#define SET_FORWARDED(obj)   RAW_FLAG(obj) = FORWARDED_OBJECT
+#define FORWARDED_P(obj)     ((RAW_FLAG(obj)) == FORWARDED_OBJECT)
+
+#define AGE(obj)           (FLAGS(obj).copy_count)
+#define CLEAR_AGE(obj)     (FLAGS(obj).copy_count = 0)
+#define INCREMENT_AGE(obj) (FLAGS(obj).copy_count++)
+
+// #define COPY_RAW_FLAGS(target, source) RAW_FLAG(target) = RAW_FLAG(source)
+#define FORWARDED_OBJECT 0xffffffff
+
 #endif 
