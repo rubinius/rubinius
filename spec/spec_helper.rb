@@ -124,6 +124,15 @@ class Object
     end
   end
 
+  def should_not_include(*others)
+    others = others.to_a unless others.is_a? Array
+    others.each do |other|
+      if self.include?(other)
+        raise ExpectationNotMetError.new("Expected " + self.inspect + " to not include " + other.inspect)
+      end
+    end
+  end
+
   def should_be_close(value, tolerance)
     unless (value - self).abs <= tolerance
       raise ExpectationNotMetError.new("Expected " + self.inspect + " to be close to " + value.inspect)
