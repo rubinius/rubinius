@@ -66,10 +66,14 @@ OBJECT class_constitute(STATE, OBJECT sup, OBJECT under) {
     /* When this object is detatched from the normal class hierarchy, we give
        it the normal fields and flags info by default. */
     class_set_instance_fields(val, class_get_instance_fields(state->global->object));
-    class_set_instance_flags(val, class_get_instance_flags(state->global->object));
+    class_set_has_ivars(val, class_get_has_ivars(state->global->object));
+    class_set_needs_cleanup(val, class_get_needs_cleanup(state->global->object));
+    class_set_object_type(val, class_get_object_type(state->global->object));
   } else {
     class_set_instance_fields(val, class_get_instance_fields(sup));
-    class_set_instance_flags(val, class_get_instance_flags(sup));
+    class_set_has_ivars(val, class_get_has_ivars(sup));
+    class_set_needs_cleanup(val, class_get_needs_cleanup(sup));
+    class_set_object_type(val, class_get_object_type(sup));
   }
   
   // printf("Setting superclass of %p to: %p\n", val, sup);

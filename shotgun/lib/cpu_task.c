@@ -39,8 +39,8 @@ void Init_cpu_task(STATE) {
   
   BASIC_CLASS(channel) = rbs_class_new(state, "Channel", 3, BASIC_CLASS(object));
   BASIC_CLASS(thread) =  rbs_class_new(state, "Thread", 4, BASIC_CLASS(object));
-  class_set_instance_flags(BASIC_CLASS(channel), I2N(CanStoreIvarsFlag));
-  class_set_instance_flags(BASIC_CLASS(thread),  I2N(CanStoreIvarsFlag));
+  class_set_has_ivars(BASIC_CLASS(channel), Qtrue);
+  class_set_has_ivars(BASIC_CLASS(thread),  Qtrue);
   
   cpu_event_init(state);  
 }

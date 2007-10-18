@@ -169,13 +169,10 @@ void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
 }
 
 void state_add_cleanup(STATE, OBJECT cls, state_cleanup_func func) {
-  unsigned int cur;
-  
   ht_cleanup_insert(state->cleanup, module_get_name(cls), func);
   
   // printf("Registered cleanup for %p\n", module_get_name(cls));
-  cur = (unsigned int)FIXNUM_TO_INT(class_get_instance_flags(cls));
-  class_set_instance_flags(cls, I2N(cur | RequiresCleanupFlag));
+  class_set_needs_cleanup(cls, Qtrue);
 }
 
 void state_run_cleanup(STATE, OBJECT obj, OBJECT cls) {

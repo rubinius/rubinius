@@ -27,7 +27,7 @@ void cpu_bootstrap(STATE) {
   cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
   HEADER(cls)->klass = cls;
   class_set_instance_fields(cls, CLASS_FIELDS);
-  class_set_instance_flags(cls, I2N(CanStoreIvarsFlag));
+  class_set_has_ivars(cls, Qtrue);
   BC(class) = cls;
   obj = _object_basic_class(state, Qnil);
   BC(object) = obj;
@@ -83,7 +83,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(icache), "InlineCache");
   
-#define set_type(cls, flag) class_set_instance_flags(cls, I2N(flag | FIXNUM_TO_INT(class_get_instance_flags(cls))));
+#define set_type(cls, flag) class_set_object_type(cls, I2N(flag));
   
   set_type(cls, TYPE_CLASS);
   set_type(BC(metaclass), TYPE_METACLASS);

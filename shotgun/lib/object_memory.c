@@ -466,10 +466,9 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
   }
   fclose(stream);
 }
-
 OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields) {
-  int i, f;
-  OBJECT obj, flags;
+  int i;
+  OBJECT obj;
   struct rubinius_object *header;
   mark_sweep_gc ms;
   
@@ -489,10 +488,9 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
-    flags = class_get_instance_flags(cls);
-    f = FIXNUM_TO_INT(flags);
-    header->flags = f;
-  } else {
+    _om_apply_class_flags(obj, cls);
+  }
+  else {
     header->flags = 0;
   }
   for(i = 0; i < fields; i++) {
@@ -504,8 +502,8 @@ OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields)
 }
 
 OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields) {
-  int size, i, f;
-  OBJECT obj, flags;
+  int size, i;
+  OBJECT obj;
   struct rubinius_object *header;
     
   //fields += 4; /* PAD */
@@ -529,9 +527,7 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
-    flags = class_get_instance_flags(cls);
-    f = FIXNUM_TO_INT(flags);
-    header->flags = f;
+    _om_apply_class_flags(obj, cls);
   } else {
     header->flags = 0;
   }

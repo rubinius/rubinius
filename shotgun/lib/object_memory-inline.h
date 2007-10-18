@@ -1,6 +1,20 @@
+#include "auto.h"
+#include "flags.h"
+
+static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
+  HEADER(obj)->flags = 0;
+  if (RTEST(class_get_has_ivars(cls))) {
+    FLAG_SET(obj, CanStoreIvarsFlag);
+  }
+  if (RTEST(class_get_needs_cleanup(cls))) {
+    FLAG_SET(obj, RequiresCleanupFlag);
+  }
+  OBJ_TYPE_SET(obj, FIXNUM_TO_INT(class_get_object_type(cls)));
+}
+
 static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields) {
-  int size, f, loc;
-  OBJECT obj, flags;
+  int size, loc;
+  OBJECT obj;
   struct rubinius_object *header;
   
   if(fields > LargeObjectThreshold) {
@@ -47,10 +61,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
   if(cls && REFERENCE_P(cls)) {
-    /* #define CLASS_f_INSTANCE_FLAGS 8 */
-    flags = NTH_FIELD(cls, 8);
-    f = FIXNUM_TO_INT(flags);
-    header->flags = f;
+    _om_apply_class_flags(obj, cls);
   } else {
     header->flags = 0;
   }
