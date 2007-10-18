@@ -257,24 +257,19 @@ task :install => :config_env do
   mkdir_p ENV['RBAPATH'], :verbose => true
   mkdir_p ENV['CODEPATH'], :verbose => true
 
-  Rake::FileList.new('runtime/**/*.rb{a,c}').sort.each do |rba_path|
-    rba_file = rba_path.sub %r|^runtime/|, ''
+  rba_files = Rake::FileList.new('runtime/**/*.rb{a,c}',
+                                 'runtime/**/.load_order.txt',
+                                 'lib/**')
+
+  rba_files.sort.each do |rba_path|
+    next if File.directory? rba_path
+
+    rba_file = rba_path.sub %r%^(runtime|lib)/%, ''
     dest_file = File.join ENV['RBAPATH'], rba_file
     dest_dir = File.dirname dest_file
     mkdir_p dest_dir unless File.directory? dest_dir
 
     install rba_path, dest_file, :mode => 0644, :verbose => true
-  end
-
-  Rake::FileList.new('lib/**').sort.each do |lib_path|
-    next if File.directory? lib_path
-
-    lib_file = lib_path.sub %r|^lib/|, ''
-    dest_file = File.join ENV['RBAPATH'], lib_file
-    dest_dir = File.dirname dest_file
-    mkdir_p dest_dir unless File.directory? dest_dir
-
-    install lib_path, dest_file, :mode => 0644, :verbose => true
   end
 
   mkdir_p File.join(ENV['CODEPATH'], 'bin'), :verbose => true
