@@ -298,8 +298,8 @@ namespace :build do
     sh "make vm"
   end
   
-  task :extensions do
-    sh "make exts"
+  task :extensions => ["build:shotgun", "build:rbc"] do
+    sh "./shotgun/rubinius compile lib/ext/syck"
   end
     
   file "shotgun/config.h" do

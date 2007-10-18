@@ -1,13 +1,10 @@
 
 include shotgun/config.mk
 
-all: vm exts
+all: vm
 
 vm:
 	cd shotgun; $(MAKE) rubinius
-
-exts: vm
-	./shotgun/rubinius compile lib/ext/syck
 
 install:
 	cd shotgun; $(MAKE) install
