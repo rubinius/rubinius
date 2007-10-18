@@ -251,8 +251,44 @@ desc "Build everything that needs to be built"
 task :build => ['build:all']
 
 desc "Install rubinius as rbx"
-task :install do
-  sh "make install"
+task :install => :config_env do
+  sh "cd shotgun; make install"
+
+  mkdir_p ENV['RBAPATH'], :verbose => true
+  mkdir_p ENV['CODEPATH'], :verbose => true
+
+  Rake::FileList.new('runtime/**/*.rb{a,c}').sort.each do |rba_path|
+    rba_file = rba_path.sub %r|^runtime/|, ''
+    dest_file = File.join ENV['RBAPATH'], rba_file
+    dest_dir = File.dirname dest_file
+    mkdir_p dest_dir unless File.directory? dest_dir
+
+    install rba_path, dest_file, :mode => 0644, :verbose => true
+  end
+
+  Rake::FileList.new('lib/**').sort.each do |lib_path|
+    next if File.directory? lib_path
+
+    lib_file = lib_path.sub %r|^lib/|, ''
+    dest_file = File.join ENV['RBAPATH'], lib_file
+    dest_dir = File.dirname dest_file
+    mkdir_p dest_dir unless File.directory? dest_dir
+
+    install lib_path, dest_file, :mode => 0644, :verbose => true
+  end
+
+  mkdir_p File.join(ENV['CODEPATH'], 'bin'), :verbose => true
+
+  Rake::FileList.new("#{ENV['CODEPATH']}/**/*.rb").sort.each do |rb_file|
+    sh File.join(ENV['BINPATH'], 'rbx'), 'compile', rb_file, :verbose => true
+  end
+end
+
+task :config_env do
+  File.foreach 'shotgun/config.mk' do |line|
+    next unless line =~ /(.*?)=(.*)/
+    ENV[$1] = $2
+  end
 end
 
 desc "Recompile all ruby system files"
