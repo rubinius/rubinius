@@ -1,14 +1,14 @@
-= Installation guide for Rubinius as of 05/2007
+= Installation guide for Rubinius as of 10/2007
 
-Please visit http://rubini.us to view the most current installation
-information. Additionally, the #rubinius IRC channel on Freenode will help.
+If you are having trouble with installation, the #rubinius IRC channel on
+irc://irc.freenode.net will help.
 
 
 == Getting the software and required libraries
 
-There are a few things that you need in order to be able to build and run Rubinius. 
-Once you have installed the general requirements, install the Gems needed and then 
-any platform-specific requirements.
+There are a few things that you need in order to be able to build and run
+Rubinius.  Once you have installed the general requirements, install the Gems
+needed and then any platform-specific requirements.
 
 
 === General requirements
@@ -25,64 +25,80 @@ any platform-specific requirements.
 
 Each package may have requirements of its own, of course.
 
-You may want to make sure not to override your normal environment so if necessary, 
-make sure to install everything in the correct prefix (often /usr/local) and to name 
-the programs accordingly (you probably want to ensure gmake is called gmake in order 
-not to override the default make.) You can then adjust the environment with often a 
-simple PATH revision as needed.
+If you want to avoid overriding your existing environment, you may want to
+install everything under its own prefix (such as /usr/local) and to name
+programs so they don't collide with your existing installation (such as naming
+gmake 'gmake').  You can then adjust your PATH environment variable as needed
+for rubinius development.
 
 
 === Requirements through RubyGems
 
 * rake
 
-Rake may be obtained with the gem install command. See http://www.rubygems.org for more information.
+Rake may be obtained with the gem install command. See `gem help` and
+http://www.rubygems.org for more information.
 
 
 === System-dependent requirements
 
+
 ==== FreeBSD, OpenBSD
- 
+
 * "libexecinfo (backtrace utilities)":http://www.freshports.org/devel/libexecinfo
 
 
 == Rubinius itself
 
-You need to check Rubinius out through Git (which we just installed). The invocation looks like this:
+You need to check Rubinius out through Git (which we just installed). The
+invocation looks like this:
 
   git clone http://git.rubini.us/code rubinius
 
-== Compiling etc.
+For more information on rubinius' best practices for git, see "using
+git":http://rubinius.lighthouseapp.com/projects/5089/using-git
 
-In the simplest case and assuming that you have all the prerequisites, actually 
-getting a working Rubinius binary should be as simple as this:
+
+== Compiling Rubinius
+
+Once you have all the prerequisites installed, building rubinius is as simple
+as:
 
   cd /path/to/rubinius
-  ./configure
-  make
+  rake build
 
-This will give you a binary, @./shotgun/rubinius@ which can then be invoked to 
-run scripts. If your system compiler is not GCC 4.x, you can use the CC env
-to the *configure* script. If you want a development version (no optimisations, 
-extra debug info), use DEV=1 again at the configuration phase, not to make. 
+This will give you a binary, @./shotgun/rubinius@ which can then be invoked to
+run scripts. If your system compiler is not GCC 4.x, you can set the CC environment variable:
 
-If you want, you can also do a @make install@. This will install @rbx@ as a 
-shortcut for @./shotgun/rubinius@.
+  CC=/path/to/gcc rake build
+
+If you want a development version (no optimisations, extra debug info), set the DEV environment variable:
+
+  DEV=1 rake build
+
+
+== Installing Rubinius
+
+To install @rbx@ as a shortcut for @./shotgun/rubinius@:
+
+  make install
 
 
 == Troubleshooting and platform-specific notes
 
-Right now, the very best thing to do is to join the #rubinius IRC channel on Freenode. 
-The forums here are an alternative method though the response is probably not going to 
-be as swift. We will try to collect tips here, too.
+Right now, the very best thing to do is to join the #rubinius IRC channel on
+irc://irc.freenode.net.  The forums here are an alternative method though the
+response is probably not going to be as swift. We will try to collect tips
+here, too.
+
 
 === 64-bit platforms
 
-Currently mostly works on amd64 and Opteron. Other 64-bit platforms have not been tested.
+Currently mostly works on amd64 and Opteron. Other 64-bit platforms have not
+been tested.
 
-This is a guide to building Rubinius on various platforms.
 
-=== Mac OS X
+=== Mac OS X with Fink
 
 See http://42squared.com/posts/how_to_install_rubinius_on_mac_os_x
 
@@ -90,14 +106,16 @@ If you are getting an error like this one:
 
   glibtool: link: cannot build libtool library `librubinius.la' from non-libtool objects: ...
 
-This is probably because you are using an old glibtool (1.3.5 or similar) that came
-with Fink. This is the case when 'which glibtool' produces /sw/bin/glibtool. You want 
-to use the one at /usr/bin/glibtool (1.5) instead. If you are radical you can just 
-'sudo rm /sw/bin/glibtool' to fix this mess.
+This is probably because you are using an old glibtool (1.3.5 or similar) that
+came with Fink.  This is the case when `which glibtool` returns
+/sw/bin/glibtool. You want to use /usr/bin/glibtool (1.5) instead.  If you are
+radical you can just `sudo rm /sw/bin/glibtool` to fix this mess.
+
 
 === Ubuntu
 
 For the build to succeed you will need these packages:
- 
+
 * libglib2.0-dev
 * zlib1g-dev
+

@@ -1,8 +1,8 @@
 1. What is Rubinius
 
-Rubinius is a next-generation virtual machine and compiler for Ruby.
-Based loosely on the Smalltalk-80 'Blue Book' design, Rubinius will provide
-a rich, high-performance environment for running Ruby code.
+Rubinius is a next-generation virtual machine and compiler for Ruby.  Based
+loosely on the Smalltalk-80 'Blue Book' design, Rubinius will provide a rich,
+high-performance environment for running Ruby code.
 
 2. Running Rubinius
 
@@ -10,15 +10,15 @@ Refer to the INSTALL file for instructions on getting and building Rubinius.
 
 3. Status
 
-Rubinius is under heavy development, and currently supports the basic Ruby 
-classes and kernel methods. The code base is written in a mixture of 
-ANSI C and Ruby; with more Ruby and less C as the project proceeds.
-You should not run your mission-critical Rails apps under Rubinius yet.
+Rubinius is under heavy development, and currently supports the basic Ruby
+classes and kernel methods. The code base is written in a mixture of ANSI C and
+Ruby; with more Ruby and less C as the project proceeds.  You should not run
+your mission-critical Rails apps under Rubinius yet.
 
 4. Goals
 
 * Thread safety. Rubinius intends to be thread-safe so you could embed more
-  than one interpreter in a single application. It does not currently meet 
+  than one interpreter in a single application. It does not currently meet
   this goal due to some components borrowed from the mainline Ruby interpreter.
 
 * Clean, readable code that is easy for users to understand and extend.
@@ -30,23 +30,26 @@ You should not run your mission-critical Rails apps under Rubinius yet.
 
 5. Volunteering to Help
 
-The Rubinius team welcomes contributions, bug reports, test cases, and monetary 
+The Rubinius team welcomes contributions, bug reports, test cases, and monetary
 support. One possible way to help is implement Ruby library classes. Visit
-http://rubini.us for documentation on how to begin hacking Rubinius.
+http://rubinius.lighthouseapp.com for documentation on how to begin hacking
+Rubinius.
 
 6. Architecture
 
-Rubinius currently uses C to bootstrap the system. In the future, a limited dialect of 
-Ruby called cuby/garnet will be used to generate C. This is a time-honored technique, 
-used by systems such as Squeak, Smalltalk, and Algol on the Burroughs systems (as seen 
-in the movie 'Tron').
+Rubinius currently uses C to bootstrap the system. In the future, a limited
+dialect of Ruby called cuby/garnet will be used to generate C. This is a
+time-honored technique, used by systems such as Squeak, Smalltalk, and Algol on
+the Burroughs systems (as seen in the movie 'Tron').
 
-For now, this code is hand-written, and can be found in the ./shotgun/lib directory.
-This code was ported from a Ruby implementation found in the ./lib directory.
-For example, shotgun/lib/object_memory.c is the C translation of lib/object_memory.rb.
+For now, this code is hand-written, and can be found in the ./shotgun/lib
+directory.  This code was ported from a Ruby implementation found in the ./lib
+directory.  For example, shotgun/lib/object_memory.c is the C translation of
+lib/object_memory.rb.
 
-The compiler, assembler, and bytecode generators are all written in Ruby, and can
-be found under the ./lib directory.  Other systems use the word 'translator' for what
-is here referred to as 'compiler'.  The ./bin/rcc script can be used to display the
-symbolic output of the compiler, for debugging or learning purposes.
+The compiler, assembler, and bytecode generators are all written in Ruby, and
+can be found under the ./lib directory.  Other systems use the word
+'translator' for what is here referred to as 'compiler'.  The ./bin/rcc script
+can be used to display the symbolic output of the compiler, for debugging or
+learning purposes.
 

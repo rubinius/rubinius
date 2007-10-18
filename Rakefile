@@ -1,3 +1,5 @@
+# NOTE! When updating this file, also update INSTALL, if necessary.
+
 require 'tsort'
 
 task :default => :tasks
