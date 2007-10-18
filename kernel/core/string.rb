@@ -2012,7 +2012,6 @@ class String
     end
     
     out.taint if self.tainted?
-    out.freeze if self.frozen?
     return out
   end
 
