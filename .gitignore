@@ -16,7 +16,7 @@ spec/files.txt
 last_ci.rb
 last_mspec.rb
 
-!runtime/loader.rbc
+runtime/loader.rbc
 !runtime/stable/loader.rbc
 runtime/pristine*
 
