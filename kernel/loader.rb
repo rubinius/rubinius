@@ -33,30 +33,42 @@ Signal.trap("INT") do
   Thread.main.raise Interrupt, "Thread has been interrupted"
 end
 
-# Setup a few changes to the include path.
+# Setup $LOAD_PATH.
+
+additions = []
 
 # If there is no compiler.rba or COMPILER env variable, use the system one.
 if ENV["COMPILER"] and File.exists? ENV["COMPILER"]
-  $:.unshift ENV["COMPILER"]
+  additions << ENV["COMPILER"]
 end
-  
-$: << "#{Rubinius::RBA_PATH}/compiler.rba"
+
+additions << File.join(Rubinius::RBA_PATH, "compiler")
+additions << File.join(Rubinius::RBA_PATH, "compiler.rba")
 
 # The main stdlib location
-$: << Rubinius::CODE_PATH
+additions << Rubinius::CODE_PATH
+
+$LOAD_PATH.insert($LOAD_PATH.index('.'), *additions)
+
+if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
+  $LOAD_PATH.unshift(*ENV['RUBYLIB'].split(':'))
+end
 
 # Parse options here!
 RBS_USAGE = <<END
 Usage: rubinius [options] [file]
   File may be any valid Ruby source file (.rb) or a compiled Ruby file (.rbc).
 
-  Options: 
-          -c   Compile file only.
-          -e   Directly compile and execute code that follows (no file provided).
-          -p   Run the profiler.
+Options:
+  -d             Enable debugging output and set $DEBUG to true.
+  -dc            Display debugging information for the compiler.
+  -dl            Display debugging information for the loader.
+  -e 'code'      Directly compile and execute code (no file provided).
+  -Idir1[:dir2]  Add directories to $LOAD_PATH.
+  -p             Run the profiler.
+  -rlibrary      Require library before execution.
+  -v             Display the version and set $VERBOSE to true.
 
-          -dc  Display debugging information for compiler.
-          -dl  Display debugging information for loader.
 END
 
 # script = ARGV.shift
@@ -70,7 +82,7 @@ code = 0
 ran_something = false
 
 begin
-    
+
   until ARGV.empty?
     arg = ARGV.shift
     case arg
