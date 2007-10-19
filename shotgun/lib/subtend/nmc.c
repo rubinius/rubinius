@@ -66,7 +66,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   
   fc->opaque_data = (void*)n;
   
-  FLAGS(ctx).ForeverYoung = TRUE;
+  ctx->ForeverYoung = TRUE;
     
   return ctx;
 }

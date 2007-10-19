@@ -730,9 +730,9 @@ class ShotgunPrimitives
       SET_FIELD(self, j, NTH_FIELD(t1, k));
     }
     // object_copy_fields_from(state, t1, self, j, NUM_FIELDS(self));
-    // gc_zone selfgc = FLAGS(self).gc_zone;
+    // gc_zone selfgc = self->gc_zone;
     object_copy_nongc_flags(self, t1);
-    // HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
+    // self->flags2 = (t1->flags2 & ZONE_MASK) | GC_ZONE(self);
     stack_push(t1);
     CODE
   end
@@ -784,11 +784,11 @@ class ShotgunPrimitives
     
     t1 = NEW_OBJECT(object_class(state, self), FASTCTX_FIELDS);
 
-    FLAGS(t1).StoresBytes = TRUE;
-    if(FLAGS(self).obj_type == MContextType) {
-      FLAGS(t1).CTXFast = TRUE;
+    t1->StoresBytes = TRUE;
+    if(self->obj_type == MContextType) {
+      t1->CTXFast = TRUE;
     }
-    FLAGS(t1).obj_type = FLAGS(self).obj_type;
+    t1->obj_type = self->obj_type;
    
     old = FASTCTX(self);
     cur = FASTCTX(t1);
@@ -809,7 +809,7 @@ class ShotgunPrimitives
     cur->sp = old->sp;
     cur->fp_ptr = old->fp_ptr;
    
-    FLAGS(t1).ForeverYoung = TRUE;
+    t1->ForeverYoung = TRUE;
 
     stack_push(t1);
     CODE
@@ -2487,7 +2487,7 @@ class ShotgunPrimitives
     self = stack_pop();
     /*
     printf("Compiling iseq %p...\\n", self);
-    if(FLAGS(self).IsLittleEndian) {
+    if(self->IsLittleEndian) {
       #if defined(__BIG_ENDIAN__)
       printf("flip1\\n");
       iseq_flip(state, self);

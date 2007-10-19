@@ -153,7 +153,7 @@ void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
   
   /* If from is young, then all the refs are from other young objects
      or the remember set, so we just need to mutate in the young space. */
-  if(FLAGS(from).gc_zone == YoungObjectZone) {
+  if(from->gc_zone == YoungObjectZone) {
     object_memory_collect(state, state->om, roots);
   } else {
     object_memory_major_collect(state, state->om, roots);

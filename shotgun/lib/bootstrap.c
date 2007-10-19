@@ -29,7 +29,7 @@ void cpu_bootstrap(STATE) {
   class_set_instance_fields(cls, I2N(CLASS_FIELDS));
   class_set_has_ivars(cls, Qtrue);
   class_set_object_type(cls, I2N(ClassType));
-  FLAGS(cls).obj_type = ClassType;
+  cls->obj_type = ClassType;
   
   BC(class) = cls;
   obj = _object_basic_class(state, Qnil);

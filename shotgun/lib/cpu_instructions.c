@@ -328,8 +328,8 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   ba = cmethod_get_bytecodes(mo);
 
 #if DIRECT_THREADED
-  if(!FLAGS(ba).IsFrozen) {
-    if(FLAGS(ba).IsLittleEndian) {
+  if(!ba->IsFrozen) {
+    if(ba->IsLittleEndian) {
 #if defined(__BIG_ENDIAN__)
       iseq_flip(state, ba);
 #endif
@@ -339,10 +339,10 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
 #endif
     }
     calculate_into_gotos(state, ba, _dt_addresses);
-    FLAGS(ba).IsFrozen = TRUE;
+    ba->IsFrozen = TRUE;
   }
 #else
-  if(FLAGS(ba).IsLittleEndian) {
+  if(ba->IsLittleEndian) {
 #if defined(__BIG_ENDIAN__)
     iseq_flip(state, ba);
 #endif
@@ -382,7 +382,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->self = recv;
   if(num_lcls > 0) {
     fc->locals = tuple_new(state, num_lcls + 2);
-    FLAGS(fc->locals).ForeverYoung = TRUE;
+    fc->locals->ForeverYoung = TRUE;
   } else {
     fc->locals = Qnil;
   }

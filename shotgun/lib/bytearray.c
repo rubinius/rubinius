@@ -102,11 +102,11 @@ void iseq_flip(STATE, OBJECT self) {
    * and we've got less that 512 instructions, so if it's less
    * it's already been flipped. */
   if(*ibuf < 512) {
-    FLAGS(self).IsLittleEndian = TRUE;
+    self->IsLittleEndian = TRUE;
     return;
   }  
   for(i = 0; i < f; i += 4, ibuf++) {
     *ibuf = read_int(buf + i);
   }
-  FLAGS(self).IsLittleEndian = TRUE;
+  self->IsLittleEndian = TRUE;
 }

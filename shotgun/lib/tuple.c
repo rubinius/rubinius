@@ -6,7 +6,7 @@ OBJECT tuple_enlarge(STATE, OBJECT tup, int inc) {
   int sz;
   OBJECT ns;
   sz = NUM_FIELDS(tup);
-  if(FLAGS(tup).gc_zone == YoungObjectZone) {
+  if(tup->gc_zone == YoungObjectZone) {
     ns = tuple_new(state, sz + inc);
   } else {
     ns = NEW_OBJECT_MATURE(state->global->tuple, sz + inc);

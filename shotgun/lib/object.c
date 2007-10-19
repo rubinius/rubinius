@@ -34,7 +34,7 @@ OBJECT object_make_weak_ref(STATE, OBJECT self) {
   OBJECT tup;
   
   tup = tuple_new2(state, 1, self);
-  FLAGS(tup).RefsAreWeak = TRUE;
+  tup->RefsAreWeak = TRUE;
   
   return tup;
 }
@@ -60,13 +60,13 @@ int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
 #define REMEMBER_FLAG 0x10
 
 void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
-  if(FLAGS(dest).gc_zone != MatureObjectZone || FLAGS(dest).Remember)
+  if(dest->gc_zone != MatureObjectZone || dest->Remember)
     return;
     
-  if(FLAGS(self).gc_zone == MatureObjectZone) {
-    if(FLAGS(self).Remember) {
+  if(self->gc_zone == MatureObjectZone) {
+    if(self->Remember) {
       ptr_array_append(state->om->gc->remember_set, (xpointer)dest);
-      FLAGS(dest).Remember = TRUE;
+      dest->Remember = TRUE;
     }
   } else {
     int i;
@@ -75,9 +75,9 @@ void object_propgate_gc_info(STATE, OBJECT self, OBJECT dest) {
       tmp = NTH_FIELD(dest, i);
       if(!REFERENCE_P(tmp)) continue;
       
-      if(FLAGS(tmp).gc_zone == YoungObjectZone) {
+      if(tmp->gc_zone == YoungObjectZone) {
         ptr_array_append(state->om->gc->remember_set, (xpointer)dest);
-        FLAGS(dest).Remember = TRUE;
+        dest->Remember = TRUE;
         /* We can return because the only setting we have is now
            correct, no need to look through all the rest. */
         return;
@@ -125,11 +125,11 @@ unsigned int object_hash_int(STATE, OBJECT self) {
    is currently storing a Hash for the ivars and also
    use that to determine if this object has ivars. */
 int object_has_ivars(STATE, OBJECT self) {
-  return (FLAGS(self).CanStoreIvars) ? TRUE : FALSE;
+  return (self->CanStoreIvars);
 }
 
 void object_set_has_ivars(STATE, OBJECT self) {
-  FLAGS(self).CanStoreIvars = TRUE;
+  self->CanStoreIvars = TRUE;
 }
 
 OBJECT object_get_ivar(STATE, OBJECT self, OBJECT sym) {
@@ -234,15 +234,15 @@ OBJECT object_get_ivars(STATE, OBJECT self) {
 
 int object_stores_bytes_p(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return FALSE;
-  return FLAGS(self).StoresBytes ? TRUE : FALSE;
+  return self->StoresBytes;
 }
 
 int _object_stores_bytes(OBJECT self) {
-  return FLAGS(self).StoresBytes ? TRUE : FALSE;
+  return self->StoresBytes;
 }
 
 void object_make_byte_storage(STATE, OBJECT self) {
-  FLAGS(self).StoresBytes = TRUE;
+  self->StoresBytes = TRUE;
 }
 
 void object_initialize_bytes(STATE, OBJECT self) {
@@ -253,24 +253,18 @@ void object_initialize_bytes(STATE, OBJECT self) {
 
 void object_set_tainted(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-  FLAGS(self).IsTainted = TRUE;
+  self->IsTainted = TRUE;
 }
 
 int object_tainted_p(STATE, OBJECT self) {
-  if(REFERENCE_P(self) && FLAGS(self).IsTainted) {
-    return TRUE;
-  }
-  return FALSE;
+  return (REFERENCE_P(self) && self->IsTainted);
 }
 
 void object_set_frozen(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
-  FLAGS(self).IsFrozen = TRUE;
+  self->IsFrozen = TRUE;
 }
 
 int object_frozen_p(STATE, OBJECT self) {
-  if(REFERENCE_P(self) && FLAGS(self).IsFrozen) {
-    return TRUE;
-  }
-  return FALSE;
+  return (REFERENCE_P(self) && self->IsFrozen);
 }

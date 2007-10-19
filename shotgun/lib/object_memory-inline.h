@@ -2,16 +2,15 @@
 #include "flags.h"
 
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
-  FLAGS(obj).CanStoreIvars = (class_get_has_ivars(cls) == Qtrue);
-  FLAGS(obj).RequiresCleanup = (class_get_needs_cleanup(cls) == Qtrue);
-  FLAGS(obj).obj_type = FIXNUM_TO_INT(class_get_object_type(cls));
+  obj->CanStoreIvars = (class_get_has_ivars(cls) == Qtrue);
+  obj->RequiresCleanup = (class_get_needs_cleanup(cls) == Qtrue);
+  obj->obj_type = FIXNUM_TO_INT(class_get_object_type(cls));
 }
 
 static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fields) {
   int size;
   gc_zone loc;
   OBJECT obj;
-  struct rubinius_object *header;
   
   if(fields > LargeObjectThreshold) {
     mark_sweep_gc ms = om->ms;
@@ -48,9 +47,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
   
   CLEAR_FLAGS(obj);
   
-  header = (struct rubinius_object*)obj;
-  
-  FLAGS(obj).gc_zone = loc;
+  obj->gc_zone = loc;
   
   rbs_set_class(om, obj, cls);
   SET_NUM_FIELDS(obj, fields);
@@ -80,7 +77,7 @@ static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
   }
   
   CLEAR_FLAGS(obj);
-  FLAGS(obj).gc_zone = YoungObjectZone;
+  obj->gc_zone = YoungObjectZone;
   rbs_set_class(om, obj, cls);
   
   return obj; 

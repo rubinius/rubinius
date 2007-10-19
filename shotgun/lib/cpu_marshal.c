@@ -279,7 +279,7 @@ static OBJECT unmarshal_bytes(STATE, struct marshal_state *ms) {
 static void marshal_iseq(STATE, OBJECT obj, bstring buf) {
   int i;
   append_c('I');
-  if(FLAGS(obj).IsLittleEndian) {
+  if(obj->IsLittleEndian) {
     append_c('l');
   } else {
     append_c('b');

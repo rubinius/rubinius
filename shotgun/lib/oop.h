@@ -60,7 +60,29 @@ typedef void * xpointer;
 */
 
 struct rubinius_object {
-  flags_t f;
+  union {
+    struct {
+      object_type     obj_type    : 3;
+      gc_zone         gc_zone     : 2;
+      unsigned int    copy_count  : 3;
+      
+      int Remember               : 1;
+      int Marked                 : 1;
+      int ForeverYoung           : 1;
+      int CanStoreIvars          : 1;
+      int StoresBytes            : 1;
+      int RequiresCleanup        : 1;
+      int IsBlockContext         : 1;
+      int IsMeta                 : 1;
+      
+      int CTXFast                : 1;
+      int IsTainted              : 1;
+      int IsFrozen               : 1;
+      int IsLittleEndian         : 1;
+      int RefsAreWeak            : 1;
+    };
+    uint32_t forwarded_object;
+  };
   uint32_t field_count;
   OBJECT klass;
   OBJECT field[];
@@ -136,31 +158,14 @@ to be a simple test for that bit pattern.
 #define FALSE 0
 #endif
 
-
-enum class_flags {
-/* reserve lower three bits for object type */
-RequiresCleanupClassFlag = 8,
-CanStoreIvarsClassFlag   = 16,
-};
-
-
-static inline void object_apply_class_instance_flags(OBJECT obj, OBJECT flags_field)
-{
-  unsigned int f = STRIP_TAG(flags_field);
-  
-  FLAGS(obj).obj_type = (object_type) (f & 0x07);
-  FLAGS(obj).CanStoreIvars = f & CanStoreIvarsClassFlag;
-  FLAGS(obj).RequiresCleanup = f & RequiresCleanupClassFlag;
-}
-
 static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 {
-  FLAGS(target).obj_type        = FLAGS(source).obj_type;	     
-  FLAGS(target).CanStoreIvars   = FLAGS(source).CanStoreIvars;   
-  FLAGS(target).StoresBytes     = FLAGS(source).StoresBytes;     
-  FLAGS(target).RequiresCleanup = FLAGS(source).RequiresCleanup; 
-  FLAGS(target).IsBlockContext  = FLAGS(source).IsBlockContext;  
-  FLAGS(target).IsMeta          = FLAGS(source).IsMeta;	     
+  target->obj_type        = source->obj_type;
+  target->CanStoreIvars   = source->CanStoreIvars;
+  target->StoresBytes     = source->StoresBytes;
+  target->RequiresCleanup = source->RequiresCleanup;
+  target->IsBlockContext  = source->IsBlockContext;
+  target->IsMeta          = source->IsMeta;
 }
 
 #endif

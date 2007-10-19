@@ -139,7 +139,7 @@ OBJECT regexp_new(STATE, OBJECT pattern, OBJECT options) {
     regexp_set_names(o_reg, o_names);
   }
   
-  FLAGS(o_reg).RequiresCleanup = TRUE;
+  o_reg->RequiresCleanup = TRUE;
   
   return o_reg;
 }

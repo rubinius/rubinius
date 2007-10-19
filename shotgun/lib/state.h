@@ -338,7 +338,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
     }
   }
   
-  if(FLAGS(in).StoresBytes) {
+  if(in->StoresBytes) {
     printf("Attempted to access field of byte addressed object.\n");
     if(g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);
@@ -377,7 +377,7 @@ static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT
   }
 #endif
 
-  if(FLAGS(obj).StoresBytes) {
+  if(obj->StoresBytes) {
     printf("Attempted to access field of byte addressed object.\n");
     if(g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);

@@ -19,8 +19,8 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
   gc_zone tz, vz;
   if(!REFERENCE_P(val)) return;
   
-  tz = FLAGS(target).gc_zone;
-  vz = FLAGS(val).gc_zone;
+  tz = target->gc_zone;
+  vz = val->gc_zone;
   
   xassert(tz > 0);
   xassert(vz > 0);
