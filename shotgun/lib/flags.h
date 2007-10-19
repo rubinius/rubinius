@@ -12,7 +12,7 @@ typedef enum
   MTType        = 5,
 } object_type;
 
-/* gc_zone, takes up two bits and is shifted right to allow for type beneath it. */
+/* gc_zone, takes up two bits */
 typedef enum
 { 
   UnspecifiedZone  = 0,
@@ -24,7 +24,7 @@ typedef enum
 
 #define RAW_FLAG(obj)        (obj->forwarded_object)
 #define CLEAR_FLAGS(obj)     RAW_FLAG(obj) = 0
-#define stack_context_p(obj) (obj->gc_zone == UnspecifiedZone && !obj->IsTainted && !obj->IsFrozen && !obj->IsLittleEndian && !obj->RefsAreWeak)
+#define stack_context_p(obj) (obj->gc_zone == UnspecifiedZone)
 #define SET_FORWARDED(obj)   RAW_FLAG(obj) = FORWARDED_OBJECT
 #define FORWARDED_P(obj)     ((RAW_FLAG(obj)) == FORWARDED_OBJECT)
 
