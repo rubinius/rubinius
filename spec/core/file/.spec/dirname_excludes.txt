@@ -1,1 +1,0 @@
-File.dirname return all the components of filename except the last one (edge cases)

@@ -1,1 +1,3 @@
 Module#include calls #append_features(self) in reversed order on each module
+Module#include should import constants to modules and classes
+Module#include should import instance methods to modules and classes

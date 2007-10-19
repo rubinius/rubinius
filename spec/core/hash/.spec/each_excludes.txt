@@ -1,3 +1,1 @@
 Hash#each yields one argument: [key, value]
-Hash#each raise RuntimeError if #rehash is called from block
-Hash#each raises if more than 63 new entries are added from block

@@ -1,1 +1,0 @@
-Hash#[]= duplicates string keys using dup semantics

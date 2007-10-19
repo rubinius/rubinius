@@ -1,2 +1,0 @@
-Hash#delete_if raise RuntimeError if #rehash is called from block
-Hash#delete_if raises if more than 63 new entries are added from block

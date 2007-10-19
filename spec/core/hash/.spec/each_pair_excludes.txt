@@ -1,2 +1,0 @@
-Hash#each_pair raise RuntimeError if #rehash is called from block
-Hash#each_pair raises if more than 63 new entries are added from block

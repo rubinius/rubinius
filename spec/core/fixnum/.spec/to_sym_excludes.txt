@@ -1,1 +1,0 @@
-Fixnum#to_sym returns nil if there is no symbol in the symbol table with this value

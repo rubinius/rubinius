@@ -1,2 +1,1 @@
-Struct anonymous class instance methods reader method should not interfere with undefined methods
 Struct anonymous class instance methods writer method be a synonym for []=

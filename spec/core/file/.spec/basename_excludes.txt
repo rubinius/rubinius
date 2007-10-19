@@ -1,4 +1,0 @@
-File.basename return the basename of a path (basic cases)
-File.basename return the basename for unix format
-File.basename return the basename for edge cases
-File.basename return the basename for unix suffix
