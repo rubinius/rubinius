@@ -250,6 +250,19 @@ end
 desc "Build everything that needs to be built"
 task :build => ['build:all']
 
+def install_files(files, destination)
+  files.sort.each do |path|
+    next if File.directory? path
+
+    file = path.sub %r%^(runtime|lib)/%, ''
+    dest_file = File.join destination, file
+    dest_dir = File.dirname dest_file
+    mkdir_p dest_dir unless File.directory? dest_dir
+
+    install path, dest_file, :mode => 0644, :verbose => true
+  end
+end
+
 desc "Install rubinius as rbx"
 task :install => :config_env do
   sh "cd shotgun; make install"
@@ -258,19 +271,13 @@ task :install => :config_env do
   mkdir_p ENV['CODEPATH'], :verbose => true
 
   rba_files = Rake::FileList.new('runtime/**/*.rb{a,c}',
-                                 'runtime/**/.load_order.txt',
-                                 'lib/**')
+                                 'runtime/**/.load_order.txt')
 
-  rba_files.sort.each do |rba_path|
-    next if File.directory? rba_path
+  install_files rba_files, ENV['RBAPATH']
 
-    rba_file = rba_path.sub %r%^(runtime|lib)/%, ''
-    dest_file = File.join ENV['RBAPATH'], rba_file
-    dest_dir = File.dirname dest_file
-    mkdir_p dest_dir unless File.directory? dest_dir
+  lib_files = Rake::FileList.new 'lib/**/*'
 
-    install rba_path, dest_file, :mode => 0644, :verbose => true
-  end
+  install_files lib_files, ENV['CODEPATH']
 
   mkdir_p File.join(ENV['CODEPATH'], 'bin'), :verbose => true
 
