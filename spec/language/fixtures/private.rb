@@ -14,5 +14,16 @@ module Private
     def foo
       "foo"
     end
+
+    private
+    class C
+      def baz
+        "baz"
+      end
+    end
+
+    def bar
+      "bar"
+    end
   end
 end
