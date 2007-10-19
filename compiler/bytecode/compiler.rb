@@ -49,7 +49,8 @@ module Bytecode
         :fast_system => true,
         :fast_send_method => true,
         :fast_field_access => true,
-        :fast_coerce => true
+        :fast_coerce => true,
+        :visibility => [],
       }      
     end
     
@@ -1146,6 +1147,8 @@ module Bytecode
         name = x.shift
         sup = x.shift
         body = x.shift
+
+        @compiler.flags[:visibility] << :public
         
         # add "push_encloser"
         
@@ -1196,11 +1199,15 @@ module Bytecode
         add "send __class_init__"
         add "push_encloser"
         # add "set_encloser"
+
+        @compiler.flags[:visibility].pop
       end
       
       def process_module(x)
         name = x.shift
         body = x.shift
+
+        @compiler.flags[:visibility] << :public
         
         # add "push_encloser"
         
@@ -1244,6 +1251,8 @@ module Bytecode
         add "push self"
         add "push_encloser"
         # add "set_encloser"
+
+        @compiler.flags[:visibility].pop
       end
       
       def process_begin(x)
@@ -1927,7 +1936,7 @@ module Bytecode
         add recv
         
         # Indicate to add_method that this is a private method.
-        if kind == "add_method" and @compiler.flags[:visibility] == :private
+        if kind == "add_method" and @compiler.flags[:visibility].last == :private
           add "set_call_flags 1"
         end
         
@@ -2026,10 +2035,12 @@ module Bytecode
           
           return true
         elsif recv = [:self] and meth == :private and args.empty?
-          @compiler.flags[:visibility] = :private
+          @compiler.flags[:visibility].pop
+          @compiler.flags[:visibility] << :private
           return true
         elsif recv = [:self] and meth == :public and args.empty?
-          @compiler.flags[:visibility] = :public
+          @compiler.flags[:visibility].pop
+          @compiler.flags[:visibility] << :public
           return true
         end
         return false
