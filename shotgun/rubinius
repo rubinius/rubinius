@@ -1,18 +1,18 @@
 #!/bin/sh
 
+PREFIX=`echo $0 | sed -e 's/shotgun\/rubinius//'`
+REAL=${PREFIX}shotgun/rubinius.bin
 
-REAL=shotgun/rubinius.bin
-
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:shotgun/lib
-export LD_LIBRARY_PATH_64=$LD_LIBRARY_PATH_64:shotgun/lib
-export SH_LIB=$SH_LIB:shotgun/lib
-export LIBPATH=$LIBPATH:shotgun/lib
-export PATH=$PATH:shotgun/lib
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:shotgun/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${PREFIX}shotgun/lib
+export LD_LIBRARY_PATH_64=$LD_LIBRARY_PATH_64:${PREFIX}shotgun/lib
+export SH_LIB=$SH_LIB:${PREFIX}shotgun/lib
+export LIBPATH=$LIBPATH:${PREFIX}shotgun/lib
+export PATH=$PATH:${PREFIX}shotgun/lib
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${PREFIX}shotgun/lib
 
 if test "x$1" = "x--gdb"; then
   shift
-  exec gdb -x shotgun/gdbstartup --args /dev/null "$@"
+  exec gdb -x ${PREFIX}shotgun/gdbstartup --args /dev/null "$@"
 elif test "x$1" = "x--valgrind"; then
   shift
   exec valgrind -v $REAL "$@"
