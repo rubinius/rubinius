@@ -168,10 +168,10 @@ describe "String#%" do
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
     
     w = Object.new
-    w.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    w.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
     w.should_receive(:method_missing, :with => [:to_int], :returning => 10)
     p = Object.new
-    p.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    p.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
     p.should_receive(:method_missing, :with => [:to_int], :returning => 5)
 
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
@@ -287,7 +287,7 @@ describe "String#%" do
     ("%c" % obj).should == ("%c" % obj.to_int)
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+    obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
     obj.should_receive(:method_missing, :with => [:to_int], :returning => 65)
     ("%c" % obj).should == "A"
   end
@@ -553,13 +553,13 @@ describe "String#%" do
       (format % obj).should == (format % 4)
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
+      obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => 65)
       (format % obj).should == (format % 65)
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :returning => false)
-      obj.should_receive(:respond_to?, :with => [:to_i], :returning => true)
+      obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => false)
+      obj.should_receive(:respond_to?, :count => :any, :with => [:to_i], :returning => true)
       obj.should_receive(:method_missing, :with => [:to_i], :returning => 65)
       (format % obj).should == (format % 65)
       
@@ -606,7 +606,7 @@ describe "String#%" do
       (format % obj).should == (format % 5.0)
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_f], :returning => true)
+      obj.should_receive(:respond_to?, :count => :any, :with => [:to_f], :returning => true)
       obj.should_receive(:method_missing, :with => [:to_f], :returning => 3.14)
       (format % obj).should == (format % 3.14)
     end
