@@ -105,14 +105,13 @@ char *string_byte_address(STATE, OBJECT self) {
 }
 
 double string_to_double(STATE, OBJECT self) {
-  OBJECT data, str;
   double value;
   char *p, *n, *ba, *rest;
   
   xassert(STRING_P(self));
-  str = string_dup(state, self);
-  data = string_get_data(str);
-  ba = bytearray_byte_address(state, data);
+  
+  // We'll modify the buffer, so we need our own copy.
+  ba = bytearray_as_string(state, string_get_data(self));
   
   p = ba;
   while (ISSPACE(*p)) p++;
@@ -135,6 +134,8 @@ double string_to_double(STATE, OBJECT self) {
   if (errno == ERANGE) {
 	  printf("Float %s out of range\n", ba);
   }
+  
+  free(ba);
   
   return value;
 }
