@@ -759,62 +759,13 @@ class String
   #   "hello".gsub(/([aeiou])/, '<\1>')         #=> "h<e>ll<o>"
   #   "hello".gsub(/./) {|s| s[0].to_s + ' '}   #=> "104 101 108 108 111 "
   def gsub(pattern, replacement = nil, &block)
-    raise ArgumentError, "wrong number of arguments (1 for 2)" if !replacement && !block_given?
-    raise ArgumentError, "wrong number of arguments (0 for 2)" if pattern.nil?
-
-    taint = self.tainted? || replacement.tainted?
-    replacement = StringValue(replacement).replace_slashes if replacement
-
-    start = 0
-    last_end = 0
-    ret = ""
-
-    $~ = nil
-
-    pattern = get_pattern(pattern, true)
-    
-    copy = self.dup
-    
-    while(match = pattern.match_from(copy, start))
-      $~ = match      
-      ret << (match.pre_match_from(last_end) || "")
-      if replacement
-        # x[-1,1] returns a character version of the last character
-        old_md = $~
-        ret << replacement.to_sub_replacement(match)
-        $~ = old_md
-      else
-        old_md = $~
-        item = block.call(match[0].dup)
-        ret << item.to_s
-        $~ = old_md
-      end
-      last_end = match.end(0)
-      start = match.collapsing? ? start + 1 : match.end(0)
-    end
-    if self != copy
-      raise RuntimeError, "You cannot modify the original string"
-    end
-    ret << self[start..-1] if self[start..-1]
-    ret.taint if taint
-    ret = self.class.new(ret) unless self.instance_of?(String)
-    ret
+    str_gsub(pattern, replacement, false, &block)
   end
   
   # Performs the substitutions of <code>String#gsub</code> in place, returning
   # <i>self</i>, or <code>nil</code> if no substitutions were performed.
   def gsub!(pattern, replacement = nil, &block)
-    pattern = get_pattern(pattern, true)
-    if self.frozen? && self =~ pattern
-      raise TypeError, "You cannot modify a frozen string" if !block
-      raise RuntimeError, "You cannot modify a frozen string" if block
-    end
-    to_replace = self.gsub(pattern, replacement, &block)
-    if self != to_replace
-      self.replace(to_replace)
-    else
-      return nil
-    end
+    str_gsub(pattern, replacement, true, &block)
   end
 
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits
@@ -1662,6 +1613,57 @@ class String
   end
   
 
+
+  def str_gsub(pattern, replacement, bang)
+    raise ArgumentError, "wrong number of arguments (1 for 2)" unless replacement || block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 2)" unless pattern
+
+    tainted = false
+
+    if replacement
+      tainted = replacement.tainted?
+      replacement = StringValue(replacement).replace_slashes
+      tainted ||= replacement.tainted?
+    end
+    
+    pattern = get_pattern(pattern, true)
+    copy = self.dup
+    
+    last_end = start = 0
+    ret = []
+
+    while match = pattern.match_from(self, start) and last_match = match
+      ret << (match.pre_match_from(last_end) || "")
+      
+      if replacement
+        ret << replacement.to_sub_replacement(match)
+      else
+        val = yield(match[0].dup)
+        tainted ||= val.tainted?
+        ret << val.to_s
+        
+        raise RuntimeError, "string frozen" if bang && self.frozen?
+        raise RuntimeError, "string modified" if self != copy
+        $~ = match
+      end
+      
+      tainted ||= val.tainted?
+      
+      last_end = match.end(0)
+      start = match.collapsing? ? start + 1 : match.end(0)
+    end
+    
+    $~ = last_match
+
+    ret << self[start..-1] if self[start..-1]
+
+    return if bang && !last_match
+
+    str = ret.join
+    str = self.class.new(str) unless self.instance_of?(String)
+    str.taint if tainted || self.tainted?
+    return bang ? replace(str) : str
+  end
 
 
   def tr_trans(source, replacement, squeeze)
