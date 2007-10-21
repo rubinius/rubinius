@@ -190,7 +190,10 @@ describe "Conditional assignment" do
     h={}
     h["foo"] ||= "bar"
     h["foo"].should == "bar"
-    
+
+    h["foo".to_sym] ||= "bar"
+    h["foo".to_sym].should == "bar"
+
     aa = 5
     aa ||= 25
     aa.should == 5

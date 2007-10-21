@@ -973,7 +973,10 @@ module Bytecode
         huh = arg.shift
         process(obj)
         add "dup"
-        process idx.dup
+        
+        idx_code = capture { process idx }
+        @output << idx_code
+
         add "swap"
         add "send [] 1"
         add "dup"
@@ -981,7 +984,9 @@ module Bytecode
         add "pop"
         process val
         add "swap"
-        process idx
+        
+        @output << idx_code
+
         add "swap"
         add "send []= 2"
         nd = unique_lbl('asgn1_')
