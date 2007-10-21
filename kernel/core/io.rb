@@ -141,6 +141,17 @@ class IO
     return ary
   end
   
+  def self.readlines(name, sep_string = $/)
+    io = open(StringValue(name), 'r')
+    return if io.nil?
+    
+    begin
+      io.readlines
+    ensure
+      io.close
+    end
+  end
+  
   def self.pipe
     lhs = IO.allocate
     rhs = IO.allocate
