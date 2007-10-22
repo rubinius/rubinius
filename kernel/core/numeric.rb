@@ -127,8 +127,8 @@ class Numeric
   def step(limit, step=1)
     raise "Float.step not implemented" if Float === self || Float === limit || Float === step
     return self if ((self > limit && step > 0) || (self < limit && step < 0))
-    raise LocalJumpError, "no block given" if !block_given?
     raise ArgumentError, "step cannot be 0" if step == 0
+    raise LocalJumpError, "no block given" unless block_given?
     idx = self
     while (step > 0 ? idx <= limit : idx >= limit) == true
       yield(idx)
