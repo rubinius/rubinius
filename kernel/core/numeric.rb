@@ -124,16 +124,20 @@ class Numeric
     self == 0
   end
 
-  def step(limit, step=1)
-    raise "Float.step not implemented" if Float === self || Float === limit || Float === step
-    return self if ((self > limit && step > 0) || (self < limit && step < 0))
+  def step(limit, step=1, &block)
     raise ArgumentError, "step cannot be 0" if step == 0
+    limit,step = step.coerce(limit)
+    # FIXME: why is this not covered by the block parameter above?
     raise LocalJumpError, "no block given" unless block_given?
-    idx = self
-    while (step > 0 ? idx <= limit : idx >= limit) == true
+    idx,step = step.coerce(self)
+    cmp = step > 0 ? :<= : :>=
+    while (idx.send(cmp,limit))
       yield(idx)
       idx += step
     end
+    return self
+  rescue TypeError => e
+    raise ArgumentError, e.message
   end
 
   # Little helper to ease coercing

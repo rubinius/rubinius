@@ -42,8 +42,9 @@ describe "Numeric#step" do
   
   it "not iterate if base is minor than limit and step <0 (integers)" do 
     x = []
-    @base.step(@limit, @stepn) { |i| x<< i }
-    x.should == []  
+    res = @base.step(@limit, @stepn) { |i| x<< i }
+    x.should == []
+    res.should == @base
   end   
   
   it "if base < limit > step then it should iterate (base-limit)/step times (integers)" do 
@@ -67,31 +68,34 @@ describe "Numeric#step" do
   it "iterate one time if step is bigger than base-limit (floats)" do 
     x = []
     @basef.step(@limitf, 11) { |i| x<< i }
-    x.should == [5.4]    
+    x.should == [5.4]
   end
   
   it "not iterate if base is bigger than limit and step >0 (floats)" do 
     x = []
-    12.0.step(@limitf, @stepf) { |i| x<< i }
-    x.should == []  
+    res = 12.0.step(@limitf, @stepf) { |i| x<< i }
+    x.should == []
+    res.should == 12.0
   end  
   
   it "iterate backward if base is bigger than limit (floats)" do 
     x = []
-    10.0.step(1.0, @stepnf) { |i| x << i}
-    x.should == [10, 8, 6, 4, 2]  
+    res = 10.0.step(1.0, @stepnf) { |i| x << i}
+    x.should == [10, 8, 6, 4, 2]
+    res.should == 10.0
   end  
   
   it "not iterate if base is minor than limit and step <0 (floats)" do 
     x = []
-    @basef.step(@limitf, @stepnf) { |i| x<< i }
-    x.should == []  
+    res = @basef.step(@limitf, @stepnf) { |i| x<< i }
+    x.should == []
+    res.should == @basef
   end   
   
-  it "if base < limit > step then  iterate (base-limit)/step times (floats)" do 
+  it "if base < limit > step then iterate (base-limit)/step times (floats)" do 
     x = []
     @basef.step(@limitf, @stepf) { |i| x << i }
-    x.should == [5.4, 7.4, 9.4]  
+    x.should == [5.4, 7.4, 9.4]
   end
   
   it "raise the expected exception" do
@@ -100,6 +104,7 @@ describe "Numeric#step" do
     should_raise(ArgumentError){ @base.step(nil) }
     should_raise(ArgumentError){ @base.step('test') }
     should_raise(ArgumentError){ @base.step(true, 123) }   
+    should_raise(LocalJumpError){ @base.step(5, 5) }         
     should_raise(LocalJumpError){ @base.step(5, 3.4) }         
     should_raise(LocalJumpError){ @base.step(5.0, 2) }               
     should_raise(LocalJumpError){ @base.step(5.0, 1.0) }   
