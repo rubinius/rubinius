@@ -300,6 +300,25 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cur, start, hsh, val;
   
+  /* Look up the lexical scope first */
+  
+  cur = cpu_current_module(state, c);
+  
+  while(!NIL_P(cur)) {
+    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+    
+    hsh = module_get_constants(cur);
+    val = hash_find_undef(state, hsh, sym);
+    if(val != Qundef) { 
+      // printf("   found!\n");
+      return val;
+    }
+    /* TODO: this shouldn't be needed, since Object's parent
+       really should be nil. Currently, it doesn't seem to be though. */
+    if(cur == state->global->object) break;
+    cur = module_get_parent(cur);
+  }
+  
   /* If self is a module, we start with it, otherwise we start with
      self's class. */
   if(object_kind_of_p(state, c->self, state->global->module)) {
