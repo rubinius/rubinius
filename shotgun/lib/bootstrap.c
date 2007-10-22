@@ -28,12 +28,16 @@ void cpu_bootstrap(STATE) {
   HEADER(cls)->klass = cls;
   class_set_instance_fields(cls, CLASS_FIELDS);
   class_set_has_ivars(cls, Qtrue);
+  class_set_object_type(cls, I2N(TYPE_CLASS));
+  OBJ_TYPE_SET(cls, TYPE_CLASS);
+  
   BC(class) = cls;
   obj = _object_basic_class(state, Qnil);
   BC(object) = obj;
   BC(module) = _module_basic_class(state, obj);
   class_set_superclass(cls, BC(module));
   BC(metaclass) = _metaclass_basic_class(state, cls);
+  class_set_object_type(BC(metaclass), I2N(TYPE_METACLASS));
   
   BC(tuple) = _tuple_basic_class(state, obj);
   BC(hash) =  _hash_basic_class(state, obj);
@@ -78,17 +82,12 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(string), "String");
   module_setup(state, BC(symtbl), "SymbolTable");
   module_setup(state, BC(methtbl), "MethodTable");
+  class_set_object_type(BC(methtbl), I2N(TYPE_MT));
   module_setup(state, BC(cmethod), "CompiledMethod");
   module_setup(state, BC(io), "IO");
   module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(icache), "InlineCache");
-  
-#define set_type(cls, flag) class_set_object_type(cls, I2N(flag));
-  
-  set_type(cls, TYPE_CLASS);
-  set_type(BC(metaclass), TYPE_METACLASS);
-  set_type(BC(methtbl), TYPE_MT);
-  
+    
   rbs_const_set(state, obj, "Symbols", state->global->symbols);
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
   BC(true_class) = rbs_class_new(state, "TrueClass", 0, obj);
