@@ -3,7 +3,6 @@ include common.mk
 
 INSTALL=$(LIBTOOL) --mode=install install
 MKDIR=install -d
-MACOSX_DEPLOYMENT_TARGET=10.4
 
 ifdef DEV
   BINSUFFIX?=-dev

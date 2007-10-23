@@ -16,9 +16,13 @@ if test "$BUILDREV" == "svn"; then
   fi
 fi
 
-if echo "$HOST" | grep -q darwin; then
+if echo "$HOST" | grep -q darwin9; then
   DARWIN=1
   DISABLE_KQUEUE=1
+elif echo "$HOST" | grep -q darwin; then
+  DARWIN=1
+  DISABLE_KQUEUE=1
+  echo "MACOSX_DEPLOYMENT_TARGET=10.4"
 else
   DARWIN=0
   DISABLE_KQUEUE=0
@@ -43,7 +47,6 @@ echo "CODEPATH=$PREFIX/lib/rubinius/$LIBVER"
 echo "RBAPATH=$PREFIX/lib/rubinius/$LIBVER/runtime"
 echo "EXTPATH=$PREFIX/lib/rubinius/$LIBVER/$HOST"
 echo "BUILDREV=$BUILDREV"
-
 
 ) >> config.mk
 
