@@ -124,6 +124,14 @@ class Numeric
     self == 0
   end
 
+  def nonzero?
+    if zero?
+      nil
+    else
+      self
+    end
+  end
+
   def step(limit, step=1, &block)
     raise ArgumentError, "step cannot be 0" if step == 0
     limit,step = step.coerce(limit)

@@ -112,10 +112,6 @@ class Fixnum < Integer
     self == 0
   end
 
-  def nonzero?
-    self != 0
-  end
-    
   def __fixnum_left_shift__(c)
     Ruby.primitive :fixnum_left_shift
   end
