@@ -2,8 +2,7 @@
 #ifndef PORTABLEUCONTEXT_DEFINED 
 #define PORTABLEUCONTEXT_DEFINED 1
 
-//#if defined(__APPLE__) || defined(linux) || defined(__NetBSD__) || defined(__FreeBSD__) || (defined(__SVR4) && defined (__sun))
-#if defined(linux) || defined(__NetBSD__) || defined(__FreeBSD__) || (defined(__SVR4) && defined (__sun))
+#if (defined(__APPLE__) && __DARWIN_UNIX03) || defined(linux) || defined(__NetBSD__) || defined(__FreeBSD__) || (defined(__SVR4) && defined (__sun))
 #define HAS_UCONTEXT 1
 #endif
 
@@ -35,16 +34,19 @@ extern	int		swapcontext(ucontext_t*, ucontext_t*);
 extern	void		makecontext(ucontext_t*, void(*)(), int, ...);
 #endif
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) && !__DARWIN_UNIX03
 #	define mcontext libthread_mcontext
 #	define mcontext_t libthread_mcontext_t
 #	define ucontext libthread_ucontext
 #	define ucontext_t libthread_ucontext_t
 #	if defined(__i386__)
 #		include "PortableUContext386.h"
+#               define NEEDX86MAKECONTEXT
 #	else
 #		include "PortableUContextPPC.h"
+#               define NEEDPOWERMAKECONTEXT
 #	endif	
+#       define NEEDSWAPCONTEXT
 #endif
 
 #if defined(__OpenBSD__)
@@ -76,16 +78,6 @@ void setmcontext(const mcontext_t*);
 #endif
 
 // --------------------------
-
-#if defined(__APPLE__) && defined(__i386__)
-#define NEEDX86MAKECONTEXT
-#define NEEDSWAPCONTEXT
-#endif
-
-#if defined(__APPLE__) && !defined(__i386__)
-#define NEEDPOWERMAKECONTEXT
-#define NEEDSWAPCONTEXT
-#endif
 
 #if defined(__FreeBSD__) && defined(__i386__) && __FreeBSD__ < 5
 #define NEEDX86MAKECONTEXT

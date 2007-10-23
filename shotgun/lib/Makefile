@@ -9,7 +9,6 @@ OUTPUT=librubinius.$(SUFFIX)
 
 ifeq ($(UNAME),Darwin)
   SINGLE_MODULE=-Wl,-single_module
-  export MACOSX_DEPLOYMENT_TARGET=10.4
 else
   SINGLE_MODULE=
 endif
