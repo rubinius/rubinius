@@ -1,9 +1,8 @@
 #ifndef __RUBINIUS_INCLUDED__
 #define __RUBINIUS_INCLUDED__ 1
 
-typedef void * OBJECT;
+typedef struct rubinius_object* OBJECT;
 typedef void * xpointer;
-#define REFSIZE (sizeof(uintptr_t))
 
 /* OOP layout:
  * [30 bits of data | 2 bits of tag]
@@ -45,8 +44,8 @@ typedef void * xpointer;
    the sign. */
 #define FIXNUM_WIDTH 29
 
-/* the sizeof(struct rubinius_object) must an increment of
-   REFSIZE, so that the bytes located directly after a
+/* the sizeof(struct rubinius_object) must an increment of the platform 
+   pointer size, so that the bytes located directly after a
    struct rubinius_object can hold a pointer which can be
    dereferenced. (an 32 bit platforms, pointers must be aligned
    on 32bit (word) boundaries. on 64 bit platforms, pointers probably
@@ -63,8 +62,9 @@ struct rubinius_object {
   uint8_t flags2;
   /* Used by the GC to store data about the object. */
   uint16_t gc;
-  uint32_t fields;
+  uint32_t field_count;
   OBJECT klass;
+  OBJECT field[];
 };
 
 #include <assert.h>
@@ -73,23 +73,26 @@ struct rubinius_object {
 #define OBJECTS(obj) ((OBJECT*)obj)
 
 /* Header size is in uintptr_t's */
-#define HEADER_SIZE (sizeof(struct rubinius_object) / REFSIZE)
+// #define REFSIZE (sizeof(uintptr_t))
+// #define HEADER_SIZE (sizeof(struct rubinius_object) / REFSIZE)
 
-#define GC_MAKE_FOREVER_YOUNG(obj) (HEADER(obj)->gc |= 0x8000)
+#define GC_MAKE_FOREVER_YOUNG(obj) (obj->gc |= 0x8000)
 
-#define CLASS_OBJECT(obj) (HEADER(obj)->klass)
+#define CLASS_OBJECT(obj) (obj->klass)
 
-#define NUM_FIELDS(obj) (HEADER(obj)->fields)
-#define SET_NUM_FIELDS(obj, fel) (HEADER(obj)->fields = fel)
-#define SIZE_IN_BYTES(obj) ((NUM_FIELDS(obj) + HEADER_SIZE) * REFSIZE)
-#define SIZE_OF_BODY(obj) (NUM_FIELDS(obj) * REFSIZE)
-#define ADDRESS_OF_FIELD(obj, fel) ((OBJECT)(OBJECTS(obj) + HEADER_SIZE + fel))
-// #define NTH_FIELD_DIRECT(obj, fel) (*(OBJECT*)(OBJECTS(obj) + HEADER_SIZE + fel))
-#define NTH_FIELD_DIRECT(obj, fel) (OBJECTS(obj)[HEADER_SIZE + fel])
-#define SET_FIELD_DIRECT(obj, fel, val) (NTH_FIELD_DIRECT(obj, fel) = val)
+#define NUM_FIELDS(obj)                 (obj->field_count)
+#define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
+#define SIZE_IN_BYTES_FIELDS(fel)       (sizeof(struct rubinius_object) + \
+                                         fel*sizeof(OBJECT))
+#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(struct rubinius_object)/sizeof(OBJECT) + fel)
+#define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->field_count)
+#define SIZE_OF_BODY(obj)               (obj->field_count * sizeof(OBJECT))
+#define ADDRESS_OF_FIELD(obj, fel)      (&obj->field[fel])
+#define NTH_FIELD_DIRECT(obj, fel)      (obj->field[fel])
+#define SET_FIELD_DIRECT(obj, fel, val) (obj->field[fel] = val)
 
-#define BYTES_OF(obj) ((char*)(OBJECTS(obj) + HEADER_SIZE))
-#define FIXNUM_NEG(obj) (((int)(obj)) < 0)
+#define BYTES_OF(obj)                   ((char*)obj->field)
+#define FIXNUM_NEG(obj)                 ((intptr_t)obj < 0)
 
 #ifdef Qfalse
 #undef Qfalse
@@ -135,26 +138,26 @@ to be a simple test for that bit pattern.
 #define TYPE_SET_MASK 0xf8
 #define TYPE_MASK 0x7
 
-#define OBJ_TYPE(obj) (HEADER(obj)->flags & TYPE_MASK)
-#define OBJ_TYPE_SET(obj, type) (HEADER(obj)->flags = ((HEADER(obj)->flags & TYPE_SET_MASK) | type))
+#define OBJ_TYPE(obj) (obj->flags & TYPE_MASK)
+#define OBJ_TYPE_SET(obj, type) (obj->flags = (obj->flags & TYPE_SET_MASK) | type)
 
 /* Macros to find out the zone of an object. */
 #define ZONE_SET_MASK 0xfc
 #define ZONE_MASK 0x3
 
-#define GC_ZONE(obj) (HEADER(obj)->flags2 & ZONE_MASK)
-#define GC_ZONE_SET(obj, val) (HEADER(obj)->flags2 = ((HEADER(obj)->flags2 & ZONE_SET_MASK) | val))
+#define GC_ZONE(obj) (obj->flags2 & ZONE_MASK)
+#define GC_ZONE_SET(obj, val) (obj->flags2 = (obj->flags2 & ZONE_SET_MASK) | val)
 
 #define GC_MATURE_OBJECTS 1
 #define GC_YOUNG_OBJECTS  2
 #define GC_LARGE_OBJECTS  3
 
-#define FLAG_SET(obj, flag) (HEADER(obj)->flags |= flag)
-#define FLAG_SET_P(obj, flag) ((HEADER(obj)->flags & flag) == flag)
+#define FLAG_SET(obj, flag) (obj->flags |= flag)
+#define FLAG_SET_P(obj, flag) ((obj->flags & flag) == flag)
 
-#define FLAG_SET_ON(obj, fel, flag) (HEADER(obj)->fel |= flag)
-#define FLAG_CLEAR_ON(obj, fel, flag) (HEADER(obj)->fel ^= flag)
-#define FLAG_SET_ON_P(obj, fel, flag) ((HEADER(obj)->fel & flag) == flag)
+#define FLAG_SET_ON(obj, fel, flag) (obj->fel |= flag)
+#define FLAG_CLEAR_ON(obj, fel, flag) (obj->fel ^= flag)
+#define FLAG_SET_ON_P(obj, fel, flag) ((obj->fel & flag) == flag)
 
 #define FLAG2_SET(obj, flag) FLAG_SET_ON(obj, flags2, flag)
 #define FLAG2_SET_P(obj, flag) FLAG_SET_ON_P(obj, flags2, flag)

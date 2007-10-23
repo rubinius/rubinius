@@ -554,8 +554,8 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
         state_run_cleanup(state, obj, cls);
       }
     }
-    bs = ((osz + HEADER_SIZE) * REFSIZE);
-    fast_memfill(cur, 0, HEADER_SIZE + osz);
+    bs = SIZE_IN_BYTES_FIELDS(osz);
+    fast_memfill(cur, 0, SIZE_IN_WORDS_FIELDS(osz));
     // memset(cur, 0, bs);
     
     cur += bs;

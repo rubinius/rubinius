@@ -10,8 +10,8 @@ OBJECT bytearray_new(STATE, int size) {
   int words;
   OBJECT obj;
   
-  words = size / REFSIZE;
-  if(size % REFSIZE != 0) {
+  words = size / sizeof(OBJECT);
+  if(size % sizeof(OBJECT) != 0) {
     words += 1;
   }
   
@@ -26,8 +26,8 @@ OBJECT bytearray_new_dirty(STATE, int size) {
   int words;
   OBJECT obj;
     
-  words = size / REFSIZE;
-  if(size % REFSIZE != 0) {
+  words = size / sizeof(OBJECT);
+  if(size % sizeof(OBJECT) != 0) {
     words += 1;
   }
     

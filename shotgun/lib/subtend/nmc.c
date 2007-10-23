@@ -45,7 +45,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
-  HEADER(ctx)->fields = FASTCTX_FIELDS;
+  HEADER(ctx)->field_count = FASTCTX_FIELDS;
     
   fc = FASTCTX(ctx);
   fc->sender = sender;

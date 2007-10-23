@@ -39,7 +39,7 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
-  HEADER(ctx)->fields = FASTCTX_FIELDS;
+  HEADER(ctx)->field_count = FASTCTX_FIELDS;
   
   fc = FASTCTX(ctx);
   fc->sender = sender;

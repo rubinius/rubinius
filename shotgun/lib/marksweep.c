@@ -27,7 +27,7 @@
 #define to_object(hed) ((OBJECT)((uintptr_t)(hed) + sizeof(struct ms_header)))
 
 #define FREE_OBJECT 0x10000
-#define BARRIER (2**REFSIZE)
+#define BARRIER (2**sizeof(OBJECT))
 
 #define TABLE_INCS 4096
 
@@ -98,7 +98,7 @@ OBJECT mark_sweep_allocate(mark_sweep_gc ms, int obj_fields) {
   struct ms_entry *ent;
   OBJECT ro;
   
-  bytes = sizeof(struct ms_header) + ((obj_fields + HEADER_SIZE) * REFSIZE);
+  bytes = sizeof(struct ms_header) + SIZE_IN_BYTES_FIELDS(obj_fields);
   
   ent = ms->free_list;
   
@@ -573,7 +573,7 @@ void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_arr
   while(cur) {
     
     addr = (char*)(cur->address);
-    last = (addr + cur->size) - (HEADER_SIZE * REFSIZE);
+    last = (addr + cur->size) - (sizeof(struct rubinius_object));
     
     used = 0;
     while(addr < last) {

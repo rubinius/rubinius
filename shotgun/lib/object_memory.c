@@ -261,7 +261,7 @@ OBJECT object_memory_tenure_object(void *data, OBJECT obj) {
     om->collect_now |= OMCollectMature;
   }
   
-  fast_memcpy((void*)dest, (void*)obj, NUM_FIELDS(obj) + HEADER_SIZE);
+  fast_memcpy((void*)dest, (void*)obj, SIZE_IN_WORDS_FIELDS(NUM_FIELDS(obj)));
   GC_ZONE_SET(dest, GC_MATURE_OBJECTS);
   //printf("Allocated %d fields to %p\n", NUM_FIELDS(obj), obj);
   // printf(" :: %p => %p (%d / %d )\n", obj, dest, NUM_FIELDS(obj), SIZE_IN_BYTES(obj));
@@ -349,7 +349,7 @@ void object_memory_check_memory(object_memory om) {
   while(cur < end) {
     num++;
     obj = (OBJECT)cur;
-    osz = SIZE_IN_BYTES(cur);
+    osz = SIZE_IN_BYTES(obj);
     
     fel = NUM_FIELDS(obj);
     if(!_object_stores_bytes(obj)) {
@@ -417,7 +417,7 @@ void state_each_object(STATE, OBJECT kls, void (*cb)(STATE, OBJECT)) {
   while(cur < end) {
     num++;
     obj = (OBJECT)cur;
-    osz = SIZE_IN_BYTES(cur);
+    osz = SIZE_IN_BYTES(obj);
     
     (*cb)(state, obj);
     
@@ -440,7 +440,7 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
   cur = start;
   while(cur < end) {
     obj = (OBJECT)cur;
-    osz = SIZE_IN_BYTES(cur);
+    osz = SIZE_IN_BYTES(obj);
     if(NUM_FIELDS(obj) == 0) {
       fprintf(stream, "%d %d free\n", (int)obj, end - cur);
     }
@@ -507,7 +507,7 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
   struct rubinius_object *header;
     
   //fields += 4; /* PAD */
-  size = (HEADER_SIZE + fields) * REFSIZE;
+  size = SIZE_IN_BYTES_FIELDS(fields);
   if(!heap_enough_space_p(om->gc->current, size)) {
     obj = (OBJECT)baker_gc_allocate_spilled(om->gc, size);
     xassert(heap_enough_space_p(om->gc->next, size));
@@ -542,8 +542,8 @@ OBJECT object_memory_new_object_normal(object_memory om, OBJECT cls, int fields)
 OBJECT object_memory_new_opaque(STATE, OBJECT cls, int sz) {
   int fel;
   OBJECT obj;
-  fel = sz / REFSIZE;
-  if(sz % REFSIZE) fel++;
+  fel = sz / sizeof(OBJECT);
+  if(sz % sizeof(OBJECT)) fel++;
   obj = object_memory_new_object(state->om, cls, fel);
   object_make_byte_storage(state, obj);
   return obj;

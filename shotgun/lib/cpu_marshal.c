@@ -254,7 +254,7 @@ static OBJECT unmarshal_floatpoint(STATE, struct marshal_state *ms) {
 
 static void marshal_bytes(STATE, OBJECT obj, bstring buf) {
   int i;
-  i = NUM_FIELDS(obj) * REFSIZE;
+  i = SIZE_OF_BODY(obj);
   append_c('b');
   append_sz(i);
   append_str(bytearray_byte_address(state, obj), i);
@@ -285,7 +285,7 @@ static void marshal_iseq(STATE, OBJECT obj, bstring buf) {
     append_c('b');
   }
   
-  i = NUM_FIELDS(obj) * REFSIZE;
+  i = SIZE_OF_BODY(obj);
   append_sz(i);
   append_str(bytearray_byte_address(state, obj), i);
 }
@@ -300,7 +300,7 @@ static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
   
   ms->consumed += 6;
   ms->consumed += sz;
-  obj = iseq_new(state, sz / REFSIZE);
+  obj = iseq_new(state, sz / sizeof(OBJECT));
   
   memcpy(bytearray_byte_address(state, obj), ms->buf + 6, sz);
   

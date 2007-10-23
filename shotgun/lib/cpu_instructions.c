@@ -366,7 +366,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   HEADER(ctx)->flags = 0;
   HEADER(ctx)->flags2 = 0;
   HEADER(ctx)->klass = Qnil;
-  HEADER(ctx)->fields = FASTCTX_FIELDS;
+  HEADER(ctx)->field_count = FASTCTX_FIELDS;
   
   fc = FASTCTX(ctx);
   fc->sender = sender;

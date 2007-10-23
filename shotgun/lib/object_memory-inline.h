@@ -27,7 +27,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
     loc = GC_MATURE_OBJECTS;    
   } else {
     //fields += 4; /* PAD */
-    size = (HEADER_SIZE + fields) * REFSIZE;
+    size = sizeof(struct rubinius_object) + fields * sizeof(OBJECT);
     if(!heap_enough_space_p(om->gc->current, size)) {
       if(!heap_enough_space_p(om->gc->next, size)) {
         mark_sweep_gc ms = om->ms;
@@ -50,7 +50,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
     }
   }
   
-  // memset(obj, 0, HEADER_SIZE * REFSIZE);
+  // memset(obj, 0, sizeof(struct rubinius_object));
   
   header = (struct rubinius_object*)obj;
   header->flags2 = 0;

@@ -3426,7 +3426,7 @@ heredoc_identifier(rb_parse_state *parse_state)
     lex_strterm = syd_node_newnode(parse_state, NODE_HEREDOC,
                                   (OBJECT)string_new(tok(), toklen()),  /* nd_lit */
 				   (OBJECT)len,                          /* nd_nth */
-				  str);    /* nd_orig */
+				   (OBJECT)str);    /* nd_orig */
     return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 

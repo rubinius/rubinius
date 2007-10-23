@@ -65,7 +65,7 @@ void object_memory_formalize_contexts(STATE, object_memory om);
 
 #define object_memory_new_dirty_object _om_inline_new_object
 
-#define CTX_SIZE ((HEADER_SIZE + FASTCTX_FIELDS) * REFSIZE)
+#define CTX_SIZE SIZE_IN_BYTES_FIELDS(FASTCTX_FIELDS)
   
 #define object_memory_new_context(om) ((OBJECT)heap_allocate_dirty(om->contexts, CTX_SIZE))
 
@@ -85,7 +85,7 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
       if(om_on_stack(om, ctx) &&				      \
 	 (om->context_bottom < _nb)) { om->context_bottom = _nb; } })
 
-#define om_context_referenced_p(om, ctx) ((ctx < om->context_bottom) && (ctx >= om->contexts->address))
+#define om_context_referenced_p(om, ctx) ((ctx < om->context_bottom) && (ctx >= (OBJECT)om->contexts->address))
 
 #define om_stack_context_p(om, ctx) (om_on_stack(om, ctx) && (ctx >= om->context_bottom))
 
@@ -99,25 +99,25 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   (om_in_heap(state->om, ctx) && (methctx_is_fast_p(state, ctx) ||  blokctx_s_block_context_p(state, ctx))) \
 )
 
-#define EACH_CTX(om, addr) \
-  addr = om->contexts->address; \
-  while(addr < om->contexts->current) {
+#define EACH_CTX(om, addr)		 \
+  addr = (OBJECT) om->contexts->address; \
+  while(addr < (OBJECT) om->contexts->current) {
     
 #define DONE_EACH_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
 
-#define EACH_REFD_CTX(om, addr) \
-  addr = om->contexts->address; \
+#define EACH_REFD_CTX(om, addr)          \
+  addr = (OBJECT) om->contexts->address; \
   while(addr < om->context_bottom) {
   
 #define DONE_EACH_REFD_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
 
-#define EACH_STACK_CTX(om, addr) \
-  addr = om->context_bottom; \
-  while(addr < om->contexts->current) {
+#define EACH_STACK_CTX(om, addr)       \
+  addr = (OBJECT) om->context_bottom;  \
+  while(addr < (OBJECT)om->contexts->current) {
     
 #define DONE_EACH_STACK_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
 
-#define om_no_referenced_ctxs_p(om) (om->context_bottom == om->contexts->address)
+#define om_no_referenced_ctxs_p(om) (om->context_bottom == (OBJECT)om->contexts->address)
 
 /* These are the 4 scenarios detailed in doc/life_of_a_context.txt */
 

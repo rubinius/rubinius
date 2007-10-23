@@ -75,7 +75,7 @@ int heap_enough_space_p(rheap h, int size) {
 int heap_enough_fields_p(rheap h, int fields) {
   int size;
   
-  size = (HEADER_SIZE + fields) * REFSIZE;
+  size = SIZE_IN_BYTES_FIELDS(fields);
   
   if((uintptr_t)h->current + size > (uintptr_t)h->last + 1) return FALSE;
   return TRUE;

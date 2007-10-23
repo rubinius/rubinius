@@ -248,9 +248,9 @@ class ShotgunPrimitives
     POP(t1, FIXNUM);
     k = FIXNUM_TO_INT(t1);
     if(k % 4 == 0) {
-      k = k / REFSIZE;
+      k = k / sizeof(OBJECT);
     } else {
-      k = (k + REFSIZE) / REFSIZE;
+      k = (k + sizeof(OBJECT))/sizeof(OBJECT);
     }
     t2 = NEW_OBJECT(self, k);
     object_make_byte_storage(state, t2);
