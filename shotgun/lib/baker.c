@@ -520,7 +520,7 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
   
   while(cur < end) {
     obj = (OBJECT)cur;
-    osz = SIZE_IN_BYTES(cur);
+    osz = SIZE_IN_BYTES(obj);
     
     HEADER(obj)->gc ^= flag;
         
@@ -582,7 +582,7 @@ void baker_gc_collect_references(STATE, baker_gc g, OBJECT mark, ptr_array refs)
     
   while(cur < end) {
     obj = (OBJECT)cur;
-    osz = SIZE_IN_BYTES(cur);
+    osz = SIZE_IN_BYTES(obj);
     
     if(!_object_stores_bytes(obj)) {
       for(i = 0; i < NUM_FIELDS(obj); i++) {

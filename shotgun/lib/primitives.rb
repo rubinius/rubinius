@@ -855,8 +855,8 @@ class ShotgunPrimitives
     GUARD( j >= 0 && j < k )
     indexed = (unsigned char*)bytearray_byte_address(state, self);
     indexed += j;
-    t2 = (*indexed = FIXNUM_TO_INT(t2));
-    stack_push(UI2N(t2));
+    t2 = UI2N(*indexed = FIXNUM_TO_INT(t2));
+    stack_push(t2);
     CODE
   end
     
@@ -1794,7 +1794,7 @@ class ShotgunPrimitives
         break;
       case 9:
         GUARD(FIXNUM_P(t2));
-        fc->argcount = I2N(t2);
+        fc->argcount = FIXNUM_TO_INT(t2);
         break;
       case 10:
         fc->name = t2;

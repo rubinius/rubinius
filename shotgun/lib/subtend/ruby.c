@@ -248,7 +248,7 @@ VALUE rb_const_get(VALUE klass, ID id) {
 void rb_define_const(VALUE klass, const char* key, VALUE val) {
   CTX;
   if(NIL_P(klass)) rb_raise(rb_eTypeError, "no class/module to define constant %s", key);
-  module_const_set(ctx->state, HNDL(klass), rb_intern(key), HNDL(val));
+  module_const_set(ctx->state, HNDL(klass), ID2SYM(rb_intern(key)), HNDL(val));
 }
 
 int rb_const_defined(VALUE klass, ID id) {

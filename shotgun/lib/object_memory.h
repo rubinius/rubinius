@@ -80,9 +80,10 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   fast_memfill_s20((void*)ctx, 0); heap_putback(om->contexts, CTX_SIZE); \
 }
 
-#define object_memory_context_referenced(om, ctx) (void)({ \
-  OBJECT _nb = ctx + CTX_SIZE;\
-  if(om_on_stack(om, ctx) && (om->context_bottom < _nb)) { om->context_bottom = _nb; } })
+#define object_memory_context_referenced(om, ctx) (void)({	      \
+      OBJECT _nb = (OBJECT) ((uintptr_t)ctx + CTX_SIZE);	      \
+      if(om_on_stack(om, ctx) &&				      \
+	 (om->context_bottom < _nb)) { om->context_bottom = _nb; } })
 
 #define om_context_referenced_p(om, ctx) ((ctx < om->context_bottom) && (ctx >= om->contexts->address))
 

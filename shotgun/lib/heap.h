@@ -1,7 +1,7 @@
 #ifndef __RUBINIUS_HEAP__
 #define __RUBINIUS_HEAP__ 1
 
-typedef uintptr_t address;
+typedef void* address;
 
 struct heap {
   int size;
@@ -23,7 +23,7 @@ int heap_allocated_p(rheap h);
 int heap_using_extended_p(rheap h);
 OBJECT heap_copy_object(rheap h, OBJECT obj);
 OBJECT heap_next_object(rheap h);
-OBJECT heap_fully_scanned_p(rheap h);
+int heap_fully_scanned_p(rheap h);
 OBJECT heap_next_unscanned(rheap h);
 int heap_enough_fields_p(rheap h, int fields);
 

@@ -72,7 +72,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
 static inline OBJECT _om_inline_new_object_init(object_memory om, OBJECT cls, int fields) {
   OBJECT obj;
   obj = _om_inline_new_object(om, cls, fields);
-  fast_memfill((void*)BYTES_OF(obj), Qnil, fields);
+  fast_memfill((void*)BYTES_OF(obj), (uintptr_t)Qnil, fields);
   
   return obj;
 }

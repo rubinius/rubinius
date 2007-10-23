@@ -16,7 +16,7 @@ static inline OBJECT symbol_from_index(STATE, int idx) {
 }
 
 static inline int symbol_to_index(STATE, OBJECT self) {
-  return DATA_STRIP_TAG((int)self);
+  return DATA_STRIP_TAG(self);
 }
 
 #endif

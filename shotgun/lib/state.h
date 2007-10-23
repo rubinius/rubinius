@@ -53,7 +53,7 @@ struct rubinius_globals {
 #define NUM_OF_GLOBALS (sizeof(struct rubinius_globals) / sizeof(OBJECT))
 
 #define CPU_CACHE_MASK 0xfff
-#define CPU_CACHE_HASH(c,m) ((((c)>>3)^(m)) & CPU_CACHE_MASK)
+#define CPU_CACHE_HASH(c,m) ((((uintptr_t)(c)>>3)^((uintptr_t)m)) & CPU_CACHE_MASK)
 #define CPU_CACHE_TOLERANCE 3
 
 /* size is mask + 1 + tolerance */
@@ -162,7 +162,7 @@ OBJECT rbs_module_new(STATE, const char *name, OBJECT ns);
 OBJECT rbs_class_new_instance(STATE, OBJECT cls);
 
 static inline long rbs_to_int(OBJECT obj) {
-  return STRIP_TAG((long)obj);
+  return STRIP_TAG(obj);
 }
 
 static inline OBJECT rbs_int_to_fixnum(STATE, int num) {

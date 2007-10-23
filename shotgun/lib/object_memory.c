@@ -280,7 +280,7 @@ void object_memory_check_ptr(void *ptr, OBJECT obj) {
            heap_contains_p(om->contexts, obj));
     assert(HEADER(obj)->klass != Qnil);
   } else if(SYMBOL_P(obj)) {
-    assert(obj < 10000000);
+    assert((uintptr_t)obj < 10000000);
   }
 }
 

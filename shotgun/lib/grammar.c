@@ -317,7 +317,7 @@ static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, O
 #define ismbchar(c) (0)
 #define mbclen(c) (1)
 
-#define ID2SYM(i) i
+#define ID2SYM(i) (OBJECT)i
 
 #define string_new(ptr, len) blk2bstr(ptr, len)
 #define string_new2(ptr) cstr2bstr(ptr)
@@ -7026,7 +7026,7 @@ yyreduce:
                                 if (strlen(bdatae((yyval.node)->nd_str,"")) == blength((yyval.node)->nd_str)) {
                                   ID tmp = rb_intern(bdata((yyval.node)->nd_str));
                                   bdestroy((yyval.node)->nd_str);
-                                  (yyval.node)->nd_lit = tmp;
+                                  (yyval.node)->nd_lit = ID2SYM(tmp);
                                   nd_set_type((yyval.node), NODE_LIT);
                                   break;
                                 } else {
@@ -7703,7 +7703,7 @@ syd_yyerror(msg, parse_state)
 
 /*
 static int heredoc_end;
-static int command_start = Qtrue;
+static int command_start = TRUE;
 */
 /* :int:
 int ruby_in_compile = 0;
@@ -7763,7 +7763,7 @@ yycompile(parse_state, f, line)
     // ruby_in_compile = 0;
     parse_state->cond_stack = 0;
     parse_state->cmdarg_stack = 0;
-    command_start = 1;
+    command_start = TRUE;
     class_nest = 0;
     in_single = 0;
     in_def = 0;
@@ -8347,7 +8347,7 @@ static int tokadd_string(int func, int term, int paren, int *nest, rb_parse_stat
 }
 
 #define NEW_STRTERM(func, term, paren) \
-        syd_node_newnode(parse_state, NODE_STRTERM, (func), (term) | ((paren) << (CHAR_BIT * 2)), 0)
+  syd_node_newnode(parse_state, NODE_STRTERM, (OBJECT)(func), (OBJECT)((term) | ((paren) << (CHAR_BIT * 2))), NULL)
 #define pslval ((YYSTYPE *)parse_state->lval)
 static int
 parse_string(quote, parse_state)
@@ -8482,8 +8482,8 @@ heredoc_identifier(rb_parse_state *parse_state)
     bstring str = bstrcpy(parse_state->lex_lastline);
     lex_strterm = syd_node_newnode(parse_state, NODE_HEREDOC,
                                   (OBJECT)string_new(tok(), toklen()),  /* nd_lit */
-                                  len,                          /* nd_nth */
-                                  (OBJECT)str);    /* nd_orig */
+				   (OBJECT)len,                          /* nd_nth */
+				  str);    /* nd_orig */
     return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 
@@ -10886,7 +10886,7 @@ new_yield(parse_state, node)
     rb_parse_state *parse_state;
     NODE *node;
 {
-    long state = Qtrue;
+    OBJECT state = Qtrue;
 
     if (node) {
         no_blockarg(node);

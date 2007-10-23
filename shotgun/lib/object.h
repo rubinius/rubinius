@@ -65,7 +65,7 @@ static inline uint32_t object_get_id(STATE, OBJECT self) {
       object_set_ivar(state, meta, state->global->sym_object_id, id);
     }
     
-    return id;
+    return (uint32_t)id;
   } else {
     return (uint32_t)(self);
   }

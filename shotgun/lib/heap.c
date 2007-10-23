@@ -99,7 +99,7 @@ OBJECT heap_next_object(rheap h) {
   return (OBJECT)(h->current);
 }
 
-OBJECT heap_fully_scanned_p(rheap h) {
+int heap_fully_scanned_p(rheap h) {
   return h->scan == h->current;
 }
 

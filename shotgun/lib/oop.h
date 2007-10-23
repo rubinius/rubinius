@@ -1,7 +1,7 @@
 #ifndef __RUBINIUS_INCLUDED__
 #define __RUBINIUS_INCLUDED__ 1
 
-typedef uintptr_t OBJECT;
+typedef void * OBJECT;
 typedef void * xpointer;
 #define REFSIZE (sizeof(uintptr_t))
 
@@ -21,9 +21,9 @@ typedef void * xpointer;
 #define TAG_FIXNUM  0x1
 #define TAG_LITERAL 0x2
 
-#define TAG(v) ((OBJECT)(v) & TAG_MASK)
-#define APPLY_TAG(v, tag) ((v << TAG_SHIFT) | tag)
-#define STRIP_TAG(v) (v >> TAG_SHIFT)
+#define TAG(v) (((uintptr_t)v) & TAG_MASK)
+#define APPLY_TAG(v, tag) ((OBJECT)(((uintptr_t)v << TAG_SHIFT) | tag))
+#define STRIP_TAG(v) (((intptr_t)v) >> TAG_SHIFT)
 
 #define DATA_P(v) (TAG(v) == TAG_DATA)
 #define FIXNUM_P(v) (TAG(v) == TAG_FIXNUM)
@@ -34,9 +34,9 @@ typedef void * xpointer;
 #define DATA_TAG_SYMBOL 0x3
 #define DATA_TAG_CUSTOM 0x7
 
-#define DATA_TAG(v) ((OBJECT)(v) & DATA_MASK)
-#define DATA_APPLY_TAG(v, tag) ((v << DATA_SHIFT) | tag)
-#define DATA_STRIP_TAG(v) (v >> DATA_SHIFT)
+#define DATA_TAG(v) ((uintptr_t)(v) & DATA_MASK)
+#define DATA_APPLY_TAG(v, tag) (OBJECT)((v << DATA_SHIFT) | tag)
+#define DATA_STRIP_TAG(v) (((uintptr_t)v) >> DATA_SHIFT)
 
 #define SYMBOL_P(v) (DATA_TAG(v) == DATA_TAG_SYMBOL)
 #define CUSTOM_P(v) (DATA_TAG(v) == DATA_TAG_CUSTOM)
@@ -69,7 +69,7 @@ struct rubinius_object {
 
 #include <assert.h>
 
-#define HEADER(obj) ((struct rubinius_object*)obj)
+#define HEADER(obj) ((struct rubinius_object *)obj)
 #define OBJECTS(obj) ((OBJECT*)obj)
 
 /* Header size is in uintptr_t's */
@@ -125,7 +125,7 @@ to be a simple test for that bit pattern.
 #define TRUE_P(v) ((OBJECT)(v) == (OBJECT)Qtrue)
 #define NIL_P(v) ((OBJECT)(v) == (OBJECT)Qnil)
 #define UNDEF_P(v) ((OBJECT)(v) == (OBJECT)Qundef)
-#define RTEST(v) (((v) & 0x7) != 0x6)
+#define RTEST(v) (((uintptr_t)(v) & 0x7) != 0x6)
 
 #define REFERENCE_P(v) (TAG(v) == TAG_REF)
 

@@ -38,7 +38,7 @@ rb_parse_state *alloc_parse_state() {
     #undef cur_mid
     #undef tokidx
     #undef toksiz
-    parse_state->command_start = Qtrue;
+    parse_state->command_start = TRUE;
     parse_state->class_nest = 0;
     parse_state->in_single = 0;
     parse_state->in_def = 0;
@@ -143,7 +143,8 @@ void create_error(rb_parse_state *parse_state, char *msg) {
 
 #define array_push(ary, val) array_append(state, ary, val)
 #define add_to_parse_tree(a,n,i,l,m) syd_add_to_parse_tree(state,a,n,i,l,m)
-#define ID2SYM(v) quark_to_symbol(state, v)
+#undef ID2SYM
+#define Q2SYM(v) quark_to_symbol(state, v)
 #define SYMBOL(str) cstring_to_symbol(state, str)
 
 static OBJECT cstring_to_symbol(STATE, const char *str) {
@@ -231,7 +232,7 @@ again_no_block:
 
     case NODE_COLON2:
       add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers);
-      array_push(current, ID2SYM(node->nd_mid));
+      array_push(current, Q2SYM(node->nd_mid));
       break;
 
     case NODE_MATCH2:
@@ -262,8 +263,8 @@ again_no_block:
 
   case NODE_CASE:
     {
-      VALUE tmp, t2, ic;
-      ic = in_case;
+      VALUE tmp, t2;
+      int ic = in_case;
       in_case = 1;
       add_to_parse_tree(current, node->nd_head, newlines, locals, line_numbers); /* expr */
       node = node->nd_body;
@@ -449,7 +450,7 @@ again_no_block:
   case NODE_VCALL:
     if (nd_type(node) != NODE_FCALL)
       add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
-    array_push(current, ID2SYM(node->nd_mid));
+    array_push(current, Q2SYM(node->nd_mid));
     if (node->nd_args || nd_type(node) != NODE_FCALL)
       add_to_parse_tree(current, node->nd_args, newlines, locals, line_numbers);
     break;
@@ -473,7 +474,7 @@ again_no_block:
     {
       struct METHOD *data;
       Data_Get_Struct(node->nd_cval, struct METHOD, data);
-      array_push(current, ID2SYM(data->id));
+      array_push(current, Q2SYM(data->id));
       add_to_parse_tree(current, data->body, newlines, locals, line_numbers);
       break;
     }
@@ -495,7 +496,7 @@ again_no_block:
       tbl = array_new(state, sz + 3);
       for(i = 0; i < sz; i++) {
         //printf("Would have called quark_to_symbol(state, %d)", node->nd_tbl[i+3]);
-        array_push(tbl, ID2SYM(node->nd_tbl[i + 3]));
+        array_push(tbl, Q2SYM(node->nd_tbl[i + 3]));
       }
       array_push(current, tbl);
     }
@@ -511,7 +512,7 @@ again_no_block:
         array_push(current, SYMBOL("and"));
         break;
       default:
-        array_push(current, ID2SYM(node->nd_mid));
+        array_push(current, Q2SYM(node->nd_mid));
     }
     //add_to_parse_tree(current, node->nd_args->nd_next, newlines, locals, line_numbers);
     add_to_parse_tree(current, node->nd_args, newlines, locals, line_numbers);
@@ -519,7 +520,7 @@ again_no_block:
 
   case NODE_OP_ASGN2:
     add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
-    array_push(current, ID2SYM(node->nd_next->nd_vid));
+    array_push(current, Q2SYM(node->nd_next->nd_vid));
     switch(node->nd_next->nd_mid) {
       case 0:
         array_push(current, SYMBOL("or"));
@@ -528,10 +529,10 @@ again_no_block:
         array_push(current, SYMBOL("and"));
         break;
       default:
-        array_push(current, ID2SYM(node->nd_next->nd_mid));
+        array_push(current, Q2SYM(node->nd_next->nd_mid));
     }
     
-    array_push(current, ID2SYM(node->nd_next->nd_aid));    
+    array_push(current, Q2SYM(node->nd_next->nd_aid));    
     add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
     break;
 
@@ -560,7 +561,7 @@ again_no_block:
     break;
 
   case NODE_LASGN:
-    array_push(current, ID2SYM(node->nd_vid));
+    array_push(current, Q2SYM(node->nd_vid));
     array_push(current, I2N(0));
 	  // array_push(current, I2N(node->nd_cnt));
     add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
@@ -571,7 +572,7 @@ again_no_block:
   case NODE_CVASGN:
   case NODE_CVDECL:
   case NODE_GASGN:
-    array_push(current, ID2SYM(node->nd_vid));
+    array_push(current, Q2SYM(node->nd_vid));
     add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
     break;
   
@@ -579,7 +580,7 @@ again_no_block:
     if(node->nd_vid == 0) {
         array_push(current, Qnil);
     } else {
-        array_push(current, ID2SYM(node->nd_vid));
+        array_push(current, Q2SYM(node->nd_vid));
     }
     add_to_parse_tree(current, node->nd_value, newlines, locals, line_numbers);
     if(node->nd_next) {
@@ -591,13 +592,13 @@ again_no_block:
 
   case NODE_ALIAS:            /* u1 u2 (alias :blah :blah2) */
   case NODE_VALIAS:           /* u1 u2 (alias $global $global2) */
-    array_push(current, ID2SYM(node->u1.id));
-    array_push(current, ID2SYM(node->u2.id));
+    array_push(current, Q2SYM(node->u1.id));
+    array_push(current, Q2SYM(node->u2.id));
     break;
 
   case NODE_COLON3:           /* u2    (::OUTER_CONST) */
   case NODE_UNDEF:            /* u2    (undef instvar) */
-    array_push(current, ID2SYM(node->u2.id));
+    array_push(current, Q2SYM(node->u2.id));
     break;
 
   case NODE_HASH:
@@ -645,7 +646,7 @@ again_no_block:
       if(0 && node->u2.id) {
           rb_ary_pop(current);
           array_push(current, SYMBOL("xstr_custom"));
-          array_push(current, ID2SYM(node->u2.id));
+          array_push(current, Q2SYM(node->u2.id));
       }
       */
       /* array_push(current, I2N(node->nd_cnt)); */
@@ -674,7 +675,7 @@ again_no_block:
     if (node->nd_defn) {
       if (nd_type(node) == NODE_DEFS)
           add_to_parse_tree(current, node->nd_recv, newlines, locals, line_numbers);
-      array_push(current, ID2SYM(node->nd_mid));
+      array_push(current, Q2SYM(node->nd_mid));
       add_to_parse_tree(current, node->nd_defn, newlines, locals, line_numbers);
     }
     break;
@@ -682,7 +683,7 @@ again_no_block:
   case NODE_CLASS:
   case NODE_MODULE:
     add_to_parse_tree(current, node->nd_cpath, newlines, locals, line_numbers);
-    // array_push(current, ID2SYM((ID)node->nd_cpath->nd_mid));
+    // array_push(current, Q2SYM((ID)node->nd_cpath->nd_mid));
     if (nd_type(node) == NODE_CLASS) {
       if(node->nd_super) {
         add_to_parse_tree(current, node->nd_super, newlines, locals, line_numbers);
@@ -717,7 +718,7 @@ again_no_block:
         printf("Pushing %d/%d %d (%s)\n", i, node->nd_cnt, locals[i + 3], 
             print_quark(locals[i + 3]));
         */
-        array_set(state, tmp, i, ID2SYM(locals[i + 3]));
+        array_set(state, tmp, i, Q2SYM(locals[i + 3]));
       }
       
       tmp = array_new(state, 4);
@@ -726,7 +727,7 @@ again_no_block:
       optnode = node->nd_opt;
       while (optnode) {
         /* optional arg names */
-        array_push(tmp, ID2SYM(locals[i + 3]));
+        array_push(tmp, Q2SYM(locals[i + 3]));
 	      i++;
 	      optnode = optnode->nd_next;
       }
@@ -736,7 +737,7 @@ again_no_block:
         /* *arg name */
         tmp = array_new(state, 4);
         /* Hop over the statics --rue */
-        array_push(tmp, ID2SYM(locals[arg_count + 2]));
+        array_push(tmp, Q2SYM(locals[arg_count + 2]));
         array_push(tmp, I2N(arg_count));
         //VALUE sym = rb_str_intern(rb_str_plus(rb_str_new2("*"),
         //        rb_str_new2(rb_id2name(locals[node->nd_rest + 1]))));
@@ -767,7 +768,7 @@ again_no_block:
     break;
 	
   case NODE_LVAR:
-    array_push(current, ID2SYM(node->nd_vid));
+    array_push(current, Q2SYM(node->nd_vid));
     array_push(current, I2N(0));
 	  // array_push(current, I2N(node->nd_cnt));
 	break;
@@ -778,7 +779,7 @@ again_no_block:
   case NODE_GVAR:
   case NODE_CONST:
   case NODE_ATTRSET:
-    array_push(current, ID2SYM(node->nd_vid));
+    array_push(current, Q2SYM(node->nd_vid));
     break;
     
   case NODE_FIXNUM:
@@ -827,7 +828,7 @@ again_no_block:
     bdestroy(node->nd_str);
 	break;
   case NODE_LIT:
-    array_push(current, ID2SYM(node->nd_lit));
+    array_push(current, Q2SYM(node->nd_lit));
     break;
   case NODE_NEWLINE:
     ADD_LINE;
@@ -855,7 +856,7 @@ again_no_block:
     break;
 
   case NODE_BLOCK_ARG:        /* u1 u3 (def x(&b) */
-    array_push(current, ID2SYM(node->u1.id));
+    array_push(current, Q2SYM(node->u1.id));
     array_push(current, I2N(node->nd_cnt));
     break;
 
@@ -885,7 +886,7 @@ again_no_block:
     } else {
       add_to_parse_tree(current, node->nd_1st, newlines, locals, line_numbers);
     }
-    array_push(current, ID2SYM(node->u2.id));
+    array_push(current, Q2SYM(node->u2.id));
     add_to_parse_tree(current, node->nd_3rd, newlines, locals, line_numbers);
     break;
 
