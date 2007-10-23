@@ -6,7 +6,7 @@ OBJECT bytearray_dup(STATE, OBJECT self);
 
 OBJECT bytearray_new_dirty(STATE, int size);
 
-#define BYTEARRAY_ADDRESS(self) ((void*)(self + (HEADER_SIZE * REFSIZE)))
+#define BYTEARRAY_ADDRESS(self) ((void*)((uintptr_t)self + (HEADER_SIZE * REFSIZE)))
 #define BYTEARRAY_SIZE(self) SIZE_OF_BODY(self)
 
 #define bytearray_byte_address(st, self) BYTEARRAY_ADDRESS(self)

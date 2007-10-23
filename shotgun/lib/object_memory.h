@@ -103,19 +103,19 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   addr = om->contexts->address; \
   while(addr < om->contexts->current) {
     
-#define DONE_EACH_CTX(addr) addr += CTX_SIZE; }
+#define DONE_EACH_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
 
 #define EACH_REFD_CTX(om, addr) \
   addr = om->contexts->address; \
   while(addr < om->context_bottom) {
   
-#define DONE_EACH_REFD_CTX(addr) addr += CTX_SIZE; }
+#define DONE_EACH_REFD_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
 
 #define EACH_STACK_CTX(om, addr) \
   addr = om->context_bottom; \
   while(addr < om->contexts->current) {
     
-#define DONE_EACH_STACK_CTX(addr) addr += CTX_SIZE; }
+#define DONE_EACH_STACK_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
 
 #define om_no_referenced_ctxs_p(om) (om->context_bottom == om->contexts->address)
 

@@ -30,7 +30,7 @@ int heap_allocate_memory(rheap h) {
     return FALSE;
   }
   h->scan = h->address;
-  h->last = h->address + h->size - 1;
+  h->last = (void*)((uintptr_t)h->address + h->size - 1);
   return heap_reset(h);
 }
 
@@ -77,7 +77,7 @@ int heap_enough_fields_p(rheap h, int fields) {
   
   size = (HEADER_SIZE + fields) * REFSIZE;
   
-  if(h->current + size > h->last + 1) return FALSE;
+  if((uintptr_t)h->current + size > (uintptr_t)h->last + 1) return FALSE;
   return TRUE;
 }
 
@@ -107,6 +107,6 @@ OBJECT heap_next_unscanned(rheap h) {
   OBJECT obj;
   if(heap_fully_scanned_p(h)) return 0;
   obj = (OBJECT)(h->scan);
-  h->scan += SIZE_IN_BYTES(obj);
+  h->scan = (void*)((uintptr_t)h->scan + SIZE_IN_BYTES(obj));
   return obj;  
 }

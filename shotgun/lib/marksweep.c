@@ -23,8 +23,8 @@
 #include "bytearray.h"
 #include "tuple.h"
 
-#define to_header(obj) ((struct ms_header*)((obj) - sizeof(struct ms_header)))
-#define to_object(hed) ((OBJECT)(((OBJECT)(hed)) + sizeof(struct ms_header)))
+#define to_header(obj) ((struct ms_header*)((uintptr_t)(obj) - sizeof(struct ms_header)))
+#define to_object(hed) ((OBJECT)((uintptr_t)(hed) + sizeof(struct ms_header)))
 
 #define FREE_OBJECT 0x10000
 #define BARRIER (2**REFSIZE)

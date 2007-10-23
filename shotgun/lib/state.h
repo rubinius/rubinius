@@ -249,7 +249,7 @@ void machine_handle_fire(int);
 #define fast_unsafe_set(obj, idx, val) SET_FIELD_DIRECT(obj, idx, val)
 
 #define fast_set_int(obj, idx, int) fast_unsafe_set(obj, idx, I2N(int))
-#define fast_inc(obj, idx) fast_unsafe_set(obj, idx, fast_fetch(obj, idx) + (1 << TAG_SHIFT))
+#define fast_inc(obj, idx) fast_unsafe_set(obj, idx, (void*)((uintptr_t)fast_fetch(obj, idx) + (1 << TAG_SHIFT)))
 
 #define ACCESS_MACROS 1
 #define EXTRA_PROTECTION 0

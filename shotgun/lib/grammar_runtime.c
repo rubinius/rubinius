@@ -828,7 +828,7 @@ again_no_block:
     bdestroy(node->nd_str);
 	break;
   case NODE_LIT:
-    array_push(current, Q2SYM(node->nd_lit));
+    array_push(current, Q2SYM((uintptr_t)node->nd_lit));
     break;
   case NODE_NEWLINE:
     ADD_LINE;

@@ -631,7 +631,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
           state->om->contexts->current = state->om->context_bottom;          
         /* Otherwise set it to just beyond where we're returning to */
         } else {
-          state->om->contexts->current = destination + CTX_SIZE;
+          state->om->contexts->current = (void*)((uintptr_t) destination + CTX_SIZE);
         }
       
       /* It's a heap context, so reset the context stack to the virtual
@@ -669,7 +669,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     
     if(EXCESSIVE_TRACING) {
       if(stack_context_p(destination)) {
-        printf("Returning to a stack context %d / %d (%s).\n", (int)c->active_context, (int)destination, c->active_context - destination == CTX_SIZE ? "stack" : "REMOTE");
+        printf("Returning to a stack context %d / %d (%s).\n", (int)c->active_context, (int)destination, (uintptr_t)c->active_context - (uintptr_t)destination == CTX_SIZE ? "stack" : "REMOTE");
       } else {
         printf("Returning to %s.\n", _inspect(destination));
       }

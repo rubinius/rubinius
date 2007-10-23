@@ -105,7 +105,7 @@ object_memory object_memory_new() {
   
   om->contexts = heap_new(CONTEXT_SIZE);
   om->context_bottom = (OBJECT)(om->contexts->address);
-  om->context_last = (OBJECT)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 3);
+  om->context_last = (OBJECT)((uintptr_t)om->contexts->address + CONTEXT_SIZE - (CTX_SIZE * 3));
   
   main_om = (void*)om;
   // Start the values up a bit higher so they don't collide
@@ -164,12 +164,12 @@ void object_memory_shift_contexts(STATE, object_memory om) {
         HEADER(ctx)->klass = new_ctx;
         baker_gc_mutate_context(state, om->gc, new_ctx, TRUE, FALSE);        
       }
-      new_ctx += CTX_SIZE;
+      new_ctx = (OBJECT)((uintptr_t)new_ctx + CTX_SIZE);
       inc++;
     } DONE_EACH_STACK_CTX(ctx);
     
     om->contexts->current = (address)new_ctx;
-    om->context_top = new_ctx - CTX_SIZE;
+    om->context_top = (void*)((uintptr_t)new_ctx - CTX_SIZE);
   }
   
   om->context_bottom = (OBJECT)(om->contexts->address);

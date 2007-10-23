@@ -72,7 +72,7 @@ int baker_gc_swap(baker_gc g) {
   
   heap_reset(tmp);
   /* Reset used to the what the current has used. */
-  g->used = g->current->current - g->current->address;
+  g->used = (uintptr_t)g->current->current - (uintptr_t)g->current->address;
   return TRUE;
 }
 
