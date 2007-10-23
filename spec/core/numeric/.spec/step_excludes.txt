@@ -1,7 +1,0 @@
-Numeric#step if base < limit > step then it should iterate (base-limit)/step times (floats)
-Numeric#step iterate one time if step is bigger than base-limit (floats)
-Numeric#step not iterate if base is bigger than limit and step >0 (floats)
-Numeric#step iterate backward if base is bigger than limit (floats)
-Numeric#step not iterate if base is minor than limit and step <0 (floats)
-Numeric#step if base < limit > step then  iterate (base-limit)/step times (floats)
-Numeric#step raise the expected exception
