@@ -1,2 +1,0 @@
-Bignum#% does not raise a FloatDomainError when the given argument is 0 and a Float
-Bignum#modulo does not raise a FloatDomainError when the given argument is 0 and a Float

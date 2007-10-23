@@ -2,7 +2,11 @@
 
 class Bignum < Integer
   def %(other)
-    self.divmod(other)[1]
+    if Float === other && other == 0.0
+      0 / 0.0
+    else
+      self.divmod(other)[1]
+    end
   end
 
   def >>(s)
