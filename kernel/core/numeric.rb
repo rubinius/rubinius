@@ -132,6 +132,20 @@ class Numeric
     end
   end
 
+  def remainder(other)
+    b, a = self.do_coerce(other, true)
+    raise ZeroDivisionError, "divided by 0" if b == 0
+    mod = a % b
+
+    if a < 0 && b > 0
+      mod - b
+    elsif a > 0 && b < 0
+      mod - b
+    else
+      mod
+    end
+  end
+
   def step(limit, step=1, &block)
     raise ArgumentError, "step cannot be 0" if step == 0
     limit,step = step.coerce(limit)
