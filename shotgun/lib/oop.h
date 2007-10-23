@@ -69,13 +69,6 @@ struct rubinius_object {
 
 #include <assert.h>
 
-#define HEADER(obj) ((struct rubinius_object *)obj)
-#define OBJECTS(obj) ((OBJECT*)obj)
-
-/* Header size is in uintptr_t's */
-// #define REFSIZE (sizeof(uintptr_t))
-// #define HEADER_SIZE (sizeof(struct rubinius_object) / REFSIZE)
-
 #define GC_MAKE_FOREVER_YOUNG(obj) (obj->gc |= 0x8000)
 
 #define CLASS_OBJECT(obj) (obj->klass)

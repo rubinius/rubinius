@@ -500,7 +500,7 @@ void machine_show_exception(machine m, OBJECT exc) {
   } else {
     buf = "<no message>";
   }
-  printf(" => %s (%s)\n", buf, rbs_inspect(m->s, HEADER(exc)->klass));
+  printf(" => %s (%s)\n", buf, rbs_inspect(m->s, exc->klass));
 }
 
 int machine_run(machine m) {

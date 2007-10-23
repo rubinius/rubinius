@@ -2,7 +2,7 @@
 #include "flags.h"
 
 static inline void _om_apply_class_flags(OBJECT obj, OBJECT cls) {
-  HEADER(obj)->flags = 0;
+  obj->flags = 0;
   if (RTEST(class_get_has_ivars(cls))) {
     FLAG_SET(obj, CanStoreIvarsFlag);
   }
@@ -87,9 +87,9 @@ static inline OBJECT _om_new_ultra(object_memory om, OBJECT cls, int size) {
     obj = (OBJECT)baker_gc_allocate_ultra(om->gc, size);
   }
   
-  HEADER(obj)->flags = 0;
-  HEADER(obj)->flags2 = 0;
-  HEADER(obj)->gc = 0;
+  obj->flags = 0;
+  obj->flags2 = 0;
+  obj->gc = 0;
   
   GC_ZONE_SET(obj, GC_YOUNG_OBJECTS);
   rbs_set_class(om, obj, cls);

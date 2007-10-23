@@ -25,7 +25,7 @@ void object_cleanup_weak_refs(STATE, OBJECT self);
 
 static inline OBJECT object_class(STATE, OBJECT self) {
   if(REFERENCE_P(self)) {
-    OBJECT cls = HEADER(self)->klass;
+    OBJECT cls = self->klass;
     while(REFERENCE_P(cls) && (metaclass_s_metaclass_p(state, cls) || OBJ_TYPE(cls) != TYPE_CLASS)) {
       cls = class_get_superclass(cls);
     }

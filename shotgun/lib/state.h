@@ -227,8 +227,8 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define IS_REF_P(val) REFERENCE_P(val)
 #define RUN_WB(obj, val) if(IS_REF_P(val)) object_memory_write_barrier(state->om, obj, val)
 
-#define rbs_set_class(om, obj, cls) ({ if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); HEADER(obj)->klass = cls; })
-#define SET_CLASS(obj, cls) ({ RUN_WB(obj, cls); HEADER(obj)->klass = cls; })
+#define rbs_set_class(om, obj, cls) ({ if(IS_REF_P(cls)) object_memory_write_barrier(om, obj, cls); obj->klass = cls; })
+#define SET_CLASS(obj, cls) ({ RUN_WB(obj, cls); obj->klass = cls; })
 
 extern ucontext_t g_firesuit;
 extern int g_use_firesuit;
@@ -290,7 +290,7 @@ static void _bad_reference2(OBJECT in, int fel) {
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
   if(!REFERENCE_P(obj)) _bad_reference(obj); \
-  if(fel >= HEADER(obj)->field_count) _bad_reference2(obj, fel); \
+  if(fel >= obj->field_count) _bad_reference2(obj, fel); \
   if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
@@ -299,7 +299,7 @@ static void _bad_reference2(OBJECT in, int fel) {
 #define rbs_get_field(i_in, i_fel) ({ \
   OBJECT in = (i_in); int fel = (i_fel); \
   if(!REFERENCE_P(in)) _bad_reference(in); \
-  if(fel >= HEADER(in)->field_count) _bad_reference2(in, fel); \
+  if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
 
 #else
@@ -309,7 +309,7 @@ static void _bad_reference2(OBJECT in, int fel) {
 
 #define rbs_set_field(om, obj, fel, val) ({ \
   OBJECT _v = (val), _o = (obj); \
-  if(fel >= HEADER(obj)->field_count) _bad_reference2(obj, fel); \
+  if(fel >= obj->field_count) _bad_reference2(obj, fel); \
   if(REFERENCE_P(_v)) { \
     object_memory_write_barrier(om, _o, _v); \
   } \
@@ -317,7 +317,7 @@ static void _bad_reference2(OBJECT in, int fel) {
 
 #define rbs_get_field(i_in, i_fel) ({ \
   OBJECT in = (i_in); int fel = (i_fel); \
-  if(fel >= HEADER(in)->field_count) _bad_reference2(in, fel); \
+  if(fel >= in->field_count) _bad_reference2(in, fel); \
   NTH_FIELD_DIRECT(in, fel); })
 
 
@@ -345,7 +345,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
     }
   }
   
-  if(fel >= HEADER(in)->field_count) {
+  if(fel >= in->field_count) {
     printf("Attempted to access field %d in an object with %lu fields.\n", 
       fel, (unsigned long)NUM_FIELDS(in));
       
@@ -365,7 +365,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
 
 static inline OBJECT rbs_set_field(object_memory om, OBJECT obj, int fel, OBJECT val) {
 #if DISABLE_CHECKS
-  if(fel >= HEADER(obj)->field_count) {
+  if(fel >= obj->field_count) {
     printf("Attempted to access field %d in an object with %lu fields (%s).\n", 
       fel, (unsigned long)NUM_FIELDS(obj), _inspect(obj));
     

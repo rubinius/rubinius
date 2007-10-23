@@ -14,7 +14,7 @@ OBJECT object_new(STATE) {
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup) {
   OBJECT meta;
   if(!sup) {
-    sup = HEADER(cls)->klass;
+    sup = cls->klass;
   }
   
   meta = metaclass_s_attach(state, cls);
@@ -24,8 +24,8 @@ OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup) {
 }
 
 OBJECT object_metaclass(STATE, OBJECT obj) {
-  if(metaclass_s_metaclass_p(state, HEADER(obj)->klass)) {
-    return HEADER(obj)->klass;
+  if(metaclass_s_metaclass_p(state, obj->klass)) {
+    return obj->klass;
   }
   return object_create_metaclass(state, obj, 0);
 }

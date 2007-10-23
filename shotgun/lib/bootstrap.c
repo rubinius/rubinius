@@ -25,7 +25,7 @@ void cpu_bootstrap(STATE) {
   /* Class is created first by hand, and twittle to setup the internal
      recursion. */
   cls = NEW_OBJECT(Qnil, CLASS_FIELDS);
-  HEADER(cls)->klass = cls;
+  cls->klass = cls;
   class_set_instance_fields(cls, I2N(CLASS_FIELDS));
   class_set_has_ivars(cls, Qtrue);
   class_set_object_type(cls, I2N(TYPE_CLASS));

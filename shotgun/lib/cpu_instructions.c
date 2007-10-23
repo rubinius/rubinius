@@ -112,7 +112,7 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
 
 static inline OBJECT _real_class(STATE, OBJECT obj) {
   if(REFERENCE_P(obj)) {
-    return HEADER(obj)->klass;
+    return obj->klass;
   } else {
     return object_class(state, obj);
   }
@@ -363,10 +363,10 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
     state->om->collect_now |= OMCollectYoung;
   }
   
-  HEADER(ctx)->flags = 0;
-  HEADER(ctx)->flags2 = 0;
-  HEADER(ctx)->klass = Qnil;
-  HEADER(ctx)->field_count = FASTCTX_FIELDS;
+  ctx->flags = 0;
+  ctx->flags2 = 0;
+  ctx->klass = Qnil;
+  ctx->field_count = FASTCTX_FIELDS;
   
   fc = FASTCTX(ctx);
   fc->sender = sender;

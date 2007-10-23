@@ -213,7 +213,7 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
   ms->free_list = ent;
 }
 
-#define mark_sweep_free_object(obj) (HEADER(obj)->flags == FREE_FLAG)
+#define mark_sweep_free_object(obj) (obj->flags == FREE_FLAG)
 
 void mark_sweep_describe(mark_sweep_gc ms) {
   printf("Last marked: %d\n", ms->last_marked);
@@ -228,9 +228,9 @@ int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj) {
   return GC_ZONE(obj) == GC_MATURE_OBJECTS;
 }
 
-#define MARK_OBJ(obj) (HEADER(obj)->gc |= MS_MARK)
-#define UNMARK_OBJ(obj) (HEADER(obj)->gc ^= MS_MARK)
-#define MARKED_P(obj) (HEADER(obj)->gc & MS_MARK)
+#define MARK_OBJ(obj) (obj->gc |= MS_MARK)
+#define UNMARK_OBJ(obj) (obj->gc ^= MS_MARK)
+#define MARKED_P(obj) (obj->gc & MS_MARK)
 
 OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
@@ -580,7 +580,7 @@ void mark_sweep_collect_references(STATE, mark_sweep_gc ms, OBJECT mark, ptr_arr
       obj = (OBJECT)addr;
       osz = SIZE_IN_BYTES(obj);
       
-      if(HEADER(obj)->flags != FREE_FLAG && !_object_stores_bytes(obj)) {
+      if(obj->flags != FREE_FLAG && !_object_stores_bytes(obj)) {
         for(i = 0; i < NUM_FIELDS(obj); i++) {
           if(NTH_FIELD(obj, i) == mark) {
             ptr_array_append(refs, (xpointer)obj);

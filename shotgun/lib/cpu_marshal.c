@@ -192,7 +192,7 @@ static OBJECT unmarshal_object(STATE, char *str, struct marshal_state *ms) {
     return Qnil;
   }
   
-  HEADER(tup)->klass = klass;
+  tup->klass = klass;
   return tup;
 }
 

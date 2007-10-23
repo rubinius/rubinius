@@ -85,23 +85,23 @@ int baker_gc_destroy(baker_gc g) {
 #define FORWARDING_MAGIC 0xff
 
 void baker_gc_set_forwarding_address(OBJECT obj, OBJECT dest) {
-  HEADER(obj)->flags = FORWARDING_MAGIC;
-  HEADER(obj)->klass = dest;
+  obj->flags = FORWARDING_MAGIC;
+  obj->klass = dest;
 }
 
 inline int baker_gc_forwarded_p(OBJECT obj) {
-  return HEADER(obj)->flags == FORWARDING_MAGIC;
+  return obj->flags == FORWARDING_MAGIC;
 }
 
 OBJECT baker_gc_forwarded_object(OBJECT obj) {
-  OBJECT out = HEADER(obj)->klass;
+  OBJECT out = obj->klass;
   CHECK_PTR(out);
   return out;
 }
 
-#define AGE(obj) (HEADER(obj)->gc & 0x7f)
-#define CLEAR_AGE(obj) (HEADER(obj)->gc = 0)
-#define FOREVER_YOUNG(obj) (HEADER(obj)->gc & 0x8000)
+#define AGE(obj) (obj->gc & 0x7f)
+#define CLEAR_AGE(obj) (obj->gc = 0)
+#define FOREVER_YOUNG(obj) (obj->gc & 0x8000)
 
 #define baker_gc_maybe_mutate(st, g, iobj) ({     \
   OBJECT ret;                                 \
@@ -173,7 +173,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
   
   SET_CLASS(iobj, cls);
   
-  xassert(HEADER(iobj)->flags != FORWARDING_MAGIC);
+  xassert(iobj->flags != FORWARDING_MAGIC);
   
   if(WEAK_REFERENCES_P(iobj)) {
     // printf("%p has weak refs.\n", (void*)iobj);
@@ -262,7 +262,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
     if(top) {
       if(shifted) {
         xassert(om_in_heap(state->om, fc->sender) || om_context_referenced_p(state->om, fc->sender));
-        xassert(HEADER(fc->sender) != Qnil);
+        xassert(fc->sender != Qnil);
       } else {
         xassert(om_in_heap(state->om, fc->sender));
       }
@@ -271,7 +271,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
       if(shifted) {
         old_sender = fc->sender;
         xassert(om_on_stack(state->om, old_sender));
-        fc->sender = HEADER(old_sender)->klass;
+        fc->sender = old_sender->klass;
         xassert(NIL_P(fc->sender) || fc->sender == om_stack_sender(iobj));
       } else {
         xassert(om_on_stack(state->om, fc->sender));
@@ -320,7 +320,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
   
   if((AGE(obj) == g->tenure_age)) {
     // int age = AGE(obj);
-    xassert(HEADER(obj)->klass != state->global->fastctx);
+    xassert(obj->klass != state->global->fastctx);
     CLEAR_AGE(obj);
     /*
     if(CLASS_OBJECT(obj) == state->global->cmethod) {
@@ -333,10 +333,10 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
     _mutate_references(state, g, dest);
   } else {
     if(heap_enough_fields_p(g->next, NUM_FIELDS(obj))) {
-      xassert(HEADER(obj)->klass != Qnil);
+      xassert(obj->klass != Qnil);
       dest = heap_copy_object(g->next, obj);
       baker_gc_set_forwarding_address(obj, dest);
-      if(!FOREVER_YOUNG(obj)) HEADER(dest)->gc++;
+      if(!FOREVER_YOUNG(obj)) dest->gc++;
     } else {
       CLEAR_AGE(obj);
       dest = (*g->tenure)(g->tenure_data, obj);
@@ -522,7 +522,7 @@ void baker_gc_clear_gc_flag(baker_gc g, int flag) {
     obj = (OBJECT)cur;
     osz = SIZE_IN_BYTES(obj);
     
-    HEADER(obj)->gc ^= flag;
+    obj->gc ^= flag;
         
     cur += osz;
   }  

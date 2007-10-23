@@ -30,7 +30,7 @@ void _describe(OBJECT ptr) {
     }
   }
   printf("stack_context_p: %d / %d\n", om_stack_context_p(om, ptr), stack_context_p(ptr));
-  printf("nil klass:       %d\n", HEADER(ptr)->klass == Qnil);
+  printf("nil klass:       %d\n", ptr->klass == Qnil);
   printf("context_refd_p:  %d\n", om_context_referenced_p(om, ptr));
   printf("in_heap:         %d\n", om_in_heap(om, ptr));
   printf("methctx_fast:    %d\n", methctx_is_fast_p(current_machine->s, ptr));
@@ -158,10 +158,10 @@ void object_memory_shift_contexts(STATE, object_memory om) {
       if(inc == 0) {
         baker_gc_mutate_context(state, om->gc, ctx, TRUE, TRUE);
         memcpy((void*)new_ctx, (void*)ctx, CTX_SIZE);
-        HEADER(ctx)->klass = new_ctx;
+        ctx->klass = new_ctx;
       } else {
         memcpy((void*)new_ctx, (void*)ctx, CTX_SIZE);
-        HEADER(ctx)->klass = new_ctx;
+        ctx->klass = new_ctx;
         baker_gc_mutate_context(state, om->gc, new_ctx, TRUE, FALSE);        
       }
       new_ctx = (OBJECT)((uintptr_t)new_ctx + CTX_SIZE);
@@ -278,7 +278,7 @@ void object_memory_check_ptr(void *ptr, OBJECT obj) {
     assert(baker_gc_contains_spill_p(om->gc, obj) ||
            mark_sweep_contains_p(om->ms, obj) ||
            heap_contains_p(om->contexts, obj));
-    assert(HEADER(obj)->klass != Qnil);
+    assert(obj->klass != Qnil);
   } else if(SYMBOL_P(obj)) {
     assert((uintptr_t)obj < 10000000);
   }
@@ -444,7 +444,7 @@ void object_memory_emit_details(STATE, object_memory om, FILE *stream) {
     if(NUM_FIELDS(obj) == 0) {
       fprintf(stream, "%d %d free\n", (int)obj, end - cur);
     }
-    kls = HEADER(obj)->klass;
+    kls = obj->klass;
     if(kls == state->global->cmethod) {
       kind = "cmethod";
     } else if(kls == state->global->bytearray) {

@@ -37,9 +37,9 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
     printf("CTX:           block running %d\n", (int)ctx);
   }
   
-  HEADER(ctx)->flags = 0;
-  HEADER(ctx)->flags2 = 0;
-  HEADER(ctx)->field_count = FASTCTX_FIELDS;
+  ctx->flags = 0;
+  ctx->flags2 = 0;
+  ctx->field_count = FASTCTX_FIELDS;
   
   fc = FASTCTX(ctx);
   fc->sender = sender;

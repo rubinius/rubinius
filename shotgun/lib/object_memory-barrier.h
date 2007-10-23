@@ -25,7 +25,7 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
   
   xassert(tz > 0);
   xassert(vz > 0);
-  xassert(HEADER(val)->klass != Qnil);
+  xassert(val->klass != Qnil);
     
   /* if the target is in a higher numbered zone than val, then
      that means it needs to be in the remember set. */

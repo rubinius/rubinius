@@ -59,7 +59,7 @@ int rbs_num_fields(OBJECT obj) {
 
 OBJECT rbs_raw_class(OBJECT obj) {
   if(REFERENCE_P(obj)) {
-    return HEADER(obj)->klass;
+    return obj->klass;
   }
   return Qnil;
 }

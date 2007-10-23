@@ -730,7 +730,7 @@ class ShotgunPrimitives
       SET_FIELD(self, j, NTH_FIELD(t1, k));
     }
     // object_copy_fields_from(state, t1, self, j, NUM_FIELDS(self));
-    HEADER(self)->flags  = HEADER(t1)->flags;
+    self->flags  = t1->flags;
     // HEADER(self)->flags2 = (HEADER(t1)->flags2 & ZONE_MASK) | GC_ZONE(self);
     stack_push(t1);
     CODE
