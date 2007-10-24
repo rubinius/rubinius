@@ -8,6 +8,10 @@ describe "IO.read" do
     File.open(@fname, "w") { |f| f.write(@contents) }
   end
   
+  after :each do
+    File.delete(@fname) if File.exists?(@fname)
+  end
+  
   it "should read the contents of a file" do
     IO.read(@fname).should == @contents
   end
@@ -30,9 +34,5 @@ describe "IO.read" do
     should_raise(ArgumentError) { IO.read @fname, -1 }
     should_raise(Errno::EINVAL) { IO.read @fname, 0, -1 }
     should_raise(Errno::EINVAL) { IO.read @fname, -1, -1 }
-  end
-  
-  after :each do
-    File.delete(@fname) if File.exists?(@fname)
   end
 end

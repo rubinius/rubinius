@@ -1,0 +1,5 @@
+IO.read should read the contents of a file
+IO.read should read the contents of a file up to a certain size when specified
+IO.read should read the contents of a file from an offset of a specific size when specified
+IO.read should throw an exception if the requested file does not exist
+IO.read should throw an exception if given the wrong type or number of arguments
