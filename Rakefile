@@ -18,11 +18,12 @@ def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
 
-@setup_stable = false
+$setup_stable = false
+$compiler = nil
 
 def setup_stable
-  return if @setup_stable
-  @setup_stable = true
+  return if $setup_stable
+  $setup_stable = true
   
   @pb = "runtime/stable/bootstrap.rba"
   @pp = "runtime/stable/platform.rba"
@@ -40,7 +41,7 @@ def setup_stable
     ENV['COMPILER'] = @pr
   end
 
-  @compiler = ENV['COMPILER']
+  $compiler = ENV['COMPILER']
 end
 
 def source_name(compiled)
@@ -114,8 +115,8 @@ def compile(name, output)
     FileUtils.mkdir_p dir
   end
   
-  if @compiler
-    sh "shotgun/rubinius -I#{@compiler} compile #{name} #{output}", :verbose => false
+  if $compiler
+    sh "shotgun/rubinius -I#{$compiler} compile #{name} #{output}", :verbose => false
   else
     sh "shotgun/rubinius compile #{name} #{output}", :verbose => false
   end
