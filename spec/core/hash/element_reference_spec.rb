@@ -37,11 +37,12 @@ end
 describe "Hash#[]" do
   it "returns the value for key" do
     obj = Object.new
-    h = { 1 => 2, 3 => 4, "foo" => "bar", obj => obj }
+    h = { 1 => 2, 3 => 4, "foo" => "bar", obj => obj, [] => "baz" }
     h[1].should == 2
     h[3].should == 4
     h["foo"].should == "bar"
     h[obj].should == obj
+    h[[]].should == "baz"
   end
 
   it "returns the default (immediate) value for missing keys" do
