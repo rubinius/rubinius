@@ -229,7 +229,7 @@ int mark_sweep_contains_p(mark_sweep_gc ms, OBJECT obj) {
 }
 
 
-OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
+static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
   OBJECT cls, tmp;
   int i;
   struct ms_header *header;
