@@ -492,7 +492,7 @@ OBJECT machine_load_file(machine m, const char *path) {
 
 void machine_show_exception(machine m, OBJECT exc) {
   OBJECT msg;
-  char *buf;
+  const char *buf;
   printf("\nError: An unhandled exception has terminated this VM.\n");
   msg = exception_get_message(exc);
   if(REFERENCE_P(msg)) {
@@ -591,10 +591,11 @@ void machine_setup_argv(machine m, int argc, char **argv) {
   machine_set_const(m, "ARGV", ary);
 }
 
-static void machine_parse_config_var(machine m, char *var) {
-  char *eq, *or;;
+static void machine_parse_config_var(machine m, const char *var) {
+  char *eq;
   char buf[1024];
   char *name;
+  const char *or;
   name = buf;
   int sz;
   eq = strstr(var, "=");
@@ -618,7 +619,7 @@ static void machine_parse_config_var(machine m, char *var) {
   }
 }
 
-static void machine_parse_configs(machine m, char *config) {
+static void machine_parse_configs(machine m, const char *config) {
   char *semi;
   char tmp[1024];
   int sz;
