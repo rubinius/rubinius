@@ -66,21 +66,21 @@ struct rubinius_object {
       gc_zone         gc_zone     : 2;
       unsigned int    copy_count  : 3;
 
-      int Forwarded              : 1;      
-      int Remember               : 1;
-      int Marked                 : 1;
-      int ForeverYoung           : 1;
-      int CanStoreIvars          : 1;
-      int StoresBytes            : 1;
-      int RequiresCleanup        : 1;
-      int IsBlockContext         : 1;
-      int IsMeta                 : 1;
+      unsigned int Forwarded              : 1;
+      unsigned int Remember               : 1;
+      unsigned int Marked                 : 1;
+      unsigned int ForeverYoung           : 1;
+      unsigned int CanStoreIvars          : 1;
+      unsigned int StoresBytes            : 1;
+      unsigned int RequiresCleanup        : 1;
+      unsigned int IsBlockContext         : 1;
+      unsigned int IsMeta                 : 1;
       
-      int CTXFast                : 1;
-      int IsTainted              : 1;
-      int IsFrozen               : 1;
-      int IsLittleEndian         : 1;
-      int RefsAreWeak            : 1;
+      unsigned int CTXFast                : 1;
+      unsigned int IsTainted              : 1;
+      unsigned int IsFrozen               : 1;
+      unsigned int IsLittleEndian         : 1;
+      unsigned int RefsAreWeak            : 1;
     };
     uint32_t all_flags;
   };
