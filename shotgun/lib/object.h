@@ -1,6 +1,8 @@
 #ifndef SEEN_RUBINIUS_OBJECT_H
 #define SEEN_RUBINIUS_OBJECT_H
 
+#include <assert.h>
+
 OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup);
 OBJECT object_metaclass(STATE, OBJECT obj);
 int object_kind_of_p(STATE, OBJECT self, OBJECT cls);
