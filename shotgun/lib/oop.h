@@ -65,7 +65,8 @@ struct rubinius_object {
       object_type     obj_type    : 3;
       gc_zone         gc_zone     : 2;
       unsigned int    copy_count  : 3;
-      
+
+      int Forwarded              : 1;      
       int Remember               : 1;
       int Marked                 : 1;
       int ForeverYoung           : 1;
@@ -81,7 +82,7 @@ struct rubinius_object {
       int IsLittleEndian         : 1;
       int RefsAreWeak            : 1;
     };
-    uint32_t forwarded_object;
+    uint32_t all_flags;
   };
   uint32_t field_count;
   OBJECT klass;
