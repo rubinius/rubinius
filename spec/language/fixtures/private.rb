@@ -26,4 +26,15 @@ module Private
       "bar"
     end
   end
+  
+  module D
+    private
+    def foo
+      "foo"
+    end
+  end
+   
+   class E
+     include D
+   end
 end
