@@ -937,18 +937,34 @@ module Bytecode
         msg = x.shift
         operator = x.shift # :and or :or
         msg2 = x.shift #assignment
-        arg = x.shift
-        process(lvar.dup)
-        add "send #{msg}"
+        msg2 = (msg2.to_s << "=").intern if msg2.to_s[-1,1] != "=" # patch a grammar.y issue here for now
+        val = x.shift
+        
+        process(lvar)
         add "dup"
-        (operator == :or) ? git(lbl) : gif(lbl)
-        add "pop"
-        x.unshift [:array, arg]
-        x.unshift msg2
-        x.unshift lvar
-        x.unshift :attrasgn
-        process x
+        add "send #{msg}"
+        if [:or, :and].include? operator
+          add "dup"
+          git(lbl) if operator == :or
+          gif(lbl) if operator == :and
+          add "pop"
+          process val
+        else
+          process val
+          add "swap"
+          add "send #{operator} 1"
+        end
+        add "swap"
+
+        add "send #{msg2} 1"
+        nd = unique_lbl('asgn2_')
+        goto nd
+
         set_label lbl
+        add "swap"
+        add "pop"
+
+        set_label nd
       end
       
       def process_op_asgn1(x)
@@ -963,26 +979,34 @@ module Bytecode
         #     ]
         # ]
         #
+        # TODO: idx can be more than a single value, e.g. x[1,2] += [a,b,c] should insert a,b,c at position 3
         obj = x.shift
         lbl = unique_lbl('asgn1_')
-        operator = x.shift # :and or :or
+        operator = x.shift # :and, :or, :+, :- etc
         arg = x.shift
         arg.shift
         val = arg.shift
         idx = arg.shift
         huh = arg.shift
+
         process(obj)
         add "dup"
-        
         idx_code = capture { process idx }
         @output << idx_code
-
         add "swap"
         add "send [] 1"
-        add "dup"
-        (operator == :or) ? git(lbl) : gif(lbl)
-        add "pop"
-        process val
+
+        if [:or, :and].include? operator
+          add "dup"
+          git(lbl) if operator == :or
+          gif(lbl) if operator == :and
+          add "pop"
+          process val
+        else
+          process val
+          add "swap"
+          add "send #{operator} 1"
+        end
         add "swap"
         
         @output << idx_code
@@ -991,6 +1015,7 @@ module Bytecode
         add "send []= 2"
         nd = unique_lbl('asgn1_')
         goto nd
+
         set_label lbl
         add "swap"
         add "pop"
