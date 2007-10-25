@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Hash#shift" do
   it "removes a pair from hash and return it (same order as to_a)" do
     h = { :a => 1, :b => 2, "c" => 3, nil => 4, [] => 5 }
-    pairs = [[:a, 1], [:b, 2], [:c, 3], [nil, 4], [[], 5]]
+    pairs = h.to_a
     
     h.size.times do
       r = h.shift
