@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/variables'
 
 describe "Basic assignment" do
   
@@ -211,11 +212,6 @@ describe "Conditional assignment" do
   
 end
 
-class OpAsgn
-  attr_accessor :a, :side_effect
-  def do_side_effect; self.side_effect = true; return @a; end
-end
-
 describe "Operator assignment 'var op= expr'" do
   it "is equivalent to 'var = var op expr'" do
     x = 13
@@ -293,7 +289,7 @@ describe "Operator assignment 'var op= expr'" do
   
   it "uses short-circuit arg evaluation for operators ||= and &&=" do
     x = 8
-    y = OpAsgn.new
+    y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
     y.side_effect.should == nil
     
@@ -309,7 +305,7 @@ end
 
 describe "Operator assignment 'obj.meth op= expr'" do
   it "is equivalent to 'obj.meth = obj.meth op expr'" do
-    @x = OpAsgn.new
+    @x = VariablesSpecs::OpAsgn.new
     @x.a = 13
     (@x.a += 5).should == 18
     @x.a.should == 18
@@ -383,7 +379,7 @@ describe "Operator assignment 'obj.meth op= expr'" do
   
   it "uses short-circuit arg evaluation for operators ||= and &&=" do
     x = 8
-    y = OpAsgn.new
+    y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
     y.side_effect.should == nil
     
@@ -471,7 +467,7 @@ describe "Operator assignment 'obj[idx] op= expr'" do
 
   it "uses short-circuit arg evaluation for operators ||= and &&=" do
     x = 8
-    y = OpAsgn.new
+    y = VariablesSpecs::OpAsgn.new
     (x ||= y.do_side_effect).should == 8
     y.side_effect.should == nil
     
@@ -494,7 +490,7 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     (x[2..3] += [8]).should == [3,4,8]
     x.should == [1,2,3,4,8,5,3,4]
     
-    y = OpAsgn.new
+    y = VariablesSpecs::OpAsgn.new
     y.a = 1
     (x[y.do_side_effect] *= 2).should == 4
     x.should == [1,4,3,4,8,5,3,4]
@@ -616,13 +612,11 @@ describe 'Multiple assignments with grouping' do
   end
 end
 
-def reverse_foo(a,b);return b,a;end
-
 describe "Multiple assignment" do
   it "should have the proper return value" do
     (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
-    (d,e = reverse_foo(4,3)).should == [3,4]
-    (f,g,h = reverse_foo(6,7)).should == [7,6]
+    (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
+    (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
     (i,*j = *[5,6,7]).should == [5,6,7]
     (k,*l = [5,6,7]).should == [5,6,7]
     a.should == 5
