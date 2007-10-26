@@ -1,0 +1,2 @@
+Breaking out of a loop with a value should stop any loop type at the correct spot
+Breaking out of a loop with a value should stop a yielded method at the correct spot

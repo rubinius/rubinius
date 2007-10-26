@@ -1,0 +1,1 @@
+Ruby numbers in various ways with decimals but no integer part should be a SyntaxError
