@@ -132,7 +132,9 @@ module Super
         a << "A#foo"
       end
       class << self
-        include ModA
+        failure :rubinius do
+          include ModA
+        end
       end
     end
     class B < A
