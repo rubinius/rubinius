@@ -1,0 +1,2 @@
+A class with Enumerable mixin and <=> defined, cmd sort without a block should should return an array of elements ordered lowest to highest
+A class with Enumerable mixin and <=> defined, cmd sort with a block should return an array of elements ordered by the result of block

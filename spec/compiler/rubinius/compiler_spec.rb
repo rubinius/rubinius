@@ -224,7 +224,7 @@ extension :rubinius do
       m.assembly.should == "push self\nset_encloser\npush nil\npop\npush_literal 0\n" \
         "push_self\nadd_method blah\nsret\n"
       m.literals.first.assembly.should == 
-         "check_argcount 0 0\npush_my_field 1\npop\npush 11\nstore_my_field 1\nsret\n"
+        "check_argcount 0 0\n\#line \npush_my_field 1\npop\npush 11\nstore_my_field 1\nsret\n"
     end
   
     it "compiles a hash literal" do
@@ -336,7 +336,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nsret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 2 2\npush true\nsret\n"
+      defn.assembly.should == "check_argcount 2 2\n\#line \npush true\nsret\n"
     end
   
     it "compiles defn with splat" do
@@ -349,8 +349,7 @@ extension :rubinius do
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
       defn.assembly.should == 
-        "check_argcount 2 0\nallocate_stack 1\nmake_rest_fp 2\nset_local_fp 1\npop\n" \
-        "push true\nsret\n"
+        "check_argcount 2 0\nallocate_stack 1\n\#line \nmake_rest_fp 2\nset_local_fp 1\npop\npush true\nsret\n"
     end
   
     it "compiles defn with default" do
@@ -365,7 +364,7 @@ extension :rubinius do
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
       defn.assembly.should == 
-        "check_argcount 1 2\npassed_arg 1\ngit set_lbl1\npush 9\n" \
+        "check_argcount 1 2\n\#line \npassed_arg 1\ngit set_lbl1\npush 9\n" \
         "set b:0\npop\ngoto set_lbl2\nset_lbl1: set_local_from_fp 0 1\n" \
         "set_lbl2:\npush false\npop\npush true\nsret\n"
     end
@@ -384,7 +383,7 @@ extension :rubinius do
       defn.kind_of?(Bytecode::MethodDescription).should == true
       defn.assembly.should == 
         "check_argcount 0 0\n" \
-        "allocate_stack 1\npush_block\npush Proc\nsend from_environment 1\nset_local_fp 1\n" \
+        "allocate_stack 1\n\#line \npush_block\npush Proc\nsend from_environment 1\nset_local_fp 1\n" \
         "pop\npush true\nsret\n"
     end
   
@@ -398,7 +397,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nsret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 2 2\npush true\nsret\n"
+      defn.assembly.should == "check_argcount 2 2\n\#line \npush true\nsret\n"
       defn.primitive.should == :at
     end
   
@@ -412,7 +411,7 @@ extension :rubinius do
       @method.assembly.should == "push_literal 0\npush_self\nadd_method blah\nsret\n"
       defn = @method.literals.first
       defn.kind_of?(Bytecode::MethodDescription).should == true
-      defn.assembly.should == "check_argcount 2 2\npush true\npop\npush self\nsret\n"
+      defn.assembly.should == "check_argcount 2 2\n\#line \npush true\npop\npush self\nsret\n"
     end
   
     it "compiles defs" do
@@ -434,8 +433,8 @@ extension :rubinius do
         [:to_ary, [:lit, 8]]]
       @method.assembly.should == 
         "push 8\ncast_tuple\ndup\n" \
-        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
-        "unshift_tuple\nset_local_fp 3 ; local b\npop\n" \
+        "unshift_tuple\nset_local_fp 3 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 2 ; local b\npop\n" \
         "unshift_tuple\nset_local_fp 1 ; local c\npop\npop\ncast_array\nsret\n"
     end
   
@@ -446,8 +445,8 @@ extension :rubinius do
         [:to_ary, [:lit, 8]]]
       @method.assembly.should == 
         "push 8\ncast_tuple\ndup\n" \
-        "unshift_tuple\nset_local_fp 2 ; local a\npop\n" \
-        "unshift_tuple\nset_local_fp 3 ; local b\npop\n" \
+        "unshift_tuple\nset_local_fp 3 ; local a\npop\n" \
+        "unshift_tuple\nset_local_fp 2 ; local b\npop\n" \
         "cast_array\nset_local_fp 1 ; local c\npop\ncast_array\nsret\n"
     end
   
@@ -458,7 +457,7 @@ extension :rubinius do
        [:array, [:lit, 99], [:lit, 8]]]
      
       @method.assembly.should == 
-        "push 8\npush 99\nset_local_fp 1 ; local a\npop\nset_local_fp 2 ; local b\npop\npush true\nsret\n"
+        "push 8\npush 99\nset_local_fp 2 ; local a\npop\nset_local_fp 1 ; local b\npop\npush true\nsret\n"
     end
   
     # TODO - Add correct asm expectation, remove should_raise
@@ -550,7 +549,7 @@ extension :rubinius do
       cls.kind_of?(Bytecode::MethodDescription).should == true
       defn = cls.literals.last
       defn.assembly.should == 
-        "check_argcount 0 1\npassed_arg 0\ngit set_lbl1\npush 10\nset base:0\npop\n" \
+        "check_argcount 0 1\n\#line \npassed_arg 0\ngit set_lbl1\npush 10\nset base:0\npop\n" \
         "goto set_lbl2\nset_lbl1: set_local_from_fp 0 0\nset_lbl2:\npush base:0\npush self\n" \
         "set_call_flags 1\nsend based_to_s 1\nsret\n"
     end
