@@ -1,4 +1,2 @@
-Operator assignment 'obj.meth op= expr' is equivalent to 'obj.meth = obj.meth op expr'
-Operator assignment 'obj[idx] op= expr' is equivalent to 'obj[idx] = obj[idx] op expr'
 Operator assignment 'obj[idx] op= expr' handles complex index (idx) arguments
 Multiple assignment, array-style should have the proper return value
