@@ -858,7 +858,9 @@ class Array
   def pack(schema)
     # The schema is an array of arrays like [["A", "6"], ["u", "*"], ["X", ""]]. It represents the parsed
     # form of "A6u*X".
-    schema = schema.scan(/([a-zA-Z][\d\*]*)/).flatten.map {|x| x.match(/([a-zA-Z])([\d\*]*)/)[1..-1] }
+    # Remove strings in the schema between # and \n
+    schema = schema.gsub(/#[^\n]{0,}\n{0,1}/,'')
+    schema = schema.scan(/([^\s\d\*][\d\*]*)/).flatten.map {|x| x.match(/([^\s\d\*])([\d\*]*)/)[1..-1] }
     
     # create the buffer
     ret = ""
@@ -869,6 +871,8 @@ class Array
       kind = scheme[0]
       # get the array item being worked on
       item = self[arr_idx]
+      # MRI nil compatibilty for string functions
+      item = ""  if !item && kind =~ /[aAZbBhH]/
       # set t to nil if no number (or "*") was passed in
       t = scheme[1].empty? ? nil : scheme[1]
       # X deletes a number of characters from the buffer (defaults to one; * means 0)
@@ -880,15 +884,16 @@ class Array
         ret = ret[0..-(t + 1)]
       # x returns just a group of null strings
       elsif kind == "x"
-        t = t.nil? ? 1 : t.to_i
-        ret = "\x0" * t
+        size = t.nil? ? 1 : t.to_i
+        ret << "\x0" * size
       # if there's no item, that means there's more schema items than array items,
-      # so throw an error.
-      elsif !item
+      # so throw an error. All actions that DON'T increment arr_idx must occur
+      # before this test.
+      elsif arr_idx >= self.length
         raise ArgumentError, "too few array elements"
       # TODO: Document this
       elsif kind == "N"
-        obj = self[arr_idx]
+        obj = item
         parts = []
         4.times do
           parts << (obj % 256)
@@ -897,9 +902,10 @@ class Array
         3.downto(0) do |j|
           ret << parts[j].chr
         end
+        arr_idx += 1
       # A and a both pad the text
       elsif kind =~ /[aAZ]/
-        raise TypeError unless item.is_a?(String)
+        item = Type.coerce_to(item, String, :to_str)
         # The total new string size will be:
         # * the number passed in
         # * the size of the array's string if "*" was passed in
@@ -913,36 +919,63 @@ class Array
         padsize = size - item.size
         # Replace the space padding for null padding in "a" or "Z"
         ret = ret.gsub(/\ {#{padsize}}$/, ("\x0" * (padsize)) ) if kind =~ /[aZ]/ && padsize > 0
+        arr_idx += 1
+      # b/B converts a binary string e.g. '1010101' into bytes
+      elsif kind =~ /[bB]/
+        item = Type.coerce_to(item, String, :to_str)
+        byte = 0
+        size = t.nil? ? 1 : (t == "*" ? item.length : t.to_i)
+        # shift lsb in from the left of string for b or msb for B
+        shift_in_lsb = (kind == "b")
+        0.upto(size > item.length ? item.length-1 : size-1) do |i|
+          bit = item[i] & 1
+          byte |= shift_in_lsb ? bit << (i & 7) : bit << (7 - (i & 7))
+          if (i & 7) == 7
+            ret << byte.chr
+            byte = 0
+          end
+        end
+        # always output an incomplete byte
+        ret << byte.chr if ((size & 7) != 0 || size > item.length) && item.length > 0
+        # Emulate the weird MRI spec for every 2 chars over output a \000
+        (item.length).step(size-1, 2) { |i| ret << 0 } if size > item.length
+        arr_idx += 1
       # c returns a single character. If there's a size, it will gobble up more array elements
       elsif kind =~ /c/i
-        raise TypeError if item.is_a?(String)
         # Size is the same as for A
         size = !t ? 1 : (t == "*" ? self.size : t.to_i)
-        0.upto(size - 1) do |i| 
-          raise ArgumentError, "too few array elements" if !self[arr_idx + i]
-          # Add a character if there's an element at the array index; otherwise add a null
-          ret << (self[arr_idx + i] ? "%c" % self[arr_idx + i] : "\x0")
+        raise ArgumentError, "too few array elements" if arr_idx + size > self.length
+        0.upto(size - 1) do |i|
+          item = Type.coerce_to(self[arr_idx], Integer, :to_int)
+          ret << (item & 0xff)
+          arr_idx += 1
         end
       # M returns a string encoded with Quoted printable
       elsif kind == "M"
-         # normalize non-strings
-         if !item.is_a?(String)
-           item = item.to_s
-         end
+         # normalize non-strings - for some reason MRI responds to to_s here
+         item = Type.coerce_to(item, String, :to_s)
          encoded = ""
          # only 75 characters per line (each line ends with "=\n")
-         e = item.scan(/.{0,73}/m).each do |result|
+         e = item.scan(/.{1,73}/m).each do |result|
            # Loop through each byte
            # * if it's an encodable byte, encode it
            # * otherwise pass it through
-           result.each_byte { |byte| encoded << (((32..60).to_a + (62..126).to_a + [9,10]).include?(byte) ? byte.chr : "=%02X" % byte) }         
+           result.each_byte do |byte|
+             case byte
+             when 32..60, 62..126, 9..10
+               encoded << byte.chr
+             else
+               encoded << "=%02X" % byte
+             end
+           end         
            # add a line-ending to the end of the line
            encoded << "=\n"
          end
          ret << encoded
+         arr_idx += 1
       # Base64 encoding
       elsif kind == "m"
-        raise TypeError if !item.is_a?(String)
+        item = Type.coerce_to(item, String, :to_str)
         # split the string into letters
         letters = item.split(//)
         # get a series of 0-padded 8-bit representations of the letters
@@ -966,11 +999,12 @@ class Array
         broken_stream = unbroken_stream.scan(/.{0,60}/).reject{|set| set.empty?}
         # add \n to the end of each line (including the last line)
         ret << broken_stream.map {|set| set + "\n"}.join
+        arr_idx += 1
       # UUEncode
       elsif kind == "u"
-        raise TypeError if !item.is_a?(String)
+        item = Type.coerce_to(item, String, :to_str)
         # split the string into 45-character lines
-        lines = item.scan(/.{0,45}/)
+        lines = item.scan(/.{1,45}/)
         # get a series of 0-padded 8-bit representations of the lines
         lines.map! do |line|
           # store line length
@@ -994,10 +1028,10 @@ class Array
         end
         # add \n to the end of each line (including the last line)
         ret << lines.join
+        arr_idx += 1
       else
-        raise ArgumentError, "Unknown kind #{kind.chr}"
+        raise ArgumentError, "Unknown kind #{kind}"
       end
-      arr_idx += 1
     end
     
     return ret
