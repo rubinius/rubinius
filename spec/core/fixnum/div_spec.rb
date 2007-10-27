@@ -9,6 +9,13 @@ describe "Fixnum#div with a Fixnum" do
 end
 
 describe "Fixnum#div" do
+  it "rounds towards -inf" do
+    8192.div(10).should == 819
+    8192.div(-10).should == -820
+    (-8192).div(10).should == -820
+    (-8192).div(-10).should == 819
+  end
+
   it "coerces self and the given argument to Floats and returns self divided by other as Fixnum" do
     1.div(0.2).should == 5
     1.div(0.16).should == 6

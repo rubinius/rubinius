@@ -126,7 +126,9 @@ class ShotgunPrimitives
   def fixnum_div(_ = fixnum, t1 = fixnum)
     <<-CODE
     GUARD( FIXNUM_TO_INT(t1) != 0 ) // no divide by zero
-    stack_push(fixnum_div(state, self, t1));
+
+    t3 = fixnum_divmod(state, self, t1);
+    stack_push(array_get(state, t3, 0));
     CODE
   end
   

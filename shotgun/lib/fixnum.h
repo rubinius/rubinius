@@ -54,21 +54,6 @@ static inline OBJECT fixnum_mul(STATE, OBJECT a, OBJECT b) {
   return r;
 }
 
-static inline OBJECT fixnum_div(STATE, OBJECT a, OBJECT b) {
-  OBJECT r;
-  int j, k, m;
-  
-  j = FIXNUM_TO_INT(a);
-  k = FIXNUM_TO_INT(b);
-  m = j / k;
-  r = I2N(m);
-  if(m != FIXNUM_TO_INT(r)) {
-    r = bignum_mul(state, bignum_new(state, j), bignum_new(state, k));
-  }
-
-  return r;
-}
-
 static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
   OBJECT ary;
   long div, mod;
