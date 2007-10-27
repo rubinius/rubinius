@@ -1052,8 +1052,8 @@ module Bytecode
         sz = x.size
         i = 0
         until x.empty?
-          k = x.shift
-          v = x.shift
+          v = x.pop
+          k = x.pop
           
           process v
           process k
@@ -1061,7 +1061,8 @@ module Bytecode
           i += 1
         end
         
-        add "make_hash #{sz}"
+        add "push Hash"
+        add "send [] #{sz}"
       end
 
       # Implicit hashes from method calls
