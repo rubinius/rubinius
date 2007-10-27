@@ -10,6 +10,8 @@ describe "Bignum#[]" do
     @bignum[2].should == 1
     @bignum[9.2].should == 1
     @bignum[21].should == 0
+    @bignum[0xffffffff].should == 0
+    @bignum[-0xffffffff].should == 0
   end
 
   it "tries to convert the given argument to an Integer using #to_int" do

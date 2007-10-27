@@ -7,6 +7,7 @@ describe "Fixnum#[]" do
 
     2[3].should == 0
     3[0xffffffff].should == 0
+    3[-0xffffffff].should == 0
   end
   
   it "tries to convert the given argument to an Integer using #to_int" do

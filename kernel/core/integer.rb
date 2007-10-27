@@ -51,6 +51,7 @@ class Integer < Numeric
   end
   
   def [](index)
+    return 0 if index.is_a?(Bignum)
     index = Type.coerce_to(index, Integer, :to_int)
     index < 0 ? 0 : (self >> index) & 1
   end
