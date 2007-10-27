@@ -109,48 +109,6 @@ class Class
     end
   end
   
-  def attr_reader_cv(*names)
-    names.each do |name|
-      attr(name)
-    end
-
-    return nil
-  end
-  
-  def attr_writer_cv(*names)
-    names.each do |name|
-      attr(name,true)
-    end
-
-    return nil
-  end
-  
-  def attr_accessor_cv(*names)
-    names.each do |name|
-      attr(name)
-      attr(name,true)
-    end
-
-    return nil
-  end
-
-  def attr(name,writeable=false)
-    method_symbol = nil
-    access_method = nil
-
-    if writeable
-      method_symbol = writer_method_symbol(name)
-      access_method = AccessVarMethod.set_ivar(attribute_symbol(name))
-    else
-      method_symbol = reader_method_symbol(name)
-      access_method = AccessVarMethod.get_ivar(attribute_symbol(name))
-    end
-
-    self.method_table[method_symbol] = access_method
-
-    return nil
-  end
-
   def <(other)
     sup = direct_superclass()
     while sup
@@ -202,26 +160,10 @@ class Class
   end
   
   def self.after_loaded
-    alias_method :attr_reader, :attr_reader_cv
-    alias_method :attr_writer, :attr_writer_cv
-    alias_method :attr_accessor, :attr_accessor_cv
     alias_method :alias_method, :alias_method_cv
     alias_method :opened_class, :opened_class_cv
     alias_method :add_subclass, :add_subclass_cv
     alias_method :subclasses, :subclasses_cv
   end
 
-  private
-
-  def attribute_symbol(name)
-    "@#{normalize_name(name)}".to_sym
-  end
-
-  def reader_method_symbol(name)
-    normalize_name(name)
-  end
-
-  def writer_method_symbol(name)
-    "#{normalize_name(name)}=".to_sym
-  end
 end

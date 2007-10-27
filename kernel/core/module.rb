@@ -207,6 +207,9 @@ class Module
     alias_method :include, :include_cv
     alias_method :private, :private_cv
     alias_method :append_features, :append_features_cv
+    alias_method :attr_reader, :attr_reader_cv
+    alias_method :attr_writer, :attr_writer_cv
+    alias_method :attr_accessor, :attr_accessor_cv
   end
   
   def module_exec(*args, &prc)
@@ -259,6 +262,41 @@ class Module
     raise NameError, "Unable to find constant #{name}" 
   end
   
+  def attr_reader_cv(*names)
+    names.each do |name|
+      method_symbol = reader_method_symbol(name)
+      access_method = AccessVarMethod.get_ivar(attribute_symbol(name))
+      self.method_table[method_symbol] = access_method
+    end
+
+    return nil
+  end
+
+  def attr_writer_cv(*names)
+    names.each do |name|
+      method_symbol = writer_method_symbol(name)
+      access_method = AccessVarMethod.set_ivar(attribute_symbol(name))
+      self.method_table[method_symbol] = access_method
+    end
+
+    return nil
+  end
+  
+  def attr_accessor_cv(*names)
+    names.each do |name|
+      attr(name,true)
+    end
+
+    return nil
+  end
+
+  def attr(name,writeable=false)
+    attr_reader(name)
+    attr_writer(name) if writeable
+    return nil
+  end
+
+private
 
   #
   # The following method will be made private when attr is moved from Class to Module.
@@ -280,8 +318,6 @@ class Module
     
     sym_name
   end
-
-private
 
   # Get a constant with the given name. If the constant does not exist, return nil.
   def recursive_const_get(name)
@@ -313,5 +349,17 @@ private
   
   def valid_const_name?(name)
     name.to_s =~ /^[A-Z]\w*$/ ? true : false
+  end
+
+  def attribute_symbol(name)
+    "@#{normalize_name(name)}".to_sym
+  end
+
+  def reader_method_symbol(name)
+    normalize_name(name)
+  end
+
+  def writer_method_symbol(name)
+    "#{normalize_name(name)}=".to_sym
   end
 end

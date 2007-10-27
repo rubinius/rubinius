@@ -66,4 +66,24 @@ class Module
     mod.included(self)
   end
   
+  def attr_reader(name)
+    sym = "@#{name}".__symbol_lookup__
+    meth = AccessVarMethod.get_ivar(sym)
+    @method_table[name] = meth
+    return nil
+  end
+  
+  def attr_writer(name)
+    sym = "@#{name}".__symbol_lookup__
+    meth = AccessVarMethod.get_ivar(sym)
+    @method_table[name] = meth
+    return nil    
+  end
+  
+  def attr_accessor(name)
+    attr_reader(name)
+    attr_writer(name)
+    return true
+  end
+  
 end
