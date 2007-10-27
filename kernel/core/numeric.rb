@@ -134,12 +134,9 @@ class Numeric
 
   def remainder(other)
     b, a = self.do_coerce(other, true)
-    raise ZeroDivisionError, "divided by 0" if b == 0
     mod = a % b
 
-    if a < 0 && b > 0
-      mod - b
-    elsif a > 0 && b < 0
+    if (a < 0 && b > 0) || a > 0 && b < 0 
       mod - b
     else
       mod
