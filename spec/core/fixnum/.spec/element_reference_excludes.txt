@@ -1,1 +1,0 @@
-Fixnum#[] returns the nth bit in the binary representation of self
