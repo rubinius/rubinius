@@ -1,6 +1,17 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
+class Hash
+  def fetch(key, default = nil)
+    found, val = find_unambigious key
+    return val if found
+
+    return yield(key) if block_given?
+    return default if default
+    raise IndexError, 'Key not found'
+  end
+end
+
 describe "Hash#fetch" do
   it "returns the value for key" do
     { :a => 1, :b => -1 }.fetch(:b).should == -1
@@ -26,5 +37,10 @@ describe "Hash#fetch" do
     old, $VERBOSE = $VERBOSE, nil
     {}.fetch(9, :foo) { |i| i * i }.should == 81
     $VERBOSE = old
+  end
+
+  it "raises when the size of its arguments isn't two or one" do
+    should_raise(ArgumentError) { {}.fetch() }
+    should_raise(ArgumentError) { {}.fetch(1, 2, 3) }
   end
 end

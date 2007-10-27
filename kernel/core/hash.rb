@@ -165,12 +165,13 @@ class Hash
     @entries == 0
   end
 
-  def fetch(key, default=nil)
+  # FIXME: replace default = nil with default = undef as soon as undef is available
+  def fetch(key, default = nil)
     found, val = find_unambigious key
     return val if found
 
-    return default if default
     return yield(key) if block_given?
+    return default if default
     raise IndexError, 'Key not found'
   end
 
