@@ -1,1 +1,0 @@
-Hash#shift removes a pair from hash and return it (same order as to_a)
