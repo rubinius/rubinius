@@ -125,6 +125,7 @@ class Module
   def include_cv(*modules)
     modules.reverse_each do |mod|
       raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
+      next if ancestors.include?(mod)
       mod.append_features(self)
       mod.included(self)
     end
