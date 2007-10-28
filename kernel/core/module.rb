@@ -230,10 +230,10 @@ class Module
     if method_names.empty?
       raise ArgumentError, "module_function without an argument is not supported"
     else
-      mod_methods = method_table
       inst_methods = metaclass.method_table
       method_names.each do |method_name|
-        inst_methods[method_name] = mod_methods[method_name]
+        method = find_method_in_hierarchy(method_name)
+        inst_methods[method_name] = method
       end
     end
     nil
