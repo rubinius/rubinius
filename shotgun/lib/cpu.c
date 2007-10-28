@@ -304,7 +304,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   
   cur = cpu_current_module(state, c);
   
-  while(!NIL_P(cur)) {
+  while(!NIL_P(cur) && cur != state->global->object) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
     
     hsh = module_get_constants(cur);
@@ -313,9 +313,6 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       // printf("   found!\n");
       return val;
     }
-    /* TODO: this shouldn't be needed, since Object's parent
-       really should be nil. Currently, it doesn't seem to be though. */
-    if(cur == state->global->object) break;
     cur = module_get_parent(cur);
   }
   
@@ -344,16 +341,13 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
     }
   }
   
-  while(!NIL_P(cur)) {    
+  while(!NIL_P(cur) && cur != state->global->object) {    
     hsh = module_get_constants(cur);
     val = hash_find_undef(state, hsh, sym);
     if(val != Qundef) { 
       // printf("   found!\n");
       return val;
     }
-    /* TODO: this shouldn't be needed, since Object's parent
-       really should be nil. Currently, it doesn't seem to be though. */
-    if(cur == state->global->object) break;
     cur = module_get_parent(cur);
   }
   
@@ -362,7 +356,7 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   // printf("Looking for %s in the current context.\n", rbs_symbol_to_cstring(state, sym));
   
   
-  while(!NIL_P(cur)) {
+  while(!NIL_P(cur) && cur != state->global->object) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
     
     hsh = module_get_constants(cur);
@@ -371,17 +365,14 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
       // printf("   found!\n");
       return val;
     }
-    /* TODO: this shouldn't be needed, since Object's parent
-       really should be nil. Currently, it doesn't seem to be though. */
-    if(cur == state->global->object) break;
-    cur = module_get_parent(cur);
+    cur = module_get_superclass(cur);
   }
   
   cur = object_class(state, c->self);
     
   // printf("Couldn't find in lex scope. Looking up from %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
   
-  while(!NIL_P(cur)) {
+  while(!NIL_P(cur) && cur != state->global->object) {
     // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
     
     hsh = module_get_constants(cur);
@@ -392,11 +383,17 @@ OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
     }
     /* Object's superclass MUST be nil, but we check directly just
        to be safe. */
-    if(cur == state->global->object) break;
     cur = class_get_superclass(cur);
   }
   
   // printf("Still unable to find, firing const_missing.\n");
+  
+  // As a last rescue, we search in Object's constants
+  hsh = module_get_constants(state->global->object);
+  val = hash_find_undef(state, hsh, sym);
+  if(val != Qundef) { 
+    return val;
+  }
   
   c->cache_index = -1;
   stack_push(sym);
