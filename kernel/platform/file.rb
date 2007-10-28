@@ -3,6 +3,7 @@
 module Platform::File
   SEPARATOR = '/'
   ALT_SEPARATOR = nil
+  PATH_SEPARATOR = ':'
 
   def self.dirname(path)
     if(!path.match(/#{SEPARATOR}/) || path.match(/^\.+#{SEPARATOR}+$/))

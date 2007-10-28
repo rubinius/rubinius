@@ -44,6 +44,7 @@ class File < IO
 
   SEPARATOR = Platform::File::SEPARATOR
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
+  PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
   def self.new(path, mode)
     return open_with_mode(path, mode)
