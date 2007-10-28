@@ -1,1 +1,0 @@
-Module#attr_writer creates a setter for each given attribute name
