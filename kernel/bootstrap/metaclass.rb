@@ -4,7 +4,7 @@ class MetaClass
   # Do not define #methods as an accessor for @methods, use #method_table instead
   def method_cache     ; @method_cache      ; end
   def name             ; @name              ; end
-  def constants_table  ; @constants_table   ; end
+  def constants_table  ; @constants         ; end
   def parent           ; @parent            ; end
   def superclass       ; @superclass        ; end
   def instance_fields  ; @instance_fields   ; end
