@@ -31,3 +31,13 @@ class EachDefiner
   end
 
 end 
+
+class SortByDummy
+  def initialize(s)
+    @s = s
+  end
+
+  def s
+    @s
+  end
+end
