@@ -48,10 +48,8 @@ module ModuleSpecs
   class Child < Parent
     include Super
 
-    failure :rubinius do
-      class << self
-        include Internal
-      end
+    class << self
+      include Internal
     end
     
     def public_child() end
