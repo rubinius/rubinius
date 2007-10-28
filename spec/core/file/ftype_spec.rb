@@ -23,23 +23,31 @@ describe "File.ftype" do
 
       if File.exists?("/dev/fd0")
         @block = Pathname.new("/dev/fd0").realpath
-        @link  = "/dev/fd0" if File.symlink?("/dev/fd0")
       elsif File.exists?("/dev/diskette")
         @block = Pathname.new("/dev/diskette").realpath
-        @link  = "/dev/diskette" if File.symlink?("/dev/diskette")
       elsif File.exists?("/dev/cdrom")
         @block = Pathname.new("/dev/cdrom").realpath
-        @link  = "/dev/cdrom" if File.symlink?("/dev/cdrom")
       elsif File.exists?("/dev/sr0") # CDROM
         @block = Pathname.new("/dev/sr0").realpath
-        @link  = "/dev/sr0" if File.symlink?("/dev/sr0") 
       elsif File.exists?("/dev/disk0")
         @block = "/dev/disk0"
-        @link  = "/tmp"
       else
         @block = nil
         @link  = nil
       end
+      
+      if File.symlink?("/dev/fd0")
+        @link = "/dev/fd0"
+      elsif File.symlink?("/dev/diskette")
+        @link = "/dev/diskette"
+      elsif File.symlink?("/dev/cdrom")
+        @link = "/dev/cdrom" 
+      elsif File.symlink?("/dev/sr0")
+        @link = "/dev/sr0" 
+      else
+        @link = "/tmp"
+      end
+      
     end
   end
 
