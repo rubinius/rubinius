@@ -17,7 +17,9 @@ class MethodTable
   def filter_names(filter, format=:to_s)
     ary = Array.new
     keys.each do |meth|
-      if self[meth].first == filter
+      m = self[meth]
+
+      if m.is_a?(AccessVarMethod) || m.first == filter
         ary << meth.__send__(format)
       end
     end

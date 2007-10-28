@@ -14,6 +14,9 @@ describe "Module#public_instance_methods" do
     methods.should_include('public_3')
     methods.should_include('public_2')
     methods.should_include('public_1')
+
+    methods = ModuleSpecs::Child2.public_instance_methods
+    methods.should_include('foo')
   end
 
   it "when passed false as a parameter, should return only methods defined in that module" do
