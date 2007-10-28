@@ -290,11 +290,9 @@ describe "Array#pack" do
     [-257].pack('c').should == [255].pack('C')
   end
 
-#failure :rubinius do
   it "converts float to integer and returns char with that number with ('c')" do
     [5.0].pack('c').should == [5].pack('c')
   end
-#end
 
   it "calls to_i on symbol and returns char with that number with ('c')" do
     [:hello].pack('c').should == [:hello.to_i].pack('c')
