@@ -82,5 +82,6 @@ OBJECT class_constitute(STATE, OBJECT sup, OBJECT under) {
   object_create_metaclass(state, val, object_metaclass(state, sup));
   module_set_parent(val, under);
   module_setup_fields(state, object_metaclass(state, val));
+  module_set_parent(object_metaclass(state, val), under);
   return val; 
 }

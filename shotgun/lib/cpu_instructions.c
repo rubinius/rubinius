@@ -105,6 +105,7 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
     module_set_parent(val, under);    
+    module_set_parent(object_metaclass(state, val), under);
   }
   
   return val;
