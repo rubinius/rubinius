@@ -229,7 +229,7 @@ extension :rubinius do
   
     it "compiles a hash literal" do
       compile [:hash, [:lit, 1], [:lit, 2], [:lit, 3], [:lit, 4]]
-      @method.assembly.should == "push 2\npush 1\npush 4\npush 3\nmake_hash 4\nsret\n"
+      @method.assembly.should == "push 4\npush 3\npush 2\npush 1\npush Hash\nsend [] 4\nsret\n"
     end
   
     it "compiles colon2" do

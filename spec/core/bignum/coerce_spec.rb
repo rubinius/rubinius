@@ -14,29 +14,15 @@ end
 describe "Bignum#coerce" do
   it "raises a TypeError when given a non Fixnum/Bignum" do
     a = BignumHelper.sbm
-    
-    should_raise(TypeError) do
-      a.coerce(nil)
-    end
 
-    should_raise(TypeError) do
-      a.coerce(12.3)
-    end
+    should_raise(TypeError) { a.coerce(nil) }
+    should_raise(TypeError) { a.coerce(Object.new) }
+    should_raise(TypeError) { a.coerce(1..4) }
+    should_raise(TypeError) { a.coerce(:test) }
 
-    should_raise(TypeError) do
-      a.coerce("123")
-    end
-
-    should_raise(TypeError) do
-      a.coerce(Object.new)
-    end
-    
-    should_raise(TypeError) do
-      a.coerce(1..4)
-    end
-    
-    should_raise(TypeError) do
-      a.coerce(:test)
+    compliant :mri do
+      should_raise(TypeError) { a.coerce(12.3) }
+      should_raise(TypeError) { a.coerce("123") }
     end
   end
 end

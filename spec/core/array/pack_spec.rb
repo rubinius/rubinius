@@ -248,11 +248,9 @@ describe "Array#pack" do
     [-257].pack('C').should == [255].pack('C')
   end
 
-failure :rubinius do
   it "converts float to integer and returns char with that number with ('C')" do
     [5.0].pack('C').should == [5].pack('C')
   end
-end
 
   it "calls to_i on symbol and returns char with that number with ('C')" do
     [:hello].pack('C').should == [:hello.to_i].pack('C')
@@ -264,6 +262,7 @@ end
 
   it "processes count number of array elements if count given with ('C')" do
     [1, 2, 3].pack('C3').should == "\001\002\003"
+    [1, 2, 3].pack('C2C1').should == "\001\002\003"
   end
 
   it "returns empty string if count = 0 with ('C')" do
@@ -291,11 +290,9 @@ end
     [-257].pack('c').should == [255].pack('C')
   end
 
-failure :rubinius do
   it "converts float to integer and returns char with that number with ('c')" do
     [5.0].pack('c').should == [5].pack('c')
   end
-end
 
   it "calls to_i on symbol and returns char with that number with ('c')" do
     [:hello].pack('c').should == [:hello.to_i].pack('c')
@@ -530,6 +527,10 @@ end
     should_raise(ArgumentError) { [].pack('X') }
   end
 
+  it "doesn't increment the array index count with ('X')" do
+    ['abcd','efgh'].pack('A4X2A4').should == 'abefgh'
+  end
+
   it "returns zero-char string with ('x')" do
     [].pack('x').should == "\000"
   end
@@ -544,6 +545,10 @@ end
 
   it "behaves like with count == 0 with star parameter and ('x')" do
     [].pack('x*').should == ""
+  end
+
+  it "doesn't increment the array index count with ('x')" do
+    ['abcd','efgh'].pack('A4x2A4').should == "abcd\000\000efgh"
   end
 
   it "returns null padded string with ('Z')" do

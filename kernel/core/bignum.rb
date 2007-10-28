@@ -18,11 +18,6 @@ class Bignum < Integer
     s = Type.coerce_to(s, Fixnum, :to_int)
     s < 0 ? __bignum_right_shift__(-s) : __bignum_left_shift__(s) 
   end
-  
-  def coerce(other)
-    return super(other) if other.is_a?(Integer)
-    raise TypeError, "can't coerce #{other.class} to Bignum"
-  end
 
   alias_method :modulo, :%
   

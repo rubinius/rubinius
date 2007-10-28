@@ -309,10 +309,6 @@ class Module
 
 private
 
-  #
-  # The following method will be made private when attr is moved from Class to Module.
-  # Right now, Class uses this methods.
-  # 
   def normalize_name(name)
     sym_name = nil
     if name.respond_to?(:to_sym)
