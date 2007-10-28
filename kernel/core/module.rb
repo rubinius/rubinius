@@ -252,13 +252,17 @@ class Module
   end
   
   def const_defined?(name)
-    begin
-      recursive_const_get(name)
-    rescue NameError
-      return false
+    name = normalize_const_name(name)
+    
+    return true if self.constants_table.has_key?(name)
+    
+    current = self.direct_superclass
+    while current != nil && current != Object
+      return true if current.constants_table.has_key?(name)
+      current = current.direct_superclass
     end
     
-    return true
+    return false
   end
 
   def const_set(name, value)
