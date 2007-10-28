@@ -48,7 +48,7 @@ describe "Module#const_defined?" do
     end
     
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError, "Object#to_str should return String") do
+    should_raise(TypeError) do
       ModuleSpecs.const_defined?(o)
     end
   end

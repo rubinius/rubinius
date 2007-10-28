@@ -28,7 +28,7 @@ describe "Module#const_set" do
   
   it "raises a NameError when there is no constant with the given name" do
     should_raise(NameError, "uninitialized constant ModuleSpecs::NotExistant") do
-      ModuleSpecs.const_get("NotExistant").should == nil
+      ModuleSpecs.const_get("NotExistant")
     end
   end
 
@@ -46,7 +46,7 @@ describe "Module#const_set" do
     end
   
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError, "Object#to_str should return String") do
+    should_raise(TypeError) do
       Module.const_set(o, "Test")
     end
   end

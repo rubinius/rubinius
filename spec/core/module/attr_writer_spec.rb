@@ -47,7 +47,7 @@ describe "Module#attr_writer" do
     end
     
     (o = Object.new).should_receive(:to_str, :returning => 123)
-    should_raise(TypeError, "Object#to_str should return String") do
+    should_raise(TypeError) do
       Class.new { attr_writer o }
     end
   end
