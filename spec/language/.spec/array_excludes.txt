@@ -1,0 +1,1 @@
+Array literal [] should return a new array populated with the given elements

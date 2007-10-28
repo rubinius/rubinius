@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 context "Array literal" do
   specify "[] should return a new array populated with the given elements" do
     [1, 2, 3, 'a', 'b', 5].should == [1, 2, 3, "a", "b", 5]
+    [1, 2, *[3, 'a', 'b']].should == [1, 2, 3, 'a', 'b']
   end
 
   specify "%w() should also return a new array" do
