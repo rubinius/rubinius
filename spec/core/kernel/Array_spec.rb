@@ -30,7 +30,7 @@ describe "Kernel#Array" do
     end
 
     obj.should_receive(:to_ary, :returning => "ha!")
-    should_raise(TypeError, "Object#to_ary should return Array") do
+    should_raise(TypeError) do
       Array(obj)
     end
   end

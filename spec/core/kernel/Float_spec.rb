@@ -34,19 +34,19 @@ describe "Kernel.Float" do
   end
   
   it "raises a TypeError of #to_f is not provided" do
-    should_raise(TypeError, "can't convert Object into Float") do
+    should_raise(TypeError) do
       Kernel.Float(Object.new)
     end
   end
   
   it "raises a TypeError if #to_f does not return a Float" do
     (obj = Object.new).should_receive(:to_f, :returning => 'ha!')
-    should_raise(TypeError, "Object#to_f should return Float") do
+    should_raise(TypeError) do
       Kernel.Float(obj)
     end
 
     obj.should_receive(:to_f, :returning => 123)
-    should_raise(TypeError, "Object#to_f should return Float") do
+    should_raise(TypeError) do
       Kernel.Float(obj)
     end
   end
