@@ -97,6 +97,7 @@ module Kernel
   end
   
   def `(str)
+    str = StringValue(str)
     read, write = IO.pipe
     pid = Process.fork
     if pid != 0
