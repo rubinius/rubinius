@@ -254,10 +254,8 @@ class Module
   def const_defined?(name)
     name = normalize_const_name(name)
     
-    return true if self.constants_table.has_key?(name)
-    
-    current = self.direct_superclass
-    while current != nil && current != Object
+    current = self
+    while current
       return true if current.constants_table.has_key?(name)
       current = current.direct_superclass
     end
@@ -330,15 +328,9 @@ private
   def recursive_const_get(name)
     name = normalize_const_name(name)
     
-    if constant = self.constants_table[name]
-      return constant
-    end
-    
-    current = self.direct_superclass
-    while current != nil && current != Object
-      if constant = current.constants_table[name]
-        return constant
-      end
+    current = self
+    while current
+      return constant if constant = current.constants_table[name]
       current = current.direct_superclass
     end
     
