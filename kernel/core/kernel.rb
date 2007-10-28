@@ -45,23 +45,17 @@ module Kernel
   
   def Integer(obj)
     return obj.to_inum(10, true) if obj.is_a?(String)
-    
-    begin
-      Type.coerce_to(obj, Integer, :to_int)
-    rescue
-      Type.coerce_to(obj, Integer, :to_i)
-    end
+    method = obj.respond_to?(:to_int) ? :to_int : :to_i
+    Type.coerce_to(obj, Integer, method)
   end
 
   def Array(obj)
-    begin
+    if obj.respond_to?(:to_ary)
       Type.coerce_to(obj, Array, :to_ary)
-    rescue
-      begin
-        Type.coerce_to(obj, Array, :to_a)
-      rescue
-        [obj]
-      end
+    elsif obj.respond_to?(:to_a)
+      Type.coerce_to(obj, Array, :to_a)
+    else
+      [obj]
     end
   end
 
