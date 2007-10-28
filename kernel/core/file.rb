@@ -9,11 +9,11 @@ class File < IO
     R_OK = 4 # test for read permission
 
     # TODO: these flags should probably be imported from Platform
-    FNM_NOESCAPE = 0x01
-    FNM_PATHNAME = 0x02
-    FNM_DOTMATCH = 0x04
-    FNM_CASEFOLD = 0x08
-    
+    FNM_NOESCAPE = 0x01;
+    FNM_PATHNAME = 0x02;
+    FNM_DOTMATCH = 0x04;
+    FNM_CASEFOLD = 0x08;
+
     LOCK_SH  = 0x01
     LOCK_EX  = 0x02
     LOCK_NB  = 0x04
@@ -37,6 +37,12 @@ class File < IO
   end
   include Constants
 
+  # TODO: remove these when 'include Constants' works
+  FNM_NOESCAPE = 0x01;
+  FNM_PATHNAME = 0x02;
+  FNM_DOTMATCH = 0x04;
+  FNM_CASEFOLD = 0x08;
+    
   class FileError < Exception; end
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
