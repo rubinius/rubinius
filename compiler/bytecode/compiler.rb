@@ -979,22 +979,28 @@ module Bytecode
         #     ]
         # ]
         #
-        # TODO: idx can be more than a single value, e.g. x[1,2] += [a,b,c] should insert a,b,c at position 3
         obj = x.shift
         lbl = unique_lbl('asgn1_')
         operator = x.shift # :and, :or, :+, :- etc
         arg = x.shift
         arg.shift
         val = arg.shift
-        idx = arg.shift
-        huh = arg.shift
-
+        idx = [arg.shift]
+        while (huh = arg.shift) != [:nil] do
+          idx << huh
+        end
+        idx_count = idx.size
+        
         process(obj)
         add "dup"
-        idx_code = capture { process idx }
+        idx_code = idx.inject("") do |code,i|
+          capture do
+            process i
+            add "swap"
+          end << code
+        end
         @output << idx_code
-        add "swap"
-        add "send [] 1"
+        add "send [] #{idx_count}"
 
         if [:or, :and].include? operator
           add "dup"
@@ -1010,9 +1016,7 @@ module Bytecode
         add "swap"
         
         @output << idx_code
-
-        add "swap"
-        add "send []= 2"
+        add "send []= #{idx_count+1}"
         nd = unique_lbl('asgn1_')
         goto nd
 
