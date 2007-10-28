@@ -37,12 +37,6 @@ class File < IO
   end
   include Constants
 
-  # TODO: remove these when 'include Constants' works
-  FNM_NOESCAPE = 0x01;
-  FNM_PATHNAME = 0x02;
-  FNM_DOTMATCH = 0x04;
-  FNM_CASEFOLD = 0x08;
-    
   class FileError < Exception; end
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
@@ -313,7 +307,7 @@ class File < IO
 
   # FIXME: will fail a bunch if platfrom == :mswin
   def self.join(*args)
-    args = args.map { |arg| StringValue(arg) }
+    args = args.flatten.map { |arg| StringValue(arg) }
     args.join(SEPARATOR).gsub(/#{SEPARATOR}+/,SEPARATOR)    
   end
   
