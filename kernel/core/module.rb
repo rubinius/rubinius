@@ -15,7 +15,11 @@ class Module
   end
   
   def find_method_in_hierarchy(sym)
-    @method_table[sym] || Object.find_method_in_hierarchy(sym)
+    if method = @method_table[sym]
+      method
+    elsif self != Object
+      direct_superclass.find_method_in_hierarchy(sym)
+    end
   end
   
   def ancestors
@@ -37,8 +41,7 @@ class Module
   end
   
   def find_class_method_in_hierarchy(sym)
-    mc = self.metaclass
-    mc.method_table[sym] || mc.find_method_in_hierarchy(sym)
+    self.metaclass.find_method_in_hierarchy(sym)
   end
 
   def alias_method(new_name, current_name)
@@ -237,7 +240,15 @@ class Module
   end
   
   def constants
-    constants_table.keys.map { |v| v.to_s }
+    constants = self.constants_table.keys
+    current = self.direct_superclass
+    
+    while current != nil && current != Object
+      constants += current.constants_table.keys
+      current = current.direct_superclass
+    end
+    
+    constants.map { |c| c.to_s }
   end
   
   def const_defined?(name)
@@ -303,37 +314,31 @@ private
   # Right now, Class uses this methods.
   # 
   def normalize_name(name)
-    sym_name = nil
-    
     if name.respond_to?(:to_sym)
       warn 'do not use Fixnums as Symbols' if name.kind_of?(Fixnum)
       sym_name = name.to_sym
     elsif name.respond_to?(:to_str)
-      sym_name = name.to_str
-      raise TypeError, "Object#to_str should return String" unless sym_name.kind_of?(String)
-      sym_name = sym_name.to_sym
+      sym_name = StringValue(sym_name).to_sym
     end
-    
-    raise TypeError, "#{name} is not a symbol" if sym_name == nil
-    
+    raise TypeError, "#{name} is not a symbol" unless sym_name
+
     sym_name
   end
 
   # Get a constant with the given name. If the constant does not exist, return nil.
   def recursive_const_get(name)
-    if name.kind_of?(String)
-      hierarchy = name.split("::")
-      hierarchy.shift if hierarchy.first == ""
-      hierarchy.shift if hierarchy.first == "Object"
-      
-      const = self
-      hierarchy.each do |c|
-        f, v = const.constants_table.find_unambigious normalize_const_name(c)
-        return v if f
+    name = normalize_const_name(name)
+    
+    if constant = self.constants_table[name]
+      return constant
+    end
+    
+    current = self.direct_superclass
+    while current != nil && current != Object
+      if constant = current.constants_table[name]
+        return constant
       end
-    else
-      f, v = constants_table.find_unambigious normalize_const_name(name)
-      return v if f
+      current = current.direct_superclass
     end
     
     const_missing(name)
