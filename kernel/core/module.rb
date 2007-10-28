@@ -314,11 +314,12 @@ private
   # Right now, Class uses this methods.
   # 
   def normalize_name(name)
+    sym_name = nil
     if name.respond_to?(:to_sym)
       warn 'do not use Fixnums as Symbols' if name.kind_of?(Fixnum)
       sym_name = name.to_sym
     elsif name.respond_to?(:to_str)
-      sym_name = StringValue(sym_name).to_sym
+      sym_name = StringValue(name).to_sym
     end
     raise TypeError, "#{name} is not a symbol" unless sym_name
 
