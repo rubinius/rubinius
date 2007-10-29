@@ -95,8 +95,16 @@ module Kernel
       Process.replace "/bin/sh", ["-c", cmd]
     end
   end
+
+  def exec(cmd,*args)
+    if(cmd.match(/[\n*?{}\[\]<>()~\\$;'`"]/))
+      Process.replace "bin/sh", ["-c",cmd,*args]
+    else
+      Process.replace cmd,*args
+    end
+  end
   
-  def `(str)
+  def `(str) #`
     str = StringValue(str)
     read, write = IO.pipe
     pid = Process.fork
@@ -123,7 +131,6 @@ module Kernel
     end
   end
 end
-
 
 class IO
   def popen(str, mode="r")
