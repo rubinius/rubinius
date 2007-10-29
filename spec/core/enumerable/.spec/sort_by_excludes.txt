@@ -1,1 +1,0 @@
-Enumerable#sort_by should sort the object by the given attribute

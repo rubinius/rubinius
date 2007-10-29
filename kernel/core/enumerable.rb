@@ -36,7 +36,15 @@ module Enumerable
       pivot = nil
       xs.each { |o| pivot = o; break }
       return xs if pivot.nil?
-      lmr = xs.group_by { |o| yield(o, pivot) }
+
+      lmr = xs.group_by do |o|
+        if o.equal?(pivot)
+          0
+        else
+          yield(o, pivot)
+        end
+      end
+
       quicksort(lmr[-1], &prc) + lmr[0] + quicksort(lmr[1], &prc)
     end
 
