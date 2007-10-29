@@ -7,8 +7,14 @@ describe "Kernel#send" do
       def bar
         'done'
       end
+
+      private
+      def bar2
+        'done2'
+      end
     end
     KernelSpecs::Foo.new.send(:bar).should == 'done'
+    KernelSpecs::Foo.new.send(:bar2).should == 'done2'
   end
 
   it "invokes a class method if called on a class" do

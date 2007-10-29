@@ -62,6 +62,7 @@ push self
 #local meth
 #local count
 set_args
+set_call_flags 1
 send_off_stack
     ASM
   end
