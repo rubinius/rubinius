@@ -1,1 +1,0 @@
-Math#atan is accessible as a private instance method

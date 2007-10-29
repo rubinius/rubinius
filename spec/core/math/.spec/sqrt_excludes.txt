@@ -1,1 +1,0 @@
-Math#sqrt is accessible as a private instance method

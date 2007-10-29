@@ -1,1 +1,0 @@
-Math#frexp is accessible as a private instance method

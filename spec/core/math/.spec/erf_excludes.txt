@@ -1,1 +1,0 @@
-Math#erf is accessible as a private instance method

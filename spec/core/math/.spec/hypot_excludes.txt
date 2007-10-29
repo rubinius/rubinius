@@ -1,1 +1,0 @@
-Math#hypot is accessible as a private instance method

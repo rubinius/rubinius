@@ -1,1 +1,0 @@
-Math#sin is accessible as a private instance method

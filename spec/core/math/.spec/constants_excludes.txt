@@ -1,2 +1,0 @@
-Math::PI is accessible to a class that includes Math
-Math::E is accessible to a class that includes Math

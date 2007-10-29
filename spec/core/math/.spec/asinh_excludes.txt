@@ -1,1 +1,0 @@
-Math#asinh is accessible as a private instance method
