@@ -5,7 +5,28 @@ class Module
   def method_cache   ; @method_cache ; end
   def constants_table; @constants    ; end
   def parent         ; @parent       ; end
+
+  def self.new(*args)
+    mod = self.allocate
+    
+    Rubinius.module_setup_fields(mod)
+    block = Ruby.asm "push_block"
+    if block
+      mod.initialize(*args, &block)
+    else
+      mod.initialize(*args)
+    end
+    
+    mod
+  end
   
+  def initialize()
+    block = Ruby.asm "push_block"
+    instance_eval(&block) if block
+    # I think we need this for constant lookups
+    @parent = ::Object
+  end
+
   def to_s
     if @name
       @name.to_s

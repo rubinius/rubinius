@@ -1,1 +1,0 @@
-Module#method_added is called when a new method is defined in self

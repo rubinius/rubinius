@@ -1,1 +1,0 @@
-Module#include calls #append_features(self) in reversed order on each module
