@@ -1187,11 +1187,14 @@ module Bytecode
         
         # add "push_encloser"
         
-        if name.size == 2
-          under = nil
-        else
+        under = false
+        if name.size != 2
           under = name[1]
           process under
+        elsif name.first == :colon3
+          # We're opening a top-level class
+          under = true
+          add "push Object"
         end
         
         name = name.last
@@ -1246,13 +1249,16 @@ module Bytecode
         
         # add "push_encloser"
         
-        if name.size == 2
-          under = nil
-        else
+        under = false
+        if name.size != 2
           under = name[1]
           process under
+        elsif name.first == :colon3
+          # We're opening a top-level module
+          under = true
+          add "push Object"
         end
-        
+
         name = name.last
         
         if under
