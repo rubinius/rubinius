@@ -8,8 +8,9 @@ class IO
   
   BufferSize = 8096
 
-  SEEK_CUR = 1
-  SEEK_END = 2
+  SEEK_SET = Platform::POSIX.seek_set
+  SEEK_CUR = Platform::POSIX.seek_cur
+  SEEK_END = Platform::POSIX.seek_end
   
   def initialize(fd)
     @descriptor = fd
@@ -92,9 +93,8 @@ class IO
   end
   
   def close
-    unless io_close
-      raise IOError "Unable to close instance of IO"
-    end
+    raise IOError, "Instance of IO already closed" if closed?
+    io_close
   end
   
   def descriptor

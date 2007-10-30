@@ -65,7 +65,10 @@ module Platform::POSIX
   attach_function nil, 'fwrite',  [:string, :int, :int, :pointer], :int
   attach_function nil, 'ungetc',  [:int, :pointer], :int
   
-  # Dir
+  #   constants
+  attach_function nil, 'ffi_seek_set', :seek_set, [], :int
+  attach_function nil, 'ffi_seek_cur', :seek_cur, [], :int
+  attach_function nil, 'ffi_seek_end', :seek_end, [], :int
   
   #   formatted strings
   attach_function nil, 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
