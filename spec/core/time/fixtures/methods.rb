@@ -1,10 +1,11 @@
-def with_timezone(name, offset)
+def with_timezone(name, offset, daylight_saving_zone = "")
   # TZ convention is backwards
   offset = -offset
 
   zone = name.dup
   zone << offset.to_s
   zone << ":00:00"
+  zone << daylight_saving_zone
 
   old = ENV["TZ"]
   ENV["TZ"] = zone
