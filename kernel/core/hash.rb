@@ -1,4 +1,4 @@
-# depends on: enumerable.rb
+# depends on: enumerable.rb misc.rb
 
 class Hash
   include Enumerable
@@ -165,13 +165,12 @@ class Hash
     @entries == 0
   end
 
-  # FIXME: replace default = nil with default = undef as soon as undef is available
-  def fetch(key, default = nil)
+  def fetch(key, default = Undefined)
     found, val = find_unambiguous key
     return val if found
 
     return yield(key) if block_given?
-    return default if default
+    return default if default != Undefined
     raise IndexError, 'Key not found'
   end
 
