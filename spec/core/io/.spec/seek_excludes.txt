@@ -1,0 +1,3 @@
+IO#seek moves the read position relative to the current position with SEEK_CUR
+IO#seek moves the read position relative to the start with SEEK_SET
+IO#seek moves the read position relative to the end with SEEK_END
