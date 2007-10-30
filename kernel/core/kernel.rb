@@ -88,7 +88,7 @@ module Kernel
       raise TypeError, 'exception class/object expected'
     end
 
-    if $DEBUG
+    if $DEBUG and $VERBOSE != nil
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
 

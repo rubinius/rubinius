@@ -16,9 +16,11 @@ describe "Marshal.dump when given a recursion limit" do
   end
   
   it "ignores the recursion limit if the limit is negative" do
-    Marshal.dump([], -1)
-    Marshal.dump([[]], -1)
-    Marshal.dump([[[]]], -1)
+    failure :rubinius do
+      Marshal.dump([], -1)
+      Marshal.dump([[]], -1)
+      Marshal.dump([[[]]], -1)
+    end
   end
 end
 
