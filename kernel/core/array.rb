@@ -1475,9 +1475,12 @@ class Array
   
   # Exactly the same as #replace but private
   def initialize_copy(other)
+    other = Type.coerce_to other, Array, :to_ary
+
     @tuple = other.tuple.dup
     @total = other.total
-    @start = other.start    
+    @start = other.start
+    self 
   end
 
   # Reallocates the internal Tuple to accommodate at least given size
