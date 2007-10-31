@@ -9,6 +9,13 @@ describe "Array#push" do
     a.push(5)
     a.should == ["a", "b", "c", "d", "e", "f", 5]
   end
+
+  it "isn't confused by previous shift" do
+    a = [ "a", "b", "c" ]
+    a.shift
+    a.push("foo")
+    a.should == ["b", "c", "foo"]
+  end
   
   compliant :mri do
     it "raises TypeError on a frozen array if modification takes place" do
