@@ -231,6 +231,10 @@ describe "String#split with Regexp" do
     "AabB".split(/([a-z])+/).should == ["A", "b", "B"]
   end
 
+  it "does not include non-matching captures in the result array" do
+    "hello".split(/(el)|(xx)/).should == ["h", "el", "lo"]
+  end
+
   it "tries converting limit to an integer via to_int" do
     obj = Object.new
     def obj.to_int() 2 end
