@@ -31,7 +31,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
     action = :invert
-    format = 'd'
+    format = 'DottedReporter'
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
