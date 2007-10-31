@@ -1,23 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Numeric#coerce" do   
-    class String
-      def coerce(other)
-        case other
-        when Integer
-          begin
-            return other, Integer(self)
-          rescue
-            return Float(other), Float(self)
-          end
-        when Float
-          return other, Float(self)
-        else
-          super
-        end
-      end
-    end
-    
   before(:each) do 
     @integer = 1
     @float   = 2.5    
@@ -43,11 +26,11 @@ describe "Numeric#coerce" do
     @float.coerce(4294967296).should == [4294967296.0, 2.5]
   end  
  
-  it "coerce strings to strings" do 
-    3.should == 1 + "2"
-    -1.3.should_be_close((1 - "2.3"), 0.001)
-    3.5.should == 1.2 + "2.3"
-    0.should == 1 - "1"
+  it "should NOT coerce strings to numerics" do
+    should_raise(TypeError) { 1 + "2" }
+    should_raise(TypeError) { 1 - "2.3" }
+    should_raise(TypeError) { 1.2 + "2.3" }
+    should_raise(TypeError) { 1 - "1" }
   end  
   
   it "return the vaule if number is different to 0" do 
