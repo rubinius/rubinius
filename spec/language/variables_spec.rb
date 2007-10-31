@@ -634,21 +634,45 @@ describe "Multiple assignment" do
   end
 end
 
+# For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
+# Rubinius returns true as the result of the assignment, but MRI returns an array
+# containing all the elements on the rhs. As this result is never used, the cost
+# of creating and then discarding this array is avoided
 describe "Multiple assignment, array-style" do
-  it "should have the proper return value" do
-    (a,b = 5,6,7).should == [5,6,7]
-    a.should == 5
-    b.should == 6
+  compliant :mri do
+    it "returns an array of all rhs values" do
+      (a,b = 5,6,7).should == [5,6,7]
+      a.should == 5
+      b.should == 6
 
-    (c,d,*e = 99,8).should == [99,8]
-    c.should == 99
-    d.should == 8
-    e.should == []
+      (c,d,*e = 99,8).should == [99,8]
+      c.should == 99
+      d.should == 8
+      e.should == []
 
-    (f,g,h = 99,8).should == [99,8]
-    f.should == 99
-    g.should == 8
-    h.should == nil
+      (f,g,h = 99,8).should == [99,8]
+      f.should == 99
+      g.should == 8
+      h.should == nil
+    end
+  end
+
+  noncompliant :rubinius do
+    it "returns true" do
+      (a,b = 5,6,7).should == true
+      a.should == 5
+      b.should == 6
+
+      (c,d,*e = 99,8).should == true
+      c.should == 99
+      d.should == 8
+      e.should == []
+
+      (f,g,h = 99,8).should == true
+      f.should == 99
+      g.should == 8
+      h.should == nil
+    end
   end
 end
 

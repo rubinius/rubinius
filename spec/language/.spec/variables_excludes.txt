@@ -1,1 +1,0 @@
-Multiple assignment, array-style should have the proper return value

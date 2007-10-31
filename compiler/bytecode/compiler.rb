@@ -1805,6 +1805,10 @@ module Bytecode
         add "pop"
       end
       
+      # For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
+      # Rubinius returns true as the result of the assignment, but MRI returns an array
+      # containing all the elements on the rhs. As this result is never used, the cost
+      # of creating and then discarding this array is avoided
       def handle_array_masgn(lhs, splat, source)        
         lhs.shift
         source.shift
@@ -1856,7 +1860,7 @@ module Bytecode
           delta.times { add "pop" } # Never happens unless delta > 0
         end
 
-        add "push true" # masgns return true for now
+        add "push true" # masgns return true, since noone uses the array of rhs values MRI returns
       end
       
       def detect_primitive(body)
