@@ -238,7 +238,7 @@ class Array
       return ent
     end
 
-    if idx >= @tuple.fields
+    if (@start + idx) >= @tuple.fields
       nt = Tuple.new(idx + 10)
       nt.copy_from @tuple, @start
       @tuple = nt
