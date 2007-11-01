@@ -1,17 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-class Hash
-  def fetch(key, default = nil)
-    found, val = find_unambigious key
-    return val if found
-
-    return yield(key) if block_given?
-    return default if default
-    raise IndexError, 'Key not found'
-  end
-end
-
 describe "Hash#fetch" do
   it "returns the value for key" do
     { :a => 1, :b => -1 }.fetch(:b).should == -1

@@ -1,0 +1,1 @@
+Hash#merge! processes entries with same order as merge()

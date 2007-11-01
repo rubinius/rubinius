@@ -167,7 +167,7 @@ class Hash
 
   # FIXME: replace default = nil with default = undef as soon as undef is available
   def fetch(key, default = nil)
-    found, val = find_unambigious key
+    found, val = find_unambiguous key
     return val if found
 
     return yield(key) if block_given?
@@ -204,7 +204,7 @@ class Hash
   end
 
   def key?(key)
-    found, val = find_unambigious key
+    found, val = find_unambiguous key
     found
   end
   alias_method :has_key?, :key?
@@ -344,7 +344,7 @@ class Hash
   alias_method :indexes, :values_at
   alias_method :indices, :values_at
   
-  def find_unambigious(key)
+  def find_unambiguous(key)
     code, hk, val, nxt = get_by_hash key.hash, key
     return Tuple[true, val] if code
     Tuple[false, nil]
