@@ -26,11 +26,11 @@ describe "Numeric#coerce" do
     @float.coerce(4294967296).should == [4294967296.0, 2.5]
   end  
  
-  it "should NOT coerce strings to numerics" do
-    should_raise(TypeError) { 1 + "2" }
-    should_raise(TypeError) { 1 - "2.3" }
-    should_raise(TypeError) { 1.2 + "2.3" }
-    should_raise(TypeError) { 1 - "1" }
+  it "should coerce strings to numerics" do
+    @integer.coerce("1").should == [1.0, 1.0]
+    @integer.coerce("3.32").should == [3.32, 1.0]
+    @float.coerce("1").should == [1.0, 2.5]
+    @float.coerce("3.32").should == [3.32, 2.5]
   end  
   
   it "return the vaule if number is different to 0" do 
