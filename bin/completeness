@@ -11,7 +11,8 @@ end
 
 get_class_or_module = lambda do |c|
   constant = Object.const_get(c)
-  return constant if constant.is_a?(Module) or constant.is_a?(Class)
+  return constant if (constant.is_a?(Module) or constant.is_a?(Class)) and 
+    not ['OptionParser', 'SystemExit'].include?(constant.name)
 end
 
 target = 'shotgun/rubinius'
@@ -57,7 +58,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.parse ARGV
 end
 
-cmd = %(bin/mspec -t #{target} -e "%s " #{except.map { |x| "-x #{x}" }.join(' ')} -f d spec 2> /dev/null)
+cmd = %(bin/mspec -t #{target} -e '%s ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d spec 2> /dev/null)
 
 print_summary = lambda do |str, name, tab|
   examples, failures = 0, 0
@@ -101,7 +102,8 @@ tabulator = Tabulator.new
 
 constants.compact.each do |c|
   c.methods(false).sort.each do |m|
-    print_summary.call(%x(#{cmd % "#{c}.#{m}"}), "#{c}.#{m}", tabulator)
+    name = "#{c}.#{m}"
+    print_summary.call(%x(#{cmd % name}), name, tabulator)
   end
   
   (c.public_instance_methods(false) +
