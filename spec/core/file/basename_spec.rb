@@ -89,9 +89,9 @@ describe "File.basename" do
     File.basename("bar.txt", ".*").should == "bar"
     File.basename("bar.txt.exe", ".*").should == "bar.txt"
     File.basename("bar.txt.exe", ".txt.exe").should == "bar"
-    #noncompliant(:rbx) do
-    File.basename("bar.txt.exe", ".txt.*").should == "bar"
-    #end
+    noncompliant :rbx do
+      File.basename("bar.txt.exe", ".txt.*").should == "bar"
+    end
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do

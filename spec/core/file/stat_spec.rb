@@ -11,6 +11,6 @@ describe "File.stat" do
   end
 
   it "should return a File::Stat object if the given file exists" do
-    File.stat(@file).path.should == "/tmp/i_exist"
+    File.stat(@file).file?.should == true
   end
 end
