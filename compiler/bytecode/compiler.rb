@@ -1109,6 +1109,17 @@ module Bytecode
         end
       end
 
+      def process_valias(x)
+        nw = x.shift
+        curr = x.shift
+
+        add "push :#{curr}"
+        add "push :#{nw}"
+        add "push_cpath_top"
+        add "find Globals"
+        add "send add_alias 2"
+      end
+
       # TODO Need to ensure that $~ only cotains nil or MatchData
       def process_gasgn(x)
         kind = x.shift
