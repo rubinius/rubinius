@@ -95,6 +95,14 @@ class Dir
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
 
+  def each
+    while s = read
+      yield s
+    end
+
+    self
+  end
+
   def rewind
     Platform::POSIX.rewinddir(@dirptr)
     self
