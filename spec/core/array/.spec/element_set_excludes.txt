@@ -1,1 +1,0 @@
-Array#[]= with [index, count] sets elements when passed start, length
