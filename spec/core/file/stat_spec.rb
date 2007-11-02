@@ -11,6 +11,11 @@ describe "File.stat" do
   end
 
   it "should return a File::Stat object if the given file exists" do
-    File.stat(@file).file?.should == true
+    st = File.stat(@file)
+
+    st.file?.should == true
+    st.zero?.should == false
+    st.size.should == 8
+    st.size?.should == 8
   end
 end

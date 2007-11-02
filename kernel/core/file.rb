@@ -339,6 +339,42 @@ class File < IO
       "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path} kind=#{@kind}>"
     end
 
+    def size?
+      if @size == 0
+        nil
+      else
+        @size
+      end
+    end
+
+    def zero?
+      @size == 0
+    end
+
+    def blockdev?
+      @kind == :block
+    end
+
+    def chardev?
+      @kind == :char
+    end
+
+    def directory?
+      @kind == :dir
+    end
+
+    def file?
+      @kind == :file
+    end
+
+    def pipe?
+      @kind == :fifo
+    end
+
+    def socket?
+      @kind == :socket
+    end
+
     def symlink?
       @kind == :link
     end
