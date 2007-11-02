@@ -78,24 +78,29 @@ class Dir
   end
   
   def path
+    raise IOError, "closed directory" if @dirptr.nil?
+
     @path
   end
   
   def close
-    # TODO: Fix this. When using the FFI call, it double frees.
-    # I think this is happening in the DIR* internal struct
-    # In the meantime, the method def means the read specs can run,
-    # and the close specs fail instead of everything blowing up. -- KC 9/29/07
-    # Platform::POSIX.closedir(@dirptr)
+    raise IOError, "closed directory" if @dirptr.nil?
+
+    Platform::POSIX.closedir(@dirptr)
+    @dirptr = nil
   end
   
   def read
+    raise IOError, "closed directory" if @dirptr.nil?
+
     dir_entry_ptr = Platform::POSIX.readdir(@dirptr)
     return nil if dir_entry_ptr.null?
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
 
   def each
+    raise IOError, "closed directory" if @dirptr.nil?
+
     while s = read
       yield s
     end
@@ -104,20 +109,27 @@ class Dir
   end
 
   def pos
+    raise IOError, "closed directory" if @dirptr.nil?
   end
 
   alias_method :tell, :pos
 
   def pos=(position)
+    raise IOError, "closed directory" if @dirptr.nil?
+
     seek(position)
     position
   end
 
   def seek(position)
+    raise IOError, "closed directory" if @dirptr.nil?
+
     self
   end
 
   def rewind
+    raise IOError, "closed directory" if @dirptr.nil?
+
     Platform::POSIX.rewinddir(@dirptr)
     self
   end
