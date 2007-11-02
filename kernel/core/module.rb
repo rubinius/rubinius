@@ -366,6 +366,11 @@ class Module
 
 private
 
+  def remove_const(name)
+    const_missing(name) unless constants_table.has_key?(name)
+    constants_table.delete(name)
+  end
+
   def normalize_name(name)
     sym_name = nil
     if name.respond_to?(:to_sym)
