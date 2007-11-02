@@ -102,7 +102,9 @@ module Math
   end
   
   def ldexp(x, n)
-    Platform::Math.ldexp Float(x), Integer(n)
+    n = Type.coerce_to(n, Integer, :to_int)
+
+    Platform::Math.ldexp Float(x), n
   end
   
   def hypot(x, y)

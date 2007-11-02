@@ -1,2 +1,0 @@
-Math.ldexp raises an TypeError if the second argument cannot be coerced with Integer()
-Math.ldexp raises a TypeError if the second argument is nil
