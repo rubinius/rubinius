@@ -94,6 +94,11 @@ class Dir
     return nil if dir_entry_ptr.null?
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
+
+  def rewind
+    Platform::POSIX.rewinddir(@dirptr)
+    self
+  end
   
   class << self
     alias_method :pwd, :getwd
