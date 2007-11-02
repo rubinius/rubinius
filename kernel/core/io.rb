@@ -122,7 +122,7 @@ class IO
     cur = read(1)
     return nil unless cur
     out = cur
-    until out[-1] == 10
+    until out[-sep.size,sep.size] == sep
       cur = read(1)
       return out unless cur
       out << cur
@@ -146,11 +146,23 @@ class IO
   end
   
   def self.readlines(name, sep_string = $/)
-    io = open(StringValue(name), 'r')
+    io = File.open(StringValue(name), 'r')
     return if io.nil?
     
     begin
-      io.readlines
+      io.readlines(sep_string)
+    ensure
+      io.close
+    end
+  end
+  
+  def self.foreach(name, sep_string = $/,&block)
+    io = File.open(StringValue(name), 'r')
+    sep = StringValue(sep_string)
+    begin
+      while(line = io.gets(sep))
+        yield line
+      end
     ensure
       io.close
     end

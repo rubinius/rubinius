@@ -10,7 +10,7 @@ describe "IO::foreach" do
                      "Aqu\303\255 est\303\241 la l\303\255nea tres.\n", "Ist hier Linie vier.\n", 
                      "Est\303\241 aqui a linha cinco.\n", "Here is line six.\n"]
   end  
-  it "yields a sequence of Strings that were separated by I" do
+  it "yields a sequence of Strings that were separated by r" do
     lines = []
     IO::foreach(File.dirname(__FILE__) + '/fixtures/readlines.txt','r') do |line|
       lines << line
