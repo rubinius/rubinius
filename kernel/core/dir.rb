@@ -74,6 +74,11 @@ class Dir
   
   def initialize(path)
     @dirptr = Platform::POSIX.opendir(path)
+
+    if @dirptr.null?
+      Errno.handle "Couldn't open directory #{path}"
+    end
+
     @path = path
   end
   
