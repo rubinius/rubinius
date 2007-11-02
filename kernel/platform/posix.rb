@@ -44,7 +44,7 @@ module Platform::POSIX
   #   opening/closing
   attach_function nil, 'fdopen', [:int, :string], :pointer
   attach_function nil, 'fopen',  [:string, :string], :pointer
-  attach_function nil, 'fclose', [:int, :pointer], :int
+  attach_function nil, 'fclose', [:pointer], :int
   
   #   buffering
   attach_function nil, 'fflush', [:pointer], :int
