@@ -1,2 +1,0 @@
-Dir.entries returns an Array of filenames in an existing directory including dotfiles
-Dir.entries raises a SystemCallError if called with a nonexistent diretory

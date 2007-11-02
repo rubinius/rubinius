@@ -75,6 +75,18 @@ class Dir
       return dir
     end
   end
+
+  def self.entries(path)
+    ret = []
+
+    self.open(path) do |dir|
+      while s = dir.read
+        ret << s
+      end
+    end
+
+    ret
+  end
   
   def initialize(path)
     @dirptr = Platform::POSIX.opendir(path)
