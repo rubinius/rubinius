@@ -64,8 +64,12 @@ class Dir
   def self.open(path)
     dir = self.new(path)
     if block_given?
-      value = yield dir
-      dir.close
+      begin
+        value = yield dir
+      ensure
+        dir.close
+      end
+
       return value
     else
       return dir
