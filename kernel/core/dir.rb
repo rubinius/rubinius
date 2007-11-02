@@ -88,6 +88,16 @@ class Dir
     ret
   end
   
+  def self.foreach(path)
+    self.open(path) do |dir|
+      while s = dir.read
+        yield s
+      end
+    end
+
+    nil
+  end
+
   def initialize(path)
     @dirptr = Platform::POSIX.opendir(path)
 
