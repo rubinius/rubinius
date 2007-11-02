@@ -103,6 +103,20 @@ class Dir
     self
   end
 
+  def pos
+  end
+
+  alias_method :tell, :pos
+
+  def pos=(position)
+    seek(position)
+    position
+  end
+
+  def seek(position)
+    self
+  end
+
   def rewind
     Platform::POSIX.rewinddir(@dirptr)
     self
