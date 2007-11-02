@@ -102,7 +102,7 @@ class File < IO
     st.kind == :char
   end
   
-  def self.fifo?(path)
+  def self.pipe?(path)
     st = Stat.stat(StringValue(path), true)
     return false unless st.kind_of? Stat
     st.kind == :fifo
