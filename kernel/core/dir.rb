@@ -46,6 +46,7 @@ class Dir
     if error != 0
       Errno.handle "Couldn't make directory #{path}"
     end
+    error
   end
   
   def self.rmdir(path)
