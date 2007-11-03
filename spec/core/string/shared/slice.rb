@@ -1,4 +1,4 @@
-@string_slice = shared "String#slice" do |cmd|
+shared :string_slice do |cmd|
   describe "String##{cmd} with index" do
     it "returns the character code of the character at idx" do
       "hello".send(cmd, 0).should == ?h

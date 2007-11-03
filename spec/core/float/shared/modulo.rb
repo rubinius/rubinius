@@ -1,4 +1,4 @@
-@float_modulo = shared "Float#%" do |cmd|
+shared :float_modulo do |cmd|
   describe "Float##{cmd}" do
     it "returns self modulo other" do
       6543.21.send(cmd, 137).should_be_close(104.21, TOLERANCE)

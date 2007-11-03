@@ -1,4 +1,4 @@
-@kernel_lambda = shared "Kernel#lambda" do |cmd|
+shared :kernel_lambda do |cmd|
   describe "Kernel.#{cmd}" do
     it "should return a Proc object" do
       send(cmd) { true }.kind_of?(Proc).should == true

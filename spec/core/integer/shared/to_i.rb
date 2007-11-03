@@ -1,4 +1,4 @@
-@integer_to_i = shared "Integer#to_i" do |cmd|
+shared :integer_to_i do |cmd|
   describe "Integer##{cmd}" do
     it "returns self" do
       a = 1

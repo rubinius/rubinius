@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/common'
 require File.dirname(__FILE__) + '/shared/glob'
 
 describe "Dir.glob" do
-  it_behaves_like(@dir_glob, :glob)
+  it_behaves_like(:dir_glob, :glob)
   
   before(:all) do
     @cwd = Dir.pwd

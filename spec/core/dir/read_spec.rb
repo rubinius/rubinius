@@ -13,5 +13,5 @@ describe "Dir#read" do
 end
 
 describe "Dir#read" do
-  it_behaves_like @dir_closed, :read
+  it_behaves_like :dir_closed, :read
 end

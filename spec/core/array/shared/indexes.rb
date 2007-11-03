@@ -1,4 +1,4 @@
-@array_indexes = shared "Array#indexes" do |cmd|
+shared :array_indexes do |cmd|
   describe "Array##{cmd}" do
     it "returns elements at integer argument indexes (DEPRECATED)" do
       array = [1, 2, 3, 4, 5]

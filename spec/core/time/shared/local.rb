@@ -1,4 +1,4 @@
-@time_local = shared "Time.local" do |cmd|
+shared :time_local do |cmd|
   describe "Time.#{cmd}" do
     it "local should create a time based on given values, interpreted in the local time zone" do
       with_timezone("PST", -8) do

@@ -1,4 +1,4 @@
-@string_succ = shared "String#succ" do |cmd|
+shared :string_succ do |cmd|
   describe "String##{cmd}" do
     it "returns an empty string for empty strings" do
       "".send(cmd).should == ""
@@ -72,7 +72,7 @@
   end
 end
 
-@string_succ_bang = shared "String#succ!" do |cmd|
+shared :string_succ_bang do |cmd|
   describe "String##{cmd}" do
     it "is equivalent to succ, but modifies self in place (still returns self)" do
       ["", "abcd", "THX1138"].each do |s|

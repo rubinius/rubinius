@@ -1,4 +1,4 @@
-@regexp_match = shared "Regexp#=~" do |cmd|
+shared :regexp_match do |cmd|
   describe "Regexp##{cmd}" do
     it "returns the first position of the match" do
       (/(.)(.)(.)/ =~ "abc").should == 0

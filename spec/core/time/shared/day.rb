@@ -1,4 +1,4 @@
-@time_day = shared "Time#day" do |cmd|
+shared :time_day do |cmd|
   describe "Time##{cmd}" do
     it "returns the day of the month (1..n) for time" do
       with_timezone("CET", 1) do

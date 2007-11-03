@@ -1,4 +1,4 @@
-@enumerable_find = shared "Enumerable#find" do |cmd|
+shared :enumerable_find do |cmd|
   describe "Enumerable##{cmd}" do 
     # #detect and #find are aliases, so we only need one function 
     before :each do

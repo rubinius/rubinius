@@ -1,4 +1,4 @@
-@module_class_eval = shared "Module#class_eval" do |cmd|
+shared :module_class_eval do |cmd|
   describe "Module##{cmd}(string, filename, lineno, &block)" do
     it "evaluates a given string in the context of self" do
       ModuleSpecs.send(cmd, "self").should == ModuleSpecs

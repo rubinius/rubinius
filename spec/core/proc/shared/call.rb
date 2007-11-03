@@ -1,4 +1,4 @@
-@proc_call = shared "Proc#call" do |cmd|
+shared :proc_call do |cmd|
   describe "Proc##{cmd}" do
     it "invokes self" do
       Proc.new { "test!" }.send(cmd).should == "test!"

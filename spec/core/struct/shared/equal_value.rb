@@ -1,4 +1,4 @@
-@struct_equal_value = shared "Struct#==" do |cmd|
+shared :struct_equal_value do |cmd|
   describe "Struct##{cmd}" do
     
     it "returns true if the other is the same object" do

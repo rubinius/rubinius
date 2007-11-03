@@ -1,4 +1,4 @@
-@getoptlong_get = shared "GetoptLong#get" do |cmd|
+shared :getoptlong_get do |cmd|
   describe "GetoptLong##{cmd}" do
     before(:each) do
       @opts = GetoptLong.new(

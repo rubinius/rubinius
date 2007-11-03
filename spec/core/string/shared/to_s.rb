@@ -1,4 +1,4 @@
-@string_to_s = shared "String#to_s" do |cmd|
+shared :string_to_s do |cmd|
   it "returns self when self.class == String" do
     a = "a string"
     a.equal?(a.send(cmd)).should == true

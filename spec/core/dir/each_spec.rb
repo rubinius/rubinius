@@ -28,5 +28,5 @@ describe "Dir#each" do
 end
 
 describe "Dir#each" do
-  it_behaves_like @dir_closed, :each
+  it_behaves_like :dir_closed, :each
 end

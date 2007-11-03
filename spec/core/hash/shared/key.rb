@@ -1,4 +1,4 @@
-@hash_key_p = shared "Hash#key?" do |cmd|
+shared :hash_key_p do |cmd|
   describe "Hash##{cmd}" do
     it "returns true if argument is a key" do
       h = { :a => 1, :b => 2, :c => 3, 4 => 0 }

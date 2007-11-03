@@ -1,4 +1,4 @@
-@hash_iteration_method = shared "Iteration method" do |cmd|
+shared :hash_iteration_method do |cmd|
   # These are the only ones that actually have the exceptions on MRI 1.8.
   # sort and reject don't raise!
   # 
@@ -32,7 +32,7 @@
   end
 end
 
-@hash_iteration_modifying = shared "Iteration modifying" do |cmd|
+shared :hash_iteration_modifying do |cmd|
   describe "Hash##{cmd}" do
     hsh = {1 => 2, 3 => 4, 5 => 6}  
     big_hash = {}
@@ -56,7 +56,7 @@ end
   end
 end
 
-@hash_iteration_no_block = shared "Iteration without a block" do |cmd|
+shared :hash_iteration_no_block do |cmd|
   describe "Hash##{cmd}" do
     hsh = {1 => 2, 3 => 4, 5 => 6}  
     empty = {}

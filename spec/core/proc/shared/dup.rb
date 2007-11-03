@@ -1,4 +1,4 @@
-@proc_dup = shared "Proc#dup" do |cmd|
+shared :proc_dup do |cmd|
   describe "Proc##{cmd}" do
     it "returns a copy of self" do
       a = lambda { "hello" }

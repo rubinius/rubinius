@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/shared/match'
 
 describe "Regexp#=~" do
-  it_behaves_like(@regexp_match, :=~)
+  it_behaves_like(:regexp_match, :=~)
 end
 
 describe "Regexp#match" do
-  it_behaves_like(@regexp_match, :match)
+  it_behaves_like(:regexp_match, :match)
 end
 
 describe "Regexp#~" do

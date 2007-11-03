@@ -1,4 +1,4 @@
-@range_end = shared "Range#end" do |cmd|
+shared :range_end do |cmd|
   describe "Range##{cmd}" do
     it "end returns the last element of self" do
       (-1..1).send(cmd).should == 1

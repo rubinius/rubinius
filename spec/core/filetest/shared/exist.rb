@@ -1,4 +1,4 @@
-@filetest_exist = shared "FileTest.exist?" do |cmd|
+shared :filetest_exist do |cmd|
   describe "FileTest.#{cmd}" do
     it "return true if the file exist" do
       FileTest.exist?(__FILE__).should == true

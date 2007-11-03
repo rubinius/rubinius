@@ -4,5 +4,5 @@ require File.dirname(__FILE__) + '/shared/closed'
 require File.dirname(__FILE__) + '/shared/pos'
 
 describe "Dir#pos" do
-  it_behaves_like @dir_closed, :pos
+  it_behaves_like :dir_closed, :pos
 end

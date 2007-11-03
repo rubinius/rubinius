@@ -1,4 +1,4 @@
-@dir_pos = shared "Dir#pos" do |cmd|
+shared :dir_pos do |cmd|
   describe "Dir##{cmd}" do
     before :each do
       @dir = Dir.open mock_dir

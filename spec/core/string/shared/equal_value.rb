@@ -1,4 +1,4 @@
-@string_equal_value = shared "String#==" do |cmd|
+shared :string_equal_value do |cmd|
   describe "String##{cmd} with String" do
     it "returns true if self <=> string returns 0" do
       'hello'.send(cmd, 'hello').should == true

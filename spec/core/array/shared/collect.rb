@@ -1,4 +1,4 @@
-@array_collect = shared "Array#collect" do |cmd|
+shared :array_collect do |cmd|
   describe "Array##{cmd}" do
     it "returns a copy of array with each element replaced by the value returned by block" do
       a = ['a', 'b', 'c', 'd']
@@ -12,7 +12,7 @@
   end
 end
 
-@array_collect_b = shared "Array#collect!" do |cmd|
+shared :array_collect_b do |cmd|
   describe "Array##{cmd}" do
     it "replaces each element with the value returned by block" do
       a = [7, 9, 3, 5]

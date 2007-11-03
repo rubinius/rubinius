@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 require File.dirname(__FILE__) + '/shared/slice.rb'
 
 describe "String#slice" do
-  it_behaves_like(@string_slice, :slice)
+  it_behaves_like(:string_slice, :slice)
 end
 
 describe "String#slice! with index" do

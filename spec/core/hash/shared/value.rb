@@ -1,4 +1,4 @@
-@hash_value_p = shared "Hash#value?" do |cmd|
+shared :hash_value_p do |cmd|
   describe "Hash##{cmd}" do
     it "returns true if the value exists in the hash" do
       {:a => :b}.send(cmd, :a).should == false

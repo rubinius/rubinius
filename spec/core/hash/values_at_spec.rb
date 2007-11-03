@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-@hash_values_at = shared "Hash#values_at" do |cmd|
+shared :hash_values_at do |cmd|
   describe "Hash##{cmd}" do
     it "returns an array of values for the given keys" do
       h = {:a => 9, :b => 'a', :c => -10, :d => nil}
@@ -14,5 +14,5 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 end
 
 describe "Hash#values_at" do
-  it_behaves_like(@hash_values_at, :values_at)
+  it_behaves_like(:hash_values_at, :values_at)
 end

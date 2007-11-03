@@ -1,4 +1,4 @@
-@hash_length = shared "Hash#length" do |cmd|
+shared :hash_length do |cmd|
   describe "Hash##{cmd}" do
     it "returns the number of entries" do
       {:a => 1, :b => 'c'}.send(cmd).should == 2

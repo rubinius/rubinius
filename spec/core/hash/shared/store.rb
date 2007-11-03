@@ -1,4 +1,4 @@
-@hash_store = shared "Hash#store" do |cmd|
+shared :hash_store do |cmd|
   describe "Hash##{cmd}" do
     it "associates the key with the value and return the value" do
       h = { :a => 1 }

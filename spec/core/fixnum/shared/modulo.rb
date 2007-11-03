@@ -1,4 +1,4 @@
-@fixnum_modulo = shared "Fixnum#%" do |cmd|
+shared :fixnum_modulo do |cmd|
   describe "Fixnum##{cmd}" do
     it "returns the modulus obtained from dividing self by the given argument" do
       13.send(cmd, 4).should == 1

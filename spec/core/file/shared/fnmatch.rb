@@ -1,4 +1,4 @@
-@file_fnmatch = shared "File.fnmatch" do |cmd|
+shared :file_fnmatch do |cmd|
   describe "File.#{cmd}" do
     it "matches entire strings" do
       File.send(cmd, 'cat', 'cat').should == true

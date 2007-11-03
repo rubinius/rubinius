@@ -1,4 +1,4 @@
-@string_each = shared "String#each" do |cmd|
+shared :string_each do |cmd|
   describe "String##{cmd}" do
     it "splits self using the supplied record separator and passes each substring to the block" do
       a = []

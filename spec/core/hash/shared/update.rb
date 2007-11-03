@@ -1,4 +1,4 @@
-@hash_update = shared "Hash#update" do |cmd|
+shared :hash_update do |cmd|
   describe "Hash##{cmd}" do
     it "adds the entries from other, overwriting duplicate keys. Returns self" do
       h = { :_1 => 'a', :_2 => '3' }

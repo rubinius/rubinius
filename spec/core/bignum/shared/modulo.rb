@@ -1,4 +1,4 @@
-@bignum_modulo = shared "Bignum#modulo" do |cmd|
+shared :bignum_modulo do |cmd|
   describe "Bignum##{cmd}" do
     before(:each) do
       @bignum = BignumHelper.sbm

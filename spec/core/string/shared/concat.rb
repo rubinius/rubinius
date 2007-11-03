@@ -1,4 +1,4 @@
-@string_concat = shared "String#concat" do |cmd|
+shared :string_concat do |cmd|
   describe "String##{cmd}" do
     it "concatenates the given argument to self and returns self" do
       str = 'hello '

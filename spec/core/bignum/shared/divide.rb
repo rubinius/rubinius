@@ -1,4 +1,4 @@
-@bignum_divide = shared "Bignum#/" do |cmd|
+shared :bignum_divide do |cmd|
   describe "Bignum##{cmd}" do
     before(:each) do
       @bignum = BignumHelper.sbm(88)

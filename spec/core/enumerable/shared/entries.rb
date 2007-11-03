@@ -1,4 +1,4 @@
-@enumerable_entries = shared "Enumerable#entries" do |cmd|
+shared :enumerable_entries do |cmd|
   describe "Enumerable##{cmd}" do
     before :each do
       @a = EachDefiner.new( 2, 4, 6, 8, 10 )

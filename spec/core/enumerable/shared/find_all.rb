@@ -1,4 +1,4 @@
-@enumerable_find_all = shared "Enumerable#find_all" do |cmd|
+shared :enumerable_find_all do |cmd|
   describe "Enumerable##{cmd}" do 
     # #find_all and #select are aliases, so we only need one function
     # that tests both cmds

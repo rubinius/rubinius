@@ -23,5 +23,5 @@ describe "Array[]" do
 end
 
 describe "Array#[]" do
-  it_behaves_like(@array_slice, :[])
+  it_behaves_like(:array_slice, :[])
 end

@@ -1,4 +1,4 @@
-@regexp_new = shared "Regexp.new" do |cmd|
+shared :regexp_new do |cmd|
   describe "Regexp.#{cmd}" do
     it "new should create a new regular expression object" do
       Regexp.send(cmd, '').is_a?(Regexp).should == true

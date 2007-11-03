@@ -337,15 +337,17 @@ class SpecRunner
 
     @reporter.before_it(msg)
     begin
-      @before.each { |b| b.call }
-      yield
-      Mock.verify  
+      begin
+        @before.each { |b| b.call }
+        yield
+        Mock.verify  
+      ensure
+        Mock.cleanup
+        Mock.reset
+        @after.each { |b| b.call }
+      end
     rescue Exception => e
       @reporter.exception(e)
-    ensure
-      Mock.cleanup
-      Mock.reset
-      @after.each { |b| b.call }
     end
     @reporter.after_it(msg)
   end
