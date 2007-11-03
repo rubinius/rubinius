@@ -1,0 +1,4 @@
+IO#gets assigns the returned line to $_
+IO#gets returns the entire content if the separator is nil
+IO#gets returns the next paragraph if the separator's length is 0
+IO#gets throw exception if the stream is not opened for reading
