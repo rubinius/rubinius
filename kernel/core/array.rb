@@ -1392,27 +1392,20 @@ class Array
   
   
   def unshift(*values)
-    if(values.empty?)
-      return self
-    else
-      if @start > 0
-        @start -= values.size
-        @total += values.size
-        values.each_with_index do |val,i|
-          @tuple.put @start+i, val
-        end
-        return self
-      end
-      
-      @tuple = @tuple.shifted(values.size)
-      
-      values.each_with_index do |val,i|
-        @tuple.put i, val
-      end
-      
-      @total += values.size
-      return self
+    while values.size > 0 && @start > 0
+      @start -= 1
+      @total += 1
+      @tuple.put @start, values.pop
     end
+
+    @tuple = @tuple.shifted(values.size)
+
+    values.each_with_index do |val, i|
+      @tuple.put i, val
+    end
+
+    @total += values.size
+    self
   end
   
 
