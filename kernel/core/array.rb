@@ -238,12 +238,8 @@ class Array
       return ent
     end
 
-    if (@start + idx) >= @tuple.fields
-      nt = Tuple.new(idx + 10)
-      nt.copy_from @tuple, @start
-      @tuple = nt
-      @start = 0
-    end
+    nt = @start + idx + 1
+    reallocate(nt) if @tuple.size < nt
 
     @tuple.put @start + idx, ent
     if idx >= @total - 1
