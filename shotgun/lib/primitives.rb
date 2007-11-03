@@ -823,9 +823,14 @@ class ShotgunPrimitives
     POP(t1, FIXNUM);
 
     j = FIXNUM_TO_INT(t1);
-    t2 = tuple_new(state, NUM_FIELDS(self) + j);
-    object_copy_fields_shifted(state, self, t2, j);
-    stack_push(t2); 
+    if (!j)
+      t2 = self;
+    else {
+      t2 = tuple_new(state, NUM_FIELDS(self) + j);
+      object_copy_fields_shifted(state, self, t2, j);
+    }
+
+    stack_push(t2);
     CODE
   end
 
