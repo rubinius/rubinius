@@ -133,7 +133,11 @@ $VERBOSE=nil
   cname = "\#{f}c"
   File.delete(cname) if #{clean} and File.exist?(cname)
   STDERR.puts f if #{verbose}
-  load f
+  begin
+    load f
+  rescue Exception => e
+    puts "Bummer \#{e} on \#{f}"
+  end
 end
 @runner.reporter.summary
 EOC
