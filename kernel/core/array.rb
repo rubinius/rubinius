@@ -1090,9 +1090,7 @@ class Array
   # Appends the given object(s) to the Array and returns
   # the modified self.
   def push(*args)
-    return self if args.empty?
-
-    args.each { |ent| self[@total] = ent }
+    args.each { |ent| self << ent }
     self
   end 
 
