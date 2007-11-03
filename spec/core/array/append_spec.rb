@@ -20,6 +20,13 @@ describe "Array#<<" do
     a.size.should == 1
     a << :bar << :baz
     a.size.should == 3
+
+    a = [1, 2, 3]
+    a.shift
+    a.shift
+    a.shift
+    a << :foo
+    a.should == [:foo]
   end  
 
   compliant :mri do

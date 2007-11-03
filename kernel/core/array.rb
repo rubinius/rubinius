@@ -251,7 +251,7 @@ class Array
   # Appends the object to the end of the Array.
   # Returns self so several appends can be chained.
   def <<(obj)
-    nt = @total + 1
+    nt = @start + @total + 1
     reallocate nt if @tuple.size < nt
     @tuple.put @start + @total, obj
     @total += 1
