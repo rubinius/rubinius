@@ -3,6 +3,7 @@ Kernel.at_exit should fire after all other code
 Kernel.at_exit should fire in reverse order of registration
 Kernel.rand is seeded uniquely at startup
 Kernel#puts ignores the $/ separator global
+Kernel#exec should raise a SystemCallError if cmd cannot execute
 IO#puts ignores the $/ separator global
 Module#autoload does not autoload when the specified constant was already set
 Module#class_variables returns an array with the names of class variables of self and self
@@ -18,3 +19,5 @@ Module#autoload registers the given filename to be loaded the first time that th
 Thread#join raises any exceptions encountered in the thread body
 The loop expression restarts the current iteration with redo
 IO#gets raises IOError if the stream is not opened for reading
+Enumerable#detect find should be a synonym for detect
+Enumerable#find find should be a synonym for detect
