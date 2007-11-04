@@ -895,7 +895,7 @@ inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OB
   
 #if USE_INLINE_CACHING
   /* Update the inline cache. */
-  if(cache != Qnil) {
+  if(cache != Qnil && !missing) {
     if(ic == Qnil) {
       ic = icache_allocate(state);
       icache_set_class(ic, cls);

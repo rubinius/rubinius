@@ -208,13 +208,27 @@ class PositiveExpectation
   
   def ==(other)
     unless @obj == other
-      raise ExpectationNotMetError.new("Expected #{@obj.inspect} to equal #{other.inspect}")
+      obj = @obj.inspect
+      oth = other.inspect
+
+      if obj.size > 20 or oth.size > 20
+        raise ExpectationNotMetError.new("Expected #{obj}\nto equal #{oth}")
+      else
+        raise ExpectationNotMetError.new("Expected #{obj} to equal #{oth}")
+      end
     end
   end
   
   def =~(other)
     unless @obj =~ other
-      raise ExpectationNotMetError.new("Expected #{@obj.inspect} to match #{other.inspect}")
+      obj = @obj.inspect
+      oth = other.inspect
+
+      if obj.size > 20 or oth.size > 20
+        raise ExpectationNotMetError.new("Expected #{obj}\n to match #{oth}")
+      else
+        raise ExpectationNotMetError.new("Expected #{obj} to match #{oth}")
+      end
     end
   end
 end
