@@ -289,11 +289,12 @@ describe Compiler do
   
   it "compiles a hash literal" do
     gen [:hash, [:fixnum, 12], [:fixnum, 13], [:fixnum, 14], [:fixnum, 15]] do |g|
-      g.push 13
-      g.push 12
       g.push 15
       g.push 14
-      g.make_hash 2
+      g.push 13
+      g.push 12
+      g.push "Hash"
+      g.send :[], 4
     end
   end
   

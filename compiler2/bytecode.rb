@@ -192,20 +192,18 @@ class Compiler::Node
   # TESTED  
   class HashLiteral
     def bytecode(g)
-      i = 0
-      count = 0
-      while i < @body.size
-        k = @body[i]
-        v = @body[i + 1]
-        
+      count = @body.size
+
+      until @body.empty?
+        v = @body.pop
+        k = @body.pop
+
         v.bytecode(g)
         k.bytecode(g)
-        
-        i += 2
-        count += 1
       end
       
-      g.make_hash count
+      g.push "Hash"
+      g.send :[], count
     end
   end
   
