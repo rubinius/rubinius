@@ -21,6 +21,19 @@ def check_git_ver
 end
 
 namespace :git do
+
+  desc "Switch to the commiter URL"
+  task :committer do
+    sh "git config remote.origin.url git@git.rubini.us:code"
+    puts "\nYou're now accessing rubinius via the committer URL." 
+  end
+
+  desc "Switch to the anonymous URL"
+  task :anon do
+    sh "git config remote.origin.url git://git.rubini.us/code"
+    puts "\nYou're now accessing rubinius via the anonymous URL."
+  end
+
   desc "Show the current status of the checkout"
   task :status do
     system "git status"
