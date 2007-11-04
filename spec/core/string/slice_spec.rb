@@ -23,13 +23,15 @@ describe "String#slice! with index" do
     a.should == "hello"
   end
 
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) { "hello".freeze.slice!(1) }
-  end
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      should_raise(TypeError) { "hello".freeze.slice!(1) }
+    end
   
-  it "doesn't raise a TypeError if self is frozen and idx is outside of self" do
-    "hello".freeze.slice!(10)
-    "".freeze.slice!(0)
+    it "doesn't raise a TypeError if self is frozen and idx is outside of self" do
+      "hello".freeze.slice!(10)
+      "".freeze.slice!(0)
+    end
   end
   
   version '1.8.6' do
@@ -105,17 +107,19 @@ describe "String#slice! with index, length" do
     a.should == "hello"
   end
 
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) { "hello".freeze.slice!(1, 2) }
-  end
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      should_raise(TypeError) { "hello".freeze.slice!(1, 2) }
+    end
   
-  it "doesn't raise a TypeError if self is frozen but the given position is out of self" do
-    "hello".freeze.slice!(10, 3)
-    "hello".freeze.slice!(-10, 3)
-  end
+    it "doesn't raise a TypeError if self is frozen but the given position is out of self" do
+      "hello".freeze.slice!(10, 3)
+      "hello".freeze.slice!(-10, 3)
+    end
 
-  it "doesn't raise a TypeError if self is frozen but length is negative" do
-    "hello".freeze.slice!(4, -3)
+    it "doesn't raise a TypeError if self is frozen but length is negative" do
+      "hello".freeze.slice!(4, -3)
+    end
   end
   
   it "calls to_int on idx and length" do
@@ -210,12 +214,14 @@ describe "String#slice! Range" do
     a.slice!(range_incl).should == "OO"
   end
 
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) { "hello".freeze.slice!(1..3) }
-  end
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      should_raise(TypeError) { "hello".freeze.slice!(1..3) }
+    end
   
-  it "doesn't raise a TypeError if self is frozen but the given range is out of self" do
-    "hello".freeze.slice!(10..20).should == nil
+    it "doesn't raise a TypeError if self is frozen but the given range is out of self" do
+      "hello".freeze.slice!(10..20).should == nil
+    end
   end
 end
 
@@ -274,12 +280,14 @@ describe "String#slice! with Regexp" do
     $~.should == nil
   end
   
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
-  end
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
+    end
   
-  it "doesn't raise a TypeError if self is frozen but there is no match" do
-    "this is a string".freeze.slice!(/zzz/).should == nil
+    it "doesn't raise a TypeError if self is frozen but there is no match" do
+      "this is a string".freeze.slice!(/zzz/).should == nil
+    end
   end
 end
 
@@ -356,16 +364,18 @@ describe "String#slice! with Regexp, index" do
     $~.should == nil
   end
   
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
-  end
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
+    end
   
-  it "doesn't raise a TypeError if self is frozen but there is no match" do
-    "this is a string".freeze.slice!(/zzz/, 0).should == nil
-  end
+    it "doesn't raise a TypeError if self is frozen but there is no match" do
+      "this is a string".freeze.slice!(/zzz/, 0).should == nil
+    end
 
-  it "doesn't raise a TypeError if self is frozen but there is no capture for idx" do
-    "this is a string".freeze.slice!(/(.)/, 2).should == nil
+    it "doesn't raise a TypeError if self is frozen but there is no capture for idx" do
+      "this is a string".freeze.slice!(/(.)/, 2).should == nil
+    end
   end
 end
 
@@ -418,11 +428,13 @@ describe "String#slice! with String" do
     r.class.should == MyString
   end
 
-  it "raises a TypeError if self is frozen" do
-    should_raise(TypeError) { "hello hello".freeze.slice!('llo') }
-  end
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      should_raise(TypeError) { "hello hello".freeze.slice!('llo') }
+    end
   
-  it "doesn't raise a TypeError if self is frozen but self does not contain other" do
-    "this is a string".freeze.slice!('zzz').should == nil
+    it "doesn't raise a TypeError if self is frozen but self does not contain other" do
+      "this is a string".freeze.slice!('zzz').should == nil
+    end
   end
 end

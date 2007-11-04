@@ -14,9 +14,11 @@ describe "Module#class_variable_set" do
     c.send(:class_variable_get, :@@test3).should == "test3"
   end
   
-  it "raises a TypeError when self is frozen" do
-    should_raise(TypeError) { Class.new.freeze.send(:class_variable_set, :@@test, "test") }
-    should_raise(TypeError) {  Module.new.freeze.send(:class_variable_set, :@@test, "test") }
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      should_raise(TypeError) { Class.new.freeze.send(:class_variable_set, :@@test, "test") }
+      should_raise(TypeError) {  Module.new.freeze.send(:class_variable_set, :@@test, "test") }
+    end
   end
   
   it "raises a NameError when the given name is not allowed" do

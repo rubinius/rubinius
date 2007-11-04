@@ -30,10 +30,12 @@ describe "String#lstrip!" do
     a.should == "hello"
   end
   
-  it "raises a TypeError if self is frozen" do
-    "hello".freeze.lstrip! # ok, nothing changed
-    "".freeze.lstrip! # ok, nothing changed
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      "hello".freeze.lstrip! # ok, nothing changed
+      "".freeze.lstrip! # ok, nothing changed
 
-    should_raise(TypeError) { "  hello  ".freeze.lstrip! }
+      should_raise(TypeError) { "  hello  ".freeze.lstrip! }
+    end
   end
 end

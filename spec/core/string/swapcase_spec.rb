@@ -40,10 +40,12 @@ describe "String#swapcase!" do
     "".swapcase!.should == nil
   end
   
-  it "raises a TypeError when self is frozen" do
-    ["", "hello"].each do |a|
-      a.freeze
-      should_raise(TypeError) { a.swapcase! }
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      ["", "hello"].each do |a|
+        a.freeze
+        should_raise(TypeError) { a.swapcase! }
+      end
     end
   end
 end

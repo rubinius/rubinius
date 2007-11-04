@@ -82,9 +82,11 @@ shared :string_succ_bang do |cmd|
       end
     end
     
-    it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "".freeze.send(cmd) }
-      should_raise(TypeError) { "abcd".freeze.send(cmd) }
+    compliant :mri, :jruby do
+      it "raises a TypeError if self is frozen" do
+        should_raise(TypeError) { "".freeze.send(cmd) }
+        should_raise(TypeError) { "abcd".freeze.send(cmd) }
+      end
     end
   end
 end

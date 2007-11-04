@@ -98,11 +98,13 @@ describe "String#[]= with index" do
     should_raise(TypeError) { "hi"[0] = obj }
   end
   
-  it "raises a TypeError when self is frozen" do
-    a = "hello"
-    a.freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      a = "hello"
+      a.freeze
     
-    should_raise(TypeError) { a[0] = ?b }
+      should_raise(TypeError) { a[0] = ?b }
+    end
   end
 end
 
@@ -138,11 +140,13 @@ describe "String#[]= with String" do
     should_raise(IndexError) { ""[-1] = "bam" }
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "hello"
-    a.freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      a = "hello"
+      a.freeze
     
-    should_raise(TypeError) { a[0] = "bam" }
+      should_raise(TypeError) { a[0] = "bam" }
+    end
   end
 
   version '1.8.4'..'1.8.5' do

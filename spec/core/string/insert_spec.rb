@@ -63,9 +63,11 @@ describe "String#insert with index, other" do
     should_raise(TypeError) { "abcd".insert(-6, Object.new) }
   end
   
-  it "raises a TypeError if self is frozen" do
-    str = "abcd".freeze
-    should_raise(TypeError) { str.insert(4, '') }
-    should_raise(TypeError) { str.insert(4, 'X') }
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      str = "abcd".freeze
+      should_raise(TypeError) { str.insert(4, '') }
+      should_raise(TypeError) { str.insert(4, 'X') }
+    end
   end
 end

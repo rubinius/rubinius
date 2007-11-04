@@ -140,13 +140,15 @@ describe "String#chomp! with seperator" do
     "hello".chomp!(nil).should == nil
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "string\n\r"
-    a.freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      a = "string\n\r"
+      a.freeze
 
-    should_raise(TypeError) { a.chomp! }
+      should_raise(TypeError) { a.chomp! }
 
-    a.chomp!(nil) # ok, no change
-    a.chomp!("x") # ok, no change
+      a.chomp!(nil) # ok, no change
+      a.chomp!("x") # ok, no change
+    end
   end
 end

@@ -315,13 +315,15 @@ describe "String#gsub! with pattern, replacement" do
     a.should == "hello"
   end
   
-  it "raises a TypeError when self is frozen" do
-    s = "hello"
-    s.freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      s = "hello"
+      s.freeze
     
-    s.gsub!(/ROAR/, "x") # ok
-    should_raise(TypeError) { s.gsub!(/e/, "e") }
-    should_raise(TypeError) { s.gsub!(/[aeiou]/, '*') }
+      s.gsub!(/ROAR/, "x") # ok
+      should_raise(TypeError) { s.gsub!(/e/, "e") }
+      should_raise(TypeError) { s.gsub!(/[aeiou]/, '*') }
+    end
   end
 end
 
@@ -345,12 +347,14 @@ describe "String#gsub! with pattern and block" do
     a.should == "hello"
   end
   
-  it "raises a RuntimeError when self is frozen" do
-    s = "hello"
-    s.freeze
+  compliant :mri, :jruby do
+    it "raises a RuntimeError when self is frozen" do
+      s = "hello"
+      s.freeze
   
-    s.gsub!(/ROAR/) { "x" } # ok
-    should_raise(RuntimeError) { s.gsub!(/e/) { "e" } }
-    should_raise(RuntimeError) { s.gsub!(/[aeiou]/) { '*' } }
+      s.gsub!(/ROAR/) { "x" } # ok
+      should_raise(RuntimeError) { s.gsub!(/e/) { "e" } }
+      should_raise(RuntimeError) { s.gsub!(/[aeiou]/) { '*' } }
+    end
   end
 end

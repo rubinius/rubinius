@@ -28,13 +28,15 @@ shared :string_concat do |cmd|
         a = 'hello '.send(cmd, Object.new)
       end
     end
+
+    compliant :mri, :jruby do
+      it "raises a TypeError when self is frozen" do
+        a = "hello"
+        a.freeze
   
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
-  
-      should_raise(TypeError) { a.send(cmd, "") }
-      should_raise(TypeError) { a.send(cmd, "test") }
+        should_raise(TypeError) { a.send(cmd, "") }
+        should_raise(TypeError) { a.send(cmd, "test") }
+      end
     end
     
     it "works when given a subclass instance" do
@@ -73,12 +75,14 @@ shared :string_concat do |cmd|
       should_raise(TypeError) { "".send(cmd, x) }
     end
   
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
+    compliant :mri, :jruby do
+      it "raises a TypeError when self is frozen" do
+        a = "hello"
+        a.freeze
   
-      should_raise(TypeError) { a.send(cmd, 0) }
-      should_raise(TypeError) { a.send(cmd, 33) }
+        should_raise(TypeError) { a.send(cmd, 0) }
+        should_raise(TypeError) { a.send(cmd, 33) }
+      end
     end
   end
 end

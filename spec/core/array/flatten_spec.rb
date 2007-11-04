@@ -60,7 +60,7 @@ describe "Array#flatten!" do
     should_raise(ArgumentError) { x.flatten! }
   end
 
-  compliant :mri do
+  compliant :mri, :jruby do
     it "raises TypeError on frozen arrays when modification would take place" do
       nested_ary = [1, 2, []]
       nested_ary.freeze

@@ -43,8 +43,10 @@ describe "String#downcase!" do
     a.should == "hello"
   end
 
-  it "raises a TypeError when self is frozen" do
-    should_raise(TypeError) { "HeLlo".freeze.downcase! }
-    should_raise(TypeError) { "hello".freeze.downcase! }
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      should_raise(TypeError) { "HeLlo".freeze.downcase! }
+      should_raise(TypeError) { "hello".freeze.downcase! }
+    end
   end
 end
