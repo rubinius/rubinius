@@ -1,0 +1,23 @@
+---
+mnemonic: swap_stack
+alias: swap
+operation: >-
+  Swap the top two stack values
+format: swap_stack
+opcode: 16
+stack_before:
+  - value1
+  - value2
+  - ...
+stack_after:
+  - value2
+  - value1
+  - ...
+description: >-
+  Swaps the top two items on the stack, so that the second item becomes the
+  first, and the first item becomes the second.
+source: |-
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(t1);
+    stack_push(t2);

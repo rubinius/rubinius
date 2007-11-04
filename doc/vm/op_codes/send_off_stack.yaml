@@ -1,0 +1,36 @@
+---
+mnemonic: send_off_stack
+operation: >-
+
+format: send_off_stack
+opcode: 88
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t3 = stack_pop();
+    if(!SYMBOL_P(t3)) {
+      if(RISA(t3, string)) {
+        t3 = string_to_sym(state, t3);
+      } else {
+        t2 = stack_pop();
+        t1 = stack_pop();
+        stack_push(t3);
+        _lit = state->global->sym_send;
+        j = c->args;
+        // cpu_send_method2(state, c, t1, state->global->sym_send, c->args + 1, t2);
+        goto perform_send;
+      }
+    }
+    t2 = stack_pop();
+    t1 = stack_pop();
+    _lit = t3;
+    j = c->args;
+    goto perform_send;
+    // cpu_send_method2(state, c, t1, t3, c->args, t2);
+    // sos_done:

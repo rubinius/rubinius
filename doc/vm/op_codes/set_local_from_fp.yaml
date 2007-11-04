@@ -1,0 +1,21 @@
+---
+mnemonic: set_local_from_fp
+operation: >-
+
+format: set_local_from_fp <arg1><arg1> <arg2>
+opcode: 95
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    k = _int;
+    next_int;
+    
+    t1 = *(c->fp_ptr - _int);
+    tuple_put(state, cpu_current_locals(state, c), k, t1);

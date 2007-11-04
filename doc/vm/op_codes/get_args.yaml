@@ -1,0 +1,16 @@
+---
+mnemonic: get_args
+operation: >-
+
+format: get_args
+opcode: 60
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    stack_push(I2N(c->args));

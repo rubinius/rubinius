@@ -1,0 +1,16 @@
+---
+mnemonic: open_metaclass
+operation: >-
+
+format: open_metaclass
+opcode: 66
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    stack_push(object_metaclass(state, stack_pop()));

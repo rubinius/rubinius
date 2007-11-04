@@ -1,0 +1,17 @@
+---
+mnemonic: ret
+operation: >-
+
+format: ret
+opcode: 39
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    cpu_return_to_sender(state, c, t1, TRUE, FALSE);

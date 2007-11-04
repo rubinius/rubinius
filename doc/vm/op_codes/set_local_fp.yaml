@@ -1,0 +1,18 @@
+---
+mnemonic: set_local_fp
+operation: >-
+
+format: set_local_fp <arg1>
+opcode: 99
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    assert(c->sp_ptr > c->fp_ptr + _int);
+    *(c->fp_ptr + _int) = stack_top();

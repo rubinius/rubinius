@@ -1,0 +1,23 @@
+---
+mnemonic: send_with_arg_register
+operation: >-
+
+format: send_with_arg_register <arg1>
+opcode: 61
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_literal;
+    t1 = stack_pop();
+    t2 = stack_pop();
+    j = c->args;
+    
+    perform_send:
+    
+    cpu_unified_send(state, c, t1, _lit, j, t2);

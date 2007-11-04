@@ -1,0 +1,15 @@
+---
+mnemonic: push_self
+operation: >-
+  Pushes a reference to the current self object onto the stack.
+format: push_self
+opcode: 12
+stack_before:
+  - ...
+stack_after:
+  - self
+  - ...
+description: >-
+  The current self object is pushed onto the stack.
+source: |-
+  stack_push(c->self);

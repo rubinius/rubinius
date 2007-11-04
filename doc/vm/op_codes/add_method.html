@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCode: add_method</title>
+		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
+	</head>
+
+	<body>
+	
+		<div id="add_method">
+
+		  <h2>add_method (add)</h2>
+		  <b>Byte code:</b> <i>0x1d</i>
+  
+		  <h3>Operation</h3>
+		  
+  		  <p>Adds a method to a class or module</p>
+		  
+  
+		  <h3>Format</h3>
+		  
+		  <b>add_method</b>
+		  <i>name</i>
+
+		  <h3>Stack</h3>
+		  <div class="stack">
+			<table>
+				<tfoot>
+					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+				<tbody>
+					<tr>
+						<td>
+  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+            </td>
+            <td>=&gt;</td>
+            <td>
+					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+	          </td>
+					<tr>
+				</tbody>
+			</table>
+		  </div>
+
+		  <h3>Description</h3>
+		  
+   		  <p>Hooks up a method definition to a class or module.</p><p>Note: Singleton methods are handled by <a href="attach_method.html">attach_method</a>.</p>
+		  
+  
+		  
+		
+		  
+  
+      
+
+      
+      <div class="see_also">
+	    <h3>See Also</h3>
+	    
+	    <ul>
+  	    <li><a href="attach_method.html">attach_method</a></li>
+      </ul>
+	    
+	    </div>
+      
+
+
+      
+		  <div id="add_method_source" class="source">
+		  <h4>Source</h4>
+		    <pre>
+next_literal;
+t1 = stack_pop();
+t2 = stack_pop();
+cpu_add_method(state, c, t1, _lit, t2);
+stack_push(t2);
+cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);
+		    </pre>
+		  <div>
+      
+
+		</div>
+	</body>
+
+</html>

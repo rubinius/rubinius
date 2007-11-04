@@ -1,0 +1,16 @@
+---
+mnemonic: open_module
+operation: >-
+
+format: open_module <arg1>
+opcode: 32
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    stack_push(cpu_open_module(state, c, c->enclosing_class));

@@ -1,0 +1,21 @@
+---
+mnemonic: send_super_stack_with_block
+operation: >-
+
+format: send_super_stack_with_block <arg1><arg1> <arg2>
+opcode: 63
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_literal;
+    t1 = stack_pop();
+    next_int;
+    j = _int;
+    
+    goto perform_super_send;

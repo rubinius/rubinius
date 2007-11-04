@@ -1,0 +1,16 @@
+---
+mnemonic: push_exception
+operation: >-
+
+format: push_exception
+opcode: 19
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+  stack_push(c->exception);

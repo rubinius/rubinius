@@ -1,0 +1,17 @@
+---
+mnemonic: deallocate_stack
+operation: >-
+
+format: deallocate_stack <arg1>
+opcode: 98
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    c->sp_ptr -= _int;

@@ -1,0 +1,22 @@
+---
+mnemonic: caller_return
+operation: >-
+
+format: caller_return
+opcode: 46
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t2 = stack_pop();
+    t1 = c->active_context;
+    c->active_context = cpu_current_sender(c);
+    if(cpu_return_to_sender(state, c, t2, TRUE, FALSE)) {
+      methctx_reference(state, t1);
+      stack_push(t1);
+    }

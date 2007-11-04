@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCode: dup_top</title>
+		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
+	</head>
+
+	<body>
+	
+		<div id="dup_top">
+
+		  <h2>dup_top (dup)</h2>
+		  <b>Byte code:</b> <i>0x25</i>
+  
+		  <h3>Operation</h3>
+		  
+  		  <p>Duplicate the top item on the stack</p>
+		  
+  
+		  <h3>Format</h3>
+		  
+		  <b>dup_top</b>
+		  <i></i>
+
+		  <h3>Stack</h3>
+		  <div class="stack">
+			<table>
+				<tfoot>
+					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+				<tbody>
+					<tr>
+						<td>
+  					  <table><tr><td>value<tr><td>...</td></tr></table>
+            </td>
+            <td>=&gt;</td>
+            <td>
+					    <table><tr><td>value<tr><td>value<tr><td>...</td></tr></table>
+	          </td>
+					<tr>
+				</tbody>
+			</table>
+		  </div>
+
+		  <h3>Description</h3>
+		  
+   		  <p>Duplicate the top value on the operand stack and push the duplicated value onto the operand stack.</p>
+		  
+  
+		  
+		
+		  
+  
+      
+
+      
+
+
+      
+		  <div id="dup_top_source" class="source">
+		  <h4>Source</h4>
+		    <pre>
+stack_push(stack_top());
+		    </pre>
+		  <div>
+      
+
+		</div>
+	</body>
+
+</html>

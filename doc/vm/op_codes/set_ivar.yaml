@@ -1,0 +1,20 @@
+---
+mnemonic: set_ivar
+operation: >-
+
+format: set_ivar <arg1>
+opcode: 21
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
+    t2 = stack_pop();
+    object_set_ivar(state, c->self, t1, t2);
+    stack_push(t2);

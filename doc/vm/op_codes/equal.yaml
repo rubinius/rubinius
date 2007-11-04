@@ -1,0 +1,18 @@
+---
+mnemonic: equal
+operation: >-
+
+format: equal
+opcode: 105
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    t2 = stack_pop();
+    stack_push(t1 == t2 ? Qtrue : Qfalse);

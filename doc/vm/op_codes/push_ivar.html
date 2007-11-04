@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCode: push_ivar</title>
+		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
+	</head>
+
+	<body>
+	
+		<div id="push_ivar">
+
+		  <h2>push_ivar</h2>
+		  <b>Byte code:</b> <i>0x16</i>
+  
+		  <h3>Operation</h3>
+		  
+	  	  <span class="todo">TODO: Add brief operation one-liner to push_ivar.yaml</span>
+		  
+  
+		  <h3>Format</h3>
+		  
+		  <b>push_ivar</b>
+		  <i>&lt;arg1&gt;</i>
+
+		  <h3>Stack</h3>
+		  <div class="stack">
+			<table>
+				<tfoot>
+					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+				<tbody>
+					<tr>
+						<td>
+  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+            </td>
+            <td>=&gt;</td>
+            <td>
+					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+	          </td>
+					<tr>
+				</tbody>
+			</table>
+		  </div>
+
+		  <h3>Description</h3>
+		  
+	  	  <span class="todo">TODO: Add description to push_ivar.yaml</span>
+		  
+  
+		  
+		
+		  
+  
+      
+
+      
+
+
+      
+		  <div id="push_ivar_source" class="source">
+		  <h4>Source</h4>
+		    <pre>
+next_literal;
+stack_push(object_get_ivar(state, c->self, _lit));
+		    </pre>
+		  <div>
+      
+
+		</div>
+	</body>
+
+</html>

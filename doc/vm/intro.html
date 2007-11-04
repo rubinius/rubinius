@@ -1,0 +1,34 @@
+<html>
+  <head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCodes: Introduction</title>
+		<link rel="stylesheet" href="op_codes.css" type="text/css" />
+	</head>
+  <body>
+	  <h2>Compilation Process</h2>
+	  Compilation of Ruby source code to Rubinius machine byte code proceeds through the following steps:
+	  <ol>
+		  <li>Source code is parsed into S-expressions (sexps) representing the structure of the Ruby code.
+			The grammar of a Ruby program is currently defined in <code>grammar.y</code> under shotgun/lib, which is lifted
+			from MRI.</li>
+			<li>Sexps are compiled into a string representation of Rubinius assembly language by <code>compiler.rb</code>,
+			which is found under compiler/bytecode.
+			<br/>Note: The compilation process is currently in the process of being re-written, and will change
+			substantially in its implementation; however, the assembly code output by the compilation process is
+			essentially unchanged.</li>
+			<li>The generalised assembly language is translated into specific lower-level machine op-codes by <code>assembler.rb</code>.
+			Thus, instructions such as <code>push</code> are converted to specific push instructions depending on the type
+			of item being	pushed, and literal references are converted to indexes into the literals tuples.</li>
+			<li>The low-level assembly is encoded as byte-codes that can actually be run by shotgun by <code>encoder.rb</code>.</li>
+    </ol>
+	
+	  <h3>Machine OpCodes</h3>
+    All of the Rubinius virtual machine op codes are listed in the frame to the left.
+    Click on an item to see documentation about that op code.
+    
+    <h3>Documentation Completeness</h3>
+    Opcodes that appear in italics have only partial documentation. Feel free to update the opcode 
+    documentation by editing the corresponding YAML files in the op_codes sub-directory, then run <code>rake doc:vm:html</code>
+    from the vm directory to re-generate the HTML.</p>
+  </body>
+</html>

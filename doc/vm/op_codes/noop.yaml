@@ -1,0 +1,20 @@
+---
+mnemonic: noop
+operation: >-
+  Performs a no-op, i.e. does nothing.
+format: noop
+opcode: 0
+stack_before:
+  - ...
+stack_after:
+  - ...
+description: >-
+  The classic no-op operator; performs no actions, and does not modify the
+  stack.
+  
+  To consume an item from the stack, but otherwise do nothing, use
+  "pop":pop.html.
+see:
+  - pop
+source: |-
+  

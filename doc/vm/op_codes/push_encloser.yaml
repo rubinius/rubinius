@@ -1,0 +1,16 @@
+---
+mnemonic: push_encloser
+operation: >-
+
+format: push_encloser
+opcode: 52
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    cpu_push_encloser(state, c);

@@ -1,0 +1,21 @@
+---
+mnemonic: send_method
+operation: >-
+
+format: send_method <arg1>
+opcode: 40
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    j = 0;
+    goto perform_send;
+    // cpu_unified_send(state, c, t1, _int, 0, Qnil);

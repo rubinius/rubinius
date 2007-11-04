@@ -1,0 +1,19 @@
+---
+mnemonic: string_append
+operation: >-
+
+format: string_append
+opcode: 57
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    t2 = stack_pop();
+    string_append(state, t1, t2);
+    stack_push(t1);

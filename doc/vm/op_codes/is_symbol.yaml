@@ -1,0 +1,17 @@
+---
+mnemonic: is_symbol
+operation: >-
+
+format: is_symbol
+opcode: 102
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    stack_push(SYMBOL_P(t1) ? Qtrue : Qfalse);

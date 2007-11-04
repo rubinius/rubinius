@@ -1,0 +1,27 @@
+---
+mnemonic: yield_debugger
+operation: >-
+
+format: yield_debugger
+opcode: 93
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    cpu_flush_sp(c);
+    cpu_flush_ip(c);
+    methctx_reference(state, c->active_context);
+    if(c->debug_channel != Qnil) {
+      cpu_channel_send(state, c, c->debug_channel, c->active_context);
+      /* This is so when this task is reactivated, the sent value wont be placed
+         on the stack, keeping the stack clean. */
+      TASK_SET_FLAG(c, TASK_NO_STACK);
+      cpu_channel_receive(state, c, c->control_channel, c->current_thread);
+    } else {
+      cpu_raise_arg_error_generic(state, c, "Attempted to switch to debugger, no debugger installed");
+    }

@@ -1,0 +1,26 @@
+---
+mnemonic: add_method
+alias: add
+operation: >-
+  Adds a method to a class or module
+format: add_method name
+opcode: 29
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+  Hooks up a method definition to a class or module.
+  
+  Note: Singleton methods are handled by "attach_method":attach_method.html.
+see:
+  - attach_method
+source: |-
+    next_literal;
+    t1 = stack_pop();
+    t2 = stack_pop();
+    cpu_add_method(state, c, t1, _lit, t2);
+    stack_push(t2);
+    cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);

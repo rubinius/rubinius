@@ -1,0 +1,16 @@
+This directory contains documentation for the Rubinius VM.
+
+Parts of this documentation are generated directly from the VM source code; this 
+directory contains ruby code and templates used to generate both skeleton YAML
+files for each opcode, and formatted HTML displaying the contents of the YAML
+inputs.
+
+The op_codes subdirectory contains the individual opcode files.
+
+A Rakefile is provided to allow the generation of opcode YAML files, which 
+contain the documentation for each opcode defined in the Rubinius VM. Note that
+the doc:vm:yaml task can safely be run to update the YAML files without losing
+descriptive content. Only the alias, opcode, and source fields are overwritten. 
+
+After updating one or more YAML files, you can re-generate the HTML by running
+the doc:vm:html Rake task.

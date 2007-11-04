@@ -1,0 +1,22 @@
+---
+mnemonic: find_const
+alias: find
+operation: >-
+
+format: find_const <arg1>
+opcode: 27
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    next_int;
+    t2 = tuple_at(state, cpu_current_literals(state, c), _int);
+    t2 = cpu_const_get_from(state, c, t2, t1);
+    if(t2 != Qundef) stack_push(t2);
+    c->cache_index = -1;
