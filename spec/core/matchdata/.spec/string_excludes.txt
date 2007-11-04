@@ -1,1 +1,0 @@
-MatchData#string returns a frozen copy of the match string

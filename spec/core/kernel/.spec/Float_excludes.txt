@@ -1,2 +1,0 @@
-Kernel.Float raises a TypeError of #to_f is not provided
-Kernel.Float raises a TypeError if #to_f does not return a Float
