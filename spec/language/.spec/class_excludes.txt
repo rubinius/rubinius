@@ -1,1 +1,2 @@
-class provides hooks calls inherited when a class is created
+A class definition has no class-level instance variables
+A class definition allows the declaration of class-level instance variables in the body
