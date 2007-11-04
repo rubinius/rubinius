@@ -2,55 +2,49 @@ shared :enumerable_find do |cmd|
   describe "Enumerable##{cmd}" do 
     # #detect and #find are aliases, so we only need one function 
     before :each do
-      @a = EachDefiner.new( 2, 4, 6, 8, 10 )
-      @fail_count = 0
-      @fail_proc = lambda { @fail_count += 1 ; "not found" }
-      @fail_proc_value = "not found"
-       
+      @elements = [2, 4, 6, 8, 10]
+      @numerous = Numerous.new(*@elements)
     end
     
-    after :each do 
-      @fail_count = 0
+    it "Passes each entry in enum to block while block when block is false" do
+      visited_elements = []
+      @numerous.send(cmd) do |element|
+        visited_elements << element
+        false
+      end
+      visited_elements.should == @elements
     end
     
-    it "Returns the first for which block is not false or call ifnone proc, empty array and nil" do
-      args, fail_value = [], nil      
-      EachDefiner.new().send(cmd, *args) {|a| true  }.should == fail_value
-      @a.send(cmd, *args) {|a| false }.should == fail_value
-      @a.send(cmd, *args) {|a| a > 1 }.should == 2
-      @a.send(cmd, *args) {|a| a > 5 }.should == 6
-      @a.send(cmd, *args) {|a| a > 9 }.should == 10
-      @a.send(cmd, *args) {|a| a > 10 }.should == fail_value 
+    it "Returns nil when the block is false and there is no ifnone proc given" do
+      @numerous.send(cmd) {|e| false }.should == nil
     end
     
-    it "returns the first for which block is not false, or call ifnone proc" do
-      args, fail_value = @fail_proc,  @fail_proc_value 
-      EachDefiner.new().send(cmd, *args) {|a| true  }.should == fail_value
-      @a.send(cmd, *args) {|a| false }.should == fail_value
-      @a.send(cmd, *args) {|a| a > 1 }.should == 2
-      @a.send(cmd, *args) {|a| a > 5 }.should == 6
-      @a.send(cmd, *args) {|a| a > 9 }.should == 10
-      @a.send(cmd, *args) {|a| a > 10 }.should == fail_value 
+    it "Returns the first element for which the block is not false" do
+      @elements.each do |element|
+        @numerous.send(cmd) {|e| e > element - 1 }.should == element
+      end
     end
     
-    it "call only once if " do
-      # Make sure that the "proc" is only called once, and only if no
-      # match is found.       
-      @fail_count = 0
-      @a.send(cmd, @fail_proc) {|a| false }.should == @fail_proc_value
-      @a.send(cmd, @fail_proc) {|a| true }.should_not == @fail_proc_value
-      @fail_count.should == 1
+    it "Returns the value of the ifnone proc if the block is false" do
+      fail_proc = lambda { "cheeseburgers" }
+      @numerous.send(cmd, fail_proc) {|e| false }.should == "cheeseburgers"
     end
     
-    it "not call the ifnone proc when find a element" do
-      @fail_count = 0
-      @a.send(cmd, @fail_proc) {|a| true }.should == 2
-      @fail_count.should == 0
-    end  
-  
+    it "Doesn't call the ifnone proc if an element is found" do
+      fail_proc = lambda { raise "This shouldn't have been called" }
+      @numerous.send(cmd, fail_proc) {|e| e == @elements.first }
+    end
+    
+    it "Calls the ifnone proc only once when the block is false" do
+      times = 0
+      fail_proc = lambda { times += 1; raise if times > 1; "cheeseburgers" }
+      @numerous.send(cmd, fail_proc) {|e| false }.should == "cheeseburgers"
+    end
+      
     it "find should be a synonym for detect" do
-      Numerous.new.send(cmd) { |i| i > 3 }.should == Numerous.new.detect { |i| i > 3 }
-      Numerous.new.send(cmd) { |i| i > 3 }.should == Numerous.new.find { |i| i > 3 } 
+      # TODO: This only fails because Method#== isn't implemented -- Kev 10/4/07
+      Numerous.new.method(:detect).should == Numerous.new.method(:find)
+      Numerous.new.method(:find).should == Numerous.new.method(:detect)
     end
   end
 end
