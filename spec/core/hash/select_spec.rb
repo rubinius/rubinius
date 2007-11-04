@@ -24,7 +24,7 @@ describe "Hash#select" do
     select_pairs.should == reject_pairs
   end
 
-  it_behaves_like(@hash_iteration_method, :select)
-  it_behaves_like(@hash_iteration_modifying, :select)
-  it_behaves_like(@hash_iteration_no_block, :select)
+  it_behaves_like(:hash_iteration_method, :select)
+  it_behaves_like(:hash_iteration_modifying, :select)
+  it_behaves_like(:hash_iteration_no_block, :select)
 end

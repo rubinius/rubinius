@@ -44,10 +44,12 @@ describe "String#capitalize!" do
     "H".capitalize!.should == nil
   end
 
-  it "raises a TypeError when self is frozen" do
-    ["", "Hello", "hello"].each do |a|
-      a.freeze
-      should_raise(TypeError) { a.capitalize! }
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      ["", "Hello", "hello"].each do |a|
+        a.freeze
+        should_raise(TypeError) { a.capitalize! }
+      end
     end
   end
 end

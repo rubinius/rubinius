@@ -1,4 +1,4 @@
-@module_equal = shared "Module#==" do |cmd|
+shared :module_equal do |cmd|
   describe "Module##{cmd}(other)" do
     it "returns true if self and the given module are the same" do
       ModuleSpecs.send(cmd, ModuleSpecs).should == true

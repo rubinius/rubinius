@@ -1,0 +1,29 @@
+---
+mnemonic: meta_send_op_gt
+operation: >-
+
+format: meta_send_op_gt
+opcode: 82
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
+      j = FIXNUM_TO_INT(t1);
+      k = FIXNUM_TO_INT(t2);
+      stack_push((j > k) ? Qtrue : Qfalse);
+    } else {
+      stack_push(t2);
+      _lit = state->global->sym_gt;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      // cpu_send_method(state, c, t1, state->global->sym_gt, 1);
+    }

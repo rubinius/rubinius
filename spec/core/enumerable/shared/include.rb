@@ -1,4 +1,4 @@
-@enumerable_include = shared "Enumerable#include" do |cmd|
+shared :enumerable_include do |cmd|
   describe "Enumerable#{cmd}" do     
     # #include? and #member? are aliases, so we only need one function
     # that tests both methods

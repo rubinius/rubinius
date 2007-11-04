@@ -1,0 +1,17 @@
+---
+mnemonic: from_fp
+operation: >-
+
+format: from_fp <arg1>
+opcode: 94
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    stack_push(*(c->fp_ptr - _int));

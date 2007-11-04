@@ -1,155 +1,77 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../fixtures/class'
 
-# Specifications:
-#
-# Keywords:
-#   class
-#   def
-#
-# Behaviour:
-#   Constants
-#   Class variables
-#   Class instance variables
-#   Instance variables
-#
-
-describe "A new class definition" do
-  it "should create a new class" do
-    class LanguageClassA; end
-
-    LanguageClassA.class.should == Class
-    LanguageClassA.new.class.should == LanguageClassA
+describe "A class definition" do
+  it "creates a new class" do
+    ClassSpecs::A.class.should == Class
+    ClassSpecs::A.new.class.should == ClassSpecs::A
   end
   
-  it "should have no class variables" do
-    class LanguageClassB; end;
-    
-    LanguageClassB.class_variables.should == []
+  it "has no class variables" do
+    ClassSpecs::A.class_variables.should == []
   end
   
-  it "should have no class-level instance variables" do
-    class LanguageClassC; end
-    
-    LanguageClassC.instance_variables.should == []
+  it "has no class-level instance variables" do
+    ClassSpecs::A.instance_variables.should == []
   end
 
-  it "should allow the declaration of class variables in the body" do
-    class LanguageClassD
-      @@bar = 'foo'
-    end
-    
-    LanguageClassD.class_variables.should == ["@@bar"]
+  it "allows the declaration of class variables in the body" do
+    ClassSpecs::B.class_variables.should == ["@@cvar"]
+    ClassSpecs::B.send(:class_variable_get, :@@cvar).should == :cvar
   end
   
-  it "should allow the declaration of class-level instance variables in the body" do
-    class LanguageClassE
-      @bar = 'foo'
-    end
-    
-    LanguageClassE.instance_variables.should == ["@bar"]
+  it "allows the declaration of class-level instance variables in the body" do
+    ClassSpecs::B.instance_variables.should == ["@ivar"]
+    ClassSpecs::B.instance_variable_get(:@ivar).should == :ivar
   end
 
-  it "should allow the declaration of class variables in a class method" do
-    class LanguageClassF
-      def self.setup_cv
-        @@bar = 'foo'
-      end
-    end
-
-    LanguageClassF.class_variables.should == []
-    LanguageClassF.setup_cv
-    LanguageClassF.class_variables.should == ["@@bar"]
+  it "allows the declaration of class variables in a class method" do
+    ClassSpecs::C.class_variables.should == []
+    ClassSpecs::C.make_class_variable
+    ClassSpecs::C.class_variables.should == ["@@cvar"]
   end
   
-  it "should allow the declaration of class variables in an instance method" do
-    class LanguageClassG
-      def setup_cv
-        @@bar = 'foo'
-      end
-    end
-
-    LanguageClassG.class_variables.should == []
-    LanguageClassG.new.setup_cv
-    LanguageClassG.class_variables.should == ["@@bar"]
+  it "allows the declaration of class variables in an instance method" do
+    ClassSpecs::D.class_variables.should == []
+    ClassSpecs::D.new.make_class_variable
+    ClassSpecs::D.class_variables.should == ["@@cvar"]
   end
   
-  it "should allow the definition of methods" do
-    class LanguageClassH
-      def foo
-        'foo'
-      end
-    end
-    
-    LanguageClassH.new.foo.should == 'foo'
+  it "allows the definition of instance methods" do
+    ClassSpecs::E.new.meth.should == :meth
   end
   
-  it "should allow the definition of class methods" do
-    class LanguageClassI
-      def self.foo
-        'foo'
-      end
-    end
-    
-    LanguageClassI.foo.should == 'foo'
+  it "allows the definition of class methods" do
+    ClassSpecs::E.cmeth.should == :cmeth
   end
   
-  it "should allow the definition of class methods using class << self" do
-    class LanguageClassJ
-      class << self
-        def foo
-          'foo'
-        end
-      end
-    end
-    
-    LanguageClassJ.foo.should == 'foo'
+  it "allows the definition of class methods using class << self" do
+    ClassSpecs::E.smeth.should == :smeth
   end
   
-  it "should allow the definition of Constants" do
-    class LanguageClassO; CONST = 'foo!'; end
-    
-    Object.const_defined?('CONST').should == false
-    LanguageClassO.const_defined?('CONST').should == true
-    LanguageClassO::CONST.should == 'foo!'
+  it "allows the definition of Constants" do
+    Object.const_defined?('CONSTANT').should == false
+    ClassSpecs::E.const_defined?('CONSTANT').should == true
+    ClassSpecs::E::CONSTANT.should == :constant!
   end
   
-  it "should return the value of the last statement in the body" do
-    value = class LanguageClassK; end
-    value.should == nil
-    
-    value = class LanguageClassL; 20; end
-    value.should == 20
-    
-    value = class LanguageClassM; 20 + 10; end
-    value.should == 30
-    
-    value = class LanguageClassN; class << self; 'foo'; end; end
-    value.should == 'foo'
+  it "returns the value of the last statement in the body" do
+    class ClassSpecs::Empty; end.should == nil
+    class ClassSpecs::Twenty; 20; end.should == 20
+    class ClassSpecs::Plus; 10 + 20; end.should == 30
+    class ClassSpecs::Singleton; class << self; :singleton; end; end.should == :singleton
   end
 end
 
-describe "Nested class definitions" do
-  it "should make the outer class contain the inner classes" do
-    class LanguageClassZ
-      class LanguageClassA1; end
-      class LanguageClassA2; end
-    end
-    
-    LanguageClassZ.constants.include?('LanguageClassA1').should == true
-    LanguageClassZ.constants.include?('LanguageClassA2').should == true
+describe "An outer class definition" do
+  it "contains the inner classes" do
+    ClassSpecs::Container.constants.should_include('A', 'B')
   end
 end
 
 describe "A Class Definitions extending an object" do
-  it "should allow adding methods" do
-    a = "a string"
-    class << a
-      def xyz
-        self
-      end
-    end
-    
-    a.xyz.should == "a string"
+  it "allows adding methods" do
+    ClassSpecs::O.smeth.should == :smeth
   end
   
   it "should raise a TypeError when trying to extend numbers" do
@@ -165,54 +87,25 @@ describe "A Class Definitions extending an object" do
   end
 end
 
-describe "Multiple Definitions of the same Class" do
-  it "should extend previous definitions" do
-    class LanguageClassX; def abc(); 'foo' end; end
-    class LanguageClassX; def xyz(); 'bar' end; end
-    
-    x = LanguageClassX.new
-    x.abc.should == 'foo'
-    x.xyz.should == 'bar'
+describe "Reopening a class" do
+  it "extends the previous definitions" do
+    c = ClassSpecs::F.new
+    c.meth.should == :meth
+    c.another.should == :another
   end
   
-  it "should overwrite existing methods" do
-    class LanguageClassW; def abc() 'bar' end; end
-    class LanguageClassW; def abc() 'foo' end; end
-    
-    LanguageClassW.new.abc.should == 'foo'
+  it "overwrites existing methods" do
+    ClassSpecs::G.new.override.should == :override
   end
   
-  it "should raise a TypeError when superclasses mismatch" do
-    should_raise(TypeError) do
-      class LanguageClassV < Array; end
-      class LanguageClassV < Fixnum; end
-    end    
+  it "raises a TypeError when superclasses mismatch" do
+    should_raise(TypeError) { class ClassSpecs::A < Array; end }
   end
 end
 
 describe "class provides hooks" do
   it "calls inherited when a class is created" do
-    class C
-      Subs = []
-      
-      def self.inherited(sub)
-        Subs << sub
-      end
-    end
-    
-    class B < C
-      Subs = []
-      
-      def self.inherited(sub)
-        Subs << sub
-      end
-    end
-
-    class A < B
-    end
-
-    C::Subs.should == [B, A]
-    B::Subs.should == [A]
+    ClassSpecs::Subclasses.should == [ClassSpecs::K]
   end
 end
 

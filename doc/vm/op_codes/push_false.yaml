@@ -1,0 +1,15 @@
+---
+mnemonic: push_false
+operation: >-
+  Pushes false onto the stack
+format: push_false
+opcode: 3
+stack_before:
+  - ...
+stack_after:
+  - "false"
+  - ...
+description: >-
+  The special object false is pushed onto the stack.
+source: |-
+  stack_push(Qfalse);

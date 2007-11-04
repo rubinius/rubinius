@@ -11,5 +11,5 @@ describe "Dir#path" do
 end
 
 describe "Dir#path" do
-  it_behaves_like @dir_closed, :path
+  it_behaves_like :dir_closed, :path
 end

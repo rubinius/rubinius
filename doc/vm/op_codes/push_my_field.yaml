@@ -1,0 +1,17 @@
+---
+mnemonic: push_my_field
+operation: >-
+
+format: push_my_field <arg1>
+opcode: 64
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    stack_push(NTH_FIELD(c->self, _int));

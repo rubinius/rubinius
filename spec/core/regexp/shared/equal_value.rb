@@ -1,4 +1,4 @@
-@regexp_eql = shared "Regexp#==" do |cmd|
+shared :regexp_eql do |cmd|
   describe "Regexp##{cmd}" do
     it "is true if self and other have the same pattern" do
       /abc/.send(cmd, /abc/).should == true

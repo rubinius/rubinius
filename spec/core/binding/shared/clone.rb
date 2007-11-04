@@ -1,4 +1,4 @@
-@binding_clone = shared "Binding#clone" do |cmd|
+shared :binding_clone do |cmd|
   describe "Binding##{cmd}" do
     before(:each) do
       @b1 = BindingSpecs::Demo.new(99).get_binding

@@ -1,4 +1,4 @@
-@array_replace = shared "Array#replace" do |cmd|
+shared :array_replace do |cmd|
   describe "Array##{cmd}" do
     it "replaces the elements with elements from other array" do
       a = [1, 2, 3, 4, 5]

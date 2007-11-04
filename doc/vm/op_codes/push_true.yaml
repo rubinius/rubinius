@@ -1,0 +1,15 @@
+---
+mnemonic: push_true
+operation: >-
+  Pushes true onto the stack
+format: push_true
+opcode: 2
+stack_before:
+  - ...
+stack_after:
+  - "true"
+  - ...
+description: >-
+  The special value true is pushed onto the stack.
+source: |-
+  stack_push(Qtrue);

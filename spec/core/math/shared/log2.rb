@@ -1,4 +1,4 @@
-@math_log2 = shared "Math.log2" do
+shared :math_log2 do
   describe "Math.log2" do
     it "returns a float" do
       Math.log2(5.79).should_be_close(2.53356334821451, TOLERANCE)

@@ -1,4 +1,4 @@
-@dir_delete = shared "Dir.delete" do |cmd|
+shared :dir_delete do |cmd|
   describe "Dir.#{cmd}" do
     specify "removes empty directories" do
       %w|rmdir delete unlink|.each {|cmd|

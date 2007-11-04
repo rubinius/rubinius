@@ -1,4 +1,4 @@
-@dir_closed = shared "Dir closed" do |cmd|
+shared :dir_closed do |cmd|
   describe "Dir##{cmd}" do
     it "raises an IOError when called on a closed Dir instance" do
       should_raise(IOError) do

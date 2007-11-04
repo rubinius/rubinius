@@ -3,5 +3,5 @@ require File.dirname(__FILE__) + '/fixtures/common'
 require File.dirname(__FILE__) + '/shared/glob'
 
 describe "Dir.[]" do
-  it_behaves_like @dir_glob, :[]
+  it_behaves_like :dir_glob, :[]
 end

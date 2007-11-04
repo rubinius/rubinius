@@ -1,0 +1,16 @@
+---
+mnemonic: clear_exception
+operation: >-
+
+format: clear_exception
+opcode: 44
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    c->exception = Qnil;

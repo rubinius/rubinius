@@ -1,4 +1,4 @@
-@array_length = shared "Array#length" do |cmd|
+shared :array_length do |cmd|
   describe "Array##{cmd}" do
     it "returns the number of elements" do
       [].send(cmd).should == 0

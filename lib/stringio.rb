@@ -126,8 +126,6 @@ class StringIO
     else
       initialize(obj, mode)
       if @mode =~ /^[wa]/
-        # StringIO acts like an IO object, so raises EACCES instead of TypeError
-        raise Errno::EACCES, "Permission denied" if @string.frozen?
         @string.replace '' unless @append
       end
     end

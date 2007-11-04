@@ -1,0 +1,24 @@
+---
+mnemonic: push_local_depth
+operation: >-
+
+format: push_local_depth <arg1><arg1> <arg2>
+opcode: 85
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    k = _int;
+    next_int;
+    t1 = c->active_context;
+    for(j = 0; j < k; j++) {
+      t2 = blokctx_env(state, t1);
+      t1 = blokenv_get_home_block(t2);
+    }
+    stack_push(tuple_at(state, blokctx_locals(state, t1), _int));

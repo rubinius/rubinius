@@ -1,0 +1,17 @@
+---
+mnemonic: push_int
+operation: >-
+
+format: push_int <arg1>
+opcode: 7
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    stack_push(I2N(_int));

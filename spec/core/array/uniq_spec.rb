@@ -13,13 +13,11 @@ describe "Array#uniq" do
   it "compares elements first with hash" do
     # Can't use should_receive because it uses hash internally
     x = Object.new
-    def x.hash() freeze; 0 end
+    def x.hash() 0 end
     y = Object.new
-    def y.hash() freeze; 0 end
-    
+    def y.hash() 0 end
+  
     [x, y].uniq
-    x.frozen?.should == true
-    y.frozen?.should == true
   end
   
   it "does not compare elements with different hash codes via eql?" do
@@ -29,12 +27,10 @@ describe "Array#uniq" do
     y = Object.new
     def y.eql?(o) raise("Shouldn't receive eql?") end
 
-    def x.hash() freeze; 0 end
-    def y.hash() freeze; 1 end
+    def x.hash() 0 end
+    def y.hash() 1 end
 
     [x, y].uniq.should == [x, y]
-    x.frozen?.should == true
-    y.frozen?.should == true
   end
   
   it "compares elements with matching hash codes with #eql?" do
@@ -95,7 +91,7 @@ describe "Array#uniq!" do
     [ "a", "b", "c" ].uniq!.should == nil
   end
   
-  compliant :mri do
+  compliant :mri, :jruby do
     it "raises TypeError on a frozen array if modification would take place" do
       dup_ary = [1, 1, 2]
       dup_ary.freeze

@@ -1,0 +1,17 @@
+---
+mnemonic: set_call_flags
+operation: >-
+
+format: set_call_flags <arg1>
+opcode: 92
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    c->call_flags = _int;

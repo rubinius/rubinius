@@ -11,33 +11,33 @@ describe "Array#hash" do
     end
   end
 
-#  Too much of an implementation detail? -rue
-compliant :r18 do
-  it "calls to_int on result of calling hash on each element" do
-    ary = Array.new(5) do
-      # Can't use should_receive here because it calls hash()
-      obj = Object.new
-      def obj.hash()
-        def self.to_int() freeze; 0 end
-        return self
+  #  Too much of an implementation detail? -rue
+  compliant :mri, :jruby do
+    it "calls to_int on result of calling hash on each element" do
+      ary = Array.new(5) do
+        # Can't use should_receive here because it calls hash()
+        obj = Object.new
+        def obj.hash()
+          def self.to_int() freeze; 0 end
+          return self
+        end
+        obj
       end
-      obj
-    end
     
-    ary.hash
-    ary.each { |obj| obj.frozen?.should == true }
+      ary.hash
+      ary.each { |obj| obj.frozen?.should == true }
     
-    hash = Object.new
-    hash.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    hash.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+      hash = Object.new
+      hash.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
+      hash.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     
-    obj = Object.new
-    obj.instance_variable_set(:@hash, hash)
-    def obj.hash() @hash end
+      obj = Object.new
+      obj.instance_variable_set(:@hash, hash)
+      def obj.hash() @hash end
       
-    [obj].hash == [0].hash
+      [obj].hash == [0].hash
+    end
   end
-end
   
   it "ignores array class differences" do
     MyArray[].hash.should == [].hash

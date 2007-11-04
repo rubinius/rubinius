@@ -1,0 +1,13 @@
+namespace "doc" do
+  namespace "vm" do
+    desc "Update YAML doc files with current op codes, source, etc (retains doco)"
+    task "yaml" do
+      ruby "gen_op_code_yaml.rb"
+    end
+
+    desc "Generate HTML from YAML"
+    task "html" do
+      ruby "gen_op_code_html.rb"
+    end
+  end
+end

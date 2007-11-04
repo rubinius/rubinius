@@ -1,0 +1,17 @@
+---
+mnemonic: set_cache_index
+operation: >-
+
+format: set_cache_index <arg1>
+opcode: 67
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    c->cache_index = _int;

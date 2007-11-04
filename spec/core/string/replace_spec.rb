@@ -32,11 +32,13 @@ describe "String#replace" do
     should_raise(TypeError) { "hello".replace(Object.new) }
   end
   
-  it "raises a TypeError if self is frozen" do
-    a = "hello".freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      a = "hello".freeze
 
-    a.replace(a) # ok, no change
-    should_raise(TypeError) { a.replace("") }
-    should_raise(TypeError) { a.replace("world") }
+      a.replace(a) # ok, no change
+      should_raise(TypeError) { a.replace("") }
+      should_raise(TypeError) { a.replace("world") }
+    end
   end
 end

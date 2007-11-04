@@ -1,4 +1,4 @@
-@array_slice = shared "Array#[]" do |cmd|
+shared :array_slice do |cmd|
   describe "Array##{cmd}" do
     it "returns the element at index with [index]" do
       [ "a", "b", "c", "d", "e" ].send(cmd, 1).should == "b"

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 require File.dirname(__FILE__) + '/shared/equal_value.rb'
 
 describe "String#eql?" do
-  it_behaves_like(@string_equal_value, :eql?)
+  it_behaves_like(:string_equal_value, :eql?)
 end
 
 describe "String#eql? when given a non-String" do

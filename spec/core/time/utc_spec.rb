@@ -10,9 +10,9 @@ describe "Time#utc?" do
 end
 
 describe "Time.utc" do
-  it_behaves_like(@time_gm, :utc)
+  it_behaves_like(:time_gm, :utc)
 end
 
 describe "Time#utc" do
-  it_behaves_like(@time_gmtime, :utc)
+  it_behaves_like(:time_gmtime, :utc)
 end  

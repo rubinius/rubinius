@@ -1,4 +1,4 @@
-@range_eql = shared "Range#eql?" do |cmd|
+shared :range_eql do |cmd|
   describe "Range##{cmd}" do
     it "returns true if other has same begin, end, and exclude_end? values" do
       (0..2).send(cmd, 0..2).should == true

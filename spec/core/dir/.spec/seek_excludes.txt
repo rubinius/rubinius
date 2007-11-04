@@ -1,2 +1,1 @@
 Dir#seek moves the current read position
-Dir#seek returns the Dir instance

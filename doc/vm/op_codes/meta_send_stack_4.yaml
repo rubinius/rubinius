@@ -1,0 +1,23 @@
+---
+mnemonic: meta_send_stack_4
+operation: >-
+
+format: meta_send_stack_4 <arg1>
+opcode: 77
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    j = 4;
+    goto perform_send;
+    
+    // next_int;
+    // cpu_unified_send(state, c, stack_pop(), _int, 4, Qnil);

@@ -1,0 +1,16 @@
+---
+mnemonic: push_block
+operation: >-
+
+format: push_block
+opcode: 43
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+  stack_push(cpu_current_block(state, c));

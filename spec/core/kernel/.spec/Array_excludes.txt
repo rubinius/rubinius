@@ -1,1 +1,0 @@
-Kernel#Array raises a TypeError if #to_ary / #to_a do not return an array

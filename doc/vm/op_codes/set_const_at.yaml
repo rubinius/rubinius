@@ -1,0 +1,20 @@
+---
+mnemonic: set_const_at
+operation: >-
+
+format: set_const_at <arg1>
+opcode: 26
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    t1 = tuple_at(state, cpu_current_literals(state, c), _int);
+    t2 = stack_pop();
+    t3 = stack_pop();
+    cpu_const_set(state, c, t1, t2, t3);

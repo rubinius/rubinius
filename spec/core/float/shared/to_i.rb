@@ -1,4 +1,4 @@
-@float_to_i = shared "Float#to_i" do |cmd|
+shared :float_to_i do |cmd|
   describe "Float##{cmd}" do
     it "returns self truncated to an Integer" do
       899.2.send(cmd).should == 899

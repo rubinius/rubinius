@@ -1,0 +1,15 @@
+---
+mnemonic: push_nil
+operation: >-
+  Puts nil on the stack
+format: push_nil
+opcode: 1
+stack_before:
+  - ...
+stack_after:
+  - nil
+  - ...
+description: >-
+  The special object nil is pushed onto the stack.
+source: |-
+  stack_push(Qnil);

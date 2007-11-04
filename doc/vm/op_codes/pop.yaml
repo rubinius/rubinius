@@ -1,0 +1,18 @@
+---
+mnemonic: pop
+operation: >-
+  Pop an item off the stack and discard
+format: pop
+opcode: 38
+stack_before:
+  - value
+  - ...
+stack_after:
+  - ...
+notes: >-
+  Pop is typically used when the return value of another opcode is not
+  required.
+description: >-
+  Removes the top item from the stack, discarding it.
+source: |-
+  stack_pop();

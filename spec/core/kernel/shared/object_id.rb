@@ -1,4 +1,4 @@
-@kernel_object_id = shared "Kernel#object_id" do |cmd|
+shared :kernel_object_id do |cmd|
   describe "Object##{cmd}" do
     # #object_id and #__id__ are aliases, so we only need one function
     # that tests both methods

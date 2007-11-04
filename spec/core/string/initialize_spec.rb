@@ -27,11 +27,13 @@ describe "String#initialize" do
     a.instance_eval { initialize(b) }
     a.tainted?.should == true
   end
-    
-  it "raises a TypeError if self is frozen" do
-    a = "hello".freeze
+  
+  compliant :mri, :jruby do
+    it "raises a TypeError if self is frozen" do
+      a = "hello".freeze
 
-    a.instance_eval { initialize(a) } # ok, no change
-    should_raise(TypeError) { a.instance_eval { initialize("world") } }
+      a.instance_eval { initialize(a) } # ok, no change
+      should_raise(TypeError) { a.instance_eval { initialize("world") } }
+    end
   end
 end

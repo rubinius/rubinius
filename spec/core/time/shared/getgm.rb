@@ -1,4 +1,4 @@
-@time_getgm = shared "Time#getgm" do |cmd|
+shared :time_getgm do |cmd|
   describe "Time##{cmd}" do
     it "returns a new time which is the utc representation of time" do
       # Testing with America/Regina here because it doesn't have DST.

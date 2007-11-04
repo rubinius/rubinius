@@ -1,4 +1,4 @@
-@hash_replace = shared "Hash#replace" do |cmd|
+shared :hash_replace do |cmd|
   describe "Hash##{cmd}" do
     it "replaces the contents of self with other" do
       h = { :a => 1, :b => 2 }

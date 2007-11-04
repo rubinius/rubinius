@@ -1,0 +1,27 @@
+---
+mnemonic: open_class
+operation: >-
+  Creates or re-opens a class.
+format: open_class cl
+opcode: 30
+stack_before:
+  - super
+  - ...
+stack_after:
+  - class
+  - ...
+description: >-
+  Creates or re-opens a class, taking the superclass (or nil) from the stack.
+  Upon return, the new class is pushed onto the stack.
+  
+  The _cl_ argument to the opcode is the class literal identifying the class to
+  be opened.
+source: |-
+    int created;
+    t1 = stack_pop();
+    t2 = c->enclosing_class;
+    t3 = cpu_open_class(state, c, t2, t1, &created);
+    if(t3 != Qundef) {
+      stack_push(t3);
+      if(created) cpu_perform_hook(state, c, t3, state->global->sym_opened_class, t1);
+    }

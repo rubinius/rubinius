@@ -1,0 +1,17 @@
+---
+mnemonic: set_literal
+operation: >-
+
+format: set_literal <arg1>
+opcode: 107
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    tuple_put(state, cpu_current_literals(state, c), _int, stack_top());

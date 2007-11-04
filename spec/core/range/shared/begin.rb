@@ -1,4 +1,4 @@
-@range_begin = shared "Range#begin" do |cmd|
+shared :range_begin do |cmd|
   describe "Range##{cmd}" do
     it "returns the first element of self" do
       (-1..1).send(cmd).should == -1

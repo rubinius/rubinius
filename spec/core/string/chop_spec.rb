@@ -63,13 +63,15 @@ describe "String#chop!" do
     "".chop!.should == nil
   end
   
-  it "raises a TypeError when self is frozen" do
-    a = "string\n\r"
-    a.freeze
-    should_raise(TypeError) { a.chop! }
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      a = "string\n\r"
+      a.freeze
+      should_raise(TypeError) { a.chop! }
 
-    a = ""
-    a.freeze
-    a.chop! # ok, no change
+      a = ""
+      a.freeze
+      a.chop! # ok, no change
+    end
   end
 end

@@ -1,4 +1,4 @@
-@kernel_kind_of = shared "Kernel#kind_of" do |cmd|
+shared :kernel_kind_of do |cmd|
   describe "Object##{cmd}" do
     it "returns true if class is the class of obj, or if class is one of the superclasses of obj or modules included in obj (String example)" do
       s = "hello"

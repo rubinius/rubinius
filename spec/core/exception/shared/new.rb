@@ -1,4 +1,4 @@
-@exception_new = shared "Exception.new" do |cmd|
+shared :exception_new do |cmd|
   describe "Exception.#{cmd}" do
     it "creates a new instance of Exception" do
       Exception.should_be_ancestor_of(Exception.send(cmd).class)

@@ -1,0 +1,22 @@
+---
+mnemonic: kind_of
+operation: >-
+
+format: kind_of
+opcode: 90
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(ISA(t1, t2)) {
+      stack_push(Qtrue);
+    } else {
+      stack_push(Qfalse);
+    }

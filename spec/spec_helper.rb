@@ -147,11 +147,11 @@ class Object
 end
 
 def shared(msg, &block)
-  return Proc.new(&block)
+  Object.instance_variable_set(:"@#{msg}", Proc.new(&block))
 end
 
 def it_behaves_like(behavior, meth)
-  behavior.call(meth)
+  Object.instance_variable_get(:"@#{behavior}").call(meth)
 end
 
 def dev_null

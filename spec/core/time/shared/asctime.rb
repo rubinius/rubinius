@@ -1,4 +1,4 @@
-@time_asctime = shared "Time#asctime" do |cmd|
+shared :time_asctime do |cmd|
   describe "Time##{cmd}" do
     it "returns a canonical string representation of time" do
       t = Time.now

@@ -7,5 +7,5 @@ describe "Hash#initialize_copy" do
     {}.private_methods.map { |m| m.to_s }.include?("initialize_copy").should == true
   end
 
-  it_behaves_like(@hash_replace, :initialize_copy)
+  it_behaves_like(:hash_replace, :initialize_copy)
 end

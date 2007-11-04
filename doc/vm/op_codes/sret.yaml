@@ -1,0 +1,17 @@
+---
+mnemonic: sret
+operation: >-
+
+format: sret
+opcode: 106
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    cpu_simple_return(state, c, t1);

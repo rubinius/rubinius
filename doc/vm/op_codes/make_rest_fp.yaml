@@ -1,0 +1,23 @@
+---
+mnemonic: make_rest_fp
+operation: >-
+
+format: make_rest_fp <arg1>
+opcode: 96
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    j = cpu_current_argcount(c) - _int;
+    if(j < 0) j = 0;
+    t1 = array_new(state, j);
+    for(k = _int, m = 0; k < cpu_current_argcount(c); k++, m++) {
+      array_set(state, t1, m, *(c->fp_ptr - k));
+    }
+    stack_push(t1);

@@ -1,4 +1,4 @@
-@method_call = shared "Method#call" do |cmd|
+shared :method_call do |cmd|
   describe "Method##{cmd}" do
     it "invokes the method with the specified arguments, returning the method's return value" do
       m = 12.method("+")

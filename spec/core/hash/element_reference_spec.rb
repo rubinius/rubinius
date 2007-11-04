@@ -101,10 +101,9 @@ describe "Hash#[]" do
   it "compares key via hash" do
     # Can't use should_receive because it uses hash internally
     x = Object.new
-    def x.hash() freeze; 0 end
+    def x.hash() 0 end
 
     { }[x].should == nil
-    x.frozen?.should == true
   end
 
   # True for all other methods using hash codes as well...
@@ -125,11 +124,10 @@ describe "Hash#[]" do
     y = Object.new
     def x.eql?(o) raise("Shouldn't receive eql?") end
 
-    def x.hash() freeze; 0 end
+    def x.hash() 0 end
     def y.hash() 1 end
 
     { y => 1 }[x].should == nil
-    x.frozen?.should == true
   end    
 
   it "compares key with found hash code via eql?" do

@@ -12,7 +12,7 @@ describe "Hash#each_pair" do
     all_args.should == [[1, 2], [3, 4]]
   end
 
-  it_behaves_like(@hash_iteration_method, :each_pair)
-  it_behaves_like(@hash_iteration_modifying, :each_pair)
-  it_behaves_like(@hash_iteration_no_block, :each_pair)
+  it_behaves_like(:hash_iteration_method, :each_pair)
+  it_behaves_like(:hash_iteration_modifying, :each_pair)
+  it_behaves_like(:hash_iteration_no_block, :each_pair)
 end

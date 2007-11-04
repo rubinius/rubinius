@@ -1,4 +1,4 @@
-@symbol_id2name = shared "Symbol#id2name" do |cmd|
+shared :symbol_id2name do |cmd|
   describe "Symbol\##{cmd}" do
     it "returns the string corresponding to self" do
       :rubinius.send(cmd).should == "rubinius"

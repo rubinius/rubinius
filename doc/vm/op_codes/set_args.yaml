@@ -1,0 +1,17 @@
+---
+mnemonic: set_args
+operation: >-
+
+format: set_args
+opcode: 59
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    c->args = FIXNUM_TO_INT(t1);

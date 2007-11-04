@@ -3,22 +3,20 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "The loop expression" do
   
   it "repeats the given block until a break is called" do
-    i = 0
+    outer_loop = 0
     loop do
-      i += 1
-      break if i == 10
+      outer_loop += 1
+      break if outer_loop == 10
     end
-    
-    i.should == 10
+    outer_loop.should == 10
   end
   
   it "executes code in its own scope" do
     loop do
-      a = 123
+      inner_loop = 123
       break
     end
-    
-    should_raise(NameError) { a }
+    should_raise(NameError) { inner_loop }
   end
   
   it "returns the value passed to break if interrupted by break" do

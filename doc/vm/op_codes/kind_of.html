@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCode: kind_of</title>
+		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
+	</head>
+
+	<body>
+	
+		<div id="kind_of">
+
+		  <h2>kind_of</h2>
+		  <b>Byte code:</b> <i>0x5a</i>
+  
+		  <h3>Operation</h3>
+		  
+	  	  <span class="todo">TODO: Add brief operation one-liner to kind_of.yaml</span>
+		  
+  
+		  <h3>Format</h3>
+		  
+		  <b>kind_of</b>
+		  <i></i>
+
+		  <h3>Stack</h3>
+		  <div class="stack">
+			<table>
+				<tfoot>
+					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+				<tbody>
+					<tr>
+						<td>
+  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+            </td>
+            <td>=&gt;</td>
+            <td>
+					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+	          </td>
+					<tr>
+				</tbody>
+			</table>
+		  </div>
+
+		  <h3>Description</h3>
+		  
+	  	  <span class="todo">TODO: Add description to kind_of.yaml</span>
+		  
+  
+		  
+		
+		  
+  
+      
+
+      
+
+
+      
+		  <div id="kind_of_source" class="source">
+		  <h4>Source</h4>
+		    <pre>
+t1 = stack_pop();
+t2 = stack_pop();
+if(ISA(t1, t2)) {
+  stack_push(Qtrue);
+} else {
+  stack_push(Qfalse);
+}
+		    </pre>
+		  <div>
+      
+
+		</div>
+	</body>
+
+</html>

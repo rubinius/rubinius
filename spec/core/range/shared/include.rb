@@ -1,4 +1,4 @@
-@range_include = shared "Range#include?" do |cmd|
+shared :range_include do |cmd|
   describe "Range##{cmd}" do
     it "returns true if other is an element of self" do
       (0..5).send(cmd, 2).should == true

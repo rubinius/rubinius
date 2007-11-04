@@ -1,0 +1,16 @@
+---
+mnemonic: push_cpath_top
+operation: >-
+
+format: push_cpath_top
+opcode: 54
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+  stack_push(state->global->object);

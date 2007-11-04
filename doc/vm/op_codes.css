@@ -1,0 +1,33 @@
+a, a:visited {
+	color: blue;
+}
+
+ul#index {
+	padding-left: 10px;
+}
+
+ul#index li {
+	list-style-type: none;
+}
+
+.todo {
+	color: red;
+	font-style: italic;
+}
+
+.stack table table td {
+	width: 60px;
+	border-width: 1px;
+	border-style: solid;
+	font-style: italic;
+	text-align: center;
+}
+
+div.source pre {
+	color: darkblue;
+	border-width: 1px;
+	border-style: solid;
+	border-color: black;
+	background-color: #ffffcc;
+	padding: 5px;
+}

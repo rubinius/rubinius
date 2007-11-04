@@ -1,0 +1,16 @@
+---
+mnemonic: block_break
+operation: >-
+
+format: block_break
+opcode: 68
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    cpu_return_to_block_creator(state, c);

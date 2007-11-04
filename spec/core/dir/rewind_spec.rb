@@ -36,5 +36,5 @@ describe "Dir#rewind" do
 end
 
 describe "Dir#rewind" do
-  it_behaves_like @dir_closed, :rewind
+  it_behaves_like :dir_closed, :rewind
 end

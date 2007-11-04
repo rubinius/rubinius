@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../fixtures/methods'
 
-@time_isdst = shared "Time#isdst" do |cmd|
+shared :time_isdst do |cmd|
   describe "Time##{cmd}" do
     it "dst? returns whether time is during daylight saving time" do
       with_timezone("EST", -5, "EDT") do

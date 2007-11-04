@@ -1,0 +1,17 @@
+---
+mnemonic: store_my_field
+operation: >-
+
+format: store_my_field <arg1>
+opcode: 65
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    SET_FIELD(c->self, _int, stack_top());

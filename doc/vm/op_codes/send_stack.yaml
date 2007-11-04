@@ -1,0 +1,23 @@
+---
+mnemonic: send_stack
+operation: >-
+
+format: send_stack <arg1><arg1> <arg2>
+opcode: 41
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_literal;
+    t1 = stack_pop();
+    t2 = Qnil;
+    next_int;
+    j = _int; // num_args
+    
+    goto perform_send;
+    // cpu_unified_send(state, c, stack_pop(), j, k, Qnil);

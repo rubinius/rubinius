@@ -95,11 +95,13 @@ describe "String#squeeze!" do
     a.should == "squeeze"
   end
 
-  it "raises a TypeError when self is frozen" do
-    a = "yellow moon"
-    a.freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      a = "yellow moon"
+      a.freeze
 
-    should_raise(TypeError) { a.squeeze!("") }
-    should_raise(TypeError) { a.squeeze! }
+      should_raise(TypeError) { a.squeeze!("") }
+      should_raise(TypeError) { a.squeeze! }
+    end
   end
 end

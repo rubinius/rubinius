@@ -1,0 +1,21 @@
+---
+mnemonic: allocate_stack
+operation: >-
+
+format: allocate_stack <arg1>
+opcode: 97
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    next_int;
+    /* The stack must be initialized to nil because any refers that
+       were there are probably bad. */
+    for(k = 0; k <= _int; k++) {
+      *++c->sp_ptr = Qnil;
+    }

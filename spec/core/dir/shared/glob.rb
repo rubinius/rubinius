@@ -1,5 +1,5 @@
 
-@dir_glob = shared "Dir.glob" do |cmd|
+shared :dir_glob do |cmd|
   describe "Dir.#{cmd}" do
     before(:all) do
       @cwd = Dir.pwd

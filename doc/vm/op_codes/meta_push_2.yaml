@@ -1,0 +1,16 @@
+---
+mnemonic: meta_push_2
+operation: >-
+
+format: meta_push_2
+opcode: 73
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    stack_push(I2N(2));

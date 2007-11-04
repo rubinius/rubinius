@@ -92,7 +92,7 @@ describe "String#tr_s!" do
     s.should == "hello"
   end
   
-  compliant :mri do
+  compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
       s = "hello".freeze
       should_raise(TypeError) { s.tr_s!("el", "ar") }

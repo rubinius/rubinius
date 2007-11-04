@@ -1,0 +1,27 @@
+---
+mnemonic: unshift_tuple
+operation: >-
+
+format: unshift_tuple
+opcode: 34
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    if(NUM_FIELDS(t1) == 0) {
+      stack_push(t1);
+      stack_push(Qnil);
+    } else {
+      j = NUM_FIELDS(t1) - 1;
+      t3 = tuple_at(state, t1, 0);
+      t2 = tuple_new(state, j);
+      object_copy_fields_from(state, t1, t2, 1, j);
+      stack_push(t2);
+      stack_push(t3);
+    }

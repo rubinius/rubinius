@@ -1,0 +1,17 @@
+---
+mnemonic: class
+operation: >-
+
+format: class
+opcode: 104
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    stack_push(object_class(state, t1));

@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCode: send_primitive</title>
+		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
+	</head>
+
+	<body>
+	
+		<div id="send_primitive">
+
+		  <h2>send_primitive</h2>
+		  <b>Byte code:</b> <i>0x9</i>
+  
+		  <h3>Operation</h3>
+		  
+	  	  <span class="todo">TODO: Add brief operation one-liner to send_primitive.yaml</span>
+		  
+  
+		  <h3>Format</h3>
+		  
+		  <b>send_primitive</b>
+		  <i>&lt;arg1&gt;&lt;arg1&gt;&lt;arg2&gt;</i>
+
+		  <h3>Stack</h3>
+		  <div class="stack">
+			<table>
+				<tfoot>
+					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+				<tbody>
+					<tr>
+						<td>
+  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+            </td>
+            <td>=&gt;</td>
+            <td>
+					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+	          </td>
+					<tr>
+				</tbody>
+			</table>
+		  </div>
+
+		  <h3>Description</h3>
+		  
+	  	  <span class="todo">TODO: Add description to send_primitive.yaml</span>
+		  
+  
+		  
+		
+		  
+  
+      
+
+      
+
+
+      
+		  <div id="send_primitive_source" class="source">
+		  <h4>Source</h4>
+		    <pre>
+next_int;
+j = _int; // primitive index
+next_int;
+k = _int; // num_args
+
+// Should the OBJECT parameter be removed since a primitive is not necesarily
+// performed on an object? Or should we state that the semantics of a primitive 
+// will always have an object or else it needs to be an opcode... ?
+// If the primitive fails raise an exception
+if( ! cpu_perform_primitive(state, c, j, Qnil, k, Qnil, Qnil) )
+{
+  cpu_raise_primitive_failure(state, c, j);
+}
+		    </pre>
+		  <div>
+      
+
+		</div>
+	</body>
+
+</html>

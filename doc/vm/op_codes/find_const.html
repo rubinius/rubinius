@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<title>Rubinius Virtual Machine OpCode: find_const</title>
+		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
+	</head>
+
+	<body>
+	
+		<div id="find_const">
+
+		  <h2>find_const (find)</h2>
+		  <b>Byte code:</b> <i>0x1b</i>
+  
+		  <h3>Operation</h3>
+		  
+	  	  <span class="todo">TODO: Add brief operation one-liner to find_const.yaml</span>
+		  
+  
+		  <h3>Format</h3>
+		  
+		  <b>find_const</b>
+		  <i>&lt;arg1&gt;</i>
+
+		  <h3>Stack</h3>
+		  <div class="stack">
+			<table>
+				<tfoot>
+					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+				<tbody>
+					<tr>
+						<td>
+  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+            </td>
+            <td>=&gt;</td>
+            <td>
+					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+	          </td>
+					<tr>
+				</tbody>
+			</table>
+		  </div>
+
+		  <h3>Description</h3>
+		  
+	  	  <span class="todo">TODO: Add description to find_const.yaml</span>
+		  
+  
+		  
+		
+		  
+  
+      
+
+      
+
+
+      
+		  <div id="find_const_source" class="source">
+		  <h4>Source</h4>
+		    <pre>
+t1 = stack_pop();
+next_int;
+t2 = tuple_at(state, cpu_current_literals(state, c), _int);
+t2 = cpu_const_get_from(state, c, t2, t1);
+if(t2 != Qundef) stack_push(t2);
+c->cache_index = -1;
+		    </pre>
+		  <div>
+      
+
+		</div>
+	</body>
+
+</html>

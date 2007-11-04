@@ -1,0 +1,17 @@
+---
+mnemonic: allocate
+operation: >-
+
+format: allocate
+opcode: 4
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    _lit = stack_pop();
+    stack_push(NEW_OBJECT(Qnil, FIXNUM_TO_INT(_lit)));

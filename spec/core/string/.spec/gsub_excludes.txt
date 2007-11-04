@@ -1,3 +1,0 @@
-String#gsub with pattern, replacement sets $~ to MatchData of last match and nil when there's none
-String#gsub with pattern and block restores $~ after leaving the block
-String#gsub with pattern and block sets $~ to MatchData of last match and nil when there's none for access from outside

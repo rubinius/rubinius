@@ -1,4 +1,4 @@
-@dir_open = shared "Dir.open" do |cmd|
+shared :dir_open do |cmd|
   it "returns a Dir instance representing the specified directory" do
     dir = Dir.send(cmd, mock_dir)
     dir.class.should == Dir

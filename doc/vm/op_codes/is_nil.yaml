@@ -1,0 +1,17 @@
+---
+mnemonic: is_nil
+operation: >-
+
+format: is_nil
+opcode: 103
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    t1 = stack_pop();
+    stack_push(t1 == Qnil ? Qtrue : Qfalse);

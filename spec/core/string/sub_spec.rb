@@ -316,13 +316,15 @@ describe "String#sub! with pattern, replacement" do
     a.should == "hello"
   end
   
-  it "raises a TypeError when self is frozen" do
-    s = "hello"
-    s.freeze
+  compliant :mri, :jruby do
+    it "raises a TypeError when self is frozen" do
+      s = "hello"
+      s.freeze
     
-    s.sub!(/ROAR/, "x") # ok
-    should_raise(TypeError) { s.sub!(/e/, "e") }
-    should_raise(TypeError) { s.sub!(/[aeiou]/, '*') }
+      s.sub!(/ROAR/, "x") # ok
+      should_raise(TypeError) { s.sub!(/e/, "e") }
+      should_raise(TypeError) { s.sub!(/[aeiou]/, '*') }
+    end
   end
 end
 
@@ -351,25 +353,27 @@ describe "String#sub! with pattern and block" do
     should_raise(RuntimeError) { str.sub!(//) { str << 'x' } }
   end
   
-  version '1.8.4'..'1.8.5' do
-    it "raises a TypeError when self is frozen" do
-      s = "hello"
-      s.freeze
+  compliant :mri, :jruby do
+    version '1.8.4'..'1.8.5' do
+      it "raises a TypeError when self is frozen" do
+        s = "hello"
+        s.freeze
     
-      s.sub!(/ROAR/) { "x" } # ok
-      should_raise(TypeError) { s.sub!(/e/) { "e" } }
-      should_raise(TypeError) { s.sub!(/[aeiou]/) { '*' } }
-    end    
-  end
+        s.sub!(/ROAR/) { "x" } # ok
+        should_raise(TypeError) { s.sub!(/e/) { "e" } }
+        should_raise(TypeError) { s.sub!(/[aeiou]/) { '*' } }
+      end    
+    end
 
-  version '1.8.6' do
-    it "raises a RuntimeError when self is frozen" do
-      s = "hello"
-      s.freeze
+    version '1.8.6' do
+      it "raises a RuntimeError when self is frozen" do
+        s = "hello"
+        s.freeze
     
-      s.sub!(/ROAR/) { "x" } # ok
-      should_raise(RuntimeError) { s.sub!(/e/) { "e" } }
-      should_raise(RuntimeError) { s.sub!(/[aeiou]/) { '*' } }
-    end    
+        s.sub!(/ROAR/) { "x" } # ok
+        should_raise(RuntimeError) { s.sub!(/e/) { "e" } }
+        should_raise(RuntimeError) { s.sub!(/[aeiou]/) { '*' } }
+      end    
+    end
   end
 end

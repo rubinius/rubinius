@@ -1,4 +1,4 @@
-@string_to_sym = shared "String#to_sym" do |cmd|
+shared :string_to_sym do |cmd|
   describe "String##{cmd}" do
     it "returns the symbol corresponding to self" do
       "Koala".send(cmd).should == :Koala

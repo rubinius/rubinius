@@ -647,15 +647,17 @@ describe "StringIO#reopen" do
       str.should == ''
     end
 
-    it "should deny access to prevent truncation of a frozen string" do
-      @io = StringIO.new("ice")
-      should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'w') }
-      should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'a') }
-    end
+    compliant :mri, :jruby do
+      it "should deny access to prevent truncation of a frozen string" do
+        @io = StringIO.new("ice")
+        should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'w') }
+        should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'a') }
+      end
 
-    it "should not raise IOError if a frozen string is passed in read mode" do
-      @io.reopen("burn".freeze, 'r')
-      @io.string.should == "burn"
+      it "should not raise IOError if a frozen string is passed in read mode" do
+        @io.reopen("burn".freeze, 'r')
+        @io.string.should == "burn"
+      end
     end
   end
 

@@ -1,0 +1,16 @@
+---
+mnemonic: push_local
+operation: >-
+
+format: push_local <arg1>
+opcode: 18
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+  next_int; stack_push(tuple_at(state, cpu_current_locals(state, c), _int));

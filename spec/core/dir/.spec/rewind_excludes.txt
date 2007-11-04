@@ -1,2 +1,0 @@
-Dir#rewind returns the Dir instance
-Dir#rewind raises an IOError when called on a closed Dir instance

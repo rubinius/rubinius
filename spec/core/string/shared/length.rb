@@ -1,4 +1,4 @@
-@string_length = shared "String#length" do |cmd|
+shared :string_length do |cmd|
   describe "String##{cmd}" do
     it "returns the length of self" do
       "".send(cmd).should == 0

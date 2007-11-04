@@ -1,0 +1,16 @@
+---
+mnemonic: open_module_under
+operation: >-
+
+format: open_module_under <arg1>
+opcode: 33
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+
+source: |-
+    stack_push(cpu_open_module(state, c, stack_pop()));
