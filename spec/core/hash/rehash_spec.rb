@@ -27,15 +27,13 @@ describe "Hash#rehash" do
     def v2.hash() raise("values shouldn't be rehashed"); end
 
     h = { k1 => v1, k2 => v2 }
-    k1.frozen?.should == false
-    k2.frozen?.should == false
 
-    def k1.hash() freeze; 0 end
-    def k2.hash() freeze; 0 end
+    def k1.hash() 0 end
+    def k2.hash() 0 end
     
     h.rehash
-    k1.frozen?.should == true
-    k2.frozen?.should == true    
+    h[k1].should == v1
+    h[k2].should == v2
   end
   
   it "gives precedence to keys coming later in keys() on collisions" do

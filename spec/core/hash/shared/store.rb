@@ -15,7 +15,7 @@ shared :hash_store do |cmd|
       h.keys[0].reverse.should == "oof"
     end
 
-    compliant :mri do
+    compliant :mri, :jruby do
       it "duplicates and freezes string keys" do
         key = "foo"
         h = {}

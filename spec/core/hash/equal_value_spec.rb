@@ -45,13 +45,11 @@ describe "Hash#==" do
   it "first compares keys via hash" do
     # Can't use should_receive because it uses hash internally
     x = Object.new
-    def x.hash() freeze; 0 end
+    def x.hash() 0 end
     y = Object.new
-    def y.hash() freeze; 0 end
+    def y.hash() 0 end
 
     { x => 1 }.should_not == { y => 1 }
-    x.frozen?.should == true
-    y.frozen?.should == true
   end
     
   it "does not compare keys with different hash codes via eql?" do
@@ -61,12 +59,10 @@ describe "Hash#==" do
     y = Object.new
     def y.eql?(o) raise("Shouldn't receive eql?") end
 
-    def x.hash() freeze; 0 end
-    def y.hash() freeze; 1 end
+    def x.hash() 0 end
+    def y.hash() 1 end
 
     { x => 1 }.should_not == { y => 1 }
-    x.frozen?.should == true
-    y.frozen?.should == true
   end    
     
   it "compares keys with matching hash codes via eql?" do
@@ -119,19 +115,15 @@ describe "Hash#==" do
   it "compares values when keys match" do
     x = Object.new
     y = Object.new
-    def x.==(o) freeze; false; end
-    def y.==(o) freeze; false; end
+    def x.==(o) false end
+    def y.==(o) false end
     { 1 => x }.should_not == { 1 => y }
-    # There is no order
-    (x.frozen? | y.frozen?).should == true
 
     x = Object.new
     y = Object.new
-    def x.==(o) freeze; true; end
-    def y.==(o) freeze; true; end
+    def x.==(o) true end
+    def y.==(o) true end
     { 1 => x }.should == { 1 => y }
-    # There is no order
-    (x.frozen? | y.frozen?).should == true
   end
 
   it "ignores hash class differences" do
