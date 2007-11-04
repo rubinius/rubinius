@@ -104,7 +104,8 @@ namespace :git do
     end
 
     puts "* Pulling in new commits..."
-    sh "git pull"
+    sh "git fetch"
+    sh "git rebase origin"
     
     if switch
       puts "* Porting changes into #{branch}..."
