@@ -119,16 +119,18 @@ class IO
   end
   
   def gets(sep=$/)
-    cur = read(1)
-    return nil unless cur
-    out = cur
-    until out[-sep.size,sep.size] == sep
-      cur = read(1)
-      return out unless cur
-      out << cur
+    if sep.nil?
+      out = read
+    else
+      out = ''
+      begin
+        cur = read(1)
+        break unless cur
+        out << cur
+      end until out[-sep.size,sep.size] == sep
     end
-    
-    return out    
+
+    $_ = (out.nil? || out.empty? ? nil : out)
   end
   
   def each(sep=$/)
