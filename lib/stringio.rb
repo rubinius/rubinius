@@ -343,25 +343,30 @@ class StringIO
   def puts(*args)
     if args.empty?
       write DEFAULT_RECORD_SEPARATOR
-      return nil
-    end
-    
-    args.each do |arg|
-      if arg.nil?
-        line = "nil"
-      elsif arg.kind_of? Array
-        line = arg.inspect
-      else
-        line = arg.to_s
+    else
+      args.each do |arg|
+        if arg.nil?
+          str = "nil"
+        elsif RecursionGuard.inspecting?(arg)
+          str = "[...]"
+        elsif arg.kind_of?(Array)
+          RecursionGuard.inspect(arg) do
+            arg.each do |a|
+              puts a
+            end
+          end
+        else
+          str = arg.to_s
+        end
+        
+        if str
+          write str
+          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+        end
       end
-      
-      write line
-      if line.empty? or line[-1] != ?\n
-        write DEFAULT_RECORD_SEPARATOR
-      end              
     end
-    
-    return nil
+
+    nil
   end
   
   def read(length=nil, buffer=nil)
