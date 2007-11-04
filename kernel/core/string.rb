@@ -989,8 +989,6 @@ class String
 
     other = StringValue(other)
 
-    raise TypeError, "can't modify frozen string" if self.frozen?
-
     @shared = true
     other.shared!
     @data = other.data
@@ -1362,9 +1360,6 @@ class String
         self.taint if replacement.tainted?
         replacement = StringValue(replacement).replace_slashes.to_sub_replacement(match)
       else
-        # Raises a RuntimeError instead a TypeError.
-        raise RuntimeError, "string frozen" if self.frozen?
-        
         old_str = self.dup
         replacement = yield(match[0].dup).to_s
         raise RuntimeError, "string modified" if old_str != self
@@ -1642,7 +1637,6 @@ class String
         tainted ||= val.tainted?
         ret << val.to_s
         
-        raise RuntimeError, "string frozen" if bang && self.frozen?
         raise RuntimeError, "string modified" if self != copy
         $~ = match
       end
@@ -1921,10 +1915,8 @@ class String
     end
   end
 
-  # Raises a TypeError on frozen strings and unshares shared ones.
+  # Unshares shared strings.
   def modify!
-    raise TypeError, "can't modify frozen string" if self.frozen?
-    
     if @shared
       @data = @data.dup
       @shared = nil
