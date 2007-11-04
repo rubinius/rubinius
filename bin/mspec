@@ -136,7 +136,7 @@ $VERBOSE=nil
   begin
     load f
   rescue Exception => e
-    puts "Bummer \#{e} on \#{f}"
+    puts "\#{e} loading \#{f}"
   end
 end
 @runner.reporter.summary
