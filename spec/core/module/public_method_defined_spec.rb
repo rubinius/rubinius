@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Module#public_method_defined?" do
   it "returns true if the named public method is defined by module or its ancestors" do
     ModuleSpecs::CountsMixin.public_method_defined?("public_3").should == true
-
+    
     ModuleSpecs::CountsParent.public_method_defined?("public_3").should == true
     ModuleSpecs::CountsParent.public_method_defined?("public_2").should == true
     
@@ -27,13 +27,27 @@ describe "Module#public_method_defined?" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_10).should == false
   end
 
-  it "should except symbols as a method name" do
+  it "accepts symbols as a method name" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_3).should == true
   end
 
-  it "raise an error on improper argument" do
-    should_raise(ArgumentError) { ModuleSpecs::CountsMixin.public_method_defined?(1) }
-    should_raise(TypeError) { ModuleSpecs::CountsMixin.public_method_defined?(nil) }
-    should_raise(TypeError) { ModuleSpecs::CountsMixin.public_method_defined?(false) }
+  compliant :mri, :jruby do
+    it "raises an exception on improper argument" do
+      should_raise(ArgumentError) { ModuleSpecs::CountsMixin.public_method_defined?(1) }
+      should_raise(TypeError) { ModuleSpecs::CountsMixin.public_method_defined?(nil) }
+      should_raise(TypeError) { ModuleSpecs::CountsMixin.public_method_defined?(false) }
+    end
+  end
+  
+  noncompliant :rubinius do
+    it "accepts any object that is String-like" do
+      o = Object.new
+      def o.to_str() 'method' end
+      ModuleSpecs::CountsMixin.public_method_defined?(o).should == true
+    end
+    
+    it "raises TypeError if pass a non-String-like argument" do
+      should_raise(TypeError) { ModuleSpecs::CountsMixin.public_method_defined?(Object.new) }
+    end
   end
 end

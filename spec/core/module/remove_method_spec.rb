@@ -42,7 +42,7 @@ describe "Module#remove_method" do
   end
   
   it "raises NameError when attempting to remove method further up the inheritance tree" do
-    should_raise(NameError, "method `method_to_remove' not defined in Third") do
+    should_raise(NameError) do
       class Third < ModuleSpecs::Second
         failure :rubinius do
           remove_method :method_to_remove

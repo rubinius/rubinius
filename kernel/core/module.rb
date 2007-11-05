@@ -36,9 +36,9 @@ class Module
   end
   
   def find_method_in_hierarchy(sym)
-    if method = @method_table[sym]
+    if method = @method_table[sym.to_sym]
       method
-    elsif self != Object
+    elsif self != Object and direct_superclass
       direct_superclass.find_method_in_hierarchy(sym)
     end
   end
@@ -82,6 +82,12 @@ class Module
     VM.reset_method_cache(name)
   end
   
+  def public_method_defined?(sym)
+    sym = StringValue(sym) unless sym.is_a? Symbol
+    m = find_method_in_hierarchy sym
+    m ? m.first == :public : false
+  end
+  
   def instance_method(name)
     name = name.to_sym
     cur, cm = __find_method(name)
@@ -97,7 +103,7 @@ class Module
   def public_instance_methods(all=true)
     filter_methods(:public_names, all)
   end
-  
+
   def private_instance_methods(all=true)
     filter_methods(:private_names, all)
   end
