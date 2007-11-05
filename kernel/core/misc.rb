@@ -1,3 +1,4 @@
+# depends on: object.rb
 def self.to_s
   "main"
 end
