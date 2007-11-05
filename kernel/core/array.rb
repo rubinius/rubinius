@@ -785,7 +785,10 @@ class Array
     sep = sep.to_str
 
     out = ""
-    each_with_index do |o, i|
+
+    @total.times do |i|
+      o = at(i)
+
       out << sep unless i == 0
       if o.kind_of?(Array)
         if RecursionGuard.inspecting?(o)
