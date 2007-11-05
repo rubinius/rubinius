@@ -55,25 +55,25 @@ end
 module Kernel
   def load(path)
     if path.suffix? ".rbc"
-      cm = CompiledMethod.load_from_file(path, Rubinius::CompiledMethodVersion)
-      raise LoadError, "Unable to load file at path: #{path}" unless cm
-      puts "[Loading #{path}]" if $DEBUG_LOADING
-      return cm.activate_as_script
-    end
-
-    if path.suffix? ".rb"
-      comp = "#{path}c"
+      raise LoadError, "Unable to directly load compiled file -- #{File.basename(path)}"
+    elsif path.suffix? ".rb"
+        compiled = "#{path}c"
     else
-      comp = "#{path}.rbc"
+        # compute a compiled version name, even if the path is not to a .rb file
+        compiled = "#{path}.rbc"
     end
 
-    # do we have a compiled file that's not older than the source?
-    if File.exists?(comp) && File.mtime(comp) >= File.mtime(path)
-      puts "[Loading #{comp} for #{path}]" if $DEBUG_LOADING
-      cm = CompiledMethod.load_from_file(comp, Rubinius::CompiledMethodVersion)
+    if (!File.exists?(path) and !File.exists?(compiled))
+      raise LoadError, "No such file to load -- #{path}"
+    end
+
+    # Use compiled version if the original is missing, or compiled version newer
+    if !File.exists?(path) or (File.exists?(compiled) and File.mtime(path) <= File.mtime(compiled) )
+      puts "[Loading #{compiled} for #{path}]" if $DEBUG_LOADING
+      cm = CompiledMethod.load_from_file(compiled, Rubinius::CompiledMethodVersion)
 
       unless cm
-        puts "[Skipping #{comp}, was invalid.]" if $DEBUG_LOADING
+        puts "[Skipping #{compiled}, was invalid.]" if $DEBUG_LOADING
       else
         return cm.activate_as_script
       end
@@ -83,10 +83,10 @@ module Kernel
     puts "[Compiling and loading #{path}]" if $DEBUG_LOADING
     cm = Compile.compile_file(path)
 
-    raise LoadError, "Unable to compile file at path: #{comp}" unless cm
+    raise LoadError, "Unable to compile file at path: #{path}" unless cm
 
     # and store it
-    Marshal.dump_to_file cm, comp, Rubinius::CompiledMethodVersion
+    Marshal.dump_to_file cm, compiled, Rubinius::CompiledMethodVersion
     
     # since we just created it, 'compile it', ie, let the VM finish
     # preparing it to be run
@@ -101,41 +101,48 @@ module Kernel
     Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end
-    
+  
+  # look in each directory of $: for .rb, .rbc, or .<library extension>
   def require(thing)
-    # puts "Requiring '#{thing}'"
-    # TODO: #{Config::CONFIG["DLEXT"]}
-    kinds = [thing + ".rb", thing + ".rbc", thing]
-    # Non extension thing added for C extension check
+    if thing.suffix? '.rbc'
+      raise LoadError, "unable to directly require compiled file #{thing}"
+    elsif thing.suffix? '.rb'
+      base_file = thing.chomp('.rb')
+      rb_file   = thing
+      rbc_file  = thing + 'c'
+    else
+      base_file = thing
+      rb_file   = thing + '.rb'
+      rbc_file  = thing + '.rbc'
+    end
     
     $:.each do |dir|
-      kinds.each do |filename|
-        path = "#{dir}/#{filename}"
+      rb_path   = "#{dir}/#{rb_file}"
+      rbc_path  = "#{dir}/#{rbc_file}"
+      base_path = "#{dir}/#{base_file}"
+
+      [rb_path, rbc_path, base_path].each do |path|
         return false if $".include?(path)
-        # puts "looking for #{filename} in #{dir}"
-        
-        if dir.suffix?(".rba") and File.exists?(dir)
-          cm = Archive.get_object(dir, filename, Rubinius::CompiledMethodVersion)
-          if cm
-            # puts "Found #{filename} in #{dir}"
-            $" << path
-            return cm.activate_as_script
-          end
-          
+      end
+      
+      if dir.suffix?('.rba') and File.exists?(dir)
+        cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
+        if cm
+          $" << rbc_path          
+          return cm.activate_as_script
+        end
+      elsif File.exists?(rb_path) or File.exists?(rbc_path)
         # Don't accidentally load non-extension files
-        elsif File.exists?(path) && (path.suffix?(".rb") or path.suffix?(".rbc"))
-          # puts "Loading from disk directly."
-          $" << path
-          return load(path)
-        elsif (load_result = VM.load_library(path, File.basename(path)))
-          case load_result
-          when true
-            # puts "Loaded as extension."
-            $" << path
-            return true
-          when 1
-            raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(path)}?"
-          end
+        $" << rb_path
+        return load(rb_path)
+      else
+        load_result = VM.load_library(base_path, File.basename(base_path))
+        case load_result
+        when true
+          $" << base_path
+          return true
+        when 1
+          raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(path)}?"
         end
       end
     end
