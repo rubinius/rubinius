@@ -25,6 +25,8 @@ end
 
 FALSE = false
 
+Undefined = Object.new
+
 module RecursionGuard
   def self.inspecting?(obj)
     stack.include?(obj.object_id)
