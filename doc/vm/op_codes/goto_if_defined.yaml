@@ -2,17 +2,22 @@
 mnemonic: goto_if_defined
 alias: gid
 operation: >-
-
-format: goto_if_defined <arg1>
+    Jump execution to the position specified by the label if the top of the stack
+    is not undefined.
+format: goto_if_defined label
 opcode: 23
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+    Remove the top item on the stack, and if it is not the special value *undefined*, jump to the instruction
+    following the specified label; otherwise, continue.
+see:
+  - goto
+  - goto_if_true
+  - goto_if_False
 source: |-
     next_int;
     t1 = stack_pop();

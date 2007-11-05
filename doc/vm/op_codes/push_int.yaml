@@ -1,17 +1,24 @@
 ---
 mnemonic: push_int
 operation: >-
-
-format: push_int <arg1>
+  Pushes an integer literal value onto the stack
+format: push_int value
 opcode: 7
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Pushes the value of the integer literal onto the stack.
+notes:
+  Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the lookup
+  of the literal value in the literals tuple.
+see:
+  - meta_push_0
+  - meta_push_1
+  - meta_push_2
+  - meta_push_neg_1
 source: |-
     next_int;
     stack_push(I2N(_int));

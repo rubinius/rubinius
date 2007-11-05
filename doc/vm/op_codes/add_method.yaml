@@ -6,15 +6,21 @@ operation: >-
 format: add_method name
 opcode: 29
 stack_before:
-  - <consumed>
+  - recv
+  - method
   - ...
 stack_after:
-  - <produced>
+  - method
   - ...
 description: >-
-  Hooks up a method definition to a class or module.
+  Hooks up a compiled method to a class or module.
   
-  Note: Singleton methods are handled by "attach_method":attach_method.html.
+  The class or module the method is to be added to (_recv_) and the compiled 
+  method object (_method_) are popped from the stack, while the name of the 
+  method is an argument to the opcode (_name_). On return, the compiled method
+  is pushed back onto the stack.
+notes:  
+  Singleton methods are handled by "attach_method":attach_method.html.
 see:
   - attach_method
 source: |-

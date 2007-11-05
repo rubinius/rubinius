@@ -28,6 +28,11 @@ def output_array(ary, output)
       output << "  -\n    - "
       output << item.join("\n    - ")
       output << "\n"
+    when Hash
+      output << "  -\n"
+      item.each do |key,val|
+        output << "    #{key}: #{val}\n"
+      end
     end   
   end
 end

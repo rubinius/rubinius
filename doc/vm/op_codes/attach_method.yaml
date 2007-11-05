@@ -2,17 +2,27 @@
 mnemonic: attach_method
 alias: attach
 operation: >-
-  Attaches a method definition to an object's singleton class.
+  Attaches a method definition to an object's singleton class
 format: attach_method name
 opcode: 28
 stack_before:
-  - <consumed>
+  - recv
+  - method
   - ...
 stack_after:
-  - <produced>
+  - method
   - ...
 description: >-
-
+  Hooks up a compiled method to an object instance via it's singleton class.
+  
+  The object the method is to be added to (_recv_) and the compiled 
+  method object (_method_) are popped from the stack, while the name of the 
+  method is an argument to the opcode (_name_). On return, the compiled method
+  is pushed back onto the stack.
+notes:  
+  Class/module methods are handled by "add_method":add_method.html.
+see:
+  - add_method
 source: |-
     next_literal;
     t1 = stack_pop();

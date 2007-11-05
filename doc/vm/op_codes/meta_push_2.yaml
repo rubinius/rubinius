@@ -1,16 +1,18 @@
 ---
 mnemonic: meta_push_2
 operation: >-
-
+  Pushes 2 onto the stack
 format: meta_push_2
 opcode: 73
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - "2"
   - ...
 description: >-
-
+    Fast push of 2 (two) onto the stack. This is an optimisation applied whenever
+    a literal 2 is encountered by the compiler. It is equivalent to 'push 2', but
+    faster because there is no need to lookup the literal value in the literals
+    tuple.
 source: |-
     stack_push(I2N(2));

@@ -16,13 +16,13 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to make_hash.yaml</span>
+  		  <p>Create a hash and populate with items on the stack</p>
 		  
   
 		  <h3>Format</h3>
 		  
 		  <b>make_hash</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>argc</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>keyn<tr><td>valuen<tr><td>...<tr><td>key2<tr><td>value2<tr><td>key1<tr><td>value1<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>{key1=&gt;value1, key2=&gt;value2, ...=&gt;..., keyn=&gt;valuen}<tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,7 +45,7 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to make_hash.yaml</span>
+   		  <p>Creates a new hash, populating its contents with the number of items (<i>argc</i>) specified in the opcode. The contents of the new hash are taken from the stack, with the top item on the stack becoming the last key in the hash,  the second top item becoming the last value, and so on. The resulting hash is added back to the stack.</p>
 		  
   
 		  

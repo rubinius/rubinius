@@ -16,13 +16,13 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to push_int.yaml</span>
+  		  <p>Pushes an integer literal value onto the stack</p>
 		  
   
 		  <h3>Format</h3>
 		  
 		  <b>push_int</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>value</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>value<tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,15 +45,41 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to push_int.yaml</span>
+   		  <p>Pushes the value of the integer literal onto the stack.</p>
 		  
   
 		  
 		
 		  
+		  <div class="notes">
+        <h4>Notes</h4>
+   		  <p>Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the lookup of the literal value in the literals tuple.</p>
+			</div>
+		  
   
       
 
+      
+      <div class="see_also">
+	    <h3>See Also</h3>
+	    
+	    <ul>
+  	    <li><a href="meta_push_0.html">meta_push_0</a></li>
+      </ul>
+	    
+	    <ul>
+  	    <li><a href="meta_push_1.html">meta_push_1</a></li>
+      </ul>
+	    
+	    <ul>
+  	    <li><a href="meta_push_2.html">meta_push_2</a></li>
+      </ul>
+	    
+	    <ul>
+  	    <li><a href="meta_push_neg_1.html">meta_push_neg_1</a></li>
+      </ul>
+	    
+	    </div>
       
 
 

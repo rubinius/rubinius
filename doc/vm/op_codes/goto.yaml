@@ -14,6 +14,7 @@ description: >-
 see:
   - goto_if_true
   - goto_if_false
+  - goto_if_defined
 source: |-
     next_int;
     c->ip = _int;

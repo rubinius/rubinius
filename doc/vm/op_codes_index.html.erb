@@ -1,18 +1,18 @@
 <html>
   <head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCodes</title>
-		<link rel="stylesheet" href="op_codes.css" type="text/css" />
-	</head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius Virtual Machine OpCodes</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
   <body>
-	  <a href="intro.html" target="op_code">Intro</a>
-	  <h3>OpCodes</h3>
-	  <ul id="index">
-		  <% op_codes.each do |op| %>
-		  <li><%= "<i>" if op.description.empty? %>
-		  <a href="op_codes/<%= op.mnemonic %>.html" target="op_code"><%= op.mnemonic %><%= " (#{op.alias})" if op.alias %></a>
-		  <%= "</i>" if op.description.empty? %></li>
-		  <% end %>
-		</ul>
-	</body>
+    <a href="intro.html" target="op_code">Intro</a>
+    <h3>OpCodes</h3>
+    <ul id="index">
+      <% op_codes.each do |op| %>
+      <li><%= "<i>" if op.description.empty? %>
+      <a href="op_codes/<%= op.mnemonic %>.html" title="<%= op.operation %>" target="op_code"><%= op.mnemonic %><%= " (#{op.alias})" if op.alias %></a>
+      <%= "</i>" if op.description.empty? %></li>
+      <% end %>
+    </ul>
+  </body>
 <html>

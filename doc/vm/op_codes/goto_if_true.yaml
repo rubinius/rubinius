@@ -12,11 +12,12 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Remove the top item on the stack, and if not nil or false, jump to the instruction
+  Remove the top item on the stack, and if not *nil* or *false*, jump to the instruction
   following the specified label; otherwise, continue.
 see:
-  - goto_if_false
   - goto
+  - goto_if_false
+  - goto_if_defined
 source: |-
     next_int;
     t1 = stack_pop();

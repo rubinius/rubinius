@@ -16,13 +16,13 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to goto_if_defined.yaml</span>
+  		  <p>Jump execution to the position specified by the label if the top of the stack is not undefined.</p>
 		  
   
 		  <h3>Format</h3>
 		  
 		  <b>goto_if_defined</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>label</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>value<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,7 +45,7 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to goto_if_defined.yaml</span>
+   		  <p>Remove the top item on the stack, and if it is not the special value <b>undefined</b>, jump to the instruction following the specified label; otherwise, continue.</p>
 		  
   
 		  
@@ -54,6 +54,23 @@
   
       
 
+      
+      <div class="see_also">
+	    <h3>See Also</h3>
+	    
+	    <ul>
+  	    <li><a href="goto.html">goto</a></li>
+      </ul>
+	    
+	    <ul>
+  	    <li><a href="goto_if_true.html">goto_if_true</a></li>
+      </ul>
+	    
+	    <ul>
+  	    <li><a href="goto_if_False.html">goto_if_False</a></li>
+      </ul>
+	    
+	    </div>
       
 
 

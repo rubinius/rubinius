@@ -1,450 +1,450 @@
 <html>
   <head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCodes</title>
-		<link rel="stylesheet" href="op_codes.css" type="text/css" />
-	</head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius Virtual Machine OpCodes</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
   <body>
-	  <a href="intro.html" target="op_code">Intro</a>
-	  <h3>OpCodes</h3>
-	  <ul id="index">
-		  
-		  <li>
-		  <a href="op_codes/activate_method.html" target="op_code">activate_method</a>
-		  </li>
-		  
-		  <li>
-		  <a href="op_codes/add_method.html" target="op_code">add_method (add)</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/allocate.html" target="op_code">allocate</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/allocate_stack.html" target="op_code">allocate_stack</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/attach_method.html" target="op_code">attach_method (attach)</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/block_break.html" target="op_code">block_break</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/caller_return.html" target="op_code">caller_return</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/cast_array.html" target="op_code">cast_array</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/cast_array_for_args.html" target="op_code">cast_array_for_args</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/cast_tuple.html" target="op_code">cast_tuple</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/check_argcount.html" target="op_code">check_argcount</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/class.html" target="op_code">class</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/clear_exception.html" target="op_code">clear_exception</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/create_block.html" target="op_code">create_block</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/deallocate_stack.html" target="op_code">deallocate_stack</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/dup_top.html" target="op_code">dup_top (dup)</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/equal.html" target="op_code">equal</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/fetch_field.html" target="op_code">fetch_field</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/find_const.html" target="op_code">find_const (find)</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/from_fp.html" target="op_code">from_fp</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/get_args.html" target="op_code">get_args</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/get_local_fp.html" target="op_code">get_local_fp</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/goto.html" target="op_code">goto</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/goto_if_defined.html" target="op_code">goto_if_defined (gid)</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/goto_if_false.html" target="op_code">goto_if_false (gif)</a>
-		  </li>
-		  
-		  <li>
-		  <a href="op_codes/goto_if_true.html" target="op_code">goto_if_true (git)</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/instance_of.html" target="op_code">instance_of</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/is_fixnum.html" target="op_code">is_fixnum</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/is_nil.html" target="op_code">is_nil</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/is_symbol.html" target="op_code">is_symbol</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/kind_of.html" target="op_code">kind_of</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/locate_method.html" target="op_code">locate_method</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/make_array.html" target="op_code">make_array</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/make_hash.html" target="op_code">make_hash</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/make_rest.html" target="op_code">make_rest</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/make_rest_fp.html" target="op_code">make_rest_fp</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_push_0.html" target="op_code">meta_push_0</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_push_1.html" target="op_code">meta_push_1</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_push_2.html" target="op_code">meta_push_2</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_push_neg_1.html" target="op_code">meta_push_neg_1</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_equal.html" target="op_code">meta_send_op_equal</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_gt.html" target="op_code">meta_send_op_gt</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_lt.html" target="op_code">meta_send_op_lt</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_minus.html" target="op_code">meta_send_op_minus</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_nequal.html" target="op_code">meta_send_op_nequal</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_plus.html" target="op_code">meta_send_op_plus</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_op_tequal.html" target="op_code">meta_send_op_tequal</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_stack_1.html" target="op_code">meta_send_stack_1</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_stack_2.html" target="op_code">meta_send_stack_2</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_stack_3.html" target="op_code">meta_send_stack_3</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/meta_send_stack_4.html" target="op_code">meta_send_stack_4</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/noop.html" target="op_code">noop</a>
-		  </li>
-		  
-		  <li>
-		  <a href="op_codes/open_class.html" target="op_code">open_class</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/open_class_under.html" target="op_code">open_class_under</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/open_metaclass.html" target="op_code">open_metaclass</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/open_module.html" target="op_code">open_module</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/open_module_under.html" target="op_code">open_module_under</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/passed_arg.html" target="op_code">passed_arg</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/passed_blockarg.html" target="op_code">passed_blockarg</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/pop.html" target="op_code">pop</a>
-		  </li>
-		  
-		  <li>
-		  <a href="op_codes/push_array.html" target="op_code">push_array</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_block.html" target="op_code">push_block</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_const.html" target="op_code">push_const</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_context.html" target="op_code">push_context</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_cpath_top.html" target="op_code">push_cpath_top</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_encloser.html" target="op_code">push_encloser</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_exception.html" target="op_code">push_exception</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/push_false.html" target="op_code">push_false</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_int.html" target="op_code">push_int</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_ivar.html" target="op_code">push_ivar</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/push_literal.html" target="op_code">push_literal</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_local.html" target="op_code">push_local</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_local_depth.html" target="op_code">push_local_depth</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/push_my_field.html" target="op_code">push_my_field</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/push_nil.html" target="op_code">push_nil</a>
-		  </li>
-		  
-		  <li>
-		  <a href="op_codes/push_self.html" target="op_code">push_self</a>
-		  </li>
-		  
-		  <li>
-		  <a href="op_codes/push_true.html" target="op_code">push_true</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/raise_exc.html" target="op_code">raise_exc</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/ret.html" target="op_code">ret</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_method.html" target="op_code">send_method</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_off_stack.html" target="op_code">send_off_stack</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_primitive.html" target="op_code">send_primitive</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_stack.html" target="op_code">send_stack</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_stack_with_block.html" target="op_code">send_stack_with_block</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_super_stack_with_block.html" target="op_code">send_super_stack_with_block</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_super_with_arg_register.html" target="op_code">send_super_with_arg_register</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/send_with_arg_register.html" target="op_code">send_with_arg_register</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_args.html" target="op_code">set_args</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_cache_index.html" target="op_code">set_cache_index</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_call_flags.html" target="op_code">set_call_flags</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_class.html" target="op_code">set_class</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_const.html" target="op_code">set_const</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_const_at.html" target="op_code">set_const_at</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_encloser.html" target="op_code">set_encloser</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_ivar.html" target="op_code">set_ivar</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_literal.html" target="op_code">set_literal</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_local.html" target="op_code">set_local</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_local_depth.html" target="op_code">set_local_depth</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_local_fp.html" target="op_code">set_local_fp</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/set_local_from_fp.html" target="op_code">set_local_from_fp</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/soft_return.html" target="op_code">soft_return</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/sret.html" target="op_code">sret</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/store_field.html" target="op_code">store_field</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/store_my_field.html" target="op_code">store_my_field</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/string_append.html" target="op_code">string_append</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/string_dup.html" target="op_code">string_dup</a>
-		  </i></li>
-		  
-		  <li>
-		  <a href="op_codes/swap_stack.html" target="op_code">swap_stack (swap)</a>
-		  </li>
-		  
-		  <li><i>
-		  <a href="op_codes/unshift_tuple.html" target="op_code">unshift_tuple</a>
-		  </i></li>
-		  
-		  <li><i>
-		  <a href="op_codes/yield_debugger.html" target="op_code">yield_debugger</a>
-		  </i></li>
-		  
-		</ul>
-	</body>
+    <a href="intro.html" target="op_code">Intro</a>
+    <h3>OpCodes</h3>
+    <ul id="index">
+      
+      <li>
+      <a href="op_codes/activate_method.html" title="Activates a cached method on an object in preparation for execution." target="op_code">activate_method</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/add_method.html" title="Adds a method to a class or module" target="op_code">add_method (add)</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/allocate.html" title="" target="op_code">allocate</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/allocate_stack.html" title="" target="op_code">allocate_stack</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/attach_method.html" title="Attaches a method definition to an object's singleton class" target="op_code">attach_method (attach)</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/block_break.html" title="" target="op_code">block_break</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/caller_return.html" title="" target="op_code">caller_return</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/cast_array.html" title="" target="op_code">cast_array</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/cast_array_for_args.html" title="" target="op_code">cast_array_for_args</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/cast_tuple.html" title="" target="op_code">cast_tuple</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/check_argcount.html" title="" target="op_code">check_argcount</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/class.html" title="" target="op_code">class</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/clear_exception.html" title="" target="op_code">clear_exception</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/create_block.html" title="" target="op_code">create_block</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/deallocate_stack.html" title="" target="op_code">deallocate_stack</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/dup_top.html" title="Duplicate the top item on the stack" target="op_code">dup_top (dup)</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/equal.html" title="" target="op_code">equal</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/fetch_field.html" title="" target="op_code">fetch_field</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/find_const.html" title="" target="op_code">find_const (find)</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/from_fp.html" title="" target="op_code">from_fp</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/get_args.html" title="" target="op_code">get_args</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/get_local_fp.html" title="" target="op_code">get_local_fp</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/goto.html" title="Unconditionally jump execution to the position specified by the label" target="op_code">goto</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/goto_if_defined.html" title="Jump execution to the position specified by the label if the top of the stack is not undefined." target="op_code">goto_if_defined (gid)</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/goto_if_false.html" title="Jump execution to the position specified by the label if the top of the stack evaluates to false." target="op_code">goto_if_false (gif)</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/goto_if_true.html" title="Jump execution to the position specified by the label if the top of the stack evaluates to true." target="op_code">goto_if_true (git)</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/instance_of.html" title="" target="op_code">instance_of</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/is_fixnum.html" title="" target="op_code">is_fixnum</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/is_nil.html" title="" target="op_code">is_nil</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/is_symbol.html" title="" target="op_code">is_symbol</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/kind_of.html" title="" target="op_code">kind_of</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/locate_method.html" title="" target="op_code">locate_method</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/make_array.html" title="Create an array and populate with items on the stack" target="op_code">make_array</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/make_hash.html" title="Create a hash and populate with items on the stack" target="op_code">make_hash</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/make_rest.html" title="" target="op_code">make_rest</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/make_rest_fp.html" title="" target="op_code">make_rest_fp</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/meta_push_0.html" title="Pushes 0 onto the stack" target="op_code">meta_push_0</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/meta_push_1.html" title="Pushes 1 onto the stack" target="op_code">meta_push_1</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/meta_push_2.html" title="Pushes 2 onto the stack" target="op_code">meta_push_2</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/meta_push_neg_1.html" title="Pushes -1 onto the stack" target="op_code">meta_push_neg_1</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_equal.html" title="" target="op_code">meta_send_op_equal</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_gt.html" title="" target="op_code">meta_send_op_gt</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_lt.html" title="" target="op_code">meta_send_op_lt</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_minus.html" title="" target="op_code">meta_send_op_minus</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_nequal.html" title="" target="op_code">meta_send_op_nequal</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_plus.html" title="" target="op_code">meta_send_op_plus</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_op_tequal.html" title="" target="op_code">meta_send_op_tequal</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_stack_1.html" title="" target="op_code">meta_send_stack_1</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_stack_2.html" title="" target="op_code">meta_send_stack_2</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_stack_3.html" title="" target="op_code">meta_send_stack_3</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/meta_send_stack_4.html" title="" target="op_code">meta_send_stack_4</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/noop.html" title="Performs a no-op, i.e. does nothing." target="op_code">noop</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/open_class.html" title="Creates or re-opens a class." target="op_code">open_class</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/open_class_under.html" title="" target="op_code">open_class_under</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/open_metaclass.html" title="" target="op_code">open_metaclass</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/open_module.html" title="" target="op_code">open_module</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/open_module_under.html" title="" target="op_code">open_module_under</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/passed_arg.html" title="" target="op_code">passed_arg</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/passed_blockarg.html" title="" target="op_code">passed_blockarg</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/pop.html" title="Pop an item off the stack and discard" target="op_code">pop</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/push_array.html" title="Unpack the array on the top of the stack into individual items on the stack" target="op_code">push_array</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/push_block.html" title="" target="op_code">push_block</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/push_const.html" title="" target="op_code">push_const</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/push_context.html" title="" target="op_code">push_context</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/push_cpath_top.html" title="" target="op_code">push_cpath_top</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/push_encloser.html" title="" target="op_code">push_encloser</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/push_exception.html" title="" target="op_code">push_exception</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/push_false.html" title="Pushes false onto the stack" target="op_code">push_false</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/push_int.html" title="Pushes an integer literal value onto the stack" target="op_code">push_int</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/push_ivar.html" title="" target="op_code">push_ivar</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/push_literal.html" title="Pushes a literal from the current state onto the stack." target="op_code">push_literal</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/push_local.html" title="Pushes the value of a local variable onto the stack" target="op_code">push_local</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/push_local_depth.html" title="" target="op_code">push_local_depth</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/push_my_field.html" title="" target="op_code">push_my_field</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/push_nil.html" title="Puts nil on the stack" target="op_code">push_nil</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/push_self.html" title="Pushes a reference to the current self object onto the stack." target="op_code">push_self</a>
+      </li>
+      
+      <li>
+      <a href="op_codes/push_true.html" title="Pushes true onto the stack" target="op_code">push_true</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/raise_exc.html" title="" target="op_code">raise_exc</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/ret.html" title="" target="op_code">ret</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_method.html" title="" target="op_code">send_method</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_off_stack.html" title="" target="op_code">send_off_stack</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_primitive.html" title="" target="op_code">send_primitive</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_stack.html" title="" target="op_code">send_stack</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_stack_with_block.html" title="" target="op_code">send_stack_with_block</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_super_stack_with_block.html" title="" target="op_code">send_super_stack_with_block</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_super_with_arg_register.html" title="" target="op_code">send_super_with_arg_register</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/send_with_arg_register.html" title="" target="op_code">send_with_arg_register</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_args.html" title="" target="op_code">set_args</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_cache_index.html" title="" target="op_code">set_cache_index</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_call_flags.html" title="" target="op_code">set_call_flags</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_class.html" title="" target="op_code">set_class</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_const.html" title="" target="op_code">set_const</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_const_at.html" title="" target="op_code">set_const_at</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_encloser.html" title="" target="op_code">set_encloser</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_ivar.html" title="" target="op_code">set_ivar</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_literal.html" title="" target="op_code">set_literal</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_local.html" title="" target="op_code">set_local</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_local_depth.html" title="" target="op_code">set_local_depth</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_local_fp.html" title="" target="op_code">set_local_fp</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/set_local_from_fp.html" title="" target="op_code">set_local_from_fp</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/soft_return.html" title="" target="op_code">soft_return</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/sret.html" title="" target="op_code">sret</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/store_field.html" title="" target="op_code">store_field</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/store_my_field.html" title="" target="op_code">store_my_field</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/string_append.html" title="" target="op_code">string_append</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/string_dup.html" title="" target="op_code">string_dup</a>
+      </i></li>
+      
+      <li>
+      <a href="op_codes/swap_stack.html" title="Swap the top two stack values" target="op_code">swap_stack (swap)</a>
+      </li>
+      
+      <li><i>
+      <a href="op_codes/unshift_tuple.html" title="" target="op_code">unshift_tuple</a>
+      </i></li>
+      
+      <li><i>
+      <a href="op_codes/yield_debugger.html" title="" target="op_code">yield_debugger</a>
+      </i></li>
+      
+    </ul>
+  </body>
 <html>

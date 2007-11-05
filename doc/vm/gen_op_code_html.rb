@@ -5,7 +5,6 @@ require 'pp'
 include ERB::Util
 
 class OpCode
-
   def initialize(op_code)
     @op_code = op_code
   end
@@ -18,6 +17,7 @@ class OpCode
     pp @op_code
   end
 end
+
 
 def create_html(file_name, template, bind)
   # Create documentation page for this op code
@@ -41,17 +41,22 @@ def markup_stack(ary)
   html = "<table>"
   ary.each do |i|
     html << "<tr><td>"
-    html << case i
-  	when String
-  		html_escape i
-  	when Array
-  		"[#{html_escape i.join(', ')}]"
-  	end
+    case i
+    when String
+      html << html_escape(i)
+    when Array
+      html << "[#{html_escape i.join(', ')}]"
+    when Hash
+      html << "{"
+      html << (i.map do |key,val|
+        html_escape "#{key}=>#{val}"
+      end.join(', '))
+      html << "}"
+    end
   end
   html << "</td></tr></table>"
   html
 end
-
 
 op_code_template = ERB.new(File.read('op_code_template.html.erb'),nil,'<>')
 index_template = ERB.new(File.read('op_codes_index.html.erb'), nil, '<>')
@@ -63,7 +68,7 @@ Dir.glob('op_codes/*.yaml').each do |f|
     op_codes << op_code
     
     # Create documentation page for this op code
-    create_html("op_codes/#{op_code.mnemonic}.html", op_code_template, binding)
+    create_html("op_codes/#{op_code.mnemonic}.html", op_code_template, binding) if ARGV.empty? or ARGV.include? op_code.mnemonic
   end
 end
 
