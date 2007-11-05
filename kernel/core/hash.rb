@@ -19,18 +19,20 @@ class Hash
     hsh
   end
 
-  def initialize(default=nil, &block)
+  def initialize(default=Undefined, &block)
     @keys = Tuple.new(16)
     @values = Tuple.new(16)
     @bins = 16
     @entries = 0
     
-    if default and block
+    if default != Undefined and block
       raise ArgumentError, "Specify a default or a block, not both"
-    elsif block
+    end
+    
+    if block
       @default = block
       @default_proc = true
-    else
+    elsif default != Undefined
       @default = default
       @default_proc = false
     end
