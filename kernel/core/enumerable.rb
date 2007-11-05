@@ -59,9 +59,7 @@ module Enumerable
   #     (1..7).to_a                       #=> [1, 2, 3, 4, 5, 6, 7]
   #     { 'a'=>1, 'b'=>2, 'c'=>3 }.to_a   #=> [["a", 1], ["b", 2], ["c", 3]]
   def to_a
-    ary = []
-    each { |o| ary << o }
-    ary
+    collect {|e| e }
   end
 
   alias_method :entries, :to_a

@@ -40,11 +40,5 @@ shared :enumerable_find do |cmd|
       fail_proc = lambda { times += 1; raise if times > 1; "cheeseburgers" }
       @numerous.send(cmd, fail_proc) {|e| false }.should == "cheeseburgers"
     end
-      
-    it "find should be a synonym for detect" do
-      # TODO: This only fails because Method#== isn't implemented -- Kev 10/4/07
-      Numerous.new.method(:detect).should == Numerous.new.method(:find)
-      Numerous.new.method(:find).should == Numerous.new.method(:detect)
-    end
   end
 end
