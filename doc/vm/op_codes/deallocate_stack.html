@@ -1,77 +1,64 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: deallocate_stack</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: deallocate_stack</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="deallocate_stack">
+            <h2>deallocate_stack</h2>
+            <b>Byte code:</b> <i>0x62</i>
 
-	<body>
-	
-		<div id="deallocate_stack">
+            <h3>Operation</h3>
+            
+            <p>Removes a specified number of items from the stack</p>
+            
 
-		  <h2>deallocate_stack</h2>
-		  <b>Byte code:</b> <i>0x62</i>
-  
-		  <h3>Operation</h3>
-		  
-  		  <p>Removes a specified number of items from the stack</p>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>deallocate_stack</b>
-		  <i>count</i>
+            <h3>Format</h3>
+            
+            <b>deallocate_stack</b>
+            <i>count</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>value1<tr><td>value2<tr><td>...<tr><td>valuen<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>value1<tr><td>value2<tr><td>...<tr><td>valuen<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-   		  <p>Removes the number of items specified in <i>count</i> from the stack.</p>
-		  
-  
-		  
-		
-		  
-		  <div class="notes">
-        <h4>Notes</h4>
-   		  <p>This opcode simply decrements the stack pointer; hence the <a href="allocate">allocate_stack</a><i>stack opcode initializes newly allocated slots to _nil</i>, to ensure old values are cleared.</p>
-			</div>
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Removes the number of items specified in <i>count</i> from the stack.</p>
+            
 
-      
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>This opcode simply decrements the stack pointer; hence the <a href="allocate">allocate_stack</a><i>stack opcode initializes newly allocated slots to _nil</i>, to ensure old values are cleared.</p>
+            </div>
+            
 
+            
 
-      
-		  <div id="deallocate_stack_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int;
-c->sp_ptr -= _int;		    </pre>
-		  <div>
-      
+            
 
-		</div>
-	</body>
-
+            
+            <div id="deallocate_stack_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int;
+c->sp_ptr -= _int;</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

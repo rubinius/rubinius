@@ -1,73 +1,61 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: fetch_field</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: fetch_field</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="fetch_field">
+            <h2>fetch_field</h2>
+            <b>Byte code:</b> <i>0x8</i>
 
-	<body>
-	
-		<div id="fetch_field">
+            <h3>Operation</h3>
+            
+            <span class="todo">
+                TODO: Add brief operation one-liner to fetch_field.yaml</span>
+            
 
-		  <h2>fetch_field</h2>
-		  <b>Byte code:</b> <i>0x8</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to fetch_field.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>fetch_field</b>
-		  <i></i>
+            <h3>Format</h3>
+            
+            <b>fetch_field</b>
+            <i></i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to fetch_field.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <span class="todo">TODO: Add description to fetch_field.yaml</span>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="fetch_field_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-t1 = stack_pop();
+            
+
+            
+            <div id="fetch_field_source" class="source">
+                <h4>Source</h4>
+                <pre>t1 = stack_pop();
 t2 = stack_pop();
-stack_push(NTH_FIELD(t2, FIXNUM_TO_INT(t1)));		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+stack_push(NTH_FIELD(t2, FIXNUM_TO_INT(t1)));</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

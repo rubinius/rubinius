@@ -1,74 +1,60 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: noop</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: noop</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="noop">
+            <h2>noop</h2>
+            <b>Byte code:</b> <i>0x0</i>
 
-	<body>
-	
-		<div id="noop">
+            <h3>Operation</h3>
+            
+            <p>Performs a no-op, i.e. does nothing.</p>
+            
 
-		  <h2>noop</h2>
-		  <b>Byte code:</b> <i>0x0</i>
-  
-		  <h3>Operation</h3>
-		  
-  		  <p>Performs a no-op, i.e. does nothing.</p>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>noop</b>
-		  <i></i>
+            <h3>Format</h3>
+            
+            <b>noop</b>
+            <i></i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-   		  <p>The classic no-op operator; performs no actions, and does not modify the stack.</p><p>To consume an item from the stack, but otherwise do nothing, use <a href="pop.html">pop</a>.</p>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>The classic no-op operator; performs no actions, and does not modify the stack.</p><p>To consume an item from the stack, but otherwise do nothing, use <a href="pop.html">pop</a>.</p>
+            
 
-      
-      <div class="see_also">
-	    <h3>See Also</h3>
-	    
-	    <ul>
-  	    <li><a href="pop.html">pop</a></li>
-      </ul>
-	    
-	    </div>
-      
+            
 
+            
 
-      
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="pop.html">pop</a></li>
+                
+            </ul>
+            
 
-		</div>
-	</body>
-
+            
+        </div>
+    </body>
 </html>

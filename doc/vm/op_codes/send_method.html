@@ -1,91 +1,75 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: send_method</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: send_method</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="send_method">
+            <h2>send_method</h2>
+            <b>Byte code:</b> <i>0x28</i>
 
-	<body>
-	
-		<div id="send_method">
+            <h3>Operation</h3>
+            
+            <p>Sends a message with no args to a receiver</p>
+            
 
-		  <h2>send_method</h2>
-		  <b>Byte code:</b> <i>0x28</i>
-  
-		  <h3>Operation</h3>
-		  
-  		  <p>Sends a message with no args to a receiver</p>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>send_method</b>
-		  <i>methodname</i>
+            <h3>Format</h3>
+            
+            <b>send_method</b>
+            <i>methodname</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>recv<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>recv<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-   		  <p>Pops an object off the top of the stack (<i>recv</i>), and sends it the no arg message <i>methodname</i>.</p>
-		  
-  
-		  
-		
-		  
-		  <div class="notes">
-        <h4>Notes</h4>
-   		  <p>This form of send is for methods that take no arguments.</p>
-			</div>
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Pops an object off the top of the stack (<i>recv</i>), and sends it the no arg message <i>methodname</i>.</p>
+            
 
-      
-      <div class="see_also">
-	    <h3>See Also</h3>
-	    
-	    <ul>
-  	    <li><a href="send_with_arg_register.html">send_with_arg_register</a></li>
-      </ul>
-	    
-	    </div>
-      
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>This form of send is for methods that take no arguments.</p>
+            </div>
+            
 
+            
 
-      
-		  <div id="send_method_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_literal;
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="send_with_arg_register.html">send_with_arg_register</a></li>
+                
+            </ul>
+            
+
+            
+            <div id="send_method_source" class="source">
+                <h4>Source</h4>
+                <pre>next_literal;
 t1 = stack_pop();
 t2 = Qnil;
 j = 0;
 goto perform_send;
-// cpu_unified_send(state, c, t1, _int, 0, Qnil);
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+// cpu_unified_send(state, c, t1, _int, 0, Qnil);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

@@ -1,76 +1,65 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: activate_method</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: activate_method</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="activate_method">
+            <h2>activate_method</h2>
+            <b>Byte code:</b> <i>0x35</i>
 
-	<body>
-	
-		<div id="activate_method">
+            <h3>Operation</h3>
+            
+            <p>Activates a cached method on an object in preparation for execution.</p>
+            
 
-		  <h2>activate_method</h2>
-		  <b>Byte code:</b> <i>0x35</i>
-  
-		  <h3>Operation</h3>
-		  
-  		  <p>Activates a cached method on an object in preparation for execution.</p>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>activate_method</b>
-		  <i>argc</i>
+            <h3>Format</h3>
+            
+            <b>activate_method</b>
+            <i>argc</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>receiver<tr><td>method<tr><td>size<tr><td>locals<tr><td>block<tr><td>args<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>args<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>receiver<tr><td>method<tr><td>size<tr><td>locals<tr><td>block<tr><td>args<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>args<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-   		  <p>Pops the top five items off the stack, using these to identify the object on which to invoke the method (recv), the CompiledMethod instance to execute (method/self), the number of argments the method defines (size), the locals currently in scope, and any block passed to the method.</p><p>Additionally, the actual arguments to be passed to the method must also be on the stack as an array, with the number of actual arguments passed (argc) specified alongside the opcode; these arguments will be consumed from the stack when the method starts executing.</p>
-		  
-  
-		  
-		
-		  
-  
-      
-      <div class="used">
-	    <h3>Used By</h3>
-	    
-	    <ul>
-  	    <li>CompiledMethod#activate</li>
-      </ul>
-	    
-	    </div>
-      
+            <h3>Description</h3>
+            
+            <p>Pops the top five items off the stack, using these to identify the object on which to invoke the method (recv), the CompiledMethod instance to execute (method/self), the number of argments the method defines (size), the locals currently in scope, and any block passed to the method.</p><p>Additionally, the actual arguments to be passed to the method must also be on the stack as an array, with the number of actual arguments passed (argc) specified alongside the opcode; these arguments will be consumed from the stack when the method starts executing.</p>
+            
 
-      
+            
 
+            
+            <div class="used">
+                <h3>Used By</h3>
+                <ul>
+                
+                    <li>CompiledMethod#activate</li>
+                
+                </ul>
+            </div>
+            
 
-      
-		  <div id="activate_method_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int;
+            
+
+            
+            <div id="activate_method_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int;
 t1 = stack_pop(); /* recv */
 t2 = stack_pop(); /* self */ 
 j = FIXNUM_TO_INT(stack_pop()); /* sz */
@@ -81,11 +70,9 @@ if(RTEST(t3)) {
     // methctx_set_locals(c->active_context, t3);
     cpu_set_locals(state, c, t3);
   }
-}		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+}</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

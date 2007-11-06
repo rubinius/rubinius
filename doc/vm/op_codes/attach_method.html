@@ -1,90 +1,75 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: attach_method</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: attach_method</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="attach_method">
+            <h2>attach_method (attach)</h2>
+            <b>Byte code:</b> <i>0x1c</i>
 
-	<body>
-	
-		<div id="attach_method">
+            <h3>Operation</h3>
+            
+            <p>Attaches a method definition to an object's singleton class</p>
+            
 
-		  <h2>attach_method (attach)</h2>
-		  <b>Byte code:</b> <i>0x1c</i>
-  
-		  <h3>Operation</h3>
-		  
-  		  <p>Attaches a method definition to an object's singleton class</p>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>attach_method</b>
-		  <i>name</i>
+            <h3>Format</h3>
+            
+            <b>attach_method</b>
+            <i>name</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>recv<tr><td>method<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>method<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>recv<tr><td>method<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>method<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-   		  <p>Hooks up a compiled method to an object instance via it's singleton class.</p><p>The object the method is to be added to (<i>recv</i>) and the compiled  method object (<i>method</i>) are popped from the stack, while the name of the  method is an argument to the opcode (<i>name</i>). On return, the compiled method is pushed back onto the stack.</p>
-		  
-  
-		  
-		
-		  
-		  <div class="notes">
-        <h4>Notes</h4>
-   		  <p>Class/module methods are handled by <a href="add_method.html">add_method</a>.</p>
-			</div>
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Hooks up a compiled method to an object instance via it's singleton class.</p><p>The object the method is to be added to (<i>recv</i>) and the compiled  method object (<i>method</i>) are popped from the stack, while the name of the  method is an argument to the opcode (<i>name</i>). On return, the compiled method is pushed back onto the stack.</p>
+            
 
-      
-      <div class="see_also">
-	    <h3>See Also</h3>
-	    
-	    <ul>
-  	    <li><a href="add_method.html">add_method</a></li>
-      </ul>
-	    
-	    </div>
-      
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>Class/module methods are handled by <a href="add_method.html">add_method</a>.</p>
+            </div>
+            
 
+            
 
-      
-		  <div id="attach_method_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_literal;
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="add_method.html">add_method</a></li>
+                
+            </ul>
+            
+
+            
+            <div id="attach_method_source" class="source">
+                <h4>Source</h4>
+                <pre>next_literal;
 t1 = stack_pop();
 t2 = stack_pop();
 cpu_attach_method(state, c, t1, _lit, t2);
 stack_push(t2);
-cpu_perform_hook(state, c, t1, state->global->sym_s_method_added, _lit);		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+cpu_perform_hook(state, c, t1, state->global->sym_s_method_added, _lit);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>
