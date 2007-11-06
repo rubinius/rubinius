@@ -68,10 +68,11 @@ module ModuleSpecs
   # a method will break those tests.
   module CountsMixin
     def public_3; end
-    private
+    public :public_3
     def private_3; end
-    protected
+    private :private_3
     def protected_3; end
+    protected :protected_3
   end
 
   class CountsParent

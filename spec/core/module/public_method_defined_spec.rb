@@ -23,11 +23,11 @@ describe "Module#public_method_defined?" do
     ModuleSpecs::CountsChild.public_method_defined?("protected_1").should == false
   end
 
-  it "returns false if the named public method is not defined by the module or its ancestors" do
+  it "returns false if the named method is not defined by the module or its ancestors" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_10).should == false
   end
 
-  it "accepts symbols as a method name" do
+  it "accepts symbols for the method name" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_3).should == true
   end
 
@@ -42,11 +42,11 @@ describe "Module#public_method_defined?" do
   noncompliant :rubinius do
     it "accepts any object that is String-like" do
       o = Object.new
-      def o.to_str() 'method' end
+      def o.to_str() 'public_3' end
       ModuleSpecs::CountsMixin.public_method_defined?(o).should == true
     end
     
-    it "raises TypeError if pass a non-String-like argument" do
+    it "raises TypeError if passed a non-String-like argument" do
       should_raise(TypeError) { ModuleSpecs::CountsMixin.public_method_defined?(Object.new) }
     end
   end

@@ -88,6 +88,12 @@ class Module
     m ? m.first == :public : false
   end
   
+  def private_method_defined?(sym)
+    sym = StringValue(sym) unless sym.is_a? Symbol
+    m = find_method_in_hierarchy sym
+    m ? m.first == :private : false
+  end
+  
   def instance_method(name)
     name = name.to_sym
     cur, cm = __find_method(name)

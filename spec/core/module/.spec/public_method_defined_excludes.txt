@@ -1,2 +1,1 @@
 Module#public_method_defined? returns true if the named public method is defined by module or its ancestors
-Module#public_method_defined? accepts any object that is String-like
