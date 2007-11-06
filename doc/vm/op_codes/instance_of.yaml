@@ -1,17 +1,23 @@
 ---
 mnemonic: instance_of
 operation: >-
-
+  Evaluate if _object_ is an instance of _class_
 format: instance_of
 opcode: 91
 stack_before:
-  - <consumed>
+  - "object"
+  - "class"
   - ...
 stack_after:
-  - <produced>
+  - "result"
   - ...
 description: >-
-
+  If the object is an instance of _class_ return the special value _true_,
+  otherwise return _false_. This check is different than _kind_of_ in that
+  it does not evaluate superclass relationships. Instance-specific subtyping
+  via metaclasses are ignored in computing the parent class.
+see:
+  - kind_of
 source: |-
     t1 = stack_pop();
     t2 = stack_pop();
