@@ -16,13 +16,13 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to cast_array_for_args.yaml</span>
+  		  <p>Casts the value on the top of the stack into an array to be used as method args</p>
 		  
   
 		  <h3>Format</h3>
 		  
 		  <b>cast_array_for_args</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>size</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>value<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>array<tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,15 +45,29 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to cast_array_for_args.yaml</span>
+   		  <p>Removes the object on the top of the stack, and:</p><p>If the object is a tuple, it is cast to an array.</p><p>If the object is already an array, it is left unmodified.</p><p>If the object is any other type, it is wrapped in a 1-element array with the  object as the value of the single element.</p><p>The resulting array is then pushed back onto the stack, and the size of the array is added to the argument <i>size</i> that was specified with the opcode.</p>
 		  
   
 		  
 		
 		  
+		  <div class="notes">
+        <h4>Notes</h4>
+   		  <p>This opcode exists to handle argscat and argspush, where a splat arg is specified in addition to one or more discrete arguments.</p>
+			</div>
+		  
   
       
 
+      
+      <div class="see_also">
+	    <h3>See Also</h3>
+	    
+	    <ul>
+  	    <li><a href="cast_array.html">cast_array</a></li>
+      </ul>
+	    
+	    </div>
       
 
 
@@ -72,8 +86,7 @@ if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
   t1 = t2;
 }
 stack_push(t1);
-c->args += FIXNUM_TO_INT(array_get_total(t1));
-		    </pre>
+c->args += FIXNUM_TO_INT(array_get_total(t1));		    </pre>
 		  <div>
       
 

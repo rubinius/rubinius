@@ -80,8 +80,7 @@ t1 = stack_pop();
 t2 = stack_pop();
 cpu_add_method(state, c, t1, _lit, t2);
 stack_push(t2);
-cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);
-		    </pre>
+cpu_perform_hook(state, c, t1, state->global->sym_method_added, _lit);		    </pre>
 		  <div>
       
 

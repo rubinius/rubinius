@@ -45,7 +45,7 @@
 
 		  <h3>Description</h3>
 		  
-   		  <p>If the input is a tuple, a new array object is created based on the tuple data</p><p>If the input is an array, the stack is unmodified</p><p>If the input is any other type, that type is wrapped within a new array of length one</p>
+   		  <p>Removes the object on the top of the stack, and:</p><p>If the input is a tuple, a new array object is created based on the tuple data.</p><p>If the input is an array, the stack is unmodified.</p><p>If the input is any other type, that type is wrapped within a new array of length one.</p><p>The resulting array is then pushed back onto the stack.</p>
 		  
   
 		  
@@ -69,8 +69,7 @@ if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
   array_set(state, t2, 0, t1);
   t1 = t2;
 }
-stack_push(t1);
-		    </pre>
+stack_push(t1);		    </pre>
 		  <div>
       
 

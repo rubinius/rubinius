@@ -16,13 +16,13 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to send_method.yaml</span>
+  		  <p>Sends a message with no args to a receiver</p>
 		  
   
 		  <h3>Format</h3>
 		  
 		  <b>send_method</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>methodname</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>recv<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,15 +45,29 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to send_method.yaml</span>
+   		  <p>Pops an object off the top of the stack (<i>recv</i>), and sends it the no arg message <i>methodname</i>.</p>
 		  
   
 		  
 		
 		  
+		  <div class="notes">
+        <h4>Notes</h4>
+   		  <p>This form of send is for methods that take no arguments.</p>
+			</div>
+		  
   
       
 
+      
+      <div class="see_also">
+	    <h3>See Also</h3>
+	    
+	    <ul>
+  	    <li><a href="send_with_arg_register.html">send_with_arg_register</a></li>
+      </ul>
+	    
+	    </div>
       
 
 

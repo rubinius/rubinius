@@ -1,16 +1,15 @@
 ---
 mnemonic: clear_exception
 operation: >-
-
+  Clears any exceptions from the current execution context
 format: clear_exception
 opcode: 44
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Clears any exceptions from the current execution context. The stack is
+  untouched by this opcode.
 source: |-
     c->exception = Qnil;

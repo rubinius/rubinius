@@ -16,7 +16,7 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to string_append.yaml</span>
+  		  <p>Appends two stings together to form a single string</p>
 		  
   
 		  <h3>Format</h3>
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>string1<tr><td>string2<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>string1string2<tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,11 +45,16 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to string_append.yaml</span>
+   		  <p>Pops two strings off the stack, appends the second to the first, and then  pushes the combined string back onto the stack.</p>
 		  
   
 		  
 		
+		  
+		  <div class="notes">
+        <h4>Notes</h4>
+   		  <p>The original string is modified by the append.</p>
+			</div>
 		  
   
       
@@ -64,8 +69,7 @@
 t1 = stack_pop();
 t2 = stack_pop();
 string_append(state, t1, t2);
-stack_push(t1);
-		    </pre>
+stack_push(t1);		    </pre>
 		  <div>
       
 

@@ -16,13 +16,13 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to deallocate_stack.yaml</span>
+  		  <p>Removes a specified number of items from the stack</p>
 		  
   
 		  <h3>Format</h3>
 		  
 		  <b>deallocate_stack</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>count</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>value1<tr><td>value2<tr><td>...<tr><td>valuen<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,11 +45,16 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to deallocate_stack.yaml</span>
+   		  <p>Removes the number of items specified in <i>count</i> from the stack.</p>
 		  
   
 		  
 		
+		  
+		  <div class="notes">
+        <h4>Notes</h4>
+   		  <p>This opcode simply decrements the stack pointer; hence the <a href="allocate">allocate_stack</a><i>stack opcode initializes newly allocated slots to _nil</i>, to ensure old values are cleared.</p>
+			</div>
 		  
   
       
@@ -62,8 +67,7 @@
 		  <h4>Source</h4>
 		    <pre>
 next_int;
-c->sp_ptr -= _int;
-		    </pre>
+c->sp_ptr -= _int;		    </pre>
 		  <div>
       
 

@@ -16,7 +16,7 @@
   
 		  <h3>Operation</h3>
 		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to unshift_tuple.yaml</span>
+  		  <p>Shifts the first item in a tuple onto the stack</p>
 		  
   
 		  <h3>Format</h3>
@@ -32,11 +32,11 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
+  					  <table><tr><td>[value1, value2, ..., valuen]<tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
+					    <table><tr><td>value1<tr><td>[value2, ..., valuen]<tr><td>...</td></tr></table>
 	          </td>
 					<tr>
 				</tbody>
@@ -45,11 +45,16 @@
 
 		  <h3>Description</h3>
 		  
-	  	  <span class="todo">TODO: Add description to unshift_tuple.yaml</span>
+   		  <p>Pops a tuple off the top of the stack. If the tuple is empty, the tuple is pushed back onto the stack, followed by nil. Otherwise, the tuple is shifted, with the tuple then pushed back onto the stack, followed by the item that was previously at the head of the tuple.</p>
 		  
   
 		  
 		
+		  
+		  <div class="notes">
+        <h4>Notes</h4>
+   		  <p>This opcode is poorly named; it actually performs a shift, rather than an unshift.</p>
+			</div>
 		  
   
       
@@ -72,8 +77,7 @@ if(NUM_FIELDS(t1) == 0) {
   object_copy_fields_from(state, t1, t2, 1, j);
   stack_push(t2);
   stack_push(t3);
-}
-		    </pre>
+}		    </pre>
 		  <div>
       
 

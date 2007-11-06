@@ -1,17 +1,22 @@
 ---
 mnemonic: deallocate_stack
 operation: >-
-
-format: deallocate_stack <arg1>
+  Removes a specified number of items from the stack
+format: deallocate_stack count
 opcode: 98
 stack_before:
-  - <consumed>
+  - value1
+  - value2
+  - ...
+  - valuen
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Removes the number of items specified in _count_ from the stack.
+notes:
+  This opcode simply decrements the stack pointer; hence the "allocate_stack":allocate_stack
+  opcode initializes newly allocated slots to _nil_, to ensure old values are cleared.
 source: |-
     next_int;
     c->sp_ptr -= _int;

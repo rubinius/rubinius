@@ -22,7 +22,7 @@
 		  <h3>Format</h3>
 		  
 		  <b>allocate_stack</b>
-		  <i>&lt;arg1&gt;</i>
+		  <i>count</i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
@@ -32,7 +32,7 @@
 				<tbody>
 					<tr>
 						<td>
-  					  <table><tr><td>count<tr><td>...</td></tr></table>
+  					  <table><tr><td>...</td></tr></table>
             </td>
             <td>=&gt;</td>
             <td>
@@ -45,7 +45,7 @@
 
 		  <h3>Description</h3>
 		  
-   		  <p>Consume count from the stack and allocate the matching number of slots. All allocated slots will be initialized to the special value 'nil'</p>
+   		  <p>Allocate <i>count</i> new slots on the stack. All allocated slots will be  initialized to the special value <b>nil</b>.</p>
 		  
   
 		  
@@ -66,8 +66,7 @@ next_int;
    were there are probably bad. */
 for(k = 0; k <= _int; k++) {
   *++c->sp_ptr = Qnil;
-}
-		    </pre>
+}		    </pre>
 		  <div>
       
 

@@ -24,7 +24,7 @@
 		  <h3>Format</h3>
 		  <% fmt = op_code.format.split(' ') %>
 		  <b><%= fmt.shift %></b>
-		  <i><% fmt.each {|arg| %><%= html_escape arg %><% } %></i>
+		  <i><%= html_escape fmt.join(' ') %></i>
 
 		  <h3>Stack</h3>
 		  <div class="stack">
