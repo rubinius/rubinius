@@ -1,16 +1,21 @@
 ---
 mnemonic: cast_array
 operation: >-
-
+  Convert a tuple to an array, or wrap an object within an array
 format: cast_array
 opcode: 48
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
+  - array
   - ...
 description: >-
+  If the input is a tuple, a new array object is created based on the tuple data
+
+  If the input is an array, the stack is unmodified
+
+  If the input is any other type, that type is wrapped within a new array of length one
 
 source: |-
     t1 = stack_pop();

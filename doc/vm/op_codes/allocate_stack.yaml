@@ -1,17 +1,21 @@
 ---
 mnemonic: allocate_stack
 operation: >-
-
+  Allocate space on the stack
 format: allocate_stack <arg1>
 opcode: 97
 stack_before:
-  - <consumed>
+  - count
   - ...
 stack_after:
-  - <produced>
+  - nil
+  - nil
+  - ...
+  - nil
   - ...
 description: >-
-
+  Consume count from the stack and allocate the matching number of slots. All
+  allocated slots will be initialized to the special value 'nil'
 source: |-
     next_int;
     /* The stack must be initialized to nil because any refers that

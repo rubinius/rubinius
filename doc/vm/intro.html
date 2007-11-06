@@ -8,7 +8,7 @@
 	  <h2>Compilation Process</h2>
 	  Compilation of Ruby source code to Rubinius machine byte code proceeds through the following steps:
 	  <ol>
-		  <li>Source code is parsed into S-expressions (sexps) representing the structure of the Ruby code.
+		  <li>Source code is parsed into <a href='http://en.wikipedia.org/wiki/S-expressions'>S-expressions (sexps)</a> representing the structure of the Ruby code.
 			The grammar of a Ruby program is currently defined in <code>grammar.y</code> under shotgun/lib, which is lifted
 			from MRI.</li>
 			<li>Sexps are compiled into a string representation of Rubinius assembly language by <code>compiler.rb</code>,
@@ -18,7 +18,7 @@
 			essentially unchanged.</li>
 			<li>The generalised assembly language is translated into specific lower-level machine op-codes by <code>assembler.rb</code>.
 			Thus, instructions such as <code>push</code> are converted to specific push instructions depending on the type
-			of item being	pushed, and literal references are converted to indexes into the literals tuples.</li>
+			of item being pushed, and literal references are converted to indexes into the literals tuples.</li>
 			<li>The low-level assembly is encoded as byte-codes that can actually be run by shotgun by <code>encoder.rb</code>.</li>
     </ol>
 	
