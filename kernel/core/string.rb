@@ -256,7 +256,7 @@ class String
   #    a[/[aeiou](.)\1/, 2]   #=> nil
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
-  def [](index, two=nil)
+  def [](index, two = nil)
     if two
       if index.kind_of? Regexp
         length = Type.coerce_to two, Fixnum, :to_int
@@ -1039,10 +1039,10 @@ class String
   #   "hello".rindex('a')             #=> nil
   #   "hello".rindex(101)             #=> 1
   #   "hello".rindex(/[aeiou]/, -2)   #=> 1
-  def rindex(arg, finish = nil)
+  def rindex(arg, finish = Undefined)
     arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
     original_klass = arg.class
-    if finish
+    if finish != Undefined
       finish = Type.coerce_to(finish, Integer, :to_int)
       finish += @bytes if finish < 0
       return nil if finish < 0

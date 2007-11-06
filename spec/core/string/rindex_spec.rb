@@ -118,6 +118,16 @@ describe "String#rindex with Fixnum" do
     def obj.method_missing(*args); 5; end
     "str".rindex(?s, obj).should == 0
   end
+  
+  it "raises a TypeError when given offset is nil" do
+    should_raise(TypeError) do
+      "str".rindex(?s, nil)
+    end
+    
+    should_raise(TypeError) do
+      "str".rindex(?t, nil)
+    end
+  end
 end
 
 describe "String#rindex with String" do
@@ -266,6 +276,12 @@ describe "String#rindex with String" do
     def obj.method_missing(*args) 5 end
     "str".rindex("st", obj).should == 0
   end
+
+  it "raises a TypeError when given offset is nil" do
+    should_raise(TypeError) do
+      "str".rindex("st", nil)
+    end
+  end
 end
 
 describe "String#rindex with Regexp" do
@@ -405,5 +421,11 @@ describe "String#rindex with Regexp" do
     def obj.respond_to?(arg) true end
     def obj.method_missing(*args); 5; end
     "str".rindex(/../, obj).should == 1
+  end
+
+  it "raises a TypeError when given offset is nil" do
+    should_raise(TypeError) do
+      "str".rindex(/../, nil)
+    end
   end
 end
