@@ -14,11 +14,16 @@ describe "Method#to_proc" do
   it "Proc object should have the correct arity" do
     # This may seem redundant but this bug has cropped up in jruby, mri and yarv.
     # http://jira.codehaus.org/browse/JRUBY-124
-    @m.method(:zero).to_proc.arity.should == 0
-    @m.method(:one).to_proc.arity.should == 1
-    @m.method(:two).to_proc.arity.should == 2
-    @m.method(:neg_one).to_proc.arity.should == -1
-    @m.method(:neg_two).to_proc.arity.should == -2
-    @m.method(:neg_three).to_proc.arity.should == -3
-  end    
+    [ :zero, :one_req, :two_req,
+      :zero_with_block, :one_req_with_block, :two_req_with_block,
+      :one_opt, :one_req_one_opt, :one_req_two_opt, :two_req_one_opt,
+      :one_opt_with_block, :one_req_one_opt_with_block, :one_req_two_opt_with_block, :two_req_one_opt_with_block,
+      :zero_with_splat, :one_req_with_splat, :two_req_with_splat,
+      :one_req_one_opt_with_splat, :one_req_two_opt_with_splat, :two_req_one_opt_with_splat,
+      :zero_with_splat_and_block, :one_req_with_splat_and_block, :two_req_with_splat_and_block,
+      :one_req_one_opt_with_splat_and_block, :one_req_two_opt_with_splat_and_block, :two_req_one_opt_with_splat_and_block
+    ].each do |m|
+      @m.method(m).to_proc.arity.should == @m.method(m).arity
+    end
+  end
 end
