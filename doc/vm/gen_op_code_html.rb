@@ -42,8 +42,6 @@ def markup_stack(ary)
   ary.each do |i|
     html << "<tr><td>"
     case i
-    when String
-      html << html_escape(i)
     when Array
       html << "[#{html_escape i.join(', ')}]"
     when Hash
@@ -52,6 +50,8 @@ def markup_stack(ary)
         html_escape "#{key}=>#{val}"
       end.join(', '))
       html << "}"
+    else
+      html << html_escape(i)
     end
   end
   html << "</td></tr></table>"
