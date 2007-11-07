@@ -28,6 +28,7 @@ else
   SUFFIX=so
   SONAME=-Wl,-soname,libptr_array-$(VERSION).$(SUFFIX)
 endif
+RANLIB = ranlib
 
 ifndef VERBOSE
   COMP=@echo CC $@;$(CC)
@@ -90,6 +91,7 @@ $(OUTPUT_LIB): $(DEPS) $(OBJS)
 
 $(OUTPUT_A): $(DEPS) $(OBJS)
 	$(AR) cru $(OUTPUT_A) $(OBJS)
+	$(RANLIB) $(OUTPUT_A)
 
 .PHONY: library
 
