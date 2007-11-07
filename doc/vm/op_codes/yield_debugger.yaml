@@ -1,17 +1,28 @@
 ---
 mnemonic: yield_debugger
 operation: >-
-
+  Pauses execution and yields to the debugger
 format: yield_debugger
 opcode: 93
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pauses virtual machine execution at the yield_debugger instruction, and yields
+  control to the debugger on the debug channel. If no debugger is registered, an
+  error is raised.
+notes:
+  The yield_debugger instruction is VM plumbing that exists to support "full-
+  speed" debugging. As such, it is not output by the compiler, but rather is
+  used by the debugger to replace an existing instruction at a breakpoint. Prior
+  to encountering a yield_debugger instruction, the VM will execute normally,
+  i.e. at full speed, and not be slowed significantly by the fact that a 
+  debugger is attached.
+  
+  When the debugger is yielded to by this instruction, it can examine the 
+  execution context, stack, etc, or replace the yield_debugger instruction with
+  the original instruction at that point, and then step through the code.
 source: |-
     cpu_flush_sp(c);
     cpu_flush_ip(c);

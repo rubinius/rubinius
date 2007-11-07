@@ -1,14 +1,13 @@
 ---
 mnemonic: soft_return
 operation: >-
-
+  Return from a block due to break
 format: soft_return
 opcode: 45
 stack_before:
-  - <consumed>
+  - retval
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
 

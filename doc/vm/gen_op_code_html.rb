@@ -31,8 +31,8 @@ end
 # _italics_ is converted to italics, and *bold text* is converted to bold.
 # Links are supported via "link":url, and line breaks are converted to <p>.
 def markup_html(str)
-  html = str.gsub(/_((\w|\s)+)_/){|m| "<i>#{$1}</i>" }.gsub(/\*((\w|\s)+)\*/) {|m| "<b>#{$1}</b>"}
-  html = html.gsub(/"(.+)":((\w|\/)+(\.\w+)?)/){|m| "<a href=\"#{$2}\">#{$1}</a>"}
+  html = str.gsub(/_((\w|\s)+?)_/){|m| "<i>#{$1}</i>" }.gsub(/\*((\w|\s)+?)\*/) {|m| "<b>#{$1}</b>"}
+  html = html.gsub(/"(.+?)":((\w|\/)+(\.\w+)?)/){|m| "<a href=\"#{$2}\">#{$1}</a>"}
   %Q{<p>#{html.gsub("\n","</p><p>")}</p>}
 end
 

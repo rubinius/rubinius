@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to sret.yaml</span>
+            <p>Simple return from a method (only)</p>
             
 
             <h3>Format</h3>
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>retval<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +38,25 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to sret.yaml</span>
+            <p>Pops the top value from the stack, and uses it as the return value from a method.</p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p><i>sret</i> is an optimised version of the more general <a href="ret">ret</a>. It works only with method returns, but as a result, can skip the extra work to figure out how to long return from a block.</p>
+            </div>
             
 
             
 
             
-
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="ret.html">ret</a></li>
+                
+            </ul>
             
 
             

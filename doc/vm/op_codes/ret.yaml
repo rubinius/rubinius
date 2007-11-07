@@ -1,17 +1,19 @@
 ---
 mnemonic: ret
 operation: >-
-
+  Return from a method or block
 format: ret
 opcode: 39
 stack_before:
-  - <consumed>
+  - retval
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops the top value from the stack, and uses it as the return value from a
+  method or block.
+see:
+  - sret
 source: |-
     t1 = stack_pop();
     cpu_return_to_sender(state, c, t1, TRUE, FALSE);

@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to yield_debugger.yaml</span>
+            <p>Pauses execution and yields to the debugger</p>
             
 
             <h3>Format</h3>
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +38,14 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to yield_debugger.yaml</span>
+            <p>Pauses virtual machine execution at the yield_debugger instruction, and yields control to the debugger on the debug channel. If no debugger is registered, an error is raised.</p>
             
 
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The yield_debugger instruction is VM plumbing that exists to support "full- speed" debugging. As such, it is not output by the compiler, but rather is used by the debugger to replace an existing instruction at a breakpoint. Prior to encountering a yield_debugger instruction, the VM will execute normally, i.e. at full speed, and not be slowed significantly by the fact that a debugger is attached.</p><p>When the debugger is yielded to by this instruction, it can examine the execution context, stack, etc, or replace the yield_debugger instruction with the original instruction at that point, and then step through the code.</p>
+            </div>
             
 
             
