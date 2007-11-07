@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to equal.yaml</span>
+            <p>Perform a raw comparison of two object references</p>
             
 
             <h3>Format</h3>
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value1<tr><td>value2<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>result<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,7 +38,7 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to equal.yaml</span>
+            <p>Performs a comparison of two objects, resulting in either <i>true_ or _false</i> being pushed onto the stack as a result. The comparison is done without any method calls.</p><p>For two Fixnums, two Symbols, or two literals (<i>true</i>, <i>false</i>, <i>nil</i>), return <i>true</i> if the values are identical.</p><p>For two object references (including Bignum), return <i>true</i> if value1 and value2 point to the same instance.</p>
             
 
             
