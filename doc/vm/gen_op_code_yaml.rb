@@ -23,7 +23,11 @@ def output_array(ary, output)
   ary.each do |item| 
     case item
     when String
-      output << "  - #{item}\n"
+      if (YAML::load(item).is_a? String)
+        output << "  - #{item}\n"
+      else
+        output << "  - \"#{item}\"\n"
+      end
     when Array
       output << "  -\n    - "
       output << item.join("\n    - ")
@@ -33,9 +37,28 @@ def output_array(ary, output)
       item.each do |key,val|
         output << "    #{key}: #{val}\n"
       end
+    else
+      raise "Unable to evaluate item #{item}"
     end   
   end
 end
+
+def output_tag (key, value, op_doc)
+  op_doc << key << ":"
+  case value
+  when String
+    op_doc << " >-\n"
+    op_doc << fold(value) << "\n"
+  when Array
+      op_doc << "\n"
+      value.each {|i| op_doc << "  - #{i}\n" }
+    when Hash
+      op_doc << "\n"
+      value.each {|k,v| op_doc << "  #{k}: #{v}\n" }
+    else
+      raise "Unable to evaluate value #{value}"
+    end
+end 
 
 # Folds a long string
 def fold(str, width = 80)
@@ -85,21 +108,16 @@ op_codes.each_with_index do |op,idx|
     op_doc << "description: >-\n\n"
   end
 
+  ['description', 'see', 'notes'].each do |key|
+    if prev.has_key? key
+      output_tag(key, prev[key], op_doc)
+    end
+  end
+
   # Handle any additional tags added
   (prev.keys - ['mnemonic', 'alias', 'operation', 'format', 'opcode', 'stack_before',
-    'stack_after', 'source']).each do |key|
-    op_doc << key << ":"
-    case prev[key]
-    when String
-      op_doc << " >-\n"
-      op_doc << fold(prev[key]) << "\n"
-    when Array
-      op_doc << "\n"
-      prev[key].each {|i| op_doc << "  - #{i}\n" }
-    when Hash
-      op_doc << "\n"
-      prev[key].each {|k,v| op_doc << "  #{k}: #{v}\n" }
-    end
+    'stack_after', 'source', 'description', 'see', 'notes']).each do |key|
+    output_tag(key, prev[key], op_doc)
   end
   
   # Output the source code from instructs.rb
