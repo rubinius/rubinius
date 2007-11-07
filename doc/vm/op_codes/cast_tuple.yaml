@@ -12,11 +12,10 @@ stack_after:
   - ...
 description: >-
   If stack object is an array, create a new tuple from the array data
-
+  
   If the stack value is a tuple, leave the stack unmodified
-
+  
   Otherwise, create a unary tuple from the value on the stack
-
 source: |-
     t1 = stack_pop();
     if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->array)) {

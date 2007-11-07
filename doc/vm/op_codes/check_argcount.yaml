@@ -9,9 +9,9 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  If the number of arguments is less than _min_, or greater than _max_, an 
-  _ArgumentError_ is raised. If _max_ is zero, the number of allowed
-  arguments is unbounded.
+  If the number of arguments is less than _min_, or greater than _max_, an
+  _ArgumentError_ is raised. If _max_ is zero, the number of allowed arguments
+  is unbounded.
 source: |-
     next_int;
     j = _int;

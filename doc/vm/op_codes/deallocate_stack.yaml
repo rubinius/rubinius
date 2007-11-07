@@ -14,9 +14,10 @@ stack_after:
   - ...
 description: >-
   Removes the number of items specified in _count_ from the stack.
-notes:
-  This opcode simply decrements the stack pointer; hence the "allocate_stack":allocate_stack
-  opcode initializes newly allocated slots to _nil_, to ensure old values are cleared.
+notes: >-
+  This opcode simply decrements the stack pointer; hence the
+  "allocate_stack":allocate_stack opcode initializes newly allocated slots to
+  _nil_, to ensure old values are cleared.
 source: |-
     next_int;
     c->sp_ptr -= _int;

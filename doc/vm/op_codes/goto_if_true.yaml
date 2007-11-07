@@ -2,8 +2,8 @@
 mnemonic: goto_if_true
 alias: git
 operation: >-
-  Jump execution to the position specified by the label if the top of the stack
-  evaluates to true.
+  Jump execution to the position specified by the label if the top of the
+  stack evaluates to true.
 format: goto_if_true label
 opcode: 15
 stack_before:
@@ -12,8 +12,8 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Remove the top item on the stack, and if not *nil* or *false*, jump to the instruction
-  following the specified label; otherwise, continue.
+  Remove the top item on the stack, and if not *nil* or *false*, jump to the
+  instruction following the specified label; otherwise, continue.
 see:
   - goto
   - goto_if_false

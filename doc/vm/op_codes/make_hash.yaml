@@ -23,7 +23,7 @@ stack_after:
 description: >-
   Creates a new hash, populating its contents with the number of items
   (_argc_) specified in the opcode. The contents of the new hash are taken from
-  the stack, with the top item on the stack becoming the last key in the hash, 
+  the stack, with the top item on the stack becoming the last key in the hash,
   the second top item becoming the last value, and so on. The resulting hash is
   added back to the stack.
 source: |-
@@ -36,8 +36,8 @@ source: |-
       hash_set(state, t1, t2, t3);
       j -= 2;
     }
-
+    
     cpu_perform_hook(state, c, BASIC_CLASS(hash), 
                      state->global->sym_from_literal, t1);
-
+    
     stack_push(t1);

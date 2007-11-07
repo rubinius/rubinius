@@ -11,14 +11,14 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Pops an object (_recv_) and an array of arguments (_args_) off the top of the stack,
-  and sends the object the message _methodname_.
-notes:
-  The args register must have previously been set to the count of the number of 
-  arguments in _args_.
+  Pops an object (_recv_) and an array of arguments (_args_) off the top of
+  the stack, and sends the object the message _methodname_.
 see:
   - send_method
   - cast_array_for_args
+notes: >-
+  The args register must have previously been set to the count of the number
+  of arguments in _args_.
 source: |-
     next_literal;
     t1 = stack_pop();

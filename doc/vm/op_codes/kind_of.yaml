@@ -2,20 +2,19 @@
 mnemonic: kind_of
 operation: >-
   Evaluate if _object_ is an instance of _class_ or of an ancestor of _class_.
-
 format: kind_of
 opcode: 90
 stack_before:
-  - "object"
-  - "class"
+  - object
+  - class
   - ...
 stack_after:
-  - "result"
+  - result
   - ...
 description: >-
   Evaluate if the object is created by _class_, its parent, or a further
-  ancestor. This differs from _instance_of_ in that the class heirarchy
-  will be evaluated rather than just the class object given.
+  ancestor. This differs from _instance_of_ in that the class heirarchy will be
+  evaluated rather than just the class object given.
 see:
   - instance_of
 source: |-

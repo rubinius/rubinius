@@ -9,10 +9,10 @@ stack_before:
   - ...
 stack_after:
   - ...
+description: >-
+  Removes the top item from the stack, discarding it.
 notes: >-
   Pop is typically used when the return value of another opcode is not
   required.
-description: >-
-  Removes the top item from the stack, discarding it.
 source: |-
   stack_pop();

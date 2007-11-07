@@ -10,11 +10,12 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Pops an object off the top of the stack (_recv_), and sends it the no arg message _methodname_.
-notes:
-  This form of send is for methods that take no arguments.
+  Pops an object off the top of the stack (_recv_), and sends it the no arg
+  message _methodname_.
 see:
   - send_with_arg_register
+notes: >-
+  This form of send is for methods that take no arguments.
 source: |-
     next_literal;
     t1 = stack_pop();

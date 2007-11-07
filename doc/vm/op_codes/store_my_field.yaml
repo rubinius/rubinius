@@ -12,7 +12,8 @@ stack_after:
   - ...
 description: >-
   Stores the value at the top of the stack into the field specified by _arg1_.
-   The stack is left unmodified.
+  
+  The stack is left unmodified.
 source: |-
     next_int;
     SET_FIELD(c->self, _int, stack_top());

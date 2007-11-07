@@ -11,8 +11,8 @@ stack_after:
   - class
   - ...
 description: >-
-  Consume the object reference on the stack, and push a reference to the parent class in its place.
-
+  Consume the object reference on the stack, and push a reference to the
+  parent class in its place.
 source: |-
     t1 = stack_pop();
     stack_push(object_class(state, t1));

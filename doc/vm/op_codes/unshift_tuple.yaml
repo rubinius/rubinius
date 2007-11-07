@@ -19,11 +19,13 @@ stack_after:
     - valuen
   - ...
 description: >-
-  Pops a tuple off the top of the stack. If the tuple is empty, the tuple is pushed back onto the stack, followed by nil.
-  Otherwise, the tuple is shifted, with the tuple then pushed back onto the stack, followed by the item that
-  was previously at the head of the tuple.
-notes:
-  This opcode is poorly named; it actually performs a shift, rather than an unshift.
+  Pops a tuple off the top of the stack. If the tuple is empty, the tuple is
+  pushed back onto the stack, followed by nil. Otherwise, the tuple is shifted,
+  with the tuple then pushed back onto the stack, followed by the item that was
+  previously at the head of the tuple.
+notes: >-
+  This opcode is poorly named; it actually performs a shift, rather than an
+  unshift.
 source: |-
     t1 = stack_pop();
     if(NUM_FIELDS(t1) == 0) {

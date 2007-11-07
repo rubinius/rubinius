@@ -10,9 +10,9 @@ stack_after:
   - "1"
   - ...
 description: >-
-    Fast push of 1 (one) onto the stack. This is an optimisation applied whenever
-    a literal 1 is encountered by the compiler. It is equivalent to 'push 1', but
-    faster because there is no need to lookup the literal value in the literals
-    tuple.
+  Fast push of 1 (one) onto the stack. This is an optimisation applied
+  whenever a literal 1 is encountered by the compiler. It is equivalent to 'push
+  1', but faster because there is no need to lookup the literal value in the
+  literals tuple.
 source: |-
     stack_push(I2N(1));

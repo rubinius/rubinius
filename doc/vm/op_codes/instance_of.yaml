@@ -5,17 +5,17 @@ operation: >-
 format: instance_of
 opcode: 91
 stack_before:
-  - "object"
-  - "class"
+  - object
+  - class
   - ...
 stack_after:
-  - "result"
+  - result
   - ...
 description: >-
   If the object is an instance of _class_ return the special value _true_,
-  otherwise return _false_. This check is different than _kind_of_ in that
-  it does not evaluate superclass relationships. Instance-specific subtyping
-  via metaclasses are ignored in computing the parent class.
+  otherwise return _false_. This check is different than _kind_of_ in that it
+  does not evaluate superclass relationships. Instance-specific subtyping via
+  metaclasses are ignored in computing the parent class.
 see:
   - kind_of
 source: |-
