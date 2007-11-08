@@ -19,6 +19,9 @@ ifeq ($(UNAME),Darwin)
   SUFFIX=dylib
   BIN_RPATH=
   SONAME=-current_version $(VERSION) -compatibility_version $(VERSION) -install_name /usr/local/lib/librubinius-$(VERSION).$(SUFFIX)
+  ifeq ($(CPU),powerpc)
+    export MACOSX_DEPLOYMENT_TARGET=10.4
+  endif
 else
   LDOPT=-shared
   LINKER=$(CC) -shared
