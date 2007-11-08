@@ -10,7 +10,7 @@ stack_after:
   - localval
   - ...
 description: >-
-  Retrieves the current value (_localval) of the referenced local variable
+  Retrieves the current value (_localval_) of the referenced local variable
   (_local_), and pushes it onto the stack.
 source: |-
   next_int; stack_push(tuple_at(state, cpu_current_locals(state, c), _int));
