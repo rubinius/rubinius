@@ -1,2 +1,0 @@
-Array#slice! removes and return the element at index
-Array#slice! does (not?) expand array with indices out of bounds
