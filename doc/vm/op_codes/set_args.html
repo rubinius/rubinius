@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to set_args.yaml</span>
+            <p>Sets the number of args from the stack</p>
             
 
             <h3>Format</h3>
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>argc<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +38,27 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to set_args.yaml</span>
+            <p>Pops a fixnum off the top of the stack, and uses its value to set the argument count for a method prior to executing it.</p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>Used prior to <a href="send_with_arg_register.html">send_with_arg_register</a> and <a href="send_super_with_arg_register.html">send_super_with_arg_register</a> to set the number of arguments being passed to a method.</p>
+            </div>
             
 
             
 
             
-
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="send_with_arg_register.html">send_with_arg_register</a></li>
+                
+                <li><a href="send_super_with_arg_register.html">send_super_with_arg_register</a></li>
+                
+            </ul>
             
 
             

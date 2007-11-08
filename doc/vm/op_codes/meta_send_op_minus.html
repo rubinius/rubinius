@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to meta_send_op_minus.yaml</span>
+            <p>Implementation of - optimised for fixnums</p>
             
 
             <h3>Format</h3>
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value1<tr><td>value2<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value1 - value2<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,7 +38,7 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to meta_send_op_minus.yaml</span>
+            <p>Pops <i>value1</i> and <i>value2</i> off the stack, and pushes the logical result of (<i>value1</i> - <i>value2</i>). If <i>value1</i> and <i>value2</i> are both fixnums, the subtraction is done directly via the fixnum_sub primitive; otherwise, the - method is called on <i>value1</i>, passing <i>value2</i> as the argument.</p>
             
 
             
