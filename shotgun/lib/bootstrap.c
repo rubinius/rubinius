@@ -4,7 +4,6 @@
 #include "module.h"
 #include "hash.h"
 #include "regexp.h"
-#include "flags.h"
 #include <assert.h>
 #include <errno.h>
 

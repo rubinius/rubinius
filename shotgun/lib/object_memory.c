@@ -6,7 +6,6 @@
 #include "baker.h"
 #include "marksweep.h"
 #include "tuple.h"
-#include "flags.h"
 #include "methctx.h"
 
 void *main_om;

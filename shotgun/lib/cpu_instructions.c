@@ -9,7 +9,6 @@
 #include "string.h"
 #include "symbol.h"
 #include "machine.h"
-#include "flags.h"
 #include "bytearray.h"
 #include "fixnum.h"
 

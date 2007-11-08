@@ -4,7 +4,6 @@
 #include "string.h"
 #include "symbol.h"
 #include "hash.h"
-#include "flags.h"
 
 #define OPTION_IGNORECASE ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED   ONIG_OPTION_EXTEND

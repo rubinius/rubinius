@@ -10,7 +10,6 @@
 #include <stdint.h>
 
 #include "config.h"
-#include "flags.h"
 #include "oop.h"
 #include "state.h"
 #include "auto.h"

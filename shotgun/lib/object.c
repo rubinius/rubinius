@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "hash.h"
 #include "string.h"
-#include "flags.h"
 #include "tuple.h"
 
 OBJECT object_new(STATE) {

@@ -1,6 +1,5 @@
 #include "shotgun.h"
 #include "module.h"
-#include "flags.h"
 
 OBJECT metaclass_s_attach(STATE, OBJECT obj) {
   OBJECT meta;

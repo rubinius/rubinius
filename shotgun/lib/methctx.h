@@ -5,8 +5,6 @@ OBJECT blokctx_s_under_context(STATE, OBJECT ctx);
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals);
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp);
 
-#include "flags.h"
-
 #define methctx_is_context_p(st, ctx) (ctx->obj_type == MContextType || ctx->obj_type == BContextType)
 #define blokctx_s_block_context_p(state, ctx) (FASTCTX(ctx)->type == FASTCTX_BLOCK)
 

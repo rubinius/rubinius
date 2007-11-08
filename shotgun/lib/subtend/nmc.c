@@ -5,7 +5,6 @@
 
 #include "string.h"
 #include "cpu.h"
-#include "flags.h"
 #include "methctx.h"
 #undef SYMBOL_P
 #include "ruby.h"
