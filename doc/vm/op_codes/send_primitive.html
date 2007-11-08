@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to send_primitive.yaml</span>
+            <p>Calls a primitive method</p>
             
 
             <h3>Format</h3>
             
             <b>send_primitive</b>
-            <i>&lt;arg1&gt;&lt;arg1&gt; &lt;arg2&gt;</i>
+            <i>primidx argc</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>recv<tr><td>arg1<tr><td>arg2<tr><td>...<tr><td>argn<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +38,14 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to send_primitive.yaml</span>
+            <p>Execute a primitive method on the receiver (<i>recv</i>). The index of the primitive to  execute (<i>primidx</i>), and the number of arguments being passed (<i>argc</i>) are  specified as paramters.</p>
             
 
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The implementation of the primitive is responsible for consuming the receiver and any arguments that are on the stack.</p>
+            </div>
             
 
             

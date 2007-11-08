@@ -1,17 +1,25 @@
 ---
 mnemonic: set_literal
 operation: >-
-
-format: set_literal <arg1>
+  Sets a literal regular expression
+format: set_literal lit
 opcode: 107
 stack_before:
-  - <consumed>
+  - regex
   - ...
 stack_after:
-  - <produced>
+  - regex
   - ...
 description: >-
-
+  Used to set the value of a literal that is a regular expression. The Regexp 
+  object to which the literal is to be set is copied from the top of the stack,
+  but is not consumed.
+notes:
+  Unlike other literals such as strings and numbers, creating a Regexp literal
+  (i.e. via the /regex/ syntax) is a two step process to create the literal
+  slot for the Regexp, create a literal for the string between the '/' delimiters
+  and create a new Regexp object passing it the string. Only then can the literal
+  value be set, using the set_literal opcode.
 source: |-
     next_int;
     tuple_put(state, cpu_current_literals(state, c), _int, stack_top());

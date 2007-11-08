@@ -14,6 +14,7 @@ description: >-
   Pops an object (_recv_) and an array of arguments (_args_) off the top of
   the stack, and sends the object the message _methodname_.
 see:
+  - set_args
   - send_method
   - cast_array_for_args
 notes: >-

@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to meta_send_stack_1.yaml</span>
+            <p>Optimised send for performing a method taking one parameter</p>
             
 
             <h3>Format</h3>
             
             <b>meta_send_stack_1</b>
-            <i>&lt;arg1&gt;</i>
+            <i>mthd</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>recv<tr><td>value<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +38,14 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to meta_send_stack_1.yaml</span>
+            <p>Pops the receiver <i>recv</i> off the top of the stack, and sends it the method  identified by <i>mthd</i>. The single parameter <i>value</i> to be used by the method is left on the top of the stack.</p>
             
 
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>This is an optimised send for methods taking a single parameter and no block.</p>
+            </div>
             
 
             

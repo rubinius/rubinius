@@ -1,17 +1,17 @@
 ---
 mnemonic: set_ivar
 operation: >-
-
-format: set_ivar <arg1>
+  Sets an instance variable on self
+format: set_ivar ivar
 opcode: 21
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops a value off the stack, and uses it to set the value of the instance
+  variable identifies by the literal _ivar_ on the current *self* object. 
 source: |-
     next_int;
     t1 = tuple_at(state, cpu_current_literals(state, c), _int);

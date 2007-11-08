@@ -1,17 +1,22 @@
 ---
 mnemonic: meta_send_stack_2
 operation: >-
-
-format: meta_send_stack_2 <arg1>
+  Optimised send for performing a method taking two parameters
+format: meta_send_stack_2 mthd
 opcode: 75
 stack_before:
-  - <consumed>
+  - recv
+  - value1
+  - value2
   - ...
 stack_after:
-  - <produced>
+  - value1
+  - value2
   - ...
 description: >-
-
+    Pops the receiver _recv_ off the top of the stack, and sends it the method 
+    identified by _mthd_. The two parameters _value1_ and _value2_ to be used by
+    the method are left on the top of the stack.
 source: |-
     next_literal;
     t1 = stack_pop();

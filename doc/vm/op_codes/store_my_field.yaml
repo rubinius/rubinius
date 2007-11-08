@@ -1,8 +1,8 @@
 ---
 mnemonic: store_my_field
 operation: >-
-  Store a value into a field of 'self'
-format: store_my_field <arg1>
+  Store a value into a field of self
+format: store_my_field fld
 opcode: 65
 stack_before:
   - value
@@ -11,7 +11,8 @@ stack_after:
   - value
   - ...
 description: >-
-  Stores the value at the top of the stack into the field specified by _arg1_.
+  Stores the value at the top of the stack into the field specified by _fld_ on
+  *self*.
   
   The stack is left unmodified.
 source: |-
