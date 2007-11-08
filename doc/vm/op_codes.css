@@ -36,3 +36,5 @@ div.source pre {
 	background-color: #ffffcc;
 	padding: 5px;
 }
+ul#index li i a:link { color: red; }
+ul#index li i a:visited { color: red; }
