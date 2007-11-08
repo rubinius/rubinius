@@ -144,23 +144,24 @@ clean:
 	rm -f *.o *.lo *.gen rubinius.bin config.h config.mk
 	rm -rf .libs
 	cd lib; $(MAKE) clean
-	cd external_libs/libtommath; $(MAKE) clean
-	cd external_libs/onig; $(MAKE) clean
-	cd external_libs/libevent; $(MAKE) clean
-	cd external_libs/libbstring; $(MAKE) clean
-	cd external_libs/libcchash; $(MAKE) clean
-	cd external_libs/libzip; $(MAKE) clean
-	cd external_libs/lightning; $(MAKE) clean
-	cd external_libs/libmpa; $(MAKE) clean
-	cd external_libs/libmquark; $(MAKE) clean
-	cd external_libs/libltdl; $(MAKE) clean
 .PHONY: clean
 
 # Clean, but also nuke configs
 distclean: clean
-	cd external_libs/lightning; rm -f config.h
-	cd external_libs/onig; rm -f config.h
-	cd external_libs/libzip; rm -f config.h
 	cd external_libs/libevent; rm -f config.h
 	cd external_libs/libltdl; rm -f config.h
+	cd external_libs/libzip; rm -f config.h
+	cd external_libs/lightning; rm -f config.h
+	cd external_libs/onig; rm -f config.h
+	cd external_libs/libbstring; $(MAKE) clean
+	cd external_libs/libcchash; $(MAKE) clean
+	cd external_libs/libevent; $(MAKE) clean
+	cd external_libs/libltdl; $(MAKE) clean
+	cd external_libs/libmpa; $(MAKE) clean
+	cd external_libs/libmquark; $(MAKE) clean
+	cd external_libs/libtommath; $(MAKE) clean
+	cd external_libs/libzip; $(MAKE) clean
+	cd external_libs/lightning; $(MAKE) clean
+	cd external_libs/onig; $(MAKE) clean
+
 .PHONY: distclean
