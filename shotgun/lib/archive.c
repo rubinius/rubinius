@@ -7,14 +7,14 @@
 #include "tuple.h"
 #include "archive.h"
 
-archive_handle_t *archive_open(STATE, const char *path) {
+archive_handle archive_open(STATE, const char *path) {
   int err = 0;
 
-  return zip_open(path, 0, &err);
+  return (archive_handle) zip_open(path, 0, &err);
 }
 
-OBJECT archive_close(STATE, archive_handle_t *za) {
-  zip_close(za);
+OBJECT archive_close(STATE, archive_handle za) {
+  zip_close((struct zip *) za);
 
   return Qnil;
 }
@@ -80,22 +80,22 @@ OBJECT archive_get_file(STATE, const char *path, const char* name) {
   return str;
 }
 
-OBJECT archive_get_file2(STATE, archive_handle_t *za, const char *name) {
+OBJECT archive_get_file2(STATE, archive_handle za, const char *name) {
   struct zip_stat st;
   struct zip_file *zf;
   OBJECT str;
   int n, total, file;
   char *buf;
 
-  if((file = zip_name_locate(za, name, 0)) < 0) {
+  if((file = zip_name_locate((struct zip *)za, name, 0)) < 0) {
     return Qnil;
   }
   
-  if((zf = zip_fopen_index(za, file, 0)) == NULL) {
+  if((zf = zip_fopen_index((struct zip *)za, file, 0)) == NULL) {
     return Qnil;
   }
   
-  zip_stat_index(za, file, 0, &st);
+  zip_stat_index((struct zip *)za, file, 0, &st);
   total = st.size;
   str = string_new2(state, NULL, total);
   buf = string_byte_address(state, str);
@@ -150,7 +150,7 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   return ret;
 }
 
-OBJECT archive_get_object2(STATE, archive_handle_t *za,
+OBJECT archive_get_object2(STATE, archive_handle za,
                            const char *name, int version) {
   struct zip_stat st;
   struct zip_file *zf;
@@ -158,15 +158,15 @@ OBJECT archive_get_object2(STATE, archive_handle_t *za,
   OBJECT ret;
   int n, total, file = -1;
 
-  if((file = zip_name_locate(za, name, 0)) < 0) {
+  if((file = zip_name_locate((struct zip *)za, name, 0)) < 0) {
     return Qnil;
   }
   
-  if((zf = zip_fopen_index(za, file, 0)) == NULL) {
+  if((zf = zip_fopen_index((struct zip *)za, file, 0)) == NULL) {
     return Qnil;
   }
   
-  zip_stat_index(za, file, 0, &st);
+  zip_stat_index((struct zip *)za, file, 0, &st);
   total = st.size;
   str = malloc(sizeof(char) * total);
   buf = str;

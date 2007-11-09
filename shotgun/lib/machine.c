@@ -856,7 +856,7 @@ int machine_load_directory(machine m, const char *prefix) {
 
 OBJECT machine_load_archive(machine m, const char *path) {
   OBJECT order, cm, ret = Qfalse;
-  archive_handle_t *archive;
+  archive_handle archive;
   char *files, *nxt, *top;
   
   if(m->s->excessive_tracing) {

@@ -1,12 +1,13 @@
 #ifndef RBS_ARCHIVE_H
 #define RBS_ARCHIVE_H
 
-typedef void archive_handle_t;
+struct archive_handle_t;
+typedef struct archive_handle_t* archive_handle;
 
-archive_handle_t *archive_open(STATE, const char *path);
-OBJECT archive_close(STATE, archive_handle_t *archive);
-OBJECT archive_get_file2(STATE, archive_handle_t *archive, const char *name);
-OBJECT archive_get_object2(STATE, archive_handle_t *archive, const char *name, int version);
+archive_handle archive_open(STATE, const char *path);
+OBJECT archive_close(STATE, archive_handle archive);
+OBJECT archive_get_file2(STATE, archive_handle archive, const char *name);
+OBJECT archive_get_object2(STATE, archive_handle archive, const char *name, int version);
 
 OBJECT archive_list_files(STATE, char *path);
 OBJECT archive_get_file(STATE, const char *path, const char *name);
