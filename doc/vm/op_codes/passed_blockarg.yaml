@@ -1,17 +1,17 @@
 ---
 mnemonic: passed_blockarg
 operation: >-
-
-format: passed_blockarg <arg1>
+  Test to determine whether a block argument was passed
+format: passed_blockarg idx
 opcode: 108
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - true | false
   - ...
 description: >-
-
+  Checks if a block was passed to a method, and pushes the result of the test
+  onto the stack.
 source: |-
     next_int;
     if((unsigned long int)_int == c->blockargs) {

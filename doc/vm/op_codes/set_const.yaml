@@ -1,17 +1,18 @@
 ---
 mnemonic: set_const
 operation: >-
-
-format: set_const <arg1>
+  Sets a literal to refer to a constant
+format: set_const lit
 opcode: 25
 stack_before:
-  - <consumed>
+  - item
   - ...
 stack_after:
-  - <produced>
+  - const
   - ...
 description: >-
-
+  Pops an object off the stack, and sets the literal referenced in the opcode to
+  refer to the object as a constant. The constant is pushed back onto the stack.
 source: |-
     next_int;
     t1 = tuple_at(state, cpu_current_literals(state, c), _int);

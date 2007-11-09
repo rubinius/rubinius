@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to set_call_flags.yaml</span>
+            <p>Sets call flags prior to a send operation</p>
             
 
             <h3>Format</h3>
             
             <b>set_call_flags</b>
-            <i>&lt;arg1&gt;</i>
+            <i>flgs</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +38,14 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to set_call_flags.yaml</span>
+            <p>The call flags on the current execution context are set to the opcode argument <i>flgs</i>.</p>
             
 
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>Currently, the only call flag is 1, which instructs the machine to include private methods when looking for a method that responds to a message.</p>
+            </div>
             
 
             
