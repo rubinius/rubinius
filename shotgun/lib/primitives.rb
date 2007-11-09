@@ -2530,6 +2530,21 @@ class ShotgunPrimitives
     stack_push(bignum_from_double(state, FLOAT_TO_DOUBLE(t1)));
     CODE
   end
+
+  def save_encloser_path
+    <<-CODE
+    cpu_set_encloser_path(state, c, state->global->object);
+    stack_push(Qnil);
+    CODE
+  end
+
+  def restore_encloser_path
+    <<-CODE
+    cpu_push_encloser(state, c);
+    stack_push(Qnil);
+    CODE
+  end
+
 end
 
 prim = ShotgunPrimitives.new

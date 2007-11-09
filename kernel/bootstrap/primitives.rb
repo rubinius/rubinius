@@ -35,6 +35,12 @@ class CompiledMethod
   def self.load_from_file(path, version)
     Ruby.primitive :load_file
   end
+
+  def as_script
+    VM.save_encloser_path
+    activate_as_script
+    VM.restore_encloser_path
+  end
   
   def activate_as_script
     Ruby.primitive :activate_as_script

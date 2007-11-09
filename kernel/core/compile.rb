@@ -75,7 +75,7 @@ module Kernel
       unless cm
         puts "[Skipping #{compiled}, was invalid.]" if $DEBUG_LOADING
       else
-        return cm.activate_as_script
+        return cm.as_script
       end
     end
 
@@ -92,7 +92,7 @@ module Kernel
     # preparing it to be run
     cm.compile
     
-    return cm.activate_as_script
+    return cm.as_script
   end
   
   def compile(path, out=nil, flags=nil)
@@ -128,8 +128,8 @@ module Kernel
       if dir.suffix?('.rba') and File.exists?(dir)
         cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
         if cm
-          $" << rbc_path          
-          return cm.activate_as_script
+          $" << rbc_path
+          return cm.as_script
         end
       elsif File.exists?(rb_path) or File.exists?(rbc_path)
         # Don't accidentally load non-extension files
