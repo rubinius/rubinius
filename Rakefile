@@ -1,5 +1,8 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 
+$compiler = nil
+$verbose = Rake.application.options.trace
+
 require 'tsort'
 
 task :default => :build
@@ -16,32 +19,6 @@ end
   
 def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
-end
-
-$setup_stable = false
-$compiler = nil
-
-def setup_stable
-  return if $setup_stable
-  $setup_stable = true
-  
-  @pb = "runtime/stable/bootstrap.rba"
-  @pp = "runtime/stable/platform.rba"
-  @pc = "runtime/stable/core.rba"
-  @pl = "runtime/stable/loader.rbc"
-  @pr = "runtime/stable/compiler.rba"
-
-  if ENV['USE_CURRENT']
-    puts "Use current versions, not stable."
-  else
-    ENV['BOOTSTRAP'] = @pb
-    ENV['CORE'] = @pc
-    ENV['LOADER'] = @pl
-    ENV['PLATFORM'] = @pp
-    ENV['COMPILER'] = @pr
-  end
-
-  $compiler = ENV['COMPILER']
 end
 
 def source_name(compiled)
@@ -108,22 +85,40 @@ def create_load_order(files, output=".load_order.txt")
 end
 
 def compile(name, output)
-  setup_stable
-  
   dir = File.dirname(output)
+
   unless File.exists?(dir)
     FileUtils.mkdir_p dir
   end
   
-  if $compiler
-    sh "shotgun/rubinius -I#{$compiler} compile #{name} #{output}", :verbose => false
-  else
-    sh "shotgun/rubinius compile #{name} #{output}", :verbose => false
-  end
+  compiler = $complier ? " -I#{$compiler}" : ''
+
+  sh "shotgun/rubinius#{compiler} compile #{name} #{output}",
+     :verbose => $verbose
 end
 
-rule ".rbc" => ".rb" do |t|
-  compile(t.source, t.name)
+task :compiler do
+  @pb = "runtime/stable/bootstrap.rba"
+  @pp = "runtime/stable/platform.rba"
+  @pc = "runtime/stable/core.rba"
+  @pl = "runtime/stable/loader.rbc"
+  @pr = "runtime/stable/compiler.rba"
+
+  if ENV['USE_CURRENT']
+    puts "Use current versions, not stable."
+  else
+    ENV['BOOTSTRAP'] = @pb
+    ENV['CORE'] = @pc
+    ENV['LOADER'] = @pl
+    ENV['PLATFORM'] = @pp
+    ENV['COMPILER'] = @pr
+  end
+
+  $compiler = ENV['COMPILER']
+end
+
+rule ".rbc" => %w[compiler .rb] do |t|
+  compile t.source, t.name
 end
 
 #file 'runtime/core/kernel/core/proc.rbc' => 'kernel/core/proc.rb' do |t|
@@ -132,56 +127,79 @@ end
 #end
 
 class CodeGroup
-  def initialize(files, dir, load_order=true)
+  def initialize(files, compile_dir, rba_name, load_order=true)
     @files = FileList[files]
     @output = nil
-    @directory = dir
-    map(dir, load_order)
+    @compile_dir = compile_dir
+    @build_dir = File.join 'runtime', rba_name
+    @rba_name = "#{rba_name}.rba"
+
+    @output = []
+
+    make_tasks
   end
   
   attr_reader :output
   
-  def map(dir, load_order)
-    
-    unless File.exists?(dir)
-      Dir.mkdir dir
-    end
-    
-    prc = proc do |t|
-      compile(t.prerequisites.first, t.name)
-    end
+  def clean
+    sh "find #{@compile_dir} -name '*.rbc' -delete"
+  end
 
-    @output = []
-
+  def compile_task
     @files.each do |source|
-      runtime = File.join(dir, source.ext("rbc"))
+      runtime = File.join(@compile_dir, source.ext("rbc"))
+
       @output << runtime
-      file(runtime => source, &prc)
-    end
-    
-    if load_order
-    
-      lo = File.join(dir, '.load_order.txt')
-    
-      file lo => @files do
-        create_load_order(@files, lo)
+
+      file runtime => source do |t|
+        compile t.prerequisites.first, t.name
       end
-      
-      @output << lo
+    end
+  end
+
+  def load_order_task
+    return unless @load_order
+
+    lo = File.join(@compile_dir, '.load_order.txt')
+
+    file lo => @files do
+      create_load_order(@files, lo)
     end
 
-    return @output
+    @output << lo
+  end
+
+  def make_tasks
+    Dir.mkdir @compile_dir unless File.exists? @compile_dir
+
+    compile_task
+    load_order_task
+    rba_task
+
+    @output
+  end
+
+  def rba_task
+    file File.join('runtime', 'stable', @rba_name) => @output do
+      files = Compiler.output.map do |path|
+        path.sub File.join(@build_dir, ''), ''
+      end
+
+      Dir.chdir @build_dir do
+        zip_name = File.join '..', 'stable', @rba_name
+        rm_f zip_name, :verbose => $verbose
+        sh "zip #{zip_name} #{files.join ' '}", :verbose => $verbose
+      end
+    end
   end
   
-  def clean
-    sh "find #{@directory} -name '*.rbc' -delete"
-  end
 end
 
-Core = CodeGroup.new 'kernel/core/*.rb', 'runtime/core'
-Bootstrap = CodeGroup.new 'kernel/bootstrap/*.rb', 'runtime/bootstrap'
-Platform = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform'
-Compiler = CodeGroup.new 'compiler/**/*.rb', 'runtime', false
+Core      = CodeGroup.new 'kernel/core/*.rb', 'runtime/core', 'core'
+Bootstrap = CodeGroup.new 'kernel/bootstrap/*.rb', 'runtime/bootstrap',
+                          'bootstrap'
+Platform  = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform', 'platform'
+Compiler  = CodeGroup.new 'compiler/**/*.rb', 'runtime', 'compiler', false
 
 file 'runtime/loader.rbc' => 'kernel/loader.rb' do
   compile 'kernel/loader.rb', 'runtime/loader.rbc'
@@ -249,7 +267,7 @@ namespace :spec do
 end
 
 desc "Build everything that needs to be built"
-task :build => ['build:all']
+task :build => 'build:all'
 
 def install_files(files, destination)
   files.sort.each do |path|
@@ -295,7 +313,7 @@ task :config_env do
 end
 
 desc "Recompile all ruby system files"
-task :rebuild => ['clean:rbc', 'clean:shotgun', 'build:all']
+task :rebuild => %w[clean:rbc clean:shotgun build:all]
 
 desc "Remove all ruby system files"
 task :distclean => 'clean:rbc'
@@ -325,7 +343,11 @@ end
 
 namespace :build do
   
-  task :all => ["build:shotgun", "build:rbc"]
+  task :all => %w[
+    build:shotgun
+    runtime/stable/compiler.rba
+    build:rbc
+  ]
   
   # This nobody rule lets use use all the shotgun files as 
   # prereqs. This rule is run for all those prereqs and just 
@@ -333,8 +355,12 @@ namespace :build do
   rule '^shotgun/.+' do
   end
   
-  c_source = FileList["shotgun/lib/*.[ch]", "shotgun/main.c",
-            "shotgun/lib/*.rb", "shotgun/lib/subtend/*.[chS]"]
+  c_source = FileList[
+    "shotgun/lib/*.[ch]",
+    "shotgun/lib/*.rb",
+    "shotgun/lib/subtend/*.[chS]",
+    "shotgun/main.c",
+  ]
   
   file "shotgun/rubinius.bin" => c_source do
     sh "make vm"
@@ -354,9 +380,7 @@ namespace :build do
   desc "Compiles shotgun (the C-code VM)"
   task :shotgun => [:configure, "shotgun/rubinius.bin"]
   
-  task :setup_rbc do
-    setup_stable
-  end
+  task :setup_rbc => :compiler
 
   task :rbc => ([:setup_rbc] + AllPreCompiled)
 
