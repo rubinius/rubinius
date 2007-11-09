@@ -356,6 +356,7 @@ namespace :build do
   end
   
   c_source = FileList[
+    "shotgun/config.h",
     "shotgun/lib/*.[ch]",
     "shotgun/lib/*.rb",
     "shotgun/lib/subtend/*.[chS]",
@@ -366,19 +367,19 @@ namespace :build do
     sh "make vm"
   end
   
-  task :extensions => ["build:shotgun", "build:rbc"] do
+  task :extensions => %w[build:shotgun build:rbc] do
     sh "./shotgun/rubinius compile lib/ext/syck"
   end
     
-  file "shotgun/config.h" do
+  file 'shotgun/mkconfig.sh' => 'configure'
+  file 'shotgun/config.mk' => %w[shotgun/config.h shotgun/mkconfig.sh shotgun/vars.mk]
+  file 'shotgun/config.h' => %w[shotgun/mkconfig.sh shotgun/vars.mk] do
     sh "./configure"
     raise 'Failed to configure Rubinius' unless $?.success?
   end
 
-  task :configure => ["shotgun/config.h"]
-
   desc "Compiles shotgun (the C-code VM)"
-  task :shotgun => [:configure, "shotgun/rubinius.bin"]
+  task :shotgun => %w[configure shotgun/rubinius.bin]
   
   task :setup_rbc => :compiler
 
