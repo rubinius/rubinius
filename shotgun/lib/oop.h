@@ -2,7 +2,7 @@
 #define __RUBINIUS_INCLUDED__ 1
 #include <stdint.h>
 
-typedef struct rubinius_object* OBJECT;
+typedef struct rubinius_object_t* OBJECT;
 typedef void * xpointer;
 
 /* OOP layout:
@@ -78,7 +78,7 @@ typedef enum
    4 + 4 + 8 = 16 bytes.
 */
 
-struct rubinius_object {
+struct rubinius_object_t {
   union {
     struct {
       object_type     obj_type    : 3;
@@ -119,9 +119,9 @@ A rubinius object can be followed by:
 
 #define NUM_FIELDS(obj)                 (obj->field_count)
 #define SET_NUM_FIELDS(obj, fel)        (obj->field_count = fel)
-#define SIZE_IN_BYTES_FIELDS(fel)       (sizeof(struct rubinius_object) + \
+#define SIZE_IN_BYTES_FIELDS(fel)       (sizeof(struct rubinius_object_t) + \
                                          fel*sizeof(OBJECT))
-#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(struct rubinius_object)/sizeof(OBJECT) + fel)
+#define SIZE_IN_WORDS_FIELDS(fel)       (sizeof(struct rubinius_object_t)/sizeof(OBJECT) + fel)
 #define SIZE_IN_BYTES(obj)              SIZE_IN_BYTES_FIELDS(obj->field_count)
 #define SIZE_OF_BODY(obj)               (obj->field_count * sizeof(OBJECT))
 #define ADDRESS_OF_FIELD(obj, fel)      (&obj->field[fel])

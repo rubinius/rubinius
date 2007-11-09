@@ -21,7 +21,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
     loc = MatureObjectZone;
   } else {
     //fields += 4; /* PAD */
-    size = sizeof(struct rubinius_object) + fields * sizeof(OBJECT);
+    size = SIZE_IN_BYTES_FIELDS(fields);
     if(!heap_enough_space_p(om->gc->current, size)) {
       if(!heap_enough_space_p(om->gc->next, size)) {
         mark_sweep_gc ms = om->ms;
