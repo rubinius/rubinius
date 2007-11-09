@@ -342,19 +342,19 @@ namespace :clean do
 end
 
 namespace :build do
-  
+
   task :all => %w[
     build:shotgun
     runtime/stable/compiler.rba
     build:rbc
+    build:extensions
   ]
-  
+
   # This nobody rule lets use use all the shotgun files as 
   # prereqs. This rule is run for all those prereqs and just 
   # (obviously) does nothing, but it makes rake happy.
-  rule '^shotgun/.+' do
-  end
-  
+  rule '^shotgun/.+'
+
   c_source = FileList[
     "shotgun/config.h",
     "shotgun/lib/*.[ch]",
@@ -362,15 +362,11 @@ namespace :build do
     "shotgun/lib/subtend/*.[chS]",
     "shotgun/main.c",
   ]
-  
+
   file "shotgun/rubinius.bin" => c_source do
     sh "make vm"
   end
-  
-  task :extensions => %w[build:shotgun build:rbc] do
-    sh "./shotgun/rubinius compile lib/ext/syck"
-  end
-    
+
   file 'shotgun/mkconfig.sh' => 'configure'
   file 'shotgun/config.mk' => %w[shotgun/config.h shotgun/mkconfig.sh shotgun/vars.mk]
   file 'shotgun/config.h' => %w[shotgun/mkconfig.sh shotgun/vars.mk] do
@@ -380,11 +376,25 @@ namespace :build do
 
   desc "Compiles shotgun (the C-code VM)"
   task :shotgun => %w[configure shotgun/rubinius.bin]
-  
+
   task :setup_rbc => :compiler
 
   task :rbc => ([:setup_rbc] + AllPreCompiled)
 
+  # EXTENSIONS
+  task :extensions => %w[build:shotgun build:rbc build:syck]
+
+  task :syck => 'lib/ext/syck/rbxext.bundle'
+
+  file 'lib/ext/syck/rbxext.bundle' => FileList[
+    'lib/ext/syck/build.rb',
+    'lib/ext/syck/*.c',
+    'lib/ext/syck/*.h',
+  ] do
+    sh "./shotgun/rubinius compile lib/ext/syck"
+  end
+
+  # OBSOLETE
   task :core => :rbc do
     raise "OBSOLETE. Use 'rake build'"
   end
