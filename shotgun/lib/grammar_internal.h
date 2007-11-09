@@ -78,8 +78,8 @@ typedef struct rb_parse_state {
     NODE *top;
     ID *locals;
     
-    var_table *variables;
-    var_table *block_vars;
+    var_table variables;
+    var_table block_vars;
 
     int ternary_colon;
 

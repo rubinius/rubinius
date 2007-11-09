@@ -492,7 +492,7 @@ static unsigned long scan_oct(const char *start, int len, int *retlen);
 static unsigned long scan_hex(const char *start, int len, int *retlen);
 
 static void reset_block(rb_parse_state *parse_state);
-static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars);
+static NODE *extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars);
 
 #define ruby_verbose 0
 
@@ -583,7 +583,7 @@ typedef union YYSTYPE
     NODE *node;
     ID id;
     int num;
-    var_table *vars;
+    var_table vars;
 }
 /* Line 193 of yacc.c.  */
 #line 590 "grammar.c"
@@ -10262,19 +10262,19 @@ reset_block(rb_parse_state *parse_state) {
 }
 
 static NODE *
-extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table *vars)
+extract_block_vars(rb_parse_state *parse_state, NODE* node, var_table vars)
 {
     int i;
     // struct RVarmap *post = ruby_dyna_vars;
     NODE *var, *out = node;
         
     if (!node) goto out;
-    if(vars->size == 0) goto out;
+    if(var_table_size(vars) == 0) goto out;
         
     var = NULL;
     // if (!node || !post || pre == post) return node;
-    for(i = 0; i < vars->size; i++) {
-        var = NEW_DASGN_CURR(vars->data[i], var);
+    for(i = 0; i < var_table_size(vars); i++) {
+        var = NEW_DASGN_CURR(var_table_get(vars, i), var);
     }
     /*
     for (var = 0; post != pre && post->id; post = post->next) {
@@ -11049,17 +11049,17 @@ syd_local_tbl(rb_parse_state *st)
 {
     ID *lcl_tbl;
     // ID tmp;
-    var_table *tbl;
+    var_table tbl;
     int i, len;
     tbl = st->variables;
-    len = tbl->size;
+    len = var_table_size(tbl);
     // printf("Converting local table with %d entries.\n", len);
     lcl_tbl = pt_allocate(st, sizeof(ID) * (len + 3));
     lcl_tbl[0] = (ID)len;
     lcl_tbl[1] = '_';
     lcl_tbl[2] = '~';
     for(i = 0; i < len; i++) {
-        lcl_tbl[i + 3] = tbl->data[i];
+        lcl_tbl[i + 3] = var_table_get(tbl, i);
     }
     // printf("Created table %x\n", lcl_tbl);
     return lcl_tbl;
