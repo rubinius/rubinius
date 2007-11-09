@@ -1,2 +1,1 @@
 IO#each yields the next paragraph if the separator's length is 0
-IO#each does not change $_

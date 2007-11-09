@@ -119,6 +119,22 @@ class IO
   end
   
   def gets(sep=$/)
+    $_ = gets_helper(sep)
+  end
+
+  def each(sep=$/)
+    while line = gets_helper(sep)
+      yield line
+    end
+  end
+
+  alias_method :each_line, :each
+
+  # Several methods use similar rules for reading strings from IO, but
+  # differ slightly. This helper is an extraction of the code.
+  #
+  # TODO: make this private. Private methods have problems in core right now.
+  def gets_helper(sep)
     if sep.nil?
       out = read
     else
@@ -129,16 +145,9 @@ class IO
         out << cur
       end until out[-sep.size,sep.size] == sep
     end
+    return (out.nil? || out.empty? ? nil : out)
+  end
 
-    $_ = (out.nil? || out.empty? ? nil : out)
-  end
-  
-  def each(sep=$/)
-    while line = gets(sep)
-      yield line
-    end
-  end
-  
   def readlines(sep=$/)
     ary = Array.new
     while line = gets(sep)

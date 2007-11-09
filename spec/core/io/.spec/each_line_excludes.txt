@@ -1,4 +1,1 @@
-IO#each_line yields the next line of string that is separated by $/
-IO#each_line yields the entire content if the separator is nil
 IO#each_line yields the next paragraph if the separator's length is 0
-IO#each_line does not change $_
