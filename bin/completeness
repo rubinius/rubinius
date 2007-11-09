@@ -21,6 +21,7 @@ except = []
 requires = []
 constant_names = []
 report_failures = false
+quiet = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "completeness [options]"
@@ -59,6 +60,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-F", "--report-failures", "Report spec failure locations") do
     report_failures = true
   end
+  opts.on("-q", "--quiet", "Suppress output except for final summary") do
+    quiet = true
+  end
   opts.on("-h", "--help", "Show this message") do
     puts opts
     exit
@@ -85,7 +89,7 @@ print_summary = lambda do |str, name, tab|
   else
     "No examples found"
   end
-  puts "#{name}\n    #{summary}"
+  puts "#{name}\n    #{summary}" unless quiet
   tab.add(examples, failures, failure_messages)
 end
 
@@ -138,4 +142,4 @@ constants.compact.each do |c|
   end
 end
 
-tabulator.summarize(report_failures)
+tabulator.summarize(!quiet && report_failures)
