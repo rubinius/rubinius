@@ -35,6 +35,7 @@ attic/externals/syd-parser/pkg
 
 kernel/.load_order.txt
 lib/kernel.rb
+lib/rbconfig.rb
 
 native/sexp
 native/translation
