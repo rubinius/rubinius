@@ -43,4 +43,80 @@ describe "Kernel#send" do
     end
     should_raise(NoMethodError) { KernelSpecs::Foo.send(:baz) }
   end
+
+  it "raises ArgumentError if called with more arguments than available parameters" do
+    class KernelSpecs::Foo
+      def bar; end
+    end
+
+    should_raise(ArgumentError) { KernelSpecs::Foo.new.send(:bar, :arg) }
+  end
+  
+  it "raises ArgumentError if called with fewer arguments than required parameters" do
+    class KernelSpecs::Foo
+      def foo(arg); end
+    end
+
+    should_raise(ArgumentError) { KernelSpecs::Foo.new.send(:foo) }
+  end
+  
+  it "succeeds if passed an arbitrary number of arguments as a splat parameter" do
+    class KernelSpecs::Foo
+      def baz(*args); end
+    end
+    
+    begin
+      KernelSpecs::Foo.new.send(:baz)
+    rescue
+      fail
+    end
+    
+    begin
+      KernelSpecs::Foo.new.send(:baz, :quux)
+    rescue
+      fail
+    end
+    
+    begin
+      KernelSpecs::Foo.new.send(:baz, :quux, :foo)
+    rescue
+      fail
+    end
+  end
+  
+  it "succeeds when passing 1 or more arguments as a required and a splat parameter" do
+    class KernelSpecs::Foo
+      def foo(first, *rest); end
+    end
+    
+    begin
+      KernelSpecs::Foo.new.send(:baz, :quux)
+    rescue
+      fail
+    end
+
+    begin
+      KernelSpecs::Foo.new.send(:baz, :quux, :foo)
+    rescue
+      fail
+    end
+  end
+  
+  it "succeeds when passing 0 arguments to a method with one parameter with a default" do
+    class KernelSpecs::Foo
+      def foo(first = true); end
+    end
+    
+    begin
+      KernelSpecs::Foo.new.send(:foo)
+    rescue
+      fail
+    end
+
+    begin
+      KernelSpecs::Foo.new.send(:foo, :arg)
+    rescue
+      fail
+    end
+  end
 end

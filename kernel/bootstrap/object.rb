@@ -54,6 +54,14 @@ locate_method
   def __send__(name, *args, &prc)
     meth = name.to_sym
     count = args.size.to_i
+    required_arg_count = self.method(meth).arity
+    
+    if required_arg_count >= 0 && required_arg_count != count
+      raise ArgumentError.new("Incorrect number of arguments passed (#{count} for #{required_arg_count}).")
+    elsif required_arg_count != -1 && !args.kind_of?(Array) && (required_arg_count.abs - 1) < count
+      raise ArgumentError.new("Incorrect number of arguments passed.")
+    end
+
     Ruby.asm <<-ASM
 #local args
 push_array
