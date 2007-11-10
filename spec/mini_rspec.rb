@@ -355,6 +355,8 @@ class SpecRunner
         @before.each { |b| b.call }
         yield
         Mock.verify  
+      rescue Exception => e
+        @reporter.exception(e)
       ensure
         Mock.cleanup
         Mock.reset
