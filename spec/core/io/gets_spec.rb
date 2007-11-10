@@ -36,7 +36,7 @@ describe "IO#gets" do
 
   it "returns the entire content if the separator is nil" do
     File.open(@testfile, 'r') do |f|
-      f.gets(nil).should == "Voici la ligne une.\nQui \303\250 la linea due.\n\n\nAqu\303\255 est\303\241 la l\303\255nea tres.\nIst hier Linie vier.\n\nEst\303\241 aqui a linha cinco.\nHere is line six.\n"
+      f.gets(nil).should == @lines.join('')
     end
   end
 
