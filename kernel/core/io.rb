@@ -137,6 +137,19 @@ class IO
   def gets_helper(sep)
     if sep.nil?
       out = read
+    elsif sep.empty?
+      out = ''
+      while true
+        cur = read(1)
+        break if cur != $/
+      end
+      prev = ''
+      while cur
+        out << cur
+        break if (cur == $/ && prev == $/)
+        prev = cur
+        cur = read(1)
+      end
     else
       out = ''
       begin

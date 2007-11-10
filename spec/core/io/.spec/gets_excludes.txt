@@ -1,1 +1,1 @@
-IO#gets returns the next paragraph if the separator's length is 0
+IO#gets raises IOError if the stream is not opened for reading
