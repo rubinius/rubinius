@@ -1,72 +1,58 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: push_local</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: push_local</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="push_local">
+            <h2>push_local</h2>
+            <b>Byte code:</b> <i>0x12</i>
 
-	<body>
-	
-		<div id="push_local">
+            <h3>Operation</h3>
+            
+            <p>Pushes the value of a local variable onto the stack</p>
+            
 
-		  <h2>push_local</h2>
-		  <b>Byte code:</b> <i>0x12</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to push_local.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>push_local</b>
-		  <i>&lt;arg1&gt;</i>
+            <h3>Format</h3>
+            
+            <b>push_local</b>
+            <i>local</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>localval<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to push_local.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Retrieves the current value (<i>localval</i>) of the referenced local variable (<i>local</i>), and pushes it onto the stack.</p>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="push_local_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int; stack_push(tuple_at(state, cpu_current_locals(state, c), _int));
-		    </pre>
-		  <div>
-      
+            
 
-		</div>
-	</body>
-
+            
+            <div id="push_local_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int; stack_push(tuple_at(state, cpu_current_locals(state, c), _int));</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

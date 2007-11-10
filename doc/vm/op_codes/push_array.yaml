@@ -9,7 +9,7 @@ stack_before:
     - value1
     - value2
     - ...
-    - valuen 
+    - valuen
   - ...
 stack_after:
   - value1
@@ -21,11 +21,11 @@ description: >-
   Removes the array currently on top of the stack, and replaces it with the
   contents of the array, such that the first item in the array ends up on top of
   the stack.
-notes: >-
-  Push array places the contents of the array onto the stack in reverse order 
-  to the order in which items on the stack are added to an array by make_array.
 see:
-  - make_array 
+  - make_array
+notes: >-
+  Push array places the contents of the array onto the stack in reverse order
+  to the order in which items on the stack are added to an array by make_array.
 source: |-
     t1 = stack_pop();
     j = FIXNUM_TO_INT(array_get_total(t1));

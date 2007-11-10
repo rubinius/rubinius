@@ -1,17 +1,33 @@
 ---
 mnemonic: cast_array_for_args
 operation: >-
-
-format: cast_array_for_args <arg1>
+  Casts the value on the top of the stack into an array to be used as method
+  args
+format: cast_array_for_args size
 opcode: 62
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
+  - array
   - ...
 description: >-
-
+  Removes the object on the top of the stack, and:
+  
+  If the object is a tuple, it is cast to an array.
+  
+  If the object is already an array, it is left unmodified.
+  
+  If the object is any other type, it is wrapped in a 1-element array with the
+  object as the value of the single element.
+  
+  The resulting array is then pushed back onto the stack, and the size of the
+  array is added to the argument _size_ that was specified with the opcode.
+see:
+  - cast_array
+notes: >-
+  This opcode exists to handle argscat and argspush, where a splat arg is
+  specified in addition to one or more discrete arguments.
 source: |-
     next_int;
     c->args = _int;

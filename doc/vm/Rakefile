@@ -1,13 +1,26 @@
 namespace "doc" do
-  namespace "vm" do
-    desc "Update YAML doc files with current op codes, source, etc (retains doco)"
-    task "yaml" do
-      ruby "gen_op_code_yaml.rb"
-    end
+   namespace "vm" do
+     desc "Update YAML doc files with current op codes, source, etc (retains doco)"
+     task "yaml" do
+       ruby "gen_op_code_yaml.rb"
+     end
+ 
 
-    desc "Generate HTML from YAML"
-    task "html" do
-      ruby "gen_op_code_html.rb"
-    end
-  end
-end
+     desc "Generate HTML from YAML"
+     task "html"
+     
+     # Define tasks for each html file on the corresponding YAML file
+     Dir.glob('op_codes/*.yaml').each do |f|
+       html = f.chomp('.yaml') + '.html'
+       op_code = File.basename(f).chomp('.yaml')
+       file html => f do
+         ruby "gen_op_code_html.rb #{op_code}"
+       end
+       
+       task "html" => html
+     end
+   end
+ end
+ 
+ # Define default task - generate/update HTML
+ task "default" => "doc:vm:html"

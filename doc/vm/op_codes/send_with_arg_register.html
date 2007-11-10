@@ -1,79 +1,81 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: send_with_arg_register</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: send_with_arg_register</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="send_with_arg_register">
+            <h2>send_with_arg_register</h2>
+            <b>Byte code:</b> <i>0x3d</i>
 
-	<body>
-	
-		<div id="send_with_arg_register">
+            <h3>Operation</h3>
+            
+            <p>Sends a message with args to a receiver</p>
+            
 
-		  <h2>send_with_arg_register</h2>
-		  <b>Byte code:</b> <i>0x3d</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to send_with_arg_register.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>send_with_arg_register</b>
-		  <i>&lt;arg1&gt;</i>
+            <h3>Format</h3>
+            
+            <b>send_with_arg_register</b>
+            <i>methodname</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>recv<tr><td>args<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to send_with_arg_register.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Pops an object (<i>recv</i>) and an array of arguments (<i>args</i>) off the top of the stack, and sends the object the message <i>methodname</i>.</p>
+            
 
-      
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The args register must have previously been set to the count of the number of arguments in <i>args</i>.</p>
+            </div>
+            
 
+            
 
-      
-		  <div id="send_with_arg_register_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_literal;
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="set_args.html">set_args</a></li>
+                
+                <li><a href="send_method.html">send_method</a></li>
+                
+                <li><a href="cast_array_for_args.html">cast_array_for_args</a></li>
+                
+            </ul>
+            
+
+            
+            <div id="send_with_arg_register_source" class="source">
+                <h4>Source</h4>
+                <pre>next_literal;
 t1 = stack_pop();
 t2 = stack_pop();
 j = c->args;
 
 perform_send:
 
-cpu_unified_send(state, c, t1, _lit, j, t2);
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+cpu_unified_send(state, c, t1, _lit, j, t2);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

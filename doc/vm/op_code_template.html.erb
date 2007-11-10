@@ -1,106 +1,84 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: <%= op_code.mnemonic %></title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: <%= op_code.mnemonic %></title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="<%= op_code.mnemonic %>">
+            <h2><%= op_code.mnemonic %><%= " (#{op_code.alias})" if op_code.alias %></h2>
+            <b>Byte code:</b> <i><%= sprintf("%#x", op_code.opcode) %></i>
 
-	<body>
-	
-		<div id="<%= op_code.mnemonic %>">
+            <h3>Operation</h3>
+            <% if op_code.operation.empty? %>
+            <span class="todo">
+                TODO: Add brief operation one-liner to <%= op_code.mnemonic %>.yaml</span>
+            <% else %>
+            <%= markup_html op_code.operation %>
+            <% end %>
 
-		  <h2><%= op_code.mnemonic %><%= " (#{op_code.alias})" if op_code.alias %></h2>
-		  <b>Byte code:</b> <i><%= sprintf("%#x", op_code.opcode) %></i>
-  
-		  <h3>Operation</h3>
-		  <% if op_code.operation.empty? %>
-	  	  <span class="todo">TODO: Add brief operation one-liner to <%= op_code.mnemonic %>.yaml</span>
-		  <% else %>
-  		  <%= markup_html op_code.operation %>
-		  <% end %>
-  
-		  <h3>Format</h3>
-		  <% fmt = op_code.format.split(' ') %>
-		  <b><%= fmt.shift %></b>
-		  <i><% fmt.each {|arg| %><%= html_escape arg %><% } %></i>
+            <h3>Format</h3>
+            <% fmt = op_code.format.split(' ') %>
+            <b><%= fmt.shift %></b>
+            <i><%= html_escape fmt.join(' ') %></i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <%= markup_stack op_code.stack_before %>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <%= markup_stack op_code.stack_after %>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><%= markup_stack op_code.stack_before %></td>
+                            <td>=&gt;</td>
+                            <td><%= markup_stack op_code.stack_after %></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  <% if op_code.description.empty? %>
-	  	  <span class="todo">TODO: Add description to <%= op_code.mnemonic %>.yaml</span>
-		  <% else %>
-   		  <%= markup_html op_code.description %>
-		  <% end %>
-  
-		  <% if op_code.see_also %>
-		    <h4>See Also</h4>
-		    <ul>
-		    <% op_code.see_also.each do |see| %>
-		      <li><a href="<%= see %>.html"><%= see %></a></li>
-		    <% end %>
-		    </ul>
-		  <% end %>
-		
-		  <% if op_code.notes %>
-		  <div class="notes">
-        <h4>Notes</h4>
-   		  <%= markup_html op_code.notes %>
-			</div>
-		  <% end %>
-  
-      <% if op_code.used %>
-      <div class="used">
-	    <h3>Used By</h3>
-	    <% op_code.used.each do |use| %>
-	    <ul>
-  	    <li><%= use %></li>
-      </ul>
-	    <% end %>
-	    </div>
-      <% end %>
+            <h3>Description</h3>
+            <% if op_code.description.empty? %>
+            <span class="todo">TODO: Add description to <%= op_code.mnemonic %>.yaml</span>
+            <% else %>
+            <%= markup_html op_code.description %>
+            <% end %>
 
-      <% if op_code.see %>
-      <div class="see_also">
-	    <h3>See Also</h3>
-	    <% op_code.see.each do |see| %>
-	    <ul>
-  	    <li><a href="<%= see %>.html"><%= see %></a></li>
-      </ul>
-	    <% end %>
-	    </div>
-      <% end %>
+            <% if op_code.notes %>
+            <div class="notes">
+                <h4>Notes</h4>
+                <%= markup_html op_code.notes %>
+            </div>
+            <% end %>
 
+            <% if op_code.used %>
+            <div class="used">
+                <h3>Used By</h3>
+                <ul>
+                <% op_code.used.each do |use| %>
+                    <li><%= use %></li>
+                <% end %>
+                </ul>
+            </div>
+            <% end %>
 
-      <% if op_code.source  && !op_code.source.empty? %>
-		  <div id="<%= op_code.mnemonic %>_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-<%= op_code.source %>
-		    </pre>
-		  <div>
-      <% end %>
+            <% if op_code.see %>
+            <h3>See Also</h3>
+            <ul>
+                <% op_code.see.each do |see| %>
+                <li><a href="<%= see %>.html"><%= see %></a></li>
+                <% end %>
+            </ul>
+            <% end %>
 
-		</div>
-	</body>
-
+            <% if op_code.source  && !op_code.source.empty? %>
+            <div id="<%= op_code.mnemonic %>_source" class="source">
+                <h4>Source</h4>
+                <pre><%= op_code.source %></pre>
+            <div>
+            <% end %>
+        </div>
+    </body>
 </html>

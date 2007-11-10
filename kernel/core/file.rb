@@ -193,6 +193,13 @@ class File < IO
     Platform::POSIX.link(from, to)
   end
 
+  def self.rename(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
+    raise Errno::ENOENT unless exists?(from)
+    Platform::POSIX.rename(from, to)
+  end
+  
   def self.readlink(path)
     StringValue(path)
 

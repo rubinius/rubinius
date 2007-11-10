@@ -1,17 +1,17 @@
 ---
 mnemonic: set_local
 operation: >-
-
-format: set_local <arg1>
+  Sets the value of a local variable
+format: set_local locl
 opcode: 17
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops a value off the stack, and uses it to set the value of the local variable
+  identified by the literal _locl_.
 source: |-
     next_int;
     t1 = stack_pop();

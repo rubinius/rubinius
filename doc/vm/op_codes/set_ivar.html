@@ -1,76 +1,62 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: set_ivar</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: set_ivar</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="set_ivar">
+            <h2>set_ivar</h2>
+            <b>Byte code:</b> <i>0x15</i>
 
-	<body>
-	
-		<div id="set_ivar">
+            <h3>Operation</h3>
+            
+            <p>Sets an instance variable on self</p>
+            
 
-		  <h2>set_ivar</h2>
-		  <b>Byte code:</b> <i>0x15</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to set_ivar.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>set_ivar</b>
-		  <i>&lt;arg1&gt;</i>
+            <h3>Format</h3>
+            
+            <b>set_ivar</b>
+            <i>ivar</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to set_ivar.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Pops a value off the stack, and uses it to set the value of the instance variable identifies by the literal <i>ivar</i> on the current <b>self</b> object. </p>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="set_ivar_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int;
+            
+
+            
+            <div id="set_ivar_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int;
 t1 = tuple_at(state, cpu_current_literals(state, c), _int);
 t2 = stack_pop();
 object_set_ivar(state, c->self, t1, t2);
-stack_push(t2);
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+stack_push(t2);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

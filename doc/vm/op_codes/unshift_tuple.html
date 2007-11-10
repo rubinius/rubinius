@@ -1,67 +1,61 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: unshift_tuple</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: unshift_tuple</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="unshift_tuple">
+            <h2>unshift_tuple</h2>
+            <b>Byte code:</b> <i>0x22</i>
 
-	<body>
-	
-		<div id="unshift_tuple">
+            <h3>Operation</h3>
+            
+            <p>Shifts the first item in a tuple onto the stack</p>
+            
 
-		  <h2>unshift_tuple</h2>
-		  <b>Byte code:</b> <i>0x22</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to unshift_tuple.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>unshift_tuple</b>
-		  <i></i>
+            <h3>Format</h3>
+            
+            <b>unshift_tuple</b>
+            <i></i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>[value1, value2, ..., valuen]<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>value1<tr><td>[value2, ..., valuen]<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to unshift_tuple.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Pops a tuple off the top of the stack. If the tuple is empty, the tuple is pushed back onto the stack, followed by nil. Otherwise, the tuple is shifted, with the tuple then pushed back onto the stack, followed by the item that was previously at the head of the tuple.</p>
+            
 
-      
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>This opcode is poorly named; it actually performs a shift, rather than an unshift.</p>
+            </div>
+            
 
+            
 
-      
-		  <div id="unshift_tuple_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-t1 = stack_pop();
+            
+
+            
+            <div id="unshift_tuple_source" class="source">
+                <h4>Source</h4>
+                <pre>t1 = stack_pop();
 if(NUM_FIELDS(t1) == 0) {
   stack_push(t1);
   stack_push(Qnil);
@@ -72,12 +66,9 @@ if(NUM_FIELDS(t1) == 0) {
   object_copy_fields_from(state, t1, t2, 1, j);
   stack_push(t2);
   stack_push(t3);
-}
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+}</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

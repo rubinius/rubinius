@@ -1,0 +1,1 @@
+IO#each_line yields the next paragraph if the separator's length is 0

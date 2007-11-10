@@ -1,67 +1,56 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: cast_array</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: cast_array</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="cast_array">
+            <h2>cast_array</h2>
+            <b>Byte code:</b> <i>0x30</i>
 
-	<body>
-	
-		<div id="cast_array">
+            <h3>Operation</h3>
+            
+            <p>Convert a tuple to an array, or wrap an object within an array</p>
+            
 
-		  <h2>cast_array</h2>
-		  <b>Byte code:</b> <i>0x30</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to cast_array.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>cast_array</b>
-		  <i></i>
+            <h3>Format</h3>
+            
+            <b>cast_array</b>
+            <i></i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>array<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to cast_array.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Removes the object on the top of the stack, and:</p><p>If the input is a tuple, a new array object is created based on the tuple data.</p><p>If the input is an array, the stack is unmodified.</p><p>If the input is any other type, that type is wrapped within a new array of length one.</p><p>The resulting array is then pushed back onto the stack.</p>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="cast_array_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-t1 = stack_pop();
+            
+
+            
+            <div id="cast_array_source" class="source">
+                <h4>Source</h4>
+                <pre>t1 = stack_pop();
 if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
   t1 = array_from_tuple(state, t1);
 } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->array)) {
@@ -69,12 +58,9 @@ if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
   array_set(state, t2, 0, t1);
   t1 = t2;
 }
-stack_push(t1);
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+stack_push(t1);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

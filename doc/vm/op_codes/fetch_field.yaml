@@ -1,17 +1,18 @@
 ---
 mnemonic: fetch_field
 operation: >-
-
+  Retrieve the value within the field of the specified object
 format: fetch_field
 opcode: 8
 stack_before:
-  - <consumed>
+  - field
+  - object
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Retrieve the object of the specified object field number.
 source: |-
     t1 = stack_pop();
     t2 = stack_pop();

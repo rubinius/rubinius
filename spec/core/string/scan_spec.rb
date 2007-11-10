@@ -99,10 +99,10 @@ describe "String#scan with pattern and block" do
     a.should == [["cruel"], ["world"]]
   end
   
-  it "passes groups as to the block as one argument: an array" do
+  it "passes groups to the block as one argument: an array" do
     a = []
-    "cruel world".scan(/(..)(..)/) { |*w| a << w }
-    a.should == [[["cr", "ue"]], [["l ", "wo"]]]
+    "cruel world".scan(/(..)(..)/) { |w| a << w }
+    a.should == [["cr", "ue"], ["l ", "wo"]]
   end
   
   it "sets $~ for access from the block" do

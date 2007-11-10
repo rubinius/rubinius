@@ -1,17 +1,26 @@
 ---
 mnemonic: meta_send_stack_4
 operation: >-
-
-format: meta_send_stack_4 <arg1>
+  Optimised send for performing a method taking four parameters
+format: meta_send_stack_4 mthd
 opcode: 77
 stack_before:
-  - <consumed>
+  - recv
+  - value1
+  - value2
+  - value3
+  - value4
   - ...
 stack_after:
-  - <produced>
+  - value1
+  - value2
+  - value3
+  - value4
   - ...
 description: >-
-
+    Pops the receiver _recv_ off the top of the stack, and sends it the method 
+    identified by _mthd_. The four parameters _value1_ through _value4_ to be used by
+    the method are left on the top of the stack.
 source: |-
     next_literal;
     t1 = stack_pop();

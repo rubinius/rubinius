@@ -1,17 +1,22 @@
 ---
 mnemonic: meta_send_stack_1
 operation: >-
-
-format: meta_send_stack_1 <arg1>
+  Optimised send for performing a method taking one parameter
+format: meta_send_stack_1 mthd
 opcode: 74
 stack_before:
-  - <consumed>
+  - recv
+  - value
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Pops the receiver _recv_ off the top of the stack, and sends it the method 
+  identified by _mthd_. The single parameter _value_ to be used by the method
+  is left on the top of the stack.
+notes:
+  This is an optimised send for methods taking a single parameter and no block.
 source: |-
     next_literal;
     t1 = stack_pop();

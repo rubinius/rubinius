@@ -1,17 +1,17 @@
 ---
 mnemonic: caller_return
 operation: >-
-
+  Returns from the caller of the current method
 format: caller_return
 opcode: 46
 stack_before:
-  - <consumed>
+  - retval
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops the return value from the top of the stack, and then returns to the
+  sender of the sender, i.e. returns two levels instead of one.
 source: |-
     t2 = stack_pop();
     t1 = c->active_context;

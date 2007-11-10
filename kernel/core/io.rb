@@ -28,7 +28,7 @@ class IO
       write DEFAULT_RECORD_SEPARATOR
     else
       args.each do |arg|
-        if arg == nil
+        if arg.nil?
           str = "nil"
         elsif RecursionGuard.inspecting?(arg)
           str = "[...]"
@@ -119,24 +119,35 @@ class IO
   end
   
   def gets(sep=$/)
-    cur = read(1)
-    return nil unless cur
-    out = cur
-    until out[-sep.size,sep.size] == sep
-      cur = read(1)
-      return out unless cur
-      out << cur
-    end
-    
-    return out    
+    $_ = gets_helper(sep)
   end
-  
+
   def each(sep=$/)
-    while line = gets(sep)
+    while line = gets_helper(sep)
       yield line
     end
   end
-  
+
+  alias_method :each_line, :each
+
+  # Several methods use similar rules for reading strings from IO, but
+  # differ slightly. This helper is an extraction of the code.
+  #
+  # TODO: make this private. Private methods have problems in core right now.
+  def gets_helper(sep)
+    if sep.nil?
+      out = read
+    else
+      out = ''
+      begin
+        cur = read(1)
+        break unless cur
+        out << cur
+      end until out[-sep.size,sep.size] == sep
+    end
+    return (out.nil? || out.empty? ? nil : out)
+  end
+
   def readlines(sep=$/)
     ary = Array.new
     while line = gets(sep)

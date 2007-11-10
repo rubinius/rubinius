@@ -1,77 +1,64 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: send_super_with_arg_register</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: send_super_with_arg_register</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="send_super_with_arg_register">
+            <h2>send_super_with_arg_register</h2>
+            <b>Byte code:</b> <i>0x45</i>
 
-	<body>
-	
-		<div id="send_super_with_arg_register">
+            <h3>Operation</h3>
+            
+            <span class="todo">
+                TODO: Add brief operation one-liner to send_super_with_arg_register.yaml</span>
+            
 
-		  <h2>send_super_with_arg_register</h2>
-		  <b>Byte code:</b> <i>0x45</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to send_super_with_arg_register.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>send_super_with_arg_register</b>
-		  <i>&lt;arg1&gt;</i>
+            <h3>Format</h3>
+            
+            <b>send_super_with_arg_register</b>
+            <i>&lt;arg1&gt;</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to send_super_with_arg_register.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <span class="todo">TODO: Add description to send_super_with_arg_register.yaml</span>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="send_super_with_arg_register_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_literal;
+            
+
+            
+            <div id="send_super_with_arg_register_source" class="source">
+                <h4>Source</h4>
+                <pre>next_literal;
 t1 = stack_pop();
 j = c->args;
 
 perform_super_send:
-cpu_unified_send_super(state, c, c->self, _lit, j, t1);
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+cpu_unified_send_super(state, c, c->self, _lit, j, t1);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

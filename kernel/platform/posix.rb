@@ -30,6 +30,7 @@ module Platform::POSIX
   attach_function nil, 'umask', [:int], :int
   attach_function nil, 'link', [:string, :string], :int
   attach_function nil, 'readlink', [:string, :string, :int], :int
+  attach_function nil, 'rename', [:string, :string], :int
   
   # directories
   attach_function nil, 'chdir', [:string], :int

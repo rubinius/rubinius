@@ -1,17 +1,26 @@
 ---
 mnemonic: equal
 operation: >-
-
+  Perform a raw comparison of two object references
 format: equal
 opcode: 105
 stack_before:
-  - <consumed>
+  - value1
+  - value2
   - ...
 stack_after:
-  - <produced>
+  - result
   - ...
 description: >-
-
+  Performs a comparison of two objects, resulting in either _true_ or _false_
+  being pushed onto the stack as a result. The comparison is done without any
+  method calls.
+  
+  For two Fixnums, two Symbols, or two literals (_true_, _false_, _nil_), return
+  _true_ if the values are identical.
+  
+  For two object references (including Bignum), return _true_ if value1 and
+  value2 point to the same instance.
 source: |-
     t1 = stack_pop();
     t2 = stack_pop();

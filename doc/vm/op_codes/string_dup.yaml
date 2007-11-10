@@ -1,17 +1,20 @@
 ---
 mnemonic: string_dup
 operation: >-
-
+  Create a new string with the same contents as the string currently on the
+  stack
 format: string_dup
 opcode: 58
 stack_before:
-  - <consumed>
+  - original
   - ...
 stack_after:
-  - <produced>
+  - duplicate
   - ...
 description: >-
-
+  Consume the string on the stack, replacing it with a duplicate. Mutating
+  operations on the original string will not affect the duplicate, and
+  vice-versa.
 source: |-
     t1 = stack_pop();
     stack_push(string_dup(state, t1));

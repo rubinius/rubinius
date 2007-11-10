@@ -484,8 +484,8 @@ describe "StringIO#puts" do
   end
   
   it "flattens a nested array before writing it" do
-    @io.puts([1, 2, [3]]).should == nil
-    @io.string.should == "1\n2\n3\n"
+    @io.puts([1, 2, [3, [4, [5]]]]).should == nil
+    @io.string.should == "1\n2\n3\n4\n5\n"
   end
   
   it "writes [...] for a recursive array arg" do

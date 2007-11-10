@@ -20,6 +20,10 @@ describe "Hash.new" do
     h.default_proc.call("x").should == "Answer to x"
   end
   
+  it "raises ArgumentError if more than one argument is passed" do
+    should_raise(ArgumentError) { Hash.new(5,6) }
+  end
+  
   it "raises ArgumentError if passed both default argument and default block" do
     should_raise(ArgumentError) { Hash.new(5) { 0 } }
     should_raise(ArgumentError) { Hash.new(nil) { 0 } }

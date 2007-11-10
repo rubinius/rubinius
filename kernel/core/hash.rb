@@ -1,4 +1,4 @@
-# depends on: enumerable.rb
+# depends on: enumerable.rb misc.rb
 
 class Hash
   include Enumerable
@@ -19,18 +19,20 @@ class Hash
     hsh
   end
 
-  def initialize(default=nil, &block)
+  def initialize(default=Undefined, &block)
     @keys = Tuple.new(16)
     @values = Tuple.new(16)
     @bins = 16
     @entries = 0
     
-    if default and block
+    if default != Undefined and block
       raise ArgumentError, "Specify a default or a block, not both"
-    elsif block
+    end
+    
+    if block
       @default = block
       @default_proc = true
-    else
+    elsif default != Undefined
       @default = default
       @default_proc = false
     end
@@ -165,13 +167,12 @@ class Hash
     @entries == 0
   end
 
-  # FIXME: replace default = nil with default = undef as soon as undef is available
-  def fetch(key, default = nil)
+  def fetch(key, default = Undefined)
     found, val = find_unambiguous key
     return val if found
 
     return yield(key) if block_given?
-    return default if default
+    return default if default != Undefined
     raise IndexError, 'Key not found'
   end
 

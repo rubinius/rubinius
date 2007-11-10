@@ -9,8 +9,8 @@ module Completeness
   VERSION = '0.0.1'
 end
 
-get_class_or_module = lambda do |c|
-  constant = Object.const_get(c)
+get_class_or_module = lambda do |const|
+  constant = const.split('::').inject(nil) { |c,s| c ? c.const_get(s) : Object.const_get(s) }
   return constant if (constant.is_a?(Module) or constant.is_a?(Class)) and 
     not ['OptionParser', 'SystemExit'].include?(constant.name)
 end
@@ -18,14 +18,19 @@ end
 target = 'shotgun/rubinius'
 constants = []
 except = []
+requires = []
+constant_names = []
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "completeness [options]"
   opts.separator ""
-
+  
+  opts.on("-r", "--require LIBRARY", String, "Name of library to require") do |f|
+    requires << f
+  end
   opts.on("-c", "--constant CONSTANT", String,
           "Name of a Class or Module") do |c|
-    constants << get_class_or_module.call(c)
+    constant_names << c
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation to test for completeness: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -58,7 +63,8 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.parse ARGV
 end
 
-cmd = %(bin/mspec -t #{target} -e '%s ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d spec 2> /dev/null)
+requires.each { |r| require r }
+cmd = %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '%s ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d spec 2> /dev/null)
 
 print_summary = lambda do |str, name, tab|
   examples, failures = 0, 0
@@ -75,6 +81,7 @@ print_summary = lambda do |str, name, tab|
   tab.add(examples, failures)
 end
 
+constants = constant_names.map { |c| get_class_or_module.call(c) }
 if constants.empty?
   constants = Object.constants.map { |c| get_class_or_module.call(c) }
 end
@@ -101,7 +108,7 @@ end
 tabulator = Tabulator.new
 
 constants.compact.each do |c|
-  c.methods(false).sort.each do |m|
+  (c.methods(false) + c.singleton_methods).uniq.sort.each do |m|
     name = "#{c}.#{m}"
     print_summary.call(%x(#{cmd % name}), name, tabulator)
   end
@@ -115,4 +122,3 @@ constants.compact.each do |c|
 end
 
 tabulator.summarize
-

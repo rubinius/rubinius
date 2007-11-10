@@ -1,67 +1,56 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: meta_send_op_plus</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: meta_send_op_plus</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="meta_send_op_plus">
+            <h2>meta_send_op_plus</h2>
+            <b>Byte code:</b> <i>0x4e</i>
 
-	<body>
-	
-		<div id="meta_send_op_plus">
+            <h3>Operation</h3>
+            
+            <p>Implementation of + optimised for fixnums</p>
+            
 
-		  <h2>meta_send_op_plus</h2>
-		  <b>Byte code:</b> <i>0x4e</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to meta_send_op_plus.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>meta_send_op_plus</b>
-		  <i></i>
+            <h3>Format</h3>
+            
+            <b>meta_send_op_plus</b>
+            <i></i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>value1<tr><td>value2<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>value1 + value2<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to meta_send_op_plus.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Pops <i>value1</i> and <i>value2</i> off the stack, and pushes the logical result of (<i>value1</i> - <i>value2</i>). If <i>value1</i> and <i>value2</i> are both fixnums, the subtraction is done directly via the fixnum_sub primitive; otherwise, the - method is called on <i>value1</i>, passing <i>value2</i> as the argument.</p>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="meta_send_op_plus_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-t1 = stack_pop();
+            
+
+            
+            <div id="meta_send_op_plus_source" class="source">
+                <h4>Source</h4>
+                <pre>t1 = stack_pop();
 t2 = stack_pop();
 if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
   stack_push(fixnum_add(state, t1, t2));
@@ -72,12 +61,9 @@ if(FIXNUM_P(t1) && FIXNUM_P(t2)) {
   j = 1;
   goto perform_send;
   // cpu_send_method(state, c, t1, state->global->sym_plus, 1);
-}
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+}</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

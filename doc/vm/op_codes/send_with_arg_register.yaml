@@ -1,17 +1,25 @@
 ---
 mnemonic: send_with_arg_register
 operation: >-
-
-format: send_with_arg_register <arg1>
+  Sends a message with args to a receiver
+format: send_with_arg_register methodname
 opcode: 61
 stack_before:
-  - <consumed>
+  - recv
+  - args
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops an object (_recv_) and an array of arguments (_args_) off the top of
+  the stack, and sends the object the message _methodname_.
+see:
+  - set_args
+  - send_method
+  - cast_array_for_args
+notes: >-
+  The args register must have previously been set to the count of the number
+  of arguments in _args_.
 source: |-
     next_literal;
     t1 = stack_pop();

@@ -82,7 +82,7 @@ class Object
     if cm
       return Method.new(self, cm[1], cm[0])
     else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+      raise NoMethodError, "undefined method `#{name}' for #{self.inspect}"
     end
   end
   

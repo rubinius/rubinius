@@ -2,7 +2,6 @@
 #include "cpu.h"
 #include "methctx.h"
 #include "tuple.h"
-#include "flags.h"
 
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals) {
   OBJECT obj;

@@ -1,73 +1,77 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: push_int</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: push_int</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="push_int">
+            <h2>push_int</h2>
+            <b>Byte code:</b> <i>0x7</i>
 
-	<body>
-	
-		<div id="push_int">
+            <h3>Operation</h3>
+            
+            <p>Pushes an integer literal value onto the stack</p>
+            
 
-		  <h2>push_int</h2>
-		  <b>Byte code:</b> <i>0x7</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to push_int.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>push_int</b>
-		  <i>&lt;arg1&gt;</i>
+            <h3>Format</h3>
+            
+            <b>push_int</b>
+            <i>value</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to push_int.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Pushes the value of the integer literal onto the stack.</p>
+            
 
-      
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>Certain common cases (i.e. -1, 0, 1, and 2) are optimised to avoid the lookup of the literal value in the literals tuple.</p>
+            </div>
+            
 
+            
 
-      
-		  <div id="push_int_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int;
-stack_push(I2N(_int));
-		    </pre>
-		  <div>
-      
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="meta_push_0.html">meta_push_0</a></li>
+                
+                <li><a href="meta_push_1.html">meta_push_1</a></li>
+                
+                <li><a href="meta_push_2.html">meta_push_2</a></li>
+                
+                <li><a href="meta_push_neg_1.html">meta_push_neg_1</a></li>
+                
+            </ul>
+            
 
-		</div>
-	</body>
-
+            
+            <div id="push_int_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int;
+stack_push(I2N(_int));</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

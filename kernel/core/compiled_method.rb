@@ -143,8 +143,10 @@ activate_method
     return -1
   end
 
+  # Not inaccurate when splat argument is present, because it forces 
+  # @required == 1 and hides the actual number of required arguments
   def arity
-    @required
+    @locals > 0 ? -(@required + 1) : @required
   end
   
   def bytecodes=(other)

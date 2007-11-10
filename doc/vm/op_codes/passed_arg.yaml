@@ -1,17 +1,18 @@
 ---
 mnemonic: passed_arg
 operation: >-
-
-format: passed_arg <arg1>
+  Test to determine whether an argument was passed
+format: passed_arg idx
 opcode: 56
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - true | false
   - ...
 description: >-
-
+  Checks if the number of arguments passed to a method is greater than the 
+  specified argument index _idx_ (0-based), and pushes the result of the test 
+  onto the stack.
 source: |-
     next_int;
     if((unsigned long int)_int < cpu_current_argcount(c)) {

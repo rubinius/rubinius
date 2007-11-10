@@ -1,17 +1,20 @@
 ---
 mnemonic: store_my_field
 operation: >-
-
-format: store_my_field <arg1>
+  Store a value into a field of self
+format: store_my_field fld
 opcode: 65
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Stores the value at the top of the stack into the field specified by _fld_ on
+  *self*.
+  
+  The stack is left unmodified.
 source: |-
     next_int;
     SET_FIELD(c->self, _int, stack_top());

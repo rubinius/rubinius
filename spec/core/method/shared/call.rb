@@ -7,12 +7,12 @@ shared :method_call do |cmd|
     end
   
     it "raises an ArgumentError when given incorrect number of arguments" do
-      should_raise(ArgumentError, "wrong number of arguments (3 for 2)") do
-        MethodSpecs::Methods.new.method(:two).send(cmd, 1, 2, 3)
+      should_raise(ArgumentError) do
+        MethodSpecs::Methods.new.method(:two_req).send(cmd, 1, 2, 3)
       end
   
-      should_raise(ArgumentError, "wrong number of arguments (1 for 2)") do
-        MethodSpecs::Methods.new.method(:two).send(cmd, 1)
+      should_raise(ArgumentError) do
+        MethodSpecs::Methods.new.method(:two_req).send(cmd, 1)
       end
     end
   end

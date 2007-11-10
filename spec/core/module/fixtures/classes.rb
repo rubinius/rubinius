@@ -1,17 +1,13 @@
 module ModuleSpecs
   class Parent
     # For private_class_method spec
-    def Parent.private_method; end
-    failure :rubinius do
-      private_class_method :private_method
-    end
+    def self.private_method; end
+    private_class_method :private_method
 
     # For public_class_method spec
     private
-    def Parent.public_method; end
-    failure :rubinius do
-      public_class_method :public_method
-    end
+    def self.public_method; end
+    public_class_method :public_method
 
     public
     def public_parent() end
@@ -68,10 +64,11 @@ module ModuleSpecs
   # a method will break those tests.
   module CountsMixin
     def public_3; end
-    private
+    public :public_3
     def private_3; end
-    protected
+    private :private_3
     def protected_3; end
+    protected :protected_3
   end
 
   class CountsParent

@@ -1,77 +1,63 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: allocate_stack</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: allocate_stack</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="allocate_stack">
+            <h2>allocate_stack</h2>
+            <b>Byte code:</b> <i>0x61</i>
 
-	<body>
-	
-		<div id="allocate_stack">
+            <h3>Operation</h3>
+            
+            <p>Allocate space on the stack</p>
+            
 
-		  <h2>allocate_stack</h2>
-		  <b>Byte code:</b> <i>0x61</i>
-  
-		  <h3>Operation</h3>
-		  
-	  	  <span class="todo">TODO: Add brief operation one-liner to allocate_stack.yaml</span>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>allocate_stack</b>
-		  <i>&lt;arg1&gt;</i>
+            <h3>Format</h3>
+            
+            <b>allocate_stack</b>
+            <i>count</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>nil<tr><td>nil<tr><td>...<tr><td>nil<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-	  	  <span class="todo">TODO: Add description to allocate_stack.yaml</span>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Allocate <i>count</i> new slots on the stack. All allocated slots will be initialized to the special value <b>nil</b>.</p>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="allocate_stack_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int;
+            
+
+            
+            <div id="allocate_stack_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int;
 /* The stack must be initialized to nil because any refers that
    were there are probably bad. */
 for(k = 0; k <= _int; k++) {
   *++c->sp_ptr = Qnil;
-}
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+}</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>

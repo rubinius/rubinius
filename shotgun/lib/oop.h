@@ -1,7 +1,6 @@
 #ifndef __RUBINIUS_INCLUDED__
 #define __RUBINIUS_INCLUDED__ 1
 #include <stdint.h>
-#include "flags.h"
 
 typedef struct rubinius_object* OBJECT;
 typedef void * xpointer;
@@ -45,6 +44,26 @@ typedef void * xpointer;
 /* How many bits of data are available in fixnum, not including
    the sign. */
 #define FIXNUM_WIDTH 29
+
+/* rubinius_object types, takes up 3 bits */
+typedef enum
+{
+  ObjectType    = 0,
+  MContextType  = 1,
+  BContextType  = 2,
+  ClassType     = 3,
+  MetaclassType = 4,
+  MTType        = 5,
+} object_type;
+
+/* rubinius_object gc zone, takes up two bits */
+typedef enum
+{ 
+  UnspecifiedZone  = 0,
+  MatureObjectZone = 1,
+  YoungObjectZone  = 2,
+  LargeObjectZone  = 3,
+} gc_zone;
 
 /* the sizeof(struct rubinius_object) must an increment of the platform 
    pointer size, so that the bytes located directly after a
@@ -169,5 +188,13 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
   target->IsMeta          = source->IsMeta;
 }
 
-#endif
+#define CLEAR_FLAGS(obj)     obj->all_flags = 0
+#define stack_context_p(obj) (obj->gc_zone == UnspecifiedZone)
+#define SET_FORWARDED(obj)   obj->Forwarded = TRUE
+#define FORWARDED_P(obj)     (obj->Forwarded)
 
+#define AGE(obj)           (obj->copy_count)
+#define CLEAR_AGE(obj)     (obj->copy_count = 0)
+#define INCREMENT_AGE(obj) (obj->copy_count++)
+
+#endif 

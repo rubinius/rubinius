@@ -6,7 +6,6 @@
 #include "tuple.h"
 #include "bignum.h"
 #include "float.h"
-#include "flags.h"
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>

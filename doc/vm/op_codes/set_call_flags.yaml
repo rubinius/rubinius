@@ -1,17 +1,18 @@
 ---
 mnemonic: set_call_flags
 operation: >-
-
-format: set_call_flags <arg1>
+  Sets call flags prior to a send operation
+format: set_call_flags flgs
 opcode: 92
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  The call flags on the current execution context are set to the opcode argument _flgs_.
+notes:
+  Currently, the only call flag is 1, which instructs the machine to include
+  private methods when looking for a method that responds to a message.
 source: |-
     next_int;
     c->call_flags = _int;

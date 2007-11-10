@@ -5,7 +5,6 @@ klasses = []
 fd = File.open("auto.h", "w")
 
 puts "#include \"shotgun.h\""
-puts "#include \"flags.h\""
 
 Rubinius::Bootstrap::TYPES.each do |name, klass|
   prefix = "#{name}_"

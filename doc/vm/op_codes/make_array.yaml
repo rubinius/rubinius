@@ -5,17 +5,17 @@ operation: >-
 format: make_array argc
 opcode: 20
 stack_before:
-  - value1
-  - value2
-  - ...
   - valuen
+  - ...
+  - value2
+  - value1
   - ...
 stack_after:
   -
-    - valuen
-    - ...
-    - value2
     - value1
+    - value2
+    - ...
+    - valuen
   - ...
 description: >-
   Creates a new array, populating its contents with the number of items

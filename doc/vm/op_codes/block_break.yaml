@@ -1,16 +1,14 @@
 ---
 mnemonic: block_break
 operation: >-
-
+  Breaks out of a block
 format: block_break
 opcode: 68
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Breaks out of a block immediately, returning to the parent context.
 source: |-
     cpu_return_to_block_creator(state, c);

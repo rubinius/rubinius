@@ -1,5 +1,1 @@
 Module#public_method_defined? returns true if the named public method is defined by module or its ancestors
-Module#public_method_defined? should return false if method is not a public method
-Module#public_method_defined? returns false if the named public method is not defined by the module or its ancestors
-Module#public_method_defined? should except symbols as a method name
-Module#public_method_defined? raise an error on improper argument

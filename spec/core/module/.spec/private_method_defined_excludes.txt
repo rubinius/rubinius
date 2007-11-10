@@ -1,5 +1,1 @@
 Module#private_method_defined? returns true if the named private method is defined by module or its ancestors
-Module#private_method_defined? should return false if method is not a private method
-Module#private_method_defined? returns false if the named private method is not defined by the module or its ancestors
-Module#private_method_defined? should except symbols as a method name
-Module#private_method_defined? raise an error on improper argument

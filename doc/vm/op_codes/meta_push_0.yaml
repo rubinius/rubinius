@@ -1,16 +1,18 @@
 ---
 mnemonic: meta_push_0
 operation: >-
-
+  Pushes 0 onto the stack
 format: meta_push_0
 opcode: 71
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - "0"
   - ...
 description: >-
-
+  Fast push of 0 (zero) onto the stack. This is an optimisation applied
+  whenever a literal 0 is encountered by the compiler. It is equivalent to 'push
+  0', but faster because there is no need to lookup the literal value in the
+  literals tuple.
 source: |-
     stack_push(I2N(0));

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
-#include "flags.h"
 #include <sys/time.h>
 #include "cleanup_hash.h"
 #include "config_hash.h"

@@ -119,4 +119,9 @@ namespace :git do
       `git stash clear` if clear
     end
   end
+  
+  desc "Make patches upto current"
+  task :make_patches do
+    sh "git format-patch HEAD^"
+  end
 end

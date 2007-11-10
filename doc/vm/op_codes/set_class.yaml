@@ -1,17 +1,19 @@
 ---
 mnemonic: set_class
 operation: >-
-
+  Sets a literal to reference the specified class
 format: set_class
 opcode: 5
 stack_before:
-  - <consumed>
+  - literal
+  - clazz
   - ...
 stack_after:
-  - <produced>
+  - literal
   - ...
 description: >-
-
+  Pops a literal reference and a class off the top of the stack, sets the class
+  of the literal to the new class, and then pushes it back onto the stack.
 source: |-
     _lit = stack_pop();
     t1 = stack_pop();

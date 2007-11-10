@@ -1,3 +1,4 @@
+# depends on: object.rb
 def self.to_s
   "main"
 end
@@ -24,6 +25,8 @@ class FalseClass
 end
 
 FALSE = false
+
+Undefined = Object.new
 
 module RecursionGuard
   def self.inspecting?(obj)

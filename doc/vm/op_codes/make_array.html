@@ -1,67 +1,56 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-	"http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-	<head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCode: make_array</title>
-		<link rel="stylesheet" href="../op_codes.css" type="text/css" />
-	</head>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+        <title>Rubinius Virtual Machine OpCode: make_array</title>
+        <link rel="stylesheet" href="../op_codes.css" type="text/css" />
+    </head>
+    <body>
+        <div id="make_array">
+            <h2>make_array</h2>
+            <b>Byte code:</b> <i>0x14</i>
 
-	<body>
-	
-		<div id="make_array">
+            <h3>Operation</h3>
+            
+            <p>Create an array and populate with items on the stack</p>
+            
 
-		  <h2>make_array</h2>
-		  <b>Byte code:</b> <i>0x14</i>
-  
-		  <h3>Operation</h3>
-		  
-  		  <p>Create an array and populate with items on the stack</p>
-		  
-  
-		  <h3>Format</h3>
-		  
-		  <b>make_array</b>
-		  <i>argc</i>
+            <h3>Format</h3>
+            
+            <b>make_array</b>
+            <i>argc</i>
 
-		  <h3>Stack</h3>
-		  <div class="stack">
-			<table>
-				<tfoot>
-					<tr><th>Before</th><th>&nbsp;<th>After<th></tr>
-				<tbody>
-					<tr>
-						<td>
-  					  <table><tr><td>value1<tr><td>value2<tr><td>...<tr><td>valuen<tr><td>...</td></tr></table>
-            </td>
-            <td>=&gt;</td>
-            <td>
-					    <table><tr><td>[valuen, ..., value2, value1]<tr><td>...</td></tr></table>
-	          </td>
-					<tr>
-				</tbody>
-			</table>
-		  </div>
+            <h3>Stack</h3>
+            <div class="stack">
+                <table>
+                    <tfoot>
+                        <tr><th>Before</th><th>&nbsp;<th>After<th></tr>
+                    </tfoot>
+                    <tbody>
+                        <tr>
+                            <td><table><tr><td>valuen<tr><td>...<tr><td>value2<tr><td>value1<tr><td>...</td></tr></table></td>
+                            <td>=&gt;</td>
+                            <td><table><tr><td>[value1, value2, ..., valuen]<tr><td>...</td></tr></table></td>
+                        <tr>
+                    </tbody>
+                </table>
+            </div>
 
-		  <h3>Description</h3>
-		  
-   		  <p>Creates a new array, populating its contents with the number of items (<i>argc</i>) specified in the opcode. The contents of the new array are taken from the stack, with the top item on the stack becoming the last item in the array. The resulting array is added back to the stack.</p>
-		  
-  
-		  
-		
-		  
-  
-      
+            <h3>Description</h3>
+            
+            <p>Creates a new array, populating its contents with the number of items (<i>argc</i>) specified in the opcode. The contents of the new array are taken from the stack, with the top item on the stack becoming the last item in the array. The resulting array is added back to the stack.</p>
+            
 
-      
+            
 
+            
 
-      
-		  <div id="make_array_source" class="source">
-		  <h4>Source</h4>
-		    <pre>
-next_int;
+            
+
+            
+            <div id="make_array_source" class="source">
+                <h4>Source</h4>
+                <pre>next_int;
 t1 = array_new(state, _int);
 j = _int - 1;
 for(; j >= 0; j--) {
@@ -71,12 +60,9 @@ for(; j >= 0; j--) {
 
 cpu_perform_hook(state, c, BASIC_CLASS(array), 
                  state->global->sym_from_literal, t1);
-stack_push(t1);
-		    </pre>
-		  <div>
-      
-
-		</div>
-	</body>
-
+stack_push(t1);</pre>
+            <div>
+            
+        </div>
+    </body>
 </html>
