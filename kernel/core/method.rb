@@ -18,7 +18,7 @@ class Method
   end
 
   def arity
-    @method.arity
+    @method.required
   end
   
   def location
@@ -51,7 +51,7 @@ class UnboundMethod
   end
 
   def arity
-    @method.arity
+    @method.required
   end
 
   def call_on_instance(obj, *args)

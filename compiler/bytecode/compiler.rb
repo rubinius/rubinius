@@ -2050,9 +2050,6 @@ module Bytecode
             str << "set #{name}:#{lv.slot}\npop\n"
           end
           max = 0
-          req = -1
-        else
-          req = min
         end
         
         if state.arg_block
@@ -2065,7 +2062,11 @@ module Bytecode
           end
         end
         
-        meth.required = req
+        if (args[2].nil? || args[2].empty?) && (args[3].nil? || args[3].empty?)
+          meth.required = required
+        else
+          meth.required = -(required + 1)
+        end
         
         # Add an opcode to allocate space for fast locals
         ss = state.stack_space
