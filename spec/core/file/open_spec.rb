@@ -11,7 +11,7 @@ describe "File.open" do
     File.open(@file, "w"){} # touch
   end
   
-  after :each do         
+  after :each do
     File.delete("fake") rescue nil
     @fh.delete if @fh  rescue nil
     @fh.close if @fh rescue nil
@@ -342,6 +342,14 @@ describe "File.open" do
       File.open(@file, File::RDONLY|File::TRUNC) do |f|  
         f.puts("writing").should == nil 
       end
+    end
+  end
+  
+  it "should throw Errno::EACCES when opening non-permitted file" do
+    @fh = File.open(@file, "w")
+    @fh.chmod(000)
+    should_raise(Errno::EACCES) do
+      File.open(@file)
     end
   end
    
