@@ -377,3 +377,5 @@ namespace :build do
   end
 end
 
+desc "Build task for CruiseControl"
+task :ccrb => [:build, 'spec:ci']
