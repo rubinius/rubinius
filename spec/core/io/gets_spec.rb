@@ -51,6 +51,18 @@ describe "IO#gets" do
     end
   end
 
+  # This could probably be added to the previous test using pos, but right now this doesn't
+  # pass and the previous test does.
+  it "reads until the beginning of the next paragraph when the separator's length is 0" do
+    # Leverage the fact that there are three newlines between the first and second paragraph
+    File.open(@testfile, 'r') do |f|
+      f.gets('')
+
+      # This should return 'A', the first character of the next paragraph, not $/
+      f.read(1).should == 'A'
+    end
+  end
+
   it "raises IOError if the stream is not opened for reading" do
     should_raise(IOError) do
       File.open(@createfile, 'a') {|f| f.gets}
