@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to send_stack.yaml</span>
+            <p>Sends a message with arguments on the stack</p>
             
 
             <h3>Format</h3>
             
             <b>send_stack</b>
-            <i>&lt;arg1&gt;&lt;arg1&gt; &lt;arg2&gt;</i>
+            <i>mthd argc</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>recv<tr><td>arg1<tr><td>arg2<tr><td>...<tr><td>argn<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>arg1<tr><td>arg2<tr><td>...<tr><td>argn<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +38,25 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to send_stack.yaml</span>
+            <p>Pops the receiver and the block to be passed off the stack, and sends the message <i>mthd</i> with <i>argc</i> arguments. The arguments to the method remain on the stack, ready to be consumed when the method executes.</p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>This opcode does not pass a block to the receiver; see <a href="send_stack_with_block.html">send_stack_with_block</a> for the equivalent op code used when a block is to be passed.</p>
+            </div>
             
 
             
 
             
-
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="send_stack_with_block.html">send_stack_with_block</a></li>
+                
+            </ul>
             
 
             

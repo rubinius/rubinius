@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to send_off_stack.yaml</span>
+            <p>Calls the method specified on the top of the stack on an object</p>
             
 
             <h3>Format</h3>
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>mthd<tr><td>blck<tr><td>recv<tr><td>args<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>args<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +38,27 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to send_off_stack.yaml</span>
+            <p>Pops the name of the method <i>mthd</i> to call off the stack, and if necessary, converts it to a symbol. Then pops any block <i>blck</i> and the receiver <i>recv</i> off the stack. Any arguments required by the method are contained in the array <i>args</i>, which remains on the stack for when the method begins executing.</p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The number of arguments to be passed to the method in <i>args</i> must have been set previously via a call to <a href="set_args.html">set_args</a>.</p>
+            </div>
             
 
             
 
             
-
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="set_args.html">set_args</a></li>
+                
+                <li><a href="cast_array_for_args.html">cast_array_for_args</a></li>
+                
+            </ul>
             
 
             

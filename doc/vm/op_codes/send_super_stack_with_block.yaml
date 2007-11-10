@@ -1,17 +1,29 @@
 ---
 mnemonic: send_super_stack_with_block
 operation: >-
-
-format: send_super_stack_with_block <arg1><arg1> <arg2>
+  Call a method on the superclass with a block
+format: send_super_stack_with_block mthd argc
 opcode: 63
 stack_before:
-  - <consumed>
+  - blck
+  - arg1
+  - arg2
+  - ...
+  - argn
   - ...
 stack_after:
-  - <produced>
+  - arg1
+  - arg2
+  - ...
+  - argn
   - ...
 description: >-
-
+  Pops a block off the stack, and sends the message _mthd_ with _argc_ arguments.
+  The arguments to the method remain on the stack, ready to be consumed when the method
+  executes.
+notes:
+  The receiver is not specified for a call to super; it is the superclass of the current
+  object that will receive the message.
 source: |-
     next_literal;
     t1 = stack_pop();

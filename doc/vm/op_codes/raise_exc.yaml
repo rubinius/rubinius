@@ -1,17 +1,17 @@
 ---
 mnemonic: raise_exc
 operation: >-
-
+  Raises an exception
 format: raise_exc
 opcode: 50
 stack_before:
-  - <consumed>
+  - exc
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops an exception instance off the stack, and uses it to raise an exception
+  in the machine.
 source: |-
     t1 = stack_pop();
     cpu_raise_exception(state, c, t1);

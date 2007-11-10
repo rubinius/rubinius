@@ -1,17 +1,26 @@
 ---
 mnemonic: send_super_with_arg_register
 operation: >-
-
-format: send_super_with_arg_register <arg1>
+  Call a method on the superclass, passing args in an array plus a block
+format: send_super_with_arg_register mthd
 opcode: 69
 stack_before:
-  - <consumed>
+  - blck
+  - args
   - ...
 stack_after:
-  - <produced>
+  - args
   - ...
 description: >-
-
+  Pops a block off the stack, and sends the message _mthd_ to the current objects 
+  superclass. The arguments _args_ to the method are contained in an array on the stack,
+  ready to be consumed when the method executes.
+notes: >-
+  The args register must have previously been set to the count of the number
+  of arguments in _args_.
+see:
+  - set_args
+  - cast_array_for_args  
 source: |-
     next_literal;
     t1 = stack_pop();

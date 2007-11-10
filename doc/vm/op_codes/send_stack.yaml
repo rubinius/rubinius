@@ -1,17 +1,31 @@
 ---
 mnemonic: send_stack
 operation: >-
-
-format: send_stack <arg1><arg1> <arg2>
+  Sends a message with arguments on the stack
+format: send_stack mthd argc
 opcode: 41
 stack_before:
-  - <consumed>
+  - recv
+  - arg1
+  - arg2
+  - ...
+  - argn
   - ...
 stack_after:
-  - <produced>
+  - arg1
+  - arg2
+  - ...
+  - argn
   - ...
 description: >-
-
+  Pops the receiver and the block to be passed off the stack, and sends the message
+  _mthd_ with _argc_ arguments. The arguments to the method remain on the stack,
+  ready to be consumed when the method executes.
+notes:
+  This opcode does not pass a block to the receiver; see "send_stack_with_block":send_stack_with_block.html
+  for the equivalent op code used when a block is to be passed.
+see:
+  - send_stack_with_block
 source: |-
     next_literal;
     t1 = stack_pop();

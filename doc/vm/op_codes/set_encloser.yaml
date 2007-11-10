@@ -1,17 +1,17 @@
 ---
 mnemonic: set_encloser
 operation: >-
-
+  Sets the scope / namespace enclosing subsequent operations
 format: set_encloser
 opcode: 51
 stack_before:
-  - <consumed>
+  - clazz
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops a class _clazz_ off the stack, and uses it as the enclosing scope for
+  subsequent op codes.
 source: |-
     t1 = stack_pop();
     cpu_set_encloser_path(state, c, t1);

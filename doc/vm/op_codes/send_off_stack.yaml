@@ -1,17 +1,29 @@
 ---
 mnemonic: send_off_stack
 operation: >-
-
+  Calls the method specified on the top of the stack on an object
 format: send_off_stack
 opcode: 88
 stack_before:
-  - <consumed>
+  - mthd
+  - blck
+  - recv
+  - args
   - ...
 stack_after:
-  - <produced>
+  - args
   - ...
 description: >-
-
+  Pops the name of the method _mthd_ to call off the stack, and if necessary,
+  converts it to a symbol. Then pops any block _blck_ and the receiver _recv_
+  off the stack. Any arguments required by the method are contained in the
+  array _args_, which remains on the stack for when the method begins executing.
+notes:
+  The number of arguments to be passed to the method in _args_ must have been
+  set previously via a call to "set_args":set_args.html.
+see:
+  - set_args
+  - cast_array_for_args 
 source: |-
     t3 = stack_pop();
     if(!SYMBOL_P(t3)) {

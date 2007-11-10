@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to send_super_stack_with_block.yaml</span>
+            <p>Call a method on the superclass with a block</p>
             
 
             <h3>Format</h3>
             
             <b>send_super_stack_with_block</b>
-            <i>&lt;arg1&gt;&lt;arg1&gt; &lt;arg2&gt;</i>
+            <i>mthd argc</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>blck<tr><td>arg1<tr><td>arg2<tr><td>...<tr><td>argn<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>arg1<tr><td>arg2<tr><td>...<tr><td>argn<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +38,14 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to send_super_stack_with_block.yaml</span>
+            <p>Pops a block off the stack, and sends the message <i>mthd</i> with <i>argc</i> arguments. The arguments to the method remain on the stack, ready to be consumed when the method executes.</p>
             
 
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The receiver is not specified for a call to super; it is the superclass of the current object that will receive the message.</p>
+            </div>
             
 
             

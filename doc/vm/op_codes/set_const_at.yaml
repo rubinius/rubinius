@@ -1,17 +1,18 @@
 ---
 mnemonic: set_const_at
 operation: >-
-
-format: set_const_at <arg1>
+  Sets the value of a constant under a module
+format: set_const_at lit
 opcode: 26
 stack_before:
-  - <consumed>
+  - value
+  - module
   - ...
 stack_after:
-  - <produced>
   - ...
 description: >-
-
+  Pops the new _value_ for a constant identified by the _lit_ index in the 
+  literals tuple, in the scope of _module_, which is also popped from the stack.
 source: |-
     next_int;
     t1 = tuple_at(state, cpu_current_literals(state, c), _int);

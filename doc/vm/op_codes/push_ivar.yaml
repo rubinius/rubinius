@@ -1,17 +1,16 @@
 ---
 mnemonic: push_ivar
 operation: >-
-
-format: push_ivar <arg1>
+  Pushes an instance variable onto the stack
+format: push_ivar lit
 opcode: 22
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Pushes the instance variable identified by _lit_ onto the stack.
 source: |-
     next_literal;
     stack_push(object_get_ivar(state, c->self, _lit));
