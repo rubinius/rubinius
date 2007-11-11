@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/fixtures/yield'
 
 describe "Assignment via yield" do
   
@@ -74,4 +75,10 @@ describe "Assignment via yield" do
     def f; yield *[*[1,2]]; end; f {|a,b,*c| [a,b,c].should == [1,2,[]] }    
   end
   
+end
+
+describe "The yield keyword" do
+  it "raises LocalJumpError when invoked in a method not passed a block" do
+    should_raise(LocalJumpError) { YieldSpecs::no_block }
+  end
 end
