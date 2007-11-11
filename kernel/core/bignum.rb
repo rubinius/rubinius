@@ -19,6 +19,12 @@ class Bignum < Integer
     s < 0 ? __bignum_right_shift__(-s) : __bignum_left_shift__(s) 
   end
 
+  def eql?(value)
+    return false unless Bignum === value
+
+    self == value
+  end
+
   alias_method :modulo, :%
   
   alias_method :div, :/
