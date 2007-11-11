@@ -556,7 +556,7 @@ class YSprintf
       ret << f if f
     end
     if $DEBUG == true && !@positional
-      raise ArgumentError, "you need to use all the arguments" unless @arg_position == args.size - 1
+      raise ArgumentError, "you need to use all the arguments" unless @arg_position == args.size
     end
     ret << @fmt[start..-1] if start < @fmt.size
     ret.taint if @tainted
