@@ -12,7 +12,7 @@ end
 get_class_or_module = lambda do |const|
   constant = const.split('::').inject(nil) { |c,s| c ? c.const_get(s) : Object.const_get(s) }
   return constant if (constant.is_a?(Module) or constant.is_a?(Class)) and
-    not ['OptionParser', 'SystemExit'].include?(constant.name)
+    not ['DTracer', 'OptionParser', 'SystemExit'].include?(constant.name)
 end
 
 target = 'shotgun/rubinius'
@@ -97,6 +97,7 @@ constants = constant_names.map { |c| get_class_or_module.call(c) }
 if constants.empty?
   constants = Object.constants.map { |c| get_class_or_module.call(c) }
 end
+constants.sort! { |a,b| a.to_s <=> b.to_s }
 
 class Tabulator
   def initialize
