@@ -23,6 +23,10 @@ class IO
     "#<#{self.class}:#{object_id.to_s(16)}>"
   end
   
+  def fileno
+    @descriptor
+  end
+  
   def puts(*args)
     if args.empty?
       write DEFAULT_RECORD_SEPARATOR
