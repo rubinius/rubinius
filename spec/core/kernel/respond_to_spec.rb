@@ -53,6 +53,6 @@ describe "Kernel#respond_to?" do
   it "indicates if an object responds to a particular message" do
     class KernelSpecs::Foo; def bar; 'done'; end; end
     KernelSpecs::Foo.new.respond_to?(:bar).should == true
-    KernelSpecs::Foo.new.respond_to?(:baz).should == false
+    KernelSpecs::Foo.new.respond_to?(:invalid_and_silly_method_name).should == false
   end
 end
