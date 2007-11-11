@@ -103,7 +103,7 @@ end
 class SecurityError < StandardError
 end
 
-class SystemStackError < Exception
+class SystemStackError < StandardError
 end
 
 class ThreadError < StandardError
