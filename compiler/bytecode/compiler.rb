@@ -2470,6 +2470,11 @@ module Bytecode
           sz = 0
         end
         
+        yld = unique_lbl('yield_')
+        add "push_block"
+        git yld
+        jump_error "no block given"
+        set_label yld
         add "push_block"
         add "send call #{sz}"
       end
