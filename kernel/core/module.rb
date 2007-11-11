@@ -181,6 +181,21 @@ class Module
     raise TypeError, "wrong argument type #{mod.class} (expected Module)" unless mod.class == Module
     ancestors.include? mod
   end
+
+  def included_modules
+    out = []
+    sup = direct_superclass
+
+    while sup
+      if sup.class == IncludedModule
+        out << sup.module
+      end
+
+      sup = sup.direct_superclass
+    end
+
+    out
+  end
   
   def set_visibility(meth, vis)
     name = meth.to_sym
