@@ -138,28 +138,37 @@ describe "TCPServer#readpartial" do
   end
 end
 
-describe "UDPSocket#new" do
-  # server_thread = Thread.new do
-  #   server = UDPSocket.open
-  #   server.bind(nil,@port)
-  #   msg1 = server.recvfrom(64)
-  #   msg1[0].should == "ad hoc"
-  #   msg1[1][0].should == "AF_INET"
-  #   (msg1[1][1].kind_of? Fixnum).should == true
-  #   msg1[1][3].should == "127.0.0.1"
-  # 
-  #   msg2 = server.recvfrom(64)
-  #   msg2[0].should == "connection-based"
-  #   msg2[1][0].should == "AF_INET"
-  #   (msg2[1][1].kind_of? Fixnum).should == true
-  #   msg2[1][3].should == "127.0.0.1"
-  # end
-  #
-  # UDPSocket.open.send("ad hoc", 0, 'localhost',@port)
-  #
-  # sock = UDPSocket.open
-  # sock.connect('localhost',@port)
-  # sock.send("connection-based", 0)
-  #
-  # server_thread.join
+describe "UDPSocket.open" do
+
+  after(:each) do
+    @socket.close if @socket
+    @server.close if @server
+  end
+
+  it "returns a socket that can be written to and read from" do
+    server_thread = Thread.new do
+      @server = UDPSocket.open
+      @server.bind(nil,@port)
+      msg1 = @server.recvfrom(64)
+      msg1[0].should == "ad hoc"
+      msg1[1][0].should == "AF_INET"
+      (msg1[1][1].kind_of? Fixnum).should == true
+      msg1[1][3].should == "127.0.0.1"
+
+      msg2 = @server.recvfrom(64)
+      msg2[0].should == "connection-based"
+      msg2[1][0].should == "AF_INET"
+      (msg2[1][1].kind_of? Fixnum).should == true
+      msg2[1][3].should == "127.0.0.1"
+    end
+
+    UDPSocket.open.send("ad hoc", 0, 'localhost',@port)
+
+    @socket = UDPSocket.open
+    @socket.connect('localhost',@port)
+    @socket.send("connection-based", 0)
+
+    server_thread.join
+
+  end
 end
