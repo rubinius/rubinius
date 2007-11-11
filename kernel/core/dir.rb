@@ -16,6 +16,8 @@ class Dir
             :d_namlen, :uchar,
             :d_name,   :char_array
   end
+
+  include Enumerable
   
   def self.glob(pattern, flags)
     Ruby.primitive :dir_glob
