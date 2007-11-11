@@ -120,7 +120,7 @@ files = []
 patterns.each do |item|
   stat = File.stat(File.expand_path(item))
   files << item if stat.file?
-  files.concat(Dir[item+"/**/*_spec.rb"]) if stat.directory?
+  files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
 end
 
 code = <<-EOC
