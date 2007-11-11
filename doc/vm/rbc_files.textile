@@ -1,0 +1,71 @@
+h2. Rubinius Compiled (.rbc) Files
+
+With Rubinius, Ruby source files (.rb files) are compiled into platform independent .rbc files, which contain the byte codes needed to execute the source Ruby code on the Rubinius virtual machine (see "shotgun":shotgun.html for a description of the Rubinius VM).
+
+Since Rubinius is available on many platforms, and .rbc files are platform independent, an .rbc file compiled on one platform will execute under Rubinius on another platform without modification.
+
+h3. File Layout
+
+Compiled .rbc files are written in big-endian format, i.e. for a 4-byte integer, the high-order (big end) byte appears first, and the low-order (little end) byte appears last. Thus, the value 0x10fe4d05 would appear similar to how it is written, as 10 fe 4d 05.
+
+An .rbc file consists of:
+* a 4-byte header containing the magic constant 'RBIX' (older versions used 'RBIS', and omitted a version field)
+* a 4-byte field specifying the version number of the .rbc file (currently 5)
+* a variable number of number of marshaled objects
+
+Objects are marshaled using a scheme whereby each object type is identified by a single-byte tag, followed by 0 or more bytes containing the object data. The following table specifies the values and formats for each tag:
+
+|_.Tag|_.Type|_.Data|
+|i|Fixnum|The tag is followed by:
+* 1 byte indicating the sign ('n' for negative, 'p' for positive)
+* 4 bytes specifying the integer value.|
+|s|String|The tag is followed by:
+* 4 bytes that specify the string size
+* the characters (single bytes) that make up the string.|
+|x|Symbol|The tag is followed by:
+* 4 bytes that specify the symbol string size
+* the characters (single byte) that make up the symbol string.|
+|p|Tuple|The tag is followed by:
+* 4 bytes that specify the tuple size, i.e. number of elements in the tuple
+* the marshaled objects that represent each value in the tuple.|
+|b|ByteArray|The tag is followed by:
+* 4 bytes that specify the size of the byte array
+* the raw bytes of the byte array.|
+|I|InstructionSequence|The tag is followed by:
+* a single byte character that indicates whether the instruction sequence is in big-endian or little-endian format; big-endian is indicated by the value 'b', while little-endian is indicated by an 'l'.
+* 4 bytes that specify the size of the instruction sequence
+* the raw bytes that make up the instruction sequence.
+When unmarshaling an instruction sequence, the instruction sequence is flipped if necessary to convert it to the endian-ness of the host platform.|
+|m|CompiledMethod|The tag is followed by:
+* 4 bytes that specify the number of fields in the compiled method (presently 16)
+* the marshaled value of each field, where the fields are:
+# @__ivars__@
+# primitive
+# required
+# serial
+# bytecodes
+# name
+# file
+# locals
+# literals
+# arguments
+# scope
+# exceptions
+# lines
+# path
+# cache
+# bonus|
+|B|Bignum|The tag is followed by:
+* 4 bytes that specify the size of the string representation of the Bignum
+* the string representation of the Bignum
+* a 0 byte to create a null-terminated string.|
+|d|Float|The tag is followed by:
+* 4 bytes that specify the size of the string representation of the Float
+* the string representation of the Float
+* a 0 byte to create a null-terminated string.|
+|r|Object|The tag is followed by:
+* 4 bytes that specify the number of fields in the object
+* the marshaled value of each field.|
+|n|NilClass|The special value *nil*|
+|t|TrueClass|The special value *true*|
+|f|FalseClass|The special value *false*|

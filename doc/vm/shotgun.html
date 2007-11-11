@@ -1,0 +1,10 @@
+<h2>Shotgun: The Rubinius VM</h2>
+
+
+	<p>Shotgun is the name of the current Rubinius virtual machine, implemented in C.</p>
+
+
+	<h3>Direct Threading</h3>
+
+
+	<p>Shotgun implements <a href="http://www.complang.tuwien.ac.at/forth/threaded-code.html">direct threading</a>, which is a technique used to minimise the overhead associated with dispatching to the low-level C code that implements each VM op code. Instead of a large switch statement consisting of cases for each op code, the byte code is modified after load, with the byte codes for each op code replaced with the actual address of the code that implements the op code. The VM then executes each op code by simply jumping directly to the address indicated where each byte code used to be.</p>

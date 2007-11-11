@@ -1,0 +1,144 @@
+<h2>Rubinius Compiled (.rbc) Files</h2>
+
+
+	<p>With Rubinius, Ruby source files (.rb files) are compiled into platform independent .rbc files, which contain the byte codes needed to execute the source Ruby code on the Rubinius virtual machine (see <a href="shotgun.html">shotgun</a> for a description of the Rubinius VM).</p>
+
+
+	<p>Since Rubinius is available on many platforms, and .rbc files are platform independent, an .rbc file compiled on one platform will execute under Rubinius on another platform without modification.</p>
+
+
+	<h3>File Layout</h3>
+
+
+	<p>Compiled .rbc files are written in big-endian format, i.e. for a 4-byte integer, the high-order (big end) byte appears first, and the low-order (little end) byte appears last. Thus, the value 0&#215;10fe4d05 would appear similar to how it is written, as 10 fe 4d 05.</p>
+
+
+An .rbc file consists of:
+	<ul>
+	<li>a 4-byte header containing the magic constant &#8216;RBIX&#8217; (older versions used &#8216;RBIS&#8217;, and omitted a version field)</li>
+		<li>a 4-byte field specifying the version number of the .rbc file (currently 5)</li>
+		<li>a variable number of number of marshaled objects</li>
+	</ul>
+
+
+	<p>Objects are marshaled using a scheme whereby each object type is identified by a single-byte tag, followed by 0 or more bytes containing the object data. The following table specifies the values and formats for each tag:</p>
+
+
+	<table>
+		<tr>
+			<th>Tag</th>
+			<th>Type</th>
+			<th>Data</th>
+		</tr>
+		<tr>
+			<td>i</td>
+			<td>Fixnum</td>
+			<td>The tag is followed by:
+	<ul>
+	<li>1 byte indicating the sign (&#8216;n&#8217; for negative, &#8216;p&#8217; for positive)</li>
+		<li>4 bytes specifying the integer value.</td>
+		</tr>
+		<tr>
+			<td>s</td>
+			<td>String</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the string size</li>
+		<li>the characters (single bytes) that make up the string.</td>
+		</tr>
+		<tr>
+			<td>x</td>
+			<td>Symbol</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the symbol string size</li>
+		<li>the characters (single byte) that make up the symbol string.</td>
+		</tr>
+		<tr>
+			<td>p</td>
+			<td>Tuple</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the tuple size, i.e. number of elements in the tuple</li>
+		<li>the marshaled objects that represent each value in the tuple.</td>
+		</tr>
+		<tr>
+			<td>b</td>
+			<td>ByteArray</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the size of the byte array</li>
+		<li>the raw bytes of the byte array.</td>
+		</tr>
+		<tr>
+			<td>I</td>
+			<td>InstructionSequence</td>
+			<td>The tag is followed by:</li>
+		<li>a single byte character that indicates whether the instruction sequence is in big-endian or little-endian format; big-endian is indicated by the value &#8216;b&#8217;, while little-endian is indicated by an &#8216;l&#8217;.</li>
+		<li>4 bytes that specify the size of the instruction sequence</li>
+		<li>the raw bytes that make up the instruction sequence.
+When unmarshaling an instruction sequence, the instruction sequence is flipped if necessary to convert it to the endian-ness of the host platform.</td>
+		</tr>
+		<tr>
+			<td>m</td>
+			<td>CompiledMethod</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the number of fields in the compiled method (presently 16)</li>
+		<li>the marshaled value of each field, where the fields are:</li>
+	<ol>
+	<li><code>__ivars__</code></li>
+		<li>primitive</li>
+		<li>required</li>
+		<li>serial</li>
+		<li>bytecodes</li>
+		<li>name</li>
+		<li>file</li>
+		<li>locals</li>
+		<li>literals</li>
+		<li>arguments</li>
+		<li>scope</li>
+		<li>exceptions</li>
+		<li>lines</li>
+		<li>path</li>
+		<li>cache</li>
+		<li>bonus</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>Bignum</td>
+			<td>The tag is followed by:</li>
+	<ul>
+	<li>4 bytes that specify the size of the string representation of the Bignum</li>
+		<li>the string representation of the Bignum</li>
+		<li>a 0 byte to create a null-terminated string.</td>
+		</tr>
+		<tr>
+			<td>d</td>
+			<td>Float</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the size of the string representation of the Float</li>
+		<li>the string representation of the Float</li>
+		<li>a 0 byte to create a null-terminated string.</td>
+		</tr>
+		<tr>
+			<td>r</td>
+			<td>Object</td>
+			<td>The tag is followed by:</li>
+		<li>4 bytes that specify the number of fields in the object</li>
+		<li>the marshaled value of each field.</td>
+		</tr>
+		<tr>
+			<td>n</td>
+			<td>NilClass</td>
+			<td>The special value <strong>nil</strong></td>
+		</tr>
+		<tr>
+			<td>t</td>
+			<td>TrueClass</td>
+			<td>The special value <strong>true</strong></td>
+		</tr>
+		<tr>
+			<td>f</td>
+			<td>FalseClass</td>
+			<td>The special value <strong>false</strong></td>
+		</tr>
+	</table></li>
+	</ul></li>
+	</ol></li>
+	</ul>

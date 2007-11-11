@@ -7,11 +7,16 @@ a, a:visited {
 	color: blue;
 }
 
-ul#index {
+ul#chapters {
+	padding-left: 0px;
+	font-size: 1em;
+}
+
+ul#op_codes {
 	padding-left: 10px;
 }
 
-ul#index li {
+ul#chapters li, ul#op_codes li {
 	list-style-type: none;
 }
 
@@ -36,5 +41,5 @@ div.source pre {
 	background-color: #ffffcc;
 	padding: 5px;
 }
-ul#index li i a:link { color: red; }
-ul#index li i a:visited { color: red; }
+ul#op_codes li i a:link { color: red; }
+ul#op_codes li i a:visited { color: red; }
