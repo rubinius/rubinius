@@ -1,16 +1,18 @@
 ---
 mnemonic: get_args
 operation: >-
-
+  Pushes the number of arguments passed to a method onto the stack
 format: get_args
 opcode: 60
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - argc
   - ...
 description: >-
-
+  Pushes the number of arguments _argc_ actually passed to a method onto the 
+  stack.
+see:
+  - set_args
 source: |-
     stack_push(I2N(c->args));

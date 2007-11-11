@@ -1,17 +1,24 @@
 ---
 mnemonic: get_local_fp
 operation: >-
-
-format: get_local_fp <arg1>
+  Get the value of a local and push it onto the stack
+format: get_local_fp idx
 opcode: 100
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Retrieves the current value of a local allocated on the stack, and pushes it 
+  onto the top of the stack.
+notes:
+  Local variables that are used within a method and not captured are allocated
+  on the stack. This operation retrieves such a local, and places it on the
+  stack.
+see:
+  - allocate_stack
+  - set_local_fp
 source: |-
     next_int;
     assert(c->sp_ptr > c->fp_ptr + _int);

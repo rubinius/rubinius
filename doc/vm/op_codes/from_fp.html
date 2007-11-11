@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to from_fp.yaml</span>
+            <p>Push an object from the caller's stack onto the current context's stack</p>
             
 
             <h3>Format</h3>
             
             <b>from_fp</b>
-            <i>&lt;arg1&gt;</i>
+            <i>idx</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +38,25 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to from_fp.yaml</span>
+            <p>Copies a method argument that was on the stack before the method call and pushes it onto the stack in the current context. The argument <i>idx</i> counts backwards from the frame pointer, with 0 referencing the first argument to the mehod, 1 the  second argument, etc.</p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The opcode <b>from_fp</b> exists as an optimisation in cases where arguments to a method are not modified. Rather than copying the argument off the stack and into the locals tuple, it can be copied directly from a frame pointer offset as needed.</p><p>If all arguments to a method are read-only, and no local variables used in the context are captured by a closure, no locals tuple need be allocated.</p>
+            </div>
             
 
             
 
             
-
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="get_local_fp.html">get_local_fp</a></li>
+                
+            </ul>
             
 
             

@@ -10,7 +10,7 @@ stack_before:
 stack_after:
   - ...
 description: >-
-  Pops an exception instance off the stack, and uses it to raise an exception
+  Pops an exception instance _exc_ off the stack, and uses it to raise an exception
   in the machine.
 source: |-
     t1 = stack_pop();

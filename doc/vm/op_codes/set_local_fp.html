@@ -12,14 +12,13 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to set_local_fp.yaml</span>
+            <p>Updates the value of a stack allocated local variable</p>
             
 
             <h3>Format</h3>
             
             <b>set_local_fp</b>
-            <i>&lt;arg1&gt;</i>
+            <i>idx</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +28,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +38,25 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to set_local_fp.yaml</span>
+            <p>Uses the value on the top of the stack to update the value of the local variable identified by <i>idx</i>.</p><p>The top of the stack is <b>not</b> popped by this operation.    </p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>Local variables that are used within a method and not captured are allocated on the stack. This operation updates such a local from the current top of the stack.</p>
+            </div>
             
 
             
 
             
-
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="get_local_fp.html">get_local_fp</a></li>
+                
+            </ul>
             
 
             

@@ -38,7 +38,7 @@
 
             <h3>Description</h3>
             
-            <p>Removes the object on the top of the stack, and:</p><p>If the object is a tuple, it is cast to an array.</p><p>If the object is already an array, it is left unmodified.</p><p>If the object is any other type, it is wrapped in a 1-element array with the object as the value of the single element.</p><p>The resulting array is then pushed back onto the stack, and the size of the array is added to the argument <i>size</i> that was specified with the opcode.</p>
+            <p>Removes the object on the top of the stack, and:</p><p>If the object is a tuple, it is cast to an array.</p><p>If the object is already an array, it is left unmodified.</p><p>If the object is any other type, it is wrapped in a 1-element array with the object as the value of the single element.</p><p>The resulting array is then pushed back onto the stack, and the size of the array is added to the argument <i>size</i> that was specified with the opcode, and saved as the current method argument count.</p>
             
 
             
@@ -55,6 +55,8 @@
             <ul>
                 
                 <li><a href="cast_array.html">cast_array</a></li>
+                
+                <li><a href="get_args.html">get_args</a></li>
                 
             </ul>
             

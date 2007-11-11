@@ -1,17 +1,26 @@
 ---
 mnemonic: set_local_fp
 operation: >-
-
-format: set_local_fp <arg1>
+  Updates the value of a stack allocated local variable
+format: set_local_fp idx
 opcode: 99
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
-
+  Uses the value on the top of the stack to update the value of the local variable
+  identified by _idx_.
+    
+  The top of the stack is *not* popped by this operation.    
+notes:
+  Local variables that are used within a method and not captured are allocated
+  on the stack. This operation updates such a local from the current top of the
+  stack.
+see:
+  - get_local_fp
 source: |-
     next_int;
     assert(c->sp_ptr > c->fp_ptr + _int);
