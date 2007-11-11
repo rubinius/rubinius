@@ -8,7 +8,7 @@ describe "Dir.foreach" do
     Dir.foreach(mock_dir) {|f| a << f}
     Dir.foreach("#{mock_dir}/deeply/nested") {|f| b << f}
 
-    a.sort.should == %w|. .. subdir_one subdir_two .dotsubdir deeply .dotfile nondotfile file_one.ext file_two.ext foo*bar foo?bar|.sort
+    a.sort.should == %w|. .. subdir_one subdir_two .dotsubdir deeply .dotfile nondotfile file_one.ext file_two.ext|.sort
     b.sort.should == %w|. .. .dotfile.ext directory|.sort
   end
   
