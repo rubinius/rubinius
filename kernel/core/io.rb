@@ -27,6 +27,8 @@ class IO
     @descriptor
   end
   
+  alias_method :to_i, :fileno
+  
   def puts(*args)
     if args.empty?
       write DEFAULT_RECORD_SEPARATOR
