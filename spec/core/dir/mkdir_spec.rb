@@ -3,22 +3,24 @@ require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "Dir.mkdir" do
   it "creates the named directory with the given permissions" do
-    File.exist?('nonexisting').should == false
-    Dir.mkdir 'nonexisting'
-    File.exist?('nonexisting').should == true
+    clear_dirs
 
-    Dir.mkdir 'default_perms'
-    a = File.stat('default_perms').mode
-    Dir.mkdir 'reduced', (a - 1)
-    File.stat('reduced').mode.should_not == a
+    begin
+      File.exist?('nonexisting').should == false
+      Dir.mkdir 'nonexisting'
+      File.exist?('nonexisting').should == true
 
-    Dir.mkdir('always_returns_0').should == 0
+      Dir.mkdir 'default_perms'
+      a = File.stat('default_perms').mode
+      Dir.mkdir 'reduced', (a - 1)
+      File.stat('reduced').mode.should_not == a
 
-    system "chmod 0777 nonexisting default_perms reduced always_returns_0"
-    Dir.rmdir 'nonexisting'
-    Dir.rmdir 'default_perms'
-    Dir.rmdir 'reduced'
-    Dir.rmdir 'always_returns_0'
+      Dir.mkdir('always_returns_0').should == 0
+
+      system "chmod 0777 nonexisting default_perms reduced always_returns_0"
+    ensure
+      clear_dirs
+    end
   end
 
   it "raises without adequate permissions in the parent dir" do
