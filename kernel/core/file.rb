@@ -46,14 +46,16 @@ class File < IO
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
-  def self.new(path, mode)
-    return open_with_mode(path, mode)
+  def initialize(path, mode)
+    io = self.class.open_with_mode(path, mode)
+    super(io.fileno)
   end
     
   def self.open(path, mode="r")
     raise Errno::ENOENT if mode == "r" and not exists?(path)
     
-    f = open_with_mode(path, mode)
+    f = self.new(path, mode)
+    
     return f unless block_given?
 
     begin
