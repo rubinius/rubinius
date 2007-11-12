@@ -48,6 +48,7 @@ class File < IO
 
   def initialize(path, mode)
     io = self.class.open_with_mode(path, mode)
+    Errno.handle "Couldn't open #{path} with mode '#{mode}'" unless io
     super(io.fileno)
   end
     
