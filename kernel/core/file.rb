@@ -47,15 +47,17 @@ class File < IO
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
   def initialize(path, mode)
+    fd = self.class.open_with_mode(path, mode)
+    if fd < 0
+      Errno.handle "Couldn't open #{path} with mode '#{mode}'"
+    end
+
+    super(fd)
+
     @path = path
-    io = self.class.open_with_mode(path, mode)
-    Errno.handle "Couldn't open #{path} with mode '#{mode}'" unless io
-    super(io.fileno)
   end
     
   def self.open(path, mode="r")
-    raise Errno::ENOENT if mode == "r" and not exists?(path)
-    
     f = self.new(path, mode)
     
     return f unless block_given?

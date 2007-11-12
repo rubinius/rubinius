@@ -31,17 +31,3 @@ OBJECT io_new(STATE, int fd, const char *mode) {
   io_wrap(state, io, fd, mode);
   return io;
 }
-
-OBJECT io_open(STATE, const char *path, const char *mode) {
-  OBJECT io;
-  FILE *fptr;
-  fptr = fopen(path, mode);
-  if(!fptr) { return Qnil; }
-  
-  io = io_allocate_with_extra(state, 1);
-  io_set_descriptor(io, I2N(fileno(fptr)));
-  // io_set_descriptor(io, ffi_new_pointer(state, (void*)fptr));
-  io_initialize(state, fileno(fptr));
-  return io;
-}
-
