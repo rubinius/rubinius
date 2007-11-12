@@ -204,6 +204,18 @@ class IO
     out = create_pipe(lhs, rhs)
     return [lhs, rhs]
   end
+
+  def self.open(fd)
+    o = self.new(fd)
+
+    return o unless block_given?
+
+    begin
+      yield o
+    ensure
+      o.close unless o.closed?
+    end
+  end
   
   private :io_close
 end
