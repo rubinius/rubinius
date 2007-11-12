@@ -1,1 +1,0 @@
-File#atime raise an Exception if it has the wrong number of argments
