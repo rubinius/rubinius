@@ -23,11 +23,33 @@ end
 
 class Compiler::Node
   
+  class GenerationError < Error; end
+  
+  def show_errors(gen)
+    begin
+      yield
+    rescue GenerationError => e
+      raise e
+    rescue Object => e
+      puts "Bytecode generation error: "
+      puts "   #{e.message} (#{e.class})"
+      puts "   near #{gen.file}:#{gen.line}"
+      puts ""
+      puts e.backtrace.show
+      
+      raise GenerationError, "unable to generate bytecode"
+    end
+  end
+  
   class ClosedScope
     def to_description
       desc = Compiler::MethodDescription.new(@compiler.generator)
-      desc.run(self)
-      desc.generator.close
+      gen = desc.generator
+      
+      show_errors(gen) do
+        desc.run(self)
+        gen.close
+      end
       return desc
     end
     
@@ -42,15 +64,18 @@ class Compiler::Node
       
       meth.push :self
       meth.set_encloser
-      @body.bytecode(meth)
+      show_errors(meth) do
+        @body.bytecode(meth)
+      end
       meth.sret
+      meth.close
       
       g.dup
       g.push_literal desc
       g.swap
       g.attach_method name
       g.pop
-      g.send name
+      g.send name, 0
       g.push_encloser
     end
   end
@@ -72,7 +97,7 @@ class Compiler::Node
   class Newline
     def bytecode(g)
       g.set_line @line, @file
-      @child.bytecode(g)
+      @child.bytecode(g) if @child
     end
   end
   
@@ -215,11 +240,20 @@ class Compiler::Node
     end
   end
   
+  # TESTED
+  class ExecuteString
+    def bytecode(g)
+      super(g)
+      g.push :self
+      g.send :`, 1
+    end
+  end
+  
   # TESTED  
   class ToString
     def bytecode(g)
       @child.bytecode(g)
-      g.send :to_s, 0
+      g.send :to_s, 0, true
     end
   end
   
@@ -231,8 +265,27 @@ class Compiler::Node
       end
       g.push_literal @string
       g.string_dup
-      g.string_append
-      g.string_append
+      
+      @body.size.times do
+        g.string_append
+      end
+    end
+  end
+  
+  # TESTED
+  class DynamicExecuteString
+    def bytecode(g)
+      super(g)
+      g.push :self
+      g.send :`, 1, true
+    end
+  end
+  
+  # TESTED
+  class DynamicSymbol
+    def bytecode(g)
+      @string.bytecode(g)
+      g.send :to_sym, 0, true
     end
   end
   
@@ -330,8 +383,11 @@ class Compiler::Node
       
       fin = @body.pop
       @body.each do |part|
+        ip = g.ip
         part.bytecode(g)
-        g.pop
+        
+        # guards for things that plugins might optimize away.
+        g.pop if g.advanced_since?(ip)
       end
       fin.bytecode(g)
     end
@@ -472,23 +528,33 @@ class Compiler::Node
     def bytecode(g)
       desc = Compiler::MethodDescription.new @compiler.generator
       sub = desc.generator
-      if @arguments
-        @arguments.bytecode(sub, true)
-      else
-        # Remove the block args.
-        sub.pop
+      show_errors(sub) do
+        if @arguments
+          @arguments.bytecode(sub)
+        else
+          # Remove the block args.
+          sub.pop
+        end
+        sub.redo = sub.new_label        
+        sub.redo.set!
+        @body.bytecode(sub)
+        sub.soft_return
+        sub.close
       end
-      sub.redo = sub.new_label
-      sub.redo.set!
-      @body.bytecode(sub)
-      sub.soft_return
       
       g.push_literal desc
       g.create_block2
     end
   end
   
-  # TESTED  
+  # TESTED
+  class BlockPass
+    def bytecode(g)
+      @block.bytecode(g)
+    end
+  end
+  
+  # TESTED
   class Break
     
     def do_value(g)
@@ -606,7 +672,7 @@ class Compiler::Node
       
       if @variable.on_stack?
         if @variable.argument?
-          raise Error, "Invalid access semantics for argument"
+          raise Error, "Invalid access semantics for argument: #{@name}"
         end
         
         g.set_local_fp @variable.stack_position
@@ -632,6 +698,12 @@ class Compiler::Node
       else
         g.push_local @variable.slot
       end
+    end
+  end
+  
+  class BlockAsArgument
+    def bytecode(g)
+      g.set_local @variable.slot 
     end
   end
   
@@ -782,12 +854,25 @@ class Compiler::Node
   class ConcatArgs
     def bytecode(g)
       @array.bytecode(g)
-      g.cast_array_for_args @rest.body.size
+      g.cast_array_for_args @rest.size
       g.push_array
-      @rest.body.reverse_each do |x|
+      g.get_args
+      @rest.reverse_each do |x|
         x.bytecode(g)
+        g.swap
       end
     end
+    
+    def array_bytecode(g)
+      @array.bytecode(g)
+      g.cast_array
+      @rest.each do |x|
+        x.bytecode(g)
+      end
+      g.make_array @rest.size
+      g.send :+, 1
+    end
+    
   end
   
   # TESTED
@@ -825,7 +910,7 @@ class Compiler::Node
   # TESTED
   class IVarAssign
     def bytecode(g)
-      @value.bytecode(g)
+      @value.bytecode(g) if @value
       g.set_ivar @name
     end
   end
@@ -847,7 +932,7 @@ class Compiler::Node
   # TESTED
   class GVarAssign
     def bytecode(g)
-      @value.bytecode(g)
+      @value.bytecode(g) if @value
       
       if @name == :$!
         g.raise_exc
@@ -1208,36 +1293,17 @@ class Compiler::Node
         return
       end
       
+      outer = g.ensure_return
+      
       ok = g.new_label
       g.exceptions do |ex|
+        g.ensure_return = ok
         @body.bytecode(g)
         g.goto ok
         
         ex.handle do
           @ensure.bytecode(g)
           g.pop
-          
-          # If there was a return in body and there is no outer
-          # ensure, then we see if the exception is actually one
-          # generated by a return and do the actual return.
-          if @did_return and !@outer_ensure
-            g.push_exception
-            g.dup
-            g.push_const :Tuple
-            g.swap
-            g.kind_of
-            
-            # If this is a tuple, it was generated by a return statement.
-            # grab the return value and do the actual return.
-            not_tuple = g.new_label
-            g.gif not_tuple
-            g.push 0
-            g.fetch_field
-            g.ret
-            
-            not_tuple.set!
-          end
-          
           # Re-raise the exception
           g.push_exception
           g.raise_exc
@@ -1249,20 +1315,33 @@ class Compiler::Node
       # Now, re-emit the code for the ensure which will run if there was no
       # exception generated.
       @ensure.bytecode(g)
+      g.pop
+      
+      if @did_return
+        if @outer_ensure
+          g.goto outer
+        else
+          @did_return.bytecode(g, true)
+        end
+      end
     end
   end
   
+  # TESTED
   class Return
-    def bytecode(g)
+    def bytecode(g, force=false)
       if @in_rescue
         g.clear_exception
       end
       
+      if !force and @in_ensure
+        g.goto g.ensure_return
+        return
+      end
+      
       if @value
         if @value.kind_of? ConcatArgs
-          @value.item.bytecode(g)
-          @value.array.bytecode(g)
-          g.send :<<, 1
+          @value.array_bytecode(g)
         else
           @value.bytecode(g)
         end
@@ -1270,11 +1349,7 @@ class Compiler::Node
         g.push :nil
       end
       
-      if @in_ensure
-        g.make_array 1
-        g.cast_tuple
-        g.raise_exc
-      elsif @in_block
+      if @in_block
         g.ret
       else
         g.sret
@@ -1282,8 +1357,27 @@ class Compiler::Node
     end
   end
   
+  # TESTED
+  class IterArgs
+    def bytecode(g)
+      case @child
+      when MAsgn
+        @child.bytecode(g)
+      when LocalAssignment
+        g.cast_for_single_block_arg
+        @child.bytecode(g)
+        g.pop
+      when nil
+        g.pop
+      else
+        raise Error, "Unknown form of block args: #{@child.class}"
+      end
+    end
+  end
+  
+  # TESTED
   class MAsgn
-    def bytecode(g)      
+    def bytecode(g)
       if @source
         if @source.kind_of? ArrayLiteral
           if @splat
@@ -1291,7 +1385,6 @@ class Compiler::Node
           else
             flip_assign_bytecode(g)
           end
-          array_bytecode(g)
         else
           statement_bytecode(g)
         end
@@ -1300,7 +1393,7 @@ class Compiler::Node
       end
     end
     
-    def pad_stack
+    def pad_stack(g)
       diff = @assigns.body.size - @source.body.size
       if diff > 0
         diff.times { g.push :nil }
@@ -1315,7 +1408,7 @@ class Compiler::Node
     def flip_assign_bytecode(g)
       # Pad the stack with extra nils if there are more assigns
       # than sources
-      diff = pad_stack()
+      diff = pad_stack(g)
       
       @source.body.reverse_each do |x|
         x.bytecode(g)
@@ -1331,10 +1424,11 @@ class Compiler::Node
           g.pop
         end
       end
-      
+            
       # Clean up the stack if there was extra sources
       if diff < 0
-        -diff.times { g.pop }
+        # unary - has binds strangly
+        (-diff).times { g.pop }
       end
       
       g.push :true
@@ -1345,7 +1439,7 @@ class Compiler::Node
         x.bytecode(g)
       end
       
-      diff = pad_stack()
+      diff = pad_stack(g)
       
       if diff >= 0
         sz = 0
@@ -1365,11 +1459,61 @@ class Compiler::Node
     end
     
     def statement_bytecode(g)
-      @source.bytecode(g)
+      if @source.kind_of? Splat
+        @source.child.bytecode(g)
+        g.cast_tuple
+      elsif @source.kind_of? ConcatArgs
+        @source.array_bytecode(g)
+        g.cast_tuple
+      elsif @source.kind_of? ToArray
+        @source.bytecode(g)
+      elsif @source
+        raise Error, "Unknown form: #{@source.class}"
+      end
       
+      @assigns.body.each do |x|
+        g.unshift_tuple
+        x.bytecode(g)
+        g.pop
+      end
+      
+      if @splat
+        g.cast_array
+        @splat.bytecode(g)
+        g.pop
+      else
+        g.pop
+      end
+      
+      g.push :true
+    end
+    
+    def block_arg_bytecode(g)
+      @assigns.body.each do |x|
+        g.unshift_tuple
+        x.bytecode(g)
+        g.pop
+      end
+      
+      if @splat
+        g.cast_array
+        @splat.bytecode(g)
+      end
+      
+      g.pop      
     end
   end
   
+  # TESTED
+  class MethodCall
+    def use_plugin(g)
+      @compiler.call_plugins.find do |plug|
+        plug.handle(g, self)
+      end      
+    end
+  end
+  
+  # TESTED
   class FCall
     def allow_private?
       true
@@ -1378,19 +1522,22 @@ class Compiler::Node
     def receiver_bytecode(g)
       g.push :self
     end
-    
-    def bytecode(g)
-      if @method == :block_given? or @method == :iterator?
-        g.push :true
-        g.send_primitive :block_given, 0
-        return
-      end
       
-      super(g)
-    end
-    
   end
   
+  # TESTED
+  class AttrAssign
+    def bytecode(g)
+      if @arguments
+        super(g)
+      else
+        @object.bytecode(g)
+        g.send @method, 1, false
+      end
+    end
+  end
+  
+  # TESTED
   class Call
     def allow_private?
       false
@@ -1400,64 +1547,248 @@ class Compiler::Node
       @object.bytecode(g)
     end
     
-    def bytecode(g)
-      dynamic = false
-      
+    def emit_args(g)
+      @dynamic = false
       if @arguments
-        if @arguments.kind_of? DynamicArguments
-          @arguments.bytecode(g)
-          dynamic = true
-        else
-          @arguments.body.reverse_each do |x|
+        if @arguments.kind_of? Array
+          @arguments.reverse_each do |x|
             x.bytecode(g)
           end
-          args = @arguments.body.size
+          @argcount = @arguments.size
+        else
+          @arguments.bytecode(g)
+          g.get_args unless @arguments.is? ConcatArgs
+          @dynamic = true
         end
       else
-        args = 0
+        @argcount = 0
+      end
+    end
+    
+    def bytecode(g)
+      return if use_plugin(g)
+      
+      emit_args(g)            
+      
+      if @block
+        @block.bytecode(g)
+      elsif @dynamic
+        g.push :nil
       end
       
-      @block.bytecode(g) if @block
+      g.swap if @dynamic
       
       receiver_bytecode(g)
       
-      if dynamic
-        if @block
-          g.send_with_register @method, allow_private?, true
-        else
-          g.send_with_register @method, allow_private?
-        end
+      if @dynamic
+        g.swap
+        g.set_args
+        g.send_with_register @method, allow_private?
       elsif @block
-        g.send_with_block @method, args, allow_private?
+        g.send_with_block @method, @argcount, allow_private?
       else
-        g.send @method, args, allow_private?
+        g.send @method, @argcount, allow_private?
       end        
     end
   end
   
+  # TESTED
+  class Yield
+    def bytecode(g)
+      emit_args(g)
+      
+      if @dynamic
+        g.set_args
+        g.push_block
+        g.send_with_register :call, false
+      else
+        g.push_block
+        g.send :call, @argcount
+      end
+      
+    end
+  end
+  
+  class Super
+    def bytecode(g)
+      emit_args(g)
+      
+      if @block
+        @block.bytecode(g)
+      else
+        g.push :nil
+      end
+      
+      if @dynamic
+        g.swap
+        g.set_args
+        g.super_with_register @method.name
+      else
+        g.super @method.name, @argcount
+      end
+    end
+  end
+  
+  class ZSuper
+        
+    def bytecode(g)
+      args = []
+            
+      @method.arguments.required.each do |var|
+        la = LocalAccess.new @compiler
+        la.from_variable var
+        args << la
+      end
+
+      @method.arguments.optional.each do |var|
+        la = LocalAccess.new @compiler
+        la.from_variable var
+        args << la
+      end
+
+      if @method.arguments.splat
+        cc = ConcatArgs.new @compiler
+        la = LocalAccess.new @compiler
+        la.from_variable @method.arguments.splat
+        
+        cc.args args, la
+        @arguments = cc
+      else
+        @arguments = args
+      end
+      
+      super(g)
+    end
+  end
+  
+  # TESTED
   class Undef
     def bytecode(g)
-      g.push_literal g.name
+      g.push_literal @name
       g.push :self
-      unless position?(:classbody)
+      unless @in_module
         g.send :metaclass, 0
       end
       g.send :undef_method, 1
     end
   end
   
-  class Define
+  # TESTED
+  class Alias
     def bytecode(g)
+      g.push_literal @current
+      g.push_literal @new
+      g.push :self
+      g.send :alias_method, 2
+    end
+  end
+  
+  # TESTED
+  class Arguments
+    def bytecode(g)
+      
+      min = @required.size
+      if @splat
+        max = 1024
+      else
+        max = min + @optional.size
+      end
+      
+      g.check_argcount min, max
+      
+      @required.each do |var|
+        unless var.on_stack?
+          g.set_local_from_fp var.slot, var.stack_position
+        end
+      end      
+      
+      @optional.each do |var|
+        assign = @mapped_defaults[var.name]
+        
+        use_passed = g.new_label
+        done = g.new_label
+        g.passed_arg var.stack_position
+        g.git use_passed
+        assign.bytecode(g)
+        g.pop
+        g.goto done
+        
+        use_passed.set!
+        g.set_local_from_fp var.slot, var.stack_position
+        
+        done.set!
+      end
+      
+      if @splat
+        g.make_rest_fp @required.size + @optional.size
+        lv = LocalAssignment.new(@compiler)
+        lv.from_variable @splat
+        lv.bytecode(g)
+        g.pop
+      end
+      
+      if @block_arg        
+        g.push_block
+        g.push_const :Proc
+        g.send :from_environment, 1
+        @block_arg.bytecode(g)
+        g.pop
+      end
+    end
+  end
+  
+  # TESTED
+  class Define
+    
+    def compile_body
       desc = Compiler::MethodDescription.new @compiler.generator
       meth = desc.generator
       
-      @body.bytecode(meth)
+      show_errors(meth) do
+        @arguments.bytecode(meth)
+        @body.bytecode(meth)
+      end
       meth.sret
+      meth.close
       
-      g.push_literal desc
+      
+      return desc
+    end
+    
+    def bytecode(g)
+      g.push_literal compile_body()
       g.push :self
       g.add_method @name
-      
+    end
+  end
+  
+  # TESTED
+  class DefineSingleton
+    def bytecode(g)
+      g.push_literal compile_body()
+      @object.bytecode(g)
+      g.attach_method @name
+    end
+  end
+  
+  # TESTED
+  class Range
+    def bytecode(g)
+      @finish.bytecode(g)
+      @start.bytecode(g)
+      g.push_const :Range
+      g.send :new, 2
+    end
+  end
+  
+  # TESTED
+  class RangeExclude
+    def bytecode(g)
+      g.push :true
+      @finish.bytecode(g)
+      @start.bytecode(g)
+      g.push_const :Range
+      g.send :new, 3
     end
   end
 end

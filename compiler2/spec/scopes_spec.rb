@@ -7,6 +7,7 @@ describe Compiler do
            
     gen x do |g|
       meth = description do |d|
+        d.check_argcount 0, 0
         d.push 12
         d.sret
       end
@@ -14,6 +15,189 @@ describe Compiler do
       g.push_literal meth
       g.push :self
       g.add_method :a
+    end
+  end
+  
+  it "compiles 'def add(a,b); a + b; end'" do
+    x = [:defn, :add, 
+          [:scope, 
+            [:block, 
+              [:args, [:a, :b], [], nil, nil], 
+              [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
+            ], 
+            [:a, :b]
+          ]
+        ]
+    
+    gen x do |g|
+      meth = description do |d|
+        d.check_argcount 2, 2
+        d.from_fp 1
+        d.from_fp 0
+        d.send :+, 1, false
+        d.sret
+      end
+      
+      g.push_literal meth
+      g.push :self
+      g.add_method :add
+    end
+  end
+  
+  it "compiles 'def add(a,b=2); a + b; end'" do
+    x = [:defn, :add, 
+          [:scope, 
+            [:block, 
+              [:args, [:a], [:b], nil, 
+                [:block, [:lasgn, :b, 0, [:lit, 2]]]], 
+              [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
+            ], 
+            [:a, :b]
+          ]
+        ]
+    
+    gen x do |g|
+      meth = description do |d|
+        d.check_argcount 1, 2
+        up = d.new_label
+        dn = d.new_label
+        d.passed_arg 1
+        d.git up
+        d.push 2
+        d.set_local 0
+        d.pop
+        d.goto dn
+        
+        up.set!
+        d.set_local_from_fp 0, 1
+        dn.set!
+        
+        d.push_local 0
+        d.from_fp 0
+        d.send :+, 1, false
+        d.sret
+      end
+      
+      g.push_literal meth
+      g.push :self
+      g.add_method :add
+    end
+  end
+  
+  it "compiles 'def add(a); [].each { |b| a + b }; end'" do
+    x = [:defn, :add, 
+          [:scope, 
+            [:block, 
+              [:args, [:a], [], nil, nil],
+              [:iter, [:call, [:zarray], :each], 
+                [:lasgn, :b, 0], 
+                [:block, [:dasgn_curr, :b], 
+                  [:call, [:lvar, :a, 0], :+, [:array, [:lvar, :b, 0]]]
+                ]
+              ]
+            ], 
+            [:a, :b]
+          ]
+        ]
+    
+    gen x do |g|
+      meth = description do |d|
+        d.check_argcount 1, 1
+        d.set_local_from_fp 0, 0
+
+        iter = description do |i|
+          i.cast_for_single_block_arg
+          i.set_local_depth 0, 0
+          i.pop
+
+          i.new_label.set! # redo
+          
+          i.push_local_depth 0, 0
+          i.push_local 0
+          i.send :+, 1, false
+          i.soft_return
+        end
+
+        d.push_literal iter
+        d.create_block2
+        d.make_array 0
+        d.send_with_block :each, 0, false
+        d.sret
+      end
+      
+      g.push_literal meth
+      g.push :self
+      g.add_method :add
+    end
+  end
+  
+  it "compiles 'def a(*b); nil; end'" do
+    x = [:defn, :a, 
+      [:scope, 
+        [:block, [:args, [], [], [:b, 1], nil], 
+          [:lvar, :b, 0]
+        ], 
+        [:b]
+      ]
+    ]
+    
+    gen x do |g|
+      meth = description do |d|
+        d.check_argcount 0, 1024
+        d.make_rest_fp 0
+        d.set_local 0
+        d.pop
+        d.push_local 0
+        d.sret
+      end
+      
+      g.push_literal meth
+      g.push :self
+      g.add_method :a
+    end
+  end
+  
+  it "compiles 'def a(&b); b; end'" do
+    x = [:defn, :a, 
+      [:scope, 
+        [:block, [:args], [:block_arg, :b, 0], [:lvar, :b, 0]], 
+        [:b]
+      ]
+    ]
+    
+    gen x do |g|
+      meth = description do |d|
+        d.check_argcount 0, 0
+        d.push_block
+        d.push_const :Proc
+        d.send :from_environment, 1
+        d.set_local 0
+        d.pop
+        d.push_local 0
+        d.sret
+      end
+      
+      g.push_literal meth
+      g.push :self
+      g.add_method :a
+    end
+  end
+  
+  it "compiles a defs" do
+    x = [:defs, [:vcall, :a], :go, [:scope, [:block, [:args], 
+          [:fixnum, 12]], []]]
+          
+    gen x do |g|
+      meth = description do |d|
+        d.check_argcount 0, 0
+        d.push 12
+        d.sret
+      end
+      
+      g.push_literal meth
+      g.push :self
+      g.send :a, 0, true
+      g.attach_method :go
     end
   end
   
@@ -39,7 +223,7 @@ describe Compiler do
       g.swap
       g.attach_method :__metaclass_init__
       g.pop
-      g.send :__metaclass_init__
+      g.send :__metaclass_init__, 0
       g.push_encloser
     end
   end
@@ -62,7 +246,7 @@ describe Compiler do
       g.swap
       g.attach_method :__class_init__
       g.pop
-      g.send :__class_init__
+      g.send :__class_init__, 0
       g.push_encloser
     end
   end
@@ -86,7 +270,7 @@ describe Compiler do
       g.swap
       g.attach_method :__class_init__
       g.pop
-      g.send :__class_init__
+      g.send :__class_init__, 0
       g.push_encloser
     end
   end
@@ -109,7 +293,7 @@ describe Compiler do
       g.swap
       g.attach_method :__class_init__
       g.pop
-      g.send :__class_init__
+      g.send :__class_init__, 0
       g.push_encloser
     end
   end
@@ -135,7 +319,7 @@ describe Compiler do
       g.swap
       g.attach_method :__class_init__
       g.pop
-      g.send :__class_init__
+      g.send :__class_init__, 0
       g.push_encloser
       
     end
@@ -158,7 +342,7 @@ describe Compiler do
       g.swap
       g.attach_method :__module_init__
       g.pop
-      g.send :__module_init__
+      g.send :__module_init__, 0
       g.push_encloser
     end
   end
@@ -181,7 +365,7 @@ describe Compiler do
       g.swap
       g.attach_method :__module_init__
       g.pop
-      g.send :__module_init__
+      g.send :__module_init__, 0
       g.push_encloser
     end
   end

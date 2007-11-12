@@ -18,9 +18,17 @@ class TestGenerator
     "#<TestGenerator #{@stream.inspect}"
   end
   
-  def method_missing(*args)
+  def add(*args)
     @stream << args
     @ip += 1
+  end
+  
+  def method_missing(*args)
+    add *args
+  end
+  
+  def set_line(line, file)
+    @file, @line = file, line
   end
   
   def set_label(lbl)
@@ -31,12 +39,29 @@ class TestGenerator
     method_missing :send, *stuff
   end
   
-  attr_accessor :redo, :break, :next, :redo, :retry
+  def dup
+    add :dup
+  end
+  
+  def class
+    raise "blah"
+    add :class
+  end
+  
+  attr_accessor :redo, :break, :next, :redo, :retry, :ensure_return
+  attr_reader :file, :line
   
   def push_modifiers
   end
   
   def pop_modifiers
+  end
+  
+  def close
+  end
+  
+  def advanced_since?(ip)
+    ip < @ip
   end
     
   def ==(tg)

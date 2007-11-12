@@ -1,3 +1,6 @@
+
+file = ARGV.shift
+
 require 'compiler'
 require 'generate'
 require 'bytecode'
@@ -7,7 +10,6 @@ gen = Compiler::TextGenerator
 
 c = Compiler.new(gen)
 
-file = ARGV.shift
 
 if file
   puts "Parsing #{file}"
@@ -17,6 +19,6 @@ else
   n = c.into_script(code.to_sexp)
 end
 
-p n
-p n.to_description
-# puts gen.text
+meth = n.to_description
+
+# puts meth.generator.text

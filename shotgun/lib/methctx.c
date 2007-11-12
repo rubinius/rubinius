@@ -22,6 +22,25 @@ OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, O
   return obj;
 }
 
+OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_block) {
+  OBJECT obj;
+  int num_lcls = FIXNUM_TO_INT(cmethod_get_locals(cmethod));
+    
+  obj = blokenv_allocate(state);
+  blokenv_set_home(obj, ctx);
+  blokenv_set_initial_ip(obj, I2N(0));
+  // We have no real last since the block gets it's own method.
+  // Just set this very large so that comparison for bounds
+  // checks are always true.
+  blokenv_set_last_ip(obj, I2N(1 << 25));
+  blokenv_set_post_send(obj, I2N(0));
+  blokenv_set_home_block(obj, ctx_block);
+  blokenv_set_method(obj, cmethod);
+  blokenv_set_local_count(obj, I2N(num_lcls));
+  return obj;
+}
+
+
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   OBJECT ctx;
   int cnt;

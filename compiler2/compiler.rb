@@ -25,7 +25,7 @@ class Compiler
           node.args(*args)
         end
       rescue ArgumentError => e
-        raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{sexp.inspect}", e.context
+        raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})", e.context
       end
       
       return node
@@ -76,15 +76,36 @@ class Compiler
         prefix = self.class.name
       end
       super(prefix, [:@compiler])
-    end    
+    end
+    
+    def is?(clas)
+      self.kind_of?(clas)
+    end
   end
   
   def initialize(gen_klass)
     @position = {}
     @generator = gen_klass
+    @call_plugins = []
+    
+    @file = "(unknown)"
+    @line = 0
+    
+    load_plugins
   end
   
-  attr_reader :generator
+  attr_reader :generator, :call_plugins
+  
+  def set_position(file, line)
+    @file, @line = file, line
+  end
+  
+  def load_plugins
+    require 'compiler2/plugins'
+    @call_plugins << Compiler::Plugins::BlockGiven.new(self)
+    @call_plugins << Compiler::Plugins::PrimitiveDeclaration.new(self)
+    @call_plugins << Compiler::Plugins::FastMathOperators.new(self)
+  end
   
   def inspect
     "#<#{self.class}>"
@@ -101,7 +122,14 @@ class Compiler
   end
   
   def into_script(sexp)
-    convert_sexp([:script, sexp])
+    begin
+      convert_sexp([:script, sexp])
+    rescue Object => e
+      puts "Complication error detected: #{e.message}"
+      puts "   near #{@file}:#{@line}"
+      puts
+      puts e.backtrace.show
+    end
   end
   
   def position?(tag)

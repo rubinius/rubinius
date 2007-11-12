@@ -517,6 +517,20 @@ CODE
     CODE
   end
   
+  def cast_for_single_block_arg
+    <<-CODE
+    t1 = stack_pop();
+    k = NUM_FIELDS(t1);
+    if(k == 0) {
+      stack_push(Qnil);
+    } else if(k == 1) {
+      stack_push(tuple_at(state, t1, 0));
+    } else {
+      stack_push(array_from_tuple(state, t1));
+    }
+    CODE
+  end
+  
   def make_hash
     <<-CODE
     next_int;
@@ -1168,6 +1182,26 @@ CODE
     cpu_flush_ip(c);
     j = c->ip + BS_JUMP;
     t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, t5);
+    stack_push(t2);
+    CODE
+  end
+  
+  def create_block2
+    <<-CODE
+    t1 = stack_pop(); /* the method */
+    t4 = c->active_context;
+
+    t3 = Qnil;
+    if(blokctx_s_block_context_p(state, t4)) {
+      t3 = blokctx_home(state, t4);
+    } else {
+      t3 = t4;
+    }
+    
+    methctx_reference(state, t4);
+    methctx_reference(state, t3);
+    
+    t2 = blokenv_s_under_context2(state, t1, t3, t4);
     stack_push(t2);
     CODE
   end

@@ -113,7 +113,9 @@ class Encoder
     :equal,
     :sret,
     :set_literal,
-    :passed_blockarg
+    :passed_blockarg,
+    :create_block2,
+    :cast_for_single_block_arg
   ]
   
   CheckInterupts = [
@@ -158,6 +160,7 @@ class Encoder
     :meta_send_op_nequal,
     :set_local_depth,
     :create_block,
+    :create_block2,
     :send_off_stack,
     :yield_debugger,
     :make_rest_fp

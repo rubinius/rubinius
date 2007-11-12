@@ -14,7 +14,7 @@ class Compiler::Node
     end
     
     def create_scope
-      Hash.new { |h,k| h[k] = Compiler::Local.new(self, k) }
+      Compiler::LocalScope.new(self)
     end
     
     attr_accessor :use_eval, :locals
@@ -24,9 +24,7 @@ class Compiler::Node
         position(:visibility, :public) do
           out = convert(sexp[0])
           @all_scopes.each do |scope|
-            scope.each do |k,v|
-              v.formalize!
-            end
+            scope.formalize!
           end
           out
         end
@@ -39,7 +37,7 @@ class Compiler::Node
     
     def new_block_scope
       begin
-        scope = create_scope();
+        scope = create_scope()
         @block_scope << scope
         @all_scopes << scope
         yield
@@ -60,7 +58,7 @@ class Compiler::Node
       if @block_scope.empty?
         raise Error, "You can't be in a block, there are no block scopes"
       end
-      
+            
       lcl = nil   
       depth = nil
       dep = 0
@@ -80,9 +78,11 @@ class Compiler::Node
           lcl = @top_scope[name]
         else
           # This not found. create it.
-          lcl = @block_scope.last[name]
-          lcl.created_in_block!
-          dep = 0  
+          in_scope = @block_scope.last
+          idx = in_scope.size
+          lcl = in_scope[name]
+          lcl.created_in_block!(idx)
+          dep = 0
         end
       end
       
@@ -141,11 +141,21 @@ class Compiler::Node
   class Newline < Node
     kind :newline
     
-    def args(line, file, child)
+    
+    def consume(sexp)
+      @compiler.set_position sexp[1], sexp[0]
+      super sexp
+    end
+    
+    def args(line, file, child=nil)
       @line, @file, @child = line, file, child
     end
     
     attr_accessor :line, :file, :child
+    
+    def is?(cls)
+      @child.kind_of? cls
+    end
   end
   
   class True < Node
@@ -395,32 +405,45 @@ class Compiler::Node
     end
     
     def args(req, optional, splat, defaults)
+      @block_arg = nil
       @required, @optional, @splat, @defaults = req, optional, splat, defaults
       populate
     end
     
-    attr_accessor :required, :optional, :splat, :defaults
+    attr_accessor :required, :optional, :splat, :defaults, :block_arg
     
     def populate
       i = 0
       scope = position?(:scope)
       
-      @required.each do |var|
+      @required.map! do |var|
         var, depth = scope.find_local(var)
         var.argument!(i)
         i += 1
+        var
       end
       
-      @optional.each do |var|
+      @optional.map! do |var|
         var, depth = scope.find_local(var)
-        var.argument!(i)
+        var.argument!(i, true)
         i += 1
+        var
       end
       
       if @splat
         var, depth = scope.find_local(splat)
-        var.argument!(i)
+        var.argument!(i, true)
+        @splat = var
       end
+      
+      @mapped_defaults = {}
+
+      if @defaults
+        @defaults.each do |x|
+          @mapped_defaults[x.name] = x  
+        end
+      end
+      
     end
   end
   
@@ -429,6 +452,12 @@ class Compiler::Node
     
     def args(name)
       @name = name
+      scope = position?(:scope)
+      if scope.is? Node::Class or scope.is? Node::Module
+        @in_module = true
+      else
+        @in_module = false
+      end
     end
     
     attr_accessor :name
@@ -464,10 +493,10 @@ class Compiler::Node
       @conditions = []
       @splat = nil
       
-      if cond.kind_of? ArrayLiteral      
+      if cond.is? ArrayLiteral      
         cond.body.each do |c|
           # Inner when means splat.
-          if c.kind_of? When
+          if c.is? When
             @splat = c.splat
           else
             @conditions << c
@@ -510,21 +539,36 @@ class Compiler::Node
       
       @name = name
     end
+    
+    def from_variable(var)
+      @variable = var
+      @depth = nil
+      @name = var.name
+    end
+    
   end
 
   class LocalAssignment < LocalVariable
     kind :lasgn
     
     def args(name, idx, val=nil)
-      if val.nil? and !position?(:iter_args)
-        raise ArgumentError, "value can not be nil"
-      end
+      #if val.nil? and !position?(:iter_args)
+      #  raise ArgumentError, "value can not be nil"
+      #end
             
       @value = val
       super(name)
+      
+      @variable.assigned!
     end
     
     attr_accessor :name, :value, :variable
+    
+    def from_variable(var, value=nil)
+      super(var)
+      
+      @value = value
+    end
   end
   
   class LocalAccess < LocalVariable
@@ -535,7 +579,7 @@ class Compiler::Node
       super(name)
     end
     
-    attr_accessor :name
+    attr_accessor :name    
   end
     
   class SValue < Node
@@ -547,18 +591,7 @@ class Compiler::Node
     
     attr_accessor :child
   end
-  
-  class Splat < Node
-    kind :splat
     
-    def args(child)
-      @child = child
-    end
-    
-    attr_accessor :child
-    
-  end
-  
   class OpAssignOr < Node
     kind :op_asgn_or
     
@@ -633,11 +666,28 @@ class Compiler::Node
   class DynamicArguments < Node
   end
   
+  class Splat < DynamicArguments
+    kind :splat
+    
+    def args(child)
+      @child = child
+    end
+    
+    attr_accessor :child
+    
+  end
+  
   class ConcatArgs < DynamicArguments
     kind :argscat
     
     def args(rest, array)
-      @array, @rest = array, rest
+      @array = array
+      
+      if rest.kind_of? Array
+        @rest = rest
+      else
+        @rest = rest.body
+      end
     end
     
     attr_accessor :array, :rest
@@ -648,8 +698,8 @@ class Compiler::Node
     
     def args(array, item)
       @item = item
-      unless array.kind_of? Splat
-        raise Error, "Unknown form of argspush"
+      unless array.is? Splat
+        raise Error, "Unknown form of argspush: #{array.class}"
       end
       
       @array = array.child
@@ -678,7 +728,8 @@ class Compiler::Node
     kind :ivar
     
     def normalize(name)
-      if idx = position?(:family).find_ivar_index(name)
+      fam = position?(:family)
+      if fam and idx = fam.find_ivar_index(name)
         ac = AccessSlot.new @compiler
         ac.args(idx)
         return ac
@@ -695,8 +746,9 @@ class Compiler::Node
   class IVarAssign < Node
     kind :iasgn
     
-    def normalize(name, val)
-      if idx = position?(:family).find_ivar_index(name)
+    def normalize(name, val=nil)
+      fam = position?(:family)
+      if fam and idx = fam.find_ivar_index(name)
         ac = SetSlot.new @compiler
         ac.args(idx, val)
         return ac
@@ -723,7 +775,7 @@ class Compiler::Node
   class GVarAssign < Node
     kind :gasgn
     
-    def args(name, value)
+    def args(name, value=nil)
       @name, @value = name, value
     end
     
@@ -782,7 +834,7 @@ class Compiler::Node
       if simp
         @parent = nil
         @name = simp
-      elsif complex.kind_of? ConstAtTop
+      elsif complex.is? ConstAtTop
         @from_top = true
         @name = complex.name
       else
@@ -829,7 +881,7 @@ class Compiler::Node
       name = convert(sexp[0])
       sym = name.name
       
-      if name.kind_of? ConstFind
+      if name.is? ConstFind
         parent = nil
       else
         parent = name.parent
@@ -856,7 +908,7 @@ class Compiler::Node
       name = convert(sexp[0])
       sym = name.name
       
-      if name.kind_of? ConstFind
+      if name.is? ConstFind
         parent = nil
       else
         parent = name.parent
@@ -883,19 +935,19 @@ class Compiler::Node
     
     def args(cond, body, nxt)
       @body, @next = body, nxt
-      if cond.kind_of? ArrayLiteral
-        @conditions = cond.body
-        @splat = nil
-      elsif cond.kind_of? Splat
-        @conditions = nil
-        @splat = cond.child
-      elsif cond.kind_of? ConcatArgs
-        @conditions = cond.rest.body
-        @splat = cond.array
-      elsif cond.nil?
+      if cond.nil?
         cf = ConstFind.new(@compiler)
         cf.args :StandardError
         @conditions = [cf]
+      elsif cond.is? ArrayLiteral
+        @conditions = cond.body
+        @splat = nil
+      elsif cond.is? Splat
+        @conditions = nil
+        @splat = cond.child
+      elsif cond.is? ConcatArgs
+        @conditions = cond.rest
+        @splat = cond.array
       else
         raise Error, "Unknown rescue condition form"
       end
@@ -1010,7 +1062,7 @@ class Compiler::Node
       @in_rescue = position?(:in_rescue)
       
       if ens = position?(:in_ensure)
-        ens[:did_return] = true
+        ens[:did_return] = self
         @in_ensure = true
       else
         @in_ensure = false
@@ -1025,8 +1077,8 @@ class Compiler::Node
   class MAsgn < Node
     kind :masgn
     
-    def args(assigns, splat, source=nil)
-      if source.nil?
+    def args(assigns, splat, source=:bogus)
+      if source == :bogus
         @assigns = nil
         @splat = assigns
         @source = splat
@@ -1051,32 +1103,45 @@ class Compiler::Node
       name, body = sexp
       scope = super([body])
       
-      args = scope.block.body.shift
+      body = scope.block.body
+      args = body.shift
       
+      if body.first.is? BlockAsArgument
+        ba = body.shift
+      else
+        ba = nil
+      end
+      
+      args.block_arg = ba
+            
       return [name, scope, args]
     end
     
     def args(name, body, args)
-      @name, @body, @arguments = name, body, args
+      @name, @body, @arguments = name, body, args      
     end
         
-    attr_accessor :name, :body
+    attr_accessor :name, :body, :arguments
   end
   
   class DefineSingleton < Define
     kind :defs
     
     def consume(sexp)
-      sexp = super(sexp)
-      sexp[0] = convert(sexp[0])
-      return sexp
+      object = sexp.shift
+      out = super(sexp)
+      out.unshift convert(object)
+      
+      return out
     end
     
     def args(obj, name, body, args)
-      @object, @name, @body, @arguments = obj, name, body, args
+      @object = obj
+      
+      super(name, body, args)
     end
     
-    attr_accessor :object, :name, :body
+    attr_accessor :object
   end
   
   class MethodCall < Node
@@ -1085,11 +1150,11 @@ class Compiler::Node
       super(comp)
       @block = nil
       scope = position?(:scope)
-      if scope.kind_of? Class
+      if scope.is? Class
         @scope = :class
-      elsif scope.kind_of? Module
+      elsif scope.is? Module
         @scope = :module
-      elsif scope.kind_of? Script
+      elsif scope.is? Script
         @scope = :script
       else
         @scope = :method
@@ -1102,11 +1167,36 @@ class Compiler::Node
   class Call < MethodCall
     kind :call
     
+    def collapse_args
+      return unless @arguments
+      @arguments = @arguments.body if @arguments.is? ArrayLiteral
+    end
+    
     def args(object, meth, args=nil)
       @object, @method, @arguments = object, meth, args
+      
+      collapse_args()
     end
     
     attr_accessor :object, :method, :arguments
+    
+    def fcall?
+      false
+    end
+    
+    def call?
+      true
+    end
+    
+    def argcount
+      if @arguments.nil?
+        return 0
+      elsif @arguments.kind_of? Array
+        return @arguments.size
+      end
+      
+      return nil
+    end
   end
   
   class FCall < Call
@@ -1114,6 +1204,8 @@ class Compiler::Node
     
     def normalize(meth, args=nil)
       @method, @arguments = meth, args
+      
+      collapse_args()
       
       return detect_special_forms()
     end
@@ -1123,8 +1215,8 @@ class Compiler::Node
     def detect_special_forms
       # Detect ivar as index.
       if @method == :ivar_as_index
-        args = @arguments.body
-        if args.size == 1 and args[0].kind_of? ImplicitHash
+        args = @arguments
+        if args.size == 1 and args[0].is? ImplicitHash
           family = position?(:family)
           hsh = args[0].body
           0.step(hsh.size-1, 2) do |i|
@@ -1135,6 +1227,14 @@ class Compiler::Node
         end
       end
       return self
+    end
+    
+    def fcall?
+      true
+    end
+    
+    def call?
+      false
     end
   end
   
@@ -1152,17 +1252,29 @@ class Compiler::Node
   class AttrAssign < Call
     kind :attrasgn
     
-    def args(obj, meth, args)
+    def args(obj, meth, args=nil)
       @object, @method = obj, meth
       @arguments = args
+      
+      # Strange. nil is passed when it's self. Whatevs.
+      @object = Self.new @compiler if @object.nil?
+            
+      if @method.to_s[-1] != ?=
+        @method = "#{@method}=".to_sym
+      end
+      
+      collapse_args()
     end
   end
   
-  class Super < Node
+  class Super < Call
     kind :super
     
     def args(args)
+      @method = position?(:scope)
       @arguments = args
+      
+      collapse_args()
     end
     
     attr_accessor :arguments
@@ -1172,33 +1284,57 @@ class Compiler::Node
     kind :zsuper
     
     def args
+      @method = position?(:scope)
     end
   end
   
-  class BlockPass < Node
-    kind :block_pass
+  class Yield < Call
+    kind :yield
     
-    def args(blk, call)
-      @block, @call = blk, call
+    def args(args, direct=false)
+      if direct
+        @arguments = args.body
+      elsif args.kind_of? DynamicArguments
+        @arguments = args
+      elsif args
+        @arguments = [args]
+      else
+        @arguments = []
+      end
     end
     
-    attr_accessor :block, :call
+    attr_accessor :arguments
   end
   
   class BlockAsArgument < Node
     kind :block_arg
     
-    def args(name, position)
+    def args(name, position=nil)
       @name = name
+      
+      scope = position?(:scope)
+      
+      @variable, @depth = scope.find_local name
+      @variable.in_locals!
     end
     
-    attr_accessor :name
+    attr_accessor :name, :variable
   end
   
   class Loop < Node
     def args(body)
       @body = body
     end
+  end
+  
+  class IterArgs < Node
+    kind :iter_args
+    
+    def args(child)
+      @child = child
+    end
+    
+    attr_accessor :child
   end
     
   class Iter < Node
@@ -1208,7 +1344,16 @@ class Compiler::Node
       c = convert(sexp[0])
       sexp[0] = c
       
-      if c.kind_of? FCall and c.method == :loop
+      # Get rid of the linked list of dasgn_curr's at the top
+      # of a block in at iter.
+      first = sexp[2][1]
+      if first.kind_of?(Array) and first[0] == :dasgn_curr
+        if first[2].nil? or first[2][0] == :dasgn_curr
+          sexp[2].delete_at(1)
+        end
+      end
+      
+      if c.is? FCall and c.method == :loop
         sexp[1] = convert(sexp[1])
         sexp[2] = convert(sexp[2])
         return sexp
@@ -1218,18 +1363,9 @@ class Compiler::Node
         
         position?(:scope).new_block_scope do
           position(:iter_args) do
-            sexp[1] = convert(sexp[1])
+            sexp[1] = convert([:iter_args, sexp[1]])
           end
-        
-          # Get rid of the linked list of dasgn_curr's at the top
-          # of a block in at iter.
-          first = sexp[2][1]
-          if first.kind_of?(Array) and first[0] == :dasgn_curr
-            if first[2].nil? or first[2][0] == :dasgn_curr
-              sexp[2].delete_at(1)
-            end
-          end
-        
+                
           sexp[2] = convert(sexp[2])
         end
       end
@@ -1240,7 +1376,7 @@ class Compiler::Node
     def normalize(c, a, b)
       @arguments, @body = a, b
       
-      if c.kind_of? FCall and c.method == :loop
+      if c.is? FCall and c.method == :loop
         n = Loop.new(@compiler)
         n.args(b)
         return n
@@ -1252,6 +1388,19 @@ class Compiler::Node
     end
     
     attr_accessor :arguments, :body
+  end
+  
+  class BlockPass < Node
+    kind :block_pass
+    
+    def normalize(blk, call)
+      @block = blk
+      
+      call.block = self
+      return call
+    end
+    
+    attr_accessor :block
   end
   
   class ExecuteString < StringLiteral
@@ -1272,20 +1421,14 @@ class Compiler::Node
     kind :dxstr
   end
   
-  class DynamicSymbol < DynamicString
+  class DynamicSymbol < Node
     kind :dsym
-  end
-  
-  class Yield < Node
-    kind :yield
     
-    def args(args)
-      @arguments = args
+    def args(string)
+      @string = string
     end
-    
-    attr_accessor :arguments
   end
-  
+    
   class Alias < Node
     kind :alias
     
@@ -1306,7 +1449,7 @@ class Compiler::Node
     attr_accessor :start, :finish
   end
   
-  class RangExclude < Range
+  class RangeExclude < Range
     kind :dot3
   end
   

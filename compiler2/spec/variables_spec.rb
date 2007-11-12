@@ -18,6 +18,7 @@ describe Compiler do
            
     gen x do |g|
       meth = description do |d|
+        d.check_argcount 1, 1
         d.from_fp 0
         d.sret
       end

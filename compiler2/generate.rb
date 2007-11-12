@@ -1,6 +1,7 @@
 require 'encoder'
 
 class Compiler
+    
   class Generator
     
     class Label
@@ -12,7 +13,7 @@ class Compiler
       attr_accessor :position
       
       def set!
-        @position = @generator.ip + 1
+        @position = @generator.ip
       end
       
     end
@@ -84,13 +85,17 @@ class Compiler
     end
     
     def add(*what)
-      if what.size == 1
-        @stream << what.first
-      else
-        @stream << what
+      @ip += what.size
+      
+      kind = what.first
+      
+      inst = @encoder.instruction?(kind)
+      unless inst
+        raise Compiler::Error, "unknown instruction #{kind}"
       end
       
-      @ip += what.size
+      what << inst
+      @stream << what      
     end
     
     def find_literal(what)
@@ -113,8 +118,6 @@ class Compiler
         push_nil
       when Integer
         push_int(what)
-      when String, Bignum, Float
-        push_literal what
       else
         raise Error, "Unknown push argument '#{what.inspect}'"
       end
@@ -141,7 +144,7 @@ class Compiler
     
     def push_literal(what)
       idx = find_literal(what)
-      add :push_literals, idx
+      add :push_literal, idx
       return idx
     end
     
@@ -190,9 +193,7 @@ class Compiler
     end
     
     def send(meth, count, priv=false)
-      if priv
-        add :set_call_flags, 1
-      end
+      add :set_call_flags, 1 if priv
       
       idx = find_literal(meth)
       if count == 0
@@ -204,16 +205,22 @@ class Compiler
       end
     end
     
-    def method_missing(op, *args)
-      if @encoder.instruction?(op)
-        if args.size > 0
-          raise Error, "No args supported."
-        end
-        
-        @stream << op
-      else
-        raise Error, "Unknown instruction '#{op}'"
-      end
+    def send_with_block(meth, count, priv=false)
+      add :set_call_flags, 1 if priv
+      
+      idx = find_literal(meth)
+      add :send_stack_with_block, idx, count
+    end
+    
+    def send_with_register(meth, priv=false)
+      add :set_call_flags, 1 if priv
+      
+      idx = find_literal(meth)
+      add :send_with_arg_register, idx      
+    end
+    
+    def method_missing(op)
+      add op
     end    
   end
 end

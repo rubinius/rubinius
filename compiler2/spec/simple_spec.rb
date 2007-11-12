@@ -160,7 +160,7 @@ describe Compiler do
       g.push_literal "!"
       g.string_dup
       g.push :true
-      g.send :to_s, 0
+      g.send :to_s, 0, true
       g.push_literal "hello "
       g.string_dup
       g.string_append
@@ -173,7 +173,7 @@ describe Compiler do
       g.push_literal ")"
       g.string_dup
       g.push :true
-      g.send :to_s, 0
+      g.send :to_s, 0, true
       g.push_literal "("
       g.string_dup
       g.string_append
@@ -196,7 +196,7 @@ describe Compiler do
       g.push_literal ")"
       g.string_dup
       g.push :true
-      g.send :to_s, 0
+      g.send :to_s, 0, true
       g.push_literal "("
       g.string_dup
       g.string_append
@@ -331,6 +331,69 @@ describe Compiler do
     gen [:to_ary, [:fixnum, 12]] do |g|
       g.push 12
       g.cast_array
+    end
+  end
+  
+  it "compiles '`ls`'" do
+    gen [:xstr, "ls"] do |g|
+      g.push_literal "ls"
+      g.string_dup
+      g.push :self
+      g.send :`, 1
+    end
+  end
+  
+  it "compiles '`ls \#{dir}`'" do
+    gen [:dxstr, "ls ", [:evstr, [:vcall, :dir]]] do |g|
+      g.push :self
+      g.send :dir, 0, true
+      g.send :to_s, 0, true
+      g.push_literal "ls "
+      g.string_dup
+      g.string_append
+      g.push :self
+      g.send :`, 1, true
+    end
+  end
+  
+  it "compiles ':\"you \#{thing}\"'" do
+    gen [:dsym, [:dstr, "you ", [:evstr, [:vcall, :thing]]]] do |g|
+      g.push :self
+      g.send :thing, 0, true
+      g.send :to_s, 0, true
+      g.push_literal "you "
+      g.string_dup
+      g.string_append
+      g.send :to_sym, 0, true
+    end
+    
+  end
+  
+  it "compiles 'alias a b'" do
+    gen [:alias, :b, :a] do |g|
+      g.push_literal :b
+      g.push_literal :a
+      g.push :self
+      g.send :alias_method, 2
+    end
+  end
+  
+  it "compiles '1..2'" do
+    gen [:dot2, [:fixnum, 1], [:fixnum, 2]] do |g|
+      g.push 2
+      g.push 1
+      g.push_const :Range
+      g.send :new, 2 
+    end
+  end
+  
+  it "compiles '1...2'" do
+    gen [:dot3, [:fixnum, 1], [:fixnum, 2]] do |g|
+      g.push :true
+      g.push 2
+      g.push 1
+      g.push_const :Range
+      g.send :new, 3
     end
   end
   

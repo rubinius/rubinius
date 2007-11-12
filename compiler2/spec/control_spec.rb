@@ -479,4 +479,95 @@ describe Compiler do
     end
   end
   
+  it "compiles 'return'" do
+    gen [:return] do |g|
+      g.push :nil
+      g.sret
+    end
+  end
+  
+  it "compiles 'return 12'" do
+    gen [:return, [:fixnum, 12]] do |g|
+      g.push 12
+      g.sret
+    end
+  end
+  
+  it "compiles 'begin; 12; rescue; return 13; end'" do  
+    x = [:rescue, [:fixnum, 12], 
+          [:resbody, [:array, [:const, :String]],
+             [:return, [:fixnum, 13]], nil
+          ]
+        ]
+        
+    gen x do |g|
+      exc_start = g.new_label
+      exc_handle = g.new_label
+      
+      fin = g.new_label
+      rr = g.new_label
+      last = g.new_label
+      
+      exc_start.set!
+      g.push 12
+      g.goto fin
+      
+      exc_handle.set!
+      g.push_exception
+      g.push_const :String
+      g.send :===, 1
+      body = g.new_label
+      
+      g.git body
+      g.goto rr
+      body.set!
+      g.clear_exception
+      g.push 13
+      g.sret
+      g.goto last
+      
+      rr.set!
+      
+      g.push_exception
+      g.raise_exc
+      
+      fin.set!
+      
+      last.set!
+    end
+  end
+  
+  it "compiles return in a block" do
+    gen [:iter, [:fcall, :go], nil, [:block, [:return, [:fixnum, 12]]]] do |g|
+      iter = description do |d|
+        d.pop
+        d.new_label.set! # redo
+        d.push 12
+        d.ret
+        d.soft_return
+      end
+      
+      g.push_literal iter
+      g.create_block2
+      g.push :self
+      g.send_with_block :go, 0, true
+    end
+  end
+  
+  it "compiles 'return 1, 2, *c'" do
+    x = [:return, [:argscat, 
+           [:array, [:fixnum, 1], [:fixnum, 2]],
+           [:vcall, :c]]]
+    gen x do |g|
+      g.push :self
+      g.send :c, 0, true
+      g.cast_array
+      
+      g.push 1
+      g.push 2
+      g.make_array 2
+      g.send :+, 1
+      g.sret
+    end
+  end
 end
