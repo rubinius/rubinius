@@ -1,2 +1,0 @@
-File#ctime Returns the change time for the named file (the time at which directory information about the file was changed, not the file itself).
-File#ctime raise an exception if the arguments are wrong type or are the incorect number of arguments
