@@ -17,12 +17,6 @@ describe "File.ctime" do
   it "raise an Errno::ENOENT exception if the file is not found" do    
     should_raise(Errno::ENOENT){ File.ctime('bogus') }
   end
-  
-  it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    should_raise(ArgumentError){ File.ctime }
-    should_raise(ArgumentError){ File.ctime(@file, @file) }
-    should_raise(TypeError){ File.ctime(1) }
-  end
 end 
 
 describe "File#ctime" do
@@ -39,8 +33,4 @@ describe "File#ctime" do
     @file.ctime
     @file.ctime.class.should == Time
   end 
-  
-  it  "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    should_raise(ArgumentError){ @file.ctime(@file, @file) } 
-  end
 end 

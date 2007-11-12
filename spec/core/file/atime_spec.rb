@@ -19,12 +19,6 @@ describe "File.atime" do
   it "raise an Errno::ENOENT exception if the file is not found" do 
     should_raise(Errno::ENOENT){ File.atime('a_fake_file') }
   end
-   
-  it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    should_raise(ArgumentError){ File.atime }
-    should_raise(ArgumentError){ File.atime(@file, @file) }
-    should_raise(TypeError){ File.atime(1) }
-  end
 end
 
 describe "File#atime" do
@@ -42,9 +36,5 @@ describe "File#atime" do
   it "returns the last access time to self" do
     @file.atime  
     @file.atime.class.should == Time
-  end
-
-  it "raise an Exception if it has the wrong number of argments" do
-    should_raise(ArgumentError){ @file.atime(@name) }
   end
 end
