@@ -1,1 +1,0 @@
-File#path should return the pathname used to create file as a string

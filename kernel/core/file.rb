@@ -46,6 +46,8 @@ class File < IO
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
+  attr_reader :path
+
   def initialize(path_or_fd, mode = "r", perm = 0666)
     if Integer === path_or_fd
       super(path_or_fd)
