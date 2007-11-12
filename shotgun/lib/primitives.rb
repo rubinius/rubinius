@@ -360,19 +360,19 @@ class ShotgunPrimitives
   
   def io_open
     <<-CODE
-    FILE *fptr;
-    int fd;
-    char *_path, *_mode;
+    int fd, mode, perm;
+    char *_path;
 
     self = stack_pop(); /* class */
     POP(t1, STRING);
-    POP(t2, STRING);
+    POP(t2, FIXNUM);
+    POP(t3, FIXNUM);
     
     _path = string_byte_address(state, t1);
-    _mode = string_byte_address(state, t2);
+    mode = FIXNUM_TO_INT(t2);
+    perm = FIXNUM_TO_INT(t3);
 
-    fptr = fopen(_path, _mode);
-    fd = fptr ? fileno(fptr) : -1;
+    fd = open(_path, mode, perm);
 
     stack_push(I2N(fd));
     CODE

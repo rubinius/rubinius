@@ -46,19 +46,29 @@ class File < IO
   ALT_SEPARATOR = Platform::File::ALT_SEPARATOR
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
-  def initialize(path, mode)
-    fd = self.class.open_with_mode(path, mode)
+  def initialize(path_or_fd, mode = "r", perm = 0666)
+    if Integer === path_or_fd
+      super(path_or_fd)
+      @path = nil
+      return self
+    end
+
+    if String === mode
+      mode = parse_mode(mode)
+    end
+
+    fd = self.class.open_with_mode(path_or_fd, mode, perm)
     if fd < 0
-      Errno.handle "Couldn't open #{path} with mode '#{mode}'"
+      Errno.handle "Couldn't open #{path_or_fd}"
     end
 
     super(fd)
 
-    @path = path
+    @path = path_or_fd
   end
     
-  def self.open(path, mode="r")
-    f = self.new(path, mode)
+  def self.open(path_or_fd, mode = "r", perm = 0666)
+    f = self.new(path_or_fd, mode, perm)
     
     return f unless block_given?
 
@@ -440,5 +450,33 @@ class File < IO
       Platform::POSIX.umask(old_mask)
       old_mask
     end
+  end
+
+  private
+  def parse_mode(mode)
+    ret = 0
+
+    case mode[0]
+    when ?r
+      ret |= RDONLY
+    when ?w
+      ret |= WRONLY | CREAT | TRUNC
+    when ?a
+      ret |= WRONLY | CREAT | APPEND
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    return ret if mode.length == 1
+
+    case mode[1]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    ret
   end
 end

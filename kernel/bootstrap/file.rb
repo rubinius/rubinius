@@ -1,5 +1,5 @@
 class File < IO
-  def self.open_with_mode(path, mode)
+  def self.open_with_mode(path, mode, perm)
     Ruby.primitive :io_open
   end
   

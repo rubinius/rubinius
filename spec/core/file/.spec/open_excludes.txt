@@ -1,31 +1,14 @@
-File.open open the file (basic case)
 File.open open file when call with a block (basic case)
-File.open open with mode string
 File.open open a file with mode string and block
-File.open open a file with mode num
 File.open open a file with mode num and block
-File.open open the file when call with mode, num and permissions
 File.open open the flie when call with mode, num, permissions and block
-File.open open the file when call with fd
 File.open open a file with a file descriptor d and a block
-File.open open a file that no exists when use File::WRONLY mode
-File.open open a file that no exists when use File::RDONLY mode
-File.open open a file that no exists when use 'r' mode
-File.open open a file that no exists when use File::EXCL mode
-File.open open a file that no exists when use File::NONBLOCK mode
-File.open open a file that no exists when use File::TRUNC mode
-File.open open a file that no exists when use File::NOCTTY mode
-File.open open a file that no exists when use File::CREAT mode
-File.open open a file that no exists when use 'a' mode
-File.open open a file that no exists when use 'w' mode
-File.open raise an ArgumentError exception when call with an unknown mode
 File.open can read in a block when call open with RDONLY mode
 File.open can read in a block when call open with 'r' mode
 File.open raise an IO exception when write in a block opened with RDONLY mode
 File.open raise an IO exception when write in a block opened with 'r' mode
 File.open can't write in a block when call open with File::WRONLY||File::RDONLY mode
 File.open can't read in a block when call open with File::WRONLY||File::RDONLY mode
-File.open can write in a block when call open with WRONLY mode
 File.open can write in a block when call open with 'w' mode
 File.open raise an IO exception when read in a block opened with WRONLY mode
 File.open raise an IO exception when read in a block opened with 'w' mode
@@ -39,12 +22,9 @@ File.open can't read in a block when call open with File::EXCL mode
 File.open can read in a block when call open with File::EXCL mode
 File.open can read and write in a block when call open with File::RDWR|File::EXCL mode
 File.open raise an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL
-File.open create a new file when use File::WRONLY|File::APPEND mode
 File.open open a file when use File::WRONLY|File::APPEND mode
 File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND
-File.open create a new file when use File::TRUNC mode
 File.open can't read in a block when call open with File::TRUNC mode
-File.open open a file when use File::WRONLY|File::TRUNC mode
 File.open can't write in a block when call open with File::TRUNC mode
 File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC
 File.open expected errors 
