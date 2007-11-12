@@ -1,2 +1,1 @@
-File#atime returns the last access time to self
-File#atime raise an Exception if it has the worng number of argments
+File#atime raise an Exception if it has the wrong number of argments
