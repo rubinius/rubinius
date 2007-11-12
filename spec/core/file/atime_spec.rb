@@ -44,7 +44,7 @@ describe "File#atime" do
     @file.atime.class.should == Time
   end
 
-  it "raise an Exception if it has the worng number of argments" do
+  it "raise an Exception if it has the wrong number of argments" do
     should_raise(ArgumentError){ @file.atime(@name) }
   end
 end

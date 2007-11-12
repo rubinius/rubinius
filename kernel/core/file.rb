@@ -47,6 +47,7 @@ class File < IO
   PATH_SEPARATOR = Platform::File::PATH_SEPARATOR
 
   def initialize(path, mode)
+    @path = path
     io = self.class.open_with_mode(path, mode)
     Errno.handle "Couldn't open #{path} with mode '#{mode}'" unless io
     super(io.fileno)
@@ -248,6 +249,10 @@ class File < IO
   
   def self.atime(path)
     Time.at stat(path).atime
+  end
+  
+  def atime
+    Time.at self.class.stat(@path).atime
   end
 
   def self.mtime(path)
