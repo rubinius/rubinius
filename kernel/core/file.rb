@@ -61,7 +61,7 @@ class File < IO
 
     fd = self.class.open_with_mode(path_or_fd, mode, perm)
     if fd < 0
-      Errno.handle "Couldn't open #{path_or_fd}"
+      Errno.handle path_or_fd
     end
 
     super(fd)

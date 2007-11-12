@@ -37,7 +37,7 @@ class Dir
     else
       error = Platform::POSIX.chdir path
       if error != 0
-        Errno.handle "Couldn't change to directory #{path}"
+        Errno.handle path
       end
       error
     end
@@ -46,7 +46,7 @@ class Dir
   def self.mkdir(path, mode = 0777)
     error = Platform::POSIX.mkdir(path, mode)
     if error != 0
-      Errno.handle "Couldn't make directory #{path}"
+      Errno.handle path
     end
     error
   end
@@ -54,7 +54,7 @@ class Dir
   def self.rmdir(path)
     error = Platform::POSIX.rmdir(path)
     if error != 0
-      Errno.handle "Couldn't delete directory #{path}"
+      Errno.handle path
     end
     error
   end
@@ -105,7 +105,7 @@ class Dir
     @dirptr = Platform::POSIX.opendir(path)
 
     if @dirptr.null?
-      Errno.handle "Couldn't open directory #{path}"
+      Errno.handle path
     end
 
     @path = path
