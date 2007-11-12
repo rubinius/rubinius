@@ -1,1 +1,0 @@
-Enumerable#find Returns the first for which block is not false or call ifnone proc, empty array and nil

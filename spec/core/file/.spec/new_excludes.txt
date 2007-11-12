@@ -1,4 +1,3 @@
-File.new return a new File with mode string
 File.new return a new File with mode num
 File.new return a new File with modus num and premissions 
 File.new return a new File with modus fd 

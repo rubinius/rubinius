@@ -1,7 +1,6 @@
 File::Constants match mode constants
 File::Constants the separator constant
 File::Constants the open mode constants
-File::Constants lock mode constants
 File::Constants File::RDONLY
 File::Constants File::WRONLY
 File::Constants File::CREAT

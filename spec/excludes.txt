@@ -19,5 +19,5 @@ Module#autoload registers the given filename to be loaded the first time that th
 Thread#join raises any exceptions encountered in the thread body
 The loop expression restarts the current iteration with redo
 IO#gets raises IOError if the stream is not opened for reading
-Enumerable#detect find should be a synonym for detect
-Enumerable#find find should be a synonym for detect
+File#open raise an IO exception when read in a block opened with 'w' mode
+File#open raise an IO exception when read in a block opened with 'a' mode
