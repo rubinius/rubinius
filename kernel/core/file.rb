@@ -262,6 +262,10 @@ class File < IO
   def self.ctime(path)
     Time.at stat(path).ctime
   end
+  
+  def ctime
+    Time.at self.class.stat(@path).ctime
+  end
 
   def self.dirname(path)
     path = StringValue(path)
