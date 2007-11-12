@@ -25,7 +25,7 @@ class File < IO
     
     RDONLY   = 0x00
     WRONLY   = 0x01
-    RDRW     = 0x02
+    RDWR     = 0x02
     
     CREAT    = 0x40
     EXCL     = 0x80
