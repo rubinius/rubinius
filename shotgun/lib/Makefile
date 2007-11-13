@@ -33,8 +33,12 @@ ifeq ($(UNAME),Darwin)
 endif
 
 # Darwin doesn't need -lcrypt or -lrt
+# BSD does not need -lrt
 ifneq ($(UNAME),Darwin)
-  LIBS+=-lcrypt -lrt
+  LIBS+= -lcrypt
+ifneq ($(findstring BSD,$(UNAME)),BSD)
+  LIBS+= -lrt
+endif
 endif
 
 ifeq ($(UNAME),SunOS)
