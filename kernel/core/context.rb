@@ -158,6 +158,10 @@ class BlockEnvironment
 end
 
 class Backtrace
+  include Enumerable
+
+  attr_reader :frames
+
   def initialize
     @frames = []
     @top_context = nil
@@ -247,5 +251,20 @@ class Backtrace
     end
     obj.fill_from ctx
     return obj
+  end
+
+  def each
+    @frames.each { |f| yield f.last }
+    self
+  end
+
+  def reverse
+    ret = self.class.new
+
+    @frames.reverse_each do |f|
+      ret.frames << f
+    end
+
+    ret
   end
 end
