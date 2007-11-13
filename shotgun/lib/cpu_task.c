@@ -358,56 +358,54 @@ void _cpu_channel_clear_outstanding(STATE, cpu c, OBJECT thr, OBJECT ary) {
 }
 
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj) {
-  OBJECT lst, lst2, thr, task, tup, out;
+  OBJECT readers, written, reader, reader_task, pair, out;
   long int cur_prio, new_prio;
     
-  lst = channel_get_waiting(self);
+  readers = channel_get_waiting(self);
   
-  if(list_empty_p(lst)) {
-    lst2 = channel_get_value(self);
-    if(NIL_P(lst2)) {
-      lst2 = list_new(state);
-      channel_set_value(self, lst2);
+  if(list_empty_p(readers)) {
+    written = channel_get_value(self);
+    if(NIL_P(written)) {
+      written = list_new(state);
+      channel_set_value(self, written);
     }
-    list_append(state, lst2, obj);
+    list_append(state, written, obj);
   } else {
-    tup = tuple_new2(state, 2, self, obj);
-    thr = list_shift(state, lst);
-    task = thread_get_task(thr);
+    pair = tuple_new2(state, 2, self, obj);
+    reader = list_shift(state, readers);
+    reader_task = thread_get_task(reader);
     /* Edge case. After going all around, we've decided that the current
        task needs to be restored. Since it's not yet saved, we push it
        to the current stack, since thats the current task's stack. */
-    if(task == c->current_task) {
+    if(reader_task == c->current_task) {
       stack_pop();
       if(!TASK_FLAG_P(c, TASK_NO_STACK)) {
-        stack_push(tup);
+        stack_push(pair);
       } else {
         TASK_CLEAR_FLAG(c, TASK_NO_STACK);
       }
-      if(!NIL_P(c->outstanding)) {
-        _cpu_channel_clear_outstanding(state, c, thr, c->outstanding);
-      }
+      out = c->outstanding;
     } else {
-      if(cpu_task_no_stack_p(state, task)) {
-        cpu_task_pop(state, task);
-        cpu_task_clear_flag(state, task, TASK_NO_STACK);
+      if(cpu_task_no_stack_p(state, reader_task)) {
+        cpu_task_pop(state, reader_task);
+        cpu_task_clear_flag(state, reader_task, TASK_NO_STACK);
       } else {
-        cpu_task_set_top(state, task, tup);
+        cpu_task_set_top(state, reader_task, pair);
       }
-      out = cpu_task_get_outstanding(state, task);
-      if(!NIL_P(out)) {
-        _cpu_channel_clear_outstanding(state, c, thr, out);
-      }
+      out = cpu_task_get_outstanding(state, reader_task);
+    }
+    if(!NIL_P(out)) {
+      _cpu_channel_clear_outstanding(state, c, reader, out);
     }
     /* If we're resuming a thread thats of higher priority than we are, 
        we run it now, otherwise, we just schedule it to be run. */
     cur_prio = FIXNUM_TO_INT(thread_get_priority(c->current_thread));
-    new_prio = FIXNUM_TO_INT(thread_get_priority(thr));
+    new_prio = FIXNUM_TO_INT(thread_get_priority(reader));
     if(new_prio > cur_prio) {
       cpu_thread_schedule(state, c->current_thread);
-      cpu_thread_switch(state, c, thr);
+      cpu_thread_switch(state, c, reader);
     } else {
-      cpu_thread_schedule(state, thr);
+      cpu_thread_schedule(state, reader);
     }
   }
   
@@ -422,11 +420,11 @@ void cpu_channel_register(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
 }
 
 void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
-  OBJECT val, obj, lst;
+  OBJECT written, obj, readers;
   
-  val = channel_get_value(self);
-  if(!NIL_P(val) && !list_empty_p(val)) {
-    obj = list_shift(state, val);
+  written = channel_get_value(self);
+  if(!NIL_P(written) && !list_empty_p(written)) {
+    obj = list_shift(state, written);
     stack_push(tuple_new2(state, 2, self, obj));
     return;
   }
@@ -434,8 +432,8 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   /* We push nil on the stack to reserve a place to put the result. */
   stack_push(I2N(343434));
   
-  lst = channel_get_waiting(self);
-  list_append(state, lst, cur_thr);
+  readers = channel_get_waiting(self);
+  list_append(state, readers, cur_thr);
   cpu_thread_run_best(state, c);
 }
 
