@@ -345,7 +345,6 @@ namespace :build do
 
   task :all => %w[
     build:shotgun
-    runtime/stable/compiler.rba
     build:rbc
     build:extensions
   ]
