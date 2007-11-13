@@ -142,6 +142,7 @@ void cpu_initialize_context(STATE, cpu c);
 void cpu_update_roots(STATE, cpu c, ptr_array roots, int start);
 inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so);
 inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, int exception);
+inline int cpu_simple_return(STATE, cpu c, OBJECT val);
 
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym);
 OBJECT cpu_const_get_from(STATE, cpu c, OBJECT sym, OBJECT under);

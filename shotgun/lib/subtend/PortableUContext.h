@@ -6,7 +6,7 @@
 #define HAS_UCONTEXT 1
 #endif
 
-#if defined(__FreeBSD__) ||  defined(__APPLE__)
+#if defined(__FreeBSD__) || (defined(__APPLE__) && !__DARWIN_UNIX03)
 
 #include <stdarg.h>
 #include <errno.h>

@@ -151,6 +151,10 @@ static VALUE _push_and_call(VALUE recv, ID meth, int args, VALUE *ary) {
   rni_context *ctx;
   rni_nmc *n;
   int i;
+  /* This has to be volatile so that gcc doesn't optimize
+     it away and it's test around getcontext/setcontext works
+     properly. */
+  volatile int swapped;
   OBJECT tmp;
   ctx = subtend_retrieve_context();
     
@@ -172,7 +176,12 @@ static VALUE _push_and_call(VALUE recv, ID meth, int args, VALUE *ary) {
   n->args = args;
 
   n->jump_val = CALL_METHOD;
-  swapcontext(&n->cont, &n->system);
+  swapped = 0;
+  getcontext(&n->cont);
+  if(!swapped) {
+    swapped++;
+    setcontext(&n->system);
+  }
   /* When we return here, the call has been done. */
   return n->value;
 }

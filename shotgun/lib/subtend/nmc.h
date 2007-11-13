@@ -16,7 +16,15 @@ struct rni_nmc {
   int cont_set;
   int jump_val;
   ucontext_t system;
+  /* work around a bug in 10.5's libc versus header files */
+#if __DARWIN_UNIX03
+  _STRUCT_MCONTEXT __system_mc;
+#endif
   ucontext_t cont;
+#if __DARWIN_UNIX03
+  _STRUCT_MCONTEXT __cont_mc;
+#endif
+  
   int setup_context;
   
   void *stack;

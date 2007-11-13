@@ -31,6 +31,10 @@ class ExtensionCompiler
         @preserve_objects = true
       end
     end
+
+    if $DEBUG
+      @preserve_objects = true
+    end 
     
     if File.exists?("shotgun/lib/subtend/ruby.h")
       @includes << "-I#{Dir.pwd}/shotgun/lib/subtend"

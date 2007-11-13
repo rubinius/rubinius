@@ -30,13 +30,13 @@ This software was developed as part of a project at MIT.
 #define GET getmcontext
 #endif
 
-#if defined(__APPLE__) && defined(__i386__)
+#if (defined(__APPLE__) && !__DARWIN_UNIX03) && defined(__i386__)
 #define NEEDX86CONTEXT 1
 #define SET _setmcontext
 #define GET _getmcontext
 #endif
 
-#if defined(__APPLE__) && !defined(__i386__)
+#if (defined(__APPLE__) && !__DARWIN_UNIX03) && !defined(__i386__)
 #define NEEDPOWERCONTEXT 1
 #define SET __setmcontext
 #define GET __getmcontext

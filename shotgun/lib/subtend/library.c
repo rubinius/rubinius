@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+
 #include "shotgun.h"
 #include "nmc.h"
 
@@ -59,18 +61,23 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   char *sys_name;
   rni_nmc *nmc;
   int len;
+  struct stat sb;
   
   nmc = NULL;
 
-  len = FIXNUM_TO_INT(string_get_bytes(path));
+  len = FIXNUM_TO_INT(string_get_bytes(path)) + 21;
 
-  sys_name = calloc(1, len+20);
+  sys_name = calloc(1, len);
   
   /* path is a string like 'ext/gzip', we turn that into 'ext/gzip.so'
      or whatever the library suffix is. */
   c_path = string_byte_address(state, path);
   strlcpy(sys_name, c_path, len);
-  strlcat(sys_name, LIBSUFFIX, 19);
+  strlcat(sys_name, LIBSUFFIX, len);
+  
+  if(stat(sys_name, &sb) == 1) {
+    return I2N(0);
+  }
   
   /* Open it up. If this fails, then we just pretend like
      the library isn't there. */

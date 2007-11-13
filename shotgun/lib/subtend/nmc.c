@@ -300,7 +300,8 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
   if(!travel) {
     c->self = fc->self;
     c->type = fc->type;
-    
+    c->sender = fc->sender;
+    c->argcount = fc->argcount;
     c->home_context = nmc;
     c->active_context = nmc;
     
@@ -318,12 +319,12 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
  
     n->cont_set++;
     n->stack_size = 65536;
-    n->stack = (void*)calloc(1, n->stack_size + 16);
+    n->stack = (void*)calloc(1, n->stack_size);
 
     getcontext(&n->cont);
     n->cont.uc_stack.ss_sp = n->stack;
     n->cont.uc_stack.ss_size = n->stack_size;
-#ifndef PORTABLEUCONTEXT_DEFINED
+#ifdef HAS_UCONTEXT
     n->cont.uc_stack.ss_flags = 0;
     n->cont.uc_link = NULL;
 #endif
@@ -380,7 +381,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
       tmp = handle_to_object(global_context->state, global_context->state->handle_tbl, n->value);
       nmc_cleanup(n, state->handle_tbl);
       n->stack = NULL;
-      cpu_return_to_sender(state, c, tmp, 0, FALSE);
+      cpu_simple_return(state, c, tmp);
       nmc_delete(n);
       fc->opaque_data = NULL;
       return;

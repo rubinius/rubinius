@@ -501,7 +501,11 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
     fc = FASTCTX(ctx);
   }
   
-  c->cache = cmethod_get_cache(fc->method);
+  if(fc->type != FASTCTX_NMC) {
+    c->cache = cmethod_get_cache(fc->method);
+  } else {
+    c->cache = Qnil;
+  }
   
   c->sender = fc->sender;
   c->sp = fc->sp;
@@ -527,7 +531,7 @@ inline void cpu_activate_context(STATE, cpu c, OBJECT ctx, OBJECT home, int so) 
 
 void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise);
 
-static inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
+inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   OBJECT destination, home;
 
   destination = cpu_current_sender(c);
@@ -569,9 +573,15 @@ static inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
       }
     }
     */
-        
-    cpu_restore_context_with_home(state, c, destination, home, TRUE, FALSE);
-    stack_push(val);
+    if(FASTCTX(home)->type == FASTCTX_NMC) {
+      nmc_activate(state, c, home, val, FALSE);
+      /* We return because nmc_activate will setup the cpu to do whatever
+         it needs to next. */
+      return TRUE;
+    } else {
+      cpu_restore_context_with_home(state, c, destination, home, TRUE, FALSE);
+      stack_push(val);
+    }
   }
   
   return TRUE;
