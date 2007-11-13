@@ -99,7 +99,7 @@ class CompiledMethod
     @bytecodes.compile
   end
   
-  def activate(recv, args, locals=nil, &prc)
+  def activate(recv, mod, args, locals=nil, &prc)
     sz = args.total
     if prc
       block = prc.block
@@ -113,6 +113,7 @@ push_array
 #local block
 #local locals
 #local sz
+#local mod
 push self
 #local recv
 activate_method

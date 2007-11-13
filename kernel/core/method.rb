@@ -10,7 +10,7 @@ class Method
   end
   
   def call(*args, &prc)
-    @method.activate(@receiver, args, &prc)
+    @method.activate(@receiver, @module, args, &prc)
   end
 
   def unbind

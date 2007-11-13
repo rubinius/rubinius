@@ -821,9 +821,10 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
 /* Layer 4: direct activation. Used for calling a method thats already
    been looked up. */
 static inline void cpu_activate_method(STATE, cpu c, OBJECT recv, OBJECT mo,
-                                       int args, OBJECT name, OBJECT block) {
+                                       OBJECT mod, int args, OBJECT name,
+                                       OBJECT block) {
   
-  _cpu_build_and_activate(state, c, mo, recv, name, args, block, 0, Qnil);  
+  _cpu_build_and_activate(state, c, mo, recv, name, args, block, 0, mod);
 }
 
 /* Layer 4: send. Primary method calling function. */
