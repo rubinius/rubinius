@@ -12,7 +12,7 @@
 
             <h3>Operation</h3>
             
-            <p>Converts multiple individual arguments into an array for a rest argument</p>
+            <p>Converts multiple individual caller arguments into an array for a rest argument</p>
             
 
             <h3>Format</h3>
@@ -38,7 +38,7 @@
 
             <h3>Description</h3>
             
-            <p>Copies multiple individual arguments to a method from the caller's stack into an array to be used as a rest argument. Used when the method to be called has a rest argument (i.e. the last defined method parameter is a splat).</p><p>The number of arguments to place into the rest arg is determined by how many actual args have been passed to the method, less the number of arguments <i>argc</i> defined by the method. If this is less than or equal to 0, an empty array is pushed onto the stack. If the number is greater than 0, arguments are copied from before the frame pointer into the array, so that the first rest arg is at the start of the array, and the last rest arg is at the end.</p>
+            <p>Copies multiple individual arguments to a method from the caller's stack into an array to be used as a rest argument. Used when the method to be called has a rest argument (i.e. the last defined method parameter is a splat).</p><p>The number of arguments to place into the rest array is determined by how many actual args have been passed to the method, less the number of arguments <i>argc</i> defined by the method. If this is less than or equal to 0, an empty array is pushed onto the stack. If the number is greater than 0, arguments are copied from before the frame pointer into the array, so that the first rest arg is at the start of the array, and the last rest arg is at the end.</p>
             
 
             

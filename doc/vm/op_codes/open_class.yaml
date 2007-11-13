@@ -16,6 +16,20 @@ description: >-
   
   The _cl_ argument to the opcode is the class literal identifying the class to
   be opened.
+notes:
+  The enclosing class (if any) will be the current enclosing class in the current
+  execution context. Typically, this will have been set by executing the opcode
+  "push_encloser":push_encloser.html.
+see:
+  - push_encloser
+  - open_class_under
+example: |-
+  class A
+    class B
+    end
+  end
+  # Stack transition:
+  # [...,A] => [...,B]
 source: |-
     int created;
     t1 = stack_pop();

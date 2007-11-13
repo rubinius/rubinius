@@ -42,9 +42,35 @@
             
 
             
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>The enclosing class (if any) will be the current enclosing class in the current execution context. Typically, this will have been set by executing the opcode <a href="push_encloser.html">push_encloser</a>.</p>
+            </div>
+            
+
+            
+            <h4>Example</h4>
+            <div class="example">
+	          <pre>class A
+  class B
+  end
+end
+# Stack transition:
+# [...,A] => [...,B]</pre>
+	          </div>
+            
 
             
 
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="push_encloser.html">push_encloser</a></li>
+                
+                <li><a href="open_class_under.html">open_class_under</a></li>
+                
+            </ul>
             
 
             
