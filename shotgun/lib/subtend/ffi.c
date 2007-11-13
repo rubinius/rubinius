@@ -11,6 +11,10 @@
 
 #include <lightning.h>
 
+#if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
+  #include "ffi_amd64.h" 
+#endif
+
 
 void Init_ffi(STATE) {
   OBJECT mod;
@@ -900,7 +904,14 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   
   ret_type = FIXNUM_TO_INT(ret);
   
+#if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
+  ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep); 
+#else
   ptr = ffi_generate_typed_c_stub(state, tot, arg_types, ret_type, ep);
+#endif
+
+  free(arg_types); 
+
   sym = string_to_sym(state, name);
   func = ffi_function_new(state, ptr, sym, arg_count);
 
