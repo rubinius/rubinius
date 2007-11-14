@@ -170,7 +170,7 @@ class CodeGroup
   def load_order_task
     return unless @load_order
 
-    file @load_order => @files do
+    file @load_order do
       create_load_order(@files, @load_order)
     end
 
