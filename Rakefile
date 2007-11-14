@@ -189,7 +189,7 @@ class CodeGroup
 
   def rba_task
     file File.join('runtime', 'stable', @rba_name) => @output do
-      files = Compiler.output.map do |path|
+      files = @output.map do |path|
         path.sub File.join(@build_dir, ''), ''
       end
 
