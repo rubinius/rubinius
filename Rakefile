@@ -135,7 +135,11 @@ class CodeGroup
     @build_dir = File.join 'runtime', rba_name
     @rba_name = "#{rba_name}.rba"
 
-    @load_order = File.join @compile_dir, '.load_order.txt' if load_order
+    if load_order
+      @load_order = File.join @compile_dir, '.load_order.txt'
+    else
+      @load_order = nil
+    end
 
     @output = []
 
