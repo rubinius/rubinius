@@ -60,12 +60,12 @@ class Compiler
     def args
     end
     
-    def position?(tag)
-      @compiler.position?(tag)
+    def get(tag)
+      @compiler.get(tag)
     end
     
-    def position(tag, val=true, &b)
-      @compiler.position(tag, val, &b)
+    def set(tag, val=true, &b)
+      @compiler.set(tag, val, &b)
     end
     
     def inspect
@@ -84,7 +84,7 @@ class Compiler
   end
   
   def initialize(gen_klass)
-    @position = {}
+    @variables = {}
     @generator = gen_klass
     @call_plugins = []
     
@@ -102,9 +102,16 @@ class Compiler
   
   def load_plugins
     require 'compiler2/plugins'
-    @call_plugins << Compiler::Plugins::BlockGiven.new(self)
-    @call_plugins << Compiler::Plugins::PrimitiveDeclaration.new(self)
-    @call_plugins << Compiler::Plugins::FastMathOperators.new(self)
+    
+    # The default plugins
+    activate :block_given
+    activate :primitive    
+  end
+  
+  def activate(name)
+    cls = Compiler::Plugins.find_plugin(name)
+    raise Error, "Unknown plugin '#{name}'" unless cls
+    @call_plugins << cls.new(self)
   end
   
   def inspect
@@ -132,27 +139,17 @@ class Compiler
     end
   end
   
-  def position?(tag)
-    @position[tag]
+  def get(tag)
+    @variables[tag]
   end
   
-  def position(tag, val=true)
-    cur = @position[tag]
-    @position[tag] = val
+  def set(tag, val=true)
+    cur = @variables[tag]
+    @variables[tag] = val
     begin
       yield
     ensure
-      @position[tag] = cur
-    end
-  end
-  
-  def fresh_position
-    cur = @position
-    @position = {}
-    begin
-      yield
-    ensure
-      @position = cur
+      @variables[tag] = cur
     end
   end
 end

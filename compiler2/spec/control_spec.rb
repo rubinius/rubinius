@@ -53,9 +53,12 @@ describe Compiler do
   
   it "compiles a normal while" do
     gen [:while, [:true], [:fixnum, 12], true] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
+      
       
       top.set!
       g.push :true
@@ -70,11 +73,15 @@ describe Compiler do
       
       # Break
       g.new_label.set!
+      
+      g.pop_modifiers
     end
   end
   
   it "compiles a post while" do
     gen [:while, [:true], [:fixnum, 12], false] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       fin = g.new_label
       
@@ -91,11 +98,15 @@ describe Compiler do
       
       # Break
       g.new_label.set!
+      
+      g.pop_modifiers
     end
   end
   
   it "compiles a normal until" do
     gen [:until, [:true], [:fixnum, 12], true] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
@@ -113,11 +124,15 @@ describe Compiler do
       
       # Break
       g.new_label.set!
+      
+      g.pop_modifiers
     end
   end
   
   it "compiles a post until" do
     gen [:until, [:true], [:fixnum, 12], false] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       fin = g.new_label
       
@@ -134,6 +149,8 @@ describe Compiler do
       
       # Break
       g.new_label.set!
+      
+      g.pop_modifiers
     end
   end
   
@@ -155,18 +172,24 @@ describe Compiler do
   
   it "compiles loop {} directly" do
     gen [:iter, [:fcall, :loop], nil, [:fixnum, 12]] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       top.set!
       g.push 12
       g.pop
       g.goto top
       g.new_label.set! # break 
+      
+      g.pop_modifiers
     end
   end
   
   
   it "compiles break in a control" do
     gen [:while, [:true], [:block, [:fixnum, 12], [:break]], true] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
@@ -187,6 +210,8 @@ describe Compiler do
       g.push :nil
       
       g.break.set!
+      
+      g.pop_modifiers
     end
   end
   
@@ -220,6 +245,8 @@ describe Compiler do
   
   it "compiles redo in a while" do |g|
     gen [:while, [:true], [:block, [:fixnum, 12], [:redo]], true] do |g|
+      g.push_modifiers
+      
       top = g.new_label
       fin = g.new_label
       g.redo = g.new_label
@@ -239,6 +266,8 @@ describe Compiler do
       
       # Break
       g.new_label.set!
+      
+      g.pop_modifiers
     end
   end
   
@@ -501,6 +530,8 @@ describe Compiler do
         ]
         
     gen x do |g|
+      g.push_modifiers
+      
       exc_start = g.new_label
       exc_handle = g.new_label
       
@@ -534,6 +565,8 @@ describe Compiler do
       fin.set!
       
       last.set!
+      
+      g.pop_modifiers
     end
   end
   

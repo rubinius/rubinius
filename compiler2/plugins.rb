@@ -1,12 +1,29 @@
 module Compiler::Plugins
   
+  @plugins = {}
+  
+  def self.add_plugin(name, cls)
+    @plugins[name] = cls
+  end
+  
+  def self.find_plugin(name)
+    @plugins[name]
+  end
+  
   class Plugin
     def initialize(compiler)
       @compiler = compiler
     end
+    
+    def self.plugin(name)
+      Compiler::Plugins.add_plugin name, self
+    end
   end
   
   class BlockGiven < Plugin
+    
+    plugin :block_given
+    
     def handle(g, call)
       if call.fcall?
         if call.method == :block_given? or call.method == :iterator?
@@ -21,7 +38,11 @@ module Compiler::Plugins
   end
   
   class PrimitiveDeclaration < Plugin
+    
+    plugin :primitive
+    
     def handle(g, call)
+      return false unless g.ip == 0
       return false unless call.method == :primitive
       return false unless call.call?
       return false unless call.object.kind_of? Compiler::Node::ConstFind
@@ -36,6 +57,8 @@ module Compiler::Plugins
   end
   
   class FastMathOperators < Plugin
+    
+    plugin :fastmath
     
     MetaMath = {
       :+ =>    :meta_send_op_plus,
@@ -63,6 +86,8 @@ module Compiler::Plugins
   
   # This are not currently used.
   class SystemMethods < Plugin
+    
+    plugin :fastsystem
     
     Methods = {
       :kind_of? =>      :kind_of,

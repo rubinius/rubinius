@@ -50,13 +50,7 @@ class TestGenerator
   
   attr_accessor :redo, :break, :next, :redo, :retry, :ensure_return
   attr_reader :file, :line
-  
-  def push_modifiers
-  end
-  
-  def pop_modifiers
-  end
-  
+    
   def close
   end
   
@@ -118,8 +112,9 @@ class TestGenerator
   
 end
 
-def gen(sexp)
+def gen(sexp, plugins=[])
   comp = Compiler.new TestGenerator
+  plugins.each { |n| comp.activate n }
   tg = TestGenerator.new
   
   yield tg

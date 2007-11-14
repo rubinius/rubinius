@@ -506,7 +506,7 @@ class Compiler::Node
   # TESTED  
   class Loop
     def bytecode(g)
-      g.push_modifiers(:break)
+      g.push_modifiers
       
       g.break = g.new_label
       
@@ -1318,6 +1318,8 @@ class Compiler::Node
       g.pop
       
       if @did_return
+        raise Error, "byte me. this needs to be implemented."
+        
         if @outer_ensure
           g.goto outer
         else

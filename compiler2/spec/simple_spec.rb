@@ -52,7 +52,6 @@ describe Compiler do
   it "compiles not" do
     gen [:not, [:true]] do |g|
       g.push :true
-      g.dup
       tru = g.new_label
       fin = g.new_label
       g.git tru

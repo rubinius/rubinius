@@ -20,8 +20,8 @@ class Compiler::Node
     attr_accessor :use_eval, :locals
     
     def consume(sexp)
-      position(:scope, self) do
-        position(:visibility, :public) do
+      set(:scope, self) do
+        set(:visibility, :public) do
           out = convert(sexp[0])
           @all_scopes.each do |scope|
             scope.formalize!
@@ -116,7 +116,7 @@ class Compiler::Node
     kind :snippit
     
     def consume(sexp)
-      position(:family, self) do
+      set(:family, self) do
         super(sexp)
       end
     end
@@ -414,7 +414,7 @@ class Compiler::Node
     
     def populate
       i = 0
-      scope = position?(:scope)
+      scope = get(:scope)
       
       @required.map! do |var|
         var, depth = scope.find_local(var)
@@ -452,7 +452,7 @@ class Compiler::Node
     
     def args(name)
       @name = name
-      scope = position?(:scope)
+      scope = get(:scope)
       if scope.is? Node::Class or scope.is? Node::Module
         @in_module = true
       else
@@ -467,7 +467,7 @@ class Compiler::Node
     kind :break
     def args(value=nil)
       @value = value
-      @in_block = position?(:iter)
+      @in_block = get(:iter)
     end
     
     attr_accessor :value, :in_block
@@ -529,9 +529,9 @@ class Compiler::Node
   
   class LocalVariable < Node
     def args(name)
-      scope = position?(:scope)
+      scope = get(:scope)
       
-      if position?(:iter)
+      if get(:iter)
         @variable, @depth = scope.find_local name, true
       else
         @variable, @depth = scope.find_local name
@@ -552,7 +552,7 @@ class Compiler::Node
     kind :lasgn
     
     def args(name, idx, val=nil)
-      #if val.nil? and !position?(:iter_args)
+      #if val.nil? and !get(:iter_args)
       #  raise ArgumentError, "value can not be nil"
       #end
             
@@ -728,7 +728,7 @@ class Compiler::Node
     kind :ivar
     
     def normalize(name)
-      fam = position?(:family)
+      fam = get(:family)
       if fam and idx = fam.find_ivar_index(name)
         ac = AccessSlot.new @compiler
         ac.args(idx)
@@ -747,7 +747,7 @@ class Compiler::Node
     kind :iasgn
     
     def normalize(name, val=nil)
-      fam = position?(:family)
+      fam = get(:family)
       if fam and idx = fam.find_ivar_index(name)
         ac = SetSlot.new @compiler
         ac.args(idx, val)
@@ -887,7 +887,7 @@ class Compiler::Node
         parent = name.parent
       end
       
-      body = position(:family, self) do
+      body = set(:family, self) do
         super([sexp[2]])
       end
             
@@ -968,7 +968,7 @@ class Compiler::Node
       
       if res.nil?
         body = nil
-        position(:in_rescue) do
+        set(:in_rescue) do
           res = convert(body)
         end
         els = nil
@@ -978,19 +978,19 @@ class Compiler::Node
           
           els = convert(res)
           
-          position(:in_rescue) do
+          set(:in_rescue) do
             res = convert(body)
           end
         else
           body = convert(body)
-          position(:in_rescue) do
+          set(:in_rescue) do
             res = convert(res)
           end
           els = nil
         end
       else
         body = convert(body)
-        position(:in_rescue) do
+        set(:in_rescue) do
           res = convert(res)
         end
         els = convert(els)
@@ -1025,12 +1025,12 @@ class Compiler::Node
     
     def consume(sexp)
       opts = {}
-      position(:in_ensure, opts) do
+      set(:in_ensure, opts) do
         sexp[0] = convert(sexp[0])
       end
       
       # Propagate did_return up to an outer ensure
-      if ens = position?(:in_ensure)
+      if ens = get(:in_ensure)
         ens[:did_return] = opts[:did_return]
         outer = true
       else
@@ -1059,16 +1059,16 @@ class Compiler::Node
     
     def args(val=nil)
       @value = val
-      @in_rescue = position?(:in_rescue)
+      @in_rescue = get(:in_rescue)
       
-      if ens = position?(:in_ensure)
+      if ens = get(:in_ensure)
         ens[:did_return] = self
         @in_ensure = true
       else
         @in_ensure = false
       end
       
-      @in_block = position?(:iter)
+      @in_block = get(:iter)
     end
     
     attr_accessor :value, :in_rescue, :in_ensure, :in_block
@@ -1086,7 +1086,7 @@ class Compiler::Node
         @assigns, @splat, @source = assigns, splat, source
       end
       
-      @in_block = position?(:iter)
+      @in_block = get(:iter)
     end
     
     attr_accessor :left, :splat, :source
@@ -1149,7 +1149,7 @@ class Compiler::Node
     def initialize(comp)
       super(comp)
       @block = nil
-      scope = position?(:scope)
+      scope = get(:scope)
       if scope.is? Class
         @scope = :class
       elsif scope.is? Module
@@ -1217,7 +1217,7 @@ class Compiler::Node
       if @method == :ivar_as_index
         args = @arguments
         if args.size == 1 and args[0].is? ImplicitHash
-          family = position?(:family)
+          family = get(:family)
           hsh = args[0].body
           0.step(hsh.size-1, 2) do |i|
             family.add_ivar_as_slot hsh[i].value, hsh[i+1].value
@@ -1271,7 +1271,7 @@ class Compiler::Node
     kind :super
     
     def args(args)
-      @method = position?(:scope)
+      @method = get(:scope)
       @arguments = args
       
       collapse_args()
@@ -1284,7 +1284,7 @@ class Compiler::Node
     kind :zsuper
     
     def args
-      @method = position?(:scope)
+      @method = get(:scope)
     end
   end
   
@@ -1312,7 +1312,7 @@ class Compiler::Node
     def args(name, position=nil)
       @name = name
       
-      scope = position?(:scope)
+      scope = get(:scope)
       
       @variable, @depth = scope.find_local name
       @variable.in_locals!
@@ -1359,10 +1359,10 @@ class Compiler::Node
         return sexp
       end
       
-      position(:iter) do
+      set(:iter) do
         
-        position?(:scope).new_block_scope do
-          position(:iter_args) do
+        get(:scope).new_block_scope do
+          set(:iter_args) do
             sexp[1] = convert([:iter_args, sexp[1]])
           end
                 
