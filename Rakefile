@@ -127,6 +127,7 @@ end
 #end
 
 class CodeGroup
+
   def initialize(files, compile_dir, rba_name, load_order=true)
     @files = FileList[files]
     @output = nil
@@ -134,13 +135,15 @@ class CodeGroup
     @build_dir = File.join 'runtime', rba_name
     @rba_name = "#{rba_name}.rba"
 
+    @load_order = File.join @compile_dir, '.load_order.txt' if load_order
+
     @output = []
 
     make_tasks
   end
-  
+
   attr_reader :output
-  
+
   def clean
     sh "find #{@compile_dir} -name '*.rbc' -delete"
   end
@@ -151,7 +154,9 @@ class CodeGroup
 
       @output << runtime
 
-      file runtime => source do |t|
+      deps = [source, @load_order].compact
+
+      file runtime => deps do |t|
         compile t.prerequisites.first, t.name
       end
     end
@@ -160,13 +165,11 @@ class CodeGroup
   def load_order_task
     return unless @load_order
 
-    lo = File.join(@compile_dir, '.load_order.txt')
-
-    file lo => @files do
-      create_load_order(@files, lo)
+    file @load_order => @files do
+      create_load_order(@files, @load_order)
     end
 
-    @output << lo
+    @output << @load_order
   end
 
   def make_tasks
@@ -192,7 +195,7 @@ class CodeGroup
       end
     end
   end
-  
+
 end
 
 Core      = CodeGroup.new 'kernel/core/*.rb', 'runtime/core', 'core'
@@ -315,6 +318,8 @@ end
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean:rbc clean:shotgun build:all]
 
+task :clean => %w[clean:rbc clean:shotgun]
+
 desc "Remove all ruby system files"
 task :distclean => 'clean:rbc'
 
@@ -331,7 +336,7 @@ namespace :clean do
   desc "Remove all compile system ruby files (runtime/)"
   task :rbc do
     AllPreCompiled.each do |f|
-      File.unlink f rescue nil
+      rm_f f, :verbose => $verbose
     end
   end
 
