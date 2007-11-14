@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PREFIX=`echo $0 | sed -e 's/shotgun\/rubinius//'`
+
 REAL=${PREFIX}shotgun/rubinius.bin
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${PREFIX}shotgun/lib
@@ -9,6 +10,32 @@ export SH_LIB=$SH_LIB:${PREFIX}shotgun/lib
 export LIBPATH=$LIBPATH:${PREFIX}shotgun/lib
 export PATH=$PATH:${PREFIX}shotgun/lib
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${PREFIX}shotgun/lib
+
+if [ "x${PREFIX}" != "x" ]; then
+  if [ "x${RUNTIME}" = "x" ]; then
+    export RUNTIME=${PREFIX}runtime/
+  fi
+  
+  if [ "x${BOOTSTRAP}" = "x" ]; then
+    export BOOTSTRAP=${RUNTIME}bootstrap
+  fi
+  
+  if [ "x${COMPILER}" = "x" ]; then
+    export COMPILER=${RUNTIME}compiler
+  fi
+  
+  if [ "x${CORE}" = "x" ]; then
+    export CORE=${RUNTIME}core
+  fi
+  
+  if [ "x${LOADER}" = "x" ]; then
+    export LOADER=${RUNTIME}loader.rbc
+  fi
+  
+  if [ "x${PLATFORM}" = "x" ]; then
+    export PLATFORM=${RUNTIME}platform
+  fi
+fi
 
 if test "x$1" = "x--gdb"; then
   shift
