@@ -2,6 +2,7 @@
 
 $compiler = nil
 $verbose = Rake.application.options.trace
+$dlext = Config::CONFIG["DLEXT"]
 
 require 'tsort'
 
@@ -392,9 +393,9 @@ namespace :build do
   # EXTENSIONS
   task :extensions => %w[build:shotgun build:rbc build:syck]
 
-  task :syck => 'lib/ext/syck/rbxext.bundle'
+  task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
-  file 'lib/ext/syck/rbxext.bundle' => FileList[
+  file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
     'lib/ext/syck/build.rb',
     'lib/ext/syck/*.c',
     'lib/ext/syck/*.h',
