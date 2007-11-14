@@ -110,7 +110,7 @@ while true
         cm = desc.to_cmethod
         cm.compile
         print_bytecodes(cm.bytecodes) if $show_bytes
-        out = cm.activate(MAIN, [], locals)
+        out = cm.activate(MAIN, Object, [], locals)
         
         puts "=> #{out.inspect}" # do it like this so exit won't do =>
         context = ""
