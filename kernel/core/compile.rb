@@ -31,7 +31,7 @@ module Compile
   def self.execute(string)
     cm = compile_string(string)
     cm.compile
-    cm.activate MAIN, []
+    cm.activate MAIN, Object, []
   end
 
   # Called when we encounter a break keyword that we do not support
