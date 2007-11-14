@@ -1,6 +1,6 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 
-include shotgun/config.mk
+-include shotgun/config.mk
 
 all: vm
 

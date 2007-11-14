@@ -1,4 +1,4 @@
-include config.mk
+-include config.mk
 include common.mk
 
 INSTALL=$(LIBTOOL) --mode=install install
