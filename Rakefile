@@ -91,7 +91,7 @@ def compile(name, output)
     FileUtils.mkdir_p dir
   end
   
-  compiler = $complier ? " -I#{$compiler}" : ''
+  compiler = $compiler ? " -I#{$compiler}" : ''
 
   sh "shotgun/rubinius#{compiler} compile #{name} #{output}",
      :verbose => $verbose
