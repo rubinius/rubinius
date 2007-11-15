@@ -377,6 +377,16 @@ private
     constants_table.delete(name)
   end
 
+  def remove_method(*names)
+    names.each do |name|
+      instance_method(name)
+      method_table.delete name
+      VM.reset_method_cache(name)
+    end
+
+    nil
+  end
+
   def normalize_name(name)
     sym_name = nil
     if name.respond_to?(:to_sym)
