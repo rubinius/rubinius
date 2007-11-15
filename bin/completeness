@@ -21,6 +21,8 @@ except = []
 requires = []
 constant_names = []
 report_failures = false
+use_color = false
+verbose = false
 quiet = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
@@ -60,6 +62,12 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-F", "--report-failures", "Report spec failure locations") do
     report_failures = true
   end
+  opts.on("-o", "--color", "Use colors green=NoFailures yellow=WithFailures red=NoExamples") do
+    use_color = true
+  end
+  opts.on("-V", "--verbose", "Show mspec command being executed") do
+    verbose = true
+  end
   opts.on("-q", "--quiet", "Suppress output except for final summary") do
     quiet = true
   end
@@ -72,7 +80,90 @@ opts = OptionParser.new("", 24, '   ') do |opts|
 end
 
 requires.each { |r| require r }
-cmd = %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '%s ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d spec 2> /dev/null)
+
+dir_map = {
+  'NilClass' => 'nil',
+  'TrueClass' => 'true',
+  'FalseClass' => 'false',
+}
+
+## from mkspec
+method_map = {
+  '`'   => 'backtick',
+  '+'   => 'plus',
+  '-'   => 'minus',
+  '+@'  => 'uplus',
+  '-@'  => 'uminus',
+  '*'   => 'multiply',
+  '/'   => 'divide',
+  '%'   => 'modulo',
+  '<<'  => {'Bignum' => 'left_shift', 
+            'Fixnum' => 'left_shift',
+            'Array'  => 'append',
+            'IO'     => 'output',
+            'String' => 'append' },
+  '>>'  => 'right_shift',
+  '<'   => 'lt',
+  '<='  => 'lte',
+  '>'   => 'gt',
+  '>='  => 'gte',
+  '='   => 'assignment',
+  '=='  => 'equal_value',
+  '===' => 'case_compare',
+  '<=>' => 'comparison',
+  '[]'  => 'element_reference',
+  '[]=' => 'element_set',
+  '**'  => 'exponent',
+  '!'   => 'not',
+  '~'   => {'Bignum' => 'complement',
+            'Fixnum' => 'complement',
+            'Regexp' => 'match',
+            'String' => 'match' },
+  '!='  => 'not_equal',
+  '!~'  => 'not_match',
+  '=~'  => 'match',
+  '&'   => {'Bignum'     => 'bit_and',
+            'Fixnum'     => 'bit_and',
+            'Array'      => 'intersection',
+            'TrueClass'  => 'and',
+            'FalseClass' => 'and', 
+            'NilClass'   => 'and' },
+  '|'   => {'Bignum'     => 'bit_or',
+            'Fixnum'     => 'bit_or',
+            'Array'      => 'union',
+            'TrueClass'  => 'or',
+            'FalseClass' => 'or',
+            'NilClass'   => 'or' },
+  '^'   => {'Bignum'     => 'bit_xor',
+            'Fixnum'     => 'bit_xor',
+            'TrueClass'  => 'xor',
+            'FalseClass' => 'xor',
+            'NilClass'   => 'xor'},
+}
+
+cmd = lambda do |name|
+  spec_file = "spec"
+  const, meth = *name.split(/[#\.]/)
+  if method_map.key? meth
+    meth = method_map[meth]
+    meth = meth[const] if meth.kind_of? Hash
+  elsif meth =~ /[\?!=]$/
+    meth = meth[0..-2]
+  end
+  dir = dir_map[const] || const.downcase
+  spec_file = "spec/core/#{dir}/#{meth}_spec.rb"
+  mspec_cmd =  %(bin/mspec -t #{target} #{requires.map { |r| "-r#{r}" }.join(" ")} -e '#{name} ' #{except.map { |x| "-x #{x}" }.join(' ')} -f d #{spec_file} 2> /dev/null)
+  puts mspec_cmd if verbose
+  %x{#{mspec_cmd}}
+end
+
+colors = {
+  :clear => "\033[0m",
+  :red => "\033[0;31m",
+  :green => "\033[0;32m",
+  :yellow => "\033[0;33m",
+  :blue => "\033[0;34m",
+}
 
 print_summary = lambda do |str, name, tab|
   examples, failures = 0, 0
@@ -89,7 +180,19 @@ print_summary = lambda do |str, name, tab|
   else
     "No examples found"
   end
-  puts "#{name}\n    #{summary}" unless quiet
+  unless quiet
+    if use_color
+      color = if examples == 0
+                colors[:red]
+              elsif failures == 0
+                colors[:green]
+              else
+                colors[:yellow]
+              end
+      name = color + name + colors[:clear]
+    end
+    puts "#{name}\n    #{summary}"
+  end
   tab.add(examples, failures, failure_messages)
 end
 
@@ -132,14 +235,14 @@ tabulator = Tabulator.new
 constants.compact.each do |c|
   (c.methods(false) + c.singleton_methods).uniq.sort.each do |m|
     name = "#{c}.#{m}"
-    print_summary.call(%x(#{cmd % name}), name, tabulator)
+    print_summary.call(cmd[name], name, tabulator)
   end
 
   (c.public_instance_methods(false) +
       c.private_instance_methods(false) +
       c.protected_instance_methods(false)).sort.each do |m|
     name = "#{c}\##{m}"
-    print_summary.call(%x(#{cmd % name}), name, tabulator)
+    print_summary.call(cmd[name], name, tabulator)
   end
 end
 
