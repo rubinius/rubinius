@@ -12,28 +12,28 @@ export PATH=$PATH:${PREFIX}shotgun/lib
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${PREFIX}shotgun/lib
 
 if [ "x${PREFIX}" != "x" ]; then
-  if [ "x${RUNTIME}" = "x" ]; then
-    export RUNTIME=${PREFIX}runtime/
+  if [ "x${RBX_RUNTIME}" = "x" ]; then
+    export RBX_RUNTIME=${PREFIX}runtime/
   fi
-  
-  if [ "x${BOOTSTRAP}" = "x" ]; then
-    export BOOTSTRAP=${RUNTIME}bootstrap
+
+  if [ "x${RBX_BOOTSTRAP}" = "x" ]; then
+    export RBX_BOOTSTRAP=${RBX_RUNTIME}bootstrap
   fi
-  
-  if [ "x${COMPILER}" = "x" ]; then
-    export COMPILER=${RUNTIME}compiler
+
+  if [ "x${RBX_COMPILER}" = "x" ]; then
+    export RBX_COMPILER=${RBX_RUNTIME}compiler
   fi
-  
-  if [ "x${CORE}" = "x" ]; then
-    export CORE=${RUNTIME}core
+
+  if [ "x${RBX_CORE}" = "x" ]; then
+    export RBX_CORE=${RBX_RUNTIME}core
   fi
-  
-  if [ "x${LOADER}" = "x" ]; then
-    export LOADER=${RUNTIME}loader.rbc
+
+  if [ "x${RBX_LOADER}" = "x" ]; then
+    export RBX_LOADER=${RBX_RUNTIME}loader.rbc
   fi
-  
-  if [ "x${PLATFORM}" = "x" ]; then
-    export PLATFORM=${RUNTIME}platform
+
+  if [ "x${RBX_PLATFORM}" = "x" ]; then
+    export RBX_PLATFORM=${RBX_RUNTIME}platform
   fi
 fi
 

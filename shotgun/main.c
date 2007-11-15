@@ -61,9 +61,9 @@ int main(int argc, char **argv) {
   
   /* Load the bootstrap. */
   
-  archive = search_for("BOOTSTRAP", "bootstrap");
+  archive = search_for("RBX_BOOTSTRAP", "bootstrap");
   if(!archive) {
-    printf("Unable to find a bootstrap (bootstrap.rba) to load!\n");
+    printf("Unable to find a bootstrap to load!\n");
     return 1;
   }
     
@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
   
   /* Load the platform. */
   
-  archive = search_for("PLATFORM", "platform");
+  archive = search_for("RBX_PLATFORM", "platform");
   if(!archive) {
     printf("Unable to find a platform to load!\n");
     return 1;
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   
   /* Load the core. */
 
-  archive = search_for("CORE", "core");
+  archive = search_for("RBX_CORE", "core");
   if(!archive) {
     printf("Unable to find a core to load!\n");
     return 1;
@@ -106,9 +106,9 @@ int main(int argc, char **argv) {
   
   /* Load the loader.rbc */
   
-  archive = search_for("LOADER", "loader.rbc");
+  archive = search_for("RBX_LOADER", "loader.rbc");
   if(!archive) {
-    printf("Unable to find loader (loader.rbc) to load!\n");
+    printf("Unable to find loader.rbc to load!\n");
     return 1;
   }
   

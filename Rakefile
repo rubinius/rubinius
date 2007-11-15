@@ -1,6 +1,5 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 
-$compiler = nil
 $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 
@@ -92,30 +91,19 @@ def compile(name, output)
     FileUtils.mkdir_p dir
   end
   
-  compiler = $compiler ? " -I#{$compiler}" : ''
-
-  sh "shotgun/rubinius#{compiler} compile #{name} #{output}",
-     :verbose => $verbose
+  sh "shotgun/rubinius compile #{name} #{output}", :verbose => $verbose
 end
 
 task :compiler do
-  @pb = "runtime/stable/bootstrap.rba"
-  @pp = "runtime/stable/platform.rba"
-  @pc = "runtime/stable/core.rba"
-  @pl = "runtime/stable/loader.rbc"
-  @pr = "runtime/stable/compiler.rba"
-
   if ENV['USE_CURRENT']
     puts "Use current versions, not stable."
   else
-    ENV['BOOTSTRAP'] = @pb
-    ENV['CORE'] = @pc
-    ENV['LOADER'] = @pl
-    ENV['PLATFORM'] = @pp
-    ENV['COMPILER'] = @pr
+    ENV['RBX_BOOTSTRAP'] = "runtime/stable/bootstrap.rba"
+    ENV['RBX_COMPILER'] = "runtime/stable/compiler.rba"
+    ENV['RBX_CORE'] = "runtime/stable/core.rba"
+    ENV['RBX_LOADER'] = "runtime/stable/loader.rbc"
+    ENV['RBX_PLATFORM'] = "runtime/stable/platform.rba"
   end
-
-  $compiler = ENV['COMPILER']
 end
 
 rule ".rbc" => %w[compiler .rb] do |t|
@@ -211,6 +199,10 @@ Compiler  = CodeGroup.new 'compiler/**/*.rb', 'runtime', 'compiler', false
 
 file 'runtime/loader.rbc' => 'kernel/loader.rb' do
   compile 'kernel/loader.rb', 'runtime/loader.rbc'
+end
+
+file 'runtime/stable/loader.rbc' => 'runtime/loader.rbc' do
+  cp 'runtime/loader.rbc', 'runtime/stable', :verbose => $verbose
 end
 
 AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output

@@ -37,16 +37,16 @@ end
 
 additions = []
 
-if ENV['RUNTIME'] then
+if ENV['RBX_RUNTIME'] then
   $LOAD_PATH.each do |path|
     next if path == '.' or path[0] == ?/ # HACK unsafe on mswin
-    path.replace File.join(ENV['RUNTIME'], path)
+    path.replace File.join(ENV['RBX_RUNTIME'], path)
   end
 end
 
-# If there is no compiler.rba or COMPILER env variable, use the system one.
-if ENV["COMPILER"] and File.exists? ENV["COMPILER"]
-  additions << ENV["COMPILER"]
+# If there is no compiler.rba or RBX_COMPILER env variable, use the system one.
+if ENV['RBX_COMPILER'] and File.exists? ENV['RBX_COMPILER']
+  additions << ENV['RBX_COMPILER']
 end
 
 additions << File.join(Rubinius::RBA_PATH, "compiler")
@@ -60,8 +60,6 @@ $LOAD_PATH.insert($LOAD_PATH.index('.'), *additions)
 if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
   $LOAD_PATH.unshift(*ENV['RUBYLIB'].split(':'))
 end
-
-p $LOAD_PATH
 
 # Parse options here!
 RBS_USAGE = <<END
