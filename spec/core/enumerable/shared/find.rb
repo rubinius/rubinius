@@ -3,7 +3,7 @@ shared :enumerable_find do |cmd|
     # #detect and #find are aliases, so we only need one function 
     before :each do
       @elements = [2, 4, 6, 8, 10]
-      @numerous = Numerous.new(*@elements)
+      @numerous = EnumerableSpecs::Numerous.new(*@elements)
     end
     
     it "Passes each entry in enum to block while block when block is false" do
