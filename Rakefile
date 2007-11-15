@@ -395,6 +395,16 @@ namespace :build do
     sh "./shotgun/rubinius compile lib/ext/syck"
   end
 
+  desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
+  task :stable => %w[
+    build:all
+    runtime/stable/bootstrap.rba
+    runtime/stable/compiler.rba
+    runtime/stable/core.rba
+    runtime/stable/loader.rbc
+    runtime/stable/platform.rba
+  ]
+
   # OBSOLETE
   task :core => :rbc do
     raise "OBSOLETE. Use 'rake build'"
