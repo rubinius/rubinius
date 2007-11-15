@@ -259,6 +259,11 @@ int object_tainted_p(STATE, OBJECT self) {
   return (REFERENCE_P(self) && self->IsTainted);
 }
 
+void object_set_untainted(STATE, OBJECT self) {
+  if(!REFERENCE_P(self)) return;
+  self->IsTainted = FALSE;
+}
+
 void object_set_frozen(STATE, OBJECT self) {
   if(!REFERENCE_P(self)) return;
   self->IsFrozen = TRUE;

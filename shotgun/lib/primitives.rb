@@ -1697,6 +1697,14 @@ class ShotgunPrimitives
     CODE
   end
   
+  def object_untaint
+    <<-CODE
+    self = stack_pop();
+    object_set_untainted(state, self);
+    stack_push(self);
+    CODE
+  end
+  
   def object_freeze
     <<-CODE
     self = stack_pop();

@@ -233,6 +233,10 @@ class Object
   def tainted?
     Ruby.primitive :object_tainted_p
   end
+
+  def untaint
+    Ruby.primitive :object_untaint
+  end
   
   def freeze
     Ruby.primitive :object_freeze
