@@ -1,0 +1,18 @@
+1. Directories
+
+* runtime/ contains run-time compiled files for Rubinius.  You'll use these
+  files when running shotgun/rubinius
+* runtime/stable/* is only used by commands run from the Rakefile.  You
+  probably don't need to touch anything in here, but when you do, you can
+  rebuild it with rake build:stable.
+
+2. Primitives
+
+To add a primitive:
+
+* Give the primitive a sane name
+* Implement the primitive in shotgun/lib/primitives.rb
+* Give the primitive a number in compiler/primitives/primitive_names.rb
+* rake runtime/stable/compiler.rba
+* rake
+
