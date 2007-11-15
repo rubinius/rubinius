@@ -39,6 +39,8 @@ class Object
   end
   
   def inspect
+    return "..." if RecursionGuard.inspecting?(self)
+    
     return self.to_s unless @__ivars__
     
     if (@__ivars__.is_a?(Hash) or @__ivars__.is_a?(Tuple)) and @__ivars__.empty?
@@ -48,25 +50,21 @@ class Object
     res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
     parts = []
     
-    if @__ivars__.is_a?(Hash)    
-      @__ivars__.each do |k,v|
-        if v.object_id == self.object_id # This would be an infinite loop
-          parts << "#{k}=self"
-        else
+    RecursionGuard.inspect(self) do
+    
+      if @__ivars__.is_a?(Hash)    
+        @__ivars__.each do |k,v|
           parts << "#{k}=#{v.inspect}"
         end
-      end
-    else
-      0.step(@__ivars__.size - 1, 2) do |i|
-        if k = @__ivars__[i]
-          v = @__ivars__[i+1]
-          if v.object_id == self.object_id # This would be an infinite loop
-            parts << "#{k}=self"
-          else
+      else
+        0.step(@__ivars__.size - 1, 2) do |i|
+          if k = @__ivars__[i]
+            v = @__ivars__[i+1]
             parts << "#{k}=#{v.inspect}"
           end
         end
       end
+      
     end
     
     res << parts.join(" ")

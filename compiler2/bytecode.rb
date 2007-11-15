@@ -5,19 +5,31 @@ require 'compiler2/generate'
 
 class Compiler
   class MethodDescription
-    def initialize(gen)
+    def initialize(gen, locals)
       @generator = gen.new
+      @locals = locals
+      @name = nil
+      @required = 0
+      @optional = 0
+      @name = :__unknown__
     end
 
-    attr_reader :generator 
+    attr_reader :generator, :locals
+    attr_accessor :required, :optional, :name
     
     def run(top)
       @generator.run(top)
+      @required, @optional = top.argument_info
+      @name = top.name
     end
     
     def ==(desc)
       desc.kind_of? MethodDescription and @generator == desc.generator
-    end    
+    end
+    
+    def to_cmethod
+      @generator.to_cmethod(self)
+    end
   end
 end
 
@@ -42,8 +54,13 @@ class Compiler::Node
   end
   
   class ClosedScope
+    
+    def new_description
+      Compiler::MethodDescription.new(@compiler.generator, self.locals)
+    end      
+    
     def to_description
-      desc = Compiler::MethodDescription.new(@compiler.generator)
+      desc = new_description()
       gen = desc.generator
       
       show_errors(gen) do
@@ -53,8 +70,12 @@ class Compiler::Node
       return desc
     end
     
+    def argument_info
+      [0, 0]
+    end
+    
     def attach_and_call(g, name)
-      desc = Compiler::MethodDescription.new @compiler.generator
+      desc = new_description()
       meth = desc.generator
       
       # Allocate some stack to store locals.
@@ -91,6 +112,7 @@ class Compiler::Node
       @body.bytecode(g)
       g.pop
       g.push :true
+      g.sret
     end
   end
 
@@ -526,8 +548,10 @@ class Compiler::Node
   # TESTED  
   class Iter
     def bytecode(g)
-      desc = Compiler::MethodDescription.new @compiler.generator
+      desc = Compiler::MethodDescription.new @compiler.generator, @locals
+      desc.name = :__block__
       sub = desc.generator
+
       show_errors(sub) do
         if @arguments
           @arguments.bytecode(sub)
@@ -1742,8 +1766,14 @@ class Compiler::Node
   # TESTED
   class Define
     
+    def argument_info
+      req = @arguments.required.size
+      opt = @arguments.optional.size
+      [req, opt]
+    end
+    
     def compile_body
-      desc = Compiler::MethodDescription.new @compiler.generator
+      desc = new_description()
       meth = desc.generator
       
       show_errors(meth) do
@@ -1752,7 +1782,6 @@ class Compiler::Node
       end
       meth.sret
       meth.close
-      
       
       return desc
     end

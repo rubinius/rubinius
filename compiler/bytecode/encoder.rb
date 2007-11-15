@@ -222,7 +222,9 @@ class InstructionEncoder
     :equal,
     :sret,
     :set_literal,
-    :passed_blockarg
+    :passed_blockarg,
+    :create_block2,
+    :cast_for_single_block_arg
   ]
   
   CheckInterupts = [

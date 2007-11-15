@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "methctx.h"
 #include "tuple.h"
+#include "bytearray.h"
 
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals) {
   OBJECT obj;
@@ -42,7 +43,7 @@ OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_bl
 
 
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
-  OBJECT ctx;
+  OBJECT ctx, ba;
   int cnt;
   struct fast_context *fc;
   
@@ -66,8 +67,14 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   fc->name = self;
   fc->self = Qnil;
   fc->method = blokenv_get_method(self);
+  
+  ba = cmethod_get_bytecodes(fc->method);
+  cpu_compile_instructions(state, ba);
+  
+  fc->data = bytearray_byte_address(state, ba);
+  
+  fc->literals = cmethod_get_literals(fc->method);
   fc->block = Qnil;
-  fc->literals = Qnil;
   fc->method_module = Qnil;
   
   cnt = FIXNUM_TO_INT(blokenv_get_local_count(self));

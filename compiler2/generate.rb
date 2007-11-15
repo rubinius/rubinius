@@ -29,7 +29,9 @@ class Compiler
       @next = nil
       @retry = nil
       @last_line = nil
+      @file = nil
       @lines = []
+      @primitive = nil
     end
     
     attr_reader :ip
@@ -39,10 +41,8 @@ class Compiler
       node.bytecode self
     end
     
-    def new_label
-      Label.new(self)
-    end
-    
+    # Formalizers
+        
     def collapse_labels
       @stream.each do |part|
         if part.kind_of? Array
@@ -57,32 +57,52 @@ class Compiler
       end
     end
     
-    def push_modifiers
-      @modstack << [@break, @redo, @next, @retry]
+    def encode_lines
+      tup = Tuple.new(@lines.size)
+      i = 0
+      @lines.each do |ent|
+        tup[i] = Tuple[ent[0], ent[1], ent[2]]
+        i += 1
+      end
+      
+      return tup
     end
     
-    def pop_modifiers
-      @break, @redo, @next, @retry = @modstack.pop
-    end
-    
-    def set_line(line, file)
-      if line != @last_line
-        @lines << [@ip, nil, line]
-        @file = file
-        
-        # Update the last entry to complete it
-        if @last_line
-          @lines.last[1] = @ip - 1
+    def encode_literals
+      tup = Tuple.new(@literals.size)
+      i = 0
+      @literals.each do |lit|
+        if lit.kind_of? Compiler::MethodDescription
+          lit = lit.to_cmethod
         end
-        @last_line = line
+        tup[i] = lit
+        i += 1
       end
+      
+      return tup
     end
     
-    def close
-      if @lines and @lines.last[1].nil?
-        @lines.last[1] = @ip
+    def to_cmethod(desc)
+      collapse_labels
+      iseq = @encoder.encode_stream @stream
+      cm = CompiledMethod.new.from_string iseq, desc.locals, desc.required
+
+      if @file
+        cm.file = @file.to_sym
+      else
+        cm.file = nil
       end
+      
+      cm.name = desc.name
+      
+      cm.literals = encode_literals()
+      cm.lines = encode_lines()
+      cm.serial = 0
+      
+      return cm
     end
+    
+    # Helpers
     
     def add(*what)
       @ip += what.size
@@ -105,6 +125,55 @@ class Compiler
       @literals << what
       return idx
     end
+    
+    # Commands (these don't generate data in the stream)
+    
+    def advanced_since?(ip)
+      @ip > ip
+    end
+    
+    def push_modifiers
+      @modstack << [@break, @redo, @next, @retry]
+    end
+    
+    def pop_modifiers
+      @break, @redo, @next, @retry = @modstack.pop
+    end
+    
+    def set_line(line, file)
+      if line != @last_line
+        # Update the last entry to complete it
+        if @last_line
+          @lines.last[1] = @ip - 1
+        end
+        @last_line = line
+        
+        @lines << [@ip, nil, line]
+        @file = file
+      end
+    end
+    
+    def line
+      @last_line
+    end
+    
+    attr_reader :file
+    
+    def close
+      if @lines and @lines.last[1].nil?
+        @lines.last[1] = @ip
+      end
+    end
+    
+    def as_primitive(name)
+      @primitive = name
+    end
+    
+    def new_label
+      Label.new(self)
+    end
+    
+    # Operations
     
     def push(what)
       case what
@@ -176,8 +245,20 @@ class Compiler
       end
     end
     
+    def open_class(name)
+      add :open_class, find_literal(name)
+    end
+    
+    def open_module(name)
+      add :open_module, find_literal(name)      
+    end
+    
     def dup
-      add :dup
+      add :dup_top
+    end
+    
+    def swap
+      add :swap_stack
     end
     
     def gif(lbl)
@@ -190,6 +271,34 @@ class Compiler
     
     def goto(lbl)
       add :goto, lbl
+    end
+    
+    def attach_method(name)
+      add :attach_method, find_literal(name)
+    end
+    
+    def add_method(name)
+      add :add_method, find_literal(name)
+    end
+    
+    def set_local(a)
+      add :set_local, a
+    end
+    
+    def push_local(a)
+      add :push_local, a
+    end
+    
+    def set_local_depth(a, b)
+      add :set_local_depth, a, b
+    end
+    
+    def push_local_depth(a, b)
+      add :push_local_depth, a, b
+    end
+    
+    def make_array(count)
+      add :make_array, count
     end
     
     def send(meth, count, priv=false)

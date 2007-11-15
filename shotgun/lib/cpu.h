@@ -120,7 +120,7 @@ typedef OBJECT (*cpu_event_each_channel_cb)(STATE, void*, OBJECT);
 
 #define cpu_current_block(state, cpu) (FASTCTX(cpu->home_context)->block)
 #define cpu_current_method(state, cpu) (FASTCTX(cpu->active_context)->method)
-#define cpu_current_literals(state, cpu) (FASTCTX(cpu->home_context)->literals)
+#define cpu_current_literals(state, cpu) (FASTCTX(cpu->active_context)->literals)
 #define cpu_current_locals(state, cpu) (FASTCTX(cpu->home_context)->locals)
 #define cpu_set_locals(state, cpu, obj) (FASTCTX(cpu->home_context)->locals = obj)
 #define cpu_current_name(state, cpu) (FASTCTX(cpu->home_context)->name)
@@ -151,6 +151,8 @@ OBJECT cpu_const_get(STATE, cpu c, OBJECT sym, OBJECT under);
 OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);
 int cpu_dispatch(STATE, cpu c);
+inline void cpu_compile_instructions(STATE, OBJECT ba);
+
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method);

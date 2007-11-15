@@ -17,7 +17,15 @@ class Compiler::Node
       Compiler::LocalScope.new(self)
     end
     
-    attr_accessor :use_eval, :locals
+    attr_accessor :use_eval
+    
+    def locals
+      @top_scope.size
+    end
+    
+    def name
+      nil
+    end
     
     def consume(sexp)
       set(:scope, self) do
@@ -44,6 +52,8 @@ class Compiler::Node
       ensure
         @block_scope.pop
       end
+      
+      return scope.size
     end
     
     def find_local(name, in_block=false)
@@ -136,6 +146,10 @@ class Compiler::Node
     end
 
     attr_accessor :body
+    
+    def name
+      :__script__
+    end
   end
   
   class Newline < Node
@@ -1361,7 +1375,7 @@ class Compiler::Node
       
       set(:iter) do
         
-        get(:scope).new_block_scope do
+        @locals = get(:scope).new_block_scope do
           set(:iter_args) do
             sexp[1] = convert([:iter_args, sexp[1]])
           end
@@ -1387,7 +1401,7 @@ class Compiler::Node
       return c
     end
     
-    attr_accessor :arguments, :body
+    attr_accessor :arguments, :body, :locals
   end
   
   class BlockPass < Node

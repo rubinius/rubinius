@@ -317,16 +317,7 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
   return mo;
 }
 
-static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
-      OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
-  OBJECT sender, ctx, ba;
-  int num_lcls;
-  struct fast_context *fc;
-  
-  sender = c->active_context;
-  
-  ba = cmethod_get_bytecodes(mo);
-
+inline void cpu_compile_instructions(STATE, OBJECT ba) {
 #if DIRECT_THREADED
   if(!ba->IsFrozen) {
     if(ba->IsLittleEndian) {
@@ -353,6 +344,18 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   }
 
 #endif
+}
+
+static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
+      OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
+  OBJECT sender, ctx, ba;
+  int num_lcls;
+  struct fast_context *fc;
+  
+  sender = c->active_context;
+  
+  ba = cmethod_get_bytecodes(mo);
+  cpu_compile_instructions(state, ba);
   
   num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
   
@@ -490,9 +493,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   
   c->argcount = fc->argcount;
   c->self = fc->self;
-  c->data = fc->data;
-  c->type = fc->type;
-    
+
   c->fp_ptr = fc->fp_ptr;
   
   
@@ -500,6 +501,9 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   if(ctx != home) {
     fc = FASTCTX(ctx);
   }
+  
+  c->data = fc->data;
+  c->type = fc->type;
   
   if(fc->type != FASTCTX_NMC) {
     c->cache = cmethod_get_cache(fc->method);

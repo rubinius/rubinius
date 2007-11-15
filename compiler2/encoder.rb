@@ -239,86 +239,104 @@ class Encoder
     :set_local_from_fp
   ]
   
+  InstSize = 4
+  
+  @instructions = {}
+  @width = {}
+  i = 0
+  OpCodes.each do |op|
+    @instructions[op] = i
+    if TwoInt.include? op
+      @width[op] = 2
+    elsif IntArg.include? op
+      @width[op] = 1
+    else
+      @width[op] = 0
+    end
+    i += 1
+  end
+  
+  def self.instructions
+    @instructions
+  end
+  
+  def self.width
+    @width
+  end
+    
+  def decode_iseq(iseq)
+    @offset = 0
+    stream = []
+    while @offset < iseq.size
+      inst = iseq2int iseq
+      op = OpCodes[inst]
+      
+      case Encoder.width[op]
+      when 1
+        stream << [op, iseq2int(iseq)]
+      when 2
+        stream << [op, iseq2int(iseq), iseq2int(iseq)]
+      else
+        stream << [op]
+      end
+    end
+    
+    return stream
+  end
+  
+  def iseq2int(iseq)
+    inst =  (iseq[@offset    ] * 16777216)
+    inst += (iseq[@offset + 1] * 65536)
+    inst += (iseq[@offset + 2] * 256)
+    inst += (iseq[@offset + 3])
+    @offset += 4
+    return inst
+  end
+  
   def instruction?(op)
-    OpCodes.index(op)
+    Encoder.instructions[op]
   end
-  
-  def instruction_width(op)
-    if Fixnum === op
-      op = OpCodes[op]
-    end
     
-    width = 4
-    if IntArg.include?(op)
-      width += 4
-    elsif TwoInt.include?(op)
-      width += 8
-    end
-    
-    return width
-  end
-  
   def encode_stream(stream)
-    out = ""
+    sz = stream.inject(0) { |acc, ele| acc + ((ele.size - 1) * InstSize) }
+    iseq = InstructionSequence.new(sz)
+    @offset = 0
     stream.each do |ent|
-      out << encode(*ent)
+      encode(ent, iseq)
     end
-    return out
+    
+    return iseq
   end
   
-  def encode(kind, *args)
+  def encode(inst, into)
+    opcode = inst.last
     
-    case kind
-    when :store_field_at
-      idx = args.shift
-      return encode(:push_int, idx) + encode(:store_field)
-    when :allocate
-      unless args.empty?
-        idx = args.shift
-        return encode(:push_int, idx) + encode(:allocate)
-      end
+    width = Encoder.width[inst.first]
+    
+    unless inst.size - 2 == width
+      raise Error, "Missing instruction arguments to #{inst.first} (need #{width} / got #{inst.size - 2})"
     end
     
-    opcode = OpCodes.index(kind)
-    if opcode.nil?
-      raise InvalidOpCode, "Unknown opcode '#{kind}'"
+    int2str(opcode, into)
+    
+    case width
+    when 1
+      int2str(inst[1], into)
+    when 2
+      int2str(inst[1], into)
+      int2str(inst[2], into)
     end
     
-    orig = args.dup
-    process_args(kind, opcode, args)
+    return into
   end
   
-  def process_args(kind, opcode, args)
-    str = [opcode].pack("N")
-    # puts "#{kind} args. (#{str.inspect})"
-    
-    # puts args.inspect if ENV["DEBUG_ASSEMBLER"]
-
-    if IntArg.include?(kind)
-      int = args.shift
-      unless Numeric === int
-        raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
-      end
-      is = [int].pack("N")
-      # puts "#{kind} has a first arg: #{int} => #{is.inspect}."
-      str << is
+  def int2str(int, into)
+    3.downto(0) do |i|
+      into[@offset + i] = (int % 256)
+      int = int / 256
     end
     
-    if TwoInt.include?(kind)
-      int = args.shift
-      unless Numeric === int
-        raise "#{kind} expects an integer only, got a #{int.class} (#{int.inspect})"
-      end
-      is = [int].pack("N")
-      # puts "#{kind} has a 2nd arg: #{int} => #{is.inspect}"
-      str << is
-    end
-    
-    unless args.empty?
-      raise "Unused arguments to #{kind}, #{args.inspect}"
-    end
-    
-    return str
-  end
+    @offset += 4
+  end  
 end
 end

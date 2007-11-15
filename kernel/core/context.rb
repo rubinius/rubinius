@@ -85,10 +85,6 @@ class BlockContext
     return method.line_from_ip(self.ip - 1)
   end
 
-  def method
-    home.method
-  end
-
   def method_module
     home.method_module
   end
@@ -228,7 +224,9 @@ class Backtrace
         str = "#{ctx.receiver.class}#"
       end
       
-      if ctx.name == ctx.method.name
+      if ctx.kind_of? BlockContext
+        str << "#{ctx.name} {}"
+      elsif ctx.name == ctx.method.name
         str << "#{ctx.name}"
       else
         str << "#{ctx.name} (#{ctx.method.name})"
