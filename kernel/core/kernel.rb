@@ -154,6 +154,10 @@ module Kernel
     nil
   end
     
+  def open(*a) # HACK needs | support
+    IO.open(*a)
+  end
+
   # NOTE - this isn't quite MRI compatible, we don't store return the previous
   # seed value from srand and we don't seed the RNG by default with a combination
   # of time, pid and sequence number
