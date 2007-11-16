@@ -1,10 +1,20 @@
-1. Directories
+1. Files and Directories
 
+* .load_order.txt explains the dependencies between files so the VM can load
+  them in the correct order.
+* kernel/ contains the ruby language additions to the basic VM.  These files
+  are compiled into runtime/
+* kernel/bootstrap/ contains the files needed to start up Ruby.
+* kernel/core/ contains the rest of the Ruby language.
 * runtime/ contains run-time compiled files for Rubinius.  You'll use these
   files when running shotgun/rubinius
 * runtime/stable/* is only used by commands run from the Rakefile.  You
   probably don't need to touch anything in here, but when you do, you can
   rebuild it with rake build:stable.
+* shotgun/ contains the Rubinius VM.
+* shotgun/external_libs/ contains libraries required by Rubinius for
+  convenience.
+* spec/ and test/ contain tests for verifying that Rubinius implements Ruby.
 
 2. Primitives
 
@@ -27,4 +37,16 @@ You can run shotgun/rubinius with gdb.
 * Run `shotgun/rubinius --gdb`
 * Hit ^C to interrupt
 * Type 'rbt' at the gdb prompt to get a ruby backtrace
+
+4. Specifications
+
+RSpec is the machinery behind executing these specs. The intention is to have
+specs for Ruby as a language and set of standard libraries, and to TDD/BDD the
+development of Rubinius. Some spec directories below are implementation
+agnostic and some are specific to Rubinius.
+
+To allow the specs to be executed by different implementation, a host/target
+configuration is used. The 'host' is the Ruby implementation that is
+executing RSpec. The 'target' is the Ruby implementation that is executing
+the content of the particular specs.
 
