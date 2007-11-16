@@ -16,6 +16,11 @@ describe "The private keyword" do
     c = Private::B::C.new
     c.methods.should_include("baz")
     c.baz
+    Private::B::public_class_method1.should == 1
+    Private::B::public_class_method2.should == 2
+    should_raise(NoMethodError) do 
+      Private::B::private_class_method1
+    end
   end
 
   it "should wear off when the class is closed" do
