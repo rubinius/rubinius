@@ -85,10 +85,14 @@ class Object
   end
   
   def method_missing(meth, *args)
+    # Exclude method_missing from the backtrace since it only confuses
+    # people.
+    ctx = MethodContext.current.sender
+    
     if self.kind_of? Class or self.kind_of? Module
-      raise NoMethodError, "No method '#{meth}' on #{self} (#{self.class})"
+      raise NoMethodError, "No method '#{meth}' on #{self} (#{self.class})", ctx
     else
-      raise NoMethodError, "No method '#{meth}' on an instance of #{self.class}."
+      raise NoMethodError, "No method '#{meth}' on an instance of #{self.class}.", ctx
     end
   end
   

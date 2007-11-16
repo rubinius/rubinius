@@ -32,9 +32,11 @@ class Compiler
       @file = nil
       @lines = []
       @primitive = nil
+      
+      @exceptions = []
     end
     
-    attr_reader :ip
+    attr_reader :ip, :exceptions
     attr_accessor :break, :redo, :next, :retry
     
     def run(node)
@@ -82,6 +84,19 @@ class Compiler
       return tup
     end
     
+    def encode_exceptions
+      @exceptions.sort!
+      
+      tup = Tuple.new(@exceptions.size)
+      i = 0
+      @exceptions.each do |e|
+        tup[i] = e.as_tuple
+        i += 1
+      end
+      
+      return tup
+    end
+    
     def to_cmethod(desc)
       collapse_labels
       iseq = @encoder.encode_stream @stream
@@ -97,6 +112,7 @@ class Compiler
       
       cm.literals = encode_literals()
       cm.lines = encode_lines()
+      cm.exceptions = encode_exceptions()
       cm.serial = 0
       
       return cm
@@ -171,6 +187,46 @@ class Compiler
     
     def new_label
       Label.new(self)
+    end
+    
+    class ExceptionBlock
+      def initialize(gen)
+        @generator = gen
+      end
+      
+      def start!
+        @start = @generator.ip
+      end
+      
+      def handle!
+        @handler = @generator.ip
+      end
+      
+      def range
+        [@start, @handler - 1]
+      end
+      
+      def as_tuple
+        Tuple[@start, @handler - 1, @handler]
+      end
+      
+      def <=>(other)
+        os, oe = other.range
+        return -1 if @start < os
+        return -1 if @end < oe
+        
+        if os == @start and oe == @end
+          raise Compiler::Error, "Invalid exception blocking detected"
+        end
+        
+        return 1
+      end
+    end
+    
+    def exceptions
+      ex = ExceptionBlock.new(self)
+      @exceptions << ex
+      yield ex
     end
     
     # Operations
@@ -281,6 +337,10 @@ class Compiler
       add :add_method, find_literal(name)
     end
     
+    def check_argcount(a, b)
+      add :check_argcount, a, b
+    end
+    
     def set_local(a)
       add :set_local, a
     end
@@ -295,6 +355,18 @@ class Compiler
     
     def push_local_depth(a, b)
       add :push_local_depth, a, b
+    end
+    
+    def allocate_stack(a)
+      add :allocate_stack, a
+    end
+    
+    def set_local_fp(a)
+      add :set_local_fp, a
+    end
+    
+    def get_local_fp(a)
+      add :get_local_fp, a
     end
     
     def make_array(count)

@@ -78,10 +78,7 @@ class Compiler::Node
       desc = new_description()
       meth = desc.generator
       
-      # Allocate some stack to store locals.
-      if @alloca > 0
-        meth.allocate_stack @alloca
-      end
+      prelude(g)
       
       meth.push :self
       meth.set_encloser
@@ -99,6 +96,14 @@ class Compiler::Node
       g.send name, 0
       g.push_encloser
     end
+    
+    def prelude(g)
+      # Allocate some stack to store locals.
+      
+      if @alloca > 0
+        g.allocate_stack @alloca
+      end
+    end
   end
   
   class Snippit
@@ -109,6 +114,7 @@ class Compiler::Node
   
   class Script
     def bytecode(g)
+      prelude(g)
       @body.bytecode(g)
       g.pop
       g.push :true
@@ -249,7 +255,7 @@ class Compiler::Node
         k.bytecode(g)
       end
       
-      g.push "Hash"
+      g.push_const :Hash
       g.send :[], count
     end
   end
@@ -1276,9 +1282,8 @@ class Compiler::Node
           @body.bytecode(g)
           g.goto els
           
-          ex.handle do
-            @rescue.bytecode(g, rr, last)              
-          end
+          ex.handle!          
+          @rescue.bytecode(g, rr, last)
           rr.set!
           g.push_exception
           g.raise_exc
@@ -1325,13 +1330,13 @@ class Compiler::Node
         @body.bytecode(g)
         g.goto ok
         
-        ex.handle do
-          @ensure.bytecode(g)
-          g.pop
-          # Re-raise the exception
-          g.push_exception
-          g.raise_exc
-        end
+        ex.handle!
+        
+        @ensure.bytecode(g)
+        g.pop
+        # Re-raise the exception
+        g.push_exception
+        g.raise_exc
       end
       
       ok.set!
@@ -1775,6 +1780,8 @@ class Compiler::Node
     def compile_body
       desc = new_description()
       meth = desc.generator
+      
+      prelude(meth)
       
       show_errors(meth) do
         @arguments.bytecode(meth)

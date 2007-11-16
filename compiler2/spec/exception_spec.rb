@@ -431,13 +431,12 @@ describe Compiler do
         g.push 12
         g.goto ok
         
-        ex.handle do
-          g.push 13
-          g.pop
-          
-          g.push_exception
-          g.raise_exc
-        end
+        ex.handle!
+        g.push 13
+        g.pop
+        
+        g.push_exception
+        g.raise_exc
       end
       
       ok.set!

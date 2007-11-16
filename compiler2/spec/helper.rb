@@ -98,9 +98,8 @@ class TestGenerator
     
     attr_accessor :start, :fin, :handler
     
-    def handle
+    def handle!
       @handler.set!
-      yield
     end
   end
   
