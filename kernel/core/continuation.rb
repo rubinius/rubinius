@@ -19,7 +19,7 @@ module Kernel
     if first
       first = false
       cont = Continuation.new(task)
-      block.call(cont)
+      yield cont
       return nil
     else
       return task.instance_variable_get(:@__value__)
