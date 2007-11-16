@@ -35,6 +35,15 @@ end
 
 # Setup $LOAD_PATH.
 
+# If there is a prefix set, then adjust lib and stdlib to be
+# relative to it.
+if ENV['RBX_PREFIX']
+  ["lib", "stdlib"].each do |lib|
+    idx = $LOAD_PATH.index(lib)
+    $LOAD_PATH[idx] = File.join ENV['RBX_PREFIX'], lib
+  end
+end
+
 additions = []
 
 # If there is no compiler.rba or RBX_COMPILER env variable, use the system one.

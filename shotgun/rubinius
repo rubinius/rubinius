@@ -12,6 +12,11 @@ export PATH=$PATH:${PREFIX}shotgun/lib
 export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${PREFIX}shotgun/lib
 
 if [ "x${PREFIX}" != "x" ]; then
+  
+  if [ "x${RBX_PREFIX}" = "x" ]; then
+    export RBX_PREFIX=${PREFIX}
+  fi
+
   if [ "x${RBX_RUNTIME}" = "x" ]; then
     export RBX_RUNTIME=${PREFIX}runtime/
   fi
