@@ -120,7 +120,7 @@ module ModuleSpecs
     Nesting[:basic] = Module.nesting
     
     module ::ModuleSpecs
-      Nesting[:open_colon3] = Module.nesting
+      Nesting[:open_first_level] = Module.nesting
     end
     
     class << self
@@ -146,8 +146,8 @@ module ModuleSpecs
   end
 
   Nesting[:first_level] = Module.nesting
+
 end
 
-
 ModuleSpecs::Nesting[:root_level] = Module.nesting
-  
+

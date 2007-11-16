@@ -19,6 +19,19 @@ class Module
     
     mod
   end
+
+  def self.nesting
+    mod  = MethodContext.current.sender.receiver
+    unless mod.kind_of? Module
+      mod = MethodContext.current.sender.method_module
+    end
+    nesting = []
+    while mod != Object && mod.kind_of?(Module)
+      nesting << mod
+      mod = mod.parent
+    end
+    nesting
+  end
   
   def initialize()
     block = Ruby.asm "push_block"
@@ -436,4 +449,5 @@ private
   def writer_method_symbol(name)
     "#{normalize_name(name)}=".to_sym
   end
+
 end

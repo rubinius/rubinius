@@ -2,11 +2,12 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module.nesting" do
+
   it "returns the list of Modules nested at the point of call" do
     ModuleSpecs::Nesting[:root_level].should == []
     ModuleSpecs::Nesting[:first_level].should == [ModuleSpecs]
     ModuleSpecs::Nesting[:basic].should == [ModuleSpecs::Nesting, ModuleSpecs]
-    ModuleSpecs::Nesting[:open_colon3].should == 
+    ModuleSpecs::Nesting[:open_first_level].should == 
       [ModuleSpecs, ModuleSpecs::Nesting, ModuleSpecs]
     ModuleSpecs::Nesting[:open_meta].should == 
       [ModuleSpecs::Nesting.meta, ModuleSpecs::Nesting, ModuleSpecs]
@@ -22,4 +23,5 @@ describe "Module.nesting" do
     ModuleSpecs::Nesting::NestedClass.new.called_from_inst_method.should == 
       [ModuleSpecs::Nesting::NestedClass, ModuleSpecs::Nesting, ModuleSpecs]
   end
+
 end
