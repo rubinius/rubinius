@@ -115,7 +115,7 @@ module Kernel
       rb_file   = thing + '.rb'
       rbc_file  = thing + '.rbc'
     end
-    
+
     $:.each do |dir|
       rb_path   = "#{dir}/#{rb_file}"
       rbc_path  = "#{dir}/#{rbc_file}"

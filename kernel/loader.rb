@@ -37,13 +37,6 @@ end
 
 additions = []
 
-if ENV['RBX_RUNTIME'] then
-  $LOAD_PATH.each do |path|
-    next if path == '.' or path[0] == ?/ # HACK unsafe on mswin
-    path.replace File.join(ENV['RBX_RUNTIME'], path)
-  end
-end
-
 # If there is no compiler.rba or RBX_COMPILER env variable, use the system one.
 if ENV['RBX_COMPILER'] and File.exists? ENV['RBX_COMPILER']
   additions << ENV['RBX_COMPILER']

@@ -1164,6 +1164,7 @@ CODE
       t5 = stack_pop();
     } else {
       sassert(0 && "old-style block!!");
+      t5 = Qnil;
     }
     
     t4 = c->active_context;
