@@ -352,6 +352,28 @@ describe "File.open" do
       File.open(@file)
     end
   end
+  
+  it "should open a file for binary read" do
+    @fh = File.open(@file, "rb")
+  end
+  
+  it "should open a file for binary write" do
+    @fh = File.open(@file, "wb")
+  end
+  
+  it "should open a file for binary read-write starting at the beginning of the file" do
+    @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
+    @fh = File.open(@file, "rb+")
+    @fh.pos.should == 0
+    @fh.eof?.should == false
+  end
+  
+  it "should open a file for binary read-write and truncate the file" do
+    @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
+    @fh = File.open(@file, "wb+")    
+    @fh.pos.should == 0
+    @fh.eof?.should == true
+  end
    
   specify "expected errors " do
     should_raise(TypeError){ File.open(true) }
@@ -359,5 +381,6 @@ describe "File.open" do
     should_raise(TypeError){ File.open(nil) }
     should_raise(SystemCallError){ File.open(-1) } # kind_of ?
     should_raise(ArgumentError){ File.open(@file, File::CREAT, 0755, 'test') }
+    should_raise(ArgumentError){ File.open(@file, 'fake') }    
   end
 end

@@ -26,6 +26,7 @@ class File < IO
     RDONLY   = 0x00
     WRONLY   = 0x01
     RDWR     = 0x02
+    BINARY   = 0x04
     
     CREAT    = 0x40
     EXCL     = 0x80
@@ -475,6 +476,20 @@ class File < IO
     when ?+
       ret &= ~(RDONLY | WRONLY)
       ret |= RDWR
+    when ?b
+      ret |= BINARY
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+  
+    return ret if mode.length == 2
+
+    case mode[2]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
     else
       raise ArgumentError, "invalid mode -- #{mode}"
     end
