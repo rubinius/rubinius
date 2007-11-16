@@ -19,7 +19,11 @@ class Dir
 
   include Enumerable
   
-  def self.glob(pattern, flags)
+  def self.glob(pattern, flags = 0)
+    prim_glob pattern, flags
+  end
+
+  def self.prim_glob(pattern, flags)
     Ruby.primitive :dir_glob
   end
   
