@@ -3,9 +3,9 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module.constants" do
   it "returns an array of the names of all constants defined" do
-    a = Module.constants.size
-    ABC = ""
-    b = Module.constants.size.should == a + 1
+    a = ModuleSpecs::AddConstant.constants.size
+    ModuleSpecs::AddConstant::ABC = ""
+    b = ModuleSpecs::AddConstant.constants.size.should == a + 1
   end
 end
 
