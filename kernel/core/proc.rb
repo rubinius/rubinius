@@ -15,13 +15,13 @@ class Proc
     def from_environment(env, check_args=false)
       if env.nil?
         nil
-      elsif env.respond_to? :to_proc
-        env.to_proc
       elsif env.kind_of?(BlockEnvironment)
         obj = allocate()
         obj.block = env
         obj.check_args = check_args
         obj
+      elsif env.respond_to? :to_proc
+        env.to_proc
       else
         raise ArgumentError.new("Unable to turn a #{env.inspect} into a Proc")
       end
@@ -111,6 +111,10 @@ class Proc
   
   def inspect
     "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{self.block.file}:#{self.block.line}>"
+  end
+
+  def arity
+    at(1).arity
   end
 
   def to_proc
