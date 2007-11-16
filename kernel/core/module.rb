@@ -99,6 +99,12 @@ class Module
     m = find_method_in_hierarchy sym
     m ? m.first == :protected : false
   end
+
+  def method_defined?(sym)
+    sym = normalize_name(sym)
+    m = find_method_in_hierarchy sym
+    m ? [:public,:protected].include?(m.first) : false
+  end
   
   def instance_method(name)
     name = name.to_sym
