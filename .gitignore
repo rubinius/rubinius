@@ -29,6 +29,7 @@ runtime/pristine*
 *.so
 *.d
 *~
+*.dSYM
 
 attic/externals/syd-parser/pkg
 
