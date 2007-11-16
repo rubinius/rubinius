@@ -1,0 +1,30 @@
+From 8ead1d23dca87775abc28cfaa550a5f41f365767 Mon Sep 17 00:00:00 2001
+From: Eric Hodel <drbrain@segment7.net>
+Date: Fri, 16 Nov 2007 00:13:58 -0800
+Subject: Dir::glob's flags are optional
+
+---
+ kernel/core/dir.rb |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/kernel/core/dir.rb b/kernel/core/dir.rb
+index 266b38c3d73494964cb0feb32dc63a5325581375..c916292f65c37956843d31fd9dbf6b728eda9a17 100644
+--- a/kernel/core/dir.rb
++++ b/kernel/core/dir.rb
+@@ -19,7 +19,11 @@ class Dir
+ 
+   include Enumerable
+   
+-  def self.glob(pattern, flags)
++  def self.glob(pattern, flags = 0)
++    prim_glob pattern, flags
++  end
++
++  def self.prim_glob(pattern, flags)
+     Ruby.primitive :dir_glob
+   end
+   
+-- 
+1.5.3.4
+
+
