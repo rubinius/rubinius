@@ -13,7 +13,7 @@ describe "Module.nesting" do
       [ModuleSpecs::Nesting::NestedClass, ModuleSpecs::Nesting, ModuleSpecs]
   end
 
-  it "fails if not called on a module context" do 
+  it "returns the nesting for module/class declaring the called method" do 
     ModuleSpecs::Nesting.called_from_module_method.should == 
       [ModuleSpecs::Nesting, ModuleSpecs]
     ModuleSpecs::Nesting::NestedClass.called_from_class_method.should == 
