@@ -122,4 +122,14 @@ module KernelSpecs
     def protected_method() :protected_instance_method end
     protected :protected_method
   end
+  
+  module BlockGiven
+    def self.accept_block
+      block_given?
+    end
+    
+    def self.accept_block_as_argument(&block)
+      block_given?
+    end
+  end
 end
