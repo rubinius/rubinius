@@ -13,6 +13,18 @@ To add a primitive:
 * Give the primitive a sane name
 * Implement the primitive in shotgun/lib/primitives.rb
 * Give the primitive a number in compiler/primitives/primitive_names.rb
-* rake runtime/stable/compiler.rba
-* rake
+* `rake runtime/stable/compiler.rba`
+* `rake`
+
+If your primitive takes variable arguments, you need to provide a wrapper
+method that calls the primitive.  For example Dir::glob calls
+Dir::prim_glob.
+
+3. gdb
+
+You can run shotgun/rubinius with gdb.
+
+* Run `shotgun/rubinius --gdb`
+* Hit ^C to interrupt
+* Type 'rbt' at the gdb prompt to get a ruby backtrace
 
