@@ -4,6 +4,7 @@ coverage
 code-cache
 .hgignore
 .hg
+.dotest
 COMMIT
 .load_order.txt
 CI-specs
