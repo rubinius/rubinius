@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module.nesting" do
   it "returns the list of Modules nested at the point of call" do
+    ModuleSpecs::Nesting[:root_level].should == []
     ModuleSpecs::Nesting[:first_level].should == [ModuleSpecs]
     ModuleSpecs::Nesting[:basic].should == [ModuleSpecs::Nesting, ModuleSpecs]
     ModuleSpecs::Nesting[:open_colon3].should == 
