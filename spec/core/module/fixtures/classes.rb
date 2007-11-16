@@ -89,6 +89,9 @@ module ModuleSpecs
     def protected_1; end
   end
 
+  module AddConstant
+  end
+
   module A
     CONSTANT_A = :a
     OVERRIDE = :a
@@ -106,5 +109,44 @@ module ModuleSpecs
     OVERRIDE = :c
     include B    
   end
+
+
+  module Nesting
+    @tests = {}
+    def self.[](name); @tests[name]; end
+    def self.[]=(name, val); @tests[name] = val; end
+    def self.meta; class << self; self; end; end
+
+    Nesting[:basic] = Module.nesting
+    
+    module ::ModuleSpecs
+      Nesting[:open_colon3] = Module.nesting
+    end
+    
+    class << self
+      Nesting[:open_meta] = Module.nesting
+    end
+
+    def self.called_from_module_method
+      Module.nesting
+    end
+    
+    class NestedClass
+      Nesting[:nest_class] = Module.nesting
+      
+      def self.called_from_class_method
+        Module.nesting
+      end
+
+      def called_from_inst_method
+        Module.nesting
+      end
+    end
+    
+  end
+
+  Nesting[:first_level] = Module.nesting
 end
+
+
   

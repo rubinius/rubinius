@@ -3,16 +3,22 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module.nesting" do
   it "returns the list of Modules nested at the point of call" do
-    module ModuleSpecs
-      Module.nesting.should == [ModuleSpecs]
+    ModuleSpecs::Nesting[:first_level].should == [ModuleSpecs]
+    ModuleSpecs::Nesting[:basic].should == [ModuleSpecs::Nesting, ModuleSpecs]
+    ModuleSpecs::Nesting[:open_colon3].should == 
+      [ModuleSpecs, ModuleSpecs::Nesting, ModuleSpecs]
+    ModuleSpecs::Nesting[:open_meta].should == 
+      [ModuleSpecs::Nesting.meta, ModuleSpecs::Nesting, ModuleSpecs]
+    ModuleSpecs::Nesting[:nest_class].should == 
+      [ModuleSpecs::Nesting::NestedClass, ModuleSpecs::Nesting, ModuleSpecs]
+  end
 
-      module Basic
-        Module.nesting.should == [ModuleSpecs::Basic, ModuleSpecs]
-      end
-
-      class Parent
-        Module.nesting.should == [ModuleSpecs::Parent, ModuleSpecs]
-      end
-    end
+  it "fails if not called on a module context" do 
+    ModuleSpecs::Nesting.called_from_module_method.should == 
+      [ModuleSpecs::Nesting, ModuleSpecs]
+    ModuleSpecs::Nesting::NestedClass.called_from_class_method.should == 
+      [ModuleSpecs::Nesting::NestedClass, ModuleSpecs::Nesting, ModuleSpecs]
+    ModuleSpecs::Nesting::NestedClass.new.called_from_inst_method.should == 
+      [ModuleSpecs::Nesting::NestedClass, ModuleSpecs::Nesting, ModuleSpecs]
   end
 end
