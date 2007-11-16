@@ -27,7 +27,7 @@ class ShotgunInstructions
       end
       i += 1
     end
-    fd.puts "default: printf(\"Invalid bytecode: %d\\n\", (int)op); abort();\n"
+    fd.puts "default: printf(\"Invalid bytecode: %d\\n\", (int)op); sassert(0);\n"
     fd.puts "}"
     fd.puts
   end
@@ -1163,7 +1163,7 @@ CODE
     if(_int == 255) {
       t5 = stack_pop();
     } else {
-      assert(0 && "old-style block!!");
+      sassert(0 && "old-style block!!");
     }
     
     t4 = c->active_context;
@@ -1275,7 +1275,7 @@ CODE
   def set_local_fp
     <<-CODE
     next_int;
-    assert(c->sp_ptr > c->fp_ptr + _int);
+    sassert(c->sp_ptr > c->fp_ptr + _int);
     *(c->fp_ptr + _int) = stack_top();
     CODE
   end
@@ -1283,7 +1283,7 @@ CODE
   def get_local_fp
     <<-CODE
     next_int;
-    assert(c->sp_ptr > c->fp_ptr + _int);
+    sassert(c->sp_ptr > c->fp_ptr + _int);
     stack_push(*(c->fp_ptr + _int));
     CODE
   end

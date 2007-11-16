@@ -152,13 +152,15 @@ void cpu_bootstrap_exceptions(STATE) {
   int sz;
   sz = 3;
   
-  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type, lje;
+  OBJECT exc, scp, std, arg, nam, loe, stk, sxp, sce, type, lje, vm;
   
   #define dexc(name, sup) rbs_class_new(state, #name, sz, sup)
   
   exc = dexc(Exception, BC(object));
   state->global->exception = exc;
   dexc(fatal, exc);
+  vm = dexc(VMError, exc);
+  dexc(VMAssertion, vm);
   scp = dexc(ScriptError, exc);
   std = dexc(StandardError, exc);
   type = dexc(TypeError, std);

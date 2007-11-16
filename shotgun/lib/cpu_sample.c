@@ -146,7 +146,7 @@ OBJECT cpu_sampler_disable(STATE) {
   if(!state->samples) return Qnil;
   tup = tuple_new(state, state->cur_sample);
   for(i = 0; i < state->cur_sample; i++) {
-    assert(ISA(state->samples[i], state->global->fastctx) ||
+    sassert(ISA(state->samples[i], state->global->fastctx) ||
       ISA(state->samples[i], state->global->blokctx));
     tuple_put(state, tup, i, state->samples[i]);
   }

@@ -24,7 +24,7 @@
 DT_ADDRESSES;
 
 #ifdef SHOW_OPS
-#define NEXT_OP printf(" => %p\n", *c->ip_ptr); assert(*c->ip_ptr); goto **c->ip_ptr++
+#define NEXT_OP printf(" => %p\n", *c->ip_ptr); sassert(*c->ip_ptr); goto **c->ip_ptr++
 #else
 #define NEXT_OP goto **c->ip_ptr++
 #endif
@@ -957,7 +957,7 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym,
   mo = cpu_locate_method(state, c, klass, sym, &mod, &missing);
   if(NIL_P(mo)) {
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
-    assert(RTEST(mo));
+    sassert(RTEST(mo));
   }
   
   /* Make sure no one else sees the a recently set cache_index, it was
@@ -1004,14 +1004,19 @@ void cpu_run(STATE, cpu ic, int setup) {
   
   /* Ok, we jumped back here because something went south. */
   if(g_access_violation) {
-    if(g_access_violation == 1) {
+    if(g_access_violation == FIRE_ACCESS) {
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, state->global->exc_arg, 
             "Accessed outside bounds of object"));
-    } else if(g_access_violation == 2) {
+    } else if(g_access_violation == FIRE_NULL) {
       cpu_raise_exception(state, c, 
         cpu_new_exception(state, c, state->global->exc_arg, 
             "Attempted to access field of non-reference (null pointer)")); 
+    } else if(g_access_violation == FIRE_ASSERT) {
+      cpu_raise_exception(state, c, 
+        cpu_new_exception(state, c, 
+            rbs_const_get(state, BASIC_CLASS(object), "VMAssertion"), 
+            "An error has occured within the VM"));
     }
   }
 

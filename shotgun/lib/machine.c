@@ -461,6 +461,13 @@ void machine_handle_fire(int kind) {
   setcontext(&g_firesuit);
 }
 
+void machine_handle_assert(char *reason, char *file, int line) {
+  fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
+  if(!g_use_firesuit) abort();
+  g_access_violation = FIRE_ASSERT;
+  setcontext(&g_firesuit);
+}
+
 void state_collect(STATE, cpu c);
 
 void machine_collect(machine m) {

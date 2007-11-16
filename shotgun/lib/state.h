@@ -143,6 +143,7 @@ struct rubinius_state {
 #define FIRE_ACCESS 1
 #define FIRE_NULL   2
 #define FIRE_STACK  3
+#define FIRE_ASSERT 4
 
 #define FASTCTX_FIELDS 17
 #define FASTCTX_NORMAL 1
@@ -216,6 +217,8 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
 #define xassert(cond) 
 #endif
 
+#define sassert(cond) ((void)((cond) ? 0 : machine_handle_assert(#cond, __FILE__, __LINE__)))
+
 // #define CHECK_PTR(obj) object_memory_check_ptr(main_om, obj)
 #define CHECK_PTR(obj) 
 
@@ -235,6 +238,7 @@ extern int g_use_firesuit;
 extern int g_access_violation;
 
 void machine_handle_fire(int);
+void machine_handle_assert(char *reason, char *file, int line);
 
 /* No bounds checking! Be careful! */
 #define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)
