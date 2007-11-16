@@ -1,51 +1,42 @@
 <html>
   <head>
-		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-		<title>Rubinius Virtual Machine OpCodes: Introduction</title>
-		<link rel="stylesheet" href="op_codes.css" type="text/css" />
-	</head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
   <body>
-	  <h2>Compilation Process</h2>
-	  Compilation of Ruby source code to Rubinius machine byte code proceeds through the following steps:
-	  <ol>
-		  <li>Source code is parsed into <a href='http://en.wikipedia.org/wiki/S-expressions'>S-expressions (sexps)</a> representing the structure of the Ruby code.
-			The grammar of a Ruby program is currently defined in <code>grammar.y</code> under shotgun/lib, which is lifted
-			from MRI.</li>
-			<li>Sexps are compiled into a string representation of Rubinius assembly language by <code>compiler.rb</code>,
-			which is found under compiler/bytecode.
-			<br/>Note: The compilation process is currently in the process of being re-written, and will change
-			substantially in its implementation; however, the assembly code output by the compilation process is
-			essentially unchanged.</li>
-			<li>The generalised assembly language is translated into specific lower-level machine op-codes by <code>assembler.rb</code>.
-			Thus, instructions such as <code>push</code> are converted to specific push instructions depending on the type
-			of item being pushed, and literal references are converted to indexes into the literals tuples.</li>
-			<li>The low-level assembly is encoded as byte-codes that can actually be run by shotgun by <code>encoder.rb</code>.</li>
-    </ol>
-	
-	  <h3>Machine OpCodes</h3>
-    All of the Rubinius virtual machine op codes are listed in the frame to the left.
-    Click on an item to see documentation about that op code.
+    <h2>Compilation Process</h2>
 
-    <h4>Notes on Source Code</h4>
-    The documentation for each op code includes an extract of the Shotgun source
-    code that implements that op. This is usually sufficient to determine how the
-    op code functions, but the following additional pointers will aid in understanding:
-    <ul>
-	    <li>The functions <i>next_int</i> and/or <i>next_literal</i> will be seen in many op code's source
-		  listings. These functions are used to retrieve the next argument that was specified to the op codes that take
-		  one or two arguments. <i>next_int</i> sets the variable <i>_int</i> to the value of the next argument, and
-		  is used when the argument value is an integer. <i>next_literal</i> is used to retrieve the index of the
-		  literal </li>
-		  <li>All opcodes that require arguments take only integers as the values of those args. However, often
-			in the compiler, the arguments that are specified are literal values, such as the name of a local
-			variable, an object, class, etc. Following the compilation step, these literals are gathered into a single
-			literals tuple within the method or block context, and the literal references are replaced 
-			with the index of the literal	within this literals tuple.</li> 
-	  </ul> 
-    
-    <h3>Documentation Completeness</h3>
-    Opcodes that appear in italics have only partial documentation. Feel free to update the opcode 
-    documentation by editing the corresponding YAML files in the op_codes sub-directory, then run <code>rake doc:vm:html</code>
-    from the doc/vm directory to re-generate the HTML.</p>
+
+Compilation of Ruby source code to Rubinius machine byte code proceeds through the following steps:
+	<ul>
+	<li>Source code is parsed into <a href="http://en.wikipedia.org/wiki/S-expressions" title="sexps">S-expressions</a> representing the structure of the Ruby code. The grammar of a Ruby program is currently defined in <code>grammar.y</code> under shotgun/lib, which is lifted from <span class="caps">MRI</span>.</li>
+		<li>Sexps are compiled into a string representation of Rubinius assembly language by <code>compiler.rb</code>, which is found under compiler/bytecode.
+Note: The compilation process is currently in the process of being re-written, and will change substantially in its implementation; however, the assembly code output by the compilation process is essentially unchanged.</li>
+		<li>The generalised assembly language is translated into specific lower-level machine op-codes by <code>assembler.rb</code>. Thus, instructions such as <code>push</code> are converted to specific push instructions depending on the type of item being pushed, and literal references are converted to indexes into the literals tuples.</li>
+		<li>The low-level assembly is encoded as byte-codes that can actually be run by shotgun by <code>encoder.rb</code>.</li>
+	</ul>
+
+
+	<h3>Machine OpCodes</h3>
+
+
+	<p>The Rubinius virtual machine op codes are listed in the frame to the left. Click on an item to see documentation about that op code.</p>
+
+
+	<h4>Notes on Source Code</h4>
+
+
+The documentation for each op code includes an extract of the Shotgun source code that implements that op. This is usually sufficient to determine how the op code functions, but the following additional pointers will aid in understanding:
+	<ul>
+	<li>The functions <em>next_int</em> and/or <em>next_literal</em> will be seen in many op code&#8217;s source listings. These functions are used to retrieve the next argument that was specified to the op codes that take one or two arguments. <em>next_int</em> sets the variable <code>_int</code> to the value of the next argument, and is used when the argument value is an integer. <em>next_literal</em> is used to retrieve the index of the specified literal.</li>
+		<li>All opcodes that require arguments take only integers as the values of those args. However, often in the compiler, the arguments that are specified are literal values, such as the name of a local variable, an object, class, etc. Following the compilation step, these literals are gathered into a single literals tuple within the method or block context, and the literal references are replaced with the index of the literal within this literals tuple.</li>
+	</ul>
+
+
+	<h3>Documentation Completeness</h3>
+
+
+	<p>Opcodes that appear in italics have only partial documentation. Feel free to update the opcode documentation by editing the corresponding <span class="caps">YAML</span> files in the op_codes sub-directory, then run <code>rake doc:vm:html</code> from the doc/vm directory to re-generate the <span class="caps">HTML</span>.</p>
   </body>
-</html>
+<html>

@@ -1,0 +1,19 @@
+---
+mnemonic: create_block2
+operation: >-
+  Creates a block
+format: create_block2 <arg1>
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+notes: >-
+  This opcode replaces "create_block":create_block.html, which is deprecated. 
+  Unlike create_block which references the block instruction sequence from the
+  enclosing method context, create_block2 takes its own copy of the block
+  instructions.
+see:
+  - create_block

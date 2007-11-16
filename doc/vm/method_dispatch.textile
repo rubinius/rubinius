@@ -1,0 +1,12 @@
+h2. Method Dispatch
+
+In a generalized sense, the method dispatch process in Rubinius consists of the following steps:
+# Caller pushes arguments to the method onto the stack
+# Caller pushes receiver onto the stack
+# @send_method@ is called with a literal identifying the method to be called on the receiver
+# Within the send_method opcode, the following steps are performed
+## Lookup the method on the receiver object's singleton class, class, super-class hierarchy
+## Obtain the CompiledMethod object for the method
+## Examine the CompiledMethod object to determine how the arguments to the method are used. The CompiledMethod will store arguments in the MethodContext's local's tuple if the local is captured; otherwise, it is generally left on the stack and accessed via the frame pointer.
+
+See "here":http://blog.fallingsnow.net/2007/03/01/performance-interfaces-and-tumblr/ for some implementation details.

@@ -1,3 +1,5 @@
+require 'op_code_info'
+
 namespace "doc" do
    namespace "vm" do
      desc "Update YAML doc files with current op codes, source, etc (retains doco)"
@@ -10,11 +12,11 @@ namespace "doc" do
      task "html"
      
      # Define tasks for each html file on the corresponding YAML file
-     Dir.glob('op_codes/*.yaml').each do |f|
-       html = f.chomp('.yaml') + '.html'
-       op_code = File.basename(f).chomp('.yaml')
-       file html => f do
-         ruby "gen_op_code_html.rb #{op_code}"
+     OpCode::Info.op_codes.each do |op|
+       html = "op_codes/#{op}.html"
+       yaml = "op_codes/#{op}.yaml"
+       file html => yaml do
+         ruby "gen_op_code_html.rb #{op}"
        end
        
        task "html" => html
@@ -25,11 +27,7 @@ namespace "doc" do
      Dir.glob('*.textile').each do |f|
        html = f.chomp('.textile') + '.html'
        file html => f do
-         require 'redcloth'
-         red = RedCloth.new File.read(f)
-         File.open(html, 'w') do |f|
-           f.puts red.to_html
-         end
+         ruby "gen_section_html.rb #{f}"
        end
        
        task "html" => html

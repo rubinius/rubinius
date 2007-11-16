@@ -1,7 +1,23 @@
 h2. Shotgun: The Rubinius VM
 
-Shotgun is the name of the current Rubinius virtual machine, implemented in C.
+Rubinius consists of a mixture of both Ruby and C code. While the goal is to develop as much of Rubinius as possible in Ruby, some low-level C code is nonetheless required. Currently, all core and library classes are written almost entirely in Ruby, which is then compiled down to bytecode (by a compiler which is also written in Ruby) which in turn is run by Shotgun, the Rubinius virtual machine. Shotgun is currently written in hand-coded C.
 
-h3. Direct Threading
+In future, the Rubinius virtual machine is intended to be re-written in a Ruby-like language known as Garnet. Garnet will be a minimal Ruby dialect that can be used to generate C-code directly, much as Slang (a Smalltalk subset language) was used to build Squeak, (a Smalltalk virtual machine).
+
+h3. Shotgun Design Features
+
+Shotgun borrows significantly from the design and implementation of Smalltalk-80, as described in the "blue book":http://stephane.ducasse.free.fr/FreeBooks/BlueBook/, as well as various other "crazy computer science papers". Some of the more interesting and/or noteworthy features of Shotgun are described below.
+
+h4. Generational Garbage Collection
+
+Shotgun implements a generational garbage collector, consisting of a Baker collector for the young generation, and a mark-sweep collector for the old generation. 
+
+Objects are typically tenured into the old generation after surviving seven collections in the young generation, although very large objects may be instantiated directly in the old generation to avoid the copy overhead of the Baker algorithm.
+
+h4. Stack-less Design
+
+Shotgun runs Rubinius bytecode using a stack-less design. This may sound strange, given the Rubinius virtual machine is a stack-based bytecode interpreter; however, it refers to the avoidance of C stack frames when dispatching Ruby methods. This is important when implementing a virtual machine, since otherwise the large number of small routines used to implement the virtual machine opcodes would tend to exhaust the C-stack.
+
+h4. Direct Threading
 
 Shotgun implements "direct threading":http://www.complang.tuwien.ac.at/forth/threaded-code.html, which is a technique used to minimise the overhead associated with dispatching to the low-level C code that implements each VM op code. Instead of a large switch statement consisting of cases for each op code, the byte code is modified after load, with the byte codes for each op code replaced with the actual address of the code that implements the op code. The VM then executes each op code by simply jumping directly to the address indicated where each byte code used to be.

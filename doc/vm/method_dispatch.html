@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
+  <body>
+    <h2>Method Dispatch</h2>
+
+
+In a generalized sense, the method dispatch process in Rubinius consists of the following steps:
+	<ol>
+	<li>Caller pushes arguments to the method onto the stack</li>
+		<li>Caller pushes receiver onto the stack</li>
+		<li><code>send_method</code> is called with a literal identifying the method to be called on the receiver</li>
+		<li>Within the send_method opcode, the following steps are performed
+	<ol>
+	<li>Lookup the method on the receiver object&#8217;s singleton class, class, super-class hierarchy</li>
+		<li>Obtain the CompiledMethod object for the method</li>
+		<li>Examine the CompiledMethod object to determine how the arguments to the method are used. The CompiledMethod will store arguments in the MethodContext&#8217;s local&#8217;s tuple if the local is captured; otherwise, it is generally left on the stack and accessed via the frame pointer.</li>
+	</ol></li>
+	</ol>
+
+
+	<p>See <a href="http://blog.fallingsnow.net/2007/03/01/performance-interfaces-and-tumblr/">here</a> for some implementation details.</p>
+  </body>
+<html>

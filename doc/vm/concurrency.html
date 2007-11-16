@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
+  <body>
+    <h2>Concurrency</h2>
+
+
+	<p>Rubinius provides a number of concurrency techniques, significantly expanding upon that available in standard Ruby. As such, use of these additional primitives is non-standard.</p>
+
+
+	<h3>Tasks</h3>
+
+
+	<p>Tasks are the foundation of green threads in Rubinius. See <a href="http://blog.fallingsnow.net/2007/04/05/task-class-in-svn/">here</a> for an overview of Rubinius tasks.</p>
+
+
+	<h3>Threads</h3>
+
+
+	<h3>Actors</h3>
+
+
+	<p>The <em>Actor</em> class provides an implementation of the Actor concurrency pattern, whereby each method in an actor object is run on a separate thread from that of the caller, using a thread that is owned by the Actor object.</p>
+
+
+	<h3>Channels</h3>
+
+
+	<p>Channels provide a simple mechanism for co-ordinating the work of two or more threads. A channel resembles a queue, in that producer thread(s) can write to the channel, while consumer thread(s) read from it. If there is no data currently in the channel, consumer threads will suspend until data is available.</p>
+  </body>
+<html>

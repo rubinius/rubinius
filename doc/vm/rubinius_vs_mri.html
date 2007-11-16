@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
+  <body>
+    <h2>Rubinius &lt;==&gt; <span class="caps">MRI</span></h2>
+
+
+	<p>Rubinius is roughly equivalent to <span class="caps">MRI</span> (Matz&#8217;s Ruby Implementation, the original Ruby implementation) 1.8.6, but contains some additional useful functionality, and also removes some less common and problematic behaviours. This document provides a summary of both the additions and subtractions from <span class="caps">MRI 1</span>.8.6.</p>
+
+
+	<p><em>Note:</em> This document is not a complete list! Rubinius is still incomplete, and changing rapidly. If you find a difference and have confirmed it is intentional, please help make this document more complete by updating it! You can find the source text at /doc/vm/rubinius_vs_mri.textile in your Rubinius directory.</p>
+
+
+	<h3>Rubinius Extensions to <span class="caps">MRI</span></h3>
+
+
+	<p>Rubinius extends Ruby in some very useful ways. Some of these additions are the inclusion of commonly added methods  and libraries possible with any Ruby implementation, while others are only possible on Rubinius due to an active policy of making everything possible first-class, i.e. opening up the Ruby implementation to programmatic reflection/introspection, and in some cases, manipulation.</p>
+
+
+Following is a list of useful additions included in Rubinius as standard, but which are possible in <span class="caps">MRI</span> and other Ruby implementations:
+	<ul>
+	<li>Object#metaclass (shorthand for <code>class &lt;&lt; self</code>)</li>
+	</ul>
+
+
+Following is a list of additions provided by Rubinius that are not <strong>directly</strong> portable to <span class="caps">MRI</span>:
+	<ul>
+	<li><a href="http://blog.fallingsnow.net/2007/01/19/archiving-loading-now-in-trunk/" title=".rba">Ruby Archives</a></li>
+		<li><a href="vm_interfaces.html"><span class="caps">FFI</span></a></li>
+		<li>Tuple</li>
+		<li><a href="concurrency.html">Concurrency</a>
+	<ul>
+	<li><a href="http://blog.fallingsnow.net/2007/04/05/task-class-in-svn/">Task</a></li>
+		<li>Thread</li>
+		<li>Actor</li>
+		<li>Channel</li>
+	</ul>
+	</li>
+		<li>Metaprogramming:
+	<ul>
+	<li>MetaClass</li>
+	</ul>
+	</li>
+		<li>Rubinius Runtime Introspection
+	<ul>
+	<li>CompiledMethod</li>
+		<li>MethodContext</li>
+		<li>BlockContext</li>
+		<li>BlockEnvironment</li>
+		<li>Backtrace</li>
+		<li>InstructionSequence</li>
+	</ul></li>
+	</ul>
+
+
+	<h3>Rubinius Incompatibilities</h3>
+
+
+	<p>Rubinius also removes some functionality present in <span class="caps">MRI</span>. Generally this is due to the behavior being broken, or else both rarely used and having a substantial negative impact on performance.</p>
+
+
+Following is a list of known incompatibilities:
+	<ul>
+	<li>Rubinius does not support freezing objects</li>
+		<li>Multiple assignment returns <strong>true</strong> rather than an array of the rhs args, i.e. in <span class="caps">MRI</span> a,b = 1,2 returns [1,2], but this is almost never used. Rubinius returns <strong>true</strong> and avoids the penalty of creating an array that is not used.</li>
+	</ul>
+  </body>
+<html>

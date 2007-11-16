@@ -1,0 +1,39 @@
+h2. Rubinius <==> MRI
+
+Rubinius is roughly equivalent to MRI (Matz's Ruby Implementation, the original Ruby implementation) 1.8.6, but contains some additional useful functionality, and also removes some less common and problematic behaviours. This document provides a summary of both the additions and subtractions from MRI 1.8.6.
+
+_Note:_ This document is not a complete list! Rubinius is still incomplete, and changing rapidly. If you find a difference and have confirmed it is intentional, please help make this document more complete by updating it! You can find the source text at /doc/vm/rubinius_vs_mri.textile in your Rubinius directory.
+
+h3. Rubinius Extensions to MRI
+
+Rubinius extends Ruby in some very useful ways. Some of these additions are the inclusion of commonly added methods  and libraries possible with any Ruby implementation, while others are only possible on Rubinius due to an active policy of making everything possible first-class, i.e. opening up the Ruby implementation to programmatic reflection/introspection, and in some cases, manipulation.
+
+Following is a list of useful additions included in Rubinius as standard, but which are possible in MRI and other Ruby implementations:
+* Object#metaclass (shorthand for @class << self@)
+
+Following is a list of additions provided by Rubinius that are not *directly* portable to MRI:
+* "Ruby Archives (.rba)":http://blog.fallingsnow.net/2007/01/19/archiving-loading-now-in-trunk/
+* "FFI":vm_interfaces.html
+* Tuple
+* "Concurrency":concurrency.html
+** "Task":http://blog.fallingsnow.net/2007/04/05/task-class-in-svn/
+** Thread
+** Actor
+** Channel
+* Metaprogramming:
+** MetaClass
+* Rubinius Runtime Introspection
+** CompiledMethod
+** MethodContext
+** BlockContext
+** BlockEnvironment
+** Backtrace
+** InstructionSequence
+
+h3. Rubinius Incompatibilities
+
+Rubinius also removes some functionality present in MRI. Generally this is due to the behavior being broken, or else both rarely used and having a substantial negative impact on performance.
+
+Following is a list of known incompatibilities:
+* Rubinius does not support freezing objects
+* Multiple assignment returns *true* rather than an array of the rhs args, i.e. in MRI a,b = 1,2 returns [1,2], but this is almost never used. Rubinius returns *true* and avoids the penalty of creating an array that is not used.

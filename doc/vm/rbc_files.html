@@ -1,4 +1,11 @@
-<h2>Rubinius Compiled (.rbc) Files</h2>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Rubinius</title>
+    <link rel="stylesheet" href="op_codes.css" type="text/css" />
+  </head>
+  <body>
+    <h2>Rubinius Compiled (.rbc) Files</h2>
 
 
 	<p>With Rubinius, Ruby source files (.rb files) are compiled into platform independent .rbc files, which contain the byte codes needed to execute the source Ruby code on the Rubinius virtual machine (see <a href="shotgun.html">shotgun</a> for a description of the Rubinius VM).</p>
@@ -24,7 +31,7 @@ An .rbc file consists of:
 	<p>Objects are marshaled using a scheme whereby each object type is identified by a single-byte tag, followed by 0 or more bytes containing the object data. The following table specifies the values and formats for each tag:</p>
 
 
-	<table>
+	<table class="formatted" id="tags">
 		<tr>
 			<th>Tag</th>
 			<th>Type</th>
@@ -36,14 +43,16 @@ An .rbc file consists of:
 			<td>The tag is followed by:
 	<ul>
 	<li>1 byte indicating the sign (&#8216;n&#8217; for negative, &#8216;p&#8217; for positive)</li>
-		<li>4 bytes specifying the integer value.</td>
+		<li>4 bytes specifying the integer value.
+</td>
 		</tr>
 		<tr>
 			<td>s</td>
 			<td>String</td>
 			<td>The tag is followed by:</li>
 		<li>4 bytes that specify the string size</li>
-		<li>the characters (single bytes) that make up the string.</td>
+		<li>the characters (single bytes) that make up the string.
+</td>
 		</tr>
 		<tr>
 			<td>x</td>
@@ -70,16 +79,17 @@ An .rbc file consists of:
 			<td>I</td>
 			<td>InstructionSequence</td>
 			<td>The tag is followed by:</li>
-		<li>a single byte character that indicates whether the instruction sequence is in big-endian or little-endian format; big-endian is indicated by the value &#8216;b&#8217;, while little-endian is indicated by an &#8216;l&#8217;.</li>
+		<li>a single byte character that indicates whether the instruction sequence is in big-endian or little-endian format; big-endian is indicated by the value &#8216;b&#8217;, while little-endian is indicated by an &#8216;l&#8217;. Currently, only big-endian format is used for marshaling instruction sequences.</li>
 		<li>4 bytes that specify the size of the instruction sequence</li>
 		<li>the raw bytes that make up the instruction sequence.
 When unmarshaling an instruction sequence, the instruction sequence is flipped if necessary to convert it to the endian-ness of the host platform.</td>
 		</tr>
 		<tr>
-			<td>m</td>
+			<td>M</td>
 			<td>CompiledMethod</td>
 			<td>The tag is followed by:</li>
-		<li>4 bytes that specify the number of fields in the compiled method (presently 16)</li>
+		<li>4 bytes that specify the version number of the CompiledMethod that has been marshaled. As of this writing, CompiledMethod has 17 fields,
+but only the first 16 are marshaled (the 17th field contains the translated instruction sequence, which is not persisted).</li>
 		<li>the marshaled value of each field, where the fields are:</li>
 	<ol>
 	<li><code>__ivars__</code></li>
@@ -97,7 +107,35 @@ When unmarshaling an instruction sequence, the instruction sequence is flipped i
 		<li>lines</li>
 		<li>path</li>
 		<li>cache</li>
-		<li>bonus</td>
+		<li>bonus
+</td>
+		</tr>
+		<tr>
+			<td>m</td>
+			<td>CompiledMethod
+(deprecated)</td>
+			<td> <em>Note: This tag has been deprecated, in favour of &#8216;M&#8217; (see above).</em> The tag is followed by:</li>
+	<ul>
+	<li>4 bytes that specify the number of fields in the compiled method (presently 16)</li>
+		<li>the marshaled value of each field, where the fields are:</li>
+	<ol>
+	<li><code>__ivars__</code></li>
+		<li>primitive</li>
+		<li>required</li>
+		<li>serial</li>
+		<li>bytecodes</li>
+		<li>name</li>
+		<li>file</li>
+		<li>locals</li>
+		<li>literals</li>
+		<li>arguments</li>
+		<li>scope</li>
+		<li>exceptions</li>
+		<li>lines</li>
+		<li>path</li>
+		<li>cache</li>
+		<li>bonus
+</td>
 		</tr>
 		<tr>
 			<td>B</td>
@@ -141,4 +179,14 @@ When unmarshaling an instruction sequence, the instruction sequence is flipped i
 	</table></li>
 	</ul></li>
 	</ol></li>
+	</ul></li>
+	</ol></li>
 	</ul>
+
+
+	<h3>Disassembler</h3>
+
+
+	<p>A disassembler is provided in <code>compiler/bytecode/disassembler.rb</code>, and it can be used to examine the contents of an .rbc file.</p>
+  </body>
+<html>

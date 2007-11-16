@@ -1,0 +1,15 @@
+---
+mnemonic: cast_for_single_block_arg
+operation: >-
+format: cast_for_single_block_arg
+stack_before:
+  - <consumed>
+  - ...
+stack_after:
+  - <produced>
+  - ...
+description: >-
+notes: >-
+  This opcode is used in combination with "create_block2":create_block2.html.
+see:
+  - create_block2
