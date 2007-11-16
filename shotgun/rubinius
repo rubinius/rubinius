@@ -44,6 +44,7 @@ fi
 
 if test "x$1" = "x--gdb"; then
   shift
+  export PATH=${PREFIX}shotgun:$PATH
   exec gdb -x ${PREFIX}shotgun/gdbstartup --args /dev/null "$@"
 elif test "x$1" = "x--valgrind"; then
   shift
