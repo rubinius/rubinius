@@ -205,8 +205,8 @@ class IO
     return [lhs, rhs]
   end
 
-  def self.open(fd)
-    o = self.new(fd)
+  def self.open(*args)
+    o = self.new(*args)
 
     return o unless block_given?
 

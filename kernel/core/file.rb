@@ -69,18 +69,6 @@ class File < IO
 
     @path = path_or_fd
   end
-    
-  def self.open(path_or_fd, mode = "r", perm = 0666)
-    f = self.new(path_or_fd, mode, perm)
-    
-    return f unless block_given?
-
-    begin
-      yield f
-    ensure
-      f.close unless f.closed?
-    end
-  end
   
   def self.exist?(path)
     out = Stat.stat(StringValue(path), true)
