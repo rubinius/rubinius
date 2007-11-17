@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../compiler/bytecode/primitive_names'
+require File.dirname(__FILE__) + '/primitive_names'
 require File.dirname(__FILE__) + '/primitive_generator'
 
 class ShotgunPrimitives
@@ -33,6 +33,9 @@ class ShotgunPrimitives
       i += 1
     end
     
+    fd.puts "default:"
+    fd.puts 'printf("Error: Primitive index out of range for this VM\n");'
+    fd.puts "sassert(0);"
     fd.puts "}"
     fd.puts
     
@@ -56,7 +59,7 @@ class ShotgunPrimitives
       
       f.puts "default:"
       f.puts 'printf("Error: Primitive index out of range for this VM\n");'
-      f.puts "abort();"
+      f.puts "sassert(0);"
       f.puts "}"
       f.puts
     end
@@ -71,6 +74,37 @@ class ShotgunPrimitives
         f.puts "#define CPU_PRIMITIVE_#{name.to_s.upcase} #{i}"
         i += 1
       end
+      
+    end
+    
+    File.open("primitive_util.h", "w") do |f|
+      size = Bytecode::Compiler::Primitives.size
+      f.puts "struct prim2index { char *name; int index; };"
+      f.puts
+      f.puts "static int calc_primitive_index(STATE, OBJECT str) {"
+      f.puts "  static struct prim2index pi[] = {"
+      
+      i = 1
+      Bytecode::Compiler::Primitives.each do |name|
+        unless name
+          i += 1
+          next
+        end
+        f.puts %Q!  { "#{name}", #{i} },!
+        i += 1
+      end
+      
+      f.puts "  { NULL, 0 } };"
+      f.puts <<-CODE
+        int i;
+        char *target = string_byte_address(state, str);
+        for(i = 0; pi[i].name; i++) {
+          if(!strcmp(target, pi[i].name)) return pi[i].index;
+        }
+        
+        return -1;
+      }
+      CODE
     end
     
   end

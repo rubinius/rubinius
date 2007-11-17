@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "primitive_util.h"
+
 static OBJECT string_newfrombstr(STATE, bstring output)
 {
 	return string_new2(state, bdata(output), blength(output));
@@ -312,16 +314,67 @@ static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
   return obj;
 }
 
-static void marshal_cmethod(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
-  marshal_fields_as(state, obj, buf, 'm', ms);
-}
-
 static OBJECT unmarshal_cmethod(STATE, struct marshal_state *ms) {
   int sz;
-  OBJECT cm;
+  OBJECT cm, prim;
   sz = unmarshal_num_fields(ms);
   cm = cmethod_allocate(state);
   unmarshal_into_fields(state, sz, cm, ms);
+  
+  /* fixups */
+  prim = cmethod_get_primitive(cm);
+  if(SYMBOL_P(prim)) {
+    int idx = calc_primitive_index(state, symbol_to_string(state, prim));
+    sassert(idx >= 0);
+    cmethod_set_primitive(cm, I2N(idx));
+  } else if(NIL_P(prim)) {
+    cmethod_set_primitive(cm, I2N(-1));
+  }
+  return cm;
+}
+
+static void marshal_cmethod(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
+  
+  marshal_fields_as(state, obj, buf, 'm', ms);
+}
+
+static void marshal_cmethod2(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
+  
+  int i;
+  append_c('M');
+  /* rather than a size, we use a version id */
+  append_sz(1);
+  
+  for(i = 0; i < 16; i++) {
+    marshal(state, NTH_FIELD(obj, i), buf, ms);  
+  }
+}
+
+
+static OBJECT unmarshal_cmethod2(STATE, struct marshal_state *ms) {
+  int ver;
+  OBJECT cm, prim, o;
+  
+  ver = unmarshal_num_fields(ms);
+  cm = cmethod_allocate(state);
+  
+  unmarshal_into_fields(state, 16, cm, ms);
+    
+  /* fixups */
+  prim = cmethod_get_primitive(cm);
+  if(SYMBOL_P(prim)) {
+    int idx = calc_primitive_index(state, symbol_to_string(state, prim));
+    sassert(idx >= 0);
+    cmethod_set_primitive(cm, I2N(idx));
+  } else if(NIL_P(prim)) {
+    cmethod_set_primitive(cm, I2N(-1));
+  }
+  
+  o = cmethod_get_cache(cm);
+  if(FIXNUM_P(o)) {
+    cmethod_set_cache(cm, tuple_new(state, FIXNUM_TO_INT(o)));
+  }
+  
   return cm;
 }
 
@@ -355,6 +408,10 @@ static OBJECT unmarshal(STATE, struct marshal_state *ms) {
       break;
     case 'm':
       o = unmarshal_cmethod(state, ms);
+      _add_object(o, ms);
+      break;
+    case 'M':
+      o = unmarshal_cmethod2(state, ms);
       _add_object(o, ms);
       break;
     case 'B':
@@ -413,7 +470,7 @@ static void marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
       } else if(kls == state->global->tuple) {
         marshal_tup(state, obj, buf, ms);
       } else if(kls == state->global->cmethod) {
-        marshal_cmethod(state, obj, buf, ms);
+        marshal_cmethod2(state, obj, buf, ms);
       } else if(kls == state->global->bytearray) {
         marshal_bytes(state, obj, buf);
       } else if(kls == state->global->iseq) {
