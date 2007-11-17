@@ -280,11 +280,7 @@ static OBJECT unmarshal_bytes(STATE, struct marshal_state *ms) {
 static void marshal_iseq(STATE, OBJECT obj, bstring buf) {
   int i;
   append_c('I');
-  if(obj->IsLittleEndian) {
-    append_c('l');
-  } else {
-    append_c('b');
-  }
+  append_c('b');
   
   i = SIZE_OF_BODY(obj);
   append_sz(i);
@@ -305,11 +301,8 @@ static OBJECT unmarshal_iseq(STATE, struct marshal_state *ms) {
   
   memcpy(bytearray_byte_address(state, obj), ms->buf + 6, sz);
   
-  #if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
-    if(endian != 'b') iseq_flip(state, obj);
-  #else
-    if(endian != 'l') iseq_flip(state, obj);
-  #endif
+  /* We only support iseq's stored big endian currently. */
+  sassert(endian == 'b');
   
   return obj;
 }

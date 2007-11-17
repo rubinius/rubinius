@@ -204,7 +204,7 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
         /* We cache the bytecode in a char*, so adjust it. 
            We mutate the data first so we cache the newest address. */
         OBJECT ba;
-        ba = cmethod_get_bytecodes(fc->method);
+        ba = cmethod_get_compiled(fc->method);
         ba = baker_gc_maybe_mutate(state, g, ba);
       
         fc->data = BYTEARRAY_ADDRESS(ba);
@@ -285,7 +285,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
     /* We cache the bytecode in a char*, so adjust it. 
        We mutate the data first so we cache the newest address. */
     OBJECT ba;
-    ba = cmethod_get_bytecodes(fc->method);
+    ba = cmethod_get_compiled(fc->method);
     ba = baker_gc_maybe_mutate(state, g, ba);
 
     fc->data = BYTEARRAY_ADDRESS(ba);

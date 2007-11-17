@@ -106,6 +106,10 @@ task :compiler do
   end
 end
 
+task :stable_shell => :compiler do
+  sh "shotgun/rubinius --gdb"
+end
+
 rule ".rbc" => %w[compiler .rb] do |t|
   compile t.source, t.name
 end

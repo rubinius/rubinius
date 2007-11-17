@@ -304,7 +304,7 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
       if(!NIL_P(fc->method)) {
         /* We cache the bytecode in a char*, so adjust it. */
         OBJECT ba;
-        ba = cmethod_get_bytecodes(fc->method);
+        ba = cmethod_get_compiled(fc->method);
         fc->data = BYTEARRAY_ADDRESS(ba);
       }
     } else if(ISA(iobj, BASIC_CLASS(task))) {
@@ -375,7 +375,7 @@ void mark_sweep_mark_context(STATE, mark_sweep_gc ms, OBJECT iobj) {
   if(!NIL_P(fc->method)) {
     /* We cache the bytecode in a char*, so adjust it. */
     OBJECT ba;
-    ba = cmethod_get_bytecodes(fc->method);
+    ba = cmethod_get_compiled(fc->method);
     fc->data = BYTEARRAY_ADDRESS(ba);
   }
 #undef fc_mutate

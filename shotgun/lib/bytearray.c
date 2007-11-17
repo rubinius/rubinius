@@ -71,23 +71,12 @@ OBJECT iseq_new(STATE, int fields) {
   return obj;
 }
 
-
-#if defined(__BIG_ENDIAN__)
-static inline uint32_t read_int(uint8_t *str) {
-  return (uint32_t)(str[0]
-                 | (str[1] << 8 )
-                 | (str[2] << 16)
-                 | (str[3] << 24));
-}
-#define ISET_FLAG(o) 
-#else
-static inline uint32_t read_int(uint8_t *str) {
+static inline uint32_t read_int_from_be(uint8_t *str) {
   return (uint32_t)((str[0] << 24)
                   | (str[1] << 16)
                   | (str[2] << 8 )
                   |  str[3]      );
 }
-#endif
 
 void iseq_flip(STATE, OBJECT self) {
   uint8_t *buf;
@@ -98,14 +87,11 @@ void iseq_flip(STATE, OBJECT self) {
   buf = (uint8_t*)bytearray_byte_address(state, self);
   ibuf = (uint32_t*)bytearray_byte_address(state, self);
   /* A sanity check. The first thing is always an instruction,
-   * and we've got less that 512 instructions, so if it's less
+   * and we've got less that 1024 instructions, so if it's less
    * it's already been flipped. */
-  if(*ibuf < 512) {
-    self->IsLittleEndian = TRUE;
-    return;
-  }  
+  if(*ibuf < 1024) return;
+
   for(i = 0; i < f; i += 4, ibuf++) {
-    *ibuf = read_int(buf + i);
+    *ibuf = read_int_from_be(buf + i);
   }
-  self->IsLittleEndian = TRUE;
 }

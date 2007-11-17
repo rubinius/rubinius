@@ -43,7 +43,7 @@ OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_bl
 
 
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
-  OBJECT ctx, ba;
+  OBJECT ctx, ins;
   int cnt;
   struct fast_context *fc;
   
@@ -67,11 +67,14 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   fc->name = self;
   fc->self = Qnil;
   fc->method = blokenv_get_method(self);
+
+  ins = cmethod_get_compiled(fc->method);
   
-  ba = cmethod_get_bytecodes(fc->method);
-  cpu_compile_instructions(state, ba);
+  if(NIL_P(ins)) {
+    ins = cpu_compile_method(state, fc->method);
+  }
   
-  fc->data = bytearray_byte_address(state, ba);
+  fc->data = bytearray_byte_address(state, ins);
   
   fc->literals = cmethod_get_literals(fc->method);
   fc->block = Qnil;

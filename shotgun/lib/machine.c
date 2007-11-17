@@ -527,7 +527,7 @@ int machine_run_file(machine m, const char *path) {
   if(m->s->excessive_tracing) {
     printf("[ Loading file %s]\n", path);
   }
-  
+    
   meth = machine_load_file(m, path);
   if(!RTEST(meth)) {
     printf("Unable to load '%s'.\n", path);
@@ -892,8 +892,9 @@ OBJECT machine_load_archive(machine m, const char *path) {
       goto out;
     }
     if(m->s->excessive_tracing) {
-      printf("[ Loading file %s]\n", files);
+      printf("[ Loading archived file %s]\n", files);
     }
+    
     /* We push this on the stack so it's properly seen by the GCs */
     cpu_stack_push(m->s, m->c, cm, FALSE);
     cpu_run_script(m->s, m->c, cm);

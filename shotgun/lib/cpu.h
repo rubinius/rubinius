@@ -152,6 +152,7 @@ OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under);
 void cpu_run(STATE, cpu c, int setup);
 int cpu_dispatch(STATE, cpu c);
 inline void cpu_compile_instructions(STATE, OBJECT ba);
+OBJECT cpu_compile_method(STATE, OBJECT cm);
 
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);

@@ -317,45 +317,40 @@ static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym,
   return mo;
 }
 
-inline void cpu_compile_instructions(STATE, OBJECT ba) {
-#if DIRECT_THREADED
-  if(!ba->IsFrozen) {
-    if(ba->IsLittleEndian) {
-#if defined(__BIG_ENDIAN__)
-      iseq_flip(state, ba);
-#endif
-    } else {
+OBJECT cpu_compile_method(STATE, OBJECT cm) {
+  OBJECT ba;
+  ba = bytearray_dup(state, cmethod_get_bytecodes(cm));
+  
+  /* If this is not a big endian platform, we need to adjust
+     the iseq to have the right order */
 #if !defined(__BIG_ENDIAN__)
-      iseq_flip(state, ba);
+  iseq_flip(state, ba);
 #endif
-    }
-    calculate_into_gotos(state, ba, _dt_addresses);
-    ba->IsFrozen = TRUE;
-  }
-#else
-  if(ba->IsLittleEndian) {
-#if defined(__BIG_ENDIAN__)
-    iseq_flip(state, ba);
-#endif
-  } else {
-#if !defined(__BIG_ENDIAN__)
-    iseq_flip(state, ba);
-#endif
-  }
 
+  /* If we're compiled with direct threading, then translate
+     the compiled version into addresses. */
+#if DIRECT_THREADED
+  calculate_into_gotos(state, ba, _dt_addresses);
 #endif
+
+  cmethod_set_compiled(cm, ba);
+  
+  return ba;
 }
 
 static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
       OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
-  OBJECT sender, ctx, ba;
+  OBJECT sender, ctx, ins;
   int num_lcls;
   struct fast_context *fc;
   
   sender = c->active_context;
   
-  ba = cmethod_get_bytecodes(mo);
-  cpu_compile_instructions(state, ba);
+  ins = cmethod_get_compiled(mo);
+  
+  if(NIL_P(ins)) {
+    ins = cpu_compile_method(state, mo);
+  }
   
   num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
   
@@ -380,7 +375,7 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
   fc->block = block;
   fc->method = mo;
-  fc->data = bytearray_byte_address(state, ba);
+  fc->data = bytearray_byte_address(state, ins);
   fc->literals = cmethod_get_literals(mo);
   fc->self = recv;
   if(num_lcls > 0) {
