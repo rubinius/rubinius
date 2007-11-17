@@ -537,7 +537,7 @@ double bignum_to_double(STATE, OBJECT self) {
    */
 #ifdef i386
 # ifdef __GNUC__
-#  if __GNUC__ == 4 && (__GNUC_MINOR__ == 1 || __GNUC_MINOR__ == 0)
+#  if __GNUC__ == 4 && (__GNUC_MINOR__ >= 0 && __GNUC_MINOR__ <= 2)
   __asm__ __volatile__ ("finit":::"memory");
 #  endif
 # endif
@@ -589,7 +589,7 @@ OBJECT bignum_from_double(STATE, double d)
    */
 #ifdef i386
 # ifdef __GNUC__
-#  if __GNUC__ == 4 && (__GNUC_MINOR__ == 0 || __GNUC_MINOR__ == 1)
+#  if __GNUC__ == 4 && (__GNUC_MINOR__ >= 0 && __GNUC_MINOR__ <= 2)
   __asm__ __volatile__ ("finit":::"memory");
 #  endif
 # endif
