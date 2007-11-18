@@ -90,10 +90,17 @@ class Socket < BasicSocket
     SOCK_SEQPACKET = 5
 
     SO_ACCEPTFILTER = 4096
-    SO_REUSEADDR = 4
 
     SOL_TCP = 6
-    SOL_SOCKET = 65535 # TODO - Different on weird platforms
+
+    case RUBY_PLATFORM
+    when /linux/
+      SOL_SOCKET = 1
+      SO_REUSEADDR = 2
+    else
+      SOL_SOCKET = 65535 # TODO - Different on weird platforms
+      SO_REUSEADDR = 4
+    end
   end
   
   module Foreign
