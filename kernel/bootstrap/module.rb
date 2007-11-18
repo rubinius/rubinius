@@ -64,6 +64,7 @@ class Module
   def include(mod)    
     mod.append_features(self)
     mod.included(self)
+    self
   end
   
   def attr_reader(name)
