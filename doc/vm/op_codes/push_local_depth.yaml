@@ -1,17 +1,17 @@
 ---
 mnemonic: push_local_depth
 operation: >-
-
-format: push_local_depth <arg1><arg1> <arg2>
+  Pushes the value of a local from an enclosing scope onto the stack
+format: push_local_depth depth local
 opcode: 85
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - localval
   - ...
 description: >-
-
+  Retrieves the value of a local variable from a context enclosing the current
+  context, and pushes it onto the stack.
 source: |-
     next_int;
     k = _int;

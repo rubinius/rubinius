@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to meta_send_op_tequal.yaml</span>
+            <p>Implementation of === (triple equal) optimised for fixnums and symbols</p>
             
 
             <h3>Format</h3>
-            
             <b>meta_send_op_tequal</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value1<tr><td>value2<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>true | false<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,7 +37,9 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to meta_send_op_tequal.yaml</span>
+            <p>Pops <i>value1</i> and <i>value2</i> off the stack, and pushes the logical result of (<i>value1</i> === <i>value2</i>). If <i>value1</i> and <i>value2</i> are both fixnums or both symbols, the comparison is done directly; otherwise, the === method is  called on <i>value1</i>, passing <i>value2</i> as the argument.</p>
+            
+
             
 
             
@@ -51,20 +51,21 @@
             
             <div id="meta_send_op_tequal_source" class="source">
                 <h4>Source</h4>
-                <pre>t1 = stack_pop();
-t2 = stack_pop();
-/* If both are fixnums, or both are symbols, compare the ops directly. */
-if((FIXNUM_P(t1) && FIXNUM_P(t2)) || (SYMBOL_P(t1) && SYMBOL_P(t2))) {
-  stack_push((t1 == t2) ? Qtrue : Qfalse);
-} else {
-  stack_push(t2);
-  _lit = state->global->sym_tequal;
-  t2 = Qnil;
-  j = 1;
-  goto perform_send;
-
-  // cpu_send_method(state, c, t1, state->global->sym_tequal, 1);
-}</pre>
+                <pre>    t1 = stack_pop();
+    t2 = stack_pop();
+    /* If both are fixnums, or both are symbols, compare the ops directly. */
+    if((FIXNUM_P(t1) && FIXNUM_P(t2)) || (SYMBOL_P(t1) && SYMBOL_P(t2))) {
+      stack_push((t1 == t2) ? Qtrue : Qfalse);
+    } else {
+      stack_push(t2);
+      _lit = state->global->sym_tequal;
+      t2 = Qnil;
+      j = 1;
+      goto perform_send;
+      
+      // cpu_send_method(state, c, t1, state->global->sym_tequal, 1);
+    }
+</pre>
             <div>
             
         </div>

@@ -12,14 +12,12 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to set_local_depth.yaml</span>
+            <p>Updates the value of a local variable contained in an enclosing scope</p>
             
 
             <h3>Format</h3>
-            
             <b>set_local_depth</b>
-            <i>&lt;arg1&gt;&lt;arg1&gt; &lt;arg2&gt;</i>
+            <i>depth local</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>value<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,7 +37,9 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to set_local_depth.yaml</span>
+            <p>Uses the value on the top of the stack to update the value of the local variable <i>local</i> in an enclosing scope.</p><p>The top of the stack is <b>not</b> popped by this operation.    </p>
+            
+
             
 
             
@@ -51,18 +51,20 @@
             
             <div id="set_local_depth_source" class="source">
                 <h4>Source</h4>
-                <pre>next_int;
-k = _int;
-next_int;
-t3 = stack_pop();
-t1 = c->active_context;
-
-for(j = 0; j < k; j++) {
-  t2 = blokctx_env(state, t1);
-  t1 = blokenv_get_home_block(t2);
-}
-tuple_put(state, blokctx_locals(state, t1), _int, t3);
-stack_push(t3);</pre>
+                <pre>    next_int;
+    k = _int;
+    next_int;
+    t3 = stack_pop();
+    t1 = c->active_context;
+        
+    for(j = 0; j < k; j++) {
+      t2 = blokctx_env(state, t1);
+      t1 = blokenv_get_home_block(t2);
+    }
+    tuple_put(state, blokctx_locals(state, t1), _int, t3);
+    stack_push(t3);
+    
+</pre>
             <div>
             
         </div>

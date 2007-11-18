@@ -1,17 +1,20 @@
 ---
 mnemonic: set_local_depth
 operation: >-
-
-format: set_local_depth <arg1><arg1> <arg2>
+  Updates the value of a local variable contained in an enclosing scope
+format: set_local_depth depth local
 opcode: 86
 stack_before:
-  - <consumed>
+  - value
   - ...
 stack_after:
-  - <produced>
+  - value
   - ...
 description: >-
+  Uses the value on the top of the stack to update the value of the local variable
+  _local_ in an enclosing scope.
 
+  The top of the stack is *not* popped by this operation.    
 source: |-
     next_int;
     k = _int;

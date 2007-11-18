@@ -29,10 +29,13 @@
 	<p>Objects are typically tenured into the old generation after surviving seven collections in the young generation, although very large objects may be instantiated directly in the old generation to avoid the copy overhead of the Baker algorithm.</p>
 
 
-	<h4>Stack-less Design</h4>
+	<h4>Stack-less (or Spaghetti stack) Design</h4>
 
 
 	<p>Shotgun runs Rubinius bytecode using a stack-less design. This may sound strange, given the Rubinius virtual machine is a stack-based bytecode interpreter; however, it refers to the avoidance of C stack frames when dispatching Ruby methods. This is important when implementing a virtual machine, since otherwise the large number of small routines used to implement the virtual machine opcodes would tend to exhaust the C-stack.</p>
+
+
+	<p>Instead, Rubinius uses what is termed a &#8220;spaghetti stack&#8221;, whereby execution context is maintained on the heap in first-class objects such as MethodContext and BlockContext. These execution contexts contain all the information that is normally found on the C stack, such as the method chain to this point, local variables, etc. However, because they are first-class data structures residing on the heap, they can be manipulated, passed around, etc. This also makes it relatively simple for Rubinius to support continuations (essentially a snapshot of an execution context at a point in time) and a debugger.</p>
 
 
 	<h4>Direct Threading</h4>

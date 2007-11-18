@@ -1,17 +1,21 @@
 ---
 mnemonic: meta_send_op_tequal
 operation: >-
-
+  Implementation of === (triple equal) optimised for fixnums and symbols
 format: meta_send_op_tequal
 opcode: 83
 stack_before:
-  - <consumed>
+  - value1
+  - value2
   - ...
 stack_after:
-  - <produced>
+  - true | false
   - ...
 description: >-
-
+  Pops _value1_ and _value2_ off the stack, and pushes the logical result of
+  (_value1_ === _value2_). If _value1_ and _value2_ are both fixnums or both
+  symbols, the comparison is done directly; otherwise, the === method is
+  called on _value1_, passing _value2_ as the argument.
 source: |-
     t1 = stack_pop();
     t2 = stack_pop();
