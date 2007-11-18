@@ -116,6 +116,7 @@ locate_method
 
   def extend(*mods)
     metaclass.include(*mods)
+    self
   end
   
   def method_missing(meth, *args)
