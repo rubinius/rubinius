@@ -20,6 +20,7 @@ class MarshalEmitter
     ?I => :instructions,
     ?p => :tuple,
     ?m => :method,
+    ?M => :method2,
     ?r => :object
   }
   
@@ -95,6 +96,21 @@ class MarshalEmitter
   
   alias :process_method :process_tuple
   alias :process_object :process_tuple
+  
+  # Support for version 2 of compiled method, which replaces size with a version number
+  def process_method2
+    ver = @string[@index,4].unpack("N").first
+    @index += 4
+    body = []
+    sz = 16 if 1 == ver
+    raise "Unsupported version (#{ver}) of CompiledMethod" unless sz
+
+    sz.times do
+      body << process()
+    end
+    
+    body    
+  end
   
   def process_instructions
     endian = @string[@index]
