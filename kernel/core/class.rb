@@ -109,39 +109,6 @@ class Class
     end
   end
   
-  def <(other)
-    sup = direct_superclass()
-    while sup
-      if sup.kind_of? IncludedModule
-        return true if sup.module.equal? other
-      else
-        return true if sup.equal? other
-      end
-      sup = sup.direct_superclass()
-    end
-    false
-  end
-  
-  def <=(other)
-    return true if self.equal? other
-    self < other
-  end
-  
-  def >(other)
-    other < self
-  end
-  
-  def >=(other)
-    return true if self.equal? other
-    other < self
-  end
-  
-  def ===(inst)
-    # Could call kind_of?, but the body of kind_of does this exact
-    # thing.
-    inst.kind_of? self
-  end
-    
   def superclass
     cls = direct_superclass
     return nil unless cls

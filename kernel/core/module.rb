@@ -383,6 +383,45 @@ class Module
     return nil
   end
 
+  def <(other)
+    unless other.kind_of? Module
+      raise TypeError, "compared with non class/module"
+    end
+    return false if self.equal? other
+    ancestors.index(other) && true
+  end
+
+  def <=(other)
+    return true if self.equal? other
+    lt = self < other
+    return false if lt.nil? && other < self
+    lt
+  end
+  
+  def >(other)
+    unless other.kind_of? Module
+      raise TypeError, "compared with non class/module"
+    end    
+    other < self
+  end
+  
+  def >=(other)
+    unless other.kind_of? Module
+      raise TypeError, "compared with non class/module"
+    end
+    return true if self.equal? other
+    gt = self > other
+    return false if gt.nil? && other > self
+    gt
+  end
+
+  def ===(inst)
+    return true if inst.kind_of? self
+    # TODO: check if inst is extended by self
+    # inst.metaclass < self & true rescue false
+    false
+  end
+  
 private
 
   def remove_const(name)
