@@ -323,7 +323,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   
   /* If this is not a big endian platform, we need to adjust
      the iseq to have the right order */
-#if !defined(__BIG_ENDIAN__)
+#if !CONFIG_BIG_ENDIAN
   iseq_flip(state, ba);
 #endif
 

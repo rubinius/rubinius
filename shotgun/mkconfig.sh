@@ -75,3 +75,8 @@ else
   echo "#define CONFIG_ENABLE_DT 1" >> config.h
 fi
 
+if config/run isbigendian; then
+  echo "#define CONFIG_BIG_ENDIAN 1" >> config.h
+else
+  echo "#define CONFIG_BIG_ENDIAN 0" >> config.h
+fi

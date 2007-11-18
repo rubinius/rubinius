@@ -2540,18 +2540,6 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop();
     /*
-    printf("Compiling iseq %p...\\n", self);
-    if(self->IsLittleEndian) {
-      #if defined(__BIG_ENDIAN__)
-      printf("flip1\\n");
-      iseq_flip(state, self);
-      #endif
-    } else {
-      #if !defined(__BIG_ENDIAN__)
-      printf("flip2\\n");
-      iseq_flip(state, self);
-      #endif
-    }
     */
     stack_push(Qtrue);
     CODE

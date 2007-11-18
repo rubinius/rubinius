@@ -60,7 +60,8 @@ shotgun/rubinius.bin
 shotgun/config.h
 shotgun/.libs
 shotgun/config.mk
-shotgun/config/is64bit
+shotgun/config/*
+!shotgun/config/*.c
 shotgun/lib/librubinius.*
 shotgun/lib/librubinius-*
 

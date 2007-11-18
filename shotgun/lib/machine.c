@@ -780,7 +780,7 @@ void machine_setup_config(machine m) {
   machine_set_const_under(m, "COMPILER", SYM("unknown"), mod);
 #endif
 
-#if defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#if CONFIG_BIG_ENDIAN
   machine_set_const_under(m, "ENDIAN", SYM("big"), mod);
 #else
   machine_set_const_under(m, "ENDIAN", SYM("little"), mod);
