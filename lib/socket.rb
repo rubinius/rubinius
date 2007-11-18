@@ -1,31 +1,3 @@
-module System
-  attach_function nil, "strerror", :strerror, [:int], :string
-  attach_function nil, "ffi_errno", :errno, [], :int
-  
-  def self.error
-    strerror(self.errno)
-  end
-end
-
-module Errno
-  def self.handle(msg=nil)
-    err = System.errno
-    return unless err != 0
-    
-    exc = Errno::Mapping[err]
-    if exc
-      if msg
-        msg = "#{msg} (#{System.error})"
-      else
-        msg = System.error
-      end
-      raise exc.new(msg, err)
-    else
-      raise "Unknown error: #{System.error} (#{err})"
-    end
-  end
-end
-
 class BasicSocket < IO
   def self.do_not_reverse_lookup=(setting)
     @no_reverse_lookup = setting
