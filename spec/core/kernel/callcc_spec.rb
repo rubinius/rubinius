@@ -21,6 +21,19 @@ describe "Kernel#callcc" do
     cont.call() if i < 5
     i.should == 5    
   end
+
+  it "should return the results of a block if block is not called" do
+    cont = nil
+    a = callcc {|cont| 0}
+    cont.call(1) if a == 0
+    a.should == 1
+  end
+  
+  it "should return the arguments to call" do
+    callcc {|cont| cont.call }.should == nil
+    callcc {|cont| cont.call 1 }.should == 1
+    callcc {|cont| cont.call 1,2,3 }.should == [1,2,3]
+  end
   
   it "raises a LocalJumpError if callcc is not given a block" do
     should_raise(LocalJumpError) { Kernel.callcc }
