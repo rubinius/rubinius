@@ -433,6 +433,17 @@ class Module
     gt
   end
 
+  def <=>(other)
+    return 0 if self.equal? other
+    return nil unless other.kind_of? Module
+    lt = self < other
+    if lt.nil?
+      other < self ? 1 : nil
+    else
+      lt ? -1 : 1
+    end
+  end
+
   def ===(inst)
     return true if inst.kind_of? self
     # TODO: check if inst is extended by self
