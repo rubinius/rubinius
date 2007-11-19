@@ -10,15 +10,15 @@ Shotgun borrows significantly from the design and implementation of Smalltalk-80
 
 h4. Generational Garbage Collection
 
-Shotgun implements a generational garbage collector, consisting of a Baker collector for the young generation, and a mark-sweep collector for the old generation. 
+Shotgun implements a generational garbage collector, consisting of a Baker collector for the young generation, and a mark-sweep collector for the old generation.
 
 Objects are typically tenured into the old generation after surviving seven collections in the young generation, although very large objects may be instantiated directly in the old generation to avoid the copy overhead of the Baker algorithm.
 
-h4. Stack-less (or Spaghetti stack) Design
+h4. Spaghetti Stack
 
-Shotgun runs Rubinius bytecode using a stack-less design. This may sound strange, given the Rubinius virtual machine is a stack-based bytecode interpreter; however, it refers to the avoidance of C stack frames when dispatching Ruby methods. This is important when implementing a virtual machine, since otherwise the large number of small routines used to implement the virtual machine opcodes would tend to exhaust the C-stack.
+Shotgun runs Rubinius bytecode using a stack-less design. This may sound strange, given the Rubinius virtual machine is a stack-based bytecode interpreter; however, it refers to the avoidance of C stack frames when dispatching Ruby methods. At any point during the execution of a Ruby program on Shotgun, there will be exactly three C stack frames that appear in a C stack trace: @main@, @machine_start@, and @cpu_run@.
 
-Instead, Rubinius uses what is termed a "spaghetti stack", whereby execution context is maintained on the heap in first-class objects such as MethodContext and BlockContext. These execution contexts contain all the information that is normally found on the C stack, such as the method chain to this point, local variables, etc. However, because they are first-class data structures residing on the heap, they can be manipulated, passed around, etc. This also makes it relatively simple for Rubinius to support continuations (essentially a snapshot of an execution context at a point in time) and a debugger.
+Instead, Rubinius uses what is termed a "spaghetti stack", whereby execution context is maintained on the heap in first-class objects such as MethodContext and BlockContext. These execution contexts contain all the information that is normally found on the C stack, such as the method chain to this point, local variables, etc. However, because they are first-class data structures residing on the heap, they can be manipulated, passed around, re-ordered etc. This in turn makes it relatively simple for Rubinius to support green threads, continuations (essentially a snapshot of an execution context at a point in time) and debugging.
 
 h4. Direct Threading
 

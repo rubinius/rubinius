@@ -19,7 +19,10 @@ Rubinius provides three different mechanisms for interfacing with the VM:
 	<h3>Primitives</h3>
 
 
-	<p>Primitives provide a means for Ruby code to drop-down to the virtual machine level in order to manipulate the machine directly. Primitives provide the ability to implement functionality on Ruby classes that is impractical or impossible from pure Ruby. Primitives are one-way; compile-time constructs, typically used to generate C code that manipulates the state of the machine directly.</p>
+	<p>Primitives provide a means for Ruby code to drop-down to the virtual machine level in order to manipulate the machine directly. Primitives provide the ability to implement functionality on Ruby classes that is impractical or impossible from pure Ruby, such as allocating memory for a new object.</p>
+
+
+	<p>Primitives are one-way; compile-time constructs, typically used to generate C code that manipulates the state of the machine directly. In a sense, primitives extend the instruction set of the virtual machine, but unlike the standard VM byte codes, primitives are always executed as a method of an object, and are defined and invoked from Ruby.</p>
 
 
 	<h4>When to Use</h4>
@@ -43,7 +46,7 @@ Rubinius provides three different mechanisms for interfacing with the VM:
 	<h3>Subtend</h3>
 
 
-	<p>Subtend is the <span class="caps">MRI</span> compatible C interface that allows external code to call Ruby. It is provided so that external libraries written to the <span class="caps">MRI C</span>-interface can work with Rubinius, with only a re-compile required. See <a href="http://blog.fallingsnow.net/2007/03/06/subtend-version-1-is-in/">here</a> for more information.</p>
+	<p>Subtend is the <span class="caps">MRI</span>-compatible C interface that allows external code to call Ruby code running on Rubinius. It is provided so that external libraries written to the <span class="caps">MRI C</span>-interface can work with Rubinius, with only a re-compile required. See <a href="http://blog.fallingsnow.net/2007/03/06/subtend-version-1-is-in/">here</a> for more information.</p>
 
 
 	<h4>When to Use</h4>

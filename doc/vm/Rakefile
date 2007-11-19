@@ -33,6 +33,16 @@ namespace "doc" do
        task "html" => html
      end
      
+     # Define tasks for each html file on the corresponding markdown file
+     # Note: requires bluecloth gem to convert markdown markup to html
+     Dir.glob('*.markdown').each do |f|
+       html = f.chomp('.markdown') + '.html'
+       file html => f do
+         ruby "gen_section_html.rb #{f}"
+       end
+       
+       task "html" => html
+     end
    end
  end
  

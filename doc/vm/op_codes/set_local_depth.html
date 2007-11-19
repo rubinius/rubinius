@@ -37,11 +37,20 @@
 
             <h3>Description</h3>
             
-            <p>Uses the value on the top of the stack to update the value of the local variable <i>local</i> in an enclosing scope.</p><p>The top of the stack is <b>not</b> popped by this operation.    </p>
+            <p>Uses the value on the top of the stack to update the value of the local variable <i>local</i> in an enclosing scope.</p><p>The top of the stack is <b>not</b> popped by this operation.</p>
             
 
             
 
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>foo.each do |i|
+  bar.each do |j|
+    i = i + j  # i is a local variable from enclosing scope at depth 1
+  end
+end</pre>
+            </div>
             
 
             

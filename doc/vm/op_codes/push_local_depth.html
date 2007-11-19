@@ -37,11 +37,20 @@
 
             <h3>Description</h3>
             
-            <p>Retrieves the value of a local variable from a context enclosing the current  context, and pushes it onto the stack.</p>
+            <p>Retrieves the value of a local variable from a context enclosing the current context, and pushes it onto the stack.</p>
             
 
             
 
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>foo.each do |i|
+  bar.each do |j|
+    i = i + j  # i is a local variable from enclosing scope at depth 1
+  end
+end</pre>
+            </div>
             
 
             
