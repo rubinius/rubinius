@@ -7,9 +7,6 @@ Kernel#exec should raise a SystemCallError if cmd cannot execute
 IO#puts ignores the $/ separator global
 Module#autoload does not autoload when the specified constant was already set
 Module#class_variables returns an array with the names of class variables of self and self
-Module#const_missing is invoked when an undefined constant is referenced in the scope of self
-Module#const_set sets the constant with the given name to the given value
-Module#const_set tries to convert the given name to a string using to_str
 Module#extend_object extends the given object with constants and methods of self
 Module#extend_object is called when an object gets extended with self
 Module#extended is called when an object gets extended with self
@@ -21,3 +18,6 @@ The loop expression restarts the current iteration with redo
 IO#gets raises IOError if the stream is not opened for reading
 File#open raise an IO exception when read in a block opened with 'w' mode
 File#open raise an IO exception when read in a block opened with 'a' mode
+Kernel#callcc should be possible to exit a loop like a break
+Kernel#callcc should be possible to call a continuation multiple times
+Kernel#callcc should return the arguments to call

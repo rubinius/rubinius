@@ -1,3 +1,4 @@
+File.new raise an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL
 File.new raise an Errno::EINVAL error with File::APPEND
 File.new raise an Errno::EINVAL error with File::RDONLY|File::APPEND
 File.new expected errors 

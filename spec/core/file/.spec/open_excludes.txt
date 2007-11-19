@@ -28,3 +28,9 @@ File.open can't read in a block when call open with File::TRUNC mode
 File.open can't write in a block when call open with File::TRUNC mode
 File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC
 File.open expected errors 
+File.open open a file that no exists when use File::TRUNC mode
+File.open open a file that no exists when use File::CREAT mode
+File.open open a file that no exists when use 'a' mode
+File.open create a new file when use File::TRUNC mode
+File.open should open a file for binary read-write starting at the beginning of the file
+File.open should open a file for binary read-write and truncate the file
