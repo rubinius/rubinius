@@ -205,6 +205,10 @@ class IO
     return [lhs, rhs]
   end
 
+  def self.for_fd(fd)
+    self.new(fd)
+  end
+
   def self.open(*args)
     o = self.new(*args)
 
