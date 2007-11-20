@@ -157,9 +157,9 @@ module Kernel
   def open(*a, &block)  
     if a.first[0,1] == '|'
       a[0] = a.first[1..-1]
-      IO.popen(*a, block)
+      IO.popen(*a, &block)
     else 
-      File.open(*a, block)
+      File.open(*a, &block)
     end
   end
 
