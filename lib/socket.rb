@@ -129,18 +129,16 @@ class UDPSocket < IPSocket
     @descriptor = other
   end
   
-  def initialize(host, port, connected = false)
-    unless connected
-      super(Socket::Constants::SOCK_DGRAM)
-      @host = host
-      @port = port
+  def initialize(host, port)
+    super(Socket::Constants::SOCK_DGRAM)
 
-      @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
-      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
-      if sock != 0
-        Errno.handle "Unable to connect to #{host}:#{port}"
-      end
-    end
+    @host = host
+    @port = port
+
+    @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+
+    ret = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
+    Errno.handle if ret != 0
   end
   
   def inspect
@@ -154,18 +152,16 @@ class TCPSocket < IPSocket
     @descriptor = other
   end
   
-  def initialize(host, port, connected = false)
-    unless connected
-      super(Socket::Constants::SOCK_STREAM)
-      @host = host
-      @port = port
+  def initialize(host, port)
+    super(Socket::Constants::SOCK_STREAM)
 
-      @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
-      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
-      if sock != 0
-        Errno.handle "Unable to connect to #{host}:#{port}"
-      end
-    end
+    @host = host
+    @port = port
+
+    @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+
+    ret = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
+    Errno.handle if ret != 0
   end
   
   def inspect
@@ -219,7 +215,7 @@ class TCPServer < TCPSocket
       Errno.handle "Unable to accept on socket"
     end
 
-    socket = TCPSocket.new(@host, @port, true)
+    socket = TCPSocket.allocate
     socket.descriptor = fd
 
     socket
