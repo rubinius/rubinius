@@ -100,7 +100,12 @@ class ExtensionCompiler
   
   def compile_options    
     str = (@includes + @compile_flags).join(" ")
-    str += ' -fPIC ' if Rubinius::PLATFORM == :amd64
+
+    if Rubinius::PLATFORM == :amd64
+      str += ' -fPIC '
+    end
+
+    str
   end
     
   def compiler
