@@ -326,7 +326,7 @@ task :rebuild => %w[clean:rbc clean:shotgun build:all]
 task :clean => %w[clean:rbc clean:shotgun]
 
 desc "Remove all ruby system files"
-task :distclean => 'clean:rbc'
+task :distclean => %w[clean:rbc clean:shotgun clean:external]
 
 desc "Remove all stray compiled Ruby files"
 task :pristine do
@@ -337,7 +337,7 @@ task :pristine do
 end
 
 namespace :clean do
-  
+
   desc "Remove all compile system ruby files (runtime/)"
   task :rbc do
     AllPreCompiled.each do |f|
@@ -348,6 +348,11 @@ namespace :clean do
   desc "Cleans up VM building site"
   task :shotgun do
     sh make('clean')
+  end
+
+  desc "Cleans up VM and external libs"
+  task :external do
+    sh "cd shotgun; #{make('distclean')}"
   end
 end
 
