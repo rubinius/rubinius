@@ -2,11 +2,14 @@
 
 $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
-$make = ENV['MAKE'] || 'make'
 
 require 'tsort'
 
 task :default => :build
+
+def make(args = nil)
+  "#{ENV['MAKE'] || 'make'} #{args}"
+end
 
 class Hash
   include TSort
@@ -289,7 +292,7 @@ end
 
 desc "Install rubinius as rbx"
 task :install => :config_env do
-  sh "cd shotgun; #{$make} install"
+  sh "cd shotgun; #{make install}"
 
   mkdir_p ENV['RBAPATH'], :verbose => true
   mkdir_p ENV['CODEPATH'], :verbose => true
@@ -344,8 +347,8 @@ namespace :clean do
 
   desc "Cleans up VM building site"
   task :shotgun do
-    sh "#{$make} clean"
-  end  
+    sh make('clean')
+  end
 end
 
 namespace :build do
@@ -370,7 +373,7 @@ namespace :build do
   ].exclude(/auto/, /instruction_names/, /node_types/)
 
   file "shotgun/rubinius.bin" => c_source do
-    sh "#{$make} vm"
+    sh make('vm')
   end
 
   file 'shotgun/mkconfig.sh' => 'configure'
