@@ -154,12 +154,12 @@ module Kernel
     nil
   end
     
-  def open(*a)  
+  def open(*a, &block)  
     if a.first[0,1] == '|'
       a[0] = a.first[1..-1]
-      IO.popen(*a)
+      IO.popen(*a, block)
     else 
-      File.open(*a)
+      File.open(*a, block)
     end
   end
 
