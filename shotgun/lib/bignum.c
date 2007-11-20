@@ -14,7 +14,7 @@
 
 #define MP(k) DATA_STRUCT(k, mp_int*)
 #define BDIGIT_DBL long long
-#define DIGIT_RADIX (1 << DIGIT_BIT)
+#define DIGIT_RADIX (1L << DIGIT_BIT)
 
 void bignum_cleanup(STATE, OBJECT obj) {
   mp_int *n = MP(obj);
