@@ -17,7 +17,7 @@ class IO
   def __ivars__ ; @__ivars__  ; end
     
   def inspect
-    "#<#{self.class}:#{object_id.to_s(16)}>"
+    "#<#{self.class}:0x#{object_id.to_s(16)}>"
   end
   
   def fileno
