@@ -366,7 +366,7 @@ namespace :build do
     "shotgun/lib/*.rb",
     "shotgun/lib/subtend/*.[chS]",
     "shotgun/main.c",
-  ]
+  ].exclude(/auto/, /instruction_names/, /node_types/)
 
   file "shotgun/rubinius.bin" => c_source do
     sh "make vm"

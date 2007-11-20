@@ -1,5 +1,5 @@
 #!/bin/sh
 
-(cd shotgun; bash ./mkconfig.sh "$*")
+cd shotgun; bash ./mkconfig.sh "$*"
 
 echo "Rubinius is configured."
