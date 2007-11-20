@@ -40,7 +40,7 @@
   unsigned char flags; \
   unsigned int ip; \
   unsigned int sp; \
-  OBJECT *fp_ptr;
+  unsigned int fp;
 
 struct fast_context {
   CPU_REGISTERS
@@ -48,8 +48,8 @@ struct fast_context {
 
 #define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))
 
-/* 3Megs of stack */
-#define InitialStackSize 786432
+/* 1Meg of stack */
+#define InitialStackSize 262144
 
 #define TASK_NO_STACK 1
 #define TASK_FLAG_P(task, flag) ((task->flags & flag) == flag)
@@ -93,7 +93,7 @@ struct rubinius_cpu {
   unsigned short argcount;
   unsigned int ip;
   unsigned int sp;
-  OBJECT *fp_ptr;
+  unsigned int fp;
   
   // CPU_REGISTERS;
   
@@ -240,6 +240,7 @@ OBJECT cpu_sampler_disable(STATE);
 #define cpu_stack_push(state, c, oop, check) ({ OBJECT _tmp = (oop); CHECK_PTR(_tmp); (c)->sp_ptr++; *((c)->sp_ptr) = _tmp; })
 #define cpu_stack_pop(state, c) (*(c)->sp_ptr--)
 #define cpu_stack_top(state, c) (*(c)->sp_ptr)
+#define cpu_stack_set_top(state, c, oop) (*(c)->sp_ptr = oop)
 
 #else 
 static inline int cpu_stack_push(STATE, cpu c, OBJECT oop, int check) {

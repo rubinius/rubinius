@@ -75,17 +75,44 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   struct cpu_task *cur_task, *task;
   
   OBJECT obj;
+  OBJECT *ns;
   
-  if(NIL_P(cur)) {
+  cpu_save_registers(state, c, 0);
+  cpu_flush_sp(c);
+  cpu_flush_ip(c);
+  
+  if(NIL_P(cur) || cur == c->current_task) {
     cur_task = (struct cpu_task*)CPU_TASKS_LOCATION(c);
+    
+    /*
+    if(!NIL_P(c->active_context)) {
+      printf("(current task dup) ip:%d, sp:%d, fp:%d%s\n", c->ip, c->sp, c->fp, _inspect(cpu_current_method(state, c)));
+    }
+    */
   } else {
     cur_task = (struct cpu_task*)BYTES_OF(cur);
+    
+    /*
+    printf("(      a task dup) ip:%d, sp:%d, fp:%d %s\n", FASTCTX(cur_task->active_context)->ip, FASTCTX(cur_task->active_context)->sp, FASTCTX(cur_task->active_context)->fp,  _inspect(cpu_current_method(state, cur_task)));
+    */
   }
   
   NEW_STRUCT(obj, task, state->global->task, struct cpu_task);
   memcpy(task, cur_task, sizeof(struct cpu_task));
-  task->stack_slave = 1;
   
+  /* Duplicate the operand stack. */
+  ns = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+  memcpy(ns, task->stack_top, InitialStackSize * sizeof(OBJECT));
+  task->stack_top = ns;
+  task->stack_size = InitialStackSize;
+  task->stack_slave = 0;
+  
+  /* Duplicate the context chain */
+  if(!NIL_P(task->active_context)) {
+    task->active_context = 
+      methctx_dup_chain(state, task->active_context, &task->home_context);
+  }
+    
   return obj;
 }
 
@@ -121,6 +148,9 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
   // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   
+  /*
+  printf("(switched to task) ip:%d, sp:%d, fp:%d %s\n", c->ip, c->sp, c->fp, _inspect(cpu_current_method(state, c)));
+  */
   c->current_task = nw;
   return TRUE;
 }
@@ -134,10 +164,13 @@ OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be) {
   task = (struct cpu_task*)BYTES_OF(self);
   
   bc = blokenv_create_context(state, be, Qnil, 1);
-  task->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+  if(task->stack_slave) {
+    task->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+    task->stack_size = InitialStackSize;
+    task->stack_slave = 0;
+  }
+  
   task->sp_ptr = task->stack_top;
-  task->stack_size = InitialStackSize;
-  task->stack_slave = 0;
     
   /* The args to the block (none). */
   cpu_task_push(state, self, tuple_new(state, 0));

@@ -819,40 +819,10 @@ class ShotgunPrimitives
   
   def fastctx_dup
     <<-CODE
-    struct fast_context *cur, *old;
     POP(self, REFERENCE);
     GUARD(ISA(self, state->global->fastctx));
     
-    t1 = NEW_OBJECT(object_class(state, self), FASTCTX_FIELDS);
-
-    t1->StoresBytes = TRUE;
-    if(self->obj_type == MContextType) {
-      t1->CTXFast = TRUE;
-    }
-    t1->obj_type = self->obj_type;
-   
-    old = FASTCTX(self);
-    cur = FASTCTX(t1);
-
-    SET_STRUCT_FIELD(t1, cur->sender, old->sender);
-    SET_STRUCT_FIELD(t1, cur->block, old->block);
-    SET_STRUCT_FIELD(t1, cur->method, old->method);
-    SET_STRUCT_FIELD(t1, cur->literals, old->literals);
-    SET_STRUCT_FIELD(t1, cur->locals, old->locals);
-    cur->argcount = old->argcount;
-    SET_STRUCT_FIELD(t1, cur->name, old->name);
-    SET_STRUCT_FIELD(t1, cur->method_module, old->method_module);
-    cur->opaque_data = old->opaque_data;
-    SET_STRUCT_FIELD(t1, cur->self, old->self);
-    cur->data = old->data;
-    cur->type = old->type;
-    cur->ip = old->ip;
-    cur->sp = old->sp;
-    cur->fp_ptr = old->fp_ptr;
-   
-    t1->ForeverYoung = TRUE;
-
-    stack_push(t1);
+    stack_push(methctx_dup(state, self));
     CODE
   end
 
@@ -2001,13 +1971,19 @@ class ShotgunPrimitives
   def task_dup
     <<-CODE
     self = stack_pop();
+    
+    /* This is a little contrived so the dup'd task has
+       it stack setup properly. */
+    
+    stack_push(Qnil);
+    
     if(RISA(self, task)) {
       t1 = cpu_task_dup(state, c, self);
     } else {
       t1 = cpu_task_dup(state, c, Qnil);
     }
     
-    stack_push(t1);
+    cpu_stack_set_top(state, c, t1);    
     CODE
   end
   

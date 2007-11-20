@@ -4,6 +4,65 @@
 #include "tuple.h"
 #include "bytearray.h"
 
+OBJECT methctx_dup(STATE, OBJECT self) {
+  OBJECT ctx;
+  struct fast_context *cur, *old;
+  
+  ctx = NEW_OBJECT(object_class(state, self), FASTCTX_FIELDS);
+
+  ctx->StoresBytes = TRUE;
+  if(self->obj_type == MContextType) {
+    ctx->CTXFast = TRUE;
+  }
+  ctx->obj_type = self->obj_type;
+ 
+  old = FASTCTX(self);
+  cur = FASTCTX(ctx);
+
+  SET_STRUCT_FIELD(ctx, cur->sender, old->sender);
+  SET_STRUCT_FIELD(ctx, cur->block, old->block);
+  SET_STRUCT_FIELD(ctx, cur->method, old->method);
+  SET_STRUCT_FIELD(ctx, cur->literals, old->literals);
+  SET_STRUCT_FIELD(ctx, cur->locals, old->locals);
+  cur->argcount = old->argcount;
+  SET_STRUCT_FIELD(ctx, cur->name, old->name);
+  SET_STRUCT_FIELD(ctx, cur->method_module, old->method_module);
+  cur->opaque_data = old->opaque_data;
+  SET_STRUCT_FIELD(ctx, cur->self, old->self);
+  cur->data = old->data;
+  cur->type = old->type;
+  cur->ip = old->ip;
+  cur->sp = old->sp;
+  cur->fp = old->fp;
+ 
+  ctx->ForeverYoung = TRUE;
+  
+  return ctx;  
+}
+
+OBJECT methctx_dup_chain(STATE, OBJECT ctx, OBJECT *also) {
+  OBJECT sender, top;
+  top = methctx_dup(state, ctx);
+  ctx = top;
+    
+  for(;;) {
+    sender = FASTCTX(ctx)->sender;
+    if(NIL_P(sender)) break;
+    
+    methctx_reference(state, sender);
+    
+    FASTCTX(ctx)->sender = methctx_dup(state, sender);
+    /* Update another ref if one is passed in
+       (used to also update home_context) */
+    if(also && *also == sender) {
+      *also = FASTCTX(ctx)->sender;
+    }
+    ctx = sender;
+  }
+    
+  return top;
+}
+
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals) {
   OBJECT obj;
     

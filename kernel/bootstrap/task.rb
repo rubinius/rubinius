@@ -31,11 +31,12 @@ class Task
   end
 
   def inspect
-    "#<Task:#{self.object_id.to_s(16)} #{main.inspect}>"
+    "#<Task:#{self.object_id.to_s(16)}>"
   end
 
   def self.current=(task)
     Ruby.primitive :task_set_current
+    raise ArgumentError, "Unable to set '#{task.inspect}' as the current Task"
   end
 
   def associate(be)

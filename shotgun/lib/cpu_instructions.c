@@ -369,9 +369,9 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->sender = sender;
   fc->ip = 0;
   fc->sp = c->sp;
-  /* fp_ptr points to the location on the stack as the context
+  /* fp points to the location on the stack as the context
      was being created. */
-  fc->fp_ptr = c->sp_ptr;
+  fc->fp = c->sp;
   
   fc->block = block;
   fc->method = mo;
@@ -487,10 +487,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   CHECK_PTR(fc->method);
   
   c->argcount = fc->argcount;
-  c->self = fc->self;
-
-  c->fp_ptr = fc->fp_ptr;
-  
+  c->self = fc->self;  
   
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
@@ -509,7 +506,8 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   c->sender = fc->sender;
   c->sp = fc->sp;
   c->ip = fc->ip;
-    
+  c->fp = fc->fp;
+  
   cpu_cache_ip(c);
   cpu_cache_sp(c);
   

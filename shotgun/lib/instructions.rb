@@ -417,7 +417,7 @@ CODE
     k = _int;
     next_int;
     
-    t1 = *(c->fp_ptr - _int);
+    t1 = c->stack_top[c->fp - _int];
     tuple_put(state, cpu_current_locals(state, c), k, t1);
     CODE
   end
@@ -1070,7 +1070,7 @@ CODE
     if(j < 0) j = 0;
     t1 = array_new(state, j);
     for(k = _int, m = 0; k < cpu_current_argcount(c); k++, m++) {
-      array_set(state, t1, m, *(c->fp_ptr - k));
+      array_set(state, t1, m, c->stack_top[c->fp - k]);      
     }
     stack_push(t1);
     CODE
@@ -1251,7 +1251,7 @@ CODE
   def from_fp
     <<-CODE
     next_int;
-    stack_push(*(c->fp_ptr - _int));
+    stack_push(c->stack_top[c->fp - _int]);
     CODE
   end
   
@@ -1276,16 +1276,16 @@ CODE
   def set_local_fp
     <<-CODE
     next_int;
-    sassert(c->sp_ptr > c->fp_ptr + _int);
-    *(c->fp_ptr + _int) = stack_top();
+    sassert(c->sp_ptr > c->stack_top + (c->fp + _int));
+    c->stack_top[c->fp + _int] = stack_top();
     CODE
   end
   
   def get_local_fp
     <<-CODE
     next_int;
-    sassert(c->sp_ptr > c->fp_ptr + _int);
-    stack_push(*(c->fp_ptr + _int));
+    sassert(c->sp_ptr > c->stack_top + (c->fp + _int));
+    stack_push(c->stack_top[c->fp + _int]);    
     CODE
   end
   

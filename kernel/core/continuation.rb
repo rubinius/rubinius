@@ -1,11 +1,26 @@
 class Continuation
-  def initialize(task)
+  def initialize(task=nil)
+    @task = task
+    @value = nil
+  end
+  
+  def task=(task)
     @task = task
   end
   
-  def call(value=nil)
+  def value
+    @value
+  end
+  
+  def call(*value)
     task = @task.dup
-    task.instance_variable_set(:@__value__, value)
+    if value.empty?
+      @value = nil
+    elsif value.size == 1
+      @value = value.pop
+    else
+      @value = value
+    end
     Task.current = task
   end
 
@@ -13,16 +28,16 @@ class Continuation
 end
 
 module Kernel
-  def callcc(&block)
-    first = true
+  def callcc
+    cont = Continuation.new
+    # Task#dup appears as though it returns nil in the dup'd
+    # task, kinda like fork().
     task = Task.current.dup
-    if first
-      first = false
-      cont = Continuation.new(task)
+    if task
+      cont.task = task
       yield cont
-      return nil
     else
-      return task.instance_variable_get(:@__value__)
+      return cont.value
     end
   end
 end
