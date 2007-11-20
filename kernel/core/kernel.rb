@@ -154,8 +154,13 @@ module Kernel
     nil
   end
     
-  def open(*a) # HACK needs | support
-    IO.open(*a)
+  def open(*a)  
+    if a.first[0,1] == '|'
+      a[0] = a.first[1..-1]
+      IO.popen(*a)
+    else 
+      File.open(*a)
+    end
   end
 
   # NOTE - this isn't quite MRI compatible, we don't store return the previous
