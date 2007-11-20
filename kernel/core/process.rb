@@ -133,7 +133,7 @@ module Kernel
 end
 
 class IO
-  def popen(str, mode="r")
+  def self.popen(str, mode="r")
     raise "TODO make this support more than r" if mode != "r"
     
     if str == "+-+" and !block_given?
@@ -146,7 +146,7 @@ class IO
     
     if pid != 0
       ch_write.close
-      rp = BidirectonalPipe.new(pid, pa_read, nil)
+      rp = BidirectionalPipe.new(pid, pa_read, nil)
       if block_given?
         begin
           yield rp
@@ -199,6 +199,6 @@ class BidirectionalPipe
   
   def method_missing(m, *a, &b)
     @read.__send__(m, *a, &b)
-  end
+  end  
 end
 
