@@ -82,6 +82,7 @@ OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
 }
 
 OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) {
+  OBJECT ret;
   struct addrinfo hints;
   struct addrinfo *res = NULL;
   int error;
@@ -99,9 +100,12 @@ OBJECT ffi_pack_sockaddr_in(STATE, char *name, char *port, int type, int flags) 
     printf("ERROR: %s\n", gai_strerror(error));
     return Qnil;
   }
-  
-  return tuple_new2(state, 2, ffi_new_pointer(state, 
-    (void*)res->ai_addr), I2N(res->ai_addrlen));
+
+  ret = string_new2(state, (char *) res->ai_addr, res->ai_addrlen);
+
+  freeaddrinfo(res);
+
+  return ret;
 }
 
 OBJECT ffi_getpeername(STATE, int s, int reverse_lookup) {

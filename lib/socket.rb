@@ -74,10 +74,10 @@ class Socket < BasicSocket
   
   module Foreign
     attach_function nil, "socket", :create_socket, [:int, :int, :int], :int
-    attach_function nil, "connect", :connect_socket, [:int, :pointer, :int], :int
-    attach_function nil, "bind", :bind_socket, [:int, :pointer, :int], :int
+    attach_function nil, "connect", :connect_socket, [:int, :string, :int], :int
+    attach_function nil, "bind", :bind_socket, [:int, :string, :int], :int
     attach_function nil, "listen", :listen_socket, [:int, :int], :int
-    attach_function nil, "accept", :accept, [:int, :pointer, :pointer], :int
+    attach_function nil, "accept", :accept, [:int, :string, :pointer], :int
     attach_function nil, "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
     attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
     attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
@@ -85,6 +85,14 @@ class Socket < BasicSocket
   end
   
   include Socket::Constants
+
+  def self.pack_sockaddr_in(port, host, type = 0, flags = 0)
+    Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, type, flags)
+  end
+
+  class << self
+    alias_method :sockaddr_in, :pack_sockaddr_in
+  end
 end
 
 class UNIXSocket < BasicSocket
@@ -127,9 +135,8 @@ class UDPSocket < IPSocket
       @host = host
       @port = port
 
-
-      @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, @type, 0)
-      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
+      @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
       if sock != 0
         Errno.handle "Unable to connect to #{host}:#{port}"
       end
@@ -153,9 +160,8 @@ class TCPSocket < IPSocket
       @host = host
       @port = port
 
-
-      @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(host.to_s, port.to_s, @type, 0)
-      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr_size) 
+      @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type)
+      sock = Socket::Foreign.connect_socket(descriptor, @sockaddr, @sockaddr.size)
       if sock != 0
         Errno.handle "Unable to connect to #{host}:#{port}"
       end
@@ -188,11 +194,12 @@ class TCPServer < TCPSocket
     @descriptor = fd
     setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
 
-    @sockaddr, @sockaddr_size = Socket::Foreign.pack_sa_ip(@host.to_s, @port.to_s, @type, Socket::Constants::AI_PASSIVE)
-    bind = Socket::Foreign.bind_socket(descriptor, @sockaddr, @sockaddr_size)
-    if bind != 0
-      Errno.handle "Unable to bind to #{@host}:#{@port}"
-    end
+    @sockaddr = Socket.pack_sockaddr_in(@port, @host, @type,
+                                        Socket::Constants::AI_PASSIVE)
+
+    ret = Socket::Foreign.bind_socket(@descriptor, @sockaddr, @sockaddr.size)
+    Errno.handle if ret != 0
+
     ret = Socket::Foreign.listen_socket(fd, 5)
     if ret != 0
       Errno.handle "Unable to listen on #{@host}:#{@port}"
@@ -204,7 +211,7 @@ class TCPServer < TCPSocket
     fd = -1
     size = 0
     MemoryPointer.new :int do |sz|
-      sz.write_int @sockaddr_size # initialize to the 'expected' size
+      sz.write_int @sockaddr.size # initialize to the 'expected' size
       fd = Socket::Foreign.accept @descriptor, @sockaddr, sz
       size = sz.read_int
     end
