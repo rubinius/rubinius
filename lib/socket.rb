@@ -14,7 +14,6 @@ class BasicSocket < IO
     end
 
     super(fd)
-    setsockopt(Socket::Constants::SOL_SOCKET, Socket::Constants::SO_REUSEADDR, true)
     
     @domain = domain
     @type = type
