@@ -9,9 +9,7 @@ class BasicSocket < IO
 
   def initialize(domain, type, protocol)
     fd = Socket::Foreign.create_socket(domain.to_i, type.to_i, protocol.to_i)
-    if fd < 0
-      raise "Unable to create socket"
-    end
+    Errno.handle if fd < 0
 
     super(fd)
     
