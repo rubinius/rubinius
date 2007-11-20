@@ -1,6 +1,3 @@
-class StandardError < Exception
-end
-
 class IOError < StandardError
 end
 
