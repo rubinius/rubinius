@@ -17,7 +17,7 @@ class NativeMethod
 end
 
 class CompiledMethod
-  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14, :bonus => 15
+  ivar_as_index :__ivars__ => 0, :primitive => 1, :required => 2, :serial => 3, :bytecodes => 4, :name => 5, :file => 6, :locals => 7, :literals => 8, :arguments => 9, :scope => 10, :exceptions => 11, :lines => 12, :path => 13, :cache => 14, :bonus => 15, :compiled => 16
   def __ivars__ ; @__ivars__  ; end
   def primitive ; @primitive  ; end
   def required  ; @required   ; end
@@ -34,6 +34,7 @@ class CompiledMethod
   def path      ; @path       ; end
   def cache     ; @cache      ; end
   def bonus     ; @bonus      ; end
+  def compiled  ; @compiled   ; end
   
   def inspect
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)} name=#{@name} file=#{@file}>"
