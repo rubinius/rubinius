@@ -256,30 +256,24 @@ class String
   #    a[/[aeiou](.)\1/, 2]   #=> nil
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
-  def [](index, two = nil)
-    if two
+  def [](index, other = Undefined)
+    if other != Undefined
+      length = Type.coerce_to(other, Fixnum, :to_int)
+      
       if index.kind_of? Regexp
-        length = Type.coerce_to two, Fixnum, :to_int
         return subpattern(index, length)
       else
-        start  = Type.coerce_to index, Fixnum, :to_int
-        length = Type.coerce_to two, Fixnum, :to_int
+        start  = Type.coerce_to(index, Fixnum, :to_int)
         return substring(start, length)
       end
     end
     
-    if index.kind_of? Regexp
-      ret = subpattern(index, 0)
-      # Huh? why is this here?
-      # match(index)
-      return ret
-    end
-    
-    if index.kind_of? String
+    case index
+    when Regexp
+      return subpattern(index, 0)
+    when String
       return include?(index) ? index.dup : nil
-    end
-    
-    if index.kind_of? Range
+    when Range
       start   = Type.coerce_to index.first, Fixnum, :to_int
       length  = Type.coerce_to index.last,  Fixnum, :to_int
 
@@ -296,13 +290,13 @@ class String
       length = 0 if length < 0
       
       return substring(start, length)
+    else
+      index = Type.coerce_to index, Fixnum, :to_int
+      index = @bytes + index if index < 0
+    
+      return if index < 0 || @bytes <= index
+      return @data[index]      
     end
-    
-    index = Type.coerce_to index, Fixnum, :to_int
-    index = @bytes + index if index < 0
-    
-    return if index < 0 || @bytes <= index
-    return @data[index]
   end
   alias_method :slice, :[]
 

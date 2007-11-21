@@ -1,11 +1,11 @@
 shared :string_slice do |cmd|
   describe "String##{cmd} with index" do
-    it "returns the character code of the character at idx" do
+    it "returns the character code of the character at the given index" do
       "hello".send(cmd, 0).should == ?h
       "hello".send(cmd, -1).should == ?o
     end
 
-    it "returns nil if idx is outside of self" do
+    it "returns nil if index is outside of self" do
       "hello".send(cmd, 20).should == nil
       "hello".send(cmd, -20).should == nil
 
@@ -13,7 +13,7 @@ shared :string_slice do |cmd|
       "".send(cmd, -1).should == nil
     end
 
-    it "calls to_int on idx" do
+    it "calls to_int on the given index" do
       "hello".send(cmd, 0.5).should == ?h
 
       obj = Object.new
@@ -25,10 +25,20 @@ shared :string_slice do |cmd|
       obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
       "hello".send(cmd, obj).should == ?e
     end
+    
+    it "raises a TypeError if the given index is nil" do
+      should_raise(TypeError) { "hello".send(cmd, nil) }
+    end
+    
+    it "raises a TypeError if the given index can't be converted to an Integer" do
+      should_raise(TypeError) { "hello".send(cmd, Object.new) }
+      should_raise(TypeError) { "hello".send(cmd, {}) }
+      should_raise(TypeError) { "hello".send(cmd, []) }
+    end
   end
 
   describe "String##{cmd} with index, length" do
-    it "returns the substring starting at idx and the given length" do
+    it "returns the substring starting at the given index with the given length" do
       "hello there".send(cmd, 0,0).should == ""
       "hello there".send(cmd, 0,1).should == "h"
       "hello there".send(cmd, 0,3).should == "hel"
@@ -103,7 +113,7 @@ shared :string_slice do |cmd|
       "hello there".send(cmd, -4,-3).should == nil
     end
 
-    it "calls to_int on idx and length" do
+    it "calls to_int on the given index and the given length" do
       "hello".send(cmd, 0.5, 1).should == "h"
       "hello".send(cmd, 0.5, 2.5).should == "he"
       "hello".send(cmd, 1, 2.5).should == "el"
@@ -128,6 +138,12 @@ shared :string_slice do |cmd|
       # I'm deliberately including this here.
       # It means that str.send(cmd, other, idx) isn't supported.
       should_raise(TypeError) { "hello".send(cmd, "", 0) }
+    end
+    
+    it "raises a TypeError when the given index or the given length is nil" do
+      should_raise(TypeError) { "hello".send(cmd, 1, nil) }
+      should_raise(TypeError) { "hello".send(cmd, nil, 1) }
+      should_raise(TypeError) { "hello".send(cmd, nil, nil) }
     end
 
     it "returns subclass instances" do
@@ -289,7 +305,7 @@ shared :string_slice do |cmd|
   end
 
   describe "String##{cmd} with Regexp, index" do
-    it "returns the capture for idx" do
+    it "returns the capture for the given index" do
       "hello there".send(cmd, /[aeiou](.)\1/, 0).should == "ell"
       "hello there".send(cmd, /[aeiou](.)\1/, 1).should == "l"
       "hello there".send(cmd, /[aeiou](.)\1/, -1).should == "l"
@@ -329,13 +345,13 @@ shared :string_slice do |cmd|
       "hello there".send(cmd, /(what?)/, 1).should == nil
     end
 
-    it "returns nil if there is no capture for idx" do
+    it "returns nil if there is no capture for the given index" do
       "hello there".send(cmd, /[aeiou](.)\1/, 2).should == nil
       # You can't refer to 0 using negative indices
       "hello there".send(cmd, /[aeiou](.)\1/, -2).should == nil
     end
 
-    it "calls to_int on idx" do
+    it "calls to_int on the given index" do
       obj = Object.new
       obj.should_receive(:to_int, :returning => 2)
 
@@ -346,6 +362,16 @@ shared :string_slice do |cmd|
       obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
+    end
+    
+    it "raises a TypeError when the given index can't be converted to Integer" do
+      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, Object.new) }
+      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, {}) }
+      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, []) }
+    end
+    
+    it "raises a TypeError when the given index is nil" do
+      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, nil) }
     end
 
     it "returns subclass instances" do
