@@ -35,31 +35,27 @@ describe "Kernel#callcc" do
     callcc {|cont| cont.call 1,2,3 }.should == [1,2,3]
   end
 
-  compliant(:ruby) do
+  it "preserves changes to block-local scope" do
+    i = "before"
+    cont = callcc { |c| c }
+    if cont # nil the second time
+      i = "after"
+      cont.call
+    end
+    i.should == "after"
+  end
 
-    it "preserves changes to block-local scope" do
+  it "preserves changes to method-local scope" do
+    def before_and_after
       i = "before"
       cont = callcc { |c| c }
       if cont # nil the second time
         i = "after"
         cont.call
       end
-      i.should == "after"
+      i
     end
-
-    it "preserves changes to method-local scope" do
-      def before_and_after
-        i = "before"
-        cont = callcc { |c| c }
-        if cont # nil the second time
-          i = "after"
-          cont.call
-        end
-        i
-      end
-      before_and_after.should == "after"
-    end
-
+    before_and_after.should == "after"
   end
 
   it "raises a LocalJumpError if callcc is not given a block" do
