@@ -1,0 +1,1 @@
+Kernel#open should open an io when path starts with a pipe

@@ -98,6 +98,7 @@ VALUE rb_class_new_instance(int nargs, VALUE *args, VALUE klass);
 /* Conversions */
 int FIX2INT(VALUE val);
 VALUE INT2NUM(int num);
+#define INT2FIX(v) INT2NUM(v)
 
 /* Array */
 VALUE rb_ary_new(void);

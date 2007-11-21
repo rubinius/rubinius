@@ -396,7 +396,7 @@ namespace :build do
   task :rbc => ([:setup_rbc] + AllPreCompiled)
 
   # EXTENSIONS
-  task :extensions => %w[build:shotgun build:rbc build:syck]
+  task :extensions => %w[build:shotgun build:rbc build:syck build:fcntl]
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
@@ -406,6 +406,15 @@ namespace :build do
     'lib/ext/syck/*.h',
   ] do
     sh "./shotgun/rubinius compile lib/ext/syck"
+  end
+  
+  task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
+  
+  file "lib/ext/fcntl/fcntl.#{$dlext}" => FileList[
+    'lib/ext/fcntl/build.rb',
+    'lib/ext/fcntl/*.c'
+  ] do
+    sh "./shotgun/rubinius compile lib/ext/fcntl"
   end
 
   desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
