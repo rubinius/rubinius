@@ -1,0 +1,3 @@
+Assigning multiple values supports parallel assignment to lhs args via object.method=
+Assigning multiple values supports parallel assignment to lhs args using []=
+Assigning multiple values allows a lhs arg to be used in another lhs args parallel assignment

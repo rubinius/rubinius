@@ -142,6 +142,25 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
+  it "supports parallel assignment to lhs args via object.method=" do
+    a = VariablesSpecs::ParAsgn.new
+    a.x,b = 1,2
+    a.x.should == 1
+    b.should == 2
+
+    c = VariablesSpecs::ParAsgn.new
+    c.x,a.x = a.x,b
+    c.x.should == 1
+    a.x.should == 2 
+  end
+
+  it "supports parallel assignment to lhs args using []=" do
+    a = [1,2,3]
+    a[3],b = 4,5
+    a.should == [1,2,3,4]
+    b.should == 5
+  end
+
   it "should bundle remaining values to an array when using the splat operator" do
     a, *b = 1, 2, 3
     a.should == 1
@@ -177,6 +196,19 @@ describe "Assigning multiple values" do
     [x,y,z].should == [1,2,3]
     x, (y, z) = 1, [2]
     [x,y,z].should == [1,2,nil]
+  end
+
+  it "allows a lhs arg to be used in another lhs args parallel assignment" do
+    c = [4,5,6]
+    a,b,c[a] = 1,2,3
+    a.should == 1
+    b.should == 2
+    c.should == [4,3,6]
+
+    c[a],b,a = 7,8,9
+    a.should == 9
+    b.should == 8
+    c.should == [4,7,6]
   end
   
 end

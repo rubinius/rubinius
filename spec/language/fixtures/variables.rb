@@ -1,4 +1,8 @@
 module VariablesSpecs
+  class ParAsgn
+    attr_accessor :x
+  end
+
   class OpAsgn
     attr_accessor :a, :side_effect
     
