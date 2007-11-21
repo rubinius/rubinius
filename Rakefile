@@ -313,7 +313,7 @@ task :install => :config_env do
   end
 end
 
-task :config_env do
+task :config_env => 'shotgun/config.mk' do
   File.foreach 'shotgun/config.mk' do |line|
     next unless line =~ /(.*?)=(.*)/
     ENV[$1] = $2
@@ -361,6 +361,7 @@ namespace :build do
   task :all => %w[
     build:shotgun
     build:rbc
+    lib/rbconfig.rb
     build:extensions
   ]
 
@@ -399,6 +400,32 @@ namespace :build do
   task :extensions => %w[build:shotgun build:rbc build:syck build:fcntl]
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
+
+  file 'lib/rbconfig.rb' => %w[config_env Rakefile] do
+    rbconfig = <<-EOF
+module Config
+
+  CONFIG = {}
+
+  CONFIG['DLEXT'] = Rubinius::LIBSUFFIX.dup
+  CONFIG['EXEEXT'] = ""
+  CONFIG['RUBY_SO_NAME'] = "rubinius-#\{Rubinius::RBX_VERSION}"
+  CONFIG['arch'] = RUBY_PLATFORM.dup
+  CONFIG['bindir'] = "#{ENV['BINPATH']}"
+  CONFIG['datadir'] = "#{File.join ENV['PREFIX'], 'share'}"
+  CONFIG['libdir'] = "#{ENV['LIBPATH']}"
+  CONFIG['ruby_install_name'] = "#{ENV['ENGINE']}"
+  CONFIG['ruby_version'] = Rubinius::RUBY_VERSION.dup
+  CONFIG['sitedir'] = "#{File.join ENV['LIBPATH'], 'rubinius'}"
+  CONFIG['sitelibdir'] = "#{ENV['CODEPATH']}"
+
+end
+    EOF
+
+    File.open 'lib/rbconfig.rb', 'w' do |fp|
+      fp.write rbconfig
+    end
+  end
 
   file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
     'lib/ext/syck/build.rb',
