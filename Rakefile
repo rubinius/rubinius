@@ -292,7 +292,7 @@ end
 
 desc "Install rubinius as rbx"
 task :install => :config_env do
-  sh "cd shotgun; #{make install}"
+  sh "cd shotgun; #{make "install"}"
 
   mkdir_p ENV['RBAPATH'], :verbose => true
   mkdir_p ENV['CODEPATH'], :verbose => true
