@@ -1129,11 +1129,11 @@ class ShotgunPrimitives
     }
     CODE
   end
-    
+
   def terminal_raw
     <<-CODE
     {
-      char *env = getenv("_TERM_SETTINGS");
+      char *env = getenv("RBX_TERM_SETTINGS");
       stack_pop();
       if(env && env[0] != 0) {
         stack_push(Qfalse);
@@ -1141,14 +1141,14 @@ class ShotgunPrimitives
         FILE *io;
         struct termios ts;
         char sbuf[1024];
-        
+
         io = popen("stty -g", "r");
         fgets(sbuf, 1023, io);
-        setenv("_TERM_SETTINGS", sbuf, 1);
+        setenv("RBX_TERM_SETTINGS", sbuf, 1);
         pclose(io);
         system("stty -icanon -isig -echo min 1");
         tcgetattr(1, &ts);
-        t3 = tuple_new2(state, 4, 
+        t3 = tuple_new2(state, 4,
           I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
           I2N(ts.c_cc[VQUIT]),  I2N(ts.c_cc[VINTR])
         );
@@ -1157,17 +1157,17 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def terminal_normal
     <<-CODE
     {
-      char *env = getenv("_TERM_SETTINGS");
+      char *env = getenv("RBX_TERM_SETTINGS");
       stack_pop();
       if(!env || env[0] == 0) {
         stack_push(Qfalse);
       } else {
         char sbuf[1024];
-        
+
         snprintf(sbuf, 1023, "stty %s", env);
         system(sbuf);
         stack_push(Qtrue);
@@ -1175,7 +1175,7 @@ class ShotgunPrimitives
     }
     CODE
   end
-  
+
   def regexp_new
     <<-CODE
     self = stack_pop();
