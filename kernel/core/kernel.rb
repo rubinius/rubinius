@@ -155,7 +155,7 @@ module Kernel
   end
     
   def open(*a, &block)  
-    if a.first[0,1] == '|'
+    if !a.empty? && a.first[0,1] == '|'
       a[0] = a.first[1..-1]
       IO.popen(*a, &block)
     else 
