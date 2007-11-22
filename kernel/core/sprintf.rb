@@ -50,7 +50,7 @@ module Sprintf
             number = fmtstr.get_number
             if fmtstr[] == ?$
               raise ArgumentError, "value given twice #{number}$" if !fmt.value.nil?
-              raise ArgumentError, "mixing numbered with unnumbered" if numbered == false
+              raise ArgumentError, "mixing numbered with unnumbered" if numbered.equal?(false)
               fmt.value = fmtstr.get_argument(number - 1)
               numbered = true
               fmtstr.next
@@ -69,7 +69,7 @@ module Sprintf
           when ?B, ?b,?c,?d,?E,?e,?f,?G,?g,?i,?o,?p,?s,?u,?X,?x
             fmt.type = c
             if fmt.unset?
-              raise ArgumentError, "mixing numbered with unnumbered" if numbered == true
+              raise ArgumentError, "mixing numbered with unnumbered" if numbered.equal?(true)
               fmt.value = fmtstr.get_next_argument if fmt.unset?
               numbered = false
             end
@@ -94,7 +94,7 @@ module Sprintf
         # Pop another argument off the stack if no absolute reference provided
         if fmt.unset?
           fmt.value = fmtstr.get_next_argument
-          raise ArgumentError, "mixing numbered with unnumbered" if numbered == true
+          raise ArgumentError, "mixing numbered with unnumbered" if numbered.equal?(true)
         end
         out << fmt
         fmtstr.drop_mark_point

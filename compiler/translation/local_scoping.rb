@@ -156,7 +156,7 @@ class RsLocalScoper < RsMethodBodyOnly
   end
   
   def inside_masgn
-    @masgn.last == true
+    @masgn.last.equal?(true)
   end
     
   def find_lvar(name, assign=false)
@@ -239,7 +239,7 @@ class RsLocalScoper < RsMethodBodyOnly
 
   def p_or_n(val)
     return nil if val.nil?
-    return nil if val == true # Crazy, but this is how anonymous splats look
+    return nil if val.equal?(true) # Crazy, but this is how anonymous splats look
     process(val)
   end
 
