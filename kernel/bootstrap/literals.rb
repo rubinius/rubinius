@@ -4,7 +4,7 @@ class NilClass
   end
   
   def ^(other)
-    (other == false or other.nil?) ? false : true
+    (other.nil? or other.equal?(false)) ? false : true
   end
     
   def to_s
@@ -47,11 +47,11 @@ FALSE = false
 
 class TrueClass
   def &(other)
-    (other.nil? or other == false) ? false : true
+    (other.nil? or other.equal?(false)) ? false : true
   end
   
   def ^(other)
-    (other.nil? or other == false) ? true : false
+    (other.nil? or other.equal?(false)) ? true : false
   end
   
   def |(other)
@@ -70,7 +70,7 @@ class FalseClass
   end
   
   def ^(other)
-    (other == false or other.nil?) ? false : true
+    (other.equal?(false) or other.nil?) ? false : true
   end
     
   def to_s

@@ -79,15 +79,15 @@ class StringIO
   end
   
   def closed?
-    @readable == false and @writable == false
+    @readable.equal?(false) and @writable.equal?(false)
   end
   
   def closed_read?
-    @readable == false
+    @readable.equal?(false)
   end
   
   def closed_write?
-    @writable == false
+    @writable.equal?(false)
   end
   
   def eof
