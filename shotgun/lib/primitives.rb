@@ -1143,10 +1143,15 @@ class ShotgunPrimitives
         char sbuf[1024];
 
         io = popen("stty -g", "r");
+
+        bzero(sbuf, 1024);
         fgets(sbuf, 1023, io);
         setenv("RBX_TERM_SETTINGS", sbuf, 1);
+
         pclose(io);
+
         system("stty -icanon -isig -echo min 1");
+
         tcgetattr(1, &ts);
         t3 = tuple_new2(state, 4,
           I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
@@ -1168,6 +1173,9 @@ class ShotgunPrimitives
       } else {
         char sbuf[1024];
 
+        unsetenv("RBX_TERM_SETTINGS");
+
+        bzero(sbuf, 1024);
         snprintf(sbuf, 1023, "stty %s", env);
         system(sbuf);
         stack_push(Qtrue);
