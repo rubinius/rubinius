@@ -21,3 +21,4 @@ File#open raise an IO exception when read in a block opened with 'a' mode
 Kernel#callcc should be possible to exit a loop like a break
 Kernel#callcc should be possible to call a continuation multiple times
 Kernel#callcc should return the arguments to call
+Kernel#callcc
