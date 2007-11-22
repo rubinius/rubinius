@@ -257,7 +257,7 @@ class String
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
   def [](index, other = Undefined)
-    if other != Undefined
+    unless other.equal? Undefined
       length = Type.coerce_to(other, Fixnum, :to_int)
       
       if index.kind_of? Regexp
