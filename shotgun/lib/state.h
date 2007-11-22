@@ -7,6 +7,8 @@
 #include <hashtable.h>
 #include "subtend/PortableUContext.h"
 
+#include <termios.h>
+
 #ifdef USE_CINVOKE
 #include <cinvoke.h>
 #endif
@@ -123,6 +125,8 @@ struct rubinius_state {
   
   int excessive_tracing, gc_stats;
   int check_events, pending_threads, pending_events;
+
+  struct termios * termios;
 };
 
 #define BASIC_CLASS(kind) state->global->kind

@@ -1133,32 +1133,58 @@ class ShotgunPrimitives
   def terminal_raw
     <<-CODE
     {
-      char *env = getenv("RBX_TERM_SETTINGS");
+      struct termios ts;
+      int err;
+
       stack_pop();
-      if(env && env[0] != 0) {
-        stack_push(Qfalse);
-      } else {
-        FILE *io;
-        struct termios ts;
-        char sbuf[1024];
 
-        io = popen("stty -g", "r");
+      if (NULL == state->termios) {
+        if (!isatty(STDOUT_FILENO)) {
+          stack_push(Qfalse);
+          break;
+        }
 
-        bzero(sbuf, 1024);
-        fgets(sbuf, 1023, io);
-        setenv("RBX_TERM_SETTINGS", sbuf, 1);
+        /* HACK: this memory is never freed */
+        state->termios = (struct termios *)malloc(sizeof(struct termios));
 
-        pclose(io);
+        if (NULL == state->termios) {
+          stack_push(Qfalse);
+          break;
+        }
 
-        system("stty -icanon -isig -echo min 1");
+        err = tcgetattr(STDOUT_FILENO, state->termios);
 
-        tcgetattr(1, &ts);
-        t3 = tuple_new2(state, 4,
-          I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
-          I2N(ts.c_cc[VQUIT]),  I2N(ts.c_cc[VINTR])
-        );
-        stack_push(t3);
+        if (err == -1) { /* TODO: handle errno */
+          free(state->termios);
+          stack_push(Qfalse);
+          break;
+        }
       }
+
+      err = tcgetattr(STDOUT_FILENO, &ts);
+
+      if (err == -1) { /* TODO: handle errno */
+        stack_push(Qfalse);
+        break;
+      }
+
+      ts.c_lflag &= ~ICANON; /* -icanon */
+      ts.c_lflag &= ~ISIG;   /* -isig */
+      ts.c_lflag &= ~ECHO;   /* -echo */
+      ts.c_cc[VMIN] = 1;     /* min 1 */
+
+      err = tcsetattr(STDOUT_FILENO, TCSANOW, &ts);
+
+      if (err == -1) { /* TODO: handle errno */
+        stack_push(Qfalse);
+        break;
+      }
+
+      t3 = tuple_new2(state, 4,
+        I2N(ts.c_cc[VERASE]), I2N(ts.c_cc[VKILL]),
+        I2N(ts.c_cc[VQUIT]),  I2N(ts.c_cc[VINTR])
+      );
+      stack_push(t3);
     }
     CODE
   end
@@ -1166,19 +1192,22 @@ class ShotgunPrimitives
   def terminal_normal
     <<-CODE
     {
-      char *env = getenv("RBX_TERM_SETTINGS");
       stack_pop();
-      if(!env || env[0] == 0) {
+      
+      if (NULL == state->termios) {
         stack_push(Qfalse);
+      } else if (isatty(STDOUT_FILENO)) {
+        int err;
+
+        err = tcsetattr(STDOUT_FILENO, TCSANOW, state->termios);
+
+        if (err == -1) {
+          stack_push(Qfalse);
+        } else {
+          stack_push(Qtrue);
+        }
       } else {
-        char sbuf[1024];
-
-        unsetenv("RBX_TERM_SETTINGS");
-
-        bzero(sbuf, 1024);
-        snprintf(sbuf, 1023, "stty %s", env);
-        system(sbuf);
-        stack_push(Qtrue);
+        stack_push(Qfalse);
       }
     }
     CODE
