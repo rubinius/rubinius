@@ -30,5 +30,11 @@ describe "Kernel#open" do
     @output = open("|date") { |f| f.gets }
     @output.should_not == ''
   end
-    
+  
+  it "raise an exception if the arguments are not of the correct type or are missing" do
+    should_raise(ArgumentError){ open }
+    should_raise(TypeError) { open(nil) }
+    should_raise(TypeError) { open(7) }
+    should_raise(TypeError) { open(Object.new) }
+  end
 end
