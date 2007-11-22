@@ -1345,7 +1345,7 @@ module FileUtils
 
     def have_lchmod?
       # This is not MT-safe, but it does not matter.
-      if $fileutils_rb_have_lchmod == nil
+      if $fileutils_rb_have_lchmod.nil?
         $fileutils_rb_have_lchmod = check_have_lchmod?
       end
       $fileutils_rb_have_lchmod
@@ -1363,7 +1363,7 @@ module FileUtils
 
     def have_lchown?
       # This is not MT-safe, but it does not matter.
-      if $fileutils_rb_have_lchown == nil
+      if $fileutils_rb_have_lchown.nil?
         $fileutils_rb_have_lchown = check_have_lchown?
       end
       $fileutils_rb_have_lchown

@@ -233,7 +233,7 @@ class File < IO
     have_dot = idx != nil
     first_char = idx == 0
     last_char = idx == filename.length - 1
-    only_dots = filename.match(/[^\.]/) == nil
+    only_dots = filename.match(/[^\.]/).nil?
 
     return '' unless have_dot
     return '' if first_char || last_char

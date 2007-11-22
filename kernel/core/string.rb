@@ -1215,7 +1215,7 @@ class String
     pattern ||= ($; || " ")
     
     spaces = true if pattern == ' '
-    pattern = /\s+/ if pattern == nil || pattern == ' '
+    pattern = /\s+/ if pattern.nil? || pattern == ' '
     pattern = pattern.to_str if ![String, Regexp].include?(pattern.class) && pattern.respond_to?(:to_str)
     pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
     

@@ -1106,7 +1106,7 @@ class Compiler::Node
     attr_accessor :left, :splat, :source
     
     def empty?
-      @left == nil and (@splat == true or splat.nil?)
+      @left.nil? and (@splat.equal?(true) or @splat.nil?)
     end
   end
   

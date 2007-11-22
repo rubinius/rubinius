@@ -606,7 +606,7 @@ class Date
       m = m.to_s
     end
 
-    if y == nil
+    if y.nil?
       if d && d.size > 2
 	y = d
 	d = nil

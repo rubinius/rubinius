@@ -184,7 +184,7 @@ class Array
 
       cnt = @total - idx if cnt > @total - idx # MRI seems to be forgiving here!
       
-      if ent == nil
+      if ent.nil?
         replacement = []
       elsif ent.is_a?(Array)
         replacement = ent
@@ -427,7 +427,7 @@ class Array
 
     # Low-level because pretty much anything else breaks everything
     while i < tot
-      if @tuple.at(i) == nil
+      if @tuple.at(i).nil?
         j = i
         i += 1
 
