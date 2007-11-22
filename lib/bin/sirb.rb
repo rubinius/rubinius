@@ -6,14 +6,16 @@ require 'bytecode/rubinius'
 # recognize a few simple options
 def usage
   puts <<-USAGE
-  Usage: sirb [options]
-    sirb is a RCEPL (read, compile, execute, print, loop) program for rubinius
+Usage: sirb [options]
+  sirb is a RCEPL (read, compile, execute, print, loop) program for rubinius
 
-    Options: 
-            -p   Print the parsed s-expression
-            -s   Print assembly instructions.
-            -b   Print bytecode encoding.
-            -t   Print stats.
+  Options:
+          -b   Print bytecode encoding
+          -h   This message
+          -p   Print the parsed s-expression
+          -s   Print assembly instructions
+          -t   Print stats
+          -y   Simple prompt
   USAGE
 end
 
@@ -26,25 +28,24 @@ end
 
 simple_prompt = false
 
-begin
-  until ARGV.empty?
-    arg = ARGV.shift
-    case arg
-    when '-h'
-      usage
-    when '-p'
-      $show_parse = true
-    when '-s'
-      $show_asm = true
-    when '-b'
-      $show_bytes = true
-    when '-t'
-      $show_stats = true
-    when '-y'
-      simple_prompt = true
-    else
-      puts "Unrecognized option: #{arg}"
-    end
+until ARGV.empty?
+  arg = ARGV.shift
+  case arg
+  when '-b'
+    $show_bytes = true
+  when '-h'
+    usage
+    exit
+  when '-p'
+    $show_parse = true
+  when '-s'
+    $show_asm = true
+  when '-t'
+    $show_stats = true
+  when '-y'
+    simple_prompt = true
+  else
+    puts "Unrecognized option: #{arg}"
   end
 end
 
@@ -74,11 +75,18 @@ class Object; alias :quit :exit; end
 pstate = ">"
 
 while true
-  if simple_prompt
-    str = Readline.readline(">> ")
-  else
-    str = Readline.readline("sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} ")
+  prompt = if simple_prompt then
+             ">#{pstate} "
+           else
+             "sirb(eval):#{line.to_s.rjust(3, '0')}#{pstate} "
+           end
+
+  begin
+    str = Readline.readline prompt
+  rescue Interrupt
+    next
   end
+
   break unless str
   context << "\n" unless context.empty?
   context << str
