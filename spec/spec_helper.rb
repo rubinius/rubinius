@@ -16,13 +16,11 @@ require 'mini_mock'
 # used for many should_be_close specs
 TOLERANCE = 0.00003 unless Object.const_defined?(:TOLERANCE)
 
-if !defined?(RUBY_NAME) then
-  begin
-    require 'rbconfig'
-    RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"]
-  rescue Exception
-    RUBY_NAME = RUBY_ENGINE
-  end
+if defined?(RUBY_ENGINE)
+  RUBY_NAME = RUBY_ENGINE
+else
+  require 'rbconfig'
+  RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"]
 end
 
 def engine?(name)
