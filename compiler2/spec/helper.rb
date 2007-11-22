@@ -125,7 +125,7 @@ def gen(sexp, plugins=[])
 end
 
 def description
-  desc = Compiler::MethodDescription.new TestGenerator
+  desc = Compiler::MethodDescription.new TestGenerator, 0
   yield desc.generator
   return desc
 end

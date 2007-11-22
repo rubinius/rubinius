@@ -78,7 +78,7 @@ class Compiler::Node
       desc = new_description()
       meth = desc.generator
       
-      prelude(g)
+      prelude(meth)
       
       meth.push :self
       meth.set_encloser

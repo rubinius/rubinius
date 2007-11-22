@@ -292,7 +292,7 @@ describe Compiler do
       g.push 14
       g.push 13
       g.push 12
-      g.push "Hash"
+      g.push_const :Hash
       g.send :[], 4
     end
   end
