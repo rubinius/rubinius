@@ -14,13 +14,8 @@ module Readline
 
   @history = []
   @history_idx = 0
-  @raw_mode = false
 
   def self.after_loaded
-    # Reset the terminal when we exit.
-    at_exit do
-      _terminal_normal if @raw_mode
-    end
   end
 
   def self.readline(prompt)
@@ -28,11 +23,10 @@ module Readline
     idx = 0
 
     begin
+      @c_erase, @c_kill, @c_quit, @c_intr = _terminal_raw
+
       print prompt
-      unless @raw_mode
-        @c_erase, @c_kill, @c_quit, @c_intr = _terminal_raw
-        @raw_mode = true
-      end
+
       while true
         cur = STDIN.read(1)
 
@@ -118,6 +112,8 @@ module Readline
           idx += 1
         end
       end
+    ensure
+      _terminal_normal
     end
 
     @history << str
