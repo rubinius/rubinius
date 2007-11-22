@@ -82,33 +82,6 @@ class Class
     end
   end
   
-  def find_method_in_hierarchy(sym)
-    mod = self
-    while mod
-      meth = mod.method_table[sym]
-      if meth
-        return meth
-      end
-      
-      mod = mod.direct_superclass
-    end
-    nil
-  end
-  
-  def alias_method_cv(new_name, current_name)
-    meth = find_method_in_hierarchy(current_name)
-    if meth
-      method_table[new_name] = meth
-      VM.reset_method_cache(new_name)
-    else
-      if self.kind_of? MetaClass        
-        raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
-      else
-        raise NameError, "undefined method `#{current_name}' for class `#{self.name}'"
-      end
-    end
-  end
-  
   def superclass
     cls = direct_superclass
     return nil unless cls
@@ -127,7 +100,6 @@ class Class
   end
   
   def self.after_loaded
-    alias_method :alias_method, :alias_method_cv
     alias_method :opened_class, :opened_class_cv
     alias_method :add_subclass, :add_subclass_cv
     alias_method :subclasses, :subclasses_cv

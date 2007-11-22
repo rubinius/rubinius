@@ -51,7 +51,7 @@ class Module
   def find_method_in_hierarchy(sym)
     if method = @method_table[sym.to_sym]
       method
-    elsif self != Object and direct_superclass
+    elsif direct_superclass
       direct_superclass.find_method_in_hierarchy(sym)
     end
   end
@@ -85,6 +85,23 @@ class Module
       VM.reset_method_cache(new_name)
     else
       raise NameError, "undefined method `#{current_name}' for module `#{self.name}'"
+    end
+  end
+
+  def alias_method_cv(new_name, current_name)
+    new_name = normalize_name(new_name)
+    current_name = normalize_name(current_name)
+    meth = find_method_in_hierarchy(current_name)
+    if meth
+      method_table[new_name] = meth
+      VM.reset_method_cache(new_name)
+    else
+      if self.kind_of? MetaClass        
+        raise NameError, "Unable to find '#{current_name}' for object #{self.attached_instance.inspect}"
+      else
+        thing = self.kind_of?(Class) ? "class" : "module"
+        raise NameError, "undefined method `#{current_name}' for #{thing} `#{self.name}'"
+      end
     end
   end
   
@@ -281,6 +298,7 @@ class Module
   # A fixup, move the core versions in place now that everything
   # is loaded.
   def self.after_loaded
+    alias_method :alias_method, :alias_method_cv
     alias_method :include, :include_cv
     alias_method :private, :private_cv
     alias_method :append_features, :append_features_cv
