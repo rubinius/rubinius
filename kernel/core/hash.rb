@@ -19,20 +19,20 @@ class Hash
     hsh
   end
 
-  def initialize(default=Undefined, &block)
+  def initialize(default = Undefined, &block)
     @keys = Tuple.new(16)
     @values = Tuple.new(16)
     @bins = 16
     @entries = 0
     
-    if default != Undefined and block
+    if !default.equal?(Undefined) and block
       raise ArgumentError, "Specify a default or a block, not both"
     end
     
     if block
       @default = block
       @default_proc = true
-    elsif default != Undefined
+    elsif !default.equal?(Undefined)
       @default = default
       @default_proc = false
     end
@@ -172,7 +172,7 @@ class Hash
     return val if found
 
     return yield(key) if block_given?
-    return default if default != Undefined
+    return default if !default.equal?(Undefined)
     raise IndexError, 'Key not found'
   end
 

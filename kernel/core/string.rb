@@ -257,7 +257,7 @@ class String
   #    a["lo"]                #=> "lo"
   #    a["bye"]               #=> nil
   def [](index, other = Undefined)
-    unless other.equal? Undefined
+    unless other.equal?(Undefined)
       length = Type.coerce_to(other, Fixnum, :to_int)
       
       if index.kind_of? Regexp
@@ -1036,7 +1036,7 @@ class String
   def rindex(arg, finish = Undefined)
     arg = StringValue(arg) unless [Fixnum, String, Regexp].include?(arg.class)
     original_klass = arg.class
-    if finish != Undefined
+    if !finish.equal?(Undefined)
       finish = Type.coerce_to(finish, Integer, :to_int)
       finish += @bytes if finish < 0
       return nil if finish < 0
