@@ -110,6 +110,17 @@ module ModuleSpecs
     include B    
   end
 
+  class Aliasing
+    def self.make_alias(*a)
+      alias_method(*a)
+    end
+    def public_one; 1; end
+    def public_two(n); n * 2; end
+    private
+    def private_one; 1; end
+    protected
+    def protected_one; 1; end
+  end
 
   module Nesting
     @tests = {}
