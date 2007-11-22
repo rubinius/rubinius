@@ -1,6 +1,14 @@
 module VariablesSpecs
   class ParAsgn
     attr_accessor :x
+
+    def initialize
+      @x = 0
+    end
+
+    def inc
+      @x += 1
+    end
   end
 
   class OpAsgn

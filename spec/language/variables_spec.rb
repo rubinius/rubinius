@@ -142,6 +142,14 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
+  it "evaluates rhs left-to-right" do
+    a = VariablesSpecs::ParAsgn.new
+    d,e,f = a.inc, a.inc, a.inc
+    d.should == 1
+    e.should == 2
+    f.should == 3
+  end
+
   it "supports parallel assignment to lhs args via object.method=" do
     a = VariablesSpecs::ParAsgn.new
     a.x,b = 1,2
