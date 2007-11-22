@@ -35,6 +35,11 @@ module Readline
       end
       while true
         cur = STDIN.read(1)
+
+        if cur.nil? then
+          print "\n"
+          return nil
+        end
         
         code = cur[0]
         code = ASCII::Erase if code == @c_erase
