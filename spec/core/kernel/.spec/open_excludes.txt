@@ -1,1 +1,2 @@
 Kernel#open should open an io when path starts with a pipe
+Kernel#open raise an exception if the arguments are not of the correct type or are missing
