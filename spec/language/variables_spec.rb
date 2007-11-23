@@ -142,12 +142,27 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
-  it "evaluates rhs left-to-right" do
-    a = VariablesSpecs::ParAsgn.new
-    d,e,f = a.inc, a.inc, a.inc
-    d.should == 1
-    e.should == 2
-    f.should == 3
+  compliant :mri, :jruby do
+    it "evaluates rhs left-to-right" do
+      a = VariablesSpecs::ParAsgn.new
+      d,e,f = a.inc, a.inc, a.inc
+      d.should == 1
+      e.should == 2
+      f.should == 3
+    end
+  end
+
+  # Rubinius evaluates the rhs args right-to-left, not left-to-right.
+  # In most cases, this should make no noticeable difference, and it is felt
+  # that RHS evaluation order ought to be left to the implementation.
+  noncompliant :rubinius do
+    it "evaluates rhs right-to-left" do
+      a = VariablesSpecs::ParAsgn.new
+      d,e,f = a.inc, a.inc, a.inc
+      d.should == 3
+      e.should == 2
+      f.should == 1
+    end
   end
 
   it "supports parallel assignment to lhs args via object.method=" do
