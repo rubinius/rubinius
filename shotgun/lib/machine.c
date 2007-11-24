@@ -741,7 +741,7 @@ void machine_setup_config(machine m) {
 #elif defined(__hpux__)
   machine_set_const_under(m, "OS", SYM("hpux"), mod);
 #elif defined(__sun__) || defined(__sun)
-  machine_set_const_under(m, "OS", SYM("solarce"), mod);
+  machine_set_const_under(m, "OS", SYM("solaris"), mod);
 #elif defined(__svr4__)
   machine_set_const_under(m, "OS", SYM("unixware"), mod);
 #elif defined(_AIX)
