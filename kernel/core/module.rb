@@ -435,10 +435,9 @@ class Module
 
   def ===(inst)
     return true if inst.kind_of? self
-    unless inst.kind_of?(Fixnum) || inst.kind_of?(Symbol)
-      lt = inst.metaclass < self
-    end
-    true & lt
+    # TODO: check if inst is extended by self
+    # inst.metaclass < self & true rescue false
+    false
   end
   
 private
