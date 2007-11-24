@@ -29,6 +29,7 @@ module Platform::POSIX
   attach_function nil, 'getcwd', [:string, :int], :string
   attach_function nil, 'umask', [:int], :int
   attach_function nil, 'link', [:string, :string], :int
+  attach_function nil, 'symlink', [:string, :string], :int
   attach_function nil, 'readlink', [:string, :string, :int], :int
   attach_function nil, 'rename', [:string, :string], :int
   

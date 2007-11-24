@@ -199,6 +199,13 @@ class File < IO
     raise Errno::EEXIST if exists?(to)
     Platform::POSIX.link(from, to)
   end
+  
+  def self.symlink(from, to)
+    to = StringValue(to)
+    from = StringValue(from)
+    raise Errno::EEXIST if exists?(to)
+    Platform::POSIX.symlink(from, to)
+  end
 
   def self.rename(from, to)
     to = StringValue(to)
