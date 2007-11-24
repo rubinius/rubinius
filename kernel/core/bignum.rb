@@ -2,7 +2,7 @@
 
 class Bignum < Integer
   def %(other)
-    if Float === other && other == 0.0
+    if other.kind_of?(Float) && other == 0.0
       0 / 0.0
     else
       self.divmod(other)[1]
@@ -20,7 +20,7 @@ class Bignum < Integer
   end
 
   def eql?(value)
-    return false unless Bignum === value
+    return false unless value.kind_of?(Bignum)
 
     self == value
   end

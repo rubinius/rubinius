@@ -13,7 +13,7 @@ class Class
   end
 
   def self.new(sclass=Object)
-    raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless Class === sclass
+    raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless sclass.kind_of?(Class)
     
     obj = Rubinius.class_constitute(sclass, nil)
     block = Ruby.asm "push_block"

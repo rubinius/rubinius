@@ -119,7 +119,7 @@ module Sprintf
       @idx  = 0
       @mark = 0
       
-      if !(Array === args)
+      if !args.kind_of?(Array)
         args = [args]
       end
       

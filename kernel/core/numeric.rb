@@ -20,7 +20,7 @@ class Numeric
   
   def /(other)
     b, a = self.do_coerce(other, true)
-    raise ZeroDivisionError, "divided by 0" unless Float === b or b != 0
+    raise ZeroDivisionError, "divided by 0" unless b.kind_of?(Float) or b != 0
     a / b
   end
   
@@ -31,7 +31,7 @@ class Numeric
   
   def %(other)
     b, a = self.do_coerce(other, true)
-    raise ZeroDivisionError, "divided by 0" unless Float === b or b != 0
+    raise ZeroDivisionError, "divided by 0" unless b.kind_of?(Float) or b != 0
     a % b
   end
    

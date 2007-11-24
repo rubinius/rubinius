@@ -86,7 +86,7 @@ module Bytecode
     @system_hints = nil
     
     def self.load_system_hints(path)
-      if Hash === path
+      if path.kind_of?(Hash)
         @system_hints = path
       else
         @system_hints = parse_hints(path)
@@ -415,7 +415,7 @@ module Bytecode
 
       def process_negate(x)
         recv = x.shift
-        if Fixnum === recv.last
+        if recv.last.kind_of?(Fixnum)
           process_fixnum([-recv.last])
         else
           process recv # Pass the buck

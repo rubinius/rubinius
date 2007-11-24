@@ -216,7 +216,7 @@ class Backtrace
       
       if MAIN == ctx.receiver
         str = "#{ctx.receiver.to_s}."
-      elsif MetaClass === ctx.method_module
+      elsif ctx.method_module.kind_of?(MetaClass)
         str = "#{ctx.receiver}."
       elsif ctx.method_module and ctx.method_module != ctx.receiver.class
         str = "#{ctx.method_module}(#{ctx.receiver.class})#"

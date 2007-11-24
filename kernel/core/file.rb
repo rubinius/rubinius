@@ -50,13 +50,13 @@ class File < IO
   attr_reader :path
 
   def initialize(path_or_fd, mode = "r", perm = 0666)
-    if Integer === path_or_fd
+    if path_or_fd.kind_of?(Integer)
       super(path_or_fd)
       @path = nil
       return self
     end
 
-    if String === mode
+    if mode.kind_of?(String)
       mode = parse_mode(mode)
     end
 

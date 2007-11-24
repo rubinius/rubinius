@@ -227,7 +227,7 @@ class Range
     
     if step_size == 1
       each(&block)
-    elsif Numeric === first
+    elsif first.kind_of?(Numeric)
       cmp_method = self.exclude_end? ? :< : :<=
       
       while first.__send__(cmp_method, last)

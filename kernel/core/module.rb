@@ -243,7 +243,7 @@ class Module
     end
 
     method_table[name] = tup.dup
-    if Tuple === tup
+    if tup.kind_of?(Tuple)
       method_table[name][0] = vis
     else
       method_table[name] = Tuple[vis, tup]
@@ -264,7 +264,7 @@ class Module
     mc = self.metaclass
     mc.method_table[name] = tup.dup
 
-    if Tuple === tup
+    if tup.kind_of?(Tuple)
       mc.method_table[name][0] = vis
     else
       mc.method_table[name] = Tuple[vis, tup]

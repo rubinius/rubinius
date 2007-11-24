@@ -63,7 +63,7 @@ class Options
     @opts     = {}      # Options parsed
     @nonopts  = []      # Non-option arguments
 
-    arguments = arguments.split unless Array === arguments
+    arguments = arguments.split unless arguments.kind_of?(Array)
 
     arguments.each do |opt|
       # Option type

@@ -152,7 +152,7 @@ class Regexp
   end
 
   def eql?(other)
-    return false unless Regexp === other
+    return false unless other.kind_of?(Regexp)
     # Ruby 1.8 doesn't destinguish between KCODE_NONE (16) & not specified (0) for eql?
     self_options  = options       & KCODE_MASK != 0 ? options       : options       + KCODE_NONE
     other_options = other.options & KCODE_MASK != 0 ? other.options : other.options + KCODE_NONE

@@ -11,7 +11,7 @@ class Fixnum < Integer
     return self >> -c if c < 0
 
     bits = self.size * 8 - 1
-    if (c > bits || self >> bits - c > 0 || Bignum === c)
+    if (c > bits || self >> bits - c > 0 || c.kind_of?(Bignum))
       return __bignum_new__(self) << c
     end
     __fixnum_left_shift__(c)
@@ -21,7 +21,7 @@ class Fixnum < Integer
     c = Type.coerce_to(c, Fixnum, :to_int)
     return self << -c if c < 0
     
-    if Bignum === c
+    if c.kind_of?(Bignum)
       return __bignum_new__(self) >> c
     end
 
