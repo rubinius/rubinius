@@ -85,6 +85,7 @@ class SystemMethodPlugin < Bytecode::Compiler::Plugin
   
   Methods = {
     :kind_of? => "kind_of",
+    :is_a? => "kind_of",
     :instance_of? => "instance_of",
     :nil? => "is_nil",
     :equal? => "equal",
@@ -94,6 +95,7 @@ class SystemMethodPlugin < Bytecode::Compiler::Plugin
   # How many arguments each method takes.
   Args = {
     :kind_of?     => 1,
+    :is_a?        => 1,
     :instance_of? => 1,
     :nil?         => 0,
     :equal?       => 1,
