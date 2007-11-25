@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to push_context.yaml</span>
+            <p>Pushes the current method context onto the stack</p>
             
 
             <h3>Format</h3>
-            
             <b>push_context</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>methodctxt<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,7 +37,9 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to push_context.yaml</span>
+            <p>Creates a reference to the current method execution context, and pushes it onto the stack.</p>
+            
+
             
 
             
@@ -51,8 +51,9 @@
             
             <div id="push_context_source" class="source">
                 <h4>Source</h4>
-                <pre>methctx_reference(state, c->active_context);
-stack_push(c->active_context);</pre>
+                <pre>    methctx_reference(state, c->active_context);
+    stack_push(c->active_context);
+</pre>
             <div>
             
         </div>

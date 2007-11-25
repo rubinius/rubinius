@@ -1,14 +1,14 @@
 ---
 mnemonic: create_block
 operation: >-
-
+  Creates a block (deprecated)
 format: create_block <arg1>
 opcode: 87
 stack_before:
   - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - block
   - ...
 description: >-
 

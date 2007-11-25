@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to locate_method.yaml</span>
+            <p>Locates a method by searching the class hierarchy from a specified object</p>
             
 
             <h3>Format</h3>
-            
             <b>locate_method</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>true | false<tr><td>mthdname<tr><td>self<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>mthd<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -49,12 +47,15 @@
             
 
             
+
+            
             <div id="locate_method_source" class="source">
                 <h4>Source</h4>
-                <pre>t1 = stack_pop(); // include_private
-t2 = stack_pop(); // meth
-t3 = stack_pop(); // self
-stack_push(cpu_locate_method_on(state, c, t3, t2, t1));</pre>
+                <pre>    t1 = stack_pop(); // include_private
+    t2 = stack_pop(); // meth
+    t3 = stack_pop(); // self
+    stack_push(cpu_locate_method_on(state, c, t3, t2, t1));
+</pre>
             <div>
             
         </div>

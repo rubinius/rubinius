@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to push_block.yaml</span>
+            <p>Pushes a block onto the stack</p>
             
 
             <h3>Format</h3>
-            
             <b>push_block</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>block<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +37,18 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to push_block.yaml</span>
+            <p>Pushes the current block onto the stack. Used when a block passed to a method is used.</p>
             
 
+            
+
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>def takes_block
+  yield      # yields to the block passed to the method, which causes push_block to be called
+end</pre>
+            </div>
             
 
             

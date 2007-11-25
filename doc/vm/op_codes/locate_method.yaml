@@ -1,17 +1,20 @@
 ---
 mnemonic: locate_method
 operation: >-
-
+  Locates a method by searching the class hierarchy from a specified object
 format: locate_method
 opcode: 89
 stack_before:
-  - <consumed>
+  - true | false
+  - mthdname
+  - self
   - ...
 stack_after:
-  - <produced>
+  - mthd
   - ...
 description: >-
-
+questions:
+  - When is this opcode used?
 source: |-
     t1 = stack_pop(); // include_private
     t2 = stack_pop(); // meth

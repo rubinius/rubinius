@@ -12,14 +12,12 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to open_module.yaml</span>
+            <p>Creates or reopens a module</p>
             
 
             <h3>Format</h3>
-            
             <b>open_module</b>
-            <i>&lt;arg1&gt;</i>
+            <i>mod</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>module<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,19 +37,35 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to open_module.yaml</span>
+            <p>Creates or re-opens the module referenced by the literal _mod_, and pushes it onto the stack.</p>
             
 
             
 
             
+            <h4>Example</h4>
+            <div class="example">
+            <pre>module A   # Creates module A (or re-opens it if it already exists)
+end</pre>
+            </div>
+            
 
+            
+
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="open_class.html">open_class</a></li>
+                
+            </ul>
             
 
             
             <div id="open_module_source" class="source">
                 <h4>Source</h4>
-                <pre>stack_push(cpu_open_module(state, c, c->enclosing_class));</pre>
+                <pre>    stack_push(cpu_open_module(state, c, c->enclosing_class));
+</pre>
             <div>
             
         </div>

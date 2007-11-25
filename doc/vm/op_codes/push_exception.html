@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to push_exception.yaml</span>
+            <p>Pushes the current exception onto the stack</p>
             
 
             <h3>Format</h3>
-            
             <b>push_exception</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>exc<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,13 +37,31 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to push_exception.yaml</span>
+            <p>Pushes the current exception onto the stack, so that it can be used for some purpose, such as checking the exception type, setting an exception variable in a rescue clause, etc.</p>
             
 
             
 
             
+            <h4>Example</h4>
+            <div class="example">
+            <pre>begin
+  foo = BAR        # BAR is not defined
+rescue NameError   # push_exception used to check type of exception (via ===)
+  puts "No BAR"
+end</pre>
+            </div>
+            
 
+            
+
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="raise_exc.html">raise_exc</a></li>
+                
+            </ul>
             
 
             

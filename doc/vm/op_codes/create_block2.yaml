@@ -4,12 +4,16 @@ operation: >-
   Creates a block
 format: create_block2 <arg1>
 stack_before:
-  - <consumed>
+  - method
   - ...
 stack_after:
-  - <produced>
+  - block
   - ...
 description: >-
+  Creates a new block, and pushes it onto the stack.
+questions:
+  - what does it pop off the stack?
+  - what is arg? Doesn't appear to be used
 notes: >-
   This opcode replaces "create_block":create_block.html, which is deprecated. 
   Unlike create_block which references the block instruction sequence from the

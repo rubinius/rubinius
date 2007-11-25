@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to create_block.yaml</span>
+            <p>Creates a block (deprecated)</p>
             
 
             <h3>Format</h3>
-            
             <b>create_block</b>
             <i>&lt;arg1&gt;</i>
 
@@ -31,7 +29,7 @@
                         <tr>
                             <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>block<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -49,34 +47,38 @@
             
 
             
+
+            
             <div id="create_block_source" class="source">
                 <h4>Source</h4>
-                <pre>next_int;
-t1 = stack_pop();
-t2 = stack_pop();
-if(_int == 255) {
-  t5 = stack_pop();
-} else {
-  assert(0 && "old-style block!!");
-}
+                <pre>    next_int;
+    t1 = stack_pop();
+    t2 = stack_pop();
+    if(_int == 255) {
+      t5 = stack_pop();
+    } else {
+      sassert(0 && "old-style block!!");
+      t5 = Qnil;
+    }
+    
+    t4 = c->active_context;
 
-t4 = c->active_context;
-
-t3 = Qnil;
-if(blokctx_s_block_context_p(state, t4)) {
-  t3 = blokctx_home(state, t4);
-} else {
-  t3 = t4;
-}
-
-methctx_reference(state, t4);
-methctx_reference(state, t3);
-
-cpu_flush_sp(c);
-cpu_flush_ip(c);
-j = c->ip + BS_JUMP;
-t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, t5);
-stack_push(t2);</pre>
+    t3 = Qnil;
+    if(blokctx_s_block_context_p(state, t4)) {
+      t3 = blokctx_home(state, t4);
+    } else {
+      t3 = t4;
+    }
+    
+    methctx_reference(state, t4);
+    methctx_reference(state, t3);
+    
+    cpu_flush_sp(c);
+    cpu_flush_ip(c);
+    j = c->ip + BS_JUMP;
+    t2 = blokenv_s_under_context(state, t3, t4, j, t1, t2, t5);
+    stack_push(t2);
+</pre>
             <div>
             
         </div>
