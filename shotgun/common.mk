@@ -7,7 +7,7 @@ UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
 
-WARNINGS = -Wall
+WARNINGS = -Wall -Wwrite-strings
 DEBUG = -g -ggdb3
 
 CFLAGS = $(WARNINGS) $(DEBUG) 
