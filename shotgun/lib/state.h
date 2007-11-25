@@ -242,7 +242,7 @@ extern int g_use_firesuit;
 extern int g_access_violation;
 
 void machine_handle_fire(int);
-void machine_handle_assert(char *reason, char *file, int line);
+void machine_handle_assert(const char *reason, const char *file, int line);
 
 /* No bounds checking! Be careful! */
 #define fast_fetch(obj, idx) NTH_FIELD_DIRECT(obj, idx)

@@ -79,7 +79,7 @@ class ShotgunPrimitives
     
     File.open("primitive_util.h", "w") do |f|
       size = Bytecode::Compiler::Primitives.size
-      f.puts "struct prim2index { char *name; int index; };"
+      f.puts "struct prim2index { const char *name; int index; };"
       f.puts
       f.puts "static int calc_primitive_index(STATE, OBJECT str) {"
       f.puts "  static struct prim2index pi[] = {"

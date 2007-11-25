@@ -461,7 +461,7 @@ void machine_handle_fire(int kind) {
   setcontext(&g_firesuit);
 }
 
-void machine_handle_assert(char *reason, char *file, int line) {
+void machine_handle_assert(const char *reason, const char *file, int line) {
   fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
   if(!g_use_firesuit) abort();
   g_access_violation = FIRE_ASSERT;
