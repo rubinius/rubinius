@@ -1,9 +1,20 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../expectations'
+
+class Object; alias_method :rspec_should, :should; end
 require File.dirname(__FILE__) + '/../../expectations/should'
+class Object; alias_method :mspec_should, :should; end
 
 # Adapted from RSpec 1.0.8
 describe Object, "#should" do
+  before :all do
+    class Object; alias_method :should, :mspec_should; end
+  end
+  
+  after :all do
+    class Object; alias_method :should, :rspec_should; end
+  end
+  
   before :each do
     @target = "target"
     @matcher = mock("matcher")
@@ -32,6 +43,14 @@ describe Object, "#should" do
 end
 
 describe Object, "#should_not" do
+  before :all do
+    class Object; alias_method :should, :mspec_should; end
+  end
+  
+  after :all do
+    class Object; alias_method :should, :rspec_should; end
+  end
+  
   before :each do
     @target = "target"
     @matcher = mock("matcher")
