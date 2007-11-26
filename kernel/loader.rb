@@ -121,10 +121,10 @@ begin
       if arg.prefix? "-I"
         more = arg[2..-1]
         if more.empty?
-          $:.unshift(ARGV.shift)
+          $LOAD_PATH.unshift(ARGV.shift)
         else
-          more.split(":").each do |path|
-            $:.unshift(path)
+          more.split(":").reverse_each do |path|
+            $LOAD_PATH.unshift(path)
           end
         end
       elsif arg.prefix? "-r"
