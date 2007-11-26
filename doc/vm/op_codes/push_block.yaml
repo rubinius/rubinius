@@ -1,16 +1,19 @@
 ---
 mnemonic: push_block
 operation: >-
-
+  Pushes a block onto the stack
 format: push_block
 opcode: 43
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - block
   - ...
 description: >-
-
+  Pushes the current block onto the stack. Used when a block passed to a method is used.
+example: |-
+  def takes_block
+    yield      # yields to the block passed to the method, which causes push_block to be called
+  end
 source: |-
   stack_push(cpu_current_block(state, c));

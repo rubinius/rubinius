@@ -17,7 +17,7 @@ class String
 
   # Can't be changed if run inside instance_eval with no param passed in
   def initialize(arg = nil)
-    if Fixnum === arg
+    if arg.kind_of?(Fixnum)
       arg ||= ""
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
@@ -125,7 +125,7 @@ class String
   #    "abcdef" <=> "abcdefg"   #=> -1
   #    "abcdef" <=> "ABCDEF"    #=> 1
   def <=>(other)
-    if String === other
+    if other.kind_of?(String)
       len = other.size
       len = size if size < len
 
@@ -159,7 +159,7 @@ class String
   # TODO: MRI does simply use <=> for Strings here, so what's this code about?
   #+++ 
   def ==(other)
-    if String === other
+    if other.kind_of?(String)
       return false unless @bytes == other.size
       
       # This clamps the data to the right size, then we compare
@@ -1217,7 +1217,7 @@ class String
     spaces = true if pattern == ' '
     pattern = /\s+/ if pattern.nil? || pattern == ' '
     pattern = pattern.to_str if ![String, Regexp].include?(pattern.class) && pattern.respond_to?(:to_str)
-    pattern = Regexp.new(Regexp.quote(pattern)) unless Regexp === pattern
+    pattern = Regexp.new(Regexp.quote(pattern)) unless pattern.kind_of?(Regexp)
     
     start = 0
     ret = []

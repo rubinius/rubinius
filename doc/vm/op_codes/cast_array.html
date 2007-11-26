@@ -16,7 +16,6 @@
             
 
             <h3>Format</h3>
-            
             <b>cast_array</b>
             <i></i>
 
@@ -38,7 +37,9 @@
 
             <h3>Description</h3>
             
-            <p>Removes the object on the top of the stack, and:</p><p>If the input is a tuple, a new array object is created based on the tuple data.</p><p>If the input is an array, the stack is unmodified.</p><p>If the input is any other type, that type is wrapped within a new array of length one.</p><p>The resulting array is then pushed back onto the stack.</p>
+            <p>Removes the object on the top of the stack, and:</p><p>If the input is a tuple, a new array object is created based on the tuple data.</p><p>If the input is an array, it is unmodified.</p><p>If the input is any other type, that type is wrapped within a new array of length one.</p><p>The resulting array is then pushed back onto the stack.</p>
+            
+
             
 
             
@@ -50,15 +51,16 @@
             
             <div id="cast_array_source" class="source">
                 <h4>Source</h4>
-                <pre>t1 = stack_pop();
-if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
-  t1 = array_from_tuple(state, t1);
-} else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->array)) {
-  t2 = array_new(state, 1);
-  array_set(state, t2, 0, t1);
-  t1 = t2;
-}
-stack_push(t1);</pre>
+                <pre>    t1 = stack_pop();
+    if(REFERENCE_P(t1) && object_kind_of_p(state, t1, state->global->tuple)) {
+      t1 = array_from_tuple(state, t1);
+    } else if(!REFERENCE_P(t1) || !object_kind_of_p(state, t1, state->global->array)) {
+      t2 = array_new(state, 1);
+      array_set(state, t2, 0, t1);
+      t1 = t2;
+    }
+    stack_push(t1);
+</pre>
             <div>
             
         </div>

@@ -115,7 +115,7 @@ class Struct
   alias_method :values, :to_a
 
   def values_at(*args)
-    args = args.first.to_a if Range === args.first
+    args = args.first.to_a if args.first.kind_of?(Range)
 
     indices = args.map do |arg|
       validate_index_type(arg)
@@ -137,7 +137,7 @@ class Struct
   end
 
   def validate_member_type(member)
-    if Symbol === member || String === member
+    if member.kind_of?(Symbol) || member.kind_of?(String)
       unless member?(sym = member.to_sym)
         raise NameError, "no member '#{member}' in struct" 
       end

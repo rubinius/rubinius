@@ -2,17 +2,23 @@
 mnemonic: find_const
 alias: find
 operation: >-
-
-format: find_const <arg1>
+  Finds a constant
+format: find_const konst
 opcode: 27
 stack_before:
-  - <consumed>
+  - ns
   - ...
 stack_after:
-  - <produced>
+  - const
   - ...
 description: >-
-
+  Pops the module or class _ns_ off the stack, and searches within it's 
+  namespace for the constant identified by the literal _konst_. If found, it
+  is pushed onto the stack; otherwise, the special value @Undefined@ is pushed
+  instead.
+example: |-
+  str = "abc"
+  enum = Enumerable::Enumerator(str, :each_byte)
 source: |-
     t1 = stack_pop();
     next_int;

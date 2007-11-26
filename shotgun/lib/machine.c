@@ -461,7 +461,7 @@ void machine_handle_fire(int kind) {
   setcontext(&g_firesuit);
 }
 
-void machine_handle_assert(char *reason, char *file, int line) {
+void machine_handle_assert(const char *reason, const char *file, int line) {
   fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
   if(!g_use_firesuit) abort();
   g_access_violation = FIRE_ASSERT;
@@ -741,7 +741,7 @@ void machine_setup_config(machine m) {
 #elif defined(__hpux__)
   machine_set_const_under(m, "OS", SYM("hpux"), mod);
 #elif defined(__sun__) || defined(__sun)
-  machine_set_const_under(m, "OS", SYM("solarce"), mod);
+  machine_set_const_under(m, "OS", SYM("solaris"), mod);
 #elif defined(__svr4__)
   machine_set_const_under(m, "OS", SYM("unixware"), mod);
 #elif defined(_AIX)

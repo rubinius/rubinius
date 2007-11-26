@@ -12,14 +12,12 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to find_const.yaml</span>
+            <p>Finds a constant</p>
             
 
             <h3>Format</h3>
-            
             <b>find_const</b>
-            <i>&lt;arg1&gt;</i>
+            <i>konst</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>ns<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>const<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +37,17 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to find_const.yaml</span>
+            <p>Pops the module or class _ns_ off the stack, and searches within it's  namespace for the constant identified by the literal _konst_. If found, it is pushed onto the stack; otherwise, the special value <code>Undefined</code> is pushed instead.</p>
             
 
+            
+
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>str = "abc"
+enum = Enumerable::Enumerator(str, :each_byte)</pre>
+            </div>
             
 
             
@@ -51,12 +57,13 @@
             
             <div id="find_const_source" class="source">
                 <h4>Source</h4>
-                <pre>t1 = stack_pop();
-next_int;
-t2 = tuple_at(state, cpu_current_literals(state, c), _int);
-t2 = cpu_const_get_from(state, c, t2, t1);
-if(t2 != Qundef) stack_push(t2);
-c->cache_index = -1;</pre>
+                <pre>    t1 = stack_pop();
+    next_int;
+    t2 = tuple_at(state, cpu_current_literals(state, c), _int);
+    t2 = cpu_const_get_from(state, c, t2, t1);
+    if(t2 != Qundef) stack_push(t2);
+    c->cache_index = -1;
+</pre>
             <div>
             
         </div>

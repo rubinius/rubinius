@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to open_metaclass.yaml</span>
+            <p>Returns the metaclass for an object</p>
             
 
             <h3>Format</h3>
-            
             <b>open_metaclass</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>obj<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>metaclass<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +37,21 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to open_metaclass.yaml</span>
+            <p>Pops an object off the stack, obtains it's metaclass (creating it if necessary), and pushes it onto the stack.</p>
             
 
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>An object metaclass is it's singleton class, i.e. the class that is used to hold object specific methods. In Rubinius, any object can call the <b>metaclass</b> method to obtain its metaclass.</p>
+            </div>
+            
+
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>o.metclass   # returns object's metaclass</pre>
+            </div>
             
 
             
@@ -51,7 +61,8 @@
             
             <div id="open_metaclass_source" class="source">
                 <h4>Source</h4>
-                <pre>stack_push(object_metaclass(state, stack_pop()));</pre>
+                <pre>    stack_push(object_metaclass(state, stack_pop()));
+</pre>
             <div>
             
         </div>

@@ -27,6 +27,7 @@ module OpCode
     # Links are supported via "link":url, and line breaks are converted to <p>.
     def markup_html(str)
       html = str.gsub(/(^|\W)_(\S([^_]|(_\w))*)_/){|m| "#{$1}<i>#{$2}</i>" }.gsub(/\*((\w|\s)+?)\*/) {|m| "<b>#{$1}</b>"}
+      html = str.gsub(/@((\w|\s)+?)@/) {|m| "<code>#{$1}</code>"}
       html = html.gsub(/"(.+?)":((\w|\/)+(\.\w+)?)/){|m| "<a href=\"#{$2}\">#{$1}</a>"}
       %Q{<p>#{html.gsub("\n","</p><p>")}</p>}
     end

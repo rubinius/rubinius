@@ -1,17 +1,20 @@
 ---
 mnemonic: push_const
 operation: >-
-
-format: push_const <arg1>
+  Pushes a constant onto the stack
+format: push_const 
 opcode: 24
 stack_before:
-  - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - const
   - ...
 description: >-
-
+  Locates the constant indicated by the literal from the current context, and 
+  pushes it onto the stack. If the constant cannot be found in the current
+  context, nothing is pushed onto the stack, and a @NameError@ exception is raised.
+example: |-
+  engine = RUBY_ENGINE      # RUBY_ENGINE is a constant defined by Rubinius
 source: |-
     next_literal;
     t1 = cpu_const_get_in_context(state, c, _lit);

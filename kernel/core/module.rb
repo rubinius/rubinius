@@ -243,7 +243,7 @@ class Module
     end
 
     method_table[name] = tup.dup
-    if Tuple === tup
+    if tup.kind_of?(Tuple)
       method_table[name][0] = vis
     else
       method_table[name] = Tuple[vis, tup]
@@ -264,7 +264,7 @@ class Module
     mc = self.metaclass
     mc.method_table[name] = tup.dup
 
-    if Tuple === tup
+    if tup.kind_of?(Tuple)
       mc.method_table[name][0] = vis
     else
       mc.method_table[name] = Tuple[vis, tup]
@@ -364,7 +364,7 @@ class Module
   end
   
   def const_missing(name)
-    raise NameError, "Unable to find constant #{name}" 
+    raise NameError, "uninitialized constant #{name}"
   end
   
   def attr_reader_cv(*names)
@@ -490,9 +490,11 @@ private
     end
     name
   end
-  
+
+  # Modified to fit definition at:
+  # http://docs.huihoo.com/ruby/ruby-man-1.4/syntax.html#variable
   def valid_const_name?(name)
-    name.to_s =~ /^[A-Z]\w*$/ ? true : false
+    name.to_s =~ /^((::)?[A-Z]\w*)+$/ ? true : false
   end
 
   def attribute_symbol(name)

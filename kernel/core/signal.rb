@@ -26,7 +26,7 @@ module Signal
 
   @handlers = {}
   def self.trap(sig, prc=nil, &block)
-    if String === sig
+    if sig.kind_of?(String)
       number = Names[sig]
     else
       number = sig.to_i

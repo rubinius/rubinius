@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to push_encloser.yaml</span>
+            <p>Resets the current class/module to the parent class/module</p>
             
 
             <h3>Format</h3>
-            
             <b>push_encloser</b>
             <i></i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,19 +37,37 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to push_encloser.yaml</span>
+            <p>Resets the current enclosing class or module to the parent class or module in the enclosing scope path. Used when a class or module definition ends, to pop up a level in the enclosure stack.</p>
             
 
             
 
             
+            <h4>Example</h4>
+            <div class="example">
+            <pre>module A    # encloser is set to A after this line
+  module B  # encloser is set to B after this line
+  end       # encloser is reset to A after this line
+end</pre>
+            </div>
+            
 
+            
+
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="set_encloser.html">set_encloser</a></li>
+                
+            </ul>
             
 
             
             <div id="push_encloser_source" class="source">
                 <h4>Source</h4>
-                <pre>cpu_push_encloser(state, c);</pre>
+                <pre>    cpu_push_encloser(state, c);
+</pre>
             <div>
             
         </div>

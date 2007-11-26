@@ -1,4 +1,5 @@
-Assigning multiple values evaluates rhs left-to-right
 Assigning multiple values supports parallel assignment to lhs args via object.method=
 Assigning multiple values supports parallel assignment to lhs args using []=
+Assigning multiple values calls #to_ary on rhs arg if rhs has only a single arg
+Assigning multiple values allows complex parallel assignment
 Assigning multiple values allows a lhs arg to be used in another lhs args parallel assignment

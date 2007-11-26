@@ -12,12 +12,10 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to push_const.yaml</span>
+            <p>Pushes a constant onto the stack</p>
             
 
             <h3>Format</h3>
-            
             <b>push_const</b>
             <i>&lt;arg1&gt;</i>
 
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>const<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +37,16 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to push_const.yaml</span>
+            <p>Locates the constant indicated by the literal from the current context, and  pushes it onto the stack. If the constant cannot be found in the current context, nothing is pushed onto the stack, and a <code>NameError</code> exception is raised.</p>
             
 
+            
+
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>engine = RUBY_ENGINE      # RUBY_ENGINE is a constant defined by Rubinius</pre>
+            </div>
             
 
             
@@ -51,10 +56,11 @@
             
             <div id="push_const_source" class="source">
                 <h4>Source</h4>
-                <pre>next_literal;
-t1 = cpu_const_get_in_context(state, c, _lit);
-if(t1 != Qundef) stack_push(t1);
-c->cache_index = -1;</pre>
+                <pre>    next_literal;
+    t1 = cpu_const_get_in_context(state, c, _lit);
+    if(t1 != Qundef) stack_push(t1);
+    c->cache_index = -1;
+</pre>
             <div>
             
         </div>

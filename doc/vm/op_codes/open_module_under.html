@@ -12,14 +12,12 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to open_module_under.yaml</span>
+            <p>Creates or opens a module nested under another module</p>
             
 
             <h3>Format</h3>
-            
             <b>open_module_under</b>
-            <i>&lt;arg1&gt;</i>
+            <i>name</i>
 
             <h3>Stack</h3>
             <div class="stack">
@@ -29,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>parent<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>module<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -39,9 +37,17 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to open_module_under.yaml</span>
+            <p>Pops an enclosing class or module from the stack, and creates or re-opens the module identified by the literal _name_. The module is then pushed onto the  stack.</p>
             
 
+            
+
+            
+            <h4>Example</h4>
+            <div class="example">
+            <pre>module X::Y    # Opens module Y under the module X
+end</pre>
+            </div>
             
 
             
@@ -51,7 +57,8 @@
             
             <div id="open_module_under_source" class="source">
                 <h4>Source</h4>
-                <pre>stack_push(cpu_open_module(state, c, stack_pop()));</pre>
+                <pre>    stack_push(cpu_open_module(state, c, stack_pop()));
+</pre>
             <div>
             
         </div>

@@ -1,17 +1,19 @@
 ---
 mnemonic: create_block
 operation: >-
-
+  Creates a block (deprecated)
 format: create_block <arg1>
 opcode: 87
 stack_before:
   - <consumed>
   - ...
 stack_after:
-  - <produced>
+  - block
   - ...
 description: >-
-
+  Creates a new block, and pushes it onto the stack.
+notes:
+  create_block is deprecated under compiler2 in favour of create_block2.
 source: |-
     next_int;
     t1 = stack_pop();

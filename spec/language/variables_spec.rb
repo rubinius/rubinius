@@ -142,12 +142,27 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
-  it "evaluates rhs left-to-right" do
-    a = VariablesSpecs::ParAsgn.new
-    d,e,f = a.inc, a.inc, a.inc
-    d.should == 1
-    e.should == 2
-    f.should == 3
+  compliant :mri, :jruby do
+    it "evaluates rhs left-to-right" do
+      a = VariablesSpecs::ParAsgn.new
+      d,e,f = a.inc, a.inc, a.inc
+      d.should == 1
+      e.should == 2
+      f.should == 3
+    end
+  end
+
+  # Rubinius evaluates the rhs args right-to-left, not left-to-right.
+  # In most cases, this should make no noticeable difference, and it is felt
+  # that RHS evaluation order ought to be left to the implementation.
+  noncompliant :rubinius do
+    it "evaluates rhs right-to-left" do
+      a = VariablesSpecs::ParAsgn.new
+      d,e,f = a.inc, a.inc, a.inc
+      d.should == 3
+      e.should == 2
+      f.should == 1
+    end
   end
 
   it "supports parallel assignment to lhs args via object.method=" do
@@ -190,8 +205,64 @@ describe "Assigning multiple values" do
     a,=*[[[1]]]
     a.should == [[1]]
   end
+
+  it "calls #to_ary on rhs arg if rhs has only a single arg" do
+    x = VariablesSpecs::ParAsgn.new
+    a,b,c = x
+    a.should == 1
+    b.should == 2
+    c.should == 3
+
+    a,b,c = x,5
+    a.should == x
+    b.should == 5
+    c.should == nil
+
+    a,b,c = 5,x
+    a.should == 5
+    b.should == x
+    c.should == nil
+
+    a,b,*c = x,5
+    a.should == x
+    b.should == 5
+    c.should == []
+
+    a,(*b),c = 5,x
+    a.should == 5
+    b.should == [x]
+    c.should == nil
+
+    a,(b,c) = 5,x
+    a.should == 5
+    b.should == 1
+    c.should == 2
+
+    a,(b,*c) = 5,x
+    a.should == 5
+    b.should == 1
+    c.should == [2,3,4]
+
+    a,(b,(*c)) = 5,x
+    a.should == 5
+    b.should == 1
+    c.should == [2]
+
+    a,(b,(*c),(*d)) = 5,x
+    a.should == 5
+    b.should == 1
+    c.should == [2]
+    d.should == [3]
+
+    a,(b,(*c),(d,*e)) = 5,x
+    a.should == 5
+    b.should == 1
+    c.should == [2]
+    d.should == 3
+    e.should == []
+  end
     
-  it "should allow complex parallel assignment" do
+  it "allows complex parallel assignment" do
     a, (b, c), d = 1, [2, 3], 4
     a.should == 1
     b.should == 2
@@ -204,6 +275,25 @@ describe "Assigning multiple values" do
     [x,y,z].should == [1,2,3]
     x, (y, z) = 1, [2]
     [x,y,z].should == [1,2,nil]
+
+    a,(b,c,*d),(e,f),*g = 0,[1,2,3,4],[5,6],7,8
+    a.should == 0
+    b.should == 1
+    c.should == 2
+    d.should == [3,4]
+    e.should == 5
+    f.should == 6
+    g.should == [7,8]
+
+    x = VariablesSpecs::ParAsgn.new
+    a,(b,c,*d),(e,f),*g = 0,x,[5,6],7,8
+    a.should == 0
+    b.should == 1
+    c.should == 2
+    d.should == [3,4]
+    e.should == 5
+    f.should == 6
+    g.should == [7,8]
   end
 
   it "allows a lhs arg to be used in another lhs args parallel assignment" do

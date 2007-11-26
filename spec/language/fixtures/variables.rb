@@ -9,6 +9,10 @@ module VariablesSpecs
     def inc
       @x += 1
     end
+
+    def to_ary
+      [1,2,3,4]
+    end
   end
 
   class OpAsgn
