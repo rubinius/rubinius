@@ -1,7 +1,7 @@
 ---
 mnemonic: push_encloser
 operation: >-
-
+  Resets the current class/module to the parent class/module
 format: push_encloser
 opcode: 52
 stack_before:
@@ -9,6 +9,15 @@ stack_before:
 stack_after:
   - ...
 description: >-
-
+  Resets the current enclosing class or module to the parent class or module in
+  the enclosing scope path. Used when a class or module definition ends, to pop
+  up a level in the enclosure stack.
+see:
+  - set_encloser
+example: |-
+  module A    # encloser is set to A after this line
+    module B  # encloser is set to B after this line
+    end       # encloser is reset to A after this line
+  end
 source: |-
     cpu_push_encloser(state, c);

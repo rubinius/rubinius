@@ -5,7 +5,7 @@ operation: >-
 format: locate_method
 opcode: 89
 stack_before:
-  - true | false
+  - incprivate
   - mthdname
   - self
   - ...
@@ -13,6 +13,9 @@ stack_after:
   - mthd
   - ...
 description: >-
+  Pops a flag indicating whether or not to search in private methods, the method name,
+  and the object to search from off the stack. If a matching method is located, it is
+  pushed onto the stack; otherwise, nil is pushed onto the stack.
 questions:
   - When is this opcode used?
 source: |-

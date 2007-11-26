@@ -1,17 +1,24 @@
 ---
 mnemonic: set_encloser
 operation: >-
-  Sets the scope / namespace enclosing subsequent operations
+  Sets the enclosing class/module when creating a class/module
 format: set_encloser
 opcode: 51
 stack_before:
-  - clazz
+  - klass
   - ...
 stack_after:
   - ...
 description: >-
-  Pops a class _clazz_ off the stack, and uses it as the enclosing scope for
-  subsequent op codes.
+  Pops the class _klass_ off the stack, and uses it as the enclosing scope for
+  subsequent class or module definitions.
+see:
+  - push_encloser
+example: |-
+  module A    # encloser is set to A after this line
+    module B  # encloser is set to B after this line
+    end       # encloser is reset to A after this line
+  end
 source: |-
     t1 = stack_pop();
     cpu_set_encloser_path(state, c, t1);

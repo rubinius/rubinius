@@ -12,11 +12,10 @@
 
             <h3>Operation</h3>
             
-            <p>Sets the scope / namespace enclosing subsequent operations</p>
+            <p>Sets the enclosing class/module when creating a class/module</p>
             
 
             <h3>Format</h3>
-            
             <b>set_encloser</b>
             <i></i>
 
@@ -28,7 +27,7 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>clazz<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>klass<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
                             <td><table><tr><td>...</td></tr></table></td>
                         <tr>
@@ -38,20 +37,38 @@
 
             <h3>Description</h3>
             
-            <p>Pops a class <i>clazz</i> off the stack, and uses it as the enclosing scope for subsequent op codes.</p>
+            <p>Pops the class _klass_ off the stack, and uses it as the enclosing scope for subsequent class or module definitions.</p>
             
 
             
 
             
+            <h4>Example</h4>
+            <div class="example">
+            <pre>module A    # encloser is set to A after this line
+  module B  # encloser is set to B after this line
+  end       # encloser is reset to A after this line
+end</pre>
+            </div>
+            
 
+            
+
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="push_encloser.html">push_encloser</a></li>
+                
+            </ul>
             
 
             
             <div id="set_encloser_source" class="source">
                 <h4>Source</h4>
-                <pre>t1 = stack_pop();
-cpu_set_encloser_path(state, c, t1);</pre>
+                <pre>    t1 = stack_pop();
+    cpu_set_encloser_path(state, c, t1);
+</pre>
             <div>
             
         </div>

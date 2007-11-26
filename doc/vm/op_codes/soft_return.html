@@ -12,11 +12,10 @@
 
             <h3>Operation</h3>
             
-            <p>Return from a block due to break</p>
+            <p>Soft return from a block</p>
             
 
             <h3>Format</h3>
-            
             <b>soft_return</b>
             <i></i>
 
@@ -38,20 +37,39 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to soft_return.yaml</span>
+            <p>Pops the return value from the stack, and returns to the calling method or block. The return value is pushed onto the stack of the caller during the return.</p>
+            
+
+            
+            <div class="notes">
+                <h4>Notes</h4>
+                <p>Unlike <a href="ret.html">ret</a>, this return opcode does not consider non-local returns. It simply returns to the calling block or method context. Thus, it is used when, for example, breaking from a loop, or upon the normal completion of a block.</p>
+            </div>
             
 
             
 
             
 
+            
+            <h3>See Also</h3>
+            <ul>
+                
+                <li><a href="sret.html">sret</a></li>
+                
+                <li><a href="ret.html">ret</a></li>
+                
+                <li><a href="caller_return.html">caller_return</a></li>
+                
+            </ul>
             
 
             
             <div id="soft_return_source" class="source">
                 <h4>Source</h4>
-                <pre>t1 = stack_pop();
-cpu_return_to_sender(state, c, t1, FALSE, FALSE);</pre>
+                <pre>    t1 = stack_pop();
+    cpu_return_to_sender(state, c, t1, FALSE, FALSE);
+</pre>
             <div>
             
         </div>

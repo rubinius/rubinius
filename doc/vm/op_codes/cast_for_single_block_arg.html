@@ -12,8 +12,7 @@
 
             <h3>Operation</h3>
             
-            <span class="todo">
-                TODO: Add brief operation one-liner to cast_for_single_block_arg.yaml</span>
+            <p>Converts the item on the top of the stack into an argument for a block taking one arg</p>
             
 
             <h3>Format</h3>
@@ -28,9 +27,9 @@
                     </tfoot>
                     <tbody>
                         <tr>
-                            <td><table><tr><td>&lt;consumed&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>arg<tr><td>...</td></tr></table></td>
                             <td>=&gt;</td>
-                            <td><table><tr><td>&lt;produced&gt;<tr><td>...</td></tr></table></td>
+                            <td><table><tr><td>block_arg<tr><td>...</td></tr></table></td>
                         <tr>
                     </tbody>
                 </table>
@@ -38,14 +37,7 @@
 
             <h3>Description</h3>
             
-            <span class="todo">TODO: Add description to cast_for_single_block_arg.yaml</span>
-            
-
-            
-            <div class="notes">
-                <h4>Notes</h4>
-                <p>This opcode is used in combination with <a href="create_block2.html">create_block2</a>.</p>
-            </div>
+            <p>The item on the top of the stack is popped, and:</p><p>If it has no fields, the result is nil</p><p>If the item contains a single field, the result is the value in the first field</p><p>If the item is a tuple, the result is an array created from the tuple.</p><p>The result is then pushed onto the stack.</p>
             
 
             
@@ -53,12 +45,7 @@
             
 
             
-            <h3>See Also</h3>
-            <ul>
-                
-                <li><a href="create_block2.html">create_block2</a></li>
-                
-            </ul>
+
             
 
             

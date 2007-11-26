@@ -30,7 +30,7 @@ Following is a list of additions provided by Rubinius that are not <strong>direc
 	<ul>
 	<li><a href="http://blog.fallingsnow.net/2007/01/19/archiving-loading-now-in-trunk/" title=".rba">Ruby Archives</a></li>
 		<li><a href="vm_interfaces.html"><span class="caps">FFI</span></a></li>
-		<li>Tuple</li>
+		<li>Tuple: This is a simple fixed size data structure, used internally by classes such as Array and Hash.</li>
 		<li><a href="concurrency.html">Concurrency</a>
 	<ul>
 	<li><a href="http://blog.fallingsnow.net/2007/04/05/task-class-in-svn/">Task</a></li>
@@ -41,17 +41,19 @@ Following is a list of additions provided by Rubinius that are not <strong>direc
 	</li>
 		<li>Metaprogramming:
 	<ul>
-	<li>MetaClass</li>
+	<li><strong>MetaClass:</strong> Object meta-classes are instances of <code>MetaClass</code>, which is a sub-class of <code>Class</code>.</li>
 	</ul>
 	</li>
 		<li>Rubinius Runtime Introspection
 	<ul>
-	<li>CompiledMethod</li>
+	<li><strong>Globals</strong>: Object containing a hash of all global variables.</li>
+		<li><strong>CompiledMethod:</strong> A <code>CompiledMethod</code> object is used to represent each compiled method object in Rubinius. It holds much of the details of a method implementation, including the local variables and literals used in the method, the <code>InstructionSequence</code> containing the bytecode of the method implementation, etc.</li>
 		<li>MethodContext</li>
 		<li>BlockContext</li>
 		<li>BlockEnvironment</li>
 		<li>Backtrace</li>
 		<li>InstructionSequence</li>
+		<li><strong>String#to_sexp:</strong> Converts the Ruby code in the string to an S-expression (sexp).</li>
 	</ul></li>
 	</ul>
 
@@ -64,8 +66,9 @@ Following is a list of additions provided by Rubinius that are not <strong>direc
 
 Following is a list of known incompatibilities:
 	<ul>
-	<li>Rubinius does not support freezing objects</li>
+	<li>Rubinius does not support freezing objects. <code>#freeze</code> is defined so that code that uses it will run, but is essentially a no-op; <code>#frozen?</code> always returns false.</li>
 		<li>Multiple assignment returns <strong>true</strong> rather than an array of the rhs args, i.e. in <span class="caps">MRI</span> a,b = 1,2 returns [1,2], but this is almost never used. Rubinius returns <strong>true</strong> and avoids the penalty of creating an array that is not used.</li>
+		<li>Multiple assignment evaluates the <span class="caps">RHS</span> in right-to-left order, rather than left-to-right. This will only be noticeable if expressions on the <span class="caps">RHS</span> are dependent on one another, which is rarely the case.</li>
 	</ul>
   </body>
 <html>

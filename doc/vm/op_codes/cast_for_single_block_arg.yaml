@@ -1,15 +1,21 @@
 ---
 mnemonic: cast_for_single_block_arg
 operation: >-
+  Converts the item on the top of the stack into an argument for a block taking one arg
 format: cast_for_single_block_arg
 stack_before:
-  - <consumed>
+  - arg
   - ...
 stack_after:
-  - <produced>
+  - block_arg
   - ...
 description: >-
-notes: >-
-  This opcode is used in combination with "create_block2":create_block2.html.
-see:
-  - create_block2
+  The item on the top of the stack is popped, and:
+
+  If it has no fields, the result is nil
+  
+  If the item contains a single field, the result is the value in the first field
+
+  If the item is a tuple, the result is an array created from the tuple.
+  
+  The result is then pushed onto the stack.

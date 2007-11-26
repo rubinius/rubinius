@@ -11,7 +11,9 @@ stack_after:
   - block
   - ...
 description: >-
-
+  Creates a new block, and pushes it onto the stack.
+notes:
+  create_block is deprecated under compiler2 in favour of create_block2.
 source: |-
     next_int;
     t1 = stack_pop();
