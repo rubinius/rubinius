@@ -14,11 +14,3 @@ describe Expectation, "#fail_with" do
     }.should raise_error(ExpectationNotMetError, "expected this to equal that")
   end
 end
-
-describe Object, "#should" do
-  
-end
-
-describe Object, "#should_not" do
-  
-end

@@ -1,7 +1,9 @@
 class Object
   def should(matcher=nil)
     if matcher
-      raise Expectation.fail_with(*matcher.failure_message) unless matcher.matches?(self)
+      unless matcher.matches?(self)
+        raise Expectation.fail_with(*matcher.failure_message)
+      end
     else
       PositiveOperatorMatcher.new(self)
     end
@@ -9,7 +11,9 @@ class Object
   
   def should_not(matcher=nil)
     if matcher
-      raise Expectation.fail_with(*matcher.negative_failure_message) if matcher.matches?(self)
+      if matcher.matches?(self)
+        raise Expectation.fail_with(*matcher.negative_failure_message)
+      end
     else
       NegativeOperatorMatcher.new(self)
     end
