@@ -187,9 +187,11 @@ class File < IO
   def self.unlink(*paths)
     paths.each do |path|
       path = StringValue(path)
-      raise Errno::ENOENT, "No such file or directory - #{path}" unless exists?(path)
-      Platform::POSIX.unlink(path) 
+
+      n = Platform::POSIX.unlink(path)
+      Errno.handle if n == -1
     end
+
     paths.size
   end
   
