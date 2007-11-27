@@ -33,19 +33,19 @@ end
 
 class Object
   def failure(*engines)
-    yield unless engines.any? { |engine| MSpec.engine? engine }
+    yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
   def extension(*engines)
-    yield if engines.any? { |engine| MSpec.engine? engine }
+    yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
   def compliant(*engines)
-    yield if engines.any? { |engine| MSpec.engine? engine }
+    yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
   def noncompliant(*engines)
-    yield if engines.any? { |engine| MSpec.engine? engine }
+    yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
   # version :not, '1.8.4', '1.8.6' do

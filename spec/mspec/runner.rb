@@ -1,3 +1,3 @@
-require 'runner/base'
-require 'runner/formatter'
+require 'runner/complete'
+require 'runner/formatters'
 require 'runner/guards'

@@ -1,5 +1,5 @@
 require 'matchers/base'
 require 'expectations'
+require 'expectations/should'
 require 'runner/base'
-require 'runner/formatter/base'
-require 'runner/formatter/immediate'
+require 'runner/formatters/immediate'

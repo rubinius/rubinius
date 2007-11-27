@@ -1,0 +1,6 @@
+require 'formatters/base'
+require 'formatters/dotted'
+require 'formatters/specdoc'
+require 'formatters/html'
+require 'formatters/immediate'
+require 'formatters/ci'
