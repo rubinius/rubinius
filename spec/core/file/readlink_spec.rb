@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File::readlink" do
+describe "File.readlink" do
   
   before :each do    
     @file1 = 'test.txt'

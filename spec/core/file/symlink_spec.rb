@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "File::symlink" do
+describe "File.symlink" do
   before :each do   
     @file = "test.txt"
     @link = "test.lnk"     
