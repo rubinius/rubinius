@@ -218,7 +218,10 @@ class File < IO
     StringValue(path)
 
     buf = " " * 1024
+
     n = Platform::POSIX.readlink(path, buf, buf.length)
+    Errno.handle if n == -1
+
     buf[0, n]
   end
   
