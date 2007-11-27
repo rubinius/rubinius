@@ -198,22 +198,28 @@ class File < IO
   def self.link(from, to)
     to = StringValue(to)
     from = StringValue(from)
-    raise Errno::EEXIST if exists?(to)
-    Platform::POSIX.link(from, to)
+
+    n = Platform::POSIX.link(from, to)
+    Errno.handle if n == -1
+    n
   end
   
   def self.symlink(from, to)
     to = StringValue(to)
     from = StringValue(from)
-    raise Errno::EEXIST if exists?(to)
-    Platform::POSIX.symlink(from, to)
+
+    n = Platform::POSIX.symlink(from, to)
+    Errno.handle if n == -1
+    n
   end
 
   def self.rename(from, to)
     to = StringValue(to)
     from = StringValue(from)
-    raise Errno::ENOENT unless exists?(from)
-    Platform::POSIX.rename(from, to)
+
+    n = Platform::POSIX.rename(from, to)
+    Errno.handle if n == -1
+    n
   end
   
   def self.readlink(path)
