@@ -1103,10 +1103,10 @@ class Compiler::Node
       @in_block = get(:iter)
     end
     
-    attr_accessor :left, :splat, :source
+    attr_accessor :assigns, :splat, :source
     
     def empty?
-      @left.nil? and (@splat.equal?(true) or @splat.nil?)
+      @assigns.nil? and (@splat.equal?(true) or @splat.nil?)
     end
   end
   

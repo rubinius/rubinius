@@ -400,8 +400,8 @@ class Compiler
       add :send_with_arg_register, idx      
     end
     
-    def method_missing(op)
-      add op
+    def method_missing(*op)
+      add *op
     end    
   end
 end
