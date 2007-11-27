@@ -9,7 +9,7 @@ describe "File.readlink" do
      
     File.open(@file1, 'w+') { } # 
     compliant :mri, :rubinius do
-      File.link(@file1, @file3)
+      File.symlink(@file1, @file3)
     end
   end 
   
