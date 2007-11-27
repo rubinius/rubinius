@@ -1,12 +1,27 @@
 require 'bytecode/encoder'
-require 'digest/sha1'
+
+
+# At present, Rubinius has not implemented String::unpack, so hack a simple int unpack
+class String
+  def unpack_int(endian = ?b)
+    if ?b == endian
+      # Int is encoded big-endian
+      i = (self[3] | (self[2] << 8) | (self[1] << 16) | (self[0] << 24))
+    else
+      # Int is encoded little-endian
+      i = (self[0] | (self[1] << 8) | (self[2] << 16) | (self[3] << 24))
+    end
+    i
+  end
+end
+
 
 class MarshalEmitter
   def initialize(str, start=0)
     @string = str
     @index = start
   end
-  
+
   TagNames = {
     ?n => :nil,
     ?t => :true,
@@ -23,9 +38,9 @@ class MarshalEmitter
     ?M => :method2,
     ?r => :object
   }
-  
+
   NoBody = [:nil, :true, :false]
-  
+
   def self.process_rbc(file)
     # Binary mode needs to be specified on Win
     str = ""
@@ -33,24 +48,18 @@ class MarshalEmitter
       str = f.read
     end
     raise "Not a Rubinius compiled file" unless 'RBIX' == str[0..3]
-    ver = str[4..7].unpack("N").first
+    ver = str[4..7].unpack_int
     raise "Unsupported .rbc version #{ver}" unless 5 == ver
     new(str, 8)
   end
-  
-  def digest
-    dig = Digest::SHA1.new
-    dig.update @string
-    return dig.hexdigest
-  end
-  
+
   def process
     tag = @string[@index]
     @index += 1
-    
+
     name = TagNames[tag]
     raise "Unrecognised tag '" << (tag || '\0') << "' at #{@index} (#{sprintf('%#x', @index)})" unless name
-        
+
     if NoBody.include? name
       [name]
     else
@@ -58,48 +67,48 @@ class MarshalEmitter
       [name, body]
     end
   end
-  
+
   def process_int
     body = @string[@index, 5]
     @index += 5
     sign = body[0]
-    int = body[1..-1].unpack("N").first
+    int = body[1..-1].unpack_int
     if sign == ?n
       int = -int
     end
-    return [body, int]
+    return int
   end
-  
+
   def process_string
-    sz = @string[@index,4].unpack("N").first
+    sz = @string[@index,4].unpack_int
     @index += 4
     body = @string[@index, sz]
     @index += sz
     return body
   end
-  
+
   alias :process_bignum :process_string
   alias :process_float  :process_string
   alias :process_symbol :process_string
   alias :process_bytes  :process_string
-  
+
   def process_tuple
-    sz = @string[@index,4].unpack("N").first
+    sz = @string[@index,4].unpack_int
     @index += 4
     body = []
     sz.times do
       body << process()
     end
-    
+
     body
   end
-  
+
   alias :process_method :process_tuple
   alias :process_object :process_tuple
-  
+
   # Support for version 2 of compiled method, which replaces size with a version number
   def process_method2
-    ver = @string[@index,4].unpack("N").first
+    ver = @string[@index,4].unpack_int
     @index += 4
     body = []
     sz = 16 if 1 == ver
@@ -108,17 +117,17 @@ class MarshalEmitter
     sz.times do
       body << process()
     end
-    
-    body    
+
+    body
   end
-  
+
   def process_instructions
     endian = @string[@index]
     @index += 1
     body = process_string()
     dis = Bytecode::Disassembler.new(body, endian)
     dis.process_all()
-  end  
+  end
 end
 
 module Bytecode
@@ -132,23 +141,17 @@ module Bytecode
       @two = Bytecode::InstructionEncoder::TwoInt
       @codes = []
     end
-    
+
     attr_reader :codes
-    
+
     def num_args(bc)
       return 2 if @two.index(bc)
       return 1 if @one.index(bc)
       return 0
     end
-    
+
     def get_dword
-      if ?b == @endian
-        # Instructions are encoded big-endian
-        dw = @string[@index, 4].unpack("N").first
-      else
-        # Instructions are encoded little-endian
-        dw = (@string[@index] | (@string[@index+1] << 8) | (@string[@index+2] << 16) | (@string[@index+3] << 24))
-      end
+      dw = @string[@index, 4].unpack_int(@endian)
       @index += 4
       dw
     end
@@ -162,7 +165,7 @@ module Bytecode
       end
       @codes << code
     end
-    
+
     def process_all
       while @index < @string.size
         process
@@ -176,5 +179,4 @@ emit = MarshalEmitter.process_rbc(ARGV.shift)
 
 require 'pp'
 
-puts emit.digest
 pp emit.process
