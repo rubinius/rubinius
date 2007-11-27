@@ -15,7 +15,7 @@ describe "File.readlink" do
 
   after :each do
     File.delete(@file1) if File.exists?(@file1)
-    File.delete(@file3) if File.exists?(@file3)
+    File.delete(@file3) if File.symlink?(@file3)
   end
 
   it "return the name of the file referenced by the given link" do
