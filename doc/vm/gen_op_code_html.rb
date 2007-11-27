@@ -5,9 +5,9 @@ require 'op_code_info'
 module OpCode
   class HTMLEmitter
     include ERB::Util
-  
+
     def create_index_html(op_codes, template)
-      File.open("op_codes_index.html", 'w') do |f|
+      File.open("toc.html", 'w') do |f|
         html = template.result(binding)
         f.puts html
       end
@@ -27,7 +27,7 @@ module OpCode
     # Links are supported via "link":url, and line breaks are converted to <p>.
     def markup_html(str)
       html = str.gsub(/(^|\W)_(\S([^_]|(_\w))*)_/){|m| "#{$1}<i>#{$2}</i>" }.gsub(/\*((\w|\s)+?)\*/) {|m| "<b>#{$1}</b>"}
-      html = str.gsub(/@((\w|\s)+?)@/) {|m| "<code>#{$1}</code>"}
+      html = html.gsub(/@((\w|\s)+?)@/) {|m| "<code>#{$1}</code>"}
       html = html.gsub(/"(.+?)":((\w|\/)+(\.\w+)?)/){|m| "<a href=\"#{$2}\">#{$1}</a>"}
       %Q{<p>#{html.gsub("\n","</p><p>")}</p>}
     end
@@ -56,8 +56,8 @@ module OpCode
   end
 end
 
-op_code_template = ERB.new(File.read('op_code_template.html.erb'),nil,'<>')
-index_template = ERB.new(File.read('op_codes_index.html.erb'), nil, '<>')
+op_code_template = ERB.new(File.read('op_codes/op_code_template.html.erb'),nil,'<>')
+index_template = ERB.new(File.read('toc.html.erb'), nil, '<>')
 
 op_codes = []
 emitter = OpCode::HTMLEmitter.new
@@ -75,4 +75,3 @@ end
 
 # Create index page
 emitter.create_index_html(op_codes, index_template)
-#create_html("op_codes_index.html", index_template, binding)
