@@ -23,7 +23,7 @@ describe "File.readlink" do
   end
 
   it "raises if called with an invalid argument" do
-    should_raise(SystemCallError) do
+    should_raise(Errno::ENOENT) do
       File.readlink("/this/surely/doesnt/exist")
     end
   end
