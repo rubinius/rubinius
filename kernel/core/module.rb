@@ -234,7 +234,7 @@ class Module
   end
   
   def set_visibility(meth, vis)
-    name = meth.to_sym
+    name = normalize_name(meth)
     tup = find_method_in_hierarchy(name)
     vis = vis.to_sym
     
