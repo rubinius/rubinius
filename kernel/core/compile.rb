@@ -101,12 +101,11 @@ module Kernel
     Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end
-  
-  # look in each directory of $: for .rb, .rbc, or .<library extension>
-  def require(thing)
-    if thing.suffix? '.rbc'
-      raise LoadError, "unable to directly require compiled file #{thing}"
-    elsif thing.suffix? '.rb'
+
+  def find_feature(thing)
+    return thing if thing[0] == ?/
+
+    if thing.suffix? '.rb'
       base_file = thing.chomp('.rb')
       rb_file   = thing
       rbc_file  = thing + 'c'
@@ -116,36 +115,55 @@ module Kernel
       rbc_file  = thing + '.rbc'
     end
 
-    $:.each do |dir|
-      rb_path   = "#{dir}/#{rb_file}"
-      rbc_path  = "#{dir}/#{rbc_file}"
-      base_path = "#{dir}/#{base_file}"
+    $LOAD_PATH.each do |dir|
+      rb_path   = File.join dir, rb_file
+      rbc_path  = File.join dir, rbc_file
+      base_path = File.join dir, base_file
 
-      [rb_path, rbc_path, base_path].each do |path|
-        return false if $".include?(path)
-      end
-      
-      if dir.suffix?('.rba') and File.exists?(dir)
-        cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
-        if cm
-          $" << rbc_path
-          return cm.as_script
-        end
-      elsif File.exists?(rb_path) or File.exists?(rbc_path)
-        # Don't accidentally load non-extension files
-        $" << rb_path
-        return load(rb_path)
-      else
-        load_result = VM.load_library(base_path, File.basename(base_path))
-        case load_result
-        when true
-          $" << base_path
-          return true
-        when 1
-          raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(path)}?"
-        end
+      if dir.suffix? '.rba' and File.file? dir then
+        return dir, rbc_path if Archive.list_files(dir).include? rbc_path
+      elsif File.file? rb_path or File.file? rbc_path then
+        return rb_path
+      elsif File.file? base_path then
+        return base_path
       end
     end
-    raise LoadError, "Unable to find '#{thing}' to load"
+
+    nil
   end
+
+  # look in each directory of $LOAD_PATH for .rb, .rbc, or .<library extension>
+  def require(thing)
+    if thing.suffix? '.rbc'
+      raise LoadError, "unable to directly require compiled file #{thing}"
+    end
+
+    path, file = find_feature thing
+
+    raise LoadError, "no such file to load -- #{thing}" if path.nil?
+
+    return false if $LOADED_FEATURES.include? path
+
+    if path.suffix? '.rba' then
+      cm = Archive.get_object(dir, file, Rubinius::CompiledMethodVersion)
+      $LOADED_FEATURES << file
+      return cm.as_script
+    elsif path.suffix? '.rb' or path.suffix? '.rbc' then
+      # Don't accidentally load non-extension files
+      $LOADED_FEATURES << path
+      load path
+      return true
+    else
+      load_result = VM.load_library(path, File.basename(path))
+      case load_result
+      when true
+        $LOADED_FEATURES << path
+        return true
+      when 1
+        raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(path)}?"
+      end
+    end
+  end
+
 end
+
