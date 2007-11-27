@@ -1,0 +1,175 @@
+#
+# ci - continuous integration tool
+#
+
+require 'optparse'
+
+module CI
+  VERSION = '0.5.0'
+end
+
+action = :run
+patterns = []
+target = 'shotgun/rubinius'
+format = 'CIReporter'
+clean = false
+verbose = false
+ci_files = "spec/files.txt"
+gdb = false
+valgrind = false
+
+opts = OptionParser.new("", 24, '   ') do |opts|
+  opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
+  opts.separator ""
+
+  opts.on("-c", "--create", "Create the exclude file for failing specs") do
+    action = :create
+  end
+  opts.on("-r", "--run", "Run the specs excluding the expected failures") do
+    action = :run
+  end
+  opts.on("-i", "--invert", "Run the specs using only the expected failures") do
+    action = :invert
+    format = 'DottedReporter'
+  end
+  opts.on("-t", "--target TARGET", String, 
+          "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
+    case t
+    when 'r', 'ruby'
+      target = 'ruby'
+    when 'r19', 'ruby19'
+      target = 'ruby19'
+    when 'x', 'rbx', 'rubinius'
+      target = 'shotgun/rubinius'
+    when 'j', 'jruby'
+      target = 'jruby'
+    else
+      target = t
+    end
+  end
+  opts.on("-f", "--format FORMAT", String, 
+          "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
+    case f
+    when 's', 'specdox', 'specdoc'
+      format = 'SpecDoxReporter'
+    when 'h', 'html'
+      format = 'HtmlReporter'
+    when 'd', 'dot', 'dotted'
+      format = 'DottedReporter'
+    when 'c', 'ci', 'integration'
+      format = 'CIReporter'
+    when 'i', 'immediate'
+      format = 'ImmediateReporter'
+    else
+      puts "Unknown format: #{f}"
+      puts opts
+      exit
+    end
+  end
+  opts.on("-C", "--clean", "Remove all compiled spec files first") do
+    clean = true
+  end
+  opts.on("-V", "--verbose", "Output each file processed when running") do
+    verbose = true
+  end
+
+  opts.on("-g", "--gdb", "Run under gdb") do
+    gdb = true
+  end
+
+  opts.on("-A", "--valgrind", "Run under valgrind") do
+    valgrind = true
+  end
+
+  opts.on("-v", "--version", "Show version") do
+    puts "Continuous Integration Tool #{CI::VERSION}"
+    exit
+  end
+  opts.on("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  patterns = opts.parse ARGV
+end
+
+# only these directories are included because other directories have specs
+# that cause compilation to fail. ideally, spec/**/*_spec.rb would be run.
+patterns = ['spec/core', 'spec/language', 'spec/mspec', 'spec/parser'] if patterns.empty?
+files = []
+patterns.each do |item|
+  stat = File.stat(File.expand_path(item))
+  files << item if stat.file?
+  files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
+end
+
+# remove all compiled spec files to catch compiler bugs
+if clean
+  files.each do |name|
+    cname = "#{name}c"
+    File.delete(cname) if File.exist?(cname)
+  end
+end
+
+def exclude(file)
+  File.join(File.dirname(file), '.spec', File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
+end
+
+def mk_exclude_dir(file)
+  dir = File.join(File.dirname(file), '.spec')
+  Dir.mkdir(dir) unless File.exist?(dir)
+end
+
+File.open(ci_files, "w") do |f|
+  files.each do |file|
+    mk_exclude_dir file
+    f.print "#{file} #{exclude file}\n"
+  end
+end
+
+code = <<-EOC
+$VERBOSE=nil
+require 'mini_rspec.rb'
+require 'mini_mock.rb'
+@runner = SpecRunner.new;
+excludes = nil
+File.open("spec/excludes.txt") do |f|
+  excludes = f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
+end
+File.open(#{ci_files.inspect}, "r") do |f|
+  f.each do |line|
+    file, exclude = line.split
+    reporter = #{format}.new(%s)
+    @runner.reporter = reporter
+    @runner.%s(*(excludes + %s))
+    STDERR.puts file if #{verbose}
+    load file
+    reporter.summary
+  end
+end
+EOC
+
+case action
+when :create
+  code = code % ['exclude', 'except', '[]']
+when :run
+  code = code % ['STDOUT', 'except', '[exclude]']
+when :invert
+  code = code % ['STDOUT', 'only', '[exclude]']
+else
+  puts "Unknown action: #{action}"
+  puts opts
+  exit
+end
+
+File.open("last_ci.rb", "w") do |f|
+  f << code
+end
+
+if gdb
+  exec "#{target} --gdb -Ispec last_ci.rb"
+elsif valgrind
+  exec "#{target} --valgrind -Ispec last_ci.rb"
+else
+  exec "#{target} -Ispec last_ci.rb"
+end
