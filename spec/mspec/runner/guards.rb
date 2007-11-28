@@ -11,7 +11,7 @@ module MSpec
     when :rbx, :rubinius
       RUBY_NAME == 'rbx'
     when :mri, :ruby
-      RUBY_NAME == 'ruby'
+      RUBY_NAME =~ /^ruby/
     when :jruby
       RUBY_NAME == 'jruby'
     else
