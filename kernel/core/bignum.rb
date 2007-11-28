@@ -2,10 +2,35 @@
 
 class Bignum < Integer
   def %(other)
-    if other.kind_of?(Float) && other == 0.0
-      0 / 0.0
+    if other.kind_of?(Float)
+      if other == 0.0
+        return 0 / 0.0
+      else
+        return self.to_f % other
+      end
+    end
+
+    raise TypeError unless other.kind_of?(Numeric)
+    raise ZeroDivisionError if other == 0
+
+    if self == 0 || self.abs == other.abs
+      0
     else
-      self.divmod(other)[1]
+      mod_primitive(other)#.to_int)
+    end
+  end
+
+  def remainder(other)
+    a = self
+    b = other
+
+    mod = a % b
+
+    # unlike Numeric#remainder, we just return the result if it's zero
+    if mod != 0 && (a < 0 && b > 0 || a > 0 && b < 0)
+      mod - b
+    else
+      mod
     end
   end
 

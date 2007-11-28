@@ -173,6 +173,12 @@ class ShotgunPrimitives
     stack_push(bignum_div(state, self, t1));
     CODE
   end
+
+  def bignum_mod(_ = bignum, t1 = integer)
+    <<-CODE
+    stack_push(bignum_mod(state, self, t1));
+    CODE
+  end
   
   def equal(_ = fixnum, t1 = fixnum)
     <<-CODE

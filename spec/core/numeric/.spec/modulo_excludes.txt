@@ -1,2 +1,0 @@
-Numeric#modulo y modulo x should be z (integer - bignum) 
-Numeric#modulo y modulo x should be z (bignum -integer) 

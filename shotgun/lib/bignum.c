@@ -130,6 +130,17 @@ OBJECT bignum_div(STATE, OBJECT a, OBJECT b) {
   return bignum_normalize(state, n_obj);
 }
 
+OBJECT bignum_mod(STATE, OBJECT a, OBJECT b) {
+  NMP;
+  
+  if(FIXNUM_P(b)) {
+    b = bignum_new(state, FIXNUM_TO_INT(b));
+  }
+  
+  mp_mod(MP(a), MP(b), n);
+  return bignum_normalize(state, n_obj);
+}
+
 OBJECT bignum_divmod(STATE, OBJECT a, OBJECT b) {
   NMP;
   MMP;
