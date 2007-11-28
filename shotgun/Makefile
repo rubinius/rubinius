@@ -148,6 +148,8 @@ clean:
 
 # Clean, but also nuke configs
 distclean: clean
+	rm config/is64bit
+	rm config/isbigendian
 	cd external_libs/libevent; rm -f config.h
 	cd external_libs/libltdl; rm -f config.h
 	cd external_libs/libzip; rm -f config.h
