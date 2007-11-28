@@ -1,0 +1,3 @@
+Module#protected sets the visibility for subsequent methods if called without args
+Module#protected sets the named methods visibility
+Module#protected converts a non string/symbol/fixnum name to string using to_str

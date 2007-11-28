@@ -1,1 +1,2 @@
 Module#private_method_defined? returns true if the named private method is defined by module or its ancestors
+Module#private_method_defined? returns false if method is not a private method
