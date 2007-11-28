@@ -13,14 +13,14 @@ end
 
 class Hash
   include TSort
-  
+
   alias tsort_each_node each_key
-  
+
   def tsort_each_child(node, &block)
     fetch(node).each(&block)
   end
 end
-  
+
 def newer?(file, cmp)
   File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
@@ -50,7 +50,7 @@ end
 
 def create_load_order(files, output=".load_order.txt")
   d = Hash.new { |h,k| h[k] = [] }
-  
+
   # assume all the files are in the same directory
   dir = File.dirname(files.first)
   found = false
@@ -67,7 +67,7 @@ def create_load_order(files, output=".load_order.txt")
       end
     end
   end
-  
+
   File.open(output, "w") do |f|
     begin
       if found
@@ -75,7 +75,7 @@ def create_load_order(files, output=".load_order.txt")
       else
         list = files.sort
       end
-      
+
       f.puts list.collect { |n| compiled_name(n, dir) }.join("\n")
     rescue IndexError => e
       puts "Unable to generate '.load_order.txt'"
@@ -94,7 +94,7 @@ def compile(name, output)
   unless File.exists?(dir)
     FileUtils.mkdir_p dir
   end
-  
+
   sh "shotgun/rubinius compile #{name} #{output}", :verbose => $verbose
 end
 
@@ -258,14 +258,14 @@ namespace :spec do
   namespace :diff do
     desc 'Run specs and produce a diff against current base'
     task :run do
-      system 'bin/mspec -f ci -o spec/reports/specdiff.txt spec' 
+      system 'bin/mspec -f ci -o spec/reports/specdiff.txt spec'
       system 'diff -u spec/reports/base.txt spec/reports/specdiff.txt'
       system 'rm spec/reports/specdiff.txt'
     end
 
     desc 'Replace the base spec file with a new one'
     task :replace do
-      system 'bin/mspec -f ci -o spec/reports/base.txt spec' 
+      system 'bin/mspec -f ci -o spec/reports/base.txt spec'
     end
   end
 
@@ -365,8 +365,8 @@ namespace :build do
     build:extensions
   ]
 
-  # This nobody rule lets use use all the shotgun files as 
-  # prereqs. This rule is run for all those prereqs and just 
+  # This nobody rule lets use use all the shotgun files as
+  # prereqs. This rule is run for all those prereqs and just
   # (obviously) does nothing, but it makes rake happy.
   rule '^shotgun/.+'
 
@@ -434,9 +434,9 @@ end
   ] do
     sh "./shotgun/rubinius compile lib/ext/syck"
   end
-  
+
   task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
-  
+
   file "lib/ext/fcntl/fcntl.#{$dlext}" => FileList[
     'lib/ext/fcntl/build.rb',
     'lib/ext/fcntl/*.c'
@@ -474,3 +474,70 @@ end
 
 desc "Build task for CruiseControl"
 task :ccrb => [:build, 'spec:ci']
+
+
+## Include tasks to build documentation
+def redcloth_present?
+  if $redcloth_available.nil?
+    begin
+      require 'rubygems'
+      gem 'RedCloth', '~> 3.0'
+      $redcloth_available = true
+    rescue Gem::LoadError
+      puts
+      puts "WARNING: RedCloth 3.x is required to build the VM html docs"
+      puts "Run 'gem install redcloth' to install the latest RedCloth gem"
+      puts
+      $redcloth_available = false
+    end
+  end
+  $redcloth_available
+end
+
+namespace "doc" do
+  namespace "vm" do
+
+    desc "Remove all generated HTML files under doc/vm"
+    task "clean" do
+      Dir.glob('doc/vm/**/*.html').each do |html|
+        rm_f html unless html =~ /\/?index.html$/
+      end
+    end
+
+    desc "Generate HTML in doc/vm from YAML and Textile sources"
+    task "html"
+    
+    # Define tasks for each opcode html file on the corresponding YAML file
+    require 'doc/vm/op_code_info'
+    OpCode::Info.op_codes.each do |op|
+      html = "doc/vm/op_codes/#{op}.html"
+      yaml = "doc/vm/op_codes/#{op}.yaml"
+      file html => yaml do
+        cd 'doc/vm' do
+          ruby "gen_op_code_html.rb #{op}"
+        end
+      end
+      
+      task "html" => html
+    end
+     
+    # Define tasks for each section html file on the corresponding textile file
+    # Note: requires redcloth gem to convert textile markup to html
+    Dir.glob('doc/vm/*.textile').each do |f|
+      html = f.chomp('.textile') + '.html'
+      file html => f do
+        if redcloth_present?
+          section = File.basename(f)
+          cd 'doc/vm' do
+            ruby "gen_section_html.rb #{section}"
+          end
+        end
+      end
+      
+      task "html" => html
+    end
+  end
+end
+
+task :build => 'doc:vm:html'
+

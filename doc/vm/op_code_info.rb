@@ -1,4 +1,4 @@
-$: << '../../compiler'
+$: << File.dirname(__FILE__) + '/../../compiler'
 require 'bytecode/encoder'
 require 'bytecode/assembler'
 require 'yaml'
@@ -7,7 +7,7 @@ require 'yaml'
 # Read shotgun/lib/instructions.rb, stripping out just the ShotgunInstruction class definition
 # Code at the end of the class generates instructions* files, which we don't want to do here
 code = ""; output = false
-File.foreach('../../shotgun/lib/instructions.rb') do |line|
+File.foreach(File.dirname(__FILE__) + '/../../shotgun/lib/instructions.rb') do |line|
   output ||= (line =~ /^class ShotgunInstructions$/)
   code << line if output
   output &&= !(line =~ /^end$/)
