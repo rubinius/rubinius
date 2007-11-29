@@ -1090,9 +1090,9 @@ class Compiler::Node
   
   class MAsgn < Node
     kind :masgn
-    
+
     def args(assigns, splat, source=:bogus)
-      if source == :bogus
+      if source == :bogus  # Only two args supplied, therefore no assigns
         @assigns = nil
         @splat = assigns
         @source = splat

@@ -1408,6 +1408,19 @@ class Compiler::Node
   
   # TESTED
   class MAsgn
+    # MAsgn rules:
+    # - Masgn sexps always contain either 2 or 3 values
+    # - If the masgn contains only 2 values:
+    #   - it means there are no lasgns, i.e. the lhs consists solely of a splat
+    #     arg.
+    #   - the first arg is the lhs splat arg, and cannot be nil
+    #   - the second arg is either one of [:array, :splat, :argscat, :to_ary], or
+    #     nil if the masgn represents block arguments.
+    # - If the masgn contains 3 values:
+    #   - the first arg is an array of lasgns with a minimum of one lasgn.
+    #   - the second arg is the lhs splat arg, or nil if there are no splats
+    #   - the third arg is either one of [:array, :splat, :argscat, :to_ary], or
+    #     nil if the masgn represents block arguments.
     def bytecode(g)
       if @source
         if @source.kind_of? ArrayLiteral
@@ -1423,11 +1436,15 @@ class Compiler::Node
         block_arg_bytecode(g)
       end
     end
-    
+
+    # Pad stack if there are insufficient source values for the assigns
     def pad_stack(g)
-      diff = @assigns.body.size - @source.body.size
-      if diff > 0
-        diff.times { g.push :nil }
+      diff = -@source.body.size
+      if @assigns
+	diff += @assigns.body.size
+	if diff > 0
+          diff.times { g.push :nil }
+	end
       end
       return diff
     end
@@ -1481,9 +1498,11 @@ class Compiler::Node
       g.make_array sz
       @splat.bytecode(g)
       g.pop
-      @assigns.body.reverse_each do |x|
-        x.bytecode(g)
-        g.pop unless x.kind_of? MAsgn
+      if @assigns
+        @assigns.body.reverse_each do |x|
+          x.bytecode(g)
+          g.pop unless x.kind_of? MAsgn
+        end
       end
       
       g.push :true
@@ -1501,11 +1520,13 @@ class Compiler::Node
       elsif @source
         raise Error, "Unknown form: #{@source.class}"
       end
-      
-      @assigns.body.each do |x|
-        g.unshift_tuple
-        x.bytecode(g)
-        g.pop
+
+      if @assigns
+        @assigns.body.each do |x|
+          g.unshift_tuple
+          x.bytecode(g)
+          g.pop
+        end
       end
       
       if @splat
@@ -1520,10 +1541,12 @@ class Compiler::Node
     end
     
     def block_arg_bytecode(g)
-      @assigns.body.each do |x|
-        g.unshift_tuple
-        x.bytecode(g)
-        g.pop
+      if @assigns
+        @assigns.body.each do |x|
+          g.unshift_tuple
+          x.bytecode(g)
+          g.pop
+        end
       end
       
       if @splat
