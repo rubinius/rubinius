@@ -162,6 +162,8 @@ describe "UDPSocket.open" do
       msg2[1][3].should == "127.0.0.1"
     end
 
+    Thread.pass
+
     UDPSocket.open.send("ad hoc", 0, 'localhost',@port)
 
     @socket = UDPSocket.open
@@ -169,6 +171,5 @@ describe "UDPSocket.open" do
     @socket.send("connection-based", 0)
 
     server_thread.join
-
   end
 end

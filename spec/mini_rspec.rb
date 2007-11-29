@@ -295,7 +295,7 @@ class SpecRunner
   
   def convert_to_regexps(args)
     args.inject([]) do |list, item|
-      if item.is_a?(String) and File.exists?(item)
+      if item.is_a?(String) and File.exist?(item)
         if f = File.open(item, "r")
           f.each do |line|
             line.chomp!

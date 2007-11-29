@@ -7,5 +7,8 @@ describe "Hash#update" do
   it_behaves_like(:hash_update, :update)
 
   it_behaves_like(:hash_iteration_method, :update)
-  it_behaves_like(:hash_iteration_modifying, :update)
+
+  compliant :mri, :rubinius do
+    it_behaves_like(:hash_iteration_modifying, :update)
+  end
 end

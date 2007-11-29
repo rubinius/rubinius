@@ -18,11 +18,15 @@ def with_timezone(name, offset, daylight_saving_zone = "")
 end
 
 def localtime(seconds)
-  if RUBY_PLATFORM =~ /darwin/
-    `date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
-  elsif RUBY_PLATFORM =~ /linux/
-    `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
-  else
-    `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
+  platform :darwin do
+    return `date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
+  end
+  
+  platform :linux do
+    return `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
+  end
+  
+  platform :ruby do
+    return `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
   end
 end

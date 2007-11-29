@@ -65,5 +65,8 @@ describe "Hash#merge!" do
   it_behaves_like(:hash_update, :merge!)
 
   it_behaves_like(:hash_iteration_method, :merge!)
-  it_behaves_like(:hash_iteration_modifying, :merge!)
+
+  compliant :mri, :rubinius do
+    it_behaves_like(:hash_iteration_modifying, :merge!)
+  end
 end

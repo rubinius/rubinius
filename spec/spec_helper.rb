@@ -20,17 +20,17 @@ if defined?(RUBY_ENGINE)
   RUBY_NAME = RUBY_ENGINE
 else
   require 'rbconfig'
-  RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"]
+  RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"] unless defined?(RUBY_NAME)
 end
 
 def engine?(name)
   case name
   when :rbx, :rubinius
-    RUBY_NAME == 'rbx'
+    RUBY_NAME =~ /^rbx/
   when :mri, :ruby
-    RUBY_NAME == 'ruby'
+    RUBY_NAME =~ /^ruby/
   when :jruby
-    RUBY_NAME == 'jruby'
+    RUBY_NAME =~ /^jruby/
   else
     false
   end
