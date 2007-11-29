@@ -12,11 +12,43 @@ class Dir
   include Enumerable
   
   def self.glob(pattern, flags = 0)
-    prim_glob pattern, flags
+    original_dir = Dir.pwd
+    files = Array.new 0
+    
+    period = (flags & File::FNM_DOTMATCH) == 1
+    
+    if pattern =~ /\*{2}/
+      max_depth = -2
+    else
+      max_depth = pattern.split("/").size - 1
+    end
+    
+    search_deeper(files, original_dir, pattern, flags, 1, max_depth)
+    
+    files.to_a
   end
-
-  def self.prim_glob(pattern, flags)
-    Ruby.primitive :dir_glob
+  
+  def self.search_deeper(files, path, pattern, flags, depth, max_depth) # needs depth
+    dir = Dir.new(path)
+    
+    period = (flags & File::FNM_DOTMATCH) == 1
+    period_excludes = ["..", "."]
+    period_regex = /^\./
+    
+    while entry = dir.read
+      next if period_excludes.include?(entry) or (entry =~ period_regex and !period)
+      
+      file = File.join(path, entry)
+      if File.directory? file
+        if max_depth == -2 || depth < max_depth
+          search_deeper files, file, pattern, flags, depth + 1, max_depth
+        end
+      elsif File.fnmatch? pattern, file
+        files << file
+      end
+    end
+    
+    dir.close
   end
   
   def self.[](pattern)
