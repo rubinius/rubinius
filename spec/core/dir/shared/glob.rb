@@ -3,7 +3,7 @@ shared :dir_glob do |cmd|
   describe "Dir.#{cmd}" do
     before(:all) do
       @cwd = Dir.pwd
-      Dir.chdir mock_dir
+      Dir.chdir DirSpecs.mock_dir
     end
     
     it "matches non-dotfiles with '*'" do
@@ -49,7 +49,7 @@ shared :dir_glob do |cmd|
     end
 
     it "recursively matches any subdirectories including ./ and ../ with '.**/'" do
-      Dir.chdir("#{mock_dir}/subdir_one") do
+      Dir.chdir("#{DirSpecs.mock_dir}/subdir_one") do
         Dir.send(cmd, '.**/').sort.should == %w|./ ../|.sort
       end
     end

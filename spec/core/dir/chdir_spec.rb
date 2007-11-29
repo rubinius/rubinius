@@ -16,8 +16,8 @@ describe "Dir.chdir" do
   end
   
   it "changes to the specified directory" do
-    Dir.chdir mock_dir 
-    Dir.pwd.should == mock_dir
+    Dir.chdir DirSpecs.mock_dir
+    Dir.pwd.should == DirSpecs.mock_dir
   end
   
   it "returns 0 when successfully changing directory" do
@@ -29,11 +29,13 @@ describe "Dir.chdir" do
   end
   
   it "changes to the specified directory for the duration of the block" do
-    Dir.chdir(mock_dir) { |dir| [dir, Dir.pwd] }.should == [mock_dir, mock_dir] 
+    ar = Dir.chdir(DirSpecs.mock_dir) { |dir| [dir, Dir.pwd] }
+    ar.should == [DirSpecs.mock_dir, DirSpecs.mock_dir]
+
     Dir.pwd.should == @original
   end
   
   it "raises a SystemCallError if the directory does not exist" do
-    should_raise(SystemCallError) { Dir.chdir nonexistent }
+    should_raise(SystemCallError) { Dir.chdir DirSpecs.nonexistent }
   end
 end

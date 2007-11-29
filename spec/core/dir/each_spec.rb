@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#each" do
   before(:each) do
-    @dir = Dir.open mock_dir
+    @dir = Dir.open DirSpecs.mock_dir
   end
   
   after(:each) do
@@ -19,7 +19,7 @@ describe "Dir#each" do
 
   it "returns the directory which remains open" do
     # an FS does not necessarily impose order
-    ls = `ls -a #{mock_dir}`.split
+    ls = `ls -a #{DirSpecs.mock_dir}`.split
     @dir.each {}.should == @dir
     @dir.read.should == nil
     @dir.rewind

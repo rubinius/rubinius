@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#rewind" do
   before(:each) do
-    @dir = Dir.open mock_dir
+    @dir = Dir.open DirSpecs.mock_dir
   end
   
   after(:each) do

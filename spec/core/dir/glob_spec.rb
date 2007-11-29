@@ -7,7 +7,7 @@ describe "Dir.glob" do
   
   before(:all) do
     @cwd = Dir.pwd
-    Dir.chdir mock_dir
+    Dir.chdir DirSpecs.mock_dir
   end
   
   it "matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH" do

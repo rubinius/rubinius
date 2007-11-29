@@ -4,8 +4,8 @@ require File.dirname(__FILE__) + '/shared/closed'
 
 describe "Dir#path" do
   it "returns the path that was supplied to .new or .open" do
-    dir = Dir.open mock_dir
-    dir.path.should == mock_dir
+    dir = Dir.open DirSpecs.mock_dir
+    dir.path.should == DirSpecs.mock_dir
     dir.close rescue nil
   end
 end

@@ -2,7 +2,7 @@ shared :dir_closed do |cmd|
   describe "Dir##{cmd}" do
     it "raises an IOError when called on a closed Dir instance" do
       should_raise(IOError) do
-        dir = Dir.open mock_dir
+        dir = Dir.open DirSpecs.mock_dir
         dir.close
         dir.send cmd
       end

@@ -1,7 +1,7 @@
 shared :dir_pos do |cmd|
   describe "Dir##{cmd}" do
     before :each do
-      @dir = Dir.open mock_dir
+      @dir = Dir.open DirSpecs.mock_dir
     end
 
     after :each do

@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/common'
 
 describe "Dir.mkdir" do
   it "creates the named directory with the given permissions" do
-    clear_dirs
+    DirSpecs.clear_dirs
 
     begin
       File.exist?('nonexisting').should == false
@@ -19,7 +19,7 @@ describe "Dir.mkdir" do
 
       system "chmod 0777 nonexisting default_perms reduced always_returns_0"
     ensure
-      clear_dirs
+      DirSpecs.clear_dirs
     end
   end
 
@@ -33,6 +33,8 @@ describe "Dir.mkdir" do
   end
 
   it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
-    should_raise(SystemCallError) { Dir.mkdir "#{nonexistent}/subdir" }
+    should_raise(SystemCallError) do
+      Dir.mkdir "#{DirSpecs.nonexistent}/subdir"
+    end
   end
 end
