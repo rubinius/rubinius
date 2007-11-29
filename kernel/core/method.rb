@@ -13,6 +13,8 @@ class Method
     @method.activate(@receiver, @module, args, &prc)
   end
 
+  alias_method :[], :call
+
   def unbind
     UnboundMethod.new(@module, @method)
   end
