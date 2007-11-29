@@ -1,23 +1,22 @@
 ---
 mnemonic: create_block2
 operation: >-
-  Creates a block
-format: create_block2 <arg1>
+  Creates a compiler2 style block
+format: create_block2
 stack_before:
-  - method
+  - cm
   - ...
 stack_after:
-  - block
+  - blockenv
   - ...
 description: >-
-  Creates a new block, and pushes it onto the stack.
-questions:
-  - what does it pop off the stack?
-  - what is arg? Doesn't appear to be used
+  Pops a compiled method _cm_ off of the stack, and converts it into a block
+  environment _blockenv_, which is then pushed back onto the stack.
 notes: >-
-  This opcode replaces "create_block":create_block.html, which is deprecated. 
-  Unlike create_block which references the block instruction sequence from the
-  enclosing method context, create_block2 takes its own copy of the block
-  instructions.
+  This opcode replaces "create_block":create_block.html, which is used under
+  compiler1, but deprecated under compiler2. Unlike create_block which
+  uses the same instruction sequence as the enclosing method context,
+  create_block2 takes its own instruction sequence in the form of a
+  compiled method.
 see:
   - create_block
