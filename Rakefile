@@ -7,6 +7,11 @@ $redcloth_available = nil
 
 require 'tsort'
 
+begin
+  require 'rubygems'
+rescue LoadError
+end
+
 task :default => :build
 
 def make(args = nil)
@@ -482,10 +487,9 @@ task :ccrb => [:build, 'spec:ci']
 def redcloth_present?
   if $redcloth_available.nil?
     begin
-      require 'rubygems'
-      gem 'RedCloth', '~> 3.0'
+      require 'redcloth'
       $redcloth_available = true
-    rescue Gem::LoadError
+    rescue Exception
       puts
       puts "WARNING: RedCloth 3.x is required to build the VM html docs"
       puts "Run 'gem install redcloth' to install the latest RedCloth gem"

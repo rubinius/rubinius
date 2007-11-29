@@ -1,16 +1,9 @@
-require 'rubygems'
-require 'erb'
-
 begin
-  gem 'RedCloth', '~> 3.0'
-rescue Gem::LoadError
-  puts
-  puts "ERROR: RedCloth 3.x is required to build the HTML docs"
-  puts "Run 'gem install redcloth' to install the latest RedCloth gem"
-  puts
-  exit 1
+  require 'rubygems'
+rescue Exception
 end
 
+require 'erb'
 require 'redcloth'
 
 section_template = ERB.new(File.read('section_template.html.erb'),nil,'<>')
