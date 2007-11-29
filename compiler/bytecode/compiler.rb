@@ -2049,7 +2049,7 @@ module Bytecode
           else
             str << "set #{name}:#{lv.slot}\npop\n"
           end
-          max = 0
+          max = -1
         end
         
         if state.arg_block

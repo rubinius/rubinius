@@ -1084,7 +1084,7 @@ CODE
     
     if(cpu_current_argcount(c) < (unsigned long int)j) {
       cpu_raise_arg_error(state, c, cpu_current_argcount(c), j);
-    } else if(_int > 0 && cpu_current_argcount(c) > (unsigned long int)_int) {
+    } else if(_int >= 0 && cpu_current_argcount(c) > (unsigned long int)_int) {
       cpu_raise_arg_error(state, c, cpu_current_argcount(c), _int);
     }
     CODE
