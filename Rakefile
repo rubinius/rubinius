@@ -1,5 +1,6 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 
+$VERBOSE = true
 $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 
