@@ -9,11 +9,13 @@ module MSpec
   def self.engine?(name)
     case name
     when :rbx, :rubinius
-      RUBY_NAME == 'rbx'
+      RUBY_NAME =~ /^rbx/
     when :mri, :ruby
-      RUBY_NAME =~ /^ruby/
+      RUBY_NAME =~ /^ruby(1\.[^9])?/
+    when :ruby19
+      RUBY_NAME == 'ruby1.9'
     when :jruby
-      RUBY_NAME == 'jruby'
+      RUBY_NAME =~ /^jruby/
     else
       false
     end
