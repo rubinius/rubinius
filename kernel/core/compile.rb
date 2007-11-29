@@ -123,14 +123,13 @@ module Kernel
       rbc_path  = File.join dir, rbc_file
       base_path = File.join dir, base_file
 
-      [dir, rb_path, rbc_path, rbc_file]
+      [dir, rb_path, rbc_path, base_path]
     end
 
     # HACK windows
     paths.unshift ['', rb_file, rbc_file, base_file] if thing.prefix? '/'
 
     paths.each do |dir, rb_path, rbc_path, base_path|
-
       if dir.suffix? '.rba' and File.file? dir then
         return false if $LOADED_FEATURES.include? rb_path
 
@@ -150,7 +149,7 @@ module Kernel
         load_result = VM.load_library(base_path, File.basename(base_path))
         case load_result
         when true
-          $LOADED_FEATURES << base_path
+          $LOADED_FEATURES << base_path # HACK doesn't have Rubinius::LIBSUFFIX
           return true
         when 1
           raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(base_path)}?"
