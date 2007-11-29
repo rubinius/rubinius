@@ -567,7 +567,11 @@ class Compiler::Node
         end
         sub.redo = sub.new_label        
         sub.redo.set!
-        @body.bytecode(sub)
+        if @body
+          @body.bytecode(sub)
+        else
+          sub.push :nil
+        end
         sub.soft_return
         sub.close
       end
@@ -1413,7 +1417,9 @@ class Compiler::Node
     # - If the masgn contains only 2 values:
     #   - it means there are no lasgns, i.e. the lhs consists solely of a splat
     #     arg.
-    #   - the first arg is the lhs splat arg, and cannot be nil
+    #   - the first arg is the lhs splat arg, and cannot be nil; however, it
+    #     may be just the value true, in the case of a block anonymous splat arg, 
+    #     i.e. |*|
     #   - the second arg is either one of [:array, :splat, :argscat, :to_ary], or
     #     nil if the masgn represents block arguments.
     # - If the masgn contains 3 values:
@@ -1441,10 +1447,10 @@ class Compiler::Node
     def pad_stack(g)
       diff = -@source.body.size
       if @assigns
-	diff += @assigns.body.size
-	if diff > 0
+        diff += @assigns.body.size
+        if diff > 0
           diff.times { g.push :nil }
-	end
+        end
       end
       return diff
     end
@@ -1549,7 +1555,7 @@ class Compiler::Node
         end
       end
       
-      if @splat
+      if @splat and !@splat.kind_of? TrueClass
         g.cast_array
         @splat.bytecode(g)
       end

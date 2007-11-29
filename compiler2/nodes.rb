@@ -1360,10 +1360,12 @@ class Compiler::Node
       
       # Get rid of the linked list of dasgn_curr's at the top
       # of a block in at iter.
-      first = sexp[2][1]
-      if first.kind_of?(Array) and first[0] == :dasgn_curr
-        if first[2].nil? or first[2][0] == :dasgn_curr
-          sexp[2].delete_at(1)
+      if sexp.length > 2   # Fix for empty block
+        first = sexp[2][1]
+        if first.kind_of?(Array) and first[0] == :dasgn_curr
+          if first[2].nil? or first[2][0] == :dasgn_curr
+            sexp[2].delete_at(1)
+          end
         end
       end
       

@@ -176,7 +176,7 @@ class Compiler
     attr_reader :file
     
     def close
-      if @lines and @lines.last[1].nil?
+      if @lines and !@lines.empty? and @lines.last[1].nil?
         @lines.last[1] = @ip
       end
     end
