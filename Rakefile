@@ -103,8 +103,12 @@ def compile(name, output)
   unless File.exists?(dir)
     FileUtils.mkdir_p dir
   end
-
-  sh "shotgun/rubinius compile #{name} #{output}", :verbose => $verbose
+  
+  if ENV['GDB']
+    sh "shotgun/rubinius --gdb compile #{name} #{output}", :verbose => $verbose
+  else  
+    sh "shotgun/rubinius compile #{name} #{output}", :verbose => $verbose
+  end
 end
 
 task :compiler do

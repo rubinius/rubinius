@@ -1,7 +1,7 @@
-#include "heap.h"
-#include <ptr_array.h>
 #ifndef __RUBINIUS_BAKER__
 #define __RUBINIUS_BAKER__ 1
+
+#include "heap.h"
 
 struct baker_gc_struct {
   rheap space_a;

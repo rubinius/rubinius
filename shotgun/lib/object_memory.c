@@ -138,6 +138,7 @@ void object_memory_formalize_contexts(STATE, object_memory om) {
 void object_memory_shift_contexts(STATE, object_memory om) {
   OBJECT ctx, new_ctx;
   int inc = 0;
+  int sz;
   
   /* If the context_bottom is the true bottom, we haven't promoted
      anything and everything can stay where it is. */
@@ -153,23 +154,24 @@ void object_memory_shift_contexts(STATE, object_memory om) {
     new_ctx = (OBJECT)(om->contexts->address);
     
     EACH_STACK_CTX(om, ctx) {
+      sz = FASTCTX(ctx)->size;
       /* The top context is a little special. Either it's sender
          is nil or in the heap. Let mutate context know this is the case */
       if(inc == 0) {
         baker_gc_mutate_context(state, om->gc, ctx, TRUE, TRUE);
-        memcpy((void*)new_ctx, (void*)ctx, CTX_SIZE);
+        memcpy((void*)new_ctx, (void*)ctx, sz);
         ctx->klass = new_ctx;
       } else {
-        memcpy((void*)new_ctx, (void*)ctx, CTX_SIZE);
+        memcpy((void*)new_ctx, (void*)ctx, sz);
         ctx->klass = new_ctx;
         baker_gc_mutate_context(state, om->gc, new_ctx, TRUE, FALSE);        
       }
-      new_ctx = (OBJECT)((uintptr_t)new_ctx + CTX_SIZE);
+      new_ctx = (OBJECT)((uintptr_t)new_ctx + sz);
       inc++;
     } DONE_EACH_STACK_CTX(ctx);
     
     om->contexts->current = (address)new_ctx;
-    om->context_top = (void*)((uintptr_t)new_ctx - CTX_SIZE);
+    om->context_top = (void*)((uintptr_t)new_ctx - sz);
   }
   
   om->context_bottom = (OBJECT)(om->contexts->address);
@@ -195,7 +197,7 @@ void object_memory_clear_marks(STATE, object_memory om) {
   while(addr < (char*)om->contexts->current) {
     ctx = (OBJECT)addr;
     mark_sweep_clear_mark(state, ctx);
-    addr += CTX_SIZE;
+    addr += FASTCTX(ctx)->size;
   } 
 }
 

@@ -33,7 +33,7 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
   OBJECT ctx, sys;
   struct fast_context *fc;
   
-  ctx = object_memory_new_context(state->om);
+  ctx = object_memory_new_context(state->om, 0);
   if(ctx >= state->om->context_last) {
     state->om->collect_now |= OMCollectYoung;
   }

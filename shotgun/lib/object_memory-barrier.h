@@ -15,6 +15,9 @@
 
 
 /* TODO: This routine MUST be optimized because it's hit constantly. */
+
+#include <assert.h>
+
 static inline void object_memory_write_barrier(object_memory om, OBJECT target, OBJECT val) {
   gc_zone tz, vz;
   if(!REFERENCE_P(val)) return;
@@ -22,8 +25,8 @@ static inline void object_memory_write_barrier(object_memory om, OBJECT target, 
   tz = target->gc_zone;
   vz = val->gc_zone;
   
-  xassert(tz > 0);
-  xassert(vz > 0);
+  assert(tz > 0);
+  assert(vz > 0);
   xassert(val->klass != Qnil);
     
   /* if the target is in a higher numbered zone than val, then

@@ -5,6 +5,7 @@
 
 #include <ucontext.h>
 #include <hashtable.h>
+#include <ptr_array.h>
 #include "subtend/PortableUContext.h"
 
 #include <termios.h>
@@ -80,6 +81,12 @@ rstate rubinius_state_new();
 
 #define STATE rstate state
 
+#define FASTCTX_FIELDS 18
+#define FASTCTX_NORMAL 1
+#define FASTCTX_BLOCK  3
+#define FASTCTX_NMC    4
+
+#include "cpu.h"
 #include "object_memory.h"
 #include "subtend/handle.h"
 
@@ -148,11 +155,6 @@ struct rubinius_state {
 #define FIRE_NULL   2
 #define FIRE_STACK  3
 #define FIRE_ASSERT 4
-
-#define FASTCTX_FIELDS 17
-#define FASTCTX_NORMAL 1
-#define FASTCTX_BLOCK  3
-#define FASTCTX_NMC    4
 
 OBJECT rbs_const_set(STATE, OBJECT module, const char *name, OBJECT obj);
 OBJECT rbs_const_get(STATE, OBJECT module, const char *name);

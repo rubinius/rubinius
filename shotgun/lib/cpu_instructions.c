@@ -341,7 +341,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
 static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
       OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
   OBJECT sender, ctx, ins;
-  int num_lcls;
+  int num_lcls, i;
   struct fast_context *fc;
   
   sender = c->active_context;
@@ -356,12 +356,13 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   
   cpu_flush_sp(c);
     
-  ctx = object_memory_new_context(state->om);
+  ctx = object_memory_new_context(state->om, num_lcls);
   if(ctx >= state->om->context_last) {
     state->om->collect_now |= OMCollectYoung;
   }
   
   CLEAR_FLAGS(ctx);
+  ctx->gc_zone = 0;
   ctx->klass = Qnil;
   ctx->field_count = FASTCTX_FIELDS;
   
@@ -379,11 +380,23 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
   fc->literals = cmethod_get_literals(mo);
   fc->self = recv;
   if(num_lcls > 0) {
-    fc->locals = tuple_new(state, num_lcls + 2);
-    fc->locals->ForeverYoung = TRUE;
+    //fc->locals = tuple_new(state, num_lcls);
+    
+    fc->locals = object_memory_context_locals(ctx);
+    CLEAR_FLAGS(fc->locals);
+    fc->locals->gc_zone = 0;
+    fc->locals->klass = BASIC_CLASS(tuple);
+    SET_NUM_FIELDS(fc->locals, num_lcls);
+    
+    for(i = 0; i < num_lcls; i++) {
+      SET_FIELD_DIRECT(fc->locals, i, Qnil);
+    }
+    
   } else {
     fc->locals = Qnil;
   }
+  // printf("Locals for %p at %p (%d, %d)\n", ctx, fc->locals, num_lcls, FASTCTX(ctx)->size);
+  
   fc->argcount = args;
   fc->name = name;
   fc->method_module = mod;
@@ -482,6 +495,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
      context that holds all the data. So if it's a fast, we restore
      it's data, then if ctx != home, we restore a little more */
   
+  
   fc = FASTCTX(home);
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
@@ -493,6 +507,9 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   if(ctx != home) {
     fc = FASTCTX(ctx);
   }
+  
+  assert(fc->sender);
+  
   
   c->data = fc->data;
   c->type = fc->type;
@@ -532,7 +549,9 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
   OBJECT destination, home;
 
   destination = cpu_current_sender(c);
-    
+  
+  // printf("Rtrnng frm %p (%d)\n", c->active_context, FASTCTX(c->active_context)->size);
+  
   if(destination == Qnil) {
     object_memory_retire_context(state->om, c->active_context);
     
@@ -637,7 +656,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
           state->om->contexts->current = state->om->context_bottom;          
         /* Otherwise set it to just beyond where we're returning to */
         } else {
-          state->om->contexts->current = (void*)((uintptr_t) destination + CTX_SIZE);
+          state->om->contexts->current = (void*)AFTER_CTX(destination);
         }
       
       /* It's a heap context, so reset the context stack to the virtual

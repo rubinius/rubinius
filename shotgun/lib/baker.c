@@ -102,6 +102,7 @@ OBJECT baker_gc_forwarded_object(OBJECT obj) {
   if(baker_gc_forwarded_p(iobj)) {            \
     ret = baker_gc_forwarded_object(iobj);    \
   } else if(baker_gc_contains_p(g, iobj) || heap_contains_p(state->om->contexts, iobj)) {   \
+    assert(((OBJECT)iobj)->klass); \
     ret = baker_gc_mutate_object(st, g, iobj);    \
   } else {                                    \
     ret = iobj;                               \
@@ -277,7 +278,20 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   fc_mutate(block);
   fc_mutate(literals);
   fc_mutate(self);
-  fc_mutate(locals);
+  if(!NIL_P(fc->locals) && fc->locals->gc_zone == 0) {
+    int i, fields = NUM_FIELDS(fc->locals);
+    OBJECT mut, tmp;
+    fc->locals = object_memory_context_locals(iobj); 
+    for(i = 0; i < fields; i++) {
+      tmp = NTH_FIELD(fc->locals, i);
+      if(!REFERENCE_P(tmp)) continue;
+    
+      mut = baker_gc_maybe_mutate(state, g, tmp);
+      fast_unsafe_set(fc->locals, i, mut);
+    }
+  } else {
+    fc_mutate(locals);
+  }
   fc_mutate(method_module);
   fc_mutate(name);
 

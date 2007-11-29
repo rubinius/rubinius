@@ -103,10 +103,12 @@ OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_bl
 
 OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   OBJECT ctx, ins;
-  int cnt;
+  int cnt, i;
   struct fast_context *fc;
   
-  ctx = object_memory_new_context(state->om);
+  cnt = FIXNUM_TO_INT(blokenv_get_local_count(self));
+  
+  ctx = object_memory_new_context(state->om, cnt);
   if(ctx >= state->om->context_last) {
     state->om->collect_now |= OMCollectYoung;
   }
@@ -116,7 +118,9 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   }
   
   CLEAR_FLAGS(ctx);
+  ctx->gc_zone = 0;
   ctx->field_count = FASTCTX_FIELDS;
+  ctx->klass = Qnil;
   
   fc = FASTCTX(ctx);
   fc->sender = sender;
@@ -139,9 +143,19 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   fc->block = Qnil;
   fc->method_module = Qnil;
   
-  cnt = FIXNUM_TO_INT(blokenv_get_local_count(self));
   if(cnt > 0) {
-    fc->locals = tuple_new(state, cnt);
+    // fc->locals = tuple_new(state, cnt);
+    
+    fc->locals = object_memory_context_locals(ctx);
+    CLEAR_FLAGS(fc->locals);
+    fc->locals->gc_zone = 0;
+    fc->locals->klass = BASIC_CLASS(tuple);
+    SET_NUM_FIELDS(fc->locals, cnt);
+    
+    for(i = 0; i < cnt; i++) {
+      SET_FIELD_DIRECT(fc->locals, i, Qnil);
+    }
+    
   } else {
     fc->locals = Qnil;
   }
@@ -156,3 +170,43 @@ OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
   fc->type = FASTCTX_BLOCK;
   return ctx;
 }
+
+void methctx_reference(STATE, OBJECT ctx) {
+  struct fast_context *fc;
+  /* Don't do it again. */
+  if(!stack_context_p(ctx)) return;
+  
+  /* Has to be done first because this uses informated we're about
+     to overwrite. */
+  object_memory_context_referenced(state->om, ctx);
+  
+  CLEAR_FLAGS(ctx);
+  ctx->gc_zone = YoungObjectZone;
+  switch(FASTCTX(ctx)->type) {
+  case FASTCTX_NORMAL:
+    ctx->klass = BASIC_CLASS(fastctx);
+    ctx->obj_type = MContextType;
+    ctx->CTXFast = TRUE;
+    break;
+  case FASTCTX_BLOCK:  
+    ctx->klass = BASIC_CLASS(blokctx);
+    ctx->obj_type = BContextType;
+    break;
+  case FASTCTX_NMC:
+    ctx->klass = BASIC_CLASS(nmc);
+    ctx->obj_type = MContextType;
+    break;
+  }
+  SET_NUM_FIELDS(ctx, FASTCTX_FIELDS);
+  ctx->StoresBytes = TRUE;
+  ctx->ForeverYoung = TRUE;
+  
+  fc = FASTCTX(ctx);
+  
+  /* Fixup the locals tuple. */
+  if(!NIL_P(fc->locals) && fc->locals->gc_zone == 0) {
+    fc->locals->gc_zone = YoungObjectZone;
+  }
+
+}
+

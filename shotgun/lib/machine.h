@@ -1,5 +1,4 @@
 #include "shotgun.h"
-#include "cpu.h"
 #include <signal.h>
 
 struct rubinius_machine {

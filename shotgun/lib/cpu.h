@@ -44,6 +44,7 @@
 
 struct fast_context {
   CPU_REGISTERS
+  int size;
 };
 
 #define FASTCTX(ctx) ((struct fast_context*)BYTES_OF(ctx))

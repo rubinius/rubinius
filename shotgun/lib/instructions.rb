@@ -406,7 +406,13 @@ CODE
     next_int;
     t1 = stack_pop();
     // printf("Set local %d to %s\\n", _int, _inspect(t1));
-    tuple_put(state, cpu_current_locals(state, c), _int, t1);
+    t2 = cpu_current_locals(state, c);
+    if(t2->gc_zone == 0) {
+      sassert(_int < NUM_FIELDS(t2) && "locals tuple sized wrong");
+      fast_unsafe_set(t2, _int, t1);
+    } else {
+      tuple_put(state, t2, _int, t1);
+    }
     stack_push(t1);
     CODE
   end
@@ -418,7 +424,14 @@ CODE
     next_int;
     
     t1 = c->stack_top[c->fp - _int];
-    tuple_put(state, cpu_current_locals(state, c), k, t1);
+    
+    t2 = cpu_current_locals(state, c);
+    if(t2->gc_zone == 0) {
+      sassert(k < NUM_FIELDS(t2) && "locals tuple sized wrong");
+      fast_unsafe_set(t2, k, t1);
+    } else {
+      tuple_put(state, t2, k, t1);
+    }
     CODE
   end
   
@@ -434,7 +447,14 @@ CODE
       t2 = blokctx_env(state, t1);
       t1 = blokenv_get_home_block(t2);
     }
-    tuple_put(state, blokctx_locals(state, t1), _int, t3);
+    
+    t2 = blokctx_locals(state, t1);
+    if(t2->gc_zone == 0) {
+      sassert(_int < NUM_FIELDS(t2) && "locals tuple sized wrong");
+      fast_unsafe_set(t2, _int, t3);
+    } else {
+      tuple_put(state, t2, _int, t3);
+    }
     stack_push(t3);
     
     CODE

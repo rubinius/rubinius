@@ -55,6 +55,7 @@ void object_memory_shift_contexts(STATE, object_memory om);
 void object_memory_mark_contexts(STATE, object_memory om);
 void object_memory_formalize_contexts(STATE, object_memory om);
 
+
 #define FAST_NEW 1
 
 #ifdef FAST_NEW
@@ -66,29 +67,51 @@ void object_memory_formalize_contexts(STATE, object_memory om);
 #define object_memory_new_dirty_object _om_inline_new_object
 
 #define CTX_SIZE SIZE_IN_BYTES_FIELDS(FASTCTX_FIELDS)
-  
-#define object_memory_new_context(om) ((OBJECT)heap_allocate_dirty(om->contexts, CTX_SIZE))
 
+#define BYTES_PAST(ctx, num) ((char*)ctx + num)
+#define AFTER_CTX(ctx) BYTES_PAST(ctx, FASTCTX(ctx)->size)
+
+static inline OBJECT object_memory_new_context(object_memory om, int locals) {
+  int size;
+  OBJECT ctx;
+  
+  if(locals > 0) {
+    size = CTX_SIZE + SIZE_IN_BYTES_FIELDS(locals) + 4;
+  } else {
+    size = CTX_SIZE;
+  }
+  
+  ctx = ((OBJECT)heap_allocate_dirty(om->contexts, size));
+  memset(ctx, 0, size);
+  
+  /* not really the number of fields, rather the number of bytes
+     this context is using. */
+  FASTCTX(ctx)->size = size;
+  
+  return ctx;
+}
+
+#define object_memory_context_locals(ctx) ((OBJECT)BYTES_PAST(ctx, CTX_SIZE))
+  
 #define om_on_stack(om, ctx) heap_contains_p(om->contexts, ctx)
 #define om_in_heap(om, ctx) heap_contains_p(om->gc->current, ctx)
 
 #define object_memory_retire_context(om, ctx) \
 if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
-  xassert(ctx == om->contexts->current - CTX_SIZE);\
-  fast_memfill_s20((void*)ctx, 0); heap_putback(om->contexts, CTX_SIZE); \
+  fast_memfill_s20((void*)ctx, 0); heap_putback(om->contexts, FASTCTX(ctx)->size); \
 }
 
-#define object_memory_context_referenced(om, ctx) (void)({	      \
-      OBJECT _nb = (OBJECT) ((uintptr_t)ctx + CTX_SIZE);	      \
-      if(om_on_stack(om, ctx) &&				      \
-	 (om->context_bottom < _nb)) { om->context_bottom = _nb; } })
+#define object_memory_context_referenced(om, ctx) (void)({	  \
+ OBJECT _nb = (OBJECT)AFTER_CTX(ctx);	      \
+  if(om_on_stack(om, ctx) &&	(om->context_bottom < _nb)) {   \
+    om->context_bottom = _nb; } })
 
 #define om_context_referenced_p(om, ctx) ((ctx < om->context_bottom) && (ctx >= (OBJECT)om->contexts->address))
 
 #define om_stack_context_p(om, ctx) (om_on_stack(om, ctx) && (ctx >= om->context_bottom))
 
-#define om_stack_next_ctx(ctx) ((OBJECT)(ctx + CTX_SIZE))
-#define om_stack_prev_ctx(ctx) ((OBJECT)(ctx - CTX_SIZE))
+#define om_stack_next_ctx(ctx) ((OBJECT)AFTER_CTX(ctx))
+#define om_stack_prev_ctx(ctx) ((OBJECT)BYTES_PAST(ctx, -FASTCTX(ctx)->size))
 #define om_stack_sender(ctx) om_stack_prev_ctx(ctx)
 
 #define om_valid_context_p(state, ctx) ( \
@@ -97,23 +120,23 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   (om_in_heap(state->om, ctx) && (methctx_is_fast_p(state, ctx) ||  blokctx_s_block_context_p(state, ctx))) \
 )
 
-#define EACH_CTX(om, addr)		 \
-  addr = (OBJECT) om->contexts->address; \
+#define EACH_CTX(om, addr) \
+  addr = (OBJECT)om->contexts->address; \
   while(addr < (OBJECT) om->contexts->current) {
     
-#define DONE_EACH_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
+#define DONE_EACH_CTX(addr) addr = (address)AFTER_CTX(addr); }
 
-#define EACH_REFD_CTX(om, addr)          \
-  addr = (OBJECT) om->contexts->address; \
-  while(addr < om->context_bottom) {
-  
-#define DONE_EACH_REFD_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
-
-#define EACH_STACK_CTX(om, addr)       \
-  addr = (OBJECT) om->context_bottom;  \
-  while(addr < (OBJECT)om->contexts->current) {
+#define EACH_REFD_CTX(om, addr) \
+  addr = (OBJECT)om->contexts->address; \
+  while(addr < (OBJECT) om->context_bottom) {
     
-#define DONE_EACH_STACK_CTX(addr) addr = (address)( (uintptr_t)addr + CTX_SIZE); }
+#define DONE_EACH_REFD_CTX(addr) addr = (address)AFTER_CTX(addr); }
+
+#define EACH_STACK_CTX(om, addr) \
+  addr = (OBJECT)om->context_bottom; \
+  while(addr < (OBJECT) om->contexts->current) {
+    
+#define DONE_EACH_STACK_CTX(addr) addr = (address)AFTER_CTX(addr); }
 
 #define om_no_referenced_ctxs_p(om) (om->context_bottom == (OBJECT)om->contexts->address)
 
