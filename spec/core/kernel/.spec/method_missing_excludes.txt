@@ -1,3 +1,0 @@
-When Kernel#method_missing is undefined a NoMethodError is raised when an undefined method is called
-When Kernel#method_missing is undefined a NoMethodError is raised when a private method is called
-When Kernel#method_missing is undefined a NoMethodError is raised when a protected method is called
