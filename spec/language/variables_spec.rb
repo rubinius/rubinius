@@ -30,6 +30,7 @@ describe "Basic assignment" do
   end
 
   it "should allow the assignment of the rhs to the lhs using the lhs splat operator" do
+    * = 1,2        # Valid syntax, but pretty useless! Nothing to test
     *a = nil;      a.should == [nil]
     *a = 1;        a.should == [1]
     *a = [];       a.should == [[]]

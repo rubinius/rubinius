@@ -1502,7 +1502,7 @@ class Compiler::Node
       end
       
       g.make_array sz
-      @splat.bytecode(g)
+      @splat.bytecode(g) unless @splat.kind_of? TrueClass  # e.g. * = 1,2
       g.pop
       if @assigns
         @assigns.body.reverse_each do |x|
