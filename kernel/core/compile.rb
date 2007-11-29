@@ -102,8 +102,11 @@ module Kernel
     return out
   end
 
-  def find_feature(thing)
-    return thing if thing[0] == ?/
+  # look in each directory of $LOAD_PATH for .rb, .rbc, or .<library extension>
+  def require(thing)
+    if thing.suffix? '.rbc'
+      raise LoadError, "unable to directly require compiled file #{thing}"
+    end
 
     if thing.suffix? '.rb'
       base_file = thing.chomp('.rb')
@@ -115,54 +118,47 @@ module Kernel
       rbc_file  = thing + '.rbc'
     end
 
-    $LOAD_PATH.each do |dir|
+    paths = $LOAD_PATH.map do |dir|
       rb_path   = File.join dir, rb_file
       rbc_path  = File.join dir, rbc_file
       base_path = File.join dir, base_file
 
+      [dir, rb_path, rbc_path, rbc_file]
+    end
+
+    # HACK windows
+    paths.unshift ['', rb_file, rbc_file, base_file] if thing.prefix? '/'
+
+    paths.each do |dir, rb_path, rbc_path, base_path|
+
       if dir.suffix? '.rba' and File.file? dir then
-        return dir, rbc_path if Archive.list_files(dir).include? rbc_path
+        return false if $LOADED_FEATURES.include? rb_path
+
+        cm = Archive.get_object(dir, rbc_path, Rubinius::CompiledMethodVersion)
+        $LOADED_FEATURES << rb_path
+        return cm.as_script
       elsif File.file? rb_path or File.file? rbc_path then
-        return rb_path
-      elsif File.file? base_path then
-        return base_path
-      end
-    end
+        return false if $LOADED_FEATURES.include? rb_path
 
-    nil
-  end
-
-  # look in each directory of $LOAD_PATH for .rb, .rbc, or .<library extension>
-  def require(thing)
-    if thing.suffix? '.rbc'
-      raise LoadError, "unable to directly require compiled file #{thing}"
-    end
-
-    path, file = find_feature thing
-
-    raise LoadError, "no such file to load -- #{thing}" if path.nil?
-
-    return false if $LOADED_FEATURES.include? path
-
-    if path.suffix? '.rba' then
-      cm = Archive.get_object(dir, file, Rubinius::CompiledMethodVersion)
-      $LOADED_FEATURES << file
-      return cm.as_script
-    elsif path.suffix? '.rb' or path.suffix? '.rbc' then
-      # Don't accidentally load non-extension files
-      $LOADED_FEATURES << path
-      load path
-      return true
-    else
-      load_result = VM.load_library(path, File.basename(path))
-      case load_result
-      when true
-        $LOADED_FEATURES << path
+        # Don't accidentally load non-extension files
+        $LOADED_FEATURES << rb_path
+        load rb_path
         return true
-      when 1
-        raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(path)}?"
+      else
+        return false if $LOADED_FEATURES.include? base_path
+
+        load_result = VM.load_library(base_path, File.basename(base_path))
+        case load_result
+        when true
+          $LOADED_FEATURES << base_path
+          return true
+        when 1
+          raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(base_path)}?"
+        end
       end
     end
+
+    raise LoadError, "no such file to load -- #{thing}"
   end
 
 end
