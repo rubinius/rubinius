@@ -1,3 +1,3 @@
 #!/usr/bin/env ruby
 
-require File.dirname(__FILE__) + '/../spec/mspec/scripts/ci'
+require File.dirname(__FILE__) + '/../mspec/scripts/ci'
