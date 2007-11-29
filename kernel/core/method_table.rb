@@ -19,7 +19,7 @@ class MethodTable
     keys.each do |meth|
       m = self[meth]
 
-      if m.is_a?(AccessVarMethod) || m.first == filter
+      if m.is_a?(AccessVarMethod) || m && m.first == filter
         ary << meth.__send__(format)
       end
     end
