@@ -7,7 +7,7 @@ end
 
 module MSpec
   def self.engine?(name)
-    case name
+    !!case name
     when :rbx, :rubinius
       RUBY_NAME =~ /^rbx/
     when :mri, :ruby
