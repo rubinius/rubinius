@@ -11,10 +11,9 @@ stack_after:
   - value
   - ...
 description: >-
-  Uses the value on the top of the stack to update the value of the local variable
-  identified by _idx_.
-    
-  The top of the stack is *not* popped by this operation.    
+  Uses the _value_ on the top of the stack to update the value of the local variable
+  allocated on the stack, identified by _idx_. The value is left on the stack, to
+  represent the return value from the expression.
 notes:
   Local variables that are used within a method and not captured are allocated
   on the stack. This operation updates such a local from the current top of the

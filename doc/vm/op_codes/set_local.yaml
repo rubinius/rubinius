@@ -8,10 +8,12 @@ stack_before:
   - value
   - ...
 stack_after:
+  - value
   - ...
 description: >-
-  Pops a value off the stack, and uses it to set the value of the local variable
-  identified by the literal _locl_.
+  Pops _value_ off the stack, and uses it to set the value of the local variable
+  identified by the literal _locl_. The value is then pushed back onto the stack,
+  to represent the return value from the expression.
 source: |-
     next_int;
     t1 = stack_pop();

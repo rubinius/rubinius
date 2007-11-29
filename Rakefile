@@ -10,6 +10,8 @@ require 'tsort'
 begin
   require 'rubygems'
 rescue LoadError
+  # Don't show RedCloth warning if gems aren't available
+  $redcloth_available = false
 end
 
 task :default => :build

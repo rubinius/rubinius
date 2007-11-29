@@ -11,10 +11,9 @@ stack_after:
   - value
   - ...
 description: >-
-  Uses the value on the top of the stack to update the value of the local variable
-  _local_ in an enclosing scope.
-
-  The top of the stack is *not* popped by this operation.
+  Uses the _value_ on the top of the stack to update the value of the local variable
+  _local_ in an enclosing scope. The value is then pushed back onto the stack, to
+  represent the return value from the expression.
 example: |-
   foo.each do |i|
     bar.each do |j|
