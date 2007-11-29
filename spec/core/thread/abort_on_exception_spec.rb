@@ -11,10 +11,10 @@ describe "Thread#abort_on_exception" do
   end
   
   it "should be changeable to true or false" do
-    Thread.abort_on_exception = false
-    Thread.abort_on_exception.should == false
     Thread.abort_on_exception = true
     Thread.abort_on_exception.should == true
+    Thread.abort_on_exception = false
+    Thread.abort_on_exception.should == false
   end
   
 end
