@@ -3,6 +3,7 @@
 $VERBOSE = true
 $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
+$redcloth_available = nil
 
 require 'tsort'
 
