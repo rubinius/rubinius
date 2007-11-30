@@ -39,6 +39,59 @@ module Compile
   def self.__unexpected_break__
     raise LocalJumpError, "unexpected break"
   end
+  
+  def self.require_feature(dir, rb_file, rbc_file, base_file)
+    if dir.suffix? '.rba' and File.file? dir then
+      return false if $LOADED_FEATURES.include? rbc_file
+
+      cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
+      return nil unless cm
+      
+      $LOADED_FEATURES << rbc_file
+      cm.as_script
+      return true
+    else
+      
+      rb_path   = "#{dir}/#{rb_file}"
+      rbc_path  = "#{dir}/#{rbc_file}"
+      
+      # Order is important here. We have to check for the rb_path first because
+      # it's possible both exist, and we want to give preference to rb_path.
+      
+      if File.file? rb_path
+        return false if $LOADED_FEATURES.include? rb_file
+        
+        $LOADED_FEATURES << rb_file
+        load rb_path
+        return true
+      elsif File.file? rbc_path
+        return false if $LOADED_FEATURES.include? rbc_file
+        
+        $LOADED_FEATURES << rbc_file
+        load rbc_path
+        return true
+      else
+        ext_file = "#{base_file}.#{Rubinius::LIBSUFFIX}"
+        ext_path = "#{dir}/#{ext_file}"
+        
+        if File.file? ext_path
+          return false if $LOADED_FEATURES.include? ext_file
+
+          case VM.load_library(ext_path, File.basename(base_file))
+          when true
+            $LOADED_FEATURES << ext_file
+            return true
+          when 0 # absent or invalid
+            return nil
+          when 1 # valid library, but no entry point
+            raise LoadError, "Invalid extension at '#{ext_path}'. Did you define Init_#{File.basename(base_file)}?"
+          end
+        end
+      end
+    end
+    
+    return nil
+  end
 end
 
 class String
@@ -55,27 +108,29 @@ end
 module Kernel
   def load(path)
     if path.suffix? ".rbc"
-      raise LoadError, "Unable to directly load compiled file -- #{File.basename(path)}"
+      compiled = path
     elsif path.suffix? ".rb"
-        compiled = "#{path}c"
+      compiled = "#{path}c"
     else
-        # compute a compiled version name, even if the path is not to a .rb file
-        compiled = "#{path}.rbc"
+      # compute a compiled version name, even if the path is not to a .rb file
+      compiled = "#{path}.rbc"
     end
 
-    if (!File.exists?(path) and !File.exists?(compiled))
+    # If neither the original nor the compiled version are there, bail.
+    if !File.exists?(path) and !File.exists?(compiled)
       raise LoadError, "No such file to load -- #{path}"
     end
 
     # Use compiled version if the original is missing, or compiled version newer
-    if !File.exists?(path) or (File.exists?(compiled) and File.mtime(path) <= File.mtime(compiled) )
+    if !File.exists?(path) or 
+          (File.exists?(compiled) and File.mtime(path) <= File.mtime(compiled))
       puts "[Loading #{compiled} for #{path}]" if $DEBUG_LOADING
       cm = CompiledMethod.load_from_file(compiled, Rubinius::CompiledMethodVersion)
 
-      unless cm
-        puts "[Skipping #{compiled}, was invalid.]" if $DEBUG_LOADING
-      else
+      if cm
         return cm.as_script
+      else
+        puts "[Skipping #{compiled}, was invalid.]" if $DEBUG_LOADING
       end
     end
 
@@ -98,63 +153,40 @@ module Kernel
   def compile(path, out=nil, flags=nil)
     out = "#{path}c" unless out
     cm = Compile.compile_file(path, flags)
+    raise LoadError, "Unable to compile '#{path}'" unless cm
     Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end
 
   # look in each directory of $LOAD_PATH for .rb, .rbc, or .<library extension>
-  def require(thing)
+  def require(thing)    
     if thing.suffix? '.rbc'
-      raise LoadError, "unable to directly require compiled file #{thing}"
-    end
-
-    if thing.suffix? '.rb'
+      base_file = thing.chomp('.rbc')
+      rb_file   = base_file + '.rb'
+      rbc_file  = thing
+    elsif thing.suffix? '.rb'
       base_file = thing.chomp('.rb')
       rb_file   = thing
       rbc_file  = thing + 'c'
+    elsif thing.suffix? Rubinius::LIBSUFFIX
+      base_file = thing.chomp(Rubinius::LIBSUFFIX)
+      rb_file   = thing
+      rbc_file  = thing
     else
       base_file = thing
       rb_file   = thing + '.rb'
       rbc_file  = thing + '.rbc'
     end
-
-    paths = $LOAD_PATH.map do |dir|
-      rb_path   = File.join dir, rb_file
-      rbc_path  = File.join dir, rbc_file
-      base_path = File.join dir, base_file
-
-      [dir, rb_path, rbc_path, base_path]
+    
+    # HACK this wont work on windows
+    if thing.prefix? '/'
+      res = Compile.require_feature '', rb_file, rbc_file, base_file
+      return res unless res.nil?
     end
-
-    # HACK windows
-    paths.unshift ['', rb_file, rbc_file, base_file] if thing.prefix? '/'
-
-    paths.each do |dir, rb_path, rbc_path, base_path|
-      if dir.suffix? '.rba' and File.file? dir then
-        return false if $LOADED_FEATURES.include? rb_path
-
-        cm = Archive.get_object(dir, rbc_path, Rubinius::CompiledMethodVersion)
-        $LOADED_FEATURES << rb_path
-        return cm.as_script
-      elsif File.file? rb_path or File.file? rbc_path then
-        return false if $LOADED_FEATURES.include? rb_path
-
-        # Don't accidentally load non-extension files
-        $LOADED_FEATURES << rb_path
-        load rb_path
-        return true
-      else
-        return false if $LOADED_FEATURES.include? base_path
-
-        load_result = VM.load_library(base_path, File.basename(base_path))
-        case load_result
-        when true
-          $LOADED_FEATURES << base_path # HACK doesn't have Rubinius::LIBSUFFIX
-          return true
-        when 1
-          raise LoadError, "Invalid extension at #{thing}. Did you define Init_#{File.basename(base_path)}?"
-        end
-      end
+    
+    $LOAD_PATH.each do |dir|      
+      res = Compile.require_feature dir, rb_file, rbc_file, base_file
+      return res unless res.nil?
     end
 
     raise LoadError, "no such file to load -- #{thing}"

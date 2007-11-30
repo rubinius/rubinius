@@ -62,6 +62,7 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
   rni_nmc *nmc;
   int len;
   struct stat sb;
+  char *end;
   
   nmc = NULL;
 
@@ -73,9 +74,15 @@ OBJECT subtend_load_library(STATE, cpu c, OBJECT path, OBJECT name) {
      or whatever the library suffix is. */
   c_path = string_byte_address(state, path);
   strlcpy(sys_name, c_path, len);
-  strlcat(sys_name, LIBSUFFIX, len);
+  end = strrchr(sys_name, '.');
+  
+  /* detect if the suffix is already there. */
+  if(end == NULL || strcmp(end++, LIBSUFFIX)) {
+    strlcat(sys_name, LIBSUFFIX, len);
+  }
   
   if(stat(sys_name, &sb) == 1) {
+    free(sys_name);
     return I2N(0);
   }
   
