@@ -382,7 +382,7 @@ class Compiler
       elsif count < 5
         add "meta_send_stack_#{count}".to_sym, idx
       else
-        add :send, idx, count
+        add :send_stack, idx, count
       end
     end
     
