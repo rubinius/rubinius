@@ -154,6 +154,7 @@ void cpu_run(STATE, cpu c, int setup);
 int cpu_dispatch(STATE, cpu c);
 inline void cpu_compile_instructions(STATE, OBJECT ba);
 OBJECT cpu_compile_method(STATE, OBJECT cm);
+OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp);
 
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls);
 void cpu_push_encloser(STATE, cpu c);
@@ -195,7 +196,7 @@ void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
 int cpu_task_select(STATE, cpu c, OBJECT self);
-OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be);
+OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be);
 void cpu_task_set_debugging(STATE, OBJECT self, OBJECT dc, OBJECT cc);
 OBJECT cpu_channel_new(STATE);
 OBJECT cpu_channel_send(STATE, cpu c, OBJECT self, OBJECT obj);

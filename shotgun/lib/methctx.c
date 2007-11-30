@@ -19,6 +19,7 @@ OBJECT methctx_dup(STATE, OBJECT self) {
   old = FASTCTX(self);
   cur = FASTCTX(ctx);
 
+  if(!NIL_P(old->sender)) methctx_reference(state, old->sender);
   SET_STRUCT_FIELD(ctx, cur->sender, old->sender);
   SET_STRUCT_FIELD(ctx, cur->block, old->block);
   SET_STRUCT_FIELD(ctx, cur->method, old->method);
@@ -98,77 +99,6 @@ OBJECT blokenv_s_under_context2(STATE, OBJECT cmethod, OBJECT ctx, OBJECT ctx_bl
   blokenv_set_method(obj, cmethod);
   blokenv_set_local_count(obj, I2N(num_lcls));
   return obj;
-}
-
-
-OBJECT blokenv_create_context(STATE, OBJECT self, OBJECT sender, int sp) {
-  OBJECT ctx, ins;
-  int cnt, i;
-  struct fast_context *fc;
-  
-  cnt = FIXNUM_TO_INT(blokenv_get_local_count(self));
-  
-  ctx = object_memory_new_context(state->om, cnt);
-  if(ctx >= state->om->context_last) {
-    state->om->collect_now |= OMCollectYoung;
-  }
-  
-  if(state->excessive_tracing) {
-    printf("CTX:           block running %d\n", (int)ctx);
-  }
-  
-  CLEAR_FLAGS(ctx);
-  ctx->gc_zone = 0;
-  ctx->field_count = FASTCTX_FIELDS;
-  ctx->klass = Qnil;
-  
-  fc = FASTCTX(ctx);
-  fc->sender = sender;
-  fc->ip = FIXNUM_TO_INT(blokenv_get_initial_ip(self));
-  fc->sp = sp;
-  /* env lives here */
-  fc->name = self;
-  fc->self = Qnil;
-  fc->method = blokenv_get_method(self);
-
-  ins = cmethod_get_compiled(fc->method);
-  
-  if(NIL_P(ins)) {
-    ins = cpu_compile_method(state, fc->method);
-  }
-  
-  fc->data = bytearray_byte_address(state, ins);
-  
-  fc->literals = cmethod_get_literals(fc->method);
-  fc->block = Qnil;
-  fc->method_module = Qnil;
-  
-  if(cnt > 0) {
-    // fc->locals = tuple_new(state, cnt);
-    
-    fc->locals = object_memory_context_locals(ctx);
-    CLEAR_FLAGS(fc->locals);
-    fc->locals->gc_zone = 0;
-    fc->locals->klass = BASIC_CLASS(tuple);
-    SET_NUM_FIELDS(fc->locals, cnt);
-    
-    for(i = 0; i < cnt; i++) {
-      SET_FIELD_DIRECT(fc->locals, i, Qnil);
-    }
-    
-  } else {
-    fc->locals = Qnil;
-  }
-  fc->flags = 0;
-  
-  /* If post send is nil, that means we're not allowed to return directly to
-     the home context. */
-  if(NIL_P(blokenv_get_post_send(self))) {
-    fc->flags |= CTX_FLAG_NO_LONG_RETURN;
-  }
-  
-  fc->type = FASTCTX_BLOCK;
-  return ctx;
 }
 
 void methctx_reference(STATE, OBJECT ctx) {

@@ -250,7 +250,8 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
   
   struct fast_context *fc = FASTCTX(iobj);
   OBJECT old_sender;
-  
+
+  old_sender = fc->sender;
   
   if(REFERENCE_P(fc->sender)) {
     /* This is the top most stack context, handle it differently */
@@ -263,6 +264,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
       }
       fc_mutate(sender);
     } else {
+      /*
       if(shifted) {
         old_sender = fc->sender;
         xassert(om_on_stack(state->om, old_sender));
@@ -271,17 +273,27 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
       } else {
         xassert(om_on_stack(state->om, fc->sender));
       }
+      */
     }
   }
+  
+  if(top) {
+    assert(NIL_P(fc->sender) || fc->sender->obj_type == MContextType || fc->sender->obj_type == BContextType);
+  }
+  
+  
   
   fc_mutate(method);
   fc_mutate(block);
   fc_mutate(literals);
   fc_mutate(self);
   if(!NIL_P(fc->locals) && fc->locals->gc_zone == 0) {
-    int i, fields = NUM_FIELDS(fc->locals);
+    int i, fields;
     OBJECT mut, tmp;
-    fc->locals = object_memory_context_locals(iobj); 
+    
+    fc->locals = object_memory_context_locals(iobj);
+    fields = NUM_FIELDS(fc->locals);
+    
     for(i = 0; i < fields; i++) {
       tmp = NTH_FIELD(fc->locals, i);
       if(!REFERENCE_P(tmp)) continue;

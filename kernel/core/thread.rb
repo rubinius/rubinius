@@ -5,6 +5,10 @@
 class Thread
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
 
+  def inspect
+    "#<#{self.class}:0x#{object_id.to_s(16)}>"
+  end
+
   def setup(prime_lock)
     @__ivars__ = {}
     @alive = true

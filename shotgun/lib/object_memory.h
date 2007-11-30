@@ -27,8 +27,9 @@ struct object_memory_struct {
   rheap contexts;
   /* The first not referenced stack context */
   OBJECT context_bottom;
-  OBJECT context_top;
   OBJECT context_last;
+  
+  int context_offset;
 };
 
 typedef struct object_memory_struct *object_memory;

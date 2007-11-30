@@ -338,57 +338,43 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   return ba;
 }
 
-static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo, 
-      OBJECT name, OBJECT mod, unsigned long int args, OBJECT block) {
-  OBJECT sender, ctx, ins;
-  int num_lcls, i;
+static inline OBJECT _allocate_context(STATE, cpu c, OBJECT meth, int locals) {
+  OBJECT ctx, ins;
   struct fast_context *fc;
+  int i;
   
-  sender = c->active_context;
-  
-  ins = cmethod_get_compiled(mo);
-  
-  if(NIL_P(ins)) {
-    ins = cpu_compile_method(state, mo);
-  }
-  
-  num_lcls = FIXNUM_TO_INT(cmethod_get_locals(mo));
-  
-  cpu_flush_sp(c);
-    
-  ctx = object_memory_new_context(state->om, num_lcls);
+  ctx = object_memory_new_context(state->om, locals);
   if(ctx >= state->om->context_last) {
     state->om->collect_now |= OMCollectYoung;
   }
-  
+
+  ins = cmethod_get_compiled(meth);
+
+  if(NIL_P(ins)) {
+    ins = cpu_compile_method(state, meth);
+  }
+
   CLEAR_FLAGS(ctx);
-  ctx->gc_zone = 0;
   ctx->klass = Qnil;
   ctx->field_count = FASTCTX_FIELDS;
-  
+
   fc = FASTCTX(ctx);
-  fc->sender = sender;
-  fc->ip = 0;
-  fc->sp = c->sp;
-  /* fp points to the location on the stack as the context
-     was being created. */
-  fc->fp = c->sp;
-  
-  fc->block = block;
-  fc->method = mo;
+  fc->flags = 0;
+  fc->sender = c->active_context;
+
+  fc->method = meth;
   fc->data = bytearray_byte_address(state, ins);
-  fc->literals = cmethod_get_literals(mo);
-  fc->self = recv;
-  if(num_lcls > 0) {
-    //fc->locals = tuple_new(state, num_lcls);
-    
+  fc->literals = cmethod_get_literals(meth);
+  
+  if(locals > 0) {
+    // fc->locals = tuple_new(state, locals);
     fc->locals = object_memory_context_locals(ctx);
     CLEAR_FLAGS(fc->locals);
     fc->locals->gc_zone = 0;
     fc->locals->klass = BASIC_CLASS(tuple);
-    SET_NUM_FIELDS(fc->locals, num_lcls);
-    
-    for(i = 0; i < num_lcls; i++) {
+    SET_NUM_FIELDS(fc->locals, locals);
+
+    for(i = 0; i < locals; i++) {
       SET_FIELD_DIRECT(fc->locals, i, Qnil);
     }
     
@@ -396,15 +382,63 @@ static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, OBJECT mo,
     fc->locals = Qnil;
   }
   // printf("Locals for %p at %p (%d, %d)\n", ctx, fc->locals, num_lcls, FASTCTX(ctx)->size);
+
+  return ctx;
+}
+
+static inline OBJECT cpu_create_context(STATE, cpu c, OBJECT recv, 
+      OBJECT mo, OBJECT name, OBJECT mod, 
+      unsigned long int args, OBJECT block) {
+  OBJECT ctx;
+  struct fast_context *fc;
   
+  ctx = _allocate_context(state, c, mo, FIXNUM_TO_INT(cmethod_get_locals(mo)));
+  fc = FASTCTX(ctx);
+  
+  cpu_flush_sp(c);
+  fc->ip = 0;
+  fc->sp = c->sp;
+  /* fp points to the location on the stack as the context
+     was being created. */
+  fc->fp = c->sp;
+  
+  fc->block = block;
+  fc->self = recv;
   fc->argcount = args;
   fc->name = name;
   fc->method_module = mod;
   fc->type = FASTCTX_NORMAL;
-  fc->flags = 0;
   
-  xassert(om_valid_sender_p(state->om, ctx, sender));
+  return ctx;
+}
 
+OBJECT cpu_create_block_context(STATE, cpu c, OBJECT env, int sp) {
+  OBJECT ctx;
+  struct fast_context *fc;
+  
+  ctx = _allocate_context(state, c, blokenv_get_method(env),
+                      FIXNUM_TO_INT(blokenv_get_local_count(env)));
+  fc = FASTCTX(ctx);
+  
+  fc->ip = FIXNUM_TO_INT(blokenv_get_initial_ip(env));
+  fc->sp = sp;
+  
+  fc->block = Qnil;
+  fc->self = Qnil;
+  fc->argcount = 0;
+  
+  /* env lives here */
+  fc->name = env;
+  
+  fc->method_module = Qnil;
+  fc->type = FASTCTX_BLOCK;
+  
+  /* If post send is nil, that means we're not allowed to return directly to
+     the home context. */
+  if(NIL_P(blokenv_get_post_send(env))) {
+    fc->flags |= CTX_FLAG_NO_LONG_RETURN;
+  }
+  
   return ctx;
 }
 

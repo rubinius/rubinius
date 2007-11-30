@@ -161,11 +161,12 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   
   if(state->ac_on_stack) {
     /* if active_context is on the stack, it's the last object. */
-    /* if context_top is nil, then we didn't need to compact, they're
+    /* if context_offset is 0, then we didn't need to compact, they're
        still pointed at the right point. */
     
-    if(state->om->context_top != Qnil) {
-      c->active_context = state->om->context_top;
+    if(state->om->context_offset != 0) {
+      c->active_context = (OBJECT)((uintptr_t)(c->active_context) - state->om->context_offset);
+      state->om->context_offset = 0;
     }
   } else {
     ar(c->active_context);

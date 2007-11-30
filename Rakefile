@@ -566,5 +566,3 @@ namespace "doc" do
   end
 end
 
-task :build => 'doc:vm:html'
-

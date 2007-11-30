@@ -157,13 +157,15 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
 
 void cpu_task_push(STATE, OBJECT self, OBJECT val);
 
-OBJECT cpu_task_associate(STATE, OBJECT self, OBJECT be) {
+OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be) {
   OBJECT bc;
   struct cpu_task *task;
   
   task = (struct cpu_task*)BYTES_OF(self);
   
-  bc = blokenv_create_context(state, be, Qnil, 1);
+  bc = cpu_create_block_context(state, c, be, 1);
+  FASTCTX(bc)->sender = Qnil;
+  
   if(task->stack_slave) {
     task->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
     task->stack_size = InitialStackSize;

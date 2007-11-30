@@ -342,7 +342,7 @@ class ShotgunPrimitives
     }
     
     cpu_flush_sp(c);
-    t2 = blokenv_create_context(state, self, c->active_context, c->sp);
+    t2 = cpu_create_block_context(state, c, self, c->sp);
     cpu_activate_context(state, c, t2, blokenv_get_home(self), 1);
     CODE
   end
@@ -2050,7 +2050,7 @@ class ShotgunPrimitives
     GUARD( RISA(self, task) );
     GUARD( RISA(t1,   blokenv) );
     
-    stack_push(cpu_task_associate(state, self, t1));
+    stack_push(cpu_task_associate(state, c, self, t1));
     CODE
   end
   

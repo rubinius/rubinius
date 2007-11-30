@@ -200,12 +200,7 @@ module Kernel
     ret = []
     ctx = MethodContext.current.sender
     until ctx.nil?
-      if ctx.method.name == :__script__ # This is where MRI stops
-        ret << "#{ctx.file}:#{ctx.line}"
-        break
-      else
-        ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
-      end
+      ret << "#{ctx.file}:#{ctx.line}"
       ctx = ctx.sender
     end
     ret[start..-1]

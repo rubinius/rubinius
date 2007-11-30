@@ -1,5 +1,5 @@
 class Channel
-  ivar_as_index :waiting => 0, :value => 1
+  ivar_as_index :waiting => 1, :value => 2
   def waiting; @waiting ; end
   def value  ; @value   ; end
   
