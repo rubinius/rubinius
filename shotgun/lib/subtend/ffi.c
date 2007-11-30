@@ -421,6 +421,8 @@ void* ffi_to_ptr() {
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
   
+  if(NIL_P(obj)) return NULL;
+  
   return (*DATA_STRUCT(obj, void**));  
 }
 
@@ -433,8 +435,12 @@ void ffi_from_ptr(void *ptr) {
   rni_context *ctx = subtend_retrieve_context();
   state = ctx->state;
   
-  NEW_STRUCT(ret, code_start, BASIC_CLASS(ffi_ptr), void*);
-  *code_start = ptr;
+  if(ptr == NULL) {
+    ret = Qnil;
+  } else {
+    NEW_STRUCT(ret, code_start, BASIC_CLASS(ffi_ptr), void*);
+    *code_start = ptr;
+  }
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
 
