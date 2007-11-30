@@ -749,8 +749,13 @@ again_no_block:
         array_push(current, Qnil);
         /* nothing to do in this case, no name == no use */
       } else if (arg_count == 0) {
-        array_push(current, Qnil);
-        /* This happens when you have: def blah(*);end.  */
+        /* This happens when you have: def blah(*);end.
+         * The compiler still needs to be able to tell this apart
+         * from a method with no arguments, so we're storing [true] here.
+         */
+        tmp = array_new(state, 1);
+        array_push(tmp, Qtrue);
+        array_push(current, tmp);
       } else {
         printf("Unknown arg_count %ld encountered while processing args.\n", arg_count);
         break;
