@@ -16,7 +16,14 @@
   convenience.
 * spec/ and test/ contain tests for verifying that Rubinius implements Ruby.
 
-2. Primitives
+2. Kernel Classes
+
+If you create a new file in one of the kernel subdirectories, it will be necessary
+to regenerate the .load_order.txt file in the equivalent runtime subdirectory in
+order to get your class loaded when Rubinius starts up. Use the rake task
+build:load_order to regenerate the .load_order.txt files.
+
+3. Primitives
 
 To add a primitive:
 
@@ -30,7 +37,7 @@ If your primitive takes variable arguments, you need to provide a wrapper
 method that calls the primitive.  For example Dir::glob calls
 Dir::prim_glob.
 
-3. gdb
+4. gdb
 
 You can run shotgun/rubinius with gdb.
 
@@ -38,7 +45,7 @@ You can run shotgun/rubinius with gdb.
 * Hit ^C to interrupt
 * Type 'rbt' at the gdb prompt to get a ruby backtrace
 
-4. Specifications
+5. Specifications
 
 RSpec is the machinery behind executing these specs. The intention is to have
 specs for Ruby as a language and set of standard libraries, and to TDD/BDD the

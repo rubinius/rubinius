@@ -178,6 +178,9 @@ class CodeGroup
     file @load_order do
       create_load_order(@files, @load_order)
     end
+    task "build:load_order" do
+      create_load_order(@files, @load_order)
+    end
 
     @output << @load_order
   end
@@ -468,6 +471,12 @@ RbConfig = Config
     runtime/stable/loader.rbc
     runtime/stable/platform.rba
   ]
+
+  desc "Rebuild the .load_order.txt files"
+  task "load_order" do
+    # Note: Steps to rebuild load_order were defined above
+    puts "Run rake:build to rebuild .rbc files according to dependency order"
+  end
 
   # OBSOLETE
   task :core => :rbc do
