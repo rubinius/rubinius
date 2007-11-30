@@ -29,7 +29,7 @@ To add a primitive:
 
 * Give the primitive a sane name
 * Implement the primitive in shotgun/lib/primitives.rb
-* Give the primitive a number in compiler/primitives/primitive_names.rb
+* Give the primitive a number in shotgun/lib/primitive_names.rb
 * `rake runtime/stable/compiler.rba`
 * `rake`
 
