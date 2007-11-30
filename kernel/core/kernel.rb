@@ -200,7 +200,7 @@ module Kernel
     ret = []
     ctx = MethodContext.current.sender
     until ctx.nil?
-      ret << "#{ctx.file}:#{ctx.line}"
+      ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
       ctx = ctx.sender
     end
     ret[start..-1]
