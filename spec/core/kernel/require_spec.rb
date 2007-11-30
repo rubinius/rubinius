@@ -66,4 +66,10 @@ describe "Kernel#require" do
       require('not_around_at_all')
     end
   end
+
+  it "only accepts strings" do
+    should_raise(TypeError) { require(nil) }
+    should_raise(TypeError) { require(42) }
+    should_raise(TypeError) { require([]) }
+  end
 end

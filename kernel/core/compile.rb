@@ -107,6 +107,8 @@ end
 
 module Kernel
   def load(path)
+    path = StringValue(path)
+
     if path.suffix? ".rbc"
       compiled = path
     elsif path.suffix? ".rb"
@@ -160,6 +162,8 @@ module Kernel
 
   # look in each directory of $LOAD_PATH for .rb, .rbc, or .<library extension>
   def require(thing)    
+    thing = StringValue(thing)
+
     if thing.suffix? '.rbc'
       base_file = thing.chomp('.rbc')
       rb_file   = base_file + '.rb'
