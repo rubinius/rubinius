@@ -1885,7 +1885,6 @@ class ShotgunPrimitives
     CODE
   end
   
-  
   def vm_stats
     <<-CODE
 #ifdef TRACK_STATS
@@ -1990,6 +1989,14 @@ class ShotgunPrimitives
     } else {
       stack_push(Qfalse);
     }
+    CODE
+  end
+
+  def yield_gdb
+    <<-CODE
+      stack_pop();
+      *((char*)4) = 1; /* cause a SIGBUS */
+      stack_push(Qtrue);
     CODE
   end
   

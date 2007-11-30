@@ -209,7 +209,11 @@ module Kernel
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
   end
-  
+
+  def yield_gdb
+    Ruby.primitive :yield_gdb
+  end
+
   def self.after_loaded
     # This nukes the bootstrap raise so the Kernel one is used.
     Object.method_table.delete :raise
