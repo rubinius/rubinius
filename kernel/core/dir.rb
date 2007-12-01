@@ -19,8 +19,13 @@ class Dir
     if block_given?
       original_path = self.getwd
       Platform::POSIX.chdir path
-      value = yield path
-      Platform::POSIX.chdir original_path
+
+      begin
+        value = yield path
+      ensure
+        Platform::POSIX.chdir original_path
+      end
+
       return value
     else
       error = Platform::POSIX.chdir path

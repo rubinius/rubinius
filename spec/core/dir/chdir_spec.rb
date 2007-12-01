@@ -38,4 +38,15 @@ describe "Dir.chdir" do
   it "raises a SystemCallError if the directory does not exist" do
     should_raise(SystemCallError) { Dir.chdir DirSpecs.nonexistent }
   end
+
+  it "always returns to the original directory when given a block" do
+    begin
+      Dir.chdir(DirSpecs.mock_dir) do
+        raise StandardError, "something bad happened"
+      end
+    rescue StandardError
+    end
+
+    Dir.pwd.should == @original
+  end
 end
