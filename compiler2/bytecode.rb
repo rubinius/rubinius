@@ -1438,8 +1438,10 @@ class Compiler::Node
         else
           statement_bytecode(g)
         end
-      else
+      elsif @in_block
         block_arg_bytecode(g)
+      else
+        statement_bytecode(g)
       end
     end
 
@@ -1525,6 +1527,8 @@ class Compiler::Node
         @source.bytecode(g)
       elsif @source
         raise Error, "Unknown form: #{@source.class}"
+      else
+        g.cast_tuple
       end
 
       if @assigns
@@ -1749,7 +1753,7 @@ class Compiler::Node
       
       min = @required.size
       if @splat
-        max = 1024
+        max = -1
       else
         max = min + @optional.size
       end

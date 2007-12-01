@@ -1056,6 +1056,7 @@ CODE
   def unshift_tuple
     <<-CODE
     t1 = stack_pop();
+    sassert(REFERENCE_P(t1));
     if(NUM_FIELDS(t1) == 0) {
       stack_push(t1);
       stack_push(Qnil);

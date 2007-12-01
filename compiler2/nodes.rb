@@ -72,6 +72,7 @@ class Compiler::Node
       lcl = nil   
       depth = nil
       dep = 0
+      
       @block_scope.reverse_each do |scope|
         if scope.key?(name)
           depth = dep
@@ -92,13 +93,13 @@ class Compiler::Node
           idx = in_scope.size
           lcl = in_scope[name]
           lcl.created_in_block!(idx)
-          dep = 0
+          depth = 0
         end
       end
       
       lcl.access_in_block!
       
-      return [lcl, dep]
+      return [lcl, depth]
     end
     
     def find_ivar_index(name)
@@ -1100,7 +1101,7 @@ class Compiler::Node
         @assigns, @splat, @source = assigns, splat, source
       end
       
-      @in_block = get(:iter)
+      @in_block = get(:iter_args)
     end
     
     attr_accessor :assigns, :splat, :source
