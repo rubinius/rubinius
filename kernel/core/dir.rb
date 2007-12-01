@@ -1,22 +1,6 @@
-# depends on: array.rb
+# depends on: array.rb dir_entry.rb
 
 class Dir
-  class DirEntry < FFI::Struct            
-    # struct dirent {
-    #   ino_t d_ino;      /* file number of entry */
-    #   __uint16_t d_reclen;    /* length of this record */
-    #   __uint8_t  d_type;    /* file type, see below */
-    #   __uint8_t  d_namlen;    /* length of string in d_name */
-    #   char d_name[__DARWIN_MAXNAMLEN + 1];  /* name must be no longer than this */
-    # };
-    
-    layout  :d_ino,    :uint,
-            :d_reclen, :ushort,
-            :d_type,   :uchar,
-            :d_namlen, :uchar,
-            :d_name,   :char_array
-  end
-
   include Enumerable
   
   def self.glob(pattern, flags = 0)
@@ -35,8 +19,13 @@ class Dir
     if block_given?
       original_path = self.getwd
       Platform::POSIX.chdir path
-      value = yield path
-      Platform::POSIX.chdir original_path
+
+      begin
+        value = yield path
+      ensure
+        Platform::POSIX.chdir original_path
+      end
+
       return value
     else
       error = Platform::POSIX.chdir path
@@ -108,7 +97,7 @@ class Dir
   def initialize(path)
     @dirptr = Platform::POSIX.opendir(path)
 
-    if @dirptr.null?
+    if @dirptr.nil?
       Errno.handle path
     end
 
@@ -132,7 +121,7 @@ class Dir
     raise IOError, "closed directory" if @dirptr.nil?
 
     dir_entry_ptr = Platform::POSIX.readdir(@dirptr)
-    return nil if dir_entry_ptr.null?
+    return nil if dir_entry_ptr.nil?
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
 
