@@ -36,6 +36,7 @@ attic/externals/syd-parser/pkg
 
 
 kernel/.load_order.txt
+kernel/core/dir_entry.rb
 lib/kernel.rb
 lib/rbconfig.rb
 

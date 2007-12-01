@@ -6,6 +6,7 @@ $dlext = Config::CONFIG["DLEXT"]
 $redcloth_available = nil
 
 require 'tsort'
+require 'rakelib/struct_generator'
 
 begin
   require 'rubygems'
@@ -139,7 +140,12 @@ end
 class CodeGroup
 
   def initialize(files, compile_dir, rba_name, load_order=true)
-    @files = FileList[files]
+    if files.is_a?(FileList)
+      @files = files
+    else
+      @files = FileList[files]
+    end
+
     @output = nil
     @compile_dir = compile_dir
     @build_dir = File.join 'runtime', rba_name
@@ -215,7 +221,14 @@ class CodeGroup
 
 end
 
-Core      = CodeGroup.new 'kernel/core/*.rb', 'runtime/core', 'core'
+files = FileList['kernel/core/*.rb']
+
+unless files.include?("kernel/core/dir_entry.rb")
+  files.add("kernel/core/dir_entry.rb")
+end
+
+Core      = CodeGroup.new(files, 'runtime/core', 'core')
+
 Bootstrap = CodeGroup.new 'kernel/bootstrap/*.rb', 'runtime/bootstrap',
                           'bootstrap'
 Platform  = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform', 'platform'
@@ -227,6 +240,15 @@ end
 
 file 'runtime/stable/loader.rbc' => 'runtime/loader.rbc' do
   cp 'runtime/loader.rbc', 'runtime/stable', :verbose => $verbose
+end
+
+Rake::StructGeneratorTask.new do |t|
+  t.dest = "kernel/core/dir_entry.rb"
+  t.struct_name = "struct dirent"
+  t.includes = ["dirent.h"]
+  t.fields = [Field.new(:d_name, :char_array)]
+  t.prolog = "class Dir\nclass DirEntry < FFI::Struct"
+  t.epilog = "  end\nend"
 end
 
 AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output

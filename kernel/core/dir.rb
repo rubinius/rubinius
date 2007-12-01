@@ -1,22 +1,6 @@
-# depends on: array.rb
+# depends on: array.rb dir_entry.rb
 
 class Dir
-  class DirEntry < FFI::Struct            
-    # struct dirent {
-    #   ino_t d_ino;      /* file number of entry */
-    #   __uint16_t d_reclen;    /* length of this record */
-    #   __uint8_t  d_type;    /* file type, see below */
-    #   __uint8_t  d_namlen;    /* length of string in d_name */
-    #   char d_name[__DARWIN_MAXNAMLEN + 1];  /* name must be no longer than this */
-    # };
-    
-    layout  :d_ino,    :uint, 0,
-            :d_reclen, :ushort, 4,
-            :d_type,   :uchar, 6,
-            :d_namlen, :uchar, 7,
-            :d_name,   :char_array, 8
-  end
-
   include Enumerable
   
   def self.glob(pattern, flags = 0)
