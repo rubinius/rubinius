@@ -108,7 +108,7 @@ class Dir
   def initialize(path)
     @dirptr = Platform::POSIX.opendir(path)
 
-    if @dirptr.null?
+    if @dirptr.nil?
       Errno.handle path
     end
 
@@ -132,7 +132,7 @@ class Dir
     raise IOError, "closed directory" if @dirptr.nil?
 
     dir_entry_ptr = Platform::POSIX.readdir(@dirptr)
-    return nil if dir_entry_ptr.null?
+    return nil if dir_entry_ptr.nil?
     DirEntry.new(dir_entry_ptr)[:d_name]
   end
 
