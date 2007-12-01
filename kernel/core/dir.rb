@@ -10,11 +10,11 @@ class Dir
     #   char d_name[__DARWIN_MAXNAMLEN + 1];  /* name must be no longer than this */
     # };
     
-    layout  :d_ino,    :uint,
-            :d_reclen, :ushort,
-            :d_type,   :uchar,
-            :d_namlen, :uchar,
-            :d_name,   :char_array
+    layout  :d_ino,    :uint, 0,
+            :d_reclen, :ushort, 4,
+            :d_type,   :uchar, 6,
+            :d_namlen, :uchar, 7,
+            :d_name,   :char_array, 8
   end
 
   include Enumerable

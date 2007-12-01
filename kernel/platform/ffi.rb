@@ -187,17 +187,16 @@ module FFI
       return @layout if spec.empty?
       
       cspec = {}
-      offset = 0
       i = 0
       
       while i < spec.size
         name = spec[i]
         f = spec[i + 1]
+        offset = spec[i + 2]
+
         code = FFI.find_type(f)
-        cur = offset
-        offset += FFI.type_size(f)
-        cspec[name] = [cur, code]
-        i += 2
+        cspec[name] = [offset, code]
+        i += 3
       end
       
       if self != Struct
