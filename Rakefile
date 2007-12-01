@@ -168,7 +168,7 @@ class CodeGroup
 
       @output << runtime
 
-      deps = [source, @load_order].compact
+      deps = [source].compact
 
       file runtime => deps do |t|
         compile t.prerequisites.first, t.name
@@ -179,10 +179,10 @@ class CodeGroup
   def load_order_task
     return unless @load_order
 
-    file @load_order do
+    file @load_order => @files do
       create_load_order(@files, @load_order)
     end
-    task "build:load_order" do
+    task "build:load_order" => @files do
       create_load_order(@files, @load_order)
     end
 
