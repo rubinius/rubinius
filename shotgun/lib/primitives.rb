@@ -1960,6 +1960,8 @@ class ShotgunPrimitives
     <<-CODE
     glob_t gd;
     char *pat;
+    int flags = GLOB_NOSORT | GLOB_BRACE;
+
     stack_pop();
     POP(t1, STRING);
     POP(t2, FIXNUM);
@@ -1967,7 +1969,7 @@ class ShotgunPrimitives
     /* TODO: use t2. */
     
     pat = string_byte_address(state, t1);
-    k = glob(pat, 0, NULL, &gd);
+    k = glob(pat, flags, NULL, &gd);
     t2 = array_new(state, gd.gl_pathc);
     for(j = 0; j < gd.gl_pathc; j++) {
       array_set(state, t2, j, string_new(state, gd.gl_pathv[j]));
