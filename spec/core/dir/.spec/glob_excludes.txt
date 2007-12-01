@@ -1,15 +1,13 @@
-Dir.glob matches non-dotfiles with '*'
-Dir.glob matches dotfiles with '.*'
-Dir.glob matches non-dotfiles with '*<non-special characters>'
-Dir.glob matches dotfiles with '.*<non-special characters>'
-Dir.glob matches files with any ending with '<non-special characters>*'
-Dir.glob matches files with any middle with '<non-special characters>*<non-special characters>'
-Dir.glob matches files with multiple '*' special characters
-Dir.glob matches non-dotfiles in the current directory with '**'
-Dir.glob matches dotfiles in the current directory with '.**'
 Dir.glob recursively matches any nondot subdirectories with '**/'
-Dir.glob recursively matches any subdirectories including ./ and ../ with '.**/'
-Dir.glob matches a single character except leading '.' with '?'
+Dir.glob matches any characters except those in a set with '[^<characters>]'
+Dir.glob matches any characters except those in a range with '[^<character>-<character]'
+Dir.glob recursively matches directories with '**/<characters>'
+Dir.glob matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH
+Dir.glob matches files with any beginning with '*<non-special characters>' and option File::FNM_DOTMATCH
+Dir.glob matches any files in the current directory with '.**' and option File::FNM_DOTMATCH
+Dir.glob recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH
+Dir.glob matches the literal character '\' with option File::FNM_NOESCAPE
+'?'
 Dir.glob accepts multiple '?' characters in a pattern
 Dir.glob matches any characters in a set with '[<characters>]'
 Dir.glob matches any characters in a range with '[<character>-<character>]'
