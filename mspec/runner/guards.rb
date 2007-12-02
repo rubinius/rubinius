@@ -1,8 +1,10 @@
-if defined?(RUBY_ENGINE)
-  RUBY_NAME = RUBY_ENGINE
-else
-  require 'rbconfig'
-  RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"]
+unless defined?(RUBY_NAME)
+  if defined?(RUBY_ENGINE)
+    RUBY_NAME = RUBY_ENGINE
+  else
+    require 'rbconfig'
+    RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"]
+  end
 end
 
 module MSpec
