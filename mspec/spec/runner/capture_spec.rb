@@ -26,4 +26,9 @@ describe CaptureOutput do
     @out.print "world"
     @out.should == "hello [newline] world [newline] "
   end
+  
+  it "provides a puts method that appends the default separator" do
+    @out.puts "hello", 1, 2, 3
+    @out.should == "hello\n1\n2\n3\n"
+  end
 end
