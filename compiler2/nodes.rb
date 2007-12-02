@@ -1307,7 +1307,7 @@ class Compiler::Node
     kind :yield
     
     def args(args, direct=false)
-      if direct
+      if direct and args.kind_of? Array
         @arguments = args.body
       elsif args.kind_of? DynamicArguments
         @arguments = args
