@@ -7,10 +7,12 @@ end
 
 describe Simpleton do
   it "has #one method" do
-    SimpleSpecs.new.one.should == 1
+    Simpleton.new.one.should == 1
   end
   
   it "does not know what zero is" do
-    SimpleSpecs.new.zero.should_not == 0
+    Simpleton.new.zero.should_not == 0
   end
 end
+
+formatter.summary

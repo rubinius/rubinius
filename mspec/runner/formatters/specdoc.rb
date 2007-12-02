@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../../expectations'
-require File.dirname(__FILE__) + '/base'
+require 'mspec/expectations'
+require 'mspec/runner/formatters/base'
 
 class SpecdocFormatter < BaseFormatter
   def before_describe(msg)

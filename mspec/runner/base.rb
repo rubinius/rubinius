@@ -1,23 +1,26 @@
-require File.dirname(__FILE__) + '/formatters/dotted'
+require 'mspec/runner/formatters/dotted'
 
 class Object
-  def it(msg)
+  def formatter
     if @formatter.nil?
       @formatter = DottedFormatter.new
     end
+    @formatter
+  end
     
-    @formatter.before_it(msg)
+  def it(msg)
+    formatter.before_it(msg)
     begin
       yield
     rescue Exception => e
-      @formatter.exception(e)
+      formatter.exception(e)
     end
-    @formatter.after_it(msg)
+    formatter.after_it(msg)
   end
 
   def describe(msg)
-    @formatter.before_describe(msg)
+    formatter.before_describe(msg)
     yield
-    @formatter.after_describe(msg)
+    formatter.after_describe(msg)
   end
 end

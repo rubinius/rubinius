@@ -1,1 +1,1 @@
-require File.dirname(__FILE__) + '/runner/capture'
+require File.dirname(__FILE__) + '/capture'

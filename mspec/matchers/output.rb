@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../runner/capture'
+require 'mspec/capture'
 
 class OutputMatcher
   def initialize(stdout, stderr)

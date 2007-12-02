@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/../../expectations'
-require File.dirname(__FILE__) + '/../guards'
-require File.dirname(__FILE__) + '/base'
+require 'mspec/expectations'
+require 'mspec/runner/guards'
+require 'mspec/runner/formatters/base'
 
 class HtmlFormatter < BaseFormatter
   def print_head

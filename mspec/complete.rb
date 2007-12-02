@@ -1,4 +1,4 @@
-require 'matchers'
-require 'expectations'
-require 'expectations/should'
-require 'runner'
+require 'mspec/matchers'
+require 'mspec/expectations'
+require 'mspec/expectations/should'
+require 'mspec/runner'
