@@ -301,4 +301,11 @@ class Object
     names |= self.class.protected_instance_methods(all)
     return names
   end
+
+  def extend(*modules)
+    modules.reverse_each do |mod|
+      mod.extend_object(self)
+    end
+    self
+  end
 end
