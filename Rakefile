@@ -250,6 +250,10 @@ Rake::StructGeneratorTask.new do |t|
   t.dest = "kernel/core/dir.rb"
 end
 
+Rake::StructGeneratorTask.new do |t|
+  t.dest = "lib/etc.rb"
+end
+
 AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output
 AllPreCompiled << "runtime/loader.rbc"
 
@@ -399,6 +403,7 @@ namespace :build do
   task :all => %w[
     build:shotgun
     build:rbc
+    lib/etc.rb
     lib/rbconfig.rb
     build:extensions
   ]
