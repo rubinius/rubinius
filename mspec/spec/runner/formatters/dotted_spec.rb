@@ -7,7 +7,7 @@ describe DottedFormatter do
     @formatter = DottedFormatter.new(@out)
     @formatter.before_describe "describe"
     @formatter.before_it "it"
-    @formatter.exception Exception.new("something bad")
+    @exception = Exception.new("something bad")
   end
   
   it "responds to after_it with one argument" do
@@ -19,7 +19,7 @@ describe DottedFormatter do
     @formatter.after_it "first"
     @out.should == "."
     @formatter.before_it "it"
-    @formatter.exception Exception.new("something bad")
+    @formatter.exception @exception
     @formatter.after_it "second"
     @out.should == ".E"
   end

@@ -29,6 +29,7 @@ class BaseFormatter
     self.out = out
     @examples = 0
     @failures = 0
+    @report = SpecExecution.new
     @exceptions = []
   end
   
@@ -51,7 +52,6 @@ class BaseFormatter
   def after_describe(msg) end
   
   def before_it(msg)
-    @report = SpecExecution.new
     @report.describe = @describe
     @report.it = msg
     @examples += 1
