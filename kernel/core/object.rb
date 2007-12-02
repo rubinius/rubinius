@@ -142,8 +142,9 @@ class Object
       raise ArgumentError, 'cannot pass both a block and a string to evaluate' if string
       instance_exec(self, &prc)
     elsif string
+      string = StringValue(string)
       mod = nil # FIXME
-      cm = string.compile_as_method
+      cm = string.compile_as_method(filename, line)
       cm.activate(self, mod, [])
     else
       raise ArgumentError, 'block not supplied'
