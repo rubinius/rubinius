@@ -25,7 +25,7 @@ class SpecExecution
 end
 
 class BaseFormatter
-  def initialize(out=STDOUT)
+  def initialize(out=$stdout)
     self.out = out
     @examples = 0
     @failures = 0
