@@ -11,6 +11,14 @@ class Process
     now = Time.now
     Struct::Tms.new(now - $STARTUP_TIME, 0.0, 0.0, 0.0)
   end
+
+  def self.uid
+    Platform::POSIX.getuid
+  end
+
+  def self.gid
+    Platform::POSIX.getgid
+  end
   
   # TODO: Most of the fields aren't implemented yet.
   # TODO: Also, these objects should only need to be constructed by Process.wait and family.
