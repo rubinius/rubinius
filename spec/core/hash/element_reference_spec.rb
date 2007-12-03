@@ -14,18 +14,18 @@ describe "Hash.[]" do
   end
 
   it "raises on odd parameter list count" do
-    should_raise(ArgumentError) { Hash[1, 2, 3] }
+    lambda { Hash[1, 2, 3] }.should raise_error(ArgumentError)
   end
  
   it "raises when mixing argument styles" do
-    should_raise(ArgumentError) { Hash[1, 2, {3 => 4}] }
+    lambda { Hash[1, 2, {3 => 4}] }.should raise_error(ArgumentError)
     Hash[1, 2, 3, {3 => 4}].should == {1 => 2, 3 => {3 => 4}}
   end
   
   it "does not call to_hash" do
     obj = Object.new
     def obj.to_hash() { 1 => 2, 3 => 4 } end
-    should_raise(ArgumentError) { Hash[obj] }
+    lambda { Hash[obj] }.should raise_error(ArgumentError)
   end
 
   it "returns an instance of the class it's called on" do

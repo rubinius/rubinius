@@ -31,7 +31,7 @@ describe "Array#<<" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array << 5 }
+      lambda { @frozen_array << 5 }.should raise_error(TypeError)
     end
   end
 end

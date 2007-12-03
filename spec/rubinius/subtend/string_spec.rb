@@ -21,9 +21,7 @@ extension :rubinius do
     end
 
     specify "rb_str_new2 should raise ArgumentError if passed NULL" do
-      should_raise(ArgumentError) do
-        @s.rb_str_new2_with_null
-      end
+      lambda { @s.rb_str_new2_with_null }.should raise_error(ArgumentError)
     end
   
     specify "rb_str_dup should return a copy of the string" do

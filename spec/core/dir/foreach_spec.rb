@@ -17,8 +17,6 @@ describe "Dir.foreach" do
   end
   
   it "raises a SystemCallError if passed a nonexistent directory" do
-    should_raise(SystemCallError) do
-      Dir.foreach DirSpecs.nonexistent
-    end
+    lambda { Dir.foreach DirSpecs.nonexistent }.should raise_error(SystemCallError)
   end
 end

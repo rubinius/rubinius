@@ -15,7 +15,7 @@ describe "File.ctime" do
   end
 
   it "raise an Errno::ENOENT exception if the file is not found" do    
-    should_raise(Errno::ENOENT){ File.ctime('bogus') }
+    lambda { File.ctime('bogus') }.should raise_error(Errno::ENOENT)
   end
 end 
 

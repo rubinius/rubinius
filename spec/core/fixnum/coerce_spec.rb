@@ -9,9 +9,7 @@ end
 
 describe "Fixnum#coerce when given a String" do
   it "raises an ArgumentError when trying to coerce with a non-number String" do
-    should_raise(ArgumentError) do
-      1.coerce(":)")
-    end
+    lambda { 1.coerce(":)") }.should raise_error(ArgumentError)
   end
 
   it "returns  an array containing two Floats" do
@@ -22,9 +20,7 @@ end
 
 describe "Fixnum#coerce" do
   it "raises a TypeError when trying to coerce with nil" do
-    should_raise(TypeError) do
-      1.coerce(nil)
-    end
+    lambda { 1.coerce(nil) }.should raise_error(TypeError)
   end
 
   it "tries to convert the given Object into a Float by using #to_f" do
@@ -32,22 +28,12 @@ describe "Fixnum#coerce" do
     2.coerce(obj).should == [1.0, 2.0]
     
     (obj = Object.new).should_receive(:to_f, :returning => '0')
-    should_raise(TypeError) do
-      2.coerce(obj).should == [1.0, 2.0]
-    end
+    lambda { 2.coerce(obj).should == [1.0, 2.0] }.should raise_error(TypeError)
   end
 
   it "raises a TypeError when given an Object that does not respond to #to_f" do
-    should_raise(TypeError) do
-      1.coerce(Object.new)
-    end
-    
-    should_raise(TypeError) do
-      1.coerce(1..4)
-    end
-    
-    should_raise(TypeError) do
-      1.coerce(:test)
-    end
+    lambda { 1.coerce(Object.new) }.should raise_error(TypeError)
+    lambda { 1.coerce(1..4)       }.should raise_error(TypeError)
+    lambda { 1.coerce(:test)      }.should raise_error(TypeError)
   end
 end

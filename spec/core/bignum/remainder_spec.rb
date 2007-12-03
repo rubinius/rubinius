@@ -10,7 +10,7 @@ describe "Bignum#remainder" do
   end
   
   it "raises ZeroDivisionError if other is zero and not a Float" do
-    should_raise(ZeroDivisionError) { BignumHelper.sbm(66).remainder(0) }
+    lambda { BignumHelper.sbm(66).remainder(0) }.should raise_error(ZeroDivisionError)
   end
   
   it "does NOT raise ZeroDivisionError if other is zero and is a Float" do

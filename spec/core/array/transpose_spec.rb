@@ -18,7 +18,7 @@ describe "Array#transpose" do
     h = Object.new
     def h.to_ary() [1, 2] end
 
-    should_raise(TypeError) { [g, [:a, :b]].transpose } 
+    lambda { [g, [:a, :b]].transpose }.should raise_error(TypeError)
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
     
     h = Object.new
@@ -33,7 +33,7 @@ describe "Array#transpose" do
   end
 
   it "raises IndexError if the arrays are not of the same length" do
-    should_raise(IndexError) { [[1, 2], [:a]].transpose }
+    lambda { [[1, 2], [:a]].transpose }.should raise_error(IndexError)
   end
   
   it "does not return subclass instance on Array subclasses" do

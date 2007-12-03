@@ -25,12 +25,12 @@ describe 'Defining methods with *' do
   end
 
   it 'Only one *param may appear in a parameter list' do
-    should_raise(SyntaxError) { eval 'def foo(a, *b, *c); end' }
+    lambda { eval 'def foo(a, *b, *c); end' }.should raise_error(SyntaxError)
   end
 
   it 'The required arguments must be supplied even with a * param' do
     def foo(a, b, *c); end
-    should_raise(ArgumentError) { foo 1 }
+    lambda { foo 1 }.should raise_error(ArgumentError)
   end
 end
 
@@ -55,7 +55,7 @@ describe "Defining a method with a default arg" do
     def foo(a, b = 2)
       [a,b]
     end
-    should_raise(ArgumentError) {foo}
+    lambda { foo }.should raise_error(ArgumentError)
     foo(1).should == [1, 2]
   end
 
@@ -63,7 +63,7 @@ describe "Defining a method with a default arg" do
     def foo(a, b = 2, *c)
       [a,b,c]
     end
-    should_raise(ArgumentError) {foo}
+    lambda { foo }.should raise_error(ArgumentError)
     foo(1).should == [1,2,[]]
   end
 

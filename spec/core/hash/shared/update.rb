@@ -43,7 +43,7 @@ shared :hash_update do |cmd|
     compliant :mri do
       it "raises TypeError if called on a non-empty, frozen instance" do
         @hash.send(cmd, @empty) # ok, empty
-        should_raise(TypeError) { @hash.send(cmd, 1 => 2) }
+        lambda { @hash.send(cmd, 1 => 2) }.should raise_error(TypeError)
       end
     end
   end

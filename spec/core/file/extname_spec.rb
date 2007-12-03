@@ -28,10 +28,10 @@ describe "File.extname" do
   end
 
   it "raise an exception if the argumnents are not of the correct type or are missing" do
-    should_raise(TypeError){ File.extname(nil) }
-    should_raise(TypeError){ File.extname(0) }
-    should_raise(TypeError){ File.extname(true) }
-    should_raise(TypeError){ File.extname(false) }
-    should_raise(ArgumentError){ File.extname("foo.bar", "foo.baz") }
+    lambda { File.extname(nil)   }.should raise_error(TypeError)
+    lambda { File.extname(0)     }.should raise_error(TypeError)
+    lambda { File.extname(true)  }.should raise_error(TypeError)
+    lambda { File.extname(false) }.should raise_error(TypeError)
+    lambda { File.extname("foo.bar", "foo.baz") }.should raise_error(ArgumentError)
   end  
 end

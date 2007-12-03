@@ -18,37 +18,21 @@ describe "Bignum#divmod" do
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do
-    should_raise(ZeroDivisionError) do
-      @bignum.divmod(0)
-    end
-
-    should_raise(ZeroDivisionError) do
-      (-@bignum).divmod(0)
-    end
+    lambda { @bignum.divmod(0) }.should raise_error(ZeroDivisionError)
+    lambda { (-@bignum).divmod(0) }.should raise_error(ZeroDivisionError)
   end
   
   it "raises a FloatDomainError when the given argument is 0 and a Float" do
-    should_raise(FloatDomainError, "NaN") do
-      @bignum.divmod(0.0)
-    end
-    
-    should_raise(FloatDomainError, "NaN") do
-      (-@bignum).divmod(0.0)
-    end
+    lambda { @bignum.divmod(0.0) }.should raise_error(FloatDomainError, "NaN")
+    lambda { (-@bignum).divmod(0.0) }.should raise_error(FloatDomainError, "NaN")
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError) do
+    lambda {
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       @bignum.divmod(obj)
-    end
-    
-    should_raise(TypeError) do
-      @bignum.divmod("10")
-    end
-
-    should_raise(TypeError) do
-      @bignum.divmod(:symbol)
-    end
+    }.should raise_error(TypeError)
+    lambda { @bignum.divmod("10") }.should raise_error(TypeError)
+    lambda { @bignum.divmod(:symbol) }.should raise_error(TypeError)
   end
 end

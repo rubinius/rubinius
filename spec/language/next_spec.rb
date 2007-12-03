@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "The next statement" do
   it "raises LocalJumpError if used not within block or while/for loop" do
     def bad_meth; next; end
-    should_raise(LocalJumpError) { bad_meth }
+    lambda { bad_meth }.should raise_error(LocalJumpError)
   end
 
   it "ends block execution if used within block" do

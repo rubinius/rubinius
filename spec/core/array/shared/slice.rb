@@ -258,10 +258,10 @@ shared :array_slice do |cmd|
       a.send(cmd, 1..0).should == []
       a.send(cmd, 1...0).should == []
     
-      should_raise(TypeError) { a.slice("a" .. "b") }
-      should_raise(TypeError) { a.slice("a" ... "b") }
-      should_raise(TypeError) { a.slice(from .. "b") }
-      should_raise(TypeError) { a.slice(from ... "b") }
+      lambda { a.slice("a" .. "b") }.should raise_error(TypeError)
+      lambda { a.slice("a" ... "b") }.should raise_error(TypeError)
+      lambda { a.slice(from .. "b") }.should raise_error(TypeError)
+      lambda { a.slice(from ... "b") }.should raise_error(TypeError)
     
       from = Object.new
       to = Object.new

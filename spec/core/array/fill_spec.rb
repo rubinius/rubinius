@@ -79,16 +79,16 @@ describe "Array#fill" do
   end
 
   it "raises ArgumentError if the wrong number of arguments is given" do
-    should_raise(ArgumentError) { [].fill('a', 1, 2, true) }
-    should_raise(ArgumentError) { [].fill('a', 1, true) {|i|} }
+    lambda { [].fill('a', 1, 2, true) }.should raise_error(ArgumentError)
+    lambda { [].fill('a', 1, true) {|i|} }.should raise_error(ArgumentError)
   end
 
   it "raises TypeError if the index is not numeric" do
-    should_raise(TypeError) { [].fill 'a', true }
+    lambda { [].fill 'a', true }.should raise_error(TypeError)
   end
 
   it "raises TypeError with range and length argument" do
-    should_raise(TypeError) { [].fill('x', 0 .. 2, 5) }
+    lambda { [].fill('x', 0 .. 2, 5) }.should raise_error(TypeError)
   end
 
   it "ignores length if it is nil" do
@@ -99,7 +99,7 @@ describe "Array#fill" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.fill('x') }
+      lambda { @frozen_array.fill('x') }.should raise_error(TypeError)
     end
   end
 end

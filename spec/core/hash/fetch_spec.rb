@@ -7,9 +7,9 @@ describe "Hash#fetch" do
   end
   
   it "raises IndexError if key is not found" do
-    should_raise(IndexError) { {}.fetch(:a) }
-    should_raise(IndexError) { Hash.new(5).fetch(:a) }
-    should_raise(IndexError) { Hash.new { 5 }.fetch(:a) }
+    lambda { {}.fetch(:a)             }.should raise_error(IndexError)
+    lambda { Hash.new(5).fetch(:a)    }.should raise_error(IndexError)
+    lambda { Hash.new { 5 }.fetch(:a) }.should raise_error(IndexError)
   end
   
   it "returns default if key is not found when passed a default" do
@@ -29,7 +29,7 @@ describe "Hash#fetch" do
   end
 
   it "raises when the size of its arguments isn't two or one" do
-    should_raise(ArgumentError) { {}.fetch() }
-    should_raise(ArgumentError) { {}.fetch(1, 2, 3) }
+    lambda { {}.fetch()        }.should raise_error(ArgumentError)
+    lambda { {}.fetch(1, 2, 3) }.should raise_error(ArgumentError)
   end
 end

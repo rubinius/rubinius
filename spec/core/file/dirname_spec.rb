@@ -55,10 +55,10 @@ describe "File.dirname" do
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
-    should_raise(TypeError){ File.dirname(nil) }
-    should_raise(TypeError){ File.dirname(0) }
-    should_raise(TypeError){ File.dirname(true) }
-    should_raise(TypeError){ File.dirname(false) }
+    lambda { File.dirname(nil)   }.should raise_error(TypeError)
+    lambda { File.dirname(0)     }.should raise_error(TypeError)
+    lambda { File.dirname(true)  }.should raise_error(TypeError)
+    lambda { File.dirname(false) }.should raise_error(TypeError)
   end
 
   # Windows specific tests

@@ -7,7 +7,7 @@ compliant :mri, :jruby do
       module Mod; end
       o = Object.new
       o.freeze
-      should_raise(TypeError) { o.extend Mod }
+      lambda { o.extend Mod }.should raise_error(TypeError)
     end
   end
 end

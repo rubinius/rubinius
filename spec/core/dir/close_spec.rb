@@ -14,7 +14,7 @@ describe "Dir#close" do
     File.for_fd(peek).close                   # Should be open here
 
     dir.close.should == nil
-    should_raise(SystemCallError) { File.for_fd(peek).close }  # And closed here
+    lambda { File.for_fd(peek).close }.should raise_error(SystemCallError)  # And closed here
   end
 end
 

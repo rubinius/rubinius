@@ -23,8 +23,8 @@ describe "File.directory?" do
   end
    
   it "raise an exception its the arguments are the worng type or number" do
-    should_raise(ArgumentError){ File.directory? }
-    should_raise(ArgumentError){ File.directory?(@dir, @file) }
-    should_raise(TypeError){ File.directory?(nil) }
+    lambda { File.directory?              }.should raise_error(ArgumentError)
+    lambda { File.directory?(@dir, @file) }.should raise_error(ArgumentError)
+    lambda { File.directory?(nil)         }.should raise_error(TypeError)
   end
 end

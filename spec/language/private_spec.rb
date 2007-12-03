@@ -5,11 +5,11 @@ describe "The private keyword" do
   it "should mark following methods as being private" do
     a = Private::A.new
     a.methods.should_not_include("bar")
-    should_raise(NoMethodError) { a.bar }
+    lambda { a.bar }.should raise_error(NoMethodError)
 
     b = Private::B.new
     b.methods.should_not_include("bar")
-    should_raise(NoMethodError) { b.bar }
+    lambda { b.bar }.should raise_error(NoMethodError)
   end
 
   it "should be overridden when a new class is opened" do
@@ -18,9 +18,7 @@ describe "The private keyword" do
     c.baz
     Private::B::public_class_method1.should == 1
     Private::B::public_class_method2.should == 2
-    should_raise(NoMethodError) do 
-      Private::B::private_class_method1
-    end
+    lambda { Private::B::private_class_method1 }.should raise_error(NoMethodError)
   end
 
   it "should wear off when the class is closed" do

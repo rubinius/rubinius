@@ -70,8 +70,8 @@ describe "File.truncate" do
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    should_raise(ArgumentError){ File.truncate(@name) }
-    should_raise(Errno::EINVAL){ File.truncate(@name, -1) } # May fail
-    should_raise(TypeError){ File.truncate(@name, nil) }
+    lamdba { File.truncate(@name) }.should raise_error(ArgumentError)
+    lambda { File.truncate(@name, -1) }.should raise_error(Errno::EINVAL) # May fail
+    labmda { File.truncate(@name, nil) }.should raise_error(TypeError)
   end
 end

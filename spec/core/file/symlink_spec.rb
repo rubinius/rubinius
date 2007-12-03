@@ -29,12 +29,12 @@ describe "File.symlink" do
     
     it "raise an exception if the target already exists" do
       File.symlink(@file, @link)  
-      should_raise(Errno::EEXIST){ File.symlink(@file, @link) }
+      lambda { File.symlink(@file, @link) }.should raise_error(Errno::EEXIST)
     end
     
     it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-      should_raise(ArgumentError){ File.symlink }
-      should_raise(ArgumentError){ File.symlink(@file) }
+      lambda { File.symlink        }.should raise_error(ArgumentError)
+      lambda { File.symlink(@file) }.should raise_error(ArgumentError)
     end
   end
 end

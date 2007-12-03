@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "The break statement" do
   it "raises LocalJumpError if used not within block or while/for loop" do
     def x; break; end
-    should_raise(LocalJumpError) { x }
+    lambda { x }.should raise_error(LocalJumpError)
   end
 
   it "ends block execution if used whithin block" do

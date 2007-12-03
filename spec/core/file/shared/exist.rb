@@ -11,9 +11,9 @@ shared :file_exist do |cmd|
     end
 
     it "raise an exception if the argumnent is not from the correct type or are missing" do
-      should_raise(ArgumentError){ File.exist? }
-      should_raise(ArgumentError){ File.exist?(__FILE__, __FILE__) }
-      should_raise(TypeError){ File.exist?(nil) }
+      lambda { File.exist? }.should raise_error(ArgumentError)
+      lambda { File.exist?(__FILE__, __FILE__) }.should raise_error(ArgumentError)
+      lambda { File.exist?(nil) }.should raise_error(TypeError)
     end 
   end
 end

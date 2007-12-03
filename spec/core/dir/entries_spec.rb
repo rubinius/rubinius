@@ -12,8 +12,6 @@ describe "Dir.entries" do
   end
   
   it "raises a SystemCallError if called with a nonexistent diretory" do
-    should_raise(SystemCallError) do
-      Dir.entries DirSpecs.nonexistent
-    end
+    lambda { Dir.entries DirSpecs.nonexistent }.should raise_error(SystemCallError)
   end
 end

@@ -13,17 +13,9 @@ describe "Fixnum#divmod" do
   end
   
   it "raises a ZeroDivisionError when the given argument is 0" do
-    should_raise(ZeroDivisionError) do
-      13.divmod(0)
-    end
-
-    should_raise(ZeroDivisionError) do
-      0.divmod(0)
-    end
-    
-    should_raise(ZeroDivisionError) do
-      -10.divmod(0)
-    end
+    lambda { 13.divmod(0)  }.should raise_error(ZeroDivisionError)
+    lambda { 0.divmod(0)   }.should raise_error(ZeroDivisionError)
+    lambda { -10.divmod(0) }.should raise_error(ZeroDivisionError)
   end
 
   version '1.8.4' do
@@ -34,32 +26,18 @@ describe "Fixnum#divmod" do
   
   version '1.8.5'..'1.8.6' do
     it "raises a FloatDomainError when the given argument is 0 and a Float" do
-      should_raise(FloatDomainError, "NaN") do
-        0.divmod(0.0)
-      end
-      
-      should_raise(FloatDomainError, "NaN") do
-        10.divmod(0.0)
-      end
-      
-      should_raise(FloatDomainError, "NaN") do
-        -10.divmod(0.0)
-      end
+      lambda { 0.divmod(0.0)   }.should raise_error(FloatDomainError)
+      lambda { 10.divmod(0.0)  }.should raise_error(FloatDomainError)
+      lambda { -10.divmod(0.0) }.should raise_error(FloatDomainError)
     end
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError) do
+    lambda {
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       13.divmod(obj)
-    end
-    
-    should_raise(TypeError) do
-      13.divmod("10")
-    end
-
-    should_raise(TypeError) do
-      13.divmod(:symbol)
-    end
+    }.should raise_error(TypeError)
+    lambda { 13.divmod("10")    }.should raise_error(TypeError)
+    lambda { 13.divmod(:symbol) }.should raise_error(TypeError)
   end
 end

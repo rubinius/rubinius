@@ -15,11 +15,11 @@ describe "self in a metaclass body (class << obj)" do
   end
 
   it "raises a TypeError for numbers" do
-    should_raise(TypeError) { class << 1; self; end }
+    lambda { class << 1; self; end }.should raise_error(TypeError)
   end
 
   it "raises a TypeError for symbols" do
-    should_raise(TypeError) { class << :symbol; self; end }
+    lambda { class << :symbol; self; end }.should raise_error(TypeError)
   end
 
   it "is a singleton Class instance" do

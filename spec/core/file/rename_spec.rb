@@ -25,13 +25,13 @@ describe "File.rename" do
 
     it "raises an exception if the source does not exist" do
       File.delete(@old)
-      should_raise(Errno::ENOENT){ File.rename(@old, @new) }
+      lambda { File.rename(@old, @new) }.should raise_error(Errno::ENOENT)
     end
 
     it "raises an exception if the arguments are wrong type or are the incorect number of arguments" do
-      should_raise(ArgumentError){ File.rename }
-      should_raise(ArgumentError){ File.rename(@file) }
-      should_raise(TypeError){ File.rename(1, 2) }
+      lambda { File.rename        }.should raise_error(ArgumentError)
+      lambda { File.rename(@file) }.should raise_error(ArgumentError)
+      lambda { File.rename(1, 2)  }.should raise_error(TypeError)
     end
   end
 end

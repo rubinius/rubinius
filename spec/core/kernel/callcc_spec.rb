@@ -59,7 +59,7 @@ describe "Kernel#callcc" do
   end
 
   it "raises a LocalJumpError if callcc is not given a block" do
-    should_raise(LocalJumpError) { Kernel.callcc }
+    lambda { Kernel.callcc }.should raise_error(LocalJumpError)
   end
 
 end

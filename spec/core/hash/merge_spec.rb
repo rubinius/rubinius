@@ -17,9 +17,9 @@ describe "Hash#merge" do
     r = h1.merge(h2) { |k,x,y| "#{k}:#{x+2*y}" }
     r.should == { :a => "a:-2", :b => "b:9", :c => -3, :d => 5 }
 
-    should_raise(IndexError) do
+    lambda {
       h1.merge(h2) { |k, x, y| raise(IndexError) }
-    end
+    }.should raise_error(IndexError)
 
     r = h1.merge(h1) { |k,x,y| :x }
     r.should == { :a => :x, :b => :x, :d => :x }

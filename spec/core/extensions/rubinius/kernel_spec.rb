@@ -4,15 +4,15 @@ extension :rubinius do
   describe "Kernel.StringValue" do
     specify "raises TypeError if the instance does not respond to to_str" do
       class A; end
-      should_raise(TypeError) { StringValue(A.new) }
+      lambda { StringValue(A.new) }.should raise_error(TypeError)
     end
 
     specify "raises TypeError for nil" do
-      should_raise(TypeError) { StringValue(nil) }
+      lambda { StringValue(nil) }.should raise_error(TypeError)
     end
 
     specify "raises TypeError for a Fixnum" do
-      should_raise(TypeError) { StringValue(1) }
+      lambda { StringValue(1) }.should raise_error(TypeError)
     end
 
     specify "raises TypeError if the instance responds to to_str but doesn't return a String" do
@@ -21,7 +21,7 @@ extension :rubinius do
           1
         end
       end
-      should_raise(TypeError) { StringValue(B.new) }
+      lambda { StringValue(B.new) }.should raise_error(TypeError)
     end
 
     specify "calls to_str if the instance responds to it" do

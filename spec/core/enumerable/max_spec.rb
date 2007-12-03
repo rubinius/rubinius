@@ -36,9 +36,15 @@ describe "Enumerable#max" do
   it "return an error when introduce the wrong kind or number of parameters " do
     # error cases
     EnumerableSpecs::EachDefiner.new().max.should == nil
-    should_raise(NoMethodError) { EnumerableSpecs::EachDefiner.new(Object.new, Object.new).max }
-    should_raise(ArgumentError) { EnumerableSpecs::EachDefiner.new(11,"22").max }
-    should_raise( ArgumentError) {EnumerableSpecs::EachDefiner.new(11,12,22,33).max{|a, b| nil}}
+    lambda {
+      EnumerableSpecs::EachDefiner.new(Object.new, Object.new).max
+    }.should raise_error(NoMethodError)
+    lambda {
+      EnumerableSpecs::EachDefiner.new(11,"22").max
+    }.should raise_error(ArgumentError)
+    lambda {
+      EnumerableSpecs::EachDefiner.new(11,12,22,33).max{|a, b| nil}
+    }.should raise_error(ArgumentError)
   end
  
   it "return the maximum element (with block" do

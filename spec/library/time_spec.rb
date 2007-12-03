@@ -66,10 +66,10 @@ context "Time class method" do
     t18 = Time.rfc2822("Fri, 21 Nov 1997 09 :   55  :  06 -0600")
     t17.should == t18
     
-    should_raise(ArgumentError) do
+    lambda {
       # inner comment is not supported.
       Time.rfc2822("Fri, 21 Nov 1997 09(comment):   55  :  06 -0600")
-    end
+    }.should raise_error(ArgumentError)
   end
   
   specify "rfc822 should be an alias of rfc2822" do

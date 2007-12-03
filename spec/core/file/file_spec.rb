@@ -29,8 +29,8 @@ describe "File.file?" do
   end
 
   it "raise an exception if the argumnents are not of the correct type or are missing" do
-    should_raise(ArgumentError){ File.file? }
-    should_raise(ArgumentError){ File.file?(@null, @file) }
-    should_raise(TypeError){ File.file?(nil) }
+    lambda { File.file?               }.should raise_error(ArgumentError)
+    lambda { File.file?(@null, @file) }.should raise_error(ArgumentError)
+    lambda { File.file?(nil)          }.should raise_error(TypeError)
   end
 end

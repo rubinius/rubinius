@@ -8,7 +8,7 @@ end
 
 describe "Singleton" do
   it "should make the new method private" do
-    should_raise(NoMethodError) { MyClass.new }
+    lambda { MyClass.new }.should raise_error(NoMethodError)
   end
 
   it "should provide an instance method" do

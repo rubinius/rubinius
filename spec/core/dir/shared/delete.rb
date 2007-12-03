@@ -9,7 +9,7 @@ shared :dir_delete do |cmd|
 
     it "raises SystemCallError when trying to remove a nonempty directory" do
       %w|rmdir delete unlink|.each {|cmd|
-        should_raise(SystemCallError) { Dir.send cmd, 'subdir_one' }
+        lambda { Dir.send cmd, 'subdir_one' }.should raise_error(SystemCallError)
       }
     end
 
@@ -18,7 +18,7 @@ shared :dir_delete do |cmd|
         system "mkdir -p noperm_#{cmd}/child"
         system "chmod 0000 noperm_#{cmd}"
 
-        should_raise(SystemCallError) { Dir.send cmd, "noperm_#{cmd}/child" }
+        lambda { Dir.send cmd, "noperm_#{cmd}/child" }.should raise_error(SystemCallError)
 
         system "chmod 0777 noperm_#{cmd}"
         Dir.rmdir "noperm_#{cmd}/child"

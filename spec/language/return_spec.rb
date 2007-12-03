@@ -147,9 +147,7 @@ end
 
 describe "The return statement" do
   it "should raise an exception if used to exit a thread" do
-    should_raise(ThreadError) do
-      Thread.new { return }.join
-    end
+    lambda { Thread.new { return }.join }.should raise_error(ThreadError)
   end    
 end
 

@@ -690,7 +690,7 @@ describe 'Multiple assignments with splats' do
   # TODO make this normal once rubinius eval works
   compliant :mri do
     it '* on the lhs has to be applied to the last parameter' do
-      should_raise(SyntaxError) { eval 'a, *b, c = 1, 2, 3' }
+      lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
     end
   end
 
@@ -759,7 +759,7 @@ describe 'Multiple assignments with grouping' do
 
   compliant :mri do
     it 'rhs cannot use parameter grouping, it is a syntax error' do
-      should_raise(SyntaxError) { eval '(a, b) = (1, 2)' }
+      lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
     end
   end
 end

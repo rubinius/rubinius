@@ -32,7 +32,7 @@ describe "Array#concat" do
   
   compliant :mri do
     it "raises a TypeError when Array is frozen and modification occurs" do
-      should_raise(TypeError) { @frozen_array.concat [1] }
+      lambda { @frozen_array.concat [1] }.should raise_error(TypeError)
     end
 
     it "does not raise a TypeError when Array is frozen but no modification occurs" do

@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/../spec_helper'
 describe "The retry statement" do
   it "should raise LocalJumpError if used outside of a block" do
     def bad_meth_retry; retry; end
-    should_raise(LocalJumpError) { bad_meth_retry() }
-    should_raise(LocalJumpError) { lambda { retry }.call }
+    lambda { bad_meth_retry()      }.should raise_error(LocalJumpError)
+    lambda { lambda { retry }.call }.should raise_error(LocalJumpError)
   end
   
   it "should retry closest block" do

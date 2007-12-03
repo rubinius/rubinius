@@ -16,6 +16,6 @@ describe "File.mtime" do
   end
 
   it "raises an Errno::ENOENT exception if the file is not found" do
-    should_raise(Errno::ENOENT) { File.mtime('bogus') }
+    lambda { File.mtime('bogus') }.should raise_error(Errno::ENOENT)
   end
 end

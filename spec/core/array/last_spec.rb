@@ -24,7 +24,7 @@ describe "Array#last" do
   end
   
   it "raises ArgumentError when count is negative" do
-    should_raise(ArgumentError) { [1, 2].last(-1) }
+    lambda { [1, 2].last(-1) }.should raise_error(ArgumentError)
   end
   
   it "returns the entire array when count > length" do
@@ -33,7 +33,7 @@ describe "Array#last" do
 
   it "uses to_int to convert its argument" do
     o = Object.new
-    should_raise(TypeError) { [1, 2, 3].last o }
+    lambda { [1, 2, 3].last o }.should raise_error(TypeError)
 
     def o.to_int(); 2; end
 

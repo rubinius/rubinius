@@ -29,7 +29,7 @@ describe "Array#first" do
   end
   
   it "raises ArgumentError when count is negative" do
-    should_raise(ArgumentError) { [1, 2].first(-1) }
+    lambda { [1, 2].first(-1) }.should raise_error(ArgumentError)
   end
   
   it "returns the entire array when count > length" do

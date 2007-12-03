@@ -95,7 +95,7 @@ describe "Array#uniq!" do
     it "raises TypeError on a frozen array if modification would take place" do
       dup_ary = [1, 1, 2]
       dup_ary.freeze
-      should_raise(TypeError) { dup_ary.uniq! }
+      lambda { dup_ary.uniq! }.should raise_error(TypeError)
     end
 
     it "does not raise TypeError on a frozen array if no modification takes place" do

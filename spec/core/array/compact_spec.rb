@@ -25,7 +25,7 @@ describe "Array#compact!" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.compact! }
+      lambda { @frozen_array.compact! }.should raise_error(TypeError)
     end
   end
 end

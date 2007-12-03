@@ -36,10 +36,8 @@ describe "Dir.chdir" do
   end
   
   it "raises a SystemCallError if the directory does not exist" do
-    should_raise(SystemCallError) { Dir.chdir DirSpecs.nonexistent }
-    should_raise(SystemCallError) do
-      Dir.chdir(DirSpecs.nonexistent) { }
-    end
+    lambda { Dir.chdir DirSpecs.nonexistent }.should raise_error(SystemCallError)
+    lambda { Dir.chdir(DirSpecs.nonexistent) { } }.should raise_error(SystemCallError)
   end
 
   it "raises a SystemCallError if the original directory no longer exists" do
@@ -50,11 +48,11 @@ describe "Dir.chdir" do
     Dir.mkdir dir1
     Dir.mkdir dir2
     begin
-      should_raise(SystemCallError) do
+      lambda {
         Dir.chdir dir1 do
           Dir.chdir(dir2) { Dir.unlink dir1 }
         end
-      end
+      }.should raise_error(SystemCallError)
     ensure
       Dir.unlink dir1 if File.exist?(dir1)
       Dir.unlink dir2 if File.exist?(dir2)

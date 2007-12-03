@@ -10,7 +10,7 @@ describe "Array.new" do
   end
   
   it "raises ArgumentError when passed a negative size" do
-    should_raise(ArgumentError) { Array.new(-1) }
+    lambda { Array.new(-1) }.should raise_error(ArgumentError)
   end
   
   it "returns a new array of size with nil elements" do
@@ -81,6 +81,6 @@ describe "Array.new" do
   end  
 
   it "will fail if a to_ary is supplied as the first argument and a second argument is given" do
-    should_raise(TypeError) { Array.new([1, 2], 1) } 
+    lambda { Array.new([1, 2], 1) }.should raise_error(TypeError)
   end
 end

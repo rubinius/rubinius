@@ -10,10 +10,10 @@ describe "Fixnum#to_s when given a base" do
   end
   
   it "raises an ArgumentError if the base is less than 2 or higher than 36" do
-    should_raise(ArgumentError) { 123.to_s(-1) }
-    should_raise(ArgumentError) { 123.to_s(0) }
-    should_raise(ArgumentError) { 123.to_s(1) }
-    should_raise(ArgumentError) { 123.to_s(37) }
+    lambda { 123.to_s(-1) }.should raise_error(ArgumentError)
+    lambda { 123.to_s(0)  }.should raise_error(ArgumentError)
+    lambda { 123.to_s(1)  }.should raise_error(ArgumentError)
+    lambda { 123.to_s(37) }.should raise_error(ArgumentError)
   end
 end
 

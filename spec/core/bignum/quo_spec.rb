@@ -23,17 +23,11 @@ describe "Bignum#quo" do
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError) do
+    lambda {
       (obj = Object.new).should_not_receive(:to_int)
       @bignum.quo(obj)
-    end
-    
-    should_raise(TypeError) do
-      @bignum.quo("10")
-    end
-
-    should_raise(TypeError) do
-      @bignum.quo(:symbol)
-    end
+    }.should raise_error(TypeError)
+    lambda { @bignum.quo("10") }.should raise_error(TypeError)
+    lambda { @bignum.quo(:symbol) }.should raise_error(TypeError)
   end
 end

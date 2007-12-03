@@ -33,20 +33,20 @@ end
 
 describe "When Kernel#method_missing is undefined" do
   specify "a NoMethodError is raised when an undefined method is called" do
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.new.nonexistent }
+    lambda { KernelSpecs::NoMethodMissing.nonexistent      }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::NoMethodMissingC.nonexistent     }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::NoMethodMissingC.new.nonexistent }.should raise_error(NoMethodError)
   end
   
   specify "a NoMethodError is raised when a private method is called" do
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.new.nonexistent }
+    lambda { KernelSpecs::NoMethodMissing.nonexistent      }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::NoMethodMissingC.nonexistent     }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::NoMethodMissingC.new.nonexistent }.should raise_error(NoMethodError)
   end
   
   specify "a NoMethodError is raised when a protected method is called" do
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissing.nonexistent }
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.nonexistent }
-    should_raise(NoMethodError) { KernelSpecs::NoMethodMissingC.new.nonexistent }
+    lambda { KernelSpecs::NoMethodMissing.nonexistent      }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::NoMethodMissingC.nonexistent     }.should raise_error(NoMethodError)
+    lambda { KernelSpecs::NoMethodMissingC.new.nonexistent }.should raise_error(NoMethodError)
   end
 end

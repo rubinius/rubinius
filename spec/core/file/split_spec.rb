@@ -29,9 +29,9 @@ describe "File.split" do
   end
   
   it "should raise an exception if the number of arguments are incorrect or of incorrect type" do
-    should_raise(ArgumentError){ File.split }
-    should_raise(ArgumentError){ File.split('string', 'another string') }
-    should_raise(TypeError){ File.split(1) }
+    lambda { File.split }.should raise_error(ArgumentError)
+    lambda { File.split('string', 'another string') }.should raise_error(ArgumentError)
+    lambda { File.split(1) }.should raise_error(TypeError)
   end
     
   it "should coerce argument to a string if a non string type is given" do

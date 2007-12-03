@@ -9,7 +9,7 @@ describe "Enumerable#all?" do
   end 
 
   it "fails when have a wrong argument "  do
-    should_raise(ArgumentError){ @enum1.all?(1) }
+    lambda { @enum1.all?(1) }.should raise_error(ArgumentError)
   end
 
   it "with no block returns true if no elements are false or nil" do

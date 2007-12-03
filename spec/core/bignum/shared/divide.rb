@@ -11,7 +11,7 @@ shared :bignum_divide do |cmd|
     end
 
     it "raises ZeroDivisionError if other is zero and not a Float" do
-      should_raise(ZeroDivisionError) { @bignum.send(cmd, 0) }
+      lambda { @bignum.send(cmd, 0) }.should raise_error(ZeroDivisionError)
     end
 
     it "does NOT raise ZeroDivisionError if other is zero and is a Float" do
@@ -21,13 +21,10 @@ shared :bignum_divide do |cmd|
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError) do
+    lambda {
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       @bignum.div(obj)
-    end
-    
-    should_raise(TypeError) do
-      @bignum.div("2")
-    end
+    }.should raise_error(TypeError)
+    lambda { @bignum.div("2") }.should raise_error(TypeError)
   end
 end

@@ -55,8 +55,6 @@ describe "Comparable#==" do
     (a == b).should == nil
 
     def a.<=>(b) raise Exception, "test"; end
-    should_raise(Exception) do
-      (a == b).should == nil
-    end
+    lambda { (a == b).should == nil }.should raise_error(Exception)
   end
 end

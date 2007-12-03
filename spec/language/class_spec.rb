@@ -75,7 +75,7 @@ describe "A Class Definitions extending an object" do
   end
   
   it "should raise a TypeError when trying to extend numbers" do
-    should_raise(TypeError) do
+    lambda {
       eval <<-CODE
         class << 1
           def xyz
@@ -83,7 +83,7 @@ describe "A Class Definitions extending an object" do
           end
         end
       CODE
-    end
+    }.should raise_error(TypeError)
   end
 end
 
@@ -99,7 +99,7 @@ describe "Reopening a class" do
   end
   
   it "raises a TypeError when superclasses mismatch" do
-    should_raise(TypeError) { class ClassSpecs::A < Array; end }
+    lambda { class ClassSpecs::A < Array; end }.should raise_error(TypeError)
   end
 end
 

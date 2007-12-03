@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Enumerable#reject" do 
-
   it "returns an array of the elements for which block is false" do
     EnumerableSpecs::Numerous.new.reject { |i| i > 3 }.should == [2, 3, 1]
     entries = (1..10).to_a
@@ -13,8 +12,7 @@ describe "Enumerable#reject" do
   end
   
   it "raises LocalJumpError if no block is given" do
-    should_raise(LocalJumpError) { EnumerableSpecs::Numerous.new.reject }
+    lambda { EnumerableSpecs::Numerous.new.reject }.should raise_error(LocalJumpError)
   end
-
 end
 

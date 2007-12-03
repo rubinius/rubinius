@@ -28,10 +28,10 @@ describe "File.executable_real?" do
   end
   
   it "raise an exception if the argument is not from the correct type or are missing" do
-    should_raise(ArgumentError){ File.executable_real? }
-    should_raise(TypeError){ File.executable_real?(1) }
-    should_raise(TypeError){ File.executable_real?(nil) }
-    should_raise(TypeError){ File.executable_real?(false) }
+    lambda { File.executable_real?        }.should raise_error(ArgumentError)
+    lambda { File.executable_real?(1)     }.should raise_error(TypeError)
+    lambda { File.executable_real?(nil)   }.should raise_error(TypeError)
+    lambda { File.executable_real?(false) }.should raise_error(TypeError)
   end
 end
 
@@ -67,9 +67,9 @@ describe "File.executable_real?" do
   end
   
   it "raise an exception if the argumnent is not from the correct type or are missing" do
-    should_raise(ArgumentError){ File.executable_real? }
-    should_raise(TypeError){ File.executable_real?(1) }
-    should_raise(TypeError){ File.executable_real?(nil) }
-    should_raise(TypeError){ File.executable_real?(false) }
+    lambda { File.executable_real?        }.should raise_error(ArgumentError)
+    lambda { File.executable_real?(1)     }.should raise_error(TypeError)
+    lambda { File.executable_real?(nil)   }.should raise_error(TypeError)
+    lambda { File.executable_real?(false) }.should raise_error(TypeError)
   end
 end   

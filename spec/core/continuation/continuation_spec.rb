@@ -14,7 +14,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 context 'Creating a Continuation object' do
   specify 'Must be done through Kernel.callcc, no .new' do
-    should_raise(NoMethodError) { Continuation.new }
+    lambda { Continuation.new }.should raise_error(NoMethodError)
 
     Kernel.callcc {|@cc|}
     c = @cc

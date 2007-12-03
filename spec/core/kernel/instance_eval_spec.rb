@@ -3,11 +3,11 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#instance_eval" do
   it "expects a block with no arguments" do
-    should_raise(ArgumentError) { "hola".instance_eval }
+    lambda { "hola".instance_eval }.should raise_error(ArgumentError)
   end
   
   it "takes no arguments with a block" do
-    should_raise(ArgumentError) { "hola".instance_eval(4, 5) { |a,b| a + b } }
+    lambda { "hola".instance_eval(4, 5) { |a,b| a + b } }.should raise_error(ArgumentError)
   end
   
   it "passes the object to the block" do

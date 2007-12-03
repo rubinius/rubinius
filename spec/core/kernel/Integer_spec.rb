@@ -14,9 +14,7 @@ describe "Kernel.Integer when given a String" do
   
   it "raises an ArgumentError if the given String is no valid String representation" do
     [ "--2", "-+2", "++2", "a2", "2a", "__2", " _2", "2__", "2 _", "2 a"].each do |str|
-      should_raise(ArgumentError) do
-        Integer(str)
-      end
+      lambda { Integer(str) }.should raise_error(ArgumentError)
     end
   end
 end
@@ -36,11 +34,11 @@ describe "Kernel.Integer" do
   end
 
   it "should raise a TypeError if there is no to_i method on an object" do
-    should_raise(TypeError) { Integer(Object.new) }
+    lambda { Integer(Object.new) }.should raise_error(TypeError)
   end
 
   it "should raise a TypeError if to_i doesn't return an Integer" do
     (obj = Object.new).should_receive(:to_i, :returning => "ha!")
-    should_raise(TypeError) { Integer(obj) }
+    lambda { Integer(obj) }.should raise_error(TypeError)
   end
 end

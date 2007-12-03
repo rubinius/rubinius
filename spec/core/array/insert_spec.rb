@@ -44,8 +44,8 @@ describe "Array#insert" do
   end  
   
   it "raises IndexError if the negative index is out of bounds" do
-    should_raise(IndexError) { [].insert(-2, 1) }
-    should_raise(IndexError) { [1].insert(-3, 2) }
+    lambda { [].insert(-2, 1) }.should raise_error(IndexError)
+    lambda { [1].insert(-3, 2) }.should raise_error(IndexError)
   end
 
   it "does nothing of no object is passed" do
@@ -68,7 +68,7 @@ describe "Array#insert" do
   
   compliant :mri do
     it "raises TypeError on frozen arrays if modification takes place" do
-      should_raise(TypeError) { @frozen_array.insert(0, 'x') }
+      lambda { @frozen_array.insert(0, 'x') }.should raise_error(TypeError)
     end
 
     it "does not raise on frozen arrays if no modification takes place" do

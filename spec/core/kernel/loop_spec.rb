@@ -25,6 +25,6 @@ describe "Kernel.loop" do
   end
 
   it "raises LocalJumpError if no block given" do
-    should_raise(LocalJumpError) { loop }
+    lambda { loop }.should raise_error(LocalJumpError)
   end
 end

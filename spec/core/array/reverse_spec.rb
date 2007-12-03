@@ -22,7 +22,7 @@ describe "Array#reverse!" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.reverse! }
+      lambda { @frozen_array.reverse! }.should raise_error(TypeError)
     end
   end
 end

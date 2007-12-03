@@ -13,13 +13,8 @@ shared :bignum_modulo do |cmd|
     end
 
     it "raises a ZeroDivisionError when the given argument is 0" do
-      should_raise(ZeroDivisionError) do
-        @bignum.send(cmd, 0)
-      end
-      
-      should_raise(ZeroDivisionError) do
-        (-@bignum).send(cmd, 0)
-      end
+      lambda { @bignum.send(cmd, 0) }.should raise_error(ZeroDivisionError)
+      lambda { (-@bignum).send(cmd, 0) }.should raise_error(ZeroDivisionError)
     end
 
     it "does not raise a FloatDomainError when the given argument is 0 and a Float" do
@@ -28,18 +23,12 @@ shared :bignum_modulo do |cmd|
     end
 
     it "raises a TypeError when given a non-Integer" do
-      should_raise(TypeError) do
+      lambda {
         (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
         @bignum.send(cmd, obj)
-      end
-      
-      should_raise(TypeError) do
-        @bignum.send(cmd, "10")
-      end
-  
-      should_raise(TypeError) do
-        @bignum.send(cmd, :symbol)
-      end
+      }.should raise_error(TypeError)
+      lambda { @bignum.send(cmd, "10") }.should raise_error(TypeError)
+      lambda { @bignum.send(cmd, :symbol) }.should raise_error(TypeError)
     end
   end
 end

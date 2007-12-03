@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "SystemCallError.new" do  
   it "requires at least one argumentt" do
-    should_raise(ArgumentError) { SystemCallError.new }
+    lambda { SystemCallError.new }.should raise_error(ArgumentError)
   end
 
   it "takes an optional errno argument" do

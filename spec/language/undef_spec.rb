@@ -11,6 +11,6 @@ describe "The undef keyword" do
     class UndefSpecClass
       undef meth
     end
-    should_raise(NoMethodError) { obj.meth 5 }
+    lambda { obj.meth 5 }.should raise_error(NoMethodError)
   end
 end

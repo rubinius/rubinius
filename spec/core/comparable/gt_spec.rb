@@ -38,8 +38,6 @@ describe "Comparable#>" do
     b = ComparableSpecs::Weird.new(20)
     
     a.should_receive(:<=>, :returning => nil)
-    should_raise(ArgumentError, "comparison of ComparableSpecs::Weird with ComparableSpecs::Weird failed") do
-      (a > b)
-    end
+    lambda { (a > b) }.should raise_error(ArgumentError)
   end
 end

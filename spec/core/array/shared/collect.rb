@@ -22,7 +22,7 @@ shared :array_collect_b do |cmd|
 
     compliant :mri do
       it "raises TypeError on a frozen array" do
-        should_raise(TypeError) { @frozen_array.send(cmd) {} }
+        lambda { @frozen_array.send(cmd) {} }.should raise_error(TypeError)
       end
     end
   end

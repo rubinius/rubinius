@@ -59,7 +59,7 @@ describe "File.join" do
   end
   
   it "raise a TypeError exception when args are nil" do
-    should_raise(TypeError){ File.join(nil, nil) }
+    lambda { File.join(nil, nil) }.should raise_error(TypeError)
   end
 end
 
@@ -69,8 +69,6 @@ describe "File.join" do
     File.join.should == ""
 
     # arguments must respond to to_str
-    should_raise(TypeError) do
-      File.join(Object.new)
-    end
+    lambda { File.join(Object.new) }.should raise_error(TypeError)
   end
 end

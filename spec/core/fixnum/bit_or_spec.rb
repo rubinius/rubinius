@@ -17,9 +17,9 @@ describe "Fixnum#|" do
   
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = Object.new
-    should_raise(TypeError) { 3 | obj }
+    lambda { 3 | obj }.should raise_error(TypeError)
     
     obj.should_receive(:to_int, :returning => "asdf")
-    should_raise(TypeError) { 3 | obj }
+    lambda { 3 | obj }.should raise_error(TypeError)
   end
 end

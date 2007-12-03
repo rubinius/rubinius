@@ -79,6 +79,6 @@ end
 
 describe "The yield keyword" do
   it "raises LocalJumpError when invoked in a method not passed a block" do
-    should_raise(LocalJumpError) { YieldSpecs::no_block }
+    lambda { YieldSpecs::no_block }.should raise_error(LocalJumpError)
   end
 end

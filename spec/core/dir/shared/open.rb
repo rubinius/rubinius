@@ -6,9 +6,7 @@ shared :dir_open do |cmd|
   end
   
   it "raises SystemCallError if the directory does not exist" do
-    should_raise(SystemCallError) do
-      Dir.send cmd, DirSpecs.nonexistent
-    end
+    lambda {  Dir.send cmd, DirSpecs.nonexistent }.should raise_error(SystemCallError)
   end
   
   it "takes a block which yields the Dir instance and closes it after" do
@@ -19,7 +17,7 @@ shared :dir_open do |cmd|
     File.for_fd(peek).close
 
     Dir.send(cmd, DirSpecs.mock_dir) { }
-    should_raise(SystemCallError) { File.for_fd peek }
+    lambda { File.for_fd peek }.should raise_error(SystemCallError)
   end
   
   it "returns the value of the block if a block is passed" do

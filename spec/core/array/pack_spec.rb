@@ -32,7 +32,7 @@ describe "Array#pack" do
   #          w     |  BER-compressed integer\fnm
 
   it "raises ArgumentError with ('%')" do
-    should_raise(ArgumentError) { [].pack("%") }
+    lambda { [].pack("%") }.should raise_error(ArgumentError)
   end
 
   it "skips everything till the end of schema string with ('#')" do
@@ -64,9 +64,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if array item is not String with ('A')" do
-    should_raise(TypeError) { [123].pack('A5') }
-    should_raise(TypeError) { [:hello].pack('A5') }
-    should_raise(TypeError) { [Object.new].pack('A5') }
+    lambda { [123].pack('A5') }.should raise_error(TypeError)
+    lambda { [:hello].pack('A5') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('A5') }.should raise_error(TypeError)
   end
 
   it "should work with multi-digit padding sizes with ('A')" do
@@ -94,9 +94,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if array item is not String with ('a')" do
-    should_raise(TypeError) { [123].pack('a5') }
-    should_raise(TypeError) { [:hello].pack('a5') }
-    should_raise(TypeError) { [Object.new].pack('a5') }
+    lambda { [123].pack('a5') }.should raise_error(TypeError)
+    lambda { [:hello].pack('a5') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('a5') }.should raise_error(TypeError)
   end
 
   it "returns packed bit-string descending order with ('B')" do
@@ -162,9 +162,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if corresponding array item is not String with ('B')" do
-    should_raise(TypeError) { [123].pack('B8') }
-    should_raise(TypeError) { [:data].pack('B8') }
-    should_raise(TypeError) { [Object.new].pack('B8') }
+    lambda { [123].pack('B8') }.should raise_error(TypeError)
+    lambda { [:data].pack('B8') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('B8') }.should raise_error(TypeError)
   end
 
   it "returns packed bit-string descending order with ('b')" do
@@ -230,9 +230,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if corresponding array item is not String with ('b')" do
-    should_raise(TypeError) { [123].pack('b8') }
-    should_raise(TypeError) { [:data].pack('b8') }
-    should_raise(TypeError) { [Object.new].pack('b8') }
+    lambda { [123].pack('b8') }.should raise_error(TypeError)
+    lambda { [:data].pack('b8') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('b8') }.should raise_error(TypeError)
   end
 
   it "returns string with char of appropriate number with ('C')" do
@@ -257,7 +257,7 @@ describe "Array#pack" do
   end
 
   it "raises TypeErorr if value is string with ('C')" do
-    should_raise(TypeError) { ["hello"].pack('C') }
+    lambda { ["hello"].pack('C') }.should raise_error(TypeError)
   end
 
   it "processes count number of array elements if count given with ('C')" do
@@ -274,7 +274,7 @@ describe "Array#pack" do
   end
 
   it "raises ArgumentError if count is greater than array elements left with ('C')" do
-    should_raise(ArgumentError) { [1, 2].pack('C3') }
+    lambda { [1, 2].pack('C3') }.should == raise_error(ArgumentError)
   end
 
   it "returns string with char of appropriate number with ('c')" do
@@ -298,8 +298,8 @@ describe "Array#pack" do
     [:hello].pack('c').should == [:hello.to_i].pack('c')
   end
 
-  it "raises TypeErorr if value is string with ('c')" do
-    should_raise(TypeError) { ["hello"].pack('c') }
+  it "raises TypeError if value is string with ('c')" do
+    lambda { ["hello"].pack('c') }.should raise_error(TypeError)
   end
 
   it "processes count number of array elements if count given with ('c')" do
@@ -315,7 +315,7 @@ describe "Array#pack" do
   end
 
   it "raises ArgumentError if count is greater than array elements left with ('c')" do
-    should_raise(ArgumentError) { [1, 2].pack('c3') }
+    lambda { [1, 2].pack('c3') }.should raise_error(ArgumentError)
   end
 
   it "enocdes string with Qouted Printable encoding with ('M')" do
@@ -431,9 +431,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if corresponding array item is not string with ('m')" do
-    should_raise(TypeError) { [123].pack('m') }
-    should_raise(TypeError) { [:hello].pack('m') }
-    should_raise(TypeError) { [Object.new].pack('m') }
+    lambda { [123].pack('m') }.should raise_error(TypeError)
+    lambda { [:hello].pack('m') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('m') }.should raise_error(TypeError)
   end
 
   it "ignores count parameter with ('m')" do
@@ -489,9 +489,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if corresponding array item is not string with ('u')" do
-    should_raise(TypeError) { [123].pack('u') }
-    should_raise(TypeError) { [:hello].pack('u') }
-    should_raise(TypeError) { [Object.new].pack('u') }
+    lambda { [123].pack('u') }.should raise_error(TypeError)
+    lambda { [:hello].pack('u') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('u') }.should raise_error(TypeError)
   end
 
   it "ignores count parameter with ('u')" do
@@ -520,11 +520,11 @@ describe "Array#pack" do
   end
 
   it "raises ArgumentError if count greater than already generated string length with ('X')" do
-    should_raise(ArgumentError) { ['abcdef'].pack('A6X7') }
+    lambda { ['abcdef'].pack('A6X7') }.should raise_error(ArgumentError)
   end
 
   it "raises ArgumentError if it is first directive with ('X')" do
-    should_raise(ArgumentError) { [].pack('X') }
+    lambda { [].pack('X') }.should raise_error(ArgumentError)
   end
 
   it "doesn't increment the array index count with ('X')" do
@@ -572,9 +572,9 @@ describe "Array#pack" do
   end
 
   it "raises TypeError if array item is not String with ('Z')" do
-    should_raise(TypeError) { [123].pack('Z5') }
-    should_raise(TypeError) { [:hello].pack('Z5') }
-    should_raise(TypeError) { [Object.new].pack('Z5') }
+    lambda { [123].pack('Z5') }.should raise_error(TypeError)
+    lambda { [:hello].pack('Z5') }.should raise_error(TypeError)
+    lambda { [Object.new].pack('Z5') }.should raise_error(TypeError)
   end
 
   # Scenario taken from Mongrel's use of the SO_ACCEPTFILTER struct

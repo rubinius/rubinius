@@ -104,9 +104,7 @@ extension :rubinius do
     specify "rb_ary_store should raise IndexError if the offset is still negative after wrap around " do
       a = [1, 2, 3]
 
-      should_raise IndexError do
-        @s.rb_ary_store(a, -10, 5)
-      end
+      lambda { @s.rb_ary_store(a, -10, 5) }.should raise_error IndexError
     end
 
     specify "rb_ary_store should enlarge the array if necessary" do

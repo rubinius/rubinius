@@ -75,18 +75,18 @@ describe "The throw keyword" do
   end
   
   it "should raise a name error if outside of scope of a matching catch" do    
-    should_raise(NameError) { throw :test,5 }
-    should_raise(NameError) { catch(:different) { throw :test,5 } }
+    lambda { throw :test,5 }.should raise_error(NameError)
+    lambda { catch(:different) { throw :test,5 } }.should raise_error(NameError)
   end
 
   it "should raise an exception if used to exit a thread" do
-    should_raise(ThreadError) do
+    lambda {
       catch(:what) do
         Thread.new do
           throw :what
         end.join
       end
-    end
+    }.should raise_error(ThreadError)
   end    
 end
 

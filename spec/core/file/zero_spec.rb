@@ -34,10 +34,10 @@ describe "File.zero?" do
   end
   
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
-    should_raise(ArgumentError){ File.zero? }
-    should_raise(TypeError){ File.zero?(nil) }
-    should_raise(TypeError){ File.zero?(true) }
-    should_raise(TypeError){ File.zero?(false) }
+    lambda { File.zero?        }.should raise_error(ArgumentError)
+    lambda { File.zero?(nil)   }.should raise_error(TypeError)
+    lambda { File.zero?(true)  }.should raise_error(TypeError)
+    lambda { File.zero?(false) }.should raise_error(TypeError)
   end
    
   specify "zero? should return true if the named file exists and has a zero size." do

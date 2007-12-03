@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Enumerable#sort" do
-
   it "sorts by the natural order as defined by <=> " do
     EnumerableSpecs::Numerous.new.sort.should == [1, 2, 3, 4, 5, 6]
     sorted = EnumerableSpecs::ComparesByVowelCount.wrap("a" * 1, "a" * 2, "a"*3, "a"*4, "a"*5)
@@ -15,8 +14,9 @@ describe "Enumerable#sort" do
   end
   
   it "sort should throw a NoMethodError if elements do not define <=>" do
-    should_raise(NoMethodError) {EnumerableSpecs::Numerous.new(Object.new, Object.new, Object.new).sort}
+    lambda {
+      EnumerableSpecs::Numerous.new(Object.new, Object.new, Object.new).sort
+    }.should raise_error(NoMethodError)
   end
-  
 end
 

@@ -81,7 +81,7 @@ extension :rubinius do
       @helper.get_argument(0).should == 1
       @helper.get_argument(1).should == 2
       @helper.get_argument(2).should == 3
-      should_raise(ArgumentError) { @helper.get_argument(4) }
+      lambda { @helper.get_argument(4) }.should raise_error(ArgumentError)
     end
   
     it "get_next_argument returns the next item from the argument list" do
@@ -89,12 +89,12 @@ extension :rubinius do
       @helper.get_next_argument.should == 2
       @helper.get_next_argument.should == 3
 
-      should_raise(ArgumentError) do
+      lambda {
         @helper.get_next_argument
         @helper.get_next_argument
         @helper.get_next_argument
         @helper.get_next_argument
-      end
+      }.should raise_error(ArgumentError)
     end
   
     it "get_number return a numerical value from a number string at the cursor position" do

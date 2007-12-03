@@ -2,14 +2,14 @@ require File.dirname(__FILE__) + '/../spec_helper'
 
 context "Exceptions" do
   specify "raise should abort execution" do
-    should_raise(ArgumentError) do
+    lambda { 
       begin
         raise ArgumentError, "you don't know what you're talking about"
       rescue ArgumentError => e
         e.message.should == "you don't know what you're talking about"
         raise
       end
-    end
+    }.should raise_error(ArgumentError)
   end
   
   # FIXME: code string is only necessary because ensure crashes shotgun
@@ -118,9 +118,7 @@ context "Exceptions" do
   end
 
   specify "that exceptions are not cleared exiting a thread" do
-    should_raise(RangeError) do
-      Thread.new { raise RangeError }.join
-    end
+    lambda { Thread.new { raise RangeError }.join }.should raise_error(RangeError)
   end
   
   specify "that StandardError is the default rescue class" do

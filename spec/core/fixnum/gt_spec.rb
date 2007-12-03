@@ -13,12 +13,7 @@ describe "Fixnum#>" do
   end
   
   it "raises an ArgumentError when given a non-Integer" do
-    should_raise(ArgumentError) do
-      5 > "4"
-    end
-    
-    should_raise(ArgumentError) do
-      5 > Object.new
-    end
+    lambda { 5 > "4"        }.should raise_error(ArgumentError)
+    lambda { 5 > Object.new }.should raise_error(ArgumentError)
   end
 end

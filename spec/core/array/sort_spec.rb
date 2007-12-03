@@ -13,7 +13,7 @@ describe "Array#sort" do
     d = D.new
 
     # Fails essentially because of 1.<=>(d) whereas d.<=>(1) would work
-    should_raise(ArgumentError) { [1, d].sort.should == [1, d] }
+    lambda { [1, d].sort.should == [1, d] }.should raise_error(ArgumentError)
   end
   
   it "may take a block which is used to determine the order of objects a and b described as -1, 0 or +1" do
@@ -43,7 +43,7 @@ describe "Array#sort!" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.sort! }
+      lambda { @frozen_array.sort! }.should raise_error(TypeError)
     end
   end
 end

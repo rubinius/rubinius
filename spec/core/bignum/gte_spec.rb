@@ -14,12 +14,7 @@ describe "Bignum#>=" do
   end
 
   it "raises an ArgumentError when given a non-Integer" do
-    should_raise(ArgumentError) do
-      @bignum >= "4"
-    end
-    
-    should_raise(ArgumentError) do
-      @bignum >= Object.new
-    end
+    lambda { @bignum >= "4" }.should raise_error(ArgumentError)
+    lambda { @bignum >= Object.new }.should raise_error(ArgumentError)
   end
 end

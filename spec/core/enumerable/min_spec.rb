@@ -35,9 +35,15 @@ describe "Enumerable#min" do
   
   it "return nil when error" do    
     EnumerableSpecs::EachDefiner.new().min.should == nil
-    should_raise(NoMethodError) {EnumerableSpecs::EachDefiner.new(Object.new, Object.new).min }
-    should_raise( ArgumentError) {EnumerableSpecs::EachDefiner.new(11,"22").min }
-    should_raise( ArgumentError) {EnumerableSpecs::EachDefiner.new(11,12,22,33).min{|a, b| nil}}
+    lambda {
+      EnumerableSpecs::EachDefiner.new(Object.new, Object.new).min
+    }.should raise_error(NoMethodError)
+    lambda {
+      EnumerableSpecs::EachDefiner.new(11,"22").min
+    }.should raise_error(ArgumentError)
+    lambda {
+      EnumerableSpecs::EachDefiner.new(11,12,22,33).min{|a, b| nil}
+    }.should raise_error(ArgumentError)
   end
   
   it "return the minimun when using a block rule" do

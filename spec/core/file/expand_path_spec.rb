@@ -79,13 +79,13 @@ describe "File.expand_path" do
   end 
   
   it "raise an exception if the argumnents are not of the correct type or are missing" do
-    should_raise(ArgumentError){ File.expand_path }
-    should_raise(TypeError){ File.expand_path(1) }
-    should_raise(TypeError){ File.expand_path(nil) }
-    should_raise(TypeError){ File.expand_path(true) }
+    lambda { File.expand_path       }.should raise_errror(ArgumentError)
+    lambda { File.expand_path(1)    }.should raise_error(TypeError)
+    lambda { File.expand_path(nil)  }.should raise_error(TypeError)
+    lambda { File.expand_path(true) }.should raise_error(TypeError)
       
     platform :not, :mswin do
-      should_raise(ArgumentError){ File.expand_path("~a_fake_file") }
+      lambda { File.expand_path("~a_fake_file") }.should raise_error(ArgumentError)
       File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
     end
   end

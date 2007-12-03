@@ -17,6 +17,6 @@ describe "Float.induced_from" do
     class Foo
       def to_f; 9.9; end
     end
-    should_raise(TypeError) { Float.induced_from(Foo.new) }
+    lambda { Float.induced_from(Foo.new) }.should raise_error(TypeError)
   end
 end 

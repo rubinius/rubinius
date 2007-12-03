@@ -25,33 +25,20 @@ describe "Fixnum#div" do
   end
   
   it "raises a FloatDomainError when the given argument is 0 and a Float" do
-    should_raise(FloatDomainError, "NaN") do
-      0.div(0.0)
-    end
-    
-    should_raise(FloatDomainError, "Infinity") do
-      10.div(0.0)
-    end
-    
-    should_raise(FloatDomainError, "-Infinity") do
-      -10.div(0.0)
-    end
+    lambda { 0.div(0.0)   }.should raise_error(FloatDomainError)
+    lambda { 10.div(0.0)  }.should raise_error(FloatDomainError)
+    lambda { -10.div(0.0) }.should raise_error(FloatDomainError)
   end
 
   it "raises a ZeroDivisionError when the given argument is 0" do
-    should_raise(ZeroDivisionError) do
-      13.div(0)
-    end
+    lambda { 13.div(0) }.should raise_error(ZeroDivisionError)
   end
   
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError) do
+    lambda {
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       13.div(obj)
-    end
-    
-    should_raise(TypeError) do
-      5.div("2")
-    end
+    }.should raise_error(TypeError)
+    lambda { 5.div("2") }.should raise_error(TypeError)
   end
 end

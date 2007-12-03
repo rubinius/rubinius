@@ -18,16 +18,16 @@ describe "Kernel#instance_variable_set" do
 
   it "raises NameError exception if the argument is not of form '@x'" do
     class NoDog; end
-    should_raise(NameError) { NoDog.new.instance_variable_set(:c, "cat") }
+    lambda { NoDog.new.instance_variable_set(:c, "cat") }.should raise_error(NameError)
   end
 
   it "should raise ArgumentError if the instance variable name is a Fixnum" do
-    should_raise(ArgumentError) { "".instance_variable_set(1, 2) }
+    lambda { "".instance_variable_set(1, 2) }.should raise_error(ArgumentError)
   end
   
   it "should raise TypeError if the instance variable name is an object that does not respond to to_str" do
     class KernelSpecs::A; end
-    should_raise(TypeError) { "".instance_variable_set(KernelSpecs::A.new, 3) }
+    lambda { "".instance_variable_set(KernelSpecs::A.new, 3) }.should raise_error(TypeError)
   end
   
   it "should raise NameError if the passed object, when coerced with to_str, does not start with @" do
@@ -36,11 +36,11 @@ describe "Kernel#instance_variable_set" do
         ":c"
       end
     end
-    should_raise(NameError) { "".instance_variable_set(KernelSpecs::B.new, 4) }
+    lambda { "".instance_variable_set(KernelSpecs::B.new, 4) }.should raise_error(NameError)
   end
   
   it "should raise NameError if pass an object that cannot be a symbol" do
-    should_raise(NameError) { "".instance_variable_set(:c, 1) }
+    lambda { "".instance_variable_set(:c, 1) }.should raise_error(NameError)
   end
   
   it "should accept as instance variable name any instance of a class that responds to to_str" do

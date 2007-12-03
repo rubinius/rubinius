@@ -24,8 +24,8 @@ describe "Array#initialize" do
   end
   
   it "raises ArgumentError if size is negative" do
-    should_raise(ArgumentError) { [].instance_eval { initialize(-1, :a) } }
-    should_raise(ArgumentError) { [1, 2, 3].instance_eval { initialize(-1) } }
+    lambda { [].instance_eval { initialize(-1, :a) } }.should raise_error(ArgumentError)
+    lambda { [1, 2, 3].instance_eval { initialize(-1) } }.should raise_error(ArgumentError)
   end
   
   it "calls to_int on array size" do
@@ -42,8 +42,8 @@ describe "Array#initialize" do
 
   compliant :mri do
     it "raises TypeError on frozen arrays" do
-      should_raise(TypeError) { @frozen_array.instance_eval { initialize(1) } }
-      should_raise(TypeError) { @frozen_array.instance_eval { initialize([1, 2, 3]) } }
+      lambda { @frozen_array.instance_eval { initialize(1) } }.should raise_error(TypeError)
+      lambda { @frozen_array.instance_eval { initialize([1, 2, 3]) } }.should raise_error(TypeError)
     end
   end
 end

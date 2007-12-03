@@ -95,11 +95,11 @@ describe "File.basename" do
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do
-    should_raise(TypeError){ File.basename(nil) }
-    should_raise(TypeError){ File.basename(1) }
-    should_raise(TypeError){ File.basename("bar.txt", 1) }
-    should_raise(TypeError){ File.basename(true) }
-    should_raise(ArgumentError){ File.basename('bar.txt', '.txt', '.txt') }
+    lambda { File.basename(nil)          }.should raise_error(TypeError)
+    lambda { File.basename(1)            }.should raise_error(TypeError)
+    lambda { File.basename("bar.txt", 1) }.should raise_error(TypeError)
+    lambda { File.basename(true)         }.should raise_error(TypeError)
+    lambda { File.basename('bar.txt', '.txt', '.txt') }.should raise_error(ArgumentError)
   end
 
   # specific to MS Windows

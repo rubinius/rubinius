@@ -26,15 +26,13 @@ describe "Dir.mkdir" do
   it "raises without adequate permissions in the parent dir" do
     Dir.mkdir 'noperms', 0000
 
-    should_raise(SystemCallError) { Dir.mkdir 'noperms/subdir' }
+    lambda { Dir.mkdir 'noperms/subdir' }.should raise_error(SystemCallError)
 
     system 'chmod 0777 noperms'
     Dir.rmdir 'noperms'
   end
 
   it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
-    should_raise(SystemCallError) do
-      Dir.mkdir "#{DirSpecs.nonexistent}/subdir"
-    end
+    lambda { Dir.mkdir "#{DirSpecs.nonexistent}/subdir" }.shooud raise_error(SystemCallError)
   end
 end

@@ -24,6 +24,6 @@ describe "Kernel#binding" do
   end
 
   it "should raise NameError on undefined variable" do
-    should_raise(NameError) { eval("a_fake_variable", @b1) }
+    lambda { eval("a_fake_variable", @b1) }.should raise_error(NameError)
   end
 end

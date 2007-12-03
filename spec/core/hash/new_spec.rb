@@ -21,11 +21,11 @@ describe "Hash.new" do
   end
   
   it "raises ArgumentError if more than one argument is passed" do
-    should_raise(ArgumentError) { Hash.new(5,6) }
+    lambda { Hash.new(5,6) }.should raise_error(ArgumentError)
   end
   
   it "raises ArgumentError if passed both default argument and default block" do
-    should_raise(ArgumentError) { Hash.new(5) { 0 } }
-    should_raise(ArgumentError) { Hash.new(nil) { 0 } }
+    lambda { Hash.new(5) { 0 }   }.should raise_error(ArgumentError)
+    lambda { Hash.new(nil) { 0 } }.should raise_error(ArgumentError)
   end
 end

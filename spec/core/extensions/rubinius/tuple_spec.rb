@@ -28,13 +28,13 @@ extension :rubinius do
     
     it "raises InvalidIndex when index is greater than or equal to tuple size" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t[1] }
-      should_raise(InvalidIndex) { t[5] }
+      lambda { t[1] }.should raise_error(InvalidIndex)
+      lambda { t[5] }.should raise_error(InvalidIndex)
     end
     
     it "raises InvalidIndex when index is less than zero" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t[-1] }
+      lambda { t[-1] }.should raise_error(InvalidIndex)
     end
   end
   
@@ -44,13 +44,13 @@ extension :rubinius do
     
     it "raises InvalidIndex when index is greater than or equal to tuple size" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t[1] = 'wrong' }
-      should_raise(InvalidIndex) { t[6] = 'wrong' }
+      lambda { t[1] = 'wrong' }.should raise_error(InvalidIndex)
+      lambda { t[6] = 'wrong' }.should raise_error(InvalidIndex)
     end
     
     it "raises InvalidIndex when index is less than zero" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t[-1] = 'wrong' }
+      lambda { t[-1] = 'wrong' }.should raise_error(InvalidIndex)
     end
   end
   
@@ -63,13 +63,13 @@ extension :rubinius do
 
     it "raises InvalidIndex when index is greater than or equal to tuple size" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t.at(1) }
-      should_raise(InvalidIndex) { t.at(5) }
+      lambda { t.at(1) }.should raise_error(InvalidIndex)
+      lambda { t.at(5) }.should raise_error(InvalidIndex)
     end
   
     it "raises InvalidIndex when index is less than zero" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t.at(-1) }
+      lambda { t.at(-1) }.should raise_error(InvalidIndex)
     end
   end
   
@@ -210,12 +210,12 @@ extension :rubinius do
 
     it "raises InvalidIndex when index is greater than or equal to tuple size" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t.put(1,'wrong') }
+      raise_error(InvalidIndex) { t.put(1,'wrong') }
     end
   
     it "raises InvalidIndex when index is less than zero" do
       t = Tuple.new(1)
-      should_raise(InvalidIndex) { t.put(-1,'wrong') }
+      lambda { t.put(-1,'wrong') }.should raise_error(InvalidIndex)
     end
   end
   

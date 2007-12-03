@@ -48,52 +48,49 @@ describe "GetoptLong#set_options" do
   end
   
   it "should raise an ArgumentError if too many argument flags where given" do
-    should_raise(ArgumentError, "too many argument-flags") do
+    lambda {
       @opts.set_options(["--size", GetoptLong::NO_ARGUMENT, GetoptLong::REQUIRED_ARGUMENT])
-    end
+    }.should raise_error(ArgumentError)
   end
   
   it "should raise a RuntimeError if processing has already started" do
     @opts.get
-    should_raise(RuntimeError, "invoke set_options, but option processing has already started") do
+    lambda {
       @opts.set_options()
-    end
+    }.should raise_error(RuntimeError)
   end
   
   it "should raise an ArgumentError if no argument flag was given" do
-    should_raise(ArgumentError, "no argument-flag") do
+    lambda {
       @opts.set_options(["--size"])
-    end
+    }.should raise_error(ArgumentError)
   end
   
   it "should raise an ArgumentError if one of the given arguments is not an Array" do
-    should_raise(ArgumentError, "the option list contains non-Array argument") do
+    lambda {
       @opts.set_options(
         ["--size", GetoptLong::REQUIRED_ARGUMENT],
-        "test"
-      )
-    end
+        "test")
+    }.should raise_error(ArgumentError)
   end
   
   it "should raise an ArgumentError if the same option is given twice" do
-    should_raise(ArgumentError, "option redefined `--size'") do
+    lambda {
       @opts.set_options(
         ["--size", GetoptLong::NO_ARGUMENT],
-        ["--size", GetoptLong::OPTIONAL_ARGUMENT]
-      )
-    end
-    
-    should_raise(ArgumentError, "option redefined `--size'") do
+        ["--size", GetoptLong::OPTIONAL_ARGUMENT])
+    }.should raise_error(ArgumentError)
+
+    lambda {
       @opts.set_options(
         ["--size", GetoptLong::NO_ARGUMENT],
-        ["-s", "--size", GetoptLong::OPTIONAL_ARGUMENT]
-      )
-    end
+        ["-s", "--size", GetoptLong::OPTIONAL_ARGUMENT])
+    }.should raise_error(ArgumentError)
   end
   
   it "should raise an ArgumentError if the given option is invalid" do
-    should_raise(ArgumentError, "an invalid option `-size'") do
+    lambda {
       @opts.set_options(["-size", GetoptLong::NO_ARGUMENT])
-    end
+    }.should raise_error(ArgumentError)
   end
 end

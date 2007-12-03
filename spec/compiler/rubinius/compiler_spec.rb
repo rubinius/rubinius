@@ -460,34 +460,34 @@ extension :rubinius do
         "push 8\npush 99\nset_local_fp 2 ; local a\npop\nset_local_fp 1 ; local b\npop\npush true\nsret\n"
     end
   
-    # TODO - Add correct asm expectation, remove should_raise
+    # TODO - Add correct asm expectation, remove raise_error
     it "compiles masgn with array as the source and too many lhs" do
-      should_raise(RuntimeError) {
+      lambda {
         compile [:masgn,
          [:array, [:lasgn, :a, 2], [:lasgn, :b, 3], [:lasgn, :c, 4]],
          nil,
          [:array, [:lit, 99], [:lit, 8]]]
-      }
+      }.should raise_error(RuntimeError)
     end
   
-    # TODO - Add correct asm expectation, remove should_raise
+    # TODO - Add correct asm expectation, remove raise_error
     it "compiles masgn with array as the source and too many rhs" do
-      should_raise(RuntimeError) {
+      lambda {
         compile [:masgn,
          [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
          nil,
          [:array, [:lit, 99], [:lit, 8], [:lit, 93]]]
-      }
+      }.should raise_error(RuntimeError)
     end
   
-    # TODO - Add correct asm expectation, remove should_raise
+    # TODO - Add correct asm expectation, remove raise_error
     it "compiles masgn with array as source splat is stupid" do
-      should_raise(RuntimeError) {
+      lambda {
         compile [:masgn,
          [:array, [:lasgn, :a, 2], [:lasgn, :b, 3]],
          [:lasgn, :c, 4],
          [:array, [:lit, 99], [:lit, 8]]]
-      }
+      }.should raise_error(RuntimeError)
     end
   
     it "compiles call" do

@@ -20,8 +20,8 @@ describe "Hash#clear" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      should_raise(TypeError) { @hash.clear }
-      should_raise(TypeError) { @empty.clear }
+      lambda { @hash.clear  }.should raise_error(TypeError)
+      lambda { @empty.clear }.should raise_error(TypeError)
     end
   end
 end

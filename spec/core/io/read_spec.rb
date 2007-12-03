@@ -26,14 +26,13 @@ describe "IO.read" do
   
   it "should throw an exception if the requested file does not exist" do
     File.delete(@fname) if File.exists?(@fname)
-    should_raise(Errno::ENOENT) { IO.read @fname }
+    lambda { IO.read @fname }.should raise_error(Errno::ENOENT)
   end
   
   it "should throw an exception if given the wrong type or number of arguments" do
-    should_raise(TypeError) { IO.read nil }
-    should_raise(TypeError) { IO.read 5 }
-    should_raise(ArgumentError) { IO.read @fname, -1 }
-    should_raise(Errno::EINVAL) { IO.read @fname, 0, -1 }
-    should_raise(Errno::EINVAL) { IO.read @fname, -1, -1 }
+    lambda { IO.read nil }.should raise_error(TypeError)
+    lambda { IO.read @fname, -1 }.should raise_error(ArgumentError)
+    lambda { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
+    lambda { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
   end
 end

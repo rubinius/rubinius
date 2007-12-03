@@ -37,8 +37,8 @@ describe "File.identical?" do
   end
 
   it "raise an exception if the arguments are the wrong type or of incorrect number" do
-    should_raise(ArgumentError){ File.identical?(@file1, @file2, @file3) }
-    should_raise(TypeError){ File.identical?(1,1) }
+    lambda { File.identical?(@file1, @file2, @file3) }.should raise_error(ArgumentError)
+    lambda { File.identical?(1,1) }.should raise_error(TypeError)
   end
 
   it "identical? should return true if both named files are identical" do

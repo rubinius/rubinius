@@ -11,17 +11,12 @@ extension :rubinius do
     end
   
     specify "rb_raise should raise an exception" do
-      should_raise(TypeError) do
-        @s.raise!
-      end
+      lambda { @s.raise! }.should raise_error(TypeError)
     end
   
     specify "rb_raise terminates the function early" do
       h = {}
-      should_raise(TypeError) do
-        @s.raise_early(h)
-      end
-
+      lambda { @s.raise_early(h) }.should raise_error(TypeError)
       h[:screwed].should == false
     end
   end

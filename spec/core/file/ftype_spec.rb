@@ -98,7 +98,7 @@ describe "File.ftype" do
   end
 
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
-    should_raise(ArgumentError){ File.ftype }
-    should_raise(Errno::ENOENT){ File.ftype('bogus') }
+    lambda { File.ftype          }.should raise_error(ArgumentError)
+    lambda { File.ftype('bogus') }.should raise_error(Errno::ENOENT)
   end
 end 

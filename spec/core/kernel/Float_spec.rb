@@ -3,21 +3,10 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.Float when passed a String" do
   it "raises a TypeError when the given String can't be fully converted to a Float" do
-    should_raise(ArgumentError, 'invalid value for Float(): "0.0.0"') do
-      Float('0.0.0')
-    end
-    
-    should_raise(ArgumentError, 'invalid value for Float(): "float"') do
-      Float('float')
-    end
-    
-    should_raise(ArgumentError, 'invalid value for Float(): "10.0:D"') do
-      Float('10.0:D')
-    end
-    
-    should_raise(ArgumentError, 'invalid value for Float(): "D10"') do
-      Float('D10')
-    end
+    lambda { Float('0.0.0')  }.should raise_error(ArgumentError)
+    lambda { Float('float')  }.should raise_error(ArgumentError)
+    lambda { Float('10.0:D') }.should raise_error(ArgumentError)
+    lambda { Float('D10')    }.should raise_error(ArgumentError)
   end
 end
 
@@ -34,20 +23,14 @@ describe "Kernel.Float" do
   end
   
   it "raises a TypeError of #to_f is not provided" do
-    should_raise(TypeError) do
-      Kernel.Float(Object.new)
-    end
+    lambda { Kernel.Float(Object.new) }.should raise_error(TypeError)
   end
   
   it "raises a TypeError if #to_f does not return a Float" do
     (obj = Object.new).should_receive(:to_f, :returning => 'ha!')
-    should_raise(TypeError) do
-      Kernel.Float(obj)
-    end
+    lambda { Kernel.Float(obj) }.should raise_error(TypeError)
 
     obj.should_receive(:to_f, :returning => 123)
-    should_raise(TypeError) do
-      Kernel.Float(obj)
-    end
+    lambda { Kernel.Float(obj) }.should raise_error(TypeError)
   end
 end

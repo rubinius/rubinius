@@ -45,24 +45,10 @@ describe "Class.new" do
   end
   
   it "raises a TypeError when given a non-Class" do
-    should_raise(TypeError, "superclass must be a Class (String given)") do
-      Class.new("")
-    end
-
-    should_raise(TypeError, "superclass must be a Class (Fixnum given)") do
-      Class.new(1)
-    end
-
-    should_raise(TypeError, "superclass must be a Class (Symbol given)") do
-      Class.new(:symbol)
-    end
-
-    should_raise(TypeError, "superclass must be a Class (Object given)") do
-      Class.new(Object.new)
-    end
-
-    should_raise(TypeError, "superclass must be a Class (Module given)") do
-      Class.new(Module.new)
-    end
+    lambda { Class.new("")         }.should raise_error(TypeError)
+    lambda { Class.new(1)          }.should raise_error(TypeError)
+    lambda { Class.new(:symbol)    }.should raise_error(TypeError)
+    lambda { Class.new(Object.new) }.should raise_error(TypeError)
+    lambda { Class.new(Module.new) }.should raise_error(TypeError)
   end
 end

@@ -14,14 +14,14 @@ describe "Kernel#method" do
  
   it "raises a NameError for an invalid method name" do
     class KernelSpecs::Foo; def bar; 'done'; end; end
-    should_raise(NameError) do
+    lambda {
       KernelSpecs::Foo.new.method(:invalid_and_silly_method_name)
-    end
+    }.should raise_error(NameError)
   end
 
   it "raises a NameError for an invalid singleton method name" do
     class KernelSpecs::Foo; def self.bar; 'done'; end; end
-    should_raise(NameError) { KernelSpecs::Foo.method(:baz) }
+    lambda { KernelSpecs::Foo.method(:baz) }.should raise_error(NameError)
   end
 end
 

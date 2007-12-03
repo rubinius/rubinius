@@ -55,7 +55,7 @@ describe "Array#reject!" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.reject! {} }
+      lambda { @frozen_array.reject! {} }.should raise_error(TypeError)
     end
   end
 end

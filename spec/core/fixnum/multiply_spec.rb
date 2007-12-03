@@ -11,17 +11,11 @@ describe "Fixnum#*" do
   end
 
   it "raises a TypeError when given a non-Integer" do
-    should_raise(TypeError) do
+    lambda {
       (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
       13 * obj
-    end
-    
-    should_raise(TypeError) do
-      13 * "10"
-    end
-    
-    should_raise(TypeError) do
-      13 * :symbol
-    end
+    }.should raise_error(TypeError)
+    lambda { 13 * "10"    }.should raise_error(TypeError)
+    lambda { 13 * :symbol }.should raise_error(TypeError)
   end
 end

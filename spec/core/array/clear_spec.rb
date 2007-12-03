@@ -25,7 +25,7 @@ describe "Array#clear" do
     it "raises TypeError on a frozen array" do
       a = [1]
       a.freeze
-      should_raise(TypeError) { a.clear }
+      lambda { a.clear }.should raise_error(TypeError)
     end
   end
 end

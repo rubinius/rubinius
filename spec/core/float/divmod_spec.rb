@@ -16,8 +16,8 @@ describe "Float#divmod" do
   
   version '1.8.5'..'1.8.6' do
     it "raises FloatDomainError if other is zero" do
-      should_raise(FloatDomainError) { 1.0.divmod(0) }
-      should_raise(FloatDomainError) { 1.0.divmod(0.0) }
+      lambda { 1.0.divmod(0)   }.should raise_error(FloatDomainError)
+      lambda { 1.0.divmod(0.0) }.should raise_error(FloatDomainError)
     end
   end
 end

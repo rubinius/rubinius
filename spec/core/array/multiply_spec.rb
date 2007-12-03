@@ -37,8 +37,8 @@ describe "Array#*" do
   end
   
   it "raises ArgumentError when passed a negative integer" do
-    should_raise(ArgumentError) { [ 1, 2, 3 ] * -1 }
-    should_raise(ArgumentError) { [] * -1 }
+    lambda { [ 1, 2, 3 ] * -1 }.should raise_error(ArgumentError)
+    lambda { [] * -1 }.should raise_error(ArgumentError)
   end
   
   it "calls to_int on its argument" do
@@ -67,6 +67,6 @@ describe "Array#*" do
   end
 
   it "raises TypeError if the argument can neither be converted to a string nor an integer" do
-    should_raise(TypeError) { [1, 2] * Object.new }
+    lambda { [1, 2] * Object.new }.should raise_error(TypeError)
   end  
 end

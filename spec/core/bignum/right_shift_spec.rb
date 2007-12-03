@@ -25,10 +25,10 @@ describe "Bignum#>>" do
   
   it "raises a TypeError when the given argument can't be converted to Integer" do
     obj = Object.new
-    should_raise(TypeError) { @bignum >> obj }
+    lambda { @bignum >> obj }.should raise_error(TypeError)
     
     obj.should_receive(:to_int, :returning => "asdf")
-    should_raise(TypeError) { @bignum >> obj }
+    lambda { @bignum >> obj }.should raise_error(TypeError)
   end
 
   # This test was added as the result of ruby-core:9020.

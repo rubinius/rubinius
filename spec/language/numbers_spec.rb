@@ -15,8 +15,8 @@ context "Ruby numbers in various ways" do
   end
   
   specify "with decimals but no integer part should be a SyntaxError" do
-    should_raise(SyntaxError) { eval(".75") }
-    should_raise(SyntaxError) { eval("-.75") }
+    lambda { eval(".75")  }.should raise_error(SyntaxError)
+    lambda { eval("-.75") }.should raise_error(SyntaxError)
   end
 
   # TODO : find a better description

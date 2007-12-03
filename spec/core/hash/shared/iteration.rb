@@ -14,9 +14,9 @@ shared :hash_iteration_method do |cmd|
     #   h = hsh.dup
     #   args = cmd.to_s[/merge|update/] ? [h] : []
     #   
-    #   should_raise(RuntimeError, "rehash occurred during iteration") do
+    #   lambda {
     #     h.send(cmd, *args) { h.rehash }
-    #   end
+    #   }.should raise_error(RuntimeError)
     # end
     # 
     # # This specification seems arbitrary, but describes the behavior of MRI
@@ -24,9 +24,9 @@ shared :hash_iteration_method do |cmd|
     #   h = hsh.dup
     #   args = cmd.to_s[/merge|update/] ? [h] : []
     # 
-    #   should_raise(RuntimeError, "hash modified during iteration") do
+    #   lambda {
     #     h.send(cmd, *args) { |*x| h.merge!(big_hash) }
-    #   end
+    #   }.should raise_error(RuntimeError)
     # end
 
   end
@@ -62,7 +62,7 @@ shared :hash_iteration_no_block do |cmd|
     empty = {}
     
     it "raises LocalJumpError when called on a non-empty hash without a block" do
-      should_raise(LocalJumpError) { hsh.delete_if }
+      lambda { hsh.delete_if }.should raise_error(LocalJumpError)
     end
     
     it "does not raise LocalJumpError when called on an empty hash without a block" do

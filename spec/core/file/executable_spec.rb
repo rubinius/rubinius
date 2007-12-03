@@ -28,10 +28,10 @@ describe "File.executable?" do
   end
 
   it "raise an exception its the arguments are the worng type or number" do
-    should_raise(ArgumentError){ File.executable? }
-    should_raise(TypeError){ File.executable?(1) }
-    should_raise(TypeError){ File.executable?(nil) }
-    should_raise(TypeError){ File.executable?(false) }
+    lambda { File.executable?     ``   }.should raise_error(ArgumentError)
+    lambda { File.executable?(1)     }.should raise_error(TypeError)
+    lambda { File.executable?(nil)   }.should raise_error(TypeError)
+    lambda { File.executable?(false) }.should raise_error(TypeError)
   end
 end
 
@@ -64,10 +64,10 @@ describe "File.executable?" do
   end
 
   it "raise an exception its the arguments are the wrong type or number" do
-    should_raise(ArgumentError){ File.executable? }
-    should_raise(TypeError){ File.executable?(1) }
-    should_raise(TypeError){ File.executable?(nil) }
-    should_raise(TypeError){ File.executable?(false) }
+    lambda { File.executable?        }.should raise_error(ArgumentError)
+    lambda { File.executable?(1)     }.should raise_error(TypeError)
+    lambda { File.executable?(nil)   }.should raise_error(TypeError)
+    lambda { File.executable?(false) }.should raise_error(TypeError)
   end
 
   after :all do

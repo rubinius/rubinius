@@ -12,9 +12,9 @@ describe "Array#fetch" do
   end
   
   it "raises IndexError if there is no element at index" do
-    should_raise(IndexError) { [1, 2, 3].fetch(3) }
-    should_raise(IndexError) { [1, 2, 3].fetch(-4) }
-    should_raise(IndexError) { [].fetch(0) }
+    lambda { [1, 2, 3].fetch(3) }.should raise_error(IndexError)
+    lambda { [1, 2, 3].fetch(-4) }.should raise_error(IndexError)
+    lambda { [].fetch(0) }.should raise_error(IndexError)
   end
   
   it "returns default if there is no element at index if passed a default value" do

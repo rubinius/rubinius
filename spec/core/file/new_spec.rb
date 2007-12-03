@@ -49,7 +49,7 @@ describe "File.new" do
   end
 
   it "raise an Errorno::EEXIST if the file exists when create a new file with File::CREAT|File::EXCL" do 
-    should_raise(Errno::EEXIST){@fh = File.new(@file, File::CREAT|File::EXCL)}
+    lambda { @fh = File.new(@file, File::CREAT|File::EXCL) }.should raise_error(Errno::EEXIST)
   end
   
   it "create a new file when use File::WRONLY|File::APPEND mode" do 
@@ -59,12 +59,12 @@ describe "File.new" do
   end
 
   it "raise an Errno::EINVAL error with File::APPEND" do 
-    should_raise(Errno::EINVAL){@fh = File.new(@file, File::APPEND)}
+    lambda { @fh = File.new(@file, File::APPEND) }.should raise_error(Errno::EINVAL)
   end
   
   
   it "raise an Errno::EINVAL error with File::RDONLY|File::APPEND" do 
-    should_raise(Errno::EINVAL){@fh = File.new(@file, File::RDONLY|File::APPEND)}
+    lambda { @fh = File.new(@file, File::RDONLY|File::APPEND) }.should raise_error(Errno::EINVAL)
   end
   
   it "raise an Errno::EINVAL error with File::RDONLY|File::WRONLY" do 
@@ -81,17 +81,17 @@ describe "File.new" do
   end
   
   specify  "expected errors " do
-    should_raise(TypeError){ File.new(true) }
-    should_raise(TypeError){ File.new(false) }
-    should_raise(TypeError){ File.new(nil) }
-    should_raise(Errno::EBADF){ File.new(-1) }
-    should_raise(ArgumentError){ File.new(@file, File::CREAT, 0755, 'test') }
+    lambda { File.new(true)  }.should raise_error(TypeError)
+    lambda { File.new(false) }.should raise_error(TypeError)
+    lambda { File.new(nil)   }.should raise_error(TypeError)
+    lambda { File.new(-1) }.should raise_error(Errno::EBADF)
+    lambda { File.new(@file, File::CREAT, 0755, 'test') }.should raise_error(ArgumentError)
   end
 
   # You can't alter mode or permissions when opening a file descriptor
   #
   it "can't alter mode or permissions when opening a file" do 
     @fh = File.new(@file)
-    should_raise(Errno::EINVAL){ File.new(@fh.fileno, @flags) }
+    lambda { File.new(@fh.fileno, @flags) }.should raise_error(Errno::EINVAL)
   end
 end 

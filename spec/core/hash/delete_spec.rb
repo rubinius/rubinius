@@ -39,8 +39,8 @@ describe "Hash#delete" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      should_raise(TypeError) { @hash.delete("foo") }
-      should_raise(TypeError) { @empty.delete("foo") }
+      lambda { @hash.delete("foo")  }.should raise_error(TypeError)
+      lambda { @empty.delete("foo") }.should raise_error(TypeError)
     end
   end
 end

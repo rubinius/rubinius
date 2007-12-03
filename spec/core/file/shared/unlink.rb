@@ -34,15 +34,11 @@ shared :file_unlink do |cmd|
     end
 
     it "raises an exception if the arguments are wrong type or are the incorrect number of arguments " do
-      should_raise(TypeError) do
-        File.send(cmd, 1)
-      end
+      lambda { File.send(cmd, 1) }.should raise_error(TypeError)
     end
 
     it "raises an error when the given file doesn't exist" do
-      should_raise(Errno::ENOENT) do
-        File.send(cmd, 'bogus')
-      end
+      lambda { File.send(cmd, 'bogus') }.should raise_error(Errno::ENOENT)
     end
 
     it "coerces a given parameter into a string if possible" do

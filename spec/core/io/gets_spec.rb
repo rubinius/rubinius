@@ -64,12 +64,7 @@ describe "IO#gets" do
   end
 
   it "raises IOError if the stream is not opened for reading" do
-    should_raise(IOError) do
-      File.open(@createfile, 'a') {|f| f.gets}
-    end
-
-    should_raise(IOError) do
-      File.open(@createfile, 'w') {|f| f.gets}
-    end
+    lambda { File.open(@createfile, 'a') {|f| f.gets} }.should raise_error(IOError)
+    lambda { File.open(@createfile, 'w') {|f| f.gets} }.should raise_error(IOError)
   end
 end

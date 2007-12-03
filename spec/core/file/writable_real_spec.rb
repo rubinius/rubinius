@@ -17,9 +17,9 @@ describe "File.writable_real?" do
   end
   
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments " do  
-    should_raise(ArgumentError){ File.writable_real? }
-    should_raise(TypeError){ File.writable_real?(1) }
-    should_raise(TypeError){ File.writable_real?(nil) }
-    should_raise(TypeError){ File.writable_real?(false) }
+    lambda { File.writable_real?        }.should raise_error(ArgumentError)
+    lambda { File.writable_real?(1)     }.should raise_error(TypeError)
+    lambda { File.writable_real?(nil)   }.should raise_error(TypeError)
+    lambda { File.writable_real?(false) }.should raise_error(TypeError)
   end 
 end

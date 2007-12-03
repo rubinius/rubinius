@@ -39,7 +39,7 @@ describe "StringIO.open" do
 
   it "should raise TypeError if the argument cannot be converted" do
     obj = Object.new
-    should_raise(TypeError) { StringIO.open(obj) }
+    lambda { StringIO.open(obj) }.should raise_error(TypeError)
   end
 end
 
@@ -57,7 +57,7 @@ describe "StringIO.new" do
 
   it "should raise TypeError if the argument cannot be converted" do
     obj = Object.new
-    should_raise(TypeError) { StringIO.new(obj) }
+    lambda { StringIO.new(obj) }.should raise_error(TypeError)
   end
 
   it "should initialize in read-only mode when given a 'read' mode flag" do
@@ -67,7 +67,7 @@ describe "StringIO.new" do
     io = StringIO.new('bye', 'rb')
     io.closed_write?.should == true
     io.closed_read?.should == false
-    should_raise(IOError) { io.write('!') }
+    lambda { io.write('!') }.should raise_error(IOError)
   end
 
   it "should not call to_str on String subclasses" do
@@ -109,7 +109,7 @@ describe "StringIO#close" do
     @io.closed?.should == true
     @io.closed_read?.should == true
     @io.closed_write?.should == true
-    should_raise(IOError) { @io << 'x' }
+    lambda { @io << 'x' }.should raise_error(IOError)
   end
 end
 
@@ -122,7 +122,7 @@ describe "StringIO#close_read" do
   it "should prevent further reading" do
     @io.closed_read?.should == true
     @io.closed_write?.should == false
-    should_raise(IOError) { @io.read(1) }
+    lambda { @io.read(1) }.should raise_error(IOError)
   end
 
   it "should allow further writing" do
@@ -139,7 +139,7 @@ describe "StringIO#close_write" do
   it "should prevent further writing" do
     @io.closed_read?.should == false
     @io.closed_write?.should == true
-    should_raise(IOError) { @io.write('x') }
+    lambda { @io.write('x') }.should raise_error(IOError)
   end
 
   it "should allow further reading" do
@@ -178,7 +178,7 @@ describe "StringIO#each_byte" do
 
   it "should raise IOError unless the IO is open for reading" do
     @io.close_read
-    should_raise(IOError) { @io.each_byte {|b| b } }
+    lambda { @io.each_byte {|b| b } }.should raise_error(IOError)
   end
 end
 
@@ -229,7 +229,7 @@ end
 describe "StringIO#fcntl" do
   it "should raise NotImplementedError" do
     @io = StringIO.new("boom")
-    should_raise(NotImplementedError) { @io.fcntl }
+    lambda { @io.fcntl }.should raise_error(NotImplementedError)
   end
 end
 
@@ -285,7 +285,7 @@ describe "StringIO#gets" do
 
   it "should raise IOError when it is not open for reading" do
     @io.close_read
-    should_raise(IOError) { @io.gets }
+    lambda { @io.gets }.should raise_error(IOError)
   end
 
   it "should support separator strings" do
@@ -403,7 +403,7 @@ describe "StringIO#pos=" do
   end
 
   it "should raise EINVAL if given a negative argument" do
-    should_raise(Errno::EINVAL) { @io.pos = -10 } 
+    lambda { @io.pos = -10 }.should  raise_error(Errno::EINVAL)
   end
 end
 
@@ -529,7 +529,7 @@ describe "StringIO#read" do
   end
 
   it "should only support String buffers" do
-    should_raise(TypeError) { @io.read(5, []) }
+    lambda { @io.read(5, []) }.should raise_error(TypeError)
     @io.pos.should == 0
   end
 
@@ -557,7 +557,7 @@ describe "StringIO#readchar" do
 
   it "should raise EOFError at the end of the string" do
     3.times { @io.readchar }
-    should_raise(EOFError) { @io.readchar }
+    lambda { @io.readchar }.should raise_error(EOFError)
   end
 end
 
@@ -572,12 +572,12 @@ describe "StringIO#readline" do
 
   it "should raise EOFError at the end" do
     @io.readline
-    should_raise(EOFError) { @io.readline }
+    lambda { @io.readline }.should raise_error(EOFError)
   end
 
   it "should raise IOError when it is not open for reading" do
     @io.close_read
-    should_raise(IOError) { @io.readline }
+    lambda { @io.readline }.should raise_error(IOError)
   end
 
   it "should support separator strings" do
@@ -597,7 +597,7 @@ describe "StringIO#readlines" do
 
   it "should raise IOError when it is not open for reading" do
     @io.close_read
-    should_raise(IOError) { @io.readlines }
+    lambda { @io.readlines }.should raise_error(IOError)
   end
 
   it "should return the rest of the stream when separator is nil" do
@@ -650,8 +650,8 @@ describe "StringIO#reopen" do
     compliant :mri, :jruby do
       it "should deny access to prevent truncation of a frozen string" do
         @io = StringIO.new("ice")
-        should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'w') }
-        should_raise(Errno::EACCES) { @io.reopen("burn".freeze, 'a') }
+        lambda { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)
+        lambda { @io.reopen("burn".freeze, 'a') }.should raise_error(Errno::EACCES)
       end
 
       it "should not raise IOError if a frozen string is passed in read mode" do
@@ -673,7 +673,7 @@ describe "StringIO#reopen" do
 
   it "should raise TypeError if the argument cannot be converted" do
     obj = Object.new
-    should_raise(TypeError) { @io.reopen(obj) }
+    lambda { @io.reopen(obj) }.should raise_error(TypeError)
   end
   
   it "should reopen a stream when given a new StringIO object" do
@@ -803,12 +803,12 @@ describe "StringIO#sysread" do
 
   it "should raise EOFError after the end of the string" do
     @io.sysread
-    should_raise(EOFError) { @io.sysread }
-    should_raise(EOFError) { @io.sysread(5) }
+    lambda { @io.sysread    }.should raise_error(EOFError)
+    lambda { @io.sysread(5) }.should raise_error(EOFError)
   end
 
   it "should only support String buffers" do
-    should_raise(TypeError) { @io.sysread(5, []) }
+    lambda { @io.sysread(5, []) }.should raise_error(TypeError)
     @io.pos.should == 0
   end
 
@@ -891,7 +891,7 @@ describe "StringIO#ungetc" do
   end
 
   it "should not accept strings" do
-    should_raise(TypeError) { @io.ungetc('A') }
+    lambda { @io.ungetc('A') }.should raise_error(TypeError)
   end
 end
 

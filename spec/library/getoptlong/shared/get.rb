@@ -69,9 +69,7 @@ shared :getoptlong_get do |cmd|
         old_argv = ARGV
         ARGV = [ "--size" ]
       
-        should_raise(GetoptLong::MissingArgument, "option `--size' requires an argument") do
-          @opts.send(cmd)
-        end
+        lambda { @opts.send(cmd) }.should raise_error(GetoptLong::MissingArgument)
       ensure
         ARGV = old_argv
         $stderr = s

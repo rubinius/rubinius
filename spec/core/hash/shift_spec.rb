@@ -25,8 +25,8 @@ describe "Hash#shift" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      should_raise(TypeError) { @hash.shift }
-      should_raise(TypeError) { @empty.shift }
+      lambda { @hash.shift  }.should raise_error(TypeError)
+      lambda { @empty.shift }.should raise_error(TypeError)
     end
   end
 end

@@ -118,10 +118,10 @@ shared :file_fnmatch do |cmd|
     end
   
     it "raises a TypeError if the first and second arguments are not string-like" do
-      should_raise(ArgumentError){ File.send(cmd, @path1, @path1, 0, 0) }
-      should_raise(TypeError){ File.send(cmd, 1, 'some/thing') }
-      should_raise(TypeError){ File.send(cmd, 'some/thing', 1) }
-      should_raise(TypeError){ File.send(cmd, 1, 1) }
+      lambda { File.send(cmd, @path1, @path1, 0, 0) }.should raise_error(ArgumentError)
+      lambda { File.send(cmd, 1, 'some/thing') }.should raise_error(TypeError)
+      lambda { File.send(cmd, 'some/thing', 1) }.should raise_error(TypeError)
+      lambda { File.send(cmd, 1, 1) }.should raise_error(TypeError)
     end
   end
 end

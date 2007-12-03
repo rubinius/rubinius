@@ -13,9 +13,9 @@ describe "GetoptLong#ordering=" do
         [ '--verbose', GetoptLong::NO_ARGUMENT ])
       opts.get
       
-      should_raise(ArgumentError, "argument error") do
+      lambda {
         opts.ordering = GetoptLong::PERMUTE
-      end
+      }.should raise_error(ArgumentError
     ensure
       ARGV = old_argv
       $stderr = s
@@ -25,9 +25,9 @@ describe "GetoptLong#ordering=" do
   it "should raise an ArgumentError if given an invalid value" do
     opts = GetoptLong.new
     
-    should_raise(ArgumentError, "invalid ordering `12345'") do
+    lambda {
       opts.ordering = 12345
-    end
+    }.should raise_error(ArgumentError)
   end
   
   it "should not allow changing ordering to PERMUTE if ENV['POSIXLY_CORRECT'] is set" do

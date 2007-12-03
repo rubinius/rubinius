@@ -10,7 +10,7 @@ describe "Array#delete_if" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.delete_if {} }
+      lambda { @frozen_array.delete_if {} }.should raise_error(TypeError)
     end
   end
 end

@@ -19,13 +19,13 @@ describe "Array#flatten" do
   it "raises ArgumentError on recursive arrays" do
     x = []
     x << x
-    should_raise(ArgumentError) { x.flatten }
+    lambda { x.flatten }.should raise_error(ArgumentError)
   
     x = []
     y = []
     x << y
     y << x
-    should_raise(ArgumentError) { x.flatten }
+    lambda { x.flatten }.should raise_error(ArgumentError)
   end
   
   it "returns subclass instance for Array subclasses" do
@@ -51,20 +51,20 @@ describe "Array#flatten!" do
   it "raises ArgumentError on recursive arrays" do
     x = []
     x << x
-    should_raise(ArgumentError) { x.flatten! }
+    lambda { x.flatten! }.should raise_error(ArgumentError)
   
     x = []
     y = []
     x << y
     y << x
-    should_raise(ArgumentError) { x.flatten! }
+    lambda { x.flatten! }.should raise_error(ArgumentError)
   end
 
   compliant :mri, :jruby do
     it "raises TypeError on frozen arrays when modification would take place" do
       nested_ary = [1, 2, []]
       nested_ary.freeze
-      should_raise(TypeError) { nested_ary.flatten! }
+      lambda { nested_ary.flatten! }.should raise_error(TypeError)
     end
 
     it "does not raise on frozen arrays when no modification would take place" do

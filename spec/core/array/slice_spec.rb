@@ -88,8 +88,8 @@ describe "Array#slice!" do
     a.slice!(from .. to).should == [2, 3, 4]
     a.should == [1, 5]
   
-    should_raise(TypeError) { a.slice!("a" .. "b") }
-    should_raise(TypeError) { a.slice!(from .. "b") }
+    lambda { a.slice!("a" .. "b") }.should raise_error(TypeError)
+    lambda { a.slice!(from .. "b") }.should raise_error(TypeError)
     
     from = Object.new
     to = Object.new
@@ -126,7 +126,7 @@ describe "Array#slice!" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { @frozen_array.slice!(0, 0) }
+      lambda { @frozen_array.slice!(0, 0) }.should raise_error(TypeError)
     end
   end
 end
