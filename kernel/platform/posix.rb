@@ -76,4 +76,7 @@ module Platform::POSIX
   #   formatted strings
   attach_function nil, 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
   attach_function nil, 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr
+
+  attach_function nil, 'getuid', [], :uint
+  attach_function nil, 'getgid', [], :uint
 end

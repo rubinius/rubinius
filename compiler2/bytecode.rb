@@ -1142,14 +1142,14 @@ class Compiler::Node
       when :call
         node_type = expr[0].first
         
+        receiver = expr.shift
+        msg = expr.shift # method name
+        
         # Make sure there are no args.
-        if expr.last.size > 1
+        unless expr.empty?
           reject(g)
           return
         end
-        
-        receiver = expr.shift
-        msg = expr.shift # method name
         
         if receiver[0] == :const
           lbl = g.new_label          
@@ -1860,6 +1860,23 @@ class Compiler::Node
       @start.bytecode(g)
       g.push_const :Range
       g.send :new, 3
+    end
+  end
+  
+  class CVarAssign
+    def bytecode(g)
+      @value.bytecode(g)
+      g.push_literal @name
+      g.push :self
+      g.send :class_variable_set, 2
+    end
+  end
+  
+  class CVar
+    def bytecode(g)
+      g.push_literal @name
+      g.push :self
+      g.send :class_variable_get, 1
     end
   end
 end

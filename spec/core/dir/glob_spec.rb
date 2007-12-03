@@ -31,16 +31,21 @@ describe "Dir.glob" do
 
   it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
     Dir.mkdir 'foo?bar'
-    
-    Dir.glob('foo?bar', File::FNM_NOESCAPE).should == %w|foo?bar|
-    Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == []
+
+    begin
+      Dir.glob('foo?bar', File::FNM_NOESCAPE).should == %w|foo?bar|
+      Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == []
+    ensure
+      Dir.rmdir 'foo?bar'
+    end
 
     Dir.mkdir 'foo\?bar'
 
-    Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == %w|foo\\?bar|
-
-    Dir.rmdir 'foo?bar'
-    Dir.rmdir 'foo\?bar'
+    begin
+      Dir.glob('foo\?bar', File::FNM_NOESCAPE).should == %w|foo\\?bar|
+    ensure
+      Dir.rmdir 'foo\?bar'
+    end
   end
 
   after(:all) do

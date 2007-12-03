@@ -96,11 +96,13 @@ shared :dir_glob do |cmd|
     it "matches special characters by escaping with a backslash with '\\<character>'" do
       Dir.mkdir 'foo*bar'
 
-      Dir.glob('foo?bar').should == %w|foo*bar|
-      Dir.glob('foo\?bar').should == []
-      Dir.glob('nond\otfile').should == %w|nondotfile| 
-
-      Dir.rmdir 'foo*bar'
+      begin
+        Dir.glob('foo?bar').should == %w|foo*bar|
+        Dir.glob('foo\?bar').should == []
+        Dir.glob('nond\otfile').should == %w|nondotfile| 
+      ensure
+        Dir.rmdir 'foo*bar'
+      end
     end
 
     it "recursively matches directories with '**/<characters>'" do

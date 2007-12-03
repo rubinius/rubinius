@@ -194,6 +194,10 @@ class Module
     VM.reset_method_cache(name.to_sym)
     meth
   end
+
+  def extend_object(obj)
+    obj.metaclass.include self
+  end
   
   # Don't call this include, otherwise it will shadow the bootstrap
   # version while core loads (a violation of the core/bootstrap boundry)

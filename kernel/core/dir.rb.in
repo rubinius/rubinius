@@ -1,6 +1,14 @@
-# depends on: array.rb dir_entry.rb
+# depends on: array.rb
 
 class Dir
+  class DirEntry < FFI::Struct
+    @@@
+    name "struct dirent"
+    include "dirent.h"
+    field :d_name, :char_array
+    @@@
+  end
+
   include Enumerable
   
   def self.glob(pattern, flags = 0)
