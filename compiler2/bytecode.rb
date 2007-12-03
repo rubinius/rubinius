@@ -1753,7 +1753,7 @@ class Compiler::Node
       
       min = @required.size
       if @splat
-        max = -1
+        max = 1024
       else
         max = min + @optional.size
       end
