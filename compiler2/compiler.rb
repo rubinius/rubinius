@@ -75,7 +75,7 @@ class Compiler
       else
         prefix = self.class.name
       end
-      super(prefix, [:@compiler])
+      prefix
     end
     
     def is?(clas)
