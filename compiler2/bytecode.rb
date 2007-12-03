@@ -662,10 +662,14 @@ class Compiler::Node
         
         body.set!
       end
-      
+
       # Remove the thing we've been testing.
       g.pop
-      @body.bytecode(g)
+      if @body.nil?
+        g.push :nil
+      else
+        @body.bytecode(g)
+      end
       g.goto fin
     end
   end
@@ -690,6 +694,46 @@ class Compiler::Node
         g.push :nil
       end
       
+      fin.set!
+    end
+  end
+
+  class ManyIf
+    def bytecode(g)
+      fin = g.new_label
+
+      @whens.each do |whn|
+        conds = whn[0]
+        body = whn[1]
+        nxt = g.new_label
+        if conds.size == 1
+          # Common case - a single condition e.g when foo == "bar"
+          conds.first.bytecode(g)
+          g.gif nxt
+        else
+          # Multiple conditions, e.g. when foo == "bar", foo == "baz"
+          body_lbl = g.new_label
+          conds.each do |c|
+            c.bytecode(g)
+            g.git body_lbl
+          end
+          g.goto nxt
+        
+          body_lbl.set!
+        end
+      
+        body.bytecode(g)
+        g.goto fin
+
+        nxt.set!
+      end
+
+      if @else
+        @else.bytecode(g)
+      else
+        g.push :nil
+      end
+
       fin.set!
     end
   end

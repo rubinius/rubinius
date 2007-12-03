@@ -434,6 +434,63 @@ describe Compiler do
     end
     
   end
+
+  it "compiles a case without an argument" do
+    x = [:many_if,
+          [
+            [[:array, [:false]], [:str, "foo"]],
+            [[:array, [:nil]], [:str, "foo"]],
+            [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]]], [:str, "bar"]]
+          ],
+          [:str, "baz"]
+        ]
+
+    gen x do |g|
+      if_lbl1 = g.new_label
+      if_lbl2 = g.new_label
+      if_lbl3 = g.new_label
+      if_lbl4 = g.new_label
+      if_lbl5 = g.new_label
+      if_lbl6 = g.new_label
+
+      g.push false
+      g.gif if_lbl1
+      g.push "foo"
+      g.string_dup
+      g.goto if_lbl2
+
+      if_lbl1.set!
+      g.push nil
+
+      if_lbl2.set!
+      g.pop
+      g.push nil
+      g.gif if_lbl3
+      g.push "foo"
+      g.string_dup
+      g.goto if_lbl4
+
+      if_lbl3.set!
+      g.push nil
+
+      if_lbl4.set!
+      g.pop
+      g.push 2
+      g.push 1
+      g.send :==, 1
+      g.gif if_lbl5
+      g.push "bar"
+      g.string_dup
+      g.goto if_lbl6
+
+      if_lbl5.set!
+      g.push_literal "baz"
+      g.string_dup
+
+      if_lbl6.set!
+      g.sret
+    end
+  end
   
   it "compiles a case with a splat" do
     x = [:case, [:true], [

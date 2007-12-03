@@ -53,6 +53,27 @@ describe "The 'case'-construct" do
     end.should == 'bar'
   end
     
+  it "should evaluate the body of the first when clause that is not false/nil when no case target expression is given" do
+    case
+      when false: 'foo'
+      when nil: 'foo'
+      when 1 == 2: 'bar'
+      else 'baz'
+    end.should == 'baz'
+
+    a = 1
+    case
+      when a == 1, a == 2: 'foo'
+      else 'bar'
+    end.should == 'foo'
+
+    a = 2
+    case
+      when a == 1, a == 2: 'foo'
+      else 'bar'
+    end.should == 'foo'
+  end
+    
   it "should return the statement following ':'" do
     case "a"
       when "a": 'foo'
@@ -108,6 +129,13 @@ describe "The 'case'-construct" do
       when 'x', 'y', 'z'
         "bar" 
     end.should == "bar"
+
+    case 'b'
+      when 'a', 'b', 'c', 'd'
+        "foo" 
+      when 'x', 'y', 'z'
+        "bar" 
+    end.should == "foo"
   end
   
   it "should expand arrays to lists of values" do
