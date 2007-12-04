@@ -2,6 +2,7 @@
 
 require 'bytecode/compiler'
 require 'bytecode/rubinius'
+require 'readline'
 
 # recognize a few simple options
 def usage
