@@ -4,7 +4,7 @@ describe "Fixnum#quo" do
   it "returns the result of self divided by the given Integer as a Float" do
     2.quo(2.5).should == 0.8
     5.quo(2).should == 2.5
-    45.quo(0xffffffff).should_be_close(1.04773789668636e-08, TOLERANCE)
+    45.quo(0xffffffff).should be_close(1.04773789668636e-08, TOLERANCE)
   end
 
   it "does not raise a ZeroDivisionError when the given Integer is 0" do

@@ -16,23 +16,23 @@ describe "Numeric#quo" do
   end
 
   it "quo right  integers" do 
-    13.quo(4).should_be_close(3.25, TOLERANCE)
-    4.quo(13).should_be_close( 0.307692307692308, TOLERANCE)
+    13.quo(4).should be_close(3.25, TOLERANCE)
+    4.quo(13).should be_close( 0.307692307692308, TOLERANCE)
   end
      
   it "quo right  integers and floats" do 
-    13.quo(4.0).should_be_close(3.25, TOLERANCE)
-    4.quo(13).should_be_close(0.307692307692308, TOLERANCE)
+    13.quo(4.0).should be_close(3.25, TOLERANCE)
+    4.quo(13).should be_close(0.307692307692308, TOLERANCE)
   end
   
   it "quo right the integers and floats" do 
-    13.quo(4.0).should_be_close(3.25, TOLERANCE)
-    4.quo(13).should_be_close(0.307692307692308, TOLERANCE)
+    13.quo(4.0).should be_close(3.25, TOLERANCE)
+    4.quo(13).should be_close(0.307692307692308, TOLERANCE)
   end
   
   it "quo right  floats" do 
-    13.0.quo(4.0).should_be_close(3.25, TOLERANCE)
-    4.0.quo(13).should_be_close(0.307692307692308, TOLERANCE)
+    13.0.quo(4.0).should be_close(3.25, TOLERANCE)
+    4.0.quo(13).should be_close(0.307692307692308, TOLERANCE)
   end
    
   # NOTE: Doesn't work when run with RSpec because it loads rational.rb

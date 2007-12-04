@@ -16,7 +16,7 @@ describe "Fixnum#/" do
   end
 
   it "coerces fixnum and return self divided by other" do
-    (-1 / 50.4).should_be_close(-0.0198412698412698, TOLERANCE)
+    (-1 / 50.4).should be_close(-0.0198412698412698, TOLERANCE)
     (1 / 0xffffffff).should == 0
   end
 

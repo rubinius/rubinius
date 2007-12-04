@@ -7,8 +7,8 @@ describe "Math.acosh" do
   end
   
   it "returns the principle value of the inverse hyperbolic cosine of the argument" do
-    Math.acosh(14.2).should_be_close(3.345146999647, TOLERANCE)
-    Math.acosh(1.0).should_be_close(0.0, TOLERANCE)
+    Math.acosh(14.2).should be_close(3.345146999647, TOLERANCE)
+    Math.acosh(1.0).should be_close(0.0, TOLERANCE)
   end
   
   it "it raises Errno::EDOM if x < 1" do
@@ -32,6 +32,6 @@ end
 
 describe "Math#acosh" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:acosh, 1.0).should_be_close(0.0, TOLERANCE)
+    IncludesMath.new.send(:acosh, 1.0).should be_close(0.0, TOLERANCE)
   end
 end

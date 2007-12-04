@@ -8,12 +8,12 @@ describe "Math.acos" do
   end 
   
   it "returns the arccosine of the argument" do 
-    Math.acos(1).should_be_close(0.0, TOLERANCE) 
-    Math.acos(0).should_be_close(1.5707963267949, TOLERANCE) 
-    Math.acos(-1).should_be_close(Math::PI,TOLERANCE) 
-    Math.acos(0.25).should_be_close(1.31811607165282, TOLERANCE) 
-    Math.acos(0.50).should_be_close(1.0471975511966 , TOLERANCE) 
-    Math.acos(0.75).should_be_close(0.722734247813416, TOLERANCE) 
+    Math.acos(1).should be_close(0.0, TOLERANCE) 
+    Math.acos(0).should be_close(1.5707963267949, TOLERANCE) 
+    Math.acos(-1).should be_close(Math::PI,TOLERANCE) 
+    Math.acos(0.25).should be_close(1.31811607165282, TOLERANCE) 
+    Math.acos(0.50).should be_close(1.0471975511966 , TOLERANCE) 
+    Math.acos(0.75).should be_close(0.722734247813416, TOLERANCE) 
   end  
   
   it "raises an Errno::EDOM if the argument is greater than 1.0" do    
@@ -39,6 +39,6 @@ end
 
 describe "Math#acos" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:acos, 0).should_be_close(1.5707963267949, TOLERANCE)
+    IncludesMath.new.send(:acos, 0).should be_close(1.5707963267949, TOLERANCE)
   end
 end

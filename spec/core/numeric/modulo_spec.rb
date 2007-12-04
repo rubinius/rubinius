@@ -24,10 +24,10 @@ describe "Numeric#modulo" do
   end
   
   it "y modulo x should be z (integer - float) " do 
-    100.modulo(34.56).should_be_close(30.88,TOLERANCE) 
-    100.modulo(-34.56).should_be_close(-3.68000000000001,TOLERANCE)
-    -100.modulo(34.56).should_be_close(3.68000000000001 ,TOLERANCE)
-    -100.modulo(-34.56).should_be_close(-30.88,TOLERANCE)
+    100.modulo(34.56).should be_close(30.88,TOLERANCE) 
+    100.modulo(-34.56).should be_close(-3.68000000000001,TOLERANCE)
+    -100.modulo(34.56).should be_close(3.68000000000001 ,TOLERANCE)
+    -100.modulo(-34.56).should be_close(-30.88,TOLERANCE)
   end
   
   it "y modulo x should be z (integer - bignum) " do 
@@ -38,23 +38,23 @@ describe "Numeric#modulo" do
   end  
 
   it "modulo x should be z  (floats and integers)"do 
-    34.56.modulo(100).should_be_close(34.56,TOLERANCE)
-    34.56.modulo(-100).should_be_close(-65.44,TOLERANCE)
-    -34.56.modulo(-100).should_be_close(-34.56,TOLERANCE)    
-    -34.56.modulo(100).should_be_close(65.44,TOLERANCE)    
+    34.56.modulo(100).should be_close(34.56,TOLERANCE)
+    34.56.modulo(-100).should be_close(-65.44,TOLERANCE)
+    -34.56.modulo(-100).should be_close(-34.56,TOLERANCE)    
+    -34.56.modulo(100).should be_close(65.44,TOLERANCE)    
   end
   
   it "modulo x should be z  (float - float)"do     
-    34.56.modulo(34.56).should_be_close(0.0,TOLERANCE)
-    34.56.modulo(-34.56).should_be_close(0.0,TOLERANCE)
-    -34.56.modulo(-34.56).should_be_close(0.0,TOLERANCE)
-    -34.56.modulo(34.56).should_be_close(0.0,TOLERANCE)
+    34.56.modulo(34.56).should be_close(0.0,TOLERANCE)
+    34.56.modulo(-34.56).should be_close(0.0,TOLERANCE)
+    -34.56.modulo(-34.56).should be_close(0.0,TOLERANCE)
+    -34.56.modulo(34.56).should be_close(0.0,TOLERANCE)
   end
   
   it "modulo x should be z  (float - bignum)"do     
-    34.56.modulo(2147483648).should_be_close(34.56,TOLERANCE)
-    34.56.modulo(-2147483648).should_be_close(-2147483613.44 ,TOLERANCE)
-    -34.56.modulo(2147483648).should_be_close(2147483613.44 ,TOLERANCE) 
+    34.56.modulo(2147483648).should be_close(34.56,TOLERANCE)
+    34.56.modulo(-2147483648).should be_close(-2147483613.44 ,TOLERANCE)
+    -34.56.modulo(2147483648).should be_close(2147483613.44 ,TOLERANCE) 
   end
 
   it "y modulo x should be z (bignum -integer) "do 
@@ -65,10 +65,10 @@ describe "Numeric#modulo" do
   end
   
   it "y modulo x should be z (bignum - float) "do 
-    2147483648.modulo(34.56).should_be_close(1.27999985871492, TOLERANCE)
-    -2147483648.modulo(34.56).should_be_close(33.2800001412851 , TOLERANCE)
-    2147483648.modulo(-34.56).should_be_close(-33.2800001412851 , TOLERANCE)
-    -2147483648.modulo(-34.56).should_be_close(-1.27999985871492, TOLERANCE)
+    2147483648.modulo(34.56).should be_close(1.27999985871492, TOLERANCE)
+    -2147483648.modulo(34.56).should be_close(33.2800001412851 , TOLERANCE)
+    2147483648.modulo(-34.56).should be_close(-33.2800001412851 , TOLERANCE)
+    -2147483648.modulo(-34.56).should be_close(-1.27999985871492, TOLERANCE)
   end
   
   it "y modulo x should be z (bignum - bignum) "do   

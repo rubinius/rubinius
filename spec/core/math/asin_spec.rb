@@ -8,12 +8,12 @@ describe "Math.asin" do
   end 
   
   it "returns the arcsine of the argument" do   
-    Math.asin(1).should_be_close(Math::PI/2, TOLERANCE)
-    Math.asin(0).should_be_close(0.0, TOLERANCE)
-    Math.asin(-1).should_be_close(-Math::PI/2, TOLERANCE)
-    Math.asin(0.25).should_be_close(0.252680255142079, TOLERANCE)
-    Math.asin(0.50).should_be_close(0.523598775598299, TOLERANCE)
-    Math.asin(0.75).should_be_close(0.8480620789814816,TOLERANCE) 
+    Math.asin(1).should be_close(Math::PI/2, TOLERANCE)
+    Math.asin(0).should be_close(0.0, TOLERANCE)
+    Math.asin(-1).should be_close(-Math::PI/2, TOLERANCE)
+    Math.asin(0.25).should be_close(0.252680255142079, TOLERANCE)
+    Math.asin(0.50).should be_close(0.523598775598299, TOLERANCE)
+    Math.asin(0.75).should be_close(0.8480620789814816,TOLERANCE) 
   end
   
   it "raises an Errno::EDOM if the argument is greater than 1.0" do    
@@ -33,12 +33,12 @@ describe "Math.asin" do
   end
 
   it "accepts any argument that can be coerced with Float()" do
-    Math.asin(MathSpecs::Float.new).should_be_close(1.5707963267949, TOLERANCE)
+    Math.asin(MathSpecs::Float.new).should be_close(1.5707963267949, TOLERANCE)
   end
 end
 
 describe "Math#asin" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:asin, 0.5).should_be_close(0.523598775598299, TOLERANCE)
+    IncludesMath.new.send(:asin, 0.5).should be_close(0.523598775598299, TOLERANCE)
   end
 end

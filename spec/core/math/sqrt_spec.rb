@@ -21,12 +21,12 @@ describe "Math.sqrt" do
   end    
   
   it "accepts any argument that can be coerced with Float()" do
-    Math.sqrt(MathSpecs::Float.new).should_be_close(1.0, TOLERANCE)
+    Math.sqrt(MathSpecs::Float.new).should be_close(1.0, TOLERANCE)
   end
 end
 
 describe "Math#sqrt" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:sqrt, 2.23).should_be_close(1.49331845230681, TOLERANCE)
+    IncludesMath.new.send(:sqrt, 2.23).should be_close(1.49331845230681, TOLERANCE)
   end
 end

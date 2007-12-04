@@ -9,8 +9,8 @@ describe "Math.exp" do
   it "returns the base-e exponential of the argument" do
     Math.exp(0.0).should == 1.0
     Math.exp(-0.0).should == 1.0
-    Math.exp(-1.8).should_be_close(0.165298888221587, TOLERANCE)
-    Math.exp(1.25).should_be_close(3.49034295746184, TOLERANCE)
+    Math.exp(-1.8).should be_close(0.165298888221587, TOLERANCE)
+    Math.exp(1.25).should be_close(3.49034295746184, TOLERANCE)
   end
 
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
@@ -22,12 +22,12 @@ describe "Math.exp" do
   end
   
   it "accepts any argument that can be coerced with Float()" do
-    Math.exp(MathSpecs::Float.new).should_be_close(Math::E, TOLERANCE)
+    Math.exp(MathSpecs::Float.new).should be_close(Math::E, TOLERANCE)
   end
 end
 
 describe "Math#exp" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:exp, 23.1415).should_be_close(11226018484.0012, TOLERANCE)
+    IncludesMath.new.send(:exp, 23.1415).should be_close(11226018484.0012, TOLERANCE)
   end
 end

@@ -8,7 +8,7 @@ shared :bignum_modulo do |cmd|
       @bignum.send(cmd, 5).should == 4
       @bignum.send(cmd, -5).should == -1
       @bignum.send(cmd, -100).should == -76
-      @bignum.send(cmd, 2.22).should_be_close(0.639999905491734, TOLERANCE)
+      @bignum.send(cmd, 2.22).should be_close(0.639999905491734, TOLERANCE)
       @bignum.send(cmd, BignumHelper.sbm(10)).should == 1073741824
     end
 

@@ -5,7 +5,7 @@ describe "Bignum#remainder" do
   it "returns the remainder of dividing self by other" do
     a = BignumHelper.sbm(79)
     a.remainder(2).should == 1
-    a.remainder(97.345).should_be_close(75.16000001254, TOLERANCE)
+    a.remainder(97.345).should be_close(75.16000001254, TOLERANCE)
     a.remainder(BignumHelper.sbm).should == 79
   end
   

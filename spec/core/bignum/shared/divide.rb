@@ -5,9 +5,9 @@ shared :bignum_divide do |cmd|
     end
     
     it "returns self divided by other" do
-      @bignum.send(cmd, 4).should_be_close(268435478, TOLERANCE)
-      @bignum.send(cmd, 16.2).should_be_close(66280364.9382716, TOLERANCE)
-      @bignum.send(cmd, BignumHelper.sbm(2)).should_be_close(1, TOLERANCE)
+      @bignum.send(cmd, 4).should be_close(268435478, TOLERANCE)
+      @bignum.send(cmd, 16.2).should be_close(66280364.9382716, TOLERANCE)
+      @bignum.send(cmd, BignumHelper.sbm(2)).should be_close(1, TOLERANCE)
     end
 
     it "raises ZeroDivisionError if other is zero and not a Float" do

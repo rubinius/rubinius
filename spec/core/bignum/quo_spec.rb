@@ -7,9 +7,9 @@ describe "Bignum#quo" do
   end
   
   it "returns the result of self divided by the given Integer as a Float" do
-    @bignum.quo(2.5).should_be_close(429496730.8, TOLERANCE)
-    @bignum.quo(13).should_be_close(82595525.1538462, TOLERANCE)
-    @bignum.quo(BignumHelper.sbm).should_be_close(1.00000000279397, TOLERANCE)
+    @bignum.quo(2.5).should be_close(429496730.8, TOLERANCE)
+    @bignum.quo(13).should be_close(82595525.1538462, TOLERANCE)
+    @bignum.quo(BignumHelper.sbm).should be_close(1.00000000279397, TOLERANCE)
   end
 
   it "does not raise a ZeroDivisionError when the given Integer is 0" do

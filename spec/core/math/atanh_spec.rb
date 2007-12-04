@@ -9,8 +9,8 @@ describe "Math.atanh" do
   it "returns the inverse hyperbolic tangent of the argument" do
     Math.atanh(0.0).should == 0.0
     Math.atanh(-0.0).should == -0.0
-    Math.atanh(0.5).should_be_close(0.549306144334055, TOLERANCE)
-    Math.atanh(-0.2).should_be_close(-0.202732554054082, TOLERANCE)
+    Math.atanh(0.5).should be_close(0.549306144334055, TOLERANCE)
+    Math.atanh(-0.2).should be_close(-0.202732554054082, TOLERANCE)
   end
   
   platform :darwin, :freebsd do
@@ -53,6 +53,6 @@ end
 
 describe "Math#atanh" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:atanh, 0.1415).should_be_close(0.14245589281616, TOLERANCE)
+    IncludesMath.new.send(:atanh, 0.1415).should be_close(0.14245589281616, TOLERANCE)
   end
 end

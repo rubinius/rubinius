@@ -8,11 +8,11 @@ context "Math.log" do
   end
   
   it "returns the natural logarithm of the argument" do 
-    Math.log(0.0001).should_be_close(-9.21034037197618, TOLERANCE)
-    Math.log(0.000000000001e-15).should_be_close(-62.1697975108392, TOLERANCE)
-    Math.log(1).should_be_close(0.0, TOLERANCE)
-    Math.log(10).should_be_close( 2.30258509299405, TOLERANCE)
-    Math.log(10e15).should_be_close(36.8413614879047, TOLERANCE)
+    Math.log(0.0001).should be_close(-9.21034037197618, TOLERANCE)
+    Math.log(0.000000000001e-15).should be_close(-62.1697975108392, TOLERANCE)
+    Math.log(1).should be_close(0.0, TOLERANCE)
+    Math.log(10).should be_close( 2.30258509299405, TOLERANCE)
+    Math.log(10e15).should be_close(36.8413614879047, TOLERANCE)
   end
   
   it "raises an Errno::EDOM if the argument is less than 0" do    
@@ -28,12 +28,12 @@ context "Math.log" do
   end
   
   it "accepts any argument that can be coerced with Float()" do
-    Math.log(MathSpecs::Float.new).should_be_close(0.0, TOLERANCE)
+    Math.log(MathSpecs::Float.new).should be_close(0.0, TOLERANCE)
   end
 end
 
 describe "Math#log" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:log, 5.21).should_be_close(1.65057985576528, TOLERANCE)
+    IncludesMath.new.send(:log, 5.21).should be_close(1.65057985576528, TOLERANCE)
   end
 end

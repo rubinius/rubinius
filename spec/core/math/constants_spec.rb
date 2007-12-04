@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Math::PI" do
   it "approximates the value of pi" do
-    Math::PI.should_be_close(3.14159_26535_89793_23846, TOLERANCE)
+    Math::PI.should be_close(3.14159_26535_89793_23846, TOLERANCE)
   end
   
   it "is accessible to a class that includes Math" do
@@ -13,7 +13,7 @@ end
 
 describe "Math::E" do
   it "approximates the value of Napier's constant" do
-    Math::E.should_be_close(2.71828_18284_59045_23536, TOLERANCE)
+    Math::E.should be_close(2.71828_18284_59045_23536, TOLERANCE)
   end
 
   it "is accessible to a class that includes Math" do

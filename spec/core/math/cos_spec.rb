@@ -8,11 +8,11 @@ describe "Math.cos" do
   end 
 
   it "returns the cosine of the argument expressed in radians" do    
-    Math.cos(Math::PI).should_be_close(-1.0, TOLERANCE)
-    Math.cos(0).should_be_close(1.0, TOLERANCE)
-    Math.cos(Math::PI/2).should_be_close(0.0, TOLERANCE)    
-    Math.cos(3*Math::PI/2).should_be_close(0.0, TOLERANCE)
-    Math.cos(2*Math::PI).should_be_close(1.0, TOLERANCE)
+    Math.cos(Math::PI).should be_close(-1.0, TOLERANCE)
+    Math.cos(0).should be_close(1.0, TOLERANCE)
+    Math.cos(Math::PI/2).should be_close(0.0, TOLERANCE)    
+    Math.cos(3*Math::PI/2).should be_close(0.0, TOLERANCE)
+    Math.cos(2*Math::PI).should be_close(1.0, TOLERANCE)
   end  
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
@@ -24,12 +24,12 @@ describe "Math.cos" do
   end
   
   it "accepts any argument that can be coerced with Float()" do
-    Math.cos(MathSpecs::Float.new).should_be_close(0.54030230586814, TOLERANCE)
+    Math.cos(MathSpecs::Float.new).should be_close(0.54030230586814, TOLERANCE)
   end
 end  
 
 describe "Math#cos" do
   it "is accessible as a private instance method" do
-    IncludesMath.new.send(:cos, 3.1415).should_be_close(-0.999999995707656, TOLERANCE)
+    IncludesMath.new.send(:cos, 3.1415).should be_close(-0.999999995707656, TOLERANCE)
   end
 end
