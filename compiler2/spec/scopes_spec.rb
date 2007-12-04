@@ -200,6 +200,35 @@ describe Compiler do
       g.attach_method :go
     end
   end
+
+  it "compiles 'lambda { def a(x); x; end }'" do
+    x = [:iter, [:fcall, :lambda], nil,
+          [:defn, :a,
+            [:scope,
+              [:block, [:args, [:x], [], nil, nil], [:lvar, :x, 0]],
+              [:x]
+            ]
+          ]
+        ]
+    gen x do |g|
+      lam = description do |l|
+        meth = description do |m|
+          m.check_argcount 1, 1
+          m.from_fp 0
+          m.sret
+        end
+
+        l.push_literal meth
+        l.push :self
+        l.add_method :a
+      end
+
+      g.push_literal lam
+      g.create_block2
+      g.push :self
+      g.send :lambda, 0, true
+    end
+  end
   
   it "compiles 'class << x; 12; end'" do
     x = [:sclass, [:vcall, :x], [:scope, [:lit, 12], []]]
