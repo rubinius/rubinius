@@ -144,12 +144,16 @@ class Compiler
   end
   
   def set(tag, val=true)
-    cur = @variables[tag]
-    @variables[tag] = val
+    cur = @variables.dup
+    if tag.kind_of? Hash
+      @variables.merge! tag
+    else
+      @variables[tag] = val
+    end
     begin
       yield
     ensure
-      @variables[tag] = cur
+      @variables = cur
     end
   end
 end
