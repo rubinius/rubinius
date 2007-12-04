@@ -1,5 +1,5 @@
-#ifndef __CPU_H_
-#define __CPU_H_
+#ifndef RBS_CPU_H
+#define RBS_CPU_H
 
 #include <bstrlib.h>
 
@@ -289,4 +289,4 @@ static inline int cpu_perform_primitive(STATE, cpu c, int prim, OBJECT mo, int a
 
 
 
-#endif /* __CPU_H_ */
+#endif /* RBS_CPU_H */

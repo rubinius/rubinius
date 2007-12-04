@@ -1,5 +1,5 @@
-#ifndef RBX_SYMBOL_H
-#define RBX_SYMBOL_H 1
+#ifndef RBS_SYMBOL_H
+#define RBS_SYMBOL_H 1
 
 OBJECT symtbl_new(STATE);
 OBJECT symtbl_lookup(STATE, OBJECT self, OBJECT string);

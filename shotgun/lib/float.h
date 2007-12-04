@@ -1,5 +1,5 @@
-#ifndef RBS_FLOAT
-#define RBS_FLOAT 1
+#ifndef RBS_FLOAT_H
+#define RBS_FLOAT_H
 
 OBJECT float_new(STATE, double dbl);
 OBJECT float_from_string(STATE, char *str);
@@ -13,4 +13,5 @@ int float_equal(double a, double b);
 int float_compare(double a, double b);
 int float_to_i(double value);
 int float_round(double value);
+
 #endif

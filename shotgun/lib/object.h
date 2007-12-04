@@ -1,5 +1,5 @@
-#ifndef SEEN_RUBINIUS_OBJECT_H
-#define SEEN_RUBINIUS_OBJECT_H
+#ifndef RBS_OBJECT_H
+#define RBS_OBJECT_H
 
 #include <assert.h>
 

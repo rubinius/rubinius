@@ -1,10 +1,10 @@
+#ifndef RBS_OBJECT_MEMORY_H
+#define RBS_OBJECT_MEMORY_H
+
 #include "shotgun.h"
 #include "baker.h"
 #include "marksweep.h"
 #include <stdlib.h>
-
-#ifndef __RUBINIUS_OM__
-#define __RUBINIUS_OM__ 1
 
 #define OMDefaultSize 4194304
 /* A little over 1% of the total heap size. */
@@ -150,4 +150,3 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   (om_in_heap(om, ctx) && (om_context_referenced_p(om, sender) || om_in_heap(om, sender))))
 
 #endif
-

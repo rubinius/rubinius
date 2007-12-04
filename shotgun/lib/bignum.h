@@ -1,5 +1,5 @@
-#ifndef RBS_BIGNUM
-#define RBS_BIGNUM 1
+#ifndef RBS_BIGNUM_H
+#define RBS_BIGNUM_H
 
 OBJECT bignum_new(STATE, int num);
 OBJECT bignum_new_unsigned(STATE, unsigned int num);

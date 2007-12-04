@@ -1,5 +1,5 @@
-#ifndef RBS_STRING
-#define RBS_STRING 1
+#ifndef RBS_STRING_H
+#define RBS_STRING_H
 
 #include <ctype.h>
 

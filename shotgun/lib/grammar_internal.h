@@ -1,5 +1,5 @@
-#ifndef __GRAMMER_INTERNAL_H__
-#define __GRAMMER_INTERNAL_H__
+#ifndef RBS_GRAMMAR_INTERNAL_H
+#define RBS_GRAMMAR_INTERNAL_H
 
 #include <quark.h>
 #include <stdbool.h>

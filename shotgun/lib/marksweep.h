@@ -1,5 +1,5 @@
-#ifndef __MARKSWEEP_H__
-#define __MARKSWEEP_H__
+#ifndef RBS_MARKSWEEP_H
+#define RBS_MARKSWEEP_H
 
 #include <time.h>
 

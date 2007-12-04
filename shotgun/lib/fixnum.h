@@ -1,5 +1,5 @@
-#ifndef RBS_FIXNUM
-#define RBS_FIXNUM 1
+#ifndef RBS_FIXNUM_H
+#define RBS_FIXNUM_H
 
 /* Each of these operations intend to implement safe code according to
    https://www.securecoding.cert.org/confluence/display/seccode/INT32-C.+Ensure+that+integer+operations+do+not+result+in+an+overflow
@@ -87,4 +87,3 @@ static inline OBJECT fixnum_divmod(STATE, OBJECT a, OBJECT b) {
 }
 
 #endif
-

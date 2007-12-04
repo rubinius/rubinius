@@ -1,5 +1,6 @@
-#ifndef __SHOTGUN__
-#define __SHOTGUN__ 1
+#ifndef RBS_SHOTGUN_H
+#define RBS_SHOTGUN_H
+
 #define INTERNAL_DEBUG 0
 
 #define TRACK_STATS 0

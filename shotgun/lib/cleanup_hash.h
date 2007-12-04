@@ -1,5 +1,5 @@
-#ifndef __CLEANUP_HASH__
-#define __CLEANUP_HASH__
+#ifndef RBS_CLEANUP_HASH_H
+#define RBS_CLEANUP_HASH_H
 
 #include <hashtable.h>
 #include "state.h"
@@ -39,4 +39,4 @@ inline void ht_cleanup_destroy(struct hashtable *ht_cleanup)
   hashtable_destroy(ht_cleanup, FALSE);
 }
 
-#endif /* __CLEANUP_HASH__ */
+#endif /* RBS_CLEANUP_HASH_H */
