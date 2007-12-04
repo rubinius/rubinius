@@ -77,15 +77,16 @@ module Kernel
   
   # Reporting methods
   
+  # HACK :: added due to broken constant lookup rules
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
       exc = exc.exception msg
-      raise TypeError, 'exception class/object expected' unless exc.kind_of?(Exception)
+      raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
       exc.set_backtrace trace if trace
     elsif exc.kind_of? String or !exc
-      exc = RuntimeError.exception exc
+      exc = ::RuntimeError.exception exc
     else
-      raise TypeError, 'exception class/object expected'
+      raise ::TypeError, 'exception class/object expected'
     end
 
     if $DEBUG and $VERBOSE != nil
@@ -210,7 +211,7 @@ module Kernel
     Rubinius::AtExit.unshift(block)
   end
 
-  def yield_gdb
+  def yield_gdb(obj)
     Ruby.primitive :yield_gdb
   end
 

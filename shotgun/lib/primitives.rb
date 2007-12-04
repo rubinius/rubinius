@@ -1997,6 +1997,7 @@ class ShotgunPrimitives
   def yield_gdb
     <<-CODE
       stack_pop();
+      self = stack_pop();
       *((char*)4) = 1; /* cause a SIGBUS */
       stack_push(Qtrue);
     CODE
