@@ -2,9 +2,9 @@
 # opposites are true (for example a failure when the specified
 # arguments are NOT provided) is to simply alter the particular
 # spec to a failure condition.
-require File.dirname(__FILE__) + '/../spec_helper'
+require File.dirname(__FILE__) + '/../../spec_helper'
 
-context 'Setting up mock methods in a #specify/#it block' do
+describe 'Setting up mock methods in a #specify/#it block' do
   specify 'any object can set up a mock method using #should_receive' do
     o = Object.new
     o.should_receive :foobar
@@ -18,8 +18,10 @@ context 'Setting up mock methods in a #specify/#it block' do
   end
 end
 
-context 'Lifetime of the mocked methods' do
-  @mini_mock_a = [1]
+describe 'Lifetime of the mocked methods' do
+  before :each do
+    @mini_mock_a = [1]
+  end
 
   specify 'methods are released...' do
     @mini_mock_a.should_receive :first
@@ -31,7 +33,7 @@ context 'Lifetime of the mocked methods' do
   end
 end
 
-context 'Controlling the expectations' do
+describe 'Controlling the expectations' do
   specify 'the value returned by invocation of the mock method is nil or the given :returning' do
     o, oo = Object.new, Object.new
     o.should_receive :foobar
