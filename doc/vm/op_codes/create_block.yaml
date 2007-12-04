@@ -1,18 +1,29 @@
 ---
 mnemonic: create_block
 operation: >-
-  Creates a block (deprecated)
-format: create_block <arg1>
+  Creates a compiler1 style block
+format: create_block 255
 opcode: 87
 stack_before:
-  - <consumed>
+  - retip
+  - blockip
+  - blockargs
   - ...
 stack_after:
-  - block
+  - blockctxt
   - ...
 description: >-
-  Creates a new block, and pushes it onto the stack.
+  Pops instruction pointer addresses for where the block should return to
+  (_retip_), and the address where the block instructions start (_blockip_) off
+  of the stack. Then pops a tuple containing any block arguments off the stack.
+  The created block context _blockctxt_ is then pushed back onto the stack.
 notes:
+  The opcode arg is hard-coded at 255 for the current version of create_block.
+  This indicates to the VM that the block args are on the stack in a single
+  (potentially empty) tuple; previously, the number of block args would be
+  specified via this arg, but this is no longer supported. An arg value of
+  anything other than 255 will raise an assertion.
+
   create_block is deprecated under compiler2 in favour of create_block2.
 source: |-
     next_int;

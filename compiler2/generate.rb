@@ -305,8 +305,16 @@ class Compiler
       add :open_class, find_literal(name)
     end
     
+    def open_class_under(name)
+      add :open_class_under, find_literal(name)
+    end
+    
     def open_module(name)
       add :open_module, find_literal(name)      
+    end
+    
+    def open_module_under(name)
+      add :open_module_under, find_literal(name)      
     end
     
     def dup

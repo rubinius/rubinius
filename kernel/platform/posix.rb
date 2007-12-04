@@ -76,4 +76,20 @@ module Platform::POSIX
   #   formatted strings
   attach_function nil, 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
   attach_function nil, 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr
+
+  attach_function nil, 'getuid', [], :uint
+  attach_function nil, 'getgid', [], :uint
+
+  # password and group file access
+  attach_function nil, 'getpwnam', [:string], :pointer
+  attach_function nil, 'getpwuid', [:uint], :pointer
+  attach_function nil, 'setpwent', [], :void
+  attach_function nil, 'getpwent', [], :pointer
+  attach_function nil, 'endpwent', [], :void
+
+  attach_function nil, 'getgrnam', [:string], :pointer
+  attach_function nil, 'getgrgid', [:uint], :pointer
+  attach_function nil, 'setgrent', [], :void
+  attach_function nil, 'getgrent', [], :pointer
+  attach_function nil, 'endgrent', [], :void
 end

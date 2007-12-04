@@ -142,8 +142,9 @@ class Object
       raise ArgumentError, 'cannot pass both a block and a string to evaluate' if string
       instance_exec(self, &prc)
     elsif string
+      string = StringValue(string)
       mod = nil # FIXME
-      cm = string.compile_as_method
+      cm = string.compile_as_method(filename, line)
       cm.activate(self, mod, [])
     else
       raise ArgumentError, 'block not supplied'
@@ -299,5 +300,12 @@ class Object
     names = protected_singleton_methods
     names |= self.class.protected_instance_methods(all)
     return names
+  end
+
+  def extend(*modules)
+    modules.reverse_each do |mod|
+      mod.extend_object(self)
+    end
+    self
   end
 end

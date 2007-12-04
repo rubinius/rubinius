@@ -537,7 +537,7 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int version) {
   if(!memcmp(str, "RBIS", 4)) {
     version = -1;
   } else if(!memcmp(str, "RBIX", 4)) {
-    if(read_int(str + 3) < version) {
+    if(read_int(str + 4) < version) {
       /* file is out of date. */
       return Qnil;
     }

@@ -223,9 +223,13 @@ end
 
 files = FileList['kernel/core/*.rb']
 
-unless files.include?("kernel/core/dir_entry.rb")
-  files.add("kernel/core/dir_entry.rb")
+unless files.include?("kernel/core/dir.rb")
+  files.add("kernel/core/dir.rb")
 end
+
+# make the rebuild less painful.
+# this line should be removed in a week or so.
+files.exclude("kernel/core/dir_entry.rb")
 
 Core      = CodeGroup.new(files, 'runtime/core', 'core')
 
@@ -243,12 +247,11 @@ file 'runtime/stable/loader.rbc' => 'runtime/loader.rbc' do
 end
 
 Rake::StructGeneratorTask.new do |t|
-  t.dest = "kernel/core/dir_entry.rb"
-  t.struct_name = "struct dirent"
-  t.includes = ["dirent.h"]
-  t.fields = [Field.new(:d_name, :char_array)]
-  t.prolog = "class Dir\nclass DirEntry < FFI::Struct"
-  t.epilog = "  end\nend"
+  t.dest = "kernel/core/dir.rb"
+end
+
+Rake::StructGeneratorTask.new do |t|
+  t.dest = "lib/etc.rb"
 end
 
 AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output
@@ -400,6 +403,7 @@ namespace :build do
   task :all => %w[
     build:shotgun
     build:rbc
+    lib/etc.rb
     lib/rbconfig.rb
     build:extensions
   ]
