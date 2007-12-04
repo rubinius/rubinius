@@ -36,18 +36,40 @@ module MSpec
 end
 
 class Object
+  # failure(:rubinius) do
+  #   Do NOT run these specs on the listed platform.
+  #   Used for specs that are expected to fail, perhaps because of
+  #   a bug on the listed engine. This is not for specs that are
+  #   noncompliant. This is a convenience to prevent executing
+  #   specs on a particular engine, perhaps because executing
+  #   the spec causes particularly nasty behavior.
+  # end
   def failure(*engines)
     yield unless MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
+  # extension(:rubinus, :cardinal) do
+  #   Run these specs on the listed engines.
+  #   Used for specs that do NOT behave differently than a Ruby
+  #   "standard" behavior, perhaps because no equivalent behavior
+  #   exists in Ruby.
+  # end
   def extension(*engines)
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
+  # compliant(:ruby, :jruby) do
+  #   Run these specs on the listed engines. 
+  #   Used for specs that conform to the Ruby "standard"
+  # end
   def compliant(*engines)
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end
 
+  # noncompliant(:rubinius, :jruby) do
+  #   Run these specs on the listed engines.
+  #   Used for specs that do not conform to the Ruby "standard"
+  # end
   def noncompliant(*engines)
     yield if MSpec.guard?(*engines) { |engine| MSpec.engine? engine }
   end

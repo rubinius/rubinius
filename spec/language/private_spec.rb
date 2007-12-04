@@ -4,11 +4,11 @@ require File.dirname(__FILE__) + '/fixtures/private'
 describe "The private keyword" do
   it "should mark following methods as being private" do
     a = Private::A.new
-    a.methods.should_not_include("bar")
+    a.methods.should_not include("bar")
     lambda { a.bar }.should raise_error(NoMethodError)
 
     b = Private::B.new
-    b.methods.should_not_include("bar")
+    b.methods.should_not include("bar")
     lambda { b.bar }.should raise_error(NoMethodError)
   end
 
