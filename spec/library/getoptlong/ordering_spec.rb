@@ -5,7 +5,7 @@ describe "GetoptLong#ordering=" do
   it "should raise an ArgumentError if called after processing has started" do
     begin
       s = $stderr
-      $stderr = dev_null
+      $stderr = CaptureOutput.new
       old_argv = ARGV
       ARGV = [ "--size", "10k", "--verbose" ]
       

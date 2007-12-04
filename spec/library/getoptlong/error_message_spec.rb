@@ -10,7 +10,7 @@ describe "GetoptLong#error_message" do
   it "should return the error message of the last error that occurred" do
     begin
       s = $stderr
-      $stderr = dev_null
+      $stderr = CaptureOuput.new
       opts = GetoptLong.new
       opts.get
       opts.ordering = GetoptLong::PERMUTE

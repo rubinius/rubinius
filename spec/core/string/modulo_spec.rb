@@ -28,15 +28,12 @@ describe "String#%" do
 
   it "raises ArgumentError for unused arguments when $DEBUG is true" do
     begin
-      s = $stderr
       old_debug = $DEBUG
-      $stderr = dev_null
       $DEBUG = true
 
       lambda { "" % [1, 2, 3]   }.should raise_error(ArgumentError)
       lambda { "%s" % [1, 2, 3] }.should raise_error(ArgumentError)
     ensure
-      $stderr = s
       $DEBUG = old_debug
     end
   end

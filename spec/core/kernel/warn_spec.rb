@@ -3,47 +3,38 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel.warn" do
   it "should call #write on $stderr" do
-    begin
+    lambda {
       v = $VERBOSE
-      s = $stderr
       $VERBOSE = true
-      $stderr = dev_null
+
       warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-      $stderr.data.should == "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n"
-    ensure
+
       $VERBOSE = v
-      $stderr = s
-    end
+    }.should output(nil, "Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn\n")
   end
 
   it "should write the default record seperator (\\n) and NOT $/ to $stderr after the warning message" do
-    begin
+    lambda {
       v = $VERBOSE
-      s = $stderr
       rs = $/
       $VERBOSE = true
       $/ = 'rs'
-      $stderr = dev_null
+
       warn("")
-      $stderr.data.should == "\n"
-    ensure
+
       $VERBOSE = v
-      $stderr = s
       $/ = rs
-    end
+    }.should output(nil, "\n")
   end
 
   it "should not call #write on $stderr if $VERBOSE is nil" do
-    begin
+    lambda {
       v = $VERBOSE
-      s = $stderr
       $VERBOSE = nil
-      $stderr = dev_null
+
       warn("Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn")
-      $stderr.data.should == ""
-    ensure
-      $stderr = s
+
       $VERBOSE = v
-    end
+    }.should output(nil, "")
   end
 end

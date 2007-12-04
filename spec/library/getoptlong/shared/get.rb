@@ -65,7 +65,7 @@ shared :getoptlong_get do |cmd|
     it "should raise a if an argument was required, but none given" do
       begin
         s = $stderr
-        $stderr = dev_null
+        $stderr = CaptureOutput.new
         old_argv = ARGV
         ARGV = [ "--size" ]
       
