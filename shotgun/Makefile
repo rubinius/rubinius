@@ -22,7 +22,6 @@ ifeq ($(MARCH),amd64)
 	CFLAGS+=-fPIC
 endif
 
-DEPS=lib/rubinius.h
 # No disass support for 64
 ifneq ($(findstring 64,$(MARCH)),64)
 	RBS_LIGHTNING_DISASS='--enable-disassembling'
@@ -59,7 +58,7 @@ install:
 config.h:
 	./mkconfig.sh
 
-%.o: %.c $(DEPS)
+%.o: %.c
 	$(COMP) $(CFLAGS) -c $< 
 
 external_libs/lightning/config.h:
