@@ -49,11 +49,18 @@ describe "TCPServer#accept" do
     @server = TCPServer.new('127.0.0.1', @port)
     @read = false
     @thread = Thread.new do
-      client = @server.accept
+      begin
+        client = @server.accept_nonblock
+      rescue Errno::EAGAIN, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
+        @listening = true
+        IO.select([@server])
+        retry
+      end
       @data << client.read(5)
       @read = true
       client.close
     end
+    Thread.pass until @listening
   end
 
   after(:each) do
@@ -64,9 +71,7 @@ describe "TCPServer#accept" do
   it "should accept what is written by the client" do
     @socket = TCPSocket.new('127.0.0.1', @port)
     @socket.write('hello')
-    until @read do
-      "waiting"
-    end
+    Thread.pass until @read
     @thread.join
     @data.should == ['hello']
   end
@@ -146,9 +151,11 @@ describe "UDPSocket.open" do
   end
 
   it "returns a socket that can be written to and read from" do
+    @ready = false
     server_thread = Thread.new do
       @server = UDPSocket.open
       @server.bind(nil,@port)
+      @ready = true
       msg1 = @server.recvfrom(64)
       msg1[0].should == "ad hoc"
       msg1[1][0].should == "AF_INET"
@@ -162,7 +169,7 @@ describe "UDPSocket.open" do
       msg2[1][3].should == "127.0.0.1"
     end
 
-    Thread.pass
+    Thread.pass until @ready
 
     UDPSocket.open.send("ad hoc", 0, 'localhost',@port)
 
