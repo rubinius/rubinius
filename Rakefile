@@ -510,27 +510,10 @@ RbConfig = Config
     # Note: Steps to rebuild load_order were defined above
   end
 
-  # OBSOLETE
-  task :core => :rbc do
-    raise "OBSOLETE. Use 'rake build'"
-  end
-
-  task :bootstrap => :rbc do
-    raise "OBSOLETE. Use 'rake build'"
-  end
-
-  task :platform => :rbc do
-    raise "OBSOLETE. Use 'rake build'"
-  end
-
-  task :loader => :rbc do
-    raise "OBSOLETE. Use 'rake build'"
-  end
 end
 
 desc "Build task for CruiseControl"
 task :ccrb => [:build, 'spec:ci']
-
 
 ## Include tasks to build documentation
 def redcloth_present?
