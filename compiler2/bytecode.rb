@@ -1621,6 +1621,7 @@ class Compiler::Node
           @argcount = @arguments.size
         else
           @arguments.bytecode(g)
+          # ConcatArgs calls get_args on its own
           g.get_args unless @arguments.is? ConcatArgs
           @dynamic = true
         end
