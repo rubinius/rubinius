@@ -1958,6 +1958,8 @@ module Bytecode
         # Required arguments, added in order so we know
         # their positions.
         if required_args = args[1]
+          # HACK OptParse::NoArgument.incompatible_argument_styles empty body
+          Array(required_args)
           required_args.each { |e| state.add_arg e }
         end
         
