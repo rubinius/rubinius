@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "NameError" do
   it "is a superclass of NoMethodError" do
-    NameError.should_be_ancestor_of(NoMethodError)
+    NameError.should be_ancestor_of(NoMethodError)
   end
 end
 

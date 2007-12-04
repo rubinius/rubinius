@@ -11,30 +11,30 @@ describe "Exception" do
   end
 
   it "is a superclass of NoMemoryError" do
-    Exception.should_be_ancestor_of(NoMemoryError)
+    Exception.should be_ancestor_of(NoMemoryError)
   end
 
   it "is a superclass of ScriptError" do
-    Exception.should_be_ancestor_of(ScriptError)
+    Exception.should be_ancestor_of(ScriptError)
   end
   
   it "is a superclass of SignalException" do
-    Exception.should_be_ancestor_of(SignalException)
+    Exception.should be_ancestor_of(SignalException)
   end
   
   it "is a superclass of Interrupt" do
-    SignalException.should_be_ancestor_of(Interrupt)
+    SignalException.should be_ancestor_of(Interrupt)
   end
 
   it "is a superclass of StandardError" do
-    Exception.should_be_ancestor_of(StandardError)
+    Exception.should be_ancestor_of(StandardError)
   end
   
   it "is a superclass of SystemExit" do
-    Exception.should_be_ancestor_of(SystemExit)
+    Exception.should be_ancestor_of(SystemExit)
   end
 
   it "is a superclass of SystemStackError" do
-    Exception.should_be_ancestor_of(SystemStackError)
+    Exception.should be_ancestor_of(SystemStackError)
   end
 end

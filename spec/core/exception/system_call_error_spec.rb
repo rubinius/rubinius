@@ -6,7 +6,7 @@ describe "SystemCallError.new" do
   end
 
   it "takes an optional errno argument" do
-    SystemCallError.should_be_ancestor_of(SystemCallError.new("message",1).class)
+    SystemCallError.should be_ancestor_of(SystemCallError.new("message",1).class)
   end
 end
 

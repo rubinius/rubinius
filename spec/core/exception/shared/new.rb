@@ -1,7 +1,7 @@
 shared :exception_new do |cmd|
   describe "Exception.#{cmd}" do
     it "creates a new instance of Exception" do
-      Exception.should_be_ancestor_of(Exception.send(cmd).class)
+      Exception.should be_ancestor_of(Exception.send(cmd).class)
     end
 
     it "sets the message of the Exception when passes a message" do
