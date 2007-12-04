@@ -431,6 +431,7 @@ class OptionParser
       end
 
       def self.incompatible_argument_styles(arg, t) # HACK was (*)
+        nil # HACK was empty
       end
 
       def self.pattern
