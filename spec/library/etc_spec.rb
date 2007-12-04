@@ -57,7 +57,7 @@ end
 
 describe "Etc.getgrnam" do
   it "returns a Group struct instance for the given group" do
-    gr = Etc.getgrnam("root")
+    gr = Etc.getgrnam("daemon")
 
     compliant :rbx do
       gr.is_a?(Etc::Group).should == true
