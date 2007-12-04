@@ -1,5 +1,4 @@
 shared :set_method_visibility do |cmd|
-  
   if cmd == :private 
     original = :public_one
   else
@@ -24,7 +23,7 @@ shared :set_method_visibility do |cmd|
 
         def self.check_private(o, name)
           self.make_alias(:target, name)
-          should_raise(NoMethodError) { o.target }
+          lambda { o.target }.should raise_error(NoMethodError)
         end
 
         def self.check_public(o, name)
@@ -34,7 +33,7 @@ shared :set_method_visibility do |cmd|
 
         def self.check_protected(o, name)
           self.make_alias(:target, name)
-          should_raise(NoMethodError) { o.target }
+          lambda { o.target }.should raise_error(NoMethodError)
           o.invoke.should == 1
         end
       end
@@ -64,12 +63,10 @@ shared :set_method_visibility do |cmd|
     end
 
     it "raises TypeError when the given names can't be converted using to_str" do
-      should_raise(TypeError) { @cls.send(cmd, Object.new) }
+      lambda { @cls.send(cmd, Object.new) }.should raise_error(TypeError)
       invalid = Object.new
       invalid.should_receive(:to_str, :returning => Object.new)
-      should_raise(TypeError) { @cls.send(cmd, invalid) }
+      lambda { @cls.send(cmd, invalid) }.should raise_error(TypeError)
     end
-
   end
-  
 end

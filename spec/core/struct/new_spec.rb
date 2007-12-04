@@ -40,23 +40,23 @@ describe "Struct.new" do
   end
 
   it "fails with invalid constant name as first argument" do
-    should_raise(NameError) { Struct.new('animal', :name, :legs, :eyeballs) }
+    lambda { Struct.new('animal', :name, :legs, :eyeballs) }.should raise_error(NameError)
   end
 
   it "raises TypeError if object doesn't respond to to_sym" do
-    should_raise(TypeError) { Struct.new(:animal, 1.0) }
-    should_raise(TypeError) { Struct.new(:animal, Time.now) }
-    should_raise(TypeError) { Struct.new(:animal, Class) }
-    should_raise(TypeError) { Struct.new(:animal, nil) }
-    should_raise(TypeError) { Struct.new(:animal, true) }
-    should_raise(TypeError) { Struct.new(:animal, ['chris', 'evan']) }
-    should_raise(TypeError) { Struct.new(:animal, { :name => 'chris' }) }
+    lambda { Struct.new(:animal, 1.0)                  }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, Time.now)             }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, Class)                }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, nil)                  }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, true)                 }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, ['chris', 'evan'])    }.should raise_error(TypeError)
+    lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
   end
 
   it "raises TypeError if object is not a Symbol" do
     obj = Object.new
     def obj.to_sym() :ruby end
-    should_raise(TypeError) { Struct.new(:animal, obj) }
+    lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
   end
 
   it "accepts Fixnums as Symbols unless fixnum.to_sym.nil?" do
@@ -70,7 +70,7 @@ describe "Struct.new" do
     old, $VERBOSE = $VERBOSE, nil
     num = 10000
     num.to_sym.should == nil  # if this fails, we need a new Fixnum to test
-    should_raise(ArgumentError) { Struct.new(:animal, num) }
+    lambda { Struct.new(:animal, num) }.should raise_error(ArgumentError)
     $VERBOSE = old
   end
 
@@ -99,6 +99,6 @@ describe "Struct.new" do
   end
 
   it "fails with too many arguments" do
-    should_raise(ArgumentError) { Struct::Ruby.new('2.0', 'i686', true) }
+    lambda { Struct::Ruby.new('2.0', 'i686', true) }.should raise_error(ArgumentError)
   end
 end

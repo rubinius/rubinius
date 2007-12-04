@@ -10,15 +10,13 @@ compliant :mri, :jruby do
       # Does not raise
       class << m; end
     
-      should_raise(TypeError, "can't modify frozen object") do
+      lambda {
         class << m
           def test() "test" end
         end
-      end
+      }.should raise_error(TypeError)
 
-      should_raise(TypeError, "can't modify frozen object") do
-        def m.test() "test" end
-      end
+      lambda { def m.test() "test" end }.raise_error(TypeError)
     end
   end
 end

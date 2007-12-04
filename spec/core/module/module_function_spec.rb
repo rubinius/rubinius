@@ -58,13 +58,9 @@ describe "Module#module_function" do
   it "raises a TypeError when the given names can't be converted to string using to_str" do
     o = Object.new
     
-    should_raise(TypeError, "#{o} is not a symbol") do
-      Module.new { module_function(o) }
-    end
+    lambda { Module.new { module_function(o) } }.should raise_error(TypeError)
 
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError, "Object#to_str should return String") do
-      Module.new { module_function(o) }
-    end
+    lambda { Module.new { module_function(o) } }.should raise_error(TypeError)
   end
 end

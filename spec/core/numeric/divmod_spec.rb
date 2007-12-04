@@ -30,10 +30,10 @@ describe "Numeric#divmod" do
   end
   
   it "raise the expected exception" do
-    should_raise(ArgumentError){ 13.divmod }
-    should_raise(ZeroDivisionError){ 13.divmod(0) }
-    should_raise(TypeError){ 13.divmod(nil) }
-    should_raise(TypeError){ 13.divmod('test') }
-    should_raise(TypeError){ 13.divmod(true) }   
+    lambda { 13.divmod         }.should raise_error(ArgumentError)
+    lambda { 13.divmod(0)      }.should raise_error(ZeroDivisionError)
+    lambda { 13.divmod(nil)    }.should raise_error(TypeError)
+    lambda { 13.divmod('test') }.should raise_error(TypeError)
+    lambda { 13.divmod(true)   }.should raise_error(TypeError)   
   end 
 end

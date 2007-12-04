@@ -38,29 +38,29 @@ describe "String#[]= with index" do
   it "raises an IndexError without changing self if idx is outside of self" do
     a = "hello"
     
-    should_raise(IndexError) { a[20] = ?a }
+    lambda { a[20] = ?a }.should raise_error(IndexError)
     a.should == "hello"
     
-    should_raise(IndexError) { a[-20] = ?a }
+    lambda { a[-20] = ?a }.should raise_error(IndexError)
     a.should == "hello"
     
-    should_raise(IndexError) { ""[0] = ?a }
-    should_raise(IndexError) { ""[-1] = ?a }
+    lambda { ""[0] = ?a  }.should raise_error(IndexError)
+    lambda { ""[-1] = ?a }.should raise_error(IndexError)
   end
 
   version '1.8.4'..'1.8.5' do
     it "raises IndexError when passed other than a Fixnum" do
       str = "hello"
-      should_raise(IndexError) { str[0.5] = ?c }
+      lambda { str[0.5] = ?c }.should raise_error(IndexError)
     
       obj = Object.new
       obj.should_receive(:to_int, :returning => -1)
-      should_raise(IndexError) { str[obj] = ?y }
+      lambda { str[obj] = ?y }.should raise_error(IndexError)
     
       obj = Object.new
       obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
-      should_raise(IndexError) { str[obj] = ?! }
+      lambda { str[obj] = ?! }.should raise_error(IndexError)
     end
   end
   
@@ -95,7 +95,7 @@ describe "String#[]= with index" do
   it "doesn't call to_int on char" do
     obj = Object.new
     obj.should_not_receive(:to_int)
-    should_raise(TypeError) { "hi"[0] = obj }
+    lambda { "hi"[0] = obj }.should raise_error(TypeError)
   end
   
   compliant :mri, :jruby do
@@ -103,7 +103,7 @@ describe "String#[]= with index" do
       a = "hello"
       a.freeze
     
-      should_raise(TypeError) { a[0] = ?b }
+      lambda { a[0] = ?b }.should raise_error(TypeError)
     end
   end
 end
@@ -130,14 +130,14 @@ describe "String#[]= with String" do
   it "raises an IndexError without changing self if idx is outside of self" do
     str = "hello"
 
-    should_raise(IndexError) { str[20] = "bam" }    
+    lambda { str[20] = "bam" }.should raise_error(IndexError)
     str.should == "hello"
     
-    should_raise(IndexError) { str[-20] = "bam" }
+    lambda { str[-20] = "bam" }.should raise_error(IndexError)
     str.should == "hello"
 
-    should_raise(IndexError) { ""[0] = "bam" }
-    should_raise(IndexError) { ""[-1] = "bam" }
+    lambda { ""[0] = "bam"  }.should raise_error(IndexError)
+    lambda { ""[-1] = "bam" }.should raise_error(IndexError)
   end
 
   compliant :mri, :jruby do
@@ -145,23 +145,23 @@ describe "String#[]= with String" do
       a = "hello"
       a.freeze
     
-      should_raise(TypeError) { a[0] = "bam" }
+      lambda { a[0] = "bam" }.should raise_error(TypeError)
     end
   end
 
   version '1.8.4'..'1.8.5' do
     it "raises IndexError when passed other than a Fixnum" do
       str = "hello"
-      should_raise(IndexError) { str[0.5] = "hi " }
+      lambda { str[0.5] = "hi " }.should raise_error(IndexError)
     
       obj = Object.new
       obj.should_receive(:to_int, :returning => -1)
-      should_raise(IndexError) { str[obj] = "!" }
+      lambda { str[obj] = "!" }.should raise_error(IndexError)
     
       obj = Object.new
       obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
       obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
-      should_raise(IndexError) { str[obj] = "e vator" }
+      lambda { str[obj] = "e vator" }.should raise_error(IndexError)
     end
   end
   
@@ -202,9 +202,9 @@ describe "String#[]= with String" do
   end
   
   it "raises a TypeError if other_str can't be converted to a String" do
-    should_raise(TypeError) { "test"[1] = :test }
-    should_raise(TypeError) { "test"[1] = Object.new }
-    should_raise(TypeError) { "test"[1] = nil }
+    lambda { "test"[1] = :test      }.should raise_error(TypeError)
+    lambda { "test"[1] = Object.new }.should raise_error(TypeError)
+    lambda { "test"[1] = nil        }.should raise_error(TypeError)
   end
 end
 
@@ -268,18 +268,18 @@ describe "String#[]= with index, count" do
   end
  
   it "raises an IndexError if |idx| is greater than the length of the string" do
-    should_raise(IndexError) { "hello"[6, 0] = "bob" }
-    should_raise(IndexError) { "hello"[-6, 0] = "bob" }
+    lambda { "hello"[6, 0] = "bob"  }.should raise_error(IndexError)
+    lambda { "hello"[-6, 0] = "bob" }.should raise_error(IndexError)
   end
  
   it "raises an IndexError if count < 0" do
-    should_raise(IndexError) { "hello"[0, -1] = "bob" }
-    should_raise(IndexError) { "hello"[1, -1] = "bob" }
+    lambda { "hello"[0, -1] = "bob" }.should raise_error(IndexError)
+    lambda { "hello"[1, -1] = "bob" }.should raise_error(IndexError)
   end
  
   it "raises a TypeError if other_str is a type other than String" do
-    should_raise(TypeError) { "hello"[0, 2] = nil }
-    should_raise(TypeError) { "hello"[0, 2] = :bob }
-    should_raise(TypeError) { "hello"[0, 2] = 33 }
+    lambda { "hello"[0, 2] = nil  }.should raise_error(TypeError)
+    lambda { "hello"[0, 2] = :bob }.should raise_error(TypeError)
+    lambda { "hello"[0, 2] = 33   }.should raise_error(TypeError)
   end
 end

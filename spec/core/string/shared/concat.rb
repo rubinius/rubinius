@@ -20,13 +20,8 @@ shared :string_concat do |cmd|
     end
     
     it "raises a TypeError if the given argument can't be converted to a String" do
-      should_raise(TypeError) do
-        a = 'hello '.send(cmd, :world)
-      end
-  
-      should_raise(TypeError) do
-        a = 'hello '.send(cmd, Object.new)
-      end
+      lambda { a = 'hello '.send(cmd, :world)     }.should raise_error(TypeError)
+      lambda { a = 'hello '.send(cmd, Object.new) }.should raise_error(TypeError)
     end
 
     compliant :mri, :jruby do
@@ -34,8 +29,8 @@ shared :string_concat do |cmd|
         a = "hello"
         a.freeze
   
-        should_raise(TypeError) { a.send(cmd, "") }
-        should_raise(TypeError) { a.send(cmd, "test") }
+        lambda { a.send(cmd, "")     }.should raise_error(TypeError)
+        lambda { a.send(cmd, "test") }.should raise_error(TypeError)
       end
     end
     
@@ -63,16 +58,16 @@ shared :string_concat do |cmd|
     end
   
     it "raises a TypeError when the given Fixnum is not between 0 and 255" do
-      should_raise(TypeError) { "hello world".send(cmd, 333) }
-      should_raise(TypeError) { "".send(cmd, (256 * 3 + 64)) }
-      should_raise(TypeError) { "".send(cmd, -200) }
+      lambda { "hello world".send(cmd, 333) }.should raise_error(TypeError)
+      lambda { "".send(cmd, (256 * 3 + 64)) }.should raise_error(TypeError)
+      lambda { "".send(cmd, -200)           }.should raise_error(TypeError)
     end
   
     it "doesn't call to_int on its argument" do
       x = Object.new
       x.should_not_receive(:to_int)
       
-      should_raise(TypeError) { "".send(cmd, x) }
+      lambda { "".send(cmd, x) }.should raise_error(TypeError)
     end
   
     compliant :mri, :jruby do
@@ -80,8 +75,8 @@ shared :string_concat do |cmd|
         a = "hello"
         a.freeze
   
-        should_raise(TypeError) { a.send(cmd, 0) }
-        should_raise(TypeError) { a.send(cmd, 33) }
+        lambda { a.send(cmd, 0)  }.should raise_error(TypeError)
+        lambda { a.send(cmd, 33) }.should raise_error(TypeError)
       end
     end
   end

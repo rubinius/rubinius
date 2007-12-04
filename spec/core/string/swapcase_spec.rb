@@ -44,7 +44,7 @@ describe "String#swapcase!" do
     it "raises a TypeError when self is frozen" do
       ["", "hello"].each do |a|
         a.freeze
-        should_raise(TypeError) { a.swapcase! }
+        lambda { a.swapcase! }.should raise_error(TypeError)
       end
     end
   end

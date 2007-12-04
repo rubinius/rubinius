@@ -84,9 +84,9 @@ describe "String#chomp with separator" do
   end
   
   it "raises a TypeError if separator can't be converted to a string" do
-    should_raise(TypeError) { "hello".chomp(?o) }
-    should_raise(TypeError) { "hello".chomp(:llo) }
-    should_raise(TypeError) { "hello".chomp(Object.new) }
+    lambda { "hello".chomp(?o)         }.should raise_error(TypeError)
+    lambda { "hello".chomp(:llo)       }.should raise_error(TypeError)
+    lambda { "hello".chomp(Object.new) }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -145,7 +145,7 @@ describe "String#chomp! with seperator" do
       a = "string\n\r"
       a.freeze
 
-      should_raise(TypeError) { a.chomp! }
+      lambda { a.chomp! }.should raise_error(TypeError)
 
       a.chomp!(nil) # ok, no change
       a.chomp!("x") # ok, no change

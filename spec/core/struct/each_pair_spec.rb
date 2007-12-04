@@ -11,6 +11,6 @@ describe "Struct#each_pair" do
 
   it "fails if not passed a block" do
     car = Struct::Car.new('Ford', 'Ranger')
-    should_raise(LocalJumpError) { car.each_pair }
+    lambda { car.each_pair }.should raise_error(LocalJumpError)
   end
 end

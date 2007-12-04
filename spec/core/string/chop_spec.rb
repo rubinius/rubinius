@@ -67,7 +67,7 @@ describe "String#chop!" do
     it "raises a TypeError when self is frozen" do
       a = "string\n\r"
       a.freeze
-      should_raise(TypeError) { a.chop! }
+      lambda { a.chop! }.should raise_error(TypeError)
 
       a = ""
       a.freeze

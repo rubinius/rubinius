@@ -16,11 +16,11 @@ describe "Math.tanh" do
   end
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do
-    should_raise(ArgumentError) { Math.tanh("test") }
+    lambda { Math.tanh("test") }.should raise_error(ArgumentError)
   end
 
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.tanh(nil) }
+    lambda { Math.tanh(nil) }.should raise_error(TypeError)
   end    
   
   it "accepts any argument that can be coerced with Float()" do

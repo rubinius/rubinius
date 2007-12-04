@@ -14,11 +14,11 @@ describe "Math.sinh" do
   end
 
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.sinh("test") } 
+    lambda { Math.sinh("test") }.should raise_error(ArgumentError)
   end
   
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.sinh(nil) }
+    lambda { Math.sinh(nil) }.should raise_error(TypeError)
   end  
   
   it "accepts any argument that can be coerced with Float()" do

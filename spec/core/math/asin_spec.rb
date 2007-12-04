@@ -17,19 +17,19 @@ describe "Math.asin" do
   end
   
   it "raises an Errno::EDOM if the argument is greater than 1.0" do    
-    should_raise( Errno::EDOM) { Math.asin(1.0001) }
+    lambda { Math.asin(1.0001) }.should raise_error( Errno::EDOM)
   end
   
   it "raises an Errno::EDOM if the argument is less than -1.0" do    
-    should_raise( Errno::EDOM) { Math.asin(-1.0001) }
+    lambda { Math.asin(-1.0001) }.should raise_error( Errno::EDOM)
   end
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.asin("test") }
+    lambda { Math.asin("test") }.should raise_error(ArgumentError)
   end
   
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.asin(nil) }
+    lambda { Math.asin(nil) }.should raise_error(TypeError)
   end
 
   it "accepts any argument that can be coerced with Float()" do

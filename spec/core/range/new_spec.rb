@@ -24,11 +24,11 @@ describe "Range.new" do
   end
   
   it "raises an ArgumentError when the given start and end can't be compared by using #<=>" do
-    should_raise(ArgumentError) { Range.new(1, Object.new) }
-    should_raise(ArgumentError) { Range.new(Object.new, Object.new) }
+    lambda { Range.new(1, Object.new)          }.should raise_error(ArgumentError)
+    lambda { Range.new(Object.new, Object.new) }.should raise_error(ArgumentError)
     
     b = Object.new
     (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => nil)
-    should_raise(ArgumentError) { Range.new(a, b) }
+    lambda { Range.new(a, b) }.should raise_error(ArgumentError)
   end
 end

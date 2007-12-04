@@ -84,6 +84,6 @@ describe "Numeric#modulo" do
   end
   
   it " should raise an Exception when divide by 0 (non float)" do    
-    should_raise(ZeroDivisionError){ 13.modulo(0) }
+    lambda { 13.modulo(0) }.should raise_error(ZeroDivisionError)
   end
 end

@@ -27,10 +27,10 @@ describe "Numeric#div" do
   end
   
   it "raise the expected exception" do
-    should_raise(ArgumentError) { 13.div }
-    should_raise(ZeroDivisionError) { 13.div(0) }
-    should_raise(TypeError) { 13.div(nil) }
-    should_raise(TypeError) { 13.div('test') }
-    should_raise(TypeError) { 13.div(true) }   
+    lambda { 13.div         }.should raise_error(ArgumentError)
+    lambda { 13.div(0)      }.should raise_error(ZeroDivisionError)
+    lambda { 13.div(nil)    }.should raise_error(TypeError)
+    lambda { 13.div('test') }.should raise_error(TypeError)
+    lambda { 13.div(true)   }.should raise_error(TypeError)   
   end
 end

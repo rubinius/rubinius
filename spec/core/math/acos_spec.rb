@@ -17,19 +17,19 @@ describe "Math.acos" do
   end  
   
   it "raises an Errno::EDOM if the argument is greater than 1.0" do    
-    should_raise(Errno::EDOM) { Math.acos(1.0001) }
+    lambda { Math.acos(1.0001) }.should raise_error(Errno::EDOM)
   end  
   
   it "raises an Errno::EDOM if the argument is less than -1.0" do    
-    should_raise(Errno::EDOM) { Math.acos(-1.0001) }
+    lambda { Math.acos(-1.0001) }.should raise_error(Errno::EDOM)
   end
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.acos("test") }
+    lambda { Math.acos("test") }.should raise_error(ArgumentError)
   end
   
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.acos(nil) }
+    lambda { Math.acos(nil) }.should raise_error(TypeError)
   end  
 
   it "accepts any argument that can be coerced with Float()" do

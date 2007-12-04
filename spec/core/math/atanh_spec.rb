@@ -25,25 +25,25 @@ describe "Math.atanh" do
 
   platform :mswin, :linux, :openbsd do
     it "raises Errno::EDOM if x = 1.0" do
-      should_raise(Errno::EDOM) { Math.atanh(1.0) }
+      lambda { Math.atanh(1.0) }.should raise_error(Errno::EDOM)
     end
 
     it "raises Errno::EDOM if x = -1.0" do
-      should_raise(Errno::EDOM) { Math.atanh(-1.0) }
+      lambda { Math.atanh(-1.0) }.should raise_error(Errno::EDOM)
     end
   end
   
   it "raises Errno::EDOM if x > 1.0" do
-    should_raise(Errno::EDOM) { Math.atanh(1.0 + TOLERANCE) }
-    should_raise(Errno::EDOM) { Math.atanh(-1.0 - TOLERANCE) }
+    lambda { Math.atanh(1.0 + TOLERANCE)  }.should raise_error(Errno::EDOM)
+    lambda { Math.atanh(-1.0 - TOLERANCE) }.should raise_error(Errno::EDOM)
   end
   
   it "raises ArgumentError if the argument cannot be coerced with Float()" do
-    should_raise(ArgumentError) { Math.atanh("test") }
+    lambda { Math.atanh("test") }.should raise_error(ArgumentError)
   end
 
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.atanh(nil) }
+    lambda { Math.atanh(nil) }.should raise_error(TypeError)
   end
   
   it "accepts any argument that can be coerced with Float()" do

@@ -116,13 +116,8 @@ describe "Module#attr" do
   
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     o = Object.new
-    should_raise(TypeError, "#{o} is not a symbol") do
-      Class.new { attr o }
-    end
-    
+    lambda { Class.new { attr o } }.raise_error(TypeError)
     (o = Object.new).should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) do
-      Class.new { attr o }
-    end
+    lambda { Class.new { attr o } }.should raise_error(TypeError)
   end
 end

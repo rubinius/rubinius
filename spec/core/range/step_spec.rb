@@ -20,26 +20,16 @@ describe "Range#step" do
   end
 
   it "raises an ArgumentError if stepsize is 0 or negative" do
-    should_raise(ArgumentError, "step can't be 0") do
-      (-5..5).step(0) { |x| x }
-    end
-
-    should_raise(ArgumentError, "step can't be 0") do
-      (-5.5..5.7).step(0.0) { |x| x }
-    end
-
-    should_raise(ArgumentError, "step can't be negative") do
-      (-5..5).step(-2) { |x| x }
-    end
+    lambda { (-5..5).step(0) { |x| x }       }.should raise_error(ArgumentError)
+    lambda { (-5.5..5.7).step(0.0) { |x| x } }.should raise_error(ArgumentError)
+    lambda { (-5..5).step(-2) { |x| x }      }.should raise_error(ArgumentError)
   end
 
   it "raises a TypeError if the first element does not respond to #succ" do
     b = Object.new
     (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => 1)
     
-    should_raise(TypeError, "can't iterate from Object") do
-      (a..b).step(1) { |i| i }
-    end
+    lambda { (a..b).step(1) { |i| i } }.should raise_error(TypeError)
   end
 
   it "returns self" do

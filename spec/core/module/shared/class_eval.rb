@@ -22,31 +22,25 @@ shared :module_class_eval do |cmd|
 
   it "raises a TypeError when the given eval-string can't be converted to string using to_str" do
     o = Object.new
-    should_raise(TypeError) do
-      ModuleSpecs.send(cmd, o)
-    end
+    lambda { ModuleSpecs.send(cmd, o) }.should raise_error(TypeError)
     
     (o = Object.new).should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) do
-      ModuleSpecs.send(cmd, o)
-    end
+    lambda { ModuleSpecs.send(cmd, o) }.should raise_error(TypeError)
   end
   
   it "raises an ArgumentError when no arguments and no block are given" do
-    should_raise(ArgumentError, "block not supplied") do
-      ModuleSpecs.send(cmd)
-    end
+    lambda { ModuleSpecs.send(cmd) }.should raise_error(ArgumentError)
   end
   
   it "raises an ArgumentError when more than 3 arguments are given" do
-    should_raise(ArgumentError) do
+    lambda {
       ModuleSpecs.send(cmd, "1 + 1", "some file", 0, "bogus")
-    end
+    }.should raise_error(ArgumentError)
   end
   
   it "raises an ArgumentError when a block and normal arguments are given" do
-    should_raise(ArgumentError) do
+    lambda {
       ModuleSpecs.send(cmd, "1 + 1") { 1 + 1 }
-    end
+    }.should raise_error(ArgumentError)
   end
 end

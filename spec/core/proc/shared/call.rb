@@ -58,22 +58,22 @@ shared :proc_call do |cmd|
     end
     
     it "raises ArgumentError when called with too few arguments on a Proc created with Kernel#lambda or Kernel#proc" do
-      should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd) }
-      should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd, 1) }
-      should_raise(ArgumentError) { proc { |a, b| [a, b] }.send(cmd) }
-      should_raise(ArgumentError) { proc { |a, b| [a, b] }.send(cmd, 1) }
+      lambda { lambda { |a, b| [a, b] }.send(cmd)    }.should raise_error(ArgumentError)
+      lambda { lambda { |a, b| [a, b] }.send(cmd, 1) }.should raise_error(ArgumentError)
+      lambda { proc { |a, b| [a, b] }.send(cmd)      }.should raise_error(ArgumentError)
+      lambda { proc { |a, b| [a, b] }.send(cmd, 1)   }.should raise_error(ArgumentError)
     end
     
     it "raises ArgumentError when called with too many arguments on a Proc created with Kernel#lambda or Kernel#proc" do
-      should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd, 1, 2, 3) }
-      should_raise(ArgumentError) { proc { |a, b| [a, b] }.send(cmd, 1, 2, 3) }
+      lambda { lambda { |a, b| [a, b] }.send(cmd, 1, 2, 3) }.should raise_error(ArgumentError)
+      lambda { proc { |a, b| [a, b] }.send(cmd, 1, 2, 3)   }.should raise_error(ArgumentError)
     end
     
     it "treats a single Array argument as a single argument when called on a Proc created with Kernel#lambda or Kernel#proc" do
       lambda { |a| [a] }.send(cmd, [1, 2]).should == [[1, 2]]
-      should_raise(ArgumentError) { lambda { |a, b| [a, b] }.send(cmd, [1, 2]) }
+      lambda { lambda { |a, b| [a, b] }.send(cmd, [1, 2]) }.should raise_error(ArgumentError)
       proc { |a| [a] }.send(cmd, [1, 2]).should == [[1, 2]]
-      should_raise(ArgumentError) { proc { |a, b| [a, b] }.send(cmd, [1, 2]) }
+      lambda { proc { |a, b| [a, b] }.send(cmd, [1, 2]) }.should raise_error(ArgumentError)
     end
   end
 end

@@ -11,7 +11,7 @@ describe "Process.wait2" do
   end
 
   it "should raise a StandardError if no child processes exist" do
-    should_raise(Errno::ECHILD) { Process.wait2 }
-    should_raise(StandardError) { Process.wait2 }
+    lambda { Process.wait2 }.should raise_error(Errno::ECHILD)
+    lambda { Process.wait2 }.should raise_error(StandardError)
   end
 end

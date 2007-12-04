@@ -48,7 +48,7 @@ describe "String#capitalize!" do
     it "raises a TypeError when self is frozen" do
       ["", "Hello", "hello"].each do |a|
         a.freeze
-        should_raise(TypeError) { a.capitalize! }
+        lambda { a.capitalize! }.should raise_error(TypeError)
       end
     end
   end

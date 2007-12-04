@@ -30,16 +30,12 @@ describe "Range#each" do
   end
   
   it "raises a TypeError if the first element does not respond to #succ" do
-    should_raise(TypeError, "can't iterate from Float") do
-      (0.5..2.4).each { |i| i }
-    end
+    lambda { (0.5..2.4).each { |i| i } }.should raise_error(TypeError)
     
     b = Object.new
     (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => 1)
     
-    should_raise(TypeError, "can't iterate from Object") do
-      (a..b).each { |i| i }
-    end
+    lambda { (a..b).each { |i| i } }.should raise_error(TypeError)
   end
   
   it "returns self" do

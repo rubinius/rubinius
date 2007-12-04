@@ -12,7 +12,9 @@ describe "UnboundMethod#bind" do
       um.bind(UnboundMethodSpecs::B.new).call(1, 2).should == UnboundMethodSpecs::B
       um.bind(UnboundMethodSpecs::C.new).call(1, 2).should == UnboundMethodSpecs::C
 
-      should_raise(TypeError) { um.bind(UnboundMethodSpecs::A.new).call(1, 2).should == UnboundMethodSpecs::A }
+      lambda {
+        um.bind(UnboundMethodSpecs::A.new).call(1, 2).should == UnboundMethodSpecs::A
+      }.should raise_error(TypeError)
     end
   end
 end

@@ -28,8 +28,6 @@ describe "Module#>=" do
   end
 
   it "raises a TypeError if the argument is no class/module" do
-    should_raise(TypeError, "compared with non class/module") do
-      ModuleSpecs::Parent >= Object.new
-    end
+    lambda { ModuleSpecs::Parent >= Object.new }.should raise_error(TypeError)
   end
 end

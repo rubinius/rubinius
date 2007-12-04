@@ -5,11 +5,13 @@ shared :kernel_lambda do |cmd|
     end
   
     it "raises an ArgumentError when no block is given" do
-      should_raise(ArgumentError) { send(cmd) }
+      lambda { send(cmd) }.should raise_error(ArgumentError)
     end
   
     it "raises an ArgumentError when given to many arguments" do
-      should_raise(ArgumentError) { send(cmd) { |a, b| a + b}.call(1,2,5).should == 3 }
+      lambda {
+        send(cmd) { |a, b| a + b}.call(1,2,5).should == 3
+      }.should raise_error(ArgumentError)
     end
   
     it "returns from block into caller block" do

@@ -27,13 +27,13 @@ shared :string_slice do |cmd|
     end
     
     it "raises a TypeError if the given index is nil" do
-      should_raise(TypeError) { "hello".send(cmd, nil) }
+      lambda { "hello".send(cmd, nil) }.should raise_error(TypeError)
     end
     
     it "raises a TypeError if the given index can't be converted to an Integer" do
-      should_raise(TypeError) { "hello".send(cmd, Object.new) }
-      should_raise(TypeError) { "hello".send(cmd, {}) }
-      should_raise(TypeError) { "hello".send(cmd, []) }
+      lambda { "hello".send(cmd, Object.new) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, {})         }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, [])         }.should raise_error(TypeError)
     end
   end
 
@@ -132,18 +132,18 @@ shared :string_slice do |cmd|
     end
 
     it "raises TypeError when idx or length can't be converted to an integer" do
-      should_raise(TypeError) { "hello".send(cmd, Object.new, 0) }
-      should_raise(TypeError) { "hello".send(cmd, 0, Object.new) }
+      lambda { "hello".send(cmd, Object.new, 0) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, 0, Object.new) }.should raise_error(TypeError)
 
       # I'm deliberately including this here.
       # It means that str.send(cmd, other, idx) isn't supported.
-      should_raise(TypeError) { "hello".send(cmd, "", 0) }
+      lambda { "hello".send(cmd, "", 0) }.should raise_error(TypeError)
     end
     
     it "raises a TypeError when the given index or the given length is nil" do
-      should_raise(TypeError) { "hello".send(cmd, 1, nil) }
-      should_raise(TypeError) { "hello".send(cmd, nil, 1) }
-      should_raise(TypeError) { "hello".send(cmd, nil, nil) }
+      lambda { "hello".send(cmd, 1, nil)   }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, nil, 1)   }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, nil, nil) }.should raise_error(TypeError)
     end
 
     it "returns subclass instances" do
@@ -365,13 +365,13 @@ shared :string_slice do |cmd|
     end
     
     it "raises a TypeError when the given index can't be converted to Integer" do
-      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, Object.new) }
-      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, {}) }
-      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, []) }
+      lambda { "hello".send(cmd, /(.)(.)(.)/, Object.new) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, /(.)(.)(.)/, {})         }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, /(.)(.)(.)/, [])         }.should raise_error(TypeError)
     end
     
     it "raises a TypeError when the given index is nil" do
-      should_raise(TypeError) { "hello".send(cmd, /(.)(.)(.)/, nil) }
+      lambda { "hello".send(cmd, /(.)(.)(.)/, nil) }.should raise_error(TypeError)
     end
 
     it "returns subclass instances" do
@@ -426,7 +426,7 @@ shared :string_slice do |cmd|
       o = Object.new
       o.should_not_receive(:to_str)
 
-      should_raise(TypeError) { "hello".send(cmd, o) }
+      lambda { "hello".send(cmd, o) }.should raise_error(TypeError)
     end
 
     it "returns a subclass instance when given a subclass instance" do

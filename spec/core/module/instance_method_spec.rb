@@ -20,8 +20,6 @@ describe "Module#instance_method" do
   end
   
   it "raises a TypeError if the given name is not a string/symbol" do
-    should_raise(TypeError) do
-      Object.instance_method(Object.new)
-    end
+    lambda { Object.instance_method(Object.new) }.should raise_error(TypeError)
   end
 end

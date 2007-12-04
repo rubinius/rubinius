@@ -32,24 +32,20 @@ describe "Module#const_defined?" do
   end
   
   it "raises a NameError when the given constant name is not allowed" do
-    should_raise(NameError, "wrong constant name invalid_name") do
+    lambda {
       ModuleSpecs.const_defined?("invalid_name")
-    end
+    }.should raise_error(NameError)
     
-    should_raise(NameError, "wrong constant name @invalid_name") do
+    lambda {
       ModuleSpecs.const_defined?("@invalid_name")
-    end
+    }.should raise_error(NameError)
   end
   
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     o = Object.new
-    should_raise(TypeError, "#{o} is not a symbol") do
-       ModuleSpecs.const_defined?(o)
-    end
+    lambda { ModuleSpecs.const_defined?(o) }.should raise_error(TypeError)
     
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) do
-      ModuleSpecs.const_defined?(o)
-    end
+    lambda { ModuleSpecs.const_defined?(o) }.should raise_error(TypeError)
   end
 end

@@ -49,9 +49,9 @@ describe "Numeric#quo" do
   
   # NOTE: Doesn't work when run with RSpec because it loads rational.rb
   it "raise the expected exception" do
-    should_raise(ArgumentError){ 13.quo } 
-    should_raise(TypeError){ 13.quo(nil) }
-    should_raise(TypeError){ 13.quo('test') }
-    should_raise(TypeError){ 13.quo(true) }   
+    lambda { 13.quo         }.should raise_error(ArgumentError)
+    lambda { 13.quo(nil)    }.should raise_error(TypeError)
+    lambda { 13.quo('test') }.should raise_error(TypeError)
+    lambda { 13.quo(true)   }.should raise_error(TypeError)   
   end 
 end

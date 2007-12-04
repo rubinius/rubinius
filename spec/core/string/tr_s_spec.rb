@@ -95,9 +95,9 @@ describe "String#tr_s!" do
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
       s = "hello".freeze
-      should_raise(TypeError) { s.tr_s!("el", "ar") }
-      should_raise(TypeError) { s.tr_s!("l", "r") }
-      should_raise(TypeError) { s.tr_s!("", "") }
+      lambda { s.tr_s!("el", "ar") }.should raise_error(TypeError)
+      lambda { s.tr_s!("l", "r")   }.should raise_error(TypeError)
+      lambda { s.tr_s!("", "")     }.should raise_error(TypeError)
     end
   end
 end

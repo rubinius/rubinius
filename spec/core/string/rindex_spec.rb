@@ -3,14 +3,14 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#rindex with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
-    should_raise(TypeError) { "hello".rindex(:sym) }    
-    should_raise(TypeError) { "hello".rindex(Object.new) }
+    lambda { "hello".rindex(:sym)       }.should raise_error(TypeError)    
+    lambda { "hello".rindex(Object.new) }.should raise_error(TypeError)
   end
 
   it "doesn't try to convert obj to an integer via to_int" do
     obj = Object.new
     obj.should_not_receive(:to_int)
-    should_raise(TypeError) { "hello".rindex(obj) }
+    lambda { "hello".rindex(obj) }.should raise_error(TypeError)
   end
 
   # Note: MRI doesn't call to_str, but should do so because index() does it.
@@ -34,12 +34,12 @@ describe "String#rindex with object" do
       it "tries to convert obj to a string via to_str" do
         obj = Object.new
         def obj.to_str() "lo" end
-        should_raise(Exception) { "hello".rindex(obj) }
+        lambda { "hello".rindex(obj) }.should raise_error(Exception)
 
         obj = Object.new
         def obj.respond_to?(arg) true end
         def obj.method_missing(*args) "o" end
-        should_raise(Exception) { "hello".rindex(obj) }
+        lambda { "hello".rindex(obj) }.should raise_error(Exception)
       end
     end
   end
@@ -120,13 +120,8 @@ describe "String#rindex with Fixnum" do
   end
   
   it "raises a TypeError when given offset is nil" do
-    should_raise(TypeError) do
-      "str".rindex(?s, nil)
-    end
-    
-    should_raise(TypeError) do
-      "str".rindex(?t, nil)
-    end
+    lambda { "str".rindex(?s, nil) }.should raise_error(TypeError)
+    lambda { "str".rindex(?t, nil) }.should raise_error(TypeError)
   end
 end
 
@@ -278,9 +273,7 @@ describe "String#rindex with String" do
   end
 
   it "raises a TypeError when given offset is nil" do
-    should_raise(TypeError) do
-      "str".rindex("st", nil)
-    end
+    lambda { "str".rindex("st", nil) }.should raise_error(TypeError)
   end
 end
 
@@ -424,8 +417,6 @@ describe "String#rindex with Regexp" do
   end
 
   it "raises a TypeError when given offset is nil" do
-    should_raise(TypeError) do
-      "str".rindex(/../, nil)
-    end
+    lambda { "str".rindex(/../, nil) }.should raise_error(TypeError)
   end
 end

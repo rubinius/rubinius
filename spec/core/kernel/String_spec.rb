@@ -20,15 +20,13 @@ describe "Kernel.String" do
 #      undef_method :to_s
 #    end
 #    
-#    should_raise(TypeError) do
+#    lambda {
 #      Kernel.String(obj)
-#    end
+#    }.should raise_error(TypeError)
 #  end
   
   it "raises a TypeError if #to_s does not return a String" do
     (obj = Object.new).should_receive(:to_s, :returning => 123)
-    should_raise(TypeError) do
-      Kernel.String(obj)
-    end
+    lambda { Kernel.String(obj) }.should raise_error(TypeError)
   end
 end

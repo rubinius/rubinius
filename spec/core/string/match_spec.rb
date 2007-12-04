@@ -10,8 +10,8 @@ describe "String#=~" do
   end
 
   it "raises a TypeError if a obj is a string" do
-    should_raise(TypeError) { "some string" =~ "another string" }
-    should_raise(TypeError) { "a" =~ MyString.new("b") }
+    lambda { "some string" =~ "another string" }.should raise_error(TypeError)
+    lambda { "a" =~ MyString.new("b")          }.should raise_error(TypeError)
   end
   
   it "invokes obj.=~ with self if obj is neither a string nor regexp" do
@@ -51,8 +51,8 @@ describe "String#match" do
   end
   
   it "raises a TypeError if pattern is not a regexp or a string" do
-    should_raise(TypeError) { 'hello'.match(10) }
-    should_raise(TypeError) { 'hello'.match(:ell) }
+    lambda { 'hello'.match(10)   }.should raise_error(TypeError)
+    lambda { 'hello'.match(:ell) }.should raise_error(TypeError)
   end
 
   it "converts string patterns to regexps without escaping" do

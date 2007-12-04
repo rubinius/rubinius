@@ -32,22 +32,20 @@ describe "Module#autoload" do
   end
 
   it "raises a NameError when an invalid constant name is given" do
-    should_raise(NameError, "autoload must be constant name") do
+    lambda {
       Module.new { autoload("no_constant", File.dirname(__FILE__) + "/fixtures/autoload.rb") }
-    end
+    }.should raise_error(NameError)
 
-    should_raise(NameError, "autoload must be constant name") do
+    lambda {
       Module.new { autoload("123invalid", File.dirname(__FILE__) + "/fixtures/autoload.rb") }
-    end
+    }.should raise_error(NameError)
 
-    should_raise(NameError, "autoload must be constant name") do
+    lambda {
       Module.new { autoload("This One is invalid, too!", File.dirname(__FILE__) + "/fixtures/autoload.rb") }
-    end
+    }.should raise_error(NameError)
   end
   
   it "raises an ArgumentError when an empty filename is given" do
-    should_raise(ArgumentError, "empty file name") do
-      Module.new { autoload("A", "") }
-    end
+    lambda { Module.new { autoload("A", "") } }.should raise_error(ArgumentError)
   end
 end

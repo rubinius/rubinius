@@ -69,10 +69,10 @@ describe "String#center with length, padding" do
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
-    should_raise(TypeError) { "hello".center("x") }
-    should_raise(TypeError) { "hello".center("x", "y") }
-    should_raise(TypeError) { "hello".center([]) }
-    should_raise(TypeError) { "hello".center(Object.new) }
+    lambda { "hello".center("x")        }.should raise_error(TypeError)
+    lambda { "hello".center("x", "y")   }.should raise_error(TypeError)
+    lambda { "hello".center([])         }.should raise_error(TypeError)
+    lambda { "hello".center(Object.new) }.should raise_error(TypeError)
   end
   
   it "tries to convert padstr to a string using to_str" do
@@ -89,14 +89,14 @@ describe "String#center with length, padding" do
   end
   
   it "raises a TypeError when padstr can't be converted to a string" do
-    should_raise(TypeError) { "hello".center(20, ?o) }
-    should_raise(TypeError) { "hello".center(20, :llo) }
-    should_raise(TypeError) { "hello".center(20, Object.new) }
+    lambda { "hello".center(20, ?o)         }.should raise_error(TypeError)
+    lambda { "hello".center(20, :llo)       }.should raise_error(TypeError)
+    lambda { "hello".center(20, Object.new) }.should raise_error(TypeError)
   end
   
   it "raises an ArgumentError if padstr is empty" do
-    should_raise(ArgumentError) { "hello".center(10, "") }
-    should_raise(ArgumentError) { "hello".center(0, "") }
+    lambda { "hello".center(10, "") }.should raise_error(ArgumentError)
+    lambda { "hello".center(0, "")  }.should raise_error(ArgumentError)
   end
   
   it "returns subclass instances when called on subclasses" do

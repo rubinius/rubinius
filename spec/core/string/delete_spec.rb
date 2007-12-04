@@ -13,7 +13,7 @@ describe "String#delete" do
   end
   
   it "raises ArgumentError when given no arguments" do
-    should_raise(ArgumentError) { "hell yeah".delete }
+    lambda { "hell yeah".delete }.should raise_error(ArgumentError)
   end
 
   it "negates sets starting with ^" do
@@ -73,9 +73,9 @@ describe "String#delete" do
   end
   
   it "raises a TypeError when one set arg can't be converted to a string" do
-    should_raise(TypeError) { "hello world".delete(?o) }
-    should_raise(TypeError) { "hello world".delete(:o) }
-    should_raise(TypeError) { "hello world".delete(Object.new) }
+    lambda { "hello world".delete(?o)         }.should raise_error(TypeError)
+    lambda { "hello world".delete(:o)         }.should raise_error(TypeError)
+    lambda { "hello world".delete(Object.new) }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -101,8 +101,8 @@ describe "String#delete!" do
       a = "hello"
       a.freeze
 
-      should_raise(TypeError) { a.delete!("") }
-      should_raise(TypeError) { a.delete!("aeiou", "^e") }
+      lambda { a.delete!("")            }.should raise_error(TypeError)
+      lambda { a.delete!("aeiou", "^e") }.should raise_error(TypeError)
     end
   end
 end

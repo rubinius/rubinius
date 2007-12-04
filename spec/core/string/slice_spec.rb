@@ -25,7 +25,7 @@ describe "String#slice! with index" do
 
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "hello".freeze.slice!(1) }
+      lambda { "hello".freeze.slice!(1) }.should raise_error(TypeError)
     end
   
     it "doesn't raise a TypeError if self is frozen and idx is outside of self" do
@@ -52,17 +52,17 @@ describe "String#slice! with index" do
   
   version '1.8.4'..'1.8.5' do
     it "raises IndexError when passed other than a Fixnum" do
-      should_raise(IndexError) { "hello".slice!(0.5).should == ?h }
+      lambda { "hello".slice!(0.5).should == ?h }.should raise_error(IndexError)
 
       obj = Object.new
       # MRI calls this twice so we can't use should_receive here.
       def obj.to_int() 1 end
-      should_raise(IndexError) { "hello".slice!(obj).should == ?e }
+      lambda { "hello".slice!(obj).should == ?e }.should raise_error(IndexError)
 
       obj = Object.new
       def obj.respond_to?(name) name == :to_int ? true : super; end
       def obj.method_missing(name, *) name == :to_int ? 1 : super; end
-      should_raise(IndexError) { "hello".slice!(obj).should == ?e }
+      lambda { "hello".slice!(obj).should == ?e }.should raise_error(IndexError)
     end
     
     it "returns nil when passed a String" do
@@ -109,7 +109,7 @@ describe "String#slice! with index, length" do
 
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "hello".freeze.slice!(1, 2) }
+      lambda { "hello".freeze.slice!(1, 2) }.should raise_error(TypeError)
     end
   
     it "doesn't raise a TypeError if self is frozen but the given position is out of self" do
@@ -216,7 +216,7 @@ describe "String#slice! Range" do
 
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "hello".freeze.slice!(1..3) }
+      lambda { "hello".freeze.slice!(1..3) }.should raise_error(TypeError)
     end
   
     it "doesn't raise a TypeError if self is frozen but the given range is out of self" do
@@ -282,7 +282,7 @@ describe "String#slice! with Regexp" do
   
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
+      lambda { "this is a string".freeze.slice!(/s.*t/) }.should raise_error(TypeError)
     end
   
     it "doesn't raise a TypeError if self is frozen but there is no match" do
@@ -366,7 +366,7 @@ describe "String#slice! with Regexp, index" do
   
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "this is a string".freeze.slice!(/s.*t/) }
+      lambda { "this is a string".freeze.slice!(/s.*t/) }.should raise_error(TypeError)
     end
   
     it "doesn't raise a TypeError if self is frozen but there is no match" do
@@ -418,7 +418,7 @@ describe "String#slice! with String" do
     o = Object.new
     o.should_not_receive(:to_str)
 
-    should_raise(TypeError) { "hello".slice!(o) }
+    lambda { "hello".slice!(o) }.should raise_error(TypeError)
   end
 
   it "returns a subclass instance when given a subclass instance" do
@@ -430,7 +430,7 @@ describe "String#slice! with String" do
 
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
-      should_raise(TypeError) { "hello hello".freeze.slice!('llo') }
+      lambda { "hello hello".freeze.slice!('llo') }.should raise_error(TypeError)
     end
   
     it "doesn't raise a TypeError if self is frozen but self does not contain other" do

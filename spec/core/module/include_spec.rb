@@ -29,7 +29,7 @@ describe "Module#include" do
   end
   
   it "raises a TypeError when the argument is not a Module" do
-    should_raise(TypeError) { ModuleSpecs::Basic.send(:include, Class.new) }
+    lambda { ModuleSpecs::Basic.send(:include, Class.new) }.should raise_error(TypeError)
   end
   
   it "should import constants to modules and classes" do
@@ -71,7 +71,7 @@ describe "Module#include?" do
   end
   
   it "raises a TypeError when no module was given" do
-    should_raise(TypeError) { ModuleSpecs::Child.include?("Test") }
-    should_raise(TypeError) { ModuleSpecs::Child.include?(ModuleSpecs::Parent) }
+    lambda { ModuleSpecs::Child.include?("Test") }.should raise_error(TypeError)
+    lambda { ModuleSpecs::Child.include?(ModuleSpecs::Parent) }.should raise_error(TypeError)
   end
 end

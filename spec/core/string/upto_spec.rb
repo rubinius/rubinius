@@ -54,20 +54,12 @@ describe "String#upto" do
   end
 
   it "raises a TypeError if other can't be converted to a string" do
-    should_raise(TypeError) do
-      "abc".upto(123)
-    end
-    
-    should_raise(TypeError) do
-      "abc".upto(:def) { }
-    end
-    
-    should_raise(TypeError) do
-      "abc".upto(Object.new)
-    end
+    lambda { "abc".upto(123)        }.should raise_error(TypeError)
+    lambda { "abc".upto(:def) { }   }.should raise_error(TypeError)
+    lambda { "abc".upto(Object.new) }.should raise_error(TypeError)
   end
 
   it "raises a LocalJumpError if other is a string but no block was given" do
-    should_raise(LocalJumpError) { "abc".upto("def") }
+    lambda { "abc".upto("def") }.should raise_error(LocalJumpError)
   end
 end

@@ -26,8 +26,8 @@ describe "String#reverse!" do
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
       "".freeze.reverse! # ok, no change
-      should_raise(TypeError) { "anna".freeze.reverse! }
-      should_raise(TypeError) { "hello".freeze.reverse! }
+      lambda { "anna".freeze.reverse!  }.should raise_error(TypeError)
+      lambda { "hello".freeze.reverse! }.should raise_error(TypeError)
     end
   end
 end

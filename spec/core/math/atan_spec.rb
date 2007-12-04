@@ -17,11 +17,11 @@ describe "Math.atan" do
   end   
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.atan("test") } 
+    lambda { Math.atan("test") }.should raise_error(ArgumentError)
   end
   
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.atan(nil) }
+    lambda { Math.atan(nil) }.should raise_error(TypeError)
   end  
   
   it "accepts any argument that can be coerced with Float()" do

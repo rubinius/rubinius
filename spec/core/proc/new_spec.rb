@@ -1,21 +1,5 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Proc.new when called without a block inside a method with an attached block" do
-  it "returns a new Proc instance from the block passed to the containing method" do
-    def some_method() Proc.new end
-    some_method { "hello" }.call.should == "hello" 
-  end
-end
-
-describe "Proc.new when called without a block inside a method without an attached block" do
-  it "raises an ArgumentError" do
-    def some_method() Proc.new end
-    should_raise(ArgumentError, "tried to create Proc object without a block") do
-      some_method
-    end 
-  end
-end
-
 describe "Proc.new" do
   it "returns a new Proc instance from the passed block" do
     Proc.new { }.call.should == nil
@@ -23,7 +7,7 @@ describe "Proc.new" do
   end
   
   it "raises an ArgumentError when no block was passed" do
-    should_raise(ArgumentError, "tried to create Proc object without a block") do
+    raise_error(ArgumentError, "tried to create Proc object without a block") do
       Proc.new
     end 
   end
@@ -33,6 +17,16 @@ describe "Proc.new" do
     a_proc = Proc.new { return } 
     res = some_method(&a_proc)
 
-    should_raise(LocalJumpError) { res.call }
+    raise_error(LocalJumpError) { res.call }
+  end
+
+  it "raises an ArgumentError when called without a block inside a method without an attached block" do
+    def some_method() Proc.new end
+    lambda { some_method }.should raise_error(ArgumentError)
+  end
+
+  it "returns a new Proc instance from the block passed to the containing method" do
+    def some_method() Proc.new end
+    some_method { "hello" }.call.should == "hello" 
   end
 end

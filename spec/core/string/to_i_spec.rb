@@ -132,8 +132,8 @@ describe "String#to_i" do
   end
   
   it "raises ArgumentError for illegal bases (1, < 0 or > 36)" do
-    should_raise(ArgumentError, "illegal radix 1") { "".to_i(1) }
-    should_raise(ArgumentError, "illegal radix -1") { "".to_i(-1) }
-    should_raise(ArgumentError, "illegal radix 37") { "".to_i(37) }
+    lambda { "".to_i(1)  }.should raise_error(ArgumentError)
+    lambda { "".to_i(-1) }.should raise_error(ArgumentError)
+    lambda { "".to_i(37) }.should raise_error(ArgumentError)
   end
 end

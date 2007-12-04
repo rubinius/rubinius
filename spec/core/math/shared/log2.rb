@@ -10,15 +10,15 @@ shared :math_log2 do
     end
 
     it "raises an Errno::EDOM if the argument is less than 0" do
-      should_raise( Errno::EDOM) { Math.log2(-1e-15) }
+      lambda { Math.log2(-1e-15) }.should raise_error( Errno::EDOM)
     end
 
     it "raises an ArgumentError if the argument cannot be coerced with Float()" do
-      should_raise(ArgumentError) { Math.log2("test") }
+      lambda { Math.log2("test") }.should raise_error(ArgumentError)
     end
 
     it "raises a TypeError if the argument is nil" do
-      should_raise(TypeError) { Math.log2(nil) }
+      lambda { Math.log2(nil) }.should raise_error(TypeError)
     end
 
     it "accepts any argument that can be coerced with Float()" do

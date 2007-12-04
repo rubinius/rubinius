@@ -5,9 +5,9 @@ describe "Module#const_get" do
   extension :rubinius do
     it "returns the value of the constant with the given String is defined in its parent" do
       ModuleSpecs.const_get("Super::SuperChild").should == ModuleSpecs::Super::SuperChild
-      should_raise(NameError, "uninitialized constant ModuleSpecs::Super::Something") do
+      lambda {
         ModuleSpecs.const_get("Super::Something")
-      end
+      }.should raise_error(NameError)
     end
   end
   
@@ -18,9 +18,9 @@ describe "Module#const_get" do
   end
   
   it "raises a NameError when there is no constant with the given name" do
-    should_raise(NameError, "uninitialized constant ModuleSpecs::NotExistant") do
+    lambda {
       ModuleSpecs.const_get("NotExistant").should == nil
-    end
+    }.should raise_error(NameError)
   end
 
   it "tries to convert the given name to a string using to_str" do
@@ -30,13 +30,9 @@ describe "Module#const_get" do
 
   it "raises a TypeError when the given name can't be converted to string using to_str" do
     o = Object.new
-    should_raise(TypeError, "#{o} is not a symbol") do
-      ModuleSpecs.const_get(o)
-    end
+    lambda { ModuleSpecs.const_get(o) }.should raise_error(TypeError)
 
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) do
-      ModuleSpecs.const_get(o)
-    end
+    lambda { ModuleSpecs.const_get(o) }.should raise_error(TypeError)
   end
 end

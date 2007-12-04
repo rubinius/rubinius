@@ -102,14 +102,12 @@ describe "Kernel#require" do
   end
   
   it "raises a LoadError if the file can't be found" do
-    should_raise(LoadError) do
-      require('not_around_at_all')
-    end
+    lambda { require('not_around_at_all') }.should raise_error(LoadError)
   end
 
   it "only accepts strings" do
-    should_raise(TypeError) { require(nil) }
-    should_raise(TypeError) { require(42) }
-    should_raise(TypeError) { require([]) }
+    lambda { require(nil) }.should raise_error(TypeError)
+    lambda { require(42)  }.should raise_error(TypeError)
+    lambda { require([])  }.should raise_error(TypeError)
   end
 end

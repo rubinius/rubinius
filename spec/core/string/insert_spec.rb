@@ -21,8 +21,8 @@ describe "String#insert with index, other" do
   end
   
   it "raises an IndexError if the index is beyond string" do
-    should_raise(IndexError) { "abcd".insert(5, 'X') }
-    should_raise(IndexError) { "abcd".insert(-6, 'X') }
+    lambda { "abcd".insert(5, 'X')  }.should raise_error(IndexError)
+    lambda { "abcd".insert(-6, 'X') }.should raise_error(IndexError)
   end
   
   it "converts index to an integer using to_int" do
@@ -58,16 +58,16 @@ describe "String#insert with index, other" do
   end
   
   it "raises a TypeError if other can't be converted to string" do
-    should_raise(TypeError) { "abcd".insert(-6, ?e) }
-    should_raise(TypeError) { "abcd".insert(-6, :sym) }
-    should_raise(TypeError) { "abcd".insert(-6, Object.new) }
+    lambda { "abcd".insert(-6, ?e)         }.should raise_error(TypeError)
+    lambda { "abcd".insert(-6, :sym)       }.should raise_error(TypeError)
+    lambda { "abcd".insert(-6, Object.new) }.should raise_error(TypeError)
   end
   
   compliant :mri, :jruby do
     it "raises a TypeError if self is frozen" do
       str = "abcd".freeze
-      should_raise(TypeError) { str.insert(4, '') }
-      should_raise(TypeError) { str.insert(4, 'X') }
+      lambda { str.insert(4, '')  }.should raise_error(TypeError)
+      lambda { str.insert(4, 'X') }.should raise_error(TypeError)
     end
   end
 end

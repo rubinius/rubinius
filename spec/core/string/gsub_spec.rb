@@ -159,8 +159,8 @@ describe "String#gsub with pattern, replacement" do
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
-    should_raise(TypeError) { "hello".gsub(:woot, "x") }
-    should_raise(TypeError) { "hello".gsub(?e, "x") }
+    lambda { "hello".gsub(:woot, "x") }.should raise_error(TypeError)
+    lambda { "hello".gsub(?e, "x")    }.should raise_error(TypeError)
   end
   
   it "tries to convert replacement to a string using to_str" do
@@ -171,8 +171,8 @@ describe "String#gsub with pattern, replacement" do
   end
   
   it "raises a TypeError when replacement can't be converted to a string" do
-    should_raise(TypeError) { "hello".gsub(/[aeiou]/, :woot) }
-    should_raise(TypeError) { "hello".gsub(/[aeiou]/, ?f) }
+    lambda { "hello".gsub(/[aeiou]/, :woot) }.should raise_error(TypeError)
+    lambda { "hello".gsub(/[aeiou]/, ?f)    }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -254,7 +254,7 @@ describe "String#gsub with pattern and block" do
   
   it "raises a RuntimeError if the string is modified while substituting" do
     str = "hello"
-    should_raise(RuntimeError) { str.gsub(//) { str[0] = 'x' } }
+    raise_error(RuntimeError) { str.gsub(//) { str[0] = 'x' } }
   end
   
   it "doesn't interpolate special sequences like \\1 for the block's return value" do
@@ -321,8 +321,8 @@ describe "String#gsub! with pattern, replacement" do
       s.freeze
     
       s.gsub!(/ROAR/, "x") # ok
-      should_raise(TypeError) { s.gsub!(/e/, "e") }
-      should_raise(TypeError) { s.gsub!(/[aeiou]/, '*') }
+      lambda { s.gsub!(/e/, "e")       }.should raise_error(TypeError)
+      lambda { s.gsub!(/[aeiou]/, '*') }.should raise_error(TypeError)
     end
   end
 end
@@ -353,8 +353,8 @@ describe "String#gsub! with pattern and block" do
       s.freeze
   
       s.gsub!(/ROAR/) { "x" } # ok
-      should_raise(RuntimeError) { s.gsub!(/e/) { "e" } }
-      should_raise(RuntimeError) { s.gsub!(/[aeiou]/) { '*' } }
+      lambda { s.gsub!(/e/) { "e" }       }.should raise_error(RuntimeError)
+      lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
     end
   end
 end

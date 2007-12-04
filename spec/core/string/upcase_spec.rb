@@ -45,8 +45,8 @@ describe "String#upcase!" do
 
   compliant :mri, :jruby do
     it "raises a TypeError when self is frozen" do
-      should_raise(TypeError) { "HeLlo".freeze.upcase! }
-      should_raise(TypeError) { "HELLO".freeze.upcase! }
+      lambda { "HeLlo".freeze.upcase! }.should raise_error(TypeError)
+      lambda { "HELLO".freeze.upcase! }.should raise_error(TypeError)
     end
   end
 end

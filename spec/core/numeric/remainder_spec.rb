@@ -32,10 +32,10 @@ describe "Numeric#remainder" do
   end
   
   it "raise the expected exception" do
-    should_raise(ArgumentError) { 13.remainder }
-    should_raise(ZeroDivisionError) { 13.remainder(0) }
-    should_raise(TypeError) { 13.remainder(nil) }
-    should_raise(TypeError) { 13.remainder('test') }
-    should_raise(TypeError) { 13.remainder(true) }   
+    lambda { 13.remainder         }.should raise_error(ArgumentError)
+    lambda { 13.remainder(0)      }.should raise_error(ZeroDivisionError)
+    lambda { 13.remainder(nil)    }.should raise_error(TypeError)
+    lambda { 13.remainder('test') }.should raise_error(TypeError)
+    lambda { 13.remainder(true)   }.should raise_error(TypeError)   
   end   
 end

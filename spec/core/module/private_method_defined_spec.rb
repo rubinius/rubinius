@@ -33,9 +33,9 @@ describe "Module#private_method_defined?" do
 
   compliant :mri, :jruby do
     it "raises an exception on improper argument" do
-      should_raise(ArgumentError) { ModuleSpecs::CountsMixin.private_method_defined?(1) }
-      should_raise(TypeError) { ModuleSpecs::CountsMixin.private_method_defined?(nil) }
-      should_raise(TypeError) { ModuleSpecs::CountsMixin.private_method_defined?(false) }
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(1)     }.should raise_error(ArgumentError)
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(nil)   }.should raise_error(TypeError)
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(false) }.should raise_error(TypeError)
     end
   end
   
@@ -47,7 +47,7 @@ describe "Module#private_method_defined?" do
     end
     
     it "raises TypeError if passed a non-String-like argument" do
-      should_raise(TypeError) { ModuleSpecs::CountsMixin.private_method_defined?(Object.new) }
+      lambda { ModuleSpecs::CountsMixin.private_method_defined?(Object.new) }.should raise_error(TypeError)
     end
   end
 end

@@ -34,9 +34,9 @@ describe "Numeric#coerce" do
   end  
   
   it "return the vaule if number is different to 0" do 
-    should_raise(ArgumentError){ @integer.coerce("test") }
-    should_raise(TypeError){ @integer.coerce(nil) }
-    should_raise(TypeError){ @integer.coerce(false) }      
-    should_raise(ArgumentError){ @integer.coerce }
+    lambda { @integer.coerce("test") }.should raise_error(ArgumentError)
+    lambda { @integer.coerce         }.should raise_error(ArgumentError)
+    lambda { @integer.coerce(nil)    }.should raise_error(TypeError)
+    lambda { @integer.coerce(false)  }.should raise_error(TypeError)    
   end  
 end

@@ -53,10 +53,10 @@ describe "String#ljust with length, padding" do
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
-    should_raise(TypeError) { "hello".ljust("x") }
-    should_raise(TypeError) { "hello".ljust("x", "y") }
-    should_raise(TypeError) { "hello".ljust([]) }
-    should_raise(TypeError) { "hello".ljust(Object.new) }
+    lambda { "hello".ljust("x")        }.should raise_error(TypeError)
+    lambda { "hello".ljust("x", "y")   }.should raise_error(TypeError)
+    lambda { "hello".ljust([])         }.should raise_error(TypeError)
+    lambda { "hello".ljust(Object.new) }.should raise_error(TypeError)
   end
 
   it "tries to convert padstr to a string using to_str" do
@@ -73,23 +73,13 @@ describe "String#ljust with length, padding" do
   end
 
   it "raises a TypeError when padstr can't be converted" do
-    should_raise(TypeError) do
-      "hello".ljust(20, :sym)
-    end
-    
-    should_raise(TypeError) do
-      "hello".ljust(20, ?c)
-    end
-    
-    should_raise(TypeError) do
-      "hello".ljust(20, Object.new)
-    end
+    lambda { "hello".ljust(20, :sym)       }.should raise_error(TypeError)
+    lambda { "hello".ljust(20, ?c)         }.should raise_error(TypeError)
+    lambda { "hello".ljust(20, Object.new) }.should raise_error(TypeError)
   end
   
   it "raises an ArgumentError when padstr is empty" do
-    should_raise(ArgumentError) do
-      "hello".ljust(10, '')
-    end
+    lambda { "hello".ljust(10, '') }.should raise_error(ArgumentError)
   end
   
   it "returns subclass instances when called on subclasses" do

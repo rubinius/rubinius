@@ -38,8 +38,8 @@ describe "String#crypt" do
   end
   
   it "raises an ArgumentError when the salt is shorter than two characters" do
-    should_raise(ArgumentError) { "hello".crypt("") }
-    should_raise(ArgumentError) { "hello".crypt("f") }
+    lambda { "hello".crypt("")  }.should raise_error(ArgumentError)
+    lambda { "hello".crypt("f") }.should raise_error(ArgumentError)
   end
 
   it "converts the salt arg to a string via to_str" do
@@ -55,8 +55,8 @@ describe "String#crypt" do
   end
 
   it "raises a type error when the salt arg can't be converted to a string" do
-    should_raise(TypeError) { "".crypt(5) }
-    should_raise(TypeError) { "".crypt(Object.new) }
+    lambda { "".crypt(5)          }.should raise_error(TypeError)
+    lambda { "".crypt(Object.new) }.should raise_error(TypeError)
   end
   
   it "taints the result if either salt or self is tainted" do

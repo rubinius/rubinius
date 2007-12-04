@@ -35,7 +35,7 @@ describe "String#lstrip!" do
       "hello".freeze.lstrip! # ok, nothing changed
       "".freeze.lstrip! # ok, nothing changed
 
-      should_raise(TypeError) { "  hello  ".freeze.lstrip! }
+      lambda { "  hello  ".freeze.lstrip! }.should raise_error(TypeError)
     end
   end
 end

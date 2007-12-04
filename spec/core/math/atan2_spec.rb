@@ -14,15 +14,15 @@ describe "Math.atan2" do
   end
   
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.atan2(1.0, "test") }
-    should_raise(ArgumentError) { Math.atan2("test", 0.0) }
-    should_raise(ArgumentError) { Math.atan2("test", "this") }
+    lambda { Math.atan2(1.0, "test")    }.should raise_error(ArgumentError)
+    lambda { Math.atan2("test", 0.0)    }.should raise_error(ArgumentError)
+    lambda { Math.atan2("test", "this") }.should raise_error(ArgumentError)
   end
   
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.atan2(nil, 1.0) }
-    should_raise(TypeError) { Math.atan2(-1.0, nil) }
-    should_raise(TypeError) { Math.atan2(nil, nil) }
+    lambda { Math.atan2(nil, 1.0)  }.should raise_error(TypeError)
+    lambda { Math.atan2(-1.0, nil) }.should raise_error(TypeError)
+    lambda { Math.atan2(nil, nil)  }.should raise_error(TypeError)
   end
 
   it "accepts any argument that can be coerced with Float()" do

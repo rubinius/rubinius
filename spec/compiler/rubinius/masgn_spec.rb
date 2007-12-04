@@ -109,9 +109,7 @@ context 'Multiple assignments with grouping' do
   end
 
   specify 'rhs cannot use parameter grouping, it is a syntax error' do
-    should_raise(SyntaxError) do
-      eval '(a, b) = (1, 2)'
-    end
+    lambda { eval '(a, b) = (1, 2)' }.should raise_error(SyntaxError)
   end
 end
 =end
@@ -119,9 +117,7 @@ end
 context 'Multiple assignments with splats' do
 =begin
   specify '* on the lhs has to be applied to the last parameter' do
-    should_raise(SyntaxError) do
-      eval 'a, *b, c = 1, 2, 3'
-    end
+    lambda { eval 'a, *b, c = 1, 2, 3' }.should raise_error(SyntaxError)
   end
 =end
 

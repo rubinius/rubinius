@@ -22,7 +22,7 @@ describe "String#count" do
   end
 
   it "raises ArgumentError when given no arguments" do
-    should_raise(ArgumentError) { "hell yeah".count }
+    lambda { "hell yeah".count }.should raise_error(ArgumentError)
   end
 
   it "negates sets starting with ^" do
@@ -94,8 +94,8 @@ describe "String#count" do
   end
  
   it "raises a TypeError when a set arg can't be converted to a string" do
-    should_raise(TypeError) { "hello world".count(?o) }
-    should_raise(TypeError) { "hello world".count(:o) }
-    should_raise(TypeError) { "hello world".count(Object.new) }
+    lambda { "hello world".count(?o)         }.should raise_error(TypeError)
+    lambda { "hello world".count(:o)         }.should raise_error(TypeError)
+    lambda { "hello world".count(Object.new) }.should raise_error(TypeError)
   end
 end

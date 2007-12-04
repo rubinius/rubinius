@@ -12,10 +12,10 @@ describe "Struct#[]=" do
 
   it "fails when trying to assign attributes which don't exist" do
     car = Struct::Car.new('Ford', 'Ranger')
-    should_raise(NameError) { car[:something] = true }
-    should_raise(NameError) { car[:dogtown] = true }
-    should_raise(IndexError) { car[100] = true }
-    should_raise(TypeError) { car[Time.now] = true }
-    should_raise(TypeError) { car[Class] = true }
+    lambda { car[:something] = true }.should raise_error(NameError)
+    lambda { car[:dogtown] = true   }.should raise_error(NameError)
+    lambda { car[100] = true        }.should raise_error(IndexError)
+    lambda { car[Time.now] = true   }.should raise_error(TypeError)
+    lambda { car[Class] = true      }.should raise_error(TypeError)
   end
 end

@@ -16,16 +16,16 @@ describe "Module#class_variable_set" do
   
   compliant :mri, :jruby do
     it "raises a TypeError when self is frozen" do
-      should_raise(TypeError) { Class.new.freeze.send(:class_variable_set, :@@test, "test") }
-      should_raise(TypeError) {  Module.new.freeze.send(:class_variable_set, :@@test, "test") }
+      lambda { Class.new.freeze.send(:class_variable_set, :@@test, "test")   }.should raise_error(TypeError)
+      lambda {  Module.new.freeze.send(:class_variable_set, :@@test, "test") }.should raise_error(TypeError)
     end
   end
   
   it "raises a NameError when the given name is not allowed" do
     c = Class.new
     
-    should_raise(NameError) { c.send(:class_variable_set, :invalid_name, "test") }
-    should_raise(NameError) {  c.send(:class_variable_set, "@invalid_name", "test") }
+    lambda { c.send(:class_variable_set, :invalid_name, "test")    }.should raise_error(NameError)
+    lambda {  c.send(:class_variable_set, "@invalid_name", "test") }.should raise_error(NameError)
   end
 
   it "converts a non string/symbol/fixnum name to string using to_str" do
@@ -38,8 +38,8 @@ describe "Module#class_variable_set" do
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     c = Class.new { class_variable_set :@@class_var, "test" }
     o = Object.new
-    should_raise(TypeError) { c.send(:class_variable_set, o, "test") }
+    lambda { c.send(:class_variable_set, o, "test") }.should raise_error(TypeError)
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) { c.send(:class_variable_set, o, "test") }
+    lambda { c.send(:class_variable_set, o, "test") }.should raise_error(TypeError)
   end
 end

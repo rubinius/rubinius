@@ -13,23 +13,23 @@ describe "Module#const_set" do
   end
 
   it "raises a NameError when the given name is no valid constant name" do
-    should_raise(NameError, "wrong constant name invalid") do
+    lambda {
       Module.const_set "invalid", "some value"
-    end
+    }.should raise_error(NameError)
 
-    should_raise(NameError, "wrong constant name Dup Dup") do
+    lambda {
       Module.const_set "Dup Dup", "some value"
-    end
+    }.should raise_error(NameError)
 
-    should_raise(NameError, "wrong constant name 123") do
+    lambda {
       Module.const_set "123", "some value"
-    end
+    }.should raise_error(NameError)
   end
   
   it "raises a NameError when there is no constant with the given name" do
-    should_raise(NameError, "uninitialized constant ModuleSpecs::NotExistant") do
+    lambda {
       ModuleSpecs.const_get("NotExistant")
-    end
+    }.should raise_error(NameError)
   end
 
   it "tries to convert the given name to a string using to_str" do
@@ -40,14 +40,9 @@ describe "Module#const_set" do
   
   it "raises a TypeError when the given name can't be converted to string using to_str" do
     o = Object.new
-    
-    should_raise(TypeError, "#{o} is not a symbol") do
-      Module.const_set(o, "test")
-    end
-  
+    lambda { Module.const_set(o, "test") }.should raise_error(TypeError)
+
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) do
-      Module.const_set(o, "Test")
-    end
+    lambda { Module.const_set(o, "Test") }.should raise_error(TypeError)
   end
 end

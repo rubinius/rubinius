@@ -14,11 +14,11 @@ describe "Math.exp" do
   end
 
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.exp("test") }
+    lambda { Math.exp("test") }.should raise_error(ArgumentError)
   end
   
   it "raises a TypeError if the argument is nil" do
-    should_raise(TypeError) { Math.exp(nil) }
+    lambda { Math.exp(nil) }.should raise_error(TypeError)
   end
   
   it "accepts any argument that can be coerced with Float()" do

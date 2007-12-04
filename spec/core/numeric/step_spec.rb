@@ -99,14 +99,14 @@ describe "Numeric#step" do
   end
   
   it "raise the expected exception" do
-    should_raise(ArgumentError){ @base.step }
-    should_raise(ArgumentError){ @base.step(100,0) }
-    should_raise(ArgumentError){ @base.step(nil) }
-    should_raise(ArgumentError){ @base.step('test') }
-    should_raise(ArgumentError){ @base.step(true, 123) }   
-    should_raise(LocalJumpError){ @base.step(5, 5) }         
-    should_raise(LocalJumpError){ @base.step(5, 3.4) }         
-    should_raise(LocalJumpError){ @base.step(5.0, 2) }               
-    should_raise(LocalJumpError){ @base.step(5.0, 1.0) }   
+    lambda { @base.step            }.should raise_error(ArgumentError)
+    lambda { @base.step(100,0)     }.should raise_error(ArgumentError)
+    lambda { @base.step(nil)       }.should raise_error(ArgumentError)
+    lambda { @base.step('test')    }.should raise_error(ArgumentError)
+    lambda { @base.step(true, 123) }.should raise_error(ArgumentError)   
+    lambda { @base.step(5, 5)      }.should raise_error(LocalJumpError)
+    lambda { @base.step(5, 3.4)    }.should raise_error(LocalJumpError)
+    lambda { @base.step(5.0, 2)    }.should raise_error(LocalJumpError)
+    lambda { @base.step(5.0, 1.0)  }.should raise_error(LocalJumpError)
   end 
 end

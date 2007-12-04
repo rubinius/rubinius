@@ -25,8 +25,8 @@ describe "String#include? with String" do
   end
   
   it "raises a TypeError if other can't be converted to string" do
-    should_raise(TypeError) { "hello".include?(:lo) }
-    should_raise(TypeError) { "hello".include?(Object.new) }
+    lambda { "hello".include?(:lo)        }.should raise_error(TypeError)
+    lambda { "hello".include?(Object.new) }.should raise_error(TypeError)
   end
 end
 
@@ -44,6 +44,6 @@ describe "String#include? with Fixnum" do
   it "doesn't try to convert fixnum to an Integer using to_int" do
     obj = Object.new
     obj.should_not_receive(:to_int)
-    should_raise(TypeError) { "hello".include?(obj) }
+    lambda { "hello".include?(obj) }.should raise_error(TypeError)
   end
 end

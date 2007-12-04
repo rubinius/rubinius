@@ -33,7 +33,7 @@ describe "String#initialize" do
       a = "hello".freeze
 
       a.instance_eval { initialize(a) } # ok, no change
-      should_raise(TypeError) { a.instance_eval { initialize("world") } }
+      lambda { a.instance_eval { initialize("world") } }.should raise_error(TypeError)
     end
   end
 end

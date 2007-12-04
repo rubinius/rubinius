@@ -2,7 +2,6 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Module#alias_method" do
-
   before(:each) do
     @class = Class.new(ModuleSpecs::Aliasing)
     @object = @class.new 
@@ -17,18 +16,16 @@ describe "Module#alias_method" do
 
   it "retains method visibility" do
     @class.make_alias :private_ichi, :private_one
-    should_raise(NameError) { @object.private_one }
-    should_raise(NameError) { @object.private_ichi }
+    lambda { @object.private_one  }.should raise_error(NameError)
+    lambda { @object.private_ichi }.should raise_error(NameError)
     @class.make_alias :public_ichi, :public_one
     @object.public_ichi.should == @object.public_one
     @class.make_alias :protected_ichi, :protected_one
-    should_raise(NameError) { @object.protected_ichi }
+    lambda { @object.protected_ichi }.should raise_error(NameError)
   end
   
   it "fails if origin method not found" do
-    should_raise(NameError) do
-      @class.make_alias :ni, :san
-    end
+    lambda { @class.make_alias :ni, :san }.should raise_error(NameError)
   end
 
   it "converts a non string/symbol/fixnum name to string using to_str" do
@@ -44,16 +41,10 @@ describe "Module#alias_method" do
   end
 
   it "raises TypeError when the given name can't be converted using to_str" do
-    should_raise(TypeError) do
-      @class.make_alias Object.new, :public_one
-    end
+    lambda { @class.make_alias Object.new, :public_one }.should raise_error(TypeError)
   end
 
   it "is a private method" do
-    should_raise(NoMethodError) do
-      @class.alias_method :ichi, :public_one
-    end
-  end
-  
+    lambda { @class.alias_method :ichi, :public_one }.should raise_error(NoMethodError)
+  end  
 end
-

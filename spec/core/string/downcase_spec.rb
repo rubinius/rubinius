@@ -45,8 +45,8 @@ describe "String#downcase!" do
 
   compliant :mri, :jruby do
     it "raises a TypeError when self is frozen" do
-      should_raise(TypeError) { "HeLlo".freeze.downcase! }
-      should_raise(TypeError) { "hello".freeze.downcase! }
+      lambda { "HeLlo".freeze.downcase! }.should raise_error(TypeError)
+      lambda { "hello".freeze.downcase! }.should raise_error(TypeError)
     end
   end
 end

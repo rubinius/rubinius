@@ -34,7 +34,7 @@ describe "String#strip!" do
       "hello".freeze.strip! # ok, nothing changed
       "".freeze.strip! # ok, nothing changed
 
-      should_raise(TypeError) { "  hello  ".freeze.strip! }
+      lambda { "  hello  ".freeze.strip! }.should raise_error(TypeError)
     end
   end
 end

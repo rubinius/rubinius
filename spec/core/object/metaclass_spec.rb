@@ -4,6 +4,6 @@ describe "Object#metaclass" do
     foo = "foo"
     foo.instance_eval "class << self; def meta_test_method; 5; end; end"
     foo.respond_to?(:meta_test_method).should == true
-    should_raise(NameError) { "hello".metaclass.method(:meta_test_method) }
+    lambda { "hello".metaclass.method(:meta_test_method) }.should raise_error(NameError)
   end
 end

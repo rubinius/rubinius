@@ -17,6 +17,8 @@ describe "Method#unbind" do
     @um.bind(MethodSpecs::B.new).call(1, 2).should == MethodSpecs::B
     @um.bind(MethodSpecs::C.new).call(1, 2).should == MethodSpecs::C
 
-    should_raise(TypeError) { @um.bind(MethodSpecs::A.new).call(1, 2).should == MethodSpecs::A }
+    lambda {
+      @um.bind(MethodSpecs::A.new).call(1, 2).should == MethodSpecs::A
+    }.should raise_error(TypeError)
   end
 end

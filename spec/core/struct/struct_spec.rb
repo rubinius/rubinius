@@ -16,7 +16,7 @@ describe "Struct anonymous class instance methods" do
 
   specify "reader method should not interfere with undefined methods" do
     car = Struct::Car.new('Ford', 'Ranger')
-    should_raise(NoMethodError) { car.something_weird }
+    lambda { car.something_weird }.should raise_error(NoMethodError)
   end
 
   specify "writer method be a synonym for []=" do

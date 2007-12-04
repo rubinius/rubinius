@@ -27,9 +27,9 @@ describe "String#replace" do
   end
   
   it "raises a TypeError if other can't be converted to string" do
-    should_raise(TypeError) { "hello".replace(123) }
-    should_raise(TypeError) { "hello".replace(:test) }
-    should_raise(TypeError) { "hello".replace(Object.new) }
+    lambda { "hello".replace(123)        }.should raise_error(TypeError)
+    lambda { "hello".replace(:test)      }.should raise_error(TypeError)
+    lambda { "hello".replace(Object.new) }.should raise_error(TypeError)
   end
   
   compliant :mri, :jruby do
@@ -37,8 +37,8 @@ describe "String#replace" do
       a = "hello".freeze
 
       a.replace(a) # ok, no change
-      should_raise(TypeError) { a.replace("") }
-      should_raise(TypeError) { a.replace("world") }
+      lambda { a.replace("")      }.should raise_error(TypeError)
+      lambda { a.replace("world") }.should raise_error(TypeError)
     end
   end
 end

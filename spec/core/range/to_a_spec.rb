@@ -6,8 +6,6 @@ describe "Range#to_a" do
     ('A'..'D').to_a.should == ['A','B','C','D']
     ('A'...'D').to_a.should == ['A','B','C']    
     (0xfffd...0xffff).to_a.should == [0xfffd,0xfffe]
-    should_raise(TypeError) do
-      (0.5..2.4).to_a
-    end
+    lambda { (0.5..2.4).to_a }.should raise_error(TypeError)
   end
 end

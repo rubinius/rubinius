@@ -33,8 +33,8 @@ describe "String#%" do
       $stderr = dev_null
       $DEBUG = true
 
-      should_raise(ArgumentError) { "" % [1, 2, 3] }
-      should_raise(ArgumentError) { "%s" % [1, 2, 3] }
+      lambda { "" % [1, 2, 3]   }.should raise_error(ArgumentError)
+      lambda { "%s" % [1, 2, 3] }.should raise_error(ArgumentError)
     ensure
       $stderr = s
       $DEBUG = old_debug
@@ -65,77 +65,77 @@ describe "String#%" do
   end
   
   it "raises an ArgumentError when given invalid argument specifiers" do
-    should_raise(ArgumentError) { "%1" % [] }
-    should_raise(ArgumentError) { "%+" % [] }
-    should_raise(ArgumentError) { "%-" % [] }
-    should_raise(ArgumentError) { "%#" % [] }
-    should_raise(ArgumentError) { "%0" % [] }
-    should_raise(ArgumentError) { "%*" % [] }
-    should_raise(ArgumentError) { "%." % [] }
-    should_raise(ArgumentError) { "%_" % [] }
-    should_raise(ArgumentError) { "%0$s" % "x" }
-    should_raise(ArgumentError) { "%*0$s" % [5, "x"] }
-    should_raise(ArgumentError) { "%*1$.*0$1$s" % [1, 2, 3] }
+    lambda { "%1" % [] }.should raise_error(ArgumentError)
+    lambda { "%+" % [] }.should raise_error(ArgumentError)
+    lambda { "%-" % [] }.should raise_error(ArgumentError)
+    lambda { "%#" % [] }.should raise_error(ArgumentError)
+    lambda { "%0" % [] }.should raise_error(ArgumentError)
+    lambda { "%*" % [] }.should raise_error(ArgumentError)
+    lambda { "%." % [] }.should raise_error(ArgumentError)
+    lambda { "%_" % [] }.should raise_error(ArgumentError)
+    lambda { "%0$s" % "x"              }.should raise_error(ArgumentError)
+    lambda { "%*0$s" % [5, "x"]        }.should raise_error(ArgumentError)
+    lambda { "%*1$.*0$1$s" % [1, 2, 3] }.should raise_error(ArgumentError)
     
     # Commented these out because they were incorrect behavior in MRI
     
     # Star precision before star width:
-    # should_raise(ArgumentError) { "%.**d" % [5, 10, 1] }
+    # raise_error(ArgumentError) { "%.**d" % [5, 10, 1] }
 
     # Precision before flags and width:
-    # should_raise(ArgumentError) { "%.5+05d" % 5 }
-    # should_raise(ArgumentError) { "%.5 5d" % 5 }
+    # raise_error(ArgumentError) { "%.5+05d" % 5 }
+    # raise_error(ArgumentError) { "%.5 5d" % 5 }
 
     # Overriding a star width with a numeric one:
-    # should_raise(ArgumentError) { "%*1s" % [5, 1] }
+    # raise_error(ArgumentError) { "%*1s" % [5, 1] }
 
     # Width before flags:
-    # should_raise(ArgumentError) { "%5+0d" % 1 }
-    # should_raise(ArgumentError) { "%5 0d" % 1 }
+    # raise_error(ArgumentError) { "%5+0d" % 1 }
+    # raise_error(ArgumentError) { "%5 0d" % 1 }
 
     # Specifying width multiple times:
-    # should_raise(ArgumentError) { "%50+30+20+10+5d" % 5 }
-    # should_raise(ArgumentError) { "%50 30 20 10 5d" % 5 }
+    # raise_error(ArgumentError) { "%50+30+20+10+5d" % 5 }
+    # raise_error(ArgumentError) { "%50 30 20 10 5d" % 5 }
 
     # Specifying the precision multiple times with negative star arguments:
-    # should_raise(ArgumentError) { "%.*.*.*.*f" % [-1, -1, -1, 5, 1] }
+    # raise_error(ArgumentError) { "%.*.*.*.*f" % [-1, -1, -1, 5, 1] }
   end
 
   it "raises an ArgumentError when multiple positional argument tokens are given for one format specifier" do
-    should_raise(ArgumentError) { "%1$1$s" % "foo" }
+    lambda { "%1$1$s" % "foo" }.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError when multiple width star tokens are given for one format specifier" do
-    should_raise(ArgumentError) { "%**s" % [5, 5, 5] }
+    lambda { "%**s" % [5, 5, 5] }.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError when a width star token is seen after a width token" do
-    should_raise(ArgumentError) { "%5*s" % [5, 5] }
+    lambda { "%5*s" % [5, 5] }.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError when multiple precision tokens are given" do
-    should_raise(ArgumentError) { "%.5.5s" % 5 }
-    should_raise(ArgumentError) { "%.5.*s" % [5, 5] }
-    should_raise(ArgumentError) { "%.*.5s" % [5, 5] }
+    lambda { "%.5.5s" % 5      }.should raise_error(ArgumentError)
+    lambda { "%.5.*s" % [5, 5] }.should raise_error(ArgumentError)
+    lambda { "%.*.5s" % [5, 5] }.should raise_error(ArgumentError)
   end
   
   it "raises an ArgumentError when there are less arguments than format specifiers" do
     ("foo" % []).should == "foo"
-    should_raise(ArgumentError) { "%s" % [] }
-    should_raise(ArgumentError) { "%s %s" % [1] }
+    lambda { "%s" % []     }.should raise_error(ArgumentError)
+    lambda { "%s %s" % [1] }.should raise_error(ArgumentError)
   end
   
   it "raises an ArgumentError when absolute and relative argument numbers are mixed" do
-    should_raise(ArgumentError) { "%s %1$s" % "foo" }
-    should_raise(ArgumentError) { "%1$s %s" % "foo" }
+    lambda { "%s %1$s" % "foo" }.should raise_error(ArgumentError)
+    lambda { "%1$s %s" % "foo" }.should raise_error(ArgumentError)
 
-    should_raise(ArgumentError) { "%s %2$s" % ["foo", "bar"] }
-    should_raise(ArgumentError) { "%2$s %s" % ["foo", "bar"] }
+    lambda { "%s %2$s" % ["foo", "bar"] }.should raise_error(ArgumentError)
+    lambda { "%2$s %s" % ["foo", "bar"] }.should raise_error(ArgumentError)
 
-    should_raise(ArgumentError) { "%*2$s" % [5, 5, 5] }
-    should_raise(ArgumentError) { "%*.*2$s" % [5, 5, 5] }
-    should_raise(ArgumentError) { "%*2$.*2$s" % [5, 5, 5] }
-    should_raise(ArgumentError) { "%*.*2$s" % [5, 5, 5] }
+    lambda { "%*2$s" % [5, 5, 5]     }.should raise_error(ArgumentError)
+    lambda { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
+    lambda { "%*2$.*2$s" % [5, 5, 5] }.should raise_error(ArgumentError)
+    lambda { "%*.*2$s" % [5, 5, 5]   }.should raise_error(ArgumentError)
   end
   
   it "allows reuse of the one argument multiple via absolute argument numbers" do
@@ -144,13 +144,13 @@ describe "String#%" do
   end
   
   it "always interprets an array argument as a list of argument parameters" do
-    should_raise(ArgumentError) { "%p" % [] }
+    labmda { "%p" % [] }.should raise_error(ArgumentError)
     ("%p" % [1]).should == "1"
     ("%p %p" % [1, 2]).should == "1 2"
   end
 
   it "always interprets an array subclass argument as a list of argument parameters" do
-    should_raise(ArgumentError) { "%p" % MyArray[] }
+    lambda { "%p" % MyArray[] }.should raise_error(ArgumentError)
     ("%p" % MyArray[1]).should == "1"
     ("%p %p" % MyArray[1, 2]).should == "1 2"
   end
@@ -181,7 +181,7 @@ describe "String#%" do
     obj = Object.new
     def obj.to_ary() [1, 2] end
     def obj.to_s() "obj" end
-    should_raise(ArgumentError) { "%s %s" % obj }
+    lambda { "%s %s" % obj }.should raise_error(ArgumentError)
     ("%s" % obj).should == "obj"
   end
   
@@ -273,7 +273,7 @@ describe "String#%" do
     ("%*c" % [10, 3]).should == "         \003"
     ("%c" % (256 + 42)).should == "*"
     
-    should_raise(TypeError) { "%c" % Object }
+    lambda { "%c" % Object }.should raise_error(TypeError)
   end
   
   it "uses argument % 256" do
@@ -444,7 +444,7 @@ describe "String#%" do
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
   # failure :mri do
   #   it "raises ArgumentError for huge precisions for %s" do
-  #     should_raise(ArgumentError) do
+  #     raise_error(ArgumentError) do
   #       "%.25555555555555555555555555555555555555s" % "hello world"
   #     end
   #   end
@@ -532,12 +532,12 @@ describe "String#%" do
       (format % "0777").should == (format % 0777)
       (format % "0_7_7_7").should == (format % 0777)
       
-      should_raise(ArgumentError) { format % "" }
-      should_raise(ArgumentError) { format % "x" }
-      should_raise(ArgumentError) { format % "5x" }
-      should_raise(ArgumentError) { format % "08" }
-      should_raise(ArgumentError) { format % "0b2" }
-      should_raise(ArgumentError) { format % "123__456" }
+      raise_error(ArgumentError) { format % "" }
+      raise_error(ArgumentError) { format % "x" }
+      raise_error(ArgumentError) { format % "5x" }
+      raise_error(ArgumentError) { format % "08" }
+      raise_error(ArgumentError) { format % "0b2" }
+      raise_error(ArgumentError) { format % "123__456" }
       
       obj = Object.new
       obj.should_receive(:to_i, :returning => 5)
@@ -590,16 +590,16 @@ describe "String#%" do
       
       (format % "0777").should == (format % 777)
 
-      should_raise(ArgumentError) { format % "" }
-      should_raise(ArgumentError) { format % "x" }
-      should_raise(ArgumentError) { format % "." }
-      should_raise(ArgumentError) { format % "10." }
-      should_raise(ArgumentError) { format % "5x" }
-      should_raise(ArgumentError) { format % "0xA" }
-      should_raise(ArgumentError) { format % "0b1" }
-      should_raise(ArgumentError) { format % "10e10.5" }
-      should_raise(ArgumentError) { format % "10__10" }
-      should_raise(ArgumentError) { format % "10.10__10" }
+      raise_error(ArgumentError) { format % "" }
+      raise_error(ArgumentError) { format % "x" }
+      raise_error(ArgumentError) { format % "." }
+      raise_error(ArgumentError) { format % "10." }
+      raise_error(ArgumentError) { format % "5x" }
+      raise_error(ArgumentError) { format % "0xA" }
+      raise_error(ArgumentError) { format % "0b1" }
+      raise_error(ArgumentError) { format % "10e10.5" }
+      raise_error(ArgumentError) { format % "10__10" }
+      raise_error(ArgumentError) { format % "10.10__10" }
       
       obj = Object.new
       obj.should_receive(:to_f, :returning => 5.0)

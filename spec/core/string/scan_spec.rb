@@ -56,9 +56,9 @@ describe "String#scan" do
   end
   
   it "raises a TypeError if pattern isn't a Regexp and can't be converted to a String" do
-    should_raise(TypeError) { "cruel world".scan(5) }
-    should_raise(TypeError) { "cruel world".scan(:test) }
-    should_raise(TypeError) { "cruel world".scan(Object.new) }
+    lambda { "cruel world".scan(5)          }.should raise_error(TypeError)
+    lambda { "cruel world".scan(:test)      }.should raise_error(TypeError)
+    lambda { "cruel world".scan(Object.new) }.should raise_error(TypeError)
   end
   
   # Note: MRI taints for tainted regexp patterns,

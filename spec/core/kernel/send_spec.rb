@@ -32,7 +32,7 @@ describe "Kernel#send" do
         'done'
       end
     end
-    should_raise(NoMethodError) { KernelSpecs::Foo.new.send(:baz) }
+    lambda { KernelSpecs::Foo.new.send(:baz) }.should raise_error(NoMethodError)
   end
 
   it "raises NoMethodError if the corresponding singleton method can't be found" do
@@ -41,7 +41,7 @@ describe "Kernel#send" do
         'done'
       end
     end
-    should_raise(NoMethodError) { KernelSpecs::Foo.send(:baz) }
+    lambda { KernelSpecs::Foo.send(:baz) }.should raise_error(NoMethodError)
   end
 
   it "raises ArgumentError if called with more arguments than available parameters" do
@@ -49,7 +49,7 @@ describe "Kernel#send" do
       def bar; end
     end
 
-    should_raise(ArgumentError) { KernelSpecs::Foo.new.send(:bar, :arg) }
+    lambda { KernelSpecs::Foo.new.send(:bar, :arg) }.should raise_error(ArgumentError)
   end
   
   it "raises ArgumentError if called with fewer arguments than required parameters" do
@@ -57,7 +57,7 @@ describe "Kernel#send" do
       def foo(arg); end
     end
 
-    should_raise(ArgumentError) { KernelSpecs::Foo.new.send(:foo) }
+    lambda { KernelSpecs::Foo.new.send(:foo) }.should raise_error(ArgumentError)
   end
   
   it "succeeds if passed an arbitrary number of arguments as a splat parameter" do

@@ -71,9 +71,9 @@ describe "String#squeeze" do
   end
   
   it "raises a TypeError when one set arg can't be converted to a string" do
-    should_raise(TypeError) { "hello world".squeeze(?o) }
-    should_raise(TypeError) { "hello world".squeeze(:o) }
-    should_raise(TypeError) { "hello world".squeeze(Object.new) }
+    lambda { "hello world".squeeze(?o)         }.should raise_error(TypeError)
+    lambda { "hello world".squeeze(:o)         }.should raise_error(TypeError)
+    lambda { "hello world".squeeze(Object.new) }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -100,8 +100,8 @@ describe "String#squeeze!" do
       a = "yellow moon"
       a.freeze
 
-      should_raise(TypeError) { a.squeeze!("") }
-      should_raise(TypeError) { a.squeeze! }
+      lambda { a.squeeze!("") }.should raise_error(TypeError)
+      lambda { a.squeeze!     }.should raise_error(TypeError)
     end
   end
 end

@@ -9,8 +9,8 @@ shared :string_to_sym do |cmd|
     end
     
     it "raises an ArgumentError when self can't be converted to symbol" do
-      should_raise(ArgumentError) { "".send(cmd) }
-      should_raise(ArgumentError) { "foo\x00bar".send(cmd) }
+      lambda { "".send(cmd)           }.should raise_error(ArgumentError)
+      lambda { "foo\x00bar".send(cmd) }.should raise_error(ArgumentError)
     end
   end
 end

@@ -7,13 +7,12 @@ shared :method_call do |cmd|
     end
   
     it "raises an ArgumentError when given incorrect number of arguments" do
-      should_raise(ArgumentError) do
+      lambda {
         MethodSpecs::Methods.new.method(:two_req).send(cmd, 1, 2, 3)
-      end
-  
-      should_raise(ArgumentError) do
+      }.should raise_error(ArgumentError)
+      lambda {
         MethodSpecs::Methods.new.method(:two_req).send(cmd, 1)
-      end
+      }.should raise_error(ArgumentError)
     end
   end
 end

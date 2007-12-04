@@ -85,13 +85,13 @@ shared :string_each do |cmd|
     
     it "raises a RuntimeError if the string is modified while substituting" do
       str = "hello\nworld"
-      should_raise(RuntimeError) { str.send(cmd) { str[0] = 'x' } }
+      lambda { str.send(cmd) { str[0] = 'x' } }.should raise_error(RuntimeError)
     end
     
     it "raises a TypeError when the separator can't be converted to a string" do
-      should_raise(TypeError) { "hello world".send(cmd, ?o) }
-      should_raise(TypeError) { "hello world".send(cmd, :o) }
-      should_raise(TypeError) { "hello world".send(cmd, Object.new) }
+      lambda { "hello world".send(cmd, ?o)         }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, :o)         }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, Object.new) }.should raise_error(TypeError)
     end
   end
 end

@@ -23,19 +23,12 @@ describe "String#*" do
   end
   
   it "raises an ArgumentError when given integer is negative" do
-    should_raise(ArgumentError) do
-      "cool" * -3
-    end
-    
-    should_raise(ArgumentError) do
-      "cool" * -3.14
-    end
+    lambda { "cool" * -3    }.should raise_error(ArgumentError)
+    lambda { "cool" * -3.14 }.should raise_error(ArgumentError)
   end
   
   it "raises a RangeError when given integer is a Bignum" do
-    should_raise(RangeError) do
-      "cool" * 9999999999
-    end
+    lambda { "cool" * 9999999999 }.should raise_error(RangeError)
   end
   
   it "returns subclass instances" do

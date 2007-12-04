@@ -6,13 +6,8 @@ describe "Marshal.dump when given a recursion limit" do
     Marshal.dump([[]], 2)
     Marshal.dump([[[]]], 3)
     
-    should_raise(ArgumentError, "exceed depth limit") do
-      Marshal.dump([], 0)
-    end
-
-    should_raise(ArgumentError, "exceed depth limit") do
-      Marshal.dump([[[]]], 1)
-    end
+    lambda { Marshal.dump([], 0)     }.should raise_error(ArgumentError)
+    lambda { Marshal.dump([[[]]], 1) }.should raise_error(ArgumentError)
   end
   
   it "ignores the recursion limit if the limit is negative" do
@@ -37,9 +32,7 @@ describe "Marshal.dump when given an IO-Object" do
   
   it "raises an Error when the IO-Object does not respond to #write" do
     obj = Object.new
-    should_raise(TypeError, "instance of IO needed") do
-      Marshal.dump("test", obj)
-    end
+    lambda { Marshal.dump("test", obj) }.should raise_error(TypeError)
   end
 end
 
@@ -56,12 +49,7 @@ describe "Marshal.dump" do
     klass = Class.new
     mod = Module.new
     
-    should_raise(TypeError, "can't dump anonymous class #{klass}") do
-      Marshal.dump(klass)
-    end
-
-    should_raise(TypeError, "can't dump anonymous module #{mod}") do
-      Marshal.dump(mod)
-    end
+    lambda { Marshal.dump(klass) }.should raise_error(TypeError)
+    lambda { Marshal.dump(mod)   }.should raise_error(TypeError)
   end
 end

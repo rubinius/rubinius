@@ -159,8 +159,8 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "raises a TypeError when pattern can't be converted to a string" do
-    should_raise(TypeError) { "hello".sub(:woot, "x") }
-    should_raise(TypeError) { "hello".sub(?e, "x") }
+    lambda { "hello".sub(:woot, "x") }.should raise_error(TypeError)
+    lambda { "hello".sub(?e, "x")    }.should raise_error(TypeError)
   end
 
   it "tries to convert replacement to a string using to_str" do
@@ -176,8 +176,8 @@ describe "String#sub with pattern, replacement" do
   end
   
   it "raises a TypeError when replacement can't be converted to a string" do
-    should_raise(TypeError) { "hello".sub(/[aeiou]/, :woot) }
-    should_raise(TypeError) { "hello".sub(/[aeiou]/, ?f) }
+    lambda { "hello".sub(/[aeiou]/, :woot) }.should raise_error(TypeError)
+    lambda { "hello".sub(/[aeiou]/, ?f)    }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do
@@ -322,8 +322,8 @@ describe "String#sub! with pattern, replacement" do
       s.freeze
     
       s.sub!(/ROAR/, "x") # ok
-      should_raise(TypeError) { s.sub!(/e/, "e") }
-      should_raise(TypeError) { s.sub!(/[aeiou]/, '*') }
+      lambda { s.sub!(/e/, "e")       }.should raise_error(TypeError)
+      lambda { s.sub!(/[aeiou]/, '*') }.should raise_error(TypeError)
     end
   end
 end
@@ -350,7 +350,7 @@ describe "String#sub! with pattern and block" do
 
   it "raises a RuntimeError if the string is modified while substituting" do
     str = "hello"
-    should_raise(RuntimeError) { str.sub!(//) { str << 'x' } }
+    lambda { str.sub!(//) { str << 'x' } }.should raise_error(RuntimeError)
   end
   
   compliant :mri, :jruby do
@@ -360,8 +360,8 @@ describe "String#sub! with pattern and block" do
         s.freeze
     
         s.sub!(/ROAR/) { "x" } # ok
-        should_raise(TypeError) { s.sub!(/e/) { "e" } }
-        should_raise(TypeError) { s.sub!(/[aeiou]/) { '*' } }
+        lambda { s.sub!(/e/) { "e" }       }.should raise_error(TypeError)
+        lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(TypeError)
       end    
     end
 
@@ -371,8 +371,8 @@ describe "String#sub! with pattern and block" do
         s.freeze
     
         s.sub!(/ROAR/) { "x" } # ok
-        should_raise(RuntimeError) { s.sub!(/e/) { "e" } }
-        should_raise(RuntimeError) { s.sub!(/[aeiou]/) { '*' } }
+        lambda { s.sub!(/e/) { "e" }       }.should raise_error(RuntimeError)
+        lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
       end    
     end
   end

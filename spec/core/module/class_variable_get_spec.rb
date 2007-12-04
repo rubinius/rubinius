@@ -12,15 +12,15 @@ describe "Module#class_variable_get" do
   it "raises a NameError when an uninitialized class variable is accessed" do
     c = Class.new
     [:@@no_class_var, :@@no_class_var.to_i, "@@no_class_var"].each do |cvar|
-      should_raise(NameError) { c.send(:class_variable_get, cvar) }
+      lambda  { c.send(:class_variable_get, cvar) }.should raise_error(NameError)
     end
   end
   
   it "raises a NameError when the given name is not allowed" do
     c = Class.new
     
-    should_raise(NameError) { c.send(:class_variable_get, :invalid_name) }
-    should_raise(NameError) { c.send(:class_variable_get, "@invalid_name") }
+    lambda { c.send(:class_variable_get, :invalid_name)   }.should raise_error(NameError)
+    lambda { c.send(:class_variable_get, "@invalid_name") }.should raise_error(NameError)
   end
 
   it "converts a non string/symbol/fixnum name to string using to_str" do
@@ -32,8 +32,8 @@ describe "Module#class_variable_get" do
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     c = Class.new { class_variable_set :@@class_var, "test" }
     o = Object.new
-    should_raise(TypeError) { c.send(:class_variable_get, o) }
+    lambda { c.send(:class_variable_get, o) }.should raise_error(TypeError)
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError) { c.send(:class_variable_get, o) }
+    lambda { c.send(:class_variable_get, o) }.should raise_error(TypeError)
   end
 end

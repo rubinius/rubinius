@@ -12,7 +12,7 @@ describe "Module#public_class_method" do
   end
 
   it "makes an existing class method public" do
-    should_raise(NoMethodError) { ModuleSpecs::Parent.public_method_1 }
+    lambda { ModuleSpecs::Parent.public_method_1 }.should raise_error(NoMethodError)
     ModuleSpecs::Parent.public_class_method :public_method_1
     ModuleSpecs::Parent.public_method_1.should == nil
 
@@ -22,7 +22,7 @@ describe "Module#public_class_method" do
   end
 
   it "makes an existing class method public up the inheritance tree" do
-    should_raise(NoMethodError) { ModuleSpecs::Child.public_method_1 }
+    lambda { ModuleSpecs::Child.public_method_1 }.should raise_error(NoMethodError)
     ModuleSpecs::Child.public_class_method :public_method_1
 
     ModuleSpecs::Child.public_method_1.should == nil
@@ -30,9 +30,9 @@ describe "Module#public_class_method" do
   end
 
   it "accepts more than one method at a time" do
-    should_raise(NoMethodError) { ModuleSpecs::Parent.public_method_1 }
-    should_raise(NoMethodError) { ModuleSpecs::Parent.public_method_2 }
-    should_raise(NoMethodError) { ModuleSpecs::Parent.public_method_3 }
+    raise_error(NoMethodError) { ModuleSpecs::Parent.public_method_1 }
+    raise_error(NoMethodError) { ModuleSpecs::Parent.public_method_2 }
+    raise_error(NoMethodError) { ModuleSpecs::Parent.public_method_3 }
 
     ModuleSpecs::Child.public_class_method :public_method_1, :public_method_2, :public_method_3
     
@@ -42,7 +42,7 @@ describe "Module#public_class_method" do
   end
 
   it "should raise a NameError if class method doesn't exist" do
-    should_raise(NameError) { ModuleSpecs.public_class_method :no_method_here }
+    lambda { ModuleSpecs.public_class_method :no_method_here }.should raise_error(NameError)
   end
 
   it "makes a class method public" do
@@ -55,19 +55,19 @@ describe "Module#public_class_method" do
   end
 
   it "raises a NameError when the given name is not a method" do
-    should_raise(NameError) do
+    lambda {
       c = Class.new do
         public_class_method :foo
       end
-    end
+    }.should raise_error(NameError)
   end
 
   it "raises a NameError when the given name is an instance method" do
-    should_raise(NameError) do
+    lambda {
       c = Class.new do
         def foo() "foo" end
         public_class_method :foo
       end
-    end
+    }.should raise_error(NameError)
   end
 end

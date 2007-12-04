@@ -53,12 +53,12 @@ describe "Module#define_method" do
   end
   
   it "raises a TypeError when the given method is no Method/Proc" do
-    should_raise(TypeError, "wrong argument type String (expected Proc/Method)") do
+    lambda {
       Class.new { define_method(:test, "self") }
-    end
+    }.should raise_error(TypeError)
     
-    should_raise(TypeError, "wrong argument type Fixnum (expected Proc/Method)") do
+    lambda {
       Class.new { define_method(:test, 1234) }
-    end
+    }.should raise_error(TypeError)
   end
 end

@@ -28,14 +28,10 @@ describe "Module#method_defined?" do
     c = Class.new
     o = Object.new
     
-    should_raise(TypeError, "#{o} is not a symbol") do
-      c.method_defined?(o)
-    end
+    lambda { c.method_defined?(o) }.should raise_error(TypeError)
     
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError, "Object#to_str should return String") do
-      c.method_defined?(o)
-    end
+    lambda { c.method_defined?(o) }.shoould raise_error(TypeError)
   end
   
   it "converts the given name to a string using to_str" do

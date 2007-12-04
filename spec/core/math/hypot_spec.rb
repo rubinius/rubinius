@@ -16,11 +16,11 @@ describe "Math.hypot" do
   end
     
   it "raises an ArgumentError if the argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.hypot("test", "this") } 
+    lambda { Math.hypot("test", "this") }.should raise_error(ArgumentError)
   end
   
   it "raises a ArgumentError if the argument is nil" do
-    should_raise(ArgumentError) { Math.hypot(nil) }
+    lambda { Math.hypot(nil) }.should raise_error(ArgumentError)
   end 
   
   it "accepts any argument that can be coerced with Float()" do

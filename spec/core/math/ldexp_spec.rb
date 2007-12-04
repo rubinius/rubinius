@@ -15,19 +15,19 @@ describe "Math.ldexp" do
   end
 
   it "raises an ArgumentError if the first argument cannot be coerced with Float()" do    
-    should_raise(ArgumentError) { Math.ldexp("test", 2) }
+    lambda { Math.ldexp("test", 2) }.should raise_error(ArgumentError)
   end
   
   it "raises an TypeError if the second argument cannot be coerced with Integer()" do
-    should_raise(TypeError) { Math.ldexp(3.2, "this") }
+    lambda { Math.ldexp(3.2, "this") }.should raise_error(TypeError)
   end
   
   it "raises a TypeError if the first argument is nil" do
-    should_raise(TypeError) { Math.ldexp(nil, 2) }
+    lambda { Math.ldexp(nil, 2) }.should raise_error(TypeError)
   end
   
   it "raises a TypeError if the second argument is nil" do
-    should_raise(TypeError) { Math.ldexp(3.1, nil) }
+    lambda { Math.ldexp(3.1, nil) }.should raise_error(TypeError)
   end
   
   it "accepts any first argument that can be coerced with Float()" do

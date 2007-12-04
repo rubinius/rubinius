@@ -15,13 +15,13 @@ describe "Module#class_variable_defined?" do
   it "raises a NameError when the given name is not allowed" do
     c = Class.new
     
-    should_raise(NameError, "`invalid_name' is not allowed as a class variable name") do
+    lambda {
       c.class_variable_defined?(:invalid_name)
-    end
+    }.should raise_error(NameError)
     
-    should_raise(NameError, "`@invalid_name' is not allowed as a class variable name") do
+    lambda {
       c.class_variable_defined?("@invalid_name")
-    end
+    }.should raise_error(NameError)
   end
 
   it "converts a non string/symbol/fixnum name to string using to_str" do
@@ -33,13 +33,13 @@ describe "Module#class_variable_defined?" do
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     c = Class.new { class_variable_set :@@class_var, "test" }
     o = Object.new
-    should_raise(TypeError, "#{o} is not a symbol") do
-       c.class_variable_defined?(o)
-    end
+    lambda {
+      c.class_variable_defined?(o)
+    }.should raise_error(TypeError)
     
     o.should_receive(:to_str, :returning => 123)
-    should_raise(TypeError, "Object#to_str should return String") do
+    lambda {
       c.class_variable_defined?(o)
-    end
+    }.should raise_error(TypeError)
   end
 end

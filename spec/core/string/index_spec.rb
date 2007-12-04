@@ -3,14 +3,14 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#index with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
-    should_raise(TypeError) { "hello".index(:sym) }    
-    should_raise(TypeError) { "hello".index(Object.new) }
+    lambda { "hello".index(:sym)       }.should raise_error(TypeError)    
+    lambda { "hello".index(Object.new) }.should raise_error(TypeError)
   end
 
   it "doesn't try to convert obj to an Integer via to_int" do
     obj = Object.new
     obj.should_not_receive(:to_int)
-    should_raise(TypeError) { "hello".index(obj) }
+    lambda { "hello".index(obj) }.should raise_error(TypeError)
   end
 
   it "tries to convert obj to a string via to_str" do

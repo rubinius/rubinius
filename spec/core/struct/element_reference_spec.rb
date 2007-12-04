@@ -20,21 +20,21 @@ describe "Struct#[]" do
 
   it "fails when it does not know about the requested attribute" do
     car = Struct::Car.new('Ford', 'Ranger')
-    should_raise(IndexError) { car[5] }
-    should_raise(NameError) { car[:body] }
-    should_raise(NameError) { car['wheels'] }
+    lambda { car[5]        }.should raise_error(IndexError)
+    lambda { car[:body]    }.should raise_error(NameError)
+    lambda { car['wheels'] }.should raise_error(NameError)
   end
 
   it "fails if passed too many arguments" do
     car = Struct::Car.new('Ford', 'Ranger')
-    should_raise(ArgumentError) { car[:make, :model] }
+    lambda { car[:make, :model] }.should raise_error(ArgumentError)
   end
 
   it "fails if not passed a string, symbol, or integer" do
     car = Struct::Car.new('Ford', 'Ranger')
-    should_raise(TypeError) { car[Time.now] }
-    should_raise(TypeError) { car[ { :name => 'chris' } ] }
-    should_raise(TypeError) { car[ ['chris', 'evan'] ] }
-    should_raise(TypeError) { car[ Class ] }
+    lambda { car[Time.now]               }.should raise_error(TypeError)
+    lambda { car[ { :name => 'chris' } ] }.should raise_error(TypeError)
+    lambda { car[ ['chris', 'evan'] ]    }.should raise_error(TypeError)
+    lambda { car[ Class ]                }.should raise_error(TypeError)
   end
 end
