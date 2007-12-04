@@ -1,59 +1,19 @@
-# The code is ugly because it must be kept as straightforward
-# as possible, do not blame me.
-
-class Object
-  # Provide the method name and a hash with any of the following
-  #   :with       => Array of arguments or :any (default)
-  #   :block      => Whether block is present or :any (default)
-  #   :count      => Number of times invoked, default once (special: :any and :never)
-  #   :returning  => Object to return
-  def should_receive(sym, info = {:with => :any, :block => :any, :count => 1})
-    meta = class << self; self; end
-    
-    if self.respond_to? sym
-      meta.instance_eval { alias_method(:"__ms_#{sym}", sym.to_sym) }
-      Mock.set_objects self, sym, :single_overridden 
-    else 
-      Mock.set_objects self, sym, :single_new 
-    end
-
-    meta.class_eval <<-END
-      def #{sym}(*args, &block)
-        Mock.report self, :#{sym}, *args, &block
-      end
-    END
-    
-    info[:with]   = info[:with] || :any
-    info[:block]  = info[:block] || :any
-    info[:count]  = info[:count] || 1
-
-    Mock.set_expect self, sym, info 
-  end
-
-  # Same as should_receive except that :count is 0
-  def should_not_receive(sym, info = {:with => :any, :block => :any, :count => 0})
-    info[:count] = 0
-    should_receive sym, info
-  end
-end 
-
-
 module Mock
   def self.reset()
     @expects = {}
     @objects = []
   end
+  
+  def self.expects
+    @expects ||= {}
+  end
+  
+  def self.objects
+    @objects ||= []
+  end
 
-  def self.set_expect(obj, sym, info)
-    if @expects[[obj, sym]]
-      if tmp = @expects[[obj, sym]].find { |i| i[:with] == info[:with] }
-        @expects[[obj, sym]].delete(tmp)
-      end
-
-      @expects[[obj, sym]] << info
-    else 
-      @expects[[obj, sym]] = [ info ]
-    end
+  def self.set_expect(obj, sym)
+    expects[[obj, sym]] = MockProxy.new
   end
 
   def self.set_objects(obj, sym, type = nil)
@@ -132,6 +92,3 @@ module Mock
     return info[:returning]
   end
 end
-
-# Start up
-Mock.reset
