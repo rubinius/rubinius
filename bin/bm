@@ -19,8 +19,6 @@ ITERATIONS = 3
 
       command = command + ' > /dev/null 2>&1'
 
-puts command
-
       if system command
         results << Time.now - start
       end
