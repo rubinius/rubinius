@@ -1,5 +1,5 @@
-#ifndef __RUBINIUS_HEAP__
-#define __RUBINIUS_HEAP__ 1
+#ifndef RBS_HEAP_H
+#define RBS_HEAP_H
 
 typedef void* address;
 

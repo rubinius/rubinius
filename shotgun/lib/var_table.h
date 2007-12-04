@@ -1,5 +1,5 @@
-#ifndef RBS_VAR_TABLE
-#define RBS_VAR_TABLE
+#ifndef RBS_VAR_TABLE_H
+#define RBS_VAR_TABLE_H
 
 #include <quark.h>
 

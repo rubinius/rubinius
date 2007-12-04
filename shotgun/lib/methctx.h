@@ -1,5 +1,5 @@
-#ifndef RBS_METHCTX
-#define RBS_METHCTX 1
+#ifndef RBS_METHCTX_H
+#define RBS_METHCTX_H
 
 OBJECT blokctx_s_under_context(STATE, OBJECT ctx);
 OBJECT blokenv_s_under_context(STATE, OBJECT ctx, OBJECT ctx_block, int start, OBJECT lst, OBJECT vlst, OBJECT locals);

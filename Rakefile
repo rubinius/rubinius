@@ -78,6 +78,8 @@ def create_load_order(files, output=".load_order.txt")
     end
   end
 
+  puts "Generating #{output}..."
+
   File.open(output, "w") do |f|
     begin
       if found
@@ -506,7 +508,6 @@ RbConfig = Config
   desc "Rebuild the .load_order.txt files"
   task "load_order" do
     # Note: Steps to rebuild load_order were defined above
-    puts "Run rake:build to rebuild .rbc files according to dependency order"
   end
 
   # OBSOLETE

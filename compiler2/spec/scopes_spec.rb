@@ -218,15 +218,18 @@ describe Compiler do
           m.sret
         end
 
+        l.pop
+        l.new_label.set!
         l.push_literal meth
         l.push :self
         l.add_method :a
+        l.soft_return
       end
 
       g.push_literal lam
       g.create_block2
       g.push :self
-      g.send :lambda, 0, true
+      g.send_with_block :lambda, 0, true
     end
   end
   

@@ -1,10 +1,10 @@
+#ifndef RBS_OBJECT_MEMORY_H
+#define RBS_OBJECT_MEMORY_H
+
 #include "shotgun.h"
 #include "baker.h"
 #include "marksweep.h"
 #include <stdlib.h>
-
-#ifndef __RUBINIUS_OM__
-#define __RUBINIUS_OM__ 1
 
 #define OMDefaultSize 4194304
 /* A little over 1% of the total heap size. */
@@ -44,7 +44,7 @@ static inline OBJECT _om_inline_new_object(object_memory om, OBJECT cls, int fie
 
 OBJECT object_memory_new_object_mature(object_memory om, OBJECT cls, int fields);
 void object_memory_print_stats(object_memory om);
-OBJECT object_memory_new_opaque();
+OBJECT object_memory_new_opaque(STATE, OBJECT cls, int sz);
 OBJECT object_memory_tenure_object(void* data, OBJECT obj);
 void object_memory_major_collect(STATE, object_memory om, ptr_array roots);
 OBJECT object_memory_collect_references(STATE, object_memory om, OBJECT mark);
@@ -150,4 +150,3 @@ if(om_on_stack(om, ctx) && (ctx >= om->context_bottom)) { \
   (om_in_heap(om, ctx) && (om_context_referenced_p(om, sender) || om_in_heap(om, sender))))
 
 #endif
-

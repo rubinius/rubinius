@@ -1422,48 +1422,6 @@ class Array
     @total += values.size
     self
   end
-  
-
-  def pretty_inspect(indent=0)
-    str = "["
-    
-    sub = false
-    i = 0
-    lst = size - 1
-    while i < size
-      element = self[i]
-      if Array === element
-        estr = element.pretty_inspect(indent + 2)
-        if str.size > 30 or estr.size > 30
-          if estr[0] != ?\ 
-            estr = "#{' ' * (indent + 2)}#{estr}"
-          end
-
-          str << "\n#{estr}"
-          sub = true
-        else
-          str << estr
-        end
-      else
-        str << element.inspect
-      end
-      
-      str << ", " unless i == lst
-      i += 1
-    end
-    
-    if sub
-      str << "\n#{' ' * indent}]"
-    else
-      str << "]"
-    end
-    
-    if sub
-      return "#{' ' * indent}#{str}"
-    end
-    
-    return str
-  end
 
   def dup
     self.class.new.replace self

@@ -1,5 +1,5 @@
-#ifndef __RUBINIUS_BAKER__
-#define __RUBINIUS_BAKER__ 1
+#ifndef RBS_BAKER_H
+#define RBS_BAKER_H
 
 #include "heap.h"
 

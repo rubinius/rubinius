@@ -10,8 +10,8 @@
 
 **********************************************************************/
 
-#ifndef NODE_H
-#define NODE_H
+#ifndef RBS_GRAMMAR_NODE_H
+#define RBS_GRAMMAR_NODE_H
 
 #if defined(__cplusplus)
 extern "C" {

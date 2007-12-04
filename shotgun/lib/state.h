@@ -1,5 +1,6 @@
-#ifndef __STATE__
-#define __STATE__
+#ifndef RBS_STATE_H
+#define RBS_STATE_H
+
 #include "shotgun.h"
 #include "memutil.h"
 

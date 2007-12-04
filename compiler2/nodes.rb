@@ -28,14 +28,12 @@ class Compiler::Node
     end
     
     def consume(sexp)
-      set(:scope, self) do
-        set(:visibility, :public) do
-          out = convert(sexp[0])
-          @all_scopes.each do |scope|
-            scope.formalize!
-          end
-          out
+      set(:scope => self, :visibility => :public, :iter => false) do
+        out = convert(sexp[0])
+        @all_scopes.each do |scope|
+          scope.formalize!
         end
+        out
       end
     end
     

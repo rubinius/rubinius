@@ -1,5 +1,6 @@
-#ifndef __RUBINIUS_INCLUDED__
-#define __RUBINIUS_INCLUDED__ 1
+#ifndef RBS_OOP_H
+#define RBS_OOP_H
+
 #include <stdint.h>
 
 typedef struct rubinius_object_t* OBJECT;
