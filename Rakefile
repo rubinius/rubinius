@@ -106,10 +106,10 @@ def compile(name, output)
   unless File.exists?(dir)
     FileUtils.mkdir_p dir
   end
-  
+
   if ENV['GDB']
     sh "shotgun/rubinius --gdb compile #{name} #{output}", :verbose => $verbose
-  else  
+  else
     sh "shotgun/rubinius compile #{name} #{output}", :verbose => $verbose
   end
 end
@@ -544,7 +544,7 @@ namespace "doc" do
 
     desc "Generate HTML in doc/vm from YAML and Textile sources"
     task "html"
-    
+
     # Define tasks for each opcode html file on the corresponding YAML file
     require 'doc/vm/op_code_info'
     OpCode::Info.op_codes.each do |op|
@@ -555,10 +555,10 @@ namespace "doc" do
           ruby "gen_op_code_html.rb #{op}"
         end
       end
-      
+
       task "html" => html
     end
-     
+
     # Define tasks for each section html file on the corresponding textile file
     # Note: requires redcloth gem to convert textile markup to html
     Dir.glob('doc/vm/*.textile').each do |f|
@@ -571,7 +571,7 @@ namespace "doc" do
           end
         end
       end
-      
+
       task "html" => html
     end
   end
