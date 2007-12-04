@@ -33,9 +33,9 @@ describe "Module#include" do
   end
   
   it "should import constants to modules and classes" do
-    ModuleSpecs::A.constants.should_include("CONSTANT_A")
-    ModuleSpecs::B.constants.should_include("CONSTANT_A","CONSTANT_B")
-    ModuleSpecs::C.constants.should_include("CONSTANT_A","CONSTANT_B")
+    ModuleSpecs::A.constants.should include("CONSTANT_A")
+    ModuleSpecs::B.constants.should include("CONSTANT_A","CONSTANT_B")
+    ModuleSpecs::C.constants.should include("CONSTANT_A","CONSTANT_B")
   end
 
   it "should not override existing constants in modules and classes" do
@@ -45,9 +45,9 @@ describe "Module#include" do
   end
 
   it "should import instance methods to modules and classes" do
-    ModuleSpecs::A.instance_methods.should_include("ma")
-    ModuleSpecs::B.instance_methods.should_include("ma","mb")
-    ModuleSpecs::C.instance_methods.should_include("ma","mb")
+    ModuleSpecs::A.instance_methods.should include("ma")
+    ModuleSpecs::B.instance_methods.should include("ma","mb")
+    ModuleSpecs::C.instance_methods.should include("ma","mb")
   end
 
   it "should not import methods to modules and classes" do

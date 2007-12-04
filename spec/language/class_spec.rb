@@ -65,7 +65,7 @@ end
 
 describe "An outer class definition" do
   it "contains the inner classes" do
-    ClassSpecs::Container.constants.should_include('A', 'B')
+    ClassSpecs::Container.constants.should include('A', 'B')
   end
 end
 

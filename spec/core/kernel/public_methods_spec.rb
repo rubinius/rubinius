@@ -12,7 +12,7 @@ describe "Kernel#public_methods" do
     (KernelSpecs::Methods.public_methods(false) & KernelSpecs::Methods.public_methods).sort.should == 
       ["allocate", "hachi", "ichi", "juu", "juu_ni", "new", "roku", "san", "shi", "superclass"]
     m = KernelSpecs::Methods.new.public_methods
-    m.should_include('ni')
-    m.should_include('juu_san')
+    m.should include('ni')
+    m.should include('juu_san')
   end
 end

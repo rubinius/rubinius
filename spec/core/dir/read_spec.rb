@@ -7,7 +7,7 @@ describe "Dir#read" do
     # an FS does not necessarily impose order
     ls = `ls -a #{DirSpecs.mock_dir}`.split
     dir = Dir.open DirSpecs.mock_dir
-    ls.should_include(dir.read)
+    ls.should include(dir.read)
     dir.close
   end
 end

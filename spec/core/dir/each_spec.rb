@@ -23,7 +23,7 @@ describe "Dir#each" do
     @dir.each {}.should == @dir
     @dir.read.should == nil
     @dir.rewind
-    ls.should_include(@dir.read)
+    ls.should include(@dir.read)
   end
 end
 

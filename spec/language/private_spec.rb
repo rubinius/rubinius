@@ -14,7 +14,7 @@ describe "The private keyword" do
 
   it "should be overridden when a new class is opened" do
     c = Private::B::C.new
-    c.methods.should_include("baz")
+    c.methods.should include("baz")
     c.baz
     Private::B::public_class_method1.should == 1
     Private::B::public_class_method2.should == 2
@@ -23,7 +23,7 @@ describe "The private keyword" do
 
   it "should wear off when the class is closed" do
     b = Private::B.new
-    b.methods.should_include("foo")
+    b.methods.should include("foo")
     b.foo
   end
 end

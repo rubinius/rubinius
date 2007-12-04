@@ -5,7 +5,7 @@ describe "Kernel.local_variables" do
   it "should contain locals as they are added" do
     a = 1
     b = 2
-    local_variables.should_include("a", "b")
+    local_variables.should include("a", "b")
   end
 
   it "should be accessable from bindings" do
@@ -16,6 +16,6 @@ describe "Kernel.local_variables" do
     end
     foo_binding = local_var_foo()
     res = eval("local_variables",foo_binding)
-    res.should_include("a", "b")
+    res.should include("a", "b")
   end
 end

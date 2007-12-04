@@ -76,7 +76,7 @@ describe "Struct.new" do
 
   it "instance_eval's a passed block" do
     klass = Struct.new(:something) { @something_else = 'something else entirely!' }
-    klass.instance_variables.should_include '@something_else'
+    klass.instance_variables.should include '@something_else'
   end
 
   it "creates a constant in subclass' namespace" do
@@ -89,13 +89,13 @@ describe "Struct.new" do
   end
 
   it "creates reader methods" do
-    Struct::Ruby.new.methods.should_include 'version'
-    Struct::Ruby.new.methods.should_include 'platform'
+    Struct::Ruby.new.methods.should include 'version'
+    Struct::Ruby.new.methods.should include 'platform'
   end
 
   it "creates writer methods" do
-    Struct::Ruby.new.methods.should_include 'version='
-    Struct::Ruby.new.methods.should_include 'platform='
+    Struct::Ruby.new.methods.should include 'version='
+    Struct::Ruby.new.methods.should include 'platform='
   end
 
   it "fails with too many arguments" do

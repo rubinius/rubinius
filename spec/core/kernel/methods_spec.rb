@@ -12,8 +12,8 @@ describe "Kernel#methods" do
     (KernelSpecs::Methods.methods(false) & KernelSpecs::Methods.methods).sort.should ==
       ["hachi", "ichi", "juu", "juu_ichi", "juu_ni", "roku", "san", "shi"]
     m = KernelSpecs::Methods.new.methods
-    m.should_include('ku')
-    m.should_include('ni')
-    m.should_include('juu_san')
+    m.should include('ku')
+    m.should include('ni')
+    m.should include('juu_san')
   end
 end

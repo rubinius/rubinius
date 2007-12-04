@@ -12,6 +12,6 @@ describe "Kernel#private_methods" do
     (KernelSpecs::Methods.private_methods(false) & KernelSpecs::Methods.private_methods).sort.should == 
       ["inherited", "initialize", "initialize_copy", "shichi"]
     m = KernelSpecs::Methods.new.private_methods
-    m.should_include('juu_shi')
+    m.should include('juu_shi')
   end
 end

@@ -9,6 +9,6 @@ describe "Kernel#protected_methods" do
   
   it "returns a list of the names of protected methods accessible in the object and from its ancestors and mixed-in modules" do
     (KernelSpecs::Methods.protected_methods(false) & KernelSpecs::Methods.protected_methods).sort.should == ["juu_ichi"]
-    KernelSpecs::Methods.new.protected_methods.should_include('ku')
+    KernelSpecs::Methods.new.protected_methods.should include('ku')
   end
 end
