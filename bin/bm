@@ -2,14 +2,26 @@
 
 ITERATIONS = 3
 
-['ruby','shotgun/rubinius'].each do |interpreter|
+#['ruby','shotgun/rubinius'].each do |interpreter|
+['shotgun/rubinius'].each do |interpreter|
   puts interpreter
   Dir['test/benchmark/*/bm*.rb'].each do |file|
     results = []
 
     1.upto(ITERATIONS) do |i|
       start = Time.now
-      if system "#{interpreter} #{file} > /dev/null 2>&1"
+
+      command = "#{interpreter} #{file}"
+
+      if file =~ /wycats\/bm_string[.]rb/ then
+        command += %{ -x "String#unpack"}
+      end
+
+      command = command + ' > /dev/null 2>&1'
+
+puts command
+
+      if system command
         results << Time.now - start
       end
     end
