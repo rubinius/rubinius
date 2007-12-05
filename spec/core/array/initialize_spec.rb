@@ -30,20 +30,20 @@ describe "Array#initialize" do
   
   it "calls to_int on array size" do
     obj = Object.new
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(1)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
     
     [1, 2].instance_eval { initialize(obj, :a) }
   end
   
   it "does not raise TypeError on a frozen array if it would not change the array" do
-    @frozen_array.instance_eval { initialize() }.should == @frozen_array
+    ArraySpecs.frozen_array.instance_eval { initialize() }.should == ArraySpecs.frozen_array
   end
 
   compliant :mri do
     it "raises TypeError on frozen arrays" do
-      lambda { @frozen_array.instance_eval { initialize(1) } }.should raise_error(TypeError)
-      lambda { @frozen_array.instance_eval { initialize([1, 2, 3]) } }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.instance_eval { initialize(1) } }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.instance_eval { initialize([1, 2, 3]) } }.should raise_error(TypeError)
     end
   end
 end

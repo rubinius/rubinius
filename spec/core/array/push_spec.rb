@@ -19,11 +19,11 @@ describe "Array#push" do
   
   compliant :mri do
     it "raises TypeError on a frozen array if modification takes place" do
-      lambda { @frozen_array.push(1) }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.push(1) }.should raise_error(TypeError)
     end
 
     it "does not raise on a frozen array if no modification is made" do
-      @frozen_array.push() # ok
+      ArraySpecs.frozen_array.push() # ok
     end
   end
 end

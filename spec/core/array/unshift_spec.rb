@@ -27,11 +27,11 @@ describe "Array#unshift" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      lambda { @frozen_array.unshift(1) }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.unshift(1) }.should raise_error(TypeError)
     end  
     
     it "does not raise TypeError on a frozen array if no modification takes place" do
-      @frozen_array.unshift() # ok
+      ArraySpecs.frozen_array.unshift() # ok
     end
   end
 end

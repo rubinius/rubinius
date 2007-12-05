@@ -68,7 +68,7 @@ describe "Array#flatten!" do
     end
 
     it "does not raise on frozen arrays when no modification would take place" do
-      @frozen_array.flatten! # ok, already flat
+      ArraySpecs.frozen_array.flatten! # ok, already flat
     end
   end
 end

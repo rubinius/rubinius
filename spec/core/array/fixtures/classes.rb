@@ -1,3 +1,11 @@
+module ArraySpecs
+  def self.frozen_array
+    ary = [1,2,3]
+    ary.freeze
+    ary
+  end
+end
+
 class MyArray < Array; end
 class ToAryArray < Array
   def to_ary() ["to_ary", "was", "called!"] end
@@ -17,7 +25,3 @@ class D
     0
   end
 end
-
-@frozen_array = [1, 2, 3]
-@frozen_array.freeze
-

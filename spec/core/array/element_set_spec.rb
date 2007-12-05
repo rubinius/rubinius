@@ -122,7 +122,7 @@ describe "Array#[]=" do
 
     a[to .. from] = ["x"]
     a.should == [1, "a", "b", "x", "c", 4]
-    lambda { a["a" .. "b"] = [] }.should raise_error(TypeError)
+    lambda { a["a" .. "b"] = []  }.should raise_error(TypeError)
     lambda { a[from .. "b"] = [] }.should raise_error(TypeError)
     
     from = Object.new
@@ -131,10 +131,10 @@ describe "Array#[]=" do
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
       
-    from.should_receive(:respond_to?).with([:to_int]).any_number_of_times.and_return(true)
-    from.should_receive(:method_missing).with([:to_int]).and_return(1)
-    to.should_receive(:respond_to?).with([:to_int]).any_number_of_times.and_return(true)
-    to.should_receive(:method_missing).with([:to_int]).and_return(-2)
+    from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
+    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
+    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
 
     a = [1, 2, 3, 4]
     a[from .. to] = ["a", "b", "c"]
@@ -142,18 +142,18 @@ describe "Array#[]=" do
   
   it "raises IndexError when passed indexes out of bounds" do
     a = [1, 2, 3, 4]
-    lambda { a[-5] = "" }.should raise_error(IndexError)
-    lambda { a[-5, -1] = "" }.should raise_error(IndexError)
-    lambda { a[-5, 0] = "" }.should raise_error(IndexError)
-    lambda { a[-5, 1] = "" }.should raise_error(IndexError)
-    lambda { a[-5, 2] = "" }.should raise_error(IndexError)
-    lambda { a[-5, 10] = "" }.should raise_error(IndexError)
+    lambda { a[-5] = ""      }.should raise_error(IndexError)
+    lambda { a[-5, -1] = ""  }.should raise_error(IndexError)
+    lambda { a[-5, 0] = ""   }.should raise_error(IndexError)
+    lambda { a[-5, 1] = ""   }.should raise_error(IndexError)
+    lambda { a[-5, 2] = ""   }.should raise_error(IndexError)
+    lambda { a[-5, 10] = ""  }.should raise_error(IndexError)
     
-    lambda { a[-5..-5] = "" }.should raise_error(RangeError)
+    lambda { a[-5..-5] = ""  }.should raise_error(RangeError)
     lambda { a[-5...-5] = "" }.should raise_error(RangeError)
-    lambda { a[-5..-4] = "" }.should raise_error(RangeError)
+    lambda { a[-5..-4] = ""  }.should raise_error(RangeError)
     lambda { a[-5...-4] = "" }.should raise_error(RangeError)
-    lambda { a[-5..10] = "" }.should raise_error(RangeError)
+    lambda { a[-5..10] = ""  }.should raise_error(RangeError)
     lambda { a[-5...10] = "" }.should raise_error(RangeError)
     
     # ok
@@ -179,7 +179,7 @@ describe "Array#[]=" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      lambda { @frozen_array[0, 0] = [] }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array[0, 0] = [] }.should raise_error(TypeError)
     end  
   end
 end
@@ -277,9 +277,9 @@ describe "Array#[]= with [index, count]" do
   it "raises IndexError when passed start and negative length" do
     a = [1, 2, 3, 4]
     lambda { a[-2, -1] = "" }.should raise_error(IndexError)
-    lambda { a[0, -1] = "" }.should raise_error(IndexError)
-    lambda { a[2, -1] = "" }.should raise_error(IndexError)
-    lambda { a[4, -1] = "" }.should raise_error(IndexError)
+    lambda { a[0, -1] = ""  }.should raise_error(IndexError)
+    lambda { a[2, -1] = ""  }.should raise_error(IndexError)
+    lambda { a[4, -1] = ""  }.should raise_error(IndexError)
     lambda { a[10, -1] = "" }.should raise_error(IndexError)
     lambda { [1, 2, 3, 4,  5][2, -1] = [7, 8] }.should raise_error(IndexError)
   end

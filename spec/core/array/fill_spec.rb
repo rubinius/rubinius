@@ -30,8 +30,8 @@ describe "Array#fill" do
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
     
     x = Object.new
-    x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    x.should_receive(:method_missing).twice.with(:to_int).and_return(2)
+    x.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
+    x.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
   end
 
@@ -99,7 +99,7 @@ describe "Array#fill" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      lambda { @frozen_array.fill('x') }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(TypeError)
     end
   end
 end

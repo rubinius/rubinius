@@ -23,8 +23,8 @@ shared :array_replace do |cmd|
       ary.should == [1, 2, 3]
 
       obj = Object.new
-      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing).with(:to_ary).and_return([])
+      obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
+      obj.should_receive(:method_missing, :with => [:to_ary], :returning => [])
 
       ary.send(cmd, obj)
       ary.should == []
@@ -38,7 +38,7 @@ shared :array_replace do |cmd|
 
     compliant :mri do
       it "raises TypeError on a frozen array" do
-        lambda { @frozen_array.send(cmd, @frozen_array) }.should raise_error(TypeError)
+        should_raise(TypeError) { ArraySpecs.frozen_array.send(cmd, ArraySpecs.frozen_array) }
       end
     end
   end

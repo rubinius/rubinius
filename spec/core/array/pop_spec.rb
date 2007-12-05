@@ -24,7 +24,7 @@ describe "Array#pop" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      lambda { @frozen_array.pop }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.pop }.should raise_error(TypeError)
     end
   end
 end

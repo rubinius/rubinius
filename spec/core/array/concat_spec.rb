@@ -21,8 +21,8 @@ describe "Array#concat" do
     [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
     
     obj = Object.new
-    obj.should_receive(:respond_to?).with([:to_ary]).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with([:to_ary]).and_return([:x])
+    obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:x])
     [].concat(obj).should == [:x]
   end
   
@@ -32,11 +32,11 @@ describe "Array#concat" do
   
   compliant :mri do
     it "raises a TypeError when Array is frozen and modification occurs" do
-      lambda { @frozen_array.concat [1] }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.concat [1] }.should raise_error(TypeError)
     end
 
     it "does not raise a TypeError when Array is frozen but no modification occurs" do
-      @frozen_array.concat [] # ok, no modification
+      ArraySpecs.frozen_array.concat [] # ok, no modification
     end
   end
 end

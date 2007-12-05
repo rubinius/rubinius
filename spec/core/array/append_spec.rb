@@ -27,11 +27,11 @@ describe "Array#<<" do
     a.shift
     a << :foo
     a.should == [:foo]
-  end  
-
+  end
+  
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      lambda { @frozen_array << 5 }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array << 5 }.should raise_error(TypeError)
     end
   end
 end

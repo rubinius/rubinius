@@ -44,7 +44,7 @@ describe "Array#insert" do
   end  
   
   it "raises IndexError if the negative index is out of bounds" do
-    lambda { [].insert(-2, 1) }.should raise_error(IndexError)
+    lambda { [].insert(-2, 1)  }.should raise_error(IndexError)
     lambda { [1].insert(-3, 2) }.should raise_error(IndexError)
   end
 
@@ -61,18 +61,18 @@ describe "Array#insert" do
     [].insert(obj, 'x').should == [nil, nil, 'x']
     
     obj = Object.new
-    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with(:to_int).and_return(2)
+    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
+    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
     [].insert(obj, 'x').should == [nil, nil, 'x']
   end
   
   compliant :mri do
     it "raises TypeError on frozen arrays if modification takes place" do
-      lambda { @frozen_array.insert(0, 'x') }.should raise_error(TypeError)
+      lambda { ArraySpecs.frozen_array.insert(0, 'x') }.should raise_error(TypeError)
     end
 
     it "does not raise on frozen arrays if no modification takes place" do
-      @frozen_array.insert(0) # ok
+      ArraySpecs.frozen_array.insert(0) # ok
     end
   end
 end
