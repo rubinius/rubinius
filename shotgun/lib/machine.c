@@ -53,12 +53,6 @@ static OBJECT string_newfrombstr(STATE, bstring output)
 
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
-void machine_print_callstack_limited(machine m, int maxlev);
-
-void machine_print_callstack(machine m) {
-    machine_print_callstack_limited(m, -1);
-}
-
 static int _ip2line(STATE, OBJECT meth, int ip) {
   OBJECT lines, tup;
   int l, total, start, nd, op;
@@ -70,8 +64,6 @@ static int _ip2line(STATE, OBJECT meth, int ip) {
     start = FIXNUM_TO_INT(tuple_at(state, tup, 0));
     nd = FIXNUM_TO_INT(tuple_at(state, tup, 1));
     op = FIXNUM_TO_INT(tuple_at(state, tup, 2));
-
-    // printf("  %d-%d => %d (%d ?)\n", start, nd, op, ip);
 
     if(ip >= start && ip <= nd) {
       return op;
@@ -117,7 +109,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
       filename = "<unknown>";
     }
     
-    printf("%10p %s#%s+%d in %s:%d\n",
+    fprintf(stderr, "%10p %s#%s+%d in %s:%d\n",
       (void*)context, modname, methname,
       fc->ip,
       filename,
@@ -125,6 +117,10 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     );
     context = fc->sender;
   }
+}
+
+void machine_print_callstack(machine m) {
+    machine_print_callstack_limited(m, -1);
 }
 
 void machine_print_stack(machine m) {
@@ -325,9 +321,12 @@ void machine_show_backtrace(unsigned long *frames, int count) {
 void machine_print_registers(machine m) {
   cpu_flush_sp(m->c);
   cpu_flush_ip(m->c);
-  printf("IP: %04d      SP: %04d\n", m->c->ip, m->c->sp);
-  printf("AC: %04d      AR: %04lu\n", cpu_current_argcount(m->c), m->c->args);
-  printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));
+  printf("IP: %04d\nSP: %04d\n", m->c->ip, m->c->sp);
+  if(NIL_P(m->c->exception)) {
+    printf("Exception: none\n");
+  } else {
+    printf("Exception: %s\n", rbs_inspect(m->s, m->c->exception));
+  }
 }
 
 void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
@@ -363,11 +362,8 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     }
   }
   
-  if(_recursive_reporting) {
-    exit(-2);
-  }
-  
-  _recursive_reporting = 1;
+  if(_recursive_reporting) exit(-2);
+  _recursive_reporting++;
   
   switch(sig) {
     case SIGSEGV:
@@ -383,7 +379,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
       signame = "<UNKNOWN>";
   }
   
-  printf("\nAn error has occured: %s\n\n", signame);
+  printf("\nAn error has occured: %s (%d)\n\n", signame, sig);
 
   if(getenv("CRASH_WAIT")) {
     printf("Pausing so I can be debugged.\n");
@@ -391,30 +387,9 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
     printf("Continuing after debugger.\n");
   }
 
-  /* This code is kind of dangerous, and general problematic (ie, it cases
-     more problems that in solves). So it's disabled unless you really want it. */
-  if(getenv("ENABLE_BT")) {
+  printf("Ruby backtrace:\n");
+  machine_print_callstack(current_machine);
   
-    printf("C backtrace:\n");
-#ifdef BETTER_BT
-    do {
-      unsigned long frames[128];
-      int count = 128;
-#   if defined(__ppc__)
-        machine_gather_ppc_frames(ctx, frames, &count);
-#   elif defined(X8632)
-        machine_gather_x86_frames(ctx, frames, &count);
-#   endif
-      machine_show_backtrace(frames, count);
-    } while(0);
-#endif
-    // printf("\nRuby backtrace:\n");
-    // machine_print_callstack(current_machine);
-  
-  }
-  
-  // printf("\nRuby stack:\n");
-  // machine_print_stack(current_machine);
   printf("\nVM Registers:\n");
   machine_print_registers(current_machine);
   
@@ -463,6 +438,10 @@ void machine_handle_fire(int kind) {
 
 void machine_handle_assert(const char *reason, const char *file, int line) {
   fprintf(stderr, "VM Assertion: %s (%s:%d)\n", reason, file, line);
+  
+  printf("\nRuby backtrace:\n");
+  machine_print_callstack(current_machine);
+  
   if(!g_use_firesuit) abort();
   g_access_violation = FIRE_ASSERT;
   setcontext(&g_firesuit);
