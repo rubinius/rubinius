@@ -510,6 +510,16 @@ RbConfig = Config
     # Note: Steps to rebuild load_order were defined above
   end
 
+  namespace :vm do
+    task "clean" do
+      sh "cd shotgun/lib; make clean"
+    end
+
+    task "dev" do
+      sh "cd shotgun/lib; make DEV=1"
+    end
+  end
+
 end
 
 desc "Build task for CruiseControl"

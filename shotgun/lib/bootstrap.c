@@ -65,6 +65,7 @@ void cpu_bootstrap(STATE) {
   BC(io) = _io_class(state, obj);
   BC(blokenv) = _blokenv_class(state, obj);
   BC(icache) = _icache_class(state, obj);
+  BC(staticscope) = _staticscope_class(state, obj);
   
   /* The symbol table */
   state->global->symbols = symtbl_new(state);
@@ -86,6 +87,7 @@ void cpu_bootstrap(STATE) {
   module_setup(state, BC(io), "IO");
   module_setup(state, BC(blokenv), "BlockEnvironment");
   module_setup(state, BC(icache), "InlineCache");
+  module_setup(state, BC(staticscope), "StaticScope");
     
   rbs_const_set(state, obj, "Symbols", state->global->symbols);
   BC(nil_class) = rbs_class_new(state, "NilClass", 0, obj);
