@@ -123,7 +123,7 @@ subtend/ffi.o: subtend/ffi.c
 # In a perfect world, we'd only rebuild grammar.c if grammar.y changed.
 # However, version control systems do not track file modify times, which will
 # mess up make's dependency tracking. So don't depend on grammar.y here.
-grammar.c: grammar.y
+grammar.c:
 	bison -o grammar.c grammar.y
 
 clean:
