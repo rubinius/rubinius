@@ -357,7 +357,7 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
      8 bytes into the header. */
   addr = (OBJECT)(info->si_addr);
   if(!REFERENCE_P(addr) || !REFERENCE_P(addr - 4) || !REFERENCE_P(addr - 8)) {
-    printf("Attempted to access field of non reference.\n");
+    printf("Attempted to access field of non-reference.\n");
     if(g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);
     }
