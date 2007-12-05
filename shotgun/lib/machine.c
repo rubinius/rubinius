@@ -828,14 +828,9 @@ int machine_load_directory(machine m, const char *prefix) {
   char *path;
   char *file;
   FILE *fp;
-  size_t prefix_len;
-
-  prefix_len = strlen(prefix);
-  if (prefix_len > 1000)
-    return FALSE;
-
+  int len;
   path = malloc(1024);
-  strcpy(mempcpy(path, prefix, prefix_len), "/.load_order.txt");
+  sprintf(path, "%s/.load_order.txt", prefix);
   
   fp = fopen(path, "r");
   if(!fp) {
@@ -847,18 +842,10 @@ int machine_load_directory(machine m, const char *prefix) {
   file = malloc(1024);
 
   while (fgets(file, 1024, fp)) {
-    char *end;
-    size_t file_len;
-
-    file_len = strlen(file);
-
-    /* we don't want to copy the \n */
-    if (file[file_len - 1] == '\n')
-      file_len--;
-
-    end = mempcpy(path + prefix_len + 1, file, file_len);
-    *end = 0;
-
+    /* Get rid of the \n on the end. */
+    len = strlen(file);
+    if(file[len-1] == '\n') file[len-1] = 0;
+    snprintf(path, 1024, "%s/%s", prefix, file);
     if(!machine_run_file(m, path)) {
       free(file);
       free(path);
