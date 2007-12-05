@@ -520,7 +520,7 @@ class Compiler::Node
       end
     end
     
-    attr_reader :body, :condition, :splat
+    attr_reader :body, :conditions, :splat
   end
   
   class Case < Node

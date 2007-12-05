@@ -320,20 +320,18 @@ class Compiler::Node
   # TESTED  
   class RegexLiteral
     def bytecode(g)
-      idx = g.push_literal nil
-      g.dup
+      idx = g.push_literal @source
       g.is_nil
       
       lbl = g.new_label
-      g.gif lbl
-      g.pop
+      g.git lbl
       
       g.push @options
       g.push_literal @source
       g.push_const :Regexp
       g.send :new, 2
       g.set_literal idx
-      lbl.set! 
+      lbl.set!
     end
   end
   

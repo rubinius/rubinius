@@ -17,6 +17,7 @@ if file
   puts x.pretty_inspect
   n = c.into_script(x)
 else
+  require 'readline'
   code = Readline.readline("> ")
   n = c.into_script(code.to_sexp)
 end
