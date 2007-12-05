@@ -23,7 +23,17 @@ class Dir
       max_depth = pattern.split("/").size - 1
     end
     
-    search_deeper(files, original_dir, pattern, flags, 1, max_depth)
+    Dir.foreach(original_dir) do |entry|
+      if File.fnmatch? pattern, entry
+        files << entry
+      end
+      
+      if File.directory? entry
+        if max_depth == -2 || max_depth > 1
+          search_deeper(files, entry, pattern, flags, 1, max_depth)
+        end
+      end
+    end
     
     files.to_a
   end
