@@ -42,7 +42,6 @@ ifeq ($(UNAME),Linux)
 endif
 
 OBJS=$(patsubst %.c,%.o,$(shell ls *.c))
-LOBJS=$(patsubst %.c,%.lo,$(shell ls *.c))
 RBLIB=lib/$(RBXLIB)
 
 rubinius: rubinius.bin

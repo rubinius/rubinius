@@ -1,24 +1,77 @@
-
-file = ARGV.shift
+$: << File.expand_path(File.dirname(__FILE__))
 
 require 'compiler'
 require 'generate'
 require 'bytecode'
 require 'text'
 
-gen = Compiler::TextGenerator
-
-c = Compiler.new(gen)
+require 'options'
 
 
-if file
-  puts "Parsing #{file}"
-  n = c.into_script(File.to_sexp(file))
-else
-  code = Readline.readline("> ")
-  n = c.into_script(code.to_sexp)
+# "Interactive" mode
+def interactive()
+  require 'readline'
+  
+  c = Compiler.new(Compiler::TextGenerator)
+  puts "Enter ? for help, ^D to exit."
+
+  while code = Readline.readline("rbx:describe> ")
+    if code == "?"
+      puts "Enter any valid Ruby expression to see its compilation process."
+      next
+    end
+
+    code = code.to_sexp
+
+    puts ""
+    puts code.pretty_inspect
+    puts c.into_script(code).to_description.generator.text
+    puts ""
+  end
+
+  exit
 end
 
-meth = n.to_description
+# "Batch" mode
+def batch(opts)
+  c = Compiler.new(Compiler::TextGenerator)
 
-# puts meth.generator.text
+  # Loop through and parse everything
+  opts[:args].each do |file|
+    next unless File.file? file
+
+    puts "\nParsing #{file}\n"
+    puts "\n -- Sexp:\n"
+    s = File.to_sexp file 
+    puts s.pretty_inspect
+
+    puts "\n -- Constructing AST:\n"
+    n = c.into_script s
+
+    puts "\n -- Generating bytecode:\n"
+    meth = n.to_description
+    puts ""
+    puts meth.generator.text
+  end
+end
+
+
+
+o = Options.new do |o|
+      o.header "Usage:  shotgun/rubinius compiler2/describe.rb [FILE, ...]\n" <<
+               "        Omitting the filename also gives the interactive prompt.\n" <<
+               "\n"
+      o.option '-i --interactive  Present prompt'
+      o.option '-h --help         Show this help message.'
+
+      o.on_error {|opt, ex| $stderr.puts opt.usage; exit 1 }
+    end
+
+interactive if ARGV.empty?
+
+opts = o.parse ARGV
+(puts o.usage; exit) if opts['help']
+
+interactive if opts['interactive'] or opts[:args].empty?
+batch opts
+

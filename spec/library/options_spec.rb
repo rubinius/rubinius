@@ -1,64 +1,103 @@
 require File.dirname(__FILE__) + '/../spec_helper'
+
 require 'options'
 
+class String
+  def squish(); self.gsub(/\s+/, ''); end
+end
+
 extension :rubinius do
-  describe 'Creating the option parser' do
-    it 'provides a .new to generate a blank set of options' do
-      Options.new
+
+  describe 'Options.new' do
+    it 'creates a blank set of options' do
+      Options.new.class.should == Options
+    end
+
+    it 'optionally takes a block that yields the Options instance' do
+      oid = nil
+
+      opts = Options.new {|o| oid = o.object_id }
+
+      opts.object_id.should == oid
+      opts.class.should == Options
+    end
+
+    it 'may be given a message to be shown at the top of #usage' do
+      o = Options.new 'My very own header'      
+      o.usage.squish.should == 'Myveryownheader'
     end
   end
 
-  describe 'Configuring the option parser' do
+  describe 'Options#option' do
     before { @o = Options.new }
 
-    it 'will take individual options with #option, must have short, long and a description' do
-      @o.option 'h', 'help', 'Displays a help message'  
-      should_raise(ArgumentError) { @o.option '-f', '--foo' }
+    it 'takes a string with three parts: short and long options and a description' do
+      @o.option '-h --help Help'
     end
 
-    it "also accepts short and long with the leading -'s which are stripped" do
-      @o.option '-h', '--help', 'Displays a help message'  
-      @o.instance_variable_get(:@allowed)['h'].nil?.should == false
-      @o.instance_variable_get(:@allowed)['help'].nil?.should == false
+    it 'does not accept the definition string without leading dashes' do
+      should_raise(ArgumentError) { @o.option 'h help Help' }
+    end
+
+    it 'requires that all three parts are present' do
+      should_raise(ArgumentError) { @o.option '-h Help'}
+      should_raise(ArgumentError) { @o.option '--h Help'}
+    end
+
+    it 'requires that the three parts are in order' do
+      should_raise(ArgumentError) { @o.option '--help -h Help' }
+      should_raise(ArgumentError) { @o.option '-h Help --help' }
+    end
+
+    it 'optionally takes a parameter to designate number of arguments wanted' do
+      @o.option '-f --file File', :one
     end
   end
 
-  describe 'Getting help from the option parser' do
-    it 'provides a #usage message constructed from the given options' do
-      o = Options.new
-      o.option '-h', '--help', 'Displays a help message'
-      o.option '-f', '--foo', 'Does nothing useful', :one
+  shared :lib_options_usage_help do |cmd|
+    describe 'Getting help from the option parser' do
+      it "provides a ##{cmd} message constructed from the given header and options" do
+        o = Options.new 'Some message here'
+        o.option '-h --help Displays a help message'
+        o.option '-f --foo Does nothing useful', :one
 
-      o.usage.gsub(/\s+/, '').should == "-h--helpDisplaysahelpmessage-f--fooARGDoesnothinguseful"
+        s = "SomemessagehereOptions:-h--helpDisplaysahelpmessage-f--fooARGDoesnothinguseful"
+        o.usage.squish.should == s
+      end  
+    end
+  end
+
+  describe 'Options#usage' do it_behaves_like :lib_options_usage_help, "usage" end
+  describe 'Options#help' do it_behaves_like :lib_options_usage_help, "help" end
+  
+  describe 'Parse error handling' do
+    it 'Raises an ArgumentError by default' do
+      should_raise(ArgumentError) { Options.new.parse '-h' }
     end  
-  end
 
-    # Parse arguments according to previously a given #configure.
-    # The parser only accepts an Array, Strings have to be parsed
-    # beforehand. The parser matches the given options to the ones
-    # defined in #configure, leaves non-option arguments (such as
-    # the path in 'ls -la /etc') alone. Any unknown arguments raise
-    # an ArgumentError. The results of the parse are returned as a
-    # Hash, see below. The accepted forms for options are:
-    #
-    # Short opts: -h, -ht, -h ARG, -h=ARG, -ht ARG (same as -h -t ARG).
-    # Long opts:  --help, --help ARG, --help=ARG. (No joining.)
-    #
-    # Quoted strings are valid arguments but for Strings only.
-    # Arrays should have parsed those at an earlier point.
-    #
-    # The returned Hash is indexed by the names of the found
-    # options. These indices point to an Array of arguments
-    # to that option if any, or just true if not. The Hash
-    # also contains a special index, :args, containing all
-    # of the non-option arguments.
+    it 'Allows overriding of default by supplying a block to #on_error' do
+      o = Options.new {|o| o.on_error { :error } }
+      o.parse('-h').should == :error
+    end  
+
+    it 'Supplies the #on_error block with the Options object and the exception' do
+      o = Options.new {|o| o.on_error {|op, ex| [op.class, ex.class] } }
+      o.parse('-h').should == [Options, ArgumentError]
+    end
+  end  
+
   describe 'Parsing options using the configured parser' do
     before do 
       @o = Options.new 
 
-      @o.option '-a', '--aa', 'Aa'  
-      @o.option '-b', '--bb', 'Bb'  
-      @o.option '-c', '--cc', 'Cc'  
+      @o.option '-a --aa Aa'  
+      @o.option '-b --bb Bb'  
+      @o.option '-c --cc Cc'  
+    end
+
+    it 'raises an error if given empty input' do
+      should_raise(ArgumentError) { @o.parse '' }
+      should_raise(ArgumentError) { @o.parse [] }
     end
 
     it 'returns a Hash with given options as defined keys' do
@@ -92,9 +131,9 @@ extension :rubinius do
     before do 
       @o = Options.new 
 
-      @o.option '-a', '--aa', 'Aa'  
-      @o.option '-b', '--bb', 'Bb'  
-      @o.option '-c', '--cc', 'Cc'  
+      @o.option '-a --aa Aa'  
+      @o.option '-b --bb Bb'  
+      @o.option '-c --cc Cc'  
     end
 
     it 'takes short options separately' do
@@ -136,85 +175,71 @@ extension :rubinius do
     before do 
       @o = Options.new 
 
-      @o.option '-a', '--aa', 'Aa'  
-      @o.option '-b', '--bb', 'Bb'  
-      @o.option '-c', '--cc', 'Cc'  
-      @o.option '-d', '--dd', 'Dd', :one 
+      @o.option '-n --none None'  
+      @o.option '-o --one  One',  :one 
+      @o.option '-m --many Many', :many
+      @o.option '-a --any  Any',  :any
     end
 
     it 'defaults to :none specified arguments which means no following argument is captured' do 
-      @o.parse('-a ARG')['a'].should == true
-      @o.parse('-a ARG')['aa'].should == true
+      @o.parse('-n ARG')['n'].should == true
+      @o.parse('-n ARG')['none'].should == true
     end
 
     it 'stores the argument(s) in an Array stored as the value of the option name' do
-      @o.parse('-d ARG')['d'].should == ['ARG']
-      @o.parse('-d ARG')['dd'].should == ['ARG']
+      @o.parse('-o ARG')['o'].should == ['ARG']
+      @o.parse('-o ARG')['one'].should == ['ARG']
     end
 
     it 'accepts :one to denote a single argument' do
-      @o.option '-e', '--ee', 'Ee', :one
-
-      @o.parse('-e ARG')['e'].should == ['ARG']
-      @o.parse('-e ARG')['ee'].should == ['ARG']
+      @o.parse('-o ARG')['o'].should == ['ARG']
+      @o.parse('-o ARG')['one'].should == ['ARG']
     end
 
-    it 'ignores more than one argument when :one defined' do
-      @o.option '-e', '--ee', 'Ee', :one
-    
-      h = @o.parse '-e ARG1 ARG2'
+    it 'ignores more than one argument when :one defined, extra go to :args' do
+      h = @o.parse '-o ARG1 ARG2'
 
-      h['e'].should == ['ARG1']
-      h['ee'].should == ['ARG1']
+      h['o'].should == ['ARG1']
+      h['one'].should == ['ARG1']
       h[:args].should == ['ARG2']
     end
 
-    it 'accepts :many to indicate as many nonoption args as follow before the following option' do
-      @o.option '-f', '--ff', 'Ff', :many
+    it 'accepts :many to indicate as many nonoption args as possible until next option' do
+      h = @o.parse '-m ARG1 ARG2 ARG3 -n ARG4'
 
-      h = @o.parse '-f ARG1 ARG2 ARG3 -a ARG4'
-
-      h['f'].should == %w|ARG1 ARG2 ARG3| 
-      h['ff'].should == %w|ARG1 ARG2 ARG3| 
-      h['a'].should == true
-      h['aa'].should == true
+      h['m'].should == %w|ARG1 ARG2 ARG3| 
+      h['many'].should == %w|ARG1 ARG2 ARG3| 
+      h['n'].should == true
+      h['none'].should == true
       h[:args].should == %w|ARG4| 
     end
 
-    it 'accepts :maybe to indicate zero or as many as possible arguments' do
-      @o.option '-g', '--gg', 'Gg', :maybe
-
-      @o.parse('-g -a')['g'].should == true
-      @o.parse('-g -a')['gg'].should == true
-      @o.parse('-g ARG -a')['g'].should == ['ARG']
-      @o.parse('-g ARG -a')['gg'].should == ['ARG']
-      @o.parse('-g ARG1 ARG2 ARG3 -a')['g'].should == %w|ARG1 ARG2 ARG3|
-      @o.parse('-g ARG1 ARG2 ARG3 -a')['gg'].should == %w|ARG1 ARG2 ARG3|
+    it 'accepts :any to indicate zero or as many as possible arguments' do
+      @o.parse('-a -n')['a'].should == true
+      @o.parse('-a -n')['any'].should == true
+      @o.parse('-a ARG -n')['a'].should == ['ARG']
+      @o.parse('-a ARG -n')['any'].should == ['ARG']
+      @o.parse('-a ARG1 ARG2 ARG3 -n')['a'].should == %w|ARG1 ARG2 ARG3|
+      @o.parse('-a ARG1 ARG2 ARG3 -n')['any'].should == %w|ARG1 ARG2 ARG3|
     end
 
-    it 'fails if :one and no arguments given' do
-      @o.option '-h', '--hh', 'Hh', :one
-
-      should_raise(ArgumentError) { @o.parse '-h' }
-      should_raise(ArgumentError) { @o.parse '-h -a ARG' }
+    it 'fails if :one and no arguments given before next option' do
+      should_raise(ArgumentError) { @o.parse '-o' }
+      should_raise(ArgumentError) { @o.parse '-o -n ARG' }
     end
 
     it 'fails if :many and one or no arguments given' do
-      @o.option '-i', '--ii', 'Ii', :many
-
-      should_raise(ArgumentError) { @o.parse '-i ARG' }
-      should_raise(ArgumentError) { @o.parse '-i ARG -a ARG2' }
+      should_raise(ArgumentError) { @o.parse '-m ARG' }
+      should_raise(ArgumentError) { @o.parse '-m ARG -n ARG2' }
     end
 
     it 'assigns arguments only to the last in a set of combined short options ' do
-      @o.option '-j', '--jj', 'Jj', :one
-
-      @o.parse('-abj ARG')['a'].should == true
-      @o.parse('-abj ARG')['aa'].should == true
-      @o.parse('-abj ARG')['b'].should == true
-      @o.parse('-abj ARG')['bb'].should == true
-      @o.parse('-abj ARG')['j'].should == ['ARG']
-      @o.parse('-abj ARG')['jj'].should == ['ARG']
+      @o.parse('-nao ARG')['n'].should == true
+      @o.parse('-nao ARG')['none'].should == true
+      @o.parse('-nao ARG')['a'].should == true
+      @o.parse('-nao ARG')['any'].should == true
+      @o.parse('-nao ARG')['o'].should == ['ARG']
+      @o.parse('-nao ARG')['one'].should == ['ARG']
     end
   end
 
@@ -222,9 +247,9 @@ extension :rubinius do
     before do 
       @o = Options.new 
 
-      @o.option '-a', '--aa', 'Aa'  
-      @o.option '-b', '--bb', 'Bb'  
-      @o.option '-c', '--cc', 'Cc'  
+      @o.option '-a --aa Aa'  
+      @o.option '-b --bb Bb'  
+      @o.option '-c --cc Cc'  
     end
 
     it 'takes long options separately' do
@@ -253,89 +278,63 @@ extension :rubinius do
     before do 
       @o = Options.new 
 
-      @o.option '-a', '--aa', 'Aa'  
-      @o.option '-b', '--bb', 'Bb'  
-      @o.option '-c', '--cc', 'Cc'  
-      @o.option '-d', '--dd', 'Dd', :one 
+      @o.option '-n --none None'  
+      @o.option '-o --one  One',  :one 
+      @o.option '-m --many Many', :many
+      @o.option '-a --any  Any',  :any
     end
 
     it 'defaults to :none specified arguments which means no following argument is captured' do 
-      @o.parse('--aa ARG')['a'].should == true
-      @o.parse('--aa ARG')['aa'].should == true
+      @o.parse('--none ARG')['n'].should == true
+      @o.parse('--none ARG')['none'].should == true
     end
 
     it 'stores the argument(s) in an Array stored as the value of the option name' do
-      @o.parse('--dd ARG')['d'].should == ['ARG']
-      @o.parse('--dd ARG')['dd'].should == ['ARG']
+      @o.parse('--one ARG')['o'].should == ['ARG']
+      @o.parse('--one ARG')['one'].should == ['ARG']
     end
 
     it 'accepts :one to denote a single argument' do
-      @o.option '-e', '--ee', 'Ee', :one
-
-      @o.parse('--ee ARG')['e'].should == ['ARG']
-      @o.parse('--ee ARG')['ee'].should == ['ARG']
+      @o.parse('--one ARG')['o'].should == ['ARG']
+      @o.parse('--one ARG')['one'].should == ['ARG']
     end
 
     it 'ignores more than one argument when :one defined' do
-      @o.option '-e', '--ee', 'Ee', :one
-    
-      h = @o.parse '--ee ARG1 ARG2'
+      h = @o.parse '--one ARG1 ARG2'
 
-      h['e'].should == ['ARG1']
-      h['ee'].should == ['ARG1']
+      h['o'].should == ['ARG1']
+      h['one'].should == ['ARG1']
       h[:args].should == ['ARG2']
     end
 
     it 'accepts :many to indicate as many nonoption args as follow before the following option' do
-      @o.option '-f', '--ff', 'Ff', :many
+      h = @o.parse '--many ARG1 ARG2 ARG3 -n ARG4'
 
-      h = @o.parse '--ff ARG1 ARG2 ARG3 -a ARG4'
-
-      h['f'].should == %w|ARG1 ARG2 ARG3| 
-      h['ff'].should == %w|ARG1 ARG2 ARG3| 
-      h['a'].should == true
-      h['aa'].should == true
+      h['m'].should == %w|ARG1 ARG2 ARG3| 
+      h['many'].should == %w|ARG1 ARG2 ARG3| 
+      h['n'].should == true
+      h['n'].should == true
       h[:args].should == %w|ARG4| 
     end
 
-    it 'accepts :maybe to indicate zero or as many as possible arguments' do
-      @o.option '-g', '--gg', 'Gg', :maybe
-
-      @o.parse('--gg -a')['g'].should == true
-      @o.parse('--gg -a')['gg'].should == true
-      @o.parse('--gg ARG -a')['g'].should == ['ARG']
-      @o.parse('--gg ARG -a')['gg'].should == ['ARG']
-      @o.parse('--gg ARG1 ARG2 ARG3 -a')['g'].should == %w|ARG1 ARG2 ARG3|
-      @o.parse('--gg ARG1 ARG2 ARG3 -a')['gg'].should == %w|ARG1 ARG2 ARG3|
+    it 'accepts :any to indicate zero or as many as possible arguments' do
+      @o.parse('--any -n')['a'].should == true
+      @o.parse('--any -n')['any'].should == true
+      @o.parse('--any ARG -n')['a'].should == ['ARG']
+      @o.parse('--any ARG -n')['any'].should == ['ARG']
+      @o.parse('--any ARG1 ARG2 ARG3 -n')['a'].should == %w|ARG1 ARG2 ARG3|
+      @o.parse('--any ARG1 ARG2 ARG3 -n')['any'].should == %w|ARG1 ARG2 ARG3|
     end
 
     it 'fails if :one and no arguments given' do
-      @o.option '-h', '--hh', 'Hh', :one
-
-      should_raise(ArgumentError) { @o.parse '--hh' }
-      should_raise(ArgumentError) { @o.parse '--hh -a ARG' }
+      should_raise(ArgumentError) { @o.parse '--one' }
+      should_raise(ArgumentError) { @o.parse '--one -n ARG' }
     end
 
     it 'fails if :many and one or no arguments given' do
-      @o.option '-i', '--ii', 'Ii', :many
-
-      should_raise(ArgumentError) { @o.parse '--ii ARG' }
-      should_raise(ArgumentError) { @o.parse '--ii ARG -a ARG2' }
+      should_raise(ArgumentError) { @o.parse '--many ARG' }
+      should_raise(ArgumentError) { @o.parse '--many ARG -n ARG2' }
     end
   end
-  #
-  #describe 'Using alternative syntax for parsing options' do
-  #  it 'allows using = with short or long options as an argument separator' do
-  #    o = Options.new
-  #    o.option '-a', '--aa', 'Aa', :one
-  #    o.option '-b', '--bb', 'Bb', :one
-  #    o.option '-c', '--cc', 'Cc'
-  #    o.option '-d', '--dd', 'Dd'
-  #
-  #    o.parse('-a=ARG')['a'].should == 'ARG'
-  #    o.parse('--aa=ARG')['a'].should == 'ARG'
-  #    o.parse('-ab=ARG')['a'].should == true
-  #    o.parse('-ab=ARG')['b'].should == 'ARG'
-  #  end
-  #end
-end
+
+end 
