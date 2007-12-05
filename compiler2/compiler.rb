@@ -133,7 +133,7 @@ class Compiler
     begin
       convert_sexp([:script, sexp])
     rescue Object => e
-      puts "Complication error detected: #{e.message}"
+      puts "Compilation error detected: #{e.message}"
       puts "   near #{@file}:#{@line}"
       puts
       puts e.backtrace.show

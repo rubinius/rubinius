@@ -1445,9 +1445,25 @@ class Compiler::Node
     kind :xstr
   end
   
+  # "#{foo.bar}"
+  #
+  # Evstrs appear as a part of a dstr, dynamic string.
+  # The evstr part is the code to be evaluated while
+  # the dstr puts the whole thing together. 
+  #
+  # Interestingly, an evstr that only contains string
+  # literals such as "#{'foo'}" is parsed to a plain
+  # string literal. This is the same for dregx.
   class ToString < Node
     kind :evstr
     
+    # Expected input is a sub-sexp that represents the 
+    # code to be run when evaluating or empty sexp.
+    def consume(sexp)
+      sexp = [[:str, ""]] if sexp.empty?
+      super(sexp)
+    end
+
     def args(child)
       @child = child
     end
