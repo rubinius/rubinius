@@ -47,7 +47,7 @@ module Bytecode
       @flags = {
         :fast_math => true,
         :fast_system => true,
-        :fast_send_method => true,
+        # :fast_send_method => true,
         :fast_field_access => true,
         :fast_coerce => true,
         :visibility => [],
