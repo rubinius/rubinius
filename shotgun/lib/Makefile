@@ -13,8 +13,8 @@ else
   SINGLE_MODULE=
 endif
 
-# No disass support for 64
-ifneq ($(findstring 64,$(MARCH)),64)
+# No disass support for amd64
+ifneq ($(MARCH),amd64)
 	CPPFLAGS+="-DRBS_DISASS=1"
 	LIBS+=../external_libs/lightning/opcode/libdisass.a
 endif 

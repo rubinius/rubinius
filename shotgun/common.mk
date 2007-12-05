@@ -3,9 +3,15 @@ ifeq ($(CC),)
   CC=gcc
 endif
 
+### Platform stuff
 UNAME=$(shell uname)
 CPU=$(shell uname -p)
 MARCH=$(shell uname -m)
+
+# amd64 is also known as x86_64
+ifeq ($(MARCH),x86_64)
+  MARCH=amd64
+endif
 
 WARNINGS = -Wall -Wwrite-strings
 DEBUG = -g -ggdb3
