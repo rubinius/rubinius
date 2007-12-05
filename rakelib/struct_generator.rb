@@ -58,7 +58,7 @@ class StructGenerator
 
       @fields.each do |field|
         f.puts <<EOF
-  printf("%s %i\\n", "#{field.name}", offsetof(#{@struct_name}, #{field.name}));
+  printf("%s %i\\n", "#{field.name}", (int)offsetof(#{@struct_name}, #{field.name}));
 EOF
       end
 
@@ -121,6 +121,10 @@ module Rake
       yield self if block_given?
 
       define
+    end
+
+    def field(name, type)
+      @fields << Field.new(name, type)
     end
 
     def define
