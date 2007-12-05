@@ -1,14 +1,18 @@
 class DelegatedMethod < RuntimePrimitive
+
+  Receiver = 5
+  UseSelf = 6
+
   self.instance_fields = 7
   
   def self.build(sym, receiver, pass_self)
     obj = allocate()
-    obj.put 1, RuntimePrimitive::DispatchAsMethod
-    obj.put 2, 0
-    obj.put 3, 0 # serial number
-    obj.put 4, sym
-    obj.put 5, receiver
-    obj.put 6, pass_self # If true, first argument will be 'self'
+    obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::DispatchAsMethod
+    obj.put RuntimePrimitive::RequiredArguments, -1
+    obj.put RuntimePrimitive::SerialNumber, 0
+    obj.put RuntimePrimitive::ByteCodes, sym
+    obj.put Receiver, receiver
+    obj.put UseSelf, pass_self # If true, first argument will be 'self'
     return obj
   end
 end
