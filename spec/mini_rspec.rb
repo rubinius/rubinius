@@ -380,7 +380,16 @@ class SpecRunner
 end
 
 if @runner == nil
-  @runner = SpecRunner.new
+  $stderr.puts "creating default SpecRunner with excludes"
+
+  @runner = SpecRunner.new DottedReporter.new
+  @runner.except "spec/exclude.txt", "all-exclude.txt~"
+
+  at_exit {
+    puts
+    puts "Finished in unknown seconds"
+    @runner.reporter.summary
+  }
 end
 
 # Expose the runner methods
