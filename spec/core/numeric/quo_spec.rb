@@ -35,23 +35,25 @@ describe "Numeric#quo" do
     4.0.quo(13).should be_close(0.307692307692308, TOLERANCE)
   end
    
-  # NOTE: Doesn't work when run with RSpec because it loads rational.rb
-  it " should quo right with bignums and integers" do
-    2147483648.quo( 100).to_s.should == 21474836.48.to_s
-  end
+  failure :ruby do
+    # NOTE: Doesn't work when run with RSpec because it loads rational.rb
+    it " should quo right with bignums and integers" do
+      2147483648.quo(100).to_s.should == 21474836.48.to_s
+    end
   
-  # NOTE: Doesn't work when run with RSpec because it loads rational.rb
-  it "not raise a Exception when quo by 0" do
-    13.quo(0)
-    13.0.quo(0)
-    3**33.quo(0)
-  end
+    # NOTE: Doesn't work when run with RSpec because it loads rational.rb
+    it "not raise a Exception when quo by 0" do
+      13.quo(0)
+      13.0.quo(0)
+      3**33.quo(0)
+    end
   
-  # NOTE: Doesn't work when run with RSpec because it loads rational.rb
-  it "raise the expected exception" do
-    lambda { 13.quo         }.should raise_error(ArgumentError)
-    lambda { 13.quo(nil)    }.should raise_error(TypeError)
-    lambda { 13.quo('test') }.should raise_error(TypeError)
-    lambda { 13.quo(true)   }.should raise_error(TypeError)   
-  end 
+    # NOTE: Doesn't work when run with RSpec because it loads rational.rb
+    it "raise the expected exception" do
+      lambda { 13.quo         }.should raise_error(ArgumentError)
+      lambda { 13.quo(nil)    }.should raise_error(TypeError)
+      lambda { 13.quo('test') }.should raise_error(TypeError)
+      lambda { 13.quo(true)   }.should raise_error(TypeError)   
+    end
+  end
 end

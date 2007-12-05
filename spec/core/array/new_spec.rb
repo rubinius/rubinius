@@ -26,6 +26,7 @@ describe "Array.new" do
     Array.new(obj).should == [nil, nil, nil]
     
     obj = Object.new
+    obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(3)
     Array.new(obj).should == [nil, nil, nil]

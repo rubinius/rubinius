@@ -1,1 +1,1 @@
-$m.const_set(:A, "test")
+$m.const_set(:A, "test") unless $m.nil?

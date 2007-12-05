@@ -18,13 +18,13 @@ shared :bignum_divide do |cmd|
       @bignum.send(cmd, 0.0).to_s.should == 'Infinity'
       @bignum.send(cmd, -0.0).to_s.should == '-Infinity'
     end
-  end
 
-  it "raises a TypeError when given a non-Integer" do
-    lambda {
-      (obj = Object.new).should_receive(:to_int).and_return(10)
-      @bignum.div(obj)
-    }.should raise_error(TypeError)
-    lambda { @bignum.div("2") }.should raise_error(TypeError)
+    it "raises a TypeError when given a non-Integer" do
+      lambda {
+        (obj = Object.new).should_receive(:to_int).and_return(10)
+        @bignum.div(obj)
+      }.should raise_error(TypeError)
+      lambda { @bignum.div("2") }.should raise_error(TypeError)
+    end
   end
 end

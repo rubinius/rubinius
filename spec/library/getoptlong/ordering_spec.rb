@@ -15,7 +15,7 @@ describe "GetoptLong#ordering=" do
       
       lambda {
         opts.ordering = GetoptLong::PERMUTE
-      }.should raise_error(ArgumentError
+      }.should raise_error(ArgumentError)
     ensure
       ARGV = old_argv
       $stderr = s

@@ -49,7 +49,7 @@ describe "String#tr_s" do
 
     to_str = Object.new
     to_str.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
-    to_str.should_receive(:method_missing.with(:to_str).and_return("AB")
+    to_str.should_receive(:method_missing).with(:to_str).and_return("AB")
 
     "bla".tr_s(from_str, to_str).should == "BlA"
   end

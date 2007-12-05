@@ -255,6 +255,7 @@ class NegativeExpectation
   end
 end
 
+<<<<<<< HEAD:spec/mini_rspec.rb
 class Object
   def should
     PositiveExpectation.new(self)
@@ -264,6 +265,17 @@ class Object
     NegativeExpectation.new(self)
   end
 end
+=======
+# class Object
+#   def should
+#     PositiveExpectation.new(self)
+#   end
+#   
+#   def should_not
+#     NegativeExpectation.new(self)
+#   end
+# end
+>>>>>>> Various changes to get the specs running under RSpec.:spec/mini_rspec.rb
 
 class SpecRunner
   def initialize(reporter=nil)

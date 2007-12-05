@@ -1,6 +1,11 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require 'socket'
-@port = 40000
+
+module SocketSpecs
+  def self.port
+    40000
+  end
+end
 
 describe "Socket" do
   it "should inherit from BasicSocket and IO" do
@@ -39,14 +44,14 @@ describe "TCPServer.new" do
     @server.close if @server
   end
   it "should bind to a host and a port" do
-    @server = TCPServer.new('127.0.0.1', @port)
+    @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
   end
 end
 
 describe "TCPServer#accept" do
   before(:each) do
     @data = []
-    @server = TCPServer.new('127.0.0.1', @port)
+    @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
     @read = false
     @thread = Thread.new do
       begin
@@ -69,7 +74,7 @@ describe "TCPServer#accept" do
   end
 
   it "should accept what is written by the client" do
-    @socket = TCPSocket.new('127.0.0.1', @port)
+    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
     @socket.write('hello')
     Thread.pass until @read
     @thread.join
@@ -79,7 +84,7 @@ end
 
 describe "IPSocket#peeraddr" do
   before(:each) do
-    @server = TCPServer.new('127.0.0.1', @port)
+    @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
   end
   after(:each) do
     @server.close if @server
@@ -87,15 +92,15 @@ describe "IPSocket#peeraddr" do
   end
 
   it "should return an array of values" do
-    @socket = TCPSocket.new('127.0.0.1', @port)
-    @socket.peeraddr.should == ["AF_INET", @port, "localhost", "127.0.0.1"]
+    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+    @socket.peeraddr.should == ["AF_INET", SocketSpecs.port, "localhost", "127.0.0.1"]
   end
 end
 
 describe "BasicSocket#do_not_reverse_lookup" do
   before(:each) do
     BasicSocket.do_not_reverse_lookup = true
-    @server = TCPServer.new('127.0.0.1', @port)
+    @server = TCPServer.new('127.0.0.1', SocketSpecs.port)
   end
   after(:each) do
     @server.close if @server
@@ -103,8 +108,8 @@ describe "BasicSocket#do_not_reverse_lookup" do
   end
 
   it "should cause 'peeraddr' to avoid name lookups" do
-    @socket = TCPSocket.new('127.0.0.1', @port)
-    @socket.peeraddr.should == ["AF_INET", @port, "127.0.0.1", "127.0.0.1"]
+    @socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+    @socket.peeraddr.should == ["AF_INET", SocketSpecs.port, "127.0.0.1", "127.0.0.1"]
   end
 end
 
@@ -154,7 +159,7 @@ describe "UDPSocket.open" do
     @ready = false
     server_thread = Thread.new do
       @server = UDPSocket.open
-      @server.bind(nil,@port)
+      @server.bind(nil,SocketSpecs.port)
       @ready = true
       msg1 = @server.recvfrom(64)
       msg1[0].should == "ad hoc"
@@ -171,10 +176,10 @@ describe "UDPSocket.open" do
 
     Thread.pass until @ready
 
-    UDPSocket.open.send("ad hoc", 0, 'localhost',@port)
+    UDPSocket.open.send("ad hoc", 0, 'localhost',SocketSpecs.port)
 
     @socket = UDPSocket.open
-    @socket.connect('localhost',@port)
+    @socket.connect('localhost',SocketSpecs.port)
     @socket.send("connection-based", 0)
 
     server_thread.join

@@ -7,8 +7,8 @@ describe "Array#<=>" do
       lhs = Array.new(3) { Object.new }
       rhs = Array.new(3) { Object.new }
     
-      lhs[0].should_receive(:<=>).with([rhs[0]]).and_return(0)
-      lhs[1].should_receive(:<=>).with([rhs[1]]).and_return(result)
+      lhs[0].should_receive(:<=>).with(rhs[0]).and_return(0)
+      lhs[1].should_receive(:<=>).with(rhs[1]).and_return(result)
       lhs[2].should_not_receive(:<=>)
 
       (lhs <=> rhs).should == result

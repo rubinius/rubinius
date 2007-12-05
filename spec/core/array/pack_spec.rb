@@ -274,7 +274,7 @@ describe "Array#pack" do
   end
 
   it "raises ArgumentError if count is greater than array elements left with ('C')" do
-    lambda { [1, 2].pack('C3') }.should == raise_error(ArgumentError)
+    lambda { [1, 2].pack('C3') }.should raise_error(ArgumentError)
   end
 
   it "returns string with char of appropriate number with ('c')" do
