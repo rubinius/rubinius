@@ -14,13 +14,6 @@ class Class
     return obj
   end
   
-  def self.new(sclass=Object, &block)
-    Ruby.asm <<-ASM
-#local sclass
-open_class nil
-    ASM
-  end
-  
   def instance_fields; @instance_fields ; end
   def instance_flags ; @instance_flags  ; end
   
