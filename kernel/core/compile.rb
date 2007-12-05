@@ -47,7 +47,7 @@ module Compile
       cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
       return nil unless cm
       
-      $LOADED_FEATURES << rbc_file
+      $LOADED_FEATURES << rb_file
       cm.as_script
       return true
     else
