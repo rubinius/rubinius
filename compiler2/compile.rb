@@ -1,10 +1,10 @@
 
 file = ARGV.shift
 
-require 'compiler'
-require 'generate'
-require 'bytecode'
-require 'text'
+require 'compiler2/compiler'
+require 'compiler2/generate'
+require 'compiler2/bytecode'
+require 'compiler2/text'
 
 gen = Compiler::Generator
 

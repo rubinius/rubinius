@@ -1,10 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec/spec_helper'
-$: << "compiler2"
 
-require 'compiler'
-require 'generate'
-require 'bytecode'
-require 'text'
+require 'compiler2/compiler'
+require 'compiler2/generate'
+require 'compiler2/bytecode'
+require 'compiler2/text'
 
 class TestGenerator
   def initialize
@@ -36,7 +35,11 @@ class TestGenerator
   end
   
   def send(*stuff)
-    method_missing :send, *stuff
+    add :send, *stuff
+  end
+
+  def send_with_block(*stuff)
+    add :send_with_block, *stuff
   end
   
   def dup
@@ -115,9 +118,7 @@ def gen(sexp, plugins=[])
   comp = Compiler.new TestGenerator
   plugins.each { |n| comp.activate n }
   tg = TestGenerator.new
-  
   yield tg
-  
   node = comp.convert_sexp [:snippit, sexp]
   act = TestGenerator.new
   node.bytecode act

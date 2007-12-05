@@ -215,43 +215,80 @@ describe Compiler do
   end
   
   it "compiles '|a,|'" do
-    x = [:iter_args, [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]]
+    x = [:iter, [:call, [:vcall, :x], :each], 
+          [:masgn, [:array, [:lasgn, :a, 0]], nil, nil]
+        ]
     
     gen x do |g|
-      g.unshift_tuple      
-      g.set_local 0
-      g.pop
-      g.pop
+      desc = description do |d|
+        d.unshift_tuple
+        d.set_local_depth 0,0
+        d.pop
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+
+      g.push_literal desc
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
     end
   end
   
   it "compiles '|a,b|'" do
-    x = [:iter_args, 
-            [:masgn, [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil]]
-    
-    gen x do |g|
-      g.unshift_tuple
-      g.set_local 0
-      g.pop
-      g.unshift_tuple
-      g.set_local 1
-      g.pop
-      g.pop
+    x = [:iter, [:call, [:vcall, :x], :each], 
+          [:masgn, [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil]
+        ]
+
+    gen(x) do |g|
+      desc = description do |d|
+        d.unshift_tuple
+        d.set_local_depth 0,0
+        d.pop
+        d.unshift_tuple
+        d.set_local_depth 0,1
+
+        d.pop
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+
+      g.push_literal desc
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
     end
   end
   
   it "compiles '|a, *b|'" do
-    x = [:iter_args, 
-           [:masgn, [:array, [:lasgn, :a, 0]], [:lasgn, :b, 0], nil]]
+    x = [:iter, [:call, [:vcall, :x], :each], 
+          [:masgn, [:array, [:lasgn, :a, 0]], [:lasgn, :b, 0], nil]
+        ]
     
     gen x do |g|
-      g.unshift_tuple
-      g.set_local 0
-      g.pop
-      
-      g.cast_array
-      g.set_local 1
-      g.pop
+      desc = description do |d|
+        d.unshift_tuple
+        d.set_local_depth 0,0
+        d.pop
+        d.cast_array
+        d.set_local_depth 0,1
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+
+      g.push_literal desc
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
     end
   end
   

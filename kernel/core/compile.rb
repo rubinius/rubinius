@@ -42,41 +42,39 @@ module Compile
   
   def self.require_feature(dir, rb_file, rbc_file, base_file)
     if dir.suffix? '.rba' and File.file? dir then
-      return false if $LOADED_FEATURES.include? rbc_file
+      return false if $LOADED_FEATURES.include? rb_file
 
       cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
       return nil unless cm
       
-      $LOADED_FEATURES << rbc_file
+      $LOADED_FEATURES << rb_file
       cm.as_script
       return true
     else
       
       rb_path   = "#{dir}/#{rb_file}"
       rbc_path  = "#{dir}/#{rbc_file}"
-      
+
+      return false if $LOADED_FEATURES.include? rb_file
+
       # Order is important here. We have to check for the rb_path first because
       # it's possible both exist, and we want to give preference to rb_path.
-      
+
       if File.file? rb_path
-        return false if $LOADED_FEATURES.include? rb_file
-        
         $LOADED_FEATURES << rb_file
         load rb_path
         return true
       elsif File.file? rbc_path
-        return false if $LOADED_FEATURES.include? rbc_file
-        
-        $LOADED_FEATURES << rbc_file
+        $LOADED_FEATURES << rb_file
         load rbc_path
         return true
       else
         ext_file = "#{base_file}.#{Rubinius::LIBSUFFIX}"
         ext_path = "#{dir}/#{ext_file}"
-        
-        if File.file? ext_path
-          return false if $LOADED_FEATURES.include? ext_file
 
+        return false if $LOADED_FEATURES.include? ext_file
+
+        if File.file? ext_path
           case VM.load_library(ext_path, File.basename(base_file))
           when true
             $LOADED_FEATURES << ext_file

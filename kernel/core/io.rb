@@ -217,6 +217,10 @@ class IO
       o.close unless o.closed?
     end
   end
+
+  def self.read(name) # HACK incomplete
+    open name do |fp| fp.read end
+  end
   
   private :io_close
 end

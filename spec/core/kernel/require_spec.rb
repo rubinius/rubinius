@@ -4,6 +4,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 $LOAD_PATH << (File.dirname(__FILE__) + '/fixtures/require')
 $LOAD_PATH << (File.dirname(__FILE__) + '/fixtures/require/require_spec_rba.rba')
 
+require 'tmpdir'
+
 describe "Kernel#require" do
   it "loads a .rb by looking in $LOAD_PATH, only once" do
     require('require_spec_1').should == true
@@ -12,26 +14,34 @@ describe "Kernel#require" do
     require('require_spec_1').should == false
     $LOADED_FEATURES.include?('require_spec_1.rb').should == true
   end
-  
+
+  it "checks $LOADED_FEATURES before the filesystem" do
+    require('require_spec_6').should == true
+
+    Dir.chdir '..' do
+      require('require_spec_6').should == false
+    end
+  end
+
   compliant :rbx do
   
     it "loads a .rbc from a .rba in $LOAD_PATH, only once" do
       require('require_spec_2').should == true
       $require_spec_2.should == :yep
-        
+
       require('require_spec_2').should == false
-      $LOADED_FEATURES.include?('require_spec_2.rbc').should == true
+      $LOADED_FEATURES.include?('require_spec_2.rb').should == true
     end
-  
+
     it "loads a .rbc even if the .rb is missing" do
       require('require_spec_3').should == true
       $require_spec_3.should == :yep
 
       require('require_spec_3').should == false
-    
-      $LOADED_FEATURES.include?('require_spec_3.rbc').should == true
+
+      $LOADED_FEATURES.include?('require_spec_3.rb').should == true
     end
-    
+
     it "loads a .rbc file if it's newer than the associated .rb file" do
       path = File.expand_path(
                File.dirname(__FILE__) + '/fixtures/require/require_spec_5.rbc')

@@ -167,11 +167,38 @@ describe Compiler do
     end
   end
   
+  it "compiles empty dynamic strings" do
+    gen [:dstr, "hello ", [:evstr]] do |g|
+      g.push_literal ""
+      g.string_dup
+      g.send :to_s, 0, true
+      g.push_literal "hello "
+      g.string_dup
+      g.string_append
+    end
+  end
+  
   it "compiles dynamic regexs" do
     gen [:dregx, "(", [:evstr, [:true]], [:str, ")"]] do |g|
       g.push_literal ")"
       g.string_dup
       g.push :true
+      g.send :to_s, 0, true
+      g.push_literal "("
+      g.string_dup
+      g.string_append
+      g.string_append
+      g.push_const :Regexp
+      g.send :new, 1
+    end
+  end
+  
+  it "compiles empty dynamic regexs" do
+    gen [:dregx, "(", [:evstr], [:str, ")"]] do |g|
+      g.push_literal ")"
+      g.string_dup
+      g.push_literal ""
+      g.string_dup
       g.send :to_s, 0, true
       g.push_literal "("
       g.string_dup
