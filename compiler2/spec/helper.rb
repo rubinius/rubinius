@@ -1,10 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec/spec_helper'
-$: << "compiler2"
 
-require 'compiler'
-require 'generate'
-require 'bytecode'
-require 'text'
+require 'compiler2/compiler'
+require 'compiler2/generate'
+require 'compiler2/bytecode'
+require 'compiler2/text'
 
 class TestGenerator
   def initialize
