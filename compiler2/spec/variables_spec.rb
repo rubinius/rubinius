@@ -6,10 +6,26 @@ describe Compiler do
     
     gen x do |g|
       g.push 12
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
-      g.get_local_fp 1
+      g.push_local 0
     end
+  end
+  
+  it "compiles lvars only after declared" do
+    x =   [:block, [:vcall, :name],
+                   [:lasgn, :name, 0, [:lit, 3]],
+                   [:lvar, :name, 0]]
+    gen x do |g|
+      g.push :self
+      g.send :name, 0, true
+      g.pop
+      g.push 3
+      g.set_local 0
+      g.pop
+      g.push_local 0
+    end
+    
   end
   
   it "compiles lvar for argument" do

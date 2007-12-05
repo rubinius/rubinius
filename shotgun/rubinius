@@ -48,9 +48,9 @@ if test "x$1" = "x--gdb"; then
   if [ `uname -s` = "Darwin" ] && [ `uname -r | cut -d '.' -f 1` -lt "9" ]; then
     gdb_command="${gdb_command} -x ${PREFIX}shotgun/gdbenvironment"
   fi
-  gdb_command="${gdb_command} --args /dev/null \"$@\""
+  gdb_command="${gdb_command} --args /dev/null"
 
-  exec $gdb_command
+  exec $gdb_command "$@"
 elif test "x$1" = "x--valgrind"; then
   shift
   exec valgrind -v $REAL "$@"

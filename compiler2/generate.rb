@@ -1,4 +1,4 @@
-require 'encoder'
+require 'compiler2/encoder'
 
 class Compiler
     

@@ -38,7 +38,7 @@ class Object
     "#<#{self.class.name}:0x#{self.object_id.to_s(16)}>"
   end
   
-  def inspect
+  def inspect(prefix=nil, vars=nil)
     return "..." if RecursionGuard.inspecting?(self)
     
     return self.to_s unless @__ivars__
@@ -47,18 +47,20 @@ class Object
       return self.to_s
     end
     
-    res = "#<#{self.class.name}:0x#{self.object_id.to_s(16)} "
+    prefix = "#{self.class.name}:0x#{self.object_id.to_s(16)}" unless prefix
     parts = []
     
     RecursionGuard.inspect(self) do
     
-      if @__ivars__.is_a?(Hash)    
+      if @__ivars__.is_a?(Hash)
         @__ivars__.each do |k,v|
+          next if vars and !vars.include?(k)
           parts << "#{k}=#{v.inspect}"
         end
       else
         0.step(@__ivars__.size - 1, 2) do |i|
           if k = @__ivars__[i]
+            next if vars and !vars.include?(k)
             v = @__ivars__[i+1]
             parts << "#{k}=#{v.inspect}"
           end
@@ -67,9 +69,11 @@ class Object
       
     end
     
-    res << parts.join(" ")
-    res << ">"
-    return res
+    if parts.empty?
+      "#<#{prefix}>"
+    else
+      "#<#{prefix} #{parts.join(' ')}>"
+    end
   end
   
   alias_method :send, :__send__

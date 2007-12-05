@@ -501,7 +501,7 @@ class Compiler::Node
   class When < Node
     kind :when
     
-    def args(cond, body)
+    def args(cond, body = nil)
       @body = body
       @conditions = []
       @splat = nil
@@ -510,7 +510,7 @@ class Compiler::Node
         cond.body.each do |c|
           # Inner when means splat.
           if c.is? When
-            @splat = c.splat
+            @splat = c.conditions
           else
             @conditions << c
           end
@@ -520,7 +520,7 @@ class Compiler::Node
       end
     end
     
-    attr_reader :body, :condition, :splat
+    attr_reader :body, :conditions, :splat
   end
   
   class Case < Node
@@ -538,6 +538,29 @@ class Compiler::Node
     end
     
     attr_accessor :receiver, :whens, :else
+  end
+
+  class ManyIf < Node
+    kind :many_if
+
+    # :many_if contains an array of whens and an else
+    # the whens are in turn an array of condition expressions,
+    # followed by a body
+    def consume(sexp)
+      whens = sexp[0]
+      sexp[0].map! do |w|
+        w[0].shift  # Discard the :array 
+        [super(w[0]), convert(w[1])]
+      end
+      [sexp[0], convert(sexp[1])]
+    end
+    
+    def args(whens, els)
+      @whens = whens
+      @else = els
+    end
+
+    attr_accessor :branches, :else
   end
   
   class LocalVariable < Node
@@ -1305,7 +1328,7 @@ class Compiler::Node
     kind :yield
     
     def args(args, direct=false)
-      if direct and args.kind_of? Array
+      if direct and args.kind_of? ArrayLiteral
         @arguments = args.body
       elsif args.kind_of? DynamicArguments
         @arguments = args

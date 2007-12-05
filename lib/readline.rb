@@ -15,9 +15,6 @@ module Readline
   @history = []
   @history_idx = 0
 
-  def self.after_loaded
-  end
-
   def self.readline(prompt)
     str = []
     idx = 0

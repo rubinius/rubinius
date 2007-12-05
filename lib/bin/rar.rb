@@ -2,6 +2,7 @@
 
 require 'bytecode/compiler'
 require 'bytecode/rubinius'
+require 'codearchive'
 
 until ARGV.empty?
   cmd = ARGV.shift

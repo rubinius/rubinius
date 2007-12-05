@@ -47,7 +47,7 @@ module Bytecode
       @flags = {
         :fast_math => true,
         :fast_system => true,
-        :fast_send_method => true,
+        # :fast_send_method => true,
         :fast_field_access => true,
         :fast_coerce => true,
         :visibility => [],
@@ -1626,6 +1626,7 @@ module Bytecode
         goto ran_ok
                 
         add "#exceptions #{ex}"
+        add "push_exception"
         @output << ensure_code
         add "pop"
         # @in_ensure is set here if there is an outer ensure
@@ -1649,7 +1650,6 @@ module Bytecode
           set_label not_tuple
         end
         
-        add "push_exception"
         add "raise_exc"
         
         add "#exc_end #{ex}"
@@ -1958,6 +1958,8 @@ module Bytecode
         # Required arguments, added in order so we know
         # their positions.
         if required_args = args[1]
+          # HACK OptParse::NoArgument.incompatible_argument_styles empty body
+          args[1] = required_args = Array(required_args)
           required_args.each { |e| state.add_arg e }
         end
         
@@ -2011,7 +2013,7 @@ module Bytecode
         required = args[1] ? args[1].size : 0
         
         # Copy all the non-stack, not-default args into the locals tuple
-        state.each_arg do |name, var|
+        state.each_arg do |_, var|
           if !var.on_stack? and !var.has_default
             str << "set_local_from_fp #{var.slot} #{var.stack_position}\n"
           end
@@ -2042,23 +2044,23 @@ module Bytecode
         end
                 
         if state.arg_splat
-          name, lv = state.arg_splat
+          splat_name, lv = state.arg_splat
           str << "make_rest_fp #{state.number_of_arguments}\n"
           if lv.on_stack?
             str << "set_local_fp #{lv.alloca}\npop\n"
           else
-            str << "set #{name}:#{lv.slot}\npop\n"
+            str << "set #{splat_name}:#{lv.slot}\npop\n"
           end
-          max = -1
+          max = 1024
         end
         
         if state.arg_block
-          name, lv = state.arg_block
+          block_name, lv = state.arg_block
           str <<  "push_block\npush Proc\nsend from_environment 1\n"
           if lv.on_stack?
             str << "set_local_fp #{lv.alloca}\npop\n"
           else
-            str << "set #{name}:#{lv.slot}\npop\n"
+            str << "set #{block_name}:#{lv.slot}\npop\n"
           end
         end
         
@@ -2067,7 +2069,7 @@ module Bytecode
         else
           meth.required = -(required + 1)
         end
-        
+
         # Add an opcode to allocate space for fast locals
         ss = state.stack_space
         if ss > 0

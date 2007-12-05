@@ -1,0 +1,2 @@
+The 'case'-construct with no target expression evaluates the body of the first when clause that is not false/nil
+The 'case'-construct with no target expression evaluates the body of the else clause if all when clauses are false/nil

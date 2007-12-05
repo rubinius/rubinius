@@ -45,15 +45,28 @@ You can run shotgun/rubinius with gdb.
 * Hit ^C to interrupt
 * Type 'rbt' at the gdb prompt to get a ruby backtrace
 
+Useful gdb commands:
+
+* p _inspect(OBJECT)
+
 5. Specifications
 
 RSpec is the machinery behind executing these specs. The intention is to have
 specs for Ruby as a language and set of standard libraries, and to TDD/BDD the
-development of Rubinius. Some spec directories below are implementation
+development of Rubinius. Some spec subdirectories below are implementation
 agnostic and some are specific to Rubinius.
 
-To allow the specs to be executed by different implementation, a host/target
-configuration is used. The 'host' is the Ruby implementation that is
-executing RSpec. The 'target' is the Ruby implementation that is executing
-the content of the particular specs.
+For more information on the Ruby specs developed for Rubinius, see:
+http://rubinius.lighthouseapp.com/projects/5089/specs-overview
 
+6. Build w/o Optimization
+
+When you get <value temporarily unavailable, due to optimizations> in gdb, you can easily rebuild without optimization:
+
+* `touch thefile.c`
+* `DEV=1 rake`
+
+To rebuild everything without optimization:
+
+* `rake clean:shotgun`
+* `DEV=1 rake`

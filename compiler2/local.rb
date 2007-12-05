@@ -34,7 +34,7 @@ class Compiler
     def initialize(scope, name)
       @scope = scope
       @name = name
-      @on_stack = true
+      @on_stack = false
       @argument = false
       @stack_position = nil
       @slot = nil

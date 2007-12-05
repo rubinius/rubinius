@@ -9,9 +9,9 @@ describe Compiler do
     gen x do |g|
       g.push 2
       g.push 1
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
       g.push :true
     end
@@ -29,7 +29,7 @@ describe Compiler do
       g.send :b, 0, true
       g.send :c, 0, false
       
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       
       g.push :self
@@ -50,9 +50,9 @@ describe Compiler do
       g.push 3
       g.push 2
       g.push 1
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
       g.pop
       g.push :true
@@ -68,11 +68,11 @@ describe Compiler do
       g.push :nil
       g.push 2
       g.push 1
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
-      g.set_local_fp 3
+      g.set_local 2
       g.pop
       g.push :true
     end
@@ -88,9 +88,9 @@ describe Compiler do
       g.push 2
       g.push 3
       g.make_array 2
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       g.push :true
     end
@@ -106,11 +106,11 @@ describe Compiler do
       g.push 2
       g.push 3
       g.make_array 1
-      g.set_local_fp 3
+      g.set_local 2
       g.pop
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       g.push :true
     end
@@ -127,15 +127,15 @@ describe Compiler do
       g.cast_tuple
       
       g.unshift_tuple
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       
       g.unshift_tuple
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
       
       g.unshift_tuple
-      g.set_local_fp 3
+      g.set_local 2
       g.pop
       
       g.pop
@@ -159,15 +159,15 @@ describe Compiler do
       g.cast_tuple
       
       g.unshift_tuple
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       
       g.unshift_tuple
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
       
       g.unshift_tuple
-      g.set_local_fp 3
+      g.set_local 2
       g.pop
       
       g.pop
@@ -188,15 +188,15 @@ describe Compiler do
       g.cast_tuple
       
       g.unshift_tuple
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       
       g.unshift_tuple
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
       
       g.cast_array
-      g.set_local_fp 3
+      g.set_local 2
       g.pop
       
       g.push :true
@@ -209,7 +209,7 @@ describe Compiler do
     
     gen x do |g|
       g.cast_for_single_block_arg
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
     end
   end
@@ -219,7 +219,7 @@ describe Compiler do
     
     gen x do |g|
       g.unshift_tuple      
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       g.pop
     end
@@ -231,10 +231,10 @@ describe Compiler do
     
     gen x do |g|
       g.unshift_tuple
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       g.unshift_tuple
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
       g.pop
     end
@@ -246,11 +246,11 @@ describe Compiler do
     
     gen x do |g|
       g.unshift_tuple
-      g.set_local_fp 1
+      g.set_local 0
       g.pop
       
       g.cast_array
-      g.set_local_fp 2
+      g.set_local 1
       g.pop
     end
   end

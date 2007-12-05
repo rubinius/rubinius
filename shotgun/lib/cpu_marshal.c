@@ -326,11 +326,6 @@ static OBJECT unmarshal_cmethod(STATE, struct marshal_state *ms) {
   return cm;
 }
 
-static void marshal_cmethod(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
-  
-  marshal_fields_as(state, obj, buf, 'm', ms);
-}
-
 static void marshal_cmethod2(STATE, OBJECT obj, bstring buf, struct marshal_state *ms) {
   
   int i;

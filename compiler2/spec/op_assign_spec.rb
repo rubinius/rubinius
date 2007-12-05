@@ -6,13 +6,13 @@ describe Compiler do
     gen x do |g|
       fin = g.new_label
       
-      g.get_local_fp 1
+      g.push_local 0
       g.dup
       g.git fin
       
       g.pop
       g.push 8
-      g.set_local_fp 1
+      g.set_local 0
       
       fin.set!
     end
@@ -23,13 +23,13 @@ describe Compiler do
     gen x do |g|
       fin = g.new_label
       
-      g.get_local_fp 1
+      g.push_local 0
       g.dup
       g.gif fin
       
       g.pop
       g.push 8
-      g.set_local_fp 1
+      g.set_local 0
       
       fin.set!
     end

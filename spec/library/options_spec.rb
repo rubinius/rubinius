@@ -1,4 +1,5 @@
-require File.dirname(__FILE__) + '/../../../spec_helper'
+require File.dirname(__FILE__) + '/../spec_helper'
+require 'options'
 
 extension :rubinius do
   describe 'Creating the option parser' do

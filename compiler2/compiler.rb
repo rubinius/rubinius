@@ -105,7 +105,8 @@ class Compiler
     
     # The default plugins
     activate :block_given
-    activate :primitive    
+    activate :primitive
+    activate :assembly
   end
   
   def activate(name)
@@ -158,5 +159,5 @@ class Compiler
   end
 end
 
-require 'nodes'
-require 'local'
+require 'compiler2/nodes'
+require 'compiler2/local'

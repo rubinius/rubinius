@@ -3,7 +3,6 @@
 begin
   Array.after_loaded
   Module.after_loaded
-  Readline.after_loaded
 
   Class.after_loaded
   Hash.after_loaded
