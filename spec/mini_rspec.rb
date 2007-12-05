@@ -383,7 +383,9 @@ if @runner == nil
   $stderr.puts "creating default SpecRunner with excludes"
 
   @runner = SpecRunner.new DottedReporter.new
-  @runner.except "spec/exclude.txt", "all-exclude.txt~"
+  if ENV["AUTOTEST"]
+    @runner.except "spec/exclude.txt", "all-exclude.txt~"
+  end
 
   at_exit {
     puts
