@@ -644,11 +644,20 @@ class Compiler::Node
         end
         
         if @splat
-          g.dup
-          @splat.bytecode(g)
-          g.cast_array
-          g.send :__matches_when__, 1
-          g.git body
+          if @splat.kind_of? Array
+            @splat.each do |c|
+              g.dup
+              c.bytecode(g)
+              g.send :===, 1
+              g.git body
+            end
+          else
+            g.dup
+            @splat.bytecode(g)
+            g.cast_array
+            g.send :__matches_when__, 1
+            g.git body
+          end
         end
         
         g.goto nxt

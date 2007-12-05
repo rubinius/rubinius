@@ -510,7 +510,7 @@ class Compiler::Node
         cond.body.each do |c|
           # Inner when means splat.
           if c.is? When
-            @splat = c.splat
+            @splat = c.conditions
           else
             @conditions << c
           end
