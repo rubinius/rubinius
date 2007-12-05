@@ -840,8 +840,8 @@ int machine_load_directory(machine m, const char *prefix) {
   }
   
   file = malloc(1024);
-  while(!feof(fp)) {
-    fgets(file, 1024, fp);
+
+  while (fgets(file, 1024, fp)) {
     /* Get rid of the \n on the end. */
     len = strlen(file);
     if(file[len-1] == '\n') file[len-1] = 0;
