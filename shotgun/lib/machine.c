@@ -828,9 +828,15 @@ int machine_load_directory(machine m, const char *prefix) {
   char *path;
   char *file;
   FILE *fp;
-  int len;
-  path = malloc(1024);
-  sprintf(path, "%s/.load_order.txt", prefix);
+  size_t buf_siz = 1024, prefix_len;
+
+  prefix_len = strlen(prefix);
+  if (prefix_len > (buf_siz - 16))
+      return FALSE;
+
+  path = malloc(buf_siz);
+  memcpy(path, prefix, prefix_len);
+  strcpy(path + prefix_len, "/.load_order.txt");
   
   fp = fopen(path, "r");
   if(!fp) {
@@ -838,16 +844,19 @@ int machine_load_directory(machine m, const char *prefix) {
     free(path);
     return FALSE;
   }
-  
-  file = malloc(1024);
 
-  while (fgets(file, 1024, fp)) {
+  file = &path[prefix_len + 1];
+  
+  while (fgets(file, buf_siz - prefix_len, fp)) {
+    size_t file_len;
+
     /* Get rid of the \n on the end. */
-    len = strlen(file);
-    if(file[len-1] == '\n') file[len-1] = 0;
-    snprintf(path, 1024, "%s/%s", prefix, file);
+    file_len = strlen(file);
+
+    if (path[prefix_len + file_len] == '\n')
+      path[prefix_len + file_len] = 0;
+
     if(!machine_run_file(m, path)) {
-      free(file);
       free(path);
       fclose(fp);
       return FALSE;
@@ -855,7 +864,6 @@ int machine_load_directory(machine m, const char *prefix) {
   }
   
   fclose(fp);
-  free(file);
   free(path);
   
   return TRUE;
