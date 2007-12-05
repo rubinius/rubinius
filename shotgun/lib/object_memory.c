@@ -126,9 +126,9 @@ void object_memory_formalize_contexts(STATE, object_memory om) {
 }
 
 void object_memory_shift_contexts(STATE, object_memory om) {
-  OBJECT ctx, new_ctx, last_ctx;
+  OBJECT ctx;
   int inc = 0;
-  int sz = 0;
+  int sz =0;
   
   /* If the context_bottom is the true bottom, we haven't promoted
      anything and everything can stay where it is. */
@@ -153,7 +153,7 @@ void object_memory_shift_contexts(STATE, object_memory om) {
     /* The first non-ref'd context might have a sender that points
        back into the ref'd half, so we need to extract that information first. */
     
-    if(om->context_bottom < om->contexts->current) {
+    if((uintptr_t)om->context_bottom < (uintptr_t)om->contexts->current) {
       top_sender = FASTCTX(om->context_bottom)->sender;
       if(REFERENCE_P(top_sender)) {
         top_sender = baker_gc_mutate_from(state, om->gc, top_sender);

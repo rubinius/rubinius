@@ -98,7 +98,7 @@ char *string_byte_address(STATE, OBJECT self) {
   xassert(STRING_P(self));
   data = string_get_data(self);
   if(NIL_P(data)) {
-    return "";
+    return (char*)"";
   }
   
   return bytearray_byte_address(state, data);
