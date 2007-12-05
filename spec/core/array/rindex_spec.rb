@@ -5,8 +5,8 @@ describe "Array#rindex" do
   it "returns the first index backwards from the end where element == to object" do
     key = 3    
     ary = Array.new(3) { Object.new }
-    ary[2].should_receive(:==, :with => [key], :returning => false)
-    ary[1].should_receive(:==, :with => [key], :returning => true)
+    ary[2].should_receive(:==).with(key).and_return(false)
+    ary[1].should_receive(:==).with(key).and_return(true)
     ary[0].should_not_receive(:==)
 
     ary.rindex(key).should == 1

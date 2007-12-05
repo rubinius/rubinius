@@ -110,14 +110,14 @@ describe "Module#attr" do
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test", :count => :any)
+    (o = Object.new).should_receive(:to_str).any_number_of_times.and_return("test")
     Class.new { attr o }.new.respond_to?("test").should == true
   end
   
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     o = Object.new
     lambda { Class.new { attr o } }.raise_error(TypeError)
-    (o = Object.new).should_receive(:to_str, :returning => 123)
+    (o = Object.new).should_receive(:to_str).and_return(123)
     lambda { Class.new { attr o } }.should raise_error(TypeError)
   end
 end

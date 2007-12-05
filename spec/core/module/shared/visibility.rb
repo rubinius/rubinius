@@ -53,7 +53,7 @@ shared :set_method_visibility do |cmd|
 
     it "converts a non string/symbol/fixnum name to string using to_str" do
       to_str = Object.new
-      to_str.should_receive(:to_str, :returning => aliased.to_s)
+      to_str.should_receive(:to_str).and_return(aliased.to_s)
       names = [aliased, aliased.to_s, aliased.to_i, to_str]
       names.each do |name|
         @cls.make_alias(aliased, original)
@@ -65,7 +65,7 @@ shared :set_method_visibility do |cmd|
     it "raises TypeError when the given names can't be converted using to_str" do
       lambda { @cls.send(cmd, Object.new) }.should raise_error(TypeError)
       invalid = Object.new
-      invalid.should_receive(:to_str, :returning => Object.new)
+      invalid.should_receive(:to_str).and_return(Object.new)
       lambda { @cls.send(cmd, invalid) }.should raise_error(TypeError)
     end
   end

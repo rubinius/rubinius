@@ -52,8 +52,8 @@ describe "Array#slice!" do
     a.should == []
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :count => :any, :returning => 2)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(2)
     a = [1, 2, 3, 4, 5]
     a.slice!(obj).should == 3    
   end
@@ -97,10 +97,10 @@ describe "Array#slice!" do
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
       
-    from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    from.should_receive(:method_missing, :with => [:to_int], :count => :any, :returning => 1)
-    to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    to.should_receive(:method_missing, :with => [:to_int], :count => :any, :returning => -2)
+    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    from.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(1)
+    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    to.should_receive(:method_missing).with(:to_int).any_number_of_times.and_return(-2)
 
     a = [1, 2, 3, 4, 5]
     a.slice!(from .. to).should == [2, 3, 4]

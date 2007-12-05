@@ -42,8 +42,8 @@ describe "Module#module_function" do
   end
   
   it "tries to convert the given names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "test", :count => :any)
-    (o2 = Object.new).should_receive(:to_str, :returning => "test2", :count => :any)
+    (o = Object.new).should_receive(:to_str).any_number_of_times.and_return("test")
+    (o2 = Object.new).should_receive(:to_str).any_number_of_times.and_return("test2")
     
     m = Module.new do
       def test() end
@@ -60,7 +60,7 @@ describe "Module#module_function" do
     
     lambda { Module.new { module_function(o) } }.should raise_error(TypeError)
 
-    o.should_receive(:to_str, :returning => 123)
+    o.should_receive(:to_str).and_return(123)
     lambda { Module.new { module_function(o) } }.should raise_error(TypeError)
   end
 end

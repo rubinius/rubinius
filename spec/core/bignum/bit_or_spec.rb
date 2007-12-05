@@ -15,7 +15,7 @@ describe "Bignum#|" do
   it "tries to convert the given argument to an Integer using to_int" do
     (@bignum | 9.9).should == 1073741835
     
-    (obj = Object.new).should_receive(:to_int, :returning => 2)
+    (obj = Object.new).should_receive(:to_int).and_return(2)
     (@bignum | obj).should == 1073741835
   end
   
@@ -23,7 +23,7 @@ describe "Bignum#|" do
     obj = Object.new
     lambda { @bignum | obj }.should raise_error(TypeError)
     
-    obj.should_receive(:to_int, :returning => "asdf")
+    obj.should_receive(:to_int).and_return("asdf")
     lambda { @bignum | obj }.should raise_error(TypeError)
   end
 end

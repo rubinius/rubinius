@@ -26,8 +26,8 @@ describe "Array.new" do
     Array.new(obj).should == [nil, nil, nil]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 3)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(3)
     Array.new(obj).should == [nil, nil, nil]
   end
   
@@ -55,8 +55,8 @@ describe "Array.new" do
     a.inspect.should == [:foo].inspect
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_ary], :returning => true, :count => :any)
-    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [:foo], :count => :any)
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_ary).any_number_of_times.and_return([:foo])
     Array.new(obj).should == [:foo]
   end
   

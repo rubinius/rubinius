@@ -15,13 +15,13 @@ describe "String#index with object" do
 
   it "tries to convert obj to a string via to_str" do
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "lo")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("lo")
     "hello".index(obj).should == "hello".index("lo")
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("o")
     "hello".index(obj).should == "hello".index("o")
   end
 end
@@ -90,12 +90,12 @@ describe "String#index with Fixnum" do
   
   it "converts start_offset to an integer via to_int" do
     obj = Object.new
-    obj.should_receive(:to_int, :returning => 1)
+    obj.should_receive(:to_int).and_return(1)
     "ROAR".index(?R, obj).should == 3
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     "ROAR".index(?R, obj).should == 3
   end
 end
@@ -211,12 +211,12 @@ describe "String#index with String" do
   
   it "converts start_offset to an integer via to_int" do
     obj = Object.new
-    obj.should_receive(:to_int, :returning => 1)
+    obj.should_receive(:to_int).and_return(1)
     "RWOARW".index("RW", obj).should == 4
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     "RWOARW".index("RW", obj).should == 4
   end
 end
@@ -340,12 +340,12 @@ describe "String#index with Regexp" do
   
   it "converts start_offset to an integer via to_int" do
     obj = Object.new
-    obj.should_receive(:to_int, :returning => 1)
+    obj.should_receive(:to_int).and_return(1)
     "RWOARW".index(/R./, obj).should == 4
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     "RWOARW".index(/R./, obj).should == 4
   end
 end

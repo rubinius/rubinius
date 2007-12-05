@@ -18,10 +18,10 @@ describe "String#=~" do
     str = "w00t"
     obj = Object.new
 
-    obj.should_receive(:=~, :with => [str], :returning => true)
+    obj.should_receive(:=~).with(str).and_return(true)
     (str =~ obj).should == true
 
-    obj.should_receive(:=~, :with => [str], :returning => false)
+    obj.should_receive(:=~).with(str).and_return(false)
     (str =~ obj).should == false
   end
   

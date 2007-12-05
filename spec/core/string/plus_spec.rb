@@ -16,8 +16,8 @@ describe "String#+" do
     ("a" + c).should == "aaaa"
 
     c = Object.new
-    c.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    c.should_receive(:method_missing, :with => [:to_str], :returning => "aaa")
+    c.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    c.should_receive(:method_missing).with(:to_str).and_return("aaa")
     ("a" + c).should == "aaaa"
   end
   

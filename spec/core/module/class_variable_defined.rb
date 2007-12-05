@@ -26,7 +26,7 @@ describe "Module#class_variable_defined?" do
 
   it "converts a non string/symbol/fixnum name to string using to_str" do
     c = Class.new { class_variable_set :@@class_var, "test" }
-    (o = Object.new).should_receive(:to_str, :returning => "@@class_var")
+    (o = Object.new).should_receive(:to_str).and_return("@@class_var")
     c.class_variable_defined?(o).should == true
   end
 
@@ -37,7 +37,7 @@ describe "Module#class_variable_defined?" do
       c.class_variable_defined?(o)
     }.should raise_error(TypeError)
     
-    o.should_receive(:to_str, :returning => 123)
+    o.should_receive(:to_str).and_return(123)
     lambda {
       c.class_variable_defined?(o)
     }.should raise_error(TypeError)

@@ -27,7 +27,7 @@ describe "Range#step" do
 
   it "raises a TypeError if the first element does not respond to #succ" do
     b = Object.new
-    (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => 1)
+    (a = Object.new).should_receive(:method_missing).with(:<=>, b).and_return(1)
     
     lambda { (a..b).step(1) { |i| i } }.should raise_error(TypeError)
   end

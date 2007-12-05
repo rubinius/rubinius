@@ -24,7 +24,7 @@ describe "Module#const_get" do
   end
 
   it "tries to convert the given name to a string using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "Parent")
+    (o = Object.new).should_receive(:to_str).and_return("Parent")
     ModuleSpecs.const_get(o).should == ModuleSpecs::Parent
   end
 
@@ -32,7 +32,7 @@ describe "Module#const_get" do
     o = Object.new
     lambda { ModuleSpecs.const_get(o) }.should raise_error(TypeError)
 
-    o.should_receive(:to_str, :returning => 123)
+    o.should_receive(:to_str).and_return(123)
     lambda { ModuleSpecs.const_get(o) }.should raise_error(TypeError)
   end
 end

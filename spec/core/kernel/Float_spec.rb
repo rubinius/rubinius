@@ -17,7 +17,7 @@ describe "Kernel.Float" do
     Kernel.Float(1000000000000).should == 1000000000000.0
     Kernel.Float("10").should == 10.0
     
-    (obj = Object.new).should_receive(:to_f, :returning => 1.2)
+    (obj = Object.new).should_receive(:to_f).and_return(1.2)
     obj.should_not_receive(:to_i)
     Kernel.Float(obj).should == 1.2
   end
@@ -27,10 +27,10 @@ describe "Kernel.Float" do
   end
   
   it "raises a TypeError if #to_f does not return a Float" do
-    (obj = Object.new).should_receive(:to_f, :returning => 'ha!')
+    (obj = Object.new).should_receive(:to_f).and_return('ha!')
     lambda { Kernel.Float(obj) }.should raise_error(TypeError)
 
-    obj.should_receive(:to_f, :returning => 123)
+    obj.should_receive(:to_f).and_return(123)
     lambda { Kernel.Float(obj) }.should raise_error(TypeError)
   end
 end

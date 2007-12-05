@@ -7,8 +7,8 @@ describe "Array#<=>" do
       lhs = Array.new(3) { Object.new }
       rhs = Array.new(3) { Object.new }
     
-      lhs[0].should_receive(:<=>, :with => [rhs[0]], :returning => 0)
-      lhs[1].should_receive(:<=>, :with => [rhs[1]], :returning => result)
+      lhs[0].should_receive(:<=>).with([rhs[0]]).and_return(0)
+      lhs[1].should_receive(:<=>).with([rhs[1]]).and_return(result)
       lhs[2].should_not_receive(:<=>)
 
       (lhs <=> rhs).should == result
@@ -36,8 +36,8 @@ describe "Array#<=>" do
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [4, 5])
+    obj.should_receive(:respond_to?).with([:to_ary]).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with([:to_ary]).and_return([4, 5])
     ([4, 5] <=> obj).should == 0
   end
 

@@ -28,7 +28,7 @@ describe "Array#==" do
   compliant(:r19) do
     it "calls to_ary on its argument" do
       obj = Object.new
-      obj.should_receive(:to_ary, :returning => [1, 2, 3])
+      obj.should_receive(:to_ary).and_return([1, 2, 3])
     
       [1, 2, 3].should == obj
     end

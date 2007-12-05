@@ -17,8 +17,8 @@ describe "String#*" do
     ("a" * a).should == "aaaa"
     
     a = Object.new
-    a.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    a.should_receive(:method_missing, :with => [:to_int], :returning => 4)
+    a.should_receive(:respond_to?).with(:to_int).and_return(true)
+    a.should_receive(:method_missing).with(:to_int).and_return(4)
     ("a" * a).should == "aaaa"    
   end
   

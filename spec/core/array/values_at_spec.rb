@@ -13,8 +13,8 @@ describe "Array#values_at" do
     [1, 2].values_at(obj, obj, obj).should == [2, 2, 2]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(1)
     [1, 2].values_at(obj).should == [2]
   end
   
@@ -43,10 +43,10 @@ describe "Array#values_at" do
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
       
-    from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-    to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+    from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    from.should_receive(:method_missing).with(:to_int).and_returnb(1)
+    to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    to.should_receive(:method_missing).with(:to_int).and_return(-2)
     ary.values_at(from .. to).should == [2, 3, 4]
   end
   

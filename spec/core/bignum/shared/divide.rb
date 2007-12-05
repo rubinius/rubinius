@@ -22,7 +22,7 @@ shared :bignum_divide do |cmd|
 
   it "raises a TypeError when given a non-Integer" do
     lambda {
-      (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+      (obj = Object.new).should_receive(:to_int).and_return(10)
       @bignum.div(obj)
     }.should raise_error(TypeError)
     lambda { @bignum.div("2") }.should raise_error(TypeError)

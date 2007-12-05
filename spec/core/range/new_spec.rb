@@ -28,7 +28,7 @@ describe "Range.new" do
     lambda { Range.new(Object.new, Object.new) }.should raise_error(ArgumentError)
     
     b = Object.new
-    (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => nil)
+    (a = Object.new).should_receive(:method_missing).with(:<=>, b).and_return(nil)
     lambda { Range.new(a, b) }.should raise_error(ArgumentError)
   end
 end

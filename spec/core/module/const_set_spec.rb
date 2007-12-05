@@ -33,7 +33,7 @@ describe "Module#const_set" do
   end
 
   it "tries to convert the given name to a string using to_str" do
-    (o = Object.new).should_receive(:to_str, :returning => "A")
+    (o = Object.new).should_receive(:to_str).and_return("A")
     Module.const_set o, "test"
     Module.const_get(:A).should == "test"
   end
@@ -42,7 +42,7 @@ describe "Module#const_set" do
     o = Object.new
     lambda { Module.const_set(o, "test") }.should raise_error(TypeError)
 
-    o.should_receive(:to_str, :returning => 123)
+    o.should_receive(:to_str).and_return(123)
     lambda { Module.const_set(o, "Test") }.should raise_error(TypeError)
   end
 end

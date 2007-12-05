@@ -18,8 +18,8 @@ shared :array_indexes do |cmd|
       array.send(cmd, x).should == [5]
 
       x = Object.new
-      x.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
-      x.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+      x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      x.should_receive(:method_missing).with(:to_int).and_return(2)
       array.send(cmd, x).should == [3]
     end
 

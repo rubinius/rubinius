@@ -20,9 +20,9 @@ describe "Range#each" do
 
     y = Object.new
     x = Object.new
-    x.should_receive(:method_missing, :with => [:<=>, y], :count => :any, :returning => -1)
+    x.should_receive(:method_missing).with(:<=>, y).any_number_of_times.and_return(-1)
     x.should_receive(:succ, :returning => y)
-    y.should_receive(:method_missing, :with => [:<=>, x], :count => :any, :returning => 0)
+    y.should_receive(:method_missing).with(:<=>, x).any_number_of_times.and_return(0)
     
     a = []
     (x..y).each { |i| a << i }
@@ -33,7 +33,7 @@ describe "Range#each" do
     lambda { (0.5..2.4).each { |i| i } }.should raise_error(TypeError)
     
     b = Object.new
-    (a = Object.new).should_receive(:method_missing, :with => [:<=>, b], :returning => 1)
+    (a = Object.new).should_receive(:method_missing).with(:<=>, b).and_return(1)
     
     lambda { (a..b).each { |i| i } }.should raise_error(TypeError)
   end

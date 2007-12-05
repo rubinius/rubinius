@@ -9,7 +9,7 @@ describe "Kernel.String" do
     Kernel.String(false).should == "false"
     Kernel.String(Object).should == "Object"
 
-    (obj = Object.new).should_receive(:to_s, :returning => "test")
+    (obj = Object.new).should_receive(:to_s).and_return("test")
     Kernel.String(obj).should == "test"
   end
 
@@ -26,7 +26,7 @@ describe "Kernel.String" do
 #  end
   
   it "raises a TypeError if #to_s does not return a String" do
-    (obj = Object.new).should_receive(:to_s, :returning => 123)
+    (obj = Object.new).should_receive(:to_s).and_return(123)
     lambda { Kernel.String(obj) }.should raise_error(TypeError)
   end
 end

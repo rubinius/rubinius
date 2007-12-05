@@ -472,7 +472,7 @@ describe "StringIO#puts" do
   
   it "calls to_s before writing non-string objects" do
     object = Object.new
-    object.should_receive(:to_s, :returning => "hola")
+    object.should_receive(:to_s).and_return("hola")
     
     @io.puts(object).should == nil
     @io.string.should == "hola\n"

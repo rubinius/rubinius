@@ -46,12 +46,12 @@ describe "String#scan" do
 
   it "tries to convert pattern to a string via to_str" do
     obj = Object.new
-    obj.should_receive(:to_str, :returning => "o")
+    obj.should_receive(:to_str).and_return("o")
     "o_o".scan(obj).should == ["o", "o"]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "-")
+    obj.should_receive(:respond_to?).with(:to_str).and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("-")
     "-_-".scan(obj).should == ["-", "-"]
   end
   

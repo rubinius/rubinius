@@ -23,8 +23,8 @@ shared :array_replace do |cmd|
       ary.should == [1, 2, 3]
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_ary], :returning => [])
+      obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_ary).and_return([])
 
       ary.send(cmd, obj)
       ary.should == []

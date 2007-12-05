@@ -8,13 +8,13 @@ shared :string_concat do |cmd|
     
     it "converts the given argument to a String using to_str" do
       obj = Object.new
-      obj.should_receive(:to_str, :returning => "world!")
+      obj.should_receive(:to_str).and_return("world!")
       a = 'hello '.send(cmd, obj)
       a.should == 'hello world!'
       
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_str], :returning => "world!")
+      obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_str).and_return("world!")
       a = 'hello '.send(cmd, obj)
       a.should == 'hello world!'
     end

@@ -34,9 +34,9 @@ describe "Module#alias_method" do
     @class.make_alias "trois", :public_one
     @class.make_alias :quatre, :public_one
     name = Object.new
-    name.should_receive(:to_str, :returning => "cinq")
+    name.should_receive(:to_str).and_return("cinq")
     @class.make_alias name, "public_one"
-    name.should_receive(:to_str, :returning => "public_one")
+    name.should_receive(:to_str).and_return("public_one")
     @class.make_alias "cinq", name
   end
 

@@ -13,7 +13,7 @@ describe "Fixnum#[]" do
   it "tries to convert the given argument to an Integer using #to_int" do
     15[1.3].should == 15[1]
     
-    (obj = Object.new).should_receive(:to_int, :returning => 1)
+    (obj = Object.new).should_receive(:to_int).and_return(1)
     2[obj].should == 1
   end
 
@@ -21,7 +21,7 @@ describe "Fixnum#[]" do
     obj = Object.new
     lambda { 3[obj] }.should raise_error(TypeError)
     
-    obj.should_receive(:to_int, :returning => "asdf")
+    obj.should_receive(:to_int).and_return("asdf")
     lambda { 3[obj] }.should raise_error(TypeError)
   end
 end

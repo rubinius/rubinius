@@ -17,12 +17,12 @@ shared :string_slice do |cmd|
       "hello".send(cmd, 0.5).should == ?h
 
       obj = Object.new
-      obj.should_receive(:to_int, :returning => 1)
+      obj.should_receive(:to_int).and_return(1)
       "hello".send(cmd, obj).should == ?e
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(1)
       "hello".send(cmd, obj).should == ?e
     end
     
@@ -126,8 +126,8 @@ shared :string_slice do |cmd|
       "hello".send(cmd, 0, obj).should == "he"
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :count => 2, :with => [:to_int], :returning => 2)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).exactly(2).times.and_return(2)
       "hello".send(cmd, obj, obj).should == "ll"
     end
 
@@ -246,10 +246,10 @@ shared :string_slice do |cmd|
       def from.<=>(o) 0 end
       def to.<=>(o) 0 end
 
-      from.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      from.should_receive(:method_missing, :with => [:to_int], :returning => 1)
-      to.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      to.should_receive(:method_missing, :with => [:to_int], :returning => -2)
+      from.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      from.should_receive(:method_missing).with(:to_int).and_return(1)
+      to.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      to.should_receive(:method_missing).with(:to_int).and_return(-2)
 
       "hello there".send(cmd, from..to).should == "ello ther"
     end
@@ -353,14 +353,14 @@ shared :string_slice do |cmd|
 
     it "calls to_int on the given index" do
       obj = Object.new
-      obj.should_receive(:to_int, :returning => 2)
+      obj.should_receive(:to_int).and_return(2)
 
       "har".send(cmd, /(.)(.)(.)/, 1.5).should == "h"
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(2)
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
     end
     

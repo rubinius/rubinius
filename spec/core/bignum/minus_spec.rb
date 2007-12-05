@@ -14,7 +14,7 @@ describe "Bignum#-" do
 
   it "raises a TypeError when given a non-Integer" do
     lambda {
-      (obj = Object.new).should_receive(:to_int, :count => 0, :returning => 10)
+      (obj = Object.new).should_receive(:to_int).and_return(10)
       @bignum - obj
     }.should raise_error(TypeError)
     lambda { @bignum - "10" }.should raise_error(TypeError)

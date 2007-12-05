@@ -13,10 +13,10 @@ describe "Fixnum#==" do
   end
   
   it "calls 'other == self' if the given argument is no Fixnum" do
-    (obj = Object.new).should_receive(:==, :returning => false)    
+    (obj = Object.new).should_receive(:==).and_return(false)    
     (1 == obj).should == false
     
-    obj.should_receive(:==, :returning => true)
+    obj.should_receive(:==).and_return(true)
     (2 == obj).should == true
   end
 end

@@ -113,7 +113,7 @@ describe "Hash#[]" do
     hc = Object.new
     x.instance_variable_set(:@hash, hc)
 
-    hc.should_receive(:%, :returning => 0)
+    hc.should_receive(:%).and_return(0)
     h = {1 => 2}
     h[x].should == nil
   end

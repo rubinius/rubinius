@@ -15,7 +15,7 @@ describe "Fixnum#>>" do
   it "tries to convert it's argument to an Integer using to_int" do
     (7 >> 1.3).should == 3
     
-    (obj = Object.new).should_receive(:to_int, :returning => 1)
+    (obj = Object.new).should_receive(:to_int).and_return(1)
     (7 >> obj).should == 3
   end
   
@@ -23,7 +23,7 @@ describe "Fixnum#>>" do
     obj = Object.new
     lambda { 3 >> obj }.should raise_error(TypeError)
     
-    obj.should_receive(:to_int, :returning => "asdf")
+    obj.should_receive(:to_int).and_return("asdf")
     lambda { 3 >> obj }.should raise_error(TypeError)
   end
 end

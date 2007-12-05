@@ -30,13 +30,13 @@ describe "Module#method_defined?" do
     
     lambda { c.method_defined?(o) }.should raise_error(TypeError)
     
-    o.should_receive(:to_str, :returning => 123)
+    o.should_receive(:to_str).and_return(123)
     lambda { c.method_defined?(o) }.shoould raise_error(TypeError)
   end
   
   it "converts the given name to a string using to_str" do
     c = Class.new { def test(); end }
-    (o = Object.new).should_receive(:to_str, :returning => "test")
+    (o = Object.new).should_receive(:to_str).and_return("test")
     
     c.method_defined?(o).should == true
   end

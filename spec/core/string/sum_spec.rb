@@ -15,8 +15,8 @@ describe "String#sum" do
     "hello".sum(obj).should == "hello".sum(obj.to_int)
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 8)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(8)
 
     "hello".sum(obj).should == "hello".sum(8)
   end

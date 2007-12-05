@@ -165,11 +165,11 @@ describe "String#%" do
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
     
     w = Object.new
-    w.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
-    w.should_receive(:method_missing, :with => [:to_int], :returning => 10)
+    w.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    w.should_receive(:method_missing).with(:to_int).and_return(10)
     p = Object.new
-    p.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
-    p.should_receive(:method_missing, :with => [:to_int], :returning => 5)
+    p.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    p.should_receive(:method_missing).with(:to_int).and_return(5)
 
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
   end
@@ -284,8 +284,8 @@ describe "String#%" do
     ("%c" % obj).should == ("%c" % obj.to_int)
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 65)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(65)
     ("%c" % obj).should == "A"
   end
   
@@ -550,13 +550,13 @@ describe "String#%" do
       (format % obj).should == (format % 4)
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => 65)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(65)
       (format % obj).should == (format % 65)
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => false)
-      obj.should_receive(:respond_to?, :count => :any, :with => [:to_i], :returning => true)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(false)
+      obj.should_receive(:respond_to?).with(:to_i).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing, :with => [:to_i], :returning => 65)
       (format % obj).should == (format % 65)
       
@@ -603,8 +603,8 @@ describe "String#%" do
       (format % obj).should == (format % 5.0)
 
       obj = Object.new
-      obj.should_receive(:respond_to?, :count => :any, :with => [:to_f], :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_f], :returning => 3.14)
+      obj.should_receive(:respond_to?).with(:to_f).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_f).and_return(3.14)
       (format % obj).should == (format % 3.14)
     end
     

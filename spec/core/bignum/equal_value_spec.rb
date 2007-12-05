@@ -22,10 +22,10 @@ describe "Bignum#==" do
   end
 
   it "calls 'other == self' if the given argument is no Integer" do
-    (obj = Object.new).should_receive(:==, :returning => false)    
+    (obj = Object.new).should_receive(:==).and_return(false)    
     (@bignum == obj).should == false
     
-    obj.should_receive(:==, :returning => true)
+    obj.should_receive(:==).and_return(true)
     (@bignum_float == obj).should == true
   end
 end

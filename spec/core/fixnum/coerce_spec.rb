@@ -24,10 +24,10 @@ describe "Fixnum#coerce" do
   end
 
   it "tries to convert the given Object into a Float by using #to_f" do
-    (obj = Object.new).should_receive(:to_f, :returning => 1.0)
+    (obj = Object.new).should_receive(:to_f).and_return(1.0)
     2.coerce(obj).should == [1.0, 2.0]
     
-    (obj = Object.new).should_receive(:to_f, :returning => '0')
+    (obj = Object.new).should_receive(:to_f).and_return('0')
     lambda { 2.coerce(obj).should == [1.0, 2.0] }.should raise_error(TypeError)
   end
 

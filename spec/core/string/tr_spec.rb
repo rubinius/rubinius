@@ -44,12 +44,12 @@ describe "String#tr" do
     "bla".tr(from_str, to_str).should == "BlA"
 
     from_str = Object.new
-    from_str.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    from_str.should_receive(:method_missing, :with => [:to_str], :returning => "ab")
+    from_str.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    from_str.should_receive(:method_missing).with(:to_str).and_return("ab")
 
     to_str = Object.new
-    to_str.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    to_str.should_receive(:method_missing, :with => [:to_str], :returning => "AB")
+    to_str.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    to_str.should_receive(:method_missing).with(:to_str).and_return("AB")
 
     "bla".tr(from_str, to_str).should == "BlA"
   end

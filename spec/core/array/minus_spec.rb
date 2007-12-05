@@ -18,8 +18,8 @@ describe "Array#-" do
     ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_ary], :returning => [2, 3, 4])
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_ary).and_return([2, 3, 4])
     ([1, 1, 2, 2, 3, 4] - obj).should == [1, 1]
   end
 

@@ -152,8 +152,8 @@ describe "String#sub with pattern, replacement" do
     "hello.".sub(pattern, "!").should == "hello!"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => ".")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return(".")
 
     "hello.".sub(obj, "!").should == "hello!"
   end
@@ -170,8 +170,8 @@ describe "String#sub with pattern, replacement" do
     "hello".sub(/hello/, replacement).should == "hello_replacement"
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "ok")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("ok")
     "hello".sub(/hello/, obj).should == "ok"
   end
   

@@ -48,8 +48,8 @@ $VERBOSE = old
     [1, 2, 3].fetch(x).should == 1
     
     x = Object.new
-    x.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-    x.should_receive(:method_missing, :with => [:to_int], :returning => 0)
+    x.should_receive(:respond_to?).with([:to_int]).any_number_of_times.and_return(true)
+    x.should_receive(:method_missing).with([:to_int]).and_return(0)
     [1, 2, 3].fetch(x).should == 1
   end
 end

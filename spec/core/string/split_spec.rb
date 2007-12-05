@@ -89,8 +89,8 @@ describe "String#split with String" do
     "hello::world".split(obj).should == ["hello", "world"]
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :returning => true, :count => :any)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "::")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("::")
     "hello::world".split(obj).should == ["hello", "world"]
   end
   
@@ -100,8 +100,8 @@ describe "String#split with String" do
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    obj.should_receive(:respond_to?).with(:to_int).and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(2)
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
   end
   
@@ -241,8 +241,8 @@ describe "String#split with Regexp" do
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    obj.should_receive(:respond_to?).with(:to_int).and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(2)
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
   end
   

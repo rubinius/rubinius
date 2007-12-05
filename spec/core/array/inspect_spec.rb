@@ -12,7 +12,7 @@ describe "Array#inspect" do
   it "calls inspect on its arguments" do
     items = Array.new(3) do |i|
       obj = Object.new
-      obj.should_receive(:inspect, :returning => "items[#{i}]")
+      obj.should_receive(:inspect).and_return("items[#{i}]")
       obj
     end
     

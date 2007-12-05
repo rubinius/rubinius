@@ -20,8 +20,8 @@ describe "Array#include?" do
   it "calls == on elements from left to right until success" do
     key = "x"
     ary = Array.new(3) { Object.new }
-    ary[0].should_receive(:==, :with => [key], :returning => false)
-    ary[1].should_receive(:==, :with => [key], :returning => true)
+    ary[0].should_receive(:==).with(key).and_return(false)
+    ary[1].should_receive(:==).with(key).and_return(true)
     ary[2].should_not_receive(:==)
     
     ary.include?(key).should == true

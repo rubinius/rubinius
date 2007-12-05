@@ -67,8 +67,8 @@ describe "String#delete" do
     "hello world".delete(other_string, other_string2).should == "hell wrld"
 
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "o")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("o")
     "hello world".delete(obj).should == "hell wrld"
   end
   

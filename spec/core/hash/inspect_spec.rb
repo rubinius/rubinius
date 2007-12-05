@@ -17,8 +17,8 @@ describe "Hash#inspect" do
   it "calls inspect on keys and values" do
     key = Object.new
     val = Object.new
-    key.should_receive(:inspect, :returning => 'key')
-    val.should_receive(:inspect, :returning => 'val')
+    key.should_receive(:inspect).and_return('key')
+    val.should_receive(:inspect).and_return('val')
     
     { key => val }.inspect.should == '{key=>val}'
   end

@@ -24,8 +24,8 @@ describe "Array#*" do
     ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :count => :any, :with => [:to_str], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "x")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("x")
     ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
   end
   
@@ -48,8 +48,8 @@ describe "Array#*" do
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_int
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :count => :any, :with => [:to_int], :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_int], :returning => 2)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(2)
     ([1, 2, 3] * obj).should == [1, 2, 3] * 2
   end
 

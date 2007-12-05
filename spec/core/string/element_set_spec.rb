@@ -54,12 +54,12 @@ describe "String#[]= with index" do
       lambda { str[0.5] = ?c }.should raise_error(IndexError)
     
       obj = Object.new
-      obj.should_receive(:to_int, :returning => -1)
+      obj.should_receive(:to_int).and_return(-1)
       lambda { str[obj] = ?y }.should raise_error(IndexError)
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       lambda { str[obj] = ?! }.should raise_error(IndexError)
     end
   end
@@ -71,13 +71,13 @@ describe "String#[]= with index" do
       str.should == "cello"
     
       obj = Object.new
-      obj.should_receive(:to_int, :returning => -1)
+      obj.should_receive(:to_int).and_return(-1)
       str[obj] = ?y
       str.should == "celly"
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       str[obj] = ?!
       str.should == "cell!"
     end
@@ -155,12 +155,12 @@ describe "String#[]= with String" do
       lambda { str[0.5] = "hi " }.should raise_error(IndexError)
     
       obj = Object.new
-      obj.should_receive(:to_int, :returning => -1)
+      obj.should_receive(:to_int).and_return(-1)
       lambda { str[obj] = "!" }.should raise_error(IndexError)
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       lambda { str[obj] = "e vator" }.should raise_error(IndexError)
     end
   end
@@ -172,13 +172,13 @@ describe "String#[]= with String" do
       str.should == "hi ello"
     
       obj = Object.new
-      obj.should_receive(:to_int, :returning => -1)
+      obj.should_receive(:to_int).and_return(-1)
       str[obj] = "!"
       str.should == "hi ell!"
     
       obj = Object.new
-      obj.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      obj.should_receive(:method_missing, :with => [:to_int], :returning => -1)
+      obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       str[obj] = "e vator"
       str.should == "hi elle vator"
     end
@@ -193,8 +193,8 @@ describe "String#[]= with String" do
     a.should == "a-test-c"
     
     obj = Object.new
-    obj.should_receive(:respond_to?, :with => [:to_str], :count => :any, :returning => true)
-    obj.should_receive(:method_missing, :with => [:to_str], :returning => "ROAR")
+    obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_str).and_return("ROAR")
 
     a = "abc"
     a[1] = obj

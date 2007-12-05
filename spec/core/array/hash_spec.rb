@@ -28,8 +28,8 @@ describe "Array#hash" do
       ary.each { |obj| obj.frozen?.should == true }
     
       hash = Object.new
-      hash.should_receive(:respond_to?, :with => [:to_int], :count => :any, :returning => true)
-      hash.should_receive(:method_missing, :with => [:to_int], :returning => 1)
+      hash.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+      hash.should_receive(:method_missing).with(:to_int).and_return(1)
     
       obj = Object.new
       obj.instance_variable_set(:@hash, hash)

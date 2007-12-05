@@ -22,8 +22,8 @@ describe "Array#transpose" do
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
     
     h = Object.new
-    h.should_receive(:respond_to?, :with => [:to_ary], :count => :any, :returning => true)
-    h.should_receive(:method_missing, :with => [:to_ary], :returning => [1, 2])
+    h.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    h.should_receive(:method_missing).with(:to_ary).and_return([1, 2])
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]    
   end
   
