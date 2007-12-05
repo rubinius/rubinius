@@ -27,8 +27,8 @@ describe "Array#delete_at" do
     [1, 2].delete_at(obj).should == 2
     
     obj = Object.new
-    obj.should_receive(:respond_to?).with([:to_int]).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with([:to_int]).and_return(-1)
+    obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_int).and_return(-1)
     [1, 2].delete_at(obj).should == 2
   end
   

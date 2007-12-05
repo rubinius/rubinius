@@ -22,7 +22,7 @@ describe "Array#shift" do
 
   compliant :mri do
     it "raises TypeError on a frozen array" do
-      should_raise(TypeError) { ArraySpecs.frozen_array.shift }
+      lambda { ArraySpecs.frozen_array.shift }.should raise_error(TypeError)
     end
   end
 end

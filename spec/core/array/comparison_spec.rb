@@ -36,8 +36,8 @@ describe "Array#<=>" do
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
     
     obj = Object.new
-    obj.should_receive(:respond_to?).with([:to_ary]).any_number_of_times.and_return(true)
-    obj.should_receive(:method_missing).with([:to_ary]).and_return([4, 5])
+    obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
+    obj.should_receive(:method_missing).with(:to_ary).and_return([4, 5])
     ([4, 5] <=> obj).should == 0
   end
 
