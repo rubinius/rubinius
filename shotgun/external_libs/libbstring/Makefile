@@ -68,7 +68,6 @@ DEPS=bstraux.h bstrlib.h
 
 SOURCES=bstraux.c bstrlib.c
 OBJS=$(SOURCES:.c=.o)
-LOBJS=$(SOURCES:.c=.lo)
 
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@

@@ -70,7 +70,6 @@ DEPS=quark.h
 
 SOURCES=quark.c
 OBJS=$(SOURCES:.c=.o)
-LOBJS=$(SOURCES:.c=.lo)
 LIBS=-L../libcchash -L../libmpa -lcchash -lptr_array
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@

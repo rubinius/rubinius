@@ -69,7 +69,6 @@ DEPS=ptr_array.h
 
 SOURCES=ptr_array.c
 OBJS=$(SOURCES:.c=.o)
-LOBJS=$(SOURCES:.c=.lo)
 
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
