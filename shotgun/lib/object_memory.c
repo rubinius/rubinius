@@ -128,7 +128,6 @@ void object_memory_formalize_contexts(STATE, object_memory om) {
 void object_memory_shift_contexts(STATE, object_memory om) {
   OBJECT ctx;
   int inc = 0;
-  int sz =0;
   
   /* If the context_bottom is the true bottom, we haven't promoted
      anything and everything can stay where it is. */
