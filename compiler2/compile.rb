@@ -24,14 +24,12 @@ end
 
 meth = n.to_description
 
-p meth
 cm = meth.to_cmethod
-p cm
 
 enc = Compiler::Encoder.new
 p enc.decode_iseq(cm.bytecodes)
 
 puts "EXECUTING"
-cm.compile
+# cm.compile
 cm.activate MAIN, Object, []
 # puts meth.generator.text

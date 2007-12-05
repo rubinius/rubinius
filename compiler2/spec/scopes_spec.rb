@@ -336,11 +336,10 @@ describe Compiler do
           
     gen x do |g|
       desc = description do |d|
-        d.allocate_stack 1
         d.push :self
         d.set_encloser
         d.push 1
-        d.set_local_fp 1
+        d.set_local 0
         d.sret
       end
       

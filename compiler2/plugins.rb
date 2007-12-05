@@ -1,3 +1,5 @@
+require 'compiler2/execute'
+
 module Compiler::Plugins
   
   @plugins = {}
@@ -17,6 +19,14 @@ module Compiler::Plugins
     
     def self.plugin(name)
       Compiler::Plugins.add_plugin name, self
+    end
+    
+    def call_match(c, const, method)
+      return false unless c.call?
+      return false unless c.method == method
+      return false unless c.object.kind_of? Compiler::Node::ConstFind
+      return false unless c.object.name == const
+      return true
     end
   end
   
@@ -43,10 +53,7 @@ module Compiler::Plugins
     
     def handle(g, call)
       return false unless g.ip == 0
-      return false unless call.method == :primitive
-      return false unless call.call?
-      return false unless call.object.kind_of? Compiler::Node::ConstFind
-      return false unless call.object.name == :Ruby
+      return false unless call_match(call, :Ruby, :primitive)
       
       prim = call.arguments.first.value
       
@@ -54,6 +61,22 @@ module Compiler::Plugins
       
       return true
     end
+  end
+  
+  class InlineAssembly < Plugin
+    
+    plugin :assembly
+    
+    def handle(g, call)
+      return false unless call_match(call, :Rubinius, :asm)
+      return false unless call.block
+      
+      exc = Compiler::ExecuteContext.new(g)
+      exc.execute call.block.body
+      
+      return true
+    end
+    
   end
   
   class FastMathOperators < Plugin
