@@ -113,6 +113,8 @@ external_libs/libmquark/libmquark.a:
 $(RBLIB): config.h $(ALIBS) external_libs/lightning/config.h 
 	cd lib; $(MAKE) library; 
 
+.PHONY: $(RBLIB)
+
 # Don't try to build main until librubinius exists
 main.c: $(RBLIB)
 
