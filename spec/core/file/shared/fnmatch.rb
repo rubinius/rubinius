@@ -78,14 +78,18 @@ shared :file_fnmatch do |cmd|
       File.send(cmd, '*', 'home/.profile').should == true
       File.send(cmd, '*/*', 'home/.profile').should == true
       File.send(cmd, '*/*', 'dave/.profile', File::FNM_PATHNAME).should == false
+    end
+    
+    it "matches patterns with leading periods to dotfiles by default" do
       File.send(cmd, '.*', '.profile').should == true
+      File.send(cmd, ".*file", "nondotfile").should == false
     end
     
     it "matches leading periods in filenames when flags includes FNM_DOTMATCH" do
       File.send(cmd, '*', '.profile', File::FNM_DOTMATCH).should == true
       File.send(cmd, '*', 'home/.profile', File::FNM_DOTMATCH).should == true
     end
-
+    
     it "matches multiple directories with ** and *" do
       files = '**/*.rb'
       File.send(cmd, files, 'main.rb').should == false

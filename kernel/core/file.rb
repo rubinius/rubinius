@@ -321,7 +321,7 @@ class File < IO
       else
         subs.each { |p,s| part.gsub!(p, s) }
         if escape
-          part.gsub(/\\(.)/, '\1')
+          part.gsub(/\\([^.])/, '\1')
         else
           part.gsub(/(\\)([^*?\[\]])/, '\1\1\2')
         end
