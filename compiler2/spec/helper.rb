@@ -36,7 +36,11 @@ class TestGenerator
   end
   
   def send(*stuff)
-    method_missing :send, *stuff
+    add :send, *stuff
+  end
+
+  def send_with_block(*stuff)
+    add :send_with_block, *stuff
   end
   
   def dup
@@ -115,9 +119,7 @@ def gen(sexp, plugins=[])
   comp = Compiler.new TestGenerator
   plugins.each { |n| comp.activate n }
   tg = TestGenerator.new
-  
   yield tg
-  
   node = comp.convert_sexp [:snippit, sexp]
   act = TestGenerator.new
   node.bytecode act
