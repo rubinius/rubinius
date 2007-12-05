@@ -1,0 +1,61 @@
+# -*- ruby -*-
+
+Autotest.add_hook :run_command do |at|
+  system "rake"
+end
+
+class Autotest
+  alias :old_ruby :ruby
+  alias :old_make_test_cmd :make_test_cmd
+
+  def ruby
+    "USE_MSPEC=1 shotgun/rubinius"
+  end
+
+  def make_test_cmd files_to_test
+    cmds = []
+    full, partial = files_to_test.partition { |k,v| v.empty? }
+
+    unless full.empty? then
+      classes = full.map {|k,v| k}.flatten.uniq.sort.join(' ')
+
+      system "find spec -name \*excludes.txt | xargs cat > all-exclude.txt~"
+
+      cmds << "#{ruby} -I#{@libs} -e \"puts 'Started autotest'; %w[#{classes}].each { |f| require f }\" | #{unit_diff}"
+    end
+
+    partial.each do |klass, methods|
+      cmds << "#{ruby} -I#{@libs} #{klass} -n \"/^(#{Regexp.union(*methods).source})$/\" | #{unit_diff}"
+    end
+
+    return cmds.join("#{SEP} ")
+  end
+end
+
+Autotest.add_hook :initialize do |at|
+  at.exceptions << /\.rbc$/ << /\.txt$/
+
+  at.add_mapping %r%^spec/.*_spec\.rb$% do |filename, _|
+    filename
+  end
+
+  at.add_mapping %r%^kernel/(.*)/(.*).rb$% do |_, m|
+    Dir["spec/#{m[1]}/#{m[2]}/*_spec.rb"]
+  end
+
+  at.add_mapping %r%^kernel/(.*)/(.*).rb$% do |_, m|
+    Dir["spec/#{m[1]}/#{m[2]}/*_spec.rb"]
+  end
+
+  at.add_mapping %r%^compiler/(bytecode|sexp|translation)/*.rb$% do |_, m|
+    Dir["spec/compiler/rubinius/*_spec.rb"] + Dir["spec/language/*_spec.rb"]
+  end
+
+  at.add_mapping %r%^lib/(.*).rb% do |_, m|
+    Dir["spec/library/#{m[1]}*_spec.rb"]
+  end
+
+  at.add_mapping %r%^shotgun/lib/subtend/ruby.c$% do |_, m|
+    Dir["spec/rubinius|spec/rubinius/subtend/*_spec.rb"]
+  end
+end

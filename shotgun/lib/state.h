@@ -281,7 +281,7 @@ void machine_handle_assert(const char *reason, const char *file, int line);
 #else
 
 static void _bad_reference(OBJECT in) {
-  printf("Attempted to access field of non reference.\n");
+  printf("Attempted to access field of non-reference.\n");
   if(g_use_firesuit) {
     machine_handle_fire(FIRE_NULL);
   } 
@@ -343,7 +343,7 @@ static inline OBJECT rbs_get_field(OBJECT in, int fel) {
   OBJECT obj;
 #if DISABLE_CHECKS
   if(!REFERENCE_P(in)) {
-    printf("Attempted to access field of non reference.\n");
+    printf("Attempted to access field of non-reference.\n");
     if(g_use_firesuit) {
       machine_handle_fire(FIRE_NULL);
     }
