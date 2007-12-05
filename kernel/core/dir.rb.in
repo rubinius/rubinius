@@ -24,7 +24,7 @@ class Dir
     end
     
     Dir.foreach(original_dir) do |entry|
-      if File.fnmatch? pattern, entry
+      if File.fnmatch? pattern, entry, flags
         files << entry
       end
       
@@ -39,26 +39,25 @@ class Dir
   end
   
   def self.search_deeper(files, path, pattern, flags, depth, max_depth) # needs depth
-    dir = Dir.new(path)
-    
     period = (flags & File::FNM_DOTMATCH) == 1
     period_excludes = ["..", "."]
     period_regex = /^\./
     
-    while entry = dir.read
+    Dir.foreach(path) do |entry|
       next if period_excludes.include?(entry) or (entry =~ period_regex and !period)
       
       file = File.join(path, entry)
+      
+      if File.fnmatch? pattern, file, flags
+        files << file
+      end
+      
       if File.directory? file
         if max_depth == -2 || depth < max_depth
           search_deeper files, file, pattern, flags, depth + 1, max_depth
         end
-      elsif File.fnmatch? pattern, file
-        files << file
       end
     end
-    
-    dir.close
   end
   
   def self.[](pattern)
