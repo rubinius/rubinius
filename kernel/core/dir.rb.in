@@ -16,11 +16,15 @@ class Dir
     files = Array.new 0
     
     period = (flags & File::FNM_DOTMATCH) == 1
+    period_excludes = ["..", "."]
     
     # TODO: Change to check for path seperator rather than /
+    # TODO: Also, refactor this out.
     if pattern =~ /\*{2}/
       # Special case for Dir["**"]
-      if pattern.split("/").size - 1 == 0
+      seps = pattern.split("/").size - 1
+      pattern_ends_in_slash = pattern[pattern.size - 1] == ?/
+      if seps == 0 and !pattern_ends_in_slash
         pattern.gsub!("**", "*")
         max_depth = 0
       else
@@ -29,14 +33,18 @@ class Dir
     else
       max_depth = pattern.split("/").size - 1
     end
-    
+      
     Dir.foreach(original_dir) do |entry|
       if File.fnmatch? pattern, entry, flags
         files << entry
+      elsif File.directory? entry
+        if File.fnmatch? pattern, "#{entry}/", flags
+          files << "#{entry}/"
+        end
       end
       
       if File.directory? entry
-        if max_depth == -2 || max_depth > 1
+        if (max_depth == -2 || max_depth > 1) && !period_excludes.include?(entry)
           search_deeper(files, entry, pattern, flags, 1, max_depth)
         end
       end
@@ -49,14 +57,16 @@ class Dir
     period = (flags & File::FNM_DOTMATCH) == 1
     period_excludes = ["..", "."]
     period_regex = /^\./
-    
+      
     Dir.foreach(path) do |entry|
       next if period_excludes.include?(entry) or (entry =~ period_regex and !period)
       
       file = File.join(path, entry)
       
       if File.fnmatch? pattern, file, flags
-        files << file
+        files << entry
+      elsif File.directory?(file) and File.fnmatch? pattern, "#{file}/", flags
+        files << "#{file}/"
       end
       
       if File.directory? file
