@@ -5,6 +5,8 @@ require File.dirname(__FILE__) + '/../generate'
 require File.dirname(__FILE__) + '/../bytecode'
 require File.dirname(__FILE__) + '/../text'
 
+require 'pp'
+
 class TestGenerator
   def initialize
     @stream = []
@@ -13,13 +15,9 @@ class TestGenerator
   
   attr_reader :stream, :ip
   
-  # TODO - Use pp or similar when running under MRI
   def inspect
-    if @stream.respond_to?(:pretty_inspect) then
-      "#<TestGenerator\n#{@stream.pretty_inspect}"
-    else
-      "#<TestGenerator\n#{@stream.inspect}"
-    end
+    inspected_stream = @stream.pretty_inspect.gsub(/\n/,"\n    ")
+    "#<TestGenerator> with @stream:\n  #{inspected_stream}"
   end
   
   def add(*args)

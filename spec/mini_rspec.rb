@@ -98,7 +98,8 @@ class SpecReporter
   
   def print_backtrace(e)
     if e.message != ""
-      @out.print e.message + ":\n"
+      @out.print e.message
+      @out.print "\n"
 
       begin
         @out.print e.backtrace.show

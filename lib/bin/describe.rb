@@ -14,10 +14,10 @@ compiler = Bytecode::Compiler.new
 state = RsLocalState.new
 
 sexp = code.to_sexp
-puts "\nSexp:\n  #{sexp.pretty_inspect}"
+puts "\nSexp:\n  #{sexp.indented_inspect}"
 
 # nx = compiler.fully_normalize(sexp, state)
-# puts "\nNormalized Sexp:\n  #{nx.pretty_inspect}"
+# puts "\nNormalized Sexp:\n  #{nx.indented_inspect}"
 begin
   desc = compiler.compile_as_script(sexp, :__eval_script__, state)
 rescue Object => e

@@ -24,7 +24,7 @@ def interactive()
     code = code.to_sexp
 
     puts ""
-    puts code.pretty_inspect
+    puts code.indented_inspect
     puts c.into_script(code).to_description.generator.text
     puts ""
   end
@@ -43,7 +43,7 @@ def batch(opts)
     puts "\nParsing #{file}\n"
     puts "\n -- Sexp:\n"
     s = File.to_sexp file 
-    puts s.pretty_inspect
+    puts s.indented_inspect
 
     puts "\n -- Constructing AST:\n"
     n = c.into_script s
