@@ -129,6 +129,7 @@ $VERBOSE=nil
 @runner = SpecRunner.new(#{format}.new(#{output.inspect if output}))
 @runner.only(*#{only.inspect})
 @runner.except(*#{except.inspect})
+STDOUT.puts "Started"
 #{files.inspect}.each do |f|
   cname = "\#{f}c"
   File.delete(cname) if #{clean} and File.exist?(cname)

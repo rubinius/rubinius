@@ -13,35 +13,35 @@ class SpecReporter
     def exception=(e)
       @exception = e
     end
-    
+
     def exception
       @exception
     end
-    
+
     def describe=(d)
       @describe = d.to_s
     end
-    
+
     def describe
       @describe
     end
-    
+
     def it=(i)
       @it = i.to_s
     end
-    
+
     def it
       @it
     end
   end
-  
+
   def initialize(out=STDOUT)
     self.out = out
     @examples = 0
     @failures = 0
     @exceptions = []
   end
-  
+
   def out=(out)
     if out.is_a?(IO)
       @out = out
@@ -49,13 +49,13 @@ class SpecReporter
       @out = File.open(out, "w")
     end
   end
-  
+
   def before_describe(msg)
     @describe = msg
   end
-  
+
   def after_describe(msg); end
-  
+
   def before_it(msg)
     @report = ExpectationReport.new
     @report.describe = @describe
@@ -77,6 +77,7 @@ class SpecReporter
   
   def summary
     unless @summarized
+      @out.print "\nFinished in 0.0 seconds\n"
       @out.print "\n\n"
       @exceptions.each_with_index do |r,i|
         print_failure(i+1,r)
@@ -97,7 +98,7 @@ class SpecReporter
   
   def print_backtrace(e)
     if e.message != ""
-      @out.print e.message + ": \n"
+      @out.print e.message + ":\n"
 
       begin
         @out.print e.backtrace.show
@@ -205,7 +206,7 @@ class PositiveExpectation
   def initialize(obj)
     @obj = obj
   end
-  
+
   def ==(other)
     unless @obj == other
       obj = @obj.inspect
@@ -218,7 +219,7 @@ class PositiveExpectation
       end
     end
   end
-  
+
   def =~(other)
     unless @obj =~ other
       obj = @obj.inspect
@@ -255,7 +256,7 @@ class Object
   def should
     PositiveExpectation.new(self)
   end
-  
+
   def should_not
     NegativeExpectation.new(self)
   end
@@ -380,16 +381,12 @@ class SpecRunner
 end
 
 if @runner == nil
-  $stderr.puts "creating default SpecRunner with excludes"
-
   @runner = SpecRunner.new DottedReporter.new
   if ENV["AUTOTEST"]
     @runner.except "spec/exclude.txt", "all-exclude.txt~"
   end
 
   at_exit {
-    puts
-    puts "Finished in unknown seconds"
     @runner.reporter.summary
   }
 end

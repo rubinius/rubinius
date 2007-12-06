@@ -14,7 +14,7 @@ class TestGenerator
   attr_reader :stream, :ip
   
   def inspect
-    "#<TestGenerator #{@stream.inspect}"
+    "#<TestGenerator\n#{@stream.pretty_inspect}"
   end
   
   def add(*args)
