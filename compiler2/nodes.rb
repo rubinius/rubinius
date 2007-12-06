@@ -372,13 +372,13 @@ class Node
   class Scope < Node
     kind :scope
     
-    def consume(args)
-      if args.size == 1 or args[0].nil?
+    def consume(sexp)
+      if sexp.size == 1 or sexp[0].nil?
         return [nil, nil]
       end
       
-      args[0] = convert(args[0])
-      return args
+      sexp[0] = convert(sexp[0])
+      return sexp
     end
     
     def args(block, locals)
@@ -393,18 +393,18 @@ class Node
     
     # [[:obj], [], nil, nil]
     # required, optional, splat, defaults
-    def consume(args)
+    def consume(sexp)
       
-      if args.empty?
+      if sexp.empty?
         return [[], [], nil, nil]
       end
       
       # Strip the parser calculated index of splat
-      if args[2] and args[2].size == 2
-        args[2] = args[2].first
+      if sexp[2] and sexp[2].size == 2
+        sexp[2] = sexp[2].first
       end
       
-      defaults = args[3]
+      defaults = sexp[3]
       
       if defaults
         defaults.shift
@@ -412,10 +412,10 @@ class Node
           convert(node)
         end
         
-        args[3] = defaults
+        sexp[3] = defaults
       end
       
-      args
+      sexp
     end
     
     def args(req, optional, splat, defaults)
