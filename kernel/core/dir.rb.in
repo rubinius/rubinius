@@ -17,8 +17,15 @@ class Dir
     
     period = (flags & File::FNM_DOTMATCH) == 1
     
+    # TODO: Change to check for path seperator rather than /
     if pattern =~ /\*{2}/
-      max_depth = -2
+      # Special case for Dir["**"]
+      if pattern.split("/").size - 1 == 0
+        pattern.gsub!("**", "*")
+        max_depth = 0
+      else
+        max_depth = -2
+      end
     else
       max_depth = pattern.split("/").size - 1
     end
