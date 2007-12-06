@@ -442,7 +442,14 @@ namespace :build do
   task :rbc => ([:setup_rbc] + AllPreCompiled)
 
   # EXTENSIONS
-  task :extensions => %w[build:shotgun build:rbc build:syck build:fcntl]
+  task :extensions => %w[
+    build:shotgun
+    build:rbc
+
+    build:digest_md5
+    build:fcntl
+    build:syck
+  ]
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
