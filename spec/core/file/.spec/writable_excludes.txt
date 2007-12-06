@@ -1,1 +1,0 @@
-File.writable? should return true if named file is writable by the effective user id of the process, otherwise false

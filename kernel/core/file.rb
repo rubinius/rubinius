@@ -161,7 +161,7 @@ class File < IO
   # between _real correctly
   
   def self.writable?(path)
-    writeable_real?(path)
+    writable_real?(path)
   end
 
   def self.writable_real?(path)
