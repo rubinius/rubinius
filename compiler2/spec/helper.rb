@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../../spec/spec_helper'
 
-require 'compiler2/compiler'
-require 'compiler2/generate'
-require 'compiler2/bytecode'
-require 'compiler2/text'
+require File.dirname(__FILE__) + '/../compiler'
+require File.dirname(__FILE__) + '/../generate'
+require File.dirname(__FILE__) + '/../bytecode'
+require File.dirname(__FILE__) + '/../text'
 
 class TestGenerator
   def initialize
@@ -13,8 +13,13 @@ class TestGenerator
   
   attr_reader :stream, :ip
   
+  # TODO - Use pp or similar when running under MRI
   def inspect
-    "#<TestGenerator\n#{@stream.pretty_inspect}"
+    if @stream.respond_to?(:pretty_inspect) then
+      "#<TestGenerator\n#{@stream.pretty_inspect}"
+    else
+      "#<TestGenerator\n#{@stream.inspect}"
+    end
   end
   
   def add(*args)

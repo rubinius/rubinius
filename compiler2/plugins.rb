@@ -1,4 +1,4 @@
-require 'compiler2/execute'
+require File.dirname(__FILE__) + '/execute'
 
 module Compiler::Plugins
   
