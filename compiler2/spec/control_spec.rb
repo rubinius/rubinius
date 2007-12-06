@@ -445,52 +445,99 @@ describe Compiler do
           [:str, "baz"]
         ]
 
-    gen x do |g|
-      if_lbl1 = g.new_label
-      if_lbl2 = g.new_label
-      if_lbl3 = g.new_label
-      if_lbl4 = g.new_label
-      if_lbl5 = g.new_label
-      if_lbl6 = g.new_label
+    gen x do |g|      
+      fin =   g.new_label
+      cond2 = g.new_label
+      cond3 = g.new_label
+      cond4 = g.new_label
 
-      g.push false
-      g.gif if_lbl1
-      g.push "foo"
+      g.push :false
+      g.gif cond2
+      g.push_literal "foo"
       g.string_dup
-      g.goto if_lbl2
+      g.goto fin
 
-      if_lbl1.set!
-      g.push nil
+      cond2.set!
 
-      if_lbl2.set!
-      g.pop
-      g.push nil
-      g.gif if_lbl3
-      g.push "foo"
+      g.push :nil
+      g.gif cond3
+      g.push_literal "foo"
       g.string_dup
-      g.goto if_lbl4
-
-      if_lbl3.set!
-      g.push nil
-
-      if_lbl4.set!
-      g.pop
+      g.goto fin
+      
+      cond3.set!
+            
       g.push 2
       g.push 1
-      g.send :==, 1
-      g.gif if_lbl5
-      g.push "bar"
+      g.send :==, 1, false
+      g.gif cond4      
+      g.push_literal "bar"
       g.string_dup
-      g.goto if_lbl6
+      g.goto fin
+      
+      cond4.set!
 
-      if_lbl5.set!
       g.push_literal "baz"
       g.string_dup
-
-      if_lbl6.set!
-      g.sret
+      
+      fin.set!
     end
   end
+  
+  it "compiles a case without an argument, branch with multiple conds" do
+    x = [:many_if,
+          [
+            [[:array, [:false]], [:str, "foo"]],
+            [[:array, [:nil]], [:str, "foo"]],
+            [[:array, [:call, [:lit, 1], :==, [:array, [:lit, 2]]], [:lit, 13]], [:str, "bar"]]
+          ],
+          nil
+        ]
+
+    gen x do |g|      
+      fin =   g.new_label
+      cond2 = g.new_label
+      cond3 = g.new_label
+      cond4 = g.new_label
+
+      g.push :false
+      g.gif cond2
+      g.push_literal "foo"
+      g.string_dup
+      g.goto fin
+
+      cond2.set!
+
+      g.push :nil
+      g.gif cond3
+      g.push_literal "foo"
+      g.string_dup
+      g.goto fin
+      
+      cond3.set!
+           
+      body = g.new_label 
+      g.push 2
+      g.push 1
+      g.send :==, 1, false
+      g.git body
+      g.push 13
+      g.git body
+      g.goto cond4
+      
+      body.set!
+      g.push_literal "bar"
+      g.string_dup
+      g.goto fin
+      
+      cond4.set!
+      
+      g.push :nil
+      
+      fin.set!
+    end
+  end
+  
   
   it "compiles a case with a splat" do
     x = [:case, [:true], [

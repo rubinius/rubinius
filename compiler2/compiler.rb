@@ -76,6 +76,8 @@ class Compiler
         prefix = self.class.name
       end
       prefix
+      
+      super(prefix)
     end
     
     def is?(clas)

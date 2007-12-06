@@ -486,19 +486,19 @@ class Compiler
       
       attr_accessor :value, :in_block
     end
-    
+  
     class Redo < Break
       kind :redo
     end
-    
+  
     class Next < Break
       kind :next
     end
-    
+  
     class Retry < Break
       kind :retry
     end
-    
+  
     class When < Node
       kind :when
       
@@ -506,12 +506,12 @@ class Compiler
         @body = body
         @conditions = []
         @splat = nil
-        
+
         if cond.is? ArrayLiteral      
           cond.body.each do |c|
             # Inner when means splat.
-            if c.is? When
-              @splat = c.conditions
+            if c.is? Compiler::Node::When
+              @splat = c.splat
             else
               @conditions << c
             end
@@ -584,6 +584,45 @@ class Compiler
       end
       
     end
+<<<<<<< HEAD:compiler2/nodes.rb
+=======
+    
+    attr_accessor :receiver, :whens, :else
+  end
+  
+  class ManyIfBranch < Node
+    kind :many_if_branch
+    
+    def args(conditions, body)
+      @conditions, @body = conditions.body, body
+    end
+    
+    attr_accessor :conditions, :body
+  end
+  
+  class ManyIf < Node
+    kind :many_if
+    
+    # :many_if contains an array of whens and an else
+    # the whens are in turn an array of condition expressions,
+    # followed by a body
+    def consume(sexp)
+      whens = sexp[0]
+      whens.map! do |w|
+        w.unshift :many_if_branch
+        convert(w)
+      end
+      [whens, convert(sexp[1])]
+    end
+    
+    def args(whens, els)
+      @whens = whens
+      @else = els
+    end
+
+    attr_accessor :branches, :else
+  end
+>>>>>>> Fix case specs and many_if specs:compiler2/nodes.rb
   
     class LocalAssignment < LocalVariable
       kind :lasgn

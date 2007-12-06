@@ -321,12 +321,13 @@ class Compiler
     # TESTED  
     class RegexLiteral
       def bytecode(g)
-        idx = g.push_literal @source
+        idx = g.push_literal nil
+        g.dup
         g.is_nil
 
         lbl = g.new_label
-        g.git lbl
-
+        g.gif lbl
+        g.pop
         g.push @options
         g.push_literal @source
         g.push_const :Regexp
@@ -464,6 +465,7 @@ class Compiler
           g.push :nil
           return
         end
+<<<<<<< HEAD:compiler2/bytecode.rb
         
         ed.set!
       end
@@ -487,6 +489,17 @@ class Compiler
           @condition.bytecode(g)
           if use_gif
             g.gif bot
+=======
+
+        if @splat
+          if @splat.kind_of? Array
+            @splat.each do |c|
+              g.dup
+              c.bytecode(g)
+              g.send :===, 1
+              g.git body
+            end
+>>>>>>> Fix case specs and many_if specs:compiler2/bytecode.rb
           else
             g.git bot
           end
@@ -619,6 +632,7 @@ class Compiler
         end
       end
     end
+<<<<<<< HEAD:compiler2/bytecode.rb
     
     # TESTED  
     class Redo
@@ -638,12 +652,31 @@ class Compiler
           g.dup
           @conditions.first.bytecode(g)
           g.send :===, 1
+=======
+  end
+
+  class ManyIf
+    def bytecode(g)
+      fin = g.new_label
+
+      @whens.each do |whn|
+        nxt = g.new_label
+        if whn.conditions.size == 1
+          # Common case - a single condition e.g when foo == "bar"
+          whn.conditions.first.bytecode(g)
+>>>>>>> Fix case specs and many_if specs:compiler2/bytecode.rb
           g.gif nxt
         else
+<<<<<<< HEAD:compiler2/bytecode.rb
           body = g.new_label
           
           @conditions.each do |c|
             g.dup
+=======
+          # Multiple conditions, e.g. when foo == "bar", foo == "baz"
+          body_lbl = g.new_label
+          whn.conditions.each do |c|
+>>>>>>> Fix case specs and many_if specs:compiler2/bytecode.rb
             c.bytecode(g)
             g.send :===, 1
             g.git body
@@ -678,6 +711,11 @@ class Compiler
         else
           @body.bytecode(g)
         end
+<<<<<<< HEAD:compiler2/bytecode.rb
+=======
+      
+        whn.body.bytecode(g)
+>>>>>>> Fix case specs and many_if specs:compiler2/bytecode.rb
         g.goto fin
       end
     end
