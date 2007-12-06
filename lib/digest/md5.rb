@@ -3,11 +3,11 @@ require 'ext/digest/md5/md5'
 
 class Digest::MD5
 
-  attach_function nil, "rbx_Digest_MD5_Alloc", :md5_alloc, [], :pointer
-  attach_function nil, "rbx_Digest_MD5_Init", :md5_init, [:pointer], :void
-  attach_function nil, "rbx_Digest_MD5_Update", :md5_update,
+  attach_function "rbx_Digest_MD5_Alloc", :md5_alloc, [], :pointer
+  attach_function "rbx_Digest_MD5_Init", :md5_init, [:pointer], :void
+  attach_function "rbx_Digest_MD5_Update", :md5_update,
                   [:pointer, :string, :int], :void
-  attach_function nil, "rbx_Digest_MD5_Finish", :md5_finish,
+  attach_function "rbx_Digest_MD5_Finish", :md5_finish,
                   [:pointer, :string], :void
 
   def initialize
