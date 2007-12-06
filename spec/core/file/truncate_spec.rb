@@ -53,7 +53,22 @@ describe "File.truncate" do
     File.size(@name).should == 10
     IO.read(@name).should == "1234567890"
   end
-   
+
+  it "raises Errno::ENOENT if the file does not exist" do
+    not_existing_file = "file-does-not-exist-for-sure.txt"
+
+    # make sure it doesn't exist for real
+    File.delete(not_existing_file) if File.exist?(not_existing_file)
+
+    begin
+      should_raise(Errno::ENOENT) do
+        File.truncate(not_existing_file, 5)
+      end
+    ensure
+      File.delete(not_existing_file) if File.exist?(not_existing_file)
+    end
+  end
+
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
     should_raise(ArgumentError){ File.truncate(@name) }
     should_raise(Errno::EINVAL){ File.truncate(@name, -1) } # May fail

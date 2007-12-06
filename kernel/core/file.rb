@@ -467,6 +467,12 @@ class File < IO
     end
   end
 
+  def self.truncate(path, length)
+    unless self.exist?(path)
+      raise Errno::ENOENT, path
+    end
+  end
+
   private
   def parse_mode(mode)
     ret = 0
