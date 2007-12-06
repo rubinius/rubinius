@@ -1,6 +1,10 @@
 #ifndef __RUBY_H
 #define __RUBY_H
 
+#define RUBY
+
+#include <stdlib.h>
+
 /* Pointers are seen as totally opaque */
 typedef void * VALUE;
 #define ID int

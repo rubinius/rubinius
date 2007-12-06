@@ -486,6 +486,18 @@ RbConfig = Config
     sh "./shotgun/rubinius compile lib/ext/syck"
   end
 
+  task :digest_md5 => "lib/ext/digest/md5/md5.#{$dlext}"
+
+  file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/ruby.h',
+    'lib/ext/digest/md5/build.rb',
+    'lib/ext/digest/md5/*.c',
+    'lib/ext/digest/md5/*.h',
+    'lib/ext/digest/defs.h',
+  ] do
+    sh './shotgun/rubinius compile lib/ext/digest/md5'
+  end
+
   task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
 
   file "lib/ext/fcntl/fcntl.#{$dlext}" => FileList[
