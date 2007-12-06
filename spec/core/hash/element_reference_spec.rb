@@ -109,7 +109,7 @@ describe "Hash#[]" do
   # True for all other methods using hash codes as well...
   it "calls % on hash code from hash()" do
     x = Object.new
-    def x.hash() @hash end
+    def x.hash() HashSpecs.hash end
     hc = Object.new
     x.instance_variable_set(:@hash, hc)
 

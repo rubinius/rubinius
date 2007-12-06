@@ -68,7 +68,7 @@ describe "Hash#reject!" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      lambda { @hash.reject! { false } }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.reject! { false } }.should raise_error(TypeError)
       lambda { @empty.reject! { true } }.should raise_error(TypeError)
     end
   end

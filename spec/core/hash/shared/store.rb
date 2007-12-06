@@ -40,7 +40,7 @@ shared :hash_store do |cmd|
       end
       
       it "raises TypeError if called on a frozen instance" do
-        lambda { @hash.send(cmd, 1, 2) }.should raise_error(TypeError)
+        lambda { HashSpecs.hash.send(cmd, 1, 2) }.should raise_error(TypeError)
       end
     end
   end

@@ -36,7 +36,7 @@ describe "Fixnum#div" do
   
   it "raises a TypeError when given a non-Integer" do
     lambda {
-      (obj = Object.new).should_receive(:to_int).and_return(10)
+      (obj = Object.new).should_receive(:to_int).any_number_of_times.and_return(10)
       13.div(obj)
     }.should raise_error(TypeError)
     lambda { 5.div("2") }.should raise_error(TypeError)

@@ -5,8 +5,8 @@ describe "Process.wait2" do
     pidf = Process.fork { exit 99 }
     results = Process.wait2
     results.size.should == 2
-    pidw,status = results
-    (pidf == pidw).should == true
+    pidw, status = results
+    pidf.should == pidw
     status.exitstatus.should == 99
   end
 

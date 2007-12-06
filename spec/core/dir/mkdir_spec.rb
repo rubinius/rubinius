@@ -33,6 +33,6 @@ describe "Dir.mkdir" do
   end
 
   it "raises a SystemCallError if any of the directories in the path before the last does not exist" do
-    lambda { Dir.mkdir "#{DirSpecs.nonexistent}/subdir" }.shooud raise_error(SystemCallError)
+    lambda { Dir.mkdir "#{DirSpecs.nonexistent}/subdir" }.should raise_error(SystemCallError)
   end
 end

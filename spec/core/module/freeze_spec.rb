@@ -16,7 +16,7 @@ compliant :mri, :jruby do
         end
       }.should raise_error(TypeError)
 
-      lambda { def m.test() "test" end }.raise_error(TypeError)
+      lambda { def m.test() "test" end }.should raise_error(TypeError)
     end
   end
 end

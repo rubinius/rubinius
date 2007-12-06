@@ -29,7 +29,7 @@ describe "Hash#delete_if" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      lambda { @hash.delete_if { false } }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.delete_if { false } }.should raise_error(TypeError)
       lambda { @empty.delete_if { true } }.should raise_error(TypeError)
     end
   end

@@ -41,7 +41,7 @@ describe "Hash#default=" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      lambda { @hash.default = nil }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.default = nil }.should raise_error(TypeError)
     end
   end
 end

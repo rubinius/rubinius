@@ -116,7 +116,7 @@ describe "Module#attr" do
   
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     o = Object.new
-    lambda { Class.new { attr o } }.raise_error(TypeError)
+    lambda { Class.new { attr o } }.should raise_error(TypeError)
     (o = Object.new).should_receive(:to_str).and_return(123)
     lambda { Class.new { attr o } }.should raise_error(TypeError)
   end

@@ -51,7 +51,7 @@ describe "Hash#rehash" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      lambda { @hash.rehash  }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.rehash  }.should raise_error(TypeError)
       lambda { @empty.rehash }.should raise_error(TypeError)
     end  
   end

@@ -268,10 +268,11 @@ describe "String#sub with pattern and block" do
   
   it "converts the block's return value to a string using to_s" do
     obj = Object.new
-    obj.should_receive(:to_s, :returning => "hello_replacement")
+    obj.should_receive(:to_s).and_return("hello_replacement")
     "hello".sub(/hello/) { obj }.should == "hello_replacement"
     
-    obj.should_receive(:to_s, :returning => "ok")
+    obj = Object.new
+    obj.should_receive(:to_s).and_return("ok")
     "hello".sub(/.+/) { obj }.should == "ok"
   end
   

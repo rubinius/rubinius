@@ -6,19 +6,19 @@ describe "Comparable#>=" do
     a = ComparableSpecs::Weird.new(0)
     b = ComparableSpecs::Weird.new(20)
 
-    a.should_receive(:<=>).and_return(0)
+    a.should_receive(:<=>).any_number_of_times.and_return(0)
     (a >= b).should == true
     
-    a.should_receive(:<=>).and_return(0.0)
+    a.should_receive(:<=>).any_number_of_times.and_return(0.0)
     (a >= b).should == true
     
-    a.should_receive(:<=>).and_return(1)
+    a.should_receive(:<=>).any_number_of_times.and_return(1)
     (a >= b).should == true
 
-    a.should_receive(:<=>).and_return(0.1)
+    a.should_receive(:<=>).any_number_of_times.and_return(0.1)
     (a >= b).should == true
 
-    a.should_receive(:<=>).and_return(10000000)
+    a.should_receive(:<=>).any_number_of_times.and_return(10000000)
     (a >= b).should == true
   end
 
@@ -27,13 +27,13 @@ describe "Comparable#>=" do
     b = ComparableSpecs::Weird.new(10)
  
 
-    a.should_receive(:<=>).and_return(-0.1)
+    a.should_receive(:<=>).any_number_of_times.and_return(-0.1)
     (a >= b).should == false
     
-    a.should_receive(:<=>).and_return(-1.0)
+    a.should_receive(:<=>).any_number_of_times.and_return(-1.0)
     (a >= b).should == false
     
-    a.should_receive(:<=>).and_return(-10000000)
+    a.should_receive(:<=>).any_number_of_times.and_return(-10000000)
     (a >= b).should == false
   end
 
@@ -41,7 +41,7 @@ describe "Comparable#>=" do
     a = ComparableSpecs::Weird.new(0)
     b = ComparableSpecs::Weird.new(20)
     
-    a.should_receive(:<=>).and_return(nil)
+    a.should_receive(:<=>).any_number_of_times.and_return(nil)
     lambda { (a >= b) }.should raise_error(ArgumentError)
   end
 end
