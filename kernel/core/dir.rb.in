@@ -11,6 +11,8 @@ class Dir
 
   include Enumerable
   
+  GLOB_RECURSIVE = -2
+  
   def self.[](pattern)
     glob(pattern, 0)
   end
@@ -29,10 +31,9 @@ class Dir
         files << match
       end
       
-      if File.directory? entry
-        if (max_depth == -2 || max_depth > 1) && !period_excludes.include?(entry)
-          search_deeper(files, entry, pattern, flags, 1, max_depth)
-        end
+      if File.directory?(entry) and (max_depth == GLOB_RECURSIVE or max_depth > 0) and
+         !period_excludes.include?(entry)
+        search_deeper(files, entry, pattern, flags, 1, max_depth)
       end
     end
     
@@ -53,10 +54,8 @@ class Dir
         files << match
       end
       
-      if File.directory? file
-        if max_depth == -2 || depth < max_depth
-          search_deeper files, file, pattern, flags, depth + 1, max_depth
-        end
+      if File.directory?(file) and (max_depth == GLOB_RECURSIVE or depth < max_depth)
+        search_deeper files, file, pattern, flags, depth + 1, max_depth
       end
     end
   end
@@ -80,7 +79,7 @@ class Dir
       if seps == 0 and !pattern_ends_in_slash
         max_depth = 0
       else
-        max_depth = -2
+        max_depth = GLOB_RECURSIVE
       end
     else
       max_depth = pattern.split("/").size - 1
