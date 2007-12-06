@@ -1,4 +1,5 @@
-Dir.[] recursively matches any nondot subdirectories with '**/'
-Dir.[] matches any characters except those in a set with '[^<characters>]'
-Dir.[] matches any characters except those in a range with '[^<character>-<character]'
+Dir.[] matches any one of the strings in a set with '{<string>,<other>,...}'
+Dir.[] accepts string sets with empty strings with {<string>,,<other>}
+Dir.[] matches dot or non-dotfiles with '{,.}*'
 Dir.[] recursively matches directories with '**/<characters>'
+tories with '**/<characters>'
