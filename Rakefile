@@ -407,7 +407,7 @@ namespace :build do
     build:rbc
     lib/etc.rb
     lib/rbconfig.rb
-    build:extensions
+    extensions
   ]
 
   # This nobody rule lets use use all the shotgun files as
@@ -441,17 +441,15 @@ namespace :build do
 
   task :rbc => ([:setup_rbc] + AllPreCompiled)
 
-  # EXTENSIONS
-  task :extensions => %w[
-    build:shotgun
-    build:rbc
-
-    build:digest_md5
-    build:fcntl
-    build:syck
+  desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
+  task :stable => %w[
+    build:all
+    runtime/stable/bootstrap.rba
+    runtime/stable/compiler.rba
+    runtime/stable/core.rba
+    runtime/stable/loader.rbc
+    runtime/stable/platform.rba
   ]
-
-  task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
   file 'lib/rbconfig.rb' => %w[config_env Rakefile] do
     rbconfig = <<-EOF
@@ -485,14 +483,34 @@ RbConfig = Config
     end
   end
 
-  file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
-    'lib/ext/syck/build.rb',
-    'lib/ext/syck/*.c',
-    'lib/ext/syck/*.h',
-  ] do
-    sh "./shotgun/rubinius compile lib/ext/syck"
+  desc "Rebuild the .load_order.txt files"
+  task "load_order" do
+    # Note: Steps to rebuild load_order were defined above
   end
 
+  namespace :vm do
+    task "clean" do
+      sh "cd shotgun/lib; make clean"
+    end
+
+    task "dev" do
+      sh "cd shotgun/lib; make DEV=1"
+    end
+  end
+
+end
+
+desc "Build extensions from lib/ext"
+task :extensions => %w[
+  build:shotgun
+  build:rbc
+
+  extension:digest_md5
+  extension:fcntl
+  extension:syck
+]
+
+namespace :extension do
   task :digest_md5 => "lib/ext/digest/md5/md5.#{$dlext}"
 
   file "lib/ext/digest/md5/md5.#{$dlext}" => FileList[
@@ -508,35 +526,22 @@ RbConfig = Config
   task :fcntl => "lib/ext/fcntl/fcntl.#{$dlext}"
 
   file "lib/ext/fcntl/fcntl.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/ruby.h',
     'lib/ext/fcntl/build.rb',
     'lib/ext/fcntl/*.c'
   ] do
     sh "./shotgun/rubinius compile lib/ext/fcntl"
   end
 
-  desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
-  task :stable => %w[
-    build:all
-    runtime/stable/bootstrap.rba
-    runtime/stable/compiler.rba
-    runtime/stable/core.rba
-    runtime/stable/loader.rbc
-    runtime/stable/platform.rba
-  ]
+  task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
-  desc "Rebuild the .load_order.txt files"
-  task "load_order" do
-    # Note: Steps to rebuild load_order were defined above
-  end
-
-  namespace :vm do
-    task "clean" do
-      sh "cd shotgun/lib; make clean"
-    end
-
-    task "dev" do
-      sh "cd shotgun/lib; make DEV=1"
-    end
+  file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/ruby.h',
+    'lib/ext/syck/build.rb',
+    'lib/ext/syck/*.c',
+    'lib/ext/syck/*.h',
+  ] do
+    sh "./shotgun/rubinius compile lib/ext/syck"
   end
 
 end
