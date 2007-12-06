@@ -474,7 +474,7 @@ class Node
       end
     end
     
-    attr_accessor :name
+    attr_accessor :name, :in_module
   end
   
   class Break < Node
@@ -571,7 +571,7 @@ class Node
       @else = els
     end
 
-    attr_accessor :branches, :else
+    attr_accessor :whens, :else
   end
   
   class LocalVariable < Node
@@ -662,7 +662,7 @@ class Node
       @value = value.body[0]
     end
     
-    attr_accessor :object, :kind, :value, :extra
+    attr_accessor :object, :kind, :value, :index
   end
   
   class OpAssign2 < Node
@@ -890,7 +890,7 @@ class Node
       end
     end
     
-    attr_accessor :parent, :value, :name
+    attr_accessor :from_top, :parent, :value, :name
   end
   
   class ToArray < Node
@@ -941,7 +941,7 @@ class Node
       [sym, parent, convert(sexp[1]), body]
     end
     
-    attr_accessor :name, :superclass, :body
+    attr_accessor :name, :parent, :superclass, :body
   end
   
   class Module < ClosedScope
@@ -1365,7 +1365,7 @@ class Node
       @variable.in_locals!
     end
     
-    attr_accessor :name, :variable
+    attr_accessor :name, :variable, :depth
   end
   
   class Loop < Node
