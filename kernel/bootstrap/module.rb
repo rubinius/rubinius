@@ -16,7 +16,7 @@ class Module
   def name
     unless @name
       Object.constants_table.each do |klass_name, klass|
-        if klass.object_id == self.object_id
+        if klass.equal? self
           @name = klass_name
         end
       end
