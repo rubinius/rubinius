@@ -1,3 +1,5 @@
+module ConstantSpecs
+
 module A
   Place = "boston"
   
@@ -86,5 +88,7 @@ class I
   def go
     H.new.go
   end
+end
+
 end
 
