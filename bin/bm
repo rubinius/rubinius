@@ -3,12 +3,31 @@
 require 'benchmark'
 include Benchmark
 
+INTERPRETERS = ['ruby','shotgun/rubinius']
 WIDTH = 42
 
-allstart = Time.now
+def pretty_file(file)
+  file =~ %r{/([^/]+)$}
+  $1
+end
 
-Benchmark.bmbm do |x|
-  ['ruby','shotgun/rubinius'].each do |interpreter|
+def pretty_interpreter(interpreter)
+  interpreter =~ %r{(ruby|rubinius)}
+  $1
+end
+
+def quiet_command(command)
+  command + ' > /dev/null 2>&1'
+end
+
+def label(interpreter,file)
+  pretty_interpreter(interpreter) + ': ' + pretty_file(file)
+end
+
+labels = []
+
+results = Benchmark.bmbm do |x|
+  INTERPRETERS.each do |interpreter|
     if interpreter =~ /rubinius/ then
       Dir['test/benchmark/*/bm*.rbc'].each do |file|
         File.unlink file
@@ -16,14 +35,6 @@ Benchmark.bmbm do |x|
     end
 
     Dir['test/benchmark/*/bm*.rb'].each do |file|
-      results = []
-
-      file =~ %r{/([^/]+)$}
-      prettyfile = $1
-
-      interpreter =~ %r{(ruby|rubinius)}
-      prettyint   =  $1
-
       command = "#{interpreter} #{file}"
 
       case file
@@ -32,17 +43,30 @@ Benchmark.bmbm do |x|
         when /borasky\/bm_MatrixBenchmark[.]rb/
           command += %{ 64}
       end
-        
-      quiet_command = command + ' > /dev/null 2>&1'
 
-      caption = prettyint + ': ' + prettyfile
+      labels << label(interpreter,file)
 
-      x.report(caption + ' ' * (WIDTH - caption.length)) do
-        if not system quiet_command then
+      x.report(labels.last + ' ' * (WIDTH - labels.last.length)) do
+        if not system quiet_command(command) then
           system command
         end
       end
     end
   end
-  [Time.now - allstart]
+end
+
+INTERPRETERS.each do |interpreter|
+  local_labels = labels.clone
+
+  puts pretty_interpreter(interpreter)
+
+  total = Benchmark::Tms.new
+
+  results.each do |result|
+    next unless local_labels.shift =~ /#{pretty_interpreter(interpreter)}/
+    total += result
+    puts result.real.to_s
+  end
+
+  puts 'Total time: ' + total.real.to_s
 end
