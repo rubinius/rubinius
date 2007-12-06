@@ -225,15 +225,19 @@ class IO
   def self.read(name, length = Undefined, offset = 0)
     name = StringValue(name)
 
+    offset = Type.coerce_to(offset, Fixnum, :to_int)
+
+    if offset < 0
+      raise Errno::EINVAL, "offset must not be negative"
+    end
+
     unless length.equal?(Undefined)
       length = Type.coerce_to(length, Fixnum, :to_int)
 
       if length < 0
-        raise ArgumentError, "offset must not be negative"
+        raise ArgumentError, "length must not be negative"
       end
     end
-
-    offset = Type.coerce_to(offset, Fixnum, :to_int)
 
     File.open(name) do |f|
       f.seek(offset) unless offset.zero?
