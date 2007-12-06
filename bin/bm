@@ -2,9 +2,15 @@
 
 ITERATIONS = 3
 
-#['ruby','shotgun/rubinius'].each do |interpreter|
-['shotgun/rubinius'].each do |interpreter|
+['ruby','shotgun/rubinius'].each do |interpreter|
   puts interpreter
+
+  if interpreter =~ /rubinius/ then
+    Dir['test/benchmark/*/bm*.rbc'].each do |file|
+      File.unlink file
+    end
+  end
+
   Dir['test/benchmark/*/bm*.rb'].each do |file|
     results = []
 
