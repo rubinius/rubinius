@@ -11,6 +11,10 @@ class Dir
 
   include Enumerable
   
+  def self.[](pattern)
+    glob(pattern, 0)
+  end
+  
   def self.glob(pattern, flags = 0)
     original_dir = Dir.pwd
     files = Array.new 0
@@ -18,29 +22,11 @@ class Dir
     period = (flags & File::FNM_DOTMATCH) == 1
     period_excludes = ["..", "."]
     
-    # TODO: Change to check for path seperator rather than /
-    # TODO: Also, refactor this out.
-    if pattern =~ /\*{2}/
-      # Special case for Dir["**"]
-      seps = pattern.split("/").size - 1
-      pattern_ends_in_slash = pattern[pattern.size - 1] == ?/
-      if seps == 0 and !pattern_ends_in_slash
-        pattern.gsub!("**", "*")
-        max_depth = 0
-      else
-        max_depth = -2
-      end
-    else
-      max_depth = pattern.split("/").size - 1
-    end
-      
+    max_depth = glob_max_depth(pattern)
+    
     Dir.foreach(original_dir) do |entry|
-      if File.fnmatch? pattern, entry, flags
-        files << entry
-      elsif File.directory? entry
-        if File.fnmatch? pattern, "#{entry}/", flags
-          files << "#{entry}/"
-        end
+      if match = glob_match(pattern, entry, flags)
+        files << match
       end
       
       if File.directory? entry
@@ -63,10 +49,8 @@ class Dir
       
       file = File.join(path, entry)
       
-      if File.fnmatch? pattern, file, flags
-        files << entry
-      elsif File.directory?(file) and File.fnmatch? pattern, "#{file}/", flags
-        files << "#{file}/"
+      if match = glob_match(pattern, file, flags)
+        files << match
       end
       
       if File.directory? file
@@ -77,8 +61,30 @@ class Dir
     end
   end
   
-  def self.[](pattern)
-    glob(pattern, 0)
+  def self.glob_match(pattern, entry, flags)
+    if File.fnmatch? pattern, entry, flags
+      entry
+    elsif File.directory?(entry) and File.fnmatch?(pattern, "#{entry}/", flags)
+      "#{entry}/"
+    else
+      nil
+    end
+  end
+  
+  def self.glob_max_depth(pattern)
+    # TODO: Change to check for path seperator rather than /
+    if pattern =~ /\*{2}/
+      # Special case for Dir["**"]
+      seps = pattern.split("/").size - 1
+      pattern_ends_in_slash = pattern[pattern.size - 1] == ?/
+      if seps == 0 and !pattern_ends_in_slash
+        max_depth = 0
+      else
+        max_depth = -2
+      end
+    else
+      max_depth = pattern.split("/").size - 1
+    end
   end
   
   def self.chdir(path = ENV['HOME'])
