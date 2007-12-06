@@ -65,6 +65,10 @@ module FFI
 end
 
 class Module
+
+  ##
+  # Attach C function +name+ to this module.
+
   def attach_function(lib, name, a3, a4, a5=nil)
     if a5
       mname = a3
