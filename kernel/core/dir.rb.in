@@ -33,6 +33,7 @@ class Dir
       
       if File.directory?(entry) and (max_depth == GLOB_RECURSIVE or max_depth > 0) and
          !period_excludes.include?(entry)
+        next if entry =~ /^\./ and !period
         search_deeper(files, entry, pattern, flags, 1, max_depth)
       end
     end
@@ -53,6 +54,7 @@ class Dir
       end
       
       if File.directory?(file) and (max_depth == GLOB_RECURSIVE or depth < max_depth)
+        next if entry =~ /^\./ and !period
         search_deeper files, file, pattern, flags, depth + 1, max_depth
       end
     end
