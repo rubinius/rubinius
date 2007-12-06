@@ -8,7 +8,7 @@ require 'text'
 require 'options'
 
 # "Interactive" mode
-def interactive()
+def interactive
   require 'readline'
   
   c = Compiler.new(Compiler::Generator)
