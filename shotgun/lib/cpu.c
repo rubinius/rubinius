@@ -480,8 +480,9 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   
   // HACK. the 10 sucks, it protects things that go in a method table, but
   // aren't exactly CompiledMethods.
+  // A method inherits the static scope of the method that that add/attaches it.
   if(NUM_FIELDS(method) > 10 && NIL_P(cmethod_get_staticscope(method))) {
-    cmethod_set_staticscope(method, c->current_scope);
+    cmethod_set_staticscope(method, cmethod_get_staticscope(cpu_current_method(state, c)));
   }
   
   hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));
