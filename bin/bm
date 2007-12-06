@@ -1,43 +1,48 @@
 #!/usr/bin/env ruby
 
-ITERATIONS = 3
+require 'benchmark'
+include Benchmark
 
-['ruby','shotgun/rubinius'].each do |interpreter|
-  puts interpreter
+WIDTH = 42
 
-  if interpreter =~ /rubinius/ then
-    Dir['test/benchmark/*/bm*.rbc'].each do |file|
-      File.unlink file
+allstart = Time.now
+
+Benchmark.bmbm do |x|
+  ['ruby','shotgun/rubinius'].each do |interpreter|
+    if interpreter =~ /rubinius/ then
+      Dir['test/benchmark/*/bm*.rbc'].each do |file|
+        File.unlink file
+      end
     end
-  end
 
-  Dir['test/benchmark/*/bm*.rb'].each do |file|
-    results = []
+    Dir['test/benchmark/*/bm*.rb'].each do |file|
+      results = []
 
-    1.upto(ITERATIONS) do |i|
-      start = Time.now
+      file =~ %r{/([^/]+)$}
+      prettyfile = $1
+
+      interpreter =~ %r{(ruby|rubinius)}
+      prettyint   =  $1
 
       command = "#{interpreter} #{file}"
 
-      if file =~ /wycats\/bm_string[.]rb/ then
-        command += %{ -x "String#unpack"}
+      case file
+        when /wycats\/bm_string[.]rb/
+          command += %{ -x "String#unpack"}
+        when /borasky\/bm_MatrixBenchmark[.]rb/
+          command += %{ 64}
       end
+        
+      quiet_command = command + ' > /dev/null 2>&1'
 
-      command = command + ' > /dev/null 2>&1'
+      caption = prettyint + ': ' + prettyfile
 
-      if system command
-        results << Time.now - start
+      x.report(caption + ' ' * (WIDTH - caption.length)) do
+        if not system quiet_command then
+          system command
+        end
       end
-    end
-
-    if results.length == ITERATIONS
-      if ITERATIONS == 1
-        puts results.first
-      else
-        puts results.slice(1..-1).inject {|sum, n| sum + n } / (ITERATIONS-1)
-      end
-    else
-      puts "Errored"
     end
   end
+  [Time.now - allstart]
 end
