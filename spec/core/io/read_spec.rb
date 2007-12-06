@@ -31,6 +31,7 @@ describe "IO.read" do
   
   it "should throw an exception if given the wrong type or number of arguments" do
     should_raise(TypeError) { IO.read nil }
+    should_raise(TypeError) { IO.read 5 }
     should_raise(ArgumentError) { IO.read @fname, -1 }
     should_raise(Errno::EINVAL) { IO.read @fname, 0, -1 }
     should_raise(Errno::EINVAL) { IO.read @fname, -1, -1 }

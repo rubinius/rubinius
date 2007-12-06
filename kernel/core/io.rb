@@ -223,7 +223,9 @@ class IO
   end
 
   def self.read(name) # HACK incomplete
-    open name do |fp| fp.read end
+    name = StringValue(name)
+
+    File.open(name) do |fp| fp.read end
   end
   
   private :io_close
