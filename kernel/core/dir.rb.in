@@ -78,23 +78,7 @@ class Dir
   
   # This is going to need to be modified for {}
   def self.glob_fnmatch?(pattern, entry, flags)
-    if /(\{|\})/ =~ pattern
-      patterns = []
-      open = 0
-      max_nest = 0
-      pattern.each_char do |char|
-        case char
-        when ?{
-          open += 1
-          max_nest += 1
-        when ?}
-          open -= 1
-          return false if open < 0
-        end
-      end
-    else
-      File.fnmatch?(pattern, entry, flags)
-    end
+    File.fnmatch?(pattern, entry, flags)
   end
   
   def self.glob_max_depth(pattern)
