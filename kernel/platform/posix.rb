@@ -8,6 +8,7 @@ module Platform::POSIX
   
   # errors
   attach_function nil, 'ffi_errno', :errno, [], :int
+  attach_function nil, 'ffi_set_errno', :errno=, [:int], :void
   attach_function nil, 'strerror', [:int], :string
   attach_function nil, 'perror', [:string], :void
   

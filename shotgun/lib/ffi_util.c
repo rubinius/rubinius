@@ -17,6 +17,10 @@
 
 int ffi_errno() { return errno; }
 
+void ffi_set_errno(int n) {
+  errno = n;
+}
+
 OBJECT ffi_new_pointer(STATE, void *ptr) {
   void **code_start;
   OBJECT obj;
