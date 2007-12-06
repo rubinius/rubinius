@@ -19,9 +19,9 @@ describe "Dir.glob" do
     Dir.glob('*file', File::FNM_DOTMATCH).sort.should == %w|.dotfile nondotfile|.sort
   end
 
-  it "matches any files in the current directory with '.**' and option File::FNM_DOTMATCH" do
+  it "matches any files in the current directory with '**' and option File::FNM_DOTMATCH" do
     Dir.glob('**', File::FNM_DOTMATCH).sort.should == %w|. .. .dotsubdir .dotfile subdir_one subdir_two 
-                                                         deeply nondotfile file_one.ext file_two.ext|.sort
+                                                          deeply nondotfile file_one.ext file_two.ext|.sort
   end
 
   it "recursively matches any subdirectories except './' or '../' with '**/' and option File::FNM_DOTMATCH" do

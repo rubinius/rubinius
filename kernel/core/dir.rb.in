@@ -21,7 +21,7 @@ class Dir
     original_dir = Dir.pwd
     files = Array.new 0
     
-    period = (flags & File::FNM_DOTMATCH) == 1
+    period = (flags & File::FNM_DOTMATCH) > 0
     period_excludes = ["..", "."]
     
     max_depth = glob_max_depth(pattern)
@@ -41,13 +41,11 @@ class Dir
   end
   
   def self.search_deeper(files, path, pattern, flags, depth, max_depth) # needs depth
-    period = (flags & File::FNM_DOTMATCH) == 1
+    period = (flags & File::FNM_DOTMATCH) > 0
     period_excludes = ["..", "."]
-    period_regex = /^\./
-      
+    
     Dir.foreach(path) do |entry|
-      next if period_excludes.include?(entry) or (entry =~ period_regex and !period)
-      
+      next if period_excludes.include?(entry)
       file = File.join(path, entry)
       
       if match = glob_match(pattern, file, flags)
@@ -61,13 +59,18 @@ class Dir
   end
   
   def self.glob_match(pattern, entry, flags)
-    if File.fnmatch? pattern, entry, flags
+    if glob_fnmatch? pattern, entry, flags
       entry
-    elsif File.directory?(entry) and File.fnmatch?(pattern, "#{entry}/", flags)
+    elsif File.directory?(entry) and glob_fnmatch?(pattern, "#{entry}/", flags)
       "#{entry}/"
     else
       nil
     end
+  end
+  
+  # This is going to need to be modified for {}
+  def self.glob_fnmatch?(pattern, entry, flags)
+    File.fnmatch?(pattern, entry, flags)
   end
   
   def self.glob_max_depth(pattern)
