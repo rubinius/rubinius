@@ -1929,3 +1929,4 @@ class Compiler
     end
   end
 end
+end
