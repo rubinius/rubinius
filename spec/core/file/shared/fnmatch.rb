@@ -55,7 +55,10 @@ shared :file_fnmatch do |cmd|
   
     it "matches literal ? or * in path when pattern includes \\? or \\*" do
       File.send(cmd, '\?', '?').should == true
+      File.send(cmd, '\?', 'a').should == false
+      
       File.send(cmd, '\*', '*').should == true
+      File.send(cmd, '\*', 'a').should == false
     end
   
     it "matches literal character (e.g. 'a') in path when pattern includes escaped character (e.g. \\a)" do

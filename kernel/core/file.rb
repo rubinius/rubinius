@@ -310,7 +310,9 @@ class File < IO
     pathname = (flags & FNM_PATHNAME) != 0
     nocase = (flags & FNM_CASEFOLD) != 0
     period = (flags & FNM_DOTMATCH) == 0
-    subs = { /\*{1,2}/ => '(.*)', /\?/ => '(.)', /\{/ => '\{', /\}/ => '\}' }
+    subs = { /\{/ => '\{', /\}/ => '\}',
+             /(^|([^\\]))\*{1,2}/ => '\1(.*)', /\\\*/ => '\\\\\*',
+             /(^|([^\\]))\?/ => '\1(.)',       /\\\?/ => '\\\\\?' }
     
     return false if path[0] == ?. and pattern[0] != ?. and period
     pattern.gsub!('.', '\.')
@@ -320,6 +322,9 @@ class File < IO
         part.gsub(/\[!/, '[^')
       else
         subs.each { |p,s| part.gsub!(p, s) }
+        # Because this pattern anchors itself, we have to rerun by hand
+        subd = part.gsub!(/(^|([^\\]))\?/, '\1(.)')
+        subd = part.gsub!(/(^|([^\\]))\?/, '\1(.)') while subd
         if escape
           part.gsub(/\\([^.])/, '\1')
         else
@@ -329,6 +334,7 @@ class File < IO
     end.join
     
     re = Regexp.new("^#{pattern}$", nocase ? Regexp::IGNORECASE : 0)
+    
     m = re.match path
     if m
       return false unless m[0].size == path.size
