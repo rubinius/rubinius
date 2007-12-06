@@ -14,6 +14,13 @@ class Module
   end
     
   def name
+    unless @name
+      Object.constants_table.each do |klass_name, klass|
+        if klass.equal? self
+          @name = klass_name
+        end
+      end
+    end
     @name.to_s
   end
   

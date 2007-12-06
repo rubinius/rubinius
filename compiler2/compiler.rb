@@ -101,7 +101,7 @@ class Compiler
   end
   
   def load_plugins
-    require 'compiler2/plugins'
+    require File.dirname(__FILE__) + '/plugins'
     
     # The default plugins
     activate :block_given
@@ -159,5 +159,5 @@ class Compiler
   end
 end
 
-require 'compiler2/nodes'
-require 'compiler2/local'
+require File.dirname(__FILE__) + '/nodes'
+require File.dirname(__FILE__) + '/local'

@@ -1,9 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec/spec_helper'
 
-require 'compiler2/compiler'
-require 'compiler2/generate'
-require 'compiler2/bytecode'
-require 'compiler2/text'
+require File.dirname(__FILE__) + '/../compiler'
+require File.dirname(__FILE__) + '/../generate'
+require File.dirname(__FILE__) + '/../bytecode'
+require File.dirname(__FILE__) + '/../text'
+
+require 'pp'
 
 class TestGenerator
   def initialize
@@ -14,7 +16,8 @@ class TestGenerator
   attr_reader :stream, :ip
   
   def inspect
-    "#<TestGenerator #{@stream.inspect}"
+    inspected_stream = @stream.pretty_inspect.gsub(/\n/,"\n    ")
+    "#<TestGenerator> with @stream:\n  #{inspected_stream}"
   end
   
   def add(*args)

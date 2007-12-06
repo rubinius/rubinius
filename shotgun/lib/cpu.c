@@ -49,6 +49,20 @@ void cpu_setup_top_scope(STATE, cpu c) {
   c->new_class_of = state->global->class;
 }
 
+OBJECT cpu_scope_push(STATE, cpu c, OBJECT mod) {
+  OBJECT scope = staticscope_allocate(state);
+  staticscope_set_module(scope, mod);
+  staticscope_set_parent(scope, c->current_scope);
+  
+  c->current_scope = scope;
+  return scope;
+}
+
+OBJECT cpu_scope_pop(STATE, cpu c) {
+  c->current_scope = staticscope_get_parent(c->current_scope);
+  return c->current_scope;
+}
+
 void cpu_initialize_context(STATE, cpu c) {
   c->active_context = Qnil;
   c->home_context = c->active_context;
@@ -91,6 +105,10 @@ void cpu_initialize_context(STATE, cpu c) {
   c->current_task = cpu_thread_get_task(state, c->current_thread);
   c->main_task = c->current_task;
   
+  c->current_scope = Qnil;
+  cpu_scope_push(state, c, BASIC_CLASS(object));
+  state->global->top_scope = c->current_scope;
+
   cpu_event_setup_children(state, c);
 }
 
@@ -138,6 +156,7 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
   ar(c->outstanding);
   ar(c->debug_channel);
   ar(c->control_channel);
+  ar(c->current_scope);
   len = ptr_array_length(c->paths);
   ptr_array_append(roots, (xpointer)I2N(len));
   // printf("Paths: %d\n", len);
@@ -201,6 +220,7 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
   ar(c->outstanding);
   ar(c->debug_channel);
   ar(c->control_channel);
+  ar(c->current_scope);
   tmp = ptr_array_get_index(roots, start++);
   len = FIXNUM_TO_INT((OBJECT)tmp);
   for(i = 0; i < len; start++, i++) {
@@ -294,108 +314,46 @@ OBJECT cpu_new_exception(STATE, cpu c, OBJECT klass, const char *msg) {
   return obj;
 }
 
-/* FIXME: the inline caches of constants aren't flushed! */
-
-#define update_cache(val) // if(c->cache_index >= 0) tuple_put(state, cmethod_get_cache(cpu_current_method(state, c)), c->cache_index, val)
-
 OBJECT cpu_const_get_in_context(STATE, cpu c, OBJECT sym) {
   OBJECT cur, klass, start, hsh, val;
+  OBJECT cref, cbase;
+
+  c->cache_index = -1;
   
   /* Look up the lexical scope first */
   
-  cur = cpu_current_module(state, c);
-  
-  while(!NIL_P(cur) && cur != state->global->object) {
-    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
-    
-    hsh = module_get_constants(cur);
-    val = hash_find_undef(state, hsh, sym);
-    if(val != Qundef) { 
-      // printf("   found!\n");
-      return val;
-    }
-    cur = module_get_parent(cur);
-  }
-  
-  /* If self is a module, we start with it, otherwise we start with
-     self's class. */
-  if(object_kind_of_p(state, c->self, state->global->module)) {
-    klass = c->self;
+  cref = cmethod_get_staticscope(cpu_current_method(state, c));
+  if(NIL_P(cref)) {
+    start = state->global->object;
   } else {
-    klass = object_class(state, c->self);
-  }
-  
-  if(sym == module_get_name(klass)) {
-    // printf("  found, it's where you are.\n");
-    return klass;
-  }
-  
-  cur = cpu_current_module(state, c);
-  
-  /* If the current module is a metaclass, then .. */
-  if(ISA(cur, state->global->metaclass)) {
-    /* If the attached instance of the metaclass is a module...
-       start from it */
-    OBJECT inst = metaclass_get_attached_instance(cur);
-    if(ISA(inst, state->global->module)) {
-      cur = inst;
-    }
-  }
-  
-  while(!NIL_P(cur) && cur != state->global->object) {    
-    hsh = module_get_constants(cur);
-    val = hash_find_undef(state, hsh, sym);
-    if(val != Qundef) { 
-      // printf("   found!\n");
-      return val;
-    }
-    cur = module_get_parent(cur);
-  }
-  
-  start = cur = klass;
-  
-  // printf("Looking for %s in the current context.\n", rbs_symbol_to_cstring(state, sym));
-  
-  
-  while(!NIL_P(cur) && cur != state->global->object) {
-    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+    cbase = cref;
+
+    while(!NIL_P(cbase)) {
+      klass = staticscope_get_module(cbase);
+      hsh = module_get_constants(klass);
+      val = hash_find_undef(state, hsh, sym);
+      if(val != Qundef) return val;
     
-    hsh = module_get_constants(cur);
-    val = hash_find_undef(state, hsh, sym);
-    if(val != Qundef) { 
-      // printf("   found!\n");
-      return val;
+      cbase = staticscope_get_parent(cbase);
     }
-    cur = module_get_superclass(cur);
-  }
-  
-  cur = object_class(state, c->self);
     
-  // printf("Couldn't find in lex scope. Looking up from %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
   
-  while(!NIL_P(cur) && cur != state->global->object) {
-    // printf("   looking in %s\n", rbs_symbol_to_cstring(state, module_get_name(cur)));
+    start = cur = staticscope_get_module(cref);
+  
+    while(!NIL_P(cur) && cur != state->global->object) {
     
-    hsh = module_get_constants(cur);
-    val = hash_find_undef(state, hsh, sym);
-    if(val != Qundef) { 
-      // printf("   found!\n");
-      return val;
+      hsh = module_get_constants(cur);
+      val = hash_find_undef(state, hsh, sym);
+      if(val != Qundef) return val;
+      cur = module_get_superclass(cur);
     }
-    /* Object's superclass MUST be nil, but we check directly just
-       to be safe. */
-    cur = class_get_superclass(cur);
   }
-  
-  // printf("Still unable to find, firing const_missing.\n");
   
   // As a last rescue, we search in Object's constants
   hsh = module_get_constants(state->global->object);
   val = hash_find_undef(state, hsh, sym);
-  if(val != Qundef) { 
-    return val;
-  }
-  
+  if(val != Qundef) return val;
+
   c->cache_index = -1;
   stack_push(sym);
   cpu_unified_send(state, c, start, state->global->sym_const_missing, 1, Qnil);
@@ -457,21 +415,12 @@ OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   int len;
   len = ptr_array_length(c->paths);
-  /*
-  if(len > 0 && ptr_array_get_index(c->paths, len-1) == cls) {
-    printf("Removing %p from paths.\n", cls);
-    ptr_array_remove_ordered(c->paths, len-1); 
-  } else {
-    printf("Adding %p (%d) to the path...\n", cls, cls);
-    ptr_array_append(c->paths, cls);
-  }
-  */
   /* add stuff for @paths here */
   ptr_array_append(c->paths, (xpointer)c->enclosing_class);
-  /*
-  printf("Push %s (%d) to paths (%d)\n", _inspect(c->enclosing_class), 
-    c->enclosing_class, c->paths->len);
-  */
+
+  cmethod_set_staticscope(cpu_current_method(state, c), 
+                          cpu_scope_push(state, c, cls));
+  
   c->enclosing_class = cls;
 }
 
@@ -480,7 +429,7 @@ void cpu_push_encloser(STATE, cpu c) {
   len = ptr_array_length(c->paths);
   if(len > 0) {
     c->enclosing_class = (OBJECT)ptr_array_remove_index_ordered(c->paths, len - 1);
-    //printf("Setting encloser to %s\n", _inspect(c->enclosing_class));
+    cpu_scope_pop(state, c);
   }
 }
 
@@ -529,8 +478,13 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
     printf("=> Adding method %s to %s.\n", rbs_symbol_to_cstring(state, sym), _inspect(target));
   }
   
+  // HACK. the 10 sucks, it protects things that go in a method table, but
+  // aren't exactly CompiledMethods.
+  if(NUM_FIELDS(method) > 10 && NIL_P(cmethod_get_staticscope(method))) {
+    cmethod_set_staticscope(method, c->current_scope);
+  }
+  
   hash_set(state, meths, sym, tuple_new2(state, 2, vis, method));
-  // hash_set(state, meths, sym, method);
   c->call_flags = 0;
 }
 

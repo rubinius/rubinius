@@ -1048,7 +1048,7 @@ class Array
   end
   
   # Rubinius-only, better inspect representation of the Array
-  def pretty_inspect(indent = 0)
+  def indented_inspect(indent = 0)
     # Here there be dragons. In fact, there is one jusAAAAAAAARGH
     str = "["
     
@@ -1058,7 +1058,7 @@ class Array
     while i < size
       element = self[i]
       if Array === element
-        estr = element.pretty_inspect(indent + 2)
+        estr = element.indented_inspect(indent + 2)
         if str.size > 30 or estr.size > 30
           if estr[0] != ?\ 
             estr = "#{' ' * (indent + 2)}#{estr}"

@@ -71,6 +71,7 @@ struct fast_context {
   ptr_array paths; \
   unsigned int depth; \
   OBJECT context_cache; \
+  OBJECT current_scope; \
   IP_TYPE *ip_ptr; \
   OBJECT *sp_ptr; \
   int call_flags; \

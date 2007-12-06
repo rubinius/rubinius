@@ -1,4 +1,4 @@
-require 'compiler2/encoder'
+require File.dirname(__FILE__) + '/encoder'
 
 class Compiler
     
