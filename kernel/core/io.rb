@@ -10,6 +10,10 @@ class IO
   SEEK_END = Platform::POSIX.seek_end
   
   def initialize(fd)
+    # not sure what message to use here. on unix we only accept fixnums,
+    # but on win32 we'll accept file handles, too, i think.
+    raise TypeError if fd.nil?
+
     @descriptor = fd
   end
   
