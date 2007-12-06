@@ -45,18 +45,24 @@ class Dir
     period = (flags & File::FNM_DOTMATCH) > 0
     period_excludes = ["..", "."]
     
-    Dir.foreach(path) do |entry|
-      next if period_excludes.include?(entry)
-      file = File.join(path, entry)
+    paths = [[path,depth]]
+    until paths.empty?
       
-      if match = glob_match(pattern, file, flags)
-        files << match
+      path, depth = paths.shift
+      Dir.foreach(path) do |entry|
+        next if period_excludes.include?(entry)
+        file = File.join(path, entry)
+      
+        if match = glob_match(pattern, file, flags)
+          files << match
+        end
+      
+        if File.directory?(file) and (max_depth == GLOB_RECURSIVE or depth < max_depth)
+          next if entry =~ /^\./ and !period
+          paths << [file, depth + 1]
+        end
       end
       
-      if File.directory?(file) and (max_depth == GLOB_RECURSIVE or depth < max_depth)
-        next if entry =~ /^\./ and !period
-        search_deeper files, file, pattern, flags, depth + 1, max_depth
-      end
     end
   end
   
