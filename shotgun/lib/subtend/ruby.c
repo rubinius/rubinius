@@ -651,6 +651,8 @@ int rb_str_get_char_len(VALUE arg) {
   return strlen(string_byte_address(ctx->state, string_get_data(str)));
 }
 
+/* Data_Get_Struct and Data_Wrap_Struct support */
+
 VALUE subtend_wrap_struct(VALUE klass, void *struct_value, void *mark_func, void *free_func) {
   CTX;
   STATE;
@@ -670,13 +672,15 @@ void* subtend_get_struct(VALUE obj) {
   return s->ptr;
 }
 
-
 /*
 
 Still needed for Mongrel - Kev
 
 rb_define_alloc_func
 rb_str_substr
+
+rb_obj_freeze
+rb_global_variable
 
 */
 
@@ -697,7 +701,6 @@ rb_str_cat2
 rb_block_given_p
 rb_block_proc
 rb_throw
-Data_Wrap_Struct
 
 rb_num2ull
 rb_ull2inum

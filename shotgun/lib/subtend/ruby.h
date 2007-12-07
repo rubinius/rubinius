@@ -146,6 +146,8 @@ VALUE rb_float_new(double d);
 const char *rb_id2name(ID sym);
 ID rb_intern(const char *name);
 
+#define rb_obj_freeze(obj) obj
+
 /* RSTRING Macro Replacement */
 
 char* rb_str_get_char_ptr(VALUE arg);
