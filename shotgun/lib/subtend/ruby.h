@@ -81,6 +81,7 @@ VALUE rb_attr_get(VALUE obj, ID sym);
 
 #define rb_eSystemCallError    subtend_get_exception(19)
 #define rb_mErrno              subtend_get_exception(20)
+#define rb_eIOError            subtend_get_exception(21)
 
 void rb_raise(VALUE exc, const char *fmt, ...);
 

@@ -299,7 +299,7 @@ VALUE HttpParser_execute(VALUE self, VALUE req_hash, VALUE data, VALUE start)
   DATA_GET(self, http_parser, http);
 
   from = FIX2INT(start);
-  dptr = RSTRING(data)->ptr;
+  dptr = rb_str_get_char_ptr(data);
   dlen = rb_str_get_char_len(data);
 
   if(from >= dlen) {
@@ -316,6 +316,8 @@ VALUE HttpParser_execute(VALUE self, VALUE req_hash, VALUE data, VALUE start)
       return INT2FIX(http_parser_nread(http));
     }
   }
+  
+  rb_str_flush_char_ptr(data, dptr);
 }
 
 

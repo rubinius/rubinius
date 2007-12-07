@@ -116,6 +116,10 @@ VALUE subtend_get_exception(int which) {
     case 20:
     val = rb_const_get(rb_cObject, rb_intern("Errno"));
     break;
+    
+    case 21:
+    val = rb_const_get(rb_cObject, rb_intern("IOError"));
+    break;
   }
   
   return NEW_HANDLE(ctx, HNDL(val));
