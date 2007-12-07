@@ -542,20 +542,18 @@ class Node
       @receiver, @whens, @else = recv, whens, els
     end
     
+    def has_receiver?
+      true
+    end
+    
     attr_accessor :receiver, :whens, :else
   end
   
-  class ManyIfBranch < Node
-    kind :many_if_branch
-    
-    def args(conditions, body)
-      @conditions, @body = conditions.body, body
-    end
-    
-    attr_accessor :conditions, :body
-  end
-  
-  class ManyIf < Node
+  # ManyIf represents a case statement with no receiver, i.e.
+  #   case
+  #     when foo: bar
+  #   end
+  class ManyIf < Case
     kind :many_if
     
     # :many_if contains an array of whens and an else
@@ -564,7 +562,7 @@ class Node
     def consume(sexp)
       whens = sexp[0]
       whens.map! do |w|
-        w.unshift :many_if_branch
+        w.unshift :when
         convert(w)
       end
       [whens, convert(sexp[1])]
@@ -573,6 +571,10 @@ class Node
     def args(whens, els)
       @whens = whens
       @else = els
+    end
+    
+    def has_receiver?
+      false
     end
 
     attr_accessor :whens, :else
