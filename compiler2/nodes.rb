@@ -1442,6 +1442,40 @@ class Node
     
     attr_accessor :arguments, :body, :locals
   end
+
+  # [[:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], [:lasgn, :x, 0]]
+  # should become
+  # [[:call, [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], :each], [:lasgn, :x, 0] ]
+  class For < Iter
+    kind :for
+
+    def self.create(compiler, sexp)
+      sexp = [sexp[0], [:call, sexp[1], :each], sexp[2]]
+      super(compiler, sexp)
+    end
+
+    def consume(sexp)
+      converted = convert(sexp[0])
+      sexp[0] = converted
+
+      sexp[1] = convert([:iter_args, sexp[1]])
+
+      set(:iter) do
+        @locals = get(:scope).new_block_scope do
+          sexp[2] = convert(sexp[2])
+        end
+      end
+      
+      sexp
+    end
+
+    def normalize(c, arguments, body)
+      @arguments, @body = arguments, body
+      
+      c.block = self
+      return c
+    end
+  end
   
   class BlockPass < Node
     kind :block_pass
