@@ -116,18 +116,22 @@ describe "Defining a singleton method" do
   end
 
   it "should work without a body" do
-    class DefSpecClassOne
+    class DefSpec
       def self.foo;end
     end
-    DefSpecClassOne.foo.should == nil
+    DefSpec.foo.should == nil
   end
 end
+
 describe "Defining a method with complex default args" do
   it "should let you define a method inside a default argument" do
-    def foo(x = (def foo; "hello"; end;1));x;end
-    foo(42).should == 42
-    foo.should == 1
-    foo.should == 'hello'
+    class DefSpecs
+      def foo(x = (def foo; "hello"; end;1));x;end
+    end
+    d = DefSpecs.new
+    d.foo(42).should == 42
+    d.foo.should == 1
+    d.foo.should == 'hello'
   end
 
   it "should let you use an fcall as a default argument" do

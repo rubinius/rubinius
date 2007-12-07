@@ -30,11 +30,14 @@ describe "String#%" do
     begin
       old_debug = $DEBUG
       $DEBUG = true
+      s = $stderr
+      $stderr = CaptureOutput.new
 
       lambda { "" % [1, 2, 3]   }.should raise_error(ArgumentError)
       lambda { "%s" % [1, 2, 3] }.should raise_error(ArgumentError)
     ensure
       $DEBUG = old_debug
+      $stderr = s
     end
   end
   

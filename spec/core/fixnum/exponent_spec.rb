@@ -12,12 +12,14 @@ describe "Fixnum#**" do
     (2 ** 40).should == 1099511627776
   end
   
-  it "raises a TypeError when given a non-Integer" do
-    lambda {
-      (obj = Object.new).should_receive(:to_int).and_return(10)
-      13 ** obj
-    }.should raise_error(TypeError)
-    lambda { 13 ** "10"    }.should raise_error(TypeError)
-    lambda { 13 ** :symbol }.should raise_error(TypeError)
+  runner :not, :rspec do
+    it "raises a TypeError when given a non-Integer" do
+      lambda {
+        (obj = Object.new).should_receive(:to_int).and_return(10)
+        13 ** obj
+      }.should raise_error(TypeError)
+      lambda { 13 ** "10"    }.should raise_error(TypeError)
+      lambda { 13 ** :symbol }.should raise_error(TypeError)
+    end
   end
 end

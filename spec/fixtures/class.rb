@@ -54,10 +54,13 @@ module ClassSpecs
     end
   end
   
-  Subclasses = []
   class H
     def self.inherited(sub)
-      Subclasses << sub
+      track_inherited << sub
+    end
+    
+    def self.track_inherited
+      @inherited_modules ||= []
     end
   end
   

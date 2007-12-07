@@ -7,10 +7,12 @@ describe "Fixnum#quo" do
     45.quo(0xffffffff).should be_close(1.04773789668636e-08, TOLERANCE)
   end
 
-  it "does not raise a ZeroDivisionError when the given Integer is 0" do
-    0.quo(0).to_s.should == "NaN"
-    10.quo(0).to_s.should == "Infinity"
-    -10.quo(0).to_s.should == "-Infinity"
+  runner :not, :rspec do
+    it "does not raise a ZeroDivisionError when the given Integer is 0" do
+      0.quo(0).to_s.should == "NaN"
+      10.quo(0).to_s.should == "Infinity"
+      -10.quo(0).to_s.should == "-Infinity"
+    end
   end
 
   it "does not raise a FloatDomainError when the given Integer is 0 and a Float" do
@@ -19,12 +21,14 @@ describe "Fixnum#quo" do
     -10.quo(0.0).to_s.should == "-Infinity"
   end
 
-  it "raises a TypeError when given a non-Integer" do
-    lambda {
-      (obj = Object.new).should_not_receive(:to_int)
-      13.quo(obj)
-    }.should raise_error(TypeError)
-    lambda { 13.quo("10")    }.should raise_error(TypeError)
-    lambda { 13.quo(:symbol) }.should raise_error(TypeError)
+  runner :not, :rspec do
+    it "raises a TypeError when given a non-Integer" do
+      lambda {
+        (obj = Object.new).should_not_receive(:to_int)
+        13.quo(obj)
+      }.should raise_error(TypeError)
+      lambda { 13.quo("10")    }.should raise_error(TypeError)
+      lambda { 13.quo(:symbol) }.should raise_error(TypeError)
+    end
   end
 end

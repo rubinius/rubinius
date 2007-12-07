@@ -105,7 +105,6 @@ end
 
 describe "class provides hooks" do
   it "calls inherited when a class is created" do
-    ClassSpecs::Subclasses.should == [ClassSpecs::K]
+    ClassSpecs::H.track_inherited.should == [ClassSpecs::K]
   end
 end
-
