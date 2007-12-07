@@ -33,6 +33,17 @@ module MSpec
     end
     reverse ? (not result) : result
   end
+  
+  def self.runner?(runner)
+    case runner
+    when :mspec
+      ENV['MSPEC_RUNNER'] == '1'
+    when :rspec
+      ENV['RSPEC_RUNNER'] == '1' or Object.const_defined?(:Spec)
+    else
+      false
+    end
+  end
 end
 
 class Object
@@ -94,5 +105,16 @@ class Object
   # end
   def platform(*args)
     yield if MSpec.guard?(*args) { |a| RUBY_PLATFORM.match(a.to_s) }
+  end
+  
+  # runner :mspec do
+  #   run these specs if MSpec is the spec runner
+  # end
+  #
+  # runner :not :rspec do
+  #   run these specs if RSpec is not the spec runner
+  # end
+  def runner(*args)
+    yield if MSpec.guard?(*args) { |r| MSpec.runner? r }
   end
 end

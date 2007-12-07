@@ -219,3 +219,81 @@ describe Object, "#platform" do
     }.should raise_error(Exception, "I am raised")
   end
 end
+
+describe Object, "#runner" do
+  before :all do
+    @verbose = $VERBOSE
+    $VERBOSE = nil
+  end
+  
+  after :all do
+    $VERBOSE = @verbose
+  end
+  
+  it "returns true when passed :mspec and ENV['MSPEC_RUNNER'] is true" do
+    ENV['MSPEC_RUNNER'] = '1'
+    lambda {
+      runner(:mspec) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+  
+  it "returns false when passed :mspec and ENV['MSPEC_RUNNER'] is false" do
+    ENV.delete 'MSPEC_RUNNER'
+    lambda {
+      runner(:mspec) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+  
+  it "returns false when passed :not, :mspec and ENV['MSPEC_RUNNER'] is true" do
+    ENV['MSPEC_RUNNER'] = '1'
+    lambda {
+      runner(:not, :mspec) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+  
+  it "returns true when passed :not, :mspec and ENV['MSPEC_RUNNER'] is false" do
+    ENV.delete 'MSPEC_RUNNER'
+    lambda {
+      runner(:not, :mspec) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+  
+  it "returns true when passed :rspec and ENV['RSPEC_RUNNER'] is true" do
+    ENV['RSPEC_RUNNER'] = '1'
+    lambda {
+      runner(:rspec) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+
+  it "returns true when passed :rspec and the constant Spec exists" do
+    ENV.delete 'RSPEC_RUNNER'
+    Object.const_set(:Spec, 1) unless Object.const_defined?(:Spec)
+    lambda {
+      runner(:rspec) { raise Exception, "I am raised" }
+    }.should raise_error(Exception, "I am raised")
+  end
+  
+  it "returns false when passed :rspec and ENV['RSPEC_RUNNER'] is false and the constant Spec does not exist" do
+    ENV.delete 'RSPEC_RUNNER'
+    Object.should_receive(:const_defined?).with(:Spec).and_return(false)
+    lambda {
+      runner(:rspec) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+  
+  it "returns false when passed :not, :rspec and ENV['RSPEC_RUNNER'] is false but the constant Spec exists" do
+    ENV.delete 'RSPEC_RUNNER'
+    Object.const_set(:Spec, 1) unless Object.const_defined?(:Spec)
+    lambda {
+      runner(:not, :rspec) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+
+  it "returns false when passed :not, :rspec and ENV['RSPEC_RUNNER'] is true but the constant Spec does not exist" do
+    ENV['RSPEC_RUNNER'] = '1'
+    Object.should_receive(:const_defined?).with(:Spec).any_number_of_times.and_return(false)
+    lambda {
+      runner(:not, :rspec) { raise Exception, "I have not been raised" }
+    }.should_not raise_error
+  end
+end
