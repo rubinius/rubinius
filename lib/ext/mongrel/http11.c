@@ -74,13 +74,15 @@ void http_field(void *data, const char *field, size_t flen, const char *value, s
   f = rb_str_dup(global_http_prefix);
   f = rb_str_buf_cat(f, field, flen); 
 
-  for(ch = RSTRING(f)->ptr, end = ch + rb_str_get_char_len(f); ch < end; ch++) {
+  for(ch = rb_str_get_char_ptr(f), end = ch + rb_str_get_char_len(f); ch < end; ch++) {
     if(*ch == '-') {
       *ch = '_';
     } else {
       *ch = toupper(*ch);
     }
   }
+  
+  rb_str_flush_char_ptr(f, ch);
 
   rb_hash_aset(req, f, v);
 }
@@ -154,7 +156,7 @@ void header_done(void *data, const char *at, size_t length)
   VALUE temp = Qnil;
   VALUE ctype = Qnil;
   VALUE clen = Qnil;
-  char *colon = NULL;
+  char *colon = NULL, *temp_ptr = NULL;
 
   clen = rb_hash_aref(req, global_http_content_length);
   if(clen != Qnil) {
@@ -168,17 +170,19 @@ void header_done(void *data, const char *at, size_t length)
 
   rb_hash_aset(req, global_gateway_interface, global_gateway_interface_value);
   if((temp = rb_hash_aref(req, global_http_host)) != Qnil) {
+    temp_ptr = rb_str_get_char_ptr(temp);
     /* ruby better close strings off with a '\0' dammit */
-    colon = strchr(RSTRING(temp)->ptr, ':');
+    colon = strchr(temp_ptr, ':');
     if(colon != NULL) {
-      rb_hash_aset(req, global_server_name, rb_str_substr(temp, 0, colon - RSTRING(temp)->ptr));
+      rb_hash_aset(req, global_server_name, rb_str_substr(temp, 0, colon - temp_ptr));
       rb_hash_aset(req, global_server_port, 
-          rb_str_substr(temp, colon - RSTRING(temp)->ptr+1, 
+          rb_str_substr(temp, colon - temp_ptr+1, 
             rb_str_get_char_len(temp)));
     } else {
       rb_hash_aset(req, global_server_name, temp);
       rb_hash_aset(req, global_server_port, global_port_80);
     }
+    free(temp_ptr);
   }
 
   /* grab the initial body and stuff it into an ivar */
@@ -200,7 +204,7 @@ void HttpParser_free(void *data) {
 VALUE HttpParser_alloc(VALUE klass)
 {
   VALUE obj;
-  http_parser *hp = ALLOC_N(http_parser, 1);
+  http_parser *hp = malloc(sizeof(http_parser)); // ALLOC_N(http_parser, 1);
   TRACE();
   hp->http_field = http_field;
   hp->request_method = request_method;

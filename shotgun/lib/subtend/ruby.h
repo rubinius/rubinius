@@ -145,4 +145,10 @@ VALUE rb_float_new(double d);
 const char *rb_id2name(ID sym);
 ID rb_intern(const char *name);
 
+/* RSTRING Macro Replacement */
+
+char* rb_str_get_char_ptr(VALUE arg);
+void rb_str_flush_char_ptr(VALUE arg, char* ptr);
+int rb_str_get_char_len(VALUE arg);
+
 #endif
