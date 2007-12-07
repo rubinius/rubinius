@@ -13,8 +13,16 @@
       <li><a href="vm_interfaces.html" target="op_code">Interfacing to Rubinius</a></li>
       <li><a href="rbc_files.html" target="op_code">Rubinius Compiled Files</a></li>
     </ul>
+    <h4>Compiler Walkthrough</h4>
+    <ul id="compiler_walkthrough" class="toc_subsection">
+      <li><a href="compiler_intro.html" target="op_code">Introduction</a></li>
+      <li><a href="compiler_intro_stage0.html" target="op_code">Stage 0: Input</a></li>
+      <li><a href="compiler_intro_stage1.html" target="op_code">Stage 1: Sexp to AST</a></li>
+      <li><a href="compiler_intro_stage2.html" target="op_code">Stage 2: Bytecode Generation</a></li>
+      <li><a href="compiler_intro_stage3.html" target="op_code">Stage 3: Encoding</a></li>
+    </ul>
     <h3>OpCodes</h3>
-    <ul id="op_codes">
+    <ul id="op_codes" class="toc_subsection">
       <% op_codes.sort.each do |op| %>
       <li><%= "<i>" if op.description.nil? || op.description.empty? %>
       <a href="op_codes/<%= op.mnemonic %>.html" title="<%= op.operation %>" target="op_code"><%= op.mnemonic %><%= " (#{op.alias})" if op.alias %></a>

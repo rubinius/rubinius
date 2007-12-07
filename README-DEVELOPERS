@@ -18,10 +18,10 @@
 
 2. Kernel Classes
 
-If you create a new file in one of the kernel subdirectories, it will be necessary
-to regenerate the .load_order.txt file in the equivalent runtime subdirectory in
-order to get your class loaded when Rubinius starts up. Use the rake task
-build:load_order to regenerate the .load_order.txt files.
+If you create a new file in one of the kernel subdirectories, it will be
+necessary to regenerate the .load_order.txt file in the equivalent runtime
+subdirectory in order to get your class loaded when Rubinius starts up. Use the
+rake task build:load_order to regenerate the .load_order.txt files.
 
 3. Primitives
 
@@ -61,7 +61,8 @@ http://rubinius.lighthouseapp.com/projects/5089/specs-overview
 
 6. Build w/o Optimization
 
-When you get <value temporarily unavailable, due to optimizations> in gdb, you can easily rebuild without optimization:
+When you get <value temporarily unavailable, due to optimizations> in gdb, you
+can easily rebuild without optimization:
 
 * `touch thefile.c`
 * `DEV=1 rake`
@@ -70,3 +71,32 @@ To rebuild everything without optimization:
 
 * `rake clean:shotgun`
 * `DEV=1 rake`
+
+7. Using C libraries
+
+Module#attach_function allows a C function to be called from Ruby code using
+FFI.
+
+Module#attach_function takes the C function name, the ruby module function to
+bind it to, the C argument types, and the C return type.
+
+For a list of C argument types, see kernel/platform/ffi.rb.
+
+When the C function will be filling in a String, be sure the Ruby String is
+large enough.  For the C function rbx_Digest_MD5_Finish, the digest string is
+allocated with a 16 character length.  The string is passed to md5_finish which
+calls rbx_Digest_MD5_Finish which fills in the string with the digest.
+
+  class Digest::MD5
+    attach_function nil, 'rbx_Digest_MD5_Finish', :md5_finish,
+                    [:pointer, :string], :void
+  
+    def finish
+      digest = ' ' * 16
+      self.class.md5_finish @context, digest
+      digest
+    end
+  end
+
+For a complete additional example, see digest/md5.rb.
+

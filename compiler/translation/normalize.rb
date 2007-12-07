@@ -321,34 +321,30 @@ class RsNormalizer < SimpleSexpProcessor
     [:when, process(cond), process(body)]
   end
 
-  # case statements without an argument. Normalized into if/elsif.
   def process_many_if(x)
-    ifs = []
-    branches = x.shift
-    else_body = x.shift
-
-    branches.each do |branch|
-      cond = branch.shift.last # ignore the :array node
-      body = process(branch.shift)
-      body = [:block, body] if body.nil? || body[0] != :block
-      ifs << [:if, process(cond), body]
+    branches = x[0]
+    else_body = x[1]
+    nested_ifs(branches, else_body)
+  end
+  
+  def nested_ifs(branches, else_body)
+    if branches.empty?
+      process(else_body)
+    else
+      branch = branches.first
+      conditions = branch[0]
+      body = branch[1]
+      [:if, disjoin_conditions(conditions), process(body), nested_ifs(branches[1..-1], else_body)]
     end
-
-    index = ifs.size - 1
-    ifs[index] << process(else_body) # last 'if' clause gets the else
-
-    out = nil
-    while(index >= 0)
-      clause = ifs[index]
-      if out
-        out = [:block, clause, out]
-      else
-        out = clause
-      end
-      index -= 1
+  end
+  
+  def disjoin_conditions(conditions)
+    elements = conditions[1..-1].map {|elt| process(elt)}
+    if elements.size > 1
+      [:or] + elements
+    else
+      elements.first
     end
-
-    out
   end
 end
 

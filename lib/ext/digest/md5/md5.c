@@ -47,11 +47,16 @@
   - Akinori MUSHA <knu@idaemons.org>
  */
 
+/*
+ * This code has some modifications for use in Rubinius.
+ */
+
 /*$OrigId: md5c.c,v 1.2 2001/03/26 08:57:14 matz Exp $ */
 /*$RoughId: md5.c,v 1.2 2001/07/13 19:48:41 knu Exp $ */
 /*$Id: md5.c 11708 2007-02-12 23:01:19Z shyouhei $ */
 
 #include "md5.h"
+#include <string.h>
 
 #ifdef TEST
 /*
@@ -59,7 +64,6 @@
  * The test program should print out the same values as given in section
  * A.5 of RFC 1321, reproduced below.
  */
-#include <string.h>
 main()
 {
     static const char *const test[7*2] = {
@@ -418,3 +422,4 @@ MD5_Finish(MD5_CTX *pms, uint8_t *digest)
     for (i = 0; i < 16; ++i)
 	digest[i] = (uint8_t)(pms->state[i >> 2] >> ((i & 3) << 3));
 }
+

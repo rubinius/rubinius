@@ -65,7 +65,18 @@ module FFI
 end
 
 class Module
-  def attach_function(lib, name, a3, a4, a5=nil)
+
+  ##
+  # Attach C function +name+ to this module.
+  #
+  # If you want to provide an alternate name for the module function, supply
+  # it after the +name+, otherwise the C function name will be used.#
+  #
+  # After the +name+, the C function argument types are provided as an Array.
+  #
+  # The C function return type is provided last.
+
+  def attach_function(name, a3, a4, a5=nil)
     if a5
       mname = a3
       args = a4
@@ -75,11 +86,11 @@ class Module
       args = a3
       ret = a4
     end
-    
-    func = FFI.create_function lib, name, args, ret
-    
+
+    func = FFI.create_function nil, name, args, ret
+
     raise "Unable to create function #{name}" unless func
-    
+
     metaclass.method_table[mname] = func
     return func
   end
@@ -160,29 +171,29 @@ class MemoryPointer
   def +(value)
     self.class.add_ptr(self, value)
   end
-  
-  attach_function nil, "ffi_address", :address, [:pointer], :int
-  attach_function nil, "ffi_write_int", :write_int, [:pointer, :int], :int
-  attach_function nil, "ffi_read_int", :read_int, [:pointer], :int
-  attach_function nil, "ffi_write_float", :write_float, [:pointer, :double], :double
-  attach_function nil, "ffi_read_float", :read_float, [:pointer], :double
-  attach_function nil, "ffi_read_string", :read_string, [:pointer], :string
-  attach_function nil, "ffi_read_pointer", :read_pointer, [:pointer], :pointer
-  attach_function nil, "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
+
+  attach_function "ffi_address", :address, [:pointer], :int
+  attach_function "ffi_write_int", :write_int, [:pointer, :int], :int
+  attach_function "ffi_read_int", :read_int, [:pointer], :int
+  attach_function "ffi_write_float", :write_float, [:pointer, :double], :double
+  attach_function "ffi_read_float", :read_float, [:pointer], :double
+  attach_function "ffi_read_string", :read_string, [:pointer], :string
+  attach_function "ffi_read_pointer", :read_pointer, [:pointer], :pointer
+  attach_function "ffi_add_ptr", :add_ptr, [:pointer, :int], :pointer
 end
 
 module FFI
-  attach_function nil, "ffi_type_size", :get_type_size, [:int], :int
-  
+  attach_function "ffi_type_size", :get_type_size, [:int], :int
+
   def self.type_size(type)
     get_type_size(find_type(type))
   end
-  
+
   class Struct
-    
-    attach_function nil, "ffi_get_field", [:pointer, :int, :int], :object
-    attach_function nil, "ffi_set_field", [:pointer, :int, :int, :object], :void
-    
+
+    attach_function "ffi_get_field", [:pointer, :int, :int], :object
+    attach_function "ffi_set_field", [:pointer, :int, :int, :object], :void
+
     def self.layout(*spec)
       return @layout if spec.empty?
       

@@ -90,5 +90,36 @@ class I
   end
 end
 
+class Foo
+  COMMAND_LINE = 47
+
+  def Foo.foo
+    Bar.bar do
+      COMMAND_LINE
+    end
+  end
+
+  def Foo.foo2
+    Bar.bar do
+
+      obj = Object.new
+      def obj.foo
+        COMMAND_LINE
+      end
+
+      obj.foo
+    end
+  end
+end
+
+class Bar
+  def Bar.bar
+    yield
+  end
+end
+
+Foo.foo
+
+
 end
 

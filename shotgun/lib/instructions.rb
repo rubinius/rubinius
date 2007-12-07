@@ -1223,6 +1223,9 @@ CODE
     methctx_reference(state, t4);
     methctx_reference(state, t3);
     
+    cmethod_set_staticscope(t1,
+               cmethod_get_staticscope(cpu_current_method(state, c)));
+
     t2 = blokenv_s_under_context2(state, t1, t3, t4);
     stack_push(t2);
     CODE

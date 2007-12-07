@@ -256,7 +256,8 @@ class Node
         k.bytecode(g)
       end
       
-      g.push_const :Hash
+      g.push_cpath_top
+      g.find_const :Hash
       g.send :[], count
     end
   end
@@ -321,7 +322,12 @@ class Node
   # TESTED  
   class RegexLiteral
     def bytecode(g)
-      idx = g.push_literal nil
+      # A regex literal should only be converted to a Regexp the first time it
+      # is encountered. We push a literal nil here, and then overwrite the
+      # literal value with the created Regexp if it is nil, i.e. the first time
+      # only. Subsequent encounters will use the previously created Regexp
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -1899,7 +1905,8 @@ class Node
     def bytecode(g)
       @finish.bytecode(g)
       @start.bytecode(g)
-      g.push_const :Range
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 2
     end
   end
@@ -1910,7 +1917,9 @@ class Node
       g.push :true
       @finish.bytecode(g)
       @start.bytecode(g)
-      g.push_const :Range
+      
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 3
     end
   end

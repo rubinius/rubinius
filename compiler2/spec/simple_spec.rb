@@ -118,7 +118,8 @@ describe Compiler do
   it "compiles regexp literals" do
     re = /abcd/
     gen [:lit, re] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -137,7 +138,8 @@ describe Compiler do
   
   it "compiles regexs" do
     gen [:regex, "comp", 0] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -240,7 +242,8 @@ describe Compiler do
       g.push_literal "blah"
       g.string_dup
       
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -261,7 +264,8 @@ describe Compiler do
   
   it "compiles string operation =~" do
     gen [:match3, [:regex, "aoeu", 0], [:str, "blah"]] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -319,7 +323,8 @@ describe Compiler do
       g.push 14
       g.push 13
       g.push 12
-      g.push_const :Hash
+      g.push_cpath_top
+      g.find_const :Hash
       g.send :[], 4
     end
   end
@@ -408,7 +413,8 @@ describe Compiler do
     gen [:dot2, [:fixnum, 1], [:fixnum, 2]] do |g|
       g.push 2
       g.push 1
-      g.push_const :Range
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 2 
     end
   end
@@ -418,7 +424,8 @@ describe Compiler do
       g.push :true
       g.push 2
       g.push 1
-      g.push_const :Range
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 3
     end
   end

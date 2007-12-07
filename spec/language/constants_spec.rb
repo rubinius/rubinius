@@ -1,6 +1,19 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/constants'
 
+class StaticScope
+  def chain
+    ary = []
+    ss = self
+    while ss
+      ary << ss.module
+      ss = ss.parent
+    end
+    
+    return ary
+  end
+end
+
 describe "Constant lookup rule" do
   it "finds a toplevel constant" do
     Exception.should == ::Exception
@@ -33,5 +46,13 @@ describe "Constant lookup rule" do
   
   it "calls const_missing on the original scope" do
     ConstantSpecs::A::B::C.new.fire_missing.should == :missing!
-  end  
+  end
+  
+  it "is bound in blocks properly" do
+    ConstantSpecs::Foo.foo.should == 47
+  end
+  
+  it "is bound in blocks, then singletons properly" do
+    ConstantSpecs::Foo.foo2.should == 47
+  end
 end

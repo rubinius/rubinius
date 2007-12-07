@@ -54,7 +54,7 @@ class TestGenerator
     add :class
   end
   
-  attr_accessor :redo, :break, :next, :redo, :retry, :ensure_return
+  attr_accessor :redo, :break, :next, :retry, :ensure_return
   attr_reader :file, :line
     
   def close

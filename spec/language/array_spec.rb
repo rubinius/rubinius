@@ -1,18 +1,52 @@
 require File.dirname(__FILE__) + '/../spec_helper'
 
-context "Array literal" do
+describe "Array literals" do
   specify "[] should return a new array populated with the given elements" do
-    [1, 2, 3, 'a', 'b', 5].should == [1, 2, 3, "a", "b", 5]
-    [1, 2, *[3, 'a', 'b']].should == [1, 2, 3, 'a', 'b']
+    array = [1, 'a', nil]
+    array[0].should == 1
+    array[1].should == 'a'
+    array[2].should == nil
+  end
+end
+
+describe "Bareword array literals" do
+    
+  specify "%w() transforms unquoted barewords into an array" do
+    a = 3
+    %w(a #{3+a} 3).should == ["a", '#{3+a}', "3"]
   end
 
-  specify "%w() should also return a new array" do
-    ip = 'xxx'
-    %w(sk jsjvkdfnv #{ip} kvdjf 3).should == ["sk", "jsjvkdfnv", "\#{ip}", "kvdjf", "3"]
+  specify "%W() transforms unquoted barewords into an array, supporting interpolation" do
+    a = 3
+    %W(a #{3+a} 3).should == ["a", '6', "3"]
+  end
+end
+
+describe "The unpacking splat operator (*)" do
+  specify "when applied to a literal nested array, unpacks its elements into the containing array" do
+    [1, 2, *[3, 4, 5]].should == [1, 2, 3, 4, 5]
   end
 
-  specify "%W() is like %w() but should support interpolation" do
-    ip = 'xxx'
-    %W(skdf #{ip}x).should == ["skdf", "xxxx"]
+  specify "when applied to a nested referenced array, unpacks its elements into the containing array" do
+    splatted_array = [3, 4, 5]
+    [1, 2, *splatted_array].should == [1, 2, 3, 4, 5]
   end
+
+  it "unpacks the start and count arguments in an array slice assignment" do
+    alphabet_1 = ['a'..'z'].to_a
+    alphabet_2 = alphabet_1.dup
+    start_and_count_args = [1, 10]
+    
+    alphabet_1[1, 10] = 'a'
+    alphabet_2[*start_and_count_args] = 'a'
+    
+    alphabet_1.should == alphabet_2
+  end
+  
+  it "unpacks a literal array into arguments in a method call"  
+  it "unpacks a referenced array into arguments in a method call"
+end
+
+describe "The packing splat operator (*)" do
+  
 end

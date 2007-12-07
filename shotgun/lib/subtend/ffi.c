@@ -752,6 +752,15 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     free(ids);
   }
   
+#ifdef i386
+# ifdef __linux__
+  /* call finit to initialize the fpu. i don't know yet why this is
+   * needed -- it seems something's corrupting the FPU registers.
+   */
+  _O(0x9b); _O(0xdb); _O(0xe3);
+# endif
+#endif
+
   jit_finish(func);
   
   switch(ret_type) {

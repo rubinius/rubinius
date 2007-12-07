@@ -73,15 +73,15 @@ class Socket < BasicSocket
   end
   
   module Foreign
-    attach_function nil, "socket", :create_socket, [:int, :int, :int], :int
-    attach_function nil, "connect", :connect_socket, [:int, :string, :int], :int
-    attach_function nil, "bind", :bind_socket, [:int, :string, :int], :int
-    attach_function nil, "listen", :listen_socket, [:int, :int], :int
-    attach_function nil, "accept", :accept, [:int, :string, :pointer], :int
-    attach_function nil, "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
-    attach_function nil, "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
-    attach_function nil, "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
-    attach_function nil, "ffi_getpeername", :getpeername, [:state, :int, :int], :object
+    attach_function "socket", :create_socket, [:int, :int, :int], :int
+    attach_function "connect", :connect_socket, [:int, :string, :int], :int
+    attach_function "bind", :bind_socket, [:int, :string, :int], :int
+    attach_function "listen", :listen_socket, [:int, :int], :int
+    attach_function "accept", :accept, [:int, :string, :pointer], :int
+    attach_function "setsockopt", :set_socket_option, [:int, :int, :int, :pointer, :int], :int
+    attach_function "ffi_pack_sockaddr_un", :pack_sa_unix, [:state, :string], :object
+    attach_function "ffi_pack_sockaddr_in", :pack_sa_ip,   [:state, :string, :string, :int, :int], :object
+    attach_function "ffi_getpeername", :getpeername, [:state, :int, :int], :object
   end
   
   include Socket::Constants

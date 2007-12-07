@@ -40,9 +40,9 @@ module Platform::File
     end
 
     # FIXME: making this compliant require implmenting getpwnam support
-    #attach_function nil, 'getpwnam', [:string], :pointer
+    #attach_function 'getpwnam', [:string], :pointer
     #raise ArgumentError, "user #{path}" if path.match(/~([^\/])/
-    
+
     if(dir_string.empty?)
       dir_string = Dir.pwd
     elsif(dir_string[0].chr == '~')

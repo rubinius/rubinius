@@ -8,6 +8,8 @@
 #   end
 # end
 
+$MSPEC_START = Time.now
+
 class SpecReporter
   class ExpectationReport
     def exception=(e)
@@ -77,7 +79,7 @@ class SpecReporter
   
   def summary
     unless @summarized
-      @out.print "\nFinished in 0.0 seconds\n"
+      @out.print "\nFinished in #{Time.now - $MSPEC_START} seconds\n"
       @out.print "\n\n"
       @exceptions.each_with_index do |r,i|
         print_failure(i+1,r)

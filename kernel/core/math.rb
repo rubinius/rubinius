@@ -22,7 +22,12 @@ module Math
   def acos(x)
     x = Float(x)
     verify_domain('acos') { x.abs <= 1.0 }
-    Platform::Math.acos x
+
+    Platform::POSIX.errno = 0
+
+    ret = Platform::Math.acos x
+    Errno.handle
+    ret
   end
   
   def asin(x)
@@ -60,7 +65,12 @@ module Math
   def atanh(x)
     x = Float(x)
     verify_domain('atanh') { x.abs <= 1.0 }
-    Platform::Math.atanh x
+
+    Platform::POSIX.errno = 0
+
+    ret = Platform::Math.atanh x
+    Errno.handle
+    ret
   end
   
   def exp(x)

@@ -1,0 +1,565 @@
+Stage 1: Sexp to AST
+=========================
+
+  1.1 Descending into the sexp
+  ----------------------------
+
+The sexp is first sent to @Compiler#into_script@ (compiler.rb) which will
+eventually return some type of a Node object for further processing. @Nodes@ 
+represent nodes in the resulting <acronym title="Abstract Syntax Tree">AST</acronym>.
+
+Couple general notes: 
+
+* compiler.rb implements the compiler infrastructure as well as the basic 
+  Node class and its default operations. Subclasses of Node reside in 
+  nodes.rb and override methods as necessary.
+
+* Node.kind allows node types to register themselves into a mapping of sexp 
+  node name => node class, this is @Compiler::Node::Mapping@. For example,
+  a method definition appears as @:defn@ in the sexp and that is mapped to
+  the @Define@ node although usually the names are the same with the exception
+  that the node class name is of course capitalised.
+
+* Error handling is present all along the way but I ignore it because
+  there is nothing fancy there. Any errors here are unrecoverable.
+
+
+@Compiler#into_script@ wraps the plain sexp inside a @:script@ and sends
+it to @Compiler#convert_sexp@.
+
+    [:script,
+      [:newline, 1, "test.rb", 
+        [:defn, :foo, 
+          [:scope, 
+            [:block, [:args], 
+              [:newline, 2, "test.rb", 
+                [:fcall, :puts, [:array, [:str, "foo"]]]
+              ]
+            ], 
+            []
+          ]
+        ]
+      ]
+    ]
+
+We will run into @#convert_sexp@ pretty much every single step of the way. 
+It simply looks up the correct node type from the mapping by using the 
+first element in the sexp that it receives and then calls the @.create@ 
+method on the class with the sexp and a reference to the compiler.
+
+So @c.convert_sexp sexp@ -> @Script.create c, sexp@
+
+    [:script,
+      [:newline, 1, "test.rb", 
+        [:defn, :foo, 
+          [:scope, 
+            [:block, [:args], 
+              [:newline, 2, "test.rb", 
+                [:fcall, :puts, [:array, [:str, "foo"]]]
+              ]
+            ], 
+            []
+          ]
+        ]
+      ]
+    ]
+
+
+None of the Node subclasses implement @.create@ themselves so we are still
+in compiler.rb. @.create@ shifts away the now-unnecessary first element of
+the sexp and then creates a new instance of the node subclass.
+
+The following step is the main function of this compilation stage. We ask
+the Node subclass instance to @#consume@ the remaining sexp which produces
+an output. By default @#consume@ will simply recursively process all 
+nested Arrays (sexps) and leave any non-Array elements alone but this 
+behaviour is overridden by some subclasses (as we will see shortly) to 
+make the most important processing happen.
+
+The output is then sent to the @#args@ method of the node instance or, 
+if the node type needs argument normalisation (to reconcile all variants 
+of a particular sexp type), to @#normalize@ instead. Neither of these
+have a default implementation in @Node@ so look under the specific class
+in nodes.rb.
+
+In our case, @Script.create c, sexp@, we see the first slight modification
+in creating the @Script@ instance. @Script < ClosedScope@, and the purpose of
+all @ClosedScopes@ is to represent visibility scopes in the code. The main 
+part here is that a new @LocalScope@ object is created (you can see locals.rb
+but we will get back to this later.)
+
+Next, we step into @Script#consume@ (or @ClosedScope#consume@ to be
+specific) with our newly stripped sexp.
+
+    # Script.create c, sexp
+    #   Script.new   (creates a new LocalScope)
+    #   s.consume sexp 
+    #   args *result
+    [
+      [:newline, 1, "test.rb", 
+        [:defn, :foo, 
+          [:scope, 
+            [:block, [:args], 
+              [:newline, 2, "test.rb", 
+                [:fcall, :puts, [:array, [:str, "foo"]]]
+              ]
+            ], 
+            []
+          ]
+        ]
+      ]
+    ]
+
+@ClosedScope#consume@ assumes that it is getting a single-element
+Array containing the rest of the sexp for this particular scope (in
+our case the entire script.)
+
+It has a couple other important duties too, though: firstly, it
+uses the compiler's @#set@ method to set the current scope as itself
+as well as the default visibility as @public@. @#set@ and @#get@ are
+the compiler's way to change and describe the current compilation 
+state and various auxiliary data. 
+
+Secondly, the scope will @#formalize!@ all contained scopes. We
+will return to this later, but formalization is the process of 
+reserving stack space and assigning indexes to any local variables
+or arguments.
+
+    # Script#consume        (nodes.rb)
+    #   super to ClosedScope#consume
+    #   out = convert sexp.first (which is a Newline)
+    #   formalize all scopes
+    [:newline, 1, "test.rb", 
+      [:defn, :foo, 
+        [:scope, 
+          [:block, [:args], 
+            [:newline, 2, "test.rb", 
+              [:fcall, :puts, [:array, [:str, "foo"]]]
+            ]
+          ], 
+          []
+        ]
+      ]
+    ]
+
+The @Node#convert@ call you see there just calls @Compiler#convert_sexp@
+which, as you recall, is where this whole thing got started. This will be
+a recurring pattern.
+
+Through the normal route, we get to @Newline.create@ which in turn
+uses default processing to @#consume@ the rest of the sexp (the first
+element is again stripped after the node type lookup.)
+
+    # Compiler#convert_sexp -> Newline.create
+    #   Newline#consume sexp.shift
+    [1, "test.rb", 
+      [:defn, :foo, 
+        [:scope, 
+          [:block, [:args], 
+            [:newline, 2, "test.rb", 
+              [:fcall, :puts, [:array, [:str, "foo"]]]
+            ]
+          ], 
+          []
+        ]
+      ]
+    ]
+
+@Newline#consume@ first registers the current file and line
+information (the first two elements) with the compiler to help
+pinpoint compilation errors and then falls back on default 
+processing from @Node#consume@. 
+
+The process here is simple: loop through the sexp and push 
+elements to output. All nested sexps are recursively @#converted@ 
+first.
+
+So here the eventual output to be returned to @.create@ is
+just a three-element Array: @[1, 'test.rb', <Define node>]@.
+
+As we can see, the @:defn@ node will need processing so we
+move on to that. 
+
+    # convert [:defn 
+    [:defn, :foo, 
+      [:scope, 
+        [:block, [:args], 
+          [:newline, 2, "test.rb", 
+            [:fcall, :puts, [:array, [:str, "foo"]]]
+          ]
+        ], 
+        []
+      ]
+    ]
+
+(I will start abbreviating some common steps here.)
+
+    # n.convert -> c.convert_sexp -> Define.create
+    #   Define.new.consume sexp.shift
+    [:foo, 
+      [:scope, 
+        [:block, [:args], 
+          [:newline, 2, "test.rb", 
+            [:fcall, :puts, [:array, [:str, "foo"]]]
+          ]
+        ], 
+        []
+      ]
+    ]
+
+@Define@ is also a @ClosedScope@ but it will significantly augment
+the normal @#consume@ from the latter. First we separate the name
+and the body, after which the body gets supered to @ClosedScope#consume@
+wrapped inside a dummy Array. After getting the body back, we will
+massage it a bit to suit our needs but this will be done in part 2.
+The eventual output here will be @[name, <scope>, <args>]@.
+
+  # Define#consume -> ClosedScope#consume [body] -> convert body.first
+  [:scope, 
+    [:block, [:args], 
+      [:newline, 2, "test.rb", 
+        [:fcall, :puts, [:array, [:str, "foo"]]]
+      ]
+    ], 
+    []
+  ]
+
+@Scope@ nodes do not manage the scopes themselves, they are merely
+abstractions within the actual visibility scopes. @Scope#consume@ 
+assumes it is getting a two-element sexp of which only the first
+needs further processing (the second contains local variable names.)
+
+    # n.convert -> c.convert_sexp -> Scope.create -> Scope#consume
+    [
+      [:block, [:args], 
+        [:newline, 2, "test.rb", 
+          [:fcall, :puts, [:array, [:str, "foo"]]]
+        ]
+      ], 
+      []
+    ]
+
+    # Scope#consume
+    #   sexp[0] = convert sexp[0]
+    [:block, 
+      [:args], 
+      [:newline, 2, "test.rb", 
+        [:fcall, :puts, [:array, [:str, "foo"]]]
+      ]
+    ] 
+
+@Block@, then, typically encapsulates any type of block of code,
+not a lambda block. It is used in method definitions, if-expressions
+and so on. 
+
+    # c.convert_sexp -> Block.create 
+    #   Block.new.consume sexp.shift 
+    [
+      [:args], 
+      [:newline, 2, "test.rb", 
+        [:fcall, :puts, [:array, [:str, "foo"]]]
+      ]
+    ] 
+
+This is the first time we encounter a sexp with two separate nested
+sexps. Both will be processed separately and the output will be just
+@[<arg node>, <newline node>]@.
+
+    # Block#consume -> Node#consume
+    #   Loop through sexp, recursively convert nested sexps
+    #   convert [:args
+    [:args] 
+    #   convert [:newline
+    [:newline, 2, "test.rb", 
+      [:fcall, :puts, [:array, [:str, "foo"]]]
+    ]
+
+Stepping through Arguments first.
+
+    # c.convert_sexp -> Arguments.create 
+    #   Arguments.new.consume sexp.shift
+    []
+
+Since we have no arguments, there is no work to be done. However, to
+make things consistent, @Arguments#consume@ will return a structure 
+representing no args of any kind, @[[], [], nil, nil]@ (the fields are
+required arg names, optional arg names, splat arg name and default arg
+computations. See the source in nodes.rb for more info.) 
+
+The second node to process is the newline, one of which we have seen
+already. Nothing new here.  
+
+    # c.convert_sexp -> Newline.create
+    #   Newline.new.consume sexp.shift
+    [2, "test.rb", 
+      [:fcall, :puts, [:array, [:str, "foo"]]]
+    ]
+
+    # Newline#consume
+    #  The line and file are passed to Compiler#set_position
+    #  super sexp -> Node#consume sexp
+    #    Loop through sexp, recursively convert nested sexps
+    #      convert [:fcall
+    [:fcall, :puts, [:array, [:str, "foo"]]]
+
+@FCall@ is a bit more interesting. It represents a method call without
+an explicit receiver ("functional" style) and it is the first node that
+must be @#normalize@d. @FCall < Call < MethodCall < Node@.
+
+    # c.convert_sexp -> FCall.create
+    #   FCall.new
+    #     MethodCall does a bit of extra work here by storing
+    #     the scope type (it was @#set@ before, if you recall.) 
+    #     In our case the scope type is @Script@. We also start
+    #     out assuming no block is involved with this call.
+    #
+    #   f.consume sexp.shift
+    [:puts, [:array, [:str, "foo"]]]
+
+    # FCall#consume -> Node#consume
+    #   Loop through sexp, recursively convert nested sexps
+    #   convert [:array
+    [[:array, [:str, "foo"]]]
+
+    # c.convert_sexp -> ArrayLiteral.create 
+    #   ArrayLiteral.new.consume sexp.shift 
+    [[:str, "foo"]] 
+
+    # ArrayLiteral#consume -> Node#consume
+    #   Loop through sexp, recursively convert nested sexps
+    #   convert [:str
+    [:str, "foo"]
+
+    # c.convert_sexp -> StringLiteral.create
+    #   StringLiteral.new.consume sexp.shift
+    ["foo"]
+
+    # StringLiteral#consume -> Node#consume
+    #   Loop through sexp, recursively convert nested sexps
+    #   (Nothing to do, just "foo" remains.)
+
+At this point, we are at the end of the tree. There is nothing
+more to parse and we are ready for the next phase.
+
+
+
+1.2 Creating the AST
+-----------------------------
+
+Now we traverse back up the sexp, pushing the generated Nodes 
+upwards as we go. As you remember, the second part of each 
+@.create@ was sending the output of @#consume@ to @#args@ or
+@#normalize@. In the last step, we ended up with @StringLiteral@
+and that is where we will pick up.
+
+The output of a default @Node#consume@ is basically just the original
+sexp but with any nested sexps also converted (this may not hold
+true for subclasses.) In the case of @StringLiteral@, there were 
+no nested expressions, just the actual literal. (@<-@ is used to 
+denote returning.)
+
+@StringLiteral#consume@ returns @["foo"]@ and execution picks 
+back up in @Stringliteral.create@ where the returned value is
+passed into @StringLiteral#args@. All @#args@ does here is 
+store the string within the @StringLiteral@ node. After this,
+@StringLiteral.create@ is done, returning the node object. 
+
+The execution then unwinds from @StringLiteral.create@ to 
+@Compiler#convert_sexp@ to @<Node class>#convert@ and ends up 
+in the @#consume@ of the parent. In the case of @StringLiteral@,
+we end up in @ArrayLiteral#consume@.
+
+This sequence will largely be the same for all cases so you will
+see it abbreviated like this:
+
+    # StringLiteral#consume
+    #   <- StringLiteral.create
+    #     StringLiteral#args return
+    #       @string = 'foo'
+    #     <- c.convert_sexp
+    #       <- n.convert
+    #         <- ArrayLiteral#consume
+    StringL
+    .string = 'foo'
+
+ArrayLiteral#consume 
+ <= ArrayLiteral.create
+   ArrayLiteral#args
+     @body = ['foo']
+     
+return to FCall#consume
+ArrayL
+.body = StringL
+         .string = 'foo'
+
+FCall#consume
+ out = [:puts, anArrayLiteral] 
+
+ <= FCall.create
+   FCall does implement #normalize so we use that instead
+   FCall#normalize  
+     @method, @arguments = :puts, al
+     collapse_args => Call#collapse_args
+fc
+.method == :puts
+.arguments == al
+collapse_args just strips out the extra ArrayLiteral wrapper
+ @arguments = al.body
+fc
+.method == :puts
+.arguments == sl
+   FCall#normalize     
+     FCall#detect_special_forms is used to determine whether
+     this call is a special method such as #ivar_as_index
+
+return to Newline#consume
+fc
+.method == :puts
+.arguments == sl
+
+Newline#consume
+ out = [1, 'test.rb', fc]
+
+ <= Newline.create
+   We do NOT clear the compiler file, line positions
+   Newline#args
+     @file, @line, @child = 'test.rb', 1, fc
+
+return to Block#consume
+nl1
+.file == 'test.rb' 
+.line == 1
+.child == fc
+
+There were two forks in Block#consume so we complete the other one first
+
+Arguments#consume
+ out = [[], [], nil, nil]
+
+ <= Arguments#create
+   Arguments#args
+     @required, @optional, @splat, @defaults = [], [], nil, nil
+     @block_arg = nil   (may be set later)
+     Arguments#populate
+       Nothing to be done in our case, this would properly associate
+       the variable names to Local objects.
+
+return to Block#consume
+args
+.required == []
+.optional == []
+.splat == nil
+.defaults == nil
+.block_arg == nil
+
+Alright, now we have both trees back
+
+Block#consume
+ out = [args, nl1]
+ <= Block.create
+   Block#args
+     This is a bit strange, but Block encapsulates both the
+     args and the contained code in a single instance variable.
+     We extract it back in a bit.
+
+return to Scope#consume     
+bl
+.body == [args, nl1]
+
+Scope#consume
+ This only manipulated sexp[0], so 
+ out = [bl, []]
+
+ <= Scope.create
+   @block, @locals = bl, []
+
+return to ClosedScope#consume (supered by Define)
+sc
+.block == bl
+.locals == []
+
+ClosedScope#consume
+ #formalize! all scopes, this deals with reserving stack
+ space and assigning indexes for local variables and 
+ assigning slots for non-stack ones (such as arguments.) 
+    
+ out = sc 
+
+Define#consume
+ Now we extract sc.block.body again and then further
+ split it into args and the rest. If a block argument
+ is detected at this point, it gets recorded in the args
+
+ out = [:foo, sc<modified>, args]
+ <= Define.create
+   Define#args
+     @name, @body, @args = :foo, sc, args    
+
+return to Newline#consume
+meth
+.name == :foo
+.body == sc
+         .block == bl
+                    .body == [nl1]
+         .locals == []
+.args == args
+         .required == []
+         .optional == []
+         .splat == nil
+         .defaults == nil
+         .block_arg == nil
+         
+Newline#consume
+ out = [1, 'foo.rb', meth]
+ <= Newline.create
+   @file, @line, @child = 'test.rb', 1, meth
+
+return to Script#consume
+nl2
+.file == 'test.rb'
+.line == 1
+.child == meth
+          .name == :foo
+          .body == sc
+                    .block == bl
+                               .body == [nl1]
+                    .locals == []
+          .args == args
+                    .required == []
+                    .optional == []
+                    .splat == nil
+                    .defaults == nil
+                    .block_arg == nil
+
+Script#consume
+ formalize! again for any variables in this scope
+ <= Script.create
+   @body = nl2
+
+return to Compiler.into_script
+
+That is it for the compilation phase! This is the
+complete resulting structure for our tiny program:
+
+Script
+.body = Newline
+        .file  = 'test.rb'
+        .line  = 1
+        .child = Define
+                 .name = :foo
+                 .body = Scope
+                         .block = Block
+                                  .body = [Newline
+                                           .file  = 'test.rb'
+                                           .line  = 2
+                                           .child = FCall
+                                                    .method    = :puts
+                                                    .arguments = StringLiteral
+                                                                 .string = 'foo']
+                         .locals = []
+                 .args = Arguments
+                         .required  = []
+                         .optional  = []
+                         .splat     = nil
+                         .defaults  = nil
+                         .block_arg = nil
