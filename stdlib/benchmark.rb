@@ -260,7 +260,7 @@ module Benchmark
       label = label_item[0]
       item = label_item[1]
       print(label.ljust(width))
-      res = Benchmark::measure(&item)
+      res = Benchmark::measure(label,&item)
       print res.format()
       list.push res
     }
@@ -277,7 +277,7 @@ module Benchmark
       label, item = label_item
       GC::start
       print label.ljust(width)
-      res = Benchmark::measure(&item)
+      res = Benchmark::measure(label,&item)
       print res.format()
       ary.push res
       list.push [label, res]
@@ -377,7 +377,7 @@ module Benchmark
     #
     def item(label = "", *fmt, &blk) # :yield:
       print label.ljust(@width)
-      res = Benchmark::measure(&blk)
+      res = Benchmark::measure(label,&blk)
       print res.format(@fmtstr, *fmt)
       res
     end
