@@ -557,6 +557,10 @@ VALUE rb_cstr2inum(VALUE str, int base) {
   return rb_funcall(CHAR2STR(str), rb_intern("to_i"), 1, INT2NUM(base));
 }
 
+VALUE rb_str_substr(VALUE str, long beg, long len) {
+  return rb_funcall(str,  rb_intern("substring"), 2, INT2NUM(beg), INT2NUM(len));
+}
+
 char *StringValuePtr(VALUE str) {
   CTX;
   return (char*)string_byte_address(ctx->state, HNDL(str));

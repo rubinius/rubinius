@@ -132,6 +132,7 @@ VALUE rb_str_cmp(VALUE str1, VALUE str2);
 VALUE rb_str_split(VALUE str, const char *sep);
 VALUE rb_str2inum(VALUE str, int base);
 VALUE rb_cstr2inum(VALUE str, int base);
+VALUE rb_str_substr(VALUE str, long beg, long len);
 char *StringValuePtr(VALUE str);
 
 /* Hash */

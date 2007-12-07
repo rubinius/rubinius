@@ -69,6 +69,12 @@ extension :rubinius do
       @s.rb_cstr2inum(10).should == 10
       @s.rb_cstr2inum(16).should == 16
     end
+    
+    specify "rb_str_substr should return a substring" do
+      "hello".length.times do |time|
+        @s.rb_str_substr("hello", 0, time + 1).should == "hello"[0..time]
+      end
+    end
 
   end
 end
