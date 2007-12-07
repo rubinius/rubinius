@@ -98,19 +98,6 @@ EOF
   end
 end
 
-class String
-  def indent(amount)
-    out = ""
-    ind = " " * amount
-
-    each_line do |line|
-      out << ind << line
-    end
-
-    out
-  end
-end
-
 module Rake
   class StructGeneratorTask < TaskLib
     attr_accessor :dest
