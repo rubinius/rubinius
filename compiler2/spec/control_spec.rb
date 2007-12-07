@@ -611,6 +611,56 @@ describe Compiler do
       fin.set!
     end
   end
+
+  it "compiles a case with normal conditions and a splatted array" do
+    x = [:case, [:true], [
+           [:when, [:array, [:const, :String], [:when, [:array, [:str, "foo"],[:str, "bar"],[:str, "baz"]], nil]],
+               [:fixnum, 12]],
+        ]]
+    
+    gen x do |g|
+      body = g.new_label
+      nxt =  g.new_label
+      fin =  g.new_label
+      
+      g.push :true
+      
+      g.dup
+      g.push_const :String
+      g.send :===, 1
+      g.git body
+      
+      g.dup
+      g.push_literal "foo"
+      g.string_dup
+      g.send :===, 1
+      g.git body
+      
+      g.dup
+      g.push_literal "bar"
+      g.string_dup
+      g.send :===, 1
+      g.git body
+      
+      g.dup
+      g.push_literal "baz"
+      g.string_dup
+      g.send :===, 1
+      g.git body
+            
+      g.goto nxt
+      
+      body.set!
+      g.pop
+      g.push 12
+      g.goto fin
+      
+      nxt.set!
+      g.pop
+      g.push :nil
+      fin.set!
+    end
+  end
   
   it "compiles 'return'" do
     gen [:return] do |g|

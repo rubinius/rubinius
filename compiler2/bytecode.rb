@@ -321,6 +321,10 @@ class Node
   # TESTED  
   class RegexLiteral
     def bytecode(g)
+      # A regex literal should only be converted to a Regexp the first time it
+      # is encountered. We push a literal nil here, and then overwrite the
+      # literal value with the created Regexp if it is nil, i.e. the first time
+      # only. Subsequent encounters will use the previously created Regexp
       idx = g.push_literal nil
       g.dup
       g.is_nil
