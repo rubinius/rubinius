@@ -623,6 +623,30 @@ int SYMBOL_P(VALUE obj) {
   return RBX_SYMBOL_P(obj);
 }
 
+/* RSTRING Macro Replacement */
+char* rb_str_get_char_ptr(VALUE arg) {
+  CTX;
+  OBJECT str = HNDL(arg);
+  
+  return strdup(string_byte_address(ctx->state, string_get_data(str)));
+}
+
+void rb_str_flush_char_ptr(VALUE arg, char* ptr) {
+  CTX;
+  STATE;
+  state = ctx->state;
+  OBJECT str = HNDL(arg);
+  OBJECT new_string = string_new(ctx->state, ptr);
+  string_set_data(str, string_get_data(new_string));
+  free(ptr);
+}
+
+int rb_str_get_char_len(VALUE arg) {
+  CTX;
+  OBJECT str = HNDL(arg);
+  return strlen(string_byte_address(ctx->state, string_get_data(str)));
+}
+
 /*
 
 Still needed for Mongrel - Kev

@@ -540,13 +540,24 @@ namespace :extension do
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
-  file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
+  file "lib/ext/mongrel/rbxext.#{$dlext}" => FileList[
     'shotgun/lib/subtend/ruby.h',
     'lib/ext/syck/build.rb',
     'lib/ext/syck/*.c',
     'lib/ext/syck/*.h',
   ] do
     sh "./shotgun/rubinius compile lib/ext/syck"
+  end
+  
+  task :mongrel => "lib/ext/mongrel/http11.#{$dlext}"
+
+  file "lib/ext/mongrel/http11.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/ruby.h',
+    'lib/ext/mongrel/build.rb',
+    'lib/ext/mongrel/*.c',
+    'lib/ext/mongrel/*.h',
+  ] do
+    sh "./shotgun/rubinius compile lib/ext/mongrel"
   end
 
   task :zlib => %W[lib/ext/zlib/zlib.#{$dlext} lib/zlib.rb]
