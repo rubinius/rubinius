@@ -37,6 +37,7 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
 
 #define rb_define_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 0)
 #define rb_define_singleton_method(a, b, c, d) rb_define_method_(__FILE__, a, b, c, d, 1)
+void rb_define_alloc_func(VALUE class, void *func);
 
 VALUE rb_define_class(const char *name, VALUE super);
 VALUE rb_define_class_under(VALUE parent, const char *name, VALUE super);

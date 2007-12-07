@@ -317,6 +317,10 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
   }
 }
 
+void rb_define_alloc_func(VALUE class, void *func) {
+  rb_define_method(class, "allocate", func, 0);
+}
+
 const char *rb_id2name(ID sym) {
   OBJECT obj;
   CTX;
