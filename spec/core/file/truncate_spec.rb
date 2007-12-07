@@ -72,6 +72,6 @@ describe "File.truncate" do
   it "raise an exception if the arguments are wrong type or are the incorect number of arguments" do
     lambda { File.truncate(@name)      }.should raise_error(ArgumentError)
     lambda { File.truncate(@name, -1)  }.should raise_error(Errno::EINVAL) # May fail
-    labmda { File.truncate(@name, nil) }.should raise_error(TypeError)
+    lambda { File.truncate(@name, nil) }.should raise_error(TypeError)
   end
 end

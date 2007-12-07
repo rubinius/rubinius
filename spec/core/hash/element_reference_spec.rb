@@ -108,14 +108,13 @@ describe "Hash#[]" do
 
   # True for all other methods using hash codes as well...
   it "calls % on hash code from hash()" do
-    x = Object.new
-    def x.hash() HashSpecs.hash end
-    hc = Object.new
-    x.instance_variable_set(:@hash, hc)
+    hash_code = mock('hash code')
+    hash_code.should_receive(:%).and_return(2)
+    key = mock('key')
+    key.should_receive(:hash).and_return(hash_code)
 
-    hc.should_receive(:%).and_return(0)
     h = {1 => 2}
-    h[x].should == nil
+    h[key].should == nil
   end
 
   it "does not compare key with unknown hash codes via eql?" do

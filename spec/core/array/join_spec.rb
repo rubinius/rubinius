@@ -10,7 +10,7 @@ describe "Array#join" do
 # undef is not implemented -rue
 #    obj = Object.new
 #    class << obj; undef :to_s; end
-#    obj.should_receive(:method_missing, :with => [:to_s], :returning => "o")
+#    obj.should_receive(:method_missing).with(:to_s).and_return("o")
 #    [1, obj].join(":").should == "1:o"
   end
   

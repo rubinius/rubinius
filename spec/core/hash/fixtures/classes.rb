@@ -5,14 +5,14 @@ end
 
 module HashSpecs
   def self.empty
-    h = {}
-    h.freeze
-    h
+    @empty ||= {}
+    @empty.freeze
+    @empty
   end
   
   def self.hash
-    h = {1 => 2, 3 => 4}
-    h.freeze
-    h
+    @hash ||= {1 => 2, 3 => 4}
+    @hash.freeze
+    @hash
   end
 end

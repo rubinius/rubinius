@@ -21,7 +21,7 @@ describe "Range#each" do
     y = Object.new
     x = Object.new
     x.should_receive(:method_missing).with(:<=>, y).any_number_of_times.and_return(-1)
-    x.should_receive(:succ, :returning => y)
+    x.should_receive(:succ).any_number_of_times.and_return(y)
     y.should_receive(:method_missing).with(:<=>, x).any_number_of_times.and_return(0)
     
     a = []

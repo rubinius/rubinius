@@ -141,7 +141,7 @@ describe "String#%" do
   end
   
   it "always interprets an array argument as a list of argument parameters" do
-    labmda { "%p" % [] }.should raise_error(ArgumentError)
+    lambda { "%p" % [] }.should raise_error(ArgumentError)
     ("%p" % [1]).should == "1"
     ("%p %p" % [1, 2]).should == "1 2"
   end
@@ -537,11 +537,11 @@ describe "String#%" do
       raise_error(ArgumentError) { format % "123__456" }
       
       obj = Object.new
-      obj.should_receive(:to_i, :returning => 5)
+      obj.should_receive(:to_i).and_return(5)
       (format % obj).should == (format % 5)
 
       obj = Object.new
-      obj.should_receive(:to_int, :returning => 5)
+      obj.should_receive(:to_int).and_return(5)
       (format % obj).should == (format % 5)
 
       obj = Object.new
@@ -557,7 +557,7 @@ describe "String#%" do
       obj = Object.new
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(false)
       obj.should_receive(:respond_to?).with(:to_i).any_number_of_times.and_return(true)
-      obj.should_receive(:method_missing, :with => [:to_i], :returning => 65)
+      obj.should_receive(:method_missing).with(:to_i).any_number_of_times.and_return(65)
       (format % obj).should == (format % 65)
       
       obj = Object.new
@@ -599,7 +599,7 @@ describe "String#%" do
       raise_error(ArgumentError) { format % "10.10__10" }
       
       obj = Object.new
-      obj.should_receive(:to_f, :returning => 5.0)
+      obj.should_receive(:to_f).and_return(5.0)
       (format % obj).should == (format % 5.0)
 
       obj = Object.new

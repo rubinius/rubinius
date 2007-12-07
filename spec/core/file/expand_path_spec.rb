@@ -79,7 +79,7 @@ describe "File.expand_path" do
   end 
   
   it "raise an exception if the argumnents are not of the correct type or are missing" do
-    lambda { File.expand_path       }.should raise_errror(ArgumentError)
+    lambda { File.expand_path       }.should raise_error(ArgumentError)
     lambda { File.expand_path(1)    }.should raise_error(TypeError)
     lambda { File.expand_path(nil)  }.should raise_error(TypeError)
     lambda { File.expand_path(true) }.should raise_error(TypeError)

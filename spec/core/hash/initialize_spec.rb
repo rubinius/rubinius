@@ -16,12 +16,10 @@ describe "Hash#initialize" do
 
   compliant :mri do
     it "raises TypeError if called on a frozen instance" do
-      HashSpecs.hash.instance_eval do
-        lambda { initialize()     }.should raise_error(TypeError)
-        lambda { initialize(nil)  }.should raise_error(TypeError)
-        lambda { initialize(5)    }.should raise_error(TypeError)
-        lambda { initialize { 5 } }.should raise_error(TypeError)
-      end
+      lambda { HashSpecs.hash.instance_eval { initialize() }     }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.instance_eval { initialize(nil) }  }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.instance_eval { initialize(5) }    }.should raise_error(TypeError)
+      lambda { HashSpecs.hash.instance_eval { initialize { 5 } } }.should raise_error(TypeError)
     end
   end
 end

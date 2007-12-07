@@ -119,7 +119,7 @@ shared :string_slice do |cmd|
       "hello".send(cmd, 1, 2.5).should == "el"
 
       obj = Object.new
-      obj.should_receive(:to_int, :count => 4, :returning => 2)
+      obj.should_receive(:to_int).exactly(4).times.and_return(2)
 
       "hello".send(cmd, obj, 1).should == "l"
       "hello".send(cmd, obj, obj).should == "ll"

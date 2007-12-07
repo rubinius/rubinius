@@ -28,7 +28,7 @@ describe "File.executable?" do
   end
 
   it "raise an exception its the arguments are the worng type or number" do
-    lambda { File.executable?     ``   }.should raise_error(ArgumentError)
+    lambda { File.executable?        }.should raise_error(ArgumentError)
     lambda { File.executable?(1)     }.should raise_error(TypeError)
     lambda { File.executable?(nil)   }.should raise_error(TypeError)
     lambda { File.executable?(false) }.should raise_error(TypeError)

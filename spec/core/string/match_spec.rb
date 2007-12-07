@@ -18,11 +18,11 @@ describe "String#=~" do
     str = "w00t"
     obj = Object.new
 
-    obj.should_receive(:=~).with(str).and_return(true)
-    (str =~ obj).should == true
+    obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
+    str.should =~ obj
 
-    obj.should_receive(:=~).with(str).and_return(false)
-    (str =~ obj).should == false
+    obj.should_receive(:=~).with(str).any_number_of_times.and_return(false)
+    str.should =~ obj
   end
   
   it "sets $~ to MatchData when there is a match and nil when there's none" do
