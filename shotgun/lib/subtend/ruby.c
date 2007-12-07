@@ -647,6 +647,25 @@ int rb_str_get_char_len(VALUE arg) {
   return strlen(string_byte_address(ctx->state, string_get_data(str)));
 }
 
+VALUE subtend_wrap_struct(VALUE klass, void *struct_value, void *mark_func, void *free_func) {
+  CTX;
+  STATE;
+  state = ctx->state;
+  
+  OBJECT obj = NEW_OBJECT(HNDL(klass), sizeof(struct wraps_struct)/sizeof(uintptr_t));
+  struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj);
+  s->ptr = struct_value;
+  s->mark = mark_func;
+  s->free = free_func;
+  return NEW_HANDLE(ctx, obj);
+}
+
+void* subtend_get_struct(VALUE obj) {
+  CTX;
+  return ((struct wraps_struct *)BYTES_OF(HNDL(obj)))->ptr;
+}
+
+
 /*
 
 Still needed for Mongrel - Kev

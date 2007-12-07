@@ -193,6 +193,8 @@ void mark_sweep_free_entry(STATE, mark_sweep_gc ms, struct ms_entry *ent) {
     state_run_cleanup(state, obj, cls);
   }
   
+  if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);
+  
 #if TRACK_DONT_FREE
   memset(obj, 0, SIZE_IN_BYTES(obj));
   *((int*)(obj)) = 0xbaddecaf;
@@ -249,9 +251,12 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
     if(header->entry->marked) return iobj;
     header->entry->marked = 1;
     
+    if(iobj->obj_type == WrapsStructType) MARK_WRAPPED_STRUCT(iobj);
   } else {
     if(iobj->Marked) return iobj;
+    
     iobj->Marked = TRUE;
+    if(iobj->obj_type == WrapsStructType) MARK_WRAPPED_STRUCT(iobj);
   }
   
   // printf("Marked %d\n", iobj);

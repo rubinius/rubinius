@@ -357,6 +357,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
       dest = heap_copy_object(g->next, obj);
       baker_gc_set_forwarding_address(obj, dest);
       if(!obj->ForeverYoung) INCREMENT_AGE(dest);
+      if(obj->obj_type == WrapsStructType) MARK_WRAPPED_STRUCT(obj);
     } else {
       CLEAR_AGE(obj);
       dest = (*g->tenure)(g->tenure_data, obj);
@@ -570,6 +571,8 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
         
         state_run_cleanup(state, obj, cls);
       }
+      
+      if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);
     }
     bs = SIZE_IN_BYTES_FIELDS(osz);
     fast_memfill(cur, 0, SIZE_IN_WORDS_FIELDS(osz));

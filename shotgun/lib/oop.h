@@ -49,12 +49,13 @@ typedef void * xpointer;
 /* rubinius_object types, takes up 3 bits */
 typedef enum
 {
-  ObjectType    = 0,
-  MContextType  = 1,
-  BContextType  = 2,
-  ClassType     = 3,
-  MetaclassType = 4,
-  MTType        = 5,
+  ObjectType      = 0,
+  MContextType    = 1,
+  BContextType    = 2,
+  ClassType       = 3,
+  MetaclassType   = 4,
+  MTType          = 5,
+  WrapsStructType = 6,
 } object_type;
 
 /* rubinius_object gc zone, takes up two bits */
@@ -197,5 +198,21 @@ static inline void object_copy_nongc_flags(OBJECT target, OBJECT source)
 #define AGE(obj)           (obj->copy_count)
 #define CLEAR_AGE(obj)     (obj->copy_count = 0)
 #define INCREMENT_AGE(obj) (obj->copy_count++)
+
+struct wraps_struct {
+  void *ptr;
+  void (*mark)(void*);
+  void (*free)(void*);
+};
+
+#define MARK_WRAPPED_STRUCT(obj) do { \
+    struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj); \
+    s->mark(s->ptr); \
+  } while (0)
+
+#define FREE_WRAPPED_STRUCT(obj) do { \
+    struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj); \
+    s->free(s->ptr); \
+  } while (0)
 
 #endif 
