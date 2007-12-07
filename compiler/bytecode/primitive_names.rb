@@ -11,7 +11,7 @@ module Bytecode
       :allocate,
       :allocate_count,
       :allocate_bytes,
-      nil, # was create_block
+      :io_seek,
       :block_given,
       :block_call,
       :string_to_sexp,
