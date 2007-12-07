@@ -11,6 +11,7 @@ class Thread
 
   def setup(prime_lock)
     @__ivars__ = {}
+    @group = nil
     @alive = true
     @result = nil
     @exception = nil
@@ -95,6 +96,14 @@ class Thread
       break nil if @alive
       self
     end
+  end
+  
+  def group
+    @group
+  end
+  
+  def add_to_group(group)
+    @group = group
   end
 
   def value
