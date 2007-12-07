@@ -462,7 +462,13 @@ char *ffi_to_string() {
 void ffi_from_string(char *str) {
   OBJECT ret;
   rni_context *ctx = subtend_retrieve_context();
-  ret = string_new(ctx->state, str);
+
+  if (NULL == str) {
+    ret = Qnil;
+  } else {
+    ret = string_new(ctx->state, str);
+  }
+
   cpu_stack_push(ctx->state, ctx->cpu, ret, FALSE);
 }
 
@@ -953,7 +959,7 @@ OBJECT ffi_get_field(char *ptr, int offset, int type) {
   
   ptr += offset;
   state = ctx->state;
-  
+
   sz = ffi_type_size(type);
   
   switch(sz) {
@@ -997,16 +1003,16 @@ void ffi_set_field(char *ptr, int offset, int type, OBJECT val) {
     memcpy(ptr, &u8, sz);
     break;
   case 2:
-    u8 = (uint16_t)conv();
+    u16 = (uint16_t)conv();
     memcpy(ptr, &u16, sz);
     break;
   default:
   case 4:
-    u8 = (uint32_t)conv();
+    u32 = (uint32_t)conv();
     memcpy(ptr, &u32, sz);
     break;
   case 8:
-    u8 = (uint64_t)conv();
+    u64 = (uint64_t)conv();
     memcpy(ptr, &u64, sz);
     break;
   
