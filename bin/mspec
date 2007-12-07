@@ -23,6 +23,7 @@ format = 'DottedReporter'
 verbose = false
 gdb = false
 valgrind = false
+compiler2 = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
@@ -106,6 +107,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     puts opts
     exit
   end
+  opts.on("-2", "--compiler2", "Use compiler version 2 to compile specs") do
+    compiler2 = 'compiler2/compile.rb'
+  end
   
   patterns = opts.parse ARGV
 end
@@ -121,6 +125,13 @@ patterns.each do |item|
   stat = File.stat(File.expand_path(item))
   files << item if stat.file?
   files.concat(Dir[item+"/**/*_spec.rb"].sort) if stat.directory?
+end
+
+if compiler2
+  STDOUT.puts "Compiling target files with #{compiler2}"
+  files.each do |f|
+    system "#{target} #{compiler2} #{f}"
+  end
 end
 
 code = <<-EOC
