@@ -58,7 +58,7 @@ class StructGenerator
 
       @fields.each do |field|
         f.puts <<EOF
-  printf("%s %i\\n", "#{field.name}", (int)offsetof(#{@struct_name}, #{field.name}));
+  printf("%s %u\\n", "#{field.name}", offsetof(#{@struct_name}, #{field.name}));
 EOF
       end
 
