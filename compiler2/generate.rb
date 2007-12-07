@@ -37,7 +37,7 @@ class Compiler
     end
     
     attr_reader :ip, :exceptions
-    attr_accessor :break, :redo, :next, :retry
+    attr_accessor :redo, :break, :next, :retry, :ensure_return
     
     def run(node)
       node.bytecode self
