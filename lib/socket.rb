@@ -220,5 +220,15 @@ class TCPServer < TCPSocket
 
     socket
   end
+  
+  def listen(log)
+    log = Type.coerce_to(log, Fixnum, :to_int)
+
+    ret = Socket::Foreign.listen_socket(@descriptor, log)
+    if ret != 0
+      Errno.handle
+    end
+    ret
+  end
 end
 
