@@ -12,11 +12,11 @@ ul#chapters {
 	font-size: 1em;
 }
 
-ul#op_codes {
+ul.toc_subsection {
 	padding-left: 10px;
 }
 
-ul#chapters li, ul#op_codes li {
+ul#chapters li, ul.toc_subsection li {
 	list-style-type: none;
 }
 
