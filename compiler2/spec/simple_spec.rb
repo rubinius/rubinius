@@ -323,7 +323,8 @@ describe Compiler do
       g.push 14
       g.push 13
       g.push 12
-      g.push_const :Hash
+      g.push_cpath_top
+      g.find_const :Hash
       g.send :[], 4
     end
   end
@@ -412,7 +413,8 @@ describe Compiler do
     gen [:dot2, [:fixnum, 1], [:fixnum, 2]] do |g|
       g.push 2
       g.push 1
-      g.push_const :Range
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 2 
     end
   end
@@ -422,7 +424,8 @@ describe Compiler do
       g.push :true
       g.push 2
       g.push 1
-      g.push_const :Range
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 3
     end
   end

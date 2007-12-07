@@ -256,7 +256,8 @@ class Node
         k.bytecode(g)
       end
       
-      g.push_const :Hash
+      g.push_cpath_top
+      g.find_const :Hash
       g.send :[], count
     end
   end
@@ -1904,7 +1905,8 @@ class Node
     def bytecode(g)
       @finish.bytecode(g)
       @start.bytecode(g)
-      g.push_const :Range
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 2
     end
   end
@@ -1915,7 +1917,9 @@ class Node
       g.push :true
       @finish.bytecode(g)
       @start.bytecode(g)
-      g.push_const :Range
+      
+      g.push_cpath_top
+      g.find_const :Range
       g.send :new, 3
     end
   end

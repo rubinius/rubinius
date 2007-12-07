@@ -73,19 +73,23 @@ def batch(opts)
 end
 
 
+HEADER = <<-DATA
+Usage:  shotgun/rubinius compiler2/compile.rb [OPTIONS] [filename.rb]
+
+        Omitting the filename also gives the interactive prompt.
+        The prompt will automatically execute the code.
+
+DATA
 
 o = Options.new do |o|
-      o.header "Usage:  shotgun/rubinius compiler2/compile.rb [OPTIONS] [filename.rb]\n" <<
-               "        Omitting the filename also gives the interactive prompt.\n" <<
-               "        The prompt will automatically execute the code.\n" <<
-               "\n"
-      o.option '-x --execute      Execute code when done'
-      o.option '-v --verbose      Print diagnostic info'
-      o.option '-i --interactive  Present prompt'
-      o.option '-h --help         Show this help message.'
+  o.header HEADER
+  o.option '-x --execute      Execute code when done'
+  o.option '-v --verbose      Print diagnostic info'
+  o.option '-i --interactive  Present prompt'
+  o.option '-h --help         Show this help message.'
 
-      o.on_error {|opt, ex| $stderr.puts opt.usage; exit 1 }
-    end
+  o.on_error {|opt, ex| $stderr.puts opt.usage; exit 1 }
+end
 
 interactive if ARGV.empty?
 

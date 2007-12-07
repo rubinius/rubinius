@@ -110,6 +110,7 @@ class Compiler
       
       cm.name = desc.name
       
+      cm.primitive = @primitive
       cm.literals = encode_literals()
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
