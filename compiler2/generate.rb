@@ -133,13 +133,17 @@ class Compiler
       what << inst
       @stream << what      
     end
-    
-    def find_literal(what)
-      idx = @literals.index(what)
-      return idx if idx
+
+    def add_literal(what)
       idx = @literals.size
       @literals << what
       return idx
+    end
+
+    def find_literal(what)
+      idx = @literals.index(what)
+      return idx if idx
+      add_literal(what)
     end
     
     # Commands (these don't generate data in the stream)
@@ -269,6 +273,10 @@ class Compiler
     
     def push_literal(what)
       idx = find_literal(what)
+      push_literal_at(idx)
+    end
+
+    def push_literal_at(idx)
       add :push_literal, idx
       return idx
     end

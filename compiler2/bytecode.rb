@@ -325,7 +325,8 @@ class Node
       # is encountered. We push a literal nil here, and then overwrite the
       # literal value with the created Regexp if it is nil, i.e. the first time
       # only. Subsequent encounters will use the previously created Regexp
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       

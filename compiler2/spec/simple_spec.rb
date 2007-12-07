@@ -118,7 +118,8 @@ describe Compiler do
   it "compiles regexp literals" do
     re = /abcd/
     gen [:lit, re] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -137,7 +138,8 @@ describe Compiler do
   
   it "compiles regexs" do
     gen [:regex, "comp", 0] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -240,7 +242,8 @@ describe Compiler do
       g.push_literal "blah"
       g.string_dup
       
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
@@ -261,7 +264,8 @@ describe Compiler do
   
   it "compiles string operation =~" do
     gen [:match3, [:regex, "aoeu", 0], [:str, "blah"]] do |g|
-      idx = g.push_literal nil
+      idx = g.add_literal(nil)
+      g.push_literal_at idx
       g.dup
       g.is_nil
       
