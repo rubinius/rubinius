@@ -34,8 +34,15 @@ OBJECT rbs_class_new_with_namespace(STATE, const char *name, int fields, OBJECT 
 
 OBJECT rbs_module_new(STATE, const char *name, OBJECT ns) {
   OBJECT mod;
+
+  mod = rbs_const_get(state, ns, name);
+
+  if (!NIL_P(mod)) /* HACK check for module */
+    return mod;
+
   mod = module_allocate_mature(state, 0);
   module_setup_with_namespace(state, mod, name, ns);
+
   return mod;
 }
 
