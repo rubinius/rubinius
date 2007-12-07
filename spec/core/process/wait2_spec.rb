@@ -1,6 +1,12 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Process.wait2" do
+  before :each do
+    # this kludge is temporarily necessary because some misbehaving
+    # spec somewhere else does not clear processes
+    Process.waitall
+  end
+  
   it "should return the pid and status of child process" do
     pidf = Process.fork { exit 99 }
     results = Process.wait2

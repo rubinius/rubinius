@@ -1,8 +1,8 @@
 module ArraySpecs
   def self.frozen_array
-    ary = [1,2,3]
-    ary.freeze
-    ary
+    @frozen_array ||= [1,2,3]
+    @frozen_array.freeze
+    @frozen_array
   end
 end
 

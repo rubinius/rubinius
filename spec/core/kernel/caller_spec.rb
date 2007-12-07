@@ -28,7 +28,8 @@ describe 'Kernel#caller' do
   end
   
   it "returns nil when all frames are omitted" do
-    x = c(0).size
+    # the default argument for caller is 1 not 0
+    x = c(0).size + 1
     c(x).should == []
     c(x+1).should == nil
     c(x+2).should == nil

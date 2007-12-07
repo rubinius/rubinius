@@ -3,11 +3,14 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#rindex" do
   it "returns the first index backwards from the end where element == to object" do
-    key = 3    
-    ary = Array.new(3) { Object.new }
-    ary[2].should_receive(:==).with(key).and_return(false)
-    ary[1].should_receive(:==).with(key).and_return(true)
-    ary[0].should_not_receive(:==)
+    key = 3
+    uno = mock('one')
+    dos = mock('two')
+    tres = mock('three')
+    tres.should_receive(:==).any_number_of_times.and_return(false)
+    dos.should_receive(:==).any_number_of_times.and_return(true)
+    uno.should_not_receive(:==)
+    ary = [uno, dos, tres]
 
     ary.rindex(key).should == 1
   end

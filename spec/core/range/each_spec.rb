@@ -16,17 +16,19 @@ describe "Range#each" do
     
     a = []
     (0xfffd...0xffff).each { |i| a << i }
-    a.should == [0xfffd,0xfffe]
+    a.should == [0xfffd, 0xfffe]
 
-    y = Object.new
-    x = Object.new
-    x.should_receive(:method_missing).with(:<=>, y).any_number_of_times.and_return(-1)
+    y = mock('y')
+    x = mock('x')
+    x.should_receive(:<=>).with(y).any_number_of_times.and_return(-1)
+    x.should_receive(:<=>).with(x).any_number_of_times.and_return(0)
     x.should_receive(:succ).any_number_of_times.and_return(y)
-    y.should_receive(:method_missing).with(:<=>, x).any_number_of_times.and_return(0)
+    y.should_receive(:<=>).with(x).any_number_of_times.and_return(1)
+    y.should_receive(:<=>).with(y).any_number_of_times.and_return(0)
     
     a = []
     (x..y).each { |i| a << i }
-    a.should == [x]
+    a.should == [x, y]
   end
   
   it "raises a TypeError if the first element does not respond to #succ" do

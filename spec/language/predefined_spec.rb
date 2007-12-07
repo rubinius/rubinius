@@ -146,10 +146,6 @@ true             TrueClass       Singleton instance of class TrueClass. [r/o]
 =end
 
 describe "The predefined standard objects" do
-  it "includes self" do
-    self.class.should == Object
-  end
-
   it "includes ARGF" do
     Object.const_defined?(:ARGF).should == true
   end
