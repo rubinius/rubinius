@@ -58,7 +58,7 @@ class StructGenerator
 
       @fields.each do |field|
         f.puts <<EOF
-  printf("%s %u\\n", "#{field.name}", offsetof(#{@struct_name}, #{field.name}));
+  printf("%s %u\\n", "#{field.name}", (unsigned int)offsetof(#{@struct_name}, #{field.name}));
 EOF
       end
 
@@ -119,7 +119,7 @@ module Rake
         rm_f @dest
       end
 
-      file @dest => "#{@dest}.in" do |t|
+      file @dest => %W[#{@dest}.in #{__FILE__}] do |t|
         puts "Generating #{@dest}..."
 
         File.open(t.name, "w") do |f|
