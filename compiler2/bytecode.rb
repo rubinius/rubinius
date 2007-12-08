@@ -1451,7 +1451,7 @@ class Node
       case @child
       when MAsgn
         @child.bytecode(g)
-      when LocalAssignment
+      when LocalAssignment, IVarAssign
         g.cast_for_single_block_arg
         @child.bytecode(g)
         g.pop

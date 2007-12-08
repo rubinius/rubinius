@@ -236,6 +236,31 @@ describe Compiler do
     end
   end
 
+  it "compiles a for loop with an ivar assignment" do
+    sexp = [:newline, 1, "(eval)", 
+             [:for, [:dot2, [:lit, 1], [:lit, 2]], 
+              [:iasgn, :@xyzzy] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.cast_for_single_block_arg
+        d.set_ivar :@xyzzy
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push 2
+      g.push 1
+      g.push_cpath_top
+      g.find_const :Range
+      g.send :new, 2
+      g.send_with_block :each, 0, false
+    end
+  end
+
   it "compiles a for loop with multiple arguments" do
     sexp = [:newline, 1, "(eval)", 
             [:for, [:vcall, :x], 
