@@ -666,7 +666,8 @@ VALUE subtend_wrap_struct(VALUE klass, void *struct_value, void *mark_func, void
 
 void* subtend_get_struct(VALUE obj) {
   CTX;
-  return ((struct wraps_struct *)BYTES_OF(HNDL(obj)))->ptr;
+  struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(HNDL(obj));
+  return s->ptr;
 }
 
 

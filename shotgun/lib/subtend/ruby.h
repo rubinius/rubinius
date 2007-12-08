@@ -152,6 +152,9 @@ char* rb_str_get_char_ptr(VALUE arg);
 void rb_str_flush_char_ptr(VALUE arg, char* ptr);
 int rb_str_get_char_len(VALUE arg);
 
+VALUE subtend_wrap_struct(VALUE klass, void *struct_value, void *mark_func, void *free_func);
+void* subtend_get_struct(VALUE obj);
+
 // TODO: Make this do Check_Type as well
 #define Data_Get_Struct(obj, type, sval) do { sval = (type *)subtend_get_struct(obj); } while (0)
 #define Data_Wrap_Struct(klass, mark, free, sval) subtend_wrap_struct(klass, sval, mark, free)
