@@ -1,18 +1,26 @@
 class Object
   def before(at=:each, &block)
-    @runner.before(at, &block)
+    spec_runner.before(at, &block)
   end
 
   def after(at=:each, &block)
-    @runner.after(at, &block)
+    spec_runner.after(at, &block)
   end
 
-  def describe(msg, &block)
-    @runner.describe(msg, &block)
+  def describe(mod, str, &block)
+    spec_runner.describe(mod, str, &block)
   end
 
-  def it(msg, &block)
-    @runner.it(msg, &block)
+  def it(mod, str, &block)
+    spec_runner.it(mod, str, &block)
+  end
+  
+  def set_spec_runner(formatter=nil, out=STDOUT)
+    @runner = SpecRunner.new(formatter.new(out))
+  end
+  
+  def spec_runner
+    @runner ||= SpecRunner.new
   end
 
   alias context describe
