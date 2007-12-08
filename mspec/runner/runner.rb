@@ -18,6 +18,7 @@ class SpecRunner
         @formatter = DottedFormatter.new
       end
     end
+    reset_run
   end
 
   def formatter
@@ -57,4 +58,63 @@ class SpecRunner
     @except = convert_to_regexps(*args)
   end
   
+  def before(at=:each, &block)
+    case at
+    when :each
+      @before_each << block
+    when :all
+      @before_all << block
+    else
+    end
+  end
+  
+  def after(at=:each, &block)
+    case at
+    when :each
+      @after_each << block
+    when :all
+      @after_all << block
+    end
+  end
+  
+  def it(mod, str, &block)
+    @it << ["#{mod}#{str}", block]
+  end
+  
+  def describe(mod, str)
+    reset_run
+    msg = "#{mod}#{str}"
+    formatter.before_describe(msg)
+    yield
+    
+    @before_all.each { |ba| ba.call }
+    @it.each do |msg, i|
+      formatter.before_it(msg)
+      begin
+        begin
+          @before_each.each { |be| be.call }
+          i.call
+        rescue Exception => e
+          formatter.exception(e)
+        ensure
+          @after_each.each { |ae| ae.call }
+        end
+      rescue Exception => e
+        formatter.exception(e)
+      end
+      formatter.after_it(msg)
+    end
+    @after_all.each { |aa| aa.call }
+    formatter.after_describe(msg)
+  end
+  
+  private
+  
+  def reset_run
+    @before_each = []
+    @before_all  = []
+    @after_each  = []
+    @after_all   = []
+    @it          = []
+  end
 end
