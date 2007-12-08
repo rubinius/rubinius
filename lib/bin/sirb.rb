@@ -27,6 +27,12 @@ if env
   end
 end
 
+sirbrc = "#{ENV['HOME']}/.sirbrc"
+
+if File.file? sirbrc
+  load sirbrc
+end
+
 simple_prompt = false
 
 until ARGV.empty?
