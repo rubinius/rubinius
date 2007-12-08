@@ -251,14 +251,6 @@ class Object
     Ruby.primitive :object_frozen_p
   end
 
-  def to_a
-    if self.kind_of? Array
-      self
-    else
-      [self]
-    end
-  end
-
   def !=(other)
     !(self == other)
   end
