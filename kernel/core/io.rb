@@ -104,8 +104,10 @@ class IO
   end
 
   def pos
-    seek 0, SEEK_SET
+    seek 0, SEEK_CUR
   end
+
+  alias_method :tell, :pos
 
   def pos=(offset)
     seek pos, SEEK_SET

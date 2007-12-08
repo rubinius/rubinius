@@ -19,10 +19,6 @@ class File < IO
     LOCK_NB  = 0x04
     LOCK_UN  = 0x08
 
-    SEEK_SET = 0x00
-    SEEK_CUR = 0x01
-    SEEK_END = 0x02
-    
     RDONLY   = 0x00
     WRONLY   = 0x01
     RDWR     = 0x02
