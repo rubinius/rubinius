@@ -104,7 +104,7 @@ class IO
   end
 
   def pos
-    seek 0, SEEK_SET
+    seek 0, SEEK_CUR
   end
 
   def pos=(offset)
