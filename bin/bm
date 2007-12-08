@@ -4,69 +4,112 @@ require 'benchmark'
 include Benchmark
 
 INTERPRETERS = ['ruby','shotgun/rubinius']
-WIDTH = 42
+WIDTH = 50
 
-def pretty_file(file)
-  file =~ %r{/([^/]+)$}
-  $1
+class RbxBenchmark
+  def initialize(interpreter,file)
+    @interpreter = interpreter
+    @file        = file
+
+    run
+  end
+
+  def pretty_interpreter
+    @interpreter.match(%r{ruby|rubinius})[0]
+  end
+
+  def pretty_file
+    @file.match(%r{[^/]+/[^/]+$})[0]
+  end
+
+  def label
+    pretty_interpreter + ': ' + pretty_file
+  end
+
+  def command
+    command = "#{@interpreter} #{@file}"
+
+    case @file
+      when /wycats\/bm_string[.]rb/
+        command += %{ -x "String#unpack"}
+      when /borasky\/bm_MatrixBenchmark[.]rb/
+        command += %{ 64}
+    end
+
+    command
+  end
+
+  def quiet_command
+    command + ' > /dev/null 2>&1'
+  end
+
+  def run
+    @result = Benchmark.bmbm do |x|
+      x.report(label + ' ' * (WIDTH - label.length)) do
+        if system quiet_command then
+          @pass = true
+        else
+          @pass = false
+          system command
+        end
+      end
+    end.first
+  end
+
+  def pass?
+    @pass
+  end
+
+  def time
+    pass? ? @result.real : 0
+  end
 end
 
-def pretty_interpreter(interpreter)
-  interpreter =~ %r{(ruby|rubinius)}
-  $1
-end
+class RbxBenchmarkRun
+  def initialize(interpreter)
+    @interpreter = interpreter
+    @benchmarks  = []
+    @total = Benchmark::Tms.new
+  end
 
-def quiet_command(command)
-  command + ' > /dev/null 2>&1'
-end
-
-def label(interpreter,file)
-  pretty_interpreter(interpreter) + ': ' + pretty_file(file)
-end
-
-labels = []
-
-results = Benchmark.bmbm do |x|
-  INTERPRETERS.each do |interpreter|
-    if interpreter =~ /rubinius/ then
+  def clean
+    if @interpreter =~ /rubinius/ then
       Dir['test/benchmark/*/bm*.rbc'].each do |file|
         File.unlink file
       end
     end
+  end
+
+  def run
+    clean
 
     Dir['test/benchmark/*/bm*.rb'].each do |file|
-      command = "#{interpreter} #{file}"
+      @benchmarks << RbxBenchmark.new(@interpreter,file)
+    end
 
-      case file
-        when /wycats\/bm_string[.]rb/
-          command += %{ -x "String#unpack"}
-        when /borasky\/bm_MatrixBenchmark[.]rb/
-          command += %{ 64}
-      end
+    self
+  end
 
-      labels << label(interpreter,file)
+  def time
+    @benchmarks.inject(0) {|total, b| total + b.time }
+  end
 
-      x.report(labels.last + ' ' * (WIDTH - labels.last.length)) do
-        if not system quiet_command(command) then
-          system command
-        end
+  def report
+    puts
+    puts @interpreter
+    puts '-' * @interpreter.length
+
+    @benchmarks.each do |benchmark|
+      if benchmark.pass? then
+        puts benchmark.time
+      else
+        puts "Failed"
       end
     end
+
+    puts 'Total time, not including failures: ' + time.to_s
+    puts
   end
 end
 
-INTERPRETERS.each do |interpreter|
-  local_labels = labels.clone
-
-  puts pretty_interpreter(interpreter)
-
-  total = Benchmark::Tms.new
-
-  results.each do |result|
-    next unless local_labels.shift =~ /#{pretty_interpreter(interpreter)}/
-    total += result
-    puts result.real.to_s
-  end
-
-  puts 'Total time: ' + total.real.to_s
-end
+INTERPRETERS.collect { |i| RbxBenchmarkRun.new(i).run }.each { |r| r.report }
