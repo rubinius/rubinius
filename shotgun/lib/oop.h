@@ -207,12 +207,12 @@ struct wraps_struct {
 
 #define MARK_WRAPPED_STRUCT(obj) do { \
     struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj); \
-    s->mark(s->ptr); \
+    if(s->mark != NULL) { s->mark(s->ptr); } \
   } while (0)
 
 #define FREE_WRAPPED_STRUCT(obj) do { \
     struct wraps_struct *s = (struct wraps_struct *)BYTES_OF(obj); \
-    s->free(s->ptr); \
+    if(s->free != NULL) { s->free(s->ptr); } \
   } while (0)
 
 #endif 
