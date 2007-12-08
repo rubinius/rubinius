@@ -98,7 +98,23 @@ class IO
       end
     end
   end
-  
+
+  def seek(amount, whence=SEEK_SET)
+    prim_seek amount, whence
+  end
+
+  def pos
+    seek 0, SEEK_SET
+  end
+
+  def pos=(offset)
+    seek pos, SEEK_SET
+  end
+
+  def prim_seek(amount, whence)
+    Ruby.primitive :io_seek
+  end
+
   def close
     raise IOError, "Instance of IO already closed" if closed?
     io_close

@@ -256,6 +256,10 @@ Rake::StructGeneratorTask.new do |t|
   t.dest = "lib/etc.rb"
 end
 
+Rake::StructGeneratorTask.new do |t|
+  t.dest = 'lib/zlib.rb'
+end
+
 AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output
 AllPreCompiled << "runtime/loader.rbc"
 
@@ -508,6 +512,7 @@ task :extensions => %w[
   extension:digest_md5
   extension:fcntl
   extension:syck
+  extension:zlib
 ]
 
 namespace :extension do
@@ -542,6 +547,16 @@ namespace :extension do
     'lib/ext/syck/*.h',
   ] do
     sh "./shotgun/rubinius compile lib/ext/syck"
+  end
+
+  task :zlib => %W[lib/ext/zlib/zlib.#{$dlext} lib/zlib.rb]
+
+  file "lib/ext/zlib/zlib.#{$dlext}" => FileList[
+    'shotgun/lib/subtend/ruby.h',
+    'lib/ext/zlib/build.rb',
+    'lib/ext/zlib/*.c'
+  ] do
+    sh "./shotgun/rubinius compile lib/ext/zlib"
   end
 
 end

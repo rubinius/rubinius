@@ -1,0 +1,164 @@
+require 'ext/zlib/zlib'
+
+module Zlib
+
+  class Stream < FFI::Struct
+    @@@
+    name "struct z_stream_s"
+    include "zlib.h"
+    field :next_in, :string
+    field :avail_in, :uint
+    field :total_in, :ulong
+    field :next_out, :string
+    field :avail_out, :uint
+    field :total_out, :ulong
+    field :msg, :string
+    @@@
+  end
+
+  attach_function 'rbx_Zlib_z_stream_Alloc', :z_stream_Alloc, [], :pointer
+
+  attach_function 'rbx_Zlib_deflateInit2', :deflateInit2, [
+                    :pointer, # z_streamp strm
+                    :int,     # int level
+                    :int,     # int method
+                    :int,     # int windowBits
+                    :int,     # int memLeel
+                    :int,     # int strategy
+                  ], :int
+
+  attach_function 'deflate', :deflate, [:pointer, :int], :int
+
+  attach_function 'deflateEnd', :deflateEnd, [:pointer], :int
+
+  #--
+  # From zlib.h
+  #++
+
+  NO_FLUSH = 0
+  PARTIAL_FLUSH = 1
+  SYNC_FLUSH = 2
+  FULL_FLUSH = 3
+  FINISH = 4
+  BLOCK = 5
+
+  OK = 0
+  STREAM_END = 1
+  NEED_DICT = 2
+  ERRNO = -1
+  STREAM_ERROR = -2
+  DATA_ERROR = -3
+  MEM_ERROR = -4
+  BUF_ERROR = -5
+  VERSION_ERROR = -6
+
+  NO_COMPRESSION = 0
+  BEST_SPEED = 1
+  BEST_COMPRESSION = 9
+  DEFAULT_COMPRESSION = -1
+
+  FILTERED = 1
+  HUFFMAN_ONLY = 2
+  RLE = 3
+  FIXED = 4
+  DEFAULT_STRATEGY = 0
+
+  DEFLATED = 8
+
+  #--
+  # HACK from zconf.h
+  #++
+
+  MAX_WBITS = 15
+  MAX_MEM_LEVEL = 9
+  DEF_MEM_LEVEL = 9
+
+  #--
+  # HACK from zlib.c
+  #--
+
+  GZ_EXTRAFLAG_FAST = 0x4
+  GZ_EXTRAFLAG_SLOW = 0x2
+
+  class Deflate
+    def self.deflate(data)
+      Compression::ZLib.new.deflate data
+    end
+  end
+
+  class GzipWriter # HACK use a buffer class
+
+    CHUNK = 1024
+
+    def initialize(io, level = Zlib::DEFAULT_COMPRESSION,
+                   strategy = Zlib::DEFAULT_STRATEGY)
+      @stream_p = Zlib.z_stream_Alloc
+      @stream = Zlib::Stream.new @stream_p
+
+      @level = level
+      @method = Zlib::DEFLATED
+      @window_bits = Zlib::MAX_WBITS + 16 # gzip header
+      @mem_level = Zlib::DEF_MEM_LEVEL
+      @strategy = strategy
+
+      err = Zlib.deflateInit2(@stream_p, @level, @method, @window_bits,
+                              @mem_level, @strategy)
+
+      err == 0
+      raise "Zlib error #{err}" unless err == Zlib::OK # HACK
+
+      @io = io
+
+      @buffer = ''
+    end
+
+    def close
+      finish
+      @io.close
+      nil
+    end
+
+    def finish
+      until @buffer.empty? do
+        chunk = @buffer.slice! 0, CHUNK
+        flush = @buffer.empty? ? Zlib::NO_FLUSH : Zlib::FINISH
+
+        @stream[:next_in] = chunk
+        @stream[:avail_in] = chunk.length
+
+        @stream[:next_out] = "\000" * CHUNK
+        @stream[:avail_out] = CHUNK
+
+        err = Zlib.deflate @stream_p, flush
+
+        if err == Zlib::OK or err == Zlib::STREAM_END then
+          @io.write @stream[:next_out][0, @stream[:avail_out]]
+        else
+          raise "Zlib error #{err}"
+        end
+      end
+
+      Zlib.deflateEnd @stream_p
+
+      @io
+    end
+
+    def flush
+      true
+    end
+
+    def write(data)
+      @buffer << data
+      data.length
+    end
+
+  end
+
+  class Inflate
+    def self.inflate(data)
+      Compression::ZLib.new.inflate data
+    end
+  end
+
+end
+

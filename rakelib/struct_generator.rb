@@ -58,7 +58,7 @@ class StructGenerator
 
       @fields.each do |field|
         f.puts <<EOF
-  printf("%s %i\\n", "#{field.name}", (int)offsetof(#{@struct_name}, #{field.name}));
+  printf("%s %u\\n", "#{field.name}", (unsigned int)offsetof(#{@struct_name}, #{field.name}));
 EOF
       end
 
@@ -98,19 +98,6 @@ EOF
   end
 end
 
-class String
-  def indent(amount)
-    out = ""
-    ind = " " * amount
-
-    each_line do |line|
-      out << ind << line
-    end
-
-    out
-  end
-end
-
 module Rake
   class StructGeneratorTask < TaskLib
     attr_accessor :dest
@@ -132,7 +119,7 @@ module Rake
         rm_f @dest
       end
 
-      file @dest => "#{@dest}.in" do |t|
+      file @dest => %W[#{@dest}.in #{__FILE__}] do |t|
         puts "Generating #{@dest}..."
 
         File.open(t.name, "w") do |f|

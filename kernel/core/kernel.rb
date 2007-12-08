@@ -215,6 +215,14 @@ module Kernel
     Ruby.primitive :yield_gdb
   end
 
+  def to_a
+    if self.kind_of? Array
+      self
+    else
+      [self]
+    end
+  end
+
   def self.after_loaded
     # This nukes the bootstrap raise so the Kernel one is used.
     Object.method_table.delete :raise

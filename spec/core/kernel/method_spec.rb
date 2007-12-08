@@ -24,3 +24,10 @@ describe "Kernel#method" do
     should_raise(NameError) { KernelSpecs::Foo.method(:baz) }
   end
 end
+
+describe "Method#module" do
+  it "returns the module with which the method is instantiated" do
+    class KernelSpecs::Foo; def bar; 'done'; end; end
+    KernelSpecs::Foo.new.method(:bar).module.should == KernelSpecs::Foo
+  end
+end

@@ -1,4 +1,6 @@
 class Method
+  attr_reader :module
+  
   def initialize(recv, mod, cm)
     @receiver = recv
     @method = cm

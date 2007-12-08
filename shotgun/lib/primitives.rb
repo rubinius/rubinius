@@ -299,7 +299,31 @@ class ShotgunPrimitives
     stack_push(t2);
     CODE
   end
-  
+
+  def io_seek
+    <<-CODE
+      off_t position;
+      POP(self, IO);
+      POP(t1, INTEGER); /* offset */
+      POP(t2, FIXNUM); /* whence */
+
+      j = io_to_fd(self);
+
+      if (FIXNUM_P(t1)) {
+        position = lseek(j, FIXNUM_TO_INT(t1), FIXNUM_TO_INT(t2));
+      } else {
+        position = lseek(j, bignum_to_ll(state, t1), FIXNUM_TO_INT(t2));
+      }
+
+      if (position == -1) {
+        cpu_raise_from_errno(state, c, "Unable to seek");
+        return TRUE;
+      } else {
+        stack_push(I2N(position));
+      }
+    CODE
+  end
+
   def block_given
     <<-CODE
     ARITY(0)

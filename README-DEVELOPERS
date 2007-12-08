@@ -82,6 +82,8 @@ bind it to, the C argument types, and the C return type.
 
 For a list of C argument types, see kernel/platform/ffi.rb.
 
+Currently, FFI does not support C functions with more than 6 arguments.
+
 When the C function will be filling in a String, be sure the Ruby String is
 large enough.  For the C function rbx_Digest_MD5_Finish, the digest string is
 allocated with a 16 character length.  The string is passed to md5_finish which

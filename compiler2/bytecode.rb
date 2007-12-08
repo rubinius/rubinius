@@ -943,7 +943,7 @@ class Node
   
   # TESTED
   class ConcatArgs
-    def bytecode(g)
+    def call_bytecode(g)
       @array.bytecode(g)
       g.cast_array_for_args @rest.size
       g.push_array
@@ -954,7 +954,7 @@ class Node
       end
     end
     
-    def array_bytecode(g)
+    def bytecode(g)
       @array.bytecode(g)
       g.cast_array
       @rest.each do |x|
@@ -1432,11 +1432,7 @@ class Node
       end
       
       if @value
-        if @value.kind_of? ConcatArgs
-          @value.array_bytecode(g)
-        else
-          @value.bytecode(g)
-        end
+        @value.bytecode(g)
       else
         g.push :nil
       end
@@ -1455,7 +1451,7 @@ class Node
       case @child
       when MAsgn
         @child.bytecode(g)
-      when LocalAssignment
+      when LocalAssignment, IVarAssign
         g.cast_for_single_block_arg
         @child.bytecode(g)
         g.pop
@@ -1578,7 +1574,7 @@ class Node
         @source.child.bytecode(g)
         g.cast_tuple
       elsif @source.kind_of? ConcatArgs
-        @source.array_bytecode(g)
+        @source.bytecode(g)
         g.cast_tuple
       elsif @source.kind_of? ToArray
         @source.bytecode(g)
@@ -1676,10 +1672,13 @@ class Node
             x.bytecode(g)
           end
           @argcount = @arguments.size
+        elsif @arguments.kind_of? ConcatArgs
+          @arguments.call_bytecode(g)
+          # ConcatArgs calls get_args on its own, so we don't need to
+          @dynamic = true
         else
           @arguments.bytecode(g)
-          # ConcatArgs calls get_args on its own
-          g.get_args unless @arguments.is? ConcatArgs
+          g.get_args
           @dynamic = true
         end
       else

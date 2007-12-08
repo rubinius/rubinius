@@ -154,6 +154,169 @@ describe Compiler do
     end
   end
   
+  it "compiles an each call" do
+    sexp = [:newline, 1, "(eval)", 
+             [:iter, 
+               [:call, 
+                 [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], :each], 
+                   [:lasgn, :x, 0] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.cast_for_single_block_arg
+        d.set_local_depth 0, 0
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push 2
+      g.push 1
+      g.push_cpath_top
+      g.find_const :Range
+      g.send :new, 2
+      g.send_with_block :each, 0, false
+    end
+  end
+
+  it "compiles an each call with multiple block arguments" do
+    sexp = [:newline, 1, "(eval)", 
+            [:iter, [:call, [:vcall, :x], :each], [:masgn, 
+              [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil], 
+              [:block, 
+                [:dasgn_curr, :b, [:dasgn_curr, :a]], 
+                  [:newline, 1, "(eval)", [:lit, 5]] ] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.unshift_tuple
+        d.set_local_depth 0, 0
+        d.pop
+        d.unshift_tuple
+        d.set_local_depth 0, 1
+        d.pop
+        d.pop
+        d.new_label.set!
+        d.push 5
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
+    end
+  end
+
+  it "compiles a for loop" do
+    sexp = [:newline, 1, "(eval)", 
+             [:for, 
+              [:newline, 1, "(eval)", [:dot2, [:lit, 1], [:lit, 2]]], 
+                [:lasgn, :x, 0] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.cast_for_single_block_arg
+        d.set_local 0
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push 2
+      g.push 1
+      g.push_cpath_top
+      g.find_const :Range
+      g.send :new, 2
+      g.send_with_block :each, 0, false
+    end
+  end
+
+  it "compiles a for loop with an ivar assignment" do
+    sexp = [:newline, 1, "(eval)", 
+             [:for, [:dot2, [:lit, 1], [:lit, 2]], 
+              [:iasgn, :@xyzzy] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.cast_for_single_block_arg
+        d.set_ivar :@xyzzy
+        d.pop
+        d.new_label.set!
+        d.push :nil
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push 2
+      g.push 1
+      g.push_cpath_top
+      g.find_const :Range
+      g.send :new, 2
+      g.send_with_block :each, 0, false
+    end
+  end
+
+  it "compiles a for loop with multiple arguments" do
+    sexp = [:newline, 1, "(eval)", 
+            [:for, [:vcall, :x], 
+              [:masgn, 
+                [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil], 
+              [:newline, 2, "(eval)", [:lit, 5]] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.unshift_tuple
+        d.set_local 0
+        d.pop
+        d.unshift_tuple
+        d.set_local 1
+        d.pop
+        d.pop
+        d.new_label.set!
+        d.push 5
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
+    end
+  end
+
+  it "compiles a for loop with multiple arguments and an inner lasgn" do
+   sexp = [:newline, 1, "(eval)", 
+            [:for, [:vcall, :x], 
+              [:masgn, [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil, nil], 
+              [:newline, 2, "(eval)", [:lasgn, :z, 0, [:lit, 5]]] ] ]
+
+    gen(sexp) do |g|
+      iter = description do |d|
+        d.unshift_tuple
+        d.set_local 0
+        d.pop
+        d.unshift_tuple
+        d.set_local 1
+        d.pop
+        d.pop
+        d.new_label.set!
+        d.push 5
+        d.set_local_depth 0,0
+        d.soft_return
+      end
+      g.push_literal iter
+      g.create_block2
+      g.push :self
+      g.send :x, 0, true
+      g.send_with_block :each, 0, false
+    end
+  end
+
   it "compiles a series of expressions" do
     gen [:block, [:fixnum, 12], [:fixnum, 13], [:true]] do |g|
       g.push 12

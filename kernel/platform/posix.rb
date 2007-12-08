@@ -2,10 +2,6 @@
 
 module Platform::POSIX
 
-  def self.add(ret, name, *args)
-    attach_function name, args, ret
-  end
-
   # errors
   attach_function 'ffi_errno', :errno, [], :int
   attach_function 'ffi_set_errno', :errno=, [:int], :void
@@ -13,10 +9,10 @@ module Platform::POSIX
   attach_function 'perror', [:string], :void
 
   # memory
-  add :pointer, 'malloc',  :int
-  add :pointer, 'realloc', :pointer, :int
-  add :void,    'free',    :pointer 
-  add :pointer, 'memset',  :pointer, :int, :int 
+  attach_function 'malloc', [:int], :pointer
+  attach_function 'realloc', [:pointer, :int], :pointer
+  attach_function 'free', [:pointer], :void
+  attach_function 'memset', [:pointer, :int, :int], :pointer
 
   # rand
   attach_function 'srand', [:uint], :void
