@@ -187,6 +187,10 @@ class Backtrace
     return fr2.join("\n")
   end
   
+  def join(sep)
+    show
+  end
+  
   alias_method :to_s, :show
 
   def color_from_loc(loc, first)
