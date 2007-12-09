@@ -5,6 +5,10 @@ CPPFLAGS += -I.. -iquote . -I../external_libs/lightning -I../external_libs/libev
 
 LIBS=-lz ../external_libs/libtommath/libtommath.a ../external_libs/onig/.libs/libonig.a ../external_libs/libzip/lib/.libs/libzip.a $(SINGLE_MODULE) ../external_libs/libevent/.libs/libevent.a ../external_libs/libltdl/.libs/libltdl.a -lm ../external_libs/libbstring/libbstring.a ../external_libs/libcchash/libcchash.a ../external_libs/libmpa/libptr_array.a ../external_libs/libmquark/libmquark.a
 
+ifeq ($(UNAME),Linux)
+  CPPFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+endif
+
 ifeq ($(UNAME),Darwin)
   SINGLE_MODULE=-Wl,-single_module
 else
