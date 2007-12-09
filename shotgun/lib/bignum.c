@@ -414,36 +414,43 @@ unsigned long bignum_to_int(STATE, OBJECT self) {
 long long bignum_to_ll(STATE, OBJECT self) {
   mp_int t;
   mp_int *s = MP(self);
-  long long out;
-  
-  out = (long long)mp_get_int(s);
-  
+  long long out, tmp;
+
+  out = mp_get_int(s);
+
   mp_init(&t);
   mp_copy(s, &t);
-  mp_rshd(&t, sizeof(int));
-  out = out | (mp_get_int(&t) << sizeof(int));
+  mp_rshd(&t, 1);
+
+  tmp = mp_get_int(&t);
+  out |= tmp << DIGIT_BIT;
+
   mp_clear(&t);
-  return out;
+
+  return (s->sign == MP_NEG) ? -out : out;
 }
 
 OBJECT bignum_from_ull(STATE, unsigned long long val) {
   OBJECT ret;
-  mp_int a;
-  mp_int b;
-  mp_int *c;
-  
-  mp_init(&a);
-  mp_set_int(&a, (unsigned int)(val & 0xffffffff));
-  
-  mp_lshd(&a, sizeof(int));
-  mp_init(&b);
-  mp_set_int(&b, (val >> sizeof(int)));
-  
+  mp_int low, high;
+  unsigned int tmp;
+
+  mp_init(&low);
+  tmp = val & 0xffffffff;
+  mp_set_int(&low, tmp);
+
+  mp_init(&high);
+  tmp = val >> DIGIT_BIT;
+  mp_set_int(&high, tmp);
+  mp_lshd(&high, 1);
+
   ret = bignum_new_unsigned(state, 0);
-  
-  c = MP(ret);
-  mp_or(&a, &b, c);
-  
+
+  mp_or(&low, &high, MP(ret));
+
+  mp_clear(&low);
+  mp_clear(&high);
+
   return ret;
 }
 
