@@ -432,15 +432,9 @@ class File < IO
   
   def self.perform_stat(path, follow_links)
     out = Stat.stat(StringValue(path), follow_links)
-    if !out
-      raise UnableToStat, "Unable to perform stat on '#{path}'"
-    elsif out == 1
-      raise Errno::ENOENT, "No such file or directory - #{path}"
-    elsif out == 2
-      raise Errno::EACCES, "Unable to access '#{path}'"
-    else
-      return out
-    end
+    return out if out.is_a?(Stat)
+
+    Errno.handle path
   end
   
   def self.to_sexp(name, newlines=true)
