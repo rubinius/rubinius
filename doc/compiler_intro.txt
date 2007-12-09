@@ -16,16 +16,6 @@ above it: for example in the first stage, the sexp shown is always
 essentially the "argument" to the next method or section.
 
 
-Notes (to be removed):
-  * Generator does not belong in Compiler at all, there is no need.
-  * The Nodes, MDs and Gens are too coupled, need to try to split
-    them up or redivide responsibilities.
-  * ClosedScope @all_scopes may be a bit confusing, only block
-    scopes can be contained. There is no hierarchy of scopes
-    otherwise (since scopes do not have access to the locals
-    in containing scopes.)
-  * find_local should be renamed? find_or_create_local maybe? 
-
 
 Stage 0: Input
 ===========================
