@@ -1,11 +1,12 @@
 $: << File.expand_path(File.dirname(__FILE__))
 
 require 'compiler'
-require 'generate'
+require 'generator'
 require 'bytecode'
 require 'text'
 
 require 'options'
+
 
 # "Interactive" mode
 def interactive

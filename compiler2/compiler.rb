@@ -85,9 +85,9 @@ class Compiler
     end
   end
   
-  def initialize(gen_klass)
+  def initialize(gen_class)
     @variables = {}
-    @generator = gen_klass
+    @generator_class = gen_class
     @call_plugins = []
     
     @file = "(unknown)"
@@ -96,7 +96,7 @@ class Compiler
     load_plugins
   end
   
-  attr_reader :generator, :call_plugins
+  attr_reader :generator_class, :call_plugins
   
   def set_position(file, line)
     @file, @line = file, line

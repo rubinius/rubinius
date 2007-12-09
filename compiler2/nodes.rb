@@ -734,7 +734,7 @@ class Node
     def args(rest, array)
       @array = array
       
-      if rest.kind_of? Array
+      if rest.kind_of? Array      # When does this happen?
         @rest = rest
       else
         @rest = rest.body
@@ -1218,7 +1218,8 @@ class Node
   class Call < MethodCall
     kind :call
     
-    def collapse_args
+    # Args could be an array, splat or argscat
+    def collapse_args  
       return unless @arguments
       @arguments = @arguments.body if @arguments.is? ArrayLiteral
     end

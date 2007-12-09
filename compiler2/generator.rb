@@ -37,7 +37,7 @@ class Compiler
     end
     
     attr_reader :ip, :exceptions
-    attr_accessor :redo, :break, :next, :retry, :ensure_return
+    attr_accessor :break, :redo, :next, :retry
     
     def run(node)
       node.bytecode self
@@ -110,7 +110,6 @@ class Compiler
       
       cm.name = desc.name
       
-      cm.primitive = @primitive
       cm.literals = encode_literals()
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
@@ -134,17 +133,13 @@ class Compiler
       what << inst
       @stream << what      
     end
-
-    def add_literal(what)
-      idx = @literals.size
-      @literals << what
-      return idx
-    end
-
+    
     def find_literal(what)
       idx = @literals.index(what)
       return idx if idx
-      add_literal(what)
+      idx = @literals.size
+      @literals << what
+      return idx
     end
     
     # Commands (these don't generate data in the stream)
@@ -274,10 +269,6 @@ class Compiler
     
     def push_literal(what)
       idx = find_literal(what)
-      push_literal_at(idx)
-    end
-
-    def push_literal_at(idx)
       add :push_literal, idx
       return idx
     end
