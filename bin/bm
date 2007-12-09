@@ -13,13 +13,14 @@ BM_GLOB      = 'test/benchmark/*/bm*.rb'
 INTERPRETERS = ['ruby','shotgun/rubinius']
 WIDTH        = 50
 
-OPTIONS = OpenStruct.new( :grep => '.*' )
+OPTIONS = OpenStruct.new
 
 options = OptionParser.new do |opts|
-  opts.on('-c',        '--chart [FILENAME]') { |c| OPTIONS.chart  = c || 'bm.svg' }
-  opts.on('-g SEARCH', '--grep SEARCH')      { |g| OPTIONS.grep   = g }
-  opts.on('-h',        '--help')             { |h| OPTIONS.help   = h }
-  opts.on('-r',        '--no-report')        { |r| OPTIONS.report = r }
+  opts.on('-c', '--chart [FILENAME]') { |c| OPTIONS.chart  = c || 'bm.svg' }
+  opts.on('-g', '--grep REGEX')       { |g| OPTIONS.grep   = g }
+  opts.on('-n', '--ngrep REGEX')      { |n| OPTIONS.ngrep  = n }
+  opts.on('-h', '--help')             { |h| OPTIONS.help   = h }
+  opts.on('-r', '--no-report')        { |r| OPTIONS.report = r }
 end
 
 options.parse!
@@ -110,7 +111,14 @@ class RbxBenchmarkRun
     clean
 
     Dir[BM_GLOB].each do |file|
-      next unless file.match(OPTIONS.grep)
+      if OPTIONS.grep then
+        next unless file.match(OPTIONS.grep)
+      end
+
+      if OPTIONS.ngrep then
+        next if file.match(OPTIONS.ngrep)
+      end
+
       @benchmarks << RbxBenchmarkFile.new(@interpreter,file)
     end
 
