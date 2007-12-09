@@ -7,31 +7,25 @@ require 'optparse'
 require 'ostruct'
 
 require 'rubygems'
-gem 'scruffy'
+require 'scruffy'
 
 BM_GLOB      = 'test/benchmark/*/bm*.rb'
 INTERPRETERS = ['ruby','shotgun/rubinius']
 WIDTH        = 50
 
-OPTIONS = OpenStruct.new( :chart => false,
-                          :grep  => '.*',
-                          :help  => false)
+OPTIONS = OpenStruct.new( :grep => '.*' )
 
 options = OptionParser.new do |opts|
-  opts.on('-c',        '--chart')       { |c| OPTIONS.chart = c }
-  opts.on('-g SEARCH', '--grep SEARCH') { |g| OPTIONS.grep  = g }
-  opts.on('-h',        '--help')        { |h| OPTIONS.help  = h }
+  opts.on('-c',        '--chart [FILENAME]') { |c| OPTIONS.chart  = c || 'bm.svg' }
+  opts.on('-g SEARCH', '--grep SEARCH')      { |g| OPTIONS.grep   = g }
+  opts.on('-h',        '--help')             { |h| OPTIONS.help   = h }
+  opts.on('-r',        '--no-report')        { |r| OPTIONS.report = r }
 end
 
 options.parse!
 
 if OPTIONS.help then
   puts options.summarize
-  exit
-end
-
-if OPTIONS.chart then
-  puts "Charting not yet implemented"
   exit
 end
 
@@ -95,6 +89,9 @@ class RbxBenchmarkFile
 end
 
 class RbxBenchmarkRun
+  attr_reader :interpreter
+  attr_reader :benchmarks
+
   def initialize(interpreter)
     @interpreter = interpreter
     @benchmarks  = []
@@ -142,4 +139,23 @@ class RbxBenchmarkRun
   end
 end
 
-INTERPRETERS.collect { |i| RbxBenchmarkRun.new(i).run }.each { |r| r.report }
+results = {}
+
+INTERPRETERS.each do |i|
+  results[i] = RbxBenchmarkRun.new(i).run
+end
+
+if OPTIONS.report then
+  results.each_value { |r| r.report }
+end
+
+if OPTIONS.chart then
+  puts "Now saving chart to #{OPTIONS.chart}"
+  graph = Scruffy::Graph.new
+
+  results.each_value do |r|
+    graph.add( :line, r.interpreter, r.benchmarks.collect { |b| b.time } )
+  end
+
+  graph.render( :to => OPTIONS.chart )
+end
