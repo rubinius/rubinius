@@ -9,7 +9,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include "primitive_util.h"
@@ -551,84 +553,26 @@ OBJECT cpu_unmarshal(STATE, uint8_t *str, int version) {
 }
 
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
-  uint8_t *ptr, *data = NULL;
-  FILE *f = NULL;
-  size_t read;
-  off_t left;
-  uint8_t buf[4];
-  OBJECT obj = Qnil;
-  struct marshal_state ms;
+  OBJECT obj;
+  void *map;
   struct stat st;
-  int s;
+  int fd;
 
-  s = stat(path, &st);
-  if(s == -1) {
+  fd = open(path, O_RDONLY);
+  if (fd < 0) {
     return Qnil;
   }
 
-  left = st.st_size;
-
-  ms.consumed = 0;
-  ms.objects = NULL;
-
-  f = fopen(path, "rb");
-  if(!f) {
-    goto cleanup;
-  }
-
-  read = fread(buf, 1, 4, f);
-  if(read != 4) {
-    goto cleanup;
-  }
-
-  left -= 4;
-
-  ms.objects = ptr_array_new(8);
-  if(!memcmp(buf, "RBIS", 4)) {
-    version = -1;
-  } else if(!memcmp(buf, "RBIX", 4)) {
-    read = fread(buf, 1, 4, f);
-    if(read != 4) {
-      goto cleanup;
-    }
-
-    left -= 4;
-
-    if(read_int(buf) < version) {
-      /* out of date. */
-      goto cleanup;
-    }
-  } else {
-    printf("Invalid compiled file.\n");
-    goto cleanup;
-  }
-
-  /* read the payload of the file */
-  data = ptr = malloc(st.st_size);
-  if(!data) {
+  if (fstat(fd, &st) || !st.st_size) {
+    close(fd);
     return Qnil;
   }
 
-  do {
-    read = fread(ptr, 1, left, f);
-    ptr += read;
-    left -= read;
-  } while (read > 0);
+  map = mmap(NULL, (size_t) st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  close(fd);
 
-  ms.buf = data;
-  obj = unmarshal(state, &ms);
-cleanup:
-  if(f) {
-    fclose (f);
-  }
-
-  if(data) {
-    free(data);
-  }
-
-  if(ms.objects) {
-    ptr_array_free(ms.objects);
-  }
+  obj = cpu_unmarshal(state, map, version);
+  munmap(map, st.st_size);
 
   return obj;
 }
