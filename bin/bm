@@ -3,10 +3,39 @@
 require 'benchmark'
 include Benchmark
 
-INTERPRETERS = ['ruby','shotgun/rubinius']
-WIDTH = 50
+require 'optparse'
+require 'ostruct'
 
-class RbxBenchmark
+require 'rubygems'
+gem 'scruffy'
+
+BM_GLOB      = 'test/benchmark/*/bm*.rb'
+INTERPRETERS = ['ruby','shotgun/rubinius']
+WIDTH        = 50
+
+OPTIONS = OpenStruct.new( :chart => false,
+                          :grep  => '.*',
+                          :help  => false)
+
+options = OptionParser.new do |opts|
+  opts.on('-c',        '--chart')       { |c| OPTIONS.chart = c }
+  opts.on('-g SEARCH', '--grep SEARCH') { |g| OPTIONS.grep  = g }
+  opts.on('-h',        '--help')        { |h| OPTIONS.help  = h }
+end
+
+options.parse!
+
+if OPTIONS.help then
+  puts options.summarize
+  exit
+end
+
+if OPTIONS.chart then
+  puts "Charting not yet implemented"
+  exit
+end
+
+class RbxBenchmarkFile
   def initialize(interpreter,file)
     @interpreter = interpreter
     @file        = file
@@ -74,7 +103,7 @@ class RbxBenchmarkRun
 
   def clean
     if @interpreter =~ /rubinius/ then
-      Dir['test/benchmark/*/bm*.rbc'].each do |file|
+      Dir[BM_GLOB + 'c'].each do |file|
         File.unlink file
       end
     end
@@ -83,8 +112,9 @@ class RbxBenchmarkRun
   def run
     clean
 
-    Dir['test/benchmark/*/bm*.rb'].each do |file|
-      @benchmarks << RbxBenchmark.new(@interpreter,file)
+    Dir[BM_GLOB].each do |file|
+      next unless file.match(OPTIONS.grep)
+      @benchmarks << RbxBenchmarkFile.new(@interpreter,file)
     end
 
     self
