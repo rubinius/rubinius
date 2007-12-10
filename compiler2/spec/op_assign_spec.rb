@@ -138,9 +138,9 @@ describe Compiler do
       g.push :self
       g.send :ary, 0, true
       g.dup
-      g.push 0
-      g.swap
       g.push 1
+      g.swap
+      g.push 0
       g.swap
       g.send :[], 2
       g.push 4
@@ -148,9 +148,9 @@ describe Compiler do
       g.swap
       g.send :"+", 1
       g.swap
-      g.push 0
-      g.swap
       g.push 1
+      g.swap
+      g.push 0
       g.swap
       g.send :[]=, 3
     end

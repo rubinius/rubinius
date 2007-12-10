@@ -833,16 +833,20 @@ class Node
   
   # TESTED
   class OpAssign1
-    def bytecode(g)
-      fnd = g.new_label
-      fin = g.new_label
-      
-      @object.bytecode(g)
-      g.dup
-      @index.each do |idx|
+    def index_bytecode(g)
+      @index.reverse.each do |idx|
         idx.bytecode(g)
         g.swap
       end
+    end
+
+    def bytecode(g)
+      fnd = g.new_label
+      fin = g.new_label
+
+      @object.bytecode(g)
+      g.dup
+      index_bytecode(g)
       g.send :[], @index.size
       
       if @kind == :or or @kind == :and
@@ -859,19 +863,13 @@ class Node
         g.swap
         g.send @kind, 1
         g.swap
-        @index.each do |idx|
-          idx.bytecode(g)
-          g.swap
-        end
+        index_bytecode(g)
         g.send :[]=, @index.size + 1
-        return        
+        return
       end
       
       g.swap
-      @index.each do |idx|
-        idx.bytecode(g)
-        g.swap
-      end
+      index_bytecode(g)
       g.send :[]=, @index.size + 1
       g.goto fin
       
