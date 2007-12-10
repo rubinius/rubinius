@@ -1002,13 +1002,7 @@ class ShotgunPrimitives
     }
 
     if(j != 0) {
-      if(errno == ENOENT) {
-        stack_push(I2N(1));
-      } else if(errno == EACCES) {
-        stack_push(I2N(2));
-      } else {
-        stack_push(Qfalse);
-      }
+      stack_push(Qfalse);
     } else {
       t2 = NEW_OBJECT(self, 11);
       tuple_put(state, t2, 0, I2N((int)sb.st_ino));

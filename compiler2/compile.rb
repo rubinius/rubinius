@@ -1,11 +1,12 @@
 $: << File.expand_path(File.dirname(__FILE__))
 
 require 'compiler'
-require 'generate'
+require 'generator'
 require 'bytecode'
 require 'text'
 
 require 'options'
+
 
 # "Interactive" mode
 def interactive
@@ -46,6 +47,7 @@ def batch(opts)
 
     puts "  Parsing #{file}...\n" if verbose
     x = File.to_sexp(file)
+    puts x.indented_inspect if verbose
 
     puts "  Generating AST...\n" if verbose
     n = c.into_script(x)

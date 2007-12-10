@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec/spec_helper'
 
 require File.dirname(__FILE__) + '/../compiler'
-require File.dirname(__FILE__) + '/../generate'
+require File.dirname(__FILE__) + '/../generator'
 require File.dirname(__FILE__) + '/../bytecode'
 require File.dirname(__FILE__) + '/../text'
 

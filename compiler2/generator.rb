@@ -28,6 +28,7 @@ class Compiler
       @redo = nil
       @next = nil
       @retry = nil
+      @ensure_return = nil
       @last_line = nil
       @file = nil
       @lines = []
@@ -37,7 +38,7 @@ class Compiler
     end
     
     attr_reader :ip, :exceptions
-    attr_accessor :redo, :break, :next, :retry, :ensure_return
+    attr_accessor :break, :redo, :next, :retry, :ensure_return
     
     def run(node)
       node.bytecode self
@@ -109,8 +110,8 @@ class Compiler
       end
       
       cm.name = desc.name
-      
-      cm.primitive = @primitive
+
+      #cm.primitive = @primitive
       cm.literals = encode_literals()
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
@@ -134,19 +135,24 @@ class Compiler
       what << inst
       @stream << what      
     end
-
-    def add_literal(what)
-      idx = @literals.size
-      @literals << what
-      return idx
-    end
-
+    
+    # Find the index for the specified literal, or create a new slot if the
+    # literal has not been encountered previously. 
     def find_literal(what)
       idx = @literals.index(what)
       return idx if idx
       add_literal(what)
     end
     
+    # Add literal exists to allow RegexLiteral's to create a new regex literal
+    # object at run-time. All other literals should be added via find_literal,
+    # which re-use an existing matching literal if one exists.
+    def add_literal(val)
+      idx = @literals.size
+      @literals << val
+      return idx      
+    end
+
     # Commands (these don't generate data in the stream)
     
     def advanced_since?(ip)
@@ -272,11 +278,17 @@ class Compiler
       end
     end
     
+    # Pushes the specified literal value into the literal's tuple
     def push_literal(what)
       idx = find_literal(what)
-      push_literal_at(idx)
+      add :push_literal, idx
+      return idx
     end
 
+    # Pushes the literal value on the stack into the specified position in the
+    # literals tuple. Most timees, push_literal should be used instead; this
+    # method exists to support RegexLiteral, where the compiled literal value
+    # (a Regex object) does not exist until runtime.
     def push_literal_at(idx)
       add :push_literal, idx
       return idx

@@ -300,15 +300,16 @@ class Encoder
   def encode_stream(stream)
     sz = stream.inject(0) { |acc, ele| acc + ((ele.size - 1) * InstSize) }
     iseq = InstructionSequence.new(sz)
-    @offset = 0
+    @offset = 0                 
     stream.each do |ent|
-      encode(ent, iseq)
+      encode(ent, iseq)    # TODO: move iseq to ivar, requires @offset anyway?
     end
     
     return iseq
   end
   
   def encode(inst, into)
+    # TODO: Why is the opcode lookup not here instead of bytecode.rb?
     opcode = inst.last
     
     width = Encoder.width[inst.first]

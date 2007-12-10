@@ -9,7 +9,7 @@ class Compiler
     
     def [](name)
       unless @locals.key? name
-        @names << name
+        @names << name        # Maintain insertion order
       end
         
       return @locals[name]

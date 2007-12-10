@@ -1,12 +1,12 @@
 # Implements methods on each Node subclass for generatng bytecode
 # from itself.
 
-require 'compiler2/generate'
+require 'compiler2/generator'
 
 class Compiler
   class MethodDescription
-    def initialize(gen, locals)
-      @generator = gen.new
+    def initialize(gen_class, locals)
+      @generator = gen_class.new
       @locals = locals
       @name = nil
       @required = 0
@@ -57,7 +57,7 @@ class Node
   class ClosedScope
     
     def new_description
-      Compiler::MethodDescription.new(@compiler.generator, self.locals)
+      Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
     end      
     
     def to_description
@@ -560,7 +560,7 @@ class Node
   # TESTED  
   class Iter
     def bytecode(g)
-      desc = Compiler::MethodDescription.new @compiler.generator, @locals
+      desc = Compiler::MethodDescription.new @compiler.generator_class, @locals
       desc.name = :__block__
       sub = desc.generator
 
@@ -640,36 +640,49 @@ class Node
   
   # TESTED  
   class When
-    def bytecode(g, nxt, fin)
-      if @conditions.size == 1 and !@splat
+    # The bytecode to test a when condition is different, depending on whether
+    # or not the case statement has a receiver, i.e.
+    #   case foo; when ... 
+    # vs
+    #   case; when ...
+    def condition_bytecode(g, has_receiver, cond)
+      if has_receiver
+        # Case
         g.dup
-        @conditions.first.bytecode(g)
+        cond.bytecode(g)
         g.send :===, 1
+      else
+        # ManyIf - no receiver
+        cond.bytecode(g)
+      end
+    end
+    
+    def bytecode(g, has_receiver, nxt, fin)
+      if @conditions.size == 1 and !@splat
+        condition_bytecode(g, has_receiver, @conditions.first)
         g.gif nxt
       else
         body = g.new_label
         
         @conditions.each do |c|
-          g.dup
-          c.bytecode(g)
-          g.send :===, 1
+          condition_bytecode(g, has_receiver, c)
           g.git body
         end
 
         if @splat
           if @splat.kind_of? Array
             @splat.each do |c|
-              g.dup
-              c.bytecode(g)
-              g.send :===, 1
+              condition_bytecode(g, has_receiver, c)
               g.git body
             end
-          else
+          elsif has_receiver
             g.dup
             @splat.bytecode(g)
             g.cast_array
             g.send :__matches_when__, 1
             g.git body
+          else
+            raise Error, "encountered splat on many-if!"
           end
         end
         
@@ -679,7 +692,7 @@ class Node
       end
 
       # Remove the thing we've been testing.
-      g.pop
+      g.pop if has_receiver
       if @body.nil?
         g.push :nil
       else
@@ -694,59 +707,21 @@ class Node
     def bytecode(g)
       fin = g.new_label
       
-      @receiver.bytecode(g)
+      @receiver.bytecode(g) if has_receiver?
       @whens.each do |w|
         nxt = g.new_label
-        w.bytecode(g, nxt, fin)
+        w.bytecode(g, has_receiver?, nxt, fin)
         nxt.set!
       end
       
       # The condition is still on the stack
-      g.pop 
+      g.pop if has_receiver?
       if @else
         @else.bytecode(g)
       else
         g.push :nil
       end
       
-      fin.set!
-    end
-  end
-
-  class ManyIf
-    def bytecode(g)
-      fin = g.new_label
-
-      @whens.each do |whn|
-        nxt = g.new_label
-        if whn.conditions.size == 1
-          # Common case - a single condition e.g when foo == "bar"
-          whn.conditions.first.bytecode(g)
-          g.gif nxt
-        else
-          # Multiple conditions, e.g. when foo == "bar", foo == "baz"
-          body_lbl = g.new_label
-          whn.conditions.each do |c|
-            c.bytecode(g)
-            g.git body_lbl
-          end
-          g.goto nxt
-        
-          body_lbl.set!
-        end
-      
-        whn.body.bytecode(g)
-        g.goto fin
-
-        nxt.set!
-      end
-
-      if @else
-        @else.bytecode(g)
-      else
-        g.push :nil
-      end
-
       fin.set!
     end
   end
@@ -1869,7 +1844,7 @@ class Node
     
     def compile_body
       desc = new_description()
-      meth = desc.generator
+      meth = desc.generator 
       
       prelude(meth)
       
@@ -1941,3 +1916,4 @@ class Node
   end
 end
 end
+

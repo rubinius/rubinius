@@ -377,6 +377,11 @@ class Node
         return [nil, nil]
       end
       
+      # Handle def self.foo; end, which unlike def foo; end does not generate a block
+      if sexp[0].first == :args
+        sexp[0] = [:block, sexp[0], [:nil]]
+      end
+
       sexp[0] = convert(sexp[0])
       return sexp
     end
@@ -408,7 +413,21 @@ class Node
       
       if defaults
         defaults.shift
+        i = 0
         defaults.map! do |node|
+          # HACK: Fix parse_tree bug when an optional arg has a default value
+          # that is an :iter. For example, the following:
+          #  def foo(output = 1, b = lambda {|n| output * n})
+          # generates a sexp where the optional args are [:output, :n], rather
+          # than [:output, :b]. To fix this, we pick up the name of the :lasgn,
+          # in the defaults, and set the corresponding optional arg if the
+          # :lasgn is an :iter.
+          if node[3].first == :iter
+            name = node[1]
+            sexp[1][i] = name
+          end
+          i += 1
+
           convert(node)
         end
         
@@ -454,7 +473,7 @@ class Node
 
       if @defaults
         @defaults.each do |x|
-          @mapped_defaults[x.name] = x  
+          @mapped_defaults[x.name] = x
         end
       end
       
@@ -542,20 +561,18 @@ class Node
       @receiver, @whens, @else = recv, whens, els
     end
     
+    def has_receiver?
+      true
+    end
+    
     attr_accessor :receiver, :whens, :else
   end
   
-  class ManyIfBranch < Node
-    kind :many_if_branch
-    
-    def args(conditions, body)
-      @conditions, @body = conditions.body, body
-    end
-    
-    attr_accessor :conditions, :body
-  end
-  
-  class ManyIf < Node
+  # ManyIf represents a case statement with no receiver, i.e.
+  #   case
+  #     when foo: bar
+  #   end
+  class ManyIf < Case
     kind :many_if
     
     # :many_if contains an array of whens and an else
@@ -564,7 +581,7 @@ class Node
     def consume(sexp)
       whens = sexp[0]
       whens.map! do |w|
-        w.unshift :many_if_branch
+        w.unshift :when
         convert(w)
       end
       [whens, convert(sexp[1])]
@@ -573,6 +590,10 @@ class Node
     def args(whens, els)
       @whens = whens
       @else = els
+    end
+    
+    def has_receiver?
+      false
     end
 
     attr_accessor :whens, :else
@@ -734,7 +755,7 @@ class Node
     def args(rest, array)
       @array = array
       
-      if rest.kind_of? Array
+      if rest.kind_of? Array      # When does this happen?
         @rest = rest
       else
         @rest = rest.body
@@ -1218,7 +1239,8 @@ class Node
   class Call < MethodCall
     kind :call
     
-    def collapse_args
+    # Args could be an array, splat or argscat
+    def collapse_args  
       return unless @arguments
       @arguments = @arguments.body if @arguments.is? ArrayLiteral
     end
