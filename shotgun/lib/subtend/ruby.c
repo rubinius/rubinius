@@ -318,7 +318,7 @@ void rb_define_method_(const char *file, VALUE vmod, const char *name, void *fun
 }
 
 void rb_define_alloc_func(VALUE class, void *func) {
-  rb_define_method(class, "allocate", func, 0);
+  rb_define_singleton_method(class, "allocate", func, 0);
 }
 
 const char *rb_id2name(ID sym) {
@@ -684,7 +684,6 @@ void* subtend_get_struct(VALUE obj) {
 
 Still needed for Mongrel - Kev
 
-rb_define_alloc_func
 rb_str_substr
 
 rb_obj_freeze
