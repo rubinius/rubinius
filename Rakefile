@@ -540,7 +540,7 @@ namespace :extension do
 
   task :syck => "lib/ext/syck/rbxext.#{$dlext}"
 
-  file "lib/ext/mongrel/rbxext.#{$dlext}" => FileList[
+  file "lib/ext/syck/rbxext.#{$dlext}" => FileList[
     'shotgun/lib/subtend/ruby.h',
     'lib/ext/syck/build.rb',
     'lib/ext/syck/*.c',
