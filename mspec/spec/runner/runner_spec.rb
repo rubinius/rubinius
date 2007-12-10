@@ -77,6 +77,10 @@ describe SpecRunner do
   end
   
   it "provides #describe that yields to its block and calls all before, after, and it blocks" do
+    module Mock; end
+    Mock.stub!(:verify_count)
+    Mock.stub!(:cleanup)
+    
     run = []
     @report = CaptureOutput.new
     @runner.formatter = DottedFormatter.new(@report)

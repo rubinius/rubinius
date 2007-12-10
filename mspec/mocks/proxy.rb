@@ -11,6 +11,14 @@ class MockProxy
     @returning
   end
   
+  def calls
+    @calls ||= 0
+  end
+  
+  def called
+    @calls = calls + 1
+  end
+  
   def exactly(n)
     @count = [:exactly, n_times(n)]
     self

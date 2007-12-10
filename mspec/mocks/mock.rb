@@ -1,94 +1,84 @@
+require 'mspec/expectations'
+
 module Mock
-  def self.reset()
+  def self.reset
     @expects = {}
-    @objects = []
   end
   
   def self.expects
     @expects ||= {}
   end
   
-  def self.objects
-    @objects ||= []
-  end
-
   def self.set_expect(obj, sym)
     expects[[obj, sym]] = MockProxy.new
   end
 
-  def self.set_objects(obj, sym, type = nil)
-    @objects << [obj, sym, type]
+  def self.replaced_name(sym)
+    :"__ms_#{sym}__"
+  end
+  
+  def self.install_method(obj, sym)
+    meta = class << obj; self; end
+    
+    if obj.respond_to? sym
+      meta.instance_eval { alias_method Mock.replaced_name(sym), sym.to_sym }
+    end
+
+    meta.class_eval <<-END
+      def #{sym}(*args, &block)
+        Mock.verify_call self, :#{sym}, *args, &block
+      end
+    END
+    
+    Mock.set_expect obj, sym
   end
 
-  # Verify to correct number of calls
-  def self.verify()
-    @expects.each do |k, expects|
-      expects.each do |info|
-        obj, sym = k[0], k[1]
-  
-        if info[:count] != :never && info[:count] != :any
-          if info[:count] > 0
-            raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too FEW times on object #{obj.inspect}")
-          end
-        end
-        
+  def self.verify_count
+    expects.each do |key, proxy|
+      obj, sym = key.first, key.last
+      
+      qualifier, count = proxy.count
+      pass = case qualifier
+      when :at_least
+        proxy.calls >= count
+      when :at_most
+        proxy.calls <= count
+      when :exactly
+        proxy.calls == count
+      else
+        false
+      end
+      unless pass
+        Expectation.fail_with("Mock #{obj.inspect}\nexpected to receive #{sym} #{qualifier.to_s.sub('_', ' ')} #{count} times",
+                              "but received it #{proxy.calls} times")
       end
     end
   end
 
-  # Clean up any methods we set up
-  def self.cleanup()
-    @objects.each {|info|
-      obj, sym, type = info[0], info[1], info[2]
-
-      hidden_name = "__ms_" + sym.to_s
-
-      # Revert the object back to original if possible
-      case type
-        when :all_instances
-          next
-        
-        when :single_new
-          meta = class << obj; self; end
-#          meta.send :remove_method, sym.to_sym
-              
-        when :single_overridden
-          meta = class << obj; self; end
-          meta.instance_eval { alias_method(sym.to_sym, hidden_name.to_sym) }
+  def self.cleanup
+    expects.keys.each do |obj, sym|
+      meta = class << obj; self; end
+      replaced = Mock.replaced_name(sym)
+      if obj.respond_to?(replaced)
+        meta.instance_eval { alias_method sym.to_sym, replaced }
+        meta.send :remove_method, replaced
+      else
+        meta.send :remove_method, sym.to_sym
       end
-    }
+    end
+    reset
   end  
 
-  # Invoked by a replaced method in an object somewhere.
-  # Verifies that the method is called as expected with
-  # the exception that calling the method too few times
-  # is not detected until #verify_expects! gets called
-  # which by default happens at the end of a #specify
-  def self.report(obj, sym, *args, &block)
-    info = @expects[[obj, sym]].find { |info| info[:with] == :any || info[:with] == args }
-
-    return unless info
-
-    unless info[:block] == :any
-      if block
-        unless info[:block]
-          return
-        end
-      end
-    end
-
-    unless info[:count] == :any
-      if info[:count] == :never
-        raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} should NOT be called on object #{obj.inspect}")
-      end
+  def self.verify_call(obj, sym, *args, &block)
+    proxy = expects[[obj, sym]]
     
-      info[:count] = info[:count] - 1
-
-      if info[:count] < 0
-        raise Exception.new("Method #{sym} with #{info[:with].inspect} and block #{info[:block].inspect} called too MANY times on object #{obj.inspect}")
-      end
+    compare = *args
+    unless proxy.arguments == compare
+      Expectation.fail_with("Mock #{obj.inspect}\nexpected #{sym} with: (#{proxy.arguments.inspect})",
+                            "             but received: (#{compare.inspect})")
     end
-
-    return info[:returning]
+    
+    proxy.called
+    return proxy.returning
   end
 end

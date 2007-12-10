@@ -94,13 +94,12 @@ class SpecRunner
         begin
           @before_each.each { |be| be.call }
           i.call
-          Mock.verify  
+          Mock.verify_count
         rescue Exception => e
           formatter.exception(e)
         ensure
           @after_each.each { |ae| ae.call }
           Mock.cleanup
-          Mock.reset
         end
       rescue Exception => e
         formatter.exception(e)

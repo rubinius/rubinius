@@ -84,6 +84,17 @@ describe BaseFormatter, "interface" do
   it "provides a setter for 'summarized'" do
     @formatter.summarized = true
   end
+  
+  it "responds to start_timer" do
+    @formatter.start_timer
+  end
+  
+  it "responds to stop_timer that returns a string representing elapsed time" do
+    Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:18'))
+    @formatter.start_timer
+    Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:51'))
+    @formatter.stop_timer.should == "33.0"
+  end
 end
 
 describe BaseFormatter, "operation" do
@@ -98,6 +109,11 @@ describe BaseFormatter, "operation" do
     @execution.describe = "describe"
     @execution.it = "it"
     @execution.exception = @exception
+  end
+  
+  it "provides print_start" do
+    @formatter.print_start
+    @out.should == "Started\n"
   end
   
   it "provides print_failure with an index and SpecExecution instance" do

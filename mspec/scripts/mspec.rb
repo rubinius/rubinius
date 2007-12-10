@@ -125,9 +125,9 @@ end
 code = <<-EOC
 $VERBOSE=nil
 #{name}
-@runner = SpecRunner.new(#{format}.new(#{output.inspect if output}));
-@runner.only(*#{only.inspect});
-@runner.except(*#{except.inspect});
+set_spec_runner(#{format}.new(#{output.inspect if output}))
+spec_runner.only(*#{only.inspect})
+spec_runner.except(*#{except.inspect})
 #{files.inspect}.each do |f|
   cname = "\#{f}c"
   File.delete(cname) if #{clean} and File.exist?(cname)
@@ -138,7 +138,7 @@ $VERBOSE=nil
     puts "\#{e} loading \#{f}"
   end
 end
-@runner.reporter.summary
+spec_runner.reporter.summary
 EOC
 
 File.open("last_mspec.rb", "w") do |f|

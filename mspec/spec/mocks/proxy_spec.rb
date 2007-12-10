@@ -185,3 +185,25 @@ describe MockProxy, "#and_return" do
     @proxy.returning.should == [1, 2, 3]
   end
 end
+
+describe MockProxy, "#calls" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+  
+  it "returns the number of times the proxy is called" do
+    @proxy.calls.should == 0
+  end
+end
+
+describe MockProxy, "#called" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+  
+  it "increments the number of times the proxy is called" do
+    @proxy.called
+    @proxy.called
+    @proxy.calls.should == 2
+  end
+end

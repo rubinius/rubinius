@@ -45,6 +45,14 @@ class BaseFormatter
     @out
   end
   
+  def start_timer
+    @start = Time.now
+  end
+  
+  def stop_timer
+    "#{Time.now - @start}"
+  end
+  
   def before_describe(msg)
     @describe = msg
   end
@@ -67,6 +75,10 @@ class BaseFormatter
 
   def summarized=(flag)
     @summarized = flag
+  end
+  
+  def print_start
+    @out.print "Started\n"
   end
   
   def print_failure(i,r)
