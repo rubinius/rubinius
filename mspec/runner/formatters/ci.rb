@@ -5,6 +5,8 @@ class CIFormatter < BaseFormatter
     @out.print r.describe + " " + r.it + "\n"
   end
   
+  def print_time() end
+  
   def summary
     unless @summarized
       @exceptions.each_with_index do |r,i|

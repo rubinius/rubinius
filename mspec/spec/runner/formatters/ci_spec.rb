@@ -19,6 +19,12 @@ describe CIFormatter do
     @formatter.print_failure(1, @execution)
     @out.should == "describe it\n"
   end
+  
+  it "overrides print_time to not output" do
+    @formatter.stub!(:stop_timer).and_return("33.000000")
+    @formatter.print_time
+    @out.should == ""
+  end
 
   it "provides a summary" do
     @formatter.summary

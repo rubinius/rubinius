@@ -93,7 +93,7 @@ describe BaseFormatter, "interface" do
     Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:18'))
     @formatter.start_timer
     Time.stub!(:now).and_return(Time.parse('10/18/2007 5:43:51'))
-    @formatter.stop_timer.should == "33.0"
+    @formatter.stop_timer.should == "33.000000"
   end
 end
 
@@ -116,6 +116,12 @@ describe BaseFormatter, "operation" do
     @out.should == "Started\n"
   end
   
+  it "provides print_time" do
+    @formatter.stub!(:stop_timer).and_return("33.000000")
+    @formatter.print_time
+    @out.should == "Finished in 33.000000 seconds\n\n"
+  end
+
   it "provides print_failure with an index and SpecExecution instance" do
     @formatter.print_failure(1, @execution)
     @out.should == "1)\ndescribe it FAILED\n"
@@ -132,7 +138,8 @@ describe BaseFormatter, "operation" do
   end
   
   it "provides a summary" do
+    @formatter.stub!(:print_time).and_return { @out.print "Finished in 33.000000 seconds\n\n" }
     @formatter.summary
-    @out.should == "\n\n1)\ndescribe it FAILED\nsomething bad: \n\n\n1 examples, 1 failures\n"
+    @out.should == "\n\n1)\ndescribe it FAILED\nsomething bad: \n\n\nFinished in 33.000000 seconds\n\n1 examples, 1 failures\n"
   end
 end

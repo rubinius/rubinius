@@ -131,7 +131,6 @@ code = <<-EOC
 $VERBOSE=nil
 require 'mini_rspec.rb'
 require 'mini_mock.rb'
-@runner = SpecRunner.new;
 excludes = nil
 File.open("spec/excludes.txt") do |f|
   excludes = f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
@@ -140,8 +139,8 @@ File.open(#{ci_files.inspect}, "r") do |f|
   f.each do |line|
     file, exclude = line.split
     reporter = #{format}.new(%s)
-    @runner.reporter = reporter
-    @runner.%s(*(excludes + %s))
+    spec_runner.reporter = reporter
+    spec_runner.%s(*(excludes + %s))
     STDERR.puts file if #{verbose}
     load file
     reporter.summary

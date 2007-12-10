@@ -50,7 +50,7 @@ class BaseFormatter
   end
   
   def stop_timer
-    "#{Time.now - @start}"
+    "%f" % (Time.now - @start)
   end
   
   def before_describe(msg)
@@ -101,6 +101,10 @@ class BaseFormatter
     end
     @out.print "\n"
   end
+  
+  def print_time
+    @out.print "Finished in #{stop_timer} seconds\n\n"
+  end
 
   def print_summary
     @out.print @examples.to_s + " examples, " + @failures.to_s + " failures\n"
@@ -113,6 +117,7 @@ class BaseFormatter
         print_failure(i+1,r)
         print_backtrace(r.exception)
       end
+      print_time
       print_summary
       @summarized = true
     end

@@ -84,6 +84,7 @@ describe SpecRunner do
     run = []
     @report = CaptureOutput.new
     @runner.formatter = DottedFormatter.new(@report)
+    @runner.formatter.stub!(:print_time)
     @runner.describe(Object, "") do
       @runner.before(:all)  { run << "before :all" }
       @runner.before(:each) { run << "  before :each" }
