@@ -640,7 +640,7 @@ char* rb_str_get_char_ptr(VALUE arg) {
   CTX;
   OBJECT str = HNDL(arg);
   
-  return strdup(string_byte_address(ctx->state, string_get_data(str)));
+  return strdup(string_byte_address(ctx->state, str));
 }
 
 void rb_str_flush_char_ptr(VALUE arg, char* ptr) {
@@ -650,13 +650,14 @@ void rb_str_flush_char_ptr(VALUE arg, char* ptr) {
   OBJECT str = HNDL(arg);
   OBJECT new_string = string_new(ctx->state, ptr);
   string_set_data(str, string_get_data(new_string));
+  // XXX This free may be resulting in double frees.
   free(ptr);
 }
 
 int rb_str_get_char_len(VALUE arg) {
   CTX;
   OBJECT str = HNDL(arg);
-  return strlen(string_byte_address(ctx->state, string_get_data(str)));
+  return strlen(string_byte_address(ctx->state, str));
 }
 
 /* Data_Get_Struct and Data_Wrap_Struct support */
@@ -684,35 +685,6 @@ void* subtend_get_struct(VALUE obj) {
 
 Still needed for Mongrel - Kev
 
-rb_str_substr
-
-rb_obj_freeze
 rb_global_variable
-
-*/
-
-/*
-
-rb_gc_mark
-rb_gv_get
-
-rb_class2name
-rb_obj_classname
-
-rb_call_super
-
-rb_str_catf
-rb_str_resize
-rb_str_cat2
-
-rb_block_given_p
-rb_block_proc
-rb_throw
-
-rb_num2ull
-rb_ull2inum
-
-rb_gc_register_address
-rb_gc_unregister_address
 
 */
