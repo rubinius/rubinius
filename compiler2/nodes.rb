@@ -377,6 +377,11 @@ class Node
         return [nil, nil]
       end
       
+      # Handle def self.foo; end, which unlike def foo; end does not generate a block
+      if sexp[0].first == :args
+        sexp[0] = [:block, sexp[0], [:nil]]
+      end
+
       sexp[0] = convert(sexp[0])
       return sexp
     end
