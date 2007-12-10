@@ -18,6 +18,7 @@ class SpecRunner
         @formatter = DottedFormatter.new
       end
     end
+    @formatter.start_timer
     reset_run
   end
 
@@ -77,13 +78,13 @@ class SpecRunner
     end
   end
   
-  def it(mod, str, &block)
-    @it << ["#{mod}#{str}", block]
+  def it(msg, &block)
+    @it << [msg, block]
   end
   
-  def describe(mod, str)
+  def describe(*args)
     reset_run
-    msg = "#{mod}#{str}"
+    msg = args.join " "
     formatter.before_describe(msg)
     yield
     

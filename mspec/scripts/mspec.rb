@@ -10,15 +10,15 @@ end
 
 # defaults
 patterns = []
-includes = ['-Ispec']
-requires = ['-rmini_rspec.rb', '-rmini_mock.rb']
+includes = []
+requires = []
 except = []
 only = []
 name = nil
 output = nil
 clean = false
 target = 'shotgun/rubinius'
-format = 'DottedReporter'
+format = 'DottedFormatter'
 verbose = false
 gdb = false
 valgrind = false
@@ -123,9 +123,12 @@ patterns.each do |item|
 end
 
 code = <<-EOC
+ENV['MSPEC_RUNNER'] = '1'
+require 'spec/spec_helper'
+
 $VERBOSE=nil
 #{name}
-set_spec_runner(#{format}.new(#{output.inspect if output}))
+set_spec_runner(#{format}, #{output ? output.inspect : 'STDOUT'})
 spec_runner.only(*#{only.inspect})
 spec_runner.except(*#{except.inspect})
 #{files.inspect}.each do |f|
@@ -138,7 +141,7 @@ spec_runner.except(*#{except.inspect})
     puts "\#{e} loading \#{f}"
   end
 end
-spec_runner.reporter.summary
+spec_runner.formatter.summary
 EOC
 
 File.open("last_mspec.rb", "w") do |f|

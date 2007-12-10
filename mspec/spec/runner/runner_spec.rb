@@ -69,7 +69,7 @@ describe SpecRunner do
   end
   
   it "provides #it that accepts two arguments and a block" do
-    @runner.it(Object, "") { }
+    @runner.it("") { }
   end
   
   it "provides #describe that accepts two arguments and a block" do
@@ -85,13 +85,13 @@ describe SpecRunner do
     @report = CaptureOutput.new
     @runner.formatter = DottedFormatter.new(@report)
     @runner.formatter.stub!(:print_time)
-    @runner.describe(Object, "") do
+    @runner.describe("") do
       @runner.before(:all)  { run << "before :all" }
       @runner.before(:each) { run << "  before :each" }
       @runner.after(:each)  { run << "  after :each" }
       @runner.after(:all)   { run << "after :all" }
-      @runner.it(Object, "#first")  { run << "  first" }
-      @runner.it(Object, "#second") { run << "  second" }
+      @runner.it("#first")  { run << "  first" }
+      @runner.it("#second") { run << "  second" }
     end
     run.join.should == 
       "before :all" \

@@ -7,12 +7,12 @@ class Object
     spec_runner.after(at, &block)
   end
 
-  def describe(mod, str, &block)
-    spec_runner.describe(mod, str, &block)
+  def describe(*args, &block)
+    spec_runner.describe(*args, &block)
   end
 
-  def it(mod, str, &block)
-    spec_runner.it(mod, str, &block)
+  def it(msg, &block)
+    spec_runner.it(msg, &block)
   end
   
   def set_spec_runner(formatter=nil, out=STDOUT)
