@@ -7,20 +7,21 @@ require 'optparse'
 require 'ostruct'
 
 require 'rubygems'
-require 'scruffy'
+gem 'scruffy'
 
 BM_GLOB      = 'test/benchmark/*/bm*.rb'
 INTERPRETERS = ['ruby','shotgun/rubinius']
 WIDTH        = 50
 
-OPTIONS = OpenStruct.new
+OPTIONS = OpenStruct.new( :width => 1024, :report => true )
 
 options = OptionParser.new do |opts|
   opts.on('-c', '--chart [FILENAME]') { |c| OPTIONS.chart  = c || 'bm.svg' }
+  opts.on('-w', '--width WIDTH')      { |w| OPTIONS.chart  = w }
   opts.on('-g', '--grep REGEX')       { |g| OPTIONS.grep   = g }
   opts.on('-n', '--ngrep REGEX')      { |n| OPTIONS.ngrep  = n }
   opts.on('-h', '--help')             { |h| OPTIONS.help   = h }
-  opts.on('-r', '--no-report')        { |r| OPTIONS.report = r }
+  opts.on('--no-report')              { |r| OPTIONS.report = r }
 end
 
 options.parse!
@@ -145,6 +146,28 @@ class RbxBenchmarkRun
     puts 'Total time, not including failures: ' + time.to_s
     puts
   end
+
+  def line_chart
+    Scruffy::Layers::Line.new( :title  => @interpreter,
+                               :points => @benchmarks.collect do |b|
+                                            b.time
+                                          end )
+  end
+end
+
+def scrub_failures(results)
+  results.each_value do |i|
+    times_1 = i.benchmarks
+    times_1.each_with_index do |bm,j|
+      unless bm.pass?
+        results.each_value do |k|
+          k.benchmarks.delete_at(j)
+        end
+        return true
+      end
+    end
+  end
+  false
 end
 
 results = {}
@@ -159,11 +182,20 @@ end
 
 if OPTIONS.chart then
   puts "Now saving chart to #{OPTIONS.chart}"
+
+  while scrub_failures(results)
+  end
+
   graph = Scruffy::Graph.new
 
   results.each_value do |r|
-    graph.add( :line, r.interpreter, r.benchmarks.collect { |b| b.time } )
+    graph << r.line_chart
   end
 
-  graph.render( :to => OPTIONS.chart )
+  # Not useful until Scruffy can rotate x access text
+  # graph.point_markers = results.shift.last.benchmarks.collect do |b|
+  #   b.label.match(/[^:]: (.+)/)[1]
+  # end
+
+  graph.render( :width => OPTIONS.width, :to => OPTIONS.chart )
 end
