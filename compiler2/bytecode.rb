@@ -839,9 +839,11 @@ class Node
       
       @object.bytecode(g)
       g.dup
-      @index.bytecode(g)
-      g.swap
-      g.send :[], 1
+      @index.each do |idx|
+        idx.bytecode(g)
+        g.swap
+      end
+      g.send :[], @index.size
       
       if @kind == :or or @kind == :and
         g.dup
@@ -857,16 +859,20 @@ class Node
         g.swap
         g.send @kind, 1
         g.swap
-        @index.bytecode(g)
-        g.swap
-        g.send :[]=, 2
+        @index.each do |idx|
+          idx.bytecode(g)
+          g.swap
+        end
+        g.send :[]=, @index.size + 1
         return        
       end
       
       g.swap
-      @index.bytecode(g)
-      g.swap
-      g.send :[]=, 2
+      @index.each do |idx|
+        idx.bytecode(g)
+        g.swap
+      end
+      g.send :[]=, @index.size + 1
       g.goto fin
       
       fnd.set!

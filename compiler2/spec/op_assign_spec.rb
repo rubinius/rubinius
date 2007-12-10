@@ -130,6 +130,32 @@ describe Compiler do
     
   end
   
+  it "compiles 'ary[0,1] += [4]'" do
+    x = [:op_asgn1, [:vcall, :ary], :+, 
+          [:array, [:array, [:lit, 4]], [:fixnum, 0], [:lit, 1], [:nil]]
+        ]
+    gen x do |g|
+      g.push :self
+      g.send :ary, 0, true
+      g.dup
+      g.push 0
+      g.swap
+      g.push 1
+      g.swap
+      g.send :[], 2
+      g.push 4
+      g.make_array 1
+      g.swap
+      g.send :"+", 1
+      g.swap
+      g.push 0
+      g.swap
+      g.push 1
+      g.swap
+      g.send :[]=, 3
+    end
+  end
+  
   it "compiles 'x.val ||= 6'" do
     x = [:op_asgn2, [:vcall, :x], :val, :or, :val, [:lit, 6]]
     

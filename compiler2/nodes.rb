@@ -680,11 +680,21 @@ class Node
   
   class OpAssign1 < Node
     kind :op_asgn1
-    
-    def args(obj, kind, value)
-      @object, @kind = obj, kind
-      @index = value.body[1]
-      @value = value.body[0]
+
+    def consume(sexp)
+      # Value to be op-assigned is always first element of value
+      sexp[2].shift # Discard :array token
+      val = convert(sexp[2].shift)
+      # Remaining elements in value are index args excluding final nil marker
+      idx = []
+      while sexp[2].size > 1 do
+        idx << convert(sexp[2].shift)
+      end
+      [convert(sexp[0]), sexp[1], idx, val]
+    end
+
+    def args(obj, kind, index, value)
+      @object, @kind, @index, @value = obj, kind, index, value
     end
     
     attr_accessor :object, :kind, :value, :index
