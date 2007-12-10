@@ -413,7 +413,21 @@ class Node
       
       if defaults
         defaults.shift
+        i = 0
         defaults.map! do |node|
+          # HACK: Fix parse_tree bug when an optional arg has a default value
+          # that is an :iter. For example, the following:
+          #  def foo(output = 1, b = lambda {|n| output * n})
+          # generates a sexp where the optional args are [:output, :n], rather
+          # than [:output, :b]. To fix this, we pick up the name of the :lasgn,
+          # in the defaults, and set the corresponding optional arg if the
+          # :lasgn is an :iter.
+          if node[3].first == :iter
+            name = node[1]
+            sexp[1][i] = name
+          end
+          i += 1
+
           convert(node)
         end
         
@@ -459,7 +473,7 @@ class Node
 
       if @defaults
         @defaults.each do |x|
-          @mapped_defaults[x.name] = x  
+          @mapped_defaults[x.name] = x
         end
       end
       
