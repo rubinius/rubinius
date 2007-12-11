@@ -115,7 +115,7 @@ class Thread
         @joins << jc
         @lock.send nil
         begin
-          Scheduler.send_in_microseconds(jc, timeout * 1_000_000) if timeout
+          Scheduler.send_in_microseconds(jc, (timeout * 1_000_000).to_i) if timeout
           jc.receive
         ensure
           @lock.receive

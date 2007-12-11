@@ -23,6 +23,14 @@ describe "Thread#join" do
     end
   end
 
+  it "can accept a floating point timeout length" do
+    start = Time.now
+    t = Thread.new { sleep }
+    t.join(0.0).should == nil
+    t.run
+    ((Time.now - start) < 0.01).should == true
+  end
+  
   it "raises any exceptions encountered in the thread body" do
     t = Thread.new { raise NotImplementedError.new("Just kidding") }
     should_raise(NotImplementedError) { t.join }
