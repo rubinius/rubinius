@@ -129,16 +129,20 @@ class Thread
     result
   end
 
+  # Sleeps the current thread for +duration+ seconds. This is a class method
+  # because you can only ever sleep the current thread, thus it's not an
+  # instance method of Thread, as you can never ask another Thread to sleep.
   def self.sleep(duration = nil)
-    Thread.current.sleep(duration)
-  end
-  
-  def sleep(duration = nil)
     chan = Channel.new
     start = Time.now
-    Scheduler.send_in_microseconds(chan, (duration * 1_000_000).to_i) if(duration)
+    # No duration means we sleep forever. By not registering anything with
+    # Scheduler, the receive call will effectively block until someone
+    # explicitely wakes this thread.
+    if duration
+      Scheduler.send_in_microseconds(chan, (duration * 1_000_000).to_i)
+    end
     chan.receive
-    return (Time.now - start)
+    return Time.now - start
   end
   
   def raise(exc=$!, msg=nil, trace=nil)
