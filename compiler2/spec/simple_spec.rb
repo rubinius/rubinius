@@ -353,8 +353,7 @@ describe Compiler do
   it "compiles a splat" do
     gen [:splat, [:fixnum, 12]] do |g|
       g.push 12
-      g.cast_array_for_args 0
-      g.push_array
+      g.cast_array
     end
   end
   

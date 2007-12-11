@@ -802,6 +802,12 @@ class Node
   class Splat
     def bytecode(g)
       @child.bytecode(g)
+      g.cast_array
+    end
+
+    # Bytecode generation when a splat is used as a method arg
+    def call_bytecode(g)
+      @child.bytecode(g)
       g.cast_array_for_args 0
       g.push_array
     end
@@ -1656,7 +1662,11 @@ class Node
           # ConcatArgs calls get_args on its own, so we don't need to
           @dynamic = true
         else
-          @arguments.bytecode(g)
+          if @arguments.kind_of? Splat
+            @arguments.call_bytecode(g)
+          else
+            @arguments.bytecode(g)
+          end
           g.get_args
           @dynamic = true
         end
