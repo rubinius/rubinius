@@ -243,7 +243,7 @@ void ffi_from_uchar(unsigned char c) {
 
 /* short */
 
-char ffi_to_short() {
+short ffi_to_short() {
   OBJECT obj;
   rni_context *ctx = subtend_retrieve_context();
   obj = cpu_stack_pop(ctx->state, ctx->cpu);
