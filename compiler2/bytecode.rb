@@ -1555,19 +1555,14 @@ class Node
     end
     
     def statement_bytecode(g)
-      if @source.kind_of? Splat
+      if @source.kind_of? Splat or @source.kind_of? ToArray
         @source.child.bytecode(g)
-        g.cast_tuple
       elsif @source.kind_of? ConcatArgs
-        @source.bytecode(g)
-        g.cast_tuple
-      elsif @source.kind_of? ToArray
         @source.bytecode(g)
       elsif @source
         raise Error, "Unknown form: #{@source.class}"
-      else
-        g.cast_tuple
       end
+      g.cast_tuple
 
       if @assigns
         @assigns.body.each do |x|
@@ -1580,10 +1575,8 @@ class Node
       if @splat
         g.cast_array
         @splat.bytecode(g)
-        g.pop
-      else
-        g.pop
       end
+      g.pop
       
       g.push :true
     end
