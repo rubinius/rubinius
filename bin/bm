@@ -6,9 +6,6 @@ include Benchmark
 require 'optparse'
 require 'ostruct'
 
-require 'rubygems'
-require 'scruffy'
-
 BM_GLOB      = 'test/benchmark/*/bm*.rb'
 INTERPRETERS = ['ruby','shotgun/rubinius']
 WIDTH        = 50
@@ -181,6 +178,9 @@ if OPTIONS.report then
 end
 
 if OPTIONS.chart then
+  require 'rubygems'
+  require 'scruffy'
+
   puts "Now saving chart to #{OPTIONS.chart}"
 
   while scrub_failures(results)
