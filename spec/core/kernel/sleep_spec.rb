@@ -17,7 +17,6 @@ end
 describe "Thread.sleep" do
   it "should wait for indefinite seconds" do
     th = Thread.new do
-      # MRI does not allow explicit sleep of nil
       sleep
       5
     end
@@ -31,9 +30,17 @@ describe "Thread.sleep" do
     (th.value < 0.01).should == true
   end
 
+  noncompliant(:rubinius) do
+    it "should allow sleep of duration nil" do
+      th = Thread.new { sleep(nil) }
+      th.run
+      (th.value < 0.01).should == true
+    end
+  end
+
   it "should return the time spent sleeping even if less then requested sleep time" do
     th = Thread.new { sleep(0.5) }
     th.run
     (th.value < 0.01).should == true
-  end
+  end  
 end
