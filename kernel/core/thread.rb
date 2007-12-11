@@ -129,11 +129,16 @@ class Thread
     result
   end
 
-  def self.sleep(secs)
+  def self.sleep(duration = nil)
+    Thread.current.sleep(duration)
+  end
+  
+  def sleep(duration = nil)
     chan = Channel.new
-    Scheduler.send_in_microseconds(chan, secs * 1_000_000)
+    start = Time.now
+    Scheduler.send_in_microseconds(chan, (duration * 1_000_000).to_i) if(duration)
     chan.receive
-    return true
+    return (Time.now - start)
   end
   
   def raise(exc=$!, msg=nil, trace=nil)

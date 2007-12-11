@@ -119,8 +119,8 @@ module Kernel
   def abort(msg=nil)
     $stderr.puts(msg) if(msg)
     exit 1
-  end
-
+  end  
+  
   # Display methods
   def printf(*args)
     if args[0].class == IO
@@ -205,6 +205,10 @@ module Kernel
       ctx = ctx.sender
     end
     ret[start..-1]
+  end
+
+  def sleep(duration = nil)
+    Thread.sleep(duration)
   end
   
   def at_exit(&block)
