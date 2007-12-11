@@ -80,9 +80,14 @@ class Hash
     delete_if { true }
   end
 
-  def default(key = nil)
-    return @default.call(self, key) if @default_proc
-    @default
+  def default(key = Undefined)
+    # current MRI documentation comment is wrong.  Actual behavior is:
+    # Hash.new { 1 }.default #=> nil
+    if @default_proc
+      return key.equal?(Undefined) ? nil : @default.call(self, key)
+    else
+      return @default
+    end
   end
 
   def default=(val)
@@ -282,7 +287,7 @@ class Hash
   end
 
   def shift()
-    return default if empty?
+    return default(nil) if empty?
 
     # TODO: keep around for efficiency?  It's not much faster though.
     # i = 0
