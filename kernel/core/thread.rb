@@ -24,10 +24,6 @@ class Thread
       Kernel.raise ThreadError, "must be called with a block"
     end
 
-    unless args.empty?
-      Kernel.raise ThreadError, "thread block arguments not yet supported"
-    end
-
     block = Ruby.asm "push_block"
     block.disable_long_return!
 
@@ -37,7 +33,7 @@ class Thread
         begin
           @lock.send nil
           begin
-            @result = block.call
+            @result = block.call *args
           rescue IllegalLongReturn => e2
             Kernel.raise ThreadError, 
                       "return is not allowed across threads", e2.context
@@ -62,10 +58,10 @@ class Thread
     @task.associate block
   end
   
-  def self.new
+  def self.new(*args)
     block = Ruby.asm "push_block"
     th = allocate()
-    th.initialize(&block)
+    th.initialize(*args, &block)
     th.wakeup
     return th
   end
