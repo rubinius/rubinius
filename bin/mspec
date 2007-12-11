@@ -21,9 +21,8 @@ clean = false
 target = 'shotgun/rubinius'
 format = 'DottedReporter'
 verbose = false
-gdb = false
-valgrind = false
 compiler2 = false
+flags = ''
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
@@ -63,6 +62,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = t
     end
   end
+  opts.on("-T", "--targetopt OPT", String,
+          "Pass OPT as a flag to the target implementation") do |t|
+    flags << ' ' << t
+  end
   opts.on("-I", "--include DIRECTORY", String,
           "Passes through as the -I option to the target") do |d|
     includes << "-I#{d}"
@@ -91,10 +94,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     clean = true
   end
   opts.on("-g", "--gdb", "Run under gdb") do
-    gdb = true
+    flags << " --gdb"
   end
   opts.on("-A", "--valgrind", "Run under valgrind") do
-    valgrind = true
+    flags << " --valgrind"
   end
   opts.on("-V", "--verbose", "Output each file processed when running") do
     verbose = true
@@ -159,10 +162,5 @@ File.open("last_mspec.rb", "w") do |f|
 end
 
 cmd = "#{target} %s #{includes.join(" ")} #{requires.join(" ")} last_mspec.rb"
-if gdb
-  exec(cmd % '--gdb')
-elsif valgrind
-  exec(cmd % '--valgrind')
-else
-  exec(cmd % '')
-end
+puts (cmd % flags)
+exec(cmd % flags)
