@@ -7,7 +7,7 @@ require 'optparse'
 require 'ostruct'
 
 require 'rubygems'
-gem 'scruffy'
+require 'scruffy'
 
 BM_GLOB      = 'test/benchmark/*/bm*.rb'
 INTERPRETERS = ['ruby','shotgun/rubinius']
@@ -192,7 +192,7 @@ if OPTIONS.chart then
     graph << r.line_chart
   end
 
-  # Not useful until Scruffy can rotate x access text
+  # Not useful until Scruffy can rotate x axis point markers
   # graph.point_markers = results.shift.last.benchmarks.collect do |b|
   #   b.label.match(/[^:]: (.+)/)[1]
   # end
