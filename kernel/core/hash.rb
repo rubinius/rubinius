@@ -67,7 +67,40 @@ class Hash
 
   def set_key_cv(key, val)
     key = key.dup if key.kind_of?(String)
-    set_by_hash key.hash, key, val
+
+    hsh = key.hash
+    bin = hsh % @bins
+
+    entry = @values.at(bin)
+    lst = nil
+
+    while entry
+      cur_hash, cur_key, cur_val, nxt = *entry
+
+      # Check if this entry is for the key in question
+      if cur_hash == hsh and key.eql?(cur_key)
+        entry.put 2, val
+        return val
+      end
+
+      lst = entry
+      entry = nxt
+    end
+
+    entry = Tuple.new(4)
+    entry.put 0, hsh
+    entry.put 1, key
+    entry.put 2, val
+    entry.put 3, nil
+
+    if lst
+      lst.put 3, entry
+    else
+      @values.put bin, entry
+    end
+
+    @entries += 1
+    return val
   end
   alias_method :store, :set_key_cv
 
