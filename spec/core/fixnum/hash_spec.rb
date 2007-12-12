@@ -1,11 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Float#hash" do
+describe "Fixnum#hash" do
   it "is provided" do
-    0.0.respond_to?(:hash).should == true
+    1.respond_to?(:hash).should == true
   end
 
   it "is stable" do
-    1.0.hash.should == 1.0.hash
+    1.hash.should == 1.hash
   end
 end
