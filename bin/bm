@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'benchmark'
+# Must use our benchmark.rb, which has patches -vs- Ruby distribution
+require File.expand_path(File.join(File.dirname(__FILE__),'../stdlib/benchmark'))
 include Benchmark
 
 require 'optparse'
@@ -17,7 +18,7 @@ OPTIONS = OpenStruct.new( :width => 1024, :report => true )
 
 options = OptionParser.new do |opts|
   opts.on('-c', '--chart [FILENAME]') do |c|
-    OPTIONS.chart     = c || 'times.svg'
+    OPTIONS.chart = c || 'times.svg'
   end
 
   opts.on('-d', '--diff-chart [FILENAME]') do |d|
@@ -25,23 +26,27 @@ options = OptionParser.new do |opts|
   end
 
   opts.on('-w', '--width WIDTH') do |w|
-    OPTIONS.chart     = w
+    OPTIONS.chart = w
   end
 
   opts.on('-g', '--grep REGEX') do |g|
-    OPTIONS.grep      = g
+    OPTIONS.grep = g
   end
 
   opts.on('-n', '--ngrep REGEX') do |n|
-    OPTIONS.ngrep     = n
+    OPTIONS.ngrep = n
   end
 
   opts.on('-h', '--help') do |h|
-    OPTIONS.help      = h
+    OPTIONS.help = h
   end
 
   opts.on('--no-report') do |r|
-    OPTIONS.report    = r
+    OPTIONS.report = r
+  end
+
+  opts.on('-w', '--warmup') do |w|
+    OPTIONS.warmup = w
   end
 end
 
@@ -88,16 +93,29 @@ class RbxBenchmarkFile
   end
 
   def run
-    @result = Benchmark.bmbm do |x|
-      x.report(label + ' ' * (WIDTH - label.length)) do
-        if system quiet_command then
-          @pass = true
-        else
-          @pass = false
-          system command
-        end
-      end
-    end.first
+    @result = if OPTIONS.warmup then
+                Benchmark.bmbm do |x|
+                  x.report(label + ' ' * (WIDTH - label.length)) do
+                    if system quiet_command then
+                      @pass = true
+                    else
+                      @pass = false
+                      system command
+                    end
+                  end
+                end.first
+              else
+                Benchmark.bm do |x|
+                  x.report(label + ' ' * (WIDTH - label.length)) do
+                    if system quiet_command then
+                      @pass = true
+                    else
+                      @pass = false
+                      system command
+                    end
+                  end
+                end
+              end
   end
 
   def passed?
@@ -214,11 +232,11 @@ def report(runs)
   puts '-' * header.length
 
   0.upto(runs.first.results.length - 1) do |i|
-    line = runs.first.results.first.pretty_file.ljust(REPORT_WIDTH)
+    line = runs.first.results[i].pretty_file.ljust(REPORT_WIDTH)
     results = []
     runs.each do |run|
       results << run.results[i]
-      line    << results.last.report
+      line    << run.results[i].report
     end
 
     diff = difference(results.first,results.last)
@@ -296,8 +314,8 @@ if OPTIONS.diffchart then
 
   graph = Scruffy::Graph.new
 
-  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius times faster, negative is times slower',
-                                      :points => differences )
+  graph << Scruffy::Layers::Bar.new( :title  => 'Rubinius times faster, negative is times slower',
+                                     :points => differences )
 
   # graph.point_markers = runs.first.results.reject do |result|
   #   result.unchartable?
