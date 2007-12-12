@@ -56,12 +56,23 @@ class Hash
   end
 
   def get_key_cv(key)
-    code, hk, val, nxt = get_by_hash key.hash, key
-    if code
-      return val if hk.eql? key
-    else
-      return default key if @default
+    hsh = key.hash
+    bin = hsh % @bins
+
+    entry = @values.at(bin)
+
+    while entry
+      cur_hash, cur_key, cur_val, nxt = *entry
+
+      # Check if this entry is for the key in question
+      if cur_hash == hsh and key.eql?(cur_key)
+        return cur_val
+      end
+
+      entry = nxt
     end
+
+    return default(key) if @default
     nil
   end
 
