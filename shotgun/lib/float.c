@@ -1,6 +1,5 @@
 #include "shotgun.h"
 #include "string.h"
-#include "bignum.h"
 #include "array.h"
 
 #include <string.h>
