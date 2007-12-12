@@ -30,6 +30,8 @@ void Init_ffi(STATE) {
   rbs_const_set(state, mod, "TYPE_UINT",     I2N(FFI_TYPE_UINT));
   rbs_const_set(state, mod, "TYPE_LONG",     I2N(FFI_TYPE_LONG));
   rbs_const_set(state, mod, "TYPE_ULONG",    I2N(FFI_TYPE_ULONG));
+  rbs_const_set(state, mod, "TYPE_LL",       I2N(FFI_TYPE_LL));
+  rbs_const_set(state, mod, "TYPE_ULL",      I2N(FFI_TYPE_ULL));
   rbs_const_set(state, mod, "TYPE_FLOAT",    I2N(FFI_TYPE_FLOAT));
   rbs_const_set(state, mod, "TYPE_DOUBLE",   I2N(FFI_TYPE_DOUBLE));
   rbs_const_set(state, mod, "TYPE_PTR",      I2N(FFI_TYPE_PTR));

@@ -52,6 +52,8 @@ module FFI
   add_typedef TYPE_UINT,    :uint
   add_typedef TYPE_LONG,    :long
   add_typedef TYPE_ULONG,   :ulong
+  add_typedef TYPE_LL,      :long_long
+  add_typedef TYPE_ULL,     :ulong_long
   add_typedef TYPE_FLOAT,   :float
   add_typedef TYPE_DOUBLE,  :double
   add_typedef TYPE_PTR,     :pointer
