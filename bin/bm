@@ -6,20 +6,43 @@ include Benchmark
 require 'optparse'
 require 'ostruct'
 
-BM_GLOB      = 'test/benchmark/*/bm*.rb'
-INTERPRETERS = ['ruby','shotgun/rubinius']
-WIDTH        = 50
-COLUMN_WIDTH = 10
+BM_GLOB        = 'test/benchmark/*/bm*.rb'
+INTERPRETERS   = ['ruby','shotgun/rubinius']
+WIDTH          = 40
+REPORT_WIDTH   = WIDTH - 6
+COLUMN_WIDTH   = 16
+DECIMAL_FORMAT = '%4.4f'
 
 OPTIONS = OpenStruct.new( :width => 1024, :report => true )
 
 options = OptionParser.new do |opts|
-  opts.on('-c', '--chart [FILENAME]') { |c| OPTIONS.chart  = c || 'bm.svg' }
-  opts.on('-w', '--width WIDTH')      { |w| OPTIONS.chart  = w }
-  opts.on('-g', '--grep REGEX')       { |g| OPTIONS.grep   = g }
-  opts.on('-n', '--ngrep REGEX')      { |n| OPTIONS.ngrep  = n }
-  opts.on('-h', '--help')             { |h| OPTIONS.help   = h }
-  opts.on('--no-report')              { |r| OPTIONS.report = r }
+  opts.on('-c', '--chart [FILENAME]') do |c|
+    OPTIONS.chart     = c || 'times.svg'
+  end
+
+  opts.on('-d', '--diff-chart [FILENAME]') do |d|
+    OPTIONS.diffchart = d || 'difference.svg'
+  end
+
+  opts.on('-w', '--width WIDTH') do |w|
+    OPTIONS.chart     = w
+  end
+
+  opts.on('-g', '--grep REGEX') do |g|
+    OPTIONS.grep      = g
+  end
+
+  opts.on('-n', '--ngrep REGEX') do |n|
+    OPTIONS.ngrep     = n
+  end
+
+  opts.on('-h', '--help') do |h|
+    OPTIONS.help      = h
+  end
+
+  opts.on('--no-report') do |r|
+    OPTIONS.report    = r
+  end
 end
 
 options.parse!
@@ -33,8 +56,6 @@ class RbxBenchmarkFile
   def initialize(interpreter,file)
     @interpreter = interpreter
     @file        = file
-
-    run
   end
 
   def pretty_interpreter
@@ -54,9 +75,9 @@ class RbxBenchmarkFile
 
     case @file
       when /wycats\/bm_string[.]rb/
-        command += %{ -x "String#unpack"}
+        command << %{ -x "String#unpack"}
       when /borasky\/bm_MatrixBenchmark[.]rb/
-        command += %{ 64}
+        command << %{ 64}
     end
 
     command
@@ -79,12 +100,38 @@ class RbxBenchmarkFile
     end.first
   end
 
-  def pass?
+  def passed?
     @pass
   end
 
+  def failed?
+    ! @pass
+  end
+
   def time
-    pass? ? @result.real : 0
+    passed? ? @result.real : 0
+  end
+
+  def skip
+    @skipped = true
+  end
+
+  def skipped?
+    @skipped
+  end
+
+  def unchartable?
+    failed? or skipped?
+  end
+
+  def report
+    if skipped? then
+      'Skipped'
+    elsif passed? then
+      DECIMAL_FORMAT % time
+    else
+      'Failed'
+    end.rjust(COLUMN_WIDTH)
   end
 end
 
@@ -110,64 +157,80 @@ class RbxBenchmarkRun
     clean
 
     Dir[BM_GLOB].each do |file|
-      if OPTIONS.grep then
-        next unless file.match(OPTIONS.grep)
-      end
-
-      if OPTIONS.ngrep then
-        next if file.match(OPTIONS.ngrep)
-      end
-
       @results << RbxBenchmarkFile.new(@interpreter,file)
+
+      if OPTIONS.grep and ! file.match(OPTIONS.grep)
+        @results.last.skip
+        next
+      end
+
+      if OPTIONS.ngrep and file.match(OPTIONS.ngrep) then
+        @results.last.skip
+        next
+      end
+
+      @results.last.run
     end
 
     self
   end
 
   def time
-    @results.inject(0) {|total, result| total + result.time }
+    @results.inject(0) { |total, result| total + result.time }
   end
 
-  def line_chart
-    Scruffy::Layers::Line.new( :title  => @interpreter,
-                               :points => @results.collect do |result|
-                                            result.time
-                                          end )
-  end
-end
-
-def report(results)
-  results.each do |run|
-    puts
-    puts run.interpreter
-    puts '-' * run.interpreter.length
-
-    run.results.each do |result|
-      if result.pass? then
-        puts result.time
+  def chart_points
+    @results.collect do |result|
+      if result.unchartable?
+        nil
       else
-        puts "Failed"
+        result.time
       end
     end
-
-    puts 'Total time, not including failures: ' + run.time.to_s
-    puts
   end
 end
 
-def scrub_failures(runs)
-  runs.each do |run_1|
-    results = run_1.results
-    results.each_with_index do |result,i|
-      unless result.pass?
-        runs.each do |run_2|
-          run_2.results.delete_at(i)
-        end
-        return true
-      end
-    end
+def difference(ruby,rubinius)
+  if ruby.unchartable? or rubinius.unchartable? then
+    nil
+  elsif ruby.time < rubinius.time then
+    -rubinius.time / ruby.time
+  else
+    ruby.time / rubinius.time
   end
-  false
+end
+
+def report(runs)
+  header = 'file'.ljust(REPORT_WIDTH)
+
+  runs.each do |run|
+    header << (run.results.first.pretty_interpreter).rjust(COLUMN_WIDTH)
+  end
+
+  header << 'difference'.rjust(COLUMN_WIDTH)
+
+  puts
+  puts header
+  puts '-' * header.length
+
+  0.upto(runs.first.results.length - 1) do |i|
+    line = runs.first.results.first.pretty_file.ljust(REPORT_WIDTH)
+    results = []
+    runs.each do |run|
+      results << run.results[i]
+      line    << results.last.report
+    end
+
+    diff = difference(results.first,results.last)
+
+    line << if diff.nil? then
+              'n/a'
+            else
+              DECIMAL_FORMAT % diff
+            end.rjust(COLUMN_WIDTH)
+
+    puts line
+  end
 end
 
 runs = []
@@ -184,21 +247,65 @@ if OPTIONS.chart then
   require 'rubygems'
   require 'scruffy'
 
-  while scrub_failures(runs)
+  chart_point_sets = runs.collect { |run| run.chart_points }
+
+  deletes = []
+
+  for i in 0..chart_point_sets.length-1
+    delete = false
+    for j in 0..chart_point_sets.first.length-1
+      if chart_point_sets[i][j].nil? then
+        deletes << j
+      end
+    end
+  end
+
+  chart_point_sets.each do |cps|
+    deletes.uniq.sort.reverse.each { |d| cps.delete_at(d) }
   end
 
   graph = Scruffy::Graph.new
 
   runs.each do |run|
-    graph << run.line_chart
+    graph << Scruffy::Layers::Line.new( :title  => run.interpreter,
+                                        :points => chart_point_sets.shift )
   end
 
-  # Not useful until Scruffy can rotate x axis point markers
-  # graph.point_markers = runs.shift.last.benchmarks.collect do |b|
-  #   b.label.match(/[^:]: (.+)/)[1]
+  # graph.point_markers = runs.first.results.reject do |result|
+  #   result.unchartable?
+  # end.collect do |result|
+  #   result.pretty_file
   # end
 
   puts "Rendering chart to #{OPTIONS.chart}"
 
   graph.render( :width => OPTIONS.width, :to => OPTIONS.chart )
+end
+
+if OPTIONS.diffchart then
+  require 'rubygems'
+  require 'scruffy'
+
+  differences = []
+  
+  0.upto(runs.first.results.length - 1) do |i|
+    differences << difference(runs.first.results[i],runs.last.results[i])
+  end
+  
+  differences.reject! { |d| d.nil? }
+
+  graph = Scruffy::Graph.new
+
+  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius times faster, negative is times slower',
+                                      :points => differences )
+
+  # graph.point_markers = runs.first.results.reject do |result|
+  #   result.unchartable?
+  # end.collect do |result|
+  #   result.pretty_file
+  # end
+
+  puts "Rendering diffchart to #{OPTIONS.diffchart}"
+
+  graph.render( :width => OPTIONS.width, :to => OPTIONS.diffchart )
 end
