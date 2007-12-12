@@ -20,31 +20,6 @@
 /* Arguments passed in this order: %rdi, %rsi, %rdx, %rcx, %r8, %r9, stack */
 static int ffi_amd64_reg_offset[] = {FFI_RDI, FFI_RSI, FFI_RDX, FFI_RCX, FFI_R8, FFI_R9}; 
 
-/* 
- * Flushes code caches and handles some memory protection
- * thingamabobs on at least Linux where code generated 
- * straight to the heap cannot be run.
- *
- * Shamelessly stolen from GNU lightning.
- */
-void ffi_amd64_flush(void* dest, int len) {
-  void* page;
-
-  #ifdef PAGESIZE
-  const int page_size = PAGESIZE;
-  #else
-  static int page_size = -1;
-  if(page_size == -1) page_size = sysconf(_SC_PAGESIZE);
-  #endif
-
-  page = (void*)((uintptr_t)dest & ~(page_size - 1));
-
-  /* printf("%x / %x / %x / %d\n", dest, page, page_size, sizeof(unsigned long)); */
-
-  mprotect((void*)page, page_size, PROT_READ | PROT_WRITE | PROT_EXEC);
-  return; 
-}
-
 /*
  * Generate a shim or wrapper around a C function.
  *
@@ -170,8 +145,6 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
   /* Clean up */
   _B(0xc9);                               /* leaveq */
   _B(0xc3);                               /* retq */
-
-  ffi_amd64_flush(start, FFI_CODE_SIZE); 
 
   NEW_STRUCT(obj, code_ptr, BASIC_CLASS(ffi_ptr), void*);
   *code_ptr = (void*)start;   /* Stash away the pointer */

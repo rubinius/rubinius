@@ -19,7 +19,6 @@
 #define FFI_R9  9
 
 /* Prototypes */
-void ffi_amd64_flush(void* dest, int len); 
 OBJECT ffi_amd64_generate_c_shim(STATE, 
                                  int arg_count, int* arg_types, 
                                  int ret_type, 
