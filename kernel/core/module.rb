@@ -554,6 +554,10 @@ private
     nil
   end
 
+  def method_added(name)
+    nil
+  end
+  
   def normalize_name(name)
     sym_name = nil
     if name.respond_to?(:to_sym)
