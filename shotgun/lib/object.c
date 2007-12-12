@@ -120,11 +120,13 @@ unsigned int object_hash_int(STATE, OBJECT self) {
       hsh = string_hash_int(state, self);
     } else if(ISA(self, BASIC_CLASS(bignum))) {
       hsh = bignum_hash_int(self);
+    } else if(ISA(self, BASIC_CLASS(floatpoint))) {
+      hsh = string_hash_str((unsigned char *)BYTES_OF(self), sizeof(double));
     } else {
       hsh = object_get_id(state, self);
     }
   }
-  
+
   return hsh;
 }
 
