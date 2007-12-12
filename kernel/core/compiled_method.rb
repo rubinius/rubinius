@@ -169,4 +169,12 @@ activate_method
     
     return -1
   end
+  
+  # Convenience method for decoding the instruction sequence of a compiled 
+  # method. Delegates to +InstructionSequence+ to do the decoding, but passes
+  # self so that the decoded output can show literal values, rather than
+  # indexes into the literals tuple.
+  def decode
+    @bytecodes.decode self
+  end
 end
