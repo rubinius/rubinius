@@ -1,5 +1,3 @@
-require File.dirname(__FILE__) + '/encoder'
-
 class Compiler
     
   class Generator
@@ -20,7 +18,7 @@ class Compiler
         
     def initialize
       @stream = []
-      @encoder = Compiler::Encoder.new
+      @encoder = InstructionSequence::Encoder.new
       @literals = []
       @ip = 0
       @modstack = []
@@ -127,7 +125,7 @@ class Compiler
       
       kind = what.first
       
-      inst = @encoder.instruction?(kind)
+      inst = @encoder.instructions[kind]
       unless inst
         raise Compiler::Error, "unknown instruction #{kind}"
       end

@@ -24,8 +24,7 @@ def interactive
     cm = c.into_script(code.to_sexp).to_description.to_cmethod
 
     puts ""
-    enc = Compiler::Encoder.new
-    puts enc.decode_iseq(cm.bytecodes)
+    puts cm.decode
     puts ""
 
     cm.activate MAIN, Object, []
@@ -61,8 +60,7 @@ def batch(opts)
     if verbose
       puts "\n  Decoded:\n" 
       puts "  ========\n"
-      enc = Compiler::Encoder.new
-      puts enc.decode_iseq(cm.bytecodes)
+      puts "  " << cm.decode.join("\n  ")
     end
 
     # This is pretty pointless until we actually start compiling to file
@@ -100,4 +98,3 @@ opts = o.parse ARGV
 
 interactive if opts['interactive'] or opts[:args].empty?
 batch opts
-

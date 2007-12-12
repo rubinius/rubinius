@@ -261,6 +261,10 @@ class InstructionSequence
       @width
     end
     
+    def instructions
+      Encoder.instructions
+    end
+    
     def decode_iseq(iseq)
       @iseq = iseq
       @offset = 0
