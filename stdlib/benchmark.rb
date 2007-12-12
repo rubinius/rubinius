@@ -180,6 +180,7 @@ module Benchmark
             t.format(fmtstr))
     }
     STDOUT.sync = sync
+    results
   end
 
 
@@ -257,8 +258,7 @@ module Benchmark
     puts '-'*(width+CAPTION.length - "Rehearsal ".length)
     list = []
     job.list.each{|label_item|
-      label = label_item[0]
-      item = label_item[1]
+      label,item = label_item
       print(label.ljust(width))
       res = Benchmark::measure(label,&item)
       print res.format()
