@@ -314,8 +314,8 @@ if OPTIONS.diffchart then
 
   graph = Scruffy::Graph.new
 
-  graph << Scruffy::Layers::Bar.new( :title  => 'Rubinius times faster, negative is times slower',
-                                     :points => differences )
+  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius times faster, negative is times slower',
+                                      :points => differences )
 
   # graph.point_markers = runs.first.results.reject do |result|
   #   result.unchartable?
