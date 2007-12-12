@@ -72,7 +72,8 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
   /* Only 6 arguments currently */
   if(arg_count > 6) return Qnil;
 
-  start = (char*) malloc(FFI_CODE_SIZE);
+  start = mmap(NULL, FFI_CODE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
+               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   code = start;
 
   /* Function prolog */
