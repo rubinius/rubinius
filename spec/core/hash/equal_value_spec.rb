@@ -71,18 +71,23 @@ describe "Hash#==" do
     def y.hash() 1 end
 
     { x => 1 }.should_not == { y => 1 }
-  end    
-    
+  end
+
   it "compares keys with matching hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
-    a = Array.new(2) do 
+    a = Array.new(2) do
       obj = Object.new
 
       def obj.hash()
-        # It's undefined whether the impl does a[0].eql?(a[1]) or
-        # a[1].eql?(a[0]) so we taint both.
-        def self.eql?(o) taint; o.taint; false; end
         return 0
+      end
+      # It's undefined whether the impl does a[0].eql?(a[1]) or
+      # a[1].eql?(a[0]) so we taint both.
+      def obj.eql?(o)
+        return true if self == o
+        taint
+        o.taint
+        false
       end
 
       obj
