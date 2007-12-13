@@ -113,7 +113,7 @@ class Thread
       if @alive
         jc = Channel.new
         @joins << jc
-        @lock.send nil
+        @lock.send nil        
         begin
           Scheduler.send_in_microseconds(jc, (timeout * 1_000_000).to_i) if timeout
           jc.receive
@@ -133,14 +133,18 @@ class Thread
   # because you can only ever sleep the current thread, thus it's not an
   # instance method of Thread, as you can never ask another Thread to sleep.
   def self.sleep(duration = nil)
-    chan = Channel.new
+    if duration && duration.zero?
+      return 0.0
+    end
+    
     start = Time.now
+    chan = Channel.new
     # No duration means we sleep forever. By not registering anything with
     # Scheduler, the receive call will effectively block until someone
     # explicitely wakes this thread.
-    if duration
-      Scheduler.send_in_microseconds(chan, (duration * 1_000_000).to_i)
-    end
+
+    # FIXME: the if statment breaks everything (non-deterministic failures in test suite)
+    Scheduler.send_in_microseconds(chan, (duration * 1_000_000).to_i) #if duration    
     chan.receive
     return Time.now - start
   end
