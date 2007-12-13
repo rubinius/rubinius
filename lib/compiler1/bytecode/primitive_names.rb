@@ -1,3 +1,4 @@
+module Compiler1
 module Bytecode
   class Compiler
     Primitives = [
@@ -191,4 +192,5 @@ module Bytecode
     ]
     
   end
+end
 end

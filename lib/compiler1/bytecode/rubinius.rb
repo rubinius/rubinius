@@ -1,8 +1,11 @@
-require 'bytecode/assembler'
-require 'bytecode/primitive_names'
-require 'bytecode/system_hints'
-Bytecode::Compiler.load_system_hints(Rubinius::Bootstrap::HINTS)
+require 'compiler1/bytecode/compiler'
+require 'compiler1/bytecode/assembler'
+require 'compiler1/bytecode/primitive_names'
+require 'compiler1/bytecode/system_hints'
 
+Compiler1::Bytecode::Compiler.load_system_hints(Rubinius::Bootstrap::HINTS)
+
+module Compiler1
 module Bytecode
   class MethodDescription
     
@@ -157,4 +160,5 @@ module Bytecode
       Bytecode::Compiler::Primitives.index(sym) + 1 # add 1 for noop padding
     end
   end
+end
 end

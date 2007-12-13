@@ -1,9 +1,10 @@
-require 'sexp/simple_processor'
-require 'translation/normalize'
-require 'translation/local_scoping'
-require 'sexp/composite_processor'
-require 'translation/states'
+require 'compiler1/sexp/simple_processor'
+require 'compiler1/translation/normalize'
+require 'compiler1/translation/local_scoping'
+require 'compiler1/sexp/composite_processor'
+require 'compiler1/translation/states'
 
+module Compiler1
 module Bytecode
   
   class MethodDescription
@@ -32,6 +33,25 @@ module Bytecode
   end
 
   class Compiler
+    
+    def self.compile_file(path, flags=nil)
+      sexp = File.to_sexp(path, true)
+      comp = Bytecode::Compiler.new
+      comp.import_flags(flags) if flags
+      desc = comp.compile_as_script(sexp, :__script__)
+      return desc.to_cmethod
+    end
+
+    def self.compile_string(string, flags=nil, filename="(eval)", line=1)
+      sexp = string.to_sexp(filename, line, true)
+      comp = Bytecode::Compiler.new
+      comp.import_flags(flags) if flags
+      state = RsLocalState.new
+      state.uses_eval = true
+      desc = comp.compile_as_method(sexp, :__eval_script__, state)
+      return desc.to_cmethod
+    end
+    
     def initialize
       @path = []
       @current_class = nil
@@ -2565,5 +2585,6 @@ module Bytecode
     end
   end
 end
+end
 
-require 'bytecode/plugins'
+require 'compiler1/bytecode/plugins'

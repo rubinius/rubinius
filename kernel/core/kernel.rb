@@ -192,7 +192,7 @@ module Kernel
   alias_method :proc, :lambda
 
   def eval(string, binding = self, filename = '(eval)', lineno = 1)
-    compiled_method = string.compile_as_method(filename, lineno)
+    compiled_method = Compile.compile_string string, nil, filename, lineno
     method = Method.new(binding, nil, compiled_method)
     method.call
   end

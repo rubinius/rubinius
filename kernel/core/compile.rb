@@ -6,26 +6,43 @@ module Rubinius
 end
 
 module Compile
-  def self.compile_file(path, flags=nil)
-    require 'bytecode/compiler'
-    require 'bytecode/rubinius'
-    sexp = File.to_sexp(path, true)
-    comp = Bytecode::Compiler.new
-    comp.import_flags(flags) if flags
-    desc = comp.compile_as_script(sexp, :__script__)
-    return desc.to_cmethod
+  
+  @compiler = nil
+  
+  DefaultCompiler = "compiler1"
+  
+  def self.register_compiler(obj)
+    if $DEBUG
+      $stderr.puts "[Registered #{obj} as system compiler]"
+    end
+    @compiler = obj
+  end
+    
+  def self.find_compiler
+    begin
+      require "#{DefaultCompiler}/init"
+    rescue Exception
+      raise "Unable to load default compiler"
+    end
+    
+    unless @compiler
+      raise "Attempted to load DefaultCompiler, but no compiler was registered"
+    end
+    
+    return @compiler
   end
   
-  def self.compile_string(string, flags=nil)
-    require 'bytecode/compiler'
-    require 'bytecode/rubinius'
-    sexp = string.to_sexp
-    comp = Bytecode::Compiler.new
-    comp.import_flags(flags) if flags
-    state = RsLocalState.new
-    state.uses_eval = true
-    desc = comp.compile_as_method(sexp, :__eval_script__, state)
-    return desc.to_cmethod
+  def self.compiler
+    return @compiler if @compiler
+    return find_compiler
+  end
+  
+  def self.compile_file(path, flags=nil)
+    compiler.compile_file(path, flags)
+  end
+  
+  def self.compile_string(string, flags=nil, filename="(eval)", line=1)
+    compiler.compile_string(string, flags, filename, line)
   end
   
   def self.execute(string)
@@ -92,21 +109,10 @@ module Compile
   end
 end
 
-class String
-  def compile_as_method(filename = "(eval)", line = 1, newlines = true)
-    require 'bytecode/compiler'
-    require 'bytecode/rubinius'
-    sexp = self.to_sexp(filename, line, newlines)
-    comp = Bytecode::Compiler.new
-    desc = comp.compile_as_method(sexp, :__script__)
-    return desc.to_cmethod
-  end
-end
-
 module Kernel
   def load(path)
     path = StringValue(path)
-
+    
     if path.suffix? ".rbc"
       compiled = path
     elsif path.suffix? ".rb"

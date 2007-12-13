@@ -1,7 +1,7 @@
 # Implements methods on each Node subclass for generatng bytecode
 # from itself.
 
-require 'compiler2/generator'
+require 'compiler/generator'
 
 class Compiler
   class MethodDescription
@@ -17,10 +17,10 @@ class Compiler
     attr_reader :generator, :locals
     attr_accessor :required, :optional, :name
     
-    def run(top)
-      @generator.run(top)
-      @required, @optional = top.argument_info
-      @name = top.name
+    def run(container, body)
+      @generator.run(body)
+      @required, @optional = container.argument_info
+      @name = container.name
     end
     
     def ==(desc)
@@ -60,12 +60,13 @@ class Node
       Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
     end      
     
-    def to_description
+    def to_description(name=nil)
       desc = new_description()
+      desc.name = name if name
       gen = desc.generator
       
       show_errors(gen) do
-        desc.run(self)
+        desc.run(self, self)
         gen.close
       end
       return desc
@@ -79,12 +80,12 @@ class Node
       desc = new_description()
       meth = desc.generator
       
-      prelude(meth)
+      prelude(g, meth)
       
       meth.push :self
       meth.set_encloser
       show_errors(meth) do
-        @body.bytecode(meth)
+        desc.run self, @body
       end
       meth.sret
       meth.close
@@ -98,7 +99,12 @@ class Node
       g.push_encloser
     end
     
-    def prelude(g)
+    def prelude(orig, g)
+      
+      if orig
+        g.set_line orig.line, orig.file
+      end
+      
       # Allocate some stack to store locals.
       
       if @alloca > 0
@@ -115,7 +121,7 @@ class Node
   
   class Script
     def bytecode(g)
-      prelude(g)
+      prelude(nil, g)
       @body.bytecode(g)
       g.pop
       g.push :true
@@ -616,7 +622,7 @@ class Node
       do_value(g)
       
       if @in_block
-        g.soft_return
+        g.caller_return
       elsif g.break
         g.goto g.break
       else
@@ -1844,20 +1850,18 @@ class Node
   class Define
     
     def argument_info
-      req = @arguments.required.size
-      opt = @arguments.optional.size
-      [req, opt]
+      [@arguments.arity, @arguments.optional.size]
     end
     
-    def compile_body
+    def compile_body(g)
       desc = new_description()
       meth = desc.generator 
       
-      prelude(meth)
+      prelude(g, meth)
       
       show_errors(meth) do
         @arguments.bytecode(meth)
-        @body.bytecode(meth)
+        desc.run self, @body
       end
       meth.sret
       meth.close
@@ -1866,7 +1870,7 @@ class Node
     end
     
     def bytecode(g)
-      g.push_literal compile_body()
+      g.push_literal compile_body(g)
       g.push :self
       g.add_method @name
     end
@@ -1875,7 +1879,7 @@ class Node
   # TESTED
   class DefineSingleton
     def bytecode(g)
-      g.push_literal compile_body()
+      g.push_literal compile_body(g)
       @object.bytecode(g)
       g.attach_method @name
     end

@@ -7,6 +7,7 @@
 # something when +generate+ is called, allowing for deferred final
 # processing.
 
+module Compiler1
 class CompositeSexpProcessor
 
   ##
@@ -41,4 +42,5 @@ class CompositeSexpProcessor
       processor.on_error_in(node_type, &block)
     end
   end
+end
 end

@@ -1,5 +1,86 @@
 class Compiler
 class Node
+  Mapping = {}
+  
+  def self.kind(name=nil)
+    return @kind unless name
+    Mapping[name] = self
+    @kind = name
+  end
+  
+  def self.create(compiler, sexp)
+    sexp.shift
+    
+    node = new(compiler)
+    args = node.consume(sexp)
+
+    begin
+      if node.respond_to? :normalize
+        node = node.normalize(*args)
+      else
+        node.args(*args)
+      end
+    rescue ArgumentError => e
+      raise ArgumentError, "#{kind} (#{self}) takes #{args.size} argument(s): passed #{args.inspect} (#{e.message})", e.context
+    end
+    
+    return node
+  end
+  
+  def initialize(compiler)
+    @compiler = compiler
+  end
+  
+  def convert(x)
+    @compiler.convert_sexp(x)
+  end
+  
+  def consume(sexp)
+    # This lets nil come back from convert_sexp which means
+    # leave it out of the stream. This is primarily so that
+    # expressions can be optimized away and wont be seen at
+    # all in the output stream.
+    out = []
+    sexp.each do |x|        
+      if x.kind_of? Array
+        v = @compiler.convert_sexp(x)
+        out << v unless v.nil?
+      else
+        out << x
+      end
+    end
+    
+    return out
+  end
+  
+  def args
+  end
+  
+  def get(tag)
+    @compiler.get(tag)
+  end
+  
+  def set(tag, val=true, &b)
+    @compiler.set(tag, val, &b)
+  end
+  
+  def inspect
+    kind = self.class.kind
+    if kind
+      prefix = "Compiler:#{self.class.kind}"
+    else
+      prefix = self.class.name
+    end
+    prefix
+    
+    super(prefix)
+  end
+  
+  def is?(clas)
+    self.kind_of?(clas)
+  end
+  
+  # Start of Node subclasses
   
   class ClosedScope < Node
     def initialize(comp)
@@ -121,7 +202,7 @@ class Node
       return i
     end
   end
-  
+    
   class Snippit < ClosedScope
     kind :snippit
     
@@ -444,6 +525,14 @@ class Node
     end
     
     attr_accessor :required, :optional, :splat, :defaults, :block_arg
+    
+    def arity
+      if !@optional.empty? or @splat
+        return -(@required.size + 1)
+      end
+      
+      return @required.size
+    end
     
     def populate
       i = 0
@@ -1415,6 +1504,14 @@ class Node
     
     def args(child)
       @child = child
+    end
+    
+    def names
+      if @child.is? LocalAssignment
+        [@child.name]
+      else
+        @child.assigns.body.map { |i| i.name }
+      end
     end
     
     attr_accessor :child

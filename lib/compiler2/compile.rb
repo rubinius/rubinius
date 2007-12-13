@@ -51,16 +51,30 @@ def batch(opts)
     puts "  Generating AST...\n" if verbose
     n = c.into_script(x)
 
-    puts "  Generating bytecode...\n" if verbose
+    puts "  Generating bytecode...\n" if verbose    
+    if verbose
+      c.generator_class = Compiler::TextGenerator
+      txt = Compiler::TextGenerator.new
+      n.bytecode(txt)
+      txt.close
+      puts txt.text
+    end
+
     meth = n.to_description
 
     puts "  Encoding..." if verbose
     cm = meth.to_cmethod
 
-    if verbose
+    if false # verbose
       puts "\n  Decoded:\n" 
       puts "  ========\n"
       puts "  " << cm.decode.join("\n  ")
+    end
+    
+    if opts['output']
+      out = opts['output'].first
+      puts "  Saving to '#{out}'...\n"
+      Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     end
 
     # This is pretty pointless until we actually start compiling to file
@@ -87,6 +101,7 @@ o = Options.new do |o|
   o.option '-v --verbose      Print diagnostic info'
   o.option '-i --interactive  Present prompt'
   o.option '-h --help         Show this help message.'
+  o.option '-o --output       Where to save the compiled file', :one
 
   o.on_error {|opt, ex| $stderr.puts opt.usage; exit 1 }
 end

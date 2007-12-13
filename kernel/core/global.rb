@@ -1,7 +1,7 @@
 # Class that allows global variables to have aliases
 class GlobalVariables
   def initialize
-    load_path = ["runtime/compiler", "lib", "stdlib", "."]
+    load_path = ["lib", "stdlib", "."]
     loaded_features = []
 
     @internal = {

@@ -1,59 +1,79 @@
-#!/bin/sh
+#!/usr/bin/env ruby
 
-PREFIX=`echo $0 | sed -e 's/shotgun\/rubinius//'`
+m = %r!(.*?)[/]?shotgun/rubinius!.match($0)
 
-REAL=${PREFIX}shotgun/rubinius.bin
+prefix = m[1]
+prefix = "" if prefix == "./"
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${PREFIX}shotgun/lib
-export LD_LIBRARY_PATH_64=$LD_LIBRARY_PATH_64:${PREFIX}shotgun/lib
-export SH_LIB=$SH_LIB:${PREFIX}shotgun/lib
-export LIBPATH=$LIBPATH:${PREFIX}shotgun/lib
-export PATH=$PATH:${PREFIX}shotgun/lib
-export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:${PREFIX}shotgun/lib
+unless prefix[0] == ?/
+  prefix = File.expand_path File.join(Dir.getwd, prefix)
+end
 
-if [ "x${PREFIX}" != "x" ]; then
+real = File.join(prefix, 'shotgun/rubinius.bin')
 
-  RUNTIME=${PREFIX}runtime/
+# Setup all the crazy library path stuff so that librubinus is picked
+# up properly.
 
-  if [ "x${RBX_PREFIX}" = "x" ]; then
-    export RBX_PREFIX=${PREFIX}
-  fi
+@prefix = prefix
 
-  if [ "x${RBX_BOOTSTRAP}" = "x" ]; then
-    export RBX_BOOTSTRAP=${RUNTIME}bootstrap
-  fi
+def set_env(name)
+  addition = "#{@prefix}/shotgun/lib"
+  
+  if cur = ENV[name]
+    ENV[name] = "#{addition}:#{cur}"
+  else
+    ENV[name] = addition
+  end
+end
 
-  if [ "x${RBX_COMPILER}" = "x" ]; then
-    export RBX_COMPILER=${RUNTIME}compiler
-  fi
+set_env 'LD_LIBRARY_PATH'
+set_env 'LD_LIBRARY_PATH_64'
+set_env 'SHLIB'
+set_env 'LIBPATH'
+set_env 'PATH'
+set_env 'DYLD_LIBRARY_PATH'
+set_env 'DYLD_FALLBACK_LIBRARY_PATH'
 
-  if [ "x${RBX_CORE}" = "x" ]; then
-    export RBX_CORE=${RUNTIME}core
-  fi
+ENV['RBX_IN_BUILDDIR'] = "1"
 
-  if [ "x${RBX_LOADER}" = "x" ]; then
-    export RBX_LOADER=${RUNTIME}loader.rbc
-  fi
+ENV['RBX_PREFIX'] = "#{prefix}/"
 
-  if [ "x${RBX_PLATFORM}" = "x" ]; then
-    export RBX_PLATFORM=${RUNTIME}platform
-  fi
-fi
+unless ENV['RBX_BOOTSTRAP']
+  ENV['RBX_BOOTSTRAP'] = "#{prefix}/runtime/bootstrap"
+end
 
-if test "x$1" = "x--gdb"; then
-  shift
-  export PATH=${PREFIX}shotgun:$PATH
+unless ENV['RBX_CORE']
+  ENV['RBX_CORE'] = "#{prefix}/runtime/core"
+end
 
-  gdb_command="gdb -x ${PREFIX}shotgun/gdbcommands"
-  if [ `uname -s` = "Darwin" ] && [ `uname -r | cut -d '.' -f 1` -lt "9" ]; then
-    gdb_command="${gdb_command} -x ${PREFIX}shotgun/gdbenvironment"
-  fi
-  gdb_command="${gdb_command} --args /dev/null"
+unless ENV['RBX_PLATFORM']
+  ENV['RBX_PLATFORM'] = "#{prefix}/runtime/platform"
+end
 
-  exec $gdb_command "$@"
-elif test "x$1" = "x--valgrind"; then
-  shift
-  exec valgrind -v $REAL "$@"
+unless ENV['RBX_LOADER']
+  ENV['RBX_LOADER'] = "#{prefix}/runtime/loader.rbc"
+end
+
+if ARGV[0] == "--gdb"
+  ARGV.shift
+    
+  ENV['PATH'] = "#{prefix}/shotgun:#{ENV['PATH']}"
+  args = ['-x', "#{prefix}/shotgun/gdbcommands"]
+  if `uname -s` == "Darwin" and `uname -r`.split(".")[0].to_i < 9
+    args << '-x' << "#{prefix}/shotgun/gdbenvironment"
+  end
+  args << '--args' << "/dev/null"
+
+  exec "gdb", *(args + ARGV)
+elsif ARGV[0] == "--valgrind"
+  ARGV.shift
+  args = ['-v', real]
+  exec 'valgrind', *(args + ARGV)
+elsif ARGV[0] == "--shark"
+  ARGV.shift
+  puts "Starting up rubinius, then pausing for shark to start"
+  pid = fork { sleep 5; exec real, *ARGV }
+  exec "shark -o rbxshark -i -1 -a #{pid}"
 else
-  exec $REAL "$@"
-fi
+  exec real, *ARGV
+end

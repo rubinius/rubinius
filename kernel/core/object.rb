@@ -148,7 +148,8 @@ class Object
     elsif string
       string = StringValue(string)
       mod = nil # FIXME
-      cm = string.compile_as_method(filename, line)
+      
+      cm = Compile.compile_string string, nil, filename, line
       cm.activate(self, mod, [])
     else
       raise ArgumentError, 'block not supplied'

@@ -1,4 +1,4 @@
-require 'bytecode/encoder'
+require 'compiler1/bytecode/encoder'
 
 
 # At present, Rubinius has not implemented String::unpack, so hack a simple int unpack
@@ -130,6 +130,7 @@ class MarshalEmitter
   end
 end
 
+module Compiler1
 module Bytecode
   class Disassembler
     def initialize(string, endian=?b)
@@ -173,6 +174,7 @@ module Bytecode
       @codes
     end
   end
+end
 end
 
 emit = MarshalEmitter.process_rbc(ARGV.shift)

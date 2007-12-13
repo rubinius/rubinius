@@ -1,3 +1,4 @@
+module Compiler1
 module Bytecode
 class InstructionEncoder
   
@@ -427,5 +428,6 @@ class InstructionEncoder
     
     return str
   end
+end
 end
 end

@@ -4,6 +4,7 @@ $VERBOSE = true
 $verbose = Rake.application.options.trace
 $dlext = Config::CONFIG["DLEXT"]
 $redcloth_available = nil
+$compiler = nil
 
 require 'tsort'
 require 'rakelib/struct_generator'
@@ -100,44 +101,55 @@ def create_load_order(files, output=".load_order.txt")
   end
 end
 
-def compile(name, output)
+def compile(name, output, check_mtime=false)
   dir = File.dirname(output)
 
   unless File.exists?(dir)
     FileUtils.mkdir_p dir
   end
+  
+  if check_mtime and File.exists?(output) and File.mtime(output) > File.mtime(name)
+    return
+  end
+  
+  if $compiler
+    inc = "-I#{$compiler}"
+  else
+    inc = ""
+  end
 
   if ENV['GDB']
-    sh "shotgun/rubinius --gdb compile #{name} #{output}", :verbose => $verbose
+    sh "shotgun/rubinius --gdb #{inc} compile #{name} #{output}", :verbose => $verbose
   else
-    sh "shotgun/rubinius compile #{name} #{output}", :verbose => $verbose
+    sh "shotgun/rubinius #{inc} compile #{name} #{output}", :verbose => $verbose
   end
 end
 
-task :compiler do
+def compile_dir(dir)
+  (Dir["#{dir}/*.rb"] + Dir["#{dir}/**/*.rb"]).each do |file|
+    compile file, "#{file}c", true
+  end
+end
+
+task :stable_compiler do
   if ENV['USE_CURRENT']
     puts "Use current versions, not stable."
   else
+    $compiler = "runtime/stable/compiler1.rba"
     ENV['RBX_BOOTSTRAP'] = "runtime/stable/bootstrap.rba"
-    ENV['RBX_COMPILER'] = "runtime/stable/compiler.rba"
     ENV['RBX_CORE'] = "runtime/stable/core.rba"
     ENV['RBX_LOADER'] = "runtime/stable/loader.rbc"
     ENV['RBX_PLATFORM'] = "runtime/stable/platform.rba"
   end
 end
 
-task :stable_shell => :compiler do
+task :stable_shell => :stable_compiler do
   sh "shotgun/rubinius --gdb"
 end
 
 rule ".rbc" => %w[compiler .rb] do |t|
   compile t.source, t.name
 end
-
-#file 'runtime/core/kernel/core/proc.rbc' => 'kernel/core/proc.rb' do |t|
-#  p t.prerequisites
-#  p t.name
-#end
 
 class CodeGroup
 
@@ -238,7 +250,6 @@ Core      = CodeGroup.new(files, 'runtime/core', 'core')
 Bootstrap = CodeGroup.new 'kernel/bootstrap/*.rb', 'runtime/bootstrap',
                           'bootstrap'
 Platform  = CodeGroup.new 'kernel/platform/*.rb', 'runtime/platform', 'platform'
-Compiler  = CodeGroup.new 'compiler/**/*.rb', 'runtime', 'compiler', false
 
 file 'runtime/loader.rbc' => 'kernel/loader.rb' do
   compile 'kernel/loader.rb', 'runtime/loader.rbc'
@@ -246,6 +257,10 @@ end
 
 file 'runtime/stable/loader.rbc' => 'runtime/loader.rbc' do
   cp 'runtime/loader.rbc', 'runtime/stable', :verbose => $verbose
+end
+
+file 'runtime/stable/compiler1.rba' => 'build:compiler1' do
+  sh "cd lib; zip -r ../runtime/stable/compiler1.rba compiler1 -x \\*.rb"
 end
 
 Rake::StructGeneratorTask.new do |t|
@@ -260,7 +275,7 @@ Rake::StructGeneratorTask.new do |t|
   t.dest = 'lib/zlib.rb'
 end
 
-AllPreCompiled = Core.output + Bootstrap.output + Platform.output + Compiler.output
+AllPreCompiled = Core.output + Bootstrap.output + Platform.output
 AllPreCompiled << "runtime/loader.rbc"
 
 # spec tasks
@@ -367,6 +382,12 @@ task :config_env => 'shotgun/config.mk' do
   end
 end
 
+task :compiledir => :stable_compiler do
+  dir = ENV['DIR']
+  raise "Use DIR= to set which directory" if !dir or dir.empty?
+  compile_dir(dir)
+end
+
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean:rbc clean:shotgun build:all]
 
@@ -380,6 +401,7 @@ task :pristine do
   FileList['**/*.rbc'].each do |fn|
     next if /^runtime/.match(fn)
     next if /require\/require_spec_.\.rbc/.match(fn)
+    next if %r!lib/compiler1!.match(fn)
     FileUtils.rm fn rescue nil
   end
 end
@@ -389,6 +411,10 @@ namespace :clean do
   desc "Remove all compile system ruby files (runtime/)"
   task :rbc do
     AllPreCompiled.each do |f|
+      rm_f f, :verbose => $verbose
+    end
+
+    (Dir["lib/compiler1/*.rbc"] + Dir["lib/compiler1/**/*.rbc"]).each do |f|
       rm_f f, :verbose => $verbose
     end
   end
@@ -409,6 +435,7 @@ namespace :build do
   task :all => %w[
     build:shotgun
     build:rbc
+    compiler1
     lib/etc.rb
     lib/rbconfig.rb
     extensions
@@ -441,16 +468,20 @@ namespace :build do
   desc "Compiles shotgun (the C-code VM)"
   task :shotgun => %w[configure shotgun/rubinius.bin]
 
-  task :setup_rbc => :compiler
+  task :setup_rbc => :stable_compiler
 
   task :rbc => ([:setup_rbc] + AllPreCompiled)
+  
+  task :compiler1 => :stable_compiler do
+    compile_dir "lib/compiler1"
+  end
 
   desc "Rebuild runtime/stable/*.  If you don't know why you're running this, don't."
   task :stable => %w[
     build:all
     runtime/stable/bootstrap.rba
-    runtime/stable/compiler.rba
     runtime/stable/core.rba
+    runtime/stable/compiler1.rba
     runtime/stable/loader.rbc
     runtime/stable/platform.rba
   ]

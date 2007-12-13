@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/execute'
+require 'compiler/execute'
 
 module Compiler::Plugins
   
@@ -37,8 +37,10 @@ module Compiler::Plugins
     def handle(g, call)
       if call.fcall?
         if call.method == :block_given? or call.method == :iterator?
-          g.push :true
-          g.send_primitive :block_given, 0
+          push :true
+          g.push_block
+          g.is_nil
+          g.equal
           return true
         end
       end
@@ -52,7 +54,6 @@ module Compiler::Plugins
     plugin :primitive
     
     def handle(g, call)
-      return false unless g.ip == 0
       return false unless call_match(call, :Ruby, :primitive)
       
       prim = call.arguments.first.value
@@ -72,9 +73,74 @@ module Compiler::Plugins
       return false unless call.block
       
       exc = Compiler::ExecuteContext.new(g)
+      i = 0
+      args = call.arguments
+      
+      call.block.arguments.names.each do |name|
+        exc.set_local name, args[i]
+        i += 1
+      end
+      
       exc.execute call.block.body
       
       return true
+    end
+    
+  end
+  
+  class VMOperation < Plugin
+    plugin :vmops
+    
+    def handle(g, call)
+      return false unless call_match(call, :Rubinius, :vmop)
+      
+      name = call.arguments.shift.value
+      
+      send("op_#{name}", g, call)      
+    end
+    
+    def op_kind_of(g, call)
+      call.arguments.shift.bytecode(g)
+      g.push :self
+      g.kind_of
+    end
+    
+    def op_locate(g, call)
+      g.push :self
+      call.arguments[0].bytecode(g)
+      call.arguments[1].bytecode(g)
+      g.locate_method
+    end
+    
+    def op_push_block(g, call)
+      g.push_block
+    end
+    
+    def op_send(g, call)
+      call.arguments[0].bytecode(g)
+      g.push_array
+      g.push :self
+      call.arguments[1].bytecode(g)
+      call.arguments[2].bytecode(g)
+      call.arguments[3].bytecode(g)
+      g.set_args
+      g.set_call_flags 1
+      g.send_off_stack
+    end
+    
+    def op_activate(g, call)
+      
+    end
+    
+    def op_string_append(g, call)
+      call.arguments[1].bytecode(g)
+      call.arguments[0].bytecode(g)
+      g.string_append
+    end
+    
+    def op_string_dup(g, call)
+      call.arguments[0].bytecode(g)
+      g.string_dup
     end
     
   end

@@ -1,6 +1,6 @@
-$: << File.dirname(__FILE__) + '/../../compiler'
-require 'bytecode/encoder'
-require 'bytecode/assembler'
+$: << File.dirname(__FILE__) + '/../../lib'
+require 'compiler1/bytecode/encoder'
+require 'compiler1/bytecode/assembler'
 require 'yaml'
 
 
@@ -20,11 +20,11 @@ module OpCode
   # Some information is gleaned from Rubinius source files, while
   # descriptive info comes from opcode YAML files.
   class Info
-    @@op_codes = Bytecode::InstructionEncoder::OpCodes
-    @@int_arg = Bytecode::InstructionEncoder::IntArg
-    @@two_int = Bytecode::InstructionEncoder::TwoInt
+    @@op_codes = Compiler1::Bytecode::InstructionEncoder::OpCodes
+    @@int_arg = Compiler1::Bytecode::InstructionEncoder::IntArg
+    @@two_int = Compiler1::Bytecode::InstructionEncoder::TwoInt
     @@instructs = ShotgunInstructions.new
-    @@translations = Bytecode::Assembler::Translations.invert
+    @@translations = Compiler1::Bytecode::Assembler::Translations.invert
 
     def self.op_codes
       @@op_codes

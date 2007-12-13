@@ -1,5 +1,3 @@
-require 'bytecode/compiler'
-require 'bytecode/rubinius'
 class ExtensionCompiler
   
   def initialize(extra=[], flags=[])

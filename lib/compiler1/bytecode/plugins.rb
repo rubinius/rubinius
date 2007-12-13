@@ -1,3 +1,4 @@
+module Compiler1
 class Bytecode::Compiler
   class Plugin
     
@@ -380,3 +381,5 @@ class FastSplatAccess < Bytecode::Compiler::Plugin
   end
 end
 =end
+
+end

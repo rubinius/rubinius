@@ -1,3 +1,5 @@
+module Compiler1
+  
 class RsLocalState
   class LocalVariable
     def initialize(name)
@@ -135,10 +137,7 @@ class RsLocalState
     end
     
   end
-end
 
-
-class RsLocalState
   def initialize
     reset
   end
@@ -421,3 +420,4 @@ class RsLocalState
   end
 end
 
+end
