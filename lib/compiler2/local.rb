@@ -1,10 +1,10 @@
-class Compiler
+class Compiler2
   
   class LocalScope
     def initialize(scope)
       @scope = scope
       @names = []
-      @locals = Hash.new { |h,k| h[k] = Compiler::Local.new(scope, k) }
+      @locals = Hash.new { |h,k| h[k] = Compiler2::Local.new(scope, k) }
     end
     
     def [](name)

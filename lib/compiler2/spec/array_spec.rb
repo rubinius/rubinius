@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   it "compiles '[1, 2, *foo()]" do
     x = [:argscat,
       [:array, [:lit, 1], [:lit, 2]],

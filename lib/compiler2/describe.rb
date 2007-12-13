@@ -12,7 +12,7 @@ require 'options'
 def interactive()
   require 'readline'
   
-  c = Compiler.new(Compiler::TextGenerator)
+  c = Compiler2.new(Compiler2::TextGenerator)
   puts "Enter ? for help, ^D to exit."
 
   while code = Readline.readline("rbx:describe> ")
@@ -34,7 +34,7 @@ end
 
 # "Batch" mode
 def batch(opts)
-  c = Compiler.new(Compiler::TextGenerator)
+  c = Compiler2.new(Compiler2::TextGenerator)
 
   # Loop through and parse everything
   opts[:args].each do |file|

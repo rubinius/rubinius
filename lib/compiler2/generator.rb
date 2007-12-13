@@ -1,6 +1,6 @@
-require 'compiler/encoder'
+require 'compiler2/encoder'
 
-class Compiler
+class Compiler2
     
   class Generator
     
@@ -75,7 +75,7 @@ class Compiler
       tup = Tuple.new(@literals.size)
       i = 0
       @literals.each do |lit|
-        if lit.kind_of? Compiler::MethodDescription
+        if lit.kind_of? Compiler2::MethodDescription
           lit = lit.to_cmethod
         end
         tup[i] = lit
@@ -134,7 +134,7 @@ class Compiler
       
       inst = @encoder.instructions[kind]
       unless inst
-        raise Compiler::Error, "unknown instruction #{kind}"
+        raise Compiler2::Error, "unknown instruction #{kind}"
       end
       
       what << inst
@@ -232,7 +232,7 @@ class Compiler
         return -1 if @end < oe
         
         if os == @start and oe == @end
-          raise Compiler::Error, "Invalid exception blocking detected"
+          raise Compiler2::Error, "Invalid exception blocking detected"
         end
         
         return 1

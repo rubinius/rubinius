@@ -1,4 +1,4 @@
-class Compiler
+class Compiler2
   
   class Error < RuntimeError
   end
@@ -6,7 +6,7 @@ class Compiler
   def self.compile_file(path, flags=nil)
     sexp = File.to_sexp(path, true)
     
-    comp = new(Compiler::Generator)
+    comp = new(Compiler2::Generator)
     node = comp.into_script(sexp)
     return node.to_description(:__script__).to_cmethod
   end
@@ -14,7 +14,7 @@ class Compiler
   def self.compile_string(string, flags=nil, filename="(eval)", line=1)
     sexp = string.to_sexp(filename, line, true)
     
-    comp = new(Compiler::Generator)
+    comp = new(Compiler2::Generator)
     node = comp.into_script(sexp)
     return node.to_description(:__eval_script__).to_cmethod
   end
@@ -45,7 +45,7 @@ class Compiler
   end
   
   def activate(name)
-    cls = Compiler::Plugins.find_plugin(name)
+    cls = Compiler2::Plugins.find_plugin(name)
     raise Error, "Unknown plugin '#{name}'" unless cls
     @call_plugins << cls.new(self)
   end
@@ -57,7 +57,7 @@ class Compiler
   def convert_sexp(sexp)
     return nil if sexp.nil?
     
-    klass = Compiler::Node::Mapping[sexp.first]
+    klass = Compiler2::Node::Mapping[sexp.first]
     
     raise Error, "Unable to resolve #{sexp.first}" unless klass
 
@@ -100,8 +100,8 @@ class Compiler
   end
 end
 
-require 'compiler/nodes'
-require 'compiler/local'
-require 'compiler/generator'
-require 'compiler/plugins'
+require 'compiler2/nodes'
+require 'compiler2/local'
+require 'compiler2/generator'
+require 'compiler2/plugins'
 

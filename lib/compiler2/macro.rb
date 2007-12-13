@@ -1,4 +1,4 @@
-class Compiler
+class Compiler2
   class MacroGenerator
     
     def initialize(compiler)
@@ -12,7 +12,7 @@ class Compiler
     end
     
     def call(who, meth, *args)
-      make Compiler::Node::Call, who, meth, args
+      make Compiler2::Node::Call, who, meth, args
     end
     
     def const(name)

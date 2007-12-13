@@ -1,3 +1,3 @@
-require 'compiler/compiler'
+require 'compiler2/compiler'
 
-Compile.register_compiler Compiler
+Compile.register_compiler Compiler2

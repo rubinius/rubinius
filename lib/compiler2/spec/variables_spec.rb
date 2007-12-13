@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   it "compiles simple lasgn / lvar" do
     x = [:block, [:lasgn, :a, 0, [:fixnum, 12]], [:lvar, :a, 0]]
     

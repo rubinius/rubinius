@@ -4,7 +4,7 @@ require 'bytecode'
 require 'text'
 
 
-class Compiler::Node
+class Compiler2::Node
   def to_dot(output, ds)
     i = ds.next
     output << %Q!node#{i} [shape=box, label="#{dot_name}", fontname="Monaco"];\n!
@@ -13,13 +13,13 @@ class Compiler::Node
       obj = instance_variable_get(name)
       n = name.to_s[::Range.new(1,-1)]
       
-      if obj.kind_of? Compiler::Node
+      if obj.kind_of? Compiler2::Node
         j = obj.to_dot(output, ds)
         output << "node#{orig} -> node#{j} [label=\" #{n} \", fontsize=8.0, fontname=\"Monaco\"];\n"
       elsif obj.kind_of? Array
         j = 0
         obj.each do |x|
-          if x.kind_of? Compiler::Node
+          if x.kind_of? Compiler2::Node
             k = x.to_dot(output, ds)
             output << "node#{orig} -> node#{k} [label=\"#{n}:#{j}\", fontsize=8.0, fontname=\"Monaco\"];\n"
           end
@@ -144,9 +144,9 @@ end
 file = ARGV.shift
 
 
-gen = Compiler::Generator
+gen = Compiler2::Generator
 
-c = Compiler.new(gen)
+c = Compiler2.new(gen)
 
 
 if file

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   it "compiles 'a, b = 1, 2'" do
     x = [:masgn, 
           [:array, [:lasgn, :a, 0], [:lasgn, :b, 0]], nil,

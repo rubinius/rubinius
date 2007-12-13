@@ -1,5 +1,5 @@
 
-class Compiler::ExecuteContext
+class Compiler2::ExecuteContext
   def initialize(who)
     @self = who
     @file = nil
@@ -23,7 +23,7 @@ class Compiler::ExecuteContext
   
 end
 
-class Compiler::Node
+class Compiler2::Node
   class Script
     def execute(e)
       e.file = @file

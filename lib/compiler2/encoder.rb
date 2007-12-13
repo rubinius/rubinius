@@ -1,7 +1,7 @@
-class Compiler
+class Compiler2
 class Encoder
   
-  class InvalidOpCode < Compiler::Error
+  class InvalidOpCode < Compiler2::Error
   end
 
   OpCodes = [
