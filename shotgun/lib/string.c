@@ -143,7 +143,7 @@ double string_to_double(STATE, OBJECT self) {
 #define HashPrime 16777619
 #define MASK_28 (((unsigned int)1<<28)-1)
 
-static inline unsigned int _hash_str(unsigned char *bp, unsigned int sz) {
+unsigned int string_hash_str(unsigned char *bp, unsigned int sz) {
   unsigned char *be;
   unsigned int hv;
   
@@ -174,7 +174,7 @@ unsigned int string_hash_int(STATE, OBJECT self) {
   bp = (unsigned char*)bytearray_byte_address(state, data);
   sz = FIXNUM_TO_INT(string_get_bytes(self));
   
-  h = _hash_str(bp, sz);
+  h = string_hash_str(bp, sz);
   string_set_hash(self, UI2N(h));
   
   return h;
@@ -182,11 +182,11 @@ unsigned int string_hash_int(STATE, OBJECT self) {
 
 unsigned int string_hash_cstr(STATE, const char *bp) {
   unsigned int sz = strlen(bp);
-  return _hash_str((unsigned char*)bp, sz);
+  return string_hash_str((unsigned char*)bp, sz);
 }
 
 unsigned int string_hash_str_with_size(STATE, const char *bp, int size) {
-  return _hash_str((unsigned char*)bp, size);
+  return string_hash_str((unsigned char*)bp, size);
 }
 
 OBJECT string_to_sym(STATE, OBJECT self) {
