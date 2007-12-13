@@ -51,13 +51,21 @@ describe "Hash#==" do
 
     { x => 1 }.should_not == { y => 1 }
   end
-    
+
   it "does not compare keys with different hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     x = Object.new
-    def x.eql?(o) raise("Shouldn't receive eql?") end
     y = Object.new
-    def y.eql?(o) raise("Shouldn't receive eql?") end
+    x.instance_variable_set(:@other, y)
+    y.instance_variable_set(:@other, x)
+    def x.eql?(o)
+      raise("x Shouldn't receive eql?") if o == @other
+      self == o
+    end
+    def y.eql?(o)
+      raise("y Shouldn't receive eql?") if o == @other
+      self == o
+    end
 
     def x.hash() 0 end
     def y.hash() 1 end
