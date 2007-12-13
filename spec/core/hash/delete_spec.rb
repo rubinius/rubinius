@@ -16,8 +16,10 @@ describe "Hash#delete" do
 
     h[k1] = 1
     h[k2] = 2
+    h.size.should == 2
     k1.replace(k2)
-    
+    h.size.should == 2
+
     first_value = h.values.first
     h.delete(k2).should == first_value
     h.size.should == 1
