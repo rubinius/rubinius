@@ -1,3 +1,5 @@
+module Compiler1
+
 ##
 # SexpProcessor base exception class.
 
@@ -26,3 +28,4 @@ class NotEmptyError < SexpProcessorError; end
 
 class SexpTypeError < SexpProcessorError; end
 
+end

@@ -1,12 +1,12 @@
-require 'bytecode/encoder'
+require 'compiler1/bytecode/encoder'
 
 class ShotgunInstructions
   
   def generate_switch(fd, op="op")
     i = 0 
-    order = Bytecode::InstructionEncoder::OpCodes
-    ci =    Bytecode::InstructionEncoder::CheckInterupts
-    term =  Bytecode::InstructionEncoder::Terminators
+    order = Compiler1::Bytecode::InstructionEncoder::OpCodes
+    ci =    Compiler1::Bytecode::InstructionEncoder::CheckInterupts
+    term =  Compiler1::Bytecode::InstructionEncoder::Terminators
     
     fd.puts "switch(#{op}) {"
     order.each do |ins|
@@ -34,9 +34,9 @@ class ShotgunInstructions
   
   def generate_threaded(fd, op="op")
     i = 0 
-    order = Bytecode::InstructionEncoder::OpCodes
-    ci =    Bytecode::InstructionEncoder::CheckInterupts
-    term =  Bytecode::InstructionEncoder::Terminators
+    order = Compiler1::Bytecode::InstructionEncoder::OpCodes
+    ci =    Compiler1::Bytecode::InstructionEncoder::CheckInterupts
+    term =  Compiler1::Bytecode::InstructionEncoder::Terminators
     
     order.each do |ins|
       code = send(ins) rescue nil
@@ -61,9 +61,9 @@ class ShotgunInstructions
   end
   
   def generate_dter
-    order = Bytecode::InstructionEncoder::OpCodes
-    two = Bytecode::InstructionEncoder::TwoInt
-    one = Bytecode::InstructionEncoder::IntArg - two
+    order = Compiler1::Bytecode::InstructionEncoder::OpCodes
+    two =   Compiler1::Bytecode::InstructionEncoder::TwoInt
+    one =   Compiler1::Bytecode::InstructionEncoder::IntArg - two
     
     code = "static int _ip_size(uint32_t bc) {\nswitch(bc) {\n"
     two.each do |ins|
@@ -128,7 +128,7 @@ class ShotgunInstructions
   end
   
   def generate_names
-    order = Bytecode::InstructionEncoder::OpCodes;
+    order = Compiler1::Bytecode::InstructionEncoder::OpCodes;
     str = "static const char instruction_names[] = {\n"
     order.each do |ins|
       str << "  \"#{ins.to_s}\\0\"\n"
@@ -152,7 +152,7 @@ CODE
   def generate_names_header
     str = "const char *get_instruction_name(int op);\n"
 
-    order = Bytecode::InstructionEncoder::OpCodes;
+    order = Compiler1::Bytecode::InstructionEncoder::OpCodes;
     i = 0
     order.each do |ins|
       str << "#define CPU_INSTRUCTION_#{ins.to_s.upcase} #{i}\n"
@@ -727,7 +727,6 @@ CODE
     t2 = Qnil;
     j = 0;
     goto perform_send;
-    // cpu_unified_send(state, c, t1, _int, 0, Qnil);
     CODE
   end
   
@@ -738,7 +737,6 @@ CODE
     t2 = Qnil;
     j = 1;
     goto perform_send;
-    // cpu_unified_send(state, c, stack_pop(), _int, 1, Qnil);
     CODE
   end
   
@@ -749,7 +747,6 @@ CODE
     t2 = Qnil;
     j = 2;
     goto perform_send;
-    // cpu_unified_send(state, c, stack_pop(), _int, 2, Qnil);
     CODE
   end
   
@@ -760,9 +757,6 @@ CODE
     t2 = Qnil;
     j = 3;
     goto perform_send;
-    
-    // next_int;
-    // cpu_unified_send(state, c, stack_pop(), _int, 3, Qnil);
     CODE
   end
   
@@ -772,10 +766,7 @@ CODE
     t1 = stack_pop();
     t2 = Qnil;
     j = 4;
-    goto perform_send;
-    
-    // next_int;
-    // cpu_unified_send(state, c, stack_pop(), _int, 4, Qnil);
+    goto perform_send;    
     CODE
   end
   
@@ -788,7 +779,6 @@ CODE
     j = _int; // num_args
     
     goto perform_send;
-    // cpu_unified_send(state, c, stack_pop(), j, k, Qnil);
     CODE
   end
   
@@ -801,7 +791,6 @@ CODE
     j = _int;
     
     goto perform_send;
-    // cpu_unified_send(state, c, t1, j, _int, t2);
     CODE
   end
 
@@ -852,7 +841,6 @@ CODE
         stack_push(t3);
         _lit = state->global->sym_send;
         j = c->args;
-        // cpu_send_method2(state, c, t1, state->global->sym_send, c->args + 1, t2);
         goto perform_send;
       }
     }
@@ -861,8 +849,6 @@ CODE
     _lit = t3;
     j = c->args;
     goto perform_send;
-    // cpu_send_method2(state, c, t1, t3, c->args, t2);
-    // sos_done:
     CODE
   end
   
@@ -887,7 +873,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      // cpu_send_method(state, c, t1, state->global->sym_plus, 1);
     }
     CODE
   end
@@ -904,7 +889,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      // cpu_send_method(state, c, t1, state->global->sym_minus, 1);
     }
     CODE
   end
@@ -922,7 +906,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      // cpu_send_method(state, c, t1, state->global->sym_equal, 1);
     }
     CODE
   end
@@ -940,8 +923,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      
-      // cpu_send_method(state, c, t1, state->global->sym_nequal, 1);
     }
     CODE
   end
@@ -960,8 +941,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      
-      // cpu_send_method(state, c, t1, state->global->sym_tequal, 1);
     }
     CODE
   end
@@ -980,8 +959,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      
-      // cpu_send_method(state, c, t1, state->global->sym_lt, 1);
     }
     CODE
   end
@@ -1000,7 +977,6 @@ CODE
       t2 = Qnil;
       j = 1;
       goto perform_send;
-      // cpu_send_method(state, c, t1, state->global->sym_gt, 1);
     }
     CODE
   end
@@ -1015,12 +991,9 @@ CODE
   def caller_return
     <<-CODE
     t2 = stack_pop();
-    t1 = c->active_context;
-    c->active_context = cpu_current_sender(c);
-    if(cpu_return_to_sender(state, c, t2, TRUE, FALSE)) {
-      methctx_reference(state, t1);
-      stack_push(t1);
-    }
+    
+    cpu_return_to_sender(state, c, Qnil, FALSE, TRUE);
+    cpu_return_to_sender(state, c, t2, FALSE, FALSE);
     CODE
   end
   

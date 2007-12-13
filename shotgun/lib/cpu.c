@@ -417,7 +417,6 @@ OBJECT cpu_const_set(STATE, cpu c, OBJECT sym, OBJECT val, OBJECT under) {
 void cpu_set_encloser_path(STATE, cpu c, OBJECT cls) {
   int len;
   len = ptr_array_length(c->paths);
-  /* add stuff for @paths here */
   ptr_array_append(c->paths, (xpointer)c->enclosing_class);
 
   cmethod_set_staticscope(cpu_current_method(state, c), 

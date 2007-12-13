@@ -12,6 +12,8 @@
 #include "bytearray.h"
 #include "fixnum.h"
 
+#include "primitive_util.h"
+
 #include <string.h>
 #include <errno.h>
 
@@ -476,33 +478,47 @@ void cpu_raise_primitive_failure(STATE, cpu c, int primitive_idx) {
 }
 
 static inline int cpu_try_primitive(STATE, cpu c, OBJECT mo, OBJECT recv, int args, OBJECT sym, OBJECT mod) {
-  int prim, req, ret;
+  int prim, req;
+  OBJECT prim_obj;
   
-  prim = FIXNUM_TO_INT(cmethod_get_primitive(mo));
+  prim_obj = cmethod_get_primitive(mo);
+  
+  if(!FIXNUM_P(prim_obj)) {
+    if(SYMBOL_P(prim_obj)) {
+      prim = calc_primitive_index(state, symbol_to_string(state, prim_obj));
+    } else {
+      prim = -1;
+    }
+    cmethod_set_primitive(mo, I2N(prim));    
+  } else {
+    prim = FIXNUM_TO_INT(prim_obj); 
+  }  
+  
+  if(prim < 0) return FALSE;
+      
   req = FIXNUM_TO_INT(cmethod_get_required(mo));
   
-  ret = FALSE;
-  if(prim > -1) {
-    if(req < 0 || args == req) {
-      stack_push(recv);
-      // printf("Running primitive: %d\n", prim);
-      if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod)) {
-        /* Worked! */
-        return TRUE;
-      }
-      /* Didn't work, need to remove the recv we put on before. */
-      stack_pop();
-      if(EXCESSIVE_TRACING) {
-        printf("[[ Primitive failed! -- %d ]]\n", prim);
-      }
-    } else if(req >= 0) { // not sure why this was here... } && object_kind_of_p(state, mo, state->global->cmethod)) {
-      /* raise an exception about them not doing it right. */
-      cpu_raise_arg_error(state, c, args, req);
-      ret = TRUE;
+  if(args == req || req < 0) {
+    stack_push(recv);
+    if(cpu_perform_primitive(state, c, prim, mo, args, sym, mod)) {
+      /* Worked! */
+      return TRUE;
     }
+    /* Didn't work, need to remove the recv we put on before. */
+    stack_pop();
+    if(EXCESSIVE_TRACING) {
+      printf("[[ Primitive failed! -- %d ]]\n", prim);
+    }
+    
+    return FALSE;
   }
+    
+  /* raise an exception about them not doing it right. */
+  cpu_raise_arg_error(state, c, args, req);
   
-  return ret;
+  /* Return TRUE to indicate that the work for this primitive has
+     been done. */
+  return TRUE;  
 }
 
 /* Raw most functions for moving in a method. Adjusts register. */
@@ -520,7 +536,6 @@ inline void cpu_save_registers(STATE, cpu c, int offset) {
   fc->ip = c->ip;
 }
 
-#include <string.h>
 
 inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home, int ret, int is_block) {
   struct fast_context *fc;

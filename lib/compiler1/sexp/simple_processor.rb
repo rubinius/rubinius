@@ -1,5 +1,6 @@
-require 'sexp/exceptions'
+require 'compiler1/sexp/exceptions'
 
+module Compiler1
 class SimpleSexpProcessor
   def initialize
     @default_object = nil
@@ -83,4 +84,5 @@ class SimpleSexpProcessor
     end
     return obj
   end
+end
 end

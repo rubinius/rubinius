@@ -45,14 +45,6 @@ end
 
 additions = []
 
-# If there is no compiler.rba or RBX_COMPILER env variable, use the system one.
-if ENV['RBX_COMPILER'] and File.exists? ENV['RBX_COMPILER']
-  additions << ENV['RBX_COMPILER']
-end
-
-additions << File.join(Rubinius::RBA_PATH, "compiler")
-additions << File.join(Rubinius::RBA_PATH, "compiler.rba")
-
 # The main stdlib location
 additions << Rubinius::CODE_PATH
 
@@ -79,12 +71,6 @@ Options:
 
 END
 
-# script = ARGV.shift
-
-if ARGV.include?('-p')
-  ARGV.delete '-p'
-  require 'profile'
-end
 $VERBOSE = false
 code = 0
 
@@ -107,12 +93,8 @@ begin
       puts "[Code loading debugging enabled]"
     when '-d'
       $DEBUG = true
-    when '-c'
-      puts "Deprecated. Use 'rbx compile' instead."
-      file = ARGV.shift
-      path = compile(file)
-      puts "Compiled #{file} to #{path}"
-      exit 1
+    when '-p'
+      require 'profile'
     when '-e'
       $0 = "(eval)"
       Compile.execute ARGV.shift

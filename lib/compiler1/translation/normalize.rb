@@ -1,6 +1,7 @@
-require 'sexp/simple_processor'
-require 'translation/states'
+require 'compiler1/sexp/simple_processor'
+require 'compiler1/translation/states'
 
+module Compiler1
 class RsNormalizer < SimpleSexpProcessor
     
   def initialize(state=nil, full=false, lines=false)
@@ -347,4 +348,4 @@ class RsNormalizer < SimpleSexpProcessor
     end
   end
 end
-
+end

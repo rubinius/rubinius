@@ -76,8 +76,7 @@ SOURCES=$(sort \
         node_types.c \
         )
 OBJS=$(SOURCES:.c=.o) subtend/PortableUContext_asm.o
-RUBY=ruby -I../../compiler
-
+RUBY=ruby -I../../lib
 
 %.o: %.c
 	$(COMP) $(CFLAGS) $(OPTIMIZATIONS) -c $< -o $@
@@ -109,7 +108,7 @@ instruction_names.c instruction_names.h instructions.gen: instructions.rb
 system_primitives.gen: primitives.rb
 	$(RUBY) primitives.rb > system_primitives.gen
 
-auto.h auto.c: genheader.rb ../../compiler/bytecode/system_hints.rb
+auto.h auto.c: genheader.rb ../../lib/compiler1/bytecode/system_hints.rb
 	$(RUBY) genheader.rb > auto.c
 
 node_types.c node_types.h: node_types.rb

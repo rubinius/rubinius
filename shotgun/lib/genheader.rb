@@ -1,4 +1,4 @@
-require '../../compiler/bytecode/system_hints'
+require '../../lib/compiler1/bytecode/system_hints'
 
 klasses = []
 

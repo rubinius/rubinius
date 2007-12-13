@@ -1,5 +1,5 @@
-require 'sexp/simple_processor'
-require 'translation/states'
+require 'compiler1/sexp/simple_processor'
+require 'compiler1/translation/states'
 
 # This converts a ruby 1.8.x sexp's idea of the scoping of 
 # local variables into rubinius 1.0's idea.
@@ -36,6 +36,7 @@ require 'translation/states'
 # 3) Any lvar accessed in a block is converted to a normal lvar.
 # 4) An argument lvar that is stored to is converted.
 
+module Compiler1
 class RsMethodBodyOnly < SimpleSexpProcessor
   
   def process_defs(x)
@@ -391,4 +392,5 @@ class RsLocalScoper < RsMethodBodyOnly
     
     [:call, r2, meth, a2, options]
   end
+end
 end

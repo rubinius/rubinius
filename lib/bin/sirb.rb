@@ -1,7 +1,6 @@
 #!/usr/bin/env rbx
 
-require 'bytecode/compiler'
-require 'bytecode/rubinius'
+require 'compiler1/bytecode/rubinius'
 require 'readline'
 
 # recognize a few simple options
@@ -66,11 +65,11 @@ end
 
 context = ""
 line = 0
-compiler = Bytecode::Compiler.new
+compiler = Compiler1::Bytecode::Compiler.new
 
 # We use the same compiler state for each evaluation so we can save
 # stuff like locals between statements.
-compiler_state = RsLocalState.new
+compiler_state = Compiler1::RsLocalState.new
 compiler_state.uses_eval = true # Don't allocate locals on the stack
 
 # Start off with just 10 slots, but we enlarge as needed below.

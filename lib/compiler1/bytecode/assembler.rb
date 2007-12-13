@@ -1,5 +1,6 @@
-require 'bytecode/encoder'
+require 'compiler1/bytecode/encoder'
 
+module Compiler1
 module Bytecode
   class Assembler
     
@@ -543,4 +544,5 @@ module Bytecode
       raise "Unknown op '#{op}'"
     end
   end
+end
 end

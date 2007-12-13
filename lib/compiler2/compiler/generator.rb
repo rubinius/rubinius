@@ -1,3 +1,5 @@
+require 'compiler/encoder'
+
 class Compiler
     
   class Generator
@@ -109,12 +111,17 @@ class Compiler
       
       cm.name = desc.name
 
-      #cm.primitive = @primitive
+      if @primitive
+        cm.primitive = @primitive
+      else
+        cm.primitive = -1
+      end
+      
       cm.literals = encode_literals()
       cm.lines = encode_lines()
       cm.exceptions = encode_exceptions()
       cm.serial = 0
-      
+            
       return cm
     end
     
