@@ -1,307 +1,235 @@
-class InstructionSequence
+class InstructionSet
+  # List of Rubinius machine opcodes
+  # Each opcode consists of a hash identifying:
+  #   - the opcode symbol,
+  #   - an array of the arguments required by the opcode, which may be of types
+  #     :int, :literal, :local, :field, :primitive, :ip, :depth, or :cache
+  # IMPORTANT: Do not change the order of opcodes! The position in this array
+  # is the opcode's instuction bytecode.
   OpCodes = [
-    :noop,
-    :push_nil,
-    :push_true,
-    :push_false,
-    :allocate,
-    :set_class,
-    :store_field,
-    :push_int,
-    :fetch_field,
-    :send_primitive,
-    :push_context,
-    :push_literal,
-    :push_self,
-    :goto,
-    :goto_if_false,
-    :goto_if_true,
-    :swap_stack,
-    :set_local,
-    :push_local,
-    :push_exception,
-    :make_array,
-    :set_ivar,
-    :push_ivar,
-    :goto_if_defined,
-    :push_const,
-    :set_const,
-    :set_const_at,
-    :find_const,
-    :attach_method,
-    :add_method,
-    :open_class,
-    :open_class_under,
-    :open_module,
-    :open_module_under,
-    :unshift_tuple,
-    :cast_tuple,
-    :make_rest,
-    :dup_top,
-    :pop,
-    :ret,
-    :send_method,
-    :send_stack,
-    :send_stack_with_block,
-    :push_block,
-    :clear_exception,
-    :soft_return,
-    :caller_return,
-    :push_array,
-    :cast_array,
-    :make_hash,
-    :raise_exc,
-    :set_encloser,
-    :push_encloser,
-    :activate_method,
-    :push_cpath_top,
-    :check_argcount,
-    :passed_arg,
-    :string_append,
-    :string_dup,
-    :set_args,
-    :get_args,
-    :send_with_arg_register,
-    :cast_array_for_args,
-    :send_super_stack_with_block,
-    :push_my_field,
-    :store_my_field,
-    :open_metaclass,
-    :set_cache_index,
-    :block_break,
-    :send_super_with_arg_register,
-    :meta_push_neg_1,
-    :meta_push_0,
-    :meta_push_1,
-    :meta_push_2,
-    :meta_send_stack_1,
-    :meta_send_stack_2,
-    :meta_send_stack_3,
-    :meta_send_stack_4,
-    :meta_send_op_plus,
-    :meta_send_op_minus,
-    :meta_send_op_equal,
-    :meta_send_op_lt,
-    :meta_send_op_gt,
-    :meta_send_op_tequal,
-    :meta_send_op_nequal,
-    :push_local_depth,
-    :set_local_depth,
-    :create_block,
-    :send_off_stack,
-    :locate_method,
-    :kind_of,
-    :instance_of,
-    :set_call_flags,
-    :yield_debugger,
-    :from_fp,
-    :set_local_from_fp,
-    :make_rest_fp,
-    :allocate_stack,
-    :deallocate_stack,
-    :set_local_fp,
-    :get_local_fp,
-    :is_fixnum,
-    :is_symbol,
-    :is_nil,
-    :class,
-    :equal,
-    :sret,
-    :set_literal,
-    :passed_blockarg,
-    :create_block2,
-    :cast_for_single_block_arg
-  ]
-  
-  IntArg = [
-    :activate_method,
-    :add_method,
-    :allocate_stack,
-    :attach_method,
-    :cast_array_for_args,
-    :check_argcount,
-    :create_block,
-    :deallocate_stack,
-    :find_const,
-    :from_fp,
-    :get_local_fp,
-    :goto,
-    :goto_if_false,
-    :goto_if_true,
-    :goto_if_defined,
-    :make_array,
-    :make_hash,
-    :make_rest,
-    :make_rest_fp,
-    :meta_send_stack_1,
-    :meta_send_stack_2,
-    :meta_send_stack_3,
-    :meta_send_stack_4,
-    :open_class,
-    :open_class_under,
-    :open_module,
-    :open_module_under,
-    :passed_arg,
-    :passed_blockarg,
-    :push_const,
-    :push_int,
-    :push_ivar,
-    :push_literal,
-    :push_local,
-    :push_local_depth,
-    :push_my_field,
-    :send_method,
-    :send_primitive, 
-    :send_stack,
-    :send_stack_with_block,
-    :send_super_stack_with_block,
-    :send_super_with_arg_register,
-    :send_with_arg_register,
-    :set_cache_index,
-    :set_call_flags,
-    :set_const,
-    :set_const_at,
-    :set_ivar,
-    :set_literal,
-    :set_local,
-    :set_local_depth,
-    :set_local_fp,
-    :set_local_from_fp,
-    :store_my_field
-  ]
-  
-  TwoInt = [
-    :check_argcount,
-    :push_local_depth,
-    :send_primitive,
-    :send_stack,
-    :send_stack_with_block,
-    :send_super_stack_with_block,
-    :set_local_depth,
-    :set_local_from_fp
-  ]
-  
-  LiteralArgs = [
-    :add_method, 
-    :attach_method,
-    :find_const,
-    :meta_send_stack_1,
-    :meta_send_stack_2,
-    :meta_send_stack_3,
-    :meta_send_stack_4,
-    :open_class,
-    :open_class_under,
-    :open_module,
-    :open_module_under,
-    :push_const,
-    :push_ivar,
-    :push_literal,
-    :send_method,
-    :send_stack,
-    :send_stack_with_block,
-    :send_super_stack_with_block,
-    :send_super_with_arg_register,
-    :send_with_arg_register,
-    :set_const,
-    :set_const_at,
-    :set_ivar,
-    :set_literal
+    {:opcode => :noop, :args => []},
+    {:opcode => :push_nil, :args => []},
+    {:opcode => :push_true, :args => []},
+    {:opcode => :push_false, :args => []},
+    {:opcode => :allocate, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :set_class, :args => []},
+    {:opcode => :store_field, :args => []},
+    {:opcode => :push_int, :args => [:int]},
+    {:opcode => :fetch_field, :args => []},
+    {:opcode => :send_primitive, :args => [:primitive, :int], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_context, :args => []},
+    {:opcode => :push_literal, :args => [:literal]},
+    {:opcode => :push_self, :args => []},
+    {:opcode => :goto, :args => [:ip]},
+    {:opcode => :goto_if_false, :args => [:ip]},
+    {:opcode => :goto_if_true, :args => [:ip]},
+    {:opcode => :swap_stack, :args => []},
+    {:opcode => :set_local, :args => [:local]},
+    {:opcode => :push_local, :args => [:local]},
+    {:opcode => :push_exception, :args => []},
+    {:opcode => :make_array, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :set_ivar, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_ivar, :args => [:literal]},
+    {:opcode => :goto_if_defined, :args => [:ip]},
+    {:opcode => :push_const, :args => [:literal]},
+    {:opcode => :set_const, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :set_const_at, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :find_const, :args => [:literal]},
+    {:opcode => :attach_method, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :add_method, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :open_class, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :open_class_under, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :open_module, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :open_module_under, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :unshift_tuple, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :cast_tuple, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :make_rest, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :dup_top, :args => []},
+    {:opcode => :pop, :args => []},
+    {:opcode => :ret, :args => [], :vm_flags => [:terminator]},
+    {:opcode => :send_method, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :send_stack, :args => [:literal, :int], :vm_flags => [:check_interrupts]},
+    {:opcode => :send_stack_with_block, :args => [:literal, :int], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_block, :args => []},
+    {:opcode => :clear_exception, :args => []},
+    {:opcode => :soft_return, :args => [], :vm_flags => [:terminator]},
+    {:opcode => :caller_return, :args => [], :vm_flags => [:terminator]},
+    {:opcode => :push_array, :args => []},
+    {:opcode => :cast_array, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :make_hash, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :raise_exc, :args => [], :vm_flags => [:terminator]},
+    {:opcode => :set_encloser, :args => []},
+    {:opcode => :push_encloser, :args => []},
+    {:opcode => :activate_method, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_cpath_top, :args => []},
+    {:opcode => :check_argcount, :args => [:int, :int], :vm_flags => [:terminator]},
+    {:opcode => :passed_arg, :args => [:int]},
+    {:opcode => :string_append, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :string_dup, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :set_args, :args => []},
+    {:opcode => :get_args, :args => []},
+    {:opcode => :send_with_arg_register, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :cast_array_for_args, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :send_super_stack_with_block,  :args => [:literal, :int], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_my_field, :args => [:field]},
+    {:opcode => :store_my_field, :args => [:field]},
+    {:opcode => :open_metaclass, :args => []},
+    {:opcode => :set_cache_index, :args => [:cache]},
+    {:opcode => :block_break, :args => [], :vm_flags => [:terminator]},
+    {:opcode => :send_super_with_arg_register, :args => [:literal]},
+    {:opcode => :meta_push_neg_1, :args => []},
+    {:opcode => :meta_push_0, :args => []},
+    {:opcode => :meta_push_1, :args => []},
+    {:opcode => :meta_push_2, :args => []},
+    {:opcode => :meta_send_stack_1, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_stack_2, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_stack_3, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_stack_4, :args => [:literal], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_plus, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_minus, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_equal, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_lt, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_gt, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_tequal, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :meta_send_op_nequal, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :push_local_depth, :args => [:depth, :local]},
+    {:opcode => :set_local_depth, :args => [:depth, :local], :vm_flags => [:check_interrupts]},
+    {:opcode => :create_block, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :send_off_stack, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :locate_method, :args => []},
+    {:opcode => :kind_of, :args => []},
+    {:opcode => :instance_of, :args => []},
+    {:opcode => :set_call_flags, :args => [:int]},
+    {:opcode => :yield_debugger, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :from_fp, :args => [:int]},
+    {:opcode => :set_local_from_fp, :args => [:local, :int]},
+    {:opcode => :make_rest_fp, :args => [:int], :vm_flags => [:check_interrupts]},
+    {:opcode => :allocate_stack, :args => [:int]},
+    {:opcode => :deallocate_stack, :args => [:int]},
+    {:opcode => :set_local_fp, :args => [:int]},
+    {:opcode => :get_local_fp, :args => [:int]},
+    {:opcode => :is_fixnum, :args => []},
+    {:opcode => :is_symbol, :args => []},
+    {:opcode => :is_nil, :args => []},
+    {:opcode => :class, :args => []},
+    {:opcode => :equal, :args => []},
+    {:opcode => :sret, :args => [], :vm_flags => [:terminator]},
+    {:opcode => :set_literal, :args => [:literal]},
+    {:opcode => :passed_blockarg, :args => [:int]},
+    {:opcode => :create_block2, :args => [], :vm_flags => [:check_interrupts]},
+    {:opcode => :cast_for_single_block_arg, :args => []}
   ]
 
-  InstSize = 4
-  
-  class Instruction
-    def initialize(inst, cm = nil)
-      @op = inst
-      if cm and LiteralArgs.include? op_code
-        @op[1] = cm.literals[@op[1]]
-      end
+  InstructionSize = 4
+
+  class OpCode
+    def initialize(opcode_info)
+      @opcode_info = opcode_info
     end
-    
-    # Returns the symbol representing the opcode for this instruction
-    def op_code
-      @op[0]
+
+    def opcode
+      @opcode_info[:opcode]
     end
-    
-    # Returns an array of 0 to 2 arguments, depending on the opcode
+
+    def bytecode
+      @opcode_info[:bytecode]
+    end
+
+    def arg_count
+      @opcode_info[:args].size
+    end
+
     def args
-      @op[1..-1]
+      @opcode_info[:args]
     end
-    
+
+    # Returns the width (size) of the opcode (including arguments) in bytes
+    def width
+      (@opcode_info[:args].size + 1) * InstructionSize
+    end
+
+    def check_interrupts?
+      @opcode_info[:vm_flags].include? :check_interrupts
+    end
+
+    def terminator?
+      @opcode_info[:vm_flags].include? :terminator
+    end
+
     def to_s
-      str = op_code.to_s
-      args.each do |arg|
-        str << "  " << arg.inspect
-      end
-      str
+      @opcode_info[:opcode].to_s
     end
   end
 
+  class InvalidOpCode < RuntimeError
+  end
+
+  @opcodes = {}
+  i = 0
+  OpCodes.map! do |info|
+    info[:bytecode] = i
+    i += 1
+    op = OpCode.new info
+    @opcodes[op.opcode] = op
+  end
+
+  def self.[](op)
+    inst = nil
+    if op.kind_of? Fixnum
+      inst = OpCodes[op]
+    else
+      inst = @opcodes[op]
+    end
+    raise InvalidOpCode, "Invalid opcode #{op}" if inst.nil?
+    inst
+  end
+end
+
+
+class InstructionSequence
+
   class Encoder
-    @instructions = {}
-    @width = {}
-    i = 0
-    OpCodes.each do |op|
-      @instructions[op] = i
-      if TwoInt.include? op
-        @width[op] = 2
-      elsif IntArg.include? op
-        @width[op] = 1
-      else
-        @width[op] = 0
-      end
-      i += 1
-    end
-  
-    def self.instructions
-      @instructions
-    end
-  
-    def self.width
-      @width
-    end
-    
-    def instructions
-      Encoder.instructions
-    end
-    
+    # Decodes an +InstructionSequence+ (which is essentially a an array of ints)
+    # into an array whose elements are arrays of opcode symbols and 0-2 args,
+    # depending on the opcode.
     def decode_iseq(iseq)
       @iseq = iseq
       @offset = 0
       stream = []
       while @offset < @iseq.size
         inst = iseq2int
-        op = OpCodes[inst]
-      
-        case Encoder.width[op]
+        op = InstructionSet[inst]
+
+        case op.arg_count
+        when 0
+          stream << [op.opcode]
         when 1
-          stream << [op, iseq2int]
+          stream << [op.opcode, iseq2int]
         when 2
-          stream << [op, iseq2int, iseq2int]
-        else
-          stream << [op]
+          stream << [op.opcode, iseq2int, iseq2int]
         end
       end
-    
+
       return stream
     end
-  
+
+    # Encodes a stream of instructions, where the stream is an array of
+    # arrays consisting of an instruction opcode (a symbol), followed by 0 to 2
+    # integer arguments, whose meaning depends on the opcode.
     def encode_stream(stream)
-      sz = stream.inject(0) { |acc, ele| acc + ((ele.size - 1) * InstSize) }
+      sz = stream.inject(0) { |acc, ele| acc + (ele.size * InstructionSet::InstructionSize) }
       @iseq = InstructionSequence.new(sz)
-      @offset = 0                 
+      @offset = 0
       stream.each do |inst|
-        opcode = inst.last
+        opcode = InstructionSet[inst.first]
 
-        width = Encoder.width[inst.first]
-
-        unless inst.size - 2 == width
-          raise Error, "Missing instruction arguments to #{inst.first} (need #{width} / got #{inst.size - 2})"
+        arg_count = opcode.arg_count
+        unless inst.size - 1 == arg_count
+          raise Error, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
         end
 
-        int2str(opcode)
-
-        case width
+        int2str(opcode.bytecode)
+        case arg_count
         when 1
           int2str(inst[1])
         when 2
@@ -309,10 +237,10 @@ class InstructionSequence
           int2str(inst[2])
         end
       end
-    
+
       return @iseq
     end
-  
+
     def iseq2int
       inst =  (@iseq[@offset    ] * 16777216)
       inst += (@iseq[@offset + 1] * 65536)
@@ -321,27 +249,21 @@ class InstructionSequence
       @offset += 4
       return inst
     end
-  
+
     def int2str(int)
       3.downto(0) do |i|
         @iseq[@offset + i] = (int % 256)
         int = int / 256
       end
-    
+
       @offset += 4
     end
   end
 
+
   # Decodes the instruction sequence into an array of +Instruction+s
-  # If a +CompiledMethod+ object is passed in, it is used to convert literal
-  # references in the opcodes to the corresponding literal values in the
-  # decoded output. If no +CompiledMethod+ is passed, literal references
-  # are expressed as indexes into the literals tuple.
-  def decode(cm = nil)
+  def decode
     enc = Encoder.new
-    dc = enc.decode_iseq(self)
-    dc.map! do |inst|
-      Instruction.new(inst, cm)
-    end
+    enc.decode_iseq(self)
   end
 end

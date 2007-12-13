@@ -129,16 +129,7 @@ class Compiler2
     
     def add(*what)
       @ip += what.size
-      
-      kind = what.first
-      
-      inst = @encoder.instructions[kind]
-      unless inst
-        raise Compiler2::Error, "unknown instruction #{kind}"
-      end
-      
-      what << inst
-      @stream << what      
+      @stream << what
     end
     
     # Find the index for the specified literal, or create a new slot if the
@@ -155,7 +146,7 @@ class Compiler2
     def add_literal(val)
       idx = @literals.size
       @literals << val
-      return idx      
+      return idx
     end
 
     # Commands (these don't generate data in the stream)

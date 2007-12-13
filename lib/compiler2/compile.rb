@@ -51,21 +51,25 @@ def batch(opts)
     puts "  Generating AST...\n" if verbose
     n = c.into_script(x)
 
-    puts "  Generating bytecode...\n" if verbose    
+    puts "  Generating bytecode...\n" if verbose
+=begin
+#TODO: Figure out why text generation breaks subsequent compilation
     if verbose
+      old_gen = c.generator_class
       c.generator_class = Compiler2::TextGenerator
       txt = Compiler2::TextGenerator.new
       n.bytecode(txt)
       txt.close
       puts txt.text
+      c.generator_class = old_gen
     end
-
+=end
     meth = n.to_description
 
     puts "  Encoding..." if verbose
     cm = meth.to_cmethod
 
-    if false # verbose
+    if verbose
       puts "\n  Decoded:\n" 
       puts "  ========\n"
       puts "  " << cm.decode.join("\n  ")
