@@ -1,8 +1,22 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-$LOAD_PATH << (File.dirname(__FILE__) + '/fixtures/require')
-$LOAD_PATH << (File.dirname(__FILE__) + '/fixtures/require/require_spec_rba.rba')
+fixture_dir = File.dirname(__FILE__) + '/fixtures/require'
+
+unless File.exists?(fixture_dir + "/require_spec_rba.rba")
+  compile(fixture_dir + "/masked_require_spec_2.rb", 
+          fixture_dir + "/require_spec_2.rbc")
+          
+  `cd #{fixture_dir}; zip require_spec_rba.rba require_spec_2.rbc`
+end
+
+unless File.exists?(fixture_dir + "/require_spec_3.rbc")
+  compile(fixture_dir + "/masked_require_spec_3.rb", 
+          fixture_dir + "/require_spec_3.rbc")
+end
+
+$LOAD_PATH << fixture_dir
+$LOAD_PATH << (fixture_dir + '/require_spec_rba.rba')
 
 require 'tmpdir'
 
@@ -43,18 +57,34 @@ describe "Kernel#require" do
     end
 
     it "loads a .rbc file if it's newer than the associated .rb file" do
-      path = File.expand_path(
-               File.dirname(__FILE__) + '/fixtures/require/require_spec_5.rbc')
-               
-      # 'touch' the file so it's mod time is newer
-      File.open(path,"w").close
       
-      require('require_spec_5').should == true
-      $require_spec_5.should == :rbc
+      begin
+        File.open(fixture_dir + '/require_spec_5.rb') do |f|
+          f.puts "$require_spec_5 = :rbc"
+        end
+      
+        compile(fixture_dir + '/require_spec_5.rb')
 
-      require('require_spec_5').should == false
+        File.open(fixture_dir + '/require_spec_5.rb') do |f|
+          f.puts "$require_spec_5 = :rb"
+        end
+      
+        path = File.expand_path(
+                 File.dirname(__FILE__) + '/fixtures/require/require_spec_5.rbc')
+               
+        # 'touch' the file so it's mod time is newer
+        File.open(path,"w").close
+      
+        require('require_spec_5').should == true
+        $require_spec_5.should == :rbc
+
+        require('require_spec_5').should == false
     
-      $LOADED_FEATURES.include?('require_spec_5.rb').should == true
+        $LOADED_FEATURES.include?('require_spec_5.rb').should == true
+      ensure
+        File.unlink(fixture_dir + '/require_spec_5.rb') rescue nil
+        File.unlink(fixture_dir + '/require_spec_5.rbc') rescue nil
+      end
     end
     
   end

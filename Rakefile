@@ -400,7 +400,7 @@ desc "Remove all stray compiled Ruby files"
 task :pristine do
   FileList['**/*.rbc'].each do |fn|
     next if /^runtime/.match(fn)
-    next if /require\/require_spec_.\.rbc/.match(fn)
+    next if %r!fixtures!.match(fn)
     next if %r!lib/compiler1!.match(fn)
     FileUtils.rm fn rescue nil
   end

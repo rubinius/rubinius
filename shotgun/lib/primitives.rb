@@ -1383,7 +1383,7 @@ class ShotgunPrimitives
     POP(t1, STRING);
     POP(t2, FIXNUM);
 
-    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), FIXNUM_TO_INT(t2)));
+    stack_push(cpu_unmarshal(state, (uint8_t*)string_byte_address(state, t1), FIXNUM_TO_INT(string_get_bytes(t1)), FIXNUM_TO_INT(t2)));
     CODE
   end
   
@@ -2324,8 +2324,8 @@ class ShotgunPrimitives
     self = stack_pop();
     /* So when we're restored, there is a ret val. */
     stack_push(Qnil);
-    cpu_thread_schedule(state, c->current_thread);
-    cpu_thread_switch(state, c, self);
+    cpu_thread_schedule(state, c->current_thread);    
+    cpu_thread_force_run(state, c, self);
     CODE
   end
   

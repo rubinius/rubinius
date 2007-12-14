@@ -59,10 +59,11 @@ OBJECT list_shift(STATE, OBJECT self) {
   return list_node_get_object(node);
 }
 
-void list_delete(STATE, OBJECT self, OBJECT obj) {
+int list_delete(STATE, OBJECT self, OBJECT obj) {
   OBJECT node, lst, nxt;
-  int count;
+  int count, deleted;
   
+  deleted = 0;
   count = 0;
   lst = Qnil;
   node = list_get_first(self);
@@ -70,6 +71,7 @@ void list_delete(STATE, OBJECT self, OBJECT obj) {
     nxt = list_node_get_next(node);
     
     if(list_node_get_object(node) == obj) {
+      deleted++;
       if(NIL_P(lst)) {
         list_set_first(self, nxt);
       } else {
@@ -83,4 +85,6 @@ void list_delete(STATE, OBJECT self, OBJECT obj) {
   }
   
   list_set_count(self, I2N(count));
+  
+  return deleted;
 }

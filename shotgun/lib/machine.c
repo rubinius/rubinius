@@ -354,11 +354,13 @@ void _machine_error_reporter(int sig, siginfo_t *info, void *ctx) {
      The check for - 8 is because it's common this happens when
      trying to grab the class of a non-reference. The class is
      8 bytes into the header. */
-  addr = (OBJECT)(info->si_addr);
-  if(!REFERENCE_P(addr) || !REFERENCE_P(addr - 4) || !REFERENCE_P(addr - 8)) {
-    printf("Attempted to access field of non-reference.\n");
-    if(g_use_firesuit) {
-      machine_handle_fire(FIRE_NULL);
+  if(sig == SIGSEGV || sig == SIGBUS) {
+    addr = (OBJECT)(info->si_addr);
+    if(!REFERENCE_P(addr) || !REFERENCE_P(addr - 4) || !REFERENCE_P(addr - 8)) {
+      printf("Attempted to access field of non-reference.\n");
+      if(g_use_firesuit) {
+        machine_handle_fire(FIRE_NULL);
+      }
     }
   }
   

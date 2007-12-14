@@ -16,7 +16,7 @@ module Bytecode
         puts @assembly
       end
       
-      asm = Bytecode::Assembler.new(@literals, @name, @state)
+      asm = Compiler1::Bytecode::Assembler.new(@literals, @name, @state)
       begin
         stream = asm.assemble @assembly
       rescue Object => e
@@ -32,7 +32,7 @@ module Bytecode
         p stream
       end
       
-      enc = Bytecode::InstructionEncoder.new
+      enc = Compiler1::Bytecode::InstructionEncoder.new
       bc = enc.encode_stream stream
       lcls = @state.number_of_locals
       iseq = bc.data.dup(InstructionSequence)
@@ -43,7 +43,7 @@ module Bytecode
       idx = nil
 
       if @primitive.kind_of? Symbol
-        idx = Bytecode::Compiler::Primitives.index(@primitive)
+        idx = Compiler1::Bytecode::Compiler::Primitives.index(@primitive)
         unless idx
           raise ArgumentError, "Unknown primitive '#{@primitive}'"
         end
@@ -157,7 +157,7 @@ module Bytecode
     end
         
     def primitive_to_index(sym)
-      Bytecode::Compiler::Primitives.index(sym) + 1 # add 1 for noop padding
+      Compiler1::Bytecode::Compiler::Primitives.index(sym) + 1 # add 1 for noop padding
     end
   end
 end

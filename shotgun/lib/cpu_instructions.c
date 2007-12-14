@@ -80,10 +80,8 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
       string_append(state, s3, s2);
       s4 = string_to_sym(state, s3);
       module_set_name(val, s4);
-      // printf("Module %s name set to %s (%d)\n", _inspect(val), rbs_symbol_to_cstring(state, s4), FIXNUM_TO_INT(class_get_instance_fields(val)));
     } else {
       module_set_name(val, sym);
-      // printf("Module %s name set to %s (%d)\n", _inspect(val), rbs_symbol_to_cstring(state, sym), FIXNUM_TO_INT(class_get_instance_fields(val)));
     }
     module_const_set(state, under, sym, val);
     sup_itr = sup;    
@@ -92,7 +90,7 @@ OBJECT cpu_open_class(STATE, cpu c, OBJECT under, OBJECT sup, int *created) {
 }
 
 OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
-  OBJECT sym, _lit, val;
+  OBJECT sym, _lit, val, s1;
   int _int;
   next_literal;
   
@@ -102,7 +100,17 @@ OBJECT cpu_open_module(STATE, cpu c, OBJECT under) {
   if(!RTEST(val)) {
     val = module_allocate_mature(state, 0);
     module_setup_fields(state, val);
-    module_set_name(val, sym);
+    
+    if(c->enclosing_class != state->global->object) {
+      s1 = symbol_to_string(state, module_get_name(c->enclosing_class));
+      s1 = string_dup(state, s1);
+      string_append(state, s1, string_new(state, "::"));
+      string_append(state, s1, symbol_to_string(state, sym));
+      module_set_name(val, string_to_sym(state, s1));
+    } else {
+      module_set_name(val, sym);
+    }
+    
     module_const_set(state, under, sym, val);
     module_setup_fields(state, object_metaclass(state, val));
     module_set_parent(val, under);    

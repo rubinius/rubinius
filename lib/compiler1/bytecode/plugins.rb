@@ -50,7 +50,7 @@ class Bytecode::Compiler
   end
 end
 
-class MetaOperatorPlugin < Bytecode::Compiler::Plugin
+class MetaOperatorPlugin < Compiler1::Bytecode::Compiler::Plugin
   
   flag :fast_math
   
@@ -80,7 +80,7 @@ class MetaOperatorPlugin < Bytecode::Compiler::Plugin
   
 end
 
-class SystemMethodPlugin < Bytecode::Compiler::Plugin
+class SystemMethodPlugin < Compiler1::Bytecode::Compiler::Plugin
   
   flag :fast_system
   
@@ -149,7 +149,7 @@ class SystemMethodPlugin < Bytecode::Compiler::Plugin
   end
 end
 
-class NamedSendPlugin < Bytecode::Compiler::Plugin
+class NamedSendPlugin < Compiler1::Bytecode::Compiler::Plugin
   
   flag :fast_send_method
   
@@ -183,7 +183,7 @@ class NamedSendPlugin < Bytecode::Compiler::Plugin
   end
 end
 
-class FieldAccessPlugin < Bytecode::Compiler::Plugin
+class FieldAccessPlugin < Compiler1::Bytecode::Compiler::Plugin
   flag :fast_field_access
   
   def push_index(idx)
@@ -217,7 +217,7 @@ class FieldAccessPlugin < Bytecode::Compiler::Plugin
   end
 end
 
-class TypeCoercePlugin < Bytecode::Compiler::Plugin
+class TypeCoercePlugin < Compiler1::Bytecode::Compiler::Plugin
   flag :fast_coerce
   
   def handle_fixnum(recv, meth, obj)
@@ -336,7 +336,7 @@ end
 
 =begin
 
-class FastTimesPlugin < Bytecode::Compiler::Plugin
+class FastTimesPlugin < Compiler1::Bytecode::Compiler::Plugin
   
   flag :fast_times
   
@@ -366,7 +366,7 @@ end
 
 this is premature
 
-class FastSplatAccess < Bytecode::Compiler::Plugin
+class FastSplatAccess < Compiler1::Bytecode::Compiler::Plugin
   def process(recv, meth, args)
     return false if meth != :[] or args.size != 2
     return false if recv.first != :lvar
