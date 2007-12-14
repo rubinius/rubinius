@@ -86,6 +86,10 @@ void iseq_flip(STATE, OBJECT self) {
   f = object_size(state, self);
   buf = (uint8_t*)bytearray_byte_address(state, self);
   ibuf = (uint32_t*)bytearray_byte_address(state, self);
+  
+  /* The first thing can't be a noop */
+  sassert(*ibuf);
+  
   /* A sanity check. The first thing is always an instruction,
    * and we've got less that 1024 instructions, so if it's less
    * it's already been flipped. */

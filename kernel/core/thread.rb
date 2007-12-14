@@ -145,7 +145,7 @@ class Thread
 
     # FIXME: the if statment breaks everything (non-deterministic failures in test suite)
     Scheduler.send_in_microseconds(chan, (duration * 1_000_000).to_i) #if duration    
-    chan.receive
+    out = chan.receive
     return Time.now - start
   end
   

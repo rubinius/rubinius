@@ -5,6 +5,7 @@ require 'compiler1/sexp/composite_processor'
 require 'compiler1/translation/states'
 
 module Compiler1
+
 module Bytecode
   
   class MethodDescription
@@ -36,7 +37,7 @@ module Bytecode
     
     def self.compile_file(path, flags=nil)
       sexp = File.to_sexp(path, true)
-      comp = Bytecode::Compiler.new
+      comp = Compiler1::Bytecode::Compiler.new
       comp.import_flags(flags) if flags
       desc = comp.compile_as_script(sexp, :__script__)
       return desc.to_cmethod
@@ -44,7 +45,7 @@ module Bytecode
 
     def self.compile_string(string, flags=nil, filename="(eval)", line=1)
       sexp = string.to_sexp(filename, line, true)
-      comp = Bytecode::Compiler.new
+      comp = Compiler1::Bytecode::Compiler.new
       comp.import_flags(flags) if flags
       state = RsLocalState.new
       state.uses_eval = true

@@ -180,7 +180,7 @@ inline void cpu_save_registers(STATE, cpu c, int stack_offset);
 
 OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
 
-OBJECT cpu_unmarshal(STATE, uint8_t *str, int version);
+OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version);
 OBJECT cpu_marshal(STATE, OBJECT obj, int version);
 OBJECT cpu_unmarshal_file(STATE, const char *path, int version);
 bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version);
@@ -208,6 +208,7 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self);
 void cpu_thread_switch_best(STATE, cpu c);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
+void cpu_thread_force_run(STATE, cpu c, OBJECT thr);
 
 void cpu_task_disable_preemption(STATE);
 void cpu_task_configure_premption(STATE);

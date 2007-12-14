@@ -6,6 +6,8 @@
 #include "tuple.h"
 #include "bignum.h"
 #include "float.h"
+#include "sha1.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -46,13 +48,17 @@ static void _add_object(OBJECT obj, struct marshal_state *ms) {
 static OBJECT unmarshal(STATE, struct marshal_state *ms);
 static void   marshal(STATE, OBJECT obj, bstring buf, struct marshal_state *ms);
 
-#define append_c(ch) bconchar(buf, ch)
-static void _append_sz(bstring buf, unsigned int i) {
-  char bytes[4];
+static void int2be(unsigned int i, unsigned char bytes[4]) {
   bytes[0] = ( i >> 24 ) & 0xff;
   bytes[1] = ( i >> 16 ) & 0xff;
   bytes[2] = ( i >> 8  ) & 0xff;
-  bytes[3] = i & 0xff;
+  bytes[3] = i & 0xff;  
+}
+
+#define append_c(ch) bconchar(buf, ch)
+static void _append_sz(bstring buf, unsigned int i) {
+  unsigned char bytes[4];
+  int2be(i, bytes);
   bcatblk(buf, bytes, 4);
 }
 #define append_sz(sz) _append_sz(buf, (unsigned int)sz)
@@ -428,8 +434,9 @@ static OBJECT unmarshal(STATE, struct marshal_state *ms) {
       o = Qfalse;
       break;
     default:
+      o = Qnil;
       printf("Unknown marshal type '0x%x' at %d!\n", tag, ms->consumed);
-      abort();
+      sassert(0);
   }
   return o;
 }
@@ -487,23 +494,34 @@ OBJECT cpu_marshal(STATE, OBJECT obj, int version) {
 }
 
 bstring cpu_marshal_to_bstring(STATE, OBJECT obj, int version) {
-  bstring buf;
+  bstring buf, stream;
   struct marshal_state ms;
+  unsigned char cur_digest[20];
   
   ms.consumed = 0;
   ms.objects = ptr_array_new(8);
+    
+  stream = cstr2bstr("");
+  marshal(state, obj, stream, &ms);
+  sha1_hash_string((unsigned char*)bdata(stream), blength(stream), cur_digest);
   
   buf = cstr2bstr("RBIX");
+
   _append_sz(buf, version);
-  marshal(state, obj, buf, &ms);
+  bcatblk(buf, (void*)cur_digest, 20);
+  bconcat(buf, stream);
+  bdestroy(stream);
+  
   ptr_array_free(ms.objects);
-  return buf;
+  return stream;
 }
 
 OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   bstring buf;
   FILE *f;
   struct marshal_state ms;
+  unsigned char cur_digest[20];
+  unsigned char bytes[4];
   
   f = fopen(path, "wb");
   if(!f) {
@@ -514,11 +532,18 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   ms.objects = ptr_array_new(8);
   
   buf = cstr2bstr("");
-  _append_sz(buf, version);
+  
   marshal(state, obj, buf, &ms);
+  sha1_hash_string((unsigned char*)bdata(buf), blength(buf), cur_digest);
   
   /* TODO do error chceking here */
   fwrite("RBIX", 1, 4, f);
+
+  int2be(version, bytes);  
+  fwrite(bytes, 1, 4, f);
+
+  fwrite(cur_digest, 1, 20, f);
+  
   fwrite(bdatae(buf,""), 1, blength(buf), f);
   fclose(f);
 
@@ -527,18 +552,34 @@ OBJECT cpu_marshal_to_file(STATE, OBJECT obj, char *path, int version) {
   return Qtrue;
 }
 
-OBJECT cpu_unmarshal(STATE, uint8_t *str, int version) {
+OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version) {
   struct marshal_state ms;
   OBJECT ret;
+  int in_version;
   int offset = 4;
   if(!memcmp(str, "RBIS", 4)) {
     version = -1;
   } else if(!memcmp(str, "RBIX", 4)) {
-    if(read_int(str + 4) < version) {
+    in_version = read_int(str + 4);
+    if(in_version < version) {
       /* file is out of date. */
       return Qnil;
     }
+    
     offset += 4;
+    
+    if(in_version == 6) {
+      unsigned char cur_digest[20];
+      
+      offset += 20;
+      
+      sha1_hash_string((unsigned char*)(str + offset), len - offset, cur_digest);
+
+      /* Check if the calculate one is the one in the stream. */
+      if(memcmp(str + offset - 20, cur_digest, 20)) {
+        return Qnil;
+      }
+    }
   } else {
     printf("Invalid compiled file.\n");
     return Qnil;
@@ -571,7 +612,7 @@ OBJECT cpu_unmarshal_file(STATE, const char *path, int version) {
   map = mmap(NULL, (size_t) st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   close(fd);
 
-  obj = cpu_unmarshal(state, map, version);
+  obj = cpu_unmarshal(state, map, (int)st.st_size, version);
   munmap(map, st.st_size);
 
   return obj;

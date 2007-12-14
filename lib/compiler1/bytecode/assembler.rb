@@ -23,12 +23,12 @@ module Bytecode
       attr_accessor :location, :set
     end
     
-    def initialize(literals=[], name=nil, state=RsLocalState.new)
+    def initialize(literals=[], name=nil, state=Compiler1::RsLocalState.new)
       @name = name
       reset(literals, state)
     end
     
-    def reset(literals=[], state=RsLocalState.new)
+    def reset(literals=[], state=Compiler1::RsLocalState.new)
       @labels = Hash.new { |h,k| h[k] = Label.new(k) }
       @current_op = 0
       @output = []
@@ -119,7 +119,9 @@ module Bytecode
     
     def assemble(str)
       puts str if ENV["DEBUG_ASSEMBLER"]
-      str.each { |l| parse_line l }
+      # HACK Using str.each or str.each_line causes each to not split on newlines
+      # for some reason.
+      str.split("\n").each { |l| parse_line l }
       translate_labels
       if ent = @source_lines.last
         ent[1] = @current_op
@@ -142,7 +144,7 @@ module Bytecode
     end
     
     def bytecodes
-      enc = Bytecode::InstructionEncoder.new
+      enc = Compiler1::Bytecode::InstructionEncoder.new
       str = @output.inject("") { |a,i| a + enc.encode(*i) }      
     end
 
@@ -527,9 +529,9 @@ module Bytecode
         return
       end
       
-      if Bytecode::InstructionEncoder::OpCodes.include?(op)
-        if Bytecode::InstructionEncoder::IntArg.include?(op)  
-          if Bytecode::InstructionEncoder::TwoInt.include?(op)
+      if Compiler1::Bytecode::InstructionEncoder::OpCodes.include?(op)
+        if Compiler1::Bytecode::InstructionEncoder::IntArg.include?(op)  
+          if Compiler1::Bytecode::InstructionEncoder::TwoInt.include?(op)
             fir = parts.shift.to_i
             add op, fir, parts.shift.to_i
           else

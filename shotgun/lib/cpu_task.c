@@ -144,7 +144,7 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   memcpy(ct, new_task, sizeof(struct cpu_task));
   
   home = NIL_P(c->home_context) ? c->active_context : c->home_context;
-  
+    
   cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
   // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
   
@@ -318,6 +318,26 @@ OBJECT cpu_thread_find_highest(STATE) {
     }
     cpu_event_run(state);
   }
+}
+
+void cpu_thread_dequeue(STATE, OBJECT thr) {
+  int i, t;
+  OBJECT lst, tup;
+  
+  tup = state->global->scheduled_threads;
+  t = NUM_FIELDS(tup);
+  for(i = 0; i < t; i++) {
+    lst = tuple_at(state, tup, i);
+    
+    /* We could exit here, since a thread should only be in one
+       priority list. But run them all for now to be sure. */
+    state->pending_threads -= list_delete(state, lst, thr);
+  }
+}
+
+void cpu_thread_force_run(STATE, cpu c, OBJECT thr) {
+  cpu_thread_dequeue(state, thr);
+  cpu_thread_switch(state, c, thr);
 }
 
 void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
