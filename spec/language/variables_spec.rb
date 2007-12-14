@@ -736,6 +736,27 @@ describe 'Multiple assignments with grouping' do
     l.should == 3
   end
 
+  it 'supports multiple levels of nested groupings' do
+    a,(b,(c,d)) = 1,[2,[3,4]]
+    a.should == 1
+    b.should == 2
+    c.should == 3
+    d.should == 4
+
+    a,(b,(c,d)) = [1,[2,[3,4]]]
+    a.should == 1
+    b.should == 2
+    c.should == 3
+    d.should == 4
+
+    x = [1,[2,[3,4]]]
+    a,(b,(c,d)) = x
+    a.should == 1
+    b.should == 2
+    c.should == 3
+    d.should == 4
+  end
+
   compliant :mri do
     it 'rhs cannot use parameter grouping, it is a syntax error' do
       should_raise(SyntaxError) { eval '(a, b) = (1, 2)' }
