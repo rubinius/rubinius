@@ -1,48 +1,73 @@
 #!/usr/bin/env ruby
 
-# Must use our benchmark.rb, which has patches -vs- Ruby distribution
+# Must use our benchmark.rb, which has bug fixes -vs- Ruby 1.8.6 pl 111
 require File.expand_path(File.join(File.dirname(__FILE__),'../stdlib/benchmark'))
 include Benchmark
 
+# Options handling
 require 'optparse'
 require 'ostruct'
 
-BM_GLOB        = 'test/benchmark/*/bm*.rb'
-INTERPRETERS   = ['ruby','shotgun/rubinius']
-WIDTH          = 40
+# Benchmark test selector
+# BM_GLOB        = 'test/benchmark/*/bm*.rb'
+BM_GLOB        = File.expand_path(File.join(File.dirname(__FILE__),'../test/benchmark/*/bm*.rb'))
+
+# Which Ruby runtimes to test: MRI should be first and Rubinius should be last
+RUNTIMES       = ['ruby','shotgun/rubinius']
+
+# WIDTH of test labels, required for nice formating
+WIDTH          = 44
+
 REPORT_WIDTH   = WIDTH - 6
 COLUMN_WIDTH   = 16
+
 DECIMAL_FORMAT = '%4.4f'
 
-OPTIONS = OpenStruct.new( :width => 1024, :report => true )
+now            = Time.now
+NOW            = "#{now.year}-#{'%02d' % now.month}-#{'%02d' % now.day}-" +
+                 "#{'%02d' % now.hour}-#{'%02d' % now.min}-#{'%02d' % now.sec}"
+
+OPTIONS = OpenStruct.new( :size   => 1024,
+                          :report => true,
+                          :path   => './' )
 
 options = OptionParser.new do |opts|
+  opts.on('-2', '--compiler2') do |c2|
+    RUNTIMES[-1] = 'shotgun/rubinius -rcompiler2/init'
+    puts RUNTIMES.inspect
+    exit
+  end
+
   opts.on('-c', '--chart [FILENAME]') do |c|
-    OPTIONS.chart = c || 'times.svg'
+    OPTIONS.chart = c || "times-#{NOW}.svg"
   end
 
   opts.on('-d', '--diff-chart [FILENAME]') do |d|
-    OPTIONS.diffchart = d || 'difference.svg'
-  end
-
-  opts.on('-w', '--width WIDTH') do |w|
-    OPTIONS.chart = w
+    OPTIONS.diffchart = d || "difference-#{NOW}.svg"
   end
 
   opts.on('-g', '--grep REGEX') do |g|
     OPTIONS.grep = g
   end
 
-  opts.on('-n', '--ngrep REGEX') do |n|
-    OPTIONS.ngrep = n
-  end
-
   opts.on('-h', '--help') do |h|
     OPTIONS.help = h
   end
 
+  opts.on('-n', '--ngrep REGEX') do |n|
+    OPTIONS.ngrep = n
+  end
+
+  opts.on('-p', '--path PATH') do |p|
+    OPTIONS.path = p
+  end
+
   opts.on('--no-report') do |r|
     OPTIONS.report = r
+  end
+
+  opts.on('-s', '--size PIXES') do |s|
+    OPTIONS.size = s
   end
 
   opts.on('-w', '--warmup') do |w|
@@ -231,6 +256,7 @@ def report(runs)
   puts header
   puts '-' * header.length
 
+  # Columnar result output
   0.upto(runs.first.results.length - 1) do |i|
     line = runs.first.results[i].pretty_file.ljust(REPORT_WIDTH)
     results = []
@@ -253,7 +279,7 @@ end
 
 runs = []
 
-INTERPRETERS.each do |i|
+RUNTIMES.each do |i|
   runs << RbxBenchmarkRun.new(i).run
 end
 
@@ -267,6 +293,7 @@ if OPTIONS.chart then
 
   chart_point_sets = runs.collect { |run| run.chart_points }
 
+  # Make a list of failed tests
   deletes = []
 
   for i in 0..chart_point_sets.length-1
@@ -278,6 +305,7 @@ if OPTIONS.chart then
     end
   end
 
+  # Remove failed tests from each runtime
   chart_point_sets.each do |cps|
     deletes.uniq.sort.reverse.each { |d| cps.delete_at(d) }
   end
@@ -297,7 +325,7 @@ if OPTIONS.chart then
 
   puts "Rendering chart to #{OPTIONS.chart}"
 
-  graph.render( :width => OPTIONS.width, :to => OPTIONS.chart )
+  graph.render( :width => OPTIONS.size, :to => OPTIONS.path + OPTIONS.chart )
 end
 
 if OPTIONS.diffchart then
@@ -305,16 +333,20 @@ if OPTIONS.diffchart then
   require 'scruffy'
 
   differences = []
-  
+
   0.upto(runs.first.results.length - 1) do |i|
     differences << difference(runs.first.results[i],runs.last.results[i])
   end
-  
+
+  # Remove where tests failed, easier this time, only a single list
   differences.reject! { |d| d.nil? }
 
   graph = Scruffy::Graph.new
 
-  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius times faster, negative is times slower',
+  graph << Scruffy::Layers::Line.new( :title  => 'Zero',
+                                      :points => differences.collect { |d| 0 } )
+
+  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius % faster (-% slower)',
                                       :points => differences )
 
   # graph.point_markers = runs.first.results.reject do |result|
@@ -325,5 +357,5 @@ if OPTIONS.diffchart then
 
   puts "Rendering diffchart to #{OPTIONS.diffchart}"
 
-  graph.render( :width => OPTIONS.width, :to => OPTIONS.diffchart )
+  graph.render( :width => OPTIONS.size, :to => OPTIONS.path + OPTIONS.diffchart )
 end
