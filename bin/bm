@@ -28,49 +28,48 @@ NOW            = "#{now.year}-#{'%02d' % now.month}-#{'%02d' % now.day}-" +
                  "#{'%02d' % now.hour}-#{'%02d' % now.min}-#{'%02d' % now.sec}"
 
 OPTIONS = OpenStruct.new( :size   => 1024,
-                          :report => true,
                           :path   => './' )
 
 options = OptionParser.new do |opts|
-  opts.on('-2', '--compiler2') do |c2|
+  opts.on('-2', '--compiler2', 'Use compiler2 for Rubinius tests') do |c2|
     RUNTIMES[-1] = 'shotgun/rubinius -rcompiler2/init'
     puts RUNTIMES.inspect
     exit
   end
 
-  opts.on('-c', '--chart [FILENAME]') do |c|
+  opts.on('-c', '--chart [FILENAME]', 'Output passing test times to SVG file at --path') do |c|
     OPTIONS.chart = c || "times-#{NOW}.svg"
   end
 
-  opts.on('-d', '--diff-chart [FILENAME]') do |d|
+  opts.on('-d', '--diff-chart [FILENAME]', 'Output speed differences to SVG file at --path') do |d|
     OPTIONS.diffchart = d || "difference-#{NOW}.svg"
   end
 
-  opts.on('-g', '--grep REGEX') do |g|
+  opts.on('-f', '--file [FILENAME]', 'Output report to text file at --path, instead of STDOUT') do |f|
+    OPTIONS.file = f || "report-#{NOW}.txt"
+  end
+
+  opts.on('-g', '--grep REGEX', 'Only run tests that match REGEX') do |g|
     OPTIONS.grep = g
   end
 
-  opts.on('-h', '--help') do |h|
+  opts.on('-h', '--help', 'Output this help information') do |h|
     OPTIONS.help = h
   end
 
-  opts.on('-n', '--ngrep REGEX') do |n|
+  opts.on('-n', '--ngrep REGEX', 'Only run tests that do not match REGEX') do |n|
     OPTIONS.ngrep = n
   end
 
-  opts.on('-p', '--path PATH') do |p|
+  opts.on('-p', '--path PATH', 'Path prefix for --chart, --diff-chart, and --file') do |p|
     OPTIONS.path = p
   end
 
-  opts.on('--no-report') do |r|
-    OPTIONS.report = r
-  end
-
-  opts.on('-s', '--size PIXES') do |s|
+  opts.on('-s', '--size PIXELS', 'Size, in pixels, of --chart and/or --diff-chart') do |s|
     OPTIONS.size = s
   end
 
-  opts.on('-w', '--warmup') do |w|
+  opts.on('-w', '--warmup', 'Run each test twice and throw away the first result') do |w|
     OPTIONS.warmup = w
   end
 end
@@ -252,9 +251,16 @@ def report(runs)
 
   header << 'difference'.rjust(COLUMN_WIDTH)
 
-  puts
-  puts header
-  puts '-' * header.length
+  file = nil
+
+  if OPTIONS.file
+    file = File.open(OPTIONS.path + OPTIONS.file,'w')
+  else
+    file = STDOUT
+  end
+
+  file.puts header
+  file.puts '-' * header.length
 
   # Columnar result output
   0.upto(runs.first.results.length - 1) do |i|
@@ -273,8 +279,10 @@ def report(runs)
               DECIMAL_FORMAT % diff
             end.rjust(COLUMN_WIDTH)
 
-    puts line
+    file.puts line
   end
+
+  file.close
 end
 
 runs = []
@@ -283,9 +291,7 @@ RUNTIMES.each do |i|
   runs << RbxBenchmarkRun.new(i).run
 end
 
-if OPTIONS.report then
-  report(runs)
-end
+report(runs)
 
 if OPTIONS.chart then
   require 'rubygems'
