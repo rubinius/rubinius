@@ -11,7 +11,7 @@ describe MockProxy, "reporting method" do
   end
   
   it "returns the expected arguments with #arguments" do
-    @proxy.arguments.should == nil
+    @proxy.arguments.should == :any_args
   end
   
   it "returns the expected return value with #returning" do
@@ -177,12 +177,11 @@ describe MockProxy, "#and_return" do
   
   it "sets the expected return value" do
     @proxy.and_return(false)
-    @proxy.returning.should == [false]
+    @proxy.returning.should == false
   end
   
   it "accepts any number of return values" do
     @proxy.and_return(1, 2, 3)
-    @proxy.returning.should == [1, 2, 3]
   end
 end
 
@@ -205,5 +204,40 @@ describe MockProxy, "#called" do
     @proxy.called
     @proxy.called
     @proxy.calls.should == 2
+  end
+end
+
+describe MockProxy, "#returning" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+  
+  it "should return nil by default" do
+    @proxy.returning.should be_nil
+  end
+  
+  it "should return the value set by #and_return" do
+    @proxy.and_return(2)
+    @proxy.returning.should == 2
+  end
+  
+  it "should return a sequence of values set by #and_return" do
+    @proxy.and_return(1,2,3,4)
+    @proxy.returning.should == 1
+    @proxy.returning.should == 2
+    @proxy.returning.should == 3
+    @proxy.returning.should == 4
+    @proxy.returning.should == 4
+    @proxy.returning.should == 4
+  end
+end
+
+describe MockProxy, "#times" do
+  before :each do
+    @proxy = MockProxy.new
+  end
+  
+  it "should be a no-op" do
+    @proxy.times.should == @proxy
   end
 end

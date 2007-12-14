@@ -55,6 +55,7 @@ class BaseFormatter
   
   def before_describe(msg)
     @describe = msg
+    @report = SpecExecution.new
   end
   
   def after_describe(msg) end
@@ -92,7 +93,10 @@ class BaseFormatter
       begin
         @out.print e.backtrace.show
       rescue Exception
-        @out.print e.backtrace
+        bt = e.backtrace
+        if bt
+          @out.print bt.join("\n")
+        end
       end
 
       @out.print "\n"

@@ -11,4 +11,10 @@ class Object
     # return nil so that further chained calls will raise
     nil
   end
+  
+  def mock(name)
+    mock = Object.new
+    mock.instance_variable_set(:@name, name)
+    mock
+  end
 end

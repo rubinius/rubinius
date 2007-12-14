@@ -1,12 +1,13 @@
 class IncludeMatcher
   def initialize(*expected)
-    @expected = *expected
+    @expected = expected
   end
   
-  def matches?(*actual)
+  def matches?(actual)
     @actual = actual
-    @actual.each do |a|
-      unless @expected.include?(a)
+    @expected.each do |e|
+      @element = e
+      unless @actual.include?(e)
         return false
       end
     end
@@ -14,16 +15,16 @@ class IncludeMatcher
   end
   
   def failure_message
-    ["Expected #{@expected.inspect}", "to include #{@actual.inspect}"]
+    ["Expected #{@actual.inspect}", "to include #{@element}"]
   end
   
   def negative_failure_message
-    ["Expected #{@expected.inspect}", "not to include #{@actual.inspect}"]
+    ["Expected #{@actual.inspect}", "not to include #{@element}"]
   end
 end
 
 class Object
-  def include(expected)
-    IncludeMatcher.new(expected)
+  def include(*expected)
+    IncludeMatcher.new(*expected)
   end
 end

@@ -15,8 +15,7 @@ format = 'CIReporter'
 clean = false
 verbose = false
 ci_files = "spec/files.txt"
-gdb = false
-valgrind = false
+flags = []
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "ci [options] (FILE|DIRECTORY|GLOB)+"
@@ -66,21 +65,22 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       exit
     end
   end
+  opts.on("-T", "--targetopt OPT", String,
+          "Pass OPT as a flag to the target implementation") do |t|
+    flags <<  t
+  end
   opts.on("-C", "--clean", "Remove all compiled spec files first") do
     clean = true
   end
   opts.on("-V", "--verbose", "Output each file processed when running") do
     verbose = true
   end
-
   opts.on("-g", "--gdb", "Run under gdb") do
-    gdb = true
+    flags << '--gdb'
   end
-
   opts.on("-A", "--valgrind", "Run under valgrind") do
-    valgrind = true
+    flags << '--valgrind'
   end
-
   opts.on("-v", "--version", "Show version") do
     puts "Continuous Integration Tool #{CI::VERSION}"
     exit
@@ -161,14 +161,9 @@ else
   exit
 end
 
-File.open("last_ci.rb", "w") do |f|
+Dir.mkdir "tmp" unless File.directory?("tmp")
+File.open("tmp/last_ci.rb", "w") do |f|
   f << code
 end
 
-if gdb
-  exec "#{target} --gdb -Ispec last_ci.rb"
-elsif valgrind
-  exec "#{target} --valgrind -Ispec last_ci.rb"
-else
-  exec "#{target} -Ispec last_ci.rb"
-end
+exec("#{target} #{flags.join(' ')} -Ispec tmp/last_ci.rb")

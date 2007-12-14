@@ -14,10 +14,6 @@ describe Mock do
   it "provides expects that returns a Hash" do
     Mock.expects.should be_an_instance_of(Hash)
   end
-  
-  it "provides set_expect that returns a MockProxy" do
-    Mock.install_method(self, :foo).should be_an_instance_of(MockProxy)
-  end
 end
 
 describe Mock, ".replaced_name" do
@@ -37,6 +33,28 @@ describe Mock, ".install_method" do
   
   it "returns a MockProxy instance" do
     Mock.install_method(@mock, :method_call).should be_an_instance_of(MockProxy)
+  end
+  
+  it "sets the proxy to expect exactly 1 call" do
+    proxy = Mock.install_method(@mock, :method_call)
+    proxy.count.should == [:exactly, 1]
+  end
+  
+  it "does not override a previously mocked method with the same name" do
+    Mock.install_method(@mock, :method_call).with(:a, :b).and_return(1)
+    Mock.install_method(@mock, :method_call).with(:c).and_return(2)
+    @mock.method_call(:a, :b)
+    @mock.method_call(:c)
+    lambda { @mock.method_call(:d) }.should raise_error(ExpectationNotMetError)
+  end
+  
+  it "properly sends #respond_to? calls to the aliased respond_to? method when not matching mock expectations" do
+    Mock.install_method(@mock, :respond_to?).with(:to_str).and_return('mock to_str')
+    Mock.install_method(@mock, :respond_to?).with(:to_int).and_return('mock to_int')
+    @mock.respond_to?(:to_str).should == 'mock to_str'
+    @mock.respond_to?(:to_int).should == 'mock to_int'
+    @mock.respond_to?(:to_s).should == true
+    @mock.respond_to?(:not_really_a_real_method_seriously).should == false
   end
 end
 
@@ -64,6 +82,7 @@ describe Mock, ".verify_call" do
   
   it "raises ExpectationNotMetError when the mock method is called with arguments but expects none" do
     lambda {
+      @proxy.with(:no_args)
       Mock.verify_call @mock, :method_call, "hello"
     }.should raise_error(ExpectationNotMetError)
   end
@@ -73,6 +92,11 @@ describe Mock, ".verify_call" do
     lambda {
       Mock.verify_call @mock, :method_call
     }.should raise_error(ExpectationNotMetError)
+  end
+  
+  it "does not raise an exception when the mock method is called with arguments and is expecting :any_args" do
+    @proxy.with(:any_args)
+    Mock.verify_call @mock, :method_call, 1, 2, 3
   end
 end
 
@@ -166,7 +190,7 @@ describe Mock, ".cleanup" do
   end
   
   it "removes all mock expectations" do
-    Mock.expects.should == { [@mock, :method_call] => @proxy }
+    Mock.expects.should == { [@mock, :method_call] => [@proxy] }
 
     Mock.cleanup
     Mock.expects.should == {}

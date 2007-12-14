@@ -20,8 +20,8 @@ clean = false
 target = 'shotgun/rubinius'
 format = 'DottedFormatter'
 verbose = false
-gdb = false
-valgrind = false
+flags = []
+commas = false
 
 opts = OptionParser.new("", 24, '   ') do |opts|
   opts.banner = "mspec [options] (FILE|DIRECTORY|GLOB)+"
@@ -61,6 +61,10 @@ opts = OptionParser.new("", 24, '   ') do |opts|
       target = t
     end
   end
+  opts.on("-T", "--targetopt OPT", String,
+          "Pass OPT as a flag to the target implementation") do |t|
+    flags <<  t
+  end
   opts.on("-I", "--include DIRECTORY", String,
           "Passes through as the -I option to the target") do |d|
     includes << "-I#{d}"
@@ -89,13 +93,16 @@ opts = OptionParser.new("", 24, '   ') do |opts|
     clean = true
   end
   opts.on("-g", "--gdb", "Run under gdb") do
-    gdb = true
+    flags << '--gdb'
   end
   opts.on("-A", "--valgrind", "Run under valgrind") do
-    valgrind = true
+    flags << '--valgrind'
   end
   opts.on("-V", "--verbose", "Output each file processed when running") do
     verbose = true
+  end
+  opts.on("-,", "--comma", "Output a comma for each file processed") do
+    commas = true
   end
   opts.on("-v", "--version", "Show version") do
     puts "Mini RSpec #{MSpec::VERSION}"
@@ -136,6 +143,7 @@ spec_runner.except(*#{except.inspect})
   File.delete(cname) if #{clean} and File.exist?(cname)
   STDERR.puts f if #{verbose}
   begin
+    spec_runner.formatter.out << "," if #{commas}
     load f
   rescue Exception => e
     puts "\#{e} loading \#{f}"
@@ -144,15 +152,10 @@ end
 spec_runner.formatter.summary
 EOC
 
-File.open("last_mspec.rb", "w") do |f|
+Dir.mkdir "tmp" unless File.directory?("tmp")
+File.open("tmp/last_mspec.rb", "w") do |f|
   f << code
 end
 
-cmd = "#{target} %s #{includes.join(" ")} #{requires.join(" ")} last_mspec.rb"
-if gdb
-  exec(cmd % '--gdb')
-elsif valgrind
-  exec(cmd % '--valgrind')
-else
-  exec(cmd % '')
-end
+cmd = "#{target} %s #{includes.join(" ")} #{requires.join(" ")} tmp/last_mspec.rb"
+exec(cmd % flags.join(' '))

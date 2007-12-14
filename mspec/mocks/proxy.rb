@@ -1,4 +1,8 @@
 class MockProxy
+  def initialize
+    @arguments = :any_args
+  end
+  
   def count
     @count ||= [:exactly, 0]
   end
@@ -8,7 +12,18 @@ class MockProxy
   end
   
   def returning
+    if @multiple_returns
+      if @returning.size == 1
+        @multiple_returns = false
+        return @returning = @returning.shift
+      end
+      return @returning.shift
+    end
     @returning
+  end
+  
+  def times
+    self
   end
   
   def calls
@@ -48,12 +63,19 @@ class MockProxy
   
   def with(*args)
     raise ArgumentError, "you must specify the expected arguments" if args.empty?
-    @arguments = args
+    @arguments = *args
     self
   end
   
   def and_return(*args)
-    @returning = args
+    if args.size > 1
+      @multiple_returns = true
+      @returning = args
+    elsif args.size == 1
+      @returning = args[0]
+    else
+      @returning = nil
+    end
     self
   end
   

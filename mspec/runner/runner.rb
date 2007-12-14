@@ -88,18 +88,18 @@ class SpecRunner
     formatter.before_describe(msg)
     yield
     
-    @before_all.each { |ba| ba.call }
-    @it.each do |msg, i|
+    @before_all.each { |ba| instance_eval &ba }
+    @it.each do |msg, block|
       formatter.before_it(msg)
       begin
         begin
-          @before_each.each { |be| be.call }
-          i.call
+          @before_each.each { |be| instance_eval &be }
+          instance_eval &block
           Mock.verify_count
         rescue Exception => e
           formatter.exception(e)
         ensure
-          @after_each.each { |ae| ae.call }
+          @after_each.each { |ae| instance_eval &ae }
           Mock.cleanup
         end
       rescue Exception => e
@@ -107,7 +107,7 @@ class SpecRunner
       end
       formatter.after_it(msg)
     end
-    @after_all.each { |aa| aa.call }
+    @after_all.each { |aa| instance_eval &aa }
     formatter.after_describe(msg)
   end
   
