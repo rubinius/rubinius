@@ -19,7 +19,7 @@ RUNTIMES       = ['ruby','shotgun/rubinius']
 WIDTH          = 44
 
 REPORT_WIDTH   = WIDTH - 6
-COLUMN_WIDTH   = 16
+COLUMN_WIDTH   = 12
 
 DECIMAL_FORMAT = '%4.4f'
 
@@ -38,15 +38,15 @@ options = OptionParser.new do |opts|
   end
 
   opts.on('-c', '--chart [FILENAME]', 'Output passing test times to SVG file at --path') do |c|
-    OPTIONS.chart = c || "times-#{NOW}.svg"
+    OPTIONS.chart = c || "#{NOW}-times.svg"
   end
 
   opts.on('-d', '--diff-chart [FILENAME]', 'Output speed differences to SVG file at --path') do |d|
-    OPTIONS.diffchart = d || "difference-#{NOW}.svg"
+    OPTIONS.diffchart = d || "#{NOW}-difference.svg"
   end
 
   opts.on('-f', '--file [FILENAME]', 'Output report to text file at --path, instead of STDOUT') do |f|
-    OPTIONS.file = f || "report-#{NOW}.txt"
+    OPTIONS.file = f || "#{NOW}-report.txt"
   end
 
   opts.on('-g', '--grep REGEX', 'Only run tests that match REGEX') do |g|
@@ -293,10 +293,12 @@ end
 
 report(runs)
 
-if OPTIONS.chart then
+if OPTIONS.chart or OPTIONS.diffchart then
   require 'rubygems'
   require 'scruffy'
+end
 
+if OPTIONS.chart then
   chart_point_sets = runs.collect { |run| run.chart_points }
 
   # Make a list of failed tests
@@ -335,8 +337,6 @@ if OPTIONS.chart then
 end
 
 if OPTIONS.diffchart then
-  require 'rubygems'
-  require 'scruffy'
 
   differences = []
 
@@ -347,12 +347,15 @@ if OPTIONS.diffchart then
   # Remove where tests failed, easier this time, only a single list
   differences.reject! { |d| d.nil? }
 
+  # Convert to percentages
+  # differences.collect { |d| d * 100 }
+
   graph = Scruffy::Graph.new
 
   graph << Scruffy::Layers::Line.new( :title  => 'Zero',
                                       :points => differences.collect { |d| 0 } )
 
-  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius % faster (-% slower)',
+  graph << Scruffy::Layers::Line.new( :title  => 'Rubinius times faster (-times slower)',
                                       :points => differences )
 
   # graph.point_markers = runs.first.results.reject do |result|
