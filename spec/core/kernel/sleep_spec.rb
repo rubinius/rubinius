@@ -20,6 +20,7 @@ describe "Thread.sleep" do
       sleep
       5
     end
+    Thread.pass until th.status == 'sleep'
     th.run
     th.value.should == 5
   end
@@ -31,18 +32,21 @@ describe "Thread.sleep" do
   
   it "should return the time spent sleeping" do
     th = Thread.new { sleep }
+    Thread.pass until th.status == 'sleep'
     th.run
     (th.value < 0.01).should == true
   end
 
   it "should return the time spent sleeping even if less then requested sleep time" do
     th = Thread.new { sleep(0.5) }
+    Thread.pass until th.status == 'sleep'
     th.run
     (th.value < 0.01).should == true
   end  
   
   it "should be possible to see if a thread is alive? while sleeping" do
     th = Thread.new { sleep }
+    Thread.pass until th.status == 'sleep'
     th.alive?.should == true
     th.run
     th.alive?.should == false
@@ -51,6 +55,7 @@ describe "Thread.sleep" do
   noncompliant(:rubinius) do
     it "should allow sleep of duration nil" do
       th = Thread.new { sleep(nil) }
+      Thread.pass until th.status == 'sleep'
       th.run
       (th.value < 0.01).should == true
     end

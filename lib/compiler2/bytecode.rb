@@ -429,6 +429,7 @@ class Node
         # guards for things that plugins might optimize away.
         g.pop if g.advanced_since?(ip)
       end
+      @body << fin
       fin.bytecode(g)
     end
   end

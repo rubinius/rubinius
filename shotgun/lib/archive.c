@@ -145,7 +145,7 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   zip_fclose(zf);
   zip_close(za);
   
-  ret = cpu_unmarshal(state, str, version);
+  ret = cpu_unmarshal(state, str, (int)st.size, version);
   free(str);
   return ret;
 }
@@ -178,7 +178,7 @@ OBJECT archive_get_object2(STATE, archive_handle za,
   
   zip_fclose(zf);
   
-  ret = cpu_unmarshal(state, str, version);
+  ret = cpu_unmarshal(state, str, (int)st.size, version);
   free(str);
 
   return ret;

@@ -3,7 +3,7 @@ void Init_list(STATE);
 OBJECT list_new(STATE);
 void list_append(STATE, OBJECT self, OBJECT obj);
 OBJECT list_shift(STATE, OBJECT self);
-void list_delete(STATE, OBJECT self, OBJECT obj);
+int list_delete(STATE, OBJECT self, OBJECT obj);
 
 #define ListFields 3
 #define ListNodeFields 2
