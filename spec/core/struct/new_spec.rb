@@ -53,12 +53,22 @@ describe "Struct.new" do
     lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
   end
 
-  it "raises TypeError if object is not a Symbol" do
-    obj = Object.new
-    def obj.to_sym() :ruby end
-    lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
+  compliant :mri do
+    it "raises TypeError if object is not a Symbol" do
+      obj = Object.new
+      def obj.to_sym() :ruby end
+      lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
+    end
   end
-
+  
+  compliant :rbx do
+    it "calls to_sym if object responds to to_sym" do
+      obj = Object.new
+      def obj.to_sym() :ruby end
+      Struct.new(:animal, obj).new(nil, "bar").ruby.should == "bar"
+    end
+  end
+  
   it "accepts Fixnums as Symbols unless fixnum.to_sym.nil?" do
     old, $VERBOSE = $VERBOSE, nil
     num = :foo.to_i
