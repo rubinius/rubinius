@@ -1457,7 +1457,7 @@ class Node
   # TESTED
   class MAsgn
     # MAsgn rules:
-    # - Masgn sexps always contain either 2 or 3 values
+    # - MAsgn sexps always contain either 2 or 3 values
     # - If the masgn contains only 2 values:
     #   - it means there are no lasgns, i.e. the lhs consists solely of a splat
     #     arg.
@@ -1471,6 +1471,9 @@ class Node
     #   - the second arg is the lhs splat arg, or nil if there are no splats
     #   - the third arg is either one of [:array, :splat, :argscat, :to_ary], or
     #     nil if the masgn represents block arguments.
+    # - An MAsgn may contain nested masgns, e.g. a,(b,c) = 1,[2,3]. The nested
+    #   masgn(s) will have nil for their @assigns, since the assigns come from
+    #   the outermost masgn.
     def bytecode(g)
       if @source
         if @source.kind_of? ArrayLiteral
@@ -1517,12 +1520,12 @@ class Node
       # Now all the source data is on the stack.
       
       @assigns.body.each do |x|
-        if x.kind_of? MAsgn
-          x.bytecode(g)
+        if x.kind_of? AttrAssign
+          x.bytecode(g, true)
         else
           x.bytecode(g)
-          g.pop
         end
+        g.pop
       end
             
       # Clean up the stack if there was extra sources
@@ -1553,7 +1556,7 @@ class Node
       if @assigns
         @assigns.body.reverse_each do |x|
           x.bytecode(g)
-          g.pop unless x.kind_of? MAsgn
+          g.pop
         end
       end
       
@@ -1628,7 +1631,9 @@ class Node
   
   # TESTED
   class AttrAssign
-    def bytecode(g)
+    def bytecode(g, in_masgn = false)
+      @in_masgn = in_masgn
+
       if @arguments
         super(g)
       else
@@ -1677,7 +1682,7 @@ class Node
     def bytecode(g)
       return if use_plugin(g)
       
-      emit_args(g)            
+      emit_args(g)
       
       if @block
         @block.bytecode(g)
@@ -1695,9 +1700,11 @@ class Node
         g.send_with_register @method, allow_private?
       elsif @block
         g.send_with_block @method, @argcount, allow_private?
+      elsif @in_masgn
+        g.send @method, @argcount+1, allow_private?
       else
         g.send @method, @argcount, allow_private?
-      end        
+      end
     end
   end
   

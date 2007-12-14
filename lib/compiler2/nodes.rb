@@ -713,10 +713,7 @@ class Node
     kind :lasgn
     
     def args(name, idx, val=nil)
-      #if val.nil? and !get(:iter_args)
-      #  raise ArgumentError, "value can not be nil"
-      #end
-            
+      # val will be nil if this is e.g. an lasgn inside an masgn
       @value = val
       super(name)
       
@@ -1339,7 +1336,7 @@ class Node
     kind :call
     
     # Args could be an array, splat or argscat
-    def collapse_args  
+    def collapse_args
       return unless @arguments
       @arguments = @arguments.body if @arguments.is? ArrayLiteral
     end
