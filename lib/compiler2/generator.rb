@@ -1,5 +1,3 @@
-require 'compiler2/encoder'
-
 class Compiler2
     
   class Generator

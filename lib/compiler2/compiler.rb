@@ -102,6 +102,7 @@ end
 
 require 'compiler2/nodes'
 require 'compiler2/local'
+require 'compiler2/bytecode'
 require 'compiler2/generator'
 require 'compiler2/plugins'
 
