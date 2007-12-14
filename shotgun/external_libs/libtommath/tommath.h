@@ -104,10 +104,12 @@ extern "C" {
 #endif   
 #endif
 
+#define USE_XMALLOC 1
+
 /* define heap macros */
 #ifndef CRYPT
    /* default to libc stuff */
-   #ifndef XMALLOC 
+   #ifndef USE_XMALLOC 
        #define XMALLOC  malloc
        #define XFREE    free
        #define XREALLOC realloc

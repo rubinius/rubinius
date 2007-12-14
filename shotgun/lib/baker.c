@@ -575,7 +575,7 @@ void baker_gc_find_lost_souls(STATE, baker_gc g) {
       if(obj->obj_type == WrapsStructType) FREE_WRAPPED_STRUCT(obj);
     }
     bs = SIZE_IN_BYTES_FIELDS(osz);
-    fast_memfill(cur, 0, SIZE_IN_WORDS_FIELDS(osz));
+    // fast_memfill(cur, 0, SIZE_IN_WORDS_FIELDS(osz));
     // memset(cur, 0, bs);
     
     cur += bs;

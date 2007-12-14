@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "shotgun.h"
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +7,40 @@
 #include <sys/time.h>
 #include "cleanup_hash.h"
 #include "config_hash.h"
+#include "machine.h"
+
+extern machine current_machine;
+
+static size_t _gc_current_limit = 0;
+#define GC_EXTERNAL_LIMIT 10000000
+
+static void inc_mem(size_t n) {
+  _gc_current_limit += n;
+  
+  if(_gc_current_limit > GC_EXTERNAL_LIMIT) {
+    _gc_current_limit = 0;
+    current_machine->s->om->collect_now = OMCollectYoung;    
+  }
+}
+
+void *XMALLOC(size_t n) {
+  inc_mem(n);
+  return malloc(n);
+}
+
+void *XREALLOC(void *p, size_t n) {
+  inc_mem(n);
+  return realloc(p, n);
+}
+
+void *XCALLOC(size_t n, size_t s) {
+  inc_mem(n * s);
+  return calloc(n, s);
+}
+
+void XFREE(void *p) {
+  free(p);
+}
 
 rstate rubinius_state_new() {
   rstate st;
@@ -38,7 +74,7 @@ void state_collect(STATE, cpu c) {
   ptr_array roots;
   int stats = state->gc_stats;
   struct timeval start, fin;
-  
+    
   if(stats) {
     gettimeofday(&start, NULL);
   }

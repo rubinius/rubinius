@@ -6,10 +6,10 @@
 
 #define NMP mp_int *n; OBJECT n_obj; \
   NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int); \
-  mp_init(n)
+  mp_init(n);
 #define MMP mp_int *m; OBJECT m_obj; \
   NEW_STRUCT(m_obj, m, BASIC_CLASS(bignum), mp_int); \
-  mp_init(m)
+  mp_init(m);
 
 
 #define MP(k) DATA_STRUCT(k, mp_int*)
