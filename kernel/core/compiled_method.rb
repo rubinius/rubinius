@@ -170,11 +170,47 @@ activate_method
     return -1
   end
   
-  # Convenience method for decoding the instruction sequence of a compiled 
-  # method. Delegates to +InstructionSequence+ to do the decoding, but passes
-  # self so that the decoded output can show literal values, rather than
-  # indexes into the literals tuple.
+  # Decodes the instruction sequence that is represented by this compileed
+  # method. Delegates to +InstructionSequence+ to do the instruction decoding,
+  # but then converts opcode literal arguments to their actual values by looking
+  # them up in the literals tuple.
   def decode
-    @bytecodes.decode self
+    stream = @bytecodes.decode
+    stream.map! do |inst|
+      Instruction.new(inst, self)
+    end
+  end
+
+
+  class Instruction
+    def initialize(inst, cm)
+      @op = inst[0]
+      opcode = InstructionSet[@op]
+      @args = inst[1..-1]
+      @args.each_index do |i|
+        case opcode.args[i]
+        when :literal
+          @args[i] = cm.literals[@args[i]]
+        end
+      end
+    end
+
+    # Returns the symbol representing the opcode for this instruction
+    def op_code
+      @op.opcode
+    end
+
+    # Returns an array of 0 to 2 arguments, depending on the opcode
+    def args
+      @args
+    end
+
+    def to_s
+      str = @op.to_s
+      @args.each do |arg|
+        str << "  " << arg.inspect
+      end
+      str
+    end
   end
 end

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   
   it "compiles 'blah'" do |g|
     gen [:vcall, :blah] do |g|
@@ -44,14 +44,18 @@ describe Compiler do
   it "compiles 'block_given?'" do
     gen [:fcall, :block_given?] do |g|
       g.push :true
-      g.send_primitive :block_given, 0
+      g.push_block
+      g.is_nil
+      g.equal
     end
   end
   
   it "compiles 'iterator?'" do
     gen [:fcall, :block_given?] do |g|
       g.push :true
-      g.send_primitive :block_given, 0
+      g.push_block
+      g.is_nil
+      g.equal
     end
   end
   

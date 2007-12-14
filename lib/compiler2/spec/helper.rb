@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec/spec_helper'
+require File.dirname(__FILE__) + '/../../../spec/spec_helper'
 
 require File.dirname(__FILE__) + '/../compiler'
 require File.dirname(__FILE__) + '/../generator'
@@ -14,6 +14,10 @@ class TestGenerator
   end
   
   attr_reader :stream, :ip
+  
+  def run(node)
+    node.bytecode(self)
+  end
   
   def inspect
     inspected_stream = @stream.pretty_inspect.gsub(/\n/,"\n    ")
@@ -118,7 +122,7 @@ class TestGenerator
 end
 
 def gen(sexp, plugins=[])
-  comp = Compiler.new TestGenerator
+  comp = Compiler2.new TestGenerator
   plugins.each { |n| comp.activate n }
   tg = TestGenerator.new
   yield tg
@@ -129,7 +133,7 @@ def gen(sexp, plugins=[])
 end
 
 def description
-  desc = Compiler::MethodDescription.new TestGenerator, 0
+  desc = Compiler2::MethodDescription.new TestGenerator, 0
   yield desc.generator
   return desc
 end

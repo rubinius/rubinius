@@ -149,6 +149,7 @@ STDOUT.puts "Started"
   File.delete(cname) if #{clean} and File.exist?(cname)
   STDERR.puts f if #{verbose}
   begin
+    STDOUT << "," if #{format} == DottedReporter
     load f
   rescue Exception => e
     puts "\#{e} loading \#{f}"
@@ -157,10 +158,12 @@ end
 @runner.reporter.summary
 EOC
 
-File.open("last_mspec.rb", "w") do |f|
+Dir.mkdir "tmp" unless File.directory?("tmp")
+
+File.open("tmp/last_mspec.rb", "w") do |f|
   f << code
 end
 
-cmd = "#{target} %s #{includes.join(" ")} #{requires.join(" ")} last_mspec.rb"
+cmd = "#{target} %s #{includes.join(" ")} #{requires.join(" ")} tmp/last_mspec.rb"
 puts (cmd % flags)
 exec(cmd % flags)

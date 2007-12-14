@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   it "compiles a defn with no args" do
     x = [:defn, :a, [:scope, [:block, [:args],
            [:fixnum, 12]], []]]

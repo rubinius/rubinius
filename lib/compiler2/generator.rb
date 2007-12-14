@@ -1,6 +1,4 @@
-require 'compiler/encoder'
-
-class Compiler
+class Compiler2
     
   class Generator
     
@@ -75,7 +73,7 @@ class Compiler
       tup = Tuple.new(@literals.size)
       i = 0
       @literals.each do |lit|
-        if lit.kind_of? Compiler::MethodDescription
+        if lit.kind_of? Compiler2::MethodDescription
           lit = lit.to_cmethod
         end
         tup[i] = lit
@@ -129,16 +127,7 @@ class Compiler
     
     def add(*what)
       @ip += what.size
-      
-      kind = what.first
-      
-      inst = @encoder.instructions[kind]
-      unless inst
-        raise Compiler::Error, "unknown instruction #{kind}"
-      end
-      
-      what << inst
-      @stream << what      
+      @stream << what
     end
     
     # Find the index for the specified literal, or create a new slot if the
@@ -155,7 +144,7 @@ class Compiler
     def add_literal(val)
       idx = @literals.size
       @literals << val
-      return idx      
+      return idx
     end
 
     # Commands (these don't generate data in the stream)
@@ -232,7 +221,7 @@ class Compiler
         return -1 if @end < oe
         
         if os == @start and oe == @end
-          raise Compiler::Error, "Invalid exception blocking detected"
+          raise Compiler2::Error, "Invalid exception blocking detected"
         end
         
         return 1

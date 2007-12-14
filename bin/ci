@@ -163,14 +163,16 @@ else
   exit
 end
 
-File.open("last_ci.rb", "w") do |f|
+Dir.mkdir "tmp" unless File.directory?("tmp")
+
+File.open("tmp/last_ci.rb", "w") do |f|
   f << code
 end
 
 if gdb
-  exec "#{target} --gdb -Ispec last_ci.rb"
+  exec "#{target} --gdb -Ispec tmp/last_ci.rb"
 elsif valgrind
-  exec "#{target} --valgrind -Ispec last_ci.rb"
+  exec "#{target} --valgrind -Ispec tmp/last_ci.rb"
 else
-  exec "#{target} -Ispec last_ci.rb"
+  exec "#{target} -Ispec tmp/last_ci.rb"
 end

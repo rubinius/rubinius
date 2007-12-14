@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   it "compiles 'a ||= 8'" do
     x = [:op_asgn_or, [:lvar, :a, 0], [:lasgn, :a, 0, [:lit, 8]]]
     gen x do |g|

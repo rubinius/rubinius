@@ -14,9 +14,8 @@ tmtags
 *.rbc
 .spec/bm.yml
 spec/files.txt
-last_ci.rb
-last_mspec.rb
-
+tmp
+scratch
 !runtime/stable/loader.rbc
 runtime/pristine*
 

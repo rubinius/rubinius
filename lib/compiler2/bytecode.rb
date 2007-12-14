@@ -1,9 +1,9 @@
 # Implements methods on each Node subclass for generatng bytecode
 # from itself.
 
-require 'compiler/generator'
+require 'compiler2/generator'
 
-class Compiler
+class Compiler2
   class MethodDescription
     def initialize(gen_class, locals)
       @generator = gen_class.new
@@ -33,7 +33,7 @@ class Compiler
   end
 end
 
-class Compiler
+class Compiler2
 class Node
   
   class GenerationError < Error; end
@@ -57,7 +57,7 @@ class Node
   class ClosedScope
     
     def new_description
-      Compiler::MethodDescription.new(@compiler.generator_class, self.locals)
+      Compiler2::MethodDescription.new(@compiler.generator_class, self.locals)
     end      
     
     def to_description(name=nil)
@@ -566,7 +566,7 @@ class Node
   # TESTED  
   class Iter
     def bytecode(g)
-      desc = Compiler::MethodDescription.new @compiler.generator_class, @locals
+      desc = Compiler2::MethodDescription.new @compiler.generator_class, @locals
       desc.name = :__block__
       sub = desc.generator
 

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   
   it "compiles a rescue with an empty body and no else" do
     x = [:rescue, 

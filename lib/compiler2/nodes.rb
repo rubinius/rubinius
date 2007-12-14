@@ -1,4 +1,4 @@
-class Compiler
+class Compiler2
 class Node
   Mapping = {}
   
@@ -67,7 +67,7 @@ class Node
   def inspect
     kind = self.class.kind
     if kind
-      prefix = "Compiler:#{self.class.kind}"
+      prefix = "Compiler2:#{self.class.kind}"
     else
       prefix = self.class.name
     end
@@ -96,7 +96,7 @@ class Node
     end
     
     def create_scope
-      Compiler::LocalScope.new(self)
+      Compiler2::LocalScope.new(self)
     end
     
     attr_accessor :use_eval
@@ -618,7 +618,7 @@ class Node
       if cond.is? ArrayLiteral      
         cond.body.each do |c|
           # Inner when means splat.
-          if c.is? Compiler::Node::When
+          if c.is? Compiler2::Node::When
             if c.splat
               @splat = c.splat
             else

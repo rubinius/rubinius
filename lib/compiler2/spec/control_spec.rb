@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/helper.rb"
 
-describe Compiler do
+describe Compiler2 do
   it "compiles if/end" do
     gen [:if, [:true], [:fixnum, 10], nil] do |g|
       g.push :true
@@ -386,7 +386,7 @@ describe Compiler do
         d.push 12
         d.pop
         d.push :nil
-        d.soft_return
+        d.caller_return
         d.soft_return
       end
       

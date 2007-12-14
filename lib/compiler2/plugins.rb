@@ -1,6 +1,6 @@
-require 'compiler/execute'
+require 'compiler2/execute'
 
-module Compiler::Plugins
+module Compiler2::Plugins
   
   @plugins = {}
   
@@ -18,13 +18,13 @@ module Compiler::Plugins
     end
     
     def self.plugin(name)
-      Compiler::Plugins.add_plugin name, self
+      Compiler2::Plugins.add_plugin name, self
     end
     
     def call_match(c, const, method)
       return false unless c.call?
       return false unless c.method == method
-      return false unless c.object.kind_of? Compiler::Node::ConstFind
+      return false unless c.object.kind_of? Compiler2::Node::ConstFind
       return false unless c.object.name == const
       return true
     end
@@ -37,7 +37,7 @@ module Compiler::Plugins
     def handle(g, call)
       if call.fcall?
         if call.method == :block_given? or call.method == :iterator?
-          push :true
+          g.push :true
           g.push_block
           g.is_nil
           g.equal
@@ -72,7 +72,7 @@ module Compiler::Plugins
       return false unless call_match(call, :Rubinius, :asm)
       return false unless call.block
       
-      exc = Compiler::ExecuteContext.new(g)
+      exc = Compiler2::ExecuteContext.new(g)
       i = 0
       args = call.arguments
       
