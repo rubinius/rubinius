@@ -1,7 +1,7 @@
 require 'compiler1/bytecode/encoder'
 
 class ShotgunInstructions
-  
+    
   def generate_switch(fd, op="op")
     i = 0 
     order = Compiler1::Bytecode::InstructionEncoder::OpCodes
@@ -82,7 +82,7 @@ class ShotgunInstructions
     
     code << "}\nreturn 1;\n}\n\n"
     
-    code << "#define DT_ADDRESSES static void* _dt_addresses[#{order.size + 1}];\n"
+    code << "#define DT_ADDRESSES static void* _dt_addresses[#{order.size + 1}]; static int _dt_size = #{order.size};\n"
     code << "#define SETUP_DT_ADDRESSES "
     
     i = 0
@@ -94,7 +94,7 @@ class ShotgunInstructions
     
     code << <<-CODE
     
-    static void calculate_into_gotos(STATE, OBJECT iseq, void **addrs) {
+    static void calculate_into_gotos(STATE, OBJECT iseq, void **addrs, int size) {
       uint32_t *insn;
       uint32_t op;
       void *addr;
@@ -107,6 +107,8 @@ class ShotgunInstructions
       
       while(i < k) {
         op = insn[i];
+        /* Protect against errant data */
+        if(op > size) op = 0;
         addr = addrs[op];
         // printf("OC: %d => %p\\n", op, addr);
         // assert(addr);

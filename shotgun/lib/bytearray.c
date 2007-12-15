@@ -81,6 +81,7 @@ static inline uint32_t read_int_from_be(uint8_t *str) {
 void iseq_flip(STATE, OBJECT self) {
   uint8_t *buf;
   uint32_t *ibuf;
+  uint32_t val;
   int i, f;
   
   f = object_size(state, self);
@@ -96,6 +97,7 @@ void iseq_flip(STATE, OBJECT self) {
   if(*ibuf < 1024) return;
 
   for(i = 0; i < f; i += 4, ibuf++) {
-    *ibuf = read_int_from_be(buf + i);
+    val = read_int_from_be(buf + i);
+    *ibuf = val;
   }
 }

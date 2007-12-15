@@ -340,7 +340,7 @@ OBJECT cpu_compile_method(STATE, OBJECT cm) {
   /* If we're compiled with direct threading, then translate
      the compiled version into addresses. */
 #if DIRECT_THREADED
-  calculate_into_gotos(state, ba, _dt_addresses);
+  calculate_into_gotos(state, ba, _dt_addresses, _dt_size);
 #endif
 
   cmethod_set_compiled(cm, ba);

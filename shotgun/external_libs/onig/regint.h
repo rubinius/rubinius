@@ -94,10 +94,13 @@
 #define THREAD_ATOMIC_START     /* depend on thread system */
 #define THREAD_ATOMIC_END       /* depend on thread system */
 #define THREAD_PASS             /* depend on thread system */
-#define xmalloc     malloc
-#define xrealloc    realloc
-#define xcalloc     calloc
-#define xfree       free
+
+/* For rubinius */
+
+#define xmalloc     XMALLOC
+#define xrealloc    XREALLOC
+#define xcalloc     XCALLOC
+#define xfree       XFREE
 
 #define CHECK_INTERRUPT_IN_MATCH_AT
 
