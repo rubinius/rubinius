@@ -33,6 +33,9 @@ describe "Class.new" do
   it "creates a class that can be given a name by assigning it to a constant" do
     MyClass = Class.new
     MyClass.name.should == "MyClass"
+    a = Class.new
+    MyClass::NestedClass = a
+    MyClass::NestedClass.name.should == "MyClass::NestedClass"
   end
   
   it "sets the new class' superclass to the given class" do

@@ -15,6 +15,10 @@ class Module
     
   def name
     unless @name
+      # This should be removed if/when constant assignment happens
+      # via const_set().
+      # Also note that this is somewhat broken because it doesn't
+      # look at nested modules. (I should fix this)
       Object.constants_table.each do |klass_name, klass|
         if klass.equal? self
           @name = klass_name
