@@ -13,6 +13,7 @@ class Thread
   
   def run
     Ruby.primitive :thread_run
+    Kernel.raise ThreadError, "killed thread"
   end
 
   def wakeup

@@ -12,6 +12,8 @@
 #include "symbol.h"
 #include "list.h"
 #include "array.h"
+#include "object.h"
+
 #include <sys/time.h>
 
 void cpu_task_cleanup(STATE, OBJECT self) {
@@ -114,6 +116,18 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   }
     
   return obj;
+}
+
+int cpu_task_alive_p(STATE, OBJECT self) {
+  struct cpu_task *task;
+  
+  task = (struct cpu_task*)BYTES_OF(self);
+  
+  if(NIL_P(task->active_context) || NIL_P(task->home_context)) {
+    return FALSE;
+  }
+  
+  return TRUE;
 }
 
 int cpu_task_select(STATE, cpu c, OBJECT nw) {
@@ -275,9 +289,24 @@ OBJECT cpu_thread_get_task(STATE, OBJECT self) {
   return thread_get_task(self);
 }
 
+void cpu_thread_exited(STATE, cpu c) {
+  thread_set_task(c->current_thread, Qnil);
+  cpu_thread_run_best(state, c);
+}
+
+int cpu_thread_alive_p(STATE, OBJECT self) {
+  OBJECT task;
+  
+  task = thread_get_task(self);
+  if(NIL_P(task)) return FALSE;
+  return cpu_task_alive_p(state, task);
+}
+
 void cpu_thread_schedule(STATE, OBJECT self) {
   long int prio, rprio;
   OBJECT lst;
+  
+  object_set_ivar(state, self, SYM("@sleep"), Qfalse);
   
   state->pending_threads++;
   prio = FIXNUM_TO_INT(thread_get_priority(self));
@@ -347,6 +376,8 @@ void cpu_thread_switch(STATE, cpu c, OBJECT thr) {
      the already running thread (via the current thread waiting
      for an event), and we thus don't need to restore it. */
   if(thr == c->current_thread) return;
+  
+  object_set_ivar(state, thr, SYM("@sleep"), Qfalse);
     
   /* Save the current task back into the current thread, in case
      Task's were used inside the thread itself (not just for the thread). */
@@ -487,6 +518,7 @@ void cpu_channel_receive(STATE, cpu c, OBJECT self, OBJECT cur_thr) {
   /* We push nil on the stack to reserve a place to put the result. */
   stack_push(I2N(343434));
   
+  object_set_ivar(state, cur_thr, SYM("@sleep"), Qtrue);
   readers = channel_get_waiting(self);
   list_append(state, readers, cur_thr);
   cpu_thread_run_best(state, c);

@@ -209,6 +209,8 @@ void cpu_thread_switch_best(STATE, cpu c);
 void cpu_thread_schedule(STATE, OBJECT self);
 void cpu_thread_run_best(STATE, cpu c);
 void cpu_thread_force_run(STATE, cpu c, OBJECT thr);
+void cpu_thread_exited(STATE, cpu c);
+int cpu_thread_alive_p(STATE, OBJECT self);
 
 void cpu_task_disable_preemption(STATE);
 void cpu_task_configure_premption(STATE);

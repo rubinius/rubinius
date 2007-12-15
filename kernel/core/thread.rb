@@ -12,6 +12,7 @@ class Thread
   def setup(prime_lock)
     @__ivars__ = {}
     @group = nil
+    @sleep = true
     @alive = true
     @result = nil
     @exception = nil
@@ -81,7 +82,11 @@ class Thread
 
   def status
     if alive?
-      "run"
+      if @sleep
+        "sleep"
+      else
+        "run"
+      end
     else
       false
     end

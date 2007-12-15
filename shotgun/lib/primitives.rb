@@ -2322,6 +2322,8 @@ class ShotgunPrimitives
   def thread_run
     <<-CODE
     self = stack_pop();
+    GUARD(cpu_thread_alive_p(state, self));
+    
     /* So when we're restored, there is a ret val. */
     stack_push(Qnil);
     cpu_thread_schedule(state, c->current_thread);    

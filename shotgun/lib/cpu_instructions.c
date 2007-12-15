@@ -616,7 +616,7 @@ inline int cpu_simple_return(STATE, cpu c, OBJECT val) {
     
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
-      cpu_thread_run_best(state, c);
+      cpu_thread_exited(state, c);
       return FALSE;
     /* Switch back to the main task... */
     } else if(c->current_task != c->main_task) {
@@ -675,7 +675,7 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
     
     /* Thread exitting, reschedule.. */
     if(c->current_thread != c->main_thread) {
-      cpu_thread_run_best(state, c);
+      cpu_thread_exited(state, c);
       return FALSE;
     /* Switch back to the main task... */
     } else if(c->current_task != c->main_task) {
