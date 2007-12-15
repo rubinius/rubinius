@@ -106,17 +106,6 @@ describe "Hash#[]" do
     { }[x].should == nil
   end
 
-  # True for all other methods using hash codes as well...
-  it "calls % on hash code from hash()" do
-    hash_code = mock('hash code')
-    hash_code.should_receive(:%).and_return(2)
-    key = mock('key')
-    key.should_receive(:hash).and_return(hash_code)
-
-    h = {1 => 2}
-    h[key].should == nil
-  end
-
   it "does not compare key with unknown hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     x = Object.new

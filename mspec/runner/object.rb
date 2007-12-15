@@ -16,11 +16,11 @@ class Object
   end
   
   def set_spec_runner(formatter=nil, out=STDOUT)
-    @runner = SpecRunner.new(formatter.new(out))
+    $mspec_runner = SpecRunner.new(formatter.new(out))
   end
   
   def spec_runner
-    @runner ||= SpecRunner.new
+    $mspec_runner ||= SpecRunner.new
   end
 
   alias context describe

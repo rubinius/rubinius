@@ -1,0 +1,5 @@
+mSpec and mMock are simplistic apes of RSpec.
+
+Caveats:
+* Don't mock the #hash method as mMock uses Hash internally. This can be
+  replaced if necessary, but at this point it's not worth it.

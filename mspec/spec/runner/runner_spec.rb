@@ -6,6 +6,7 @@ require File.dirname(__FILE__) + '/../../runner/formatters/ci'
 describe SpecRunner do
   before :each do
     @runner = SpecRunner.new
+    @runner.instance_variable_set(:@stack, [DescribeState.new])
   end
   
   it "accepts a formatter when creating an instance" do
@@ -75,6 +76,15 @@ describe SpecRunner do
   it "provides #describe that accepts two arguments and a block" do
     @runner.describe(Object, "") { }
   end
+end
+
+describe SpecRunner, "complete run" do
+  before :all do
+    $runner_spec_runner = SpecRunner.new
+    @report = CaptureOutput.new
+    $runner_spec_runner.formatter = DottedFormatter.new(@report)
+    $runner_spec_runner.formatter.stub!(:print_time)
+  end    
   
   it "provides #describe that yields to its block and calls all before, after, and it blocks" do
     module Mock; end
@@ -82,16 +92,13 @@ describe SpecRunner do
     Mock.stub!(:cleanup)
     
     run = []
-    @report = CaptureOutput.new
-    @runner.formatter = DottedFormatter.new(@report)
-    @runner.formatter.stub!(:print_time)
-    @runner.describe("") do
-      @runner.before(:all)  { run << "before :all" }
-      @runner.before(:each) { run << "  before :each" }
-      @runner.after(:each)  { run << "  after :each" }
-      @runner.after(:all)   { run << "after :all" }
-      @runner.it("#first")  { run << "  first" }
-      @runner.it("#second") { run << "  second" }
+    $runner_spec_runner.describe("") do
+      $runner_spec_runner.before(:all)  { run << "before :all" }
+      $runner_spec_runner.before(:each) { run << "  before :each" }
+      $runner_spec_runner.after(:each)  { run << "  after :each" }
+      $runner_spec_runner.after(:all)   { run << "after :all" }
+      $runner_spec_runner.it("#first")  { run << "  first" }
+      $runner_spec_runner.it("#second") { run << "  second" }
     end
     run.join.should == 
       "before :all" \
@@ -102,7 +109,33 @@ describe SpecRunner do
       "  second" \
       "  after :each" \
       "after :all"
-    @runner.formatter.summary
+    $runner_spec_runner.formatter.summary
     @report.should == "..\n\n2 examples, 0 failures\n"
+  end
+end
+
+describe DescribeState do
+  before :each do
+    @state = DescribeState.new
+  end
+  
+  it "provides #before_all" do
+    @state.before_all.should be_an_instance_of(Array)
+  end
+
+  it "provides #before_each" do
+    @state.before_each.should be_an_instance_of(Array)
+  end
+
+  it "provides #after_each" do
+    @state.after_each.should be_an_instance_of(Array)
+  end
+
+  it "provides #after_all" do
+    @state.after_all.should be_an_instance_of(Array)
+  end
+  
+  it "provides #it" do
+    @state.it.should be_an_instance_of(Array)
   end
 end

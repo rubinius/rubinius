@@ -1,5 +1,11 @@
 require 'mspec/mocks/proxy'
 
+class MockObject
+  def initialize(name)
+    @name = name
+  end
+end
+
 class Object
   def should_receive(sym)
     Mock.install_method self, sym
@@ -13,8 +19,6 @@ class Object
   end
   
   def mock(name)
-    mock = Object.new
-    mock.instance_variable_set(:@name, name)
-    mock
+    MockObject.new(name)
   end
 end

@@ -42,12 +42,6 @@ class LiarLiarPantsOnFire
   end
 end
 
-class Object
-  def metaclass
-    class << self; self; end
-  end
-end
-  
 describe 'should_receive' do
   before(:each) do
     @liar = LiarLiarPantsOnFire.new

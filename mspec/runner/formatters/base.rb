@@ -55,12 +55,12 @@ class BaseFormatter
   
   def before_describe(msg)
     @describe = msg
-    @report = SpecExecution.new
   end
   
   def after_describe(msg) end
   
   def before_it(msg)
+    @report = SpecExecution.new
     @report.describe = @describe
     @report.it = msg
     @examples += 1
