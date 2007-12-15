@@ -362,6 +362,9 @@ class Module
   end
 
   def const_set(name, value)
+    if value.is_a?(Class)
+      value.set_name_if_necessary(name, self)
+    end
     constants_table[normalize_const_name(name)] = value
   end
 
@@ -455,6 +458,20 @@ class Module
     # TODO: check if inst is extended by self
     # inst.metaclass < self & true rescue false
     false
+  end
+
+# FIXME this should be protected but protected doesn't currently
+# work  
+#protected 
+
+  def set_name_if_necessary(name, mod)
+    return unless @name.nil?
+    name = name.dup
+    while mod != Object
+      name.insert(0, "#{mod.name}::")
+      mod = mod.parent
+    end
+    @name = name
   end
   
 private

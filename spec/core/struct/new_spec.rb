@@ -5,6 +5,7 @@ describe "Struct.new" do
   it "creates a constant in Struct namespace with string as first argument" do
     struct = Struct.new('Animal', :name, :legs, :eyeballs)
     struct.should == Struct::Animal
+    struct.name.should == "Struct::Animal"
   end
 
   it "overwrites previously defined constants with string as first argument" do
@@ -24,10 +25,14 @@ describe "Struct.new" do
     def obj.to_str() "Foo" end
     struct = Struct.new(obj)
     struct.should == Struct::Foo
+    struct.name.should == "Struct::Foo"
   end
 
-  it "accepts nil first argument for not creating constants" do
-    Struct.new(nil, :foo).new("bar").foo.should == "bar"
+  it "creates a new anonymous class with nil first argument" do
+    struct = Struct.new(nil, :foo)
+    struct.new("bar").foo.should == "bar"
+    struct.class.should == Class
+    struct.name.should == ""
   end
 
   it "does not create a constant with symbol as first argument" do
@@ -36,7 +41,9 @@ describe "Struct.new" do
   end
 
   it "creates a new anonymous class with symbol arguments" do
-    Struct.new(:make, :model).class.should == Class
+    struct = Struct.new(:make, :model)
+    struct.class.should == Class
+    struct.name.should == ""
   end
 
   it "fails with invalid constant name as first argument" do

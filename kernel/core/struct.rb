@@ -192,7 +192,8 @@ class Struct
       string << " #{member}=#{value.inspect},"
     end
 
-    string[0...-1] << '>'
+    string[-1] = '>'
+    string
   end
   alias_method :to_s, :inspect
 
