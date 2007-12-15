@@ -467,7 +467,7 @@ class Module
   def set_name_if_necessary(name, mod)
     return unless @name.nil?
     name = name.dup
-    while mod != Object
+    while mod and mod != Object
       name.insert(0, "#{mod.name}::")
       mod = mod.parent
     end

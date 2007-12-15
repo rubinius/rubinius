@@ -16,12 +16,25 @@ class Module
   def name
     unless @name
       # This should be removed if/when constant assignment happens
-      # via const_set().
-      # Also note that this is somewhat broken because it doesn't
-      # look at nested modules. (I should fix this)
-      Object.constants_table.each do |klass_name, klass|
-        if klass.equal? self
-          @name = klass_name
+      # via const_set() - it's pretty ugly!
+      seen = { Object=>true }
+      constants = [[Object, Object.constants_table]]
+      catch (:done) do
+        until constants.empty?
+          mod, table = constants.shift
+          table.each do | const_name, value |
+            # puts "looking at #{const_name}, #{constants.size}"
+            if value.equal? self
+              set_name_if_necessary(const_name.to_s, mod)
+              throw :done
+            elsif value.is_a? Module
+              # puts "**Adding module #{const_name}: #{value.constants_table.size} new entries"
+              unless seen[value]
+                constants << [value, value.constants_table] 
+                seen[value] = true
+              end
+            end
+          end
         end
       end
     end
