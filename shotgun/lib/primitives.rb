@@ -2588,8 +2588,7 @@ class ShotgunPrimitives
   def iseq_compile
     <<-CODE
     self = stack_pop();
-    /*
-    */
+    cpu_compile_method(state, self);
     stack_push(Qtrue);
     CODE
   end

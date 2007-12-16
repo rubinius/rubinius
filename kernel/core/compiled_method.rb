@@ -110,7 +110,7 @@ class CompiledMethod
   end
   
   def compile
-    @bytecodes.compile
+    Ruby.primitive :iseq_compile
   end
   
   def activate(recv, mod, args, locals=nil, &prc)
