@@ -579,3 +579,15 @@ OBJECT bignum_size(STATE, OBJECT self)
      as I'm concerned. */
   return I2N(bytes);
 }
+
+int bignum_hash_int(OBJECT self)
+{
+  mp_int *a = MP(self);
+
+  /* Apparently, a couple bits of each a->dp[n] aren't actually used,
+     (e.g. when DIGIT_BIT is 60) so this hash is actually including
+     that unused memory.  This might only be a problem if calculations
+     are leaving cruft in those unused bits.  However, since Bignums
+     are immutable, this shouldn't happen to us. */
+  return string_hash_str((unsigned char *)a->dp, a->used * sizeof(mp_digit));
+}

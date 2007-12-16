@@ -30,5 +30,6 @@ OBJECT bignum_from_ull(STATE, unsigned long long val);
 OBJECT bignum_from_ll(STATE, long long val);
 OBJECT bignum_size(STATE, OBJECT self);
 int bignum_is_zero(STATE, OBJECT a);
+int bignum_hash_int(OBJECT a);
 
 #endif
