@@ -44,15 +44,15 @@ EOH
   end
   
   def after_it(msg)
-    if @report.exception
-      error = if @report.exception.is_a?(ExpectationNotMetError)
+    if @current.exception
+      error = if @current.exception.is_a?(ExpectationNotMetError)
         " (FAILED - #{@failures})"
       else
         " (ERROR - #{@failures})"
       end
-      @out.print %[<li class="fail">- #{@report.it}#{error}</li>]
+      @out.print %[<li class="fail">- #{@current.it}#{error}</li>]
     else
-      @out.print %[<li class="pass">- #{@report.it}</li>]
+      @out.print %[<li class="pass">- #{@current.it}</li>]
     end
   end
   

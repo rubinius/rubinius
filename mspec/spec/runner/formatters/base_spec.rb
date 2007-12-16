@@ -36,6 +36,12 @@ describe SpecExecution do
     @execution.it = :it
     @execution.it.should == 'it'
   end
+  
+  it "provides #full_message that returns the describe + it message" do
+    @execution.describe = 'it'
+    @execution.it = 'is'
+    @execution.full_message.should == 'it is'
+  end
 end
 
 describe BaseFormatter, "interface" do
@@ -58,6 +64,10 @@ describe BaseFormatter, "interface" do
   
   it "provides a getter for 'out'" do
     @formatter.out.should == @out
+  end
+  
+  it "provides #current that returns the currently executing spec information object" do
+    @formatter.current.should be_an_instance_of(SpecExecution)
   end
   
   it "responds to before_describe with one argument" do

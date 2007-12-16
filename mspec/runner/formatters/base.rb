@@ -22,6 +22,10 @@ class SpecExecution
   def it
     @it
   end
+  
+  def full_message
+    "#{@describe} #{@it}"
+  end
 end
 
 class BaseFormatter
@@ -29,7 +33,7 @@ class BaseFormatter
     self.out = out
     @examples = 0
     @failures = 0
-    @report = SpecExecution.new
+    @current = SpecExecution.new
     @exceptions = []
   end
   
@@ -43,6 +47,10 @@ class BaseFormatter
   
   def out
     @out
+  end
+  
+  def current
+    @current
   end
   
   def start_timer
@@ -60,9 +68,9 @@ class BaseFormatter
   def after_describe(msg) end
   
   def before_it(msg)
-    @report = SpecExecution.new
-    @report.describe = @describe
-    @report.it = msg
+    @current = SpecExecution.new
+    @current.describe = @describe
+    @current.it = msg
     @examples += 1
   end
   
@@ -70,8 +78,8 @@ class BaseFormatter
 
   def exception(e)
     @failures += 1
-    @report.exception = e
-    @exceptions.push(@report)
+    @current.exception = e
+    @exceptions.push(@current)
   end
 
   def summarized=(flag)

@@ -11,10 +11,10 @@ end
 action = :run
 patterns = []
 target = 'shotgun/rubinius'
-format = 'CIReporter'
+format = 'CIFormatter'
 clean = false
 verbose = false
-ci_files = "spec/files.txt"
+ci_files = "tmp/files.txt"
 flags = []
 
 opts = OptionParser.new("", 24, '   ') do |opts|
@@ -29,7 +29,7 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   end
   opts.on("-i", "--invert", "Run the specs using only the expected failures") do
     action = :invert
-    format = 'DottedReporter'
+    format = 'DottedFormatter'
   end
   opts.on("-t", "--target TARGET", String, 
           "Implementation that will run the specs: r:ruby|r19:ruby19|x:rbx|j:jruby") do |t|
@@ -50,15 +50,15 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Formatter for reporting: s:specdox|d:dotted|c:CI|h:html|i:immediate") do |f|
     case f
     when 's', 'specdox', 'specdoc'
-      format = 'SpecDoxReporter'
+      format = 'SpecdocFormatter'
     when 'h', 'html'
-      format = 'HtmlReporter'
+      format = 'HtmlFormatter'
     when 'd', 'dot', 'dotted'
-      format = 'DottedReporter'
+      format = 'DottedFormatter'
     when 'c', 'ci', 'integration'
-      format = 'CIReporter'
+      format = 'CIFormatter'
     when 'i', 'immediate'
-      format = 'ImmediateReporter'
+      format = 'ImmediateFormatter'
     else
       puts "Unknown format: #{f}"
       puts opts
@@ -111,8 +111,31 @@ if clean
   end
 end
 
-def exclude(file)
-  File.join(File.dirname(file), '.spec', File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
+# def exclude(file)
+#   File.join(File.dirname(file), '.spec', File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
+# end
+# 
+# def mk_exclude_dir(file)
+#   dir = File.join(File.dirname(file), '.spec')
+#   Dir.mkdir(dir) unless File.exist?(dir)
+# end
+# 
+# File.open(ci_files, "w") do |f|
+#   files.each do |file|
+#     mk_exclude_dir file
+#     f.print "#{file} #{exclude file}\n"
+#   end
+# end
+# 
+code = <<-EOC
+ENV['MSPEC_RUNNER'] = '1'
+require 'spec/spec_helper'
+
+$VERBOSE=nil
+
+def exclude_name(file)
+  File.join(File.dirname(file), '.spec', 
+    File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
 end
 
 def mk_exclude_dir(file)
@@ -120,41 +143,38 @@ def mk_exclude_dir(file)
   Dir.mkdir(dir) unless File.exist?(dir)
 end
 
-File.open(ci_files, "w") do |f|
-  files.each do |file|
-    mk_exclude_dir file
-    f.print "#{file} #{exclude file}\n"
+def read_excludes(file)
+  if File.exist?(file)
+    File.open(file) do |f|
+      f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
+    end
+  else
+    []
   end
 end
 
-code = <<-EOC
-$VERBOSE=nil
-require 'mini_rspec.rb'
-require 'mini_mock.rb'
-excludes = nil
-File.open("spec/excludes.txt") do |f|
-  excludes = f.readlines.map { |l| Regexp.new(Regexp.escape(l.chomp)) }
-end
-File.open(#{ci_files.inspect}, "r") do |f|
-  f.each do |line|
-    file, exclude = line.split
-    reporter = #{format}.new(%s)
-    spec_runner.reporter = reporter
-    spec_runner.%s(*(excludes + %s))
-    STDERR.puts file if #{verbose}
-    load file
-    reporter.summary
-  end
+all_excludes = read_excludes("spec/excludes.txt")
+
+#{files.inspect}.each do |file|
+  mk_exclude_dir(file)
+  excludes = read_excludes(exclude_name(file))
+  formatter = #{format}.new(%s)
+  spec_runner.formatter = formatter
+  spec_runner.%s(*all_excludes)
+  %s
+  STDERR.puts file if #{verbose}
+  load file
+  formatter.summary
 end
 EOC
 
 case action
 when :create
-  code = code % ['exclude', 'except', '[]']
+  code = code % ['exclude', 'except', '']
 when :run
-  code = code % ['STDOUT', 'except', '[exclude]']
+  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)']
 when :invert
-  code = code % ['STDOUT', 'only', '[exclude]']
+  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)']
 else
   puts "Unknown action: #{action}"
   puts opts

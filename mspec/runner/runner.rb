@@ -77,13 +77,20 @@ class SpecRunner
   end
   
   def only(*args)
-    @only = convert_to_regexps(*args)
+    @only.concat convert_to_regexps(*args)
   end
   
   def except(*args)
-    @except = convert_to_regexps(*args)
+    @except.concat convert_to_regexps(*args)
   end
   
+  def skip?
+    example = formatter.current.full_message
+    @except.each { |re| return true if re.match(example) }
+    return false if @only.empty?
+    return true unless @only.any? { |re| re.match(example) }
+  end
+
   def before(at=:each, &block)
     case at
     when :each
@@ -121,7 +128,7 @@ class SpecRunner
         begin
           begin
             @stack.last.before_each.each { |be| @env.instance_eval &be }
-            @env.instance_eval &b
+            @env.instance_eval &b unless skip?
             Mock.verify_count
           rescue Exception => e
             formatter.exception(e)
