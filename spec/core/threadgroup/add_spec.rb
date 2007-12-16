@@ -2,15 +2,16 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "ThreadGroup#add" do
   before(:each) do
-    @thread = Thread.new { }
+    @thread = Thread.new { sleep }
   end
   
   after(:each) do
+    @thread.run
     @thread.join
   end
   
   it "adds the given thread to a group and returns self" do
-    @thread.group.should == nil
+    @thread.group.should_not == nil
     
     tg = ThreadGroup.new
     tg.add(@thread).should == tg
@@ -29,5 +30,4 @@ describe "ThreadGroup#add" do
     tg2.list.include?(@thread).should == true
     tg1.list.include?(@thread).should == false
   end
-  
 end

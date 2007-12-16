@@ -1,1 +1,1 @@
-$require_spec_3.should == :yep
+$require_spec_3 = :yep

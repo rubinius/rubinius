@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#to_a" do
   it "is defined on Kernel" do
-    Kernel.instance_methods.should_include('to_a')
+    Kernel.instance_methods.should include('to_a')
   end
 end
 

@@ -11,20 +11,20 @@ describe "Etc.getpwnam" do
   it "returns a Passwd struct instance for the given user" do
     pw = Etc.getpwnam(`whoami`.strip)
 
-    compliant :rbx do
+    noncompliant :rubinius do
       pw.is_a?(Etc::Passwd).should == true
     end
 
-    compliant :mri do
+    compliant :ruby do
       pw.is_a?(Struct::Passwd).should == true
     end
   end
 
   it "only accepts strings as argument" do
-    should_raise(TypeError) do
+    lambda {
       Etc.getpwnam(123)
       Etc.getpwnam(nil)
-    end
+    }.should raise_error(TypeError)
   end
 end
 
@@ -32,23 +32,23 @@ describe "Etc.getpwuid" do
   it "returns a Passwd struct instance for the given user" do
     pw = Etc.getpwuid(`id -u`.strip.to_i)
 
-    compliant :rbx do
+    noncompliant :rubinius do
       pw.is_a?(Etc::Passwd).should == true
     end
 
-    compliant :mri do
+    compliant :ruby do
       pw.is_a?(Struct::Passwd).should == true
     end
   end
 
   it "only accepts integers as argument" do
-    should_raise(TypeError) do
+    lambda {
       Etc.getpwuid("foo")
       Etc.getpwuid(nil)
-    end
+    }.should raise_error(TypeError)
   end
 
-  compliant :rbx, :ruby19 do
+  noncompliant :rubinius, :ruby19 do
     it "uses Process.uid as the default value for the argument" do
       pw = Etc.getpwuid
     end
@@ -59,20 +59,20 @@ describe "Etc.getgrnam" do
   it "returns a Group struct instance for the given group" do
     gr = Etc.getgrnam("daemon")
 
-    compliant :rbx do
+    noncompliant :rubinius do
       gr.is_a?(Etc::Group).should == true
     end
 
-    compliant :mri do
+    compliant :ruby do
       gr.is_a?(Struct::Group).should == true
     end
   end
 
   it "only accepts strings as argument" do
-    should_raise(TypeError) do
+    lambda {
       Etc.getgrnam(123)
       Etc.getgrnam(nil)
-    end
+    }.should raise_error(TypeError)
   end
 end
 
@@ -82,11 +82,11 @@ describe "Etc.getgrgid" do
     @name = `id -gn`.strip
   end
 
-  compliant :rbx, :ruby19 do
+  noncompliant :rubinius, :ruby19 do
     it "returns a Group struct instance for the given user" do
       gr = Etc.getgrgid(@gid)
 
-      compliant :rbx do
+      noncompliant :rubinius do
         gr.is_a?(Etc::Group).should == true
       end
 
@@ -99,31 +99,33 @@ describe "Etc.getgrgid" do
     end
   end
 
-  compliant :mri do
-    it "ignores its argument" do
-      Etc.getgrgid("foo")
-      Etc.getgrgid(42)
-      Etc.getgrgid(9876)
+  compliant :ruby do
+    platform :not, :darwin do
+      it "ignores its argument" do
+        lambda { Etc.getgrgid("foo") }.should raise_error(TypeError)
+        Etc.getgrgid(42)
+        Etc.getgrgid(9876)
+      end
     end
 
     it "returns a Group struct instance for the current user's group" do
-      gr = Etc.getgrgid(0)
+      gr = Etc.getgrgid(@gid)
       gr.is_a?(Struct::Group).should == true
       gr.gid.should == @gid
       gr.name.should == @name
     end
   end
 
-  compliant :rbx, :ruby19 do
+  noncompliant :rubinius, :ruby19 do
     it "only accepts integers as argument" do
-      should_raise(TypeError) do
+      lambda {
         Etc.getgrgid("foo")
         Etc.getgrgid(nil)
-      end
+      }.should raise_error(TypeError)
     end
   end
 
-  compliant :rbx, :ruby19 do
+  noncompliant :rubinius, :ruby19 do
     it "uses Process.gid as the default value for the argument" do
       gr = Etc.getgrgid
 

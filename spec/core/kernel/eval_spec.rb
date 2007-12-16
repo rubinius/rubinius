@@ -16,7 +16,7 @@ describe "Kernel#eval" do
 
   it "should not make Proc locals visible to evaluated code" do
     bind = proc { inner = 4 }
-    should_raise(NameError) { eval("inner", bind) }
+    lambda { eval("inner", bind) }.should raise_error(NameError)
   end
 
   it "should allow a binding to be captured inside an eval" do
@@ -51,7 +51,7 @@ describe "Kernel#eval" do
 
     eval("w = 1")
     eval("x = 2", outer_binding)
-    eval("y = 3", proc_binding)
+    eval("yy = 3", proc_binding)
     eval("z = 4", inner_binding)
 
     eval("w").should == 1
@@ -64,24 +64,24 @@ describe "Kernel#eval" do
     eval("x", proc_binding).should == 2
     eval("x", inner_binding).should == 2
 
-    should_raise(NameError) { eval("y") }
-    should_raise(NameError) { eval("y", outer_binding) }
-    eval("y", proc_binding).should == 3
-    eval("y", inner_binding).should == 3
+    lambda { eval("yy") }.should raise_error(NameError)
+    lambda { eval("yy", outer_binding) }.should raise_error(NameError)
+    eval("yy", proc_binding).should == 3
+    eval("yy", inner_binding).should == 3
 
-    should_raise(NameError) { eval("z") }
-    should_raise(NameError) { eval("z", outer_binding) }
-    should_raise(NameError) { eval("z", proc_binding) }
+    lambda { eval("z") }.should raise_error(NameError)
+    lambda { eval("z", outer_binding) }.should raise_error(NameError)
+    lambda { eval("z", proc_binding)  }.should raise_error(NameError)
     eval("z", inner_binding).should == 4
 
-    should_raise(NameError) { eval("l") }
-    should_raise(NameError) { eval("l", outer_binding) }
+    lambda { eval("l") }.should raise_error(NameError)
+    lambda { eval("l", outer_binding) }.should raise_error(NameError)
     eval("l", proc_binding).should == 5
     eval("l", inner_binding).should == 5
 
-    should_raise(NameError) { eval("k") }
-    should_raise(NameError) { eval("k", outer_binding) }
-    should_raise(NameError) { eval("k", proc_binding) }
+    lambda { eval("k") }.should raise_error(NameError)
+    lambda { eval("k", outer_binding) }.should raise_error(NameError)
+    lambda { eval("k", proc_binding)  }.should raise_error(NameError)
     eval("k", inner_binding).should == 6
   end
 end

@@ -49,4 +49,8 @@ module MethodSpecs
 
   class C < B
   end
+
+  class D
+    def bar() 'done' end
+  end
 end

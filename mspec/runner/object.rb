@@ -15,14 +15,6 @@ class Object
     spec_runner.it(msg, &block)
   end
   
-  def set_spec_runner(formatter=nil, out=STDOUT)
-    $mspec_runner = SpecRunner.new(formatter.new(out))
-  end
-  
-  def spec_runner
-    $mspec_runner ||= SpecRunner.new
-  end
-
   alias context describe
   alias specify it
   alias setup before

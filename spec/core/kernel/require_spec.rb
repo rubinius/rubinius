@@ -2,21 +2,23 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 fixture_dir = File.dirname(__FILE__) + '/fixtures/require'
-
-unless File.exists?(fixture_dir + "/require_spec_rba.rba")
-  compile(fixture_dir + "/masked_require_spec_2.rb", 
-          fixture_dir + "/require_spec_2.rbc")
-          
-  `cd #{fixture_dir}; zip require_spec_rba.rba require_spec_2.rbc`
-end
-
-unless File.exists?(fixture_dir + "/require_spec_3.rbc")
-  compile(fixture_dir + "/masked_require_spec_3.rb", 
-          fixture_dir + "/require_spec_3.rbc")
-end
-
 $LOAD_PATH << fixture_dir
-$LOAD_PATH << (fixture_dir + '/require_spec_rba.rba')
+
+extension :rubinius do
+  unless File.exists?(fixture_dir + "/require_spec_rba.rba")
+    compile(fixture_dir + "/masked_require_spec_2.rb", 
+            fixture_dir + "/require_spec_2.rbc")
+          
+    `cd #{fixture_dir}; zip require_spec_rba.rba require_spec_2.rbc`
+  end
+
+  unless File.exists?(fixture_dir + "/require_spec_3.rbc")
+    compile(fixture_dir + "/masked_require_spec_3.rb", 
+            fixture_dir + "/require_spec_3.rbc")
+  end
+
+  $LOAD_PATH << (fixture_dir + '/require_spec_rba.rba')
+end
 
 require 'tmpdir'
 
@@ -37,7 +39,7 @@ describe "Kernel#require" do
     end
   end
 
-  compliant :rbx do
+  extension :rbx do
   
     it "loads a .rbc from a .rba in $LOAD_PATH, only once" do
       require('require_spec_2').should == true

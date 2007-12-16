@@ -1,17 +1,11 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../runner/shared'
 
-class Object
-  def spec_runner
-    @runner ||= Object.new
-  end
-end
-
 describe Object, "#shared" do
   it "sets an instance variable on Object for the passed block" do
     proc = lambda { :shared }
     shared :shared, &proc
-    spec_runner.instance_variable_get(:@shared).should == proc
+    Object.instance_variable_get(:@shared).should == proc
   end
 end
 

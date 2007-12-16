@@ -13,7 +13,7 @@ describe "Thread#alive?" do
   end
 
   it "returns false when the thread is finished" do
-    t = Thread.new {}
+    t = Thread.new { }
     t.join
     t.alive?.should == false
   end

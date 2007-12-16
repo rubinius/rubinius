@@ -61,9 +61,7 @@ describe "File.truncate" do
     File.delete(not_existing_file) if File.exist?(not_existing_file)
 
     begin
-      should_raise(Errno::ENOENT) do
-        File.truncate(not_existing_file, 5)
-      end
+      lambda { File.truncate(not_existing_file, 5) }.should raise_error(Errno::ENOENT)
     ensure
       File.delete(not_existing_file) if File.exist?(not_existing_file)
     end

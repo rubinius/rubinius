@@ -42,9 +42,11 @@ describe "The unpacking splat operator (*)" do
     
     alphabet_1.should == alphabet_2
   end
-  
-  it "unpacks a literal array into arguments in a method call"  
-  it "unpacks a referenced array into arguments in a method call"
+
+  # mSpec doesn't have pending specs yet
+  # it "unpacks a literal array into arguments in a method call"
+  # 
+  # it "unpacks a referenced array into arguments in a method call"
 end
 
 describe "The packing splat operator (*)" do
