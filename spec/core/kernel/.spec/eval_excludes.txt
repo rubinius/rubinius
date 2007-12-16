@@ -1,0 +1,3 @@
+Kernel#eval should accept a Proc object as a binding
+Kernel#eval should allow a binding to be captured inside an eval
+Kernel#eval should allow Proc and binding to be nested in horrible ways
