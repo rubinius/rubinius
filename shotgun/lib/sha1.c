@@ -24,6 +24,8 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 
 #define SHA1HANDSOFF /* Copies data before messing with it. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
@@ -52,12 +54,12 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 
 /* Hash a single 512-bit block. This is the core of the algorithm. */
 
-void SHA1Transform(unsigned long state[5], unsigned char buffer[64])
+void SHA1Transform(uint32_t state[5], unsigned char buffer[64])
 {
-unsigned long a, b, c, d, e;
+uint32_t a, b, c, d, e;
 typedef union {
     unsigned char c[64];
-    unsigned long l[16];
+    uint32_t l[16];
 } CHAR64LONG16;
 CHAR64LONG16* block;
 #ifdef SHA1HANDSOFF
@@ -145,7 +147,7 @@ unsigned int i, j;
 
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 {
-unsigned long i, j;
+uint32_t i, j;
 unsigned char finalcount[8];
 
     for (i = 0; i < 8; i++) {
