@@ -18,6 +18,7 @@ tmp
 scratch
 !runtime/stable/loader.rbc
 runtime/pristine*
+runtime/platform.conf
 
 *.o
 *.lo
@@ -34,7 +35,6 @@ runtime/pristine*
 attic/externals/syd-parser/pkg
 
 kernel/.load_order.txt
-kernel/core/dir.rb
 kernel/core/dir_entry.rb
 
 lib/etc.rb

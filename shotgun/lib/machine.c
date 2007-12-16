@@ -579,35 +579,60 @@ void machine_setup_argv(machine m, int argc, char **argv) {
   machine_set_const(m, "ARGV", ary);
 }
 
-static void machine_parse_config_var(machine m, const char *var) {
-  char *eq;
-  char buf[1024];
-  char *name;
-  const char *or;
-  name = buf;
-  int sz;
-  eq = strstr(var, "=");
+int is_number(char *str) {
+  while(*str) {
+    if(!isdigit(*str)) return FALSE;
+    str++;
+  }
+  
+  return TRUE;
+}
+
+static char *trim_str(char *str) {
+  int i;
+  while(*str && !isalnum(*str)) str++;
+  
+  for(i = strlen(str) - 1; str[i] && !isalnum(str[i]); i++) {
+    str[i] = 0;
+  }
+  
+  return str;
+}
+
+static void machine_parse_config_var(machine m, const char *input) {
+  char *name, *val, *var, *eq;
+  
+  var = strdup(input);
+  eq = strchr(var, '=');
+  
   if(eq) {
-    or = var;
-    sz = eq - var;
-    strncpy(name, var, sz);
-    name[sz] = 0;
-    var += (sz + 1);
-    while(*name == ' ') name++;
-    if(m->show_config) {
-      printf("[config] '%s' => '%s'\n", name, var);
+    *eq++ = 0;
+    
+    name = trim_str(var);
+    val =  trim_str(eq);
+    
+    if(!strcmp("include", name)) {
+      machine_parse_config_file(m, val);
+    } else {    
+      if(m->show_config) {
+        printf("[config] '%s' => '%s'\n", name, val);
+      }
+    
+      ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr(val));
     }
-    ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr(var));
   } else {
     if(m->show_config) {
       printf("[config] '%s' => '1'\n", var);
     }
-    while(*var == ' ') var++;    
-    ht_config_insert(m->s->config, cstr2bstr(var), cstr2bstr("1"));
+    
+    name = trim_str(var);
+    ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr("1"));
   }
+  
+  free(var);
 }
 
-static void machine_parse_configs(machine m, const char *config) {
+void machine_parse_configs(machine m, const char *config) {
   char *semi;
   char tmp[1024];
   int sz;
@@ -622,22 +647,50 @@ static void machine_parse_configs(machine m, const char *config) {
   }
   
   machine_parse_config_var(m, config);
+}
+
+void machine_parse_config_file(machine m, const char *path) {
+  FILE *fo;
+  char line[1024];
+  
+  fo = fopen(path, "r");
+  if(!fo) return;
+  
+  while(!feof(fo)) {
+    fgets(line, 1024, fo);
+    if(*line) {
+      machine_parse_config_var(m, line);
+    }
+    *line = 0;
+  }
+}
+
+void machine_migrate_config(machine m) {
+  struct hashtable_itr iter;
+  rstate state = m->s;
   
   m->s->global->config = hash_new(m->s);
+    
+  if(hashtable_count(m->s->config) > 0) {
   
-  struct hashtable_itr iter;
-  hashtable_iterator_init(&iter, m->s->config);
+    hashtable_iterator_init(&iter, m->s->config);
 
-  do
-    {
-      bstring k = (bstring) hashtable_iterator_key(&iter);
-      bstring v = (bstring) hashtable_iterator_value(&iter);
-      OBJECT ok = string_newfrombstr(m->s, k);
-      OBJECT ov = string_newfrombstr(m->s, v);
+    do {
+      OBJECT ok, ov;
+      bstring k = (bstring)hashtable_iterator_key(&iter);
+      bstring v = (bstring)hashtable_iterator_value(&iter);
+      ok = string_newfrombstr(m->s, k);
+      if(is_number(bdata(v))) {
+        ov = I2N(atoi(bdata(v)));
+      } else {
+        ov = string_newfrombstr(m->s, v);
+      }
 
       hash_set(m->s, m->s->global->config, ok, ov);
-    }
-  while (hashtable_iterator_advance(&iter));
+    } while (hashtable_iterator_advance(&iter));
+  
+  }
+  
   machine_set_const(m, "RUBY_CONFIG", m->s->global->config);
 }
 
@@ -800,9 +853,12 @@ void machine_config_env(machine m) {
   config = getenv("RBX");
   if(config) {
     machine_parse_configs(m, config); 
-  } else {
-    machine_parse_configs(m, "");
   }
+  
+  config = getenv("RBX_CONFFILE");
+  if(config) {
+    machine_parse_config_file(m, config);
+  }  
 }
 
 int machine_load_directory(machine m, const char *prefix) {

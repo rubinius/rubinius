@@ -2,11 +2,7 @@
 
 class Dir
   class DirEntry < FFI::Struct
-    @@@
-    name "struct dirent"
-    include "dirent.h"
-    field :d_name, :char_array
-    @@@
+    layout :d_name, :char_array, Rubinius::RUBY_CONFIG['rbx.platform.dir.d_name']
   end
 
   include Enumerable

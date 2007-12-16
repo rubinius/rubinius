@@ -2,33 +2,44 @@ require "rake"
 require "rake/tasklib"
 require "tempfile"
 
-class Field
-  attr_reader :name
-  attr_reader :type
-  attr_reader :offset
-
-  def initialize(name, type)
-    @name = name
-    @type = type
-    @offset = nil
-  end
-
-  def offset=(o)
-    @offset = o
-  end
-end
-
 class StructGenerator
+  class Field
+    attr_reader :name
+    attr_reader :type
+    attr_reader :offset
+
+    def initialize(name, type)
+      @name = name
+      @type = type
+      @offset = nil
+    end
+
+    def offset=(o)
+      @offset = o
+    end
+  end
+  
   def initialize
     @struct_name = nil
     @includes = []
     @fields = []
   end
+  
+  def get_field(name)
+    @fields.each do |f|
+      return f if name == f.name
+    end
+    
+    return nil
+  end
+  
+  attr_reader :fields
 
   def self.generate_from_code(code)
     sg = StructGenerator.new
     sg.instance_eval(code)
-    sg.layout
+    sg.calculate
+    sg.generate_layout
   end
 
   def name(n)
@@ -39,11 +50,13 @@ class StructGenerator
     @includes << i
   end
 
-  def field(name, type)
-    @fields << Field.new(name, type)
+  def field(name, type=nil)
+    fel = Field.new(name, type)
+    @fields << fel
+    return fel
   end
 
-  def layout
+  def calculate
     binary = "rb_struct_gen_bin_#{Process.pid}"
 
     Tempfile.open("rbx_struct_gen_tmp") do |f|
@@ -79,7 +92,9 @@ EOF
 
       line_no += 1
     end
-
+  end
+  
+  def generate_layout
     buf = ""
 
     @fields.each_with_index do |field, i|
@@ -108,10 +123,6 @@ module Rake
       yield self if block_given?
 
       define
-    end
-
-    def field(name, type)
-      @fields << Field.new(name, type)
     end
 
     def define

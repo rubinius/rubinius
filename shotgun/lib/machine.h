@@ -29,4 +29,7 @@ void machine_emit_memory(machine m);
 void machine_save_args(machine m, int argc, char **argv);
 void machine_setup_config(machine m);
 void machine_setup_from_config(machine m);
+void machine_parse_configs(machine m, const char *config);
+void machine_migrate_config(machine m);
+void machine_parse_config_file(machine m, const char *path);
 const char *_inspect(OBJECT obj);

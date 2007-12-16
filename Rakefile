@@ -264,10 +264,6 @@ file 'runtime/stable/compiler1.rba' => 'build:compiler1' do
 end
 
 Rake::StructGeneratorTask.new do |t|
-  t.dest = "kernel/core/dir.rb"
-end
-
-Rake::StructGeneratorTask.new do |t|
   t.dest = "lib/etc.rb"
 end
 
@@ -417,6 +413,8 @@ namespace :clean do
     (Dir["lib/compiler1/*.rbc"] + Dir["lib/compiler1/**/*.rbc"]).each do |f|
       rm_f f, :verbose => $verbose
     end
+    
+    rm_f "runtime/platform.conf"
   end
 
   desc "Cleans up VM building site"
@@ -434,6 +432,7 @@ namespace :build do
 
   task :all => %w[
     build:shotgun
+    build:platform
     build:rbc
     compiler1
     lib/etc.rb
@@ -532,8 +531,23 @@ RbConfig = Config
       sh "cd shotgun/lib; make DEV=1"
     end
   end
-
+  
+  task :platform => 'runtime/platform.conf'
 end
+
+file 'runtime/platform.conf' do
+  sg = StructGenerator.new
+  sg.include "dirent.h"
+  sg.name 'struct dirent'
+  fel = sg.field :d_name
+  sg.calculate
+  
+  File.open("runtime/platform.conf", "w") do |f|
+    f.puts "rbx.platform.dir.d_name = #{fel.offset}"
+  end
+  
+end
+
 
 desc "Build extensions from lib/ext"
 task :extensions => %w[
