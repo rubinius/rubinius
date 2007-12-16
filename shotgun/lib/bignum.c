@@ -338,39 +338,31 @@ OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
   mp_int * a;
   mp_int b;
 
-  mp_init(&b);
   a =  MP(self);
 
-  if (s1 > a->used) {
+  if (s1 >= a->used) {
     if (a->sign == MP_ZPOS)
       return I2N(0);
     else
       return I2N(-1);
   }
 
-  if (a->sign == MP_NEG) {
-    mp_copy(a, &b);
-    twos_complement(&b);
-    a = &b;
-  }
-
-  i = a->used; 
+  i = a->used;
   j = i - s1;
-
-  if (j == 0) {
-    if (a->sign == MP_ZPOS)
-      return I2N(0);
-    else
-      return I2N(-1);
-  }
 
   n->sign = a->sign;
   mp_grow(n, j);
 
   if (a->sign == MP_NEG) {
+    mp_init(&b);
+    mp_copy(a, &b);
+    twos_complement(&b);
+    a = &b;
     num = ((BDIGIT_DBL)~0) << DIGIT_BIT;
   }
   while (i--, j--) {
+    // BUG: This algorithm would be correct only if we filled the bits vacated
+    // by the shift with ones.
     num = (num | DIGIT(a,i)) >> s2;
     DIGIT(n,j) = num & (DIGIT_RADIX-1);
     num = ((BDIGIT_DBL)DIGIT(a,i)) << DIGIT_BIT;
@@ -379,9 +371,9 @@ OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
 
   if (a->sign == MP_NEG) {
     twos_complement(n);
+    mp_clear(&b);
   }
 
-  mp_clear(&b);
   return bignum_normalize(state, n_obj);
 }
 
