@@ -295,83 +295,49 @@ OBJECT bignum_neg(STATE, OBJECT self) {
 OBJECT bignum_left_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
   int shift = FIXNUM_TO_INT(bits);
-  int s1 = shift / DIGIT_BIT;
-  int s2 = shift % DIGIT_BIT;
-  long len, i, j;
+  mp_int *a = MP(self);
 
-  mp_int * a;
-  BDIGIT_DBL num = 0;
-
-  a   = MP(self);
-  len = a->used;
-
+  mp_mul_2d(a, shift, n);
   n->sign = a->sign;
-  mp_grow(n, len + s1 + 1);
-
-  for (i=0; i < s1; i++) {
-    DIGIT(n,i) = 0;
-    n->used += 1;
-  }
-
-  for (j=0; j < len; j++) {
-    num = num | (BDIGIT_DBL)DIGIT(a,j) << s2;
-    DIGIT(n,i++) = (num & (DIGIT_RADIX-1));
-    num = num >> DIGIT_BIT;
-    n->used += 1;
-  }
-
-  DIGIT(n,i) = (num & (DIGIT_RADIX-1));
-  n->used += 1;
-
   return bignum_normalize(state, n_obj);
 }
 
 OBJECT bignum_right_shift(STATE, OBJECT self, OBJECT bits) {
   NMP;
   int shift = FIXNUM_TO_INT(bits);
-  long s1 = shift / DIGIT_BIT;
-  long s2 = shift % DIGIT_BIT;
+  mp_int * a = MP(self);
 
-  BDIGIT_DBL num = 0;
-  long i, j;
-
-  mp_int * a;
-  mp_int b;
-
-  a =  MP(self);
-
-  if (s1 >= a->used) {
+  if ((shift / DIGIT_BIT) >= a->used) {
     if (a->sign == MP_ZPOS)
       return I2N(0);
     else
       return I2N(-1);
   }
 
-  i = a->used;
-  j = i - s1;
+  if (shift == 0) {
+    mp_copy(a, n);
+  } else {
+    int need_floor = (a->sign == MP_NEG) && (DIGIT(a, 0) & 1);
 
-  n->sign = a->sign;
-  mp_grow(n, j);
+    mp_div_2d(a, shift, n, NULL);
+    n->sign = a->sign;
+    if (need_floor) {
+      /* We sometimes have to simulate the rounding toward negative
+         infinity that would happen if we were using a twos-complement
+         representation.  We know we'll never overflow or need to grow,
+         but we may need to back away from zero.  (libtommath doesn't
+         seem to have an increment-in-place function.) */
+      long i = 0;
+      BDIGIT_DBL num = 1;
 
-  if (a->sign == MP_NEG) {
-    mp_init(&b);
-    mp_copy(a, &b);
-    twos_complement(&b);
-    a = &b;
-    num = ((BDIGIT_DBL)~0) << DIGIT_BIT;
-  }
-  while (i--, j--) {
-    // BUG: This algorithm would be correct only if we filled the bits vacated
-    // by the shift with ones.
-    num = (num | DIGIT(a,i)) >> s2;
-    DIGIT(n,j) = num & (DIGIT_RADIX-1);
-    num = ((BDIGIT_DBL)DIGIT(a,i)) << DIGIT_BIT;
-    n->used += 1;
-  }
-
-  if (a->sign == MP_NEG) {
-    twos_complement(n);
-    mp_clear(&b);
+      if (n->used == 0)
+          n->used = 1;
+      while (i < n->used) {
+        num += DIGIT(n,i);
+        DIGIT(n,i++) = num & (DIGIT_RADIX-1);
+        num = num >> DIGIT_BIT;
+      }
+    }
   }
 
   return bignum_normalize(state, n_obj);
