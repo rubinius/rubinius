@@ -15,6 +15,20 @@ describe "Array#each" do
     a.each {|x| b << x; a << x+5 if (x%2).zero? }
     b.should == [1, 2, 3, 4, 5, 7, 9]
   end
+  
+  it "yields only elements that are still in the array" do
+    a = [0, 1, 2, 3, 4]
+    b = []
+    a.each {|x| b << x; a.pop if (x%2).zero? }
+    b.should == [0, 1, 2]
+  end    
+
+  it "yields elements based on an internal index" do
+    a = [0, 1, 2, 3, 4]
+    b = []
+    a.each {|x| b << x; a.shift if (x%2).zero? }
+    b.should == [0, 2, 4]
+  end    
 
   it "should support array explosion" do
     a = [[1, 2], [3, 4]]
