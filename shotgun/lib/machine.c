@@ -655,14 +655,14 @@ void machine_parse_config_file(machine m, const char *path) {
   
   fo = fopen(path, "r");
   if(!fo) return;
-  
-  while(!feof(fo)) {
-    fgets(line, 1024, fo);
+
+  while (fgets(line, sizeof(line), fo)) {
     if(*line) {
       machine_parse_config_var(m, line);
     }
-    *line = 0;
   }
+
+  fclose(fo);
 }
 
 void machine_migrate_config(machine m) {
