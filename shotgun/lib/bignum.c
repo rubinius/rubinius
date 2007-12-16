@@ -534,7 +534,7 @@ OBJECT bignum_from_double(STATE, double d)
   NMP;
 
   long i = 0;
-  unsigned int c;
+  BDIGIT_DBL c;
   double value;
 
   value = (d < 0) ? -d : d;
@@ -557,7 +557,7 @@ OBJECT bignum_from_double(STATE, double d)
  
   while (i--) {
     value *= DIGIT_RADIX;
-    c = (unsigned int)value;
+    c = (BDIGIT_DBL) value;
     value -= c;
     DIGIT(n,i) = c;
     n->used += 1;
