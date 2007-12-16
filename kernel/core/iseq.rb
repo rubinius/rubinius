@@ -149,11 +149,13 @@ class InstructionSet
     end
 
     def check_interrupts?
-      @opcode_info[:vm_flags].include? :check_interrupts
+      flags = @opcode_info[:vm_flags]
+      flags and flags.include? :check_interrupts
     end
 
     def terminator?
-      @opcode_info[:vm_flags].include? :terminator
+      flags = @opcode_info[:vm_flags]
+      flags and flags.include? :terminator
     end
 
     def to_s
@@ -196,49 +198,87 @@ class InstructionSequence
       @iseq = iseq
       @offset = 0
       stream = []
-      while @offset < @iseq.size
-        inst = iseq2int
-        op = InstructionSet[inst]
-
-        case op.arg_count
-        when 0
-          stream << [op.opcode]
-        when 1
-          stream << [op.opcode, iseq2int]
-        when 2
-          stream << [op.opcode, iseq2int, iseq2int]
+      last_op = nil
+      
+      begin
+        while @offset < @iseq.size
+          inst = iseq2int
+          op = InstructionSet[inst]
+          case op.arg_count
+          when 0
+            stream << [op.opcode]
+          when 1
+            stream << [op.opcode, iseq2int]
+          when 2
+            stream << [op.opcode, iseq2int, iseq2int]
+          end
+          last_op = op
         end
+      rescue InstructionSet::InvalidOpCode => ex
+        # If direct-threading is not used, we can get junk at the end of the iseq
+        raise ex unless last_op and last_op.terminator?
       end
 
       return stream
     end
 
-    # Encodes a stream of instructions, where the stream is an array of
-    # arrays consisting of an instruction opcode (a symbol), followed by 0 to 2
-    # integer arguments, whose meaning depends on the opcode.
+    # Encodes a stream of instructions into an +InstructionSequence+. The stream
+    # supplied must be an array of arrays, with the inner array consisting of an
+    # instruction opcode (a symbol), followed by 0 to 2 integer arguments, whose
+    # meaning depends on the opcode.
     def encode_stream(stream)
       sz = stream.inject(0) { |acc, ele| acc + (ele.size * InstructionSet::InstructionSize) }
       @iseq = InstructionSequence.new(sz)
       @offset = 0
       stream.each do |inst|
-        opcode = InstructionSet[inst.first]
-
-        arg_count = opcode.arg_count
-        unless inst.size - 1 == arg_count
-          raise Error, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
-        end
-
-        int2str(opcode.bytecode)
-        case arg_count
-        when 1
-          int2str(inst[1])
-        when 2
-          int2str(inst[1])
-          int2str(inst[2])
-        end
+        encode inst
       end
 
       return @iseq
+    end
+    
+    # Replaces the instruction at the specified instruction pointer with the
+    # supplied instruction inst, which must be an array containing the new
+    # instruction opcode symbol, followed by any int args required by the opcode.
+    # Note: The new instruction must be the same width or smaller than the 
+    # instruction it replaces.
+    def replace_instruction(iseq, ip, inst)
+      @iseq = iseq
+      @offset = start = ip * InstructionSet::InstructionSize
+
+      old_inst = iseq2int
+      old_op = InstructionSet[old_inst]
+      replaced = [old_op.opcode]
+
+      i = 0
+      while i < old_op.arg_count do
+        replaced << iseq2int
+        @offset -= InstructionSet::InstructionSize
+        int2str(0)  # Replace old args with 0
+        i += 1
+      end
+      
+      @offset = start
+      encode inst
+      replaced
+    end
+    
+    def encode(inst)
+      opcode = InstructionSet[inst.first]
+
+      arg_count = opcode.arg_count
+      unless inst.size - 1 == arg_count
+        raise Error, "Missing instruction arguments to #{inst.first} (need #{arg_count} / got #{inst.size - 1})"
+      end
+
+      int2str(opcode.bytecode)
+      case arg_count
+      when 1
+        int2str(inst[1])
+      when 2
+        int2str(inst[1])
+        int2str(inst[2])
+      end
     end
 
     def iseq2int

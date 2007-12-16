@@ -9,13 +9,17 @@ class BreakpointTracker
     end
     
     def install
-      @orig = @method.bytecodes.get_byte(@ip)
-      @method.bytecodes.set_byte(@ip, Rubinius::DEBUG_INST)
+      enc = InstructionSequence::Encoder.new
+      @orig = enc.replace_instruction @method.bytecodes, @ip, [:yield_debugger]
+      @method.compile
     end
     
     def restore_into(ctx)
-      @method.bytecodes.set_byte(@ip, @orig)
-      ctx.ip = ctx.ip - 1
+      enc = InstructionSequence::Encoder.new
+      enc.replace_instruction @method.bytecodes, @ip, @orig
+      @method.compile
+      # Reset instruction pointer back to where yield_debugger was
+      ctx.ip = ctx.ip - (InstructionSet[:yield_debugger].arg_count + 1)
     end
     
     def call(ctx)
