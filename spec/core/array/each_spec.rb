@@ -9,6 +9,13 @@ describe "Array#each" do
     a.should == [1, 2, 3]
   end
   
+  it "yields each element to the block even if the array is changed during iteration" do
+    a = [1, 2, 3, 4, 5]
+    b = []
+    a.each {|x| b << x; a << x+5 if (x%2).zero? }
+    b.should == [1, 2, 3, 4, 5, 7, 9]
+  end
+
   it "should support array explosion" do
     a = [[1, 2], [3, 4]]
     b = []
