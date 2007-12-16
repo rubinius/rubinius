@@ -540,16 +540,26 @@ class Array
   end
 
   # Passes each element in the Array to the given block
-  # and returns self.
+  # and returns self.  We re-evaluate @total each time
+  # through the loop in case the array has changed.
   def each()
-    @total.times { |i| yield at(i) }
+    i = 0
+    while i < @total
+      yield at(i)
+      i += 1
+    end
     self
   end 
 
   # Passes each index of the Array to the given block
-  # and returns self.
+  # and returns self.  We re-evaluate @total each time
+  # through the loop in case the array has changed.
   def each_index()
-    @total.times {|i| yield i}
+    i = 0
+    while i < @total
+      yield i
+      i += 1
+    end
     self
   end 
 
