@@ -1,0 +1,1 @@
+The retry statement should raise LocalJumpError if used outside of a block

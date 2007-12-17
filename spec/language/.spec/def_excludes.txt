@@ -1,0 +1,15 @@
+Defining methods with * If * by itself is the only param, method takes any number of args that are ignored
+Defining methods with * With a parameter name, * stores all extra arguments as an Array in it
+Defining methods with * A * param may be preceded by any number of other parameter names
+Defining methods with * The required arguments must be supplied even with a * param
+Defining a method with a default arg should assign single default arg when nothing is passed
+Defining a method with a default arg should assign [] to unpassed rest args
+Defining a method with a default arg should assign when only required args are passed
+Defining a method with a default arg should assign default and assign [] to rest args when only required args are present
+Defining a method with a default arg should not assign when restargs get assigned
+Defining a method with a default arg should not assign when required and restargs get assigned
+Defining a method with complex default args should let you define a method inside a default argument
+Defining a method with complex default args should let you use an fcall as a default argument
+Defining a method with complex default args should evaluate default arguments in the proper scope
+Defining a method with complex default args should support method calls on other arguments as defaults
+Defining a method with complex default args should support procs as defaults

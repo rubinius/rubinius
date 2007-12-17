@@ -1,0 +1,1 @@
+The redo statement raises LocalJumpError if used not within block or while/for loop

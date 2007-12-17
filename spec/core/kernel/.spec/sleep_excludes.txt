@@ -1,5 +1,3 @@
-Kernel.time should wait 0.1 second
-Thread.sleep should wait for indefinite seconds
-Thread.sleep should return the time spent sleeping
-Thread.sleep should be possible to see if a thread is alive? while sleeping
-Thread.sleep should allow sleep of duration nil
+Kernel#sleep returns the rounded number of seconds asleep
+Kernel#sleep raises a TypeError when passed a non-numeric duration
+Kernel#sleep pauses execution indefinitely if not given a duration

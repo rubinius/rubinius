@@ -1,3 +1,5 @@
 String#% allows positional arguments for width star and precision star arguments
 String#% supports unsigned formats using %u
 String#% supports negative bignums
+String#% taints result for %p when argument.inspect is tainted
+String#% supports string formats using %s

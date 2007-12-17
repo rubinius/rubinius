@@ -1,0 +1,1 @@
+ThreadGroup#list should return the list of threads in the group

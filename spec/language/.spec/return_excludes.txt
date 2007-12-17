@@ -1,0 +1,11 @@
+Assignment via return should assign objects to block variables
+Assignment via return should assign splatted objects to block variables
+Assignment via return should assign objects to block variables that include the splat operator inside the block
+Assignment via return should assign objects to splatted block variables that include the splat operator inside the block
+Assignment via return should assign objects to splatted block variables that include the splat operator inside the block
+Assignment via return should assign objects to multiple block variables
+Assignment via return should assign splatted objects to multiple block variables
+Return from within a begin should execute ensure before returning from function
+Return from within a begin should execute return in ensure before returning from function
+Return from within a begin should execute ensures in stack order before returning from function
+Return from within a begin should execute return at base of ensure stack

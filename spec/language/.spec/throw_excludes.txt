@@ -1,1 +1,2 @@
+The throw keyword should unwind stack from within a method
 The throw keyword should raise an exception if used to exit a thread

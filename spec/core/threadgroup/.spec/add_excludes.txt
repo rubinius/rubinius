@@ -1,0 +1,3 @@
+ThreadGroup#add adds the given thread to a group and returns self
+ThreadGroup#add adds the given thread to a group and returns self
+ThreadGroup#add removes itself from any other threadgroup

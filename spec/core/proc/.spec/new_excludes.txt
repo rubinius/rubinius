@@ -1,2 +1,3 @@
-Proc.new when called without a block inside a method without an attached block raises an ArgumentError
-Proc.new raises an ArgumentError when no block was passed
+Proc.new raises a LocalJumpError when context of block no longer exists
+Proc.new raises an ArgumentError when called without a block inside a method without an attached block
+Proc.new returns a new Proc instance from the block passed to the containing method

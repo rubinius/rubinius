@@ -1,0 +1,7 @@
+The next statement raises LocalJumpError if used not within block or while/for loop
+Assignment via next should assign objects
+Assignment via next should assign splatted objects
+Assignment via next should assign objects to a splatted reference
+Assignment via next should assign splatted objects to a splatted reference via a splatted yield
+Assignment via next should assign objects to multiple variables
+Assignment via next should assign splatted objects to multiple variables
