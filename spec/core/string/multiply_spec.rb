@@ -28,7 +28,7 @@ describe "String#*" do
   end
   
   it "raises a RangeError when given integer is a Bignum" do
-    lambda { "cool" * 9999999999 }.should raise_error(RangeError)
+    lambda { "cool" * 999999999999999999999 }.should raise_error(RangeError)
   end
   
   it "returns subclass instances" do
