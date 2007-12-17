@@ -31,15 +31,15 @@ opts = OptionParser.new("", 24, '   ') do |opts|
           "Formatter for reporting: s:specdox|d:dotted|c:ci|h:html|i:immediate") do |f|
     case f
     when 's', 'specdox', 'specdoc'
-      format = 'SpecDoxReporter'
+      format = 'SpecdocFormatter'
     when 'h', 'html'
-      format = 'HtmlReporter'
+      format = 'HtmlFormatter'
     when 'd', 'dot', 'dotted'
-      format = 'DottedReporter'
+      format = 'DottedFormatter'
     when 'c', 'ci', 'integration'
-      format = 'CIReporter'
+      format = 'CIFormatter'
     when 'i', 'immediate'
-      format = 'ImmediateReporter'
+      format = 'ImmediateFormatter'
     else
       puts "Unknown format: #{f}"
       puts opts

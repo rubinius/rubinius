@@ -29,21 +29,9 @@ class SpecRunner
     @env = Object.new
     @stack = []
     @formatter = formatter
-    
-    if @formatter == nil
-      if formatter = ENV['SPEC_FORMATTER']
-        klass = Object.const_get(formatter) rescue nil
-        if klass.nil?
-          puts "Unable to find formatter '#{formatter}', falling back."
-          @formatter = DottedFormatter.new
-        else
-          @formatter = klass.new
-        end
-      else
-        @formatter = DottedFormatter.new
-      end
+    if @formatter.nil?
+      @formatter = DottedFormatter.new
     end
-    
     @formatter.start_timer
   end
 
@@ -125,19 +113,21 @@ class SpecRunner
       @stack.last.before_all.each { |ba| @env.instance_eval &ba }
       @stack.last.it.each do |msg, b|
         formatter.before_it(msg)
-        begin
+        unless skip?
           begin
-            @stack.last.before_each.each { |be| @env.instance_eval &be }
-            @env.instance_eval &b unless skip?
-            Mock.verify_count
+            begin
+              @stack.last.before_each.each { |be| @env.instance_eval &be }
+              @env.instance_eval &b unless skip?
+              Mock.verify_count
+            rescue Exception => e
+              formatter.exception(e)
+            ensure
+              @stack.last.after_each.each { |ae| @env.instance_eval &ae }
+              Mock.cleanup
+            end
           rescue Exception => e
             formatter.exception(e)
-          ensure
-            @stack.last.after_each.each { |ae| @env.instance_eval &ae }
-            Mock.cleanup
           end
-        rescue Exception => e
-          formatter.exception(e)
         end
         formatter.after_it(msg)
       end

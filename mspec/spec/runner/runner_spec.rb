@@ -5,18 +5,16 @@ require File.dirname(__FILE__) + '/../../runner/formatters/ci'
 
 describe SpecRunner do
   before :each do
+    module Mock; end
+    Mock.stub!(:verify_count)
+    Mock.stub!(:cleanup)
+    
     @runner = SpecRunner.new
     @runner.instance_variable_set(:@stack, [DescribeState.new])
   end
   
   it "accepts a formatter when creating an instance" do
     SpecRunner.new(CIFormatter.new)
-  end
-  
-  it "attempts to get the desired formatter from the environment if one is not passed to new" do
-    ENV['SPEC_FORMATTER'] = 'CIFormatter'
-    SpecRunner.new.formatter.should be_an_instance_of(CIFormatter)
-    ENV.delete 'SPEC_FORMATTER'
   end
   
   it "defaults to the DottedFormatter if one is not passed to new" do
@@ -87,6 +85,10 @@ end
 
 describe SpecRunner, "complete run" do
   before :all do
+    module Mock; end
+    Mock.stub!(:verify_count)
+    Mock.stub!(:cleanup)
+    
     $runner_spec_runner = SpecRunner.new
     @report = CaptureOutput.new
     $runner_spec_runner.formatter = DottedFormatter.new(@report)
@@ -94,10 +96,6 @@ describe SpecRunner, "complete run" do
   end    
   
   it "provides #describe that yields to its block and calls all before, after, and it blocks" do
-    module Mock; end
-    Mock.stub!(:verify_count)
-    Mock.stub!(:cleanup)
-    
     run = []
     $runner_spec_runner.describe("") do
       $runner_spec_runner.before(:all)  { run << "before :all" }

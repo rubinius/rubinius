@@ -38,11 +38,7 @@ class BaseFormatter
   end
   
   def out=(out)
-    if out.respond_to?(:print)
-      @out = out
-    else
-      @out = File.open(out, "w")
-    end
+    @out = out
   end
   
   def out
@@ -58,7 +54,9 @@ class BaseFormatter
   end
   
   def stop_timer
-    "%f" % (Time.now - @start)
+    if @start
+      "%f" % (Time.now - @start)
+    end
   end
   
   def before_describe(msg)

@@ -111,22 +111,6 @@ if clean
   end
 end
 
-# def exclude(file)
-#   File.join(File.dirname(file), '.spec', File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
-# end
-# 
-# def mk_exclude_dir(file)
-#   dir = File.join(File.dirname(file), '.spec')
-#   Dir.mkdir(dir) unless File.exist?(dir)
-# end
-# 
-# File.open(ci_files, "w") do |f|
-#   files.each do |file|
-#     mk_exclude_dir file
-#     f.print "#{file} #{exclude file}\n"
-#   end
-# end
-# 
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
 require 'spec/spec_helper'
@@ -136,6 +120,10 @@ $VERBOSE=nil
 def exclude_name(file)
   File.join(File.dirname(file), '.spec', 
     File.basename(file, '.*').sub(/_spec$/, '_excludes') + '.txt')
+end
+
+def create_exclude_file(file)
+  File.open(exclude_name(file), "w")
 end
 
 def mk_exclude_dir(file)
@@ -165,16 +153,17 @@ all_excludes = read_excludes("spec/excludes.txt")
   STDERR.puts file if #{verbose}
   load file
   formatter.summary
+  %s
 end
 EOC
 
 case action
 when :create
-  code = code % ['exclude', 'except', '']
+  code = code % ['create_exclude_file(file)', 'except', '', 'formatter.out.close']
 when :run
-  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)']
+  code = code % ['STDOUT', 'except', 'spec_runner.except(*excludes)', '']
 when :invert
-  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)']
+  code = code % ['STDOUT', 'only', 'spec_runner.only(*excludes)', '']
 else
   puts "Unknown action: #{action}"
   puts opts
