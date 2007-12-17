@@ -16,7 +16,7 @@ describe "String#to_f" do
    "0o5".to_f.should == 0
    "0x5".to_f.should == 0
    
-   compliant(:mri) do
+   compliant(:ruby) do
      "NaN".to_f.should == 0
      "Infinity".to_f.should == 0
      "-Infinity".to_f.should == 0
