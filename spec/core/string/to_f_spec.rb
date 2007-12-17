@@ -16,9 +16,17 @@ describe "String#to_f" do
    "0o5".to_f.should == 0
    "0x5".to_f.should == 0
    
-   "NaN".to_f.should == 0
-   "Infinity".to_f.should == 0
-   "-Infinity".to_f.should == 0
+   compliant(:mri) do
+     "NaN".to_f.should == 0
+     "Infinity".to_f.should == 0
+     "-Infinity".to_f.should == 0
+   end
+   
+   noncompliant(:rubinius, :jruby) do
+     "NaN".to_f.nan?.should == true
+     "Infinity".to_f.infinite?.should == 1
+     "-Infinity".to_f.infinite?.should == -1
+   end
   end
 
   it "takes an optional sign" do
