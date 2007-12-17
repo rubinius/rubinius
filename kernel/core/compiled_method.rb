@@ -84,7 +84,9 @@ class CompiledMethod
   def name=(val)
     @name = val
   end
-  
+
+  # Lines consists of an array of tuples, with each tuple representing a line.
+  # The tuple for a line has fields for the first ip, last ip, and line number.
   def lines=(val)
     @lines = val
   end
@@ -176,27 +178,31 @@ activate_method
   # them up in the literals tuple.
   def decode
     stream = @bytecodes.decode
+    ip = 0
     stream.map! do |inst|
-      Instruction.new(inst, self)
+      instruct = Instruction.new(inst, self, ip)
+      ip += instruct.size
+      instruct
     end
   end
 
 
   class Instruction
-    def initialize(inst, cm)
-      @op = inst[0]
-      opcode = InstructionSet[@op]
+    def initialize(inst, cm, ip)
+      @op = InstructionSet[inst[0]]
       @args = inst[1..-1]
       @args.each_index do |i|
-        case opcode.args[i]
+        case @op.args[i]
         when :literal
-          @args[i] = cm.literals[@args[i]]
+          @args[i] = cm.literals[@args[i]].inspect
         end
       end
+      @ip = ip
+      @line = cm.line_from_ip(ip)
     end
 
     # Returns the symbol representing the opcode for this instruction
-    def op_code
+    def opcode
       @op.opcode
     end
 
@@ -205,12 +211,13 @@ activate_method
       @args
     end
 
+    def size
+      @args.size + 1
+    end
+
     def to_s
-      str = @op.to_s
-      @args.each do |arg|
-        str << "  " << arg.inspect
-      end
-      str
+      str = "%04d:  %-27s" % [@ip, opcode]
+      str << @args.join(', ')
     end
   end
 end

@@ -216,7 +216,10 @@ class InstructionSequence
         end
       rescue InstructionSet::InvalidOpCode => ex
         # If direct-threading is not used, we can get junk at the end of the iseq
-        raise ex unless last_op and last_op.terminator?
+        unless last_op and last_op.terminator?
+          ex.message << " at ip #{@offset}"
+          raise ex
+        end
       end
 
       return stream
