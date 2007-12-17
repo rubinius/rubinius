@@ -18,10 +18,6 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 
 */
 
-#if !CONFIG_BIG_ENDIAN
-#define FLIP_DATA 1
-#endif
-
 #define SHA1HANDSOFF /* Copies data before messing with it. */
 
 #include <sys/types.h>
@@ -30,6 +26,10 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 #include <stdio.h>
 #include <string.h>
 #include "sha1.h"
+
+#if !CONFIG_BIG_ENDIAN
+#define FLIP_DATA 1
+#endif
 
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
 
