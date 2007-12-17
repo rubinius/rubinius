@@ -36,17 +36,19 @@ describe "Hash#rehash" do
     h[k2].should == v2
   end
   
-  it "gives precedence to keys coming later in keys() on collisions" do
-    k1 = [1]
-    k2 = [2]
-    h = {}
-    h[k1] = 0
-    h[k2] = 1
+  compliant :ruby, :rubinius do
+    it "gives precedence to keys coming later in keys() on collisions" do
+      k1 = [1]
+      k2 = [2]
+      h = {}
+      h[k1] = 0
+      h[k2] = 1
 
-    k1.replace(k2)
-    override_val = h[h.keys.last]
-    h.rehash
-    h[k1].should == override_val
+      k1.replace(k2)
+      override_val = h[h.keys.last]
+      h.rehash
+      h[k1].should == override_val
+    end
   end
 
   compliant :ruby do
