@@ -11,9 +11,9 @@ stack_after:
   - object
   - ...
 description: >-
-  Consume a field count and allocate space for an object with the appropriate
+  Pop a field _count_ and allocate space for an object with the appropriate
   header and field space. The object created will be uninitialized; it will have
-  its parent class and all fields initialized to the special value nil.
+  its parent class and all fields initialized to the special value @nil@.
 source: |-
     _lit = stack_pop();
     stack_push(NEW_OBJECT(Qnil, FIXNUM_TO_INT(_lit)));

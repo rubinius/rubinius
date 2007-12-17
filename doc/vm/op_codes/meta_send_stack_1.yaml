@@ -6,16 +6,16 @@ format: meta_send_stack_1 mthd
 opcode: 74
 stack_before:
   - recv
-  - value
+  - arg
   - ...
 stack_after:
-  - value
+  - arg
   - ...
 description: >-
   Pops the receiver _recv_ off the top of the stack, and sends it the method 
-  identified by _mthd_. The single parameter _value_ to be used by the method
+  identified by _mthd_. The single parameter _arg_ to be passed to the method
   is left on the top of the stack.
-notes:
+notes: >-
   This is an optimised send for methods taking a single parameter and no block.
 source: |-
     next_literal;

@@ -17,12 +17,12 @@ stack_after:
   - ...
 description: >-
   Pops the top five items off the stack, using these to identify the object on
-  which to invoke the method (recv), the CompiledMethod instance to execute
-  (method/self), the number of argments the method defines (size), the locals
-  currently in scope, and any block passed to the method.
+  which to invoke the method (_recv_), the @CompiledMethod@ instance to execute
+  (_method_, i.e. @self@), the number of argments the method defines (_size_),
+  the _locals_ currently in scope, and any _block_ passed to the method.
   
   Additionally, the actual arguments to be passed to the method must also be on
-  the stack as an array, with the number of actual arguments passed (argc)
+  the stack as an array, with the number of actual arguments passed (_argc_)
   specified alongside the opcode; these arguments will be consumed from the
   stack when the method starts executing.
 used:

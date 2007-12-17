@@ -10,15 +10,4 @@ stack_after:
   - ...
 description: >-
   If the number of arguments is less than _min_, or greater than _max_, an
-  _ArgumentError_ is raised. If _max_ is zero, the number of allowed arguments
-  is unbounded.
-source: |-
-    next_int;
-    j = _int;
-    next_int;
-    
-    if(cpu_current_argcount(c) < (unsigned long int)j) {
-      cpu_raise_arg_error(state, c, cpu_current_argcount(c), j);
-    } else if(_int > 0 && cpu_current_argcount(c) > (unsigned long int)_int) {
-      cpu_raise_arg_error(state, c, cpu_current_argcount(c), _int);
-    }
+  _ArgumentError_ is raised.

@@ -6,17 +6,19 @@ format: meta_send_stack_2 mthd
 opcode: 75
 stack_before:
   - recv
-  - value1
-  - value2
+  - arg1
+  - arg2
   - ...
 stack_after:
-  - value1
-  - value2
+  - arg1
+  - arg2
   - ...
 description: >-
-    Pops the receiver _recv_ off the top of the stack, and sends it the method 
-    identified by _mthd_. The two parameters _value1_ and _value2_ to be used by
-    the method are left on the top of the stack.
+  Pops the receiver _recv_ off the top of the stack, and sends it the method 
+  identified by _mthd_. The two parameters _arg1_ and _arg2_ to be used by
+  the method are left on the top of the stack.
+notes: >-
+  This is an optimised send for methods taking two parameters and no block.
 source: |-
     next_literal;
     t1 = stack_pop();
