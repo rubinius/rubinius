@@ -19,7 +19,7 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 */
 
 #if !CONFIG_BIG_ENDIAN
-#define LITTLE_ENDIAN 1
+#define FLIP_DATA 1
 #endif
 
 #define SHA1HANDSOFF /* Copies data before messing with it. */
@@ -35,7 +35,7 @@ Modified by Evan Phoenix to incorporate into Rubinius.
 
 /* blk0() and blk() perform the initial expand. */
 /* I got the idea of expanding during the round function from SSLeay */
-#ifdef LITTLE_ENDIAN
+#ifdef FLIP_DATA
 #define blk0(i) (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
     |(rol(block->l[i],8)&0x00FF00FF))
 #else
@@ -195,40 +195,23 @@ void sha1_hash_string(unsigned char *input, int len, unsigned char *digest) {
 
 int main(int argc, char** argv)
 {
-int i, j;
-SHA1_CTX context;
-unsigned char digest[20], buffer[16384];
-FILE* file;
+  int i, j;
+  SHA1_CTX context;
+  unsigned char digest[20];
+  unsigned char data[] = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq\n";
 
-    if (argc > 2) {
-        puts("Public domain SHA-1 implementation - by Steve Reid <steve@edmweb.com>");
-        puts("Produces the SHA-1 hash of a file, or stdin if no file is specified.");
-        exit(0);
+  SHA1Init(&context);
+  
+  SHA1Update(&context, data, sizeof(data) - 1);
+  
+  SHA1Final(digest, &context);
+  for (i = 0; i < 5; i++) {
+    for (j = 0; j < 4; j++) {
+      printf("%02x", digest[i*4+j]);
     }
-    if (argc < 2) {
-        file = stdin;
-    }
-    else {
-        if (!(file = fopen(argv[1], "rb"))) {
-            fputs("Unable to open file.", stderr);
-            exit(-1);
-        }
-    } 
-    SHA1Init(&context);
-    while (!feof(file)) {  /* note: what if ferror(file) */
-        i = fread(buffer, 1, 16384, file);
-        SHA1Update(&context, buffer, i);
-    }
-    SHA1Final(digest, &context);
-    fclose(file);
-    for (i = 0; i < 5; i++) {
-        for (j = 0; j < 4; j++) {
-            printf("%02X", digest[i*4+j]);
-        }
-        putchar(' ');
-    }
-    putchar('\n');
-    exit(0);
+  }
+  putchar('\n');
+  exit(0);
 }
 
 #endif
