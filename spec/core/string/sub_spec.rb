@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes.rb'
+require File.dirname(__FILE__) + '/shared/sub.rb'
 
 describe "String#sub with pattern, replacement" do
   it "returns a copy of self with all occurrences of pattern replaced with replacement" do
@@ -354,27 +355,17 @@ describe "String#sub! with pattern and block" do
     lambda { str.sub!(//) { str << 'x' } }.should raise_error(RuntimeError)
   end
   
-  compliant :ruby, :jruby do
+  compliant :jruby do
+    it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
+  end
+  
+  compliant :ruby do
     version '1.8.4'..'1.8.5' do
-      it "raises a TypeError when self is frozen" do
-        s = "hello"
-        s.freeze
-    
-        s.sub!(/ROAR/) { "x" } # ok
-        lambda { s.sub!(/e/) { "e" }       }.should raise_error(TypeError)
-        lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(TypeError)
-      end    
+      it_behaves_like(:string_sub_bang_frozen_raises, TypeError)
     end
 
     version '1.8.6' do
-      it "raises a RuntimeError when self is frozen" do
-        s = "hello"
-        s.freeze
-    
-        s.sub!(/ROAR/) { "x" } # ok
-        lambda { s.sub!(/e/) { "e" }       }.should raise_error(RuntimeError)
-        lambda { s.sub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
-      end    
+      it_behaves_like(:string_sub_bang_frozen_raises, RuntimeError)
     end
   end
 end
