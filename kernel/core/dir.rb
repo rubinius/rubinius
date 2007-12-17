@@ -96,12 +96,14 @@ class Dir
   def self.chdir(path = ENV['HOME'])
     if block_given?
       original_path = self.getwd
-      Platform::POSIX.chdir path
+      error = Platform::POSIX.chdir path
+      Errno.handle(path) if error != 0
 
       begin
         value = yield path
       ensure
-        Platform::POSIX.chdir original_path
+        error = Platform::POSIX.chdir original_path
+        Errno.handle(original_path) if error != 0
       end
 
       return value

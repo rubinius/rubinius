@@ -37,6 +37,28 @@ describe "Dir.chdir" do
   
   it "raises a SystemCallError if the directory does not exist" do
     should_raise(SystemCallError) { Dir.chdir DirSpecs.nonexistent }
+    should_raise(SystemCallError) do
+      Dir.chdir(DirSpecs.nonexistent) { }
+    end
+  end
+
+  it "raises a SystemCallError if the original directory no longer exists" do
+    dir1 = File.dirname(__FILE__) + '/testdir1'
+    dir2 = File.dirname(__FILE__) + '/testdir2'
+    File.exist?(dir1).should == false
+    File.exist?(dir2).should == false
+    Dir.mkdir dir1
+    Dir.mkdir dir2
+    begin
+      should_raise(SystemCallError) do
+        Dir.chdir dir1 do
+          Dir.chdir(dir2) { Dir.unlink dir1 }
+        end
+      end
+    ensure
+      Dir.unlink dir1 if File.exist?(dir1)
+      Dir.unlink dir2 if File.exist?(dir2)
+    end
   end
 
   it "always returns to the original directory when given a block" do
