@@ -27,6 +27,7 @@ describe "Kernel#sleep" do
       5
     end    
     lock.receive.should == :ready
+    Thread.pass unless t.status == "sleep"
     t.run
     t.value.should == 5
   end
