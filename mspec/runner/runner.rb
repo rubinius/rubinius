@@ -72,11 +72,12 @@ class SpecRunner
     @except.concat convert_to_regexps(*args)
   end
   
-  def skip?
-    example = formatter.current.full_message
+  def skip?(example)
     @except.each { |re| return true if re.match(example) }
     return false if @only.empty?
-    return true unless @only.any? { |re| re.match(example) }
+    matched = @only.any? { |re| re.match(example) }
+    return true unless matched
+    return false
   end
 
   def before(at=:each, &block)
@@ -112,8 +113,8 @@ class SpecRunner
 
       @stack.last.before_all.each { |ba| @env.instance_eval &ba }
       @stack.last.it.each do |msg, b|
-        formatter.before_it(msg)
-        unless skip?
+        unless skip?(msg)
+          formatter.before_it(msg)
           begin
             begin
               @stack.last.before_each.each { |be| @env.instance_eval &be }
@@ -128,8 +129,8 @@ class SpecRunner
           rescue Exception => e
             formatter.exception(e)
           end
+          formatter.after_it(msg)
         end
-        formatter.after_it(msg)
       end
     ensure
       @stack.last.after_all.each { |aa| @env.instance_eval &aa }
