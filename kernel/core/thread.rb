@@ -110,6 +110,12 @@ class Thread
     end
   end
 
+  def self.stop()
+    Thread.cristical = false
+    sleep
+    nil
+  end
+  
   def join(timeout = Undefined)
     join_inner(timeout) do
       break nil if @alive
