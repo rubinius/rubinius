@@ -46,11 +46,6 @@ int g_access_violation;
 
 static int _recursive_reporting = 0;
 
-static OBJECT string_newfrombstr(STATE, bstring output)
-{
-	return string_new2(state, (const char*)output->data, output->slen);
-}
-
 #define SYM2STR(st, sym) string_byte_address(st, rbs_symbol_to_string(st, sym))
 
 static int _ip2line(STATE, OBJECT meth, int ip) {

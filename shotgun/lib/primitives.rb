@@ -288,15 +288,7 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
     POP(t1, FIXNUM);
-    k = FIXNUM_TO_INT(t1);
-    if(k % 4 == 0) {
-      k = k / sizeof(OBJECT);
-    } else {
-      k = (k + sizeof(OBJECT))/sizeof(OBJECT);
-    }
-    t2 = NEW_OBJECT(self, k);
-    object_make_byte_storage(state, t2);
-    stack_push(t2);
+    stack_push(bytearray_new(state, FIXNUM_TO_INT(t1)));
     CODE
   end
 

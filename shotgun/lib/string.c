@@ -6,8 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-
-int debugging = 0;
+#include <bstrlib.h>
 
 #define STRING_P(obj) (REFERENCE_P(obj) && obj->klass == state->global->string)
 
@@ -23,12 +22,13 @@ OBJECT string_new2(STATE, const char *str, int sz) {
 
   data = bytearray_new_dirty(state, sz+1);
   ba = bytearray_byte_address(state, data);
-  if(str == NULL) {
-    memset(ba, 0, sz);
-  } else {
+  memset(ba, 0, SIZE_OF_BODY(data));
+  
+  if(str != NULL && sz > 0) {
     memcpy(ba, str, sz);
     ba[sz] = 0;
   }
+  
   string_set_data(obj, data);
   return obj;
 }
@@ -51,6 +51,15 @@ OBJECT string_new_shared(STATE, OBJECT cur) {
   string_set_shared(obj, Qtrue);
   string_set_shared(cur, Qtrue);
   return obj;
+}
+
+OBJECT string_newfrombstr(STATE, bstring str)
+{
+  if(str == NULL) {
+    return string_new2(state, NULL, 0);
+  }
+
+  return string_new2(state, (const char*)str->data, str->slen);
 }
 
 OBJECT string_dup(STATE, OBJECT self) {

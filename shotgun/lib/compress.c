@@ -7,10 +7,6 @@
 
 #define ZLIB_CHUNK_SIZE 512
 
-static OBJECT string_newfrombstr(STATE, bstring output)
-{
-	return string_new2(state, (const char*)output->data, output->slen);
-}
 OBJECT compress_inflate(STATE, unsigned char* in) {
   unsigned char out_buffer[ZLIB_CHUNK_SIZE];
   bstring output = NULL;

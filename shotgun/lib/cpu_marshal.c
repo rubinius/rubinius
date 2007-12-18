@@ -18,11 +18,6 @@
 
 #include "primitive_util.h"
 
-static OBJECT string_newfrombstr(STATE, bstring output)
-{
-	return string_new2(state, bdata(output), blength(output));
-}
-
 struct marshal_state {
   int consumed;
   ptr_array objects;

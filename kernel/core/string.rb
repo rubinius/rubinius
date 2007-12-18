@@ -15,19 +15,22 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
+  def self.new(arg=0)
+    return arg.dup if arg.kind_of? String
+    super
+  end
+
   # Can't be changed if run inside instance_eval with no param passed in
-  def initialize(arg = nil)
+  def initialize(arg=0)
     if arg.kind_of?(Fixnum)
-      arg ||= ""
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
       @encoding = nil
-    elsif !@bytes || arg
-      replace(arg || "")
+    else
+      replace(StringValue(arg))
     end
-    self
   end
   # private :initialize
 

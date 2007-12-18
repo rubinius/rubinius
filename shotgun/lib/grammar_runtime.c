@@ -8,11 +8,6 @@
 #include "symbol.h"
 #include "grammar.h"
 
-static OBJECT string_newfrombstr(STATE, bstring output)
-{
-	return string_new2(state, bdata(output), blength(output));
-}
-
 static OBJECT float_from_bstring(STATE, bstring str)
 {
 	return float_from_string(state, bdata(str));
