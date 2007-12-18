@@ -42,13 +42,19 @@ OBJECT ffi_amd64_generate_c_shim(STATE,
   char*   code; 
   void**  code_ptr; 
   void*   converter; 
-  int     i, offset, reg_count, xmm_count; 
+  int     i, offset, reg_count, xmm_count, flags = MAP_PRIVATE;
       
   /* Only 6 arguments currently */
   if(arg_count > 6) return Qnil;
 
+#ifdef MAP_ANONYMOUS
+  flags |= MAP_ANONYMOUS;
+#else
+  flags |= MAP_ANON;
+#endif
+
   start = mmap(NULL, FFI_CODE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
-               MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+               flags, -1, 0);
   code = start;
 
   /* Function prolog */
