@@ -92,7 +92,7 @@ class Thread
     end
   end
 
-  def join(timeout=nil)
+  def join(timeout = Undefined)
     join_inner(timeout) do
       break nil if @alive
       self
@@ -108,10 +108,10 @@ class Thread
   end
 
   def value
-    join_inner(nil) { @result }
+    join_inner { @result }
   end
 
-  def join_inner(timeout)
+  def join_inner(timeout = Undefined)
     result = nil
     @lock.receive
     begin
@@ -120,7 +120,10 @@ class Thread
         @joins << jc
         @lock.send nil        
         begin
-          Scheduler.send_in_microseconds(jc, (timeout * 1_000_000).to_i) if timeout
+          unless timeout == Undefined
+            timeout = Time.at timeout
+            Scheduler.send_in_microseconds(jc, (timeout.to_f * 1_000_000).to_i)
+          end
           jc.receive
         ensure
           @lock.receive
@@ -133,6 +136,7 @@ class Thread
     end
     result
   end
+  private :join_inner
   
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
