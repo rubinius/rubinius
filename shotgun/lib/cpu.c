@@ -79,7 +79,7 @@ void cpu_initialize_context(STATE, cpu c) {
         string_new(state, "inherited"));
 
   state->global->sym_method_added = string_to_sym(state, 
-        string_new(state, "method_added"));
+        string_new(state, "__method_added__"));
         
   state->global->sym_s_method_added = string_to_sym(state,
         string_new(state, "singleton_method_added"));

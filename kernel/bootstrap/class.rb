@@ -8,9 +8,18 @@ class Class
     raise RuntimeError, "primitive 'allocate' failed on #{self.inspect}"
   end
   
-  def new(*a)
-    obj = allocate
-    obj.initialize(*a)
+  def new(*args)
+    obj = allocate()
+    Ruby.asm <<-CODE
+#local args
+cast_array_for_args 0
+push_array
+push_block
+#local obj
+set_call_flags 1
+&send initialize +
+    CODE
+
     return obj
   end
   
@@ -20,7 +29,6 @@ class Class
   def instance_fields=(num)
     @instance_fields = num
   end
-
 end
 
 class RuntimePrimitive

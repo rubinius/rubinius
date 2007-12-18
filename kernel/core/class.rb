@@ -1,16 +1,4 @@
 class Class
-    
-  # Need to get rid of this cleverness
-  def new(*args)
-    obj = allocate()
-    block = Ruby.asm "push_block"
-    if block
-      obj.initialize(*args, &block)
-    else
-      obj.initialize(*args)
-    end
-    obj
-  end
 
   def self.new(sclass=Object)
     raise TypeError, "superclass must be a Class (#{sclass.class.name} given)" unless sclass.kind_of?(Class)

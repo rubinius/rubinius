@@ -69,7 +69,7 @@ static int _ip2line(STATE, OBJECT meth, int ip) {
 }
 
 void machine_print_callstack_limited(machine m, int maxlev) {
-  OBJECT context;
+  OBJECT context, tmp;
   const char *modname, *methname, *filename;
   struct fast_context *fc;
 
@@ -84,7 +84,7 @@ void machine_print_callstack_limited(machine m, int maxlev) {
     methctx_reference(m->s, context);
     fc = FASTCTX(context);
 
-    if(RTEST(fc->method_module)) {
+    if(fc->method_module && RTEST(fc->method_module)) {
       modname = SYM2STR(m->s, module_get_name(fc->method_module));
     } else {
       modname = "<none>";
@@ -92,14 +92,23 @@ void machine_print_callstack_limited(machine m, int maxlev) {
 
     if(fc->type == FASTCTX_BLOCK) {
       methname = "<block>";
-    } else if(RTEST(fc->name)) {
-      methname = SYM2STR(m->s, fc->name);
+    } else if(fc->name && RTEST(fc->name)) {
+      if(SYMBOL_P(fc->name)) {
+        methname = SYM2STR(m->s, fc->name);
+      } else {
+        methname = "<unknown>";
+      }
     } else {
       methname = "<none>";
     }
     
-    if(RTEST(fc->method)) {
-      filename = SYM2STR(m->s, cmethod_get_file(fc->method));
+    if(fc->method && RTEST(fc->method)) {
+      tmp = cmethod_get_file(fc->method);
+      if(SYMBOL_P(tmp)) {
+        filename = SYM2STR(m->s, tmp);
+      } else {
+        filename = "<unknown>";
+      }
     } else {
       filename = "<unknown>";
     }

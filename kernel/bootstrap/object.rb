@@ -118,7 +118,7 @@ locate_method
     raise NoMethodError, "Unable to send #{meth}"
   end
 
-  def raise(cls, str)
+  def raise(cls, str, junk=nil)
     STDOUT.write "Fatal error in bootstrap/core:\n  "
     STDOUT.write str
     STDOUT.write " ("

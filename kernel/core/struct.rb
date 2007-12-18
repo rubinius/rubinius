@@ -99,6 +99,8 @@ class Struct
       end
     end
   end
+  
+  private :initialize
     
   def length
     @index.size

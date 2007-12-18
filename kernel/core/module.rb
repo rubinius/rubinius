@@ -35,13 +35,31 @@ class Module
     nesting
   end
   
-  def initialize()
+  def initialize
     block = Ruby.asm "push_block"
     instance_eval(&block) if block
     # I think we need this for constant lookups
     @parent = ::Object
   end
-
+  
+  # HACK: This should work after after the bootstrap is loaded,
+  # but it seems to blow things up, so it's only used after
+  # core is loaded. I think it's because the bootstrap Class#new
+  # doesn't use a privileged send.
+  def __method_added__cv(name)
+    if name == :initialize
+      private :initialize
+    end
+    
+    method_added(name) if self.respond_to? :method_added
+  end
+  
+  def name
+    return @name.to_s if @name
+    return calculate_name()    
+  end
+  
+  
   def to_s
     if @name
       @name.to_s
@@ -301,18 +319,6 @@ class Module
     self
   end
 
-  # A fixup, move the core versions in place now that everything
-  # is loaded.
-  def self.after_loaded
-    alias_method :alias_method, :alias_method_cv
-    alias_method :include, :include_cv
-    alias_method :private, :private_cv
-    alias_method :append_features, :append_features_cv
-    alias_method :attr_reader, :attr_reader_cv
-    alias_method :attr_writer, :attr_writer_cv
-    alias_method :attr_accessor, :attr_accessor_cv
-  end
-  
   def module_exec(*args, &prc)
     instance_exec(*args, &prc)
   end
@@ -362,7 +368,7 @@ class Module
   end
 
   def const_set(name, value)
-    if value.is_a?(Class)
+    if value.is_a? Module
       value.set_name_if_necessary(name, self)
     end
     constants_table[normalize_const_name(name)] = value
@@ -459,11 +465,7 @@ class Module
     # inst.metaclass < self & true rescue false
     false
   end
-
-# FIXME this should be protected but protected doesn't currently
-# work  
-#protected 
-
+  
   def set_name_if_necessary(name, mod)
     return unless @name.nil?
     name = name.dup
@@ -474,7 +476,45 @@ class Module
     @name = name
   end
   
+  # A fixup, move the core versions in place now that everything
+  # is loaded.
+  def self.after_loaded
+    alias_method :__method_added__, :__method_added__cv
+    alias_method :alias_method, :alias_method_cv
+    alias_method :include, :include_cv
+    alias_method :private, :private_cv
+    alias_method :append_features, :append_features_cv
+    alias_method :attr_reader, :attr_reader_cv
+    alias_method :attr_writer, :attr_writer_cv
+    alias_method :attr_accessor, :attr_accessor_cv
+  end
+  
 private
+
+  def calculate_name
+    # This should be removed if/when constant assignment happens
+    # via const_set() - it's pretty ugly!
+    
+    seen = { Object => true }
+    constants = [[Object, Object.constants_table]]
+        
+    until constants.empty?
+      mod, table = constants.shift
+      table.each do |const_name, value|
+        if value.equal? self
+          set_name_if_necessary(const_name.to_s, mod)
+          return @name.to_s
+        elsif value.is_a? Module
+          unless seen[value]
+            constants << [value, value.constants_table] 
+            seen[value] = true
+          end
+        end
+      end
+    end
+    
+    return ""
+  end
 
   def remove_const(name)
     const_missing(name) unless constants_table.has_key?(name)
