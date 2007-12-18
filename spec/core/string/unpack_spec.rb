@@ -7,7 +7,12 @@ describe "String#unpack" do
     "abc \0\0".unpack('a3a3').should == ["abc", " \000\000"]
     "aa".unpack('b8B8').should == ["10000110", "01100001"]
     "aaa".unpack('h2H2c').should == ["16", "61", 97]
-    "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
+    compliant (:ruby) do
+      # Note: The result depends on the platform the test
+      # is being executed (not good).
+      # Also, For JRuby, the byte order is always big-endian.
+      "\xfe\xff\xfe\xff".unpack('sS').should == [-2, 65534]
+    end
     "now=20is".unpack('M*').should == ["now is"]
     "whole".unpack('xax2aX2aX1aX2a').should == ["h", "e", "l", "l", "o"]
   end
