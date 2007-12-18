@@ -1,1 +1,0 @@
-Thread#join can accept a floating point timeout length

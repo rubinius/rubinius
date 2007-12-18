@@ -1,2 +1,0 @@
-Thread#abort_on_exception should be false unless $DEBUG is true
-Thread#abort_on_exception should be changeable to true or false

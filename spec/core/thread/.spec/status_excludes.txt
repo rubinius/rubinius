@@ -1,0 +1,1 @@
+Thread#status returns nil if thread terminates with exception

@@ -1,3 +1,0 @@
-Kernel#sleep returns the rounded number of seconds asleep
-Kernel#sleep raises a TypeError when passed a non-numeric duration
-Kernel#sleep pauses execution indefinitely if not given a duration

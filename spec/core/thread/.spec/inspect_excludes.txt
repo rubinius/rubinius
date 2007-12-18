@@ -1,1 +1,0 @@
-Thread#inspect shows the thread's status
