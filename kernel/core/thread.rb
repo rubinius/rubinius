@@ -178,11 +178,20 @@ class Thread
   end
 
   def [](key)
-    @__ivars__[key.to_sym]
+    @__ivars__[Type.coerce_to(key,Symbol,:to_sym)]
   end
 
   def []=(key, value)
-    @__ivars__[key.to_sym] = value
+    @__ivars__[Type.coerce_to(key,Symbol,:to_sym)] = value
+  end
+
+  # FIXME: @__ivars__ contains all the local variables not just user-level ones
+  def keys
+    @__ivars__.keys
+  end
+
+  def key?(key)
+    @__ivars__.key?(Type.coerce_to(key,Symbol,:to_sym))
   end
   
   def set_debugging(dc, cc)
