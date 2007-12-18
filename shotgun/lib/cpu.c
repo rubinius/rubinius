@@ -455,8 +455,8 @@ static void cpu_increment_serials(STATE, OBJECT module, OBJECT sym) {
 
 void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   OBJECT meths, vis;
-  // Handle a special case where we try and add a method to main
-  if(target == c->main) {
+  
+  if(!ISA(target, BASIC_CLASS(module))) {
     target = c->enclosing_class;
   }
   

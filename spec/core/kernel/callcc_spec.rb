@@ -46,16 +46,9 @@ describe "Kernel#callcc" do
   end
 
   it "preserves changes to method-local scope" do
-    def before_and_after
-      i = "before"
-      cont = callcc { |c| c }
-      if cont # nil the second time
-        i = "after"
-        cont.call
-      end
-      i
-    end
-    before_and_after.should == "after"
+    # This spec tests that a continuation shares the same locals
+    # tuple as the scope that created it.
+    KernelSpecs.before_and_after.should == "after"
   end
 
   it "raises a LocalJumpError if callcc is not given a block" do

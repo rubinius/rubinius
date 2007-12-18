@@ -156,7 +156,7 @@ class RsLocalState
     @depth = 0
     @nostack_access = []
     @block_access = []
-    @uses_eval = false
+    @uses_eval = true
     
     @alloca = 1
     @alloca_locals = {}
