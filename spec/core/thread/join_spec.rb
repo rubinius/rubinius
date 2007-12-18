@@ -21,14 +21,19 @@ describe "Thread#join" do
     ensure
       c << true
     end
+    t.join.should == t
   end
 
-  it "can accept a floating point timeout length" do
-    start = Time.now
-    t = Thread.new { sleep }
-    t.join(0.0).should == nil
-    t.run
-    ((Time.now - start) < 0.01).should == true
+  it "should accept a floating point timeout length" do
+    c = Channel.new
+    lock = Channel.new
+    t = Thread.new { c.receive }
+    begin
+      t.join(0.01).should == nil
+    ensure
+      c << true
+    end
+    t.join.should == t
   end
   
   it "raises any exceptions encountered in the thread body" do

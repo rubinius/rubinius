@@ -3,13 +3,14 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#sleep" do
   it "pauses execution for approximately the duration requested" do
+    duration = 0.01
     start = Time.now
-    sleep 0.1
-    (Time.now - start).should be_close(0.1, 0.1)
+    sleep duration
+    (Time.now - start).should be_close(duration, duration)
   end
   
   it "returns the rounded number of seconds asleep" do
-    sleep(0.1).should be_kind_of(Integer)
+    sleep(0.01).should be_kind_of(Integer)
   end
   
   it "raises a TypeError when passed a non-numeric duration" do
@@ -19,16 +20,14 @@ describe "Kernel#sleep" do
   end
   
   it "pauses execution indefinitely if not given a duration" do
-    flag = nil
+    lock = Channel.new
     t = Thread.new do
+      lock << :ready
       sleep
-      flag = 5
-    end
-    
-    flag.should == nil
-    Thread.pass until t.status == 'sleep'
-    flag.should == nil
+      5
+    end    
+    lock.receive.should == :ready
     t.run
-    flag.should == 5
+    t.value.should == 5
   end
 end
