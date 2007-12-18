@@ -740,15 +740,16 @@ module Bytecode
       end
       
       def process_loop(x)
-        b = @break
+        cm = save_condmod()
         @break = unique_lbl('break_')
         top = unique_lbl('loop_')
+        @redo = top
         set_label top
         process(x.shift)
         add "pop"
         goto top
         set_label @break
-        @break = b
+        restore_condmod(*cm)
       end
       
       def process_break(x)

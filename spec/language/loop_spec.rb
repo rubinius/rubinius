@@ -63,6 +63,6 @@ describe "The loop expression" do
       a << 3
       break if a.size > 6
     end
-    a.should == [1, 1, 2, 1, 2,3, 1, 2, 3]
+    a.should == [1, 1, 2, 1, 2, 3, 1, 2, 3]
   end  
 end
