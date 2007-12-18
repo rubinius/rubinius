@@ -22,7 +22,7 @@ module MSpec
     !!case name
     when :rbx, :rubinius
       RUBY_NAME =~ /^rbx/
-    when :mri, :ruby
+    when :ruby
       RUBY_NAME =~ /^ruby(1\.[^9])?/
     when :ruby19
       RUBY_NAME == 'ruby1.9'

@@ -24,11 +24,6 @@ describe MSpec, ".engine?" do
     MSpec.engine?(:ruby).should == true
   end
   
-  it "returns true if passed :mri and RUBY_NAME == 'ruby'" do
-    Object.const_set :RUBY_NAME, 'ruby'
-    MSpec.engine?(:mri).should == true
-  end
-  
   it "returns true if passed :rbx and RUBY_NAME == 'rbx'" do
     Object.const_set :RUBY_NAME, 'rbx'
     MSpec.engine?(:rbx).should == true

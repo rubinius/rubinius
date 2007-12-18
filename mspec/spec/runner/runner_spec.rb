@@ -53,9 +53,7 @@ describe SpecRunner do
   
   it "provides #skip? that returns true if current spec full message matches an except element" do
     @runner.except('this one')
-    @runner.formatter.before_describe('this')
-    @runner.formatter.before_it('one')
-    @runner.skip?.should == true
+    @runner.skip?('this one').should == true
   end
   
   it "provides #before that accepts :each and a block" do
