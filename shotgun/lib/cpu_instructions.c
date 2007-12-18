@@ -845,12 +845,6 @@ static inline void _cpu_build_and_activate(STATE, cpu c, OBJECT mo,
         OBJECT recv, OBJECT sym, int args, OBJECT block, int missing, OBJECT mod) {
   OBJECT ctx;
   c->call_flags = 0;
-  if(missing) {
-    cpu_flush_ip(c);
-    DEBUG("%05d: Missed Calling %s => %s on %s (%p/%d) (%d).\n", c->depth,
-     rbs_symbol_to_cstring(state, cmethod_get_name(cpu_current_method(state, c))),
-     rbs_symbol_to_cstring(state, sym), _inspect(recv), cpu_current_method(state, c), c->ip, missing);
-  }
 
   if(missing) {
     args += 1;

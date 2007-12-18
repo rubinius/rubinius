@@ -18,8 +18,8 @@ class MethodTable
     ary = Array.new
     keys.each do |meth|
       m = self[meth]
-
-      if m.is_a?(AccessVarMethod) || m.is_a?(DelegatedMethod) || m && m.first == filter
+      
+      if m.kind_of? RuntimePrimitive or (m.kind_of?(Tuple) and m.first == filter)
         ary << meth.__send__(format)
       end
     end

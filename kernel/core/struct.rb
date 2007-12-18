@@ -99,7 +99,7 @@ class Struct
       end
     end
   end
-
+    
   def length
     @index.size
   end
@@ -198,7 +198,15 @@ class Struct
   alias_method :to_s, :inspect
 
   def hash
-    @map.hash
+    # cribbed from MRI's struct.c
+    h = self.class.hash
+    mask = Platform::Fixnum.MAX
+    @map.each do |k, v|
+      h = mask & ((h << 1) | (h > 0 ? 1 : 0))
+      h ^= v.hash
+    end
+    
+    h & mask
   end
   
   # FIXME: This should eventually just be a struct, once struct is working right
