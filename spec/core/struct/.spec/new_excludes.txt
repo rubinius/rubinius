@@ -1,3 +1,0 @@
-Struct.new raises TypeError if object is not a Symbol
-Struct.new creates reader methods
-Struct.new creates writer methods
