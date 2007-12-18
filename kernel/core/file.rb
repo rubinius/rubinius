@@ -8,29 +8,29 @@ class File < IO
     W_OK = 2 # test for write permission
     R_OK = 4 # test for read permission
 
-    # TODO: these flags should probably be imported from Platform
     FNM_NOESCAPE = 0x01;
     FNM_PATHNAME = 0x02;
     FNM_DOTMATCH = 0x04;
     FNM_CASEFOLD = 0x08;
 
+    # TODO: these flags should probably be imported from Platform
     LOCK_SH  = 0x01
     LOCK_EX  = 0x02
     LOCK_NB  = 0x04
     LOCK_UN  = 0x08
-
-    RDONLY   = 0x00
-    WRONLY   = 0x01
-    RDWR     = 0x02
     BINARY   = 0x04
+
+    RDONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDONLY']
+    WRONLY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_WRONLY']
+    RDWR     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_RDWR']
     
-    CREAT    = 0x40
-    EXCL     = 0x80
-    NOCTTY   = 0x100
-    TRUNC    = 0x200
-    APPEND   = 0x400
-    NONBLOCK = 0x800
-    SYNC     = 0x1000
+    CREAT    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_CREAT']
+    EXCL     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_EXCL']
+    NOCTTY   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NOCTTY']
+    TRUNC    = Rubinius::RUBY_CONFIG['rbx.platform.file.O_TRUNC']
+    APPEND   = Rubinius::RUBY_CONFIG['rbx.platform.file.O_APPEND']
+    NONBLOCK = Rubinius::RUBY_CONFIG['rbx.platform.file.O_NONBLOCK']
+    SYNC     = Rubinius::RUBY_CONFIG['rbx.platform.file.O_SYNC']
   end
   include Constants
 

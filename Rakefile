@@ -8,6 +8,7 @@ $compiler = nil
 
 require 'tsort'
 require 'rakelib/struct_generator'
+require 'rakelib/const_generator'
 
 begin
   require 'rubygems'
@@ -542,8 +543,42 @@ file 'runtime/platform.conf' do
   fel = sg.field :d_name
   sg.calculate
   
+  # FIXME these constants don't have standard names.
+  # LOCK_SH == Linux, O_SHLOCK on Bsd/Darwin, etc.
+  # Binary doesn't exist at all in many non-Unix variants.
+  # This should come out of something like config.h
+  fixme_constants = %w{
+    LOCK_SH  
+    LOCK_EX  
+    LOCK_NB  
+    LOCK_UN  
+    BINARY   
+  }
+  
+  file_constants = %w{
+    O_RDONLY   
+    O_WRONLY   
+    O_RDWR     
+    O_CREAT    
+    O_EXCL     
+    O_NOCTTY   
+    O_TRUNC    
+    O_APPEND   
+    O_NONBLOCK 
+    O_SYNC     
+  }
+  
+  cg = ConstGenerator.new
+  cg.include "fcntl.h"
+  file_constants.each { |c| cg.const c }
+  cg.calculate
+  
   File.open("runtime/platform.conf", "w") do |f|
     f.puts "rbx.platform.dir.d_name = #{fel.offset}"
+    file_constants.each do | name |
+      const = cg.constants[name]
+      f.puts "rbx.platform.file.#{name} = #{const.converted_value}"
+    end
   end
   
 end
