@@ -14,7 +14,7 @@ describe "Module#attr_accessor" do
       o.respond_to?("#{x}=").should == true
     end
     
-    compliant :mri do
+    compliant :ruby do
       o.respond_to?('b').should == true
       o.respond_to?("b=").should == true
     end
@@ -22,7 +22,7 @@ describe "Module#attr_accessor" do
     o.a = "a"
     o.a.should == "a"
 
-    compliant :mri do
+    compliant :ruby do
       o.b = "b"
       o.b.should == "b"
     end

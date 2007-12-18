@@ -70,7 +70,7 @@ describe "String#to_i" do
     end
   end
   
-  noncompliant :mri do
+  noncompliant :ruby do
     it "exposes weird strtoul behaviour" do
       "0b-1".to_i(0).should == 4294967295
       "0d-1".to_i(0).should == 4294967295

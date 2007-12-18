@@ -8,7 +8,7 @@ describe "File.readlink" do
     File.delete(@file3) if File.exists?(@file3)
      
     File.open(@file1, 'w+') { } # 
-    compliant :mri, :rubinius do
+    compliant :ruby, :rubinius do
       File.symlink(@file1, @file3)
     end
   end 

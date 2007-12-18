@@ -31,7 +31,7 @@ describe "Module#protected_method_defined?" do
     ModuleSpecs::CountsMixin.protected_method_defined?(:protected_3).should == true
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises an exception on improper argument" do
       lambda { ModuleSpecs::CountsMixin.protected_method_defined?(1)     }.should raise_error(ArgumentError)
       lambda { ModuleSpecs::CountsMixin.protected_method_defined?(nil)   }.should raise_error(TypeError)

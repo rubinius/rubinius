@@ -82,7 +82,7 @@ shared :string_succ_bang do |cmd|
       end
     end
     
-    compliant :mri, :jruby do
+    compliant :ruby, :jruby do
       it "raises a TypeError if self is frozen" do
         lambda { "".freeze.send(cmd)     }.should raise_error(TypeError)
         lambda { "abcd".freeze.send(cmd) }.should raise_error(TypeError)

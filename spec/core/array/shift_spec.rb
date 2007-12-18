@@ -20,7 +20,7 @@ describe "Array#shift" do
     [].shift.should == nil
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.shift }.should raise_error(TypeError)
     end

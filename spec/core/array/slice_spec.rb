@@ -124,7 +124,7 @@ describe "Array#slice!" do
     a.should == [1, 2, nil, nil, nil, nil, nil, nil, nil, nil]
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.slice!(0, 0) }.should raise_error(TypeError)
     end

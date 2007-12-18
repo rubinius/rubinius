@@ -89,7 +89,7 @@ context "A ruby environment" do
   # I (Evan) am not certain we'll support defined?(super) ever.
   # for now, i'm marking these as compliant.
 
-  compliant :mri do
+  compliant :ruby do
     specify "should return true when Bar#no_args uses defined?" do
       (!!Bar.new.no_args).should == true
     end

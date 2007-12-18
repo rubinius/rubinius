@@ -19,14 +19,14 @@ describe "Module#attr_reader" do
       o.respond_to?("#{x}=").should == false
     end
 
-    compliant :mri do
+    compliant :ruby do
       o.respond_to?('b').should == true
       o.respond_to?("b=").should == false
     end
 
     o.a.should == "test"
 
-    compliant :mri do
+    compliant :ruby do
       o.b.should == "test2"
     end
 

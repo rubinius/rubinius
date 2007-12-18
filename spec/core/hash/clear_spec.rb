@@ -18,7 +18,7 @@ describe "Hash#clear" do
     h.default_proc.should_not == nil
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
       lambda { HashSpecs.hash.clear  }.should raise_error(TypeError)
       lambda { HashSpecs.empty.clear }.should raise_error(TypeError)

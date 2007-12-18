@@ -14,7 +14,7 @@ describe "Hash#initialize" do
     h["a"].should == "aa"
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
       lambda { HashSpecs.hash.instance_eval { initialize() }     }.should raise_error(TypeError)
       lambda { HashSpecs.hash.instance_eval { initialize(nil) }  }.should raise_error(TypeError)

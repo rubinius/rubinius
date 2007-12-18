@@ -31,7 +31,7 @@ describe "Module#private_method_defined?" do
     ModuleSpecs::CountsMixin.private_method_defined?(:private_3).should == true
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises an exception on improper argument" do
       lambda { ModuleSpecs::CountsMixin.private_method_defined?(1)     }.should raise_error(ArgumentError)
       lambda { ModuleSpecs::CountsMixin.private_method_defined?(nil)   }.should raise_error(TypeError)

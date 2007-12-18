@@ -29,7 +29,7 @@ describe "The retry statement" do
   end
 
   # block retry is crazy. rubinius is not planning to currently implement it.
-  compliant :mri do
+  compliant :ruby do
     it "should retry entire enumeration" do
       list = []
       [1,2,3].each do |x|

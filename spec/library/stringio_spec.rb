@@ -647,7 +647,7 @@ describe "StringIO#reopen" do
       str.should == ''
     end
 
-    compliant :mri, :jruby do
+    compliant :ruby, :jruby do
       it "should deny access to prevent truncation of a frozen string" do
         @io = StringIO.new("ice")
         lambda { @io.reopen("burn".freeze, 'w') }.should raise_error(Errno::EACCES)

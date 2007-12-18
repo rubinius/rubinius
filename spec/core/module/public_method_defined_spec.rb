@@ -31,7 +31,7 @@ describe "Module#public_method_defined?" do
     ModuleSpecs::CountsMixin.public_method_defined?(:public_3).should == true
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises an exception on improper argument" do
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(1)     }.should raise_error(ArgumentError)
       lambda { ModuleSpecs::CountsMixin.public_method_defined?(nil)   }.should raise_error(TypeError)

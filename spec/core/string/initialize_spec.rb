@@ -28,7 +28,7 @@ describe "String#initialize" do
     a.tainted?.should == true
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       a = "hello".freeze
 

@@ -98,7 +98,7 @@ describe "String#[]= with index" do
     lambda { "hi"[0] = obj }.should raise_error(TypeError)
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "hello"
       a.freeze
@@ -140,7 +140,7 @@ describe "String#[]= with String" do
     lambda { ""[-1] = "bam" }.should raise_error(IndexError)
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "hello"
       a.freeze

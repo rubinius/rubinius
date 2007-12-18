@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
-compliant :mri, :jruby do
+compliant :ruby, :jruby do
   describe "Module#freeze" do
     it "prevents further modifications to self" do
       m = Module.new.freeze

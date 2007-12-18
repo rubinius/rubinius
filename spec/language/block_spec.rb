@@ -24,7 +24,7 @@ describe "Block parameters" do
     i.should == 3
   end
 
-  compliant :mri do
+  compliant :ruby do
     require 'spec/language/strange_block_args_subspec.rb'
   end
 

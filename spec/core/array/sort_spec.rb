@@ -41,7 +41,7 @@ describe "Array#sort!" do
     a.should == [5, 4, 3, 2, 1]
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.sort! }.should raise_error(TypeError)
     end

@@ -13,7 +13,7 @@ describe "Module#attr_writer" do
       o.respond_to?("#{x}=").should == true
     end
 
-    compliant :mri do
+    compliant :ruby do
       o.respond_to?('b').should == false
       o.respond_to?("b=").should == true
     end
@@ -21,7 +21,7 @@ describe "Module#attr_writer" do
     o.a = "test"
     o.instance_variable_get(:@a).should == "test"
 
-    compliant :mri do
+    compliant :ruby do
       o.b = "test2"
       o.instance_variable_get(:@b).should == "test2"
     end

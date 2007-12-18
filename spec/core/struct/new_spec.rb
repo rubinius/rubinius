@@ -60,7 +60,7 @@ describe "Struct.new" do
     lambda { Struct.new(:animal, { :name => 'chris' }) }.should raise_error(TypeError)
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError if object is not a Symbol" do
       obj = Object.new
       def obj.to_sym() :ruby end

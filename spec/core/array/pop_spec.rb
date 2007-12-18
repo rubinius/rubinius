@@ -22,7 +22,7 @@ describe "Array#pop" do
     [].pop.should == nil
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.pop }.should raise_error(TypeError)
     end

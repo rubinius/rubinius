@@ -40,7 +40,7 @@ shared :hash_update do |cmd|
       merge_bang_pairs.should == merge_pairs
     end
 
-    compliant :mri do
+    compliant :ruby do
       it "raises TypeError if called on a non-empty, frozen instance" do
         HashSpecs.hash.send(cmd, HashSpecs.empty) # ok, empty
         lambda { HashSpecs.hash.send(cmd, 1 => 2) }.should raise_error(TypeError)

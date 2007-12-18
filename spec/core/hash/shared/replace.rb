@@ -45,7 +45,7 @@ shared :hash_replace do |cmd|
       hash_a.default.should == hash_b.default
     end
 
-    compliant :mri do
+    compliant :ruby do
       it "raises TypeError if called on a frozen instance" do
         HashSpecs.hash.send(cmd, HashSpecs.hash) # ok, nothing changed
         lambda { HashSpecs.hash.send(cmd, HashSpecs.empty) }.should raise_error(TypeError)

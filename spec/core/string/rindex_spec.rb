@@ -29,7 +29,7 @@ describe "String#rindex with object" do
     end
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     version "1.8.6" do
       it "tries to convert obj to a string via to_str" do
         obj = Object.new

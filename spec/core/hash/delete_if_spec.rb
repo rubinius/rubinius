@@ -27,7 +27,7 @@ describe "Hash#delete_if" do
     each_pairs.should == delete_pairs
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError if called on a frozen instance" do
       lambda { HashSpecs.hash.delete_if { false } }.should raise_error(TypeError)
       lambda { HashSpecs.empty.delete_if { true } }.should raise_error(TypeError)

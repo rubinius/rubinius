@@ -96,7 +96,7 @@ describe "String#delete!" do
     a.should == "hello"
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "hello"
       a.freeze

@@ -9,13 +9,13 @@ describe "File.identical?" do
      
     File.open(@file1,"w+") { |f| f.puts "file1" }
     File.open(@file2,"w+") { |f| f.puts "file2" }
-    compliant :mri, :rubinius do
+    compliant :ruby, :rubinius do
       File.link(@file1, @file3)
     end
   end
   
   after :each do
-    compliant :mri, :rubinius do
+    compliant :ruby, :rubinius do
       File.unlink(@file3)
     end
     File.delete(@file1) if File.exists?(@file1)    

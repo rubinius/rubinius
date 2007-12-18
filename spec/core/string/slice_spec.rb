@@ -23,7 +23,7 @@ describe "String#slice! with index" do
     a.should == "hello"
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       lambda { "hello".freeze.slice!(1) }.should raise_error(TypeError)
     end
@@ -107,7 +107,7 @@ describe "String#slice! with index, length" do
     a.should == "hello"
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       lambda { "hello".freeze.slice!(1, 2) }.should raise_error(TypeError)
     end
@@ -214,7 +214,7 @@ describe "String#slice! Range" do
     a.slice!(range_incl).should == "OO"
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       lambda { "hello".freeze.slice!(1..3) }.should raise_error(TypeError)
     end
@@ -280,7 +280,7 @@ describe "String#slice! with Regexp" do
     $~.should == nil
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       lambda { "this is a string".freeze.slice!(/s.*t/) }.should raise_error(TypeError)
     end
@@ -364,7 +364,7 @@ describe "String#slice! with Regexp, index" do
     $~.should == nil
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       lambda { "this is a string".freeze.slice!(/s.*t/) }.should raise_error(TypeError)
     end
@@ -428,7 +428,7 @@ describe "String#slice! with String" do
     r.class.should == MyString
   end
 
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       lambda { "hello hello".freeze.slice!('llo') }.should raise_error(TypeError)
     end

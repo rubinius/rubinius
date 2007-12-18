@@ -63,7 +63,7 @@ describe "String#chop!" do
     "".chop!.should == nil
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError when self is frozen" do
       a = "string\n\r"
       a.freeze

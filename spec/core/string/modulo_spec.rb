@@ -442,7 +442,7 @@ describe "String#%" do
 
   # MRI crashes on this one.
   # See http://groups.google.com/group/ruby-core-google/t/c285c18cd94c216d
-  # failure :mri do
+  # failure :ruby do
   #   it "raises ArgumentError for huge precisions for %s" do
   #     raise_error(ArgumentError) do
   #       "%.25555555555555555555555555555555555555s" % "hello world"

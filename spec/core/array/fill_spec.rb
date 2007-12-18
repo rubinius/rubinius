@@ -97,7 +97,7 @@ describe "Array#fill" do
     a.should == [1, 'x', 'x']
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(TypeError)
     end

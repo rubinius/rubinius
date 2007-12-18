@@ -30,7 +30,7 @@ describe "String#rstrip!" do
     a.should == "hello"
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       "hello".freeze.rstrip! # ok, nothing changed
       "".freeze.rstrip! # ok, nothing changed

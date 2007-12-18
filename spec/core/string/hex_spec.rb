@@ -23,7 +23,7 @@ describe "String#hex" do
     "0x0a".hex.should == 10
 
     # Weird strtoul behaviour, see to_i_spec.rb
-    noncompliant :mri do
+    noncompliant :ruby do
       "0x0x1".hex.should == 1
       "0x-1".hex.should == (2 ** 32) - 1
     end

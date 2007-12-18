@@ -40,7 +40,7 @@ describe "Array#initialize" do
     ArraySpecs.frozen_array.instance_eval { initialize() }.should == ArraySpecs.frozen_array
   end
 
-  compliant :mri do
+  compliant :ruby do
     it "raises TypeError on frozen arrays" do
       lambda { ArraySpecs.frozen_array.instance_eval { initialize(1) } }.should raise_error(TypeError)
       lambda { ArraySpecs.frozen_array.instance_eval { initialize([1, 2, 3]) } }.should raise_error(TypeError)

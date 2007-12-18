@@ -36,7 +36,7 @@ shared :array_replace do |cmd|
       ary.should == [5, 6, 7]
     end
 
-    compliant :mri do
+    compliant :ruby do
       it "raises TypeError on a frozen array" do
         lambda { ArraySpecs.frozen_array.send(cmd, ArraySpecs.frozen_array) }.should raise_error(TypeError)
       end

@@ -92,7 +92,7 @@ describe "String#tr_s!" do
     s.should == "hello"
   end
   
-  compliant :mri, :jruby do
+  compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       s = "hello".freeze
       lambda { s.tr_s!("el", "ar") }.should raise_error(TypeError)

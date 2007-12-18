@@ -24,7 +24,7 @@ shared :string_concat do |cmd|
       lambda { a = 'hello '.send(cmd, Object.new) }.should raise_error(TypeError)
     end
 
-    compliant :mri, :jruby do
+    compliant :ruby, :jruby do
       it "raises a TypeError when self is frozen" do
         a = "hello"
         a.freeze
@@ -70,7 +70,7 @@ shared :string_concat do |cmd|
       lambda { "".send(cmd, x) }.should raise_error(TypeError)
     end
   
-    compliant :mri, :jruby do
+    compliant :ruby, :jruby do
       it "raises a TypeError when self is frozen" do
         a = "hello"
         a.freeze
