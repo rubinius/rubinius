@@ -10,7 +10,7 @@ class Thread
   def self.abort_on_exception
     @abort_on_exception
   end
-  
+
   def self.abort_on_exception=(val)
     @abort_on_exception = val
   end
@@ -18,7 +18,7 @@ class Thread
   def inspect
     stat = status()
     stat = "dead" unless stat
-    
+
     "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
   end
 
@@ -29,6 +29,7 @@ class Thread
     @alive = true
     @result = nil
     @exception = nil
+    @critical = false
     @locals = {}
     @lock = Channel.new
     @lock.send nil if prime_lock
@@ -50,7 +51,7 @@ class Thread
           begin
             @result = block.call *args
           rescue IllegalLongReturn => e2
-            Kernel.raise ThreadError, 
+            Kernel.raise ThreadError,
                       "return is not allowed across threads", e2.context
           end
         ensure
@@ -65,7 +66,7 @@ class Thread
       ensure
         @lock.send nil
       end
-      
+
       if Thread.abort_on_exception
         Thread.main.raise @exception
       end
@@ -76,7 +77,7 @@ class Thread
     block = Ruby.asm "push_block"
     @task.associate block
   end
-  
+
   def self.new(*args)
     block = Ruby.asm "push_block"
     th = allocate()
@@ -84,7 +85,7 @@ class Thread
     th.wakeup
     return th
   end
-  
+
   def current_context
     @task.current_context
   end
@@ -111,22 +112,30 @@ class Thread
   end
 
   def self.stop()
-    Thread.cristical = false
+    Thread.critical = false
     sleep
     nil
   end
-  
+
+  def self.critical
+    @critical
+  end
+
+  def self.critical=(value)
+    @critical = value
+  end
+
   def join(timeout = Undefined)
     join_inner(timeout) do
       break nil if @alive
       self
     end
   end
-  
+
   def group
     @group
   end
-  
+
   def add_to_group(group)
     @group = group
   end
@@ -142,7 +151,7 @@ class Thread
       if @alive
         jc = Channel.new
         @joins << jc
-        @lock.send nil        
+        @lock.send nil
         begin
           unless timeout == Undefined
             timeout = Time.at timeout
@@ -161,7 +170,7 @@ class Thread
     result
   end
   private :join_inner
-  
+
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
       exc = exc.exception msg
@@ -172,15 +181,15 @@ class Thread
     else
       Kernel.raise TypeError, 'exception class/object expected'
     end
-    
+
     if $DEBUG
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
-    
+
     ctx = @task.current_context
 
     exc.set_backtrace ctx unless exc.backtrace
-    
+
     @task.raise exc
   end
 
@@ -199,7 +208,7 @@ class Thread
   def key?(key)
     @locals.key?(Type.coerce_to(key,Symbol,:to_sym))
   end
-  
+
   def set_debugging(dc, cc)
     @task.set_debugging(dc, cc)
   end
