@@ -207,9 +207,21 @@ module Kernel
     ret[start..-1]
   end
 
-  def sleep(duration = nil)
-    Thread.sleep(duration)
+  # Sleeps the current thread for +duration+ seconds.
+  def sleep(duration = Undefined)
+    start = Time.now
+    chan = Channel.new
+    # No duration means we sleep forever. By not registering anything with
+    # Scheduler, the receive call will effectively block until someone
+    # explicitely wakes this thread.
+    unless duration == Undefined
+      duration = Time.at duration
+      Scheduler.send_in_microseconds(chan, (duration.to_f * 1_000_000).to_i)
+    end
+    chan.receive
+    return (Time.now - start).round
   end
+  
   
   def at_exit(&block)
     Rubinius::AtExit.unshift(block)
