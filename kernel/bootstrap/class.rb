@@ -1,7 +1,7 @@
 
 class Class
   
-  ivar_as_index :method_table => 1, :superclass => 6, :instance_fields => 7, :instance_flags => 8
+  ivar_as_index :method_table => 1, :superclass => 6, :instance_fields => 7, :has_ivars => 8, :needs_cleanup => 9, :object_type => 10
   
   def allocate
     Ruby.primitive :allocate
@@ -29,6 +29,15 @@ set_call_flags 1
   def instance_fields=(num)
     @instance_fields = num
   end
+  
+  def object_type=(type)
+    @object_type = type
+  end
+  
+  def object_type
+    @object_type
+  end
+
 end
 
 class RuntimePrimitive
@@ -47,7 +56,7 @@ end
 
 class AccessVarMethod < RuntimePrimitive
   self.instance_fields = 5
-  
+
   def self.get_ivar(name)
     obj = allocate()
     obj.put RuntimePrimitive::PrimitiveIndex, RuntimePrimitive::GetIvar
@@ -90,6 +99,9 @@ end
 # only instance of load order mattering)
 class IncludedModule < Module
   self.instance_fields = 8
+
+  # HACK: make this a VM exported constant
+  self.object_type = 7
 
   ivar_as_index :superclass => 6, :module => 7
   def superclass; @superclass ; end

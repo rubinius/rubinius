@@ -56,6 +56,7 @@ typedef enum
   MetaclassType   = 4,
   MTType          = 5,
   WrapsStructType = 6,
+  IncModType      = 7,
 } object_type;
 
 /* rubinius_object gc zone, takes up two bits */
@@ -83,7 +84,7 @@ typedef enum
 struct rubinius_object_t {
   union {
     struct {
-      object_type     obj_type    : 3;
+      object_type     obj_type    : 6;
       gc_zone         gc_zone     : 2;
       unsigned int    copy_count  : 3;
 

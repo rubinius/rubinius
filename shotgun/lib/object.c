@@ -5,6 +5,7 @@
 #include "hash.h"
 #include "string.h"
 #include "tuple.h"
+#include "class.h"
 
 OBJECT object_new(STATE) {
   return object_allocate(state);
@@ -57,6 +58,11 @@ int object_kind_of_p(STATE, OBJECT self, OBJECT cls) {
   while(RTEST(found)) {
     found = class_get_superclass(found);
     if(found == cls) { return TRUE; }
+    
+    if(REFERENCE_P(found) && found->obj_type == IncModType) {
+      if(included_module_get_module(found) == cls) { return TRUE; }
+    }
+    
   }
   
   return FALSE;
