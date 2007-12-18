@@ -5,7 +5,7 @@ describe "Thread#inspect" do
   it "shows the thread's status" do
     x = nil
     t = Thread.new { x = Thread.current.inspect; sleep 4 }
-    Thread.pass until t.status == false || t.status == 'sleep'
+    Thread.pass while t.status == 'run'
     x.include?('run').should == true
     t.inspect.include?('sleep').should == true
     t.kill

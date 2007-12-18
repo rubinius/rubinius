@@ -5,8 +5,21 @@
 class Thread
   ivar_as_index :__ivars__ => 0, :priority => 1, :task => 2, :joins => 3
 
+  @abort_on_exception = false
+
+  def self.abort_on_exception
+    @abort_on_exception
+  end
+  
+  def self.abort_on_exception=(val)
+    @abort_on_exception = val
+  end
+
   def inspect
-    "#<#{self.class}:0x#{object_id.to_s(16)}>"
+    stat = status()
+    stat = "dead" unless stat
+    
+    "#<#{self.class}:0x#{object_id.to_s(16)} #{stat}>"
   end
 
   def setup(prime_lock)
@@ -50,6 +63,10 @@ class Thread
         @exception = e
       ensure
         @lock.send nil
+      end
+      
+      if Thread.abort_on_exception
+        Thread.main.raise @exception
       end
     end
   end
