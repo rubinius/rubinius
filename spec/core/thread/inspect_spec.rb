@@ -26,7 +26,7 @@ describe "Thread#inspect" do
     t.inspect.should include('dead')
   end
 
-  compliant(:mri) do
+  compliant(:ruby) do
     it "should report aborting on a killed thread" do
       c = Channel.new
       t = Thread.new { c << Thread.current.inspect; Thread.stop }
