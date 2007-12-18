@@ -29,6 +29,7 @@ class Thread
     @alive = true
     @result = nil
     @exception = nil
+    @locals = {}
     @lock = Channel.new
     @lock.send nil if prime_lock
   end
@@ -178,20 +179,19 @@ class Thread
   end
 
   def [](key)
-    @__ivars__[Type.coerce_to(key,Symbol,:to_sym)]
+    @locals[Type.coerce_to(key,Symbol,:to_sym)]
   end
 
   def []=(key, value)
-    @__ivars__[Type.coerce_to(key,Symbol,:to_sym)] = value
+    @locals[Type.coerce_to(key,Symbol,:to_sym)] = value
   end
 
-  # FIXME: @__ivars__ contains all the local variables not just user-level ones
   def keys
-    @__ivars__.keys
+    @locals.keys
   end
 
   def key?(key)
-    @__ivars__.key?(Type.coerce_to(key,Symbol,:to_sym))
+    @locals.key?(Type.coerce_to(key,Symbol,:to_sym))
   end
   
   def set_debugging(dc, cc)
