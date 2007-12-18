@@ -178,11 +178,11 @@ class Thread
   end
 
   def [](key)
-    @__ivars__[key]
+    @__ivars__[key.to_sym]
   end
 
   def []=(key, value)
-    @__ivars__[key] = value
+    @__ivars__[key.to_sym] = value
   end
   
   def set_debugging(dc, cc)
