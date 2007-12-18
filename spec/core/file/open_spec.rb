@@ -359,6 +359,15 @@ describe "File.open" do
     @fh = File.open(@file, "wb")
   end
   
+  it "should open a file for read-write and truncate the file" do
+    @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
+    @fh = File.open(@file, "w+")    
+    @fh.pos.should == 0
+    @fh.eof?.should == true
+    @fh.close
+    File.size(@file).should == 0
+  end
+
   it "should open a file for binary read-write starting at the beginning of the file" do
     @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
     @fh = File.open(@file, "rb+")
@@ -368,9 +377,11 @@ describe "File.open" do
   
   it "should open a file for binary read-write and truncate the file" do
     @fh = File.open(@file, "w") { |f| f.puts("testing") } # Make sure the file is not empty 
-    @fh = File.open(@file, "wb+")    
+    @fh = File.open(@file, "wb+")
     @fh.pos.should == 0
     @fh.eof?.should == true
+    @fh.close
+    File.size(@file).should == 0  
   end
    
   specify "expected errors " do
