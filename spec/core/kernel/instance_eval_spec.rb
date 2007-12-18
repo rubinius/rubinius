@@ -17,7 +17,7 @@ describe "Kernel#instance_eval" do
   it "binds self to the receiver" do
     s = "hola"
     (s == s.instance_eval { self }).should == true
-    o = Object.new
+    o = mock('o')
     (o == o.instance_eval("self")).should == true
   end
   

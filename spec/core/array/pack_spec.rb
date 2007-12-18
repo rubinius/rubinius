@@ -66,7 +66,7 @@ describe "Array#pack" do
   it "raises TypeError if array item is not String with ('A')" do
     lambda { [123].pack('A5') }.should raise_error(TypeError)
     lambda { [:hello].pack('A5') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('A5') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('A5') }.should raise_error(TypeError)
   end
 
   it "should work with multi-digit padding sizes with ('A')" do
@@ -96,7 +96,7 @@ describe "Array#pack" do
   it "raises TypeError if array item is not String with ('a')" do
     lambda { [123].pack('a5') }.should raise_error(TypeError)
     lambda { [:hello].pack('a5') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('a5') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('a5') }.should raise_error(TypeError)
   end
 
   it "returns packed bit-string descending order with ('B')" do
@@ -164,7 +164,7 @@ describe "Array#pack" do
   it "raises TypeError if corresponding array item is not String with ('B')" do
     lambda { [123].pack('B8') }.should raise_error(TypeError)
     lambda { [:data].pack('B8') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('B8') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('B8') }.should raise_error(TypeError)
   end
 
   it "returns packed bit-string descending order with ('b')" do
@@ -232,7 +232,7 @@ describe "Array#pack" do
   it "raises TypeError if corresponding array item is not String with ('b')" do
     lambda { [123].pack('b8') }.should raise_error(TypeError)
     lambda { [:data].pack('b8') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('b8') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('b8') }.should raise_error(TypeError)
   end
 
   it "returns string with char of appropriate number with ('C')" do
@@ -433,7 +433,7 @@ describe "Array#pack" do
   it "raises TypeError if corresponding array item is not string with ('m')" do
     lambda { [123].pack('m') }.should raise_error(TypeError)
     lambda { [:hello].pack('m') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('m') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('m') }.should raise_error(TypeError)
   end
 
   it "ignores count parameter with ('m')" do
@@ -491,7 +491,7 @@ describe "Array#pack" do
   it "raises TypeError if corresponding array item is not string with ('u')" do
     lambda { [123].pack('u') }.should raise_error(TypeError)
     lambda { [:hello].pack('u') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('u') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('u') }.should raise_error(TypeError)
   end
 
   it "ignores count parameter with ('u')" do
@@ -574,7 +574,7 @@ describe "Array#pack" do
   it "raises TypeError if array item is not String with ('Z')" do
     lambda { [123].pack('Z5') }.should raise_error(TypeError)
     lambda { [:hello].pack('Z5') }.should raise_error(TypeError)
-    lambda { [Object.new].pack('Z5') }.should raise_error(TypeError)
+    lambda { [mock('not string')].pack('Z5') }.should raise_error(TypeError)
   end
 
   # Scenario taken from Mongrel's use of the SO_ACCEPTFILTER struct

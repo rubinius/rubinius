@@ -13,11 +13,11 @@ describe "Array#at" do
     a = ["a", "b", "c"]
     a.at(0.5).should == "a"
     
-    obj = Object.new
+    obj = mock('to_int')
     obj.should_receive(:to_int).and_return(2)
     a.at(obj).should == "c"
     
-    obj = Object.new
+    obj = mock('method_missing to_int')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(2)
     a.at(obj).should == "c"

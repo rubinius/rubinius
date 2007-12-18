@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#taint" do
   it "sets self to be tainted" do
-    Object.new.taint.tainted?.should == true
+    mock('tainted?').taint.tainted?.should == true
   end
   
   it "has no effect on immediate values" do

@@ -10,12 +10,12 @@ describe "Bignum#eql? when given a Bignum" do
 end
 
 describe "Bignum#eql? when given a non-Bignum" do
-  it "returns false if the given argument is no Bignum" do
+  it "returns false if the given argument is not a Bignum" do
     a = BignumHelper.sbm(13)
     a.eql?(2).should == false
     a.eql?(3.14).should == false
     a.eql?(:symbol).should == false
     a.eql?("String").should == false
-    a.eql?(Object.new).should == false
+    a.eql?(mock('str')).should == false
   end
 end

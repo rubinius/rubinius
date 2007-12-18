@@ -3,7 +3,7 @@ shared :array_indexes do |cmd|
     it "returns elements at integer argument indexes (DEPRECATED)" do
       array = [1, 2, 3, 4, 5]
 
-      x = Object.new
+      x = mock('4')
       def x.to_int() 4 end
 
       params = [1, 0, 5, -1, -8, 10, x]
@@ -13,11 +13,11 @@ shared :array_indexes do |cmd|
     it "calls to_int on arguments" do
       array = [1, 2, 3, 4, 5]
 
-      x = Object.new
+      x = mock('4')
       def x.to_int() 4 end
       array.send(cmd, x).should == [5]
 
-      x = Object.new
+      x = mock('2')
       x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       x.should_receive(:method_missing).with(:to_int).and_return(2)
       array.send(cmd, x).should == [3]

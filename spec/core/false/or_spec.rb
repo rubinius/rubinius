@@ -6,6 +6,6 @@ describe "FalseClass#|" do
     (false | true).should == true
     (false | nil).should == false
     (false | "").should == true
-    (false | Object.new).should == true
+    (false | mock('x')).should == true
   end
 end

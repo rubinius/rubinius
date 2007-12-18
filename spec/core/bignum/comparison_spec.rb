@@ -23,8 +23,8 @@ describe "Bignum#<=>" do
     (@bignum <=> 4.5).should == 1
   end
 
-  it "returns nil when the given argument is no Integer" do
-    (@bignum <=> Object.new).should == nil
+  it "returns nil when the given argument is not an Integer" do
+    (@bignum <=> mock('str')).should == nil
     (@bignum <=> 'test').should == nil
   end
 end

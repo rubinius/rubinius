@@ -23,7 +23,7 @@ describe "Hash.[]" do
   end
   
   it "does not call to_hash" do
-    obj = Object.new
+    obj = mock('x')
     def obj.to_hash() { 1 => 2, 3 => 4 } end
     lambda { Hash[obj] }.should raise_error(ArgumentError)
   end
@@ -36,7 +36,7 @@ end
 
 describe "Hash#[]" do
   it "returns the value for key" do
-    obj = Object.new
+    obj = mock('x')
     h = { 1 => 2, 3 => 4, "foo" => "bar", obj => obj, [] => "baz" }
     h[1].should == 2
     h[3].should == 4
@@ -100,7 +100,7 @@ describe "Hash#[]" do
 
   it "compares key via hash" do
     # Can't use should_receive because it uses hash internally
-    x = Object.new
+    x = mock('0')
     def x.hash() 0 end
 
     { }[x].should == nil
@@ -108,8 +108,8 @@ describe "Hash#[]" do
 
   it "does not compare key with unknown hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
-    x = Object.new
-    y = Object.new
+    x = mock('x')
+    y = mock('y')
     def x.eql?(o) raise("Shouldn't receive eql?") end
 
     def x.hash() 0 end
@@ -120,10 +120,10 @@ describe "Hash#[]" do
 
   it "compares key with found hash code via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
-    y = Object.new
+    y = mock('0')
     def y.hash() 0 end
 
-    x = Object.new
+    x = mock('0')
     def x.hash()
       def self.eql?(o) taint; false; end
       return 0
@@ -132,7 +132,7 @@ describe "Hash#[]" do
     { y => 1 }[x].should == nil
     x.tainted?.should == true
 
-    x = Object.new
+    x = mock('0')
     def x.hash()
       def self.eql?(o) taint; true; end
       return 0

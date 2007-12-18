@@ -8,11 +8,11 @@ describe "Array#values_at" do
   end
 
   it "calls to_int on its indices" do
-    obj = Object.new
+    obj = mock('1')
     def obj.to_int() 1 end
     [1, 2].values_at(obj, obj, obj).should == [2, 2, 2]
     
-    obj = Object.new
+    obj = mock('1')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(1)
     [1, 2].values_at(obj).should == [2]
@@ -24,8 +24,8 @@ describe "Array#values_at" do
   end
 
   it "calls to_int on arguments of ranges when passes ranges" do
-    from = Object.new
-    to = Object.new
+    from = mock('from')
+    to = mock('to')
 
     # So we can construct a range out of them...
     def from.<=>(o) 0 end
@@ -37,8 +37,8 @@ describe "Array#values_at" do
     ary = [1, 2, 3, 4, 5]
     ary.values_at(from .. to, from ... to, to .. from).should == [2, 3, 4, 2, 3]
 
-    from = Object.new
-    to = Object.new
+    from = mock('from')
+    to = mock('to')
     
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end

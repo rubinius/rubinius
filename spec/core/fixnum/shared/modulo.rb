@@ -25,7 +25,7 @@ shared :fixnum_modulo do |cmd|
 
     it "raises a TypeError when given a non-Integer" do
       lambda {
-        (obj = Object.new).should_receive(:to_int).any_number_of_times.and_return(10)
+        (obj = mock('10')).should_receive(:to_int).any_number_of_times.and_return(10)
         13.send(cmd, obj)
       }.should raise_error(TypeError)
       lambda { 13.send(cmd, "10")    }.should raise_error(TypeError)

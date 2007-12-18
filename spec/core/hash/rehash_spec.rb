@@ -17,10 +17,10 @@ describe "Hash#rehash" do
     h.key?(k1).should == true
     h[k1].should == 0
     
-    k1 = Object.new
-    k2 = Object.new
-    v1 = Object.new
-    v2 = Object.new
+    k1 = mock('k1')
+    k2 = mock('k2')
+    v1 = mock('v1')
+    v2 = mock('v2')
     
     # Can't use should_receive here because it uses hash() internally
     def v1.hash() raise("values shouldn't be rehashed"); end

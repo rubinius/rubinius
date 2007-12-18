@@ -15,8 +15,8 @@ describe "Hash#index" do
     {1 => 0}.index(0.0).should == 1
     {1 => 0.0}.index(0).should == 1
     
-    needle = Object.new
-    inhash = Object.new
+    needle = mock('needle')
+    inhash = mock('inhash')
     inhash.should_receive(:==).with(needle).and_return(true)
     
     {1 => inhash}.index(needle).should == 1

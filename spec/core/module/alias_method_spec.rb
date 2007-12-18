@@ -33,14 +33,14 @@ describe "Module#alias_method" do
     @class.make_alias :deux, "public_one"
     @class.make_alias "trois", :public_one
     @class.make_alias :quatre, :public_one
-    name = Object.new
+    name = mock('cinq')
     name.should_receive(:to_str).any_number_of_times.and_return("cinq")
     @class.make_alias name, "public_one"
     @class.make_alias "cinq", name
   end
 
   it "raises TypeError when the given name can't be converted using to_str" do
-    lambda { @class.make_alias Object.new, :public_one }.should raise_error(TypeError)
+    lambda { @class.make_alias mock('x'), :public_one }.should raise_error(TypeError)
   end
 
   it "is a private method" do

@@ -19,11 +19,11 @@ describe "Array#*" do
   end
 
   it "calls to_str on its argument" do
-    obj = Object.new
+    obj = mock('x')
     def obj.to_str() "x" end
     ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
     
-    obj = Object.new
+    obj = mock('x')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("x")
     ([1, 2, 3] * obj).should == [1, 2, 3].join("x")
@@ -42,12 +42,12 @@ describe "Array#*" do
   end
   
   it "calls to_int on its argument" do
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
 
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_int
     
-    obj = Object.new
+    obj = mock('2')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(false)
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(2)
@@ -55,7 +55,7 @@ describe "Array#*" do
   end
 
   it "calls to_str on its argument before to_int" do
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
     def obj.to_str() "x" end
     ([1, 2, 3] * obj).should == [1, 2, 3] * obj.to_str
@@ -68,6 +68,6 @@ describe "Array#*" do
   end
 
   it "raises TypeError if the argument can neither be converted to a string nor an integer" do
-    lambda { [1, 2] * Object.new }.should raise_error(TypeError)
+    lambda { [1, 2] * mock('str') }.should raise_error(TypeError)
   end  
 end

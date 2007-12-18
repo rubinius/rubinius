@@ -69,6 +69,6 @@ describe "File.join" do
     File.join.should == ""
 
     # arguments must respond to to_str
-    lambda { File.join(Object.new) }.should raise_error(TypeError)
+    lambda { File.join(mock('x')) }.should raise_error(TypeError)
   end
 end

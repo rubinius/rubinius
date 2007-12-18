@@ -21,11 +21,11 @@ describe "Array.new" do
   end
 
   it "calls to_int on size" do
-    obj = Object.new
+    obj = mock('3')
     def obj.to_int() 3 end
     Array.new(obj).should == [nil, nil, nil]
     
-    obj = Object.new
+    obj = mock('3')
     obj.should_receive(:respond_to?).with(:to_ary).and_return(false)
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(3)
@@ -47,7 +47,7 @@ describe "Array.new" do
   end
   
   it "returns a new array by calling to_ary on an array-like argument" do
-    obj = Object.new
+    obj = mock('[:foo]')
     def obj.to_ary() [:foo] end
     Array.new(obj).should == [:foo]
     
@@ -55,7 +55,7 @@ describe "Array.new" do
     a.class.should == MyArray
     a.inspect.should == [:foo].inspect
 
-    obj = Object.new
+    obj = mock('[:foo]')
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_ary).any_number_of_times.and_return([:foo])
     Array.new(obj).should == [:foo]
@@ -66,7 +66,7 @@ describe "Array.new" do
   end
   
   it "calls to_ary on an argument before to_int" do
-    obj = Object.new
+    obj = mock('[1,2,3]')
     def obj.to_ary() [1, 2, 3] end
     def obj.to_int() 3 end
 

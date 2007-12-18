@@ -9,14 +9,14 @@ describe "Kernel.String" do
     Kernel.String(false).should == "false"
     Kernel.String(Object).should == "Object"
 
-    (obj = Object.new).should_receive(:to_s).and_return("test")
+    (obj = mock('test')).should_receive(:to_s).and_return("test")
     Kernel.String(obj).should == "test"
   end
 
 # TODO: does not work yet because of undef_method
 #
 #  it "raises a TypeError of #to_s is not provided" do
-#    class << (obj = Object.new)
+#    class << (obj = mock('to_s'))
 #      undef_method :to_s
 #    end
 #    
@@ -26,7 +26,7 @@ describe "Kernel.String" do
 #  end
   
   it "raises a TypeError if #to_s does not return a String" do
-    (obj = Object.new).should_receive(:to_s).and_return(123)
+    (obj = mock('123')).should_receive(:to_s).and_return(123)
     lambda { Kernel.String(obj) }.should raise_error(TypeError)
   end
 end

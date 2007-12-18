@@ -6,7 +6,7 @@ describe "Array#==" do
     [].should == []
     ["a", "c", 7].should == ["a", "c", 7]
 
-    obj = Object.new
+    obj = mock('5')
     def obj.==(other) true end
     [obj].should == [5]
   end
@@ -16,7 +16,7 @@ describe "Array#==" do
   end
   
   it "returns false immediately when sizes of the arrays differ" do
-    obj = Object.new
+    obj = mock('1')
     obj.should_not_receive(:==)
     
     [].should_not == [obj]
@@ -27,7 +27,7 @@ describe "Array#==" do
   # http://rubyforge.org/tracker/index.php?func=detail&aid=11585&group_id=426&atid=1698
   compliant(:r19) do
     it "calls to_ary on its argument" do
-      obj = Object.new
+      obj = mock('to_ary')
       obj.should_receive(:to_ary).and_return([1, 2, 3])
     
       [1, 2, 3].should == obj

@@ -18,11 +18,11 @@ describe "Array#|" do
   end
 
   it "calls to_ary on its argument" do
-    obj = Object.new
+    obj = mock('[1,2,3]')
     def obj.to_ary() [1, 2, 3] end
     ([0] | obj).should == ([0] | obj.to_ary)
     
-    obj = Object.new
+    obj = mock('[1,2,3]')
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
     ([0] | obj).should == [0, 1, 2, 3]

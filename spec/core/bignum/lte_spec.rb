@@ -16,6 +16,6 @@ describe "Bignum#<=" do
 
   it "raises an ArgumentError when given a non-Integer" do
     lambda { @bignum <= "4" }.should raise_error(ArgumentError)
-    lambda { @bignum <= Object.new }.should raise_error(ArgumentError)
+    lambda { @bignum <= mock('str') }.should raise_error(ArgumentError)
   end
 end

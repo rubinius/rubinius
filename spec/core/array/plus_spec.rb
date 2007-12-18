@@ -10,11 +10,11 @@ describe "Array#+" do
   end
 
   it "calls to_ary on its argument" do
-    obj = Object.new
+    obj = mock('["x", "y"]')
     def obj.to_ary() ["x", "y"] end
     ([1, 2, 3] + obj).should == [1, 2, 3] + obj.to_ary
     
-    obj = Object.new
+    obj = mock('[:x]')
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_ary).and_return([:x])
     ([1, 2, 3] + obj).should == [1, 2, 3, :x]

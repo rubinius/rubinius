@@ -57,7 +57,7 @@ describe "Array#[]=" do
   end
 
   it "calls to_int on its start and length arguments" do
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
       
     a = [1, 2, 3, 4]
@@ -105,8 +105,8 @@ describe "Array#[]=" do
   end
 
   it "calls to_int on range arguments" do
-    from = Object.new
-    to = Object.new
+    from = mock('from')
+    to = mock('to')
 
     # So we can construct a range out of them...
     def from.<=>(o) 0 end
@@ -125,8 +125,8 @@ describe "Array#[]=" do
     lambda { a["a" .. "b"] = []  }.should raise_error(TypeError)
     lambda { a[from .. "b"] = [] }.should raise_error(TypeError)
     
-    from = Object.new
-    to = Object.new
+    from = mock('from')
+    to = mock('to')
     
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
@@ -162,7 +162,7 @@ describe "Array#[]=" do
   end
   
   it "calls to_ary on its rhs argument for multi-element sets" do
-    obj = Object.new
+    obj = mock('to_ary')
     def obj.to_ary() [1, 2, 3] end
     ary = [1, 2]
     ary[0, 0] = obj

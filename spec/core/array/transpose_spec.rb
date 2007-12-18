@@ -13,15 +13,15 @@ describe "Array#transpose" do
   end
 
   it "raises if the items aren't arrays and don't respond to to_ary" do
-    g = Object.new
+    g = mock('[1,2]')
     def g.to_a() [1, 2] end
-    h = Object.new
+    h = mock('[1,2]')
     def h.to_ary() [1, 2] end
 
     lambda { [g, [:a, :b]].transpose }.should raise_error(TypeError)
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]
     
-    h = Object.new
+    h = mock('[1,2]')
     h.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     h.should_receive(:method_missing).with(:to_ary).and_return([1, 2])
     [h, [:a, :b]].transpose.should == [[1, :a], [2, :b]]    

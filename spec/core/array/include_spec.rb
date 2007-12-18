@@ -8,7 +8,7 @@ describe "Array#include?" do
   end
 
   it "determines presence by using element == obj" do
-    o = Object.new
+    o = mock('')
   
     [1, 2, "a", "b"].include?(o).should == false
 

@@ -30,7 +30,7 @@ describe "Array#fetch" do
   end
 
   it "passes the original index argument object to the block, not the converted Integer" do
-    o = Object.new
+    o = mock('5')
     def o.to_int(); 5; end
 
     [1, 2, 3].fetch(o) { |i| i }.equal?(o).should == true
@@ -43,11 +43,11 @@ $VERBOSE, old = nil, $VERBOSE
 $VERBOSE = old
 
   it "calls to_int on its argument" do
-    x = Object.new
+    x = mock('0')
     def x.to_int() 0 end
     [1, 2, 3].fetch(x).should == 1
     
-    x = Object.new
+    x = mock('1')
     x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     x.should_receive(:method_missing).with(:to_int).and_return(0)
     [1, 2, 3].fetch(x).should == 1

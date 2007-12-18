@@ -32,7 +32,7 @@ describe "Array#last" do
   end
 
   it "uses to_int to convert its argument" do
-    o = Object.new
+    o = mock('2')
     lambda { [1, 2, 3].last o }.should raise_error(TypeError)
 
     def o.to_int(); 2; end

@@ -4,8 +4,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 compliant :ruby, :jruby do
   describe "Kernel#frozen?" do
     it "returns true if self is frozen" do
-      o = Object.new
-      p = Object.new
+      o = mock('o')
+      p = mock('p')
       p.freeze
       o.frozen?.should == false
       p.frozen?.should == true

@@ -3,12 +3,12 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#join" do
   it "returns a string formed by concatenating each element.to_s separated by separator without trailing separator" do
-    obj = Object.new
+    obj = mock('foo')
     def obj.to_s() 'foo' end
     [1, 2, 3, 4, obj].join(' | ').should == '1 | 2 | 3 | 4 | foo'
 
 # undef is not implemented -rue
-#    obj = Object.new
+#    obj = mock('o')
 #    class << obj; undef :to_s; end
 #    obj.should_receive(:method_missing).with(:to_s).and_return("o")
 #    [1, obj].join(":").should == "1:o"
@@ -27,11 +27,11 @@ describe "Array#join" do
   end
   
   it "calls to_str on its separator argument" do
-    obj = Object.new
+    obj = mock('::')
     def obj.to_str() '::' end    
     [1, 2, 3, 4].join(obj).should == '1::2::3::4'
     
-    obj = Object.new
+    obj = mock('.')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return(".")
     [1, 2].join(obj).should == "1.2"

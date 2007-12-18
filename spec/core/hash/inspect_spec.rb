@@ -15,8 +15,8 @@ describe "Hash#inspect" do
   end
 
   it "calls inspect on keys and values" do
-    key = Object.new
-    val = Object.new
+    key = mock('key')
+    val = mock('val')
     key.should_receive(:inspect).and_return('key')
     val.should_receive(:inspect).and_return('val')
     

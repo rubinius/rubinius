@@ -15,7 +15,7 @@ describe "Array#zip" do
   # MRI 1.8.6 uses to_ary, but it's been fixed in 1.9
   compliant(:ruby) do
     it "calls to_ary on its arguments" do
-      obj = Object.new
+      obj = mock('[3,4]')
       obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_ary).and_return([3, 4])
     
@@ -28,7 +28,7 @@ describe "Array#zip" do
       [1, 2, 3].zip("f" .. "z", 1 .. 9).should ==
         [[1, "f", 1], [2, "g", 2], [3, "h", 3]]
       
-      obj = Object.new
+      obj = mock('[3,4]')
       obj.should_receive(:respond_to?).with(:to_a).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with([:to_a]).and_return([3, 4])
     

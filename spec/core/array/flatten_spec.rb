@@ -7,7 +7,7 @@ describe "Array#flatten" do
   end
 
   it "does not call flatten on elements" do
-    obj = Object.new
+    obj = mock('[1,2]')
     def obj.flatten() [1, 2] end
     [obj, obj].flatten.should == [obj, obj]
 

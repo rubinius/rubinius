@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#tainted?" do
   it "returns true if Object is tainted" do
-    o = Object.new
-    p = Object.new
+    o = mock('o')
+    p = mock('p')
     p.taint
     o.tainted?.should == false
     p.tainted?.should == true

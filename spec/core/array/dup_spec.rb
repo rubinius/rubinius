@@ -8,7 +8,7 @@ describe "Array#dup" do
   end
 
   it "produces a shallow copy where the references are directly copied" do
-    a = [Object.new, Object.new]
+    a = [mock('1'), mock('2')]
     b = a.dup
     b.first.object_id.should == a.first.object_id
     b.last.object_id.should == a.last.object_id

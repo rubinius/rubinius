@@ -11,12 +11,12 @@ describe "Fixnum#|" do
   it "tries to convert the given argument to an Integer using to_int" do
     (5 | 4.3).should == 5
     
-    (obj = Object.new).should_receive(:to_int).and_return(4)
+    (obj = mock('4')).should_receive(:to_int).and_return(4)
     (3 | obj).should == 7
   end
   
   it "raises a TypeError when the given argument can't be converted to Integer" do
-    obj = Object.new
+    obj = mock('asdf')
     lambda { 3 | obj }.should raise_error(TypeError)
     
     obj.should_receive(:to_int).and_return("asdf")

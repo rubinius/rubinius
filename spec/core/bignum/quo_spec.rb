@@ -27,7 +27,7 @@ describe "Bignum#quo" do
   runner :not, :rspec do
     it "raises a TypeError when given a non-Integer" do
       lambda {
-        (obj = Object.new).should_not_receive(:to_int)
+        (obj = mock('to_int')).should_not_receive(:to_int)
         @bignum.quo(obj)
       }.should raise_error(TypeError)
       lambda { @bignum.quo("10") }.should raise_error(TypeError)

@@ -101,7 +101,7 @@ shared :array_slice do |cmd|
     end
 
     it "calls to_int on index and count arguments with [index, count]" do
-      obj = Object.new
+      obj = mock('2')
       def obj.to_int() 2 end
       
       a = [1, 2, 3, 4]
@@ -110,7 +110,7 @@ shared :array_slice do |cmd|
       a.send(cmd, obj, obj).should == [3, 4]
       a.send(cmd, 0, obj).should == [1, 2]
 
-      obj = Object.new
+      obj = mock('2')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(2)
       a.send(cmd, obj).should == 3
@@ -241,8 +241,8 @@ shared :array_slice do |cmd|
     end
 
     it "calls to_int on Range arguments with [m..n] and [m...n]" do
-      from = Object.new
-      to = Object.new
+      from = mock('from')
+      to = mock('to')
 
       # So we can construct a range out of them...
       def from.<=>(o) 0 end
@@ -263,8 +263,8 @@ shared :array_slice do |cmd|
       lambda { a.slice(from .. "b") }.should raise_error(TypeError)
       lambda { a.slice(from ... "b") }.should raise_error(TypeError)
     
-      from = Object.new
-      to = Object.new
+      from = mock('from')
+      to = mock('to')
 
       def from.<=>(o) 0 end
       def to.<=>(o) 0 end

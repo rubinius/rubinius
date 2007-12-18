@@ -4,8 +4,8 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 describe "Array#<=>" do
   it "calls <=> left to right and return first non-0 result" do
     [-1, +1, nil, "foobar"].each do |result|
-      lhs = Array.new(3) { Object.new }
-      rhs = Array.new(3) { Object.new }
+      lhs = Array.new(3) { mock("#{result}") }
+      rhs = Array.new(3) { mock("#{result}") }
     
       lhs[0].should_receive(:<=>).with(rhs[0]).and_return(0)
       lhs[1].should_receive(:<=>).with(rhs[1]).and_return(result)
@@ -31,11 +31,11 @@ describe "Array#<=>" do
   end
 
   it "calls to_ary on its argument" do
-    obj = Object.new
+    obj = mock('to_ary')
     def obj.to_ary() [1, 2, 3] end
     ([4, 5] <=> obj).should == ([4, 5] <=> obj.to_ary)
     
-    obj = Object.new
+    obj = mock('method_missing to_ary')
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_ary).and_return([4, 5])
     ([4, 5] <=> obj).should == 0

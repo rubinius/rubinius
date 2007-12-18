@@ -15,12 +15,12 @@ describe "Bignum#^" do
   it "tries to convert the given argument to an Integer using to_int" do
     (@bignum ^ 14.5).should == 1073741852
     
-    (obj = Object.new).should_receive(:to_int).and_return(2)
+    (obj = mock('2')).should_receive(:to_int).and_return(2)
     (@bignum ^ obj).should == 1073741840
   end
   
   it "raises a TypeError when the given argument can't be converted to Integer" do
-    obj = Object.new
+    obj = mock('asdf')
     lambda { @bignum ^ obj }.should raise_error(TypeError)
     
     obj.should_receive(:to_int).and_return("asdf")

@@ -28,7 +28,7 @@ describe "Array#rindex" do
   end
 
   it "does not fail when removing elements from block" do
-    sentinel = Object.new
+    sentinel = mock('sentinel')
     ary = [0, 0, 1, 1, 3, 2, 1, sentinel]
 
     sentinel.instance_variable_set(:@ary, ary)

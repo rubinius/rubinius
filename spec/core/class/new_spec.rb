@@ -51,7 +51,7 @@ describe "Class.new" do
     lambda { Class.new("")         }.should raise_error(TypeError)
     lambda { Class.new(1)          }.should raise_error(TypeError)
     lambda { Class.new(:symbol)    }.should raise_error(TypeError)
-    lambda { Class.new(Object.new) }.should raise_error(TypeError)
+    lambda { Class.new(mock('o'))  }.should raise_error(TypeError)
     lambda { Class.new(Module.new) }.should raise_error(TypeError)
   end
 end

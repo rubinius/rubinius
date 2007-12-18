@@ -24,15 +24,15 @@ describe "Fixnum#coerce" do
   end
 
   it "tries to convert the given Object into a Float by using #to_f" do
-    (obj = Object.new).should_receive(:to_f).and_return(1.0)
+    (obj = mock('1.0')).should_receive(:to_f).and_return(1.0)
     2.coerce(obj).should == [1.0, 2.0]
     
-    (obj = Object.new).should_receive(:to_f).and_return('0')
+    (obj = mock('0')).should_receive(:to_f).and_return('0')
     lambda { 2.coerce(obj).should == [1.0, 2.0] }.should raise_error(TypeError)
   end
 
   it "raises a TypeError when given an Object that does not respond to #to_f" do
-    lambda { 1.coerce(Object.new) }.should raise_error(TypeError)
+    lambda { 1.coerce(mock('x'))  }.should raise_error(TypeError)
     lambda { 1.coerce(1..4)       }.should raise_error(TypeError)
     lambda { 1.coerce(:test)      }.should raise_error(TypeError)
   end

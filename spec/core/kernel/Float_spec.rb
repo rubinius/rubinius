@@ -17,20 +17,20 @@ describe "Kernel.Float" do
     Kernel.Float(1000000000000).should == 1000000000000.0
     Kernel.Float("10").should == 10.0
     
-    (obj = Object.new).should_receive(:to_f).any_number_of_times.and_return(1.2)
+    (obj = mock('1.2')).should_receive(:to_f).any_number_of_times.and_return(1.2)
     obj.should_not_receive(:to_i)
     Kernel.Float(obj).should == 1.2
   end
   
   it "raises a TypeError of #to_f is not provided" do
-    lambda { Kernel.Float(Object.new) }.should raise_error(TypeError)
+    lambda { Kernel.Float(mock('x')) }.should raise_error(TypeError)
   end
   
   it "raises a TypeError if #to_f does not return a Float" do
-    (obj = Object.new).should_receive(:to_f).any_number_of_times.and_return('ha!')
+    (obj = mock('ha!')).should_receive(:to_f).any_number_of_times.and_return('ha!')
     lambda { Kernel.Float(obj) }.should raise_error(TypeError)
 
-    (obj = Object.new).should_receive(:to_f).any_number_of_times.and_return(123)
+    (obj = mock('123')).should_receive(:to_f).any_number_of_times.and_return(123)
     lambda { Kernel.Float(obj) }.should raise_error(TypeError)
   end
 end

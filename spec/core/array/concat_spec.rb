@@ -16,11 +16,11 @@ describe "Array#concat" do
   end  
 
   it "calls to_ary on its argument" do
-    obj = Object.new
+    obj = mock('to_ary')
     def obj.to_ary() ["x", "y"] end
     [4, 5, 6].concat(obj).should == [4, 5, 6, "x", "y"]
     
-    obj = Object.new
+    obj = mock('method_missing to_ary')
     obj.should_receive(:respond_to?).with(:to_ary).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_ary).and_return([:x])
     [].concat(obj).should == [:x]

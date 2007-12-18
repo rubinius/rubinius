@@ -19,8 +19,8 @@ describe "Fixnum#<=>" do
     (51 <=> 50.5).should == 1
   end
 
-  it "returns nil when the given argument is no Integer" do
-    (3 <=> Object.new).should == nil
+  it "returns nil when the given argument is not an Integer" do
+    (3 <=> mock('x')).should == nil
     (3 <=> 'test').should == nil
   end
 end

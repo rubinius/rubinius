@@ -28,7 +28,7 @@ describe "Hash#==" do
   end
   
   it "returns false when the numbers of keys differ without comparing any elements" do
-    obj = Object.new
+    obj = mock('x')
     obj.should_not_receive(:==)
     obj.should_not_receive(:eql?)
 
@@ -44,9 +44,9 @@ describe "Hash#==" do
 
   it "first compares keys via hash" do
     # Can't use should_receive because it uses hash internally
-    x = Object.new
+    x = mock('x')
     def x.hash() 0 end
-    y = Object.new
+    y = mock('y')
     def y.hash() 0 end
 
     { x => 1 }.should_not == { y => 1 }
@@ -54,8 +54,8 @@ describe "Hash#==" do
 
   it "does not compare keys with different hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
-    x = Object.new
-    y = Object.new
+    x = mock('x')
+    y = mock('y')
     x.instance_variable_set(:@other, y)
     y.instance_variable_set(:@other, x)
     def x.eql?(o)
@@ -76,7 +76,7 @@ describe "Hash#==" do
   it "compares keys with matching hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     a = Array.new(2) do
-      obj = Object.new
+      obj = mock('0')
 
       def obj.hash()
         return 0
@@ -98,7 +98,7 @@ describe "Hash#==" do
     a[1].tainted?.should == true
 
     a = Array.new(2) do 
-      obj = Object.new
+      obj = mock('0')
 
       def obj.hash()
         # It's undefined whether the impl does a[0].eql?(a[1]) or
@@ -120,20 +120,20 @@ describe "Hash#==" do
   end
   
   it "does not compare values when keys don't match" do
-    value = Object.new
+    value = mock('x')
     value.should_not_receive(:==)
     { 1 => value }.should_not == { 2 => value }
   end
   
   it "compares values when keys match" do
-    x = Object.new
-    y = Object.new
+    x = mock('x')
+    y = mock('y')
     def x.==(o) false end
     def y.==(o) false end
     { 1 => x }.should_not == { 1 => y }
 
-    x = Object.new
-    y = Object.new
+    x = mock('x')
+    y = mock('y')
     def x.==(o) true end
     def y.==(o) true end
     { 1 => x }.should == { 1 => y }

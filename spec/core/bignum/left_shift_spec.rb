@@ -19,12 +19,12 @@ describe "Bignum#<<" do
   it "tries to convert its argument to an Integer using to_int" do
     (@bignum << 4.5).should == 17179869328
     
-    (obj = Object.new).should_receive(:to_int).and_return(4)
+    (obj = mock('4')).should_receive(:to_int).and_return(4)
     (@bignum << obj).should == 17179869328
   end
 
   it "raises a TypeError when the given argument can't be converted to Integer" do
-    obj = Object.new
+    obj = mock('asdf')
     lambda { @bignum << obj }.should raise_error(TypeError)
     
     obj.should_receive(:to_int).and_return("asdf")

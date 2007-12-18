@@ -18,7 +18,7 @@ describe "Array#assoc" do
 
   specify "calls == on first element of each array" do
     key1 = 'it'
-    key2 = Object.new
+    key2 = mock('key2')
     items = [['not it', 1], [ArraySpecs::AssocKey.new, 2], ['na', 3]]
 
     items.assoc(key1).should == items[1]

@@ -12,17 +12,17 @@ describe "Array#rassoc" do
   
   it "calls elem == obj on the second element of each contained array" do
     key = 'foobar'
-    o = Object.new
+    o = mock('foobar')
     def o.==(other); other == 'foobar'; end
 
-    [[1, :foobar], [2, o], [3, Object.new]].rassoc(key).should == [2, o]
+    [[1, :foobar], [2, o], [3, mock('foo')]].rassoc(key).should == [2, o]
   end
 
   it "does not check the last element in each contained but speficically the second" do
     key = 'foobar'
-    o = Object.new
+    o = mock('foobar')
     def o.==(other); other == 'foobar'; end
 
-    [[1, :foobar, o], [2, o, 1], [3, Object.new]].rassoc(key).should == [2, o, 1]
+    [[1, :foobar, o], [2, o, 1], [3, mock('foo')]].rassoc(key).should == [2, o, 1]
   end
 end

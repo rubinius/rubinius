@@ -14,7 +14,7 @@ describe "Fixnum#>=" do
   end
 
   it "raises an ArgumentError when given a non-Integer" do
-    lambda { 5 >= "4"        }.should raise_error(ArgumentError)
-    lambda { 5 >= Object.new }.should raise_error(ArgumentError)
+    lambda { 5 >= "4"       }.should raise_error(ArgumentError)
+    lambda { 5 >= mock('x') }.should raise_error(ArgumentError)
   end
 end

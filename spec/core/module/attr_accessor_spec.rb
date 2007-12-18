@@ -32,7 +32,7 @@ describe "Module#attr_accessor" do
   end
   
   it "converts non string/symbol/fixnum names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str).any_number_of_times.and_return("test")
+    (o = mock('test')).should_receive(:to_str).any_number_of_times.and_return("test")
     c = Class.new do
       attr_accessor o
     end
@@ -42,9 +42,9 @@ describe "Module#attr_accessor" do
   end
 
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
-    o = Object.new
+    o = mock('o')
     lambda { Class.new { attr_accessor o } }.should raise_error(TypeError)
-    (o = Object.new).should_receive(:to_str).and_return(123)
+    (o = mock('123')).should_receive(:to_str).and_return(123)
     lambda { Class.new { attr_accessor o } }.should raise_error(TypeError)
   end
 end

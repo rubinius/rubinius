@@ -32,9 +32,9 @@ describe "Kernel#open" do
   end
   
   it "raise an exception if the arguments are not of the correct type or are missing" do
-    lambda { open             }.should raise_error(ArgumentError)
-    lambda { open(nil)        }.should raise_error(TypeError)
-    lambda { open(7)          }.should raise_error(TypeError)
-    lambda { open(Object.new) }.should raise_error(TypeError)
+    lambda { open            }.should raise_error(ArgumentError)
+    lambda { open(nil)       }.should raise_error(TypeError)
+    lambda { open(7)         }.should raise_error(TypeError)
+    lambda { open(mock('x')) }.should raise_error(TypeError)
   end
 end

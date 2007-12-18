@@ -12,9 +12,9 @@ describe "Array#uniq" do
 
   it "compares elements first with hash" do
     # Can't use should_receive because it uses hash internally
-    x = Object.new
+    x = mock('0')
     def x.hash() 0 end
-    y = Object.new
+    y = mock('0')
     def y.hash() 0 end
   
     [x, y].uniq
@@ -22,9 +22,9 @@ describe "Array#uniq" do
   
   it "does not compare elements with different hash codes via eql?" do
     # Can't use should_receive because it uses hash and eql? internally
-    x = Object.new
+    x = mock('0')
     def x.eql?(o) raise("Shouldn't receive eql?") end
-    y = Object.new
+    y = mock('1')
     def y.eql?(o) raise("Shouldn't receive eql?") end
 
     def x.hash() 0 end
@@ -36,7 +36,7 @@ describe "Array#uniq" do
   it "compares elements with matching hash codes with #eql?" do
     # Can't use should_receive because it uses hash and eql? internally
     a = Array.new(2) do 
-      obj = Object.new
+      obj = mock('0')
 
       def obj.hash()
         # It's undefined whether the impl does a[0].eql?(a[1]) or
@@ -53,7 +53,7 @@ describe "Array#uniq" do
     a[1].tainted?.should == true
 
     a = Array.new(2) do 
-      obj = Object.new
+      obj = mock('0')
 
       def obj.hash()
         # It's undefined whether the impl does a[0].eql?(a[1]) or

@@ -24,7 +24,7 @@ describe "Fixnum#quo" do
   runner :not, :rspec do
     it "raises a TypeError when given a non-Integer" do
       lambda {
-        (obj = Object.new).should_not_receive(:to_int)
+        (obj = mock('x')).should_not_receive(:to_int)
         13.quo(obj)
       }.should raise_error(TypeError)
       lambda { 13.quo("10")    }.should raise_error(TypeError)

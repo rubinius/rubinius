@@ -10,18 +10,18 @@ describe "Module#===" do
     (Object                   === ModuleSpecs::Child.new).should == true
 
     (ModuleSpecs::Child       === String.new).should == false
-    (ModuleSpecs::Child       === Object.new).should == false
+    (ModuleSpecs::Child       === mock('x')).should == false
   end
   
   it "returns true when the given Object's class includes self or when the given Object is extended by self" do
     (ModuleSpecs::Basic === ModuleSpecs::Child.new).should == true
     (ModuleSpecs::Super === ModuleSpecs::Child.new).should == true
-    (ModuleSpecs::Basic === Object.new.extend(ModuleSpecs::Super)).should == true
-    (ModuleSpecs::Super === Object.new.extend(ModuleSpecs::Super)).should == true
+    (ModuleSpecs::Basic === mock('x').extend(ModuleSpecs::Super)).should == true
+    (ModuleSpecs::Super === mock('y').extend(ModuleSpecs::Super)).should == true
 
     (ModuleSpecs::Basic === ModuleSpecs::Parent.new).should == false
     (ModuleSpecs::Super === ModuleSpecs::Parent.new).should == false
-    (ModuleSpecs::Basic === Object.new).should == false
-    (ModuleSpecs::Super === Object.new).should == false
+    (ModuleSpecs::Basic === mock('z')).should == false
+    (ModuleSpecs::Super === mock('a')).should == false
   end
 end

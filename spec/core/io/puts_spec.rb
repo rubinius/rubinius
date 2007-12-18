@@ -21,7 +21,7 @@ describe "IO#puts" do
   end
   
   it "calls to_s before writing non-string objects" do
-    object = Object.new
+    object = mock('hola')
     object.should_receive(:to_s).and_return("hola")
     
     @io.should_receive(:write).with("hola")

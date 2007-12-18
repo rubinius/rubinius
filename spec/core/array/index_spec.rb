@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#index" do
   it "returns the index of the first element == to object" do
-    x = Object.new
+    x = mock('3')
     def x.==(obj) 3 == obj; end
 
     [2, x, 3, 1, 3, 1].index(3).should == 1

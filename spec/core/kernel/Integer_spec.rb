@@ -21,7 +21,7 @@ end
 
 describe "Kernel.Integer" do
   it "calls #to_int if the given obejct responds to it" do
-    obj = Object.new
+    obj = mock('1')
     obj.should_receive(:to_int).and_return(1)
     obj.should_not_receive(:to_i)
     
@@ -29,16 +29,16 @@ describe "Kernel.Integer" do
   end
   
   it "should call to_i to convert any arbitrary argument to an Integer" do
-    (obj = Object.new).should_receive(:to_i).and_return(7)
+    (obj = mock('7')).should_receive(:to_i).and_return(7)
     Integer(obj).should == 7
   end
 
   it "should raise a TypeError if there is no to_i method on an object" do
-    lambda { Integer(Object.new) }.should raise_error(TypeError)
+    lambda { Integer(mock('x')) }.should raise_error(TypeError)
   end
 
   it "should raise a TypeError if to_i doesn't return an Integer" do
-    (obj = Object.new).should_receive(:to_i).and_return("ha!")
+    (obj = mock('ha!')).should_receive(:to_i).and_return("ha!")
     lambda { Integer(obj) }.should raise_error(TypeError)
   end
 end

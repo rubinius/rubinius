@@ -25,11 +25,11 @@ describe "Array#fill" do
   end
   
   it "calls to_int on start and length" do
-    x = Object.new
+    x = mock('2')
     def x.to_int() 2 end
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]
     
-    x = Object.new
+    x = mock('2')
     x.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     x.should_receive(:method_missing).with(:to_int).twice.and_return(2)
     [1, 2, 3, 4, 5].fill('a', x, x).should == [1, 2, "a", "a", 5]

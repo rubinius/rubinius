@@ -16,7 +16,7 @@ describe "Bignum#coerce" do
     a = BignumHelper.sbm
 
     lambda { a.coerce(nil) }.should raise_error(TypeError)
-    lambda { a.coerce(Object.new) }.should raise_error(TypeError)
+    lambda { a.coerce(mock('str')) }.should raise_error(TypeError)
     lambda { a.coerce(1..4) }.should raise_error(TypeError)
     lambda { a.coerce(:test) }.should raise_error(TypeError)
 

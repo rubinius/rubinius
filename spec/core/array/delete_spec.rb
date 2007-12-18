@@ -3,11 +3,11 @@ require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Array#delete" do
   it "removes elements that are #== to object" do
-    x = Object.new
+    x = mock('delete')
     def x.==(other) 3 == other end
 
     a = [1, 2, 3, x, 4, 3, 5, x]
-    a.delete Object.new
+    a.delete mock('not contained')
     a.should == [1, 2, 3, x, 4, 3, 5, x]
 
     a.delete 3
