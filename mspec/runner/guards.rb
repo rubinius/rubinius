@@ -1,9 +1,19 @@
 unless defined?(RUBY_NAME)
   if defined?(RUBY_ENGINE)
     RUBY_NAME = RUBY_ENGINE
+    if defined?(ARG0)
+      if /rubinius.bin/.match(ARG0)
+        RUBY_CLI = "shotgun/rubinius"
+      else
+        RUBY_CLI = ARG0
+      end
+    else
+      RUBY_CLI = RUBY_NAME
+    end
   else
     require 'rbconfig'
     RUBY_NAME = Config::CONFIG["RUBY_INSTALL_NAME"]
+    RUBY_CLI =  RUBY_NAME
   end
 end
 

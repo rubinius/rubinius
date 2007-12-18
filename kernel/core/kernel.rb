@@ -200,11 +200,22 @@ module Kernel
   def caller(start=1)
     ret = []
     ctx = MethodContext.current.sender
+    i = 0
     until ctx.nil?
-      ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
+      if i >= start
+        ret << "#{ctx.file}:#{ctx.line}:in `#{ctx.method.name}'"
+      end
+      
+      i += 1
       ctx = ctx.sender
     end
-    ret[start..-1]
+    
+    return nil if start > i + 1
+    ret
+  end
+  
+  def global_variables
+    Globals.variables.map { |i| i.to_s }
   end
 
   # Sleeps the current thread for +duration+ seconds.

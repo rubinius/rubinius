@@ -16,6 +16,7 @@ class GlobalVariables
       :$, => '',                  # Output field separator
       :$stderr => STDERR,
       :$stdout => STDOUT,
+      :$stdin => STDIN,
       :$CONSOLE => STDOUT,
       :$DEBUG => false
     }
@@ -24,6 +25,10 @@ class GlobalVariables
 
   def key?(key)
     @internal.key?(key) || @alias.key?(key)
+  end
+  
+  def variables
+    @internal.keys + @alias.keys
   end
 
   def [](key)

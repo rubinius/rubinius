@@ -104,12 +104,8 @@ module Kernel
     end
   end
 
-  def exec(cmd,*args)
-    if(cmd.match(/[\n*?{}\[\]<>()~\\$;'`"]/))
-      Process.replace "bin/sh", ["-c",cmd,*args]
-    else
-      Process.replace cmd,*args
-    end
+  def exec(cmd, *args)
+    Process.replace "bin/sh", ["-c", cmd, *args]
   end
   
   def `(str) #`
