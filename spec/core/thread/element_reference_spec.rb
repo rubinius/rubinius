@@ -36,4 +36,9 @@ describe "Thread#[]" do
     t2[:value].should == 2
     t2["value"].should == 2
   end
+
+  it "should raise exceptions on the wrong type of keys" do
+    lambda { Thread.current[nil] }.should raise_error(TypeError)
+    lambda { Thread.current[5] }.should raise_error(ArgumentError)
+  end
 end
