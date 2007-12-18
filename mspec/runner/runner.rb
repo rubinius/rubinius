@@ -118,7 +118,7 @@ class SpecRunner
           begin
             begin
               @stack.last.before_each.each { |be| @env.instance_eval &be }
-              @env.instance_eval &b unless skip?
+              @env.instance_eval &b
               Mock.verify_count
             rescue Exception => e
               formatter.exception(e)
