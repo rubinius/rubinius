@@ -105,15 +105,15 @@ class SpecRunner
   
   def describe(*args, &block)
     @stack.push DescribeState.new
-    msg = args.join " "
-    formatter.before_describe(msg)
+    dmsg = args.join " "
+    formatter.before_describe(dmsg)
 
     begin
       @env.instance_eval &block
 
       @stack.last.before_all.each { |ba| @env.instance_eval &ba }
       @stack.last.it.each do |msg, b|
-        unless skip?(msg)
+        unless skip?("#{dmsg} #{msg}")
           formatter.before_it(msg)
           begin
             begin
@@ -137,7 +137,7 @@ class SpecRunner
       Mock.cleanup
     end
 
-    formatter.after_describe(msg)
+    formatter.after_describe(dmsg)
     @stack.pop
   end
 end

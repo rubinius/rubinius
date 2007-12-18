@@ -24,7 +24,7 @@ end
 
 describe Mock, ".install_method" do
   before :each do
-    @mock = Object.new
+    @mock = mock('install_method')
   end
   
   after :each do
@@ -60,7 +60,7 @@ end
 
 describe Mock, ".verify_call" do
   before :each do
-    @mock = Object.new
+    @mock = mock('verify_call')
     @proxy = Mock.install_method @mock, :method_call
   end
   
@@ -102,7 +102,7 @@ end
 
 describe Mock, ".verify_count" do
   before :each do
-    @mock = Object.new
+    @mock = mock('verify_count')
     @proxy = Mock.install_method @mock, :method_call
   end
   
@@ -162,7 +162,7 @@ end
 
 describe Mock, ".cleanup" do
   before :each do
-    @mock = Object.new
+    @mock = mock('cleanup')
     @proxy = Mock.install_method @mock, :method_call
   end
   
