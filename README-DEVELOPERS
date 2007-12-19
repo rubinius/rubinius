@@ -45,9 +45,20 @@ You can run shotgun/rubinius with gdb.
 * Hit ^C to interrupt
 * Type 'rbt' at the gdb prompt to get a ruby backtrace
 
+To keep yourself from fighting gdb, you will want to recompile shotgun/lib with
+DEV=1:
+
+* rake clean
+* DEV=1 rake
+* shotgun/rubinius --gdb
+
 Useful gdb commands:
 
 * p _inspect(OBJECT)
+
+You can drop to the debugger using Kernel#yield_gdb.  You can pass it an object
+you'd like to examine, or nil.  To continue past the yield_gdb, jump one line
+after the line you've stopped on.
 
 5. Specifications
 
