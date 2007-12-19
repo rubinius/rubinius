@@ -33,8 +33,6 @@ OPTIONS = OpenStruct.new( :size   => 1024,
 options = OptionParser.new do |opts|
   opts.on('-2', '--compiler2', 'Use compiler2 for Rubinius tests') do |c2|
     RUNTIMES[-1] = 'shotgun/rubinius -rcompiler2/init'
-    puts RUNTIMES.inspect
-    exit
   end
 
   opts.on('-c', '--chart [FILENAME]', 'Output passing test times to SVG file at --path') do |c|
