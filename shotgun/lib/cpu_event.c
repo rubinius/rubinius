@@ -174,7 +174,7 @@ void _cpu_wake_channel_alot(int fd, short event, void *arg) {
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
   struct thread_info *ti;
 
-  ti = ALLOC(struct thread_info);
+  ti = ALLOC_N(struct thread_info, 1);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -188,7 +188,7 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
 void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer, int count) {
   struct thread_info *ti;
 
-  ti = ALLOC(struct thread_info);
+  ti = ALLOC_N(struct thread_info, 1);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -218,7 +218,7 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   struct thread_info *ti;
 
-  ti = ALLOC(struct thread_info);
+  ti = ALLOC_N(struct thread_info, 1);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -245,7 +245,7 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   struct thread_info *ti;
 
-  ti = ALLOC(struct thread_info);
+  ti = ALLOC_N(struct thread_info, 1);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -340,7 +340,7 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid) {
   } else {
     /* Still somewhere out there, register we want it. */
 
-    ti = ALLOC(struct thread_info);
+    ti = ALLOC_N(struct thread_info, 1);
     ti->state = state;
     ti->c = c;
     ti->pid = pid;
@@ -353,7 +353,7 @@ void cpu_event_setup_children(STATE, cpu c) {
   struct thread_info *ti;
 
   state->global->recent_children = hash_new(state);
-  ti = ALLOC(struct thread_info);  
+  ti = ALLOC_N(struct thread_info, 1);
   ti->state = state;
   ti->c = c;
   signal_set(&ti->ev, SIGCHLD, _cpu_find_waiters, (void*)ti);
