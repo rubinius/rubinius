@@ -30,7 +30,7 @@ describe "StringIO.open" do
   end
 
   it "should call to_str on the first argument if it is not a String" do
-    obj = Object.new
+    obj = mock('hello')
     def obj.to_str; "hello"; end
     StringIO.open(obj) do |io|
       io.string.should == "hello"
@@ -38,7 +38,7 @@ describe "StringIO.open" do
   end
 
   it "should raise TypeError if the argument cannot be converted" do
-    obj = Object.new
+    obj = mock('x')
     lambda { StringIO.open(obj) }.should raise_error(TypeError)
   end
 end
@@ -49,14 +49,14 @@ describe "StringIO.new" do
   end
 
   it "should call to_str on the first argument if it is not a String" do
-    obj = Object.new
+    obj = mock('hello')
     def obj.to_str; "hello"; end
     io = StringIO.new(obj)
     io.string.should == "hello"
   end
 
   it "should raise TypeError if the argument cannot be converted" do
-    obj = Object.new
+    obj = mock('x')
     lambda { StringIO.new(obj) }.should raise_error(TypeError)
   end
 
@@ -471,7 +471,7 @@ describe "StringIO#puts" do
   end
   
   it "calls to_s before writing non-string objects" do
-    object = Object.new
+    object = mock('hola')
     object.should_receive(:to_s).and_return("hola")
     
     @io.puts(object).should == nil
@@ -664,7 +664,7 @@ describe "StringIO#reopen" do
   # MRI refuses to convert objects that support to_str, JRuby and Rubinius can
   noncompliant(:jruby, :rubinius) do
     it "should call to_str on the first argument if it is not a String" do
-      obj = Object.new
+      obj = mock('reopen')
       def obj.to_str; "reopen"; end
       @io.reopen(obj)
       @io.string.should == "reopen"
@@ -672,7 +672,7 @@ describe "StringIO#reopen" do
   end
 
   it "should raise TypeError if the argument cannot be converted" do
-    obj = Object.new
+    obj = mock('x')
     lambda { @io.reopen(obj) }.should raise_error(TypeError)
   end
   

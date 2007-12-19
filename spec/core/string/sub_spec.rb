@@ -147,12 +147,12 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "tries to convert pattern to a string using to_str" do
-    pattern = Object.new
+    pattern = mock('.')
     def pattern.to_str() "." end
     
     "hello.".sub(pattern, "!").should == "hello!"
 
-    obj = Object.new
+    obj = mock('.')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return(".")
 
@@ -165,12 +165,12 @@ describe "String#sub with pattern, replacement" do
   end
 
   it "tries to convert replacement to a string using to_str" do
-    replacement = Object.new
+    replacement = mock('hello_replacement')
     def replacement.to_str() "hello_replacement" end
     
     "hello".sub(/hello/, replacement).should == "hello_replacement"
     
-    obj = Object.new
+    obj = mock('ok')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("ok")
     "hello".sub(/hello/, obj).should == "ok"
@@ -268,11 +268,11 @@ describe "String#sub with pattern and block" do
   end
   
   it "converts the block's return value to a string using to_s" do
-    obj = Object.new
+    obj = mock('hello_replacement')
     obj.should_receive(:to_s).and_return("hello_replacement")
     "hello".sub(/hello/) { obj }.should == "hello_replacement"
     
-    obj = Object.new
+    obj = mock('ok')
     obj.should_receive(:to_s).and_return("ok")
     "hello".sub(/.+/) { obj }.should == "ok"
   end

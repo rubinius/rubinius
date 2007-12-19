@@ -45,20 +45,20 @@ describe "String#scan" do
   end
 
   it "tries to convert pattern to a string via to_str" do
-    obj = Object.new
+    obj = mock('o')
     obj.should_receive(:to_str).and_return("o")
     "o_o".scan(obj).should == ["o", "o"]
     
-    obj = Object.new
+    obj = mock('-')
     obj.should_receive(:respond_to?).with(:to_str).and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("-")
     "-_-".scan(obj).should == ["-", "-"]
   end
   
   it "raises a TypeError if pattern isn't a Regexp and can't be converted to a String" do
-    lambda { "cruel world".scan(5)          }.should raise_error(TypeError)
-    lambda { "cruel world".scan(:test)      }.should raise_error(TypeError)
-    lambda { "cruel world".scan(Object.new) }.should raise_error(TypeError)
+    lambda { "cruel world".scan(5)         }.should raise_error(TypeError)
+    lambda { "cruel world".scan(:test)     }.should raise_error(TypeError)
+    lambda { "cruel world".scan(mock('x')) }.should raise_error(TypeError)
   end
   
   # Note: MRI taints for tainted regexp patterns,

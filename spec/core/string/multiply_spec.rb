@@ -12,11 +12,11 @@ describe "String#*" do
     ("cool" * 3.1).should == "coolcoolcool"
     ("a" * 3.999).should == "aaa"
     
-    a = Object.new
+    a = mock('4')
     def a.to_int() 4; end
     ("a" * a).should == "aaaa"
     
-    a = Object.new
+    a = mock('4')
     a.should_receive(:respond_to?).with(:to_int).and_return(true)
     a.should_receive(:method_missing).with(:to_int).and_return(4)
     ("a" * a).should == "aaaa"    

@@ -6,6 +6,6 @@ describe "TrueClass#^" do
     (true ^ false).should == true
     (true ^ nil).should == true
     (true ^ "").should == false
-    (true ^ Object.new).should == false
+    (true ^ mock('x')).should == false
   end
 end

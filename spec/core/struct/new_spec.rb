@@ -21,7 +21,7 @@ describe "Struct.new" do
   end
 
   it "calls to_str on its first argument (constant name)" do
-    obj = Object.new
+    obj = mock('Foo')
     def obj.to_str() "Foo" end
     struct = Struct.new(obj)
     struct.should == Struct::Foo
@@ -62,7 +62,7 @@ describe "Struct.new" do
 
   compliant :ruby do
     it "raises TypeError if object is not a Symbol" do
-      obj = Object.new
+      obj = mock(':ruby')
       def obj.to_sym() :ruby end
       lambda { Struct.new(:animal, obj) }.should raise_error(TypeError)
     end
@@ -70,7 +70,7 @@ describe "Struct.new" do
   
   compliant :rbx do
     it "calls to_sym if object responds to to_sym" do
-      obj = Object.new
+      obj = mock(':ruby')
       def obj.to_sym() :ruby end
       Struct.new(:animal, obj).new(nil, "bar").ruby.should == "bar"
     end

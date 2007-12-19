@@ -38,12 +38,12 @@ describe "String#slice! with index" do
     it "calls to_int on index" do
       "hello".slice!(0.5).should == ?h
 
-      obj = Object.new
+      obj = mock('1')
       # MRI calls this twice so we can't use should_receive here.
       def obj.to_int() 1 end
       "hello".slice!(obj).should == ?e
 
-      obj = Object.new
+      obj = mock('1')
       def obj.respond_to?(name) name == :to_int ? true : super; end
       def obj.method_missing(name, *) name == :to_int ? 1 : super; end
       "hello".slice!(obj).should == ?e
@@ -54,12 +54,12 @@ describe "String#slice! with index" do
     it "raises IndexError when passed other than a Fixnum" do
       lambda { "hello".slice!(0.5).should == ?h }.should raise_error(IndexError)
 
-      obj = Object.new
+      obj = mock('1')
       # MRI calls this twice so we can't use should_receive here.
       def obj.to_int() 1 end
       lambda { "hello".slice!(obj).should == ?e }.should raise_error(IndexError)
 
-      obj = Object.new
+      obj = mock('1')
       def obj.respond_to?(name) name == :to_int ? true : super; end
       def obj.method_missing(name, *) name == :to_int ? 1 : super; end
       lambda { "hello".slice!(obj).should == ?e }.should raise_error(IndexError)
@@ -125,11 +125,11 @@ describe "String#slice! with index, length" do
   it "calls to_int on idx and length" do
     "hello".slice!(0.5, 2.5).should == "he"
 
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
     "hello".slice!(obj, obj).should == "ll"
 
-    obj = Object.new
+    obj = mock('2')
     def obj.respond_to?(name) name == :to_int; end
     def obj.method_missing(name, *) name == :to_int ? 2 : super; end
     "hello".slice!(obj, obj).should == "ll"
@@ -181,8 +181,8 @@ describe "String#slice! Range" do
   end
 
   it "calls to_int on range arguments" do
-    from = Object.new
-    to = Object.new
+    from = mock('from')
+    to = mock('to')
 
     # So we can construct a range out of them...
     def from.<=>(o) 0 end
@@ -193,8 +193,8 @@ describe "String#slice! Range" do
 
     "hello there".slice!(from..to).should == "ello ther"
 
-    from = Object.new
-    to = Object.new
+    from = mock('from')
+    to = mock('to')
 
     def from.<=>(o) 0 end
     def to.<=>(o) 0 end
@@ -335,13 +335,13 @@ describe "String#slice! with Regexp, index" do
   end
 
   it "calls to_int on idx" do
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
 
     "har".slice!(/(.)(.)(.)/, 1.5).should == "h"
     "har".slice!(/(.)(.)(.)/, obj).should == "a"
 
-    obj = Object.new
+    obj = mock('2')
     def obj.respond_to?(name) name == :to_int; end
     def obj.method_missing(name) name == :to_int ? 2: super; end
     "har".slice!(/(.)(.)(.)/, obj).should == "a"
@@ -415,7 +415,7 @@ describe "String#slice! with String" do
   end
   
   it "doesn't call to_str on its argument" do
-    o = Object.new
+    o = mock('x')
     o.should_not_receive(:to_str)
 
     lambda { "hello".slice!(o) }.should raise_error(TypeError)

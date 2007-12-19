@@ -84,22 +84,22 @@ describe "String#split with String" do
   end
   
   it "tries converting its pattern argument to a string via to_str" do
-    obj = Object.new
+    obj = mock('::')
     def obj.to_str() "::" end
     "hello::world".split(obj).should == ["hello", "world"]
 
-    obj = Object.new
+    obj = mock('::')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("::")
     "hello::world".split(obj).should == ["hello", "world"]
   end
   
   it "tries converting limit to an integer via to_int" do
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
 
-    obj = Object.new
+    obj = mock('2')
     obj.should_receive(:respond_to?).with(:to_int).and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(2)
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
@@ -236,11 +236,11 @@ describe "String#split with Regexp" do
   end
 
   it "tries converting limit to an integer via to_int" do
-    obj = Object.new
+    obj = mock('2')
     def obj.to_int() 2 end
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]
 
-    obj = Object.new
+    obj = mock('2')
     obj.should_receive(:respond_to?).with(:to_int).and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(2)
     "1.2.3.4".split(".", obj).should == ["1", "2.3.4"]

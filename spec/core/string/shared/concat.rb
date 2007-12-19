@@ -7,12 +7,12 @@ shared :string_concat do |cmd|
     end
     
     it "converts the given argument to a String using to_str" do
-      obj = Object.new
+      obj = mock('world!')
       obj.should_receive(:to_str).and_return("world!")
       a = 'hello '.send(cmd, obj)
       a.should == 'hello world!'
       
-      obj = Object.new
+      obj = mock('world!')
       obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_str).and_return("world!")
       a = 'hello '.send(cmd, obj)
@@ -20,8 +20,8 @@ shared :string_concat do |cmd|
     end
     
     it "raises a TypeError if the given argument can't be converted to a String" do
-      lambda { a = 'hello '.send(cmd, :world)     }.should raise_error(TypeError)
-      lambda { a = 'hello '.send(cmd, Object.new) }.should raise_error(TypeError)
+      lambda { a = 'hello '.send(cmd, :world)    }.should raise_error(TypeError)
+      lambda { a = 'hello '.send(cmd, mock('x')) }.should raise_error(TypeError)
     end
 
     compliant :ruby, :jruby do
@@ -64,7 +64,7 @@ shared :string_concat do |cmd|
     end
   
     it "doesn't call to_int on its argument" do
-      x = Object.new
+      x = mock('x')
       x.should_not_receive(:to_int)
       
       lambda { "".send(cmd, x) }.should raise_error(TypeError)

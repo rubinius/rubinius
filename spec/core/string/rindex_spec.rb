@@ -3,12 +3,12 @@ require File.dirname(__FILE__) + '/fixtures/classes.rb'
 
 describe "String#rindex with object" do
   it "raises a TypeError if obj isn't a String, Fixnum or Regexp" do
-    lambda { "hello".rindex(:sym)       }.should raise_error(TypeError)    
-    lambda { "hello".rindex(Object.new) }.should raise_error(TypeError)
+    lambda { "hello".rindex(:sym)      }.should raise_error(TypeError)    
+    lambda { "hello".rindex(mock('x')) }.should raise_error(TypeError)
   end
 
   it "doesn't try to convert obj to an integer via to_int" do
-    obj = Object.new
+    obj = mock('x')
     obj.should_not_receive(:to_int)
     lambda { "hello".rindex(obj) }.should raise_error(TypeError)
   end
@@ -18,11 +18,11 @@ describe "String#rindex with object" do
 
   noncompliant :rubinius do
     it "tries to convert obj to a string via to_str" do
-      obj = Object.new
+      obj = mock('lo')
       def obj.to_str() "lo" end
       "hello".rindex(obj).should == "hello".rindex("lo")
 
-      obj = Object.new
+      obj = mock('o')
       def obj.respond_to?(arg) true end
       def obj.method_missing(*args) "o" end
       "hello".rindex(obj).should == "hello".rindex("o")
@@ -32,11 +32,11 @@ describe "String#rindex with object" do
   compliant :ruby, :jruby do
     version "1.8.6" do
       it "tries to convert obj to a string via to_str" do
-        obj = Object.new
+        obj = mock('lo')
         def obj.to_str() "lo" end
         lambda { "hello".rindex(obj) }.should raise_error(Exception)
 
-        obj = Object.new
+        obj = mock('o')
         def obj.respond_to?(arg) true end
         def obj.method_missing(*args) "o" end
         lambda { "hello".rindex(obj) }.should raise_error(Exception)
@@ -109,11 +109,11 @@ describe "String#rindex with Fixnum" do
   end
   
   it "tries to convert start_offset to an integer via to_int" do
-    obj = Object.new
+    obj = mock('5')
     def obj.to_int() 5 end
     "str".rindex(?s, obj).should == 0
     
-    obj = Object.new
+    obj = mock('5')
     def obj.respond_to?(arg) true end
     def obj.method_missing(*args); 5; end
     "str".rindex(?s, obj).should == 0
@@ -262,11 +262,11 @@ describe "String#rindex with String" do
   end
   
   it "tries to convert start_offset to an integer via to_int" do
-    obj = Object.new
+    obj = mock('5')
     def obj.to_int() 5 end
     "str".rindex("st", obj).should == 0
     
-    obj = Object.new
+    obj = mock('5')
     def obj.respond_to?(arg) true end
     def obj.method_missing(*args) 5 end
     "str".rindex("st", obj).should == 0
@@ -406,11 +406,11 @@ describe "String#rindex with Regexp" do
   end
   
   it "tries to convert start_offset to an integer via to_int" do
-    obj = Object.new
+    obj = mock('5')
     def obj.to_int() 5 end
     "str".rindex(/../, obj).should == 1
     
-    obj = Object.new
+    obj = mock('5')
     def obj.respond_to?(arg) true end
     def obj.method_missing(*args); 5; end
     "str".rindex(/../, obj).should == 1

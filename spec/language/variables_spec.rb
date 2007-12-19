@@ -678,7 +678,7 @@ describe 'Multiple assignment without grouping or splatting' do
   end
 
   it 'The assignments are done in parallel so that lhs and rhs are independent of eachother without copying' do
-    o_of_a, o_of_b = Object.new, Object.new
+    o_of_a, o_of_b = mock('a'), mock('b')
     a, b = o_of_a, o_of_b
     a, b = b, a
     a.equal?(o_of_b).should == true

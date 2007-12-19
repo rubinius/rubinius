@@ -19,7 +19,7 @@ extension :rubinius do
     end
   
     specify "rb_ary_push2 should add elements to an array" do
-      o = Object.new
+      o = mock('x')
       @s.rb_ary_push2([], 4, o).should == [4,o]
     end
 
