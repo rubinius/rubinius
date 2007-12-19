@@ -567,10 +567,18 @@ file 'runtime/platform.conf' do
     O_NONBLOCK 
     O_SYNC     
   }
+
+  io_constants = %w{
+    SEEK_SET
+    SEEK_CUR
+    SEEK_END
+  }
   
   cg = ConstGenerator.new
+  cg.include "stdio.h"
   cg.include "fcntl.h"
   file_constants.each { |c| cg.const c }
+  io_constants.each { |c| cg.const c }
   cg.calculate
   
   File.open("runtime/platform.conf", "w") do |f|
@@ -578,6 +586,11 @@ file 'runtime/platform.conf' do
     file_constants.each do | name |
       const = cg.constants[name]
       f.puts "rbx.platform.file.#{name} = #{const.converted_value}"
+    end
+
+    io_constants.each do | name |
+      const = cg.constants[name]
+      f.puts "rbx.platform.io.#{name} = #{const.converted_value}"
     end
   end
   

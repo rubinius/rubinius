@@ -5,9 +5,9 @@ class IO
   
   BufferSize = 8096
 
-  SEEK_SET = Platform::POSIX.seek_set
-  SEEK_CUR = Platform::POSIX.seek_cur
-  SEEK_END = Platform::POSIX.seek_end
+  SEEK_SET = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_SET']
+  SEEK_CUR = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_CUR']
+  SEEK_END = Rubinius::RUBY_CONFIG['rbx.platform.io.SEEK_END']
   
   def initialize(fd)
     # not sure what message to use here. on unix we only accept fixnums,

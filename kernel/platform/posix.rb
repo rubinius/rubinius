@@ -65,11 +65,6 @@ module Platform::POSIX
   attach_function 'fwrite',  [:string, :int, :int, :pointer], :int
   attach_function 'ungetc',  [:int, :pointer], :int
 
-  #   constants
-  attach_function 'ffi_seek_set', :seek_set, [], :int
-  attach_function 'ffi_seek_cur', :seek_cur, [], :int
-  attach_function 'ffi_seek_end', :seek_end, [], :int
-
   #   formatted strings
   attach_function 'ffi_sprintf_f', :sprintf_f, [:double, :int, :string], :strptr
   attach_function 'ffi_sprintf_d', :sprintf_d, [:int, :int, :string], :strptr

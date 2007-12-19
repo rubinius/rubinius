@@ -185,6 +185,7 @@ void *ffi_add_ptr(char *ptr, int offset) {
   return (void*)(ptr + offset); 
 }
 
+/* FIXME: Kill these after the next rebuild of the stable RBAs */
 int ffi_seek_set() { return SEEK_SET; }
 int ffi_seek_cur() { return SEEK_CUR; }
 int ffi_seek_end() { return SEEK_END; }
