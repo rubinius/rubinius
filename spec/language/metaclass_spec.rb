@@ -23,19 +23,19 @@ describe "self in a metaclass body (class << obj)" do
   end
 
   it "is a singleton Class instance" do
-    cls = class << Object.new; self; end
+    cls = class << mock('x'); self; end
     cls.is_a?(Class).should == true
     cls.equal?(Object).should == false
   end
   
   extension(:rubinius) do 
     it "is a MetaClass instance" do
-      cls = class << Object.new; self; end
+      cls = class << mock('x'); self; end
       cls.is_a?(MetaClass).should == true
     end
 
     it "has the object's class as superclass" do
-      cls = class << Object.new; self; end
+      cls = class << mock('x'); self; end
       cls.superclass.should == Object
     end
   end

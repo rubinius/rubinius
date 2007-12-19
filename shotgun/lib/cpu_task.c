@@ -22,7 +22,7 @@ void cpu_task_cleanup(STATE, OBJECT self) {
   task = (struct cpu_task*)BYTES_OF(self);
   
   if(!task->stack_slave) {
-    free(task->stack_top);
+    XFREE(task->stack_top);
   }
 }
 
@@ -76,7 +76,7 @@ void cpu_task_disable_preemption(STATE) {
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   struct cpu_task *cur_task, *task;
   
-  OBJECT obj;
+  OBJECT obj, home;
   OBJECT *ns;
   
   cpu_save_registers(state, c, 0);
@@ -85,7 +85,6 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
   
   if(NIL_P(cur) || cur == c->current_task) {
     cur_task = (struct cpu_task*)CPU_TASKS_LOCATION(c);
-    
     /*
     if(!NIL_P(c->active_context)) {
       printf("(current task dup) ip:%d, sp:%d, fp:%d%s\n", c->ip, c->sp, c->fp, _inspect(cpu_current_method(state, c)));
@@ -93,28 +92,59 @@ OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur) {
     */
   } else {
     cur_task = (struct cpu_task*)BYTES_OF(cur);
-    
     /*
     printf("(      a task dup) ip:%d, sp:%d, fp:%d %s\n", FASTCTX(cur_task->active_context)->ip, FASTCTX(cur_task->active_context)->sp, FASTCTX(cur_task->active_context)->fp,  _inspect(cpu_current_method(state, cur_task)));
     */
   }
   
   NEW_STRUCT(obj, task, state->global->task, struct cpu_task);
-  memcpy(task, cur_task, sizeof(struct cpu_task));
+  memcpy(task, cur_task, sizeof(struct cpu_task_shared));
+    
+  task->active = FALSE;
   
   /* Duplicate the operand stack. */
-  ns = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+  ns = ALLOC_N(OBJECT, InitialStackSize);
   memcpy(ns, task->stack_top, InitialStackSize * sizeof(OBJECT));
   task->stack_top = ns;
   task->stack_size = InitialStackSize;
   task->stack_slave = 0;
+  
+  if(NIL_P(task->active_context)) {
+    task->sp_ptr = ns;
+  } else {
+    task->sp_ptr = ns + FASTCTX(task->active_context)->sp;
+  }
+  
+  home = task->home_context;
   
   /* Duplicate the context chain */
   if(!NIL_P(task->active_context)) {
     task->active_context = 
       methctx_dup_chain(state, task->active_context, &task->home_context);
   }
+  
+  if(!NIL_P(home) && home == task->home_context) {
+    task->home_context = methctx_dup_chain(state, task->home_context, NULL);
+  }
     
+  if(REFERENCE_P(task->active_context)) {
+    methctx_reference(state, task->active_context);
+    
+    assert(task->active_context->obj_type == MContextType ||
+           task->active_context->obj_type == BContextType);
+    
+  }
+  
+  if(REFERENCE_P(task->home_context)) {    
+    assert(home != task->home_context);
+    
+    methctx_reference(state, task->home_context);
+    
+    assert(task->home_context->obj_type == MContextType ||
+           task->home_context->obj_type == BContextType);
+
+  }
+  
   return obj;
 }
 
@@ -130,14 +160,22 @@ int cpu_task_alive_p(STATE, OBJECT self) {
   return TRUE;
 }
 
+void cpu_task_flush(STATE, cpu c) {
+  struct cpu_task *task, *ct;
+  
+  cpu_save_registers(state, c, 0);
+    
+  ct = (struct cpu_task*)CPU_TASKS_LOCATION(c);
+  task = (struct cpu_task*)BYTES_OF(c->current_task);
+  
+  memcpy(task, ct, sizeof(struct cpu_task_shared));
+}
+
 int cpu_task_select(STATE, cpu c, OBJECT nw) {
   struct cpu_task *cur_task, *new_task, *ct;
   OBJECT home, cur;
   cpu_save_registers(state, c, 0);
 
-  if(state->excessive_tracing) {
-    printf("[CPU] Switching to task %s (%p, %d)\n", _inspect(nw), c->sp_ptr, c->sp);
-  }
   cur = c->current_task;
   
   /* Invalidates the stack, so they don't get confused being used across boundries */
@@ -148,16 +186,34 @@ int cpu_task_select(STATE, cpu c, OBJECT nw) {
   cur_task = (struct cpu_task*)BYTES_OF(cur);
   new_task = (struct cpu_task*)BYTES_OF(nw);
   
+  if(state->excessive_tracing) {
+    printf("[CPU] Switching to task %s (%p, %p)\n", _inspect(nw), nw, new_task->sp_ptr);
+  }
+  
   if(NIL_P(new_task->active_context) || NIL_P(new_task->home_context)) {
     cpu_raise_arg_error_generic(state, c, "Task has already exited");
     return FALSE;
   }
   
-  memcpy(cur_task, ct, sizeof(struct cpu_task));
+  memcpy(cur_task, ct, sizeof(struct cpu_task_shared));
   // printf(" Saving to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)cur, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
-  memcpy(ct, new_task, sizeof(struct cpu_task));
+  memcpy(ct, new_task, sizeof(struct cpu_task_shared));
   
   home = NIL_P(c->home_context) ? c->active_context : c->home_context;
+  
+  assert(cur_task->sp_ptr >= cur_task->stack_top);
+  if(REFERENCE_P(cur_task->active_context)) {
+    assert(cur_task->active_context->obj_type == MContextType ||
+          cur_task->active_context->obj_type == BContextType);
+  }
+  
+  if(REFERENCE_P(cur_task->home_context)) {
+    assert(cur_task->home_context->obj_type == MContextType ||
+          cur_task->home_context->obj_type == BContextType);
+  }
+  
+  cur_task->active = FALSE;
+  new_task->active = TRUE;
     
   cpu_restore_context_with_home(state, c, c->active_context, home, FALSE, FALSE);
   // printf("Swaping to task %p\t(%lu / %lu / %p / %p / %p)\n", (void*)nw, c->sp, c->ip, cpu_current_method(state, c), c->active_context, c->home_context);
@@ -181,7 +237,7 @@ OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be) {
   FASTCTX(bc)->sender = Qnil;
   
   if(task->stack_slave) {
-    task->stack_top = (OBJECT*)calloc(InitialStackSize, sizeof(OBJECT));
+    task->stack_top = ALLOC_N(OBJECT, InitialStackSize);
     task->stack_size = InitialStackSize;
     task->stack_slave = 0;
   }
@@ -195,6 +251,7 @@ OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be) {
   task->main = bc;
   task->active_context = bc;
   task->home_context = blokenv_get_home(be);
+  methctx_reference(state, task->home_context);
   
   return bc;
 }

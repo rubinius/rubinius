@@ -8,7 +8,7 @@ extension :rubinius do
     end
 
     specify "when passed an Object that implements #to_a and returns an Array, returns the Array" do
-      obj = Object.new
+      obj = mock('[1,2,3]')
       def obj.to_a
         [1, 2, 3]
       end
@@ -16,7 +16,7 @@ extension :rubinius do
     end
 
     specify "when passed an Object that implements #to_a and does not return an Array, raises a TypeError" do
-      obj = Object.new
+      obj = mock('x')
       def obj.to_a
         nil
       end
@@ -30,7 +30,7 @@ extension :rubinius do
     end
 
   #  specify "when passed an Object that uses implement to_a, returns an Array containing that Object" do
-  #    obj = Object.new
+  #    obj = mock('x')
   #    class << obj
   #      remove_method :to_a
   #    end
@@ -39,7 +39,7 @@ extension :rubinius do
   #  end
 
     specify "when passed an Object that uses Kernel#to_a, returns an Array containing that Object" do
-      obj = Object.new
+      obj = mock('x')
       # TODO: NS/BT - Make Method#initialize take a Module instead of a IncludedModule 
       obj.method(:to_a).module.module.should == Kernel
       VM.coerce_to_array(obj).should == [obj]

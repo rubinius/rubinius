@@ -19,16 +19,16 @@ describe "Range.new" do
     Range.new('a', 'c', true).to_a.should == ['a', 'b']
     Range.new(1, 3, 1).to_a.should == [1, 2]
     
-    Range.new(1, 3, Object.new).to_a.should == [1, 2]
+    Range.new(1, 3, mock('[1,2]')).to_a.should == [1, 2]
     Range.new(1, 3, :test).to_a.should == [1, 2]
   end
   
   it "raises an ArgumentError when the given start and end can't be compared by using #<=>" do
-    lambda { Range.new(1, Object.new)          }.should raise_error(ArgumentError)
-    lambda { Range.new(Object.new, Object.new) }.should raise_error(ArgumentError)
+    lambda { Range.new(1, mock('x'))         }.should raise_error(ArgumentError)
+    lambda { Range.new(mock('x'), mock('y')) }.should raise_error(ArgumentError)
     
-    b = Object.new
-    (a = Object.new).should_receive(:method_missing).with(:<=>, b).and_return(nil)
+    b = mock('x')
+    (a = mock('nil')).should_receive(:method_missing).with(:<=>, b).and_return(nil)
     lambda { Range.new(a, b) }.should raise_error(ArgumentError)
   end
 end

@@ -8,6 +8,8 @@ OBJECT methctx_dup(STATE, OBJECT self) {
   OBJECT ctx;
   struct fast_context *cur, *old;
   
+  methctx_reference(state, self);
+  
   ctx = NEW_OBJECT(object_class(state, self), FASTCTX_FIELDS);
 
   ctx->StoresBytes = TRUE;
@@ -15,6 +17,8 @@ OBJECT methctx_dup(STATE, OBJECT self) {
     ctx->CTXFast = TRUE;
   }
   ctx->obj_type = self->obj_type;
+  
+  assert(ctx->obj_type == MContextType || ctx->obj_type == BContextType);
  
   old = FASTCTX(self);
   cur = FASTCTX(ctx);

@@ -16,11 +16,11 @@ shared :string_slice do |cmd|
     it "calls to_int on the given index" do
       "hello".send(cmd, 0.5).should == ?h
 
-      obj = Object.new
+      obj = mock('1')
       obj.should_receive(:to_int).and_return(1)
       "hello".send(cmd, obj).should == ?e
 
-      obj = Object.new
+      obj = mock('1')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(1)
       "hello".send(cmd, obj).should == ?e
@@ -31,9 +31,9 @@ shared :string_slice do |cmd|
     end
     
     it "raises a TypeError if the given index can't be converted to an Integer" do
-      lambda { "hello".send(cmd, Object.new) }.should raise_error(TypeError)
-      lambda { "hello".send(cmd, {})         }.should raise_error(TypeError)
-      lambda { "hello".send(cmd, [])         }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, mock('x')) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, {})        }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, [])        }.should raise_error(TypeError)
     end
   end
 
@@ -118,22 +118,22 @@ shared :string_slice do |cmd|
       "hello".send(cmd, 0.5, 2.5).should == "he"
       "hello".send(cmd, 1, 2.5).should == "el"
 
-      obj = Object.new
+      obj = mock('2')
       obj.should_receive(:to_int).exactly(4).times.and_return(2)
 
       "hello".send(cmd, obj, 1).should == "l"
       "hello".send(cmd, obj, obj).should == "ll"
       "hello".send(cmd, 0, obj).should == "he"
 
-      obj = Object.new
+      obj = mock('2')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).exactly(2).times.and_return(2)
       "hello".send(cmd, obj, obj).should == "ll"
     end
 
     it "raises TypeError when idx or length can't be converted to an integer" do
-      lambda { "hello".send(cmd, Object.new, 0) }.should raise_error(TypeError)
-      lambda { "hello".send(cmd, 0, Object.new) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, mock('x'), 0) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, 0, mock('x')) }.should raise_error(TypeError)
 
       # I'm deliberately including this here.
       # It means that str.send(cmd, other, idx) isn't supported.
@@ -227,8 +227,8 @@ shared :string_slice do |cmd|
     end
 
     it "calls to_int on range arguments" do
-      from = Object.new
-      to = Object.new
+      from = mock('from')
+      to = mock('to')
 
       # So we can construct a range out of them...
       def from.<=>(o) 0 end
@@ -240,8 +240,8 @@ shared :string_slice do |cmd|
       "hello there".send(cmd, from..to).should == "ello ther"
       "hello there".send(cmd, from...to).should == "ello the"
 
-      from = Object.new
-      to = Object.new
+      from = mock('from')
+      to = mock('to')
 
       def from.<=>(o) 0 end
       def to.<=>(o) 0 end
@@ -352,22 +352,22 @@ shared :string_slice do |cmd|
     end
 
     it "calls to_int on the given index" do
-      obj = Object.new
+      obj = mock('2')
       obj.should_receive(:to_int).and_return(2)
 
       "har".send(cmd, /(.)(.)(.)/, 1.5).should == "h"
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
 
-      obj = Object.new
+      obj = mock('2')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(2)
       "har".send(cmd, /(.)(.)(.)/, obj).should == "a"
     end
     
     it "raises a TypeError when the given index can't be converted to Integer" do
-      lambda { "hello".send(cmd, /(.)(.)(.)/, Object.new) }.should raise_error(TypeError)
-      lambda { "hello".send(cmd, /(.)(.)(.)/, {})         }.should raise_error(TypeError)
-      lambda { "hello".send(cmd, /(.)(.)(.)/, [])         }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, /(.)(.)(.)/, mock('x')) }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, /(.)(.)(.)/, {})        }.should raise_error(TypeError)
+      lambda { "hello".send(cmd, /(.)(.)(.)/, [])        }.should raise_error(TypeError)
     end
     
     it "raises a TypeError when the given index is nil" do
@@ -423,7 +423,7 @@ shared :string_slice do |cmd|
     end
 
     it "doesn't call to_str on its argument" do
-      o = Object.new
+      o = mock('x')
       o.should_not_receive(:to_str)
 
       lambda { "hello".send(cmd, o) }.should raise_error(TypeError)

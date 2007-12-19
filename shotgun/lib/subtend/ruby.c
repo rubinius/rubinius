@@ -196,7 +196,7 @@ VALUE rb_funcall(VALUE recv, ID meth, int args, ...) {
   int i;
   VALUE ret;
 
-  arg_array = calloc(args, sizeof(VALUE));
+  arg_array = ALLOC_N(VALUE, args);
   va_start(ar, args);
   for(i = 0; i < args; i++) {
     arg_array[i] = va_arg(ar, VALUE);
@@ -205,7 +205,7 @@ VALUE rb_funcall(VALUE recv, ID meth, int args, ...) {
   va_end(ar);
   
   ret = _push_and_call(recv, meth, args, arg_array);
-  free(arg_array);
+  XFREE(arg_array);
   return ret;
   
 }
@@ -651,7 +651,7 @@ void rb_str_flush_char_ptr(VALUE arg, char* ptr) {
   OBJECT new_string = string_new(ctx->state, ptr);
   string_set_data(str, string_get_data(new_string));
   // XXX This free may be resulting in double frees.
-  free(ptr);
+  XFREE(ptr);
 }
 
 int rb_str_get_char_len(VALUE arg) {

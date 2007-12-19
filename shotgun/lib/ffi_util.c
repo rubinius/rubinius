@@ -62,13 +62,13 @@ void *ffi_read_pointer(void **ptr) {
 }
 
 char *ffi_sprintf_f(double value, int size, char *fmt) {
-  char *str = calloc(size, sizeof(char));
+  char *str = ALLOC_N(char, size);
   snprintf(str, size, fmt, value);
   return str;
 }
 
 char *ffi_sprintf_d(int value, int size, char *fmt) {
-  char *str = calloc(size, sizeof(char));
+  char *str = ALLOC_N(char, size);  
   snprintf(str, size, fmt, value);
   return str;
 }
@@ -76,7 +76,7 @@ char *ffi_sprintf_d(int value, int size, char *fmt) {
 OBJECT ffi_pack_sockaddr_un(STATE, char *path) {
   struct sockaddr_un *sa;
   
-  sa = (struct sockaddr_un*)malloc(sizeof(struct sockaddr_un));
+  sa = ALLOC(struct sockaddr_un);
   memset(sa, 0, sizeof(struct sockaddr_un));
   
   strncpy(sa->sun_path, path, sizeof(sa->sun_path) - 1);

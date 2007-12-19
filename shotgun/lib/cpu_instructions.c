@@ -551,23 +551,19 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   /* Home is actually the main context here because it's the method
      context that holds all the data. So if it's a fast, we restore
      it's data, then if ctx != home, we restore a little more */
-  
-  
+
   fc = FASTCTX(home);
   CHECK_PTR(fc->self);
   CHECK_PTR(fc->method);
   
   c->argcount = fc->argcount;
-  c->self = fc->self;  
-  
+  c->self = fc->self;
+    
   /* Only happens if we're restoring a block. */
   if(ctx != home) {
     fc = FASTCTX(ctx);
   }
-  
-  assert(fc->sender);
-  
-  
+
   c->data = fc->data;
   c->type = fc->type;
   
@@ -576,15 +572,15 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
   } else {
     c->cache = Qnil;
   }
-  
+
   c->sender = fc->sender;
   c->sp = fc->sp;
   c->ip = fc->ip;
   c->fp = fc->fp;
-  
+
   cpu_cache_ip(c);
   cpu_cache_sp(c);
-  
+
   c->home_context = home;
   c->active_context = ctx;
 }

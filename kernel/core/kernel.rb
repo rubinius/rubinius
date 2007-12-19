@@ -217,6 +217,14 @@ module Kernel
   def global_variables
     Globals.variables.map { |i| i.to_s }
   end
+  
+  def loop
+    raise LocalJumpError, "no block given" unless block_given?
+    
+    while true
+      yield
+    end
+  end
 
   # Sleeps the current thread for +duration+ seconds.
   def sleep(duration = Undefined)

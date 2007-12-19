@@ -431,14 +431,14 @@ OBJECT bignum_to_s(STATE, OBJECT self, OBJECT radix) {
   OBJECT obj;
   sz = 1024;
   for(;;) {
-    buf = malloc(sizeof(char) * sz);
+    buf = ALLOC_N(char, sz);
     mp_toradix_nd(MP(self), buf, FIXNUM_TO_INT(radix), sz, &k);
     if(k < sz - 2) {
       obj = string_new(state, buf);
-      free(buf);
+      FREE(buf);
       return obj;
     }
-    free(buf);
+    FREE(buf);
     sz += 1024;
   }
 }

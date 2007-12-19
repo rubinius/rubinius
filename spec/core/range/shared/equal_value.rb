@@ -22,7 +22,7 @@ shared :range_eql do |cmd|
     it "returns false if other is no Range" do
       (1..10).send(cmd, 1).should == false
       (1..10).send(cmd, 'a').should == false
-      (1..10).send(cmd, Object.new).should == false
+      (1..10).send(cmd, mock('x')).should == false
     end
   end
 end

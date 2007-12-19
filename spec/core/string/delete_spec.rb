@@ -58,24 +58,24 @@ describe "String#delete" do
   end
 
   it "tries to convert each set arg to a string using to_str" do
-    other_string = Object.new
+    other_string = mock('lo')
     def other_string.to_str() "lo" end
     
-    other_string2 = Object.new
+    other_string2 = mock('o')
     def other_string2.to_str() "o" end
     
     "hello world".delete(other_string, other_string2).should == "hell wrld"
 
-    obj = Object.new
+    obj = mock('x')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("o")
     "hello world".delete(obj).should == "hell wrld"
   end
   
   it "raises a TypeError when one set arg can't be converted to a string" do
-    lambda { "hello world".delete(?o)         }.should raise_error(TypeError)
-    lambda { "hello world".delete(:o)         }.should raise_error(TypeError)
-    lambda { "hello world".delete(Object.new) }.should raise_error(TypeError)
+    lambda { "hello world".delete(?o)        }.should raise_error(TypeError)
+    lambda { "hello world".delete(:o)        }.should raise_error(TypeError)
+    lambda { "hello world".delete(mock('x')) }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do

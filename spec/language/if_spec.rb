@@ -107,7 +107,7 @@ describe "The if expression" do
   end
 
   it "should consider non-nil and non-boolean object in expression result as true" do
-    if Object.new
+    if mock('x')
       123
     else
       456
@@ -307,7 +307,7 @@ describe "The postfix if form" do
   end
 
   it "should consider non-nil object as true" do
-    (123 if Object.new).should == 123
+    (123 if mock('x')).should == 123
   end
 
   it "should evaluate then-body in containing scope" do

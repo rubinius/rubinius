@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 
 describe "Proc#binding" do
   it "returns the binding associated wiht self" do
-    obj = Object.new
+    obj = mock('binding')
     def obj.test_binding(some, params)
       lambda {}
     end

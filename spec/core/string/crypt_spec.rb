@@ -43,20 +43,20 @@ describe "String#crypt" do
   end
 
   it "converts the salt arg to a string via to_str" do
-    obj = Object.new
+    obj = mock('aa')
     def obj.to_str() "aa" end
     
     "".crypt(obj).should == "aaQSqAReePlq6"
 
-    obj = Object.new
+    obj = mock('aa')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("aa")
     "".crypt(obj).should == "aaQSqAReePlq6"
   end
 
   it "raises a type error when the salt arg can't be converted to a string" do
-    lambda { "".crypt(5)          }.should raise_error(TypeError)
-    lambda { "".crypt(Object.new) }.should raise_error(TypeError)
+    lambda { "".crypt(5)         }.should raise_error(TypeError)
+    lambda { "".crypt(mock('x')) }.should raise_error(TypeError)
   end
   
   it "taints the result if either salt or self is tainted" do

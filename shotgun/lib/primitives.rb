@@ -550,7 +550,7 @@ class ShotgunPrimitives
     struct tm *tm;
 
     POP(self, REFERENCE);
-    POP(t1, NUMERIC);
+    POP(t1, INTEGER);
     t2 = stack_pop();
 
     if(FIXNUM_P(t1)) {
@@ -826,8 +826,14 @@ class ShotgunPrimitives
     if(REFERENCE_P(t1)) {
       j = NUM_FIELDS(t1);
       t2 = NEW_OBJECT(object_class(state, t1), j);
-      for(k = 0; k < j; k++) {
-        SET_FIELD(t2, k, NTH_FIELD(t1, k));
+      if(t1->StoresBytes) {
+        memcpy(object_byte_start(state, t2), 
+               object_byte_start(state, t1), SIZE_OF_BODY(t1));
+        t2->StoresBytes = 1;
+      } else {
+        for(k = 0; k < j; k++) {
+          SET_FIELD(t2, k, NTH_FIELD(t1, k));
+        }
       }
       stack_push(t2);
       /* TODO: copy the ivars in slot 0 */
@@ -1161,7 +1167,7 @@ class ShotgunPrimitives
         }
 
         /* HACK: this memory is never freed */
-        state->termios = (struct termios *)malloc(sizeof(struct termios));
+        state->termios = ALLOC(struct termios);
 
         if (NULL == state->termios) {
           stack_push(Qfalse);
@@ -1171,7 +1177,7 @@ class ShotgunPrimitives
         err = tcgetattr(STDOUT_FILENO, state->termios);
 
         if (err == -1) { /* TODO: handle errno */
-          free(state->termios);
+          XFREE(state->termios);
           stack_push(Qfalse);
           break;
         }
@@ -2425,15 +2431,15 @@ class ShotgunPrimitives
     tmp = string_byte_address(state, t1);
     file = tmp ? strdup(tmp) : NULL;
     k = FIXNUM_TO_INT(array_get_total(t2)) + 1;
-    argv = (char**)calloc(k + 1, sizeof(char*));
+    argv = ALLOC_N(char*, k + 1);
     argv[0] = file;
     for(j = 1; j < k; j++) {
       t3 = array_get(state, t2, j - 1);
       if(!ISA(t3, state->global->string)) {
         for(i = 0; i < j; i++) {
-          free(argv[i]);
+          XFREE(argv[i]);
         }
-        free(argv);
+        XFREE(argv);
         return FALSE;
       }
       

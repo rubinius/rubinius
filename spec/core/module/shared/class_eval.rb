@@ -15,15 +15,15 @@ shared :module_class_eval do |cmd|
     end
 
     it "converts non string eval-string to string using to_str" do
-      (o = Object.new).should_receive(:to_str).and_return("1 + 1")
+      (o = mock('1 + 1')).should_receive(:to_str).and_return("1 + 1")
       ModuleSpecs.send(cmd, o).should == 2
     end
 
     it "raises a TypeError when the given eval-string can't be converted to string using to_str" do
-      o = Object.new
+      o = mock('x')
       lambda { ModuleSpecs.send(cmd, o) }.should raise_error(TypeError)
     
-      (o = Object.new).should_receive(:to_str).and_return(123)
+      (o = mock('123')).should_receive(:to_str).and_return(123)
       lambda { ModuleSpecs.send(cmd, o) }.should raise_error(TypeError)
     end
   

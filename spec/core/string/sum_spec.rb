@@ -9,12 +9,12 @@ describe "String#sum" do
   end
   
   it "tries to convert n to an integer using to_int" do
-    obj = Object.new
+    obj = mock('8')
     def obj.to_int() 8 end
     
     "hello".sum(obj).should == "hello".sum(obj.to_int)
 
-    obj = Object.new
+    obj = mock('8')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(8)
 

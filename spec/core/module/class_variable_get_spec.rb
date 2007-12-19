@@ -25,13 +25,13 @@ describe "Module#class_variable_get" do
 
   it "converts a non string/symbol/fixnum name to string using to_str" do
     c = Class.new { class_variable_set :@@class_var, "test" }
-    (o = Object.new).should_receive(:to_str).and_return("@@class_var")
+    (o = mock('@@class_var')).should_receive(:to_str).and_return("@@class_var")
     c.send(:class_variable_get, o).should == "test"
   end
 
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
     c = Class.new { class_variable_set :@@class_var, "test" }
-    o = Object.new
+    o = mock('123')
     lambda { c.send(:class_variable_get, o) }.should raise_error(TypeError)
     o.should_receive(:to_str).and_return(123)
     lambda { c.send(:class_variable_get, o) }.should raise_error(TypeError)

@@ -56,7 +56,7 @@ char *bytearray_as_string(STATE, OBJECT self) {
   str = (char*)bytearray_byte_address(state, self);
   
   sz = object_size(state, self);
-  out = (char*)malloc(sizeof(char) * sz);
+  out = ALLOC_N(char, sz);
   memcpy(out, str, sz);
   
   return out;

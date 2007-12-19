@@ -108,6 +108,8 @@ void cpu_bootstrap(STATE) {
   
   BC(task) = rbs_class_new(state, "Task", 0, obj);
   BC(iseq) = rbs_class_new(state, "InstructionSequence", 0, BC(bytearray));
+  
+  class_set_object_type(BC(task), I2N(TaskType));
     
   #define bcs(name, sup, string) BC(name) = _ ## name ## _class(state, sup); \
     module_setup(state, BC(name), string);

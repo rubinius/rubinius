@@ -10,7 +10,7 @@ describe "Module#extended" do
         end
       end
       
-      (o = Object.new).extend(m)
+      (o = mock('x')).extend(m)
       
       $extended_object.should == o
     ensure
@@ -30,7 +30,7 @@ describe "Module#extended" do
         end
       end
       
-      (o = Object.new).extend(m)
+      (o = mock('x')).extend(m)
       
       $extended_object.should == o
     ensure

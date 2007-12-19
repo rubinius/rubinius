@@ -10,17 +10,17 @@ describe "String#==" do
   it "returns false if obj does not respond to to_str" do
     ('hello' == 5).should == false
     ('hello' == :hello).should == false
-    ('hello' == Object.new).should == false
+    ('hello' == mock('x')).should == false
   end
   
   it "returns obj == self if obj responds to to_str" do
-    obj = Object.new
+    obj = mock('world!')
     def obj.to_str() 'world!' end
     obj.should_receive(:==).any_number_of_times.and_return(true)
     ('hello' == obj).should == true
     ('world!' == obj).should == true 
     
-    obj = Object.new
+    obj = mock('x')
     other = "abc"
     obj.should_receive(:respond_to?).with(:to_str).and_return(true)
     obj.should_receive(:==).and_return(true)

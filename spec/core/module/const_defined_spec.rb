@@ -26,7 +26,7 @@ describe "Module#const_defined?" do
   end
   
   it "tries to convert the given name to a string using to_str" do
-    (o = Object.new).should_receive(:to_str).and_return("Child")
+    (o = mock('Child')).should_receive(:to_str).and_return("Child")
     o.respond_to?(:to_str).should == true
     ModuleSpecs.const_defined?(o).should == true
   end
@@ -42,7 +42,7 @@ describe "Module#const_defined?" do
   end
   
   it "raises a TypeError when the given names can't be converted to strings using to_str" do
-    o = Object.new
+    o = mock('123')
     lambda { ModuleSpecs.const_defined?(o) }.should raise_error(TypeError)
     
     o.should_receive(:to_str).and_return(123)

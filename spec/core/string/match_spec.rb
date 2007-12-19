@@ -16,7 +16,7 @@ describe "String#=~" do
   
   it "invokes obj.=~ with self if obj is neither a string nor regexp" do
     str = "w00t"
-    obj = Object.new
+    obj = mock('x')
 
     obj.should_receive(:=~).with(str).any_number_of_times.and_return(true)
     str.should =~ obj
@@ -40,11 +40,11 @@ describe "String#match" do
   end
   
   it "tries to convert pattern to a string via to_str" do
-    obj = Object.new
+    obj = mock('.')
     def obj.to_str() "." end
     "hello".match(obj)[0].should == "h"
     
-    obj = Object.new
+    obj = mock('.')
     def obj.respond_to?(type) true end
     def obj.method_missing(*args) "." end
     "hello".match(obj)[0].should == "h"    

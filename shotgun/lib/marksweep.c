@@ -312,41 +312,44 @@ static OBJECT mark_sweep_mark_object(STATE, mark_sweep_gc ms, OBJECT iobj) {
         ba = cmethod_get_compiled(fc->method);
         fc->data = BYTEARRAY_ADDRESS(ba);
       }
-    } else if(ISA(iobj, BASIC_CLASS(task))) {
+    } else if(iobj->obj_type == TaskType) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
       
-      fc_mutate(exception);
-      fc_mutate(new_class_of);
-      fc_mutate(enclosing_class);
-      fc_mutate(exceptions);
-      fc_mutate(active_context);
-      fc_mutate(home_context);
-      fc_mutate(main);
-      fc_mutate(outstanding);
-      fc_mutate(debug_channel);
-      fc_mutate(control_channel);
+      if(!fc->active) {
+        fc_mutate(exception);
+        fc_mutate(new_class_of);
+        fc_mutate(enclosing_class);
+        fc_mutate(exceptions);
+        fc_mutate(active_context);
+        fc_mutate(home_context);
+        fc_mutate(main);
+        fc_mutate(outstanding);
+        fc_mutate(debug_channel);
+        fc_mutate(control_channel);
+        fc_mutate(current_scope);
       
-      OBJECT *sp;
+        OBJECT *sp;
 
-      sp = fc->stack_top;
-      while(sp <= fc->sp_ptr) {
-        if(REFERENCE2_P(*sp)) {
-          if(BCM_P(*sp)) {
-            *sp = BCM_TO;
-          } else {
-            mark_sweep_mark_object(state, ms, *sp);
+        sp = fc->stack_top;
+        while(sp <= fc->sp_ptr) {
+          if(REFERENCE2_P(*sp)) {
+            if(BCM_P(*sp)) {
+              *sp = BCM_TO;
+            } else {
+              mark_sweep_mark_object(state, ms, *sp);
+            }
           }
+          sp++;
         }
-        sp++;
-      }
       
-      int i;
-      for(i = 0; i < ptr_array_length(fc->paths); i++) {
-        tmp = (OBJECT)ptr_array_get_index(fc->paths, i);
-        if(BCM_P(tmp)) {
-          ptr_array_set_index(fc->paths,i,(xpointer)BCM_TO);
-        } else {
-          mark_sweep_mark_object(state, ms, tmp);
+        int i;
+        for(i = 0; i < ptr_array_length(fc->paths); i++) {
+          tmp = (OBJECT)ptr_array_get_index(fc->paths, i);
+          if(BCM_P(tmp)) {
+            ptr_array_set_index(fc->paths,i,(xpointer)BCM_TO);
+          } else {
+            mark_sweep_mark_object(state, ms, tmp);
+          }
         }
       }
     }

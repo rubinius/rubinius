@@ -160,17 +160,17 @@ describe "String#%" do
   end
   
   it "calls to_int on width star and precision star tokens" do
-    w = Object.new
+    w = mock('10')
     def w.to_int() 10 end
-    p = Object.new
+    p = mock('5')
     def p.to_int() 5 end
     
     ("%*.*f" % [w, p, 1]).should == "   1.00000"
     
-    w = Object.new
+    w = mock('10')
     w.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     w.should_receive(:method_missing).with(:to_int).and_return(10)
-    p = Object.new
+    p = mock('5')
     p.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     p.should_receive(:method_missing).with(:to_int).and_return(5)
 
@@ -178,7 +178,7 @@ describe "String#%" do
   end
   
   it "doesn't call to_ary on its argument" do
-    obj = Object.new
+    obj = mock('[1,2]')
     def obj.to_ary() [1, 2] end
     def obj.to_s() "obj" end
     lambda { "%s %s" % obj }.should raise_error(ArgumentError)
@@ -186,7 +186,7 @@ describe "String#%" do
   end
   
   it "doesn't return subclass instances when called on a subclass" do
-    universal = Object.new
+    universal = mock('0')
     def universal.to_int() 0 end
     def universal.to_str() "0" end
     def universal.to_f() 0.0 end
@@ -202,7 +202,7 @@ describe "String#%" do
   end
 
   it "always taints the result when the format string is tainted" do
-    universal = Object.new
+    universal = mock('0')
     def universal.to_int() 0 end
     def universal.to_str() "0" end
     def universal.to_f() 0.0 end
@@ -282,11 +282,11 @@ describe "String#%" do
   end
   
   it "calls to_int on argument for %c formats" do
-    obj = Object.new
+    obj = mock('65')
     def obj.to_int() 65 end
     ("%c" % obj).should == ("%c" % obj.to_int)
 
-    obj = Object.new
+    obj = mock('65')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(65)
     ("%c" % obj).should == "A"
@@ -390,24 +390,24 @@ describe "String#%" do
   end
   
   it "calls inspect on arguments for %p format" do
-    obj = Object.new
+    obj = mock('obj')
     def obj.inspect() "obj" end
     ("%p" % obj).should == "obj"
 
     # undef is not working
-    # obj = Object.new
+    # obj = mock('obj')
     # class << obj; undef :inspect; end
     # def obj.method_missing(*args) "obj" end
     # ("%p" % obj).should == "obj"    
   end
   
   it "taints result for %p when argument.inspect is tainted" do
-    obj = Object.new
+    obj = mock('x')
     def obj.inspect() "x".taint end
     
     ("%p" % obj).tainted?.should == true
     
-    obj = Object.new; obj.taint
+    obj = mock('x'); obj.taint
     def obj.inspect() "x" end
     
     ("%p" % obj).tainted?.should == false
@@ -421,13 +421,13 @@ describe "String#%" do
   end
   
   it "calls to_s on arguments for %s format" do
-    obj = Object.new
+    obj = mock('obj')
     def obj.to_s() "obj" end
     
     ("%s" % obj).should == "obj"
 
     # undef doesn't work
-    # obj = Object.new
+    # obj = mock('obj')
     # class << obj; undef :to_s; end
     # def obj.method_missing(*args) "obj" end
     # 
@@ -436,7 +436,7 @@ describe "String#%" do
   
   it "taints result for %s when argument is tainted" do
     ("%s" % "x".taint).tainted?.should == true
-    ("%s" % Object.new.taint).tainted?.should == true
+    ("%s" % mock('x').taint).tainted?.should == true
     ("%s" % 5.0.taint).tainted?.should == true
   end
 
@@ -539,31 +539,31 @@ describe "String#%" do
       raise_error(ArgumentError) { format % "0b2" }
       raise_error(ArgumentError) { format % "123__456" }
       
-      obj = Object.new
+      obj = mock('5')
       obj.should_receive(:to_i).and_return(5)
       (format % obj).should == (format % 5)
 
-      obj = Object.new
+      obj = mock('5')
       obj.should_receive(:to_int).and_return(5)
       (format % obj).should == (format % 5)
 
-      obj = Object.new
+      obj = mock('4')
       def obj.to_int() 4 end
       def obj.to_i() 0 end
       (format % obj).should == (format % 4)
 
-      obj = Object.new
+      obj = mock('65')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(65)
       (format % obj).should == (format % 65)
 
-      obj = Object.new
+      obj = mock('65')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(false)
       obj.should_receive(:respond_to?).with(:to_i).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_i).any_number_of_times.and_return(65)
       (format % obj).should == (format % 65)
       
-      obj = Object.new
+      obj = mock('4')
       def obj.respond_to?(arg) true if [:to_i, :to_int].include?(arg) end
       def obj.method_missing(name, *args)
         name == :to_int ? 4 : 0
@@ -601,11 +601,11 @@ describe "String#%" do
       raise_error(ArgumentError) { format % "10__10" }
       raise_error(ArgumentError) { format % "10.10__10" }
       
-      obj = Object.new
+      obj = mock('5.0')
       obj.should_receive(:to_f).and_return(5.0)
       (format % obj).should == (format % 5.0)
 
-      obj = Object.new
+      obj = mock('3.14')
       obj.should_receive(:respond_to?).with(:to_f).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_f).and_return(3.14)
       (format % obj).should == (format % 3.14)

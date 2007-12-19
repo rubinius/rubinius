@@ -41,31 +41,31 @@ describe "String#ljust with length, padding" do
   it "tries to convert length to an integer using to_int" do
     "^".ljust(3.8, "_^").should == "^_^"
     
-    obj = Object.new
+    obj = mock('3')
     def obj.to_int() 3 end
       
     "o".ljust(obj, "_o").should == "o_o"
     
-    obj = Object.new
+    obj = mock('3')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(3)
     "~".ljust(obj, "_~").should == "~_~"
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
-    lambda { "hello".ljust("x")        }.should raise_error(TypeError)
-    lambda { "hello".ljust("x", "y")   }.should raise_error(TypeError)
-    lambda { "hello".ljust([])         }.should raise_error(TypeError)
-    lambda { "hello".ljust(Object.new) }.should raise_error(TypeError)
+    lambda { "hello".ljust("x")       }.should raise_error(TypeError)
+    lambda { "hello".ljust("x", "y")  }.should raise_error(TypeError)
+    lambda { "hello".ljust([])        }.should raise_error(TypeError)
+    lambda { "hello".ljust(mock('x')) }.should raise_error(TypeError)
   end
 
   it "tries to convert padstr to a string using to_str" do
-    padstr = Object.new
+    padstr = mock('123')
     def padstr.to_str() "123" end
     
     "hello".ljust(10, padstr).should == "hello12312"
 
-    obj = Object.new
+    obj = mock('k')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("k")
 
@@ -73,9 +73,9 @@ describe "String#ljust with length, padding" do
   end
 
   it "raises a TypeError when padstr can't be converted" do
-    lambda { "hello".ljust(20, :sym)       }.should raise_error(TypeError)
-    lambda { "hello".ljust(20, ?c)         }.should raise_error(TypeError)
-    lambda { "hello".ljust(20, Object.new) }.should raise_error(TypeError)
+    lambda { "hello".ljust(20, :sym)      }.should raise_error(TypeError)
+    lambda { "hello".ljust(20, ?c)        }.should raise_error(TypeError)
+    lambda { "hello".ljust(20, mock('x')) }.should raise_error(TypeError)
   end
   
   it "raises an ArgumentError when padstr is empty" do

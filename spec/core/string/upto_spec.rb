@@ -45,7 +45,7 @@ describe "String#upto" do
   end
 
   it "tries to convert other to string using to_str" do
-    other = Object.new
+    other = mock('abd')
     def other.to_str() "abd" end
 
     a = []
@@ -54,9 +54,9 @@ describe "String#upto" do
   end
 
   it "raises a TypeError if other can't be converted to a string" do
-    lambda { "abc".upto(123)        }.should raise_error(TypeError)
-    lambda { "abc".upto(:def) { }   }.should raise_error(TypeError)
-    lambda { "abc".upto(Object.new) }.should raise_error(TypeError)
+    lambda { "abc".upto(123)       }.should raise_error(TypeError)
+    lambda { "abc".upto(:def) { }  }.should raise_error(TypeError)
+    lambda { "abc".upto(mock('x')) }.should raise_error(TypeError)
   end
 
   it "raises a LocalJumpError if other is a string but no block was given" do

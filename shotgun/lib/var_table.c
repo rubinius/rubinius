@@ -1,3 +1,4 @@
+#include "shotgun.h"
 #include "var_table.h"
 #include <stdlib.h>
 #include <assert.h>
@@ -12,7 +13,7 @@ struct var_table_t {
 };
 
 var_table var_table_create() {
-  var_table vt = malloc(sizeof(struct var_table_t));
+  var_table vt = ALLOC(struct var_table_t);
   vt->size = 0;
   vt->next = NULL;
   return vt;
@@ -23,7 +24,7 @@ void var_table_destroy(var_table vt) {
     var_table cur = vt;
     vt = vt->next;
 
-    free(cur);
+    XFREE(cur);
   }
 }
 
@@ -37,7 +38,7 @@ var_table var_table_pop(var_table cur) {
   var_table nw;
   
   nw = cur->next;
-  free(cur);
+  XFREE(cur);
   return nw; 
 }
 

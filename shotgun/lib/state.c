@@ -79,7 +79,6 @@ void state_collect(STATE, cpu c) {
     gettimeofday(&start, NULL);
   }
   
-  c->context_cache = 0;
   ptr_array_clear(state->free_contexts);
   
   cpu_flush_ip(c);
@@ -118,6 +117,7 @@ void state_collect(STATE, cpu c) {
     );
   }
   
+  cpu_task_flush(state, c);
   cpu_hard_cache(state, c);
   cpu_cache_sp(c);  
 }
@@ -137,7 +137,6 @@ void state_major_collect(STATE, cpu c) {
   cpu_flush_ip(c);
   cpu_flush_sp(c);
   
-  c->context_cache = 0;
   ptr_array_clear(state->free_contexts);
   
   /* HACK: external_ivars needs to be moved out of being a generic
@@ -170,13 +169,13 @@ void state_major_collect(STATE, cpu c) {
       );
   }
   
+  cpu_task_flush(state, c);
   cpu_hard_cache(state, c);  
   cpu_cache_sp(c);
 }
 
 void state_object_become(STATE, cpu c, OBJECT from, OBJECT to) {
   ptr_array roots;
-  c->context_cache = 0;
   ptr_array_clear(state->free_contexts);
         
   state->current_stack = c->stack_top;

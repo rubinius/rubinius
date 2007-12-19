@@ -118,11 +118,12 @@ class Time
   end
 
   def self.at(secs_or_time, msecs = 0)
-    if secs_or_time.kind_of?(Integer)
-      Time.allocate.at_gmt(secs_or_time, msecs, false)
-    else
-      secs_or_time.dup
+    if secs_or_time.kind_of? Time
+      return secs_or_time.dup
     end
+    
+    secs_or_time = Type.coerce_to secs_or_time, Integer, :to_i
+    Time.allocate.at_gmt(secs_or_time, msecs, false)
   end
   
   def strftime(format)

@@ -121,7 +121,7 @@ void cpu_sampler_activate(STATE, int hz) {
   
   state->max_samples = SAMPLE_INCS;
   state->cur_sample = 0;
-  state->samples = (OBJECT*)calloc(state->max_samples, sizeof(OBJECT));
+  state->samples = ALLOC_N(OBJECT, state->max_samples);
     
   cpu_sampler_resume(state);
   setitimer(ITIMER_PROF, &new, &old);
@@ -151,7 +151,7 @@ OBJECT cpu_sampler_disable(STATE) {
     tuple_put(state, tup, i, state->samples[i]);
   }
   
-  free(state->samples);
+  XFREE(state->samples);
   state->samples = NULL;
   
   return tuple_new2(state, 3, tup, I2N((int)fin), I2N(interval));

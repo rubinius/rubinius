@@ -22,7 +22,7 @@ describe "Module#module_function" do
       module_function :test
     end
     
-    (o = Object.new).extend(m)
+    (o = mock('x')).extend(m)
     o.respond_to?(:test).should == false
     o.send(:test).should == "hello"
   end
@@ -42,8 +42,8 @@ describe "Module#module_function" do
   end
   
   it "tries to convert the given names to strings using to_str" do
-    (o = Object.new).should_receive(:to_str).any_number_of_times.and_return("test")
-    (o2 = Object.new).should_receive(:to_str).any_number_of_times.and_return("test2")
+    (o = mock('test')).should_receive(:to_str).any_number_of_times.and_return("test")
+    (o2 = mock('test2')).should_receive(:to_str).any_number_of_times.and_return("test2")
     
     m = Module.new do
       def test() end
@@ -56,7 +56,7 @@ describe "Module#module_function" do
   end
 
   it "raises a TypeError when the given names can't be converted to string using to_str" do
-    o = Object.new
+    o = mock('123')
     
     lambda { Module.new { module_function(o) } }.should raise_error(TypeError)
 

@@ -67,14 +67,14 @@ shared :string_each do |cmd|
     end
   
     it "tries to convert the separator to a string using to_str" do
-      separator = Object.new
+      separator = mock('l')
       def separator.to_str() 'l' end
       
       a = []
       "hello\nworld".send(cmd, separator) { |s| a << s }
       a.should == [ "hel", "l", "o\nworl", "d" ]
       
-      obj = Object.new
+      obj = mock('l')
       obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_str).and_return("l")
       
@@ -89,9 +89,9 @@ shared :string_each do |cmd|
     end
     
     it "raises a TypeError when the separator can't be converted to a string" do
-      lambda { "hello world".send(cmd, ?o)         }.should raise_error(TypeError)
-      lambda { "hello world".send(cmd, :o)         }.should raise_error(TypeError)
-      lambda { "hello world".send(cmd, Object.new) }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, ?o)        }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, :o)        }.should raise_error(TypeError)
+      lambda { "hello world".send(cmd, mock('x')) }.should raise_error(TypeError)
     end
   end
 end
