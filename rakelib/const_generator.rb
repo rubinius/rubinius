@@ -71,7 +71,6 @@ EOF
     File.unlink(binary)
 
     output.each_line do |line|
-      puts line
       md = line.match(/^(\S+)\s+(.*)$/)
       const = @constants[md.captures.first]
       const.value = md.captures[1]

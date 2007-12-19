@@ -2303,6 +2303,7 @@ module Bytecode
           add "set_args"
         end
         
+        add "set_call_flags 1"
         add "super #{@method.name} #{sz}"
         add "#{ps}:" if block
       end
