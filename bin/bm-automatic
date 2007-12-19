@@ -61,7 +61,7 @@ class Commit
 
   def benchmark
     execute "rm -rf #{OPTIONS.working}"
-    execute "git clone git@git.rubini.us:code #{OPTIONS.working}"
+    execute "git clone git://git.rubini.us/code #{OPTIONS.working}"
     Dir.chdir OPTIONS.working
     execute 'rake build'
 
