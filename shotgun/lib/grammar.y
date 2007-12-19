@@ -29,9 +29,6 @@ static NODE *syd_node_newnode(rb_parse_state*, enum node_type, OBJECT, OBJECT, O
 
 #undef VALUE
 
-#define ALLOC_N(what, many) ((what*)malloc(sizeof(what) * (many)))
-#define REALLOC_N(ptr, what, many) ptr = realloc(ptr, sizeof(what) * (many))
-
 #ifndef isnumber
 #define isnumber isdigit
 #endif

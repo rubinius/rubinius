@@ -71,7 +71,7 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
      for 5 args (0 is the receiver). */
   if(args > 5) return NULL;
   
-  codebuf = (char*)malloc(4096);
+  codebuf = ALLOC_N(char, 4096);
   start = codebuf;
   
   (void)jit_set_ip((jit_insn*)codebuf);
@@ -103,7 +103,7 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
   } */ 
   else {
     
-    ids = calloc(args, sizeof(int));
+    ids = ALLOC_N(int, args);
     
     for(i = 0; i < args; i++) {    
       ffi_pop(JIT_V1);
@@ -119,7 +119,7 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
     }
             
     jit_pusharg_p(JIT_V0);
-    free(ids);
+    XFREE(ids);
   }    
   
   jit_finish(func);
@@ -140,7 +140,7 @@ char *ffi_generate_c_stub(STATE, int args, void *func) {
 /*  size = jit_get_ip().ptr - start;
   res = calloc(size, sizeof(char));
   memcpy(res, start, size);
-  free(codebuf);
+  XFREE(codebuf);
   
   jit_flush_code(res, res - size);
   
@@ -633,14 +633,14 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   /* lightning only supports 6 arguments currently. */
   if(args > 6) 
   {
-    free(arg_types);
+    XFREE(arg_types);
     return Qnil;
   }
   int_count = 0;
   float_count = 0;
   double_count = 0;
     
-  codebuf = (char*)malloc(4096);
+  codebuf = ALLOC_N(char, 4096);
   start = codebuf;
   
   (void)jit_set_ip((jit_insn*)codebuf);
@@ -648,7 +648,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
   jit_prolog(0);
   
   if(args > 0) {
-    ids = calloc(args, sizeof(int));
+    ids = ALLOC_N(int, args);
   
     for(i = 0; i < args; i++) {
       conv = ffi_get_to_converter(arg_types[i]);
@@ -758,8 +758,8 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
       }
     
     }
-    free(arg_types);
-    free(ids);
+    XFREE(arg_types);
+    XFREE(ids);
   }
   
 #ifdef i386
@@ -859,7 +859,7 @@ OBJECT ffi_generate_typed_c_stub(STATE, int args, int *arg_types, int ret_type, 
     
   res = calloc(size, sizeof(char));
   memcpy(res, start, size);
-  free(codebuf);
+  XFREE(codebuf);
   
   jit_flush_code(res, res + size);
 */  
@@ -903,7 +903,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   if(tot > 6) {
     return Qnil;
   } else if(tot > 0) {
-    arg_types = calloc(tot, sizeof(int));
+    arg_types = ALLOC_N(int, tot);
   
     for(i = 0; i < tot; i++) {
       type = array_get(state, args, i);
@@ -917,7 +917,7 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
         if(i == 0) {
           arg_count--;
         } else {
-          free(arg_types);
+          XFREE(arg_types);
           printf("Invalid arg types.\n");
           return Qnil;
         }
@@ -931,10 +931,10 @@ OBJECT ffi_function_create(STATE, OBJECT library, OBJECT name, OBJECT args, OBJE
   
 #if defined(__amd64__) || defined(__x86_64__) || defined(X86_64)
   ptr = ffi_amd64_generate_c_shim(state, tot, arg_types, ret_type, ep); 
-  free(arg_types); 
+  XFREE(arg_types); 
 #elif defined(i386) && defined(__linux__)
   ptr = ffi_x86_generate_c_shim(state, tot, arg_types, ret_type, ep);
-  free(arg_types);
+  XFREE(arg_types);
 #else
   ptr = ffi_generate_typed_c_stub(state, tot, arg_types, ret_type, ep);
 #endif

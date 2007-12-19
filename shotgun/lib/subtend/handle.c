@@ -3,18 +3,18 @@
 rni_handle_table *handle_table_new() {
   rni_handle_table *tbl;
   
-  tbl = calloc(1, sizeof(rni_handle_table));
+  tbl = ALLOC(rni_handle_table);
   tbl->next = 0;
   tbl->id = 1;
   tbl->total = 100;
-  tbl->entries = calloc(tbl->total, sizeof(rni_ht_entry));
+  tbl->entries = ALLOC_N(rni_ht_entry*, tbl->total);
   return tbl;
 }
 
 rni_handle *handle_allocate() {
   rni_handle *h;
   
-  h = calloc(1, sizeof(rni_handle));
+  h = ALLOC(rni_handle);
   h->flags = 0;
   h->handle_id = 0;
   h->table_idx = 0;
@@ -32,7 +32,7 @@ rni_handle *handle_new(rni_handle_table *tbl, OBJECT obj) {
   h->table_idx = tbl->next;
   
   /* Create the table entry. */
-  e = calloc(1, sizeof(rni_ht_entry));
+  e = ALLOC(rni_ht_entry);
   e->handle_id = h->handle_id;
   e->object = obj;
   

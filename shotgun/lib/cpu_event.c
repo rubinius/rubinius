@@ -109,7 +109,7 @@ void _cpu_wake_channel(int fd, short event, void *arg) {
   
   cpu_channel_send(state, ti->c, ti->channel, I2N((int)event));
   _cpu_event_unregister_info(state, ti);
-  free(ti);
+  XFREE(ti);
 }
 
 void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
@@ -158,7 +158,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
   cpu_channel_send(state, ti->c, ti->channel, ret);
   
   _cpu_event_unregister_info(state, ti);
-  free(ti);
+  XFREE(ti);
 }
 
 /* Doesn't clear it's own data, since it's going to be called a lot. */
@@ -174,7 +174,7 @@ void _cpu_wake_channel_alot(int fd, short event, void *arg) {
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
   struct thread_info *ti;
 
-  ti = calloc(1, sizeof(struct thread_info));
+  ti = ALLOC(struct thread_info);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -188,7 +188,7 @@ void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
 void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer, int count) {
   struct thread_info *ti;
 
-  ti = calloc(1, sizeof(struct thread_info));
+  ti = ALLOC(struct thread_info);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -207,7 +207,7 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
       /* So, we couldn't find out if it's readable, and it's probably
        * not something we can read from. Send nil. */
       cpu_channel_send(state, ti->c, ti->channel, Qnil);
-      free(ti);
+      XFREE(ti);
     }
   } else {
     _cpu_event_register_info(state, ti);
@@ -218,7 +218,7 @@ void cpu_event_wait_readable(STATE, cpu c, OBJECT channel, int fd, OBJECT buffer
 void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
   struct thread_info *ti;
 
-  ti = calloc(1, sizeof(struct thread_info));
+  ti = ALLOC(struct thread_info);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -235,7 +235,7 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
       /* So, we couldn't find out if it's readable, and it's probably
        * not something we can read from. Send nil. */
       cpu_channel_send(state, ti->c, ti->channel, Qnil);
-      free(ti);
+      XFREE(ti);
     }
   } else {
     _cpu_event_register_info(state, ti);
@@ -245,7 +245,7 @@ void cpu_event_wait_writable(STATE, cpu c, OBJECT channel, int fd) {
 void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   struct thread_info *ti;
 
-  ti = calloc(1, sizeof(struct thread_info));
+  ti = ALLOC(struct thread_info);
   ti->state = state;
   ti->c = c;
   ti->channel = channel;
@@ -287,7 +287,7 @@ void _cpu_find_waiters(int fd, short event, void *arg) {
         }
         cpu_channel_send(state, ti->c, ti->channel, ret);
         _cpu_event_unregister_info(state, ti);
-        free(ti);
+        XFREE(ti);
         break;
       }
       ti = ti->next;
@@ -339,7 +339,8 @@ void cpu_event_wait_child(STATE, cpu c, OBJECT channel, int pid) {
     cpu_channel_send(state, c, channel, Qfalse);
   } else {
     /* Still somewhere out there, register we want it. */
-    ti = calloc(1, sizeof(struct thread_info));
+
+    ti = ALLOC(struct thread_info);
     ti->state = state;
     ti->c = c;
     ti->pid = pid;
@@ -352,7 +353,7 @@ void cpu_event_setup_children(STATE, cpu c) {
   struct thread_info *ti;
 
   state->global->recent_children = hash_new(state);
-  ti = calloc(1, sizeof(struct thread_info));
+  ti = ALLOC(struct thread_info);  
   ti->state = state;
   ti->c = c;
   signal_set(&ti->ev, SIGCHLD, _cpu_find_waiters, (void*)ti);

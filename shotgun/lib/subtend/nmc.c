@@ -14,7 +14,7 @@ static rni_context* global_context = NULL;
 
 void subtend_setup_global() {
   if(!global_context) {
-    global_context = calloc(1, sizeof(rni_context));
+    global_context = ALLOC(rni_context);
   }
 }
 
@@ -73,11 +73,11 @@ OBJECT nmc_new(STATE, OBJECT nmethod, OBJECT sender, OBJECT recv, OBJECT name, i
 rni_nmc *nmc_new_standalone() {
   rni_nmc *n;
   
-  n = calloc(1, sizeof(rni_nmc));
+  n = ALLOC(rni_nmc);
   
   n->num_handles = 16;
   n->used = 0;
-  n->handles = calloc(n->num_handles, sizeof(rni_handle*));
+  n->handles = ALLOC_N(rni_handle*, n->num_handles);
   n->system_set = 0;
   n->cont_set = 0;
     
@@ -117,20 +117,20 @@ void nmc_cleanup(rni_nmc *nmc, rni_handle_table *tbl) {
   }
   
   if(nmc->stack) {
-    free(nmc->stack);
+    XFREE(nmc->stack);
     nmc->stack = NULL;
   }
   
   if(nmc->local_data) {
-    free(nmc->local_data);
+    XFREE(nmc->local_data);
   }
   
   nmc->used = 0;
 }
 
 void nmc_delete(rni_nmc *nmc) {
-  free(nmc->handles);
-  free(nmc);
+  XFREE(nmc->handles);
+  XFREE(nmc);
 }
 
 void _nmc_start() {
@@ -175,7 +175,7 @@ void _nmc_start() {
     hs = n->method->args + 2;
   }
   
-  data = (void*)calloc(hs, sizeof(rni_handle*));
+  data = (void*)ALLOC_N(rni_handle*, hs);
   n->local_data = data;
   handles_used = (rni_handle**)data;
   
@@ -253,9 +253,9 @@ void _nmc_start() {
   */
   
   /*
-  if(args) free(args);
-  if(va) free(va);
-  if(handles_used) free(handles_used);
+  if(args) XFREE(args);
+  if(va) XFREE(va);
+  if(handles_used) XFREE(handles_used);
   */
   
   n->cont_set--;
@@ -319,7 +319,7 @@ void nmc_activate(STATE, cpu c, OBJECT nmc, OBJECT val, int reraise) {
  
     n->cont_set++;
     n->stack_size = 65536;
-    n->stack = (void*)calloc(1, n->stack_size);
+    n->stack = ALLOC_N(void, n->stack_size);
 
     getcontext(&n->cont);
     n->cont.uc_stack.ss_sp = n->stack;

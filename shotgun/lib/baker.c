@@ -210,32 +210,51 @@ static inline void _mutate_references(STATE, baker_gc g, OBJECT iobj) {
       
         fc->data = BYTEARRAY_ADDRESS(ba);
       }
-    } else if(ISA(iobj, BASIC_CLASS(task))) {
+    } else if(iobj->obj_type == TaskType) {
       struct cpu_task *fc = (struct cpu_task*)BYTES_OF(iobj);
-      fc_mutate(exception);
-      fc_mutate(new_class_of);
-      fc_mutate(enclosing_class);
-      fc_mutate(exceptions);
-      fc_mutate(active_context);
-      fc_mutate(home_context);
-      fc_mutate(main);  
-      fc_mutate(outstanding);
-      fc_mutate(debug_channel);
-      fc_mutate(control_channel);
-      OBJECT *sp;
-
-      sp = fc->stack_top;
-      while(sp <= fc->sp_ptr) {
-        if(*sp && REFERENCE_P(*sp)) {
-          *sp = baker_gc_mutate_from(state, g, *sp);
+      /* Only mark up non-active tasks, because the active
+         one is handled else where. */
+      if(!fc->active) {
+        if(REFERENCE_P(fc->active_context)) {
+          assert(fc->active_context->obj_type == MContextType ||
+                fc->active_context->obj_type == BContextType);
         }
-        sp++;
-      }
+        
+        if(REFERENCE_P(fc->home_context)) {
+          assert(fc->home_context->obj_type == MContextType ||
+                fc->home_context->obj_type == BContextType);
+        }
+        
+        fc_mutate(exception);
+        fc_mutate(new_class_of);
+        fc_mutate(enclosing_class);
+        fc_mutate(exceptions);
+        fc_mutate(active_context);
+        fc_mutate(home_context);
+        fc_mutate(main);  
+        fc_mutate(outstanding);
+        fc_mutate(debug_channel);
+        fc_mutate(control_channel);
+        fc_mutate(current_scope);
+        OBJECT *sp;
+
+        // printf("marking %p, %p (%p, %d)\n", iobj, fc->stack_top, fc->sp_ptr, fc->sp_ptr - fc->stack_top);
+        sp = fc->stack_top;
+        
+        assert(fc->sp_ptr >= sp);
+        
+        while(sp <= fc->sp_ptr) {
+          if(*sp && REFERENCE_P(*sp)) {
+            *sp = baker_gc_maybe_mutate(state, g, *sp);
+          }
+          sp++;
+        }
       
-      int i;
-      for(i = 0; i < ptr_array_length(fc->paths); i++) {
-        ptr_array_set_index(fc->paths, i,
-          (xpointer)baker_gc_maybe_mutate(state, g, (OBJECT)ptr_array_get_index(fc->paths, i)));
+        int i;
+        for(i = 0; i < ptr_array_length(fc->paths); i++) {
+          ptr_array_set_index(fc->paths, i,
+            (xpointer)baker_gc_maybe_mutate(state, g, (OBJECT)ptr_array_get_index(fc->paths, i)));
+        }
       }
     }
     
@@ -298,7 +317,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
       tmp = NTH_FIELD(fc->locals, i);
       if(!REFERENCE_P(tmp)) continue;
     
-      mut = baker_gc_maybe_mutate(state, g, tmp);
+      mut = baker_gc_mutate_from(state, g, tmp);
       fast_unsafe_set(fc->locals, i, mut);
     }
   } else {
@@ -312,7 +331,7 @@ void baker_gc_mutate_context(STATE, baker_gc g, OBJECT iobj, int shifted, int to
        We mutate the data first so we cache the newest address. */
     OBJECT ba;
     ba = cmethod_get_compiled(fc->method);
-    ba = baker_gc_maybe_mutate(state, g, ba);
+    ba = baker_gc_mutate_from(state, g, ba);
 
     fc->data = BYTEARRAY_ADDRESS(ba);
   }
@@ -372,7 +391,7 @@ OBJECT baker_gc_mutate_object(STATE, baker_gc g, OBJECT obj) {
         printf("Found3 %p!\n", (void*)dest);
   }
 #endif
-  
+
   return dest;
 }
 
@@ -384,30 +403,32 @@ int baker_gc_contains_spill_p(baker_gc g, OBJECT obj) {
   return heap_contains_p(g->next, obj) || heap_contains_p(g->current, obj);
 }
 
-
 OBJECT baker_gc_mutate_from(STATE, baker_gc g, OBJECT orig) {
-  OBJECT ret, iobj, mut;
+  OBJECT ret, iobj;
   int count = 0;
-  
-  //printf("!!!\n   => From %p\n!!!\n", iobj);
-  
+    
   ret = baker_gc_maybe_mutate(state, g, orig);
   
-  // assert(baker_gc_contains_spill_p(g, ret));
-
   iobj = ret;
   
   while(iobj) {
-    if(baker_gc_forwarded_p(iobj)) {
-      mut = baker_gc_forwarded_object(iobj);
-      iobj = mut;
-    }
     _mutate_references(state, g, iobj);
     iobj = heap_next_unscanned(g->next);
     count++;
   }
   
   return ret;
+}
+
+void baker_gc_mutate_rest(STATE, baker_gc g) {
+  OBJECT iobj;
+
+  iobj = heap_next_unscanned(g->next);
+
+  while(iobj) {
+    _mutate_references(state, g, iobj);
+    iobj = heap_next_unscanned(g->next);
+  }
 }
 
 
@@ -515,6 +536,9 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
   
   object_memory_shift_contexts(state, state->om);
   
+  baker_gc_mutate_rest(state, g);
+  
+  assert(heap_fully_scanned_p(g->next));
   baker_gc_swap(g);
   
   if(g->current->size != g->next->size) {

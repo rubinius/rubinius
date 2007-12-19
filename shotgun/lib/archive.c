@@ -134,7 +134,7 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   
   zip_stat_index(za, file, 0, &st);
   total = st.size;
-  str = malloc(sizeof(char) * total);
+  str = ALLOC_N(uint8_t, total);
   buf = str;
   
   while((n = zip_fread(zf, buf, total)) > 0) {
@@ -146,7 +146,7 @@ OBJECT archive_get_object(STATE, const char *path, char* name, int version) {
   zip_close(za);
   
   ret = cpu_unmarshal(state, str, (int)st.size, version);
-  free(str);
+  XFREE(str);
   return ret;
 }
 
@@ -168,7 +168,7 @@ OBJECT archive_get_object2(STATE, archive_handle za,
   
   zip_stat_index((struct zip *)za, file, 0, &st);
   total = st.size;
-  str = malloc(sizeof(char) * total);
+  str = ALLOC_N(uint8_t, total);
   buf = str;
   
   while((n = zip_fread(zf, buf, total)) > 0) {
@@ -179,7 +179,7 @@ OBJECT archive_get_object2(STATE, archive_handle za,
   zip_fclose(zf);
   
   ret = cpu_unmarshal(state, str, (int)st.size, version);
-  free(str);
+  XFREE(str);
 
   return ret;
 }

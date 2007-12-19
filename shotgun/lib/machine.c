@@ -633,7 +633,7 @@ static void machine_parse_config_var(machine m, const char *input) {
     ht_config_insert(m->s->config, cstr2bstr(name), cstr2bstr("1"));
   }
   
-  free(var);
+  XFREE(var);
 }
 
 void machine_parse_configs(machine m, const char *config) {
@@ -872,17 +872,16 @@ int machine_load_directory(machine m, const char *prefix) {
   size_t buf_siz = 1024, prefix_len;
 
   prefix_len = strlen(prefix);
-  if (prefix_len > (buf_siz - 16))
-      return FALSE;
+  if(prefix_len > (buf_siz - 16)) return FALSE;
 
-  path = malloc(buf_siz);
+  path = ALLOC_N(char, buf_siz);
   memcpy(path, prefix, prefix_len);
   strcpy(path + prefix_len, "/.load_order.txt");
   
   fp = fopen(path, "r");
   if(!fp) {
     printf("Unable to open directory '%s'\n", prefix);
-    free(path);
+    XFREE(path);
     return FALSE;
   }
 
@@ -898,14 +897,14 @@ int machine_load_directory(machine m, const char *prefix) {
       path[prefix_len + file_len] = 0;
 
     if(!machine_run_file(m, path)) {
-      free(path);
+      XFREE(path);
       fclose(fp);
       return FALSE;
     }
   }
   
   fclose(fp);
-  free(path);
+  XFREE(path);
   
   return TRUE;
 }
@@ -960,7 +959,7 @@ OBJECT machine_load_archive(machine m, const char *path) {
     nxt = strchr(nxt, '\n');
   }
   
-  free(top);
+  XFREE(top);
   ret = Qtrue;
 
 out:

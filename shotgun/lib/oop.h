@@ -57,6 +57,7 @@ typedef enum
   MTType          = 5,
   WrapsStructType = 6,
   IncModType      = 7,
+  TaskType        = 8
 } object_type;
 
 /* rubinius_object gc zone, takes up two bits */

@@ -70,7 +70,6 @@ struct fast_context {
   OBJECT active_context, home_context, main; \
   ptr_array paths; \
   unsigned int depth; \
-  OBJECT context_cache; \
   OBJECT current_scope; \
   IP_TYPE *ip_ptr; \
   OBJECT *sp_ptr; \
@@ -79,11 +78,14 @@ struct fast_context {
   OBJECT control_channel; \
   unsigned long int flags; \
   unsigned int blockargs;
-  
-#define TASK_FIELDS 25
+
+struct cpu_task_shared {
+  CPU_TASK_REGISTERS;
+};
 
 struct cpu_task {
   CPU_TASK_REGISTERS;
+  int active;
 };
 
 struct rubinius_cpu {
@@ -195,6 +197,7 @@ void cpu_clear_cache(STATE, cpu c);
 void cpu_clear_cache_for_method(STATE, cpu c, OBJECT meth, int full);
 void cpu_clear_cache_for_class(STATE, cpu c, OBJECT klass);
 
+void cpu_task_flush(STATE, cpu c);
 OBJECT cpu_task_dup(STATE, cpu c, OBJECT cur);
 int cpu_task_select(STATE, cpu c, OBJECT self);
 OBJECT cpu_task_associate(STATE, cpu c, OBJECT self, OBJECT be);

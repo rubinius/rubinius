@@ -170,6 +170,16 @@ const char *_inspect(OBJECT obj);
 OBJECT rbs_module_new(STATE, const char *name, OBJECT ns);
 OBJECT rbs_class_new_instance(STATE, OBJECT cls);
 
+void *XMALLOC(size_t n);
+void *XREALLOC(void *p, size_t n);
+void *XCALLOC(size_t n, size_t s);
+void XFREE(void *p);
+
+#define ALLOC_N(t,n) (t*)XCALLOC(n, sizeof(t))
+#define ALLOC(t) (t*)XMALLOC(sizeof(t))
+#define REALLOC_N(v,t,n) (v)=(t*)XREALLOC((void*)(v), sizeof(t)*n)
+#define FREE(v) XFREE(v)
+
 static inline long rbs_to_int(OBJECT obj) {
   return STRIP_TAG(obj);
 }
