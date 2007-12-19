@@ -536,7 +536,7 @@ RbConfig = Config
   task :platform => 'runtime/platform.conf'
 end
 
-file 'runtime/platform.conf' do
+file 'runtime/platform.conf' do |t|
   sg = StructGenerator.new
   sg.include "dirent.h"
   sg.name 'struct dirent'
@@ -581,7 +581,9 @@ file 'runtime/platform.conf' do
   io_constants.each { |c| cg.const c }
   cg.calculate
   
-  File.open("runtime/platform.conf", "w") do |f|
+  puts "Generating #{t.name}..."
+
+  File.open(t.name, "w") do |f|
     f.puts "rbx.platform.dir.d_name = #{fel.offset}"
     file_constants.each do | name |
       const = cg.constants[name]
