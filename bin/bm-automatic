@@ -1,0 +1,90 @@
+#!/usr/bin/env ruby
+
+require 'parsedate'
+
+# Options handling
+require 'optparse'
+require 'ostruct'
+
+TEST_AFTER_REVISION = 'c7a7d86bdbc8c4a7351cb7142c90e74a6ef08515'
+
+OPTIONS = OpenStruct.new
+
+options = OptionParser.new do |opts|
+  opts.on('-h', '--help', 'Output this help information') do |h|
+    OPTIONS.help = h
+  end
+
+  opts.on('-w', '--working-copy PATH', 'Path to working copy') do |w|
+    OPTIONS.working = w
+  end
+
+  opts.on('-r', '--results PATH', 'Path to results') do |r|
+    OPTIONS.results = r
+  end
+end
+
+options.parse!
+
+if OPTIONS.help or not (OPTIONS.working and OPTIONS.results) then
+  puts options.summarize
+  exit
+end
+
+class Commit
+  attr_reader :commit
+
+  def initialize(commit)
+    @commit = commit
+  end
+
+  def path
+    OPTIONS.results + '/' + commit + '/'
+  end
+
+  def date
+    matches = `git log --pretty=fuller #{commit}`.split(/\n/)[4].match(/: +(.+ \d\d\d\d) ([+-]\d\d)(\d\d)/)
+    date    = ParseDate.parsedate(matches[1])
+    puts matches[2].to_i * 3600 + matches[3].to_i
+    Time.gm(*date) + matches[2].to_i * 3600 + matches[3].to_i
+  end
+
+  def date_string
+    d = date
+    "#{d.year}-#{'%02d' % d.month}-#{'%02d' % d.day}-" +
+    "#{'%02d' % d.hour}-#{'%02d' % d.min}-#{'%02d' % d.sec}"
+  end
+
+  def complete?
+    File.directory?(path)
+  end
+
+  def benchmark
+    execute "rm -rf #{OPTIONS.working}"
+    execute "git clone git@git.rubini.us:code #{OPTIONS.working}"
+    Dir.chdir OPTIONS.working
+    execute 'rake build'
+
+    Dir.mkdir path
+    execute "bin/bm -c -d -f -p #{path} -w >/dev/null 2>&1"
+    exit
+  end
+end
+
+def execute(command)
+  puts command
+  system command
+end
+
+commits = []
+
+`git log`.grep(/^commit/).each do |line|
+  break if line =~ /#{TEST_AFTER_REVISION}$/
+  commits << Commit.new(line.match(/\w+$/)[0])
+end
+
+commits.reverse.each do |commit|
+  unless commit.complete? then
+    commit.benchmark
+  end
+end
