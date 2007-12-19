@@ -53,11 +53,11 @@ describe "String#[]= with index" do
       str = "hello"
       lambda { str[0.5] = ?c }.should raise_error(IndexError)
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:to_int).and_return(-1)
       lambda { str[obj] = ?y }.should raise_error(IndexError)
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       lambda { str[obj] = ?! }.should raise_error(IndexError)
@@ -70,12 +70,12 @@ describe "String#[]= with index" do
       str[0.5] = ?c
       str.should == "cello"
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:to_int).and_return(-1)
       str[obj] = ?y
       str.should == "celly"
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       str[obj] = ?!
@@ -93,7 +93,7 @@ describe "String#[]= with index" do
   end
   
   it "doesn't call to_int on char" do
-    obj = Object.new
+    obj = mock('x')
     obj.should_not_receive(:to_int)
     lambda { "hi"[0] = obj }.should raise_error(TypeError)
   end
@@ -154,11 +154,11 @@ describe "String#[]= with String" do
       str = "hello"
       lambda { str[0.5] = "hi " }.should raise_error(IndexError)
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:to_int).and_return(-1)
       lambda { str[obj] = "!" }.should raise_error(IndexError)
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       lambda { str[obj] = "e vator" }.should raise_error(IndexError)
@@ -171,12 +171,12 @@ describe "String#[]= with String" do
       str[0.5] = "hi "
       str.should == "hi ello"
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:to_int).and_return(-1)
       str[obj] = "!"
       str.should == "hi ell!"
     
-      obj = Object.new
+      obj = mock('-1')
       obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
       obj.should_receive(:method_missing).with(:to_int).and_return(-1)
       str[obj] = "e vator"
@@ -185,14 +185,14 @@ describe "String#[]= with String" do
   end
   
   it "tries to convert other_str to a String using to_str" do
-    other_str = Object.new
+    other_str = mock('-test-')
     def other_str.to_str() "-test-" end
     
     a = "abc"
     a[1] = other_str
     a.should == "a-test-c"
     
-    obj = Object.new
+    obj = mock('ROAR')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("ROAR")
 
@@ -202,9 +202,9 @@ describe "String#[]= with String" do
   end
   
   it "raises a TypeError if other_str can't be converted to a String" do
-    lambda { "test"[1] = :test      }.should raise_error(TypeError)
-    lambda { "test"[1] = Object.new }.should raise_error(TypeError)
-    lambda { "test"[1] = nil        }.should raise_error(TypeError)
+    lambda { "test"[1] = :test     }.should raise_error(TypeError)
+    lambda { "test"[1] = mock('x') }.should raise_error(TypeError)
+    lambda { "test"[1] = nil       }.should raise_error(TypeError)
   end
 end
 

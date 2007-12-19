@@ -13,7 +13,7 @@ describe "Module.new" do
         def bye()   "bye"   end
       end
       
-      (o = Object.new).extend(fred)
+      (o = mock('x')).extend(fred)
       o.hello.should == "hello"
       o.bye.should   == "bye"
     end

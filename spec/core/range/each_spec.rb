@@ -34,8 +34,8 @@ describe "Range#each" do
   it "raises a TypeError if the first element does not respond to #succ" do
     lambda { (0.5..2.4).each { |i| i } }.should raise_error(TypeError)
     
-    b = Object.new
-    (a = Object.new).should_receive(:method_missing).with(:<=>, b).and_return(1)
+    b = mock('x')
+    (a = mock('1')).should_receive(:method_missing).with(:<=>, b).and_return(1)
     
     lambda { (a..b).each { |i| i } }.should raise_error(TypeError)
   end

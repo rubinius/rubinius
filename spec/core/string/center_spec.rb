@@ -57,31 +57,31 @@ describe "String#center with length, padding" do
   it "tries to convert length to an integer using to_int" do
     "_".center(3.8, "^").should == "^_^"
     
-    obj = Object.new
+    obj = mock('3')
     def obj.to_int() 3 end
       
     "_".center(obj, "o").should == "o_o"
     
-    obj = Object.new
+    obj = mock('true')
     obj.should_receive(:respond_to?).with(:to_int).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_int).and_return(3)
     "_".center(obj, "~").should == "~_~"
   end
   
   it "raises a TypeError when length can't be converted to an integer" do
-    lambda { "hello".center("x")        }.should raise_error(TypeError)
-    lambda { "hello".center("x", "y")   }.should raise_error(TypeError)
-    lambda { "hello".center([])         }.should raise_error(TypeError)
-    lambda { "hello".center(Object.new) }.should raise_error(TypeError)
+    lambda { "hello".center("x")       }.should raise_error(TypeError)
+    lambda { "hello".center("x", "y")  }.should raise_error(TypeError)
+    lambda { "hello".center([])        }.should raise_error(TypeError)
+    lambda { "hello".center(mock('x')) }.should raise_error(TypeError)
   end
   
   it "tries to convert padstr to a string using to_str" do
-    padstr = Object.new
+    padstr = mock('123')
     def padstr.to_str() "123" end
     
     "hello".center(20, padstr).should == "1231231hello12312312"
 
-    obj = Object.new
+    obj = mock('x')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("k")
 
@@ -89,9 +89,9 @@ describe "String#center with length, padding" do
   end
   
   it "raises a TypeError when padstr can't be converted to a string" do
-    lambda { "hello".center(20, ?o)         }.should raise_error(TypeError)
-    lambda { "hello".center(20, :llo)       }.should raise_error(TypeError)
-    lambda { "hello".center(20, Object.new) }.should raise_error(TypeError)
+    lambda { "hello".center(20, ?o)        }.should raise_error(TypeError)
+    lambda { "hello".center(20, :llo)      }.should raise_error(TypeError)
+    lambda { "hello".center(20, mock('x')) }.should raise_error(TypeError)
   end
   
   it "raises an ArgumentError if padstr is empty" do

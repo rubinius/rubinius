@@ -6,6 +6,6 @@ describe "NilClass#|" do
     (nil | true).should == true
     (nil | false).should == false
     (nil | "").should == true
-    (nil | Object.new).should == true
+    (nil | mock('x')).should == true
   end
 end

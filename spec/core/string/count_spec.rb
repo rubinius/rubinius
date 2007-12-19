@@ -77,16 +77,16 @@ describe "String#count" do
   end
 
   it "tries to convert each set arg to a string using to_str" do
-    other_string = Object.new
+    other_string = mock('lo')
     def other_string.to_str() "lo" end
 
-    other_string2 = Object.new
+    other_string2 = mock('o')
     def other_string2.to_str() "o" end
 
     s = "hello world"
     s.count(other_string, other_string2).should == s.count("o")
     
-    obj = Object.new
+    obj = mock('k')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("k")
     s = "hacker kimono"
@@ -94,8 +94,8 @@ describe "String#count" do
   end
  
   it "raises a TypeError when a set arg can't be converted to a string" do
-    lambda { "hello world".count(?o)         }.should raise_error(TypeError)
-    lambda { "hello world".count(:o)         }.should raise_error(TypeError)
-    lambda { "hello world".count(Object.new) }.should raise_error(TypeError)
+    lambda { "hello world".count(?o)        }.should raise_error(TypeError)
+    lambda { "hello world".count(:o)        }.should raise_error(TypeError)
+    lambda { "hello world".count(mock('x')) }.should raise_error(TypeError)
   end
 end

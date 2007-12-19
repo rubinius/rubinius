@@ -26,7 +26,7 @@ describe "Module#method_defined?" do
 
   it "raises a TypeError when the given object is not a string/symbol/fixnum" do
     c = Class.new
-    o = Object.new
+    o = mock('123')
     
     lambda { c.method_defined?(o) }.should raise_error(TypeError)
     
@@ -36,7 +36,7 @@ describe "Module#method_defined?" do
   
   it "converts the given name to a string using to_str" do
     c = Class.new { def test(); end }
-    (o = Object.new).should_receive(:to_str).and_return("test")
+    (o = mock('test')).should_receive(:to_str).and_return("test")
     
     c.method_defined?(o).should == true
   end

@@ -10,11 +10,11 @@ describe "String#eql? when given a non-String" do
   it "returns false" do
     'hello'.eql?(5).should == false
     'hello'.eql?(:hello).should == false
-    'hello'.eql?(Object.new).should == false
+    'hello'.eql?(mock('x')).should == false
   end
   
   it "does not try to call #to_str on the given argument" do
-    (obj = Object.new).should_not_receive(:to_str)
+    (obj = mock('x')).should_not_receive(:to_str)
     'hello'.eql?(obj).should == false
   end
 end

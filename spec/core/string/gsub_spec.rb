@@ -152,7 +152,7 @@ describe "String#gsub with pattern, replacement" do
   end
 
   it "tries to convert pattern to a string using to_str" do
-    pattern = Object.new
+    pattern = mock('.')
     def pattern.to_str() "." end
     
     "hello.".gsub(pattern, "!").should == "hello!"
@@ -164,7 +164,7 @@ describe "String#gsub with pattern, replacement" do
   end
   
   it "tries to convert replacement to a string using to_str" do
-    replacement = Object.new
+    replacement = mock('hello_replacement')
     def replacement.to_str() "hello_replacement" end
     
     "hello".gsub(/hello/, replacement).should == "hello_replacement"
@@ -263,12 +263,12 @@ describe "String#gsub with pattern and block" do
   end
   
   it "converts the block's return value to a string using to_s" do
-    replacement = Object.new
+    replacement = mock('hello_replacement')
     def replacement.to_s() "hello_replacement" end
     
     "hello".gsub(/hello/) { replacement }.should == "hello_replacement"
     
-    obj = Object.new
+    obj = mock('ok')
     def obj.to_s() "ok" end
     
     "hello".gsub(/.+/) { obj }.should == "ok"

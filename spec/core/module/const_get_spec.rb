@@ -24,12 +24,12 @@ describe "Module#const_get" do
   end
 
   it "tries to convert the given name to a string using to_str" do
-    (o = Object.new).should_receive(:to_str).and_return("Parent")
+    (o = mock('Parent')).should_receive(:to_str).and_return("Parent")
     ModuleSpecs.const_get(o).should == ModuleSpecs::Parent
   end
 
   it "raises a TypeError when the given name can't be converted to string using to_str" do
-    o = Object.new
+    o = mock('123')
     lambda { ModuleSpecs.const_get(o) }.should raise_error(TypeError)
 
     o.should_receive(:to_str).and_return(123)

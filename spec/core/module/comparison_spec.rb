@@ -30,7 +30,7 @@ describe "Module#<=>" do
     (ModuleSpecs::Super  <=> ModuleSpecs::Parent).should == nil
   end
   
-  it "returns nil if the argument is no class/module" do
-    (ModuleSpecs::Parent <=> Object.new).should == nil
+  it "returns nil if the argument is not a class/module" do
+    (ModuleSpecs::Parent <=> mock('x')).should == nil
   end
 end

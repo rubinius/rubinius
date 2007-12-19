@@ -71,12 +71,12 @@ describe "String#chomp with separator" do
   end
   
   it "tries to convert separator to a string using to_str" do
-    separator = Object.new
+    separator = mock('llo')
     def separator.to_str() "llo" end
     
     "hello".chomp(separator).should == "he"
     
-    obj = Object.new
+    obj = mock('x')
     obj.should_receive(:respond_to?).with(:to_str).any_number_of_times.and_return(true)
     obj.should_receive(:method_missing).with(:to_str).and_return("k")
 
@@ -84,9 +84,9 @@ describe "String#chomp with separator" do
   end
   
   it "raises a TypeError if separator can't be converted to a string" do
-    lambda { "hello".chomp(?o)         }.should raise_error(TypeError)
-    lambda { "hello".chomp(:llo)       }.should raise_error(TypeError)
-    lambda { "hello".chomp(Object.new) }.should raise_error(TypeError)
+    lambda { "hello".chomp(?o)        }.should raise_error(TypeError)
+    lambda { "hello".chomp(:llo)      }.should raise_error(TypeError)
+    lambda { "hello".chomp(mock('x')) }.should raise_error(TypeError)
   end
   
   it "returns subclass instances when called on a subclass" do

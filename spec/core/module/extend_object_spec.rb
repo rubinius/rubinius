@@ -8,7 +8,7 @@ describe "Module#extend_object" do
       def test() "hello" end
     end
     
-    o = Object.new
+    o = mock('test')
     m.send(:extend_object, o)
     
     o.test.should == "hello"
@@ -23,7 +23,7 @@ describe "Module#extend_object" do
         end
       end
       
-      (o = Object.new).extend(m)
+      (o = mock('x')).extend(m)
       
       $extended_object.should == o
     ensure

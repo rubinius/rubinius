@@ -23,7 +23,7 @@ describe "Module#<" do
     (ModuleSpecs::Super  < ModuleSpecs::Parent).should == nil
   end
   
-  it "raises a TypeError the argument is no class/module" do
-    lambda { ModuleSpecs::Parent < Object.new }.should raise_error(TypeError)
+  it "raises a TypeError if the argument is not a class/module" do
+    lambda { ModuleSpecs::Parent < mock('x') }.should raise_error(TypeError)
   end
 end

@@ -33,13 +33,13 @@ describe "Module#const_set" do
   end
 
   it "tries to convert the given name to a string using to_str" do
-    (o = Object.new).should_receive(:to_str).and_return("A")
+    (o = mock('A')).should_receive(:to_str).and_return("A")
     Module.const_set o, "test"
     Module.const_get(:A).should == "test"
   end
   
   it "raises a TypeError when the given name can't be converted to string using to_str" do
-    o = Object.new
+    o = mock('123')
     lambda { Module.const_set(o, "test") }.should raise_error(TypeError)
 
     o.should_receive(:to_str).and_return(123)

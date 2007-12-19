@@ -41,13 +41,13 @@ describe "Module#public_method_defined?" do
   
   noncompliant :rubinius do
     it "accepts any object that is String-like" do
-      o = Object.new
+      o = mock('public_3')
       def o.to_str() 'public_3' end
       ModuleSpecs::CountsMixin.public_method_defined?(o).should == true
     end
     
     it "raises TypeError if passed a non-String-like argument" do
-      lambda { ModuleSpecs::CountsMixin.public_method_defined?(Object.new) }.should raise_error(TypeError)
+      lambda { ModuleSpecs::CountsMixin.public_method_defined?(mock('x')) }.should raise_error(TypeError)
     end
   end
 end

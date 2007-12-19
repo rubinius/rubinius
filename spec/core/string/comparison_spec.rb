@@ -50,25 +50,25 @@ describe "String#<=>" do
   it "returns nil if its argument does not respond to to_str" do
     ("abc" <=> 1).should == nil
     ("abc" <=> :abc).should == nil
-    ("abc" <=> Object.new).should == nil
+    ("abc" <=> mock('x')).should == nil
   end
   
   it "returns nil if its argument does not respond to <=>" do
-    obj = Object.new
+    obj = mock('x')
     def obj.to_str() "" end
     
     ("abc" <=> obj).should == nil
   end
   
   it "compares its argument and self by calling <=> on obj and turning the result around if obj responds to to_str" do
-    obj = Object.new
+    obj = mock('x')
     def obj.to_str() "" end
     def obj.<=>(arg) 1  end
     
     ("abc" <=> obj).should == -1
     ("xyz" <=> obj).should == -1
     
-    obj = Object.new
+    obj = mock('x')
     other = "abc"
     obj.should_receive(:respond_to?).with(:to_str).and_return(true)
     obj.should_receive(:respond_to?).with(:<=>).and_return(true)
