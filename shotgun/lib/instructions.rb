@@ -1074,9 +1074,9 @@ CODE
   
   def check_argcount
     <<-CODE
-    next_int;
+    next_int; /* min */
     j = _int;
-    next_int;
+    next_int; /* max */
     
     if(cpu_current_argcount(c) < (unsigned long int)j) {
       cpu_raise_arg_error(state, c, cpu_current_argcount(c), j);
