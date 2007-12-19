@@ -127,5 +127,36 @@ locate_method
     STDOUT.write "\n"
     Process.exit 1 
   end
+
+  def get_instance_variables
+    Ruby.primitive :ivars_get
+  end
+
+  def get_instance_variable(sym)
+    Ruby.primitive :ivar_get
+  end
+
+  def set_instance_variable(sym, value)
+    Ruby.primitive :ivar_set
+  end
+
+  def taint
+    Ruby.primitive :object_taint
+  end
   
+  def tainted?
+    Ruby.primitive :object_tainted_p
+  end
+
+  def untaint
+    Ruby.primitive :object_untaint
+  end
+  
+  def freeze
+    Ruby.primitive :object_freeze
+  end
+  
+  def frozen?
+    Ruby.primitive :object_frozen_p
+  end
 end

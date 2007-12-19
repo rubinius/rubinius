@@ -58,7 +58,14 @@ class MethodContext
   
   def _set_field(int, val)
     Ruby.primitive :fastctx_set_field
-  end  
+  end
+
+  # Reloads the compiled method instruction sequence into the method context.
+  # Required so that the debugger can add breakpoints to a currently executing
+  # method context.
+  def reload_method
+    Ruby.primitive :fastctx_reload_method
+  end
 end
 
 class BlockContext  

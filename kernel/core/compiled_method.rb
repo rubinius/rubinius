@@ -111,10 +111,6 @@ class CompiledMethod
     @bonus = tup
   end
   
-  def compile
-    Ruby.primitive :iseq_compile
-  end
-  
   def activate(recv, mod, args, locals=nil, &prc)
     sz = args.total
     if prc

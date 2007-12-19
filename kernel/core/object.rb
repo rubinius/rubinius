@@ -177,9 +177,6 @@ class Object
     return vars.keys.collect { |v| v.to_s }
   end
   
-  def get_instance_variables
-    Ruby.primitive :ivars_get
-  end
   private :get_instance_variables
   
   def instance_variable_get(sym)
@@ -222,36 +219,10 @@ class Object
   end
   private :instance_variable_validate
   
-  def get_instance_variable(sym)
-    Ruby.primitive :ivar_get
-  end
   private :get_instance_variable
   
-  def set_instance_variable(sym, value)
-    Ruby.primitive :ivar_set
-  end
   private :set_instance_variable
   
-  def taint
-    Ruby.primitive :object_taint
-  end
-  
-  def tainted?
-    Ruby.primitive :object_tainted_p
-  end
-
-  def untaint
-    Ruby.primitive :object_untaint
-  end
-  
-  def freeze
-    Ruby.primitive :object_freeze
-  end
-  
-  def frozen?
-    Ruby.primitive :object_frozen_p
-  end
-
   def !=(other)
     !(self == other)
   end

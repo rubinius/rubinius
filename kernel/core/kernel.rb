@@ -267,10 +267,6 @@ module Kernel
     Rubinius::AtExit.unshift(block)
   end
 
-  def yield_gdb(obj)
-    Ruby.primitive :yield_gdb
-  end
-
   def to_a
     if self.kind_of? Array
       self

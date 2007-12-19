@@ -1902,7 +1902,22 @@ class ShotgunPrimitives
     stack_push(t2);
     CODE
   end
-  
+
+  def fastctx_reload_method
+    <<-CODE
+    int i;
+    struct fast_context *fc;
+    t1 = stack_pop();
+
+    GUARD(RISA(t1, fastctx));
+
+    fc = FASTCTX(t1);
+    fc->data = BYTEARRAY_ADDRESS(cmethod_get_compiled(fc->method));
+
+    stack_push(Qtrue);
+    CODE
+  end
+
   def vm_stats
     <<-CODE
 #ifdef TRACK_STATS
@@ -2137,6 +2152,41 @@ class ShotgunPrimitives
     CODE
   end
   
+  def task_stack_size
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop(); /* self */
+
+    GUARD(RISA(self, task));
+
+    task = (struct cpu_task*)BYTES_OF(self);
+    t1 = I2N(task->sp_ptr - task->stack_top);
+
+    stack_push(t1);
+    CODE
+  end
+
+  def task_get_stack_value
+    <<-CODE
+    struct cpu_task *task;
+    self = stack_pop(); /* self */
+    t1 = stack_pop();
+
+    GUARD(RISA(self, task));
+    GUARD(FIXNUM_P(t1));
+
+    task = (struct cpu_task*)BYTES_OF(self);
+    int idx = abs(FIXNUM_TO_INT(t1));
+    if(idx < 0 || idx >= (task->sp_ptr - task->stack_top)) {
+      cpu_raise_arg_error_generic(state, c, "Task stack index out of range");
+    }
+
+    t2 = *(task->sp_ptr - idx);
+
+    stack_push(t2);
+    CODE
+  end
+
   def task_raise
     <<-CODE
     self = stack_pop();

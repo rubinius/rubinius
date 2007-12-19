@@ -177,7 +177,10 @@ module Bytecode
       :reset_method_cache,
       nil,
       :regexp_match_region,
-      :bignum_from_float
+      :bignum_from_float,
+      :task_stack_size,
+      :task_get_stack_value,
+      :fastctx_reload_method
     ]
 
     FirstRuntimePrimitive = 1024

@@ -50,4 +50,15 @@ class Task
   def raise(exc)
     Ruby.primitive :task_raise
   end
+
+  # Returns the current size of the stack for this task.
+  def stack_size
+    Ruby.primitive :task_stack_size
+  end
+
+  # Returns the value at the specified depth on the task stack, where depth is
+  # a positive integer counting down from the top of the stack.
+  def get_stack_value(depth)
+    Ruby.primitive :task_get_stack_value
+  end
 end
