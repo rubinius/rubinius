@@ -67,7 +67,6 @@ class Commit
 
     Dir.mkdir path
     execute "bin/bm -c -d -f -p #{path} -w >/dev/null 2>&1"
-    exit
   end
 end
 
