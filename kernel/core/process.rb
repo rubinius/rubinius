@@ -172,10 +172,10 @@ class IO
   end
 end
 
-class BidirectionalPipe
+class BidirectionalPipe < IO
   def initialize(pid, read, write)
+    super(read)
     @pid = pid
-    @read = read
     @write = write
   end
   
@@ -192,17 +192,6 @@ class BidirectionalPipe
   def syswrite(str)
     @write.syswrite str
   end
-  
-  def read(count)
-    @read.read(count)
-  end
-  
-  def sysread(count)
-    @read.sysread(count)
-  end
-  
-  def method_missing(m, *a, &b)
-    @read.__send__(m, *a, &b)
-  end  
+    
 end
 

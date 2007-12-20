@@ -155,13 +155,16 @@ module Kernel
     nil
   end
     
-  def open(*a, &block)  
-    if !a.empty? && a.first[0,1] == '|'
-      a[0] = a.first[1..-1]
-      IO.popen(*a, &block)
-    else 
-      File.open(*a, &block)
+  def open(*a, &block)
+    if !a.empty?
+      first = a.first
+      if first.kind_of? String and a.first.prefix? '|'
+        a[0] = a.first[1..-1]
+        return IO.popen(*a, &block)
+      end
     end
+      
+    File.open(*a, &block)
   end
 
   # NOTE - this isn't quite MRI compatible, we don't store return the previous

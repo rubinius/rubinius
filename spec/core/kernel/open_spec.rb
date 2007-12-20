@@ -23,7 +23,7 @@ describe "Kernel#open" do
   
   it "should open an io when path starts with a pipe" do
     @io = open("|date")
-    @io.class.should == IO
+    @io.should be_kind_of(IO)
   end
   
   it "should open an io when called with a block" do

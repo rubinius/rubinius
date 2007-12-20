@@ -51,7 +51,9 @@ class File < IO
       @path = nil
       return self
     end
-
+    
+    path_or_fd = StringValue(path_or_fd)
+    
     if mode.kind_of?(String)
       mode = parse_mode(mode)
     end

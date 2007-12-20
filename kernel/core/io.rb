@@ -13,8 +13,12 @@ class IO
     # not sure what message to use here. on unix we only accept fixnums,
     # but on win32 we'll accept file handles, too, i think.
     raise TypeError if fd.nil?
-
-    @descriptor = fd
+    
+    if fd.kind_of? IO
+      @descriptor = fd.fileno
+    else
+      @descriptor = fd
+    end
   end
   
   ivar_as_index :__ivars__ => 0, :descriptor => 1, :buffer => 2, :mode => 3
