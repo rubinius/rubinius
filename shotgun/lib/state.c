@@ -97,6 +97,8 @@ void state_collect(STATE, cpu c) {
   object_memory_collect(state, state->om, roots);
   memcpy(state->global, roots->array, sizeof(struct rubinius_globals));
   cpu_update_roots(state, c, roots, NUM_OF_GLOBALS);
+  
+  object_memory_reset_contexts(state, state->om);
 
   ptr_array_free(roots);
   

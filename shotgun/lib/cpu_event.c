@@ -144,7 +144,7 @@ void _cpu_wake_channel_and_read(int fd, short event, void *arg) {
            It might be better to re-schedule this in libevent and try again,
            but libevent just said SOMETHING was there... */
         if(errno == EINTR) continue;
-        ret = Qfalse;
+        ret = hash_find(state, state->global->errno_mapping, I2N(errno));
       } else {        
         buf[i] = 0;
         string_set_bytes(ti->buffer, I2N(i));

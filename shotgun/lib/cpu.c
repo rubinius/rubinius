@@ -119,28 +119,9 @@ void cpu_add_roots(STATE, cpu c, ptr_array roots) {
     ptr_array_append(roots, (xpointer)obj); \
   }
   
-  if(!stack_context_p(c->active_context)) {
-    ar(c->active_context);
-    state->ac_on_stack = 0;
-  } else {
-    state->ac_on_stack = 1;
-  }
-  
-  if(!stack_context_p(c->home_context)) {
-    ar(c->home_context);
-    state->home_on_stack = 0;
-  } else {
-    state->home_on_stack = 1;
-  }
-  
-  if(REFERENCE_P(c->sender)) {
-    if(!stack_context_p(c->sender)) {
-      ar(c->sender);
-      state->sender_on_stack = 0;
-    } else {
-      state->sender_on_stack = 1;
-    }
-  }
+  ar(c->active_context);
+  ar(c->home_context);
+  ar(c->sender);
   
   ar(c->self);
   ar(c->cache);
@@ -178,33 +159,9 @@ void cpu_update_roots(STATE, cpu c, ptr_array roots, int start) {
     obj = (OBJECT)tmp; \
   }
   
-  if(state->ac_on_stack) {
-    /* if active_context is on the stack, it's the last object. */
-    /* if context_offset is 0, then we didn't need to compact, they're
-       still pointed at the right point. */
-    
-    if(state->om->context_offset != 0) {
-      c->active_context = (OBJECT)((uintptr_t)(c->active_context) - state->om->context_offset);
-      state->om->context_offset = 0;
-    }
-  } else {
-    ar(c->active_context);
-  }
-  
-  if(state->home_on_stack) {
-    /* If it's on the stack, it's the same as active */
-    c->home_context = c->active_context;
-  } else {
-    ar(c->home_context);
-  }
-  
-  if(REFERENCE_P(c->sender)) {
-    if(state->sender_on_stack) {
-      c->sender = FASTCTX(c->active_context)->sender;
-    } else {
-      ar(c->sender);
-    }
-  }
+  ar(c->active_context);
+  ar(c->home_context);
+  ar(c->sender);
   
   ar(c->self);
   ar(c->cache);

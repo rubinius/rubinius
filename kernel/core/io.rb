@@ -83,18 +83,26 @@ class IO
       buf = String.new(size) unless buf
       chan = Channel.new
       Scheduler.send_on_readable chan, self, buf, size
-      return nil if chan.receive.nil?
-      return buf
+      response = chan.receive
+      return buf if response.kind_of? Integer
+      return nil if response.nil?
+
+      raise response, "io error"
     else
       chunk = String.new(BufferSize)
       out = ""
       loop do
         chan = Channel.new
         Scheduler.send_on_readable chan, self, chunk, BufferSize
-        
+
+        response = chan.receive
         return out if chan.receive.nil?
-                
-        out << chunk
+
+        if response.kind_of? Integer
+          out << chunk
+        else
+          raise response, "io error"
+        end
       end
     end
   end

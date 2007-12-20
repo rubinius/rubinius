@@ -119,83 +119,10 @@ object_memory object_memory_new() {
 void object_memory_formalize_contexts(STATE, object_memory om) {
   OBJECT ctx;
   
-  EACH_REFD_CTX(om, ctx) {
+  EACH_CTX(om, ctx) {
     methctx_reference(state, ctx);
-  } DONE_EACH_REFD_CTX(ctx);
+  } DONE_EACH_CTX(ctx);
   
-}
-
-void object_memory_shift_contexts(STATE, object_memory om) {
-  OBJECT ctx;
-  int inc = 0;
-  
-  /* If the context_bottom is the true bottom, we haven't promoted
-     anything and everything can stay where it is. */
-  if(om_no_referenced_ctxs_p(om)) {
-    om->context_offset = 0;
-    
-    /* Fixup the refs that are in the context stack */
-    EACH_STACK_CTX(om, ctx) {
-      baker_gc_mutate_context(state, om->gc, ctx, FALSE, inc == 0);
-      inc++;
-    } DONE_EACH_STACK_CTX(ctx);
-  } else {
-    
-    int size, offset;
-    OBJECT top_sender;
-    
-    /* The idea here is that we no longer need the ref'd context's
-       they've been promoted out to the young object space. So
-       we want to move all the non-ref'd ones up to the top of
-       this stack. */
-       
-    /* The first non-ref'd context might have a sender that points
-       back into the ref'd half, so we need to extract that information first. */
-    
-    if((uintptr_t)om->context_bottom < (uintptr_t)om->contexts->current) {
-      top_sender = FASTCTX(om->context_bottom)->sender;
-      if(REFERENCE_P(top_sender)) {
-        top_sender = baker_gc_mutate_from(state, om->gc, top_sender);
-      }
-    } else {
-      top_sender = Qnil;
-    }
-    
-    /* Use memmove to shift everything from the virtual bottom
-       to the real bottom up to the top. */
-       
-    size = (uintptr_t)om->contexts->current - (uintptr_t)om->context_bottom;
-    offset = (uintptr_t)om->context_bottom - (uintptr_t)om->contexts->address;
-    memmove((void*)om->contexts->address, (void*)om->context_bottom, size);
-    
-    /* reset the virtual bottom */
-    om->context_bottom = (OBJECT)om->contexts->address;
-    
-    /* reset the top */
-    om->contexts->current = (void*)((uintptr_t)om->contexts->address + size);
-    
-    /* Fixup the refs that are in the context stack */
-    EACH_STACK_CTX(om, ctx) {
-      if(inc == 0) {
-        FASTCTX(ctx)->sender = top_sender;
-        baker_gc_mutate_context(state, om->gc, ctx, TRUE, TRUE);
-      } else {
-        /* The sender is in the stack, so we just adjust it by the moved
-           offset. */
-        if(REFERENCE_P(FASTCTX(ctx)->sender)) {
-          FASTCTX(ctx)->sender = (OBJECT)((uintptr_t)FASTCTX(ctx)->sender - offset);
-        }
-        assert(FASTCTX(ctx)->sender->gc_zone == 0);
-        baker_gc_mutate_context(state, om->gc, ctx, FALSE, FALSE);
-      }
-      inc++;
-    } DONE_EACH_STACK_CTX(ctx); 
-    
-    /* Used later to adjust other context refs. */
-    om->context_offset = offset;
-  }
-  
-  om->context_bottom = (OBJECT)(om->contexts->address);
 }
 
 void object_memory_mark_contexts(STATE, object_memory om) {
@@ -207,18 +134,21 @@ void object_memory_mark_contexts(STATE, object_memory om) {
   
 }
 
+void object_memory_reset_contexts(STATE, object_memory om) {
+  /* reset the virtual bottom */
+  om->context_bottom = (OBJECT)om->contexts->address;
+  
+  /* reset the top */
+  om->contexts->current = om->contexts->address;
+}
+
 void object_memory_clear_marks(STATE, object_memory om) {
   OBJECT ctx;
   char *addr;
   
-  addr = (char*)(om->contexts->address);
-  
-  /* Fixup the refs that are in the context stack */
-  while(addr < (char*)om->contexts->current) {
-    ctx = (OBJECT)addr;
+  EACH_CTX(om, ctx) {
     mark_sweep_clear_mark(state, ctx);
-    addr += FASTCTX(ctx)->size;
-  } 
+  } DONE_EACH_CTX(ctx);
 }
 
 

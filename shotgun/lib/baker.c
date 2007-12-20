@@ -533,9 +533,7 @@ int baker_gc_collect(STATE, baker_gc g, ptr_array roots) {
       }
     }
   }
-  
-  object_memory_shift_contexts(state, state->om);
-  
+    
   baker_gc_mutate_rest(state, g);
   
   assert(heap_fully_scanned_p(g->next));
