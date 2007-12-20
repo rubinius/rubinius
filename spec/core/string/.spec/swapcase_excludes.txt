@@ -1,0 +1,1 @@
+String#swapcase returns subclass instances when called on a subclass

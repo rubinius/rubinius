@@ -1,0 +1,1 @@
+String#delete returns subclass instances when called on a subclass

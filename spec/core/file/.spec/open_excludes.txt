@@ -1,36 +1,13 @@
-File.open open file when call with a block (basic case)
-File.open open a file with mode string and block
-File.open open a file with mode num and block
-File.open open the flie when call with mode, num, permissions and block
-File.open open a file with a file descriptor d and a block
-File.open can read in a block when call open with RDONLY mode
-File.open can read in a block when call open with 'r' mode
-File.open raise an IO exception when write in a block opened with RDONLY mode
-File.open raise an IO exception when write in a block opened with 'r' mode
-File.open can't write in a block when call open with File::WRONLY||File::RDONLY mode
 File.open can't read in a block when call open with File::WRONLY||File::RDONLY mode
-File.open can write in a block when call open with 'w' mode
 File.open raise an IO exception when read in a block opened with WRONLY mode
 File.open raise an IO exception when read in a block opened with 'w' mode
 File.open raise an IO exception when read in a block opened with 'a' mode
 File.open raise an IO exception when read in a block opened with 'a' mode
 File.open raise an IO exception when read in a block opened with 'a' mode
-File.open raise an IO exception when read in a block opened with File::WRONLY|File::APPEND mode
-File.open raise an IO exception when read in a block opened with File::RDONLY|File::APPEND mode
 File.open can read and write in a block when call open with RDWR mode
-File.open can't read in a block when call open with File::EXCL mode
-File.open can read in a block when call open with File::EXCL mode
 File.open can read and write in a block when call open with File::RDWR|File::EXCL mode
-File.open raise an Errorno::EEXIST if the file exists when open with File::CREAT|File::EXCL
 File.open open a file when use File::WRONLY|File::APPEND mode
-File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::APPEND
-File.open can't read in a block when call open with File::TRUNC mode
-File.open can't write in a block when call open with File::TRUNC mode
-File.open raise an Errorno::EEXIST if the file exists when open with File::RDONLY|File::TRUNC
-File.open expected errors 
-File.open open a file that no exists when use File::TRUNC mode
-File.open open a file that no exists when use File::CREAT mode
-File.open open a file that no exists when use 'a' mode
-File.open create a new file when use File::TRUNC mode
+File.open should open a file for read-write and truncate the file
 File.open should open a file for binary read-write starting at the beginning of the file
 File.open should open a file for binary read-write and truncate the file
+File.open expected errors 

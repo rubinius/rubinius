@@ -1,0 +1,5 @@
+String#[] with index, length returns subclass instances
+String#[] with Range returns subclass instances
+String#[] with Regexp returns subclass instances
+String#[] with Regexp, index returns subclass instances
+String#[] with String returns a subclass instance when given a subclass instance

@@ -1,0 +1,2 @@
+IO#each_line yields the entire content if the separator is nil
+IO#each_line does not change IO#each_line yields the entire content if the separator is nil

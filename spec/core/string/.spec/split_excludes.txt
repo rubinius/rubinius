@@ -1,2 +1,2 @@
-String#split with Regexp returns an array with one entry if limit is 1: the original string
-String#split with Regexp returns at most limit fields when limit > 1
+String#split with String returns subclass instances based on self
+String#split with Regexp returns subclass instances based on self

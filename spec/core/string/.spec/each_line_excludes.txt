@@ -1,0 +1,1 @@
+String#each_line yields subclass instances for subclasses

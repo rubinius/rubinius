@@ -1,1 +1,2 @@
 String#initialize is a private method
+String#initialize doesn't change self when str isn't supplied
