@@ -1200,6 +1200,9 @@ module Bytecode
       end
       
       def process_sclass(x)
+        
+        @compiler.flags[:visibility] << :public
+        
         receiver = x.shift
         process receiver
         body = x.shift
@@ -1209,6 +1212,8 @@ module Bytecode
         add "open_metaclass"
         add "dup"
         compile_internal_method body, :__metaclass_init__
+        
+        @compiler.flags[:visibility].pop
       end
 
       def process_class(x)
@@ -2025,8 +2030,12 @@ module Bytecode
         add recv
         
         # Indicate to add_method that this is a private method.
-        if kind == "add_method" and @compiler.flags[:visibility].last == :private
-          add "set_call_flags 1"
+        if kind == "add_method"
+          if @compiler.flags[:visibility].last == :private
+            add "set_call_flags 1"
+          elsif @compiler.flags[:visibility].last == :protected
+            add "set_call_flags 2"
+          end
         end
         
         add "#{kind} #{name}"
@@ -2132,6 +2141,10 @@ module Bytecode
           @compiler.flags[:visibility].pop
           @compiler.flags[:visibility] << :public
           return true
+        elsif recv = [:self] and meth == :protected and args.empty?
+          @compiler.flags[:visibility].pop
+          @compiler.flags[:visibility] << :protected
+          return true        
         end
         return false
       end

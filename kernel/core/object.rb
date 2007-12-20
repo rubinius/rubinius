@@ -259,7 +259,7 @@ class Object
   # TODO - Implement support for the 'all' parameter
   def singleton_methods(all=true)
     class << self
-      method_table.public_names
+      method_table.public_names + method_table.protected_names
     end
   end
 

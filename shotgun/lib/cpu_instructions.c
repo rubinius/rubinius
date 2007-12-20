@@ -139,8 +139,8 @@ static inline OBJECT _real_class(STATE, OBJECT obj) {
  
 #define TUPLE_P(obj) (CLASS_OBJECT(obj) == BASIC_CLASS(tuple))
  
-static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name) {
-  OBJECT meth;
+static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name, OBJECT recv) {
+  OBJECT meth, vis;
   
   meth = hash_find(state, hsh, name);
   
@@ -149,9 +149,16 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name)
   if(c->call_flags == 1) { return meth; }
   
   /* Check that unless we can look for private methods that method isn't private. */
-  if(TUPLE_P(meth) && (tuple_at(state, meth, 0) == state->global->sym_private)) {
-    /* We skip private methods. */
-    return Qnil;
+  if(TUPLE_P(meth)) {
+    vis = tuple_at(state, meth, 0);
+    if(vis == state->global->sym_private) {
+      /* We skip private methods. */
+      return Qnil;
+    } else if(vis == state->global->sym_protected) {
+      /* If it's protected, bail if the receiver isn't the same
+         class as self. */
+      if(!ISA(recv, object_class(state, c->self))) return Qnil;
+    }
   }
   
   return meth;
@@ -162,7 +169,7 @@ static inline OBJECT cpu_check_for_method(STATE, cpu c, OBJECT hsh, OBJECT name)
 #define UNVIS_METHOD(var) if(TUPLE_P(var)) { var = tuple_at(state, var, 1); }
 #define UNVIS_METHOD2(var) if(tup) { var = tuple_at(state, var, 1); }
 
-static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  OBJECT *mod) {
+static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OBJECT name,  OBJECT *mod) {
   OBJECT ok, hsh, cache, orig_klass, meth;
   int tup, tries;
   struct method_cache *ent, *fent;
@@ -221,7 +228,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
     return Qnil; 
   }
   
-  meth = cpu_check_for_method(state, c, hsh, name);
+  meth = cpu_check_for_method(state, c, hsh, name, recv);
   
   /*
   printf("Looking for method: %s in %p (%s)\n", 
@@ -258,7 +265,7 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
       return Qnil; 
     }
         
-    meth = cpu_check_for_method(state, c, hsh, name);
+    meth = cpu_check_for_method(state, c, hsh, name, recv);
   }
   
   *mod = klass;
@@ -284,8 +291,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name,  O
   return meth;
 }
 
-OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod) {
-    return cpu_find_method(state, c, klass, name, mod);
+OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT recv, OBJECT name, OBJECT *mod) {
+    return cpu_find_method(state, c, _real_class(state, recv), recv, name, mod);
 }
 
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private) {
@@ -295,11 +302,11 @@ OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include
   if(TRUE_P(include_private)) {
     // save and change call_flags to allow searching for private methods
     call_flags = c->call_flags;
-    c->call_flags=1;
-    meth = cpu_find_method(state, c, _real_class(state, obj), sym, &mod);
+    c->call_flags = 1;
+    meth = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);
     c->call_flags = call_flags;
   } else {
-    meth = cpu_find_method(state, c, _real_class(state, obj), sym, &mod);       
+    meth = cpu_find_method(state, c, _real_class(state, obj), obj, sym, &mod);       
   }
   
 
@@ -309,17 +316,17 @@ OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include
   return Qnil;
 }
 
-static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT obj, OBJECT sym, 
+static inline OBJECT cpu_locate_method(STATE, cpu c, OBJECT klass, OBJECT obj, OBJECT sym, 
           OBJECT *mod, int *missing) {
   OBJECT mo;
   
   *missing = FALSE;
   
-  mo = cpu_find_method(state, c, obj, sym, mod);
+  mo = cpu_find_method(state, c, klass, obj, sym, mod);
   if(!NIL_P(mo)) { return mo; }
     
   // printf("method missing: %p\n", state->global->method_missing);
-  mo = cpu_find_method(state, c, obj, state->global->method_missing, mod);
+  mo = cpu_find_method(state, c, klass, obj, state->global->method_missing, mod);
   *missing = TRUE;
   
   // printf("Found method: %p\n", mo);
@@ -815,7 +822,7 @@ inline void cpu_goto_method(STATE, cpu c, OBJECT recv, OBJECT meth,
 
 inline void cpu_perform_hook(STATE, cpu c, OBJECT recv, OBJECT meth, OBJECT arg) {
   OBJECT mo, mod, vm;
-  mo = cpu_find_method(state, c, _real_class(state, recv), meth, &mod);
+  mo = cpu_find_method(state, c, _real_class(state, recv), recv, meth, &mod);
   if(NIL_P(mo)) return;
   
   vm = rbs_const_get(state, BASIC_CLASS(object), "VM");
@@ -914,7 +921,7 @@ inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OB
     
     /* If it's false, the cache is disabled. */
     if(ic == Qfalse) {
-      mo = cpu_locate_method(state, c, cls, sym, &mod, &missing);
+      mo = cpu_locate_method(state, c, cls, recv, sym, &mod, &missing);
       if(NIL_P(mo)) goto really_no_method;
       goto dispatch;
     }
@@ -949,7 +956,7 @@ inline void cpu_unified_send(STATE, cpu c, OBJECT recv, OBJECT sym, int args, OB
 #endif
 
   lookup:
-  mo = cpu_locate_method(state, c, cls, sym, &mod, &missing);
+  mo = cpu_locate_method(state, c, cls, recv, sym, &mod, &missing);
   if(NIL_P(mo)) {
     char *msg;
     really_no_method:
@@ -1013,7 +1020,7 @@ static inline void cpu_unified_send_super(STATE, cpu c, OBJECT recv, OBJECT sym,
   
   klass = class_get_superclass(cpu_current_module(state, c));
     
-  mo = cpu_locate_method(state, c, klass, sym, &mod, &missing);
+  mo = cpu_locate_method(state, c, klass, recv, sym, &mod, &missing);
   if(NIL_P(mo)) {
     printf("Fuck. no method found at all, was trying %s on %s.\n", rbs_symbol_to_cstring(state, sym), rbs_inspect(state, recv));
     sassert(RTEST(mo));
