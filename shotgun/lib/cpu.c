@@ -473,6 +473,9 @@ void cpu_add_method(STATE, cpu c, OBJECT target, OBJECT sym, OBJECT method) {
   case 1:
     vis = state->global->sym_private;
     break;
+  case 2:
+    vis = state->global->sym_protected;
+    break;
   }
   
   if(EXCESSIVE_TRACING) {

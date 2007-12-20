@@ -180,7 +180,7 @@ inline void cpu_restore_context_with_home(STATE, cpu c, OBJECT ctx, OBJECT home,
 void cpu_run_script(STATE, cpu c, OBJECT meth);
 inline void cpu_save_registers(STATE, cpu c, int stack_offset);
 
-OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod);
+OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT recv, OBJECT name, OBJECT *mod);
 
 OBJECT cpu_unmarshal(STATE, uint8_t *str, int len, int version);
 OBJECT cpu_marshal(STATE, OBJECT obj, int version);
