@@ -2,12 +2,14 @@ require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/fixtures/classes'
 
 describe "Kernel#puts" do
+  
   before(:each) do
+    @old_stdout = $stdout
     $stdout = IO.new(2)
   end
   
   after(:each) do
-    $stdout = IO.new(1)
+    $stdout = @old_stdout
   end
   
   it "writes just a newline when given no args" do

@@ -139,7 +139,8 @@ module Kernel
   alias_method :format, :sprintf
   
   def puts(*a)
-    $stdout.puts(a)
+    $stdout.puts(*a)
+    return nil
   end
   
   def p(*a)

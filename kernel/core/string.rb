@@ -1996,7 +1996,7 @@ class String
   # TODO: Make string_dup compatible with String subclasses
   #+++
   def dup
-    if self.instance_of? String
+    if self.kind_of? String
       out = Ruby.asm "push self\nstring_dup\n"
     else
       out = self.class.new(self)
