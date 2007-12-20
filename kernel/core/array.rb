@@ -68,7 +68,9 @@ class Array
     end
   
     self
-  end              
+  end
+
+  private :initialize
 
   # Element reference, returns the element at the given index or 
   # a subarray starting from the index continuing for length 
