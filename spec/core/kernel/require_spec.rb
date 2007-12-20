@@ -220,7 +220,7 @@ extension :rbx do
 
   it "compiles a .rbc file when re-evaluating the source file" do
     Dir.chdir($require_fixture_dir) do |dir|
-      `rm require_spec_8.rbc`
+      system("rm -f require_spec_8.rbc")
     end
 
     File.exist?("#{$require_fixture_dir}/require_spec_8.rbc").should == false
