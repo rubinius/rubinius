@@ -11,16 +11,8 @@ class Channel
     Ruby.primitive :channel_send
   end
 
-  def receive_raw
-    Ruby.primitive :channel_receive
-  end
-
   def receive
-    receive_raw[1]
-  end
-
-  def self.receive_many(ary)
-    Ruby.primitive :channel_receive_many
+    Ruby.primitive :channel_receive
   end
 
   def self.convert_to_channel(obj)

@@ -144,7 +144,6 @@ void object_memory_reset_contexts(STATE, object_memory om) {
 
 void object_memory_clear_marks(STATE, object_memory om) {
   OBJECT ctx;
-  char *addr;
   
   EACH_CTX(om, ctx) {
     mark_sweep_clear_mark(state, ctx);
