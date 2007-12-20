@@ -174,3 +174,7 @@ class SystemCallError < StandardError
   end
 end
 
+class IllegalLongReturn
+  attr_reader :return_value
+end
+

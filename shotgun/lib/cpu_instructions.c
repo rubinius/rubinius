@@ -701,10 +701,14 @@ inline int cpu_return_to_sender(STATE, cpu c, OBJECT val, int consider_block, in
       /* If the current context is marked as not being allowed to
          return long, raise an exception instead. */
       if(FASTCTX(c->active_context)->flags & CTX_FLAG_NO_LONG_RETURN) {
+        OBJECT exc;
         home = rbs_const_get(state, BASIC_CLASS(object), "IllegalLongReturn");
         
-        cpu_raise_exception(state, c, 
-          cpu_new_exception(state, c, home, "Unable to perform a long return"));
+        exc = cpu_new_exception(state, c, home, "Unable to perform a long return");
+        object_set_ivar(state, exc, SYM("@return_value"), val);
+        
+        cpu_raise_exception(state, c, exc);
+          
         return TRUE;
       }
       

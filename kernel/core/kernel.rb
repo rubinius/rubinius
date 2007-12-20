@@ -202,8 +202,13 @@ module Kernel
     end
   end
     
-  def lambda(&prc)
-    return prc
+  def lambda
+    block = Ruby.asm "push_block"
+    raise ArgumentError, "block required" if block.nil?
+    
+    block.disable_long_return!
+    
+    return Proc::Function.from_environment(block)
   end
   alias_method :proc, :lambda
 
