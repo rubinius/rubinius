@@ -1,2 +1,5 @@
-require_spec_5.rb
-require_spec_rba.rba
+*.rba
+*.rbc
+*.old
+*dummy*
+*dynamic*

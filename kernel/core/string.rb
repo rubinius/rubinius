@@ -2052,7 +2052,9 @@ class String
       exc.import_position out.at(1), out.at(2)
       raise exc
     end
-    return out
+
+    out = [:newline, 0, "<empty: #{name}>", [:nil]] unless out
+    out
   end
 
   def shared!
