@@ -167,11 +167,23 @@ module Kernel
     File.open(*a, &block)
   end
 
-  # NOTE - this isn't quite MRI compatible, we don't store return the previous
-  # seed value from srand and we don't seed the RNG by default with a combination
+  # NOTE - this isn't quite MRI compatible.
+  # we don't seed the RNG by default with a combination
   # of time, pid and sequence number
   def srand(seed)
+    cur = Kernel.current_srand
     Platform::POSIX.srand(seed.to_i)
+    Kernel.current_srand = seed.to_i
+    return cur
+  end
+  
+  @current_seed = 0
+  def self.current_srand
+    @current_seed
+  end
+  
+  def self.current_srand=(val)
+    @current_seed = val
   end
 
   def rand(max=nil)
