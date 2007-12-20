@@ -288,7 +288,9 @@ class ShotgunPrimitives
     <<-CODE
     self = stack_pop(); GUARD( RISA(self, class) )
     POP(t1, FIXNUM);
-    stack_push(bytearray_new(state, FIXNUM_TO_INT(t1)));
+    t2 = bytearray_new(state, FIXNUM_TO_INT(t1));
+    t2->klass = self;
+    stack_push(t2);
     CODE
   end
 
