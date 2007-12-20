@@ -1,2 +1,2 @@
-Range.union returns /(?!)/ when passed no arguments
-Range.union returns a regular expression that will match passed arguments
+Regexp.union returns /(?!)/ when passed no arguments
+Regexp.union returns a regular expression that will match passed arguments

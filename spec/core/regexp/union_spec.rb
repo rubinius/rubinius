@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../../spec_helper'
 
-describe "Range.union" do
+describe "Regexp.union" do
   it "returns /(?!)/ when passed no arguments" do
     Regexp.union.should == /(?!)/
   end
