@@ -24,16 +24,22 @@ OBJECT object_create_metaclass(STATE, OBJECT cls, OBJECT sup) {
 }
 
 OBJECT object_metaclass(STATE, OBJECT obj) {
+  if(REFERENCE_P(obj)) {
+    if( metaclass_s_metaclass_p(state, obj->klass) ) {
+      return obj->klass;
+    }
+    return object_create_metaclass(state, obj, 0);
+  }
+  
   if( NIL_P(obj) ) {
     return state->global->nil_class;
   } else if( TRUE_P(obj) ) {
     return state->global->true_class;
   } else if( FALSE_P(obj) ) { 
     return state->global->false_class;
-  } else if( metaclass_s_metaclass_p(state, obj->klass) ) {
-    return obj->klass;
   }
-  return object_create_metaclass(state, obj, 0);
+  
+  return Qnil;
 }
 
 OBJECT object_make_weak_ref(STATE, OBJECT self) {
