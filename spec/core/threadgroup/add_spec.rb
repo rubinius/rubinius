@@ -7,7 +7,7 @@ describe "ThreadGroup#add" do
   
   after(:each) do
     @thread.run
-    @thread.join
+    @thread.exit unless @thread.join(1)
   end
   
   it "adds the given thread to a group and returns self" do
