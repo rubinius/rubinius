@@ -291,8 +291,8 @@ static inline OBJECT cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT recv, OB
   return meth;
 }
 
-OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT recv, OBJECT name, OBJECT *mod) {
-    return cpu_find_method(state, c, _real_class(state, recv), recv, name, mod);
+OBJECT exported_cpu_find_method(STATE, cpu c, OBJECT klass, OBJECT name, OBJECT *mod) {
+    return cpu_find_method(state, c, klass, Qnil, name, mod);
 }
 
 OBJECT cpu_locate_method_on(STATE, cpu c, OBJECT obj, OBJECT sym, OBJECT include_private) {
