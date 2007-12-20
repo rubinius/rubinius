@@ -77,6 +77,7 @@ end
 
 commits = []
 
+execute 'git pull'
 `git log`.grep(/^commit/).each do |line|
   break if line =~ /#{TEST_AFTER_REVISION}$/
   commits << Commit.new(line.match(/\w+$/)[0])
