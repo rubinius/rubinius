@@ -11,22 +11,25 @@ describe "String#to_f" do
    ".5".to_f.should == 0.5
    ".5e1".to_f.should == 5.0
    
-   "0b5".to_f.should == 0
-   "0d5".to_f.should == 0
-   "0o5".to_f.should == 0
-   "0x5".to_f.should == 0
-   
-   compliant(:ruby) do
+   compliant(:ruby, :rubinius) do
      "NaN".to_f.should == 0
      "Infinity".to_f.should == 0
      "-Infinity".to_f.should == 0
    end
    
-   noncompliant(:rubinius, :jruby) do
+   noncompliant(:jruby) do
      "NaN".to_f.nan?.should == true
      "Infinity".to_f.infinite?.should == 1
      "-Infinity".to_f.infinite?.should == -1
    end
+  end
+  
+  it "returns 0 for strings with any non-digit in them" do
+    "blah".to_f.should == 0
+    "0b5".to_f.should == 0
+    "0d5".to_f.should == 0
+    "0o5".to_f.should == 0
+    "0xx5".to_f.should == 0
   end
 
   it "takes an optional sign" do

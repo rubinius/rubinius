@@ -15,24 +15,20 @@ class String
   def data      ; @data       ; end
   def __ivars__ ; nil         ; end
 
-  def self.new(arg=0)
-    return arg.dup if arg.kind_of? String
-    super
-  end
-
-  # Can't be changed if run inside instance_eval with no param passed in
-  def initialize(arg=0)
+  def initialize(arg=nil)
     if arg.kind_of?(Fixnum)
       # + 1 for the null on the end.
       @data = ByteArray.new(arg+1)
       @bytes = arg
       @characters = arg
-      @encoding = nil
-    else
+      @encoding = nil      
+    elsif !arg.nil?
       replace(StringValue(arg))
     end
+    
+    return self
   end
-  # private :initialize
+  private :initialize
 
   # call-seq:
   #   str % arg   => new_str
@@ -78,7 +74,8 @@ class String
   # 
   #   "Hello from " + self.to_s   #=> "Hello from main"
   def +(other)
-    r = String.new(self) << other
+    r = String.new(self)
+    r << other
     r.taint if self.tainted? || other.tainted?
     r
   end
@@ -1996,12 +1993,7 @@ class String
   # TODO: Make string_dup compatible with String subclasses
   #+++
   def dup
-    if self.kind_of? String
-      out = Ruby.asm "push self\nstring_dup\n"
-    else
-      out = self.class.new(self)
-    end
-    
+    out = Ruby.asm "push self\nstring_dup\n"    
     out.taint if self.tainted?
     return out
   end

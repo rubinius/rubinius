@@ -28,6 +28,11 @@ describe "String#initialize" do
     a.tainted?.should == true
   end
   
+  it "returns an instance of a subclass" do
+    a = MyString.new("blah")
+    a.should be_kind_of(MyString)
+  end
+  
   compliant :ruby, :jruby do
     it "raises a TypeError if self is frozen" do
       a = "hello".freeze

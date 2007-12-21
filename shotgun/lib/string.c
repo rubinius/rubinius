@@ -63,8 +63,11 @@ OBJECT string_newfrombstr(STATE, bstring str)
 }
 
 OBJECT string_dup(STATE, OBJECT self) {
+  OBJECT obj;
   xassert(STRING_P(self));
-  return string_new_shared(state, self);
+  obj = string_new_shared(state, self);
+  obj->klass = object_class(state, self);
+  return obj;
 }
 
 OBJECT string_append(STATE, OBJECT self, OBJECT other) {
@@ -116,7 +119,7 @@ char *string_byte_address(STATE, OBJECT self) {
 double string_to_double(STATE, OBJECT self) {
   double value;
   char *p, *n, *ba, *rest;
-  
+  int e_seen = 0;
   xassert(STRING_P(self));
   
   // We'll modify the buffer, so we need our own copy.
@@ -125,11 +128,23 @@ double string_to_double(STATE, OBJECT self) {
   p = ba;
   while (ISSPACE(*p)) p++;
   n = p;
+    
   while (*p) {
     if (*p == '_') {
       p++;
     } else {
-      *n++ = *p++;
+      if(*p == 'e') {
+        if(e_seen) {
+          *n = 0;
+          break;
+        }
+        e_seen = 1;
+      } else if(!(ISDIGIT(*p) || *p == '.' || *p == '-' || *p == '+')) {
+        *n = 0;
+        break;
+      }
+      
+      *n++ = *p++;      
     }
   }
   *n = 0;
@@ -143,8 +158,9 @@ double string_to_double(STATE, OBJECT self) {
   if (errno == ERANGE) {
 	  printf("Float %s out of range\n", ba);
   }
-  
+    
   free(ba);
+  
   
   return value;
 }

@@ -9,11 +9,11 @@ class BeKindOfMatcher
   end
   
   def failure_message
-    ["Expected #{@actual.inspect}", "to be kind of #{@expected}"]
+    ["Expected #{@actual.inspect} (#{@actual.class})", "to be kind of #{@expected}"]
   end
   
   def negative_failure_message
-    ["Expected #{@actual.inspect}", "not to be kind of #{@expected}"]
+    ["Expected #{@actual.inspect} (#{@actual.class})", "not to be kind of #{@expected}"]
   end
 end
 
