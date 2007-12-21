@@ -107,8 +107,6 @@ module Compile
   # Internally used by #unified_load. This attempts to load the
   # designated file from a single prefix path.
   def self.single_load(dir, rb, rbc, ext, requiring = nil)
-
-    # .rb and no extension
     unless rb.equal? nil
       return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
 
@@ -138,42 +136,41 @@ module Compile
       end
     end
 
-    # .rbc
     unless rbc.equal? nil
       return false if requiring.equal?(true) and $LOADED_FEATURES.include?(rbc.chomp 'c')
 
       rbc_path = "#{dir}/#{rbc}"
 
-      return nil unless File.file? rbc_path
+      if File.file? rbc_path then
 
-      cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
-      raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+        cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
+        raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
 
-      cm.compile
-      cm.as_script
+        cm.compile
+        cm.as_script
 
-      $LOADED_FEATURES << rbc.chomp('c') if requiring.equal?(true)
-      return true
+        $LOADED_FEATURES << rbc.chomp('c') if requiring.equal?(true)
+        return true
+      end
     end
 
-    # .<ext>
     unless ext.equal? nil
       return false if requiring.equal?(true) and $LOADED_FEATURES.include? ext
 
       ext_path = "#{dir}/#{ext}"
-      ext_name = File.basename(ext).chomp Rubinius::LIBSUFFIX
+      ext_name = File.basename ext, ".#{Rubinius::LIBSUFFIX}"
 
-      return nil unless File.file? ext_path
-
-      case VM.load_library(ext_path, ext_name)
+      if File.file? ext_path then
+        case VM.load_library(ext_path, ext_name)
         when true
           $LOADED_FEATURES << ext if requiring.equal?(true)
           return true
         when 0 # Absent or invalid
           return nil
         when 1 # Valid library, but no entry point
-          raise LoadError, "Invalid extension at '#{ext_path}'. " <<
+          raise LoadError, "Invalid extension at '#{ext_path}'. " \
                            "Did you define Init_#{ext_name}?"
+        end
       end
     end
 
