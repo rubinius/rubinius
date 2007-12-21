@@ -10,7 +10,7 @@ module HashSpecs
     @empty
   end
   
-  def self.hash
+  def self.hsh
     @hash ||= {1 => 2, 3 => 4}
     @hash.freeze
     @hash

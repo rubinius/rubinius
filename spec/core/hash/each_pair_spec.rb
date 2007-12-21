@@ -7,7 +7,8 @@ describe "Hash#each_pair" do
     all_args = []
 
     h = {1 => 2, 3 => 4}
-    h.each_pair { |*args| all_args << args }.equal?(h).should == true
+    h2 = h.each_pair { |*args| all_args << args }
+    h2.equal?(h).should == true
 
     all_args.should == [[1, 2], [3, 4]]
   end
