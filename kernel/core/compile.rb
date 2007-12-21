@@ -6,45 +6,45 @@ module Rubinius
 end
 
 module Compile
-  
+
   @compiler = nil
-  
+
   DefaultCompiler = "compiler1"
-  
+
   def self.register_compiler(obj)
     if $DEBUG
       $stderr.puts "[Registered #{obj} as system compiler]"
     end
     @compiler = obj
   end
-    
+
   def self.find_compiler
     begin
       load "#{DefaultCompiler}/init"
     rescue Exception
       raise "Unable to load default compiler"
     end
-    
+
     unless @compiler
       raise "Attempted to load DefaultCompiler, but no compiler was registered"
     end
-    
+
     return @compiler
   end
-  
+
   def self.compiler
     return @compiler if @compiler
     return find_compiler
   end
-  
+
   def self.compile_file(path, flags=nil)
     compiler.compile_file(path, flags)
   end
-  
+
   def self.compile_string(string, flags=nil, filename="(eval)", line=1)
     compiler.compile_string(string, flags, filename, line)
   end
-  
+
   def self.execute(string)
     cm = compile_string(string)
     cm.compile
@@ -56,19 +56,17 @@ module Compile
   def self.__unexpected_break__
     raise LocalJumpError, "unexpected break"
   end
-  
 
   # Internally used by #load and #require. Determines whether to
   # load the file directly or by prefixing it with the paths in
   # $LOAD_PATH and then attempts to locate and load the file.
   def self.unified_load(path, rb, rbc, ext, requiring = nil)
-
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
       if $1       # Relative
         res = Compile.single_load Dir.pwd, rb, rbc, ext, requiring
 
-      elsif $2    # ~ 
+      elsif $2    # ~
         rb.slice! '~/'
         rbc.slice! '~/'
         ext.slice! '~/'
@@ -79,13 +77,13 @@ module Compile
       end
 
       return res unless res.equal? nil
-    
+
     # Unqualified
     else
-      $LOAD_PATH.each do |dir|      
-        if rbc and dir.suffix? '.rba' and File.file? dir 
+      $LOAD_PATH.each do |dir|
+        if rbc and dir.suffix? '.rba' and File.file? dir
           cm = Archive.get_object(dir, rbc, Rubinius::CompiledMethodVersion)
-          
+
           if cm
             return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
 
@@ -174,13 +172,13 @@ module Compile
         when 0 # Absent or invalid
           return nil
         when 1 # Valid library, but no entry point
-          raise LoadError, "Invalid extension at '#{ext_path}'. " << 
+          raise LoadError, "Invalid extension at '#{ext_path}'. " <<
                            "Did you define Init_#{ext_name}?"
       end
     end
 
     nil
-  end   
+  end
 
 end       # Compile
 
@@ -192,9 +190,9 @@ module Kernel
     Marshal.dump_to_file cm, out, Rubinius::CompiledMethodVersion
     return out
   end
-  
+
   # Loads the given file as executable code and returns true. If
-  # the file cannot be found, cannot be compiled or some other 
+  # the file cannot be found, cannot be compiled or some other
   # error occurs, LoadError is raised with an explanation.
   #
   # Unlike #require, the file extension if any must be present but
@@ -234,10 +232,10 @@ module Kernel
   #       if 'somefile.rb' does exist but 'somefile' does not, the
   #       load should fail. Currently it does not if 'somefile.rb'
   #       has been compiled to 'somefile.rbc'.
-  #       
+  #
   def load(path)
     path = StringValue(path)
-    
+
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
@@ -253,8 +251,8 @@ module Kernel
 
   # Attempt to load the given file, returning true if successful.
   # If the file has already been successfully loaded and exists
-  # in $LOADED_FEATURES, it will not be re-evaluated and false 
-  # is returned instead. If the filename cannot be resolved, 
+  # in $LOADED_FEATURES, it will not be re-evaluated and false
+  # is returned instead. If the filename cannot be resolved,
   # a LoadError is raised.
   #
   # The file can have one of the following extensions:
@@ -290,12 +288,12 @@ module Kernel
   #       is completely transparent to the user in all normal cases.
   #
   # Each successfully loaded file is added to $LOADED_FEATURES
-  # ($"), using the original unexpanded filename (with the 
-  # exception that the file extension is added.) 
+  # ($"), using the original unexpanded filename (with the
+  # exception that the file extension is added.)
   #
-  def require(path)    
+  def require(path)
     path = StringValue(path)
-    
+
     if path.suffix? '.rbc'
       rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
@@ -305,7 +303,7 @@ module Kernel
     else
       rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
-    
+
     Compile.unified_load path, rb, rbc, ext, true
   end
 end
