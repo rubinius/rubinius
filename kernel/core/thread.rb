@@ -170,6 +170,11 @@ class Thread
     result
   end
   private :join_inner
+  
+  def raise_prim(exc)
+    Ruby.primitive :thread_raise
+  end
+  private :raise_prim
 
   def raise(exc=$!, msg=nil, trace=nil)
     if exc.respond_to? :exception
@@ -186,11 +191,7 @@ class Thread
       STDERR.puts "Exception: #{exc.message} (#{exc.class})"
     end
 
-    ctx = @task.current_context
-
-    exc.set_backtrace ctx unless exc.backtrace
-
-    @task.raise exc
+    raise_prim exc
   end
 
   def [](key)

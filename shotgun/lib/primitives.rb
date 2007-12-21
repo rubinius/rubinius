@@ -2150,9 +2150,30 @@ class ShotgunPrimitives
     /* This is conditional because task_select can decide that it's not
        not possible to select this task, in which case it handles letting
        the user know this on it's own. */
+        
     if(cpu_task_select(state, c, self)) {
       cpu_raise_exception(state, c, t1);
     }
+    CODE
+  end
+  
+  def thread_raise
+    <<-CODE
+    self = stack_pop();
+    GUARD( RISA(self, thread) );
+    
+    t1 = stack_pop();
+    
+    /* The return value */
+    stack_push(Qnil);
+    
+    cpu_thread_schedule(state, c->current_thread);    
+    cpu_thread_force_run(state, c, self);
+    
+    methctx_reference(state, c->active_context);
+    exception_set_context(t1, c->active_context);
+    
+    cpu_raise_exception(state, c, t1);
     CODE
   end
   

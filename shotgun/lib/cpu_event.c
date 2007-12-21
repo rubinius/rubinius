@@ -170,6 +170,15 @@ void _cpu_wake_channel_alot(int fd, short event, void *arg) {
   cpu_channel_send(state, ti->c, ti->channel, I2N((int)event));
 }
 
+/* Doesn't clear it's own data, since it's going to be called a lot. */
+void _cpu_wake_channel_for_signal(int fd, short event, void *arg) {
+  STATE;
+  struct thread_info *ti = (struct thread_info*)arg;
+    
+  state = ti->state;
+  cpu_channel_send(state, ti->c, ti->channel, ti->c->current_thread);
+}
+
 
 void cpu_event_wake_channel(STATE, cpu c, OBJECT channel, struct timeval *tv) {
   struct thread_info *ti;
@@ -251,7 +260,7 @@ void cpu_event_wait_signal(STATE, cpu c, OBJECT channel, int sig) {
   ti->channel = channel;
   _cpu_event_register_info(state, ti);
     
-  signal_set(&ti->ev, sig, _cpu_wake_channel_alot, (void*)ti);
+  signal_set(&ti->ev, sig, _cpu_wake_channel_for_signal, (void*)ti);
   signal_add(&ti->ev, NULL);  
 }
 

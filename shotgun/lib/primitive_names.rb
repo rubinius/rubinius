@@ -75,7 +75,7 @@ module Bytecode
       :object_dup,
       :save_encloser_path,
       :restore_encloser_path,
-      nil,  # :float_add,
+      :thread_raise,
       nil,  # :float_sub,
       nil,  # :float_mul,
       nil,  # :float_equal,
