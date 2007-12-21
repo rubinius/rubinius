@@ -1,6 +1,5 @@
 require 'compiler1/bytecode/compiler'
 require 'compiler1/bytecode/assembler'
-require 'compiler1/bytecode/primitive_names'
 require 'compiler1/bytecode/system_hints'
 
 Compiler1::Bytecode::Compiler.load_system_hints(Rubinius::Bootstrap::HINTS)
@@ -39,21 +38,9 @@ module Bytecode
       cmeth = CompiledMethod.new.from_string iseq, lcls, @required
       cmeth.bonus = Tuple[@state.slot_locals_tuple, @state.stack_locals_tuple]
       cmeth.exceptions = asm.exceptions_as_tuple
-
-      idx = nil
-
-      if @primitive.kind_of? Symbol
-        idx = Compiler1::Bytecode::Compiler::Primitives.index(@primitive)
-        unless idx
-          raise ArgumentError, "Unknown primitive '#{@primitive}'"
-        end
-        idx += 1
-      elsif @primitive
-        idx = @primitive
-      end
       
-      if idx
-        cmeth.primitive = idx
+      if @primitive
+        cmeth.primitive = @primitive
       end
       
       cmeth.literals = encode_literals   # Also recursively processes contained methods
@@ -156,9 +143,6 @@ module Bytecode
       return tup
     end
         
-    def primitive_to_index(sym)
-      Compiler1::Bytecode::Compiler::Primitives.index(sym) + 1 # add 1 for noop padding
-    end
   end
 end
 end

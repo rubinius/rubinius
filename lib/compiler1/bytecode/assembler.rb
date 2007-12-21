@@ -518,6 +518,7 @@ module Bytecode
         end
         return
       elsif op == :send_primitive
+        raise "not supported!"
         sym = parts.shift.to_sym
         idx = primitive_to_index(sym)
         num_args = parts.shift.to_i

@@ -2195,8 +2195,7 @@ module Bytecode
         # options nil
         
         if meth == :block_given?
-          add "push true"
-          add "send_primitive block_given 0"
+          add "push_block"
           return
         end
         

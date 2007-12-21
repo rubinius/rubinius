@@ -37,10 +37,7 @@ module Compiler2::Plugins
     def handle(g, call)
       if call.fcall?
         if call.method == :block_given? or call.method == :iterator?
-          g.push :true
           g.push_block
-          g.is_nil
-          g.equal
           return true
         end
       end
