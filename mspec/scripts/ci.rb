@@ -14,6 +14,7 @@ target = 'shotgun/rubinius'
 format = 'CIFormatter'
 clean = false
 verbose = false
+status = false
 ci_files = "tmp/files.txt"
 flags = []
 
@@ -75,6 +76,9 @@ opts = OptionParser.new("", 24, '   ') do |opts|
   opts.on("-V", "--verbose", "Output each file processed when running") do
     verbose = true
   end
+  opts.on("-s", "--status", "Output a dot for every file run") do
+    status = true
+  end
   opts.on("-g", "--gdb", "Run under gdb") do
     flags << '--gdb'
   end
@@ -110,6 +114,10 @@ if clean
     File.delete(cname) if File.exist?(cname)
   end
 end
+
+file_list = files.map { |i| i.inspect }.join(",\n")
+
+file_list = "[\n#{file_list}\n]"
 
 code = <<-EOC
 ENV['MSPEC_RUNNER'] = '1'
@@ -151,10 +159,12 @@ all_excludes = read_excludes("spec/excludes.txt")
   spec_runner.%s(*all_excludes)
   %s
   STDERR.puts file if #{verbose}
+  STDERR.print "," if #{status}
   load file
   formatter.summary
   %s
 end
+STDERR.puts "" if #{status}
 EOC
 
 case action

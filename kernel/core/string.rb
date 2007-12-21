@@ -24,6 +24,11 @@ class String
       @encoding = nil      
     elsif !arg.nil?
       replace(StringValue(arg))
+    elsif @data.nil?
+      @data = ByteArray.new(1)
+      @bytes = 0
+      @characters = 0
+      @encoding = nil
     end
     
     return self
