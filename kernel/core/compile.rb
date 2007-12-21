@@ -62,6 +62,7 @@ module Compile
   # load the file directly or by prefixing it with the paths in
   # $LOAD_PATH and then attempts to locate and load the file.
   def self.unified_load(path, rb, rbc, ext, requiring = nil)
+
     # ./ ../ ~/ /
     if path =~ %r{\A(?:(\.\.?)|(~))?/}
       if $1       # Relative
@@ -302,7 +303,7 @@ module Kernel
     elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
       rb, rbc, ext = nil, nil, path
     else
-      rb, rbc, ext = path, "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
+      rb, rbc, ext = "#{path}.rb", "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
     
     Compile.unified_load path, rb, rbc, ext, true

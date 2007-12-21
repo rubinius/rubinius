@@ -23,7 +23,7 @@ describe "Kernel#require" do
   # Avoid storing .rbc and .rba in repo
   before :all do
     Dir.chdir($require_fixture_dir) {
-#      `rm *.rbc require_dynamic*`
+      `rm *.rbc require_dynamic*`
       `touch require_spec_dummy.#{Config::CONFIG['DLEXT']}`
       `touch require_spec_dummy.rb`
     }
