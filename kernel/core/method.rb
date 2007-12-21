@@ -74,6 +74,10 @@ class UnboundMethod
     @method.required
   end
 
+  def compiled_method
+    @method
+  end
+  
   def call_on_instance(obj, *args)
     bind(obj).call *args
   end

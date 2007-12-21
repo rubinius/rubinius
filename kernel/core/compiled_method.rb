@@ -194,7 +194,7 @@ activate_method
       @args.each_index do |i|
         case @op.args[i]
         when :literal
-          @args[i] = cm.literals[@args[i]].inspect
+          @args[i] = cm.literals[@args[i]]
         end
       end
       @ip = ip
@@ -217,7 +217,7 @@ activate_method
 
     def to_s
       str = "%04d:  %-27s" % [@ip, opcode]
-      str << @args.join(', ')
+      str << @args.map{|a| a.inspect}.join(', ')
     end
   end
 end

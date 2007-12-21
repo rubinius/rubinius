@@ -143,7 +143,12 @@ class InstructionSet
       @opcode_info[:args]
     end
 
-    # Returns the width (size) of the opcode (including arguments) in bytes
+    # Returns the size of the opcode (including arguments)
+    def size
+      @opcode_info[:args].size + 1
+    end
+
+    # Returns the width of the opcode (including arguments) in bytes
     def width
       (@opcode_info[:args].size + 1) * InstructionSize
     end
@@ -198,12 +203,14 @@ class InstructionSequence
       @iseq = iseq
       @offset = 0
       stream = []
-      last_op = nil
+
+      last_good = [nil, 0]
       
       begin
         while @offset < @iseq.size
           inst = iseq2int
           op = InstructionSet[inst]
+
           case op.arg_count
           when 0
             stream << [op.opcode]
@@ -212,14 +219,15 @@ class InstructionSequence
           when 2
             stream << [op.opcode, iseq2int, iseq2int]
           end
-          last_op = op
+          last_good = [op, stream.size] unless op.opcode == :noop
         end
       rescue InstructionSet::InvalidOpCode => ex
         # If direct-threading is not used, we can get junk at the end of the iseq
-        unless last_op and last_op.terminator?
-          ex.message << " at ip #{@offset}"
+        unless last_good.first and last_good.first.terminator?
+          ex.message << " at byte #{@offset} of #{@iseq.size} [IP:#{@offset / InstructionSet::InstructionSize}]"
           raise ex
         end
+        stream.slice! last_good.last, stream.size
       end
 
       return stream
@@ -251,6 +259,10 @@ class InstructionSequence
 
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
+      new_op = InstructionSet[inst]
+      if old_op.size < new_op.size
+        raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.size} / new #{new_op.size})"
+      end
       replaced = [old_op.opcode]
 
       i = 0
