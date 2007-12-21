@@ -187,7 +187,7 @@ class CompiledMethod
 
   class Instruction
     def initialize(inst, cm, ip)
-      @op = InstructionSet[inst[0]]
+      @op = inst[0]
       @args = inst[1..-1]
       @args.each_index do |i|
         case @op.args[i]

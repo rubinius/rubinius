@@ -254,18 +254,16 @@ class InstructionSequence
 
       old_inst = iseq2int
       old_op = InstructionSet[old_inst]
-      new_op = InstructionSet[inst]
+      new_op = InstructionSet[inst.first]
       if old_op.size < new_op.size
         raise ArgumentError, "Cannot replace an instruction with a larger instruction (existing #{old_op.size} / new #{new_op.size})"
       end
       replaced = [old_op.opcode]
 
-      i = 0
-      while i < old_op.arg_count do
+      1.upto(old_op.arg_count) do
         replaced << iseq2int
         @offset -= InstructionSet::InstructionSize
         int2str(0)  # Replace old args with 0
-        i += 1
       end
       
       @offset = start
@@ -298,7 +296,10 @@ class InstructionSequence
     end
     
     def encode(inst)
-      opcode = InstructionSet[inst.first]
+      opcode = inst.first
+      unless inst.kind_of? InstructionSet::OpCode
+        opcode = InstructionSet[opcode]
+      end
 
       arg_count = opcode.arg_count
       unless inst.size - 1 == arg_count
