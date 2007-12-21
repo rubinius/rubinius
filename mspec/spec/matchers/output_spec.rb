@@ -20,18 +20,16 @@ describe OutputMatcher do
     matcher = OutputMatcher.new("expected", "error")
     matcher.matches?(proc)
     matcher.failure_message.should == 
-      ["Expected:\n  $stdout: expected\n  $stderr: error\n",
-       "     got:\n  $stdout: unexpected\n  $stderr: unerror\n"]
+      ["Expected:\n  $stdout: \"expected\"\n  $stderr: \"error\"\n", 
+       "     got:\n  $stdout: \"unexpected\"\n  $stderr: \"unerror\"\n"]
     matcher = OutputMatcher.new("expected", nil)
     matcher.matches?(proc)
     matcher.failure_message.should == 
-      ["Expected:\n  $stdout: expected\n",
-       "     got:\n  $stdout: unexpected\n"]
+      ["Expected:\n  $stdout: \"expected\"\n", "     got:\n  $stdout: \"unexpected\"\n"]
     matcher = OutputMatcher.new(nil, "error")
     matcher.matches?(proc)
     matcher.failure_message.should == 
-     ["Expected:\n  $stderr: error\n",
-      "     got:\n  $stderr: unerror\n"]
+      ["Expected:\n  $stderr: \"error\"\n", "     got:\n  $stderr: \"unerror\"\n"]
   end
   
   it "provides a useful negative failure message" do
@@ -39,17 +37,14 @@ describe OutputMatcher do
     matcher = OutputMatcher.new("expected", "error")
     matcher.matches?(proc)
     matcher.negative_failure_message.should == 
-      ["Expected output not to be:\n",
-       "  $stdout: expected\n  $stderr: error\n"]
+      ["Expected output not to be:\n", "  $stdout: \"expected\"\n  $stderr: \"error\"\n"]
     matcher = OutputMatcher.new("expected", nil)
     matcher.matches?(proc)
     matcher.negative_failure_message.should == 
-     ["Expected output not to be:\n",
-      "  $stdout: expected\n"]
+      ["Expected output not to be:\n", "  $stdout: \"expected\"\n"]
     matcher = OutputMatcher.new(nil, "error")
     matcher.matches?(proc)
     matcher.negative_failure_message.should == 
-      ["Expected output not to be:\n",
-       "  $stderr: error\n"]    
+      ["Expected output not to be:\n", "  $stderr: \"error\"\n"]
   end    
 end

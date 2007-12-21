@@ -162,6 +162,7 @@ all_excludes = read_excludes("spec/excludes.txt")
   STDERR.print "," if #{status}
   load file
   formatter.summary
+  spec_runner.clear_filters
   %s
 end
 STDERR.puts "" if #{status}

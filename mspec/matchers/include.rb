@@ -23,7 +23,7 @@ class IncludeMatcher
   end
 end
 
-class Object
+class << self
   def include(*expected)
     IncludeMatcher.new(*expected)
   end

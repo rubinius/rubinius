@@ -13,7 +13,7 @@ tags
 tmtags
 *.rbc
 .spec/bm.yml
-spec/files.txt
+spec/core/kernel/fixtures/load/load_spec_rba.rba
 tmp
 scratch
 !runtime/stable/loader.rbc
