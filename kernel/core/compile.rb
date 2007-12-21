@@ -57,73 +57,62 @@ module Compile
     raise LocalJumpError, "unexpected break"
   end
   
-  # Internal. See #require for interface.
-  def self.require_feature(dir, rb_file, rbc_file, ext_file)
-    rb_path   = "#{dir}/#{rb_file}"
-    rbc_path  = "#{dir}/#{rbc_file}"
-    ext_path  = "#{dir}/#{ext_file}"
 
-    # Be mindful of the order and the difference between _file and _path.
+  # Internally used by #load and #require. Determines whether to
+  # load the file directly or by prefixing it with the paths in
+  # $LOAD_PATH and then attempts to locate and load the file.
+  def self.unified_load(path, rb, rbc, ext, requiring = nil)
+    # ./ ../ ~/ /
+    if path =~ %r{\A(?:(\.\.?)|(~))?/}
+      if $1       # Relative
+        res = Compile.single_load Dir.pwd, rb, rbc, ext, requiring
 
-    if File.file? rb_path
-      return false if $LOADED_FEATURES.include? rb_file
+      elsif $2    # ~ 
+        rb.slice! '~/'
+        rbc.slice! '~/'
+        ext.slice! '~/'
+        res = Compile.single_load ENV['HOME'], rb, rbc, ext, requiring
 
-      # Use source only if it is newer
-      if !File.file?(rbc_path) or File.mtime(rb_path) > File.mtime(rbc_path)
-        cm = Compile.compile_file(rb_path)
-        raise LoadError, "Unable to compile: #{rb_path}" unless cm
-
-        # Store it
-        Marshal.dump_to_file cm, rbc_path, Rubinius::CompiledMethodVersion
-
-      else 
-        cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
-        raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
+      else        # Absolute
+        res = Compile.single_load '', rb, rbc, ext, requiring
       end
 
-      cm.compile
-      cm.as_script
-      $LOADED_FEATURES << rb_file
-      return true
+      return res unless res.equal? nil
+    
+    # Unqualified
+    else
+      $LOAD_PATH.each do |dir|      
+        if rbc and dir.suffix? '.rba' and File.file? dir 
+          cm = Archive.get_object(dir, rbc, Rubinius::CompiledMethodVersion)
+          
+          if cm
+            return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
 
-    elsif File.file? rbc_path
-      return false if $LOADED_FEATURES.include? rb_file
+            cm.compile
+            cm.as_script
 
-      cm = CompiledMethod.load_from_file(rbc_path, Rubinius::CompiledMethodVersion)
-      raise LoadError, "Invalid .rbc: #{rbc_path}" unless cm
-
-      cm.compile
-      cm.as_script
-      $LOADED_FEATURES << rb_file
-      return true
-
-    elsif File.file? ext_file
-      return false if $LOADED_FEATURES.include? ext_file
-
-      if File.file? ext_path
-        ext_name = File.basename(ext_file).chomp(Rubinius::LIBSUFFIX))
-
-        case VM.load_library(ext_path, ext_name)
-          when true
-            $LOADED_FEATURES << ext_file
+            $LOADED_FEATURES << rb if requiring.equal?(true)
             return true
-          when 0 # Absent or invalid
-            return nil
-          when 1 # Valid library, but no entry point
-            raise LoadError, "Invalid extension at '#{ext_path}'. " << 
-                             "Did you define Init_#{ext_name}?"
+          end
+          # Fall through
         end
+
+        res = Compile.single_load dir, rb, rbc, ext, requiring
+        return res unless res.equal? nil
       end
     end
 
-    return nil
+    raise LoadError, "No such file: #{path}"
   end
 
-  # Internal. See #load for interface.
-  def self.single_load(dir, rb, rbc, ext)
+  # Internally used by #unified_load. This attempts to load the
+  # designated file from a single prefix path.
+  def self.single_load(dir, rb, rbc, ext, requiring = nil)
 
     # .rb and no extension
     unless rb.equal? nil
+      return false if requiring.equal?(true) and $LOADED_FEATURES.include? rb
+
       rb_path = "#{dir}/#{rb}"
 
       if File.file? rb_path
@@ -144,12 +133,16 @@ module Compile
 
         cm.compile
         cm.as_script
+
+        $LOADED_FEATURES << rb if requiring.equal?(true)
         return true
       end
     end
 
     # .rbc
     unless rbc.equal? nil
+      return false if requiring.equal?(true) and $LOADED_FEATURES.include?(rbc.chomp 'c')
+
       rbc_path = "#{dir}/#{rbc}"
 
       return nil unless File.file? rbc_path
@@ -159,11 +152,15 @@ module Compile
 
       cm.compile
       cm.as_script
+
+      $LOADED_FEATURES << rbc.chomp('c') if requiring.equal?(true)
       return true
     end
 
     # .<ext>
     unless ext.equal? nil
+      return false if requiring.equal?(true) and $LOADED_FEATURES.include? ext
+
       ext_path = "#{dir}/#{ext}"
       ext_name = File.basename(ext).chomp Rubinius::LIBSUFFIX
 
@@ -171,6 +168,7 @@ module Compile
 
       case VM.load_library(ext_path, ext_name)
         when true
+          $LOADED_FEATURES << ext if requiring.equal?(true)
           return true
         when 0 # Absent or invalid
           return nil
@@ -249,43 +247,7 @@ module Kernel
       rb, rbc, ext = path, "#{path}.rbc", nil
     end
 
-    # Qualified files
-    if path =~ %r{\A(?:(\.\.?)|(~))?/}
-      if $1       # Relative
-        res = Compile.single_load Dir.pwd, rb, rbc, ext
-
-      elsif $2    # ~ 
-        rb.slice!(0..1) if rb
-        rbc.slice!(0..1) if rbc
-        ext.slice!(0..1) if ext
-        res = Compile.single_load ENV['HOME'], rb, rbc, ext
-
-      else        # Absolute
-        res = Compile.single_load '', rb, rbc, ext
-      end
-
-      return true unless res.equal? nil
-    
-    # Unqualified
-    else
-      $LOAD_PATH.each do |dir|      
-        if dir.suffix? '.rba' and File.file? dir 
-          # TODO: This may need to change for efficiency
-          cm = Archive.get_object_fuzzy(dir, path, Rubinius::CompiledMethodVersion)
-          
-          if cm
-            cm.compile
-            cm.as_script
-            return true
-          end
-        end
-
-        res = Compile.single_load dir, rb, rbc, ext
-        return true unless res.equal? nil
-      end
-    end
-
-    raise LoadError, "No such file: #{path}"
+    Compile.unified_load path, rb, rbc, ext
   end
 
   # Attempt to load the given file, returning true if successful.
@@ -332,61 +294,18 @@ module Kernel
   #
   def require(path)    
     path = StringValue(path)
-
+    
     if path.suffix? '.rbc'
-      rb_file   = path.chomp('c')
-      rbc_file  = path
-      ext_file  = ''
+      rb, rbc, ext = nil, path, nil
     elsif path.suffix? '.rb'
-      rb_file   = path
-      rbc_file  = "#{path}c"
-      ext_file  = ''
-    elsif path.suffix? Rubinius::LIBSUFFIX
-      rb_file   = ''
-      rbc_file  = ''
-      ext_file  = path
+      rb, rbc, ext = path, "#{path}c", nil
+    elsif path.suffix? ".#{Rubinius::LIBSUFFIX}"
+      rb, rbc, ext = nil, nil, path
     else
-      rb_file  = "#{path}.rb"
-      rbc_file  = "#{path}.rbc"
-      ext_file  = path + '.' + Rubinius::LIBSUFFIX
+      rb, rbc, ext = path, "#{path}.rbc", "#{path}.#{Rubinius::LIBSUFFIX}"
     end
     
-    # Qualified files
-    if path =~ %r{^(?:(\.\.?)|(~))?/}
-      if $1
-        res = Compile.require_feature Dir.pwd, rb_file, rbc_file, ext_file
-      elsif $2
-        rb_file, rbc_file, ext_file = rb_file[2..-1], rbc_file[2..-1], ext_file[2..-1]
-        res = Compile.require_feature ENV['HOME'], rb_file, rbc_file, ext_file
-      else
-        res = Compile.require_feature '', rb_file, rbc_file, ext_file
-      end
-
-      return true unless res.equal? nil
-    
-    # Unqualified
-    else
-      $LOAD_PATH.each do |dir|      
-        if dir.suffix? '.rba' and File.file? dir 
-          return false if $LOADED_FEATURES.include? rb_file
-
-          cm = Archive.get_object(dir, rbc_file, Rubinius::CompiledMethodVersion)
-          
-          if cm
-            cm.compile
-            cm.as_script
-            $LOADED_FEATURES << rb_file
-            return true
-          end
-        end
-
-        res = Compile.require_feature dir, rb_file, rbc_file, ext_file
-        return res unless res.equal? nil
-      end
-    end
-
-    raise LoadError, "No such file: #{path}"
+    Compile.unified_load path, rb, rbc, ext, true
   end
-
 end
 
