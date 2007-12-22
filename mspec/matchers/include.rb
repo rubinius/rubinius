@@ -24,6 +24,7 @@ class IncludeMatcher
 end
 
 class << self
+  undef :include
   def include(*expected)
     IncludeMatcher.new(*expected)
   end
