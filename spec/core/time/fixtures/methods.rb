@@ -18,7 +18,7 @@ def with_timezone(name, offset, daylight_saving_zone = "")
 end
 
 def localtime(seconds)
-  platform :darwin do
+  platform :darwin, :bsd do
     return `date -r #{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
   
@@ -26,7 +26,5 @@ def localtime(seconds)
     return `date -d @#{seconds} +'%a %b %d %H:%M:%S %z %Y'`.chomp
   end
   
-  platform :ruby do
-    return `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
-  end
+  return `date -j -f "%s" #{seconds} "+%a %b %d %H:%M:%S %z %Y"`.chomp
 end

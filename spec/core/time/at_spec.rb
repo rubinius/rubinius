@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + '/fixtures/methods'
 describe "Time.at" do
   it "converts to time object" do
     # the #chomp calls are necessary because of RSpec
-    Time.at( 1168475924 ).inspect.chomp.should == localtime(1168475924).chomp
+    Time.at(1168475924).inspect.chomp.should == localtime(1168475924).chomp
   end
   
   it "creates a new time object with the value given by time" do
