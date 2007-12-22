@@ -118,6 +118,21 @@ end
     $LOADED_FEATURES.grep(/load_spec_3.rb/).should == []
   end
 
+  it "produces __FILE__ as the given filename and __LINE__ as the source line number" do
+    Dir.chdir($load_fixture_dir) do |dir|
+      load('load_spec_4.rb').should == true 
+      $load_spec_4.should == [['./load_spec_4.rb', 1], ['./load_spec_4.rb', 10]]
+
+      extension :rubinius do
+        `rm load_spec_4.rbc`
+      end
+    end
+
+    load("#{$load_fixture_dir}/load_spec_4.rb").should == true 
+    $load_spec_4.should == [['./spec/core/kernel/fixtures/load/load_spec_4.rb', 1], 
+                            ['./spec/core/kernel/fixtures/load/load_spec_4.rb', 10]]
+  end
+
   it "reloads the file if invoked on the same filename again, returning true" do
     load('load_spec_4.rb').should == true
     load('load_spec_4.rb').should == true
