@@ -4,6 +4,7 @@ require 'compiler'
 require 'generator'
 require 'bytecode'
 require 'text'
+require 'graph'
 
 require 'options'
 
@@ -47,6 +48,7 @@ def batch(opts)
 
     puts "\n -- Constructing AST:\n"
     n = c.into_script s
+    puts n.describe_ast if opts['show-ast']
 
     puts "\n -- Generating bytecode:\n"
     meth = n.to_description
@@ -61,6 +63,7 @@ o = Options.new do |o|
       o.header "Usage:  shotgun/rubinius compiler2/describe.rb [FILE, ...]\n" <<
                "        Omitting the filename also gives the interactive prompt.\n" <<
                "\n"
+      o.option '-a --show-ast     ASCII map of the AST'
       o.option '-i --interactive  Present prompt'
       o.option '-h --help         Show this help message.'
 
@@ -71,6 +74,8 @@ interactive if ARGV.empty?
 
 opts = o.parse ARGV
 (puts o.usage; exit) if opts['help']
+
+p opts
 
 interactive if opts['interactive'] or opts[:args].empty?
 batch opts

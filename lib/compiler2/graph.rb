@@ -1,10 +1,69 @@
+$: << File.expand_path(File.dirname(__FILE__))
+
 require 'compiler'
-require 'generate'
+require 'generator'
 require 'bytecode'
 require 'text'
 
 
 class Compiler2::Node
+
+  # Debug print for the AST
+  def describe_ast(indent = 0, stack = [self])
+    str, offset = '', (' ' * indent)
+    str << "#{self.class.name.split('::').last}\n" 
+
+    ivs = instance_variables.map {|iv| [iv.sub('@', '.'), instance_variable_get(iv)] }
+    max = ivs.sort_by {|iv| iv.first.length }.last.first.length
+
+    ivs.each do |name, var|
+      next if name == '.compiler'
+
+      str << "#{offset}#{name.ljust(max)} = "
+
+      if var.kind_of? Array
+        indented =  var.map do |v|
+                      if v.kind_of? Compiler2::Node
+                        if stack.include? v
+                          "#<#{var.class.name} RECURSIVE...>"
+                        else
+                          v.describe_ast(indent + max + 3 + 1, stack).chomp
+                        end
+                      elsif v.class.name =~ /^Compiler/
+                        "#<#{v.class.name} ...>" 
+                      else
+                        v.inspect
+                      end
+                    end.join(",\n#{' ' * (indent + max + 3 + 1)}")
+
+        str << "[" << indented << "]" << "\n"
+        next
+      end
+
+      if var.kind_of? Compiler2::Node
+        if stack.include? var
+          str << "#<#{var.class.name} RECURSIVE...>"
+        else   
+          str << var.describe_ast(indent + max + 3, stack)
+        end
+
+      elsif var.class.name =~ /^Compiler/
+        str << "#<#{var.class.name} ...>" << "\n"
+
+      else
+        str << var.inspect << "\n"
+      end
+    end
+
+    stack.pop
+    str
+  end
+
+
+
+
+  # More sophisticated graphing
+
   def to_dot(output, ds)
     i = ds.next
     output << %Q!node#{i} [shape=box, label="#{dot_name}", fontname="Monaco"];\n!
@@ -141,28 +200,30 @@ class DotState
   end
 end
 
-file = ARGV.shift
+
+if "./#{$0}" == __FILE__      # TODO: Fix this when we set the same way
+  file = ARGV.shift
+
+  gen = Compiler2::Generator
+
+  c = Compiler2.new(gen)
 
 
-gen = Compiler2::Generator
+  if file
+    x = File.to_sexp(file)
+    n = c.into_script(x)
+  else
+    code = Readline.readline("> ")
+    n = c.into_script(code.to_sexp)
+  end
 
-c = Compiler2.new(gen)
+  output = "digraph G {\n"
 
+  ds = DotState.new
 
-if file
-  x = File.to_sexp(file)
-  n = c.into_script(x)
-else
-  code = Readline.readline("> ")
-  n = c.into_script(code.to_sexp)
+  n.to_dot(output, ds)
+
+  output << "}\n"
+
+  puts output
 end
-
-output = "digraph G {\n"
-
-ds = DotState.new
-
-n.to_dot(output, ds)
-
-output << "}\n"
-
-puts output
