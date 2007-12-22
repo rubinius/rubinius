@@ -1,6 +1,7 @@
 require 'mspec/runner/formatters/dotted'
+require 'mspec/runner/guards'
 
-unless defined?(RUBY_ENGINE)
+unless MSpec.engine?(:rubinius)
   # The useless use warnings are a crime against OO.
   def $stderr.write(msg)
     if msg =~ /useless use of/

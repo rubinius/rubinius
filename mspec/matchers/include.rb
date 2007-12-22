@@ -1,3 +1,5 @@
+require 'mspec/runner/guards'
+
 class IncludeMatcher
   def initialize(*expected)
     @expected = expected
@@ -24,7 +26,7 @@ class IncludeMatcher
 end
 
 class << self
-  undef :include
+  undef :include unless MSpec.engine?(:rubinius)
   def include(*expected)
     IncludeMatcher.new(*expected)
   end
